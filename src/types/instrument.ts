@@ -56,7 +56,7 @@ export const createInstrument =
       return new Promise<void>((resolve) => {
         const sampler = new Sampler({
           urls: { ...sampleMap },
-          baseUrl: `${window.location.origin}/samples/${category}/${track.instrument}/`,
+          baseUrl: `${window.location.href}/samples/${category}/${track.instrument}/`,
           onload: () => {
             let instrument = INSTRUMENTS[track.id];
             // Dispose the old instrument if it exists
@@ -90,7 +90,7 @@ export const createGlobalInstrument = () => {
   return new Promise<void>((resolve) => {
     const sampler = new Sampler({
       urls: { ...samples["grand_piano"] },
-      baseUrl: `${window.location.origin}/samples/keyboards/grand_piano/`,
+      baseUrl: `${window.location.href}/samples/keyboards/grand_piano/`,
       onload: () => {
         // Connect and instantiate a new mixer
         const mixer = new MixerInstance(defaultMixer);
