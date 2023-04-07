@@ -13,13 +13,12 @@ import * as Constants from "appConstants";
 import { useClipDrag } from "./dnd";
 
 import * as RootSlice from "redux/slices/root";
-import { MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { MouseEvent, useEffect, useMemo, useState } from "react";
 import Stream from "./Stream";
 import { selectTransforms } from "redux/selectors/transforms";
 import useEventListeners from "hooks/useEventListeners";
 import { createTransforms } from "redux/slices/transforms";
 import { TransformNoId } from "types/transform";
-import { Transition } from "@headlessui/react";
 import { invertPattern, transposePattern } from "redux/slices/patterns";
 
 interface OwnClipProps extends ClipsProps {
