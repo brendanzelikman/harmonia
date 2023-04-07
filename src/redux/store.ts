@@ -5,7 +5,7 @@ import {
   ThunkAction,
 } from "@reduxjs/toolkit";
 import * as Slices from "./slices";
-import undoable, { excludeAction } from "redux-undo";
+import undoable from "redux-undo";
 import { loadState, saveState } from "./util";
 import { groupByActionType } from "./undoTypes";
 
@@ -22,7 +22,6 @@ const timeline = combineReducers({
 
 const undoableTimeline = undoable(timeline, {
   groupBy: groupByActionType,
-  filter: excludeAction(["mixers/updateMixer"]),
   undoType: "timeline/undo",
   redoType: "timeline/redo",
   limit: 16,

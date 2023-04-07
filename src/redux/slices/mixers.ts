@@ -11,10 +11,9 @@ import {
   Effect,
   EffectType,
   FilterProps,
+  MixerId,
 } from "types/mixer";
 import { TrackId } from "types/tracks";
-
-type MixerId = string;
 
 interface TrackMixer extends Mixer {
   trackId: TrackId;

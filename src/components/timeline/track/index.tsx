@@ -3,7 +3,7 @@ import { connect, ConnectedProps } from "react-redux";
 import * as Selectors from "redux/selectors";
 import { selectTrackTransforms } from "redux/selectors";
 import { setMixerMute, setMixerPan, setMixerSolo } from "redux/slices/mixers";
-import { hideEditor, setActiveTrack, viewEditor } from "redux/slices/root";
+import { hideEditor, viewEditor } from "redux/slices/root";
 import {
   clearTrack,
   deleteTrack,
