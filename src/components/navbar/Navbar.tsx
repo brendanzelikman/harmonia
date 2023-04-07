@@ -67,7 +67,7 @@ function NavGroup(props: any) {
 function NavBrand() {
   return (
     <>
-      <a href="" className="select-none" onClick={clearState}>
+      <a href="" className="select-none">
         <img src={logo} alt="Logo brand" className="w-12 h-12" />
       </a>
       <div className="relative hidden xl:flex xl:flex-col items-center ml-3 font-light font-nunito">

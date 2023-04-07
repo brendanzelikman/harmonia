@@ -56,13 +56,6 @@ const preloadedState = loadState();
 export const store = configureStore({
   reducer,
   preloadedState,
-  middleware(getDefaultMiddleware) {
-    return getDefaultMiddleware({
-      thunk: true,
-      immutableCheck: false,
-      serializableCheck: false,
-    });
-  },
 });
 
 store.subscribe(() => {
