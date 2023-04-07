@@ -43,7 +43,7 @@ export function Editor(props: EditorProps) {
 export const EditorTransition = (props: { show: boolean; children?: any }) => {
   return (
     <Transition
-      show={props.show}
+      show={!!props.show}
       enter="transition-opacity duration-300"
       enterFrom="opacity-0"
       enterTo="opacity-100"

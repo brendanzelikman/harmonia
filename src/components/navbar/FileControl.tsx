@@ -52,7 +52,7 @@ function FileControl(props: Props) {
         {/* <Label text="Save File" shortText="Save" /> */}
         <NavbarTooltip
           className="bg-gradient-to-t from-sky-900/90 to-slate-800 backdrop-blur"
-          show={props.onFile}
+          show={!!props.onFile}
           content={<FileTooltipContent {...props} />}
         />
       </div>

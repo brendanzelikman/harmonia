@@ -158,39 +158,35 @@ function PatternListbox(props: Props) {
               </span>
             )}
           </Listbox.Button>
-          <Transition
-            as={Fragment}
-            leave="transition ease-in duration-100"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+          <Listbox.Options
+            style={{ animation: "fade-in 0.2s" }}
+            className="transition-opacity absolute z-10 w-full py-1 border border-white/50 text-base bg-slate-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
           >
-            <Listbox.Options className="absolute z-10 w-full py-1 border border-white/50 text-base bg-slate-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-              {Patterns.PresetCategories.map((category) => (
+            {Patterns.PresetCategories.map((category) => (
+              <div
+                key={category}
+                className={`group relative w-full h-full bg-green-500`}
+              >
                 <div
-                  key={category}
-                  className={`group relative w-full h-full bg-green-500`}
+                  className={`px-4 py-2 text-sm font-medium text-white bg-slate-800 ${
+                    props.activePattern &&
+                    isPatternInCategory(props.activePattern, category)
+                      ? "text-emerald-500"
+                      : "bg-slate-800"
+                  } group-hover:bg-emerald-600 group-hover:text-white`}
                 >
-                  <div
-                    className={`px-4 py-2 text-sm font-medium text-white bg-slate-800 ${
-                      props.activePattern &&
-                      isPatternInCategory(props.activePattern, category)
-                        ? "text-emerald-500"
-                        : "bg-slate-800"
-                    } group-hover:bg-emerald-600 group-hover:text-white`}
-                  >
-                    {category}
-                  </div>
-                  <div className="bg-slate-800 border border-white/50 rounded z-50 top-0 right-0 translate-x-[100%] absolute hidden group-hover:block">
-                    <div className="h-full flex flex-col">
-                      {PatternGroups[category].map((pattern) =>
-                        renderPattern(pattern)
-                      )}
-                    </div>
+                  {category}
+                </div>
+                <div className="bg-slate-800 border border-white/50 rounded z-50 top-0 right-0 translate-x-[100%] absolute hidden group-hover:block">
+                  <div className="h-full flex flex-col">
+                    {PatternGroups[category].map((pattern) =>
+                      renderPattern(pattern)
+                    )}
                   </div>
                 </div>
-              ))}
-            </Listbox.Options>
-          </Transition>
+              </div>
+            ))}
+          </Listbox.Options>
         </div>
       </Listbox>
     </div>

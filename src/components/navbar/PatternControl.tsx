@@ -140,7 +140,7 @@ function PatternControl(props: Props) {
           </ControlButton>
           <NavbarTooltip
             className="bg-gradient-to-t from-zinc-900/90 to-cyan-800/90 backdrop-blur"
-            show={props.addingClip}
+            show={!!props.addingClip}
             content="Adding Clip"
           />
         </div>
@@ -155,7 +155,7 @@ function PatternControl(props: Props) {
           </ControlButton>
           <NavbarTooltip
             className="bg-gradient-to-t from-zinc-900/90 to-slate-600/90 backdrop-blur"
-            show={props.cuttingClip}
+            show={!!props.cuttingClip}
             content="Cutting Clip"
           />
         </div>
@@ -173,7 +173,7 @@ function PatternControl(props: Props) {
           </ControlButton>
           <NavbarTooltip
             className="bg-gradient-to-t from-zinc-900/90 to-purple-500/50 backdrop-blur"
-            show={props.mergingClips}
+            show={!!props.mergingClips}
             content={<MergeTooltipContent {...props} />}
           />
         </div>
@@ -191,7 +191,7 @@ function PatternControl(props: Props) {
           </ControlButton>
           <NavbarTooltip
             className="bg-gradient-to-t from-zinc-900/90 to-emerald-600/80 backdrop-blur"
-            show={props.repeatingClips}
+            show={!!props.repeatingClips}
             content={<RepeatTooltipContent {...props} />}
           />
         </div>
@@ -208,7 +208,7 @@ function PatternControl(props: Props) {
           </ControlButton>
           <NavbarTooltip
             className="bg-gradient-to-t from-zinc-900/90 to-fuchsia-700/80 backdrop-blur"
-            show={props.transposingClip}
+            show={!!props.transposingClip}
             content={<TransposeTooltipContent {...props} />}
           />
         </div>

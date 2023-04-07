@@ -294,16 +294,16 @@ export class MixerInstance {
   // Get an effect by type
   getEffectByType = (effectType: EffectType) => {
     return this.effects.find((e) => {
-      switch (e.constructor.name) {
-        case PitchShift.name:
+      switch (e.name) {
+        case "PitchShift":
           return effectType === "warp";
-        case Reverb.name:
+        case "Reverb":
           return effectType === "reverb";
-        case Chorus.name:
+        case "Chorus":
           return effectType === "chorus";
-        case FeedbackDelay.name:
+        case "FeedbackDelay":
           return effectType === "delay";
-        case ToneFilter.name:
+        case "ToneFilter":
           return effectType === "filter";
         default:
           return false;
@@ -317,9 +317,7 @@ export class MixerInstance {
   // Update an effect by type with a partial update
   updateEffectByType = (effectType: EffectType, update: Partial<Effect>) => {
     const effect = this.getEffectByType(effectType);
-
     if (!effect) return;
-
     const index = this.effects.indexOf(effect);
     this.updateEffectByIndex(index, update);
   };
@@ -330,39 +328,41 @@ export class MixerInstance {
     const effect = this.effects[index];
     if (effect) {
       switch (effect.name) {
-        case PitchShift.name:
+        case "PitchShift":
           let warp = effect as PitchShift;
           if (update.wet !== undefined) warp.wet.value = update.wet;
           if (update.pitch !== undefined) warp.pitch = update.pitch;
           if (update.window !== undefined) warp.windowSize = update.window;
-          return;
-        case Reverb.name:
+          break;
+        case "Reverb":
           const reverb = effect as Reverb;
           if (update.wet !== undefined) reverb.wet.value = update.wet;
           if (update.decay !== undefined) reverb.decay = update.decay;
           if (update.predelay !== undefined) reverb.preDelay = update.predelay;
-          return;
-        case Chorus.name:
+          break;
+        case "Chorus":
           const chorus = effect as Chorus;
           if (update.wet !== undefined) chorus.wet.value = update.wet;
           if (update.frequency !== undefined)
             chorus.frequency.value = update.frequency;
           if (update.depth !== undefined) chorus.depth = update.depth;
           if (update.delay !== undefined) chorus.delayTime = update.delay;
-          return;
-        case FeedbackDelay.name:
+          break;
+        case "FeedbackDelay":
           const delay = effect as FeedbackDelay;
           if (update.wet !== undefined) delay.wet.value = update.wet;
           if (update.delay !== undefined) delay.delayTime.value = update.delay;
           if (update.feedback !== undefined)
             delay.feedback.value = update.feedback;
-          return;
-        case ToneFilter.name:
+          break;
+        case "ToneFilter":
           const filter = effect as ToneFilter;
           if (update.low !== undefined) filter.low.gain.value = update.low;
           if (update.mid !== undefined) filter.mid.gain.value = update.mid;
           if (update.high !== undefined) filter.high.gain.value = update.high;
-          return;
+          break;
+        default:
+          break;
       }
     }
   };
