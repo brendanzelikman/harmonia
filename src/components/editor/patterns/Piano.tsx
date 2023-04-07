@@ -48,6 +48,7 @@ export function PatternsPiano(props: Props) {
         props.removePatternNote(props.activePattern.id, midiNumber);
       }
     }
+    if (!sampler?.loaded || sampler?.disposed) return;
     sampler.triggerAttackRelease(MIDI.toPitch(midiNumber), "4n");
   };
   return (

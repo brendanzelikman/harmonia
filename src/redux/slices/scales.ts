@@ -167,6 +167,7 @@ export const playScale =
       const subdivision = beatsToSubdivision(2);
       const pitch = MIDI.toPitch(note);
       setTimeout(() => {
+        if (!sampler) return;
         sampler.triggerAttackRelease([pitch], subdivision);
       }, time * 1000);
       time += duration;

@@ -101,7 +101,7 @@ export function EditorScales(props: EditorScalesProps) {
     if (!scale) return;
     if (onState("adding")) props.addNoteToScale(scale.id, midiNumber);
     if (onState("removing")) props.removeNoteFromScale(scale.id, midiNumber);
-    if (!sampler?.loaded) return;
+    if (!sampler?.loaded || sampler?.disposed) return;
     sampler.triggerAttackRelease(MIDI.toPitch(midiNumber), "4n");
   };
 
