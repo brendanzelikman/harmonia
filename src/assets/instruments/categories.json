@@ -1,0 +1,190 @@
+{
+  "keyboards": [
+    {
+      "key": "grand_piano",
+      "name": "Grand Piano"
+    },
+    {
+      "key": "electric_piano",
+      "name": "Electric Piano"
+    },
+    {
+      "key": "wurlitzer",
+      "name": "Wurlitzer"
+    },
+    {
+      "key": "clavichord",
+      "name": "Clavichord"
+    },
+    {
+      "key": "church_organ",
+      "name": "Church Organ"
+    },
+    {
+      "key": "electric_organ",
+      "name": "Electric Organ"
+    }
+  ],
+
+  "guitars": [
+    {
+      "key": "electric_guitar",
+      "name": "Electric Guitar"
+    },
+    {
+      "key": "electric_bass",
+      "name": "Electric Bass"
+    },
+    {
+      "key": "heavy_guitar",
+      "name": "Heavy Guitar"
+    },
+    {
+      "key": "tremolo_guitar",
+      "name": "Tremolo Guitar"
+    }
+  ],
+
+  "strings": [
+    {
+      "key": "violin",
+      "name": "Violin"
+    },
+    {
+      "key": "viola",
+      "name": "Viola"
+    },
+    {
+      "key": "cello",
+      "name": "Cello"
+    },
+    {
+      "key": "double_bass",
+      "name": "Double Bass"
+    },
+    {
+      "key": "string_ensemble",
+      "name": "String Ensemble"
+    }
+  ],
+
+  "brass": [
+    {
+      "key": "trumpet",
+      "name": "Trumpet"
+    },
+    {
+      "key": "trombone",
+      "name": "Trombone"
+    },
+    {
+      "key": "tuba",
+      "name": "Tuba"
+    },
+    {
+      "key": "french_horn",
+      "name": "French Horn"
+    },
+    {
+      "key": "saxophone",
+      "name": "Saxophone"
+    },
+    {
+      "key": "brass_ensemble",
+      "name": "Brass Ensemble"
+    }
+  ],
+
+  "woodwinds": [
+    {
+      "key": "flute",
+      "name": "Flute"
+    },
+    {
+      "key": "clarinet",
+      "name": "Clarinet"
+    },
+    {
+      "key": "oboe",
+      "name": "Oboe"
+    },
+    {
+      "key": "bassoon",
+      "name": "Bassoon"
+    },
+    {
+      "key": "piccolo",
+      "name": "Piccolo"
+    },
+    {
+      "key": "woodwind_ensemble",
+      "name": "Woodwind Ensemble"
+    }
+  ],
+
+  "mallets": [
+    {
+      "key": "marimba",
+      "name": "Marimba"
+    },
+    {
+      "key": "xylophone",
+      "name": "Xylophone"
+    },
+    {
+      "key": "vibraphone",
+      "name": "Vibraphone"
+    },
+    {
+      "key": "glockenspiel",
+      "name": "Glockenspiel"
+    },
+    {
+      "key": "timpani",
+      "name": "Timpani"
+    },
+    {
+      "key": "tubular_bells",
+      "name": "Tubular Bells"
+    }
+  ],
+
+  "percussion": [
+    {
+      "key": "kick",
+      "name": "Kick"
+    },
+    {
+      "key": "snare",
+      "name": "Snare"
+    },
+    {
+      "key": "hihat",
+      "name": "Hi-Hat"
+    },
+    {
+      "key": "clap",
+      "name": "Clap"
+    },
+    {
+      "key": "conga",
+      "name": "Conga"
+    },
+    {
+      "key": "bongo",
+      "name": "Bongo"
+    },
+    {
+      "key": "shaker",
+      "name": "Shaker"
+    },
+    {
+      "key": "cymbal",
+      "name": "Cymbal"
+    },
+    {
+      "key": "crash",
+      "name": "Crash"
+    }
+  ]
+}

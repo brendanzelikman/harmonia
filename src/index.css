@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Nunito";
+  src: url("/fonts/Nunito.ttf");
+}
+
+@font-face {
+  font-family: "Open Sans";
+  src: url("/fonts/OpenSans.ttf");
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+html {
+  overflow: hidden;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+@keyframes animate-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.root-gradient {
+  background: linear-gradient(
+    #4161b3,
+    #087dbc,
+    #30dfcd,
+    #0082c8,
+    #4662a9,
+    #945cac
+  );
+}
+
+/* #4161b3, */
+/* #087dbc, */
+/* #30dfcd, */
+/* #0082c8, */
+/* #4662a9, */
+/* #945cac */
+
+body {
+  font-family: "Open Sans";
+  /* background: linear-gradient(#4161b3, #087dbc, #34c1b3, #85449f); */
+  background: #083a7a;
+  background-size: 100%;
+  overflow: auto;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

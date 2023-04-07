@@ -1,0 +1,233 @@
+{
+  "grand_piano": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+  "electric_piano": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "wurlitzer": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "clavichord": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "church_organ": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "electric_organ": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+
+  "electric_guitar": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "electric_bass": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+  "heavy_guitar": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "tremolo_guitar": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+
+  "violin": {
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+  "viola": {
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+  "cello": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav"
+  },
+  "double_bass": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav"
+  },
+  "string_ensemble": {
+    "C1": "c1.wav",
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+
+  "flute": {
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav",
+    "C7": "c7.wav"
+  },
+  "clarinet": {
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "oboe": {
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "bassoon": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+  "piccolo": {
+    "C5": "c5.wav",
+    "C6": "c6.wav",
+    "C7": "c7.wav"
+  },
+  "woodwind_ensemble": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav",
+    "C7": "c7.wav"
+  },
+
+  "trumpet": {
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "trombone": {
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+  "tuba": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav"
+  },
+  "french_horn": {
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+  "saxophone": {
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "brass_ensemble": {
+    "C2": "c2.wav",
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+
+  "glockenspiel": {
+    "C5": "c5.wav",
+    "C6": "c6.wav",
+    "C7": "c7.wav"
+  },
+  "marimba": {
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "vibraphone": {
+    "C4": "c4.wav",
+    "C5": "c5.wav",
+    "C6": "c6.wav"
+  },
+  "xylophone": {
+    "C5": "c5.wav",
+    "C6": "c6.wav",
+    "C7": "c7.wav"
+  },
+  "tubular_bells": {
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+  "timpani": {
+    "C3": "c3.wav",
+    "C4": "c4.wav",
+    "C5": "c5.wav"
+  },
+  "suspended_cymbal": {
+    "C4": "c4.wav"
+  },
+
+  "kick": {
+    "C4": "c4.wav"
+  },
+  "snare": {
+    "C4": "c4.wav"
+  },
+  "hihat": {
+    "C4": "c4.wav"
+  },
+  "tom": {
+    "C4": "c4.wav"
+  },
+  "crash": {
+    "C4": "c4.wav"
+  },
+  "conga": {
+    "C4": "c4.wav"
+  },
+  "bongo": {
+    "C4": "c4.wav"
+  },
+  "clap": {
+    "C4": "c4.wav"
+  },
+  "shaker": {
+    "C4": "c4.wav"
+  },
+  "cymbal": {
+    "C4": "c4.wav"
+  }
+}
