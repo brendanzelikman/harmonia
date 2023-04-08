@@ -1,6 +1,10 @@
-import { BsScissors } from "react-icons/bs";
-import { BiGitMerge } from "react-icons/bi";
-import { GiClockwork, GiCrystalWand, GiPaintBrush } from "react-icons/gi";
+import {
+  BsBrush,
+  BsClock,
+  BsLink45Deg,
+  BsMagic,
+  BsScissors,
+} from "react-icons/bs";
 import { connect, ConnectedProps } from "react-redux";
 import { RootState, AppDispatch } from "redux/store";
 import {
@@ -136,7 +140,7 @@ function PatternControl(props: Props) {
             } bg-gradient-to-b from-teal-500/90 to-slate-800/80 `}
             onClick={props.toggleAdding}
           >
-            <GiPaintBrush className="rotate-90" />
+            <BsBrush className="p-0.5" />
           </ControlButton>
           <NavbarTooltip
             className="bg-gradient-to-t from-zinc-900/90 to-cyan-800/90 backdrop-blur"
@@ -169,7 +173,7 @@ function PatternControl(props: Props) {
                 : ""
             }`}
           >
-            <BiGitMerge />
+            <BsLink45Deg />
           </ControlButton>
           <NavbarTooltip
             className="bg-gradient-to-t from-zinc-900/90 to-purple-500/50 backdrop-blur"
@@ -187,7 +191,7 @@ function PatternControl(props: Props) {
                 : ""
             }`}
           >
-            <GiClockwork />
+            <BsClock className="p-0.5" />
           </ControlButton>
           <NavbarTooltip
             className="bg-gradient-to-t from-zinc-900/90 to-emerald-600/80 backdrop-blur"
@@ -204,7 +208,7 @@ function PatternControl(props: Props) {
                 : ""
             }`}
           >
-            <GiCrystalWand className="-rotate-90" />
+            <BsMagic className="-rotate-90 p-0.5" />
           </ControlButton>
           <NavbarTooltip
             className="bg-gradient-to-t from-zinc-900/90 to-fuchsia-700/80 backdrop-blur"

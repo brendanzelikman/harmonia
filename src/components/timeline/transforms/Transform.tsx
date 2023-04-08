@@ -1,17 +1,15 @@
 import { connect, ConnectedProps } from "react-redux";
 
 import { AppDispatch, RootState } from "redux/store";
-import { ClipId } from "types/clips";
 import { TransformsProps } from ".";
 import * as Constants from "appConstants";
 
-import * as RootSlice from "redux/slices/root";
 import { useCallback, useMemo } from "react";
 
 import { selectTransforms } from "redux/selectors/transforms";
 import { Transform } from "types/transform";
-import { GiCrystalWand } from "react-icons/gi";
 import { selectRoot } from "redux/selectors";
+import { BsMagic } from "react-icons/bs";
 
 interface OwnClipProps extends TransformsProps {
   transform: Transform;
@@ -61,7 +59,7 @@ function TimelineTransform(props: TransformProps) {
           className="bg-fuchsia-500/80 rounded-t group relative flex flex-col justify-center items-center text-xs select-none"
           style={{ height: Constants.TRANSPOSE_HEIGHT }}
         >
-          <GiCrystalWand className="text-md" />
+          <BsMagic className="text-md" />
           <label
             className={`group-hover:visible invisible absolute ${
               left === Constants.TRACK_WIDTH ? "left-0" : "left-7"

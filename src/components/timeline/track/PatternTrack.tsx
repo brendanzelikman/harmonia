@@ -12,15 +12,11 @@ import { updatePatternTrack } from "redux/slices/patternTracks";
 import * as Constants from "appConstants";
 import { PatternTrack as PatternTrackType } from "types/tracks";
 import useDebouncedField from "hooks/useDebouncedField";
-import {
-  GiLinkedRings,
-  GiMagicBroom,
-  GiTrashCan,
-  GiTrumpet,
-} from "react-icons/gi";
 import { Tooltip } from "flowbite-react";
 import { getInstrumentName, InstrumentName } from "types/instrument";
 import { setMixerVolume } from "redux/slices/mixers";
+import { BsEraser, BsLink45Deg, BsTrash } from "react-icons/bs";
+import { BiCopy } from "react-icons/bi";
 
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const track = ownProps.track as PatternTrackType;
@@ -95,17 +91,17 @@ function PatternTrack(props: Props) {
             <div className="flex flex-col w-full">
               <TrackDropdownButton
                 content="Copy Track"
-                icon={<GiLinkedRings />}
+                icon={<BiCopy />}
                 onClick={() => props.duplicateTrack(track.id)}
               />
               <TrackDropdownButton
                 content="Clear Track"
-                icon={<GiMagicBroom />}
+                icon={<BsEraser />}
                 onClick={() => props.clearTrack(track.id)}
               />
               <TrackDropdownButton
                 content="Delete Track"
-                icon={<GiTrashCan />}
+                icon={<BsTrash />}
                 onClick={() => props.deleteTrack(track.id)}
               />
             </div>

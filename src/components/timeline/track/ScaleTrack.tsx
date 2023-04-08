@@ -5,8 +5,6 @@ import { ScaleTrack as ScaleTrackType, Track, TrackId } from "types/tracks";
 import { TrackProps } from ".";
 import { TrackButton, TrackDropdownButton, TrackDropdownMenu } from "./Track";
 import useDebouncedField from "hooks/useDebouncedField";
-import { GiLinkedRings, GiTrashCan, GiMagicBroom } from "react-icons/gi";
-import { Tooltip } from "flowbite-react";
 import {
   selectRoot,
   selectScaleTrackScaleAtTime,
@@ -16,6 +14,8 @@ import { viewEditor } from "redux/slices/root";
 import Scales from "types/scales";
 import { MIDI } from "types/midi";
 import { ChromaticScale } from "types/presets/scales";
+import { BiCopy } from "react-icons/bi";
+import { BsEraser, BsTrash } from "react-icons/bs";
 
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const track = ownProps.track as ScaleTrackType;
@@ -101,15 +101,18 @@ function ScaleTrack(props: Props) {
             <div className="flex flex-col w-full">
               <TrackDropdownButton
                 content="Copy Track"
-                icon={<GiLinkedRings />}
+                icon={<BiCopy />}
+                onClick={() => props.duplicateTrack(track.id)}
               />
               <TrackDropdownButton
                 content="Clear Track"
-                icon={<GiMagicBroom />}
+                icon={<BsEraser />}
+                onClick={() => props.clearTrack(track.id)}
               />
               <TrackDropdownButton
                 content="Delete Track"
-                icon={<GiTrashCan />}
+                icon={<BsTrash />}
+                onClick={() => props.deleteTrack(track.id)}
               />
             </div>
           </TrackDropdownMenu>

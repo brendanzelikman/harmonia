@@ -16,12 +16,18 @@ export function TimeFormatter(props: TimeProps) {
   const [{ isOver }, drop] = useLoopDrop(props);
 
   const Measure = ({ className }: { className?: string }) => (
-    <div className={`w-4 ${className ?? ""}`}>{props.measure}</div>
+    <div
+      className={`absolute ${props.measure > 99 ? "text-[9px]" : ""} ${
+        className ?? ""
+      }`}
+    >
+      {props.measure}
+    </div>
   );
 
   // Hold S + click to set loop start
-  // Hold E + click to set loop end
   const [holdingS, setHoldingS] = useState(false);
+  // Hold E + click to set loop end
   const [holdingE, setHoldingE] = useState(false);
 
   const handleKeyDown = useCallback((e: Event) => {

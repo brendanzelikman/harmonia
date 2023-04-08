@@ -128,70 +128,79 @@ function PatternListbox(props: Props) {
         value={props.activePattern?.id ?? ""}
         onChange={props.setPatternId}
       >
-        <div className="relative">
-          <Listbox.Button className="relative w-full h-full cursor-default rounded-md bg-gray-900 text-white p-2 py-2.5 text-left shadow-md focus:outline-none">
-            <span
-              className={`block truncate mr-4 ${
-                !props.activePattern?.id ? "opacity-75" : "opacity-100"
-              }`}
-            >
-              {props.activePattern?.name}
-            </span>
-            {props.activePattern?.id ? (
+        {({ open }) => (
+          <div className="relative">
+            <Listbox.Button className="relative w-full h-full cursor-default rounded-md bg-gray-900 text-white p-2 py-2.5 text-left shadow-md focus:outline-none">
               <span
-                className={`absolute inset-y-0 right-0 top-0 flex justify-center items-center px-1 ${
-                  props.onPatternsEditor
-                    ? "bg-emerald-600 text-white"
-                    : "bg-emerald-600 text-emerald-200"
-                } rounded-r cursor-pointer`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (props.activePattern?.id) props.onPatternsClick();
-                }}
-              >
-                <BsPencil className="text-xl" />
-              </span>
-            ) : (
-              <span className="absolute inset-y-0 right-0 top-0 flex justify-center items-center px-1 bg-slate-500 rounded-r cursor-pointer">
-                <BsChevronUp className="text-xl text-slate-200" />
-              </span>
-            )}
-          </Listbox.Button>
-          <Listbox.Options
-            style={{ animation: "fade-in 0.2s" }}
-            className="transition-opacity absolute z-10 w-full py-1 border border-white/50 text-base bg-slate-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
-          >
-            {Patterns.PresetCategories.map((category) => (
-              <div
-                key={category}
-                className={`group relative w-full h-full bg-slate-300/50 ${
-                  ["Basic Durations", "Custom Patterns"].includes(category)
-                    ? "pt-0.5"
-                    : ""
+                className={`block truncate mr-4 ${
+                  !props.activePattern?.id ? "opacity-75" : "opacity-100"
                 }`}
               >
-                <div
-                  className={`px-4 py-2 text-sm font-medium text-white bg-slate-800 ${
-                    props.activePattern &&
-                    isPatternInCategory(props.activePattern, category)
-                      ? "text-emerald-500"
-                      : "bg-slate-800"
-                  } group-hover:bg-emerald-600 group-hover:text-white`}
+                {props.activePattern?.name}
+              </span>
+              {props.activePattern?.id ? (
+                <span
+                  className={`absolute inset-y-0 right-0 top-0 flex justify-center items-center px-1 ${
+                    props.onPatternsEditor
+                      ? "bg-emerald-600 text-white"
+                      : "bg-emerald-600 text-emerald-200"
+                  } rounded-r cursor-pointer`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (props.activePattern?.id) props.onPatternsClick();
+                  }}
                 >
-                  {category}
-                </div>
-                <div className="bg-slate-800 border border-white/50 rounded z-50 top-0 right-0 translate-x-[100%] absolute hidden group-hover:block">
-                  <div className="h-full flex flex-col">
-                    {PatternGroups[category].map((pattern) =>
-                      renderPattern(pattern)
-                    )}
+                  <BsPencil className="text-xl" />
+                </span>
+              ) : (
+                <span className="absolute inset-y-0 right-0 top-0 flex justify-center items-center px-1 bg-slate-500 rounded-r cursor-pointer">
+                  <BsChevronUp className="text-xl text-slate-200" />
+                </span>
+              )}
+            </Listbox.Button>
+            <Transition
+              show={open}
+              enter="transition ease-out duration-75"
+              enterFrom="transform opacity-0 scale-95"
+              enterTo="transform opacity-100 scale-100"
+              leave="transition ease-in duration-75"
+              leaveFrom="transform opacity-100 scale-100"
+              leaveTo="transform opacity-0 scale-95"
+            >
+              <Listbox.Options className="absolute z-10 w-full py-1 border border-white/50 text-base bg-slate-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                {Patterns.PresetCategories.map((category) => (
+                  <div
+                    key={category}
+                    className={`group relative w-full h-full bg-slate-300/50 ${
+                      ["Basic Durations", "Custom Patterns"].includes(category)
+                        ? "pt-0.5"
+                        : ""
+                    }`}
+                  >
+                    <div
+                      className={`px-4 py-2 text-sm font-medium text-white bg-slate-800 ${
+                        props.activePattern &&
+                        isPatternInCategory(props.activePattern, category)
+                          ? "text-emerald-500"
+                          : "bg-slate-800"
+                      } group-hover:bg-emerald-600 group-hover:text-white`}
+                    >
+                      {category}
+                    </div>
+                    <div className="bg-slate-800 border border-white/50 rounded z-50 top-0 right-0 translate-x-[100%] absolute hidden group-hover:block">
+                      <div className="h-full flex flex-col">
+                        {PatternGroups[category].map((pattern) =>
+                          renderPattern(pattern)
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </Listbox.Options>
-        </div>
+                ))}
+              </Listbox.Options>
+            </Transition>
+          </div>
+        )}
       </Listbox>
     </div>
   );

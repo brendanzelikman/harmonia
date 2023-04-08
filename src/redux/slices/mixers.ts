@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { selectTransport } from "redux/selectors";
 import { AppThunk } from "redux/store";
 import { initializeState } from "redux/util";
 import { INSTRUMENTS } from "types/instrument";
@@ -14,6 +15,7 @@ import {
   MixerId,
 } from "types/mixer";
 import { TrackId } from "types/tracks";
+import { convertTimeToSeconds } from "./transport";
 
 interface TrackMixer extends Mixer {
   trackId: TrackId;
@@ -153,11 +155,24 @@ export const setMixerChorus =
 
 export const setMixerDelay =
   (trackId: TrackId, delay: Partial<DelayProps>): AppThunk =>
-  (dispatch) => {
+  (dispatch, getState) => {
     if (!INSTRUMENTS[trackId]?.mixer) return;
+    const state = getState();
+    const transport = selectTransport(state);
     const payload = { trackId, type: "delay" };
-    INSTRUMENTS[trackId].mixer.updateEffectByType("delay", { ...delay });
-    dispatch(updateMixerEffectByTrackId({ ...payload, update: { ...delay } }));
+    const incomingDelay = delay?.delay
+      ? convertTimeToSeconds(transport, Number(delay.delay))
+      : undefined;
+    INSTRUMENTS[trackId].mixer.updateEffectByType("delay", {
+      ...delay,
+      delay: incomingDelay,
+    });
+    dispatch(
+      updateMixerEffectByTrackId({
+        ...payload,
+        update: { ...delay, delay: incomingDelay },
+      })
+    );
   };
 
 export const setMixerFilter =

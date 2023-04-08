@@ -4,9 +4,9 @@ import * as Editor from "../Editor";
 import StreamImage from "assets/stream.jpg";
 import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
 import { useMemo, useState } from "react";
-import { GiSparkyBomb } from "react-icons/gi";
 import { Disclosure, Transition } from "@headlessui/react";
 import { PresetFile } from "./FileItem";
+import { BiBomb } from "react-icons/bi";
 
 export default function EditorFile(props: EditorFileProps) {
   const [deleting, setDeleting] = useState(false);
@@ -153,7 +153,7 @@ export default function EditorFile(props: EditorFileProps) {
                   leaveFrom="transform translate-x-2 text-red-400 opacity-100"
                   leaveTo="transform translate-x-0 opacity-0"
                 >
-                  <GiSparkyBomb
+                  <BiBomb
                     className="text-4xl mt-2 cursor-pointer animate-pulse duration-75"
                     onClick={props.clearProject}
                   />

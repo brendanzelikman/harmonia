@@ -110,12 +110,12 @@ export const NavbarTooltip = (props: any) => (
     className={`absolute top-[3.5rem] px-3 py-1 font-bold font-nunito rounded border border-slate-50/50 whitespace-nowrap ${
       props.className ?? ""
     }`}
-    enter="transition-all duration-100"
-    enterFrom="opacity-0"
-    enterTo="opacity-100"
-    leave="transition-all duration-100"
-    leaveFrom="opacity-100"
-    leaveTo="opacity-0"
+    enter="transition ease-out duration-75"
+    enterFrom="transform opacity-0 scale-95"
+    enterTo="transform opacity-100 scale-100"
+    leave="transition ease-in duration-75"
+    leaveFrom="transform opacity-100 scale-100"
+    leaveTo="transform opacity-0 scale-95"
   >
     {props.content}
   </Transition>

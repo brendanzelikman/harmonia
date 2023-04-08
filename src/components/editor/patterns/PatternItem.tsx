@@ -1,12 +1,12 @@
 import useDebouncedField from "hooks/useDebouncedField";
 import { useRef } from "react";
 import { BsTrash } from "react-icons/bs";
-import { GiLinkedRings } from "react-icons/gi";
 import { Pattern } from "types/patterns";
 import { EditorPatternsProps } from ".";
 import { ListItem } from "../Editor";
 
 import { usePatternDrag, usePatternDrop } from "./dnd";
+import { BiCopy } from "react-icons/bi";
 
 export interface PresetPatternProps extends EditorPatternsProps {
   pattern: Pattern;
@@ -30,7 +30,7 @@ export const PresetPattern = (props: PresetPatternProps) => {
           value={pattern.name}
           disabled
         />
-        <GiLinkedRings
+        <BiCopy
           className="absolute right-0 top-0 h-5 w-5 text-slate-500"
           onClick={(e) => {
             e.stopPropagation();
@@ -94,7 +94,7 @@ export const CustomPattern = (props: CustomPatternProps) => {
             props.copyPatternPreset(pattern);
           }}
         >
-          <GiLinkedRings />
+          <BiCopy />
         </div>
         <div
           className={`flex justify-center items-center px-1 h-10 rounded-r text-center font-thin border border-l-0 border-slate-50/50`}

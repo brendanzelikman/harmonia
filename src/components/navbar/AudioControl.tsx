@@ -1,5 +1,4 @@
 import { MIN_GLOBAL_VOLUME, MAX_GLOBAL_VOLUME } from "appConstants";
-import useDebouncedField from "hooks/useDebouncedField";
 import { useState } from "react";
 import { BsVolumeDownFill } from "react-icons/bs";
 import { connect, ConnectedProps } from "react-redux";

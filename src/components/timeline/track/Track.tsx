@@ -2,8 +2,9 @@ import { isPatternTrack, isScaleTrack } from "types/tracks";
 import { TrackProps } from ".";
 import PatternTrack from "./PatternTrack";
 import ScaleTrack from "./ScaleTrack";
-import { Disclosure, Menu } from "@headlessui/react";
+import { Menu, Transition } from "@headlessui/react";
 import { BsThreeDots } from "react-icons/bs";
+import { Fragment } from "react";
 
 export function TrackComponent(props: TrackProps) {
   const { track } = props;
@@ -50,15 +51,26 @@ export const TrackDropdownMenu = (props: {
           <div>
             <Menu.Button
               className={`inline-flex w-full justify-center px-2 rounded items-center font-medium ${
-                open ? "text-red-500" : "text-white"
+                open ? "text-indigo-400" : "text-white"
               }`}
             >
               <BsThreeDots className="text-xl" />
             </Menu.Button>
           </div>
-          <Menu.Items className="absolute top-0 -right-52 z-60 w-48 bg-zinc-900/80 backdrop rounded text-md py-2">
-            {props.children}
-          </Menu.Items>
+          <Transition
+            as={Fragment}
+            show={open}
+            enter="transition ease-out duration-100"
+            enterFrom="transform opacity-0 scale-95"
+            enterTo="transform opacity-100 scale-100"
+            leave="transition ease-in duration-75"
+            leaveFrom="transform opacity-100 scale-100"
+            leaveTo="transform opacity-0 scale-95"
+          >
+            <Menu.Items className="absolute top-0 -right-52 z-60 w-48 bg-zinc-900/80 backdrop-blur rounded text-md py-2 select-none focus:outline-none">
+              {props.children}
+            </Menu.Items>
+          </Transition>
         </>
       )}
     </Menu>
