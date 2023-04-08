@@ -59,7 +59,7 @@ export const saveStateToFile = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     const state: RootState = JSON.parse(serializedState);
-    link.download = `${state?.root?.projectName ?? "file"}.mbz`;
+    link.download = `${state?.root?.projectName ?? "file"}.ham`;
     document.body.appendChild(link);
     link.href = url;
     link.click();
@@ -85,7 +85,7 @@ export const loadState = () => {
 export const readFiles = () => {
   const input = document.createElement("input");
   input.type = "file";
-  input.accept = ".mbz";
+  input.accept = ".ham";
   input.addEventListener("change", (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (file) {

@@ -296,7 +296,7 @@ export default class Patterns {
     PresetPatterns.HappyBirthday,
   ];
 
-  static BasicArpeggios = [
+  static BasicPatterns = [
     PresetPatterns.MajorArpeggio,
     PresetPatterns.MinorArpeggio,
     PresetPatterns.DiminishedArpeggio,
@@ -344,8 +344,8 @@ export default class Patterns {
 
   static PresetGroups = {
     "Basic Chords": Patterns.BasicChords,
-    "Basic Arpeggios": Patterns.BasicArpeggios,
     "Famous Chords": Patterns.FamousChords,
+    "Basic Patterns": Patterns.BasicPatterns,
     "Famous Patterns": Patterns.FamousPatterns,
     "Basic Durations": Patterns.BasicDurations,
     "Simple Rhythms": Patterns.SimpleRhythms,

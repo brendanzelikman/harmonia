@@ -23,7 +23,7 @@ export function Editor(props: EditorProps) {
       className={`absolute bottom-0 right-0 h-full bg-gradient-to-t from-[#09203f] to-[#33454b] backdrop-blur-xl`}
       style={{ width: `calc(100% - ${TRACK_WIDTH}px)` }}
     >
-      <div className="flex flex-col w-full h-full z-70">
+      <div className="flex flex-col w-full h-full z-50">
         <div className="min-h-0 h-full">
           <EditorTransition show={props.editorState === "scale"}>
             <EditorScales {...props} />

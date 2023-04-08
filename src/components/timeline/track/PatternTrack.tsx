@@ -2,7 +2,7 @@ import { connect, ConnectedProps } from "react-redux";
 import { AppDispatch, RootState } from "redux/store";
 
 import { TrackProps } from ".";
-import { TrackButton } from "./Track";
+import { TrackButton, TrackDropdownButton, TrackDropdownMenu } from "./Track";
 import {
   selectRoot,
   selectTransport,
@@ -68,7 +68,7 @@ function PatternTrack(props: Props) {
 
   return (
     <div
-      className={`rdg-track p-2 flex w-full h-full bg-gradient-to-r from-sky-800 to-green-800 text-white border-b border-b-white/20 overflow-auto`}
+      className={`rdg-track p-2 flex w-full h-full bg-gradient-to-r from-sky-800 to-green-800 text-white border-b border-b-white/20`}
     >
       <div className="w-auto flex-shrink-0">
         <input
@@ -83,55 +83,48 @@ function PatternTrack(props: Props) {
         />
       </div>
       <div className="h-full flex flex-auto flex-col">
-        <input
-          placeholder={props.instrumentName}
-          value={PatternInput.value}
-          onChange={PatternInput.onChange}
-          className="bg-zinc-800 pl-1 caret-white outline-none rounded-md overflow-ellipsis text-sm text-gray-300 border-2 border-zinc-800 focus:border-indigo-500/50"
-          onKeyDown={PatternInput.onKeyDown}
-        />
+        <div className="w-full flex relative">
+          <input
+            placeholder={props.instrumentName}
+            value={PatternInput.value}
+            onChange={PatternInput.onChange}
+            className="bg-zinc-800 px-1 mr-2 h-7 flex-auto caret-white outline-none rounded-md overflow-ellipsis text-sm text-gray-300 border-2 border-zinc-800 focus:border-indigo-500/50"
+            onKeyDown={PatternInput.onKeyDown}
+          />
+          <TrackDropdownMenu>
+            <div className="flex flex-col w-full">
+              <TrackDropdownButton
+                content="Copy Track"
+                icon={<GiLinkedRings />}
+                onClick={() => props.duplicateTrack(track.id)}
+              />
+              <TrackDropdownButton
+                content="Clear Track"
+                icon={<GiMagicBroom />}
+                onClick={() => props.clearTrack(track.id)}
+              />
+              <TrackDropdownButton
+                content="Delete Track"
+                icon={<GiTrashCan />}
+                onClick={() => props.deleteTrack(track.id)}
+              />
+            </div>
+          </TrackDropdownMenu>
+        </div>
         <div className="flex items-center justify-evenly w-full h-full pt-1.5">
           <>
-            <Tooltip content="Change Instrument">
-              <TrackButton
-                className={`w-10 border border-orange-400 ${
-                  props.onInstrument
-                    ? "bg-orange-500 text-white font-medium"
-                    : ""
-                }`}
-                onClick={() =>
-                  props.onInstrument
-                    ? props.hideEditor()
-                    : props.viewEditor(track.id, "instrument")
-                }
-              >
-                <GiTrumpet className="text-xl" />
-              </TrackButton>
-            </Tooltip>
-            <Tooltip content="Copy Track">
-              <TrackButton
-                className="w-10 border border-indigo-500 active:bg-indigo-500"
-                onClick={() => props.duplicateTrack(track.id)}
-              >
-                <GiLinkedRings className="text-xl" />
-              </TrackButton>
-            </Tooltip>
-            <Tooltip content="Clear Track">
-              <TrackButton
-                className="w-10 border border-slate-200 active:bg-indigo-500"
-                onClick={() => props.clearTrack(track.id)}
-              >
-                <GiMagicBroom className="text-xl" />
-              </TrackButton>
-            </Tooltip>
-            <Tooltip content="Delete Track">
-              <TrackButton
-                className="w-10 pb-1 border border-slate-400 active:bg-slate-200 active:text-gray-700"
-                onClick={() => props.deleteTrack(track.id)}
-              >
-                <GiTrashCan className="text-2xl" />
-              </TrackButton>
-            </Tooltip>
+            <TrackButton
+              className={`px-4 border border-orange-400 ${
+                props.onInstrument ? "bg-orange-500" : ""
+              }`}
+              onClick={() =>
+                props.onInstrument
+                  ? props.hideEditor()
+                  : props.viewEditor(track.id, "instrument")
+              }
+            >
+              <label className="cursor-pointer">Change Instrument</label>
+            </TrackButton>
           </>
           <div className="flex flex-col pl-2 ml-auto mr-1 space-y-1">
             <div className="flex space-x-1">

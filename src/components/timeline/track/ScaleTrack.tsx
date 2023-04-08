@@ -3,15 +3,9 @@ import { createPatternTrack, updateTrack } from "redux/slices/tracks";
 import { AppDispatch, RootState } from "redux/store";
 import { ScaleTrack as ScaleTrackType, Track, TrackId } from "types/tracks";
 import { TrackProps } from ".";
-import { TrackButton } from "./Track";
+import { TrackButton, TrackDropdownButton, TrackDropdownMenu } from "./Track";
 import useDebouncedField from "hooks/useDebouncedField";
-import {
-  GiMusicalScore,
-  GiPencilBrush,
-  GiLinkedRings,
-  GiTrashCan,
-  GiMagicBroom,
-} from "react-icons/gi";
+import { GiLinkedRings, GiTrashCan, GiMagicBroom } from "react-icons/gi";
 import { Tooltip } from "flowbite-react";
 import {
   selectRoot,
@@ -94,38 +88,50 @@ function ScaleTrack(props: Props) {
     <div
       className={`rdg-track h-full p-2 bg-gradient-to-r from-sky-900/80 to-indigo-900/80 mix-blend-normal text-white border-b border-b-white/20`}
     >
-      <div className="w-full h-full flex flex-col items-center justify-center overflow-scroll">
-        <div className="w-full">
+      <div className="w-full h-full flex flex-col items-center justify-center">
+        <div className="w-full flex relative">
           <input
             placeholder={placeholder}
             value={NameInput.value}
             onChange={NameInput.onChange}
-            className="w-full bg-zinc-800 pl-1 caret-white outline-none rounded-md overflow-ellipsis text-sm text-white border-2 border-zinc-800 focus:border-indigo-500/50"
+            className="flex-auto h-7 bg-zinc-800 px-1 mr-2 caret-white outline-none rounded-md overflow-ellipsis text-sm text-white border-2 border-zinc-800 focus:border-indigo-500/50"
             onKeyDown={NameInput.onKeyDown}
           />
+          <TrackDropdownMenu>
+            <div className="flex flex-col w-full">
+              <TrackDropdownButton
+                content="Copy Track"
+                icon={<GiLinkedRings />}
+              />
+              <TrackDropdownButton
+                content="Clear Track"
+                icon={<GiMagicBroom />}
+              />
+              <TrackDropdownButton
+                content="Delete Track"
+                icon={<GiTrashCan />}
+              />
+            </div>
+          </TrackDropdownMenu>
         </div>
         <div className="flex items-center justify-start mt-2 w-full">
           <>
-            <Tooltip content="Change Scale">
-              <TrackButton
-                className={`w-12 border-sky-600 ${
-                  props.onScale ? "bg-sky-600" : ""
-                } active:bg-sky-600`}
-                onClick={() => props.onScaleClick(props.onScale)}
-              >
-                <GiMusicalScore className="text-2xl" />
-              </TrackButton>
-            </Tooltip>
+            <TrackButton
+              className={`px-4 border-sky-600 ${
+                props.onScale ? "bg-sky-600" : ""
+              } active:bg-sky-600`}
+              onClick={() => props.onScaleClick(props.onScale)}
+            >
+              <label className="cursor-pointer">Change Scale</label>
+            </TrackButton>
 
-            <Tooltip content="Add a Pattern Track">
-              <TrackButton
-                className={`w-12 border-emerald-600 active:bg-emerald-600 select-none`}
-                onClick={() => props.createPatternTrack(track.id)}
-              >
-                <GiPencilBrush className="text-xl" />
-              </TrackButton>
-            </Tooltip>
-
+            <TrackButton
+              className={`px-4 border-emerald-600 active:bg-emerald-600 select-none`}
+              onClick={() => props.createPatternTrack(track.id)}
+            >
+              <label className="cursor-pointer">Add Pattern Track</label>
+            </TrackButton>
+            {/* 
             <Tooltip content="Copy Track">
               <TrackButton
                 className="w-12 border border-indigo-500 active:bg-indigo-500 select-none"
@@ -150,7 +156,7 @@ function ScaleTrack(props: Props) {
               >
                 <GiTrashCan className="text-2xl" />
               </TrackButton>
-            </Tooltip>
+            </Tooltip> */}
           </>
         </div>
       </div>

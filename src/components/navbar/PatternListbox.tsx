@@ -120,9 +120,9 @@ function PatternListbox(props: Props) {
 
   return (
     <div
-      className={`w-40 h-full border ${
+      className={`w-40 h-full flex flex-col border rounded-md ${
         props.onPatternsEditor ? "border-slate-50" : "border-slate-400/80"
-      } rounded-md select-none`}
+      } select-none`}
     >
       <Listbox
         value={props.activePattern?.id ?? ""}
@@ -165,7 +165,11 @@ function PatternListbox(props: Props) {
             {Patterns.PresetCategories.map((category) => (
               <div
                 key={category}
-                className={`group relative w-full h-full bg-green-500`}
+                className={`group relative w-full h-full bg-slate-300/50 ${
+                  ["Basic Durations", "Custom Patterns"].includes(category)
+                    ? "pt-0.5"
+                    : ""
+                }`}
               >
                 <div
                   className={`px-4 py-2 text-sm font-medium text-white bg-slate-800 ${
