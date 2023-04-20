@@ -58,6 +58,7 @@ const onClick =
     const state = getState();
     const root = selectRoot(state);
     const { activePatternId } = root;
+    const chromaticTranspose = root.chromaticTranspose ?? 0;
     const scalarTranspose = root.scalarTranspose ?? 0;
     const chordalTranspose = root.chordalTranspose ?? 0;
 
@@ -71,6 +72,7 @@ const onClick =
         Slices.Transforms.createTransform({
           trackId,
           time,
+          chromaticTranspose,
           scalarTranspose,
           chordalTranspose,
         })

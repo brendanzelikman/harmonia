@@ -3,7 +3,7 @@ import { nanoid } from "@reduxjs/toolkit";
 import {
   getStreamChordAtOffset,
   getStreamDuration,
-  invertPatternStream,
+  rotatePatternStream,
   isRest,
   Pattern,
   PatternId,
@@ -12,7 +12,7 @@ import {
   transposePatternStream,
 } from "./patterns";
 import { ChromaticScale } from "./presets/scales";
-import { invertScale, Scale, transposeScale } from "./scales";
+import { rotateScale, Scale, transposeScale } from "./scales";
 import { TrackId } from "./tracks";
 import { lastTransformAtTime, Transform } from "./transform";
 
@@ -92,22 +92,40 @@ export const getClipStream = (
 
     // Transform the scale if there is a scale transformation
     if (scaleTransform) {
+      const scaleN = Number(scaleTransform?.chromaticTranspose ?? 0);
       const scaleBigT = Number(scaleTransform?.scalarTranspose ?? 0);
       const scaleLittleT = Number(scaleTransform?.chordalTranspose ?? 0);
-      const transposedScale = transposeScale(newScale, scaleBigT);
-      const invertedScale = invertScale(transposedScale, scaleLittleT);
-      newScale = invertedScale;
+      const onceTransposedScale = transposeScale(newScale, scaleBigT);
+      const twiceTransposedScale = rotateScale(
+        onceTransposedScale,
+        scaleLittleT
+      );
+      const thriceTransposedScale = transposeScale(
+        twiceTransposedScale,
+        scaleN
+      );
+      newScale = thriceTransposedScale;
     }
 
     // Get the stream of the transformed scale
+
     const stream = realizePattern(pattern, newScale);
 
     // Transform the stream if there is a transformation
+    const n = Number(transform?.chromaticTranspose ?? 0);
     const bigT = Number(transform?.scalarTranspose ?? 0);
     const littleT = Number(transform?.chordalTranspose ?? 0);
-    const transposedStream = transposePatternStream(stream, bigT, newScale);
-    const invertedStream = invertPatternStream(transposedStream, littleT);
-    return invertedStream[chordCount - 1];
+    const onceTransposedStream = transposePatternStream(stream, bigT, newScale);
+    const twiceTransposedStream = rotatePatternStream(
+      onceTransposedStream,
+      littleT
+    );
+    const thriceTransposedStream = transposePatternStream(
+      twiceTransposedStream,
+      n,
+      ChromaticScale
+    );
+    return thriceTransposedStream[chordCount - 1];
   });
 
   // Return the stream of the clip

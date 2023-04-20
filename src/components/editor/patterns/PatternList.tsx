@@ -83,6 +83,9 @@ export default function PatternList(props: EditorPatternsProps) {
           const patterns = searching
             ? presetPatterns.filter(doesMatchPattern)
             : presetPatterns;
+          const isCategorySelected = props.activePatternId
+            ? patterns.some((pattern) => pattern.id === props.activePatternId)
+            : false;
           return (
             <Disclosure key={category}>
               {({ open }) => {
@@ -90,7 +93,13 @@ export default function PatternList(props: EditorPatternsProps) {
                 return (
                   <>
                     <Disclosure.Button>
-                      <div className="flex items-center justify-center text-slate-50">
+                      <div
+                        className={`flex items-center justify-center ${
+                          isCategorySelected
+                            ? "text-emerald-300"
+                            : "text-slate-50"
+                        }`}
+                      >
                         <label
                           className={`font-nunito py-3 px-2 ${
                             open ? "font-extrabold" : "font-medium"

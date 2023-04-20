@@ -15,7 +15,16 @@ import Scales from "types/scales";
 import { MIDI } from "types/midi";
 import { ChromaticScale } from "types/presets/scales";
 import { BiCopy } from "react-icons/bi";
-import { BsEraser, BsTrash } from "react-icons/bs";
+import {
+  BsEraser,
+  BsPencil,
+  BsPlus,
+  BsPlusCircle,
+  BsTrash,
+} from "react-icons/bs";
+import useEventListeners from "hooks/useEventListeners";
+import { isInputEvent } from "appUtil";
+import { useState } from "react";
 
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const track = ownProps.track as ScaleTrackType;
@@ -82,13 +91,37 @@ function ScaleTrack(props: Props) {
     ? `${MIDI.toPitchClass(scale.notes[0])} ${presetMatch.name}`
     : "Custom Scale";
 
+  const [holdingV, setHoldingV] = useState(false);
+
+  useEventListeners(
+    {
+      v: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          setHoldingV(true);
+        },
+        keyup: (e) => {
+          if (isInputEvent(e)) return;
+          setHoldingV(false);
+        },
+      },
+    },
+    []
+  );
+
   if (!track) return null;
 
   return (
     <div
       className={`rdg-track h-full p-2 bg-gradient-to-r from-sky-900/80 to-indigo-900/80 mix-blend-normal text-white border-b border-b-white/20`}
     >
-      <div className="w-full h-full flex flex-col items-center justify-center">
+      <div className="w-full h-full flex flex-col items-center justify-evenly">
+        {holdingV ? (
+          <label className="w-full text-gray-400 text-xs font-extralight pl-1">
+            N{props.chromaticTranspose} • T{props.scalarTranspose} • t
+            {props.chordalTranspose}
+          </label>
+        ) : null}
         <div className="w-full flex relative">
           <input
             placeholder={placeholder}
@@ -117,49 +150,27 @@ function ScaleTrack(props: Props) {
             </div>
           </TrackDropdownMenu>
         </div>
-        <div className="flex items-center justify-start mt-2 w-full">
+        <div className="flex items-center mt-2 w-full">
           <>
             <TrackButton
-              className={`px-4 border-sky-600 ${
+              className={`px-3 border-sky-600 ${
                 props.onScale ? "bg-sky-600" : ""
               } active:bg-sky-600`}
               onClick={() => props.onScaleClick(props.onScale)}
             >
-              <label className="cursor-pointer">Change Scale</label>
+              <label className="flex items-center cursor-pointer scale-button">
+                Track Scale <BsPencil className="ml-2" />
+              </label>
             </TrackButton>
 
             <TrackButton
-              className={`px-4 border-emerald-600 active:bg-emerald-600 select-none`}
+              className={`px-3 border-emerald-600 active:bg-emerald-600 select-none`}
               onClick={() => props.createPatternTrack(track.id)}
             >
-              <label className="cursor-pointer">Add Pattern Track</label>
+              <label className="flex items-center cursor-pointer">
+                Pattern Track <BsPlusCircle className="ml-2" />
+              </label>
             </TrackButton>
-            {/* 
-            <Tooltip content="Copy Track">
-              <TrackButton
-                className="w-12 border border-indigo-500 active:bg-indigo-500 select-none"
-                onClick={() => props.duplicateTrack(track.id)}
-              >
-                <GiLinkedRings className="text-xl" />
-              </TrackButton>
-            </Tooltip>
-
-            <Tooltip content="Clear Track">
-              <TrackButton
-                className={`w-12 px-2 pt-1 border-slate-200 active:bg-slate-200 active:text-gray-700 pb-1 select-none`}
-                onClick={() => props.clearTrack(track.id)}
-              >
-                <GiMagicBroom className="text-xl" />
-              </TrackButton>
-            </Tooltip>
-            <Tooltip content="Delete Track">
-              <TrackButton
-                className={`w-12 px-2 border-slate-500 active:bg-slate-200 active:text-gray-700 pb-1 select-none`}
-                onClick={() => props.deleteTrack(track.id)}
-              >
-                <GiTrashCan className="text-2xl" />
-              </TrackButton>
-            </Tooltip> */}
           </>
         </div>
       </div>

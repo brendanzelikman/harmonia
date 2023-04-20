@@ -11,7 +11,7 @@ import Scales, {
   Scale,
   ScaleId,
   ScaleNoId,
-  invertScale as _invertScale,
+  rotateScale as _rotateScale,
 } from "types/scales";
 import { Note } from "types/units";
 
@@ -93,13 +93,13 @@ export const scalesSlice = createSlice({
       // Transpose the notes in the scale by the offset
       state.byId[id].notes = scale.notes.map((n) => n + offset);
     },
-    invertScale: (state, action: PayloadAction<ScaleTranspose>) => {
+    rotateScale: (state, action: PayloadAction<ScaleTranspose>) => {
       const { id, offset } = action.payload;
       const scale = state.byId[id];
       if (!scale) return;
 
       // Invert the notes in the scale by the offset
-      state.byId[id] = _invertScale(scale, offset);
+      state.byId[id] = _rotateScale(scale, offset);
     },
     clearScale: (state, action: PayloadAction<ScaleId>) => {
       const id = action.payload;
@@ -125,7 +125,7 @@ export const {
   clearScale,
   updateScale,
   transposeScale,
-  invertScale,
+  rotateScale,
 } = scalesSlice.actions;
 
 export const createScale =

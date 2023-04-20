@@ -9,7 +9,7 @@ import { RootState } from "redux/store";
 const mapStateToProps = (state: RootState) => {
   const transport = selectTransport(state);
   const loadedTransport = transport.loaded;
-  return { loadedTransport };
+  return { loadedTransport, tour: state.tour };
 };
 
 const connector = connect(mapStateToProps, null);
@@ -22,9 +22,12 @@ function App(props: Props) {
   useShortcuts();
 
   return (
-    <div className="flex flex-col flex-nowrap h-screen overflow-auto">
+    <div className={`flex flex-col flex-nowrap w-full h-screen overflow-auto`}>
       <Navbar />
       <main className="relative flex w-full flex-auto overflow-hidden">
+        {props.tour.active ? (
+          <div className={`w-full h-full absolute bg-slate-800/50 z-60`} />
+        ) : null}
         <Timeline />
         <Editor />
       </main>

@@ -12,6 +12,7 @@ function mapStateToProps(state: RootState) {
     showEditor,
     editorState,
     transport,
+    tour: state.tour,
   };
 }
 

@@ -34,12 +34,15 @@ interface RootState {
 interface RootMerge {
   mergeName: string;
   mergeTransforms: boolean;
+  mergeWithNewPattern: boolean;
 }
 interface RootRepeat {
   repeatCount: number;
   repeatTransforms: boolean;
+  repeatWithTranspose: boolean;
 }
 interface RootTranspose {
+  chromaticTranspose: number;
   scalarTranspose: number;
   chordalTranspose: number;
 }
@@ -50,19 +53,34 @@ interface Root extends RootIds, RootState, RootToolkit {}
 
 export const defaultRoot: Root = {
   projectName: "New Project",
-  selectedClipIds: [],
+  activePatternId: "new-pattern",
+
+  // Timeline
   timelineState: "idle",
   loadedTimeline: false,
+
+  // Editor
   editorState: "hidden",
   showEditor: false,
+
+  // Clips
+  selectedClipIds: [],
   draggingClip: false,
+
+  // Transpose
+  chromaticTranspose: 0,
   scalarTranspose: 0,
   chordalTranspose: 0,
+
+  // Repeat
   repeatCount: 1,
   repeatTransforms: false,
+  repeatWithTranspose: false,
+
+  // Merge
   mergeName: "",
   mergeTransforms: false,
-  activePatternId: "new-pattern",
+  mergeWithNewPattern: false,
 };
 
 export const rootSlice = createSlice({
@@ -123,12 +141,18 @@ export const rootSlice = createSlice({
     toggleRepeatTransforms: (state) => {
       state.repeatTransforms = !state.repeatTransforms;
     },
+    toggleRepeatWithTranspose: (state) => {
+      state.repeatWithTranspose = !state.repeatWithTranspose;
+    },
     toggleMergingClips: (state) => {
       const isMerging = state.timelineState === "merging";
       state.timelineState = isMerging ? "idle" : "merging";
     },
     toggleMergeTransforms: (state) => {
       state.mergeTransforms = !state.mergeTransforms;
+    },
+    toggleMergeWithNewPattern: (state) => {
+      state.mergeWithNewPattern = !state.mergeWithNewPattern;
     },
     setTimelineState: (state, action) => {
       state.timelineState = action.payload;
@@ -161,6 +185,11 @@ export const rootSlice = createSlice({
       state.draggingClip = false;
     },
     // Timeline Transform
+    setChromaticTranspose: (state, action: PayloadAction<number>) => {
+      if (action.payload === undefined) return;
+      const chromaticTranspose = action.payload;
+      state.chromaticTranspose = chromaticTranspose;
+    },
     setScalarTranspose: (state, action: PayloadAction<number>) => {
       if (action.payload === undefined) return;
       const scalarTranspose = action.payload;
@@ -192,10 +221,15 @@ export const {
 
   toggleAddingClip,
   toggleCuttingClip,
+
   toggleMergingClips,
   toggleMergeTransforms,
+  toggleMergeWithNewPattern,
+
   toggleRepeatingClips,
   toggleRepeatTransforms,
+  toggleRepeatWithTranspose,
+
   toggleTransposingClip,
   setTimelineState,
   clearTimelineState,
@@ -212,6 +246,7 @@ export const {
   startDraggingClip,
   stopDraggingClip,
 
+  setChromaticTranspose,
   setScalarTranspose,
   setChordalTranspose,
   setRepeatCount,

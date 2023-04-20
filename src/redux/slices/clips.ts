@@ -207,7 +207,9 @@ export const repeatClips =
   (clipIds: ClipId[]): AppThunk =>
   async (dispatch, getState) => {
     const state = getState();
-    const { repeatCount, repeatTransforms } = Selectors.selectRoot(state);
+    const root = Selectors.selectRoot(state);
+    const { repeatCount, repeatTransforms, repeatWithTranspose } = root;
+    const { chromaticTranspose, scalarTranspose, chordalTranspose } = root;
 
     const clips = Selectors.selectClipsByIds(state, clipIds);
     const clipDurations = clips.map((clip) =>
@@ -238,6 +240,15 @@ export const repeatClips =
             const movedTransforms = currentTransforms.map((t: Transform) => ({
               ...t,
               time: t.time + i * totalDuration,
+              chromaticTranspose: repeatWithTranspose
+                ? t.chromaticTranspose + i * chromaticTranspose
+                : t.chromaticTranspose,
+              scalarTranspose: repeatWithTranspose
+                ? t.scalarTranspose + i * scalarTranspose
+                : t.scalarTranspose,
+              chordalTranspose: repeatWithTranspose
+                ? t.chordalTranspose + i * chordalTranspose
+                : t.chordalTranspose,
             }));
             dispatch(createTransforms(movedTransforms));
           }

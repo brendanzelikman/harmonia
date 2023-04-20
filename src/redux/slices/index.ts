@@ -11,3 +11,4 @@ export * as ScaleTracks from "./scaleTracks";
 export * as Mixers from "./mixers";
 export * as Transforms from "./transforms";
 export * as Tracks from "./tracks";
+export * as Tour from "./tour";

@@ -14,7 +14,7 @@ import {
 } from "redux/slices/root";
 import Patterns, { Pattern, PatternId } from "types/patterns";
 import { BsCheck, BsChevronUp, BsPencil } from "react-icons/bs";
-import { Fragment, useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 const mapStateToProps = (state: RootState) => {
   const { showEditor, editorState, activePatternId } = selectRoot(state);
@@ -98,6 +98,23 @@ function PatternListbox(props: Props) {
     );
   }, []);
 
+  const PatternButton = (props: any) => (
+    <button
+      className={`relative w-full px-1 flex items-center ${
+        props.onPatternsEditor
+          ? "bg-emerald-600 text-white"
+          : "bg-slate-900 text-gray-200"
+      } cursor-pointer text-[10px] rounded-t-md border-b border-emerald-600`}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (props.activePattern?.id) props.onPatternsClick();
+      }}
+    >
+      Selected Pattern
+    </button>
+  );
+
   useEffect(() => {
     if (!props.activePattern) {
       const firstPattern = props.patterns?.[0];
@@ -120,44 +137,36 @@ function PatternListbox(props: Props) {
 
   return (
     <div
-      className={`w-40 h-full flex flex-col border rounded-md ${
+      className={`w-40 relative flex flex-col rounded-md select-none border rounded-b-md ${
         props.onPatternsEditor ? "border-slate-50" : "border-slate-400/80"
-      } select-none`}
+      }`}
     >
+      <PatternButton {...props} />
       <Listbox
         value={props.activePattern?.id ?? ""}
         onChange={props.setPatternId}
       >
         {({ open }) => (
-          <div className="relative">
-            <Listbox.Button className="relative w-full h-full cursor-default rounded-md bg-gray-900 text-white p-2 py-2.5 text-left shadow-md focus:outline-none">
+          <div className={`relative`}>
+            <Listbox.Button className="select-none relative w-full h-9 items-center flex cursor-pointer rounded-md bg-gray-900 text-white text-left shadow-md focus:outline-none">
               <span
-                className={`block truncate mr-4 ${
+                className={`block w-full truncate px-1 ${
                   !props.activePattern?.id ? "opacity-75" : "opacity-100"
                 }`}
               >
                 {props.activePattern?.name}
               </span>
-              {props.activePattern?.id ? (
-                <span
-                  className={`absolute inset-y-0 right-0 top-0 flex justify-center items-center px-1 ${
-                    props.onPatternsEditor
-                      ? "bg-emerald-600 text-white"
-                      : "bg-emerald-600 text-emerald-200"
-                  } rounded-r cursor-pointer`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (props.activePattern?.id) props.onPatternsClick();
-                  }}
-                >
-                  <BsPencil className="text-xl" />
-                </span>
-              ) : (
-                <span className="absolute inset-y-0 right-0 top-0 flex justify-center items-center px-1 bg-slate-500 rounded-r cursor-pointer">
-                  <BsChevronUp className="text-xl text-slate-200" />
-                </span>
-              )}
+              <div
+                id="pattern-button"
+                className="flex w-9 h-full justify-center items-center border-l border-l-slate-400"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (props.activePattern?.id) props.onPatternsClick();
+                }}
+              >
+                <BsPencil className="text-white" />
+              </div>
             </Listbox.Button>
             <Transition
               show={open}
@@ -172,14 +181,18 @@ function PatternListbox(props: Props) {
                 {Patterns.PresetCategories.map((category) => (
                   <div
                     key={category}
-                    className={`group relative w-full h-full bg-slate-300/50 ${
-                      ["Basic Durations", "Custom Patterns"].includes(category)
+                    className={`group relative h-full bg-slate-300/50 ${
+                      [
+                        "Basic Durations",
+                        "Basic Patterns",
+                        "Custom Patterns",
+                      ].includes(category)
                         ? "pt-0.5"
                         : ""
                     }`}
                   >
                     <div
-                      className={`px-4 py-2 text-sm font-medium text-white bg-slate-800 ${
+                      className={`px-3 py-2 text-sm font-medium text-white bg-slate-800 ${
                         props.activePattern &&
                         isPatternInCategory(props.activePattern, category)
                           ? "text-emerald-500"

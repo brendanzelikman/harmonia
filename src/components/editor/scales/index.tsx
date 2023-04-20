@@ -2,7 +2,7 @@ import * as Scales from "redux/slices/scales";
 import { Note } from "types/units";
 import { connect, ConnectedProps } from "react-redux";
 import ScaleClass, {
-  invertScale,
+  rotateScale,
   Scale,
   ScaleId,
   ScaleNoId,
@@ -60,8 +60,8 @@ const mapDispatchToProps = (dispatch: any) => ({
   transposeScale: (id: ScaleId, offset: Note) => {
     dispatch(Scales.transposeScale({ id, offset }));
   },
-  invertScale: (id: ScaleId, offset: Note) => {
-    dispatch(Scales.invertScale({ id, offset }));
+  rotateScale: (id: ScaleId, offset: Note) => {
+    dispatch(Scales.rotateScale({ id, offset }));
   },
   randomTransposeScale: (scale: Scale) => {
     const direction = Math.random() > 0.5 ? 1 : -1;
@@ -71,7 +71,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     dispatch(
       Scales.updateScale({
         id: scale.id,
-        notes: invertScale(transposedScale, random_t).notes,
+        notes: rotateScale(transposedScale, random_t).notes,
       })
     );
   },

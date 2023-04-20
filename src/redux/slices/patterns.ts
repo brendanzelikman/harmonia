@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   defaultPattern,
   initializePattern,
-  invertPatternStream,
+  rotatePatternStream,
   isRest,
   Pattern,
   PatternChord,
@@ -16,14 +16,14 @@ import { initializeState } from "redux/util";
 import { AppThunk } from "redux/store";
 import { selectPattern, selectRoot, selectTransport } from "redux/selectors";
 import { getGlobalSampler } from "types/instrument";
-import { defaultScale } from "types/scales";
+import Scales, { defaultScale } from "types/scales";
 import { MIDI } from "types/midi";
 import { convertTimeToSeconds } from "./transport";
 import { beatsToSubdivision } from "appUtil";
 import { setActivePattern } from "./root";
 import { clamp, random, shuffle } from "lodash";
 import { MAX_SUBDIVISION } from "appConstants";
-import { MajorScale } from "types/presets/scales";
+import { ChromaticScale, MajorScale } from "types/presets/scales";
 
 const initialState = initializeState<PatternId, Pattern>([defaultPattern]);
 
@@ -141,13 +141,13 @@ export const patternsSlice = createSlice({
         });
       });
     },
-    invertPattern: (state, action: PayloadAction<TransposePattern>) => {
+    rotatePattern: (state, action: PayloadAction<TransposePattern>) => {
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
       if (!pattern) return;
 
-      pattern.stream = invertPatternStream(pattern.stream, transpose);
+      pattern.stream = rotatePatternStream(pattern.stream, transpose);
     },
 
     repeatPattern: (state, action: PayloadAction<PatternId>) => {
@@ -203,29 +203,26 @@ export const patternsSlice = createSlice({
       const pattern = state.byId[patternId];
       if (!pattern) return;
 
-      const noteCount = random(1, 4);
+      const noteCount = 8;
       const stream: PatternStream = [];
-      const restPercent = 0.2;
+      const restPercent = 0.1;
       for (let i = 0; i < noteCount; i++) {
         const seed = Math.random();
 
         if (seed < restPercent) {
-          const duration = random(1, Math.log2(MAX_SUBDIVISION));
-          const chord: PatternChord = [
-            { duration: Math.pow(2, duration), MIDI: MIDI.Rest },
-          ];
-          stream.push(chord);
+          stream.push([{ duration: MIDI.SixteenthNote, MIDI: MIDI.Rest }]);
         } else {
-          const noteCount = random(1, 4);
-          let midiNotes = MajorScale.notes;
+          const noteCount = 1;
+          const scales = Scales.PresetGroups["Basic Modes"];
+          const scale = scales[Math.floor(Math.random() * scales.length)];
+          let midiNotes = scale.notes;
           const chord: PatternChord = new Array(noteCount)
             .fill(0)
             .map((_, i) => {
               const index = random(0, midiNotes.length - 1);
-              const MIDI = midiNotes[index];
-              midiNotes = midiNotes.filter((note) => note !== MIDI);
-              const duration = random(1, Math.log2(MAX_SUBDIVISION));
-              return { duration: Math.pow(2, duration), MIDI };
+              const midi = midiNotes[index];
+              midiNotes = midiNotes.filter((note) => note !== midi);
+              return { duration: MIDI.SixteenthNote, MIDI: midi };
             });
           stream.push(chord);
         }
@@ -253,7 +250,7 @@ export const {
   removePatternNote,
   updatePatternNote,
   transposePattern,
-  invertPattern,
+  rotatePattern,
   repeatPattern,
   halvePattern,
   stretchPattern,

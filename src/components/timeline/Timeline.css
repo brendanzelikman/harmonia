@@ -10,8 +10,9 @@
 .rdg-time {
   z-index: 30 !important;
 }
+.rdg-corner,
 .rdg-cell:has(.rdg-corner) {
-  z-index: 40 !important;
+  z-index: 50 !important;
 }
 .rdg-cell:has(.rdg-track) {
   z-index: 30 !important;

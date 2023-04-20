@@ -3,7 +3,7 @@ import PatternsClass from "types/patterns";
 
 import { Note } from "types/units";
 import {
-  invertPatternStream,
+  rotatePatternStream,
   Pattern,
   PatternId,
   PatternNote,
@@ -109,8 +109,8 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
   transposePattern: (pattern: Pattern, transpose: Note) => {
     dispatch(Patterns.transposePattern({ id: pattern.id, transpose }));
   },
-  invertPattern: (pattern: Pattern, transpose: Note) => {
-    dispatch(Patterns.invertPattern({ id: pattern.id, transpose }));
+  rotatePattern: (pattern: Pattern, transpose: Note) => {
+    dispatch(Patterns.rotatePattern({ id: pattern.id, transpose }));
   },
   repeatPattern: (pattern: Pattern) => {
     dispatch(Patterns.repeatPattern(pattern.id));
@@ -139,7 +139,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
     dispatch(
       Patterns.updatePattern({
         id: pattern.id,
-        stream: invertPatternStream(transposedStream, random_t),
+        stream: rotatePatternStream(transposedStream, random_t),
       })
     );
   },

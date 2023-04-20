@@ -33,8 +33,12 @@ export default function DataGridBackground(props: BackgroundProps) {
   return (
     <>
       <div
-        className="rdg-time-background absolute w-full bg-black top-0"
-        style={{ height: headerHeight }}
+        className={`rdg-time-background absolute bg-black top-0`}
+        style={{
+          height: headerHeight,
+          left: Constants.TRACK_WIDTH,
+          width: `calc(100% - ${Constants.TRACK_WIDTH}px)`,
+        }}
       ></div>
       <div
         className="-z-20 absolute w-full flex flex-col bg-gradient-to-t from-[#083a8a] via-[#2c4087] to-[#514f7e]"

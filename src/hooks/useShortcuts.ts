@@ -16,6 +16,9 @@ import {
   toggleTransposingClip,
   toggleRepeatingClips,
   viewEditor,
+  toggleMergingClips,
+  toggleMergeTransforms,
+  selectClips,
 } from "redux/slices/root";
 import { setTransportLoop } from "redux/slices/transport";
 import {
@@ -26,6 +29,7 @@ import {
 import { UndoTypes } from "redux/undoTypes";
 import { readFiles, saveStateToFile } from "redux/util";
 import useEventListeners from "./useEventListeners";
+import { useState } from "react";
 
 export default function useShortcuts() {
   const transport = useAppSelector(selectTransport);
@@ -41,50 +45,54 @@ export default function useShortcuts() {
   const selectedClipIds = useAppSelector(selectSelectedClipIds);
   const dispatch = useDispatch();
 
+  const [holdingCommand, setHoldingCommand] = useState(false);
+
   useEventListeners(
     {
-      // "Shift + S" = Save
-      S: {
+      // "Command" = Hold
+      Meta: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if ((e as KeyboardEvent).shiftKey) {
-            e.preventDefault();
-            saveStateToFile();
-          }
+          setHoldingCommand(true);
+        },
+        keyup: (e) => {
+          setHoldingCommand(false);
         },
       },
-      // "Shift + O" = Open
+      // "Command + S" = Save
+      s: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          if (!holdingCommand) return;
+          e.preventDefault();
+          saveStateToFile();
+        },
+      },
+      // "Command + O" = Open
       O: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if ((e as KeyboardEvent).shiftKey) {
-            e.preventDefault();
-            readFiles();
-          }
+          if (!holdingCommand) return;
+          e.preventDefault();
+          readFiles();
         },
       },
-      // "Shift + Z" = Undo
-      Z: {
+      // "Command + Z" = Undo
+      // "Command + Shift + Z" = Redo
+      z: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if ((e as KeyboardEvent).shiftKey) {
-            e.preventDefault();
-            dispatch({ type: UndoTypes.undoTimeline });
-          }
-        },
-      },
-      // "Shift + Y" = Redo
-      Y: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if ((e as KeyboardEvent).shiftKey) {
-            e.preventDefault();
-            dispatch({ type: UndoTypes.redoTimeline });
-          }
+          if (!holdingCommand) return;
+          if (root.showEditor) return;
+          e.preventDefault();
+          const holdingShift = !!(e as KeyboardEvent).shiftKey;
+          const type = holdingShift
+            ? UndoTypes.redoTimeline
+            : UndoTypes.undoTimeline;
+          dispatch({ type });
         },
       },
     },
-    []
+    [holdingCommand]
   );
 
   useEventListeners(
@@ -126,12 +134,36 @@ export default function useShortcuts() {
 
   useEventListeners(
     {
+      // "p" = Toggle Pattern Editor
+      p: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          if (root.editorState === "patterns" && root.showEditor) {
+            dispatch(hideEditor());
+          } else {
+            dispatch(viewEditor({ id: "patterns" }));
+            if (root.timelineState === "adding") {
+              dispatch(toggleAddingClip());
+            } else if (root.timelineState === "cutting") {
+              dispatch(toggleCuttingClip());
+            } else if (root.timelineState === "merging") {
+              dispatch(toggleMergingClips());
+            } else if (root.timelineState === "repeating") {
+              dispatch(toggleRepeatingClips());
+            } else if (root.timelineState === "transposing") {
+              dispatch(toggleTransposingClip());
+            }
+          }
+        },
+      },
       // "Escape" = Hide Editor
       Escape: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           if (root.showEditor) {
             dispatch(hideEditor());
+          } else {
+            dispatch(selectClips([]));
           }
         },
       },
@@ -148,6 +180,14 @@ export default function useShortcuts() {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           dispatch(toggleCuttingClip());
+          dispatch(hideEditor());
+        },
+      },
+      // "m" = Toggle Merging
+      m: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          dispatch(toggleMergingClips());
           dispatch(hideEditor());
         },
       },
@@ -176,17 +216,6 @@ export default function useShortcuts() {
             if (selectedClipIds.length > 0) {
               dispatch(deleteClips(selectedClipIds));
             }
-          }
-        },
-      },
-      // "m" = Toggle Patterns
-      m: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (root.editorState === "patterns" && root.showEditor) {
-            dispatch(hideEditor());
-          } else {
-            dispatch(viewEditor({ id: "patterns" }));
           }
         },
       },

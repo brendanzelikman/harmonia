@@ -15,7 +15,7 @@ declare module "*.xml" {
 
 declare module "*.ham" {
   const value: any;
-  export = `${value}`;
+  export = value;
 }
 
 declare module "*.wav" {

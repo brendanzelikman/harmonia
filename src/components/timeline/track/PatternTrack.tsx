@@ -12,11 +12,13 @@ import { updatePatternTrack } from "redux/slices/patternTracks";
 import * as Constants from "appConstants";
 import { PatternTrack as PatternTrackType } from "types/tracks";
 import useDebouncedField from "hooks/useDebouncedField";
-import { Tooltip } from "flowbite-react";
 import { getInstrumentName, InstrumentName } from "types/instrument";
 import { setMixerVolume } from "redux/slices/mixers";
-import { BsEraser, BsLink45Deg, BsTrash } from "react-icons/bs";
+import { BsEraser, BsPencil, BsTrash } from "react-icons/bs";
 import { BiCopy } from "react-icons/bi";
+import { isInputEvent } from "appUtil";
+import useEventListeners from "hooks/useEventListeners";
+import { useState } from "react";
 
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const track = ownProps.track as PatternTrackType;
@@ -62,13 +64,31 @@ function PatternTrack(props: Props) {
     props.setPatternTrackName(track, name);
   }, track.name);
 
+  const [holdingV, setHoldingV] = useState(false);
+
+  useEventListeners(
+    {
+      v: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          setHoldingV(true);
+        },
+        keyup: (e) => {
+          if (isInputEvent(e)) return;
+          setHoldingV(false);
+        },
+      },
+    },
+    []
+  );
+
   return (
     <div
-      className={`rdg-track p-2 flex w-full h-full bg-gradient-to-r from-sky-800 to-green-800 text-white border-b border-b-white/20`}
+      className={`rdg-track p-2 flex h-full bg-gradient-to-r from-sky-800 to-green-800 text-white border-b border-b-white/20`}
     >
-      <div className="w-auto flex-shrink-0">
+      <div className="w-auto h-full flex-shrink-0">
         <input
-          className="rotate-[270deg] w-16 -mr-3 -ml-6 my-6"
+          className="rotate-[270deg] w-20 -mr-4 -ml-8 my-10"
           type="range"
           value={mixer?.volume ?? Constants.DEFAULT_VOLUME}
           min={Constants.MIN_VOLUME}
@@ -78,7 +98,13 @@ function PatternTrack(props: Props) {
           }
         />
       </div>
-      <div className="h-full flex flex-auto flex-col">
+      <div className="w-full h-full flex flex-col items-center justify-evenly">
+        {holdingV ? (
+          <label className="w-full text-gray-400 text-xs font-extralight pl-1">
+            N{props.chromaticTranspose} • T{props.scalarTranspose} • t
+            {props.chordalTranspose}
+          </label>
+        ) : null}
         <div className="w-full flex relative">
           <input
             placeholder={props.instrumentName}
@@ -107,10 +133,10 @@ function PatternTrack(props: Props) {
             </div>
           </TrackDropdownMenu>
         </div>
-        <div className="flex items-center justify-evenly w-full h-full pt-1.5">
+        <div className="flex items-center w-full pt-1.5">
           <>
             <TrackButton
-              className={`px-4 border border-orange-400 ${
+              className={`px-3 border border-orange-400 ${
                 props.onInstrument ? "bg-orange-500" : ""
               }`}
               onClick={() =>
@@ -119,7 +145,9 @@ function PatternTrack(props: Props) {
                   : props.viewEditor(track.id, "instrument")
               }
             >
-              <label className="cursor-pointer">Change Instrument</label>
+              <label className="cursor-pointer flex items-center instrument-button">
+                Track Instrument <BsPencil className="ml-2" />
+              </label>
             </TrackButton>
           </>
           <div className="flex flex-col pl-2 ml-auto mr-1 space-y-1">

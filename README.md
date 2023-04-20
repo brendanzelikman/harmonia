@@ -25,7 +25,7 @@
     </a>
 </p>
 
-<h3 align="center">A Pattern-Based DAW with Expressive Harmony</h3>
+<h3 align="center">A Pattern-Based DAW with Structural Harmony</h3>
 
 <p align="center">
     <a href="#key-features">Key Features</a>

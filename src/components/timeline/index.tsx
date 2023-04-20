@@ -10,13 +10,15 @@ import { createScaleTrack } from "redux/slices/tracks";
 function mapStateToProps(state: RootState) {
   const scaleTrackIds = Selectors.selectScaleTrackIds(state);
   const trackMap = Selectors.selectTrackMap(state);
-  const { loaded } = Selectors.selectTransport(state);
+  const transport = Selectors.selectTransport(state);
   const { loadedTimeline } = Selectors.selectRoot(state);
   return {
+    time: transport.time,
     scaleTrackIds,
     trackMap,
+    state: transport.state,
     loadedTimeline,
-    loadedTransport: loaded,
+    loadedTransport: transport.loaded,
   };
 }
 

@@ -24,7 +24,7 @@ export const DEFAULT_BEATS_PER_BAR = 4;
 export const TRACK_WIDTH = 300;
 export const CELL_WIDTH = 20;
 export const HEADER_HEIGHT = 80;
-export const CELL_HEIGHT = 100;
+export const CELL_HEIGHT = 120;
 export const TRANSPOSE_HEIGHT = 20;
 export const INITIAL_MAX_ROWS = 8;
 

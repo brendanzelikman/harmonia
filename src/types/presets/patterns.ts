@@ -273,10 +273,272 @@ export const MinorMajorSeventhArpeggio: Pattern = {
   ],
 };
 
+// Extended Chords
+export const MajorNinthChord: Pattern = {
+  id: "major-ninth-chord",
+  name: "Major Ninth Chord",
+  stream: [
+    [
+      { MIDI: 60, duration: MIDI.WholeNote },
+      { MIDI: 64, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 71, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+export const MinorNinthChord: Pattern = {
+  id: "minor-ninth-chord",
+  name: "Minor Ninth Chord",
+  stream: [
+    [
+      { MIDI: 60, duration: MIDI.WholeNote },
+      { MIDI: 63, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 70, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+export const DominantNinthChord: Pattern = {
+  id: "dominant-ninth-chord",
+  name: "Dominant Ninth Chord",
+  stream: [
+    [
+      { MIDI: 60, duration: MIDI.WholeNote },
+      { MIDI: 64, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 70, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+export const MajorEleventhChord: Pattern = {
+  id: "major-eleventh-chord",
+  name: "Major Eleventh Chord",
+  stream: [
+    [
+      { MIDI: 60, duration: MIDI.WholeNote },
+      { MIDI: 64, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 71, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+      { MIDI: 78, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+export const MinorEleventhChord: Pattern = {
+  id: "minor-eleventh-chord",
+  name: "Minor Eleventh Chord",
+  stream: [
+    [
+      { MIDI: 60, duration: MIDI.WholeNote },
+      { MIDI: 63, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 70, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+      { MIDI: 77, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+export const DominantEleventhChord: Pattern = {
+  id: "dominant-eleventh-chord",
+  name: "Dominant Eleventh Chord",
+  stream: [
+    [
+      { MIDI: 60, duration: MIDI.WholeNote },
+      { MIDI: 64, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 70, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+      { MIDI: 77, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+export const MajorThirteenthChord: Pattern = {
+  id: "major-thirteenth-chord",
+  name: "Major Thirteenth Chord",
+  stream: [
+    [
+      { MIDI: 60, duration: MIDI.WholeNote },
+      { MIDI: 64, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 71, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+      { MIDI: 78, duration: MIDI.WholeNote },
+      { MIDI: 81, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+export const MinorThirteenthChord: Pattern = {
+  id: "minor-thirteenth-chord",
+  name: "Minor Thirteenth Chord",
+  stream: [
+    [
+      { MIDI: 60, duration: MIDI.WholeNote },
+      { MIDI: 63, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 70, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+      { MIDI: 77, duration: MIDI.WholeNote },
+      { MIDI: 81, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+export const DominantThirteenthChord: Pattern = {
+  id: "dominant-thirteenth-chord",
+  name: "Dominant Thirteenth Chord",
+  stream: [
+    [
+      { MIDI: 60, duration: MIDI.WholeNote },
+      { MIDI: 64, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 70, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+      { MIDI: 77, duration: MIDI.WholeNote },
+      { MIDI: 81, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+
+// Extended Arpeggios
+export const MajorNinthArpeggio: Pattern = {
+  id: "major-ninth-arpeggio",
+  name: "Major Ninth Arpeggio",
+  stream: [
+    [{ MIDI: 60, duration: MIDI.EighthNote }],
+    [{ MIDI: 64, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 71, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 71, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 64, duration: MIDI.EighthNote }],
+  ],
+};
+
+export const MinorNinthArpeggio: Pattern = {
+  id: "minor-ninth-arpeggio",
+  name: "Minor Ninth Arpeggio",
+  stream: [
+    [{ MIDI: 60, duration: MIDI.EighthNote }],
+    [{ MIDI: 63, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 63, duration: MIDI.EighthNote }],
+  ],
+};
+
+export const DominantNinthArpeggio: Pattern = {
+  id: "dominant-ninth-arpeggio",
+  name: "Dominant Ninth Arpeggio",
+  stream: [
+    [{ MIDI: 60, duration: MIDI.EighthNote }],
+    [{ MIDI: 64, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 64, duration: MIDI.EighthNote }],
+  ],
+};
+export const MajorEleventhArpeggio: Pattern = {
+  id: "major-eleventh-arpeggio",
+  name: "Major Eleventh Arpeggio",
+  stream: [
+    [{ MIDI: 60, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 71, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 78, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 71, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+  ],
+};
+
+export const MinorEleventhArpeggio: Pattern = {
+  id: "minor-eleventh-arpeggio",
+  name: "Minor Eleventh Arpeggio",
+  stream: [
+    [{ MIDI: 60, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 77, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+  ],
+};
+
+export const DominantEleventhArpeggio: Pattern = {
+  id: "dominant-eleventh-arpeggio",
+  name: "Dominant Eleventh Arpeggio",
+  stream: [
+    [{ MIDI: 60, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 77, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+  ],
+};
+export const MajorThirteenthArpeggio: Pattern = {
+  id: "major-thirteenth-arpeggio",
+  name: "Major Thirteenth Arpeggio",
+  stream: [
+    [{ MIDI: 60, duration: MIDI.EighthNote }],
+    [{ MIDI: 71, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 78, duration: MIDI.EighthNote }],
+    [{ MIDI: 81, duration: MIDI.EighthNote }],
+    [{ MIDI: 78, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 71, duration: MIDI.EighthNote }],
+  ],
+};
+
+export const MinorThirteenthArpeggio: Pattern = {
+  id: "minor-thirteenth-arpeggio",
+  name: "Minor Thirteenth Arpeggio",
+  stream: [
+    [{ MIDI: 60, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 77, duration: MIDI.EighthNote }],
+    [{ MIDI: 81, duration: MIDI.EighthNote }],
+    [{ MIDI: 77, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+  ],
+};
+
+export const DominantThirteenthArpeggio: Pattern = {
+  id: "dominant-thirteenth-arpeggio",
+  name: "Dominant Thirteenth Arpeggio",
+  stream: [
+    [{ MIDI: 60, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 77, duration: MIDI.EighthNote }],
+    [{ MIDI: 81, duration: MIDI.EighthNote }],
+    [{ MIDI: 77, duration: MIDI.EighthNote }],
+    [{ MIDI: 74, duration: MIDI.EighthNote }],
+    [{ MIDI: 70, duration: MIDI.EighthNote }],
+  ],
+};
+
 // Famous Chords
 export const TristanChord: Pattern = {
   id: "tristan-chord",
-  name: "Tristan Chord (Wagner)",
+  name: "Tristan Chord",
   stream: [
     [
       { MIDI: 53, duration: MIDI.WholeNote },
@@ -288,7 +550,7 @@ export const TristanChord: Pattern = {
 };
 export const MysticChord: Pattern = {
   id: "mystic-chord",
-  name: "Mystic Chord (Scriabin)",
+  name: "Mystic Chord",
   stream: [
     [
       { MIDI: 60, duration: MIDI.WholeNote },
@@ -302,7 +564,7 @@ export const MysticChord: Pattern = {
 };
 export const ElektraChord: Pattern = {
   id: "elektra-chord",
-  name: "Elektra Chord (Strauss)",
+  name: "Elektra Chord",
   stream: [
     [
       { MIDI: 64, duration: MIDI.WholeNote },
@@ -315,7 +577,7 @@ export const ElektraChord: Pattern = {
 };
 export const FarbenChord: Pattern = {
   id: "farben-chord",
-  name: "Farben Chord (Schoenberg)",
+  name: "Farben Chord",
   stream: [
     [
       { MIDI: 60, duration: MIDI.WholeNote },
@@ -328,7 +590,7 @@ export const FarbenChord: Pattern = {
 };
 export const PurpleHazeChord: Pattern = {
   id: "purple-haze-chord",
-  name: "Purple Haze Chord (Hendrix)",
+  name: "Purple Haze Chord",
   stream: [
     [
       { MIDI: 40, duration: MIDI.WholeNote },
@@ -342,7 +604,7 @@ export const PurpleHazeChord: Pattern = {
 };
 export const SoWhatChord: Pattern = {
   id: "so-what-chord",
-  name: "So What Chord (Evans)",
+  name: "So What Chord",
   stream: [
     [
       { MIDI: 52, duration: MIDI.WholeNote },
@@ -355,7 +617,7 @@ export const SoWhatChord: Pattern = {
 };
 export const BondChord: Pattern = {
   id: "bond-chord",
-  name: "Bond Chord (Flick)",
+  name: "Bond Chord",
   stream: [
     [
       { MIDI: 52, duration: MIDI.WholeNote },
@@ -367,12 +629,10 @@ export const BondChord: Pattern = {
   ],
 };
 
-// Common Voicings
-
 // Famous Patterns
 export const BachPrelude: Pattern = {
   id: "bach-prelude",
-  name: "Prelude in C (Bach)",
+  name: "Prelude in C",
   stream: [
     [{ MIDI: 60, duration: MIDI.EighthNote }],
     [{ MIDI: 64, duration: MIDI.EighthNote }],
@@ -382,56 +642,6 @@ export const BachPrelude: Pattern = {
     [{ MIDI: 67, duration: MIDI.EighthNote }],
     [{ MIDI: 72, duration: MIDI.EighthNote }],
     [{ MIDI: 76, duration: MIDI.EighthNote }],
-  ],
-};
-export const TurkishMarch: Pattern = {
-  id: "turkish-march",
-  name: "Turkish March (Mozart)",
-  stream: [
-    [{ MIDI: 71, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 69, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 68, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 69, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 72, duration: MIDI.SixteenthNote }],
-  ],
-};
-export const FatePattern: Pattern = {
-  id: "fate-motif",
-  name: "Fate Motif (Beethoven)",
-  stream: [
-    [{ MIDI: MIDI.Rest, duration: MIDI.EighthNote }],
-    [{ MIDI: 67, duration: MIDI.EighthNote }],
-    [{ MIDI: 67, duration: MIDI.EighthNote }],
-    [{ MIDI: 67, duration: MIDI.EighthNote }],
-    [{ MIDI: 63, duration: MIDI.HalfNote }],
-  ],
-};
-export const RevolutionaryEtude: Pattern = {
-  id: "revolutionary-etude",
-  name: "Revolutionary Etude (Chopin)",
-  stream: [
-    [{ MIDI: 48, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 55, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 60, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 62, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 63, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 62, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 60, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 55, duration: MIDI.SixteenthNote }],
-  ],
-};
-export const ZarahustraFanfare: Pattern = {
-  id: "zarahustra-fanfare",
-  name: "Zarahustra Fanfare (Strauss)",
-  stream: [
-    [{ MIDI: 60, duration: MIDI.HalfNote }],
-    [{ MIDI: 67, duration: MIDI.HalfNote }],
-    [{ MIDI: 72, duration: MIDI.HalfNote }],
-    [{ MIDI: MIDI.Rest, duration: MIDI.QuarterNote }],
-    [{ MIDI: MIDI.Rest, duration: MIDI.EighthNote }],
-    [{ MIDI: MIDI.Rest, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 76, duration: MIDI.SixteenthNote }],
-    [{ MIDI: 75, duration: MIDI.WholeNote }],
   ],
 };
 export const AlbertiBass: Pattern = {
@@ -446,6 +656,56 @@ export const AlbertiBass: Pattern = {
     [{ MIDI: 67, duration: MIDI.EighthNote }],
     [{ MIDI: 64, duration: MIDI.EighthNote }],
     [{ MIDI: 67, duration: MIDI.EighthNote }],
+  ],
+};
+export const TurkishMarch: Pattern = {
+  id: "turkish-march",
+  name: "Turkish March",
+  stream: [
+    [{ MIDI: 71, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 69, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 68, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 69, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 72, duration: MIDI.SixteenthNote }],
+  ],
+};
+export const FateMotif: Pattern = {
+  id: "fate-motif",
+  name: "Fate Motif",
+  stream: [
+    [{ MIDI: MIDI.Rest, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 67, duration: MIDI.EighthNote }],
+    [{ MIDI: 63, duration: MIDI.HalfNote }],
+  ],
+};
+export const RevolutionaryEtude: Pattern = {
+  id: "revolutionary-etude",
+  name: "Revolutionary Etude",
+  stream: [
+    [{ MIDI: 48, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 55, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 60, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 62, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 63, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 62, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 60, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 55, duration: MIDI.SixteenthNote }],
+  ],
+};
+export const ZarahustraFanfare: Pattern = {
+  id: "zarahustra-fanfare",
+  name: "Zarahustra Fanfare",
+  stream: [
+    [{ MIDI: 60, duration: MIDI.HalfNote }],
+    [{ MIDI: 67, duration: MIDI.HalfNote }],
+    [{ MIDI: 72, duration: MIDI.HalfNote }],
+    [{ MIDI: MIDI.Rest, duration: MIDI.QuarterNote }],
+    [{ MIDI: MIDI.Rest, duration: MIDI.EighthNote }],
+    [{ MIDI: MIDI.Rest, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 76, duration: MIDI.SixteenthNote }],
+    [{ MIDI: 75, duration: MIDI.WholeNote }],
   ],
 };
 export const TheLick: Pattern = {
@@ -477,24 +737,44 @@ export const HappyBirthday: Pattern = {
 
 // Basic Durations
 export const WholeNote: Pattern = {
-  id: "whole-notes",
+  id: "whole-note",
   name: "Whole Note",
   stream: [wholeNote],
+};
+export const DottedWholeNote: Pattern = {
+  id: "dotted-whole-note",
+  name: "Dotted Whole Note",
+  stream: [wholeNote, halfRest],
 };
 export const HalfNotes: Pattern = {
   id: "half-notes",
   name: "Half Notes",
   stream: fill(Array(2), halfNote),
 };
+export const DottedHalfNotes: Pattern = {
+  id: "dotted-half-notes",
+  name: "Dotted Half Notes",
+  stream: [halfNote, quarterRest, halfNote, quarterRest],
+};
 export const QuarterNotes: Pattern = {
   id: "quarter-notes",
   name: "Quarter Notes",
   stream: fill(Array(4), quarterNote),
 };
+export const DottedQuarterNotes: Pattern = {
+  id: "dotted-quarter-notes",
+  name: "Dotted Quarter Notes",
+  stream: fill(Array(4), [quarterNote, eighthRest]).flat(),
+};
 export const EighthNotes: Pattern = {
   id: "eighth-notes",
   name: "Eighth Notes",
   stream: fill(Array(8), eighthNote),
+};
+export const DottedEighthNotes: Pattern = {
+  id: "dotted-eighth-notes",
+  name: "Dotted Eighth Notes",
+  stream: fill(Array(8), [eighthNote, sixteenthRest]).flat(),
 };
 export const SixteenthNotes: Pattern = {
   id: "sixteenth-notes",
@@ -617,6 +897,29 @@ export const Cascara: Pattern = {
     sixteenthRest,
     sixteenthNote,
   ],
+};
+export const Montuno: Pattern = {
+  id: "montuno",
+  name: "Montuno",
+  stream: [
+    eighthNote,
+    sixteenthNote,
+    sixteenthNote,
+    sixteenthRest,
+    eighthNote,
+    sixteenthNote,
+    sixteenthRest,
+    eighthNote,
+    sixteenthNote,
+    sixteenthRest,
+    eighthNote,
+    sixteenthNote,
+  ],
+};
+export const ChaChaCha: Pattern = {
+  id: "cha-cha-cha",
+  name: "Cha Cha Cha",
+  stream: [quarterNote, quarterNote, eighthNote, eighthNote, quarterNote],
 };
 
 // Clave Patterns

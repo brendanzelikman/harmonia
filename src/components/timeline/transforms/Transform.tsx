@@ -4,12 +4,14 @@ import { AppDispatch, RootState } from "redux/store";
 import { TransformsProps } from ".";
 import * as Constants from "appConstants";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { selectTransforms } from "redux/selectors/transforms";
 import { Transform } from "types/transform";
 import { selectRoot } from "redux/selectors";
 import { BsMagic } from "react-icons/bs";
+import useEventListeners from "hooks/useEventListeners";
+import { isInputEvent } from "appUtil";
 
 interface OwnClipProps extends TransformsProps {
   transform: Transform;
@@ -26,6 +28,7 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const transforms = selectTransforms(state);
   const { timelineState } = selectRoot(state);
   const addingClip = timelineState === "adding";
+  const transposing = timelineState === "transposing";
 
   return {
     ...ownProps,
@@ -35,6 +38,7 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     left,
     transforms,
     addingClip,
+    transposing,
   };
 };
 
@@ -52,7 +56,27 @@ function TimelineTransform(props: TransformProps) {
   const { transform } = props;
   const { top, left, width } = props;
 
+  const [holdingV, setHoldingV] = useState(false);
+  useEventListeners(
+    {
+      v: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          setHoldingV(true);
+        },
+        keyup: (e) => {
+          if (isInputEvent(e)) return;
+          setHoldingV(false);
+        },
+      },
+    },
+    [holdingV]
+  );
+
   const Transform = useMemo(() => {
+    const chromaticTranspose = transform.chromaticTranspose || 0;
+    const scalarTranspose = transform.scalarTranspose || 0;
+    const chordalTranspose = transform.chordalTranspose || 0;
     return () => (
       <>
         <div
@@ -61,11 +85,14 @@ function TimelineTransform(props: TransformProps) {
         >
           <BsMagic className="text-md" />
           <label
-            className={`group-hover:visible invisible absolute ${
+            className={`group-hover:visible ${
+              holdingV ? "visible" : "invisible"
+            } absolute ${
               left === Constants.TRACK_WIDTH ? "left-0" : "left-7"
-            } w-fit whitespace-nowrap px-2 z-30 flex items-center justify-center bg-gradient-to-t from-fuchsia-700/80 to-zinc-800 rounded border border-white/50`}
+            } w-fit whitespace-nowrap px-2 z-20 flex items-center justify-center bg-gradient-to-t from-fuchsia-700/80 to-zinc-800 rounded border border-white/50`}
           >
-            T{transform.scalarTranspose} • t{transform.chordalTranspose}
+            N{chromaticTranspose} • T{scalarTranspose} • t{chordalTranspose}
+            {/* T{scalarTranspose} • t{chordalTranspose} */}
           </label>
         </div>
         <div
@@ -74,7 +101,7 @@ function TimelineTransform(props: TransformProps) {
         ></div>
       </>
     );
-  }, [transform]);
+  }, [transform, holdingV]);
 
   const onClick = useCallback(() => {
     props.deleteTransform(transform);

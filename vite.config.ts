@@ -11,5 +11,6 @@ export default defineConfig({
   build: {
     outDir: "build",
   },
+  assetsInclude: ["**/*.ham"],
   plugins: [react(), tsconfigPaths()],
 });

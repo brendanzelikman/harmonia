@@ -3,10 +3,11 @@ import Timer from "./Timer";
 import Transport from "./Transport";
 import FileControl from "./FileControl";
 import PatternControl from "./PatternControl";
-import AudioControl from "./AudioControl";
-import { clearState } from "redux/util";
-import { BsQuestionCircle } from "react-icons/bs";
+import Settings from "./Settings";
+import { BsGithub, BsQuestionCircle } from "react-icons/bs";
 import { Transition } from "@headlessui/react";
+import PatternListbox from "./PatternListbox";
+import OnboardingTour from "./OnboardingTour";
 
 export function Navbar() {
   return (
@@ -19,24 +20,38 @@ export function Navbar() {
 
 function NavBar() {
   return (
-    <div className="z-20 relative w-full h-full flex border-b border-b-slate-900 py-2 shadow-xl">
+    <div
+      id="navbar"
+      className="z-30 relative w-full h-full flex border-b border-b-slate-900 py-2 shadow-xl"
+    >
       <NavGroup className="flex-shrink-0 ml-3">
         <NavBrand />
       </NavGroup>
       <NavGroup className="ml-5 space-x-2 hidden lg:flex">
         <FileControl />
       </NavGroup>
-      <NavGroup className="ml-3">
+      <NavGroup className="ml-5">
         <Timer />
       </NavGroup>
       <NavGroup className="space-x-2 ml-3" role="group">
         <Transport />
       </NavGroup>
-      <NavGroup className="ml-4 mr-3">
+      <NavGroup className="ml-5">
+        <PatternListbox />
+      </NavGroup>
+      <NavGroup className="ml-4 mr-3 ">
         <PatternControl />
       </NavGroup>
       <NavGroup className="relative ml-auto mr-5 hidden md:flex">
-        <AudioControl />
+        <Settings />
+        <OnboardingTour />
+        <a
+          href="https://www.github.com/brendanzelikman/harmonia"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <BsGithub className="ml-4 text-2xl" />
+        </a>
       </NavGroup>
     </div>
   );
@@ -85,12 +100,14 @@ export function NavButton({
   disabledClass = "bg-slate-400/30",
   children,
   onClick,
+  label,
 }: {
   children: any;
   className?: string;
   disabled?: boolean;
   disabledClass?: string;
   onClick?: () => void;
+  label?: string;
 }) {
   return (
     <button
@@ -98,6 +115,7 @@ export function NavButton({
       className={`${className ?? ""} ${
         disabled ? disabledClass : ""
       } flex items-center justify-center min-w-12 rounded focus:outline-none`}
+      aria-label={label}
     >
       {children}
     </button>
@@ -157,7 +175,7 @@ export const NavbarFormInput = (props: any) => (
 export const NavbarInfoTooltip = (props: any) => (
   <div className={`relative ${props.className ?? ""}`}>
     <BsQuestionCircle className="w-5 h-5 text-gray-400 hover:text-gray-300 peer" />
-    <label className="text-xs absolute -left-48 peer-hover:visible invisible bg-slate-900 font-light w-40 -top-1/2 p-2 rounded border border-white/50 whitespace-normal inline-block text-center">
+    <label className="text-xs absolute -left-52 peer-hover:visible invisible bg-slate-900 font-light w-48 -top-1/2 p-2 rounded border border-white/50 whitespace-normal inline-block text-center">
       {props.content}
     </label>
   </div>

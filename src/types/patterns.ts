@@ -196,7 +196,7 @@ export const transposePatternStream = (
 };
 
 // Invert a pattern stream by a given number of steps
-export const invertPatternStream = (
+export const rotatePatternStream = (
   stream: PatternStream,
   steps: number
 ): PatternStream => {
@@ -275,6 +275,18 @@ export default class Patterns {
     PresetPatterns.DiminishedSeventhChord,
   ];
 
+  static ExtendedChords = [
+    PresetPatterns.MajorNinthChord,
+    PresetPatterns.MinorNinthChord,
+    PresetPatterns.DominantNinthChord,
+    PresetPatterns.MajorEleventhChord,
+    PresetPatterns.MinorEleventhChord,
+    PresetPatterns.DominantEleventhChord,
+    PresetPatterns.MajorThirteenthChord,
+    PresetPatterns.MinorThirteenthChord,
+    PresetPatterns.DominantThirteenthChord,
+  ];
+
   static FamousChords = [
     PresetPatterns.TristanChord,
     PresetPatterns.MysticChord,
@@ -287,11 +299,11 @@ export default class Patterns {
 
   static FamousPatterns = [
     PresetPatterns.BachPrelude,
+    PresetPatterns.AlbertiBass,
     PresetPatterns.TurkishMarch,
-    PresetPatterns.FatePattern,
+    PresetPatterns.FateMotif,
     PresetPatterns.RevolutionaryEtude,
     PresetPatterns.ZarahustraFanfare,
-    PresetPatterns.AlbertiBass,
     PresetPatterns.TheLick,
     PresetPatterns.HappyBirthday,
   ];
@@ -307,11 +319,27 @@ export default class Patterns {
     PresetPatterns.DiminishedSeventhArpeggio,
   ];
 
+  static ExtendedPatterns = [
+    PresetPatterns.MajorNinthArpeggio,
+    PresetPatterns.MinorNinthArpeggio,
+    PresetPatterns.DominantNinthArpeggio,
+    PresetPatterns.MajorEleventhArpeggio,
+    PresetPatterns.MinorEleventhArpeggio,
+    PresetPatterns.DominantEleventhArpeggio,
+    PresetPatterns.MajorThirteenthArpeggio,
+    PresetPatterns.MinorThirteenthArpeggio,
+    PresetPatterns.DominantThirteenthArpeggio,
+  ];
+
   static BasicDurations = [
     PresetPatterns.WholeNote,
+    PresetPatterns.DottedWholeNote,
     PresetPatterns.HalfNotes,
+    PresetPatterns.DottedHalfNotes,
     PresetPatterns.QuarterNotes,
+    PresetPatterns.DottedQuarterNotes,
     PresetPatterns.EighthNotes,
+    PresetPatterns.DottedEighthNotes,
     PresetPatterns.SixteenthNotes,
   ];
 
@@ -329,6 +357,7 @@ export default class Patterns {
     PresetPatterns.Cinquillo,
     PresetPatterns.Baqueteo,
     PresetPatterns.Cascara,
+    PresetPatterns.Montuno,
   ];
 
   static ClavePatterns = [
@@ -344,8 +373,10 @@ export default class Patterns {
 
   static PresetGroups = {
     "Basic Chords": Patterns.BasicChords,
+    "Extended Chords": Patterns.ExtendedChords,
     "Famous Chords": Patterns.FamousChords,
     "Basic Patterns": Patterns.BasicPatterns,
+    "Extended Patterns": Patterns.ExtendedPatterns,
     "Famous Patterns": Patterns.FamousPatterns,
     "Basic Durations": Patterns.BasicDurations,
     "Simple Rhythms": Patterns.SimpleRhythms,

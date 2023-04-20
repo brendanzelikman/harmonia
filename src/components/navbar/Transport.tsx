@@ -47,9 +47,10 @@ const TransportButton = (props: {
   className?: string;
   children: any;
   onClick?: any;
+  label?: string;
 }) => (
   <NavButton
-    onClick={props.onClick}
+    {...props}
     className={`w-12 h-12 border border-slate-400/80 p-2 rounded-full ${
       props.className ?? ""
     }`}
@@ -63,6 +64,7 @@ function Transport(props: Props) {
   return (
     <>
       <TransportButton
+        label="Stop"
         className={`bg-gradient-to-t ${
           !props.isStopped ? "from-red-700 to-red-900" : buttonGradient
         }`}
@@ -72,6 +74,7 @@ function Transport(props: Props) {
       </TransportButton>
       {props.isStarted ? (
         <TransportButton
+          label="Pause"
           className={`bg-gradient-to-t ${
             props.isStarted ? "from-green-500 to-green-800/90" : buttonGradient
           }`}
@@ -81,6 +84,7 @@ function Transport(props: Props) {
         </TransportButton>
       ) : (
         <TransportButton
+          label="Play"
           className={`bg-gradient-to-t ${buttonGradient}`}
           onClick={props.start}
         >
@@ -88,6 +92,7 @@ function Transport(props: Props) {
         </TransportButton>
       )}
       <TransportButton
+        label="Loop"
         onClick={props.toggleLoop}
         className={`bg-gradient-to-t ${
           !!props.isLooped ? "from-slate-600 to-indigo-700" : buttonGradient

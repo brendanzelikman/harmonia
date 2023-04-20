@@ -29,6 +29,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   );
   return {
     track,
+    chromaticTranspose: currentTransform?.chromaticTranspose ?? 0,
     scalarTranspose: currentTransform?.scalarTranspose ?? 0,
     chordalTranspose: currentTransform?.chordalTranspose ?? 0,
   };

@@ -27,7 +27,7 @@ const mapStateToProps = (
   const transforms = selectTransforms(state);
   const root = selectRoot(state);
   const { timelineState, draggingClip } = root;
-  const { scalarTranspose, chordalTranspose } = root;
+  const { chromaticTranspose, scalarTranspose, chordalTranspose } = root;
 
   const transposing = timelineState === "transposing";
 
@@ -36,6 +36,7 @@ const mapStateToProps = (
     transforms,
     transposing,
     draggingClip,
+    chromaticTranspose,
     scalarTranspose,
     chordalTranspose,
   };

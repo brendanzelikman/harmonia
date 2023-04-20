@@ -24,25 +24,26 @@ const undoableTimeline = undoable(timeline, {
   groupBy: groupByActionType,
   undoType: "timeline/undo",
   redoType: "timeline/redo",
-  limit: 16,
+  limit: 8,
 });
 
 const undoableScales = undoable(Slices.Scales.default, {
   groupBy: groupByActionType,
   undoType: "scales/undo",
   redoType: "scales/redo",
-  limit: 16,
+  limit: 8,
 });
 
 const undoablePatterns = undoable(Slices.Patterns.default, {
   groupBy: groupByActionType,
   undoType: "patterns/undo",
   redoType: "patterns/redo",
-  limit: 16,
+  limit: 8,
 });
 
 const root = Slices.Root.default;
 const transport = Slices.Transport.default;
+const tour = Slices.Tour.default;
 
 const reducer = combineReducers({
   timeline: undoableTimeline,
@@ -50,6 +51,7 @@ const reducer = combineReducers({
   patterns: undoablePatterns,
   root,
   transport,
+  tour,
 });
 
 const preloadedState = loadState();

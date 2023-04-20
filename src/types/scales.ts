@@ -71,7 +71,6 @@ export default class Scales {
     PresetScales.AeolianScale,
     PresetScales.PhrygianScale,
     PresetScales.LocrianScale,
-    PresetScales.AlteredScale,
   ];
 
   static PentatonicScales = [
@@ -85,6 +84,8 @@ export default class Scales {
   ];
 
   static HexatonicScales = [
+    PresetScales.MajorHexatonicScale,
+    PresetScales.MinorHexatonicScale,
     PresetScales.BluesScale,
     PresetScales.AugmentedScale,
     PresetScales.PrometheusScale,
@@ -103,6 +104,7 @@ export default class Scales {
   ];
 
   static UncommonScales = [
+    PresetScales.AlteredScale,
     PresetScales.AcousticScale,
     PresetScales.HarmonicMajorScale,
     PresetScales.PersianScale,
@@ -179,14 +181,14 @@ export const initializeScale = (
   id: nanoid(),
 });
 
-export const transposeScale = (scale: Scale, transpose: number): Scale => ({
+export const transposeScale = (scale: Scale, offset: number): Scale => ({
   ...scale,
-  notes: scale.notes.map((note) => Number(note) + Number(transpose)),
+  notes: scale.notes.map((note) => Number(note) + Number(offset)),
 });
 
-export const invertScale = (scale: Scale, invert: number): Scale => {
-  const length = Math.abs(invert);
-  const step = invert > 0 ? 1 : -1;
+export const rotateScale = (scale: Scale, offset: number): Scale => {
+  const length = Math.abs(offset);
+  const step = offset > 0 ? 1 : -1;
   const modulus = scale.notes.length;
 
   return {

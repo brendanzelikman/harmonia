@@ -107,6 +107,16 @@ export const IwatoScale: Scale = {
 };
 
 // Hexatonic Scales
+export const MajorHexatonicScale: Scale = {
+  id: "major-hexatonic",
+  name: "Major Hexatonic",
+  notes: [60, 62, 64, 65, 67, 69],
+};
+export const MinorHexatonicScale: Scale = {
+  id: "minor-hexatonic",
+  name: "Minor Hexatonic",
+  notes: [60, 62, 63, 65, 67, 70],
+};
 export const BluesScale: Scale = {
   id: "blues-scale",
   name: "Blues Scale",

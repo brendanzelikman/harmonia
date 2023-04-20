@@ -19,7 +19,7 @@ import { selectTransforms } from "redux/selectors/transforms";
 import useEventListeners from "hooks/useEventListeners";
 import { createTransforms } from "redux/slices/transforms";
 import { TransformNoId } from "types/transform";
-import { invertPattern, transposePattern } from "redux/slices/patterns";
+import { rotatePattern, transposePattern } from "redux/slices/patterns";
 
 interface OwnClipProps extends ClipsProps {
   clip: Clip;
@@ -42,7 +42,7 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const isSelected = selectedClipIds.includes(clip.id);
   const root = selectRoot(state);
   const { timelineState, draggingClip, repeatCount, repeatTransforms } = root;
-  const { scalarTranspose, chordalTranspose } = root;
+  const { chromaticTranspose, scalarTranspose, chordalTranspose } = root;
 
   return {
     ...ownProps,
@@ -60,6 +60,7 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     draggingClip,
     repeatCount,
     repeatTransforms,
+    chromaticTranspose,
     scalarTranspose,
     chordalTranspose,
   };
@@ -73,6 +74,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       } else {
         dispatch(RootSlice.selectClip(clipId));
       }
+    },
+    setActivePattern: (patternId: string) => {
+      dispatch(RootSlice.setActivePattern(patternId));
     },
     selectClips: (clipIds: ClipId[]) => {
       dispatch(RootSlice.selectClips(clipIds));
@@ -91,11 +95,17 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     },
     transformPattern: (
       patternId: string,
+      chromaticTranspose: number,
       scalarTranspose: number,
       chordalTranspose: number
     ) => {
-      dispatch(transposePattern({ id: patternId, transpose: scalarTranspose }));
-      dispatch(invertPattern({ id: patternId, transpose: chordalTranspose }));
+      dispatch(
+        transposePattern({
+          id: patternId,
+          transpose: chromaticTranspose + scalarTranspose,
+        })
+      );
+      dispatch(rotatePattern({ id: patternId, transpose: chordalTranspose }));
     },
   };
 };
@@ -124,16 +134,29 @@ function TimelineClip(props: ClipProps) {
   }, [clip, isDragging]);
 
   const opacity = useMemo(() => {
-    if (muted) return 0;
+    if (muted) return 0.8;
     if (isDragging) return 0.5;
     if (draggingClip) return 0.8;
     return 1;
   }, [muted, isDragging, draggingClip]);
 
   const [holdingAlt, setHoldingAlt] = useState(false);
+  const [eyedropping, setEyedropping] = useState(false);
 
   useEventListeners(
     {
+      i: {
+        keydown: (e) => {
+          if ((e as KeyboardEvent).key === "i") {
+            setEyedropping(true);
+          }
+        },
+        keyup: (e) => {
+          if ((e as KeyboardEvent).key === "i") {
+            setEyedropping(false);
+          }
+        },
+      },
       Alt: {
         keydown: (e) => {
           if ((e as KeyboardEvent).key === "Alt") {
@@ -153,11 +176,21 @@ function TimelineClip(props: ClipProps) {
   const onClipClick = (e: MouseEvent) => {
     e.stopPropagation();
     if (transposingClip) {
-      const { scalarTranspose, chordalTranspose } = props;
-      if (isNaN(scalarTranspose) || isNaN(chordalTranspose)) {
-        return;
-      }
-      props.transformPattern(clip.patternId, scalarTranspose, chordalTranspose);
+      const { chromaticTranspose, scalarTranspose, chordalTranspose } = props;
+      if (isNaN(scalarTranspose)) return;
+      if (isNaN(chromaticTranspose)) return;
+      if (isNaN(chordalTranspose)) return;
+
+      props.transformPattern(
+        clip.patternId,
+        chromaticTranspose,
+        scalarTranspose,
+        chordalTranspose
+      );
+      return;
+    }
+    if (eyedropping) {
+      props.setActivePattern(clip.patternId);
       return;
     }
     if (isSelected) {
@@ -205,11 +238,11 @@ function TimelineClip(props: ClipProps) {
 
   const ClipName = useMemo(() => {
     return () => (
-      <h6
+      <div
         className={`text-xs text-white/80 font-medium bg-[#072c4f] p-1 border-b border-b-white/20 whitespace-nowrap overflow-ellipsis`}
       >
         {name}
-      </h6>
+      </div>
     );
   }, [name]);
 

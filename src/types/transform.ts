@@ -11,6 +11,7 @@ export type TransformId = string;
 export type Transform = {
   id: TransformId;
   trackId: TrackId;
+  chromaticTranspose: number;
   scalarTranspose: number;
   chordalTranspose: number;
   time: Time;
@@ -19,6 +20,7 @@ export type Transform = {
 export const defaultTransform: Transform = {
   id: "",
   trackId: "",
+  chromaticTranspose: 0,
   scalarTranspose: 0,
   chordalTranspose: 0,
   time: 0,

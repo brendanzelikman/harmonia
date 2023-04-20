@@ -14,6 +14,8 @@ import * as Constants from "appConstants";
 import TimelineClips from "./clips";
 import TimelineTransforms from "./transforms";
 import DataGridBackground from "./background";
+import useEventListeners from "hooks/useEventListeners";
+import { isInputEvent } from "appUtil";
 
 export function Timeline(props: TimelineProps) {
   const { trackMap, scaleTrackIds } = props;
@@ -37,6 +39,23 @@ export function Timeline(props: TimelineProps) {
       props.hideEditor();
     };
   }, []);
+
+  useEventListeners(
+    {
+      b: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          e.preventDefault();
+          if (timeline?.element)
+            timeline.element.scroll({
+              left: props.time * Constants.CELL_WIDTH,
+              behavior: "smooth",
+            });
+        },
+      },
+    },
+    [timeline, timeline?.element, props.time]
+  );
 
   // Create a memoized list of rows for the DataGrid
   const rows: Row[] = useMemo((): Row[] => {
@@ -151,6 +170,32 @@ export function Timeline(props: TimelineProps) {
       background.current.style.top = `-${e.currentTarget.scrollTop}px`;
     }
   };
+
+  useEffect(() => {
+    if (!timeline?.element) return;
+    if (props.state === "stopped") {
+      timeline.element.scrollTo({
+        left: 0,
+        behavior: "smooth",
+      });
+      return;
+    }
+    // if (props.time === 0) {
+    //   timeline.element.scrollTo({
+    //     left: 0,
+    //     behavior: "smooth",
+    //   });
+    //   return;
+    // }
+    // const timeLeft = props.time * Constants.CELL_WIDTH;
+    // const oldLeft = timeline.element.scrollLeft;
+    // const padding = Constants.CELL_WIDTH * Constants.MAX_SUBDIVISION;
+    // if (props.state === "started" && timeLeft > oldLeft + padding)
+    //   timeline.element.scrollTo({
+    //     left: timeLeft - padding,
+    //     behavior: "smooth",
+    //   });
+  }, [props.time, timeline, props.state]);
 
   return (
     <div className="relative w-full h-full">

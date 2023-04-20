@@ -25,6 +25,7 @@ import ScaleList from "./ScaleList";
 import { DemoXML } from "assets/demo";
 import { Transition } from "@headlessui/react";
 import useEditorData from "../hooks/useEditorData";
+import { Tooltip } from "flowbite-react";
 
 type ScaleViewState = "adding" | "removing";
 
@@ -50,7 +51,22 @@ export function EditorScales(props: EditorScalesProps) {
 
   useEventListeners(
     {
-      " ": {
+      // "Cmd + Z" = Undo
+      // "Cmd + Shift + Z" = Redo
+      z: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          e.preventDefault();
+          const holdingShift = !!(e as KeyboardEvent).shiftKey;
+          if (holdingShift) {
+            props.redoScales();
+          } else {
+            props.undoScales();
+          }
+        },
+      },
+      // + = Start/Stop Adding Notes
+      "+": {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           if (onState("adding")) {
@@ -60,7 +76,8 @@ export function EditorScales(props: EditorScalesProps) {
           }
         },
       },
-      Backspace: {
+      // - = Start/Stop Removing Notes
+      "-": {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           if (onState("removing")) {
@@ -70,10 +87,46 @@ export function EditorScales(props: EditorScalesProps) {
           }
         },
       },
+      // Delete = Clear Scale
+      Backspace: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          if (scale) props.clearScale(scale.id);
+        },
+      },
+      // [ = Transpose Scale Down
+      "[": {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          if (scale) props.transposeScale(scale.id, -1);
+        },
+      },
+      // ] = Transpose Scale Up
+      "]": {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          if (scale) props.transposeScale(scale.id, 1);
+        },
+      },
+      // { = Invert Scale Down
+      "{": {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          if (scale) props.rotateScale(scale.id, -1);
+        },
+      },
+      // } = Invert Scale Up
+      "}": {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          if (scale) props.rotateScale(scale.id, 1);
+        },
+      },
     },
     [state]
   );
 
+  // Add the custom scales to the presets
   const ScalePresets = {
     ...Scales.PresetGroups,
     "Custom Scales": props.customScales,
@@ -135,94 +188,121 @@ export function EditorScales(props: EditorScalesProps) {
           >
             <Editor.Menu>
               <Editor.MenuGroup label="Actions">
-                <Editor.MenuButton
-                  onClick={props.undoScales}
-                  disabled={!props.canUndoScales}
-                >
-                  <CiUndo />
-                </Editor.MenuButton>
-                <Editor.MenuButton
-                  onClick={props.redoScales}
-                  disabled={!props.canRedoScales}
-                >
-                  <CiRedo />
-                </Editor.MenuButton>
-                <Editor.MenuButton
-                  className="active:text-emerald-500"
-                  onClick={() => scale && props.playScale(scale.id)}
-                  disabled={isScaleEmpty}
-                >
-                  <BsFillPlayCircleFill />
-                </Editor.MenuButton>
-                <Editor.MenuButton
-                  className="active:text-emerald-500"
-                  disabled={isScaleEmpty}
-                  onClick={() =>
-                    props.exportScale({
-                      ...scale,
-                      name: matchingScales[0]?.name ?? "Custom Scale",
-                    })
-                  }
-                >
-                  <BsFillFileMusicFill />
-                </Editor.MenuButton>
+                <Tooltip content="Undo Change">
+                  <Editor.MenuButton
+                    onClick={props.undoScales}
+                    disabled={!props.canUndoScales}
+                  >
+                    <CiUndo />
+                  </Editor.MenuButton>
+                </Tooltip>
+                <Tooltip content="Redo Change">
+                  <Editor.MenuButton
+                    onClick={props.redoScales}
+                    disabled={!props.canRedoScales}
+                  >
+                    <CiRedo />
+                  </Editor.MenuButton>
+                </Tooltip>
+                <Tooltip content="Play Scale">
+                  <Editor.MenuButton
+                    className="active:text-emerald-500"
+                    onClick={() => scale && props.playScale(scale.id)}
+                    disabled={isScaleEmpty}
+                  >
+                    <BsFillPlayCircleFill />
+                  </Editor.MenuButton>
+                </Tooltip>
+                <Tooltip content="Export to XML">
+                  <Editor.MenuButton
+                    className="active:text-emerald-500"
+                    disabled={isScaleEmpty}
+                    onClick={() =>
+                      props.exportScale({
+                        ...scale,
+                        name: matchingScales[0]?.name ?? "Custom Scale",
+                      })
+                    }
+                  >
+                    <BsFillFileMusicFill />
+                  </Editor.MenuButton>
+                </Tooltip>
               </Editor.MenuGroup>
               <Editor.MenuGroup label="Notes">
-                <Editor.MenuButton
-                  active={onState("adding")}
-                  activeClass={"text-emerald-500/80"}
-                  onClick={
-                    onState("adding") ? clearState : () => setState("adding")
-                  }
+                <Tooltip
+                  content={onState("adding") ? "Stop Adding" : "Add Notes"}
                 >
-                  <BsFillPlusCircleFill />
-                </Editor.MenuButton>
+                  <Editor.MenuButton
+                    active={onState("adding")}
+                    activeClass={"text-emerald-500/80"}
+                    onClick={
+                      onState("adding") ? clearState : () => setState("adding")
+                    }
+                  >
+                    <BsFillPlusCircleFill />
+                  </Editor.MenuButton>
+                </Tooltip>
 
-                <Editor.MenuButton
-                  active={onState("removing")}
-                  activeClass={"text-red-400/80"}
-                  onClick={
-                    onState("removing")
-                      ? clearState
-                      : () => setState("removing")
+                <Tooltip
+                  content={
+                    onState("removing") ? "Stop Removing" : "Remove Notes"
                   }
                 >
-                  <BsFillDashCircleFill />
-                </Editor.MenuButton>
-                <Editor.MenuButton
-                  className="active:text-gray-400"
-                  onClick={() => scale && props.clearScale(scale.id)}
-                >
-                  <BsFillTrashFill />
-                </Editor.MenuButton>
+                  <Editor.MenuButton
+                    active={onState("removing")}
+                    activeClass={"text-red-400/80"}
+                    onClick={
+                      onState("removing")
+                        ? clearState
+                        : () => setState("removing")
+                    }
+                  >
+                    <BsFillDashCircleFill />
+                  </Editor.MenuButton>
+                </Tooltip>
+                <Tooltip content="Clear Scale">
+                  <Editor.MenuButton
+                    className="active:text-gray-400"
+                    onClick={() => scale && props.clearScale(scale.id)}
+                  >
+                    <BsFillTrashFill />
+                  </Editor.MenuButton>
+                </Tooltip>
               </Editor.MenuGroup>
               <Editor.MenuGroup label="Transform">
-                <Editor.MenuButton
-                  onClick={() => scale && props.transposeScale(scale.id, 1)}
-                  disabled={isScaleEmpty}
-                >
-                  <BsArrowUp />
-                </Editor.MenuButton>
-                <Editor.MenuButton
-                  onClick={() => scale && props.transposeScale(scale.id, -1)}
-                  disabled={isScaleEmpty}
-                >
-                  <BsArrowDown />
-                </Editor.MenuButton>
+                <Tooltip content="Transpose Down (N-1)">
+                  <Editor.MenuButton
+                    onClick={() => scale && props.transposeScale(scale.id, -1)}
+                    disabled={isScaleEmpty}
+                  >
+                    <BsArrowDown />
+                  </Editor.MenuButton>
+                </Tooltip>
+                <Tooltip content="Transpose Up (N1)">
+                  <Editor.MenuButton
+                    onClick={() => scale && props.transposeScale(scale.id, 1)}
+                    disabled={isScaleEmpty}
+                  >
+                    <BsArrowUp />
+                  </Editor.MenuButton>
+                </Tooltip>
 
-                <Editor.MenuButton
-                  onClick={() => scale && props.invertScale(scale.id, -1)}
-                  disabled={isScaleEmpty}
-                >
-                  <BsArrowLeft />
-                </Editor.MenuButton>
-
-                <Editor.MenuButton
-                  onClick={() => scale && props.invertScale(scale.id, 1)}
-                  disabled={isScaleEmpty}
-                >
-                  <BsArrowRight />
-                </Editor.MenuButton>
+                <Tooltip content="Invert Down (t-1)">
+                  <Editor.MenuButton
+                    onClick={() => scale && props.rotateScale(scale.id, -1)}
+                    disabled={isScaleEmpty}
+                  >
+                    <BsArrowLeft />
+                  </Editor.MenuButton>
+                </Tooltip>
+                <Tooltip content="Invert Up (t1)">
+                  <Editor.MenuButton
+                    onClick={() => scale && props.rotateScale(scale.id, 1)}
+                    disabled={isScaleEmpty}
+                  >
+                    <BsArrowRight />
+                  </Editor.MenuButton>
+                </Tooltip>
               </Editor.MenuGroup>
             </Editor.Menu>
           </Transition>

@@ -1,7 +1,7 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { INSTRUMENTS } from "types/instrument";
-import { invertScale, transposeScale } from "types/scales";
+import { rotateScale, transposeScale } from "types/scales";
 import { TrackId } from "types/tracks";
 import { lastTransformAtTime, Transform } from "types/transform";
 import { Time } from "types/units";
@@ -13,6 +13,7 @@ import {
   selectScaleTrackScale,
 } from "./scaleTracks";
 import { selectTransforms } from "./transforms";
+import { ChromaticScale } from "types/presets/scales";
 
 // Select the ID of a track
 export const selectTrackId = (state: RootState, id: TrackId) => id;
@@ -120,9 +121,20 @@ export const selectScaleTrackScaleAtTime = createSelector(
     if (!scale) return;
     const transform = lastTransformAtTime(trackTransforms, time);
     if (!transform) return scale;
-    return invertScale(
-      transposeScale(scale, transform.scalarTranspose ?? 0),
+
+    const onceTransposedScale = transposeScale(
+      scale,
+      transform.scalarTranspose ?? 0
+    );
+    const twiceTransposedScale = rotateScale(
+      onceTransposedScale,
       transform.chordalTranspose ?? 0
     );
+    const thriceTransposedScale = transposeScale(
+      twiceTransposedScale,
+      transform.chromaticTranspose ?? 0
+    );
+
+    return thriceTransposedScale;
   }
 );
