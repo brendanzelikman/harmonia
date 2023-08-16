@@ -4,7 +4,7 @@ import { PatternId } from "./patterns";
 import { ScaleId } from "./scales";
 
 export type TrackId = string;
-export type TrackType = "scale" | "patterns";
+export type TrackType = "scaleTrack" | "patternTrack" | "defaultTrack";
 
 // A scale track contains a scale id and a set of Transformations
 // as well as a potentially nested trakc
@@ -29,7 +29,6 @@ export interface PatternTrack {
   scaleTrackId: TrackId;
   name: string;
   instrument: string;
-
   mixer: Mixer;
 }
 

@@ -7,7 +7,12 @@ import { Clip, ClipId } from "types/clips";
 import { JSON } from "types/units";
 import { PatternStream } from "types/patterns";
 import { Row } from "..";
-import { createClips, updateClips } from "redux/slices/clips";
+import {
+  createClips,
+  createClipsAndTransforms,
+  updateClips,
+  updateClipsAndTransforms,
+} from "redux/slices/clips";
 import { selectClips as selectAllClips } from "redux/slices/root";
 import TimelineClip from "./Clip";
 import { DataGridHandle } from "react-data-grid";
@@ -29,11 +34,11 @@ const mapStateToProps = (state: RootState, ownProps: TimelineClipsProps) => {
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    createClips: (clips: Partial<Clip>[]) => {
-      return dispatch(createClips(clips));
-    },
     selectClips: (clipIds: ClipId[]) => {
       dispatch(selectAllClips(clipIds));
+    },
+    createClips: (clips: Partial<Clip>[]) => {
+      return dispatch(createClips(clips));
     },
     updateClips: (clips: Partial<Clip>[]) => {
       dispatch(updateClips(clips));
@@ -45,6 +50,18 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       transforms.forEach((transform) => {
         dispatch(updateTransform(transform));
       });
+    },
+    createClipsAndTransforms(
+      clips: Partial<Clip>[],
+      transforms: Partial<Transform>[]
+    ) {
+      return dispatch(createClipsAndTransforms(clips, transforms));
+    },
+    updateClipsAndTransforms(
+      clips: Partial<Clip>[],
+      transforms: Partial<Transform>[]
+    ) {
+      return dispatch(updateClipsAndTransforms(clips, transforms));
     },
   };
 };

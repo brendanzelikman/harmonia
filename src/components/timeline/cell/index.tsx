@@ -1,11 +1,6 @@
-import { MAX_SUBDIVISION } from "appConstants";
 import { FormatterProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
-import {
-  selectRoot,
-  selectTrack,
-  selectTrackTransformAtTime,
-} from "redux/selectors";
+import { selectRoot, selectTrack, selectTransport } from "redux/selectors";
 import * as Slices from "redux/slices";
 import { AppDispatch, AppThunk, RootState } from "redux/store";
 
@@ -13,6 +8,8 @@ import { isPatternTrack, TrackId } from "types/tracks";
 
 import { Row } from "..";
 import { CellComponent } from "./Cell";
+import { seekTransport } from "redux/thunks/transport";
+import { createPatternClip } from "redux/thunks/clips";
 
 const deleteSelectedClips = (): AppThunk => (dispatch, getState) => {
   const state = getState();
@@ -25,13 +22,14 @@ const deleteSelectedClips = (): AppThunk => (dispatch, getState) => {
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const root = selectRoot(state);
+  const transport = selectTransport(state);
   const columnIndex = Number(ownProps.column.key);
 
   const trackId = ownProps.row.trackId;
   const track = !!trackId ? selectTrack(state, trackId) : undefined;
   const isPattern = !!track && isPatternTrack(track);
 
-  const isMeasure = columnIndex % MAX_SUBDIVISION === 1;
+  const isMeasure = columnIndex % (transport.timeSignature?.[0] || 16) === 1;
   const isQuarter = columnIndex % 4 === 1;
 
   return {
@@ -51,7 +49,7 @@ const onClick =
   (dispatch, getState) => {
     const time = columnIndex - 1;
     if (!trackId) {
-      dispatch(Slices.Transport.seekTransport(time));
+      dispatch(seekTransport(time));
       dispatch(Slices.Root.deselectAllClips());
       return;
     }
@@ -66,7 +64,7 @@ const onClick =
     const onPatternTrack = !!track && isPatternTrack(track);
 
     if (root.timelineState === "adding" && activePatternId && onPatternTrack) {
-      dispatch(Slices.Clips.createPatternClip(trackId, activePatternId, time));
+      dispatch(createPatternClip(trackId, activePatternId, time));
     } else if (root.timelineState === "transposing") {
       dispatch(
         Slices.Transforms.createTransform({
@@ -78,7 +76,7 @@ const onClick =
         })
       );
     } else {
-      dispatch(Slices.Transport.seekTransport(time));
+      dispatch(seekTransport(time));
       dispatch(Slices.Root.deselectAllClips());
     }
   };

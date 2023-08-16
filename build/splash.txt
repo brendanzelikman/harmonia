@@ -1,7 +1,7 @@
 Welcome to Harmonia!
  
  Created by Brendan Zelikman '23
- Advised by Prof. Dmitri Tymoczko and Prof. Jeremie Lumbroso
+ Advised by Prof. Dmitri Tymoczko
  © Princeton University
 
  TO DO:

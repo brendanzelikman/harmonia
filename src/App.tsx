@@ -5,6 +5,10 @@ import useShortcuts from "hooks/useShortcuts";
 import { connect, ConnectedProps } from "react-redux";
 import { selectTransport } from "redux/selectors";
 import { RootState } from "redux/store";
+import { useState } from "react";
+import useEventListeners from "hooks/useEventListeners";
+import { Transition } from "@headlessui/react";
+import { isInputEvent } from "appUtil";
 
 const mapStateToProps = (state: RootState) => {
   const transport = selectTransport(state);
@@ -20,10 +24,32 @@ export default connector(App);
 
 function App(props: Props) {
   useShortcuts();
+  const [showNavbar, setShowNavbar] = useState(true);
+  useEventListeners(
+    {
+      n: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          setShowNavbar(!showNavbar);
+        },
+      },
+    },
+    [showNavbar, setShowNavbar]
+  );
 
   return (
     <div className={`flex flex-col flex-nowrap w-full h-screen overflow-auto`}>
-      <Navbar />
+      <Transition
+        show={showNavbar}
+        enter="transition-all duration-300"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leave="transition-all duration-300"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <Navbar />
+      </Transition>
       <main className="relative flex w-full flex-auto overflow-hidden">
         {props.tour.active ? (
           <div className={`w-full h-full absolute bg-slate-800/50 z-60`} />

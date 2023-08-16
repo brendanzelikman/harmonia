@@ -10,21 +10,22 @@ import {
   clearTimelineState,
   hideEditor,
   setActivePattern,
-  viewEditor,
+  showEditor,
 } from "redux/slices/root";
 import Patterns, { Pattern, PatternId } from "types/patterns";
-import { BsCheck, BsChevronUp, BsPencil } from "react-icons/bs";
+import { BsCheck, BsPencil } from "react-icons/bs";
 import { useCallback, useEffect } from "react";
+import { createPattern } from "redux/slices/patterns";
 
 const mapStateToProps = (state: RootState) => {
-  const { showEditor, editorState, activePatternId } = selectRoot(state);
+  const { showingEditor, editorState, activePatternId } = selectRoot(state);
   const patterns = selectPatterns(state);
   const activePattern = activePatternId
     ? patterns.find((pattern) => pattern.id === activePatternId)
     : undefined;
   const customPatterns = selectCustomPatterns(state);
   return {
-    onPatternsEditor: showEditor && editorState === "patterns",
+    onPatternsEditor: showingEditor && editorState === "patterns",
     patterns,
     activePattern,
     customPatterns,
@@ -37,7 +38,7 @@ const onPatternsClick = (): AppThunk => (dispatch, getState) => {
   if (editorState === "patterns") {
     dispatch(hideEditor());
   } else {
-    dispatch(viewEditor({ id: "patterns" }));
+    dispatch(showEditor({ id: "patterns" }));
   }
   if (timelineState !== "idle") {
     dispatch(clearTimelineState());
@@ -50,6 +51,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(setActivePattern(patternId)),
     onPatternsClick: () => {
       dispatch(onPatternsClick());
+    },
+    createNewPattern: () => {
+      return dispatch(createPattern());
     },
   };
 };
@@ -98,23 +102,6 @@ function PatternListbox(props: Props) {
     );
   }, []);
 
-  const PatternButton = (props: any) => (
-    <button
-      className={`relative w-full px-1 flex items-center ${
-        props.onPatternsEditor
-          ? "bg-emerald-600 text-white"
-          : "bg-slate-900 text-gray-200"
-      } cursor-pointer text-[10px] rounded-t-md border-b border-emerald-600`}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (props.activePattern?.id) props.onPatternsClick();
-      }}
-    >
-      Selected Pattern
-    </button>
-  );
-
   useEffect(() => {
     if (!props.activePattern) {
       const firstPattern = props.patterns?.[0];
@@ -137,35 +124,48 @@ function PatternListbox(props: Props) {
 
   return (
     <div
-      className={`w-40 relative flex flex-col rounded-md select-none border rounded-b-md ${
-        props.onPatternsEditor ? "border-slate-50" : "border-slate-400/80"
+      className={`w-[10.5rem] relative flex flex-col rounded-md select-none border rounded-b-md ${
+        props.onPatternsEditor
+          ? "border-slate-50 ring-1 ring-slate-50/80"
+          : "border-slate-400/80"
       }`}
     >
-      <PatternButton {...props} />
+      <label
+        className={`absolute text-xs text-emerald-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-0 bg-gray-900 rounded px-1 left-1`}
+      >
+        Selected Pattern
+      </label>
       <Listbox
         value={props.activePattern?.id ?? ""}
         onChange={props.setPatternId}
       >
         {({ open }) => (
           <div className={`relative`}>
-            <Listbox.Button className="select-none relative w-full h-9 items-center flex cursor-pointer rounded-md bg-gray-900 text-white text-left shadow-md focus:outline-none">
+            <Listbox.Button className="select-none relative w-full h-10 items-center flex cursor-pointer rounded-md bg-gray-900 text-white text-left shadow-md focus:outline-none">
               <span
-                className={`block w-full truncate px-1 ${
+                className={`block w-full truncate px-1.5 text-[14px] text-gray-200 font-thin ${
                   !props.activePattern?.id ? "opacity-75" : "opacity-100"
                 }`}
               >
                 {props.activePattern?.name}
               </span>
+
               <div
                 id="pattern-button"
-                className="flex w-9 h-full justify-center items-center border-l border-l-slate-400"
+                className="flex px-1 h-full justify-center items-center border-l border-l-slate-400"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   if (props.activePattern?.id) props.onPatternsClick();
                 }}
               >
-                <BsPencil className="text-white" />
+                <BsPencil
+                  className={`${
+                    props.onPatternsEditor
+                      ? "text-emerald-400 animate-pulse"
+                      : "text-white"
+                  }`}
+                />
               </div>
             </Listbox.Button>
             <Transition

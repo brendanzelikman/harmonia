@@ -2,14 +2,15 @@ import { connect, ConnectedProps } from "react-redux";
 import { selectRoot, selectTransport } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Editor } from "./Editor";
+import { hideEditor, showEditor } from "redux/slices/root";
 
 function mapStateToProps(state: RootState) {
-  const { showEditor, editorState, activePatternId } = selectRoot(state);
+  const { showingEditor, editorState, activePatternId } = selectRoot(state);
   const transport = selectTransport(state);
 
   return {
     activePatternId,
-    showEditor,
+    showingEditor,
     editorState,
     transport,
     tour: state.tour,
@@ -17,7 +18,10 @@ function mapStateToProps(state: RootState) {
 }
 
 function mapDispatchToProps(dispatch: AppDispatch) {
-  return {};
+  return {
+    showEditor: (id: string) => dispatch(showEditor({ id })),
+    hideEditor: () => dispatch(hideEditor()),
+  };
 }
 
 const connector = connect(mapStateToProps, mapDispatchToProps);

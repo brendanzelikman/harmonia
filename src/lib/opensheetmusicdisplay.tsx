@@ -76,7 +76,7 @@ export default function useOSMD({
     let score: OSMD;
     const marginX = 3;
     const marginY = 2;
-    const zoom = 1.125;
+    const zoom = 1.1;
 
     if (!osmd) {
       const osmdOptions: IOSMDOptions = {

@@ -1,5 +1,5 @@
 import * as Patterns from "redux/slices/patterns";
-import PatternsClass from "types/patterns";
+import PatternsClass, { MIDINote, isRest } from "types/patterns";
 
 import { Note } from "types/units";
 import {
@@ -10,7 +10,7 @@ import {
   transposePatternStream,
 } from "types/patterns";
 import { connect, ConnectedProps } from "react-redux";
-import { EditorPatterns } from "./Patterns";
+import { EditorPatterns } from "./PatternEditor";
 import {
   hideEditor,
   setActivePattern,
@@ -25,9 +25,12 @@ import { EditorProps } from "..";
 import { AppDispatch, RootState } from "redux/store";
 import { UndoTypes } from "redux/undoTypes";
 import { ChromaticScale } from "types/presets/scales";
+import { StateProps } from "../Editor";
+import { playPattern } from "redux/thunks/patterns";
+import { uniqBy } from "lodash";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
-  const activePattern = ownProps.activePatternId
+  const pattern = ownProps.activePatternId
     ? selectPattern(state, ownProps.activePatternId)
     : undefined;
   const { past, future } = state.patterns;
@@ -35,23 +38,34 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const canRedoPatterns = future.length > 0;
   const patternIds = selectPatternIds(state);
   const customPatterns = selectCustomPatterns(state);
-
   const scale = ChromaticScale;
+
+  const patternCategory =
+    PatternsClass.PresetCategories.find((c) =>
+      PatternsClass.PresetGroups[c].some((m) => m.id === pattern?.id)
+    ) ?? "Custom Patterns";
+
+  const isPatternEmpty = !pattern?.stream.length;
+  const isPatternCustom = customPatterns.some((m) => m.id === pattern?.id);
+
   return {
     ...ownProps,
-    activePattern,
+    pattern,
+    patternCategory,
     patternIds,
+    isPatternEmpty,
+    isPatternCustom,
+    scale,
     customPatterns,
     canUndoPatterns,
     canRedoPatterns,
-    scale,
   };
 };
 
 const mapDispatchToProps = (dispatch: AppDispatch) => ({
   // Patterns
   createPattern: (pattern?: Pattern) => {
-    dispatch(Patterns.createPattern({ ...pattern }));
+    return dispatch(Patterns.createPattern({ ...pattern }));
   },
   deletePattern: (id: PatternId) => {
     dispatch(Patterns.deletePattern(id));
@@ -59,9 +73,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
   updatePattern: (pattern: Pattern) => {
     dispatch(Patterns.updatePattern(pattern));
   },
-  copyPatternPreset: async (pattern: Pattern) => {
+  copyPattern: async (pattern: Pattern) => {
     const patternId = await dispatch(
-      Patterns.createPattern({ ...pattern, name: pattern.name })
+      Patterns.createPattern({ ...pattern, name: `${pattern.name} (Copy)` })
     );
     dispatch(setActivePattern(patternId));
   },
@@ -112,11 +126,14 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
   rotatePattern: (pattern: Pattern, transpose: Note) => {
     dispatch(Patterns.rotatePattern({ id: pattern.id, transpose }));
   },
-  repeatPattern: (pattern: Pattern) => {
-    dispatch(Patterns.repeatPattern(pattern.id));
+  repeatPattern: (pattern: Pattern, repeat: number) => {
+    dispatch(Patterns.repeatPattern({ id: pattern.id, repeat }));
   },
   halvePattern: (pattern: Pattern) => {
     dispatch(Patterns.halvePattern(pattern.id));
+  },
+  lengthenPattern: (pattern: Pattern, length: number) => {
+    dispatch(Patterns.lengthenPattern({ id: pattern.id, length }));
   },
   stretchPattern: (pattern: Pattern) => {
     dispatch(Patterns.stretchPattern(pattern.id));
@@ -127,8 +144,8 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
   shufflePattern: (pattern: Pattern) => {
     dispatch(Patterns.shufflePattern(pattern.id));
   },
-  randomizePattern: (pattern: Pattern) => {
-    dispatch(Patterns.randomizePattern(pattern.id));
+  randomizePattern: (pattern: Pattern, length: number) => {
+    dispatch(Patterns.randomizePattern({ id: pattern.id, length }));
   },
   randomTransposePattern: (pattern: Pattern) => {
     const direction = Math.random() > 0.5 ? 1 : -1;
@@ -143,8 +160,34 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
       })
     );
   },
+  unfoldPattern: (pattern: Pattern) => {
+    let notes: MIDINote[] = [];
+    for (let i = 0; i < pattern.stream.length; i++) {
+      const chord = pattern.stream[i];
+      if (!chord || !chord.length) return [];
+      if (isRest(chord[0])) return [];
+      for (let j = 0; j < chord.length; j++) {
+        const note = chord[j];
+        if (!note) continue;
+        notes.push(note);
+      }
+    }
+    const sortedNotes = uniqBy(
+      notes.sort((a, b) => a.MIDI - b.MIDI),
+      "MIDI"
+    );
+    const unfoldedNotes = sortedNotes.map(({ MIDI }) => ({
+      MIDI,
+      duration: 2,
+    }));
+    const stream = unfoldedNotes.map((note) => [note]);
+    dispatch(Patterns.updatePattern({ id: pattern.id, stream }));
+  },
+  reversePattern: (pattern: Pattern) => {
+    dispatch(Patterns.reversePattern(pattern.id));
+  },
   playPattern: (id: PatternId) => {
-    dispatch(Patterns.playPattern(id));
+    dispatch(playPattern(id));
   },
   clearPattern: (pattern: Pattern) => {
     dispatch(Patterns.clearPattern(pattern.id));
@@ -154,8 +197,8 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
     dispatch(setTimelineState("adding"));
     dispatch(hideEditor());
   },
-  exportPattern: (pattern: Pattern) => {
-    const xml = PatternsClass.serialize(pattern, ChromaticScale);
+  exportPatternToXML: (pattern: Pattern) => {
+    const xml = PatternsClass.exportToXML(pattern, ChromaticScale);
     if (!xml) return;
     const blob = new Blob([xml], { type: "text/musicxml" });
     const url = URL.createObjectURL(blob);
@@ -165,6 +208,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
     link.href = url;
     link.click();
     document.body.removeChild(link);
+  },
+  exportPatternToMIDI: (pattern: Pattern) => {
+    PatternsClass.exportToMIDI(pattern);
   },
   undoPatterns: () => {
     dispatch({ type: UndoTypes.undoPatterns });
@@ -177,6 +223,6 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
 type Props = ConnectedProps<typeof connector>;
-export interface EditorPatternsProps extends Props {}
+export interface PatternEditorProps extends Props, StateProps {}
 
 export default connector(EditorPatterns);

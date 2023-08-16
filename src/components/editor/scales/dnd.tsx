@@ -5,7 +5,7 @@ export const useScaleDrag = (props: CustomScaleProps) => {
   return useDrag({
     type: "scale",
     item: () => {
-      return { id: props.scale.id, index: props.index };
+      return { id: props.scale?.id, index: props.index };
     },
     collect: (monitor: any) => ({
       isDragging: monitor.isDragging(),
@@ -18,7 +18,7 @@ export const useScaleDrop = (props: CustomScaleProps) => {
     accept: "scale",
     collect(monitor) {
       return {
-        id: props.scale.id,
+        id: props.scale?.id,
         index: props.index,
         handlerId: monitor.getHandlerId(),
       };

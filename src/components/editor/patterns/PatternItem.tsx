@@ -2,19 +2,30 @@ import useDebouncedField from "hooks/useDebouncedField";
 import { useRef } from "react";
 import { BsTrash } from "react-icons/bs";
 import { Pattern } from "types/patterns";
-import { EditorPatternsProps } from ".";
+import { PatternEditorProps } from ".";
 import { ListItem } from "../Editor";
 
 import { usePatternDrag, usePatternDrop } from "./dnd";
 import { BiCopy } from "react-icons/bi";
 
-export interface PresetPatternProps extends EditorPatternsProps {
+export interface PresetPatternProps extends PatternEditorProps {
   pattern: Pattern;
 }
 
 export const PresetPattern = (props: PresetPatternProps) => {
   const pattern = props.pattern;
   if (!pattern) return null;
+
+  const CopyButton = () => (
+    <BiCopy
+      className="absolute right-0 top-0 h-5 w-5 text-slate-500"
+      onClick={(e) => {
+        e.stopPropagation();
+        props.copyPattern(pattern);
+      }}
+    />
+  );
+
   return (
     <ListItem
       className={`${
@@ -30,19 +41,13 @@ export const PresetPattern = (props: PresetPatternProps) => {
           value={pattern.name}
           disabled
         />
-        <BiCopy
-          className="absolute right-0 top-0 h-5 w-5 text-slate-500"
-          onClick={(e) => {
-            e.stopPropagation();
-            props.copyPatternPreset(pattern);
-          }}
-        />
+        <CopyButton />
       </div>
     </ListItem>
   );
 };
 
-export interface CustomPatternProps extends EditorPatternsProps {
+export interface CustomPatternProps extends PatternEditorProps {
   pattern: Pattern;
   index: number;
   element?: any;
@@ -50,6 +55,14 @@ export interface CustomPatternProps extends EditorPatternsProps {
 }
 
 export const CustomPattern = (props: CustomPatternProps) => {
+  // Pattern information
+  const pattern = props.pattern;
+  const NameInput = useDebouncedField<string>(
+    (name: string) => props.setPatternName(pattern, name),
+    pattern.name
+  );
+
+  // Ref information
   const ref = useRef<HTMLDivElement>(null);
   const [{}, drop] = usePatternDrop({ ...props, element: ref.current });
   const [{ isDragging }, drag] = usePatternDrag({
@@ -58,11 +71,28 @@ export const CustomPattern = (props: CustomPatternProps) => {
   });
   drag(drop(ref));
 
-  const pattern = props.pattern;
+  const CopyButton = () => (
+    <div
+      className={`flex justify-center items-center px-1 h-10 font-thin border border-l-0 border-slate-50/50`}
+      onClick={(e) => {
+        e.stopPropagation();
+        props.copyPattern(pattern);
+      }}
+    >
+      <BiCopy />
+    </div>
+  );
 
-  const NameInput = useDebouncedField<string>(
-    (name: string) => props.setPatternName(pattern, name),
-    pattern.name
+  const DeleteButton = () => (
+    <div
+      className={`flex justify-center items-center px-1 h-10 rounded-r text-center font-thin border border-l-0 border-slate-50/50`}
+      onClick={(e) => {
+        e.stopPropagation();
+        props.deletePattern(pattern.id);
+      }}
+    >
+      <BsTrash />
+    </div>
   );
 
   if (!pattern) return null;
@@ -87,24 +117,8 @@ export const CustomPattern = (props: CustomPatternProps) => {
           onChange={NameInput.onChange}
           onKeyDown={NameInput.onKeyDown}
         />
-        <div
-          className={`flex justify-center items-center px-1 h-10 font-thin border border-l-0 border-slate-50/50`}
-          onClick={(e) => {
-            e.stopPropagation();
-            props.copyPatternPreset(pattern);
-          }}
-        >
-          <BiCopy />
-        </div>
-        <div
-          className={`flex justify-center items-center px-1 h-10 rounded-r text-center font-thin border border-l-0 border-slate-50/50`}
-          onClick={(e) => {
-            e.stopPropagation();
-            props.deletePattern(pattern.id);
-          }}
-        >
-          <BsTrash />
-        </div>
+        <CopyButton />
+        <DeleteButton />
       </div>
     </ListItem>
   );

@@ -1,13 +1,13 @@
 import { Disclosure } from "@headlessui/react";
 import { useCallback, useMemo, useState } from "react";
-import { BsChevronDown, BsChevronUp, BsSearch } from "react-icons/bs";
+import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import Scales, { Scale } from "types/scales";
-import { EditorScalesProps } from ".";
+import { ScaleEditorProps } from ".";
 import * as Editor from "../Editor";
 import { CustomScale, PresetScale } from "./ScaleItem";
 
-export default function ScaleList(props: EditorScalesProps) {
-  const scale = props.trackScale;
+export default function ScaleList(props: ScaleEditorProps) {
+  const scale = props.scale;
   // Get all scale presets, including custom scales
   const ScalePresets = {
     ...Scales.PresetGroups,
@@ -54,7 +54,7 @@ export default function ScaleList(props: EditorScalesProps) {
       <CustomScale
         {...props}
         key={scale.id}
-        scale={scale}
+        customScale={scale}
         index={index}
         moveScale={moveScale}
       />
@@ -64,7 +64,9 @@ export default function ScaleList(props: EditorScalesProps) {
 
   // Render a preset scale
   const renderPresetScale = useCallback(
-    (scale: Scale) => <PresetScale {...props} key={scale.id} scale={scale} />,
+    (scale: Scale) => (
+      <PresetScale {...props} key={scale.id} presetScale={scale} />
+    ),
     [props]
   );
 
@@ -82,6 +84,9 @@ export default function ScaleList(props: EditorScalesProps) {
           const scales = searching
             ? presetScales.filter(doesMatchScale)
             : presetScales;
+          const isCategorySelected = scale
+            ? scales.some((s) => Scales.areRelated(scale, s))
+            : false;
           return (
             <Disclosure key={category}>
               {({ open }) => {
@@ -89,13 +94,15 @@ export default function ScaleList(props: EditorScalesProps) {
                 return (
                   <>
                     <Disclosure.Button>
-                      <div className="flex items-center justify-center text-slate-50">
+                      <div
+                        className={`flex items-center justify-center text-slate-50`}
+                      >
                         <label
                           className={`font-nunito py-3 px-2 ${
                             open ? "font-extrabold" : "font-medium"
                           }`}
                         >
-                          {typedCategory}
+                          {isCategorySelected ? "*" : ""} {typedCategory}
                         </label>
                         <span className="ml-auto mr-2">
                           {isOpen ? <BsChevronDown /> : <BsChevronUp />}
@@ -113,12 +120,6 @@ export default function ScaleList(props: EditorScalesProps) {
             </Disclosure>
           );
         })}
-        <Editor.ListItem
-          className="mt-4 text-gray-300 active:text-emerald-500 font-nunito select-none"
-          onClick={() => (scale ? props.createScale({ ...scale }) : null)}
-        >
-          Save As New Scale
-        </Editor.ListItem>
       </Editor.List>
     </>
   );

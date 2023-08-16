@@ -7,11 +7,27 @@ import {
   selectClipChordAtTime,
   selectPatternTrack,
   selectTransportEndTime,
+  selectTracks,
 } from "redux/selectors";
-import { convertTimeToSeconds, transportSlice } from "redux/slices/transport";
+import {
+  _loopTransport,
+  _setBPM,
+  _setLoaded,
+  _setLoopEnd,
+  _setLoopStart,
+  _setMute,
+  _setTimeSignature,
+  _setVolume,
+  convertTimeToSeconds,
+  transportSlice,
+} from "redux/slices/transport";
 import { AppThunk } from "redux/store";
-import { getContext, Transport } from "tone";
-import { getSampler } from "types/instrument";
+import { getContext, getDestination, start, Transport } from "tone";
+import {
+  buildInstruments,
+  createGlobalInstrument,
+  getSampler,
+} from "types/instrument";
 import { MIDI } from "types/midi";
 import { isRest } from "types/patterns";
 import { Time } from "types/units";
@@ -91,6 +107,139 @@ export const pauseTransport = (): AppThunk => (dispatch, getState) => {
   }
   Transport.pause();
   dispatch(_pauseTransport());
+};
+
+// Seek the transport
+export const seekTransport =
+  (time: Time): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const transport = selectTransport(state);
+    const numerator = transport.timeSignature?.[0] ?? 16;
+    const denominator = transport.timeSignature?.[1] ?? 16;
+    // Convert into bars beats sixteenths
+    const bars = Math.floor(time / (numerator * (16 / denominator)));
+    const beats = Math.floor(
+      (time % (numerator * (16 / denominator))) / numerator
+    );
+    const sixteenths = Math.floor(
+      (time % (numerator * (16 / denominator))) % numerator
+    );
+    Transport.position = `${bars}:${beats}:${sixteenths}`;
+
+    // convertTimeToSeconds(transport, time);
+    dispatch(_seekTransport(time));
+  };
+
+// Set the loop state
+export const setTransportLoop =
+  (loop: boolean): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const transport = selectTransport(state);
+    Transport.loop = loop;
+    if (loop) {
+      const { loopStart, loopEnd } = transport;
+      Transport.loopStart = convertTimeToSeconds(transport, loopStart);
+      Transport.loopEnd = convertTimeToSeconds(transport, loopEnd);
+    }
+    dispatch(_loopTransport(loop));
+  };
+
+// Toggle the loop state
+export const toggleTransportLoop = (): AppThunk => (dispatch, getState) => {
+  const state = getState();
+  const transport = selectTransport(state);
+  dispatch(setTransportLoop(!transport.loop));
+};
+
+// Set the loop start
+export const setTransportLoopStart =
+  (time: Time): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const transport = selectTransport(state);
+    if (time >= transport.loopEnd) return;
+    Transport.loopStart = convertTimeToSeconds(transport, time);
+    dispatch(_setLoopStart(time));
+  };
+
+// Set the loop end
+export const setTransportLoopEnd =
+  (time: Time): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const transport = selectTransport(state);
+    if (time <= transport.loopStart) return;
+    Transport.loopEnd = convertTimeToSeconds(transport, time);
+    dispatch(_setLoopEnd(time));
+  };
+
+// Set the BPM
+export const setTransportBPM =
+  (bpm: number): AppThunk =>
+  (dispatch) => {
+    Transport.bpm.value = bpm;
+    dispatch(_setBPM(bpm));
+  };
+
+// Set the time signature
+export const setTransportTimeSignature =
+  (timeSignature: [number, number]): AppThunk =>
+  (dispatch) => {
+    Transport.timeSignature = timeSignature;
+    dispatch(_setTimeSignature(timeSignature));
+  };
+
+// Set the volume
+export const setTransportVolume =
+  (volume: number): AppThunk =>
+  (dispatch) => {
+    getDestination().volume.value = volume;
+    dispatch(_setVolume(volume));
+  };
+
+// Set the mute
+export const setTransportMute =
+  (mute: boolean): AppThunk =>
+  (dispatch) => {
+    getDestination().mute = mute;
+    dispatch(_setMute(mute));
+  };
+
+// Set the loaded state
+export const setTransportLoaded =
+  (loaded: boolean): AppThunk =>
+  (dispatch) => {
+    dispatch(_setLoaded(loaded));
+  };
+
+// Load the transport
+export const loadTransport = (): AppThunk => async (dispatch, getState) => {
+  dispatch(setTransportLoaded(false));
+
+  // Build the instruments
+  const state = getState();
+  const transport = selectTransport(state);
+  const tracks = selectTracks(state);
+  try {
+    // Build the instruments
+    await start();
+    dispatch(buildInstruments(tracks));
+    // Create the global instrument
+    await createGlobalInstrument();
+    // Set the transport from the state
+    Transport.loop = transport.loop;
+    Transport.loopStart = convertTimeToSeconds(transport, transport.loopStart);
+    Transport.loopEnd = convertTimeToSeconds(transport, transport.loopEnd);
+    Transport.bpm.value = transport.bpm;
+    getDestination().volume.value = transport.volume;
+  } catch (e) {
+    console.error(e);
+  } finally {
+    // Load the transport
+    dispatch(setTransportLoaded(true));
+  }
 };
 
 type AudioFile = "webm";

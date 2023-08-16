@@ -1,5 +1,6 @@
 import { connect, ConnectedProps } from "react-redux";
 import {
+  selectCellWidth,
   selectClipDuration,
   selectClipPattern,
   selectMixerByTrackId,
@@ -17,9 +18,9 @@ import { MouseEvent, useEffect, useMemo, useState } from "react";
 import Stream from "./Stream";
 import { selectTransforms } from "redux/selectors/transforms";
 import useEventListeners from "hooks/useEventListeners";
-import { createTransforms } from "redux/slices/transforms";
 import { TransformNoId } from "types/transform";
 import { rotatePattern, transposePattern } from "redux/slices/patterns";
+import { createTransforms } from "redux/slices/transforms";
 
 interface OwnClipProps extends ClipsProps {
   clip: Clip;
@@ -31,10 +32,11 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const duration = selectClipDuration(state, clip.id);
   const name = selectClipPattern(state, clip.id)?.name ?? "";
   const muted = selectMixerByTrackId(state, clip.trackId)?.mute ?? false;
+  const cellWidth = selectCellWidth(state);
 
-  const width = Constants.CELL_WIDTH * Math.max(duration, 1);
+  const width = cellWidth * Math.max(duration, 1);
   const top = Constants.HEADER_HEIGHT + index * Constants.CELL_HEIGHT;
-  const left = Constants.TRACK_WIDTH + Constants.CELL_WIDTH * clip.startTime;
+  const left = Constants.TRACK_WIDTH + cellWidth * clip.startTime;
 
   const pattern = selectClipPattern(state, clip.id);
   const transforms = selectTransforms(state);
@@ -248,11 +250,11 @@ function TimelineClip(props: ClipProps) {
 
   return (
     <div
-      className={`cursor-pointer rdg-clip absolute flex flex-col h-full bg-gradient-to-b from-sky-800/90 to-sky-900/90 border ${
+      className={`cursor-pointer rdg-clip absolute bg-sky-800/70 border ${
         isSelected ? "border-white" : "border-slate-200/50"
       } ${
         transposingClip ? "hover:ring-4 hover:ring-fuchsia-500" : ""
-      } rounded-sm overflow-hidden`}
+      } rounded-lg overflow-hidden`}
       ref={drag}
       style={{
         top: top + Constants.TRANSPOSE_HEIGHT,
@@ -265,8 +267,15 @@ function TimelineClip(props: ClipProps) {
       }}
       onClick={onClipClick}
     >
-      <ClipName />
-      <Stream clip={clip} />
+      <div className="w-full h-full relative">
+        <div className="w-full h-full overflow-hidden">
+          <ClipName />
+          <Stream clip={clip} />
+          {isSelected ? (
+            <div className="w-full bg-zinc-900/70 py-0.5 select-none focus:outline-none"></div>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }

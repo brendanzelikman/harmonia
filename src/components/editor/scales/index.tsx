@@ -8,7 +8,7 @@ import ScaleClass, {
   ScaleNoId,
   transposeScale,
 } from "types/scales";
-import { EditorScales } from "./Scales";
+import { ScaleEditor } from "./ScaleEditor";
 import { EditorProps } from "..";
 import {
   selectActiveTrackId,
@@ -18,25 +18,57 @@ import {
 } from "redux/selectors";
 import { UndoTypes } from "redux/undoTypes";
 import { RootState } from "redux/store";
+import { StateProps } from "../Editor";
+import { playScale } from "redux/thunks/scales";
+import { MIDI } from "types/midi";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const trackId = selectActiveTrackId(state);
-  const trackScale = trackId
-    ? selectScaleTrackScale(state, trackId)
-    : undefined;
+  const scale = trackId ? selectScaleTrackScale(state, trackId) : undefined;
   const { past, future } = state.scales;
   const canUndoScales = past.length > 0 && past[0].allIds.length > 0;
   const canRedoScales = future.length > 0;
   const scaleIds = selectScaleIds(state);
   const customScales = selectCustomScales(state);
 
+  // Get all matching scales
+  const presets = Object.values({
+    ...ScaleClass.PresetGroups,
+    "Custom Scales": customScales,
+  }).flat();
+  const matchingScales = !!scale
+    ? presets.filter((p) => ScaleClass.areRelated(scale, p))
+    : [];
+  const matchingScale = scale
+    ? matchingScales.find((s) => ScaleClass.areRelated(scale, s))
+    : undefined;
+
+  // Get the name of the scale from the matching scale, NOT the underlying scale
+  const firstScaleNote = scale?.notes?.[0];
+  const firstPitch = firstScaleNote ? MIDI.toPitchClass(firstScaleNote) : "";
+  const scaleName = !scale
+    ? "No Scale"
+    : matchingScale
+    ? `${matchingScale.name} ${!!firstPitch ? `(${firstPitch})` : ""}`
+    : "Custom Scale";
+
+  // Get the category from any matching scale
+  const scaleCategory = !!scale
+    ? ScaleClass.PresetCategories.find((c) =>
+        ScaleClass.PresetGroups[c].some((m) => ScaleClass.areRelated(m, scale))
+      ) ?? "Custom Scales"
+    : "Custom Scales";
+
   return {
     ...ownProps,
-    trackScale,
+    scale,
+    scaleName,
+    scaleCategory,
     canUndoScales,
     canRedoScales,
     scaleIds,
     customScales,
+    matchingScales,
   };
 };
 
@@ -75,8 +107,17 @@ const mapDispatchToProps = (dispatch: any) => ({
       })
     );
   },
-  exportScale: (scale: Scale) => {
-    const xml = ScaleClass.serialize(scale.notes);
+  randomizeScale: (id: ScaleId) => {
+    const scales = ScaleClass.Presets;
+    return dispatch(
+      Scales.updateScale({
+        id,
+        notes: scales[Math.floor(Math.random() * scales.length)].notes,
+      })
+    );
+  },
+  exportScaleToXML: (scale: Scale) => {
+    const xml = ScaleClass.exportToXML(scale.notes);
     if (!xml) return;
     const blob = new Blob([xml], { type: "text/musicxml" });
     const url = URL.createObjectURL(blob);
@@ -87,18 +128,22 @@ const mapDispatchToProps = (dispatch: any) => ({
     link.click();
     document.body.removeChild(link);
   },
-
+  exportScaleToMIDI: (scale: Scale) => {
+    ScaleClass.exportToMIDI(scale);
+  },
   clearScale: (id: ScaleId) => {
     dispatch(Scales.clearScale(id));
   },
   createScale: (scale: ScaleNoId) => {
-    dispatch(Scales.createScale({ notes: scale.notes, name: "New Scale" }));
+    return dispatch(
+      Scales.createScale({ notes: scale.notes, name: "New Scale" })
+    );
   },
   deleteScale: (id: ScaleId) => {
     dispatch(Scales.deleteScale(id));
   },
   playScale: (id: ScaleId) => {
-    dispatch(Scales.playScale(id));
+    dispatch(playScale(id));
   },
   undoScales: () => {
     dispatch({ type: UndoTypes.undoScales });
@@ -111,6 +156,6 @@ const mapDispatchToProps = (dispatch: any) => ({
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
 type Props = ConnectedProps<typeof connector>;
-export interface EditorScalesProps extends Props {}
+export interface ScaleEditorProps extends Props, StateProps {}
 
-export default connector(EditorScales);
+export default connector(ScaleEditor);

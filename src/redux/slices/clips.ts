@@ -5,38 +5,39 @@ import {
   ClipId,
   ClipNoId,
   defaultClip,
-  getClipDuration,
-  getClipNotes,
-  getClipStream,
   initializeClip,
 } from "types/clips";
-import * as Selectors from "redux/selectors";
 import { TrackId } from "types/tracks";
-import {
-  initializePattern,
-  Pattern,
-  PatternId,
-  PatternStream,
-} from "types/patterns";
-import { Time } from "types/units";
+
 import { initializeState } from "redux/util";
 import {
   addClipsToClipMap,
+  addClipsWithTransformsToClipMap,
   addClipToClipMap,
-  cutClipFromClipMap,
   removeClipFromClipMap,
   removeClipsFromClipMap,
+  removeClipsWithTransformsFromClipMap,
 } from "./maps/clipMap";
-import { deselectClip, setActivePattern, toggleRepeatingClips } from "./root";
-import { selectClipStream } from "redux/selectors";
-import { addPattern } from "./patterns";
-import { inRange, union } from "lodash";
-import { Transform, TransformNoId } from "types/transform";
-import { createTransforms, deleteTransforms } from "./transforms";
+import { deselectClip } from "./root";
+import {
+  addTransformsWithClipsToTransformMap,
+  removeTransformsWithClipsFromTransformMap,
+} from "./maps/transformMap";
+import {
+  addTransformsWithClips,
+  removeTransformsWithClips,
+  updateTransformsWithClips,
+} from "./transforms";
+import {
+  defaultTransform,
+  initializeTransform,
+  Transform,
+  TransformId,
+} from "types/transform";
 
 const initialState = initializeState<ClipId, Clip>();
 
-type CutClipArgs = {
+type SliceClipArgs = {
   oldClip: Clip;
   firstClip: Clip;
   secondClip: Clip;
@@ -58,6 +59,16 @@ export const clipsSlice = createSlice({
         state.byId[clip.id] = clip;
       });
     },
+    addClipsWithTransforms: (
+      state,
+      action: PayloadAction<{ clips: Clip[]; transforms: Transform[] }>
+    ) => {
+      const { clips } = action.payload;
+      clips.forEach((clip) => {
+        state.allIds.push(clip.id);
+        state.byId[clip.id] = clip;
+      });
+    },
     removeClip: (state, action: PayloadAction<ClipId>) => {
       const clipId = action.payload;
       delete state.byId[clipId];
@@ -68,6 +79,18 @@ export const clipsSlice = createSlice({
     },
     removeClips: (state, action: PayloadAction<ClipId[]>) => {
       const clipIds = action.payload;
+      clipIds.forEach((clipId) => {
+        delete state.byId[clipId];
+        const index = state.allIds.findIndex((id) => id === clipId);
+        if (index === -1) return;
+        state.allIds.splice(index, 1);
+      });
+    },
+    removeClipsWithTransforms: (
+      state,
+      action: PayloadAction<{ clipIds: ClipId[]; transformIds: TransformId[] }>
+    ) => {
+      const { clipIds } = action.payload;
       clipIds.forEach((clipId) => {
         delete state.byId[clipId];
         const index = state.allIds.findIndex((id) => id === clipId);
@@ -95,7 +118,24 @@ export const clipsSlice = createSlice({
         };
       });
     },
-    cutClip: (state, action: PayloadAction<CutClipArgs>) => {
+    updateClipsWithTransforms: (
+      state,
+      action: PayloadAction<{
+        clips: Partial<Clip>[];
+        transforms: Partial<Transform>[];
+      }>
+    ) => {
+      const { clips } = action.payload;
+      clips.forEach((clip) => {
+        const { id, ...rest } = clip;
+        if (!id) return;
+        state.byId[id] = {
+          ...state.byId[id],
+          ...rest,
+        };
+      });
+    },
+    sliceClip: (state, action: PayloadAction<SliceClipArgs>) => {
       const { oldClip, firstClip, secondClip } = action.payload;
       delete state.byId[oldClip.id];
 
@@ -139,14 +179,17 @@ export const clipsSlice = createSlice({
 export const {
   addClip,
   addClips,
+  addClipsWithTransforms,
   removeClip,
   removeClips,
+  removeClipsWithTransforms,
   updateClip,
   updateClips,
+  updateClipsWithTransforms,
   removeClipsByPatternTrackId,
   clearClipsByPatternTrackId,
 } = clipsSlice.actions;
-export const _cutClip = clipsSlice.actions.cutClip;
+export const _sliceClip = clipsSlice.actions.sliceClip;
 
 export const createClip =
   (clip: Partial<ClipNoId> = defaultClip): AppThunk<Promise<ClipId>> =>
@@ -159,14 +202,17 @@ export const createClip =
       // Add clip to store
       dispatch(addClip(newClip));
       dispatch(
-        addClipToClipMap({ trackId: newClip.trackId, clipId: newClip.id })
+        addClipToClipMap({
+          trackId: newClip.trackId,
+          clipId: newClip.id,
+        })
       );
       resolve(newClip.id);
     });
   };
 
 export const createClips =
-  (clips: Partial<ClipNoId>[]): AppThunk<Promise<ClipId>> =>
+  (clips: Partial<ClipNoId>[]): AppThunk<Promise<{ clipIds: ClipId[] }>> =>
   (dispatch) => {
     return new Promise((resolve) => {
       const initializedClips = clips.map((clip) =>
@@ -180,7 +226,64 @@ export const createClips =
       dispatch(addClipsToClipMap(clipMapPayload));
 
       const clipIds = initializedClips.map((clip) => clip.id);
-      const promiseResult = JSON.stringify(clipIds);
+      const promiseResult = { clipIds };
+      resolve(promiseResult);
+    });
+  };
+
+export const createClipsAndTransforms =
+  (
+    clips: Partial<ClipNoId>[],
+    transforms: Partial<Transform>[]
+  ): AppThunk<Promise<{ clipIds: ClipId[]; transformIds: TransformId[] }>> =>
+  (dispatch) => {
+    return new Promise((resolve) => {
+      const initializedClips = clips.map((clip) =>
+        initializeClip({ ...defaultClip, ...clip })
+      );
+      const initializedTransforms = transforms.map((transform) =>
+        initializeTransform({ ...defaultTransform, ...transform })
+      );
+      const payload = {
+        clips: initializedClips,
+        transforms: initializedTransforms,
+      };
+      dispatch(addClipsWithTransforms(payload));
+      dispatch(addClipsWithTransformsToClipMap(payload));
+      dispatch(addTransformsWithClips(payload));
+      dispatch(addTransformsWithClipsToTransformMap(payload));
+
+      const clipIds = initializedClips.map((clip) => clip.id);
+      const transformIds = initializedTransforms.map(
+        (transform) => transform.id
+      );
+      const promiseResult = { clipIds, transformIds };
+      resolve(promiseResult);
+    });
+  };
+
+export const updateClipsAndTransforms =
+  (
+    clips: Partial<Clip>[],
+    transforms: Partial<Transform>[]
+  ): AppThunk<Promise<{ clipIds: ClipId[]; transformIds: TransformId[] }>> =>
+  (dispatch) => {
+    return new Promise((resolve) => {
+      dispatch(
+        updateClipsWithTransforms({
+          clips,
+          transforms,
+        })
+      );
+      dispatch(
+        updateTransformsWithClips({
+          clips,
+          transforms,
+        })
+      );
+      const clipIds = clips.map((clip) => clip.id!);
+      const transformIds = transforms.map((transform) => transform.id!);
+      const promiseResult = { clipIds, transformIds };
       resolve(promiseResult);
     });
   };
@@ -203,185 +306,18 @@ export const deleteClips =
     dispatch(removeClipsFromClipMap(clipIds));
   };
 
-export const repeatClips =
-  (clipIds: ClipId[]): AppThunk =>
-  async (dispatch, getState) => {
-    const state = getState();
-    const root = Selectors.selectRoot(state);
-    const { repeatCount, repeatTransforms, repeatWithTranspose } = root;
-    const { chromaticTranspose, scalarTranspose, chordalTranspose } = root;
-
-    const clips = Selectors.selectClipsByIds(state, clipIds);
-    const clipDurations = clips.map((clip) =>
-      Selectors.selectClipDuration(state, clip.id)
-    );
-    const startTime = Math.min(...clips.map((clip) => clip.startTime));
-    const lastTime = Math.max(
-      ...clips.map((clip, i) => clip.startTime + clipDurations[i])
-    );
-    const totalDuration = lastTime - startTime;
-
-    for (let i = 1; i <= repeatCount; i++) {
-      // Move the clips
-      const movedClips = clips.map((clip) => ({
-        ...clip,
-        startTime: clip.startTime + i * totalDuration,
-      }));
-      dispatch(createClips(movedClips));
-
-      // Move the transforms
-      if (repeatTransforms) {
-        clips.forEach((clip, j) => {
-          const clipTransforms = Selectors.selectClipTransforms(state, clip.id);
-          const currentTransforms = clipTransforms.filter((t: Transform) =>
-            inRange(t.time, clip.startTime, clip.startTime + clipDurations[j])
-          );
-          if (currentTransforms.length) {
-            const movedTransforms = currentTransforms.map((t: Transform) => ({
-              ...t,
-              time: t.time + i * totalDuration,
-              chromaticTranspose: repeatWithTranspose
-                ? t.chromaticTranspose + i * chromaticTranspose
-                : t.chromaticTranspose,
-              scalarTranspose: repeatWithTranspose
-                ? t.scalarTranspose + i * scalarTranspose
-                : t.scalarTranspose,
-              chordalTranspose: repeatWithTranspose
-                ? t.chordalTranspose + i * chordalTranspose
-                : t.chordalTranspose,
-            }));
-            dispatch(createTransforms(movedTransforms));
-          }
-        });
-      }
-    }
-    dispatch(toggleRepeatingClips());
-  };
-
-export const mergeClips =
-  (clipIds: ClipId[]): AppThunk =>
-  async (dispatch, getState) => {
-    const state = getState();
-    const { mergeName, mergeTransforms } = Selectors.selectRoot(state);
-    const clips = Selectors.selectClipsByIds(state, clipIds).filter(
-      Boolean
-    ) as Clip[];
-    if (!clips || !clips.length) return;
-    const sortedClips = clips.sort((a, b) => a.startTime - b.startTime);
-    let oldTransforms: Transform[] = [];
-
-    // Create a merged pattern
-    const stream = sortedClips.reduce((acc, clip) => {
-      const pattern = Selectors.selectPattern(state, clip.patternId);
-      if (!pattern) return acc;
-      const scale = Selectors.selectClipScale(state, clip.id);
-      const transforms = Selectors.selectClipTransforms(state, clip.id);
-
-      const allChords = mergeTransforms
-        ? getClipStream(clip, pattern, scale, transforms, [])
-        : getClipNotes(clip, pattern.stream);
-
-      // Add any overlapping transforms if merging
-      if (mergeTransforms) {
-        const duration = getClipDuration(clip, pattern);
-        oldTransforms = union(
-          oldTransforms,
-          transforms.filter((t) =>
-            inRange(t.time, clip.startTime, clip.startTime + duration)
-          )
-        );
-      }
-
-      const chords = allChords.filter((chord) => !!chord.length);
-      return [...acc, ...chords];
-    }, [] as PatternStream);
-
-    const newPattern = initializePattern({
-      stream,
-      name: !!mergeName.length ? mergeName : "New Pattern",
+export const deleteClipsAndTransforms =
+  (clipIds: ClipId[], transformIds: TransformId[]): AppThunk =>
+  (dispatch) => {
+    clipIds.forEach((clipId) => {
+      dispatch(deselectClip(clipId));
     });
-    dispatch(addPattern(newPattern));
-    dispatch(setActivePattern(newPattern.id));
-
-    // Create a new clip
-    await dispatch(
-      createClip({
-        patternId: newPattern.id,
-        trackId: sortedClips[0].trackId,
-        startTime: sortedClips[0].startTime,
-      })
-    );
-    // Delete the old clips
-    dispatch(deleteClips(clipIds));
-    // Delete any merged transforms
-    if (mergeTransforms && oldTransforms.length) {
-      dispatch(deleteTransforms(oldTransforms.map((t) => t.id)));
-    }
-  };
-
-export const createPatternClip =
-  (trackId: TrackId, patternId: PatternId, startTime: Time): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-
-    // Get the pattern track from the store
-    const patternTrack = Selectors.selectPatternTrack(state, trackId);
-    if (!patternTrack) return;
-
-    // Get the pattern from the store
-    const pattern = Selectors.selectPattern(state, patternId);
-    if (!pattern) return;
-
-    // Create a new clip
-    const clip: ClipNoId = {
-      ...defaultClip,
-      patternId: pattern.id,
-      startTime,
-      trackId: patternTrack.id,
-    };
-    dispatch(createClip(clip));
-  };
-
-export const cutClip =
-  (clipId: ClipId, time: Time): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-
-    // Get the clip from the store
-    const clip = Selectors.selectClip(state, clipId);
-    if (!clip) return;
-
-    const stream = selectClipStream(state, clipId);
-
-    const splitDuration = time - clip.startTime;
-    if (time === clip.startTime || splitDuration === stream.length) return;
-
-    // Create two new clips pivoting at the time
-    const firstClip = initializeClip({
-      ...clip,
-      duration: splitDuration,
-    });
-    const secondClip = initializeClip({
-      ...clip,
-      startTime: time,
-      offset: clip.offset + splitDuration,
-      duration: stream.length - splitDuration,
-    });
-
-    // Create the new clips
-    dispatch(deselectClip(clipId));
-    dispatch(_cutClip({ oldClip: clip, firstClip, secondClip }));
+    dispatch(removeClipsWithTransforms({ clipIds, transformIds }));
+    dispatch(removeClipsWithTransformsFromClipMap({ clipIds, transformIds }));
+    dispatch(removeTransformsWithClips({ clipIds, transformIds }));
     dispatch(
-      cutClipFromClipMap({
-        oldClipId: clipId,
-        firstClipId: firstClip.id,
-        secondClipId: secondClip.id,
-      })
+      removeTransformsWithClipsFromTransformMap({ clipIds, transformIds })
     );
   };
-
-export const copyClips =
-  (clips: Clip[], time: Time): AppThunk =>
-  (dispatch) => {};
 
 export default clipsSlice.reducer;

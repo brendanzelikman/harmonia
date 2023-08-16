@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { createPatternTrack, updateTrack } from "redux/slices/tracks";
+import { createPatternTrack, updateTrack } from "redux/thunks/tracks";
 import { AppDispatch, RootState } from "redux/store";
 import { ScaleTrack as ScaleTrackType, Track, TrackId } from "types/tracks";
 import { TrackProps } from ".";
@@ -10,18 +10,12 @@ import {
   selectScaleTrackScaleAtTime,
   selectTransport,
 } from "redux/selectors";
-import { viewEditor } from "redux/slices/root";
+import { showEditor } from "redux/slices/root";
 import Scales from "types/scales";
 import { MIDI } from "types/midi";
 import { ChromaticScale } from "types/presets/scales";
 import { BiCopy } from "react-icons/bi";
-import {
-  BsEraser,
-  BsPencil,
-  BsPlus,
-  BsPlusCircle,
-  BsTrash,
-} from "react-icons/bs";
+import { BsEraser, BsPencil, BsPlusCircle, BsTrash } from "react-icons/bs";
 import useEventListeners from "hooks/useEventListeners";
 import { isInputEvent } from "appUtil";
 import { useState } from "react";
@@ -29,8 +23,8 @@ import { useState } from "react";
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const track = ownProps.track as ScaleTrackType;
 
-  const { editorState, showEditor, activeTrackId } = selectRoot(state);
-  const onEditor = editorState === "scale" && showEditor;
+  const { editorState, showingEditor, activeTrackId } = selectRoot(state);
+  const onEditor = editorState === "scale" && showingEditor;
   const onScale = !!(onEditor && activeTrackId && track.id === activeTrackId);
 
   const transport = selectTransport(state);
@@ -54,7 +48,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: TrackProps) => ({
     if (onScale) {
       dispatch(ownProps.hideEditor);
     } else {
-      dispatch(viewEditor({ id: "scale", trackId }));
+      dispatch(showEditor({ id: "scale", trackId }));
     }
   },
   setTrackName: (track: Partial<Track>, name: string) => {

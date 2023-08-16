@@ -5,11 +5,11 @@ export function CellComponent(props: CellProps) {
   const [{ isOver, canDrop }, drop] = useCellDrop(props);
   if (!props.trackId) return null;
 
-  const droppingClass = isOver && canDrop ? "bg-slate-600" : "";
+  const droppingClass = isOver && canDrop ? "bg-sky-950/30" : "";
 
   const addingClipClass =
     props.addingClip && props.isPatternTrack
-      ? "animate-pulse cursor-brush bg-sky-400/20 hover:bg-sky-700/50 hover:ring-inset hover:ring-1 hover:ring-gray-300/80"
+      ? "animate-pulse cursor-brush bg-sky-400/20 hover:bg-sky-700/50"
       : "";
 
   const transposingClipClass =

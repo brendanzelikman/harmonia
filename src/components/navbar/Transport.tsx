@@ -2,7 +2,7 @@ import { BsStop, BsPause, BsPlay, BsArrowRepeat } from "react-icons/bs";
 import { connect, ConnectedProps } from "react-redux";
 import { selectTransport } from "redux/selectors";
 
-import { toggleTransportLoop } from "redux/slices/transport";
+import { toggleTransportLoop } from "redux/thunks/transport";
 import {
   startTransport,
   pauseTransport,
@@ -51,7 +51,7 @@ const TransportButton = (props: {
 }) => (
   <NavButton
     {...props}
-    className={`w-12 h-12 border border-slate-400/80 p-2 rounded-full ${
+    className={`w-10 h-10 border border-slate-400/80 p-2 rounded-full ${
       props.className ?? ""
     }`}
   >
@@ -66,21 +66,25 @@ function Transport(props: Props) {
       <TransportButton
         label="Stop"
         className={`bg-gradient-to-t ${
-          !props.isStopped ? "from-red-700 to-red-900" : buttonGradient
+          props.isStarted && !props.isStopped
+            ? "bg-red-700"
+            : !props.isStopped
+            ? "bg-red-600/80"
+            : buttonGradient
         }`}
         onClick={props.stop}
       >
-        <BsStop className="text-[1.75rem]" />
+        <BsStop className="text-[1.5rem]" />
       </TransportButton>
       {props.isStarted ? (
         <TransportButton
           label="Pause"
           className={`bg-gradient-to-t ${
-            props.isStarted ? "from-green-500 to-green-800/90" : buttonGradient
+            props.isStarted ? "from-green-600 to-emerald-600" : buttonGradient
           }`}
           onClick={props.pause}
         >
-          <BsPause className="text-[1.75rem]" />
+          <BsPause className="text-[1.5rem]" />
         </TransportButton>
       ) : (
         <TransportButton
@@ -88,17 +92,17 @@ function Transport(props: Props) {
           className={`bg-gradient-to-t ${buttonGradient}`}
           onClick={props.start}
         >
-          <BsPlay className="text-[1.75rem] pl-[3px]" />
+          <BsPlay className="text-[1.5rem] pl-[3px]" />
         </TransportButton>
       )}
       <TransportButton
         label="Loop"
         onClick={props.toggleLoop}
         className={`bg-gradient-to-t ${
-          !!props.isLooped ? "from-slate-600 to-indigo-700" : buttonGradient
+          !!props.isLooped ? "from-indigo-600 to-indigo-700" : buttonGradient
         }`}
       >
-        <BsArrowRepeat className="text-[1.75rem]" />
+        <BsArrowRepeat className="text-[1.5rem]" />
       </TransportButton>
     </>
   );

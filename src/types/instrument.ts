@@ -27,7 +27,7 @@ export const getInstrumentName = (instrument: InstrumentName) => {
   const category = INSTRUMENT_CATEGORIES.find((key) =>
     categories[key].some((instrumentName) => instrumentName.key === instrument)
   );
-  if (!category) return;
+  if (!category) return "Instrument";
   return categories[category].find((name) => name.key === instrument)?.name;
 };
 
@@ -86,17 +86,33 @@ export const createInstrument =
   };
 
 // Create the global instrument
-export const createGlobalInstrument = () => {
+export const createGlobalInstrument = (
+  instrumentName: InstrumentName = "grand_piano"
+) => {
+  // Find the category of the instrument
+  const category = INSTRUMENT_CATEGORIES.find((key) =>
+    categories[key].some((i) => i.key === instrumentName)
+  );
+  if (!category) return;
   return new Promise<void>((resolve) => {
     const sampler = new Sampler({
-      urls: { ...samples["grand_piano"] },
-      baseUrl: `${window.location.href}/samples/keyboards/grand_piano/`,
+      urls: { ...samples[instrumentName] },
+      baseUrl: `${window.location.href}/samples/${category}/${instrumentName}/`,
       onload: () => {
+        // Dispose the old instrument if it exists
+        let instrument = INSTRUMENTS["global"];
+        if (instrument) {
+          instrument.sampler.dispose();
+          instrument.mixer.dispose();
+          delete INSTRUMENTS["global"];
+        }
         // Connect and instantiate a new mixer
         const mixer = new MixerInstance(defaultMixer);
         if (!mixer.channel) return;
+        // Connect the mixer to the global sampler
         sampler.connect(mixer.channel);
-        INSTRUMENTS["global"] = { sampler, mixer, name: "grand_piano" };
+        // Add the sampler + mixer to the global instruments
+        INSTRUMENTS["global"] = { sampler, mixer, name: instrumentName };
         resolve();
       },
     });
@@ -123,6 +139,18 @@ export const updateInstrument =
   (dispatch) => {
     dispatch(createInstrument(track));
   };
+
+// Get the global instrument
+export const getGlobalInstrument = () => {
+  return INSTRUMENTS["global"];
+};
+
+// Get the global instrument name
+export const getGlobalInstrumentName = () => {
+  const globalInstrument = getGlobalInstrument();
+  if (!globalInstrument) return "Instrument";
+  return getInstrumentName(globalInstrument.name as InstrumentName);
+};
 
 // Get the global sampler
 export const getGlobalSampler = () => {

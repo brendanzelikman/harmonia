@@ -1,4 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  DEFAULT_CELL_WIDTH,
+  MAX_CELL_WIDTH,
+  MIN_CELL_WIDTH,
+} from "appConstants";
+import { clamp } from "lodash";
 import { ClipId } from "types/clips";
 import { PatternId } from "types/patterns";
 import { TrackId } from "types/tracks";
@@ -25,10 +31,11 @@ interface RootState {
 
   // Editor State
   editorState: "file" | "scale" | "patterns" | "instrument" | "hidden";
-  showEditor: boolean;
+  showingEditor: boolean;
 
   // Clip State
   draggingClip: boolean;
+  cellWidth: number;
 }
 
 interface RootMerge {
@@ -61,11 +68,12 @@ export const defaultRoot: Root = {
 
   // Editor
   editorState: "hidden",
-  showEditor: false,
+  showingEditor: false,
 
   // Clips
   selectedClipIds: [],
   draggingClip: false,
+  cellWidth: DEFAULT_CELL_WIDTH,
 
   // Transpose
   chromaticTranspose: 0,
@@ -90,6 +98,9 @@ export const rootSlice = createSlice({
     // Project
     setProjectName(state, action: PayloadAction<string>) {
       state.projectName = action.payload;
+    },
+    setCellWidth(state, action: PayloadAction<number>) {
+      state.cellWidth = clamp(action.payload, MIN_CELL_WIDTH, MAX_CELL_WIDTH);
     },
     // Timeline Ids
     setActiveTrack: (state, action: PayloadAction<TrackId | undefined>) => {
@@ -167,15 +178,15 @@ export const rootSlice = createSlice({
       state.loadedTimeline = false;
     },
     // Editor State
-    viewEditor: (state, action) => {
+    showEditor: (state, action) => {
       const { id, trackId } = action.payload;
       state.editorState = id;
-      state.showEditor = true;
+      state.showingEditor = true;
       if (trackId) state.activeTrackId = trackId;
     },
     hideEditor: (state) => {
       state.editorState = "hidden";
-      state.showEditor = false;
+      state.showingEditor = false;
     },
     // Clip State
     startDraggingClip: (state) => {
@@ -215,6 +226,7 @@ export const rootSlice = createSlice({
 
 export const {
   setProjectName,
+  setCellWidth,
 
   setActiveTrack,
   setActivePattern,
@@ -234,7 +246,7 @@ export const {
   setTimelineState,
   clearTimelineState,
 
-  viewEditor,
+  showEditor,
   hideEditor,
 
   selectClip,

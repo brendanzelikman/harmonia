@@ -8,7 +8,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { selectTransforms } from "redux/selectors/transforms";
 import { Transform } from "types/transform";
-import { selectRoot } from "redux/selectors";
+import { selectCellWidth, selectRoot } from "redux/selectors";
 import { BsMagic } from "react-icons/bs";
 import useEventListeners from "hooks/useEventListeners";
 import { isInputEvent } from "appUtil";
@@ -19,11 +19,11 @@ interface OwnClipProps extends TransformsProps {
 
 const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const { rows, transform } = ownProps;
+  const cellWidth = selectCellWidth(state);
   const index = rows.findIndex((row) => row.trackId === transform.trackId);
 
-  const width = Constants.CELL_WIDTH;
   const top = Constants.HEADER_HEIGHT + index * Constants.CELL_HEIGHT;
-  const left = Constants.TRACK_WIDTH + Constants.CELL_WIDTH * transform.time;
+  const left = Constants.TRACK_WIDTH + cellWidth * transform.time;
 
   const transforms = selectTransforms(state);
   const { timelineState } = selectRoot(state);
@@ -33,7 +33,7 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   return {
     ...ownProps,
     index,
-    width,
+    cellWidth,
     top,
     left,
     transforms,
@@ -54,7 +54,7 @@ export default connector(TimelineTransform);
 function TimelineTransform(props: TransformProps) {
   if (props.index === -1) return null;
   const { transform } = props;
-  const { top, left, width } = props;
+  const { top, left, cellWidth } = props;
 
   const [holdingV, setHoldingV] = useState(false);
   useEventListeners(
@@ -89,14 +89,14 @@ function TimelineTransform(props: TransformProps) {
               holdingV ? "visible" : "invisible"
             } absolute ${
               left === Constants.TRACK_WIDTH ? "left-0" : "left-7"
-            } w-fit whitespace-nowrap px-2 z-20 flex items-center justify-center bg-gradient-to-t from-fuchsia-700/80 to-zinc-800 rounded border border-white/50`}
+            } w-fit whitespace-nowrap px-2 z-20 flex items-center justify-center bg-fuchsia-700/80 backdrop-blur rounded border border-white/50`}
           >
             N{chromaticTranspose} • T{scalarTranspose} • t{chordalTranspose}
             {/* T{scalarTranspose} • t{chordalTranspose} */}
           </label>
         </div>
         <div
-          className="border border-fuchsia-500 border-top-0 rounded-b"
+          className="bg-fuchsia-500/50 rounded-b"
           style={{ height: Constants.CELL_HEIGHT - Constants.TRANSPOSE_HEIGHT }}
         ></div>
       </>
@@ -113,7 +113,7 @@ function TimelineTransform(props: TransformProps) {
       style={{
         top,
         left,
-        width,
+        width: cellWidth,
         height: Constants.CELL_HEIGHT,
         pointerEvents: props.draggingClip || props.addingClip ? "none" : "auto",
       }}

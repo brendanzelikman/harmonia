@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initializeState } from "redux/util";
+import { Clip, ClipId } from "types/clips";
 import { defaultPatternTrack, defaultScaleTrack, TrackId } from "types/tracks";
-import { TransformId } from "types/transform";
+import { Transform, TransformId } from "types/transform";
 
 interface TransformMapState {
   id: TrackId;
@@ -77,6 +78,28 @@ export const transformMapSlice = createSlice({
       if (!state.byId[trackId]) return;
       state.byId[trackId].transformIds.push(transformId);
     },
+    addTransformsToTransformMap: (
+      state,
+      action: PayloadAction<TrackTransformPayload[]>
+    ) => {
+      action.payload.forEach(({ trackId, transformId }) => {
+        if (!state.byId[trackId]) return;
+        state.byId[trackId].transformIds.push(transformId);
+      });
+    },
+    addTransformsWithClipsToTransformMap: (
+      state,
+      action: PayloadAction<{
+        clips: Clip[];
+        transforms: Transform[];
+      }>
+    ) => {
+      const { transforms } = action.payload;
+      transforms.forEach(({ trackId, id }) => {
+        if (!state.byId[trackId]) return;
+        state.byId[trackId].transformIds.push(id);
+      });
+    },
     removeTransformFromTransformMap: (
       state,
       action: PayloadAction<TransformId>
@@ -88,6 +111,35 @@ export const transformMapSlice = createSlice({
         );
         if (clipIndex === -1) return;
         state.byId[trackId].transformIds.splice(clipIndex, 1);
+      });
+    },
+    removeTransformsFromTransformMap: (
+      state,
+      action: PayloadAction<TransformId[]>
+    ) => {
+      action.payload.forEach((transformId) => {
+        Object.keys(state.byId).forEach((trackId) => {
+          const clipIndex = state.byId[trackId].transformIds.findIndex(
+            (id) => id === transformId
+          );
+          if (clipIndex === -1) return;
+          state.byId[trackId].transformIds.splice(clipIndex, 1);
+        });
+      });
+    },
+    removeTransformsWithClipsFromTransformMap: (
+      state,
+      action: PayloadAction<{ clipIds: ClipId[]; transformIds: TransformId[] }>
+    ) => {
+      const { transformIds } = action.payload;
+      transformIds.forEach((transformId) => {
+        Object.keys(state.byId).forEach((trackId) => {
+          const clipIndex = state.byId[trackId].transformIds.findIndex(
+            (id) => id === transformId
+          );
+          if (clipIndex === -1) return;
+          state.byId[trackId].transformIds.splice(clipIndex, 1);
+        });
       });
     },
   },
@@ -102,6 +154,10 @@ export const {
   clearPatternTrackFromTransformMap,
   addTransformToTransformMap,
   removeTransformFromTransformMap,
+  addTransformsToTransformMap,
+  addTransformsWithClipsToTransformMap,
+  removeTransformsFromTransformMap,
+  removeTransformsWithClipsFromTransformMap,
 } = transformMapSlice.actions;
 
 export default transformMapSlice.reducer;

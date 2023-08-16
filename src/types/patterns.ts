@@ -7,6 +7,7 @@ import Scales, { Scale } from "./scales";
 import { Pitch, Time, XML } from "./units";
 import { PresetPatterns } from "./presets/patterns";
 import { ChromaticScale } from "./presets/scales";
+import MidiWriter from "midi-writer-js";
 
 // A pattern is a melodic unit that can be used in a track.
 // It contains a collection of notes that are played in a particular scale.
@@ -41,7 +42,7 @@ export type MIDINote = {
 };
 
 export type PatternNote = MIDINote;
-export const isRest = (note: PatternNote) => note.MIDI === MIDI.Rest;
+export const isRest = (note: PatternNote) => note?.MIDI === MIDI.Rest;
 
 // A pattern chord is a collection of notes that are played at the same time.
 export type PatternChord = PatternNote[];
@@ -126,7 +127,9 @@ export const getStreamChordAtOffset = (stream: PatternStream, offset: Time) => {
 };
 
 // Get all rhythmic pitches of a stream
-export const getStreamRhythmicPitches = (stream: PatternStream): Pitch[][] => {
+export const getStreamRhythmicPitchClasses = (
+  stream: PatternStream
+): Pitch[][] => {
   if (!stream?.length) return [];
   return stream.map((chord) => {
     if (!chord?.length) return [];
@@ -134,6 +137,18 @@ export const getStreamRhythmicPitches = (stream: PatternStream): Pitch[][] => {
       .filter((note) => !isRest(note))
       .sort((a, b) => b.MIDI - a.MIDI)
       .map((note) => MIDI.toPitchClass(note.MIDI));
+  });
+};
+
+// Get all rhythmic pitches of a stream
+export const getStreamRhythmicPitches = (stream: PatternStream): Pitch[][] => {
+  if (!stream?.length) return [];
+  return stream.map((chord) => {
+    if (!chord?.length) return [];
+    return chord
+      .filter((note) => !isRest(note))
+      .sort((a, b) => b.MIDI - a.MIDI)
+      .map((note) => MIDI.toPitch(note.MIDI));
   });
 };
 
@@ -215,7 +230,54 @@ export const rotatePatternStream = (
 };
 
 export default class Patterns {
-  static serialize(pattern?: Pattern, scale?: Scale): XML {
+  static exportToMIDI(pattern: Pattern) {
+    const stream = pattern.stream;
+    const track = new MidiWriter.Track();
+    let wait: MidiWriter.Duration[] = [];
+
+    // Add stream
+    for (let i = 0; i < stream.length; i++) {
+      const chord = stream[i];
+      if (!chord.length) continue;
+
+      // Compute duration
+      const duration = `${16 / chord[0].duration}` as MidiWriter.Duration;
+      if (isRest(chord[0])) {
+        wait.push(duration);
+        continue;
+      }
+
+      // Compute pitch array
+      const pitch = isRest(chord[0])
+        ? ([] as MidiWriter.Pitch[])
+        : (chord.map((n) => MIDI.toPitch(n.MIDI)) as MidiWriter.Pitch[]);
+
+      // Create event
+      const event = new MidiWriter.NoteEvent({
+        pitch,
+        duration,
+        wait: [...wait],
+      });
+
+      // Add event
+      track.addEvent(event);
+
+      // Clear wait if not a rest
+      if (!isRest(chord[0]) && wait.length) wait.clear();
+    }
+    const writer = new MidiWriter.Writer(track);
+    const blob = new Blob([writer.buildFile()], {
+      type: "audio/midi",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${pattern.name || "pattern"}.mid`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  static exportToXML(pattern?: Pattern, scale?: Scale): XML {
     if (!pattern || !scale) return "";
     const stream = realizePattern(pattern, scale);
 
@@ -331,6 +393,13 @@ export default class Patterns {
     PresetPatterns.DominantThirteenthArpeggio,
   ];
 
+  static BrendansVoicings = [
+    PresetPatterns.BZVoicing1,
+    PresetPatterns.BZVoicing2,
+    PresetPatterns.BZVoicing3,
+    PresetPatterns.BZVoicing4,
+  ];
+
   static BasicDurations = [
     PresetPatterns.WholeNote,
     PresetPatterns.DottedWholeNote,
@@ -372,9 +441,11 @@ export default class Patterns {
   static CustomPatterns = [] as Pattern[];
 
   static PresetGroups = {
+    "Custom Patterns": Patterns.CustomPatterns,
     "Basic Chords": Patterns.BasicChords,
     "Extended Chords": Patterns.ExtendedChords,
     "Famous Chords": Patterns.FamousChords,
+    "Brendan's Voicings": Patterns.BrendansVoicings,
     "Basic Patterns": Patterns.BasicPatterns,
     "Extended Patterns": Patterns.ExtendedPatterns,
     "Famous Patterns": Patterns.FamousPatterns,
@@ -382,7 +453,6 @@ export default class Patterns {
     "Simple Rhythms": Patterns.SimpleRhythms,
     "Latin Rhythms": Patterns.LatinRhythms,
     "Clave Patterns": Patterns.ClavePatterns,
-    "Custom Patterns": Patterns.CustomPatterns,
   };
 
   static PresetCategories = Object.keys(

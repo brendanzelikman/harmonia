@@ -2,16 +2,16 @@ import { FormatterProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
 import * as Selectors from "redux/selectors";
 import { selectTrackTransforms } from "redux/selectors";
-import { setMixerMute, setMixerPan, setMixerSolo } from "redux/slices/mixers";
-import { hideEditor, viewEditor } from "redux/slices/root";
+import { setMixerMute, setMixerPan, setMixerSolo } from "redux/thunks/mixers";
+import { hideEditor, showEditor } from "redux/slices/root";
 import {
   clearTrack,
   deleteTrack,
   duplicateTrack,
+  unsoloTracks,
   updateTrack,
-} from "redux/slices/tracks";
+} from "redux/thunks/tracks";
 import { AppDispatch, RootState } from "redux/store";
-import { PatternId } from "types/patterns";
 import { Track, TrackId } from "types/tracks";
 import { lastTransformAtTime } from "types/transform";
 import { Row } from "..";
@@ -49,17 +49,20 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     duplicateTrack: (trackId: TrackId) => {
       dispatch(duplicateTrack(trackId));
     },
-    viewEditor: (trackId: TrackId, id: string) => {
-      dispatch(viewEditor({ id, trackId }));
+    showEditor: (trackId: TrackId, id: string) => {
+      dispatch(showEditor({ id, trackId }));
     },
-    setTrackMute: (patternId: PatternId, mute: boolean) => {
-      dispatch(setMixerMute(patternId, mute));
+    setTrackMute: (trackId: TrackId, mute: boolean) => {
+      dispatch(setMixerMute(trackId, mute));
     },
-    setTrackSolo: (patternId: PatternId, solo: boolean) => {
-      dispatch(setMixerSolo(patternId, solo));
+    setTrackSolo: (trackId: TrackId, solo: boolean) => {
+      dispatch(setMixerSolo(trackId, solo));
     },
-    setTrackPan: (patternId: PatternId, pan: number) => {
-      dispatch(setMixerPan(patternId, pan));
+    setTrackPan: (trackId: TrackId, pan: number) => {
+      dispatch(setMixerPan(trackId, pan));
+    },
+    unsoloTracks: () => {
+      dispatch(unsoloTracks());
     },
     hideEditor: () => {
       dispatch(hideEditor());
@@ -73,3 +76,10 @@ type Props = ConnectedProps<typeof connector>;
 export interface TrackProps extends Props {}
 
 export default connector(TrackComponent);
+
+export interface DraggableTrackProps {
+  track: Track;
+  index: number;
+  element?: any;
+  moveTrack: (dragIndex: number, hoverIndex: number) => void;
+}

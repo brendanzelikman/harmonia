@@ -41,7 +41,7 @@ function Timer(props: Props) {
   }, [time]);
 
   const clipClass = useMemo(() => {
-    if (isStarted) return "text-gray-50 border-emerald-500";
+    if (isStarted) return "text-gray-50 border-emerald-400";
     if (isPaused) return "text-gray-100 border-slate-300";
     return "text-gray-300 border-slate-500";
   }, [isStarted, isPaused]);
@@ -51,13 +51,13 @@ function Timer(props: Props) {
       <input
         type="text"
         id="timer"
-        className={`font-light block px-2 py-2.5 w-32 text-lg bg-transparent rounded-lg border appearance-none ${clipClass} focus:border-fuchsia-500 focus:outline-none focus:ring-0 peer`}
+        className={`font-light block px-2 py-1.5 w-32 text-md bg-transparent rounded-lg border appearance-none ${clipClass} focus:border-fuchsia-500 focus:outline-none focus:ring-0 peer`}
         value={displayedTime}
         disabled
       />
       <label
         htmlFor="timer"
-        className={`absolute text-sm ${
+        className={`absolute text-xs ${
           isStarted ? "text-white" : "text-gray-300"
         } duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-0 bg-gray-900 rounded px-2 left-1`}
       >

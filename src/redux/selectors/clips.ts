@@ -1,4 +1,3 @@
-import { inRange } from "lodash";
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { ClipId, getClipDuration, getClipStream } from "types/clips";
@@ -157,54 +156,19 @@ export const selectClipChordAtTime = createSelector(
 
 // Select all clips at the current time
 const selectCurrentTime = (state: RootState, time: Time) => time;
+
 export const selectClipsAtTime = createSelector(
-  [
-    selectClips,
-    selectScales,
-    selectPatterns,
-    selectTransforms,
-    selectScaleTracks,
-    selectPatternTracks,
-    selectCurrentTime,
-  ],
-  (clips, scales, patterns, transforms, scaleTracks, patternTracks, time) => {
+  [selectClips, selectPatterns, selectCurrentTime],
+  (clips, patterns, time) => {
     return clips.filter((clip) => {
       if (clip.startTime > time) return false;
-
-      const patternTrack = patternTracks.find(
-        (track) => track.id === clip.trackId
-      );
-      if (!patternTrack) return false;
-
-      const scaleTrack = scaleTracks.find(
-        (scale) => scale.id === patternTrack.scaleTrackId
-      );
-      if (!scaleTrack) return false;
-
-      const clipTransforms = transforms.filter(
-        (transform) => transform.trackId === clip.trackId
-      );
-      const scaleTransforms = transforms.filter(
-        (transform) => transform.trackId === scaleTrack.id
-      );
-
       const pattern = patterns.find((pattern) => pattern.id === clip.patternId);
-      const scale = scales.find((scale) => scale.id === scaleTrack.scaleId);
-      if (!pattern || !scale) return false;
+      if (!pattern) return false;
 
-      const clipStream = getClipStream(
-        clip,
-        pattern,
-        scale,
-        clipTransforms,
-        scaleTransforms
-      );
-      if (!clipStream || !clipStream.length) return false;
+      const duration = getClipDuration(clip, pattern);
+      if (clip.startTime + duration < time) return false;
 
-      const startTime = clip.startTime;
-      const endTime = clip.startTime + clipStream.length;
-
-      return inRange(time, startTime, endTime);
+      return true;
     });
   }
 );

@@ -4,13 +4,7 @@ import { connect, ConnectedProps } from "react-redux";
 // @ts-ignore
 import { Knob } from "react-rotary-knob";
 import { selectMixerByTrackId } from "redux/selectors";
-import {
-  setMixerWarp,
-  setMixerReverb,
-  setMixerChorus,
-  setMixerFilter,
-  setMixerDelay,
-} from "redux/slices/mixers";
+import * as Mixers from "redux/thunks/mixers";
 import { AppDispatch, RootState } from "redux/store";
 import {
   WarpProps,
@@ -87,23 +81,23 @@ const mapDispatchToProps = (
   return {
     setTrackWarp: (warp: Partial<WarpProps>) => {
       if (!trackId) return;
-      dispatch(setMixerWarp(trackId, warp));
+      dispatch(Mixers.setMixerWarp(trackId, warp));
     },
     setTrackReverb: (reverb: Partial<ReverbProps>) => {
       if (!trackId) return;
-      dispatch(setMixerReverb(trackId, reverb));
+      dispatch(Mixers.setMixerReverb(trackId, reverb));
     },
     setTrackChorus: (chorus: Partial<ChorusProps>) => {
       if (!trackId) return;
-      dispatch(setMixerChorus(trackId, chorus));
+      dispatch(Mixers.setMixerChorus(trackId, chorus));
     },
     setTrackFilter: (filter: Partial<FilterProps>) => {
       if (!trackId) return;
-      dispatch(setMixerFilter(trackId, filter));
+      dispatch(Mixers.setMixerFilter(trackId, filter));
     },
     setTrackDelay: (delay: Partial<DelayProps>) => {
       if (!trackId) return;
-      dispatch(setMixerDelay(trackId, delay));
+      dispatch(Mixers.setMixerDelay(trackId, delay));
     },
   };
 };
@@ -303,23 +297,25 @@ function TrackEffects(props: Props) {
   const mapEffectToKnobs = useCallback(
     (effect: Effect) => {
       return (
-        <Editor.MenuGroup
+        <Editor.EffectGroup
           key={effect.type}
           label={effect.type}
-          className="w-36 h-36 capitalize"
+          className="h-36 capitalize"
         >
-          <div className="w-full flex justify-center space-x-2">
+          <div className="w-full flex justify-center space-x-3">
             {effect.type === "warp" ? WarpKnobs(effect) : null}
             {effect.type === "reverb" ? ReverbKnobs(effect) : null}
             {effect.type === "chorus" ? ChorusKnobs(effect) : null}
             {effect.type === "delay" ? DelayKnobs(effect) : null}
             {effect.type === "filter" ? FilterKnobs(effect) : null}
           </div>
-        </Editor.MenuGroup>
+        </Editor.EffectGroup>
       );
     },
     [WarpKnobs, ReverbKnobs, ChorusKnobs, DelayKnobs]
   );
 
-  return <div className="flex">{mixer.effects.map(mapEffectToKnobs)}</div>;
+  return (
+    <div className="flex w-full">{mixer.effects.map(mapEffectToKnobs)}</div>
+  );
 }

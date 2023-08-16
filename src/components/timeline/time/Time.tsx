@@ -1,5 +1,5 @@
 import useEventListeners from "hooks/useEventListeners";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { TimeProps } from ".";
 import { useLoopDrag, useLoopDrop } from "./dnd";
 

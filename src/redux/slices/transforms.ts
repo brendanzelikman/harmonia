@@ -12,7 +12,9 @@ import {
 import {
   addTransformToTransformMap,
   removeTransformFromTransformMap,
+  removeTransformsFromTransformMap,
 } from "./maps/transformMap";
+import { Clip, ClipId } from "types/clips";
 
 const initialTransforms = initializeState<TransformId, Transform>();
 
@@ -25,6 +27,26 @@ export const transformsSlice = createSlice({
       state.byId[transform.id] = transform;
       state.allIds.push(transform.id);
     },
+    addTransforms: (state, action: PayloadAction<Transform[]>) => {
+      const transforms = action.payload;
+      transforms.forEach((transform) => {
+        state.byId[transform.id] = transform;
+        state.allIds.push(transform.id);
+      });
+    },
+    addTransformsWithClips: (
+      state,
+      action: PayloadAction<{
+        clips: Clip[];
+        transforms: Transform[];
+      }>
+    ) => {
+      const { clips, transforms } = action.payload;
+      transforms.forEach((transform) => {
+        state.byId[transform.id] = transform;
+        state.allIds.push(transform.id);
+      });
+    },
     removeTransform: (state, action: PayloadAction<TransformId>) => {
       const transformationId = action.payload;
       delete state.byId[transformationId];
@@ -32,6 +54,25 @@ export const transformsSlice = createSlice({
       const index = state.allIds.findIndex((id) => id === transformationId);
       if (index === -1) return;
       state.allIds.splice(index, 1);
+    },
+    removeTransforms: (state, action: PayloadAction<TransformId[]>) => {
+      const transformationIds = action.payload;
+      transformationIds.forEach((id) => {
+        delete state.byId[id];
+      });
+      state.allIds = state.allIds.filter(
+        (id) => !transformationIds.includes(id)
+      );
+    },
+    removeTransformsWithClips: (
+      state,
+      action: PayloadAction<{ clipIds: ClipId[]; transformIds: TransformId[] }>
+    ) => {
+      const { transformIds } = action.payload;
+      transformIds.forEach((id) => {
+        delete state.byId[id];
+      });
+      state.allIds = state.allIds.filter((id) => !transformIds.includes(id));
     },
     removeTransformsByScaleTrackId: (state, action: PayloadAction<TrackId>) => {
       const trackId = action.payload;
@@ -89,15 +130,52 @@ export const transformsSlice = createSlice({
         ...rest,
       };
     },
+    updateTransforms: (state, action: PayloadAction<Partial<Transform>[]>) => {
+      action.payload.forEach((transform) => {
+        const { id, ...rest } = transform;
+
+        if (!id) return;
+        if (!state.byId[id]) return;
+        state.byId[id] = {
+          ...state.byId[id],
+          ...rest,
+        };
+      });
+    },
+    updateTransformsWithClips: (
+      state,
+      action: PayloadAction<{
+        clips: Partial<Clip>[];
+        transforms: Partial<Transform>[];
+      }>
+    ) => {
+      const { transforms } = action.payload;
+      transforms.forEach((transform) => {
+        const { id, ...rest } = transform;
+
+        if (!id) return;
+        if (!state.byId[id]) return;
+        state.byId[id] = {
+          ...state.byId[id],
+          ...rest,
+        };
+      });
+    },
   },
 });
 
 export const {
   addTransform,
+  addTransforms,
+  addTransformsWithClips,
   removeTransform,
-  updateTransform,
+  removeTransforms,
+  removeTransformsWithClips,
   removeTransformsByScaleTrackId,
   removeTransformsByPatternTrackId,
+  updateTransform,
+  updateTransforms,
+  updateTransformsWithClips,
   clearTransformsByScaleTrackId,
   clearTransformsByPatternTrackId,
 } = transformsSlice.actions;
@@ -138,10 +216,12 @@ export const deleteTransform =
     dispatch(removeTransform(id));
     dispatch(removeTransformFromTransformMap(id));
   };
+
 export const deleteTransforms =
   (ids: TransformId[]): AppThunk =>
   (dispatch) => {
-    return Promise.all(ids.map((id) => dispatch(deleteTransform(id))));
+    dispatch(removeTransforms(ids));
+    dispatch(removeTransformsFromTransformMap(ids));
   };
 
 export default transformsSlice.reducer;

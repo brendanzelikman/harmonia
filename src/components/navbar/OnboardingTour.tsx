@@ -9,7 +9,7 @@ import {
   hideEditor,
   setTimelineState,
   toggleTransposingClip,
-  viewEditor,
+  showEditor,
 } from "redux/slices/root";
 import * as Tour from "redux/slices/tour";
 import { AppDispatch, RootState } from "redux/store";
@@ -24,7 +24,7 @@ const mapStateToProps = (state: RootState) => {
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
     hideEditor: () => dispatch(hideEditor()),
-    setEditorState: (id: any) => dispatch(viewEditor({ id })),
+    setEditorState: (id: any) => dispatch(showEditor({ id })),
     setTimelineState: (state: any) => dispatch(setTimelineState(state)),
     nextTourStep: () => dispatch(Tour.nextTourStep()),
     prevTourStep: () => dispatch(Tour.prevTourStep()),

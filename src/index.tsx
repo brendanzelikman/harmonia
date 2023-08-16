@@ -11,6 +11,7 @@ import "./index.css";
 
 import { start } from "tone";
 import { startTransport } from "redux/thunks/transport";
+import { MIDIProvider } from "providers/midi";
 
 export const container: HTMLElement = document.getElementById("root")!;
 if (!container.children.length) {
@@ -19,7 +20,9 @@ if (!container.children.length) {
     <React.StrictMode>
       <DndProvider backend={HTML5Backend}>
         <Provider store={store}>
-          <App />
+          <MIDIProvider>
+            <App />
+          </MIDIProvider>
           <LoadedTransport />
         </Provider>
       </DndProvider>

@@ -37,6 +37,5 @@ export const initializeTransform = (
 export const lastTransformAtTime = (transforms: Transform[], time: Time) => {
   return transforms
     .filter((t) => t.time <= time)
-    .sort((a, b) => a.time - b.time)
-    .at(-1);
+    .sort((a, b) => b.time - a.time)[0];
 };

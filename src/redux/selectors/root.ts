@@ -1,11 +1,18 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "redux/store";
 import { selectPatternTracks } from "./patternTracks";
+import { DEFAULT_CELL_WIDTH } from "appConstants";
 
 // Select the timeline
 export const selectRoot = (state: RootState) => {
   return state.root;
 };
+
+// Select the cell width
+export const selectCellWidth = createSelector(
+  [selectRoot],
+  (root) => root.cellWidth || DEFAULT_CELL_WIDTH
+);
 
 // Select active pattern id
 export const selectActivePatternId = createSelector(

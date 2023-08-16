@@ -2,7 +2,7 @@ import { inRange, union } from "lodash";
 import { useDrag } from "react-dnd";
 import { useAppSelector } from "redux/hooks";
 import { selectClips, selectSelectedClipIds } from "redux/selectors";
-import { Clip, ClipId } from "types/clips";
+import { Clip } from "types/clips";
 import { Transform } from "types/transform";
 import { ClipProps } from "./Clip";
 
@@ -62,6 +62,9 @@ export function useClipDrag(props: ClipProps) {
             const trackIndex = trackIds.indexOf(clip.trackId);
             if (trackIndex === -1) return;
             const newRow = trackIndex + rowOffset;
+            if (!props.rows[newRow]) return;
+            if (props.rows[newRow].trackId === undefined) return;
+            if (props.rows[newRow].type !== "patternTrack") return;
             const newTrackId = props.rows[newRow].trackId;
             if (newTrackId === undefined) return;
 
@@ -98,17 +101,35 @@ export function useClipDrag(props: ClipProps) {
           }
         }
         if (dropResult?.dropEffect === "copy") {
-          const clipIds = props.createClips(newClips);
-          clipIds.then((res: any) => {
-            const ids: ClipId[] = JSON.parse(res);
-            const newIds = ids.filter((id) => !selectedClipIds.includes(id));
-            props.selectClips(newIds);
-            if (newTransforms.length) props.createTransforms(newTransforms);
-          });
+          if (newTransforms.length) {
+            props
+              .createClipsAndTransforms(newClips, newTransforms)
+              .then(({ clipIds }) => {
+                props.selectClips(clipIds);
+              });
+          } else {
+            props.createClips(newClips).then(({ clipIds }) => {
+              props.selectClips(clipIds);
+            });
+          }
         } else {
-          props.updateClips(newClips);
-          if (newTransforms.length) props.updateTransforms(newTransforms);
+          if (newTransforms.length) {
+            props.updateClipsAndTransforms(newClips, newTransforms);
+          } else {
+            props.updateClips(newClips);
+          }
         }
+
+        //   clipIds.then((res: any) => {
+        //     const ids: ClipId[] = JSON.parse(res);
+        //     const newIds = ids.filter((id) => !selectedClipIds.includes(id));
+        //     props.selectClips(newIds);
+        //     if (newTransforms.length) props.createTransforms(newTransforms);
+        //   });
+        // } else {
+        //   props.updateClips(newClips);
+        //   if (newTransforms.length) props.updateTransforms(newTransforms);
+        // }
       },
     }),
     [selectedClipIds, clips, trackIds, transforms]

@@ -8,7 +8,7 @@ import {
 } from "./Navbar";
 import { CiUndo, CiRedo, CiFileOn } from "react-icons/ci";
 import { UndoTypes } from "redux/undoTypes";
-import { hideEditor, setProjectName, viewEditor } from "redux/slices/root";
+import { hideEditor, setProjectName, showEditor } from "redux/slices/root";
 import { selectRoot } from "redux/selectors";
 import { blurOnEnter } from "appUtil";
 import { BiMusic, BiSave, BiTrash, BiUpload } from "react-icons/bi";
@@ -20,25 +20,31 @@ import {
 } from "redux/util";
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment } from "react";
+import { saveStateToMIDI } from "redux/thunks/clips";
 
 const mapStateToProps = (state: RootState) => {
-  const canUndo = state.timeline.past.length > 0;
-  const canRedo = state.timeline.future.length > 0;
+  const canUndo = !!state.timeline.past?.length;
+  const canRedo = !!state.timeline.future?.length;
   const { editorState, projectName } = selectRoot(state);
   const onFile = editorState === "file";
-
   return { projectName, canUndo, canRedo, onFile };
 };
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    toggleFile: (onFile: boolean) =>
-      onFile ? dispatch(hideEditor()) : dispatch(viewEditor({ id: "file" })),
+    toggleFile: (onFile: boolean) => {
+      if (onFile) {
+        dispatch(hideEditor());
+      } else {
+        dispatch(showEditor({ id: "file" }));
+      }
+    },
     setProjectName: (name: string) => dispatch(setProjectName(name)),
     undo: () => dispatch({ type: UndoTypes.undoTimeline }),
     redo: () => dispatch({ type: UndoTypes.redoTimeline }),
-    save: () => dispatch(saveStateToFile),
-    load: () => dispatch(readFiles),
+    saveToHAM: () => dispatch(saveStateToFile),
+    saveToMIDI: () => dispatch(saveStateToMIDI),
+    loadFromHAM: () => dispatch(readFiles),
     loadDemo: () => {
       fetch(window.location.href + "/demos/Scriabinism.ham").then((res) => {
         res
@@ -59,121 +65,147 @@ type Props = ConnectedProps<typeof connector>;
 export default connector(FileControl);
 
 function FileControl(props: Props) {
+  const UndoButton = () => (
+    <NavButton
+      className={`flex-col text-xs p-1 ${
+        props.canUndo ? "active:bg-sky-600/80" : ""
+      }`}
+      onClick={props.canUndo ? props.undo : undefined}
+      disabled={!props.canUndo}
+      disabledClass="text-white/50 cursor-default"
+      label="undo"
+    >
+      <CiUndo className="text-3xl" />
+    </NavButton>
+  );
+
+  const RedoButton = () => (
+    <NavButton
+      className={`h-full flex flex-col text-xs p-1 ${
+        props.canRedo ? "active:bg-sky-600/80" : ""
+      }`}
+      onClick={props.canRedo ? props.redo : undefined}
+      disabled={!props.canRedo}
+      disabledClass="text-white/50 cursor-default"
+      label="redo"
+    >
+      <CiRedo className="text-3xl" />
+    </NavButton>
+  );
   return (
     <>
       <div className="relative">
         <CiFileOn
-          className={`text-3xl select-none cursor-pointer ${
-            props.onFile ? "text-sky-500" : ""
+          className={`text-3xl select-none cursor-pointer mr-1 ${
+            props.onFile ? "text-sky-400" : ""
           }`}
           onClick={() => props.toggleFile(props.onFile)}
         />
         {/* <Label text="Save File" shortText="Save" /> */}
         <NavbarTooltip
-          className="bg-gradient-to-t from-sky-800/90 to-slate-900 backdrop-blur"
+          className="bg-sky-950/70 backdrop-blur"
           show={!!props.onFile}
           content={<FileTooltipContent {...props} />}
         />
       </div>
-      <NavButton
-        className={`h-full flex flex-col text-xs p-1 ${
-          props.canUndo ? "active:bg-sky-600" : ""
-        }`}
-        onClick={props.canUndo ? props.undo : undefined}
-        disabled={!props.canUndo}
-        disabledClass="text-white/50 cursor-default"
-        label="undo"
-      >
-        <CiUndo className="text-3xl" />
-        {/* <Label text="Undo" /> */}
-      </NavButton>
-      <NavButton
-        className={`h-full flex flex-col text-xs p-1 ${
-          props.canRedo ? "active:bg-sky-600" : ""
-        }`}
-        onClick={props.canRedo ? props.redo : undefined}
-        disabled={!props.canRedo}
-        disabledClass="text-white/50 cursor-default"
-        label="redo"
-      >
-        <CiRedo className="text-3xl" />
-        {/* <Label text="Redo" /> */}
-      </NavButton>
+      <UndoButton />
+      <RedoButton />
     </>
   );
 }
 
+function DeleteButton(props: Props) {
+  return (
+    <Menu as="div" className="relative inline-block text-left">
+      {({ open, close }) => (
+        <>
+          <Menu.Button>
+            <BiTrash className="pl-2 text-3xl cursor-pointer" />
+          </Menu.Button>
+          <Transition
+            as={Fragment}
+            show={open}
+            enter="transition ease-out duration-100"
+            enterFrom="transform opacity-0 scale-95"
+            enterTo="transform opacity-100 scale-100"
+            leave="transition ease-in duration-75"
+            leaveFrom="transform opacity-100 scale-100"
+            leaveTo="transform opacity-0 scale-95"
+          >
+            <Menu.Items className="absolute -top-5 -right-36 px-4 py-2 bg-slate-900/70 border border-slate-400 rounded backdrop-blur">
+              <div className="pb-1 text-red-500">Are you sure?</div>
+              <div className="flex justify-center items-center space-x-2">
+                <button
+                  className="w-1/2 hover:text-slate-500"
+                  onClick={props.clear}
+                >
+                  Yes
+                </button>
+                <button className="w-1/2 hover:text-slate-500" onClick={close}>
+                  No
+                </button>
+              </div>
+            </Menu.Items>
+          </Transition>
+        </>
+      )}
+    </Menu>
+  );
+}
+
 function FileTooltipContent(props: Props) {
+  const SaveToHAMButton = () => (
+    <NavbarFormGroup className="hover:bg-sky-900" onClick={props.saveToHAM}>
+      <NavbarFormLabel>Save to File</NavbarFormLabel>
+      <BiSave className="px-1 text-3xl" />
+    </NavbarFormGroup>
+  );
+
+  const UploadButton = () => (
+    <NavbarFormGroup className="hover:bg-sky-900" onClick={props.loadFromHAM}>
+      <NavbarFormLabel>Load from File</NavbarFormLabel>
+      <BiUpload className="px-1 text-3xl" />
+    </NavbarFormGroup>
+  );
+
+  const SaveToMIDIButton = () => (
+    <NavbarFormGroup className="hover:bg-sky-900" onClick={props.saveToMIDI}>
+      <NavbarFormLabel>Save to MIDI</NavbarFormLabel>
+      <BiSave className="px-1 text-3xl" />
+    </NavbarFormGroup>
+  );
+
+  const DemoButton = () => (
+    <NavbarFormGroup className="hover:bg-sky-900" onClick={props.loadDemo}>
+      <NavbarFormLabel>Load Demo</NavbarFormLabel>
+      <BiMusic className="px-1 text-3xl" />
+    </NavbarFormGroup>
+  );
+
+  const ClearButton = () => (
+    <NavbarFormGroup className="hover:bg-sky-900">
+      <NavbarFormLabel>Clear Project</NavbarFormLabel>
+      <div className="relative px-1 h-8">
+        <DeleteButton {...props} />
+      </div>
+    </NavbarFormGroup>
+  );
+
   return (
     <div className="flex flex-col justify-center items-center">
       <input
-        className="bg-transparent rounded mt-1 mb-2"
+        className="bg-transparent rounded mb-2 m-1 text-sm focus:ring-0"
         type="text"
         placeholder="New Project"
         value={props.projectName}
         onChange={(e) => props.setProjectName(e.target.value)}
         onKeyDown={blurOnEnter}
       />
-      <NavbarFormGroup className="flex items-center justify-center space-x-3">
-        <NavbarFormLabel>Save to File</NavbarFormLabel>
-        <BiSave className="pl-1 text-3xl cursor-pointer" onClick={props.save} />
-      </NavbarFormGroup>
-      <NavbarFormGroup className="flex items-center justify-center space-x-3">
-        <NavbarFormLabel>Load from File</NavbarFormLabel>
-        <BiUpload
-          className="pl-2 text-3xl cursor-pointer"
-          onClick={props.load}
-        />
-      </NavbarFormGroup>
-      <NavbarFormGroup className="flex items-center justify-center space-x-3">
-        <NavbarFormLabel>Load Demo</NavbarFormLabel>
-        <BiMusic
-          className="pl-2 text-3xl cursor-pointer"
-          onClick={props.loadDemo}
-        />
-      </NavbarFormGroup>
-      <NavbarFormGroup className="flex items-center justify-center space-x-3">
-        <NavbarFormLabel>Clear Project</NavbarFormLabel>
-        <div className="relative">
-          <Menu as="div" className="relative inline-block text-left">
-            {({ open, close }) => (
-              <>
-                <Menu.Button>
-                  <BiTrash className="pl-2 text-3xl cursor-pointer" />
-                </Menu.Button>
-                <Transition
-                  as={Fragment}
-                  show={open}
-                  enter="transition ease-out duration-100"
-                  enterFrom="transform opacity-0 scale-95"
-                  enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
-                  leaveFrom="transform opacity-100 scale-100"
-                  leaveTo="transform opacity-0 scale-95"
-                >
-                  <Menu.Items className="absolute -top-5 -right-40 px-4 py-2 bg-slate-900/70 border border-slate-400 rounded backdrop-blur">
-                    <div className="pb-1 text-red-500">Are you sure?</div>
-                    <div className="flex justify-center items-center space-x-2">
-                      <button
-                        className="w-1/2 hover:text-slate-500"
-                        onClick={props.clear}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        className="w-1/2 hover:text-slate-500"
-                        onClick={close}
-                      >
-                        No
-                      </button>
-                    </div>
-                  </Menu.Items>
-                </Transition>
-              </>
-            )}
-          </Menu>
-        </div>
-      </NavbarFormGroup>
+      <SaveToHAMButton />
+      <UploadButton />
+      <SaveToMIDIButton />
+      <DemoButton />
+      <ClearButton />
     </div>
   );
 }

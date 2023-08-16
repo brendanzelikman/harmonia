@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { connect, ConnectedProps } from "react-redux";
 
-import { loadTransport } from "redux/slices/transport";
+import { loadTransport } from "redux/thunks/transport";
 import { AppDispatch, RootState } from "redux/store";
 
 const mapStateToProps = (state: RootState) => ({

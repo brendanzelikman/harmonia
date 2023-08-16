@@ -1,4 +1,3 @@
-import { MAX_SUBDIVISION } from "appConstants";
 import { fill } from "lodash";
 import { MIDI } from "types/midi";
 import { Pattern, PatternChord as Chord } from "types/patterns";
@@ -532,6 +531,70 @@ export const DominantThirteenthArpeggio: Pattern = {
     [{ MIDI: 77, duration: MIDI.EighthNote }],
     [{ MIDI: 74, duration: MIDI.EighthNote }],
     [{ MIDI: 70, duration: MIDI.EighthNote }],
+  ],
+};
+
+// My Voicings
+export const BZVoicing1: Pattern = {
+  id: "bz-voicing-1",
+  name: "BZ - Cmaj7 / E",
+  stream: [
+    [
+      { MIDI: 64, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 71, duration: MIDI.WholeNote },
+      { MIDI: 72, duration: MIDI.WholeNote },
+      { MIDI: 79, duration: MIDI.WholeNote },
+      { MIDI: 83, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+
+export const BZVoicing2: Pattern = {
+  id: "bz-voicing-2",
+  name: "BZ - Gmaj(9,13) / B",
+  stream: [
+    [
+      { MIDI: 59, duration: MIDI.WholeNote },
+      { MIDI: 62, duration: MIDI.WholeNote },
+      { MIDI: 64, duration: MIDI.WholeNote },
+      { MIDI: 69, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+      { MIDI: 79, duration: MIDI.WholeNote },
+      { MIDI: 81, duration: MIDI.WholeNote },
+      { MIDI: 86, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+
+export const BZVoicing3: Pattern = {
+  id: "bz-voicing-3",
+  name: "BZ - Cmaj7(9,13) / E",
+  stream: [
+    [
+      { MIDI: 52, duration: MIDI.WholeNote },
+      { MIDI: 59, duration: MIDI.WholeNote },
+      { MIDI: 60, duration: MIDI.WholeNote },
+      { MIDI: 62, duration: MIDI.WholeNote },
+      { MIDI: 67, duration: MIDI.WholeNote },
+      { MIDI: 69, duration: MIDI.WholeNote },
+      { MIDI: 74, duration: MIDI.WholeNote },
+    ],
+  ],
+};
+
+export const BZVoicing4: Pattern = {
+  id: "bz-voicing-4",
+  name: "BZ - E7b9 / G#",
+  stream: [
+    [
+      { MIDI: 56, duration: MIDI.WholeNote },
+      { MIDI: 62, duration: MIDI.WholeNote },
+      { MIDI: 64, duration: MIDI.WholeNote },
+      { MIDI: 65, duration: MIDI.WholeNote },
+      { MIDI: 71, duration: MIDI.WholeNote },
+      { MIDI: 76, duration: MIDI.WholeNote },
+    ],
   ],
 };
 

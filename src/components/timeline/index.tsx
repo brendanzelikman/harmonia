@@ -1,22 +1,24 @@
 import { connect, ConnectedProps } from "react-redux";
-import { TrackId } from "types/tracks";
+import { TrackId, TrackType } from "types/tracks";
 import { AppDispatch, RootState } from "redux/store";
 import { Timeline } from "./Timeline";
 import "react-data-grid/lib/styles.css";
 import { hideEditor, loadTimeline, unloadTimeline } from "redux/slices/root";
 import * as Selectors from "redux/selectors";
-import { createScaleTrack } from "redux/slices/tracks";
+import { createScaleTrack } from "redux/thunks/tracks";
 
 function mapStateToProps(state: RootState) {
   const scaleTrackIds = Selectors.selectScaleTrackIds(state);
   const trackMap = Selectors.selectTrackMap(state);
   const transport = Selectors.selectTransport(state);
+  const cellWidth = Selectors.selectCellWidth(state);
   const { loadedTimeline } = Selectors.selectRoot(state);
   return {
     time: transport.time,
     scaleTrackIds,
     trackMap,
     state: transport.state,
+    cellWidth,
     loadedTimeline,
     loadedTransport: transport.loaded,
   };
@@ -46,6 +48,7 @@ export interface TimelineProps extends Props {}
 
 export interface Row {
   trackId?: TrackId;
+  type: TrackType;
   index: number;
   lastRow?: boolean;
 }

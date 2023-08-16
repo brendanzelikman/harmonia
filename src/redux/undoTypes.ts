@@ -1,4 +1,5 @@
 import { Clip } from "types/clips";
+import { Transform } from "types/transform";
 
 export const UndoTypes = {
   undoTimeline: "timeline/undo",
@@ -17,40 +18,69 @@ export const groupByActionType = (action: any) => {
     case "clips/addClip":
       return `ADD_CLIP:${action.payload.id}`;
 
-    // Remove Clip
-    case "clips/removeClip":
-      return `REMOVE_CLIP:${action.payload}`;
-
-    // Update Clip
-    case "clips/updateClip":
-      const { id, startTime } = action.payload;
-      return `UPDATE_CLIP:${id}@${startTime}`;
-
-    // Cut Clip
-    case "clips/cutClip":
-      const { oldClip } = action.payload;
-      return `CUT_CLIP:${oldClip.id}`;
-
     // Add Clips
     case "clips/addClips":
       return `ADD_CLIPS:${action.payload
         .map((clip: Clip) => clip.id)
         .join(",")}`;
 
+    // Add Clips With Transforms
+    case "clips/addClipsWithTransforms":
+      var clipTags = action.payload.clips.map(
+        (clip: Clip) => `${clip.id}@${clip.startTime}`
+      );
+      var transformTags = action.payload.transforms.map(
+        (transform: Transform) => `${transform.id}@${transform.time}`
+      );
+      return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
+        ","
+      )};${transformTags.join(",")}`;
+
+    // Remove Clip
+    case "clips/removeClip":
+      return `REMOVE_CLIP:${action.payload}`;
+
     // Remove Clips
     case "clips/removeClips":
       return `REMOVE_CLIPS:${action.payload.join(",")}`;
 
+    // Remove Clips With Transforms
+    case "clips/removeClipsWithTransforms":
+      return `REMOVE_CLIPS_AND_TRANSFORMS:${action.payload.clipIds.join(
+        ","
+      )};${action.payload.transformIds.join(",")}`;
+
+    // Remove Clips By Pattern Track Id
     case "clips/removeClipsByPatternTrackId":
       return `REMOVE_PATTERN_TRACK:${action.payload}`;
+
+    // Update Clip
+    case "clips/updateClip":
+      const { id, startTime } = action.payload;
+      return `UPDATE_CLIP:${id}@${startTime}`;
 
     // Update Clips
     case "clips/updateClips":
       const clips = action.payload;
-      const clipTags = clips.map(
+      var clipTags = clips.map((clip: Clip) => `${clip.id}@${clip.startTime}`);
+      return `UPDATE_CLIPS:${clipTags.join(",")}`;
+
+    // Update Clips With Transforms
+    case "clips/updateClipsWithTransforms":
+      var clipTags = action.payload.clips.map(
         (clip: Clip) => `${clip.id}@${clip.startTime}`
       );
-      return `UPDATE_CLIPS:${clipTags.join(",")}`;
+      var transformTags = action.payload.transforms.map(
+        (transform: Transform) => `${transform.id}@${transform.time}`
+      );
+      return `UPDATE_CLIPS_AND_TRANSFORMS:${clipTags.join(
+        ","
+      )};${transformTags.join(",")}`;
+
+    // Slice Clip
+    case "clips/sliceClip":
+      const { oldClip } = action.payload;
+      return `SLICE_CLIP:${oldClip.id}`;
 
     // Clear Clips by Pattern Track Id
     case "clips/clearClipsByPatternTrackId":
@@ -84,9 +114,37 @@ export const groupByActionType = (action: any) => {
     case "transforms/addTransform":
       return `ADD_TRANSFORM:${action.payload.id}`;
 
+    // Add Transforms
+    case "transforms/addTransforms":
+      return `ADD_TRANSFORMS:${action.payload
+        .map((transform: Transform) => transform.id)
+        .join(",")}`;
+
+    // Add Transforms With Clips
+    case "transforms/addTransformsWithClips":
+      var clipTags = action.payload.clips.map(
+        (clip: Clip) => `${clip.id}@${clip.startTime}`
+      );
+      var transformTags = action.payload.transforms.map(
+        (transform: Transform) => `${transform.id}@${transform.time}`
+      );
+      return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
+        ","
+      )};${transformTags.join(",")}`;
+
     // Remove a Transform
     case "transforms/removeTransform":
       return `REMOVE_TRANSFORM:${action.payload}`;
+
+    // Remove Transforms
+    case "transforms/removeTransforms":
+      return `REMOVE_TRANSFORMS:${action.payload.join(",")}`;
+
+    // Remove Transforms With Clips
+    case "transforms/removeTransformsWithClips":
+      return `REMOVE_CLIPS_AND_TRANSFORMS:${action.payload.clipIds.join(
+        ","
+      )};${action.payload.transformIds.join(",")}`;
 
     // Remove Transforms by Scale Track Id
     case "transforms/removeTransformsByScaleTrackId":
@@ -95,6 +153,30 @@ export const groupByActionType = (action: any) => {
     // Remove Transforms by Pattern Track Id
     case "transforms/removeTransformsByPatternTrackId":
       return `REMOVE_PATTERN_TRACK:${action.payload}`;
+
+    // Update Transform
+    case "transforms/updateTransform":
+      const { transformId, time } = action.payload;
+      return `UPDATE_TRANSFORM:${transformId}@${time}`;
+
+    // Update Transforms
+    case "transforms/updateTransforms":
+      var transformTags = action.payload.transforms.map(
+        (transform: Transform) => `${transform.id}@${transform.time}`
+      );
+      return `UPDATE_TRANSFORMS:${transformTags.join(",")}`;
+
+    // Update Transforms With Clips
+    case "transforms/updateTransformsWithClips":
+      var transformTags = action.payload.transforms.map(
+        (transform: Transform) => `${transform.id}@${transform.time}`
+      );
+      var clipTags = action.payload.clips.map(
+        (clip: Clip) => `${clip.id}@${clip.startTime}`
+      );
+      return `UPDATE_CLIPS_AND_TRANSFORMS:${clipTags.join(
+        ","
+      )};${transformTags.join(",")}`;
 
     // Clear Transforms by Scale Track Id
     case "transforms/clearTransformsByScaleTrackId":
@@ -136,23 +218,41 @@ export const groupByActionType = (action: any) => {
     case "clipMap/addClipToClipMap":
       return `ADD_CLIP:${action.payload.clipId}`;
 
-    // Remove a Clip from the Clip Map
-    case "clipMap/removeClipFromClipMap":
-      return `REMOVE_CLIP:${action.payload}`;
-
-    // Cut a Clip from the Clip Map
-    case "clipMap/cutClipFromClipMap":
-      return `CUT_CLIP:${action.payload.oldClipId}`;
-
     // Add Clips to the Clip Map
     case "clipMap/addClipsToClipMap":
       return `ADD_CLIPS:${action.payload
         .map((payload: any) => payload.clipId)
         .join(",")}`;
 
+    // Add Clips With Transforms to the Clip Map
+    case "clipMap/addClipsWithTransformsToClipMap":
+      var clipTags = action.payload.clips.map(
+        (clip: Clip) => `${clip.id}@${clip.startTime}`
+      );
+      var transformTags = action.payload.transforms.map(
+        (transform: Transform) => `${transform.id}@${transform.time}`
+      );
+      return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
+        ","
+      )};${transformTags.join(",")}`;
+
+    // Remove a Clip from the Clip Map
+    case "clipMap/removeClipFromClipMap":
+      return `REMOVE_CLIP:${action.payload}`;
+
     // Remove Clips from the Clip Map
     case "clipMap/removeClipsFromClipMap":
       return `REMOVE_CLIPS:${action.payload.join(",")}`;
+
+    // Remove Clips With Transforms From The Clip Map
+    case "clipMap/removeClipsWithTransformsFromClipMap":
+      return `REMOVE_CLIPS_AND_TRANSFORMS:${action.payload.clipIds.join(
+        ","
+      )};${action.payload.transformIds.join(",")}`;
+
+    // Slice a Clip from the Clip Map
+    case "clipMap/sliceClipFromClipMap":
+      return `SLICE_CLIP:${action.payload.oldClipId}`;
 
     // Add a Scale Track to the Transform Map
     case "transformMap/addScaleTrackToTransformMap":
@@ -182,9 +282,37 @@ export const groupByActionType = (action: any) => {
     case "transformMap/addTransformToTransformMap":
       return `ADD_TRANSFORM:${action.payload.transformId}`;
 
+    // Add Transforms to the Transform Map
+    case "transformMap/addTransformsToTransformMap":
+      return `ADD_TRANSFORMS:${action.payload
+        .map((payload: any) => payload.transformId)
+        .join(",")}`;
+
+    // Add Transforms With Clips To The Transform Map
+    case "transformMap/addTransformsWithClipsToTransformMap":
+      var clipTags = action.payload.clips.map(
+        (clip: Clip) => `${clip.id}@${clip.startTime}`
+      );
+      var transformTags = action.payload.transforms.map(
+        (transform: Transform) => `${transform.id}@${transform.time}`
+      );
+      return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
+        ","
+      )};${transformTags.join(",")}`;
+
     // Remove a Transform from the Transform Map
     case "transformMap/removeTransformFromTransformMap":
       return `REMOVE_TRANSFORM:${action.payload}`;
+
+    // Remove Transforms from the Transform Map
+    case "transformMap/removeTransformsFromTransformMap":
+      return `REMOVE_TRANSFORMS:${action.payload.join(",")}`;
+
+    // Remove Transforms With Clips From the Transform Map
+    case "transformMap/removeTransformsWithClipsFromTransformMap":
+      return `REMOVE_CLIPS_AND_TRANSFORMS:${action.payload.clipIds.join(
+        ","
+      )};${action.payload.transformIds.join(",")}`;
 
     default:
       return null;

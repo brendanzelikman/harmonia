@@ -1,4 +1,3 @@
-import { TIMELINE_SUBDIVISION } from "appConstants";
 import { inRange } from "lodash";
 import { HeaderRendererProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
@@ -7,7 +6,7 @@ import {
   seekTransport,
   setTransportLoopEnd,
   setTransportLoopStart,
-} from "redux/slices/transport";
+} from "redux/thunks/transport";
 import { AppDispatch, RootState } from "redux/store";
 import { Time } from "types/units";
 import { Row } from "..";
@@ -17,10 +16,12 @@ function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
   const transport = selectTransport(state);
   const columnIndex = Number(ownProps.column.key);
 
+  const [ts1, ts2] = transport.timeSignature || [16, 16];
+
   const onTime = transport.time === columnIndex && transport.time !== 0;
-  const measure = Math.floor(columnIndex / TIMELINE_SUBDIVISION);
-  const beat = columnIndex % TIMELINE_SUBDIVISION;
-  const isMeasure = beat === 1;
+  const measure = Math.floor(columnIndex / ts1);
+  const beat = columnIndex % ts1;
+  const isMeasure = beat === 1 || ts1 === 1;
 
   const looping = transport.loop;
   const loopStart = transport.loopStart + 1;

@@ -1,12 +1,12 @@
 import { Disclosure } from "@headlessui/react";
 import { useCallback, useMemo, useState } from "react";
-import { BsChevronDown, BsChevronUp, BsSearch } from "react-icons/bs";
+import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import Patterns, { Pattern } from "types/patterns";
-import { EditorPatternsProps } from ".";
+import { PatternEditorProps } from ".";
 import * as Editor from "../Editor";
 import { CustomPattern, PresetPattern } from "./PatternItem";
 
-export default function PatternList(props: EditorPatternsProps) {
+export default function PatternList(props: PatternEditorProps) {
   // Get all pattern presets, including custom patterns
   const PatternPresets = {
     ...Patterns.PresetGroups,
@@ -69,69 +69,70 @@ export default function PatternList(props: EditorPatternsProps) {
     [props]
   );
 
+  // Render a category of patterns
+  const renderCategory = useCallback(
+    (category: any) => {
+      const typedCategory = category as keyof typeof PatternPresets;
+      const isCategoryOpen = openCategories.includes(typedCategory);
+      const isCustomCategory = typedCategory === "Custom Patterns";
+
+      const searching = searchQuery !== "";
+      const presetPatterns = PatternPresets[typedCategory];
+      const patterns = searching
+        ? presetPatterns.filter(doesMatchPattern)
+        : presetPatterns;
+
+      const isCategorySelected = props.activePatternId
+        ? patterns.some((pattern) => pattern.id === props.activePatternId)
+        : false;
+
+      return (
+        <Disclosure key={category}>
+          {({ open }) => {
+            const isOpen = isCategoryOpen || open;
+            return (
+              <>
+                <Disclosure.Button>
+                  <div
+                    className={`flex items-center justify-center ${
+                      isCategorySelected ? "text-green-200" : "text-slate-50"
+                    }`}
+                  >
+                    <label
+                      className={`font-nunito py-3 px-2 ${
+                        open ? "font-bold" : "font-medium"
+                      }`}
+                    >
+                      {isCategorySelected ? "*" : ""} {typedCategory}
+                    </label>
+                    <span className="ml-auto mr-2">
+                      {isOpen ? <BsChevronDown /> : <BsChevronUp />}
+                    </span>
+                  </div>
+                </Disclosure.Button>
+                <Disclosure.Panel static={isOpen}>
+                  {patterns.map(
+                    isCustomCategory ? renderCustomPattern : renderPresetPattern
+                  )}
+                </Disclosure.Panel>
+              </>
+            );
+          }}
+        </Disclosure>
+      );
+    },
+    [
+      props.activePatternId,
+      renderCustomPattern,
+      renderPresetPattern,
+      searchQuery,
+    ]
+  );
+
   return (
     <>
       <Editor.SearchBox query={searchQuery} setQuery={setSearchQuery} />
-      <Editor.List>
-        {patternCategories.map((category) => {
-          const typedCategory = category as keyof typeof PatternPresets;
-          const isCategoryOpen = openCategories.includes(typedCategory);
-          const isCustomCategory = typedCategory === "Custom Patterns";
-
-          const searching = searchQuery !== "";
-          const presetPatterns = PatternPresets[typedCategory];
-          const patterns = searching
-            ? presetPatterns.filter(doesMatchPattern)
-            : presetPatterns;
-          const isCategorySelected = props.activePatternId
-            ? patterns.some((pattern) => pattern.id === props.activePatternId)
-            : false;
-          return (
-            <Disclosure key={category}>
-              {({ open }) => {
-                const isOpen = isCategoryOpen || open;
-                return (
-                  <>
-                    <Disclosure.Button>
-                      <div
-                        className={`flex items-center justify-center ${
-                          isCategorySelected
-                            ? "text-emerald-300"
-                            : "text-slate-50"
-                        }`}
-                      >
-                        <label
-                          className={`font-nunito py-3 px-2 ${
-                            open ? "font-extrabold" : "font-medium"
-                          }`}
-                        >
-                          {typedCategory}
-                        </label>
-                        <span className="ml-auto mr-2">
-                          {isOpen ? <BsChevronDown /> : <BsChevronUp />}
-                        </span>
-                      </div>
-                    </Disclosure.Button>
-                    <Disclosure.Panel static={isOpen}>
-                      {patterns.map(
-                        isCustomCategory
-                          ? renderCustomPattern
-                          : renderPresetPattern
-                      )}
-                    </Disclosure.Panel>
-                  </>
-                );
-              }}
-            </Disclosure>
-          );
-        })}
-        <Editor.ListItem
-          className="mt-4 text-gray-300 active:text-emerald-500 font-nunito select-none"
-          onClick={() => props.createPattern()}
-        >
-          Add A New Pattern
-        </Editor.ListItem>
-      </Editor.List>
+      <Editor.List>{patternCategories.map(renderCategory)}</Editor.List>
     </>
   );
 }

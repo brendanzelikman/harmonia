@@ -1,20 +1,12 @@
 // @ts-ignore
 import { Piano, MidiNumbers } from "react-piano";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "react-piano/dist/styles.css";
 import { WebMidi } from "webmidi";
 import { Sampler } from "tone";
 import { MIDI } from "types/midi";
-import { Track } from "types/tracks";
-import { getGlobalSampler, getSampler } from "types/instrument";
 
-const getTrackSampler = (trackId?: string) => {
-  const globalSampler = getGlobalSampler();
-  if (!trackId) return globalSampler;
-
-  const trackSampler = getSampler(trackId);
-  return trackSampler || globalSampler;
-};
+import { getGlobalSampler } from "types/instrument";
 
 const attackSamplerNote = (sampler: Sampler, midiNumber: number) => {
   if (!sampler?.loaded || sampler?.disposed) return;
@@ -35,29 +27,21 @@ const playSamplerNote = (sampler: Sampler, midiNumber: number) => {
 };
 
 interface PianoProps {
-  track?: Track;
+  sampler?: Sampler | null;
   className?: string;
   playNote?: (sampler: Sampler, midiNumber: number) => void;
   stopNote?: (sampler: Sampler, midiNumber: number) => void;
 }
 
 export default function EditorPiano(props: PianoProps) {
-  const [sampler, setSampler] = useState<Sampler>(getGlobalSampler());
-  const track = props.track;
-
-  useEffect(() => {
-    if (!track) return;
-    setTimeout(() => {
-      const sampler = getTrackSampler(track.id);
-      setSampler(sampler);
-    }, 100);
-  }, [track]);
+  const sampler = props.sampler ?? getGlobalSampler();
 
   const playNote = props.playNote ?? playSamplerNote;
   const stopNote = props.stopNote ?? releaseSamplerNote;
 
   // Synchronize with MIDI controller via WebMidi
   useEffect(() => {
+    // Attach a listener to each MIDI input
     const onEnabled = () => {
       WebMidi.inputs.forEach((input) => {
         input.addListener("noteon", (e) => {
@@ -65,7 +49,6 @@ export default function EditorPiano(props: PianoProps) {
         });
       });
     };
-
     WebMidi.enable().then(onEnabled);
     return () => {
       WebMidi.inputs.forEach((input) => {

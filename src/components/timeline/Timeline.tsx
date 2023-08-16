@@ -18,7 +18,7 @@ import useEventListeners from "hooks/useEventListeners";
 import { isInputEvent } from "appUtil";
 
 export function Timeline(props: TimelineProps) {
-  const { trackMap, scaleTrackIds } = props;
+  const { trackMap, scaleTrackIds, cellWidth } = props;
 
   const [timeline, setTimeline] = useState<DataGridHandle>();
   const background = useRef<HTMLDivElement>(null);
@@ -48,13 +48,13 @@ export function Timeline(props: TimelineProps) {
           e.preventDefault();
           if (timeline?.element)
             timeline.element.scroll({
-              left: props.time * Constants.CELL_WIDTH,
+              left: props.time * cellWidth,
               behavior: "smooth",
             });
         },
       },
     },
-    [timeline, timeline?.element, props.time]
+    [timeline, timeline?.element, props.time, cellWidth]
   );
 
   // Create a memoized list of rows for the DataGrid
@@ -68,11 +68,11 @@ export function Timeline(props: TimelineProps) {
       const scaleTrackId = scaleTrackIds?.[i];
 
       // Add the scale track row
-      const scaleTrack = {
+      rows.push({
         index: trackIndex++,
         trackId: scaleTrackId,
-      };
-      rows.push(scaleTrack);
+        type: "scaleTrack",
+      });
 
       if (!scaleTrackId) continue;
 
@@ -83,6 +83,7 @@ export function Timeline(props: TimelineProps) {
         rows.push({
           index: trackIndex++,
           trackId,
+          type: "patternTrack",
         });
       });
     }
@@ -90,11 +91,12 @@ export function Timeline(props: TimelineProps) {
     rows.push({
       index: trackIndex++,
       lastRow: true,
+      type: "defaultTrack",
     });
     // Add the remaining rows
     const remainingRows = Constants.INITIAL_MAX_ROWS - trackIndex++;
     for (let i = 0; i < remainingRows; i++) {
-      rows.push({ index: trackIndex++ });
+      rows.push({ index: trackIndex++, type: "defaultTrack" });
     }
 
     return rows;
@@ -133,7 +135,7 @@ export function Timeline(props: TimelineProps) {
     (key: string) => ({
       key,
       name: key,
-      width: Constants.CELL_WIDTH,
+      width: cellWidth,
       minWidth: 1,
       formatter(formatterProps: FormatterProps<Row, unknown>) {
         return <Cell {...formatterProps} rows={rows} />;
@@ -145,7 +147,7 @@ export function Timeline(props: TimelineProps) {
         return "bg-transparent";
       },
     }),
-    [rows]
+    [rows, cellWidth]
   );
 
   // Create the body cell columns for the DataGrid
@@ -187,9 +189,9 @@ export function Timeline(props: TimelineProps) {
     //   });
     //   return;
     // }
-    // const timeLeft = props.time * Constants.CELL_WIDTH;
+    // const timeLeft = props.time * cellWidth;
     // const oldLeft = timeline.element.scrollLeft;
-    // const padding = Constants.CELL_WIDTH * Constants.MAX_SUBDIVISION;
+    // const padding = cellWidth * Constants.MAX_SUBDIVISION;
     // if (props.state === "started" && timeLeft > oldLeft + padding)
     //   timeline.element.scrollTo({
     //     left: timeLeft - padding,

@@ -4,6 +4,7 @@ import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import { PresetScales } from "./presets/scales";
 import { Note, Pitch, XML } from "./units";
+import MidiWriter from "midi-writer-js";
 
 export type ScaleId = string;
 
@@ -30,7 +31,42 @@ export default class Scales {
     );
   }
 
-  static serialize(notes: Note[]): XML {
+  public static exportToMIDI(scale: Scale) {
+    const notes = scale.notes;
+    const track = new MidiWriter.Track();
+
+    // Add stream
+    for (let i = 0; i < notes.length; i++) {
+      const note = notes[i];
+
+      // Compute duration
+      const duration = `1` as MidiWriter.Duration;
+
+      // Compute pitch array
+      const pitch = MIDI.toPitch(note) as MidiWriter.Pitch;
+
+      // Create event
+      const event = new MidiWriter.NoteEvent({
+        pitch,
+        duration,
+      });
+
+      // Add event
+      track.addEvent(event);
+    }
+    const writer = new MidiWriter.Writer(track);
+    const blob = new Blob([writer.buildFile()], {
+      type: "audio/midi",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${scale.name || "scale"}.mid`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  static exportToXML(notes: Note[]): XML {
     const xmlNotes = notes.map((note) => {
       return MusicXML.createNote(note, {
         type: "quarter",
@@ -118,13 +154,13 @@ export default class Scales {
   static CustomScales = [] as Scale[];
 
   static PresetGroups = {
+    "Custom Scales": Scales.CustomScales,
     "Basic Scales": Scales.BasicScales,
     "Basic Modes": Scales.BasicModes,
     "Pentatonic Scales": Scales.PentatonicScales,
     "Hexatonic Scales": Scales.HexatonicScales,
     "Octatonic Scales": Scales.OctatonicScales,
     "Uncommon Scales": Scales.UncommonScales,
-    "Custom Scales": Scales.CustomScales,
   };
 
   static PresetCategories = Object.keys(
@@ -132,13 +168,13 @@ export default class Scales {
   ) as (keyof typeof Scales.PresetGroups)[];
 
   static Presets = [
+    ...Scales.CustomScales,
     ...Scales.BasicScales,
     ...Scales.BasicModes,
     ...Scales.PentatonicScales,
     ...Scales.HexatonicScales,
     ...Scales.OctatonicScales,
     ...Scales.UncommonScales,
-    ...Scales.CustomScales,
   ];
 
   static areEqual = (scale1: Scale, scale2: Scale) => {

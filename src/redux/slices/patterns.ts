@@ -10,20 +10,17 @@ import {
   PatternNoId,
   PatternNote,
   PatternStream,
-  realizePattern,
 } from "types/patterns";
 import { initializeState } from "redux/util";
 import { AppThunk } from "redux/store";
-import { selectPattern, selectRoot, selectTransport } from "redux/selectors";
-import { getGlobalSampler } from "types/instrument";
-import Scales, { defaultScale } from "types/scales";
+import { selectRoot } from "redux/selectors";
+
+import Scales from "types/scales";
 import { MIDI } from "types/midi";
-import { convertTimeToSeconds } from "./transport";
-import { beatsToSubdivision } from "appUtil";
+
 import { setActivePattern } from "./root";
-import { clamp, random, shuffle } from "lodash";
+import { clamp, random, reverse, shuffle } from "lodash";
 import { MAX_SUBDIVISION } from "appConstants";
-import { ChromaticScale, MajorScale } from "types/presets/scales";
 
 const initialState = initializeState<PatternId, Pattern>([defaultPattern]);
 
@@ -46,9 +43,9 @@ interface PatternUpdate {
   asChord?: boolean;
 }
 
-interface TransposePattern {
+interface TransformPattern {
   id: PatternId;
-  transpose: number;
+  [key: string]: any;
 }
 
 export const patternsSlice = createSlice({
@@ -128,7 +125,7 @@ export const patternsSlice = createSlice({
       if (index < 0 || index > pattern.stream.length) return;
       state.byId[id].stream.splice(index, 1);
     },
-    transposePattern: (state, action: PayloadAction<TransposePattern>) => {
+    transposePattern: (state, action: PayloadAction<TransformPattern>) => {
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -141,7 +138,7 @@ export const patternsSlice = createSlice({
         });
       });
     },
-    rotatePattern: (state, action: PayloadAction<TransposePattern>) => {
+    rotatePattern: (state, action: PayloadAction<TransformPattern>) => {
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -150,12 +147,13 @@ export const patternsSlice = createSlice({
       pattern.stream = rotatePatternStream(pattern.stream, transpose);
     },
 
-    repeatPattern: (state, action: PayloadAction<PatternId>) => {
-      const patternId = action.payload;
-      const pattern = state.byId[patternId];
+    repeatPattern: (state, action: PayloadAction<TransformPattern>) => {
+      const { id, repeat } = action.payload;
+      if (repeat === 0) return; // Avoid unnecessary work
+      const pattern = state.byId[id];
       if (!pattern) return;
 
-      state.byId[patternId].stream = [...pattern.stream, ...pattern.stream];
+      state.byId[id].stream = new Array(repeat + 1).fill(pattern.stream).flat();
     },
     halvePattern: (state, action: PayloadAction<PatternId>) => {
       const patternId = action.payload;
@@ -166,6 +164,15 @@ export const patternsSlice = createSlice({
         0,
         pattern.stream.length / 2
       );
+    },
+    lengthenPattern: (state, action: PayloadAction<TransformPattern>) => {
+      const { id, length } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+
+      state.byId[id].stream = new Array(length)
+        .fill(0)
+        .map((_, i) => pattern.stream[i % pattern.stream.length]);
     },
     stretchPattern: (state, action: PayloadAction<PatternId>) => {
       const patternId = action.payload;
@@ -191,6 +198,13 @@ export const patternsSlice = createSlice({
         }));
       });
     },
+    reversePattern: (state, action: PayloadAction<PatternId>) => {
+      const patternId = action.payload;
+      const pattern = state.byId[patternId];
+      if (!pattern) return;
+
+      state.byId[patternId].stream = reverse(pattern.stream);
+    },
     shufflePattern: (state, action: PayloadAction<PatternId>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
@@ -198,12 +212,12 @@ export const patternsSlice = createSlice({
 
       state.byId[patternId].stream = shuffle(pattern.stream);
     },
-    randomizePattern: (state, action: PayloadAction<PatternId>) => {
-      const patternId = action.payload;
-      const pattern = state.byId[patternId];
+    randomizePattern: (state, action: PayloadAction<TransformPattern>) => {
+      const { id, length } = action.payload;
+      const pattern = state.byId[id];
       if (!pattern) return;
 
-      const noteCount = 8;
+      const noteCount = length;
       const stream: PatternStream = [];
       const restPercent = 0.1;
       for (let i = 0; i < noteCount; i++) {
@@ -213,9 +227,9 @@ export const patternsSlice = createSlice({
           stream.push([{ duration: MIDI.SixteenthNote, MIDI: MIDI.Rest }]);
         } else {
           const noteCount = 1;
-          const scales = Scales.PresetGroups["Basic Modes"];
+          const scales = Scales.PresetGroups["Basic Scales"];
           const scale = scales[Math.floor(Math.random() * scales.length)];
-          let midiNotes = scale.notes;
+          let midiNotes = [...scale.notes.map((n) => n - 7), ...scale.notes];
           const chord: PatternChord = new Array(noteCount)
             .fill(0)
             .map((_, i) => {
@@ -228,7 +242,7 @@ export const patternsSlice = createSlice({
         }
       }
 
-      state.byId[patternId].stream = stream;
+      state.byId[id].stream = stream;
     },
     clearPattern: (state, action: PayloadAction<PatternId>) => {
       const patternId = action.payload;
@@ -253,9 +267,11 @@ export const {
   rotatePattern,
   repeatPattern,
   halvePattern,
+  lengthenPattern,
   stretchPattern,
   shrinkPattern,
   shufflePattern,
+  reversePattern,
   randomizePattern,
   clearPattern,
 } = patternsSlice.actions;
@@ -285,41 +301,6 @@ export const deletePattern =
       if (nextId) dispatch(setActivePattern(nextId));
     }
     dispatch(removePattern(id));
-  };
-
-export const playPattern =
-  (id: PatternId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const pattern = selectPattern(state, id);
-
-    if (!pattern) return;
-
-    const sampler = getGlobalSampler();
-    if (!sampler?.loaded) return;
-
-    const transport = selectTransport(state);
-    const stream = realizePattern(pattern, defaultScale);
-    if (!stream.length) return;
-
-    let time = 0;
-    for (let i = 0; i < stream.length; i++) {
-      const chord = stream[i];
-      if (!chord.length) continue;
-      const firstNote = chord[0];
-      const duration = convertTimeToSeconds(transport, firstNote.duration);
-      const subdivision = beatsToSubdivision(firstNote.duration);
-      if (isRest(firstNote)) {
-        time += duration;
-        continue;
-      }
-      const pitches = chord.map((note) => MIDI.toPitch(note.MIDI));
-      setTimeout(() => {
-        if (!sampler.loaded) return;
-        sampler.triggerAttackRelease(pitches, subdivision);
-      }, time * 1000);
-      time += duration;
-    }
   };
 
 export default patternsSlice.reducer;

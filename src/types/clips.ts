@@ -108,7 +108,6 @@ export const getClipStream = (
     }
 
     // Get the stream of the transformed scale
-
     const stream = realizePattern(pattern, newScale);
 
     // Transform the stream if there is a transformation

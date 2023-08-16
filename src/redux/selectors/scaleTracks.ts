@@ -13,7 +13,7 @@ export const selectScaleTracks = createSelector(
 );
 
 // Select all scale track IDs
-export const selectScaleTrackIds = (state: RootState) => {
+export const selectScaleTrackIds = (state: RootState): TrackId[] => {
   return state.timeline.present.scaleTracks.allIds;
 };
 

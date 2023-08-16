@@ -1,5 +1,5 @@
 import { ID } from "types/units";
-import { RootState } from "./store";
+import { AppThunk, RootState } from "./store";
 
 // Create a normalized state with a Record of IDs and an array of IDs
 export interface NormalizedState<K extends ID, V> {
@@ -37,7 +37,7 @@ export const saveState = (state: RootState) => {
         ...state.root,
         timelineState: "idle",
         editorState: "hidden",
-        showEditor: false,
+        showingEditor: false,
         draggingClip: false,
       },
       timeline: { past: [], present: state.timeline.present, future: [] },

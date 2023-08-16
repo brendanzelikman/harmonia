@@ -2,18 +2,19 @@ import { durationToBeats } from "appUtil";
 import { Sampler } from "tone";
 import { MIDI } from "types/midi";
 import { Duration } from "types/units";
-import { EditorPatternsProps } from ".";
+import { PatternEditorProps } from ".";
 import { EditorState } from "../hooks/useEditorState";
 import EditorPiano from "../Piano";
 
-interface Props extends EditorPatternsProps, EditorState<any> {
+interface Props extends PatternEditorProps, EditorState<any> {
+  sampler: Sampler;
   duration: Duration;
   holdingShift: boolean;
   cursor: any;
 }
 export function PatternsPiano(props: Props) {
   const playNote = (sampler: Sampler, midiNumber: number) => {
-    if (props.activePattern && props.scale) {
+    if (props.pattern && props.scale) {
       const patternNote = {
         MIDI: midiNumber,
         duration: durationToBeats(props.duration),
@@ -21,13 +22,13 @@ export function PatternsPiano(props: Props) {
       if (props.onState("adding")) {
         if (props.cursor.hidden) {
           props.addPatternNote(
-            props.activePattern.id,
+            props.pattern.id,
             patternNote,
             props.holdingShift
           );
         } else {
           props.updatePatternNote(
-            props.activePattern.id,
+            props.pattern.id,
             props.cursor.index,
             patternNote,
             props.holdingShift
@@ -35,17 +36,17 @@ export function PatternsPiano(props: Props) {
         }
       } else if (props.onState("inserting")) {
         if (props.cursor.hidden) {
-          props.addPatternNote(props.activePattern.id, patternNote, false);
+          props.addPatternNote(props.pattern.id, patternNote, false);
         } else {
           props.insertPatternNote(
-            props.activePattern.id,
+            props.pattern.id,
             patternNote,
             props.cursor.index
           );
         }
       }
       if (props.onState("removing")) {
-        props.removePatternNote(props.activePattern.id, midiNumber);
+        props.removePatternNote(props.pattern.id, midiNumber);
       }
     }
     if (!sampler?.loaded || sampler?.disposed) return;
@@ -53,11 +54,12 @@ export function PatternsPiano(props: Props) {
   };
   return (
     <EditorPiano
-      className={`border-t-4 ${
-        props.onState("adding") || props.onState("inserting")
-          ? "border-t-emerald-500/80"
+      sampler={props.sampler}
+      className={`border-t-8 ${
+        props.onState("adding")
+          ? "border-t-emerald-400"
           : props.onState("inserting")
-          ? "border-t-red-500"
+          ? "border-t-teal-400"
           : "border-t-zinc-800/90"
       }`}
       playNote={playNote}

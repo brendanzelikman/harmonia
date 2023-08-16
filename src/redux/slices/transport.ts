@@ -1,21 +1,10 @@
 import { BPM, Time, Volume } from "types/units";
-import {
-  getDestination,
-  PlaybackState,
-  start,
-  Time as ToneTime,
-  Transport,
-} from "tone";
+import { PlaybackState, Time as ToneTime, Transport } from "tone";
 import { createSlice } from "@reduxjs/toolkit";
-import { AppThunk } from "../store";
-import { selectTransport } from "redux/selectors/transport";
-import { selectTracks } from "redux/selectors";
-import { buildInstruments, createGlobalInstrument } from "types/instrument";
 
 import {
   DEFAULT_BPM,
   MAX_BPM,
-  MAX_SUBDIVISION,
   MAX_VOLUME,
   MIN_BPM,
   MIN_VOLUME,
@@ -32,6 +21,8 @@ export interface Transport {
   loopStart: Time;
   loopEnd: Time;
   volume: Volume;
+  mute: boolean;
+  timeSignature: [number, number];
   loaded: boolean;
   recording: boolean;
 }
@@ -44,6 +35,8 @@ export const defaultTransport: Transport = {
   loopStart: 0,
   loopEnd: 15,
   volume: -6,
+  mute: false,
+  timeSignature: [16, 16],
   loaded: false,
   recording: false,
 };
@@ -78,9 +71,15 @@ export const transportSlice = createSlice({
       const bpm = action.payload;
       state.bpm = clamp(bpm, MIN_BPM, MAX_BPM);
     },
+    _setTimeSignature: (state, action) => {
+      state.timeSignature = action.payload;
+    },
     _setVolume: (state, action) => {
       const volume = action.payload;
       state.volume = clamp(volume, MIN_VOLUME, MAX_VOLUME);
+    },
+    _setMute: (state, action) => {
+      state.mute = action.payload;
     },
     _setLoaded: (state, action) => {
       state.loaded = action.payload;
@@ -94,14 +93,16 @@ export const transportSlice = createSlice({
   },
 });
 
-const {
+export const {
   _pauseTransport,
   _seekTransport,
   _loopTransport,
   _setLoopStart,
   _setLoopEnd,
   _setBPM,
+  _setTimeSignature,
   _setVolume,
+  _setMute,
   _setLoaded,
 } = transportSlice.actions;
 
@@ -111,111 +112,11 @@ export const convertTimeToSeconds = (
   transport: Transport,
   time: Time
 ): number => {
-  const multiplier = (60 / transport.bpm) * (4 / MAX_SUBDIVISION);
-  return ToneTime(time * multiplier).toSeconds();
-};
-
-// Seek the transport
-export const seekTransport =
-  (time: Time): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const transport = selectTransport(state);
-    Transport.position = convertTimeToSeconds(transport, time);
-    dispatch(_seekTransport(time));
-  };
-
-// Set the loop state
-export const setTransportLoop =
-  (loop: boolean): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const transport = selectTransport(state);
-    Transport.loop = loop;
-    if (loop) {
-      const { loopStart, loopEnd } = transport;
-      Transport.loopStart = convertTimeToSeconds(transport, loopStart);
-      Transport.loopEnd = convertTimeToSeconds(transport, loopEnd);
-    }
-    dispatch(_loopTransport(loop));
-  };
-
-// Toggle the loop state
-export const toggleTransportLoop = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  const transport = selectTransport(state);
-  dispatch(setTransportLoop(!transport.loop));
-};
-
-// Set the loop start
-export const setTransportLoopStart =
-  (time: Time): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const transport = selectTransport(state);
-    if (time >= transport.loopEnd) return;
-    Transport.loopStart = convertTimeToSeconds(transport, time);
-    dispatch(_setLoopStart(time));
-  };
-
-// Set the loop end
-export const setTransportLoopEnd =
-  (time: Time): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const transport = selectTransport(state);
-    if (time <= transport.loopStart) return;
-    Transport.loopEnd = convertTimeToSeconds(transport, time);
-    dispatch(_setLoopEnd(time));
-  };
-
-// Set the BPM
-export const setTransportBPM =
-  (bpm: number): AppThunk =>
-  (dispatch) => {
-    Transport.bpm.value = bpm;
-    dispatch(_setBPM(bpm));
-  };
-
-// Set the volume
-export const setTransportVolume =
-  (volume: number): AppThunk =>
-  (dispatch) => {
-    getDestination().volume.value = volume;
-    dispatch(_setVolume(volume));
-  };
-
-// Set the loaded state
-export const setTransportLoaded =
-  (loaded: boolean): AppThunk =>
-  (dispatch) => {
-    dispatch(_setLoaded(loaded));
-  };
-
-// Load the transport
-export const loadTransport = (): AppThunk => async (dispatch, getState) => {
-  dispatch(setTransportLoaded(false));
-
-  // Build the instruments
-  const state = getState();
-  const transport = selectTransport(state);
-  const tracks = selectTracks(state);
-  try {
-    // Build the instruments
-    await start();
-    dispatch(buildInstruments(tracks));
-    // Create the global instrument
-    await createGlobalInstrument();
-    // Set the transport from the state
-    Transport.loop = transport.loop;
-    Transport.loopStart = convertTimeToSeconds(transport, transport.loopStart);
-    Transport.loopEnd = convertTimeToSeconds(transport, transport.loopEnd);
-    Transport.bpm.value = transport.bpm;
-    getDestination().volume.value = transport.volume;
-  } catch (e) {
-    console.error(e);
-  } finally {
-    // Load the transport
-    dispatch(setTransportLoaded(true));
-  }
+  const numerator = transport.timeSignature?.[0] ?? 16;
+  const denominator = transport.timeSignature?.[1] ?? 16;
+  const beatsPerMeasure = numerator / denominator;
+  const beatDuration = 60 / transport.bpm;
+  const sixteenthDuration = beatDuration / 4;
+  return time * sixteenthDuration;
+  // return ToneTime(time * beatsPerMeasure * beatDuration).toSeconds();
 };

@@ -24,21 +24,21 @@ const undoableTimeline = undoable(timeline, {
   groupBy: groupByActionType,
   undoType: "timeline/undo",
   redoType: "timeline/redo",
-  limit: 8,
+  limit: 16,
 });
 
 const undoableScales = undoable(Slices.Scales.default, {
   groupBy: groupByActionType,
   undoType: "scales/undo",
   redoType: "scales/redo",
-  limit: 8,
+  limit: 16,
 });
 
 const undoablePatterns = undoable(Slices.Patterns.default, {
   groupBy: groupByActionType,
   undoType: "patterns/undo",
   redoType: "patterns/redo",
-  limit: 8,
+  limit: 16,
 });
 
 const root = Slices.Root.default;

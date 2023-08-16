@@ -13,7 +13,6 @@ import {
   selectScaleTrackScale,
 } from "./scaleTracks";
 import { selectTransforms } from "./transforms";
-import { ChromaticScale } from "types/presets/scales";
 
 // Select the ID of a track
 export const selectTrackId = (state: RootState, id: TrackId) => id;

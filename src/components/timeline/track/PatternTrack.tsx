@@ -13,7 +13,7 @@ import * as Constants from "appConstants";
 import { PatternTrack as PatternTrackType } from "types/tracks";
 import useDebouncedField from "hooks/useDebouncedField";
 import { getInstrumentName, InstrumentName } from "types/instrument";
-import { setMixerVolume } from "redux/slices/mixers";
+import { setMixerVolume } from "redux/thunks/mixers";
 import { BsEraser, BsPencil, BsTrash } from "react-icons/bs";
 import { BiCopy } from "react-icons/bi";
 import { isInputEvent } from "appUtil";
@@ -25,8 +25,8 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const mixer = selectMixerByTrackId(state, track.id);
   const instrumentName = getInstrumentName(track.instrument as InstrumentName);
 
-  const { editorState, showEditor, activeTrackId } = selectRoot(state);
-  const onEditor = editorState === "instrument" && showEditor;
+  const { editorState, showingEditor, activeTrackId } = selectRoot(state);
+  const onEditor = editorState === "instrument" && showingEditor;
   const onInstrument = !!(
     onEditor &&
     activeTrackId &&
@@ -65,6 +65,7 @@ function PatternTrack(props: Props) {
   }, track.name);
 
   const [holdingV, setHoldingV] = useState(false);
+  const [holdingAlt, setHoldingAlt] = useState(false);
 
   useEventListeners(
     {
@@ -78,13 +79,23 @@ function PatternTrack(props: Props) {
           setHoldingV(false);
         },
       },
+      Alt: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          setHoldingAlt(true);
+        },
+        keyup: (e) => {
+          if (isInputEvent(e)) return;
+          setHoldingAlt(false);
+        },
+      },
     },
     []
   );
 
   return (
     <div
-      className={`rdg-track p-2 flex h-full bg-gradient-to-r from-sky-800 to-green-800 text-white border-b border-b-white/20`}
+      className={`rdg-track p-2 px-4 flex h-full bg-gradient-to-r from-sky-800 to-green-800 text-white border-b border-b-white/20`}
     >
       <div className="w-auto h-full flex-shrink-0">
         <input
@@ -142,7 +153,7 @@ function PatternTrack(props: Props) {
               onClick={() =>
                 props.onInstrument
                   ? props.hideEditor()
-                  : props.viewEditor(track.id, "instrument")
+                  : props.showEditor(track.id, "instrument")
               }
             >
               <label className="cursor-pointer flex items-center instrument-button">
@@ -150,7 +161,7 @@ function PatternTrack(props: Props) {
               </label>
             </TrackButton>
           </>
-          <div className="flex flex-col pl-2 ml-auto mr-1 space-y-1">
+          <div className="flex flex-col pl-2 ml-auto mr-1 space-y-1 select-none">
             <div className="flex space-x-1">
               <div
                 className={`flex items-center justify-center rounded-full cursor-pointer w-6 h-6 font-bold text-sm border border-rose-500 ${
@@ -164,7 +175,11 @@ function PatternTrack(props: Props) {
                 className={`flex items-center justify-center rounded-full cursor-pointer w-6 h-6 font-bold text-sm border border-yellow-400 ${
                   mixer?.solo ? "bg-yellow-400 text-white" : ""
                 }`}
-                onClick={() => props.setTrackSolo(track.id, !mixer?.solo)}
+                onClick={() =>
+                  holdingAlt
+                    ? props.unsoloTracks()
+                    : props.setTrackSolo(track.id, !mixer?.solo)
+                }
               >
                 S
               </div>
