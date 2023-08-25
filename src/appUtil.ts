@@ -1,9 +1,36 @@
 import { MAX_SUBDIVISION } from "appConstants";
+import { DragEvent } from "react";
 import { MIDI } from "types/midi";
 import { Duration, Note, Pitch } from "types/units";
 
-export const isInputEvent = (e: Event) =>
-  (e.target as HTMLElement).tagName === "INPUT";
+type GenericEvent =
+  | Event
+  | DragEvent<HTMLElement>
+  | React.MouseEvent<HTMLElement, MouseEvent>
+  | React.TouchEvent<HTMLElement>;
+
+export const cancelEvent = (e: GenericEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+};
+
+export const isInputEvent = (e: GenericEvent) => {
+  const target = e.target as HTMLElement;
+  return target.tagName === "INPUT" || target.tagName === "TEXTAREA";
+};
+
+export const isHoldingShift = (e: GenericEvent) => {
+  const keyboardEvent = e as KeyboardEvent;
+  return keyboardEvent.shiftKey;
+};
+export const isHoldingOption = (e: GenericEvent) => {
+  const keyboardEvent = e as KeyboardEvent;
+  return keyboardEvent.altKey;
+};
+export const isHoldingCommand = (e: GenericEvent) => {
+  const keyboardEvent = e as KeyboardEvent;
+  return keyboardEvent.metaKey || keyboardEvent.ctrlKey;
+};
 
 export const blurOnEnter = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
@@ -11,7 +38,11 @@ export const blurOnEnter = (e: React.KeyboardEvent) => {
   }
 };
 
+// Modulo that works with negative numbers
 export const mod = (n: number, m: number) => ((n % m) + m) % m;
+
+export const percentOfRange = (x: number, m: number, n: number) =>
+  Math.round((100 * (x - m)) / (n - m));
 
 // Closest number in array
 export const closest = (goal: number, arr: number[]) =>

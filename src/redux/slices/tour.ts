@@ -1,11 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+export const defaultTour = {
+  step: 1,
+  active: false,
+};
 const tourSlice = createSlice({
   name: "tour",
-  initialState: {
-    step: 1,
-    active: false,
-  },
+  initialState: defaultTour,
   reducers: {
     setTourStep: (state, action) => {
       state.step = action.payload;

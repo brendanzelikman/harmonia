@@ -1,12 +1,13 @@
 import useDebouncedField from "hooks/useDebouncedField";
 import { useRef } from "react";
 import { BsTrash } from "react-icons/bs";
-import { Pattern } from "types/patterns";
+import { Pattern, PatternId } from "types/patterns";
 import { PatternEditorProps } from ".";
 import { ListItem } from "../Editor";
 
 import { usePatternDrag, usePatternDrop } from "./dnd";
 import { BiCopy } from "react-icons/bi";
+import { cancelEvent } from "appUtil";
 
 export interface PresetPatternProps extends PatternEditorProps {
   pattern: Pattern;
@@ -29,7 +30,7 @@ export const PresetPattern = (props: PresetPatternProps) => {
   return (
     <ListItem
       className={`${
-        pattern.id === props.activePatternId
+        pattern.id === props.selectedPatternId
           ? "text-emerald-500 font-medium border-l border-l-emerald-500"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       } select-none`}
@@ -51,7 +52,7 @@ export interface CustomPatternProps extends PatternEditorProps {
   pattern: Pattern;
   index: number;
   element?: any;
-  movePattern: (dragIndex: number, hoverIndex: number) => void;
+  movePattern: (dragId: PatternId, hoverId: PatternId) => void;
 }
 
 export const CustomPattern = (props: CustomPatternProps) => {
@@ -70,6 +71,8 @@ export const CustomPattern = (props: CustomPatternProps) => {
     element: ref.current,
   });
   drag(drop(ref));
+
+  if (!pattern) return null;
 
   const CopyButton = () => (
     <div
@@ -95,12 +98,10 @@ export const CustomPattern = (props: CustomPatternProps) => {
     </div>
   );
 
-  if (!pattern) return null;
-
   return (
     <ListItem
       className={`${isDragging ? "opacity-50" : "opacity-100"} ${
-        pattern.id === props.activePatternId
+        pattern.id === props.selectedPatternId
           ? "text-emerald-500 border-l border-l-emerald-500"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       }`}
@@ -108,8 +109,10 @@ export const CustomPattern = (props: CustomPatternProps) => {
     >
       <div className="relative flex items-center" ref={ref}>
         <input
+          draggable
+          onDragStart={cancelEvent}
           className={`peer border border-white/50 bg-transparent h-10 rounded-l p-2 cursor-pointer outline-none overflow-ellipsis ${
-            pattern.id === props.activePatternId
+            pattern.id === props.selectedPatternId
               ? "pointer-events-all focus:bg-zinc-800/30"
               : "pointer-events-none"
           }`}

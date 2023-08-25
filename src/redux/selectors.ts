@@ -1,20 +1,15 @@
-// Export Clips
-export * from "./selectors/clips";
-
-// Export Patterns
+// Global
+export * from "./selectors/root";
+export * from "./selectors/scales";
 export * from "./selectors/patterns";
 
-// Export Scales
-export * from "./selectors/scales";
-
-// Export Tracks
+// Timeline
 export * from "./selectors/tracks";
 export * from "./selectors/scaleTracks";
 export * from "./selectors/patternTracks";
+export * from "./selectors/clips";
+export * from "./selectors/transforms";
 
-// Export Transport
+// Audio
 export * from "./selectors/transport";
-
-// Export Others
-export * from "./selectors/root";
 export * from "./selectors/mixers";

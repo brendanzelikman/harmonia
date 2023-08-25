@@ -1,5 +1,5 @@
 import {
-  selectActiveTrackId,
+  selectSelectedTrackId,
   selectClip,
   selectClipMap,
   selectPatternTrack,
@@ -28,11 +28,11 @@ import * as ClipMap from "../slices/maps/clipMap";
 import * as TrackMap from "../slices/maps/trackMap";
 import * as TransformMap from "../slices/maps/transformMap";
 import * as PatternTracks from "../slices/patternTracks";
-import { hideEditor, setActiveTrack } from "../slices/root";
+import { hideEditor, setSelectedTrack } from "../slices/root";
 import * as ScaleTracks from "../slices/scaleTracks";
 import * as Transforms from "../slices/transforms";
 import { createScale } from "redux/slices/scales";
-import { setMixerSolo } from "./mixers";
+import { setMixerMute, setMixerSolo } from "./mixers";
 
 // Create a scale track
 export const createScaleTrack =
@@ -88,6 +88,30 @@ export const createPatternTrack =
       resolve(track.id);
     });
   };
+
+export const muteTracks = (): AppThunk => (dispatch, getState) => {
+  const state = getState();
+  const patternTracks = selectPatternTracks(state);
+  patternTracks.forEach((track) => {
+    dispatch(setMixerMute(track.id, true));
+  });
+};
+
+export const unmuteTracks = (): AppThunk => (dispatch, getState) => {
+  const state = getState();
+  const patternTracks = selectPatternTracks(state);
+  patternTracks.forEach((track) => {
+    dispatch(setMixerMute(track.id, false));
+  });
+};
+
+export const soloTracks = (): AppThunk => (dispatch, getState) => {
+  const state = getState();
+  const patternTracks = selectPatternTracks(state);
+  patternTracks.forEach((track) => {
+    dispatch(setMixerSolo(track.id, true));
+  });
+};
 
 export const unsoloTracks = (): AppThunk => (dispatch, getState) => {
   const state = getState();
@@ -174,14 +198,14 @@ export const deleteTrack =
 
     // Remove all child tracks
     const trackMap = selectTrackMap(state);
-    for (const id of trackMap[trackId]?.patternTrackIds || []) {
+    for (const id of trackMap.byId[trackId]?.patternTrackIds || []) {
       dispatch(deleteTrack(id));
     }
 
     // Clear the editor if showing the deleted track
-    const editorTrackId = selectActiveTrackId(state);
+    const editorTrackId = selectSelectedTrackId(state);
     if (editorTrackId === trackId) {
-      dispatch(setActiveTrack(undefined));
+      dispatch(setSelectedTrack(undefined));
       dispatch(hideEditor());
     }
   };
@@ -211,7 +235,7 @@ export const duplicateTrack =
 
     // Add all clips
     const clipMap = selectClipMap(state);
-    const clips = clipMap[id]?.clipIds;
+    const clips = clipMap.byId[id]?.clipIds;
     if (clips?.length) {
       clips.forEach((clipId) => {
         const clip = selectClip(state, clipId);
@@ -221,7 +245,7 @@ export const duplicateTrack =
 
     // Add all transforms
     const transformMap = selectTransformMap(state);
-    const transforms = transformMap[id]?.transformIds;
+    const transforms = transformMap.byId[id]?.transformIds;
     if (transforms?.length) {
       transforms.forEach((transformId) => {
         const transform = selectTransform(state, transformId);
@@ -231,7 +255,7 @@ export const duplicateTrack =
 
     // Add all pattern tracks if the track is a scale track
     if (isScaleTrack(track)) {
-      const patternTracks = trackMap[id]?.patternTrackIds;
+      const patternTracks = trackMap.byId[id]?.patternTrackIds;
       if (patternTracks?.length) {
         patternTracks.forEach(async (patternTrackId) => {
           // Create a new pattern track
@@ -243,7 +267,7 @@ export const duplicateTrack =
             if (!patternTrackId) return;
 
             // Add all clips of the pattern track
-            const clips = clipMap[patternTrack.id]?.clipIds;
+            const clips = clipMap.byId[patternTrack.id]?.clipIds;
             if (clips?.length) {
               clips.forEach((clipId) => {
                 const clip = selectClip(state, clipId);
@@ -254,7 +278,7 @@ export const duplicateTrack =
             }
 
             // Add all transforms of the pattern track
-            const transforms = transformMap[patternTrack.id]?.transformIds;
+            const transforms = transformMap.byId[patternTrack.id]?.transformIds;
             if (transforms?.length) {
               transforms.forEach((transformId) => {
                 const transform = selectTransform(state, transformId);

@@ -5,7 +5,7 @@ export function useCellDrop(props: CellProps) {
   const { trackId, isPatternTrack, columnIndex, row } = props;
   return useDrop(
     () => ({
-      accept: "clip",
+      accept: ["clip", "transform"],
       collect: (monitor) => ({
         canDrop: monitor.canDrop(),
         isOver: monitor.isOver(),

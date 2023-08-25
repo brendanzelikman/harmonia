@@ -3,21 +3,32 @@ import { TrackId, TrackType } from "types/tracks";
 import { AppDispatch, RootState } from "redux/store";
 import { Timeline } from "./Timeline";
 import "react-data-grid/lib/styles.css";
-import { hideEditor, loadTimeline, unloadTimeline } from "redux/slices/root";
+import {
+  hideEditor,
+  loadTimeline,
+  selectClips,
+  selectTransforms,
+  setSelectedTrack,
+  unloadTimeline,
+} from "redux/slices/root";
 import * as Selectors from "redux/selectors";
 import { createScaleTrack } from "redux/thunks/tracks";
+import { createClipsAndTransforms } from "redux/slices/clips";
+import { Clip } from "types/clips";
+import { Transform } from "types/transform";
 
 function mapStateToProps(state: RootState) {
-  const scaleTrackIds = Selectors.selectScaleTrackIds(state);
   const trackMap = Selectors.selectTrackMap(state);
   const transport = Selectors.selectTransport(state);
   const cellWidth = Selectors.selectCellWidth(state);
-  const { loadedTimeline } = Selectors.selectRoot(state);
+  const { loadedTimeline, clipboard, selectedTrackId } =
+    Selectors.selectRoot(state);
   return {
     time: transport.time,
-    scaleTrackIds,
+    clipboard,
     trackMap,
     state: transport.state,
+    selectedTrackId,
     cellWidth,
     loadedTimeline,
     loadedTransport: transport.loaded,
@@ -29,15 +40,22 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     createScaleTrack: () => {
       dispatch(createScaleTrack());
     },
-    hideEditor: () => {
-      dispatch(hideEditor());
+    createClipsAndTransforms: async (
+      clips: Clip[],
+      transforms: Transform[]
+    ) => {
+      const { clipIds, transformIds } = await dispatch(
+        createClipsAndTransforms(clips, transforms)
+      );
+      dispatch(selectClips(clipIds));
+      dispatch(selectTransforms(transformIds));
     },
-    loadTimeline: () => {
-      dispatch(loadTimeline());
+    setSelectedTrack: (trackId: TrackId) => {
+      dispatch(setSelectedTrack(trackId));
     },
-    unloadTimeline: () => {
-      dispatch(unloadTimeline());
-    },
+    hideEditor: () => dispatch(hideEditor()),
+    loadTimeline: () => dispatch(loadTimeline()),
+    unloadTimeline: () => dispatch(unloadTimeline()),
   };
 }
 

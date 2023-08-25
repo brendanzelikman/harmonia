@@ -1,32 +1,35 @@
 import { CiRedo, CiUndo } from "react-icons/ci";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BsArrowLeftRight,
   BsArrowsAngleContract,
   BsArrowsAngleExpand,
   BsBoxArrowRight,
   BsBrush,
+  BsBrushFill,
   BsChevronExpand,
   BsClock,
   BsCursor,
+  BsCursorFill,
   BsDownload,
   BsEraser,
   BsFillDatabaseFill,
   BsFillDice5Fill,
   BsFillPlayCircleFill,
-  BsInputCursorText,
+  BsPencil,
   BsPlusCircle,
+  BsRecycle,
   BsShuffle,
   BsTrash,
-  BsWind,
 } from "react-icons/bs";
-import { FaCopy } from "react-icons/fa";
+import { BiAnchor, BiCopy } from "react-icons/bi";
 
 import wholeNote from "assets/noteheads/whole.svg";
 import halfNote from "assets/noteheads/half.png";
 import quarterNote from "assets/noteheads/quarter.png";
 import eighthNote from "assets/noteheads/eighth.png";
 import sixteenthNote from "assets/noteheads/sixteenth.png";
+import restNote from "assets/noteheads/rest.png";
 
 import { MIDI } from "types/midi";
 import Patterns from "types/patterns";
@@ -39,7 +42,6 @@ import { durationToBeats } from "appUtil";
 import { PatternsPiano } from "./Piano";
 import useOSMD from "lib/opensheetmusicdisplay";
 import PatternList from "./PatternList";
-import { DemoXML } from "assets/demo";
 import { Menu, Transition } from "@headlessui/react";
 
 import { getGlobalInstrumentName, getGlobalSampler } from "types/instrument";
@@ -58,9 +60,12 @@ export function EditorPatterns(props: PatternEditorProps) {
 
   // Score information
   const { pattern, scale } = props;
-  const xml = pattern && scale ? Patterns.exportToXML(pattern, scale) : DemoXML;
+  const xml = useMemo(() => {
+    return Patterns.exportToXML(pattern, scale);
+  }, [pattern, scale]);
+
   const { score, cursor } = useOSMD({
-    id: "pattern-score",
+    id: `${pattern?.id ?? "pattern"}-score`,
     xml,
     className: "w-full h-full p-2",
     noteCount: pattern?.stream.length || 0,
@@ -77,7 +82,7 @@ export function EditorPatterns(props: PatternEditorProps) {
   // Clear editor state for non-custom patterns
   useEffect(() => {
     if (!props.isPatternCustom) clearState();
-  }, [props.isPatternCustom, clearState]);
+  }, [props.isPatternCustom]);
 
   // Sampler information
   const [globalSampler, setGlobalSampler] = useState(getGlobalSampler());
@@ -148,8 +153,11 @@ export function EditorPatterns(props: PatternEditorProps) {
 
   const CopyButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content={`New Pattern`}>
-      <Editor.MenuButton onClick={() => props.copyPattern(pattern)}>
-        <FaCopy />
+      <Editor.MenuButton
+        className={!props.isPatternCustom ? "text-emerald-500" : ""}
+        onClick={() => props.copyPattern(pattern)}
+      >
+        <BiCopy />
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -230,11 +238,11 @@ export function EditorPatterns(props: PatternEditorProps) {
   );
 
   const CommandTabs = () => (
-    <div className="flex items-center font-light px-2 space-x-3 border-r border-r-slate-500">
+    <div className="flex items-center font-light px-2 border-r border-r-slate-500">
       {tabs.map((tab) => (
         <div
           key={tab}
-          className={`capitalize cursor-pointer ${
+          className={`capitalize cursor-pointer mx-2 select-none ${
             commandTab === tab ? "text-green-500" : "text-slate-500"
           }`}
           onClick={() => setCommandTab(tab)}
@@ -349,10 +357,20 @@ export function EditorPatterns(props: PatternEditorProps) {
       }${holdingAlt ? " (+)" : ""}`}
     >
       <Editor.MenuButton
-        className={`${adding ? "text-teal-400" : ""}`}
-        onClick={() => (adding ? clearState() : setState("adding"))}
+        className={`relative ${
+          adding || inserting ? "text-emerald-400" : "animate-pulse"
+        }`}
+        onClick={() =>
+          adding || inserting ? clearState() : setState("adding")
+        }
       >
-        <BsBrush />
+        {inserting ? (
+          <BsBrushFill />
+        ) : !cursor.hidden ? (
+          <BsPencil />
+        ) : (
+          <BsBrush />
+        )}
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -366,11 +384,10 @@ export function EditorPatterns(props: PatternEditorProps) {
     >
       <Editor.MenuButton
         onClick={cursor.hidden ? cursor.show : cursor.hide}
+        className={`text-lg ${cursor.hidden ? "" : "text-emerald-400/80"}`}
         disabled={props.isPatternEmpty}
       >
-        <BsCursor
-          className={`text-lg ${cursor.hidden ? "" : "text-emerald-500"}`}
-        />
+        {cursor.hidden ? <BsCursor /> : <BsCursorFill />}
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -385,9 +402,9 @@ export function EditorPatterns(props: PatternEditorProps) {
       <Editor.MenuButton
         className={`${inserting ? "text-teal-400" : ""}`}
         disabled={!props.isPatternCustom || cursor.hidden}
-        onClick={() => (inserting ? clearState() : setState("inserting"))}
+        onClick={() => (inserting ? setState("adding") : setState("inserting"))}
       >
-        <BsInputCursorText />
+        <BiAnchor />
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -429,7 +446,7 @@ export function EditorPatterns(props: PatternEditorProps) {
         onClick={onRestClick}
         disabled={!props.isPatternCustom || (!adding && !inserting)}
       >
-        <BsWind />
+        <img src={restNote} className="invert" />
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -479,6 +496,23 @@ export function EditorPatterns(props: PatternEditorProps) {
         }}
       >
         <BsChevronExpand />
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const PhasePatternButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content="Phase Pattern">
+      <Editor.MenuButton
+        onClick={() => {
+          const input = prompt("Phase this pattern by N notes:");
+          const sanitizedInput = parseInt(input ?? "");
+          if (!!sanitizedInput) {
+            props.phasePattern(pattern.id, sanitizedInput);
+          }
+        }}
+        disabled={props.isPatternEmpty}
+      >
+        <BsRecycle />
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -642,13 +676,14 @@ export function EditorPatterns(props: PatternEditorProps) {
                   <DurationQuarter />
                   <DurationHalf />
                   <DurationWhole />
+                  <RestButton />
                 </Editor.MenuGroup>
                 <Editor.MenuGroup border={false}>
                   <AddButton />
-                  <CursorButton />
                   <InsertButton />
+                  <CursorButton />
                   <EraseButton />
-                  <RestButton />
+
                   <ClearButton />
                 </Editor.MenuGroup>
               </div>
@@ -660,6 +695,7 @@ export function EditorPatterns(props: PatternEditorProps) {
                   <ChordalTransposeButton />
                   <RepeatButton />
                   <LengthenButton />
+                  <PhasePatternButton />
                   <RandomizeButton />
                 </Editor.MenuGroup>
                 <Editor.MenuGroup border={false}>
@@ -667,7 +703,6 @@ export function EditorPatterns(props: PatternEditorProps) {
                   <ExpandButton />
                   <ReverseButton />
                   <ShuffleButton />
-                  <UnfoldButton />
                   <ClearButton />
                 </Editor.MenuGroup>
               </div>

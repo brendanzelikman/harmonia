@@ -48,28 +48,14 @@ html {
   }
 }
 
-.root-gradient {
-  background: linear-gradient(
-    #4161b3,
-    #087dbc,
-    #30dfcd,
-    #0082c8,
-    #4662a9,
-    #945cac
-  );
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
 }
-
-/* #4161b3, */
-/* #087dbc, */
-/* #30dfcd, */
-/* #0082c8, */
-/* #4662a9, */
-/* #945cac */
 
 body {
   font-family: "Open Sans";
   /* background: linear-gradient(#4161b3, #087dbc, #34c1b3, #85449f); */
-  background: #083a7a;
+  background: linear-gradient(0deg, #083a8a, #2c6387, #514f7e);
   background-size: 100%;
   overflow: auto;
 }

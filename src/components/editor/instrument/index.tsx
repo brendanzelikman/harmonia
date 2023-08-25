@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { selectActiveTrackId, selectPatternTrack } from "redux/selectors";
+import { selectSelectedTrackId, selectPatternTrack } from "redux/selectors";
 import { selectMixerByTrackId } from "redux/selectors/mixers";
 import { setPatternTrackInstrument } from "redux/slices/patternTracks";
 import { AppDispatch, RootState } from "redux/store";
@@ -34,7 +34,7 @@ export const getInstrumentCategory = (instrument: string) => {
 };
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
-  const trackId = selectActiveTrackId(state);
+  const trackId = selectSelectedTrackId(state);
   const track = trackId ? selectPatternTrack(state, trackId) : undefined;
   const mixer = trackId ? selectMixerByTrackId(state, trackId) : undefined;
 

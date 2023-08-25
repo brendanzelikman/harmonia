@@ -1,16 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import ReactConfetti from "react-confetti";
 import { createPortal } from "react-dom";
-import { BsQuestionCircle } from "react-icons/bs";
+import { BsQuestionCircle, BsQuestionCircleFill } from "react-icons/bs";
 import { ConnectedProps, connect } from "react-redux";
 import { Step, ShepherdTour, ShepherdTourContext } from "react-shepherd";
 import { selectRoot } from "redux/selectors";
-import {
-  hideEditor,
-  setTimelineState,
-  toggleTransposingClip,
-  showEditor,
-} from "redux/slices/root";
+import { hideEditor, setTimelineState, showEditor } from "redux/slices/root";
 import * as Tour from "redux/slices/tour";
 import { AppDispatch, RootState } from "redux/store";
 
@@ -42,14 +37,14 @@ const tourText = (props: { title: string; text?: string; body?: any }) =>
   `
 <div class="flex">
   <p class="flex flex-col">
-    <span class="font-bold text-2xl mb-2 text-black">
-      <img src="/logo.png" class="w-12 h-12 inline-block" />
+    <span class="font-bold text-2xl mb-2">
+      <img src="logo.png" class="w-12 h-12 inline-block" />
       ${props.title}
     </span>
     ${
       props.body
         ? props.body
-        : `<span class="text-slate-700 text-lg mb-4">${props.text}</span>`
+        : `<span class="text-lg mb-4 text-slate-300/80 font-light">${props.text}</span>`
     }
   </p>
 </div>
@@ -59,7 +54,7 @@ function OnboardingTour(props: Props) {
   const [finished, setFinished] = useState(false);
 
   const defaultClass =
-    "bg-slate-300/80 backdrop-blur text-slate-300 p-8 rounded-md text-sm font-nunito border-4 border-slate-800 ring-8 ring-sky-500 shadow-xl focus:outline-none z-90";
+    "bg-slate-800/75 backdrop-blur text-slate-300 p-8 rounded-md text-sm font-nunito border-4 border-slate-900 ring-8 ring-sky-500/80 drop-shadow-2xl focus:outline-none z-90";
   const defaultButtons: Step.StepOptionsButton[] = [
     {
       text: "Next",
@@ -85,20 +80,20 @@ function OnboardingTour(props: Props) {
         `
     <div class="flex">
       <p class="flex flex-col w-72">
-        <span class="text-blue-700 font-semibold mb-1">Welcome to Harmonia!</span>
-        <span class="text-black text-2xl font-bold">Let's get started with a quick website tour!</span>
-        <span class="text-slate-500">We'll teach you the basics in no time.</span>
+        <span class="text-sky-500/80 text-lg font-semibold mb-3">Welcome to Harmonia!</span>
+        <span class="text-slate-300 text-3xl font-bold mb-2">Ready for a Tour?</span>
+        <span class="text-slate-400">We'll teach you the basics in no time, but feel free to explore at your own pace.</span>
       <p>
-      <img src="/logo.png" class="flex-shrink-0 w-36 h-36 ml-4" />
+      <img src="logo.png" class="flex-shrink-0 w-36 h-36 ml-4" />
     </div>
     `,
       ],
       classes: defaultClass,
       buttons: [
         {
-          text: "Start the tour",
+          text: "Yes please!",
           classes:
-            "bg-sky-600 font-bold px-4 py-2 rounded-lg mr-2 hover:bg-sky-700",
+            "border border-slate-600/50 bg-sky-600 font-bold px-4 py-2 rounded-lg mr-2 hover:bg-sky-700 hover:border-slate-600/75",
           action() {
             this.next();
             props.nextTourStep();
@@ -108,9 +103,9 @@ function OnboardingTour(props: Props) {
           },
         },
         {
-          text: "Show me later",
+          text: "Maybe later...",
           classes:
-            "bg-slate-600 p-3 px-4 py-2 rounded-lg mx-2 hover:bg-slate-700",
+            "border border-slate-600/50 bg-slate-600 p-3 px-4 py-2 rounded-lg mx-2 hover:bg-slate-700 hover:border-slate-600/75",
           action() {
             this.cancel();
             props.endTour();
@@ -274,7 +269,7 @@ function OnboardingTour(props: Props) {
     {
       text: tourText({
         title: "Questions or Concerns?",
-        body: `<span class="text-slate-700 text-lg mb-4">
+        body: `<span class="text-slate-300 text-lg mb-4">
             If you have any questions or concerns about Harmonia, please go check out our 
             <a
               href="https://www.github.com/brendanzelikman/harmonia"
@@ -363,6 +358,15 @@ function ShepherdTourContent(props: ContentProps) {
       tour.on("complete", callback);
       tour.on("cancel", callback);
     }
+    return () => {
+      if (tour) {
+        tour.off("start", () => setIsActive(true));
+        tour.off("complete", callback);
+        tour.off("cancel", callback);
+        tour.cancel();
+        callback();
+      }
+    };
   }, [tour, props]);
 
   if (!tour) return null;
@@ -383,7 +387,13 @@ function ShepherdTourContent(props: ContentProps) {
   return (
     <>
       <button className={`ml-2 focus:outline-none ${color}`} onClick={onClick}>
-        <BsQuestionCircle className="text-2xl" />
+        <BsQuestionCircleFill
+          className={`text-2xl ${
+            isActive
+              ? "rounded-full ring-2 ring-sky-600 ring-offset-4 ring-offset-gray-900"
+              : ""
+          }`}
+        />
       </button>
       {props.finished && createPortal(<ReactConfetti />, document.body)}
     </>

@@ -25,10 +25,10 @@ import { NavbarTooltip } from "./Navbar";
 import { NavbarFormGroup } from "./Navbar";
 import { NavbarFormLabel } from "./Navbar";
 import { NavbarFormInput } from "./Navbar";
-import { MIDIContext } from "providers/midi";
-import { Listbox, Transition } from "@headlessui/react";
-import { setCellWidth } from "redux/slices/root";
+import { setCellWidth, showShortcuts } from "redux/slices/root";
 import { clamp } from "lodash";
+import useEventListeners from "hooks/useEventListeners";
+import { isHoldingCommand, isInputEvent } from "appUtil";
 
 const mapStateToProps = (state: RootState) => {
   const { bpm, timeSignature, volume, mute } = selectTransport(state);
@@ -54,6 +54,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     setCellWidth: (cellWidth: number) => {
       dispatch(setCellWidth(cellWidth));
     },
+    showShortcuts: () => {
+      dispatch(showShortcuts());
+    },
   };
 };
 
@@ -64,7 +67,6 @@ export default connector(Settings);
 
 function Settings(props: Props) {
   const { bpm, timeSignature, volume, setVolume, cellWidth } = props;
-  const MIDIProvider = useContext(MIDIContext);
   const [BPMInput, setBPMInput] = useState(bpm);
   const [widthInput, setWidthInput] = useState(cellWidth / 25);
   const [TS1, setTS1] = useState(timeSignature ? timeSignature[0] : 16);
@@ -93,15 +95,29 @@ function Settings(props: Props) {
   };
 
   const [show, setShow] = useState(false);
+  useEventListeners(
+    {
+      // Command + , = Toggle Settings
+      ",": {
+        keydown: (e) => {
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
+          e.preventDefault();
+          setShow(!show);
+        },
+      },
+    },
+    [show, setShow]
+  );
+
   const SettingsTooltipContent = () => (
     <>
-      <div className="flex justify-center items-center py-2">
-        <NavbarFormGroup className="flex flex-col w-[8rem]">
-          <NavbarFormLabel className="mb-2 mx-auto font-semibold">
+      <div className="flex flex-col justify-center items-center p-2">
+        <NavbarFormGroup>
+          <NavbarFormLabel className="font-bold w-36 mr-3">
             Tempo (BPM)
           </NavbarFormLabel>
           <NavbarFormInput
-            className="w-20 mx-auto text-gray-300 focus:text-gray-50"
+            className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
             type="number"
             value={BPMInput}
             onChange={(e: any) => setBPMInput(parseInt(e.target.value))}
@@ -111,94 +127,25 @@ function Settings(props: Props) {
             }}
           />
         </NavbarFormGroup>
-        <NavbarFormGroup className="flex flex-col w-[8rem]">
-          <NavbarFormLabel className="mb-2 mx-auto font-semibold">
-            Time Signature
-          </NavbarFormLabel>
-          <div className="flex">
-            <NavbarFormInput
-              className="w-12 mr-1 text-gray-300 focus:text-gray-50"
-              type="number"
-              value={TS1}
-              onChange={(e: any) => setTS1(parseInt(e.target.value))}
-              onKeyDown={(e: any) => {
-                onKeyDown(e);
-                onTSKeyDown(e);
-              }}
-            />
-            <NavbarFormInput
-              className="w-12 ml-1 text-stone-50"
-              disabled
-              type="number"
-              value={TS2}
-            />
-          </div>
-        </NavbarFormGroup>
-      </div>
-      <div className="flex justify-center items-center py-2">
-        <NavbarFormGroup className="flex flex-col w-[8rem]">
-          <NavbarFormLabel className="mb-2 mx-auto font-semibold">
-            MIDI Input
-          </NavbarFormLabel>
-          {/* MIDI Input Listbox */}
-          <Listbox
-            value={MIDIProvider.selectedInput}
-            onChange={(input) => MIDIProvider.setSelectedInput(input)}
-          >
-            {({ open }) => (
-              <div className="relative">
-                <Listbox.Button className="border border-slate-300 rounded-md mx-2">
-                  <NavbarFormInput
-                    className="w-full focus:text-gray-50 text-ellipsis"
-                    value={MIDIProvider.selectedInput?.name || "None"}
-                    disabled
-                  />
-                </Listbox.Button>
-                <Transition
-                  show={open}
-                  enter="transition ease-out duration-75"
-                  enterFrom="transform opacity-0 scale-95"
-                  enterTo="transform opacity-100 scale-100"
-                  leave="transition ease-in duration-75"
-                  leaveFrom="transform opacity-100 scale-100"
-                  leaveTo="transform opacity-0 scale-95"
-                >
-                  <Listbox.Options className="absolute z-10 w-auto my-2 py-1 px-2 border border-white/50 text-base bg-slate-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    {MIDIProvider.midiInputs.map((input) => (
-                      <Listbox.Option
-                        key={input.id}
-                        value={input}
-                        className="hover:bg-slate-500/80 rounded cursor-pointer"
-                        onClick={() => MIDIProvider.setSelectedInput(input)}
-                      >
-                        {({ selected, active }) => (
-                          <div
-                            className={
-                              selected
-                                ? "text-white"
-                                : active
-                                ? "text-white"
-                                : "text-gray-400"
-                            }
-                          >
-                            {selected ? <BsCheck className="inline" /> : null}{" "}
-                            {input.name}
-                          </div>
-                        )}
-                      </Listbox.Option>
-                    ))}
-                  </Listbox.Options>
-                </Transition>
-              </div>
-            )}
-          </Listbox>
-        </NavbarFormGroup>
-        <NavbarFormGroup className="flex flex-col w-[8rem]">
-          <NavbarFormLabel className="mb-2 mx-auto font-semibold">
-            Cell Scale
+        <NavbarFormGroup className="my-2">
+          <NavbarFormLabel className="w-36 mr-3">
+            16ths / Measure
           </NavbarFormLabel>
           <NavbarFormInput
-            className="w-20 mx-auto text-gray-300 focus:text-gray-50"
+            className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
+            type="number"
+            value={TS1}
+            onChange={(e: any) => setTS1(parseInt(e.target.value))}
+            onKeyDown={(e: any) => {
+              onKeyDown(e);
+              onTSKeyDown(e);
+            }}
+          />
+        </NavbarFormGroup>
+        <NavbarFormGroup>
+          <NavbarFormLabel className="w-36 mr-3">Zoom (1 - 2)</NavbarFormLabel>
+          <NavbarFormInput
+            className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
             type="number"
             value={widthInput}
             min={1}
@@ -209,6 +156,12 @@ function Settings(props: Props) {
               onWidthKeyDown(e);
             }}
           />
+        </NavbarFormGroup>
+        <NavbarFormGroup
+          className="border rounded-lg mt-4 py-2 hover:bg-slate-600/50 active:bg-slate-800/50"
+          onClick={props.showShortcuts}
+        >
+          Open Shortcuts Menu
         </NavbarFormGroup>
       </div>
     </>
@@ -234,32 +187,32 @@ function Settings(props: Props) {
     </div>
   );
 
-  const VolumeSlider = () => (
-    <input
-      className="w-24 accent-white caret-slate-50 mr-4"
-      type="range"
-      value={props.mute ? MIN_GLOBAL_VOLUME : volume}
-      min={MIN_GLOBAL_VOLUME}
-      max={MAX_GLOBAL_VOLUME}
-      onChange={(e: any) => setVolume(parseInt(e.target.value))}
-      onMouseDown={() => {
-        setDraggingVolume(true);
-        if (props.mute) props.setMute(false);
-      }}
-      onMouseUp={() => setDraggingVolume(false)}
-    />
-  );
-
   return (
     <>
       <VolumeIcon />
-      <VolumeSlider />
+      <input
+        className="w-24 accent-white caret-slate-50 mr-4"
+        type="range"
+        value={props.mute ? MIN_GLOBAL_VOLUME : volume}
+        min={MIN_GLOBAL_VOLUME}
+        max={MAX_GLOBAL_VOLUME}
+        onChange={(e: any) => setVolume(parseInt(e.target.value))}
+        onMouseDown={() => {
+          setDraggingVolume(true);
+          if (props.mute) props.setMute(false);
+        }}
+        onMouseUp={() => setDraggingVolume(false)}
+      />
       <BsGearFill
-        className="text-2xl cursor-pointer mr-2"
+        className={`text-2xl cursor-pointer mr-2 ${
+          show
+            ? "text-slate-500 drop-shadow-xl rounded-full ring-2 ring-offset-4 ring-slate-500 ring-offset-gray-900"
+            : ""
+        }`}
         onClick={() => setShow(!show)}
       />
       <NavbarTooltip
-        className="bg-slate-800/90 backdrop-blur-sm"
+        className="bg-slate-700/70 backdrop-blur"
         content={SettingsTooltipContent}
         show={show}
       />

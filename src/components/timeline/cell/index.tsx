@@ -10,15 +10,7 @@ import { Row } from "..";
 import { CellComponent } from "./Cell";
 import { seekTransport } from "redux/thunks/transport";
 import { createPatternClip } from "redux/thunks/clips";
-
-const deleteSelectedClips = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  const root = selectRoot(state);
-  if (!root) return;
-  const { selectedClipIds } = root;
-  selectedClipIds.forEach((id) => dispatch(Slices.Clips.deleteClip(id)));
-  dispatch(Slices.Root.deselectAllClips());
-};
+import { setSelectedTrack } from "redux/slices/root";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const root = selectRoot(state);
@@ -31,14 +23,19 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
 
   const isMeasure = columnIndex % (transport.timeSignature?.[0] || 16) === 1;
   const isQuarter = columnIndex % 4 === 1;
+  const onTime = columnIndex - 1 === transport.time;
+  const isStarted = transport.state === "started";
 
   return {
     ...ownProps,
     columnIndex,
     isMeasure,
     isQuarter,
+    onTime,
+    isStarted,
     trackId,
     isPatternTrack: isPattern,
+    selectedTrackId: root.selectedTrackId,
     addingClip: root.timelineState === "adding",
     transposingClip: root.timelineState === "transposing",
   };
@@ -51,21 +48,27 @@ const onClick =
     if (!trackId) {
       dispatch(seekTransport(time));
       dispatch(Slices.Root.deselectAllClips());
+      dispatch(Slices.Root.deselectAllTransforms());
       return;
     }
     const state = getState();
     const root = selectRoot(state);
-    const { activePatternId } = root;
-    const chromaticTranspose = root.chromaticTranspose ?? 0;
-    const scalarTranspose = root.scalarTranspose ?? 0;
-    const chordalTranspose = root.chordalTranspose ?? 0;
+    const { toolkit, selectedPatternId } = root;
+
+    const chromaticTranspose = toolkit.chromaticTranspose ?? 0;
+    const scalarTranspose = toolkit.scalarTranspose ?? 0;
+    const chordalTranspose = toolkit.chordalTranspose ?? 0;
 
     const track = selectTrack(state, trackId);
     const onPatternTrack = !!track && isPatternTrack(track);
+    const adding = root.timelineState === "adding";
 
-    if (root.timelineState === "adding" && activePatternId && onPatternTrack) {
-      dispatch(createPatternClip(trackId, activePatternId, time));
-    } else if (root.timelineState === "transposing") {
+    if (adding && selectedPatternId && onPatternTrack) {
+      dispatch(createPatternClip(trackId, selectedPatternId, time));
+      return;
+    }
+
+    if (root.timelineState === "transposing") {
       dispatch(
         Slices.Transforms.createTransform({
           trackId,
@@ -75,10 +78,12 @@ const onClick =
           chordalTranspose,
         })
       );
-    } else {
-      dispatch(seekTransport(time));
-      dispatch(Slices.Root.deselectAllClips());
+      return;
     }
+
+    dispatch(seekTransport(time));
+    if (trackId) dispatch(setSelectedTrack(trackId));
+    dispatch(Slices.Root.deselectAllClips());
   };
 
 function mapDispatchToProps(dispatch: AppDispatch) {
@@ -86,8 +91,8 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     onClick: (columnIndex: number, trackId?: TrackId) => {
       dispatch(onClick(columnIndex, trackId));
     },
-    deleteSelectedClips: () => {
-      dispatch(deleteSelectedClips());
+    setSelectedTrack: (trackId?: TrackId) => {
+      dispatch(setSelectedTrack(trackId));
     },
   };
 }

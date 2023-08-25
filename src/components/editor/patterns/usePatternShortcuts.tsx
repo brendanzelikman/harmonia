@@ -1,6 +1,6 @@
 import { useState } from "react";
 import useEventListeners from "hooks/useEventListeners";
-import { isInputEvent } from "appUtil";
+import { isHoldingShift, isInputEvent } from "appUtil";
 import { PatternEditorProps } from ".";
 
 interface PatternShortcutProps extends PatternEditorProps {
@@ -13,7 +13,7 @@ interface PatternShortcutProps extends PatternEditorProps {
 }
 
 export default function usePatternShortcuts(props: PatternShortcutProps) {
-  // Detect shift key
+  // Detect shift and alt key
   const [holdingShift, setHoldingShift] = useState(false);
   const [holdingAlt, setHoldingAlt] = useState(false);
 
@@ -23,83 +23,70 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
 
   useEventListeners(
     {
-      // "Cmd + Z" = Undo
-      // "Cmd + Shift + Z" = Redo
-      z: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          e.preventDefault();
-          const holdingShift = !!(e as KeyboardEvent).shiftKey;
-          if (holdingShift) {
-            props.redoPatterns();
-          } else {
-            props.undoPatterns();
-          }
-        },
-      },
       // Space = Play Pattern
       " ": {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           e.preventDefault();
-          if (props.pattern) props.playPattern(props.pattern.id);
+          // if (props.pattern) props.playPattern(props.pattern.id);
         },
       },
       // X = Export Pattern to XML
       X: {
         keydown: (e) => {
-          if (isInputEvent(e) || !(e as KeyboardEvent).shiftKey) return;
+          if (isInputEvent(e) || !isHoldingShift(e)) return;
           e.preventDefault();
           if (props.pattern) props.exportPatternToXML(props.pattern);
         },
       },
-      // X = Export Pattern to MIDI
+      // M = Export Pattern to MIDI
       M: {
         keydown: (e) => {
-          if (isInputEvent(e) || !(e as KeyboardEvent).shiftKey) return;
+          if (isInputEvent(e) || !isHoldingShift(e)) return;
           e.preventDefault();
           if (props.pattern) props.exportPatternToMIDI(props.pattern);
         },
       },
-      // + = Start/Stop Adding Notes
-      "+": {
+      // A = Start/Stop Adding Notes
+      a: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (props.onState("adding")) {
+          if (props.onState("adding") || props.onState("inserting")) {
             props.clearState();
           } else {
             props.setState("adding");
           }
         },
       },
-      // I = Start/Stop Inserting Notes
-      i: {
+      // X = Start/Stop Anchoring Notes
+      x: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
+          if (props.cursor.hidden) return;
           if (props.onState("inserting")) {
-            props.clearState();
+            props.setState("adding");
           } else {
             props.setState("inserting");
           }
         },
       },
-      // - = Remove Note
-      "-": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (!props.pattern || props.cursor.hidden) return;
-          props.removePatternNote(props.pattern.id, props.cursor.index);
-        },
-      },
-      // Delete = Clear Pattern
+      // Delete = Remove Note
+      // Shift + Delete = Clear Pattern
       Backspace: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (props.pattern) props.clearPattern(props.pattern);
+          if (!props.pattern) return;
+          if (isHoldingShift(e)) {
+            props.clearPattern(props.pattern);
+          } else {
+            if (props.cursor.hidden) return;
+            props.removePatternNote(props.pattern.id, props.cursor.index);
+          }
         },
       },
-      // ` = Show/Hide Cursor
-      "`": {
+
+      // C = Show/Hide Cursor
+      c: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           if (props.pattern)
@@ -110,7 +97,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       // Shift + Left Arrow = Skip Cursor Left
       ArrowLeft: {
         keydown: (e) => {
-          if ((e as KeyboardEvent).shiftKey) {
+          if (isHoldingShift(e)) {
             rewindCursor();
           } else {
             props.cursor.prev();
@@ -121,11 +108,27 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       // Shift + Right Arrow = Skip Cursor Right
       ArrowRight: {
         keydown: (e) => {
-          if ((e as KeyboardEvent).shiftKey) {
+          if (isHoldingShift(e)) {
             forwardCursor();
           } else {
             props.cursor.next();
           }
+        },
+      },
+      // Up Arrow = Transpose Note Up
+      ArrowUp: {
+        keydown: (e) => {
+          if (props.cursor.hidden || !props.pattern) return;
+          e.preventDefault();
+          props.transposePatternNote(props.pattern, props.cursor.index, 1);
+        },
+      },
+      // Down Arrow = Transpose Note Down
+      ArrowDown: {
+        keydown: (e) => {
+          if (props.cursor.hidden || !props.pattern) return;
+          e.preventDefault();
+          props.transposePatternNote(props.pattern, props.cursor.index, -1);
         },
       },
       Shift: {
@@ -178,74 +181,87 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           props.setDuration("whole");
         },
       },
+      // "T" = Prompt for Scalar Transposition
+      T: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.pattern) return;
+          const input = prompt("Transpose pattern by N semitones:");
+          const sanitizedInput = parseInt(input ?? "");
+          if (isNaN(sanitizedInput)) return;
+          props.transposePattern(props.pattern, sanitizedInput);
+        },
+      },
+      // "t" = Prompt for Chordal Transposition
+      t: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.pattern) return;
+          const input = prompt("Transpose pattern along N steps:");
+          const sanitizedInput = parseInt(input ?? "");
+          if (isNaN(sanitizedInput)) return;
+          props.rotatePattern(props.pattern, sanitizedInput);
+        },
+      },
       // [ = Transpose Pattern Down
       "[": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern) props.transposePattern(props.pattern, -1);
+          if (isInputEvent(e) || !props.pattern) return;
+          props.transposePattern(props.pattern, -1);
         },
       },
       // ] = Transpose Pattern Up
       "]": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern) props.transposePattern(props.pattern, 1);
+          if (isInputEvent(e) || !props.pattern) return;
+          props.transposePattern(props.pattern, 1);
         },
       },
       // { = Invert Pattern Down
       "{": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern) props.rotatePattern(props.pattern, -1);
+          if (isInputEvent(e) || !props.pattern) return;
+          props.rotatePattern(props.pattern, -1);
         },
       },
       // } = Invert Pattern Up
       "}": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern) props.rotatePattern(props.pattern, 1);
+          if (isInputEvent(e) || !props.pattern) return;
+          props.rotatePattern(props.pattern, 1);
         },
       },
       // , = Shrink Pattern
       ",": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern) props.shrinkPattern(props.pattern);
+          if (isInputEvent(e) || !props.pattern) return;
+          props.shrinkPattern(props.pattern);
         },
       },
       // . = Stretch Pattern
       ".": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern) props.stretchPattern(props.pattern);
+          if (isInputEvent(e) || !props.pattern) return;
+          props.stretchPattern(props.pattern);
         },
       },
       // < = Halve Pattern
       "<": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern) props.halvePattern(props.pattern);
+          if (isInputEvent(e) || !props.pattern) return;
+          props.halvePattern(props.pattern);
         },
       },
       // > = Double Pattern
       ">": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern) props.repeatPattern(props.pattern, 2);
-        },
-      },
-      // ? = Shuffle Pattern
-      "?": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern) props.shufflePattern(props.pattern);
+          if (isInputEvent(e) || !props.pattern) return;
+          props.repeatPattern(props.pattern, 2);
         },
       },
       // * = Randomize Pattern
       "*": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern) props.randomizePattern(props.pattern, 8);
+          if (isInputEvent(e) || !props.pattern) return;
+          props.randomizePattern(props.pattern, 8);
         },
       },
     },

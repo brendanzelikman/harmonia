@@ -39,6 +39,16 @@ export default function useOSMD({
   const ref = useRef<HTMLDivElement>(null);
   const [osmd, setOSMD] = useState<OSMD>();
 
+  const osmdOptions: IOSMDOptions = {
+    autoResize: true,
+    drawTitle: false,
+    drawSubtitle: false,
+    drawPartNames: false,
+    drawMeasureNumbers: false,
+    drawTimeSignatures: false,
+    ...options,
+  };
+
   const [cursorIndex, setCursorIndex] = useState(0);
   const [showingCursor, setShowingCursor] = useState(false);
   const showCursor = () => {
@@ -78,17 +88,12 @@ export default function useOSMD({
     const marginY = 2;
     const zoom = 1.1;
 
-    if (!osmd) {
-      const osmdOptions: IOSMDOptions = {
-        autoResize: true,
-        drawTitle: false,
-        drawSubtitle: false,
-        drawPartNames: false,
-        drawMeasureNumbers: false,
-        drawTimeSignatures: false,
-        ...options,
-      };
+    const doesScoreExist = !!osmd;
+    const doesCanvasExist = !!document.getElementById("osmdCanvasPage1");
 
+    if (doesScoreExist && doesCanvasExist) {
+      score = osmd;
+    } else {
       score = new OSMD(ref.current, osmdOptions);
 
       score.EngravingRules.LastSystemMaxScalingFactor = 2.5;
@@ -96,11 +101,9 @@ export default function useOSMD({
       score.EngravingRules.PageRightMargin = marginX;
       score.EngravingRules.PageTopMargin = marginY;
       score.EngravingRules.PageBottomMargin = marginY;
-
       setOSMD(score);
-    } else {
-      score = osmd;
     }
+
     score
       .load(xml)
       .then(() => {
@@ -114,6 +117,8 @@ export default function useOSMD({
             osmd.cursor.cursorElement.style.height = `${Math.round(
               120 * zoom
             )}px`;
+            osmd.cursor.cursorElement.style.backgroundColor = "turquoise";
+            osmd.cursor.cursorElement.style.opacity = "0.5";
 
             // Keep showing the cursor if there are notes
             if (noteCount > 0) {

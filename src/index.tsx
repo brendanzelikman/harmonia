@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import App from "./App";
 import { AppThunk, store } from "./redux/store";
@@ -12,16 +13,30 @@ import "./index.css";
 import { start } from "tone";
 import { startTransport } from "redux/thunks/transport";
 import { MIDIProvider } from "providers/midi";
+import ErrorPage from "Error";
+import LandingPage from "Landing";
 
 export const container: HTMLElement = document.getElementById("root")!;
 if (!container.children.length) {
+  const router = createBrowserRouter([
+    { path: "/", errorElement: <ErrorPage /> },
+    {
+      path: "harmonia",
+      element: <LandingPage />,
+    },
+    {
+      path: "harmonia/playground",
+      element: <App />,
+    },
+  ]);
+
   const root = ReactDOM.createRoot(container);
   root.render(
     <React.StrictMode>
       <DndProvider backend={HTML5Backend}>
         <Provider store={store}>
           <MIDIProvider>
-            <App />
+            <RouterProvider router={router} />
           </MIDIProvider>
           <LoadedTransport />
         </Provider>

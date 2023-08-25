@@ -56,7 +56,7 @@ export const createInstrument =
       return new Promise<void>((resolve) => {
         const sampler = new Sampler({
           urls: { ...sampleMap },
-          baseUrl: `${window.location.href}/samples/${category}/${track.instrument}/`,
+          baseUrl: `${window.location.origin}/harmonia/samples/${category}/${track.instrument}/`,
           onload: () => {
             let instrument = INSTRUMENTS[track.id];
             // Dispose the old instrument if it exists
@@ -97,7 +97,7 @@ export const createGlobalInstrument = (
   return new Promise<void>((resolve) => {
     const sampler = new Sampler({
       urls: { ...samples[instrumentName] },
-      baseUrl: `${window.location.href}/samples/${category}/${instrumentName}/`,
+      baseUrl: `${window.location.origin}/harmonia/samples/${category}/${instrumentName}/`,
       onload: () => {
         // Dispose the old instrument if it exists
         let instrument = INSTRUMENTS["global"];

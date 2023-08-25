@@ -4,6 +4,7 @@ import {
   BsDashCircle,
   BsDice5,
   BsDownload,
+  BsFillBookmarkFill,
   BsFillPlayCircleFill,
   BsPlusCircle,
   BsSave,
@@ -36,7 +37,6 @@ export function ScaleEditor(props: ScaleEditorProps) {
 
   // Score information
   const scale = props.scale as Scale;
-  const trackScale = { ...scale };
   const xml = scale ? Scales.exportToXML(scale?.notes ?? []) : DemoXML;
   const { score } = useOSMD({
     id: "scale-score",
@@ -108,10 +108,10 @@ export function ScaleEditor(props: ScaleEditorProps) {
       <Editor.MenuButton
         onClick={async () => {
           if (!scale) return;
-          props.createScale({ ...scale });
+          props.createScale({ ...scale, name: props.scaleName });
         }}
       >
-        <BsSave />
+        <BsFillBookmarkFill />
       </Editor.MenuButton>
     </Editor.Tooltip>
   );

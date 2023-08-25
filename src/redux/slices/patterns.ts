@@ -18,9 +18,10 @@ import { selectRoot } from "redux/selectors";
 import Scales from "types/scales";
 import { MIDI } from "types/midi";
 
-import { setActivePattern } from "./root";
+import { setSelectedPattern } from "./root";
 import { clamp, random, reverse, shuffle } from "lodash";
 import { MAX_SUBDIVISION } from "appConstants";
+import { mod } from "appUtil";
 
 const initialState = initializeState<PatternId, Pattern>([defaultPattern]);
 
@@ -198,6 +199,19 @@ export const patternsSlice = createSlice({
         }));
       });
     },
+    phasePattern: (state, action: PayloadAction<TransformPattern>) => {
+      const { id, phase } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+
+      const length = pattern.stream.length;
+      const stream: PatternStream = [];
+      for (let i = 0; i < length; i++) {
+        const index = mod(i + phase, length);
+        stream.push(pattern.stream[index]);
+      }
+      state.byId[id].stream = stream;
+    },
     reversePattern: (state, action: PayloadAction<PatternId>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
@@ -271,6 +285,7 @@ export const {
   stretchPattern,
   shrinkPattern,
   shufflePattern,
+  phasePattern,
   reversePattern,
   randomizePattern,
   clearPattern,
@@ -295,10 +310,10 @@ export const deletePattern =
     const patterns = state.patterns.present.allIds;
     const index = patterns.findIndex((patternId) => patternId === id);
     if (index === -1) return;
-    const { activePatternId } = selectRoot(state);
-    if (activePatternId === id) {
+    const { selectedPatternId } = selectRoot(state);
+    if (selectedPatternId === id) {
       const nextId = patterns?.[index - 1] || patterns?.[index + 1];
-      if (nextId) dispatch(setActivePattern(nextId));
+      if (nextId) dispatch(setSelectedPattern(nextId));
     }
     dispatch(removePattern(id));
   };

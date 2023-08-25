@@ -1,7 +1,7 @@
 import { inRange } from "lodash";
 import { HeaderRendererProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
-import { selectTransport } from "redux/selectors";
+import { selectRoot, selectTransport } from "redux/selectors";
 import {
   seekTransport,
   setTransportLoopEnd,
@@ -14,6 +14,7 @@ import { TimeFormatter } from "./Time";
 
 function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
   const transport = selectTransport(state);
+  const { selectedTrackId } = selectRoot(state);
   const columnIndex = Number(ownProps.column.key);
 
   const [ts1, ts2] = transport.timeSignature || [16, 16];
@@ -32,8 +33,8 @@ function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
   const onLoopEnd = loopEnd === columnIndex;
 
   const className = `relative w-full h-full text-white hover:border hover:border-slate-200/80 cursor-pointer ${
-    onTime
-      ? "bg-gradient-to-b from-emerald-600 to-emerald-700 hover:bg-slate-800"
+    onTime && (transport.state === "started" || !selectedTrackId)
+      ? "bg-gradient-to-r from-emerald-700 to-emerald-600 hover:bg-slate-800"
       : looping && inLoopRange
       ? "bg-black hover:bg-slate-800 border-b-8 border-b-indigo-700"
       : `bg-black hover:bg-slate-800 border-slate-50/20`

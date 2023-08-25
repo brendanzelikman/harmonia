@@ -52,7 +52,7 @@ export const TrackDropdownMenu = (props: {
           <div>
             <Menu.Button
               aria-label="Track Dropdown Menu"
-              className={`inline-flex w-full justify-center px-2 rounded items-center font-medium ${
+              className={`w-full px-2 rounded ${
                 open ? "text-indigo-400" : "text-white"
               }`}
             >

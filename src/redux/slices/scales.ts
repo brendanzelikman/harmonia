@@ -34,8 +34,8 @@ export const scalesSlice = createSlice({
   initialState,
   reducers: {
     setScaleIds: (state, action: PayloadAction<ScaleId[]>) => {
-      const patternIds = action.payload;
-      state.allIds = patternIds;
+      const scaleIds = action.payload;
+      state.allIds = scaleIds;
     },
     addScale: (state, action: PayloadAction<Scale>) => {
       const scale = action.payload;

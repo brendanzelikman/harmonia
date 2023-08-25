@@ -1,7 +1,7 @@
 import { connect, ConnectedProps } from "react-redux";
 import { useCallback } from "react";
 import { createPortal } from "react-dom";
-import { selectClips, selectSelectedClipIds } from "redux/selectors";
+import { selectClips, selectRoot, selectTransforms } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Clip, ClipId } from "types/clips";
 import { JSON } from "types/units";
@@ -13,10 +13,13 @@ import {
   updateClips,
   updateClipsAndTransforms,
 } from "redux/slices/clips";
-import { selectClips as selectAllClips } from "redux/slices/root";
+import {
+  selectClips as selectAllClips,
+  selectTransforms as selectAllTransforms,
+} from "redux/slices/root";
 import TimelineClip from "./Clip";
 import { DataGridHandle } from "react-data-grid";
-import { Transform } from "types/transform";
+import { Transform, TransformId } from "types/transform";
 import { createTransforms, updateTransform } from "redux/slices/transforms";
 
 export type ClipStreamRecord = Record<ClipId, JSON<PatternStream>>;
@@ -27,15 +30,25 @@ interface TimelineClipsProps {
 
 const mapStateToProps = (state: RootState, ownProps: TimelineClipsProps) => {
   const clips = selectClips(state);
-  const selectedIds = selectSelectedClipIds(state);
+  const transforms = selectTransforms(state);
+  const { selectedClipIds, selectedTransformIds } = selectRoot(state);
 
-  return { ...ownProps, clips, selectedIds };
+  return {
+    ...ownProps,
+    clips,
+    transforms,
+    selectedClipIds: selectedClipIds || [],
+    selectedTransformIds: selectedTransformIds || [],
+  };
 };
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
     selectClips: (clipIds: ClipId[]) => {
       dispatch(selectAllClips(clipIds));
+    },
+    selectTransforms: (transformIds: TransformId[]) => {
+      dispatch(selectAllTransforms(transformIds));
     },
     createClips: (clips: Partial<Clip>[]) => {
       return dispatch(createClips(clips));

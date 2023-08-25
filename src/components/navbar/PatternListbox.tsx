@@ -9,7 +9,7 @@ import {
 import {
   clearTimelineState,
   hideEditor,
-  setActivePattern,
+  setSelectedPattern,
   showEditor,
 } from "redux/slices/root";
 import Patterns, { Pattern, PatternId } from "types/patterns";
@@ -18,10 +18,10 @@ import { useCallback, useEffect } from "react";
 import { createPattern } from "redux/slices/patterns";
 
 const mapStateToProps = (state: RootState) => {
-  const { showingEditor, editorState, activePatternId } = selectRoot(state);
+  const { showingEditor, editorState, selectedPatternId } = selectRoot(state);
   const patterns = selectPatterns(state);
-  const activePattern = activePatternId
-    ? patterns.find((pattern) => pattern.id === activePatternId)
+  const activePattern = selectedPatternId
+    ? patterns.find((pattern) => pattern.id === selectedPatternId)
     : undefined;
   const customPatterns = selectCustomPatterns(state);
   return {
@@ -48,7 +48,7 @@ const onPatternsClick = (): AppThunk => (dispatch, getState) => {
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
     setPatternId: (patternId: PatternId) =>
-      dispatch(setActivePattern(patternId)),
+      dispatch(setSelectedPattern(patternId)),
     onPatternsClick: () => {
       dispatch(onPatternsClick());
     },

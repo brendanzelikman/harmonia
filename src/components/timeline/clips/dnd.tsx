@@ -1,7 +1,4 @@
-import { inRange, union } from "lodash";
 import { useDrag } from "react-dnd";
-import { useAppSelector } from "redux/hooks";
-import { selectClips, selectSelectedClipIds } from "redux/selectors";
 import { Clip } from "types/clips";
 import { Transform } from "types/transform";
 import { ClipProps } from "./Clip";
@@ -11,10 +8,6 @@ interface DropResult {
 }
 
 export function useClipDrag(props: ClipProps) {
-  const selectedClipIds = useAppSelector(selectSelectedClipIds);
-  const clips = useAppSelector(selectClips);
-  const trackIds = props.rows.map((row) => row.trackId).filter(Boolean);
-  const transforms = props.transforms;
   return useDrag(
     () => ({
       type: "clip",
@@ -32,106 +25,91 @@ export function useClipDrag(props: ClipProps) {
         if (!item.canDrop) return;
 
         // Find the corresponding clip
-        const clip = clips.find((clip) => clip.id === item.clip?.id);
+        const trackIds = props.rows.map((row) => row.trackId).filter(Boolean);
+        const clip = props.clips.find((clip) => clip.id === item.clip?.id);
         if (!clip) return;
 
         // Compute the offset of the drag
         const rowOffset = item.hoveringRow - item.rowIndex;
         const colOffset = item.hoveringColumn - 1 - clip.startTime;
 
-        // Compute the set of clips to move
-        const clipIds = union(selectedClipIds, [item.clip.id]);
-
+        // Get the drop result
         const dropResult = monitor.getDropResult() as DropResult;
+        const copying = dropResult?.dropEffect === "copy";
 
-        // Get the new row + track
-        const trackIndex = trackIds.indexOf(clip.trackId);
-        if (trackIndex === -1) return;
-        const newRow = trackIndex + rowOffset;
-        const newTrackId = props.rows[newRow].trackId;
-        if (newTrackId === undefined) return;
+        // Get the selected clips and transforms
+        const selectedClips = props.clips.filter(
+          (c) => props.selectedClipIds.includes(c.id) || c.id === item.clip.id
+        );
+        const selectedTransforms = props.transforms.filter((t) =>
+          props.selectedTransformIds.includes(t.id)
+        );
 
         // Compute the new array of clips
         let newClips: Clip[] = [];
         let newTransforms: Transform[] = [];
-        for (const clipId of clipIds) {
-          // Get the clip
-          const clip = clips.find((clip) => clip.id === clipId);
-          if (clip) {
-            // Get the new row + track
-            const trackIndex = trackIds.indexOf(clip.trackId);
-            if (trackIndex === -1) return;
-            const newRow = trackIndex + rowOffset;
-            if (!props.rows[newRow]) return;
-            if (props.rows[newRow].trackId === undefined) return;
-            if (props.rows[newRow].type !== "patternTrack") return;
-            const newTrackId = props.rows[newRow].trackId;
-            if (newTrackId === undefined) return;
 
-            const newStartTime = Math.max(clip.startTime + colOffset, 0);
-            // Move or copy the clip based on the drag effect
-            if (dropResult?.dropEffect === "move") {
-              // Get the new track
-              newClips.push({
-                ...clip,
-                id: clipId,
-                trackId: newTrackId,
-                startTime: newStartTime,
-              });
-            } else {
-              newClips.push({
-                ...clip,
-                trackId: newTrackId,
-                startTime: newStartTime,
-              });
-            }
-            // Push the transforms
-            const clipTransforms = transforms.filter(
-              (t) =>
-                t.trackId === clip.trackId &&
-                inRange(t.time, clip.startTime, clip.startTime + props.duration)
-            );
-            clipTransforms.forEach((t) => {
-              newTransforms.push({
-                ...t,
-                trackId: newTrackId,
-                time: t.time + colOffset,
-              });
-            });
-          }
-        }
-        if (dropResult?.dropEffect === "copy") {
-          if (newTransforms.length) {
-            props
-              .createClipsAndTransforms(newClips, newTransforms)
-              .then(({ clipIds }) => {
-                props.selectClips(clipIds);
-              });
-          } else {
-            props.createClips(newClips).then(({ clipIds }) => {
-              props.selectClips(clipIds);
-            });
-          }
-        } else {
-          if (newTransforms.length) {
-            props.updateClipsAndTransforms(newClips, newTransforms);
-          } else {
-            props.updateClips(newClips);
-          }
+        // Iterate over the selected clips
+        for (const clip of selectedClips) {
+          if (!clip) return;
+
+          // Get the index of the new track
+          const trackIndex = trackIds.indexOf(clip.trackId);
+          if (trackIndex === -1) return;
+
+          // Get the new track
+          const newIndex = trackIndex + rowOffset;
+          const newTrack = props.rows[newIndex];
+          if (!newTrack?.trackId || newTrack.type !== "patternTrack") return;
+
+          // Compute the new clip
+          newClips.push({
+            ...clip,
+            trackId: newTrack.trackId,
+            startTime: clip.startTime + colOffset,
+          });
         }
 
-        //   clipIds.then((res: any) => {
-        //     const ids: ClipId[] = JSON.parse(res);
-        //     const newIds = ids.filter((id) => !selectedClipIds.includes(id));
-        //     props.selectClips(newIds);
-        //     if (newTransforms.length) props.createTransforms(newTransforms);
-        //   });
-        // } else {
-        //   props.updateClips(newClips);
-        //   if (newTransforms.length) props.updateTransforms(newTransforms);
-        // }
+        // Iterate over the selected transforms
+        for (const transform of selectedTransforms) {
+          if (!transform) return;
+
+          // Get the index of the new track
+          const trackIndex = trackIds.indexOf(transform.trackId);
+          if (trackIndex === -1) return;
+
+          // Get the new track
+          const newIndex = trackIndex + rowOffset;
+          const newTrack = props.rows[newIndex];
+          if (!newTrack?.trackId) return;
+
+          // Compute the new transform
+          newTransforms.push({
+            ...transform,
+            trackId: newTrack.trackId,
+            time: transform.time + colOffset,
+          });
+        }
+
+        // Make sure the entire operation is valid
+        if (newClips.some((clip) => clip.startTime < 0)) return;
+        if (newTransforms.some((transform) => transform.time < 0)) return;
+
+        // If not copying, update the clips and transforms
+        if (!copying) {
+          props.updateClipsAndTransforms(newClips, newTransforms);
+          return;
+        }
+
+        // Otherwise, create the new clips and transforms
+        props
+          .createClipsAndTransforms(newClips, newTransforms)
+          .then(({ clipIds, transformIds }) => {
+            if (clipIds.length) props.selectClips(clipIds);
+            if (transformIds.length) props.selectTransforms(transformIds);
+          });
       },
     }),
-    [selectedClipIds, clips, trackIds, transforms]
+    [props]
   );
 }
