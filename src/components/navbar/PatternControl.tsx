@@ -18,20 +18,22 @@ import {
 import { selectPattern, selectRoot } from "redux/selectors";
 
 import * as Root from "redux/slices/root";
-import { PatternId } from "types/patterns";
 import { ClipId } from "types/clips";
-import { mergeClips, repeatClips } from "redux/thunks/clips";
-import { useEffect, useRef, useState } from "react";
+import { RepeatOptions, mergeClips, repeatClips } from "redux/thunks/clips";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { blurOnEnter, isInputEvent } from "appUtil";
 import useEventListeners from "hooks/useEventListeners";
 
 const mapStateToProps = (state: RootState) => {
   const root = selectRoot(state);
-  const selectedPattern = root.activePatternId
-    ? selectPattern(state, root.activePatternId)
+  const { toolkit } = root;
+  const selectedPattern = root.selectedPatternId
+    ? selectPattern(state, root.selectedPatternId)
     : undefined;
   return {
     ...root,
+    ...toolkit,
+    selectedClipIds: root.selectedClipIds,
     selectedPattern,
     onEditor: root.editorState !== "hidden",
     onPatterns: root.editorState === "patterns",
@@ -45,28 +47,11 @@ const mapStateToProps = (state: RootState) => {
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    mergeClips: (ids: ClipId[]) => {
-      dispatch(Root.toggleMergingClips());
-      dispatch(mergeClips(ids));
+    setToolkitValue: (key: keyof Root.Toolkit, value: any) => {
+      dispatch(Root.setToolkitValue({ key, value }));
     },
-    repeatClips: (ids: ClipId[]) => {
-      dispatch(Root.toggleRepeatingClips());
-      dispatch(repeatClips(ids));
-    },
-    setScalarTranspose: (value: number) => {
-      dispatch(Root.setScalarTranspose(value));
-    },
-    setChordalTranspose: (value: number) => {
-      dispatch(Root.setChordalTranspose(value));
-    },
-    setChromaticTranspose: (value: number) => {
-      dispatch(Root.setChromaticTranspose(value));
-    },
-    setRepeatCount: (value: number) => {
-      dispatch(Root.setRepeatCount(value));
-    },
-    setMergeName: (value: string) => {
-      dispatch(Root.setMergeName(value));
+    toggleToolkitValue: (key: keyof Root.Toolkit) => {
+      dispatch(Root.toggleToolkitValue(key));
     },
     toggleAdding: () => {
       dispatch(Root.toggleAddingClip());
@@ -76,35 +61,25 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(Root.toggleCuttingClip());
       dispatch(Root.hideEditor());
     },
-    toggleTransposing: () => {
-      dispatch(Root.toggleTransposingClip());
+    toggleMerging: () => {
+      dispatch(Root.toggleMergingClips());
       dispatch(Root.hideEditor());
     },
     toggleRepeating: () => {
       dispatch(Root.toggleRepeatingClips());
       dispatch(Root.hideEditor());
     },
-    toggleRepeatTransforms: () => {
-      dispatch(Root.toggleRepeatTransforms());
+    toggleTransposing: () => {
+      dispatch(Root.toggleTransposingClip());
+      dispatch(Root.hideEditor());
     },
-    toggleRepeatWithTranspose: () => {
-      dispatch(Root.toggleRepeatWithTranspose());
-    },
-    toggleMerging: () => {
+    mergeClips: (ids: ClipId[]) => {
       dispatch(Root.toggleMergingClips());
-      dispatch(Root.hideEditor());
+      dispatch(mergeClips(ids));
     },
-    toggleMergeTransforms: () => {
-      dispatch(Root.toggleMergeTransforms());
-    },
-    toggleMergeWithNewPattern: () => {
-      dispatch(Root.toggleMergeWithNewPattern());
-    },
-    setActivePatternId: (id: PatternId) => {
-      dispatch(Root.setActivePattern(id));
-    },
-    hideEditor: () => {
-      dispatch(Root.hideEditor());
+    repeatClips: (ids: ClipId[], options?: RepeatOptions) => {
+      dispatch(Root.toggleRepeatingClips());
+      dispatch(repeatClips(ids, options));
     },
   };
 };
@@ -130,90 +105,163 @@ const ControlButton = (props: {
   </NavButton>
 );
 
+const RefInput = forwardRef(function RefInput(props: any, ref) {
+  return (
+    <input
+      {...props}
+      className="h-8 block px-2 bg-transparent rounded-lg default:text-sm focus:outline-none focus:ring-0 appearance-none w-16 mx-1 text-sm border-slate-400 focus:border-slate-200 focus:bg-fuchsia-700/80"
+      onKeyDown={blurOnEnter}
+      ref={ref}
+      type="number"
+    />
+  );
+});
+
 function PatternControl(props: Props) {
+  const chromaticTranspose = props.chromaticTranspose ?? 0;
+  const scalarTranspose = props.scalarTranspose ?? 0;
+  const chordalTranspose = props.chordalTranspose ?? 0;
+
   const [transpose, setTranspose] = useState<TransposeState>({
-    scalar: props.scalarTranspose ?? 0,
-    chordal: props.chordalTranspose ?? 0,
-    chromatic: props.chromaticTranspose ?? 0,
+    scalar: `${scalarTranspose ?? 0}`,
+    chordal: `${chordalTranspose ?? 0}`,
+    chromatic: `${chromaticTranspose ?? 0}`,
   });
-  const setScalar = (value: number) =>
+
+  const setScalar = (value: string) =>
     setTranspose((prev) => ({ ...prev, scalar: value }));
-  const setChordal = (value: number) =>
+  const setChordal = (value: string) =>
     setTranspose((prev) => ({ ...prev, chordal: value }));
-  const setChromatic = (value: number) =>
+  const setChromatic = (value: string) =>
     setTranspose((prev) => ({ ...prev, chromatic: value }));
 
   useEffect(() => {
-    const { scalar, chordal, chromatic } = transpose;
-    if (scalar !== props.scalarTranspose) {
-      props.setScalarTranspose(scalar);
+    const { chromatic, scalar, chordal } = transpose;
+    if (parseInt(chromatic) !== chromaticTranspose) {
+      if (chromatic === "e") return;
+      const value = parseInt(chromatic);
+      if (isNaN(value)) return;
+      props.setToolkitValue("chromaticTranspose", value);
     }
-    if (chordal !== props.chordalTranspose) {
-      props.setChordalTranspose(chordal);
+    if (parseInt(scalar) !== scalarTranspose) {
+      if (scalar === "e") return;
+      const value = parseInt(scalar);
+      if (isNaN(value)) return;
+      props.setToolkitValue("scalarTranspose", value);
     }
-    if (chromatic !== props.chromaticTranspose) {
-      props.setChromaticTranspose(chromatic);
+    if (parseInt(chordal) !== chordalTranspose) {
+      if (chordal === "e") return;
+      const value = parseInt(chordal);
+      if (isNaN(value)) return;
+      props.setToolkitValue("chordalTranspose", value);
     }
-  }, [transpose]);
+  }, [
+    transpose,
+    chromaticTranspose,
+    scalarTranspose,
+    chordalTranspose,
+    props.setToolkitValue,
+  ]);
+
+  const [holdingAlt, setHoldingAlt] = useState(false);
+
+  const chromaticRef = useRef<HTMLInputElement>(null);
+  const scalarRef = useRef<HTMLInputElement>(null);
+  const chordalRef = useRef<HTMLInputElement>(null);
 
   useEventListeners(
     {
-      t: {
+      Alt: {
+        keydown: () => setHoldingAlt(true),
+        keyup: () => setHoldingAlt(false),
+      },
+      // 1 = Focus Chromatic Input
+      1: {
         keydown: (e) => {
           if (isInputEvent(e as KeyboardEvent)) return;
-          props.toggleTransposing();
+          setTimeout(() => {
+            if (chromaticRef.current) {
+              chromaticRef.current.focus();
+              chromaticRef.current.select();
+            }
+          }, 10);
+        },
+      },
+      // 2 = Focus Scalar Input
+      2: {
+        keydown: (e) => {
+          if (isInputEvent(e as KeyboardEvent)) return;
+          setTimeout(() => {
+            if (scalarRef.current) {
+              scalarRef.current.focus();
+              scalarRef.current.select();
+            }
+          }, 10);
+        },
+      },
+      // 3 = Focus Chordal Input
+      3: {
+        keydown: (e) => {
+          if (isInputEvent(e as KeyboardEvent)) return;
+          setTimeout(() => {
+            if (chordalRef.current) {
+              chordalRef.current.focus();
+              chordalRef.current.select();
+            }
+          }, 10);
         },
       },
     },
-    []
+    [chromaticRef, scalarRef, chordalRef]
   );
 
-  const AddPatternButton = () => (
-    <div className="relative" id="add-pattern-button">
-      <ControlButton
-        label="Add Pattern Clip"
-        className={`${
-          props.addingClip
-            ? "bg-cyan-700 ring-2 ring-offset-2 ring-cyan-600/80 ring-offset-black"
-            : "bg-cyan-700/80"
-        }`}
-        onClick={props.toggleAdding}
-      >
-        <BsBrush className="p-0.5" />
-      </ControlButton>
-      <NavbarTooltip
-        className="bg-cyan-700/80 px-2 backdrop-blur"
-        show={!!props.addingClip}
-        content={`Adding ${props.selectedPattern?.name ?? "Pattern"}`}
-      />
-    </div>
-  );
+  const [mergeNameInput, setMergeNameInput] = useState("");
+  useEffect(() => {
+    props.setToolkitValue("mergeName", mergeNameInput);
+  }, [mergeNameInput]);
 
-  const CutPatternButton = () => (
-    <div className="relative">
-      <ControlButton
-        label="Cut Pattern Clip"
-        className={`${
-          props.cuttingClip
-            ? "bg-slate-600 ring-2 ring-offset-2 ring-slate-500/80 ring-offset-black"
-            : "bg-slate-600/80"
-        }`}
-        onClick={props.toggleCutting}
-      >
-        <BsScissors />
-      </ControlButton>
-      <NavbarTooltip
-        content="Cutting Pattern Clips"
-        className="bg-slate-600/80 px-2 backdrop-blur"
-        show={!!props.cuttingClip}
-      />
-    </div>
-  );
+  const values = [-3, -2, -1, 0, 1, 2, 3];
 
   return (
     <div className="flex space-x-2">
-      <AddPatternButton />
-      <CutPatternButton />
+      {/* Add Pattern Button */}
+      <div className="relative" id="add-pattern-button">
+        <ControlButton
+          label="Add Pattern Clip"
+          className={`${
+            props.addingClip
+              ? "bg-cyan-700 ring-2 ring-offset-2 ring-cyan-600/80 ring-offset-black"
+              : "bg-cyan-700/80"
+          }`}
+          onClick={props.toggleAdding}
+        >
+          <BsBrush className="p-0.5" />
+        </ControlButton>
+        <NavbarTooltip
+          className="left-[-2rem] bg-cyan-700/80 px-2 backdrop-blur"
+          show={!!props.addingClip}
+          content={`Adding ${props.selectedPattern?.name ?? "Pattern"}`}
+        />
+      </div>
+      {/* Cut Pattern Button */}
+      <div className="relative">
+        <ControlButton
+          label="Cut Pattern Clip"
+          className={`${
+            props.cuttingClip
+              ? "bg-slate-600 ring-2 ring-offset-2 ring-slate-500/80 ring-offset-black"
+              : "bg-slate-600/80"
+          }`}
+          onClick={props.toggleCutting}
+        >
+          <BsScissors />
+        </ControlButton>
+        <NavbarTooltip
+          content="Cutting Pattern Clips"
+          className="left-[-3rem] bg-slate-600/80 px-2 backdrop-blur"
+          show={!!props.cuttingClip}
+        />
+      </div>
       {/* Merge Clips */}
       <div className="flex flex-col relative h-full">
         <ControlButton
@@ -228,9 +276,48 @@ function PatternControl(props: Props) {
           <BsLink45Deg />
         </ControlButton>
         <NavbarTooltip
-          className="bg-purple-800/70 backdrop-blur"
+          className="left-[-4rem] bg-purple-800/70 backdrop-blur"
           show={!!props.mergingClips}
-          content={<MergeTooltipContent {...props} />}
+          content={
+            <div className="flex flex-col justify-center items-center">
+              <label className="pb-2">Merging Pattern Clips</label>
+              <NavbarFormGroup className="pb-2">
+                <NavbarFormLabel className="pr-2">Name</NavbarFormLabel>
+                <NavbarFormInput
+                  className="ml-2 w-36 text-sm border-slate-400 focus:border-slate-200 focus:bg-indigo-800/80"
+                  placeholder="New Pattern"
+                  type="text"
+                  value={`${mergeNameInput}` ?? ""}
+                  onChange={(e: any) => setMergeNameInput(e.target.value)}
+                  onKeyDown={blurOnEnter}
+                />
+              </NavbarFormGroup>
+              <NavbarFormGroup className="pb-3">
+                <NavbarFormLabel>Merge Transpositions?</NavbarFormLabel>
+                <NavbarFormInput
+                  className="w-6 h-[24px] rounded-full focus:border-slate-200 focus:outline-none"
+                  type="checkbox"
+                  checked={!!props.mergeTransforms}
+                  onChange={() => props.toggleToolkitValue("mergeTransforms")}
+                />
+              </NavbarFormGroup>
+              <NavbarFormGroup className="p-1 pt-0">
+                <button
+                  className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
+                    !props.selectedClipIds.length
+                      ? "opacity-50 cursor-default"
+                      : "opacity-100 cursor-pointer animate-pulse bg-purple-600"
+                  }`}
+                  disabled={!props.selectedClipIds.length}
+                  onClick={() => props.mergeClips(props.selectedClipIds)}
+                >
+                  {!props.selectedClipIds.length
+                    ? "Select 1+ Clips"
+                    : "Merge Selected Clips"}
+                </button>
+              </NavbarFormGroup>
+            </div>
+          }
         />
       </div>
       {/* Repeat Clips */}
@@ -247,13 +334,79 @@ function PatternControl(props: Props) {
           <BsClock className="p-0.5" />
         </ControlButton>
         <NavbarTooltip
-          className="bg-emerald-700/80 backdrop-blur"
+          className="left-[-8rem] bg-emerald-700/80 backdrop-blur w-[20rem]"
           show={!!props.repeatingClips}
-          content={<RepeatTooltipContent {...props} />}
+          content={
+            <div className="flex flex-col justify-center items-center">
+              <label className="pt-1 pb-2">Repeating Pattern Clips</label>
+              <NavbarFormGroup className="pb-2">
+                <NavbarFormLabel>Count</NavbarFormLabel>
+                <NavbarFormInput
+                  className="mx-1 w-16 border-slate-400 focus:border-slate-200 focus:bg-emerald-700/80"
+                  type="number"
+                  value={props.repeatCount}
+                  onChange={(e: any) =>
+                    props.setToolkitValue("repeatCount", e.target.value)
+                  }
+                  onKeyDown={blurOnEnter}
+                />
+              </NavbarFormGroup>
+              <NavbarFormGroup className="pb-2">
+                <NavbarFormLabel>Copy Transpositions?</NavbarFormLabel>
+                <NavbarFormInput
+                  className="mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none"
+                  type="checkbox"
+                  checked={!!props.repeatTransforms}
+                  onChange={() => {
+                    props.toggleToolkitValue("repeatTransforms");
+                    if (props.repeatWithTranspose) {
+                      props.toggleToolkitValue("repeatWithTranspose");
+                    }
+                  }}
+                />
+              </NavbarFormGroup>
+              <NavbarFormGroup className="pb-3">
+                <NavbarFormLabel
+                  className={`${
+                    !props.repeatTransforms ? "opacity-50 cursor-default" : ""
+                  }`}
+                >
+                  Transpose Incrementally?
+                </NavbarFormLabel>
+                <NavbarFormInput
+                  className={`mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none`}
+                  type="checkbox"
+                  checked={!!props.repeatWithTranspose}
+                  onChange={() =>
+                    props.toggleToolkitValue("repeatWithTranspose")
+                  }
+                  disabled={!props.repeatTransforms}
+                />
+              </NavbarFormGroup>
+              <NavbarFormGroup className="p-1 pt-0">
+                <button
+                  className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
+                    !props.selectedClipIds.length
+                      ? "opacity-50 cursor-default border-slate-400"
+                      : "opacity-100 cursor-pointer bg-emerald-600 animate-pulse"
+                  }`}
+                  disabled={!props.selectedClipIds.length}
+                  onClick={() => {
+                    props.repeatClips(props.selectedClipIds);
+                    props.toggleRepeating();
+                  }}
+                >
+                  {!props.selectedClipIds.length
+                    ? "Select 1+ Clips"
+                    : "Repeat Selected Clips"}
+                </button>
+              </NavbarFormGroup>
+            </div>
+          }
         />
       </div>
       {/* Transpose Clips/Patterns */}
-      <div className="flex flex-col relative h-full">
+      <div className="flex flex-col relative h-full ">
         <ControlButton
           label="Transpose Clip"
           onClick={props.toggleTransposing}
@@ -266,41 +419,39 @@ function PatternControl(props: Props) {
           <BsMagic className="-rotate-90 p-0.5" />
         </ControlButton>
         <NavbarTooltip
-          className="bg-fuchsia-800/80 backdrop-blur"
+          className="-left-[8rem] bg-fuchsia-800 backdrop-blur-lg w-[20rem]"
           show={!!props.transposingClip}
           content={
-            <div className="flex flex-col justify-center items-center space-y-1">
-              <label className="pb-1">Transposing Tracks/Clips</label>
-              <NavbarFormGroup>
+            <div className="flex flex-col justify-center items-center pb-1">
+              <label className="w-full text-center pt-1 pb-2 mb-1 text-md">
+                Transposing Tracks/Clips
+              </label>
+              <NavbarFormGroup className="w-full">
                 <NavbarFormLabel className="inline-flex items-center">
                   <NavbarInfoTooltip
                     content="Steps along the chromatic scale"
                     className="mr-2"
                   />
-                  Chromatic (N)
+                  Chromatic Offset (N)
                 </NavbarFormLabel>
-                <NavbarFormInput
-                  className="w-16 text-sm"
+                <RefInput
+                  ref={chromaticRef}
                   value={transpose.chromatic}
-                  type="number"
                   onChange={(e: any) => setChromatic(e.target.value)}
-                  onKeyDown={blurOnEnter}
                 />
               </NavbarFormGroup>
-              <NavbarFormGroup>
+              <NavbarFormGroup className="my-1.5">
                 <NavbarFormLabel className="inline-flex items-center">
                   <NavbarInfoTooltip
                     content="Steps along the track scale"
                     className="mr-2"
                   />
-                  Scalar (T)
+                  Scalar Offset (T)
                 </NavbarFormLabel>
-                <NavbarFormInput
-                  className="w-16 text-sm"
+                <RefInput
+                  ref={scalarRef}
                   value={transpose.scalar}
-                  type="number"
                   onChange={(e: any) => setScalar(e.target.value)}
-                  onKeyDown={blurOnEnter}
                 />
               </NavbarFormGroup>
               <NavbarFormGroup>
@@ -308,17 +459,61 @@ function PatternControl(props: Props) {
                   <NavbarInfoTooltip
                     content="Steps along the chord"
                     className="mr-2"
-                  />{" "}
-                  Chordal (t)
+                  />
+                  Chordal Offset (t)
                 </NavbarFormLabel>
-                <NavbarFormInput
-                  className="w-16 text-sm"
+                <RefInput
+                  ref={chordalRef}
                   value={transpose.chordal}
-                  type="number"
                   onChange={(e: any) => setChordal(e.target.value)}
-                  onKeyDown={blurOnEnter}
                 />
               </NavbarFormGroup>
+              {holdingAlt ? (
+                <>
+                  <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
+                    <label className="pb-1 text-sm">Chromatic Offset</label>
+                    <input
+                      className="w-full h-5 text-white bg-slate-200"
+                      type="range"
+                      min={-48}
+                      max={48}
+                      value={parseInt(transpose.chromatic)}
+                      onChange={(e: any) =>
+                        setChromatic(e.target.value.toString())
+                      }
+                      onDoubleClick={() => setChromatic("0")}
+                    />
+                  </NavbarFormGroup>
+                  <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
+                    <label className="pb-1 text-sm">Scalar Offset</label>
+                    <input
+                      className="w-full h-5 text-white bg-slate-200"
+                      type="range"
+                      min={-48}
+                      max={48}
+                      value={parseInt(transpose.scalar)}
+                      onChange={(e: any) =>
+                        setScalar(e.target.value.toString())
+                      }
+                      onDoubleClick={() => setScalar("0")}
+                    />
+                  </NavbarFormGroup>
+                  <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
+                    <label className="pb-1 text-sm">Chordal Offset</label>
+                    <input
+                      className="w-full h-5 text-white bg-slate-200"
+                      type="range"
+                      min={-48}
+                      max={48}
+                      value={parseInt(transpose.chordal)}
+                      onChange={(e: any) =>
+                        setChordal(e.target.value.toString())
+                      }
+                      onDoubleClick={() => setChordal("0")}
+                    />
+                  </NavbarFormGroup>
+                </>
+              ) : null}
             </div>
           }
         />
@@ -327,127 +522,8 @@ function PatternControl(props: Props) {
   );
 }
 
-function MergeTooltipContent(props: Props) {
-  const [mergeNameInput, setMergeNameInput] = useState<string>("");
-  useEffect(() => {
-    props.setMergeName(mergeNameInput);
-  }, [mergeNameInput]);
-
-  return (
-    <div className="flex flex-col justify-center items-center">
-      <label className="pb-2">Merging Pattern Clips</label>
-      <NavbarFormGroup className="pb-2">
-        <NavbarFormLabel className="pr-2">Name</NavbarFormLabel>
-        <NavbarFormInput
-          className="ml-auto w-36 text-sm"
-          placeholder="New Pattern"
-          type="text"
-          value={`${mergeNameInput}` ?? ""}
-          onChange={(e: any) => setMergeNameInput(e.target.value)}
-          onKeyDown={blurOnEnter}
-        />
-      </NavbarFormGroup>
-      <NavbarFormGroup className="pb-3">
-        <NavbarFormLabel>Merge Transpositions?</NavbarFormLabel>
-        <NavbarFormInput
-          className="w-6 h-[24px] rounded-full focus:ring-0 focus:outline-none"
-          type="checkbox"
-          checked={props.mergeTransforms}
-          onChange={props.toggleMergeTransforms}
-        />
-      </NavbarFormGroup>
-      {/* <NavbarFormGroup className="pb-3">
-        <NavbarFormLabel>Create New Pattern?</NavbarFormLabel>
-        <NavbarFormInput
-          className="w-6 h-[24px] rounded-full focus:ring-0 focus:outline-none"
-          type="checkbox"
-          checked={props.mergeWithNewPattern}
-          onChange={props.toggleMergeWithNewPattern}
-        />
-      </NavbarFormGroup> */}
-      <NavbarFormGroup>
-        <button
-          className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
-            !props.selectedClipIds.length
-              ? "opacity-50 cursor-default"
-              : "opacity-100 cursor-pointer animate-pulse bg-purple-600"
-          }`}
-          disabled={!props.selectedClipIds.length}
-          onClick={() => props.mergeClips(props.selectedClipIds)}
-        >
-          {!props.selectedClipIds.length
-            ? "Select 1+ Clips"
-            : "Merge Selected Clips"}
-        </button>
-      </NavbarFormGroup>
-    </div>
-  );
-}
-
-function RepeatTooltipContent(props: Props) {
-  return (
-    <div className="flex flex-col justify-center items-center">
-      <label className="pb-2">Repeating Pattern Clips</label>
-      <NavbarFormGroup className="pb-2">
-        <NavbarFormLabel>Count</NavbarFormLabel>
-        <NavbarFormInput
-          className="w-16"
-          type="number"
-          value={props.repeatCount}
-          onChange={(e: any) => props.setRepeatCount(e.target.value)}
-        />
-      </NavbarFormGroup>
-      <NavbarFormGroup className="pb-3">
-        <NavbarFormLabel>Copy Transpositions?</NavbarFormLabel>
-        <NavbarFormInput
-          className="w-6 h-[24px] rounded-full focus:ring-0 focus:outline-none"
-          type="checkbox"
-          checked={!!props.repeatTransforms}
-          onChange={() => {
-            props.toggleRepeatTransforms();
-            if (props.repeatWithTranspose) {
-              props.toggleRepeatWithTranspose();
-            }
-          }}
-        />
-      </NavbarFormGroup>
-      <NavbarFormGroup className="pb-3">
-        <NavbarFormLabel
-          className={`${
-            !props.repeatTransforms ? "opacity-50 cursor-default" : ""
-          }`}
-        >
-          Transpose Incrementally?
-        </NavbarFormLabel>
-        <NavbarFormInput
-          className={`w-6 h-[24px] rounded-full focus:ring-0 focus:outline-none`}
-          type="checkbox"
-          checked={!!props.repeatWithTranspose}
-          onChange={props.toggleRepeatWithTranspose}
-          disabled={!props.repeatTransforms}
-        />
-      </NavbarFormGroup>
-      <NavbarFormGroup>
-        <button
-          className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
-            !props.selectedClipIds.length
-              ? "opacity-50 cursor-default"
-              : "opacity-100 cursor-pointer  bg-emerald-600 animate-pulse"
-          }`}
-          disabled={!props.selectedClipIds.length}
-          onClick={() => props.repeatClips(props.selectedClipIds)}
-        >
-          {!props.selectedClipIds.length
-            ? "Select 1+ Clips"
-            : "Repeat Selected Clips"}
-        </button>
-      </NavbarFormGroup>
-    </div>
-  );
-}
-
 interface TransposeState {
-  scalar: number;
-  chordal: number;
-  chromatic: number;
+  scalar: string;
+  chordal: string;
+  chromatic: string;
 }

@@ -1,7 +1,6 @@
 import * as Patterns from "redux/slices/patterns";
 import PatternsClass, { MIDINote, isRest } from "types/patterns";
 
-import { Note } from "types/units";
 import {
   rotatePatternStream,
   Pattern,
@@ -13,7 +12,7 @@ import { connect, ConnectedProps } from "react-redux";
 import { EditorPatterns } from "./PatternEditor";
 import {
   hideEditor,
-  setActivePattern,
+  setSelectedPattern,
   setTimelineState,
 } from "redux/slices/root";
 import {
@@ -23,15 +22,15 @@ import {
 } from "redux/selectors";
 import { EditorProps } from "..";
 import { AppDispatch, RootState } from "redux/store";
-import { UndoTypes } from "redux/undoTypes";
 import { ChromaticScale } from "types/presets/scales";
 import { StateProps } from "../Editor";
 import { playPattern } from "redux/thunks/patterns";
 import { uniqBy } from "lodash";
+import { UndoTypes } from "redux/undoTypes";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
-  const pattern = ownProps.activePatternId
-    ? selectPattern(state, ownProps.activePatternId)
+  const pattern = ownProps.selectedPatternId
+    ? selectPattern(state, ownProps.selectedPatternId)
     : undefined;
   const { past, future } = state.patterns;
   const canUndoPatterns = past.length > 0 && past[0].allIds.length > 0;
@@ -77,10 +76,10 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
     const patternId = await dispatch(
       Patterns.createPattern({ ...pattern, name: `${pattern.name} (Copy)` })
     );
-    dispatch(setActivePattern(patternId));
+    dispatch(setSelectedPattern(patternId));
   },
   setPatternId: (id: PatternId) => {
-    dispatch(setActivePattern(id));
+    dispatch(setSelectedPattern(id));
   },
   setPatternIds: (ids: PatternId[]) => {
     dispatch(Patterns.setPatternIds(ids));
@@ -120,10 +119,30 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
       })
     );
   },
-  transposePattern: (pattern: Pattern, transpose: Note) => {
+  transposePattern: (pattern: Pattern, transpose: number) => {
     dispatch(Patterns.transposePattern({ id: pattern.id, transpose }));
   },
-  rotatePattern: (pattern: Pattern, transpose: Note) => {
+  transposePatternNote: (
+    pattern: Pattern,
+    index: number,
+    transpose: number
+  ) => {
+    const stream = pattern.stream;
+    const transposedStream = pattern.stream.map((chord, i) => {
+      if (i !== index) return chord;
+      return chord.map((note) => {
+        if (!note) return note;
+        return { ...note, MIDI: note.MIDI + transpose };
+      });
+    });
+    dispatch(
+      Patterns.updatePattern({
+        id: pattern.id,
+        stream: transposedStream,
+      })
+    );
+  },
+  rotatePattern: (pattern: Pattern, transpose: number) => {
     dispatch(Patterns.rotatePattern({ id: pattern.id, transpose }));
   },
   repeatPattern: (pattern: Pattern, repeat: number) => {
@@ -186,6 +205,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
   reversePattern: (pattern: Pattern) => {
     dispatch(Patterns.reversePattern(pattern.id));
   },
+  phasePattern: (id: PatternId, phase: number) => {
+    dispatch(Patterns.phasePattern({ id, phase }));
+  },
   playPattern: (id: PatternId) => {
     dispatch(playPattern(id));
   },
@@ -193,7 +215,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
     dispatch(Patterns.clearPattern(pattern.id));
   },
   startAddingPatternAsClip: (pattern: Pattern) => {
-    dispatch(setActivePattern(pattern.id));
+    dispatch(setSelectedPattern(pattern.id));
     dispatch(setTimelineState("adding"));
     dispatch(hideEditor());
   },

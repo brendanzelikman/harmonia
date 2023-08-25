@@ -32,8 +32,8 @@ function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
   const onLoopEnd = loopEnd === columnIndex;
 
   const className = `relative w-full h-full text-white hover:border hover:border-slate-200/80 cursor-pointer ${
-    onTime
-      ? "bg-gradient-to-b from-emerald-600 to-emerald-700 hover:bg-slate-800"
+    onTime && transport.state === "started"
+      ? "bg-gradient-to-r from-emerald-700 to-emerald-600 hover:bg-slate-800"
       : looping && inLoopRange
       ? "bg-black hover:bg-slate-800 border-b-8 border-b-indigo-700"
       : `bg-black hover:bg-slate-800 border-slate-50/20`

@@ -1,7 +1,7 @@
 import { Disclosure } from "@headlessui/react";
 import { useCallback, useMemo, useState } from "react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
-import Scales, { Scale } from "types/scales";
+import Scales, { Scale, ScaleId } from "types/scales";
 import { ScaleEditorProps } from ".";
 import * as Editor from "../Editor";
 import { CustomScale, PresetScale } from "./ScaleItem";
@@ -39,8 +39,11 @@ export default function ScaleList(props: ScaleEditorProps) {
 
   // Move a scale to a new index when dragging
   const moveScale = useCallback(
-    (dragIndex: number, hoverIndex: number) => {
+    (dragId: ScaleId, hoverId: ScaleId) => {
       const newScaleIds = [...props.scaleIds];
+      const dragIndex = newScaleIds.findIndex((id) => id === dragId);
+      const hoverIndex = newScaleIds.findIndex((id) => id === hoverId);
+      if (dragIndex < 0 || hoverIndex < 0) return;
       newScaleIds.splice(dragIndex, 1);
       newScaleIds.splice(hoverIndex, 0, props.scaleIds[dragIndex]);
       props.setScaleIds(newScaleIds);
@@ -70,57 +73,67 @@ export default function ScaleList(props: ScaleEditorProps) {
     [props]
   );
 
+  const renderCategory = useCallback(
+    (category: any) => {
+      const typedCategory = category as keyof typeof ScalePresets;
+      const isCategoryOpen = openCategories.includes(typedCategory);
+      const isCustomCategory = typedCategory === "Custom Scales";
+
+      const searching = searchQuery !== "";
+      const presetScales = ScalePresets[typedCategory];
+      const scales = searching
+        ? presetScales.filter(doesMatchScale)
+        : presetScales;
+      const isCategorySelected = scale
+        ? scales.some((s) => Scales.areRelated(scale, s))
+        : false;
+      return (
+        <Disclosure key={category}>
+          {({ open }) => {
+            const isOpen = isCategoryOpen || open;
+            return (
+              <>
+                <Disclosure.Button>
+                  <div
+                    className={`flex items-center justify-center text-slate-50`}
+                  >
+                    <label
+                      className={`font-nunito py-3 px-2 ${
+                        open ? "font-extrabold" : "font-medium"
+                      }`}
+                    >
+                      {isCategorySelected ? "*" : ""} {typedCategory}
+                    </label>
+                    <span className="ml-auto mr-2">
+                      {isOpen ? <BsChevronDown /> : <BsChevronUp />}
+                    </span>
+                  </div>
+                </Disclosure.Button>
+                <Disclosure.Panel static={isOpen}>
+                  {scales.map(
+                    isCustomCategory ? renderCustomScale : renderPresetScale
+                  )}
+                </Disclosure.Panel>
+              </>
+            );
+          }}
+        </Disclosure>
+      );
+    },
+    [
+      renderCustomScale,
+      renderPresetScale,
+      scale,
+      doesMatchScale,
+      openCategories,
+      searchQuery,
+    ]
+  );
+
   return (
     <>
       <Editor.SearchBox query={searchQuery} setQuery={setSearchQuery} />
-      <Editor.List>
-        {scaleCategories.map((category) => {
-          const typedCategory = category as keyof typeof ScalePresets;
-          const isCategoryOpen = openCategories.includes(typedCategory);
-          const isCustomCategory = typedCategory === "Custom Scales";
-
-          const searching = searchQuery !== "";
-          const presetScales = ScalePresets[typedCategory];
-          const scales = searching
-            ? presetScales.filter(doesMatchScale)
-            : presetScales;
-          const isCategorySelected = scale
-            ? scales.some((s) => Scales.areRelated(scale, s))
-            : false;
-          return (
-            <Disclosure key={category}>
-              {({ open }) => {
-                const isOpen = isCategoryOpen || open;
-                return (
-                  <>
-                    <Disclosure.Button>
-                      <div
-                        className={`flex items-center justify-center text-slate-50`}
-                      >
-                        <label
-                          className={`font-nunito py-3 px-2 ${
-                            open ? "font-extrabold" : "font-medium"
-                          }`}
-                        >
-                          {isCategorySelected ? "*" : ""} {typedCategory}
-                        </label>
-                        <span className="ml-auto mr-2">
-                          {isOpen ? <BsChevronDown /> : <BsChevronUp />}
-                        </span>
-                      </div>
-                    </Disclosure.Button>
-                    <Disclosure.Panel static={isOpen}>
-                      {scales.map(
-                        isCustomCategory ? renderCustomScale : renderPresetScale
-                      )}
-                    </Disclosure.Panel>
-                  </>
-                );
-              }}
-            </Disclosure>
-          );
-        })}
-      </Editor.List>
+      <Editor.List>{scaleCategories.map(renderCategory)}</Editor.List>
     </>
   );
 }

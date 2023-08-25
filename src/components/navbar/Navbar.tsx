@@ -37,8 +37,9 @@ export function Navbar() {
           href="https://www.github.com/brendanzelikman/harmonia"
           target="_blank"
           rel="noreferrer"
+          className="ml-4 text-2xl active:text-sky-600/80"
         >
-          <BsGithub className="ml-4 text-2xl" />
+          <BsGithub />
         </a>
       </NavGroup>
     </nav>
@@ -59,16 +60,9 @@ function NavGroup(props: any) {
 
 function NavBrand() {
   return (
-    <>
-      <a href="" className="select-none">
-        <img src={logo} alt="Logo brand" className="w-10 h-10" />
-      </a>
-      {/* <div className="relative hidden xl:flex xl:flex-col items-center ml-3 font-light font-nunito">
-        <span className="text-xl font-normal shadow-lg select-none">
-          Harmonia
-        </span>
-      </div> */}
-    </>
+    <a href="/harmonia/" className="select-none">
+      <img src={logo} alt="Logo brand" className="w-10 h-10" />
+    </a>
   );
 }
 
@@ -130,30 +124,29 @@ export const NavbarFormGroup = (props: any) => (
 
 export const NavbarFormLabel = (props: any) => (
   <label
-    className={`text-sm mr-auto mx-2 px-1 font-normal cursor-pointer ${
+    className={`text-sm mr-auto mx-2 px-1 font-medium cursor-pointer ${
       props.className ?? ""
     }`}
+    onClick={props.onClick}
   >
     {props.children}
   </label>
 );
 
-export const NavbarFormInput = (props: any) => (
+export const NavbarFormInput = (props: any, ref?: any) => (
   <input
     {...props}
     onChange={props.onChange}
-    className={`h-8 block px-2 ml-auto bg-transparent rounded-lg default:text-sm ${
-      !!props.value
-        ? "border-gray-200 focus:border-gray-200"
-        : "border-gray-400 focus:border-gray-400"
-    } focus:outline-none focus:ring-0 appearance-none ${props.className ?? ""}`}
+    className={`h-8 block px-2 bg-transparent rounded-lg default:text-sm focus:outline-none focus:ring-0 appearance-none ${
+      props.className ?? ""
+    }`}
   />
 );
 
 export const NavbarInfoTooltip = (props: any) => (
   <div className={`relative ${props.className ?? ""}`}>
     <BsQuestionCircle className="w-5 h-5 text-gray-400 hover:text-gray-300 peer" />
-    <label className="text-xs absolute -left-52 peer-hover:visible invisible bg-slate-900/90 backdrop-blur font-light w-48 -top-1/2 p-2 rounded border border-white/50 whitespace-normal inline-block text-center">
+    <label className="text-xs absolute w-auto right-7 whitespace-nowrap peer-hover:visible invisible bg-fuchsia-950/90 backdrop-blur-lg font-light -top-1/2 p-2 rounded-xl border border-white/50 inline-block text-right">
       {props.content}
     </label>
   </div>

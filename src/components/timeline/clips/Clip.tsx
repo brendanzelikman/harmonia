@@ -5,7 +5,6 @@ import {
   selectClipPattern,
   selectMixerByTrackId,
   selectRoot,
-  selectSelectedClipIds,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Clip, ClipId } from "types/clips";
@@ -21,6 +20,7 @@ import useEventListeners from "hooks/useEventListeners";
 import { TransformNoId } from "types/transform";
 import { rotatePattern, transposePattern } from "redux/slices/patterns";
 import { createTransforms } from "redux/slices/transforms";
+import { isHoldingOption, isHoldingShift } from "appUtil";
 
 interface OwnClipProps extends ClipsProps {
   clip: Clip;
@@ -40,11 +40,9 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
 
   const pattern = selectClipPattern(state, clip.id);
   const transforms = selectTransforms(state);
-  const selectedClipIds = selectSelectedClipIds(state);
-  const isSelected = selectedClipIds.includes(clip.id);
   const root = selectRoot(state);
-  const { timelineState, draggingClip, repeatCount, repeatTransforms } = root;
-  const { chromaticTranspose, scalarTranspose, chordalTranspose } = root;
+  const { timelineState, draggingClip, toolkit, selectedClipIds } = root;
+  const isSelected = selectedClipIds.includes(clip.id);
 
   return {
     ...ownProps,
@@ -60,11 +58,7 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     pattern,
     transposingClip: timelineState === "transposing",
     draggingClip,
-    repeatCount,
-    repeatTransforms,
-    chromaticTranspose,
-    scalarTranspose,
-    chordalTranspose,
+    ...toolkit,
   };
 };
 
@@ -77,8 +71,8 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
         dispatch(RootSlice.selectClip(clipId));
       }
     },
-    setActivePattern: (patternId: string) => {
-      dispatch(RootSlice.setActivePattern(patternId));
+    setSelectedPattern: (patternId: string) => {
+      dispatch(RootSlice.setSelectedPattern(patternId));
     },
     selectClips: (clipIds: ClipId[]) => {
       dispatch(RootSlice.selectClips(clipIds));
@@ -119,7 +113,7 @@ export default connector(TimelineClip);
 
 function TimelineClip(props: ClipProps) {
   if (props.index === -1) return null;
-  const { clip, rows, selectedIds } = props;
+  const { clip, rows, selectedClipIds } = props;
   const { draggingClip, transposingClip } = props;
   const { top, left, width, duration, name, isSelected, muted } = props;
 
@@ -142,7 +136,6 @@ function TimelineClip(props: ClipProps) {
     return 1;
   }, [muted, isDragging, draggingClip]);
 
-  const [holdingAlt, setHoldingAlt] = useState(false);
   const [eyedropping, setEyedropping] = useState(false);
 
   useEventListeners(
@@ -159,24 +152,14 @@ function TimelineClip(props: ClipProps) {
           }
         },
       },
-      Alt: {
-        keydown: (e) => {
-          if ((e as KeyboardEvent).key === "Alt") {
-            setHoldingAlt(true);
-          }
-        },
-        keyup: (e) => {
-          if ((e as KeyboardEvent).key === "Alt") {
-            setHoldingAlt(false);
-          }
-        },
-      },
     },
     [isSelected]
   );
 
   const onClipClick = (e: MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+
     if (transposingClip) {
       const { chromaticTranspose, scalarTranspose, chordalTranspose } = props;
       if (isNaN(scalarTranspose)) return;
@@ -191,51 +174,70 @@ function TimelineClip(props: ClipProps) {
       );
       return;
     }
+    // Eyedrop the pattern if the user is holding the eyedrop key
     if (eyedropping) {
-      props.setActivePattern(clip.patternId);
+      props.setSelectedPattern(clip.patternId);
       return;
     }
+    // Deselect the clip if it is selected
     if (isSelected) {
       props.deselectClip(clip.id);
-    } else if (e.shiftKey) {
-      if (selectedIds.length === 0) {
-        props.selectClip(clip.id);
-      } else {
-        const lastId = selectedIds.at(-1);
-        const lastClip = props.clips.find((c) => c.id === lastId);
-        if (!lastClip) {
-          props.selectClip(clip.id);
-          return;
-        }
-        const startIndex = rows.findIndex(
-          (row) => row.trackId === lastClip?.trackId
-        );
-        const targetIndex = rows.findIndex(
-          (row) => row.trackId === clip.trackId
-        );
-        const trackIds = rows
-          .slice(
-            Math.min(startIndex, targetIndex),
-            Math.max(startIndex, targetIndex) + 1
-          )
-          .map((row) => row.trackId);
-        const clipIds = props.clips
-          .filter((c) => trackIds.includes(c.trackId))
-          .map((c) => c.id);
-
-        const startTime = lastClip.startTime || 0;
-        const endTime = clip.startTime + duration - 1;
-
-        const selectedClipIds = clipIds.filter((id) => {
-          const clip = props.clips.find((c) => c.id === id);
-          if (!clip) return false;
-          return clip.startTime >= startTime && clip.startTime <= endTime;
-        });
-        props.selectClips(selectedClipIds);
-      }
-    } else {
-      props.selectClip(clip.id, holdingAlt);
+      return;
     }
+
+    const nativeEvent = e.nativeEvent as Event;
+    const holdingShift = isHoldingShift(nativeEvent);
+
+    // Select the clip if the user is not holding shift
+    if (!holdingShift) {
+      const holdingAlt = isHoldingOption(nativeEvent);
+      props.selectClip(clip.id, holdingAlt);
+      return;
+    }
+
+    // Just select the clip if there are no other selected clips
+    if (selectedClipIds.length === 0) {
+      props.selectClip(clip.id);
+      return;
+    }
+
+    // Get the last selected clip
+    const lastId = selectedClipIds.at(-1);
+    const lastClip = props.clips.find((c) => c.id === lastId);
+    if (!lastClip) return;
+
+    // Get the start and end index of the selection
+    const startIndex = rows.findIndex(
+      (row) => row.trackId === lastClip?.trackId
+    );
+    const targetIndex = rows.findIndex((row) => row.trackId === clip.trackId);
+
+    // Get the trackIds of the selection
+    const trackIds = rows
+      .slice(
+        Math.min(startIndex, targetIndex),
+        Math.max(startIndex, targetIndex) + 1
+      )
+      .map((row) => row.trackId);
+
+    // Get the clipIds of the selection
+    const clipIds = props.clips
+      .filter((c) => trackIds.includes(c.trackId))
+      .map((c) => c.id);
+
+    // Compute the start and end time of the selection
+    const startTime = lastClip.startTime || 0;
+    const endTime = clip.startTime + duration - 1;
+
+    // Filter the clipIds to only include clips in the selection
+    const newClipIds = clipIds.filter((id) => {
+      const clip = props.clips.find((c) => c.id === id);
+      if (!clip) return false;
+      return clip.startTime >= startTime && clip.startTime <= endTime;
+    });
+
+    // Select the clips
+    props.selectClips(newClipIds);
   };
 
   const ClipName = useMemo(() => {

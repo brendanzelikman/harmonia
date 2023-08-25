@@ -12,8 +12,13 @@ import {
   updateTransform,
 } from "redux/slices/transforms";
 import { selectTransforms } from "redux/selectors/transforms";
-import { selectRoot } from "redux/selectors";
+import { selectClips, selectRoot } from "redux/selectors";
 import { toggleTransposingClip } from "redux/slices/root";
+import { Clip } from "types/clips";
+import {
+  createClipsAndTransforms,
+  updateClipsAndTransforms,
+} from "redux/slices/clips";
 
 interface TimelineTransformsProps {
   timeline: DataGridHandle;
@@ -24,21 +29,28 @@ const mapStateToProps = (
   state: RootState,
   ownProps: TimelineTransformsProps
 ) => {
+  const clips = selectClips(state);
   const transforms = selectTransforms(state);
   const root = selectRoot(state);
-  const { timelineState, draggingClip } = root;
-  const { chromaticTranspose, scalarTranspose, chordalTranspose } = root;
+  const {
+    timelineState,
+    draggingClip,
+    toolkit,
+    selectedClipIds,
+    selectedTransformIds,
+  } = root;
 
   const transposing = timelineState === "transposing";
 
   return {
     ...ownProps,
+    ...toolkit,
+    clips,
     transforms,
     transposing,
     draggingClip,
-    chromaticTranspose,
-    scalarTranspose,
-    chordalTranspose,
+    selectedClipIds: selectedClipIds || [],
+    selectedTransformIds: selectedTransformIds || [],
   };
 };
 
@@ -55,6 +67,18 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     },
     toggleTransposingClip: () => {
       dispatch(toggleTransposingClip());
+    },
+    createClipsAndTransforms(
+      clips: Partial<Clip>[],
+      transforms: Partial<Transform>[]
+    ) {
+      return dispatch(createClipsAndTransforms(clips, transforms));
+    },
+    updateClipsAndTransforms(
+      clips: Partial<Clip>[],
+      transforms: Partial<Transform>[]
+    ) {
+      return dispatch(updateClipsAndTransforms(clips, transforms));
     },
   };
 };

@@ -1,10 +1,12 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
-import { Transform } from "types/transform";
 import { getClipDuration } from "types/clips";
 import { selectPatterns } from "./patterns";
 import { inRange } from "lodash";
+import { TransformId } from "types/transform";
 // import { Transform } from "types/transform";
+
+export const selectTransformId = (state: RootState, id: TransformId) => id;
 
 // Select all transforms from the store
 export const selectTransforms = createSelector(
@@ -14,12 +16,18 @@ export const selectTransforms = createSelector(
 
 // Select all transform IDs from the store
 export const selectTransformIds = (state: RootState) => {
+  if (!state?.timeline?.present?.transforms?.allIds) return [];
   return state.timeline.present.transforms.allIds;
+};
+
+export const selectTransformsByIds = (state: RootState, ids: TransformId[]) => {
+  if (!state || !ids) return [];
+  return ids.map((id) => state.timeline.present.transforms.byId[id]);
 };
 
 // Select a specific transform from the store
 export const selectTransform = createSelector(
-  [selectTransforms, (state: RootState, id: string) => id],
+  [selectTransforms, selectTransformId],
   (transforms, id) => transforms.find((transform) => transform.id === id)
 );
 

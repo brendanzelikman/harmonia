@@ -1,15 +1,17 @@
-import { isInputEvent, mod } from "appUtil";
+import { isHoldingCommand, isHoldingShift, isInputEvent } from "appUtil";
 import { useAppSelector, useDispatch } from "redux/hooks";
 import {
-  selectActivePatternId,
-  selectSelectedClipIds,
   selectRoot,
   selectTransport,
-  selectPatterns,
+  selectClips,
+  selectTransforms,
+  selectClipsByIds,
+  selectTransformsByIds,
+  selectClipDuration,
 } from "redux/selectors";
 import { exportClipsToMidi } from "redux/thunks/clips";
 import * as Root from "redux/slices/root";
-import { setTransportLoop } from "redux/thunks/transport";
+import { seekTransport, setTransportLoop } from "redux/thunks/transport";
 import {
   startTransport,
   pauseTransport,
@@ -18,38 +20,36 @@ import {
 import { UndoTypes } from "redux/undoTypes";
 import { readFiles, saveStateToFile } from "redux/util";
 import useEventListeners from "./useEventListeners";
-import { useState } from "react";
-import { selectSelectedClipTransforms } from "redux/selectors/transforms";
-import { deleteClips, deleteClipsAndTransforms } from "redux/slices/clips";
+
+import {
+  createClipsAndTransforms,
+  deleteClipsAndTransforms,
+} from "redux/slices/clips";
 
 export default function useShortcuts() {
   const transport = useAppSelector(selectTransport);
   const root = useAppSelector(selectRoot);
-  const patterns = useAppSelector(selectPatterns);
+  const clips = useAppSelector(selectClips);
+  const transforms = useAppSelector(selectTransforms);
 
-  const activePatternId = useAppSelector(selectActivePatternId);
-  const selectedClipIds = useAppSelector(selectSelectedClipIds);
-  const selectedClipTransformIds = useAppSelector(selectSelectedClipTransforms);
+  const { selectedClipIds, selectedPatternId, selectedTransformIds } = root;
+  const selectedClips = useAppSelector((state) =>
+    selectClipsByIds(state, selectedClipIds)
+  );
+  const selectedClipDurations = useAppSelector((state) =>
+    selectedClips.map((clip) => selectClipDuration(state, clip?.id))
+  );
+  const selectedTransforms = useAppSelector((state) =>
+    selectTransformsByIds(state, selectedTransformIds)
+  );
   const dispatch = useDispatch();
-
-  const [holdingCommand, setHoldingCommand] = useState(false);
 
   useEventListeners(
     {
-      // "Command" = Hold
-      Meta: {
-        keydown: (e) => {
-          setHoldingCommand(true);
-        },
-        keyup: (e) => {
-          setHoldingCommand(false);
-        },
-      },
       // "Command + S" = Save
       s: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (!holdingCommand) return;
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
           e.preventDefault();
           saveStateToFile();
         },
@@ -57,21 +57,101 @@ export default function useShortcuts() {
       // "Command + O" = Open
       O: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (!holdingCommand) return;
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
           e.preventDefault();
           readFiles();
         },
       },
+      // "Command + A" = Select All Clips/Transforms
+      // "a" = Toggle Adding
+      a: {
+        keydown: (e) => {
+          if (isInputEvent(e) || root.showingEditor) return;
+          e.preventDefault();
+          if (isHoldingCommand(e)) {
+            dispatch(Root.selectClips(clips.map((c) => c.id)));
+            dispatch(Root.selectTransforms(transforms.map((t) => t.id)));
+          } else {
+            dispatch(Root.toggleAddingClip());
+            dispatch(Root.hideEditor());
+          }
+        },
+      },
+      // "Command + C" = Copy
+      // "c" = Toggle Cutting
+      c: {
+        keydown: (e) => {
+          if (isInputEvent(e) || root.showingEditor) return;
+          e.preventDefault();
+
+          // Copy Selected Clips and Transforms
+          if (isHoldingCommand(e)) {
+            dispatch(
+              Root.setClipboard({
+                clips: clips.filter((c) => selectedClipIds.includes(c.id)),
+                transforms: transforms.filter((t) =>
+                  selectedTransformIds.includes(t.id)
+                ),
+              })
+            );
+            return;
+          }
+          // Toggle Cutting
+          dispatch(Root.toggleCuttingClip());
+          dispatch(Root.hideEditor());
+        },
+      },
+      // "Command + X" = Cut
+      x: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          if (!isHoldingCommand(e)) return;
+          e.preventDefault();
+
+          // Copy Selected Clips and Transforms to Clipboard
+          dispatch(
+            Root.setClipboard({
+              clips: clips.filter((c) => selectedClipIds.includes(c.id)),
+              transforms: transforms.filter((t) =>
+                selectedTransformIds.includes(t.id)
+              ),
+            })
+          );
+          // Delete Selected Clips and Transforms
+          dispatch(
+            deleteClipsAndTransforms(selectedClipIds, selectedTransformIds)
+          );
+        },
+      },
+
       // "Command + Z" = Undo
       // "Command + Shift + Z" = Redo
       z: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (!holdingCommand) return;
-          if (root.showingEditor) return;
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
           e.preventDefault();
-          const holdingShift = !!(e as KeyboardEvent).shiftKey;
+
+          const holdingShift = isHoldingShift(e);
+
+          // Pattern Editor
+          if (root.showingEditor && root.editorState === "patterns") {
+            const type = holdingShift
+              ? UndoTypes.redoPatterns
+              : UndoTypes.undoPatterns;
+            dispatch({ type });
+            return;
+          }
+
+          // Scale Editor
+          if (root.showingEditor && root.editorState === "scale") {
+            const type = holdingShift
+              ? UndoTypes.redoScales
+              : UndoTypes.undoScales;
+            dispatch({ type });
+            return;
+          }
+
+          // Timeline
           const type = holdingShift
             ? UndoTypes.redoTimeline
             : UndoTypes.undoTimeline;
@@ -81,15 +161,50 @@ export default function useShortcuts() {
       // Shift + M = Export selected clips to MIDI
       M: {
         keydown: (e) => {
-          if (isInputEvent(e) || !(e as KeyboardEvent).shiftKey) return;
-          if (root.showingEditor) return;
+          if (isInputEvent(e) || !isHoldingShift(e)) return;
+          if (root.showingEditor || !selectedClipIds.length) return;
           e.preventDefault();
-          if (!selectedClipIds.length) return;
+
           dispatch(exportClipsToMidi(selectedClipIds));
         },
       },
+      // "Command + D" = Duplicate selected clips
+      d: {
+        keydown: async (e) => {
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
+          e.preventDefault();
+          if (!selectedClipIds.length) return;
+
+          const startTime = Math.min(
+            ...selectedClips.map((clip) => clip.startTime),
+            ...selectedTransforms.map((transform) => transform.time)
+          );
+          const lastTime = Math.max(
+            ...selectedClips.map(
+              (clip, i) => clip.startTime + selectedClipDurations[i]
+            ),
+            ...selectedTransforms.map((transform) => transform.time + 1)
+          );
+          const duration = lastTime - startTime;
+
+          const newClips = selectedClips.map((clip) => ({
+            ...clip,
+            startTime: clip.startTime + duration,
+          }));
+          const newTransforms = selectedTransforms.map((transform) => ({
+            ...transform,
+            time: transform.time + duration,
+          }));
+
+          const { clipIds, transformIds } = await dispatch(
+            createClipsAndTransforms(newClips, newTransforms)
+          );
+          if (clipIds) dispatch(Root.selectClips(clipIds));
+          if (transformIds) dispatch(Root.selectTransforms(transformIds));
+        },
+      },
     },
-    [holdingCommand, selectedClipIds]
+    [root, selectedClipIds, selectedTransformIds, clips, transforms]
   );
 
   useEventListeners(
@@ -98,13 +213,11 @@ export default function useShortcuts() {
       " ": {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (!root.showingEditor) {
-            e.preventDefault();
-            if (transport.state === "started") {
-              dispatch(pauseTransport());
-            } else {
-              dispatch(startTransport());
-            }
+          e.preventDefault();
+          if (transport.state === "started") {
+            dispatch(pauseTransport());
+          } else {
+            dispatch(startTransport());
           }
         },
       },
@@ -112,10 +225,25 @@ export default function useShortcuts() {
       Enter: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (!root.showingEditor) {
-            e.preventDefault();
-            dispatch(stopTransport());
-          }
+          e.preventDefault();
+          dispatch(stopTransport());
+        },
+      },
+      // "Left Arrow" = Go Back
+      ArrowLeft: {
+        keydown: (e) => {
+          if (isInputEvent(e) || root.showingEditor) return;
+          e.preventDefault();
+          if (transport.time === 0) return;
+          dispatch(seekTransport(transport.time - 1));
+        },
+      },
+      // "Right Arrow" = Go Forward
+      ArrowRight: {
+        keydown: (e) => {
+          if (isInputEvent(e) || root.showingEditor) return;
+          e.preventDefault();
+          dispatch(seekTransport(transport.time + 1));
         },
       },
       // "l" = Toggle Loop
@@ -131,40 +259,6 @@ export default function useShortcuts() {
 
   useEventListeners(
     {
-      ArrowDown: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (root.showingEditor) return;
-          e.preventDefault();
-          if (!activePatternId) return;
-          const index = patterns.findIndex(
-            (pattern) => pattern.id === activePatternId
-          );
-          if (index === -1) return;
-          const nextIndex = (index + 1) % patterns.length;
-          dispatch(Root.setActivePattern(patterns[nextIndex].id));
-        },
-      },
-      ArrowUp: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (root.showingEditor) return;
-          e.preventDefault();
-          if (!activePatternId) return;
-          const index = patterns.findIndex(
-            (pattern) => pattern.id === activePatternId
-          );
-          if (index === -1) return;
-          const nextIndex = mod(index - 1, patterns.length);
-          dispatch(Root.setActivePattern(patterns[nextIndex].id));
-        },
-      },
-    },
-    [patterns, activePatternId, root]
-  );
-
-  useEventListeners(
-    {
       // "p" = Toggle Pattern Editor
       p: {
         keydown: (e) => {
@@ -173,17 +267,7 @@ export default function useShortcuts() {
             dispatch(Root.hideEditor());
           } else {
             dispatch(Root.showEditor({ id: "patterns" }));
-            if (root.timelineState === "adding") {
-              dispatch(Root.toggleAddingClip());
-            } else if (root.timelineState === "cutting") {
-              dispatch(Root.toggleCuttingClip());
-            } else if (root.timelineState === "merging") {
-              dispatch(Root.toggleMergingClips());
-            } else if (root.timelineState === "repeating") {
-              dispatch(Root.toggleRepeatingClips());
-            } else if (root.timelineState === "transposing") {
-              dispatch(Root.toggleTransposingClip());
-            }
+            dispatch(Root.clearTimelineState());
           }
         },
       },
@@ -194,30 +278,15 @@ export default function useShortcuts() {
           if (root.showingEditor) {
             dispatch(Root.hideEditor());
           } else {
-            dispatch(Root.selectClips([]));
+            dispatch(Root.deselectAllClips());
+            dispatch(Root.deselectAllTransforms());
           }
-        },
-      },
-      // "a" = Toggle Adding
-      a: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          dispatch(Root.toggleAddingClip());
-          dispatch(Root.hideEditor());
-        },
-      },
-      // "c" = Toggle Cutting
-      c: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          dispatch(Root.toggleCuttingClip());
-          dispatch(Root.hideEditor());
         },
       },
       // "m" = Toggle Merging
       m: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
+          if (isInputEvent(e) || root.showingEditor) return;
           dispatch(Root.toggleMergingClips());
           dispatch(Root.hideEditor());
         },
@@ -225,7 +294,7 @@ export default function useShortcuts() {
       // "r" = Toggle Repeating
       r: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
+          if (isInputEvent(e) || root.showingEditor) return;
           dispatch(Root.toggleRepeatingClips());
           dispatch(Root.hideEditor());
         },
@@ -233,35 +302,22 @@ export default function useShortcuts() {
       // "t" = Toggle Transposing
       t: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
+          if (isInputEvent(e) || root.showingEditor) return;
           dispatch(Root.toggleTransposingClip());
           dispatch(Root.hideEditor());
         },
       },
-      // "Backspace" = Delete Clip
+      // "Backspace" = Delete Clips and Transforms
       Backspace: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (!root.showingEditor) {
-            e.preventDefault();
-            if (selectedClipIds.length > 0) {
-              const holdingShift = !!(e as KeyboardEvent).shiftKey;
-
-              if (holdingShift) {
-                const transformIds = selectedClipTransformIds
-                  .flat()
-                  .map((t) => t.id);
-                dispatch(
-                  deleteClipsAndTransforms(selectedClipIds, transformIds)
-                );
-              } else {
-                dispatch(deleteClips(selectedClipIds));
-              }
-            }
-          }
+          if (isInputEvent(e) || root.showingEditor) return;
+          e.preventDefault();
+          dispatch(
+            deleteClipsAndTransforms(selectedClipIds, selectedTransformIds)
+          );
         },
       },
     },
-    [activePatternId, root, selectedClipIds, selectedClipTransformIds]
+    [selectedPatternId, root, selectedClipIds, selectedTransformIds]
   );
 }

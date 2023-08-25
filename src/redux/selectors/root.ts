@@ -15,28 +15,22 @@ export const selectCellWidth = createSelector(
 );
 
 // Select active pattern id
-export const selectActivePatternId = createSelector(
+export const selectSelectedPatternId = createSelector(
   [selectRoot],
-  (root) => root.activePatternId
+  (root) => root.selectedPatternId
 );
 
 // Select active track id
-export const selectActiveTrackId = createSelector(
+export const selectSelectedTrackId = createSelector(
   [selectRoot],
-  (root) => root.activeTrackId
+  (root) => root.selectedTrackId
 );
 
-// Select the active pattern
-export const selectActivePattern = createSelector(
-  [selectActivePatternId, selectPatternTracks],
-  (activePatternId, patterns) => {
-    if (!activePatternId) return;
-    return patterns.find((pattern) => pattern.id === activePatternId);
+// Select the selected pattern
+export const selectSelectedPattern = createSelector(
+  [selectSelectedPatternId, selectPatternTracks],
+  (selectedPatternId, patterns) => {
+    if (!selectedPatternId) return;
+    return patterns.find((pattern) => pattern.id === selectedPatternId);
   }
-);
-
-// Select the selected clips
-export const selectSelectedClipIds = createSelector(
-  [selectRoot],
-  (root) => root.selectedClipIds
 );

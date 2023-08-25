@@ -1,7 +1,7 @@
 import { Disclosure } from "@headlessui/react";
 import { useCallback, useMemo, useState } from "react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
-import Patterns, { Pattern } from "types/patterns";
+import Patterns, { Pattern, PatternId } from "types/patterns";
 import { PatternEditorProps } from ".";
 import * as Editor from "../Editor";
 import { CustomPattern, PresetPattern } from "./PatternItem";
@@ -29,7 +29,7 @@ export default function PatternList(props: PatternEditorProps) {
         pattern.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     );
-  }, [searchQuery, props.activePatternId]);
+  }, [searchQuery, props.selectedPatternId]);
 
   // If there are no open categories, show all categories
   const patternCategories = openCategories.length
@@ -38,8 +38,11 @@ export default function PatternList(props: PatternEditorProps) {
 
   // Move a pattern to a new index when dragging
   const movePattern = useCallback(
-    (dragIndex: number, hoverIndex: number) => {
+    (dragId: PatternId, hoverId: PatternId) => {
       const newPatternIds = [...props.patternIds];
+      const dragIndex = newPatternIds.findIndex((id) => id === dragId);
+      const hoverIndex = newPatternIds.findIndex((id) => id === hoverId);
+      if (dragIndex < 0 || hoverIndex < 0) return;
       newPatternIds.splice(dragIndex, 1);
       newPatternIds.splice(hoverIndex, 0, props.patternIds[dragIndex]);
       props.setPatternIds(newPatternIds);
@@ -82,8 +85,8 @@ export default function PatternList(props: PatternEditorProps) {
         ? presetPatterns.filter(doesMatchPattern)
         : presetPatterns;
 
-      const isCategorySelected = props.activePatternId
-        ? patterns.some((pattern) => pattern.id === props.activePatternId)
+      const isCategorySelected = props.selectedPatternId
+        ? patterns.some((pattern) => pattern.id === props.selectedPatternId)
         : false;
 
       return (
@@ -122,7 +125,7 @@ export default function PatternList(props: PatternEditorProps) {
       );
     },
     [
-      props.activePatternId,
+      props.selectedPatternId,
       renderCustomPattern,
       renderPresetPattern,
       searchQuery,

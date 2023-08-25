@@ -5,6 +5,10 @@ import { AppThunk } from "redux/store";
 import { initializeState } from "redux/util";
 import { updateInstrument } from "types/instrument";
 import { defaultPatternTrack, PatternTrack, TrackId } from "types/tracks";
+import {
+  addPatternTrackToTrackMap,
+  removePatternTrackFromTrackMap,
+} from "./maps/trackMap";
 
 const initialState = initializeState<TrackId, PatternTrack>([
   defaultPatternTrack,
@@ -60,6 +64,21 @@ export const {
   removePatternTracksByScaleTrackId,
   updatePatternTrack,
 } = patternTracksSlice.actions;
+
+export const setPatternTrackScaleTrack =
+  (patternTrackId: TrackId, scaleTrackId: TrackId, index?: number): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const patternTrack = selectPatternTrack(state, patternTrackId);
+    if (!patternTrack) return;
+
+    const newTrack = { ...patternTrack, scaleTrackId };
+    dispatch(updatePatternTrack(newTrack));
+    dispatch(removePatternTrackFromTrackMap(patternTrackId));
+    dispatch(
+      addPatternTrackToTrackMap({ scaleTrackId, patternTrackId, index })
+    );
+  };
 
 export const setPatternTrackInstrument =
   (id: TrackId, instrument: string): AppThunk =>

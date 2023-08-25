@@ -5,11 +5,11 @@ import { Editor } from "./Editor";
 import { hideEditor, showEditor } from "redux/slices/root";
 
 function mapStateToProps(state: RootState) {
-  const { showingEditor, editorState, activePatternId } = selectRoot(state);
+  const { showingEditor, editorState, selectedPatternId } = selectRoot(state);
   const transport = selectTransport(state);
 
   return {
-    activePatternId,
+    selectedPatternId,
     showingEditor,
     editorState,
     transport,

@@ -454,7 +454,7 @@ export const ScoreContainer = (props: {
 }) => {
   return (
     <div
-      className={`bg-white relative w-full z-20 flex items-center h-auto overflow-auto border-2 shadow-xl ${
+      className={`bg-white relative w-full z-20 flex items-center h-auto min-h-[200px] overflow-auto border-2 shadow-xl ${
         props.className ?? ""
       }`}
     >

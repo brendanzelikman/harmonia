@@ -1,3 +1,4 @@
+import { MAX_SUBDIVISION, MEASURE_COUNT } from "appConstants";
 import { beatsToSubdivision } from "appUtil";
 import { startTone } from "index";
 import { RECORDER } from "providers/recorder";
@@ -113,6 +114,7 @@ export const pauseTransport = (): AppThunk => (dispatch, getState) => {
 export const seekTransport =
   (time: Time): AppThunk =>
   (dispatch, getState) => {
+    if (time < 0 || time >= MAX_SUBDIVISION * MEASURE_COUNT) return;
     const state = getState();
     const transport = selectTransport(state);
     const numerator = transport.timeSignature?.[0] ?? 16;

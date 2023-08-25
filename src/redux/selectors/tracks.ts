@@ -42,22 +42,16 @@ export const selectTrack = createSelector(
 );
 
 // Select the scale track to pattern track map
-export const selectTrackMap = createSelector(
-  (state: RootState) => state.timeline.present.trackMap,
-  (trackMap) => trackMap.byId
-);
+export const selectTrackMap = (state: RootState) =>
+  state.timeline.present.trackMap;
 
 // Select the track to clip map
-export const selectClipMap = createSelector(
-  (state: RootState) => state.timeline.present.clipMap,
-  (clipMap) => clipMap.byId
-);
+export const selectClipMap = (state: RootState) =>
+  state.timeline.present.clipMap;
 
 // Select the track to transform map
-export const selectTransformMap = createSelector(
-  (state: RootState) => state.timeline.present.transformMap,
-  (transformMap) => transformMap.byId
-);
+export const selectTransformMap = (state: RootState) =>
+  state.timeline.present.transformMap;
 
 // Select the clips of a track
 export const selectTrackClips = createSelector(
@@ -89,7 +83,7 @@ export const selectTrackTransforms = createSelector(
   [selectTrack, selectTransforms, selectTransformMap],
   (track, transforms, transformMap) => {
     if (!track) return [];
-    const transformIds = transformMap[track.id]?.transformIds;
+    const transformIds = transformMap.byId[track.id]?.transformIds;
     if (!transformIds) return [];
 
     return transformIds

@@ -8,20 +8,32 @@ import {
   clearTrack,
   deleteTrack,
   duplicateTrack,
+  muteTracks,
+  unmuteTracks,
+  soloTracks,
   unsoloTracks,
   updateTrack,
 } from "redux/thunks/tracks";
 import { AppDispatch, RootState } from "redux/store";
-import { Track, TrackId } from "types/tracks";
+import { isPatternTrack, PatternTrack, Track, TrackId } from "types/tracks";
 import { lastTransformAtTime } from "types/transform";
 import { Row } from "..";
 import { TrackComponent } from "./Track";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const transport = Selectors.selectTransport(state);
+  const { selectedTrackId } = Selectors.selectRoot(state);
   const track = ownProps.row.trackId
     ? Selectors.selectTrack(state, ownProps.row.trackId)
     : undefined;
+  const trackMap = Selectors.selectTrackMap(state);
+  const index = track
+    ? isPatternTrack(track)
+      ? trackMap.byId[
+          (track as PatternTrack).scaleTrackId
+        ].patternTrackIds.indexOf(track.id)
+      : trackMap.allIds.indexOf(track.id)
+    : -1;
   const trackTransforms = track ? selectTrackTransforms(state, track.id) : [];
   const currentTransform = lastTransformAtTime(
     trackTransforms,
@@ -29,6 +41,8 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   );
   return {
     track,
+    selectedTrackId,
+    index,
     chromaticTranspose: currentTransform?.chromaticTranspose ?? 0,
     scalarTranspose: currentTransform?.scalarTranspose ?? 0,
     chordalTranspose: currentTransform?.chordalTranspose ?? 0,
@@ -61,6 +75,15 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     setTrackPan: (trackId: TrackId, pan: number) => {
       dispatch(setMixerPan(trackId, pan));
     },
+    muteTracks: () => {
+      dispatch(muteTracks());
+    },
+    unmuteTracks: () => {
+      dispatch(unmuteTracks());
+    },
+    soloTracks: () => {
+      dispatch(soloTracks());
+    },
     unsoloTracks: () => {
       dispatch(unsoloTracks());
     },
@@ -81,5 +104,9 @@ export interface DraggableTrackProps {
   track: Track;
   index: number;
   element?: any;
-  moveTrack: (dragIndex: number, hoverIndex: number) => void;
+  moveTrack: (props: {
+    dragId: TrackId;
+    hoverId: TrackId;
+    hoverIndex: number;
+  }) => boolean;
 }

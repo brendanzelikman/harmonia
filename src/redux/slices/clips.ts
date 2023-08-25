@@ -18,7 +18,7 @@ import {
   removeClipsFromClipMap,
   removeClipsWithTransformsFromClipMap,
 } from "./maps/clipMap";
-import { deselectClip } from "./root";
+import { deselectClip, deselectTransform } from "./root";
 import {
   addTransformsWithClipsToTransformMap,
   removeTransformsWithClipsFromTransformMap,
@@ -281,8 +281,8 @@ export const updateClipsAndTransforms =
           transforms,
         })
       );
-      const clipIds = clips.map((clip) => clip.id!);
-      const transformIds = transforms.map((transform) => transform.id!);
+      const clipIds = clips?.map((clip) => clip.id!) || [];
+      const transformIds = transforms?.map((transform) => transform.id!) || [];
       const promiseResult = { clipIds, transformIds };
       resolve(promiseResult);
     });
@@ -291,6 +291,7 @@ export const updateClipsAndTransforms =
 export const deleteClip =
   (clipId: ClipId): AppThunk =>
   (dispatch) => {
+    if (!clipId) return;
     dispatch(deselectClip(clipId));
     dispatch(removeClip(clipId));
     dispatch(removeClipFromClipMap(clipId));
@@ -299,9 +300,12 @@ export const deleteClip =
 export const deleteClips =
   (clipIds: ClipId[]): AppThunk =>
   (dispatch) => {
-    clipIds.forEach((clipId) => {
-      dispatch(deselectClip(clipId));
-    });
+    if (!clipIds?.length) return;
+    if (clipIds.length) {
+      clipIds.forEach((id) => {
+        dispatch(deselectClip(id));
+      });
+    }
     dispatch(removeClips(clipIds));
     dispatch(removeClipsFromClipMap(clipIds));
   };
@@ -309,9 +313,17 @@ export const deleteClips =
 export const deleteClipsAndTransforms =
   (clipIds: ClipId[], transformIds: TransformId[]): AppThunk =>
   (dispatch) => {
-    clipIds.forEach((clipId) => {
-      dispatch(deselectClip(clipId));
-    });
+    if (!clipIds?.length && !transformIds?.length) return;
+    if (clipIds.length) {
+      clipIds.forEach((id) => {
+        dispatch(deselectClip(id));
+      });
+    }
+    if (transformIds.length) {
+      transformIds.forEach((id) => {
+        dispatch(deselectTransform(id));
+      });
+    }
     dispatch(removeClipsWithTransforms({ clipIds, transformIds }));
     dispatch(removeClipsWithTransformsFromClipMap({ clipIds, transformIds }));
     dispatch(removeTransformsWithClips({ clipIds, transformIds }));

@@ -41,13 +41,13 @@ export default function DataGridBackground(props: BackgroundProps) {
         }}
       ></div>
       <div
-        className="-z-20 absolute w-full flex flex-col bg-gradient-to-t from-[#083a8a] via-[#2c4087] to-[#514f7e]"
+        className="-z-20 absolute w-full flex flex-col bg-gradient-to-t from-[#083a8a] via-[#2c5387] to-[#514f7e]"
         ref={background}
         style={{ height: backgroundHeight }}
       >
         <div className="absolute w-full h-full">
           <div
-            className="w-full bg-slate-500/80 shadow-xl"
+            className="w-full bg-slate-500/70 shadow-xl"
             style={{ height: trackRowHeight, marginTop: headerHeight }}
           ></div>
           <div className="w-full " style={{ height: clearRowHeight }}></div>

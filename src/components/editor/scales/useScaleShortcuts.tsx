@@ -1,4 +1,4 @@
-import { isInputEvent } from "appUtil";
+import { isHoldingShift, isInputEvent } from "appUtil";
 import useEventListeners from "hooks/useEventListeners";
 import { ScaleEditorProps } from ".";
 import { Scale } from "types/scales";
@@ -13,22 +13,8 @@ interface ScaleShortcutProps extends ScaleEditorProps {
 export default function useScaleShortcuts(props: ScaleShortcutProps) {
   useEventListeners(
     {
-      // "Cmd + Z" = Undo
-      // "Cmd + Shift + Z" = Redo
-      z: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          e.preventDefault();
-          const holdingShift = !!(e as KeyboardEvent).shiftKey;
-          if (holdingShift) {
-            props.redoScales();
-          } else {
-            props.undoScales();
-          }
-        },
-      },
-      // + = Start/Stop Adding Notes
-      "+": {
+      // A = Start/Stop Adding Notes
+      a: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           if (props.onState("adding")) {
@@ -38,10 +24,18 @@ export default function useScaleShortcuts(props: ScaleShortcutProps) {
           }
         },
       },
-      // - = Start/Stop Removing Notes
-      "-": {
+      // Delete = Start/Stop Removing Notes
+      // Shift + Delete = Clear Scale
+      Backspace: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
+
+          // Clear Scale
+          if (isHoldingShift(e)) {
+            if (props.scale) props.clearScale(props.scale.id);
+            return;
+          }
+          // Toggle Removing Notes
           if (props.onState("removing")) {
             props.clearState();
           } else {
@@ -49,42 +43,27 @@ export default function useScaleShortcuts(props: ScaleShortcutProps) {
           }
         },
       },
-      // Delete = Clear Scale
-      Backspace: {
+      // "T" = Prompt for Scalar Transposition
+      T: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.scale) props.clearScale(props.scale.id);
+          if (isInputEvent(e) || !props.scale) return;
+          const input = prompt("Transpose scale by N semitones:");
+          const sanitizedInput = parseInt(input ?? "");
+          if (isNaN(sanitizedInput)) return;
+          props.transposeScale(props.scale.id, sanitizedInput);
         },
       },
-      // [ = Transpose Scale Down
-      "[": {
+      // "t" = Prompt for Chordal Transposition
+      t: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.scale) props.transposeScale(props.scale.id, -1);
-        },
-      },
-      // ] = Transpose Scale Up
-      "]": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.scale) props.transposeScale(props.scale.id, 1);
-        },
-      },
-      // { = Invert Scale Down
-      "{": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.scale) props.rotateScale(props.scale.id, -1);
-        },
-      },
-      // } = Invert Scale Up
-      "}": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.scale) props.rotateScale(props.scale.id, 1);
+          if (isInputEvent(e) || !props.scale) return;
+          const input = prompt("Transpose scale along N steps:");
+          const sanitizedInput = parseInt(input ?? "");
+          if (isNaN(sanitizedInput)) return;
+          props.rotateScale(props.scale.id, sanitizedInput);
         },
       },
     },
-    [props.scale, props.onState, props.setState, props.clearState]
+    [props.scale]
   );
 }

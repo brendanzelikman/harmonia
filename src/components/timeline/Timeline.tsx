@@ -15,10 +15,12 @@ import TimelineClips from "./clips";
 import TimelineTransforms from "./transforms";
 import DataGridBackground from "./background";
 import useEventListeners from "hooks/useEventListeners";
-import { isInputEvent } from "appUtil";
+import { isHoldingCommand, isInputEvent } from "appUtil";
+import { Clip } from "types/clips";
+import { Transform } from "types/transform";
 
 export function Timeline(props: TimelineProps) {
-  const { trackMap, scaleTrackIds, cellWidth } = props;
+  const { trackMap, cellWidth } = props;
 
   const [timeline, setTimeline] = useState<DataGridHandle>();
   const background = useRef<HTMLDivElement>(null);
@@ -60,13 +62,11 @@ export function Timeline(props: TimelineProps) {
   // Create a memoized list of rows for the DataGrid
   const rows: Row[] = useMemo((): Row[] => {
     const rows: Row[] = [];
+    const scaleTrackIds = trackMap.allIds;
 
     // Make sure there are at least the initial number of rows
     let trackIndex = 0;
-    for (let i = 0; i < scaleTrackIds.length; i++) {
-      // Check if the track exists
-      const scaleTrackId = scaleTrackIds?.[i];
-
+    for (const scaleTrackId of scaleTrackIds) {
       // Add the scale track row
       rows.push({
         index: trackIndex++,
@@ -74,10 +74,8 @@ export function Timeline(props: TimelineProps) {
         type: "scaleTrack",
       });
 
-      if (!scaleTrackId) continue;
-
       // Add the pattern track rows
-      const patternTrackIds = trackMap[scaleTrackId]?.patternTrackIds;
+      const patternTrackIds = trackMap.byId[scaleTrackId]?.patternTrackIds;
       if (!patternTrackIds) continue;
       patternTrackIds.forEach((trackId) => {
         rows.push({
@@ -101,6 +99,117 @@ export function Timeline(props: TimelineProps) {
 
     return rows;
   }, [trackMap]);
+
+  useEventListeners(
+    {
+      ArrowUp: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.selectedTrackId) return;
+          e.preventDefault();
+          const trackIds = rows.map((row) => row.trackId).filter(Boolean);
+          const selectedIndex = trackIds.indexOf(props.selectedTrackId);
+          if (selectedIndex === -1) return;
+          const newIndex = selectedIndex - 1;
+          if (newIndex < 0) return;
+          const newTrackId = trackIds[newIndex];
+          if (!newTrackId) return;
+          props.setSelectedTrack(newTrackId);
+        },
+      },
+      ArrowDown: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.selectedTrackId) return;
+          e.preventDefault();
+          const trackIds = rows.map((row) => row.trackId).filter(Boolean);
+          const selectedIndex = trackIds.indexOf(props.selectedTrackId);
+          if (selectedIndex === -1) return;
+          const newIndex = selectedIndex + 1;
+          if (newIndex >= trackIds.length) return;
+          const newTrackId = trackIds[newIndex];
+          if (!newTrackId) return;
+          props.setSelectedTrack(newTrackId);
+        },
+      },
+      v: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
+          e.preventDefault();
+
+          const trackIds = rows.map((row) => row.trackId).filter(Boolean);
+
+          const clipboardClips = [...props.clipboard?.clips] ?? [];
+          const clipboardTransforms = [...props.clipboard?.transforms] ?? [];
+
+          const firstClip = clipboardClips.length
+            ? clipboardClips.sort((a, b) => a.startTime - b.startTime)?.[0]
+            : undefined;
+          const firstTransform = clipboardTransforms.length
+            ? clipboardTransforms.sort((a, b) => a.time - b.time)?.[0]
+            : undefined;
+          if (!firstClip && !firstTransform) return;
+
+          const t1 = firstClip?.startTime;
+          const t2 = firstTransform?.time;
+          const startTime = t1 && t2 ? Math.min(t1, t2) : t1 ?? t2;
+          if (startTime === undefined) return;
+
+          const offset = props.time - startTime;
+          const originalIndex =
+            rows
+              .filter((r) =>
+                [...clipboardClips, ...clipboardTransforms].some(
+                  (c) => c.trackId === r.trackId
+                )
+              )
+              .sort((a, b) => a.index - b.index)?.[0]?.index ?? -1;
+          if (originalIndex === -1) return;
+
+          if (!props.selectedTrackId) return;
+          const selectedIndex = trackIds.indexOf(props.selectedTrackId);
+          if (selectedIndex === -1) return;
+
+          const rowOffset = selectedIndex - originalIndex;
+
+          let newClips: Clip[] = [];
+          let newTransforms: Transform[] = [];
+
+          for (const clip of clipboardClips) {
+            const thisIndex = trackIds.indexOf(clip.trackId);
+
+            if (thisIndex === -1) return;
+            const newIndex = thisIndex + rowOffset;
+            const newTrack = rows[newIndex];
+            if (!newTrack || newTrack.type !== "patternTrack") return;
+
+            const trackId = rows[newIndex]?.trackId;
+            if (!trackId) return;
+            newClips.push({
+              ...clip,
+              startTime: clip.startTime + offset,
+              trackId,
+            });
+          }
+
+          for (const transform of clipboardTransforms) {
+            const thisIndex = trackIds.indexOf(transform.trackId);
+
+            if (thisIndex === -1) return;
+            const newIndex = thisIndex + rowOffset;
+            const trackId = rows[newIndex]?.trackId;
+            if (!trackId) return;
+            newTransforms.push({
+              ...transform,
+              time: transform.time + offset,
+              trackId,
+            });
+          }
+
+          props.createClipsAndTransforms(newClips, newTransforms);
+        },
+      },
+    },
+    [props, props.clipboard, props.time, rows]
+  );
 
   // Create the track column for the DataGrid
   const trackColumn = useMemo(
@@ -153,10 +262,9 @@ export function Timeline(props: TimelineProps) {
   // Create the body cell columns for the DataGrid
   const columns = useMemo((): Column<Row>[] => {
     const columns: Column<Row>[] = [];
+    const beatCount = Constants.MEASURE_COUNT * Constants.TIMELINE_SUBDIVISION;
     // Add the body cells
-    const measureCount =
-      Constants.MEASURE_COUNT * Constants.TIMELINE_SUBDIVISION;
-    for (let i = 1; i <= measureCount; i++) {
+    for (let i = 1; i <= beatCount; i++) {
       columns.push(column(`${i}`));
     }
     return columns;
@@ -175,28 +283,13 @@ export function Timeline(props: TimelineProps) {
 
   useEffect(() => {
     if (!timeline?.element) return;
-    if (props.state === "stopped") {
+    if (props.state === "stopped" && props.time === 0) {
       timeline.element.scrollTo({
         left: 0,
         behavior: "smooth",
       });
       return;
     }
-    // if (props.time === 0) {
-    //   timeline.element.scrollTo({
-    //     left: 0,
-    //     behavior: "smooth",
-    //   });
-    //   return;
-    // }
-    // const timeLeft = props.time * cellWidth;
-    // const oldLeft = timeline.element.scrollLeft;
-    // const padding = cellWidth * Constants.MAX_SUBDIVISION;
-    // if (props.state === "started" && timeLeft > oldLeft + padding)
-    //   timeline.element.scrollTo({
-    //     left: timeLeft - padding,
-    //     behavior: "smooth",
-    //   });
   }, [props.time, timeline, props.state]);
 
   return (

@@ -8,7 +8,7 @@ import { addPattern } from "redux/slices/patterns";
 import {
   deselectClip,
   toggleRepeatingClips,
-  setActivePattern,
+  setSelectedPattern,
 } from "redux/slices/root";
 import { AppThunk } from "redux/store";
 import {
@@ -30,17 +30,30 @@ import {
   isRest,
 } from "types/patterns";
 import { TrackId } from "types/tracks";
-import { Transform } from "types/transform";
+import { Transform, TransformId } from "types/transform";
 import { Time } from "types/units";
 import { createClipsAndTransforms } from "redux/slices/clips";
 
+export type RepeatOptions = {
+  repeatCount?: number;
+  repeatTransforms?: boolean;
+  repeatWithTranspose?: boolean;
+};
 export const repeatClips =
-  (clipIds: ClipId[]): AppThunk =>
+  (
+    clipIds: ClipId[],
+    options?: RepeatOptions
+  ): AppThunk<Promise<{ clipIds: ClipId[]; transformIds: TransformId[] }>> =>
   async (dispatch, getState) => {
     const state = getState();
     const root = Selectors.selectRoot(state);
-    const { repeatCount, repeatTransforms, repeatWithTranspose } = root;
-    const { chromaticTranspose, scalarTranspose, chordalTranspose } = root;
+    const { toolkit } = root;
+    const repeatCount = options?.repeatCount || toolkit?.repeatCount;
+    const repeatTransforms =
+      options?.repeatTransforms || toolkit?.repeatTransforms;
+    const repeatWithTranspose =
+      options?.repeatWithTranspose || toolkit?.repeatWithTranspose;
+    const { chromaticTranspose, scalarTranspose, chordalTranspose } = toolkit;
 
     const clips = Selectors.selectClipsByIds(state, clipIds);
     const clipDurations = clips.map((clip) =>
@@ -89,15 +102,16 @@ export const repeatClips =
         });
       }
     }
-    dispatch(toggleRepeatingClips());
-    dispatch(createClipsAndTransforms(newClips, newTransforms));
+    return dispatch(createClipsAndTransforms(newClips, newTransforms));
   };
 
 export const mergeClips =
   (clipIds: ClipId[]): AppThunk =>
   async (dispatch, getState) => {
     const state = getState();
-    const { mergeName, mergeTransforms } = Selectors.selectRoot(state);
+    const root = Selectors.selectRoot(state);
+    const { toolkit } = root;
+    const { mergeName, mergeTransforms } = toolkit;
     const clips = Selectors.selectClipsByIds(state, clipIds).filter(
       Boolean
     ) as Clip[];
@@ -136,7 +150,7 @@ export const mergeClips =
       name: !!mergeName.length ? mergeName : "New Pattern",
     });
     dispatch(addPattern(newPattern));
-    dispatch(setActivePattern(newPattern.id));
+    dispatch(setSelectedPattern(newPattern.id));
 
     // Create a new clip
     await dispatch(
@@ -224,6 +238,9 @@ export const exportClipsToMidi =
     ) as Clip[];
     if (!clips || !clips.length) return;
 
+    const scaleTrackIds = Selectors.selectScaleTrackIds(state);
+    const trackMap = Selectors.selectTrackMap(state);
+
     // Sort the clips
     const sortedClips = clips.sort((a, b) => a.startTime - b.startTime);
     const startTime = sortedClips[0].startTime;
@@ -231,8 +248,8 @@ export const exportClipsToMidi =
     // Read through clips
     const tracks: MidiWriter.Track[] = [];
 
-    // Make relevant track clip map
-    const trackMap = sortedClips.reduce((acc, clip) => {
+    // Accumulate clips into tracks
+    const clipsByTrack = sortedClips.reduce((acc, clip) => {
       const track = Selectors.selectTrack(state, clip.trackId);
       if (!track) return acc;
       if (!acc[track.id]) acc[track.id] = [];
@@ -240,8 +257,42 @@ export const exportClipsToMidi =
       return acc;
     }, {} as Record<TrackId, Clip[]>);
 
+    // Sort the trackIds descending by view order
+    const trackIds = Object.keys(clipsByTrack).sort((a, b) => {
+      // Get the pattern tracks of the clips
+      const trackA = Selectors.selectPatternTrack(state, a);
+      const trackB = Selectors.selectPatternTrack(state, b);
+      if (!trackA || !trackB) return 0;
+      // Get the scale tracks for each pattern track
+      const scaleTrackA = Selectors.selectScaleTrack(
+        state,
+        trackA.scaleTrackId
+      );
+      const scaleTrackB = Selectors.selectScaleTrack(
+        state,
+        trackB.scaleTrackId
+      );
+      if (!scaleTrackA || !scaleTrackB) return 0;
+      // Get the index of each scale track
+      const indexA = scaleTrackIds.indexOf(scaleTrackA.id);
+      const indexB = scaleTrackIds.indexOf(scaleTrackB.id);
+      const diff = indexA - indexB;
+      // If the scale tracks are the same, sort by pattern track index
+      if (diff === 0) {
+        // Get the pattern track ids from the track map
+        const patterns = trackMap.byId[scaleTrackA.id];
+        const keys = patterns.patternTrackIds;
+        const trackIndexA = keys.indexOf(a);
+        const trackIndexB = keys.indexOf(b);
+
+        return trackIndexA - trackIndexB;
+      }
+      // Otherwise, return by scale track index
+      return diff;
+    });
+
     // Create a track for each clip
-    Object.keys(trackMap).forEach((trackId, index) => {
+    trackIds.forEach((trackId, index) => {
       const track = Selectors.selectPatternTrack(state, trackId);
       if (!track) return;
       const midiTrack = new MidiWriter.Track();
@@ -253,7 +304,7 @@ export const exportClipsToMidi =
         })
       );
       // Add clips
-      const clips = trackMap[trackId];
+      const clips = clipsByTrack[trackId];
       let lastTime = startTime;
       let wait: MidiWriter.Duration[] = [];
 

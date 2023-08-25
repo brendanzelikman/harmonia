@@ -5,18 +5,26 @@ import {
   MIN_CELL_WIDTH,
 } from "appConstants";
 import { clamp } from "lodash";
-import { ClipId } from "types/clips";
+import { Clip, ClipId } from "types/clips";
 import { PatternId } from "types/patterns";
 import { TrackId } from "types/tracks";
+import { Transform, TransformId } from "types/transform";
 
 // Active IDs
 interface RootIds {
-  activePatternId?: PatternId;
-  activeTrackId?: TrackId;
+  selectedPatternId?: PatternId;
+  selectedTrackId?: TrackId;
   selectedClipIds: ClipId[];
+  selectedTransformIds: TransformId[];
+}
+
+export interface Clipboard {
+  clips: Clip[];
+  transforms: Transform[];
 }
 
 interface RootState {
+  // Project State
   projectName: string;
 
   // Timeline State
@@ -28,14 +36,17 @@ interface RootState {
     | "merging"
     | "idle";
   loadedTimeline: boolean;
+  draggingClip: boolean;
+  draggingTransform: boolean;
+  cellWidth: number;
+  clipboard: Clipboard;
 
   // Editor State
   editorState: "file" | "scale" | "patterns" | "instrument" | "hidden";
   showingEditor: boolean;
 
-  // Clip State
-  draggingClip: boolean;
-  cellWidth: number;
+  // Shortcuts State
+  showingShortcuts: boolean;
 }
 
 interface RootMerge {
@@ -54,63 +65,91 @@ interface RootTranspose {
   chordalTranspose: number;
 }
 
-interface RootToolkit extends RootMerge, RootRepeat, RootTranspose {}
+export type Toolkit = RootMerge & RootRepeat & RootTranspose;
+interface RootToolkit {
+  toolkit: Toolkit;
+}
 
 interface Root extends RootIds, RootState, RootToolkit {}
 
 export const defaultRoot: Root = {
   projectName: "New Project",
-  activePatternId: "new-pattern",
+  cellWidth: DEFAULT_CELL_WIDTH,
 
   // Timeline
   timelineState: "idle",
   loadedTimeline: false,
 
-  // Editor
+  clipboard: { clips: [], transforms: [] },
+  selectedPatternId: "new-pattern",
+  selectedClipIds: [],
+  selectedTransformIds: [],
+
+  draggingClip: false,
+  draggingTransform: false,
+
   editorState: "hidden",
+  showingShortcuts: false,
   showingEditor: false,
 
-  // Clips
-  selectedClipIds: [],
-  draggingClip: false,
-  cellWidth: DEFAULT_CELL_WIDTH,
-
-  // Transpose
-  chromaticTranspose: 0,
-  scalarTranspose: 0,
-  chordalTranspose: 0,
-
-  // Repeat
-  repeatCount: 1,
-  repeatTransforms: false,
-  repeatWithTranspose: false,
-
-  // Merge
-  mergeName: "",
-  mergeTransforms: false,
-  mergeWithNewPattern: false,
+  // Toolkit
+  toolkit: {
+    // Merge
+    mergeName: "",
+    mergeTransforms: false,
+    mergeWithNewPattern: false,
+    // Repeat
+    repeatCount: 1,
+    repeatTransforms: false,
+    repeatWithTranspose: false,
+    // Transpose
+    chromaticTranspose: 0,
+    scalarTranspose: 0,
+    chordalTranspose: 0,
+  },
 };
 
 export const rootSlice = createSlice({
   name: "root",
   initialState: defaultRoot,
   reducers: {
-    // Project
+    // Project Values
     setProjectName(state, action: PayloadAction<string>) {
       state.projectName = action.payload;
     },
     setCellWidth(state, action: PayloadAction<number>) {
       state.cellWidth = clamp(action.payload, MIN_CELL_WIDTH, MAX_CELL_WIDTH);
     },
-    // Timeline Ids
-    setActiveTrack: (state, action: PayloadAction<TrackId | undefined>) => {
+    // Timeline - State
+    setTimelineState: (state, action) => {
+      state.timelineState = action.payload;
+    },
+    clearTimelineState: (state) => {
+      state.timelineState = "idle";
+    },
+    loadTimeline: (state) => {
+      state.loadedTimeline = true;
+    },
+    unloadTimeline: (state) => {
+      state.loadedTimeline = false;
+    },
+    // Timeline - ID Selection
+    setSelectedTrack: (state, action: PayloadAction<TrackId | undefined>) => {
       const trackId = action.payload;
-      state.activeTrackId = trackId;
+      state.selectedTrackId = trackId;
     },
-    setActivePattern: (state, action: PayloadAction<PatternId | undefined>) => {
+    setSelectedPattern: (
+      state,
+      action: PayloadAction<PatternId | undefined>
+    ) => {
       const patternId = action.payload;
-      state.activePatternId = patternId;
+      state.selectedPatternId = patternId;
     },
+    setClipboard: (state, action: PayloadAction<Clipboard>) => {
+      const clipboard = action.payload;
+      state.clipboard = clipboard;
+    },
+    // Timeline - Clip Selection
     selectClip: (state, action: PayloadAction<ClipId>) => {
       const clipId = action.payload;
       state.selectedClipIds = [clipId];
@@ -132,7 +171,29 @@ export const rootSlice = createSlice({
     deselectAllClips: (state) => {
       state.selectedClipIds = [];
     },
-    // Timeline State
+    // Timeline - Transform Selection
+    selectTransform: (state, action: PayloadAction<TransformId>) => {
+      const transformId = action.payload;
+      state.selectedTransformIds = [transformId];
+    },
+    selectAnotherTransform: (state, action: PayloadAction<TransformId>) => {
+      const transformId = action.payload;
+      state.selectedTransformIds.push(transformId);
+    },
+    selectTransforms: (state, action: PayloadAction<TransformId[]>) => {
+      const transformIds = action.payload;
+      state.selectedTransformIds = transformIds;
+    },
+    deselectTransform: (state, action: PayloadAction<TransformId>) => {
+      const transformId = action.payload;
+      state.selectedTransformIds = state.selectedTransformIds.filter(
+        (id) => id !== transformId
+      );
+    },
+    deselectAllTransforms: (state) => {
+      state.selectedTransformIds = [];
+    },
+    // Toolkit – State
     toggleAddingClip: (state) => {
       const isAdding = state.timelineState === "adding";
       state.timelineState = isAdding ? "idle" : "adding";
@@ -141,85 +202,69 @@ export const rootSlice = createSlice({
       const isCutting = state.timelineState === "cutting";
       state.timelineState = isCutting ? "idle" : "cutting";
     },
-    toggleTransposingClip: (state) => {
-      const isTransposing = state.timelineState === "transposing";
-      state.timelineState = isTransposing ? "idle" : "transposing";
+    toggleMergingClips: (state) => {
+      const isMerging = state.timelineState === "merging";
+      state.timelineState = isMerging ? "idle" : "merging";
     },
     toggleRepeatingClips: (state) => {
       const isRepeating = state.timelineState === "repeating";
       state.timelineState = isRepeating ? "idle" : "repeating";
     },
-    toggleRepeatTransforms: (state) => {
-      state.repeatTransforms = !state.repeatTransforms;
+    toggleTransposingClip: (state) => {
+      const isTransposing = state.timelineState === "transposing";
+      state.timelineState = isTransposing ? "idle" : "transposing";
     },
-    toggleRepeatWithTranspose: (state) => {
-      state.repeatWithTranspose = !state.repeatWithTranspose;
+    setToolkitValue: (
+      state,
+      action: PayloadAction<{ key: keyof Partial<Toolkit>; value: any }>
+    ) => {
+      if (action.payload === undefined) return;
+      const { key, value } = action.payload;
+      if (!key) return;
+      state.toolkit = { ...state.toolkit, [key]: value };
     },
-    toggleMergingClips: (state) => {
-      const isMerging = state.timelineState === "merging";
-      state.timelineState = isMerging ? "idle" : "merging";
-    },
-    toggleMergeTransforms: (state) => {
-      state.mergeTransforms = !state.mergeTransforms;
-    },
-    toggleMergeWithNewPattern: (state) => {
-      state.mergeWithNewPattern = !state.mergeWithNewPattern;
-    },
-    setTimelineState: (state, action) => {
-      state.timelineState = action.payload;
-    },
-    clearTimelineState: (state) => {
-      state.timelineState = "idle";
-    },
-    loadTimeline: (state) => {
-      state.loadedTimeline = true;
-    },
-    unloadTimeline: (state) => {
-      state.loadedTimeline = false;
+    toggleToolkitValue: (
+      state,
+      action: PayloadAction<keyof Partial<Toolkit>>
+    ) => {
+      const key = action.payload;
+      if (!key) return;
+      state.toolkit = {
+        ...state.toolkit,
+        [key]: !state.toolkit[key],
+      };
     },
     // Editor State
     showEditor: (state, action) => {
       const { id, trackId } = action.payload;
       state.editorState = id;
       state.showingEditor = true;
-      if (trackId) state.activeTrackId = trackId;
+      if (trackId) state.selectedTrackId = trackId;
     },
     hideEditor: (state) => {
       state.editorState = "hidden";
       state.showingEditor = false;
     },
-    // Clip State
+    // Shortcuts State
+    showShortcuts: (state) => {
+      state.showingShortcuts = true;
+    },
+    hideShortcuts: (state) => {
+      state.showingShortcuts = false;
+    },
+    // Clip – DND
     startDraggingClip: (state) => {
       state.draggingClip = true;
     },
     stopDraggingClip: (state) => {
       state.draggingClip = false;
     },
-    // Timeline Transform
-    setChromaticTranspose: (state, action: PayloadAction<number>) => {
-      if (action.payload === undefined) return;
-      const chromaticTranspose = action.payload;
-      state.chromaticTranspose = chromaticTranspose;
+    // Transform - DND
+    startDraggingTransform: (state) => {
+      state.draggingTransform = true;
     },
-    setScalarTranspose: (state, action: PayloadAction<number>) => {
-      if (action.payload === undefined) return;
-      const scalarTranspose = action.payload;
-      state.scalarTranspose = scalarTranspose;
-    },
-    setChordalTranspose: (state, action: PayloadAction<number>) => {
-      if (action.payload === undefined) return;
-      const chordalTranspose = action.payload;
-      state.chordalTranspose = chordalTranspose;
-    },
-    setRepeatCount: (state, action: PayloadAction<number>) => {
-      if (action.payload === undefined) return;
-      const repeatCount = action.payload;
-      state.repeatCount = repeatCount;
-    },
-    setMergeName: (state, action: PayloadAction<string>) => {
-      if (action.payload === undefined) return;
-      const mergeName = action.payload;
-      state.mergeName = mergeName;
+    stopDraggingTransform: (state) => {
+      state.draggingTransform = false;
     },
   },
 });
@@ -228,26 +273,14 @@ export const {
   setProjectName,
   setCellWidth,
 
-  setActiveTrack,
-  setActivePattern,
-
-  toggleAddingClip,
-  toggleCuttingClip,
-
-  toggleMergingClips,
-  toggleMergeTransforms,
-  toggleMergeWithNewPattern,
-
-  toggleRepeatingClips,
-  toggleRepeatTransforms,
-  toggleRepeatWithTranspose,
-
-  toggleTransposingClip,
   setTimelineState,
   clearTimelineState,
+  loadTimeline,
+  unloadTimeline,
 
-  showEditor,
-  hideEditor,
+  setSelectedTrack,
+  setSelectedPattern,
+  setClipboard,
 
   selectClip,
   selectAnotherClip,
@@ -255,17 +288,29 @@ export const {
   deselectClip,
   deselectAllClips,
 
+  selectTransform,
+  selectAnotherTransform,
+  selectTransforms,
+  deselectTransform,
+  deselectAllTransforms,
+
+  toggleAddingClip,
+  toggleCuttingClip,
+  toggleMergingClips,
+  toggleRepeatingClips,
+  toggleTransposingClip,
+  setToolkitValue,
+  toggleToolkitValue,
+
+  showEditor,
+  hideEditor,
+  showShortcuts,
+  hideShortcuts,
+
   startDraggingClip,
   stopDraggingClip,
-
-  setChromaticTranspose,
-  setScalarTranspose,
-  setChordalTranspose,
-  setRepeatCount,
-  setMergeName,
-
-  loadTimeline,
-  unloadTimeline,
+  startDraggingTransform,
+  stopDraggingTransform,
 } = rootSlice.actions;
 
 export default rootSlice.reducer;
