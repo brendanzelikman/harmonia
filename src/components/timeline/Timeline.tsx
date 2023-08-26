@@ -15,12 +15,11 @@ import TimelineClips from "./clips";
 import TimelineTransforms from "./transforms";
 import DataGridBackground from "./background";
 import useEventListeners from "hooks/useEventListeners";
-import { isHoldingCommand, isInputEvent } from "appUtil";
-import { Clip } from "types/clips";
-import { Transform } from "types/transform";
+import { cancelEvent, isHoldingCommand, isInputEvent } from "appUtil";
+import TimelineContextMenu from "./TimelineContextMenu";
 
 export function Timeline(props: TimelineProps) {
-  const { trackMap, cellWidth } = props;
+  const { selectedTrackId, trackMap, cellWidth } = props;
 
   const [timeline, setTimeline] = useState<DataGridHandle>();
   const background = useRef<HTMLDivElement>(null);
@@ -77,10 +76,10 @@ export function Timeline(props: TimelineProps) {
       // Add the pattern track rows
       const patternTrackIds = trackMap.byId[scaleTrackId]?.patternTrackIds;
       if (!patternTrackIds) continue;
-      patternTrackIds.forEach((trackId) => {
+      patternTrackIds.forEach((patternTrackId) => {
         rows.push({
           index: trackIndex++,
-          trackId,
+          trackId: patternTrackId,
           type: "patternTrack",
         });
       });
@@ -91,6 +90,7 @@ export function Timeline(props: TimelineProps) {
       lastRow: true,
       type: "defaultTrack",
     });
+
     // Add the remaining rows
     const remainingRows = Constants.INITIAL_MAX_ROWS - trackIndex++;
     for (let i = 0; i < remainingRows; i++) {
@@ -104,10 +104,10 @@ export function Timeline(props: TimelineProps) {
     {
       ArrowUp: {
         keydown: (e) => {
-          if (isInputEvent(e) || !props.selectedTrackId) return;
-          e.preventDefault();
+          if (isInputEvent(e) || !selectedTrackId) return;
+          cancelEvent(e);
           const trackIds = rows.map((row) => row.trackId).filter(Boolean);
-          const selectedIndex = trackIds.indexOf(props.selectedTrackId);
+          const selectedIndex = trackIds.indexOf(selectedTrackId);
           if (selectedIndex === -1) return;
           const newIndex = selectedIndex - 1;
           if (newIndex < 0) return;
@@ -118,10 +118,10 @@ export function Timeline(props: TimelineProps) {
       },
       ArrowDown: {
         keydown: (e) => {
-          if (isInputEvent(e) || !props.selectedTrackId) return;
-          e.preventDefault();
+          if (isInputEvent(e) || !selectedTrackId) return;
+          cancelEvent(e);
           const trackIds = rows.map((row) => row.trackId).filter(Boolean);
-          const selectedIndex = trackIds.indexOf(props.selectedTrackId);
+          const selectedIndex = trackIds.indexOf(selectedTrackId);
           if (selectedIndex === -1) return;
           const newIndex = selectedIndex + 1;
           if (newIndex >= trackIds.length) return;
@@ -133,82 +133,12 @@ export function Timeline(props: TimelineProps) {
       v: {
         keydown: (e) => {
           if (isInputEvent(e) || !isHoldingCommand(e)) return;
-          e.preventDefault();
-
-          const trackIds = rows.map((row) => row.trackId).filter(Boolean);
-
-          const clipboardClips = [...props.clipboard?.clips] ?? [];
-          const clipboardTransforms = [...props.clipboard?.transforms] ?? [];
-
-          const firstClip = clipboardClips.length
-            ? clipboardClips.sort((a, b) => a.startTime - b.startTime)?.[0]
-            : undefined;
-          const firstTransform = clipboardTransforms.length
-            ? clipboardTransforms.sort((a, b) => a.time - b.time)?.[0]
-            : undefined;
-          if (!firstClip && !firstTransform) return;
-
-          const t1 = firstClip?.startTime;
-          const t2 = firstTransform?.time;
-          const startTime = t1 && t2 ? Math.min(t1, t2) : t1 ?? t2;
-          if (startTime === undefined) return;
-
-          const offset = props.time - startTime;
-          const originalIndex =
-            rows
-              .filter((r) =>
-                [...clipboardClips, ...clipboardTransforms].some(
-                  (c) => c.trackId === r.trackId
-                )
-              )
-              .sort((a, b) => a.index - b.index)?.[0]?.index ?? -1;
-          if (originalIndex === -1) return;
-
-          if (!props.selectedTrackId) return;
-          const selectedIndex = trackIds.indexOf(props.selectedTrackId);
-          if (selectedIndex === -1) return;
-
-          const rowOffset = selectedIndex - originalIndex;
-
-          let newClips: Clip[] = [];
-          let newTransforms: Transform[] = [];
-
-          for (const clip of clipboardClips) {
-            const thisIndex = trackIds.indexOf(clip.trackId);
-
-            if (thisIndex === -1) return;
-            const newIndex = thisIndex + rowOffset;
-            const newTrack = rows[newIndex];
-            if (!newTrack || newTrack.type !== "patternTrack") return;
-
-            const trackId = rows[newIndex]?.trackId;
-            if (!trackId) return;
-            newClips.push({
-              ...clip,
-              startTime: clip.startTime + offset,
-              trackId,
-            });
-          }
-
-          for (const transform of clipboardTransforms) {
-            const thisIndex = trackIds.indexOf(transform.trackId);
-
-            if (thisIndex === -1) return;
-            const newIndex = thisIndex + rowOffset;
-            const trackId = rows[newIndex]?.trackId;
-            if (!trackId) return;
-            newTransforms.push({
-              ...transform,
-              time: transform.time + offset,
-              trackId,
-            });
-          }
-
-          props.createClipsAndTransforms(newClips, newTransforms);
+          cancelEvent(e);
+          props.pasteClipsAndTransforms(rows);
         },
       },
     },
-    [props, props.clipboard, props.time, rows]
+    [selectedTrackId, rows]
   );
 
   // Create the track column for the DataGrid
@@ -293,7 +223,8 @@ export function Timeline(props: TimelineProps) {
   }, [props.time, timeline, props.state]);
 
   return (
-    <div className="relative w-full h-full">
+    <div id="timeline" className="relative w-full h-full">
+      <TimelineContextMenu rows={rows} />
       <DataGridBackground {...{ rows, timeline, background }} />
       <DataGrid
         className="data-grid w-full h-full bg-transparent"

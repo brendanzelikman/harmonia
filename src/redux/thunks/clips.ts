@@ -38,6 +38,7 @@ import {
   createClipsAndTransforms,
   deleteClipsAndTransforms,
 } from "redux/slices/clips";
+import { Row } from "components/timeline";
 
 export type RepeatOptions = {
   repeatCount?: number;
@@ -394,6 +395,15 @@ export const selectAllClipsAndTransforms =
     if (transformIds) dispatch(selectTransforms(transformIds));
   };
 
+// Delete all selected clips and transforms
+export const deleteSelectedClipsAndTransforms =
+  (): AppThunk => (dispatch, getState) => {
+    const state = getState();
+    const { selectedClipIds, selectedTransformIds } =
+      Selectors.selectRoot(state);
+    dispatch(deleteClipsAndTransforms(selectedClipIds, selectedTransformIds));
+  };
+
 export const copySelectedClipsAndTransforms =
   (): AppThunk => (dispatch, getState) => {
     const state = getState();
@@ -411,4 +421,108 @@ export const cutSelectedClipsAndTransforms =
     const clipIds = clips.map((c) => c.id);
     const transformIds = transforms.map((t) => t.id);
     dispatch(deleteClipsAndTransforms(clipIds, transformIds));
+  };
+
+export const pasteSelectedClipsAndTransforms =
+  (
+    rows: Row[]
+  ): AppThunk<Promise<{ clipIds: ClipId[]; transformIds: TransformId[] }>> =>
+  (dispatch, getState) => {
+    const emptyPromise = Promise.resolve({ clipIds: [], transformIds: [] });
+
+    if (!rows?.length) return emptyPromise;
+
+    const state = getState();
+    const { clipboard, selectedTrackId } = Selectors.selectRoot(state);
+    if (!selectedTrackId) return emptyPromise;
+
+    const { time } = Selectors.selectTransport(state);
+    const trackIds = rows.map((row) => row.trackId).filter(Boolean);
+
+    // Get clips and transforms from the clipboard
+    const clipboardClips = [...clipboard?.clips] ?? [];
+    const clipboardTransforms = [...clipboard?.transforms] ?? [];
+
+    // Get the earliest start time
+    const firstClip = clipboardClips.length
+      ? clipboardClips.sort((a, b) => a.startTime - b.startTime)?.[0]
+      : undefined;
+    const firstTransform = clipboardTransforms.length
+      ? clipboardTransforms.sort((a, b) => a.time - b.time)?.[0]
+      : undefined;
+
+    const t1 = firstClip?.startTime;
+    const t2 = firstTransform?.time;
+    const startTime = t1 && t2 ? Math.min(t1, t2) : t1 ?? t2;
+
+    if (!firstClip && !firstTransform) return emptyPromise;
+    if (startTime === undefined) return emptyPromise;
+
+    // Compute the offset between the clipboard and the current time
+    const offset = time - startTime;
+
+    // Find the original track index of the first clip or transform
+    const originalIndex =
+      rows
+        .filter((r) =>
+          [...clipboardClips, ...clipboardTransforms].some(
+            (c) => c.trackId === r.trackId
+          )
+        )
+        .sort((a, b) => a.index - b.index)?.[0]?.index ?? -1;
+    if (originalIndex === -1) return emptyPromise;
+
+    // Find the selected track index
+    const selectedIndex = trackIds.indexOf(selectedTrackId);
+    if (selectedIndex === -1) return emptyPromise;
+
+    // Compute the offset between the selected track and the original track
+    const rowOffset = selectedIndex - originalIndex;
+
+    let newClips: Clip[] = [];
+    let newTransforms: Transform[] = [];
+
+    // Create new clips
+    for (const clip of clipboardClips) {
+      // Find the new track index
+      const thisIndex = trackIds.indexOf(clip.trackId);
+      if (thisIndex === -1) return emptyPromise;
+
+      // Find the new track
+      const newIndex = thisIndex + rowOffset;
+      const newTrack = rows[newIndex];
+      if (!newTrack || newTrack.type !== "patternTrack") return emptyPromise;
+
+      // Create a new clip with the new track id and time
+      const trackId = newTrack.trackId;
+      if (!trackId) return emptyPromise;
+      newClips.push({
+        ...clip,
+        startTime: clip.startTime + offset,
+        trackId,
+      });
+    }
+
+    // Create new transforms
+    for (const transform of clipboardTransforms) {
+      // Find the new track index
+      const thisIndex = trackIds.indexOf(transform.trackId);
+      if (thisIndex === -1) return emptyPromise;
+
+      // Find the new track
+      const newIndex = thisIndex + rowOffset;
+      const newTrack = rows[newIndex];
+
+      // Create a new transform with the new track id and time
+      const trackId = newTrack.trackId;
+      if (!trackId) return emptyPromise;
+      newTransforms.push({
+        ...transform,
+        time: transform.time + offset,
+        trackId,
+      });
+    }
+
+    // Create the clips and transforms
+    return dispatch(createClipsAndTransforms(newClips, newTransforms));
   };

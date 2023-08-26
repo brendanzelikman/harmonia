@@ -13,7 +13,7 @@ import { selectCellWidth, selectRoot } from "redux/selectors";
 import { BsMagic } from "react-icons/bs";
 import useEventListeners from "hooks/useEventListeners";
 import { isHoldingOption, isHoldingShift, isInputEvent } from "appUtil";
-import { Clip, ClipId } from "types/clips";
+import { ClipId } from "types/clips";
 import { useTransformDrag } from "./dnd";
 
 interface OwnClipProps extends TransformsProps {
@@ -132,20 +132,22 @@ function TimelineTransform(props: TransformProps) {
     return () => (
       <>
         <div
-          className={`rounded-t group relative flex flex-col justify-center items-center text-xs select-none bg-fuchsia-500`}
+          className={`group rounded-t group relative flex flex-col justify-center items-center text-xs select-none bg-fuchsia-500`}
           style={{ height: Constants.TRANSPOSE_HEIGHT }}
         >
           <BsMagic className="text-md" />
-          {holdingK ? (
-            <label
-              className={`absolute ${
-                left === Constants.TRACK_WIDTH ? "left-0" : "left-7"
-              } w-fit whitespace-nowrap px-2 z-20 flex items-center justify-center bg-fuchsia-700/80 backdrop-blur rounded-lg border`}
-            >
-              N{chromaticTranspose} • T{scalarTranspose} • t{chordalTranspose}
-              {/* T{scalarTranspose} • t{chordalTranspose} */}
-            </label>
-          ) : null}
+          <label
+            className={`absolute left-7 ${
+              holdingK
+                ? "visible"
+                : props.isSelected
+                ? "invisible group-hover:visible"
+                : "hidden"
+            } w-fit whitespace-nowrap px-2 z-20 flex items-center justify-center bg-fuchsia-700/80 backdrop-blur rounded-lg border`}
+          >
+            N{chromaticTranspose} • T{scalarTranspose} • t{chordalTranspose}
+            {/* T{scalarTranspose} • t{chordalTranspose} */}
+          </label>
         </div>
         <div
           className="bg-fuchsia-500/50 rounded-b"

@@ -6,16 +6,12 @@ import "react-data-grid/lib/styles.css";
 import {
   hideEditor,
   loadTimeline,
-  selectClips,
-  selectTransforms,
   setSelectedTrack,
   unloadTimeline,
 } from "redux/slices/root";
 import * as Selectors from "redux/selectors";
 import { createScaleTrack } from "redux/thunks/tracks";
-import { createClipsAndTransforms } from "redux/slices/clips";
-import { Clip } from "types/clips";
-import { Transform } from "types/transform";
+import { pasteSelectedClipsAndTransforms } from "redux/thunks";
 
 function mapStateToProps(state: RootState) {
   const trackMap = Selectors.selectTrackMap(state);
@@ -37,25 +33,13 @@ function mapStateToProps(state: RootState) {
 
 function mapDispatchToProps(dispatch: AppDispatch) {
   return {
-    createScaleTrack: () => {
-      dispatch(createScaleTrack());
-    },
-    createClipsAndTransforms: async (
-      clips: Clip[],
-      transforms: Transform[]
-    ) => {
-      const { clipIds, transformIds } = await dispatch(
-        createClipsAndTransforms(clips, transforms)
-      );
-      dispatch(selectClips(clipIds));
-      dispatch(selectTransforms(transformIds));
-    },
-    setSelectedTrack: (trackId: TrackId) => {
-      dispatch(setSelectedTrack(trackId));
-    },
+    createScaleTrack: () => dispatch(createScaleTrack()),
+    setSelectedTrack: (trackId: TrackId) => dispatch(setSelectedTrack(trackId)),
     hideEditor: () => dispatch(hideEditor()),
     loadTimeline: () => dispatch(loadTimeline()),
     unloadTimeline: () => dispatch(unloadTimeline()),
+    pasteClipsAndTransforms: (rows: Row[]) =>
+      dispatch(pasteSelectedClipsAndTransforms(rows)),
   };
 }
 

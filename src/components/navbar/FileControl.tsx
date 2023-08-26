@@ -167,7 +167,7 @@ function FileTooltipContent(props: Props) {
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Menu.Items className="absolute -top-5 -right-[8.5rem] px-2 py-2 bg-sky-950/90 border border-slate-400 rounded backdrop-blur">
+              <Menu.Items className="absolute -top-5 -right-[8.5rem] px-2 py-2 bg-sky-950 border border-slate-400 rounded">
                 <div
                   className="px-2 pb-1 mb-2 text-red-500 font-bold border-b border-b-slate-500/50]
 "
@@ -176,13 +176,13 @@ function FileTooltipContent(props: Props) {
                 </div>
                 <div className="flex justify-center items-center space-x-2">
                   <button
-                    className="w-1/2 px-2 rounded hover:text-red-400 hover:drop-shadow cursor-pointer"
+                    className="w-1/2 px-2 rounded hover:text-red-500 hover:drop-shadow cursor-pointer"
                     onClick={props.clear}
                   >
                     Yes
                   </button>
                   <button
-                    className="w-1/2 px-2 rounded hover:text-sky-300 hover:drop-shadow cursor-pointer"
+                    className="w-1/2 px-2 rounded hover:text-slate-400 hover:drop-shadow cursor-pointer"
                     onClick={close}
                   >
                     No

@@ -53,24 +53,26 @@ function Stream(props: Props) {
 
   return (
     <div
-      className="w-full h-full flex flex-auto min-h-0 items-start text-slate-50/80 overflow-auto"
+      className="w-full h-auto flex flex-grow overflow-scroll text-slate-50/80"
       style={{ fontSize: cellWidth / 2 - 5 }}
     >
       {streamPitches.map((pitches, i) => (
-        <div
+        <ul
           key={`chord-${i}`}
-          className={`flex h-full py-1 flex-col items-center justify-start border-r  ${
+          className={`flex flex-col overflow-scroll items-center border-r  ${
             slicingClip
               ? "hover:bg-slate-400/50 bg-slate-500/50 border-slate-50/50 hover:border-r-4 cursor-scissors"
               : "border-slate-50/10"
           }`}
-          style={{ width: cellWidth }}
+          style={{
+            width: cellWidth,
+          }}
           onClick={onClipCut(i)}
         >
           {pitches.map((pitch, j) => {
             return (
-              <span
-                className="p-1 mb-1 flex items-center justify-center rounded-full bg-sky-950 border border-white/50"
+              <li
+                className="my-0.5 flex items-center justify-center shrink-0 rounded-full bg-sky-950 border border-white/50"
                 key={`note-${j}`}
                 style={{
                   width: cellWidth - 4,
@@ -78,10 +80,10 @@ function Stream(props: Props) {
                 }}
               >
                 {pitch}
-              </span>
+              </li>
             );
           })}
-        </div>
+        </ul>
       ))}
     </div>
   );

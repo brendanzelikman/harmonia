@@ -29,7 +29,7 @@ export const trackMapSlice = createSlice({
       const id = action.payload;
       delete state.byId[id];
 
-      const index = state.allIds.findIndex((id) => id === id);
+      const index = state.allIds.findIndex((i) => i === id);
       if (index === -1) return;
       state.allIds.splice(index, 1);
     },

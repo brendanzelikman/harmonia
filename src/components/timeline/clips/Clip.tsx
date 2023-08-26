@@ -243,7 +243,7 @@ function TimelineClip(props: ClipProps) {
   const ClipName = useMemo(() => {
     return () => (
       <div
-        className={`text-xs text-white/80 font-medium bg-[#072c4f] p-1 border-b border-b-white/20 whitespace-nowrap overflow-ellipsis`}
+        className={`shrink-0 text-xs text-white/80 font-medium bg-[#072c4f] p-1 border-b border-b-white/20 whitespace-nowrap overflow-ellipsis`}
       >
         {name}
       </div>
@@ -270,12 +270,9 @@ function TimelineClip(props: ClipProps) {
       onClick={onClipClick}
     >
       <div className="w-full h-full relative">
-        <div className="w-full h-full overflow-hidden">
+        <div className="w-full h-full flex flex-col overflow-hidden">
           <ClipName />
           <Stream clip={clip} />
-          {isSelected ? (
-            <div className="w-full bg-zinc-900/70 py-0.5 select-none focus:outline-none"></div>
-          ) : null}
         </div>
       </div>
     </div>

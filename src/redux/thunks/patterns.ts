@@ -1,5 +1,11 @@
 import { beatsToSubdivision } from "appUtil";
-import { selectPattern, selectTransport } from "redux/selectors";
+import {
+  selectPattern,
+  selectPatternTrack,
+  selectRoot,
+  selectTransport,
+} from "redux/selectors";
+import { createClip } from "redux/slices/clips";
 import { convertTimeToSeconds } from "redux/slices/transport";
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
@@ -40,4 +46,23 @@ export const playPattern =
       }, time * 1000);
       time += duration;
     }
+  };
+
+export const addSelectedPatternToTimeline =
+  (): AppThunk => (dispatch, getState) => {
+    const state = getState();
+    const { time } = selectTransport(state);
+
+    const { selectedPatternId, selectedTrackId } = selectRoot(state);
+    if (!selectedPatternId || !selectedTrackId) return;
+
+    const pattern = selectPattern(state, selectedPatternId);
+    if (!pattern) return;
+
+    const track = selectPatternTrack(state, selectedTrackId);
+    if (!track) return;
+
+    dispatch(
+      createClip({ patternId: pattern.id, trackId: track.id, startTime: time })
+    );
   };

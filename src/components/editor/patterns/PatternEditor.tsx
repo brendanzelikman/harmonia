@@ -469,7 +469,7 @@ export function EditorPatterns(props: PatternEditorProps) {
   const ScalarTransposeButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content={`Scalar Transpose`}>
       <Editor.MenuButton
-        className={`rounded-sm cursor-pointer active:bg-fuchsia-400/80`}
+        className={`rounded-sm active:bg-fuchsia-400/80`}
         onClick={() => {
           const input = prompt("Transpose chromatically by N semitones:");
           const sanitizedInput = parseInt(input ?? "");
@@ -486,7 +486,7 @@ export function EditorPatterns(props: PatternEditorProps) {
   const ChordalTransposeButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content={`Chordal Transpose`}>
       <Editor.MenuButton
-        className={`rotate-90 rounded-sm cursor-pointer active:bg-fuchsia-400/80`}
+        className={`rotate-90 rounded-sm active:bg-fuchsia-400/80`}
         onClick={() => {
           const input = prompt("Transpose along the chord by N steps:");
           const sanitizedInput = parseInt(input ?? "");

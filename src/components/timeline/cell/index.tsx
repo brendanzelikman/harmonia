@@ -45,6 +45,8 @@ const onClick =
   (columnIndex: number, trackId?: TrackId): AppThunk =>
   (dispatch, getState) => {
     const time = columnIndex - 1;
+
+    // If no track is selected, seek the transport to the time
     if (!trackId) {
       dispatch(seekTransport(time));
       dispatch(Slices.Root.deselectAllClips());
@@ -63,11 +65,13 @@ const onClick =
     const onPatternTrack = !!track && isPatternTrack(track);
     const adding = root.timelineState === "adding";
 
+    // Create a clip if adding and on a pattern track
     if (adding && selectedPatternId && onPatternTrack) {
       dispatch(createPatternClip(trackId, selectedPatternId, time));
       return;
     }
 
+    // Create a transform if transposing
     if (root.timelineState === "transposing") {
       dispatch(
         Slices.Transforms.createTransform({
@@ -81,9 +85,15 @@ const onClick =
       return;
     }
 
+    // Seek the transport to the time
     dispatch(seekTransport(time));
+
+    // Select the track
     if (trackId) dispatch(setSelectedTrack(trackId));
+
+    // Deselect all clips and transforms
     dispatch(Slices.Root.deselectAllClips());
+    dispatch(Slices.Root.deselectAllTransforms());
   };
 
 function mapDispatchToProps(dispatch: AppDispatch) {

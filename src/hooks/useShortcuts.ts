@@ -111,16 +111,6 @@ export default function useShortcuts() {
           if (transformIds) dispatch(Root.selectTransforms(transformIds));
         },
       },
-      // "Backspace" = Delete Clips and Transforms
-      Backspace: {
-        keydown: (e) => {
-          if (isInputEvent(e) || root.showingEditor) return;
-          e.preventDefault();
-          dispatch(
-            deleteClipsAndTransforms(selectedClipIds, selectedTransformIds)
-          );
-        },
-      },
     },
     [
       root.showingEditor,
@@ -270,6 +260,14 @@ export default function useShortcuts() {
             dispatch(Root.deselectAllClips());
             dispatch(Root.deselectAllTransforms());
           }
+        },
+      },
+      // "Backspace" = Delete Clips and Transforms
+      Backspace: {
+        keydown: (e) => {
+          if (isInputEvent(e) || root.showingEditor) return;
+          e.preventDefault();
+          dispatch(Thunks.deleteSelectedClipsAndTransforms());
         },
       },
     },

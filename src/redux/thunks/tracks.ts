@@ -89,6 +89,22 @@ export const createPatternTrack =
     });
   };
 
+// Create a pattern track
+export const createPatternTrackFromSelectedTrack =
+  (): AppThunk<Promise<TrackId>> => (dispatch, getState) => {
+    return new Promise(async (resolve) => {
+      const state = getState();
+      const selectedTrackId = selectSelectedTrackId(state);
+      if (!selectedTrackId) return;
+
+      const track = selectTrack(state, selectedTrackId);
+      if (!track) return;
+
+      const scaleTrackId = isScaleTrack(track) ? track.id : track.scaleTrackId;
+      return dispatch(createPatternTrack({ scaleTrackId }));
+    });
+  };
+
 export const muteTracks = (): AppThunk => (dispatch, getState) => {
   const state = getState();
   const patternTracks = selectPatternTracks(state);

@@ -1,19 +1,15 @@
 import { useContext, useEffect, useState } from "react";
 import ReactConfetti from "react-confetti";
 import { createPortal } from "react-dom";
-import { BsQuestionCircle, BsQuestionCircleFill } from "react-icons/bs";
+import { BsQuestionCircleFill } from "react-icons/bs";
 import { ConnectedProps, connect } from "react-redux";
 import { Step, ShepherdTour, ShepherdTourContext } from "react-shepherd";
-import { selectRoot } from "redux/selectors";
 import { hideEditor, setTimelineState, showEditor } from "redux/slices/root";
 import * as Tour from "redux/slices/tour";
 import { AppDispatch, RootState } from "redux/store";
 
 const mapStateToProps = (state: RootState) => {
-  const { editorState } = selectRoot(state);
-  return {
-    onEditor: editorState !== "hidden",
-  };
+  return {};
 };
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
@@ -97,9 +93,7 @@ function OnboardingTour(props: Props) {
           action() {
             this.next();
             props.nextTourStep();
-            if (props.onEditor) {
-              props.hideEditor();
-            }
+            props.hideEditor();
           },
         },
         {
@@ -345,8 +339,8 @@ interface ContentProps extends Props {
 
 function ShepherdTourContent(props: ContentProps) {
   const tour = useContext(ShepherdTourContext);
-  const { onEditor, hideEditor } = props;
   const [isActive, setIsActive] = useState(false);
+
   useEffect(() => {
     const callback = () => {
       props.setFinished(false);
@@ -359,7 +353,7 @@ function ShepherdTourContent(props: ContentProps) {
       tour.on("cancel", callback);
     }
     return () => {
-      if (tour) {
+      if (tour?.isActive()) {
         tour.off("start", () => setIsActive(true));
         tour.off("complete", callback);
         tour.off("cancel", callback);
@@ -367,7 +361,7 @@ function ShepherdTourContent(props: ContentProps) {
         callback();
       }
     };
-  }, [tour, props]);
+  }, [tour]);
 
   if (!tour) return null;
 
@@ -376,9 +370,9 @@ function ShepherdTourContent(props: ContentProps) {
       tour.cancel();
       props.endTour();
     } else {
+      props.hideEditor();
       tour.start();
       props.startTour();
-      if (onEditor) hideEditor();
     }
   };
 
