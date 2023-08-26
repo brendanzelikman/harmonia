@@ -20,7 +20,6 @@ import { readFiles, saveStateToFile } from "redux/util";
 import useEventListeners from "./useEventListeners";
 import {
   createClipsAndTransforms,
-  deleteClipsAndTransforms,
   updateClipsAndTransforms,
 } from "redux/slices/clips";
 import { isPatternTrack } from "types/tracks";
@@ -47,20 +46,6 @@ export default function useShortcuts() {
 
   useEventListeners(
     {
-      // "Command + X" = Cut Selected Timeline Objects
-      x: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (!isHoldingCommand(e)) return;
-          cancelEvent(e);
-
-          dispatch(Thunks.cutSelectedClipsAndTransforms());
-          dispatch(
-            deleteClipsAndTransforms(selectedClipIds, selectedTransformIds)
-          );
-        },
-      },
-
       // Shift + M = Export selected clips to MIDI
       M: {
         keydown: (e) => {
@@ -202,6 +187,16 @@ export default function useShortcuts() {
             dispatch(Root.toggleCuttingClip());
             dispatch(Root.hideEditor());
           }
+        },
+      },
+      // "Command + X" = Cut Selected Timeline Objects
+      x: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          if (!isHoldingCommand(e)) return;
+          cancelEvent(e);
+
+          dispatch(Thunks.cutSelectedClipsAndTransforms());
         },
       },
       // "m" = Toggle Merging

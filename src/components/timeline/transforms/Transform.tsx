@@ -5,7 +5,7 @@ import { TransformsProps } from ".";
 import * as Constants from "appConstants";
 import * as RootSlice from "redux/slices/root";
 
-import { MouseEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { MouseEvent, useEffect, useMemo, useState } from "react";
 
 import { selectTransforms } from "redux/selectors/transforms";
 import { Transform, TransformId } from "types/transform";
