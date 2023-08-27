@@ -21,6 +21,8 @@ import { TransformNoId } from "types/transform";
 import { rotatePattern, transposePattern } from "redux/slices/patterns";
 import { createTransforms } from "redux/slices/transforms";
 import { isHoldingOption, isHoldingShift } from "appUtil";
+import { selectRangeOfClips } from "redux/thunks";
+import { Row } from "..";
 
 interface OwnClipProps extends ClipsProps {
   clip: Clip;
@@ -39,7 +41,6 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const left = Constants.TRACK_WIDTH + cellWidth * clip.startTime;
 
   const pattern = selectClipPattern(state, clip.id);
-  const transforms = selectTransforms(state);
   const root = selectRoot(state);
   const { timelineState, draggingClip, toolkit, selectedClipIds } = root;
   const isSelected = selectedClipIds.includes(clip.id);
@@ -54,7 +55,6 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     top,
     left,
     isSelected,
-    transforms,
     pattern,
     transposingClip: timelineState === "transposing",
     draggingClip,
@@ -102,6 +102,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
         })
       );
       dispatch(rotatePattern({ id: patternId, transpose: chordalTranspose }));
+    },
+    selectRangeOfClips(clip: Clip, rows: Row[]) {
+      dispatch(selectRangeOfClips(clip, rows));
     },
   };
 };
@@ -157,9 +160,6 @@ function TimelineClip(props: ClipProps) {
   );
 
   const onClipClick = (e: MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-
     if (transposingClip) {
       const { chromaticTranspose, scalarTranspose, chordalTranspose } = props;
       if (isNaN(scalarTranspose)) return;
@@ -201,43 +201,8 @@ function TimelineClip(props: ClipProps) {
       return;
     }
 
-    // Get the last selected clip
-    const lastId = selectedClipIds.at(-1);
-    const lastClip = props.clips.find((c) => c.id === lastId);
-    if (!lastClip) return;
-
-    // Get the start and end index of the selection
-    const startIndex = rows.findIndex(
-      (row) => row.trackId === lastClip?.trackId
-    );
-    const targetIndex = rows.findIndex((row) => row.trackId === clip.trackId);
-
-    // Get the trackIds of the selection
-    const trackIds = rows
-      .slice(
-        Math.min(startIndex, targetIndex),
-        Math.max(startIndex, targetIndex) + 1
-      )
-      .map((row) => row.trackId);
-
-    // Get the clipIds of the selection
-    const clipIds = props.clips
-      .filter((c) => trackIds.includes(c.trackId))
-      .map((c) => c.id);
-
-    // Compute the start and end time of the selection
-    const startTime = lastClip.startTime || 0;
-    const endTime = clip.startTime + duration - 1;
-
-    // Filter the clipIds to only include clips in the selection
-    const newClipIds = clipIds.filter((id) => {
-      const clip = props.clips.find((c) => c.id === id);
-      if (!clip) return false;
-      return clip.startTime >= startTime && clip.startTime <= endTime;
-    });
-
-    // Select the clips
-    props.selectClips(newClipIds);
+    // Select a range of clips if the user is holding shift
+    props.selectRangeOfClips(clip, rows);
   };
 
   const ClipName = useMemo(() => {

@@ -373,6 +373,14 @@ export const exportClipsToMidi =
     URL.revokeObjectURL(url);
   };
 
+export const exportSelectedClipsToMidi =
+  (options = { name: "" }): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const { selectedClipIds } = Selectors.selectRoot(state);
+    return dispatch(exportClipsToMidi(selectedClipIds, options));
+  };
+
 // Export the state to a MIDI file
 export const saveStateToMIDI: AppThunk = (dispatch, getState) => {
   try {
@@ -384,6 +392,61 @@ export const saveStateToMIDI: AppThunk = (dispatch, getState) => {
     console.log(e);
   }
 };
+
+// Select range of clips
+export const selectRangeOfClips =
+  (clip: Clip, rows: Row[]): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const { selectedClipIds } = Selectors.selectRoot(state);
+
+    const clipPattern = Selectors.selectPattern(state, clip.patternId);
+    if (!clipPattern) return;
+    const lastId = selectedClipIds.at(-1);
+    if (!lastId) return;
+    const lastClip = Selectors.selectClip(state, lastId);
+    if (!lastClip) return;
+
+    // Get the start and end index of the selection
+    const startIndex = rows.findIndex(
+      (row) => row.trackId === lastClip?.trackId
+    );
+    const targetIndex = rows.findIndex((row) => row.trackId === clip.trackId);
+
+    // Get the trackIds of the selection
+    const trackIds = rows
+      .slice(
+        Math.min(startIndex, targetIndex),
+        Math.max(startIndex, targetIndex) + 1
+      )
+      .map((row) => row.trackId)
+      .filter(Boolean) as TrackId[];
+
+    // Get the clips of the selection
+    const clips = Selectors.selectClipsByTrackIds(state, trackIds);
+
+    // Compute the start and end time of the selection
+    const startTime = lastClip.startTime || 0;
+    const duration = getClipDuration(clip, clipPattern);
+    const endTime = clip.startTime + duration;
+
+    // Get the durations of all clips
+    const clipDurations = clips.reduce((acc, clip) => {
+      const pattern = Selectors.selectPattern(state, clip.patternId);
+      if (!pattern) return acc;
+      return { ...acc, [clip.id]: getClipDuration(clip, pattern) };
+    }, {} as Record<ClipId, number>);
+
+    // Get the clips that are in the selection
+    const newClips = clips.filter((c) => {
+      const duration = clipDurations[c.id];
+      return c.startTime >= startTime && c.startTime + duration <= endTime;
+    });
+    const newClipIds = newClips.map((clip) => clip.id);
+
+    // Select the clips
+    dispatch(selectClips(newClipIds));
+  };
 
 // Select all clips and transforms
 export const selectAllClipsAndTransforms =

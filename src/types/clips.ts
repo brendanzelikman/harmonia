@@ -46,7 +46,7 @@ export const defaultClip: Clip = {
 };
 
 export const getClipDuration = (clip?: Clip, pattern?: Pattern) => {
-  if (!clip || !pattern) return 0;
+  if (!clip || !pattern) return 1;
   const duration = getStreamDuration(pattern.stream);
   return clip.duration || duration - clip.offset;
 };

@@ -7,7 +7,6 @@ import {
   BsFillBookmarkFill,
   BsFillPlayCircleFill,
   BsPlusCircle,
-  BsSave,
   BsTrash,
 } from "react-icons/bs";
 
@@ -25,6 +24,7 @@ import { Menu, Transition } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { getGlobalInstrumentName, getGlobalSampler } from "types/instrument";
 import useScaleShortcuts from "./useScaleShortcuts";
+import ContextMenu from "components/ContextMenu";
 
 type ScaleViewState = "adding" | "removing";
 
@@ -233,8 +233,67 @@ export function ScaleEditor(props: ScaleEditorProps) {
     </Editor.MenuButton>
   );
 
+  const menuOptions = [
+    {
+      label: "Undo Last Action",
+      onClick: props.undoScales,
+      disabled: !props.canUndoScales,
+    },
+    {
+      label: "Redo Last Action",
+      onClick: props.redoScales,
+      disabled: !props.canRedoScales,
+      divideEnd: true,
+    },
+    {
+      label: "Save Scale",
+      onClick: () => {
+        if (!scale) return;
+        props.createScale({ ...scale, name: props.scaleName });
+      },
+      disabled: !scale,
+    },
+    {
+      label: "Export Scale to MIDI",
+      onClick: () => {
+        if (!scale) return;
+        props.exportScaleToMIDI({ ...scale, name: props.scaleName });
+      },
+      disabled: !scale,
+    },
+    {
+      label: "Export Scale to XML",
+      onClick: () => {
+        if (!scale) return;
+        props.exportScaleToXML({ ...scale, name: props.scaleName });
+      },
+      disabled: !scale,
+      divideEnd: true,
+    },
+    {
+      label: `${adding ? "Stop" : "Start"} Adding Notes`,
+      onClick: adding ? clearState : () => setState("adding"),
+      disabled: !scale,
+    },
+    {
+      label: `${removing ? "Stop" : "Start"} Removing Notes`,
+      onClick: removing ? clearState : () => setState("removing"),
+      disabled: !scale,
+    },
+    {
+      label: "Clear Scale",
+      onClick: () => scale && props.clearScale(scale.id),
+      disabled: !scale,
+    },
+  ];
+
   return (
-    <Editor.Container>
+    <Editor.Container id="scale-editor">
+      <ContextMenu
+        targetId="scale-editor"
+        options={menuOptions}
+        className="-ml-[300px] -mt-4"
+      />
       <Editor.Body className="relative">
         <Transition
           show={props.showingPresets}

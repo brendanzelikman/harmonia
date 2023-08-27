@@ -13,10 +13,10 @@ import Cell from "./cell";
 import * as Constants from "appConstants";
 import TimelineClips from "./clips";
 import TimelineTransforms from "./transforms";
-import DataGridBackground from "./background";
+import DataGridBackground from "./Background";
 import useEventListeners from "hooks/useEventListeners";
 import { cancelEvent, isHoldingCommand, isInputEvent } from "appUtil";
-import TimelineContextMenu from "./TimelineContextMenu";
+import TimelineContextMenu from "./ContextMenu";
 
 export function Timeline(props: TimelineProps) {
   const { selectedTrackId, trackMap, cellWidth } = props;
@@ -104,7 +104,8 @@ export function Timeline(props: TimelineProps) {
     {
       ArrowUp: {
         keydown: (e) => {
-          if (isInputEvent(e) || !selectedTrackId) return;
+          if (isInputEvent(e) || !selectedTrackId || props.showingEditor)
+            return;
           cancelEvent(e);
           const trackIds = rows.map((row) => row.trackId).filter(Boolean);
           const selectedIndex = trackIds.indexOf(selectedTrackId);
@@ -118,7 +119,8 @@ export function Timeline(props: TimelineProps) {
       },
       ArrowDown: {
         keydown: (e) => {
-          if (isInputEvent(e) || !selectedTrackId) return;
+          if (isInputEvent(e) || !selectedTrackId || props.showingEditor)
+            return;
           cancelEvent(e);
           const trackIds = rows.map((row) => row.trackId).filter(Boolean);
           const selectedIndex = trackIds.indexOf(selectedTrackId);
@@ -132,13 +134,14 @@ export function Timeline(props: TimelineProps) {
       },
       v: {
         keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingCommand(e)) return;
+          if (isInputEvent(e) || !isHoldingCommand(e) || props.showingEditor)
+            return;
           cancelEvent(e);
           props.pasteClipsAndTransforms(rows);
         },
       },
     },
-    [selectedTrackId, rows]
+    [selectedTrackId, rows, props.showingEditor]
   );
 
   // Create the track column for the DataGrid

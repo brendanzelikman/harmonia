@@ -37,7 +37,7 @@ import { PatternEditorProps } from ".";
 import useEditorState from "../hooks/useEditorState";
 import * as Editor from "../Editor";
 import { Duration } from "types/units";
-import { DEFAULT_DURATION } from "appConstants";
+import { DEFAULT_DURATION, TRACK_WIDTH } from "appConstants";
 import { durationToBeats } from "appUtil";
 import { PatternsPiano } from "./Piano";
 import useOSMD from "lib/opensheetmusicdisplay";
@@ -46,10 +46,11 @@ import { Menu, Transition } from "@headlessui/react";
 
 import { getGlobalInstrumentName, getGlobalSampler } from "types/instrument";
 import usePatternShortcuts from "./usePatternShortcuts";
+import ContextMenu from "components/ContextMenu";
 
 type PatternsViewState = "adding" | "inserting";
 
-export function EditorPatterns(props: PatternEditorProps) {
+export function PatternEditor(props: PatternEditorProps) {
   // Editor state
   const editorState = useEditorState<PatternsViewState>();
   const { setState, onState, clearState } = editorState;
@@ -584,17 +585,6 @@ export function EditorPatterns(props: PatternEditorProps) {
     </Editor.Tooltip>
   );
 
-  const UnfoldButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Unfold Pattern">
-      <Editor.MenuButton
-        onClick={() => props.unfoldPattern(pattern)}
-        disabled={props.isPatternEmpty}
-      >
-        <BsFillDatabaseFill />
-      </Editor.MenuButton>
-    </Editor.Tooltip>
-  );
-
   const ReverseButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content="Reverse Pattern">
       <Editor.MenuButton
@@ -622,9 +612,100 @@ export function EditorPatterns(props: PatternEditorProps) {
     </Editor.Tooltip>
   );
 
+  const menuOptions = [
+    {
+      label: "Undo Last Action",
+      onClick: props.undoPatterns,
+      disabled: !props.canUndoPatterns,
+    },
+    {
+      label: "Redo Last Action",
+      onClick: props.redoPatterns,
+      disabled: !props.canRedoPatterns,
+      divideEnd: true,
+    },
+    {
+      label: "Create New Pattern",
+      onClick: async () => {
+        const patternId = await props.createPattern();
+        props.setPatternId(patternId);
+      },
+    },
+    {
+      label: "Copy Pattern",
+      onClick: () => props.copyPattern(pattern),
+    },
+    {
+      label: "Export Pattern to MIDI",
+      onClick: () => props.exportPatternToMIDI(pattern),
+    },
+    {
+      label: "Export Pattern to XML",
+      onClick: () => props.exportPatternToXML(pattern),
+      divideEnd: true,
+    },
+    {
+      label: `${adding ? "Stop" : "Start"} Adding Notes`,
+      onClick: () => {
+        if (adding) {
+          clearState();
+        } else {
+          setState("adding");
+        }
+      },
+      disabled: !props.isPatternCustom,
+    },
+    {
+      label: `${inserting ? "Stop" : "Start"} Inserting Notes`,
+      onClick: () => {
+        if (inserting) {
+          clearState();
+        } else {
+          setState("inserting");
+        }
+      },
+      disabled: !props.isPatternCustom || cursor.hidden,
+    },
+    {
+      label: `${cursor.hidden ? "Show" : "Hide"} Cursor`,
+      onClick: () => {
+        if (cursor.hidden) {
+          cursor.show();
+        } else {
+          cursor.hide();
+        }
+      },
+      disabled: props.isPatternEmpty || !props.isPatternCustom,
+    },
+    {
+      label: `${adding ? "Add" : inserting ? "Insert" : "Add"} Rest Note`,
+      onClick: onRestClick,
+      disabled: !props.isPatternCustom || (!adding && !inserting),
+    },
+    {
+      label: "Delete Note",
+      onClick: onEraseClick,
+      disabled: !props.isPatternCustom || props.isPatternEmpty || cursor.hidden,
+    },
+    {
+      label: "Clear All Notes",
+      onClick: () => (props.pattern ? props.clearPattern(props.pattern) : null),
+      disabled:
+        !props.pattern || props.isPatternEmpty || !props.isPatternCustom,
+    },
+  ];
+
   return (
-    <Editor.Container className={`text-white h-full absolute top-0 w-full`}>
-      <Editor.Body className="relative">
+    <Editor.Container
+      className={`text-white h-full absolute top-0 w-full`}
+      id="pattern-editor"
+    >
+      <ContextMenu
+        targetId="pattern-editor"
+        options={menuOptions}
+        className={`-ml-[300px] -mt-4`}
+      />
+      <Editor.Body>
         <Transition
           show={props.showingPresets}
           enter="transition-opacity duration-150"

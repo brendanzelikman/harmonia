@@ -15,6 +15,7 @@ interface ContextMenuOption {
 
 export default function ContextMenu(props: {
   targetId: string;
+  className?: string;
   options: ContextMenuOption[];
 }) {
   const { targetId } = props;
@@ -28,7 +29,7 @@ export default function ContextMenu(props: {
       if (targetElement && targetElement.contains(event.target)) {
         event.preventDefault();
         setVisible(true);
-        setPos({ x: event.clientX, y: event.clientY });
+        setPos({ x: event.clientX, y: event.clientY - 58 });
         return;
       }
       if (contextRef.current && !contextRef.current.contains(event.target)) {
@@ -82,11 +83,12 @@ export default function ContextMenu(props: {
       ref={contextRef}
       className={`bg-slate-900/80 border border-slate-50/50 py-2 rounded-lg drop-shadow-2xl z-[100] font-nunito font-light ${
         visible ? "block" : "hidden"
-      } absolute flex flex-col items-center backdrop-blur-lg`}
+      } ${
+        props.className ?? ""
+      } absolute flex flex-col items-center backdrop-blur-lg text-sm`}
       style={{
         left: pos.x,
         top: pos.y,
-        marginTop: `-50px`,
       }}
       onClick={() => setVisible(false)}
     >

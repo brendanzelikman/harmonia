@@ -109,7 +109,7 @@ export const getStreamPitches = (stream: PatternStream): Pitch[] => {
 
 // Get the duration of a stream
 export const getStreamDuration = (stream: PatternStream): Time => {
-  if (!stream || stream.length === 0) return 0;
+  if (!stream || !stream.length) return 1;
   return stream.reduce((pre, cur) => pre + cur?.[0]?.duration ?? 0, 0);
 };
 

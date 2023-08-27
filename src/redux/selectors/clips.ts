@@ -172,3 +172,13 @@ export const selectClipsAtTime = createSelector(
     });
   }
 );
+
+// Select all clips by track ids
+export const selectClipsByTrackIds = createSelector(
+  [selectClips, (state: RootState, trackIds: string[]) => trackIds],
+  (clips, trackIds) => {
+    return clips.filter((clip) => {
+      return trackIds.includes(clip.trackId);
+    });
+  }
+);

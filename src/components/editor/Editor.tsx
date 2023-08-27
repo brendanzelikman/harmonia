@@ -190,7 +190,11 @@ export const InstrumentListbox = ({
   );
 };
 
-export const EditorTransition = (props: { show: boolean; children?: any }) => {
+export const EditorTransition = (props: {
+  id?: string;
+  show: boolean;
+  children?: any;
+}) => {
   return (
     <Transition
       show={!!props.show}
@@ -200,16 +204,22 @@ export const EditorTransition = (props: { show: boolean; children?: any }) => {
       leave="transition-opacity duration-300"
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
-      className="w-full h-full"
+      className="relative w-full h-full"
+      id={props.id}
     >
       {props.children}
     </Transition>
   );
 };
 
-export const Container = (props: { className?: string; children?: any }) => {
+export const Container = (props: {
+  id?: string;
+  className?: string;
+  children?: any;
+}) => {
   return (
     <div
+      id={props.id}
       className={`flex flex-col w-full h-full text-white ${
         props.className ?? ""
       }`}
@@ -262,9 +272,14 @@ export const Header = (props: { className?: string; children?: any }) => {
   );
 };
 
-export const Body = (props: { className?: string; children?: any }) => {
+export const Body = (props: {
+  id?: string;
+  className?: string;
+  children?: any;
+}) => {
   return (
     <div
+      id={props.id}
       className={`p-2 flex w-full h-full overflow-scroll ${
         props.className ?? ""
       }`}

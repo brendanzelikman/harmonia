@@ -185,7 +185,7 @@ function PatternListbox(props: Props) {
                       [
                         "Basic Durations",
                         "Basic Patterns",
-                        "Custom Patterns",
+                        "Basic Chords",
                       ].includes(category)
                         ? "pt-0.5"
                         : ""

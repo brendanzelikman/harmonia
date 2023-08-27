@@ -17,7 +17,7 @@ function mapStateToProps(state: RootState) {
   const trackMap = Selectors.selectTrackMap(state);
   const transport = Selectors.selectTransport(state);
   const cellWidth = Selectors.selectCellWidth(state);
-  const { loadedTimeline, clipboard, selectedTrackId } =
+  const { loadedTimeline, clipboard, selectedTrackId, showingEditor } =
     Selectors.selectRoot(state);
   return {
     time: transport.time,
@@ -27,6 +27,7 @@ function mapStateToProps(state: RootState) {
     selectedTrackId,
     cellWidth,
     loadedTimeline,
+    showingEditor,
     loadedTransport: transport.loaded,
   };
 }

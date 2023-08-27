@@ -9,7 +9,7 @@ import {
   transposePatternStream,
 } from "types/patterns";
 import { connect, ConnectedProps } from "react-redux";
-import { EditorPatterns } from "./PatternEditor";
+import { PatternEditor } from "./PatternEditor";
 import {
   hideEditor,
   setSelectedPattern,
@@ -179,29 +179,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
       })
     );
   },
-  unfoldPattern: (pattern: Pattern) => {
-    let notes: MIDINote[] = [];
-    for (let i = 0; i < pattern.stream.length; i++) {
-      const chord = pattern.stream[i];
-      if (!chord || !chord.length) return [];
-      if (isRest(chord[0])) return [];
-      for (let j = 0; j < chord.length; j++) {
-        const note = chord[j];
-        if (!note) continue;
-        notes.push(note);
-      }
-    }
-    const sortedNotes = uniqBy(
-      notes.sort((a, b) => a.MIDI - b.MIDI),
-      "MIDI"
-    );
-    const unfoldedNotes = sortedNotes.map(({ MIDI }) => ({
-      MIDI,
-      duration: 2,
-    }));
-    const stream = unfoldedNotes.map((note) => [note]);
-    dispatch(Patterns.updatePattern({ id: pattern.id, stream }));
-  },
+
   reversePattern: (pattern: Pattern) => {
     dispatch(Patterns.reversePattern(pattern.id));
   },
@@ -247,4 +225,4 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 type Props = ConnectedProps<typeof connector>;
 export interface PatternEditorProps extends Props, StateProps {}
 
-export default connector(EditorPatterns);
+export default connector(PatternEditor);
