@@ -1,5 +1,5 @@
-import { Clip } from "types/clips";
-import { Transform } from "types/transform";
+import { Clip, createClipTag } from "types/clips";
+import { Transform, createTransformTag } from "types/transform";
 
 export const UndoTypes = {
   undoTimeline: "timeline/undo",
@@ -26,12 +26,8 @@ export const groupByActionType = (action: any) => {
 
     // Add Clips With Transforms
     case "clips/addClipsWithTransforms":
-      var clipTags = action.payload.clips.map(
-        (clip: Clip) => `${clip.id}@${clip.startTime}`
-      );
-      var transformTags = action.payload.transforms.map(
-        (transform: Transform) => `${transform.id}@${transform.time}`
-      );
+      var clipTags = action.payload.clips.map(createClipTag);
+      var transformTags = action.payload.transforms.map(createTransformTag);
       return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
         ","
       )};${transformTags.join(",")}`;
@@ -62,17 +58,13 @@ export const groupByActionType = (action: any) => {
     // Update Clips
     case "clips/updateClips":
       const clips = action.payload;
-      var clipTags = clips.map((clip: Clip) => `${clip.id}@${clip.startTime}`);
+      var clipTags = clips.map(createClipTag);
       return `UPDATE_CLIPS:${clipTags.join(",")}`;
 
     // Update Clips With Transforms
     case "clips/updateClipsWithTransforms":
-      var clipTags = action.payload.clips.map(
-        (clip: Clip) => `${clip.id}@${clip.startTime}`
-      );
-      var transformTags = action.payload.transforms.map(
-        (transform: Transform) => `${transform.id}@${transform.time}`
-      );
+      var clipTags = action.payload.clips.map(createClipTag);
+      var transformTags = action.payload.transforms.map(createTransformTag);
       return `UPDATE_CLIPS_AND_TRANSFORMS:${clipTags.join(
         ","
       )};${transformTags.join(",")}`;
@@ -122,12 +114,8 @@ export const groupByActionType = (action: any) => {
 
     // Add Transforms With Clips
     case "transforms/addTransformsWithClips":
-      var clipTags = action.payload.clips.map(
-        (clip: Clip) => `${clip.id}@${clip.startTime}`
-      );
-      var transformTags = action.payload.transforms.map(
-        (transform: Transform) => `${transform.id}@${transform.time}`
-      );
+      var clipTags = action.payload.clips.map(createClipTag);
+      var transformTags = action.payload.transforms.map(createTransformTag);
       return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
         ","
       )};${transformTags.join(",")}`;
@@ -161,19 +149,13 @@ export const groupByActionType = (action: any) => {
 
     // Update Transforms
     case "transforms/updateTransforms":
-      var transformTags = action.payload.transforms.map(
-        (transform: Transform) => `${transform.id}@${transform.time}`
-      );
+      var transformTags = action.payload.map(createTransformTag);
       return `UPDATE_TRANSFORMS:${transformTags.join(",")}`;
 
     // Update Transforms With Clips
     case "transforms/updateTransformsWithClips":
-      var transformTags = action.payload.transforms.map(
-        (transform: Transform) => `${transform.id}@${transform.time}`
-      );
-      var clipTags = action.payload.clips.map(
-        (clip: Clip) => `${clip.id}@${clip.startTime}`
-      );
+      var transformTags = action.payload.transforms.map(createTransformTag);
+      var clipTags = action.payload.clips.map(createClipTag);
       return `UPDATE_CLIPS_AND_TRANSFORMS:${clipTags.join(
         ","
       )};${transformTags.join(",")}`;
@@ -226,12 +208,8 @@ export const groupByActionType = (action: any) => {
 
     // Add Clips With Transforms to the Clip Map
     case "clipMap/addClipsWithTransformsToClipMap":
-      var clipTags = action.payload.clips.map(
-        (clip: Clip) => `${clip.id}@${clip.startTime}`
-      );
-      var transformTags = action.payload.transforms.map(
-        (transform: Transform) => `${transform.id}@${transform.time}`
-      );
+      var clipTags = action.payload.clips.map(createClipTag);
+      var transformTags = action.payload.transforms.map(createTransformTag);
       return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
         ","
       )};${transformTags.join(",")}`;
@@ -290,12 +268,8 @@ export const groupByActionType = (action: any) => {
 
     // Add Transforms With Clips To The Transform Map
     case "transformMap/addTransformsWithClipsToTransformMap":
-      var clipTags = action.payload.clips.map(
-        (clip: Clip) => `${clip.id}@${clip.startTime}`
-      );
-      var transformTags = action.payload.transforms.map(
-        (transform: Transform) => `${transform.id}@${transform.time}`
-      );
+      var clipTags = action.payload.clips.map(createClipTag);
+      var transformTags = action.payload.transforms.map(createTransformTag);
       return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
         ","
       )};${transformTags.join(",")}`;

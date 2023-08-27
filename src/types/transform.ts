@@ -34,8 +34,18 @@ export const initializeTransform = (
   id: nanoid(),
 });
 
+export const createTransformTag = (transform: Transform) => {
+  return `${transform.id}@${transform.time}@${transform.trackId}@${transform.chromaticTranspose}@${transform.scalarTranspose}@${transform.chordalTranspose}`;
+};
+
 export const lastTransformAtTime = (transforms: Transform[], time: Time) => {
   return transforms
     .filter((t) => t.time <= time)
     .sort((a, b) => b.time - a.time)[0];
+};
+
+export type TransformCoordinate = {
+  N: number;
+  T: number;
+  t: number;
 };

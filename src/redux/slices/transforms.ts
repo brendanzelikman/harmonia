@@ -131,11 +131,10 @@ export const transformsSlice = createSlice({
       };
     },
     updateTransforms: (state, action: PayloadAction<Partial<Transform>[]>) => {
-      action.payload.forEach((transform) => {
+      const transforms = action.payload;
+      transforms.forEach((transform) => {
         const { id, ...rest } = transform;
-
         if (!id) return;
-        if (!state.byId[id]) return;
         state.byId[id] = {
           ...state.byId[id],
           ...rest,

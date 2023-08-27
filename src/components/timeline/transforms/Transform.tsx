@@ -143,10 +143,9 @@ function TimelineTransform(props: TransformProps) {
                 : props.isSelected
                 ? "invisible group-hover:visible"
                 : "hidden"
-            } w-fit whitespace-nowrap px-2 z-20 flex items-center justify-center bg-fuchsia-700/80 backdrop-blur rounded-lg border`}
+            } w-fit whitespace-nowrap px-2 z-20 flex items-center justify-center bg-fuchsia-600/90 backdrop-blur rounded-md border border-slate-200/80`}
           >
             N{chromaticTranspose} • T{scalarTranspose} • t{chordalTranspose}
-            {/* T{scalarTranspose} • t{chordalTranspose} */}
           </label>
         </div>
         <div

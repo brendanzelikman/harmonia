@@ -12,6 +12,11 @@ import {
 import * as Selectors from "redux/selectors";
 import { createScaleTrack } from "redux/thunks/tracks";
 import { pasteSelectedClipsAndTransforms } from "redux/thunks";
+import {
+  offsetSelectedTransforms,
+  updateSelectedTransforms,
+} from "redux/thunks/transforms";
+import { TransformCoordinate } from "types/transform";
 
 function mapStateToProps(state: RootState) {
   const trackMap = Selectors.selectTrackMap(state);
@@ -41,6 +46,10 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     unloadTimeline: () => dispatch(unloadTimeline()),
     pasteClipsAndTransforms: (rows: Row[]) =>
       dispatch(pasteSelectedClipsAndTransforms(rows)),
+    offsetSelectedTransforms: (offset: TransformCoordinate) =>
+      dispatch(offsetSelectedTransforms(offset)),
+    updateSelectedTransforms: (update: Partial<TransformCoordinate>) =>
+      dispatch(updateSelectedTransforms(update)),
   };
 }
 

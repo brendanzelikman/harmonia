@@ -15,7 +15,12 @@ import TimelineClips from "./clips";
 import TimelineTransforms from "./transforms";
 import DataGridBackground from "./Background";
 import useEventListeners from "hooks/useEventListeners";
-import { cancelEvent, isHoldingCommand, isInputEvent } from "appUtil";
+import {
+  cancelEvent,
+  isHoldingCommand,
+  isHoldingShift,
+  isInputEvent,
+} from "appUtil";
 import TimelineContextMenu from "./ContextMenu";
 
 export function Timeline(props: TimelineProps) {
@@ -100,13 +105,146 @@ export function Timeline(props: TimelineProps) {
     return rows;
   }, [trackMap]);
 
+  const [holding1, setHolding1] = useState(false);
+  const [holding2, setHolding2] = useState(false);
+  const [holding3, setHolding3] = useState(false);
+
   useEventListeners(
     {
+      0: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          if (holding1) {
+            props.updateSelectedTransforms({ N: 0 });
+          }
+          if (holding2) {
+            props.updateSelectedTransforms({ T: 0 });
+          }
+          if (holding3) {
+            props.updateSelectedTransforms({ t: 0 });
+          }
+        },
+      },
+      ")": {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          if (holding1) {
+            props.updateSelectedTransforms({ N: 0 });
+          }
+          if (holding2) {
+            props.updateSelectedTransforms({ T: 0 });
+          }
+          if (holding3) {
+            props.updateSelectedTransforms({ t: 0 });
+          }
+        },
+      },
+      1: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding1(true);
+        },
+        keyup: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding1(false);
+        },
+      },
+      "!": {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding1(true);
+        },
+        keyup: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding1(false);
+        },
+      },
+      2: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding2(true);
+        },
+        keyup: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding2(false);
+        },
+      },
+      "@": {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding2(true);
+        },
+        keyup: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding2(false);
+        },
+      },
+      3: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding3(true);
+        },
+        keyup: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding3(false);
+        },
+      },
+      "#": {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding3(true);
+        },
+        keyup: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          setHolding3(false);
+        },
+      },
       ArrowUp: {
         keydown: (e) => {
-          if (isInputEvent(e) || !selectedTrackId || props.showingEditor)
-            return;
+          if (isInputEvent(e) || props.showingEditor) return;
           cancelEvent(e);
+
+          const holdingShift = isHoldingShift(e);
+
+          if (holding1) {
+            props.offsetSelectedTransforms({
+              N: holdingShift ? 12 : 1,
+              T: 0,
+              t: 0,
+            });
+          }
+          if (holding2) {
+            props.offsetSelectedTransforms({
+              N: 0,
+              T: holdingShift ? 12 : 1,
+              t: 0,
+            });
+          }
+          if (holding3) {
+            props.offsetSelectedTransforms({
+              N: 0,
+              T: 0,
+              t: holdingShift ? 12 : 1,
+            });
+          }
+
+          // Select the previous track
+          if (holding1 || holding2 || holding3) return;
+          if (!selectedTrackId) return;
           const trackIds = rows.map((row) => row.trackId).filter(Boolean);
           const selectedIndex = trackIds.indexOf(selectedTrackId);
           if (selectedIndex === -1) return;
@@ -119,9 +257,37 @@ export function Timeline(props: TimelineProps) {
       },
       ArrowDown: {
         keydown: (e) => {
-          if (isInputEvent(e) || !selectedTrackId || props.showingEditor)
-            return;
+          if (isInputEvent(e) || props.showingEditor) return;
           cancelEvent(e);
+
+          const holdingShift = isHoldingShift(e);
+
+          if (holding1) {
+            props.offsetSelectedTransforms({
+              N: holdingShift ? -12 : -1,
+              T: 0,
+              t: 0,
+            });
+          }
+          if (holding2) {
+            props.offsetSelectedTransforms({
+              N: 0,
+              T: holdingShift ? -12 : -1,
+              t: 0,
+            });
+          }
+          if (holding3) {
+            props.offsetSelectedTransforms({
+              N: 0,
+              T: 0,
+              t: holdingShift ? -12 : -1,
+            });
+          }
+
+          if (holding1 || holding2 || holding3) return;
+          if (!selectedTrackId) return;
+
+          // Select the next track
           const trackIds = rows.map((row) => row.trackId).filter(Boolean);
           const selectedIndex = trackIds.indexOf(selectedTrackId);
           if (selectedIndex === -1) return;
@@ -141,7 +307,7 @@ export function Timeline(props: TimelineProps) {
         },
       },
     },
-    [selectedTrackId, rows, props.showingEditor]
+    [selectedTrackId, rows, props.showingEditor, holding1, holding2, holding3]
   );
 
   // Create the track column for the DataGrid

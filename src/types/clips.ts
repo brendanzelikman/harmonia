@@ -45,6 +45,10 @@ export const defaultClip: Clip = {
   offset: 0,
 };
 
+export const createClipTag = (clip: Clip) => {
+  return `${clip.id}@${clip.patternId}@${clip.trackId}@${clip.startTime}@${clip.offset}`;
+};
+
 export const getClipDuration = (clip?: Clip, pattern?: Pattern) => {
   if (!clip || !pattern) return 1;
   const duration = getStreamDuration(pattern.stream);

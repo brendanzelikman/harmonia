@@ -37,12 +37,12 @@ const mapStateToProps = (state: RootState) => {
 
   const isPatternTrackSelected = selectedTrack && isPatternTrack(selectedTrack);
 
-  const areClipsSelected = selectedClipIds.length > 0;
-  const areTransformsSelected = selectedTransformIds.length > 0;
+  const areClipsSelected = selectedClipIds?.length > 0;
+  const areTransformsSelected = selectedTransformIds?.length > 0;
   const isSelectionEmpty = !areClipsSelected && !areTransformsSelected;
 
-  const areClipsInClipboard = clipboard.clips.length > 0;
-  const areTransformsInClipboard = clipboard.transforms.length > 0;
+  const areClipsInClipboard = clipboard?.clips?.length > 0;
+  const areTransformsInClipboard = clipboard?.transforms?.length > 0;
   const isClipboardEmpty = !areClipsInClipboard && !areTransformsInClipboard;
 
   const canUndo = state.timeline.past.length > 0;
@@ -58,9 +58,9 @@ const mapStateToProps = (state: RootState) => {
     isClipboardEmpty,
     canUndo,
     canRedo,
-    N: toolkit.chromaticTranspose,
-    T: toolkit.scalarTranspose,
-    t: toolkit.chordalTranspose,
+    N: toolkit?.chromaticTranspose,
+    T: toolkit?.scalarTranspose,
+    t: toolkit?.chordalTranspose,
   };
 };
 const mapDispatchToProps = (dispatch: AppDispatch) => {

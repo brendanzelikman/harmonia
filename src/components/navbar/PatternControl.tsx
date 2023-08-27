@@ -419,7 +419,7 @@ function PatternControl(props: Props) {
           <BsMagic className="-rotate-90 p-0.5" />
         </ControlButton>
         <NavbarTooltip
-          className="-left-[8rem] bg-fuchsia-800 backdrop-blur-lg w-[20rem]"
+          className="-left-[8rem] bg-fuchsia-700 backdrop-blur-lg w-[20rem]"
           show={!!props.transposingClip}
           content={
             <div className="flex flex-col justify-center items-center pb-1">
