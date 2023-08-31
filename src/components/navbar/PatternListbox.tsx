@@ -6,25 +6,24 @@ import {
   selectPatterns,
   selectCustomPatterns,
   selectSelectedPattern,
+  selectEditor,
+  selectTimeline,
 } from "redux/selectors";
-import {
-  clearTimelineState,
-  hideEditor,
-  setSelectedPattern,
-  showEditor,
-} from "redux/slices/root";
+import { setSelectedPattern } from "redux/slices/root";
 import Patterns, { Pattern, PatternId } from "types/patterns";
 import { BsCheck, BsPencil } from "react-icons/bs";
 import { useCallback, useEffect } from "react";
 import { createPattern } from "redux/slices/patterns";
+import { hideEditor, showEditor } from "redux/slices/editor";
+import { clearTimelineState } from "redux/slices/timeline";
 
 const mapStateToProps = (state: RootState) => {
-  const { showingEditor, editorState, selectedPatternId } = selectRoot(state);
+  const editor = selectEditor(state);
   const patterns = selectPatterns(state);
   const selectedPattern = selectSelectedPattern(state);
   const customPatterns = selectCustomPatterns(state);
   return {
-    onPatternsEditor: showingEditor && editorState === "patterns",
+    onPatternsEditor: editor.show && editor.id === "patterns",
     patterns,
     selectedPattern,
     customPatterns,
@@ -33,13 +32,14 @@ const mapStateToProps = (state: RootState) => {
 
 const onPatternsClick = (): AppThunk => (dispatch, getState) => {
   const state = getState();
-  const { editorState, timelineState } = selectRoot(state);
-  if (editorState === "patterns") {
+  const editor = selectEditor(state);
+  const timeline = selectTimeline(state);
+  if (editor.id === "patterns") {
     dispatch(hideEditor());
   } else {
     dispatch(showEditor({ id: "patterns" }));
   }
-  if (timelineState !== "idle") {
+  if (timeline.state !== "idle") {
     dispatch(clearTimelineState());
   }
 };

@@ -2,8 +2,8 @@ import { Clip, createClipTag } from "types/clips";
 import { Transform, createTransformTag } from "types/transform";
 
 export const UndoTypes = {
-  undoTimeline: "timeline/undo",
-  redoTimeline: "timeline/redo",
+  undoSession: "session/undo",
+  redoSession: "session/redo",
   undoScales: "scales/undo",
   redoScales: "scales/redo",
   undoPatterns: "patterns/undo",

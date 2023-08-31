@@ -96,7 +96,7 @@ export function Timeline(props: TimelineProps) {
       // Return the top-left corner cell
       headerRenderer: () => (
         <div className="rdg-corner bg-zinc-900 h-full border-b border-b-slate-50/10 z-[100]">
-          <div className="h-full bg-gradient-to-r from-gray-800 to-gray-900 backdrop-blur-md"></div>
+          <div className="h-full bg-gradient-to-r from-gray-800 to-gray-900 backdrop-blur-md pl-3"></div>
         </div>
       ),
       cellClass() {
@@ -128,7 +128,7 @@ export function Timeline(props: TimelineProps) {
   // Create the body cell columns for the DataGrid
   const columns = useMemo((): Column<Row>[] => {
     const columns: Column<Row>[] = [];
-    const beatCount = Constants.MEASURE_COUNT * Constants.MAX_SUBDIVISION;
+    const beatCount = Constants.MEASURE_COUNT * 128;
     // Add the body cells
     for (let i = 1; i <= beatCount; i++) {
       columns.push(column(`${i}`));

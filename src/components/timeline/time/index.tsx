@@ -2,10 +2,10 @@ import { inRange } from "lodash";
 import { HeaderRendererProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
 import {
-  selectRoot,
+  selectBarsBeatsSixteenths,
+  selectTimeline,
   selectTimelineTick,
   selectTransport,
-  selectTimelineBBS,
 } from "redux/selectors";
 import {
   seekTransport,
@@ -20,10 +20,11 @@ import { subdivisionToTicks } from "appUtil";
 
 function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
   const transport = selectTransport(state);
+  const { subdivision } = selectTimeline(state);
   const columnIndex = Number(ownProps.column.key);
   const tick = selectTimelineTick(state, columnIndex - 1);
-  const tickLength = subdivisionToTicks(transport.subdivision);
-  const { bars, beats, sixteenths } = selectTimelineBBS(state, tick);
+  const tickLength = subdivisionToTicks(subdivision);
+  const { bars, beats, sixteenths } = selectBarsBeatsSixteenths(state, tick);
   const isMeasure = beats === 0 && sixteenths === 0;
 
   const looping = transport.loop;
@@ -45,7 +46,7 @@ function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
     tick,
     columnIndex,
     bars,
-    subdivision: transport.subdivision,
+    subdivision,
     isMeasure,
     className,
     looping,

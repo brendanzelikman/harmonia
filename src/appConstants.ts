@@ -28,8 +28,6 @@ export const PAN_STEP = 0.01;
 
 // Time Signature + Rhythm
 export const MEASURE_COUNT = 64;
-export const MIN_SUBDIVISION = 1;
-export const MAX_SUBDIVISION = 64;
 export const DEFAULT_DURATION: Duration = "eighth";
 export const DEFAULT_BEATS_PER_BAR = 4;
 

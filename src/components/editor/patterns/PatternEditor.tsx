@@ -1,4 +1,3 @@
-import { CiRedo, CiUndo } from "react-icons/ci";
 import { useEffect, useMemo, useState } from "react";
 import {
   BsBrushFill,
@@ -7,7 +6,7 @@ import {
   BsPencilFill,
   BsTrash,
 } from "react-icons/bs";
-import { BiAnchor, BiCopy } from "react-icons/bi";
+import { BiAnchor } from "react-icons/bi";
 
 import wholeNote from "assets/noteheads/whole.svg";
 import halfNote from "assets/noteheads/half.png";
@@ -17,14 +16,10 @@ import sixteenthNote from "assets/noteheads/16th.png";
 import thirtysecondNote from "assets/noteheads/32nd.png";
 import sixtyfourthNote from "assets/noteheads/64th.png";
 import restNote from "assets/noteheads/rest.png";
-import dotNote from "assets/noteheads/dot.png";
-import tripletNote from "assets/noteheads/triplet.png";
 
 import { MIDI } from "types/midi";
 import Patterns from "types/patterns";
-import useEditorState from "../hooks/useEditorState";
 import * as Editor from "../Editor";
-import { Duration, Timing } from "types/units";
 import { durationToTicks } from "appUtil";
 import { PatternsPiano } from "./Piano";
 import useOSMD from "lib/opensheetmusicdisplay";
@@ -34,21 +29,18 @@ import { getGlobalInstrumentName, getGlobalSampler } from "types/instrument";
 import usePatternShortcuts from "./usePatternShortcuts";
 import ContextMenu, { ContextMenuOption } from "components/ContextMenu";
 import { PatternEditorProps } from ".";
-import { DEFAULT_DURATION } from "appConstants";
-
-type PatternsViewState = "adding" | "inserting";
 
 export function PatternEditor(props: PatternEditorProps) {
   // Editor state
-  const editorState = useEditorState<PatternsViewState>();
-  const { setState, onState, clearState } = editorState;
-  const adding = onState("adding");
-  const inserting = onState("inserting");
+  const { adding, inserting, pattern, scale } = props;
+  const duration = props.selectedDuration;
+  const timing = props.selectedTiming;
+  const isCustom = props.isPatternCustom;
+  const isEmpty = props.isPatternEmpty;
   const tabs = ["compose", "transform"];
   const [commandTab, setCommandTab] = useState("compose");
 
   // Score information
-  const { pattern, scale } = props;
   const xml = useMemo(() => {
     return Patterns.exportToXML(pattern, scale);
   }, [pattern, scale]);
@@ -65,13 +57,13 @@ export function PatternEditor(props: PatternEditorProps) {
 
   // Clear editor state if inserting when cursor is hidden
   useEffect(() => {
-    if (cursor.hidden && inserting) clearState();
+    if (cursor.hidden && inserting) props.clear();
   }, [cursor.hidden, inserting]);
 
   // Clear editor state for non-custom patterns
   useEffect(() => {
-    if (!props.isPatternCustom) clearState();
-  }, [props.isPatternCustom]);
+    if (!isCustom) props.clear();
+  }, [isCustom]);
 
   // Sampler information
   const [globalSampler, setGlobalSampler] = useState(getGlobalSampler());
@@ -86,16 +78,9 @@ export function PatternEditor(props: PatternEditorProps) {
     }, 100);
   }, [instrumentName]);
 
-  // Selected note duration
-  const [duration, setDuration] = useState<Duration>(DEFAULT_DURATION);
-  const [timing, setTiming] = useState<Timing>("straight");
   const { holdingShift, holdingAlt } = usePatternShortcuts({
     ...props,
-    onState,
-    setState,
-    clearState,
     cursor,
-    setDuration,
     onRestClick,
   });
 
@@ -103,7 +88,7 @@ export function PatternEditor(props: PatternEditorProps) {
 
   function onEraseClick() {
     if (!pattern) return;
-    if (props.isPatternEmpty || cursor.hidden) return;
+    if (isEmpty || cursor.hidden) return;
     const onLast = cursor.index === pattern.stream.length - 1;
     props.removePatternNote(pattern.id, cursor.index);
     if (onLast) cursor.prev();
@@ -118,6 +103,7 @@ export function PatternEditor(props: PatternEditorProps) {
         triplet: timing === "triplet",
       }),
     };
+
     if (adding) {
       if (cursor.hidden) {
         props.addPatternNote(pattern.id, note);
@@ -199,7 +185,7 @@ export function PatternEditor(props: PatternEditorProps) {
         className="active:bg-slate-500 p-1"
         disabledClass="p-1"
         onClick={props.undoPatterns}
-        disabled={!props.isPatternCustom || !props.canUndoPatterns}
+        disabled={!isCustom || !props.canUndoPatterns}
       >
         Undo
       </Editor.MenuButton>
@@ -215,7 +201,7 @@ export function PatternEditor(props: PatternEditorProps) {
         className="active:bg-slate-500 p-1"
         disabledClass="p-1"
         onClick={props.redoPatterns}
-        disabled={!props.isPatternCustom || !props.canRedoPatterns}
+        disabled={!isCustom || !props.canRedoPatterns}
       >
         Redo
       </Editor.MenuButton>
@@ -229,7 +215,7 @@ export function PatternEditor(props: PatternEditorProps) {
     >
       <Editor.MenuButton
         className="px-1 active:bg-emerald-600"
-        disabled={props.isPatternEmpty}
+        disabled={isEmpty}
         disabledClass="px-1"
         onClick={() => props.playPattern(pattern.id)}
       >
@@ -272,7 +258,7 @@ export function PatternEditor(props: PatternEditorProps) {
       <Editor.MenuButton
         className="w-6 active:bg-slate-500 active:ring-2 active:ring-slate-500"
         onClick={onRestClick}
-        disabled={!props.isPatternCustom || (!adding && !inserting)}
+        disabled={!isCustom || (!adding && !inserting)}
         disabledClass="w-6"
       >
         <img className="h-5 object-contain invert" src={restNote} />
@@ -287,11 +273,11 @@ export function PatternEditor(props: PatternEditorProps) {
     >
       <Editor.MenuButton
         className={`w-6 invert ${
-          duration === "64th" && props.isPatternCustom
+          duration === "64th" && isCustom
             ? "ring-2 ring-orange-400 cursor-pointer bg-orange-400/80"
             : "cursor-default"
         }`}
-        onClick={() => setDuration("64th")}
+        onClick={() => props.setNoteDuration("64th")}
       >
         <img className="h-5 object-contain" src={sixtyfourthNote} />
       </Editor.MenuButton>
@@ -305,11 +291,11 @@ export function PatternEditor(props: PatternEditorProps) {
     >
       <Editor.MenuButton
         className={`w-6 invert ${
-          duration === "32nd" && props.isPatternCustom
+          duration === "32nd" && isCustom
             ? "ring-2 ring-orange-400 cursor-pointer bg-orange-400/80"
             : "cursor-default"
         }`}
-        onClick={() => setDuration("32nd")}
+        onClick={() => props.setNoteDuration("32nd")}
       >
         <img className="h-5 object-contain" src={thirtysecondNote} />
       </Editor.MenuButton>
@@ -323,11 +309,11 @@ export function PatternEditor(props: PatternEditorProps) {
     >
       <Editor.MenuButton
         className={`w-6 invert ${
-          duration === "16th" && props.isPatternCustom
+          duration === "16th" && isCustom
             ? "ring-2 ring-orange-400 cursor-pointer bg-orange-400/80"
             : "cursor-default"
         }`}
-        onClick={() => setDuration("16th")}
+        onClick={() => props.setNoteDuration("16th")}
       >
         <img className="h-5 object-contain" src={sixteenthNote} />
       </Editor.MenuButton>
@@ -341,11 +327,11 @@ export function PatternEditor(props: PatternEditorProps) {
     >
       <Editor.MenuButton
         className={`w-6 invert ${
-          duration === "eighth" && props.isPatternCustom
+          duration === "eighth" && isCustom
             ? "ring-2 ring-orange-400 cursor-pointer bg-orange-400/80"
             : "cursor-default"
         }`}
-        onClick={() => setDuration("eighth")}
+        onClick={() => props.setNoteDuration("eighth")}
       >
         <img className="h-5 ml-0.5 object-contain" src={eighthNote} />
       </Editor.MenuButton>
@@ -359,11 +345,11 @@ export function PatternEditor(props: PatternEditorProps) {
     >
       <Editor.MenuButton
         className={`w-6 invert ${
-          duration === "quarter" && props.isPatternCustom
+          duration === "quarter" && isCustom
             ? "ring-2 ring-orange-400 cursor-pointer bg-orange-400/80"
             : "cursor-default"
         }`}
-        onClick={() => setDuration("quarter")}
+        onClick={() => props.setNoteDuration("quarter")}
       >
         <img className="h-5 mt-1 object-contain" src={quarterNote} />
       </Editor.MenuButton>
@@ -377,11 +363,11 @@ export function PatternEditor(props: PatternEditorProps) {
     >
       <Editor.MenuButton
         className={`w-6 invert ${
-          duration === "half" && props.isPatternCustom
+          duration === "half" && isCustom
             ? "ring-2 ring-orange-400 cursor-pointer bg-orange-400/80"
             : "cursor-default"
         }`}
-        onClick={() => setDuration("half")}
+        onClick={() => props.setNoteDuration("half")}
       >
         <img className="h-5 mt-0.5" src={halfNote} />
       </Editor.MenuButton>
@@ -395,11 +381,11 @@ export function PatternEditor(props: PatternEditorProps) {
     >
       <Editor.MenuButton
         className={`w-6 invert ${
-          duration === "whole" && props.isPatternCustom
+          duration === "whole" && isCustom
             ? "ring-2 ring-orange-400 cursor-pointer bg-orange-400/80"
             : "cursor-default"
         }`}
-        onClick={() => setDuration("whole")}
+        onClick={() => props.setNoteDuration("whole")}
       >
         <img className="w-5 p-1 mt-3.5 object-contain" src={wholeNote} />
       </Editor.MenuButton>
@@ -424,7 +410,7 @@ export function PatternEditor(props: PatternEditorProps) {
           adding || inserting ? "text-emerald-500/80" : ""
         }`}
         onClick={() =>
-          adding || inserting ? clearState() : setState("adding")
+          adding || inserting ? props.clear() : props.setState("adding")
         }
       >
         {inserting ? (
@@ -442,12 +428,12 @@ export function PatternEditor(props: PatternEditorProps) {
     <Editor.Tooltip show={props.showingTooltips} content={`Straight Notes`}>
       <Editor.MenuButton
         className={`px-1 ${
-          timing === "straight" && props.isPatternCustom
+          timing === "straight" && isCustom
             ? "ring-2 ring-teal-600 cursor-pointer bg-teal-600/80"
             : "cursor-default"
         }`}
         onClick={() => {
-          setTiming("straight");
+          props.setNoteTiming("straight");
         }}
       >
         Straight
@@ -459,12 +445,12 @@ export function PatternEditor(props: PatternEditorProps) {
     <Editor.Tooltip show={props.showingTooltips} content={`Dotted Notes`}>
       <Editor.MenuButton
         className={`px-1 ${
-          timing === "dotted" && props.isPatternCustom
+          timing === "dotted" && isCustom
             ? "ring-2 ring-teal-600 cursor-pointer bg-teal-600/80"
             : "cursor-default"
         }`}
         onClick={() => {
-          setTiming(timing !== "dotted" ? "dotted" : "straight");
+          props.setNoteTiming(timing !== "dotted" ? "dotted" : "straight");
         }}
       >
         Dotted
@@ -476,12 +462,12 @@ export function PatternEditor(props: PatternEditorProps) {
     <Editor.Tooltip show={props.showingTooltips} content={`Triplet Notes`}>
       <Editor.MenuButton
         className={`px-1 ${
-          timing === "triplet" && props.isPatternCustom
+          timing === "triplet" && isCustom
             ? "ring-2 ring-teal-600 cursor-pointer bg-teal-600/80"
             : "cursor-default"
         }`}
         onClick={() => {
-          setTiming(timing !== "triplet" ? "triplet" : "straight");
+          props.setNoteTiming(timing !== "triplet" ? "triplet" : "straight");
         }}
       >
         Triplet
@@ -499,7 +485,7 @@ export function PatternEditor(props: PatternEditorProps) {
       <Editor.MenuButton
         onClick={cursor.hidden ? cursor.show : cursor.hide}
         className={`px-1 ${cursor.hidden ? "" : "bg-emerald-500/70"}`}
-        disabled={props.isPatternEmpty}
+        disabled={isEmpty}
         disabledClass={"px-1"}
       >
         <BsCursor className="text-lg" />
@@ -516,9 +502,11 @@ export function PatternEditor(props: PatternEditorProps) {
     >
       <Editor.MenuButton
         className={`px-1 ${inserting ? "bg-teal-500/80" : ""}`}
-        disabled={!props.isPatternCustom || cursor.hidden}
+        disabled={!isCustom || cursor.hidden}
         disabledClass="px-1"
-        onClick={() => (inserting ? setState("adding") : setState("inserting"))}
+        onClick={() =>
+          inserting ? props.setState("adding") : props.setState("inserting")
+        }
       >
         <BiAnchor className="text-lg" />
       </Editor.MenuButton>
@@ -533,9 +521,7 @@ export function PatternEditor(props: PatternEditorProps) {
       <Editor.MenuButton
         className="px-1 active:bg-red-500"
         onClick={onEraseClick}
-        disabled={
-          !props.isPatternCustom || props.isPatternEmpty || cursor.hidden
-        }
+        disabled={!isCustom || isEmpty || cursor.hidden}
         disabledClass="px-1"
       >
         <BsEraser className="text-lg" />
@@ -551,7 +537,7 @@ export function PatternEditor(props: PatternEditorProps) {
       <Editor.MenuButton
         className="px-1 active:bg-gray-500"
         onClick={() => props.clearPattern(pattern)}
-        disabled={!props.isPatternCustom || props.isPatternEmpty}
+        disabled={!isCustom || isEmpty}
         disabledClass="px-1"
       >
         <BsTrash className="text-lg" />
@@ -570,7 +556,7 @@ export function PatternEditor(props: PatternEditorProps) {
             props.transposePattern(pattern, sanitizedInput);
           }
         }}
-        disabled={!props.isPatternCustom || props.isPatternEmpty}
+        disabled={!isCustom || isEmpty}
         disabledClass="px-1"
       >
         Transpose
@@ -589,7 +575,7 @@ export function PatternEditor(props: PatternEditorProps) {
             props.rotatePattern(pattern, sanitizedInput);
           }
         }}
-        disabled={!props.isPatternCustom || props.isPatternEmpty}
+        disabled={!isCustom || isEmpty}
         disabledClass="px-1"
       >
         Invert
@@ -608,7 +594,7 @@ export function PatternEditor(props: PatternEditorProps) {
             props.repeatPattern(pattern, sanitizedInput);
           }
         }}
-        disabled={!props.isPatternCustom || props.isPatternEmpty}
+        disabled={!isCustom || isEmpty}
         disabledClass="px-1"
       >
         Repeat
@@ -627,7 +613,7 @@ export function PatternEditor(props: PatternEditorProps) {
             props.lengthenPattern(pattern, sanitizedInput);
           }
         }}
-        disabled={!props.isPatternCustom || props.isPatternEmpty}
+        disabled={!isCustom || isEmpty}
         disabledClass="px-1"
       >
         Continue
@@ -646,7 +632,7 @@ export function PatternEditor(props: PatternEditorProps) {
             props.phasePattern(pattern.id, sanitizedInput);
           }
         }}
-        disabled={!props.isPatternCustom || props.isPatternEmpty}
+        disabled={!isCustom || isEmpty}
         disabledClass="px-1"
       >
         Phase
@@ -659,7 +645,7 @@ export function PatternEditor(props: PatternEditorProps) {
       <Editor.MenuButton
         className="px-1 active:bg-sky-600"
         onClick={() => props.diminishPattern(pattern)}
-        disabled={!props.isPatternCustom || props.isPatternEmpty}
+        disabled={!isCustom || isEmpty}
         disabledClass="px-1"
       >
         Diminish
@@ -672,7 +658,7 @@ export function PatternEditor(props: PatternEditorProps) {
       <Editor.MenuButton
         className="px-1 active:bg-sky-600"
         onClick={() => props.augmentPattern(pattern)}
-        disabled={!props.isPatternCustom || props.isPatternEmpty}
+        disabled={!isCustom || isEmpty}
         disabledClass="px-1"
       >
         Augment
@@ -685,7 +671,7 @@ export function PatternEditor(props: PatternEditorProps) {
       <Editor.MenuButton
         className="px-1 active:bg-sky-600"
         onClick={() => props.reversePattern(pattern)}
-        disabled={!props.isPatternCustom || props.isPatternEmpty}
+        disabled={!isCustom || isEmpty}
         disabledClass="px-1"
       >
         Reverse
@@ -698,7 +684,7 @@ export function PatternEditor(props: PatternEditorProps) {
       <Editor.MenuButton
         className="px-1 active:bg-sky-600"
         onClick={() => props.shufflePattern(pattern)}
-        disabled={!props.isPatternCustom || props.isPatternEmpty}
+        disabled={!isCustom || isEmpty}
         disabledClass="px-1"
       >
         Shuffle
@@ -717,7 +703,7 @@ export function PatternEditor(props: PatternEditorProps) {
             props.randomizePattern(pattern, sanitizedInput);
           }
         }}
-        disabled={!props.isPatternCustom}
+        disabled={!isCustom}
         disabledClass="px-1"
       >
         Randomize
@@ -740,23 +726,23 @@ export function PatternEditor(props: PatternEditorProps) {
     label: `${adding ? "Stop" : "Start"} Adding Notes`,
     onClick: () => {
       if (adding) {
-        clearState();
+        props.clear();
       } else {
-        setState("adding");
+        props.setState("adding");
       }
     },
-    disabled: !props.isPatternCustom,
+    disabled: !isCustom,
   };
   const Insert = {
     label: `${inserting ? "Stop" : "Start"} Inserting Notes`,
     onClick: () => {
       if (inserting) {
-        clearState();
+        props.clear();
       } else {
-        setState("inserting");
+        props.setState("inserting");
       }
     },
-    disabled: !props.isPatternCustom || cursor.hidden,
+    disabled: !isCustom || cursor.hidden,
   };
   const Cursor = {
     label: `${cursor.hidden ? "Show" : "Hide"} Cursor`,
@@ -767,22 +753,22 @@ export function PatternEditor(props: PatternEditorProps) {
         cursor.hide();
       }
     },
-    disabled: props.isPatternEmpty || !props.isPatternCustom,
+    disabled: isEmpty || !isCustom,
   };
   const Rest = {
     label: `${adding ? "Add" : inserting ? "Insert" : "Add"} Rest Note`,
     onClick: onRestClick,
-    disabled: !props.isPatternCustom || (!adding && !inserting),
+    disabled: !isCustom || (!adding && !inserting),
   };
   const Delete = {
     label: "Delete Note",
     onClick: onEraseClick,
-    disabled: !props.isPatternCustom || props.isPatternEmpty || cursor.hidden,
+    disabled: !isCustom || isEmpty || cursor.hidden,
   };
   const Clear = {
     label: "Clear All Notes",
     onClick: () => (props.pattern ? props.clearPattern(props.pattern) : null),
-    disabled: !props.pattern || props.isPatternEmpty || !props.isPatternCustom,
+    disabled: !props.pattern || isEmpty || !isCustom,
     divideEnd: true,
   };
   const NewPattern = {
@@ -808,12 +794,12 @@ export function PatternEditor(props: PatternEditorProps) {
   const menuOptions = [
     Undo,
     Redo,
-    props.isPatternCustom ? Add : null,
-    props.isPatternCustom ? Insert : null,
-    props.isPatternCustom ? Cursor : null,
-    props.isPatternCustom ? Rest : null,
-    props.isPatternCustom ? Delete : null,
-    props.isPatternCustom ? Clear : null,
+    isCustom ? Add : null,
+    isCustom ? Insert : null,
+    isCustom ? Cursor : null,
+    isCustom ? Rest : null,
+    isCustom ? Delete : null,
+    isCustom ? Clear : null,
     NewPattern,
     DuplicatePattern,
     ExportMIDI,
@@ -851,7 +837,7 @@ export function PatternEditor(props: PatternEditorProps) {
 
         <Editor.Content>
           <Editor.Title
-            editable={props.isPatternCustom}
+            editable={isCustom}
             title={pattern.name ?? "Pattern"}
             setTitle={(name) => props.setPatternName(pattern, name)}
             subtitle={props.patternCategory ?? "Category"}
@@ -865,20 +851,20 @@ export function PatternEditor(props: PatternEditorProps) {
               <CopyButton />
               <PlayButton />
             </Editor.MenuGroup>
-            {props.isPatternCustom ? (
+            {isCustom ? (
               <Editor.MenuGroup border={true}>
                 <UndoButton />
                 <RedoButton />
               </Editor.MenuGroup>
             ) : null}
-            {props.isPatternCustom ? <CommandTabs /> : null}
+            {isCustom ? <CommandTabs /> : null}
             <Editor.InstrumentListbox
               instrumentName={instrumentName}
               setInstrumentName={setInstrumentName}
             />
           </Editor.MenuRow>
 
-          <Editor.MenuRow show={props.isPatternCustom} border={true}>
+          <Editor.MenuRow show={isCustom} border={true}>
             {commandTab === "compose" && (
               <div className="flex">
                 <Editor.MenuGroup border={true}>
@@ -934,7 +920,6 @@ export function PatternEditor(props: PatternEditorProps) {
       </Editor.Body>
       <PatternsPiano
         {...props}
-        {...editorState}
         sampler={globalSampler}
         cursor={cursor}
         duration={duration}

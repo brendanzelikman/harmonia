@@ -3,14 +3,15 @@ import Editor from "components/editor";
 import Timeline from "components/timeline";
 import useShortcuts from "hooks/useShortcuts";
 import { connect, ConnectedProps } from "react-redux";
-import { selectTransport } from "redux/selectors";
+import { selectRoot, selectTransport } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import Loading from "components/Loading";
 import Shortcuts from "components/shortcuts";
 
 const mapStateToProps = (state: RootState) => {
   const { loaded } = selectTransport(state);
-  return { loaded, isTourActive: state.tour?.active };
+  const { showingTour } = selectRoot(state);
+  return { loaded, showingTour };
 };
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {};
@@ -35,7 +36,7 @@ function App(props: Props) {
     >
       <Navbar />
       <main className="relative flex w-full flex-auto overflow-hidden">
-        {props.isTourActive ? (
+        {props.showingTour ? (
           <div className={`w-full h-full absolute bg-slate-900/40 z-60`} />
         ) : null}
         <Timeline />

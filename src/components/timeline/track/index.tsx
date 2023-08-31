@@ -3,7 +3,7 @@ import { connect, ConnectedProps } from "react-redux";
 import * as Selectors from "redux/selectors";
 import { selectTrackTransforms } from "redux/selectors";
 import { setMixerMute, setMixerPan, setMixerSolo } from "redux/thunks/mixers";
-import { hideEditor, showEditor } from "redux/slices/root";
+
 import {
   clearTrack,
   deleteTrack,
@@ -20,6 +20,7 @@ import { isPatternTrack, PatternTrack, Track, TrackId } from "types/tracks";
 import { Row } from "..";
 import { TrackComponent } from "./Track";
 import { lastTransformAtTick } from "types/transform";
+import { EditorId, hideEditor, showEditor } from "redux/slices/editor";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const transport = Selectors.selectTransport(state);
@@ -66,7 +67,7 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     duplicateTrack: (trackId: TrackId) => {
       dispatch(duplicateTrack(trackId));
     },
-    showEditor: (trackId: TrackId, id: string) => {
+    showEditor: (trackId: TrackId, id: EditorId) => {
       dispatch(showEditor({ id, trackId }));
     },
     setTrackMute: (trackId: TrackId, mute: boolean) => {

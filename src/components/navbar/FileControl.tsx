@@ -8,8 +8,8 @@ import {
 } from "./Navbar";
 import { CiUndo, CiRedo, CiFileOn } from "react-icons/ci";
 import { UndoTypes } from "redux/undoTypes";
-import { hideEditor, setProjectName, showEditor } from "redux/slices/root";
-import { selectRoot } from "redux/selectors";
+import { setProjectName } from "redux/slices/root";
+import { selectEditor, selectRoot } from "redux/selectors";
 import { blurOnEnter } from "appUtil";
 import { BiMusic, BiSave, BiTrash, BiUpload } from "react-icons/bi";
 import {
@@ -21,12 +21,14 @@ import {
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 import { saveStateToMIDI } from "redux/thunks/clips";
+import { hideEditor, showEditor } from "redux/slices/editor";
 
 const mapStateToProps = (state: RootState) => {
-  const canUndo = !!state.timeline.past?.length;
-  const canRedo = !!state.timeline.future?.length;
-  const { editorState, projectName } = selectRoot(state);
-  const onFile = editorState === "file";
+  const canUndo = !!state.session.past?.length;
+  const canRedo = !!state.session.future?.length;
+  const { projectName } = selectRoot(state);
+  const editor = selectEditor(state);
+  const onFile = editor.id === "file";
   return { projectName, canUndo, canRedo, onFile };
 };
 
@@ -40,8 +42,8 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       }
     },
     setProjectName: (name: string) => dispatch(setProjectName(name)),
-    undo: () => dispatch({ type: UndoTypes.undoTimeline }),
-    redo: () => dispatch({ type: UndoTypes.redoTimeline }),
+    undo: () => dispatch({ type: UndoTypes.undoSession }),
+    redo: () => dispatch({ type: UndoTypes.redoSession }),
     saveToHAM: () => dispatch(saveStateToFile),
     saveToMIDI: () => dispatch(saveStateToMIDI),
     loadFromHAM: () => dispatch(readFiles),

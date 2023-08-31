@@ -23,10 +23,11 @@ export type StateProps = {
 };
 
 export function Editor(props: EditorProps) {
+  // Only show the editor if the id is one of the visible states
+  const visibleStates = ["scale", "patterns", "instrument"];
+  if (!visibleStates.includes(props.id)) return null;
+
   // State management
-  const allowedStates = ["scale", "patterns", "instrument"];
-  const showingEditor =
-    props.showingEditor && allowedStates.includes(props.editorState);
   const [state, setState] = useState({
     showingTracks: true,
     showingPresets: true,
@@ -88,7 +89,7 @@ export function Editor(props: EditorProps) {
 
   return (
     <Transition
-      show={showingEditor}
+      show={!!props.show}
       enter="transition-all duration-300"
       enterFrom="opacity-0"
       enterTo="opacity-100"
@@ -104,17 +105,17 @@ export function Editor(props: EditorProps) {
       <div
         style={{ height: "calc(100% - 30px)" }}
         className={`flex flex-col w-full z-50 relative ${
-          props.tour.active ? "opacity-50" : ""
+          props.showingTour ? "opacity-50" : ""
         }`}
       >
         <div className="min-h-0 h-full" id="editor">
-          {props.editorState === "scale" ? (
+          {props.id === "scale" ? (
             <EditorScales {...props} {...customProps} />
           ) : null}
-          {props.editorState === "patterns" ? (
+          {props.id === "patterns" ? (
             <EditorPatterns {...props} {...customProps} />
           ) : null}
-          {props.editorState === "instrument" ? (
+          {props.id === "instrument" ? (
             <EditorInstrument {...props} {...customProps} />
           ) : null}
         </div>

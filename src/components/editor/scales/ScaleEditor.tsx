@@ -5,7 +5,6 @@ import Scales, { Scale } from "types/scales";
 import EditorPiano from "../Piano";
 import { MIDI } from "types/midi";
 import { ScaleEditorProps } from ".";
-import useEditorState from "../hooks/useEditorState";
 import { Sampler } from "tone";
 import useOSMD from "lib/opensheetmusicdisplay";
 import ScaleList from "./ScaleList";
@@ -16,15 +15,7 @@ import { getGlobalInstrumentName, getGlobalSampler } from "types/instrument";
 import useScaleShortcuts from "./useScaleShortcuts";
 import ContextMenu from "components/ContextMenu";
 
-type ScaleViewState = "adding" | "removing";
-
 export function ScaleEditor(props: ScaleEditorProps) {
-  // Editor state
-  const editorState = useEditorState<ScaleViewState>();
-  const { setState, onState, clearState } = editorState;
-  const adding = onState("adding");
-  const removing = onState("removing");
-
   // Score information
   const scale = props.scale as Scale;
   const xml = scale ? Scales.exportToXML(scale?.notes ?? []) : DemoXML;
@@ -35,7 +26,7 @@ export function ScaleEditor(props: ScaleEditorProps) {
     noteCount: scale?.notes.length ?? 0,
     ignoreCursor: true,
   });
-  useScaleShortcuts({ ...props, scale, onState, setState, clearState });
+  useScaleShortcuts({ ...props, scale });
 
   // Sampler information
   const [globalSampler, setGlobalSampler] = useState(getGlobalSampler());
@@ -52,8 +43,11 @@ export function ScaleEditor(props: ScaleEditorProps) {
   // Play note method for the piano
   const playNote = (sampler: Sampler, midiNumber: number) => {
     if (!scale) return;
-    if (onState("adding")) props.addNoteToScale(scale.id, midiNumber);
-    if (onState("removing")) props.removeNoteFromScale(scale.id, midiNumber);
+    if (props.adding) {
+      props.addNoteToScale(scale.id, midiNumber);
+    } else if (props.removing) {
+      props.removeNoteFromScale(scale.id, midiNumber);
+    }
     if (!sampler?.loaded || sampler?.disposed) return;
     sampler.triggerAttackRelease(MIDI.toPitch(midiNumber), "4n");
   };
@@ -150,13 +144,13 @@ export function ScaleEditor(props: ScaleEditorProps) {
   const AddButton = () => (
     <Editor.Tooltip
       show={props.showingTooltips}
-      content={`${adding ? "Stop Adding" : "Add Notes"}`}
+      content={`${props.adding ? "Stop Adding" : "Add Notes"}`}
     >
       <Editor.MenuButton
         className="px-1"
-        active={onState("adding")}
+        active={props.adding}
         activeClass={"px-1 text-emerald-400/80"}
-        onClick={onState("adding") ? clearState : () => setState("adding")}
+        onClick={props.adding ? props.clear : () => props.setState("adding")}
       >
         <BsBrushFill className="text-lg" />
       </Editor.MenuButton>
@@ -166,13 +160,15 @@ export function ScaleEditor(props: ScaleEditorProps) {
   const RemoveButton = () => (
     <Editor.Tooltip
       show={props.showingTooltips}
-      content={`${removing ? "Stop Removing" : "Remove Notes"}`}
+      content={`${props.removing ? "Stop Removing" : "Remove Notes"}`}
     >
       <Editor.MenuButton
         className="px-1"
-        active={onState("removing")}
+        active={props.removing}
         activeClass={"px-1 text-red-400/80"}
-        onClick={onState("removing") ? clearState : () => setState("removing")}
+        onClick={
+          props.removing ? props.clear : () => props.setState("removing")
+        }
       >
         <BsEraserFill className="text-lg" />
       </Editor.MenuButton>
@@ -262,13 +258,13 @@ export function ScaleEditor(props: ScaleEditorProps) {
       divideEnd: true,
     },
     {
-      label: `${adding ? "Stop" : "Start"} Adding Notes`,
-      onClick: adding ? clearState : () => setState("adding"),
+      label: `${props.adding ? "Stop" : "Start"}props. Adding Notes`,
+      onClick: props.adding ? props.clear : () => props.setState("adding"),
       disabled: !scale,
     },
     {
-      label: `${removing ? "Stop" : "Start"} Removing Notes`,
-      onClick: removing ? clearState : () => setState("removing"),
+      label: `${props.removing ? "Stop" : "Start"} Removing Notes`,
+      onClick: props.removing ? props.clear : () => props.setState("removing"),
       disabled: !scale,
     },
     {
@@ -339,9 +335,9 @@ export function ScaleEditor(props: ScaleEditorProps) {
       </Editor.Body>
       <EditorPiano
         className={`border-t-8 ${
-          onState("adding")
+          props.adding
             ? "border-t-emerald-400"
-            : onState("removing")
+            : props.removing
             ? "border-t-red-500"
             : "border-t-zinc-800/90"
         }`}

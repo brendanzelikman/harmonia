@@ -3,8 +3,7 @@ import { connect, ConnectedProps } from "react-redux";
 import {
   selectCellWidth,
   selectClipStream,
-  selectRoot,
-  selectTransport,
+  selectTimeline,
 } from "redux/selectors";
 import { sliceClip } from "redux/thunks/clips";
 import { AppDispatch, RootState } from "redux/store";
@@ -25,17 +24,16 @@ interface StreamProps {
 
 const mapStateToProps = (state: RootState, ownProps: StreamProps) => {
   const { clip } = ownProps;
-  const { timelineState } = selectRoot(state);
-  const { subdivision } = selectTransport(state);
+  const timeline = selectTimeline(state);
   const cellWidth = selectCellWidth(state);
-  const slicingClip = timelineState === "cutting";
+  const slicingClip = timeline.state === "cutting";
   const stream = selectClipStream(state, clip.id);
   return {
     clip,
     slicingClip,
     cellWidth,
     stream: JSON.stringify(stream),
-    subdivision,
+    subdivision: timeline.subdivision,
   };
 };
 

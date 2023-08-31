@@ -1,5 +1,6 @@
 import { Frequency } from "tone";
 import { BPM, Note, Pitch, Tick, Time } from "./units";
+import { mod } from "appUtil";
 
 export class MIDI {
   public static PPQ = 96;
@@ -63,7 +64,6 @@ export class MIDI {
   }
   // Get the value of a rest
   public static Rest = -1;
-  public static NoteMin = 0;
   public static NoteMax = 127;
 
   // Get the MIDI number from a pitch
@@ -73,7 +73,7 @@ export class MIDI {
   // Get the pitch class of a note, e.g. C, C#, D, etc.
   public static toPitchClass(note: Note): string {
     if (note === MIDI.Rest) return "R";
-    return MIDI.ChromaticNotes[note % 12];
+    return MIDI.ChromaticNotes[mod(note, 12)];
   }
   // Get the octave of a note, e.g. 4, 5, 6, etc.
   public static toOctave(note: Note): number {

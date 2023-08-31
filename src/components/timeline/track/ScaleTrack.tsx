@@ -15,8 +15,8 @@ import {
   selectScaleTrackScaleAtTick,
   selectTransport,
   selectTrack,
+  selectEditor,
 } from "redux/selectors";
-import { showEditor } from "redux/slices/root";
 import Scales from "types/scales";
 import { MIDI } from "types/midi";
 import { ChromaticScale } from "types/presets/scales";
@@ -28,6 +28,7 @@ import { useRef, useState } from "react";
 import { moveScaleTrackInTrackMap } from "redux/slices/maps/trackMap";
 import { useTrackDrag, useTrackDrop } from "./dnd";
 import { setPatternTrackScaleTrack } from "redux/slices/patternTracks";
+import { hideEditor, showEditor } from "redux/slices/editor";
 
 export const moveScaleTrack =
   (props: {
@@ -62,8 +63,9 @@ export const moveScaleTrack =
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const track = ownProps.track as ScaleTrackType;
 
-  const { editorState, showingEditor, selectedTrackId } = selectRoot(state);
-  const onEditor = editorState === "scale" && showingEditor;
+  const editor = selectEditor(state);
+  const { selectedTrackId } = selectRoot(state);
+  const onEditor = editor.id === "scale" && editor.show;
   const onScale = !!(
     onEditor &&
     selectedTrackId &&
@@ -89,7 +91,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: TrackProps) => ({
     const trackId = ownProps.track?.id;
     if (!trackId) return;
     if (onScale) {
-      dispatch(ownProps.hideEditor);
+      dispatch(hideEditor());
     } else {
       dispatch(showEditor({ id: "scale", trackId }));
     }

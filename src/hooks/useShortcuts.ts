@@ -12,25 +12,29 @@ import {
   selectClipsByIds,
   selectTransformsByIds,
   selectTrack,
+  selectEditor,
+  selectTimeline,
 } from "redux/selectors";
 import * as Thunks from "redux/thunks";
 import * as Root from "redux/slices/root";
+import * as Timeline from "redux/slices/timeline";
 import { UndoTypes } from "redux/undoTypes";
 import { readFiles, saveStateToFile } from "redux/util";
 import useEventListeners from "./useEventListeners";
 import { updateClipsAndTransforms } from "redux/slices/clips";
 import { isPatternTrack } from "types/tracks";
-import { Subdivision } from "types/units";
-import { MAX_SUBDIVISION, MIN_SUBDIVISION } from "appConstants";
 import { useEffect } from "react";
 import { Clip } from "types/clips";
 import { Transform } from "types/transform";
+import { hideEditor, showEditor } from "redux/slices/editor";
 
 export default function useShortcuts() {
   const dispatch = useDispatch();
 
   const transport = useAppSelector(selectTransport);
+  const timeline = useAppSelector(selectTimeline);
   const root = useAppSelector(selectRoot);
+  const editor = useAppSelector(selectEditor);
 
   const { selectedClipIds, selectedPatternId, selectedTransformIds } = root;
   const selectedTrack = useAppSelector((state) =>
@@ -103,7 +107,7 @@ export default function useShortcuts() {
           const holdingShift = isHoldingShift(e);
 
           // Pattern Editor
-          if (root.showingEditor && root.editorState === "patterns") {
+          if (editor.show && editor.id === "patterns") {
             const type = holdingShift
               ? UndoTypes.redoPatterns
               : UndoTypes.undoPatterns;
@@ -112,7 +116,7 @@ export default function useShortcuts() {
           }
 
           // Scale Editor
-          if (root.showingEditor && root.editorState === "scale") {
+          if (editor.show && editor.id === "scale") {
             const type = holdingShift
               ? UndoTypes.redoScales
               : UndoTypes.undoScales;
@@ -120,10 +124,10 @@ export default function useShortcuts() {
             return;
           }
 
-          // Timeline
+          // Session
           const type = holdingShift
-            ? UndoTypes.redoTimeline
-            : UndoTypes.undoTimeline;
+            ? UndoTypes.redoSession
+            : UndoTypes.undoSession;
           dispatch({ type });
         },
       },
@@ -131,14 +135,14 @@ export default function useShortcuts() {
       // "A" = Toggle Adding Clips
       a: {
         keydown: (e) => {
-          if (isInputEvent(e) || root.showingEditor) return;
+          if (isInputEvent(e) || editor.show) return;
           cancelEvent(e);
 
           if (isHoldingCommand(e)) {
             dispatch(Thunks.selectAllClipsAndTransforms());
           } else {
-            dispatch(Root.toggleAddingClip());
-            dispatch(Root.hideEditor());
+            dispatch(Timeline.toggleAddingClip());
+            dispatch(hideEditor());
           }
         },
       },
@@ -146,21 +150,21 @@ export default function useShortcuts() {
       // "C" = Toggle Cutting Clips
       c: {
         keydown: (e) => {
-          if (isInputEvent(e) || root.showingEditor) return;
+          if (isInputEvent(e) || editor.show) return;
           cancelEvent(e);
 
           if (isHoldingCommand(e)) {
             dispatch(Thunks.copySelectedClipsAndTransforms());
           } else {
-            dispatch(Root.toggleCuttingClip());
-            dispatch(Root.hideEditor());
+            dispatch(Timeline.toggleCuttingClip());
+            dispatch(hideEditor());
           }
         },
       },
 
       d: {
         keydown: (e) => {
-          if (isInputEvent(e) || root.showingEditor) return;
+          if (isInputEvent(e) || editor.show) return;
           cancelEvent(e);
           dispatch(Thunks.duplicateSelectedClipsAndTransforms());
         },
@@ -169,16 +173,16 @@ export default function useShortcuts() {
       // "m" = Toggle Merging
       m: {
         keydown: (e) => {
-          if (isInputEvent(e) || root.showingEditor) return;
-          dispatch(Root.toggleMergingClips());
-          dispatch(Root.hideEditor());
+          if (isInputEvent(e) || editor.show) return;
+          dispatch(Timeline.toggleMergingClips());
+          dispatch(hideEditor());
         },
       },
       // Shift + M = Export selected clips to MIDI
       M: {
         keydown: (e) => {
           if (isInputEvent(e) || !isHoldingShift(e)) return;
-          if (root.showingEditor) return;
+          if (editor.show) return;
           cancelEvent(e);
           dispatch(Thunks.exportSelectedClipsToMidi());
         },
@@ -186,28 +190,28 @@ export default function useShortcuts() {
       // "r" = Toggle Repeating
       r: {
         keydown: (e) => {
-          if (isInputEvent(e) || root.showingEditor) return;
-          dispatch(Root.toggleRepeatingClips());
-          dispatch(Root.hideEditor());
+          if (isInputEvent(e) || editor.show) return;
+          dispatch(Timeline.toggleRepeatingClips());
+          dispatch(hideEditor());
         },
       },
       // "t" = Toggle Transposing
       t: {
         keydown: (e) => {
-          if (isInputEvent(e) || root.showingEditor) return;
-          dispatch(Root.toggleTransposingClip());
-          dispatch(Root.hideEditor());
+          if (isInputEvent(e) || editor.show) return;
+          dispatch(Timeline.toggleTransposingClip());
+          dispatch(hideEditor());
         },
       },
       // "p" = Toggle Pattern Editor
       p: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (root.editorState === "patterns" && root.showingEditor) {
-            dispatch(Root.hideEditor());
+          if (editor.id === "patterns" && editor.show) {
+            dispatch(hideEditor());
           } else {
-            dispatch(Root.showEditor({ id: "patterns" }));
-            dispatch(Root.clearTimelineState());
+            dispatch(showEditor({ id: "patterns" }));
+            dispatch(Timeline.clearTimelineState());
           }
         },
       },
@@ -215,8 +219,8 @@ export default function useShortcuts() {
       Escape: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (root.showingEditor) {
-            dispatch(Root.hideEditor());
+          if (editor.show) {
+            dispatch(hideEditor());
           } else {
             dispatch(Root.setSelectedTrack(undefined));
             dispatch(Root.deselectAllClips());
@@ -227,13 +231,13 @@ export default function useShortcuts() {
       // "Backspace" = Delete Clips and Transforms
       Backspace: {
         keydown: (e) => {
-          if (isInputEvent(e) || root.showingEditor) return;
+          if (isInputEvent(e) || editor.show) return;
           e.preventDefault();
           dispatch(Thunks.deleteSelectedClipsAndTransforms());
         },
       },
     },
-    [root.showingEditor, root.editorState]
+    [editor.show, editor.id]
   );
 
   useEventListeners(
@@ -254,16 +258,16 @@ export default function useShortcuts() {
             }
             return;
           }
-          if (!root.showingEditor) return;
+          if (!editor.show) return;
 
           // Play Pattern Track
-          if (selectedPatternId && root.editorState === "patterns") {
+          if (selectedPatternId && editor.id === "patterns") {
             dispatch(Thunks.playPattern(selectedPatternId));
             return;
           }
 
           // Play Scale Track
-          if (selectedTrack && root.editorState === "scale") {
+          if (selectedTrack && editor.id === "scale") {
             if (isPatternTrack(selectedTrack)) return;
             dispatch(Thunks.playScale(selectedTrack.id));
           }
@@ -272,13 +276,13 @@ export default function useShortcuts() {
       // "Left Arrow" = Go Back or Move Selected Timeline Objects
       ArrowLeft: {
         keydown: (e) => {
-          if (isInputEvent(e) || root.showingEditor) return;
+          if (isInputEvent(e) || editor.show) return;
           cancelEvent(e);
 
           // If there are selected clips or transforms, move them
           const objects = [...selectedClips, ...selectedTransforms];
           if (objects.length) {
-            const offset = subdivisionToTicks(transport.subdivision);
+            const offset = subdivisionToTicks(timeline.subdivision);
             // Create new clips and transforms with the new times
             const newClips = selectedClips.map((clip) => ({
               ...clip,
@@ -306,12 +310,12 @@ export default function useShortcuts() {
       // "Right Arrow" = Go Forward or Move Selected Timeline Objects
       ArrowRight: {
         keydown: (e) => {
-          if (isInputEvent(e) || root.showingEditor) return;
+          if (isInputEvent(e) || editor.show) return;
           cancelEvent(e);
 
           // If there are selected clips or transforms, move them
           if ([...selectedClips, ...selectedTransforms].length) {
-            const offset = subdivisionToTicks(transport.subdivision);
+            const offset = subdivisionToTicks(timeline.subdivision);
 
             const newClips = selectedClips.map((clip) => ({
               ...clip,
@@ -338,31 +342,21 @@ export default function useShortcuts() {
       _: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (transport.subdivision === MIN_SUBDIVISION) return;
           cancelEvent(e);
-          dispatch(
-            Thunks.setTransportSubdivision(
-              (transport.subdivision / 2) as Subdivision
-            )
-          );
+          dispatch(Timeline.decreaseSubdivision());
         },
       },
       "+": {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (transport.subdivision === MAX_SUBDIVISION) return;
           cancelEvent(e);
-          dispatch(
-            Thunks.setTransportSubdivision(
-              (transport.subdivision * 2) as Subdivision
-            )
-          );
+          dispatch(Timeline.increaseSubdivision());
         },
       },
     },
     [
-      root.showingEditor,
-      root.editorState,
+      editor,
+      timeline,
       transport,
       selectedPatternId,
       selectedTrack,

@@ -1,6 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "redux/store";
-import { DEFAULT_CELL_WIDTH } from "appConstants";
 import { selectClipMap } from "./clips";
 import { Clip } from "types/clips";
 import { Transform } from "types/transform";
@@ -11,12 +10,6 @@ import { selectPatternMap } from "./patterns";
 export const selectRoot = (state: RootState) => {
   return state.root;
 };
-
-// Select the cell width
-export const selectCellWidth = createSelector(
-  [selectRoot],
-  (root) => root.cellWidth || DEFAULT_CELL_WIDTH
-);
 
 // Select selected pattern id
 export const selectSelectedPatternId = createSelector(

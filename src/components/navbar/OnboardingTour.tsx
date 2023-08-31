@@ -4,8 +4,9 @@ import { createPortal } from "react-dom";
 import { BsQuestionCircleFill } from "react-icons/bs";
 import { ConnectedProps, connect } from "react-redux";
 import { Step, ShepherdTour, ShepherdTourContext } from "react-shepherd";
-import { hideEditor, setTimelineState, showEditor } from "redux/slices/root";
-import * as Tour from "redux/slices/tour";
+import { EditorId, hideEditor, showEditor } from "redux/slices/editor";
+import { setTimelineState } from "redux/slices/timeline";
+import * as Root from "redux/slices/root";
 import { AppDispatch, RootState } from "redux/store";
 
 const mapStateToProps = (state: RootState) => {
@@ -15,12 +16,12 @@ const mapStateToProps = (state: RootState) => {
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
     hideEditor: () => dispatch(hideEditor()),
-    setEditorState: (id: any) => dispatch(showEditor({ id })),
+    setEditorState: (id: EditorId) => dispatch(showEditor({ id })),
     setTimelineState: (state: any) => dispatch(setTimelineState(state)),
-    nextTourStep: () => dispatch(Tour.nextTourStep()),
-    prevTourStep: () => dispatch(Tour.prevTourStep()),
-    startTour: () => dispatch(Tour.startTour()),
-    endTour: () => dispatch(Tour.endTour()),
+    nextTourStep: () => dispatch(Root.nextTourStep()),
+    prevTourStep: () => dispatch(Root.prevTourStep()),
+    startTour: () => dispatch(Root.startTour()),
+    endTour: () => dispatch(Root.endTour()),
   };
 };
 
@@ -353,7 +354,7 @@ function ShepherdTourContent(props: ContentProps) {
       tour.on("cancel", callback);
     }
     return () => {
-      if (tour?.isActive()) {
+      if (tour) {
         tour.off("start", () => setIsActive(true));
         tour.off("complete", callback);
         tour.off("cancel", callback);

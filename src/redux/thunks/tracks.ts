@@ -28,11 +28,12 @@ import * as ClipMap from "redux/slices/maps/clipMap";
 import * as TrackMap from "redux/slices/maps/trackMap";
 import * as TransformMap from "redux/slices/maps/transformMap";
 import * as PatternTracks from "redux/slices/patternTracks";
-import { hideEditor, setSelectedTrack } from "redux/slices/root";
+import { setSelectedTrack } from "redux/slices/root";
 import * as ScaleTracks from "redux/slices/scaleTracks";
 import * as Transforms from "redux/slices/transforms";
 import { createScale } from "redux/slices/scales";
 import { setMixerMute, setMixerSolo } from "./mixers";
+import { hideEditor } from "redux/slices/editor";
 
 // Create a scale track
 export const createScaleTrack =

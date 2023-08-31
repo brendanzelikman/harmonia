@@ -2,6 +2,8 @@
 export * from "./selectors/root";
 export * from "./selectors/scales";
 export * from "./selectors/patterns";
+export * from "./selectors/editor";
+export * from "./selectors/timeline";
 
 // Timeline
 export * from "./selectors/tracks";

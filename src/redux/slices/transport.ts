@@ -24,7 +24,6 @@ export interface Transport {
   volume: Volume;
   mute: boolean;
   timeSignature: [number, number];
-  subdivision: Subdivision;
   loaded: boolean;
   loading: boolean;
   recording: boolean;
@@ -40,7 +39,6 @@ export const defaultTransport: Transport = {
   volume: -6,
   mute: false,
   timeSignature: [16, 16],
-  subdivision: 16,
   loaded: false,
   loading: false,
   recording: false,
@@ -92,9 +90,6 @@ export const transportSlice = createSlice({
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
-    _setSubdivision: (state, action) => {
-      state.subdivision = action.payload;
-    },
     _startRecording: (state) => {
       state.recording = true;
     },
@@ -113,7 +108,6 @@ export const {
   _setBPM,
   _setTimeSignature,
   _setVolume,
-  _setSubdivision,
   _setMute,
   setLoaded,
   setLoading,

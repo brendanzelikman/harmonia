@@ -1,19 +1,20 @@
-import { HEADER_HEIGHT, TRACK_WIDTH } from "appConstants";
-import { ticksToColumns } from "appUtil";
+import { HEADER_HEIGHT } from "appConstants";
 import { DataGridHandle } from "react-data-grid";
 import { createPortal } from "react-dom";
 import { ConnectedProps, connect } from "react-redux";
-import { selectCellWidth, selectRoot, selectTransport } from "redux/selectors";
+import {
+  selectCellWidth,
+  selectRoot,
+  selectTimelineTickOffset,
+  selectTransport,
+} from "redux/selectors";
 import { RootState } from "redux/store";
 
 const mapStateToProps = (state: RootState) => {
   const transport = selectTransport(state);
   const { selectedTrackId } = selectRoot(state);
   const cellWidth = selectCellWidth(state);
-
-  const left =
-    TRACK_WIDTH +
-    cellWidth * ticksToColumns(transport.tick, transport.subdivision);
+  const left = selectTimelineTickOffset(state, transport.tick);
 
   return {
     isStarted: transport.state === "started",

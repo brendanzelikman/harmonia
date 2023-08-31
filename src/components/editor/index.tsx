@@ -1,26 +1,47 @@
 import { connect, ConnectedProps } from "react-redux";
-import { selectRoot, selectTransport } from "redux/selectors";
+import { selectEditor, selectRoot, selectTransport } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Editor } from "./Editor";
-import { hideEditor, showEditor } from "redux/slices/root";
+import {
+  showEditor,
+  hideEditor,
+  EditorState,
+  setEditorState,
+  setEditorNoteTiming,
+  setEditorNoteDuration,
+  EditorId,
+} from "redux/slices/editor";
+import { Duration, Timing } from "types/units";
 
 function mapStateToProps(state: RootState) {
-  const { showingEditor, editorState, selectedPatternId } = selectRoot(state);
+  const { selectedPatternId, showingTour } = selectRoot(state);
+  const editor = selectEditor(state);
+  const adding = editor.state === "adding";
+  const inserting = editor.state === "inserting";
+  const removing = editor.state === "removing";
+
   const transport = selectTransport(state);
 
   return {
     selectedPatternId,
-    showingEditor,
-    editorState,
+    ...editor,
+    adding,
+    inserting,
+    removing,
     transport,
-    tour: state.tour,
+    showingTour,
   };
 }
 
 function mapDispatchToProps(dispatch: AppDispatch) {
   return {
-    showEditor: (id: string) => dispatch(showEditor({ id })),
+    showEditor: (id: EditorId) => dispatch(showEditor({ id })),
     hideEditor: () => dispatch(hideEditor()),
+    setState: (action: EditorState) => dispatch(setEditorState(action)),
+    clear: () => dispatch(setEditorState("idle")),
+    setNoteDuration: (duration: Duration) =>
+      dispatch(setEditorNoteDuration(duration)),
+    setNoteTiming: (timing: Timing) => dispatch(setEditorNoteTiming(timing)),
   };
 }
 

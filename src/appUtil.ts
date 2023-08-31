@@ -52,19 +52,36 @@ export const closest = (goal: number, arr: number[]) =>
   });
 
 const ticksBySubdivision = {
-  64: MIDI.SixtyFourthNoteTicks,
-  32: MIDI.ThirtySecondNoteTicks,
-  16: MIDI.SixteenthNoteTicks,
-  8: MIDI.EighthNoteTicks,
-  4: MIDI.QuarterNoteTicks,
-  2: MIDI.HalfNoteTicks,
-  1: MIDI.WholeNoteTicks,
+  "1/64": MIDI.SixtyFourthNoteTicks,
+  "1/32": MIDI.ThirtySecondNoteTicks,
+  "1/16": MIDI.SixteenthNoteTicks,
+  "1/8": MIDI.EighthNoteTicks,
+  "1/4": MIDI.QuarterNoteTicks,
+  "1/2": MIDI.HalfNoteTicks,
+  "1/1": MIDI.WholeNoteTicks,
 };
-export const subdivisionToTicks = (subdivision: Subdivision = 16): Tick => {
+
+export const subdivisionToTicks = (subdivision: Subdivision = "1/16"): Tick => {
   return ticksBySubdivision[subdivision] || MIDI.QuarterNoteTicks;
 };
 
-export const ticksToColumns = (ticks: Tick, subdivision: Subdivision = 16) => {
+const valuesBySubdivision = {
+  "1/64": 64,
+  "1/32": 32,
+  "1/16": 16,
+  "1/8": 8,
+  "1/4": 4,
+  "1/2": 2,
+  "1/1": 1,
+};
+export const subdivisionToValue = (subdivision: Subdivision = "1/16") => {
+  return valuesBySubdivision[subdivision] || 4;
+};
+
+export const ticksToColumns = (
+  ticks: Tick,
+  subdivision: Subdivision = "1/16"
+) => {
   const ticksPerSubdivision = subdivisionToTicks(subdivision);
   return ticks / ticksPerSubdivision;
 };

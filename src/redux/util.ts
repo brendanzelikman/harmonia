@@ -31,16 +31,21 @@ export const saveState = (state: RootState) => {
         ...state.transport,
         state: "stopped",
         loaded: false,
-        time: 0,
+        tick: 0,
       },
-      root: {
-        ...state.root,
-        timelineState: "idle",
-        editorState: "hidden",
-        showingEditor: false,
+      timeline: {
+        ...state.timeline,
+        state: "idle",
         draggingClip: false,
+        draggingTransform: false,
       },
-      timeline: { past: [], present: state.timeline.present, future: [] },
+      editor: {
+        ...state.editor,
+        id: "hidden",
+        state: "idle",
+        show: false,
+      },
+      session: { past: [], present: state.session.present, future: [] },
       scales: { past: [], present: state.scales.present, future: [] },
       patterns: { past: [], present: state.patterns.present, future: [] },
     });

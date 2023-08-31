@@ -11,6 +11,7 @@ import {
   selectPatternTrack,
   selectScaleTrack,
   selectTrack,
+  selectEditor,
 } from "redux/selectors";
 import {
   setPatternTrackScaleTrack,
@@ -97,8 +98,9 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const solo = mixer?.solo ?? false;
   const instrumentName = getInstrumentName(track.instrument as InstrumentName);
 
-  const { editorState, showingEditor, selectedTrackId } = selectRoot(state);
-  const onEditor = editorState === "instrument" && showingEditor;
+  const { selectedTrackId } = selectRoot(state);
+  const editor = selectEditor(state);
+  const onEditor = editor.id === "instrument" && editor.show;
   const onInstrument = !!(
     onEditor &&
     selectedTrackId &&

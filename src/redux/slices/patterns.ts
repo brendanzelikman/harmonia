@@ -107,7 +107,7 @@ export const patternsSlice = createSlice({
     addPatternNote: (state, action: PayloadAction<PatternAdd>) => {
       const { id, patternNote, asChord } = action.payload;
       const pattern = state.byId[id];
-      if (!pattern) return;
+      if (!pattern || !isPatternValid(pattern)) return;
 
       // If the pattern is empty, add the note as the first chord
       if (pattern.stream.length === 0) {
@@ -128,7 +128,7 @@ export const patternsSlice = createSlice({
     insertPatternNote: (state, action: PayloadAction<PatternInsert>) => {
       const { id, patternNote, index } = action.payload;
       const pattern = state.byId[id];
-      if (!pattern) return;
+      if (!pattern || !isPatternValid(pattern)) return;
 
       if (index < 0 || index > pattern.stream.length) return;
 
@@ -138,7 +138,7 @@ export const patternsSlice = createSlice({
     _updatePatternNote: (state, action: PayloadAction<PatternUpdate>) => {
       const { id, patternNote, index, asChord } = action.payload;
       const pattern = state.byId[id];
-      if (!pattern) return;
+      if (!pattern || !isPatternValid(pattern)) return;
 
       if (index < 0 || index > pattern.stream.length) return;
 
@@ -151,7 +151,7 @@ export const patternsSlice = createSlice({
     removePatternNote: (state, action) => {
       const { id, index } = action.payload;
       const pattern = state.byId[id];
-      if (!pattern) return;
+      if (!pattern || !isPatternValid(pattern)) return;
       if (index < 0 || index > pattern.stream.length) return;
       state.byId[id].stream.splice(index, 1);
     },
@@ -159,7 +159,7 @@ export const patternsSlice = createSlice({
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
-      if (!pattern) return;
+      if (!pattern || !isPatternValid(pattern)) return;
 
       pattern.stream = pattern.stream.map((chord) => {
         return chord.map((note) => {
@@ -378,7 +378,7 @@ export const updatePatterns =
 export const updatePatternNote =
   ({ patternNote, index, id, asChord }: PatternUpdate): AppThunk =>
   (dispatch, getState) => {
-    if (!inRange(patternNote.MIDI, MIDI.NoteMin, MIDI.NoteMax)) return;
+    if (!inRange(patternNote.MIDI, MIDI.Rest, MIDI.NoteMax)) return;
     dispatch(_updatePatternNote({ patternNote, index, id, asChord }));
 
     const state = getState();

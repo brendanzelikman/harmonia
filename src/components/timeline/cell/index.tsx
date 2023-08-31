@@ -1,8 +1,9 @@
 import { FormatterProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
 import {
+  selectBarsBeatsSixteenths,
   selectRoot,
-  selectTimelineBBS,
+  selectTimeline,
   selectTimelineTick,
   selectTrack,
   selectTransport,
@@ -19,10 +20,11 @@ import { Tick } from "types/units";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const root = selectRoot(state);
+  const timeline = selectTimeline(state);
   const transport = selectTransport(state);
   const columnIndex = Number(ownProps.column.key);
   const tick = selectTimelineTick(state, columnIndex - 1);
-  const { beats, sixteenths } = selectTimelineBBS(state, tick);
+  const { beats, sixteenths } = selectBarsBeatsSixteenths(state, tick);
   const isMeasure = beats === 0 && sixteenths === 0;
 
   const trackId = ownProps.row.trackId;
@@ -31,8 +33,8 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
 
   const onTime = tick === transport.tick;
   const isStarted = transport.state === "started";
-  const adding = root.timelineState === "adding";
-  const transposing = root.timelineState === "transposing";
+  const adding = timeline.state === "adding";
+  const transposing = timeline.state === "transposing";
 
   const showCursor =
     !adding &&
@@ -80,6 +82,7 @@ const onClick =
     }
     const state = getState();
     const root = selectRoot(state);
+    const timeline = selectTimeline(state);
     const { toolkit, selectedPatternId } = root;
 
     const chromaticTranspose = toolkit.chromaticTranspose ?? 0;
@@ -88,7 +91,7 @@ const onClick =
 
     const track = selectTrack(state, trackId);
     const onPatternTrack = !!track && isPatternTrack(track);
-    const adding = root.timelineState === "adding";
+    const adding = timeline.state === "adding";
 
     // Create a clip if adding and on a pattern track
     if (adding && selectedPatternId && onPatternTrack) {
@@ -97,7 +100,7 @@ const onClick =
     }
 
     // Create a transform if transposing
-    if (root.timelineState === "transposing") {
+    if (timeline.state === "transposing") {
       dispatch(
         Slices.Transforms.createTransform({
           trackId,

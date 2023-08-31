@@ -14,7 +14,6 @@ import {
   _setLoopEnd,
   _setLoopStart,
   _setMute,
-  _setSubdivision,
   _setTimeSignature,
   setLoaded,
   setLoading,
@@ -32,7 +31,7 @@ import {
   isSamplerLoaded,
 } from "types/instrument";
 import { MIDI } from "types/midi";
-import { Subdivision, Tick, Time } from "types/units";
+import { Tick, Time } from "types/units";
 
 const {
   _startTransport,
@@ -123,13 +122,6 @@ export const pauseTransport = (): AppThunk => (dispatch, getState) => {
   Transport.pause();
   dispatch(_pauseTransport());
 };
-
-// Set the transport subdivision
-export const setTransportSubdivision =
-  (s: Subdivision): AppThunk =>
-  (dispatch) => {
-    dispatch(_setSubdivision(s));
-  };
 
 // Seek the transport
 export const seekTransport =

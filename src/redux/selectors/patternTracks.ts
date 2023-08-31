@@ -7,9 +7,9 @@ import { Sampler } from "tone";
 // Select the ID of a track
 const selectTrackId = (state: RootState, id: TrackId) => id;
 export const selectPatternTrackMap = (state: RootState) =>
-  state.timeline.present.patternTracks.byId;
+  state.session.present.patternTracks.byId;
 export const selectPatternTrackIds = (state: RootState) =>
-  state.timeline.present.patternTracks.allIds;
+  state.session.present.patternTracks.allIds;
 
 // Select all pattern tracks
 export const selectPatternTracks = createSelector(

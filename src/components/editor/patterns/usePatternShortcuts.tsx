@@ -7,14 +7,11 @@ import {
   isInputEvent,
 } from "appUtil";
 import { PatternEditorProps } from ".";
+import { Duration } from "types/units";
 
 interface PatternShortcutProps extends PatternEditorProps {
-  onState: (state: any) => boolean;
-  setState: (state: any) => void;
-  clearState: () => void;
   cursor: any;
   onRestClick: () => void;
-  setDuration: (duration: any) => void;
 }
 
 export default function usePatternShortcuts(props: PatternShortcutProps) {
@@ -56,8 +53,8 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       a: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (props.onState("adding") || props.onState("inserting")) {
-            props.clearState();
+          if (props.adding || props.inserting) {
+            props.clear();
           } else {
             props.setState("adding");
           }
@@ -67,12 +64,9 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       x: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
+          cancelEvent(e);
           if (props.cursor.hidden) return;
-          if (props.onState("inserting")) {
-            props.setState("adding");
-          } else {
-            props.setState("inserting");
-          }
+          props.setState(props.inserting ? "inserting" : "adding");
         },
       },
       // Delete = Remove Note
@@ -81,6 +75,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           if (!props.pattern) return;
+          cancelEvent(e);
           if (isHoldingShift(e)) {
             props.clearPattern(props.pattern);
           } else {
@@ -144,10 +139,16 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (!props.pattern) return;
           cancelEvent(e);
+          const holdingShift = isHoldingShift(e);
+          const offset = holdingShift ? 12 : 1;
           if (props.cursor.hidden) {
-            props.transposePattern(props.pattern, 1);
+            props.transposePattern(props.pattern, offset);
           } else {
-            props.transposePatternNote(props.pattern, props.cursor.index, 1);
+            props.transposePatternNote(
+              props.pattern,
+              props.cursor.index,
+              offset
+            );
           }
         },
       },
@@ -156,10 +157,16 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (!props.pattern) return;
           cancelEvent(e);
+          const holdingShift = isHoldingShift(e);
+          const offset = holdingShift ? -12 : -1;
           if (props.cursor.hidden) {
-            props.transposePattern(props.pattern, -1);
+            props.transposePattern(props.pattern, offset);
           } else {
-            props.transposePatternNote(props.pattern, props.cursor.index, -1);
+            props.transposePatternNote(
+              props.pattern,
+              props.cursor.index,
+              offset
+            );
           }
         },
       },
@@ -175,6 +182,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       0: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
+          cancelEvent(e);
           props.onRestClick();
         },
       },
@@ -182,49 +190,73 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       1: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          props.setDuration("64th");
+          cancelEvent(e);
+          props.setNoteDuration("64th");
         },
       },
       // 2 = Select Eighth Note
       2: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          props.setDuration("32nd");
+          cancelEvent(e);
+          props.setNoteDuration("32nd");
         },
       },
       // 3 = Select 16th Note
+      // Command + 3 = Select Triplet
       3: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          props.setDuration("16th");
+          cancelEvent(e);
+          if (!isHoldingCommand(e)) {
+            props.setNoteDuration("16th");
+            return;
+          }
+          props.setNoteTiming(
+            props.selectedTiming === "triplet" ? "straight" : "triplet"
+          );
         },
       },
       // 4 = Select Eighth Note
       4: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          props.setDuration("eighth");
+          cancelEvent(e);
+          props.setNoteDuration("eighth");
         },
       },
       // 5 = Select Quarter Note
       5: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          props.setDuration("quarter");
+          cancelEvent(e);
+          props.setNoteDuration("quarter");
         },
       },
       // 6 = Select Half Note
       6: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          props.setDuration("half");
+          cancelEvent(e);
+          props.setNoteDuration("half");
         },
       },
       // 7 = Select Whole Note
       7: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          props.setDuration("whole");
+          cancelEvent(e);
+          props.setNoteDuration("whole");
+        },
+      },
+      // . = Select Dotted Note
+      ".": {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          props.setNoteTiming(
+            props.selectedTiming === "dotted" ? "straight" : "dotted"
+          );
         },
       },
       // "T" = Prompt for Scalar Transposition
@@ -256,69 +288,6 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           const sanitizedInput = parseInt(input ?? "");
           if (isNaN(sanitizedInput)) return;
           props.repeatPattern(props.pattern, sanitizedInput);
-        },
-      },
-      // [ = Transpose Pattern Down
-      "[": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          props.transposePattern(props.pattern, -1);
-        },
-      },
-      // ] = Transpose Pattern Up
-      "]": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          props.transposePattern(props.pattern, 1);
-        },
-      },
-      // { = Invert Pattern Down
-      "{": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          props.rotatePattern(props.pattern, -1);
-        },
-      },
-      // } = Invert Pattern Up
-      "}": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          props.rotatePattern(props.pattern, 1);
-        },
-      },
-      // , = Shrink Pattern
-      ",": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          props.diminishPattern(props.pattern);
-        },
-      },
-      // . = Stretch Pattern
-      ".": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          props.augmentPattern(props.pattern);
-        },
-      },
-      // < = Halve Pattern
-      "<": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          props.halvePattern(props.pattern);
-        },
-      },
-      // > = Double Pattern
-      ">": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          props.repeatPattern(props.pattern, 2);
-        },
-      },
-      // * = Randomize Pattern
-      "*": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          props.randomizePattern(props.pattern, 8);
         },
       },
     },

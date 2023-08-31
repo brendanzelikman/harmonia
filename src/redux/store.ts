@@ -9,7 +9,7 @@ import undoable from "redux-undo";
 import { loadState, saveState } from "./util";
 import { groupByActionType } from "./undoTypes";
 
-const timeline = combineReducers({
+const session = combineReducers({
   clips: Slices.Clips.default,
   scaleTracks: Slices.ScaleTracks.default,
   patternTracks: Slices.PatternTracks.default,
@@ -20,10 +20,10 @@ const timeline = combineReducers({
   transformMap: Slices.TransformMap.default,
 });
 
-const undoableTimeline = undoable(timeline, {
+const undoableSession = undoable(session, {
   groupBy: groupByActionType,
-  undoType: "timeline/undo",
-  redoType: "timeline/redo",
+  undoType: "session/undo",
+  redoType: "session/redo",
   limit: 16,
 });
 
@@ -42,16 +42,18 @@ const undoablePatterns = undoable(Slices.Patterns.default, {
 });
 
 const root = Slices.Root.default;
+const editor = Slices.Editor.default;
+const timeline = Slices.Timeline.default;
 const transport = Slices.Transport.default;
-const tour = Slices.Tour.default;
 
 const reducer = combineReducers({
-  timeline: undoableTimeline,
+  session: undoableSession,
   scales: undoableScales,
   patterns: undoablePatterns,
   root,
+  editor,
+  timeline,
   transport,
-  tour,
 });
 
 const preloadedState = loadState();

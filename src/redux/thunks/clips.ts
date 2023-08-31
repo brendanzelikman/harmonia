@@ -1,5 +1,4 @@
 import { inRange, union } from "lodash";
-import { selectClipStream } from "redux/selectors";
 import * as Selectors from "redux/selectors";
 import * as Clips from "redux/slices/clips";
 import * as Transfroms from "redux/slices/transforms";
@@ -7,9 +6,8 @@ import * as ClipMap from "redux/slices/maps/clipMap";
 import { addPattern } from "redux/slices/patterns";
 import {
   deselectClip,
-  selectClips,
-  selectTransforms,
-  setClipboard,
+  setSelectedTransforms,
+  setSelectedClips,
   setSelectedPattern,
 } from "redux/slices/root";
 import { AppThunk } from "redux/store";
@@ -40,6 +38,7 @@ import {
 } from "redux/slices/clips";
 import { Row } from "components/timeline";
 import { subdivisionToTicks } from "appUtil";
+import { setClipboard } from "redux/slices/timeline";
 
 export type RepeatOptions = {
   repeatCount?: number;
@@ -208,7 +207,7 @@ export const sliceClip =
     const clip = Selectors.selectClip(state, clipId);
     if (!clip) return;
 
-    const stream = selectClipStream(state, clipId);
+    const stream = Selectors.selectClipStream(state, clipId);
 
     const splitTick = tick - clip.tick;
     if (tick === clip.tick || splitTick === stream.length) return;
@@ -447,7 +446,7 @@ export const selectRangeOfClips =
     const newClipIds = newClips.map((clip) => clip.id);
 
     // Select the clips
-    dispatch(selectClips(newClipIds));
+    dispatch(setSelectedClips(newClipIds));
   };
 
 // Select all clips and transforms
@@ -456,8 +455,8 @@ export const selectAllClipsAndTransforms =
     const state = getState();
     const clipIds = Selectors.selectClipIds(state);
     const transformIds = Selectors.selectTransformIds(state);
-    if (clipIds) dispatch(selectClips(clipIds));
-    if (transformIds) dispatch(selectTransforms(transformIds));
+    if (clipIds) dispatch(setSelectedClips(clipIds));
+    if (transformIds) dispatch(setSelectedTransforms(transformIds));
   };
 
 // Delete all selected clips and transforms
@@ -498,7 +497,8 @@ export const pasteSelectedClipsAndTransforms =
     if (!rows?.length) return emptyPromise;
 
     const state = getState();
-    const { clipboard, selectedTrackId } = Selectors.selectRoot(state);
+    const { clipboard } = Selectors.selectTimeline(state);
+    const { selectedTrackId } = Selectors.selectRoot(state);
     if (!selectedTrackId) return emptyPromise;
 
     const { tick } = Selectors.selectTransport(state);
@@ -603,8 +603,8 @@ export const duplicateSelectedClipsAndTransforms =
     const selectedClipTicks = selectedClips.map((clip) =>
       Selectors.selectClipTicks(state, clip.id)
     );
-    const transport = Selectors.selectTransport(state);
-    const gridTicks = subdivisionToTicks(transport.subdivision);
+    const timeline = Selectors.selectTimeline(state);
+    const gridTicks = subdivisionToTicks(timeline.subdivision);
     // Get the start time of the earliest clip or transform
     const startTick = Math.min(
       ...selectedClips.map((clip) => clip.tick),
@@ -632,8 +632,8 @@ export const duplicateSelectedClipsAndTransforms =
     );
 
     // Select the new clips and transforms
-    if (clipIds) dispatch(selectClips(clipIds));
-    if (transformIds) dispatch(selectTransforms(transformIds));
+    if (clipIds) dispatch(setSelectedClips(clipIds));
+    if (transformIds) dispatch(setSelectedTransforms(transformIds));
 
     return { clipIds, transformIds };
   };

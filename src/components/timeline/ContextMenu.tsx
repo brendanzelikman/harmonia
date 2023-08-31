@@ -1,6 +1,11 @@
 import ContextMenu, { ContextMenuOption } from "../ContextMenu";
 import { ConnectedProps, connect } from "react-redux";
-import { selectPattern, selectRoot, selectTrack } from "redux/selectors";
+import {
+  selectPattern,
+  selectRoot,
+  selectTimeline,
+  selectTrack,
+} from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import {
   addSelectedPatternToTimeline,
@@ -20,13 +25,14 @@ import { addTransformToTimeline } from "redux/thunks/transforms";
 
 const mapStateToProps = (state: RootState) => {
   const {
-    clipboard,
     toolkit,
     selectedPatternId,
     selectedTrackId,
     selectedClipIds,
     selectedTransformIds,
   } = selectRoot(state);
+
+  const { clipboard } = selectTimeline(state);
 
   const selectedPattern = selectedPatternId
     ? selectPattern(state, selectedPatternId)
@@ -54,8 +60,8 @@ const mapStateToProps = (state: RootState) => {
   const canDuplicate = !isSelectionEmpty && selectedTrack;
   const canDelete = !isSelectionEmpty;
   const canExport = areClipsSelected;
-  const canUndo = state.timeline.past.length > 0;
-  const canRedo = state.timeline.future.length > 0;
+  const canUndo = state.session.past.length > 0;
+  const canRedo = state.session.future.length > 0;
 
   return {
     selectedTrack,
@@ -76,8 +82,8 @@ const mapStateToProps = (state: RootState) => {
 };
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    undoTimeline: () => dispatch({ type: UndoTypes.undoTimeline }),
-    redoTimeline: () => dispatch({ type: UndoTypes.redoTimeline }),
+    undoSession: () => dispatch({ type: UndoTypes.undoSession }),
+    redoSession: () => dispatch({ type: UndoTypes.redoSession }),
 
     copyClipsAndTransforms: () => dispatch(copySelectedClipsAndTransforms()),
     cutClipsAndTransforms: () => dispatch(cutSelectedClipsAndTransforms()),
@@ -107,12 +113,12 @@ export default connector(TimelineContextMenu);
 function TimelineContextMenu(props: Props) {
   const Undo = {
     label: "Undo Last Action",
-    onClick: props.undoTimeline,
+    onClick: props.undoSession,
     disabled: !props.canUndo,
   };
   const Redo = {
     label: "Redo Last Action",
-    onClick: props.redoTimeline,
+    onClick: props.redoSession,
     disabled: !props.canRedo,
     divideEnd: true,
   };

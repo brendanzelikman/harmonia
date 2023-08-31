@@ -58,7 +58,7 @@ export type PatternStream = PatternChord[];
 export const isPatternValid = (pattern: Pattern) => {
   if (!pattern) return false;
   return pattern.stream.every((chord) =>
-    chord.every((note) => inRange(note.MIDI, MIDI.NoteMin, MIDI.NoteMax))
+    chord.every((note) => inRange(note.MIDI, MIDI.Rest, MIDI.NoteMax))
   );
 };
 
@@ -199,7 +199,7 @@ export const transposePatternStream = (
       const newNumber = MIDI.ChromaticNotes.indexOf(thisPitch);
       const oldNumber = MIDI.ChromaticNotes.indexOf(notePitch);
       const newMIDI = noteMIDI + newNumber - oldNumber + newOffset;
-      const clampedMIDI = clamp(newMIDI, MIDI.NoteMin, MIDI.NoteMax);
+      const clampedMIDI = clamp(newMIDI, MIDI.Rest, MIDI.NoteMax);
       transposedChord.push({ ...note, MIDI: clampedMIDI });
     }
     transposedStream.push(transposedChord);

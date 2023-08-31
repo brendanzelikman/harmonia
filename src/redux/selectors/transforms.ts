@@ -6,10 +6,10 @@ export const selectTransformId = (state: RootState, id: TransformId) => {
   return id;
 };
 export const selectTransformIds = (state: RootState) => {
-  return state.timeline.present.transforms.allIds;
+  return state.session.present.transforms.allIds;
 };
 export const selectTransformMap = (state: RootState) => {
-  return state.timeline.present.transforms.byId;
+  return state.session.present.transforms.byId;
 };
 
 // Select all transforms from the store

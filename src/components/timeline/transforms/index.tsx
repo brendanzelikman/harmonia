@@ -12,13 +12,13 @@ import {
   updateTransform,
 } from "redux/slices/transforms";
 import { selectTransforms } from "redux/selectors/transforms";
-import { selectClips, selectRoot } from "redux/selectors";
-import { toggleTransposingClip } from "redux/slices/root";
+import { selectClips, selectRoot, selectTimeline } from "redux/selectors";
 import { Clip } from "types/clips";
 import {
   createClipsAndTransforms,
   updateClipsAndTransforms,
 } from "redux/slices/clips";
+import { toggleTransposingClip } from "redux/slices/timeline";
 
 interface TimelineTransformsProps {
   timeline: DataGridHandle;
@@ -32,15 +32,10 @@ const mapStateToProps = (
   const clips = selectClips(state);
   const transforms = selectTransforms(state);
   const root = selectRoot(state);
-  const {
-    timelineState,
-    draggingClip,
-    toolkit,
-    selectedClipIds,
-    selectedTransformIds,
-  } = root;
+  const timeline = selectTimeline(state);
+  const { toolkit, selectedClipIds, selectedTransformIds } = root;
 
-  const transposing = timelineState === "transposing";
+  const transposing = timeline.state === "transposing";
 
   return {
     ...ownProps,
@@ -48,7 +43,7 @@ const mapStateToProps = (
     clips,
     transforms,
     transposing,
-    draggingClip,
+    draggingClip: timeline.draggingClip,
     selectedClipIds: selectedClipIds || [],
     selectedTransformIds: selectedTransformIds || [],
   };

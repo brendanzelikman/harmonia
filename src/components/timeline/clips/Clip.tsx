@@ -1,25 +1,27 @@
 import { connect, ConnectedProps } from "react-redux";
 import {
-  selectCellWidth,
   selectClipTicks,
   selectClipPattern,
   selectMixerByTrackId,
   selectRoot,
-  selectTransport,
+  selectTimeline,
+  selectTimelineTickOffset,
+  selectClipWidth,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Clip, ClipId } from "types/clips";
 import { ClipsProps } from ".";
 import * as Constants from "appConstants";
 import { useClipDrag } from "./dnd";
-import * as RootSlice from "redux/slices/root";
+import * as Root from "redux/slices/root";
+import * as Timeline from "redux/slices/timeline";
 import { MouseEvent, useEffect, useMemo, useState } from "react";
 import Stream from "./Stream";
 import useEventListeners from "hooks/useEventListeners";
 import { TransformNoId } from "types/transform";
 import { rotatePattern, transposePattern } from "redux/slices/patterns";
 import { createTransforms } from "redux/slices/transforms";
-import { isHoldingOption, isHoldingShift, ticksToColumns } from "appUtil";
+import { isHoldingOption, isHoldingShift } from "appUtil";
 import { selectRangeOfClips } from "redux/thunks";
 import { Row } from "..";
 
@@ -29,23 +31,20 @@ interface OwnClipProps extends ClipsProps {
 
 const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const { rows, clip } = ownProps;
+  const timeline = selectTimeline(state);
+
   const index = rows.findIndex((row) => row.trackId === clip.trackId);
   const duration = selectClipTicks(state, clip.id);
   const name = selectClipPattern(state, clip.id)?.name ?? "";
   const muted = selectMixerByTrackId(state, clip.trackId)?.mute ?? false;
-  const cellWidth = selectCellWidth(state);
 
-  const { subdivision } = selectTransport(state);
   const top = Constants.HEADER_HEIGHT + index * Constants.CELL_HEIGHT;
-  const startColumn = ticksToColumns(clip.tick, subdivision);
-  const left = Constants.TRACK_WIDTH + Math.round(cellWidth * startColumn);
-
-  const columns = ticksToColumns(duration, subdivision);
-  const width = cellWidth * Math.max(columns, 1);
+  const left = selectTimelineTickOffset(state, clip.tick);
+  const width = selectClipWidth(state, clip.id);
 
   const pattern = selectClipPattern(state, clip.id);
   const root = selectRoot(state);
-  const { timelineState, draggingClip, toolkit, selectedClipIds } = root;
+  const { toolkit, selectedClipIds } = root;
   const isSelected = selectedClipIds.includes(clip.id);
 
   return {
@@ -57,11 +56,11 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     width,
     top,
     left,
-    subdivision,
+    subdivision: timeline.subdivision,
     isSelected,
     pattern,
-    transposingClip: timelineState === "transposing",
-    draggingClip,
+    transposingClip: timeline.state === "transposing",
+    draggingClip: timeline.draggingClip,
     ...toolkit,
   };
 };
@@ -70,25 +69,25 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
     selectClip: (clipId: ClipId, another = false) => {
       if (another) {
-        dispatch(RootSlice.selectAnotherClip(clipId));
+        dispatch(Root.addSelectedClip(clipId));
       } else {
-        dispatch(RootSlice.selectClip(clipId));
+        dispatch(Root.setSelectedClips([clipId]));
       }
     },
     setSelectedPattern: (patternId: string) => {
-      dispatch(RootSlice.setSelectedPattern(patternId));
+      dispatch(Root.setSelectedPattern(patternId));
     },
     selectClips: (clipIds: ClipId[]) => {
-      dispatch(RootSlice.selectClips(clipIds));
+      dispatch(Root.setSelectedClips(clipIds));
     },
     deselectClip: (clipId: ClipId) => {
-      dispatch(RootSlice.deselectClip(clipId));
+      dispatch(Root.deselectClip(clipId));
     },
     startDraggingClip: () => {
-      dispatch(RootSlice.startDraggingClip());
+      dispatch(Timeline.startDraggingClip());
     },
     stopDraggingClip: () => {
-      dispatch(RootSlice.stopDraggingClip());
+      dispatch(Timeline.stopDraggingClip());
     },
     createTransforms: (transforms: Partial<TransformNoId>[]) => {
       dispatch(createTransforms(transforms));
@@ -122,7 +121,7 @@ function TimelineClip(props: ClipProps) {
   if (props.index === -1) return null;
   const { clip, rows, selectedClipIds } = props;
   const { draggingClip, transposingClip } = props;
-  const { top, left, width, subdivision, name, isSelected, muted } = props;
+  const { top, left, width, name, isSelected, muted } = props;
 
   const [{ isDragging }, drag] = useClipDrag(props);
 

@@ -7,10 +7,10 @@ import { ChromaticScale } from "types/presets/scales";
 // Select the ID of a track
 const selectTrackId = (state: RootState, id: TrackId) => id;
 export const selectScaleTrackMap = (state: RootState) =>
-  state.timeline.present.scaleTracks.byId;
+  state.session.present.scaleTracks.byId;
 // Select all scale track IDs
 export const selectScaleTrackIds = (state: RootState): TrackId[] => {
-  return state.timeline.present.scaleTracks.allIds;
+  return state.session.present.scaleTracks.allIds;
 };
 
 // Select all scale tracks

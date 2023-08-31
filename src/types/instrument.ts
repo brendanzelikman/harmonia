@@ -168,6 +168,6 @@ export const getGlobalSampler = () => {
   return INSTRUMENTS["global"]?.sampler;
 };
 
-export const isSamplerLoaded = (sampler: Sampler) => {
-  return sampler.loaded && !sampler.disposed;
+export const isSamplerLoaded = (sampler?: Sampler) => {
+  return sampler?.loaded && !sampler?.disposed;
 };

@@ -5,9 +5,6 @@ import { Scale } from "types/scales";
 
 interface ScaleShortcutProps extends ScaleEditorProps {
   scale: Scale;
-  onState: (state: any) => boolean;
-  setState: (state: any) => void;
-  clearState: () => void;
 }
 
 export default function useScaleShortcuts(props: ScaleShortcutProps) {
@@ -17,8 +14,8 @@ export default function useScaleShortcuts(props: ScaleShortcutProps) {
       a: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (props.onState("adding")) {
-            props.clearState();
+          if (props.adding) {
+            props.clear();
           } else {
             props.setState("adding");
           }
@@ -36,8 +33,8 @@ export default function useScaleShortcuts(props: ScaleShortcutProps) {
             return;
           }
           // Toggle Removing Notes
-          if (props.onState("removing")) {
-            props.clearState();
+          if (props.removing) {
+            props.clear();
           } else {
             props.setState("removing");
           }
@@ -92,6 +89,6 @@ export default function useScaleShortcuts(props: ScaleShortcutProps) {
         },
       },
     },
-    [props.scale, props.onState]
+    [props.scale, props.adding, props.removing]
   );
 }

@@ -6,10 +6,10 @@ const selectTrackId = (state: RootState, trackId: TrackId) => {
   return trackId;
 };
 const selectMixerIds = (state: RootState) => {
-  return state.timeline.present.mixers.allIds;
+  return state.session.present.mixers.allIds;
 };
 const selectMixerMap = (state: RootState) => {
-  return state.timeline.present.mixers.byId;
+  return state.session.present.mixers.byId;
 };
 
 export const selectMixers = createSelector(

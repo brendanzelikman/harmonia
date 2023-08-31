@@ -3,13 +3,19 @@ import { connect, ConnectedProps } from "react-redux";
 import { AppDispatch, RootState } from "redux/store";
 import { TransformsProps } from ".";
 import * as Constants from "appConstants";
-import * as RootSlice from "redux/slices/root";
+import * as Root from "redux/slices/root";
+import * as Timeline from "redux/slices/timeline";
 
 import { MouseEvent, useEffect, useMemo, useState } from "react";
 
 import { selectTransforms } from "redux/selectors/transforms";
 import { Transform, TransformId } from "types/transform";
-import { selectCellWidth, selectRoot, selectTransport } from "redux/selectors";
+import {
+  selectCellWidth,
+  selectRoot,
+  selectTimeline,
+  selectTimelineTickOffset,
+} from "redux/selectors";
 import { BsMagic } from "react-icons/bs";
 import useEventListeners from "hooks/useEventListeners";
 import {
@@ -27,20 +33,19 @@ interface OwnClipProps extends TransformsProps {
 
 const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const { rows, transform } = ownProps;
-  const { subdivision } = selectTransport(state);
+  const { subdivision } = selectTimeline(state);
   const cellWidth = selectCellWidth(state);
   const index = rows.findIndex((row) => row.trackId === transform.trackId);
 
   const top = Constants.HEADER_HEIGHT + index * Constants.CELL_HEIGHT;
-  const left =
-    Constants.TRACK_WIDTH +
-    Math.round(cellWidth * ticksToColumns(transform.tick, subdivision));
+  const left = selectTimelineTickOffset(state, transform.tick);
 
   const transforms = selectTransforms(state);
   const root = selectRoot(state);
-  const { timelineState, toolkit, draggingTransform } = root;
-  const addingClip = timelineState === "adding";
-  const transposing = timelineState === "transposing";
+  const timeline = selectTimeline(state);
+  const { toolkit } = root;
+  const addingClip = timeline.state === "adding";
+  const transposing = timeline.state === "transposing";
 
   const isSelected = ownProps.selectedTransformIds?.includes(transform.id);
 
@@ -54,7 +59,7 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     transforms,
     addingClip,
     transposing,
-    draggingTransform,
+    draggingTransform: timeline.draggingTransform,
     isSelected,
     subdivision,
   };
@@ -64,25 +69,25 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
     selectTransform: (transformId: TransformId, another = false) => {
       if (another) {
-        dispatch(RootSlice.selectAnotherTransform(transformId));
+        dispatch(Root.addSelectedTransform(transformId));
       } else {
-        dispatch(RootSlice.selectTransform(transformId));
+        dispatch(Root.setSelectedTransforms([transformId]));
       }
     },
     selectClips: (clipIds: ClipId[]) => {
-      dispatch(RootSlice.selectClips(clipIds));
+      dispatch(Root.setSelectedClips(clipIds));
     },
     selectTransforms: (transforms: TransformId[]) => {
-      dispatch(RootSlice.selectTransforms(transforms));
+      dispatch(Root.setSelectedTransforms(transforms));
     },
     deselectTransform: (transformId: TransformId) => {
-      dispatch(RootSlice.deselectTransform(transformId));
+      dispatch(Root.deselectTransform(transformId));
     },
     startDraggingTransform: () => {
-      dispatch(RootSlice.startDraggingTransform());
+      dispatch(Timeline.startDraggingTransform());
     },
     stopDraggingTransform: () => {
-      dispatch(RootSlice.stopDraggingTransform());
+      dispatch(Timeline.stopDraggingTransform());
     },
   };
 };

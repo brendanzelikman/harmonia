@@ -13,10 +13,7 @@ import {
   updateClips,
   updateClipsAndTransforms,
 } from "redux/slices/clips";
-import {
-  selectClips as selectAllClips,
-  selectTransforms as selectAllTransforms,
-} from "redux/slices/root";
+import { setSelectedClips, setSelectedTransforms } from "redux/slices/root";
 import TimelineClip from "./Clip";
 import { DataGridHandle } from "react-data-grid";
 import { Transform, TransformId } from "types/transform";
@@ -45,10 +42,10 @@ const mapStateToProps = (state: RootState, ownProps: TimelineClipsProps) => {
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
     selectClips: (clipIds: ClipId[]) => {
-      dispatch(selectAllClips(clipIds));
+      dispatch(setSelectedClips(clipIds));
     },
     selectTransforms: (transformIds: TransformId[]) => {
-      dispatch(selectAllTransforms(transformIds));
+      dispatch(setSelectedTransforms(transformIds));
     },
     createClips: (clips: Partial<Clip>[]) => {
       return dispatch(createClips(clips));

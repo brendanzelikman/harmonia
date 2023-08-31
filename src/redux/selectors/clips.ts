@@ -1,9 +1,5 @@
 import { RootState } from "redux/store";
-import {
-  createSelector,
-  createSelectorCreator,
-  defaultMemoize,
-} from "reselect";
+import { createSelector } from "reselect";
 import { ClipId, getClipStream, getClipTicks } from "types/clips";
 import { Pattern, PatternChord, PatternStream } from "types/patterns";
 import { ChromaticScale } from "types/presets/scales";
@@ -14,9 +10,10 @@ import { selectPatternTrackMap } from "./patternTracks";
 import { selectScaleMap } from "./scales";
 import { selectScaleTrackMap } from "./scaleTracks";
 import { selectTransforms } from "./transforms";
-import { isEqual } from "lodash";
 import { PatternTrack, ScaleTrack, TrackId } from "types/tracks";
 import { Scale } from "types/scales";
+import { selectCellWidth, selectTimeline } from "./timeline";
+import { ticksToColumns } from "appUtil";
 
 export const selectClipId = (state: RootState, id: ClipId) => {
   return id;
@@ -25,10 +22,10 @@ export const selectClipTick = (state: RootState, id: ClipId, tick: Tick) => {
   return tick;
 };
 export const selectClipIds = (state: RootState) => {
-  return state.timeline.present.clips.allIds;
+  return state.session.present.clips.allIds;
 };
 export const selectClipMap = (state: RootState) => {
-  return state.timeline.present.clips.byId;
+  return state.session.present.clips.byId;
 };
 
 // Select all clips from the store.
@@ -168,6 +165,16 @@ export const selectClipStreams = createSelector(
         scaleTransforms
       );
     });
+  }
+);
+
+export const selectClipWidth = createSelector(
+  [selectClip, selectClipPattern, selectTimeline, selectCellWidth],
+  (clip, pattern, timeline, cellWidth) => {
+    if (!clip || !pattern) return 0;
+    const duration = getClipTicks(clip, pattern);
+    const columns = ticksToColumns(duration, timeline.subdivision);
+    return Math.max(cellWidth * columns, 1);
   }
 );
 

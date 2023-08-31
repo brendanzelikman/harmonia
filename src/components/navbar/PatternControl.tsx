@@ -15,17 +15,26 @@ import {
   NavbarInfoTooltip,
   NavbarTooltip,
 } from "./Navbar";
-import { selectPattern, selectRoot } from "redux/selectors";
+import {
+  selectEditor,
+  selectPattern,
+  selectRoot,
+  selectTimeline,
+} from "redux/selectors";
 
 import * as Root from "redux/slices/root";
+import * as Timeline from "redux/slices/timeline";
 import { ClipId } from "types/clips";
 import { RepeatOptions, mergeClips, repeatClips } from "redux/thunks/clips";
 import { forwardRef, useEffect, useRef, useState } from "react";
 import { blurOnEnter, isInputEvent } from "appUtil";
 import useEventListeners from "hooks/useEventListeners";
+import { hideEditor } from "redux/slices/editor";
 
 const mapStateToProps = (state: RootState) => {
   const root = selectRoot(state);
+  const editor = selectEditor(state);
+  const timeline = selectTimeline(state);
   const { toolkit } = root;
   const selectedPattern = root.selectedPatternId
     ? selectPattern(state, root.selectedPatternId)
@@ -35,13 +44,13 @@ const mapStateToProps = (state: RootState) => {
     ...toolkit,
     selectedClipIds: root.selectedClipIds,
     selectedPattern,
-    onEditor: root.editorState !== "hidden",
-    onPatterns: root.editorState === "patterns",
-    addingClip: root.timelineState === "adding",
-    cuttingClip: root.timelineState === "cutting",
-    transposingClip: root.timelineState === "transposing",
-    repeatingClips: root.timelineState === "repeating",
-    mergingClips: root.timelineState === "merging",
+    onEditor: editor.id !== "hidden",
+    onPatterns: editor.id === "patterns",
+    addingClip: timeline.state === "adding",
+    cuttingClip: timeline.state === "cutting",
+    transposingClip: timeline.state === "transposing",
+    repeatingClips: timeline.state === "repeating",
+    mergingClips: timeline.state === "merging",
   };
 };
 
@@ -54,31 +63,31 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(Root.toggleToolkitValue(key));
     },
     toggleAdding: () => {
-      dispatch(Root.toggleAddingClip());
-      dispatch(Root.hideEditor());
+      dispatch(Timeline.toggleAddingClip());
+      dispatch(hideEditor());
     },
     toggleCutting: () => {
-      dispatch(Root.toggleCuttingClip());
-      dispatch(Root.hideEditor());
+      dispatch(Timeline.toggleCuttingClip());
+      dispatch(hideEditor());
     },
     toggleMerging: () => {
-      dispatch(Root.toggleMergingClips());
-      dispatch(Root.hideEditor());
+      dispatch(Timeline.toggleMergingClips());
+      dispatch(hideEditor());
     },
     toggleRepeating: () => {
-      dispatch(Root.toggleRepeatingClips());
-      dispatch(Root.hideEditor());
+      dispatch(Timeline.toggleRepeatingClips());
+      dispatch(hideEditor());
     },
     toggleTransposing: () => {
-      dispatch(Root.toggleTransposingClip());
-      dispatch(Root.hideEditor());
+      dispatch(Timeline.toggleTransposingClip());
+      dispatch(hideEditor());
     },
     mergeClips: (ids: ClipId[]) => {
-      dispatch(Root.toggleMergingClips());
+      dispatch(Timeline.toggleMergingClips());
       dispatch(mergeClips(ids));
     },
     repeatClips: (ids: ClipId[], options?: RepeatOptions) => {
-      dispatch(Root.toggleRepeatingClips());
+      dispatch(Timeline.toggleRepeatingClips());
       dispatch(repeatClips(ids, options));
     },
   };

@@ -58,7 +58,7 @@ export const playPattern =
       }
       const pitches = chord.map((note) => MIDI.toPitch(note.MIDI));
       setTimeout(() => {
-        if (!sampler.loaded) return;
+        if (!sampler?.loaded) return;
         sampler.triggerAttackRelease(pitches, subdivision);
       }, time * 1000);
       time += seconds;

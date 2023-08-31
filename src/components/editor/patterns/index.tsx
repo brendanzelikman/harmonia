@@ -4,13 +4,10 @@ import PatternsClass from "types/patterns";
 import { Pattern, PatternId, PatternNote } from "types/patterns";
 import { connect, ConnectedProps } from "react-redux";
 import { PatternEditor } from "./PatternEditor";
-import {
-  hideEditor,
-  setSelectedPattern,
-  setTimelineState,
-} from "redux/slices/root";
+import { setSelectedPattern } from "redux/slices/root";
 import {
   selectCustomPatterns,
+  selectEditor,
   selectPattern,
   selectPatternIds,
 } from "redux/selectors";
@@ -20,8 +17,12 @@ import { ChromaticScale } from "types/presets/scales";
 import { StateProps } from "../Editor";
 import { playPattern } from "redux/thunks/patterns";
 import { UndoTypes } from "redux/undoTypes";
+import { hideEditor } from "redux/slices/editor";
+import { setTimelineState } from "redux/slices/timeline";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
+  const editor = selectEditor(state);
+
   const pattern = ownProps.selectedPatternId
     ? selectPattern(state, ownProps.selectedPatternId)
     : undefined;
@@ -42,6 +43,7 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
 
   return {
     ...ownProps,
+    ...editor,
     pattern,
     patternCategory,
     patternIds,

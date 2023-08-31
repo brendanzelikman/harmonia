@@ -3,12 +3,7 @@ import { TrackId, TrackType } from "types/tracks";
 import { AppDispatch, RootState } from "redux/store";
 import { Timeline } from "./Timeline";
 import "react-data-grid/lib/styles.css";
-import {
-  hideEditor,
-  loadTimeline,
-  setSelectedTrack,
-  unloadTimeline,
-} from "redux/slices/root";
+import { setSelectedTrack } from "redux/slices/root";
 import * as Selectors from "redux/selectors";
 import { createScaleTrack } from "redux/thunks/tracks";
 import { pasteSelectedClipsAndTransforms } from "redux/thunks";
@@ -17,23 +12,24 @@ import {
   updateSelectedTransforms,
 } from "redux/thunks/transforms";
 import { TransformCoordinate } from "types/transform";
+import { hideEditor } from "redux/slices/editor";
 
 function mapStateToProps(state: RootState) {
+  const editor = Selectors.selectEditor(state);
   const trackMap = Selectors.selectTrackMap(state);
   const transport = Selectors.selectTransport(state);
   const cellWidth = Selectors.selectCellWidth(state);
-  const { loadedTimeline, clipboard, selectedTrackId, showingEditor } =
-    Selectors.selectRoot(state);
+  const { selectedTrackId } = Selectors.selectRoot(state);
+  const { clipboard, subdivision } = Selectors.selectTimeline(state);
   return {
     tick: transport.tick,
     clipboard,
     trackMap,
     state: transport.state,
-    subdivision: transport.subdivision,
+    subdivision,
     selectedTrackId,
     cellWidth,
-    loadedTimeline,
-    showingEditor,
+    showingEditor: editor.show,
   };
 }
 
@@ -42,8 +38,6 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     createScaleTrack: () => dispatch(createScaleTrack()),
     setSelectedTrack: (trackId: TrackId) => dispatch(setSelectedTrack(trackId)),
     hideEditor: () => dispatch(hideEditor()),
-    loadTimeline: () => dispatch(loadTimeline()),
-    unloadTimeline: () => dispatch(unloadTimeline()),
     pasteClipsAndTransforms: (rows: Row[]) =>
       dispatch(pasteSelectedClipsAndTransforms(rows)),
     offsetSelectedTransforms: (offset: TransformCoordinate) =>
