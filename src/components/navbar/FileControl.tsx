@@ -48,16 +48,14 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     saveToMIDI: () => dispatch(saveStateToMIDI),
     loadFromHAM: () => dispatch(readFiles),
     loadDemo: () => {
-      fetch(window.location.origin + "/harmonia/demos/Scriabinism.ham").then(
-        (res) => {
-          res
-            .text()
-            .then((text) => {
-              loadStateFromString(text);
-            })
-            .catch((err) => console.log(err));
-        }
-      );
+      fetch(window.location.origin + "/harmonia/demos/demo.ham").then((res) => {
+        res
+          .text()
+          .then((text) => {
+            loadStateFromString(text);
+          })
+          .catch((err) => console.log(err));
+      });
     },
     clear: () => clearState(),
   };

@@ -23,12 +23,7 @@ import {
 } from "types/clips";
 import { MIDI } from "types/midi";
 import MidiWriter from "midi-writer-js";
-import {
-  PatternStream,
-  initializePattern,
-  PatternId,
-  getStreamTicks,
-} from "types/patterns";
+import { PatternStream, initializePattern, PatternId } from "types/patterns";
 import { TrackId } from "types/tracks";
 import { Transform, TransformId } from "types/transform";
 import { Tick } from "types/units";
@@ -193,7 +188,6 @@ export const createPatternClip =
       patternId: pattern.id,
       tick,
       trackId: patternTrack.id,
-      duration: getStreamTicks(pattern.stream),
     };
     dispatch(Clips.createClip(clip));
   };

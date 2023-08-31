@@ -4,10 +4,11 @@ import { createPortal } from "react-dom";
 import { BsQuestionCircleFill } from "react-icons/bs";
 import { ConnectedProps, connect } from "react-redux";
 import { Step, ShepherdTour, ShepherdTourContext } from "react-shepherd";
-import { EditorId, hideEditor, showEditor } from "redux/slices/editor";
+import { hideEditor, showEditor } from "redux/slices/editor";
 import { setTimelineState } from "redux/slices/timeline";
 import * as Root from "redux/slices/root";
 import { AppDispatch, RootState } from "redux/store";
+import { EditorId } from "types/editor";
 
 const mapStateToProps = (state: RootState) => {
   return {};

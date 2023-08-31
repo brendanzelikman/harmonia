@@ -20,7 +20,8 @@ import { isPatternTrack, PatternTrack, Track, TrackId } from "types/tracks";
 import { Row } from "..";
 import { TrackComponent } from "./Track";
 import { lastTransformAtTick } from "types/transform";
-import { EditorId, hideEditor, showEditor } from "redux/slices/editor";
+import { hideEditor, showEditor } from "redux/slices/editor";
+import { EditorId } from "types/editor";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const transport = Selectors.selectTransport(state);

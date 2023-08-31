@@ -7,9 +7,6 @@ import { Pitch, Tick, Time, XML } from "./units";
 import { PresetPatterns } from "./presets/patterns";
 import { ChromaticScale } from "./presets/scales";
 import MidiWriter from "midi-writer-js";
-import { selectTransport } from "redux/selectors";
-import { convertTicksToSeconds } from "redux/slices/transport";
-import { AppThunk } from "redux/store";
 import { clamp, inRange } from "lodash";
 
 export type PatternId = string;
@@ -19,6 +16,11 @@ export interface Pattern {
   name: string;
   stream: PatternStream;
 }
+
+export const isPattern = (obj: any): obj is Pattern => {
+  const { id, name, stream } = obj;
+  return id !== undefined && name !== undefined && stream !== undefined;
+};
 export type PatternNoId = Omit<Pattern, "id">;
 
 export const initializePattern = (

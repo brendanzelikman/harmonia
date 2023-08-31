@@ -15,6 +15,10 @@ export interface Scale {
   name: string;
   notes: Note[];
 }
+export const isScale = (obj: any): obj is Scale => {
+  const { id, name, notes } = obj;
+  return id !== undefined && name !== undefined && notes !== undefined;
+};
 
 export type ScaleNoId = Omit<Scale, "id">;
 

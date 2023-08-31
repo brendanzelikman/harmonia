@@ -1,57 +1,14 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import {
-  DEFAULT_CELL_WIDTH,
-  MAX_CELL_WIDTH,
-  MIN_CELL_WIDTH,
-} from "appConstants";
+import { MAX_CELL_WIDTH, MIN_CELL_WIDTH } from "appConstants";
 import { clamp } from "lodash";
-import { Clip } from "types/clips";
-import { Transform } from "types/transform";
+
+import {
+  defaultTimeline,
+  orderedSubdivisions,
+  TimelineClipboard,
+  TimelineState,
+} from "types/timeline";
 import { Subdivision } from "types/units";
-
-export interface TimelineClipboard {
-  clips: Clip[];
-  transforms: Transform[];
-}
-
-const orderedSubdivisions: Subdivision[] = [
-  "1/1",
-  "1/2",
-  "1/4",
-  "1/8",
-  "1/16",
-  "1/32",
-  "1/64",
-];
-
-export type TimelineState =
-  | "adding"
-  | "cutting"
-  | "transposing"
-  | "repeating"
-  | "merging"
-  | "idle";
-
-interface Timeline {
-  state: TimelineState;
-
-  cellWidth: number;
-  subdivision: Subdivision;
-
-  draggingClip: boolean;
-  draggingTransform: boolean;
-
-  clipboard: TimelineClipboard;
-}
-
-export const defaultTimeline: Timeline = {
-  state: "idle",
-  cellWidth: DEFAULT_CELL_WIDTH,
-  subdivision: "1/16",
-  clipboard: { clips: [], transforms: [] },
-  draggingClip: false,
-  draggingTransform: false,
-};
 
 export const timelineSlice = createSlice({
   name: "timeline",

@@ -2,71 +2,9 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union } from "lodash";
 import { ClipId } from "types/clips";
 import { PatternId } from "types/patterns";
+import { defaultRoot, Toolkit } from "types/root";
 import { TrackId } from "types/tracks";
 import { TransformId } from "types/transform";
-
-// Active IDs
-interface RootIds {
-  selectedPatternId?: PatternId;
-  selectedTrackId?: TrackId;
-  selectedClipIds: ClipId[];
-  selectedTransformIds: TransformId[];
-}
-
-interface RootState {
-  projectName: string;
-  showingShortcuts: boolean;
-  showingTour: boolean;
-  tourStep: number;
-}
-
-interface RootMerge {
-  mergeName: string;
-  mergeTransforms: boolean;
-  mergeWithNewPattern: boolean;
-}
-interface RootRepeat {
-  repeatCount: number;
-  repeatTransforms: boolean;
-  repeatWithTranspose: boolean;
-}
-interface RootTranspose {
-  chromaticTranspose: number;
-  scalarTranspose: number;
-  chordalTranspose: number;
-}
-
-export type Toolkit = RootMerge & RootRepeat & RootTranspose;
-interface RootToolkit {
-  toolkit: Toolkit;
-}
-
-interface Root extends RootIds, RootState, RootToolkit {}
-
-export const defaultRoot: Root = {
-  projectName: "New Project",
-  showingTour: false,
-  tourStep: 1,
-
-  selectedPatternId: "new-pattern",
-  selectedClipIds: [],
-  selectedTransformIds: [],
-  showingShortcuts: false,
-
-  toolkit: {
-    mergeName: "",
-    mergeTransforms: false,
-    mergeWithNewPattern: false,
-
-    repeatCount: 1,
-    repeatTransforms: false,
-    repeatWithTranspose: false,
-
-    chromaticTranspose: 0,
-    scalarTranspose: 0,
-    chordalTranspose: 0,
-  },
-};
 
 export const rootSlice = createSlice({
   name: "root",

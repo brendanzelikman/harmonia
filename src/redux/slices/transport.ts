@@ -1,48 +1,9 @@
-import { BPM, Tick, Time, Volume, Subdivision } from "types/units";
-import { PlaybackState, Transport } from "tone";
+import { BPM, Tick, Time } from "types/units";
 import { createSlice } from "@reduxjs/toolkit";
-
-import {
-  DEFAULT_BPM,
-  MAX_BPM,
-  MAX_VOLUME,
-  MIN_BPM,
-  MIN_VOLUME,
-} from "appConstants";
-
+import { MAX_BPM, MAX_VOLUME, MIN_BPM, MIN_VOLUME } from "appConstants";
 import { clamp } from "lodash";
 import { MIDI } from "types/midi";
-
-// The transport is synchronized with the Tone.js audio context
-export interface Transport {
-  tick: Tick; // Current time in ticks
-  state: PlaybackState;
-  bpm: BPM;
-  loop: boolean;
-  loopStart: Time;
-  loopEnd: Time;
-  volume: Volume;
-  mute: boolean;
-  timeSignature: [number, number];
-  loaded: boolean;
-  loading: boolean;
-  recording: boolean;
-}
-
-export const defaultTransport: Transport = {
-  tick: 0,
-  state: "stopped",
-  bpm: DEFAULT_BPM,
-  loop: false,
-  loopStart: 0,
-  loopEnd: MIDI.WholeNoteTicks - 1,
-  volume: -6,
-  mute: false,
-  timeSignature: [16, 16],
-  loaded: false,
-  loading: false,
-  recording: false,
-};
+import { Transport, defaultTransport } from "types/transport";
 
 export const transportSlice = createSlice({
   name: "transport",

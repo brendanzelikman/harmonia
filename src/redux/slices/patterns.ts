@@ -135,7 +135,7 @@ export const patternsSlice = createSlice({
       const patternChord: PatternChord = [patternNote];
       state.byId[id].stream.splice(index + 1, 0, patternChord);
     },
-    _updatePatternNote: (state, action: PayloadAction<PatternUpdate>) => {
+    updatePatternNote: (state, action: PayloadAction<PatternUpdate>) => {
       const { id, patternNote, index, asChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPatternValid(pattern)) return;
@@ -316,7 +316,7 @@ export const {
   addPatternNote,
   insertPatternNote,
   removePatternNote,
-  _updatePatternNote,
+  updatePatternNote,
   transposePattern,
   rotatePattern,
   repeatPattern,
@@ -333,63 +333,19 @@ export const {
 
 export const updatePattern =
   (pattern: Partial<Pattern> = defaultPattern): AppThunk =>
-  (dispatch, getState) => {
+  (dispatch) => {
     if (!pattern.id) return;
-
     // Don't update the pattern if it's invalid
     if (pattern.stream && !isPatternValid(pattern as Pattern)) return;
     dispatch(_updatePattern(pattern));
-
-    // Update the duration of any clips that use this pattern
-    if (!pattern.stream) return;
-    const duration = getStreamTicks(pattern.stream);
-    const state = getState();
-    const patternClips = selectClipsByPatternId(state, pattern.id);
-    const updatedClips = patternClips.map((clip) => {
-      if (clip.duration !== undefined) return clip;
-      return { ...clip, duration };
-    });
-    dispatch(updateClips(updatedClips));
   };
 
 export const updatePatterns =
   (patterns: Partial<Pattern>[] = []): AppThunk =>
-  (dispatch, getState) => {
+  (dispatch) => {
     // Don't update the patterns if they're invalid
     if (patterns.some((p) => p.stream && !isPatternValid(p as Pattern))) return;
     dispatch(_updatePatterns(patterns));
-
-    // Update the duration of any clips that use these patterns
-    const state = getState();
-    const patternClips = patterns
-      .map((pattern) => selectClipsByPatternId(state, pattern.id as PatternId))
-      .flat();
-    const patternDurations = patterns.map((pattern) => {
-      if (!pattern.stream) return 0;
-      return getStreamTicks(pattern.stream);
-    });
-    const updatedClips = patternClips.map((clip, i) => {
-      if (clip.duration !== undefined) return clip;
-      return { ...clip, duration: patternDurations[i] };
-    });
-    dispatch(updateClips(updatedClips));
-  };
-
-export const updatePatternNote =
-  ({ patternNote, index, id, asChord }: PatternUpdate): AppThunk =>
-  (dispatch, getState) => {
-    if (!inRange(patternNote.MIDI, MIDI.Rest, MIDI.NoteMax)) return;
-    dispatch(_updatePatternNote({ patternNote, index, id, asChord }));
-
-    const state = getState();
-    const pattern = selectPattern(state, id);
-    const patternClips = selectClipsByPatternId(state, id);
-    const duration = getStreamTicks(pattern?.stream as PatternStream);
-    const updatedClips = patternClips.map((clip) => {
-      if (clip.duration !== undefined) return clip;
-      return { ...clip, duration };
-    });
-    dispatch(updateClips(updatedClips));
   };
 
 export const createPattern =

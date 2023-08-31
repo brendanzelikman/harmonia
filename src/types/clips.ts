@@ -33,6 +33,17 @@ export interface Clip {
   offset: Tick; // optional offset in ticks for cut clips
 }
 
+export const isClip = (obj: any): obj is Clip => {
+  const { id, patternId, trackId, tick, offset } = obj;
+  return (
+    id !== undefined &&
+    patternId !== undefined &&
+    trackId !== undefined &&
+    tick !== undefined &&
+    offset !== undefined
+  );
+};
+
 export type ClipNoId = Omit<Clip, "id">;
 
 // Create a clip with a unique ID

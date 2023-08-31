@@ -5,13 +5,12 @@ import { Editor } from "./Editor";
 import {
   showEditor,
   hideEditor,
-  EditorState,
   setEditorState,
   setEditorNoteTiming,
   setEditorNoteDuration,
-  EditorId,
 } from "redux/slices/editor";
 import { Duration, Timing } from "types/units";
+import { EditorId, EditorState } from "types/editor";
 
 function mapStateToProps(state: RootState) {
   const { selectedPatternId, showingTour } = selectRoot(state);

@@ -6,7 +6,7 @@ import {
 } from "@reduxjs/toolkit";
 import * as Slices from "./slices";
 import undoable from "redux-undo";
-import { loadState, saveState } from "./util";
+import { saveState, loadState } from "./util";
 import { groupByActionType } from "./undoTypes";
 
 const session = combineReducers({
