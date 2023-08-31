@@ -8,9 +8,6 @@ import * as Slices from "./slices";
 import undoable from "redux-undo";
 import { loadState, saveState } from "./util";
 import { groupByActionType } from "./undoTypes";
-import { defaultRoot } from "./slices/root";
-import { defaultTransport } from "./slices/transport";
-import { defaultTour } from "./slices/tour";
 
 const timeline = combineReducers({
   clips: Slices.Clips.default,
@@ -65,6 +62,7 @@ export const store = configureStore({
 
 store.subscribe(() => {
   const state = store.getState();
+  if (state.transport.state === "started") return;
   saveState(state);
 });
 

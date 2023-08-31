@@ -9,10 +9,15 @@ import { MouseEvent, useEffect, useMemo, useState } from "react";
 
 import { selectTransforms } from "redux/selectors/transforms";
 import { Transform, TransformId } from "types/transform";
-import { selectCellWidth, selectRoot } from "redux/selectors";
+import { selectCellWidth, selectRoot, selectTransport } from "redux/selectors";
 import { BsMagic } from "react-icons/bs";
 import useEventListeners from "hooks/useEventListeners";
-import { isHoldingOption, isHoldingShift, isInputEvent } from "appUtil";
+import {
+  isHoldingOption,
+  isHoldingShift,
+  isInputEvent,
+  ticksToColumns,
+} from "appUtil";
 import { ClipId } from "types/clips";
 import { useTransformDrag } from "./dnd";
 
@@ -22,11 +27,14 @@ interface OwnClipProps extends TransformsProps {
 
 const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const { rows, transform } = ownProps;
+  const { subdivision } = selectTransport(state);
   const cellWidth = selectCellWidth(state);
   const index = rows.findIndex((row) => row.trackId === transform.trackId);
 
   const top = Constants.HEADER_HEIGHT + index * Constants.CELL_HEIGHT;
-  const left = Constants.TRACK_WIDTH + cellWidth * transform.time;
+  const left =
+    Constants.TRACK_WIDTH +
+    Math.round(cellWidth * ticksToColumns(transform.tick, subdivision));
 
   const transforms = selectTransforms(state);
   const root = selectRoot(state);
@@ -48,6 +56,7 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     transposing,
     draggingTransform,
     isSelected,
+    subdivision,
   };
 };
 
@@ -133,7 +142,7 @@ function TimelineTransform(props: TransformProps) {
       <>
         <div
           className={`group rounded-t group relative flex flex-col justify-center items-center text-xs select-none bg-fuchsia-500`}
-          style={{ height: Constants.TRANSPOSE_HEIGHT }}
+          style={{ height: Constants.TRANSFORM_HEIGHT }}
         >
           <BsMagic className="text-md" />
           <label
@@ -150,7 +159,7 @@ function TimelineTransform(props: TransformProps) {
         </div>
         <div
           className="bg-fuchsia-500/50 rounded-b"
-          style={{ height: Constants.CELL_HEIGHT - Constants.TRANSPOSE_HEIGHT }}
+          style={{ height: Constants.CELL_HEIGHT - Constants.TRANSFORM_HEIGHT }}
         ></div>
       </>
     );
@@ -207,15 +216,15 @@ function TimelineTransform(props: TransformProps) {
       .filter((c) => trackIds.includes(c.trackId))
       .map((c) => c.id);
 
-    // Compute the start and end time of the selection
-    const startTime = lastTransform.time;
-    const endTime = transform.time;
+    // Compute the start and end tick of the selection
+    const startTick = lastTransform.tick;
+    const endTick = transform.tick;
 
     // Filter the transformIds to only include transforms in the selection
     const newTransformIds = transformIds.filter((id) => {
       const transform = props.transforms.find((t) => t.id === id);
       if (!transform) return false;
-      return transform.time >= startTime && transform.time <= endTime;
+      return transform.tick >= startTick && transform.tick <= endTick;
     });
 
     // Select the transforms
@@ -225,7 +234,7 @@ function TimelineTransform(props: TransformProps) {
   return (
     <div
       ref={drag}
-      className={`absolute rdg-transform ${
+      className={`transition-all duration-75 ease-in-out absolute rdg-transform ${
         props.isSelected ? "ring-1 ring-white" : ""
       } rounded text-white w-full h-full cursor-pointer`}
       style={{

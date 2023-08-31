@@ -11,6 +11,7 @@ interface OSMDProps {
   className?: string;
   noteClassName?: string;
   options?: IOSMDOptions;
+  ignoreCursor?: boolean;
 }
 
 interface OSMDReturn {
@@ -33,8 +34,8 @@ export default function useOSMD({
   noteCount,
   className,
   noteClassName,
-
   options,
+  ignoreCursor,
 }: OSMDProps): OSMDReturn {
   const ref = useRef<HTMLDivElement>(null);
   const [osmd, setOSMD] = useState<OSMD>();
@@ -46,6 +47,7 @@ export default function useOSMD({
     drawPartNames: false,
     drawMeasureNumbers: false,
     drawTimeSignatures: false,
+    tupletsBracketed: true,
     ...options,
   };
 
@@ -112,7 +114,7 @@ export default function useOSMD({
       })
       .finally(() => {
         setTimeout(() => {
-          if (showingCursor && osmd?.cursor) {
+          if (!ignoreCursor && showingCursor && osmd?.cursor) {
             // Set the style of the cursor
             osmd.cursor.cursorElement.style.height = `${Math.round(
               120 * zoom
@@ -169,7 +171,15 @@ export default function useOSMD({
           });
         }, 10);
       });
-  }, [id, xml, noteClassName, noteCount, cursorIndex, showingCursor]);
+  }, [
+    id,
+    xml,
+    noteClassName,
+    noteCount,
+    cursorIndex,
+    showingCursor,
+    ignoreCursor,
+  ]);
 
   return {
     score: <div ref={ref} id={id} className={className}></div>,

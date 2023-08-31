@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { connect, ConnectedProps } from "react-redux";
 import { selectTransport } from "redux/selectors";
-import { AppDispatch, RootState } from "redux/store";
+import { RootState } from "redux/store";
 import { Transport } from "tone";
 
 const startTime = "0:0:0";
@@ -12,7 +12,7 @@ const mapStateToProps = (state: RootState) => {
     isStarted: transport.state === "started",
     isStopped: transport.state === "stopped",
     isPaused: transport.state === "paused",
-    time: transport.time,
+    tick: transport.tick,
   };
 };
 
@@ -22,23 +22,13 @@ type Props = ConnectedProps<typeof connector>;
 export default connector(Timer);
 
 function Timer(props: Props) {
-  const { isStarted, isPaused, time } = props;
-
+  const { isStarted, isPaused, tick } = props;
   const [displayedTime, setDisplayedTime] = useState(startTime);
-
-  // Create a timer to update the displayed time when the transport is started
-  useEffect(() => {
-    if (!isStarted) return;
-    const interval = setInterval(() => {
-      setDisplayedTime(Transport.position.toString());
-    }, 25);
-    return () => clearInterval(interval);
-  }, [isStarted]);
 
   // Set the displayed time when the transport changes
   useEffect(() => {
     setDisplayedTime(Transport.position.toString());
-  }, [time]);
+  }, [tick]);
 
   const clipClass = useMemo(() => {
     if (isStarted) return "text-gray-50 border-emerald-400";
@@ -61,7 +51,7 @@ function Timer(props: Props) {
           isStarted ? "text-white" : "text-gray-300"
         } duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-0 bg-gray-900 rounded px-2 left-1`}
       >
-        Time
+        Time ({tick})
       </label>
     </div>
   );

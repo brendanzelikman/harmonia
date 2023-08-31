@@ -1,11 +1,11 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "redux/store";
-import { selectPatternTracks } from "./patternTracks";
 import { DEFAULT_CELL_WIDTH } from "appConstants";
-import { selectClips } from "./clips";
+import { selectClipMap } from "./clips";
 import { Clip } from "types/clips";
 import { Transform } from "types/transform";
-import { selectTransforms } from "./transforms";
+import { selectTransformMap } from "./transforms";
+import { selectPatternMap } from "./patterns";
 
 // Select the timeline
 export const selectRoot = (state: RootState) => {
@@ -44,33 +44,22 @@ export const selectSelectedTransformIds = createSelector(
 
 // Select the selected pattern
 export const selectSelectedPattern = createSelector(
-  [selectSelectedPatternId, selectPatternTracks],
-  (selectedPatternId, patterns) => {
-    if (!selectedPatternId) return;
-    return patterns.find((pattern) => pattern.id === selectedPatternId);
-  }
+  [selectSelectedPatternId, selectPatternMap],
+  (id, patterns) => (id ? patterns[id] : undefined)
 );
 
 // Select the selected clips
 export const selectSelectedClips = createSelector(
-  [selectSelectedClipIds, selectClips],
-  (selectedClipIds, clips) => {
-    return selectedClipIds
-      .map((clipId) => {
-        return clips.find((clip) => clip.id === clipId);
-      })
-      .filter(Boolean) as Clip[];
+  [selectSelectedClipIds, selectClipMap],
+  (ids, clips) => {
+    return ids.map((id) => clips[id]).filter(Boolean) as Clip[];
   }
 );
 
 // Select the selected transforms
 export const selectSelectedTransforms = createSelector(
-  [selectSelectedTransformIds, selectTransforms],
-  (selectedTransformIds, transforms) => {
-    return selectedTransformIds
-      .map((transformId) => {
-        return transforms.find((transform) => transform.id === transformId);
-      })
-      .filter(Boolean) as Transform[];
+  [selectSelectedTransformIds, selectTransformMap],
+  (ids, transforms) => {
+    return ids.map((id) => transforms[id]).filter(Boolean) as Transform[];
   }
 );

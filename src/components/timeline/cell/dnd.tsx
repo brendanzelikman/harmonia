@@ -12,7 +12,7 @@ export function useCellDrop(props: CellProps) {
       }),
       hover(item: any) {
         item.trackId = trackId;
-        item.canDrop = isPatternTrack;
+        item.canDrop = true;
         item.hoveringColumn = columnIndex;
         item.hoveringRow = row.index;
       },

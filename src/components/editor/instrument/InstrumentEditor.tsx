@@ -51,7 +51,7 @@ export function EditorInstrument(props: InstrumentEditorProps) {
       const sampler = getSampler(track?.id);
       setTrackSampler(sampler);
     }, 100);
-  }, [track.instrument, track.id]);
+  }, [track?.instrument, track?.id]);
 
   useInstrumentShortcuts({ ...props });
 

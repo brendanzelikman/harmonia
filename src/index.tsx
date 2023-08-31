@@ -6,7 +6,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import App from "./App";
-import { AppThunk, store } from "./redux/store";
+import { AppThunk, store } from "redux/store";
 import LoadedTransport from "providers/transport";
 import "./index.css";
 
@@ -14,7 +14,7 @@ import { start } from "tone";
 import { startTransport } from "redux/thunks/transport";
 import { MIDIProvider } from "providers/midi";
 import ErrorPage from "Error";
-import LandingPage from "Landing";
+import LandingPage from "components/Landing";
 
 export const container: HTMLElement = document.getElementById("root")!;
 if (!container.children.length) {

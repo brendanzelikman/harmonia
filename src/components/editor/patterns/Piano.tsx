@@ -1,7 +1,7 @@
-import { durationToBeats } from "appUtil";
+import { durationToTicks } from "appUtil";
 import { Sampler } from "tone";
 import { MIDI } from "types/midi";
-import { Duration } from "types/units";
+import { Duration, Timing } from "types/units";
 import { PatternEditorProps } from ".";
 import { EditorState } from "../hooks/useEditorState";
 import EditorPiano from "../Piano";
@@ -9,6 +9,7 @@ import EditorPiano from "../Piano";
 interface Props extends PatternEditorProps, EditorState<any> {
   sampler: Sampler;
   duration: Duration;
+  timing: Timing;
   holdingShift: boolean;
   cursor: any;
 }
@@ -18,7 +19,10 @@ export function PatternsPiano(props: Props) {
     if (pattern && props.scale) {
       const patternNote = {
         MIDI: midiNumber,
-        duration: durationToBeats(props.duration),
+        duration: durationToTicks(props.duration, {
+          dotted: props.timing === "dotted",
+          triplet: props.timing === "triplet",
+        }),
       };
       if (props.onState("adding")) {
         if (props.cursor.hidden) {

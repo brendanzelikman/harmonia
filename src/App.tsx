@@ -4,20 +4,19 @@ import Timeline from "components/timeline";
 import useShortcuts from "hooks/useShortcuts";
 import { connect, ConnectedProps } from "react-redux";
 import { selectTransport } from "redux/selectors";
-import { RootState } from "redux/store";
-import { useState } from "react";
-import useEventListeners from "hooks/useEventListeners";
-import { Transition } from "@headlessui/react";
-import { isInputEvent } from "appUtil";
+import { AppDispatch, RootState } from "redux/store";
+import Loading from "components/Loading";
 import Shortcuts from "components/shortcuts";
 
 const mapStateToProps = (state: RootState) => {
-  const transport = selectTransport(state);
-  const loadedTransport = transport.loaded;
-  return { loadedTransport, tour: state.tour };
+  const { loaded } = selectTransport(state);
+  return { loaded, isTourActive: state.tour?.active };
+};
+const mapDispatchToProps = (dispatch: AppDispatch) => {
+  return {};
 };
 
-const connector = connect(mapStateToProps, null);
+const connector = connect(mapStateToProps, mapDispatchToProps);
 
 type Props = ConnectedProps<typeof connector>;
 
@@ -25,37 +24,18 @@ export default connector(App);
 
 function App(props: Props) {
   useShortcuts();
-  const [showNavbar, setShowNavbar] = useState(true);
-  useEventListeners(
-    {
-      // F = Toggle Fullscreen
-      f: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          setShowNavbar(!showNavbar);
-        },
-      },
-    },
-    [showNavbar, setShowNavbar]
-  );
 
+  // Not Loaded
+  if (!props.loaded) return <Loading />;
+
+  // Loaded
   return (
     <div
       className={`fade-in flex flex-col flex-nowrap w-full h-screen overflow-auto`}
     >
-      <Transition
-        show={showNavbar}
-        enter="transition-all duration-150"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-all duration-150"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <Navbar />
-      </Transition>
+      <Navbar />
       <main className="relative flex w-full flex-auto overflow-hidden">
-        {props.tour.active ? (
+        {props.isTourActive ? (
           <div className={`w-full h-full absolute bg-slate-900/40 z-60`} />
         ) : null}
         <Timeline />

@@ -12,7 +12,7 @@ import { TrackButton, TrackDropdownButton, TrackDropdownMenu } from "./Track";
 import useDebouncedField from "hooks/useDebouncedField";
 import {
   selectRoot,
-  selectScaleTrackScaleAtTime,
+  selectScaleTrackScaleAtTick,
   selectTransport,
   selectTrack,
 } from "redux/selectors";
@@ -72,7 +72,7 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
 
   const transport = selectTransport(state);
   const scale = track
-    ? selectScaleTrackScaleAtTime(state, track.id, transport.time - 1)
+    ? selectScaleTrackScaleAtTick(state, track.id, transport.tick - 1)
     : undefined;
 
   return {

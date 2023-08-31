@@ -1,6 +1,5 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { defaultMixer, Mixer } from "./mixer";
-import { PatternId } from "./patterns";
 import { ScaleId } from "./scales";
 
 export type TrackId = string;

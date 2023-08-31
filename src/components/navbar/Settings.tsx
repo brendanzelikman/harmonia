@@ -1,26 +1,17 @@
-import {
-  MIN_GLOBAL_VOLUME,
-  MAX_GLOBAL_VOLUME,
-  MIN_CELL_WIDTH,
-  MAX_CELL_WIDTH,
-} from "appConstants";
-import { useContext, useState } from "react";
-import {
-  BsCheck,
-  BsGearFill,
-  BsVolumeDownFill,
-  BsVolumeMuteFill,
-} from "react-icons/bs";
+import { MIN_GLOBAL_VOLUME, MAX_GLOBAL_VOLUME } from "appConstants";
+import { useEffect, useState } from "react";
+import { BsGearFill, BsVolumeDownFill, BsVolumeMuteFill } from "react-icons/bs";
 import { connect, ConnectedProps } from "react-redux";
-import { selectCellWidth, selectTransport } from "redux/selectors";
+import { selectRoot, selectTransport } from "redux/selectors";
 import {
   setTransportBPM,
   setTransportMute,
+  setTransportSubdivision,
   setTransportTimeSignature,
   setTransportVolume,
 } from "redux/thunks/transport";
 import { AppDispatch, RootState } from "redux/store";
-import { BPM, Volume } from "types/units";
+import { BPM, Subdivision, Volume } from "types/units";
 import { NavbarTooltip } from "./Navbar";
 import { NavbarFormGroup } from "./Navbar";
 import { NavbarFormLabel } from "./Navbar";
@@ -31,9 +22,10 @@ import useEventListeners from "hooks/useEventListeners";
 import { isHoldingCommand, isInputEvent } from "appUtil";
 
 const mapStateToProps = (state: RootState) => {
-  const { bpm, timeSignature, volume, mute } = selectTransport(state);
-  const cellWidth = selectCellWidth(state);
-  return { bpm, timeSignature, volume, mute, cellWidth };
+  const { bpm, timeSignature, volume, mute, subdivision } =
+    selectTransport(state);
+  const { cellWidth } = selectRoot(state);
+  return { bpm, timeSignature, volume, mute, subdivision, cellWidth };
 };
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
@@ -54,6 +46,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     setCellWidth: (cellWidth: number) => {
       dispatch(setCellWidth(cellWidth));
     },
+    setTransportSubdivision: (subdivision: Subdivision) => {
+      dispatch(setTransportSubdivision(subdivision));
+    },
     showShortcuts: () => {
       dispatch(showShortcuts());
     },
@@ -66,11 +61,17 @@ type Props = ConnectedProps<typeof connector>;
 export default connector(Settings);
 
 function Settings(props: Props) {
-  const { bpm, timeSignature, volume, setVolume, cellWidth } = props;
+  const { bpm, timeSignature, volume, setVolume, cellWidth, subdivision } =
+    props;
   const [BPMInput, setBPMInput] = useState(bpm);
   const [widthInput, setWidthInput] = useState(cellWidth / 25);
+  const [subdivisionInput, setSubdivisionInput] =
+    useState<Subdivision>(subdivision);
   const [TS1, setTS1] = useState(timeSignature ? timeSignature[0] : 16);
   const TS2 = 16;
+  useEffect(() => {
+    setSubdivisionInput(subdivision);
+  }, [subdivision]);
 
   const onKeyDown = (e: any) => {
     if (e.key === "Enter") {
@@ -91,6 +92,13 @@ function Settings(props: Props) {
     if (e.key === "Enter" && !isNaN(widthInput)) {
       props.setCellWidth(widthInput * 25);
       setWidthInput(clamp(widthInput, 1, 2));
+    }
+  };
+  const onSubdivisionKeydown = (e: any) => {
+    if (e.key === "Enter") {
+      const value = parseInt(e.currentTarget.value) as Subdivision;
+      if (isNaN(value)) return;
+      props.setTransportSubdivision(value);
     }
   };
 
@@ -127,7 +135,7 @@ function Settings(props: Props) {
             }}
           />
         </NavbarFormGroup>
-        <NavbarFormGroup className="my-2">
+        <NavbarFormGroup className="mt-2">
           <NavbarFormLabel className="w-36 mr-3">
             16ths / Measure
           </NavbarFormLabel>
@@ -142,14 +150,25 @@ function Settings(props: Props) {
             }}
           />
         </NavbarFormGroup>
+        <NavbarFormGroup className="my-2">
+          <NavbarFormLabel className="w-36 mr-3">Subdivision</NavbarFormLabel>
+          <NavbarFormInput
+            className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
+            type="number"
+            value={subdivisionInput}
+            onChange={(e: any) => setSubdivisionInput(e.target.value)}
+            onKeyDown={(e: any) => {
+              onKeyDown(e);
+              onSubdivisionKeydown(e);
+            }}
+          />
+        </NavbarFormGroup>
         <NavbarFormGroup>
           <NavbarFormLabel className="w-36 mr-3">Zoom (1 - 2)</NavbarFormLabel>
           <NavbarFormInput
             className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
             type="number"
             value={widthInput}
-            min={1}
-            max={2}
             onChange={(e: any) => setWidthInput(parseFloat(e.target.value))}
             onKeyDown={(e: any) => {
               onKeyDown(e);

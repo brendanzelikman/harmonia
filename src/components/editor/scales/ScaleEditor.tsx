@@ -1,21 +1,11 @@
 import * as Editor from "../Editor";
-import {
-  BsChevronExpand,
-  BsDashCircle,
-  BsDice5,
-  BsDownload,
-  BsFillBookmarkFill,
-  BsFillPlayCircleFill,
-  BsPlusCircle,
-  BsTrash,
-} from "react-icons/bs";
+import { BsBrushFill, BsEraserFill, BsTrash } from "react-icons/bs";
 
 import Scales, { Scale } from "types/scales";
 import EditorPiano from "../Piano";
 import { MIDI } from "types/midi";
 import { ScaleEditorProps } from ".";
 import useEditorState from "../hooks/useEditorState";
-import { CiRedo, CiUndo } from "react-icons/ci";
 import { Sampler } from "tone";
 import useOSMD from "lib/opensheetmusicdisplay";
 import ScaleList from "./ScaleList";
@@ -43,6 +33,7 @@ export function ScaleEditor(props: ScaleEditorProps) {
     xml,
     className: "items-center w-full h-full p-4",
     noteCount: scale?.notes.length ?? 0,
+    ignoreCursor: true,
   });
   useScaleShortcuts({ ...props, scale, onState, setState, clearState });
 
@@ -72,8 +63,8 @@ export function ScaleEditor(props: ScaleEditorProps) {
       <Editor.MenuButton>
         <Menu>
           <div className="relative z-50">
-            <Menu.Button>
-              <BsDownload />
+            <Menu.Button className="px-1 rounded active:bg-slate-500">
+              Export
             </Menu.Button>
             <Menu.Items className="absolute w-auto left-0 p-2 rounded-lg border-0.5 border-slate-200/80 whitespace-nowrap bg-slate-800/80 backdrop-blur-lg">
               <Menu.Item>
@@ -106,12 +97,13 @@ export function ScaleEditor(props: ScaleEditorProps) {
   const SaveButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content="Save Scale">
       <Editor.MenuButton
+        className="px-1 active:bg-sky-600"
         onClick={async () => {
           if (!scale) return;
           props.createScale({ ...scale, name: props.scaleName });
         }}
       >
-        <BsFillBookmarkFill />
+        Save
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -119,11 +111,12 @@ export function ScaleEditor(props: ScaleEditorProps) {
   const PlayButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content="Play Scale">
       <Editor.MenuButton
-        className="active:text-emerald-500"
+        className="px-1 active:text-emerald-500"
         onClick={() => scale && props.playScale(scale.id)}
         disabled={!scale?.notes.length}
+        disabledClass="px-1"
       >
-        <BsFillPlayCircleFill />
+        Play
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -131,10 +124,12 @@ export function ScaleEditor(props: ScaleEditorProps) {
   const UndoButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content="Undo Change">
       <Editor.MenuButton
+        className="px-1"
         onClick={props.undoScales}
         disabled={!props.canUndoScales}
+        disabledClass="px-1"
       >
-        <CiUndo className="text-xl" />
+        Undo
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -142,10 +137,12 @@ export function ScaleEditor(props: ScaleEditorProps) {
   const RedoButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content="Redo Change">
       <Editor.MenuButton
+        className="px-1"
         onClick={props.redoScales}
         disabled={!props.canRedoScales}
+        disabledClass="px-1"
       >
-        <CiRedo className="text-xl" />
+        Redo
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -156,12 +153,12 @@ export function ScaleEditor(props: ScaleEditorProps) {
       content={`${adding ? "Stop Adding" : "Add Notes"}`}
     >
       <Editor.MenuButton
-        className="ml-2"
+        className="px-1"
         active={onState("adding")}
-        activeClass={"ml-2 text-emerald-400/80"}
+        activeClass={"px-1 text-emerald-400/80"}
         onClick={onState("adding") ? clearState : () => setState("adding")}
       >
-        <BsPlusCircle />
+        <BsBrushFill className="text-lg" />
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -172,12 +169,12 @@ export function ScaleEditor(props: ScaleEditorProps) {
       content={`${removing ? "Stop Removing" : "Remove Notes"}`}
     >
       <Editor.MenuButton
-        className="ml-2"
+        className="px-1"
         active={onState("removing")}
-        activeClass={"ml-2 text-red-400/80"}
+        activeClass={"px-1 text-red-400/80"}
         onClick={onState("removing") ? clearState : () => setState("removing")}
       >
-        <BsDashCircle />
+        <BsEraserFill className="text-lg" />
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -185,10 +182,10 @@ export function ScaleEditor(props: ScaleEditorProps) {
   const ClearButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content={`Clear Pattern`}>
       <Editor.MenuButton
-        className="active:text-gray-400"
+        className="px-1 active:text-gray-400"
         onClick={() => scale && props.clearScale(scale.id)}
       >
-        <BsTrash />
+        <BsTrash className="text-lg" />
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -196,7 +193,7 @@ export function ScaleEditor(props: ScaleEditorProps) {
   const ScalarTransposeButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content={`Scalar Transpose`}>
       <Editor.MenuButton
-        className={`rounded-sm cursor-pointer active:bg-fuchsia-400/80`}
+        className={`px-1 rounded-sm cursor-pointer active:bg-fuchsia-400/80`}
         onClick={() => {
           const input = prompt("Transpose chromatically by N semitones:");
           const sanitizedInput = parseInt(input ?? "");
@@ -205,7 +202,7 @@ export function ScaleEditor(props: ScaleEditorProps) {
           }
         }}
       >
-        <BsChevronExpand />
+        Transpose
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -213,7 +210,7 @@ export function ScaleEditor(props: ScaleEditorProps) {
   const ChordalTransposeButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content={`Chordal Transpose`}>
       <Editor.MenuButton
-        className={`rotate-90 rounded-sm cursor-pointer active:bg-fuchsia-400/80`}
+        className={`px-1 rounded-sm cursor-pointer active:bg-fuchsia-400/80`}
         onClick={() => {
           const input = prompt("Transpose along the chord by N steps:");
           const sanitizedInput = parseInt(input ?? "");
@@ -222,15 +219,9 @@ export function ScaleEditor(props: ScaleEditorProps) {
           }
         }}
       >
-        <BsChevronExpand />
+        Invert
       </Editor.MenuButton>
     </Editor.Tooltip>
-  );
-
-  const RandomizeButton = () => (
-    <Editor.MenuButton onClick={() => scale && props.randomizeScale(scale.id)}>
-      <BsDice5 />
-    </Editor.MenuButton>
   );
 
   const menuOptions = [
@@ -334,7 +325,6 @@ export function ScaleEditor(props: ScaleEditorProps) {
             <Editor.MenuGroup border={true}>
               <ScalarTransposeButton />
               <ChordalTransposeButton />
-              <RandomizeButton />
             </Editor.MenuGroup>
             <Editor.InstrumentListbox
               instrumentName={instrumentName}

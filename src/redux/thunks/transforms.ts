@@ -5,14 +5,14 @@ import {
 } from "redux/selectors";
 import { createTransform, updateTransforms } from "redux/slices/transforms";
 import { AppThunk } from "redux/store";
-import { TransformCoordinate } from "types/transform";
+import { Transform, TransformCoordinate } from "types/transform";
 
 export const addTransformToTimeline = (): AppThunk => (dispatch, getState) => {
   const state = getState();
   const { toolkit, selectedTrackId } = selectRoot(state);
   if (!selectedTrackId) return;
 
-  const { time } = selectTransport(state);
+  const { tick } = selectTransport(state);
   const { chromaticTranspose, scalarTranspose, chordalTranspose } = toolkit;
 
   return dispatch(
@@ -21,7 +21,7 @@ export const addTransformToTimeline = (): AppThunk => (dispatch, getState) => {
       chromaticTranspose,
       scalarTranspose,
       chordalTranspose,
-      time,
+      tick,
     })
   );
 };
@@ -36,7 +36,7 @@ export const updateSelectedTransforms =
     const selectedTransforms = selectTransformsByIds(
       state,
       selectedTransformIds
-    );
+    ).filter(Boolean) as Transform[];
     const updatedTransforms = selectedTransforms.map((transform) => ({
       ...transform,
       chromaticTranspose: coordinate.N ?? transform.chromaticTranspose,
@@ -56,7 +56,7 @@ export const offsetSelectedTransforms =
     const selectedTransforms = selectTransformsByIds(
       state,
       selectedTransformIds
-    );
+    ).filter(Boolean) as Transform[];
     const updatedTransforms = selectedTransforms.map((transform) => ({
       ...transform,
       chromaticTranspose: transform.chromaticTranspose + offset.N,

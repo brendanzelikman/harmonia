@@ -128,6 +128,17 @@ export const buildInstruments =
     );
   };
 
+// Destroy all samplers for all tracks
+export const destroyInstruments = () => {
+  const keys = Object.keys(INSTRUMENTS);
+  keys.forEach((key) => {
+    const instrument = INSTRUMENTS[key];
+    instrument.sampler.dispose();
+    instrument.mixer.dispose();
+    delete INSTRUMENTS[key];
+  });
+};
+
 // Get the sampler of a track
 export const getSampler = (trackId: TrackId) => {
   return INSTRUMENTS[trackId]?.sampler;
@@ -155,4 +166,8 @@ export const getGlobalInstrumentName = () => {
 // Get the global sampler
 export const getGlobalSampler = () => {
   return INSTRUMENTS["global"]?.sampler;
+};
+
+export const isSamplerLoaded = (sampler: Sampler) => {
+  return sampler.loaded && !sampler.disposed;
 };

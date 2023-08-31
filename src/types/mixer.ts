@@ -11,7 +11,7 @@ import {
   Reverb,
 } from "tone";
 import { Hertz, Time } from "tone/build/esm/core/type/Units";
-import { Volume } from "types/units";
+import { Volume } from "./units";
 import { TrackId } from "./tracks";
 
 export interface ChannelProps {

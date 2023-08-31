@@ -27,9 +27,9 @@ export const MAX_PAN = 1;
 export const PAN_STEP = 0.01;
 
 // Time Signature + Rhythm
-export const MEASURE_COUNT = 128;
-export const TIMELINE_SUBDIVISION = 16;
-export const MAX_SUBDIVISION = 16;
+export const MEASURE_COUNT = 64;
+export const MIN_SUBDIVISION = 1;
+export const MAX_SUBDIVISION = 64;
 export const DEFAULT_DURATION: Duration = "eighth";
 export const DEFAULT_BEATS_PER_BAR = 4;
 
@@ -39,8 +39,8 @@ export const DEFAULT_CELL_WIDTH = 25;
 export const MIN_CELL_WIDTH = 25;
 export const MAX_CELL_WIDTH = 50;
 export const HEADER_HEIGHT = 80;
-export const CELL_HEIGHT = 115;
-export const TRANSPOSE_HEIGHT = 20;
+export const CELL_HEIGHT = 120;
+export const TRANSFORM_HEIGHT = 20;
 export const INITIAL_MAX_ROWS = 8;
 
 // Effects

@@ -1,49 +1,51 @@
 import { inRange } from "lodash";
 import { HeaderRendererProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
-import { selectRoot, selectTransport } from "redux/selectors";
+import {
+  selectRoot,
+  selectTimelineTick,
+  selectTransport,
+  selectTimelineBBS,
+} from "redux/selectors";
 import {
   seekTransport,
   setTransportLoopEnd,
   setTransportLoopStart,
 } from "redux/thunks/transport";
 import { AppDispatch, RootState } from "redux/store";
-import { Time } from "types/units";
+import { Subdivision, Tick } from "types/units";
 import { Row } from "..";
 import { TimeFormatter } from "./Time";
+import { subdivisionToTicks } from "appUtil";
 
 function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
   const transport = selectTransport(state);
-  const { selectedTrackId } = selectRoot(state);
   const columnIndex = Number(ownProps.column.key);
-
-  const [ts1, ts2] = transport.timeSignature || [16, 16];
-
-  const onTime = transport.time === columnIndex && transport.time !== 0;
-  const measure = Math.floor(columnIndex / ts1);
-  const beat = columnIndex % ts1;
-  const isMeasure = beat === 1 || ts1 === 1;
+  const tick = selectTimelineTick(state, columnIndex - 1);
+  const tickLength = subdivisionToTicks(transport.subdivision);
+  const { bars, beats, sixteenths } = selectTimelineBBS(state, tick);
+  const isMeasure = beats === 0 && sixteenths === 0;
 
   const looping = transport.loop;
-  const loopStart = transport.loopStart + 1;
-  const loopEnd = transport.loopEnd + 1;
+  const loopStart = transport.loopStart;
+  const loopEnd = transport.loopEnd;
 
-  const inLoopRange = inRange(columnIndex, loopStart, loopEnd + 1);
-  const onLoopStart = loopStart === columnIndex;
-  const onLoopEnd = loopEnd === columnIndex;
+  const inLoopRange = inRange(tick, loopStart, loopEnd);
+  const onLoopStart = loopStart === tick;
+  const onLoopEnd = loopEnd === tick + (tickLength - 1);
 
   const className = `relative w-full h-full text-white hover:border hover:border-slate-200/80 cursor-pointer ${
-    onTime && (transport.state === "started" || !selectedTrackId)
-      ? "bg-gradient-to-r from-emerald-700 to-emerald-600 hover:bg-slate-800"
-      : looping && inLoopRange
+    looping && inLoopRange
       ? "bg-black hover:bg-slate-800 border-b-8 border-b-indigo-700"
       : `bg-black hover:bg-slate-800 border-slate-50/20`
   }`;
 
   return {
     ...ownProps,
+    tick,
     columnIndex,
-    measure,
+    bars,
+    subdivision: transport.subdivision,
     isMeasure,
     className,
     looping,
@@ -56,14 +58,16 @@ function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
 
 function mapDispatchToProps(dispatch: AppDispatch) {
   return {
-    onClick: (time: Time) => {
-      dispatch(seekTransport(time));
+    onClick: (tick: Tick) => {
+      dispatch(seekTransport(tick));
     },
-    setLoopStart: (time: Time) => {
-      dispatch(setTransportLoopStart(time));
+    setLoopStart: (column: number, subdivision: Subdivision) => {
+      const ticks = subdivisionToTicks(subdivision) * column;
+      dispatch(setTransportLoopStart(ticks));
     },
-    setLoopEnd: (time: Time) => {
-      dispatch(setTransportLoopEnd(time));
+    setLoopEnd: (column: number, subdivision: Subdivision) => {
+      const ticks = subdivisionToTicks(subdivision) * (column + 1);
+      dispatch(setTransportLoopEnd(ticks - 1));
     },
   };
 }

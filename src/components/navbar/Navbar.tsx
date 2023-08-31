@@ -8,41 +8,67 @@ import { BsGithub, BsQuestionCircle } from "react-icons/bs";
 import { Transition } from "@headlessui/react";
 import PatternListbox from "./PatternListbox";
 import OnboardingTour from "./OnboardingTour";
+import { cancelEvent, isHoldingCommand, isInputEvent } from "appUtil";
+import useEventListeners from "hooks/useEventListeners";
+import { useState } from "react";
 
 export function Navbar() {
+  const [showNavbar, setShowNavbar] = useState(true);
+  useEventListeners(
+    {
+      f: {
+        keydown: (e) => {
+          if (isInputEvent(e) || isHoldingCommand(e)) return;
+          cancelEvent(e);
+          setShowNavbar(!showNavbar);
+        },
+      },
+    },
+    [showNavbar, setShowNavbar]
+  );
   return (
-    <nav className="relative h-auto bg-gray-900 border-b-slate-900 shadow-xl py-2 text-slate-50 flex flex-nowrap flex-shrink-0 items-center z-30">
-      <NavGroup className="flex-shrink-0 ml-3">
-        <NavBrand />
-      </NavGroup>
-      <NavGroup className="ml-5">
-        <FileControl />
-      </NavGroup>
-      <NavGroup className="ml-3">
-        <Timer />
-      </NavGroup>
-      <NavGroup className="space-x-2 ml-4" role="group">
-        <Transport />
-      </NavGroup>
-      <NavGroup className="ml-5">
-        <PatternListbox />
-      </NavGroup>
-      <NavGroup className="ml-5 mr-3">
-        <PatternControl />
-      </NavGroup>
-      <NavGroup className="relative ml-auto mr-5 hidden md:flex">
-        <Settings />
-        <OnboardingTour />
-        <a
-          href="https://www.github.com/brendanzelikman/harmonia"
-          target="_blank"
-          rel="noreferrer"
-          className="ml-4 text-2xl active:text-sky-600/80"
-        >
-          <BsGithub />
-        </a>
-      </NavGroup>
-    </nav>
+    <Transition
+      show={showNavbar}
+      enter="transition-all duration-150"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+      leave="transition-all duration-150"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
+    >
+      <nav className="relative h-auto bg-gray-900 border-b-slate-900 shadow-xl py-2 text-slate-50 flex flex-nowrap flex-shrink-0 items-center z-30">
+        <NavGroup className="flex-shrink-0 ml-3">
+          <NavBrand />
+        </NavGroup>
+        <NavGroup className="ml-5">
+          <FileControl />
+        </NavGroup>
+        <NavGroup className="ml-3">
+          <Timer />
+        </NavGroup>
+        <NavGroup className="space-x-2 ml-4" role="group">
+          <Transport />
+        </NavGroup>
+        <NavGroup className="ml-5">
+          <PatternListbox />
+        </NavGroup>
+        <NavGroup className="ml-5 mr-3">
+          <PatternControl />
+        </NavGroup>
+        <NavGroup className="relative ml-auto mr-5 hidden md:flex">
+          <Settings />
+          <OnboardingTour />
+          <a
+            href="https://www.github.com/brendanzelikman/harmonia"
+            target="_blank"
+            rel="noreferrer"
+            className="ml-4 text-2xl active:text-sky-600/80"
+          >
+            <BsGithub />
+          </a>
+        </NavGroup>
+      </nav>
+    </Transition>
   );
 }
 

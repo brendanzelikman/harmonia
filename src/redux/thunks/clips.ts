@@ -21,7 +21,7 @@ import {
   Clip,
   getClipStream,
   getClipNotes,
-  getClipDuration,
+  getClipTicks,
 } from "types/clips";
 import { MIDI } from "types/midi";
 import MidiWriter from "midi-writer-js";
@@ -29,16 +29,17 @@ import {
   PatternStream,
   initializePattern,
   PatternId,
-  isRest,
+  getStreamTicks,
 } from "types/patterns";
 import { TrackId } from "types/tracks";
 import { Transform, TransformId } from "types/transform";
-import { Time } from "types/units";
+import { Tick } from "types/units";
 import {
   createClipsAndTransforms,
   deleteClipsAndTransforms,
 } from "redux/slices/clips";
 import { Row } from "components/timeline";
+import { subdivisionToTicks } from "appUtil";
 
 export type RepeatOptions = {
   repeatCount?: number;
@@ -62,14 +63,14 @@ export const repeatClips =
     const { chromaticTranspose, scalarTranspose, chordalTranspose } = toolkit;
 
     const clips = Selectors.selectClipsByIds(state, clipIds);
-    const clipDurations = clips.map((clip) =>
-      Selectors.selectClipDuration(state, clip?.id)
+    const clipTicks = clips.map((clip) =>
+      Selectors.selectClipTicks(state, clip?.id)
     );
-    const startTime = Math.min(...clips.map((clip) => clip.startTime));
-    const lastTime = Math.max(
-      ...clips.map((clip, i) => clip.startTime + clipDurations[i])
+    const startTick = Math.min(...clips.map((clip) => clip.tick));
+    const endTick = Math.max(
+      ...clips.map((clip, i) => clip.tick + clipTicks[i])
     );
-    const totalDuration = lastTime - startTime;
+    const totalTicks = endTick - startTick;
 
     let newClips: Clip[] = [];
     let newTransforms: Transform[] = [];
@@ -78,7 +79,7 @@ export const repeatClips =
       // Move the clips
       const movedClips = clips.map((clip) => ({
         ...clip,
-        startTime: clip.startTime + i * totalDuration,
+        tick: clip.tick + i * totalTicks,
       }));
       newClips = [...newClips, ...movedClips];
 
@@ -87,12 +88,12 @@ export const repeatClips =
         clips.forEach((clip, j) => {
           const clipTransforms = Selectors.selectClipTransforms(state, clip.id);
           const currentTransforms = clipTransforms.filter((t: Transform) =>
-            inRange(t.time, clip.startTime, clip.startTime + clipDurations[j])
+            inRange(t.tick, clip.tick, clip.tick + clipTicks[j])
           );
           if (currentTransforms.length) {
             const movedTransforms = currentTransforms.map((t: Transform) => ({
               ...t,
-              time: t.time + i * totalDuration,
+              tick: t.tick + i * totalTicks,
               chromaticTranspose: repeatWithTranspose
                 ? t.chromaticTranspose + i * chromaticTranspose
                 : t.chromaticTranspose,
@@ -122,7 +123,7 @@ export const mergeClips =
       Boolean
     ) as Clip[];
     if (!clips || !clips.length) return;
-    const sortedClips = clips.sort((a, b) => a.startTime - b.startTime);
+    const sortedClips = clips.sort((a, b) => a.tick - b.tick);
     let oldTransforms: Transform[] = [];
 
     // Create a merged pattern
@@ -138,11 +139,11 @@ export const mergeClips =
 
       // Add any overlapping transforms if merging
       if (mergeTransforms) {
-        const duration = getClipDuration(clip, pattern);
+        const ticks = getClipTicks(clip, pattern);
         oldTransforms = union(
           oldTransforms,
           transforms.filter((t) =>
-            inRange(t.time, clip.startTime, clip.startTime + duration)
+            inRange(t.tick, clip.tick, clip.tick + ticks)
           )
         );
       }
@@ -163,7 +164,7 @@ export const mergeClips =
       Clips.createClip({
         patternId: newPattern.id,
         trackId: sortedClips[0].trackId,
-        startTime: sortedClips[0].startTime,
+        tick: sortedClips[0].tick,
       })
     );
     // Delete the old clips
@@ -175,7 +176,7 @@ export const mergeClips =
   };
 
 export const createPatternClip =
-  (trackId: TrackId, patternId: PatternId, startTime: Time): AppThunk =>
+  (trackId: TrackId, patternId: PatternId, tick: Tick): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
 
@@ -191,14 +192,15 @@ export const createPatternClip =
     const clip: ClipNoId = {
       ...defaultClip,
       patternId: pattern.id,
-      startTime,
+      tick,
       trackId: patternTrack.id,
+      duration: getStreamTicks(pattern.stream),
     };
     dispatch(Clips.createClip(clip));
   };
 
 export const sliceClip =
-  (clipId: ClipId, time: Time): AppThunk =>
+  (clipId: ClipId, tick: Tick): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
 
@@ -208,19 +210,19 @@ export const sliceClip =
 
     const stream = selectClipStream(state, clipId);
 
-    const splitDuration = time - clip.startTime;
-    if (time === clip.startTime || splitDuration === stream.length) return;
+    const splitTick = tick - clip.tick;
+    if (tick === clip.tick || splitTick === stream.length) return;
 
-    // Create two new clips pivoting at the time
+    // Create two new clips pivoting at the tick
     const firstClip = initializeClip({
       ...clip,
-      duration: splitDuration,
+      duration: splitTick,
     });
     const secondClip = initializeClip({
       ...clip,
-      startTime: time,
-      offset: clip.offset + splitDuration,
-      duration: stream.length - splitDuration,
+      tick,
+      offset: clip.offset + splitTick,
+      duration: stream.length - splitTick,
     });
 
     // Create the new clips
@@ -248,8 +250,8 @@ export const exportClipsToMidi =
     const trackMap = Selectors.selectTrackMap(state);
 
     // Sort the clips
-    const sortedClips = clips.sort((a, b) => a.startTime - b.startTime);
-    const startTime = sortedClips[0].startTime;
+    const sortedClips = clips.sort((a, b) => a.tick - b.tick);
+    const startTick = sortedClips[0].tick;
 
     // Read through clips
     const tracks: MidiWriter.Track[] = [];
@@ -311,7 +313,7 @@ export const exportClipsToMidi =
       );
       // Add clips
       const clips = clipsByTrack[trackId];
-      let lastTime = startTime;
+      let lastTick = startTick;
       let wait: MidiWriter.Duration[] = [];
 
       clips.forEach((clip) => {
@@ -322,11 +324,11 @@ export const exportClipsToMidi =
         const stream = getClipStream(clip, pattern, scale, transforms, []);
 
         // Add stream
-        const offset = clip.startTime - lastTime;
+        const offset = clip.tick - lastTick;
         if (offset > 0) {
           wait.push(...new Array(offset).fill("16" as MidiWriter.Duration));
         }
-        lastTime = clip.startTime;
+        lastTick = clip.tick;
 
         for (let i = 0; i < stream.length; i++) {
           const chord = stream[i];
@@ -334,15 +336,15 @@ export const exportClipsToMidi =
 
           // Compute duration
           const duration = `${16 / chord[0].duration}` as MidiWriter.Duration;
-          lastTime += chord[0].duration;
+          lastTick += chord[0].duration;
 
-          if (isRest(chord[0])) {
+          if (MIDI.isRest(chord[0])) {
             wait.push(duration);
             continue;
           }
 
           // Compute pitch array
-          const pitch = isRest(chord[0])
+          const pitch = MIDI.isRest(chord[0])
             ? ([] as MidiWriter.Pitch[])
             : (chord.map((n) => MIDI.toPitch(n.MIDI)) as MidiWriter.Pitch[]);
 
@@ -357,7 +359,7 @@ export const exportClipsToMidi =
           tracks[index].addEvent(event);
 
           // Clear wait if not a rest
-          if (!isRest(chord[0]) && wait.length) wait.clear();
+          if (!MIDI.isRest(chord[0]) && wait.length) wait.clear();
         }
       });
     });
@@ -426,21 +428,21 @@ export const selectRangeOfClips =
     const clips = Selectors.selectClipsByTrackIds(state, trackIds);
 
     // Compute the start and end time of the selection
-    const startTime = lastClip.startTime || 0;
-    const duration = getClipDuration(clip, clipPattern);
-    const endTime = clip.startTime + duration;
+    const startTick = lastClip.tick || 0;
+    const ticks = getClipTicks(clip, clipPattern);
+    const endTick = clip.tick + ticks;
 
     // Get the durations of all clips
-    const clipDurations = clips.reduce((acc, clip) => {
+    const clipTicks = clips.reduce((acc, clip) => {
       const pattern = Selectors.selectPattern(state, clip.patternId);
       if (!pattern) return acc;
-      return { ...acc, [clip.id]: getClipDuration(clip, pattern) };
+      return { ...acc, [clip.id]: getClipTicks(clip, pattern) };
     }, {} as Record<ClipId, number>);
 
     // Get the clips that are in the selection
     const newClips = clips.filter((c) => {
-      const duration = clipDurations[c.id];
-      return c.startTime >= startTime && c.startTime + duration <= endTime;
+      const ticks = clipTicks[c.id];
+      return c.tick >= startTick && c.tick + ticks <= endTick;
     });
     const newClipIds = newClips.map((clip) => clip.id);
 
@@ -499,30 +501,30 @@ export const pasteSelectedClipsAndTransforms =
     const { clipboard, selectedTrackId } = Selectors.selectRoot(state);
     if (!selectedTrackId) return emptyPromise;
 
-    const { time } = Selectors.selectTransport(state);
+    const { tick } = Selectors.selectTransport(state);
     const trackIds = rows.map((row) => row.trackId).filter(Boolean);
 
     // Get clips and transforms from the clipboard
     const clipboardClips = [...clipboard?.clips] ?? [];
     const clipboardTransforms = [...clipboard?.transforms] ?? [];
 
-    // Get the earliest start time
+    // Get the earliest start tick
     const firstClip = clipboardClips.length
-      ? clipboardClips.sort((a, b) => a.startTime - b.startTime)?.[0]
+      ? clipboardClips.sort((a, b) => a.tick - b.tick)?.[0]
       : undefined;
     const firstTransform = clipboardTransforms.length
-      ? clipboardTransforms.sort((a, b) => a.time - b.time)?.[0]
+      ? clipboardTransforms.sort((a, b) => a.tick - b.tick)?.[0]
       : undefined;
 
-    const t1 = firstClip?.startTime;
-    const t2 = firstTransform?.time;
-    const startTime = t1 && t2 ? Math.min(t1, t2) : t1 ?? t2;
+    const t1 = firstClip?.tick;
+    const t2 = firstTransform?.tick;
+    const startTick = t1 && t2 ? Math.min(t1, t2) : t1 ?? t2;
 
     if (!firstClip && !firstTransform) return emptyPromise;
-    if (startTime === undefined) return emptyPromise;
+    if (startTick === undefined) return emptyPromise;
 
-    // Compute the offset between the clipboard and the current time
-    const offset = time - startTime;
+    // Compute the offset between the clipboard and the current tick
+    const offset = tick - startTick;
 
     // Find the original track index of the first clip or transform
     const originalIndex =
@@ -561,7 +563,7 @@ export const pasteSelectedClipsAndTransforms =
       if (!trackId) return emptyPromise;
       newClips.push({
         ...clip,
-        startTime: clip.startTime + offset,
+        tick: clip.tick + offset,
         trackId,
       });
     }
@@ -581,11 +583,57 @@ export const pasteSelectedClipsAndTransforms =
       if (!trackId) return emptyPromise;
       newTransforms.push({
         ...transform,
-        time: transform.time + offset,
+        tick: transform.tick + offset,
         trackId,
       });
     }
 
     // Create the clips and transforms
     return dispatch(createClipsAndTransforms(newClips, newTransforms));
+  };
+
+export const duplicateSelectedClipsAndTransforms =
+  (): AppThunk => async (dispatch, getState) => {
+    const state = getState();
+    const { selectedClipIds, selectedTransformIds } =
+      Selectors.selectRoot(state);
+    if (!selectedClipIds.length && !selectedTransformIds.length) return;
+    const selectedClips = Selectors.selectSelectedClips(state);
+    const selectedTransforms = Selectors.selectSelectedTransforms(state);
+    const selectedClipTicks = selectedClips.map((clip) =>
+      Selectors.selectClipTicks(state, clip.id)
+    );
+    const transport = Selectors.selectTransport(state);
+    const gridTicks = subdivisionToTicks(transport.subdivision);
+    // Get the start time of the earliest clip or transform
+    const startTick = Math.min(
+      ...selectedClips.map((clip) => clip.tick),
+      ...selectedTransforms.map((transform) => transform.tick)
+    );
+    // Get the end time of the latest clip or transform
+    const endTick = Math.max(
+      ...selectedClips.map((clip, i) => clip.tick + selectedClipTicks[i]),
+      ...selectedTransforms.map((transform) => transform.tick + gridTicks)
+    );
+    // Calculate the offset between the start and end times
+    const offset = endTick - startTick;
+
+    // Create new clips and transforms with the new times
+    const newClips = selectedClips.map((clip) => ({
+      ...clip,
+      tick: clip.tick + offset,
+    }));
+    const newTransforms = selectedTransforms.map((transform) => ({
+      ...transform,
+      tick: transform.tick + offset,
+    }));
+    const { clipIds, transformIds } = await dispatch(
+      createClipsAndTransforms(newClips, newTransforms)
+    );
+
+    // Select the new clips and transforms
+    if (clipIds) dispatch(selectClips(clipIds));
+    if (transformIds) dispatch(selectTransforms(transformIds));
+
+    return { clipIds, transformIds };
   };

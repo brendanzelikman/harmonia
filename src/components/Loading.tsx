@@ -1,11 +1,26 @@
-import logo from "/logo.svg";
+import { RootState } from "redux/store";
+import { Splash } from "./Landing";
+import { selectTransport } from "redux/selectors";
+import { ConnectedProps, connect } from "react-redux";
 
-export function Loading() {
+const mapStateToProps = (state: RootState) => {
+  const { loaded, loading } = selectTransport(state);
+  return { loaded, loading };
+};
+
+const connector = connect(mapStateToProps);
+type Props = ConnectedProps<typeof connector>;
+
+export default connector(Loading);
+
+function Loading(props: Props) {
+  if (props.loaded) return null;
   return (
-    <div className="flex items-center justify-center h-screen w-full">
-      <div className="w-full h-full flex flex-col items-center justify-center rounded-lg bg-sky-800/50 backdrop-blur">
-        <img src={logo} className="animate-spin w-1/2 h-1/2" alt="Loading" />
-      </div>
+    <div className="flex flex-col items-center justify-center w-full h-screen shrink-0 cursor-pointer font-nunito">
+      <Splash />
+      <h2 className="text-white/60 font-extralight font-nunito text-5xl animate-pulse ease-in-out">
+        {props.loading ? "Loading File..." : "Click to Start"}
+      </h2>
     </div>
   );
 }

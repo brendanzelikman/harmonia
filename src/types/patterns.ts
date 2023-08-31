@@ -1,17 +1,17 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { MAX_SUBDIVISION } from "appConstants";
-import { beatsToDuration, closestPitchClass, mod } from "appUtil";
+import { ticksToDuration, closestPitchClass, mod } from "appUtil";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import Scales, { Scale } from "./scales";
-import { Pitch, Time, XML } from "./units";
+import { Pitch, Tick, Time, XML } from "./units";
 import { PresetPatterns } from "./presets/patterns";
 import { ChromaticScale } from "./presets/scales";
 import MidiWriter from "midi-writer-js";
+import { selectTransport } from "redux/selectors";
+import { convertTicksToSeconds } from "redux/slices/transport";
+import { AppThunk } from "redux/store";
+import { clamp, inRange } from "lodash";
 
-// A pattern is a melodic unit that can be used in a track.
-// It contains a collection of notes that are played in a particular scale.
-// If the degrees of the notes are outside the scale, they are transposed
 export type PatternId = string;
 
 export interface Pattern {
@@ -35,20 +35,32 @@ export const defaultPattern: Pattern = {
   stream: [],
 };
 
-// A pattern note is defined by a MIDI number and a duration
-export type MIDINote = {
+// A pattern note is defined by a MIDI number and a duration in ticks
+export type PatternNote = {
   MIDI: number;
-  duration: number;
+  duration: Tick; // length of note in ticks
 };
 
-export type PatternNote = MIDINote;
-export const isRest = (note: PatternNote) => note?.MIDI === MIDI.Rest;
+// A MIDI note is defined by a MIDI number, a start time in ticks, and a duration in seconds
+export type MIDINote = {
+  MIDI: number;
+  ticks: Tick; // start time in ticks
+  duration: Time; // duration of note in seconds
+};
 
 // A pattern chord is a collection of notes that are played at the same time.
 export type PatternChord = PatternNote[];
 
 // A pattern stream is a collection of pattern chords
 export type PatternStream = PatternChord[];
+
+// Validate a pattern
+export const isPatternValid = (pattern: Pattern) => {
+  if (!pattern) return false;
+  return pattern.stream.every((chord) =>
+    chord.every((note) => inRange(note.MIDI, MIDI.NoteMin, MIDI.NoteMax))
+  );
+};
 
 // Realize a pattern in a particular scale.
 export const realizePattern = (
@@ -67,7 +79,7 @@ export const realizePattern = (
       const note = chord[j];
 
       // If the note is a rest, return it as is
-      if (isRest(note)) {
+      if (MIDI.isRest(note)) {
         realizedChord.push(note);
         break;
       }
@@ -101,54 +113,38 @@ export const realizePattern = (
 
 // Get the scalar pitches of a stream
 export const getStreamPitches = (stream: PatternStream): Pitch[] => {
-  const notes = stream.flat().filter((note) => !isRest(note));
+  const notes = stream.flat().filter((note) => !MIDI.isRest(note));
   const pitches = notes.map((note) => MIDI.toPitchClass(note.MIDI));
   const uniquePitches = [...new Set(pitches)];
   return Scales.SortPitches(uniquePitches);
 };
 
-// Get the duration of a stream
-export const getStreamDuration = (stream: PatternStream): Time => {
+// Get the duration of a stream in ticks
+export const getStreamTicks = (stream: PatternStream): Tick => {
   if (!stream || !stream.length) return 1;
   return stream.reduce((pre, cur) => pre + cur?.[0]?.duration ?? 0, 0);
 };
 
-// Get the chord of a stream at a given offset
-export const getStreamChordAtOffset = (stream: PatternStream, offset: Time) => {
-  let currentOffset = 0;
-  for (let i = 0; i < stream.length; i++) {
-    if (currentOffset > offset) return [];
-    const chord = stream[i];
-    if (!chord || !chord.length) return [];
-    if (currentOffset === offset) return chord;
-    currentOffset += chord[0].duration;
-  }
-  return [];
+// Get all timeline notes of a stream
+export type TimelineNote = {
+  MIDI: number;
+  pitch: Pitch;
+  duration: Tick;
+  start: Tick;
 };
-
-// Get all rhythmic pitches of a stream
-export const getStreamRhythmicPitchClasses = (
-  stream: PatternStream
-): Pitch[][] => {
+export const getStreamTimelineNotes = (stream: PatternStream) => {
   if (!stream?.length) return [];
-  return stream.map((chord) => {
+  return stream.map((chord, i) => {
     if (!chord?.length) return [];
     return chord
-      .filter((note) => !isRest(note))
+      .filter((note) => !MIDI.isRest(note))
       .sort((a, b) => b.MIDI - a.MIDI)
-      .map((note) => MIDI.toPitchClass(note.MIDI));
-  });
-};
-
-// Get all rhythmic pitches of a stream
-export const getStreamRhythmicPitches = (stream: PatternStream): Pitch[][] => {
-  if (!stream?.length) return [];
-  return stream.map((chord) => {
-    if (!chord?.length) return [];
-    return chord
-      .filter((note) => !isRest(note))
-      .sort((a, b) => b.MIDI - a.MIDI)
-      .map((note) => MIDI.toPitch(note.MIDI));
+      .map((note) => ({
+        MIDI: note.MIDI,
+        pitch: MIDI.toPitch(note.MIDI),
+        duration: note.duration,
+        start: i,
+      })) as TimelineNote[];
   });
 };
 
@@ -174,7 +170,7 @@ export const transposePatternStream = (
       const note = chord[j];
 
       // Return the note if it is a rest
-      if (isRest(note)) {
+      if (MIDI.isRest(note)) {
         transposedChord.push(note);
         j = chord.length;
         continue;
@@ -203,7 +199,8 @@ export const transposePatternStream = (
       const newNumber = MIDI.ChromaticNotes.indexOf(thisPitch);
       const oldNumber = MIDI.ChromaticNotes.indexOf(notePitch);
       const newMIDI = noteMIDI + newNumber - oldNumber + newOffset;
-      transposedChord.push({ ...note, MIDI: newMIDI });
+      const clampedMIDI = clamp(newMIDI, MIDI.NoteMin, MIDI.NoteMax);
+      transposedChord.push({ ...note, MIDI: clampedMIDI });
     }
     transposedStream.push(transposedChord);
   }
@@ -242,13 +239,13 @@ export default class Patterns {
 
       // Compute duration
       const duration = `${16 / chord[0].duration}` as MidiWriter.Duration;
-      if (isRest(chord[0])) {
+      if (MIDI.isRest(chord[0])) {
         wait.push(duration);
         continue;
       }
 
       // Compute pitch array
-      const pitch = isRest(chord[0])
+      const pitch = MIDI.isRest(chord[0])
         ? ([] as MidiWriter.Pitch[])
         : (chord.map((n) => MIDI.toPitch(n.MIDI)) as MidiWriter.Pitch[]);
 
@@ -263,7 +260,7 @@ export default class Patterns {
       track.addEvent(event);
 
       // Clear wait if not a rest
-      if (!isRest(chord[0]) && wait.length) wait.clear();
+      if (!MIDI.isRest(chord[0]) && wait.length) wait.clear();
     }
     const writer = new MidiWriter.Writer(track);
     const blob = new Blob([writer.buildFile()], {
@@ -285,8 +282,9 @@ export default class Patterns {
     let measureNotes: string[] = [];
     let duration = 0;
 
+    let tripletBeam = "begin";
     for (const chord of stream) {
-      if (duration >= MAX_SUBDIVISION) {
+      if (duration >= MIDI.WholeNoteTicks) {
         const measure = MusicXML.createMeasure(
           measureNotes,
           measures.length + 1
@@ -296,11 +294,21 @@ export default class Patterns {
         duration = 0;
       }
       const chordNotes = chord.map((note) => note.MIDI);
-      const firstNote = chord[0];
+      const firstNote = chord?.[0];
+      const isTriplet = MIDI.isTriplet(firstNote);
       const xmlNote = MusicXML.createChord(chordNotes, {
         duration: firstNote?.duration,
-        type: beatsToDuration(firstNote?.duration),
+        type: ticksToDuration(firstNote?.duration),
+        beam: isTriplet ? tripletBeam : undefined,
       });
+
+      if (isTriplet) {
+        if (tripletBeam === "begin") tripletBeam = "continue";
+        else if (tripletBeam === "continue") tripletBeam = "end";
+        else tripletBeam = "begin";
+      } else {
+        tripletBeam = "begin";
+      }
       measureNotes.push(xmlNote);
       duration += firstNote?.duration;
     }
@@ -331,22 +339,45 @@ export default class Patterns {
     PresetPatterns.MinorChord,
     PresetPatterns.DiminishedChord,
     PresetPatterns.AugmentedChord,
-    PresetPatterns.MajorSeventhChord,
-    PresetPatterns.MinorSeventhChord,
-    PresetPatterns.DominantSeventhChord,
-    PresetPatterns.DiminishedSeventhChord,
+    PresetPatterns.Sus2Chord,
+    PresetPatterns.Sus4Chord,
+    PresetPatterns.QuartalChord,
+    PresetPatterns.QuintalChord,
+    PresetPatterns.PowerChord,
+    PresetPatterns.Octave,
+  ];
+
+  static SeventhChords = [
+    PresetPatterns.Major7thChord,
+    PresetPatterns.Major7thSus2Chord,
+    PresetPatterns.Major7thSus4Chord,
+    PresetPatterns.Major7thFlat5Chord,
+    PresetPatterns.Minor7thChord,
+    PresetPatterns.Minor7thSus2Chord,
+    PresetPatterns.Minor7thSus4Chord,
+    PresetPatterns.Minor7thFlat5Chord,
+    PresetPatterns.Dominant7thChord,
+    PresetPatterns.Dominant7thFlat5Chord,
+    PresetPatterns.Dominant7thSharp5Chord,
+    PresetPatterns.Diminished7thChord,
+    PresetPatterns.Augmented7thChord,
   ];
 
   static ExtendedChords = [
-    PresetPatterns.MajorNinthChord,
-    PresetPatterns.MinorNinthChord,
-    PresetPatterns.DominantNinthChord,
-    PresetPatterns.MajorEleventhChord,
-    PresetPatterns.MinorEleventhChord,
-    PresetPatterns.DominantEleventhChord,
-    PresetPatterns.MajorThirteenthChord,
-    PresetPatterns.MinorThirteenthChord,
-    PresetPatterns.DominantThirteenthChord,
+    PresetPatterns.Major9thChord,
+    PresetPatterns.Major11thChord,
+    PresetPatterns.MajorSharp11thChord,
+    PresetPatterns.Major13thChord,
+    PresetPatterns.Minor9thChord,
+    PresetPatterns.Minor11thChord,
+    PresetPatterns.MinorSharp11thChord,
+    PresetPatterns.Minor13thChord,
+    PresetPatterns.Dominant9thChord,
+    PresetPatterns.DominantFlat9thChord,
+    PresetPatterns.DominantSharp9thChord,
+    PresetPatterns.Dominant11thChord,
+    PresetPatterns.DominantSharp11thChord,
+    PresetPatterns.Dominant13thChord,
   ];
 
   static FamousChords = [
@@ -354,8 +385,12 @@ export default class Patterns {
     PresetPatterns.MysticChord,
     PresetPatterns.ElektraChord,
     PresetPatterns.FarbenChord,
-    PresetPatterns.PurpleHazeChord,
+    PresetPatterns.RiteOfSpringChord,
+    PresetPatterns.DreamChord,
+    PresetPatterns.KennyBarronMajorChord,
+    PresetPatterns.KennyBarronMinorChord,
     PresetPatterns.SoWhatChord,
+    PresetPatterns.HendrixChord,
     PresetPatterns.BondChord,
   ];
 
@@ -370,46 +405,60 @@ export default class Patterns {
     PresetPatterns.HappyBirthday,
   ];
 
-  static BasicPatterns = [
-    PresetPatterns.MajorArpeggio,
-    PresetPatterns.MinorArpeggio,
-    PresetPatterns.DiminishedArpeggio,
-    PresetPatterns.AugmentedArpeggio,
-    PresetPatterns.MajorSeventhArpeggio,
-    PresetPatterns.MinorSeventhArpeggio,
-    PresetPatterns.DominantSeventhArpeggio,
-    PresetPatterns.DiminishedSeventhArpeggio,
+  static BasicMelodies = [
+    PresetPatterns.StraightMajorArpeggio,
+    PresetPatterns.TripletMajorArpeggio,
+    PresetPatterns.StraightMinorArpeggio,
+    PresetPatterns.TripletMinorArpeggio,
+    PresetPatterns.StraightDiminishedArpeggio,
+    PresetPatterns.TripletDiminishedArpeggio,
+    PresetPatterns.StraightAugmentedArpeggio,
+    PresetPatterns.TripletAugmentedArpeggio,
   ];
 
-  static ExtendedPatterns = [
-    PresetPatterns.MajorNinthArpeggio,
-    PresetPatterns.MinorNinthArpeggio,
-    PresetPatterns.DominantNinthArpeggio,
-    PresetPatterns.MajorEleventhArpeggio,
-    PresetPatterns.MinorEleventhArpeggio,
-    PresetPatterns.DominantEleventhArpeggio,
-    PresetPatterns.MajorThirteenthArpeggio,
-    PresetPatterns.MinorThirteenthArpeggio,
-    PresetPatterns.DominantThirteenthArpeggio,
-  ];
-
-  static BrendansVoicings = [
-    PresetPatterns.BZVoicing1,
-    PresetPatterns.BZVoicing2,
-    PresetPatterns.BZVoicing3,
-    PresetPatterns.BZVoicing4,
+  static ExtendedMelodies = [
+    PresetPatterns.Major7thArpeggio,
+    PresetPatterns.Major9thArpeggio,
+    PresetPatterns.Major11thArpeggio,
+    PresetPatterns.Major13thArpeggio,
+    PresetPatterns.Minor7thArpeggio,
+    PresetPatterns.Minor9thArpeggio,
+    PresetPatterns.Minor11thArpeggio,
+    PresetPatterns.Minor13thArpeggio,
+    PresetPatterns.Dominant7thArpeggio,
+    PresetPatterns.Dominant9thArpeggio,
+    PresetPatterns.Dominant11thArpeggio,
+    PresetPatterns.Dominant13thArpeggio,
   ];
 
   static BasicDurations = [
     PresetPatterns.WholeNote,
-    PresetPatterns.DottedWholeNote,
     PresetPatterns.HalfNotes,
-    PresetPatterns.DottedHalfNotes,
     PresetPatterns.QuarterNotes,
-    PresetPatterns.DottedQuarterNotes,
     PresetPatterns.EighthNotes,
-    PresetPatterns.DottedEighthNotes,
     PresetPatterns.SixteenthNotes,
+    PresetPatterns.ThirtySecondNotes,
+    PresetPatterns.SixtyFourthNotes,
+  ];
+
+  static DottedDurations = [
+    PresetPatterns.DottedWholeNotes,
+    PresetPatterns.DottedHalfNotes,
+    PresetPatterns.DottedQuarterNotes,
+    PresetPatterns.DottedEighthNotes,
+    PresetPatterns.DottedSixteenthNotes,
+    PresetPatterns.DottedThirtySecondNotes,
+    PresetPatterns.DottedSixtyFourthNotes,
+  ];
+
+  static TripletDurations = [
+    PresetPatterns.TripletWholeNotes,
+    PresetPatterns.TripletHalfNotes,
+    PresetPatterns.TripletQuarterNotes,
+    PresetPatterns.TripletEighthNotes,
+    PresetPatterns.TripletSixteenthNotes,
+    PresetPatterns.TripletThirtySecondNotes,
+    PresetPatterns.TripletSixtyFourthNotes,
   ];
 
   static SimpleRhythms = [
@@ -438,26 +487,46 @@ export default class Patterns {
     PresetPatterns.TwoThreeBossaNovaClave,
   ];
 
+  static BellPatterns = [
+    PresetPatterns.BellPattern1,
+    PresetPatterns.BellPattern2,
+    PresetPatterns.BellPattern3,
+    PresetPatterns.BellPattern4,
+    PresetPatterns.BellPattern5,
+    PresetPatterns.BellPattern6,
+    PresetPatterns.BellPattern7,
+    PresetPatterns.BellPattern8,
+    PresetPatterns.BellPattern9,
+  ];
+
   static CustomPatterns = [] as Pattern[];
 
   static PresetGroups = {
     "Custom Patterns": Patterns.CustomPatterns,
     "Basic Chords": Patterns.BasicChords,
+    "Seventh Chords": Patterns.SeventhChords,
     "Extended Chords": Patterns.ExtendedChords,
     "Famous Chords": Patterns.FamousChords,
-    "Brendan's Voicings": Patterns.BrendansVoicings,
-    "Basic Patterns": Patterns.BasicPatterns,
-    "Extended Patterns": Patterns.ExtendedPatterns,
+    "Basic Melodies": Patterns.BasicMelodies,
+    "Extended Melodies": Patterns.ExtendedMelodies,
     "Famous Patterns": Patterns.FamousPatterns,
     "Basic Durations": Patterns.BasicDurations,
+    "Dotted Durations": Patterns.DottedDurations,
+    "Triplet Durations": Patterns.TripletDurations,
     "Simple Rhythms": Patterns.SimpleRhythms,
     "Latin Rhythms": Patterns.LatinRhythms,
     "Clave Patterns": Patterns.ClavePatterns,
+    "Bell Patterns": Patterns.BellPatterns,
   };
 
   static PresetCategories = Object.keys(
     Patterns.PresetGroups
   ) as (keyof typeof Patterns.PresetGroups)[];
 
-  static Presets: Pattern[] = Object.values(this.PresetGroups).flat();
+  static Presets = Object.values(this.PresetGroups).flat();
+
+  static PresetMap = Patterns.Presets.reduce((acc, pattern) => {
+    acc[pattern.id] = pattern;
+    return acc;
+  }, {} as Record<PatternId, Pattern>);
 }

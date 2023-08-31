@@ -2,7 +2,7 @@
 
 import { nanoid } from "@reduxjs/toolkit";
 import { TrackId } from "./tracks";
-import { Time } from "./units";
+import { Tick } from "./units";
 
 // transpositions applied to the track at a specified time.
 
@@ -14,7 +14,7 @@ export type Transform = {
   chromaticTranspose: number;
   scalarTranspose: number;
   chordalTranspose: number;
-  time: Time;
+  tick: Tick;
 };
 
 export const defaultTransform: Transform = {
@@ -23,7 +23,7 @@ export const defaultTransform: Transform = {
   chromaticTranspose: 0,
   scalarTranspose: 0,
   chordalTranspose: 0,
-  time: 0,
+  tick: 0,
 };
 
 export type TransformNoId = Omit<Transform, "id">;
@@ -35,13 +35,25 @@ export const initializeTransform = (
 });
 
 export const createTransformTag = (transform: Transform) => {
-  return `${transform.id}@${transform.time}@${transform.trackId}@${transform.chromaticTranspose}@${transform.scalarTranspose}@${transform.chordalTranspose}`;
+  return `${transform.id}@${transform.tick}@${transform.trackId}@${transform.chromaticTranspose}@${transform.scalarTranspose}@${transform.chordalTranspose}`;
 };
 
-export const lastTransformAtTime = (transforms: Transform[], time: Time) => {
-  return transforms
-    .filter((t) => t.time <= time)
-    .sort((a, b) => b.time - a.time)[0];
+export const createTransformKey = (transform?: Transform) => {
+  const N = transform?.chromaticTranspose ?? 0;
+  const T = transform?.scalarTranspose ?? 0;
+  const t = transform?.chordalTranspose ?? 0;
+  return `${N},${T},${t}`;
+};
+
+export const lastTransformAtTick = (
+  transforms: Transform[],
+  tick: Tick,
+  sort = true
+) => {
+  const filteredTransforms = transforms.filter((t) => t.tick <= tick);
+  if (!filteredTransforms.length) return;
+  if (!sort) return filteredTransforms[0];
+  return filteredTransforms.sort((a, b) => b.tick - a.tick)[0];
 };
 
 export type TransformCoordinate = {

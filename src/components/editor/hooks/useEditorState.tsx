@@ -6,8 +6,8 @@ export interface EditorState<T> {
   onState: (arg: T) => boolean;
   clearState: () => void;
 }
-export default function useEditorState<T>(): EditorState<T> {
-  const [state, setState] = useState<T | undefined>();
+export default function useEditorState<T>(defaultState?: T): EditorState<T> {
+  const [state, setState] = useState<T | undefined>(defaultState);
   const onState = (arg: T) => state === arg;
   const clearState = () => setState(undefined);
   return { state, setState, onState, clearState };

@@ -1,5 +1,5 @@
 import { ID } from "types/units";
-import { AppThunk, RootState } from "./store";
+import { RootState } from "./store";
 
 // Create a normalized state with a Record of IDs and an array of IDs
 export interface NormalizedState<K extends ID, V> {

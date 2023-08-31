@@ -2,7 +2,7 @@ const BackgroundGradient = () => (
   <div className="w-screen h-screen fixed bg-gradient-to-t from-[#083a8a] via-[#2c6387] to-[#514f7e] -z-10"></div>
 );
 
-const Splash = () => (
+export const Splash = () => (
   <div className="flex flex-col py-24 -mt-16 items-center">
     <img
       src="logo.svg"
@@ -23,7 +23,7 @@ const Splash = () => (
 const MainButton = (props: { href: string; text: string }) => (
   <a
     href={props.href}
-    className="border py-4 px-6 rounded-xl drop-shadow-xl text-slate-50 backdrop-blur bg-sky-700/60 hover:bg-gradient-to-t hover:from-sky-600/50 hover:to-sky-600/80 lg:text-4xl md:text-2xl text-sm"
+    className="border border-slate-200/50 py-5 px-8 rounded-xl drop-shadow-xl text-slate-50 backdrop-blur bg-sky-700/40 hover:bg-gradient-to-t hover:from-sky-600/50 hover:to-sky-600/80 lg:text-4xl md:text-2xl text-sm"
   >
     {props.text}
   </a>

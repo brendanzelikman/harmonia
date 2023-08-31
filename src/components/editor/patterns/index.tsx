@@ -1,13 +1,7 @@
 import * as Patterns from "redux/slices/patterns";
-import PatternsClass, { MIDINote, isRest } from "types/patterns";
+import PatternsClass from "types/patterns";
 
-import {
-  rotatePatternStream,
-  Pattern,
-  PatternId,
-  PatternNote,
-  transposePatternStream,
-} from "types/patterns";
+import { Pattern, PatternId, PatternNote } from "types/patterns";
 import { connect, ConnectedProps } from "react-redux";
 import { PatternEditor } from "./PatternEditor";
 import {
@@ -25,7 +19,6 @@ import { AppDispatch, RootState } from "redux/store";
 import { ChromaticScale } from "types/presets/scales";
 import { StateProps } from "../Editor";
 import { playPattern } from "redux/thunks/patterns";
-import { uniqBy } from "lodash";
 import { UndoTypes } from "redux/undoTypes";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
@@ -127,7 +120,6 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
     index: number,
     transpose: number
   ) => {
-    const stream = pattern.stream;
     const transposedStream = pattern.stream.map((chord, i) => {
       if (i !== index) return chord;
       return chord.map((note) => {
@@ -154,11 +146,11 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
   lengthenPattern: (pattern: Pattern, length: number) => {
     dispatch(Patterns.lengthenPattern({ id: pattern.id, length }));
   },
-  stretchPattern: (pattern: Pattern) => {
-    dispatch(Patterns.stretchPattern(pattern.id));
+  augmentPattern: (pattern: Pattern) => {
+    dispatch(Patterns.augmentPattern(pattern.id));
   },
-  shrinkPattern: (pattern: Pattern) => {
-    dispatch(Patterns.shrinkPattern(pattern.id));
+  diminishPattern: (pattern: Pattern) => {
+    dispatch(Patterns.diminishPattern(pattern.id));
   },
   shufflePattern: (pattern: Pattern) => {
     dispatch(Patterns.shufflePattern(pattern.id));
@@ -166,20 +158,6 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
   randomizePattern: (pattern: Pattern, length: number) => {
     dispatch(Patterns.randomizePattern({ id: pattern.id, length }));
   },
-  randomTransposePattern: (pattern: Pattern) => {
-    const direction = Math.random() > 0.5 ? 1 : -1;
-    const random_T = Math.abs(Math.floor(Math.random() * 6) - 3) * direction;
-    const random_t = Math.abs(Math.floor(Math.random() * 6) - 3) * -direction;
-    const stream = pattern.stream;
-    const transposedStream = transposePatternStream(stream, random_T);
-    dispatch(
-      Patterns.updatePattern({
-        id: pattern.id,
-        stream: rotatePatternStream(transposedStream, random_t),
-      })
-    );
-  },
-
   reversePattern: (pattern: Pattern) => {
     dispatch(Patterns.reversePattern(pattern.id));
   },

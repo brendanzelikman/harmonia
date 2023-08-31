@@ -52,8 +52,7 @@ export const groupByActionType = (action: any) => {
 
     // Update Clip
     case "clips/updateClip":
-      const { id, startTime } = action.payload;
-      return `UPDATE_CLIP:${id}@${startTime}`;
+      return `UPDATE_CLIP:${action.payload.id}@${action.payload.tick}`;
 
     // Update Clips
     case "clips/updateClips":
@@ -144,8 +143,7 @@ export const groupByActionType = (action: any) => {
 
     // Update Transform
     case "transforms/updateTransform":
-      const { transformId, time } = action.payload;
-      return `UPDATE_TRANSFORM:${transformId}@${time}`;
+      return `UPDATE_TRANSFORM:${action.payload.id}@${action.payload.tick}`;
 
     // Update Transforms
     case "transforms/updateTransforms":

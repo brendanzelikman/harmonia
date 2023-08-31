@@ -1,26 +1,25 @@
 import { connect, ConnectedProps } from "react-redux";
 import {
   selectCellWidth,
-  selectClipDuration,
+  selectClipTicks,
   selectClipPattern,
   selectMixerByTrackId,
   selectRoot,
+  selectTransport,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Clip, ClipId } from "types/clips";
 import { ClipsProps } from ".";
 import * as Constants from "appConstants";
 import { useClipDrag } from "./dnd";
-
 import * as RootSlice from "redux/slices/root";
 import { MouseEvent, useEffect, useMemo, useState } from "react";
 import Stream from "./Stream";
-import { selectTransforms } from "redux/selectors/transforms";
 import useEventListeners from "hooks/useEventListeners";
 import { TransformNoId } from "types/transform";
 import { rotatePattern, transposePattern } from "redux/slices/patterns";
 import { createTransforms } from "redux/slices/transforms";
-import { isHoldingOption, isHoldingShift } from "appUtil";
+import { isHoldingOption, isHoldingShift, ticksToColumns } from "appUtil";
 import { selectRangeOfClips } from "redux/thunks";
 import { Row } from "..";
 
@@ -31,14 +30,18 @@ interface OwnClipProps extends ClipsProps {
 const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const { rows, clip } = ownProps;
   const index = rows.findIndex((row) => row.trackId === clip.trackId);
-  const duration = selectClipDuration(state, clip.id);
+  const duration = selectClipTicks(state, clip.id);
   const name = selectClipPattern(state, clip.id)?.name ?? "";
   const muted = selectMixerByTrackId(state, clip.trackId)?.mute ?? false;
   const cellWidth = selectCellWidth(state);
 
-  const width = cellWidth * Math.max(duration, 1);
+  const { subdivision } = selectTransport(state);
   const top = Constants.HEADER_HEIGHT + index * Constants.CELL_HEIGHT;
-  const left = Constants.TRACK_WIDTH + cellWidth * clip.startTime;
+  const startColumn = ticksToColumns(clip.tick, subdivision);
+  const left = Constants.TRACK_WIDTH + Math.round(cellWidth * startColumn);
+
+  const columns = ticksToColumns(duration, subdivision);
+  const width = cellWidth * Math.max(columns, 1);
 
   const pattern = selectClipPattern(state, clip.id);
   const root = selectRoot(state);
@@ -54,6 +57,7 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     width,
     top,
     left,
+    subdivision,
     isSelected,
     pattern,
     transposingClip: timelineState === "transposing",
@@ -118,7 +122,7 @@ function TimelineClip(props: ClipProps) {
   if (props.index === -1) return null;
   const { clip, rows, selectedClipIds } = props;
   const { draggingClip, transposingClip } = props;
-  const { top, left, width, duration, name, isSelected, muted } = props;
+  const { top, left, width, subdivision, name, isSelected, muted } = props;
 
   const [{ isDragging }, drag] = useClipDrag(props);
 
@@ -208,7 +212,7 @@ function TimelineClip(props: ClipProps) {
   const ClipName = useMemo(() => {
     return () => (
       <div
-        className={`shrink-0 text-xs text-white/80 font-medium bg-[#072c4f] p-1 border-b border-b-white/20 whitespace-nowrap overflow-ellipsis`}
+        className={`h-6 flex items-center shrink-0 text-xs text-white/80 font-medium bg-[#072c4f] p-1 border-b border-b-white/20 whitespace-nowrap overflow-ellipsis`}
       >
         {name}
       </div>
@@ -217,17 +221,17 @@ function TimelineClip(props: ClipProps) {
 
   return (
     <div
-      className={`cursor-pointer rdg-clip absolute bg-sky-800/70 border ${
+      className={`transition-all duration-75 ease-in-out cursor-pointer rdg-clip absolute bg-sky-800/70 border ${
         isSelected ? "border-white" : "border-slate-200/50"
       } ${
         transposingClip ? "hover:ring-4 hover:ring-fuchsia-500" : ""
       } rounded-lg overflow-hidden`}
       ref={drag}
       style={{
-        top: top + Constants.TRANSPOSE_HEIGHT,
+        top: top + Constants.TRANSFORM_HEIGHT,
         left,
         width,
-        height: Constants.CELL_HEIGHT - Constants.TRANSPOSE_HEIGHT,
+        height: Constants.CELL_HEIGHT - Constants.TRANSFORM_HEIGHT,
         opacity,
         pointerEvents: isDragging || draggingClip || muted ? "none" : "auto",
         animation: "fadeIn 0.1s ease-in-out",

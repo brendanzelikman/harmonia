@@ -1,7 +1,7 @@
-import { beatsToSubdivision } from "appUtil";
+import { ticksToSubdivision } from "appUtil";
 import { selectScale, selectTransport } from "redux/selectors";
 
-import { convertTimeToSeconds } from "redux/slices/transport";
+import { convertSecondsToTicks } from "redux/slices/transport";
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
 import { MIDI } from "types/midi";
@@ -23,8 +23,8 @@ export const playScale =
     let time = 0;
     for (let i = 0; i < scale.notes.length; i++) {
       const note = scale.notes[i];
-      const duration = convertTimeToSeconds(transport, 2);
-      const subdivision = beatsToSubdivision(2);
+      const duration = convertSecondsToTicks(transport, 2);
+      const subdivision = ticksToSubdivision(2);
       const pitch = MIDI.toPitch(note);
       setTimeout(() => {
         if (!sampler) return;

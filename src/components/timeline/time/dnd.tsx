@@ -1,5 +1,5 @@
 import { useDrag, useDrop } from "react-dnd";
-import { Time } from "types/units";
+import { Tick } from "types/units";
 import { TimeProps } from ".";
 
 export interface LoopProps extends TimeProps {
@@ -7,7 +7,7 @@ export interface LoopProps extends TimeProps {
 }
 
 interface LoopPoint {
-  time: Time;
+  tick: Tick;
   hoverIndex: number;
 }
 
@@ -16,8 +16,8 @@ export function useLoopDrag(props: LoopProps) {
     () => ({
       type: "loop",
       item: {
-        time: props.columnIndex - 1,
-        hoverIndex: props.columnIndex,
+        tick: props.tick - 1,
+        hoverIndex: props.tick,
       },
       collect(monitor) {
         return {
@@ -42,7 +42,7 @@ export function useLoopDrop(props: TimeProps) {
         isOver: monitor.isOver(),
       }),
       hover: (item: LoopPoint) => {
-        item.hoverIndex = props.columnIndex;
+        item.hoverIndex = props.tick;
       },
     }),
     [props]

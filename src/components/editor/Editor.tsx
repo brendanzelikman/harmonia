@@ -89,33 +89,34 @@ export function Editor(props: EditorProps) {
   return (
     <Transition
       show={showingEditor}
-      enter="transition-all duration-150"
+      enter="transition-all duration-300"
       enterFrom="opacity-0"
       enterTo="opacity-100"
-      leave="transition-all duration-150"
+      leave="transition-all duration-300"
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
       as="div"
       className={`absolute bottom-0 right-0 ${
         state.showingTracks ? `w-[calc(100%-300px)]` : `w-full`
-      } duration-75 ease-in-out h-full bg-gradient-to-t from-[#09203f] to-[#33454b] backdrop-blur-xl`}
+      } h-full bg-gradient-to-t from-[#09203f] to-[#33454b] backdrop-blur-xl`}
     >
       <EditorNavbar />
       <div
-        className={`flex flex-col w-full h-[calc(100%-30px)] z-50 relative ${
+        style={{ height: "calc(100% - 30px)" }}
+        className={`flex flex-col w-full z-50 relative ${
           props.tour.active ? "opacity-50" : ""
         }`}
       >
         <div className="min-h-0 h-full" id="editor">
-          <EditorTransition show={props.editorState === "scale"}>
+          {props.editorState === "scale" ? (
             <EditorScales {...props} {...customProps} />
-          </EditorTransition>
-          <EditorTransition show={props.editorState === "patterns"}>
+          ) : null}
+          {props.editorState === "patterns" ? (
             <EditorPatterns {...props} {...customProps} />
-          </EditorTransition>
-          <EditorTransition show={props.editorState === "instrument"}>
+          ) : null}
+          {props.editorState === "instrument" ? (
             <EditorInstrument {...props} {...customProps} />
-          </EditorTransition>
+          ) : null}
         </div>
       </div>
     </Transition>
@@ -134,9 +135,9 @@ export const InstrumentListbox = ({
     <Listbox value={globalInstrumentName}>
       {({ open }) => (
         <div className="relative z-50">
-          <Listbox.Button className="flex px-2 rounded z-10 h-full items-center text-slate-300 font-light">
+          <Listbox.Button className="text-sm flex px-2 rounded z-10 h-full items-center text-slate-300 font-light">
             <label className="flex items-center rounded text-left cursor-pointer w-40 text-ellipsis">
-              <BsSoundwave className="mr-2 text-lg" />
+              <BsSoundwave className="mr-2" />
               {instrumentName || "Change Instrument"}
             </label>
           </Listbox.Button>
@@ -198,10 +199,10 @@ export const EditorTransition = (props: {
   return (
     <Transition
       show={!!props.show}
-      enter="transition-opacity duration-300"
+      enter="transition-opacity duration-150"
       enterFrom="opacity-0"
       enterTo="opacity-100"
-      leave="transition-opacity duration-300"
+      leave="transition-opacity duration-150"
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
       className="relative w-full h-full"
@@ -385,7 +386,7 @@ export const MenuRow = (props: {
 
 export const MenuGroup = (props: { children?: any; border?: boolean }) => (
   <div
-    className={`flex text-lg ${
+    className={`flex text-lg px-1 ${
       props.border ? "border-r border-r-slate-500" : ""
     }`}
   >
@@ -412,7 +413,7 @@ export const MenuButton = ({
 }) => {
   return (
     <div
-      className={`flex w-5 h-5 text-lg items-center justify-center m-2 select-none ${
+      className={`flex h-5 items-center justify-center my-2 mx-[3px] rounded select-none font-nunito font-light text-xs ${
         disabled
           ? `${disabledClass} opacity-50 cursor-default`
           : active

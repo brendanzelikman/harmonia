@@ -1,13 +1,13 @@
 import {
   selectSelectedTrackId,
   selectClip,
-  selectClipMap,
+  selectClipTrackMap,
   selectPatternTrack,
   selectPatternTracks,
   selectScale,
   selectTrack,
   selectTrackMap,
-  selectTransformMap,
+  selectTransformTrackMap,
 } from "redux/selectors";
 import { selectTransform } from "redux/selectors/transforms";
 import { AppThunk } from "redux/store";
@@ -22,15 +22,15 @@ import {
 } from "types/tracks";
 import { defaultScaleTrack, ScaleTrackNoId } from "types/tracks";
 import { defaultPatternTrack, PatternTrackNoId } from "types/tracks";
-import { Mixers } from "../slices";
-import * as Clips from "../slices/clips";
-import * as ClipMap from "../slices/maps/clipMap";
-import * as TrackMap from "../slices/maps/trackMap";
-import * as TransformMap from "../slices/maps/transformMap";
-import * as PatternTracks from "../slices/patternTracks";
-import { hideEditor, setSelectedTrack } from "../slices/root";
-import * as ScaleTracks from "../slices/scaleTracks";
-import * as Transforms from "../slices/transforms";
+import { Mixers } from "redux/slices";
+import * as Clips from "redux/slices/clips";
+import * as ClipMap from "redux/slices/maps/clipMap";
+import * as TrackMap from "redux/slices/maps/trackMap";
+import * as TransformMap from "redux/slices/maps/transformMap";
+import * as PatternTracks from "redux/slices/patternTracks";
+import { hideEditor, setSelectedTrack } from "redux/slices/root";
+import * as ScaleTracks from "redux/slices/scaleTracks";
+import * as Transforms from "redux/slices/transforms";
 import { createScale } from "redux/slices/scales";
 import { setMixerMute, setMixerSolo } from "./mixers";
 
@@ -239,6 +239,7 @@ export const duplicateTrack =
     let trackId: TrackId;
     if (isScaleTrack(track)) {
       const scale = selectScale(state, track.scaleId);
+      if (!scale) return;
       const scaleId = await dispatch(createScale(scale));
       trackId = await dispatch(createScaleTrack({ ...track, scaleId }));
     } else if (isPatternTrack(track)) {
@@ -250,7 +251,7 @@ export const duplicateTrack =
     if (!trackId) return;
 
     // Add all clips
-    const clipMap = selectClipMap(state);
+    const clipMap = selectClipTrackMap(state);
     const clips = clipMap.byId[id]?.clipIds;
     if (clips?.length) {
       clips.forEach((clipId) => {
@@ -260,7 +261,7 @@ export const duplicateTrack =
     }
 
     // Add all transforms
-    const transformMap = selectTransformMap(state);
+    const transformMap = selectTransformTrackMap(state);
     const transforms = transformMap.byId[id]?.transformIds;
     if (transforms?.length) {
       transforms.forEach((transformId) => {

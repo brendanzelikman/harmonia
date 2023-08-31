@@ -25,15 +25,15 @@ function mapStateToProps(state: RootState) {
   const { loadedTimeline, clipboard, selectedTrackId, showingEditor } =
     Selectors.selectRoot(state);
   return {
-    time: transport.time,
+    tick: transport.tick,
     clipboard,
     trackMap,
     state: transport.state,
+    subdivision: transport.subdivision,
     selectedTrackId,
     cellWidth,
     loadedTimeline,
     showingEditor,
-    loadedTransport: transport.loaded,
   };
 }
 

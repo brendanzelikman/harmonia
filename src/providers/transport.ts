@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { connect, ConnectedProps } from "react-redux";
 
-import { loadTransport } from "redux/thunks/transport";
+import { loadTransport, unloadTransport } from "redux/thunks/transport";
 import { AppDispatch, RootState } from "redux/store";
 
 const mapStateToProps = (state: RootState) => ({
@@ -11,6 +11,9 @@ const mapStateToProps = (state: RootState) => ({
 const mapDispatchToProps = (dispatch: AppDispatch) => ({
   createAndLoadTransport: async () => {
     dispatch(loadTransport());
+  },
+  unloadTransport: () => {
+    dispatch(unloadTransport());
   },
 });
 
@@ -23,17 +26,18 @@ export default connector(LoadedTransport);
 
 function LoadedTransport(props: TransportProps) {
   const { createAndLoadTransport } = props;
-  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (initialized) return;
     try {
       createAndLoadTransport();
-      setInitialized(true);
     } catch (e) {
       console.error(e);
     }
-  }, [initialized]);
+
+    return () => {
+      props.unloadTransport();
+    };
+  }, []);
 
   return null;
 }

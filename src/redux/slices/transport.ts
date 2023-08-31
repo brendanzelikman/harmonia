@@ -1,5 +1,5 @@
-import { BPM, Time, Volume } from "types/units";
-import { PlaybackState, Time as ToneTime, Transport } from "tone";
+import { BPM, Tick, Time, Volume, Subdivision } from "types/units";
+import { PlaybackState, Transport } from "tone";
 import { createSlice } from "@reduxjs/toolkit";
 
 import {
@@ -11,10 +11,11 @@ import {
 } from "appConstants";
 
 import { clamp } from "lodash";
+import { MIDI } from "types/midi";
 
 // The transport is synchronized with the Tone.js audio context
 export interface Transport {
-  time: Time; // Current time in ticks
+  tick: Tick; // Current time in ticks
   state: PlaybackState;
   bpm: BPM;
   loop: boolean;
@@ -23,21 +24,25 @@ export interface Transport {
   volume: Volume;
   mute: boolean;
   timeSignature: [number, number];
+  subdivision: Subdivision;
   loaded: boolean;
+  loading: boolean;
   recording: boolean;
 }
 
 export const defaultTransport: Transport = {
-  time: 0,
+  tick: 0,
   state: "stopped",
   bpm: DEFAULT_BPM,
   loop: false,
   loopStart: 0,
-  loopEnd: 15,
+  loopEnd: MIDI.WholeNoteTicks - 1,
   volume: -6,
   mute: false,
   timeSignature: [16, 16],
+  subdivision: 16,
   loaded: false,
+  loading: false,
   recording: false,
 };
 
@@ -49,14 +54,14 @@ export const transportSlice = createSlice({
       state.state = "started";
     },
     _stopTransport: (state) => {
-      state.time = 0;
+      state.tick = 0;
       state.state = "stopped";
     },
     _pauseTransport: (state) => {
       state.state = "paused";
     },
     _seekTransport: (state, action) => {
-      state.time = action.payload;
+      state.tick = action.payload;
     },
     _loopTransport: (state, action) => {
       state.loop = action.payload;
@@ -81,8 +86,14 @@ export const transportSlice = createSlice({
     _setMute: (state, action) => {
       state.mute = action.payload;
     },
-    _setLoaded: (state, action) => {
+    setLoaded: (state, action) => {
       state.loaded = action.payload;
+    },
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+    },
+    _setSubdivision: (state, action) => {
+      state.subdivision = action.payload;
     },
     _startRecording: (state) => {
       state.recording = true;
@@ -102,21 +113,24 @@ export const {
   _setBPM,
   _setTimeSignature,
   _setVolume,
+  _setSubdivision,
   _setMute,
-  _setLoaded,
+  setLoaded,
+  setLoading,
 } = transportSlice.actions;
 
 export default transportSlice.reducer;
 
-export const convertTimeToSeconds = (
+export const convertTicksToSeconds = (
+  transport: Transport,
+  ticks: Tick
+): Time => {
+  return MIDI.ticksToSeconds(ticks, transport.bpm);
+};
+
+export const convertSecondsToTicks = (
   transport: Transport,
   time: Time
-): number => {
-  const numerator = transport.timeSignature?.[0] ?? 16;
-  const denominator = transport.timeSignature?.[1] ?? 16;
-  const beatsPerMeasure = numerator / denominator;
-  const beatDuration = 60 / transport.bpm;
-  const sixteenthDuration = beatDuration / 4;
-  return time * sixteenthDuration;
-  // return ToneTime(time * beatsPerMeasure * beatDuration).toSeconds();
+): Tick => {
+  return MIDI.secondsToTicks(time, transport.bpm);
 };

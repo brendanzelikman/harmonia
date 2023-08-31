@@ -45,7 +45,10 @@ export default function EditorPiano(props: PianoProps) {
     const onEnabled = () => {
       WebMidi.inputs.forEach((input) => {
         input.addListener("noteon", (e) => {
-          playNote(sampler, e.note.number);
+          attackSamplerNote(sampler, e.note.number);
+        });
+        input.addListener("noteoff", (e) => {
+          releaseSamplerNote(sampler, e.note.number);
         });
       });
     };

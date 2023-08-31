@@ -1,5 +1,5 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { durationToBeats, mod } from "appUtil";
+import { durationToTicks, mod } from "appUtil";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import { PresetScales } from "./presets/scales";
@@ -70,7 +70,7 @@ export default class Scales {
     const xmlNotes = notes.map((note) => {
       return MusicXML.createNote(note, {
         type: "quarter",
-        duration: durationToBeats("quarter"),
+        duration: durationToTicks("quarter"),
         voice: 1,
         staff: note >= 60 ? 1 : 2,
       });

@@ -1,6 +1,11 @@
 import { useState } from "react";
 import useEventListeners from "hooks/useEventListeners";
-import { isHoldingShift, isInputEvent } from "appUtil";
+import {
+  cancelEvent,
+  isHoldingCommand,
+  isHoldingShift,
+  isInputEvent,
+} from "appUtil";
 import { PatternEditorProps } from ".";
 
 interface PatternShortcutProps extends PatternEditorProps {
@@ -80,7 +85,10 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
             props.clearPattern(props.pattern);
           } else {
             if (props.cursor.hidden) return;
+            const onLast =
+              props.cursor.index === props.pattern.stream.length - 1;
             props.removePatternNote(props.pattern.id, props.cursor.index);
+            if (onLast) props.cursor.prev();
           }
         },
       },
@@ -97,6 +105,14 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       // Shift + Left Arrow = Skip Cursor Left
       ArrowLeft: {
         keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+
+          if (props.cursor.hidden) {
+            props.rotatePattern(props.pattern, -1);
+            return;
+          }
+
           if (isHoldingShift(e)) {
             rewindCursor();
           } else {
@@ -108,6 +124,14 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       // Shift + Right Arrow = Skip Cursor Right
       ArrowRight: {
         keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+
+          if (props.cursor.hidden) {
+            props.rotatePattern(props.pattern, 1);
+            return;
+          }
+
           if (isHoldingShift(e)) {
             forwardCursor();
           } else {
@@ -115,20 +139,28 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           }
         },
       },
-      // Up Arrow = Transpose Note Up
+      // Up Arrow = Transpose Up Pattern or Note
       ArrowUp: {
         keydown: (e) => {
-          if (props.cursor.hidden || !props.pattern) return;
-          e.preventDefault();
-          props.transposePatternNote(props.pattern, props.cursor.index, 1);
+          if (!props.pattern) return;
+          cancelEvent(e);
+          if (props.cursor.hidden) {
+            props.transposePattern(props.pattern, 1);
+          } else {
+            props.transposePatternNote(props.pattern, props.cursor.index, 1);
+          }
         },
       },
       // Down Arrow = Transpose Note Down
       ArrowDown: {
         keydown: (e) => {
-          if (props.cursor.hidden || !props.pattern) return;
-          e.preventDefault();
-          props.transposePatternNote(props.pattern, props.cursor.index, -1);
+          if (!props.pattern) return;
+          cancelEvent(e);
+          if (props.cursor.hidden) {
+            props.transposePattern(props.pattern, -1);
+          } else {
+            props.transposePatternNote(props.pattern, props.cursor.index, -1);
+          }
         },
       },
       Shift: {
@@ -150,32 +182,46 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       1: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          props.setDuration("16th");
+          props.setDuration("64th");
         },
       },
       // 2 = Select Eighth Note
       2: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
+          props.setDuration("32nd");
+        },
+      },
+      // 3 = Select 16th Note
+      3: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          props.setDuration("16th");
+        },
+      },
+      // 4 = Select Eighth Note
+      4: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
           props.setDuration("eighth");
         },
       },
-      // 3 = Select Quarter Note
-      3: {
+      // 5 = Select Quarter Note
+      5: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           props.setDuration("quarter");
         },
       },
-      // 4 = Select Half Note
-      4: {
+      // 6 = Select Half Note
+      6: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           props.setDuration("half");
         },
       },
-      // 5 = Select Whole Note
-      5: {
+      // 7 = Select Whole Note
+      7: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           props.setDuration("whole");
@@ -199,6 +245,17 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           const sanitizedInput = parseInt(input ?? "");
           if (isNaN(sanitizedInput)) return;
           props.rotatePattern(props.pattern, sanitizedInput);
+        },
+      },
+      // "r" = Prompt for repeat
+      r: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.pattern) return;
+          if (isHoldingCommand(e)) return;
+          const input = prompt("Repeat pattern N times:");
+          const sanitizedInput = parseInt(input ?? "");
+          if (isNaN(sanitizedInput)) return;
+          props.repeatPattern(props.pattern, sanitizedInput);
         },
       },
       // [ = Transpose Pattern Down
@@ -233,14 +290,14 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       ",": {
         keydown: (e) => {
           if (isInputEvent(e) || !props.pattern) return;
-          props.shrinkPattern(props.pattern);
+          props.diminishPattern(props.pattern);
         },
       },
       // . = Stretch Pattern
       ".": {
         keydown: (e) => {
           if (isInputEvent(e) || !props.pattern) return;
-          props.stretchPattern(props.pattern);
+          props.augmentPattern(props.pattern);
         },
       },
       // < = Halve Pattern

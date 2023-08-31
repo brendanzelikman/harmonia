@@ -3,25 +3,30 @@ import {
   defaultPattern,
   initializePattern,
   rotatePatternStream,
-  isRest,
   Pattern,
   PatternChord,
   PatternId,
   PatternNoId,
   PatternNote,
   PatternStream,
+  getStreamTicks,
+  isPatternValid,
 } from "types/patterns";
 import { initializeState } from "redux/util";
 import { AppThunk } from "redux/store";
-import { selectRoot } from "redux/selectors";
+import {
+  selectClipsByPatternId,
+  selectPattern,
+  selectRoot,
+} from "redux/selectors";
 
 import Scales from "types/scales";
 import { MIDI } from "types/midi";
 
 import { setSelectedPattern } from "./root";
-import { clamp, random, reverse, shuffle } from "lodash";
-import { MAX_SUBDIVISION } from "appConstants";
+import { clamp, inRange, random, reverse, shuffle } from "lodash";
 import { mod } from "appUtil";
+import { updateClips } from "./clips";
 
 const initialState = initializeState<PatternId, Pattern>([defaultPattern]);
 
@@ -62,6 +67,13 @@ export const patternsSlice = createSlice({
       state.allIds.push(pattern.id);
       state.byId[pattern.id] = pattern;
     },
+    addPatterns: (state, action: PayloadAction<Pattern[]>) => {
+      const patterns = action.payload;
+      patterns.forEach((pattern) => {
+        state.allIds.push(pattern.id);
+        state.byId[pattern.id] = pattern;
+      });
+    },
     removePattern: (state, action: PayloadAction<PatternId>) => {
       const patternId = action.payload;
       const index = state.allIds.findIndex((id) => id === patternId);
@@ -69,11 +81,28 @@ export const patternsSlice = createSlice({
       state.allIds.splice(index, 1);
       delete state.byId[patternId];
     },
-    updatePattern: (state, action: PayloadAction<Partial<Pattern>>) => {
+    removePatterns: (state, action: PayloadAction<PatternId[]>) => {
+      const patternIds = action.payload;
+      patternIds.forEach((patternId) => {
+        const index = state.allIds.findIndex((id) => id === patternId);
+        if (index === -1) return;
+        state.allIds.splice(index, 1);
+        delete state.byId[patternId];
+      });
+    },
+    _updatePattern: (state, action: PayloadAction<Partial<Pattern>>) => {
       const { id, ...rest } = action.payload;
       if (!id) return;
       if (!state.byId[id]) return;
       state.byId[id] = { ...state.byId[id], ...rest };
+    },
+    _updatePatterns: (state, action: PayloadAction<Partial<Pattern>[]>) => {
+      const patterns = action.payload;
+      patterns.forEach((pattern) => {
+        const { id, ...rest } = pattern;
+        if (!id) return;
+        state.byId[id] = { ...state.byId[id], ...rest };
+      });
     },
     addPatternNote: (state, action: PayloadAction<PatternAdd>) => {
       const { id, patternNote, asChord } = action.payload;
@@ -106,14 +135,14 @@ export const patternsSlice = createSlice({
       const patternChord: PatternChord = [patternNote];
       state.byId[id].stream.splice(index + 1, 0, patternChord);
     },
-    updatePatternNote: (state, action: PayloadAction<PatternUpdate>) => {
+    _updatePatternNote: (state, action: PayloadAction<PatternUpdate>) => {
       const { id, patternNote, index, asChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
 
       if (index < 0 || index > pattern.stream.length) return;
 
-      if (isRest(patternNote) || !asChord) {
+      if (MIDI.isRest(patternNote) || !asChord) {
         state.byId[id].stream[index] = [patternNote];
       } else {
         state.byId[id].stream[index].push(patternNote);
@@ -134,7 +163,7 @@ export const patternsSlice = createSlice({
 
       pattern.stream = pattern.stream.map((chord) => {
         return chord.map((note) => {
-          if (isRest(note)) return note; // Don't transpose rests
+          if (MIDI.isRest(note)) return note; // Don't transpose rests
           return { ...note, MIDI: note.MIDI + transpose };
         });
       });
@@ -175,7 +204,7 @@ export const patternsSlice = createSlice({
         .fill(0)
         .map((_, i) => pattern.stream[i % pattern.stream.length]);
     },
-    stretchPattern: (state, action: PayloadAction<PatternId>) => {
+    augmentPattern: (state, action: PayloadAction<PatternId>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
       if (!pattern) return;
@@ -183,11 +212,15 @@ export const patternsSlice = createSlice({
       pattern.stream = pattern.stream.map((chord) => {
         return chord.map((note) => ({
           ...note,
-          duration: clamp(note.duration * 2, 1, MAX_SUBDIVISION),
+          duration: clamp(
+            note.duration * 2,
+            MIDI.SixtyFourthNoteTicks,
+            MIDI.WholeNoteTicks
+          ),
         }));
       });
     },
-    shrinkPattern: (state, action: PayloadAction<PatternId>) => {
+    diminishPattern: (state, action: PayloadAction<PatternId>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
       if (!pattern) return;
@@ -195,7 +228,11 @@ export const patternsSlice = createSlice({
       pattern.stream = pattern.stream.map((chord) => {
         return chord.map((note) => ({
           ...note,
-          duration: clamp(note.duration / 2, 1, MAX_SUBDIVISION),
+          duration: clamp(
+            note.duration / 2,
+            MIDI.SixtyFourthNoteTicks,
+            MIDI.WholeNoteTicks
+          ),
         }));
       });
     },
@@ -238,7 +275,7 @@ export const patternsSlice = createSlice({
         const seed = Math.random();
 
         if (seed < restPercent) {
-          stream.push([{ duration: MIDI.SixteenthNote, MIDI: MIDI.Rest }]);
+          stream.push([{ duration: MIDI.SixteenthNoteTicks, MIDI: MIDI.Rest }]);
         } else {
           const noteCount = 1;
           const scales = Scales.PresetGroups["Basic Scales"];
@@ -250,7 +287,7 @@ export const patternsSlice = createSlice({
               const index = random(0, midiNotes.length - 1);
               const midi = midiNotes[index];
               midiNotes = midiNotes.filter((note) => note !== midi);
-              return { duration: MIDI.SixteenthNote, MIDI: midi };
+              return { duration: MIDI.SixteenthNoteTicks, MIDI: midi };
             });
           stream.push(chord);
         }
@@ -271,25 +308,89 @@ export const patternsSlice = createSlice({
 export const {
   setPatternIds,
   addPattern,
+  addPatterns,
   removePattern,
-  updatePattern,
+  removePatterns,
+  _updatePattern,
+  _updatePatterns,
   addPatternNote,
   insertPatternNote,
   removePatternNote,
-  updatePatternNote,
+  _updatePatternNote,
   transposePattern,
   rotatePattern,
   repeatPattern,
   halvePattern,
   lengthenPattern,
-  stretchPattern,
-  shrinkPattern,
+  augmentPattern,
+  diminishPattern,
   shufflePattern,
   phasePattern,
   reversePattern,
   randomizePattern,
   clearPattern,
 } = patternsSlice.actions;
+
+export const updatePattern =
+  (pattern: Partial<Pattern> = defaultPattern): AppThunk =>
+  (dispatch, getState) => {
+    if (!pattern.id) return;
+
+    // Don't update the pattern if it's invalid
+    if (pattern.stream && !isPatternValid(pattern as Pattern)) return;
+    dispatch(_updatePattern(pattern));
+
+    // Update the duration of any clips that use this pattern
+    if (!pattern.stream) return;
+    const duration = getStreamTicks(pattern.stream);
+    const state = getState();
+    const patternClips = selectClipsByPatternId(state, pattern.id);
+    const updatedClips = patternClips.map((clip) => {
+      if (clip.duration !== undefined) return clip;
+      return { ...clip, duration };
+    });
+    dispatch(updateClips(updatedClips));
+  };
+
+export const updatePatterns =
+  (patterns: Partial<Pattern>[] = []): AppThunk =>
+  (dispatch, getState) => {
+    // Don't update the patterns if they're invalid
+    if (patterns.some((p) => p.stream && !isPatternValid(p as Pattern))) return;
+    dispatch(_updatePatterns(patterns));
+
+    // Update the duration of any clips that use these patterns
+    const state = getState();
+    const patternClips = patterns
+      .map((pattern) => selectClipsByPatternId(state, pattern.id as PatternId))
+      .flat();
+    const patternDurations = patterns.map((pattern) => {
+      if (!pattern.stream) return 0;
+      return getStreamTicks(pattern.stream);
+    });
+    const updatedClips = patternClips.map((clip, i) => {
+      if (clip.duration !== undefined) return clip;
+      return { ...clip, duration: patternDurations[i] };
+    });
+    dispatch(updateClips(updatedClips));
+  };
+
+export const updatePatternNote =
+  ({ patternNote, index, id, asChord }: PatternUpdate): AppThunk =>
+  (dispatch, getState) => {
+    if (!inRange(patternNote.MIDI, MIDI.NoteMin, MIDI.NoteMax)) return;
+    dispatch(_updatePatternNote({ patternNote, index, id, asChord }));
+
+    const state = getState();
+    const pattern = selectPattern(state, id);
+    const patternClips = selectClipsByPatternId(state, id);
+    const duration = getStreamTicks(pattern?.stream as PatternStream);
+    const updatedClips = patternClips.map((clip) => {
+      if (clip.duration !== undefined) return clip;
+      return { ...clip, duration };
+    });
+    dispatch(updateClips(updatedClips));
+  };
 
 export const createPattern =
   (
@@ -301,6 +402,13 @@ export const createPattern =
       dispatch(addPattern(newPattern));
       resolve(newPattern.id);
     });
+  };
+
+export const createPatterns =
+  (patterns: Partial<PatternNoId>[] = []): AppThunk =>
+  (dispatch) => {
+    const newPatterns = patterns.map((pattern) => initializePattern(pattern));
+    dispatch(addPatterns(newPatterns));
   };
 
 export const deletePattern =

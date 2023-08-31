@@ -2,6 +2,7 @@ import { useDrag } from "react-dnd";
 import { Clip } from "types/clips";
 import { Transform } from "types/transform";
 import { ClipProps } from "./Clip";
+import { subdivisionToTicks, ticksToColumns } from "appUtil";
 
 interface DropResult {
   dropEffect: string;
@@ -31,7 +32,9 @@ export function useClipDrag(props: ClipProps) {
 
         // Compute the offset of the drag
         const rowOffset = item.hoveringRow - item.rowIndex;
-        const colOffset = item.hoveringColumn - 1 - clip.startTime;
+        const clipCol = ticksToColumns(clip.tick, props.subdivision);
+        const colOffset = item.hoveringColumn - clipCol - 1;
+        const tickOffset = colOffset * subdivisionToTicks(props.subdivision);
 
         // Get the drop result
         const dropResult = monitor.getDropResult() as DropResult;
@@ -66,7 +69,7 @@ export function useClipDrag(props: ClipProps) {
           newClips.push({
             ...clip,
             trackId: newTrack.trackId,
-            startTime: clip.startTime + colOffset,
+            tick: clip.tick + tickOffset,
           });
         }
 
@@ -87,13 +90,13 @@ export function useClipDrag(props: ClipProps) {
           newTransforms.push({
             ...transform,
             trackId: newTrack.trackId,
-            time: transform.time + colOffset,
+            tick: transform.tick + tickOffset,
           });
         }
 
         // Make sure the entire operation is valid
-        if (newClips.some((clip) => clip.startTime < 0)) return;
-        if (newTransforms.some((transform) => transform.time < 0)) return;
+        if (newClips.some((clip) => clip.tick < 0)) return;
+        if (newTransforms.some((transform) => transform.tick < 0)) return;
 
         // If not copying, update the clips and transforms
         if (!copying) {

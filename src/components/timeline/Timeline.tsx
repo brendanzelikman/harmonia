@@ -6,7 +6,7 @@ import DataGrid, {
 } from "react-data-grid";
 import { Row, TimelineProps } from ".";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Track from "components/timeline/track";
+import Track from "./track";
 import TimeFormatter from "./time";
 import "./Timeline.css";
 import Cell from "./cell";
@@ -14,17 +14,12 @@ import * as Constants from "appConstants";
 import TimelineClips from "./clips";
 import TimelineTransforms from "./transforms";
 import DataGridBackground from "./Background";
-import useEventListeners from "hooks/useEventListeners";
-import {
-  cancelEvent,
-  isHoldingCommand,
-  isHoldingShift,
-  isInputEvent,
-} from "appUtil";
 import TimelineContextMenu from "./ContextMenu";
+import TimelineCursor from "./Cursor";
+import useTimelineShortcuts from "./useTimelineShortcuts";
 
 export function Timeline(props: TimelineProps) {
-  const { selectedTrackId, trackMap, cellWidth } = props;
+  const { trackMap, cellWidth } = props;
 
   const [timeline, setTimeline] = useState<DataGridHandle>();
   const background = useRef<HTMLDivElement>(null);
@@ -38,29 +33,6 @@ export function Timeline(props: TimelineProps) {
       }
     },
     [timeline]
-  );
-
-  useEffect(() => {
-    return () => {
-      props.hideEditor();
-    };
-  }, []);
-
-  useEventListeners(
-    {
-      b: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          e.preventDefault();
-          if (timeline?.element)
-            timeline.element.scroll({
-              left: props.time * cellWidth,
-              behavior: "smooth",
-            });
-        },
-      },
-    },
-    [timeline, timeline?.element, props.time, cellWidth]
   );
 
   // Create a memoized list of rows for the DataGrid
@@ -105,211 +77,6 @@ export function Timeline(props: TimelineProps) {
     return rows;
   }, [trackMap]);
 
-  const [holding1, setHolding1] = useState(false);
-  const [holding2, setHolding2] = useState(false);
-  const [holding3, setHolding3] = useState(false);
-
-  useEventListeners(
-    {
-      0: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          if (holding1) {
-            props.updateSelectedTransforms({ N: 0 });
-          }
-          if (holding2) {
-            props.updateSelectedTransforms({ T: 0 });
-          }
-          if (holding3) {
-            props.updateSelectedTransforms({ t: 0 });
-          }
-        },
-      },
-      ")": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          if (holding1) {
-            props.updateSelectedTransforms({ N: 0 });
-          }
-          if (holding2) {
-            props.updateSelectedTransforms({ T: 0 });
-          }
-          if (holding3) {
-            props.updateSelectedTransforms({ t: 0 });
-          }
-        },
-      },
-      1: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding1(true);
-        },
-        keyup: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding1(false);
-        },
-      },
-      "!": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding1(true);
-        },
-        keyup: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding1(false);
-        },
-      },
-      2: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding2(true);
-        },
-        keyup: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding2(false);
-        },
-      },
-      "@": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding2(true);
-        },
-        keyup: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding2(false);
-        },
-      },
-      3: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding3(true);
-        },
-        keyup: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding3(false);
-        },
-      },
-      "#": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding3(true);
-        },
-        keyup: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          setHolding3(false);
-        },
-      },
-      ArrowUp: {
-        keydown: (e) => {
-          if (isInputEvent(e) || props.showingEditor) return;
-          cancelEvent(e);
-
-          const holdingShift = isHoldingShift(e);
-
-          if (holding1) {
-            props.offsetSelectedTransforms({
-              N: holdingShift ? 12 : 1,
-              T: 0,
-              t: 0,
-            });
-          }
-          if (holding2) {
-            props.offsetSelectedTransforms({
-              N: 0,
-              T: holdingShift ? 12 : 1,
-              t: 0,
-            });
-          }
-          if (holding3) {
-            props.offsetSelectedTransforms({
-              N: 0,
-              T: 0,
-              t: holdingShift ? 12 : 1,
-            });
-          }
-
-          // Select the previous track
-          if (holding1 || holding2 || holding3) return;
-          if (!selectedTrackId) return;
-          const trackIds = rows.map((row) => row.trackId).filter(Boolean);
-          const selectedIndex = trackIds.indexOf(selectedTrackId);
-          if (selectedIndex === -1) return;
-          const newIndex = selectedIndex - 1;
-          if (newIndex < 0) return;
-          const newTrackId = trackIds[newIndex];
-          if (!newTrackId) return;
-          props.setSelectedTrack(newTrackId);
-        },
-      },
-      ArrowDown: {
-        keydown: (e) => {
-          if (isInputEvent(e) || props.showingEditor) return;
-          cancelEvent(e);
-
-          const holdingShift = isHoldingShift(e);
-
-          if (holding1) {
-            props.offsetSelectedTransforms({
-              N: holdingShift ? -12 : -1,
-              T: 0,
-              t: 0,
-            });
-          }
-          if (holding2) {
-            props.offsetSelectedTransforms({
-              N: 0,
-              T: holdingShift ? -12 : -1,
-              t: 0,
-            });
-          }
-          if (holding3) {
-            props.offsetSelectedTransforms({
-              N: 0,
-              T: 0,
-              t: holdingShift ? -12 : -1,
-            });
-          }
-
-          if (holding1 || holding2 || holding3) return;
-          if (!selectedTrackId) return;
-
-          // Select the next track
-          const trackIds = rows.map((row) => row.trackId).filter(Boolean);
-          const selectedIndex = trackIds.indexOf(selectedTrackId);
-          if (selectedIndex === -1) return;
-          const newIndex = selectedIndex + 1;
-          if (newIndex >= trackIds.length) return;
-          const newTrackId = trackIds[newIndex];
-          if (!newTrackId) return;
-          props.setSelectedTrack(newTrackId);
-        },
-      },
-      v: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingCommand(e) || props.showingEditor)
-            return;
-          cancelEvent(e);
-          props.pasteClipsAndTransforms(rows);
-        },
-      },
-    },
-    [selectedTrackId, rows, props.showingEditor, holding1, holding2, holding3]
-  );
-
   // Create the track column for the DataGrid
   const trackColumn = useMemo(
     (): Column<Row> => ({
@@ -328,7 +95,7 @@ export function Timeline(props: TimelineProps) {
       },
       // Return the top-left corner cell
       headerRenderer: () => (
-        <div className="rdg-corner bg-zinc-900 h-full border-b border-b-slate-50/10">
+        <div className="rdg-corner bg-zinc-900 h-full border-b border-b-slate-50/10 z-[100]">
           <div className="h-full bg-gradient-to-r from-gray-800 to-gray-900 backdrop-blur-md"></div>
         </div>
       ),
@@ -361,7 +128,7 @@ export function Timeline(props: TimelineProps) {
   // Create the body cell columns for the DataGrid
   const columns = useMemo((): Column<Row>[] => {
     const columns: Column<Row>[] = [];
-    const beatCount = Constants.MEASURE_COUNT * Constants.TIMELINE_SUBDIVISION;
+    const beatCount = Constants.MEASURE_COUNT * Constants.MAX_SUBDIVISION;
     // Add the body cells
     for (let i = 1; i <= beatCount; i++) {
       columns.push(column(`${i}`));
@@ -382,14 +149,16 @@ export function Timeline(props: TimelineProps) {
 
   useEffect(() => {
     if (!timeline?.element) return;
-    if (props.state === "stopped" && props.time === 0) {
+    if (props.state === "stopped" && props.tick === 0) {
       timeline.element.scrollTo({
         left: 0,
         behavior: "smooth",
       });
       return;
     }
-  }, [props.time, timeline, props.state]);
+  }, [props.tick, timeline, props.state]);
+
+  useTimelineShortcuts({ ...props, rows });
 
   return (
     <div id="timeline" className="relative w-full h-full">
@@ -405,6 +174,7 @@ export function Timeline(props: TimelineProps) {
         enableVirtualization={true}
         onScroll={onScroll}
       />
+      {timeline ? <TimelineCursor timeline={timeline} /> : null}
       {timeline ? <TimelineClips timeline={timeline} rows={rows} /> : null}
       {timeline ? <TimelineTransforms timeline={timeline} rows={rows} /> : null}
     </div>

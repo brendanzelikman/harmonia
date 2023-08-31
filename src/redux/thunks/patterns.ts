@@ -1,4 +1,4 @@
-import { beatsToSubdivision } from "appUtil";
+import { ticksToSubdivision } from "appUtil";
 import {
   selectPattern,
   selectPatternTrack,
@@ -6,12 +6,29 @@ import {
   selectTransport,
 } from "redux/selectors";
 import { createClip } from "redux/slices/clips";
-import { convertTimeToSeconds } from "redux/slices/transport";
+
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
 import { MIDI } from "types/midi";
-import { PatternId, realizePattern, isRest } from "types/patterns";
+import { PatternId, realizePattern } from "types/patterns";
 import { defaultScale } from "types/scales";
+import { Midi } from "@tonejs/midi";
+import { createPattern } from "redux/slices/patterns";
+import { convertTicksToSeconds } from "redux/slices/transport";
+
+// Start reading files from the file system
+export const readMIDIFiles = (): AppThunk => (dispatch, getState) => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".mid";
+  input.addEventListener("change", (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) {
+      dispatch(createPatternsFromMIDI(file));
+    }
+  });
+  input.click();
+};
 
 export const playPattern =
   (id: PatternId): AppThunk =>
@@ -33,10 +50,10 @@ export const playPattern =
       const chord = stream[i];
       if (!chord.length) continue;
       const firstNote = chord[0];
-      const duration = convertTimeToSeconds(transport, firstNote.duration);
-      const subdivision = beatsToSubdivision(firstNote.duration);
-      if (isRest(firstNote)) {
-        time += duration;
+      const seconds = convertTicksToSeconds(transport, firstNote.duration);
+      const subdivision = ticksToSubdivision(firstNote.duration);
+      if (MIDI.isRest(firstNote)) {
+        time += seconds;
         continue;
       }
       const pitches = chord.map((note) => MIDI.toPitch(note.MIDI));
@@ -44,14 +61,14 @@ export const playPattern =
         if (!sampler.loaded) return;
         sampler.triggerAttackRelease(pitches, subdivision);
       }, time * 1000);
-      time += duration;
+      time += seconds;
     }
   };
 
 export const addSelectedPatternToTimeline =
   (): AppThunk => (dispatch, getState) => {
     const state = getState();
-    const { time } = selectTransport(state);
+    const { tick } = selectTransport(state);
 
     const { selectedPatternId, selectedTrackId } = selectRoot(state);
     if (!selectedPatternId || !selectedTrackId) return;
@@ -62,7 +79,44 @@ export const addSelectedPatternToTimeline =
     const track = selectPatternTrack(state, selectedTrackId);
     if (!track) return;
 
-    dispatch(
-      createClip({ patternId: pattern.id, trackId: track.id, startTime: time })
-    );
+    dispatch(createClip({ patternId: pattern.id, trackId: track.id, tick }));
+  };
+
+// Create pattern from MIDI file
+export const createPatternsFromMIDI =
+  (file: File): AppThunk =>
+  async (dispatch, getState) => {
+    const state = getState();
+    const transport = selectTransport(state);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      if (!e.target?.result) return;
+      const midi = new Midi(e.target.result as ArrayBuffer);
+      const tracks = midi.tracks.map((track) => track.notes);
+
+      tracks.forEach((track) => {
+        const combinedNotes = track.reduce(
+          (acc, note) => ({
+            ...acc,
+            [note.time]: {
+              ...acc[note.time],
+              midi: [...(acc[note.time]?.midi || []), note.midi],
+              duration: note.duration ?? (acc[note.time]?.duration || 0),
+            },
+          }),
+          {} as Record<number, { midi: number[]; duration: number }>
+        );
+        const pattern = {
+          name: file.name || "New Pattern",
+          stream: Object.values(combinedNotes).map((note) =>
+            note.midi.map((MIDI) => ({
+              duration: convertTicksToSeconds(transport, note.duration),
+              MIDI,
+            }))
+          ),
+        };
+        dispatch(createPattern(pattern));
+      });
+    };
+    reader.readAsArrayBuffer(file);
   };

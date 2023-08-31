@@ -1,6 +1,6 @@
-import { DEFAULT_DURATION, MAX_SUBDIVISION } from "appConstants";
-import { beatsToDuration } from "appUtil";
-import { Duration, Note, XML } from "types/units";
+import { DEFAULT_DURATION } from "appConstants";
+import { ticksToDuration } from "appUtil";
+import { Duration, Note, XML } from "./units";
 import { MIDI } from "./midi";
 
 const declaration: XML =
@@ -10,7 +10,7 @@ const doctype: XML =
 
 type NoteOptions = Partial<{
   duration: number;
-  beam: "begin" | "continue" | "end";
+  beam: string;
   type: Duration;
   stem: "up" | "down";
   voice: number;
@@ -18,6 +18,8 @@ type NoteOptions = Partial<{
   isChord: boolean;
   isRest: boolean;
   backup: number;
+  dot: boolean;
+  triplet: boolean;
 }>;
 
 export default class MusicXML {
@@ -25,15 +27,17 @@ export default class MusicXML {
     const letter = MIDI.toLetter(note);
     const octave = MIDI.toOctave(note);
     const offset = MIDI.toOffset(note);
-    // const beam = noteOptions?.beam || "continue";
+    const beam = noteOptions?.beam;
     const duration = noteOptions?.duration || 1;
     const type = noteOptions?.type || DEFAULT_DURATION;
     const stem = noteOptions?.stem || "up";
-    const isChord = noteOptions?.isChord || false;
-    const isRest = noteOptions?.isRest || false;
+    const isChord = !!noteOptions?.isChord;
+    const isRest = !!noteOptions?.isRest;
     const voice = 1;
     const staff = noteOptions?.staff || 1;
     const backup = noteOptions?.backup;
+    const dot = noteOptions?.dot || MIDI.isDotted({ duration });
+    const triplet = noteOptions?.triplet || MIDI.isTriplet({ duration });
 
     return `${
       backup
@@ -63,16 +67,64 @@ export default class MusicXML {
           <duration>${duration}</duration>
           <voice>${voice}</voice>
           <type>${type}</type>
+          ${
+            triplet
+              ? `<time-modification>
+            <actual-notes>3</actual-notes>
+            <normal-notes>2</normal-notes>
+          </time-modification>`
+              : ""
+          }
           <stem>${stem}</stem>
           <staff>${staff}</staff>
+          ${dot ? `<dot />` : ""}
+          ${
+            !!beam
+              ? `${
+                  duration <= MIDI.EighthNoteTicks
+                    ? `<beam number="1">${beam}</beam>`
+                    : ``
+                }${
+                  duration <= MIDI.SixteenthNoteTicks
+                    ? `<beam number="2">${beam}</beam>`
+                    : ``
+                }${
+                  duration <= MIDI.ThirtySecondNoteTicks
+                    ? `<beam number="3">${beam}</beam>`
+                    : ``
+                }${
+                  duration <= MIDI.SixtyFourthNoteTicks
+                    ? `<beam number="4">${beam}</beam>`
+                    : ``
+                }`
+              : ""
+          }
         </note>`;
   }
 
+  // ${
+  //   triplet && !!beam
+  //     ? beam === "begin"
+  //       ? `
+  // <notations>
+  //   <tuplet type="start" bracket="no" />
+  // </notations>`
+  //       : beam === "end"
+  //       ? `
+  // <notations>
+  //   <tuplet type="stop" />
+  // </notations>`
+  //       : ""
+  //     : ""
+  // }
+
   static createChord(notes: Note[], noteOptions?: NoteOptions): XML {
     const duration = noteOptions?.duration || 1;
-    const beam = noteOptions?.beam || "continue";
-    const type = noteOptions?.type || beatsToDuration(duration);
+    const beam = noteOptions?.beam;
+    const type = noteOptions?.type || ticksToDuration(duration);
     const stem = noteOptions?.stem || "up";
+    const dot = noteOptions?.dot || MIDI.isDotted({ duration });
+    const triplet = noteOptions?.triplet || MIDI.isTriplet({ duration });
 
     const pivotNote = 58;
     const allNoteOptions = notes.map((note, i, arr) => {
@@ -101,6 +153,8 @@ export default class MusicXML {
           (staff === 2 && notFirstInStaff2),
         isRest: note === MIDI.Rest,
         backup: uniqueStaff ? duration : undefined,
+        dot,
+        triplet,
       };
 
       return noteOptions;
@@ -120,6 +174,9 @@ export default class MusicXML {
         duration,
         isRest: true,
         backup: duration,
+        dot,
+        triplet,
+        beam,
       })
     );
     return [...xmlNotes, ...staffRests].join("");
@@ -153,7 +210,7 @@ export default class MusicXML {
 
     return `<measure number="${number}">
         <attributes>
-          <divisions>${MAX_SUBDIVISION / 4}</divisions>
+          <divisions>${MIDI.PPQ}</divisions>
           ${number === 1 ? keySignature : ""} 
           ${number === 1 ? timeSignature : ""}
           ${number === 1 ? clefs : ""}

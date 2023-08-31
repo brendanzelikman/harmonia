@@ -1,4 +1,4 @@
-import ContextMenu from "components/ContextMenu";
+import ContextMenu, { ContextMenuOption } from "../ContextMenu";
 import { ConnectedProps, connect } from "react-redux";
 import { selectPattern, selectRoot, selectTrack } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
@@ -15,7 +15,7 @@ import {
 } from "redux/thunks";
 import { Row } from ".";
 import { UndoTypes } from "redux/undoTypes";
-import { isPatternTrack } from "types/tracks";
+import { isPatternTrack, isScaleTrack } from "types/tracks";
 import { addTransformToTimeline } from "redux/thunks/transforms";
 
 const mapStateToProps = (state: RootState) => {
@@ -45,6 +45,15 @@ const mapStateToProps = (state: RootState) => {
   const areTransformsInClipboard = clipboard?.transforms?.length > 0;
   const isClipboardEmpty = !areClipsInClipboard && !areTransformsInClipboard;
 
+  const canCut = !isSelectionEmpty;
+  const canCopy = !isSelectionEmpty;
+  const canPaste =
+    !isClipboardEmpty &&
+    selectedTrack &&
+    (isScaleTrack(selectedTrack) ? !areClipsInClipboard : true);
+  const canDuplicate = !isSelectionEmpty && selectedTrack;
+  const canDelete = !isSelectionEmpty;
+  const canExport = areClipsSelected;
   const canUndo = state.timeline.past.length > 0;
   const canRedo = state.timeline.future.length > 0;
 
@@ -52,10 +61,12 @@ const mapStateToProps = (state: RootState) => {
     selectedTrack,
     isPatternTrackSelected,
     selectedPattern,
-    areClipsSelected,
-    areTransformsSelected,
-    isSelectionEmpty,
-    isClipboardEmpty,
+    canCut,
+    canCopy,
+    canPaste,
+    canDuplicate,
+    canDelete,
+    canExport,
     canUndo,
     canRedo,
     N: toolkit?.chromaticTranspose,
@@ -94,69 +105,85 @@ interface Props extends TimelineContextMenuProps {
 export default connector(TimelineContextMenu);
 
 function TimelineContextMenu(props: Props) {
+  const Undo = {
+    label: "Undo Last Action",
+    onClick: props.undoTimeline,
+    disabled: !props.canUndo,
+  };
+  const Redo = {
+    label: "Redo Last Action",
+    onClick: props.redoTimeline,
+    disabled: !props.canRedo,
+    divideEnd: true,
+  };
+  const Cut = {
+    label: `Cut Selection`,
+    onClick: props.cutClipsAndTransforms,
+    disabled: !props.canCut,
+  };
+  const Copy = {
+    label: `Copy Selection`,
+    onClick: props.copyClipsAndTransforms,
+    disabled: !props.canCopy,
+  };
+  const Paste = {
+    label: `Paste From Clipboard`,
+    onClick: () => props.pasteClipsAndTransforms(props.rows),
+    disabled: !props.canPaste,
+    divideEnd: !props.canDuplicate && !props.canDelete && !props.canExport,
+  };
+  const Duplicate = {
+    label: "Duplicate Selection",
+    onClick: () => props.pasteClipsAndTransforms(props.rows),
+    disabled: !props.canDuplicate,
+  };
+  const Delete = {
+    label: `Delete Selection`,
+    onClick: props.deleteClipsAndTransforms,
+    disabled: !props.canDelete,
+  };
+  const Export = {
+    label: "Export to MIDI",
+    onClick: props.exportClips,
+    disabled: !props.canExport,
+    divideEnd: true,
+  };
+  const AddScaleTrack = {
+    label: "Add Scale Track",
+    onClick: props.addScaleTrack,
+  };
+  const AddPatternTrack = {
+    label: "Add Pattern Track",
+    onClick: props.addPatternTrack,
+    disabled: !props.selectedTrack,
+  };
+  const AddPattern = {
+    label: `Add ${props.selectedPattern?.name ?? "New Pattern"}`,
+    onClick: props.addPattern,
+    disabled: !props.isPatternTrackSelected,
+  };
+  const AddTransform = {
+    label: `Add Transform ${
+      props.selectedTrack ? `(N${props.N}, T${props.T}, t${props.t})` : ""
+    }`,
+    onClick: () => props.addTransform(),
+    disabled: !props.selectedTrack,
+  };
+
   const menuOptions = [
-    {
-      label: "Undo Last Action",
-      onClick: props.undoTimeline,
-      disabled: !props.canUndo,
-    },
-    {
-      label: "Redo Last Action",
-      onClick: props.redoTimeline,
-      disabled: !props.canRedo,
-      divideEnd: true,
-    },
-    {
-      label: "Select All Objects",
-      onClick: props.selectAllClipsAndTransforms,
-    },
-    {
-      label: `Cut Selection`,
-      onClick: props.cutClipsAndTransforms,
-      disabled: props.isSelectionEmpty,
-    },
-    {
-      label: `Copy Selection`,
-      onClick: props.copyClipsAndTransforms,
-      disabled: props.isSelectionEmpty,
-    },
-    {
-      label: `Paste From Clipboard`,
-      onClick: () => props.pasteClipsAndTransforms(props.rows),
-      disabled: props.isClipboardEmpty || !props.selectedTrack,
-    },
-    {
-      label: `Delete Selection`,
-      onClick: props.deleteClipsAndTransforms,
-      disabled: props.isSelectionEmpty,
-    },
-    {
-      label: `Export Selection to MIDI`,
-      onClick: props.exportClips,
-      disabled: !props.areClipsSelected,
-      divideEnd: true,
-    },
-    {
-      label: "Add Scale Track",
-      onClick: props.addScaleTrack,
-    },
-    {
-      label: "Add Pattern Track",
-      onClick: props.addPatternTrack,
-      disabled: !props.selectedTrack,
-    },
-    {
-      label: `Add ${props.selectedPattern?.name ?? "New Pattern"}`,
-      onClick: props.addPattern,
-      disabled: !props.isPatternTrackSelected,
-    },
-    {
-      label: `Add Transform ${
-        props.selectedTrack ? `(N${props.N}, T${props.T}, t${props.t})` : ""
-      }`,
-      onClick: () => props.addTransform(),
-      disabled: !props.selectedTrack,
-    },
+    Undo,
+    Redo,
+    props.canCut ? Cut : null,
+    props.canCopy ? Copy : null,
+    props.canPaste ? Paste : null,
+    props.canDuplicate ? Duplicate : null,
+    props.canDelete ? Delete : null,
+    props.canExport ? Export : null,
+    AddScaleTrack,
+    AddPatternTrack,
+    AddPattern,
+    AddTransform,
   ];
-  return <ContextMenu targetId="timeline" options={menuOptions} />;
+  const options = menuOptions.filter(Boolean) as ContextMenuOption[];
+  return <ContextMenu targetId="timeline" options={options} />;
 }

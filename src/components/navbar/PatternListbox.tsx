@@ -5,6 +5,7 @@ import {
   selectRoot,
   selectPatterns,
   selectCustomPatterns,
+  selectSelectedPattern,
 } from "redux/selectors";
 import {
   clearTimelineState,
@@ -20,14 +21,12 @@ import { createPattern } from "redux/slices/patterns";
 const mapStateToProps = (state: RootState) => {
   const { showingEditor, editorState, selectedPatternId } = selectRoot(state);
   const patterns = selectPatterns(state);
-  const activePattern = selectedPatternId
-    ? patterns.find((pattern) => pattern.id === selectedPatternId)
-    : undefined;
+  const selectedPattern = selectSelectedPattern(state);
   const customPatterns = selectCustomPatterns(state);
   return {
     onPatternsEditor: showingEditor && editorState === "patterns",
     patterns,
-    activePattern,
+    selectedPattern,
     customPatterns,
   };
 };
@@ -47,7 +46,7 @@ const onPatternsClick = (): AppThunk => (dispatch, getState) => {
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    setPatternId: (patternId: PatternId) =>
+    setSelectedPattern: (patternId: PatternId) =>
       dispatch(setSelectedPattern(patternId)),
     onPatternsClick: () => {
       dispatch(onPatternsClick());
@@ -72,7 +71,7 @@ function PatternListbox(props: Props) {
         className={({ active }) =>
           `${
             active ? "text-white-800 bg-emerald-500" : "text-white-900"
-          } cursor-default select-none font-light relative py-2 pl-4 pr-8`
+          } cursor-default select-none font-light relative py-1.5 pl-4 pr-8`
         }
         value={pattern.id}
       >
@@ -103,15 +102,15 @@ function PatternListbox(props: Props) {
   }, []);
 
   useEffect(() => {
-    if (!props.activePattern) {
+    if (!props.selectedPattern) {
       const firstPattern = props.patterns?.[0];
       if (firstPattern) {
-        props.setPatternId(firstPattern.id);
+        props.setSelectedPattern(firstPattern.id);
       }
       return;
     }
-    props.setPatternId(props.activePattern.id);
-  }, [props.activePattern, props.patterns]);
+    props.setSelectedPattern(props.selectedPattern.id);
+  }, [props.selectedPattern, props.patterns]);
 
   const PatternGroups: Record<string, Pattern[]> = {
     ...Patterns.PresetGroups,
@@ -136,18 +135,18 @@ function PatternListbox(props: Props) {
         Selected Pattern
       </label>
       <Listbox
-        value={props.activePattern?.id ?? ""}
-        onChange={props.setPatternId}
+        value={props.selectedPattern?.id ?? ""}
+        onChange={props.setSelectedPattern}
       >
         {({ open }) => (
           <div className={`relative`}>
             <Listbox.Button className="select-none relative w-full h-10 items-center flex cursor-pointer rounded-md bg-gray-900 text-white text-left shadow-md focus:outline-none">
               <span
-                className={`block w-full truncate px-1.5 text-[14px] text-gray-200 font-thin ${
-                  !props.activePattern?.id ? "opacity-75" : "opacity-100"
+                className={`block w-full truncate px-1.5 text-[14px] text-gray-200 font-light ${
+                  !props.selectedPattern?.id ? "opacity-75" : "opacity-100"
                 }`}
               >
-                {props.activePattern?.name}
+                {props.selectedPattern?.name}
               </span>
 
               <div
@@ -156,7 +155,7 @@ function PatternListbox(props: Props) {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  if (props.activePattern?.id) props.onPatternsClick();
+                  if (props.selectedPattern?.id) props.onPatternsClick();
                 }}
               >
                 <BsPencil
@@ -177,31 +176,32 @@ function PatternListbox(props: Props) {
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Listbox.Options className="absolute z-10 w-full py-1 border border-white/50 text-base bg-slate-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+              <Listbox.Options className="font-nunito absolute z-10 w-full py-1 bg-slate-900 border border-white/50 text-base rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
                 {Patterns.PresetCategories.map((category) => (
                   <div
                     key={category}
                     className={`group relative h-full bg-slate-300/50 ${
                       [
-                        "Basic Durations",
-                        "Basic Patterns",
                         "Basic Chords",
+                        "Basic Melodies",
+                        "Basic Durations",
+                        "Simple Rhythms",
                       ].includes(category)
                         ? "pt-0.5"
                         : ""
                     }`}
                   >
                     <div
-                      className={`px-3 py-2 text-sm font-medium text-white bg-slate-800 ${
-                        props.activePattern &&
-                        isPatternInCategory(props.activePattern, category)
+                      className={`px-3 py-1.5 text-sm font-light text-white bg-slate-900/90 backdrop-blur ${
+                        props.selectedPattern &&
+                        isPatternInCategory(props.selectedPattern, category)
                           ? "text-emerald-500"
                           : "bg-slate-800"
                       } group-hover:bg-emerald-600 group-hover:text-white`}
                     >
                       {category}
                     </div>
-                    <div className="bg-slate-800 border border-white/50 rounded z-50 top-0 right-0 translate-x-[100%] absolute hidden group-hover:block">
+                    <div className="font-nunito bg-slate-800 border border-white/50 rounded z-50 top-0 right-0 translate-x-[100%] absolute hidden group-hover:block">
                       <div className="h-full flex flex-col">
                         {PatternGroups[category].map((pattern) =>
                           renderPattern(pattern)

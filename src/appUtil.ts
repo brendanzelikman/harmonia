@@ -1,7 +1,8 @@
-import { MAX_SUBDIVISION } from "appConstants";
 import { DragEvent } from "react";
 import { MIDI } from "types/midi";
-import { Duration, Note, Pitch } from "types/units";
+import { Duration, Note, Pitch, Subdivision, Tick } from "types/units";
+
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 type GenericEvent =
   | Event
@@ -50,64 +51,178 @@ export const closest = (goal: number, arr: number[]) =>
     return Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev;
   });
 
+const ticksBySubdivision = {
+  64: MIDI.SixtyFourthNoteTicks,
+  32: MIDI.ThirtySecondNoteTicks,
+  16: MIDI.SixteenthNoteTicks,
+  8: MIDI.EighthNoteTicks,
+  4: MIDI.QuarterNoteTicks,
+  2: MIDI.HalfNoteTicks,
+  1: MIDI.WholeNoteTicks,
+};
+export const subdivisionToTicks = (subdivision: Subdivision = 16): Tick => {
+  return ticksBySubdivision[subdivision] || MIDI.QuarterNoteTicks;
+};
+
+export const ticksToColumns = (ticks: Tick, subdivision: Subdivision = 16) => {
+  const ticksPerSubdivision = subdivisionToTicks(subdivision);
+  return ticks / ticksPerSubdivision;
+};
+
 // Convert note duration to number of beats
-export const durationToBeats = (duration: Duration) => {
+interface NoteOption {
+  dotted?: boolean;
+  triplet?: boolean;
+}
+
+export const durationToTicks = (
+  duration: Duration,
+  options: NoteOption = { dotted: false, triplet: false }
+) => {
+  const dotted = !!options.dotted;
+  const triplet = !!options.triplet;
+
   switch (duration) {
-    case "whole":
-      return MAX_SUBDIVISION;
-    case "half":
-      return MAX_SUBDIVISION / 2;
-    case "quarter":
-      return MAX_SUBDIVISION / 4;
-    case "eighth":
-      return MAX_SUBDIVISION / 8;
-    case "16th":
-      return MAX_SUBDIVISION / 16;
+    case "64th":
+      return triplet
+        ? MIDI.TripletSixtyFourthNoteTicks
+        : dotted
+        ? MIDI.DottedSixtyFourthNoteTicks
+        : MIDI.SixtyFourthNoteTicks;
+
     case "32nd":
-      return MAX_SUBDIVISION / 32;
+      return triplet
+        ? MIDI.TripletThirtySecondNoteTicks
+        : dotted
+        ? MIDI.DottedThirtySecondNoteTicks
+        : MIDI.ThirtySecondNoteTicks;
+
+    case "16th":
+      return triplet
+        ? MIDI.TripletSixteenthNoteTicks
+        : dotted
+        ? MIDI.DottedSixteenthNoteTicks
+        : MIDI.SixteenthNoteTicks;
+
+    case "eighth":
+      return triplet
+        ? MIDI.TripletEighthNoteTicks
+        : dotted
+        ? MIDI.DottedEighthNoteTicks
+        : MIDI.EighthNoteTicks;
+
+    case "quarter":
+      return triplet
+        ? MIDI.TripletQuarterNoteTicks
+        : dotted
+        ? MIDI.DottedQuarterNoteTicks
+        : MIDI.QuarterNoteTicks;
+
+    case "half":
+      return triplet
+        ? MIDI.TripletHalfNoteTicks
+        : dotted
+        ? MIDI.DottedHalfNoteTicks
+        : MIDI.HalfNoteTicks;
+
+    case "whole":
+      return triplet
+        ? MIDI.TripletWholeNoteTicks
+        : dotted
+        ? MIDI.DottedWholeNoteTicks
+        : MIDI.WholeNoteTicks;
+
     default:
-      return 0;
+      return 1;
   }
 };
 
-// Convert number of beats to note duration
-export const beatsToDuration = (beats: number) => {
-  switch (beats) {
-    case MAX_SUBDIVISION:
-      return "whole";
-    case MAX_SUBDIVISION / 2:
-      return "half";
-    case MAX_SUBDIVISION / 4:
-      return "quarter";
-    case MAX_SUBDIVISION / 8:
-      return "eighth";
-    case MAX_SUBDIVISION / 16:
-      return "16th";
-    case MAX_SUBDIVISION / 32:
-      return "32nd";
-    default:
-      return "quarter";
-  }
+// Convert number of ticks to note duration
+export const ticksToDuration = (ticks: Tick) => {
+  const sixtyFourthNotes = [
+    MIDI.SixtyFourthNoteTicks,
+    MIDI.DottedSixtyFourthNoteTicks,
+    MIDI.TripletSixtyFourthNoteTicks,
+  ];
+  if (sixtyFourthNotes.includes(ticks)) return "64th";
+
+  const thirtySecondNotes = [
+    MIDI.ThirtySecondNoteTicks,
+    MIDI.DottedThirtySecondNoteTicks,
+    MIDI.TripletThirtySecondNoteTicks,
+  ];
+  if (thirtySecondNotes.includes(ticks)) return "32nd";
+
+  const sixteenthNotes = [
+    MIDI.SixteenthNoteTicks,
+    MIDI.DottedSixteenthNoteTicks,
+    MIDI.TripletSixteenthNoteTicks,
+  ];
+  if (sixteenthNotes.includes(ticks)) return "16th";
+
+  const eighthNotes = [
+    MIDI.EighthNoteTicks,
+    MIDI.DottedEighthNoteTicks,
+    MIDI.TripletEighthNoteTicks,
+  ];
+  if (eighthNotes.includes(ticks)) return "eighth";
+
+  const quarterNotes = [
+    MIDI.QuarterNoteTicks,
+    MIDI.DottedQuarterNoteTicks,
+    MIDI.TripletQuarterNoteTicks,
+  ];
+  if (quarterNotes.includes(ticks)) return "quarter";
+
+  const halfNotes = [
+    MIDI.HalfNoteTicks,
+    MIDI.DottedHalfNoteTicks,
+    MIDI.TripletHalfNoteTicks,
+  ];
+  if (halfNotes.includes(ticks)) return "half";
+
+  const wholeNotes = [
+    MIDI.WholeNoteTicks,
+    MIDI.DottedWholeNoteTicks,
+    MIDI.TripletWholeNoteTicks,
+  ];
+  if (wholeNotes.includes(ticks)) return "whole";
+
+  return "quarter";
 };
 
 // Convert beats to Tone.js subdivision
-export const beatsToSubdivision = (beats: number) => {
-  switch (beats) {
-    case MAX_SUBDIVISION:
-      return "1n";
-    case MAX_SUBDIVISION / 2:
-      return "2n";
-    case MAX_SUBDIVISION / 4:
-      return "4n";
-    case MAX_SUBDIVISION / 8:
-      return "8n";
-    case MAX_SUBDIVISION / 16:
-      return "16n";
-    case MAX_SUBDIVISION / 32:
-      return "32n";
-    default:
-      return "4n";
-  }
+export const subdivisionsByTick = {
+  [MIDI.WholeNoteTicks]: "1n",
+  [MIDI.DottedWholeNoteTicks]: "1n.",
+  [MIDI.TripletWholeNoteTicks]: "1t",
+
+  [MIDI.HalfNoteTicks]: "2n",
+  [MIDI.DottedHalfNoteTicks]: "2n.",
+  [MIDI.TripletHalfNoteTicks]: "2t",
+
+  [MIDI.QuarterNoteTicks]: "4n",
+  [MIDI.DottedQuarterNoteTicks]: "4n.",
+  [MIDI.TripletQuarterNoteTicks]: "4t",
+
+  [MIDI.EighthNoteTicks]: "8n",
+  [MIDI.DottedEighthNoteTicks]: "8n.",
+  [MIDI.TripletEighthNoteTicks]: "8t",
+
+  [MIDI.SixteenthNoteTicks]: "16n",
+  [MIDI.DottedSixteenthNoteTicks]: "16n.",
+  [MIDI.TripletSixteenthNoteTicks]: "16t",
+
+  [MIDI.ThirtySecondNoteTicks]: "32n",
+  [MIDI.DottedThirtySecondNoteTicks]: "32n.",
+  [MIDI.TripletThirtySecondNoteTicks]: "32t",
+
+  [MIDI.SixtyFourthNoteTicks]: "64n",
+  [MIDI.DottedSixtyFourthNoteTicks]: "64n.",
+  [MIDI.TripletSixtyFourthNoteTicks]: "64t",
+};
+export const ticksToSubdivision = (beats: number) => {
+  return subdivisionsByTick[beats] || "4n";
 };
 
 // Closest pitch class in array of MIDI notes

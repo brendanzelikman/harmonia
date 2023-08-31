@@ -15,6 +15,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.9",
     "@reduxjs/toolkit": "^1.9.2",
+    "@tonejs/midi": "^2.0.28",
     "@types/pluralize": "^0.0.30",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",

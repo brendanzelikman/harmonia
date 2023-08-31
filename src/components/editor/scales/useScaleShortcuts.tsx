@@ -1,4 +1,4 @@
-import { isHoldingShift, isInputEvent } from "appUtil";
+import { cancelEvent, isHoldingShift, isInputEvent } from "appUtil";
 import useEventListeners from "hooks/useEventListeners";
 import { ScaleEditorProps } from ".";
 import { Scale } from "types/scales";
@@ -63,7 +63,35 @@ export default function useScaleShortcuts(props: ScaleShortcutProps) {
           props.rotateScale(props.scale.id, sanitizedInput);
         },
       },
+      ArrowUp: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.scale) return;
+          cancelEvent(e);
+          props.transposeScale(props.scale.id, 1);
+        },
+      },
+      ArrowDown: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.scale) return;
+          cancelEvent(e);
+          props.transposeScale(props.scale.id, -1);
+        },
+      },
+      ArrowLeft: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.scale) return;
+          cancelEvent(e);
+          props.rotateScale(props.scale.id, -1);
+        },
+      },
+      ArrowRight: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.scale) return;
+          cancelEvent(e);
+          props.rotateScale(props.scale.id, 1);
+        },
+      },
     },
-    [props.scale]
+    [props.scale, props.onState]
   );
 }

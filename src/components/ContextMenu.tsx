@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 
-interface ContextMenuOption {
+export interface ContextMenuOption {
   label: string;
   onClick: () => void;
   disabled?: boolean;

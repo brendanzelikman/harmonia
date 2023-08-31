@@ -10,5 +10,5 @@ export * as PatternTracks from "./patternTracks";
 export * as ScaleTracks from "./scaleTracks";
 export * as Mixers from "./mixers";
 export * as Transforms from "./transforms";
-export * as Tracks from "../thunks/tracks";
+export * as Tracks from "redux/thunks/tracks";
 export * as Tour from "./tour";

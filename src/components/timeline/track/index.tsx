@@ -16,9 +16,10 @@ import {
 } from "redux/thunks/tracks";
 import { AppDispatch, RootState } from "redux/store";
 import { isPatternTrack, PatternTrack, Track, TrackId } from "types/tracks";
-import { lastTransformAtTime } from "types/transform";
+
 import { Row } from "..";
 import { TrackComponent } from "./Track";
+import { lastTransformAtTick } from "types/transform";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const transport = Selectors.selectTransport(state);
@@ -36,9 +37,9 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
       : trackMap.allIds.indexOf(track.id)
     : -1;
   const trackTransforms = track ? selectTrackTransforms(state, track.id) : [];
-  const currentTransform = lastTransformAtTime(
+  const currentTransform = lastTransformAtTick(
     trackTransforms,
-    transport.time - 1
+    transport.tick - 1
   );
   return {
     track,

@@ -1,4 +1,4 @@
-import { Scale } from "types/scales";
+import { Scale } from "../scales";
 
 // Common Scales
 export const ChromaticScale: Scale = {

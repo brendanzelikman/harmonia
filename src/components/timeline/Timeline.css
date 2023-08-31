@@ -12,7 +12,7 @@
 }
 .rdg-corner,
 .rdg-cell:has(.rdg-corner) {
-  z-index: 50 !important;
+  z-index: 100 !important;
 }
 .rdg-cell:has(.rdg-track) {
   z-index: 30 !important;

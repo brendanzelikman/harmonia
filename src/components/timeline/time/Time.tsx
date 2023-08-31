@@ -7,21 +7,23 @@ import { useLoopDrag, useLoopDrop } from "./dnd";
 export function TimeFormatter(props: TimeProps) {
   const [LoopStart, startDrag] = useLoopDrag({
     ...props,
-    onEnd: (item: any) => props.setLoopStart(item.hoverIndex - 1),
+    onEnd: (item: any) =>
+      props.setLoopStart(item.hoverIndex - 1, props.subdivision),
   });
   const [LoopEnd, endDrag] = useLoopDrag({
     ...props,
-    onEnd: (item: any) => props.setLoopEnd(item.hoverIndex - 1),
+    onEnd: (item: any) =>
+      props.setLoopEnd(item.hoverIndex - 1, props.subdivision),
   });
   const [{ isOver }, drop] = useLoopDrop(props);
 
   const Measure = ({ className }: { className?: string }) => (
     <div
-      className={`absolute ${props.measure > 99 ? "text-[9px]" : ""} ${
+      className={`absolute ${props.bars > 99 ? "text-[9px]" : ""} ${
         className ?? ""
       }`}
     >
-      {props.measure}
+      {props.bars}
     </div>
   );
 
@@ -60,19 +62,21 @@ export function TimeFormatter(props: TimeProps) {
     []
   );
 
+  const onClick = () => {
+    if (props.looping && holdingS) {
+      props.setLoopStart(props.columnIndex - 1, props.subdivision);
+    } else if (props.looping && holdingE) {
+      props.setLoopEnd(props.columnIndex - 1, props.subdivision);
+    } else {
+      props.onClick(props.tick);
+    }
+  };
+
   return (
     <div
       ref={drop}
       className={`rdg-time ${isOver ? "bg-indigo-800" : ""} ${props.className}`}
-      onClick={() => {
-        if (props.looping && holdingS) {
-          props.setLoopStart(props.columnIndex - 1);
-        } else if (props.looping && holdingE) {
-          props.setLoopEnd(props.columnIndex - 1);
-        } else {
-          props.onClick(props.columnIndex);
-        }
-      }}
+      onClick={onClick}
     >
       {props.looping ? (
         <>

@@ -34,7 +34,10 @@ export const PresetPattern = (props: PresetPatternProps) => {
           ? "text-emerald-500 font-medium border-l border-l-emerald-500"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       } select-none`}
-      onClick={() => props.setPatternId(pattern.id)}
+      onClick={() => {
+        props.setPatternId(pattern.id);
+        props.playPattern(pattern.id);
+      }}
     >
       <div className="flex relative items-center">
         <input

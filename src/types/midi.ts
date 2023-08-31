@@ -1,13 +1,43 @@
-import { MAX_SUBDIVISION } from "appConstants";
 import { Frequency } from "tone";
-import { Note, Pitch } from "types/units";
+import { BPM, Note, Pitch, Tick, Time } from "./units";
 
 export class MIDI {
-  public static WholeNote = MAX_SUBDIVISION;
-  public static HalfNote = MAX_SUBDIVISION / 2;
-  public static QuarterNote = MAX_SUBDIVISION / 4;
-  public static EighthNote = MAX_SUBDIVISION / 8;
-  public static SixteenthNote = MAX_SUBDIVISION / 16;
+  public static PPQ = 96;
+
+  public static WholeNoteTicks = 4 * this.PPQ;
+  public static HalfNoteTicks = 2 * this.PPQ;
+  public static QuarterNoteTicks = this.PPQ;
+  public static EighthNoteTicks = this.PPQ / 2;
+  public static SixteenthNoteTicks = this.PPQ / 4;
+  public static ThirtySecondNoteTicks = this.PPQ / 8;
+  public static SixtyFourthNoteTicks = this.PPQ / 16;
+
+  public static DottedWholeNoteTicks = 3 * this.HalfNoteTicks;
+  public static DottedHalfNoteTicks = 3 * this.QuarterNoteTicks;
+  public static DottedQuarterNoteTicks = 3 * this.EighthNoteTicks;
+  public static DottedEighthNoteTicks = 3 * this.SixteenthNoteTicks;
+  public static DottedSixteenthNoteTicks = 3 * this.ThirtySecondNoteTicks;
+  public static DottedThirtySecondNoteTicks = 3 * this.SixtyFourthNoteTicks;
+  public static DottedSixtyFourthNoteTicks = 3 * this.SixtyFourthNoteTicks;
+
+  public static TripletWholeNoteTicks = (2 / 3) * this.WholeNoteTicks;
+  public static TripletHalfNoteTicks = (2 / 3) * this.HalfNoteTicks;
+  public static TripletQuarterNoteTicks = (2 / 3) * this.QuarterNoteTicks;
+  public static TripletEighthNoteTicks = (2 / 3) * this.EighthNoteTicks;
+  public static TripletSixteenthNoteTicks = (2 / 3) * this.SixteenthNoteTicks;
+  public static TripletThirtySecondNoteTicks =
+    (2 / 3) * this.ThirtySecondNoteTicks;
+  public static TripletSixtyFourthNoteTicks =
+    (2 / 3) * this.SixtyFourthNoteTicks;
+
+  public static ticksToSeconds(ticks: Tick, bpm: BPM): Time {
+    return (60 / bpm) * (ticks / this.PPQ);
+  }
+
+  public static secondsToTicks(seconds: Time, bpm: BPM): Tick {
+    return (seconds * bpm * this.PPQ) / 60;
+  }
+
   // Get all chromatic notes
   public static ChromaticNotes: Pitch[] = [
     "C",
@@ -23,6 +53,7 @@ export class MIDI {
     "A#",
     "B",
   ];
+
   // Get the chromatic number of a note
   public static ChromaticNumber(pitch: Note | Pitch): number {
     if (!isNaN(pitch as Note)) {
@@ -32,16 +63,9 @@ export class MIDI {
   }
   // Get the value of a rest
   public static Rest = -1;
-  // Get an array of notes from a start note to an end note
-  public static noteSpace(start = 0, end = 127): Note[] {
-    return Array.from({ length: end - start + 1 }, (_, i) => i + start);
-  }
-  // Get a notespace based on pitches
-  public static pitchSpace(start: string, end: string): Note[] {
-    const startNote = Frequency(start).toMidi();
-    const endNote = Frequency(end).toMidi();
-    return MIDI.noteSpace(startNote, endNote);
-  }
+  public static NoteMin = 0;
+  public static NoteMax = 127;
+
   // Get the MIDI number from a pitch
   public static fromPitch(pitch: string): Note {
     return Frequency(pitch).toMidi();
@@ -73,5 +97,30 @@ export class MIDI {
       return accidental === "#" ? 1 : -1;
     }
     return 0;
+  }
+
+  public static isRest(note: { MIDI: Note }) {
+    return note?.MIDI === this.Rest;
+  }
+  public static isTriplet(note: { duration: Tick }) {
+    return (
+      note?.duration === MIDI.TripletWholeNoteTicks ||
+      note?.duration === MIDI.TripletHalfNoteTicks ||
+      note?.duration === MIDI.TripletEighthNoteTicks ||
+      note?.duration === MIDI.TripletSixteenthNoteTicks ||
+      note?.duration === MIDI.TripletThirtySecondNoteTicks ||
+      note?.duration === MIDI.TripletSixtyFourthNoteTicks
+    );
+  }
+  public static isDotted(note: { duration: Tick }) {
+    return (
+      note?.duration === MIDI.DottedWholeNoteTicks ||
+      note?.duration === MIDI.DottedHalfNoteTicks ||
+      note?.duration === MIDI.DottedQuarterNoteTicks ||
+      note?.duration === MIDI.DottedEighthNoteTicks ||
+      note?.duration === MIDI.DottedSixteenthNoteTicks ||
+      note?.duration === MIDI.DottedThirtySecondNoteTicks ||
+      note?.duration === MIDI.DottedSixtyFourthNoteTicks
+    );
   }
 }

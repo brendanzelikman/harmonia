@@ -35,6 +35,7 @@ interface RootState {
     | "repeating"
     | "merging"
     | "idle";
+
   loadedTimeline: boolean;
   draggingClip: boolean;
   draggingTransform: boolean;

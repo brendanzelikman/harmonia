@@ -2,17 +2,22 @@ import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { INSTRUMENTS } from "types/instrument";
 import { rotateScale, transposeScale } from "types/scales";
-import { TrackId } from "types/tracks";
-import { lastTransformAtTime, Transform } from "types/transform";
-import { Time } from "types/units";
+import { Track, TrackId } from "types/tracks";
+import { lastTransformAtTick, Transform } from "types/transform";
+import { Tick } from "types/units";
 import { selectClips } from "./clips";
-import { selectPatternTrackIds, selectPatternTracks } from "./patternTracks";
 import {
+  selectPatternTrack,
+  selectPatternTrackIds,
+  selectPatternTracks,
+} from "./patternTracks";
+import {
+  selectScaleTrack,
   selectScaleTrackIds,
   selectScaleTracks,
   selectScaleTrackScale,
 } from "./scaleTracks";
-import { selectTransforms } from "./transforms";
+import { selectTransformMap, selectTransforms } from "./transforms";
 
 // Select the ID of a track
 export const selectTrackId = (state: RootState, id: TrackId) => id;
@@ -20,25 +25,19 @@ export const selectTrackId = (state: RootState, id: TrackId) => id;
 // Select all tracks from the store.
 export const selectTracks = createSelector(
   [selectScaleTracks, selectPatternTracks],
-  (scaleTracks, patternTracks) => {
-    return [...scaleTracks, ...patternTracks];
-  }
+  (scaleTracks, patternTracks) => [...scaleTracks, ...patternTracks]
 );
 
 // Select all track IDs from the store.
 export const selectTrackIds = createSelector(
   [selectScaleTrackIds, selectPatternTrackIds],
-  (scaleTrackIds, patternTrackIds) => {
-    return [...scaleTrackIds, ...patternTrackIds];
-  }
+  (scaleTrackIds, patternTrackIds) => [...scaleTrackIds, ...patternTrackIds]
 );
 
 // Select a specific track from the store.
 export const selectTrack = createSelector(
-  [selectTracks, selectTrackId],
-  (tracks, id) => {
-    return tracks.find((track) => track.id === id);
-  }
+  [selectScaleTrack, selectPatternTrack],
+  (scaleTrack, patternTrack) => (scaleTrack || patternTrack) as Track
 );
 
 // Select the scale track to pattern track map
@@ -46,11 +45,11 @@ export const selectTrackMap = (state: RootState) =>
   state.timeline.present.trackMap;
 
 // Select the track to clip map
-export const selectClipMap = (state: RootState) =>
+export const selectClipTrackMap = (state: RootState) =>
   state.timeline.present.clipMap;
 
 // Select the track to transform map
-export const selectTransformMap = (state: RootState) =>
+export const selectTransformTrackMap = (state: RootState) =>
   state.timeline.present.transformMap;
 
 // Select the clips of a track
@@ -62,12 +61,12 @@ export const selectTrackClips = createSelector(
   }
 );
 
-// Select the clips of a track at a given time
-export const selectTrackClipAtTime = createSelector(
-  [selectTrackClips, (_: RootState, __: TrackId, time: Time) => time],
-  (clips, time) => {
+// Select the clips of a track at a given tick
+export const selectTrackClipAtTick = createSelector(
+  [selectTrackClips, (_: RootState, __: TrackId, tick: Tick) => tick],
+  (clips, tick) => {
     if (!clips) return undefined;
-    const currentClips = clips.filter((clip) => clip.startTime === time);
+    const currentClips = clips.filter((clip) => clip.tick === tick);
     if (!currentClips.length) return undefined;
     return currentClips[0];
   }
@@ -80,39 +79,30 @@ export const selectInstrument = (state: RootState, trackId: TrackId) => {
 
 // Select the transforms of a track
 export const selectTrackTransforms = createSelector(
-  [selectTrack, selectTransforms, selectTransformMap],
+  [selectTrack, selectTransformMap, selectTransformTrackMap],
   (track, transforms, transformMap) => {
-    if (!track) return [];
+    const emptyTransforms: Transform[] = [];
+    if (!track) return emptyTransforms;
+
     const transformIds = transformMap.byId[track.id]?.transformIds;
-    if (!transformIds) return [];
+    if (!transformIds) return emptyTransforms;
 
     return transformIds
-      .map((id) => transforms.find((t) => t.id === id))
-      .filter((t) => !!t) as Transform[];
+      .map((id) => transforms[id])
+      .filter(Boolean) as Transform[];
   }
 );
 
-// Select the transform of a pattern track at a given time
-export const selectTrackTransformAtTime = createSelector(
-  [
-    selectTrackTransforms,
-    (state: RootState, id: TrackId, time: number) => time,
-  ],
-  (transforms, time) => {
-    return transforms.find((t) => t.time === time);
-  }
-);
-
-// Select the scale of a scale track at a certain time
-export const selectScaleTrackScaleAtTime = createSelector(
+// Select the scale of a scale track at a given tick
+export const selectScaleTrackScaleAtTick = createSelector(
   [
     selectScaleTrackScale,
     selectTrackTransforms,
-    (state: RootState, trackId: string, time: number) => time,
+    (state: RootState, trackId: string, tick: Tick) => tick,
   ],
-  (scale, trackTransforms, time) => {
+  (scale, trackTransforms, tick) => {
     if (!scale) return;
-    const transform = lastTransformAtTime(trackTransforms, time);
+    const transform = lastTransformAtTick(trackTransforms, tick);
     if (!transform) return scale;
 
     const onceTransposedScale = transposeScale(
