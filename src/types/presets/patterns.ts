@@ -3,8 +3,12 @@ import { MIDI } from "../midi";
 import { Pattern, PatternChord as Chord } from "types/patterns";
 import { Tick } from "../units";
 
-const createNote = (duration: Tick) => [{ MIDI: 60, duration }];
-const createRest = (duration: Tick) => [{ MIDI: MIDI.Rest, duration }];
+const createNote = (duration: Tick) => [
+  { MIDI: 60, duration, velocity: MIDI.DefaultVelocity },
+];
+const createRest = (duration: Tick) => [
+  { MIDI: MIDI.Rest, duration, velocity: MIDI.DefaultVelocity },
+];
 
 // Straight Notes
 export const wholeNote: Chord = createNote(MIDI.WholeNoteTicks);
@@ -92,12 +96,7 @@ export const tripletSixtyFourthRest: Chord = createRest(
 export const Octave: Pattern = {
   id: "octave",
   name: "Octave",
-  stream: [
-    [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 72, duration: MIDI.QuarterNoteTicks },
-    ],
-  ],
+  stream: [[MIDI.createQuarterNote(60), MIDI.createQuarterNote(72)]],
 };
 
 export const MajorChord: Pattern = {
@@ -105,9 +104,9 @@ export const MajorChord: Pattern = {
   name: "Major Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
     ],
   ],
 };
@@ -116,9 +115,9 @@ export const MinorChord: Pattern = {
   name: "Minor Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(67),
     ],
   ],
 };
@@ -127,10 +126,10 @@ export const DiminishedChord: Pattern = {
   name: "Diminished Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 66, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 69, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(66),
+      MIDI.createQuarterNote(69),
     ],
   ],
 };
@@ -139,9 +138,9 @@ export const AugmentedChord: Pattern = {
   name: "Augmented Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 68, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(68),
     ],
   ],
 };
@@ -150,9 +149,9 @@ export const PowerChord: Pattern = {
   name: "Power Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 72, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(72),
     ],
   ],
 };
@@ -161,9 +160,9 @@ export const Sus2Chord: Pattern = {
   name: "Sus2 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 62, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(62),
+      MIDI.createQuarterNote(67),
     ],
   ],
 };
@@ -172,9 +171,9 @@ export const Sus4Chord: Pattern = {
   name: "Sus4 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 65, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(65),
+      MIDI.createQuarterNote(67),
     ],
   ],
 };
@@ -183,9 +182,9 @@ export const QuartalChord: Pattern = {
   name: "Quartal Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 65, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(65),
+      MIDI.createQuarterNote(70),
     ],
   ],
 };
@@ -194,9 +193,9 @@ export const QuintalChord: Pattern = {
   name: "Quintal Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(74),
     ],
   ],
 };
@@ -207,10 +206,10 @@ export const Major7thChord: Pattern = {
   name: "Major 7th Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(71),
     ],
   ],
 };
@@ -219,10 +218,10 @@ export const Major7thSus2Chord: Pattern = {
   name: "Major 7th (Sus2) Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 62, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(62),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(71),
     ],
   ],
 };
@@ -231,10 +230,10 @@ export const Major7thSus4Chord: Pattern = {
   name: "Major 7th (Sus4) Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 65, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(65),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(71),
     ],
   ],
 };
@@ -243,10 +242,10 @@ export const Major7thFlat5Chord: Pattern = {
   name: "Major 7th (b5) Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 66, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(66),
+      MIDI.createQuarterNote(71),
     ],
   ],
 };
@@ -255,10 +254,10 @@ export const Minor7thChord: Pattern = {
   name: "Minor 7th Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
     ],
   ],
 };
@@ -267,10 +266,10 @@ export const Minor7thSus2Chord: Pattern = {
   name: "Minor 7th (Sus2) Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 62, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(62),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
     ],
   ],
 };
@@ -279,10 +278,10 @@ export const Minor7thSus4Chord: Pattern = {
   name: "Minor 7th (Sus4) Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 65, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(65),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
     ],
   ],
 };
@@ -291,10 +290,10 @@ export const Dominant7thChord: Pattern = {
   name: "Dominant 7th Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
     ],
   ],
 };
@@ -304,10 +303,10 @@ export const Dominant7thFlat5Chord: Pattern = {
   name: "Dominant 7th (b5) Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 66, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(66),
+      MIDI.createQuarterNote(70),
     ],
   ],
 };
@@ -316,10 +315,10 @@ export const Dominant7thSharp5Chord: Pattern = {
   name: "Dominant 7th (#5) Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 68, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(68),
+      MIDI.createQuarterNote(70),
     ],
   ],
 };
@@ -328,10 +327,10 @@ export const Minor7thFlat5Chord: Pattern = {
   name: "Minor 7th (b5) Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 66, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(66),
+      MIDI.createQuarterNote(70),
     ],
   ],
 };
@@ -340,10 +339,10 @@ export const MinorMajor7thChord: Pattern = {
   name: "Minor Major 7th Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(71),
     ],
   ],
 };
@@ -352,10 +351,10 @@ export const Diminished7thChord: Pattern = {
   name: "Diminished 7th Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 66, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 69, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(66),
+      MIDI.createQuarterNote(69),
     ],
   ],
 };
@@ -365,10 +364,10 @@ export const Augmented7thChord: Pattern = {
   name: "Augmented 7th Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 68, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(68),
+      MIDI.createQuarterNote(71),
     ],
   ],
 };
@@ -378,20 +377,19 @@ export const StraightMajorArpeggio: Pattern = {
   id: "straight-major-arpeggio",
   name: "Straight Major Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 72, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(64)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(72)],
   ],
 };
 export const TripletMajorArpeggio: Pattern = {
   id: "triplet-major-arpeggio",
   name: "Triplet Major Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.TripletEighthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.TripletEighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.TripletEighthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.TripletEighthNoteTicks }],
+    [MIDI.createTripletEighthNote(60)],
+    [MIDI.createTripletEighthNote(64)],
+    [MIDI.createTripletEighthNote(67)],
   ],
 };
 
@@ -399,57 +397,57 @@ export const StraightMinorArpeggio: Pattern = {
   id: "straight-minor-arpeggio",
   name: "Straight Minor Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 72, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(63)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(72)],
   ],
 };
 export const TripletMinorArpeggio: Pattern = {
   id: "triplet-minor-arpeggio",
   name: "Triplet Minor Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.TripletEighthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.TripletEighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.TripletEighthNoteTicks }],
+    [MIDI.createTripletEighthNote(60)],
+    [MIDI.createTripletEighthNote(63)],
+    [MIDI.createTripletEighthNote(67)],
   ],
 };
 export const StraightDiminishedArpeggio: Pattern = {
   id: "straight-diminished-arpeggio",
   name: "Straight Diminished Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 66, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 69, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(63)],
+    [MIDI.createSixteenthNote(66)],
+    [MIDI.createSixteenthNote(69)],
   ],
 };
 export const TripletDiminishedArpeggio: Pattern = {
   id: "triplet-diminished-arpeggio",
   name: "Triplet Diminished Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.TripletEighthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.TripletEighthNoteTicks }],
-    [{ MIDI: 66, duration: MIDI.TripletEighthNoteTicks }],
+    [MIDI.createTripletEighthNote(60)],
+    [MIDI.createTripletEighthNote(63)],
+    [MIDI.createTripletEighthNote(66)],
   ],
 };
 export const StraightAugmentedArpeggio: Pattern = {
   id: "straight-augmented-arpeggio",
   name: "Straight Augmented Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 68, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 72, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(64)],
+    [MIDI.createSixteenthNote(68)],
+    [MIDI.createSixteenthNote(72)],
   ],
 };
 export const TripletAugmentedArpeggio: Pattern = {
   id: "triplet-augmented-arpeggio",
   name: "Triplet Augmented Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.TripletEighthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.TripletEighthNoteTicks }],
-    [{ MIDI: 68, duration: MIDI.TripletEighthNoteTicks }],
+    [MIDI.createTripletEighthNote(60)],
+    [MIDI.createTripletEighthNote(64)],
+    [MIDI.createTripletEighthNote(68)],
   ],
 };
 
@@ -457,30 +455,30 @@ export const Major7thArpeggio: Pattern = {
   id: "major-7th-arpeggio",
   name: "Major 7th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 71, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(64)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(71)],
   ],
 };
 export const Minor7thArpeggio: Pattern = {
   id: "minor-7th-arpeggio",
   name: "Minor 7th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(63)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(70)],
   ],
 };
 export const Dominant7thArpeggio: Pattern = {
   id: "dominant-7th-arpeggio",
   name: "Dominant 7th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(64)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(70)],
   ],
 };
 
@@ -488,10 +486,10 @@ export const HalfDiminished7thArpeggio: Pattern = {
   id: "half-diminished-7th-arpeggio",
   name: "Half Diminished 7th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 66, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(63)],
+    [MIDI.createSixteenthNote(66)],
+    [MIDI.createSixteenthNote(70)],
   ],
 };
 
@@ -499,20 +497,20 @@ export const Augmented7thArpeggio: Pattern = {
   id: "augmented-7th-arpeggio",
   name: "Augmented 7th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 68, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 71, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(64)],
+    [MIDI.createSixteenthNote(68)],
+    [MIDI.createSixteenthNote(71)],
   ],
 };
 export const MinorMajor7thArpeggio: Pattern = {
   id: "major-minor-7th-arpeggio",
   name: "Major Minor 7th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 71, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(63)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(71)],
   ],
 };
 
@@ -522,11 +520,11 @@ export const Major9thChord: Pattern = {
   name: "Major 9 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(71),
+      MIDI.createQuarterNote(74),
     ],
   ],
 };
@@ -535,12 +533,12 @@ export const Major11thChord: Pattern = {
   name: "Major 11 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 77, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(71),
+      MIDI.createQuarterNote(74),
+      MIDI.createQuarterNote(77),
     ],
   ],
 };
@@ -549,12 +547,12 @@ export const MajorSharp11thChord: Pattern = {
   name: "Major #11 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 78, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(71),
+      MIDI.createQuarterNote(74),
+      MIDI.createQuarterNote(78),
     ],
   ],
 };
@@ -563,13 +561,13 @@ export const Major13thChord: Pattern = {
   name: "Major 13#11 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 78, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 81, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(71),
+      MIDI.createQuarterNote(74),
+      MIDI.createQuarterNote(78),
+      MIDI.createQuarterNote(81),
     ],
   ],
 };
@@ -578,11 +576,11 @@ export const Minor9thChord: Pattern = {
   name: "Minor 9th Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(74),
     ],
   ],
 };
@@ -591,12 +589,12 @@ export const Minor11thChord: Pattern = {
   name: "Minor 11th Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 77, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(74),
+      MIDI.createQuarterNote(77),
     ],
   ],
 };
@@ -605,12 +603,12 @@ export const MinorSharp11thChord: Pattern = {
   name: "Minor #11 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 78, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(74),
+      MIDI.createQuarterNote(78),
     ],
   ],
 };
@@ -620,13 +618,13 @@ export const Minor13thChord: Pattern = {
   name: "Minor 13 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 77, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 81, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(74),
+      MIDI.createQuarterNote(77),
+      MIDI.createQuarterNote(81),
     ],
   ],
 };
@@ -635,11 +633,11 @@ export const Dominant9thChord: Pattern = {
   name: "Dominant 9 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(74),
     ],
   ],
 };
@@ -648,11 +646,11 @@ export const DominantFlat9thChord: Pattern = {
   name: "Dominant b9 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 73, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(73),
     ],
   ],
 };
@@ -661,11 +659,11 @@ export const DominantSharp9thChord: Pattern = {
   name: "Dominant #9 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 75, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(75),
     ],
   ],
 };
@@ -675,12 +673,12 @@ export const Dominant11thChord: Pattern = {
   name: "Dominant 11 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 77, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(74),
+      MIDI.createQuarterNote(77),
     ],
   ],
 };
@@ -689,12 +687,12 @@ export const DominantSharp11thChord: Pattern = {
   name: "Dominant #11 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 78, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(74),
+      MIDI.createQuarterNote(78),
     ],
   ],
 };
@@ -704,13 +702,13 @@ export const Dominant13thChord: Pattern = {
   name: "Dominant 13 Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 77, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 81, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(74),
+      MIDI.createQuarterNote(77),
+      MIDI.createQuarterNote(81),
     ],
   ],
 };
@@ -721,10 +719,10 @@ export const TristanChord: Pattern = {
   name: "Tristan Chord",
   stream: [
     [
-      { MIDI: 53, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 59, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 68, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(53),
+      MIDI.createQuarterNote(59),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(68),
     ],
   ],
 };
@@ -733,12 +731,12 @@ export const MysticChord: Pattern = {
   name: "Mystic Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 66, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 76, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 81, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 86, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(66),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(76),
+      MIDI.createQuarterNote(81),
+      MIDI.createQuarterNote(86),
     ],
   ],
 };
@@ -747,11 +745,11 @@ export const ElektraChord: Pattern = {
   name: "Elektra Chord",
   stream: [
     [
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 73, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 77, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 80, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(71),
+      MIDI.createQuarterNote(73),
+      MIDI.createQuarterNote(77),
+      MIDI.createQuarterNote(80),
     ],
   ],
 };
@@ -760,11 +758,11 @@ export const FarbenChord: Pattern = {
   name: "Farben Chord",
   stream: [
     [
-      { MIDI: 60, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 68, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 76, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 82, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(68),
+      MIDI.createQuarterNote(71),
+      MIDI.createQuarterNote(76),
+      MIDI.createQuarterNote(82),
     ],
   ],
 };
@@ -773,14 +771,14 @@ export const RiteOfSpringChord: Pattern = {
   name: "Rite of Spring Chord",
   stream: [
     [
-      { MIDI: 40, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 44, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 47, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 52, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 55, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 58, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 61, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(40),
+      MIDI.createQuarterNote(44),
+      MIDI.createQuarterNote(47),
+      MIDI.createQuarterNote(52),
+      MIDI.createQuarterNote(55),
+      MIDI.createQuarterNote(58),
+      MIDI.createQuarterNote(61),
+      MIDI.createQuarterNote(63),
     ],
   ],
 };
@@ -789,10 +787,10 @@ export const DreamChord: Pattern = {
   name: "Dream Chord",
   stream: [
     [
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 72, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 73, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 74, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(72),
+      MIDI.createQuarterNote(73),
+      MIDI.createQuarterNote(74),
     ],
   ],
 };
@@ -802,12 +800,12 @@ export const HendrixChord: Pattern = {
   name: "Hendrix Chord",
   stream: [
     [
-      { MIDI: 40, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 52, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 56, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 62, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(40),
+      MIDI.createQuarterNote(52),
+      MIDI.createQuarterNote(56),
+      MIDI.createQuarterNote(62),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(67),
     ],
   ],
 };
@@ -816,11 +814,11 @@ export const SoWhatChord: Pattern = {
   name: "So What Chord",
   stream: [
     [
-      { MIDI: 52, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 57, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 62, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(52),
+      MIDI.createQuarterNote(57),
+      MIDI.createQuarterNote(62),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(71),
     ],
   ],
 };
@@ -829,11 +827,11 @@ export const BondChord: Pattern = {
   name: "James Bond Chord",
   stream: [
     [
-      { MIDI: 52, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 67, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 75, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 78, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(52),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(71),
+      MIDI.createQuarterNote(75),
+      MIDI.createQuarterNote(78),
     ],
   ],
 };
@@ -842,12 +840,12 @@ export const KennyBarronMajorChord: Pattern = {
   name: "Kenny Barron Major Chord",
   stream: [
     [
-      { MIDI: 48, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 55, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 62, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 64, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 71, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 78, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(48),
+      MIDI.createQuarterNote(55),
+      MIDI.createQuarterNote(62),
+      MIDI.createQuarterNote(64),
+      MIDI.createQuarterNote(71),
+      MIDI.createQuarterNote(78),
     ],
   ],
 };
@@ -856,12 +854,12 @@ export const KennyBarronMinorChord: Pattern = {
   name: "Kenny Barron Minor Chord",
   stream: [
     [
-      { MIDI: 48, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 55, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 62, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 63, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 70, duration: MIDI.QuarterNoteTicks },
-      { MIDI: 77, duration: MIDI.QuarterNoteTicks },
+      MIDI.createQuarterNote(48),
+      MIDI.createQuarterNote(55),
+      MIDI.createQuarterNote(62),
+      MIDI.createQuarterNote(63),
+      MIDI.createQuarterNote(70),
+      MIDI.createQuarterNote(77),
     ],
   ],
 };
@@ -871,14 +869,14 @@ export const Major9thArpeggio: Pattern = {
   id: "major-9th-arpeggio",
   name: "Major 9th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 71, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 71, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(64)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(71)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(71)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(64)],
   ],
 };
 
@@ -886,14 +884,14 @@ export const Minor9thArpeggio: Pattern = {
   id: "minor-9th-arpeggio",
   name: "Minor 9th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(63)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(70)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(70)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(63)],
   ],
 };
 
@@ -901,28 +899,28 @@ export const Dominant9thArpeggio: Pattern = {
   id: "dominant-9th-arpeggio",
   name: "Dominant 9th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(64)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(70)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(70)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(64)],
   ],
 };
 export const Major11thArpeggio: Pattern = {
   id: "major-11th-arpeggio",
   name: "Major 11th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 71, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 78, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 71, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(71)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(78)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(71)],
+    [MIDI.createSixteenthNote(67)],
   ],
 };
 
@@ -930,14 +928,14 @@ export const Minor11thArpeggio: Pattern = {
   id: "minor-11th-arpeggio",
   name: "Minor 11th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 77, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(70)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(77)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(70)],
+    [MIDI.createSixteenthNote(67)],
   ],
 };
 
@@ -945,28 +943,28 @@ export const Dominant11thArpeggio: Pattern = {
   id: "dominant-11th-arpeggio",
   name: "Dominant 11th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 77, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createSixteenthNote(70)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(77)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(70)],
+    [MIDI.createSixteenthNote(67)],
   ],
 };
 export const Major13thArpeggio: Pattern = {
   id: "major-13th-arpeggio",
   name: "Major 13th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 71, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 78, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 81, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 78, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 71, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(71)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(78)],
+    [MIDI.createSixteenthNote(81)],
+    [MIDI.createSixteenthNote(78)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(71)],
   ],
 };
 
@@ -974,14 +972,14 @@ export const Minor13thArpeggio: Pattern = {
   id: "minor-13th-arpeggio",
   name: "Minor 13th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 77, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 81, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 77, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(70)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(77)],
+    [MIDI.createSixteenthNote(81)],
+    [MIDI.createSixteenthNote(77)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(70)],
   ],
 };
 
@@ -989,14 +987,14 @@ export const Dominant13thArpeggio: Pattern = {
   id: "dominant-13th-arpeggio",
   name: "Dominant 13th Arpeggio",
   stream: [
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 77, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 81, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 77, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 74, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 70, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(70)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(77)],
+    [MIDI.createSixteenthNote(81)],
+    [MIDI.createSixteenthNote(77)],
+    [MIDI.createSixteenthNote(74)],
+    [MIDI.createSixteenthNote(70)],
   ],
 };
 
@@ -1005,104 +1003,104 @@ export const BachPrelude: Pattern = {
   id: "bach-prelude",
   name: "Prelude in C",
   stream: [
-    [{ MIDI: 60, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 72, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 76, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 72, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 76, duration: MIDI.EighthNoteTicks }],
+    [MIDI.createEighthNote(60)],
+    [MIDI.createEighthNote(64)],
+    [MIDI.createEighthNote(67)],
+    [MIDI.createEighthNote(72)],
+    [MIDI.createEighthNote(76)],
+    [MIDI.createEighthNote(67)],
+    [MIDI.createEighthNote(72)],
+    [MIDI.createEighthNote(76)],
   ],
 };
 export const AlbertiBass: Pattern = {
   id: "alberti-bass",
   name: "Alberti Bass",
   stream: [
-    [{ MIDI: 60, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 60, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
+    [MIDI.createEighthNote(60)],
+    [MIDI.createEighthNote(67)],
+    [MIDI.createEighthNote(64)],
+    [MIDI.createEighthNote(67)],
+    [MIDI.createEighthNote(60)],
+    [MIDI.createEighthNote(67)],
+    [MIDI.createEighthNote(64)],
+    [MIDI.createEighthNote(67)],
   ],
 };
 export const TurkishMarch: Pattern = {
   id: "turkish-march",
   name: "Turkish March",
   stream: [
-    [{ MIDI: 71, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 69, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 68, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 69, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 72, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(71)],
+    [MIDI.createSixteenthNote(69)],
+    [MIDI.createSixteenthNote(68)],
+    [MIDI.createSixteenthNote(69)],
+    [MIDI.createSixteenthNote(72)],
   ],
 };
 export const FateMotif: Pattern = {
   id: "fate-motif",
   name: "Fate Motif",
   stream: [
-    [{ MIDI: MIDI.Rest, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.HalfNoteTicks }],
+    [MIDI.createEighthRest()],
+    [MIDI.createEighthNote(67)],
+    [MIDI.createEighthNote(67)],
+    [MIDI.createEighthNote(67)],
+    [MIDI.createHalfNote(63)],
   ],
 };
 export const RevolutionaryEtude: Pattern = {
   id: "revolutionary-etude",
   name: "Revolutionary Etude",
   stream: [
-    [{ MIDI: 48, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 55, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 62, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 63, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 62, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 60, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 55, duration: MIDI.SixteenthNoteTicks }],
+    [MIDI.createSixteenthNote(48)],
+    [MIDI.createSixteenthNote(55)],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(62)],
+    [MIDI.createSixteenthNote(63)],
+    [MIDI.createSixteenthNote(62)],
+    [MIDI.createSixteenthNote(60)],
+    [MIDI.createSixteenthNote(55)],
   ],
 };
 export const ZarahustraFanfare: Pattern = {
   id: "zarahustra-fanfare",
   name: "Zarahustra Fanfare",
   stream: [
-    [{ MIDI: 60, duration: MIDI.HalfNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.HalfNoteTicks }],
-    [{ MIDI: 72, duration: MIDI.HalfNoteTicks }],
-    [{ MIDI: MIDI.Rest, duration: MIDI.QuarterNoteTicks }],
-    [{ MIDI: MIDI.Rest, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: MIDI.Rest, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 76, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 75, duration: MIDI.QuarterNoteTicks }],
+    [MIDI.createHalfNote(60)],
+    [MIDI.createHalfNote(67)],
+    [MIDI.createHalfNote(72)],
+    [MIDI.createQuarterRest()],
+    [MIDI.createEighthRest()],
+    [MIDI.createSixteenthRest()],
+    [MIDI.createSixteenthNote(76)],
+    [MIDI.createQuarterNote(75)],
   ],
 };
 export const TheLick: Pattern = {
   id: "the-lick",
   name: "The Lick",
   stream: [
-    [{ MIDI: 62, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 65, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 64, duration: MIDI.QuarterNoteTicks }],
-    [{ MIDI: 60, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: 62, duration: MIDI.EighthNoteTicks }],
+    [MIDI.createEighthNote(62)],
+    [MIDI.createEighthNote(64)],
+    [MIDI.createEighthNote(65)],
+    [MIDI.createEighthNote(67)],
+    [MIDI.createQuarterNote(64)],
+    [MIDI.createEighthNote(60)],
+    [MIDI.createEighthNote(62)],
   ],
 };
 export const HappyBirthday: Pattern = {
   id: "happy-birthday",
   name: "Happy Birthday",
   stream: [
-    [{ MIDI: 67, duration: MIDI.EighthNoteTicks }],
-    [{ MIDI: MIDI.Rest, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.SixteenthNoteTicks }],
-    [{ MIDI: 69, duration: MIDI.QuarterNoteTicks }],
-    [{ MIDI: 67, duration: MIDI.QuarterNoteTicks }],
-    [{ MIDI: 72, duration: MIDI.QuarterNoteTicks }],
-    [{ MIDI: 71, duration: MIDI.QuarterNoteTicks }],
+    [MIDI.createEighthNote(67)],
+    [MIDI.createSixteenthRest()],
+    [MIDI.createSixteenthNote(67)],
+    [MIDI.createQuarterNote(69)],
+    [MIDI.createQuarterNote(67)],
+    [MIDI.createQuarterNote(72)],
+    [MIDI.createQuarterNote(71)],
   ],
 };
 

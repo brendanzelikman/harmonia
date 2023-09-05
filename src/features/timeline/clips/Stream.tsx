@@ -85,7 +85,11 @@ function Stream(props: Props) {
       const bottom = `${noteOffset(note.MIDI) + margin / 2}px`;
       const left = ticksToColumns(note.start, subdivision) * cellWidth;
       const opacity =
-        percentOfRange(note.velocity, MIDI.MinVelocity, MIDI.MaxVelocity) / 100;
+        percentOfRange(
+          note.velocity ?? MIDI.DefaultVelocity,
+          MIDI.MinVelocity,
+          MIDI.MaxVelocity
+        ) / 100;
       return (
         <li
           key={i}

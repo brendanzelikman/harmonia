@@ -1,45 +1,347 @@
 import { Frequency } from "tone";
-import { BPM, Note, Pitch, Tick, Time } from "./units";
+import { BPM, Duration, Note, Pitch, Tick, Time, Velocity } from "./units";
 import { mod } from "appUtil";
+import { clamp } from "lodash";
+import { PatternNote } from "./patterns";
 
 export class MIDI {
   public static PPQ = 96;
 
-  public static WholeNoteTicks = 4 * this.PPQ;
-  public static HalfNoteTicks = 2 * this.PPQ;
-  public static QuarterNoteTicks = this.PPQ;
-  public static EighthNoteTicks = this.PPQ / 2;
-  public static SixteenthNoteTicks = this.PPQ / 4;
-  public static ThirtySecondNoteTicks = this.PPQ / 8;
-  public static SixtyFourthNoteTicks = this.PPQ / 16;
-
-  public static DottedWholeNoteTicks = 3 * this.HalfNoteTicks;
-  public static DottedHalfNoteTicks = 3 * this.QuarterNoteTicks;
-  public static DottedQuarterNoteTicks = 3 * this.EighthNoteTicks;
-  public static DottedEighthNoteTicks = 3 * this.SixteenthNoteTicks;
-  public static DottedSixteenthNoteTicks = 3 * this.ThirtySecondNoteTicks;
-  public static DottedThirtySecondNoteTicks = 3 * this.SixtyFourthNoteTicks;
-  public static DottedSixtyFourthNoteTicks = 3 * this.SixtyFourthNoteTicks;
-
-  public static TripletWholeNoteTicks = (2 / 3) * this.WholeNoteTicks;
-  public static TripletHalfNoteTicks = (2 / 3) * this.HalfNoteTicks;
-  public static TripletQuarterNoteTicks = (2 / 3) * this.QuarterNoteTicks;
-  public static TripletEighthNoteTicks = (2 / 3) * this.EighthNoteTicks;
-  public static TripletSixteenthNoteTicks = (2 / 3) * this.SixteenthNoteTicks;
-  public static TripletThirtySecondNoteTicks =
-    (2 / 3) * this.ThirtySecondNoteTicks;
-  public static TripletSixtyFourthNoteTicks =
-    (2 / 3) * this.SixtyFourthNoteTicks;
-
+  // Convert ticks to seconds based on the PPQ and BPM
   public static ticksToSeconds(ticks: Tick, bpm: BPM): Time {
     return (60 / bpm) * (ticks / this.PPQ);
   }
-
+  // Convert seconds to tcks based on the PPQ and BPM
   public static secondsToTicks(seconds: Time, bpm: BPM): Tick {
     return (seconds * bpm * this.PPQ) / 60;
   }
 
-  // Get all chromatic notes
+  // Create a note with optional MIDI, duration, and velocity
+  public static createNote = (
+    MIDI?: number,
+    duration?: Tick,
+    velocity?: Velocity
+  ): PatternNote => {
+    const noteMIDI = clamp(
+      MIDI ?? this.DefaultNote,
+      this.MinNote,
+      this.MaxNote
+    );
+    const noteDuration = clamp(
+      duration ?? this.QuarterNoteTicks,
+      this.MinDuration,
+      this.MaxDuration
+    );
+    const noteVelocity = clamp(
+      velocity ?? this.DefaultVelocity,
+      this.MinVelocity,
+      this.MaxVelocity
+    );
+    return {
+      MIDI: noteMIDI,
+      duration: noteDuration,
+      velocity: noteVelocity,
+    };
+  };
+  public static createRest = (duration?: Tick): PatternNote => {
+    const noteDuration = clamp(
+      duration ?? this.QuarterNoteTicks,
+      this.MinDuration,
+      this.MaxDuration
+    );
+    return {
+      MIDI: this.Rest,
+      duration: noteDuration,
+      velocity: 0,
+    };
+  };
+
+  // Straight Whole Notes
+  public static WholeNoteTicks = 4 * this.PPQ;
+  public static createWholeNote = (MIDI?: number, velocity?: Velocity) => {
+    return this.createNote(MIDI, this.WholeNoteTicks, velocity);
+  };
+  public static createWholeRest = () => {
+    return this.createRest(this.WholeNoteTicks);
+  };
+
+  // Straight Half Notes
+  public static HalfNoteTicks = 2 * this.PPQ;
+  public static createHalfNote = (MIDI?: number, velocity?: Velocity) => {
+    return this.createNote(MIDI, this.HalfNoteTicks, velocity);
+  };
+  public static createHalfRest = () => {
+    return this.createRest(this.HalfNoteTicks);
+  };
+
+  // Straight Quarter Notes
+  public static QuarterNoteTicks = this.PPQ;
+  public static createQuarterNote = (MIDI?: number, velocity?: Velocity) => {
+    return this.createNote(MIDI, this.QuarterNoteTicks, velocity);
+  };
+  public static createQuarterRest = () => {
+    return this.createRest(this.QuarterNoteTicks);
+  };
+
+  // Straight Eighth Notes
+  public static EighthNoteTicks = this.PPQ / 2;
+  public static createEighthNote = (MIDI?: number, velocity?: Velocity) => {
+    return this.createNote(MIDI, this.EighthNoteTicks, velocity);
+  };
+  public static createEighthRest = () => {
+    return this.createRest(this.EighthNoteTicks);
+  };
+
+  // Straight Sixteenth Notes
+  public static SixteenthNoteTicks = this.PPQ / 4;
+  public static createSixteenthNote = (MIDI?: number, velocity?: Velocity) => {
+    return this.createNote(MIDI, this.SixteenthNoteTicks, velocity);
+  };
+  public static createSixteenthRest = () => {
+    return this.createRest(this.SixteenthNoteTicks);
+  };
+
+  // Straight Thirty Second Notes
+  public static ThirtySecondNoteTicks = this.PPQ / 8;
+  public static createThirtySecondNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.ThirtySecondNoteTicks, velocity);
+  };
+  public static createThirtySecondRest = () => {
+    return this.createRest(this.ThirtySecondNoteTicks);
+  };
+
+  // Straight Sixty Fourth Notes
+  public static SixtyFourthNoteTicks = this.PPQ / 16;
+  public static createSixtyFourthNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.SixtyFourthNoteTicks, velocity);
+  };
+  public static createSixtyFourthRest = () => {
+    return this.createRest(this.SixtyFourthNoteTicks);
+  };
+
+  // Dotted Whole Notes
+  public static DottedWholeNoteTicks = 3 * this.HalfNoteTicks;
+  public static createDottedWholeNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.DottedWholeNoteTicks, velocity);
+  };
+  public static createDottedWholeRest = () => {
+    return this.createRest(this.DottedWholeNoteTicks);
+  };
+
+  // Dotted Half Notes
+  public static DottedHalfNoteTicks = 3 * this.QuarterNoteTicks;
+  public static createDottedHalfNote = (MIDI?: number, velocity?: Velocity) => {
+    return this.createNote(MIDI, this.DottedHalfNoteTicks, velocity);
+  };
+  public static createDottedHalfRest = () => {
+    return this.createRest(this.DottedHalfNoteTicks);
+  };
+
+  // Dotted Quarter Notes
+  public static DottedQuarterNoteTicks = 3 * this.EighthNoteTicks;
+  public static createDottedQuarterNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.DottedQuarterNoteTicks, velocity);
+  };
+  public static createDottedQuarterRest = () => {
+    return this.createRest(this.DottedQuarterNoteTicks);
+  };
+
+  // Dotted Eighth Notes
+  public static DottedEighthNoteTicks = 3 * this.SixteenthNoteTicks;
+  public static createDottedEighthNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.DottedEighthNoteTicks, velocity);
+  };
+  public static createDottedEighthRest = () => {
+    return this.createRest(this.DottedEighthNoteTicks);
+  };
+
+  // Dotted Sixteenth Notes
+  public static DottedSixteenthNoteTicks = 3 * this.ThirtySecondNoteTicks;
+  public static createDottedSixteenthNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.DottedSixteenthNoteTicks, velocity);
+  };
+  public static createDottedSixteenthRest = () => {
+    return this.createRest(this.DottedSixteenthNoteTicks);
+  };
+
+  // Dotted Thirty Second Notes
+  public static DottedThirtySecondNoteTicks = 3 * this.SixtyFourthNoteTicks;
+  public static createDottedThirtySecondNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.DottedThirtySecondNoteTicks, velocity);
+  };
+  public static createDottedThirtySecondRest = () => {
+    return this.createRest(this.DottedThirtySecondNoteTicks);
+  };
+
+  // Dotted Sixty Fourth Notes
+  public static DottedSixtyFourthNoteTicks = 3 * this.SixtyFourthNoteTicks;
+  public static createDottedSixtyFourthNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.DottedSixtyFourthNoteTicks, velocity);
+  };
+  public static createDottedSixtyFourthRest = () => {
+    return this.createRest(this.DottedSixtyFourthNoteTicks);
+  };
+
+  // Triplet WHole Notes
+  public static TripletWholeNoteTicks = (2 / 3) * this.WholeNoteTicks;
+  public static createTripletWholeNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.TripletWholeNoteTicks, velocity);
+  };
+  public static createTripletWholeRest = () => {
+    return this.createRest(this.TripletWholeNoteTicks);
+  };
+
+  // Triplet Half Notes
+  public static TripletHalfNoteTicks = (2 / 3) * this.HalfNoteTicks;
+  public static createTripletHalfNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.TripletHalfNoteTicks, velocity);
+  };
+  public static createTripletHalfRest = () => {
+    return this.createRest(this.TripletHalfNoteTicks);
+  };
+
+  // Triplet Quarter Notes
+  public static TripletQuarterNoteTicks = (2 / 3) * this.QuarterNoteTicks;
+  public static createTripletQuarterNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.TripletQuarterNoteTicks, velocity);
+  };
+  public static createTripletQuarterRest = () => {
+    return this.createRest(this.TripletQuarterNoteTicks);
+  };
+
+  // Triplet Eighth Notes
+  public static TripletEighthNoteTicks = (2 / 3) * this.EighthNoteTicks;
+  public static createTripletEighthNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.TripletEighthNoteTicks, velocity);
+  };
+  public static createTripletEighthRest = () => {
+    return this.createRest(this.TripletEighthNoteTicks);
+  };
+
+  // Triplet Sixteenth Notes
+  public static TripletSixteenthNoteTicks = (2 / 3) * this.SixteenthNoteTicks;
+  public static createTripletSixteenthNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.TripletSixteenthNoteTicks, velocity);
+  };
+  public static createTripletSixteenthRest = () => {
+    return this.createRest(this.TripletSixteenthNoteTicks);
+  };
+
+  // Triplet Thirty Second Notes
+  public static TripletThirtySecondNoteTicks =
+    (2 / 3) * this.ThirtySecondNoteTicks;
+  public static createTripletThirtySecondNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.TripletThirtySecondNoteTicks, velocity);
+  };
+  public static createTripletThirtySecondRest = () => {
+    return this.createRest(this.TripletThirtySecondNoteTicks);
+  };
+
+  // Triplet Sixty Fourth Notes
+  public static TripletSixtyFourthNoteTicks =
+    (2 / 3) * this.SixtyFourthNoteTicks;
+  public static createTripletSixtyFourthNote = (
+    MIDI?: number,
+    velocity?: Velocity
+  ) => {
+    return this.createNote(MIDI, this.TripletSixtyFourthNoteTicks, velocity);
+  };
+  public static createTripletSixtyFourthRest = () => {
+    return this.createRest(this.TripletSixtyFourthNoteTicks);
+  };
+
+  // MIDI Note Numbers
+  public static Rest = -1;
+  public static MinNote = 0;
+  public static MaxNote = 127;
+  public static DefaultNote = 60;
+
+  // Return true if the note is a rest
+  public static isRest(note: { MIDI: Note } | Note) {
+    if (typeof note === "number") {
+      return note === this.Rest;
+    }
+    return note?.MIDI === this.Rest;
+  }
+
+  // Return true if the note is any triplet duration
+  public static isTriplet(note: { duration: Tick }) {
+    return (
+      note?.duration === MIDI.TripletWholeNoteTicks ||
+      note?.duration === MIDI.TripletHalfNoteTicks ||
+      note?.duration === MIDI.TripletEighthNoteTicks ||
+      note?.duration === MIDI.TripletSixteenthNoteTicks ||
+      note?.duration === MIDI.TripletThirtySecondNoteTicks ||
+      note?.duration === MIDI.TripletSixtyFourthNoteTicks
+    );
+  }
+
+  // Return true if the note is any dotted duration
+  public static isDotted(note: { duration: Tick }) {
+    return (
+      note?.duration === MIDI.DottedWholeNoteTicks ||
+      note?.duration === MIDI.DottedHalfNoteTicks ||
+      note?.duration === MIDI.DottedQuarterNoteTicks ||
+      note?.duration === MIDI.DottedEighthNoteTicks ||
+      note?.duration === MIDI.DottedSixteenthNoteTicks ||
+      note?.duration === MIDI.DottedThirtySecondNoteTicks ||
+      note?.duration === MIDI.DottedSixtyFourthNoteTicks
+    );
+  }
+
+  // MIDI Velocity Numbers
+  public static MinVelocity = 0;
+  public static MaxVelocity = 127;
+  public static DefaultVelocity = 100;
+
+  // MIDI Durations in Ticks
+  public static MinDuration = 1;
+  public static MaxDuration = this.DottedWholeNoteTicks;
+  public static DefaultDuration = this.QuarterNoteTicks;
+
+  // Chromatic Notes
   public static ChromaticNotes: Pitch[] = [
     "C",
     "C#",
@@ -62,19 +364,12 @@ export class MIDI {
     }
     return MIDI.ChromaticNotes.indexOf(pitch as Pitch);
   }
-  // Note properties
-  public static Rest = -1;
-  public static MinNote = 0;
-  public static MaxNote = 127;
-
-  public static MinVelocity = 0;
-  public static MaxVelocity = 127;
-  public static DefaultVelocity = 100;
 
   // Get the MIDI number from a pitch
   public static fromPitch(pitch: string): Note {
     return Frequency(pitch).toMidi();
   }
+
   // Get the pitch class of a note, e.g. C, C#, D, etc.
   public static toPitchClass(note: Note): string {
     if (note === MIDI.Rest) return "R";
@@ -102,30 +397,5 @@ export class MIDI {
       return accidental === "#" ? 1 : -1;
     }
     return 0;
-  }
-
-  public static isRest(note: { MIDI: Note }) {
-    return note?.MIDI === this.Rest;
-  }
-  public static isTriplet(note: { duration: Tick }) {
-    return (
-      note?.duration === MIDI.TripletWholeNoteTicks ||
-      note?.duration === MIDI.TripletHalfNoteTicks ||
-      note?.duration === MIDI.TripletEighthNoteTicks ||
-      note?.duration === MIDI.TripletSixteenthNoteTicks ||
-      note?.duration === MIDI.TripletThirtySecondNoteTicks ||
-      note?.duration === MIDI.TripletSixtyFourthNoteTicks
-    );
-  }
-  public static isDotted(note: { duration: Tick }) {
-    return (
-      note?.duration === MIDI.DottedWholeNoteTicks ||
-      note?.duration === MIDI.DottedHalfNoteTicks ||
-      note?.duration === MIDI.DottedQuarterNoteTicks ||
-      note?.duration === MIDI.DottedEighthNoteTicks ||
-      note?.duration === MIDI.DottedSixteenthNoteTicks ||
-      note?.duration === MIDI.DottedThirtySecondNoteTicks ||
-      note?.duration === MIDI.DottedSixtyFourthNoteTicks
-    );
   }
 }
