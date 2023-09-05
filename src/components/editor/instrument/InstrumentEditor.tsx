@@ -81,7 +81,7 @@ export function EditorInstrument(props: InstrumentEditorProps) {
             className="capitalize"
             title={props.instrumentName}
             subtitle={props.instrumentCategory}
-            color="bg-orange-500/80"
+            color="bg-gradient-to-tr from-orange-400 to-orange-500"
           />
           <Editor.ScoreContainer className="border flex-grow border-slate-600">
             <img

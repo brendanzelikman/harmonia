@@ -27,8 +27,10 @@ export const getInstrumentName = (instrument: InstrumentName) => {
   const category = INSTRUMENT_CATEGORIES.find((key) =>
     categories[key].some((instrumentName) => instrumentName.key === instrument)
   );
-  if (!category) return "Instrument";
-  return categories[category].find((name) => name.key === instrument)?.name;
+  if (!category) return "Unknown";
+
+  const match = categories[category].find((name) => name.key === instrument);
+  return match?.name ?? "Unknown";
 };
 
 // Create an instrument for a track

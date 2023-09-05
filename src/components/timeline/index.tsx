@@ -40,8 +40,9 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     hideEditor: () => dispatch(hideEditor()),
     pasteClipsAndTransforms: (rows: Row[]) =>
       dispatch(pasteSelectedClipsAndTransforms(rows)),
-    offsetSelectedTransforms: (offset: TransformCoordinate) =>
-      dispatch(offsetSelectedTransforms(offset)),
+    offsetSelectedTransforms: (offset: TransformCoordinate) => {
+      dispatch(offsetSelectedTransforms(offset));
+    },
     updateSelectedTransforms: (update: Partial<TransformCoordinate>) =>
       dispatch(updateSelectedTransforms(update)),
   };

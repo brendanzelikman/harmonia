@@ -1,6 +1,6 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
-import Patterns, { PatternId } from "types/patterns";
+import Patterns, { Pattern, PatternId } from "types/patterns";
 
 // Select the ID of a pattern
 export const selectPatternId = (state: RootState, id: PatternId) => id;
@@ -14,7 +14,7 @@ export const selectPatternMap = createSelector(
 // Select a specific pattern from the store.
 export const selectPattern = createSelector(
   [selectPatternMap, selectPatternId],
-  (patterns, id) => patterns[id]
+  (patterns, id): Pattern | undefined => patterns[id]
 );
 
 // Select all patterns from the store.

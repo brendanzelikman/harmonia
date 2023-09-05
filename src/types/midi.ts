@@ -64,6 +64,7 @@ export class MIDI {
   }
   // Get the value of a rest
   public static Rest = -1;
+  public static NoteMin = 0;
   public static NoteMax = 127;
 
   // Get the MIDI number from a pitch

@@ -1,5 +1,11 @@
 import { Listbox, Transition } from "@headlessui/react";
-import { BsCheck, BsGear, BsSearch, BsSoundwave } from "react-icons/bs";
+import {
+  BsCheck,
+  BsGear,
+  BsMusicNoteBeamed,
+  BsSearch,
+  BsSoundwave,
+} from "react-icons/bs";
 import { EditorProps } from ".";
 import { Tooltip as FBTooltip } from "flowbite-react";
 import EditorInstrument from "./instrument";
@@ -8,10 +14,19 @@ import EditorScales from "./scales";
 import { useState } from "react";
 import {
   INSTRUMENT_NAMES,
+  InstrumentName,
   createGlobalInstrument,
   getGlobalInstrument,
   getInstrumentName,
 } from "types/instrument";
+import wholeNote from "assets/noteheads/whole.svg";
+import halfNote from "assets/noteheads/half.png";
+import quarterNote from "assets/noteheads/quarter.png";
+import eighthNote from "assets/noteheads/8th.png";
+import sixteenthNote from "assets/noteheads/16th.png";
+import thirtysecondNote from "assets/noteheads/32nd.png";
+import sixtyfourthNote from "assets/noteheads/64th.png";
+import { DURATIONS, DURATION_NAMES, Duration } from "types/units";
 
 export type StateProps = {
   showingTracks: boolean;
@@ -99,7 +114,7 @@ export function Editor(props: EditorProps) {
       as="div"
       className={`absolute bottom-0 right-0 ${
         state.showingTracks ? `w-[calc(100%-300px)]` : `w-full`
-      } h-full bg-gradient-to-t from-[#09203f] to-[#33454b] backdrop-blur-xl`}
+      } h-full bg-gradient-to-t from-[#09203f] to-[#33454b] backdrop-blur-xl font-nunito`}
     >
       <EditorNavbar />
       <div
@@ -124,22 +139,40 @@ export function Editor(props: EditorProps) {
   );
 }
 
-export const InstrumentListbox = ({
-  instrumentName,
-  setInstrumentName,
-}: {
-  instrumentName: string;
-  setInstrumentName: (instrumentName: string) => void;
-}) => {
-  const globalInstrumentName = getGlobalInstrument()?.name ?? "";
+interface EditorListboxProps<T> {
+  value: T | undefined;
+  setValue: (value: T) => void;
+  onChange?: (value: T) => void;
+  options: T[];
+  getOptionKey: (value: T) => any;
+  getOptionValue: (value: T) => any;
+  getOptionName: (value: T) => string;
+  placeholder?: string;
+  icon?: any;
+  className?: string;
+  border?: string | undefined;
+}
+
+export const CustomListbox = <T extends any>(props: EditorListboxProps<T>) => {
+  const name = props.value ? props.getOptionName(props.value) : undefined;
   return (
-    <Listbox value={globalInstrumentName}>
+    <Listbox value={props.value} onChange={props.onChange}>
       {({ open }) => (
-        <div className="relative z-50">
-          <Listbox.Button className="text-sm flex px-2 rounded z-10 h-full items-center text-slate-300 font-light">
-            <label className="flex items-center rounded text-left cursor-pointer w-40 text-ellipsis">
-              <BsSoundwave className="mr-2" />
-              {instrumentName || "Change Instrument"}
+        <div
+          className={`relative z-[50] focus-within:z-[60] flex flex-col pl-2 justify-center ${
+            props.className ?? ""
+          }`}
+        >
+          <Listbox.Button
+            className={`text-xs flex text-ellipsis whitespace-nowrap rounded border px-2 p-1  ${
+              open ? "text-slate-400" : "text-slate-300"
+            } ${
+              props.border ?? "border-slate-500/50"
+            } font-light focus:outline-none`}
+          >
+            <label className="flex items-center rounded text-left cursor-pointer w-30 text-ellipsis">
+              {props.icon}
+              {name || props.placeholder || "Change Value"}
             </label>
           </Listbox.Button>
           <Transition
@@ -150,45 +183,93 @@ export const InstrumentListbox = ({
             leaveFrom="transform opacity-100 scale-100"
             leaveTo="transform opacity-0 scale-95"
           >
-            <Listbox.Options className="absolute z-50 w-60 py-1 mt-1 overflow-auto text-base bg-white rounded-md shadow-lg max-h-60">
-              {INSTRUMENT_NAMES.map((i) => (
-                <Listbox.Option
-                  key={i}
-                  value={i}
-                  className={({ active }) =>
-                    `${active ? "text-amber-900 bg-amber-100" : "text-gray-900"}
-            cursor-default select-none relative py-2 pl-10 pr-4`
-                  }
-                  onClick={() => {
-                    setInstrumentName(getInstrumentName(i) || "");
-                    createGlobalInstrument(i);
-                  }}
-                >
-                  {({ selected }) => (
-                    <>
-                      <span
-                        className={`${
-                          selected ? "font-medium" : "font-normal"
-                        } block truncate`}
-                      >
-                        {getInstrumentName(i)}
-                      </span>
-                      {selected ? (
+            <Listbox.Options className="absolute z-50 w-40 py-1 mt-1 overflow-auto text-xs bg-slate-50 backdrop-blur rounded-md shadow-lg max-h-60 focus:outline-none">
+              {props.options.map((option) => {
+                const optionKey = props.getOptionKey(option);
+                const optionValue = props.getOptionValue(option);
+                const optionName = props.getOptionName(option);
+                return (
+                  <Listbox.Option
+                    key={optionKey}
+                    value={optionValue}
+                    className={({ active }) =>
+                      `${
+                        active
+                          ? "text-emerald-900 bg-emerald-100"
+                          : "text-gray-900"
+                      } cursor-default select-none relative py-2 pl-6 pr-4`
+                    }
+                    onClick={() => props.setValue(option)}
+                  >
+                    {({ selected }) => (
+                      <>
                         <span
-                          className={`text-amber-600 absolute inset-y-0 left-0 flex items-center pl-3`}
+                          className={`${
+                            selected ? "font-medium" : "font-normal"
+                          } block truncate`}
                         >
-                          <BsCheck />
+                          {optionName}
                         </span>
-                      ) : null}
-                    </>
-                  )}
-                </Listbox.Option>
-              ))}
+                        {selected ? (
+                          <span
+                            className={`text-emerald-600 absolute inset-y-0 left-0 flex items-center pl-2`}
+                          >
+                            <BsCheck />
+                          </span>
+                        ) : null}
+                      </>
+                    )}
+                  </Listbox.Option>
+                );
+              })}
             </Listbox.Options>
           </Transition>
         </div>
       )}
     </Listbox>
+  );
+};
+
+export const DurationListbox = (
+  props: Pick<
+    EditorListboxProps<Duration>,
+    "value" | "setValue" | "className" | "border"
+  >
+) => {
+  return (
+    <CustomListbox
+      value={props.value}
+      setValue={props.setValue}
+      getOptionKey={(d) => d}
+      getOptionValue={(d) => d}
+      getOptionName={(d) => DURATION_NAMES[d]}
+      icon={<BsMusicNoteBeamed className="mr-2" />}
+      options={DURATIONS}
+      placeholder="Change Duration"
+      border={props.border}
+      className={props.className}
+    />
+  );
+};
+
+export const InstrumentListbox = ({
+  setInstrumentName,
+}: {
+  setInstrumentName: (instrumentName: string) => void;
+}) => {
+  const value = (getGlobalInstrument()?.name ?? "Unknown") as InstrumentName;
+  return (
+    <CustomListbox
+      value={value}
+      setValue={(value) => setInstrumentName(value)}
+      onChange={(value) => createGlobalInstrument(value)}
+      getOptionKey={(i) => i}
+      getOptionName={(i) => getInstrumentName(i)}
+      getOptionValue={(i) => i}
+      icon={<BsSoundwave className="mr-2" />}
+      options={INSTRUMENT_NAMES}
+      placeholder="Change Instrument"
+    />
   );
 };
 
@@ -252,7 +333,12 @@ export const Title = (props: {
         disabled={!props.editable}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
-      <div className={`w-full h-0.5 my-1.5 ${props.color ?? ""}`}></div>
+      <div
+        style={{ backgroundSize: "400%" }}
+        className={`w-full h-0.5 my-1.5 animate-[animate-gradient_3s_ease_infinite] ${
+          props.color ?? ""
+        }`}
+      ></div>
       {props.subtitle ? (
         <span className="text-xl font-light text-slate-300">
           {props.subtitle}
@@ -265,7 +351,7 @@ export const Title = (props: {
 export const Header = (props: { className?: string; children?: any }) => {
   return (
     <div
-      className={`flex items-center px-2 flex-shrink-0 font-nunito ${
+      className={`flex items-center px-2 flex-shrink-0 ${
         props.className ?? ""
       }`}
     >
@@ -355,7 +441,7 @@ export const EffectGroup = (props: {
     >
       <div className="flex flex-col items-center w-full mx-auto px-2 py-3 h-full whitespace-nowrap border border-gray-700 rounded-lg bg-slate-700/50">
         <div className="flex">{props.children}</div>
-        <label className="mt-auto flex justify-center text-xl font-nunito">
+        <label className="mt-auto flex justify-center text-xl">
           {props.label}
         </label>
       </div>
@@ -385,11 +471,15 @@ export const MenuRow = (props: {
   </Transition>
 );
 
-export const MenuGroup = (props: { children?: any; border?: boolean }) => (
+export const MenuGroup = (props: {
+  children?: any;
+  border?: boolean;
+  className?: string;
+}) => (
   <div
     className={`flex text-lg px-1 ${
       props.border ? "border-r border-r-slate-500" : ""
-    }`}
+    } ${props.className ?? ""}`}
   >
     {props.children}
   </div>
@@ -414,7 +504,7 @@ export const MenuButton = ({
 }) => {
   return (
     <div
-      className={`flex h-5 items-center justify-center my-2 mx-[3px] rounded select-none font-nunito font-light text-xs ${
+      className={`flex h-5 items-center justify-center my-2 mx-[3px] rounded select-none font-light text-xs ${
         disabled
           ? `${disabledClass} opacity-50 cursor-default`
           : active
@@ -427,6 +517,91 @@ export const MenuButton = ({
     </div>
   );
 };
+
+interface DurationButtonProps {
+  active?: boolean;
+  onClick?: () => void;
+  showTooltip?: boolean;
+}
+
+const activeNoteClass = "bg-orange-400 ring ring-orange-400";
+
+export const SixtyFourthButton = (props: DurationButtonProps) => (
+  <Tooltip show={props.showTooltip} tooltipContent={`Sixty-Fourth Note`}>
+    <MenuButton
+      className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
+      onClick={props.onClick}
+    >
+      <img className="h-5 object-contain" src={sixtyfourthNote} />
+    </MenuButton>
+  </Tooltip>
+);
+
+export const ThirtySecondButton = (props: DurationButtonProps) => (
+  <Tooltip show={props.showTooltip} tooltipContent={`Thirty-Second Note`}>
+    <MenuButton
+      className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
+      onClick={props.onClick}
+    >
+      <img className="h-5 object-contain" src={thirtysecondNote} />
+    </MenuButton>
+  </Tooltip>
+);
+
+export const SixteenthButton = (props: DurationButtonProps) => (
+  <Tooltip show={props.showTooltip} tooltipContent={`Sixteenth Note`}>
+    <MenuButton
+      className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
+      onClick={props.onClick}
+    >
+      <img className="h-5 object-contain" src={sixteenthNote} />
+    </MenuButton>
+  </Tooltip>
+);
+
+export const EighthButton = (props: DurationButtonProps) => (
+  <Tooltip show={props.showTooltip} tooltipContent={`Eighth Note`}>
+    <MenuButton
+      className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
+      onClick={props.onClick}
+    >
+      <img className="h-5 object-contain" src={eighthNote} />
+    </MenuButton>
+  </Tooltip>
+);
+
+export const QuarterButton = (props: DurationButtonProps) => (
+  <Tooltip show={props.showTooltip} tooltipContent={`Quarter Note`}>
+    <MenuButton
+      className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
+      onClick={props.onClick}
+    >
+      <img className="h-5 object-contain mt-1" src={quarterNote} />
+    </MenuButton>
+  </Tooltip>
+);
+
+export const HalfButton = (props: DurationButtonProps) => (
+  <Tooltip show={props.showTooltip} tooltipContent={`Half Note`}>
+    <MenuButton
+      className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
+      onClick={props.onClick}
+    >
+      <img className="h-5 object-contain mt-0.5" src={halfNote} />
+    </MenuButton>
+  </Tooltip>
+);
+
+export const WholeButton = (props: DurationButtonProps) => (
+  <Tooltip show={props.showTooltip} tooltipContent={`Whole Note`}>
+    <MenuButton
+      className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
+      onClick={props.onClick}
+    >
+      <img className="h-5 object-contain mt-3 p-1.5" src={wholeNote} />
+    </MenuButton>
+  </Tooltip>
+);
 
 export const List = (props: { className?: string; children?: any }) => {
   return (

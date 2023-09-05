@@ -292,7 +292,7 @@ export function ScaleEditor(props: ScaleEditorProps) {
           leaveTo="opacity-0"
         >
           <Editor.Sidebar>
-            <Editor.SidebarHeader className="border-b border-b-slate-500/50 mb-2 font-nunito">
+            <Editor.SidebarHeader className="border-b border-b-slate-500/50 mb-2">
               Preset Scales
             </Editor.SidebarHeader>
             <ScaleList {...props} />
@@ -303,7 +303,7 @@ export function ScaleEditor(props: ScaleEditorProps) {
           <Editor.Title
             title={props.scaleName}
             subtitle={props.scaleCategory}
-            color={"bg-sky-500/80"}
+            color={"bg-gradient-to-tr from-sky-500 to-sky-600"}
           />
           <Editor.MenuRow show={true} border={false}>
             <Editor.MenuGroup border={true}>
@@ -322,10 +322,7 @@ export function ScaleEditor(props: ScaleEditorProps) {
               <ScalarTransposeButton />
               <ChordalTransposeButton />
             </Editor.MenuGroup>
-            <Editor.InstrumentListbox
-              instrumentName={instrumentName}
-              setInstrumentName={setInstrumentName}
-            />
+            <Editor.InstrumentListbox setInstrumentName={setInstrumentName} />
           </Editor.MenuRow>
 
           <Editor.ScoreContainer className={`bg-white/90 mt-2 rounded-xl`}>

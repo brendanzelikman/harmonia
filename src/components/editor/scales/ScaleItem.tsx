@@ -24,7 +24,7 @@ export const PresetScale = (props: PresetScaleProps) => {
 
   return (
     <ListItem
-      className={`font-nunito ${
+      className={`${
         areScalesRelated
           ? "text-sky-500 border-l border-l-sky-500"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"

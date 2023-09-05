@@ -9,31 +9,30 @@ import {
   PatternNoId,
   PatternNote,
   PatternStream,
-  getStreamTicks,
   isPatternValid,
 } from "types/patterns";
 import { initializeState } from "redux/util";
 import { AppThunk } from "redux/store";
-import {
-  selectClipsByPatternId,
-  selectPattern,
-  selectRoot,
-} from "redux/selectors";
+import { selectRoot } from "redux/selectors";
 
 import Scales from "types/scales";
 import { MIDI } from "types/midi";
 
 import { setSelectedPattern } from "./root";
-import { clamp, inRange, random, reverse, shuffle } from "lodash";
+import { clamp, random, reverse, shuffle } from "lodash";
 import { mod } from "appUtil";
-import { updateClips } from "./clips";
 
 const initialState = initializeState<PatternId, Pattern>([defaultPattern]);
 
-interface PatternAdd {
+interface PatternAddNote {
   id: PatternId;
   patternNote: PatternNote;
   asChord?: boolean;
+}
+
+interface PatternAddChord {
+  id: PatternId;
+  patternChord: PatternChord;
 }
 
 interface PatternInsert {
@@ -42,11 +41,17 @@ interface PatternInsert {
   index: number;
 }
 
-interface PatternUpdate {
+interface PatternUpdateNote {
   id: PatternId;
   index: number;
   patternNote: PatternNote;
   asChord?: boolean;
+}
+
+interface PatternUpdateChord {
+  id: PatternId;
+  index: number;
+  patternChord: PatternChord;
 }
 
 interface TransformPattern {
@@ -104,7 +109,7 @@ export const patternsSlice = createSlice({
         state.byId[id] = { ...state.byId[id], ...rest };
       });
     },
-    addPatternNote: (state, action: PayloadAction<PatternAdd>) => {
+    addPatternNote: (state, action: PayloadAction<PatternAddNote>) => {
       const { id, patternNote, asChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPatternValid(pattern)) return;
@@ -125,6 +130,20 @@ export const patternsSlice = createSlice({
         state.byId[id].stream[length - 1].push(patternNote);
       }
     },
+    addPatternChord: (state, action: PayloadAction<PatternAddChord>) => {
+      const { id, patternChord } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern || !isPatternValid(pattern)) return;
+
+      // If the pattern is empty, add the chord as the first chord
+      if (pattern.stream.length === 0) {
+        state.byId[id].stream = [patternChord];
+        return;
+      }
+
+      // If the chord is not a chord, add it to the end of the pattern
+      state.byId[id].stream.push(patternChord);
+    },
     insertPatternNote: (state, action: PayloadAction<PatternInsert>) => {
       const { id, patternNote, index } = action.payload;
       const pattern = state.byId[id];
@@ -135,7 +154,7 @@ export const patternsSlice = createSlice({
       const patternChord: PatternChord = [patternNote];
       state.byId[id].stream.splice(index + 1, 0, patternChord);
     },
-    updatePatternNote: (state, action: PayloadAction<PatternUpdate>) => {
+    updatePatternNote: (state, action: PayloadAction<PatternUpdateNote>) => {
       const { id, patternNote, index, asChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPatternValid(pattern)) return;
@@ -147,6 +166,14 @@ export const patternsSlice = createSlice({
       } else {
         state.byId[id].stream[index].push(patternNote);
       }
+    },
+    updatePatternChord: (state, action: PayloadAction<PatternUpdateChord>) => {
+      const { id, patternChord, index } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern || !isPatternValid(pattern)) return;
+
+      if (index < 0 || index > pattern.stream.length) return;
+      state.byId[id].stream[index] = patternChord;
     },
     removePatternNote: (state, action) => {
       const { id, index } = action.payload;
@@ -314,9 +341,11 @@ export const {
   _updatePattern,
   _updatePatterns,
   addPatternNote,
+  addPatternChord,
   insertPatternNote,
   removePatternNote,
   updatePatternNote,
+  updatePatternChord,
   transposePattern,
   rotatePattern,
   repeatPattern,

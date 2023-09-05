@@ -1,4 +1,5 @@
-import { Duration, Note, Timing } from "./units";
+import { MIDI } from "./midi";
+import { Duration, Note, Tick, Timing, Velocity } from "./units";
 
 export type EditorId = "file" | "scale" | "instrument" | "patterns" | "hidden";
 export type EditorState = "adding" | "inserting" | "removing" | "idle";
@@ -10,8 +11,15 @@ export interface Editor {
   id: EditorId;
   state: EditorState;
   show: boolean;
-  selectedDuration: Duration;
-  selectedTiming: Timing;
+
+  noteDuration: Duration;
+  noteTiming: Timing;
+  noteVelocity: Velocity;
+
+  recordingLength: Tick;
+  recordingTiming: Timing;
+  recordingQuantization: Duration;
+
   clipboard: EditorClipboard;
 }
 
@@ -19,19 +27,19 @@ export const defaultEditor: Editor = {
   id: "hidden",
   state: "idle",
   show: false,
-  selectedDuration: "quarter",
-  selectedTiming: "straight",
+
+  noteDuration: "quarter",
+  noteTiming: "straight",
+  noteVelocity: 0,
+
+  recordingLength: MIDI.WholeNoteTicks,
+  recordingTiming: "straight",
+  recordingQuantization: "eighth",
+
   clipboard: { notes: [] },
 };
 
 export const isEditor = (obj: any): obj is Editor => {
-  const { id, state, show, selectedDuration, selectedTiming, clipboard } = obj;
-  return (
-    id !== undefined &&
-    state !== undefined &&
-    show !== undefined &&
-    selectedDuration !== undefined &&
-    selectedTiming !== undefined &&
-    clipboard !== undefined
-  );
+  const { id, state, show } = obj;
+  return id !== undefined && state !== undefined && show !== undefined;
 };

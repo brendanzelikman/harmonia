@@ -34,20 +34,8 @@ export const defaultTransport: Transport = {
 };
 
 export const isTransport = (obj: any): obj is Transport => {
-  const {
-    tick,
-    state,
-    bpm,
-    loop,
-    loopStart,
-    loopEnd,
-    volume,
-    mute,
-    timeSignature,
-    loaded,
-    loading,
-    recording,
-  } = obj;
+  const { tick, state, bpm, loop, loopStart, loopEnd, volume, timeSignature } =
+    obj;
   return (
     tick !== undefined &&
     state !== undefined &&
@@ -56,10 +44,6 @@ export const isTransport = (obj: any): obj is Transport => {
     loopStart !== undefined &&
     loopEnd !== undefined &&
     volume !== undefined &&
-    mute !== undefined &&
-    timeSignature !== undefined &&
-    loaded !== undefined &&
-    loading !== undefined &&
-    recording !== undefined
+    timeSignature !== undefined
   );
 };

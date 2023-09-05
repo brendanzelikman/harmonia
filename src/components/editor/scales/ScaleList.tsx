@@ -98,7 +98,7 @@ export default function ScaleList(props: ScaleEditorProps) {
                     className={`flex items-center justify-center text-slate-50`}
                   >
                     <label
-                      className={`font-nunito py-3 px-2 ${
+                      className={`py-3 px-2 ${
                         open ? "font-extrabold" : "font-medium"
                       }`}
                     >

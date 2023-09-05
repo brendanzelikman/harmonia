@@ -6,12 +6,12 @@ import {
   isHoldingShift,
   isInputEvent,
 } from "appUtil";
-import { PatternEditorProps } from ".";
+import { PatternEditorCursorProps } from ".";
 import { Duration } from "types/units";
 
-interface PatternShortcutProps extends PatternEditorProps {
-  cursor: any;
+interface PatternShortcutProps extends PatternEditorCursorProps {
   onRestClick: () => void;
+  onDurationClick: (duration: Duration) => void;
 }
 
 export default function usePatternShortcuts(props: PatternShortcutProps) {
@@ -29,15 +29,15 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       " ": {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          e.preventDefault();
+          cancelEvent(e);
           // if (props.pattern) props.playPattern(props.pattern.id);
         },
       },
       // X = Export Pattern to XML
       X: {
         keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingShift(e)) return;
-          e.preventDefault();
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
           if (props.pattern) props.exportPatternToXML(props.pattern);
         },
       },
@@ -45,7 +45,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       M: {
         keydown: (e) => {
           if (isInputEvent(e) || !isHoldingShift(e)) return;
-          e.preventDefault();
+          cancelEvent(e);
           if (props.pattern) props.exportPatternToMIDI(props.pattern);
         },
       },
@@ -60,13 +60,13 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           }
         },
       },
-      // X = Start/Stop Anchoring Notes
+      // x = Start/Stop Anchoring Notes
       x: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           cancelEvent(e);
           if (props.cursor.hidden) return;
-          props.setState(props.inserting ? "inserting" : "adding");
+          props.setState(props.inserting ? "adding" : "inserting");
         },
       },
       // Delete = Remove Note
@@ -191,7 +191,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           cancelEvent(e);
-          props.setNoteDuration("64th");
+          props.onDurationClick("64th");
         },
       },
       // 2 = Select Eighth Note
@@ -199,7 +199,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           cancelEvent(e);
-          props.setNoteDuration("32nd");
+          props.onDurationClick("32nd");
         },
       },
       // 3 = Select 16th Note
@@ -209,11 +209,11 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           if (isInputEvent(e)) return;
           cancelEvent(e);
           if (!isHoldingCommand(e)) {
-            props.setNoteDuration("16th");
+            props.onDurationClick("16th");
             return;
           }
           props.setNoteTiming(
-            props.selectedTiming === "triplet" ? "straight" : "triplet"
+            props.noteTiming === "triplet" ? "straight" : "triplet"
           );
         },
       },
@@ -222,7 +222,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           cancelEvent(e);
-          props.setNoteDuration("eighth");
+          props.onDurationClick("eighth");
         },
       },
       // 5 = Select Quarter Note
@@ -230,7 +230,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           cancelEvent(e);
-          props.setNoteDuration("quarter");
+          props.onDurationClick("quarter");
         },
       },
       // 6 = Select Half Note
@@ -238,7 +238,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           cancelEvent(e);
-          props.setNoteDuration("half");
+          props.onDurationClick("half");
         },
       },
       // 7 = Select Whole Note
@@ -246,7 +246,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           cancelEvent(e);
-          props.setNoteDuration("whole");
+          props.onDurationClick("whole");
         },
       },
       // . = Select Dotted Note
@@ -255,7 +255,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           if (isInputEvent(e)) return;
           cancelEvent(e);
           props.setNoteTiming(
-            props.selectedTiming === "dotted" ? "straight" : "dotted"
+            props.noteTiming === "dotted" ? "straight" : "dotted"
           );
         },
       },

@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { AppThunk } from "redux/store";
 import { TrackId } from "types/tracks";
-import { Duration, Timing } from "types/units";
+import { Duration, Tick, Timing } from "types/units";
 import { setSelectedTrack } from "./root";
 import { defaultEditor, EditorId, EditorState } from "types/editor";
 
@@ -22,10 +22,25 @@ export const editorSlice = createSlice({
       state.state = action.payload;
     },
     setEditorNoteDuration: (state, action: PayloadAction<Duration>) => {
-      state.selectedDuration = action.payload;
+      state.noteDuration = action.payload;
     },
     setEditorNoteTiming: (state, action: PayloadAction<Timing>) => {
-      state.selectedTiming = action.payload;
+      state.noteTiming = action.payload;
+    },
+    setEditorNoteVelocity: (state, action: PayloadAction<number>) => {
+      state.noteVelocity = action.payload;
+    },
+    setEditorRecordingLength: (state, action: PayloadAction<Tick>) => {
+      state.recordingLength = action.payload;
+    },
+    setEditorRecordingTiming: (state, action: PayloadAction<Timing>) => {
+      state.recordingTiming = action.payload;
+    },
+    setEditorRecordingQuantization: (
+      state,
+      action: PayloadAction<Duration>
+    ) => {
+      state.recordingQuantization = action.payload;
     },
   },
 });
@@ -36,6 +51,10 @@ export const {
   setEditorState,
   setEditorNoteDuration,
   setEditorNoteTiming,
+  setEditorNoteVelocity,
+  setEditorRecordingLength,
+  setEditorRecordingTiming,
+  setEditorRecordingQuantization,
 } = editorSlice.actions;
 
 export const showEditor =

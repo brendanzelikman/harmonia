@@ -3,7 +3,7 @@ import { ticksToDuration, closestPitchClass, mod } from "appUtil";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import Scales, { Scale } from "./scales";
-import { Pitch, Tick, Time, XML } from "./units";
+import { Note, Pitch, Tick, Time, XML } from "./units";
 import { PresetPatterns } from "./presets/patterns";
 import { ChromaticScale } from "./presets/scales";
 import MidiWriter from "midi-writer-js";
@@ -43,25 +43,19 @@ export type PatternNote = {
   duration: Tick; // length of note in ticks
 };
 
-// A MIDI note is defined by a MIDI number, a start time in ticks, and a duration in seconds
-export type MIDINote = {
-  MIDI: number;
-  ticks: Tick; // start time in ticks
-  duration: Time; // duration of note in seconds
-};
-
 // A pattern chord is a collection of notes that are played at the same time.
 export type PatternChord = PatternNote[];
 
 // A pattern stream is a collection of pattern chords
 export type PatternStream = PatternChord[];
 
+export const isNoteValid = (note: PatternNote) => {
+  return MIDI.isRest(note) || inRange(note.MIDI, MIDI.NoteMin, MIDI.NoteMax);
+};
 // Validate a pattern
-export const isPatternValid = (pattern: Pattern) => {
-  if (!pattern) return false;
-  return pattern.stream.every((chord) =>
-    chord.every((note) => inRange(note.MIDI, MIDI.Rest, MIDI.NoteMax))
-  );
+export const isPatternValid = (pattern?: Pattern) => {
+  if (!pattern?.stream) return false;
+  return pattern.stream.every((chord) => chord.every(isNoteValid));
 };
 
 // Realize a pattern in a particular scale.
@@ -201,7 +195,7 @@ export const transposePatternStream = (
       const newNumber = MIDI.ChromaticNotes.indexOf(thisPitch);
       const oldNumber = MIDI.ChromaticNotes.indexOf(notePitch);
       const newMIDI = noteMIDI + newNumber - oldNumber + newOffset;
-      const clampedMIDI = clamp(newMIDI, MIDI.Rest, MIDI.NoteMax);
+      const clampedMIDI = clamp(newMIDI, MIDI.NoteMin, MIDI.NoteMax);
       transposedChord.push({ ...note, MIDI: clampedMIDI });
     }
     transposedStream.push(transposedChord);

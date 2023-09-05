@@ -51,7 +51,7 @@ export const closest = (goal: number, arr: number[]) =>
     return Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev;
   });
 
-const ticksBySubdivision = {
+const ticksBySubdivision: Record<Subdivision, Tick> = {
   "1/64": MIDI.SixtyFourthNoteTicks,
   "1/32": MIDI.ThirtySecondNoteTicks,
   "1/16": MIDI.SixteenthNoteTicks,
@@ -65,7 +65,7 @@ export const subdivisionToTicks = (subdivision: Subdivision = "1/16"): Tick => {
   return ticksBySubdivision[subdivision] || MIDI.QuarterNoteTicks;
 };
 
-const valuesBySubdivision = {
+const valuesBySubdivision: Record<Subdivision, number> = {
   "1/64": 64,
   "1/32": 32,
   "1/16": 16,

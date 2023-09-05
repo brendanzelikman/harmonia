@@ -102,7 +102,7 @@ export default function PatternList(props: PatternEditorProps) {
                     }`}
                   >
                     <label
-                      className={`font-nunito py-3 px-2 ${
+                      className={`py-3 px-2 ${
                         open ? "font-bold" : "font-medium"
                       }`}
                     >

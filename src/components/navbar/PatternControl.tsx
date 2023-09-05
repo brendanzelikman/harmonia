@@ -30,6 +30,7 @@ import { forwardRef, useEffect, useRef, useState } from "react";
 import { blurOnEnter, isInputEvent } from "appUtil";
 import useEventListeners from "hooks/useEventListeners";
 import { hideEditor } from "redux/slices/editor";
+import { Toolkit } from "types/root";
 
 const mapStateToProps = (state: RootState) => {
   const root = selectRoot(state);
@@ -56,10 +57,10 @@ const mapStateToProps = (state: RootState) => {
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    setToolkitValue: (key: keyof Root.Toolkit, value: any) => {
+    setToolkitValue: (key: keyof Toolkit, value: any) => {
       dispatch(Root.setToolkitValue({ key, value }));
     },
-    toggleToolkitValue: (key: keyof Root.Toolkit) => {
+    toggleToolkitValue: (key: keyof Toolkit) => {
       dispatch(Root.toggleToolkitValue(key));
     },
     toggleAdding: () => {

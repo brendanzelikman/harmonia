@@ -148,7 +148,6 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
           if (holdingKeys["7"]) offset += 7;
           if (holdingKeys["8"]) offset += 8;
           if (holdingKeys["9"]) offset += 9;
-
           if (holdingKeys["1"]) {
             props.offsetSelectedTransforms({
               N: offset,
@@ -251,7 +250,9 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
       props.selectedTrackId,
       props.rows,
       props.showingEditor,
-      JSON.stringify(holdingKeys),
+      holdingKeys,
+      keyKeydown,
+      keyKeyup,
     ]
   );
 }

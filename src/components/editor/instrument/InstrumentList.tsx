@@ -36,7 +36,7 @@ export default function InstrumentList(props: InstrumentEditorProps) {
               <Disclosure.Button className="outline-none">
                 <div className="flex items-center justify-center text-slate-50">
                   <label
-                    className={`capitalize font-nunito py-3 px-2 ${
+                    className={`capitalize py-3 px-2 ${
                       open ? "font-extrabold" : "font-medium"
                     } select-none`}
                   >

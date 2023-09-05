@@ -48,20 +48,11 @@ export const defaultTimeline: Timeline = {
 };
 
 export const isTimeline = (obj: any): obj is Timeline => {
-  const {
-    state,
-    cellWidth,
-    subdivision,
-    draggingClip,
-    draggingTransform,
-    clipboard,
-  } = obj;
+  const { state, cellWidth, subdivision, clipboard } = obj;
   return (
     state !== undefined &&
     cellWidth !== undefined &&
     subdivision !== undefined &&
-    draggingClip !== undefined &&
-    draggingTransform !== undefined &&
     clipboard !== undefined
   );
 };

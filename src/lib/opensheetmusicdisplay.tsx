@@ -14,18 +14,19 @@ interface OSMDProps {
   ignoreCursor?: boolean;
 }
 
+export interface OSMDCursor {
+  index: number;
+  setIndex: (index: number) => void;
+  hidden: boolean;
+  show: () => void;
+  hide: () => void;
+  next: () => void;
+  prev: () => void;
+}
 interface OSMDReturn {
   score: JSX.Element;
   osmd?: OSMD;
-  cursor: {
-    index: number;
-    setIndex: (index: number) => void;
-    hidden: boolean;
-    show: () => void;
-    hide: () => void;
-    next: () => void;
-    prev: () => void;
-  };
+  cursor: OSMDCursor;
 }
 
 export default function useOSMD({
