@@ -7,7 +7,7 @@ import {
 import * as Slices from "./slices";
 import undoable from "redux-undo";
 import { saveState, loadState } from "./util";
-import { groupByActionType } from "./undoTypes";
+import { groupByActionType, UndoTypes } from "./undoTypes";
 
 const session = combineReducers({
   clips: Slices.Clips.default,
@@ -22,22 +22,22 @@ const session = combineReducers({
 
 const undoableSession = undoable(session, {
   groupBy: groupByActionType,
-  undoType: "session/undo",
-  redoType: "session/redo",
+  undoType: UndoTypes.undoSession,
+  redoType: UndoTypes.redoSession,
   limit: 16,
 });
 
 const undoableScales = undoable(Slices.Scales.default, {
   groupBy: groupByActionType,
-  undoType: "scales/undo",
-  redoType: "scales/redo",
+  undoType: UndoTypes.undoScales,
+  redoType: UndoTypes.redoScales,
   limit: 16,
 });
 
 const undoablePatterns = undoable(Slices.Patterns.default, {
   groupBy: groupByActionType,
-  undoType: "patterns/undo",
-  redoType: "patterns/redo",
+  undoType: UndoTypes.undoPatterns,
+  redoType: UndoTypes.redoPatterns,
   limit: 16,
 });
 
@@ -64,8 +64,7 @@ export const store = configureStore({
 
 store.subscribe(() => {
   const state = store.getState();
-  if (state.transport.state === "started") return;
-  saveState(state);
+  if (state.transport.state !== "started") saveState(state);
 });
 
 export type RootState = ReturnType<typeof store.getState>;

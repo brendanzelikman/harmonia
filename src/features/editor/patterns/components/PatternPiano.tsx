@@ -6,6 +6,7 @@ import { useState } from "react";
 import useEventListeners from "hooks/useEventListeners";
 import { isSamplerLoaded } from "types/instrument";
 import { EditorPiano } from "features/editor/components";
+import { PatternNote } from "types/patterns";
 
 interface PatternPianoProps extends PatternEditorCursorProps {
   sampler: Sampler;
@@ -26,10 +27,12 @@ export function PatternPiano(props: PatternPianoProps) {
 
   // Play note event handler handling editor states
   const playNote = (sampler: Sampler, midiNumber: number) => {
+    const velocity = props.noteVelocity ?? MIDI.DefaultVelocity;
     // Play the note
     if (isSamplerLoaded(sampler)) {
       const pitch = MIDI.toPitch(midiNumber);
-      sampler.triggerAttackRelease(pitch, "4n");
+      const scaledVelocity = velocity / MIDI.MaxVelocity;
+      sampler.triggerAttackRelease(pitch, "4n", undefined, scaledVelocity);
     }
 
     // Make sure the scale and pattern exist
@@ -37,12 +40,13 @@ export function PatternPiano(props: PatternPianoProps) {
     if (!pattern || !scale) return;
 
     // Prepare the corresponding note
-    const patternNote = {
+    const patternNote: PatternNote = {
       MIDI: midiNumber,
       duration: durationToTicks(props.noteDuration, {
         dotted: props.noteTiming === "dotted",
         triplet: props.noteTiming === "triplet",
       }),
+      velocity,
     };
 
     // Dispatch the appropriate action

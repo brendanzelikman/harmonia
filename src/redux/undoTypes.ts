@@ -8,8 +8,6 @@ export const UndoTypes = {
   redoScales: "scales/redo",
   undoPatterns: "patterns/undo",
   redoPatterns: "patterns/redo",
-  undoMixers: "mixers/undo",
-  redoMixers: "mixers/redo",
 };
 
 export const groupByActionType = (action: any) => {

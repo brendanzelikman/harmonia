@@ -14,7 +14,7 @@ import {
   TimelineNote,
 } from "types/patterns";
 import { Time } from "types/units";
-import { ticksToColumns } from "appUtil";
+import { percentOfRange, ticksToColumns } from "appUtil";
 import { MIDI } from "types/midi";
 import { CELL_HEIGHT, TRANSFORM_HEIGHT } from "appConstants";
 
@@ -77,21 +77,29 @@ function Stream(props: Props) {
   );
 
   const renderNote = useCallback(
-    ({ MIDI, pitch, start, duration }: TimelineNote, i: number) => {
-      const width = ticksToColumns(duration || 0, subdivision) * cellWidth - 2;
+    (note: TimelineNote, i: number) => {
+      const columns = ticksToColumns(note.duration || 0, subdivision);
+      const width = columns * cellWidth - 2;
+      const height = noteHeight - 2;
+      const top = noteCount === 1 ? "25px" : "";
+      const bottom = `${noteOffset(note.MIDI) + margin / 2}px`;
+      const left = ticksToColumns(note.start, subdivision) * cellWidth;
+      const opacity =
+        percentOfRange(note.velocity, MIDI.MinVelocity, MIDI.MaxVelocity) / 100;
       return (
         <li
           key={i}
-          className="absolute flex items-center justify-center shrink-0 rounded bg-sky-950/80 border border-slate-950/80"
+          className="absolute flex items-center justify-center shrink-0 rounded border border-slate-950/80"
           style={{
             width: `${width}px`,
-            top: `${noteCount === 1 ? "25px" : ""}`,
-            bottom: `${noteOffset(MIDI) + margin / 2}px`,
-            height: `${noteHeight - 2}px`,
-            left: ticksToColumns(start, subdivision) * cellWidth,
+            height: `${height}px`,
+            left: `${left}px`,
+            top,
+            bottom,
+            backgroundColor: `rgba(8, 47, 73, ${opacity})`,
           }}
         >
-          {width > 20 ? pitch : null}
+          {width > 20 ? note.pitch : null}
         </li>
       );
     },

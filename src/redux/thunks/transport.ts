@@ -76,8 +76,16 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
           // Play the chord
           if (!isSamplerLoaded(sampler)) continue;
           const pitches = chord.map((note) => MIDI.toPitch(note.MIDI));
-          const subdivision = ticksToSubdivision(chord?.[0].duration);
-          sampler.triggerAttackRelease(pitches, subdivision, time);
+          const duration = chord[0].duration ?? MIDI.EighthNoteTicks;
+          const subdivision = ticksToSubdivision(duration);
+          const velocity = chord[0].velocity ?? MIDI.DefaultVelocity;
+          const scaledVelocity = velocity / MIDI.MaxVelocity;
+          sampler.triggerAttackRelease(
+            pitches,
+            subdivision,
+            time,
+            scaledVelocity
+          );
         }
       }
       // Schedule the next tick

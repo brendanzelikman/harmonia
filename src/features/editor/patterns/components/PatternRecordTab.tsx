@@ -1,7 +1,7 @@
 import { BsFillRecordCircleFill, BsSoundwave } from "react-icons/bs";
 import { PatternEditorCursorProps } from "..";
 import * as Editor from "features/editor";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { WebMidi, Input, NoteMessageEvent } from "webmidi";
 import { MIDI } from "types/midi";
 import { durationToTicks, ticksToSubdivision } from "appUtil";
@@ -172,46 +172,49 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
     }
   }, [ticks, events, startTime, props.recordingLength, props.transport.bpm]);
 
-  const RecordingInputField = () => (
-    <div className="flex text-xs justify-center items-center">
-      <label className="px-1">Input:</label>
-      <div className="relative flex w-full h-full">
-        <Transition
-          show={canRecord}
-          enter="transition-all duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="transition-all duration-300"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-          as="div"
-          className="w-full h-full absolute py-[3px] px-0.5"
-        >
-          <div className="w-full h-full relative overflow-hidden rounded">
-            <div
-              className="absolute w-[20rem] h-[20rem] left-[-5rem] top-[-5rem] animate-[s_5s_linear_infinite]"
-              style={{
-                background:
-                  "conic-gradient(#fd004c, #fe9000, #fff020, #3edf4b, #3363ff, #b102b7, #fd004c)",
-              }}
-            ></div>
-          </div>
-        </Transition>
-        <Editor.CustomListbox
-          value={props.input}
-          setValue={props.setInput}
-          getOptionKey={(i) => i.id}
-          getOptionName={(i) => i.name}
-          getOptionValue={(i) => i}
-          icon={<BsSoundwave className="mr-2" />}
-          options={WebMidi.inputs}
-          placeholder="Change MIDI Input"
-          className="px-1"
-          borderColor={canRecord ? "border-black/0" : "border-slate-500/50"}
-          backgroundColor="bg-slate-800"
-        />
+  const RecordingInputField = useCallback(
+    () => (
+      <div className="flex text-xs justify-center items-center">
+        <label className="px-1">Input:</label>
+        <div className="relative flex w-full h-full">
+          <Transition
+            show={canRecord}
+            enter="transition-all duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transition-all duration-300"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+            as="div"
+            className="w-full h-full absolute py-[3px] px-0.5"
+          >
+            <div className="w-full h-full relative overflow-hidden rounded">
+              <div
+                className="absolute w-[20rem] h-[20rem] left-[-5rem] top-[-5rem] animate-[s_5s_linear_infinite]"
+                style={{
+                  background:
+                    "conic-gradient(#fd004c, #fe9000, #fff020, #3edf4b, #3363ff, #b102b7, #fd004c)",
+                }}
+              ></div>
+            </div>
+          </Transition>
+          <Editor.CustomListbox
+            value={props.input}
+            setValue={props.setInput}
+            getOptionKey={(i) => i.id}
+            getOptionName={(i) => i.name}
+            getOptionValue={(i) => i}
+            icon={<BsSoundwave className="mr-2" />}
+            options={WebMidi.inputs}
+            placeholder="Change MIDI Input"
+            className="px-1"
+            borderColor={canRecord ? "border-black/0" : "border-slate-500/50"}
+            backgroundColor="bg-slate-800"
+          />
+        </div>
       </div>
-    </div>
+    ),
+    [canRecord, props.input, props.setInput]
   );
 
   const RecordingLengthField = () => {
@@ -303,13 +306,13 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
   return (
     <div className="flex">
       <Editor.MenuGroup border={true}>
-        <RecordingInputField />
-      </Editor.MenuGroup>
-      <Editor.MenuGroup border={true}>
         <RecordingLengthField />
       </Editor.MenuGroup>
       <Editor.MenuGroup border={true}>
         <RecordingQuantizationField />
+      </Editor.MenuGroup>
+      <Editor.MenuGroup border={true}>
+        <RecordingInputField />
       </Editor.MenuGroup>
       <Editor.MenuGroup border={false}>
         <RecordButton />

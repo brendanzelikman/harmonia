@@ -31,9 +31,9 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
               open ? "text-slate-400" : "text-slate-300"
             } ${props.borderColor ?? "border-slate-500/50"} ${
               props.backgroundColor ?? "bg-slate-800/50"
-            } font-light focus:outline-none`}
+            } peer font-light focus:outline-none`}
           >
-            <label className="flex items-center rounded text-left cursor-pointer w-30 text-ellipsis">
+            <label className="flex items-center rounded text-left cursor-pointer w-30 text-ellipsis capitalize">
               {props.icon}
               {name || props.placeholder || "Change Value"}
             </label>
@@ -45,8 +45,9 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
             leave="transition ease-in duration-75"
             leaveFrom="transform opacity-100 scale-100"
             leaveTo="transform opacity-0 scale-95"
+            className="peer"
           >
-            <Listbox.Options className="absolute z-50 w-40 py-1 mt-1 overflow-auto text-xs bg-slate-50 backdrop-blur rounded-md shadow-lg max-h-60 focus:outline-none">
+            <Listbox.Options className="absolute z-50 w-40 py-1 mt-1 overflow-auto text-xs bg-slate-800 border border-slate-500 backdrop-blur rounded-md shadow-lg max-h-60 capitalize focus:outline-none">
               {props.options.map((option) => {
                 const optionKey = props.getOptionKey(option);
                 const optionValue = props.getOptionValue(option);
@@ -56,11 +57,11 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
                     key={optionKey}
                     value={optionValue}
                     className={({ active }) =>
-                      `${
+                      `group cursor-pointer select-none relative py-2 pl-6 pr-4 ${
                         active
-                          ? "text-emerald-900 bg-emerald-100"
-                          : "text-gray-900"
-                      } cursor-default select-none relative py-2 pl-6 pr-4`
+                          ? "text-emerald-900 bg-emerald-500"
+                          : "text-gray-200"
+                      }`
                     }
                     onClick={() => props.setValue(option)}
                   >
@@ -75,7 +76,7 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
                         </span>
                         {selected ? (
                           <span
-                            className={`text-emerald-600 absolute inset-y-0 left-0 flex items-center pl-2`}
+                            className={`text-emerald-600 group-hover:text-emerald-800 absolute inset-y-0 left-0 flex items-center pl-2`}
                           >
                             <BsCheck />
                           </span>

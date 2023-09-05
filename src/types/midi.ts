@@ -62,10 +62,14 @@ export class MIDI {
     }
     return MIDI.ChromaticNotes.indexOf(pitch as Pitch);
   }
-  // Get the value of a rest
+  // Note properties
   public static Rest = -1;
-  public static NoteMin = 0;
-  public static NoteMax = 127;
+  public static MinNote = 0;
+  public static MaxNote = 127;
+
+  public static MinVelocity = 0;
+  public static MaxVelocity = 127;
+  public static DefaultVelocity = 100;
 
   // Get the MIDI number from a pitch
   public static fromPitch(pitch: string): Note {

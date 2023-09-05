@@ -129,7 +129,8 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     index?: number,
     patternChord?: PatternChord
   ) => {
-    if (!pattern || !index || !patternChord || !isPatternValid(pattern)) return;
+    if (pattern === undefined || !isPatternValid(pattern)) return;
+    if (index === undefined || patternChord === undefined) return;
     dispatch(
       Patterns.updatePatternChord({
         id: pattern.id,
@@ -143,11 +144,12 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     dispatch(Patterns.transposePattern({ id: pattern.id, transpose }));
   },
   transposePatternNote: (
-    pattern: Pattern,
-    index: number,
-    transpose: number
+    pattern?: Pattern,
+    index?: number,
+    transpose?: number
   ) => {
     if (!pattern || !isPatternValid(pattern)) return;
+    if (index === undefined || transpose === undefined) return;
     const transposedStream = pattern.stream.map((chord, i) => {
       if (i !== index) return chord;
       return chord.map((note) => {
@@ -243,6 +245,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     const patternNote = {
       MIDI: MIDI.Rest,
       duration: ownProps.noteTicks,
+      velocity: ownProps.noteVelocity,
     };
     if (ownProps.adding) {
       if (cursor.hidden) {

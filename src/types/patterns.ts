@@ -3,7 +3,7 @@ import { ticksToDuration, closestPitchClass, mod } from "appUtil";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import Scales, { Scale } from "./scales";
-import { Pitch, Tick, XML } from "./units";
+import { Pitch, Tick, Velocity, XML } from "./units";
 import { PresetPatterns } from "./presets/patterns";
 import { ChromaticScale } from "./presets/scales";
 import MidiWriter from "midi-writer-js";
@@ -36,13 +36,14 @@ export const defaultPattern: Pattern = {
   stream: [],
 };
 
-// A pattern note is defined by a MIDI number and a duration in ticks
+// A pattern note is defined by a MIDI number, a velocity, and a duration in ticks
 export type PatternNote = {
   MIDI: number;
-  duration: Tick; // length of note in ticks
+  duration: Tick;
+  velocity: Velocity;
 };
 export const isPatternNoteValid = (note: PatternNote) => {
-  return MIDI.isRest(note) || inRange(note.MIDI, MIDI.NoteMin, MIDI.NoteMax);
+  return MIDI.isRest(note) || inRange(note.MIDI, MIDI.MinNote, MIDI.MaxNote);
 };
 
 // A pattern chord is a collection of notes that are played at the same time.
@@ -55,7 +56,7 @@ export const isPatternChordValid = (chord?: PatternChord) => {
 // A pattern stream is a collection of pattern chords
 export type PatternStream = PatternChord[];
 export const isPatternStreamValid = (stream?: PatternStream) => {
-  if (!stream?.length) return false;
+  if (!stream) return false;
   return stream.every(isPatternChordValid);
 };
 
@@ -129,12 +130,10 @@ export const getStreamTicks = (stream: PatternStream): Tick => {
 };
 
 // Get all timeline notes of a stream
-export type TimelineNote = {
-  MIDI: number;
+export interface TimelineNote extends PatternNote {
   pitch: Pitch;
-  duration: Tick;
   start: Tick;
-};
+}
 export const getStreamTimelineNotes = (stream: PatternStream) => {
   if (!stream?.length) return [];
   return stream.map((chord, i) => {
@@ -143,9 +142,8 @@ export const getStreamTimelineNotes = (stream: PatternStream) => {
       .filter((note) => !MIDI.isRest(note))
       .sort((a, b) => b.MIDI - a.MIDI)
       .map((note) => ({
-        MIDI: note.MIDI,
+        ...note,
         pitch: MIDI.toPitch(note.MIDI),
-        duration: note.duration,
         start: i,
       })) as TimelineNote[];
   });
@@ -202,7 +200,7 @@ export const transposePatternStream = (
       const newNumber = MIDI.ChromaticNotes.indexOf(thisPitch);
       const oldNumber = MIDI.ChromaticNotes.indexOf(notePitch);
       const newMIDI = noteMIDI + newNumber - oldNumber + newOffset;
-      const clampedMIDI = clamp(newMIDI, MIDI.NoteMin, MIDI.NoteMax);
+      const clampedMIDI = clamp(newMIDI, MIDI.MinNote, MIDI.MaxNote);
       transposedChord.push({ ...note, MIDI: clampedMIDI });
     }
     transposedStream.push(transposedChord);

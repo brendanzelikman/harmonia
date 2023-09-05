@@ -302,7 +302,13 @@ export const patternsSlice = createSlice({
         const seed = Math.random();
 
         if (seed < restPercent) {
-          stream.push([{ duration: MIDI.SixteenthNoteTicks, MIDI: MIDI.Rest }]);
+          stream.push([
+            {
+              duration: MIDI.SixteenthNoteTicks,
+              MIDI: MIDI.Rest,
+              velocity: MIDI.DefaultVelocity,
+            },
+          ]);
         } else {
           const noteCount = 1;
           const scales = Scales.PresetGroups["Basic Scales"];
@@ -314,7 +320,11 @@ export const patternsSlice = createSlice({
               const index = random(0, midiNotes.length - 1);
               const midi = midiNotes[index];
               midiNotes = midiNotes.filter((note) => note !== midi);
-              return { duration: MIDI.SixteenthNoteTicks, MIDI: midi };
+              return {
+                duration: MIDI.SixteenthNoteTicks,
+                velocity: MIDI.DefaultVelocity,
+                MIDI: midi,
+              };
             });
           stream.push(chord);
         }

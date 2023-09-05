@@ -24,7 +24,6 @@ export type PatternTab = (typeof patternTabs)[number];
 export function PatternEditor(props: PatternEditorProps) {
   // Editor state
   const { inserting, pattern, scale } = props;
-  const duration = props.noteDuration;
   const [activeTab, setActiveTab] = useState<PatternTab>("compose");
 
   // Score information

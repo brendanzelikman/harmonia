@@ -32,6 +32,8 @@ export function PatternControlTab(props: PatternControlTabProps) {
       <Editor.MenuButton
         className="px-1 active:bg-teal-600"
         onClick={() => props.copyPattern(pattern)}
+        disabled={!props.isCustom || props.isEmpty}
+        disabledClass="px-1"
       >
         Copy
       </Editor.MenuButton>
@@ -40,7 +42,7 @@ export function PatternControlTab(props: PatternControlTabProps) {
 
   const ExportButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content={`Export Pattern`}>
-      <Editor.MenuButton>
+      <Editor.MenuButton disabled={props.isEmpty}>
         <Menu>
           <div className="relative z-50">
             <Menu.Button className="py-1 px-1 rounded active:bg-slate-600">

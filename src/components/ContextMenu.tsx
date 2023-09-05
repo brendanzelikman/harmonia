@@ -1,3 +1,4 @@
+import { Transition } from "@headlessui/react";
 import {
   useCallback,
   useEffect,
@@ -79,11 +80,16 @@ export default function ContextMenu(props: {
   }, []);
 
   return (
-    <div
+    <Transition
+      show={visible}
+      enter="transition ease-out duration-100"
+      enterFrom="transform opacity-0 scale-95"
+      enterTo="transform opacity-100 scale-100"
+      leave="transition ease-in duration-75"
+      leaveFrom="transform opacity-100 scale-100"
+      leaveTo="transform opacity-0 scale-95"
       ref={contextRef}
       className={`bg-slate-900/80 border border-slate-50/50 py-2 rounded-lg drop-shadow-2xl z-[100] font-nunito font-light ${
-        visible ? "block" : "hidden"
-      } ${
         props.className ?? ""
       } absolute flex flex-col items-center backdrop-blur-lg text-sm`}
       style={{
@@ -93,6 +99,6 @@ export default function ContextMenu(props: {
       onClick={() => setVisible(false)}
     >
       <ul>{props.options.map(renderOption)}</ul>
-    </div>
+    </Transition>
   );
 }

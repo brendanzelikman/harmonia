@@ -30,7 +30,7 @@ export const defaultEditor: Editor = {
 
   noteDuration: "quarter",
   noteTiming: "straight",
-  noteVelocity: 0,
+  noteVelocity: MIDI.DefaultVelocity,
 
   recordingLength: MIDI.WholeNoteTicks,
   recordingTiming: "straight",
