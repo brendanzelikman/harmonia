@@ -13,22 +13,28 @@ import "./index.css";
 import { start } from "tone";
 import { startTransport } from "redux/thunks/transport";
 import { MIDIProvider } from "providers/midi";
-import ErrorPage from "Error";
-import LandingPage from "components/Landing";
+import ErrorPage from "components/ErrorPage";
+import LandingPage from "components/LandingPage";
 
 export const container: HTMLElement = document.getElementById("root")!;
 if (!container.children.length) {
-  const router = createBrowserRouter([
-    { path: "/", errorElement: <ErrorPage /> },
+  const router = createBrowserRouter(
+    [
+      {
+        path: "/",
+        element: <LandingPage />,
+        errorElement: <ErrorPage />,
+      },
+      {
+        path: "/playground",
+        element: <App />,
+        errorElement: <ErrorPage />,
+      },
+    ],
     {
-      path: "harmonia",
-      element: <LandingPage />,
-    },
-    {
-      path: "harmonia/playground",
-      element: <App />,
-    },
-  ]);
+      basename: "/harmonia",
+    }
+  );
 
   const root = ReactDOM.createRoot(container);
   root.render(

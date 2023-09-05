@@ -3,7 +3,7 @@ import { ticksToDuration, closestPitchClass, mod } from "appUtil";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import Scales, { Scale } from "./scales";
-import { Note, Pitch, Tick, Time, XML } from "./units";
+import { Pitch, Tick, XML } from "./units";
 import { PresetPatterns } from "./presets/patterns";
 import { ChromaticScale } from "./presets/scales";
 import MidiWriter from "midi-writer-js";
@@ -16,7 +16,6 @@ export interface Pattern {
   name: string;
   stream: PatternStream;
 }
-
 export const isPattern = (obj: any): obj is Pattern => {
   const { id, name, stream } = obj;
   return id !== undefined && name !== undefined && stream !== undefined;
@@ -42,20 +41,28 @@ export type PatternNote = {
   MIDI: number;
   duration: Tick; // length of note in ticks
 };
+export const isPatternNoteValid = (note: PatternNote) => {
+  return MIDI.isRest(note) || inRange(note.MIDI, MIDI.NoteMin, MIDI.NoteMax);
+};
 
 // A pattern chord is a collection of notes that are played at the same time.
 export type PatternChord = PatternNote[];
+export const isPatternChordValid = (chord?: PatternChord) => {
+  if (!chord?.length) return false;
+  return chord.every(isPatternNoteValid);
+};
 
 // A pattern stream is a collection of pattern chords
 export type PatternStream = PatternChord[];
-
-export const isNoteValid = (note: PatternNote) => {
-  return MIDI.isRest(note) || inRange(note.MIDI, MIDI.NoteMin, MIDI.NoteMax);
+export const isPatternStreamValid = (stream?: PatternStream) => {
+  if (!stream?.length) return false;
+  return stream.every(isPatternChordValid);
 };
-// Validate a pattern
+
+// Validate a pattern through its stream
 export const isPatternValid = (pattern?: Pattern) => {
   if (!pattern?.stream) return false;
-  return pattern.stream.every((chord) => chord.every(isNoteValid));
+  return isPatternStreamValid(pattern.stream);
 };
 
 // Realize a pattern in a particular scale.
@@ -214,6 +221,7 @@ export const rotatePatternStream = (
   // Get the underlying scale pitches of the pattern
   const scalePitches = getStreamPitches(stream);
   if (!scalePitches.length) return stream;
+
   const chordScale = {
     id: "",
     name: "",

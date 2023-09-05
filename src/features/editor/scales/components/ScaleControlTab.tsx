@@ -1,0 +1,203 @@
+import { Menu } from "@headlessui/react";
+import { ScaleEditorProps } from "..";
+import * as Editor from "features/editor";
+import { BsBrushFill, BsEraserFill, BsTrash } from "react-icons/bs";
+
+interface ScaleControlTabProps extends ScaleEditorProps {
+  setInstrument: (instrument: string) => void;
+}
+
+export function ScaleControlTab(props: ScaleControlTabProps) {
+  const { scale } = props;
+  if (!scale) return null;
+
+  const ExportButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Export Pattern`}>
+      <Editor.MenuButton>
+        <Menu>
+          <div className="relative z-50">
+            <Menu.Button className="px-1 rounded active:bg-slate-500">
+              Export
+            </Menu.Button>
+            <Menu.Items className="absolute w-auto left-0 p-2 rounded-lg border-0.5 border-slate-200/80 whitespace-nowrap bg-slate-800/80 backdrop-blur-lg">
+              <Menu.Item>
+                <div
+                  className="hover:bg-slate-600/80 px-4 rounded"
+                  onClick={() =>
+                    props.exportScaleToMIDI({ ...scale, name: props.scaleName })
+                  }
+                >
+                  Export MIDI
+                </div>
+              </Menu.Item>
+              <Menu.Item>
+                <div
+                  className="hover:bg-slate-600/80 px-4 rounded"
+                  onClick={() =>
+                    props.exportScaleToXML({ ...scale, name: props.scaleName })
+                  }
+                >
+                  Export XML
+                </div>
+              </Menu.Item>
+            </Menu.Items>
+          </div>
+        </Menu>
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const SaveButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content="Save Scale">
+      <Editor.MenuButton
+        className="px-1 active:bg-sky-600"
+        onClick={async () => {
+          if (!scale) return;
+          props.createScale({ ...scale, name: props.scaleName });
+        }}
+      >
+        Save
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const PlayButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content="Play Scale">
+      <Editor.MenuButton
+        className="px-1 active:text-emerald-500"
+        onClick={() => scale && props.playScale(scale.id)}
+        disabled={!scale?.notes.length}
+        disabledClass="px-1"
+      >
+        Play
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const UndoButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content="Undo Change">
+      <Editor.MenuButton
+        className="px-1"
+        onClick={props.undoScales}
+        disabled={!props.canUndoScales}
+        disabledClass="px-1"
+      >
+        Undo
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const RedoButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content="Redo Change">
+      <Editor.MenuButton
+        className="px-1"
+        onClick={props.redoScales}
+        disabled={!props.canRedoScales}
+        disabledClass="px-1"
+      >
+        Redo
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const AddButton = () => (
+    <Editor.Tooltip
+      show={props.showingTooltips}
+      content={`${props.adding ? "Stop Adding" : "Add Notes"}`}
+    >
+      <Editor.MenuButton
+        className="px-1"
+        active={props.adding}
+        activeClass={"px-1 text-emerald-400/80"}
+        onClick={props.adding ? props.clear : () => props.setState("adding")}
+      >
+        <BsBrushFill className="text-lg" />
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const RemoveButton = () => (
+    <Editor.Tooltip
+      show={props.showingTooltips}
+      content={`${props.removing ? "Stop Removing" : "Remove Notes"}`}
+    >
+      <Editor.MenuButton
+        className="px-1"
+        active={props.removing}
+        activeClass={"px-1 text-red-400/80"}
+        onClick={
+          props.removing ? props.clear : () => props.setState("removing")
+        }
+      >
+        <BsEraserFill className="text-lg" />
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const ClearButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Clear Pattern`}>
+      <Editor.MenuButton
+        className="px-1 active:text-gray-400"
+        onClick={() => scale && props.clearScale(scale.id)}
+      >
+        <BsTrash className="text-lg" />
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const ScalarTransposeButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Scalar Transpose`}>
+      <Editor.MenuButton
+        className={`px-1 rounded-sm cursor-pointer active:bg-fuchsia-400/80`}
+        onClick={() => {
+          const input = prompt("Transpose chromatically by N semitones:");
+          const sanitizedInput = parseInt(input ?? "");
+          if (sanitizedInput) {
+            props.transposeScale(scale.id, sanitizedInput);
+          }
+        }}
+      >
+        Transpose
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const ChordalTransposeButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Chordal Transpose`}>
+      <Editor.MenuButton
+        className={`px-1 rounded-sm cursor-pointer active:bg-fuchsia-400/80`}
+        onClick={() => {
+          const input = prompt("Transpose along the chord by N steps:");
+          const sanitizedInput = parseInt(input ?? "");
+          if (sanitizedInput) {
+            props.rotateScale(scale.id, sanitizedInput);
+          }
+        }}
+      >
+        Invert
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  return (
+    <>
+      <Editor.MenuGroup border={true}>
+        <ExportButton />
+        <SaveButton />
+        <UndoButton />
+        <RedoButton />
+        <PlayButton />
+      </Editor.MenuGroup>
+      <Editor.MenuGroup border={true}>
+        <AddButton />
+        <RemoveButton />
+        <ClearButton />
+      </Editor.MenuGroup>
+      <Editor.MenuGroup border={true}>
+        <ScalarTransposeButton />
+        <ChordalTransposeButton />
+      </Editor.MenuGroup>
+      <Editor.InstrumentListbox setInstrument={props.setInstrument} />
+    </>
+  );
+}

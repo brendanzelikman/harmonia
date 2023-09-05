@@ -1,10 +1,8 @@
 import { sleep, ticksToSubdivision } from "appUtil";
 import { startTone } from "index";
-import { RECORDER } from "providers/recorder";
 import {
   selectTransport,
   selectTracks,
-  selectTransportEndTick,
   selectPatternTrackSamplers,
   selectChordsByTicks,
 } from "redux/selectors";
@@ -33,14 +31,8 @@ import {
 import { MIDI } from "types/midi";
 import { Tick, Time } from "types/units";
 
-const {
-  _startTransport,
-  _pauseTransport,
-  _stopTransport,
-  _seekTransport,
-  _startRecording,
-  _stopRecording,
-} = transportSlice.actions;
+const { _startTransport, _pauseTransport, _stopTransport, _seekTransport } =
+  transportSlice.actions;
 
 export const startTransport = (): AppThunk => (dispatch, getState) => {
   // Make sure the context is started
@@ -104,9 +96,6 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
 // Stop the transport
 export const stopTransport = (): AppThunk => (dispatch, getState) => {
   const state = getState();
-  if (state.transport.recording) {
-    dispatch(cancelDownload());
-  }
   Transport.stop();
   Transport.cancel();
   Transport.position = 0;
@@ -116,9 +105,6 @@ export const stopTransport = (): AppThunk => (dispatch, getState) => {
 // Pause the transport
 export const pauseTransport = (): AppThunk => (dispatch, getState) => {
   const state = getState();
-  if (state.transport.recording) {
-    dispatch(cancelDownload());
-  }
   Transport.pause();
   dispatch(_pauseTransport());
 };
@@ -249,58 +235,4 @@ export const unloadTransport = (): AppThunk => (dispatch) => {
   Transport.cancel();
   Transport.stop();
   destroyInstruments();
-};
-
-type AudioFile = "webm";
-export const downloadTransport =
-  (fileType: AudioFile): AppThunk =>
-  async (dispatch, getState) => {
-    // Make sure the context is started
-    if (getContext().state !== "running") return startTone(true);
-
-    const state = getState();
-    const lastTick = selectTransportEndTick(state);
-    const lastSecond = convertTicksToSeconds(state.transport, lastTick);
-    const duration = lastSecond * 1000;
-    try {
-      // Start recording
-      RECORDER.start();
-      dispatch(stopTransport());
-      dispatch(startTransport());
-      dispatch(_startRecording());
-      await downloadFile(duration, fileType);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      dispatch(stopTransport());
-      dispatch(_stopRecording());
-    }
-  };
-
-export const downloadFile = async (
-  duration: Time,
-  fileType: AudioFile
-): Promise<void> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      RECORDER.stop().then((blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.download = `recording.${fileType}`;
-        document.body.appendChild(link);
-        link.href = url;
-        link.click();
-        document.body.removeChild(link);
-        resolve();
-      });
-    }, duration);
-  });
-};
-
-export const cancelDownload = (): AppThunk => (dispatch) => {
-  const recorder = RECORDER;
-  if (!recorder) return;
-
-  recorder.stop();
-  dispatch(_stopRecording());
 };

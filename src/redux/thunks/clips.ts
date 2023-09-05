@@ -31,7 +31,7 @@ import {
   createClipsAndTransforms,
   deleteClipsAndTransforms,
 } from "redux/slices/clips";
-import { Row } from "components/timeline";
+import { Row } from "features/timeline";
 import { subdivisionToTicks } from "appUtil";
 import { setClipboard } from "redux/slices/timeline";
 
