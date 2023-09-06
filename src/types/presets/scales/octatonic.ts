@@ -35,3 +35,13 @@ export const OctatonicHWScale: Scale = {
   name: "Octatonic Scale (H-W)",
   notes: [60, 61, 63, 64, 66, 67, 69, 70],
 };
+
+export default {
+  BebopMajorScale,
+  BebopDorianScale,
+  BebopHarmonicMinorScale,
+  BebopMelodicMinorScale,
+  BebopDominantScale,
+  OctatonicWHScale,
+  OctatonicHWScale,
+};

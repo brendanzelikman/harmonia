@@ -44,3 +44,11 @@ export const DottedEighthAndSixteenth: Pattern = {
     [MIDI.createSixteenthNote()],
   ]).flat(),
 };
+
+export default {
+  EighthAndTwoSixteenths,
+  TwoSixteenthsAndEighth,
+  SixteenthEighthSixteenth,
+  SixteenthAndDottedEighth,
+  DottedEighthAndSixteenth,
+};

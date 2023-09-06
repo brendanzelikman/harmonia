@@ -46,6 +46,10 @@ export const isPatternNoteValid = (note: PatternNote) => {
 
 // A pattern chord is a collection of notes that are played at the same time.
 export type PatternChord = PatternNote[];
+export const isPatternChord = (obj: any): obj is PatternChord => {
+  if (!Array.isArray(obj)) return false;
+  return obj.every(isPatternNoteValid);
+};
 export const isPatternChordValid = (chord?: PatternChord) => {
   if (!chord?.length) return false;
   return chord.every(isPatternNoteValid);
@@ -78,15 +82,14 @@ export const realizePattern = (
     const chord = pattern.stream[i];
     const realizedChord = [];
     for (let j = 0; j < chord.length; j++) {
-      const note = chord[j];
-
       // If the note is a rest, return it as is
-      if (MIDI.isRest(note)) {
-        realizedChord.push(note);
+      if (MIDI.isRest(chord)) {
+        realizedChord.push(...chord);
         break;
       }
 
       // Get the pitch of the old note
+      const note = chord[j];
       const oldPitch = MIDI.toPitchClass(note.MIDI);
       if (pitches.includes(oldPitch)) {
         realizedChord.push(note);
@@ -153,60 +156,65 @@ export const transposePatternStream = (
   steps: number,
   scale = chromaticScale
 ): PatternStream => {
-  // Get the scale pitches
-  const scalePitches = Scales.SortPitches(Scales.Pitches(scale));
-  const modulus = scalePitches.length;
-  const direction = steps > 0 ? 1 : -1;
-
-  // Iterate over each chord in the pattern stream
   const transposedStream: PatternStream = [];
   for (let i = 0; i < stream.length; i++) {
     const chord = stream[i];
-    const transposedChord: PatternChord = [];
-
-    // Iterate over each note in the chord
-    for (let j = 0; j < chord.length; j++) {
-      const note = chord[j];
-
-      // Return the note if it is a rest
-      if (MIDI.isRest(note)) {
-        transposedChord.push(note);
-        j = chord.length;
-        continue;
-      }
-
-      // Get the pitch of the note
-      const noteMIDI = note.MIDI;
-      const notePitch = MIDI.toPitchClass(noteMIDI);
-
-      // Store a new scale degree and offset
-      let newIndex = scalePitches.indexOf(notePitch);
-      let newOffset = 0;
-
-      // Transpose incrementally
-      for (let t = 0; t < Math.abs(steps); t++) {
-        // Compute the next index, wrapping around the modulus
-        const nextIndex = mod(newIndex + direction, modulus);
-        // Compute the new offset
-        if (direction > 0 && nextIndex <= newIndex) newOffset += 12;
-        if (direction < 0 && nextIndex >= newIndex) newOffset -= 12;
-        // Update the index
-        newIndex = nextIndex;
-      }
-      // Add the scalar offset and the octave offset
-      const thisPitch = scalePitches[newIndex];
-      const newNumber = MIDI.ChromaticNotes.indexOf(thisPitch);
-      const oldNumber = MIDI.ChromaticNotes.indexOf(notePitch);
-      const newMIDI = noteMIDI + newNumber - oldNumber + newOffset;
-      const clampedMIDI = MIDI.clampNote(newMIDI);
-      transposedChord.push({ ...note, MIDI: clampedMIDI });
-    }
+    const transposedChord = transposePatternChord(chord, steps, scale);
     transposedStream.push(transposedChord);
   }
   return transposedStream;
 };
 
-// Invert a pattern stream by a given number of steps
+// Transpose a pattern chord with respect to a scale by a given number of steps
+export const transposePatternChord = (
+  chord: PatternChord,
+  steps: number,
+  scale = chromaticScale
+): PatternChord => {
+  // Don't transpose a rest
+  if (!chord.length) return chord;
+
+  if (chord.some((note) => MIDI.isRest(note))) return chord;
+
+  // Get the scale pitches and modulus/direction
+  const scalePitches = Scales.SortPitches(Scales.Pitches(scale));
+  const modulus = scalePitches.length;
+  const direction = steps > 0 ? 1 : -1;
+
+  const transposedChord: PatternChord = [];
+  // Iterate over each note in the chord
+  for (let i = 0; i < chord.length; i++) {
+    const note = chord[i];
+    // Get the pitch of the note
+    const noteMIDI = note.MIDI;
+    const notePitch = MIDI.toPitchClass(noteMIDI);
+
+    // Store a new scale degree and offset
+    let newIndex = scalePitches.indexOf(notePitch);
+    let newOffset = 0;
+
+    // Transpose incrementally
+    for (let t = 0; t < Math.abs(steps); t++) {
+      // Compute the next index, wrapping around the modulus
+      const nextIndex = mod(newIndex + direction, modulus);
+      // Compute the new offset
+      if (direction > 0 && nextIndex <= newIndex) newOffset += 12;
+      if (direction < 0 && nextIndex >= newIndex) newOffset -= 12;
+      // Update the index
+      newIndex = nextIndex;
+    }
+    // Add the scalar offset and the octave offset
+    const thisPitch = scalePitches[newIndex];
+    const newNumber = MIDI.ChromaticNotes.indexOf(thisPitch);
+    const oldNumber = MIDI.ChromaticNotes.indexOf(notePitch);
+    const newMIDI = noteMIDI + newNumber - oldNumber + newOffset;
+    const clampedMIDI = MIDI.clampNote(newMIDI);
+    transposedChord.push({ ...note, MIDI: clampedMIDI });
+  }
+  return transposedChord;
+};
+
+// Rotate a pattern stream by a given number of steps
 export const rotatePatternStream = (
   stream: PatternStream,
   steps: number
@@ -224,6 +232,17 @@ export const rotatePatternStream = (
     notes: scalePitches.map((pitch) => MIDI.ChromaticNumber(pitch) + 60),
   };
   return transposePatternStream(stream, steps, chordScale);
+};
+
+// Rotate a pattern chord by a given number of steps
+export const rotatePatternChord = (
+  chord: PatternChord,
+  steps: number
+): PatternChord => {
+  const stream = [chord];
+  const rotatedStream = rotatePatternStream(stream, steps);
+  const rotatedChord = rotatedStream[0];
+  return rotatedChord;
 };
 
 export default class Patterns {

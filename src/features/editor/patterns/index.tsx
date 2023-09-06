@@ -176,6 +176,10 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     if (!pattern || !isPatternValid(pattern)) return;
     dispatch(Patterns.rotatePattern({ id: pattern.id, transpose }));
   },
+  invertPattern: (pattern?: Pattern) => {
+    if (!pattern || !isPatternValid(pattern)) return;
+    dispatch(Patterns.invertPattern(pattern.id));
+  },
   repeatPattern: (pattern?: Pattern, repeat?: number) => {
     if (!pattern || !isPatternValid(pattern)) return;
     dispatch(Patterns.repeatPattern({ id: pattern.id, repeat }));
@@ -207,6 +211,10 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
   reversePattern: (pattern?: Pattern) => {
     if (!pattern || !isPatternValid(pattern)) return;
     dispatch(Patterns.reversePattern(pattern.id));
+  },
+  harmonizePattern: (pattern?: Pattern, interval?: number) => {
+    if (!pattern || !isPatternValid(pattern)) return;
+    dispatch(Patterns.harmonizePattern({ id: pattern.id, interval }));
   },
   phasePattern: (pattern?: Pattern, phase?: number) => {
     if (!pattern || !isPatternValid(pattern)) return;

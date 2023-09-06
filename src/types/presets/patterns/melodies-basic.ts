@@ -262,3 +262,20 @@ export const MinorMajor7thArpeggio: Pattern = {
     [MIDI.createSixteenthNote(71)],
   ],
 };
+
+export default {
+  StraightMajorArpeggio,
+  TripletMajorArpeggio,
+  StraightMinorArpeggio,
+  TripletMinorArpeggio,
+  StraightDiminishedArpeggio,
+  TripletDiminishedArpeggio,
+  StraightAugmentedArpeggio,
+  TripletAugmentedArpeggio,
+  Major7thArpeggio,
+  Minor7thArpeggio,
+  Dominant7thArpeggio,
+  HalfDiminished7thArpeggio,
+  Augmented7thArpeggio,
+  MinorMajor7thArpeggio,
+};

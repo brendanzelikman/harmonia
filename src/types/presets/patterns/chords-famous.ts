@@ -149,3 +149,17 @@ export const KennyBarronMinorChord: Pattern = {
     ],
   ],
 };
+
+export default {
+  TristanChord,
+  MysticChord,
+  ElektraChord,
+  FarbenChord,
+  RiteOfSpringChord,
+  DreamChord,
+  SoWhatChord,
+  KennyBarronMajorChord,
+  KennyBarronMinorChord,
+  HendrixChord,
+  BondChord,
+};

@@ -35,3 +35,13 @@ export const WholeToneScale: Scale = {
   name: "Whole Tone Scale",
   notes: [60, 62, 64, 66, 68, 70],
 };
+
+export default {
+  MajorHexatonicScale,
+  MinorHexatonicScale,
+  BluesScale,
+  AugmentedScale,
+  PrometheusScale,
+  TritoneScale,
+  WholeToneScale,
+};

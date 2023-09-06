@@ -262,7 +262,7 @@ export function PatternComposeTab(props: PatternComposeTabProps) {
         <RestButton />
         <DurationButtons />
       </Editor.MenuGroup>
-      <Editor.MenuGroup border={true}>
+      <Editor.MenuGroup>
         <TimingField />
         <VelocityField
           value={inputVelocity}

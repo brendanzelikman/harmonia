@@ -15,12 +15,12 @@ import { initializeState } from "redux/util";
 import { AppThunk } from "redux/store";
 import { selectRoot } from "redux/selectors";
 
-import Scales from "types/scales";
 import { MIDI } from "types/midi";
 
 import { setSelectedPattern } from "./root";
 import { clamp, random, reverse, shuffle } from "lodash";
 import { mod } from "utils";
+import { PresetScaleGroupMap } from "types/presets/scales";
 
 const initialState = initializeState<PatternId, Pattern>([defaultPattern]);
 
@@ -189,10 +189,8 @@ export const patternsSlice = createSlice({
       if (!pattern || !isPatternValid(pattern)) return;
 
       pattern.stream = pattern.stream.map((chord) => {
-        return chord.map((note) => {
-          if (MIDI.isRest(note)) return note; // Don't transpose rests
-          return { ...note, MIDI: note.MIDI + transpose };
-        });
+        if (MIDI.isRest(chord)) return chord;
+        return chord.map((note) => ({ ...note, MIDI: note.MIDI + transpose }));
       });
     },
     rotatePattern: (state, action: PayloadAction<TransformPattern>) => {
@@ -203,7 +201,26 @@ export const patternsSlice = createSlice({
 
       pattern.stream = rotatePatternStream(pattern.stream, transpose);
     },
+    invertPattern: (state, action: PayloadAction<PatternId>) => {
+      const patternId = action.payload;
+      const pattern = state.byId[patternId];
+      if (!pattern) return;
 
+      const baseChord = pattern.stream.find(
+        (chord) => chord.length > 0 && !MIDI.isRest(chord)
+      );
+      if (!baseChord) return;
+
+      const baseMIDI = baseChord[0].MIDI;
+      pattern.stream = pattern.stream.map((chord) => {
+        if (MIDI.isRest(chord)) return chord;
+
+        return chord.map((note) => ({
+          ...note,
+          MIDI: baseMIDI - (note.MIDI - baseMIDI),
+        }));
+      });
+    },
     repeatPattern: (state, action: PayloadAction<TransformPattern>) => {
       const { id, repeat } = action.payload;
       if (repeat === 0) return; // Avoid unnecessary work
@@ -290,6 +307,20 @@ export const patternsSlice = createSlice({
 
       state.byId[patternId].stream = shuffle(pattern.stream);
     },
+    harmonizePattern: (state, action: PayloadAction<TransformPattern>) => {
+      const { id, interval } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+
+      state.byId[id].stream = pattern.stream.map((chord) => {
+        if (!chord.length) return chord;
+        if (MIDI.isRest(chord)) return chord;
+        return [
+          ...chord,
+          ...chord.map((note) => ({ ...note, MIDI: note.MIDI + interval })),
+        ];
+      });
+    },
     randomizePattern: (state, action: PayloadAction<TransformPattern>) => {
       const { id, length } = action.payload;
       const pattern = state.byId[id];
@@ -311,7 +342,7 @@ export const patternsSlice = createSlice({
           ]);
         } else {
           const noteCount = 1;
-          const scales = Scales.PresetGroups["Basic Scales"];
+          const scales = PresetScaleGroupMap["Basic Scales"];
           const scale = scales[Math.floor(Math.random() * scales.length)];
           let midiNotes = [...scale.notes.map((n) => n - 7), ...scale.notes];
           const chord: PatternChord = new Array(noteCount)
@@ -358,6 +389,7 @@ export const {
   updatePatternChord,
   transposePattern,
   rotatePattern,
+  invertPattern,
   repeatPattern,
   halvePattern,
   lengthenPattern,
@@ -366,6 +398,7 @@ export const {
   shufflePattern,
   phasePattern,
   reversePattern,
+  harmonizePattern,
   randomizePattern,
   clearPattern,
 } = patternsSlice.actions;

@@ -104,3 +104,14 @@ export const HappyBirthday: Pattern = {
     [MIDI.createQuarterNote(71)],
   ],
 };
+
+export default {
+  BachPrelude,
+  AlbertiBass,
+  TurkishMarch,
+  FateMotif,
+  RevolutionaryEtude,
+  ZarahustraFanfare,
+  TheLick,
+  HappyBirthday,
+};

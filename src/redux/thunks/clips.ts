@@ -315,15 +315,15 @@ export const exportClipsToMidi =
         // Iterate through each chord
         for (let i = 0; i < stream.length; i++) {
           const chord = stream[i];
-          if (!chord.length) continue;
+          // Skip if the chord is a rest
+          if (!chord.length || MIDI.isRest(chord)) continue;
 
           // Get the duration of the chord in seconds
           const firstNote = chord[0];
           const duration = convertTicksToSeconds(transport, firstNote.duration);
 
-          // Add each non-rest note to the MIDI track
+          // Add each note to the MIDI track
           for (const note of chord) {
-            if (MIDI.isRest(note)) continue;
             midiTrack.addNote({
               midi: note.MIDI,
               velocity: note.velocity ?? MIDI.DefaultVelocity,

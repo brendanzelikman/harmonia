@@ -287,7 +287,7 @@ export const Body = (props: {
 export const Sidebar = (props: { className?: string; children?: any }) => {
   return (
     <div
-      className={`flex min-w-[18rem] flex-col rounded-xl overflow-hidden pr-5 pl-1 ${
+      className={`flex min-w-[17rem] h-full flex-col rounded-xl overflow-hidden pr-2 pl-1 ${
         props.className ?? ""
       }`}
     >
@@ -513,7 +513,7 @@ export const WholeButton = (props: DurationButtonProps) => (
 export const List = (props: { className?: string; children?: any }) => {
   return (
     <ul
-      className={`w-full h-full flex flex-col text-gray-300 overflow-scroll ${
+      className={`w-full flex-auto min-h-[10rem] flex flex-col text-gray-300 overflow-auto ${
         props.className ?? ""
       }`}
     >

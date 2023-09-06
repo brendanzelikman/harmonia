@@ -35,3 +35,13 @@ export const IwatoScale: Scale = {
   name: "Iwato Scale",
   notes: [60, 61, 65, 66, 70],
 };
+
+export default {
+  MajorPentatonicScale,
+  MinorPentatonicScale,
+  InScale,
+  YoScale,
+  InsenScale,
+  HirajoshiScale,
+  IwatoScale,
+};

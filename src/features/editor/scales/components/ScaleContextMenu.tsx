@@ -40,7 +40,7 @@ export function ScaleContextMenu(props: ScaleEditorProps) {
       divideEnd: true,
     },
     {
-      label: `${props.adding ? "Stop" : "Start"}props. Adding Notes`,
+      label: `${props.adding ? "Stop" : "Start"} Adding Notes`,
       onClick: props.adding ? props.clear : () => props.setState("adding"),
       disabled: !scale,
     },

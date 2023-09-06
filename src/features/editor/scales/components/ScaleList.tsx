@@ -105,7 +105,7 @@ export function ScaleList(props: ScaleEditorProps) {
                     className={`flex items-center justify-center text-slate-50`}
                   >
                     <label
-                      className={`py-3 px-2 ${
+                      className={`py-2.5 px-2 ${
                         open ? "font-extrabold" : "font-medium"
                       }`}
                     >
@@ -167,9 +167,9 @@ export const PresetScale = (props: PresetScaleProps) => {
       } select-none`}
       onClick={() => props.updateScale({ ...trackScale, notes: scale.notes })}
     >
-      <div className="flex relative items-center">
+      <div className="flex relative items-center h-6">
         <input
-          className={`peer bg-transparent h-6 rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis`}
+          className={`peer bg-transparent w-full rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis`}
           value={`${scale.name} ${
             areScalesRelated && firstPitch ? `(${firstPitch})` : ""
           }`}
@@ -209,7 +209,7 @@ export const CustomScale = (props: CustomScaleProps) => {
 
   const DeleteButton = () => (
     <div
-      className={`flex justify-center items-center w-7 h-10 rounded-r text-center font-thin border border-l-0 border-slate-50/50`}
+      className={`flex justify-center items-center w-7 h-full rounded-r text-center font-thin border border-l-0 border-slate-50/50`}
       onClick={(e) => {
         e.stopPropagation();
         props.deleteScale(scale.id);
@@ -228,11 +228,11 @@ export const CustomScale = (props: CustomScaleProps) => {
       }`}
       onClick={() => props.updateScale({ ...trackScale, notes: scale.notes })}
     >
-      <div className="relative flex items-center" ref={ref}>
+      <div className="relative flex items-center h-8" ref={ref}>
         <input
           draggable
           onDragStart={cancelEvent}
-          className={`peer border border-white/50 bg-transparent h-10 rounded-l p-2 cursor-pointer outline-none overflow-ellipsis ${
+          className={`peer border border-white/50 bg-transparent h-full rounded-l p-2 cursor-pointer outline-none overflow-ellipsis ${
             props.matchesAnyScale
               ? "pointer-events-all focus:bg-zinc-800/30"
               : "pointer-events-none"

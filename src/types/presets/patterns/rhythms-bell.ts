@@ -140,3 +140,15 @@ export const BellPattern9: Pattern = {
     [MIDI.createTripletEighthRest()],
   ],
 };
+
+export default {
+  BellPattern1,
+  BellPattern2,
+  BellPattern3,
+  BellPattern4,
+  BellPattern5,
+  BellPattern6,
+  BellPattern7,
+  BellPattern8,
+  BellPattern9,
+};

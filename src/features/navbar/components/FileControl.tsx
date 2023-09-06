@@ -166,7 +166,7 @@ function FileTooltipContent(props: Props) {
         className="py-1 pr-1 hover:bg-sky-700/80"
         onClick={props.recording ? props.stopSavingToWAV : props.saveToWAV}
       >
-        <NavbarFormLabel>Export to WAV</NavbarFormLabel>
+        <NavbarFormLabel className={``}>Export to WAV</NavbarFormLabel>
         <div className="relative flex flex-col text-2xl">
           <BsFiletypeWav className="text-2xl" />
           <Transition

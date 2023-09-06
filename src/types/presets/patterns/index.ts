@@ -1,10 +1,10 @@
 import { Pattern, PatternId } from "types";
 
 // Chords
-import * as BasicChords from "./chords-basic";
-import * as SeventhChords from "./chords-seventh";
-import * as ExtendedChords from "./chords-extended";
-import * as FamousChords from "./chords-famous";
+import BasicChords from "./chords-basic";
+import SeventhChords from "./chords-seventh";
+import ExtendedChords from "./chords-extended";
+import FamousChords from "./chords-famous";
 
 export * as BasicChords from "./chords-basic";
 export * as SeventhChords from "./chords-seventh";
@@ -12,28 +12,28 @@ export * as ExtendedChords from "./chords-extended";
 export * as FamousChords from "./chords-famous";
 
 // Melodies
-import * as BasicMelodies from "./melodies-basic";
-import * as ExtendedMelodies from "./melodies-extended";
-import * as FamousMelodies from "./melodies-famous";
+import BasicMelodies from "./melodies-basic";
+import ExtendedMelodies from "./melodies-extended";
+import FamousMelodies from "./melodies-famous";
 
 export * as BasicMelodies from "./melodies-basic";
 export * as ExtendedMelodies from "./melodies-extended";
 export * as FamousMelodies from "./melodies-famous";
 
 // Durations
-import * as StraightDurations from "./durations-straight";
-import * as DottedDurations from "./durations-dotted";
-import * as TripletDurations from "./durations-triplet";
+import StraightDurations from "./durations-straight";
+import DottedDurations from "./durations-dotted";
+import TripletDurations from "./durations-triplet";
 
 export * as StraightDurations from "./durations-straight";
 export * as DottedDurations from "./durations-dotted";
 export * as TripletDurations from "./durations-triplet";
 
 // Rhythms
-import * as SimpleRhythms from "./rhythms-simple";
-import * as LatinRhythms from "./rhythms-latin";
-import * as ClavePatterns from "./rhythms-clave";
-import * as BellPatterns from "./rhythms-bell";
+import SimpleRhythms from "./rhythms-simple";
+import LatinRhythms from "./rhythms-latin";
+import ClavePatterns from "./rhythms-clave";
+import BellPatterns from "./rhythms-bell";
 
 export * as SimpleRhythms from "./rhythms-simple";
 export * as LatinRhythms from "./rhythms-latin";

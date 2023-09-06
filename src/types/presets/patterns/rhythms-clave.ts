@@ -92,3 +92,12 @@ export const ThreeTwoBossaNovaClave: Pattern = {
     [MIDI.createEighthRest()],
   ],
 };
+
+export default {
+  TwoThreeSonClave,
+  ThreeTwoSonClave,
+  TwoThreeRumbaClave,
+  ThreeTwoRumbaClave,
+  TwoThreeBossaNovaClave,
+  ThreeTwoBossaNovaClave,
+};

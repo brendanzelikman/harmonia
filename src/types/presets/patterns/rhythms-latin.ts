@@ -106,3 +106,5 @@ export const Montuno: Pattern = {
     [MIDI.createSixteenthNote()],
   ],
 };
+
+export default { Habanera, Tresillo, Cinquillo, Baqueteo, Cascara, Montuno };

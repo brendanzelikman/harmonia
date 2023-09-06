@@ -35,8 +35,13 @@ export const LocrianScale: Scale = {
   name: "Locrian Scale",
   notes: [60, 61, 63, 65, 66, 68, 70],
 };
-export const AlteredScale: Scale = {
-  id: "altered-scale",
-  name: "Altered Scale",
-  notes: [60, 61, 63, 64, 66, 68, 70],
+
+export default {
+  LydianScale,
+  IonianScale,
+  MixolydianScale,
+  DorianScale,
+  AeolianScale,
+  PhrygianScale,
+  LocrianScale,
 };

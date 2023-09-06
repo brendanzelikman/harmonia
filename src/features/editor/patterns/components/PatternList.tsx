@@ -109,7 +109,7 @@ export function PatternList(props: PatternEditorProps) {
                     }`}
                   >
                     <label
-                      className={`py-3 px-2 ${
+                      className={`py-2.5 px-2 ${
                         open ? "font-bold" : "font-medium"
                       }`}
                     >
@@ -157,7 +157,7 @@ export const PresetPattern = (props: PresetPatternProps) => {
 
   const CopyButton = () => (
     <BiCopy
-      className="absolute right-0 top-0 h-5 w-5 text-slate-500"
+      className="absolute right-0 top-0 h-full w-5 text-slate-500"
       onClick={(e) => {
         e.stopPropagation();
         props.copyPattern(pattern);
@@ -217,7 +217,7 @@ export const CustomPattern = (props: CustomPatternProps) => {
 
   const CopyButton = () => (
     <div
-      className={`flex justify-center items-center px-1 h-10 font-thin border border-l-0 border-slate-50/50`}
+      className={`flex justify-center items-center px-1 h-full font-thin border border-l-0 border-slate-50/50`}
       onClick={(e) => {
         e.stopPropagation();
         props.copyPattern(pattern);
@@ -229,7 +229,7 @@ export const CustomPattern = (props: CustomPatternProps) => {
 
   const DeleteButton = () => (
     <div
-      className={`flex justify-center items-center px-1 h-10 rounded-r text-center font-thin border border-l-0 border-slate-50/50`}
+      className={`flex justify-center items-center px-1 h-full rounded-r text-center font-thin border border-l-0 border-slate-50/50`}
       onClick={(e) => {
         e.stopPropagation();
         props.deletePattern(pattern.id);
@@ -248,11 +248,11 @@ export const CustomPattern = (props: CustomPatternProps) => {
       }`}
       onClick={() => props.setPatternId(pattern.id)}
     >
-      <div className="relative flex items-center" ref={ref}>
+      <div className="relative flex items-center h-9" ref={ref}>
         <input
           draggable
           onDragStart={cancelEvent}
-          className={`peer border border-white/50 bg-transparent h-10 rounded-l p-2 cursor-pointer outline-none overflow-ellipsis ${
+          className={`peer border border-white/50 bg-transparent rounded-l h-full p-1 cursor-pointer outline-none overflow-ellipsis ${
             pattern.id === props.selectedPatternId
               ? "pointer-events-all focus:bg-zinc-800/30"
               : "pointer-events-none"

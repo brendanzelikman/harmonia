@@ -103,7 +103,7 @@ function Stream(props: Props) {
             backgroundColor: `rgba(8, 47, 73, ${opacity})`,
           }}
         >
-          {width > 20 ? note.pitch : null}
+          {width > 20 && noteHeight > 8 ? note.pitch : null}
         </li>
       );
     },

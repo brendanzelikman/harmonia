@@ -1,11 +1,5 @@
 import { MIDI, Pattern } from "types";
 
-export const Octave: Pattern = {
-  id: "octave",
-  name: "Octave",
-  stream: [[MIDI.createQuarterNote(60), MIDI.createQuarterNote(72)]],
-};
-
 export const MajorChord: Pattern = {
   id: "major-chord",
   name: "Major Chord",
@@ -62,18 +56,6 @@ export const AugmentedChord: Pattern = {
     ],
   ],
 };
-export const PowerChord: Pattern = {
-  id: "power-chord",
-  name: "Power Chord",
-  aliases: ["5", "5 chord"],
-  stream: [
-    [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(72),
-    ],
-  ],
-};
 export const Sus2Chord: Pattern = {
   id: "sus2-chord",
   name: "Sus2 Chord",
@@ -121,4 +103,35 @@ export const QuintalChord: Pattern = {
       MIDI.createQuarterNote(74),
     ],
   ],
+};
+
+export const PowerChord: Pattern = {
+  id: "power-chord",
+  name: "Power Chord",
+  aliases: ["5", "5 chord"],
+  stream: [
+    [
+      MIDI.createQuarterNote(60),
+      MIDI.createQuarterNote(67),
+      MIDI.createQuarterNote(72),
+    ],
+  ],
+};
+export const Octave: Pattern = {
+  id: "octave",
+  name: "Octave",
+  stream: [[MIDI.createQuarterNote(60), MIDI.createQuarterNote(72)]],
+};
+
+export default {
+  MajorChord,
+  MinorChord,
+  DiminishedChord,
+  AugmentedChord,
+  Sus2Chord,
+  Sus4Chord,
+  QuartalChord,
+  QuintalChord,
+  PowerChord,
+  Octave,
 };

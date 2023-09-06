@@ -1,8 +1,17 @@
 import { Frequency } from "tone";
-import { BPM, Duration, Note, Pitch, Tick, Time, Velocity } from "./units";
+import {
+  BPM,
+  Chord,
+  Duration,
+  Note,
+  Pitch,
+  Tick,
+  Time,
+  Velocity,
+} from "./units";
 import { mod } from "utils";
 import { clamp } from "lodash";
-import { PatternNote } from "./patterns";
+import { PatternChord, PatternNote, isPatternChord } from "./patterns";
 
 export class MIDI {
   public static PPQ = 96;
@@ -307,7 +316,10 @@ export class MIDI {
 
   // MIDI Rests
   public static Rest = -1;
-  public static isRest(note: { MIDI: Note } | Note) {
+  public static isRest(note: PatternChord | Note | { MIDI: Note }) {
+    if (isPatternChord(note)) {
+      return note.some((n) => n.MIDI === this.Rest);
+    }
     if (typeof note === "number") {
       return note === this.Rest;
     }

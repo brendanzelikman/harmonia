@@ -296,3 +296,20 @@ export const Augmented7thChord: Pattern = {
     ],
   ],
 };
+
+export default {
+  Major7thChord,
+  Major7thSus2Chord,
+  Major7thSus4Chord,
+  Major7thFlat5Chord,
+  Minor7thChord,
+  Minor7thSus2Chord,
+  Minor7thSus4Chord,
+  Minor7thFlat5Chord,
+  MinorMajor7thChord,
+  Dominant7thChord,
+  Dominant7thFlat5Chord,
+  Dominant7thSharp5Chord,
+  Diminished7thChord,
+  Augmented7thChord,
+};

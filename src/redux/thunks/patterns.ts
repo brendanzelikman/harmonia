@@ -58,7 +58,7 @@ export const playPattern =
       const firstNote = chord[0];
       const seconds = convertTicksToSeconds(transport, firstNote.duration);
       const subdivision = ticksToToneSubdivision(firstNote.duration);
-      if (MIDI.isRest(firstNote)) {
+      if (MIDI.isRest(chord)) {
         time += seconds;
         continue;
       }
@@ -212,7 +212,7 @@ export const exportPatternToMIDI =
       const duration = convertTicksToSeconds(transport, firstNote.duration);
       time += duration;
 
-      if (MIDI.isRest(firstNote)) continue;
+      if (MIDI.isRest(chord)) continue;
       for (const note of chord) {
         track.addNote({
           midi: note.MIDI,

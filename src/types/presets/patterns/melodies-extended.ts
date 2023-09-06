@@ -132,3 +132,15 @@ export const Dominant13thArpeggio: Pattern = {
     [MIDI.createSixteenthNote(70)],
   ],
 };
+
+export default {
+  Major9thArpeggio,
+  Major11thArpeggio,
+  Major13thArpeggio,
+  Minor9thArpeggio,
+  Minor11thArpeggio,
+  Minor13thArpeggio,
+  Dominant9thArpeggio,
+  Dominant11thArpeggio,
+  Dominant13thArpeggio,
+};

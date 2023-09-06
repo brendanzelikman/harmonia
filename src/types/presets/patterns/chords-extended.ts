@@ -352,3 +352,20 @@ export const Dominant13thChord: Pattern = {
     ],
   ],
 };
+
+export default {
+  Major9thChord,
+  Major11thChord,
+  MajorSharp11thChord,
+  Major13thChord,
+  Minor9thChord,
+  Minor11thChord,
+  MinorSharp11thChord,
+  Minor13thChord,
+  Dominant9thChord,
+  DominantFlat9thChord,
+  DominantSharp9thChord,
+  Dominant11thChord,
+  DominantSharp11thChord,
+  Dominant13thChord,
+};
