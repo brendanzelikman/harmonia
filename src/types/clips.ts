@@ -9,8 +9,7 @@ import {
   transposePatternStream,
   getStreamTicks,
 } from "./patterns";
-import { ChromaticScale } from "./presets/scales";
-import { rotateScale, Scale, transposeScale } from "./scales";
+import { rotateScale, Scale, transposeScale, chromaticScale } from "./scales";
 import { TrackId } from "./tracks";
 import {
   createTransformKey,
@@ -131,7 +130,7 @@ export const getClipStream = (
     const tick = startTick + i - clip.offset;
 
     // Get the current scale or the default scale
-    let newScale = scale.notes.length ? scale : ChromaticScale;
+    let newScale = scale.notes.length ? scale : chromaticScale;
 
     // Get the transforms at the current time
     const scaleTransform = lastTransformAtTick(scaleTransforms, tick, false);
@@ -182,7 +181,7 @@ export const getClipStream = (
     } else {
       const s1 = transposePatternStream(patternStream, T, newScale);
       const s2 = rotatePatternStream(s1, t);
-      const s3 = transposePatternStream(s2, N, ChromaticScale);
+      const s3 = transposePatternStream(s2, N, chromaticScale);
       transposedStream = s3;
       transposedStreamMap[`${tKey}@${stKey}`] = s3;
     }

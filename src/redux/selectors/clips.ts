@@ -2,7 +2,6 @@ import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { ClipId, getClipStream, getClipTicks } from "types/clips";
 import { Pattern, PatternChord, PatternStream } from "types/patterns";
-import { ChromaticScale } from "types/presets/scales";
 import { Transform, lastTransformAtTick } from "types/transform";
 import { Tick } from "types/units";
 import { selectPatternMap } from "./patterns";
@@ -11,7 +10,7 @@ import { selectScaleMap } from "./scales";
 import { selectScaleTrackMap } from "./scaleTracks";
 import { selectTransforms } from "./transforms";
 import { PatternTrack, ScaleTrack, TrackId } from "types/tracks";
-import { Scale } from "types/scales";
+import { Scale, chromaticScale } from "types/scales";
 import { selectCellWidth, selectTimeline } from "./timeline";
 import { ticksToColumns } from "utils";
 
@@ -75,8 +74,8 @@ export const selectClipScaleTrack = createSelector(
 export const selectClipScale = createSelector(
   [selectClipScaleTrack, selectScaleMap],
   (scaleTrack, scales): Scale => {
-    if (!scaleTrack) return ChromaticScale;
-    return scales[scaleTrack?.scaleId] ?? ChromaticScale;
+    if (!scaleTrack) return chromaticScale;
+    return scales[scaleTrack?.scaleId] ?? chromaticScale;
   }
 );
 

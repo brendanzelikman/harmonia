@@ -146,15 +146,15 @@ export const DurationListbox = (
     "value" | "setValue" | "className" | "borderColor"
   >
 ) => {
+  const options = DURATIONS;
+  const value = props.value ?? options[0];
   return (
     <EditorListbox
-      value={props.value}
+      value={value}
       setValue={props.setValue}
-      getOptionKey={(d) => d}
-      getOptionValue={(d) => d}
       getOptionName={(d) => DURATION_NAMES[d]}
       icon={<BsMusicNoteBeamed className="mr-2" />}
-      options={DURATIONS}
+      options={options}
       placeholder="Change Duration"
       borderColor={props.borderColor}
       className={props.className}
@@ -165,15 +165,14 @@ export const DurationListbox = (
 export const InstrumentListbox = (props: {
   setInstrument: (name: string) => void;
 }) => {
-  const value = (getGlobalInstrument()?.name ?? "Unknown") as InstrumentName;
+  const value = (getGlobalInstrument()?.name ??
+    "grand_piano") as InstrumentName;
   return (
     <EditorListbox
       value={value}
       setValue={(value) => props.setInstrument(value)}
       onChange={(value) => createGlobalInstrument(value)}
-      getOptionKey={(i) => i}
       getOptionName={(i) => getInstrumentName(i)}
-      getOptionValue={(i) => i}
       icon={<BsSoundwave className="mr-2" />}
       options={INSTRUMENT_NAMES}
       placeholder="Change Instrument"

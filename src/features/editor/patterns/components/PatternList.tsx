@@ -1,18 +1,22 @@
 import { Disclosure } from "@headlessui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
-import Patterns, { Pattern, PatternId } from "types/patterns";
+import { Pattern, PatternId } from "types/patterns";
 import * as Editor from "features/editor";
 import { PatternEditorProps } from "..";
 import { BiCopy } from "react-icons/bi";
 import { cancelEvent } from "utils";
 import useDebouncedField from "hooks/useDebouncedField";
 import { usePatternDrop, usePatternDrag } from "../hooks/usePatternDnd";
+import {
+  PresetPatternGroupList,
+  PresetPatternGroupMap,
+} from "types/presets/patterns";
 
 export function PatternList(props: PatternEditorProps) {
   // Get all pattern presets, including custom patterns
   const PatternPresets = {
-    ...Patterns.PresetGroups,
+    ...PresetPatternGroupMap,
     "Custom Patterns": props.customPatterns,
   };
 
@@ -36,8 +40,8 @@ export function PatternList(props: PatternEditorProps) {
 
   // If there are no open categories, show all categories
   const patternCategories = openCategories.length
-    ? (openCategories as typeof Patterns.PresetCategories)
-    : Patterns.PresetCategories;
+    ? (openCategories as typeof PresetPatternGroupList)
+    : PresetPatternGroupList;
 
   // Move a pattern to a new index when dragging
   const movePattern = useCallback(

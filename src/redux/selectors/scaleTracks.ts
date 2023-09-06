@@ -2,7 +2,7 @@ import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "redux/store";
 import { TrackId } from "types/tracks";
 import { selectScaleMap } from "./scales";
-import { ChromaticScale } from "types/presets/scales";
+import { chromaticScale } from "types/scales";
 
 // Select the ID of a track
 const selectTrackId = (state: RootState, id: TrackId) => id;
@@ -28,5 +28,5 @@ export const selectScaleTrack = createSelector(
 // Select the scale of a scale track
 export const selectScaleTrackScale = createSelector(
   [selectScaleTrack, selectScaleMap],
-  (track, scales) => scales[track?.scaleId] ?? ChromaticScale
+  (track, scales) => scales[track?.scaleId] ?? chromaticScale
 );

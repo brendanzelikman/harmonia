@@ -10,8 +10,7 @@ import { createClip } from "redux/slices/clips";
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
 import { MIDI } from "types/midi";
-import Patterns, {
-  Pattern,
+import {
   PatternId,
   PatternStream,
   realizePattern,
@@ -21,6 +20,7 @@ import { defaultScale } from "types/scales";
 import { Midi } from "@tonejs/midi";
 import { createPattern, updatePattern } from "redux/slices/patterns";
 import { convertTicksToSeconds } from "redux/slices/transport";
+import { PresetPatternList } from "types/presets/patterns";
 
 // Start reading files from the file system
 export const readMIDIFiles = (): AppThunk => (dispatch, getState) => {
@@ -72,10 +72,9 @@ export const playPattern =
   };
 
 export const parsePatternRegex = (expression: string) => {
-  const presets = Patterns.Presets;
   const pitchClassRegex = `([A-Ga-g][#|b]?)?`;
 
-  const matches = presets.filter((pattern) => {
+  const matches = PresetPatternList.filter((pattern) => {
     const phrases = [pattern.id, ...(pattern.aliases || [])];
     const safePhrases = phrases.map((phrase) => phrase.replace("+", "\\+"));
     const optionsRegex = safePhrases.join("|");

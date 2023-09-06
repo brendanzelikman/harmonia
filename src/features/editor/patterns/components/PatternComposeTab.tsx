@@ -13,7 +13,6 @@ import { Duration, TIMINGS, Timing } from "types/units";
 import { blurOnEnter } from "utils";
 import { MIDI } from "types/midi";
 import { useEffect, useState } from "react";
-import { clamp } from "lodash";
 
 interface PatternComposeTabProps extends PatternEditorCursorProps {
   onRestClick: () => void;
@@ -185,30 +184,32 @@ export function PatternComposeTab(props: PatternComposeTabProps) {
     </>
   );
 
-  const TimingField = () => (
-    <div className="flex items-center justify-center text-xs px-1">
-      <label className="pr-2">Timing:</label>
-      <Editor.CustomListbox
-        value={props.noteTiming}
-        setValue={(timing) => props.onTimingClick(timing)}
-        options={TIMINGS}
-        getOptionKey={(timing) => timing}
-        getOptionValue={(timing) => timing}
-        getOptionName={(timing) => timing}
-        className="h-8"
-        borderColor="border-teal-600"
-      />
-    </div>
-  );
+  const TimingField = () => {
+    const options = TIMINGS;
+    const value = props.noteTiming ?? options[0];
 
-  const [inputVelocity, setInputVelocity] = useState(props.noteVelocity);
+    return (
+      <div className="flex items-center justify-center text-xs px-1">
+        <label className="pr-2">Timing:</label>
+        <Editor.CustomListbox
+          value={value}
+          setValue={props.onTimingClick}
+          options={options}
+          className="h-8"
+          borderColor="border-teal-600"
+        />
+      </div>
+    );
+  };
+
+  const [inputVelocity, setInputVelocity] = useState(props.noteVelocity ?? 0);
 
   // Update velocity when enter is pressed
   const onVelocityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       if (isNaN(inputVelocity)) return;
       blurOnEnter(e);
-      const velocity = clamp(inputVelocity, MIDI.MinVelocity, MIDI.MaxVelocity);
+      const velocity = MIDI.clampVelocity(inputVelocity);
 
       // If the cursor is hidden, change the general velocity
       if (props.cursor.hidden) {

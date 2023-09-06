@@ -16,6 +16,10 @@ import { useCallback, useEffect } from "react";
 import { createPattern } from "redux/slices/patterns";
 import { hideEditor, showEditor } from "redux/slices/editor";
 import { clearTimelineState } from "redux/slices/timeline";
+import {
+  PresetPatternGroupList,
+  PresetPatternGroupMap,
+} from "types/presets/patterns";
 
 const mapStateToProps = (state: RootState) => {
   const editor = selectEditor(state);
@@ -113,7 +117,7 @@ function PatternListbox(props: Props) {
   }, [props.selectedPattern, props.patterns]);
 
   const PatternGroups: Record<string, Pattern[]> = {
-    ...Patterns.PresetGroups,
+    ...PresetPatternGroupMap,
     "Custom Patterns": props.customPatterns,
   };
 
@@ -177,7 +181,7 @@ function PatternListbox(props: Props) {
               leaveTo="transform opacity-0 scale-95"
             >
               <Listbox.Options className="font-nunito absolute z-10 w-full py-1 bg-slate-900 border border-white/50 text-base rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                {Patterns.PresetCategories.map((category) => (
+                {PresetPatternGroupList.map((category) => (
                   <div
                     key={category}
                     className={`group relative h-full bg-slate-300/50 ${

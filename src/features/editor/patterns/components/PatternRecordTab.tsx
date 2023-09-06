@@ -6,12 +6,14 @@ import { WebMidi, Input, NoteMessageEvent } from "webmidi";
 import { MIDI } from "types/midi";
 import { durationToTicks, ticksToToneSubdivision } from "utils";
 import { Note } from "types/units";
-import { Sampler, Time } from "tone";
+import { Time } from "tone";
 import {
   convertSecondsToTicks,
   convertTicksToSeconds,
 } from "redux/slices/transport";
 import { Transition } from "@headlessui/react";
+import useAnimationFrame from "hooks/useAnimationFrame";
+import useMetronome from "hooks/useMetronome";
 
 interface PatternRecordTabProps extends PatternEditorCursorProps {
   input: Input | undefined;
@@ -24,36 +26,16 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
   const [startTime, setStartTime] = useState(0);
   const [events, setEvents] = useState<NoteMessageEvent[]>([]);
   const [ticks, setTicks] = useState(0);
-  const metronome = useRef<Sampler>();
-  const animation = useRef<number>();
-  const previousTime = useRef<number>();
   const canRecord = props.input !== undefined && props.isCustom;
 
   const cancelRecording = () => {
     setRecording(false);
     setTicks(0);
     setEvents([]);
-    if (animation.current !== undefined) {
-      cancelAnimationFrame(animation.current);
-    }
-    animation.current = undefined;
-    previousTime.current = undefined;
   };
 
   const toggleRecording = () =>
     recording ? cancelRecording() : setRecording(true);
-
-  useEffect(() => {
-    const sampler = new Sampler({
-      urls: { C4: "c4.wav" },
-      baseUrl: `${window.location.origin}/harmonia/samples/percussion/conga/`,
-    });
-    sampler.toDestination();
-    metronome.current = sampler;
-    return () => {
-      if (sampler) sampler.dispose();
-    };
-  }, []);
 
   useEffect(() => {
     const inputNote = (e: NoteMessageEvent) => {
@@ -68,73 +50,43 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
   }, [props.input, recording]);
 
   const quantization = durationToTicks(props.recordingQuantization);
-  const tickIncrement = Math.min(quantization, MIDI.QuarterNoteTicks);
-  const tickTime = convertTicksToSeconds(props.transport, tickIncrement);
+  const pulse = Math.min(quantization, MIDI.QuarterNoteTicks);
+  const pulseTime = convertTicksToSeconds(props.transport, pulse);
+  const pulseInterval = pulseTime * 1000;
 
-  const bufferTicks = MIDI.WholeNoteTicks;
-  const bufferTime = convertTicksToSeconds(props.transport, bufferTicks);
-  const pastBuffer = recording && ticks >= bufferTicks;
+  const pickupTicks = MIDI.WholeNoteTicks;
+  const pickupTime = convertTicksToSeconds(props.transport, pickupTicks);
+  const pastBuffer = recording && ticks >= pickupTicks;
 
   const pulses = props.recordingLength / quantization;
-  const interval = tickTime * 1000;
 
-  function animateRecording(time: DOMHighResTimeStamp) {
-    // If there is a current time
-    if (previousTime.current !== undefined) {
-      // Go to the next frame if the change in time is less than the interval
-      const deltaTime = time - previousTime.current;
-
-      // Update animation callback
-      if (deltaTime < interval) {
-        animation.current = requestAnimationFrame(animateRecording);
-        return;
-      } else {
-        setTicks((prev) => prev + tickIncrement);
-      }
-    }
-    // Otherwise, increment the ticks
-    previousTime.current = time;
-
-    // Request next frame
-    if (recording) {
-      animation.current = requestAnimationFrame(animateRecording);
-    }
-  }
-
-  // Start and stop timer
+  // Set start time when recording
   useEffect(() => {
     if (recording) {
-      setStartTime(WebMidi.time + bufferTime * 1000);
-      previousTime.current = undefined;
-      animation.current = requestAnimationFrame(animateRecording);
+      setStartTime(WebMidi.time + pickupTime * 1000);
     } else {
       cancelRecording();
     }
-    return () => {
-      if (animation.current) cancelAnimationFrame(animation.current);
-    };
   }, [recording]);
 
-  // Play metronome
-  useEffect(() => {
-    if (!recording || metronome.current === undefined) return;
+  // Increment ticks every interval if recording
+  useAnimationFrame(
+    () => setTicks((prev) => prev + pulse),
+    pulseInterval,
+    recording
+  );
 
-    if (ticks <= bufferTicks) {
-      if (ticks % MIDI.QuarterNoteTicks === 0) {
-        metronome.current.triggerAttack("C5");
-      }
-    } else {
-      if (ticks % Math.max(MIDI.QuarterNoteTicks, tickIncrement) === 0) {
-        metronome.current.triggerAttack("C6");
-      } else if (ticks % Math.max(MIDI.EighthNoteTicks, tickIncrement) === 0) {
-        metronome.current.triggerAttack("C7");
-      }
-    }
-  }, [recording, ticks, bufferTicks]);
+  // Use a metronome while recording
+  useMetronome({
+    active: recording,
+    pulse: pulse,
+    time: ticks,
+    pickupTicks: pickupTicks,
+  });
 
   // Stop recording when ticks are over limit
   useEffect(() => {
-    if (recording && ticks >= bufferTicks + props.recordingLength) {
+    if (recording && ticks >= pickupTicks + props.recordingLength) {
       // Parse inputted notes
 
       const timedEvents = events.map((event) => {
@@ -234,12 +186,14 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
       [4 * MIDI.WholeNoteTicks]: "Four Measures",
       [8 * MIDI.WholeNoteTicks]: "Eight Measures",
     };
+    const defaultValue = MIDI.WholeNoteTicks;
+    const value = props.recordingLength ?? defaultValue;
 
     return (
       <div className="flex text-xs items-center">
         <label className="px-1">Duration:</label>
         <Editor.CustomListbox
-          value={props.recordingLength}
+          value={value}
           setValue={props.setRecordingLength}
           options={options}
           getOptionKey={(i) => i}
@@ -254,17 +208,21 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
     );
   };
 
-  const RecordingQuantizationField = () => (
-    <div className="flex text-xs items-center">
-      <label className="px-1">Quantize:</label>
-      <Editor.DurationListbox
-        value={props.recordingQuantization}
-        setValue={props.setRecordingQuantization}
-        className="px-1"
-        borderColor={"border-emerald-500/80"}
-      />
-    </div>
-  );
+  const RecordingQuantizationField = () => {
+    const defaultValue = MIDI.QuarterNoteTicks;
+    const value = props.recordingQuantization ?? defaultValue;
+    return (
+      <div className="flex text-xs items-center">
+        <label className="px-1">Quantize:</label>
+        <Editor.DurationListbox
+          value={value}
+          setValue={props.setRecordingQuantization}
+          className="px-1"
+          borderColor={"border-emerald-500/80"}
+        />
+      </div>
+    );
+  };
 
   const RecordButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content="Record Pattern">

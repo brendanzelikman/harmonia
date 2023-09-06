@@ -39,11 +39,12 @@ import {
   destroyInstruments,
   getSampler,
   isSamplerLoaded,
+  playPatternChord,
 } from "types/instrument";
-import { MIDI } from "types/midi";
-import { Tick, Time } from "types/units";
+
+import { Tick } from "types";
 import encodeWAV from "audiobuffer-to-wav";
-import { sleep, ticksToToneSubdivision } from "utils";
+import { sleep } from "utils";
 
 const { _startTransport, _pauseTransport, _stopTransport, _seekTransport } =
   transportSlice.actions;
@@ -84,23 +85,8 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
             sampler = newSampler;
           }
 
-          // Find the notes to play of the clip
-          if (!chord || !chord.length) continue;
-          if (chord.some((note) => MIDI.isRest(note))) continue;
-
           // Play the chord
-          if (!isSamplerLoaded(sampler)) continue;
-          const pitches = chord.map((note) => MIDI.toPitch(note.MIDI));
-          const duration = chord[0].duration ?? MIDI.EighthNoteTicks;
-          const subdivision = ticksToToneSubdivision(duration);
-          const velocity = chord[0].velocity ?? MIDI.DefaultVelocity;
-          const scaledVelocity = velocity / MIDI.MaxVelocity;
-          sampler.triggerAttackRelease(
-            pitches,
-            subdivision,
-            time,
-            scaledVelocity
-          );
+          playPatternChord(sampler, chord, time);
         }
       }
       // Schedule the next tick
@@ -285,26 +271,8 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
 
       if (Object.keys(chords).length) {
         for (const { trackId, chord } of chords) {
-          // Get the track sampler
-          let sampler = samplers[trackId];
-
-          // Find the notes to play of the clip
-          if (!chord || !chord.length) continue;
-          if (chord.some((note) => MIDI.isRest(note))) continue;
-
-          // Play the chord
-          if (!isSamplerLoaded(sampler)) continue;
-          const pitches = chord.map((note) => MIDI.toPitch(note.MIDI));
-          const duration = chord[0].duration ?? MIDI.EighthNoteTicks;
-          const subdivision = ticksToToneSubdivision(duration);
-          const velocity = chord[0].velocity ?? MIDI.DefaultVelocity;
-          const scaledVelocity = velocity / MIDI.MaxVelocity;
-          sampler.triggerAttackRelease(
-            pitches,
-            subdivision,
-            time,
-            scaledVelocity
-          );
+          const sampler = samplers[trackId];
+          playPatternChord(sampler, chord, time);
         }
       }
       // Schedule the next tick

@@ -8,12 +8,16 @@ import { cancelEvent } from "utils";
 import useDebouncedField from "hooks/useDebouncedField";
 import { MIDI } from "types/midi";
 import { useScaleDrop, useScaleDrag } from "../hooks/useScaleDnd";
+import {
+  PresetScaleGroupMap,
+  PresetScaleGroupList,
+} from "types/presets/scales";
 
 export function ScaleList(props: ScaleEditorProps) {
   const scale = props.scale;
   // Get all scale presets, including custom scales
   const ScalePresets = {
-    ...Scales.PresetGroups,
+    ...PresetScaleGroupMap,
     "Custom Scales": props.customScales,
   };
 
@@ -37,8 +41,8 @@ export function ScaleList(props: ScaleEditorProps) {
 
   // If there are no open categories, show all categories
   const scaleCategories = openCategories.length
-    ? (openCategories as typeof Scales.PresetCategories)
-    : Scales.PresetCategories;
+    ? (openCategories as typeof PresetScaleGroupList)
+    : PresetScaleGroupList;
 
   // Move a scale to a new index when dragging
   const moveScale = useCallback(

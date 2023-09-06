@@ -17,9 +17,8 @@ import {
   selectTrack,
   selectEditor,
 } from "redux/selectors";
-import Scales from "types/scales";
+import Scales, { chromaticScale } from "types/scales";
 import { MIDI } from "types/midi";
-import { ChromaticScale } from "types/presets/scales";
 import { BiCopy } from "react-icons/bi";
 import { BsEraser, BsPencil, BsPlusCircle, BsTrash } from "react-icons/bs";
 import useEventListeners from "hooks/useEventListeners";
@@ -29,6 +28,7 @@ import { moveScaleTrackInTrackMap } from "redux/slices/maps/trackMap";
 import { useTrackDrag, useTrackDrop } from "./dnd";
 import { setPatternTrackScaleTrack } from "redux/slices/patternTracks";
 import { hideEditor, showEditor } from "redux/slices/editor";
+import { PresetScaleList } from "types/presets/scales";
 
 export const moveScaleTrack =
   (props: {
@@ -125,13 +125,13 @@ function ScaleTrack(props: Props) {
   }, track.name);
 
   const presetMatch = scale
-    ? Scales.Presets.find((s) => Scales.areEqual(s, scale)) ||
-      Scales.Presets.find((s) => Scales.areRelated(s, scale))
+    ? PresetScaleList.find((s) => Scales.areEqual(s, scale)) ||
+      PresetScaleList.find((s) => Scales.areRelated(s, scale))
     : undefined;
 
   const placeholder = !scale?.notes.length
     ? "Chromatic Scale"
-    : Scales.areRelated(scale, ChromaticScale)
+    : Scales.areRelated(scale, chromaticScale)
     ? "Chromatic Scale"
     : presetMatch && scale
     ? `${MIDI.toPitchClass(scale.notes[0])} ${presetMatch.name}`

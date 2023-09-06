@@ -22,21 +22,9 @@ export class MIDI {
     duration?: Tick,
     velocity?: Velocity
   ): PatternNote => {
-    const noteMIDI = clamp(
-      MIDI ?? this.DefaultNote,
-      this.MinNote,
-      this.MaxNote
-    );
-    const noteDuration = clamp(
-      duration ?? this.QuarterNoteTicks,
-      this.MinDuration,
-      this.MaxDuration
-    );
-    const noteVelocity = clamp(
-      velocity ?? this.DefaultVelocity,
-      this.MinVelocity,
-      this.MaxVelocity
-    );
+    const noteMIDI = this.clampNote(MIDI);
+    const noteDuration = this.clampDuration(duration);
+    const noteVelocity = this.clampVelocity(velocity);
     return {
       MIDI: noteMIDI,
       duration: noteDuration,
@@ -292,20 +280,6 @@ export class MIDI {
     return this.createRest(this.TripletSixtyFourthNoteTicks);
   };
 
-  // MIDI Note Numbers
-  public static Rest = -1;
-  public static MinNote = 0;
-  public static MaxNote = 127;
-  public static DefaultNote = 60;
-
-  // Return true if the note is a rest
-  public static isRest(note: { MIDI: Note } | Note) {
-    if (typeof note === "number") {
-      return note === this.Rest;
-    }
-    return note?.MIDI === this.Rest;
-  }
-
   // Return true if the note is any triplet duration
   public static isTriplet(note: { duration: Tick }) {
     return (
@@ -331,15 +305,44 @@ export class MIDI {
     );
   }
 
+  // MIDI Rests
+  public static Rest = -1;
+  public static isRest(note: { MIDI: Note } | Note) {
+    if (typeof note === "number") {
+      return note === this.Rest;
+    }
+    return note?.MIDI === this.Rest;
+  }
+
+  // MIDI Note Numbers
+  public static MinNote = 0;
+  public static MaxNote = 127;
+  public static DefaultNote = 60;
+
+  public static clampNote = (note?: Note): Note => {
+    const value = note ?? this.DefaultNote;
+    return clamp(value, this.MinNote, this.MaxNote);
+  };
+
   // MIDI Velocity Numbers
   public static MinVelocity = 0;
   public static MaxVelocity = 127;
   public static DefaultVelocity = 100;
 
+  public static clampVelocity = (velocity?: Velocity): Velocity => {
+    const value = velocity ?? this.DefaultVelocity;
+    return clamp(value, this.MinVelocity, this.MaxVelocity);
+  };
+
   // MIDI Durations in Ticks
   public static MinDuration = 1;
   public static MaxDuration = this.DottedWholeNoteTicks;
   public static DefaultDuration = this.QuarterNoteTicks;
+
+  public static clampDuration = (duration?: Tick): Tick => {
+    const value = duration ?? this.DefaultDuration;
+    return clamp(value, this.MinDuration, this.MaxDuration);
+  };
 
   // Chromatic Notes
   public static ChromaticNotes: Pitch[] = [

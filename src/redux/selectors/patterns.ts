@@ -1,6 +1,7 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
-import Patterns, { Pattern, PatternId } from "types/patterns";
+import { PatternId } from "types/patterns";
+import { PresetPatternMap } from "types/presets/patterns";
 
 // Select the ID of a pattern
 export const selectPatternId = (state: RootState, id: PatternId) => id;
@@ -9,7 +10,7 @@ export const selectPatternIds = (state: RootState) => {
 };
 export const selectPatternMap = createSelector(
   [(state: RootState) => state.patterns.present.byId],
-  (patterns) => ({ ...patterns, ...Patterns.PresetMap })
+  (patterns) => ({ ...patterns, ...PresetPatternMap })
 );
 // Select a specific pattern from the store.
 export const selectPattern = createSelector(
@@ -28,8 +29,7 @@ export const selectCustomPatterns = createSelector(
   [selectPatterns],
   (patterns) =>
     patterns.filter(
-      (pattern) =>
-        pattern?.id === "new-pattern" ||
-        !Patterns.Presets.find((preset) => preset.id === pattern?.id)
+      ({ id }) =>
+        id && (id === "new-pattern" || PresetPatternMap[id] === undefined)
     )
 );

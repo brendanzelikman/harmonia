@@ -6,9 +6,9 @@ export interface EditorListboxProps<T> {
   setValue: (value: T) => void;
   onChange?: (value: T) => void;
   options: T[];
-  getOptionKey: (value: T) => any;
-  getOptionValue: (value: T) => any;
-  getOptionName: (value: T) => string;
+  getOptionKey?: (value: T) => any;
+  getOptionValue?: (value: T) => any;
+  getOptionName?: (value: T) => string;
   placeholder?: string;
   icon?: any;
   className?: string;
@@ -17,9 +17,16 @@ export interface EditorListboxProps<T> {
 }
 
 export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
-  const name = props.value ? props.getOptionName(props.value) : undefined;
+  const getOptionKey = props.getOptionKey ?? ((value: T) => value);
+  const getOptionValue = props.getOptionValue ?? ((value: T) => value);
+  const getOptionName = props.getOptionName ?? ((value: T) => value);
+
+  const name = props.value ? getOptionName(props.value) : undefined;
+  const defaultValue = props.options[0];
+  const value = props.value ?? defaultValue;
+
   return (
-    <Listbox value={props.value} onChange={props.onChange}>
+    <Listbox value={value} onChange={props.onChange}>
       {({ open }) => (
         <div
           className={`relative z-40 focus-within:z-50 flex flex-col justify-center ${
@@ -49,9 +56,9 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
           >
             <Listbox.Options className="absolute z-50 w-40 py-1 mt-1 overflow-auto text-xs bg-slate-800 border border-slate-500 backdrop-blur rounded-md shadow-lg max-h-60 capitalize focus:outline-none">
               {props.options.map((option) => {
-                const optionKey = props.getOptionKey(option);
-                const optionValue = props.getOptionValue(option);
-                const optionName = props.getOptionName(option);
+                const optionKey = getOptionKey(option);
+                const optionValue = getOptionValue(option);
+                const optionName = getOptionName(option);
                 return (
                   <Listbox.Option
                     key={optionKey}
@@ -72,7 +79,7 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
                             selected ? "font-medium" : "font-normal"
                           } block truncate`}
                         >
-                          {optionName}
+                          {`${optionName}`}
                         </span>
                         {selected ? (
                           <span

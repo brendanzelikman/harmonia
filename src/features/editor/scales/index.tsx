@@ -21,6 +21,11 @@ import { RootState } from "redux/store";
 import { StateProps } from "../Editor";
 import { exportScaleToMIDI, playScale } from "redux/thunks/scales";
 import { MIDI } from "types/midi";
+import {
+  PresetScaleGroupList,
+  PresetScaleGroupMap,
+  PresetScaleList,
+} from "types/presets/scales";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const trackId = selectSelectedTrackId(state);
@@ -34,7 +39,7 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   // Get all matching scales
 
   const defaultPresets = Object.values({
-    ...ScaleClass.PresetGroups,
+    ...PresetScaleGroupMap,
   }).flat();
   const customPresets = customScales;
 
@@ -61,8 +66,8 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
 
   // Get the category from any matching scale
   const scaleCategory = !!scale
-    ? ScaleClass.PresetCategories.find((c) =>
-        ScaleClass.PresetGroups[c].some((m) => ScaleClass.areRelated(m, scale))
+    ? PresetScaleGroupList.find((c) =>
+        PresetScaleGroupMap[c].some((m) => ScaleClass.areRelated(m, scale))
       ) ?? "Custom Scales"
     : "Custom Scales";
 
@@ -124,7 +129,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     );
   },
   randomizeScale: (id: ScaleId) => {
-    const scales = ScaleClass.Presets;
+    const scales = PresetScaleList;
     return dispatch(
       Scales.updateScale({
         id,

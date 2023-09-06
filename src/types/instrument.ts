@@ -7,6 +7,10 @@ import samples from "assets/instruments/samples.json";
 import { AppThunk } from "redux/store";
 import { addMixer } from "redux/slices/mixers";
 import { selectMixerByTrackId } from "redux/selectors";
+import { PatternChord } from "./patterns";
+import { MIDI } from "./midi";
+import { ticksToToneSubdivision } from "utils";
+import { Time } from "./units";
 
 export interface Instrument {
   name: string;
@@ -182,4 +186,29 @@ export const getGlobalSampler = () => {
 
 export const isSamplerLoaded = (sampler?: Sampler) => {
   return sampler?.loaded && !sampler?.disposed;
+};
+
+// Play a chord with a sampler at a given time
+export const playPatternChord = (
+  sampler: Sampler,
+  chord: PatternChord,
+  time: Time
+) => {
+  if (!chord || !chord.length) return;
+  if (chord.some((note) => MIDI.isRest(note))) return;
+  if (!sampler || !isSamplerLoaded(sampler)) return;
+
+  // Get the pitches
+  const pitches = chord.map((note) => MIDI.toPitch(note.MIDI));
+
+  // Get the Tone.js subdivision
+  const duration = chord[0].duration ?? MIDI.EighthNoteTicks;
+  const subdivision = ticksToToneSubdivision(duration);
+
+  // Get the velocity scaled for TOne.js
+  const velocity = chord[0].velocity ?? MIDI.DefaultVelocity;
+  const scaledVelocity = velocity / MIDI.MaxVelocity;
+
+  // Play the chord with the sampler
+  sampler.triggerAttackRelease(pitches, subdivision, time, scaledVelocity);
 };

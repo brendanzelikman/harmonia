@@ -14,7 +14,7 @@ import PercussionIcon from "assets/instruments/percussion.jpg";
 import { PatternTrack } from "types/tracks";
 import { useEffect, useState } from "react";
 import { Sampler } from "tone";
-import useInstrumentShortcuts from "../hooks/useInstrumentShortcuts";
+import useInstrumentShortcuts from "./hooks/useInstrumentShortcuts";
 import {
   InstrumentEffects,
   InstrumentList,

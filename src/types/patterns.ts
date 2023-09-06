@@ -2,12 +2,9 @@ import { nanoid } from "@reduxjs/toolkit";
 import { ticksToDuration, mod } from "utils";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
-import Scales, { Scale } from "./scales";
+import Scales, { Scale, chromaticScale } from "./scales";
 import { Pitch, Tick, Velocity, XML } from "./units";
-import { PresetPatterns } from "./presets/patterns";
-import { ChromaticScale } from "./presets/scales";
-import { clamp, inRange } from "lodash";
-import { Midi } from "@tonejs/midi";
+import { inRange } from "lodash";
 
 export type PatternId = string;
 
@@ -154,7 +151,7 @@ export const getStreamTimelineNotes = (stream: PatternStream) => {
 export const transposePatternStream = (
   stream: PatternStream,
   steps: number,
-  scale = ChromaticScale
+  scale = chromaticScale
 ): PatternStream => {
   // Get the scale pitches
   const scalePitches = Scales.SortPitches(Scales.Pitches(scale));
@@ -201,7 +198,7 @@ export const transposePatternStream = (
       const newNumber = MIDI.ChromaticNotes.indexOf(thisPitch);
       const oldNumber = MIDI.ChromaticNotes.indexOf(notePitch);
       const newMIDI = noteMIDI + newNumber - oldNumber + newOffset;
-      const clampedMIDI = clamp(newMIDI, MIDI.MinNote, MIDI.MaxNote);
+      const clampedMIDI = MIDI.clampNote(newMIDI);
       transposedChord.push({ ...note, MIDI: clampedMIDI });
     }
     transposedStream.push(transposedChord);
@@ -230,7 +227,7 @@ export const rotatePatternStream = (
 };
 
 export default class Patterns {
-  static exportToXML(pattern?: Pattern, scale?: Scale): XML {
+  static exportToXML(pattern?: Pattern, scale: Scale = chromaticScale): XML {
     if (!pattern || !scale) return "";
     const stream = realizePattern(pattern, scale);
 
@@ -289,200 +286,4 @@ export default class Patterns {
     // Return the XML
     return MusicXML.serialize(score);
   }
-
-  static BasicChords = [
-    PresetPatterns.MajorChord,
-    PresetPatterns.MinorChord,
-    PresetPatterns.DiminishedChord,
-    PresetPatterns.AugmentedChord,
-    PresetPatterns.Sus2Chord,
-    PresetPatterns.Sus4Chord,
-    PresetPatterns.QuartalChord,
-    PresetPatterns.QuintalChord,
-    PresetPatterns.PowerChord,
-    PresetPatterns.Octave,
-  ];
-
-  static SeventhChords = [
-    PresetPatterns.Major7thChord,
-    PresetPatterns.Major7thSus2Chord,
-    PresetPatterns.Major7thSus4Chord,
-    PresetPatterns.Major7thFlat5Chord,
-    PresetPatterns.Minor7thChord,
-    PresetPatterns.Minor7thSus2Chord,
-    PresetPatterns.Minor7thSus4Chord,
-    PresetPatterns.Minor7thFlat5Chord,
-    PresetPatterns.Dominant7thChord,
-    PresetPatterns.Dominant7thFlat5Chord,
-    PresetPatterns.Dominant7thSharp5Chord,
-    PresetPatterns.Diminished7thChord,
-    PresetPatterns.Augmented7thChord,
-  ];
-
-  static ExtendedChords = [
-    PresetPatterns.Major9thChord,
-    PresetPatterns.Major11thChord,
-    PresetPatterns.MajorSharp11thChord,
-    PresetPatterns.Major13thChord,
-    PresetPatterns.Minor9thChord,
-    PresetPatterns.Minor11thChord,
-    PresetPatterns.MinorSharp11thChord,
-    PresetPatterns.Minor13thChord,
-    PresetPatterns.Dominant9thChord,
-    PresetPatterns.DominantFlat9thChord,
-    PresetPatterns.DominantSharp9thChord,
-    PresetPatterns.Dominant11thChord,
-    PresetPatterns.DominantSharp11thChord,
-    PresetPatterns.Dominant13thChord,
-  ];
-
-  static FamousChords = [
-    PresetPatterns.TristanChord,
-    PresetPatterns.MysticChord,
-    PresetPatterns.ElektraChord,
-    PresetPatterns.FarbenChord,
-    PresetPatterns.RiteOfSpringChord,
-    PresetPatterns.DreamChord,
-    PresetPatterns.KennyBarronMajorChord,
-    PresetPatterns.KennyBarronMinorChord,
-    PresetPatterns.SoWhatChord,
-    PresetPatterns.HendrixChord,
-    PresetPatterns.BondChord,
-  ];
-
-  static FamousPatterns = [
-    PresetPatterns.BachPrelude,
-    PresetPatterns.AlbertiBass,
-    PresetPatterns.TurkishMarch,
-    PresetPatterns.FateMotif,
-    PresetPatterns.RevolutionaryEtude,
-    PresetPatterns.ZarahustraFanfare,
-    PresetPatterns.TheLick,
-    PresetPatterns.HappyBirthday,
-  ];
-
-  static BasicMelodies = [
-    PresetPatterns.StraightMajorArpeggio,
-    PresetPatterns.TripletMajorArpeggio,
-    PresetPatterns.StraightMinorArpeggio,
-    PresetPatterns.TripletMinorArpeggio,
-    PresetPatterns.StraightDiminishedArpeggio,
-    PresetPatterns.TripletDiminishedArpeggio,
-    PresetPatterns.StraightAugmentedArpeggio,
-    PresetPatterns.TripletAugmentedArpeggio,
-  ];
-
-  static ExtendedMelodies = [
-    PresetPatterns.Major7thArpeggio,
-    PresetPatterns.Major9thArpeggio,
-    PresetPatterns.Major11thArpeggio,
-    PresetPatterns.Major13thArpeggio,
-    PresetPatterns.Minor7thArpeggio,
-    PresetPatterns.Minor9thArpeggio,
-    PresetPatterns.Minor11thArpeggio,
-    PresetPatterns.Minor13thArpeggio,
-    PresetPatterns.Dominant7thArpeggio,
-    PresetPatterns.Dominant9thArpeggio,
-    PresetPatterns.Dominant11thArpeggio,
-    PresetPatterns.Dominant13thArpeggio,
-  ];
-
-  static BasicDurations = [
-    PresetPatterns.WholeNote,
-    PresetPatterns.HalfNotes,
-    PresetPatterns.QuarterNotes,
-    PresetPatterns.EighthNotes,
-    PresetPatterns.SixteenthNotes,
-    PresetPatterns.ThirtySecondNotes,
-    PresetPatterns.SixtyFourthNotes,
-  ];
-
-  static DottedDurations = [
-    PresetPatterns.DottedWholeNotes,
-    PresetPatterns.DottedHalfNotes,
-    PresetPatterns.DottedQuarterNotes,
-    PresetPatterns.DottedEighthNotes,
-    PresetPatterns.DottedSixteenthNotes,
-    PresetPatterns.DottedThirtySecondNotes,
-    PresetPatterns.DottedSixtyFourthNotes,
-  ];
-
-  static TripletDurations = [
-    PresetPatterns.TripletWholeNotes,
-    PresetPatterns.TripletHalfNotes,
-    PresetPatterns.TripletQuarterNotes,
-    PresetPatterns.TripletEighthNotes,
-    PresetPatterns.TripletSixteenthNotes,
-    PresetPatterns.TripletThirtySecondNotes,
-    PresetPatterns.TripletSixtyFourthNotes,
-  ];
-
-  static SimpleRhythms = [
-    PresetPatterns.EighthAndTwoSixteenths,
-    PresetPatterns.TwoSixteenthsAndEighth,
-    PresetPatterns.DottedEighthAndSixteenth,
-    PresetPatterns.SixteenthAndDottedEighth,
-    PresetPatterns.SixteenthEighthSixteenth,
-  ];
-
-  static LatinRhythms = [
-    PresetPatterns.Habanera,
-    PresetPatterns.Tresillo,
-    PresetPatterns.Cinquillo,
-    PresetPatterns.Baqueteo,
-    PresetPatterns.Cascara,
-    PresetPatterns.Montuno,
-  ];
-
-  static ClavePatterns = [
-    PresetPatterns.ThreeTwoSonClave,
-    PresetPatterns.TwoThreeSonClave,
-    PresetPatterns.ThreeTwoRumbaClave,
-    PresetPatterns.TwoThreeRumbaClave,
-    PresetPatterns.ThreeTwoBossaNovaClave,
-    PresetPatterns.TwoThreeBossaNovaClave,
-  ];
-
-  static BellPatterns = [
-    PresetPatterns.BellPattern1,
-    PresetPatterns.BellPattern2,
-    PresetPatterns.BellPattern3,
-    PresetPatterns.BellPattern4,
-    PresetPatterns.BellPattern5,
-    PresetPatterns.BellPattern6,
-    PresetPatterns.BellPattern7,
-    PresetPatterns.BellPattern8,
-    PresetPatterns.BellPattern9,
-  ];
-
-  static CustomPatterns = [] as Pattern[];
-
-  static PresetGroups = {
-    "Custom Patterns": Patterns.CustomPatterns,
-    "Basic Chords": Patterns.BasicChords,
-    "Seventh Chords": Patterns.SeventhChords,
-    "Extended Chords": Patterns.ExtendedChords,
-    "Famous Chords": Patterns.FamousChords,
-    "Basic Melodies": Patterns.BasicMelodies,
-    "Extended Melodies": Patterns.ExtendedMelodies,
-    "Famous Patterns": Patterns.FamousPatterns,
-    "Basic Durations": Patterns.BasicDurations,
-    "Dotted Durations": Patterns.DottedDurations,
-    "Triplet Durations": Patterns.TripletDurations,
-    "Simple Rhythms": Patterns.SimpleRhythms,
-    "Latin Rhythms": Patterns.LatinRhythms,
-    "Clave Patterns": Patterns.ClavePatterns,
-    "Bell Patterns": Patterns.BellPatterns,
-  };
-
-  static PresetCategories = Object.keys(
-    Patterns.PresetGroups
-  ) as (keyof typeof Patterns.PresetGroups)[];
-
-  static Presets = Object.values(this.PresetGroups).flat();
-
-  static PresetMap = Patterns.Presets.reduce((acc, pattern) => {
-    acc[pattern.id] = pattern;
-    return acc;
-  }, {} as Record<PatternId, Pattern>);
 }

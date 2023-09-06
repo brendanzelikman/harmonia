@@ -2,7 +2,6 @@ import { nanoid } from "@reduxjs/toolkit";
 import { durationToTicks, mod } from "utils";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
-import { PresetScales } from "./presets/scales";
 import { Note, Pitch, XML } from "./units";
 
 export type ScaleId = string;
@@ -20,6 +19,12 @@ export const isScale = (obj: any): obj is Scale => {
 };
 
 export type ScaleNoId = Omit<Scale, "id">;
+
+export const chromaticScale = {
+  id: "chromatic-scale",
+  name: "Chromatic Scale",
+  notes: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
+};
 
 // The Scales class contains methods for preset scales and MusicXML serialization
 export default class Scales {
@@ -59,92 +64,6 @@ export default class Scales {
     return MusicXML.serialize(score);
   }
 
-  static BasicScales = [
-    PresetScales.ChromaticScale,
-    PresetScales.MajorScale,
-    PresetScales.MinorScale,
-    PresetScales.HarmonicMinorScale,
-    PresetScales.MelodicMinorScale,
-  ];
-
-  static BasicModes = [
-    PresetScales.LydianScale,
-    PresetScales.IonianScale,
-    PresetScales.MixolydianScale,
-    PresetScales.DorianScale,
-    PresetScales.AeolianScale,
-    PresetScales.PhrygianScale,
-    PresetScales.LocrianScale,
-  ];
-
-  static PentatonicScales = [
-    PresetScales.MajorPentatonicScale,
-    PresetScales.MinorPentatonicScale,
-    PresetScales.YoScale,
-    PresetScales.InScale,
-    PresetScales.HirajoshiScale,
-    PresetScales.IwatoScale,
-    PresetScales.InsenScale,
-  ];
-
-  static HexatonicScales = [
-    PresetScales.MajorHexatonicScale,
-    PresetScales.MinorHexatonicScale,
-    PresetScales.BluesScale,
-    PresetScales.AugmentedScale,
-    PresetScales.PrometheusScale,
-    PresetScales.TritoneScale,
-    PresetScales.WholeToneScale,
-  ];
-
-  static OctatonicScales = [
-    PresetScales.BebopMajorScale,
-    PresetScales.BebopDorianScale,
-    PresetScales.BebopHarmonicMinorScale,
-    PresetScales.BebopMelodicMinorScale,
-    PresetScales.BebopDominantScale,
-    PresetScales.OctatonicWHScale,
-    PresetScales.OctatonicHWScale,
-  ];
-
-  static UncommonScales = [
-    PresetScales.AlteredScale,
-    PresetScales.AcousticScale,
-    PresetScales.HarmonicMajorScale,
-    PresetScales.PersianScale,
-    PresetScales.ByzantineScale,
-    PresetScales.HungarianMinorScale,
-    PresetScales.HungarianMajorScale,
-    PresetScales.NeapolitanMinorScale,
-    PresetScales.NeapolitanMajorScale,
-  ];
-
-  static CustomScales = [] as Scale[];
-
-  static PresetGroups = {
-    "Custom Scales": Scales.CustomScales,
-    "Basic Scales": Scales.BasicScales,
-    "Basic Modes": Scales.BasicModes,
-    "Pentatonic Scales": Scales.PentatonicScales,
-    "Hexatonic Scales": Scales.HexatonicScales,
-    "Octatonic Scales": Scales.OctatonicScales,
-    "Uncommon Scales": Scales.UncommonScales,
-  };
-
-  static PresetCategories = Object.keys(
-    Scales.PresetGroups
-  ) as (keyof typeof Scales.PresetGroups)[];
-
-  static Presets = [
-    ...Scales.CustomScales,
-    ...Scales.BasicScales,
-    ...Scales.BasicModes,
-    ...Scales.PentatonicScales,
-    ...Scales.HexatonicScales,
-    ...Scales.OctatonicScales,
-    ...Scales.UncommonScales,
-  ];
-
   static areEqual = (scale1: Scale, scale2: Scale) => {
     if (scale1.notes.length !== scale2.notes.length) return false;
     for (let i = 0; i < scale1.notes.length; i++) {
@@ -174,7 +93,7 @@ export default class Scales {
 export const defaultScale = {
   id: "scale-1",
   name: Scales.TrackScaleName,
-  notes: PresetScales.ChromaticScale.notes,
+  notes: chromaticScale.notes,
 };
 
 export const initializeScale = (

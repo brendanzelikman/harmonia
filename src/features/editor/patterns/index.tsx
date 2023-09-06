@@ -1,5 +1,5 @@
 import * as Patterns from "redux/slices/patterns";
-import PatternsClass, { PatternChord, isPatternValid } from "types/patterns";
+import PatternClass, { PatternChord, isPatternValid } from "types/patterns";
 
 import { Pattern, PatternId, PatternNote } from "types/patterns";
 import { connect, ConnectedProps } from "react-redux";
@@ -13,7 +13,6 @@ import {
 } from "redux/selectors";
 import { EditorProps } from "..";
 import { AppDispatch, RootState } from "redux/store";
-import { ChromaticScale } from "types/presets/scales";
 import { StateProps } from "../Editor";
 import {
   exportPatternToMIDI,
@@ -27,6 +26,11 @@ import { OSMDCursor } from "lib/opensheetmusicdisplay";
 import { MIDI } from "types/midi";
 import { Duration, Timing } from "types/units";
 import { durationToTicks } from "utils";
+import {
+  PresetPatternGroupList,
+  PresetPatternGroupMap,
+} from "types/presets/patterns";
+import { chromaticScale } from "types/scales";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const editor = selectEditor(state);
@@ -39,11 +43,11 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const canRedoPatterns = future.length > 0;
   const patternIds = selectPatternIds(state);
   const customPatterns = selectCustomPatterns(state);
-  const scale = ChromaticScale;
+  const scale = chromaticScale;
 
   const patternCategory =
-    PatternsClass.PresetCategories.find((c) =>
-      PatternsClass.PresetGroups[c].some((m) => m.id === pattern?.id)
+    PresetPatternGroupList.find((c) =>
+      PresetPatternGroupMap[c].some((m) => m.id === pattern?.id)
     ) ?? "Custom Patterns";
 
   const isEmpty = !pattern?.stream.length;
@@ -223,7 +227,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
   },
   exportPatternToXML: (pattern?: Pattern) => {
     if (!pattern || !isPatternValid(pattern)) return;
-    const xml = PatternsClass.exportToXML(pattern, ChromaticScale);
+    const xml = PatternClass.exportToXML(pattern);
     if (!xml) return;
     const blob = new Blob([xml], { type: "text/musicxml" });
     const url = URL.createObjectURL(blob);
