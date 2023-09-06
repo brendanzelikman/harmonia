@@ -7,7 +7,7 @@ interface LogoProps {
 export default function Logo(props: LogoProps) {
   return (
     <img
-      src="logo.png"
+      src="/logo.svg"
       onClick={props.onClick}
       style={{ height: props.height, width: props.width }}
     />

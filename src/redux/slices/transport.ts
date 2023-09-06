@@ -51,11 +51,11 @@ export const transportSlice = createSlice({
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
-    _startRecording: (state) => {
-      state.recording = true;
+    setRecording: (state, action) => {
+      state.recording = action.payload;
     },
-    _stopRecording: (state) => {
-      state.recording = false;
+    setOfflineTick: (state, action) => {
+      state.offlineTick = action.payload;
     },
   },
 });
@@ -72,6 +72,8 @@ export const {
   _setMute,
   setLoaded,
   setLoading,
+  setRecording,
+  setOfflineTick,
 } = transportSlice.actions;
 
 export default transportSlice.reducer;

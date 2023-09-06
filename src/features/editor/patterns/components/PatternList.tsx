@@ -5,7 +5,7 @@ import Patterns, { Pattern, PatternId } from "types/patterns";
 import * as Editor from "features/editor";
 import { PatternEditorProps } from "..";
 import { BiCopy } from "react-icons/bi";
-import { cancelEvent } from "appUtil";
+import { cancelEvent } from "utils";
 import useDebouncedField from "hooks/useDebouncedField";
 import { usePatternDrop, usePatternDrag } from "../hooks/usePatternDnd";
 

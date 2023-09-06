@@ -5,7 +5,7 @@ import {
   isHoldingCommand,
   isHoldingShift,
   isInputEvent,
-} from "appUtil";
+} from "utils";
 import { PatternEditorCursorProps } from "..";
 import { Duration } from "types/units";
 

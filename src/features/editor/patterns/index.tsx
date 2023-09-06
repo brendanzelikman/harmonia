@@ -15,14 +15,18 @@ import { EditorProps } from "..";
 import { AppDispatch, RootState } from "redux/store";
 import { ChromaticScale } from "types/presets/scales";
 import { StateProps } from "../Editor";
-import { playPattern } from "redux/thunks/patterns";
+import {
+  exportPatternToMIDI,
+  playPattern,
+  updatePatternByRegex,
+} from "redux/thunks/patterns";
 import { UndoTypes } from "redux/undoTypes";
 import { hideEditor } from "redux/slices/editor";
 import { setTimelineState } from "redux/slices/timeline";
 import { OSMDCursor } from "lib/opensheetmusicdisplay";
 import { MIDI } from "types/midi";
 import { Duration, Timing } from "types/units";
-import { durationToTicks } from "appUtil";
+import { durationToTicks } from "utils";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const editor = selectEditor(state);
@@ -232,7 +236,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
   },
   exportPatternToMIDI: (pattern?: Pattern) => {
     if (!pattern || !isPatternValid(pattern)) return;
-    PatternsClass.exportToMIDI(pattern);
+    dispatch(exportPatternToMIDI(pattern.id));
   },
   undoPatterns: () => {
     dispatch({ type: UndoTypes.undoPatterns });
@@ -326,6 +330,10 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     dispatch(
       Patterns.updatePatternChord({ id: pattern.id, index, patternChord })
     );
+  },
+  updatePatternByRegex: (pattern?: Pattern, regex?: string) => {
+    if (!pattern || !regex) return;
+    dispatch(updatePatternByRegex(pattern.id, regex));
   },
 });
 

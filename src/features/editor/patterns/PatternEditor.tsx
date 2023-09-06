@@ -54,7 +54,8 @@ export function PatternEditor(props: PatternEditorProps) {
   // Clear editor state for non-custom patterns
   useEffect(() => {
     if (!props.isCustom) props.clear();
-  }, [props.isCustom]);
+    if (!pattern) props.setPatternId("major-chord");
+  }, [props.isCustom, pattern]);
 
   // Sampler information
   const [sampler, setSampler] = useState(getGlobalSampler());

@@ -1,4 +1,4 @@
-import { ticksToSubdivision } from "appUtil";
+import { ticksToToneSubdivision } from "utils";
 import {
   selectPattern,
   selectPatternTrack,
@@ -10,10 +10,16 @@ import { createClip } from "redux/slices/clips";
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
 import { MIDI } from "types/midi";
-import { PatternId, realizePattern } from "types/patterns";
+import Patterns, {
+  Pattern,
+  PatternId,
+  PatternStream,
+  realizePattern,
+  transposePatternStream,
+} from "types/patterns";
 import { defaultScale } from "types/scales";
 import { Midi } from "@tonejs/midi";
-import { createPattern } from "redux/slices/patterns";
+import { createPattern, updatePattern } from "redux/slices/patterns";
 import { convertTicksToSeconds } from "redux/slices/transport";
 
 // Start reading files from the file system
@@ -51,7 +57,7 @@ export const playPattern =
       if (!chord.length) continue;
       const firstNote = chord[0];
       const seconds = convertTicksToSeconds(transport, firstNote.duration);
-      const subdivision = ticksToSubdivision(firstNote.duration);
+      const subdivision = ticksToToneSubdivision(firstNote.duration);
       if (MIDI.isRest(firstNote)) {
         time += seconds;
         continue;
@@ -63,6 +69,59 @@ export const playPattern =
       }, time * 1000);
       time += seconds;
     }
+  };
+
+export const parsePatternRegex = (expression: string) => {
+  const presets = Patterns.Presets;
+  const pitchClassRegex = `([A-Ga-g][#|b]?)?`;
+
+  const matches = presets.filter((pattern) => {
+    const phrases = [pattern.id, ...(pattern.aliases || [])];
+    const safePhrases = phrases.map((phrase) => phrase.replace("+", "\\+"));
+    const optionsRegex = safePhrases.join("|");
+    const regex = new RegExp(`^${pitchClassRegex} ?(${optionsRegex})$`);
+    return regex.test(expression);
+  });
+
+  if (!matches.length) return;
+
+  let newStream: PatternStream = [];
+  for (const match of [matches[0]]) {
+    const phrases = [match.id, ...(match.aliases || [])];
+    const safePhrases = phrases.map((phrase) => phrase.replace("+", "\\+"));
+    const optionsRegex = safePhrases.join("|");
+    const regex = new RegExp(`^${pitchClassRegex} ?(${optionsRegex})$`);
+    const result = regex.exec(expression);
+    if (!result) continue;
+
+    // Extract pitch class
+    const pitchClass = (result[1] || "C").toUpperCase();
+    const distanceFromC = MIDI.ChromaticNumber(pitchClass);
+
+    // Extract transposed pattern
+    const stream = transposePatternStream(match.stream, distanceFromC);
+    newStream.push(...stream);
+  }
+
+  return newStream;
+};
+
+export const updatePatternByRegex =
+  (id: PatternId, regex: string): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const pattern = selectPattern(state, id);
+    if (!pattern) return;
+
+    const parsedStream = parsePatternRegex(regex);
+    if (!parsedStream?.length) return;
+
+    dispatch(
+      updatePattern({
+        id: pattern.id,
+        stream: [...pattern.stream, ...parsedStream],
+      })
+    );
   };
 
 export const addSelectedPatternToTimeline =
@@ -102,9 +161,15 @@ export const createPatternsFromMIDI =
               ...acc[note.time],
               midi: [...(acc[note.time]?.midi || []), note.midi],
               duration: note.duration ?? (acc[note.time]?.duration || 0),
+              velocity:
+                note.velocity ??
+                (acc[note.time]?.velocity || MIDI.DefaultVelocity),
             },
           }),
-          {} as Record<number, { midi: number[]; duration: number }>
+          {} as Record<
+            number,
+            { midi: number[]; velocity: number; duration: number }
+          >
         );
         const pattern = {
           name: file.name || "New Pattern",
@@ -112,6 +177,7 @@ export const createPatternsFromMIDI =
             note.midi.map((MIDI) => ({
               duration: convertTicksToSeconds(transport, note.duration),
               MIDI,
+              velocity: note.velocity,
             }))
           ),
         };
@@ -119,4 +185,54 @@ export const createPatternsFromMIDI =
       });
     };
     reader.readAsArrayBuffer(file);
+  };
+
+export const exportPatternToMIDI =
+  (id: PatternId): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const pattern = selectPattern(state, id);
+    if (!pattern) return;
+
+    // Prepare a new MIDI file
+    const transport = selectTransport(state);
+    const midi = new Midi();
+    const track = midi.addTrack();
+    const stream = pattern.stream;
+
+    // Add stream and keep trakc of time
+    let time = 0;
+
+    // Iterate over each chord
+    for (let i = 0; i < stream.length; i++) {
+      const chord = stream[i];
+      if (!chord.length) continue;
+
+      // Get the first note in the chord and update time
+      const firstNote = chord[0];
+      const duration = convertTicksToSeconds(transport, firstNote.duration);
+      time += duration;
+
+      if (MIDI.isRest(firstNote)) continue;
+      for (const note of chord) {
+        track.addNote({
+          midi: note.MIDI,
+          duration,
+          time: convertTicksToSeconds(transport, time),
+          velocity: note.velocity ?? MIDI.DefaultVelocity,
+        });
+      }
+    }
+    // Create a MIDI blob
+    const blob = new Blob([midi.toArray()], {
+      type: "audio/midi",
+    });
+    const url = URL.createObjectURL(blob);
+
+    // Download the MIDI file
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${pattern.name || "pattern"}.mid`;
+    a.click();
+    URL.revokeObjectURL(url);
   };

@@ -8,13 +8,13 @@ export const selectPatternIds = (state: RootState) => {
   return state.patterns.present.allIds;
 };
 export const selectPatternMap = createSelector(
-  [(state) => state.patterns.present.byId],
+  [(state: RootState) => state.patterns.present.byId],
   (patterns) => ({ ...patterns, ...Patterns.PresetMap })
 );
 // Select a specific pattern from the store.
 export const selectPattern = createSelector(
   [selectPatternMap, selectPatternId],
-  (patterns, id): Pattern | undefined => patterns[id]
+  (patterns, id) => patterns[id]
 );
 
 // Select all patterns from the store.
@@ -29,7 +29,7 @@ export const selectCustomPatterns = createSelector(
   (patterns) =>
     patterns.filter(
       (pattern) =>
-        pattern.id === "new-pattern" ||
-        !Patterns.Presets.find((preset) => preset.id === pattern.id)
+        pattern?.id === "new-pattern" ||
+        !Patterns.Presets.find((preset) => preset.id === pattern?.id)
     )
 );

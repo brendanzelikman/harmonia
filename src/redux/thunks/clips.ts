@@ -22,7 +22,7 @@ import {
   getClipTicks,
 } from "types/clips";
 import { MIDI } from "types/midi";
-import MidiWriter from "midi-writer-js";
+import { Midi } from "@tonejs/midi";
 import { PatternStream, initializePattern, PatternId } from "types/patterns";
 import { TrackId } from "types/tracks";
 import { Transform, TransformId } from "types/transform";
@@ -32,8 +32,9 @@ import {
   deleteClipsAndTransforms,
 } from "redux/slices/clips";
 import { Row } from "features/timeline";
-import { subdivisionToTicks } from "appUtil";
+import { subdivisionToTicks } from "utils";
 import { setClipboard } from "redux/slices/timeline";
+import { convertTicksToSeconds } from "redux/slices/transport";
 
 export type RepeatOptions = {
   repeatCount?: number;
@@ -231,23 +232,19 @@ export const sliceClip =
   };
 
 export const exportClipsToMidi =
-  (clipIds: ClipId[], options = { name: "" }): AppThunk =>
+  (ids: ClipId[], options = { name: "" }): AppThunk =>
   async (_dispatch, getState) => {
+    // Get the clips from the state
     const state = getState();
-    const clips = Selectors.selectClipsByIds(state, clipIds).filter(
-      Boolean
-    ) as Clip[];
-    if (!clips || !clips.length) return;
-
+    const transport = Selectors.selectTransport(state);
     const scaleTrackIds = Selectors.selectScaleTrackIds(state);
     const trackMap = Selectors.selectTrackMap(state);
+    const clipsByIds = Selectors.selectClipsByIds(state, ids);
+    const clips = clipsByIds.filter(Boolean) as Clip[];
+    if (!clips || !clips.length) return;
 
     // Sort the clips
     const sortedClips = clips.sort((a, b) => a.tick - b.tick);
-    const startTick = sortedClips[0].tick;
-
-    // Read through clips
-    const tracks: MidiWriter.Track[] = [];
 
     // Accumulate clips into tracks
     const clipsByTrack = sortedClips.reduce((acc, clip) => {
@@ -258,7 +255,7 @@ export const exportClipsToMidi =
       return acc;
     }, {} as Record<TrackId, Clip[]>);
 
-    // Sort the trackIds descending by view order
+    // Sort the trackIds descending by view order based on the track map
     const trackIds = Object.keys(clipsByTrack).sort((a, b) => {
       // Get the pattern tracks of the clips
       const trackA = Selectors.selectPatternTrack(state, a);
@@ -292,75 +289,59 @@ export const exportClipsToMidi =
       return diff;
     });
 
-    // Create a track for each clip
+    // Prepare a new MIDI file
+    const midi = new Midi();
+
+    // Iterate through each track
     trackIds.forEach((trackId, index) => {
       const track = Selectors.selectPatternTrack(state, trackId);
       if (!track) return;
-      const midiTrack = new MidiWriter.Track();
-      tracks[index] = midiTrack;
-      // Set track event
-      midiTrack.addEvent(
-        new MidiWriter.ProgramChangeEvent({
-          instrument: index + 1,
-        })
-      );
-      // Add clips
-      const clips = clipsByTrack[trackId];
-      let lastTick = startTick;
-      let wait: MidiWriter.Duration[] = [];
 
+      // Create a track for each clip
+      const midiTrack = midi.addTrack();
+      const clips = clipsByTrack[trackId];
+
+      // Add the notes of each clip
       clips.forEach((clip) => {
         const pattern = Selectors.selectPattern(state, clip.patternId);
         if (!pattern) return;
+
+        // Get the stream of the clip
         const scale = Selectors.selectClipScale(state, clip.id);
         const transforms = Selectors.selectClipTransforms(state, clip.id);
+        const time = convertTicksToSeconds(transport, clip.tick);
         const stream = getClipStream(clip, pattern, scale, transforms, []);
 
-        // Add stream
-        const offset = clip.tick - lastTick;
-        if (offset > 0) {
-          wait.push(...new Array(offset).fill("16" as MidiWriter.Duration));
-        }
-        lastTick = clip.tick;
-
+        // Iterate through each chord
         for (let i = 0; i < stream.length; i++) {
           const chord = stream[i];
           if (!chord.length) continue;
 
-          // Compute duration
-          const duration = `${16 / chord[0].duration}` as MidiWriter.Duration;
-          lastTick += chord[0].duration;
+          // Get the duration of the chord in seconds
+          const firstNote = chord[0];
+          const duration = convertTicksToSeconds(transport, firstNote.duration);
 
-          if (MIDI.isRest(chord[0])) {
-            wait.push(duration);
-            continue;
+          // Add each non-rest note to the MIDI track
+          for (const note of chord) {
+            if (MIDI.isRest(note)) continue;
+            midiTrack.addNote({
+              midi: note.MIDI,
+              velocity: note.velocity ?? MIDI.DefaultVelocity,
+              time: time + convertTicksToSeconds(transport, i),
+              duration,
+            });
           }
-
-          // Compute pitch array
-          const pitch = MIDI.isRest(chord[0])
-            ? ([] as MidiWriter.Pitch[])
-            : (chord.map((n) => MIDI.toPitch(n.MIDI)) as MidiWriter.Pitch[]);
-
-          // Create event
-          const event = new MidiWriter.NoteEvent({
-            pitch,
-            duration,
-            wait: [...wait],
-          });
-
-          // Add event
-          tracks[index].addEvent(event);
-
-          // Clear wait if not a rest
-          if (!MIDI.isRest(chord[0]) && wait.length) wait.clear();
         }
       });
     });
-    const writer = new MidiWriter.Writer(tracks);
-    const blob = new Blob([writer.buildFile()], {
+
+    // Create a MIDI blob
+    const blob = new Blob([midi.toArray()], {
       type: "audio/midi",
     });
     const url = URL.createObjectURL(blob);
+
+    // Download the MIDI file
     const a = document.createElement("a");
     a.href = url;
     a.download = `${options.name || "file"}.mid`;

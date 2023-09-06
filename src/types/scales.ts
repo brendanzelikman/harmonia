@@ -1,10 +1,9 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { durationToTicks, mod } from "appUtil";
+import { durationToTicks, mod } from "utils";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import { PresetScales } from "./presets/scales";
 import { Note, Pitch, XML } from "./units";
-import MidiWriter from "midi-writer-js";
 
 export type ScaleId = string;
 
@@ -33,41 +32,6 @@ export default class Scales {
     return pitches.sort(
       (a, b) => MIDI.ChromaticNumber(a) - MIDI.ChromaticNumber(b)
     );
-  }
-
-  public static exportToMIDI(scale: Scale) {
-    const notes = scale.notes;
-    const track = new MidiWriter.Track();
-
-    // Add stream
-    for (let i = 0; i < notes.length; i++) {
-      const note = notes[i];
-
-      // Compute duration
-      const duration = `1` as MidiWriter.Duration;
-
-      // Compute pitch array
-      const pitch = MIDI.toPitch(note) as MidiWriter.Pitch;
-
-      // Create event
-      const event = new MidiWriter.NoteEvent({
-        pitch,
-        duration,
-      });
-
-      // Add event
-      track.addEvent(event);
-    }
-    const writer = new MidiWriter.Writer(track);
-    const blob = new Blob([writer.buildFile()], {
-      type: "audio/midi",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${scale.name || "scale"}.mid`;
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   static exportToXML(notes: Note[]): XML {

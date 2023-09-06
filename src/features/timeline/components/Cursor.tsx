@@ -18,6 +18,7 @@ const mapStateToProps = (state: RootState) => {
 
   return {
     isStarted: transport.state === "started",
+    recording: transport.recording,
     selectedTrackId,
     left,
     width: cellWidth,
@@ -39,7 +40,7 @@ interface CursorProps extends Props {
 export default connector(TimelineCursor);
 
 function TimelineCursor(props: CursorProps) {
-  if (!props.isStarted) return null;
+  if (!props.isStarted || props.recording) return null;
 
   const element = props.timeline.element;
   if (!element) return null;

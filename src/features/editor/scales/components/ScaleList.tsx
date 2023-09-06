@@ -4,7 +4,7 @@ import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
 import Scales, { Scale, ScaleId } from "types/scales";
 import { ScaleEditorProps } from "..";
 import * as Editor from "features/editor";
-import { cancelEvent } from "appUtil";
+import { cancelEvent } from "utils";
 import useDebouncedField from "hooks/useDebouncedField";
 import { MIDI } from "types/midi";
 import { useScaleDrop, useScaleDrag } from "../hooks/useScaleDnd";

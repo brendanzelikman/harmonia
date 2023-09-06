@@ -1,6 +1,6 @@
 import { Frequency } from "tone";
 import { BPM, Duration, Note, Pitch, Tick, Time, Velocity } from "./units";
-import { mod } from "appUtil";
+import { mod } from "utils";
 import { clamp } from "lodash";
 import { PatternNote } from "./patterns";
 
@@ -364,12 +364,10 @@ export class MIDI {
     }
     return MIDI.ChromaticNotes.indexOf(pitch as Pitch);
   }
-
   // Get the MIDI number from a pitch
   public static fromPitch(pitch: string): Note {
     return Frequency(pitch).toMidi();
   }
-
   // Get the pitch class of a note, e.g. C, C#, D, etc.
   public static toPitchClass(note: Note): string {
     if (note === MIDI.Rest) return "R";
@@ -397,5 +395,24 @@ export class MIDI {
       return accidental === "#" ? 1 : -1;
     }
     return 0;
+  }
+
+  public static closestPitchClass(
+    pitch: Pitch,
+    arr: Note[]
+  ): Pitch | undefined {
+    if (!arr.length) return;
+    const notes = arr.map((n) => MIDI.ChromaticNumber(n));
+    const note = MIDI.ChromaticNotes.indexOf(pitch);
+
+    // Get the closest chromatic number
+    const index = notes.reduce((prev, curr) => {
+      const currDiff = Math.abs(curr - note);
+      const prevDiff = Math.abs(prev - note);
+      return currDiff <= prevDiff ? curr : prev;
+    });
+
+    // Return the closest pitch class
+    return MIDI.ChromaticNotes[index];
   }
 }

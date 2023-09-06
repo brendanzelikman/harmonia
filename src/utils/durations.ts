@@ -1,56 +1,8 @@
-import { DragEvent } from "react";
 import { MIDI } from "types/midi";
-import { Duration, Note, Pitch, Subdivision, Tick } from "types/units";
+import { Subdivision as ToneSubdivision } from "tone/build/esm/core/type/Units";
+import { Duration, Subdivision, Tick } from "types/units";
 
-export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-type GenericEvent =
-  | Event
-  | DragEvent<HTMLElement>
-  | React.MouseEvent<HTMLElement, MouseEvent>
-  | React.TouchEvent<HTMLElement>;
-
-export const cancelEvent = (e: GenericEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
-};
-
-export const isInputEvent = (e: GenericEvent) => {
-  const target = e.target as HTMLElement;
-  return target.tagName === "INPUT" || target.tagName === "TEXTAREA";
-};
-
-export const isHoldingShift = (e: GenericEvent) => {
-  const keyboardEvent = e as KeyboardEvent;
-  return keyboardEvent.shiftKey;
-};
-export const isHoldingOption = (e: GenericEvent) => {
-  const keyboardEvent = e as KeyboardEvent;
-  return keyboardEvent.altKey;
-};
-export const isHoldingCommand = (e: GenericEvent) => {
-  const keyboardEvent = e as KeyboardEvent;
-  return keyboardEvent.metaKey || keyboardEvent.ctrlKey;
-};
-
-export const blurOnEnter = (e: React.KeyboardEvent) => {
-  if (e.key === "Enter") {
-    (e.currentTarget as HTMLElement).blur();
-  }
-};
-
-// Modulo that works with negative numbers
-export const mod = (n: number, m: number) => ((n % m) + m) % m;
-
-export const percentOfRange = (x: number, m: number, n: number) =>
-  Math.round((100 * (x - m)) / (n - m));
-
-// Closest number in array
-export const closest = (goal: number, arr: number[]) =>
-  arr.reduce((prev, curr) => {
-    return Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev;
-  });
-
+// Map all subdivisions to the respective ticks
 const ticksBySubdivision: Record<Subdivision, Tick> = {
   "1/64": MIDI.SixtyFourthNoteTicks,
   "1/32": MIDI.ThirtySecondNoteTicks,
@@ -60,11 +12,11 @@ const ticksBySubdivision: Record<Subdivision, Tick> = {
   "1/2": MIDI.HalfNoteTicks,
   "1/1": MIDI.WholeNoteTicks,
 };
-
 export const subdivisionToTicks = (subdivision: Subdivision = "1/16"): Tick => {
   return ticksBySubdivision[subdivision] || MIDI.QuarterNoteTicks;
 };
 
+// Map all subdivisions to the respective values
 const valuesBySubdivision: Record<Subdivision, number> = {
   "1/64": 64,
   "1/32": 32,
@@ -78,6 +30,40 @@ export const subdivisionToValue = (subdivision: Subdivision = "1/16") => {
   return valuesBySubdivision[subdivision] || 4;
 };
 
+// Map all ticks to the respective Tone.js subdivisions
+export const toneSubdivisionsByTick: Record<Tick, ToneSubdivision> = {
+  [MIDI.WholeNoteTicks]: "1n",
+  [MIDI.DottedWholeNoteTicks]: "1n.",
+
+  [MIDI.HalfNoteTicks]: "2n",
+  [MIDI.DottedHalfNoteTicks]: "2n.",
+  [MIDI.TripletHalfNoteTicks]: "2t",
+
+  [MIDI.QuarterNoteTicks]: "4n",
+  [MIDI.DottedQuarterNoteTicks]: "4n.",
+  [MIDI.TripletQuarterNoteTicks]: "4t",
+
+  [MIDI.EighthNoteTicks]: "8n",
+  [MIDI.DottedEighthNoteTicks]: "8n.",
+  [MIDI.TripletEighthNoteTicks]: "8t",
+
+  [MIDI.SixteenthNoteTicks]: "16n",
+  [MIDI.DottedSixteenthNoteTicks]: "16n.",
+  [MIDI.TripletSixteenthNoteTicks]: "16t",
+
+  [MIDI.ThirtySecondNoteTicks]: "32n",
+  [MIDI.DottedThirtySecondNoteTicks]: "32n.",
+  [MIDI.TripletThirtySecondNoteTicks]: "32t",
+
+  [MIDI.SixtyFourthNoteTicks]: "64n",
+  [MIDI.DottedSixtyFourthNoteTicks]: "64n.",
+  [MIDI.TripletSixtyFourthNoteTicks]: "64t",
+};
+export const ticksToToneSubdivision = (beats: number) => {
+  return toneSubdivisionsByTick[beats] || "4n";
+};
+
+// Convert ticks to the number of columns
 export const ticksToColumns = (
   ticks: Tick,
   subdivision: Subdivision = "1/16"
@@ -92,6 +78,7 @@ interface NoteOption {
   triplet?: boolean;
 }
 
+// Convert a note duration to the number of ticks
 export const durationToTicks = (
   duration: Duration,
   options: NoteOption = { dotted: false, triplet: false }
@@ -206,58 +193,4 @@ export const ticksToDuration = (ticks: Tick) => {
   if (wholeNotes.includes(ticks)) return "whole";
 
   return "quarter";
-};
-
-// Convert beats to Tone.js subdivision
-export const subdivisionsByTick = {
-  [MIDI.WholeNoteTicks]: "1n",
-  [MIDI.DottedWholeNoteTicks]: "1n.",
-  [MIDI.TripletWholeNoteTicks]: "1t",
-
-  [MIDI.HalfNoteTicks]: "2n",
-  [MIDI.DottedHalfNoteTicks]: "2n.",
-  [MIDI.TripletHalfNoteTicks]: "2t",
-
-  [MIDI.QuarterNoteTicks]: "4n",
-  [MIDI.DottedQuarterNoteTicks]: "4n.",
-  [MIDI.TripletQuarterNoteTicks]: "4t",
-
-  [MIDI.EighthNoteTicks]: "8n",
-  [MIDI.DottedEighthNoteTicks]: "8n.",
-  [MIDI.TripletEighthNoteTicks]: "8t",
-
-  [MIDI.SixteenthNoteTicks]: "16n",
-  [MIDI.DottedSixteenthNoteTicks]: "16n.",
-  [MIDI.TripletSixteenthNoteTicks]: "16t",
-
-  [MIDI.ThirtySecondNoteTicks]: "32n",
-  [MIDI.DottedThirtySecondNoteTicks]: "32n.",
-  [MIDI.TripletThirtySecondNoteTicks]: "32t",
-
-  [MIDI.SixtyFourthNoteTicks]: "64n",
-  [MIDI.DottedSixtyFourthNoteTicks]: "64n.",
-  [MIDI.TripletSixtyFourthNoteTicks]: "64t",
-};
-export const ticksToSubdivision = (beats: number) => {
-  return subdivisionsByTick[beats] || "4n";
-};
-
-// Closest pitch class in array of MIDI notes
-export const closestPitchClass = (
-  pitch: Pitch,
-  arr: Note[]
-): Pitch | undefined => {
-  if (!arr.length) return;
-  const notes = arr.map((n) => MIDI.ChromaticNumber(n));
-  const note = MIDI.ChromaticNotes.indexOf(pitch);
-
-  // Get the closest chromatic number
-  const index = notes.reduce((prev, curr) => {
-    const currDiff = Math.abs(curr - note);
-    const prevDiff = Math.abs(prev - note);
-    return currDiff <= prevDiff ? curr : prev;
-  });
-
-  // Return the closest pitch class
-  return MIDI.ChromaticNotes[index];
 };

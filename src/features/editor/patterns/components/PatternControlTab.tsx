@@ -27,12 +27,29 @@ export function PatternControlTab(props: PatternControlTabProps) {
     </Editor.Tooltip>
   );
 
+  const InputButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Input Pattern`}>
+      <Editor.MenuButton
+        className="px-1 active:bg-emerald-600"
+        onClick={() => {
+          const value = prompt("Enter a pattern by keyword:");
+          if (!value || !props.isCustom) return;
+          if (value) props.updatePatternByRegex(pattern, value);
+        }}
+        disabled={!props.isCustom}
+        disabledClass="px-1"
+      >
+        Input
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
   const CopyButton = () => (
     <Editor.Tooltip show={props.showingTooltips} content={`New Pattern`}>
       <Editor.MenuButton
         className="px-1 active:bg-teal-600"
         onClick={() => props.copyPattern(pattern)}
-        disabled={!props.isCustom || props.isEmpty}
+        disabled={props.isEmpty}
         disabledClass="px-1"
       >
         Copy
@@ -132,6 +149,7 @@ export function PatternControlTab(props: PatternControlTabProps) {
       <Editor.MenuGroup border={true}>
         <ExportButton />
         <NewButton />
+        <InputButton />
         <CopyButton />
         <PlayButton />
       </Editor.MenuGroup>

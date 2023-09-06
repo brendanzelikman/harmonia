@@ -33,58 +33,68 @@ export const getInstrumentName = (instrument: InstrumentName) => {
   return match?.name ?? "Unknown";
 };
 
+export const createSampler = (
+  instrumentName: InstrumentName,
+  onload?: (sampler: Sampler) => void
+) => {
+  const category = INSTRUMENT_CATEGORIES.find((key) =>
+    categories[key].some((instrument) => instrument.key === instrumentName)
+  );
+  if (!category) return Promise.resolve(undefined);
+
+  const sampleMap = samples[instrumentName];
+  if (!sampleMap) return Promise.resolve(undefined);
+
+  return new Promise<Sampler>((resolve) => {
+    const sampler = new Sampler({
+      urls: { ...sampleMap },
+      baseUrl: `${window.location.origin}/harmonia/samples/${category}/${instrumentName}/`,
+      onload: () => {
+        if (onload) onload(sampler);
+        resolve(sampler);
+      },
+    });
+  });
+};
+
 // Create an instrument for a track
 export const createInstrument =
-  (track: Track): AppThunk =>
+  (track: Track, offline = false): AppThunk<Promise<Sampler | undefined>> =>
   (dispatch, getState) => {
     const state = getState();
     const oldMixer = selectMixerByTrackId(state, track.id);
 
-    if (isPatternTrack(track)) {
-      // Find the category of the instrument
-      const category = INSTRUMENT_CATEGORIES.find((key) =>
-        categories[key].some(
-          (instrument) => instrument.key === track.instrument
-        )
-      );
-      if (!category) return;
+    if (!isPatternTrack(track)) return Promise.resolve(undefined);
 
-      // Find the sample map of the instrument
-      const instrumentName = track.instrument as InstrumentName;
-      const sampleMap = samples[instrumentName];
-      if (!sampleMap) return;
-
-      // Return a promise that resolves when the instrument is created and connected
-      return new Promise<void>((resolve) => {
-        const sampler = new Sampler({
-          urls: { ...sampleMap },
-          baseUrl: `${window.location.origin}/harmonia/samples/${category}/${track.instrument}/`,
-          onload: () => {
-            let instrument = INSTRUMENTS[track.id];
-            // Dispose the old instrument if it exists
-            if (instrument) {
-              instrument.sampler.dispose();
-              instrument.mixer.dispose();
-              delete INSTRUMENTS[track.id];
-            }
-            // Create and instantiate a new mixer
-            const trackMixer = initializeMixer({
-              ...defaultMixer,
-              ...oldMixer,
-              trackId: track.id,
-            });
-            const mixer = new MixerInstance(trackMixer);
-            if (!mixer) return;
-            // Connect the mixer to the track sampler
-            sampler.connect(mixer.channel);
-            // Add the sampler + mixer to the global instruments
-            dispatch(addMixer(trackMixer));
-            INSTRUMENTS[track.id] = { sampler, mixer, name: track.instrument };
-            resolve();
-          },
-        });
+    const onload = (sampler: Sampler) => {
+      if (!offline) {
+        let instrument = INSTRUMENTS[track.id];
+        // Dispose the old instrument if it exists
+        if (instrument) {
+          instrument.sampler.dispose();
+          instrument.mixer.dispose();
+          delete INSTRUMENTS[track.id];
+        }
+      }
+      // Create and instantiate a new mixer
+      const trackMixer = initializeMixer({
+        ...defaultMixer,
+        ...oldMixer,
+        trackId: track.id,
       });
-    }
+      const mixer = new MixerInstance(trackMixer);
+      if (!mixer) return Promise.resolve(undefined);
+      // Connect the mixer to the track sampler
+      sampler.connect(mixer.channel);
+      // Add the sampler + mixer to the global instruments
+      if (!offline) {
+        dispatch(addMixer(trackMixer));
+        INSTRUMENTS[track.id] = { sampler, mixer, name: track.instrument };
+      }
+    };
+
+    const instrumentName = track.instrument as InstrumentName;
+    return createSampler(instrumentName, onload);
   };
 
 // Create the global instrument

@@ -3,7 +3,7 @@ import {
   isHoldingCommand,
   isHoldingShift,
   isInputEvent,
-} from "appUtil";
+} from "utils";
 import { Row, TimelineProps } from "..";
 import useEventListeners from "hooks/useEventListeners";
 import { useState } from "react";

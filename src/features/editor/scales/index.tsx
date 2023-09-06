@@ -19,7 +19,7 @@ import {
 import { UndoTypes } from "redux/undoTypes";
 import { RootState } from "redux/store";
 import { StateProps } from "../Editor";
-import { playScale } from "redux/thunks/scales";
+import { exportScaleToMIDI, playScale } from "redux/thunks/scales";
 import { MIDI } from "types/midi";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
@@ -145,7 +145,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     document.body.removeChild(link);
   },
   exportScaleToMIDI: (scale: Scale) => {
-    ScaleClass.exportToMIDI(scale);
+    dispatch(exportScaleToMIDI(scale.id));
   },
   clearScale: (id: ScaleId) => {
     dispatch(Scales.clearScale(id));

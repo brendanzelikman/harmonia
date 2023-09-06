@@ -21,7 +21,7 @@ import useEventListeners from "hooks/useEventListeners";
 import { TransformNoId } from "types/transform";
 import { rotatePattern, transposePattern } from "redux/slices/patterns";
 import { createTransforms } from "redux/slices/transforms";
-import { isHoldingOption, isHoldingShift } from "appUtil";
+import { isHoldingOption, isHoldingShift } from "utils";
 import { selectRangeOfClips } from "redux/thunks";
 import { Row } from "..";
 

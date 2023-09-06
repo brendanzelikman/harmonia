@@ -23,7 +23,7 @@ import {
   isHoldingShift,
   isInputEvent,
   ticksToColumns,
-} from "appUtil";
+} from "utils";
 import { ClipId } from "types/clips";
 import { useTransformDrag } from "./dnd";
 

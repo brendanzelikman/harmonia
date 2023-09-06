@@ -18,7 +18,7 @@ import { NavbarFormInput } from "../Navbar";
 import { showShortcuts } from "redux/slices/root";
 import { clamp } from "lodash";
 import useEventListeners from "hooks/useEventListeners";
-import { isHoldingCommand, isInputEvent } from "appUtil";
+import { isHoldingCommand, isInputEvent } from "utils";
 import { setCellWidth } from "redux/slices/timeline";
 
 const mapStateToProps = (state: RootState) => {

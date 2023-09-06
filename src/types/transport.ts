@@ -16,6 +16,7 @@ export interface Transport {
   loaded: boolean;
   loading: boolean;
   recording: boolean;
+  offlineTick: Tick;
 }
 
 export const defaultTransport: Transport = {
@@ -31,6 +32,7 @@ export const defaultTransport: Transport = {
   loaded: false,
   loading: false,
   recording: false,
+  offlineTick: 0,
 };
 
 export const isTransport = (obj: any): obj is Transport => {

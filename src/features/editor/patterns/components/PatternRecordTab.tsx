@@ -4,7 +4,7 @@ import * as Editor from "features/editor";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { WebMidi, Input, NoteMessageEvent } from "webmidi";
 import { MIDI } from "types/midi";
-import { durationToTicks, ticksToSubdivision } from "appUtil";
+import { durationToTicks, ticksToToneSubdivision } from "utils";
 import { Note } from "types/units";
 import { Sampler, Time } from "tone";
 import {
@@ -141,7 +141,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
         const latency = 50;
         const diff = event.timestamp - startTime - latency;
 
-        const subdivision = ticksToSubdivision(quantization);
+        const subdivision = ticksToToneSubdivision(quantization);
         const duration = Math.max(0, diff) / 1000;
         const time = Time(duration).quantize(subdivision);
         const ticks = convertSecondsToTicks(props.transport, time);
@@ -163,7 +163,11 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
       // Add notes to pulse array
       const stream = new Array(pulses).fill(0).map((_, i) => {
         const notes = tickMap[i * quantization] ?? [MIDI.Rest];
-        return notes.map((note) => ({ duration: quantization, MIDI: note }));
+        return notes.map((note) => ({
+          duration: quantization,
+          MIDI: note,
+          velocity: MIDI.DefaultVelocity,
+        }));
       });
 
       // Add notes to pattern

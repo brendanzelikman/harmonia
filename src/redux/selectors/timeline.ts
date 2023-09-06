@@ -1,9 +1,5 @@
 import { DEFAULT_CELL_WIDTH, TRACK_WIDTH } from "appConstants";
-import {
-  subdivisionToTicks,
-  subdivisionToValue,
-  ticksToColumns,
-} from "appUtil";
+import { subdivisionToTicks, subdivisionToValue, ticksToColumns } from "utils";
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { selectTick, selectTransport } from "./transport";

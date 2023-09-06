@@ -1,4 +1,4 @@
-import { durationToTicks } from "appUtil";
+import { durationToTicks } from "utils";
 import { Sampler } from "tone";
 import { MIDI } from "types/midi";
 import { PatternEditorCursorProps } from "..";

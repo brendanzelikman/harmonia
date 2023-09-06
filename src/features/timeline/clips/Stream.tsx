@@ -14,7 +14,7 @@ import {
   TimelineNote,
 } from "types/patterns";
 import { Time } from "types/units";
-import { percentOfRange, ticksToColumns } from "appUtil";
+import { percentOfRange, ticksToColumns } from "utils";
 import { MIDI } from "types/midi";
 import { CELL_HEIGHT, TRANSFORM_HEIGHT } from "appConstants";
 

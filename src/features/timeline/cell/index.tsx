@@ -39,6 +39,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const showCursor =
     !adding &&
     !transposing &&
+    !transport.recording &&
     onTime &&
     root.selectedTrackId === trackId &&
     !isStarted;

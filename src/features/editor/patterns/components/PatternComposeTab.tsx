@@ -10,7 +10,7 @@ import { PatternEditorCursorProps } from "..";
 import * as Editor from "features/editor";
 import restNote from "assets/noteheads/rest.png";
 import { Duration, TIMINGS, Timing } from "types/units";
-import { blurOnEnter } from "appUtil";
+import { blurOnEnter } from "utils";
 import { MIDI } from "types/midi";
 import { useEffect, useState } from "react";
 import { clamp } from "lodash";

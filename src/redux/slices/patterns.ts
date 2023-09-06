@@ -20,7 +20,7 @@ import { MIDI } from "types/midi";
 
 import { setSelectedPattern } from "./root";
 import { clamp, random, reverse, shuffle } from "lodash";
-import { mod } from "appUtil";
+import { mod } from "utils";
 
 const initialState = initializeState<PatternId, Pattern>([defaultPattern]);
 

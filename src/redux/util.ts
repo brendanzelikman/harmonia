@@ -81,6 +81,7 @@ export const saveState = (state: RootState) => {
         ...state.transport,
         state: "stopped",
         loaded: false,
+        recording: false,
         tick: 0,
       },
       timeline: {

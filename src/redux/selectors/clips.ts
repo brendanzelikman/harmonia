@@ -13,7 +13,7 @@ import { selectTransforms } from "./transforms";
 import { PatternTrack, ScaleTrack, TrackId } from "types/tracks";
 import { Scale } from "types/scales";
 import { selectCellWidth, selectTimeline } from "./timeline";
-import { ticksToColumns } from "appUtil";
+import { ticksToColumns } from "utils";
 
 export const selectClipId = (state: RootState, id: ClipId) => {
   return id;

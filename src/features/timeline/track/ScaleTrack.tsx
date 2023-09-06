@@ -23,7 +23,7 @@ import { ChromaticScale } from "types/presets/scales";
 import { BiCopy } from "react-icons/bi";
 import { BsEraser, BsPencil, BsPlusCircle, BsTrash } from "react-icons/bs";
 import useEventListeners from "hooks/useEventListeners";
-import { cancelEvent, isInputEvent } from "appUtil";
+import { cancelEvent, isInputEvent } from "utils";
 import { useRef, useState } from "react";
 import { moveScaleTrackInTrackMap } from "redux/slices/maps/trackMap";
 import { useTrackDrag, useTrackDrop } from "./dnd";

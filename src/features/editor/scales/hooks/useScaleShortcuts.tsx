@@ -1,4 +1,4 @@
-import { cancelEvent, isHoldingShift, isInputEvent } from "appUtil";
+import { cancelEvent, isHoldingShift, isInputEvent } from "utils";
 import useEventListeners from "hooks/useEventListeners";
 import { ScaleEditorProps } from "..";
 import { Scale } from "types/scales";

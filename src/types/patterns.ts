@@ -1,20 +1,21 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { ticksToDuration, closestPitchClass, mod } from "appUtil";
+import { ticksToDuration, mod } from "utils";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import Scales, { Scale } from "./scales";
 import { Pitch, Tick, Velocity, XML } from "./units";
 import { PresetPatterns } from "./presets/patterns";
 import { ChromaticScale } from "./presets/scales";
-import MidiWriter from "midi-writer-js";
 import { clamp, inRange } from "lodash";
+import { Midi } from "@tonejs/midi";
 
 export type PatternId = string;
 
 export interface Pattern {
   id: PatternId;
-  name: string;
   stream: PatternStream;
+  name: string;
+  aliases?: string[];
 }
 export const isPattern = (obj: any): obj is Pattern => {
   const { id, name, stream } = obj;
@@ -96,7 +97,7 @@ export const realizePattern = (
       }
 
       // Find the nearest pitch class in the new scale
-      const pitchClass = closestPitchClass(oldPitch, scale.notes);
+      const pitchClass = MIDI.closestPitchClass(oldPitch, scale.notes);
       if (!pitchClass) {
         realizedChord.push(note);
         continue;
@@ -229,53 +230,6 @@ export const rotatePatternStream = (
 };
 
 export default class Patterns {
-  static exportToMIDI(pattern: Pattern) {
-    const stream = pattern.stream;
-    const track = new MidiWriter.Track();
-    let wait: MidiWriter.Duration[] = [];
-
-    // Add stream
-    for (let i = 0; i < stream.length; i++) {
-      const chord = stream[i];
-      if (!chord.length) continue;
-
-      // Compute duration
-      const duration = `${16 / chord[0].duration}` as MidiWriter.Duration;
-      if (MIDI.isRest(chord[0])) {
-        wait.push(duration);
-        continue;
-      }
-
-      // Compute pitch array
-      const pitch = MIDI.isRest(chord[0])
-        ? ([] as MidiWriter.Pitch[])
-        : (chord.map((n) => MIDI.toPitch(n.MIDI)) as MidiWriter.Pitch[]);
-
-      // Create event
-      const event = new MidiWriter.NoteEvent({
-        pitch,
-        duration,
-        wait: [...wait],
-      });
-
-      // Add event
-      track.addEvent(event);
-
-      // Clear wait if not a rest
-      if (!MIDI.isRest(chord[0]) && wait.length) wait.clear();
-    }
-    const writer = new MidiWriter.Writer(track);
-    const blob = new Blob([writer.buildFile()], {
-      type: "audio/midi",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${pattern.name || "pattern"}.mid`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
   static exportToXML(pattern?: Pattern, scale?: Scale): XML {
     if (!pattern || !scale) return "";
     const stream = realizePattern(pattern, scale);

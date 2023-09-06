@@ -5,7 +5,7 @@ import { Editor } from "./Editor";
 import * as EditorSlice from "redux/slices/editor";
 import { Duration, Tick, Timing, Velocity } from "types/units";
 import { EditorId, EditorState } from "types/editor";
-import { durationToTicks } from "appUtil";
+import { durationToTicks } from "utils";
 
 function mapStateToProps(state: RootState) {
   const { selectedPatternId, showingTour } = selectRoot(state);

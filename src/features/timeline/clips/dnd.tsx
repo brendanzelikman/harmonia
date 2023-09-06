@@ -2,7 +2,7 @@ import { useDrag } from "react-dnd";
 import { Clip } from "types/clips";
 import { Transform } from "types/transform";
 import { ClipProps } from "./Clip";
-import { subdivisionToTicks, ticksToColumns } from "appUtil";
+import { subdivisionToTicks, ticksToColumns } from "utils";
 
 interface DropResult {
   dropEffect: string;

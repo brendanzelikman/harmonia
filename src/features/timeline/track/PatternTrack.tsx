@@ -33,7 +33,7 @@ import {
   isHoldingOption,
   isInputEvent,
   percentOfRange,
-} from "appUtil";
+} from "utils";
 import useEventListeners from "hooks/useEventListeners";
 import { AppThunk } from "redux/store";
 import { useTrackDrag, useTrackDrop } from "./dnd";

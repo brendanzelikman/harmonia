@@ -16,7 +16,7 @@ import { AppDispatch, RootState } from "redux/store";
 import { Subdivision, Tick } from "types/units";
 import { Row } from "..";
 import { TimeFormatter } from "./Time";
-import { subdivisionToTicks } from "appUtil";
+import { subdivisionToTicks } from "utils";
 
 function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
   const transport = selectTransport(state);

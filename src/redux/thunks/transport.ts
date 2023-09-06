@@ -1,10 +1,12 @@
-import { sleep, ticksToSubdivision } from "appUtil";
 import { startTone } from "index";
 import {
   selectTransport,
   selectTracks,
   selectPatternTrackSamplers,
   selectChordsByTicks,
+  selectTransportEndTick,
+  selectPatternTrackMap,
+  selectRoot,
 } from "redux/selectors";
 import {
   _loopTransport,
@@ -18,18 +20,30 @@ import {
   _setVolume,
   convertTicksToSeconds,
   transportSlice,
+  setRecording,
+  setOfflineTick,
 } from "redux/slices/transport";
 import { AppThunk } from "redux/store";
-import { getContext, getDestination, start, Transport } from "tone";
+import {
+  getContext,
+  getDestination,
+  Offline,
+  Sampler,
+  start,
+  Transport,
+} from "tone";
 import {
   buildInstruments,
   createGlobalInstrument,
+  createInstrument,
   destroyInstruments,
   getSampler,
   isSamplerLoaded,
 } from "types/instrument";
 import { MIDI } from "types/midi";
 import { Tick, Time } from "types/units";
+import encodeWAV from "audiobuffer-to-wav";
+import { sleep, ticksToToneSubdivision } from "utils";
 
 const { _startTransport, _pauseTransport, _stopTransport, _seekTransport } =
   transportSlice.actions;
@@ -37,13 +51,14 @@ const { _startTransport, _pauseTransport, _stopTransport, _seekTransport } =
 export const startTransport = (): AppThunk => (dispatch, getState) => {
   // Make sure the context is started
   if (getContext().state !== "running") return startTone(true);
+
   const oldState = getState();
   const transport = selectTransport(oldState);
-  const pulse = convertTicksToSeconds(transport, 1);
+  if (transport.recording) return;
 
-  Transport.PPQ = MIDI.PPQ;
   // Schedule patterns
   if (transport.state === "stopped") {
+    const pulse = convertTicksToSeconds(transport, 1);
     let samplers = selectPatternTrackSamplers(oldState);
 
     // Schedule the transport
@@ -77,7 +92,7 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
           if (!isSamplerLoaded(sampler)) continue;
           const pitches = chord.map((note) => MIDI.toPitch(note.MIDI));
           const duration = chord[0].duration ?? MIDI.EighthNoteTicks;
-          const subdivision = ticksToSubdivision(duration);
+          const subdivision = ticksToToneSubdivision(duration);
           const velocity = chord[0].velocity ?? MIDI.DefaultVelocity;
           const scaledVelocity = velocity / MIDI.MaxVelocity;
           sampler.triggerAttackRelease(
@@ -102,17 +117,24 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
 };
 
 // Stop the transport
-export const stopTransport = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  Transport.stop();
-  Transport.cancel();
-  Transport.position = 0;
-  dispatch(_stopTransport());
-};
+export const stopTransport =
+  (tick?: Tick): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const transport = selectTransport(state);
+    if (transport.recording) return;
+    Transport.stop();
+    Transport.cancel();
+    Transport.position = 0;
+    if (tick) dispatch(seekTransport(tick));
+    dispatch(_stopTransport());
+  };
 
 // Pause the transport
 export const pauseTransport = (): AppThunk => (dispatch, getState) => {
   const state = getState();
+  const transport = selectTransport(state);
+  if (transport.recording) return;
   Transport.pause();
   dispatch(_pauseTransport());
 };
@@ -202,6 +224,119 @@ export const setTransportMute =
     getDestination().mute = mute;
     dispatch(_setMute(mute));
   };
+
+// Start recording
+export const startRecording = (): AppThunk => (dispatch) => {
+  dispatch(setOfflineTick(0));
+  dispatch(setRecording(true));
+};
+
+// Stop recording
+export const stopRecording = (): AppThunk => (dispatch) => {
+  dispatch(setOfflineTick(0));
+  dispatch(setRecording(false));
+};
+
+// Download the transport
+export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
+  const oldState = getState();
+
+  // Make sure the transport is started
+  const oldTransport = selectTransport(oldState);
+  if (oldTransport.state === "started") return;
+
+  // Make sure the recording is not empty
+  const ticks = selectTransportEndTick(oldState);
+  if (ticks <= 0) return;
+
+  const patternTrackMap = selectPatternTrackMap(oldState);
+  const oldSamplers = selectPatternTrackSamplers(oldState);
+  const duration = convertTicksToSeconds(oldTransport, ticks);
+  const pulse = convertTicksToSeconds(oldTransport, 1);
+  dispatch(startRecording());
+
+  // Start the offline transport
+  const offlineBuffer = await Offline(async (offlineContext) => {
+    // Create new samplers for the offline transport
+    const samplers: Record<string, Sampler> = {};
+    for (const trackId in oldSamplers) {
+      const patternTrack = patternTrackMap[trackId];
+      if (!patternTrack) continue;
+      const sampler = await dispatch(createInstrument(patternTrack, true));
+      if (!sampler) continue;
+      samplers[trackId] = sampler;
+    }
+
+    // Schedule the offline transport
+    offlineContext.transport.scheduleRepeat((time) => {
+      const state = getState();
+      const transport = selectTransport(state);
+
+      // Cancel the operation if recording ever stops
+      if (!transport.recording) {
+        offlineContext.transport.stop();
+        offlineContext.transport.cancel();
+        return;
+      }
+
+      // Iterate over the streams at the current tick
+      const chordsByTick = selectChordsByTicks(state);
+      const chords = chordsByTick[transport.offlineTick ?? 0] ?? {};
+
+      if (Object.keys(chords).length) {
+        for (const { trackId, chord } of chords) {
+          // Get the track sampler
+          let sampler = samplers[trackId];
+
+          // Find the notes to play of the clip
+          if (!chord || !chord.length) continue;
+          if (chord.some((note) => MIDI.isRest(note))) continue;
+
+          // Play the chord
+          if (!isSamplerLoaded(sampler)) continue;
+          const pitches = chord.map((note) => MIDI.toPitch(note.MIDI));
+          const duration = chord[0].duration ?? MIDI.EighthNoteTicks;
+          const subdivision = ticksToToneSubdivision(duration);
+          const velocity = chord[0].velocity ?? MIDI.DefaultVelocity;
+          const scaledVelocity = velocity / MIDI.MaxVelocity;
+          sampler.triggerAttackRelease(
+            pitches,
+            subdivision,
+            time,
+            scaledVelocity
+          );
+        }
+      }
+      // Schedule the next tick
+      dispatch(setOfflineTick((transport.offlineTick ?? 0) + 1));
+    }, pulse);
+    // Start the transport
+    offlineContext.transport.start();
+  }, duration);
+
+  const newTransport = selectTransport(getState());
+  if (!newTransport.recording) return;
+
+  // Get the data from the buffer
+  const buffer = offlineBuffer.get();
+  if (!buffer) return;
+
+  // Encode the buffer into a WAV file
+  const wav = encodeWAV(buffer);
+  const blob = new Blob([wav], { type: "audio/wav" });
+  const url = URL.createObjectURL(blob);
+
+  // Download the file
+  const { projectName } = selectRoot(oldState);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${projectName ?? "project"}.wav`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Stop the recording
+  dispatch(stopRecording());
+};
 
 // Load the transport
 export const loadTransport = (): AppThunk => async (dispatch, getState) => {

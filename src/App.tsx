@@ -9,9 +9,10 @@ import LoadingPage from "components/LoadingPage";
 import Shortcuts from "features/shortcuts";
 
 const mapStateToProps = (state: RootState) => {
-  const { loaded } = selectTransport(state);
+  const { loaded, recording } = selectTransport(state);
   const { showingTour } = selectRoot(state);
-  return { loaded, showingTour };
+  const shouldFade = recording || showingTour;
+  return { loaded, shouldFade };
 };
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {};
@@ -37,7 +38,7 @@ function App(props: Props) {
     >
       <Navbar />
       <main className="relative flex w-full flex-auto overflow-hidden">
-        {props.showingTour ? (
+        {props.shouldFade ? (
           <div className={`w-full h-full absolute bg-slate-900/40 z-60`} />
         ) : null}
         <Timeline />

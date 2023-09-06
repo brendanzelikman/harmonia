@@ -8,7 +8,7 @@ import { BsGithub, BsQuestionCircle } from "react-icons/bs";
 import { Transition } from "@headlessui/react";
 import PatternListbox from "./components/PatternListbox";
 import OnboardingTour from "./components/OnboardingTour";
-import { cancelEvent, isHoldingCommand, isInputEvent } from "appUtil";
+import { cancelEvent, isHoldingCommand, isInputEvent } from "utils";
 import useEventListeners from "hooks/useEventListeners";
 import { useState } from "react";
 
