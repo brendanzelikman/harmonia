@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import Patterns from "types/patterns";
+import Patterns from "types/pattern";
 import * as Editor from "features/editor";
 import useOSMD from "lib/opensheetmusicdisplay";
 import { Transition } from "@headlessui/react";
@@ -51,8 +51,11 @@ export function PatternEditor(props: PatternEditorProps) {
     if (cursor.hidden && inserting) props.clear();
   }, [cursor.hidden, inserting]);
 
+  //
   // Clear editor state for non-custom patterns
+  // Set to major chord as backup
   useEffect(() => {
+    if (props.isCustom) props.setState("adding");
     if (!props.isCustom) props.clear();
     if (!pattern) props.setPatternId("major-chord");
   }, [props.isCustom, pattern]);

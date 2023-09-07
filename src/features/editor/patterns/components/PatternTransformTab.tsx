@@ -6,7 +6,11 @@ interface PatternTransformTabProps extends PatternEditorCursorProps {}
 
 export function PatternTransformTab(props: PatternTransformTabProps) {
   const TransposeButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content={`Transpose Pattern`}>
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content={`Transpose Pattern`}
+    >
       <Editor.MenuButton
         className={`px-1 active:bg-fuchsia-500/80 border border-fuchsia-500`}
         onClick={() => {
@@ -37,7 +41,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const RotateButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content={`Rotate Pattern`}>
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content={`Rotate Pattern`}
+    >
       <Editor.MenuButton
         className={`px-1 active:bg-fuchsia-500/80 border border-fuchsia-500`}
         onClick={() => {
@@ -68,7 +76,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const InvertButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Invert Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Invert Pattern"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-fuchsia-500 border border-fuchsia-500"
         onClick={() => props.invertPattern(props.pattern)}
@@ -81,7 +93,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const RepeatButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Repeat Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Repeat Pattern"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-emerald-600 border border-emerald-600"
         onClick={() => {
@@ -100,7 +116,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const ContinueButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Continue Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Continue Pattern"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-emerald-600 border border-emerald-600"
         onClick={() => {
@@ -119,7 +139,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const PhaseButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Phase Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Phase Pattern"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-emerald-600 border border-emerald-600"
         onClick={() => {
@@ -138,7 +162,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const DiminishButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Diminish Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Diminish Pattern"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-sky-600 border border-sky-600"
         onClick={() => props.diminishPattern(props.pattern)}
@@ -151,7 +179,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const AugmentButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Augment Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Augment Pattern"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-sky-600 border border-sky-600"
         onClick={() => props.augmentPattern(props.pattern)}
@@ -164,7 +196,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const ReverseButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Reverse Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Reverse Pattern"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-sky-600 border border-sky-600"
         onClick={() => props.reversePattern(props.pattern)}
@@ -177,7 +213,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const ShuffleButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Shuffle Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Shuffle Pattern"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-indigo-500 border border-indigo-500"
         onClick={() => props.shufflePattern(props.pattern)}
@@ -190,7 +230,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const HarmonizeButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Randomize Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Harmonize Pattern"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-indigo-500 border border-indigo-500"
         onClick={() => {
@@ -211,7 +255,11 @@ export function PatternTransformTab(props: PatternTransformTabProps) {
   );
 
   const RandomizeButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Randomize Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Randomize Pattern"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-indigo-500 border border-indigo-500"
         onClick={() => {

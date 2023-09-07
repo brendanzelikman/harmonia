@@ -10,7 +10,7 @@ import {
   selectTimeline,
 } from "redux/selectors";
 import { setSelectedPattern } from "redux/slices/root";
-import Patterns, { Pattern, PatternId } from "types/patterns";
+import Patterns, { Pattern, PatternId } from "types/pattern";
 import { BsCheck, BsPencil } from "react-icons/bs";
 import { useCallback, useEffect } from "react";
 import { createPattern } from "redux/slices/patterns";

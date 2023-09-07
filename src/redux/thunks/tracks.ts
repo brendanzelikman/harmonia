@@ -12,7 +12,7 @@ import {
 import { selectTransform } from "redux/selectors/transforms";
 import { AppThunk } from "redux/store";
 import { createInstrument } from "types/instrument";
-import Scales, { defaultScale } from "types/scales";
+import Scales, { defaultScale } from "types/scale";
 import {
   initializeTrack,
   isPatternTrack,

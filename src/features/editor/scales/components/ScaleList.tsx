@@ -1,7 +1,7 @@
 import { Disclosure } from "@headlessui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
-import Scales, { Scale, ScaleId } from "types/scales";
+import Scales, { Scale, ScaleId } from "types/scale";
 import { ScaleEditorProps } from "..";
 import * as Editor from "features/editor";
 import { cancelEvent } from "utils";

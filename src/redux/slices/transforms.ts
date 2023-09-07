@@ -14,7 +14,7 @@ import {
   removeTransformFromTransformMap,
   removeTransformsFromTransformMap,
 } from "./maps/transformMap";
-import { Clip, ClipId } from "types/clips";
+import { Clip, ClipId } from "types/clip";
 
 const initialTransforms = initializeState<TransformId, Transform>();
 

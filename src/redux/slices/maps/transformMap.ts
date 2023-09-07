@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initializeState } from "redux/util";
-import { Clip, ClipId } from "types/clips";
+import { Clip, ClipId } from "types/clip";
 import { defaultPatternTrack, defaultScaleTrack, TrackId } from "types/tracks";
 import { Transform, TransformId } from "types/transform";
 

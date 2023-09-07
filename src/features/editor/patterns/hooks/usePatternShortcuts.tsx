@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import useEventListeners from "hooks/useEventListeners";
 import {
   cancelEvent,
+  durationToTicks,
   isHoldingCommand,
   isHoldingShift,
   isInputEvent,
 } from "utils";
 import { PatternEditorCursorProps } from "..";
 import { Duration } from "types/units";
+import { MIDI } from "types";
 
 interface PatternShortcutProps extends PatternEditorCursorProps {
   onDurationClick: (duration: Duration) => void;
@@ -21,6 +23,15 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
   const rewindCursor = () => props.cursor.setIndex(0);
   const forwardCursor = () =>
     props.cursor.setIndex((props.pattern?.stream.length ?? 1) - 1);
+
+  const lastOctave = useMemo(() => {
+    if (props.cursor.hidden) return 4;
+    if (!props.pattern) return 4;
+    const stream = props.pattern.stream;
+    const chord = stream[props.cursor.index];
+    if (!chord || !chord.length) return 4;
+    return MIDI.toOctave(chord[0].MIDI);
+  }, [props.pattern, props.cursor]);
 
   useEventListeners(
     {

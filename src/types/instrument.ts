@@ -7,7 +7,7 @@ import samples from "assets/instruments/samples.json";
 import { AppThunk } from "redux/store";
 import { addMixer } from "redux/slices/mixers";
 import { selectMixerByTrackId } from "redux/selectors";
-import { PatternChord } from "./patterns";
+import { PatternChord } from "./pattern";
 import { MIDI } from "./midi";
 import { ticksToToneSubdivision } from "utils";
 import { Time } from "./units";

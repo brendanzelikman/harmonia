@@ -1,7 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "redux/store";
 import { selectClipMap } from "./clips";
-import { Clip } from "types/clips";
+import { Clip } from "types/clip";
 import { Transform } from "types/transform";
 import { selectTransformMap } from "./transforms";
 import { selectPatternMap } from "./patterns";

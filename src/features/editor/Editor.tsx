@@ -434,7 +434,11 @@ interface DurationButtonProps {
 const activeNoteClass = "bg-orange-400 ring ring-orange-400";
 
 export const SixtyFourthButton = (props: DurationButtonProps) => (
-  <Tooltip show={props.showTooltip} tooltipContent={`Sixty-Fourth Note`}>
+  <Tooltip
+    show={props.showTooltip}
+    content={`Sixty-Fourth Note`}
+    placement="bottom"
+  >
     <MenuButton
       className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
       onClick={props.onClick}
@@ -445,7 +449,11 @@ export const SixtyFourthButton = (props: DurationButtonProps) => (
 );
 
 export const ThirtySecondButton = (props: DurationButtonProps) => (
-  <Tooltip show={props.showTooltip} tooltipContent={`Thirty-Second Note`}>
+  <Tooltip
+    show={props.showTooltip}
+    content={`Thirty-Second Note`}
+    placement="bottom"
+  >
     <MenuButton
       className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
       onClick={props.onClick}
@@ -456,7 +464,11 @@ export const ThirtySecondButton = (props: DurationButtonProps) => (
 );
 
 export const SixteenthButton = (props: DurationButtonProps) => (
-  <Tooltip show={props.showTooltip} tooltipContent={`Sixteenth Note`}>
+  <Tooltip
+    show={props.showTooltip}
+    content={`Sixteenth Note`}
+    placement="bottom"
+  >
     <MenuButton
       className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
       onClick={props.onClick}
@@ -467,7 +479,7 @@ export const SixteenthButton = (props: DurationButtonProps) => (
 );
 
 export const EighthButton = (props: DurationButtonProps) => (
-  <Tooltip show={props.showTooltip} tooltipContent={`Eighth Note`}>
+  <Tooltip show={props.showTooltip} content={`Eighth Note`} placement="bottom">
     <MenuButton
       className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
       onClick={props.onClick}
@@ -478,7 +490,7 @@ export const EighthButton = (props: DurationButtonProps) => (
 );
 
 export const QuarterButton = (props: DurationButtonProps) => (
-  <Tooltip show={props.showTooltip} tooltipContent={`Quarter Note`}>
+  <Tooltip show={props.showTooltip} content={`Quarter Note`} placement="bottom">
     <MenuButton
       className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
       onClick={props.onClick}
@@ -489,7 +501,7 @@ export const QuarterButton = (props: DurationButtonProps) => (
 );
 
 export const HalfButton = (props: DurationButtonProps) => (
-  <Tooltip show={props.showTooltip} tooltipContent={`Half Note`}>
+  <Tooltip show={props.showTooltip} content={`Half Note`} placement="bottom">
     <MenuButton
       className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
       onClick={props.onClick}
@@ -500,7 +512,7 @@ export const HalfButton = (props: DurationButtonProps) => (
 );
 
 export const WholeButton = (props: DurationButtonProps) => (
-  <Tooltip show={props.showTooltip} tooltipContent={`Whole Note`}>
+  <Tooltip show={props.showTooltip} content={`Whole Note`} placement="bottom">
     <MenuButton
       className={`w-6 invert ${props.active ? activeNoteClass : ""}`}
       onClick={props.onClick}
@@ -583,5 +595,19 @@ export const SearchBox = (props: {
 
 export const Tooltip = (props: any) => {
   const { children, show, ...rest } = props;
-  return show ? <FBTooltip {...rest}>{children}</FBTooltip> : <>{children}</>;
+  return (
+    <div className="flex items-center justify-center h-full">
+      {show ? (
+        <FBTooltip
+          animation={`duration-500`}
+          className="z-50 text-xs"
+          {...rest}
+        >
+          {children ?? null}
+        </FBTooltip>
+      ) : (
+        <>{children}</>
+      )}
+    </div>
+  );
 };

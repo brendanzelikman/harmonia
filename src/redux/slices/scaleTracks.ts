@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initializeState } from "redux/util";
-import { ScaleId } from "types/scales";
+import { ScaleId } from "types/scale";
 import { defaultScaleTrack, ScaleTrack, TrackId } from "types/tracks";
 
 const initialState = initializeState<ScaleId, ScaleTrack>([defaultScaleTrack]);

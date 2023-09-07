@@ -15,8 +15,8 @@ import {
   PatternStream,
   realizePattern,
   transposePatternStream,
-} from "types/patterns";
-import { defaultScale } from "types/scales";
+} from "types/pattern";
+import { defaultScale } from "types/scale";
 import { Midi } from "@tonejs/midi";
 import { createPattern, updatePattern } from "redux/slices/patterns";
 import { convertTicksToSeconds } from "redux/slices/transport";

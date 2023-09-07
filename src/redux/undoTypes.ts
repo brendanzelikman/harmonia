@@ -1,4 +1,4 @@
-import { Clip, createClipTag } from "types/clips";
+import { Clip, createClipTag } from "types/clip";
 import { Transform, createTransformTag } from "types/transform";
 
 export const UndoTypes = {

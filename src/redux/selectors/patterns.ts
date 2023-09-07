@@ -1,6 +1,6 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
-import { PatternId } from "types/patterns";
+import { PatternId } from "types/pattern";
 import { PresetPatternMap } from "types/presets/patterns";
 
 // Select the ID of a pattern

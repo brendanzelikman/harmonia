@@ -1,5 +1,5 @@
 import { DEFAULT_CELL_WIDTH } from "appConstants";
-import { Clip } from "./clips";
+import { Clip } from "./clip";
 import { Transform } from "./transform";
 import { Subdivision } from "./units";
 

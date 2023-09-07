@@ -24,7 +24,7 @@ import {
 
 import * as Root from "redux/slices/root";
 import * as Timeline from "redux/slices/timeline";
-import { ClipId } from "types/clips";
+import { ClipId } from "types/clip";
 import { RepeatOptions, mergeClips, repeatClips } from "redux/thunks/clips";
 import { forwardRef, useEffect, useRef, useState } from "react";
 import { blurOnEnter, isInputEvent } from "utils";

@@ -1,5 +1,5 @@
 import { useDrag } from "react-dnd";
-import { Clip } from "types/clips";
+import { Clip } from "types/clip";
 import { Transform } from "types/transform";
 import { ClipProps } from "./Clip";
 import { subdivisionToTicks, ticksToColumns } from "utils";

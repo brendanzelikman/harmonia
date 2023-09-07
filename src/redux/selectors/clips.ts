@@ -1,7 +1,7 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
-import { ClipId, getClipStream, getClipTicks } from "types/clips";
-import { Pattern, PatternChord, PatternStream } from "types/patterns";
+import { ClipId, getClipStream, getClipTicks } from "types/clip";
+import { Pattern, PatternChord, PatternStream } from "types/pattern";
 import { Transform, lastTransformAtTick } from "types/transform";
 import { Tick } from "types/units";
 import { selectPatternMap } from "./patterns";
@@ -10,7 +10,7 @@ import { selectScaleMap } from "./scales";
 import { selectScaleTrackMap } from "./scaleTracks";
 import { selectTransforms } from "./transforms";
 import { PatternTrack, ScaleTrack, TrackId } from "types/tracks";
-import { Scale, chromaticScale } from "types/scales";
+import { Scale, chromaticScale } from "types/scale";
 import { selectCellWidth, selectTimeline } from "./timeline";
 import { ticksToColumns } from "utils";
 

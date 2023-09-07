@@ -1,7 +1,7 @@
 import { Disclosure } from "@headlessui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
-import { Pattern, PatternId } from "types/patterns";
+import { Pattern, PatternId } from "types/pattern";
 import * as Editor from "features/editor";
 import { PatternEditorProps } from "..";
 import { BiCopy } from "react-icons/bi";

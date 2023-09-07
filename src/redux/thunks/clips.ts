@@ -20,10 +20,10 @@ import {
   getClipStream,
   getClipNotes,
   getClipTicks,
-} from "types/clips";
+} from "types/clip";
 import { MIDI } from "types/midi";
 import { Midi } from "@tonejs/midi";
-import { PatternStream, initializePattern, PatternId } from "types/patterns";
+import { PatternStream, initializePattern, PatternId } from "types/pattern";
 import { TrackId } from "types/tracks";
 import { Transform, TransformId } from "types/transform";
 import { Tick } from "types/units";

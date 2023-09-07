@@ -17,7 +17,7 @@ import {
   selectTrack,
   selectEditor,
 } from "redux/selectors";
-import Scales, { chromaticScale } from "types/scales";
+import Scales, { chromaticScale } from "types/scale";
 import { MIDI } from "types/midi";
 import { BiCopy } from "react-icons/bi";
 import { BsEraser, BsPencil, BsPlusCircle, BsTrash } from "react-icons/bs";

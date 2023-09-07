@@ -1,7 +1,7 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { PresetScaleList, PresetScaleMap } from "types/presets/scales";
-import Scales, { ScaleId } from "types/scales";
+import Scales, { ScaleId } from "types/scale";
 
 export const selectScaleId = (state: RootState, id: ScaleId) => {
   return id;

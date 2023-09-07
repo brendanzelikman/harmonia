@@ -25,6 +25,13 @@ export const defaultTransform: Transform = {
   chordalTranspose: 0,
   tick: 0,
 };
+export const testTransform = (N = 0, T = 0, t = 0, tick = 0): Transform => ({
+  ...defaultTransform,
+  chromaticTranspose: N,
+  scalarTranspose: T,
+  chordalTranspose: t,
+  tick,
+});
 
 export type TransformNoId = Omit<Transform, "id">;
 export const initializeTransform = (

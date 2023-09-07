@@ -24,7 +24,7 @@ import {
   isInputEvent,
   ticksToColumns,
 } from "utils";
-import { ClipId } from "types/clips";
+import { ClipId } from "types/clip";
 import { useTransformDrag } from "./dnd";
 
 interface OwnClipProps extends TransformsProps {

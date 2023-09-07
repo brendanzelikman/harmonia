@@ -1,7 +1,7 @@
 import * as Patterns from "redux/slices/patterns";
-import PatternClass, { PatternChord, isPatternValid } from "types/patterns";
+import PatternClass, { PatternChord, isPatternValid } from "types/pattern";
 
-import { Pattern, PatternId, PatternNote } from "types/patterns";
+import { Pattern, PatternId, PatternNote } from "types/pattern";
 import { connect, ConnectedProps } from "react-redux";
 import { PatternEditor } from "./PatternEditor";
 import { setSelectedPattern } from "redux/slices/root";
@@ -30,7 +30,7 @@ import {
   PresetPatternGroupList,
   PresetPatternGroupMap,
 } from "types/presets/patterns";
-import { chromaticScale } from "types/scales";
+import { chromaticScale } from "types/scale";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const editor = selectEditor(state);

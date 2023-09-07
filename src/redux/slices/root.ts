@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union } from "lodash";
-import { ClipId } from "types/clips";
-import { PatternId } from "types/patterns";
+import { ClipId } from "types/clip";
+import { PatternId } from "types/pattern";
 import { defaultRoot, Toolkit } from "types/root";
 import { TrackId } from "types/tracks";
 import { TransformId } from "types/transform";

@@ -1,5 +1,5 @@
-import { ClipId } from "./clips";
-import { PatternId } from "./patterns";
+import { ClipId } from "./clip";
+import { PatternId } from "./pattern";
 import { TrackId } from "./tracks";
 import { TransformId } from "./transform";
 

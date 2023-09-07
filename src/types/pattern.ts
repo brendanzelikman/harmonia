@@ -2,7 +2,7 @@ import { nanoid } from "@reduxjs/toolkit";
 import { ticksToDuration, mod } from "utils";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
-import Scales, { Scale, chromaticScale } from "./scales";
+import Scales, { Scale, chromaticScale } from "./scale";
 import { Pitch, Tick, Velocity, XML } from "./units";
 import { inRange } from "lodash";
 
@@ -32,6 +32,13 @@ export const defaultPattern: Pattern = {
   id: "new-pattern",
   name: "New Pattern",
   stream: [],
+};
+export const testPattern = (stream: PatternStream = []) => {
+  return {
+    id: "test-pattern",
+    name: "Test Pattern",
+    stream,
+  };
 };
 
 // A pattern note is defined by a MIDI number, a velocity, and a duration in ticks
@@ -71,7 +78,7 @@ export const isPatternValid = (pattern?: Pattern) => {
 // Realize a pattern in a particular scale.
 export const realizePattern = (
   pattern: Pattern,
-  scale: Scale
+  scale: Scale = chromaticScale
 ): PatternStream => {
   // Get the pitches of the new scale
   const pitches = scale.notes.map((note) => MIDI.toPitchClass(note));

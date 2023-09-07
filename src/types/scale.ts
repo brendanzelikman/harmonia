@@ -25,6 +25,13 @@ export const chromaticScale = {
   name: "Chromatic Scale",
   notes: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
 };
+export const testScale = (notes: Note[]) => {
+  return {
+    id: "test-scale",
+    name: "Test Scale",
+    notes,
+  };
+};
 
 // The Scales class contains methods for preset scales and MusicXML serialization
 export default class Scales {
@@ -106,7 +113,7 @@ export const initializeScale = (
 
 export const transposeScale = (scale: Scale, offset: number): Scale => ({
   ...scale,
-  notes: scale.notes.map((note) => Number(note) + Number(offset)),
+  notes: scale.notes.map((note) => note + offset),
 });
 
 export const rotateScale = (scale: Scale, offset: number): Scale => {

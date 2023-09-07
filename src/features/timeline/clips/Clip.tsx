@@ -9,7 +9,7 @@ import {
   selectClipWidth,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
-import { Clip, ClipId } from "types/clips";
+import { Clip, ClipId } from "types/clip";
 import { ClipsProps } from ".";
 import * as Constants from "appConstants";
 import { useClipDrag } from "./dnd";

@@ -1,7 +1,7 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { INSTRUMENTS } from "types/instrument";
-import { rotateScale, transposeScale } from "types/scales";
+import { rotateScale, transposeScale } from "types/scale";
 import { Track, TrackId } from "types/tracks";
 import { lastTransformAtTick, Transform } from "types/transform";
 import { Tick } from "types/units";

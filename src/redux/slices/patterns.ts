@@ -10,7 +10,7 @@ import {
   PatternNote,
   PatternStream,
   isPatternValid,
-} from "types/patterns";
+} from "types/pattern";
 import { initializeState } from "redux/util";
 import { AppThunk } from "redux/store";
 import { selectRoot } from "redux/selectors";

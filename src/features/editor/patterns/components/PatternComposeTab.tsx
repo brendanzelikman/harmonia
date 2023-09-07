@@ -28,6 +28,7 @@ export function PatternComposeTab(props: PatternComposeTabProps) {
 
   const AddButton = () => (
     <Editor.Tooltip
+      placement="bottom"
       show={props.showingTooltips}
       content={`${
         adding
@@ -60,6 +61,7 @@ export function PatternComposeTab(props: PatternComposeTabProps) {
 
   const CursorButton = () => (
     <Editor.Tooltip
+      placement="bottom"
       show={props.showingTooltips}
       content={`${cursor.hidden ? "Show" : "Hide"} Cursor`}
     >
@@ -76,6 +78,7 @@ export function PatternComposeTab(props: PatternComposeTabProps) {
 
   const InsertButton = () => (
     <Editor.Tooltip
+      placement="bottom"
       show={props.showingTooltips}
       content={`${inserting ? "Stop Inserting" : "Insert Note"}`}
     >
@@ -93,7 +96,11 @@ export function PatternComposeTab(props: PatternComposeTabProps) {
   );
 
   const EraseButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content={`Erase Note`}>
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content={`Erase Note`}
+    >
       <Editor.MenuButton
         className="px-1 active:bg-red-500"
         onClick={props.onEraseClick}
@@ -106,7 +113,11 @@ export function PatternComposeTab(props: PatternComposeTabProps) {
   );
 
   const ClearButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content={`Clear Pattern`}>
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content={`Clear Pattern`}
+    >
       <Editor.MenuButton
         className="px-1 active:bg-gray-500"
         onClick={() => props.clearPattern(pattern)}
@@ -132,6 +143,7 @@ export function PatternComposeTab(props: PatternComposeTabProps) {
             : "Insert Rest"
           : "Add Rest"
       }`}
+      placement="bottom"
     >
       <Editor.MenuButton
         className="w-5 active:bg-slate-500 active:ring-2 active:ring-slate-500"
@@ -202,7 +214,9 @@ export function PatternComposeTab(props: PatternComposeTabProps) {
     );
   };
 
-  const [inputVelocity, setInputVelocity] = useState(props.noteVelocity ?? 0);
+  const [inputVelocity, setInputVelocity] = useState(
+    MIDI.clampDuration(props.noteVelocity)
+  );
 
   // Update velocity when enter is pressed
   const onVelocityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -278,18 +292,21 @@ const VelocityField = (props: {
   value: number;
   setValue: (value: number) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-}) => (
-  <div className="flex items-center justify-center text-xs pl-2 pr-1">
-    <label className="pr-2">Velocity:</label>
-    <input
-      className="w-12 h-7 text-center rounded bg-slate-800/50 text-slate-200 text-xs px-1 border-[1.5px] border-teal-600 focus:ring-0 focus:border-blue-600/80 focus:outline-none"
-      type="number"
-      value={props.value}
-      onChange={(e) => props.setValue(e.target.valueAsNumber)}
-      min={MIDI.MinVelocity}
-      max={MIDI.MaxVelocity}
-      placeholder="0-127"
-      onKeyDown={props.onKeyDown}
-    />
-  </div>
-);
+}) => {
+  const value = MIDI.clampVelocity(props.value);
+  return (
+    <div className="flex items-center justify-center text-xs pl-2 pr-1">
+      <label className="pr-2">Velocity:</label>
+      <input
+        className="w-12 h-7 text-center rounded bg-slate-800/50 text-slate-200 text-xs px-1 border-[1.5px] border-teal-600 focus:ring-0 focus:border-blue-600/80 focus:outline-none"
+        type="number"
+        value={value}
+        onChange={(e) => props.setValue(e.target.valueAsNumber)}
+        min={MIDI.MinVelocity}
+        max={MIDI.MaxVelocity}
+        placeholder="0-127"
+        onKeyDown={props.onKeyDown}
+      />
+    </div>
+  );
+};

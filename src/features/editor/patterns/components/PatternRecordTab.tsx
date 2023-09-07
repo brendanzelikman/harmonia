@@ -154,6 +154,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
               ></div>
             </div>
           </Transition>
+
           <Editor.CustomListbox
             value={props.input}
             setValue={props.setInput}
@@ -225,7 +226,11 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
   };
 
   const RecordButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Record Pattern">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips && canRecord}
+      content={`${recording ? "Stop Recording" : "Start Recording"}`}
+    >
       <Editor.MenuButton
         className={`p-1 ${
           recording
@@ -236,7 +241,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
             ? "hover:bg-red-500"
             : ""
         }`}
-        disabled={props.input === undefined || !props.isCustom}
+        disabled={!canRecord}
         disabledClass="px-1"
         onClick={() => toggleRecording()}
       >

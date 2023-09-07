@@ -7,12 +7,12 @@ import {
 } from "redux/selectors";
 import { sliceClip } from "redux/thunks/clips";
 import { AppDispatch, RootState } from "redux/store";
-import { Clip, ClipId } from "types/clips";
+import { Clip, ClipId } from "types/clip";
 import {
   getStreamTimelineNotes,
   PatternStream,
   TimelineNote,
-} from "types/patterns";
+} from "types/pattern";
 import { Time } from "types/units";
 import { percentOfRange, ticksToColumns } from "utils";
 import { MIDI } from "types/midi";

@@ -7,7 +7,7 @@ import ScaleClass, {
   ScaleId,
   ScaleNoId,
   transposeScale,
-} from "types/scales";
+} from "types/scale";
 import { ScaleEditor } from "./ScaleEditor";
 import { EditorProps } from "..";
 import {

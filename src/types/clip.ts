@@ -8,14 +8,10 @@ import {
   realizePattern,
   transposePatternStream,
   getStreamTicks,
-} from "./patterns";
-import { rotateScale, Scale, transposeScale, chromaticScale } from "./scales";
+} from "./pattern";
+import { rotateScale, Scale, transposeScale, chromaticScale } from "./scale";
 import { TrackId } from "./tracks";
-import {
-  createTransformKey,
-  lastTransformAtTick,
-  Transform,
-} from "./transform";
+import { lastTransformAtTick, Transform } from "./transform";
 import { Tick } from "./units";
 import { MIDI } from "./midi";
 
@@ -58,6 +54,12 @@ export const defaultClip: Clip = {
   tick: 0,
   offset: 0,
 };
+export const testClip = (tick = 0, offset = 0, duration = 0): Clip => ({
+  ...defaultClip,
+  tick,
+  offset,
+  duration,
+});
 
 export const createClipTag = (clip: Clip) => {
   return `${clip.id}@${clip.patternId}@${clip.trackId}@${clip.tick}@${clip.offset}`;
@@ -89,9 +91,6 @@ export const getClipStream = (
   if (isNaN(ticks) || ticks < 1) return [];
 
   const startTick = clip.tick;
-  const scaleTransposeMap: Record<string, Scale> = {};
-  const streamMap: Record<string, PatternStream> = {};
-  const transposedStreamMap: Record<string, PatternStream> = {};
   let stream: PatternStream = [];
   let chordCount = 0;
   let streamDuration = 0;
@@ -126,65 +125,40 @@ export const getClipStream = (
       continue;
     }
 
-    // Get the current tick
-    const tick = startTick + i - clip.offset;
-
-    // Get the current scale or the default scale
-    let newScale = scale.notes.length ? scale : chromaticScale;
-
     // Get the transforms at the current time
+    const tick = startTick + i - clip.offset;
     const scaleTransform = lastTransformAtTick(scaleTransforms, tick, false);
     const transform = lastTransformAtTick(transforms, tick, false);
 
-    // Get the keys for the maps
-    const stKey = createTransformKey(scaleTransform);
-
+    let newScale = scale.notes.length ? scale : chromaticScale;
     // Transform the scale if there is a scale transformation
     if (scaleTransform) {
       // Get the offsets
-      const scaleN = Number(scaleTransform?.chromaticTranspose ?? 0);
-      const scaleBigT = Number(scaleTransform?.scalarTranspose ?? 0);
-      const scaleLittleT = Number(scaleTransform?.chordalTranspose ?? 0);
+      const scaleN = scaleTransform?.chromaticTranspose ?? 0;
+      const scaleBigT = scaleTransform?.scalarTranspose ?? 0;
+      const scaleLittleT = scaleTransform?.chordalTranspose ?? 0;
 
-      // Check the map for efficiency, otherwise transpose and add to map
-      if (scaleTransposeMap[stKey]) {
-        newScale = scaleTransposeMap[stKey];
-      } else {
-        const s1 = transposeScale(newScale, scaleBigT);
-        const s2 = rotateScale(s1, scaleLittleT);
-        const s3 = transposeScale(s2, scaleN);
-        newScale = s3;
-        scaleTransposeMap[stKey] = s3;
-      }
+      const s1 = transposeScale(newScale, scaleBigT);
+      const s2 = rotateScale(s1, scaleLittleT);
+      const s3 = transposeScale(s2, scaleN);
+      newScale = s3;
     }
 
     // Get the pattern stream
     let patternStream: PatternStream = [];
-    if (streamMap[stKey]) {
-      patternStream = streamMap[stKey];
-    } else {
-      patternStream = realizePattern(pattern, newScale);
-      streamMap[stKey] = patternStream;
-    }
+    patternStream = realizePattern(pattern, newScale);
 
     // Get the offsets
-    const N = Number(transform?.chromaticTranspose ?? 0);
-    const T = Number(transform?.scalarTranspose ?? 0);
-    const t = Number(transform?.chordalTranspose ?? 0);
+    const N = transform?.chromaticTranspose ?? 0;
+    const T = transform?.scalarTranspose ?? 0;
+    const t = transform?.chordalTranspose ?? 0;
 
-    // Check the map for efficiency, otherwise transpose and add to map
-    const tKey = createTransformKey(transform);
+    // Transpose stream
     let transposedStream: PatternStream;
-
-    if (transposedStreamMap[`${tKey}@${stKey}`]) {
-      transposedStream = transposedStreamMap[`${tKey}@${stKey}`];
-    } else {
-      const s1 = transposePatternStream(patternStream, T, newScale);
-      const s2 = rotatePatternStream(s1, t);
-      const s3 = transposePatternStream(s2, N, chromaticScale);
-      transposedStream = s3;
-      transposedStreamMap[`${tKey}@${stKey}`] = s3;
-    }
+    const s1 = transposePatternStream(patternStream, T, newScale);
+    const s2 = rotatePatternStream(s1, t);
+    const s3 = transposePatternStream(s2, N, chromaticScale);
+    transposedStream = s3;
 
     // Add the transposed stream to the stream
     const clipChord = transposedStream[chordCount - 1];

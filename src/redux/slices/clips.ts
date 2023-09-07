@@ -6,7 +6,7 @@ import {
   ClipNoId,
   defaultClip,
   initializeClip,
-} from "types/clips";
+} from "types/clip";
 import { TrackId } from "types/tracks";
 
 import { initializeState } from "redux/util";

@@ -24,7 +24,7 @@ import useEventListeners from "./useEventListeners";
 import { updateClipsAndTransforms } from "redux/slices/clips";
 import { isPatternTrack } from "types/tracks";
 import { useEffect } from "react";
-import { Clip } from "types/clips";
+import { Clip } from "types/clip";
 import { Transform } from "types/transform";
 import { hideEditor, showEditor } from "redux/slices/editor";
 

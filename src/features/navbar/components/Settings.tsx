@@ -172,7 +172,9 @@ function Settings(props: Props) {
         <BsVolumeDownFill className="text-3xl" />
       )}
       {draggingVolume ? (
-        <label className="text-xs select-none absolute bg-slate-800/80 backdrop-blur p-1 rounded">
+        <label
+          className={`mt-1.5 text-xs select-none absolute bg-slate-800/80 backdrop-blur p-1 px-2 rounded border border-slate-500`}
+        >
           {props.volume}dB
         </label>
       ) : null}
@@ -204,7 +206,7 @@ function Settings(props: Props) {
         onClick={() => setShow(!show)}
       />
       <NavbarTooltip
-        className="bg-slate-700/70 backdrop-blur"
+        className="bg-slate-700/90 backdrop-blur"
         content={SettingsTooltipContent}
         show={show}
       />

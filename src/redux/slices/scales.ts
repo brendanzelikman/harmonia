@@ -10,7 +10,7 @@ import Scales, {
   ScaleId,
   ScaleNoId,
   rotateScale as _rotateScale,
-} from "types/scales";
+} from "types/scale";
 import { Note } from "types/units";
 
 const newScale: Scale = {

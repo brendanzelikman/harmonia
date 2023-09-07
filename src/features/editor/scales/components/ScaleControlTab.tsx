@@ -12,7 +12,11 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
   if (!scale) return null;
 
   const ExportButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content={`Export Pattern`}>
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content={`Export Scale`}
+    >
       <Editor.MenuButton>
         <Menu>
           <div className="relative z-50">
@@ -48,7 +52,11 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
   );
 
   const SaveButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Save Scale">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Save Scale"
+    >
       <Editor.MenuButton
         className="px-1 active:bg-sky-600"
         onClick={async () => {
@@ -62,7 +70,11 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
   );
 
   const PlayButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Play Scale">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Play Scale"
+    >
       <Editor.MenuButton
         className="px-1 active:text-emerald-500"
         onClick={() => scale && props.playScale(scale.id)}
@@ -75,7 +87,11 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
   );
 
   const UndoButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Undo Change">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Undo Change"
+    >
       <Editor.MenuButton
         className="px-1"
         onClick={props.undoScales}
@@ -88,7 +104,11 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
   );
 
   const RedoButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content="Redo Change">
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content="Redo Change"
+    >
       <Editor.MenuButton
         className="px-1"
         onClick={props.redoScales}
@@ -102,6 +122,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
 
   const AddButton = () => (
     <Editor.Tooltip
+      placement="bottom"
       show={props.showingTooltips}
       content={`${props.adding ? "Stop Adding" : "Add Notes"}`}
     >
@@ -118,6 +139,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
 
   const RemoveButton = () => (
     <Editor.Tooltip
+      placement="bottom"
       show={props.showingTooltips}
       content={`${props.removing ? "Stop Removing" : "Remove Notes"}`}
     >
@@ -135,7 +157,11 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
   );
 
   const ClearButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content={`Clear Pattern`}>
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content={`Clear Pattern`}
+    >
       <Editor.MenuButton
         className="px-1 active:text-gray-400"
         onClick={() => scale && props.clearScale(scale.id)}
@@ -145,10 +171,14 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
     </Editor.Tooltip>
   );
 
-  const ScalarTransposeButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content={`Scalar Transpose`}>
+  const TransposeButton = () => (
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content={`Transpose Scale`}
+    >
       <Editor.MenuButton
-        className={`px-1 rounded-sm cursor-pointer active:bg-fuchsia-400/80`}
+        className={`p-1 rounded active:bg-fuchsia-500/80`}
         onClick={() => {
           const input = prompt("Transpose chromatically by N semitones:");
           const sanitizedInput = parseInt(input ?? "");
@@ -162,10 +192,14 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
     </Editor.Tooltip>
   );
 
-  const ChordalTransposeButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content={`Chordal Transpose`}>
+  const RotateButton = () => (
+    <Editor.Tooltip
+      placement="bottom"
+      show={props.showingTooltips}
+      content={`Rotate Scale`}
+    >
       <Editor.MenuButton
-        className={`px-1 rounded-sm cursor-pointer active:bg-fuchsia-400/80`}
+        className={`p-1 rounded active:bg-fuchsia-500/80`}
         onClick={() => {
           const input = prompt("Transpose along the chord by N steps:");
           const sanitizedInput = parseInt(input ?? "");
@@ -174,7 +208,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
           }
         }}
       >
-        Invert
+        Rotate
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -194,10 +228,17 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
         <ClearButton />
       </Editor.MenuGroup>
       <Editor.MenuGroup border={true}>
-        <ScalarTransposeButton />
-        <ChordalTransposeButton />
+        <TransposeButton />
+        <RotateButton />
       </Editor.MenuGroup>
-      <Editor.InstrumentListbox setInstrument={props.setInstrument} />
+      <Editor.MenuGroup border={false}>
+        <Editor.Tooltip
+          show={props.showingTooltips}
+          content={`Select Instrument`}
+        >
+          <Editor.InstrumentListbox setInstrument={props.setInstrument} />
+        </Editor.Tooltip>
+      </Editor.MenuGroup>
     </>
   );
 }

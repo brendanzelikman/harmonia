@@ -11,7 +11,7 @@ import {
 } from "./units";
 import { mod } from "utils";
 import { clamp } from "lodash";
-import { PatternChord, PatternNote, isPatternChord } from "./patterns";
+import { PatternChord, PatternNote, isPatternChord } from "./pattern";
 
 export class MIDI {
   public static PPQ = 96;
@@ -383,6 +383,10 @@ export class MIDI {
   public static fromPitch(pitch: string): Note {
     return Frequency(pitch).toMidi();
   }
+  // Get the MIDI number from pitch class and octave
+  public static fromPitchClass(pitch: Pitch, octave: number): Note {
+    return MIDI.fromPitch(`${pitch}${octave}`);
+  }
   // Get the pitch class of a note, e.g. C, C#, D, etc.
   public static toPitchClass(note: Note): string {
     if (note === MIDI.Rest) return "R";
@@ -392,6 +396,8 @@ export class MIDI {
   public static toOctave(note: Note): number {
     return Math.floor((note - 12) / 12);
   }
+  // Get the MIDI number from pitch class and octave
+
   // Get the pitch of a note, e.g. C4, D5, E6, etc.
   public static toPitch(note: Note): string {
     if (note === MIDI.Rest) return "";

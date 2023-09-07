@@ -1,5 +1,5 @@
 import * as Editor from "features/editor";
-import Scales, { Scale } from "types/scales";
+import Scales, { Scale } from "types/scale";
 import { ScaleEditorProps } from ".";
 import useOSMD from "lib/opensheetmusicdisplay";
 import { DemoXML } from "assets/demo";

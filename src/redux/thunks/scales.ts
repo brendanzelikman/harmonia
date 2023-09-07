@@ -8,7 +8,7 @@ import {
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
 import { MIDI } from "types/midi";
-import { ScaleId } from "types/scales";
+import { ScaleId } from "types/scale";
 import { Midi } from "@tonejs/midi";
 
 export const playScale =

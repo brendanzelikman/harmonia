@@ -2,6 +2,7 @@ import { Menu } from "@headlessui/react";
 import { PatternEditorCursorProps } from "..";
 import * as Editor from "features/editor";
 import { PatternTab, patternTabs } from "../PatternEditor";
+import { capitalize } from "lodash";
 
 interface PatternControlTabProps extends PatternEditorCursorProps {
   activeTab: PatternTab;
@@ -45,7 +46,7 @@ export function PatternControlTab(props: PatternControlTabProps) {
   );
 
   const CopyButton = () => (
-    <Editor.Tooltip show={props.showingTooltips} content={`New Pattern`}>
+    <Editor.Tooltip show={props.showingTooltips} content={`Copy Pattern`}>
       <Editor.MenuButton
         className="px-1 active:bg-teal-600"
         onClick={() => props.copyPattern(pattern)}
@@ -131,15 +132,20 @@ export function PatternControlTab(props: PatternControlTabProps) {
   const Tabs = () => (
     <div className="flex items-center font-light px-1 border-r border-r-slate-500 text-xs">
       {patternTabs.map((tab) => (
-        <div
-          key={tab}
-          className={`capitalize cursor-pointer mx-2 select-none ${
-            props.activeTab === tab ? "text-green-400" : "text-slate-500"
-          }`}
-          onClick={() => props.setActiveTab(tab)}
+        <Editor.Tooltip
+          show={props.showingTooltips}
+          content={`Select ${capitalize(tab)} Tab`}
         >
-          {tab}
-        </div>
+          <div
+            key={tab}
+            className={`capitalize cursor-pointer mx-2 select-none ${
+              props.activeTab === tab ? "text-green-400" : "text-slate-500"
+            }`}
+            onClick={() => props.setActiveTab(tab)}
+          >
+            {tab}
+          </div>
+        </Editor.Tooltip>
       ))}
     </div>
   );
@@ -162,7 +168,12 @@ export function PatternControlTab(props: PatternControlTabProps) {
       ) : null}
       {props.isCustom ? <Tabs /> : null}
       <Editor.MenuGroup border={false}>
-        <Editor.InstrumentListbox setInstrument={props.setInstrument} />
+        <Editor.Tooltip
+          show={props.showingTooltips}
+          content={`Select Instrument`}
+        >
+          <Editor.InstrumentListbox setInstrument={props.setInstrument} />
+        </Editor.Tooltip>
       </Editor.MenuGroup>
     </>
   );

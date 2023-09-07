@@ -3,9 +3,9 @@ import { useCallback } from "react";
 import { createPortal } from "react-dom";
 import { selectClips, selectRoot, selectTransforms } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
-import { Clip, ClipId } from "types/clips";
+import { Clip, ClipId } from "types/clip";
 import { JSON } from "types/units";
-import { PatternStream } from "types/patterns";
+import { PatternStream } from "types/pattern";
 import { Row } from "..";
 import {
   createClips,

@@ -6,7 +6,7 @@ import { useState } from "react";
 import useEventListeners from "hooks/useEventListeners";
 import { isSamplerLoaded } from "types/instrument";
 import { EditorPiano } from "features/editor/components";
-import { PatternNote } from "types/patterns";
+import { PatternNote } from "types/pattern";
 
 interface PatternPianoProps extends PatternEditorCursorProps {
   sampler: Sampler;
@@ -86,7 +86,7 @@ export function PatternPiano(props: PatternPianoProps) {
       sampler={props.sampler}
       className={`border-t-8 ${
         props.adding
-          ? "border-t-emerald-400"
+          ? "border-t-green-400"
           : props.inserting
           ? "border-t-green-400"
           : "border-t-zinc-800/90"

@@ -1,7 +1,7 @@
 import { cancelEvent, isHoldingShift, isInputEvent } from "utils";
 import useEventListeners from "hooks/useEventListeners";
 import { ScaleEditorProps } from "..";
-import { Scale } from "types/scales";
+import { Scale } from "types/scale";
 
 interface ScaleShortcutProps extends ScaleEditorProps {
   scale: Scale;

@@ -13,7 +13,7 @@ import {
 } from "redux/slices/transforms";
 import { selectTransforms } from "redux/selectors/transforms";
 import { selectClips, selectRoot, selectTimeline } from "redux/selectors";
-import { Clip } from "types/clips";
+import { Clip } from "types/clip";
 import {
   createClipsAndTransforms,
   updateClipsAndTransforms,
