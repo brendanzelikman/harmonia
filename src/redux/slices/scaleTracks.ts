@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { union } from "lodash";
 import { initializeState } from "redux/util";
 import { ScaleId } from "types/scale";
 import { defaultScaleTrack, ScaleTrack, TrackId } from "types/tracks";
@@ -12,7 +13,7 @@ export const scaleTracksSlice = createSlice({
     // Add a scale track to the collection
     addScaleTrack: (state, action: PayloadAction<ScaleTrack>) => {
       const scaleTrack = action.payload;
-      state.allIds.push(scaleTrack.id);
+      state.allIds = union(state.allIds, [scaleTrack.id]);
       state.byId[scaleTrack.id] = scaleTrack;
     },
     // Remove a scale track from the collection

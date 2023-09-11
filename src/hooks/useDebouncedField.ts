@@ -16,7 +16,7 @@ export default function useDebouncedField<T>(
   );
   useEffect(() => {
     setValue(initialValue);
-  }, [initialValue, updateValue]);
+  }, [initialValue]);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value === "") setValue(undefined);

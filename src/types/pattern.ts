@@ -1,10 +1,12 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { ticksToDuration, mod } from "utils";
+import { ticksToDuration, mod, ticksToToneSubdivision } from "utils";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import Scales, { Scale, chromaticScale } from "./scale";
-import { Pitch, Tick, Velocity, XML } from "./units";
+import { Pitch, Tick, Time, Velocity, XML } from "./units";
 import { inRange } from "lodash";
+import { Sampler } from "tone";
+import { isSamplerLoaded } from "./instrument";
 
 export type PatternId = string;
 
@@ -104,7 +106,11 @@ export const realizePattern = (
       }
 
       // Find the nearest pitch class in the new scale
-      const pitchClass = MIDI.closestPitchClass(oldPitch, scale.notes);
+      const pitchClass = MIDI.closestPitchClass(
+        oldPitch,
+        scale.notes,
+        getStreamPitches(pattern.stream)
+      );
       if (!pitchClass) {
         realizedChord.push(note);
         continue;
@@ -166,7 +172,7 @@ export const transposePatternStream = (
   const transposedStream: PatternStream = [];
   for (let i = 0; i < stream.length; i++) {
     const chord = stream[i];
-    const transposedChord = transposePatternChord(chord, steps, scale);
+    const transposedChord = transposePatternChord(chord, steps, scale, stream);
     transposedStream.push(transposedChord);
   }
   return transposedStream;
@@ -176,7 +182,8 @@ export const transposePatternStream = (
 export const transposePatternChord = (
   chord: PatternChord,
   steps: number,
-  scale = chromaticScale
+  scale = chromaticScale,
+  stream?: PatternStream
 ): PatternChord => {
   // Don't transpose a rest
   if (!chord.length) return chord;
@@ -185,6 +192,7 @@ export const transposePatternChord = (
 
   // Get the scale pitches and modulus/direction
   const scalePitches = Scales.SortPitches(Scales.Pitches(scale));
+  const scaleNotes = scalePitches.map((pitch) => MIDI.fromPitchClass(pitch));
   const modulus = scalePitches.length;
   const direction = steps > 0 ? 1 : -1;
 
@@ -198,6 +206,15 @@ export const transposePatternChord = (
 
     // Store a new scale degree and offset
     let newIndex = scalePitches.indexOf(notePitch);
+    if (newIndex === -1) {
+      const nearestPitch = MIDI.closestPitchClass(
+        notePitch,
+        scaleNotes,
+        getStreamPitches(stream ?? [chord])
+      );
+      if (!nearestPitch) return chord;
+      newIndex = scalePitches.indexOf(nearestPitch);
+    }
     let newOffset = 0;
 
     // Transpose incrementally
@@ -250,6 +267,31 @@ export const rotatePatternChord = (
   const rotatedStream = rotatePatternStream(stream, steps);
   const rotatedChord = rotatedStream[0];
   return rotatedChord;
+};
+
+// Play a chord with a sampler at a given time
+export const playPatternChord = (
+  sampler: Sampler,
+  chord: PatternChord,
+  time: Time
+) => {
+  if (!chord || !chord.length) return;
+  if (chord.some((note) => MIDI.isRest(note))) return;
+  if (!sampler || !isSamplerLoaded(sampler)) return;
+
+  // Get the pitches
+  const pitches = chord.map((note) => MIDI.toPitch(note.MIDI));
+
+  // Get the Tone.js subdivision
+  const duration = chord[0].duration ?? MIDI.EighthNoteTicks;
+  const subdivision = ticksToToneSubdivision(duration);
+
+  // Get the velocity scaled for TOne.js
+  const velocity = chord[0].velocity ?? MIDI.DefaultVelocity;
+  const scaledVelocity = velocity / MIDI.MaxVelocity;
+
+  // Play the chord with the sampler
+  sampler.triggerAttackRelease(pitches, subdivision, time, scaledVelocity);
 };
 
 export default class Patterns {

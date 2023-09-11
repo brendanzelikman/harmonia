@@ -7,7 +7,7 @@ interface LogoProps {
 export default function Logo(props: LogoProps) {
   return (
     <img
-      src="/logo.svg"
+      src="logo.svg"
       onClick={props.onClick}
       style={{ height: props.height, width: props.width }}
     />
@@ -24,7 +24,7 @@ export function Splash() {
   return (
     <div className="flex flex-col py-24 -mt-16 items-center">
       <img
-        src="/logo.svg"
+        src="logo.svg"
         className="lg:w-60 lg:h-60 md:w-48 md:h-48 w-36 h-36 mb-8 rounded-full shadow-xl shadow-slate-800/40 drop-shadow-2xl"
       />
       <h1 className="font-semibold text-slate-50 lg:text-8xl md:text-7xl sm:text-6xl text-5xl">

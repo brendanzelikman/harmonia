@@ -1,9 +1,9 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
-import { TrackId } from "types/tracks";
+import { MixerId } from "types";
 
-const selectTrackId = (state: RootState, trackId: TrackId) => {
-  return trackId;
+const selectMixerId = (state: RootState, mixerId: MixerId) => {
+  return mixerId;
 };
 const selectMixerIds = (state: RootState) => {
   return state.session.present.mixers.allIds;
@@ -18,11 +18,6 @@ export const selectMixers = createSelector(
 );
 
 export const selectMixerById = createSelector(
-  [selectMixerMap, selectTrackId],
+  [selectMixerMap, selectMixerId],
   (mixers, trackId) => mixers[trackId]
-);
-
-export const selectMixerByTrackId = createSelector(
-  [selectMixers, selectTrackId],
-  (mixers, trackId) => mixers.find((mixer) => mixer.trackId === trackId)
 );

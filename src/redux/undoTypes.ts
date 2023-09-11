@@ -97,7 +97,7 @@ export const groupByActionType = (action: any) => {
 
     // Remove a Mixer
     case "mixers/removeMixer":
-      return `REMOVE_PATTERN_TRACK:${action.payload}`;
+      return `REMOVE_PATTERN_TRACK:${action.payload.trackId}`;
 
     // Add a Transform
     case "transforms/addTransform":

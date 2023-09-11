@@ -1,7 +1,7 @@
 import * as Editor from "features/editor";
 import { Transition } from "@headlessui/react";
-import { InstrumentEditorProps } from ".";
-import { InstrumentCategory, getSampler } from "types/instrument";
+import { InstrumentEditorProps } from "..";
+import { InstrumentCategory, getLiveSampler } from "types/instrument";
 
 import KeyboardsIcon from "assets/instruments/keyboards.jpg";
 import GuitarsIcon from "assets/instruments/guitars.jpg";
@@ -14,25 +14,30 @@ import PercussionIcon from "assets/instruments/percussion.jpg";
 import { PatternTrack } from "types/tracks";
 import { useEffect, useState } from "react";
 import { Sampler } from "tone";
-import useInstrumentShortcuts from "./hooks/useInstrumentShortcuts";
-import {
-  InstrumentEffects,
-  InstrumentList,
-  InstrumentPiano,
-} from "./components";
+import useInstrumentShortcuts from "../hooks/useInstrumentShortcuts";
+import { InstrumentEffects, InstrumentList, InstrumentPiano } from ".";
+import { InstrumentEffectBar } from "./InstrumentEffectBar";
 
 export function EditorInstrument(props: InstrumentEditorProps) {
-  const { instrumentCategory } = props;
+  const { instrumentKey, instrumentCategory } = props;
+
   const track = props.track as PatternTrack;
 
   // Sampler information
   const [sampler, setSampler] = useState<null | Sampler>(null);
   useEffect(() => {
     setTimeout(() => {
-      const sampler = getSampler(track?.id);
+      const sampler = getLiveSampler(track?.id);
       setSampler(sampler);
     }, 100);
   }, [track?.instrument, track?.id]);
+
+  // Close editor if no instrument key
+  useEffect(() => {
+    if (instrumentKey === undefined) {
+      props.hideEditor();
+    }
+  }, [instrumentKey]);
 
   useInstrumentShortcuts({ ...props });
 
@@ -56,7 +61,7 @@ export function EditorInstrument(props: InstrumentEditorProps) {
           </Editor.Sidebar>
         </Transition>
         <Editor.Content
-          className={`px-8 py-2 flex flex-col ease-in-out duration-300`}
+          className={`relative px-8 py-2 flex flex-col ease-in-out duration-300`}
         >
           <Editor.Title
             className="capitalize"
@@ -64,15 +69,15 @@ export function EditorInstrument(props: InstrumentEditorProps) {
             subtitle={props.instrumentCategory}
             color="bg-gradient-to-tr from-orange-400 to-orange-500"
           />
-          <Editor.ScoreContainer className="border flex-grow border-slate-600">
+          <InstrumentEffectBar {...props} />
+          <Editor.ScoreContainer className="border flex-grow border-slate-700 rounded aspect-w-16 aspect-h-3">
             <img
               className="w-full object-cover"
               src={getInstrumentIcon(instrumentCategory)}
             />
           </Editor.ScoreContainer>
-          <Editor.EffectMenu className="flex mt-auto pt-6 w-full items-center">
-            {track ? <InstrumentEffects {...props} track={track} /> : null}
-          </Editor.EffectMenu>
+
+          <InstrumentEffects {...props} />
         </Editor.Content>
       </Editor.Body>
       <InstrumentPiano {...props} sampler={sampler} />

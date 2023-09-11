@@ -5,12 +5,6 @@ Welcome to Harmonia!
  © Princeton University
 
  TO DO:
- • Resolve issues with shipping to production
- • Transform drag and drop
- • Effect drag and drop
- • Write a guided tutorial
- • Create file presets
- • Test performance at highest loads
  • Write unit tests and benchmarks
 
  Initializing server...

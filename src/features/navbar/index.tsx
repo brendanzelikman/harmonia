@@ -1,7 +1,7 @@
 import { connect, ConnectedProps } from "react-redux";
 import { selectTransport } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
-import { Navbar } from "./Navbar";
+import { Navbar } from "./components/Navbar";
 
 function mapStateToProps(state: RootState) {
   const transport = selectTransport(state);

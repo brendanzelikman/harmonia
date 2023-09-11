@@ -34,6 +34,7 @@ import {
   Transform,
   TransformId,
 } from "types/transform";
+import { union } from "lodash";
 
 const initialState = initializeState<ClipId, Clip>();
 
@@ -49,13 +50,14 @@ export const clipsSlice = createSlice({
   reducers: {
     addClip: (state, action: PayloadAction<Clip>) => {
       const clip = action.payload;
-      state.allIds.push(clip.id);
+      state.allIds = union(state.allIds, [clip.id]);
       state.byId[clip.id] = clip;
     },
     addClips: (state, action: PayloadAction<Clip[]>) => {
       const clips = action.payload;
+      const clipIds = clips.map((clip) => clip.id);
+      state.allIds = union(state.allIds, clipIds);
       clips.forEach((clip) => {
-        state.allIds.push(clip.id);
         state.byId[clip.id] = clip;
       });
     },
@@ -64,8 +66,9 @@ export const clipsSlice = createSlice({
       action: PayloadAction<{ clips: Clip[]; transforms: Transform[] }>
     ) => {
       const { clips } = action.payload;
+      const clipIds = clips.map((clip) => clip.id);
+      state.allIds = union(state.allIds, clipIds);
       clips.forEach((clip) => {
-        state.allIds.push(clip.id);
         state.byId[clip.id] = clip;
       });
     },
@@ -144,8 +147,7 @@ export const clipsSlice = createSlice({
       if (index === -1) return;
       state.allIds.splice(index, 1);
       //  Add the new clips
-      state.allIds.push(firstClip.id);
-      state.allIds.push(secondClip.id);
+      state.allIds = union(state.allIds, [firstClip.id, secondClip.id]);
       state.byId[firstClip.id] = firstClip;
       state.byId[secondClip.id] = secondClip;
     },

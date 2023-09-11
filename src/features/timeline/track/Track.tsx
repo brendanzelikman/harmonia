@@ -29,7 +29,7 @@ export const TrackButton = (props: {
       aria-label="Track Button"
       className={`${
         props.className ?? ""
-      } flex items-center justify-center rounded min-w-7 h-7 m-1 font-light border`}
+      } flex items-center justify-center rounded-md overflow-hidden min-w-7 h-7 m-1 font-light border`}
       onClick={(e) => {
         props.onClick?.();
         e.currentTarget.blur();

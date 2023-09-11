@@ -7,14 +7,14 @@ interface MetronomeProps {
   active: boolean;
   pulse: Tick;
   time: Tick;
-  pickupTicks?: Tick;
+  pickup?: Tick;
 }
 
 const defaultMetronomeProps: MetronomeProps = {
   active: false,
   pulse: MIDI.QuarterNoteTicks,
   time: 0,
-  pickupTicks: 0,
+  pickup: 0,
 };
 
 // Create and use a metronome using a Tone.js sampler
@@ -41,7 +41,7 @@ export default function useMetronome(props = defaultMetronomeProps) {
   // Play the metronome based on the ticks
   useEffect(() => {
     const { active, pulse, time } = props;
-    const buffer = props.pickupTicks ?? 0;
+    const buffer = props.pickup ?? 0;
     if (!active || metronome.current === undefined) return;
 
     // Play a C5 every quarter note during the pickup
@@ -62,5 +62,5 @@ export default function useMetronome(props = defaultMetronomeProps) {
     if (time % eighthPulse === 0) {
       playNote("C7");
     }
-  }, [props, playNote]);
+  }, [props.pickup, props.active, props.pulse, props.time]);
 }

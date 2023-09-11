@@ -1,5 +1,5 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { defaultMixer, Mixer } from "./mixer";
+import { defaultMixer, initializeMixer, Mixer, MixerId } from "./mixer";
 import { ScaleId } from "./scale";
 
 export type TrackId = string;
@@ -15,9 +15,9 @@ export interface ScaleTrack {
 }
 
 export const defaultScaleTrack: ScaleTrack = {
-  id: "scale-track-1",
+  id: "default-scale-track",
   name: "",
-  scaleId: "scale-1",
+  scaleId: "default-scale",
   children: [],
 };
 
@@ -26,17 +26,18 @@ export const defaultScaleTrack: ScaleTrack = {
 export interface PatternTrack {
   id: TrackId;
   scaleTrackId: TrackId;
+  mixerId: MixerId;
+
   name: string;
   instrument: string;
-  mixer: Mixer;
 }
 
 export const defaultPatternTrack: PatternTrack = {
-  id: "pattern-track-1",
-  scaleTrackId: "scale-track-1",
+  id: "default-pattern-track",
+  scaleTrackId: "default-scale-track",
+  mixerId: "default-mixer",
   name: "",
   instrument: "grand_piano",
-  mixer: defaultMixer,
 };
 
 export type Track = ScaleTrack | PatternTrack;
@@ -53,9 +54,21 @@ export type TrackNoId = Omit<Track, "id">;
 export type ScaleTrackNoId = Omit<ScaleTrack, "id">;
 export type PatternTrackNoId = Omit<PatternTrack, "id">;
 
-export function initializeTrack<T extends Omit<Track, "id">>(track: T): T {
+export const initializeScaleTrack = (
+  scaleTrack: ScaleTrackNoId
+): ScaleTrack => {
   return {
-    ...track,
+    ...scaleTrack,
     id: nanoid(),
   };
-}
+};
+
+export const initializePatternTrack = (
+  patternTrack: PatternTrackNoId
+): PatternTrack => {
+  const id = nanoid();
+  return {
+    ...patternTrack,
+    id,
+  };
+};

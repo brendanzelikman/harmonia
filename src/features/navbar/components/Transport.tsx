@@ -10,7 +10,7 @@ import {
 } from "redux/thunks/transport";
 import { AppDispatch, RootState } from "redux/store";
 
-import { NavButton } from "../Navbar";
+import { NavButton } from "./Navbar";
 
 const mapStateToProps = (state: RootState) => {
   const transport = selectTransport(state);

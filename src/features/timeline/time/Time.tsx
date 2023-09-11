@@ -1,7 +1,7 @@
-import useEventListeners from "hooks/useEventListeners";
 import { useCallback, useState } from "react";
 import { TimeProps } from ".";
 import { useLoopDrag, useLoopDrop } from "./dnd";
+import useKeyHolder from "hooks/useKeyHolder";
 
 // The time is contained in the header
 export function TimeFormatter(props: TimeProps) {
@@ -27,40 +27,9 @@ export function TimeFormatter(props: TimeProps) {
     </div>
   );
 
-  // Hold S + click to set loop start
-  const [holdingS, setHoldingS] = useState(false);
-  // Hold E + click to set loop end
-  const [holdingE, setHoldingE] = useState(false);
-
-  const handleKeyDown = useCallback((e: Event) => {
-    if ((e as KeyboardEvent).key === "s") {
-      setHoldingS(true);
-    } else if ((e as KeyboardEvent).key === "e") {
-      setHoldingE(true);
-    }
-  }, []);
-
-  const handleKeyUp = useCallback((e: Event) => {
-    if ((e as KeyboardEvent).key === "s") {
-      setHoldingS(false);
-    } else if ((e as KeyboardEvent).key === "e") {
-      setHoldingE(false);
-    }
-  }, []);
-
-  useEventListeners(
-    {
-      s: {
-        keydown: handleKeyDown,
-        keyup: handleKeyUp,
-      },
-      e: {
-        keydown: handleKeyDown,
-        keyup: handleKeyUp,
-      },
-    },
-    []
-  );
+  const heldKeys = useKeyHolder(["s", "e"]);
+  const holdingS = heldKeys.s;
+  const holdingE = heldKeys.e;
 
   const onClick = () => {
     if (props.looping && holdingS) {

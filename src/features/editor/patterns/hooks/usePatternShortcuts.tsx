@@ -2,16 +2,16 @@ import { useMemo, useState } from "react";
 import useEventListeners from "hooks/useEventListeners";
 import {
   cancelEvent,
-  durationToTicks,
   isHoldingCommand,
   isHoldingShift,
   isInputEvent,
 } from "utils";
 import { PatternEditorCursorProps } from "..";
 import { Duration } from "types/units";
-import { MIDI } from "types";
+import { MIDI, Pattern } from "types";
 
 interface PatternShortcutProps extends PatternEditorCursorProps {
+  transformedPattern: Pattern;
   onDurationClick: (duration: Duration) => void;
 }
 
@@ -38,9 +38,11 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
       // Space = Play Pattern
       " ": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
+          if (isInputEvent(e) || !isHoldingShift(e)) return;
           cancelEvent(e);
-          // if (props.pattern) props.playPattern(props.pattern.id);
+          if (props.transformedPattern) {
+            props.playPattern(props.transformedPattern);
+          }
         },
       },
       // X = Export Pattern to XML
@@ -301,7 +303,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         },
       },
     },
-    [props, setHoldingShift, setHoldingAlt]
+    [props]
   );
 
   return { holdingShift, holdingAlt };

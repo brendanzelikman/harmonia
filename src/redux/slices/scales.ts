@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { union } from "lodash";
 
 import { AppThunk } from "redux/store";
 import { initializeState } from "redux/util";
@@ -39,7 +40,7 @@ export const scalesSlice = createSlice({
     },
     addScale: (state, action: PayloadAction<Scale>) => {
       const scale = action.payload;
-      state.allIds.push(scale.id);
+      state.allIds = union(state.allIds, [scale.id]);
       state.byId[scale.id] = scale;
     },
     removeScale: (state, action: PayloadAction<ScaleId>) => {

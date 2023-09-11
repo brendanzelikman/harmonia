@@ -361,14 +361,14 @@ export class MIDI {
     "C",
     "C#",
     "D",
-    "D#",
+    "Eb",
     "E",
     "F",
     "F#",
     "G",
     "G#",
     "A",
-    "A#",
+    "Bb",
     "B",
   ];
 
@@ -384,7 +384,7 @@ export class MIDI {
     return Frequency(pitch).toMidi();
   }
   // Get the MIDI number from pitch class and octave
-  public static fromPitchClass(pitch: Pitch, octave: number): Note {
+  public static fromPitchClass(pitch: Pitch, octave: number = 4): Note {
     return MIDI.fromPitch(`${pitch}${octave}`);
   }
   // Get the pitch class of a note, e.g. C, C#, D, etc.
@@ -420,7 +420,8 @@ export class MIDI {
 
   public static closestPitchClass(
     pitch: Pitch,
-    arr: Note[]
+    arr: Note[],
+    pitches?: Pitch[]
   ): Pitch | undefined {
     if (!arr.length) return;
     const notes = arr.map((n) => MIDI.ChromaticNumber(n));
@@ -430,7 +431,29 @@ export class MIDI {
     const index = notes.reduce((prev, curr) => {
       const currDiff = Math.abs(curr - note);
       const prevDiff = Math.abs(prev - note);
-      return currDiff <= prevDiff ? curr : prev;
+      const isEqual = currDiff === prevDiff;
+      if (!isEqual) return currDiff < prevDiff ? curr : prev;
+
+      // If the difference is equal, prefer the note not in the given pitches
+      const currInPitches = pitches?.includes(MIDI.ChromaticNotes[curr]);
+      const prevInPitches = pitches?.includes(MIDI.ChromaticNotes[prev]);
+      if (currInPitches && !prevInPitches) return prev;
+      if (!currInPitches && prevInPitches) return curr;
+
+      // If both are in the pitches, prefer the note that is closer to the pitches
+      const currDiffToPitches = pitches?.reduce((prev, currPitch) => {
+        const currDiff = Math.abs(curr - MIDI.ChromaticNumber(currPitch));
+        return currDiff < prev ? currDiff : prev;
+      }, Infinity);
+      const prevDiffToPitches = pitches?.reduce((prev, currPitch) => {
+        const currDiff = Math.abs(prev - MIDI.ChromaticNumber(currPitch));
+        return currDiff < prev ? currDiff : prev;
+      }, Infinity);
+      if (currDiffToPitches && !prevDiffToPitches) return prev;
+      if (!currDiffToPitches && prevDiffToPitches) return curr;
+
+      // If both are the same distance to the pitches, prefer the lower note
+      return curr < prev ? curr : prev;
     });
 
     // Return the closest pitch class

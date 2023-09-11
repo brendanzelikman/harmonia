@@ -77,7 +77,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
     >
       <Editor.MenuButton
         className="px-1 active:text-emerald-500"
-        onClick={() => scale && props.playScale(scale.id)}
+        onClick={() => props.playScale(scale)}
         disabled={!scale?.notes.length}
         disabledClass="px-1"
       >

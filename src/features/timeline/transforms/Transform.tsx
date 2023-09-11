@@ -17,15 +17,10 @@ import {
   selectTimelineTickOffset,
 } from "redux/selectors";
 import { BsMagic } from "react-icons/bs";
-import useEventListeners from "hooks/useEventListeners";
-import {
-  isHoldingOption,
-  isHoldingShift,
-  isInputEvent,
-  ticksToColumns,
-} from "utils";
+import { cancelEvent, isHoldingOption, isHoldingShift } from "utils";
 import { ClipId } from "types/clip";
 import { useTransformDrag } from "./dnd";
+import useKeyHolder from "hooks/useKeyHolder";
 
 interface OwnClipProps extends TransformsProps {
   transform: Transform;
@@ -121,54 +116,10 @@ function TimelineTransform(props: TransformProps) {
     return 1;
   }, [isDragging, props.draggingTransform]);
 
-  const [holdingK, setHoldingK] = useState(false);
-
-  useEventListeners(
-    {
-      k: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          setHoldingK(true);
-        },
-        keyup: (e) => {
-          if (isInputEvent(e)) return;
-          setHoldingK(false);
-        },
-      },
-    },
-    [holdingK]
-  );
-
-  const Transform = useMemo(() => {
-    const chromaticTranspose = transform.chromaticTranspose || 0;
-    const scalarTranspose = transform.scalarTranspose || 0;
-    const chordalTranspose = transform.chordalTranspose || 0;
-    return () => (
-      <>
-        <div
-          className={`group rounded-t group relative flex flex-col justify-center items-center text-xs select-none bg-fuchsia-500`}
-          style={{ height: Constants.TRANSFORM_HEIGHT }}
-        >
-          <BsMagic className="text-md" />
-          <label
-            className={`absolute left-7 ${
-              holdingK
-                ? "visible"
-                : props.isSelected
-                ? "invisible group-hover:visible"
-                : "hidden"
-            } w-fit whitespace-nowrap px-2 z-20 flex items-center justify-center bg-fuchsia-600/90 backdrop-blur rounded-md border border-slate-200/80`}
-          >
-            N{chromaticTranspose} • T{scalarTranspose} • t{chordalTranspose}
-          </label>
-        </div>
-        <div
-          className="bg-fuchsia-500/50 rounded-b"
-          style={{ height: Constants.CELL_HEIGHT - Constants.TRANSFORM_HEIGHT }}
-        ></div>
-      </>
-    );
-  }, [transform, holdingK, props.isSelected]);
+  const heldKeys = useKeyHolder(["k", "q", "w", "e"]);
+  const chromaticTranspose = transform.chromaticTranspose || 0;
+  const scalarTranspose = transform.scalarTranspose || 0;
+  const chordalTranspose = transform.chordalTranspose || 0;
 
   const onTransformClick = (e: MouseEvent) => {
     e.stopPropagation();
@@ -252,7 +203,41 @@ function TimelineTransform(props: TransformProps) {
       }}
       onClick={onTransformClick}
     >
-      <Transform />
+      <>
+        <div
+          className={`group rounded-t group relative flex flex-col justify-center items-center text-xs select-none bg-fuchsia-500`}
+          style={{ height: Constants.TRANSFORM_HEIGHT }}
+        >
+          <BsMagic className="text-md" />
+          <label
+            className={`absolute left-7 ${
+              heldKeys.k
+                ? "visible"
+                : props.isSelected
+                ? "invisible group-hover:visible"
+                : "hidden"
+            } w-fit whitespace-nowrap px-2 z-20 flex items-center justify-center bg-fuchsia-600/90 backdrop-blur rounded-md border border-slate-200/80`}
+            draggable
+            onDragStart={cancelEvent}
+          >
+            <span className={`mr-0.5 ${heldKeys.q ? "font-bold" : ""}`}>
+              N{chromaticTranspose}
+            </span>
+            {" • "}
+            <span className={`mx-0.5 ${heldKeys.w ? "font-bold" : ""}`}>
+              T{scalarTranspose}
+            </span>
+            {" • "}
+            <span className={`ml-0.5 ${heldKeys.e ? "font-bold" : ""}`}>
+              t{chordalTranspose}
+            </span>
+          </label>
+        </div>
+        <div
+          className="bg-fuchsia-500/50 rounded-b"
+          style={{ height: Constants.CELL_HEIGHT - Constants.TRANSFORM_HEIGHT }}
+        ></div>
+      </>
     </div>
   );
 }

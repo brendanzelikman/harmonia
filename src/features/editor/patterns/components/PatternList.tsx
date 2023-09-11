@@ -174,12 +174,12 @@ export const PresetPattern = (props: PresetPatternProps) => {
       } select-none`}
       onClick={() => {
         props.setPatternId(pattern.id);
-        props.playPattern(pattern.id);
+        props.playPattern(pattern);
       }}
     >
       <div className="flex relative items-center">
         <input
-          className={`peer bg-transparent h-6 rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis`}
+          className={`peer border-0 bg-transparent h-6 rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis`}
           value={pattern.name}
           disabled
         />

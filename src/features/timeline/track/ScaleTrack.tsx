@@ -21,14 +21,14 @@ import Scales, { chromaticScale } from "types/scale";
 import { MIDI } from "types/midi";
 import { BiCopy } from "react-icons/bi";
 import { BsEraser, BsPencil, BsPlusCircle, BsTrash } from "react-icons/bs";
-import useEventListeners from "hooks/useEventListeners";
-import { cancelEvent, isInputEvent } from "utils";
-import { useRef, useState } from "react";
+import { cancelEvent } from "utils";
+import { useRef } from "react";
 import { moveScaleTrackInTrackMap } from "redux/slices/maps/trackMap";
 import { useTrackDrag, useTrackDrop } from "./dnd";
 import { setPatternTrackScaleTrack } from "redux/slices/patternTracks";
 import { hideEditor, showEditor } from "redux/slices/editor";
 import { PresetScaleList } from "types/presets/scales";
+import useKeyHolder from "hooks/useKeyHolder";
 
 export const moveScaleTrack =
   (props: {
@@ -137,23 +137,7 @@ function ScaleTrack(props: Props) {
     ? `${MIDI.toPitchClass(scale.notes[0])} ${presetMatch.name}`
     : "Custom Scale";
 
-  const [holdingK, setHoldingK] = useState(false);
-
-  useEventListeners(
-    {
-      k: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          setHoldingK(true);
-        },
-        keyup: (e) => {
-          if (isInputEvent(e)) return;
-          setHoldingK(false);
-        },
-      },
-    },
-    []
-  );
+  const holdingK = useKeyHolder("k").k;
 
   // Drag and drop scale tracks
   const ref = useRef<HTMLDivElement>(null);
@@ -168,10 +152,11 @@ function ScaleTrack(props: Props) {
 
   return (
     <div
-      className={`rdg-track h-full p-2 bg-gradient-to-r from-sky-900/80 to-indigo-800/80 mix-blend-normal text-white border-b border-b-white/20 ${
+      className={`rdg-track h-full p-2 bg-gradient-to-r from-sky-900/80 to-indigo-700/60 mix-blend-normal text-white border-b border-b-white/20 ${
         isDragging ? "opacity-75" : ""
-      } ${isSelected ? "bg-slate-500/80" : ""}`}
+      } ${isSelected ? "bg-slate-700/80" : ""}`}
       ref={ref}
+      onClick={() => props.selectTrack(track.id)}
     >
       <div className="w-full h-full flex flex-col items-center justify-evenly">
         {holdingK ? (
@@ -220,8 +205,10 @@ function ScaleTrack(props: Props) {
           <>
             <TrackButton
               className={`px-3 border-sky-600 ${
-                props.onScale ? "bg-sky-600" : ""
-              } active:bg-sky-600`}
+                props.onScale
+                  ? "bg-gradient-to-r from-[#0385b9] to-[#0275bf] background-pulse"
+                  : ""
+              }`}
               onClick={() => props.onScaleClick(props.onScale)}
             >
               <label className="flex items-center cursor-pointer scale-button">

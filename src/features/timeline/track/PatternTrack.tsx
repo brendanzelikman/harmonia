@@ -7,11 +7,11 @@ import { TrackButton, TrackDropdownButton, TrackDropdownMenu } from "./Track";
 import {
   selectRoot,
   selectTransport,
-  selectMixerByTrackId,
   selectPatternTrack,
   selectScaleTrack,
   selectTrack,
   selectEditor,
+  selectMixerById,
 } from "redux/selectors";
 import {
   setPatternTrackScaleTrack,
@@ -24,20 +24,16 @@ import {
   TrackId,
 } from "types/tracks";
 import useDebouncedField from "hooks/useDebouncedField";
-import { getInstrumentName, InstrumentName } from "types/instrument";
+import { getInstrumentName, InstrumentKey } from "types/instrument";
 import { setMixerPan, setMixerVolume } from "redux/thunks/mixers";
 import { BsEraser, BsPencil, BsTrash } from "react-icons/bs";
 import { BiCopy } from "react-icons/bi";
-import {
-  cancelEvent,
-  isHoldingOption,
-  isInputEvent,
-  percentOfRange,
-} from "utils";
-import useEventListeners from "hooks/useEventListeners";
+import { cancelEvent, isHoldingOption, percentOfRange } from "utils";
 import { AppThunk } from "redux/store";
 import { useTrackDrag, useTrackDrop } from "./dnd";
 import { movePatternTrackInTrackMap } from "redux/slices/maps/trackMap";
+import useKeyHolder from "hooks/useKeyHolder";
+import { MixerId } from "types";
 
 export const moveTrack =
   (props: {
@@ -91,12 +87,12 @@ export const moveTrack =
 
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const track = ownProps.track as PatternTrackType;
-  const mixer = selectMixerByTrackId(state, track.id);
+  const mixer = selectMixerById(state, track.mixerId);
   const volume = mixer?.volume ?? Constants.DEFAULT_VOLUME;
   const pan = mixer?.pan ?? Constants.DEFAULT_PAN;
   const mute = mixer?.mute ?? false;
   const solo = mixer?.solo ?? false;
-  const instrumentName = getInstrumentName(track.instrument as InstrumentName);
+  const instrumentName = getInstrumentName(track.instrument as InstrumentKey);
 
   const { selectedTrackId } = selectRoot(state);
   const editor = selectEditor(state);
@@ -111,6 +107,7 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   return {
     ...ownProps,
     track,
+    mixerId: mixer?.id,
     volume,
     pan,
     mute,
@@ -132,16 +129,11 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     setPatternTrackName: (track: Partial<PatternTrackType>, name: string) => {
       dispatch(updatePatternTrack({ id: track.id, name }));
     },
-    setPatternTrackVolume: (
-      track: Partial<PatternTrackType>,
-      volume: number
-    ) => {
-      if (!track?.id) return;
-      dispatch(setMixerVolume(track.id, volume));
+    setPatternTrackVolume: (mixerId: MixerId, volume: number) => {
+      dispatch(setMixerVolume(mixerId, volume));
     },
-    setPatternTrackPan: (track: Partial<PatternTrackType>, pan: number) => {
-      if (!track?.id) return;
-      dispatch(setMixerPan(track.id, pan));
+    setPatternTrackPan: (mixerId: MixerId, pan: number) => {
+      dispatch(setMixerPan(mixerId, pan));
     },
   };
 };
@@ -152,29 +144,13 @@ type Props = ConnectedProps<typeof connector>;
 export default connector(PatternTrack);
 
 function PatternTrack(props: Props) {
-  const { track } = props;
+  const { track, mixerId } = props;
+
+  const holdingK = useKeyHolder("k").k;
 
   const PatternName = useDebouncedField<string>((name) => {
     props.setPatternTrackName(track, name);
   }, track.name);
-
-  const [holdingK, setHoldingK] = useState(false);
-
-  useEventListeners(
-    {
-      k: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          setHoldingK(true);
-        },
-        keyup: (e) => {
-          if (isInputEvent(e)) return;
-          setHoldingK(false);
-        },
-      },
-    },
-    []
-  );
 
   // Drag and drop pattern tracks
   const ref = useRef<HTMLDivElement>(null);
@@ -205,7 +181,7 @@ function PatternTrack(props: Props) {
         />
         <label className="bg-slate-800">Volume</label>
       </div>
-      <label className="pb-1">{props.volume}dB</label>
+      <label className="pb-1">{props.volume.toFixed(1)}dB</label>
     </div>
   );
 
@@ -244,8 +220,10 @@ function PatternTrack(props: Props) {
 
   const InstrumentButton = () => (
     <TrackButton
-      className={`px-3 border border-orange-400 ${
-        props.onInstrument ? "bg-orange-500" : ""
+      className={`px-3 border border-orange-500 ${
+        props.onInstrument
+          ? "bg-gradient-to-tr from-[#FF5A1F] to-[#DE450F] background-pulse"
+          : ""
       }`}
       onClick={() =>
         props.onInstrument
@@ -269,7 +247,7 @@ function PatternTrack(props: Props) {
           ? props.mute
             ? props.unmuteTracks()
             : props.muteTracks()
-          : props.setTrackMute(track.id, !props.mute)
+          : props.setTrackMute(track.mixerId, !props.mute)
       }
     >
       M
@@ -286,7 +264,7 @@ function PatternTrack(props: Props) {
           ? props.solo
             ? props.unsoloTracks()
             : props.soloTracks()
-          : props.setTrackSolo(track.id, !props.solo)
+          : props.setTrackSolo(track.mixerId, !props.solo)
       }
     >
       S
@@ -295,10 +273,11 @@ function PatternTrack(props: Props) {
 
   return (
     <div
-      className={`rdg-track p-2 px-4 pl-1 flex h-full bg-gradient-to-r from-sky-800 to-green-700/90 text-white border-b border-b-white/20 ${
+      className={`rdg-track p-2 px-4 pl-1 flex h-full bg-gradient-to-r from-sky-800 to-emerald-500/50 text-white border-b border-b-white/20 ${
         isDragging ? "opacity-75" : ""
-      } ${props.isTrackSelected ? "bg-slate-300/80" : ""}`}
+      } ${props.isTrackSelected ? "bg-slate-800/80" : ""}`}
       ref={ref}
+      onClick={() => props.selectTrack(track.id)}
     >
       <div className="flex w-24" draggable onDragStart={cancelEvent}>
         <div className="w-6 z-[90] relative">
@@ -312,12 +291,12 @@ function PatternTrack(props: Props) {
               max={Constants.MAX_VOLUME}
               step={Constants.VOLUME_STEP}
               onChange={(e) =>
-                props.setPatternTrackVolume(track, parseFloat(e.target.value))
+                props.setPatternTrackVolume(mixerId, parseFloat(e.target.value))
               }
               onMouseDown={() => setDraggingVolume(true)}
               onMouseUp={() => setDraggingVolume(false)}
               onDoubleClick={() =>
-                props.setPatternTrackVolume(track, Constants.DEFAULT_VOLUME)
+                props.setPatternTrackVolume(mixerId, Constants.DEFAULT_VOLUME)
               }
             />
             {draggingVolume ? <VolumeTooltip /> : null}
@@ -334,12 +313,12 @@ function PatternTrack(props: Props) {
               max={Constants.MAX_PAN}
               step={Constants.PAN_STEP}
               onChange={(e) =>
-                props.setPatternTrackPan(track, parseFloat(e.target.value))
+                props.setPatternTrackPan(mixerId, parseFloat(e.target.value))
               }
               onMouseDown={() => setDraggingPan(true)}
               onMouseUp={() => setDraggingPan(false)}
               onDoubleClick={() =>
-                props.setPatternTrackPan(track, Constants.DEFAULT_PAN)
+                props.setPatternTrackPan(mixerId, Constants.DEFAULT_PAN)
               }
             />
             {draggingPan ? <PanTooltip /> : null}

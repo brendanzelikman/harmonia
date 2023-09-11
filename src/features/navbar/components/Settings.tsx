@@ -11,10 +11,10 @@ import {
 } from "redux/thunks/transport";
 import { AppDispatch, RootState } from "redux/store";
 import { BPM, Volume } from "types/units";
-import { NavbarTooltip } from "../Navbar";
-import { NavbarFormGroup } from "../Navbar";
-import { NavbarFormLabel } from "../Navbar";
-import { NavbarFormInput } from "../Navbar";
+import { NavbarTooltip } from "./Navbar";
+import { NavbarFormGroup } from "./Navbar";
+import { NavbarFormLabel } from "./Navbar";
+import { NavbarFormInput } from "./Navbar";
 import { showShortcuts } from "redux/slices/root";
 import { clamp } from "lodash";
 import useEventListeners from "hooks/useEventListeners";

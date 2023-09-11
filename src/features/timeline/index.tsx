@@ -1,7 +1,7 @@
 import { connect, ConnectedProps } from "react-redux";
 import { TrackId, TrackType } from "types/tracks";
 import { AppDispatch, RootState } from "redux/store";
-import { Timeline } from "./Timeline";
+import { Timeline } from "./components/Timeline";
 import "react-data-grid/lib/styles.css";
 import { setSelectedTrack } from "redux/slices/root";
 import * as Selectors from "redux/selectors";

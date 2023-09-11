@@ -57,13 +57,6 @@ export default function useShortcuts() {
   // No dependencies
   useEventListeners(
     {
-      j: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          dispatch(Thunks.downloadTransport());
-        },
-      },
       // "Command + O" = Open
       o: {
         keydown: (e) => {

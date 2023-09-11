@@ -11,6 +11,7 @@ import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
 import { MIDI } from "types/midi";
 import {
+  Pattern,
   PatternId,
   PatternStream,
   realizePattern,
@@ -37,10 +38,16 @@ export const readMIDIFiles = (): AppThunk => (dispatch, getState) => {
 };
 
 export const playPattern =
-  (id: PatternId): AppThunk =>
+  (patternOrId: Pattern | PatternId): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
-    const pattern = selectPattern(state, id);
+    let pattern: Pattern;
+
+    if (typeof patternOrId === "string") {
+      pattern = selectPattern(state, patternOrId);
+    } else {
+      pattern = patternOrId;
+    }
 
     if (!pattern) return;
 

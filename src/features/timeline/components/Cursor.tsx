@@ -21,7 +21,7 @@ const mapStateToProps = (state: RootState) => {
     recording: transport.recording,
     selectedTrackId,
     left,
-    width: cellWidth,
+    width: cellWidth - 4,
     height: HEADER_HEIGHT,
   };
 };
@@ -47,7 +47,7 @@ function TimelineCursor(props: CursorProps) {
 
   const Cursor = () => (
     <div
-      className={`bg-emerald-600 absolute rounded-sm z-[80]`}
+      className={`bg-emerald-600 absolute rounded-sm z-[80] transition-all duration-75`}
       style={{
         left: props.left,
         width: props.width,

@@ -1,6 +1,9 @@
 import useEventListeners from "hooks/useEventListeners";
-import { InstrumentEditorProps, getCategoryInstruments } from "..";
-import { INSTRUMENT_CATEGORIES } from "types/instrument";
+import { InstrumentEditorProps } from "..";
+import {
+  INSTRUMENT_CATEGORIES,
+  getCategoryInstruments,
+} from "types/instrument";
 
 interface InstrumentShortcutProps extends InstrumentEditorProps {}
 

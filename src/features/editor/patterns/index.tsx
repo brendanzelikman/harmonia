@@ -3,7 +3,7 @@ import PatternClass, { PatternChord, isPatternValid } from "types/pattern";
 
 import { Pattern, PatternId, PatternNote } from "types/pattern";
 import { connect, ConnectedProps } from "react-redux";
-import { PatternEditor } from "./PatternEditor";
+import { PatternEditor } from "./components/PatternEditor";
 import { setSelectedPattern } from "redux/slices/root";
 import {
   selectCustomPatterns,
@@ -13,7 +13,7 @@ import {
 } from "redux/selectors";
 import { EditorProps } from "..";
 import { AppDispatch, RootState } from "redux/store";
-import { StateProps } from "../Editor";
+import { StateProps } from "../components/Editor";
 import {
   exportPatternToMIDI,
   playPattern,
@@ -30,7 +30,6 @@ import {
   PresetPatternGroupList,
   PresetPatternGroupMap,
 } from "types/presets/patterns";
-import { chromaticScale } from "types/scale";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const editor = selectEditor(state);
@@ -43,7 +42,6 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const canRedoPatterns = future.length > 0;
   const patternIds = selectPatternIds(state);
   const customPatterns = selectCustomPatterns(state);
-  const scale = chromaticScale;
 
   const patternCategory =
     PresetPatternGroupList.find((c) =>
@@ -61,7 +59,6 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
     patternIds,
     isEmpty,
     isCustom,
-    scale,
     customPatterns,
     canUndoPatterns,
     canRedoPatterns,
@@ -220,8 +217,8 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     if (!pattern || !isPatternValid(pattern)) return;
     dispatch(Patterns.phasePattern({ id: pattern.id, phase }));
   },
-  playPattern: (id: PatternId) => {
-    dispatch(playPattern(id));
+  playPattern: (pattern: Pattern) => {
+    dispatch(playPattern(pattern));
   },
   clearPattern: (pattern?: Pattern) => {
     if (!pattern || !isPatternValid(pattern)) return;
@@ -277,13 +274,15 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
       }
     } else if (ownProps.inserting) {
       if (cursor.hidden) {
-        Patterns.addPatternNote({ id: pattern.id, patternNote });
+        dispatch(Patterns.addPatternNote({ id: pattern.id, patternNote }));
       } else {
-        Patterns.insertPatternNote({
-          id: pattern.id,
-          index: cursor.index,
-          patternNote,
-        });
+        dispatch(
+          Patterns.insertPatternNote({
+            id: pattern.id,
+            index: cursor.index,
+            patternNote,
+          })
+        );
       }
     }
   },

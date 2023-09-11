@@ -5,15 +5,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { WebMidi, Input, NoteMessageEvent } from "webmidi";
 import { MIDI } from "types/midi";
 import { durationToTicks, ticksToToneSubdivision } from "utils";
-import { Note } from "types/units";
+import { Note, Tick } from "types/units";
 import { Time } from "tone";
-import {
-  convertSecondsToTicks,
-  convertTicksToSeconds,
-} from "redux/slices/transport";
+import { convertSecondsToTicks } from "redux/slices/transport";
 import { Transition } from "@headlessui/react";
-import useAnimationFrame from "hooks/useAnimationFrame";
-import useMetronome from "hooks/useMetronome";
+import useRecorder from "hooks/useRecorder";
 
 interface PatternRecordTabProps extends PatternEditorCursorProps {
   input: Input | undefined;
@@ -22,21 +18,61 @@ interface PatternRecordTabProps extends PatternEditorCursorProps {
 
 export function PatternRecordTab(props: PatternRecordTabProps) {
   // Recording information
-  const [recording, setRecording] = useState(false);
-  const [startTime, setStartTime] = useState(0);
   const [events, setEvents] = useState<NoteMessageEvent[]>([]);
-  const [ticks, setTicks] = useState(0);
   const canRecord = props.input !== undefined && props.isCustom;
+  const quantization = durationToTicks(props.recordingQuantization);
 
-  const cancelRecording = () => {
-    setRecording(false);
-    setTicks(0);
+  const recordingCallback = (startTime: Tick) => {
+    // Map each event to a properly timed note
+    const timedEvents = events.map((event) => {
+      const latency = 50;
+      const diff = event.timestamp - startTime - latency;
+
+      const subdivision = ticksToToneSubdivision(quantization);
+      const duration = Math.max(0, diff) / 1000;
+      const time = Time(duration).quantize(subdivision);
+      const ticks = convertSecondsToTicks(props.transport, time);
+      return {
+        ...event,
+        time,
+        ticks,
+      };
+    });
+
+    // Add notes to tick map
+    const tickMap: Record<number, Note[]> = {};
+    timedEvents.forEach((event) => {
+      const key = event.ticks;
+      if (!tickMap[key]) tickMap[key] = [];
+      tickMap[key].push(event.note.number);
+    });
+
+    // Add notes to pulse array
+    const pulses = Math.floor(props.recordingDuration / quantization);
+    const stream = new Array(pulses).fill(0).map((_, i) => {
+      const notes = tickMap[i * quantization] ?? [MIDI.Rest];
+      return notes.map((note) => ({
+        duration: quantization,
+        MIDI: note,
+        velocity: MIDI.DefaultVelocity,
+      }));
+    });
+
+    // Add notes to pattern
     setEvents([]);
+    if (props.pattern) props.updatePattern({ ...props.pattern, stream });
   };
 
-  const toggleRecording = () =>
-    recording ? cancelRecording() : setRecording(true);
+  // Use recorder hook
+  const { recording, startRecording, stopRecording, ticks, isAfterPickup } =
+    useRecorder({
+      transport: props.transport,
+      duration: props.recordingDuration,
+      quantization: props.recordingQuantization,
+      callback: recordingCallback,
+    });
 
+  // Add input listener
   useEffect(() => {
     const inputNote = (e: NoteMessageEvent) => {
       setEvents((prev) => [...prev, e]);
@@ -49,84 +85,15 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
     };
   }, [props.input, recording]);
 
-  const quantization = durationToTicks(props.recordingQuantization);
-  const pulse = Math.min(quantization, MIDI.QuarterNoteTicks);
-  const pulseTime = convertTicksToSeconds(props.transport, pulse);
-  const pulseInterval = pulseTime * 1000;
-
-  const pickupTicks = MIDI.WholeNoteTicks;
-  const pickupTime = convertTicksToSeconds(props.transport, pickupTicks);
-  const pastBuffer = recording && ticks >= pickupTicks;
-
-  const pulses = props.recordingLength / quantization;
-
-  // Set start time when recording
-  useEffect(() => {
+  const toggleRecording = () => {
     if (recording) {
-      setStartTime(WebMidi.time + pickupTime * 1000);
+      stopRecording();
+      setEvents([]);
     } else {
-      cancelRecording();
+      startRecording();
+      props.clear();
     }
-  }, [recording]);
-
-  // Increment ticks every interval if recording
-  useAnimationFrame(
-    () => setTicks((prev) => prev + pulse),
-    pulseInterval,
-    recording
-  );
-
-  // Use a metronome while recording
-  useMetronome({
-    active: recording,
-    pulse: pulse,
-    time: ticks,
-    pickupTicks: pickupTicks,
-  });
-
-  // Stop recording when ticks are over limit
-  useEffect(() => {
-    if (recording && ticks >= pickupTicks + props.recordingLength) {
-      // Parse inputted notes
-
-      const timedEvents = events.map((event) => {
-        const latency = 50;
-        const diff = event.timestamp - startTime - latency;
-
-        const subdivision = ticksToToneSubdivision(quantization);
-        const duration = Math.max(0, diff) / 1000;
-        const time = Time(duration).quantize(subdivision);
-        const ticks = convertSecondsToTicks(props.transport, time);
-        return {
-          ...event,
-          time,
-          ticks,
-        };
-      });
-
-      // Add notes to tick map
-      const tickMap: Record<number, Note[]> = {};
-      timedEvents.forEach((event) => {
-        const key = event.ticks;
-        if (!tickMap[key]) tickMap[key] = [];
-        tickMap[key].push(event.note.number);
-      });
-
-      // Add notes to pulse array
-      const stream = new Array(pulses).fill(0).map((_, i) => {
-        const notes = tickMap[i * quantization] ?? [MIDI.Rest];
-        return notes.map((note) => ({
-          duration: quantization,
-          MIDI: note,
-          velocity: MIDI.DefaultVelocity,
-        }));
-      });
-
-      // Add notes to pattern
-      cancelRecording();
-      if (props.pattern) props.updatePattern({ ...props.pattern, stream });
-    }
-  }, [ticks, events, startTime, props.recordingLength, props.transport.bpm]);
+  };
 
   const RecordingInputField = useCallback(
     () => (
@@ -174,7 +141,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
     [canRecord, props.input, props.setInput]
   );
 
-  const RecordingLengthField = () => {
+  const RecordingDurationField = () => {
     const options = [
       MIDI.WholeNoteTicks,
       2 * MIDI.WholeNoteTicks,
@@ -188,14 +155,14 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
       [8 * MIDI.WholeNoteTicks]: "Eight Measures",
     };
     const defaultValue = MIDI.WholeNoteTicks;
-    const value = props.recordingLength ?? defaultValue;
+    const value = props.recordingDuration ?? defaultValue;
 
     return (
       <div className="flex text-xs items-center">
         <label className="px-1">Duration:</label>
         <Editor.CustomListbox
           value={value}
-          setValue={props.setRecordingLength}
+          setValue={props.setRecordingDuration}
           options={options}
           getOptionKey={(i) => i}
           getOptionName={(i) => optionNames[i]}
@@ -210,7 +177,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
   };
 
   const RecordingQuantizationField = () => {
-    const defaultValue = MIDI.QuarterNoteTicks;
+    const defaultValue = "eighth";
     const value = props.recordingQuantization ?? defaultValue;
     return (
       <div className="flex text-xs items-center">
@@ -234,7 +201,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
       <Editor.MenuButton
         className={`p-1 ${
           recording
-            ? pastBuffer
+            ? isAfterPickup
               ? "text-red-500"
               : "text-red-300"
             : canRecord
@@ -273,7 +240,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
   return (
     <div className="flex">
       <Editor.MenuGroup border={true}>
-        <RecordingLengthField />
+        <RecordingDurationField />
       </Editor.MenuGroup>
       <Editor.MenuGroup border={true}>
         <RecordingQuantizationField />

@@ -15,6 +15,7 @@ import {
   removeTransformsFromTransformMap,
 } from "./maps/transformMap";
 import { Clip, ClipId } from "types/clip";
+import { union } from "lodash";
 
 const initialTransforms = initializeState<TransformId, Transform>();
 
@@ -29,9 +30,10 @@ export const transformsSlice = createSlice({
     },
     addTransforms: (state, action: PayloadAction<Transform[]>) => {
       const transforms = action.payload;
+      const transformIds = transforms.map((transform) => transform.id);
+      state.allIds = union(state.allIds, transformIds);
       transforms.forEach((transform) => {
         state.byId[transform.id] = transform;
-        state.allIds.push(transform.id);
       });
     },
     addTransformsWithClips: (

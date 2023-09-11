@@ -9,6 +9,7 @@ import {
   addPatternTrackToTrackMap,
   removePatternTrackFromTrackMap,
 } from "./maps/trackMap";
+import { union } from "lodash";
 
 const initialState = initializeState<TrackId, PatternTrack>([
   defaultPatternTrack,
@@ -21,7 +22,7 @@ export const patternTracksSlice = createSlice({
     addPatternTrack: (state, action: PayloadAction<PatternTrack>) => {
       const scaleTrack = action.payload;
       state.byId[scaleTrack.id] = scaleTrack;
-      state.allIds.push(scaleTrack.id);
+      state.allIds = union(state.allIds, [scaleTrack.id]);
     },
     removePatternTrack: (state, action: PayloadAction<TrackId>) => {
       const trackId = action.payload;

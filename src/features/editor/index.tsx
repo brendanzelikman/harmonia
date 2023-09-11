@@ -1,10 +1,10 @@
 import { connect, ConnectedProps } from "react-redux";
 import { selectEditor, selectRoot, selectTransport } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
-import { Editor } from "./Editor";
+import { Editor } from "./components/Editor";
 import * as EditorSlice from "redux/slices/editor";
 import { Duration, Tick, Timing, Velocity } from "types/units";
-import { EditorId, EditorState } from "types/editor";
+import { defaultEditor, EditorId, EditorState } from "types/editor";
 import { durationToTicks } from "utils";
 
 function mapStateToProps(state: RootState) {
@@ -23,6 +23,7 @@ function mapStateToProps(state: RootState) {
 
   return {
     selectedPatternId,
+    ...defaultEditor,
     ...editor,
     noteTicks,
     adding,
@@ -56,8 +57,8 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     setNoteVelocity: (velocity: Velocity) => {
       dispatch(EditorSlice.setEditorNoteVelocity(velocity));
     },
-    setRecordingLength: (length: Tick) => {
-      dispatch(EditorSlice.setEditorRecordingLength(length));
+    setRecordingDuration: (length: Tick) => {
+      dispatch(EditorSlice.setEditorRecordingDuration(length));
     },
     setRecordingTiming: (timing: Timing) => {
       dispatch(EditorSlice.setEditorRecordingTiming(timing));
@@ -74,4 +75,4 @@ type Props = ConnectedProps<typeof connector>;
 export interface EditorProps extends Props {}
 
 export default connector(Editor);
-export * from "./Editor";
+export * from "./components/Editor";

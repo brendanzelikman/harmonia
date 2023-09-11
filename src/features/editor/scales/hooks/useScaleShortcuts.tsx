@@ -10,6 +10,15 @@ interface ScaleShortcutProps extends ScaleEditorProps {
 export default function useScaleShortcuts(props: ScaleShortcutProps) {
   useEventListeners(
     {
+      // Shift + Space = Play Scale
+      " ": {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.scale) return;
+          if (!isHoldingShift(e)) return;
+          cancelEvent(e);
+          props.playScale(props.scale);
+        },
+      },
       // A = Start/Stop Adding Notes
       a: {
         keydown: (e) => {

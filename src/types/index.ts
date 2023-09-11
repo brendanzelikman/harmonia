@@ -1,5 +1,6 @@
 export * from "./clip";
 export * from "./editor";
+export * from "./effect";
 export * from "./instrument";
 export * from "./midi";
 export * from "./mixer";

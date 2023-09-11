@@ -169,7 +169,7 @@ export const PresetScale = (props: PresetScaleProps) => {
     >
       <div className="flex relative items-center h-6">
         <input
-          className={`peer bg-transparent w-full rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis`}
+          className={`peer border-0 bg-transparent w-full rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis`}
           value={`${scale.name} ${
             areScalesRelated && firstPitch ? `(${firstPitch})` : ""
           }`}

@@ -58,6 +58,11 @@ html {
   animation: fadeIn 0.5s ease-in-out;
 }
 
+.background-pulse {
+  background-size: 400% 400%;
+  animation: animate-gradient 5s ease-in-out infinite;
+}
+
 body {
   font-family: "Open Sans";
   /* background: linear-gradient(#4161b3, #087dbc, #34c1b3, #85449f); */

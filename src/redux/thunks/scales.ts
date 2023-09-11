@@ -8,14 +8,20 @@ import {
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
 import { MIDI } from "types/midi";
-import { ScaleId } from "types/scale";
+import { Scale, ScaleId } from "types/scale";
 import { Midi } from "@tonejs/midi";
 
 export const playScale =
-  (id: ScaleId): AppThunk =>
+  (scaleOrId: Scale | ScaleId): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
-    const scale = selectScale(state, id);
+    let scale: Scale;
+
+    if (typeof scaleOrId === "string") {
+      scale = selectScale(state, scaleOrId);
+    } else {
+      scale = scaleOrId;
+    }
 
     if (!scale) return;
 
@@ -27,8 +33,8 @@ export const playScale =
     let time = 0;
     for (let i = 0; i < scale.notes.length; i++) {
       const note = scale.notes[i];
-      const duration = convertSecondsToTicks(transport, 2);
-      const subdivision = ticksToToneSubdivision(2);
+      const duration = convertTicksToSeconds(transport, MIDI.EighthNoteTicks);
+      const subdivision = ticksToToneSubdivision(MIDI.EighthNoteTicks);
       const pitch = MIDI.toPitch(note);
       setTimeout(() => {
         if (!sampler) return;
@@ -36,6 +42,13 @@ export const playScale =
       }, time * 1000);
       time += duration;
     }
+    // Play the tonic on top to complete the scale
+    setTimeout(() => {
+      const tonicOnTop = scale.notes[0] + 12;
+      const pitch = MIDI.toPitch(tonicOnTop);
+      const subdivision = ticksToToneSubdivision(MIDI.EighthNoteTicks);
+      sampler.triggerAttackRelease([pitch], subdivision);
+    }, time * 1000);
   };
 
 export const exportScaleToMIDI =

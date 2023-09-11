@@ -5,7 +5,7 @@ import {
   NavbarFormLabel,
   NavbarTooltip,
   NavButton,
-} from "../Navbar";
+} from "./Navbar";
 import { CiUndo, CiRedo, CiFileOn } from "react-icons/ci";
 import { UndoTypes } from "redux/undoTypes";
 import { setProjectName } from "redux/slices/root";

@@ -4,6 +4,7 @@ import { isRoot } from "types/root";
 import { isEditor } from "types/editor";
 import { isTimeline } from "types/timeline";
 import { isTransport } from "types/transport";
+import { INSTRUMENTS, MixerInstance } from "types";
 
 export const isRootState = (obj: any): obj is RootState => {
   const { session, scales, patterns, root, editor, timeline, transport } = obj;
@@ -92,9 +93,6 @@ export const saveState = (state: RootState) => {
       },
       editor: {
         ...state.editor,
-        id: "hidden",
-        state: "idle",
-        show: false,
       },
       session: { past: [], present: state.session.present, future: [] },
       scales: { past: [], present: state.scales.present, future: [] },

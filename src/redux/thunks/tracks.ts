@@ -8,14 +8,16 @@ import {
   selectTrack,
   selectTrackMap,
   selectTransformTrackMap,
+  selectMixerById,
 } from "redux/selectors";
 import { selectTransform } from "redux/selectors/transforms";
 import { AppThunk } from "redux/store";
 import { createInstrument } from "types/instrument";
 import Scales, { defaultScale } from "types/scale";
 import {
-  initializeTrack,
+  initializePatternTrack,
   isPatternTrack,
+  initializeScaleTrack,
   isScaleTrack,
   Track,
   TrackId,
@@ -34,6 +36,7 @@ import * as Transforms from "redux/slices/transforms";
 import { createScale } from "redux/slices/scales";
 import { setMixerMute, setMixerSolo } from "./mixers";
 import { hideEditor } from "redux/slices/editor";
+import { initializeMixer } from "types";
 
 // Create a scale track
 export const createScaleTrack =
@@ -52,7 +55,7 @@ export const createScaleTrack =
 
       // Create track with scale id
       const scaleTrack = { ...defaultScaleTrack, ...initialTrack, scaleId };
-      const track = initializeTrack(scaleTrack);
+      const track = initializeScaleTrack(scaleTrack);
 
       // Add track to store
       dispatch(ScaleTracks.addScaleTrack(track));
@@ -65,14 +68,23 @@ export const createScaleTrack =
 // Create a pattern track
 export const createPatternTrack =
   (initialTrack?: Partial<PatternTrackNoId>): AppThunk<Promise<TrackId>> =>
-  (dispatch) => {
+  (dispatch, getState) => {
+    const state = getState();
     return new Promise(async (resolve) => {
       // Create track
-      const patternTrack = { ...defaultPatternTrack, ...initialTrack };
-      const track = initializeTrack(patternTrack);
+      const mixer = initializeMixer();
+      const patternTrack = {
+        ...defaultPatternTrack,
+        ...initialTrack,
+        mixerId: mixer.id,
+      };
+      const track = initializePatternTrack(patternTrack);
 
       // Create an instrument for the track
-      dispatch(createInstrument(track));
+      const oldMixer = initialTrack?.mixerId
+        ? selectMixerById(state, initialTrack.mixerId)
+        : undefined;
+      dispatch(createInstrument(track, false, oldMixer));
 
       // Add track to store
       dispatch(PatternTracks.addPatternTrack(track));
@@ -110,7 +122,7 @@ export const muteTracks = (): AppThunk => (dispatch, getState) => {
   const state = getState();
   const patternTracks = selectPatternTracks(state);
   patternTracks.forEach((track) => {
-    dispatch(setMixerMute(track.id, true));
+    dispatch(setMixerMute(track.mixerId, true));
   });
 };
 
@@ -118,7 +130,7 @@ export const unmuteTracks = (): AppThunk => (dispatch, getState) => {
   const state = getState();
   const patternTracks = selectPatternTracks(state);
   patternTracks.forEach((track) => {
-    dispatch(setMixerMute(track.id, false));
+    dispatch(setMixerMute(track.mixerId, false));
   });
 };
 
@@ -126,7 +138,7 @@ export const soloTracks = (): AppThunk => (dispatch, getState) => {
   const state = getState();
   const patternTracks = selectPatternTracks(state);
   patternTracks.forEach((track) => {
-    dispatch(setMixerSolo(track.id, true));
+    dispatch(setMixerSolo(track.mixerId, true));
   });
 };
 
@@ -134,7 +146,7 @@ export const unsoloTracks = (): AppThunk => (dispatch, getState) => {
   const state = getState();
   const patternTracks = selectPatternTracks(state);
   patternTracks.forEach((track) => {
-    dispatch(setMixerSolo(track.id, false));
+    dispatch(setMixerSolo(track.mixerId, false));
   });
 };
 
@@ -203,7 +215,7 @@ export const deleteTrack =
     }
     if (track && isPatternTrack(track)) {
       dispatch(PatternTracks.removePatternTrack(trackId));
-      dispatch(Mixers.removeMixer(trackId));
+      dispatch(Mixers.removeMixer({ mixerId: track.mixerId, trackId }));
       dispatch(TrackMap.removePatternTrackFromTrackMap(trackId));
       // Remove clips
       dispatch(Clips.removeClipsByPatternTrackId(trackId));

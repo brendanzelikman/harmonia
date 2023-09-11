@@ -98,7 +98,7 @@ export default class Scales {
 }
 
 export const defaultScale = {
-  id: "scale-1",
+  id: "default-scale",
   name: Scales.TrackScaleName,
   notes: chromaticScale.notes,
 };

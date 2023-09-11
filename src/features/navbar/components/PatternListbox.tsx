@@ -20,6 +20,7 @@ import {
   PresetPatternGroupList,
   PresetPatternGroupMap,
 } from "types/presets/patterns";
+import { blurOnMouseUp } from "utils";
 
 const mapStateToProps = (state: RootState) => {
   const editor = selectEditor(state);
@@ -144,7 +145,10 @@ function PatternListbox(props: Props) {
       >
         {({ open }) => (
           <div className={`relative`}>
-            <Listbox.Button className="select-none relative w-full h-10 items-center flex cursor-pointer rounded-md bg-gray-900 text-white text-left shadow-md focus:outline-none">
+            <Listbox.Button
+              className="select-none relative w-full h-10 items-center flex cursor-pointer rounded-md bg-gray-900 text-white text-left shadow-md focus:outline-none"
+              onMouseUp={blurOnMouseUp}
+            >
               <span
                 className={`block w-full truncate px-1.5 text-[14px] text-gray-200 font-light ${
                   !props.selectedPattern?.id ? "opacity-75" : "opacity-100"
@@ -188,7 +192,7 @@ function PatternListbox(props: Props) {
                       [
                         "Basic Chords",
                         "Basic Melodies",
-                        "Basic Durations",
+                        "Straight Durations",
                         "Simple Rhythms",
                       ].includes(category)
                         ? "pt-0.5"
@@ -196,11 +200,11 @@ function PatternListbox(props: Props) {
                     }`}
                   >
                     <div
-                      className={`px-3 py-1.5 text-sm font-light text-white bg-slate-900/90 backdrop-blur ${
+                      className={`px-3 py-1.5 text-sm font-light backdrop-blur ${
                         props.selectedPattern &&
                         isPatternInCategory(props.selectedPattern, category)
-                          ? "text-emerald-500"
-                          : "bg-slate-800"
+                          ? "bg-slate-800 text-emerald-400"
+                          : "bg-slate-800 text-white"
                       } group-hover:bg-emerald-600 group-hover:text-white`}
                     >
                       {category}

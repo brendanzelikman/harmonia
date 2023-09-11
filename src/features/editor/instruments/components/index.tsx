@@ -1,4 +1,4 @@
 export * from "./InstrumentEffects";
-export * from "./InstrumentKnob";
+export * from "./InstrumentEffectBar";
 export * from "./InstrumentList";
 export * from "./InstrumentPiano";

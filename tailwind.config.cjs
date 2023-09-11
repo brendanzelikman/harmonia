@@ -1,4 +1,6 @@
 const flowbite = require("flowbite/plugin");
+const forms = require("@tailwindcss/forms");
+const aspectRatio = require("@tailwindcss/aspect-ratio");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -30,5 +32,8 @@ module.exports = {
       },
     },
   },
-  plugins: [flowbite],
+  corePlugins: {
+    aspectRatio: false,
+  },
+  plugins: [flowbite, forms, aspectRatio],
 };

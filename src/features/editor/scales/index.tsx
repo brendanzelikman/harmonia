@@ -8,7 +8,7 @@ import ScaleClass, {
   ScaleNoId,
   transposeScale,
 } from "types/scale";
-import { ScaleEditor } from "./ScaleEditor";
+import { ScaleEditor } from "./components/ScaleEditor";
 import { EditorProps } from "..";
 import {
   selectSelectedTrackId,
@@ -18,7 +18,7 @@ import {
 } from "redux/selectors";
 import { UndoTypes } from "redux/undoTypes";
 import { RootState } from "redux/store";
-import { StateProps } from "../Editor";
+import { StateProps } from "../components/Editor";
 import { exportScaleToMIDI, playScale } from "redux/thunks/scales";
 import { MIDI } from "types/midi";
 import {
@@ -166,8 +166,8 @@ const mapDispatchToProps = (dispatch: any) => ({
   deleteScale: (id: ScaleId) => {
     dispatch(Scales.deleteScale(id));
   },
-  playScale: (id: ScaleId) => {
-    dispatch(playScale(id));
+  playScale: (scale: Scale) => {
+    dispatch(playScale(scale));
   },
   undoScales: () => {
     dispatch({ type: UndoTypes.undoScales });

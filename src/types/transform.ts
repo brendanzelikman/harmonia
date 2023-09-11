@@ -3,6 +3,14 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { TrackId } from "./tracks";
 import { Tick } from "./units";
+import {
+  Pattern,
+  PatternStream,
+  defaultPattern,
+  rotatePatternStream,
+  transposePatternStream,
+} from "./pattern";
+import { Scale, chromaticScale } from "./scale";
 
 // transpositions applied to the track at a specified time.
 
@@ -61,6 +69,32 @@ export const lastTransformAtTick = (
   if (!filteredTransforms.length) return;
   if (!sort) return filteredTransforms[0];
   return filteredTransforms.sort((a, b) => b.tick - a.tick)[0];
+};
+
+export const transformPattern = (
+  pattern: Pattern = defaultPattern,
+  transform: TransformCoordinate,
+  scale: Scale = chromaticScale
+): Pattern => {
+  if (!pattern) return pattern;
+  const { stream } = pattern;
+
+  // Get the offsets
+  const N = transform?.N ?? 0;
+  const T = transform?.T ?? 0;
+  const t = transform?.t ?? 0;
+
+  // Transpose stream
+  let transposedStream: PatternStream;
+  const s1 = transposePatternStream(stream, T, scale);
+  const s2 = rotatePatternStream(s1, t);
+  const s3 = transposePatternStream(s2, N, chromaticScale);
+  transposedStream = s3;
+
+  return {
+    ...pattern,
+    stream: transposedStream,
+  };
 };
 
 export type TransformCoordinate = {

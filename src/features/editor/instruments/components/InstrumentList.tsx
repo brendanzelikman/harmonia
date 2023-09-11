@@ -1,5 +1,8 @@
-import { INSTRUMENT_CATEGORIES } from "types/instrument";
-import { InstrumentEditorProps, getCategoryInstruments } from "..";
+import {
+  INSTRUMENT_CATEGORIES,
+  getCategoryInstruments,
+} from "types/instrument";
+import { InstrumentEditorProps } from "..";
 import * as Editor from "features/editor";
 import { Disclosure } from "@headlessui/react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";

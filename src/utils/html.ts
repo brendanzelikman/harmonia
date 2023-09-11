@@ -1,6 +1,7 @@
 import { DragEvent } from "react";
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const keyCode = (key: string) => key.toUpperCase().charCodeAt(0);
 
 type GenericEvent =
   | Event
@@ -35,4 +36,8 @@ export const blurOnEnter = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
     (e.currentTarget as HTMLElement).blur();
   }
+};
+
+export const blurOnMouseUp = (e: React.MouseEvent) => {
+  (e.currentTarget as HTMLElement).blur();
 };

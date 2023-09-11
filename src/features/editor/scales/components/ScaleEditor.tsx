@@ -1,18 +1,13 @@
 import * as Editor from "features/editor";
 import Scales, { Scale } from "types/scale";
-import { ScaleEditorProps } from ".";
+import { ScaleEditorProps } from "..";
 import useOSMD from "lib/opensheetmusicdisplay";
 import { DemoXML } from "assets/demo";
 import { Transition } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { getGlobalInstrumentName, getGlobalSampler } from "types/instrument";
-import useScaleShortcuts from "./hooks/useScaleShortcuts";
-import {
-  ScaleContextMenu,
-  ScaleList,
-  ScaleControlTab,
-  ScalePiano,
-} from "./components";
+import useScaleShortcuts from "../hooks/useScaleShortcuts";
+import { ScaleContextMenu, ScaleList, ScaleControlTab, ScalePiano } from ".";
 
 export function ScaleEditor(props: ScaleEditorProps) {
   // Score information

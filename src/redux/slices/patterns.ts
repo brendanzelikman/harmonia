@@ -18,7 +18,7 @@ import { selectRoot } from "redux/selectors";
 import { MIDI } from "types/midi";
 
 import { setSelectedPattern } from "./root";
-import { clamp, random, reverse, shuffle } from "lodash";
+import { clamp, random, reverse, shuffle, union } from "lodash";
 import { mod } from "utils";
 import { PresetScaleGroupMap } from "types/presets/scales";
 
@@ -69,13 +69,14 @@ export const patternsSlice = createSlice({
     },
     addPattern: (state, action: PayloadAction<Pattern>) => {
       const pattern = action.payload;
-      state.allIds.push(pattern.id);
+      state.allIds = union(state.allIds, [pattern.id]);
       state.byId[pattern.id] = pattern;
     },
     addPatterns: (state, action: PayloadAction<Pattern[]>) => {
       const patterns = action.payload;
+      const patternIds = patterns.map((pattern) => pattern.id);
+      state.allIds = union(state.allIds, patternIds);
       patterns.forEach((pattern) => {
-        state.allIds.push(pattern.id);
         state.byId[pattern.id] = pattern;
       });
     },

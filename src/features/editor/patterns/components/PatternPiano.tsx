@@ -7,23 +7,17 @@ import useEventListeners from "hooks/useEventListeners";
 import { isSamplerLoaded } from "types/instrument";
 import { EditorPiano } from "features/editor/components";
 import { PatternNote } from "types/pattern";
+import { Scale } from "types";
+import useKeyHolder from "hooks/useKeyHolder";
 
 interface PatternPianoProps extends PatternEditorCursorProps {
+  scale: Scale;
   sampler: Sampler;
 }
 
 export function PatternPiano(props: PatternPianoProps) {
   // Keep track of shift key
-  const [holdingShift, setHoldingShift] = useState(false);
-  useEventListeners(
-    {
-      Shift: {
-        keydown: () => setHoldingShift(true),
-        keyup: () => setHoldingShift(false),
-      },
-    },
-    []
-  );
+  const holdingShift = useKeyHolder("Shift").Shift;
 
   // Play note event handler handling editor states
   const playNote = (sampler: Sampler, midiNumber: number) => {

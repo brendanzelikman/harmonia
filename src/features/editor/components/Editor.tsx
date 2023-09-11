@@ -5,15 +5,16 @@ import {
   BsSearch,
   BsSoundwave,
 } from "react-icons/bs";
-import { EditorProps } from ".";
+import { EditorProps } from "..";
 import { Tooltip as FBTooltip } from "flowbite-react";
-import EditorInstrument from "./instruments";
-import EditorPatterns from "./patterns";
-import EditorScales from "./scales";
+import EditorInstrument from "../instruments";
+import EditorPatterns from "../patterns";
+import EditorScales from "../scales";
 import { useState } from "react";
 import {
+  INSTRUMENT_KEYS,
   INSTRUMENT_NAMES,
-  InstrumentName,
+  InstrumentKey,
   createGlobalInstrument,
   getGlobalInstrument,
   getInstrumentName,
@@ -26,8 +27,8 @@ import sixteenthNote from "assets/noteheads/16th.png";
 import thirtysecondNote from "assets/noteheads/32nd.png";
 import sixtyfourthNote from "assets/noteheads/64th.png";
 import { DURATIONS, DURATION_NAMES, Duration } from "types/units";
-import { EditorListbox, EditorListboxProps } from "./components/Listbox";
-export { EditorListbox as CustomListbox } from "./components/Listbox";
+import { EditorListbox, EditorListboxProps } from "./Listbox";
+export { EditorListbox as CustomListbox } from "./Listbox";
 
 export type StateProps = {
   showingTracks: boolean;
@@ -105,11 +106,12 @@ export function Editor(props: EditorProps) {
 
   return (
     <Transition
+      appear
       show={!!props.show}
-      enter="transition-all duration-300"
+      enter="transition-all duration-150"
       enterFrom="opacity-0"
       enterTo="opacity-100"
-      leave="transition-all duration-300"
+      leave="transition-all duration-150"
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
       as="div"
@@ -165,16 +167,17 @@ export const DurationListbox = (
 export const InstrumentListbox = (props: {
   setInstrument: (name: string) => void;
 }) => {
-  const value = (getGlobalInstrument()?.name ??
-    "grand_piano") as InstrumentName;
+  const value = (getGlobalInstrument()?.key ?? "grand_piano") as InstrumentKey;
   return (
     <EditorListbox
       value={value}
       setValue={(value) => props.setInstrument(value)}
-      onChange={(value) => createGlobalInstrument(value)}
-      getOptionName={(i) => getInstrumentName(i)}
+      onChange={(value) => createGlobalInstrument(value as InstrumentKey)}
+      getOptionKey={(i) => i as InstrumentKey}
+      getOptionValue={(i) => i as InstrumentKey}
+      getOptionName={(i) => getInstrumentName(i as InstrumentKey)}
       icon={<BsSoundwave className="mr-2" />}
-      options={INSTRUMENT_NAMES}
+      options={INSTRUMENT_KEYS}
       placeholder="Change Instrument"
     />
   );
@@ -234,7 +237,9 @@ export const Title = (props: {
       } flex flex-col h-24 mb-5 justify-center font-semibold`}
     >
       <input
-        className="w-full bg-transparent text-3xl font-semibold ring-0 outline-none rounded focus:bg-slate-800/30"
+        className={`${
+          !!props.editable ? "cursor-pointer select-all" : "select-none"
+        } w-full bg-transparent text-3xl font-semibold ring-0 border-0 p-0 focus:border outline-none rounded focus:bg-slate-800/30`}
         value={props.title}
         onChange={(e) => props.setTitle?.(e.target.value)}
         disabled={!props.editable}
@@ -323,53 +328,21 @@ export const SidebarHeader = (props: {
   );
 };
 
-export const EffectMenu = (props: { className?: string; children?: any }) => {
-  return (
-    <div
-      className={`w-full min-h-[8.5rem] flex flex-shrink-0 text-white text-[28px] overflow-scroll ${
-        props.className ?? ""
-      }`}
-    >
-      {props.children}
-    </div>
-  );
-};
-
-export const EffectGroup = (props: {
-  label?: string;
-  className?: string;
-  children?: any;
-}) => {
-  return (
-    <div
-      className={`flex flex-col mx-auto min-w-max flex-shrink-0 px-2 select-none ${
-        props.className ?? ""
-      }`}
-    >
-      <div className="flex flex-col items-center w-full mx-auto px-2 py-3 h-full whitespace-nowrap border border-gray-700 rounded-lg bg-slate-700/50">
-        <div className="flex">{props.children}</div>
-        <label className="mt-auto flex justify-center text-xl">
-          {props.label}
-        </label>
-      </div>
-    </div>
-  );
-};
-
 export const MenuRow = (props: {
   show: boolean;
   border?: boolean;
   children?: any;
 }) => (
   <Transition
-    enter="transition-opacity duration-150"
+    appear
+    enter="transition-all duration-75"
     enterFrom="opacity-0"
     enterTo="opacity-100"
-    leave="transition-opacity duration-150"
+    leave="transition-all duration-75"
     leaveFrom="opacity-100"
     leaveTo="opacity-0"
     as="div"
-    className={`flex w-full py-1 text-slate-200 ${
+    className={`flex w-full items-center py-1 text-slate-200 ${
       props.border ? "border-b border-b-slate-500" : ""
     }`}
     show={props.show}

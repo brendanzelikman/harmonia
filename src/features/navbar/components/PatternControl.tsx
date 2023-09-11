@@ -14,7 +14,7 @@ import {
   NavbarFormLabel,
   NavbarInfoTooltip,
   NavbarTooltip,
-} from "../Navbar";
+} from "./Navbar";
 import {
   selectEditor,
   selectPattern,
@@ -165,13 +165,7 @@ function PatternControl(props: Props) {
       if (isNaN(value)) return;
       props.setToolkitValue("chordalTranspose", value);
     }
-  }, [
-    transpose,
-    chromaticTranspose,
-    scalarTranspose,
-    chordalTranspose,
-    props.setToolkitValue,
-  ]);
+  }, [transpose, chromaticTranspose, scalarTranspose, chordalTranspose]);
 
   const [holdingAlt, setHoldingAlt] = useState(false);
 
@@ -229,8 +223,6 @@ function PatternControl(props: Props) {
   useEffect(() => {
     props.setToolkitValue("mergeName", mergeNameInput);
   }, [mergeNameInput]);
-
-  const values = [-3, -2, -1, 0, 1, 2, 3];
 
   return (
     <div className="flex space-x-2">
@@ -335,10 +327,10 @@ function PatternControl(props: Props) {
         <ControlButton
           label="Repeat Clips"
           onClick={props.toggleRepeating}
-          className={`bg-emerald-700 ${
+          className={`${
             props.repeatingClips
               ? "bg-emerald-600 ring-2 ring-offset-2 ring-emerald-600/80 ring-offset-black"
-              : "bg-emerald-600/80"
+              : "bg-emerald-600"
           }`}
         >
           <BsClock className="p-0.5" />

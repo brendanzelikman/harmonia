@@ -16,7 +16,7 @@ export interface Editor {
   noteTiming: Timing;
   noteVelocity: Velocity;
 
-  recordingLength: Tick;
+  recordingDuration: Tick;
   recordingTiming: Timing;
   recordingQuantization: Duration;
 
@@ -32,7 +32,7 @@ export const defaultEditor: Editor = {
   noteTiming: "straight",
   noteVelocity: MIDI.DefaultVelocity,
 
-  recordingLength: MIDI.WholeNoteTicks,
+  recordingDuration: MIDI.WholeNoteTicks,
   recordingTiming: "straight",
   recordingQuantization: "eighth",
 

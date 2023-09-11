@@ -30,8 +30,8 @@ export const editorSlice = createSlice({
     setEditorNoteVelocity: (state, action: PayloadAction<number>) => {
       state.noteVelocity = action.payload;
     },
-    setEditorRecordingLength: (state, action: PayloadAction<Tick>) => {
-      state.recordingLength = action.payload;
+    setEditorRecordingDuration: (state, action: PayloadAction<Tick>) => {
+      state.recordingDuration = action.payload;
     },
     setEditorRecordingTiming: (state, action: PayloadAction<Timing>) => {
       state.recordingTiming = action.payload;
@@ -52,7 +52,7 @@ export const {
   setEditorNoteDuration,
   setEditorNoteTiming,
   setEditorNoteVelocity,
-  setEditorRecordingLength,
+  setEditorRecordingDuration,
   setEditorRecordingTiming,
   setEditorRecordingQuantization,
 } = editorSlice.actions;

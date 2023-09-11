@@ -1,13 +1,13 @@
 import logo from "/logo.svg";
-import Timer from "./components/Timer";
-import Transport from "./components/Transport";
-import FileControl from "./components/FileControl";
-import PatternControl from "./components/PatternControl";
-import Settings from "./components/Settings";
+import Timer from "./Timer";
+import Transport from "./Transport";
+import FileControl from "./FileControl";
+import PatternControl from "./PatternControl";
+import Settings from "./Settings";
 import { BsGithub, BsQuestionCircle } from "react-icons/bs";
 import { Transition } from "@headlessui/react";
-import PatternListbox from "./components/PatternListbox";
-import OnboardingTour from "./components/OnboardingTour";
+import PatternListbox from "./PatternListbox";
+import OnboardingTour from "./OnboardingTour";
 import { cancelEvent, isHoldingCommand, isInputEvent } from "utils";
 import useEventListeners from "hooks/useEventListeners";
 import { useState } from "react";
@@ -36,7 +36,7 @@ export function Navbar() {
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <nav className="relative h-auto bg-gray-900 border-b-slate-900 shadow-xl py-2 text-slate-50 flex flex-nowrap flex-shrink-0 items-center z-30">
+      <nav className="relative h-auto bg-gray-900 border-b-0.5 border-b-slate-700 shadow-xl py-2 text-slate-50 flex flex-nowrap flex-shrink-0 items-center z-30">
         <NavGroup className="flex-shrink-0 ml-3">
           <NavBrand />
         </NavGroup>

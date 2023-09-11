@@ -2,7 +2,6 @@ import { connect, ConnectedProps } from "react-redux";
 import {
   selectClipTicks,
   selectClipPattern,
-  selectMixerByTrackId,
   selectRoot,
   selectTimeline,
   selectTimelineTickOffset,
@@ -17,13 +16,13 @@ import * as Root from "redux/slices/root";
 import * as Timeline from "redux/slices/timeline";
 import { MouseEvent, useEffect, useMemo, useState } from "react";
 import Stream from "./Stream";
-import useEventListeners from "hooks/useEventListeners";
 import { TransformNoId } from "types/transform";
 import { rotatePattern, transposePattern } from "redux/slices/patterns";
 import { createTransforms } from "redux/slices/transforms";
 import { isHoldingOption, isHoldingShift } from "utils";
 import { selectRangeOfClips } from "redux/thunks";
 import { Row } from "..";
+import useKeyHolder from "hooks/useKeyHolder";
 
 interface OwnClipProps extends ClipsProps {
   clip: Clip;
@@ -36,7 +35,6 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const index = rows.findIndex((row) => row.trackId === clip.trackId);
   const duration = selectClipTicks(state, clip.id);
   const name = selectClipPattern(state, clip.id)?.name ?? "";
-  const muted = selectMixerByTrackId(state, clip.trackId)?.mute ?? false;
 
   const top = Constants.HEADER_HEIGHT + index * Constants.CELL_HEIGHT;
   const left = selectTimelineTickOffset(state, clip.tick);
@@ -51,7 +49,6 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     ...ownProps,
     index,
     name,
-    muted,
     duration,
     width,
     top,
@@ -121,7 +118,7 @@ function TimelineClip(props: ClipProps) {
   if (props.index === -1) return null;
   const { clip, rows, selectedClipIds } = props;
   const { draggingClip, transposingClip } = props;
-  const { top, left, width, name, isSelected, muted } = props;
+  const { top, left, width, name, isSelected } = props;
 
   const [{ isDragging }, drag] = useClipDrag(props);
 
@@ -136,31 +133,12 @@ function TimelineClip(props: ClipProps) {
   }, [clip, isDragging]);
 
   const opacity = useMemo(() => {
-    if (muted) return 0.8;
     if (isDragging) return 0.5;
     if (draggingClip) return 0.8;
     return 1;
-  }, [muted, isDragging, draggingClip]);
+  }, [isDragging, draggingClip]);
 
-  const [eyedropping, setEyedropping] = useState(false);
-
-  useEventListeners(
-    {
-      i: {
-        keydown: (e) => {
-          if ((e as KeyboardEvent).key === "i") {
-            setEyedropping(true);
-          }
-        },
-        keyup: (e) => {
-          if ((e as KeyboardEvent).key === "i") {
-            setEyedropping(false);
-          }
-        },
-      },
-    },
-    [isSelected]
-  );
+  const eyedropping = useKeyHolder("i").i;
 
   const onClipClick = (e: MouseEvent) => {
     if (transposingClip) {
@@ -232,7 +210,7 @@ function TimelineClip(props: ClipProps) {
         width,
         height: Constants.CELL_HEIGHT - Constants.TRANSFORM_HEIGHT,
         opacity,
-        pointerEvents: isDragging || draggingClip || muted ? "none" : "auto",
+        pointerEvents: isDragging || draggingClip ? "none" : "auto",
         animation: "fadeIn 0.1s ease-in-out",
       }}
       onClick={onClipClick}

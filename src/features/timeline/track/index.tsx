@@ -22,6 +22,8 @@ import { TrackComponent } from "./Track";
 import { lastTransformAtTick } from "types/transform";
 import { hideEditor, showEditor } from "redux/slices/editor";
 import { EditorId } from "types/editor";
+import { setSelectedTrack } from "redux/slices/root";
+import { MixerId } from "types";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const transport = Selectors.selectTransport(state);
@@ -71,30 +73,18 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     showEditor: (trackId: TrackId, id: EditorId) => {
       dispatch(showEditor({ id, trackId }));
     },
-    setTrackMute: (trackId: TrackId, mute: boolean) => {
-      dispatch(setMixerMute(trackId, mute));
+    setTrackMute: (mixerId: MixerId, mute: boolean) => {
+      dispatch(setMixerMute(mixerId, mute));
     },
-    setTrackSolo: (trackId: TrackId, solo: boolean) => {
-      dispatch(setMixerSolo(trackId, solo));
+    setTrackSolo: (mixerId: MixerId, solo: boolean) => {
+      dispatch(setMixerSolo(mixerId, solo));
     },
-    setTrackPan: (trackId: TrackId, pan: number) => {
-      dispatch(setMixerPan(trackId, pan));
-    },
-    muteTracks: () => {
-      dispatch(muteTracks());
-    },
-    unmuteTracks: () => {
-      dispatch(unmuteTracks());
-    },
-    soloTracks: () => {
-      dispatch(soloTracks());
-    },
-    unsoloTracks: () => {
-      dispatch(unsoloTracks());
-    },
-    hideEditor: () => {
-      dispatch(hideEditor());
-    },
+    muteTracks: () => dispatch(muteTracks()),
+    unmuteTracks: () => dispatch(unmuteTracks()),
+    soloTracks: () => dispatch(soloTracks()),
+    unsoloTracks: () => dispatch(unsoloTracks()),
+    hideEditor: () => dispatch(hideEditor()),
+    selectTrack: (trackId: TrackId) => dispatch(setSelectedTrack(trackId)),
   };
 }
 

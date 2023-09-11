@@ -11,7 +11,7 @@ import {
 } from "./pattern";
 import { rotateScale, Scale, transposeScale, chromaticScale } from "./scale";
 import { TrackId } from "./tracks";
-import { lastTransformAtTick, Transform } from "./transform";
+import { lastTransformAtTick, Transform, transformPattern } from "./transform";
 import { Tick } from "./units";
 import { MIDI } from "./midi";
 
@@ -145,23 +145,19 @@ export const getClipStream = (
     }
 
     // Get the pattern stream
-    let patternStream: PatternStream = [];
-    patternStream = realizePattern(pattern, newScale);
+    const transformedPattern = transformPattern(
+      pattern,
+      {
+        N: transform?.chromaticTranspose ?? 0,
+        T: transform?.scalarTranspose ?? 0,
+        t: transform?.chordalTranspose ?? 0,
+      },
+      newScale
+    );
+    const transformedStream = transformedPattern.stream;
 
-    // Get the offsets
-    const N = transform?.chromaticTranspose ?? 0;
-    const T = transform?.scalarTranspose ?? 0;
-    const t = transform?.chordalTranspose ?? 0;
-
-    // Transpose stream
-    let transposedStream: PatternStream;
-    const s1 = transposePatternStream(patternStream, T, newScale);
-    const s2 = rotatePatternStream(s1, t);
-    const s3 = transposePatternStream(s2, N, chromaticScale);
-    transposedStream = s3;
-
-    // Add the transposed stream to the stream
-    const clipChord = transposedStream[chordCount - 1];
+    // Add the transformed stream to the stream
+    const clipChord = transformedStream[chordCount - 1];
     if (!clipChord) {
       stream.push([]);
       continue;

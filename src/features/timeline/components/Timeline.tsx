@@ -4,19 +4,19 @@ import DataGrid, {
   FormatterProps,
   HeaderRendererProps,
 } from "react-data-grid";
-import { Row, TimelineProps } from ".";
+import { Row, TimelineProps } from "..";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Track from "./track";
-import TimeFormatter from "./time";
+import Track from "../track";
+import TimeFormatter from "../time";
 import "./Timeline.css";
-import Cell from "./cell";
+import Cell from "../cell";
 import * as Constants from "appConstants";
-import TimelineClips from "./clips";
-import TimelineTransforms from "./transforms";
-import DataGridBackground from "./components/Background";
-import TimelineContextMenu from "./components/ContextMenu";
-import TimelineCursor from "./components/Cursor";
-import useTimelineShortcuts from "./hooks/useTimelineShortcuts";
+import TimelineClips from "../clips";
+import TimelineTransforms from "../transforms";
+import DataGridBackground from "./Background";
+import TimelineContextMenu from "./ContextMenu";
+import TimelineCursor from "./Cursor";
+import useTimelineShortcuts from "../hooks/useTimelineShortcuts";
 
 export function Timeline(props: TimelineProps) {
   const { trackMap, cellWidth } = props;

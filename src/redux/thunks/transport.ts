@@ -1,12 +1,12 @@
 import { startTone } from "index";
 import {
   selectTransport,
-  selectTracks,
   selectPatternTrackSamplers,
   selectChordsByTicks,
   selectTransportEndTick,
   selectPatternTrackMap,
   selectRoot,
+  selectPatternTracks,
 } from "redux/selectors";
 import {
   _loopTransport,
@@ -37,12 +37,11 @@ import {
   createGlobalInstrument,
   createInstrument,
   destroyInstruments,
-  getSampler,
+  getLiveSampler,
   isSamplerLoaded,
-  playPatternChord,
 } from "types/instrument";
 
-import { Tick } from "types";
+import { Tick, playPatternChord } from "types";
 import encodeWAV from "audiobuffer-to-wav";
 import { sleep } from "utils";
 
@@ -51,7 +50,10 @@ const { _startTransport, _pauseTransport, _stopTransport, _seekTransport } =
 
 export const startTransport = (): AppThunk => (dispatch, getState) => {
   // Make sure the context is started
-  if (getContext().state !== "running") return startTone(true);
+  if (getContext().state !== "running") {
+    stopTransport();
+    startTone(true);
+  }
 
   const oldState = getState();
   const transport = selectTransport(oldState);
@@ -78,7 +80,7 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
 
           // If not loaded, try to get a new sampler
           if (!isSamplerLoaded(sampler)) {
-            const newSampler = getSampler(trackId);
+            const newSampler = getLiveSampler(trackId);
             if (!newSampler?.loaded || newSampler?.disposed) continue;
             // Update the samplers
             samplers = { ...samplers, [trackId]: newSampler };
@@ -311,7 +313,7 @@ export const loadTransport = (): AppThunk => async (dispatch, getState) => {
   // Build the instruments
   const state = getState();
   const transport = selectTransport(state);
-  const tracks = selectTracks(state);
+  const tracks = selectPatternTracks(state);
   try {
     dispatch(setLoaded(false));
     // Wait for the context to start
@@ -340,10 +342,8 @@ export const loadTransport = (): AppThunk => async (dispatch, getState) => {
 };
 
 export const unloadTransport = (): AppThunk => (dispatch) => {
-  dispatch(_stopTransport());
+  dispatch(stopTransport());
   dispatch(setLoaded(false));
   dispatch(setLoading(false));
-  Transport.cancel();
-  Transport.stop();
   destroyInstruments();
 };
