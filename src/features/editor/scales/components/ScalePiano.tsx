@@ -6,6 +6,7 @@ import { MIDI } from "types/midi";
 interface ScalePianoProps extends ScaleEditorProps {
   sampler: Sampler;
 }
+
 export function ScalePiano(props: ScalePianoProps) {
   const { scale, sampler } = props;
 
@@ -23,6 +24,7 @@ export function ScalePiano(props: ScalePianoProps) {
 
   return (
     <EditorPiano
+      show={props.showingPiano}
       className={`border-t-8 ${
         props.adding
           ? "border-t-emerald-400"

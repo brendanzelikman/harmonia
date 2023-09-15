@@ -1,22 +1,6 @@
 import * as Effects from "types/effect";
 import { useRef } from "react";
-import {
-  ChorusProps,
-  DelayProps,
-  PingPongDelayProps,
-  Effect,
-  EffectId,
-  ReverbProps,
-  WarpProps,
-  DistortionProps,
-  PhaserProps,
-  TremoloProps,
-  FilterProps,
-  EQProps,
-  CompressorProps,
-  LimiterProps,
-  INSTRUMENTS,
-} from "types";
+import { INSTRUMENTS, Effect, EffectId } from "types";
 import { Slider } from "components/Slider";
 import { InstrumentEditorProps } from "..";
 import { useEffectDrop, useEffectDrag } from "../hooks/useEffectDnd";
@@ -50,9 +34,9 @@ export function InstrumentEffects(props: InstrumentEffectsProps) {
 
   return (
     <div
-      className={`w-full min-h-[8.5rem] my-4 flex-shrink-0 text-white text-[28px] overflow-scroll flex items-center`}
+      className={`w-full min-h-[8.5rem] flex-shrink-0 text-white text-[28px] overflow-scroll flex items-center`}
     >
-      <div className="flex flex-col w-full h-full min-h-[14rem]">
+      <div className="flex flex-col w-full h-full min-h-[10rem]">
         <div className="flex w-full overflow-scroll">
           {mixer.effects.map((effect, index) =>
             mapEffectToSliders(effect, index)
@@ -71,7 +55,7 @@ export interface DraggableEffectProps extends InstrumentEditorProps {
 }
 
 export const InstrumentEffect = (props: DraggableEffectProps) => {
-  const { effect, track, mixer } = props;
+  const { effect, updateMixerEffect, track, mixer } = props;
 
   // Ref information
   const ref = useRef<HTMLDivElement>(null);
@@ -84,52 +68,8 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
 
   if (!track || !mixer) return null;
 
-  const setTrackWarp = (warpProps: Partial<WarpProps>) => {
-    props.updateMixerEffect(mixer.id, { ...warpProps, id: effect.id });
-  };
-
-  const setTrackReverb = (reverbProps: Partial<ReverbProps>) => {
-    props.updateMixerEffect(mixer.id, { ...reverbProps, id: effect.id });
-  };
-
-  const setTrackChorus = (chorusProps: Partial<ChorusProps>) => {
-    props.updateMixerEffect(mixer.id, { ...chorusProps, id: effect.id });
-  };
-
-  const setTrackDelay = (delayProps: Partial<DelayProps>) => {
-    props.updateMixerEffect(mixer.id, { ...delayProps, id: effect.id });
-  };
-
-  const setTrackPingPongDelay = (delayProps: Partial<PingPongDelayProps>) => {
-    props.updateMixerEffect(mixer.id, { ...delayProps, id: effect.id });
-  };
-
-  const setTrackDistortion = (distortionProps: Partial<DistortionProps>) => {
-    props.updateMixerEffect(mixer.id, { ...distortionProps, id: effect.id });
-  };
-
-  const setTrackPhaser = (phaserProps: Partial<PhaserProps>) => {
-    props.updateMixerEffect(mixer.id, { ...phaserProps, id: effect.id });
-  };
-
-  const setTrackTremolo = (tremoloProps: Partial<TremoloProps>) => {
-    props.updateMixerEffect(mixer.id, { ...tremoloProps, id: effect.id });
-  };
-
-  const setTrackFilter = (filterProps: Partial<FilterProps>) => {
-    props.updateMixerEffect(mixer.id, { ...filterProps, id: effect.id });
-  };
-
-  const setTrackEQ = (eqProps: Partial<EQProps>) => {
-    props.updateMixerEffect(mixer.id, { ...eqProps, id: effect.id });
-  };
-
-  const setTrackCompressor = (compressorProps: Partial<CompressorProps>) => {
-    props.updateMixerEffect(mixer.id, { ...compressorProps, id: effect.id });
-  };
-
-  const setTrackLimiter = (limiterProps: Partial<LimiterProps>) => {
-    props.updateMixerEffect(mixer.id, { ...limiterProps, id: effect.id });
+  const setTrackEffect = (props: Partial<Effects.EffectProps>) => {
+    updateMixerEffect(mixer.id, { ...props, id: effect.id });
   };
 
   const ResetEffectButton = (effect: Effect) => (
@@ -149,7 +89,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
     </div>
   );
 
-  const name = Effects.EFFECT_NAMES[effect.type] ?? "Effect";
+  const name = Effects.EFFECT_NAMES[effect.key] ?? "Effect";
   const liveMixer = INSTRUMENTS[track.id]?.mixer;
   const trackEffect = liveMixer?.getEffectById(effect.id);
   const wasDisposed = !trackEffect || trackEffect?.node?.disposed;
@@ -178,45 +118,14 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
           {RemoveEffectButton(effect)}
         </div>
         <div className="w-full flex" draggable onDragStart={cancelEvent}>
-          {effect.type === "warp" ? (
+          {effect.key === "reverb" ? (
             <>
               <Slider
                 min={Effects.MIN_WET}
                 max={Effects.MAX_WET}
                 defaultValue={Effects.DEFAULT_WET}
                 value={effect.wet}
-                onValueChange={(wet) => setTrackWarp({ wet })}
-                step={0.01}
-                label="Wet"
-              />
-              <Slider
-                min={Effects.MIN_WARP_PITCH}
-                max={Effects.MAX_WARP_PITCH}
-                defaultValue={Effects.DEFAULT_WARP_PITCH}
-                value={effect.pitch}
-                onValueChange={(pitch) => setTrackWarp({ pitch })}
-                step={0.1}
-                label="Pitch"
-              />
-              <Slider
-                min={Effects.MIN_WARP_WINDOW}
-                max={Effects.MAX_WARP_WINDOW}
-                defaultValue={Effects.DEFAULT_WARP_WINDOW}
-                value={effect.window}
-                onValueChange={(window) => setTrackWarp({ window })}
-                step={0.01}
-                label="Window"
-              />
-            </>
-          ) : null}
-          {effect.type === "reverb" ? (
-            <>
-              <Slider
-                min={Effects.MIN_WET}
-                max={Effects.MAX_WET}
-                defaultValue={Effects.DEFAULT_WET}
-                value={effect.wet}
-                onValueChange={(wet) => setTrackReverb({ wet })}
+                onValueChange={(wet) => setTrackEffect({ wet })}
                 step={0.01}
                 label="Wet"
               />
@@ -225,7 +134,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_REVERB_DECAY}
                 defaultValue={Effects.DEFAULT_REVERB_DECAY}
                 value={effect.decay}
-                onValueChange={(decay) => setTrackReverb({ decay })}
+                onValueChange={(decay) => setTrackEffect({ decay })}
                 step={0.01}
                 label="Decay"
               />
@@ -234,20 +143,20 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_REVERB_PREDELAY}
                 defaultValue={Effects.DEFAULT_REVERB_PREDELAY}
                 value={effect.predelay}
-                onValueChange={(predelay) => setTrackReverb({ predelay })}
+                onValueChange={(predelay) => setTrackEffect({ predelay })}
                 step={0.01}
                 label="Predelay"
               />
             </>
           ) : null}
-          {effect.type === "chorus" ? (
+          {effect.key === "chorus" ? (
             <>
               <Slider
                 min={Effects.MIN_WET}
                 max={Effects.MAX_WET}
                 defaultValue={Effects.DEFAULT_WET}
                 value={effect.wet}
-                onValueChange={(wet) => setTrackChorus({ wet })}
+                onValueChange={(wet) => setTrackEffect({ wet })}
                 step={0.01}
                 label="Wet"
               />
@@ -256,7 +165,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_CHORUS_FREQUENCY}
                 defaultValue={Effects.DEFAULT_CHORUS_FREQUENCY}
                 value={effect.frequency}
-                onValueChange={(frequency) => setTrackChorus({ frequency })}
+                onValueChange={(frequency) => setTrackEffect({ frequency })}
                 step={0.01}
                 label="Frequency"
               />
@@ -265,7 +174,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_CHORUS_DEPTH}
                 defaultValue={Effects.DEFAULT_CHORUS_DEPTH}
                 value={effect.depth}
-                onValueChange={(depth) => setTrackChorus({ depth })}
+                onValueChange={(depth) => setTrackEffect({ depth })}
                 step={0.01}
                 label="Depth"
               />
@@ -274,13 +183,13 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_CHORUS_DELAY_TIME}
                 defaultValue={Effects.DEFAULT_CHORUS_DELAY_TIME}
                 value={effect.delay}
-                onValueChange={(delay) => setTrackChorus({ delay })}
+                onValueChange={(delay) => setTrackEffect({ delay })}
                 step={0.01}
                 label="Delay"
               />
             </>
           ) : null}
-          {effect.type === "delay" ? (
+          {effect.key === "feedbackDelay" ? (
             <>
               <Slider
                 min={Effects.MIN_WET}
@@ -288,30 +197,30 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 defaultValue={Effects.DEFAULT_WET}
                 step={0.01}
                 value={effect.wet}
-                onValueChange={(wet) => setTrackDelay({ wet })}
+                onValueChange={(wet) => setTrackEffect({ wet })}
                 label="Wet"
               />
               <Slider
-                min={Effects.MIN_DELAY_TIME}
-                max={Effects.MAX_DELAY_TIME}
-                defaultValue={Effects.DEFAULT_DELAY_TIME}
+                min={Effects.MIN_FEEDBACK_DELAY_TIME}
+                max={Effects.MAX_FEEDBACK_DELAY_TIME}
+                defaultValue={Effects.DEFAULT_FEEDBACK_DELAY_TIME}
                 value={effect.delay}
-                onValueChange={(delay) => setTrackDelay({ delay })}
+                onValueChange={(delay) => setTrackEffect({ delay })}
                 step={0.01}
                 label="Time"
               />
               <Slider
-                min={Effects.MIN_DELAY_FEEDBACK}
-                max={Effects.MAX_DELAY_FEEDBACK}
-                defaultValue={Effects.DEFAULT_DELAY_FEEDBACK}
+                min={Effects.MIN_FEEDBACK_DELAY_FEEDBACK}
+                max={Effects.MAX_FEEDBACK_DELAY_FEEDBACK}
+                defaultValue={Effects.DEFAULT_FEEDBACK_DELAY_FEEDBACK}
                 value={effect.feedback}
-                onValueChange={(feedback) => setTrackDelay({ feedback })}
+                onValueChange={(feedback) => setTrackEffect({ feedback })}
                 step={0.01}
                 label="Feedback"
               />
             </>
           ) : null}
-          {effect.type === "pingPongDelay" ? (
+          {effect.key === "pingPongDelay" ? (
             <>
               <Slider
                 min={Effects.MIN_WET}
@@ -319,7 +228,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 defaultValue={Effects.DEFAULT_WET}
                 step={0.01}
                 value={effect.wet}
-                onValueChange={(wet) => setTrackPingPongDelay({ wet })}
+                onValueChange={(wet) => setTrackEffect({ wet })}
                 label="Wet"
               />
               <Slider
@@ -327,7 +236,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_PING_PONG_DELAY_TIME}
                 defaultValue={Effects.DEFAULT_PING_PONG_DELAY_TIME}
                 value={effect.delay}
-                onValueChange={(delay) => setTrackPingPongDelay({ delay })}
+                onValueChange={(delay) => setTrackEffect({ delay })}
                 step={0.01}
                 label="Time"
               />
@@ -336,15 +245,13 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_PING_PONG_DELAY_FEEDBACK}
                 defaultValue={Effects.DEFAULT_PING_PONG_DELAY_FEEDBACK}
                 value={effect.feedback}
-                onValueChange={(feedback) =>
-                  setTrackPingPongDelay({ feedback })
-                }
+                onValueChange={(feedback) => setTrackEffect({ feedback })}
                 step={0.01}
                 label="Feedback"
               />
             </>
           ) : null}
-          {effect.type === "distortion" ? (
+          {effect.key === "phaser" ? (
             <>
               <Slider
                 min={Effects.MIN_WET}
@@ -352,31 +259,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 defaultValue={Effects.DEFAULT_WET}
                 step={0.01}
                 value={effect.wet}
-                onValueChange={(wet) => setTrackDistortion({ wet })}
-                label="Wet"
-              />
-              <Slider
-                min={Effects.MIN_DISTORTION}
-                max={Effects.MAX_DISTORTION}
-                defaultValue={Effects.DEFAULT_DISTORTION}
-                value={effect.distortion}
-                onValueChange={(distortion) =>
-                  setTrackDistortion({ distortion })
-                }
-                step={0.01}
-                label="Distortion"
-              />
-            </>
-          ) : null}
-          {effect.type === "phaser" ? (
-            <>
-              <Slider
-                min={Effects.MIN_WET}
-                max={Effects.MAX_WET}
-                defaultValue={Effects.DEFAULT_WET}
-                step={0.01}
-                value={effect.wet}
-                onValueChange={(wet) => setTrackPhaser({ wet })}
+                onValueChange={(wet) => setTrackEffect({ wet })}
                 label="Wet"
               />
               <Slider
@@ -384,7 +267,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_PHASER_FREQUENCY}
                 defaultValue={Effects.DEFAULT_PHASER_FREQUENCY}
                 value={effect.frequency}
-                onValueChange={(frequency) => setTrackPhaser({ frequency })}
+                onValueChange={(frequency) => setTrackEffect({ frequency })}
                 step={0.01}
                 label="Frequency"
               />
@@ -393,7 +276,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_PHASER_OCTAVES}
                 defaultValue={Effects.DEFAULT_PHASER_OCTAVES}
                 value={effect.octaves}
-                onValueChange={(octaves) => setTrackPhaser({ octaves })}
+                onValueChange={(octaves) => setTrackEffect({ octaves })}
                 step={1}
                 label="Octaves"
               />
@@ -403,14 +286,14 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 defaultValue={Effects.DEFAULT_PHASER_BASE_FREQUENCY}
                 value={effect.baseFrequency}
                 onValueChange={(baseFrequency) =>
-                  setTrackPhaser({ baseFrequency })
+                  setTrackEffect({ baseFrequency })
                 }
                 step={1}
                 label="Base (Hz)"
               />
             </>
           ) : null}
-          {effect.type === "tremolo" ? (
+          {effect.key === "tremolo" ? (
             <>
               <Slider
                 min={Effects.MIN_WET}
@@ -418,7 +301,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 defaultValue={Effects.DEFAULT_WET}
                 step={0.01}
                 value={effect.wet}
-                onValueChange={(wet) => setTrackTremolo({ wet })}
+                onValueChange={(wet) => setTrackEffect({ wet })}
                 label="Wet"
               />
               <Slider
@@ -426,7 +309,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_TREMOLO_FREQUENCY}
                 defaultValue={Effects.DEFAULT_TREMOLO_FREQUENCY}
                 value={effect.frequency}
-                onValueChange={(frequency) => setTrackTremolo({ frequency })}
+                onValueChange={(frequency) => setTrackEffect({ frequency })}
                 step={0.01}
                 label="Frequency"
               />
@@ -435,20 +318,95 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_TREMOLO_DEPTH}
                 defaultValue={Effects.DEFAULT_TREMOLO_DEPTH}
                 value={effect.depth}
-                onValueChange={(depth) => setTrackTremolo({ depth })}
+                onValueChange={(depth) => setTrackEffect({ depth })}
                 step={0.01}
                 label="Depth"
               />
             </>
           ) : null}
-          {effect.type === "filter" ? (
+          {effect.key === "vibrato" ? (
+            <>
+              <Slider
+                min={Effects.MIN_WET}
+                max={Effects.MAX_WET}
+                defaultValue={Effects.DEFAULT_WET}
+                step={0.01}
+                value={effect.wet}
+                onValueChange={(wet) => setTrackEffect({ wet })}
+                label="Wet"
+              />
+              <Slider
+                min={Effects.MIN_VIBRATO_FREQUENCY}
+                max={Effects.MAX_VIBRATO_FREQUENCY}
+                defaultValue={Effects.DEFAULT_VIBRATO_FREQUENCY}
+                value={effect.frequency}
+                onValueChange={(frequency) => setTrackEffect({ frequency })}
+                step={0.01}
+                label="Frequency"
+              />
+              <Slider
+                min={Effects.MIN_VIBRATO_DEPTH}
+                max={Effects.MAX_VIBRATO_DEPTH}
+                defaultValue={Effects.DEFAULT_VIBRATO_DEPTH}
+                value={effect.depth}
+                onValueChange={(depth) => setTrackEffect({ depth })}
+                step={0.01}
+                label="Depth"
+              />
+            </>
+          ) : null}
+          {effect.key === "distortion" ? (
+            <>
+              <Slider
+                min={Effects.MIN_WET}
+                max={Effects.MAX_WET}
+                defaultValue={Effects.DEFAULT_WET}
+                step={0.01}
+                value={effect.wet}
+                onValueChange={(wet) => setTrackEffect({ wet })}
+                label="Wet"
+              />
+              <Slider
+                min={Effects.MIN_DISTORTION}
+                max={Effects.MAX_DISTORTION}
+                defaultValue={Effects.DEFAULT_DISTORTION}
+                value={effect.distortion}
+                onValueChange={(distortion) => setTrackEffect({ distortion })}
+                step={0.01}
+                label="Distortion"
+              />
+            </>
+          ) : null}
+          {effect.key === "bitcrusher" ? (
+            <>
+              <Slider
+                min={Effects.MIN_WET}
+                max={Effects.MAX_WET}
+                defaultValue={Effects.DEFAULT_WET}
+                step={0.01}
+                value={effect.wet}
+                onValueChange={(wet) => setTrackEffect({ wet })}
+                label="Wet"
+              />
+              <Slider
+                min={Effects.MIN_BITCRUSHER_BITS}
+                max={Effects.MAX_BITCRUSHER_BITS}
+                defaultValue={Effects.DEFAULT_BITCRUSHER_BITS}
+                value={effect.bits}
+                onValueChange={(bits) => setTrackEffect({ bits })}
+                step={1}
+                label="Bits"
+              />
+            </>
+          ) : null}
+          {effect.key === "filter" ? (
             <>
               <Slider
                 min={Effects.MIN_FILTER_FREQUENCY}
                 max={Effects.MAX_FILTER_FREQUENCY}
                 defaultValue={Effects.DEFAULT_FILTER_FREQUENCY}
                 value={effect.frequency}
-                onValueChange={(frequency) => setTrackFilter({ frequency })}
+                onValueChange={(frequency) => setTrackEffect({ frequency })}
                 step={0.01}
                 label="Frequency"
               />
@@ -457,87 +415,91 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_FILTER_Q}
                 defaultValue={Effects.DEFAULT_FILTER_Q}
                 value={effect.Q}
-                onValueChange={(Q) => setTrackFilter({ Q })}
+                onValueChange={(Q) => setTrackEffect({ Q })}
                 step={0.01}
                 label="Q"
               />
             </>
           ) : null}
-          {effect.type === "equalizer" ? (
+          {effect.key === "equalizer" ? (
             <>
               <Slider
-                min={Effects.MIN_EQ_LOW}
-                max={Effects.MAX_EQ_LOW}
-                defaultValue={Effects.DEFAULT_EQ_LOW}
+                min={Effects.MIN_EQUALIZER_LOW}
+                max={Effects.MAX_EQUALIZER_LOW}
+                defaultValue={Effects.DEFAULT_EQUALIZER_LOW}
                 value={effect.low}
-                onValueChange={(low) => setTrackEQ({ low })}
+                onValueChange={(low) => setTrackEffect({ low })}
                 step={0.01}
                 label="Low"
               />
               <Slider
-                min={Effects.MIN_EQ_MID}
-                max={Effects.MAX_EQ_MID}
-                defaultValue={Effects.DEFAULT_EQ_MID}
+                min={Effects.MIN_EQUALIZER_MID}
+                max={Effects.MAX_EQUALIZER_MID}
+                defaultValue={Effects.DEFAULT_EQUALIZER_MID}
                 value={effect.mid}
-                onValueChange={(mid) => setTrackEQ({ mid })}
+                onValueChange={(mid) => setTrackEffect({ mid })}
                 step={0.01}
                 label="Mid"
               />
               <Slider
-                min={Effects.MIN_EQ_HIGH}
-                max={Effects.MAX_EQ_HIGH}
-                defaultValue={Effects.DEFAULT_EQ_HIGH}
+                min={Effects.MIN_EQUALIZER_HIGH}
+                max={Effects.MAX_EQUALIZER_HIGH}
+                defaultValue={Effects.DEFAULT_EQUALIZER_HIGH}
                 value={effect.high}
-                onValueChange={(high) => setTrackEQ({ high })}
+                onValueChange={(high) => setTrackEffect({ high })}
                 step={0.01}
                 label="High"
               />
               <Slider
-                min={Effects.MIN_EQ_LOW_FREQUENCY}
-                max={Effects.MAX_EQ_LOW_FREQUENCY}
-                defaultValue={Effects.DEFAULT_EQ_LOW_FREQUENCY}
+                min={Effects.MIN_EQUALIZER_LOW_FREQUENCY}
+                max={Effects.MAX_EQUALIZER_LOW_FREQUENCY}
+                defaultValue={Effects.DEFAULT_EQUALIZER_LOW_FREQUENCY}
                 value={effect.lowFrequency}
-                onValueChange={(lowFrequency) => setTrackEQ({ lowFrequency })}
-                step={0.01}
+                onValueChange={(lowFrequency) =>
+                  setTrackEffect({ lowFrequency })
+                }
+                step={1}
                 label="Low/Mid"
               />
               <Slider
-                min={Effects.MIN_EQ_HIGH_FREQUENCY}
-                max={Effects.MAX_EQ_HIGH_FREQUENCY}
-                defaultValue={Effects.DEFAULT_EQ_HIGH_FREQUENCY}
+                min={Effects.MIN_EQUALIZER_HIGH_FREQUENCY}
+                max={Effects.MAX_EQUALIZER_HIGH_FREQUENCY}
+                defaultValue={Effects.DEFAULT_EQUALIZER_HIGH_FREQUENCY}
                 value={effect.highFrequency}
-                onValueChange={(highFrequency) => setTrackEQ({ highFrequency })}
-                step={0.01}
+                onValueChange={(highFrequency) =>
+                  setTrackEffect({ highFrequency })
+                }
+                step={1}
                 label="Mid/High"
               />
             </>
           ) : null}
-          {effect.type === "compressor" ? (
+          {effect.key === "compressor" ? (
             <>
-              <Slider
-                min={Effects.MIN_COMPRESSOR_THRESHOLD}
-                max={Effects.MAX_COMPRESSOR_THRESHOLD}
-                defaultValue={Effects.DEFAULT_COMPRESSOR_THRESHOLD}
-                value={effect.threshold}
-                onValueChange={(threshold) => setTrackCompressor({ threshold })}
-                step={0.01}
-                label="Threshold"
-              />
               <Slider
                 min={Effects.MIN_COMPRESSOR_RATIO}
                 max={Effects.MAX_COMPRESSOR_RATIO}
                 defaultValue={Effects.DEFAULT_COMPRESSOR_RATIO}
                 value={effect.ratio}
-                onValueChange={(ratio) => setTrackCompressor({ ratio })}
+                onValueChange={(ratio) => setTrackEffect({ ratio })}
                 step={0.01}
                 label="Ratio"
+              />
+              <Slider
+                min={Effects.MIN_COMPRESSOR_THRESHOLD}
+                max={Effects.MAX_COMPRESSOR_THRESHOLD}
+                defaultValue={Effects.DEFAULT_COMPRESSOR_THRESHOLD}
+                value={effect.threshold}
+                onValueChange={(threshold) => setTrackEffect({ threshold })}
+                step={0.01}
+                label="Threshold"
               />
               <Slider
                 min={Effects.MIN_COMPRESSOR_ATTACK}
                 max={Effects.MAX_COMPRESSOR_ATTACK}
                 defaultValue={Effects.DEFAULT_COMPRESSOR_ATTACK}
                 value={effect.attack}
-                onValueChange={(attack) => setTrackCompressor({ attack })}
+                onValueChange={(attack) => setTrackEffect({ attack })}
                 step={0.001}
                 label="Attack"
               />
@@ -546,7 +508,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_COMPRESSOR_RELEASE}
                 defaultValue={Effects.DEFAULT_COMPRESSOR_RELEASE}
                 value={effect.release}
-                onValueChange={(release) => setTrackCompressor({ release })}
+                onValueChange={(release) => setTrackEffect({ release })}
                 step={0.01}
                 label="Release"
               />
@@ -555,22 +517,66 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 max={Effects.MAX_COMPRESSOR_KNEE}
                 defaultValue={Effects.DEFAULT_COMPRESSOR_KNEE}
                 value={effect.knee}
-                onValueChange={(knee) => setTrackCompressor({ knee })}
+                onValueChange={(knee) => setTrackEffect({ knee })}
                 step={0.01}
                 label="Knee"
               />
             </>
           ) : null}
-          {effect.type === "limiter" ? (
+          {effect.key === "limiter" ? (
             <>
               <Slider
                 min={Effects.MIN_LIMITER_THRESHOLD}
                 max={Effects.MAX_LIMITER_THRESHOLD}
                 defaultValue={Effects.DEFAULT_LIMITER_THRESHOLD}
                 value={effect.threshold}
-                onValueChange={(threshold) => setTrackLimiter({ threshold })}
+                onValueChange={(threshold) => setTrackEffect({ threshold })}
                 step={0.01}
                 label="Threshold"
+              />
+            </>
+          ) : null}
+          {effect.key === "gain" ? (
+            <>
+              <Slider
+                min={Effects.MIN_GAIN}
+                max={Effects.MAX_GAIN}
+                defaultValue={Effects.DEFAULT_GAIN}
+                value={effect.gain}
+                onValueChange={(gain) => setTrackEffect({ gain })}
+                step={0.01}
+                label="Gain"
+              />
+            </>
+          ) : null}
+          {effect.key === "warp" ? (
+            <>
+              <Slider
+                min={Effects.MIN_WET}
+                max={Effects.MAX_WET}
+                defaultValue={Effects.DEFAULT_WET}
+                value={effect.wet}
+                onValueChange={(wet) => setTrackEffect({ wet })}
+                step={0.01}
+                label="Wet"
+              />
+              <Slider
+                min={Effects.MIN_WARP_PITCH}
+                max={Effects.MAX_WARP_PITCH}
+                defaultValue={Effects.DEFAULT_WARP_PITCH}
+                value={effect.pitch}
+                onValueChange={(pitch) => setTrackEffect({ pitch })}
+                step={0.1}
+                label="Pitch"
+              />
+              <Slider
+                min={Effects.MIN_WARP_WINDOW}
+                max={Effects.MAX_WARP_WINDOW}
+                defaultValue={Effects.DEFAULT_WARP_WINDOW}
+                value={effect.window}
+                onValueChange={(window) => setTrackEffect({ window })}
+                step={0.01}
+                label="Window"
               />
             </>
           ) : null}

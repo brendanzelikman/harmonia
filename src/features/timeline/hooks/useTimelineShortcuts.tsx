@@ -16,15 +16,15 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
   const heldKeys = useKeyHolder(["`", "x", "q", "w", "e"]);
 
   const keyKeydown = (key: string) => (e: Event) => {
-    if (isInputEvent(e)) return;
+    if (isInputEvent(e) || isHoldingCommand(e)) return;
     cancelEvent(e);
     const holdingShift = isHoldingShift(e);
     const negative = heldKeys.x || heldKeys["`"];
     const dir = negative ? -1 : 1;
 
     let offset = holdingShift ? 12 * dir : 0;
-    if (key === "-") offset += 10 * dir;
-    else if (key === "=") offset += 11 * dir;
+    if (key === "-" || key === "_") offset += 10 * dir;
+    else if (key === "=" || key === "+") offset += 11 * dir;
     else offset += parseInt(key) * dir;
 
     if (heldKeys.q) {
@@ -64,21 +64,30 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
     }
   };
 
-  const offsets = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "-", "="];
-  const keyMap = offsets.reduce(
-    (acc, offset) => ({
-      ...acc,
-      [offset]: {
-        keydown: keyKeydown(offset),
-      },
-    }),
-    {}
-  );
-
   useEventListeners(
     {
-      ...keyMap,
+      "1": { keydown: keyKeydown("1") },
+      "!": { keydown: keyKeydown("1") },
+      "2": { keydown: keyKeydown("2") },
+      "@": { keydown: keyKeydown("2") },
+      "3": { keydown: keyKeydown("3") },
+      "#": { keydown: keyKeydown("3") },
+      "4": { keydown: keyKeydown("4") },
+      $: { keydown: keyKeydown("4") },
+      "5": { keydown: keyKeydown("5") },
+      "%": { keydown: keyKeydown("5") },
+      "6": { keydown: keyKeydown("6") },
+      "^": { keydown: keyKeydown("6") },
+      "7": { keydown: keyKeydown("7") },
+      "&": { keydown: keyKeydown("7") },
+      "8": { keydown: keyKeydown("8") },
+      "*": { keydown: keyKeydown("8") },
+      "9": { keydown: keyKeydown("9") },
+      "(": { keydown: keyKeydown("9") },
       "0": { keydown: zeroKeydown },
+      ")": { keydown: zeroKeydown },
+      z: { keydown: zeroKeydown },
+
       ArrowUp: {
         keydown: (e) => {
           if (isInputEvent(e)) return;

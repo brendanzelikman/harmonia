@@ -9,10 +9,9 @@ import { setTimelineState } from "redux/slices/timeline";
 import * as Root from "redux/slices/root";
 import { AppDispatch, RootState } from "redux/store";
 import { EditorId } from "types/editor";
+import { selectRoot } from "redux/selectors";
 
-const mapStateToProps = (state: RootState) => {
-  return {};
-};
+const mapStateToProps = (state: RootState) => ({});
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
@@ -104,7 +103,6 @@ function OnboardingTour(props: Props) {
             "border border-slate-600/50 bg-slate-600 p-3 px-4 py-2 rounded-lg mx-2 hover:bg-slate-700 hover:border-slate-600/75",
           action() {
             this.cancel();
-            props.endTour();
           },
         },
       ],
@@ -301,8 +299,6 @@ function OnboardingTour(props: Props) {
             "bg-sky-600 font-bold px-4 py-2 rounded-lg mr-2 mt-5 hover:bg-sky-700 w-full",
           action() {
             this.cancel();
-            props.endTour();
-            setFinished(false);
           },
         },
       ],
@@ -313,6 +309,7 @@ function OnboardingTour(props: Props) {
         });
       },
     },
+    { text: "<div></div>" },
   ];
 
   const tourOptions = {
@@ -344,33 +341,29 @@ function ShepherdTourContent(props: ContentProps) {
   const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
-    const callback = () => {
-      props.setFinished(false);
+    const callback = (finish = true) => {
+      if (finish) props.setFinished(false);
       props.endTour();
       setIsActive(false);
     };
     if (tour) {
       tour.on("start", () => setIsActive(true));
-      tour.on("complete", callback);
-      tour.on("cancel", callback);
+      tour.on("complete", () => callback(false));
+      tour.on("cancel", () => callback(true));
     }
     return () => {
-      if (tour) {
-        tour.off("start", () => setIsActive(true));
-        tour.off("complete", callback);
-        tour.off("cancel", callback);
-        tour.cancel();
-        callback();
-      }
+      callback(true);
     };
-  }, [tour]);
+  }, []);
 
   if (!tour) return null;
 
   const onClick = () => {
     if (tour.isActive()) {
       tour.cancel();
+      setIsActive(false);
       props.endTour();
+      props.setFinished(false);
     } else {
       props.hideEditor();
       tour.start();
@@ -391,7 +384,8 @@ function ShepherdTourContent(props: ContentProps) {
           }`}
         />
       </button>
-      {props.finished && createPortal(<ReactConfetti />, document.body)}
+      {props.finished &&
+        createPortal(<ReactConfetti className="z-[80]" />, document.body)}
     </>
   );
 }

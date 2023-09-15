@@ -13,14 +13,13 @@ export function ScaleEditor(props: ScaleEditorProps) {
   // Score information
   const scale = props.scale as Scale;
   const xml = scale ? Scales.exportToXML(scale?.notes ?? []) : DemoXML;
-  const { score } = useOSMD({
+  const { cursor, score } = useOSMD({
     id: "scale-score",
     xml,
     className: "items-center w-full h-full p-4",
     noteCount: scale?.notes.length ?? 0,
-    ignoreCursor: true,
   });
-  useScaleShortcuts({ ...props, scale });
+  useScaleShortcuts({ ...props, scale, cursor });
 
   // Sampler information
   const [sampler, setSampler] = useState(getGlobalSampler());

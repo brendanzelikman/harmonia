@@ -31,6 +31,9 @@ export const isHoldingCommand = (e: GenericEvent) => {
   const keyboardEvent = e as KeyboardEvent;
   return keyboardEvent.metaKey || keyboardEvent.ctrlKey;
 };
+export const isHoldingModifier = (e: GenericEvent) => {
+  return isHoldingShift(e) || isHoldingOption(e) || isHoldingCommand(e);
+};
 
 export const blurOnEnter = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {

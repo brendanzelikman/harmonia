@@ -1,17 +1,7 @@
 import { Frequency } from "tone";
-import {
-  BPM,
-  Chord,
-  Duration,
-  Note,
-  Pitch,
-  Tick,
-  Time,
-  Velocity,
-} from "./units";
+import { BPM, Note, Pitch, Tick, Time, Velocity } from "./units";
 import { mod } from "utils";
 import { clamp } from "lodash";
-import { PatternChord, PatternNote, isPatternChord } from "./pattern";
 
 export class MIDI {
   public static PPQ = 96;
@@ -30,7 +20,7 @@ export class MIDI {
     MIDI?: number,
     duration?: Tick,
     velocity?: Velocity
-  ): PatternNote => {
+  ) => {
     const noteMIDI = this.clampNote(MIDI);
     const noteDuration = this.clampDuration(duration);
     const noteVelocity = this.clampVelocity(velocity);
@@ -40,7 +30,7 @@ export class MIDI {
       velocity: noteVelocity,
     };
   };
-  public static createRest = (duration?: Tick): PatternNote => {
+  public static createRest = (duration?: Tick) => {
     const noteDuration = clamp(
       duration ?? this.QuarterNoteTicks,
       this.MinDuration,
@@ -316,8 +306,8 @@ export class MIDI {
 
   // MIDI Rests
   public static Rest = -1;
-  public static isRest(note: PatternChord | Note | { MIDI: Note }) {
-    if (isPatternChord(note)) {
+  public static isRest(note: Array<{ MIDI: Note }> | Note | { MIDI: Note }) {
+    if (Array.isArray(note)) {
       return note.some((n) => n.MIDI === this.Rest);
     }
     if (typeof note === "number") {

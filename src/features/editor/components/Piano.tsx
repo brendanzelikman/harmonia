@@ -8,36 +8,36 @@ import { MIDI } from "types/midi";
 
 import { getGlobalSampler } from "types/instrument";
 
-const attackSamplerNote = (sampler: Sampler, midiNumber: number) => {
-  if (!sampler?.loaded || sampler?.disposed) return;
-  const pitch = MIDI.toPitch(midiNumber);
-  sampler.triggerAttack(pitch);
-};
-
-const releaseSamplerNote = (sampler: Sampler, midiNumber: number) => {
-  if (!sampler?.loaded || sampler?.disposed) return;
-  const pitch = MIDI.toPitch(midiNumber);
-  sampler.triggerRelease(pitch);
-};
-
-const playSamplerNote = (sampler: Sampler, midiNumber: number) => {
-  if (!sampler?.loaded || sampler?.disposed) return;
-  const pitch = MIDI.toPitch(midiNumber);
-  sampler.triggerAttackRelease(pitch, "4n");
-};
-
 interface PianoProps {
-  sampler?: Sampler | null;
+  sampler?: Sampler;
   className?: string;
   playNote?: (sampler: Sampler, midiNumber: number) => void;
   stopNote?: (sampler: Sampler, midiNumber: number) => void;
+  show: boolean;
 }
 
 export function EditorPiano(props: PianoProps) {
   const sampler = props.sampler ?? getGlobalSampler();
-
   const hasPlay = props.playNote !== undefined;
   const hasStop = props.stopNote !== undefined;
+
+  const attackSamplerNote = (sampler: Sampler, midiNumber: number) => {
+    if (!sampler?.loaded || sampler?.disposed) return;
+    const pitch = MIDI.toPitch(midiNumber);
+    sampler.triggerAttack(pitch);
+  };
+
+  const releaseSamplerNote = (sampler: Sampler, midiNumber: number) => {
+    if (!sampler?.loaded || sampler?.disposed) return;
+    const pitch = MIDI.toPitch(midiNumber);
+    sampler.triggerRelease(pitch);
+  };
+
+  const playSamplerNote = (sampler: Sampler, midiNumber: number) => {
+    if (!sampler?.loaded || sampler?.disposed) return;
+    const pitch = MIDI.toPitch(midiNumber);
+    sampler.triggerAttackRelease(pitch, "4n");
+  };
 
   const playNote = useMemo(() => {
     if (hasStop) return props.playNote ?? attackSamplerNote;
@@ -70,9 +70,12 @@ export function EditorPiano(props: PianoProps) {
     };
   }, [sampler, playNote, stopNote]);
 
+  if (!props.show) return null;
   return (
-    <div className={`h-40 flex-shrink-0 ${props.className ?? ""}`}>
-      <div className="w-full h-full bg-zinc-900">
+    <div
+      className={`h-40 flex-shrink-0 overflow-scroll ${props.className ?? ""}`}
+    >
+      <div className="w-full min-w-[1000px] overflow-scroll h-full bg-zinc-900">
         <Piano
           noteRange={{
             first: MidiNumbers.fromNote("C1"),

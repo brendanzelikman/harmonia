@@ -8,7 +8,12 @@ import { BsGithub, BsQuestionCircle } from "react-icons/bs";
 import { Transition } from "@headlessui/react";
 import PatternListbox from "./PatternListbox";
 import OnboardingTour from "./OnboardingTour";
-import { cancelEvent, isHoldingCommand, isInputEvent } from "utils";
+import {
+  cancelEvent,
+  isHoldingCommand,
+  isHoldingShift,
+  isInputEvent,
+} from "utils";
 import useEventListeners from "hooks/useEventListeners";
 import { useState } from "react";
 
@@ -18,7 +23,8 @@ export function Navbar() {
     {
       f: {
         keydown: (e) => {
-          if (isInputEvent(e) || isHoldingCommand(e)) return;
+          if (isInputEvent(e) || !isHoldingCommand(e) || !isHoldingShift(e))
+            return;
           cancelEvent(e);
           setShowNavbar(!showNavbar);
         },
@@ -29,45 +35,45 @@ export function Navbar() {
   return (
     <Transition
       show={showNavbar}
-      enter="transition-all duration-150"
+      enter="transition-opacity"
       enterFrom="opacity-0"
-      enterTo="opacity-100"
-      leave="transition-all duration-150"
-      leaveFrom="opacity-100"
+      enterTo="opacity-100 scale-100"
+      leave="transition-opacity"
+      leaveFrom="opacity-100 scale-100"
       leaveTo="opacity-0"
+      as="nav"
+      className="relative h-auto bg-gray-900 border-b-0.5 border-b-slate-700 shadow-xl py-2 text-slate-50 flex flex-nowrap flex-shrink-0 items-center z-30"
     >
-      <nav className="relative h-auto bg-gray-900 border-b-0.5 border-b-slate-700 shadow-xl py-2 text-slate-50 flex flex-nowrap flex-shrink-0 items-center z-30">
-        <NavGroup className="flex-shrink-0 ml-3">
-          <NavBrand />
-        </NavGroup>
-        <NavGroup className="ml-5">
-          <FileControl />
-        </NavGroup>
-        <NavGroup className="ml-3">
-          <Timer />
-        </NavGroup>
-        <NavGroup className="space-x-2 ml-4" role="group">
-          <Transport />
-        </NavGroup>
-        <NavGroup className="ml-5">
-          <PatternListbox />
-        </NavGroup>
-        <NavGroup className="ml-5 mr-3">
-          <PatternControl />
-        </NavGroup>
-        <NavGroup className="relative ml-auto mr-5 hidden md:flex">
-          <Settings />
-          <OnboardingTour />
-          <a
-            href="https://www.github.com/brendanzelikman/harmonia"
-            target="_blank"
-            rel="noreferrer"
-            className="ml-4 text-2xl active:text-sky-600/80"
-          >
-            <BsGithub />
-          </a>
-        </NavGroup>
-      </nav>
+      <NavGroup className="flex-shrink-0 ml-3">
+        <NavBrand />
+      </NavGroup>
+      <NavGroup className="ml-5">
+        <FileControl />
+      </NavGroup>
+      <NavGroup className="ml-3">
+        <Timer />
+      </NavGroup>
+      <NavGroup className="space-x-2 ml-4" role="group">
+        <Transport />
+      </NavGroup>
+      <NavGroup className="ml-5">
+        <PatternListbox />
+      </NavGroup>
+      <NavGroup className="ml-5 mr-3">
+        <PatternControl />
+      </NavGroup>
+      <NavGroup className="relative ml-auto mr-5 hidden md:flex">
+        <Settings />
+        <OnboardingTour />
+        <a
+          href="https://www.github.com/brendanzelikman/harmonia"
+          target="_blank"
+          rel="noreferrer"
+          className="ml-4 text-2xl active:text-sky-600/80"
+        >
+          <BsGithub />
+        </a>
+      </NavGroup>
     </Transition>
   );
 }
@@ -126,12 +132,12 @@ export const NavbarTooltip = (props: any) => (
     className={`absolute top-[3rem] p-1 font-bold font-nunito text-sm rounded border border-slate-50/50 whitespace-nowrap ${
       props.className ?? ""
     }`}
-    enter="transition ease-out duration-75"
-    enterFrom="transform opacity-0 scale-95"
+    enter="transition-all ease-out duration-150"
+    enterFrom="transform opacity-0 scale-75"
     enterTo="transform opacity-100 scale-100"
-    leave="transition ease-in duration-75"
+    leave="transition-all ease-in duration-150"
     leaveFrom="transform opacity-100 scale-100"
-    leaveTo="transform opacity-0 scale-95"
+    leaveTo="transform opacity-0 scale-75"
   >
     {props.content}
   </Transition>
@@ -139,7 +145,7 @@ export const NavbarTooltip = (props: any) => (
 
 export const NavbarFormGroup = (props: any) => (
   <div
-    className={`flex relative items-center justify-center w-full text-white rounded cursor-pointer ${
+    className={`flex h-10 relative items-center justify-center w-full text-white rounded cursor-pointer ${
       props.className ?? ""
     }`}
     onClick={props.onClick}
@@ -163,7 +169,7 @@ export const NavbarFormInput = (props: any, ref?: any) => (
   <input
     {...props}
     onChange={props.onChange}
-    className={`h-8 block px-2 bg-transparent rounded-lg default:text-sm focus:outline-none focus:ring-0 appearance-none ${
+    className={`h-8 block px-2 bg-transparent rounded-lg text-sm focus:outline-none focus:ring-0 appearance-none ${
       props.className ?? ""
     }`}
   />

@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union } from "lodash";
 import { initializeState } from "redux/util";
-import { getLiveMixer, INSTRUMENTS, MixerInstance } from "types";
-import { Mixer, Effect, MixerId, EffectId, EffectType } from "types";
+import { INSTRUMENTS, MixerInstance } from "types";
+import { Mixer, Effect, MixerId, EffectId, EffectKey } from "types";
 import { TrackId } from "types/tracks";
 
 interface TrackMixer extends Mixer {
@@ -37,22 +37,22 @@ const mixersSlice = createSlice({
     },
     addMixerEffect: (
       state,
-      action: PayloadAction<{ mixerId: MixerId; type: EffectType }>
+      action: PayloadAction<{ mixerId: MixerId; key: EffectKey }>
     ) => {
-      const { mixerId, type } = action.payload;
+      const { mixerId, key } = action.payload;
       const mixer = state.byId[mixerId];
       if (!mixer) return;
 
       // Add the effect to the live instrument
-      const mixerInstrument = getLiveMixer(mixer);
+      const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
       if (!mixerInstrument) return;
-      const effectId = mixerInstrument.addEffect(type);
+      const effectId = mixerInstrument.addEffect(key);
 
       // Add the effect to the state
       mixer.effects.push({
-        ...MixerInstance.defaultEffect(type),
+        ...MixerInstance.defaultEffect(key),
         id: effectId,
-        type,
+        key,
       });
     },
     updateMixer: (
@@ -82,7 +82,7 @@ const mixersSlice = createSlice({
       if (!mixer) return;
 
       // Update the effect in the live instrument
-      const mixerInstrument = getLiveMixer(mixer);
+      const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
       if (!mixerInstrument) return;
       mixerInstrument.updateEffectById(effectId, update);
 
@@ -105,7 +105,7 @@ const mixersSlice = createSlice({
       if (!mixer) return;
 
       // Get the live instrument
-      const mixerInstrument = getLiveMixer(mixer);
+      const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
       if (!mixerInstrument) return;
 
       // Get the old index of the effect
@@ -130,7 +130,7 @@ const mixersSlice = createSlice({
       if (!mixer) return;
 
       // Remove the mixer from the live instrument
-      const mixerInstrument = getLiveMixer(mixer);
+      const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
       if (!mixerInstrument) return;
       mixerInstrument?.dispose();
 
@@ -149,7 +149,7 @@ const mixersSlice = createSlice({
       if (!mixer) return;
 
       // Remove the effect from the live instrument
-      const mixerInstrument = getLiveMixer(mixer);
+      const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
       if (!mixerInstrument) return;
       mixerInstrument.removeEffectById(effectId);
 
@@ -173,14 +173,14 @@ const mixersSlice = createSlice({
       if (!effect) return;
 
       // Reset the effect in the live instrument
-      const mixerInstrument = getLiveMixer(mixer);
+      const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
       if (!mixerInstrument) return;
       mixerInstrument.resetEffect(effect);
 
       // Reset the effect in the state
       mixer.effects[index] = {
         ...effect,
-        ...MixerInstance.defaultEffect(effect.type),
+        ...MixerInstance.defaultEffect(effect.key),
         id: effectId,
       };
     },
@@ -190,12 +190,68 @@ const mixersSlice = createSlice({
       if (!mixer) return;
 
       // Remove all effects from the live instrument
-      const mixerInstrument = getLiveMixer(mixer);
+      const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
       if (!mixerInstrument) return;
       mixerInstrument.removeAllEffects();
 
       // Remove all effects from the state
       mixer.effects = [];
+    },
+    muteMixers: (state) => {
+      state.allIds.forEach((id) => {
+        const mixer = state.byId[id];
+        if (!mixer) return;
+
+        // Mute the mixer in the live instrument
+        const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
+        if (!mixerInstrument) return;
+        mixerInstrument.mute = true;
+
+        // Mute the mixer in the state
+        mixer.mute = true;
+      });
+    },
+    unmuteMixers: (state) => {
+      state.allIds.forEach((id) => {
+        const mixer = state.byId[id];
+        if (!mixer) return;
+
+        // Mute the mixer in the live instrument
+        const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
+        if (!mixerInstrument) return;
+        mixerInstrument.mute = false;
+
+        // Mute the mixer in the state
+        mixer.mute = false;
+      });
+    },
+    soloMixers: (state) => {
+      state.allIds.forEach((id) => {
+        const mixer = state.byId[id];
+        if (!mixer) return;
+
+        // Solo the mixer in the live instrument
+        const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
+        if (!mixerInstrument) return;
+        mixerInstrument.solo = false;
+
+        // Solo the mixer in the state
+        mixer.solo = false;
+      });
+    },
+    unsoloMixers: (state) => {
+      state.allIds.forEach((id) => {
+        const mixer = state.byId[id];
+        if (!mixer) return;
+
+        // Solo the mixer in the live instrument
+        const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
+        if (!mixerInstrument) return;
+        mixerInstrument.solo = true;
+
+        // Solo the mixer in the state
+        mixer.solo = true;
+      });
     },
   },
 });
@@ -210,6 +266,10 @@ export const {
   removeMixerEffect,
   resetMixerEffect,
   removeAllMixerEffects,
+  muteMixers,
+  unmuteMixers,
+  soloMixers,
+  unsoloMixers,
 } = mixersSlice.actions;
 
 export default mixersSlice.reducer;

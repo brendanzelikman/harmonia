@@ -7,7 +7,7 @@ import useMetronome from "./useMetronome";
 import { WebMidi } from "webmidi";
 
 interface RecorderProps {
-  transport: Transport;
+  bpm?: number;
   duration?: Tick;
   pickup?: Tick;
   quantization?: Duration;
@@ -16,7 +16,7 @@ interface RecorderProps {
 }
 
 const defaultProps = {
-  transport: defaultTransport,
+  bpm: defaultTransport.bpm,
   duration: MIDI.WholeNoteTicks,
   pickup: MIDI.WholeNoteTicks,
   quantization: "eighth",
@@ -24,6 +24,7 @@ const defaultProps = {
 };
 
 export default function useRecorder(props: RecorderProps = defaultProps) {
+  const bpm = props.bpm ?? defaultProps.bpm;
   const duration = props.duration ?? defaultProps.duration;
   const pickup = props.pickup ?? defaultProps.pickup;
   const quantization = props.quantization ?? defaultProps.quantization;
@@ -33,10 +34,10 @@ export default function useRecorder(props: RecorderProps = defaultProps) {
   const [ticks, setTicks] = useState(0);
 
   const pulse = Math.min(durationToTicks(quantization), MIDI.QuarterNoteTicks);
-  const pulseTime = convertTicksToSeconds(props.transport, pulse);
+  const pulseTime = MIDI.ticksToSeconds(pulse, bpm);
   const pulseInterval = pulseTime * 1000;
 
-  const pickupTime = convertTicksToSeconds(props.transport, pickup);
+  const pickupTime = MIDI.ticksToSeconds(pickup, bpm);
   const pickupInterval = pickupTime * 1000;
 
   const startRecording = () => {

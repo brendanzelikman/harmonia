@@ -12,11 +12,10 @@ import EditorPatterns from "../patterns";
 import EditorScales from "../scales";
 import { useState } from "react";
 import {
+  INSTRUMENTS,
   INSTRUMENT_KEYS,
-  INSTRUMENT_NAMES,
   InstrumentKey,
   createGlobalInstrument,
-  getGlobalInstrument,
   getInstrumentName,
 } from "types/instrument";
 import wholeNote from "assets/noteheads/whole.svg";
@@ -34,9 +33,11 @@ export type StateProps = {
   showingTracks: boolean;
   showingPresets: boolean;
   showingTooltips: boolean;
+  showingPiano: boolean;
   toggleTracks: () => void;
   togglePresets: () => void;
   toggleTooltips: () => void;
+  togglePiano: () => void;
 };
 
 export function Editor(props: EditorProps) {
@@ -49,6 +50,7 @@ export function Editor(props: EditorProps) {
     showingTracks: true,
     showingPresets: true,
     showingTooltips: false,
+    showingPiano: true,
   });
 
   // Extra properties
@@ -58,21 +60,22 @@ export function Editor(props: EditorProps) {
     setState({ ...state, showingPresets: !state.showingPresets });
   const toggleTooltips = () =>
     setState({ ...state, showingTooltips: !state.showingTooltips });
+  const togglePiano = () =>
+    setState({ ...state, showingPiano: !state.showingPiano });
 
   // Full editor state
   const customProps: StateProps = {
-    showingTracks: state.showingTracks,
-    showingPresets: state.showingPresets,
-    showingTooltips: state.showingTooltips,
+    ...state,
     toggleTracks,
     togglePresets,
     toggleTooltips,
+    togglePiano,
   };
   const [showingMenu, setShowingMenu] = useState(false);
 
   const EditorNavbar = () => (
     <div
-      className={`w-full flex justify-center items-center h-[30px] text-white rounded-br-md p-2 text-xs font-light bg-gradient-to-b from-gray-300/20 to-slate-500/30 select-none whitespace-nowrap`}
+      className={`w-full flex justify-center items-center h-[25px] text-white rounded-br-md p-2 text-xs font-light bg-gradient-to-b from-emerald-100/20 to-slate-500/30 select-none whitespace-nowrap`}
     >
       <b
         className="flex font-light capitalize cursor-pointer mr-3 text-md"
@@ -93,6 +96,10 @@ export function Editor(props: EditorProps) {
           <span className="w-1">•</span>
           <span className="cursor-pointer" onClick={toggleTooltips}>
             {state.showingTooltips ? "Hide" : "Show"} Tooltips
+          </span>
+          <span className="w-1">•</span>
+          <span className="cursor-pointer" onClick={togglePiano}>
+            {state.showingPiano ? "Hide" : "Show"} Piano
           </span>
         </div>
       ) : null}
@@ -167,7 +174,8 @@ export const DurationListbox = (
 export const InstrumentListbox = (props: {
   setInstrument: (name: string) => void;
 }) => {
-  const value = (getGlobalInstrument()?.key ?? "grand_piano") as InstrumentKey;
+  const globalInstrument = INSTRUMENTS["global"];
+  const value = (globalInstrument?.key ?? "grand_piano") as InstrumentKey;
   return (
     <EditorListbox
       value={value}
@@ -234,7 +242,7 @@ export const Title = (props: {
     <div
       className={`${
         props.className ?? ""
-      } flex flex-col h-24 mb-5 justify-center font-semibold`}
+      } flex flex-col h-24 mb-2 justify-center font-semibold`}
     >
       <input
         className={`${
@@ -304,7 +312,7 @@ export const Sidebar = (props: { className?: string; children?: any }) => {
 export const Content = (props: { className?: string; children?: any }) => {
   return (
     <div
-      className={`w-full min-h-0 h-full px-8 py-2 flex flex-col overflow-hidden ${
+      className={`w-full min-h-0 h-full px-8 flex flex-col overflow-hidden ${
         props.className ?? ""
       }`}
     >

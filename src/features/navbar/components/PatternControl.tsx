@@ -27,10 +27,12 @@ import * as Timeline from "redux/slices/timeline";
 import { ClipId } from "types/clip";
 import { RepeatOptions, mergeClips, repeatClips } from "redux/thunks/clips";
 import { forwardRef, useEffect, useRef, useState } from "react";
-import { blurOnEnter, isInputEvent } from "utils";
+import { blurOnEnter, isHoldingCommand, isInputEvent } from "utils";
 import useEventListeners from "hooks/useEventListeners";
 import { hideEditor } from "redux/slices/editor";
 import { Toolkit } from "types/root";
+import { Transition } from "@headlessui/react";
+import useKeyHolder from "hooks/useKeyHolder";
 
 const mapStateToProps = (state: RootState) => {
   const root = selectRoot(state);
@@ -182,7 +184,7 @@ function PatternControl(props: Props) {
       // 1 = Focus Chromatic Input
       1: {
         keydown: (e) => {
-          if (isInputEvent(e as KeyboardEvent)) return;
+          if (isInputEvent(e as KeyboardEvent) || isHoldingCommand(e)) return;
           setTimeout(() => {
             if (chromaticRef.current) {
               chromaticRef.current.focus();
@@ -194,7 +196,7 @@ function PatternControl(props: Props) {
       // 2 = Focus Scalar Input
       2: {
         keydown: (e) => {
-          if (isInputEvent(e as KeyboardEvent)) return;
+          if (isInputEvent(e as KeyboardEvent) || isHoldingCommand(e)) return;
           setTimeout(() => {
             if (scalarRef.current) {
               scalarRef.current.focus();
@@ -206,7 +208,7 @@ function PatternControl(props: Props) {
       // 3 = Focus Chordal Input
       3: {
         keydown: (e) => {
-          if (isInputEvent(e as KeyboardEvent)) return;
+          if (isInputEvent(e as KeyboardEvent) || isHoldingCommand(e)) return;
           setTimeout(() => {
             if (chordalRef.current) {
               chordalRef.current.focus();
@@ -224,302 +226,347 @@ function PatternControl(props: Props) {
     props.setToolkitValue("mergeName", mergeNameInput);
   }, [mergeNameInput]);
 
+  const AddClipButton = () => (
+    <div className="relative" id="add-pattern-button">
+      <ControlButton
+        label="Add Pattern Clip"
+        className={`${
+          props.addingClip
+            ? "bg-cyan-700 ring-2 ring-offset-2 ring-cyan-600/80 ring-offset-black"
+            : "bg-cyan-700/80"
+        }`}
+        onClick={props.toggleAdding}
+      >
+        <BsBrush className="p-0.5" />
+      </ControlButton>
+      <NavbarTooltip
+        className="left-[-3rem] bg-cyan-700/80 px-2 backdrop-blur"
+        show={!!props.addingClip}
+        content={`Adding ${props.selectedPattern?.name ?? "Pattern"}`}
+      />
+    </div>
+  );
+
+  const CutClipButton = () => (
+    <div className="relative">
+      <ControlButton
+        label="Cut Pattern Clip"
+        className={`${
+          props.cuttingClip
+            ? "bg-slate-600 ring-2 ring-offset-2 ring-slate-500/80 ring-offset-black"
+            : "bg-slate-600/80"
+        }`}
+        onClick={props.toggleCutting}
+      >
+        <BsScissors />
+      </ControlButton>
+      <NavbarTooltip
+        content="Cutting Pattern Clips"
+        className="left-[-3rem] bg-slate-600/80 px-2 backdrop-blur"
+        show={!!props.cuttingClip}
+      />
+    </div>
+  );
+
+  const MergeClipsButton = () => (
+    <div className="flex flex-col relative h-full">
+      <ControlButton
+        label="Merge Pattern Clips"
+        onClick={props.toggleMerging}
+        className={`${
+          props.mergingClips
+            ? "bg-purple-700 ring-2 ring-offset-2 ring-purple-700/80 ring-offset-black"
+            : "bg-purple-700/80"
+        }`}
+      >
+        <BsLink45Deg />
+      </ControlButton>
+      <NavbarTooltip
+        className="left-[-6rem] bg-purple-800/90 backdrop-blur-lg w-[16rem]"
+        show={!!props.mergingClips}
+        content={
+          <div className="flex flex-col justify-center items-center">
+            <label className="h-7">Merging Pattern Clips</label>
+            <NavbarFormGroup>
+              <NavbarFormLabel className="pr-2">Name</NavbarFormLabel>
+              <NavbarFormInput
+                className="mx-1 w-36 text-sm border-slate-400 focus:border-slate-200 focus:bg-indigo-800/80"
+                placeholder="New Pattern"
+                type="text"
+                value={`${mergeNameInput}` ?? ""}
+                onChange={(e: any) => setMergeNameInput(e.target.value)}
+                onKeyDown={blurOnEnter}
+              />
+            </NavbarFormGroup>
+            <NavbarFormGroup>
+              <NavbarFormLabel>Merge Transpositions?</NavbarFormLabel>
+              <NavbarFormInput
+                className="mx-1 w-6 h-[24px] rounded-full focus:border-slate-200 focus:outline-none"
+                type="checkbox"
+                checked={!!props.mergeTransforms}
+                onChange={() => props.toggleToolkitValue("mergeTransforms")}
+              />
+            </NavbarFormGroup>
+            <NavbarFormGroup className="p-1">
+              <button
+                className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
+                  !props.selectedClipIds.length
+                    ? "opacity-50 cursor-default"
+                    : "opacity-100 cursor-pointer animate-pulse bg-purple-600"
+                }`}
+                disabled={!props.selectedClipIds.length}
+                onClick={() => props.mergeClips(props.selectedClipIds)}
+              >
+                {!props.selectedClipIds.length
+                  ? "Select 1+ Clips"
+                  : "Merge Selected Clips"}
+              </button>
+            </NavbarFormGroup>
+          </div>
+        }
+      />
+    </div>
+  );
+
+  const RepeatClipsButton = () => (
+    <div className="flex flex-col relative">
+      <ControlButton
+        label="Repeat Clips"
+        onClick={props.toggleRepeating}
+        className={`${
+          props.repeatingClips
+            ? "bg-green-600 ring-2 ring-offset-2 ring-green-600/80 ring-offset-black"
+            : "bg-green-600"
+        }`}
+      >
+        <BsClock className="p-0.5" />
+      </ControlButton>
+      <NavbarTooltip
+        className="-left-[9rem] bg-green-600/90 backdrop-blur w-[20rem]"
+        show={!!props.repeatingClips}
+        content={
+          <div className="flex flex-col justify-center items-center py-1">
+            <label className="w-full text-center h-7">
+              Repeating Pattern Clips
+            </label>
+            <NavbarFormGroup>
+              <NavbarFormLabel>Count</NavbarFormLabel>
+              <NavbarFormInput
+                className="mx-1 w-16 border-slate-400 focus:border-slate-200 focus:bg-emerald-700/80"
+                type="number"
+                value={props.repeatCount}
+                onChange={(e: any) =>
+                  props.setToolkitValue("repeatCount", e.target.value)
+                }
+                onKeyDown={blurOnEnter}
+              />
+            </NavbarFormGroup>
+            <NavbarFormGroup>
+              <NavbarFormLabel>Copy Transpositions?</NavbarFormLabel>
+              <NavbarFormInput
+                className="mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none"
+                type="checkbox"
+                checked={!!props.repeatTransforms}
+                onChange={() => {
+                  props.toggleToolkitValue("repeatTransforms");
+                  if (props.repeatWithTranspose) {
+                    props.toggleToolkitValue("repeatWithTranspose");
+                  }
+                }}
+              />
+            </NavbarFormGroup>
+            <NavbarFormGroup>
+              <NavbarFormLabel
+                className={`${
+                  !props.repeatTransforms ? "opacity-50 cursor-default" : ""
+                }`}
+              >
+                Transpose Incrementally?
+              </NavbarFormLabel>
+              <NavbarFormInput
+                className={`mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none`}
+                type="checkbox"
+                checked={!!props.repeatWithTranspose}
+                onChange={() => props.toggleToolkitValue("repeatWithTranspose")}
+                disabled={!props.repeatTransforms}
+              />
+            </NavbarFormGroup>
+            <NavbarFormGroup className="p-1">
+              <button
+                className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
+                  !props.selectedClipIds.length
+                    ? "opacity-50 cursor-default border-slate-400"
+                    : "opacity-100 cursor-pointer bg-emerald-600 animate-pulse"
+                }`}
+                disabled={!props.selectedClipIds.length}
+                onClick={() => {
+                  props.repeatClips(props.selectedClipIds);
+                  props.toggleRepeating();
+                }}
+              >
+                {!props.selectedClipIds.length
+                  ? "Select 1+ Clips"
+                  : "Repeat Selected Clips"}
+              </button>
+            </NavbarFormGroup>
+          </div>
+        }
+      />
+    </div>
+  );
+
+  const TransposeButton = () => (
+    <div className="flex flex-col relative">
+      <ControlButton
+        label="Transpose Clip"
+        onClick={props.toggleTransposing}
+        className={`${
+          props.transposingClip
+            ? "bg-fuchsia-700 ring-2 ring-offset-2 ring-fuchsia-700/80 ring-offset-black"
+            : "bg-fuchsia-700/80"
+        }`}
+      >
+        <BsMagic className="-rotate-90 p-0.5" />
+      </ControlButton>
+      <NavbarTooltip
+        className="-left-[9rem] bg-fuchsia-800/90 backdrop-blur-lg w-[20rem]"
+        show={!!props.transposingClip}
+        content={
+          <div className="flex flex-col justify-center items-center py-1">
+            <label className="w-full text-center h-7 text-md">
+              Adding Transpositions
+            </label>
+            <NavbarFormGroup>
+              <NavbarFormLabel className="inline-flex items-center">
+                <NavbarInfoTooltip
+                  content="Steps along the chromatic scale"
+                  className="mr-2"
+                />
+                Chromatic Offset (N)
+              </NavbarFormLabel>
+              <RefInput
+                ref={chromaticRef}
+                value={transpose.chromatic}
+                onChange={(e: any) => setChromatic(e.target.value)}
+              />
+            </NavbarFormGroup>
+            <NavbarFormGroup>
+              <NavbarFormLabel className="inline-flex items-center">
+                <NavbarInfoTooltip
+                  content="Steps along the track scale"
+                  className="mr-2"
+                />
+                Scalar Offset (T)
+              </NavbarFormLabel>
+              <RefInput
+                ref={scalarRef}
+                value={transpose.scalar}
+                onChange={(e: any) => setScalar(e.target.value)}
+              />
+            </NavbarFormGroup>
+            <NavbarFormGroup>
+              <NavbarFormLabel className="inline-flex items-center">
+                <NavbarInfoTooltip
+                  content="Steps along the chord"
+                  className="mr-2"
+                />
+                Chordal Offset (t)
+              </NavbarFormLabel>
+              <RefInput
+                ref={chordalRef}
+                value={transpose.chordal}
+                onChange={(e: any) => setChordal(e.target.value)}
+              />
+            </NavbarFormGroup>
+            {holdingAlt ? (
+              <>
+                <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
+                  <label className="pb-1 text-sm">Chromatic Offset</label>
+                  <input
+                    className="w-full h-5 text-white bg-slate-200"
+                    type="range"
+                    min={-48}
+                    max={48}
+                    value={parseInt(transpose.chromatic)}
+                    onChange={(e: any) =>
+                      setChromatic(e.target.value.toString())
+                    }
+                    onDoubleClick={() => setChromatic("0")}
+                  />
+                </NavbarFormGroup>
+                <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
+                  <label className="pb-1 text-sm">Scalar Offset</label>
+                  <input
+                    className="w-full h-5 text-white bg-slate-200"
+                    type="range"
+                    min={-48}
+                    max={48}
+                    value={parseInt(transpose.scalar)}
+                    onChange={(e: any) => setScalar(e.target.value.toString())}
+                    onDoubleClick={() => setScalar("0")}
+                  />
+                </NavbarFormGroup>
+                <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
+                  <label className="pb-1 text-sm">Chordal Offset</label>
+                  <input
+                    className="w-full h-5 text-white bg-slate-200"
+                    type="range"
+                    min={-48}
+                    max={48}
+                    value={parseInt(transpose.chordal)}
+                    onChange={(e: any) => setChordal(e.target.value.toString())}
+                    onDoubleClick={() => setChordal("0")}
+                  />
+                </NavbarFormGroup>
+              </>
+            ) : null}
+          </div>
+        }
+      />
+    </div>
+  );
+
+  const heldKeys = useKeyHolder(["q", "w", "e"]);
+
   return (
     <div className="flex space-x-2">
-      {/* Add Pattern Button */}
-      <div className="relative" id="add-pattern-button">
-        <ControlButton
-          label="Add Pattern Clip"
-          className={`${
-            props.addingClip
-              ? "bg-cyan-700 ring-2 ring-offset-2 ring-cyan-600/80 ring-offset-black"
-              : "bg-cyan-700/80"
-          }`}
-          onClick={props.toggleAdding}
-        >
-          <BsBrush className="p-0.5" />
-        </ControlButton>
-        <NavbarTooltip
-          className="left-[-2rem] bg-cyan-700/80 px-2 backdrop-blur"
-          show={!!props.addingClip}
-          content={`Adding ${props.selectedPattern?.name ?? "Pattern"}`}
-        />
-      </div>
-      {/* Cut Pattern Button */}
-      <div className="relative">
-        <ControlButton
-          label="Cut Pattern Clip"
-          className={`${
-            props.cuttingClip
-              ? "bg-slate-600 ring-2 ring-offset-2 ring-slate-500/80 ring-offset-black"
-              : "bg-slate-600/80"
-          }`}
-          onClick={props.toggleCutting}
-        >
-          <BsScissors />
-        </ControlButton>
-        <NavbarTooltip
-          content="Cutting Pattern Clips"
-          className="left-[-3rem] bg-slate-600/80 px-2 backdrop-blur"
-          show={!!props.cuttingClip}
-        />
-      </div>
-      {/* Merge Clips */}
-      <div className="flex flex-col relative h-full">
-        <ControlButton
-          label="Merge Pattern Clips"
-          onClick={props.toggleMerging}
-          className={`${
-            props.mergingClips
-              ? "bg-purple-700 ring-2 ring-offset-2 ring-purple-700/80 ring-offset-black"
-              : "bg-purple-700/80"
-          }`}
-        >
-          <BsLink45Deg />
-        </ControlButton>
-        <NavbarTooltip
-          className="left-[-4rem] bg-purple-800/70 backdrop-blur"
-          show={!!props.mergingClips}
-          content={
-            <div className="flex flex-col justify-center items-center">
-              <label className="pb-2">Merging Pattern Clips</label>
-              <NavbarFormGroup className="pb-2">
-                <NavbarFormLabel className="pr-2">Name</NavbarFormLabel>
-                <NavbarFormInput
-                  className="ml-2 w-36 text-sm border-slate-400 focus:border-slate-200 focus:bg-indigo-800/80"
-                  placeholder="New Pattern"
-                  type="text"
-                  value={`${mergeNameInput}` ?? ""}
-                  onChange={(e: any) => setMergeNameInput(e.target.value)}
-                  onKeyDown={blurOnEnter}
-                />
-              </NavbarFormGroup>
-              <NavbarFormGroup className="pb-3">
-                <NavbarFormLabel>Merge Transpositions?</NavbarFormLabel>
-                <NavbarFormInput
-                  className="w-6 h-[24px] rounded-full focus:border-slate-200 focus:outline-none"
-                  type="checkbox"
-                  checked={!!props.mergeTransforms}
-                  onChange={() => props.toggleToolkitValue("mergeTransforms")}
-                />
-              </NavbarFormGroup>
-              <NavbarFormGroup className="p-1 pt-0">
-                <button
-                  className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
-                    !props.selectedClipIds.length
-                      ? "opacity-50 cursor-default"
-                      : "opacity-100 cursor-pointer animate-pulse bg-purple-600"
-                  }`}
-                  disabled={!props.selectedClipIds.length}
-                  onClick={() => props.mergeClips(props.selectedClipIds)}
-                >
-                  {!props.selectedClipIds.length
-                    ? "Select 1+ Clips"
-                    : "Merge Selected Clips"}
-                </button>
-              </NavbarFormGroup>
-            </div>
-          }
-        />
-      </div>
-      {/* Repeat Clips */}
-      <div className="flex flex-col relative h-full">
-        <ControlButton
-          label="Repeat Clips"
-          onClick={props.toggleRepeating}
-          className={`${
-            props.repeatingClips
-              ? "bg-emerald-600 ring-2 ring-offset-2 ring-emerald-600/80 ring-offset-black"
-              : "bg-emerald-600"
-          }`}
-        >
-          <BsClock className="p-0.5" />
-        </ControlButton>
-        <NavbarTooltip
-          className="left-[-8rem] bg-emerald-700/80 backdrop-blur w-[20rem]"
-          show={!!props.repeatingClips}
-          content={
-            <div className="flex flex-col justify-center items-center">
-              <label className="pt-1 pb-2">Repeating Pattern Clips</label>
-              <NavbarFormGroup className="pb-2">
-                <NavbarFormLabel>Count</NavbarFormLabel>
-                <NavbarFormInput
-                  className="mx-1 w-16 border-slate-400 focus:border-slate-200 focus:bg-emerald-700/80"
-                  type="number"
-                  value={props.repeatCount}
-                  onChange={(e: any) =>
-                    props.setToolkitValue("repeatCount", e.target.value)
-                  }
-                  onKeyDown={blurOnEnter}
-                />
-              </NavbarFormGroup>
-              <NavbarFormGroup className="pb-2">
-                <NavbarFormLabel>Copy Transpositions?</NavbarFormLabel>
-                <NavbarFormInput
-                  className="mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none"
-                  type="checkbox"
-                  checked={!!props.repeatTransforms}
-                  onChange={() => {
-                    props.toggleToolkitValue("repeatTransforms");
-                    if (props.repeatWithTranspose) {
-                      props.toggleToolkitValue("repeatWithTranspose");
-                    }
-                  }}
-                />
-              </NavbarFormGroup>
-              <NavbarFormGroup className="pb-3">
-                <NavbarFormLabel
-                  className={`${
-                    !props.repeatTransforms ? "opacity-50 cursor-default" : ""
-                  }`}
-                >
-                  Transpose Incrementally?
-                </NavbarFormLabel>
-                <NavbarFormInput
-                  className={`mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none`}
-                  type="checkbox"
-                  checked={!!props.repeatWithTranspose}
-                  onChange={() =>
-                    props.toggleToolkitValue("repeatWithTranspose")
-                  }
-                  disabled={!props.repeatTransforms}
-                />
-              </NavbarFormGroup>
-              <NavbarFormGroup className="p-1 pt-0">
-                <button
-                  className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
-                    !props.selectedClipIds.length
-                      ? "opacity-50 cursor-default border-slate-400"
-                      : "opacity-100 cursor-pointer bg-emerald-600 animate-pulse"
-                  }`}
-                  disabled={!props.selectedClipIds.length}
-                  onClick={() => {
-                    props.repeatClips(props.selectedClipIds);
-                    props.toggleRepeating();
-                  }}
-                >
-                  {!props.selectedClipIds.length
-                    ? "Select 1+ Clips"
-                    : "Repeat Selected Clips"}
-                </button>
-              </NavbarFormGroup>
-            </div>
-          }
-        />
-      </div>
-      {/* Transpose Clips/Patterns */}
-      <div className="flex flex-col relative h-full ">
-        <ControlButton
-          label="Transpose Clip"
-          onClick={props.toggleTransposing}
-          className={`${
-            props.transposingClip
-              ? "bg-fuchsia-700 ring-2 ring-offset-2 ring-fuchsia-700/80 ring-offset-black"
-              : "bg-fuchsia-700/80"
-          }`}
-        >
-          <BsMagic className="-rotate-90 p-0.5" />
-        </ControlButton>
-        <NavbarTooltip
-          className="-left-[8rem] bg-fuchsia-700 backdrop-blur-lg w-[20rem]"
-          show={!!props.transposingClip}
-          content={
-            <div className="flex flex-col justify-center items-center pb-1">
-              <label className="w-full text-center pt-1 pb-2 mb-1 text-md">
-                Transposing Tracks/Clips
-              </label>
-              <NavbarFormGroup className="w-full">
-                <NavbarFormLabel className="inline-flex items-center">
-                  <NavbarInfoTooltip
-                    content="Steps along the chromatic scale"
-                    className="mr-2"
-                  />
-                  Chromatic Offset (N)
-                </NavbarFormLabel>
-                <RefInput
-                  ref={chromaticRef}
-                  value={transpose.chromatic}
-                  onChange={(e: any) => setChromatic(e.target.value)}
-                />
-              </NavbarFormGroup>
-              <NavbarFormGroup className="my-1.5">
-                <NavbarFormLabel className="inline-flex items-center">
-                  <NavbarInfoTooltip
-                    content="Steps along the track scale"
-                    className="mr-2"
-                  />
-                  Scalar Offset (T)
-                </NavbarFormLabel>
-                <RefInput
-                  ref={scalarRef}
-                  value={transpose.scalar}
-                  onChange={(e: any) => setScalar(e.target.value)}
-                />
-              </NavbarFormGroup>
-              <NavbarFormGroup>
-                <NavbarFormLabel className="inline-flex items-center">
-                  <NavbarInfoTooltip
-                    content="Steps along the chord"
-                    className="mr-2"
-                  />
-                  Chordal Offset (t)
-                </NavbarFormLabel>
-                <RefInput
-                  ref={chordalRef}
-                  value={transpose.chordal}
-                  onChange={(e: any) => setChordal(e.target.value)}
-                />
-              </NavbarFormGroup>
-              {holdingAlt ? (
-                <>
-                  <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
-                    <label className="pb-1 text-sm">Chromatic Offset</label>
-                    <input
-                      className="w-full h-5 text-white bg-slate-200"
-                      type="range"
-                      min={-48}
-                      max={48}
-                      value={parseInt(transpose.chromatic)}
-                      onChange={(e: any) =>
-                        setChromatic(e.target.value.toString())
-                      }
-                      onDoubleClick={() => setChromatic("0")}
-                    />
-                  </NavbarFormGroup>
-                  <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
-                    <label className="pb-1 text-sm">Scalar Offset</label>
-                    <input
-                      className="w-full h-5 text-white bg-slate-200"
-                      type="range"
-                      min={-48}
-                      max={48}
-                      value={parseInt(transpose.scalar)}
-                      onChange={(e: any) =>
-                        setScalar(e.target.value.toString())
-                      }
-                      onDoubleClick={() => setScalar("0")}
-                    />
-                  </NavbarFormGroup>
-                  <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
-                    <label className="pb-1 text-sm">Chordal Offset</label>
-                    <input
-                      className="w-full h-5 text-white bg-slate-200"
-                      type="range"
-                      min={-48}
-                      max={48}
-                      value={parseInt(transpose.chordal)}
-                      onChange={(e: any) =>
-                        setChordal(e.target.value.toString())
-                      }
-                      onDoubleClick={() => setChordal("0")}
-                    />
-                  </NavbarFormGroup>
-                </>
-              ) : null}
-            </div>
-          }
-        />
-      </div>
+      {AddClipButton()}
+      {CutClipButton()}
+      {MergeClipsButton()}
+      {RepeatClipsButton()}
+      {TransposeButton()}
+      <Transition
+        show={!props.transposingClip && props.selectedTransformIds.length > 0}
+        enter="transition-all duration-300"
+        enterFrom="opacity-0 scale-0"
+        enterTo="opacity-100 scale-100"
+        leave="transition-all duration-300"
+        leaveFrom="opacity-100 scale-100"
+        leaveTo="opacity-0 scale-0"
+        as="div"
+        className="flex flex-col items-center w-12 h-9 font-nunito font-light rounded-lg text-sm"
+      >
+        <label className="text-sm p-0 text-fuchsia-400">Live</label>
+        <div className="flex text-xs space-x-1 text-slate-400">
+          <span
+            className={`${heldKeys.q ? "text-slate-50" : "text-slate-500"}`}
+          >
+            N
+          </span>
+          <span className="w-1">•</span>
+          <span
+            className={`${heldKeys.w ? "text-slate-50" : "text-slate-500"}`}
+          >
+            T
+          </span>
+          <span className="w-1">•</span>
+          <span
+            className={`${heldKeys.e ? "text-slate-50" : "text-slate-500"}`}
+          >
+            t
+          </span>
+        </div>
+      </Transition>
     </div>
   );
 }

@@ -19,7 +19,7 @@ import {
 } from ".";
 import { PatternSequenceTab } from "./PatternSequenceTab";
 import { TransformCoordinate, transformPattern } from "types/transform";
-import { Scale, chromaticScale } from "types";
+import { INSTRUMENTS, Scale, chromaticScale } from "types";
 
 export const patternTabs = ["compose", "record", "transform"];
 export type PatternTab = (typeof patternTabs)[number];
@@ -90,16 +90,8 @@ export function PatternEditor(props: PatternEditorProps) {
   }, [cursor.hidden, inserting]);
 
   // Sampler information
-  const [sampler, setSampler] = useState(getGlobalSampler());
+  const sampler = INSTRUMENTS["global"]?.sampler;
   const [instrument, setInstrument] = useState(getGlobalInstrumentName() || "");
-
-  // Switch sampler with delay (to update state properly)
-  useEffect(() => {
-    setTimeout(() => {
-      const sampler = getGlobalSampler();
-      setSampler(sampler);
-    }, 100);
-  }, [instrument]);
 
   // Function props based on current pattern and cursor
   const onRestClick = () => {

@@ -37,11 +37,10 @@ import {
   createGlobalInstrument,
   createInstrument,
   destroyInstruments,
-  getLiveSampler,
   isSamplerLoaded,
 } from "types/instrument";
 
-import { Tick, playPatternChord } from "types";
+import { INSTRUMENTS, Tick, playPatternChord } from "types";
 import encodeWAV from "audiobuffer-to-wav";
 import { sleep } from "utils";
 
@@ -80,8 +79,9 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
 
           // If not loaded, try to get a new sampler
           if (!isSamplerLoaded(sampler)) {
-            const newSampler = getLiveSampler(trackId);
-            if (!newSampler?.loaded || newSampler?.disposed) continue;
+            const newSampler = INSTRUMENTS[trackId]?.sampler;
+            if (!newSampler) continue;
+            if (!newSampler.loaded || newSampler.disposed) continue;
             // Update the samplers
             samplers = { ...samplers, [trackId]: newSampler };
             sampler = newSampler;

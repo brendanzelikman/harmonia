@@ -1,6 +1,7 @@
 import {
   cancelEvent,
   isHoldingCommand,
+  isHoldingOption,
   isHoldingShift,
   isInputEvent,
   subdivisionToTicks,
@@ -19,7 +20,7 @@ import * as Thunks from "redux/thunks";
 import * as Root from "redux/slices/root";
 import * as Timeline from "redux/slices/timeline";
 import { UndoTypes } from "redux/undoTypes";
-import { readFiles, saveStateToFile } from "redux/util";
+import { clearState, readFiles, saveStateToFile } from "redux/util";
 import useEventListeners from "./useEventListeners";
 import { updateClipsAndTransforms } from "redux/slices/clips";
 import { isPatternTrack } from "types/tracks";
@@ -57,6 +58,16 @@ export default function useShortcuts() {
   // No dependencies
   useEventListeners(
     {
+      // "Command + Option + N" = New Project
+      n: {
+        keydown: (e) => {
+          console.log(e, e as KeyboardEvent);
+          if (isInputEvent(e) || !isHoldingCommand(e) || !isHoldingOption(e))
+            return;
+          cancelEvent(e);
+          clearState();
+        },
+      },
       // "Command + O" = Open
       o: {
         keydown: (e) => {
@@ -162,6 +173,7 @@ export default function useShortcuts() {
         },
       },
 
+      // "Command + D" = Duplicate Timeline Objects
       d: {
         keydown: (e) => {
           if (isInputEvent(e) || editor.show) return;
@@ -173,7 +185,8 @@ export default function useShortcuts() {
       // "m" = Toggle Merging
       m: {
         keydown: (e) => {
-          if (isInputEvent(e) || editor.show) return;
+          if (isInputEvent(e) || isHoldingCommand(e) || editor.show) return;
+          cancelEvent(e);
           dispatch(Timeline.toggleMergingClips());
           dispatch(hideEditor());
         },
@@ -190,7 +203,14 @@ export default function useShortcuts() {
       // "r" = Toggle Repeating
       r: {
         keydown: (e) => {
-          if (isInputEvent(e) || editor.show) return;
+          if (
+            isInputEvent(e) ||
+            editor.show ||
+            isHoldingCommand(e) ||
+            isHoldingShift(e)
+          )
+            return;
+          cancelEvent(e);
           dispatch(Timeline.toggleRepeatingClips());
           dispatch(hideEditor());
         },
@@ -199,14 +219,16 @@ export default function useShortcuts() {
       t: {
         keydown: (e) => {
           if (isInputEvent(e) || editor.show) return;
+          cancelEvent(e);
           dispatch(Timeline.toggleTransposingClip());
           dispatch(hideEditor());
         },
       },
-      // "p" = Toggle Pattern Editor
+      // "Cmd + P" = Toggle Pattern Editor
       p: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
+          cancelEvent(e);
           if (editor.id === "patterns" && editor.show) {
             dispatch(hideEditor());
           } else {
@@ -335,20 +357,37 @@ export default function useShortcuts() {
       // "l" = Toggle Loop
       l: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
+          if (isInputEvent(e) || editor.show) return;
           dispatch(Thunks.setTransportLoop(!transport.loop));
         },
       },
-      _: {
+      // Cmd + Shift + M = Toggle Mute
+      m: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
+          if (isInputEvent(e) || !isHoldingCommand(e) || !isHoldingShift(e))
+            return;
+          cancelEvent(e);
+          dispatch(Thunks.setTransportMute(!transport.mute));
+        },
+      },
+      Dead: {
+        keydown: (e) => {
+          if (isInputEvent(e) || (e as KeyboardEvent).code !== "KeyN") return;
+          clearState();
+        },
+      },
+      // "Cmd + '-'" = Decrease Subdivision
+      "-": {
+        keydown: (e) => {
+          if (editor.show || isInputEvent(e) || !isHoldingCommand(e)) return;
           cancelEvent(e);
           dispatch(Timeline.decreaseSubdivision());
         },
       },
-      "+": {
+      // "Cmd + '+'" = Increase Subdivision
+      "=": {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
+          if (editor.show || isInputEvent(e) || !isHoldingCommand(e)) return;
           cancelEvent(e);
           dispatch(Timeline.increaseSubdivision());
         },

@@ -93,7 +93,6 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(deleteSelectedClipsAndTransforms()),
     selectAllClipsAndTransforms: () => dispatch(selectAllClipsAndTransforms()),
     exportClips: () => dispatch(exportSelectedClipsToMidi()),
-
     addPattern: () => dispatch(addSelectedPatternToTimeline()),
     addPatternTrack: () => dispatch(createPatternTrackFromSelectedTrack()),
     addScaleTrack: () => dispatch(createScaleTrack()),

@@ -3,16 +3,15 @@ import Editor from "features/editor";
 import Timeline from "features/timeline";
 import useShortcuts from "hooks/useShortcuts";
 import { connect, ConnectedProps } from "react-redux";
-import { selectRoot, selectTransport } from "redux/selectors";
+import { selectTransport } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import LoadingPage from "components/LoadingPage";
 import Shortcuts from "features/shortcuts";
 
 const mapStateToProps = (state: RootState) => {
-  const { loaded, recording } = selectTransport(state);
-  const { showingTour } = selectRoot(state);
-  const shouldFade = recording || showingTour;
-  return { loaded, shouldFade };
+  const { loaded } = selectTransport(state);
+
+  return { loaded };
 };
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {};
@@ -38,9 +37,6 @@ function App(props: Props) {
     >
       <Navbar />
       <main className="relative flex w-full flex-auto overflow-hidden">
-        {props.shouldFade ? (
-          <div className={`w-full h-full absolute bg-slate-900/40 z-60`} />
-        ) : null}
         <Timeline />
         <Editor />
         <Shortcuts />

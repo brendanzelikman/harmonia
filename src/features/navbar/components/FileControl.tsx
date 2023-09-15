@@ -136,7 +136,7 @@ function FileControl(props: Props) {
 function FileTooltipContent(props: Props) {
   const SaveToHAMButton = () => (
     <NavbarFormGroup
-      className="py-1 pr-1 hover:bg-sky-700/80"
+      className="pr-1 h-8 hover:bg-sky-700/80"
       onClick={props.saveToHAM}
     >
       <NavbarFormLabel>Save to HAM</NavbarFormLabel>
@@ -148,7 +148,7 @@ function FileTooltipContent(props: Props) {
 
   const SaveToMIDIButton = () => (
     <NavbarFormGroup
-      className="py-1 pr-1 hover:bg-sky-700/80"
+      className="pr-1 h-8 hover:bg-sky-700/80"
       onClick={props.saveToMIDI}
     >
       <NavbarFormLabel>Export to MIDI</NavbarFormLabel>
@@ -163,7 +163,7 @@ function FileTooltipContent(props: Props) {
     const finished = props.exportProgress === 100;
     return (
       <NavbarFormGroup
-        className="py-1 pr-1 hover:bg-sky-700/80"
+        className="pr-1 h-8 hover:bg-sky-700/80"
         onClick={props.recording ? props.stopSavingToWAV : props.saveToWAV}
       >
         <NavbarFormLabel className={``}>Export to WAV</NavbarFormLabel>
@@ -204,7 +204,7 @@ function FileTooltipContent(props: Props) {
 
   const UploadButton = () => (
     <NavbarFormGroup
-      className="py-1 pr-1 hover:bg-sky-700/80"
+      className="pr-1 h-8 hover:bg-sky-700/80"
       onClick={props.loadFromHAM}
     >
       <NavbarFormLabel>Load from HAM</NavbarFormLabel>
@@ -216,7 +216,7 @@ function FileTooltipContent(props: Props) {
 
   const DemoButton = () => (
     <NavbarFormGroup
-      className="py-1 pr-1 hover:bg-sky-700/80"
+      className="pr-1 h-8 hover:bg-sky-700/80"
       onClick={props.loadDemo}
     >
       <NavbarFormLabel>Load Demo</NavbarFormLabel>
@@ -227,8 +227,8 @@ function FileTooltipContent(props: Props) {
   );
 
   const ClearButton = () => (
-    <NavbarFormGroup className="py-1 hover:bg-sky-700/80">
-      <Menu as="div" className="relative inline-block text-left w-full">
+    <NavbarFormGroup className="h-full hover:bg-sky-700/80">
+      <Menu as="div" className="relative inline-block py-1 text-left w-full">
         {({ open, close }) => (
           <>
             <Menu.Button className="pr-1 w-full inline-flex items-center">

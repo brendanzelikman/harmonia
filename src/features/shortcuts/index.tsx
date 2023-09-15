@@ -10,8 +10,8 @@ import { AppDispatch, RootState } from "redux/store";
 
 const ShortcutCategory = (props: { name: string }) => {
   return (
-    <li className="mb-2 flex justify-between items-center border rounded-lg bg-slate-800/25 border-slate-50/20">
-      <h1 className="text-xl font-bold p-3">{props.name}</h1>
+    <li className="mb-4 flex justify-between items-center border rounded-lg bg-slate-800/25 border-slate-50/20">
+      <h1 className="text-lg font-bold px-2 py-1">{props.name}</h1>
     </li>
   );
 };
@@ -29,7 +29,7 @@ const Shortcut = (props: { shortcut: string; description: string }) => {
 
 const ShortcutSection = (props: { children: any }) => {
   return (
-    <li className="xl:min-w-[25rem] xl:min-h-[40rem] xl:text-sm w-[20rem] min-h-[45rem] overflow-scroll text-[10px] flex flex-col p-4 m-4 my-0 border border-slate-200/20 shadow-xl bg-slate-700/70 backdrop-blur rounded-xl">
+    <li className="xl:min-w-[25rem] xl:text-sm w-[20rem] h-full overflow-scroll text-[10px] flex flex-col p-4 m-4 my-2 border border-slate-200/20 shadow-xl bg-slate-700/70 backdrop-blur rounded-xl">
       <ul className="space-y-1 h-full">{props.children}</ul>
     </li>
   );
@@ -44,7 +44,7 @@ const ShortcutButton = (props: {
 }) => {
   return (
     <div
-      className={`m-8 mt-4 px-6 py-3 cursor-pointer text-lg rounded-xl border border-slate-600/50
+      className={`mx-4 mb-4 px-4 py-2 cursor-pointer text-md rounded-md border border-slate-600/50
       ${props.active ? props.activeClass : props.class}`}
       onClick={props.onClick}
     >
@@ -53,21 +53,22 @@ const ShortcutButton = (props: {
   );
 };
 
-function KeyboardShortcuts() {
+function TimelineShortcuts() {
   return (
     <>
       <ShortcutSection>
-        <ShortcutCategory name="Global Shortcuts" />
-        <Shortcut shortcut="Cmd + S" description="Save Project" />
-        <Shortcut shortcut="Cmd + O" description="Open Project" />
-        <Shortcut shortcut="Cmd + Z" description="Undo Action" />
-        <Shortcut shortcut="Cmd + Shift + Z" description="Redo Action" />
-        <Shortcut shortcut="Space" description="Play/Pause" />
-        <Shortcut shortcut="Enter" description="Stop" />
+        <ShortcutCategory name="Project Shortcuts" />
+        <Shortcut shortcut="⌘ + S" description="Save Project" />
+        <Shortcut shortcut="⌘ + O" description="Open Project" />
+        <Shortcut shortcut="⌘ + ⌥ + N" description="New Project" />
+        <Shortcut shortcut="⌘ + Z" description="Undo Action" />
+        <Shortcut shortcut="⌘ + ⇧ + Z" description="Redo Action" />
+        <Shortcut shortcut="Space" description="Play/Pause Timeline" />
+        <Shortcut shortcut="Enter" description="Stop Timeline" />
         <Shortcut shortcut="L" description="Toggle Loop" />
         <Shortcut shortcut="S + Click" description="Set Loop Start" />
         <Shortcut shortcut="E + Click" description="Set Loop End" />
-        <Shortcut shortcut="P" description="Show/Hide Pattern Editor" />
+        <Shortcut shortcut="⌘ + P" description="Show/Hide Pattern Editor" />
         <Shortcut shortcut="Esc" description="Close Editor" />
         <Shortcut
           shortcut="Option + Mute"
@@ -77,12 +78,13 @@ function KeyboardShortcuts() {
           shortcut="Option + Solo"
           description="Solo/Unsolo All Tracks"
         />
-        <Shortcut shortcut="F" description="Toggle Fullscreen" />
-        <Shortcut shortcut="Cmd + ," description="Show/Hide Settings" />
+        <Shortcut shortcut="⌘ + ⇧ + M" description="Toggle Mute" />
+        <Shortcut shortcut="⌘ + ⇧ + F" description="Toggle Fullscreen" />
+        <Shortcut shortcut="⌘ + ," description="Show/Hide Settings" />
         <Shortcut shortcut="?" description="Show/Hide Shortcuts" />
       </ShortcutSection>
       <ShortcutSection>
-        <ShortcutCategory name="Timeline Shortcuts" />
+        <ShortcutCategory name="Session Shortcuts" />
         <Shortcut shortcut="A" description="Start/Stop Adding Clips" />
         <Shortcut shortcut="C" description="Start/Stop Cutting Clips" />
         <Shortcut shortcut="M" description="Start/Stop Merging Clips" />
@@ -97,53 +99,154 @@ function KeyboardShortcuts() {
           description="Select Previous/Next Track"
         />
         <Shortcut shortcut="Click" description="Select a Timeline Object" />
-
         <Shortcut
           shortcut="Option + Click"
           description="Select Individual Timeline Objects"
         />
         <Shortcut
-          shortcut="Shift + Click"
+          shortcut="⇧ + Click"
           description="Select Range of Timeline Objects"
         />
-        <Shortcut
-          shortcut="Cmd + A"
-          description="Select All Timeline Objects"
-        />
-        <Shortcut shortcut="Cmd + C" description="Copy Timeline Objects" />
-        <Shortcut shortcut="Cmd + X" description="Cut Timeline Objects" />
-        <Shortcut shortcut="Cmd + V" description="Paste Timeline Objects" />
-        <Shortcut shortcut="Cmd + D" description="Duplicate Timeline Objects" />
+        <Shortcut shortcut="⌘ + A" description="Select All Timeline Objects" />
+        <Shortcut shortcut="⌘ + C" description="Copy Timeline Objects" />
+        <Shortcut shortcut="⌘ + X" description="Cut Timeline Objects" />
+        <Shortcut shortcut="⌘ + V" description="Paste Timeline Objects" />
+        <Shortcut shortcut="⌘ + D" description="Duplicate Timeline Objects" />
         <Shortcut shortcut="Delete" description="Delete Timeline Objects" />
-      </ShortcutSection>
-      <ShortcutSection>
-        <ShortcutCategory name="Editor Shortcuts" />
-        <Shortcut shortcut="A" description="Start/Stop Adding Notes" />
-        <Shortcut shortcut="1 - 5" description="Select Note Durations" />
-        <Shortcut shortcut="Play Piano" description="Input Note" />
         <Shortcut
-          shortcut="Shift + Play Piano"
-          description="Input Note as Chord "
+          shortcut='⌘ + "+"'
+          description="Zoom In (Increase Subdivision)"
         />
-        <Shortcut shortcut="0" description="Input Rest Note" />
-        <Shortcut shortcut="Delete" description="Start/Stop Removing Notes" />
-        <Shortcut shortcut="Shift + Delete" description="Clear Notes" />
-        <Shortcut shortcut="Space" description="Play Notes" />
+        <Shortcut
+          shortcut='⌘ + "-"'
+          description="Zoom Out (Decrease Subdivision)"
+        />
+      </ShortcutSection>
+
+      <ShortcutSection>
+        <ShortcutCategory name="Live Shortcuts" />
+        <Shortcut shortcut="Hold Q" description="Transpose Chromatically" />
+        <Shortcut shortcut="Hold W" description="Transpose Along the Scale" />
+        <Shortcut shortcut="Hold E" description="Transpose Along the Chord" />
+        <Shortcut shortcut="Hold X / `" description="Apply Negative Offset" />
+        <Shortcut shortcut="Hold ⇧" description="Add 12/-12 to Offset" />
+        <Shortcut shortcut="Up / Down Arrow" description="Transpose Up/Down" />
+
+        <Shortcut shortcut="0" description="Set Absolute Value to 0" />
+        <Shortcut shortcut="1" description="Add 1/-1 to Offset and Transpose" />
+        <Shortcut shortcut="2" description="Add 2/-2 to Offset and Transpose" />
+        <Shortcut shortcut="3" description="Add 3/-3 to Offset and Transpose" />
+        <Shortcut shortcut="4" description="Add 4/-4 to Offset and Transpose" />
+        <Shortcut shortcut="5" description="Add 5/-5 to Offset and Transpose" />
+        <Shortcut shortcut="6" description="Add 6/-6 to Offset and Transpose" />
+        <Shortcut shortcut="7" description="Add 7/-7 to Offset and Transpose" />
+        <Shortcut shortcut="8" description="Add 8/-8 to Offset and Transpose" />
+        <Shortcut shortcut="9" description="Add 9/-9 to Offset and Transpose" />
+        <Shortcut
+          shortcut="-"
+          description="Add 10/-10 to Offset and Transpose"
+        />
+        <Shortcut
+          shortcut="="
+          description="Add 11/-11 to Offset and Transpose"
+        />
+      </ShortcutSection>
+    </>
+  );
+}
+
+function EditorShortcuts() {
+  return (
+    <>
+      <ShortcutSection>
+        <ShortcutCategory name="Pattern Editor Shortcuts" />
+        <Shortcut shortcut="1-7" description="Select Note Durations" />
+        <Shortcut shortcut="A" description="Start/Stop Adding Notes" />
+        <Shortcut shortcut="Delete" description="Remove Note" />
+        <Shortcut shortcut="Play Piano" description="Input Note" />
+        <Shortcut shortcut="⇧ + Play Piano" description="Input Note As Chord" />
+        <Shortcut shortcut="0" description="Input Rest" />
+        <Shortcut shortcut="." description="Toggle Dotted Duration" />
+        <Shortcut shortcut="t" description="Toggle Triplet Duration" />
+        <Shortcut shortcut="⇧ + Space" description="Play Pattern" />
+        <Shortcut shortcut="⇧ + Delete" description="Clear Pattern" />
         <Shortcut shortcut="C" description="Show/Hide Cursor" />
-        <Shortcut shortcut="X" description="Set Note As Anchor" />
+        <Shortcut shortcut="X" description="Start/Stop Anchoring Note" />
         <Shortcut
           shortcut="Left/Right Arrow"
           description="Move Cursor Left/Right"
         />
         <Shortcut
-          shortcut="Up/Down Arrow"
-          description="Transpose Note Up/Down"
+          shortcut="⇧ + Left/Right Arrow"
+          description="Skip Cursor Left/Right"
         />
-        <Shortcut shortcut="T" description="Transpose Along the Chord" />
-        <Shortcut shortcut="Shift + T" description="Transpose Chromatically" />
+        <Shortcut
+          shortcut="Up/Down Arrow"
+          description="Transpose by Semitone"
+        />
+        <Shortcut
+          shortcut="⇧ + Up/Down Arrow"
+          description="Transpose by Octave"
+        />
+        <Shortcut shortcut="⇧ + X" description="Export Pattern to MusicXML" />
+        <Shortcut shortcut="⇧ + M" description="Export Pattern to MIDI" />
+      </ShortcutSection>
+      <ShortcutSection>
+        <ShortcutCategory name="Scale Editor Shortcuts" />
+        <Shortcut shortcut="A" description="Start/Stop Adding Notes" />
+        <Shortcut shortcut="Delete" description="Start/Stop Removing Notes" />
 
-        <Shortcut shortcut="Shift + M" description="Export Notes to MIDI" />
-        <Shortcut shortcut="Shift + X" description="Export Notes to MusicXML" />
+        <Shortcut shortcut="Play Piano" description="Input Note" />
+        <Shortcut shortcut="⇧ + Space" description="Play Scale" />
+        <Shortcut shortcut="⇧ + Delete" description="Clear Scale" />
+        <Shortcut shortcut="C" description="Show/Hide Cursor" />
+        <Shortcut
+          shortcut="Cursor + Delete"
+          description="Remove Selected Note"
+        />
+        <Shortcut
+          shortcut="Left/Right Arrow"
+          description="Move Cursor Left/Right"
+        />
+        <Shortcut
+          shortcut="⇧ + Left/Right Arrow"
+          description="Skip Cursor Left/Right"
+        />
+        <Shortcut
+          shortcut="Up/Down Arrow"
+          description="Transpose by Semitone"
+        />
+        <Shortcut
+          shortcut="⇧ + Up/Down Arrow"
+          description="Transpose by Octave"
+        />
+        <Shortcut shortcut="⇧ + S" description="Save Scale to Collection" />
+        <Shortcut shortcut="⇧ + X" description="Export Scale to MusicXML" />
+        <Shortcut shortcut="⇧ + M" description="Export Scale to MIDI" />
+      </ShortcutSection>
+      <ShortcutSection>
+        <ShortcutCategory name="Instrument Editor Shortcuts" />
+        <Shortcut shortcut="R" description="Add Reverb" />
+        <Shortcut shortcut="C" description="Add Chorus" />
+        <Shortcut shortcut="P" description="Add Phaser" />
+        <Shortcut shortcut="T" description="Add Tremolo" />
+        <Shortcut shortcut="V" description="Add Vibrato" />
+        <Shortcut shortcut="F" description="Add Filter" />
+        <Shortcut shortcut="E" description="Add Equalizer" />
+        <Shortcut shortcut="D" description="Add Distortion" />
+        <Shortcut shortcut="B" description="Add Bitcrusher" />
+        <Shortcut shortcut="⇧ + F" description="Add Feedback Delay" />
+        <Shortcut shortcut="⇧ + P" description="Add Ping Pong Delay" />
+        <Shortcut shortcut="⇧ + C" description="Add Compressor" />
+        <Shortcut shortcut="L" description="Add Limiter" />
+        <Shortcut shortcut="G" description="Add Gain" />
+        <Shortcut shortcut="W" description="Add Warp" />
+        <Shortcut shortcut="Delete" description="Delete Last Effect" />
+        <Shortcut shortcut="⇧ + Delete" description="Delete All Effects" />
+        <Shortcut
+          shortcut="Left/Right Arrow"
+          description="Previous/Next Instrument"
+        />
       </ShortcutSection>
     </>
   );
@@ -181,7 +284,7 @@ function TranspositionWizard() {
           {({ open }) => (
             <div className="mb-4 relative">
               <Listbox.Button className="w-full flex justify-between items-center border rounded-lg bg-slate-800/25 border-slate-50/20">
-                <h1 className="text-xl font-bold p-3">{scaleOption}</h1>
+                <h1 className="text-lg font-bold px-2 py-1">{scaleOption}</h1>
               </Listbox.Button>
               <Transition
                 show={open}
@@ -195,7 +298,7 @@ function TranspositionWizard() {
               >
                 <Listbox.Options
                   static
-                  className="absolute z-50 w-full py-1 mt-1 overflow-auto text-base bg-slate-500/50 rounded-md shadow-lg max-h-60 focus:outline-none sm:text-sm"
+                  className="absolute z-50 w-full py-1 mt-1 overflow-auto text-base bg-slate-600/50 rounded-md shadow-lg max-h-60 focus:outline-none sm:text-sm"
                 >
                   {scaleOptions.map((option) => (
                     <Listbox.Option
@@ -353,7 +456,7 @@ function TranspositionWizard() {
           {({ open }) => (
             <div className="mb-4 relative">
               <Listbox.Button className="w-full flex justify-between items-center border rounded-lg bg-slate-800/25 border-slate-50/20">
-                <h1 className="text-xl font-bold p-3">{chordOption}</h1>
+                <h1 className="text-lg font-bold px-2 py-1">{chordOption}</h1>
               </Listbox.Button>
               <Transition
                 show={open}
@@ -367,7 +470,7 @@ function TranspositionWizard() {
               >
                 <Listbox.Options
                   static
-                  className="absolute z-50 w-full py-1 mt-1 overflow-auto text-base bg-slate-500/50 rounded-md shadow-lg max-h-60 focus:outline-none sm:text-sm"
+                  className="absolute z-50 w-full py-1 mt-1 overflow-auto text-base bg-slate-600/50 rounded-md shadow-lg max-h-60 focus:outline-none sm:text-sm"
                 >
                   {chordOptions.map((option) => (
                     <Listbox.Option
@@ -479,8 +582,6 @@ function TranspositionWizard() {
   );
 }
 
-type ShortcutView = "shortcuts" | "transpositions";
-
 function mapStateToProps(state: RootState) {
   const root = selectRoot(state);
   return { showingShortcuts: !!root.showingShortcuts };
@@ -499,9 +600,12 @@ type Props = ConnectedProps<typeof connector>;
 
 export default connector(ShortcutsMenu);
 
+type ShortcutView = "timeline" | "editor" | "transpositions";
+
 function ShortcutsMenu(props: Props) {
-  const [view, setView] = useState<ShortcutView>("shortcuts");
-  const viewShortcuts = () => setView("shortcuts");
+  const [view, setView] = useState<ShortcutView>("timeline");
+  const viewTimeline = () => setView("timeline");
+  const viewEditor = () => setView("editor");
   const viewTranspositions = () => setView("transpositions");
   useEventListeners(
     {
@@ -526,12 +630,19 @@ function ShortcutsMenu(props: Props) {
         className="relative font-nunito"
         onClose={props.hideShortcuts}
       >
-        <div className="fixed inset-0 p-2 z-50 bg-slate-800/80 text-slate-200 backdrop-blur overflow-scroll">
+        <div className="fixed flex flex-col inset-0 p-2 pt-4 pb-8 z-50 bg-slate-800/80 text-slate-200 backdrop-blur overflow-scroll">
           <div className="flex justify-center">
             <ShortcutButton
-              title="Keyboard Shortcuts"
-              onClick={viewShortcuts}
-              active={view === "shortcuts"}
+              title="Timeline Shortcuts"
+              onClick={viewTimeline}
+              active={view === "timeline"}
+              activeClass="bg-slate-700/75 drop-shadow-xl"
+              class="hover:bg-slate-600/50 active:bg-slate-800"
+            />
+            <ShortcutButton
+              title="Editor Shortcuts"
+              onClick={viewEditor}
+              active={view === "editor"}
               activeClass="bg-slate-700/75 drop-shadow-xl"
               class="hover:bg-slate-600/50 active:bg-slate-800"
             />
@@ -544,9 +655,9 @@ function ShortcutsMenu(props: Props) {
             />
             <ShortcutButton title="Close Menu" onClick={props.hideShortcuts} />
           </div>
-          {view === "shortcuts" ? (
+          {view === "timeline" ? (
             <Transition.Child
-              className="flex justify-center items-center flex-wrap"
+              className="flex h-full justify-center items-center flex-wrap"
               as="ul"
               enter="transition ease-out duration-300"
               enterFrom="transform opacity-0 scale-95"
@@ -555,12 +666,26 @@ function ShortcutsMenu(props: Props) {
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <KeyboardShortcuts />
+              <TimelineShortcuts />
+            </Transition.Child>
+          ) : null}
+          {view === "editor" ? (
+            <Transition.Child
+              className="flex h-full justify-center items-center flex-wrap"
+              as="ul"
+              enter="transition ease-out duration-300"
+              enterFrom="transform opacity-0 scale-95"
+              enterTo="transform opacity-100 scale-100"
+              leave="transition ease-in duration-300"
+              leaveFrom="transform opacity-100 scale-100"
+              leaveTo="transform opacity-0 scale-95"
+            >
+              <EditorShortcuts />
             </Transition.Child>
           ) : null}
           {view === "transpositions" ? (
             <Transition.Child
-              className="flex justify-center items-center flex-wrap"
+              className="flex h-full justify-center items-center flex-wrap"
               as="ul"
               enter="transition ease-out duration-300"
               enterFrom="transform opacity-0 scale-95"

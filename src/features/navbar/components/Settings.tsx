@@ -121,7 +121,7 @@ function Settings(props: Props) {
             }}
           />
         </NavbarFormGroup>
-        <NavbarFormGroup className="mt-2">
+        <NavbarFormGroup>
           <NavbarFormLabel className="w-36 mr-3">
             16ths / Measure
           </NavbarFormLabel>
@@ -136,7 +136,7 @@ function Settings(props: Props) {
             }}
           />
         </NavbarFormGroup>
-        <NavbarFormGroup className="mt-2">
+        <NavbarFormGroup>
           <NavbarFormLabel className="w-36 mr-3">Zoom (1 - 2)</NavbarFormLabel>
           <NavbarFormInput
             className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
@@ -150,7 +150,7 @@ function Settings(props: Props) {
           />
         </NavbarFormGroup>
         <NavbarFormGroup
-          className="border rounded-lg mt-4 py-2 hover:bg-slate-600/50 active:bg-slate-800/50"
+          className="border border-slate-400 rounded-lg mt-2 py-2 hover:bg-slate-600/50 active:bg-slate-800/50"
           onClick={props.showShortcuts}
         >
           Open Shortcuts Menu

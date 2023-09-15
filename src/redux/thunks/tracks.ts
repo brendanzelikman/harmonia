@@ -3,7 +3,6 @@ import {
   selectClip,
   selectClipTrackMap,
   selectPatternTrack,
-  selectPatternTracks,
   selectScale,
   selectTrack,
   selectTrackMap,
@@ -34,9 +33,14 @@ import { setSelectedTrack } from "redux/slices/root";
 import * as ScaleTracks from "redux/slices/scaleTracks";
 import * as Transforms from "redux/slices/transforms";
 import { createScale } from "redux/slices/scales";
-import { setMixerMute, setMixerSolo } from "./mixers";
 import { hideEditor } from "redux/slices/editor";
 import { initializeMixer } from "types";
+import {
+  muteMixers,
+  unmuteMixers,
+  soloMixers,
+  unsoloMixers,
+} from "redux/slices/mixers";
 
 // Create a scale track
 export const createScaleTrack =
@@ -118,36 +122,20 @@ export const createPatternTrackFromSelectedTrack =
     });
   };
 
-export const muteTracks = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  const patternTracks = selectPatternTracks(state);
-  patternTracks.forEach((track) => {
-    dispatch(setMixerMute(track.mixerId, true));
-  });
+export const muteTracks = (): AppThunk => (dispatch) => {
+  dispatch(muteMixers());
 };
 
-export const unmuteTracks = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  const patternTracks = selectPatternTracks(state);
-  patternTracks.forEach((track) => {
-    dispatch(setMixerMute(track.mixerId, false));
-  });
+export const unmuteTracks = (): AppThunk => (dispatch) => {
+  dispatch(unmuteMixers());
 };
 
-export const soloTracks = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  const patternTracks = selectPatternTracks(state);
-  patternTracks.forEach((track) => {
-    dispatch(setMixerSolo(track.mixerId, true));
-  });
+export const soloTracks = (): AppThunk => (dispatch) => {
+  dispatch(soloMixers());
 };
 
-export const unsoloTracks = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  const patternTracks = selectPatternTracks(state);
-  patternTracks.forEach((track) => {
-    dispatch(setMixerSolo(track.mixerId, false));
-  });
+export const unsoloTracks = (): AppThunk => (dispatch) => {
+  dispatch(unsoloMixers());
 };
 
 export const addTrack =

@@ -4,7 +4,7 @@ import {
 } from "types/instrument";
 import { InstrumentEditorProps } from "..";
 import * as Editor from "features/editor";
-import { Disclosure } from "@headlessui/react";
+import { Disclosure, Transition } from "@headlessui/react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { useCallback } from "react";
 
@@ -50,9 +50,20 @@ export function InstrumentList(props: InstrumentEditorProps) {
                   </span>
                 </div>
               </Disclosure.Button>
-              <Disclosure.Panel>
-                {getCategoryInstruments(category).map(renderInstrument)}
-              </Disclosure.Panel>
+              <Transition
+                show={open}
+                appear
+                enter="transition-all ease-in-out duration-150"
+                enterFrom="opacity-0 transform scale-95"
+                enterTo="opacity-100 transform scale-100"
+                leave="transition-all ease-in-out duration-150"
+                leaveFrom="opacity-100 transform scale-100"
+                leaveTo="opacity-0 transform scale-95"
+              >
+                <Disclosure.Panel>
+                  {getCategoryInstruments(category).map(renderInstrument)}
+                </Disclosure.Panel>
+              </Transition>
             </>
           )}
         </Disclosure>

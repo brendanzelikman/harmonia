@@ -208,7 +208,10 @@ export const selectChordsByTicks = createSelector(
 // Select the duration of a clip in beats
 export const selectClipTicks = createSelector(
   [selectClip, selectClipPattern],
-  getClipTicks
+  (clip, pattern) => {
+    if (!clip || !pattern) return 0;
+    return getClipTicks(clip, pattern);
+  }
 );
 
 export const getClipChordAtTick = (

@@ -5,24 +5,21 @@ import DataGrid, {
   HeaderRendererProps,
 } from "react-data-grid";
 import { Row, TimelineProps } from "..";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Track from "../track";
 import TimeFormatter from "../time";
-import "./Timeline.css";
 import Cell from "../cell";
 import * as Constants from "appConstants";
 import TimelineClips from "../clips";
 import TimelineTransforms from "../transforms";
-import DataGridBackground from "./Background";
-import TimelineContextMenu from "./ContextMenu";
-import TimelineCursor from "./Cursor";
+import TimelineBackground from "./TimelineBackground";
+import TimelineContextMenu from "./TimelineContextMenu";
+import TimelineCursor from "./TimelineCursor";
 import useTimelineShortcuts from "../hooks/useTimelineShortcuts";
+import "./Timeline.css";
 
 export function Timeline(props: TimelineProps) {
-  const { trackMap, cellWidth } = props;
-
   const [timeline, setTimeline] = useState<DataGridHandle>();
-  const background = useRef<HTMLDivElement>(null);
 
   const gridRef = useCallback<(node: DataGridHandle) => void>(
     (node) => {
@@ -38,7 +35,7 @@ export function Timeline(props: TimelineProps) {
   // Create a memoized list of rows for the DataGrid
   const rows: Row[] = useMemo((): Row[] => {
     const rows: Row[] = [];
-    const scaleTrackIds = trackMap.allIds;
+    const scaleTrackIds = props.trackMap.allIds;
 
     // Make sure there are at least the initial number of rows
     let trackIndex = 0;
@@ -51,7 +48,8 @@ export function Timeline(props: TimelineProps) {
       });
 
       // Add the pattern track rows
-      const patternTrackIds = trackMap.byId[scaleTrackId]?.patternTrackIds;
+      const patternTrackIds =
+        props.trackMap.byId[scaleTrackId]?.patternTrackIds;
       if (!patternTrackIds) continue;
       patternTrackIds.forEach((patternTrackId) => {
         rows.push({
@@ -75,7 +73,7 @@ export function Timeline(props: TimelineProps) {
     }
 
     return rows;
-  }, [trackMap]);
+  }, [props.trackMap]);
 
   // Create the track column for the DataGrid
   const trackColumn = useMemo(
@@ -95,7 +93,7 @@ export function Timeline(props: TimelineProps) {
       },
       // Return the top-left corner cell
       headerRenderer: () => (
-        <div className="rdg-corner bg-zinc-900 h-full border-b border-b-slate-50/10 z-[100]">
+        <div className="rdg-corner bg-zinc-900 h-full border-b border-b-slate-50/10">
           <div className="h-full bg-gradient-to-r from-gray-800 to-gray-900 backdrop-blur-md pl-3"></div>
         </div>
       ),
@@ -110,7 +108,7 @@ export function Timeline(props: TimelineProps) {
     (key: string) => ({
       key,
       name: key,
-      width: cellWidth,
+      width: props.cellWidth,
       minWidth: 1,
       formatter(formatterProps: FormatterProps<Row, unknown>) {
         return <Cell {...formatterProps} rows={rows} />;
@@ -122,7 +120,7 @@ export function Timeline(props: TimelineProps) {
         return "bg-transparent";
       },
     }),
-    [rows, cellWidth]
+    [rows, props.cellWidth]
   );
 
   // Create the body cell columns for the DataGrid
@@ -134,36 +132,29 @@ export function Timeline(props: TimelineProps) {
       columns.push(column(`${i}`));
     }
     return columns;
-  }, [column, trackMap]);
+  }, [column, props.trackMap]);
 
   // Columns with the track column prepended
   const trackedColumns = useMemo((): Column<Row>[] => {
     return [trackColumn, ...columns];
   }, [trackColumn, columns]);
 
-  const onScroll = (e: React.UIEvent<HTMLDivElement, UIEvent>) => {
-    if (background.current) {
-      background.current.style.top = `-${e.currentTarget.scrollTop}px`;
-    }
-  };
-
   useEffect(() => {
     if (!timeline?.element) return;
-    if (props.state === "stopped" && props.tick === 0) {
+    if (props.state === "stopped") {
       timeline.element.scrollTo({
         left: 0,
         behavior: "smooth",
       });
       return;
     }
-  }, [props.tick, timeline, props.state]);
+  }, [timeline, props.state]);
 
   useTimelineShortcuts({ ...props, rows });
 
   return (
     <div id="timeline" className="relative w-full h-full">
       <TimelineContextMenu rows={rows} />
-      <DataGridBackground {...{ rows, timeline, background }} />
       <DataGrid
         className="data-grid w-full h-full bg-transparent"
         ref={gridRef}
@@ -172,8 +163,10 @@ export function Timeline(props: TimelineProps) {
         rowHeight={Constants.CELL_HEIGHT}
         headerRowHeight={Constants.HEADER_HEIGHT}
         enableVirtualization={true}
-        onScroll={onScroll}
       />
+      {timeline ? (
+        <TimelineBackground rows={rows} columns={columns} timeline={timeline} />
+      ) : null}
       {timeline ? <TimelineCursor timeline={timeline} /> : null}
       {timeline ? <TimelineClips timeline={timeline} rows={rows} /> : null}
       {timeline ? <TimelineTransforms timeline={timeline} rows={rows} /> : null}

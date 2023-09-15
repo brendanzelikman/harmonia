@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export default function useAnimationFrame(
   callback: () => void,
@@ -8,18 +8,21 @@ export default function useAnimationFrame(
   const animationRef = useRef<number>();
   const timeRef = useRef<number>();
 
-  const animate = (time: number) => {
-    if (timeRef.current !== undefined) {
-      const deltaTime = time - timeRef.current;
-      if (deltaTime < interval) {
-        animationRef.current = requestAnimationFrame(animate);
-        return;
+  const animate = useCallback(
+    (time: number) => {
+      if (timeRef.current !== undefined) {
+        const deltaTime = time - timeRef.current;
+        if (deltaTime < interval) {
+          animationRef.current = requestAnimationFrame(animate);
+          return;
+        }
+        callback();
+        timeRef.current = time;
       }
-      callback();
-      timeRef.current = time;
-    }
-    animationRef.current = requestAnimationFrame(animate);
-  };
+      animationRef.current = requestAnimationFrame(animate);
+    },
+    [callback, interval]
+  );
 
   useEffect(() => {
     if (active) {
@@ -29,5 +32,5 @@ export default function useAnimationFrame(
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current!);
     };
-  }, [active]);
+  }, [active, animate]);
 }

@@ -1,12 +1,6 @@
-import { isPatternTrack, PatternTrack, Track, TrackId } from "./tracks";
-import { Sampler } from "tone";
-import {
-  defaultMixer,
-  initializeMixer,
-  Mixer,
-  MixerId,
-  MixerInstance,
-} from "./mixer";
+import { isPatternTrack, PatternTrack, TrackId } from "./tracks";
+import { Analyser, Sampler } from "tone";
+import { defaultMixer, initializeMixer, Mixer, MixerInstance } from "./mixer";
 
 import categories from "assets/instruments/categories.json";
 import samples from "assets/instruments/samples.json";
@@ -116,9 +110,9 @@ export const createInstrument =
         if (instrument) {
           instrument.sampler?.dispose();
           instrument.mixer?.dispose();
-          delete INSTRUMENTS[track.id];
         }
       }
+
       // Create and instantiate a new mixer
       const trackMixer = track.mixerId.length
         ? { ...defaultMixer, ...oldMixer, trackId: track.id, id: track.mixerId }
@@ -126,12 +120,18 @@ export const createInstrument =
 
       const mixer = new MixerInstance(trackMixer);
       if (!mixer) return Promise.resolve(undefined);
-      // Connect the mixer to the track sampler
+
+      // Connect the sampler
       sampler.connect(mixer.channel);
+
       // Add the sampler + mixer to the global instruments
       if (!offline) {
         dispatch(addMixer(trackMixer));
-        INSTRUMENTS[track.id] = { sampler, mixer, key: track.instrument };
+        INSTRUMENTS[track.id] = {
+          key: track.instrument,
+          sampler,
+          mixer,
+        };
       }
     };
 
@@ -160,13 +160,20 @@ export const createGlobalInstrument = (
           instrument.mixer.dispose();
           delete INSTRUMENTS["global"];
         }
-        // Connect and instantiate a new mixer
+
+        // Create a new mixer
         const mixer = new MixerInstance(defaultMixer);
         if (!mixer.channel) return;
-        // Connect the mixer to the global sampler
+
+        // Connect the sampler
         sampler.connect(mixer.channel);
-        // Add the sampler + mixer to the global instruments
-        INSTRUMENTS["global"] = { sampler, mixer, key: instrumentKey };
+
+        // Add to the global instruments
+        INSTRUMENTS["global"] = {
+          key: instrumentKey,
+          sampler,
+          mixer,
+        };
         resolve();
       },
     });
@@ -192,16 +199,6 @@ export const destroyInstruments = () => {
   });
 };
 
-// Get the sampler of a track
-export const getLiveSampler = (trackId: TrackId) => {
-  return INSTRUMENTS[trackId]?.sampler;
-};
-
-// Get the mixer from the store
-export const getLiveMixer = (mixer: Mixer) => {
-  return INSTRUMENTS[mixer.trackId]?.mixer;
-};
-
 // Update the sampler of a track
 export const updateInstrument =
   (track: PatternTrack): AppThunk =>
@@ -209,14 +206,9 @@ export const updateInstrument =
     dispatch(createInstrument(track));
   };
 
-// Get the global instrument
-export const getGlobalInstrument = () => {
-  return INSTRUMENTS["global"];
-};
-
 // Get the global instrument name
 export const getGlobalInstrumentName = () => {
-  const globalInstrument = getGlobalInstrument();
+  const globalInstrument = INSTRUMENTS["global"];
   if (!globalInstrument) return "Instrument";
   return getInstrumentName(globalInstrument.key as InstrumentKey);
 };

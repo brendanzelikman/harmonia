@@ -240,7 +240,7 @@ export const patternsSlice = createSlice({
         pattern.stream.length / 2
       );
     },
-    lengthenPattern: (state, action: PayloadAction<TransformPattern>) => {
+    continuePattern: (state, action: PayloadAction<TransformPattern>) => {
       const { id, length } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -393,7 +393,7 @@ export const {
   invertPattern,
   repeatPattern,
   halvePattern,
-  lengthenPattern,
+  continuePattern,
   augmentPattern,
   diminishPattern,
   shufflePattern,

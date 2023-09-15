@@ -185,9 +185,9 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     if (!pattern || !isPatternValid(pattern)) return;
     dispatch(Patterns.halvePattern(pattern.id));
   },
-  lengthenPattern: (pattern?: Pattern, length?: number) => {
+  continuePattern: (pattern?: Pattern, length?: number) => {
     if (!pattern || !isPatternValid(pattern)) return;
-    dispatch(Patterns.lengthenPattern({ id: pattern.id, length }));
+    dispatch(Patterns.continuePattern({ id: pattern.id, length }));
   },
   augmentPattern: (pattern?: Pattern) => {
     if (!pattern || !isPatternValid(pattern)) return;

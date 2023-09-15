@@ -1,8 +1,9 @@
 import { createSelector } from "reselect";
 import { RootState } from "redux/store";
 import { TrackId } from "types/tracks";
-import { getLiveSampler } from "types/instrument";
+
 import { Sampler } from "tone";
+import { INSTRUMENTS } from "types";
 
 // Select the ID of a track
 const selectTrackId = (state: RootState, id: TrackId) => id;
@@ -29,7 +30,7 @@ export const selectPatternTrackSamplers = createSelector(
   (tracks) => {
     return tracks.reduce((acc, cur) => {
       if (!cur?.id) return acc;
-      const sampler = getLiveSampler(cur.id);
+      const sampler = INSTRUMENTS[cur.id]?.sampler;
       if (!sampler) return acc;
       return { ...acc, [cur.id]: sampler };
     }, {} as Record<TrackId, Sampler>);

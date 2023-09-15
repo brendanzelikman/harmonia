@@ -24,43 +24,65 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
   const forwardCursor = () =>
     props.cursor.setIndex((props.pattern?.stream.length ?? 1) - 1);
 
-  const lastOctave = useMemo(() => {
-    if (props.cursor.hidden) return 4;
-    if (!props.pattern) return 4;
-    const stream = props.pattern.stream;
-    const chord = stream[props.cursor.index];
-    if (!chord || !chord.length) return 4;
-    return MIDI.toOctave(chord[0].MIDI);
-  }, [props.pattern, props.cursor]);
-
   useEventListeners(
     {
-      // Space = Play Pattern
-      " ": {
+      // 1 = Select 64th Note
+      1: {
         keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingShift(e)) return;
+          if (isInputEvent(e) || isHoldingCommand(e)) return;
           cancelEvent(e);
-          if (props.transformedPattern) {
-            props.playPattern(props.transformedPattern);
-          }
+          props.onDurationClick("64th");
         },
       },
-      // X = Export Pattern to XML
-      X: {
+      // 2 = Select 32nd Note
+      2: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
+          if (isInputEvent(e) || isHoldingCommand(e)) return;
           cancelEvent(e);
-          if (props.pattern) props.exportPatternToXML(props.pattern);
+          props.onDurationClick("32nd");
         },
       },
-      // M = Export Pattern to MIDI
-      M: {
+      // 3 = Select 16th Note
+      3: {
         keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingShift(e)) return;
+          if (isInputEvent(e) || isHoldingCommand(e)) return;
           cancelEvent(e);
-          if (props.pattern) props.exportPatternToMIDI(props.pattern);
+          props.onDurationClick("16th");
         },
       },
+      // 4 = Select Eighth Note
+      4: {
+        keydown: (e) => {
+          if (isInputEvent(e) || isHoldingCommand(e)) return;
+          cancelEvent(e);
+          props.onDurationClick("eighth");
+        },
+      },
+      // 5 = Select Quarter Note
+      5: {
+        keydown: (e) => {
+          if (isInputEvent(e) || isHoldingCommand(e)) return;
+          cancelEvent(e);
+          props.onDurationClick("quarter");
+        },
+      },
+      // 6 = Select Half Note
+      6: {
+        keydown: (e) => {
+          if (isInputEvent(e) || isHoldingCommand(e)) return;
+          cancelEvent(e);
+          props.onDurationClick("half");
+        },
+      },
+      // 7 = Select Whole Note
+      7: {
+        keydown: (e) => {
+          if (isInputEvent(e) || isHoldingCommand(e)) return;
+          cancelEvent(e);
+          props.onDurationClick("whole");
+        },
+      },
+
       // A = Start/Stop Adding Notes
       a: {
         keydown: (e) => {
@@ -72,15 +94,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           }
         },
       },
-      // x = Start/Stop Anchoring Notes
-      x: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          if (props.cursor.hidden) return;
-          props.setState(props.inserting ? "adding" : "inserting");
-        },
-      },
+
       // Delete = Remove Note
       // Shift + Delete = Clear Pattern
       Backspace: {
@@ -100,12 +114,70 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         },
       },
 
+      // 0 = Input Rest
+      0: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          props.onRestClick(props.pattern, props.cursor);
+        },
+      },
+
+      // . = Toggle Dotted Note
+      ".": {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          props.setNoteTiming(
+            props.noteTiming === "dotted" ? "straight" : "dotted"
+          );
+        },
+      },
+
+      // t = Toggle Triplet Note
+      t: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          props.setNoteTiming(
+            props.noteTiming === "triplet" ? "straight" : "triplet"
+          );
+        },
+      },
+
+      // Cmd + N = Create New Pattern
+      n: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
+          cancelEvent(e);
+          props.createPattern();
+        },
+      },
+
+      // Cmd + D = Duplicate Pattern
+      d: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
+          cancelEvent(e);
+          props.copyPattern(props.pattern);
+        },
+      },
+
       // C = Show/Hide Cursor
       c: {
         keydown: (e) => {
           if (isInputEvent(e)) return;
           if (props.pattern)
             props.cursor.hidden ? props.cursor.show() : props.cursor.hide();
+        },
+      },
+      // x = Start/Stop Anchoring Note
+      x: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          if (props.cursor.hidden) return;
+          props.setState(props.inserting ? "adding" : "inserting");
         },
       },
       // Left Arrow = Move Cursor Left
@@ -146,6 +218,24 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           }
         },
       },
+
+      // X = Export Pattern to XML
+      X: {
+        keydown: (e) => {
+          if (isInputEvent(e)) return;
+          cancelEvent(e);
+          if (props.pattern) props.exportPatternToXML(props.pattern);
+        },
+      },
+      // M = Export Pattern to MIDI
+      M: {
+        keydown: (e) => {
+          if (isInputEvent(e) || !isHoldingShift(e)) return;
+          cancelEvent(e);
+          if (props.pattern) props.exportPatternToMIDI(props.pattern);
+        },
+      },
+
       // Up Arrow = Transpose Up Pattern or Note
       ArrowUp: {
         keydown: (e) => {
@@ -190,107 +280,6 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => !isInputEvent(e) && setHoldingAlt(true),
         keyup: (e) => !isInputEvent(e) && setHoldingAlt(false),
       },
-      // 0 = Add/Insert Rest
-      0: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.onRestClick(props.pattern, props.cursor);
-        },
-      },
-      // 1 = Select 16th Note
-      1: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("64th");
-        },
-      },
-      // 2 = Select Eighth Note
-      2: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("32nd");
-        },
-      },
-      // 3 = Select 16th Note
-      // Command + 3 = Select Triplet
-      3: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          if (!isHoldingCommand(e)) {
-            props.onDurationClick("16th");
-            return;
-          }
-          props.setNoteTiming(
-            props.noteTiming === "triplet" ? "straight" : "triplet"
-          );
-        },
-      },
-      // 4 = Select Eighth Note
-      4: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("eighth");
-        },
-      },
-      // 5 = Select Quarter Note
-      5: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("quarter");
-        },
-      },
-      // 6 = Select Half Note
-      6: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("half");
-        },
-      },
-      // 7 = Select Whole Note
-      7: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("whole");
-        },
-      },
-      // . = Select Dotted Note
-      ".": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.setNoteTiming(
-            props.noteTiming === "dotted" ? "straight" : "dotted"
-          );
-        },
-      },
-      // "T" = Prompt for Scalar Transposition
-      T: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          const input = prompt("Transpose pattern by N semitones:");
-          const sanitizedInput = parseInt(input ?? "");
-          if (isNaN(sanitizedInput)) return;
-          props.transposePattern(props.pattern, sanitizedInput);
-        },
-      },
-      // "t" = Prompt for Chordal Transposition
-      t: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          const input = prompt("Transpose pattern along N steps:");
-          const sanitizedInput = parseInt(input ?? "");
-          if (isNaN(sanitizedInput)) return;
-          props.rotatePattern(props.pattern, sanitizedInput);
-        },
-      },
       // "r" = Prompt for repeat
       r: {
         keydown: (e) => {
@@ -300,6 +289,34 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           const sanitizedInput = parseInt(input ?? "");
           if (isNaN(sanitizedInput)) return;
           props.repeatPattern(props.pattern, sanitizedInput);
+        },
+      },
+      // "," = Continue Pattern
+      ",": {
+        keydown: (e) => {
+          if (isInputEvent(e) || !props.pattern) return;
+          if (isHoldingCommand(e)) return;
+          const input = prompt("Continue pattern for N notes:");
+          const sanitizedInput = parseInt(input ?? "");
+          if (isNaN(sanitizedInput)) return;
+          props.continuePattern(props.pattern, sanitizedInput);
+        },
+      },
+
+      // "Cmd + '-'" = Diminish Pattern
+      "-": {
+        keydown: (e) => {
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
+          cancelEvent(e);
+          props.diminishPattern(props.pattern);
+        },
+      },
+      // "Cmd + '+'" = Augment Pattern
+      "=": {
+        keydown: (e) => {
+          if (isInputEvent(e) || !isHoldingCommand(e)) return;
+          cancelEvent(e);
+          props.augmentPattern(props.pattern);
         },
       },
     },

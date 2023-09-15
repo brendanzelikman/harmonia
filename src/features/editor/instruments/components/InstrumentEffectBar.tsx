@@ -1,4 +1,4 @@
-import { EFFECT_NAMES, EFFECT_TYPES, EffectType } from "types";
+import { EFFECT_NAMES, EFFECT_KEYS, EffectKey } from "types";
 import { InstrumentEditorProps } from "..";
 import { BsPlusCircle } from "react-icons/bs";
 
@@ -8,13 +8,13 @@ export function InstrumentEffectBar(props: InstrumentEffectBarProps) {
   const { mixer } = props;
   if (!mixer) return null;
 
-  const AddEffectButton = (type: EffectType) => {
-    const name = EFFECT_NAMES[type];
+  const AddEffectButton = (key: EffectKey) => {
+    const name = EFFECT_NAMES[key];
     return (
       <div
-        key={type}
+        key={key}
         className="capitalize border border-slate-500 hover:bg-slate-500/20 active:bg-slate-800/50 flex items-center h-8 px-2 mb-2 ml-1 mr-2 rounded text-xs whitespace-nowrap cursor-pointer"
-        onClick={() => props.addMixerEffect(mixer.id, type)}
+        onClick={() => props.addMixerEffect(mixer.id, key)}
       >
         {name} <BsPlusCircle className="ml-2" />
       </div>
@@ -38,7 +38,7 @@ export function InstrumentEffectBar(props: InstrumentEffectBarProps) {
 
   return (
     <div className="flex flex-wrap items-center">
-      {EFFECT_TYPES.map((effect) => AddEffectButton(effect))}
+      {EFFECT_KEYS.map((effect) => AddEffectButton(effect))}
       <ClearEffectsButton />
     </div>
   );

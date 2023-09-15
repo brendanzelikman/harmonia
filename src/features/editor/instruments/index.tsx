@@ -3,6 +3,7 @@ import {
   selectSelectedTrackId,
   selectPatternTrack,
   selectMixerById,
+  selectTransport,
 } from "redux/selectors";
 import { setPatternTrackInstrument } from "redux/slices/patternTracks";
 import { AppDispatch, RootState } from "redux/store";
@@ -19,7 +20,7 @@ import { EditorProps } from "..";
 import { EditorInstrument } from "./components/InstrumentEditor";
 import { StateProps } from "../components/Editor";
 import categories from "assets/instruments/categories.json";
-import { EffectId, Effect, EffectType, MixerId } from "types";
+import { EffectId, Effect, EffectKey, MixerId } from "types";
 import {
   addMixerEffect,
   rearrangeMixerEffect,
@@ -31,6 +32,7 @@ import {
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const trackId = selectSelectedTrackId(state);
+  const transport = selectTransport(state);
   const track = trackId ? selectPatternTrack(state, trackId) : undefined;
   const mixer = track ? selectMixerById(state, track.mixerId) : undefined;
 
@@ -45,6 +47,7 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const instrumentKey = track?.instrument as InstrumentKey;
   const instrumentName = getInstrumentName(instrumentKey);
   const instrumentCategory = getInstrumentCategory(instrumentKey);
+  const isTransportStarted = transport.state === "started";
 
   return {
     ...ownProps,
@@ -55,6 +58,7 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
     instrumentKey,
     instrumentName,
     instrumentCategory,
+    isTransportStarted,
   };
 };
 const mapDispatchToProps = (dispatch: AppDispatch) => {
@@ -73,8 +77,8 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     ) => {
       dispatch(rearrangeMixerEffect({ mixerId, effectId, index }));
     },
-    addMixerEffect: (mixerId: MixerId, type: EffectType) => {
-      dispatch(addMixerEffect({ mixerId, type }));
+    addMixerEffect: (mixerId: MixerId, key: EffectKey) => {
+      dispatch(addMixerEffect({ mixerId, key }));
     },
     removeMixerEffect: (mixerId: MixerId, effectId: EffectId) => {
       dispatch(removeMixerEffect({ mixerId, effectId }));

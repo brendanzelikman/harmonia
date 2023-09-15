@@ -3,51 +3,64 @@ import * as Constants from "appConstants";
 import { inRange } from "lodash";
 import {
   Channel as ToneChannel,
+  getDestination,
+  InputNode,
+  FFT,
+  Waveform,
+} from "tone";
+import {
+  Reverb,
   Chorus,
   FeedbackDelay,
   PingPongDelay,
-  getDestination,
-  PitchShift,
-  Reverb,
-  InputNode,
-  Distortion,
   Phaser,
   Tremolo,
+  Vibrato,
+  Distortion,
+  BitCrusher,
   Filter,
   EQ3,
   Compressor,
   Limiter,
+  Gain,
+  PitchShift,
 } from "tone";
 import { Volume } from "./units";
 import { TrackId } from "./tracks";
-import { Effect, EffectNode, EffectId, EffectType } from "./effect";
+import { Effect, EffectNode, EffectId, EffectKey } from "./effect";
 import {
-  defaultWarp,
   defaultReverb,
   defaultChorus,
-  defaultDelay,
+  defaultFeedbackDelay,
   defaultPingPongDelay,
-  defaultDistortion,
   defaultPhaser,
   defaultTremolo,
+  defaultVibrato,
+  defaultDistortion,
+  defaultBitCrusher,
   defaultFilter,
-  defaultEQ,
+  defaultEqualizer,
   defaultCompressor,
   defaultLimiter,
+  defaultGain,
+  defaultWarp,
 } from "./effect";
 import {
-  WarpEffect,
   ReverbEffect,
   ChorusEffect,
-  DelayEffect,
+  FeedbackDelayEffect,
   PingPongDelayEffect,
-  DistortionEffect,
   PhaserEffect,
   TremoloEffect,
+  VibratoEffect,
+  DistortionEffect,
+  BitCrusherEffect,
   FilterEffect,
-  EQEffect,
+  EqualizerEffect,
   CompressorEffect,
   LimiterEffect,
+  GainEffect,
+  WarpEffect,
 } from "./effect";
 
 export interface ChannelProps {
@@ -100,6 +113,8 @@ type ToneEffect = {
 export class MixerInstance {
   channel: ToneChannel;
   effects: ToneEffect[] = [];
+  fft: FFT;
+  waveform: Waveform;
 
   constructor({
     volume = -30,
@@ -121,7 +136,15 @@ export class MixerInstance {
     }
     // Connect the effects to the channel
     const nodes = this.effects.map((e) => e.node) as InputNode[];
-    this.channel = this.channel.chain(...nodes, getDestination());
+    this.fft = new FFT({ size: 2048 });
+    this.waveform = new Waveform({ size: 2048 });
+
+    this.channel = this.channel.chain(
+      ...nodes,
+      this.fft,
+      this.waveform,
+      getDestination()
+    );
   }
   // Volume
   get volume() {
@@ -152,36 +175,26 @@ export class MixerInstance {
     this.channel.solo = value;
   }
 
-  // Get an effect by index
-  getEffectByIndex = (index: number) => {
-    return this.effects[index];
-  };
   // Get an effect by id
   getEffectById = (id: EffectId) => {
     return this.effects.find((e) => e.id === id);
   };
 
   // Add an effect by type
-  addEffect = (type: EffectType) => {
+  addEffect = (key: EffectKey) => {
     let effect: ToneEffect;
-    switch (type) {
-      case "warp":
-        effect = MixerInstance.createWarp();
-        break;
+    switch (key) {
       case "reverb":
         effect = MixerInstance.createReverb();
         break;
       case "chorus":
         effect = MixerInstance.createChorus();
         break;
-      case "delay":
-        effect = MixerInstance.createDelay();
+      case "feedbackDelay":
+        effect = MixerInstance.createFeedbackDelay();
         break;
       case "pingPongDelay":
         effect = MixerInstance.createPingPongDelay();
-        break;
-      case "distortion":
-        effect = MixerInstance.createDistortion();
         break;
       case "phaser":
         effect = MixerInstance.createPhaser();
@@ -189,17 +202,32 @@ export class MixerInstance {
       case "tremolo":
         effect = MixerInstance.createTremolo();
         break;
+      case "vibrato":
+        effect = MixerInstance.createVibrato();
+        break;
+      case "distortion":
+        effect = MixerInstance.createDistortion();
+        break;
+      case "bitcrusher":
+        effect = MixerInstance.createBitCrusher();
+        break;
       case "filter":
         effect = MixerInstance.createFilter();
         break;
       case "equalizer":
-        effect = MixerInstance.createEQ();
+        effect = MixerInstance.createEqualizer();
         break;
       case "compressor":
         effect = MixerInstance.createCompressor();
         break;
       case "limiter":
         effect = MixerInstance.createLimiter();
+        break;
+      case "gain":
+        effect = MixerInstance.createGain();
+        break;
+      case "warp":
+        effect = MixerInstance.createWarp();
         break;
       default:
         throw new Error("Invalid effect type");
@@ -208,32 +236,38 @@ export class MixerInstance {
     return effect.id;
   };
 
-  public static defaultEffect = (type: EffectType) => {
-    switch (type) {
-      case "warp":
-        return defaultWarp;
+  public static defaultEffect = (key: EffectKey) => {
+    switch (key) {
       case "reverb":
         return defaultReverb;
       case "chorus":
         return defaultChorus;
-      case "delay":
-        return defaultDelay;
+      case "feedbackDelay":
+        return defaultFeedbackDelay;
       case "pingPongDelay":
         return defaultPingPongDelay;
-      case "distortion":
-        return defaultDistortion;
       case "phaser":
         return defaultPhaser;
       case "tremolo":
         return defaultTremolo;
+      case "vibrato":
+        return defaultVibrato;
+      case "distortion":
+        return defaultDistortion;
+      case "bitcrusher":
+        return defaultBitCrusher;
       case "filter":
         return defaultFilter;
       case "equalizer":
-        return defaultEQ;
+        return defaultEqualizer;
       case "compressor":
         return defaultCompressor;
       case "limiter":
         return defaultLimiter;
+      case "gain":
+        return defaultGain;
+      case "warp":
+        return defaultWarp;
       default:
         throw new Error("Invalid effect type");
     }
@@ -245,12 +279,6 @@ export class MixerInstance {
     const effect = this.effects[index]?.node;
     if (effect) {
       switch (effect.name) {
-        case "PitchShift":
-          let warp = effect as PitchShift;
-          if (update.wet !== undefined) warp.wet.value = update.wet;
-          if (update.pitch !== undefined) warp.pitch = update.pitch;
-          if (update.window !== undefined) warp.windowSize = update.window;
-          break;
         case "Reverb":
           const reverb = effect as Reverb;
           if (update.wet !== undefined) reverb.wet.value = update.wet;
@@ -280,12 +308,6 @@ export class MixerInstance {
           if (update.feedback !== undefined)
             pingPongDelay.feedback.value = update.feedback;
           break;
-        case "Distortion":
-          const distortion = effect as Distortion;
-          if (update.wet !== undefined) distortion.wet.value = update.wet;
-          if (update.distortion !== undefined)
-            distortion.distortion = update.distortion;
-          break;
         case "Phaser":
           const phaser = effect as Phaser;
           if (update.wet !== undefined) phaser.wet.value = update.wet;
@@ -300,10 +322,29 @@ export class MixerInstance {
             tremolo.frequency.value = update.frequency;
           if (update.depth !== undefined) tremolo.depth.value = update.depth;
           break;
+        case "Vibrato":
+          const vibrato = effect as Vibrato;
+          if (update.wet !== undefined) vibrato.wet.value = update.wet;
+          if (update.frequency !== undefined)
+            vibrato.frequency.value = update.frequency;
+          if (update.depth !== undefined) vibrato.depth.value = update.depth;
+          break;
+        case "Distortion":
+          const distortion = effect as Distortion;
+          if (update.wet !== undefined) distortion.wet.value = update.wet;
+          if (update.distortion !== undefined)
+            distortion.distortion = update.distortion;
+          break;
+        case "BitCrusher":
+          const bitcrusher = effect as BitCrusher;
+          if (update.wet !== undefined) bitcrusher.wet.value = update.wet;
+          if (update.bits !== undefined) bitcrusher.bits.value = update.bits;
+          break;
         case "Filter":
           const filter = effect as Filter;
           if (update.frequency !== undefined)
             filter.frequency.value = update.frequency;
+          if (update.type !== undefined) filter.type = update.type;
           if (update.Q !== undefined) filter.Q.value = update.Q;
           break;
         case "EQ3":
@@ -318,9 +359,9 @@ export class MixerInstance {
           break;
         case "Compressor":
           const compressor = effect as Compressor;
+          if (update.ratio !== undefined) compressor.ratio.value = update.ratio;
           if (update.threshold !== undefined)
             compressor.threshold.value = update.threshold;
-          if (update.ratio !== undefined) compressor.ratio.value = update.ratio;
           if (update.attack !== undefined)
             compressor.attack.value = update.attack;
           if (update.release !== undefined)
@@ -331,6 +372,16 @@ export class MixerInstance {
           const limiter = effect as Limiter;
           if (update.threshold !== undefined)
             limiter.threshold.value = update.threshold;
+          break;
+        case "Gain":
+          const gain = effect as Gain;
+          if (update.gain !== undefined) gain.gain.value = update.gain;
+          break;
+        case "PitchShift":
+          let warp = effect as PitchShift;
+          if (update.wet !== undefined) warp.wet.value = update.wet;
+          if (update.pitch !== undefined) warp.pitch = update.pitch;
+          if (update.window !== undefined) warp.windowSize = update.window;
           break;
         default:
           break;
@@ -398,16 +449,6 @@ export class MixerInstance {
     this.chainEffects(newEffects);
   };
 
-  // Create warp
-  public static createWarp = (warp: WarpEffect = defaultWarp) => {
-    const pitchShift = new PitchShift({
-      wet: warp.wet ?? defaultWarp.wet,
-      pitch: warp.pitch ?? defaultWarp.pitch,
-      windowSize: warp.window ?? defaultWarp.window,
-    });
-    return initializeToneEffect(pitchShift, warp.id);
-  };
-
   // Create reverb
   public static createReverb = (reverb: ReverbEffect = defaultReverb) => {
     const reverbEffect = new Reverb({
@@ -429,12 +470,14 @@ export class MixerInstance {
     return initializeToneEffect(chorusEffect, chorus.id);
   };
 
-  // Create delay
-  public static createDelay = (delay: DelayEffect = defaultDelay) => {
+  // Create feedback delay
+  public static createFeedbackDelay = (
+    delay: FeedbackDelayEffect = defaultFeedbackDelay
+  ) => {
     const delayEffect = new FeedbackDelay({
-      wet: delay.wet ?? defaultDelay.wet,
-      delayTime: delay.delay ?? defaultDelay.delay,
-      feedback: delay.feedback ?? defaultDelay.feedback,
+      wet: delay.wet ?? defaultFeedbackDelay.wet,
+      delayTime: delay.delay ?? defaultFeedbackDelay.delay,
+      feedback: delay.feedback ?? defaultFeedbackDelay.feedback,
     });
     return initializeToneEffect(delayEffect, delay.id);
   };
@@ -449,17 +492,6 @@ export class MixerInstance {
       feedback: delay.feedback ?? defaultPingPongDelay.feedback,
     });
     return initializeToneEffect(delayEffect, delay.id);
-  };
-
-  // Create distortion
-  public static createDistortion = (
-    distortion: DistortionEffect = defaultDistortion
-  ) => {
-    const distortionEffect = new Distortion({
-      wet: distortion.wet ?? defaultDistortion.wet,
-      distortion: distortion.distortion ?? defaultDistortion.distortion,
-    });
-    return initializeToneEffect(distortionEffect, distortion.id);
   };
 
   // Create phaser
@@ -483,6 +515,38 @@ export class MixerInstance {
     return initializeToneEffect(tremoloEffect, tremolo.id);
   };
 
+  // Create vibrato
+  public static createVibrato = (vibrato: VibratoEffect = defaultVibrato) => {
+    const vibratoEffect = new Vibrato({
+      wet: vibrato.wet ?? defaultVibrato.wet,
+      frequency: vibrato.frequency ?? defaultVibrato.frequency,
+      depth: vibrato.depth ?? defaultVibrato.depth,
+    });
+    return initializeToneEffect(vibratoEffect, vibrato.id);
+  };
+
+  // Create distortion
+  public static createDistortion = (
+    distortion: DistortionEffect = defaultDistortion
+  ) => {
+    const distortionEffect = new Distortion({
+      wet: distortion.wet ?? defaultDistortion.wet,
+      distortion: distortion.distortion ?? defaultDistortion.distortion,
+    });
+    return initializeToneEffect(distortionEffect, distortion.id);
+  };
+
+  // Create bitcrusher
+  public static createBitCrusher = (
+    bitcrusher: BitCrusherEffect = defaultBitCrusher
+  ) => {
+    const bitcrusherEffect = new BitCrusher({
+      bits: bitcrusher.bits ?? defaultBitCrusher.bits,
+    });
+    bitcrusherEffect.wet.value = bitcrusher.wet ?? defaultBitCrusher.wet;
+    return initializeToneEffect(bitcrusherEffect, bitcrusher.id);
+  };
+
   // Create filter
   public static createFilter = (filter: FilterEffect = defaultFilter) => {
     const filterEffect = new Filter({
@@ -493,14 +557,14 @@ export class MixerInstance {
     return initializeToneEffect(filterEffect, filter.id);
   };
 
-  // Create EQ
-  public static createEQ = (eq: EQEffect = defaultEQ) => {
+  // Create equalizer
+  public static createEqualizer = (eq: EqualizerEffect = defaultEqualizer) => {
     const eqEffect = new EQ3({
-      low: eq.low ?? defaultEQ.low,
-      mid: eq.mid ?? defaultEQ.mid,
-      high: eq.high ?? defaultEQ.high,
-      lowFrequency: eq.lowFrequency ?? defaultEQ.lowFrequency,
-      highFrequency: eq.highFrequency ?? defaultEQ.highFrequency,
+      low: eq.low ?? defaultEqualizer.low,
+      mid: eq.mid ?? defaultEqualizer.mid,
+      high: eq.high ?? defaultEqualizer.high,
+      lowFrequency: eq.lowFrequency ?? defaultEqualizer.lowFrequency,
+      highFrequency: eq.highFrequency ?? defaultEqualizer.highFrequency,
     });
     return initializeToneEffect(eqEffect, eq.id);
   };
@@ -527,66 +591,69 @@ export class MixerInstance {
     return initializeToneEffect(limiterEffect, limiter.id);
   };
 
+  // Create gain
+  public static createGain = (gain: GainEffect = defaultGain) => {
+    const gainEffect = new Gain({
+      gain: gain.gain ?? defaultGain.gain,
+    });
+    return initializeToneEffect(gainEffect, gain.id);
+  };
+
+  // Create warp
+  public static createWarp = (warp: WarpEffect = defaultWarp) => {
+    const pitchShift = new PitchShift({
+      wet: warp.wet ?? defaultWarp.wet,
+      pitch: warp.pitch ?? defaultWarp.pitch,
+      windowSize: warp.window ?? defaultWarp.window,
+    });
+    return initializeToneEffect(pitchShift, warp.id);
+  };
+
   public static createEffect = (effect: Effect) => {
-    if (effect.type === "warp") {
-      const warpEffect = effect as WarpEffect;
-      const toneEffect = this.createWarp(warpEffect);
-      return toneEffect;
+    if (effect.key === "reverb") {
+      return this.createReverb(effect as ReverbEffect);
     }
-    if (effect.type === "reverb") {
-      const reverbEffect = effect as ReverbEffect;
-      const toneEffect = this.createReverb(reverbEffect);
-      return toneEffect;
+    if (effect.key === "chorus") {
+      return this.createChorus(effect as ChorusEffect);
     }
-    if (effect.type === "chorus") {
-      const chorusEffect = effect as ChorusEffect;
-      const toneEffect = this.createChorus(chorusEffect);
-      return toneEffect;
+    if (effect.key === "feedbackDelay") {
+      return this.createFeedbackDelay(effect as FeedbackDelayEffect);
     }
-    if (effect.type === "delay") {
-      const delayEffect = effect as DelayEffect;
-      const toneEffect = this.createDelay(delayEffect);
-      return toneEffect;
+    if (effect.key === "pingPongDelay") {
+      return this.createPingPongDelay(effect as PingPongDelayEffect);
     }
-    if (effect.type === "pingPongDelay") {
-      const delayEffect = effect as PingPongDelayEffect;
-      const toneEffect = this.createPingPongDelay(delayEffect);
-      return toneEffect;
+    if (effect.key === "phaser") {
+      return this.createPhaser(effect as PhaserEffect);
     }
-    if (effect.type === "distortion") {
-      const distortionEffect = effect as DistortionEffect;
-      const toneEffect = this.createDistortion(distortionEffect);
-      return toneEffect;
+    if (effect.key === "tremolo") {
+      return this.createTremolo(effect as TremoloEffect);
     }
-    if (effect.type === "phaser") {
-      const phaserEffect = effect as PhaserEffect;
-      const toneEffect = this.createPhaser(phaserEffect);
-      return toneEffect;
+    if (effect.key === "vibrato") {
+      return this.createVibrato(effect as VibratoEffect);
     }
-    if (effect.type === "tremolo") {
-      const tremoloEffect = effect as TremoloEffect;
-      const toneEffect = this.createTremolo(tremoloEffect);
-      return toneEffect;
+    if (effect.key === "distortion") {
+      return this.createDistortion(effect as DistortionEffect);
     }
-    if (effect.type === "filter") {
-      const filterEffect = effect as FilterEffect;
-      const toneEffect = this.createFilter(filterEffect);
-      return toneEffect;
+    if (effect.key === "bitcrusher") {
+      return this.createBitCrusher(effect as BitCrusherEffect);
     }
-    if (effect.type === "equalizer") {
-      const eqEffect = effect as EQEffect;
-      const toneEffect = this.createEQ(eqEffect);
-      return toneEffect;
+    if (effect.key === "filter") {
+      return this.createFilter(effect as FilterEffect);
     }
-    if (effect.type === "compressor") {
-      const compressorEffect = effect as CompressorEffect;
-      const toneEffect = this.createCompressor(compressorEffect);
-      return toneEffect;
+    if (effect.key === "equalizer") {
+      return this.createEqualizer(effect as EqualizerEffect);
     }
-    if (effect.type === "limiter") {
-      const limiterEffect = effect as LimiterEffect;
-      const toneEffect = this.createLimiter(limiterEffect);
-      return toneEffect;
+    if (effect.key === "compressor") {
+      return this.createCompressor(effect as CompressorEffect);
+    }
+    if (effect.key === "limiter") {
+      return this.createLimiter(effect as LimiterEffect);
+    }
+    if (effect.key === "gain") {
+      return this.createGain(effect as GainEffect);
+    }
+    if (effect.key === "warp") {
+      return this.createWarp(effect as WarpEffect);
     }
     throw new Error("Invalid effect type");
   };
@@ -609,27 +676,34 @@ export class MixerInstance {
     const index = this.effects.indexOf(match);
     const newEffects = [...this.effects];
     newEffects[index] = MixerInstance.createEffect(
-      MixerInstance.defaultEffect(effect.type)
+      MixerInstance.defaultEffect(effect.key)
     );
     this.chainEffects(newEffects);
   };
 
   // Chain the effects
   chainEffects = (effects: ToneEffect[]) => {
+    this.channel.disconnect();
+    this.effects.forEach((e) => e.node.disconnect());
+
     // Connect the new effects to the channel
     const newEffects = effects.map((e) => e);
     const nodes = newEffects.map((e) => e.node) as InputNode[];
 
-    this.channel.disconnect();
-    this.effects.forEach((e) => e.node.disconnect());
-
     this.effects = newEffects;
-    this.channel = this.channel.chain(...nodes, getDestination());
+    this.channel = this.channel.chain(
+      ...nodes,
+      this.fft,
+      this.waveform,
+      getDestination()
+    );
   };
 
   // Dispose the channel and all of its effects
   dispose() {
     this.channel.dispose();
+    this.fft.dispose();
+    this.waveform.dispose();
     this.effects.forEach((e) => e.node.dispose());
     this.effects = [];
   }

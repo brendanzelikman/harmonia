@@ -47,7 +47,7 @@ function TimelineCursor(props: CursorProps) {
 
   const Cursor = () => (
     <div
-      className={`bg-emerald-600 absolute rounded-sm z-[80] transition-all duration-75`}
+      className={`bg-emerald-600 absolute rounded-sm z-[90] transition-all duration-75`}
       style={{
         left: props.left,
         width: props.width,

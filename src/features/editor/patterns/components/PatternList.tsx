@@ -1,4 +1,4 @@
-import { Disclosure } from "@headlessui/react";
+import { Disclosure, Transition } from "@headlessui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
 import { Pattern, PatternId } from "types/pattern";
@@ -120,11 +120,24 @@ export function PatternList(props: PatternEditorProps) {
                     </span>
                   </div>
                 </Disclosure.Button>
-                <Disclosure.Panel static={isOpen}>
-                  {patterns.map(
-                    isCustomCategory ? renderCustomPattern : renderPresetPattern
-                  )}
-                </Disclosure.Panel>
+                <Transition
+                  show={isOpen}
+                  appear
+                  enter="transition-all ease-in-out duration-150"
+                  enterFrom="opacity-0 transform scale-95"
+                  enterTo="opacity-100 transform scale-100"
+                  leave="transition-all ease-in-out duration-150"
+                  leaveFrom="opacity-100 transform scale-100"
+                  leaveTo="opacity-0 transform scale-95"
+                >
+                  <Disclosure.Panel static={isOpen}>
+                    {patterns.map(
+                      isCustomCategory
+                        ? renderCustomPattern
+                        : renderPresetPattern
+                    )}
+                  </Disclosure.Panel>
+                </Transition>
               </>
             );
           }}

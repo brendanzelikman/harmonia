@@ -1,9 +1,7 @@
-import { durationToTicks } from "utils";
+import { durationToTicks, ticksToToneSubdivision } from "utils";
 import { Sampler } from "tone";
 import { MIDI } from "types/midi";
 import { PatternEditorCursorProps } from "..";
-import { useState } from "react";
-import useEventListeners from "hooks/useEventListeners";
 import { isSamplerLoaded } from "types/instrument";
 import { EditorPiano } from "features/editor/components";
 import { PatternNote } from "types/pattern";
@@ -26,7 +24,17 @@ export function PatternPiano(props: PatternPianoProps) {
     if (isSamplerLoaded(sampler)) {
       const pitch = MIDI.toPitch(midiNumber);
       const scaledVelocity = velocity / MIDI.MaxVelocity;
-      sampler.triggerAttackRelease(pitch, "4n", undefined, scaledVelocity);
+      const ticks = durationToTicks(props.noteDuration, {
+        dotted: props.noteTiming === "dotted",
+        triplet: props.noteTiming === "triplet",
+      });
+      const subdivision = ticksToToneSubdivision(ticks);
+      sampler.triggerAttackRelease(
+        pitch,
+        subdivision,
+        undefined,
+        scaledVelocity
+      );
     }
 
     // Make sure the scale and pattern exist
@@ -77,6 +85,7 @@ export function PatternPiano(props: PatternPianoProps) {
 
   return (
     <EditorPiano
+      show={props.showingPiano}
       sampler={props.sampler}
       className={`border-t-8 ${
         props.adding

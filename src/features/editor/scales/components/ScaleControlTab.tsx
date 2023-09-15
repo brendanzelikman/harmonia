@@ -187,7 +187,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
           }
         }}
       >
-        Transpose
+        Transpose (T)
       </Editor.MenuButton>
     </Editor.Tooltip>
   );
@@ -208,7 +208,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
           }
         }}
       >
-        Rotate
+        Transpose (t)
       </Editor.MenuButton>
     </Editor.Tooltip>
   );

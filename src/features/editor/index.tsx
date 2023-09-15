@@ -13,7 +13,6 @@ function mapStateToProps(state: RootState) {
   const adding = editor.state === "adding";
   const inserting = editor.state === "inserting";
   const removing = editor.state === "removing";
-
   const transport = selectTransport(state);
 
   const noteTicks = durationToTicks(editor.noteDuration, {
@@ -29,7 +28,7 @@ function mapStateToProps(state: RootState) {
     adding,
     inserting,
     removing,
-    transport,
+    bpm: transport.bpm,
     showingTour,
   };
 }

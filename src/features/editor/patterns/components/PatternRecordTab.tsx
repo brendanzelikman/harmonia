@@ -31,7 +31,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
       const subdivision = ticksToToneSubdivision(quantization);
       const duration = Math.max(0, diff) / 1000;
       const time = Time(duration).quantize(subdivision);
-      const ticks = convertSecondsToTicks(props.transport, time);
+      const ticks = MIDI.secondsToTicks(time, props.bpm);
       return {
         ...event,
         time,
@@ -66,7 +66,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
   // Use recorder hook
   const { recording, startRecording, stopRecording, ticks, isAfterPickup } =
     useRecorder({
-      transport: props.transport,
+      bpm: props.bpm,
       duration: props.recordingDuration,
       quantization: props.recordingQuantization,
       callback: recordingCallback,
@@ -217,9 +217,9 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
     </Editor.Tooltip>
   );
 
-  const seconds = MIDI.ticksToSeconds(ticks, props.transport.bpm);
-  const bar = MIDI.ticksToSeconds(MIDI.WholeNoteTicks, props.transport.bpm);
-  const quart = MIDI.ticksToSeconds(MIDI.QuarterNoteTicks, props.transport.bpm);
+  const seconds = MIDI.ticksToSeconds(ticks, props.bpm);
+  const bar = MIDI.ticksToSeconds(MIDI.WholeNoteTicks, props.bpm);
+  const quart = MIDI.ticksToSeconds(MIDI.QuarterNoteTicks, props.bpm);
   const beats = (seconds % bar) / quart;
 
   const BeatCount = () => {

@@ -1,4 +1,4 @@
-import { Disclosure } from "@headlessui/react";
+import { Disclosure, Transition } from "@headlessui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
 import Scales, { Scale, ScaleId } from "types/scale";
@@ -116,11 +116,22 @@ export function ScaleList(props: ScaleEditorProps) {
                     </span>
                   </div>
                 </Disclosure.Button>
-                <Disclosure.Panel static={isOpen}>
-                  {scales.map(
-                    isCustomCategory ? renderCustomScale : renderPresetScale
-                  )}
-                </Disclosure.Panel>
+                <Transition
+                  show={isOpen}
+                  appear
+                  enter="transition-all ease-in-out duration-150"
+                  enterFrom="opacity-0 transform scale-95"
+                  enterTo="opacity-100 transform scale-100"
+                  leave="transition-all ease-in-out duration-150"
+                  leaveFrom="opacity-100 transform scale-100"
+                  leaveTo="opacity-0 transform scale-95"
+                >
+                  <Disclosure.Panel static={isOpen}>
+                    {scales.map(
+                      isCustomCategory ? renderCustomScale : renderPresetScale
+                    )}
+                  </Disclosure.Panel>
+                </Transition>
               </>
             );
           }}
