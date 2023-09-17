@@ -12,16 +12,14 @@ import EditorPatterns from "../patterns";
 import EditorScales from "../scales";
 import { useState } from "react";
 import {
-  INSTRUMENTS,
   INSTRUMENT_KEYS,
   InstrumentKey,
-  createGlobalInstrument,
   getInstrumentName,
 } from "types/instrument";
-import wholeNote from "assets/noteheads/whole.svg";
+import wholeNote from "assets/noteheads/whole.png";
 import halfNote from "assets/noteheads/half.png";
 import quarterNote from "assets/noteheads/quarter.png";
-import eighthNote from "assets/noteheads/8th.png";
+import eighthNote from "assets/noteheads/eighth.png";
 import sixteenthNote from "assets/noteheads/16th.png";
 import thirtysecondNote from "assets/noteheads/32nd.png";
 import sixtyfourthNote from "assets/noteheads/64th.png";
@@ -172,18 +170,14 @@ export const DurationListbox = (
 };
 
 export const InstrumentListbox = (props: {
-  setInstrument: (name: string) => void;
+  value: InstrumentKey;
+  setValue: (instrument: InstrumentKey) => void;
 }) => {
-  const globalInstrument = INSTRUMENTS["global"];
-  const value = (globalInstrument?.key ?? "grand_piano") as InstrumentKey;
   return (
     <EditorListbox
-      value={value}
-      setValue={(value) => props.setInstrument(value)}
-      onChange={(value) => createGlobalInstrument(value as InstrumentKey)}
-      getOptionKey={(i) => i as InstrumentKey}
-      getOptionValue={(i) => i as InstrumentKey}
-      getOptionName={(i) => getInstrumentName(i as InstrumentKey)}
+      value={props.value}
+      setValue={props.setValue}
+      getOptionName={getInstrumentName}
       icon={<BsSoundwave className="mr-2" />}
       options={INSTRUMENT_KEYS}
       placeholder="Change Instrument"

@@ -9,7 +9,7 @@ import { addMixer } from "redux/slices/mixers";
 import { selectMixerById } from "redux/selectors";
 
 export interface Instrument {
-  key: string;
+  key: InstrumentKey;
   sampler: Sampler;
   mixer: MixerInstance;
 }
@@ -148,7 +148,7 @@ export const createGlobalInstrument = (
     categories[key].some((i) => i.key === instrumentKey)
   );
   if (!category) return;
-  return new Promise<void>((resolve) => {
+  return new Promise<Instrument>((resolve) => {
     const sampler = new Sampler({
       urls: { ...samples[instrumentKey] },
       baseUrl: `${window.location.origin}/harmonia/samples/${category}/${instrumentKey}/`,
@@ -169,12 +169,13 @@ export const createGlobalInstrument = (
         sampler.connect(mixer.channel);
 
         // Add to the global instruments
-        INSTRUMENTS["global"] = {
+        const newInstrument: Instrument = {
           key: instrumentKey,
           sampler,
           mixer,
         };
-        resolve();
+        INSTRUMENTS["global"] = newInstrument;
+        resolve(newInstrument);
       },
     });
   });
@@ -207,7 +208,7 @@ export const updateInstrument =
   };
 
 // Get the global instrument name
-export const getGlobalInstrumentName = () => {
+export const getGlobalInstrumentName = (): InstrumentName => {
   const globalInstrument = INSTRUMENTS["global"];
   if (!globalInstrument) return "Instrument";
   return getInstrumentName(globalInstrument.key as InstrumentKey);

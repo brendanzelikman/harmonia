@@ -2,19 +2,41 @@ import { nanoid } from "@reduxjs/toolkit";
 import { ticksToDuration, mod, ticksToToneSubdivision } from "utils";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
-import Scales, { Scale, chromaticScale } from "./scale";
+import Scales, {
+  Scale,
+  ScaleId,
+  chromaticScale,
+  transposeScale,
+} from "./scale";
 import { Pitch, Tick, Time, Velocity, XML } from "./units";
 import { inRange } from "lodash";
 import { Sampler } from "tone";
-import { isSamplerLoaded } from "./instrument";
+import { InstrumentKey, isSamplerLoaded } from "./instrument";
+import { PresetScaleMap } from "./presets/scales";
+import { getScaleKey } from "./key";
+import { DemoXML } from "assets/demoXML";
 
 export type PatternId = string;
+
+export interface PatternOptions {
+  instrument: InstrumentKey;
+  tonic: Pitch;
+  scaleId: ScaleId;
+  quantizeToScale: boolean;
+}
+export const defaultPatternOptions: PatternOptions = {
+  instrument: "grand_piano",
+  tonic: "C",
+  scaleId: "chromatic-scale",
+  quantizeToScale: false,
+};
 
 export interface Pattern {
   id: PatternId;
   stream: PatternStream;
   name: string;
   aliases?: string[];
+  options?: Partial<PatternOptions>;
 }
 export const isPattern = (obj: any): obj is Pattern => {
   const { id, name, stream } = obj;
@@ -34,6 +56,7 @@ export const defaultPattern: Pattern = {
   id: "new-pattern",
   name: "New Pattern",
   stream: [],
+  options: defaultPatternOptions,
 };
 export const testPattern = (stream: PatternStream = []) => {
   return {
@@ -118,7 +141,7 @@ export const realizePattern = (
 
       // Compute the offset to adjust the note within the scale
       const oldNumber = MIDI.ChromaticNumber(note.MIDI);
-      const newNumber = MIDI.ChromaticNotes.indexOf(pitchClass);
+      const newNumber = MIDI.ChromaticNumber(pitchClass);
       const offset = newNumber - oldNumber;
 
       // Return the new note
@@ -229,8 +252,8 @@ export const transposePatternChord = (
     }
     // Add the scalar offset and the octave offset
     const thisPitch = scalePitches[newIndex];
-    const newNumber = MIDI.ChromaticNotes.indexOf(thisPitch);
-    const oldNumber = MIDI.ChromaticNotes.indexOf(notePitch);
+    const newNumber = MIDI.ChromaticNumber(thisPitch);
+    const oldNumber = MIDI.ChromaticNumber(notePitch);
     const newMIDI = noteMIDI + newNumber - oldNumber + newOffset;
     const clampedMIDI = MIDI.clampNote(newMIDI);
     transposedChord.push({ ...note, MIDI: clampedMIDI });
@@ -295,9 +318,22 @@ export const playPatternChord = (
 };
 
 export default class Patterns {
-  static exportToXML(pattern?: Pattern, scale: Scale = chromaticScale): XML {
-    if (!pattern || !scale) return "";
-    const stream = realizePattern(pattern, scale);
+  static exportToXML(pattern?: Pattern): XML {
+    if (!pattern) return DemoXML;
+
+    const { tonic, scaleId, quantizeToScale } = {
+      ...defaultPatternOptions,
+      ...pattern.options,
+    };
+
+    const scale = quantizeToScale
+      ? PresetScaleMap[scaleId] ?? chromaticScale
+      : chromaticScale;
+
+    const tonicDistance = MIDI.ChromaticDistance(tonic, scale.notes[0]);
+    const tonicizedScale = transposeScale(scale, tonicDistance);
+    const key = getScaleKey(tonicizedScale);
+    const stream = realizePattern(pattern, tonicizedScale);
 
     let measures: string[] = [];
     let measureNotes: string[] = [];
@@ -321,6 +357,7 @@ export default class Patterns {
         duration: firstNote?.duration,
         type: ticksToDuration(firstNote?.duration),
         beam: isTriplet ? tripletBeam : undefined,
+        key,
       });
 
       if (isTriplet) {

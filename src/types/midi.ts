@@ -1,5 +1,14 @@
 import { Frequency } from "tone";
-import { BPM, Note, Pitch, Tick, Time, Velocity } from "./units";
+import {
+  BPM,
+  ChromaticScale,
+  Key,
+  Note,
+  Pitch,
+  Tick,
+  Time,
+  Velocity,
+} from "./units";
 import { mod } from "utils";
 import { clamp } from "lodash";
 
@@ -346,8 +355,8 @@ export class MIDI {
     return clamp(value, this.MinDuration, this.MaxDuration);
   };
 
-  // Chromatic Notes
-  public static ChromaticNotes: Pitch[] = [
+  // Chromatic Key
+  public static ChromaticKey: Key = [
     "C",
     "C#",
     "D",
@@ -356,18 +365,45 @@ export class MIDI {
     "F",
     "F#",
     "G",
-    "G#",
+    "Ab",
     "A",
     "Bb",
     "B",
   ];
 
+  // Chromatic Scale
+  public static ChromaticScale: ChromaticScale = [
+    { number: 0, spellings: ["C", "B#"] },
+    { number: 1, spellings: ["C#", "Db"] },
+    { number: 2, spellings: ["D"] },
+    { number: 3, spellings: ["D#", "Eb"] },
+    { number: 4, spellings: ["E", "Fb"] },
+    { number: 5, spellings: ["F", "E#"] },
+    { number: 6, spellings: ["F#", "Gb"] },
+    { number: 7, spellings: ["G"] },
+    { number: 8, spellings: ["G#", "Ab"] },
+    { number: 9, spellings: ["A"] },
+    { number: 10, spellings: ["A#", "Bb"] },
+    { number: 11, spellings: ["B", "Cb"] },
+  ];
+
   // Get the chromatic number of a note
   public static ChromaticNumber(pitch: Note | Pitch): number {
+    if (pitch === MIDI.Rest) return pitch;
     if (!isNaN(pitch as Note)) {
       pitch = MIDI.toPitchClass(pitch as Note);
     }
-    return MIDI.ChromaticNotes.indexOf(pitch as Pitch);
+    const match = MIDI.ChromaticScale.find((x) =>
+      x.spellings.includes(pitch as Pitch)
+    );
+    if (!match) throw new Error(`Invalid pitch: ${pitch}`);
+    return match.number;
+  }
+  // Get the chromatic distance between two notes
+  public static ChromaticDistance(pitch1: Note | Pitch, pitch2: Note | Pitch) {
+    const number1 = MIDI.ChromaticNumber(pitch1);
+    const number2 = MIDI.ChromaticNumber(pitch2);
+    return number2 - number1;
   }
   // Get the MIDI number from a pitch
   public static fromPitch(pitch: string): Note {
@@ -378,34 +414,52 @@ export class MIDI {
     return MIDI.fromPitch(`${pitch}${octave}`);
   }
   // Get the pitch class of a note, e.g. C, C#, D, etc.
-  public static toPitchClass(note: Note): string {
+  public static toPitchClass(note: Note, key = MIDI.ChromaticKey): string {
     if (note === MIDI.Rest) return "R";
-    return MIDI.ChromaticNotes[mod(note, 12)];
+    return key[mod(note, 12)];
   }
   // Get the octave of a note, e.g. 4, 5, 6, etc.
-  public static toOctave(note: Note): number {
-    return Math.floor((note - 12) / 12);
-  }
-  // Get the MIDI number from pitch class and octave
+  public static toOctave(note: Note, key = MIDI.ChromaticKey): number {
+    const octave = Math.floor((note - 12) / 12);
+    if (octave < 0) return octave;
+    const number = MIDI.ChromaticNumber(note);
 
+    if (number === 0 && key[0] === "B#") return octave - 1;
+    if (number === 11 && key[11] === "Cb") return octave + 1;
+    return octave;
+  }
   // Get the pitch of a note, e.g. C4, D5, E6, etc.
-  public static toPitch(note: Note): string {
+  public static toPitch(note: Note, key = MIDI.ChromaticKey): string {
     if (note === MIDI.Rest) return "";
-    return `${this.toPitchClass(note)}${this.toOctave(note)}`;
+    return `${this.toPitchClass(note, key)}${this.toOctave(note)}`;
   }
   // Get the letter of a note, e.g. C, D, E, etc.
-  public static toLetter(note: Note): string {
-    return this.toPitchClass(note).replace(/b|#|-/g, "");
+  public static toLetter(note: Note, key = MIDI.ChromaticKey): string {
+    const pitchClass = this.toPitchClass(note, key);
+    if (!pitchClass) return "C";
+    return pitchClass.replace(/b|#|-/g, "");
   }
   // Get the accidental offset of a note
-  public static toOffset(note: Note): number {
-    const pitch = this.toPitch(note);
-    const accidentalMatch = pitch.match(/b|#/g);
+  public static toOffset(note: Note, key = MIDI.ChromaticKey): number {
+    const pitch = this.toPitch(note, key);
+    const accidentalMatch = pitch.match(/bb|##|b|#/g);
     if (accidentalMatch) {
       const accidental = accidentalMatch[0];
-      return accidental === "#" ? 1 : -1;
+      if (accidental === "#") return 1;
+      if (accidental === "b") return -1;
+      if (accidental === "##") return 2;
+      if (accidental === "bb") return -2;
     }
     return 0;
+  }
+  // Get the accidental of a note, e.g. "sharp", flat, etc.
+  public static toAccidental(note: Note, key = MIDI.ChromaticKey): string {
+    const offset = this.toOffset(note, key);
+    if (offset === 1) return "sharp";
+    if (offset === -1) return "flat";
+    if (offset === 2) return "double-sharp";
+    if (offset === -2) return "double-flat";
+    return "natural";
   }
 
   public static closestPitchClass(
@@ -415,7 +469,7 @@ export class MIDI {
   ): Pitch | undefined {
     if (!arr.length) return;
     const notes = arr.map((n) => MIDI.ChromaticNumber(n));
-    const note = MIDI.ChromaticNotes.indexOf(pitch);
+    const note = MIDI.ChromaticNumber(pitch);
 
     // Get the closest chromatic number
     const index = notes.reduce((prev, curr) => {
@@ -425,8 +479,8 @@ export class MIDI {
       if (!isEqual) return currDiff < prevDiff ? curr : prev;
 
       // If the difference is equal, prefer the note not in the given pitches
-      const currInPitches = pitches?.includes(MIDI.ChromaticNotes[curr]);
-      const prevInPitches = pitches?.includes(MIDI.ChromaticNotes[prev]);
+      const currInPitches = pitches?.includes(MIDI.ChromaticKey[curr]);
+      const prevInPitches = pitches?.includes(MIDI.ChromaticKey[prev]);
       if (currInPitches && !prevInPitches) return prev;
       if (!currInPitches && prevInPitches) return curr;
 
@@ -447,6 +501,6 @@ export class MIDI {
     });
 
     // Return the closest pitch class
-    return MIDI.ChromaticNotes[index];
+    return MIDI.ChromaticKey[index];
   }
 }

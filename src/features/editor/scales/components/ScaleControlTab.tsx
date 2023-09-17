@@ -2,9 +2,11 @@ import { Menu } from "@headlessui/react";
 import { ScaleEditorProps } from "..";
 import * as Editor from "features/editor";
 import { BsBrushFill, BsEraserFill, BsTrash } from "react-icons/bs";
+import { InstrumentKey } from "types";
 
 interface ScaleControlTabProps extends ScaleEditorProps {
-  setInstrument: (instrument: string) => void;
+  instrument: InstrumentKey;
+  setInstrument: (instrument: InstrumentKey) => void;
 }
 
 export function ScaleControlTab(props: ScaleControlTabProps) {
@@ -236,7 +238,10 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
           show={props.showingTooltips}
           content={`Select Instrument`}
         >
-          <Editor.InstrumentListbox setInstrument={props.setInstrument} />
+          <Editor.InstrumentListbox
+            value={props.instrument}
+            setValue={props.setInstrument}
+          />
         </Editor.Tooltip>
       </Editor.MenuGroup>
     </>

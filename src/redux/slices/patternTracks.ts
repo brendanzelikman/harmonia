@@ -3,7 +3,7 @@ import { selectPatternTrack } from "redux/selectors";
 
 import { AppThunk } from "redux/store";
 import { initializeState } from "redux/util";
-import { updateInstrument } from "types/instrument";
+import { InstrumentKey, updateInstrument } from "types/instrument";
 import { defaultPatternTrack, PatternTrack, TrackId } from "types/tracks";
 import {
   addPatternTrackToTrackMap,
@@ -82,7 +82,7 @@ export const setPatternTrackScaleTrack =
   };
 
 export const setPatternTrackInstrument =
-  (id: TrackId, instrument: string): AppThunk =>
+  (id: TrackId, instrument: InstrumentKey): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
     const patternTrack = selectPatternTrack(state, id);

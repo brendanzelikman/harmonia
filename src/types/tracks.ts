@@ -1,6 +1,7 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { defaultMixer, initializeMixer, Mixer, MixerId } from "./mixer";
 import { ScaleId } from "./scale";
+import { InstrumentKey } from "./instrument";
 
 export type TrackId = string;
 export type TrackType = "scaleTrack" | "patternTrack" | "defaultTrack";
@@ -29,7 +30,7 @@ export interface PatternTrack {
   mixerId: MixerId;
 
   name: string;
-  instrument: string;
+  instrument: InstrumentKey;
 }
 
 export const defaultPatternTrack: PatternTrack = {

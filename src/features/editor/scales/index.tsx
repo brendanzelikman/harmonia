@@ -138,7 +138,7 @@ const mapDispatchToProps = (dispatch: any) => ({
     );
   },
   exportScaleToXML: (scale: Scale) => {
-    const xml = ScaleClass.exportToXML(scale.notes);
+    const xml = ScaleClass.exportToXML(scale);
     if (!xml) return;
     const blob = new Blob([xml], { type: "text/musicxml" });
     const url = URL.createObjectURL(blob);

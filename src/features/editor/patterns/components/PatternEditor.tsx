@@ -3,25 +3,27 @@ import Patterns from "types/pattern";
 import * as Editor from "features/editor";
 import useOSMD from "lib/opensheetmusicdisplay";
 import { Transition } from "@headlessui/react";
-import { getGlobalInstrumentName, getGlobalSampler } from "types/instrument";
+import { InstrumentKey, createGlobalInstrument } from "types/instrument";
 import usePatternShortcuts from "../hooks/usePatternShortcuts";
 import { PatternEditorProps } from "..";
 import { Duration, Timing } from "types/units";
 import { Input } from "webmidi";
 import {
-  PatternComposeTab,
   PatternContextMenu,
-  PatternControlTab,
   PatternList,
   PatternPiano,
+  PatternComposeTab,
+  PatternControlTab,
   PatternRecordTab,
+  PatternSettingsTab,
   PatternTransformTab,
 } from ".";
-import { PatternSequenceTab } from "./PatternSequenceTab";
 import { TransformCoordinate, transformPattern } from "types/transform";
-import { INSTRUMENTS, Scale, chromaticScale } from "types";
+import { INSTRUMENTS, chromaticScale, defaultPatternOptions } from "types";
 
-export const patternTabs = ["compose", "record", "transform"];
+import { PresetScaleMap } from "types/presets/scales";
+
+export const patternTabs = ["compose", "transform", "record", "settings"];
 export type PatternTab = (typeof patternTabs)[number];
 
 export function PatternEditor(props: PatternEditorProps) {
@@ -34,25 +36,32 @@ export function PatternEditor(props: PatternEditorProps) {
     T: 0,
     t: 0,
   });
-  const [scale, setScale] = useState<Scale>(chromaticScale);
+
+  const { scaleId, quantizeToScale, instrument } = {
+    ...defaultPatternOptions,
+    ...pattern?.options,
+  };
+
+  const currentScale =
+    scaleId && quantizeToScale
+      ? PresetScaleMap[scaleId] ?? chromaticScale
+      : chromaticScale;
+
   const transformedPattern = useMemo(() => {
-    return transformPattern(pattern, transpose, scale);
-  }, [pattern, transpose, scale]);
+    return transformPattern(pattern, transpose, currentScale);
+  }, [pattern, transpose, currentScale]);
 
   // Score information
   const xml = useMemo(() => {
-    if (!pattern) return "";
-    return Patterns.exportToXML(transformedPattern, scale);
-  }, [pattern, scale, transpose]);
+    return Patterns.exportToXML(transformedPattern);
+  }, [transformedPattern]);
 
   const { score, cursor } = useOSMD({
     id: `${pattern?.id ?? "pattern"}-score`,
     xml,
     className: "w-full h-full p-2",
     noteCount: pattern?.stream.length || 0,
-    options: {
-      drawTimeSignatures: false,
-    },
+    options: { drawTimeSignatures: false },
   });
   const cursorProps = { ...props, cursor };
 
@@ -90,8 +99,41 @@ export function PatternEditor(props: PatternEditorProps) {
   }, [cursor.hidden, inserting]);
 
   // Sampler information
-  const sampler = INSTRUMENTS["global"]?.sampler;
-  const [instrument, setInstrument] = useState(getGlobalInstrumentName() || "");
+  const globalInstrument = INSTRUMENTS["global"];
+  const [sampler, setSampler] = useState(globalInstrument?.sampler);
+  const [instrumentKey, setInstrumentKey] = useState(globalInstrument?.key);
+
+  const setGlobalInstrument = async (instrumentKey: InstrumentKey) => {
+    const instrument = await createGlobalInstrument(instrumentKey);
+    if (!instrument) return;
+    const { key, sampler } = instrument;
+    setSampler(sampler);
+    setInstrumentKey(key);
+  };
+
+  const setPatternInstrument = async (instrumentKey: InstrumentKey) => {
+    if (!pattern) return;
+    props.updatePattern({
+      ...pattern,
+      options: {
+        ...pattern.options,
+        instrument: instrumentKey,
+      },
+    });
+  };
+
+  // Update global instrument when pattern instrument changes
+  useEffect(() => {
+    if (!instrument) return;
+    setGlobalInstrument(instrument);
+  }, [instrument]);
+
+  // Update sampler/key when global instrument changes
+  useEffect(() => {
+    if (!globalInstrument) return;
+    setSampler(globalInstrument.sampler);
+    setInstrumentKey(globalInstrument.key);
+  }, [globalInstrument]);
 
   // Function props based on current pattern and cursor
   const onRestClick = () => {
@@ -159,12 +201,9 @@ export function PatternEditor(props: PatternEditorProps) {
           <Editor.MenuRow show={true} border={true}>
             <PatternControlTab
               {...cursorProps}
-              transformedPattern={transformedPattern}
               activeTab={activeTab}
               setActiveTab={setActiveTab}
-              scale={scale}
-              setScale={setScale}
-              setInstrument={setInstrument}
+              pattern={transformedPattern}
             />
           </Editor.MenuRow>
           <Editor.MenuRow show={props.isCustom} border={true}>
@@ -177,13 +216,11 @@ export function PatternEditor(props: PatternEditorProps) {
             {activeTab === "transform" && (
               <PatternTransformTab {...cursorProps} />
             )}
-            {activeTab === "sequence" && (
-              <PatternSequenceTab
+            {activeTab === "settings" && (
+              <PatternSettingsTab
                 {...cursorProps}
-                transpose={transpose}
-                setTranspose={setTranspose}
-                scale={scale}
-                setScale={setScale}
+                instrument={instrumentKey}
+                setInstrument={setPatternInstrument}
               />
             )}
           </Editor.MenuRow>
@@ -193,7 +230,7 @@ export function PatternEditor(props: PatternEditorProps) {
           </Editor.ScoreContainer>
         </Editor.Content>
       </Editor.Body>
-      <PatternPiano {...cursorProps} sampler={sampler} scale={scale} />
+      <PatternPiano {...cursorProps} sampler={sampler} scale={currentScale} />
     </Editor.Container>
   );
 }

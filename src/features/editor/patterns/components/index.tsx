@@ -1,7 +1,9 @@
-export * from "./PatternComposeTab";
 export * from "./PatternContextMenu";
-export * from "./PatternControlTab";
 export * from "./PatternList";
 export * from "./PatternPiano";
-export * from "./PatternRecordTab";
-export * from "./PatternTransformTab";
+
+export * from "../tabs/PatternComposeTab";
+export * from "../tabs/PatternControlTab";
+export * from "../tabs/PatternRecordTab";
+export * from "../tabs/PatternSettingsTab";
+export * from "../tabs/PatternTransformTab";

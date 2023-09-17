@@ -17,6 +17,7 @@ export interface EditorListboxProps<T> {
 }
 
 export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
+  if (!props.options) return null;
   const getOptionKey = props.getOptionKey ?? ((value: T) => value);
   const getOptionValue = props.getOptionValue ?? ((value: T) => value);
   const getOptionName = props.getOptionName ?? ((value: T) => value);

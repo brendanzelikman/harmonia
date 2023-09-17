@@ -1,13 +1,12 @@
 import { BsFillRecordCircleFill, BsSoundwave } from "react-icons/bs";
 import { PatternEditorCursorProps } from "..";
 import * as Editor from "features/editor";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { WebMidi, Input, NoteMessageEvent } from "webmidi";
 import { MIDI } from "types/midi";
 import { durationToTicks, ticksToToneSubdivision } from "utils";
 import { Note, Tick } from "types/units";
 import { Time } from "tone";
-import { convertSecondsToTicks } from "redux/slices/transport";
 import { Transition } from "@headlessui/react";
 import useRecorder from "hooks/useRecorder";
 
@@ -19,7 +18,7 @@ interface PatternRecordTabProps extends PatternEditorCursorProps {
 export function PatternRecordTab(props: PatternRecordTabProps) {
   // Recording information
   const [events, setEvents] = useState<NoteMessageEvent[]>([]);
-  const canRecord = props.input !== undefined && props.isCustom;
+  const canRecord = props.isCustom;
   const quantization = durationToTicks(props.recordingQuantization);
 
   const recordingCallback = (startTime: Tick) => {
@@ -101,7 +100,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
         <label className="px-1">Input:</label>
         <div className="relative flex w-full h-full">
           <Transition
-            show={canRecord}
+            show={canRecord && props.input !== undefined}
             enter="transition-all duration-300"
             enterFrom="opacity-0"
             enterTo="opacity-100"
@@ -127,13 +126,15 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
             setValue={props.setInput}
             getOptionKey={(i) => i.id}
             getOptionName={(i) => i.name}
-            getOptionValue={(i) => i}
             icon={<BsSoundwave className="mr-2" />}
             options={WebMidi.inputs}
             placeholder="Change MIDI Input"
             className="px-1"
-            borderColor={canRecord ? "border-black/0" : "border-slate-500/50"}
-            backgroundColor="bg-slate-800"
+            borderColor={
+              canRecord && props.input !== undefined
+                ? "border-black/0"
+                : "border-slate-500/50"
+            }
           />
         </div>
       </div>
@@ -170,7 +171,6 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
           icon={<BsSoundwave className="mr-2" />}
           placeholder="Change Length"
           className="px-1"
-          borderColor={"border-emerald-500/80"}
         />
       </div>
     );
@@ -186,7 +186,6 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
           value={value}
           setValue={props.setRecordingQuantization}
           className="px-1"
-          borderColor={"border-emerald-500/80"}
         />
       </div>
     );
@@ -200,19 +199,11 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
     >
       <Editor.MenuButton
         className={`p-1 ${
-          recording
-            ? isAfterPickup
-              ? "text-red-500"
-              : "text-red-300"
-            : canRecord
-            ? "hover:bg-red-500"
-            : ""
+          recording ? (isAfterPickup ? "text-red-400" : "text-red-200") : ""
         }`}
-        disabled={!canRecord}
-        disabledClass="px-1"
         onClick={() => toggleRecording()}
       >
-        <BsFillRecordCircleFill className="text-lg p-0.5" />
+        Record <BsFillRecordCircleFill className="text-lg ml-2 p-0.5" />
       </Editor.MenuButton>
     </Editor.Tooltip>
   );

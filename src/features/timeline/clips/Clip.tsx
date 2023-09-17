@@ -189,7 +189,7 @@ function TimelineClip(props: ClipProps) {
   const ClipName = useMemo(() => {
     return () => (
       <div
-        className={`h-6 flex items-center shrink-0 text-xs text-white/80 font-medium bg-[#072c4f] p-1 border-b border-b-white/20 whitespace-nowrap overflow-ellipsis`}
+        className={`h-6 flex items-center shrink-0 text-xs text-white/80 font-medium p-1 border-b border-b-white/20 bg-sky-950 whitespace-nowrap overflow-ellipsis`}
       >
         {name}
       </div>
@@ -198,11 +198,11 @@ function TimelineClip(props: ClipProps) {
 
   return (
     <div
-      className={`transition-all duration-75 ease-in-out cursor-pointer rdg-clip absolute bg-sky-800/70 border ${
+      className={`transition-all duration-75 ease-in-out cursor-pointer rdg-clip absolute border ${
         isSelected ? "border-white" : "border-slate-200/50"
       } ${
         transposingClip ? "hover:ring-4 hover:ring-fuchsia-500" : ""
-      } rounded-lg overflow-hidden`}
+      } bg-sky-800/70 rounded-lg overflow-hidden`}
       ref={drag}
       style={{
         top: top + Constants.TRANSFORM_HEIGHT,

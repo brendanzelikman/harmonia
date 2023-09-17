@@ -10,19 +10,19 @@ export const AlteredScale: Scale = {
   name: "Altered Scale",
   notes: [60, 61, 63, 64, 66, 68, 70],
 };
-export const HarmonicMajorScale: Scale = {
-  id: "harmonic-major-scale",
-  name: "Harmonic Major Scale",
-  notes: [60, 62, 64, 65, 67, 68, 71],
-};
 export const PersianScale: Scale = {
   id: "persian-scale",
   name: "Persian Scale",
   notes: [60, 61, 64, 65, 66, 68, 71],
 };
-export const ByzantineScale: Scale = {
-  id: "byzantine-scale",
-  name: "Byzantine Scale",
+export const HarmonicMajorScale: Scale = {
+  id: "harmonic-major-scale",
+  name: "Harmonic Major Scale",
+  notes: [60, 62, 64, 65, 67, 68, 71],
+};
+export const DoubleHarmonicMajorScale: Scale = {
+  id: "double-harmonic-major-scale",
+  name: "Double Harmonic Major Scale",
   notes: [60, 61, 64, 65, 67, 68, 71],
 };
 export const HungarianMinorScale: Scale = {
@@ -49,9 +49,9 @@ export const NeapolitanMinorScale: Scale = {
 export default {
   AcousticScale,
   AlteredScale,
-  HarmonicMajorScale,
   PersianScale,
-  ByzantineScale,
+  HarmonicMajorScale,
+  DoubleHarmonicMajorScale,
   HungarianMinorScale,
   HungarianMajorScale,
   NeapolitanMajorScale,

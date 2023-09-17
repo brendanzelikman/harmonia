@@ -1,35 +1,16 @@
 import { Menu } from "@headlessui/react";
 import { PatternEditorCursorProps } from "..";
 import * as Editor from "features/editor";
-import { PatternTab, patternTabs } from "./PatternEditor";
+import { PatternTab, patternTabs } from "../components/PatternEditor";
 import { capitalize } from "lodash";
-import { MIDI, Pattern, Scale, transposeScale } from "types";
-import { useState, useEffect } from "react";
-import { PresetScaleList } from "types/presets/scales";
 
 interface PatternControlTabProps extends PatternEditorCursorProps {
   activeTab: PatternTab;
   setActiveTab: (tab: PatternTab) => void;
-  setInstrument: (instrument: string) => void;
-  scale: Scale;
-  setScale: React.Dispatch<React.SetStateAction<Scale>>;
-  transformedPattern: Pattern;
 }
 
 export function PatternControlTab(props: PatternControlTabProps) {
-  const { pattern, scale, setScale } = props;
-
-  const tonic = scale.notes[0];
-  const tonicKey = MIDI.toPitchClass(tonic);
-  const [key, setKey] = useState(MIDI.toPitchClass(scale.notes?.[0]));
-  useEffect(() => {
-    if (tonicKey !== key) {
-      setScale((prev) => {
-        const diff = MIDI.ChromaticNumber(key) - MIDI.ChromaticNumber(tonic);
-        return transposeScale(prev, diff);
-      });
-    }
-  }, [key]);
+  const { pattern } = props;
 
   if (!pattern) return null;
   const NewButton = () => (
@@ -140,7 +121,7 @@ export function PatternControlTab(props: PatternControlTabProps) {
         className="px-1 active:bg-emerald-600"
         disabled={props.isEmpty}
         disabledClass="px-1"
-        onClick={() => props.playPattern(props.transformedPattern)}
+        onClick={() => props.playPattern(pattern)}
       >
         Play
       </Editor.MenuButton>
@@ -148,7 +129,7 @@ export function PatternControlTab(props: PatternControlTabProps) {
   );
 
   const Tabs = () => (
-    <div className="flex items-center font-light px-1 border-r border-r-slate-500 text-xs">
+    <div className="flex items-center font-light px-1 text-xs">
       {patternTabs.map((tab) => (
         <Editor.Tooltip
           key={tab}
@@ -177,7 +158,6 @@ export function PatternControlTab(props: PatternControlTabProps) {
         <CopyButton />
         <PlayButton />
       </Editor.MenuGroup>
-
       {props.isCustom ? (
         <Editor.MenuGroup border={true}>
           <UndoButton />
@@ -185,37 +165,6 @@ export function PatternControlTab(props: PatternControlTabProps) {
         </Editor.MenuGroup>
       ) : null}
       {props.isCustom ? <Tabs /> : null}
-      <Editor.MenuGroup border={false}>
-        <Editor.Tooltip
-          show={props.showingTooltips}
-          content={`Select Instrument`}
-        >
-          <Editor.InstrumentListbox setInstrument={props.setInstrument} />
-        </Editor.Tooltip>
-        <Editor.Tooltip show={props.showingTooltips} content={`Select Tonic`}>
-          <Editor.CustomListbox
-            value={key}
-            setValue={(value) => setKey(value)}
-            options={MIDI.ChromaticNotes}
-            className="mx-1"
-          />
-        </Editor.Tooltip>
-        <Editor.Tooltip show={props.showingTooltips} content={`Select Scale`}>
-          <Editor.CustomListbox
-            value={scale}
-            setValue={(scale) => {
-              const tonic = scale.notes[0];
-              const diff =
-                MIDI.ChromaticNumber(key) - MIDI.ChromaticNumber(tonic);
-              setScale(transposeScale(scale, diff));
-            }}
-            options={PresetScaleList}
-            getOptionKey={(option) => option.id}
-            getOptionValue={(option) => option.id}
-            getOptionName={(option) => option.name}
-          />
-        </Editor.Tooltip>
-      </Editor.MenuGroup>
     </>
   );
 }

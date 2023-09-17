@@ -4,9 +4,6 @@ Welcome to Harmonia!
  Advised by Prof. Dmitri Tymoczko and Prof. Jeremie Lumbroso
  © Princeton University
 
- TO DO:
- • Write unit tests and benchmarks
-
  Initializing server...
  Running scripts...
  Opening codebase...

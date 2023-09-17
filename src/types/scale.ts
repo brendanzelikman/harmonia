@@ -3,6 +3,8 @@ import { durationToTicks, mod } from "utils";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import { Note, Pitch, XML } from "./units";
+import { getScaleKey } from "./key";
+import { DemoXML } from "assets/demoXML";
 
 export type ScaleId = string;
 
@@ -20,7 +22,7 @@ export const isScale = (obj: any): obj is Scale => {
 
 export type ScaleNoId = Omit<Scale, "id">;
 
-export const chromaticScale = {
+export const chromaticScale: Scale = {
   id: "chromatic-scale",
   name: "Chromatic Scale",
   notes: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
@@ -46,13 +48,17 @@ export default class Scales {
     );
   }
 
-  static exportToXML(notes: Note[]): XML {
-    const xmlNotes = notes.map((note) => {
+  static exportToXML(scale: Scale): XML {
+    if (!scale || !scale.notes.length) return DemoXML;
+
+    const key = getScaleKey(scale);
+    const xmlNotes = scale.notes.map((note) => {
       return MusicXML.createNote(note, {
         type: "quarter",
         duration: durationToTicks("quarter"),
         voice: 1,
         staff: note >= 60 ? 1 : 2,
+        key,
       });
     });
     // Create measure
@@ -71,14 +77,16 @@ export default class Scales {
     return MusicXML.serialize(score);
   }
 
+  // Returns true if the two scales are exactly equal
   static areEqual = (scale1: Scale, scale2: Scale) => {
     if (scale1.notes.length !== scale2.notes.length) return false;
     for (let i = 0; i < scale1.notes.length; i++) {
-      if (scale1.notes[i] !== scale2.notes[i]) return false;
+      if (scale1.notes[i] % 12 !== scale2.notes[i] % 12) return false;
     }
     return true;
   };
 
+  // Returns true if the two scales are related by transposition
   static areRelated = (scale1: Scale, scale2: Scale) => {
     if (scale1.notes.length !== scale2.notes.length) return false;
     const length = scale1.notes.length;
@@ -95,8 +103,17 @@ export default class Scales {
       }
     });
   };
-}
 
+  // Returns true if the two scales are related by rotation
+  static areModes = (scale1: Scale, scale2: Scale) => {
+    for (let i = 0; i < scale1.notes.length; i++) {
+      const mode = rotateScale(scale1, i);
+      const isEqual = Scales.areEqual(mode, scale2);
+      if (isEqual) return true;
+    }
+    return false;
+  };
+}
 export const defaultScale = {
   id: "default-scale",
   name: Scales.TrackScaleName,

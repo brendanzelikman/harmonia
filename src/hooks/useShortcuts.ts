@@ -23,7 +23,6 @@ import { UndoTypes } from "redux/undoTypes";
 import { clearState, readFiles, saveStateToFile } from "redux/util";
 import useEventListeners from "./useEventListeners";
 import { updateClipsAndTransforms } from "redux/slices/clips";
-import { isPatternTrack } from "types/tracks";
 import { useEffect } from "react";
 import { Clip } from "types/clip";
 import { Transform } from "types/transform";
@@ -265,7 +264,6 @@ export default function useShortcuts() {
   useEventListeners(
     {
       // "Space" = Play/Pause Timeline
-      // "Shift + Space" = Play Pattern/Scale
       " ": {
         keydown: (e) => {
           if (isInputEvent(e)) return;
@@ -281,18 +279,6 @@ export default function useShortcuts() {
             return;
           }
           if (!editor.show) return;
-
-          // Play Pattern Track
-          if (selectedPatternId && editor.id === "patterns") {
-            dispatch(Thunks.playPattern(selectedPatternId));
-            return;
-          }
-
-          // Play Scale Track
-          if (selectedTrack && editor.id === "scale") {
-            if (isPatternTrack(selectedTrack)) return;
-            dispatch(Thunks.playScale(selectedTrack.id));
-          }
         },
       },
       // "Left Arrow" = Go Back or Move Selected Timeline Objects

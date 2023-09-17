@@ -64,6 +64,9 @@ export type MelodicProgression = Stream;
 export type Pitch = string;
 export type Key = Pattern<Pitch>;
 
+export type ChromaticNote = { number: number; spellings: string[] };
+export type ChromaticScale = ChromaticNote[];
+
 // A transposition is a vector: a map of scales to scalars
 // (Note that we use an ID to refer to a scale, not the scale itself)
 // (This is because we can only use a string as a key)

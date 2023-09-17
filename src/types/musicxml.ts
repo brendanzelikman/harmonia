@@ -1,6 +1,6 @@
 import { DEFAULT_DURATION } from "appConstants";
 import { ticksToDuration } from "utils";
-import { Duration, Note, XML } from "./units";
+import { Duration, Key, Note, XML } from "./units";
 import { MIDI } from "./midi";
 
 const declaration: XML =
@@ -20,13 +20,16 @@ type NoteOptions = Partial<{
   backup: number;
   dot: boolean;
   triplet: boolean;
+  key?: Key;
 }>;
 
 export default class MusicXML {
   static createNote(note: Note, noteOptions?: NoteOptions): XML {
-    const letter = MIDI.toLetter(note);
-    const octave = MIDI.toOctave(note);
-    const offset = MIDI.toOffset(note);
+    const key = noteOptions?.key;
+    const letter = MIDI.toLetter(note, key);
+    const offset = MIDI.toOffset(note, key);
+    const octave = MIDI.toOctave(note, key);
+    const accidental = MIDI.toAccidental(note, key);
     const beam = noteOptions?.beam;
     const duration = noteOptions?.duration || 1;
     const type = noteOptions?.type || DEFAULT_DURATION;
@@ -67,6 +70,11 @@ export default class MusicXML {
           <duration>${duration}</duration>
           <voice>${voice}</voice>
           <type>${type}</type>
+          ${
+            accidental !== "natural"
+              ? `<accidental>${accidental}</accidental>`
+              : ""
+          }
           ${
             triplet
               ? `<time-modification>
@@ -125,6 +133,7 @@ export default class MusicXML {
     const stem = noteOptions?.stem || "up";
     const dot = noteOptions?.dot || MIDI.isDotted({ duration });
     const triplet = noteOptions?.triplet || MIDI.isTriplet({ duration });
+    const key = noteOptions?.key;
 
     const pivotNote = 58;
     const allNoteOptions = notes.map((note, i, arr) => {
@@ -155,6 +164,7 @@ export default class MusicXML {
         backup: uniqueStaff ? duration : undefined,
         dot,
         triplet,
+        key,
       };
 
       return noteOptions;
@@ -177,6 +187,7 @@ export default class MusicXML {
         dot,
         triplet,
         beam,
+        key,
       })
     );
     return [...xmlNotes, ...staffRests].join("");

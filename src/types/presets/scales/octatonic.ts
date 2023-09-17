@@ -23,7 +23,7 @@ export const BebopMelodicMinorScale: Scale = {
 export const BebopDominantScale: Scale = {
   id: "bebop-dominant-scale",
   name: "Bebop Dominant Scale",
-  notes: [60, 62, 64, 65, 67, 69, 70, 72],
+  notes: [60, 62, 64, 65, 67, 69, 70, 71],
 };
 export const OctatonicWHScale: Scale = {
   id: "octatonic-wh-scale",

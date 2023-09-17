@@ -8,7 +8,7 @@ import {
 } from "utils";
 import { PatternEditorCursorProps } from "..";
 import { Duration } from "types/units";
-import { MIDI, Pattern } from "types";
+import { Pattern } from "types";
 
 interface PatternShortcutProps extends PatternEditorCursorProps {
   transformedPattern: Pattern;
@@ -317,6 +317,17 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
           if (isInputEvent(e) || !isHoldingCommand(e)) return;
           cancelEvent(e);
           props.augmentPattern(props.pattern);
+        },
+      },
+      // Shift + Space = Play Pattern
+      " ": {
+        keydown: (e) => {
+          if (isInputEvent(e) || !isHoldingShift(e)) return;
+          // Play Pattern Track
+          if (props.selectedPatternId) {
+            props.playPattern(props.transformedPattern);
+            return;
+          }
         },
       },
     },
