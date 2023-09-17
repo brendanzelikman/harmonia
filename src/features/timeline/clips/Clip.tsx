@@ -8,13 +8,13 @@ import {
   selectClipWidth,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
-import { Clip, ClipId } from "types/clip";
+import { Clip, CLIP_THEMES, ClipId, getClipTheme } from "types/clip";
 import { ClipsProps } from ".";
 import * as Constants from "appConstants";
 import { useClipDrag } from "./dnd";
 import * as Root from "redux/slices/root";
 import * as Timeline from "redux/slices/timeline";
-import { MouseEvent, useEffect, useMemo, useState } from "react";
+import { MouseEvent, useEffect, useMemo } from "react";
 import Stream from "./Stream";
 import { TransformNoId } from "types/transform";
 import { rotatePattern, transposePattern } from "redux/slices/patterns";
@@ -45,6 +45,8 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const { toolkit, selectedClipIds } = root;
   const isSelected = selectedClipIds.includes(clip.id);
 
+  const { headerColor, bodyColor } = getClipTheme(clip);
+
   return {
     ...ownProps,
     index,
@@ -53,6 +55,8 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     width,
     top,
     left,
+    headerColor,
+    bodyColor,
     subdivision: timeline.subdivision,
     isSelected,
     pattern,
@@ -117,9 +121,6 @@ export default connector(TimelineClip);
 function TimelineClip(props: ClipProps) {
   if (props.index === -1) return null;
   const { clip, rows, selectedClipIds } = props;
-  const { draggingClip, transposingClip } = props;
-  const { top, left, width, name, isSelected } = props;
-
   const [{ isDragging }, drag] = useClipDrag(props);
 
   // Update the dragging state after react-dnd
@@ -134,14 +135,14 @@ function TimelineClip(props: ClipProps) {
 
   const opacity = useMemo(() => {
     if (isDragging) return 0.5;
-    if (draggingClip) return 0.8;
+    if (props.draggingClip) return 0.8;
     return 1;
-  }, [isDragging, draggingClip]);
+  }, [isDragging, props.draggingClip]);
 
   const eyedropping = useKeyHolder("i").i;
 
   const onClipClick = (e: MouseEvent) => {
-    if (transposingClip) {
+    if (props.transposingClip) {
       const { chromaticTranspose, scalarTranspose, chordalTranspose } = props;
       if (isNaN(scalarTranspose)) return;
       if (isNaN(chromaticTranspose)) return;
@@ -161,7 +162,7 @@ function TimelineClip(props: ClipProps) {
       return;
     }
     // Deselect the clip if it is selected
-    if (isSelected) {
+    if (props.isSelected) {
       props.deselectClip(clip.id);
       return;
     }
@@ -189,28 +190,28 @@ function TimelineClip(props: ClipProps) {
   const ClipName = useMemo(() => {
     return () => (
       <div
-        className={`h-6 flex items-center shrink-0 text-xs text-white/80 font-medium p-1 border-b border-b-white/20 bg-sky-950 whitespace-nowrap overflow-ellipsis`}
+        className={`h-6 flex items-center shrink-0 text-xs text-white/80 font-medium p-1 border-b border-b-white/20 ${props.headerColor} whitespace-nowrap overflow-ellipsis`}
       >
-        {name}
+        {props.name}
       </div>
     );
-  }, [name]);
+  }, [props.name, props.headerColor]);
 
   return (
     <div
       className={`transition-all duration-75 ease-in-out cursor-pointer rdg-clip absolute border ${
-        isSelected ? "border-white" : "border-slate-200/50"
-      } ${
-        transposingClip ? "hover:ring-4 hover:ring-fuchsia-500" : ""
-      } bg-sky-800/70 rounded-lg overflow-hidden`}
+        props.isSelected ? "border-white" : "border-slate-200/50"
+      } ${props.transposingClip ? "hover:ring-4 hover:ring-fuchsia-500" : ""} ${
+        props.bodyColor
+      } rounded-lg overflow-hidden`}
       ref={drag}
       style={{
-        top: top + Constants.TRANSFORM_HEIGHT,
-        left,
-        width,
+        top: props.top + Constants.TRANSFORM_HEIGHT,
+        left: props.left,
+        width: props.width,
         height: Constants.CELL_HEIGHT - Constants.TRANSFORM_HEIGHT,
         opacity,
-        pointerEvents: isDragging || draggingClip ? "none" : "auto",
+        pointerEvents: isDragging || props.draggingClip ? "none" : "auto",
         animation: "fadeIn 0.1s ease-in-out",
       }}
       onClick={onClipClick}

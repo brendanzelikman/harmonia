@@ -22,6 +22,8 @@ import { Row } from "..";
 import { UndoTypes } from "redux/undoTypes";
 import { isPatternTrack, isScaleTrack } from "types/tracks";
 import { addTransformToTimeline } from "redux/thunks/transforms";
+import { CLIP_COLORS, CLIP_THEMES, Clip, ClipColor } from "types";
+import { updateClips } from "redux/slices/clips";
 
 const mapStateToProps = (state: RootState) => {
   const {
@@ -62,11 +64,13 @@ const mapStateToProps = (state: RootState) => {
   const canExport = areClipsSelected;
   const canUndo = state.session.past.length > 0;
   const canRedo = state.session.future.length > 0;
+  const canColor = areClipsSelected;
 
   return {
     selectedTrack,
     isPatternTrackSelected,
     selectedPattern,
+    selectedClipIds,
     canCut,
     canCopy,
     canPaste,
@@ -75,6 +79,7 @@ const mapStateToProps = (state: RootState) => {
     canExport,
     canUndo,
     canRedo,
+    canColor,
     N: toolkit?.chromaticTranspose,
     T: toolkit?.scalarTranspose,
     t: toolkit?.chordalTranspose,
@@ -97,6 +102,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     addPatternTrack: () => dispatch(createPatternTrackFromSelectedTrack()),
     addScaleTrack: () => dispatch(createScaleTrack()),
     addTransform: () => dispatch(addTransformToTimeline()),
+    updateClips: (clips: Partial<Clip>[]) => dispatch(updateClips(clips)),
   };
 };
 
@@ -168,11 +174,38 @@ function TimelineContextMenu(props: Props) {
     disabled: !props.isPatternTrackSelected,
   };
   const AddTransform = {
-    label: `Add Transform ${
-      props.selectedTrack ? `(N${props.N}, T${props.T}, t${props.t})` : ""
+    label: `Add ${
+      props.selectedTrack
+        ? `(N${props.N}, T${props.T}, t${props.t})`
+        : "Transform"
     }`,
     onClick: () => props.addTransform(),
     disabled: !props.selectedTrack,
+    divideEnd: props.canColor,
+  };
+
+  const ClipColorCircle = ({ color }: { color: ClipColor }) => {
+    const clipColor = CLIP_THEMES[color].iconColor;
+    return (
+      <span
+        className={`w-4 h-4 m-1 rounded-full ${clipColor} border cursor-pointer`}
+        onClick={() =>
+          props.updateClips(props.selectedClipIds.map((id) => ({ id, color })))
+        }
+      ></span>
+    );
+  };
+
+  const ClipColor = {
+    label: (
+      <div className="w-32 flex flex-wrap">
+        {CLIP_COLORS.map((color) => (
+          <ClipColorCircle key={color} color={color} />
+        ))}
+      </div>
+    ),
+    onClick: () => null,
+    disabled: !props.canColor,
   };
 
   const menuOptions = [
@@ -188,6 +221,7 @@ function TimelineContextMenu(props: Props) {
     AddPatternTrack,
     AddPattern,
     AddTransform,
+    props.canColor ? ClipColor : null,
   ];
   const options = menuOptions.filter(Boolean) as ContextMenuOption[];
   return <ContextMenu targetId="timeline" options={options} />;

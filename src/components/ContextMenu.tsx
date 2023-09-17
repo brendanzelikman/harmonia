@@ -8,7 +8,7 @@ import {
 } from "react";
 
 export interface ContextMenuOption {
-  label: string;
+  label: JSX.Element | string;
   onClick: () => void;
   disabled?: boolean;
   divideEnd?: boolean;
@@ -63,21 +63,30 @@ export default function ContextMenu(props: {
     }
   }, [pos]);
 
-  const renderOption = useCallback((option: ContextMenuOption) => {
-    return (
-      <li
-        className={`px-3 py-1 ${
-          option.disabled
-            ? "text-slate-500 cursor-default"
-            : "text-slate-200 cursor-pointer hover:bg-slate-700"
-        } ${option.divideEnd ? "mb-1 border-b border-b-slate-500" : ""}`}
-        key={option.label}
-        onClick={option.disabled ? () => null : option.onClick}
-      >
-        {option.label}
-      </li>
-    );
-  }, []);
+  const renderOption = useCallback(
+    (option: ContextMenuOption, index: number) => {
+      return (
+        <li
+          className={`px-3 py-1 ${
+            typeof option.label === "string"
+              ? `${
+                  option.disabled
+                    ? "text-slate-500 cursor-default"
+                    : "text-slate-200 cursor-pointer hover:bg-slate-700"
+                }`
+              : null
+          } ${option.divideEnd ? "mb-1 border-b border-b-slate-500" : ""}`}
+          key={
+            typeof option.label === "string" ? option.label : `option-${index}`
+          }
+          onClick={option.disabled ? () => null : option.onClick}
+        >
+          {option.label}
+        </li>
+      );
+    },
+    []
+  );
 
   return (
     <Transition

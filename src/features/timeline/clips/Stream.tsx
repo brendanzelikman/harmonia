@@ -7,7 +7,7 @@ import {
 } from "redux/selectors";
 import { sliceClip } from "redux/thunks/clips";
 import { AppDispatch, RootState } from "redux/store";
-import { Clip, ClipId } from "types/clip";
+import { Clip, ClipId, getClipTheme } from "types/clip";
 import {
   getStreamTimelineNotes,
   PatternStream,
@@ -28,12 +28,14 @@ const mapStateToProps = (state: RootState, ownProps: StreamProps) => {
   const cellWidth = selectCellWidth(state);
   const slicingClip = timeline.state === "cutting";
   const stream = selectClipStream(state, clip.id);
+  const { noteColor } = getClipTheme(clip);
   return {
     clip,
     slicingClip,
     cellWidth,
     stream: JSON.stringify(stream),
     subdivision: timeline.subdivision,
+    noteColor,
   };
 };
 
@@ -93,14 +95,13 @@ function Stream(props: Props) {
       return (
         <li
           key={i}
-          className="absolute flex items-center justify-center shrink-0 rounded border border-slate-950/80"
+          className={`absolute flex items-center justify-center shrink-0 rounded ${props.noteColor} border border-slate-950/80`}
           style={{
             width: `${width}px`,
             height: `${height}px`,
             left: `${left}px`,
             top,
             bottom,
-            backgroundColor: `rgba(8, 47, 73, ${opacity})`,
           }}
         >
           {width > 20 && noteHeight > 8 ? note.pitch : null}
