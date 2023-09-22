@@ -10,7 +10,7 @@ export * from "./selectors/tracks";
 export * from "./selectors/scaleTracks";
 export * from "./selectors/patternTracks";
 export * from "./selectors/clips";
-export * from "./selectors/transforms";
+export * from "./selectors/transpositions";
 
 // Audio
 export * from "./selectors/transport";

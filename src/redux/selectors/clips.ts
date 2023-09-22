@@ -1,18 +1,24 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
-import { ClipId, getClipStream, getClipTicks } from "types/clip";
+import { ClipId, getClipTicks } from "types/clip";
 import { Pattern, PatternChord, PatternStream } from "types/pattern";
-import { Transform, lastTransformAtTick } from "types/transform";
+import { Transposition } from "types/transposition";
 import { Tick } from "types/units";
 import { selectPatternMap } from "./patterns";
 import { selectPatternTrackMap } from "./patternTracks";
-import { selectScaleMap } from "./scales";
 import { selectScaleTrackMap } from "./scaleTracks";
-import { selectTransforms } from "./transforms";
-import { PatternTrack, ScaleTrack, TrackId } from "types/tracks";
-import { Scale, chromaticScale } from "types/scale";
+import { selectTranspositionMap } from "./transpositions";
+import {
+  PatternTrack,
+  ScaleTrack,
+  TrackId,
+  getScaleTrackScale,
+} from "types/tracks";
+import { chromaticScale } from "types/scale";
 import { selectCellWidth, selectTimeline } from "./timeline";
 import { ticksToColumns } from "utils";
+import { GenericScale, getClipStream } from "types";
+import { selectSessionMap } from "./tracks";
 
 export const selectClipId = (state: RootState, id: ClipId) => {
   return id;
@@ -53,6 +59,24 @@ export const selectClipPattern = createSelector(
   }
 );
 
+// Select the name of a clip
+export const selectClipName = createSelector(
+  [selectClip, selectClipPattern],
+  (clip, pattern): string => {
+    if (!clip || !pattern) return "";
+    return pattern.name;
+  }
+);
+
+// Select the duration of a clip in ticks
+export const selectClipDuration = createSelector(
+  [selectClip, selectClipPattern],
+  (clip, pattern) => {
+    if (!clip || !pattern) return 0;
+    return getClipTicks(clip, pattern);
+  }
+);
+
 // Select the pattern track of a clip
 export const selectClipPatternTrack = createSelector(
   [selectClip, selectPatternTrackMap],
@@ -65,108 +89,53 @@ export const selectClipPatternTrack = createSelector(
 export const selectClipScaleTrack = createSelector(
   [selectClipPatternTrack, selectScaleTrackMap],
   (patternTrack, scaleTracks): ScaleTrack | undefined => {
-    if (!patternTrack) return;
-    return scaleTracks[patternTrack?.scaleTrackId];
+    if (!patternTrack?.parentId) return;
+    return scaleTracks[patternTrack.parentId];
   }
 );
 
 // Select the scale of a clip from its track
 export const selectClipScale = createSelector(
-  [selectClipScaleTrack, selectScaleMap],
-  (scaleTrack, scales): Scale => {
+  [selectClipScaleTrack, selectScaleTrackMap],
+  (scaleTrack, scaleTracks): GenericScale => {
     if (!scaleTrack) return chromaticScale;
-    return scales[scaleTrack?.scaleId] ?? chromaticScale;
+    return getScaleTrackScale(scaleTrack, { scaleTracks });
   }
 );
 
-// Select the transforms of a clip
-export const selectClipTransforms = createSelector(
-  [selectClip, selectTransforms],
-  (clip, transforms): Transform[] => {
-    if (!clip || !transforms) return [];
-    return transforms.filter((transform) => transform.trackId === clip.trackId);
+// Select the transpositions of a clip
+export const selectClipTranspositions = createSelector(
+  [selectClip, selectTranspositionMap, selectSessionMap],
+  (clip, transpositionMap, sessionMap): Transposition[] => {
+    if (!clip) return [];
+    return sessionMap.byId[clip.trackId]?.transpositionIds
+      .map((id) => transpositionMap[id])
+      .filter(Boolean);
   }
 );
 
-// Select the transforms of the clip's scale track
-export const selectClipScaleTransforms = createSelector(
-  [selectClip, selectClipScaleTrack, selectClipPatternTrack, selectTransforms],
-  (clip, scaleTrack, patternTrack, transforms): Transform[] => {
-    if (!clip || !patternTrack || !scaleTrack) return [];
-    return transforms
-      .filter((transform) => transform.trackId === scaleTrack.id)
-      .sort((a, b) => a.tick - b.tick);
-  }
-);
-
-// Select the transform of a clip at a specific tick
-export const selectClipTransformAtTick = createSelector(
-  [selectClipTransforms, selectClipTick],
-  (transforms, tick) => {
-    return lastTransformAtTick(transforms, tick);
-  }
-);
-
-// Select the transform of a clip's scale track at a specific tick
-export const selectClipScaleTransformAtTick = createSelector(
-  [selectClipScaleTransforms, selectClipTick],
-  (transforms, tick) => {
-    return transforms.filter((transform) => transform.tick > tick)[0];
-  }
-);
-
-// Select the transformed stream of a specific clip
+// Select the transposed stream of a specific clip
 export const selectClipStream = createSelector(
   [
     selectClip,
-    selectClipPattern,
-    selectClipScale,
-    selectClipTransforms,
-    selectClipScaleTransforms,
-  ],
-  (clip, pattern, scale, transforms, scaleTransforms) => {
-    if (!clip || !pattern || !scale) return [] as PatternStream;
-    return getClipStream(clip, pattern, scale, transforms, scaleTransforms);
-  }
-);
-
-// Select all clip streams
-export const selectClipStreams = createSelector(
-  [
-    selectClips,
     selectPatternMap,
-    selectScaleMap,
-    selectTransforms,
     selectPatternTrackMap,
     selectScaleTrackMap,
+    selectTranspositionMap,
+    selectSessionMap,
   ],
-  (clips, patterns, scales, transforms, patternTracks, scaleTracks) => {
-    return clips.map((clip) => {
-      const pattern = patterns[clip.patternId];
-      if (!pattern) return [] as PatternStream;
-      const patternTrack = patternTracks[clip.trackId];
-      if (!patternTrack) return [] as PatternStream;
-      const scaleTrack = scaleTracks[patternTrack.scaleTrackId];
-      if (!scaleTrack) return [] as PatternStream;
-      const scale = scales[scaleTrack.scaleId];
-      if (!scale) return [] as PatternStream;
-      const clipTransforms = transforms.filter(
-        (transform) => transform.trackId === clip.trackId
-      );
-      const scaleTransforms = transforms.filter(
-        (transform) => transform.trackId === scaleTrack.id
-      );
-      return getClipStream(
-        clip,
-        pattern,
-        scale,
-        clipTransforms,
-        scaleTransforms
-      );
+  (clip, patterns, patternTracks, scaleTracks, transpositions, sessionMap) => {
+    return getClipStream(clip, {
+      patterns,
+      patternTracks,
+      scaleTracks,
+      transpositions,
+      sessionMap,
     });
   }
 );
 
+// Select the width of a clip
 export const selectClipWidth = createSelector(
   [selectClip, selectClipPattern, selectTimeline, selectCellWidth],
   (clip, pattern, timeline, cellWidth) => {
@@ -183,10 +152,31 @@ interface StreamInfo {
 }
 
 export const selectChordsByTicks = createSelector(
-  [selectClips, selectClipStreams],
-  (clips, streams) => {
+  [
+    selectClips,
+    selectPatternMap,
+    selectPatternTrackMap,
+    selectScaleTrackMap,
+    selectTranspositionMap,
+    selectSessionMap,
+  ],
+  (clips, patterns, patternTracks, scaleTracks, transpositions, sessionMap) => {
+    const clipStreams = clips.map((clip) => {
+      return getClipStream(clip, {
+        patterns,
+        patternTracks,
+        scaleTracks,
+        transpositions,
+        sessionMap,
+      });
+    });
     return clips.reduce((acc, clip, i) => {
-      const stream = streams[i];
+      const patternTrack = patternTracks[clip.trackId];
+      if (!patternTrack?.parentId) return acc;
+      const scaleTrack = scaleTracks[patternTrack.parentId];
+      if (!scaleTrack) return acc;
+
+      const stream = clipStreams[i];
       if (!stream) return acc;
 
       const length = stream.length;
@@ -205,12 +195,17 @@ export const selectChordsByTicks = createSelector(
   }
 );
 
-// Select the duration of a clip in beats
-export const selectClipTicks = createSelector(
-  [selectClip, selectClipPattern],
-  (clip, pattern) => {
-    if (!clip || !pattern) return 0;
-    return getClipTicks(clip, pattern);
+// Select transport end tick
+export const selectTransportEndTick = createSelector(
+  [selectClips, selectPatternMap],
+  (clips, patternMap) => {
+    const lastTick = clips.reduce((last, clip) => {
+      const pattern = patternMap[clip.patternId];
+      if (!pattern) return last;
+      const endTick = clip.tick + getClipTicks(clip, pattern);
+      return Math.max(last, endTick);
+    }, 0);
+    return lastTick;
   }
 );
 

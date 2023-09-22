@@ -105,6 +105,21 @@ export const defaultMixer: Mixer = {
   effects: [],
 };
 
+type MixerValues = {
+  volume: Volume;
+  pan: number;
+  mute: boolean;
+  solo: boolean;
+};
+export const unpackMixer = (mixer?: Mixer): MixerValues => {
+  return {
+    volume: mixer?.volume || defaultMixer.volume,
+    pan: mixer?.pan || defaultMixer.pan,
+    mute: mixer?.mute || defaultMixer.mute,
+    solo: mixer?.solo || defaultMixer.solo,
+  };
+};
+
 type ToneEffect = {
   node: EffectNode;
   id: EffectId;

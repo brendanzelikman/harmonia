@@ -54,7 +54,7 @@ interface PatternUpdateChord {
   patternChord: PatternChord;
 }
 
-interface TransformPattern {
+interface TranspositionPattern {
   id: PatternId;
   [key: string]: any;
 }
@@ -183,7 +183,7 @@ export const patternsSlice = createSlice({
       if (index < 0 || index > pattern.stream.length) return;
       state.byId[id].stream.splice(index, 1);
     },
-    transposePattern: (state, action: PayloadAction<TransformPattern>) => {
+    transposePattern: (state, action: PayloadAction<TranspositionPattern>) => {
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -194,7 +194,7 @@ export const patternsSlice = createSlice({
         return chord.map((note) => ({ ...note, MIDI: note.MIDI + transpose }));
       });
     },
-    rotatePattern: (state, action: PayloadAction<TransformPattern>) => {
+    rotatePattern: (state, action: PayloadAction<TranspositionPattern>) => {
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -222,7 +222,7 @@ export const patternsSlice = createSlice({
         }));
       });
     },
-    repeatPattern: (state, action: PayloadAction<TransformPattern>) => {
+    repeatPattern: (state, action: PayloadAction<TranspositionPattern>) => {
       const { id, repeat } = action.payload;
       if (repeat === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -240,7 +240,7 @@ export const patternsSlice = createSlice({
         pattern.stream.length / 2
       );
     },
-    continuePattern: (state, action: PayloadAction<TransformPattern>) => {
+    continuePattern: (state, action: PayloadAction<TranspositionPattern>) => {
       const { id, length } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -281,7 +281,7 @@ export const patternsSlice = createSlice({
         }));
       });
     },
-    phasePattern: (state, action: PayloadAction<TransformPattern>) => {
+    phasePattern: (state, action: PayloadAction<TranspositionPattern>) => {
       const { id, phase } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -308,7 +308,7 @@ export const patternsSlice = createSlice({
 
       state.byId[patternId].stream = shuffle(pattern.stream);
     },
-    harmonizePattern: (state, action: PayloadAction<TransformPattern>) => {
+    harmonizePattern: (state, action: PayloadAction<TranspositionPattern>) => {
       const { id, interval } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -322,7 +322,7 @@ export const patternsSlice = createSlice({
         ];
       });
     },
-    randomizePattern: (state, action: PayloadAction<TransformPattern>) => {
+    randomizePattern: (state, action: PayloadAction<TranspositionPattern>) => {
       const { id, length } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;

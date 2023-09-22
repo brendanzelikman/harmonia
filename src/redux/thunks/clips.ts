@@ -1,12 +1,10 @@
 import { inRange, union } from "lodash";
 import * as Selectors from "redux/selectors";
 import * as Clips from "redux/slices/clips";
-import * as Transfroms from "redux/slices/transforms";
-import * as ClipMap from "redux/slices/maps/clipMap";
+import * as Transpositions from "redux/slices/transpositions";
 import { addPattern } from "redux/slices/patterns";
 import {
   deselectClip,
-  setSelectedTransforms,
   setSelectedClips,
   setSelectedPattern,
 } from "redux/slices/root";
@@ -25,41 +23,53 @@ import { MIDI } from "types/midi";
 import { Midi } from "@tonejs/midi";
 import { PatternStream, initializePattern, PatternId } from "types/pattern";
 import { TrackId } from "types/tracks";
-import { Transform, TransformId } from "types/transform";
+import {
+  Transposition,
+  TranspositionId,
+  getChordalTranspose,
+  getChromaticTranspose,
+  getScalarTranspose,
+} from "types/transposition";
 import { Tick } from "types/units";
 import {
-  createClipsAndTransforms,
-  deleteClipsAndTransforms,
+  createClipsAndTranspositions,
+  deleteClipsAndTranspositions,
 } from "redux/slices/clips";
 import { Row } from "features/timeline";
 import { subdivisionToTicks } from "utils";
 import { setClipboard } from "redux/slices/timeline";
 import { convertTicksToSeconds } from "redux/slices/transport";
+import { sliceClipInSession } from "redux/slices/sessionMap";
 
 export type RepeatOptions = {
   repeatCount?: number;
-  repeatTransforms?: boolean;
-  repeatWithTranspose?: boolean;
+  repeatTranspositions?: boolean;
+  repeatWithTransposition?: boolean;
 };
 export const repeatClips =
   (
     clipIds: ClipId[],
     options?: RepeatOptions
-  ): AppThunk<Promise<{ clipIds: ClipId[]; transformIds: TransformId[] }>> =>
+  ): AppThunk<
+    Promise<{ clipIds: ClipId[]; transpositionIds: TranspositionId[] }>
+  > =>
   async (dispatch, getState) => {
     const state = getState();
     const root = Selectors.selectRoot(state);
     const { toolkit } = root;
     const repeatCount = options?.repeatCount || toolkit?.repeatCount;
-    const repeatTransforms =
-      options?.repeatTransforms || toolkit?.repeatTransforms;
-    const repeatWithTranspose =
-      options?.repeatWithTranspose || toolkit?.repeatWithTranspose;
-    const { chromaticTranspose, scalarTranspose, chordalTranspose } = toolkit;
+    const repeatTranspositions =
+      options?.repeatTranspositions || toolkit?.repeatTranspositions;
+    const repeatWithTransposition =
+      options?.repeatWithTransposition || toolkit?.repeatWithTransposition;
+    const { transpositionOffsets } = toolkit;
+    const toolkitChromatic = getChromaticTranspose(transpositionOffsets);
+    const toolkitScalar = getScalarTranspose(transpositionOffsets);
+    const toolkitChordal = getChordalTranspose(transpositionOffsets);
 
     const clips = Selectors.selectClipsByIds(state, clipIds);
     const clipTicks = clips.map((clip) =>
-      Selectors.selectClipTicks(state, clip?.id)
+      Selectors.selectClipDuration(state, clip?.id)
     );
     const startTick = Math.min(...clips.map((clip) => clip.tick));
     const endTick = Math.max(
@@ -68,7 +78,7 @@ export const repeatClips =
     const totalTicks = endTick - startTick;
 
     let newClips: Clip[] = [];
-    let newTransforms: Transform[] = [];
+    let newTranspositions: Transposition[] = [];
 
     for (let i = 1; i <= repeatCount; i++) {
       // Move the clips
@@ -78,66 +88,83 @@ export const repeatClips =
       }));
       newClips = [...newClips, ...movedClips];
 
-      // Move the transforms
-      if (repeatTransforms) {
+      // Move the transpositions
+      if (repeatTranspositions) {
         clips.forEach((clip, j) => {
-          const clipTransforms = Selectors.selectClipTransforms(state, clip.id);
-          const currentTransforms = clipTransforms.filter((t: Transform) =>
-            inRange(t.tick, clip.tick, clip.tick + clipTicks[j])
+          const clipTranspositions = Selectors.selectClipTranspositions(
+            state,
+            clip.id
           );
-          if (currentTransforms.length) {
-            const movedTransforms = currentTransforms.map((t: Transform) => ({
-              ...t,
-              tick: t.tick + i * totalTicks,
-              chromaticTranspose: repeatWithTranspose
-                ? t.chromaticTranspose + i * chromaticTranspose
-                : t.chromaticTranspose,
-              scalarTranspose: repeatWithTranspose
-                ? t.scalarTranspose + i * scalarTranspose
-                : t.scalarTranspose,
-              chordalTranspose: repeatWithTranspose
-                ? t.chordalTranspose + i * chordalTranspose
-                : t.chordalTranspose,
-            }));
-            newTransforms = [...newTransforms, ...movedTransforms];
+          const currentTranspositions = clipTranspositions.filter(
+            (t: Transposition) =>
+              inRange(t.tick, clip.tick, clip.tick + clipTicks[j])
+          );
+          if (currentTranspositions.length) {
+            const movedTranspositions = currentTranspositions.map(
+              (t: Transposition) => {
+                const tChromatic = getChromaticTranspose(t);
+                const tScalar = getScalarTranspose(t);
+                const tChordal = getChordalTranspose(t);
+                return {
+                  ...t,
+                  tick: t.tick + i * totalTicks,
+                  chromaticTransposition: repeatWithTransposition
+                    ? tChromatic + i * toolkitChromatic
+                    : tChromatic,
+                  scalarTransposition: repeatWithTransposition
+                    ? tScalar + i * toolkitScalar
+                    : tScalar,
+                  chordalTransposition: repeatWithTransposition
+                    ? tChordal + i * toolkitChordal
+                    : tChordal,
+                };
+              }
+            );
+            newTranspositions = [...newTranspositions, ...movedTranspositions];
           }
         });
       }
     }
-    return dispatch(createClipsAndTransforms(newClips, newTransforms));
+    return dispatch(createClipsAndTranspositions(newClips, newTranspositions));
   };
 
 export const mergeClips =
-  (clipIds: ClipId[]): AppThunk =>
+  (clips: Clip[]): AppThunk =>
   async (dispatch, getState) => {
     const state = getState();
+    const sessionMap = Selectors.selectSessionMap(state);
+    const patterns = Selectors.selectPatternMap(state);
+    const transpositions = Selectors.selectTranspositionMap(state);
+    const patternTracks = Selectors.selectPatternTrackMap(state);
+    const scaleTracks = Selectors.selectScaleTrackMap(state);
     const root = Selectors.selectRoot(state);
     const { toolkit } = root;
-    const { mergeName, mergeTransforms } = toolkit;
-    const clips = Selectors.selectClipsByIds(state, clipIds).filter(
-      Boolean
-    ) as Clip[];
+    const { mergeName, mergeTranspositions } = toolkit;
     if (!clips || !clips.length) return;
     const sortedClips = clips.sort((a, b) => a.tick - b.tick);
-    let oldTransforms: Transform[] = [];
+    let oldTranspositions: Transposition[] = [];
 
     // Create a merged pattern
     const stream = sortedClips.reduce((acc, clip) => {
       const pattern = Selectors.selectPattern(state, clip.patternId);
       if (!pattern) return acc;
-      const scale = Selectors.selectClipScale(state, clip.id);
-      const transforms = Selectors.selectClipTransforms(state, clip.id);
 
-      const allChords = mergeTransforms
-        ? getClipStream(clip, pattern, scale, transforms, [])
+      const allChords = mergeTranspositions
+        ? getClipStream(clip, {
+            patterns,
+            patternTracks,
+            scaleTracks,
+            transpositions,
+            sessionMap,
+          })
         : getClipNotes(clip, pattern.stream);
 
-      // Add any overlapping transforms if merging
-      if (mergeTransforms) {
+      // Add any overlapping transpositions if merging
+      if (mergeTranspositions) {
         const ticks = getClipTicks(clip, pattern);
-        oldTransforms = union(
-          oldTransforms,
-          transforms.filter((t) =>
+        oldTranspositions = union(
+          oldTranspositions,
+          Object.values(transpositions).filter((t) =>
             inRange(t.tick, clip.tick, clip.tick + ticks)
           )
         );
@@ -156,17 +183,19 @@ export const mergeClips =
 
     // Create a new clip
     await dispatch(
-      Clips.createClip({
-        patternId: newPattern.id,
-        trackId: sortedClips[0].trackId,
-        tick: sortedClips[0].tick,
-      })
+      Clips.createClips([
+        {
+          patternId: newPattern.id,
+          trackId: sortedClips[0].trackId,
+          tick: sortedClips[0].tick,
+        },
+      ])
     );
     // Delete the old clips
-    dispatch(Clips.deleteClips(clipIds));
-    // Delete any merged transforms
-    if (mergeTransforms && oldTransforms.length) {
-      dispatch(Transfroms.deleteTransforms(oldTransforms.map((t) => t.id)));
+    dispatch(Clips.deleteClips(clips));
+    // Delete any merged transpositions
+    if (mergeTranspositions && oldTranspositions.length) {
+      dispatch(Transpositions.deleteTranspositions(oldTranspositions));
     }
   };
 
@@ -190,7 +219,7 @@ export const createPatternClip =
       tick,
       trackId: patternTrack.id,
     };
-    dispatch(Clips.createClip(clip));
+    dispatch(Clips.createClips([clip]));
   };
 
 export const sliceClip =
@@ -223,7 +252,7 @@ export const sliceClip =
     dispatch(deselectClip(clipId));
     dispatch(Clips._sliceClip({ oldClip: clip, firstClip, secondClip }));
     dispatch(
-      ClipMap.sliceClipFromClipMap({
+      sliceClipInSession({
         oldClipId: clipId,
         firstClipId: firstClip.id,
         secondClipId: secondClip.id,
@@ -236,9 +265,12 @@ export const exportClipsToMidi =
   async (_dispatch, getState) => {
     // Get the clips from the state
     const state = getState();
+    const patterns = Selectors.selectPatternMap(state);
+    const patternTracks = Selectors.selectPatternTrackMap(state);
+    const scaleTracks = Selectors.selectScaleTrackMap(state);
     const transport = Selectors.selectTransport(state);
+    const sessionMap = Selectors.selectSessionMap(state);
     const scaleTrackIds = Selectors.selectScaleTrackIds(state);
-    const trackMap = Selectors.selectTrackMap(state);
     const clipsByIds = Selectors.selectClipsByIds(state, ids);
     const clips = clipsByIds.filter(Boolean) as Clip[];
     if (!clips || !clips.length) return;
@@ -262,14 +294,8 @@ export const exportClipsToMidi =
       const trackB = Selectors.selectPatternTrack(state, b);
       if (!trackA || !trackB) return 0;
       // Get the scale tracks for each pattern track
-      const scaleTrackA = Selectors.selectScaleTrack(
-        state,
-        trackA.scaleTrackId
-      );
-      const scaleTrackB = Selectors.selectScaleTrack(
-        state,
-        trackB.scaleTrackId
-      );
+      const scaleTrackA = Selectors.selectScaleTrack(state, trackA.parentId);
+      const scaleTrackB = Selectors.selectScaleTrack(state, trackB.parentId);
       if (!scaleTrackA || !scaleTrackB) return 0;
       // Get the index of each scale track
       const indexA = scaleTrackIds.indexOf(scaleTrackA.id);
@@ -278,8 +304,8 @@ export const exportClipsToMidi =
       // If the scale tracks are the same, sort by pattern track index
       if (diff === 0) {
         // Get the pattern track ids from the track map
-        const patterns = trackMap.byId[scaleTrackA.id];
-        const keys = patterns.patternTrackIds;
+        const patterns = sessionMap.byId[scaleTrackA.id].trackIds;
+        const keys = patterns;
         const trackIndexA = keys.indexOf(a);
         const trackIndexB = keys.indexOf(b);
 
@@ -291,6 +317,7 @@ export const exportClipsToMidi =
 
     // Prepare a new MIDI file
     const midi = new Midi();
+    const transpositions = Selectors.selectTranspositionMap(state);
 
     // Iterate through each track
     trackIds.forEach((trackId, index) => {
@@ -303,14 +330,15 @@ export const exportClipsToMidi =
 
       // Add the notes of each clip
       clips.forEach((clip) => {
-        const pattern = Selectors.selectPattern(state, clip.patternId);
-        if (!pattern) return;
-
         // Get the stream of the clip
-        const scale = Selectors.selectClipScale(state, clip.id);
-        const transforms = Selectors.selectClipTransforms(state, clip.id);
         const time = convertTicksToSeconds(transport, clip.tick);
-        const stream = getClipStream(clip, pattern, scale, transforms, []);
+        const stream = getClipStream(clip, {
+          patterns,
+          patternTracks,
+          scaleTracks,
+          transpositions,
+          sessionMap,
+        });
 
         // Iterate through each chord
         for (let i = 0; i < stream.length; i++) {
@@ -347,14 +375,6 @@ export const exportClipsToMidi =
     a.download = `${options.name || "file"}.mid`;
     a.click();
     URL.revokeObjectURL(url);
-  };
-
-export const exportSelectedClipsToMidi =
-  (options = { name: "" }): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const { selectedClipIds } = Selectors.selectRoot(state);
-    return dispatch(exportClipsToMidi(selectedClipIds, options));
   };
 
 // Export the state to a MIDI file
@@ -422,193 +442,4 @@ export const selectRangeOfClips =
 
     // Select the clips
     dispatch(setSelectedClips(newClipIds));
-  };
-
-// Select all clips and transforms
-export const selectAllClipsAndTransforms =
-  (): AppThunk => (dispatch, getState) => {
-    const state = getState();
-    const clipIds = Selectors.selectClipIds(state);
-    const transformIds = Selectors.selectTransformIds(state);
-    if (clipIds) dispatch(setSelectedClips(clipIds));
-    if (transformIds) dispatch(setSelectedTransforms(transformIds));
-  };
-
-// Delete all selected clips and transforms
-export const deleteSelectedClipsAndTransforms =
-  (): AppThunk => (dispatch, getState) => {
-    const state = getState();
-    const { selectedClipIds, selectedTransformIds } =
-      Selectors.selectRoot(state);
-    dispatch(deleteClipsAndTransforms(selectedClipIds, selectedTransformIds));
-  };
-
-export const copySelectedClipsAndTransforms =
-  (): AppThunk => (dispatch, getState) => {
-    const state = getState();
-    const clips = Selectors.selectSelectedClips(state);
-    const transforms = Selectors.selectSelectedTransforms(state);
-    dispatch(setClipboard({ clips, transforms }));
-  };
-
-export const cutSelectedClipsAndTransforms =
-  (): AppThunk => (dispatch, getState) => {
-    const state = getState();
-    const clips = Selectors.selectSelectedClips(state);
-    const transforms = Selectors.selectSelectedTransforms(state);
-    dispatch(setClipboard({ clips, transforms }));
-    const clipIds = clips.map((c) => c.id);
-    const transformIds = transforms.map((t) => t.id);
-    dispatch(deleteClipsAndTransforms(clipIds, transformIds));
-  };
-
-export const pasteSelectedClipsAndTransforms =
-  (
-    rows: Row[]
-  ): AppThunk<Promise<{ clipIds: ClipId[]; transformIds: TransformId[] }>> =>
-  (dispatch, getState) => {
-    const emptyPromise = Promise.resolve({ clipIds: [], transformIds: [] });
-
-    if (!rows?.length) return emptyPromise;
-
-    const state = getState();
-    const { clipboard } = Selectors.selectTimeline(state);
-    const { selectedTrackId } = Selectors.selectRoot(state);
-    if (!selectedTrackId) return emptyPromise;
-
-    const { tick } = Selectors.selectTransport(state);
-    const trackIds = rows.map((row) => row.trackId).filter(Boolean);
-
-    // Get clips and transforms from the clipboard
-    const clipboardClips = [...clipboard?.clips] ?? [];
-    const clipboardTransforms = [...clipboard?.transforms] ?? [];
-
-    // Get the earliest start tick
-    const firstClip = clipboardClips.length
-      ? clipboardClips.sort((a, b) => a.tick - b.tick)?.[0]
-      : undefined;
-    const firstTransform = clipboardTransforms.length
-      ? clipboardTransforms.sort((a, b) => a.tick - b.tick)?.[0]
-      : undefined;
-
-    const t1 = firstClip?.tick;
-    const t2 = firstTransform?.tick;
-    const startTick = t1 && t2 ? Math.min(t1, t2) : t1 ?? t2;
-
-    if (!firstClip && !firstTransform) return emptyPromise;
-    if (startTick === undefined) return emptyPromise;
-
-    // Compute the offset between the clipboard and the current tick
-    const offset = tick - startTick;
-
-    // Find the original track index of the first clip or transform
-    const originalIndex =
-      rows
-        .filter((r) =>
-          [...clipboardClips, ...clipboardTransforms].some(
-            (c) => c.trackId === r.trackId
-          )
-        )
-        .sort((a, b) => a.index - b.index)?.[0]?.index ?? -1;
-    if (originalIndex === -1) return emptyPromise;
-
-    // Find the selected track index
-    const selectedIndex = trackIds.indexOf(selectedTrackId);
-    if (selectedIndex === -1) return emptyPromise;
-
-    // Compute the offset between the selected track and the original track
-    const rowOffset = selectedIndex - originalIndex;
-
-    let newClips: Clip[] = [];
-    let newTransforms: Transform[] = [];
-
-    // Create new clips
-    for (const clip of clipboardClips) {
-      // Find the new track index
-      const thisIndex = trackIds.indexOf(clip.trackId);
-      if (thisIndex === -1) return emptyPromise;
-
-      // Find the new track
-      const newIndex = thisIndex + rowOffset;
-      const newTrack = rows[newIndex];
-      if (!newTrack || newTrack.type !== "patternTrack") return emptyPromise;
-
-      // Create a new clip with the new track id and time
-      const trackId = newTrack.trackId;
-      if (!trackId) return emptyPromise;
-      newClips.push({
-        ...clip,
-        tick: clip.tick + offset,
-        trackId,
-      });
-    }
-
-    // Create new transforms
-    for (const transform of clipboardTransforms) {
-      // Find the new track index
-      const thisIndex = trackIds.indexOf(transform.trackId);
-      if (thisIndex === -1) return emptyPromise;
-
-      // Find the new track
-      const newIndex = thisIndex + rowOffset;
-      const newTrack = rows[newIndex];
-
-      // Create a new transform with the new track id and time
-      const trackId = newTrack.trackId;
-      if (!trackId) return emptyPromise;
-      newTransforms.push({
-        ...transform,
-        tick: transform.tick + offset,
-        trackId,
-      });
-    }
-
-    // Create the clips and transforms
-    return dispatch(createClipsAndTransforms(newClips, newTransforms));
-  };
-
-export const duplicateSelectedClipsAndTransforms =
-  (): AppThunk => async (dispatch, getState) => {
-    const state = getState();
-    const { selectedClipIds, selectedTransformIds } =
-      Selectors.selectRoot(state);
-    if (!selectedClipIds.length && !selectedTransformIds.length) return;
-    const selectedClips = Selectors.selectSelectedClips(state);
-    const selectedTransforms = Selectors.selectSelectedTransforms(state);
-    const selectedClipTicks = selectedClips.map((clip) =>
-      Selectors.selectClipTicks(state, clip.id)
-    );
-    const timeline = Selectors.selectTimeline(state);
-    const gridTicks = subdivisionToTicks(timeline.subdivision);
-    // Get the start time of the earliest clip or transform
-    const startTick = Math.min(
-      ...selectedClips.map((clip) => clip.tick),
-      ...selectedTransforms.map((transform) => transform.tick)
-    );
-    // Get the end time of the latest clip or transform
-    const endTick = Math.max(
-      ...selectedClips.map((clip, i) => clip.tick + selectedClipTicks[i]),
-      ...selectedTransforms.map((transform) => transform.tick + gridTicks)
-    );
-    // Calculate the offset between the start and end times
-    const offset = endTick - startTick;
-
-    // Create new clips and transforms with the new times
-    const newClips = selectedClips.map((clip) => ({
-      ...clip,
-      tick: clip.tick + offset,
-    }));
-    const newTransforms = selectedTransforms.map((transform) => ({
-      ...transform,
-      tick: transform.tick + offset,
-    }));
-    const { clipIds, transformIds } = await dispatch(
-      createClipsAndTransforms(newClips, newTransforms)
-    );
-
-    // Select the new clips and transforms
-    if (clipIds) dispatch(setSelectedClips(clipIds));
-    if (transformIds) dispatch(setSelectedTransforms(transformIds));
-
-    return { clipIds, transformIds };
   };

@@ -14,7 +14,8 @@ import {
   selectSelectedTrackId,
   selectCustomScales,
   selectScaleIds,
-  selectScaleTrackScale,
+  selectScaleTrack,
+  selectScaleTrackMap,
 } from "redux/selectors";
 import { UndoTypes } from "redux/undoTypes";
 import { RootState } from "redux/store";
@@ -26,10 +27,24 @@ import {
   PresetScaleGroupMap,
   PresetScaleList,
 } from "types/presets/scales";
+import { defaultScale, getScaleTrackNotes, ScaleTrack, TrackId } from "types";
+import {
+  addNoteToScaleTrack,
+  clearNotesFromScaleTrack,
+  removeNoteFromScaleTrack,
+  rotateScaleTrack,
+  transposeScaleTrack,
+} from "redux/thunks";
+import { updateScaleTrack } from "redux/slices/scaleTracks";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const trackId = selectSelectedTrackId(state);
-  const scale = trackId ? selectScaleTrackScale(state, trackId) : undefined;
+  const scaleTrack = selectScaleTrack(state, trackId);
+  const scaleTracks = selectScaleTrackMap(state);
+
+  const notes = getScaleTrackNotes(scaleTrack, { scaleTracks });
+  const scale = { ...defaultScale, notes };
+
   const { past, future } = state.scales;
   const canUndoScales = past.length > 0 && past[0].allIds.length > 0;
   const canRedoScales = future.length > 0;
@@ -41,6 +56,7 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const defaultPresets = Object.values({
     ...PresetScaleGroupMap,
   }).flat();
+
   const customPresets = customScales;
 
   const matchingDefaultScales = !!scale
@@ -83,6 +99,7 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   return {
     ...ownProps,
     scale,
+    scaleTrack,
     scaleName,
     scaleCategory,
     canUndoScales,
@@ -98,23 +115,25 @@ const mapDispatchToProps = (dispatch: any) => ({
   setScaleIds: (ids: ScaleId[]) => {
     dispatch(Scales.setScaleIds(ids));
   },
-  updateScale: (scale: Scale) => {
-    dispatch(Scales.updateScale(scale));
+  updateScaleTrack: (scaleTrack: Partial<ScaleTrack>) => {
+    dispatch(updateScaleTrack(scaleTrack));
   },
   setScaleName: (scale: Scale, name: string) => {
     dispatch(Scales.updateScale({ id: scale.id, name }));
   },
-  addNoteToScale: (id: ScaleId, note: Note) => {
-    dispatch(Scales.addNoteToScale({ id, note }));
+  addNoteToScaleTrack: (id: TrackId, note: Note) => {
+    dispatch(addNoteToScaleTrack(id, note));
   },
-  removeNoteFromScale: (id: ScaleId, note: Note) => {
-    dispatch(Scales.removeNoteFromScale({ id, note }));
+  removeNoteFromScaleTrack: (id: TrackId, note: Note) => {
+    dispatch(removeNoteFromScaleTrack(id, note));
   },
-  transposeScale: (id: ScaleId, offset: Note) => {
-    dispatch(Scales.transposeScale({ id, offset }));
+  transposeScaleTrack: (id: TrackId, offset: number) => {
+    if (offset === 0 || isNaN(offset)) return;
+    dispatch(transposeScaleTrack(id, offset));
   },
-  rotateScale: (id: ScaleId, offset: Note) => {
-    dispatch(Scales.rotateScale({ id, offset }));
+  rotateScaleTrack: (id: TrackId, offset: number) => {
+    if (offset === 0 || isNaN(offset)) return;
+    dispatch(rotateScaleTrack(id, offset));
   },
   randomTransposeScale: (scale: Scale) => {
     const direction = Math.random() > 0.5 ? 1 : -1;
@@ -152,8 +171,8 @@ const mapDispatchToProps = (dispatch: any) => ({
   exportScaleToMIDI: (scale: Scale) => {
     dispatch(exportScaleToMIDI(scale.id));
   },
-  clearScale: (id: ScaleId) => {
-    dispatch(Scales.clearScale(id));
+  clearScaleTrack: (id: TrackId) => {
+    dispatch(clearNotesFromScaleTrack(id));
   },
   createScale: (scale: ScaleNoId) => {
     return dispatch(

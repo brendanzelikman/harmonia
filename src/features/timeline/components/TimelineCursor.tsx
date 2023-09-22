@@ -4,25 +4,29 @@ import { createPortal } from "react-dom";
 import { ConnectedProps, connect } from "react-redux";
 import {
   selectCellWidth,
-  selectRoot,
   selectTimelineTickOffset,
   selectTransport,
 } from "redux/selectors";
 import { RootState } from "redux/store";
+import { useMemo } from "react";
 
 const mapStateToProps = (state: RootState) => {
+  // Transport properties
   const transport = selectTransport(state);
-  const { selectedTrackId } = selectRoot(state);
-  const cellWidth = selectCellWidth(state);
+  const isStarted = transport.state === "started";
+  const recording = transport.recording;
+
+  // Cursor properties
   const left = selectTimelineTickOffset(state, transport.tick);
+  const width = selectCellWidth(state) - 4;
+  const height = HEADER_HEIGHT;
 
   return {
-    isStarted: transport.state === "started",
-    recording: transport.recording,
-    selectedTrackId,
+    isStarted,
+    recording,
     left,
-    width: cellWidth - 4,
-    height: HEADER_HEIGHT,
+    width,
+    height,
   };
 };
 
@@ -40,21 +44,21 @@ interface CursorProps extends Props {
 export default connector(TimelineCursor);
 
 function TimelineCursor(props: CursorProps) {
-  if (!props.isStarted || props.recording) return null;
-
   const element = props.timeline.element;
-  if (!element) return null;
+  if (!props.isStarted || props.recording || !element) return null;
 
-  const Cursor = () => (
-    <div
-      className={`bg-emerald-600 absolute rounded-sm z-[90] transition-all duration-75`}
-      style={{
-        left: props.left,
-        width: props.width,
-        height: props.height,
-      }}
-    ></div>
-  );
+  const Cursor = useMemo(() => {
+    return () => (
+      <div
+        className={`bg-emerald-600 absolute pointer-events-none z-[70] rounded-sm transition-all duration-75`}
+        style={{
+          left: props.left,
+          width: props.width,
+          height: props.height,
+        }}
+      />
+    );
+  }, [props.left, props.width, props.height]);
 
   return createPortal(<Cursor />, element);
 }

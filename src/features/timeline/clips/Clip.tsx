@@ -1,28 +1,37 @@
 import { connect, ConnectedProps } from "react-redux";
 import {
-  selectClipTicks,
-  selectClipPattern,
+  selectClipDuration,
   selectRoot,
   selectTimeline,
   selectTimelineTickOffset,
   selectClipWidth,
+  selectClipName,
+  selectSelectedClips,
+  selectSelectedTranspositions,
+  selectClipPattern,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
-import { Clip, CLIP_THEMES, ClipId, getClipTheme } from "types/clip";
+import { Clip, ClipId, getClipTheme } from "types/clip";
 import { ClipsProps } from ".";
-import * as Constants from "appConstants";
+import { CELL_HEIGHT, TRANSPOSITION_HEIGHT, HEADER_HEIGHT } from "appConstants";
 import { useClipDrag } from "./dnd";
 import * as Root from "redux/slices/root";
-import * as Timeline from "redux/slices/timeline";
-import { MouseEvent, useEffect, useMemo } from "react";
+import { MouseEvent, useCallback, useMemo } from "react";
 import Stream from "./Stream";
-import { TransformNoId } from "types/transform";
+import {
+  getChordalTranspose,
+  getChromaticTranspose,
+  getScalarTranspose,
+  TranspositionNoId,
+} from "types/transposition";
 import { rotatePattern, transposePattern } from "redux/slices/patterns";
-import { createTransforms } from "redux/slices/transforms";
+import { createTranspositions } from "redux/slices/transpositions";
 import { isHoldingOption, isHoldingShift } from "utils";
 import { selectRangeOfClips } from "redux/thunks";
 import { Row } from "..";
 import useKeyHolder from "hooks/useKeyHolder";
+import { PatternId } from "types";
+import { showEditor } from "redux/slices/editor";
 
 interface OwnClipProps extends ClipsProps {
   clip: Clip;
@@ -30,39 +39,55 @@ interface OwnClipProps extends ClipsProps {
 
 const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const { rows, clip } = ownProps;
+  const { toolkit } = selectRoot(state);
+  const selectedClips = selectSelectedClips(state);
+  const selectedTranspositions = selectSelectedTranspositions(state);
+
+  // Timeline properties
   const timeline = selectTimeline(state);
+  const { subdivision } = timeline;
+  const transposing = timeline.state === "transposing";
 
+  // Clip properties
+  const isSelected = selectedClips.some(({ id }) => id === clip.id);
   const index = rows.findIndex((row) => row.trackId === clip.trackId);
-  const duration = selectClipTicks(state, clip.id);
-  const name = selectClipPattern(state, clip.id)?.name ?? "";
+  const name = selectClipName(state, clip.id);
+  const duration = selectClipDuration(state, clip.id);
+  const pattern = selectClipPattern(state, clip.id);
 
-  const top = Constants.HEADER_HEIGHT + index * Constants.CELL_HEIGHT;
+  // Transposition values
+  const { transpositionOffsets } = toolkit;
+  const chromatic = getChromaticTranspose(transpositionOffsets);
+  const scalar = getScalarTranspose(transpositionOffsets);
+  const chordal = getChordalTranspose(transpositionOffsets);
+
+  // CSS properties
+  const top = HEADER_HEIGHT + index * CELL_HEIGHT + TRANSPOSITION_HEIGHT;
   const left = selectTimelineTickOffset(state, clip.tick);
   const width = selectClipWidth(state, clip.id);
-
-  const pattern = selectClipPattern(state, clip.id);
-  const root = selectRoot(state);
-  const { toolkit, selectedClipIds } = root;
-  const isSelected = selectedClipIds.includes(clip.id);
-
+  const height = CELL_HEIGHT - TRANSPOSITION_HEIGHT;
   const { headerColor, bodyColor } = getClipTheme(clip);
 
   return {
     ...ownProps,
+    selectedClips,
+    selectedTranspositions,
+    subdivision,
+    transposing,
+    isSelected,
     index,
     name,
     duration,
-    width,
+    pattern,
+    chromatic,
+    scalar,
+    chordal,
     top,
     left,
+    width,
+    height,
     headerColor,
     bodyColor,
-    subdivision: timeline.subdivision,
-    isSelected,
-    pattern,
-    transposingClip: timeline.state === "transposing",
-    draggingClip: timeline.draggingClip,
-    ...toolkit,
   };
 };
 
@@ -84,16 +109,10 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     deselectClip: (clipId: ClipId) => {
       dispatch(Root.deselectClip(clipId));
     },
-    startDraggingClip: () => {
-      dispatch(Timeline.startDraggingClip());
+    createTranspositions: (transpositions: Partial<TranspositionNoId>[]) => {
+      dispatch(createTranspositions(transpositions));
     },
-    stopDraggingClip: () => {
-      dispatch(Timeline.stopDraggingClip());
-    },
-    createTransforms: (transforms: Partial<TransformNoId>[]) => {
-      dispatch(createTransforms(transforms));
-    },
-    transformPattern: (
+    transposePattern: (
       patternId: string,
       chromaticTranspose: number,
       scalarTranspose: number,
@@ -110,6 +129,11 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     selectRangeOfClips(clip: Clip, rows: Row[]) {
       dispatch(selectRangeOfClips(clip, rows));
     },
+    showPatternEditor: (patternId?: PatternId) => {
+      if (!patternId) return;
+      dispatch(Root.setSelectedPattern(patternId));
+      dispatch(showEditor({ id: "patterns" }));
+    },
   };
 };
 
@@ -119,109 +143,107 @@ export type ClipProps = ConnectedProps<typeof connector>;
 export default connector(TimelineClip);
 
 function TimelineClip(props: ClipProps) {
-  if (props.index === -1) return null;
-  const { clip, rows, selectedClipIds } = props;
+  const { clip, top, left, width, height, isSelected } = props;
+  const { name, headerColor, bodyColor, transposing } = props;
+  const heldKeys = useKeyHolder("i");
+
+  // Clip drag hook with react-dnd
   const [{ isDragging }, drag] = useClipDrag(props);
+  const opacity = isDragging ? 0.5 : 1;
+  const pointerEvents = isDragging ? "none" : "auto";
+  const style = { top, left, width, height, opacity, pointerEvents };
 
-  // Update the dragging state after react-dnd
-  useEffect(() => {
-    if (!clip) return;
-    if (isDragging) {
-      props.startDraggingClip();
-    } else if (!isDragging) {
-      props.stopDraggingClip();
-    }
-  }, [clip, isDragging]);
-
-  const opacity = useMemo(() => {
-    if (isDragging) return 0.5;
-    if (props.draggingClip) return 0.8;
-    return 1;
-  }, [isDragging, props.draggingClip]);
-
-  const eyedropping = useKeyHolder("i").i;
-
-  const onClipClick = (e: MouseEvent) => {
-    if (props.transposingClip) {
-      const { chromaticTranspose, scalarTranspose, chordalTranspose } = props;
-      if (isNaN(scalarTranspose)) return;
-      if (isNaN(chromaticTranspose)) return;
-      if (isNaN(chordalTranspose)) return;
-
-      props.transformPattern(
-        clip.patternId,
-        chromaticTranspose,
-        scalarTranspose,
-        chordalTranspose
-      );
-      return;
-    }
-    // Eyedrop the pattern if the user is holding the eyedrop key
-    if (eyedropping) {
-      props.setSelectedPattern(clip.patternId);
-      return;
-    }
-    // Deselect the clip if it is selected
-    if (props.isSelected) {
-      props.deselectClip(clip.id);
-      return;
-    }
-
-    const nativeEvent = e.nativeEvent as Event;
-    const holdingShift = isHoldingShift(nativeEvent);
-
-    // Select the clip if the user is not holding shift
-    if (!holdingShift) {
-      const holdingAlt = isHoldingOption(nativeEvent);
-      props.selectClip(clip.id, holdingAlt);
-      return;
-    }
-
-    // Just select the clip if there are no other selected clips
-    if (selectedClipIds.length === 0) {
-      props.selectClip(clip.id);
-      return;
-    }
-
-    // Select a range of clips if the user is holding shift
-    props.selectRangeOfClips(clip, rows);
-  };
-
+  // Clip name
   const ClipName = useMemo(() => {
     return () => (
-      <div
+      <label
         className={`h-6 flex items-center shrink-0 text-xs text-white/80 font-medium p-1 border-b border-b-white/20 ${props.headerColor} whitespace-nowrap overflow-ellipsis`}
       >
-        {props.name}
-      </div>
+        {name}
+      </label>
     );
-  }, [props.name, props.headerColor]);
+  }, [name, headerColor]);
 
-  return (
-    <div
-      className={`transition-all duration-75 ease-in-out cursor-pointer rdg-clip absolute border ${
-        props.isSelected ? "border-white" : "border-slate-200/50"
-      } ${props.transposingClip ? "hover:ring-4 hover:ring-fuchsia-500" : ""} ${
-        props.bodyColor
-      } rounded-lg overflow-hidden`}
-      ref={drag}
-      style={{
-        top: props.top + Constants.TRANSFORM_HEIGHT,
-        left: props.left,
-        width: props.width,
-        height: Constants.CELL_HEIGHT - Constants.TRANSFORM_HEIGHT,
-        opacity,
-        pointerEvents: isDragging || props.draggingClip ? "none" : "auto",
-        animation: "fadeIn 0.1s ease-in-out",
-      }}
-      onClick={onClipClick}
-    >
+  // Clip body
+  const ClipBody = useMemo(() => {
+    return () => (
       <div className="w-full h-full relative">
         <div className="w-full h-full flex flex-col overflow-hidden">
-          <ClipName />
-          <Stream clip={clip} />
+          {ClipName()}
+          <Stream {...props} />
         </div>
       </div>
-    </div>
+    );
+  }, [clip, ClipName]);
+
+  const onClick = useCallback(
+    (e: MouseEvent<HTMLDivElement>) =>
+      onClipClick({ ...props, e, eyedropping: heldKeys.i }),
+    [props, heldKeys]
   );
+
+  // Assembled clip
+  const Clip = useMemo(() => {
+    return (
+      <div
+        ref={drag}
+        className={`transition-all duration-75 ease-in-out rdg-clip border rounded-lg ${
+          isSelected ? "border-white" : "border-slate-200/50"
+        } ${
+          transposing ? "hover:ring-4 hover:ring-fuchsia-500" : ""
+        } ${bodyColor}`}
+        style={{ ...style, pointerEvents }}
+        onClick={onClick}
+        onDoubleClick={() => props.showPatternEditor(props.pattern?.id)}
+      >
+        {ClipBody()}
+      </div>
+    );
+  }, [style, isSelected, transposing, bodyColor, onClick, ClipBody]);
+
+  if (props.index === -1) return null;
+  return Clip;
 }
+
+interface ClipClickProps extends ClipProps {
+  e: MouseEvent;
+  eyedropping: boolean;
+}
+const onClipClick = (props: ClipClickProps) => {
+  // Transpose the clip if transposing
+  if (props.transposing) {
+    const { chromatic, scalar, chordal } = props;
+    if ([chromatic, scalar, chordal].some(isNaN)) return;
+    props.transposePattern(props.clip.patternId, chromatic, scalar, chordal);
+    return;
+  }
+  // Eyedrop the pattern if the user is holding the eyedrop key
+  if (props.eyedropping) {
+    props.setSelectedPattern(props.clip.patternId);
+    return;
+  }
+  // Deselect the clip if it is selected
+  if (props.isSelected) {
+    props.deselectClip(props.clip.id);
+    return;
+  }
+
+  const nativeEvent = props.e.nativeEvent as Event;
+  const holdingShift = isHoldingShift(nativeEvent);
+
+  // Select the clip if the user is not holding shift
+  if (!holdingShift) {
+    const holdingAlt = isHoldingOption(nativeEvent);
+    props.selectClip(props.clip.id, holdingAlt);
+    return;
+  }
+
+  // Just select the clip if there are no other selected clips
+  if (props.selectedClipIds.length === 0) {
+    props.selectClip(props.clip.id);
+    return;
+  }
+
+  // Select a range of clips if the user is holding shift
+  props.selectRangeOfClips(props.clip, props.rows);
+};

@@ -11,4 +11,5 @@ export * from "./scale";
 export * from "./timeline";
 export * from "./tracks";
 export * from "./transport";
+export * from "./transposition";
 export * from "./units";

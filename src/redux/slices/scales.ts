@@ -96,7 +96,10 @@ export const scalesSlice = createSlice({
       if (!scale) return;
 
       // Invert the notes in the scale by the offset
-      state.byId[id] = _rotateScale(scale, offset);
+      state.byId[id] = {
+        ...state.byId[id],
+        ..._rotateScale(scale, offset),
+      };
     },
     clearScale: (state, action: PayloadAction<ScaleId>) => {
       const id = action.payload;

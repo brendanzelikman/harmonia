@@ -1,4 +1,4 @@
-import { MouseEvent, useCallback } from "react";
+import { MouseEvent, useCallback, useMemo } from "react";
 import { connect, ConnectedProps } from "react-redux";
 import {
   selectCellWidth,
@@ -9,14 +9,14 @@ import { sliceClip } from "redux/thunks/clips";
 import { AppDispatch, RootState } from "redux/store";
 import { Clip, ClipId, getClipTheme } from "types/clip";
 import {
+  getStreamMidiNotes,
   getStreamTimelineNotes,
-  PatternStream,
   TimelineNote,
 } from "types/pattern";
 import { Time } from "types/units";
 import { percentOfRange, ticksToColumns } from "utils";
 import { MIDI } from "types/midi";
-import { CELL_HEIGHT, TRANSFORM_HEIGHT } from "appConstants";
+import { CELL_HEIGHT, TRANSPOSITION_HEIGHT } from "appConstants";
 
 interface StreamProps {
   clip: Clip;
@@ -25,17 +25,36 @@ interface StreamProps {
 const mapStateToProps = (state: RootState, ownProps: StreamProps) => {
   const { clip } = ownProps;
   const timeline = selectTimeline(state);
-  const cellWidth = selectCellWidth(state);
+  const { subdivision } = timeline;
   const slicingClip = timeline.state === "cutting";
+
+  // Stream properties
   const stream = selectClipStream(state, clip.id);
+  const streamNotes = getStreamTimelineNotes(stream);
+  const midiNotes = getStreamMidiNotes(stream);
+  const streamString = JSON.stringify(streamNotes);
+  const midiString = JSON.stringify(midiNotes);
+  // CSS Properties
+  const cellWidth = selectCellWidth(state);
+  const margin = 8;
+  const nameHeight = 24;
+  const height = CELL_HEIGHT - TRANSPOSITION_HEIGHT - nameHeight - margin;
+
+  // Note properties
   const { noteColor } = getClipTheme(clip);
+  const noteCount = midiNotes.length;
+  const noteHeight = Math.min(25, height / noteCount);
   return {
     clip,
+    streamString,
+    midiString,
+    subdivision,
     slicingClip,
     cellWidth,
-    stream: JSON.stringify(stream),
-    subdivision: timeline.subdivision,
+    margin,
     noteColor,
+    noteCount,
+    noteHeight,
   };
 };
 
@@ -51,23 +70,17 @@ type Props = ConnectedProps<typeof connector>;
 export default connector(Stream);
 
 function Stream(props: Props) {
-  const { clip, slicingClip, sliceClip, cellWidth, subdivision } = props;
-  const stream = JSON.parse(props.stream) as PatternStream;
-  const streamNotes = stream ? getStreamTimelineNotes(stream) : [];
-  const midiPitches = stream
-    .flat()
-    .filter((n) => !MIDI.isRest(n))
-    .map(({ MIDI }) => MIDI);
-  const sortedNotes = Array.from(new Set(midiPitches.sort((a, b) => a - b)));
+  const { clip, slicingClip, sliceClip, subdivision, cellWidth } = props;
+  const { noteHeight, noteColor, noteCount, margin } = props;
+  const { streamString, midiString } = props;
+  const streamNotes = useMemo(() => JSON.parse(streamString), [streamString]);
+  const midiNotes = useMemo(() => JSON.parse(midiString), [midiString]);
+  const noteOffset = useCallback(
+    (note: number) => midiNotes.indexOf(note) * noteHeight,
+    [midiNotes, noteHeight]
+  );
 
-  const NAME_HEIGHT = 24;
-  const margin = 8;
-  const baseHeight = CELL_HEIGHT - TRANSFORM_HEIGHT - NAME_HEIGHT - margin;
-
-  const noteCount = sortedNotes.length;
-  const noteHeight = Math.min(25, baseHeight / noteCount);
-  const noteOffset = (note: number) => sortedNotes.indexOf(note) * noteHeight;
-
+  // Cut the clip at a tick
   const onClipCut = useCallback(
     (index: number) => (e: MouseEvent) => {
       if (slicingClip) {
@@ -78,6 +91,7 @@ function Stream(props: Props) {
     [clip, slicingClip]
   );
 
+  // Render a single note
   const renderNote = useCallback(
     (note: TimelineNote, i: number) => {
       const columns = ticksToColumns(note.duration || 0, subdivision);
@@ -95,43 +109,41 @@ function Stream(props: Props) {
       return (
         <li
           key={i}
-          className={`absolute flex items-center justify-center shrink-0 rounded ${props.noteColor} border border-slate-950/80`}
-          style={{
-            width: `${width}px`,
-            height: `${height}px`,
-            left: `${left}px`,
-            top,
-            bottom,
-          }}
+          className={`absolute flex items-center justify-center shrink-0 rounded ${noteColor} border border-slate-950/80`}
+          style={{ width, height, left, top, bottom, opacity }}
         >
           {width > 20 && noteHeight > 8 ? note.pitch : null}
         </li>
       );
     },
-    [subdivision, cellWidth, noteCount, noteHeight, noteOffset]
+    [subdivision, cellWidth, noteCount, noteColor, noteHeight, noteOffset]
   );
 
-  const renderNotes = (notes: TimelineNote[], i: number) => (
-    <ul
-      key={`chord-${i}`}
-      className={`${
-        slicingClip
-          ? "hover:bg-slate-400/50 bg-slate-500/50 border-slate-50/50 hover:border-r-4 cursor-scissors"
-          : "border-slate-50/10"
-      }`}
-      style={{ width: cellWidth }}
-      onClick={onClipCut(i)}
-    >
-      {notes.map(renderNote)}
-    </ul>
+  // Render a list of notes
+  const renderNotes = useCallback(
+    (notes: TimelineNote[], i: number) => {
+      return (
+        <ul
+          key={`chord-${i}`}
+          className={`${
+            slicingClip
+              ? "hover:bg-slate-400/50 bg-slate-500/50 border-slate-50/50 hover:border-r-4 cursor-scissors"
+              : "border-slate-50/10"
+          }`}
+          style={{ width: cellWidth }}
+          onClick={onClipCut(i)}
+        >
+          {notes.map(renderNote)}
+        </ul>
+      );
+    },
+    [cellWidth, slicingClip, onClipCut, renderNote]
   );
 
   return (
     <div
       className="w-full h-auto relative flex flex-grow font-extralight text-slate-50/80"
-      style={{
-        fontSize: `${Math.min(12, noteHeight) - 4}px`,
-      }}
+      style={{ fontSize: `${Math.min(12, noteHeight) - 4}px` }}
     >
       {streamNotes.map(renderNotes)}
     </div>

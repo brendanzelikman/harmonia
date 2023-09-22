@@ -10,42 +10,43 @@ import {
 } from "redux/selectors";
 import * as Slices from "redux/slices";
 import { AppDispatch, AppThunk, RootState } from "redux/store";
-import { isPatternTrack, TrackId } from "types/tracks";
+import { isPatternTrack as isPattern, TrackId } from "types/tracks";
 import { Row } from "..";
 import { CellComponent } from "./Cell";
 import { seekTransport } from "redux/thunks/transport";
 import { createPatternClip } from "redux/thunks/clips";
 import { setSelectedTrack } from "redux/slices/root";
-import { Tick } from "types/units";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
-  const root = selectRoot(state);
-  const timeline = selectTimeline(state);
-  const transport = selectTransport(state);
   const columnIndex = Number(ownProps.column.key);
+  const trackId = ownProps.row.trackId;
+  const root = selectRoot(state);
+
+  // Timeline properties
+  const timeline = selectTimeline(state);
+  const adding = timeline.state === "adding";
+  const transposing = timeline.state === "transposing";
+
+  // Tick properties
   const tick = selectTimelineTick(state, columnIndex - 1);
   const { beats, sixteenths } = selectBarsBeatsSixteenths(state, tick);
   const isMeasure = beats === 0 && sixteenths === 0;
 
-  const trackId = ownProps.row.trackId;
-  const track = !!trackId ? selectTrack(state, trackId) : undefined;
-  const isPattern = !!track && isPatternTrack(track);
-
+  // Transport properties
+  const transport = selectTransport(state);
   const onTime = tick === transport.tick;
   const isStarted = transport.state === "started";
-  const adding = timeline.state === "adding";
-  const transposing = timeline.state === "transposing";
+  const idle = !adding && !transposing && !transport.recording && !isStarted;
 
-  const showCursor =
-    !adding &&
-    !transposing &&
-    !transport.recording &&
-    onTime &&
-    root.selectedTrackId === trackId &&
-    !isStarted;
+  // Track properties
+  const track = !!trackId ? selectTrack(state, trackId) : undefined;
+  const isPatternTrack = !!track && isPattern(track);
+  const isSelected = root.selectedTrackId === trackId;
+  const showCursor = idle && onTime && isSelected;
 
+  // CSS properties
   const backgroundClass =
-    adding && isPattern
+    adding && isPatternTrack
       ? "animate-pulse cursor-brush bg-sky-400/25 hover:bg-sky-700/50"
       : transposing && trackId
       ? "animate-pulse cursor-wand hover:bg-fuchsia-500/50 bg-fuchsia-500/25"
@@ -60,38 +61,34 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
 
   return {
     ...ownProps,
-    tick,
     columnIndex,
-    isMeasure,
-    showCursor,
     trackId,
-    isPatternTrack: isPattern,
+    showCursor,
     backgroundClass,
     leftBorderClass,
   };
 }
 
 const onClick =
-  (tick: Tick, trackId?: TrackId): AppThunk =>
+  (columnIndex: number, trackId?: TrackId): AppThunk =>
   (dispatch, getState) => {
+    const state = getState();
+    const tick = selectTimelineTick(state, columnIndex - 1);
     // If no track is selected, seek the transport to the time
     if (!trackId) {
       dispatch(seekTransport(tick));
       dispatch(Slices.Root.deselectAllClips());
-      dispatch(Slices.Root.deselectAllTransforms());
+      dispatch(Slices.Root.deselectAllTranspositions());
       return;
     }
-    const state = getState();
     const root = selectRoot(state);
     const timeline = selectTimeline(state);
     const { toolkit, selectedPatternId } = root;
 
-    const chromaticTranspose = toolkit.chromaticTranspose ?? 0;
-    const scalarTranspose = toolkit.scalarTranspose ?? 0;
-    const chordalTranspose = toolkit.chordalTranspose ?? 0;
+    const { transpositionOffsets, transpositionDuration } = toolkit;
 
     const track = selectTrack(state, trackId);
-    const onPatternTrack = !!track && isPatternTrack(track);
+    const onPatternTrack = !!track && isPattern(track);
     const adding = timeline.state === "adding";
 
     // Create a clip if adding and on a pattern track
@@ -100,16 +97,17 @@ const onClick =
       return;
     }
 
-    // Create a transform if transposing
+    // Create a transposition if transposing
     if (timeline.state === "transposing") {
       dispatch(
-        Slices.Transforms.createTransform({
-          trackId,
-          tick,
-          chromaticTranspose,
-          scalarTranspose,
-          chordalTranspose,
-        })
+        Slices.Transpositions.createTranspositions([
+          {
+            trackId,
+            tick,
+            offsets: transpositionOffsets,
+            duration: transpositionDuration || undefined,
+          },
+        ])
       );
       return;
     }
@@ -120,15 +118,20 @@ const onClick =
     // Select the track
     if (trackId) dispatch(setSelectedTrack(trackId));
 
-    // Deselect all clips and transforms
+    // Deselect all clips and transpositions
     dispatch(Slices.Root.deselectAllClips());
-    dispatch(Slices.Root.deselectAllTransforms());
+    dispatch(Slices.Root.deselectAllTranspositions());
   };
 
-function mapDispatchToProps(dispatch: AppDispatch) {
+function mapDispatchToProps(
+  dispatch: AppDispatch,
+  ownProps: FormatterProps<Row>
+) {
+  const { trackId } = ownProps.row;
+  const columnIndex = Number(ownProps.column.key);
   return {
-    onClick: (tick: Tick, trackId?: TrackId) => {
-      dispatch(onClick(tick, trackId));
+    onClick: () => {
+      dispatch(onClick(columnIndex, trackId));
     },
     setSelectedTrack: (trackId?: TrackId) => {
       dispatch(setSelectedTrack(trackId));

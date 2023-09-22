@@ -1,10 +1,7 @@
 import { ticksToToneSubdivision } from "utils";
 import { selectScale, selectTransport } from "redux/selectors";
 
-import {
-  convertSecondsToTicks,
-  convertTicksToSeconds,
-} from "redux/slices/transport";
+import { convertTicksToSeconds } from "redux/slices/transport";
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
 import { MIDI } from "types/midi";
@@ -15,7 +12,7 @@ export const playScale =
   (scaleOrId: Scale | ScaleId): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
-    let scale: Scale;
+    let scale: Scale | undefined;
 
     if (typeof scaleOrId === "string") {
       scale = selectScale(state, scaleOrId);
@@ -44,6 +41,7 @@ export const playScale =
     }
     // Play the tonic on top to complete the scale
     setTimeout(() => {
+      if (!scale) return;
       const tonicOnTop = scale.notes[0] + 12;
       const pitch = MIDI.toPitch(tonicOnTop);
       const subdivision = ticksToToneSubdivision(MIDI.EighthNoteTicks);

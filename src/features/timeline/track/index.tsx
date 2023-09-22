@@ -1,74 +1,76 @@
 import { FormatterProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
-import * as Selectors from "redux/selectors";
-import { selectTrackTransforms } from "redux/selectors";
-import { setMixerMute, setMixerPan, setMixerSolo } from "redux/thunks/mixers";
-
 import {
-  clearTrack,
-  deleteTrack,
-  duplicateTrack,
-  muteTracks,
-  unmuteTracks,
-  soloTracks,
-  unsoloTracks,
-  updateTrack,
-} from "redux/thunks/tracks";
+  selectRoot,
+  selectScaleTrack,
+  selectTrack,
+  selectTrackIndex,
+  selectTrackScaleTrack,
+  selectTrackTranspositions,
+  selectTransport,
+} from "redux/selectors";
+import { setMixerMute, setMixerSolo } from "redux/thunks/mixers";
+import * as Tracks from "redux/thunks/tracks";
 import { AppDispatch, RootState } from "redux/store";
-import { isPatternTrack, PatternTrack, Track, TrackId } from "types/tracks";
-
+import { Track, TrackId } from "types/tracks";
 import { Row } from "..";
 import { TrackComponent } from "./Track";
-import { lastTransformAtTick } from "types/transform";
+import {
+  getChordalTranspose,
+  getChromaticTranspose,
+  getScalarTranspose,
+  getLastTransposition,
+} from "types/transposition";
 import { hideEditor, showEditor } from "redux/slices/editor";
 import { EditorId } from "types/editor";
 import { setSelectedTrack } from "redux/slices/root";
 import { MixerId } from "types";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
-  const transport = Selectors.selectTransport(state);
-  const { selectedTrackId } = Selectors.selectRoot(state);
-  const track = ownProps.row.trackId
-    ? Selectors.selectTrack(state, ownProps.row.trackId)
-    : undefined;
+  const { row } = ownProps;
+  const { tick } = selectTransport(state);
+  const { selectedTrackId } = selectRoot(state);
+
+  // Track properties
+  const track = selectTrack(state, ownProps.row.trackId);
+  const scaleTrack = selectScaleTrack(state, track?.id);
+  const selectedScaleTrack = selectTrackScaleTrack(state, selectedTrackId);
   const isTrackSelected = selectedTrackId === track?.id;
-  const trackMap = Selectors.selectTrackMap(state);
-  const index = track
-    ? isPatternTrack(track)
-      ? trackMap.byId[
-          (track as PatternTrack).scaleTrackId
-        ].patternTrackIds.indexOf(track.id)
-      : trackMap.allIds.indexOf(track.id)
-    : -1;
-  const trackTransforms = track ? selectTrackTransforms(state, track.id) : [];
-  const currentTransform = lastTransformAtTick(
-    trackTransforms,
-    transport.tick - 1
-  );
+  const index = selectTrackIndex(state, track?.id);
+
+  // Track transpositions
+  const transpositions = selectTrackTranspositions(state, track?.id);
+  const lastTransposition = getLastTransposition(transpositions, tick - 1);
+  const chromatic = getChromaticTranspose(lastTransposition);
+  const scalar = getScalarTranspose(lastTransposition, selectedScaleTrack?.id);
+  const chordal = getChordalTranspose(lastTransposition);
+
   return {
+    row,
     track,
+    scaleTrack,
     selectedTrackId,
     isTrackSelected,
     index,
-    chromaticTranspose: currentTransform?.chromaticTranspose ?? 0,
-    scalarTranspose: currentTransform?.scalarTranspose ?? 0,
-    chordalTranspose: currentTransform?.chordalTranspose ?? 0,
+    chromatic,
+    scalar,
+    chordal,
   };
 }
 
 function mapDispatchToProps(dispatch: AppDispatch) {
   return {
     updateTrack: (track: Partial<Track>) => {
-      dispatch(updateTrack(track));
+      dispatch(Tracks.updateTrack(track));
     },
     clearTrack: (trackId: TrackId) => {
-      dispatch(clearTrack(trackId));
+      dispatch(Tracks.clearTrack(trackId));
     },
     deleteTrack: (trackId: TrackId) => {
-      dispatch(deleteTrack(trackId));
+      dispatch(Tracks.deleteTrack(trackId));
     },
     duplicateTrack: (trackId: TrackId) => {
-      dispatch(duplicateTrack(trackId));
+      dispatch(Tracks.duplicateTrack(trackId));
     },
     showEditor: (trackId: TrackId, id: EditorId) => {
       dispatch(showEditor({ id, trackId }));
@@ -79,12 +81,24 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     setTrackSolo: (mixerId: MixerId, solo: boolean) => {
       dispatch(setMixerSolo(mixerId, solo));
     },
-    muteTracks: () => dispatch(muteTracks()),
-    unmuteTracks: () => dispatch(unmuteTracks()),
-    soloTracks: () => dispatch(soloTracks()),
-    unsoloTracks: () => dispatch(unsoloTracks()),
-    hideEditor: () => dispatch(hideEditor()),
-    selectTrack: (trackId: TrackId) => dispatch(setSelectedTrack(trackId)),
+    muteTracks: () => {
+      dispatch(Tracks.muteTracks());
+    },
+    unmuteTracks: () => {
+      dispatch(Tracks.unmuteTracks());
+    },
+    soloTracks: () => {
+      dispatch(Tracks.soloTracks());
+    },
+    unsoloTracks: () => {
+      dispatch(Tracks.unsoloTracks());
+    },
+    hideEditor: () => {
+      dispatch(hideEditor());
+    },
+    selectTrack: (trackId: TrackId) => {
+      dispatch(setSelectedTrack(trackId));
+    },
   };
 }
 

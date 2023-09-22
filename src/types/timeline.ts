@@ -1,11 +1,11 @@
 import { DEFAULT_CELL_WIDTH } from "appConstants";
 import { Clip } from "./clip";
-import { Transform } from "./transform";
+import { Transposition } from "./transposition";
 import { Subdivision } from "./units";
 
 export interface TimelineClipboard {
   clips: Clip[];
-  transforms: Transform[];
+  transpositions: Transposition[];
 }
 
 export const orderedSubdivisions: Subdivision[] = [
@@ -32,9 +32,6 @@ export interface Timeline {
   cellWidth: number;
   subdivision: Subdivision;
 
-  draggingClip: boolean;
-  draggingTransform: boolean;
-
   clipboard: TimelineClipboard;
 }
 
@@ -42,9 +39,7 @@ export const defaultTimeline: Timeline = {
   state: "idle",
   cellWidth: DEFAULT_CELL_WIDTH,
   subdivision: "1/16",
-  clipboard: { clips: [], transforms: [] },
-  draggingClip: false,
-  draggingTransform: false,
+  clipboard: { clips: [], transpositions: [] },
 };
 
 export const isTimeline = (obj: any): obj is Timeline => {

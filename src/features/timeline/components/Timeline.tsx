@@ -11,16 +11,18 @@ import TimeFormatter from "../time";
 import Cell from "../cell";
 import * as Constants from "appConstants";
 import TimelineClips from "../clips";
-import TimelineTransforms from "../transforms";
+import TimelineTranspositions from "../transpositions";
 import TimelineBackground from "./TimelineBackground";
 import TimelineContextMenu from "./TimelineContextMenu";
 import TimelineCursor from "./TimelineCursor";
 import useTimelineShortcuts from "../hooks/useTimelineShortcuts";
 import "./Timeline.css";
+import { TrackId } from "types";
 
 export function Timeline(props: TimelineProps) {
   const [timeline, setTimeline] = useState<DataGridHandle>();
 
+  const dependencyMap = JSON.parse(props.dependencyMap);
   const gridRef = useCallback<(node: DataGridHandle) => void>(
     (node) => {
       const nodeId = node?.element?.classList[1];
@@ -35,45 +37,56 @@ export function Timeline(props: TimelineProps) {
   // Create a memoized list of rows for the DataGrid
   const rows: Row[] = useMemo((): Row[] => {
     const rows: Row[] = [];
-    const scaleTrackIds = props.trackMap.allIds;
+    const topLevelIds = dependencyMap.topLevelIds;
+    const trackMap = dependencyMap.byId;
 
-    // Make sure there are at least the initial number of rows
-    let trackIndex = 0;
-    for (const scaleTrackId of scaleTrackIds) {
-      // Add the scale track row
-      rows.push({
-        index: trackIndex++,
-        trackId: scaleTrackId,
-        type: "scaleTrack",
-      });
-
-      // Add the pattern track rows
-      const patternTrackIds =
-        props.trackMap.byId[scaleTrackId]?.patternTrackIds;
-      if (!patternTrackIds) continue;
-      patternTrackIds.forEach((patternTrackId) => {
+    // Recursively add all children of a track
+    const addChildren = (children: TrackId[]) => {
+      if (!children?.length) return;
+      children.forEach((trackId) => {
+        const child = trackMap[trackId];
+        if (!child) return;
         rows.push({
+          ...child,
+          trackId,
           index: trackIndex++,
-          trackId: patternTrackId,
-          type: "patternTrack",
         });
+        addChildren(child.trackIds);
       });
+    };
+
+    // Add the scale tracks from the top level
+    let trackIndex = 0;
+    for (const trackId of topLevelIds) {
+      const track = trackMap[trackId];
+      if (!track) continue;
+      // Add the row
+      rows.push({
+        ...track,
+        trackId,
+        index: trackIndex++,
+      });
+      // Add the children tracks
+      const children = trackMap[trackId].trackIds;
+      addChildren(children);
     }
+
     // Add the track button
     rows.push({
       index: trackIndex++,
       lastRow: true,
       type: "defaultTrack",
+      depth: 0,
     });
 
     // Add the remaining rows
     const remainingRows = Constants.INITIAL_MAX_ROWS - trackIndex++;
     for (let i = 0; i < remainingRows; i++) {
-      rows.push({ index: trackIndex++, type: "defaultTrack" });
+      rows.push({ index: trackIndex++, type: "defaultTrack", depth: 0 });
     }
 
     return rows;
-  }, [props.trackMap]);
+  }, [props.dependencyMap]);
 
   // Create the track column for the DataGrid
   const trackColumn = useMemo(
@@ -104,6 +117,7 @@ export function Timeline(props: TimelineProps) {
     []
   );
 
+  // Create a memoized column for the DataGrid
   const column = useCallback(
     (key: string) => ({
       key,
@@ -132,13 +146,14 @@ export function Timeline(props: TimelineProps) {
       columns.push(column(`${i}`));
     }
     return columns;
-  }, [column, props.trackMap]);
+  }, [column]);
 
   // Columns with the track column prepended
   const trackedColumns = useMemo((): Column<Row>[] => {
     return [trackColumn, ...columns];
   }, [trackColumn, columns]);
 
+  // Scroll to the beginning of the timeline when stopped
   useEffect(() => {
     if (!timeline?.element) return;
     if (props.state === "stopped") {
@@ -152,6 +167,24 @@ export function Timeline(props: TimelineProps) {
 
   useTimelineShortcuts({ ...props, rows });
 
+  const TimelineElements = useMemo(() => {
+    if (!timeline?.element) return () => null;
+    return () => (
+      <>
+        <TimelineBackground rows={rows} columns={columns} timeline={timeline} />
+        <TimelineCursor timeline={timeline} />
+        <TimelineClips timeline={timeline} rows={rows} />
+        <TimelineTranspositions
+          timeline={timeline}
+          rows={rows}
+          backgroundWidth={
+            columns.length * props.cellWidth + Constants.TRACK_WIDTH
+          }
+        />
+      </>
+    );
+  }, [timeline, rows, columns, props.cellWidth]);
+
   return (
     <div id="timeline" className="relative w-full h-full">
       <TimelineContextMenu rows={rows} />
@@ -164,12 +197,7 @@ export function Timeline(props: TimelineProps) {
         headerRowHeight={Constants.HEADER_HEIGHT}
         enableVirtualization={true}
       />
-      {timeline ? (
-        <TimelineBackground rows={rows} columns={columns} timeline={timeline} />
-      ) : null}
-      {timeline ? <TimelineCursor timeline={timeline} /> : null}
-      {timeline ? <TimelineClips timeline={timeline} rows={rows} /> : null}
-      {timeline ? <TimelineTransforms timeline={timeline} rows={rows} /> : null}
+      <TimelineElements />
     </div>
   );
 }

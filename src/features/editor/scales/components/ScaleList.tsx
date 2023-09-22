@@ -12,6 +12,7 @@ import {
   PresetScaleGroupMap,
   PresetScaleGroupList,
 } from "types/presets/scales";
+import { mapScaleTrackNote } from "types";
 
 export function ScaleList(props: ScaleEditorProps) {
   const scale = props.scale;
@@ -163,11 +164,20 @@ export interface PresetScaleProps extends ScaleEditorProps {
 export const PresetScale = (props: PresetScaleProps) => {
   const scale = props.presetScale;
   const trackScale = props.scale;
-  if (!scale || !trackScale) return null;
+  const scaleTrack = props.scaleTrack;
+  if (!scale || !trackScale || !scaleTrack) return null;
 
   const firstScaleNote = trackScale.notes[0];
   const firstPitch = firstScaleNote ? MIDI.toPitchClass(firstScaleNote) : "";
   const areScalesRelated = Scales.areRelated(scale, trackScale);
+
+  const onScaleClick = () => {
+    if (!scaleTrack) return;
+    props.updateScaleTrack({
+      ...props.scaleTrack,
+      scaleNotes: scale.notes.map(mapScaleTrackNote),
+    });
+  };
 
   return (
     <Editor.ListItem
@@ -176,7 +186,7 @@ export const PresetScale = (props: PresetScaleProps) => {
           ? "text-sky-500 border-l border-l-sky-500"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       } select-none`}
-      onClick={() => props.updateScale({ ...trackScale, notes: scale.notes })}
+      onClick={onScaleClick}
     >
       <div className="flex relative items-center h-6">
         <input
@@ -201,6 +211,7 @@ export interface CustomScaleProps extends ScaleEditorProps {
 export const CustomScale = (props: CustomScaleProps) => {
   const scale = props.customScale;
   const trackScale = props.scale;
+  const scaleTrack = props.scaleTrack;
   const NameInput = useDebouncedField<string>(
     (name: string) => props.setScaleName(scale, name),
     scale.name
@@ -217,6 +228,14 @@ export const CustomScale = (props: CustomScaleProps) => {
   if (!scale || !trackScale) return null;
 
   const areScalesRelated = Scales.areRelated(scale, trackScale);
+
+  const onScaleClick = () => {
+    if (!scaleTrack) return;
+    props.updateScaleTrack({
+      ...props.scaleTrack,
+      scaleNotes: scale.notes.map(mapScaleTrackNote),
+    });
+  };
 
   const DeleteButton = () => (
     <div
@@ -237,7 +256,7 @@ export const CustomScale = (props: CustomScaleProps) => {
           ? "text-sky-500 border-l border-l-sky-500"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       }`}
-      onClick={() => props.updateScale({ ...trackScale, notes: scale.notes })}
+      onClick={onScaleClick}
     >
       <div className="relative flex items-center h-8" ref={ref}>
         <input

@@ -13,39 +13,51 @@ interface ShortcutProps extends TimelineProps {
 }
 
 export default function useTimelineShortcuts(props: ShortcutProps) {
-  const heldKeys = useKeyHolder(["`", "x", "q", "w", "e"]);
-
+  const keys = ["`", "x", "q", "w", "s", "x", "f", "e", "z"];
+  const heldKeys = useKeyHolder(keys);
   const keyKeydown = (key: string) => (e: Event) => {
     if (isInputEvent(e) || isHoldingCommand(e)) return;
     cancelEvent(e);
     const holdingShift = isHoldingShift(e);
-    const negative = heldKeys.x || heldKeys["`"];
+    const negative = heldKeys.z || heldKeys["`"];
     const dir = negative ? -1 : 1;
 
     let offset = holdingShift ? 12 * dir : 0;
-    if (key === "-" || key === "_") offset += 10 * dir;
-    else if (key === "=" || key === "+") offset += 11 * dir;
-    else offset += parseInt(key) * dir;
+    offset += parseInt(key) * dir;
 
     if (heldKeys.q) {
-      props.offsetSelectedTransforms({
-        N: offset,
-        T: 0,
-        t: 0,
+      props.offsetSelectedTranspositions({
+        _chromatic: offset,
       });
     }
+    let scaleTrackIds = [];
     if (heldKeys.w) {
-      props.offsetSelectedTransforms({
-        N: 0,
-        T: offset,
-        t: 0,
-      });
+      const id = props.scaleTracks?.[0]?.id;
+      if (id) scaleTrackIds.push(id);
     }
+    if (heldKeys.s) {
+      const id = props.scaleTracks?.[1]?.id;
+      if (id) scaleTrackIds.push(id);
+    }
+    if (heldKeys.x) {
+      const id = props.scaleTracks?.[2]?.id;
+      if (id) scaleTrackIds.push(id);
+    }
+    if (scaleTrackIds?.length) {
+      props.offsetSelectedTranspositions(
+        scaleTrackIds.reduce(
+          (acc, id) => ({
+            ...acc,
+            [id]: offset,
+          }),
+          {}
+        )
+      );
+    }
+
     if (heldKeys.e) {
-      props.offsetSelectedTransforms({
-        N: 0,
-        T: 0,
-        t: offset,
+      props.offsetSelectedTranspositions({
+        _self: offset,
       });
     }
   };
@@ -54,13 +66,35 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
     if (isInputEvent(e)) return;
     cancelEvent(e);
     if (heldKeys.q) {
-      props.updateSelectedTransforms({ N: 0 });
+      props.updateSelectedTranspositions({ _chromatic: 0 });
     }
+
+    let scaleTrackIds = [];
     if (heldKeys.w) {
-      props.updateSelectedTransforms({ T: 0 });
+      const id = props.scaleTracks?.[0]?.id;
+      if (id) scaleTrackIds.push(id);
+    }
+    if (heldKeys.s) {
+      const id = props.scaleTracks?.[1]?.id;
+      if (id) scaleTrackIds.push(id);
+    }
+    if (heldKeys.x) {
+      const id = props.scaleTracks?.[2]?.id;
+      if (id) scaleTrackIds.push(id);
+    }
+    if (scaleTrackIds?.length) {
+      props.updateSelectedTranspositions(
+        scaleTrackIds.reduce(
+          (acc, id) => ({
+            ...acc,
+            [id]: 0,
+          }),
+          {}
+        )
+      );
     }
     if (heldKeys.e) {
-      props.updateSelectedTransforms({ t: 0 });
+      props.updateSelectedTranspositions({ _self: 0 });
     }
   };
 
@@ -84,22 +118,33 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
       "*": { keydown: keyKeydown("8") },
       "9": { keydown: keyKeydown("9") },
       "(": { keydown: keyKeydown("9") },
+      "-": { keydown: keyKeydown("10") },
+      _: { keydown: keyKeydown("10") },
+      "=": { keydown: keyKeydown("11") },
+      "+": { keydown: keyKeydown("11") },
       "0": { keydown: zeroKeydown },
       ")": { keydown: zeroKeydown },
-      z: { keydown: zeroKeydown },
 
       ArrowUp: {
         keydown: (e) => {
-          if (isInputEvent(e)) return;
+          if (isInputEvent(e) || props.showingEditor) return;
           cancelEvent(e);
 
-          // Offset the selected transforms
+          // Offset the selected transpositions
           const holdingShift = isHoldingShift(e);
           const N = heldKeys.q ? (holdingShift ? 12 : 1) : 0;
-          const T = heldKeys.w ? (holdingShift ? 12 : 1) : 0;
+          const T1 = heldKeys.w ? (holdingShift ? 12 : 1) : 0;
+          const T2 = heldKeys.s ? (holdingShift ? 12 : 1) : 0;
+          const T3 = heldKeys.x ? (holdingShift ? 12 : 1) : 0;
           const t = heldKeys.e ? (holdingShift ? 12 : 1) : 0;
-          props.offsetSelectedTransforms({ N, T, t });
-          if (N || T || t) return;
+          props.offsetSelectedTranspositions({
+            _chromatic: N,
+            [props.scaleTracks?.[0]?.id ?? ""]: T1,
+            [props.scaleTracks?.[1]?.id ?? ""]: T2,
+            [props.scaleTracks?.[2]?.id ?? ""]: T3,
+            _self: t,
+          });
+          if (N || T1 || T2 || T3 || t) return;
 
           // Select the previous track
           if (!props.selectedTrackId) return;
@@ -118,13 +163,23 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
           if (isInputEvent(e) || props.showingEditor) return;
           cancelEvent(e);
 
-          // Offset the selected transforms
+          // Offset the selected transpositions
           const holdingShift = isHoldingShift(e);
           const N = heldKeys.q ? (holdingShift ? -12 : -1) : 0;
-          const T = heldKeys.w ? (holdingShift ? -12 : -1) : 0;
+          const T1 = heldKeys.w ? (holdingShift ? -12 : -1) : 0;
+          const T2 = heldKeys.s ? (holdingShift ? -12 : -1) : 0;
+          const T3 = heldKeys.x ? (holdingShift ? -12 : -1) : 0;
           const t = heldKeys.e ? (holdingShift ? -12 : -1) : 0;
-          props.offsetSelectedTransforms({ N, T, t });
-          if (N || T || t) return;
+          props.offsetSelectedTranspositions({
+            ...{
+              _chromatic: N,
+              _self: t,
+            },
+            [props.scaleTracks?.[0]?.id ?? ""]: T1,
+            [props.scaleTracks?.[1]?.id ?? ""]: T2,
+            [props.scaleTracks?.[2]?.id ?? ""]: T3,
+          });
+          if (N || T1 || T2 || T3 || t) return;
 
           // Select the next track
           if (!props.selectedTrackId) return;
@@ -143,10 +198,16 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
           if (isInputEvent(e) || !isHoldingCommand(e) || props.showingEditor)
             return;
           cancelEvent(e);
-          props.pasteClipsAndTransforms(props.rows);
+          props.pasteClipsAndTranspositions(props.rows);
         },
       },
     },
-    [props.selectedTrackId, props.rows, props.showingEditor, heldKeys]
+    [
+      props.selectedTrackId,
+      props.scaleTracks,
+      props.rows,
+      props.showingEditor,
+      heldKeys,
+    ]
   );
 }

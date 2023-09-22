@@ -5,7 +5,7 @@ import {
   ThunkAction,
 } from "@reduxjs/toolkit";
 import * as Slices from "./slices";
-import undoable from "redux-undo";
+import undoable, { excludeAction } from "redux-undo";
 import { saveState, loadState } from "./util";
 import { groupByActionType, UndoTypes } from "./undoTypes";
 
@@ -13,15 +13,18 @@ const session = combineReducers({
   clips: Slices.Clips.default,
   scaleTracks: Slices.ScaleTracks.default,
   patternTracks: Slices.PatternTracks.default,
-  transforms: Slices.Transforms.default,
+  transpositions: Slices.Transpositions.default,
   mixers: Slices.Mixers.default,
-  trackMap: Slices.TrackMap.default,
-  clipMap: Slices.ClipMap.default,
-  transformMap: Slices.TransformMap.default,
+  sessionMap: Slices.SessionMap.default,
 });
 
 const undoableSession = undoable(session, {
   groupBy: groupByActionType,
+  filter: excludeAction([
+    "mixers/addMixer",
+    "mixers/removeMixer",
+    "transport/setLoaded",
+  ]),
   undoType: UndoTypes.undoSession,
   redoType: UndoTypes.redoSession,
   limit: 16,

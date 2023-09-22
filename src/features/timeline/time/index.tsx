@@ -19,24 +19,25 @@ import { TimeFormatter } from "./Time";
 import { subdivisionToTicks } from "utils";
 
 function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
-  const transport = selectTransport(state);
+  // Timeline properties
   const { subdivision } = selectTimeline(state);
+  const tickLength = subdivisionToTicks(subdivision);
+
+  // Tick properties
   const columnIndex = Number(ownProps.column.key);
   const tick = selectTimelineTick(state, columnIndex - 1);
-  const tickLength = subdivisionToTicks(subdivision);
   const { bars, beats, sixteenths } = selectBarsBeatsSixteenths(state, tick);
   const isMeasure = beats === 0 && sixteenths === 0;
 
-  const looping = transport.loop;
-  const loopStart = transport.loopStart;
-  const loopEnd = transport.loopEnd;
-
+  // Loop properties
+  const { loop, loopStart, loopEnd } = selectTransport(state);
   const inLoopRange = inRange(tick, loopStart, loopEnd);
   const onLoopStart = loopStart === tick;
   const onLoopEnd = loopEnd === tick + (tickLength - 1);
 
+  // Class properties
   const className = `relative w-full h-full text-white hover:border hover:border-slate-200/80 cursor-pointer ${
-    looping && inLoopRange
+    loop && inLoopRange
       ? "bg-black hover:bg-slate-800 border-b-8 border-b-indigo-700"
       : `bg-black hover:bg-slate-800 border-slate-50/20`
   }`;
@@ -49,7 +50,7 @@ function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
     subdivision,
     isMeasure,
     className,
-    looping,
+    loop,
     loopStart,
     onLoopStart,
     loopEnd,

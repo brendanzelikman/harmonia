@@ -4,7 +4,7 @@ import { ClipId } from "types/clip";
 import { PatternId } from "types/pattern";
 import { defaultRoot, Toolkit } from "types/root";
 import { TrackId } from "types/tracks";
-import { TransformId } from "types/transform";
+import { TranspositionId } from "types/transposition";
 
 export const rootSlice = createSlice({
   name: "root",
@@ -59,24 +59,30 @@ export const rootSlice = createSlice({
     deselectAllClips: (state) => {
       state.selectedClipIds = [];
     },
-    setSelectedTransforms: (state, action: PayloadAction<TransformId[]>) => {
-      const transformIds = action.payload;
-      state.selectedTransformIds = transformIds;
+    setSelectedTranspositions: (
+      state,
+      action: PayloadAction<TranspositionId[]>
+    ) => {
+      const transpositionIds = action.payload;
+      state.selectedTranspositionIds = transpositionIds;
     },
-    addSelectedTransform: (state, action: PayloadAction<TransformId>) => {
-      const transformId = action.payload;
-      state.selectedTransformIds = union(state.selectedTransformIds, [
-        transformId,
+    addSelectedTransposition: (
+      state,
+      action: PayloadAction<TranspositionId>
+    ) => {
+      const transpositionId = action.payload;
+      state.selectedTranspositionIds = union(state.selectedTranspositionIds, [
+        transpositionId,
       ]);
     },
-    deselectTransform: (state, action: PayloadAction<TransformId>) => {
-      const transformId = action.payload;
-      state.selectedTransformIds = state.selectedTransformIds.filter(
-        (id) => id !== transformId
+    deselectTransposition: (state, action: PayloadAction<TranspositionId>) => {
+      const transpositionId = action.payload;
+      state.selectedTranspositionIds = state.selectedTranspositionIds.filter(
+        (id) => id !== transpositionId
       );
     },
-    deselectAllTransforms: (state) => {
-      state.selectedTransformIds = [];
+    deselectAllTranspositions: (state) => {
+      state.selectedTranspositionIds = [];
     },
     // Toolkit – State
     setToolkitValue: (
@@ -125,10 +131,10 @@ export const {
   deselectClip,
   deselectAllClips,
 
-  setSelectedTransforms,
-  addSelectedTransform,
-  deselectTransform,
-  deselectAllTransforms,
+  setSelectedTranspositions,
+  addSelectedTransposition,
+  deselectTransposition,
+  deselectAllTranspositions,
 
   setToolkitValue,
   toggleToolkitValue,

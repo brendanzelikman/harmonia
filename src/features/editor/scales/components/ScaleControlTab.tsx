@@ -10,8 +10,8 @@ interface ScaleControlTabProps extends ScaleEditorProps {
 }
 
 export function ScaleControlTab(props: ScaleControlTabProps) {
-  const { scale } = props;
-  if (!scale) return null;
+  const { scale, scaleTrack } = props;
+  if (!scale || !scaleTrack) return null;
 
   const ExportButton = () => (
     <Editor.Tooltip
@@ -166,7 +166,9 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
     >
       <Editor.MenuButton
         className="px-1 active:text-gray-400"
-        onClick={() => scale && props.clearScale(scale.id)}
+        onClick={() =>
+          props.scaleTrack && props.clearScaleTrack(props.scaleTrack.id)
+        }
       >
         <BsTrash className="text-lg" />
       </Editor.MenuButton>
@@ -185,7 +187,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
           const input = prompt("Transpose chromatically by N semitones:");
           const sanitizedInput = parseInt(input ?? "");
           if (sanitizedInput) {
-            props.transposeScale(scale.id, sanitizedInput);
+            props.transposeScaleTrack(scaleTrack.id, sanitizedInput);
           }
         }}
       >
@@ -206,7 +208,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
           const input = prompt("Transpose along the chord by N steps:");
           const sanitizedInput = parseInt(input ?? "");
           if (sanitizedInput) {
-            props.rotateScale(scale.id, sanitizedInput);
+            props.rotateScaleTrack(scaleTrack.id, sanitizedInput);
           }
         }}
       >

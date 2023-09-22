@@ -4,9 +4,7 @@ import { connect, ConnectedProps } from "react-redux";
 import { loadTransport, unloadTransport } from "redux/thunks/transport";
 import { AppDispatch, RootState } from "redux/store";
 
-const mapStateToProps = (state: RootState) => ({
-  transport: state.transport,
-});
+const mapStateToProps = (state: RootState) => ({});
 
 const mapDispatchToProps = (dispatch: AppDispatch) => ({
   createAndLoadTransport: async () => {

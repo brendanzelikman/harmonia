@@ -20,7 +20,11 @@ export function Background() {
   );
 }
 
-export function Splash() {
+export function Splash(props: {
+  title?: string;
+  subtitle1?: JSX.Element;
+  subtitle2?: JSX.Element;
+}) {
   return (
     <div className="flex flex-col py-24 -mt-16 items-center">
       <img
@@ -28,14 +32,18 @@ export function Splash() {
         className="lg:w-60 lg:h-60 md:w-48 md:h-48 w-36 h-36 mb-8 rounded-full shadow-xl shadow-slate-800/40 drop-shadow-2xl"
       />
       <h1 className="font-semibold text-slate-50 lg:text-8xl md:text-7xl sm:text-6xl text-5xl">
-        Harmonia
+        {props.title ?? "Harmonia"}
       </h1>
-      <h2 className="lg:my-1 text-slate-400 font-nunito lg:text-3xl md:text-2xl sm:text-lg text-sm">
-        Pattern-Based Music Making.
-      </h2>
-      <h2 className="text-slate-400 font-nunito lg:text-3xl md:text-2xl sm:text-lg text-sm">
-        Available for Everyone.
-      </h2>
+      {props.subtitle1 ?? (
+        <h2 className="lg:my-1 text-slate-400 font-nunito lg:text-3xl md:text-2xl sm:text-lg text-sm">
+          Pattern-Based Music Making.
+        </h2>
+      )}
+      {props.subtitle2 ?? (
+        <h2 className="text-slate-400 font-nunito lg:text-3xl md:text-2xl sm:text-lg text-sm">
+          Available for Everyone.
+        </h2>
+      )}
     </div>
   );
 }

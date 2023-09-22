@@ -1,18 +1,20 @@
 import {
   selectSelectedTrackId,
   selectClip,
-  selectClipTrackMap,
   selectPatternTrack,
-  selectScale,
   selectTrack,
-  selectTrackMap,
-  selectTransformTrackMap,
   selectMixerById,
+  selectScaleTrackMap,
+  selectSessionMap,
+  selectScaleTrack,
+  selectClipsByIds,
 } from "redux/selectors";
-import { selectTransform } from "redux/selectors/transforms";
+import {
+  selectTransposition,
+  selectTranspositionsByIds,
+} from "redux/selectors/transpositions";
 import { AppThunk } from "redux/store";
-import { createInstrument } from "types/instrument";
-import Scales, { defaultScale } from "types/scale";
+import { INSTRUMENTS, createInstrument } from "types/instrument";
 import {
   initializePatternTrack,
   isPatternTrack,
@@ -20,51 +22,50 @@ import {
   isScaleTrack,
   Track,
   TrackId,
+  getScaleTrackScale,
+  getScaleTrackParentScale,
+  getTransposedScaleTrack,
+  getRotatedScaleTrack,
+  getScaleTrackNotes,
 } from "types/tracks";
 import { defaultScaleTrack, ScaleTrackNoId } from "types/tracks";
 import { defaultPatternTrack, PatternTrackNoId } from "types/tracks";
 import { Mixers } from "redux/slices";
 import * as Clips from "redux/slices/clips";
-import * as ClipMap from "redux/slices/maps/clipMap";
-import * as TrackMap from "redux/slices/maps/trackMap";
-import * as TransformMap from "redux/slices/maps/transformMap";
 import * as PatternTracks from "redux/slices/patternTracks";
 import { setSelectedTrack } from "redux/slices/root";
 import * as ScaleTracks from "redux/slices/scaleTracks";
-import * as Transforms from "redux/slices/transforms";
-import { createScale } from "redux/slices/scales";
+import * as Transpositions from "redux/slices/transpositions";
 import { hideEditor } from "redux/slices/editor";
-import { initializeMixer } from "types";
+import { initializeMixer, MIDI, Note, ScaleTrackNote } from "types";
 import {
   muteMixers,
   unmuteMixers,
   soloMixers,
   unsoloMixers,
 } from "redux/slices/mixers";
+import { uniqBy } from "lodash";
+import {
+  addPatternTrackToSession,
+  addScaleTrackToSession,
+  clearTrackInSession,
+  removePatternTrackFromSession,
+  removeScaleTrackFromSession,
+} from "redux/slices/sessionMap";
 
 // Create a scale track
 export const createScaleTrack =
   (initialTrack?: Partial<ScaleTrackNoId>): AppThunk<Promise<TrackId>> =>
-  (dispatch) => {
+  (dispatch, getState) => {
+    const state = getState();
+    const parentTrack = selectScaleTrack(state, initialTrack?.parentId);
+    const parentNotes = parentTrack?.scaleNotes ?? defaultScaleTrack.scaleNotes;
+    const scaleNotes = parentNotes.map((_, i) => ({ degree: i, offset: 0 }));
     return new Promise(async (resolve) => {
-      // Create scale bound to track
-      const scaleId =
-        initialTrack?.scaleId ||
-        (await dispatch(
-          createScale({
-            name: Scales.TrackScaleName,
-            notes: defaultScale.notes,
-          })
-        ));
-
-      // Create track with scale id
-      const scaleTrack = { ...defaultScaleTrack, ...initialTrack, scaleId };
+      const scaleTrack = { ...defaultScaleTrack, scaleNotes, ...initialTrack };
       const track = initializeScaleTrack(scaleTrack);
-
-      // Add track to store
       dispatch(ScaleTracks.addScaleTrack(track));
-      dispatch(TrackMap.addScaleTrackToTrackMap(track.id));
-      dispatch(TransformMap.addScaleTrackToTransformMap(track.id));
+      dispatch(addScaleTrackToSession(track));
       resolve(track.id);
     });
   };
@@ -92,14 +93,7 @@ export const createPatternTrack =
 
       // Add track to store
       dispatch(PatternTracks.addPatternTrack(track));
-      dispatch(
-        TrackMap.addPatternTrackToTrackMap({
-          scaleTrackId: track.scaleTrackId,
-          patternTrackId: track.id,
-        })
-      );
-      dispatch(ClipMap.addPatternTrackToClipMap(track.id));
-      dispatch(TransformMap.addPatternTrackToTransformMap(track.id));
+      dispatch(addPatternTrackToSession(track));
 
       // Resolve
       resolve(track.id);
@@ -117,9 +111,114 @@ export const createPatternTrackFromSelectedTrack =
       const track = selectTrack(state, selectedTrackId);
       if (!track) return;
 
-      const scaleTrackId = isScaleTrack(track) ? track.id : track.scaleTrackId;
-      return dispatch(createPatternTrack({ scaleTrackId }));
+      const parentId = isScaleTrack(track) ? track.id : track.parentId;
+      return dispatch(createPatternTrack({ parentId }));
     });
+  };
+
+// Add a note to a scale track
+export const addNoteToScaleTrack =
+  (scaleTrackId: TrackId, note: Note): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const scaleTrack = selectTrack(state, scaleTrackId);
+    if (!scaleTrack || !isScaleTrack(scaleTrack)) return;
+
+    const scaleTracks = selectScaleTrackMap(state);
+
+    const scale = getScaleTrackParentScale(scaleTrack, { scaleTracks });
+    if (!scale) return;
+
+    const pitch = MIDI.toPitchClass(note);
+    const closestPitch = MIDI.closestPitchClass(pitch, scale.notes);
+    if (!closestPitch) return;
+
+    const matchingNote = scale.notes.find(
+      (note) => MIDI.toPitchClass(note) === closestPitch
+    );
+    if (!matchingNote) return;
+
+    const scalePitches = scale.notes.map((note) => MIDI.toPitchClass(note));
+    const degree = scalePitches.indexOf(closestPitch);
+    if (degree < 0) return;
+
+    const scaleNote: ScaleTrackNote = { degree, offset: 0 };
+    const scaleNotes = uniqBy(
+      [...scaleTrack.scaleNotes, scaleNote],
+      "degree"
+    ).sort((a, b) => a.degree - b.degree);
+
+    dispatch(
+      ScaleTracks.updateScaleTrack({
+        id: scaleTrackId,
+        scaleNotes,
+      })
+    );
+  };
+
+// Remove a note from a scale track
+export const removeNoteFromScaleTrack =
+  (scaleTrackId: TrackId, note: Note): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const scaleTrack = selectTrack(state, scaleTrackId);
+    const scaleTracks = selectScaleTrackMap(state);
+    if (!scaleTrack || !isScaleTrack(scaleTrack)) return;
+
+    const scaleNotes = [...scaleTrack.scaleNotes];
+    const notes = getScaleTrackNotes(scaleTrack, { scaleTracks });
+    const pitches = notes.map((note) => MIDI.toPitchClass(note));
+    const pitch = MIDI.toPitchClass(note);
+    const index = pitches.findIndex((p) => p === pitch);
+    if (index < 0) return;
+    scaleNotes.splice(index, 1);
+    dispatch(
+      ScaleTracks.updateScaleTrack({
+        id: scaleTrackId,
+        scaleNotes,
+      })
+    );
+  };
+
+export const transposeScaleTrack =
+  (id: TrackId, offset: number): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const scaleTrack = selectTrack(state, id);
+    if (!scaleTrack || !isScaleTrack(scaleTrack)) return;
+    const scaleTracks = selectScaleTrackMap(state);
+    const { scaleNotes } = getTransposedScaleTrack(scaleTrack, offset, {
+      scaleTracks,
+    });
+    if (!scaleNotes) return;
+    dispatch(ScaleTracks.updateScaleTrack({ id, scaleNotes }));
+  };
+
+export const rotateScaleTrack =
+  (scaleTrackId: TrackId, offset: number): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const scaleTrack = selectTrack(state, scaleTrackId);
+    if (!scaleTrack || !isScaleTrack(scaleTrack)) return;
+    const { scaleNotes } = getRotatedScaleTrack(scaleTrack, offset);
+    if (!scaleNotes) return;
+    dispatch(ScaleTracks.updateScaleTrack({ id: scaleTrackId, scaleNotes }));
+  };
+
+// Clear the notes from a scale track
+export const clearNotesFromScaleTrack =
+  (scaleTrackId: TrackId): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const scaleTrack = selectTrack(state, scaleTrackId);
+    if (!scaleTrack || !isScaleTrack(scaleTrack)) return;
+
+    dispatch(
+      ScaleTracks.updateScaleTrack({
+        id: scaleTrackId,
+        scaleNotes: [],
+      })
+    );
   };
 
 export const muteTracks = (): AppThunk => (dispatch) => {
@@ -138,25 +237,6 @@ export const unsoloTracks = (): AppThunk => (dispatch) => {
   dispatch(unsoloMixers());
 };
 
-export const addTrack =
-  (track: Track): AppThunk =>
-  (dispatch) => {
-    if (isScaleTrack(track)) {
-      dispatch(ScaleTracks.addScaleTrack(track));
-      dispatch(TrackMap.addScaleTrackToTrackMap(track.id));
-    } else if (isPatternTrack(track)) {
-      dispatch(PatternTracks.addPatternTrack(track));
-      dispatch(
-        TrackMap.addPatternTrackToTrackMap({
-          scaleTrackId: track.scaleTrackId,
-          patternTrackId: track.id,
-        })
-      );
-    } else {
-      throw new Error("Invalid track type");
-    }
-  };
-
 export const updateTrack =
   (track: Partial<Track>): AppThunk =>
   (dispatch) => {
@@ -171,20 +251,10 @@ export const updateTrack =
 
 export const clearTrack =
   (trackId: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const track = selectTrack(state, trackId);
-
-    if (track && isScaleTrack(track)) {
-      dispatch(Transforms.clearTransformsByScaleTrackId(trackId));
-      dispatch(TransformMap.clearScaleTrackFromTransformMap(trackId));
-    }
-    if (track && isPatternTrack(track)) {
-      dispatch(Clips.clearClipsByPatternTrackId(trackId));
-      dispatch(Transforms.clearTransformsByPatternTrackId(trackId));
-      dispatch(ClipMap.clearPatternTrackFromClipMap(trackId));
-      dispatch(TransformMap.clearPatternTrackFromTransformMap(trackId));
-    }
+  (dispatch) => {
+    dispatch(Clips.clearClipsByTrackId(trackId));
+    dispatch(Transpositions.clearTranspositionsByTrackId(trackId));
+    dispatch(clearTrackInSession(trackId));
   };
 
 export const deleteTrack =
@@ -195,27 +265,21 @@ export const deleteTrack =
 
     if (track && isScaleTrack(track)) {
       dispatch(ScaleTracks.removeScaleTrack(trackId));
-      dispatch(TrackMap.removeScaleTrackFromTrackMap(trackId));
-
-      // Remove transforms
-      dispatch(Transforms.removeTransformsByScaleTrackId(trackId));
-      dispatch(TransformMap.removeScaleTrackFromTransformMap(trackId));
-    }
-    if (track && isPatternTrack(track)) {
+      dispatch(removeScaleTrackFromSession(trackId));
+    } else {
       dispatch(PatternTracks.removePatternTrack(trackId));
+      dispatch(removePatternTrackFromSession(trackId));
       dispatch(Mixers.removeMixer({ mixerId: track.mixerId, trackId }));
-      dispatch(TrackMap.removePatternTrackFromTrackMap(trackId));
-      // Remove clips
-      dispatch(Clips.removeClipsByPatternTrackId(trackId));
-      dispatch(ClipMap.removePatternTrackFromClipMap(trackId));
-      // Remove transforms
-      dispatch(Transforms.removeTransformsByPatternTrackId(trackId));
-      dispatch(TransformMap.removePatternTrackFromTransformMap(trackId));
+      delete INSTRUMENTS[trackId];
     }
+
+    dispatch(Clips.removeClipsByTrackId(trackId));
+    dispatch(Transpositions.removeTranspositionsByTrackId(trackId));
 
     // Remove all child tracks
-    const trackMap = selectTrackMap(state);
-    for (const id of trackMap.byId[trackId]?.patternTrackIds || []) {
+    const sessionMap = selectSessionMap(state);
+    const children = sessionMap.byId[trackId]?.trackIds ?? [];
+    for (const id of children) {
       dispatch(deleteTrack(id));
     }
 
@@ -232,17 +296,17 @@ export const duplicateTrack =
   async (dispatch, getState) => {
     const state = getState();
     const track = selectTrack(state, id);
-    const trackMap = selectTrackMap(state);
+    const sessionMap = selectSessionMap(state);
+    const scaleTracks = selectScaleTrackMap(state);
 
     if (!track) return;
 
     // Add the new track as a promise and get the id
     let trackId: TrackId;
     if (isScaleTrack(track)) {
-      const scale = selectScale(state, track.scaleId);
+      const scale = getScaleTrackScale(track, { scaleTracks });
       if (!scale) return;
-      const scaleId = await dispatch(createScale(scale));
-      trackId = await dispatch(createScaleTrack({ ...track, scaleId }));
+      trackId = await dispatch(createScaleTrack({ ...track }));
     } else if (isPatternTrack(track)) {
       trackId = await dispatch(createPatternTrack(track));
     } else {
@@ -252,63 +316,64 @@ export const duplicateTrack =
     if (!trackId) return;
 
     // Add all clips
-    const clipMap = selectClipTrackMap(state);
-    const clips = clipMap.byId[id]?.clipIds;
+    const clips = sessionMap.byId[id]?.clipIds;
     if (clips?.length) {
       clips.forEach((clipId) => {
         const clip = selectClip(state, clipId);
-        dispatch(Clips.createClip({ ...clip, trackId }));
+        dispatch(Clips.createClips([{ ...clip, trackId }]));
       });
     }
 
-    // Add all transforms
-    const transformMap = selectTransformTrackMap(state);
-    const transforms = transformMap.byId[id]?.transformIds;
-    if (transforms?.length) {
-      transforms.forEach((transformId) => {
-        const transform = selectTransform(state, transformId);
-        dispatch(Transforms.createTransform({ ...transform, trackId }));
+    // Add all transpositions
+    const transpositions = sessionMap.byId[id]?.transpositionIds;
+    if (transpositions?.length) {
+      transpositions.forEach((transpositionId) => {
+        const transposition = selectTransposition(state, transpositionId);
+        dispatch(
+          Transpositions.createTranspositions([{ ...transposition, trackId }])
+        );
       });
     }
 
-    // Add all pattern tracks if the track is a scale track
+    // Add all child tracks if the track is a scale track
     if (isScaleTrack(track)) {
-      const patternTracks = trackMap.byId[id]?.patternTrackIds;
-      if (patternTracks?.length) {
-        patternTracks.forEach(async (patternTrackId) => {
-          // Create a new pattern track
-          const patternTrack = selectPatternTrack(state, patternTrackId);
+      const childTracks = sessionMap.byId[id]?.trackIds;
+      if (childTracks?.length) {
+        childTracks.forEach(async (trackId) => {
+          // Determine track type by selecting from state
+          const patternTrack = selectPatternTrack(state, trackId);
+          const scaleTrack = selectScaleTrack(state, trackId);
+          let newId: string;
+          // Create the new trackId
           if (patternTrack) {
-            const patternTrackId = await dispatch(
-              createPatternTrack({ ...patternTrack, scaleTrackId: trackId })
+            newId = await dispatch(
+              createPatternTrack({ ...patternTrack, parentId: trackId })
             );
-            if (!patternTrackId) return;
+            if (!newId) return;
+          } else if (scaleTrack) {
+            newId = await dispatch(
+              createScaleTrack({ ...scaleTrack, parentId: trackId })
+            );
+            if (!newId) return;
+          } else return;
 
-            // Add all clips of the pattern track
-            const clips = clipMap.byId[patternTrack.id]?.clipIds;
-            if (clips?.length) {
-              clips.forEach((clipId) => {
-                const clip = selectClip(state, clipId);
-                dispatch(
-                  Clips.createClip({ ...clip, trackId: patternTrackId })
-                );
-              });
-            }
+          // Add all clips of the pattern track
+          const clips = sessionMap.byId[trackId]?.clipIds;
+          const oldClips = selectClipsByIds(state, clips);
+          const newClips = oldClips.map((c) => ({ ...c, trackId: newId }));
+          dispatch(Clips.createClips(newClips));
 
-            // Add all transforms of the pattern track
-            const transforms = transformMap.byId[patternTrack.id]?.transformIds;
-            if (transforms?.length) {
-              transforms.forEach((transformId) => {
-                const transform = selectTransform(state, transformId);
-                dispatch(
-                  Transforms.createTransform({
-                    ...transform,
-                    trackId: patternTrackId,
-                  })
-                );
-              });
-            }
-          }
+          // Add all transpositions of the pattern track
+          const transpositions = sessionMap.byId[trackId]?.transpositionIds;
+          const oldTranspositions = selectTranspositionsByIds(
+            state,
+            transpositions
+          );
+          const newTranspositions = oldTranspositions.map((t) => ({
+            ...t,
+            trackId: newId,
+          }));
+          dispatch(Transpositions.createTranspositions(newTranspositions));
         });
       }
     }

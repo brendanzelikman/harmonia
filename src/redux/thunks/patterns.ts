@@ -5,7 +5,7 @@ import {
   selectRoot,
   selectTransport,
 } from "redux/selectors";
-import { createClip } from "redux/slices/clips";
+import { createClips } from "redux/slices/clips";
 
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
@@ -41,14 +41,13 @@ export const playPattern =
   (patternOrId: Pattern | PatternId): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
-    let pattern: Pattern;
+    let pattern: Pattern | undefined;
 
     if (typeof patternOrId === "string") {
       pattern = selectPattern(state, patternOrId);
     } else {
       pattern = patternOrId;
     }
-
     if (!pattern) return;
 
     const sampler = getGlobalSampler();
@@ -144,7 +143,7 @@ export const addSelectedPatternToTimeline =
     const track = selectPatternTrack(state, selectedTrackId);
     if (!track) return;
 
-    dispatch(createClip({ patternId: pattern.id, trackId: track.id, tick }));
+    dispatch(createClips([{ patternId: pattern.id, trackId: track.id, tick }]));
   };
 
 // Create pattern from MIDI file

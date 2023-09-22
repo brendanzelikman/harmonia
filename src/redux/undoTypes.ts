@@ -1,5 +1,43 @@
-import { Clip, createClipTag } from "types/clip";
-import { Transform, createTransformTag } from "types/transform";
+import { PayloadAction } from "@reduxjs/toolkit";
+import { createClipTag, createTranspositionTag } from "types";
+import {
+  AddClipsPayload,
+  ClearClipsByTrackIdPayload,
+  RemoveClipsByTrackIdPayload,
+  RemoveClipsPayload,
+  SliceClipPayload,
+  UpdateClipsPayload,
+} from "./slices/clips";
+import {
+  AddTranspositionsPayload,
+  ClearTranspositionsByTrackIdPayload,
+  RemoveTranspositionsByTrackIdPayload,
+  RemoveTranspositionsPayload,
+  UpdateTranspositionsPayload,
+} from "./slices/transpositions";
+import {
+  AddScaleTrackPayload,
+  RemoveScaleTrackPayload,
+  UpdateScaleTrackPayload,
+} from "./slices/scaleTracks";
+import { createTrackTag } from "types/tracks";
+import {
+  AddPatternTrackPayload,
+  RemovePatternTrackPayload,
+  UpdatePatternTrackPayload,
+} from "./slices/patternTracks";
+import {
+  AddClipsToSessionPayload,
+  AddObjectsToSessionPayload,
+  AddTrackToSessionPayload,
+  ClearTrackInSessionPayload,
+  MigrateTrackInSessionPayload,
+  MoveTrackInSessionPayload,
+  RemoveClipsFromSessionPayload,
+  RemoveObjectsFromSessionPayload,
+  RemoveTrackFromSessionPayload,
+  RemoveTranspositionsFromSessionPayload,
+} from "./slices/sessionMap";
 
 export const UndoTypes = {
   undoSession: "session/undo",
@@ -10,281 +48,238 @@ export const UndoTypes = {
   redoPatterns: "patterns/redo",
 };
 
-export const groupByActionType = (action: any) => {
-  switch (action.type) {
-    // Add Clip
-    case "clips/addClip":
-      return `ADD_CLIP:${action.payload.id}`;
+type ActionType = {
+  type: string;
+  payload: any;
+};
+type ActionGroup = {
+  [key: string]: (action: ActionType) => string;
+};
 
-    // Add Clips
-    case "clips/addClips":
-      return `ADD_CLIPS:${action.payload
-        .map((clip: Clip) => clip.id)
-        .join(",")}`;
+const createTag = (items: any[], createTag: (t: any) => string): string => {
+  return items.map(createTag).join(",");
+};
 
-    // Add Clips With Transforms
-    case "clips/addClipsWithTransforms":
-      var clipTags = action.payload.clips.map(createClipTag);
-      var transformTags = action.payload.transforms.map(createTransformTag);
-      return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
-        ","
-      )};${transformTags.join(",")}`;
+const groupByClipAction: ActionGroup = {
+  "clips/sliceClip": (action: PayloadAction<SliceClipPayload>) => {
+    const { oldClip } = action.payload;
+    return `SLICE_CLIP:${oldClip.id}`;
+  },
+  "clips/addClips": (action: PayloadAction<AddClipsPayload>) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `ADD_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "clips/removeClips": (action: PayloadAction<RemoveClipsPayload>) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `REMOVE_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "clips/updateClips": (action: PayloadAction<UpdateClipsPayload>) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `UPDATE_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "clips/removeClipsByTrackId": (
+    action: PayloadAction<RemoveClipsByTrackIdPayload>
+  ) => {
+    return `REMOVE_TRACK:${action.payload}`;
+  },
+  "clips/clearClipsByTrackId": (
+    action: PayloadAction<ClearClipsByTrackIdPayload>
+  ) => {
+    return `CLEAR_TRACK:${action.payload}`;
+  },
+};
 
-    // Remove Clip
-    case "clips/removeClip":
-      return `REMOVE_CLIP:${action.payload}`;
+const groupByTranspositionAction: ActionGroup = {
+  "transpositions/addTranspositions": (
+    action: PayloadAction<AddTranspositionsPayload>
+  ) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `ADD_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "transpositions/removeTranspositions": (
+    action: PayloadAction<RemoveTranspositionsPayload>
+  ) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `REMOVE_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "transpositions/updateTranspositions": (
+    action: PayloadAction<UpdateTranspositionsPayload>
+  ) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `UPDATE_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "transpositions/removeTranspositionsByTrackId": (
+    action: PayloadAction<RemoveTranspositionsByTrackIdPayload>
+  ) => {
+    return `REMOVE_TRACK:${action.payload}`;
+  },
+  "transpositions/clearTranspositionsByTrackId": (
+    action: PayloadAction<ClearTranspositionsByTrackIdPayload>
+  ) => {
+    return `CLEAR_TRACK:${action.payload}`;
+  },
+};
 
-    // Remove Clips
-    case "clips/removeClips":
-      return `REMOVE_CLIPS:${action.payload.join(",")}`;
+const groupByTrackAction: ActionGroup = {
+  "scaleTracks/addScaleTrack": (
+    action: PayloadAction<AddScaleTrackPayload>
+  ) => {
+    const trackTag = createTrackTag(action.payload);
+    return `ADD_TRACK:${trackTag}`;
+  },
+  "scaleTracks/removeScaleTrack": (
+    action: PayloadAction<RemoveScaleTrackPayload>
+  ) => {
+    return `REMOVE_TRACK:${action.payload}`;
+  },
+  "scaleTracks/updateScaleTrack": (
+    action: PayloadAction<UpdateScaleTrackPayload>
+  ) => {
+    return `UPDATE_TRACK:${action.payload.id}`;
+  },
+  "patternTracks/addPatternTrack": (
+    action: PayloadAction<AddPatternTrackPayload>
+  ) => {
+    const trackTag = createTrackTag(action.payload);
+    return `ADD_TRACK:${trackTag}`;
+  },
+  "patternTracks/removePatternTrack": (
+    action: PayloadAction<RemovePatternTrackPayload>
+  ) => {
+    return `REMOVE_TRACK:${action.payload}`;
+  },
+  "patternTracks/updatePatternTrack": (
+    action: PayloadAction<UpdatePatternTrackPayload>
+  ) => {
+    return `UPDATE_TRACK:${action.payload.id}`;
+  },
+};
 
-    // Remove Clips With Transforms
-    case "clips/removeClipsWithTransforms":
-      return `REMOVE_CLIPS_AND_TRANSFORMS:${action.payload.clipIds.join(
-        ","
-      )};${action.payload.transformIds.join(",")}`;
+const groupBySessionAction: ActionGroup = {
+  "session/addScaleTrackToSession": (
+    action: PayloadAction<AddTrackToSessionPayload>
+  ) => {
+    return `ADD_TRACK:${action.payload.id}`;
+  },
+  "session/removeScaleTrackFromSession": (
+    action: PayloadAction<RemoveTrackFromSessionPayload>
+  ) => {
+    return `REMOVE_TRACK:${action.payload}`;
+  },
+  "session/addPatternTrackToSession": (
+    action: PayloadAction<AddTrackToSessionPayload>
+  ) => {
+    return `ADD_TRACK:${action.payload.id}`;
+  },
+  "session/removePatternTrackFromSession": (
+    action: PayloadAction<RemoveTrackFromSessionPayload>
+  ) => {
+    return `REMOVE_TRACK:${action.payload}`;
+  },
+  "session/moveTrackInSession": (
+    action: PayloadAction<MoveTrackInSessionPayload>
+  ) => {
+    return `MOVE_TRACK:${action.payload}`;
+  },
+  "session/migrateTrackInSession": (
+    action: PayloadAction<MigrateTrackInSessionPayload>
+  ) => {
+    return `MIGRATE_TRACK:${action.payload}`;
+  },
+  "session/clearTrackInSession": (
+    action: PayloadAction<ClearTrackInSessionPayload>
+  ) => {
+    return `CLEAR_TRACK:${action.payload}`;
+  },
+  "session/addClipsToSession": (
+    action: PayloadAction<AddClipsToSessionPayload>
+  ) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `ADD_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "session/removeClipsFromSession": (
+    action: PayloadAction<RemoveClipsFromSessionPayload>
+  ) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `REMOVE_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "session/addTranspositionsToSession": (
+    action: PayloadAction<AddTranspositionsPayload>
+  ) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `ADD_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "session/removeTranspositionsFromSession": (
+    action: PayloadAction<RemoveTranspositionsFromSessionPayload>
+  ) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `REMOVE_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "session/addClipsAndTranspositionsToSession": (
+    action: PayloadAction<AddObjectsToSessionPayload>
+  ) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `ADD_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+  "session/removeClipsAndTranspositionsFromSession": (
+    action: PayloadAction<RemoveObjectsFromSessionPayload>
+  ) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, createClipTag);
+    const transpositionTag = createTag(transpositions, createTranspositionTag);
+    return `REMOVE_CLIPS_AND_TRANSPOSITIONS:${clipTag},${transpositionTag}`;
+  },
+};
 
-    // Remove Clips By Pattern Track Id
-    case "clips/removeClipsByPatternTrackId":
-      return `REMOVE_PATTERN_TRACK:${action.payload}`;
-
-    // Update Clip
-    case "clips/updateClip":
-      return `UPDATE_CLIP:${action.payload.id}@${action.payload.tick}`;
-
-    // Update Clips
-    case "clips/updateClips":
-      const clips = action.payload;
-      var clipTags = clips.map(createClipTag);
-      return `UPDATE_CLIPS:${clipTags.join(",")}`;
-
-    // Update Clips With Transforms
-    case "clips/updateClipsWithTransforms":
-      var clipTags = action.payload.clips.map(createClipTag);
-      var transformTags = action.payload.transforms.map(createTransformTag);
-      return `UPDATE_CLIPS_AND_TRANSFORMS:${clipTags.join(
-        ","
-      )};${transformTags.join(",")}`;
-
-    // Slice Clip
-    case "clips/sliceClip":
-      const { oldClip } = action.payload;
-      return `SLICE_CLIP:${oldClip.id}`;
-
-    // Clear Clips by Pattern Track Id
-    case "clips/clearClipsByPatternTrackId":
-      return `CLEAR_PATTERN_TRACK:${action.payload}`;
-
-    // Add a Scale Track
-    case "scaleTracks/addScaleTrack":
-      return `ADD_SCALE_TRACK:${action.payload.id}`;
-
-    // Remove a Scale Track
-    case "scaleTracks/removeScaleTrack":
-      return `REMOVE_SCALE_TRACK:${action.payload}`;
-
-    // Add a Pattern Track
-    case "patternTracks/addPatternTrack":
-      return `ADD_PATTERN_TRACK:${action.payload.id}`;
-
-    // Remove a Pattern Track
-    case "patternTracks/removePatternTrack":
-      return `REMOVE_PATTERN_TRACK:${action.payload}`;
-
-    // Add a Mixer
-    case "mixers/addMixer":
-      return `ADD_PATTERN_TRACK:${action.payload.trackId}`;
-
-    // Remove a Mixer
-    case "mixers/removeMixer":
-      return `REMOVE_PATTERN_TRACK:${action.payload.trackId}`;
-
-    // Add a Transform
-    case "transforms/addTransform":
-      return `ADD_TRANSFORM:${action.payload.id}`;
-
-    // Add Transforms
-    case "transforms/addTransforms":
-      return `ADD_TRANSFORMS:${action.payload
-        .map((transform: Transform) => transform.id)
-        .join(",")}`;
-
-    // Add Transforms With Clips
-    case "transforms/addTransformsWithClips":
-      var clipTags = action.payload.clips.map(createClipTag);
-      var transformTags = action.payload.transforms.map(createTransformTag);
-      return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
-        ","
-      )};${transformTags.join(",")}`;
-
-    // Remove a Transform
-    case "transforms/removeTransform":
-      return `REMOVE_TRANSFORM:${action.payload}`;
-
-    // Remove Transforms
-    case "transforms/removeTransforms":
-      return `REMOVE_TRANSFORMS:${action.payload.join(",")}`;
-
-    // Remove Transforms With Clips
-    case "transforms/removeTransformsWithClips":
-      return `REMOVE_CLIPS_AND_TRANSFORMS:${action.payload.clipIds.join(
-        ","
-      )};${action.payload.transformIds.join(",")}`;
-
-    // Remove Transforms by Scale Track Id
-    case "transforms/removeTransformsByScaleTrackId":
-      return `REMOVE_SCALE_TRACK:${action.payload}`;
-
-    // Remove Transforms by Pattern Track Id
-    case "transforms/removeTransformsByPatternTrackId":
-      return `REMOVE_PATTERN_TRACK:${action.payload}`;
-
-    // Update Transform
-    case "transforms/updateTransform":
-      return `UPDATE_TRANSFORM:${action.payload.id}@${action.payload.tick}`;
-
-    // Update Transforms
-    case "transforms/updateTransforms":
-      var transformTags = action.payload.map(createTransformTag);
-      return `UPDATE_TRANSFORMS:${transformTags.join(",")}`;
-
-    // Update Transforms With Clips
-    case "transforms/updateTransformsWithClips":
-      var transformTags = action.payload.transforms.map(createTransformTag);
-      var clipTags = action.payload.clips.map(createClipTag);
-      return `UPDATE_CLIPS_AND_TRANSFORMS:${clipTags.join(
-        ","
-      )};${transformTags.join(",")}`;
-
-    // Clear Transforms by Scale Track Id
-    case "transforms/clearTransformsByScaleTrackId":
-      return `CLEAR_SCALE_TRACK:${action.payload}`;
-
-    // Clear Transforms by Pattern Track Id
-    case "transforms/clearTransformsByPatternTrackId":
-      return `CLEAR_PATTERN_TRACK:${action.payload}`;
-
-    // Add a Scale Track to the Track Map
-    case "trackMap/addScaleTrackToTrackMap":
-      return `ADD_SCALE_TRACK:${action.payload}`;
-
-    // Remove a Scale Track from the Track Map
-    case "trackMap/removeScaleTrackFromTrackMap":
-      return `REMOVE_SCALE_TRACK:${action.payload}`;
-
-    // Add a Pattern Track to the Track Map
-    case "trackMap/addPatternTrackToTrackMap":
-      return `ADD_PATTERN_TRACK:${action.payload.patternTrackId}`;
-
-    // Remove a Pattern Track from the Track Map
-    case "trackMap/removePatternTrackFromTrackMap":
-      return `REMOVE_PATTERN_TRACK:${action.payload}`;
-
-    // Add a Pattern Track to the Clip Map
-    case "clipMap/addPatternTrackToClipMap":
-      return `ADD_PATTERN_TRACK:${action.payload}`;
-
-    // Remove a Pattern Track from the Clip Map
-    case "clipMap/removePatternTrackFromClipMap":
-      return `REMOVE_PATTERN_TRACK:${action.payload}`;
-
-    // Clear a Pattern Track from the Clip Map
-    case "clipMap/clearPatternTrackFromClipMap":
-      return `CLEAR_PATTERN_TRACK:${action.payload}`;
-
-    // Add a Clip to the Clip Map
-    case "clipMap/addClipToClipMap":
-      return `ADD_CLIP:${action.payload.clipId}`;
-
-    // Add Clips to the Clip Map
-    case "clipMap/addClipsToClipMap":
-      return `ADD_CLIPS:${action.payload
-        .map((payload: any) => payload.clipId)
-        .join(",")}`;
-
-    // Add Clips With Transforms to the Clip Map
-    case "clipMap/addClipsWithTransformsToClipMap":
-      var clipTags = action.payload.clips.map(createClipTag);
-      var transformTags = action.payload.transforms.map(createTransformTag);
-      return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
-        ","
-      )};${transformTags.join(",")}`;
-
-    // Remove a Clip from the Clip Map
-    case "clipMap/removeClipFromClipMap":
-      return `REMOVE_CLIP:${action.payload}`;
-
-    // Remove Clips from the Clip Map
-    case "clipMap/removeClipsFromClipMap":
-      return `REMOVE_CLIPS:${action.payload.join(",")}`;
-
-    // Remove Clips With Transforms From The Clip Map
-    case "clipMap/removeClipsWithTransformsFromClipMap":
-      return `REMOVE_CLIPS_AND_TRANSFORMS:${action.payload.clipIds.join(
-        ","
-      )};${action.payload.transformIds.join(",")}`;
-
-    // Slice a Clip from the Clip Map
-    case "clipMap/sliceClipFromClipMap":
-      return `SLICE_CLIP:${action.payload.oldClipId}`;
-
-    // Add a Scale Track to the Transform Map
-    case "transformMap/addScaleTrackToTransformMap":
-      return `ADD_SCALE_TRACK:${action.payload}`;
-
-    // Remove a Scale Track from the Transform Map
-    case "transformMap/removeScaleTrackFromTransformMap":
-      return `REMOVE_SCALE_TRACK:${action.payload}`;
-
-    // Clear a Scale Track from the Transform Map
-    case "transformMap/clearScaleTrackFromTransformMap":
-      return `CLEAR_SCALE_TRACK:${action.payload}`;
-
-    // Add a Pattern Track to the Transform Map
-    case "transformMap/addPatternTrackToTransformMap":
-      return `ADD_PATTERN_TRACK:${action.payload}`;
-
-    // Remove a Pattern Track from the Transform Map
-    case "transformMap/removePatternTrackFromTransformMap":
-      return `REMOVE_PATTERN_TRACK:${action.payload}`;
-
-    // Clear a Pattern Track from the Transform Map
-    case "transformMap/clearPatternTrackFromTransformMap":
-      return `CLEAR_PATTERN_TRACK:${action.payload}`;
-
-    // Add a Transform to the Transform Map
-    case "transformMap/addTransformToTransformMap":
-      return `ADD_TRANSFORM:${action.payload.transformId}`;
-
-    // Add Transforms to the Transform Map
-    case "transformMap/addTransformsToTransformMap":
-      return `ADD_TRANSFORMS:${action.payload
-        .map((payload: any) => payload.transformId)
-        .join(",")}`;
-
-    // Add Transforms With Clips To The Transform Map
-    case "transformMap/addTransformsWithClipsToTransformMap":
-      var clipTags = action.payload.clips.map(createClipTag);
-      var transformTags = action.payload.transforms.map(createTransformTag);
-      return `ADD_CLIPS_AND_TRANSFORMS:${clipTags.join(
-        ","
-      )};${transformTags.join(",")}`;
-
-    // Remove a Transform from the Transform Map
-    case "transformMap/removeTransformFromTransformMap":
-      return `REMOVE_TRANSFORM:${action.payload}`;
-
-    // Remove Transforms from the Transform Map
-    case "transformMap/removeTransformsFromTransformMap":
-      return `REMOVE_TRANSFORMS:${action.payload.join(",")}`;
-
-    // Remove Transforms With Clips From the Transform Map
-    case "transformMap/removeTransformsWithClipsFromTransformMap":
-      return `REMOVE_CLIPS_AND_TRANSFORMS:${action.payload.clipIds.join(
-        ","
-      )};${action.payload.transformIds.join(",")}`;
-
-    default:
-      return null;
+export const groupByActionType = (action: PayloadAction) => {
+  if (action.type.startsWith("clips/")) {
+    return groupByClipAction[action.type](action);
   }
+  if (action.type.startsWith("transpositions/")) {
+    return groupByTranspositionAction[action.type](action);
+  }
+  if (action.type.startsWith("scaleTracks/")) {
+    return groupByTrackAction[action.type](action);
+  }
+  if (action.type.startsWith("patternTracks/")) {
+    return groupByTrackAction[action.type](action);
+  }
+  if (action.type.startsWith("session/")) {
+    return groupBySessionAction[action.type](action);
+  }
+  return action.type;
 };

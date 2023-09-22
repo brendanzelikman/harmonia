@@ -8,15 +8,15 @@ interface ScalePianoProps extends ScaleEditorProps {
 }
 
 export function ScalePiano(props: ScalePianoProps) {
-  const { scale, sampler } = props;
+  const { scaleTrack, sampler } = props;
 
   // Play note handler for piano given editor state
   const playNote = (sampler: Sampler, midiNumber: number) => {
-    if (!scale) return;
+    if (!scaleTrack) return;
     if (props.adding) {
-      props.addNoteToScale(scale.id, midiNumber);
+      props.addNoteToScaleTrack(scaleTrack.id, midiNumber);
     } else if (props.removing) {
-      props.removeNoteFromScale(scale.id, midiNumber);
+      props.removeNoteFromScaleTrack(scaleTrack.id, midiNumber);
     }
     if (!sampler?.loaded || sampler?.disposed) return;
     sampler.triggerAttackRelease(MIDI.toPitch(midiNumber), "4n");

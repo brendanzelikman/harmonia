@@ -44,18 +44,6 @@ export const timelineSlice = createSlice({
       const clipboard = action.payload;
       state.clipboard = clipboard;
     },
-    startDraggingClip: (state) => {
-      state.draggingClip = true;
-    },
-    stopDraggingClip: (state) => {
-      state.draggingClip = false;
-    },
-    startDraggingTransform: (state) => {
-      state.draggingTransform = true;
-    },
-    stopDraggingTransform: (state) => {
-      state.draggingTransform = false;
-    },
     toggleAddingClip: (state) => {
       const isAdding = state.state === "adding";
       state.state = isAdding ? "idle" : "adding";
@@ -93,12 +81,6 @@ export const {
   setSubdivision,
   increaseSubdivision,
   decreaseSubdivision,
-
-  startDraggingClip,
-  stopDraggingClip,
-
-  startDraggingTransform,
-  stopDraggingTransform,
 
   setClipboard,
 } = timelineSlice.actions;

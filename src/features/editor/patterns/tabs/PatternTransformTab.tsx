@@ -2,9 +2,9 @@ import { rotatePatternChord, transposePatternChord } from "types";
 import { PatternEditorCursorProps } from "..";
 import * as Editor from "features/editor";
 
-interface PatternTransformTabProps extends PatternEditorCursorProps {}
+interface PatternTranspositionTabProps extends PatternEditorCursorProps {}
 
-export function PatternTransformTab(props: PatternTransformTabProps) {
+export function PatternTranspositionTab(props: PatternTranspositionTabProps) {
   const TransposeButton = () => (
     <Editor.Tooltip
       placement="bottom"

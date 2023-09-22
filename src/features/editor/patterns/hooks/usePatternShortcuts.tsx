@@ -11,7 +11,7 @@ import { Duration } from "types/units";
 import { Pattern } from "types";
 
 interface PatternShortcutProps extends PatternEditorCursorProps {
-  transformedPattern: Pattern;
+  transposedPattern?: Pattern;
   onDurationClick: (duration: Duration) => void;
 }
 
@@ -324,8 +324,8 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (isInputEvent(e) || !isHoldingShift(e)) return;
           // Play Pattern Track
-          if (props.selectedPatternId) {
-            props.playPattern(props.transformedPattern);
+          if (props.selectedPatternId && props.transposedPattern) {
+            props.playPattern(props.transposedPattern);
             return;
           }
         },

@@ -1,7 +1,7 @@
 import { connect, ConnectedProps } from "react-redux";
 import { useCallback } from "react";
 import { createPortal } from "react-dom";
-import { selectClips, selectRoot, selectTransforms } from "redux/selectors";
+import { selectClips, selectRoot, selectTranspositions } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Clip, ClipId } from "types/clip";
 import { JSON } from "types/units";
@@ -9,15 +9,18 @@ import { PatternStream } from "types/pattern";
 import { Row } from "..";
 import {
   createClips,
-  createClipsAndTransforms,
+  createClipsAndTranspositions,
   updateClips,
-  updateClipsAndTransforms,
+  updateClipsAndTranspositions,
 } from "redux/slices/clips";
-import { setSelectedClips, setSelectedTransforms } from "redux/slices/root";
+import { setSelectedClips, setSelectedTranspositions } from "redux/slices/root";
 import TimelineClip from "./Clip";
 import { DataGridHandle } from "react-data-grid";
-import { Transform, TransformId } from "types/transform";
-import { createTransforms, updateTransform } from "redux/slices/transforms";
+import { Transposition, TranspositionId } from "types/transposition";
+import {
+  createTranspositions,
+  updateTranspositions,
+} from "redux/slices/transpositions";
 
 export type ClipStreamRecord = Record<ClipId, JSON<PatternStream>>;
 interface TimelineClipsProps {
@@ -27,15 +30,15 @@ interface TimelineClipsProps {
 
 const mapStateToProps = (state: RootState, ownProps: TimelineClipsProps) => {
   const clips = selectClips(state);
-  const transforms = selectTransforms(state);
-  const { selectedClipIds, selectedTransformIds } = selectRoot(state);
+  const transpositions = selectTranspositions(state);
+  const { selectedClipIds, selectedTranspositionIds } = selectRoot(state);
 
   return {
     ...ownProps,
     clips,
-    transforms,
+    transpositions,
     selectedClipIds: selectedClipIds || [],
-    selectedTransformIds: selectedTransformIds || [],
+    selectedTranspositionIds: selectedTranspositionIds || [],
   };
 };
 
@@ -44,34 +47,32 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     selectClips: (clipIds: ClipId[]) => {
       dispatch(setSelectedClips(clipIds));
     },
-    selectTransforms: (transformIds: TransformId[]) => {
-      dispatch(setSelectedTransforms(transformIds));
+    selectTranspositions: (transpositionIds: TranspositionId[]) => {
+      dispatch(setSelectedTranspositions(transpositionIds));
     },
     createClips: (clips: Partial<Clip>[]) => {
       return dispatch(createClips(clips));
     },
     updateClips: (clips: Partial<Clip>[]) => {
-      dispatch(updateClips(clips));
+      dispatch(updateClips({ clips, transpositions: [] }));
     },
-    createTransforms: (transforms: Transform[]) => {
-      dispatch(createTransforms(transforms));
+    createTranspositions: (transpositions: Transposition[]) => {
+      dispatch(createTranspositions(transpositions));
     },
-    updateTransforms: (transforms: Transform[]) => {
-      transforms.forEach((transform) => {
-        dispatch(updateTransform(transform));
-      });
+    updateTranspositions: (transpositions: Transposition[]) => {
+      dispatch(updateTranspositions({ clips: [], transpositions }));
     },
-    createClipsAndTransforms(
+    createClipsAndTranspositions(
       clips: Partial<Clip>[],
-      transforms: Partial<Transform>[]
+      transpositions: Partial<Transposition>[]
     ) {
-      return dispatch(createClipsAndTransforms(clips, transforms));
+      return dispatch(createClipsAndTranspositions(clips, transpositions));
     },
-    updateClipsAndTransforms(
+    updateClipsAndTranspositions(
       clips: Partial<Clip>[],
-      transforms: Partial<Transform>[]
+      transpositions: Partial<Transposition>[]
     ) {
-      return dispatch(updateClipsAndTransforms(clips, transforms));
+      return dispatch(updateClipsAndTranspositions(clips, transpositions));
     },
   };
 };

@@ -19,33 +19,58 @@ import {
   selectEditor,
   selectPattern,
   selectRoot,
+  selectScaleTrackMap,
+  selectSelectedClips,
   selectTimeline,
+  selectTrackParents,
 } from "redux/selectors";
 
 import * as Root from "redux/slices/root";
 import * as Timeline from "redux/slices/timeline";
-import { ClipId } from "types/clip";
+import { Clip, ClipId } from "types/clip";
 import { RepeatOptions, mergeClips, repeatClips } from "redux/thunks/clips";
-import { forwardRef, useEffect, useRef, useState } from "react";
-import { blurOnEnter, isHoldingCommand, isInputEvent } from "utils";
-import useEventListeners from "hooks/useEventListeners";
+import { FormEvent, forwardRef, useEffect, useMemo, useState } from "react";
+import { blurOnEnter } from "utils";
 import { hideEditor } from "redux/slices/editor";
 import { Toolkit } from "types/root";
 import { Transition } from "@headlessui/react";
 import useKeyHolder from "hooks/useKeyHolder";
+import {
+  TranspositionOffsetRecord,
+  getChromaticTranspose,
+  getScalarTranspose,
+} from "types/transposition";
+import { getScaleName, getScaleTrackScale, transposeScale } from "types";
 
 const mapStateToProps = (state: RootState) => {
   const root = selectRoot(state);
   const editor = selectEditor(state);
   const timeline = selectTimeline(state);
+  const scaleTracks = selectScaleTrackMap(state);
+  const selectedPattern = selectPattern(state, root.selectedPatternId);
+  const selectedScaleTracks = selectTrackParents(state, root.selectedTrackId);
+  const selectedTrackScales = selectedScaleTracks.map((track) =>
+    getScaleTrackScale(track, { scaleTracks })
+  );
+  const selectedClips = selectSelectedClips(state);
   const { toolkit } = root;
-  const selectedPattern = root.selectedPatternId
-    ? selectPattern(state, root.selectedPatternId)
-    : undefined;
+  const { transpositionOffsets } = toolkit;
+  const chromaticTranspose = getChromaticTranspose(transpositionOffsets);
+  const scalarTransposes = selectedTrackScales.map((scale) =>
+    getScalarTranspose(transpositionOffsets, scale?.id)
+  );
+  const chordalTranspose = getChromaticTranspose(transpositionOffsets);
   return {
     ...root,
     ...toolkit,
+    selectedScaleTracks,
+    selectedTrackScales,
+    chromaticTranspose,
+    scalarTransposes,
+    chordalTranspose,
     selectedClipIds: root.selectedClipIds,
+    selectedClips,
+
     selectedPattern,
     onEditor: editor.id !== "hidden",
     onPatterns: editor.id === "patterns",
@@ -85,9 +110,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(Timeline.toggleTransposingClip());
       dispatch(hideEditor());
     },
-    mergeClips: (ids: ClipId[]) => {
+    mergeClips: (clips: Clip[]) => {
       dispatch(Timeline.toggleMergingClips());
-      dispatch(mergeClips(ids));
+      dispatch(mergeClips(clips));
     },
     repeatClips: (ids: ClipId[], options?: RepeatOptions) => {
       dispatch(Timeline.toggleRepeatingClips());
@@ -117,109 +142,66 @@ const ControlButton = (props: {
   </NavButton>
 );
 
-const RefInput = forwardRef(function RefInput(props: any, ref) {
+const RefInput = (props: any) => {
   return (
     <input
       {...props}
-      className="h-8 block px-2 bg-transparent rounded-lg default:text-sm focus:outline-none focus:ring-0 appearance-none w-16 mx-1 text-sm border-slate-400 focus:border-slate-200 focus:bg-fuchsia-700/80"
+      className="h-8 block px-2 bg-transparent rounded-lg default:text-sm focus:outline-none focus:ring-0 appearance-none w-16 mx-1 text-sm placeholder:text-slate-400 border-slate-400 focus:border-slate-200 focus:bg-fuchsia-700/80"
       onKeyDown={blurOnEnter}
-      ref={ref}
       type="number"
     />
   );
-});
+};
 
 function PatternControl(props: Props) {
-  const chromaticTranspose = props.chromaticTranspose ?? 0;
-  const scalarTranspose = props.scalarTranspose ?? 0;
-  const chordalTranspose = props.chordalTranspose ?? 0;
-
-  const [transpose, setTranspose] = useState<TransposeState>({
-    scalar: `${scalarTranspose ?? 0}`,
-    chordal: `${chordalTranspose ?? 0}`,
-    chromatic: `${chromaticTranspose ?? 0}`,
-  });
-
-  const setScalar = (value: string) =>
-    setTranspose((prev) => ({ ...prev, scalar: value }));
-  const setChordal = (value: string) =>
-    setTranspose((prev) => ({ ...prev, chordal: value }));
-  const setChromatic = (value: string) =>
-    setTranspose((prev) => ({ ...prev, chromatic: value }));
-
+  const { selectedScaleTracks, selectedTrackScales } = props;
+  const offsets = props.toolkit.transpositionOffsets;
   useEffect(() => {
-    const { chromatic, scalar, chordal } = transpose;
-    if (parseInt(chromatic) !== chromaticTranspose) {
-      if (chromatic === "e") return;
-      const value = parseInt(chromatic);
-      if (isNaN(value)) return;
-      props.setToolkitValue("chromaticTranspose", value);
+    const newOffsets = Object.keys(offsets).reduce((acc, id) => {
+      const value = offsets[id];
+      if (selectedScaleTracks.find((track) => track.id === id)) {
+        return { ...acc, [id]: value };
+      } else {
+        return acc;
+      }
+    }, {} as TranspositionOffsetRecord);
+    if (Object.keys(newOffsets).length !== Object.keys(offsets).length) {
+      props.setToolkitValue("transpositionOffsets", newOffsets);
     }
-    if (parseInt(scalar) !== scalarTranspose) {
-      if (scalar === "e") return;
-      const value = parseInt(scalar);
-      if (isNaN(value)) return;
-      props.setToolkitValue("scalarTranspose", value);
-    }
-    if (parseInt(chordal) !== chordalTranspose) {
-      if (chordal === "e") return;
-      const value = parseInt(chordal);
-      if (isNaN(value)) return;
-      props.setToolkitValue("chordalTranspose", value);
-    }
-  }, [transpose, chromaticTranspose, scalarTranspose, chordalTranspose]);
+  }, [selectedScaleTracks, offsets]);
 
-  const [holdingAlt, setHoldingAlt] = useState(false);
+  const setChromatic = (value: number) => {
+    props.setToolkitValue("transpositionOffsets", {
+      ...props.transpositionOffsets,
+      _chromatic: value,
+    });
+  };
 
-  const chromaticRef = useRef<HTMLInputElement>(null);
-  const scalarRef = useRef<HTMLInputElement>(null);
-  const chordalRef = useRef<HTMLInputElement>(null);
+  const setChordal = (value: number) => {
+    props.setToolkitValue("transpositionOffsets", {
+      ...props.transpositionOffsets,
+      _self: value,
+    });
+  };
 
-  useEventListeners(
-    {
-      Alt: {
-        keydown: () => setHoldingAlt(true),
-        keyup: () => setHoldingAlt(false),
-      },
-      // 1 = Focus Chromatic Input
-      1: {
-        keydown: (e) => {
-          if (isInputEvent(e as KeyboardEvent) || isHoldingCommand(e)) return;
-          setTimeout(() => {
-            if (chromaticRef.current) {
-              chromaticRef.current.focus();
-              chromaticRef.current.select();
-            }
-          }, 10);
-        },
-      },
-      // 2 = Focus Scalar Input
-      2: {
-        keydown: (e) => {
-          if (isInputEvent(e as KeyboardEvent) || isHoldingCommand(e)) return;
-          setTimeout(() => {
-            if (scalarRef.current) {
-              scalarRef.current.focus();
-              scalarRef.current.select();
-            }
-          }, 10);
-        },
-      },
-      // 3 = Focus Chordal Input
-      3: {
-        keydown: (e) => {
-          if (isInputEvent(e as KeyboardEvent) || isHoldingCommand(e)) return;
-          setTimeout(() => {
-            if (chordalRef.current) {
-              chordalRef.current.focus();
-              chordalRef.current.select();
-            }
-          }, 10);
-        },
-      },
-    },
-    [chromaticRef, scalarRef, chordalRef]
-  );
+  const setScalar = (value: number, id: string) => {
+    props.setToolkitValue("transpositionOffsets", {
+      ...props.transpositionOffsets,
+      [id]: value,
+    });
+  };
+
+  const selectedScaleNames = useMemo(() => {
+    if (!selectedTrackScales.length) return [];
+    const transposedScales = selectedTrackScales.map((scale) =>
+      transposeScale(scale, offsets._chromatic || 0)
+    );
+    return transposedScales.map((transposedScale, i) => {
+      const trackName = selectedScaleTracks[i].name;
+      if (trackName?.length) return trackName;
+      return getScaleName(transposedScale || selectedTrackScales[i]);
+    });
+  }, [props.toolkit, selectedScaleTracks, selectedTrackScales]);
 
   const [mergeNameInput, setMergeNameInput] = useState("");
   useEffect(() => {
@@ -303,8 +285,8 @@ function PatternControl(props: Props) {
               <NavbarFormInput
                 className="mx-1 w-6 h-[24px] rounded-full focus:border-slate-200 focus:outline-none"
                 type="checkbox"
-                checked={!!props.mergeTransforms}
-                onChange={() => props.toggleToolkitValue("mergeTransforms")}
+                checked={!!props.mergeTranspositions}
+                onChange={() => props.toggleToolkitValue("mergeTranspositions")}
               />
             </NavbarFormGroup>
             <NavbarFormGroup className="p-1">
@@ -315,7 +297,7 @@ function PatternControl(props: Props) {
                     : "opacity-100 cursor-pointer animate-pulse bg-purple-600"
                 }`}
                 disabled={!props.selectedClipIds.length}
-                onClick={() => props.mergeClips(props.selectedClipIds)}
+                onClick={() => props.mergeClips(props.selectedClips)}
               >
                 {!props.selectedClipIds.length
                   ? "Select 1+ Clips"
@@ -366,11 +348,11 @@ function PatternControl(props: Props) {
               <NavbarFormInput
                 className="mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none"
                 type="checkbox"
-                checked={!!props.repeatTransforms}
+                checked={!!props.repeatTranspositions}
                 onChange={() => {
-                  props.toggleToolkitValue("repeatTransforms");
-                  if (props.repeatWithTranspose) {
-                    props.toggleToolkitValue("repeatWithTranspose");
+                  props.toggleToolkitValue("repeatTranspositions");
+                  if (props.repeatWithTransposition) {
+                    props.toggleToolkitValue("repeatWithTransposition");
                   }
                 }}
               />
@@ -378,7 +360,7 @@ function PatternControl(props: Props) {
             <NavbarFormGroup>
               <NavbarFormLabel
                 className={`${
-                  !props.repeatTransforms ? "opacity-50 cursor-default" : ""
+                  !props.repeatTranspositions ? "opacity-50 cursor-default" : ""
                 }`}
               >
                 Transpose Incrementally?
@@ -386,9 +368,11 @@ function PatternControl(props: Props) {
               <NavbarFormInput
                 className={`mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none`}
                 type="checkbox"
-                checked={!!props.repeatWithTranspose}
-                onChange={() => props.toggleToolkitValue("repeatWithTranspose")}
-                disabled={!props.repeatTransforms}
+                checked={!!props.repeatWithTransposition}
+                onChange={() =>
+                  props.toggleToolkitValue("repeatWithTransposition")
+                }
+                disabled={!props.repeatTranspositions}
               />
             </NavbarFormGroup>
             <NavbarFormGroup className="p-1">
@@ -442,91 +426,92 @@ function PatternControl(props: Props) {
                   content="Steps along the chromatic scale"
                   className="mr-2"
                 />
-                Chromatic Offset (N)
+                Chromatic Scale Offset
               </NavbarFormLabel>
               <RefInput
-                ref={chromaticRef}
-                value={transpose.chromatic}
-                onChange={(e: any) => setChromatic(e.target.value)}
+                value={offsets._chromatic}
+                placeholder={0}
+                onChange={(e: FormEvent<HTMLInputElement>) =>
+                  setChromatic((e.target as HTMLInputElement).valueAsNumber)
+                }
               />
             </NavbarFormGroup>
-            <NavbarFormGroup>
-              <NavbarFormLabel className="inline-flex items-center">
-                <NavbarInfoTooltip
-                  content="Steps along the track scale"
-                  className="mr-2"
-                />
-                Scalar Offset (T)
-              </NavbarFormLabel>
-              <RefInput
-                ref={scalarRef}
-                value={transpose.scalar}
-                onChange={(e: any) => setScalar(e.target.value)}
-              />
-            </NavbarFormGroup>
+            {props.selectedScaleTracks.map((_, i) => {
+              const scaleTrack = selectedScaleTracks[i];
+              const scale = selectedTrackScales[i];
+              const name = selectedScaleNames[i];
+              const value = offsets[scaleTrack.id];
+              if (!scaleTrack || !scale) return null;
+              return (
+                <Transition
+                  key={scaleTrack.id}
+                  show={!!scaleTrack}
+                  enter="transition-all duration-150"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  as="div"
+                  className="w-full"
+                >
+                  <NavbarFormGroup>
+                    <NavbarFormLabel className="inline-flex items-center">
+                      <NavbarInfoTooltip
+                        content="Steps along the track scale"
+                        className="mr-2"
+                      />
+                      {name} Offset
+                    </NavbarFormLabel>
+                    <RefInput
+                      value={value}
+                      placeholder={0}
+                      onChange={(e: FormEvent<HTMLInputElement>) =>
+                        setScalar(
+                          (e.target as HTMLInputElement).valueAsNumber,
+                          scaleTrack.id
+                        )
+                      }
+                    />
+                  </NavbarFormGroup>
+                </Transition>
+              );
+            })}
             <NavbarFormGroup>
               <NavbarFormLabel className="inline-flex items-center">
                 <NavbarInfoTooltip
                   content="Steps along the chord"
                   className="mr-2"
                 />
-                Chordal Offset (t)
+                Pattern Scale Offset
               </NavbarFormLabel>
               <RefInput
-                ref={chordalRef}
-                value={transpose.chordal}
-                onChange={(e: any) => setChordal(e.target.value)}
+                value={offsets._self}
+                placeholder={0}
+                onChange={(e: FormEvent<HTMLInputElement>) =>
+                  setChordal((e.target as HTMLInputElement).valueAsNumber)
+                }
               />
             </NavbarFormGroup>
-            {holdingAlt ? (
-              <>
-                <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
-                  <label className="pb-1 text-sm">Chromatic Offset</label>
-                  <input
-                    className="w-full h-5 text-white bg-slate-200"
-                    type="range"
-                    min={-48}
-                    max={48}
-                    value={parseInt(transpose.chromatic)}
-                    onChange={(e: any) =>
-                      setChromatic(e.target.value.toString())
-                    }
-                    onDoubleClick={() => setChromatic("0")}
-                  />
-                </NavbarFormGroup>
-                <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
-                  <label className="pb-1 text-sm">Scalar Offset</label>
-                  <input
-                    className="w-full h-5 text-white bg-slate-200"
-                    type="range"
-                    min={-48}
-                    max={48}
-                    value={parseInt(transpose.scalar)}
-                    onChange={(e: any) => setScalar(e.target.value.toString())}
-                    onDoubleClick={() => setScalar("0")}
-                  />
-                </NavbarFormGroup>
-                <NavbarFormGroup className="p-1 pt-3 flex flex-col w-full">
-                  <label className="pb-1 text-sm">Chordal Offset</label>
-                  <input
-                    className="w-full h-5 text-white bg-slate-200"
-                    type="range"
-                    min={-48}
-                    max={48}
-                    value={parseInt(transpose.chordal)}
-                    onChange={(e: any) => setChordal(e.target.value.toString())}
-                    onDoubleClick={() => setChordal("0")}
-                  />
-                </NavbarFormGroup>
-              </>
-            ) : null}
+            <NavbarFormGroup>
+              <NavbarFormLabel className="inline-flex items-center">
+                Duration
+              </NavbarFormLabel>
+              <RefInput
+                value={props.transpositionDuration}
+                placeholder={0}
+                onChange={(e: FormEvent<HTMLInputElement>) =>
+                  props.setToolkitValue(
+                    "transpositionDuration",
+                    (e.target as HTMLInputElement).valueAsNumber || 0
+                  )
+                }
+              />
+            </NavbarFormGroup>
           </div>
         }
       />
     </div>
   );
 
-  const heldKeys = useKeyHolder(["q", "w", "e"]);
+  const heldKeys = useKeyHolder(["q", "w", "s", "x", "e"]);
 
   return (
     <div className="flex space-x-2">
@@ -536,7 +521,9 @@ function PatternControl(props: Props) {
       {RepeatClipsButton()}
       {TransposeButton()}
       <Transition
-        show={!props.transposingClip && props.selectedTransformIds.length > 0}
+        show={
+          !props.transposingClip && props.selectedTranspositionIds.length > 0
+        }
         enter="transition-all duration-300"
         enterFrom="opacity-0 scale-0"
         enterTo="opacity-100 scale-100"
@@ -554,11 +541,16 @@ function PatternControl(props: Props) {
             N
           </span>
           <span className="w-1">•</span>
-          <span
-            className={`${heldKeys.w ? "text-slate-50" : "text-slate-500"}`}
-          >
-            T
-          </span>
+          {selectedTrackScales.map((scale, i) => (
+            <span
+              key={`scale-${i}-${scale.notes.join(",")}`}
+              className={`${
+                heldKeys.w && scale ? "text-slate-50" : "text-slate-500"
+              }`}
+            >
+              T
+            </span>
+          ))}
           <span className="w-1">•</span>
           <span
             className={`${heldKeys.e ? "text-slate-50" : "text-slate-500"}`}
@@ -569,10 +561,4 @@ function PatternControl(props: Props) {
       </Transition>
     </div>
   );
-}
-
-interface TransposeState {
-  scalar: string;
-  chordal: string;
-  chromatic: string;
 }

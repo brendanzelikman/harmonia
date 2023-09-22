@@ -1,19 +1,18 @@
 import { ID } from "types/units";
-import { RootState } from "./store";
+import { AppThunk, RootState } from "./store";
 import { isRoot } from "types/root";
 import { isEditor } from "types/editor";
 import { isTimeline } from "types/timeline";
 import { isTransport } from "types/transport";
-import { INSTRUMENTS, MixerInstance } from "types";
 
 export const isRootState = (obj: any): obj is RootState => {
   const { session, scales, patterns, root, editor, timeline, transport } = obj;
 
   // Validate session
   if (!session?.present) return false;
-  const { clips, transforms, patternTracks, scaleTracks } = session.present;
+  const { clips, transpositions, patternTracks, scaleTracks } = session.present;
   if (!isNormalizedState(clips)) return false;
-  if (!isNormalizedState(transforms)) return false;
+  if (!isNormalizedState(transpositions)) return false;
   if (!isNormalizedState(patternTracks)) return false;
   if (!isNormalizedState(scaleTracks)) return false;
 
@@ -54,6 +53,7 @@ export interface NormalizedState<K extends ID, V> {
 export const isNormalizedState = <K extends ID, V>(
   obj: any
 ): obj is NormalizedState<K, V> => {
+  if (!obj) return false;
   const { byId, allIds } = obj;
   return byId !== undefined && allIds !== undefined;
 };
@@ -78,6 +78,11 @@ export const saveState = (state: RootState) => {
   try {
     const editedState = {
       ...state,
+      root: {
+        ...state.root,
+        selectedClipIds: [],
+        selectedTranspositionIds: [],
+      },
       transport: {
         ...state.transport,
         state: "stopped",
@@ -88,8 +93,6 @@ export const saveState = (state: RootState) => {
       timeline: {
         ...state.timeline,
         state: "idle",
-        draggingClip: false,
-        draggingTransform: false,
       },
       editor: {
         ...state.editor,
@@ -98,7 +101,10 @@ export const saveState = (state: RootState) => {
       scales: { past: [], present: state.scales.present, future: [] },
       patterns: { past: [], present: state.patterns.present, future: [] },
     };
-    if (!isRootState(editedState)) return;
+    if (!isRootState(editedState)) {
+      localStorage.removeItem("state");
+      return;
+    }
     const serializedState = JSON.stringify(editedState);
     localStorage.setItem("state", serializedState);
   } catch (e) {
@@ -128,15 +134,15 @@ export const saveStateToFile = () => {
 export const loadState = () => {
   try {
     const serializedState = localStorage.getItem("state");
-    if (!serializedState) return undefined;
+    if (!serializedState) return;
     if (!isRootState(JSON.parse(serializedState))) {
       alert("Invalid file!");
-      return undefined;
+      return;
     }
     return JSON.parse(serializedState);
   } catch (e) {
     console.log(e);
-    return undefined;
+    return;
   }
 };
 

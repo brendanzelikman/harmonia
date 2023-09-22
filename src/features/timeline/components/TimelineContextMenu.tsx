@@ -5,25 +5,32 @@ import {
   selectRoot,
   selectTimeline,
   selectTrack,
+  selectTrackScale,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import {
   addSelectedPatternToTimeline,
-  copySelectedClipsAndTransforms,
+  copySelectedClipsAndTranspositions,
   createPatternTrackFromSelectedTrack,
   createScaleTrack,
-  cutSelectedClipsAndTransforms,
-  deleteSelectedClipsAndTransforms,
+  cutSelectedClipsAndTranspositions,
+  deleteSelectedClipsAndTranspositions,
+  duplicateSelectedClipsAndTranspositions,
   exportSelectedClipsToMidi,
-  pasteSelectedClipsAndTransforms,
-  selectAllClipsAndTransforms,
+  pasteSelectedClipsAndTranspositions,
+  selectAllClipsAndTranspositions,
 } from "redux/thunks";
 import { Row } from "..";
 import { UndoTypes } from "redux/undoTypes";
 import { isPatternTrack, isScaleTrack } from "types/tracks";
-import { addTransformToTimeline } from "redux/thunks/transforms";
+import { addTranspositionToTimeline } from "redux/thunks/transpositions";
 import { CLIP_COLORS, CLIP_THEMES, Clip, ClipColor } from "types";
 import { updateClips } from "redux/slices/clips";
+import {
+  getChordalTranspose,
+  getChromaticTranspose,
+  getScalarTranspose,
+} from "types/transposition";
 
 const mapStateToProps = (state: RootState) => {
   const {
@@ -31,27 +38,23 @@ const mapStateToProps = (state: RootState) => {
     selectedPatternId,
     selectedTrackId,
     selectedClipIds,
-    selectedTransformIds,
+    selectedTranspositionIds,
   } = selectRoot(state);
 
   const { clipboard } = selectTimeline(state);
-
-  const selectedPattern = selectedPatternId
-    ? selectPattern(state, selectedPatternId)
-    : undefined;
-  const selectedTrack = selectedTrackId
-    ? selectTrack(state, selectedTrackId)
-    : undefined;
+  const selectedPattern = selectPattern(state, selectedPatternId);
+  const selectedTrack = selectTrack(state, selectedTrackId);
+  const selectedScale = selectTrackScale(state, selectedTrackId);
 
   const isPatternTrackSelected = selectedTrack && isPatternTrack(selectedTrack);
-
   const areClipsSelected = selectedClipIds?.length > 0;
-  const areTransformsSelected = selectedTransformIds?.length > 0;
-  const isSelectionEmpty = !areClipsSelected && !areTransformsSelected;
+  const areTranspositionsSelected = selectedTranspositionIds?.length > 0;
+  const isSelectionEmpty = !areClipsSelected && !areTranspositionsSelected;
 
   const areClipsInClipboard = clipboard?.clips?.length > 0;
-  const areTransformsInClipboard = clipboard?.transforms?.length > 0;
-  const isClipboardEmpty = !areClipsInClipboard && !areTransformsInClipboard;
+  const areTranspositionsInClipboard = clipboard?.transpositions?.length > 0;
+  const isClipboardEmpty =
+    !areClipsInClipboard && !areTranspositionsInClipboard;
 
   const canCut = !isSelectionEmpty;
   const canCopy = !isSelectionEmpty;
@@ -66,8 +69,17 @@ const mapStateToProps = (state: RootState) => {
   const canRedo = state.session.future.length > 0;
   const canColor = areClipsSelected;
 
+  const { transpositionOffsets } = toolkit;
+  const chromaticTranspose = getChromaticTranspose(transpositionOffsets);
+  const scalarTranspose = getScalarTranspose(
+    transpositionOffsets,
+    selectedScale?.id
+  );
+  const chordalTranspose = getChordalTranspose(transpositionOffsets);
+
   return {
     selectedTrack,
+    selectedScale,
     isPatternTrackSelected,
     selectedPattern,
     selectedClipIds,
@@ -80,29 +92,33 @@ const mapStateToProps = (state: RootState) => {
     canUndo,
     canRedo,
     canColor,
-    N: toolkit?.chromaticTranspose,
-    T: toolkit?.scalarTranspose,
-    t: toolkit?.chordalTranspose,
+    chromaticTranspose,
+    scalarTranspose,
+    chordalTranspose,
   };
 };
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
     undoSession: () => dispatch({ type: UndoTypes.undoSession }),
     redoSession: () => dispatch({ type: UndoTypes.redoSession }),
-
-    copyClipsAndTransforms: () => dispatch(copySelectedClipsAndTransforms()),
-    cutClipsAndTransforms: () => dispatch(cutSelectedClipsAndTransforms()),
-    pasteClipsAndTransforms: (rows: Row[]) =>
-      dispatch(pasteSelectedClipsAndTransforms(rows)),
-    deleteClipsAndTransforms: () =>
-      dispatch(deleteSelectedClipsAndTransforms()),
-    selectAllClipsAndTransforms: () => dispatch(selectAllClipsAndTransforms()),
+    copyClipsAndTranspositions: () =>
+      dispatch(copySelectedClipsAndTranspositions()),
+    cutClipsAndTranspositions: () =>
+      dispatch(cutSelectedClipsAndTranspositions()),
+    pasteClipsAndTranspositions: (rows: Row[]) =>
+      dispatch(pasteSelectedClipsAndTranspositions(rows)),
+    duplicateClipsAndTranspositions: () =>
+      dispatch(duplicateSelectedClipsAndTranspositions()),
+    deleteClipsAndTranspositions: () =>
+      dispatch(deleteSelectedClipsAndTranspositions()),
+    selectAllClipsAndTranspositions: () =>
+      dispatch(selectAllClipsAndTranspositions()),
     exportClips: () => dispatch(exportSelectedClipsToMidi()),
     addPattern: () => dispatch(addSelectedPatternToTimeline()),
     addPatternTrack: () => dispatch(createPatternTrackFromSelectedTrack()),
     addScaleTrack: () => dispatch(createScaleTrack()),
-    addTransform: () => dispatch(addTransformToTimeline()),
-    updateClips: (clips: Partial<Clip>[]) => dispatch(updateClips(clips)),
+    addTransposition: () => dispatch(addTranspositionToTimeline()),
+    updateClips: (clips: Partial<Clip>[]) => dispatch(updateClips({ clips })),
   };
 };
 
@@ -129,28 +145,28 @@ function TimelineContextMenu(props: Props) {
   };
   const Cut = {
     label: `Cut Selection`,
-    onClick: props.cutClipsAndTransforms,
+    onClick: props.cutClipsAndTranspositions,
     disabled: !props.canCut,
   };
   const Copy = {
     label: `Copy Selection`,
-    onClick: props.copyClipsAndTransforms,
+    onClick: props.copyClipsAndTranspositions,
     disabled: !props.canCopy,
   };
   const Paste = {
     label: `Paste From Clipboard`,
-    onClick: () => props.pasteClipsAndTransforms(props.rows),
+    onClick: () => props.pasteClipsAndTranspositions(props.rows),
     disabled: !props.canPaste,
     divideEnd: !props.canDuplicate && !props.canDelete && !props.canExport,
   };
   const Duplicate = {
     label: "Duplicate Selection",
-    onClick: () => props.pasteClipsAndTransforms(props.rows),
+    onClick: () => props.duplicateClipsAndTranspositions(),
     disabled: !props.canDuplicate,
   };
   const Delete = {
     label: `Delete Selection`,
-    onClick: props.deleteClipsAndTransforms,
+    onClick: props.deleteClipsAndTranspositions,
     disabled: !props.canDelete,
   };
   const Export = {
@@ -173,13 +189,17 @@ function TimelineContextMenu(props: Props) {
     onClick: props.addPattern,
     disabled: !props.isPatternTrackSelected,
   };
-  const AddTransform = {
+  const AddTransposition = {
     label: `Add ${
       props.selectedTrack
-        ? `(N${props.N}, T${props.T}, t${props.t})`
-        : "Transform"
+        ? `(N${props.chromaticTranspose}${
+            props.selectedTrack && props.selectedScale
+              ? `, T${props.scalarTranspose}, `
+              : `, `
+          }t${props.chordalTranspose})`
+        : "Transposition"
     }`,
-    onClick: () => props.addTransform(),
+    onClick: () => props.addTransposition(),
     disabled: !props.selectedTrack,
     divideEnd: props.canColor,
   };
@@ -220,7 +240,7 @@ function TimelineContextMenu(props: Props) {
     AddScaleTrack,
     AddPatternTrack,
     AddPattern,
-    AddTransform,
+    AddTransposition,
     props.canColor ? ClipColor : null,
   ];
   const options = menuOptions.filter(Boolean) as ContextMenuOption[];

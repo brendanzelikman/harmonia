@@ -44,6 +44,7 @@ export type DurationName = (typeof DURATION_NAMES)[Duration];
 
 // A chord is a pattern of notes
 export type Note = number;
+export type Offset = Note;
 export type Chord = Pattern<Note>;
 
 // The loudnesses of notes are expressed as numbers
@@ -66,18 +67,6 @@ export type Key = Pattern<Pitch>;
 
 export type ChromaticNote = { number: number; spellings: string[] };
 export type ChromaticScale = ChromaticNote[];
-
-// A transposition is a vector: a map of scales to scalars
-// (Note that we use an ID to refer to a scale, not the scale itself)
-// (This is because we can only use a string as a key)
-export type Transposition = Record<ID, number>;
-
-// A progression is a pattern of transpositions
-export type Progression = Pattern<Transposition>;
-export type HarmonicProgression = Progression;
-
-// A form is a pattern of progressions
-export type Form = Pattern<Progression>;
 
 // TIMELINE
 

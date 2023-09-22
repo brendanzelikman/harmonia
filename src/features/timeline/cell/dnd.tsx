@@ -2,10 +2,10 @@ import { useDrop } from "react-dnd";
 import { CellProps } from ".";
 
 export function useCellDrop(props: CellProps) {
-  const { trackId, isPatternTrack, columnIndex, row } = props;
+  const { trackId, columnIndex, row } = props;
   return useDrop(
     () => ({
-      accept: ["clip", "transform"],
+      accept: ["clip", "transposition"],
       collect: (monitor) => ({
         canDrop: monitor.canDrop(),
         isOver: monitor.isOver(),
@@ -17,6 +17,6 @@ export function useCellDrop(props: CellProps) {
         item.hoveringRow = row.index;
       },
     }),
-    [trackId, isPatternTrack, columnIndex, row]
+    [trackId, columnIndex, row]
   );
 }

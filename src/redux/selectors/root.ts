@@ -2,9 +2,10 @@ import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "redux/store";
 import { selectClipMap } from "./clips";
 import { Clip } from "types/clip";
-import { Transform } from "types/transform";
-import { selectTransformMap } from "./transforms";
+import { Transposition } from "types/transposition";
+import { selectTranspositionMap } from "./transpositions";
 import { selectPatternMap } from "./patterns";
+import { selectTracks } from "./tracks";
 
 // Select the timeline
 export const selectRoot = (state: RootState) => {
@@ -23,16 +24,22 @@ export const selectSelectedTrackId = createSelector(
   (root) => root.selectedTrackId
 );
 
+// Select selected track
+export const selectSelectedTrack = createSelector(
+  [selectSelectedTrackId, selectTracks],
+  (trackId, tracks) => tracks.find((track) => track.id === trackId)
+);
+
 // Select selected clip ids
 export const selectSelectedClipIds = createSelector(
   [selectRoot],
   (root) => root.selectedClipIds
 );
 
-// Select selected transform ids
-export const selectSelectedTransformIds = createSelector(
+// Select selected transposition ids
+export const selectSelectedTranspositionIds = createSelector(
   [selectRoot],
-  (root) => root.selectedTransformIds
+  (root) => root.selectedTranspositionIds
 );
 
 // Select the selected pattern
@@ -49,10 +56,12 @@ export const selectSelectedClips = createSelector(
   }
 );
 
-// Select the selected transforms
-export const selectSelectedTransforms = createSelector(
-  [selectSelectedTransformIds, selectTransformMap],
-  (ids, transforms) => {
-    return ids.map((id) => transforms[id]).filter(Boolean) as Transform[];
+// Select the selected transpositions
+export const selectSelectedTranspositions = createSelector(
+  [selectSelectedTranspositionIds, selectTranspositionMap],
+  (ids, transpositions) => {
+    return ids
+      .map((id) => transpositions[id])
+      .filter(Boolean) as Transposition[];
   }
 );

@@ -1,8 +1,9 @@
 import { useDrag } from "react-dnd";
 import { Clip } from "types/clip";
-import { Transform } from "types/transform";
+import { Transposition } from "types/transposition";
 import { ClipProps } from "./Clip";
 import { subdivisionToTicks, ticksToColumns } from "utils";
+import { union } from "lodash";
 
 interface DropResult {
   dropEffect: string;
@@ -40,17 +41,12 @@ export function useClipDrag(props: ClipProps) {
         const dropResult = monitor.getDropResult() as DropResult;
         const copying = dropResult?.dropEffect === "copy";
 
-        // Get the selected clips and transforms
-        const selectedClips = props.clips.filter(
-          (c) => props.selectedClipIds.includes(c.id) || c.id === item.clip.id
-        );
-        const selectedTransforms = props.transforms.filter((t) =>
-          props.selectedTransformIds.includes(t.id)
-        );
+        // Get the selected clips and transpositions
+        const selectedClips = union(props.selectedClips, [clip]);
 
         // Compute the new array of clips
         let newClips: Clip[] = [];
-        let newTransforms: Transform[] = [];
+        let newTranspositions: Transposition[] = [];
 
         // Iterate over the selected clips
         for (const clip of selectedClips) {
@@ -73,12 +69,12 @@ export function useClipDrag(props: ClipProps) {
           });
         }
 
-        // Iterate over the selected transforms
-        for (const transform of selectedTransforms) {
-          if (!transform) return;
+        // Iterate over the selected transpositions
+        for (const transposition of props.selectedTranspositions) {
+          if (!transposition) return;
 
           // Get the index of the new track
-          const trackIndex = trackIds.indexOf(transform.trackId);
+          const trackIndex = trackIds.indexOf(transposition.trackId);
           if (trackIndex === -1) return;
 
           // Get the new track
@@ -86,33 +82,34 @@ export function useClipDrag(props: ClipProps) {
           const newTrack = props.rows[newIndex];
           if (!newTrack?.trackId) return;
 
-          // Compute the new transform
-          newTransforms.push({
-            ...transform,
+          // Compute the new transposition
+          newTranspositions.push({
+            ...transposition,
             trackId: newTrack.trackId,
-            tick: transform.tick + tickOffset,
+            tick: transposition.tick + tickOffset,
           });
         }
 
         // Make sure the entire operation is valid
-        if (newClips.some((clip) => clip.tick < 0)) return;
-        if (newTransforms.some((transform) => transform.tick < 0)) return;
+        if (newClips.some(({ tick }) => tick < 0)) return;
+        if (newTranspositions.some(({ tick }) => tick < 0)) return;
 
-        // If not copying, update the clips and transforms
+        // If not copying, update the clips and transpositions
         if (!copying) {
-          props.updateClipsAndTransforms(newClips, newTransforms);
+          props.updateClipsAndTranspositions(newClips, newTranspositions);
           return;
         }
 
-        // Otherwise, create the new clips and transforms
+        // Otherwise, create the new clips and transpositions
         props
-          .createClipsAndTransforms(newClips, newTransforms)
-          .then(({ clipIds, transformIds }) => {
+          .createClipsAndTranspositions(newClips, newTranspositions)
+          .then(({ clipIds, transpositionIds }) => {
             if (clipIds.length) props.selectClips(clipIds);
-            if (transformIds.length) props.selectTransforms(transformIds);
+            if (transpositionIds.length)
+              props.selectTranspositions(transpositionIds);
           });
       },
     }),
-    [props]
+    [props.clip, props.rows, props.selectedClips, props.selectedTranspositions]
   );
 }

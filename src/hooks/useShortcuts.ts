@@ -11,7 +11,7 @@ import {
   selectRoot,
   selectTransport,
   selectClipsByIds,
-  selectTransformsByIds,
+  selectTranspositionsByIds,
   selectTrack,
   selectEditor,
   selectTimeline,
@@ -22,10 +22,10 @@ import * as Timeline from "redux/slices/timeline";
 import { UndoTypes } from "redux/undoTypes";
 import { clearState, readFiles, saveStateToFile } from "redux/util";
 import useEventListeners from "./useEventListeners";
-import { updateClipsAndTransforms } from "redux/slices/clips";
+import { updateClipsAndTranspositions } from "redux/slices/clips";
 import { useEffect } from "react";
 import { Clip } from "types/clip";
-import { Transform } from "types/transform";
+import { Transposition } from "types/transposition";
 import { hideEditor, showEditor } from "redux/slices/editor";
 
 export default function useShortcuts() {
@@ -36,16 +36,16 @@ export default function useShortcuts() {
   const root = useAppSelector(selectRoot);
   const editor = useAppSelector(selectEditor);
 
-  const { selectedClipIds, selectedPatternId, selectedTransformIds } = root;
+  const { selectedClipIds, selectedPatternId, selectedTranspositionIds } = root;
   const selectedTrack = useAppSelector((state) =>
     root.selectedTrackId ? selectTrack(state, root.selectedTrackId) : undefined
   );
   const selectedClips = useAppSelector((state) =>
     selectClipsByIds(state, selectedClipIds)
   ).filter(Boolean) as Clip[];
-  const selectedTransforms = useAppSelector((state) =>
-    selectTransformsByIds(state, selectedTransformIds)
-  ).filter(Boolean) as Transform[];
+  const selectedTranspositions = useAppSelector((state) =>
+    selectTranspositionsByIds(state, selectedTranspositionIds)
+  ).filter(Boolean) as Transposition[];
 
   // Stop the transport on app cleanup
   useEffect(() => {
@@ -60,7 +60,6 @@ export default function useShortcuts() {
       // "Command + Option + N" = New Project
       n: {
         keydown: (e) => {
-          console.log(e, e as KeyboardEvent);
           if (isInputEvent(e) || !isHoldingCommand(e) || !isHoldingOption(e))
             return;
           cancelEvent(e);
@@ -90,7 +89,7 @@ export default function useShortcuts() {
           if (!isHoldingCommand(e)) return;
           cancelEvent(e);
 
-          dispatch(Thunks.cutSelectedClipsAndTransforms());
+          dispatch(Thunks.cutSelectedClipsAndTranspositions());
         },
       },
       // "Enter" = Stop
@@ -149,7 +148,7 @@ export default function useShortcuts() {
           cancelEvent(e);
 
           if (isHoldingCommand(e)) {
-            dispatch(Thunks.selectAllClipsAndTransforms());
+            dispatch(Thunks.selectAllClipsAndTranspositions());
           } else {
             dispatch(Timeline.toggleAddingClip());
             dispatch(hideEditor());
@@ -164,7 +163,7 @@ export default function useShortcuts() {
           cancelEvent(e);
 
           if (isHoldingCommand(e)) {
-            dispatch(Thunks.copySelectedClipsAndTransforms());
+            dispatch(Thunks.copySelectedClipsAndTranspositions());
           } else {
             dispatch(Timeline.toggleCuttingClip());
             dispatch(hideEditor());
@@ -175,9 +174,9 @@ export default function useShortcuts() {
       // "Command + D" = Duplicate Timeline Objects
       d: {
         keydown: (e) => {
-          if (isInputEvent(e) || editor.show) return;
+          if (isInputEvent(e) || !isHoldingCommand(e) || editor.show) return;
           cancelEvent(e);
-          dispatch(Thunks.duplicateSelectedClipsAndTransforms());
+          dispatch(Thunks.duplicateSelectedClipsAndTranspositions());
         },
       },
 
@@ -245,16 +244,16 @@ export default function useShortcuts() {
           } else {
             dispatch(Root.setSelectedTrack(undefined));
             dispatch(Root.deselectAllClips());
-            dispatch(Root.deselectAllTransforms());
+            dispatch(Root.deselectAllTranspositions());
           }
         },
       },
-      // "Backspace" = Delete Clips and Transforms
+      // "Backspace" = Delete Clips and Transpositions
       Backspace: {
         keydown: (e) => {
           if (isInputEvent(e) || editor.show) return;
           e.preventDefault();
-          dispatch(Thunks.deleteSelectedClipsAndTransforms());
+          dispatch(Thunks.deleteSelectedClipsAndTranspositions());
         },
       },
     },
@@ -287,26 +286,31 @@ export default function useShortcuts() {
           if (isInputEvent(e) || editor.show) return;
           cancelEvent(e);
 
-          // If there are selected clips or transforms, move them
-          const objects = [...selectedClips, ...selectedTransforms];
+          // If there are selected clips or transpositions, move them
+          const objects = [...selectedClips, ...selectedTranspositions];
           if (objects.length) {
             const offset = subdivisionToTicks(timeline.subdivision);
-            // Create new clips and transforms with the new times
+            // Create new clips and transpositions with the new times
             const newClips = selectedClips.map((clip) => ({
               ...clip,
               tick: clip.tick - offset,
             }));
-            const newTransforms = selectedTransforms.map((transform) => ({
-              ...transform,
-              tick: transform.tick - offset,
-            }));
+            const newTranspositions = selectedTranspositions.map(
+              (transposition) => ({
+                ...transposition,
+                tick: transposition.tick - offset,
+              })
+            );
 
             // Cancel if any of the new times are invalid
             if (newClips.some((clip) => clip.tick < 0)) return;
-            if (newTransforms.some((transform) => transform.tick < 0)) return;
+            if (
+              newTranspositions.some((transposition) => transposition.tick < 0)
+            )
+              return;
 
-            // Update the clips and transforms
-            dispatch(updateClipsAndTransforms(newClips, newTransforms));
+            // Update the clips and transpositions
+            dispatch(updateClipsAndTranspositions(newClips, newTranspositions));
             return;
           }
 
@@ -321,19 +325,21 @@ export default function useShortcuts() {
           if (isInputEvent(e) || editor.show) return;
           cancelEvent(e);
 
-          // If there are selected clips or transforms, move them
-          if ([...selectedClips, ...selectedTransforms].length) {
+          // If there are selected clips or transpositions, move them
+          if ([...selectedClips, ...selectedTranspositions].length) {
             const offset = subdivisionToTicks(timeline.subdivision);
 
             const newClips = selectedClips.map((clip) => ({
               ...clip,
               tick: clip.tick + offset,
             }));
-            const newTransforms = selectedTransforms.map((transform) => ({
-              ...transform,
-              tick: transform.tick + offset,
-            }));
-            dispatch(updateClipsAndTransforms(newClips, newTransforms));
+            const newTranspositions = selectedTranspositions.map(
+              (transposition) => ({
+                ...transposition,
+                tick: transposition.tick + offset,
+              })
+            );
+            dispatch(updateClipsAndTranspositions(newClips, newTranspositions));
             return;
           }
 
@@ -386,7 +392,7 @@ export default function useShortcuts() {
       selectedPatternId,
       selectedTrack,
       selectedClips,
-      selectedTransforms,
+      selectedTranspositions,
     ]
   );
 }

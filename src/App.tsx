@@ -4,43 +4,36 @@ import Timeline from "features/timeline";
 import useShortcuts from "hooks/useShortcuts";
 import { connect, ConnectedProps } from "react-redux";
 import { selectTransport } from "redux/selectors";
-import { AppDispatch, RootState } from "redux/store";
+import { RootState } from "redux/store";
 import LoadingPage from "components/LoadingPage";
 import Shortcuts from "features/shortcuts";
+import { useMemo } from "react";
 
 const mapStateToProps = (state: RootState) => {
   const { loaded } = selectTransport(state);
-
   return { loaded };
 };
-const mapDispatchToProps = (dispatch: AppDispatch) => {
-  return {};
-};
 
-const connector = connect(mapStateToProps, mapDispatchToProps);
-
+const connector = connect(mapStateToProps);
 type Props = ConnectedProps<typeof connector>;
 
 export default connector(App);
 
 function App(props: Props) {
-  // Use the global app shortcuts
   useShortcuts();
+  const App = useMemo(() => {
+    return () => (
+      <div className="fade-in flex flex-col flex-nowrap w-full h-screen overflow-auto">
+        <Navbar />
+        <main className="relative flex w-full flex-auto overflow-hidden">
+          <Timeline />
+          <Editor />
+          <Shortcuts />
+        </main>
+      </div>
+    );
+  }, []);
 
-  // If the transport is not loaded, show the loading page
   if (!props.loaded) return <LoadingPage />;
-
-  // If the transport is loaded, show the app
-  return (
-    <div
-      className={`fade-in flex flex-col flex-nowrap w-full h-screen overflow-auto`}
-    >
-      <Navbar />
-      <main className="relative flex w-full flex-auto overflow-hidden">
-        <Timeline />
-        <Editor />
-        <Shortcuts />
-      </main>
-    </div>
-  );
+  return <App />;
 }

@@ -12,13 +12,17 @@
 }
 .rdg-corner,
 .rdg-cell:has(.rdg-corner) {
-  z-index: 80 !important;
+  z-index: 90 !important;
 }
 .rdg-cell:has(.rdg-track) {
   z-index: 30 !important;
 }
 .rdg-clip {
   z-index: 20 !important;
+  position: absolute;
+  cursor: pointer;
+  overflow: hidden;
+  animation: fadeIn 0.1s ease-in-out;
 }
 .rdg-row {
   --rdg-row-height: auto !important;

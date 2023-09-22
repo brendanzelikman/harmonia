@@ -327,7 +327,7 @@ export class MIDI {
 
   // MIDI Note Numbers
   public static MinNote = 0;
-  public static MaxNote = 127;
+  public static MaxNote = 144;
   public static DefaultNote = 60;
 
   public static clampNote = (note?: Note): Note => {
@@ -404,6 +404,13 @@ export class MIDI {
     const number1 = MIDI.ChromaticNumber(pitch1);
     const number2 = MIDI.ChromaticNumber(pitch2);
     return number2 - number1;
+  }
+  // Get the octave distance between two notes
+  public static OctaveDistance(note1: Note, note2: Note) {
+    if (isNaN(note1) || isNaN(note2)) throw new Error("Invalid note");
+    const octave1 = MIDI.toOctave(note1);
+    const octave2 = MIDI.toOctave(note2);
+    return octave2 - octave1;
   }
   // Get the MIDI number from a pitch
   public static fromPitch(pitch: string): Note {

@@ -5,6 +5,7 @@ import MusicXML from "./musicxml";
 import { Note, Pitch, XML } from "./units";
 import { getScaleKey } from "./key";
 import { DemoXML } from "assets/demoXML";
+import { PresetScaleList, PresetScaleMap } from "./presets/scales";
 
 export type ScaleId = string;
 
@@ -35,11 +36,35 @@ export const testScale = (notes: Note[]) => {
   };
 };
 
+export const getScaleName = (scale?: GenericScale) => {
+  if (!scale) return "No Scale";
+  const matchingScales = !!scale
+    ? PresetScaleList.filter((p) => Scales.areRelated(scale, p))
+    : [];
+
+  const matchingScale = scale
+    ? matchingScales.find((s) => Scales.areRelated(s, scale))
+    : undefined;
+
+  // Get the name of the scale from the matching scale, NOT the underlying scale
+  const firstScaleNote = scale?.notes?.[0];
+  const firstPitch = firstScaleNote ? MIDI.toPitchClass(firstScaleNote) : "";
+
+  const scaleName =
+    !scale || !scale.notes.length
+      ? "No Scale"
+      : matchingScale
+      ? `${!!firstPitch ? `${firstPitch}` : ""} ${matchingScale.name}`
+      : "Custom Scale";
+
+  return scaleName;
+};
+
 // The Scales class contains methods for preset scales and MusicXML serialization
 export default class Scales {
   public static TrackScaleName = "$$$$$_track_scale_$$$$$";
 
-  public static Pitches(scale: Scale) {
+  public static Pitches(scale: GenericScale) {
     return scale.notes.map((note) => MIDI.toPitchClass(note));
   }
   public static SortPitches(pitches: Pitch[]) {
@@ -78,7 +103,7 @@ export default class Scales {
   }
 
   // Returns true if the two scales are exactly equal
-  static areEqual = (scale1: Scale, scale2: Scale) => {
+  static areEqual = (scale1: GenericScale, scale2: GenericScale) => {
     if (scale1.notes.length !== scale2.notes.length) return false;
     for (let i = 0; i < scale1.notes.length; i++) {
       if (scale1.notes[i] % 12 !== scale2.notes[i] % 12) return false;
@@ -87,7 +112,7 @@ export default class Scales {
   };
 
   // Returns true if the two scales are related by transposition
-  static areRelated = (scale1: Scale, scale2: Scale) => {
+  static areRelated = (scale1: GenericScale, scale2: GenericScale) => {
     if (scale1.notes.length !== scale2.notes.length) return false;
     const length = scale1.notes.length;
 
@@ -105,7 +130,7 @@ export default class Scales {
   };
 
   // Returns true if the two scales are related by rotation
-  static areModes = (scale1: Scale, scale2: Scale) => {
+  static areModes = (scale1: GenericScale, scale2: GenericScale) => {
     for (let i = 0; i < scale1.notes.length; i++) {
       const mode = rotateScale(scale1, i);
       const isEqual = Scales.areEqual(mode, scale2);
@@ -128,12 +153,22 @@ export const initializeScale = (
   id: nanoid(),
 });
 
-export const transposeScale = (scale: Scale, offset: number): Scale => ({
+export interface GenericScale {
+  [key: string]: any;
+  notes: Note[];
+}
+export const transposeScale = (
+  scale: GenericScale,
+  offset: number
+): GenericScale => ({
   ...scale,
   notes: scale.notes.map((note) => note + offset),
 });
 
-export const rotateScale = (scale: Scale, offset: number): Scale => {
+export const rotateScale = (
+  scale: GenericScale,
+  offset: number
+): GenericScale => {
   const length = Math.abs(offset);
   const step = offset > 0 ? 1 : -1;
   const modulus = scale.notes.length;

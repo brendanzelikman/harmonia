@@ -6,30 +6,32 @@ import "react-data-grid/lib/styles.css";
 import { setSelectedTrack } from "redux/slices/root";
 import * as Selectors from "redux/selectors";
 import { createScaleTrack } from "redux/thunks/tracks";
-import { pasteSelectedClipsAndTransforms } from "redux/thunks";
+import { pasteSelectedClipsAndTranspositions } from "redux/thunks";
 import {
-  offsetSelectedTransforms,
-  updateSelectedTransforms,
-} from "redux/thunks/transforms";
-import { TransformCoordinate } from "types/transform";
+  offsetSelectedTranspositions,
+  updateSelectedTranspositions,
+} from "redux/thunks/transpositions";
 import { hideEditor } from "redux/slices/editor";
+import { TranspositionOffsetRecord } from "types/transposition";
 
 function mapStateToProps(state: RootState) {
   const editor = Selectors.selectEditor(state);
-  const trackMap = Selectors.selectTrackMap(state);
+  const dependencyMap = JSON.stringify(
+    Selectors.selectTrackDependencies(state)
+  );
   const transport = Selectors.selectTransport(state);
   const cellWidth = Selectors.selectCellWidth(state);
+  const { subdivision } = Selectors.selectTimeline(state);
   const { selectedTrackId } = Selectors.selectRoot(state);
-  const { clipboard, subdivision } = Selectors.selectTimeline(state);
+  const scaleTracks = Selectors.selectTrackParents(state, selectedTrackId);
   return {
-    tick: transport.tick,
-    clipboard,
-    trackMap,
+    dependencyMap,
     state: transport.state,
     subdivision,
     selectedTrackId,
     cellWidth,
     showingEditor: editor.show,
+    scaleTracks,
   };
 }
 
@@ -44,14 +46,14 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     hideEditor: () => {
       dispatch(hideEditor());
     },
-    pasteClipsAndTransforms: (rows: Row[]) => {
-      dispatch(pasteSelectedClipsAndTransforms(rows));
+    pasteClipsAndTranspositions: (rows: Row[]) => {
+      dispatch(pasteSelectedClipsAndTranspositions(rows));
     },
-    offsetSelectedTransforms: (offset: TransformCoordinate) => {
-      dispatch(offsetSelectedTransforms(offset));
+    offsetSelectedTranspositions: (offset: TranspositionOffsetRecord) => {
+      dispatch(offsetSelectedTranspositions(offset));
     },
-    updateSelectedTransforms: (update: Partial<TransformCoordinate>) => {
-      dispatch(updateSelectedTransforms(update));
+    updateSelectedTranspositions: (update: TranspositionOffsetRecord) => {
+      dispatch(updateSelectedTranspositions(update));
     },
   };
 }
@@ -64,6 +66,7 @@ export interface TimelineProps extends Props {}
 export interface Row {
   trackId?: TrackId;
   type: TrackType;
+  depth: number;
   index: number;
   lastRow?: boolean;
 }

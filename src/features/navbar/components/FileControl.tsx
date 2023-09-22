@@ -39,7 +39,9 @@ const mapStateToProps = (state: RootState) => {
   const onFile = editor.id === "file";
 
   const transport = selectTransport(state);
-  const endTick = selectTransportEndTick(state);
+  const endTick = transport.loop
+    ? transport.loopEnd
+    : selectTransportEndTick(state);
   const recording = transport.recording;
   const exportProgress = recording
     ? percentOfRange(transport.offlineTick ?? 0, 0, endTick)

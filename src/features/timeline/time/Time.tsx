@@ -1,44 +1,52 @@
+import { useCallback, useMemo } from "react";
 import { TimeProps } from ".";
 import { useLoopDrag, useLoopDrop } from "./dnd";
 import useKeyHolder from "hooks/useKeyHolder";
 
 // The time is contained in the header
 export function TimeFormatter(props: TimeProps) {
+  const { loop, onLoopStart, onLoopEnd } = props;
+  const heldKeys = useKeyHolder(["s", "e"]);
+
+  // Loop start drag hook
   const [LoopStart, startDrag] = useLoopDrag({
     ...props,
     onEnd: (item: any) =>
       props.setLoopStart(item.hoverIndex - 1, props.subdivision),
   });
+  // Loop end drag hook
   const [LoopEnd, endDrag] = useLoopDrag({
     ...props,
     onEnd: (item: any) =>
       props.setLoopEnd(item.hoverIndex - 1, props.subdivision),
   });
+
+  // Loop point drop hook
   const [{ isOver }, drop] = useLoopDrop(props);
 
-  const Measure = ({ className }: { className?: string }) => (
-    <div
-      className={`absolute ${props.bars > 99 ? "text-[9px]" : ""} ${
-        className ?? ""
-      }`}
-    >
-      {props.bars}
-    </div>
-  );
-
-  const heldKeys = useKeyHolder(["s", "e"]);
-  const holdingS = heldKeys.s;
-  const holdingE = heldKeys.e;
-
-  const onClick = () => {
-    if (props.looping && holdingS) {
+  // On click handler
+  const onClick = useCallback(() => {
+    // If holding s, set loop start
+    if (loop && heldKeys.s) {
       props.setLoopStart(props.columnIndex - 1, props.subdivision);
-    } else if (props.looping && holdingE) {
-      props.setLoopEnd(props.columnIndex - 1, props.subdivision);
-    } else {
-      props.onClick(props.tick);
+      return;
     }
-  };
+    // If holding e, set loop end
+    if (loop && heldKeys.e) {
+      props.setLoopEnd(props.columnIndex - 1, props.subdivision);
+      return;
+    }
+    // Otherwise, click on tick
+    props.onClick(props.tick);
+  }, [loop, props.subdivision, heldKeys.s, heldKeys.e]);
+
+  const padding = loop
+    ? onLoopStart
+      ? "pl-3"
+      : onLoopEnd
+      ? "pr-3"
+      : "pl-1"
+    : "pl-1";
 
   return (
     <div
@@ -46,16 +54,16 @@ export function TimeFormatter(props: TimeProps) {
       className={`rdg-time ${isOver ? "bg-indigo-800" : ""} ${props.className}`}
       onClick={onClick}
     >
-      {props.looping ? (
+      {loop ? (
         <>
-          {props.onLoopStart ? (
+          {onLoopStart ? (
             <LoopPoint
               isDragging={LoopStart.isDragging}
               dragRef={startDrag}
               className="border-l-8"
             />
           ) : null}
-          {props.onLoopEnd ? (
+          {onLoopEnd ? (
             <LoopPoint
               isDragging={LoopEnd.isDragging}
               dragRef={endDrag}
@@ -65,17 +73,13 @@ export function TimeFormatter(props: TimeProps) {
         </>
       ) : null}
       {props.isMeasure ? (
-        <Measure
-          className={
-            props.looping
-              ? props.onLoopStart
-                ? "pl-3"
-                : props.onLoopEnd
-                ? "pr-3"
-                : "pl-1"
-              : "pl-1"
-          }
-        />
+        <div
+          className={`absolute ${
+            props.bars > 99 ? "text-[9px]" : ""
+          } ${padding}`}
+        >
+          {props.bars}
+        </div>
       ) : null}
     </div>
   );

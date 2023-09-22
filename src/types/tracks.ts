@@ -1,41 +1,128 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { defaultMixer, initializeMixer, Mixer, MixerId } from "./mixer";
-import { ScaleId } from "./scale";
+import { MixerId } from "./mixer";
+import { chromaticScale, GenericScale } from "./scale";
 import { InstrumentKey } from "./instrument";
+import { Note } from "./units";
+import { mod } from "utils";
+import { MIDI } from "./midi";
+import { Transposition, TranspositionId } from "./transposition";
 
 export type TrackId = string;
 export type TrackType = "scaleTrack" | "patternTrack" | "defaultTrack";
-
-// A scale track contains a scale id and a set of Transformations
-// as well as a potentially nested trakc
-export interface ScaleTrack {
+export interface GenericTrack {
   id: TrackId;
+  parentId?: TrackId;
   name: string;
-  scaleId: ScaleId;
-  children: TrackId[];
+  type: TrackType;
+}
+
+export const createTrackTag = (track: GenericTrack): string => {
+  return `${track.id}:${track.type}`;
+};
+
+// Scale Tracks
+export interface ScaleTrackNote {
+  degree: number;
+  offset: number;
+}
+export const mapScaleTrackNote = (note: Note) => {
+  const pitchClass = MIDI.toPitchClass(note);
+  const chromaticPitchClasses = chromaticScale.notes.map((note) =>
+    MIDI.toPitchClass(note)
+  );
+  const degree = chromaticPitchClasses.indexOf(pitchClass);
+  if (degree === -1) throw new Error("Invalid note");
+  const offset = MIDI.OctaveDistance(note, chromaticScale.notes[degree]) * 12;
+  return { degree, offset };
+};
+export interface ScaleTrack extends GenericTrack {
+  scaleNotes: ScaleTrackNote[];
 }
 
 export const defaultScaleTrack: ScaleTrack = {
   id: "default-scale-track",
+  type: "scaleTrack",
   name: "",
-  scaleId: "default-scale",
-  children: [],
+  parentId: undefined,
+  scaleNotes: [
+    { degree: 0, offset: 0 },
+    { degree: 1, offset: 0 },
+    { degree: 2, offset: 0 },
+    { degree: 3, offset: 0 },
+    { degree: 4, offset: 0 },
+    { degree: 5, offset: 0 },
+    { degree: 6, offset: 0 },
+    { degree: 7, offset: 0 },
+    { degree: 8, offset: 0 },
+    { degree: 9, offset: 0 },
+    { degree: 10, offset: 0 },
+    { degree: 11, offset: 0 },
+  ],
 };
 
-// A pattern track contains a pattern id, a set of clip ids, a set of Transformations,
-// and an instrument name and mixer
-export interface PatternTrack {
-  id: TrackId;
-  scaleTrackId: TrackId;
-  mixerId: MixerId;
+export const getScaleTrackNotes = (
+  scaleTrack?: ScaleTrack,
+  dependencies?: {
+    scaleTracks: Record<TrackId, ScaleTrack>;
+  }
+): Note[] => {
+  if (!scaleTrack || !dependencies) return [];
+  const { scaleTracks } = dependencies;
 
-  name: string;
+  let parent = scaleTrack.parentId;
+  let notes = scaleTrack.scaleNotes;
+  while (parent) {
+    const parentScaleTrack = scaleTracks[parent];
+    notes = notes.map(({ degree, offset }) => {
+      const note = parentScaleTrack.scaleNotes[degree];
+      return {
+        degree: note?.degree || 0,
+        offset: (note?.offset || 0) + offset,
+      };
+    });
+    parent = parentScaleTrack.parentId;
+  }
+  return notes.map(({ degree, offset }) => {
+    return chromaticScale.notes[degree] + offset;
+  });
+};
+
+export const getScaleTrackScale = (
+  scaleTrack?: ScaleTrack,
+  dependencies?: {
+    scaleTracks: Record<TrackId, ScaleTrack>;
+    transpositions?: Record<TranspositionId, Transposition>;
+    tick?: number;
+  }
+): GenericScale => {
+  if (!scaleTrack || !dependencies) return chromaticScale;
+  const notes = getScaleTrackNotes(scaleTrack, dependencies);
+  return { notes };
+};
+
+export const getScaleTrackParentScale = (
+  scaleTrack?: ScaleTrack,
+  dependencies?: {
+    scaleTracks: Record<TrackId, ScaleTrack>;
+  }
+): GenericScale => {
+  if (!scaleTrack || !dependencies) return chromaticScale;
+  const { scaleTracks } = dependencies;
+  if (!scaleTrack.parentId) return chromaticScale;
+  const parent = scaleTracks[scaleTrack.parentId];
+  if (!parent) return chromaticScale;
+  return getScaleTrackScale(parent, { scaleTracks });
+};
+// Pattern Tracks
+export interface PatternTrack extends GenericTrack {
+  mixerId: MixerId;
   instrument: InstrumentKey;
 }
 
 export const defaultPatternTrack: PatternTrack = {
   id: "default-pattern-track",
-  scaleTrackId: "default-scale-track",
+  parentId: "default-scale-track",
+  type: "patternTrack",
   mixerId: "default-mixer",
   name: "",
   instrument: "grand_piano",
@@ -43,7 +130,7 @@ export const defaultPatternTrack: PatternTrack = {
 
 export type Track = ScaleTrack | PatternTrack;
 export const isScaleTrack = (track: Partial<Track>): track is ScaleTrack => {
-  return (track as ScaleTrack).scaleId !== undefined;
+  return (track as ScaleTrack).scaleNotes !== undefined;
 };
 export const isPatternTrack = (
   track: Partial<Track>
@@ -72,4 +159,78 @@ export const initializePatternTrack = (
     ...patternTrack,
     id,
   };
+};
+
+export type ScaleTrackNoteMap = Record<TrackId, GenericScale>;
+export const createScaleTrackNoteMap = (tracks: ScaleTrack[]) => {
+  const scaleTracks = tracks.reduce((acc, track) => {
+    acc[track.id] = track;
+    return acc;
+  }, {} as Record<TrackId, ScaleTrack>);
+
+  return tracks.reduce((acc, track) => {
+    const scale = getScaleTrackScale(track, { scaleTracks });
+    acc[track.id] = scale;
+    return acc;
+  }, {} as ScaleTrackNoteMap);
+};
+
+export const getTransposedScaleTrack = (
+  scaleTrack: ScaleTrack,
+  offset: number,
+  dependencies: {
+    scaleTracks: Record<TrackId, ScaleTrack>;
+  }
+): ScaleTrack => {
+  const { scaleTracks } = dependencies;
+  const scale = getScaleTrackParentScale(scaleTrack, { scaleTracks });
+  if (!scale || !offset) return scaleTrack;
+  const scaleNotes = scaleTrack.scaleNotes.map((note) => {
+    const summedDegree = (note.degree || 0) + offset;
+    const newDegree = mod(summedDegree, scale.notes.length);
+    const octaveDistance = Math.floor(summedDegree / scale.notes.length);
+    const newOffset = (note.offset || 0) + octaveDistance * 12;
+    return { degree: newDegree, offset: newOffset };
+  });
+  return { ...scaleTrack, scaleNotes };
+};
+
+export const getRotatedScaleTrack = (
+  scaleTrack: ScaleTrack,
+  offset: number
+): ScaleTrack => {
+  if (!scaleTrack || !offset || !isScaleTrack(scaleTrack)) return scaleTrack;
+
+  const scale = scaleTrack.scaleNotes;
+  const scaleSize = scale.length;
+  const scaleNotes = scale.map((note, i) => {
+    const summedDegree = note.degree + i;
+    const newIndex = mod(summedDegree, scaleSize);
+    const octaveDistance =
+      Math.floor(offset / scaleSize) +
+      (scale[newIndex].degree < note.degree ? 1 : 0);
+    const newOffset = note.offset + octaveDistance * 12;
+    return { degree: scale[newIndex].degree, offset: newOffset };
+  });
+  return { ...scaleTrack, scaleNotes };
+};
+
+export const getTrackParents = (
+  track: Track,
+  dependencies: {
+    scaleTracks: Record<TrackId, ScaleTrack>;
+  }
+): ScaleTrack[] => {
+  const { scaleTracks } = dependencies;
+  if (!track || !scaleTracks) return [];
+  let parents: ScaleTrack[] = [];
+  let parentId = track.parentId;
+  while (parentId) {
+    const parent = scaleTracks[parentId];
+    if (!parent) break;
+    parents = [parent, ...parents];
+    parentId = parent.parentId;
+  }
+  if (isScaleTrack(track)) parents.push(track);
+  return parents;
 };

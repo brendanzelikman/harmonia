@@ -29,28 +29,31 @@ export const selectTimelineTickOffset = createSelector(
   }
 );
 
+// Select transport bpm and time signature
+export const selectTransportBpm = createSelector(
+  [selectTransport],
+  (transport) => transport.bpm
+);
+
+export const selectTransportTimeSignature = createSelector(
+  [selectTransport],
+  (transport) => transport.timeSignature
+);
+
 // Bars, beats, sixteenths of the timeline tick
 export const selectBarsBeatsSixteenths = createSelector(
-  [selectTimeline, selectTransport, selectTick],
-  (timeline, transport, tick) => {
-    const secondsPerBeat = MIDI.ticksToSeconds(
-      MIDI.QuarterNoteTicks,
-      transport.bpm
-    );
-    const sixteenthsPerBar = transport.timeSignature?.[0] ?? 16;
-    const seconds = MIDI.ticksToSeconds(tick, transport.bpm);
-    const secondsPerBar = MIDI.ticksToSeconds(
-      sixteenthsPerBar * MIDI.SixteenthNoteTicks,
-      transport.bpm
-    );
-    const subdivisionValue = subdivisionToValue(timeline.subdivision);
-    const secondsPerSubdivision = secondsPerBeat / subdivisionValue;
+  [selectTransportBpm, selectTransportTimeSignature, selectTick],
+  (bpm, timeSignature, tick) => {
+    const sixteenthsPerBar = timeSignature?.[0] ?? 16;
+    const ticksPerBar = sixteenthsPerBar * MIDI.SixteenthNoteTicks;
 
-    const bars = seconds / secondsPerBar;
-    const beats = (seconds % secondsPerBar) / secondsPerSubdivision;
-    const sixteenths =
-      ((seconds % secondsPerBar) % secondsPerSubdivision) /
-      (secondsPerSubdivision / 4);
+    const totalSeconds = MIDI.ticksToSeconds(tick, bpm);
+    const secondsPerBar = MIDI.ticksToSeconds(ticksPerBar, bpm);
+
+    const dirtyBars = totalSeconds / secondsPerBar;
+    const bars = parseFloat(dirtyBars.toFixed(2));
+    const beats = (bars % 1) * sixteenthsPerBar;
+    const sixteenths = (beats % 1) * 4;
 
     return { bars, beats, sixteenths };
   }

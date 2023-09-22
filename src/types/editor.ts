@@ -43,3 +43,6 @@ export const isEditor = (obj: any): obj is Editor => {
   const { id, state, show } = obj;
   return id !== undefined && state !== undefined && show !== undefined;
 };
+
+export const isEditorOn = (editor: Editor, id: EditorId) =>
+  editor.show && editor.id === id;

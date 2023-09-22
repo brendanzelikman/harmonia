@@ -234,7 +234,9 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
   if (oldTransport.state === "started") return;
 
   // Make sure the recording is not empty
-  const ticks = selectTransportEndTick(oldState);
+  const ticks = oldTransport.loop
+    ? oldTransport.loopEnd
+    : selectTransportEndTick(oldState);
   if (ticks <= 0) return;
 
   const patternTrackMap = selectPatternTrackMap(oldState);

@@ -1,9 +1,11 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
+import { getScaleKey } from "types/key";
 import { PresetScaleList, PresetScaleMap } from "types/presets/scales";
 import Scales, { ScaleId } from "types/scale";
+import { Key } from "types/units";
 
-export const selectScaleId = (state: RootState, id: ScaleId) => {
+export const selectScaleId = (state: RootState, id?: ScaleId) => {
   return id;
 };
 export const selectScaleIds = (state: RootState): ScaleId[] => {
@@ -31,5 +33,11 @@ export const selectCustomScales = createSelector([selectScales], (scales) =>
 // Select a specific scale from the store.
 export const selectScale = createSelector(
   [selectScaleMap, selectScaleId],
-  (scales, id) => scales[id]
+  (scales, id) => (id ? scales[id] : undefined)
+);
+
+// Select a specific scale key
+export const selectScaleKey = createSelector(
+  [selectScale],
+  (scale): Key | undefined => (scale ? getScaleKey(scale) : undefined)
 );

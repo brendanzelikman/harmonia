@@ -1,11 +1,26 @@
 import { nanoid } from "@reduxjs/toolkit";
-
 import { Pattern, PatternId, PatternStream, getStreamTicks } from "./pattern";
-import { rotateScale, Scale, transposeScale, chromaticScale } from "./scale";
-import { TrackId } from "./tracks";
-import { lastTransformAtTick, Transform, transformPattern } from "./transform";
+import {
+  PatternTrack,
+  ScaleTrack,
+  ScaleTrackNoteMap,
+  TrackId,
+  createScaleTrackNoteMap,
+  getScaleTrackScale,
+  getTrackParents,
+} from "./tracks";
+import {
+  getLastTransposition,
+  Transposition,
+  applyTranspositionsToPattern,
+  applyTranspositionsToScale,
+  TranspositionId,
+} from "./transposition";
 import { Tick } from "./units";
 import { MIDI } from "./midi";
+import { CLIP_THEMES, ClipTheme } from "./clip.themes";
+import { SessionMapState } from "redux/slices/sessionMap";
+export * from "./clip.themes";
 
 export type ClipId = string;
 
@@ -21,124 +36,6 @@ export interface Clip {
 
   color?: string; // optional color for the clip
 }
-
-export const CLIP_COLORS = [
-  "red",
-  "orange",
-  "brown",
-  "yellow",
-  "lime",
-  "green",
-  "cyan",
-  "sky",
-  "blue",
-  "indigo",
-  "fuchsia",
-  "pink",
-  "slate",
-  "gray",
-  "zinc",
-];
-export type ClipColor = (typeof CLIP_COLORS)[number];
-export interface ClipTheme {
-  headerColor: string;
-  bodyColor: string;
-  noteColor: string;
-  iconColor: string;
-}
-
-export const CLIP_THEMES: Record<ClipColor, ClipTheme> = {
-  red: {
-    headerColor: "bg-red-800",
-    bodyColor: "bg-red-500/70",
-    noteColor: "bg-red-800",
-    iconColor: "bg-red-600",
-  },
-  orange: {
-    headerColor: "bg-orange-700",
-    bodyColor: "bg-orange-600/70",
-    noteColor: "bg-orange-700",
-    iconColor: "bg-orange-600",
-  },
-  brown: {
-    headerColor: "bg-amber-900",
-    bodyColor: "bg-amber-800/70",
-    noteColor: "bg-amber-800",
-    iconColor: "bg-amber-800",
-  },
-  yellow: {
-    headerColor: "bg-yellow-600",
-    bodyColor: "bg-yellow-400/70",
-    noteColor: "bg-yellow-600/80",
-    iconColor: "bg-yellow-500",
-  },
-  lime: {
-    headerColor: "bg-lime-900",
-    bodyColor: "bg-lime-500/70",
-    noteColor: "bg-lime-800",
-    iconColor: "bg-lime-600",
-  },
-  green: {
-    headerColor: "bg-emerald-900",
-    bodyColor: "bg-emerald-700/70",
-    noteColor: "bg-emerald-900",
-    iconColor: "bg-emerald-600",
-  },
-  cyan: {
-    headerColor: "bg-cyan-900",
-    bodyColor: "bg-cyan-600/70",
-    noteColor: "bg-cyan-800",
-    iconColor: "bg-cyan-600",
-  },
-  sky: {
-    headerColor: "bg-sky-950",
-    bodyColor: "bg-sky-800/70",
-    noteColor: "bg-sky-900",
-    iconColor: "bg-sky-600",
-  },
-  blue: {
-    headerColor: "bg-blue-950",
-    bodyColor: "bg-blue-600/70",
-    noteColor: "bg-blue-800",
-    iconColor: "bg-blue-600",
-  },
-  indigo: {
-    headerColor: "bg-indigo-950",
-    bodyColor: "bg-indigo-700/70",
-    noteColor: "bg-indigo-900",
-    iconColor: "bg-indigo-600",
-  },
-  fuchsia: {
-    headerColor: "bg-fuchsia-950",
-    bodyColor: "bg-fuchsia-700/70",
-    noteColor: "bg-fuchsia-900",
-    iconColor: "bg-fuchsia-700",
-  },
-  pink: {
-    headerColor: "bg-pink-800",
-    bodyColor: "bg-pink-400/70",
-    noteColor: "bg-pink-800",
-    iconColor: "bg-pink-500",
-  },
-  slate: {
-    headerColor: "bg-slate-600",
-    bodyColor: "bg-slate-400/70",
-    noteColor: "bg-slate-500",
-    iconColor: "bg-slate-400",
-  },
-  gray: {
-    headerColor: "bg-gray-800",
-    bodyColor: "bg-gray-500/70",
-    noteColor: "bg-gray-800",
-    iconColor: "bg-gray-700",
-  },
-  zinc: {
-    headerColor: "bg-zinc-950",
-    bodyColor: "bg-zinc-600/70",
-    noteColor: "bg-zinc-900",
-    iconColor: "bg-zinc-900",
-  },
-};
 
 export const isClip = (obj: any): obj is Clip => {
   const { id, patternId, trackId, tick, offset } = obj;
@@ -160,17 +57,15 @@ export const initializeClip = (clip: ClipNoId = defaultClip): Clip => ({
 });
 
 export const defaultClip: Clip = {
-  id: "",
-  patternId: "",
-  trackId: "",
+  id: "default-clip",
+  patternId: "default-pattern",
+  trackId: "default-track",
   tick: 0,
   offset: 0,
 };
-export const testClip = (tick = 0, offset = 0, duration = 0): Clip => ({
+export const testClip = (clip: Partial<Clip>): Clip => ({
   ...defaultClip,
-  tick,
-  offset,
-  duration,
+  ...clip,
 });
 
 export const createClipTag = (clip: Clip) => {
@@ -193,28 +88,71 @@ export const getClipNotes = (
   clip: Clip,
   stream: PatternStream
 ): PatternStream => {
-  if (!clip.duration) return stream.slice(clip.offset);
-  return stream.slice(clip.offset, clip.offset + clip.duration);
+  const clipStream = clip.duration
+    ? stream.slice(clip.offset, clip.offset + clip.duration)
+    : stream.slice(clip.offset);
+
+  return clipStream.map((chord) => {
+    return chord.map((note) => {
+      return { ...note, MIDI: MIDI.clampNote(note.MIDI) };
+    });
+  }) as PatternStream;
 };
 
 export const getClipStream = (
   clip: Clip,
-  pattern: Pattern,
-  scale: Scale,
-  _transforms: Transform[],
-  _scaleTransforms: Transform[]
-): PatternStream => {
+  dependencies: {
+    scaleTracks: Record<TrackId, ScaleTrack>;
+    patternTracks: Record<TrackId, PatternTrack>;
+    patterns: Record<PatternId, Pattern>;
+    transpositions: Record<TranspositionId, Transposition>;
+    sessionMap: SessionMapState;
+  }
+) => {
+  if (!clip) return [] as PatternStream;
+
+  const { patterns, patternTracks, scaleTracks, transpositions, sessionMap } =
+    dependencies;
+
+  // Get the pattern
+  const pattern = patterns[clip.patternId];
+  if (!pattern) return [] as PatternStream;
+
+  // Make sure the pattern has a stream
   const ticks = getStreamTicks(pattern.stream);
   if (isNaN(ticks) || ticks < 1) return [];
+
+  // Get the pattern track
+  const patternTrack = patternTracks[clip.trackId];
+  if (!patternTrack?.parentId) return [] as PatternStream;
+
+  // Get the scale track
+  const scaleTrack = scaleTracks[patternTrack.parentId];
+  if (!scaleTrack) return [] as PatternStream;
+
+  // Get the parent scales
+  const parents = getTrackParents(scaleTrack, { scaleTracks });
+
+  // Get all transpositions of each parent
+  const scaleTranspositionIds = parents.map(
+    (scaleTrack) => sessionMap.byId[scaleTrack.id]?.transpositionIds ?? []
+  );
+  const scaleTranspositions = scaleTranspositionIds
+    .map((ids) => ids.map((id) => transpositions[id]))
+    .map((transpositions) => transpositions.sort((a, b) => b.tick - a.tick));
+
+  // Get all transpositions of the clip
+  const clipTranspositionIds =
+    sessionMap.byId[clip.trackId]?.transpositionIds ?? [];
+  const clipTranspositions = clipTranspositionIds
+    .map((id) => transpositions[id])
+    .filter(Boolean)
+    .sort((a, b) => b.tick - a.tick);
 
   const startTick = clip.tick;
   let stream: PatternStream = [];
   let chordCount = 0;
   let streamDuration = 0;
-
-  // Presort the transforms
-  const transforms = _transforms.sort((a, b) => b.tick - a.tick);
-  const scaleTransforms = _scaleTransforms.sort((a, b) => b.tick - a.tick);
 
   // Create a stream of chords for every tick
   for (let i = 0; i < ticks; i++) {
@@ -242,39 +180,48 @@ export const getClipStream = (
       continue;
     }
 
-    // Get the transforms at the current time
+    // Get the transpositions at the current time
     const tick = startTick + i - clip.offset;
-    const scaleTransform = lastTransformAtTick(scaleTransforms, tick, false);
-    const transform = lastTransformAtTick(transforms, tick, false);
-
-    let newScale = scale.notes.length ? scale : chromaticScale;
-    // Transform the scale if there is a scale transformation
-    if (scaleTransform) {
-      // Get the offsets
-      const scaleN = scaleTransform?.chromaticTranspose ?? 0;
-      const scaleBigT = scaleTransform?.scalarTranspose ?? 0;
-      const scaleLittleT = scaleTransform?.chordalTranspose ?? 0;
-
-      const s1 = transposeScale(newScale, scaleBigT);
-      const s2 = rotateScale(s1, scaleLittleT);
-      const s3 = transposeScale(s2, scaleN);
-      newScale = s3;
+    let clipScale = getScaleTrackScale(parents[0], { scaleTracks });
+    const transposedScales = [];
+    // Apply all transpositions
+    for (let i = 0; i < scaleTranspositions.length; i++) {
+      const scale = getScaleTrackScale(parents[i], { scaleTracks });
+      const transpositions = scaleTranspositions[i];
+      const scaleTransposition = getLastTransposition(
+        transpositions,
+        tick,
+        false
+      );
+      const currentScale = applyTranspositionsToScale(scale, {
+        transpositions: scaleTransposition?.offsets,
+        scaleTracks,
+        sessionMap,
+      });
+      transposedScales.push(currentScale);
+      clipScale = currentScale;
     }
 
     // Get the pattern stream
-    const transformedPattern = transformPattern(
-      pattern,
-      {
-        N: transform?.chromaticTranspose ?? 0,
-        T: transform?.scalarTranspose ?? 0,
-        t: transform?.chordalTranspose ?? 0,
+    const scaleTrackScaleMap = createScaleTrackNoteMap(parents);
+    const scaleMap: ScaleTrackNoteMap = transposedScales.reduce(
+      (acc, scale, i) => {
+        const scaleTrack = parents[i];
+        acc[scaleTrack.id] = scale;
+        return acc;
       },
-      newScale
+      scaleTrackScaleMap
     );
-    const transformedStream = transformedPattern.stream;
+    // Apply the clip's transpositions
+    const transposition = getLastTransposition(clipTranspositions, tick, false);
+    const transposedPattern = applyTranspositionsToPattern(pattern, {
+      transpositions: transposition?.offsets,
+      scaleMap,
+    });
+    const transposedStream = transposedPattern.stream;
 
-    // Add the transformed stream to the stream
-    const clipChord = transformedStream[chordCount - 1];
+    // Add the transposed stream to the stream
+    const clipChord = transposedStream[chordCount - 1];
     if (!clipChord) {
       stream.push([]);
       continue;

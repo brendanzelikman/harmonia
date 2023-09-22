@@ -28,7 +28,7 @@ export function useLoopDrag(props: LoopProps) {
         props.onEnd(item);
       },
     }),
-    []
+    [props.tick]
   );
 }
 
@@ -42,9 +42,9 @@ export function useLoopDrop(props: TimeProps) {
         isOver: monitor.isOver(),
       }),
       hover: (item: LoopPoint) => {
-        item.hoverIndex = props.tick;
+        item.hoverIndex = props.columnIndex;
       },
     }),
-    [props]
+    [props.loopStart, props.loopEnd]
   );
 }

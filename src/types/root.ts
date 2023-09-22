@@ -1,14 +1,15 @@
 import { ClipId } from "./clip";
 import { PatternId } from "./pattern";
 import { TrackId } from "./tracks";
-import { TransformId } from "./transform";
+import { TranspositionId, TranspositionOffsetRecord } from "./transposition";
+import { Tick } from "./units";
 
 // Active IDs
 interface RootIds {
   selectedPatternId?: PatternId;
   selectedTrackId?: TrackId;
   selectedClipIds: ClipId[];
-  selectedTransformIds: TransformId[];
+  selectedTranspositionIds: TranspositionId[];
 }
 
 interface RootState {
@@ -20,18 +21,17 @@ interface RootState {
 
 interface RootMerge {
   mergeName: string;
-  mergeTransforms: boolean;
+  mergeTranspositions: boolean;
   mergeWithNewPattern: boolean;
 }
 interface RootRepeat {
   repeatCount: number;
-  repeatTransforms: boolean;
-  repeatWithTranspose: boolean;
+  repeatTranspositions: boolean;
+  repeatWithTransposition: boolean;
 }
 interface RootTranspose {
-  chromaticTranspose: number;
-  scalarTranspose: number;
-  chordalTranspose: number;
+  transpositionOffsets: TranspositionOffsetRecord;
+  transpositionDuration: Tick;
 }
 
 export type Toolkit = RootMerge & RootRepeat & RootTranspose;
@@ -48,21 +48,23 @@ export const defaultRoot: Root = {
 
   selectedPatternId: "new-pattern",
   selectedClipIds: [],
-  selectedTransformIds: [],
+  selectedTranspositionIds: [],
   showingShortcuts: false,
 
   toolkit: {
     mergeName: "",
-    mergeTransforms: false,
+    mergeTranspositions: false,
     mergeWithNewPattern: false,
 
     repeatCount: 1,
-    repeatTransforms: false,
-    repeatWithTranspose: false,
+    repeatTranspositions: false,
+    repeatWithTransposition: false,
 
-    chromaticTranspose: 0,
-    scalarTranspose: 0,
-    chordalTranspose: 0,
+    transpositionOffsets: {
+      _self: 0,
+      _chromatic: 0,
+    },
+    transpositionDuration: 0,
   },
 };
 

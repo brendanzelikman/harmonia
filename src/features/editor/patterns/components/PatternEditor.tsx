@@ -16,9 +16,9 @@ import {
   PatternControlTab,
   PatternRecordTab,
   PatternSettingsTab,
-  PatternTransformTab,
+  PatternTranspositionTab,
 } from ".";
-import { TransformCoordinate, transformPattern } from "types/transform";
+import { TranspositionOffsetRecord } from "types/transposition";
 import { INSTRUMENTS, chromaticScale, defaultPatternOptions } from "types";
 
 import { PresetScaleMap } from "types/presets/scales";
@@ -31,10 +31,9 @@ export function PatternEditor(props: PatternEditorProps) {
   const { adding, inserting, pattern } = props;
 
   // Keep transpose to sequence pattern freely
-  const [transpose, setTranspose] = useState<TransformCoordinate>({
-    N: 0,
-    T: 0,
-    t: 0,
+  const [transpose, setTranspose] = useState<TranspositionOffsetRecord>({
+    _chromatic: 0,
+    _self: 0,
   });
 
   const { scaleId, quantizeToScale, instrument } = {
@@ -47,14 +46,12 @@ export function PatternEditor(props: PatternEditorProps) {
       ? PresetScaleMap[scaleId] ?? chromaticScale
       : chromaticScale;
 
-  const transformedPattern = useMemo(() => {
-    return transformPattern(pattern, transpose, currentScale);
-  }, [pattern, transpose, currentScale]);
+  const transposedPattern = pattern;
 
   // Score information
   const xml = useMemo(() => {
-    return Patterns.exportToXML(transformedPattern);
-  }, [transformedPattern]);
+    return Patterns.exportToXML(transposedPattern);
+  }, [transposedPattern]);
 
   const { score, cursor } = useOSMD({
     id: `${pattern?.id ?? "pattern"}-score`,
@@ -158,7 +155,7 @@ export function PatternEditor(props: PatternEditorProps) {
   // Shortcut hook
   usePatternShortcuts({
     ...props,
-    transformedPattern,
+    transposedPattern,
     cursor,
     onDurationClick,
   });
@@ -203,7 +200,7 @@ export function PatternEditor(props: PatternEditorProps) {
               {...cursorProps}
               activeTab={activeTab}
               setActiveTab={setActiveTab}
-              pattern={transformedPattern}
+              pattern={transposedPattern}
             />
           </Editor.MenuRow>
           <Editor.MenuRow show={props.isCustom} border={true}>
@@ -214,7 +211,7 @@ export function PatternEditor(props: PatternEditorProps) {
               <PatternRecordTab {...cursorProps} {...inputProps} />
             )}
             {activeTab === "transform" && (
-              <PatternTransformTab {...cursorProps} />
+              <PatternTranspositionTab {...cursorProps} />
             )}
             {activeTab === "settings" && (
               <PatternSettingsTab

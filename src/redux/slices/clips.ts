@@ -8,110 +8,67 @@ import {
   initializeClip,
 } from "types/clip";
 import { TrackId } from "types/tracks";
-
 import { initializeState } from "redux/util";
+import { deselectClip, deselectTransposition } from "./root";
 import {
-  addClipsToClipMap,
-  addClipsWithTransformsToClipMap,
-  addClipToClipMap,
-  removeClipFromClipMap,
-  removeClipsFromClipMap,
-  removeClipsWithTransformsFromClipMap,
-} from "./maps/clipMap";
-import { deselectClip, deselectTransform } from "./root";
+  addTranspositions,
+  removeTranspositions,
+  updateTranspositions,
+} from "./transpositions";
 import {
-  addTransformsWithClipsToTransformMap,
-  removeTransformsWithClipsFromTransformMap,
-} from "./maps/transformMap";
+  defaultTransposition,
+  initializeTransposition,
+  Transposition,
+  TranspositionId,
+} from "types/transposition";
+import { PartialObject, union } from "lodash";
 import {
-  addTransformsWithClips,
-  removeTransformsWithClips,
-  updateTransformsWithClips,
-} from "./transforms";
-import {
-  defaultTransform,
-  initializeTransform,
-  Transform,
-  TransformId,
-} from "types/transform";
-import { union } from "lodash";
+  addClipsAndTranspositionsToSession,
+  addClipsToSession,
+  removeClipsAndTranspositionsFromSession,
+  removeClipsFromSession,
+} from "./sessionMap";
+import { ObjectPayload, PartialObjectPayload } from "redux/slices";
 
 const initialState = initializeState<ClipId, Clip>();
 
-type SliceClipArgs = {
+export type SliceClipPayload = {
   oldClip: Clip;
   firstClip: Clip;
   secondClip: Clip;
 };
+export type AddClipsPayload = ObjectPayload;
+export type RemoveClipsPayload = ObjectPayload;
+export type UpdateClipsPayload = PartialObjectPayload;
+export type RemoveClipsByTrackIdPayload = TrackId;
+export type ClearClipsByTrackIdPayload = TrackId;
 
 export const clipsSlice = createSlice({
   name: "clips",
   initialState,
   reducers: {
-    addClip: (state, action: PayloadAction<Clip>) => {
-      const clip = action.payload;
-      state.allIds = union(state.allIds, [clip.id]);
-      state.byId[clip.id] = clip;
-    },
-    addClips: (state, action: PayloadAction<Clip[]>) => {
-      const clips = action.payload;
-      const clipIds = clips.map((clip) => clip.id);
-      state.allIds = union(state.allIds, clipIds);
-      clips.forEach((clip) => {
-        state.byId[clip.id] = clip;
-      });
-    },
-    addClipsWithTransforms: (
-      state,
-      action: PayloadAction<{ clips: Clip[]; transforms: Transform[] }>
-    ) => {
+    addClips: (state, action: PayloadAction<AddClipsPayload>) => {
       const { clips } = action.payload;
+      if (!clips?.length) return;
       const clipIds = clips.map((clip) => clip.id);
       state.allIds = union(state.allIds, clipIds);
       clips.forEach((clip) => {
         state.byId[clip.id] = clip;
       });
     },
-    removeClip: (state, action: PayloadAction<ClipId>) => {
-      const clipId = action.payload;
-      delete state.byId[clipId];
-
-      const index = state.allIds.findIndex((id) => id === clipId);
-      if (index === -1) return;
-      state.allIds.splice(index, 1);
-    },
-    removeClips: (state, action: PayloadAction<ClipId[]>) => {
-      const clipIds = action.payload;
-      clipIds.forEach((clipId) => {
-        delete state.byId[clipId];
-        const index = state.allIds.findIndex((id) => id === clipId);
+    removeClips: (state, action: PayloadAction<RemoveClipsPayload>) => {
+      const { clips } = action.payload;
+      if (!clips?.length) return;
+      clips.forEach((clip) => {
+        delete state.byId[clip.id];
+        const index = state.allIds.findIndex((id) => id === clip.id);
         if (index === -1) return;
         state.allIds.splice(index, 1);
       });
     },
-    removeClipsWithTransforms: (
-      state,
-      action: PayloadAction<{ clipIds: ClipId[]; transformIds: TransformId[] }>
-    ) => {
-      const { clipIds } = action.payload;
-      clipIds.forEach((clipId) => {
-        delete state.byId[clipId];
-        const index = state.allIds.findIndex((id) => id === clipId);
-        if (index === -1) return;
-        state.allIds.splice(index, 1);
-      });
-    },
-    updateClip: (state, action: PayloadAction<Partial<Clip>>) => {
-      const { id, ...rest } = action.payload;
-      if (!id) return;
-      if (!state.byId[id]) return;
-      state.byId[id] = {
-        ...state.byId[id],
-        ...rest,
-      };
-    },
-    updateClips: (state, action: PayloadAction<Partial<Clip>[]>) => {
-      const clips = action.payload;
+    updateClips: (state, action: PayloadAction<UpdateClipsPayload>) => {
+      const { clips } = action.payload;
+      if (!clips?.length) return;
       clips.forEach((clip) => {
         const { id, ...rest } = clip;
         if (!id) return;
@@ -121,25 +78,9 @@ export const clipsSlice = createSlice({
         };
       });
     },
-    updateClipsWithTransforms: (
-      state,
-      action: PayloadAction<{
-        clips: Partial<Clip>[];
-        transforms: Partial<Transform>[];
-      }>
-    ) => {
-      const { clips } = action.payload;
-      clips.forEach((clip) => {
-        const { id, ...rest } = clip;
-        if (!id) return;
-        state.byId[id] = {
-          ...state.byId[id],
-          ...rest,
-        };
-      });
-    },
-    sliceClip: (state, action: PayloadAction<SliceClipArgs>) => {
+    sliceClip: (state, action: PayloadAction<SliceClipPayload>) => {
       const { oldClip, firstClip, secondClip } = action.payload;
+      if (!oldClip || !firstClip || !secondClip) return;
       delete state.byId[oldClip.id];
 
       //  Remove the old clip
@@ -151,8 +92,13 @@ export const clipsSlice = createSlice({
       state.byId[firstClip.id] = firstClip;
       state.byId[secondClip.id] = secondClip;
     },
-    removeClipsByPatternTrackId: (state, action: PayloadAction<TrackId>) => {
+    // Delete clips when a track is deleted
+    removeClipsByTrackId: (
+      state,
+      action: PayloadAction<RemoveClipsByTrackIdPayload>
+    ) => {
       const trackId = action.payload;
+      if (!trackId) return;
       const clips = Object.values(state.byId).filter(
         (clip) => clip.trackId === trackId
       );
@@ -163,8 +109,13 @@ export const clipsSlice = createSlice({
         state.allIds.splice(index, 1);
       });
     },
-    clearClipsByPatternTrackId: (state, action: PayloadAction<TrackId>) => {
+    // Delete clips when a track is cleared
+    clearClipsByTrackId: (
+      state,
+      action: PayloadAction<ClearClipsByTrackIdPayload>
+    ) => {
       const trackId = action.payload;
+      if (!trackId) return;
       const clips = Object.values(state.byId).filter(
         (clip) => clip.trackId === trackId
       );
@@ -179,158 +130,116 @@ export const clipsSlice = createSlice({
 });
 
 export const {
-  addClip,
   addClips,
-  addClipsWithTransforms,
-  removeClip,
   removeClips,
-  removeClipsWithTransforms,
-  updateClip,
   updateClips,
-  updateClipsWithTransforms,
-  removeClipsByPatternTrackId,
-  clearClipsByPatternTrackId,
+  sliceClip,
+  removeClipsByTrackId,
+  clearClipsByTrackId,
 } = clipsSlice.actions;
 export const _sliceClip = clipsSlice.actions.sliceClip;
 
-export const createClip =
-  (clip: Partial<ClipNoId> = defaultClip): AppThunk<Promise<ClipId>> =>
-  (dispatch) => {
-    return new Promise((resolve) => {
-      const newClip = initializeClip({
-        ...defaultClip,
-        ...clip,
-      });
-      // Add clip to store
-      dispatch(addClip(newClip));
-      dispatch(
-        addClipToClipMap({
-          trackId: newClip.trackId,
-          clipId: newClip.id,
-        })
-      );
-      resolve(newClip.id);
-    });
-  };
-
 export const createClips =
-  (clips: Partial<ClipNoId>[]): AppThunk<Promise<{ clipIds: ClipId[] }>> =>
+  (clipNoIds: Partial<ClipNoId>[]): AppThunk<Promise<{ clipIds: ClipId[] }>> =>
   (dispatch) => {
     return new Promise((resolve) => {
-      const initializedClips = clips.map((clip) =>
+      const clips = clipNoIds.map((clip) =>
         initializeClip({ ...defaultClip, ...clip })
       );
-      dispatch(addClips(initializedClips));
-      const clipMapPayload = initializedClips.map((clip) => ({
-        trackId: clip.trackId,
-        clipId: clip.id,
-      }));
-      dispatch(addClipsToClipMap(clipMapPayload));
-
-      const clipIds = initializedClips.map((clip) => clip.id);
+      const payload = { clips };
+      dispatch(addClips(payload));
+      dispatch(addClipsToSession(payload));
+      const clipIds = clips.map((clip) => clip.id);
       const promiseResult = { clipIds };
       resolve(promiseResult);
     });
   };
 
-export const createClipsAndTransforms =
+export const deleteClips =
+  (clips: Clip[]): AppThunk =>
+  (dispatch) => {
+    if (!clips?.length) return;
+    if (clips.length) {
+      clips.forEach((clip) => {
+        dispatch(deselectClip(clip.id));
+      });
+    }
+    dispatch(removeClips({ clips }));
+    dispatch(removeClipsFromSession({ clips }));
+  };
+
+export const createClipsAndTranspositions =
   (
     clips: Partial<ClipNoId>[],
-    transforms: Partial<Transform>[]
-  ): AppThunk<Promise<{ clipIds: ClipId[]; transformIds: TransformId[] }>> =>
+    transpositions: Partial<Transposition>[]
+  ): AppThunk<
+    Promise<{ clipIds: ClipId[]; transpositionIds: TranspositionId[] }>
+  > =>
   (dispatch) => {
     return new Promise((resolve) => {
       const initializedClips = clips.map((clip) =>
         initializeClip({ ...defaultClip, ...clip })
       );
-      const initializedTransforms = transforms.map((transform) =>
-        initializeTransform({ ...defaultTransform, ...transform })
+      const initializedTranspositions = transpositions.map((transposition) =>
+        initializeTransposition({ ...defaultTransposition, ...transposition })
       );
       const payload = {
         clips: initializedClips,
-        transforms: initializedTransforms,
+        transpositions: initializedTranspositions,
       };
-      dispatch(addClipsWithTransforms(payload));
-      dispatch(addClipsWithTransformsToClipMap(payload));
-      dispatch(addTransformsWithClips(payload));
-      dispatch(addTransformsWithClipsToTransformMap(payload));
-
-      const clipIds = initializedClips.map((clip) => clip.id);
-      const transformIds = initializedTransforms.map(
-        (transform) => transform.id
+      dispatch(addClips(payload));
+      dispatch(addTranspositions(payload));
+      dispatch(
+        addClipsAndTranspositionsToSession({
+          clips: initializedClips,
+          transpositions: initializedTranspositions,
+        })
       );
-      const promiseResult = { clipIds, transformIds };
+      const clipIds = initializedClips.map((c) => c.id);
+      const transpositionIds = initializedTranspositions.map((t) => t.id);
+      const promiseResult = { clipIds, transpositionIds };
       resolve(promiseResult);
     });
   };
 
-export const updateClipsAndTransforms =
+export const updateClipsAndTranspositions =
   (
     clips: Partial<Clip>[],
-    transforms: Partial<Transform>[]
-  ): AppThunk<Promise<{ clipIds: ClipId[]; transformIds: TransformId[] }>> =>
+    transpositions: Partial<Transposition>[]
+  ): AppThunk<
+    Promise<{ clipIds: ClipId[]; transpositionIds: TranspositionId[] }>
+  > =>
   (dispatch) => {
     return new Promise((resolve) => {
-      dispatch(
-        updateClipsWithTransforms({
-          clips,
-          transforms,
-        })
-      );
-      dispatch(
-        updateTransformsWithClips({
-          clips,
-          transforms,
-        })
-      );
+      const payload = { clips, transpositions };
+      dispatch(updateClips(payload));
+      dispatch(updateTranspositions(payload));
       const clipIds = clips?.map((clip) => clip.id!) || [];
-      const transformIds = transforms?.map((transform) => transform.id!) || [];
-      const promiseResult = { clipIds, transformIds };
+      const transpositionIds =
+        transpositions?.map((transposition) => transposition.id!) || [];
+      const promiseResult = { clipIds, transpositionIds };
       resolve(promiseResult);
     });
   };
 
-export const deleteClip =
-  (clipId: ClipId): AppThunk =>
+export const deleteClipsAndTranspositions =
+  (clips: Clip[], transpositions: Transposition[]): AppThunk =>
   (dispatch) => {
-    if (!clipId) return;
-    dispatch(deselectClip(clipId));
-    dispatch(removeClip(clipId));
-    dispatch(removeClipFromClipMap(clipId));
-  };
-
-export const deleteClips =
-  (clipIds: ClipId[]): AppThunk =>
-  (dispatch) => {
-    if (!clipIds?.length) return;
-    if (clipIds.length) {
-      clipIds.forEach((id) => {
-        dispatch(deselectClip(id));
+    if (!clips?.length && !transpositions?.length) return;
+    if (clips.length) {
+      clips.forEach((clip) => {
+        dispatch(deselectClip(clip.id));
       });
     }
-    dispatch(removeClips(clipIds));
-    dispatch(removeClipsFromClipMap(clipIds));
-  };
-
-export const deleteClipsAndTransforms =
-  (clipIds: ClipId[], transformIds: TransformId[]): AppThunk =>
-  (dispatch) => {
-    if (!clipIds?.length && !transformIds?.length) return;
-    if (clipIds.length) {
-      clipIds.forEach((id) => {
-        dispatch(deselectClip(id));
+    if (transpositions.length) {
+      transpositions.forEach((transposition) => {
+        dispatch(deselectTransposition(transposition.id));
       });
     }
-    if (transformIds.length) {
-      transformIds.forEach((id) => {
-        dispatch(deselectTransform(id));
-      });
-    }
-    dispatch(removeClipsWithTransforms({ clipIds, transformIds }));
-    dispatch(removeClipsWithTransformsFromClipMap({ clipIds, transformIds }));
-    dispatch(removeTransformsWithClips({ clipIds, transformIds }));
+    dispatch(removeClips({ clips, transpositions }));
+    dispatch(removeTranspositions({ transpositions }));
     dispatch(
-      removeTransformsWithClipsFromTransformMap({ clipIds, transformIds })
+      removeClipsAndTranspositionsFromSession({ clips, transpositions })
     );
   };
 

@@ -1,6 +1,17 @@
+import useEventListeners from "hooks/useEventListeners";
 import { Background, Splash } from "./Logo";
 
 export default function LandingPage() {
+  useEventListeners(
+    {
+      " ": {
+        keydown: () => {
+          window.location.href = "/harmonia/playground";
+        },
+      },
+    },
+    []
+  );
   return (
     <main className="relative font-nunito fade-in flex flex-col w-full h-screen overflow-scroll">
       <Background />
@@ -122,7 +133,7 @@ function PatternHero() {
         />
 
         <HeroQuote
-          title="Compose and Transform Your Ideas"
+          title="Compose and Transposition Your Ideas"
           text="Easily create and develop your musical ideas with a streamlined toolkit of operations at your disposal."
         />
         <HeroQuote

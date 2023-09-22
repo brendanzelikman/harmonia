@@ -6,7 +6,7 @@ import { Sampler } from "tone";
 import { INSTRUMENTS } from "types";
 
 // Select the ID of a track
-const selectTrackId = (state: RootState, id: TrackId) => id;
+const selectTrackId = (state: RootState, id?: TrackId) => id;
 export const selectPatternTrackMap = (state: RootState) =>
   state.session.present.patternTracks.byId;
 export const selectPatternTrackIds = (state: RootState) =>
@@ -21,7 +21,7 @@ export const selectPatternTracks = createSelector(
 // Select a specific pattern track
 export const selectPatternTrack = createSelector(
   [selectPatternTrackMap, selectTrackId],
-  (tracks, id) => tracks[id]
+  (tracks, id) => (id ? tracks[id] : undefined)
 );
 
 // Select all pattern track samplers

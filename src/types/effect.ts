@@ -414,7 +414,7 @@ export interface CompressorProps {
 export interface CompressorEffect extends Effect, CompressorProps {}
 
 // The gain reduction ratio
-export const DEFAULT_COMPRESSOR_RATIO = 12;
+export const DEFAULT_COMPRESSOR_RATIO = 3;
 export const MIN_COMPRESSOR_RATIO = 1;
 export const MAX_COMPRESSOR_RATIO = 20;
 
