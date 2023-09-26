@@ -1,13 +1,10 @@
 import { connect, ConnectedProps } from "react-redux";
 import {
   selectClipDuration,
-  selectRoot,
   selectTimeline,
   selectTimelineTickOffset,
   selectClipWidth,
   selectClipName,
-  selectSelectedClips,
-  selectSelectedTranspositions,
   selectClipPattern,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
@@ -18,12 +15,7 @@ import { useClipDrag } from "./dnd";
 import * as Root from "redux/slices/root";
 import { MouseEvent, useCallback, useMemo } from "react";
 import Stream from "./Stream";
-import {
-  getChordalTranspose,
-  getChromaticTranspose,
-  getScalarTranspose,
-  TranspositionNoId,
-} from "types/transposition";
+import { TranspositionNoId } from "types/transposition";
 import { rotatePattern, transposePattern } from "redux/slices/patterns";
 import { createTranspositions } from "redux/slices/transpositions";
 import { isHoldingOption, isHoldingShift } from "utils";
@@ -38,10 +30,7 @@ interface OwnClipProps extends ClipsProps {
 }
 
 const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
-  const { rows, clip } = ownProps;
-  const { toolkit } = selectRoot(state);
-  const selectedClips = selectSelectedClips(state);
-  const selectedTranspositions = selectSelectedTranspositions(state);
+  const { clip, trackRowMap, selectedClips } = ownProps;
 
   // Timeline properties
   const timeline = selectTimeline(state);
@@ -50,16 +39,10 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
 
   // Clip properties
   const isSelected = selectedClips.some(({ id }) => id === clip.id);
-  const index = rows.findIndex((row) => row.trackId === clip.trackId);
+  const index = trackRowMap[clip.trackId].index;
   const name = selectClipName(state, clip.id);
   const duration = selectClipDuration(state, clip.id);
   const pattern = selectClipPattern(state, clip.id);
-
-  // Transposition values
-  const { transpositionOffsets } = toolkit;
-  const chromatic = getChromaticTranspose(transpositionOffsets);
-  const scalar = getScalarTranspose(transpositionOffsets);
-  const chordal = getChordalTranspose(transpositionOffsets);
 
   // CSS properties
   const top = HEADER_HEIGHT + index * CELL_HEIGHT + TRANSPOSITION_HEIGHT;
@@ -70,8 +53,6 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
 
   return {
     ...ownProps,
-    selectedClips,
-    selectedTranspositions,
     subdivision,
     transposing,
     isSelected,
@@ -79,9 +60,6 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     name,
     duration,
     pattern,
-    chromatic,
-    scalar,
-    chordal,
     top,
     left,
     width,
@@ -210,13 +188,6 @@ interface ClipClickProps extends ClipProps {
   eyedropping: boolean;
 }
 const onClipClick = (props: ClipClickProps) => {
-  // Transpose the clip if transposing
-  if (props.transposing) {
-    const { chromatic, scalar, chordal } = props;
-    if ([chromatic, scalar, chordal].some(isNaN)) return;
-    props.transposePattern(props.clip.patternId, chromatic, scalar, chordal);
-    return;
-  }
   // Eyedrop the pattern if the user is holding the eyedrop key
   if (props.eyedropping) {
     props.setSelectedPattern(props.clip.patternId);

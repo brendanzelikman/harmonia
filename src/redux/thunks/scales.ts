@@ -1,32 +1,22 @@
 import { ticksToToneSubdivision } from "utils";
-import { selectScale, selectTransport } from "redux/selectors";
+import { selectTransport } from "redux/selectors";
 
 import { convertTicksToSeconds } from "redux/slices/transport";
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
 import { MIDI } from "types/midi";
-import { Scale, ScaleId } from "types/scale";
+import { Scale } from "types/scale";
 import { Midi } from "@tonejs/midi";
 
 export const playScale =
-  (scaleOrId: Scale | ScaleId): AppThunk =>
+  (scale: Scale): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
-    let scale: Scale | undefined;
-
-    if (typeof scaleOrId === "string") {
-      scale = selectScale(state, scaleOrId);
-    } else {
-      scale = scaleOrId;
-    }
-
-    if (!scale) return;
-
+    const transport = selectTransport(state);
     const sampler = getGlobalSampler();
     if (!sampler?.loaded) return;
 
-    const transport = selectTransport(state);
-
+    // Play each note of the scale
     let time = 0;
     for (let i = 0; i < scale.notes.length; i++) {
       const note = scale.notes[i];
@@ -50,12 +40,9 @@ export const playScale =
   };
 
 export const exportScaleToMIDI =
-  (id: ScaleId): AppThunk =>
+  (scale: Scale): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
-    const scale = selectScale(state, id);
-    if (!scale) return;
-
     const transport = selectTransport(state);
     const midi = new Midi();
     const track = midi.addTrack();

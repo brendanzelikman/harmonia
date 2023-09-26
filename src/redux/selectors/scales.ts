@@ -26,6 +26,7 @@ export const selectCustomScales = createSelector([selectScales], (scales) =>
   scales.filter(
     (scale) =>
       scale.name !== Scales.TrackScaleName &&
+      scale.id &&
       PresetScaleMap[scale.id] === undefined
   )
 );

@@ -26,6 +26,7 @@ export function ScaleList(props: ScaleEditorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const doesMatchScale = useCallback(
     (scale: Scale) =>
+      scale.name &&
       scale.name.toLowerCase().includes(searchQuery.toLowerCase()),
     [searchQuery]
   );
@@ -34,8 +35,10 @@ export function ScaleList(props: ScaleEditorProps) {
   const openCategories = useMemo(() => {
     if (searchQuery === "") return [];
     return Object.keys(ScalePresets).filter((category) =>
-      ScalePresets[category as keyof typeof ScalePresets].some((scale) =>
-        scale.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ScalePresets[category as keyof typeof ScalePresets].some(
+        (scale) =>
+          scale.name &&
+          scale.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     );
   }, [searchQuery]);
@@ -242,7 +245,7 @@ export const CustomScale = (props: CustomScaleProps) => {
       className={`flex justify-center items-center w-7 h-full rounded-r text-center font-thin border border-l-0 border-slate-50/50`}
       onClick={(e) => {
         e.stopPropagation();
-        props.deleteScale(scale.id);
+        props.deleteScale(scale?.id);
       }}
     >
       <BsTrash />

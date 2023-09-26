@@ -1,25 +1,28 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { Pattern, PatternId, PatternStream, getStreamTicks } from "./pattern";
 import {
-  PatternTrack,
-  ScaleTrack,
-  ScaleTrackNoteMap,
+  Pattern,
+  PatternId,
+  PatternMap,
+  PatternStream,
+  getStreamTicks,
+} from "./pattern";
+import {
+  PatternTrackMap,
+  ScaleTrackMap,
   TrackId,
-  createScaleTrackNoteMap,
-  getScaleTrackScale,
+  createScaleTrackMap,
   getTrackParents,
 } from "./tracks";
 import {
   getLastTransposition,
-  Transposition,
-  applyTranspositionsToPattern,
-  applyTranspositionsToScale,
-  TranspositionId,
+  TranspositionMap,
+  transposeTracksAtTick,
+  getTransposedPatternStream,
 } from "./transposition";
 import { Tick } from "./units";
 import { MIDI } from "./midi";
 import { CLIP_THEMES, ClipTheme } from "./clip.themes";
-import { SessionMapState } from "redux/slices/sessionMap";
+import { SessionMap, getTrackTranspositions } from "./session";
 export * from "./clip.themes";
 
 export type ClipId = string;
@@ -37,18 +40,17 @@ export interface Clip {
   color?: string; // optional color for the clip
 }
 
-export const isClip = (obj: any): obj is Clip => {
-  const { id, patternId, trackId, tick, offset } = obj;
+export const isClip = (obj: unknown): obj is Clip => {
   return (
-    id !== undefined &&
-    patternId !== undefined &&
-    trackId !== undefined &&
-    tick !== undefined &&
-    offset !== undefined
+    (obj as Clip).id !== undefined &&
+    (obj as Clip).patternId !== undefined &&
+    (obj as Clip).trackId !== undefined &&
+    (obj as Clip).tick !== undefined
   );
 };
 
 export type ClipNoId = Omit<Clip, "id">;
+export type ClipMap = Record<ClipId, Clip>;
 
 // Create a clip with a unique ID
 export const initializeClip = (clip: ClipNoId = defaultClip): Clip => ({
@@ -102,11 +104,11 @@ export const getClipNotes = (
 export const getClipStream = (
   clip: Clip,
   dependencies: {
-    scaleTracks: Record<TrackId, ScaleTrack>;
-    patternTracks: Record<TrackId, PatternTrack>;
-    patterns: Record<PatternId, Pattern>;
-    transpositions: Record<TranspositionId, Transposition>;
-    sessionMap: SessionMapState;
+    scaleTracks: ScaleTrackMap;
+    patternTracks: PatternTrackMap;
+    patterns: PatternMap;
+    transpositions: TranspositionMap;
+    sessionMap: SessionMap;
   }
 ) => {
   if (!clip) return [] as PatternStream;
@@ -114,41 +116,29 @@ export const getClipStream = (
   const { patterns, patternTracks, scaleTracks, transpositions, sessionMap } =
     dependencies;
 
-  // Get the pattern
+  // Get the clip's pattern and pattern track
   const pattern = patterns[clip.patternId];
-  if (!pattern) return [] as PatternStream;
+  const patternTrack = patternTracks[clip.trackId];
+  if (!pattern || !patternTrack) return [] as PatternStream;
 
   // Make sure the pattern has a stream
   const ticks = getStreamTicks(pattern.stream);
   if (isNaN(ticks) || ticks < 1) return [];
 
-  // Get the pattern track
-  const patternTrack = patternTracks[clip.trackId];
-  if (!patternTrack?.parentId) return [] as PatternStream;
-
-  // Get the scale track
-  const scaleTrack = scaleTracks[patternTrack.parentId];
-  if (!scaleTrack) return [] as PatternStream;
-
-  // Get the parent scales
-  const parents = getTrackParents(scaleTrack, { scaleTracks });
-
-  // Get all transpositions of each parent
-  const scaleTranspositionIds = parents.map(
-    (scaleTrack) => sessionMap.byId[scaleTrack.id]?.transpositionIds ?? []
+  // Get all parent scale tracks and their transpositions
+  const parents = getTrackParents(patternTrack, scaleTracks);
+  const parentTranspositions = parents.map((parent) =>
+    getTrackTranspositions(parent, transpositions, sessionMap)
   );
-  const scaleTranspositions = scaleTranspositionIds
-    .map((ids) => ids.map((id) => transpositions[id]))
-    .map((transpositions) => transpositions.sort((a, b) => b.tick - a.tick));
 
-  // Get all transpositions of the clip
-  const clipTranspositionIds =
-    sessionMap.byId[clip.trackId]?.transpositionIds ?? [];
-  const clipTranspositions = clipTranspositionIds
-    .map((id) => transpositions[id])
-    .filter(Boolean)
-    .sort((a, b) => b.tick - a.tick);
+  // Get the clip's transpositions
+  const clipTranspositions = getTrackTranspositions(
+    patternTrack,
+    transpositions,
+    sessionMap
+  );
 
+  // Initialize the loop variables
   const startTick = clip.tick;
   let stream: PatternStream = [];
   let chordCount = 0;
@@ -180,48 +170,32 @@ export const getClipStream = (
       continue;
     }
 
-    // Get the transpositions at the current time
+    // Get the current tick
     const tick = startTick + i - clip.offset;
-    let clipScale = getScaleTrackScale(parents[0], { scaleTracks });
-    const transposedScales = [];
-    // Apply all transpositions
-    for (let i = 0; i < scaleTranspositions.length; i++) {
-      const scale = getScaleTrackScale(parents[i], { scaleTracks });
-      const transpositions = scaleTranspositions[i];
-      const scaleTransposition = getLastTransposition(
-        transpositions,
-        tick,
-        false
-      );
-      const currentScale = applyTranspositionsToScale(scale, {
-        transpositions: scaleTransposition?.offsets,
-        scaleTracks,
-        sessionMap,
-      });
-      transposedScales.push(currentScale);
-      clipScale = currentScale;
-    }
 
-    // Get the pattern stream
-    const scaleTrackScaleMap = createScaleTrackNoteMap(parents);
-    const scaleMap: ScaleTrackNoteMap = transposedScales.reduce(
-      (acc, scale, i) => {
-        const scaleTrack = parents[i];
-        acc[scaleTrack.id] = scale;
-        return acc;
-      },
-      scaleTrackScaleMap
+    // Transpose the parent tracks at the current tick
+    const transposedParents = transposeTracksAtTick(
+      parents,
+      parentTranspositions,
+      tick
     );
-    // Apply the clip's transpositions
+    const scaleTracks = createScaleTrackMap(transposedParents);
     const transposition = getLastTransposition(clipTranspositions, tick, false);
-    const transposedPattern = applyTranspositionsToPattern(pattern, {
-      transpositions: transposition?.offsets,
-      scaleMap,
-    });
-    const transposedStream = transposedPattern.stream;
+    const quantizations = parentTranspositions.map(
+      (t) => !!getLastTransposition(t, tick, false)
+    );
 
-    // Add the transposed stream to the stream
-    const clipChord = transposedStream[chordCount - 1];
+    // Get the transposed pattern stream
+    const patternStream = getTransposedPatternStream({
+      pattern,
+      transposition,
+      quantizations,
+      tracks: transposedParents,
+      scaleTracks,
+    });
+
+    // Add the transposed chord to the clip stream
+    const clipChord = patternStream[chordCount - 1];
     if (!clipChord) {
       stream.push([]);
       continue;

@@ -42,12 +42,10 @@ export const defaultTimeline: Timeline = {
   clipboard: { clips: [], transpositions: [] },
 };
 
-export const isTimeline = (obj: any): obj is Timeline => {
-  const { state, cellWidth, subdivision, clipboard } = obj;
+export const isTimeline = (obj: unknown): obj is Timeline => {
   return (
-    state !== undefined &&
-    cellWidth !== undefined &&
-    subdivision !== undefined &&
-    clipboard !== undefined
+    (obj as Timeline).state !== undefined &&
+    (obj as Timeline).cellWidth !== undefined &&
+    (obj as Timeline).subdivision !== undefined
   );
 };

@@ -396,7 +396,7 @@ export class MIDI {
     const match = MIDI.ChromaticScale.find((x) =>
       x.spellings.includes(pitch as Pitch)
     );
-    if (!match) throw new Error(`Invalid pitch: ${pitch}`);
+    if (!match) return 0;
     return match.number;
   }
   // Get the chromatic distance between two notes
@@ -407,7 +407,7 @@ export class MIDI {
   }
   // Get the octave distance between two notes
   public static OctaveDistance(note1: Note, note2: Note) {
-    if (isNaN(note1) || isNaN(note2)) throw new Error("Invalid note");
+    if (isNaN(note1) || isNaN(note2)) return 0;
     const octave1 = MIDI.toOctave(note1);
     const octave2 = MIDI.toOctave(note2);
     return octave2 - octave1;

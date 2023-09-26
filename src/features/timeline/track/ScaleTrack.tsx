@@ -118,15 +118,20 @@ function ScaleTrack(props: Props) {
   // Scale track name field
   const ScaleTrackNameField = useMemo(() => {
     return () => (
-      <input
-        placeholder={placeholder}
-        value={ScaleTrackName.value}
-        onChange={ScaleTrackName.onChange}
-        className="flex-auto h-7 bg-zinc-800 px-1 mr-2 caret-white outline-none rounded-md overflow-ellipsis text-sm text-white border-2 border-zinc-800 focus:border-indigo-500/50"
-        onKeyDown={ScaleTrackName.onKeyDown}
-      />
+      <>
+        <input
+          placeholder={placeholder}
+          value={ScaleTrackName.value}
+          onChange={ScaleTrackName.onChange}
+          className="flex-auto h-7 bg-zinc-800 px-1 mr-2 caret-white outline-none rounded-md overflow-ellipsis text-sm text-white border-2 border-zinc-800 focus:border-indigo-500/50"
+          onKeyDown={ScaleTrackName.onKeyDown}
+        />
+        <label className="font-light w-4 text-center">
+          {props.row.depth + 1}
+        </label>
+      </>
     );
-  }, [placeholder, ScaleTrackName.value]);
+  }, [placeholder, ScaleTrackName.value, props.row.depth]);
 
   // Scale editor button
   const ScaleEditorButton = useMemo(() => {
@@ -190,12 +195,11 @@ function ScaleTrack(props: Props) {
           Current: N{chromatic} • t{chordal}
         </Transition>
         <div
-          className="w-full flex relative"
+          className="w-full flex relative justify-end"
           draggable
           onDragStart={cancelEvent}
         >
           {ScaleTrackNameField()}
-          {props.row.depth}
           {ScaleTrackDropdownMenu()}
         </div>
       </>

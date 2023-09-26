@@ -281,5 +281,5 @@ export const groupByActionType = (action: PayloadAction) => {
   if (action.type.startsWith("session/")) {
     return groupBySessionAction[action.type](action);
   }
-  return action.type;
+  return `${action.type}:${action.payload}`;
 };

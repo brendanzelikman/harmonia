@@ -1,26 +1,19 @@
 import { nanoid } from "@reduxjs/toolkit";
 import {
   ScaleTrack,
-  ScaleTrackNoteMap,
+  ScaleTrackMap,
   TrackId,
-  getScaleTrackNotes,
-  getTransposedScaleTrack,
+  getScalarlyTransposedScaleTrack,
+  getChromaticallyTransposedScaleTrack,
+  getChordallyTransposedScaleTrack,
+  getScaleTrackScale,
 } from "./tracks";
 import { Offset, Tick } from "./units";
 import {
   Pattern,
-  defaultPattern,
   rotatePatternStream,
   transposePatternStream,
 } from "./pattern";
-import {
-  GenericScale,
-  Scale,
-  defaultScale,
-  rotateScale,
-  transposeScale,
-} from "./scale";
-import { SessionMapState } from "redux/slices/sessionMap";
 
 export type TranspositionId = string;
 export type TranspositionReferenceId = TrackId | "_chromatic" | "_self";
@@ -53,32 +46,7 @@ export type TranspositionOffsetRecord = Record<
   Offset
 >;
 export type TrackTranspositionRecord = Record<TrackId, Transposition[]>;
-
-export const testTransposition = ({
-  N,
-  T,
-  t,
-  tick,
-  scale,
-}: {
-  N: number;
-  T: number;
-  t: number;
-  tick: number;
-  scale?: Scale;
-}): Transposition => {
-  const transposition = {
-    ...defaultTransposition,
-    tick,
-    offsets: {
-      _chromatic: N,
-      _self: t,
-    },
-  };
-  return scale !== undefined
-    ? { ...transposition, offsets: { ...transposition.offsets, [scale.id]: T } }
-    : transposition;
-};
+export type TranspositionMap = Record<TranspositionId, Transposition>;
 
 export type TranspositionNoId = Omit<Transposition, "id">;
 export const initializeTransposition = (
@@ -87,6 +55,11 @@ export const initializeTransposition = (
   ...transposition,
   id: nanoid(),
 });
+
+export const createTranspositionTag = (transposition: Transposition) => {
+  const offsets = JSON.stringify(transposition.offsets);
+  return `${transposition.id}@${transposition.tick}@${transposition.trackId}@${offsets}`;
+};
 
 // Get the chromatic value of the transposition (N)
 export const getChromaticTranspose = (
@@ -117,11 +90,7 @@ export const getChordalTranspose = (
   return (transposition as TranspositionOffsetRecord)._self || 0;
 };
 
-export const createTranspositionTag = (transposition: Transposition) => {
-  const offsets = JSON.stringify(transposition.offsets);
-  return `${transposition.id}@${transposition.tick}@${transposition.trackId}@${offsets}`;
-};
-
+// Get the last transposition at the given tick
 export const getLastTransposition = (
   transpositions: Transposition[],
   tick: Tick = 0,
@@ -139,68 +108,109 @@ export const getLastTransposition = (
   return previousTranspositions.sort((a, b) => b.tick - a.tick)[0];
 };
 
-export const sortTranspositionOffsets = (
-  transpositions: TranspositionOffsetRecord
-): TranspositionReferenceId[] => {
-  return Object.keys({ ...transpositions }).sort((a, b) => {
-    if (a === "_chromatic") return 1;
-    if (b === "_chromatic") return -1;
-    if (a === "_self") return 1;
-    if (b === "_self") return -1;
-    return 0;
-  });
+// Transpose the scale track chromatically/chordally
+export const applyTranspositionToScaleTrack = (
+  track: ScaleTrack,
+  transposition?: Transposition
+) => {
+  if (!transposition) return track;
+  const N = getChromaticTranspose(transposition);
+  const transposedTrack = getChromaticallyTransposedScaleTrack(track, N);
+
+  const t = getChordalTranspose(transposition);
+  const rotatedTrack = getChordallyTransposedScaleTrack(transposedTrack, t);
+
+  return rotatedTrack;
 };
 
-export const applyTranspositionsToScale = (
-  scale: GenericScale = defaultScale,
-  dependencies: {
-    transpositions?: TranspositionOffsetRecord;
-    scaleTracks: Record<TrackId, ScaleTrack>;
-    sessionMap: SessionMapState;
-  }
+// Transpose the scale track along its transposed parents
+export const applyTranspositionsToScaleTrack = (
+  track: ScaleTrack,
+  parents: ScaleTrack[],
+  transposition?: Transposition
 ) => {
-  if (!scale || !dependencies) return scale;
-  const { transpositions, scaleTracks } = dependencies;
-  if (!transpositions) return scale;
-  return sortTranspositionOffsets({ ...transpositions }).reduce((acc, id) => {
-    const offset = transpositions[id];
-    if (!offset) return acc;
-    if (id === "_chromatic") return transposeScale(acc, offset);
-    if (id === "_self") return rotateScale(acc, offset);
-    const scaleTrack = scaleTracks[id];
-    if (!scaleTrack) return acc;
-    const transposedTrack = getTransposedScaleTrack(
-      scaleTrack,
-      offset,
-      dependencies
+  if (!transposition) return track;
+  let newlyTransposedParents = [...parents] || [];
+  let parent, child;
+  let newTrack = track;
+
+  // Transpose the scales sequentially based on the parents/offsets
+  for (let j = 1; j <= parents.length; j++) {
+    parent = newlyTransposedParents[j - 1];
+    child = newlyTransposedParents[j] || track;
+    const scalar = getScalarTranspose(transposition, parent.id);
+    newTrack = getScalarlyTransposedScaleTrack(child, scalar, parent);
+    newlyTransposedParents[j] = newTrack;
+  }
+
+  // Transpose the scale track chromatically/chordally
+  return applyTranspositionToScaleTrack(newTrack, transposition);
+};
+
+// Transpose the scale tracks at the given tick
+export const transposeTracksAtTick = (
+  tracks: ScaleTrack[],
+  transpositions: Transposition[][],
+  tick: Tick = 0
+) => {
+  // Get the first parent and apply base transpositions
+  const godfather = applyTranspositionToScaleTrack(
+    tracks[0],
+    getLastTransposition(transpositions[0], tick, false)
+  );
+  const transposedTracks = [godfather];
+
+  // Iterate down child scale tracks and apply transpositions if they exist
+  for (let i = 1; i < tracks.length; i++) {
+    const track = tracks[i];
+    const transposition = getLastTransposition(transpositions[i], tick, false);
+    // If none exists, then just push the scale track
+    if (!transposition) {
+      transposedTracks.push(track);
+      continue;
+    }
+    // Otherwise, add the transposed scale track
+    const transposedTrack = applyTranspositionsToScaleTrack(
+      track,
+      transposedTracks,
+      transposition
     );
-    const notes = getScaleTrackNotes(transposedTrack, { scaleTracks });
-    return { ...acc, notes };
-  }, scale);
+    transposedTracks.push(transposedTrack);
+  }
+  return transposedTracks;
 };
 
-export const applyTranspositionsToPattern = (
-  pattern: Pattern = defaultPattern,
-  dependencies: {
-    transpositions?: TranspositionOffsetRecord;
-    scaleMap: ScaleTrackNoteMap;
-  }
-) => {
-  if (!pattern) return pattern;
-  const { transpositions, scaleMap } = dependencies;
-  if (!transpositions) return pattern;
-  const stream = sortTranspositionOffsets(transpositions).reduce((acc, id) => {
-    const offset = transpositions[id];
-    if (!offset) return acc;
-    if (id === "_chromatic") return transposePatternStream(acc, offset);
-    if (id === "_self") return rotatePatternStream(acc, offset);
-    // Get the scale from the corresponding scale track
-    const scale = scaleMap[id];
+export const getTransposedPatternStream = ({
+  pattern,
+  transposition,
+  tracks,
+  scaleTracks,
+  quantizations,
+}: {
+  pattern: Pattern;
+  transposition?: Transposition;
+  tracks?: ScaleTrack[];
+  scaleTracks?: ScaleTrackMap;
+  quantizations: boolean[];
+}) => {
+  if (!transposition) return pattern.stream;
+  if (!tracks || !scaleTracks) return pattern.stream;
+
+  // Compute the pattern stream through all transposed parents
+  const patternStream = tracks.reduce((acc, track, i) => {
+    const scale = getScaleTrackScale(track, scaleTracks);
+    const offset = transposition?.offsets?.[track.id];
+    // Quantize the parent to the scale if a transposition exists
+    const shouldQuantize = quantizations[i];
+    if (shouldQuantize ? offset === undefined : offset === 0) return acc;
     return transposePatternStream(acc, offset, scale);
   }, pattern.stream);
 
-  return {
-    ...pattern,
-    stream,
-  };
+  // Apply the final chromatic/chordal offsets
+  const N = getChromaticTranspose(transposition);
+  const t = getChordalTranspose(transposition);
+  const transposedStream = transposePatternStream(patternStream, N);
+  const rotatedStream = rotatePatternStream(transposedStream, t);
+
+  return rotatedStream;
 };

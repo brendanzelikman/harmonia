@@ -12,7 +12,13 @@ import {
   updateTranspositions,
 } from "redux/slices/transpositions";
 import { selectTranspositions } from "redux/selectors/transpositions";
-import { selectRoot } from "redux/selectors";
+import {
+  selectCellWidth,
+  selectRoot,
+  selectSelectedClips,
+  selectSelectedTranspositions,
+  selectTrackParents,
+} from "redux/selectors";
 import { Clip } from "types/clip";
 import {
   createClipsAndTranspositions,
@@ -20,10 +26,12 @@ import {
 } from "redux/slices/clips";
 import { toggleTransposingClip } from "redux/slices/timeline";
 import { setSelectedClips, setSelectedTranspositions } from "redux/slices/root";
+import { TrackId } from "types/tracks";
 
 interface TimelineTranspositionsProps {
   timeline: DataGridHandle;
   rows: Row[];
+  trackRowMap: Record<TrackId, Row>;
   backgroundWidth: number;
 }
 
@@ -31,12 +39,24 @@ const mapStateToProps = (
   state: RootState,
   ownProps: TimelineTranspositionsProps
 ) => {
-  const { toolkit } = selectRoot(state);
+  const { toolkit, selectedTrackId } = selectRoot(state);
   const transpositions = selectTranspositions(state);
+  const selectedClips = selectSelectedClips(state);
+  const selectedTranspositions = selectSelectedTranspositions(state);
+  const selectedTrackParents = selectTrackParents(state, selectedTrackId);
+  const canTransposeScale = selectedTrackParents.length;
+  const cellWidth = selectCellWidth(state);
+
   return {
     ...ownProps,
     ...toolkit,
     transpositions,
+    selectedTrackId,
+    selectedClips,
+    selectedTranspositions,
+    selectedTrackParents,
+    canTransposeScale,
+    cellWidth,
   };
 };
 

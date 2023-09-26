@@ -50,7 +50,7 @@ const mapStateToProps = (state: RootState) => {
   const selectedPattern = selectPattern(state, root.selectedPatternId);
   const selectedScaleTracks = selectTrackParents(state, root.selectedTrackId);
   const selectedTrackScales = selectedScaleTracks.map((track) =>
-    getScaleTrackScale(track, { scaleTracks })
+    getScaleTrackScale(track, scaleTracks)
   );
   const selectedClips = selectSelectedClips(state);
   const { toolkit } = root;
@@ -531,7 +531,7 @@ function PatternControl(props: Props) {
         leaveFrom="opacity-100 scale-100"
         leaveTo="opacity-0 scale-0"
         as="div"
-        className="flex flex-col items-center w-12 h-9 font-nunito font-light rounded-lg text-sm"
+        className="flex flex-col items-center h-9 font-nunito font-light rounded-lg text-sm"
       >
         <label className="text-sm p-0 text-fuchsia-400">Live</label>
         <div className="flex text-xs space-x-1 text-slate-400">
@@ -544,14 +544,19 @@ function PatternControl(props: Props) {
           {selectedTrackScales.map((scale, i) => (
             <span
               key={`scale-${i}-${scale.notes.join(",")}`}
-              className={`${
-                heldKeys.w && scale ? "text-slate-50" : "text-slate-500"
+              className={`inline ${
+                ((i === 0 && heldKeys.w) ||
+                  (i === 1 && heldKeys.s) ||
+                  (i === 2 && heldKeys.x)) &&
+                scale
+                  ? "text-slate-50"
+                  : "text-slate-500"
               }`}
             >
-              T
+              T {i < selectedTrackScales.length - 1 ? "•" : ""}
             </span>
           ))}
-          <span className="w-1">•</span>
+          <span className="w-2">•</span>
           <span
             className={`${heldKeys.e ? "text-slate-50" : "text-slate-500"}`}
           >

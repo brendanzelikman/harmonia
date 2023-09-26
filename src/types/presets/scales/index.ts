@@ -1,4 +1,4 @@
-import { Scale, ScaleId } from "types";
+import { PresetScale, Scale, ScaleId } from "types";
 
 import BasicScales from "./basic";
 import BasicModes from "./modes";
@@ -10,7 +10,7 @@ import UncommonScales from "./uncommon";
 // Return a map of preset group key to preset group
 // e.g. { "Common Scales": [ ... ], "Common Modes": [ ... ], ... }
 export const PresetScaleGroupMap = {
-  "Custom Scales": [] as Scale[],
+  "Custom Scales": [] as PresetScale[],
   "Basic Scales": Object.values(BasicScales),
   "Basic Modes": Object.values(BasicModes),
   "Pentatonic Scales": Object.values(PentatonicScales),
@@ -38,4 +38,4 @@ export const PresetScaleList = Object.values(PresetScaleGroupMap).flat();
 export const PresetScaleMap = PresetScaleList.reduce((map, scale) => {
   map[scale.id] = scale;
   return map;
-}, {} as Record<ScaleId, Scale>);
+}, {} as Record<ScaleId, PresetScale>);

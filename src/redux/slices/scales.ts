@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union } from "lodash";
-
 import { AppThunk } from "redux/store";
 import { initializeState } from "redux/util";
 import { MIDI } from "types/midi";
@@ -9,16 +8,13 @@ import Scales, {
   initializeScale,
   Scale,
   ScaleId,
-  ScaleNoId,
   rotateScale as _rotateScale,
+  ScaleWithId,
 } from "types/scale";
 import { Note } from "types/units";
 
-const newScale: Scale = {
-  ...defaultScale,
-  name: Scales.TrackScaleName,
-};
-const initialState = initializeState<ScaleId, Scale>([newScale]);
+const newScale = { ...defaultScale, name: Scales.TrackScaleName };
+const initialState = initializeState<ScaleId, ScaleWithId>([newScale]);
 
 interface ScaleNote {
   id: ScaleId;
@@ -38,7 +34,7 @@ export const scalesSlice = createSlice({
       const scaleIds = action.payload;
       state.allIds = scaleIds;
     },
-    addScale: (state, action: PayloadAction<Scale>) => {
+    addScale: (state, action: PayloadAction<ScaleWithId>) => {
       const scale = action.payload;
       state.allIds = union(state.allIds, [scale.id]);
       state.byId[scale.id] = scale;
@@ -129,7 +125,7 @@ export const {
 } = scalesSlice.actions;
 
 export const createScale =
-  (scale: Partial<ScaleNoId> = defaultScale): AppThunk<Promise<ScaleId>> =>
+  (scale: Partial<Scale> = defaultScale): AppThunk<Promise<ScaleId>> =>
   async (dispatch) => {
     return new Promise((resolve) => {
       const newScale = initializeScale(scale);

@@ -1,12 +1,16 @@
 import { expect, test } from "vitest";
-import { testTransposition, getLastTransposition } from "./transposition";
+import {
+  Transposition,
+  defaultTransposition,
+  getLastTransposition,
+} from "./transposition";
 
 test("getLastTransposition", () => {
-  const transpositions = [
-    testTransposition({ N: 0, T: 0, t: 0, tick: 0 }),
-    testTransposition({ N: 1, T: 0, t: 0, tick: 1 }),
-    testTransposition({ N: 2, T: 0, t: 0, tick: 2 }),
-    testTransposition({ N: 3, T: 0, t: 0, tick: 3 }),
+  const transpositions: Transposition[] = [
+    { ...defaultTransposition, id: "t1", tick: 0 },
+    { ...defaultTransposition, id: "t2", tick: 1 },
+    { ...defaultTransposition, id: "t3", tick: 2 },
+    { ...defaultTransposition, id: "t4", tick: 3 },
   ];
   expect(getLastTransposition(transpositions, 0)).toEqual(transpositions[0]);
   expect(getLastTransposition(transpositions, 1)).toEqual(transpositions[1]);

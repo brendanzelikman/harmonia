@@ -68,13 +68,15 @@ export const defaultRoot: Root = {
   },
 };
 
-export const isRoot = (obj: any): obj is Root => {
-  const { projectName, showingShortcuts, showingTour, tourStep, toolkit } = obj;
+export const isRoot = (obj: unknown): obj is Root => {
   return (
-    projectName !== undefined &&
-    showingShortcuts !== undefined &&
-    showingTour !== undefined &&
-    tourStep !== undefined &&
-    toolkit !== undefined
+    (obj as Root).projectName !== undefined &&
+    (obj as Root).showingTour !== undefined &&
+    (obj as Root).tourStep !== undefined &&
+    (obj as Root).selectedPatternId !== undefined &&
+    (obj as Root).selectedClipIds !== undefined &&
+    (obj as Root).selectedTranspositionIds !== undefined &&
+    (obj as Root).showingShortcuts !== undefined &&
+    (obj as Root).toolkit !== undefined
   );
 };

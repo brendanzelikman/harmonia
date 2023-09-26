@@ -11,10 +11,6 @@ import {
   Transposition,
 } from "types/transposition";
 import {
-  selectCellWidth,
-  selectRoot,
-  selectSelectedClips,
-  selectSelectedTranspositions,
   selectTimeline,
   selectTimelineTickOffset,
   selectTrackParents,
@@ -31,11 +27,9 @@ interface OwnClipProps extends TranspositionsProps {
 }
 
 const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
-  const { rows, transposition } = ownProps;
+  const { trackRowMap, transposition, selectedTranspositions, cellWidth } =
+    ownProps;
   const { id } = transposition;
-  const { selectedTrackId } = selectRoot(state);
-  const selectedClips = selectSelectedClips(state);
-  const selectedTranspositions = selectSelectedTranspositions(state);
 
   // Timeline properties
   const timeline = selectTimeline(state);
@@ -45,20 +39,19 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
 
   // Transposition properties
   const isSelected = selectedTranspositions?.some((t) => t.id === id);
-  const index = rows.findIndex((row) => row.trackId === transposition.trackId);
+  const index = trackRowMap[transposition.trackId].index;
 
   // Transposition values
-  const scaleTracks = selectTrackParents(state, transposition.trackId);
-  const areTracksSelected = selectTrackParents(state, selectedTrackId).length;
+  const parents = selectTrackParents(state, transposition.trackId);
   const chromatic = getChromaticTranspose(transposition);
-  const scalars = scaleTracks.map((track) =>
-    getScalarTranspose(transposition, track?.id)
-  );
+  const scalars = parents
+    .map((track) => getScalarTranspose(transposition, track?.id))
+    .slice(parents.at(-1)?.id === transposition.trackId ? 1 : 0);
   const chordal = getChordalTranspose(transposition);
+
   // CSS properties
   const top = HEADER_HEIGHT + index * CELL_HEIGHT;
   const left = selectTimelineTickOffset(state, transposition.tick);
-  const cellWidth = selectCellWidth(state);
 
   const width = transposition.duration
     ? ticksToColumns(transposition.duration, subdivision) * cellWidth
@@ -67,10 +60,6 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
 
   return {
     ...ownProps,
-    selectedTrackId,
-    selectedClips,
-    selectedTranspositions,
-    areTracksSelected,
     subdivision,
     transposing,
     addingClip,
@@ -83,7 +72,6 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     left,
     width,
     height,
-    cellWidth,
   };
 };
 
@@ -113,6 +101,7 @@ function TimelineTransposition(props: TranspositionProps) {
   const opacity = isDragging ? 0.5 : 1;
   const pointerEvents = isDragging || props.addingClip ? "none" : "auto";
   const style = { top, left, height, opacity, pointerEvents };
+  const canTransposeScale = isSelected && props.canTransposeScale;
 
   // Transposition label
   const TranspositionLabel = () => (
@@ -128,28 +117,30 @@ function TimelineTransposition(props: TranspositionProps) {
         >
           N{chromatic}
         </span>
-        {" • "}
-        <span className={`mx-0.5`}>
-          {" "}
-          <span className={``}>T</span>(
-          {scalars.map((s, i) => (
-            <span
-              key={`${s}-${i}`}
-              className={`${
-                isSelected &&
-                ((i === 0 && heldKeys.w) ||
-                  (i === 1 && heldKeys.s) ||
-                  (i === 2 && heldKeys.x))
-                  ? "font-bold"
-                  : ""
-              }`}
-            >
-              {s}
-              {i < scalars.length - 1 ? <span className="mr-1">,</span> : ""}
-            </span>
-          ))}
-          )
-        </span>
+        {scalars.length ? (
+          <span className={`mx-0.5`}>
+            {" • "}
+            <span className={`${canTransposeScale ? "font-bold" : ""}`}>T</span>
+            (
+            {scalars.map((s, i) => (
+              <span
+                key={`${s}-${i}`}
+                className={`${
+                  canTransposeScale &&
+                  ((i === 0 && heldKeys.w) ||
+                    (i === 1 && heldKeys.s) ||
+                    (i === 2 && heldKeys.x))
+                    ? "font-bold"
+                    : ""
+                }`}
+              >
+                {s}
+                {i < scalars.length - 1 ? <span className="mr-1">,</span> : ""}
+              </span>
+            ))}
+            )
+          </span>
+        ) : null}
         {" • "}
         <span
           className={`ml-0.5 ${heldKeys.e && isSelected ? "font-bold" : ""}`}

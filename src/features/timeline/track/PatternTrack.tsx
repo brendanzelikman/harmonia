@@ -266,15 +266,20 @@ function PatternTrack(props: Props) {
   // Pattern track name field
   const PatternTrackNameField = useMemo(() => {
     return () => (
-      <input
-        placeholder={props.instrumentName}
-        value={PatternTrackName.value}
-        onChange={PatternTrackName.onChange}
-        className="bg-zinc-800 px-1 mr-2 h-7 flex-auto caret-white outline-none rounded-md overflow-ellipsis text-sm text-gray-300 border-2 border-zinc-800 focus:border-indigo-500/50"
-        onKeyDown={PatternTrackName.onKeyDown}
-      />
+      <>
+        <input
+          placeholder={props.instrumentName}
+          value={PatternTrackName.value}
+          onChange={PatternTrackName.onChange}
+          className="bg-zinc-800 px-1 h-7 mr-2 flex-auto caret-white outline-none rounded-md overflow-ellipsis text-sm text-gray-300 border-2 border-zinc-800 focus:border-indigo-500/50"
+          onKeyDown={PatternTrackName.onKeyDown}
+        />
+        <label className="font-light w-4 text-center">
+          {props.row.depth + 1}
+        </label>
+      </>
     );
-  }, [props.instrumentName, PatternTrackName.value]);
+  }, [props.instrumentName, PatternTrackName.value, props.row.depth]);
 
   // Pattern track dropdown menu
   const PatternTrackDropdownMenu = useMemo(() => {
@@ -316,12 +321,11 @@ function PatternTrack(props: Props) {
           Current: N{chromatic} • T{scalar} • t{chordal}
         </Transition>
         <div
-          className="w-full flex relative"
+          className="w-full flex relative justify-end"
           draggable
           onDragStart={cancelEvent}
         >
           {PatternTrackNameField()}
-          {props.row.depth}
           {PatternTrackDropdownMenu()}
         </div>
       </>
@@ -345,7 +349,7 @@ function PatternTrack(props: Props) {
         </div>
       </div>
     );
-  }, [InstrumentEditorButton]);
+  }, [InstrumentEditorButton, MuteButton, SoloButton]);
 
   // Assembled pattern track
   const PatternTrack = useMemo(() => {

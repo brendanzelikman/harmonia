@@ -1,12 +1,12 @@
 import { createSelector } from "reselect";
 import { RootState } from "redux/store";
 import { TrackId } from "types/tracks";
-
 import { Sampler } from "tone";
 import { INSTRUMENTS } from "types";
 
 // Select the ID of a track
 const selectTrackId = (state: RootState, id?: TrackId) => id;
+
 export const selectPatternTrackMap = (state: RootState) =>
   state.session.present.patternTracks.byId;
 export const selectPatternTrackIds = (state: RootState) =>

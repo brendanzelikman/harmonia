@@ -1,4 +1,5 @@
-import { MIDI, Pattern } from "types";
+import { Pattern } from "types/pattern";
+import { MIDI } from "types/midi";
 
 export const Major7thChord: Pattern = {
   id: "major-7th-chord",

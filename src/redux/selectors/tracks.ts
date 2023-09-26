@@ -1,24 +1,19 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { INSTRUMENTS } from "types/instrument";
-import { isScale, rotateScale, transposeScale } from "types/scale";
 import {
-  ScaleTrack,
   Track,
   TrackId,
   TrackType,
+  createScaleTrackMap,
   getScaleTrackScale,
   getTrackParents,
-  isPatternTrack,
   isScaleTrack,
 } from "types/tracks";
 import {
-  getChordalTranspose,
-  getChromaticTranspose,
-  getScalarTranspose,
   getLastTransposition,
-  Transposition,
-  sortTranspositionOffsets,
+  transposeTracksAtTick,
+  applyTranspositionToScaleTrack,
 } from "types/transposition";
 import { Tick } from "types/units";
 import {
@@ -33,8 +28,7 @@ import {
   selectScaleTracks,
 } from "./scaleTracks";
 import { selectTranspositionMap } from "./transpositions";
-import { selectScaleMap } from "./scales";
-import { SessionMapState } from "redux/slices/sessionMap";
+import { getTrackTranspositions } from "types/session";
 
 // Select the ID of a track
 export const selectTrackId = (state: RootState, id?: TrackId) => id;
@@ -59,14 +53,14 @@ export const selectTrack = createSelector(
 
 // Select a track scale from the store
 export const selectTrackScale = createSelector(
-  [selectTrack, selectScaleTrackMap, selectScaleMap],
-  (track, scaleTracks, scales) => {
+  [selectTrack, selectScaleTrackMap],
+  (track, scaleTracks) => {
     if (!track) return;
-    if (isScaleTrack(track)) return getScaleTrackScale(track, { scaleTracks });
+    if (isScaleTrack(track)) return getScaleTrackScale(track, scaleTracks);
     if (!track.parentId) return;
     const scaleTrack = scaleTracks[track.parentId];
     if (!scaleTrack) return;
-    return getScaleTrackScale(scaleTrack, { scaleTracks });
+    return getScaleTrackScale(scaleTrack, scaleTracks);
   }
 );
 
@@ -97,25 +91,7 @@ export const selectInstrument = (state: RootState, trackId: TrackId) => {
 export const selectTrackTranspositions = createSelector(
   [selectTrack, selectTranspositionMap, selectSessionMap],
   (track, transpositions, sessionMap) => {
-    const emptyTranspositions: Transposition[] = [];
-    if (!track) return emptyTranspositions;
-
-    const transpositionIds = sessionMap.byId[track.id]?.transpositionIds;
-    if (!transpositionIds) return emptyTranspositions;
-    return transpositionIds
-      .map((id) => transpositions[id])
-      .filter(Boolean) as Transposition[];
-  }
-);
-
-// Select the scale track of a track
-export const selectTrackScaleTrack = createSelector(
-  [selectTrack, selectScaleTrackMap],
-  (track, scaleTracks) => {
-    if (!track) return;
-    if (isScaleTrack(track)) return track;
-    if (!track.parentId) return;
-    return scaleTracks[track.parentId];
+    return getTrackTranspositions(track, transpositions, sessionMap);
   }
 );
 
@@ -123,22 +99,28 @@ export const selectTrackScaleTrack = createSelector(
 export const selectTrackParents = createSelector(
   [selectTrack, selectScaleTrackMap],
   (track, scaleTracks) => {
-    return getTrackParents(track, { scaleTracks });
+    return getTrackParents(track, scaleTracks);
   }
 );
 
-// Select the scale track transpositions of a track
-export const selectScaleTrackTranspositions = createSelector(
-  [selectTrack, selectTranspositionMap, selectSessionMap],
-  (track, transpositions, sessionMap) => {
-    if (!track) return [];
-    let trackId = track.id;
-    if (isPatternTrack(track)) trackId = track.parentId!;
-    const ids = sessionMap.byId[track.id]?.transpositionIds;
-    if (!ids) return [];
-    return ids
-      .map((id) => transpositions[id])
-      .filter(Boolean) as Transposition[];
+// Select the transpositions of the parent of a tarck
+export const selectTrackParentTranspositions = createSelector(
+  [selectTrackParents, selectTranspositionMap, selectSessionMap],
+  (parents, transpositions, sessionMap) => {
+    return parents.map((track) =>
+      getTrackTranspositions(track, transpositions, sessionMap)
+    );
+  }
+);
+
+// Select the scale track of a track
+export const selectTrackScaleTrack = createSelector(
+  [selectTrack, selectScaleTrackMap],
+  (track, scaleTracks) => {
+    if (!track) return undefined;
+    if (isScaleTrack(track)) return track;
+    if (!track.parentId) return undefined;
+    return scaleTracks[track.parentId];
   }
 );
 
@@ -146,29 +128,31 @@ export const selectScaleTrackTranspositions = createSelector(
 export const selectTrackScaleAtTick = createSelector(
   [
     selectTrackScaleTrack,
-    selectScaleTrackTranspositions,
-    selectScaleTrackMap,
-    (state: RootState, trackId?: string, tick?: Tick) => tick,
+    selectTrackTranspositions,
+    selectTrackParents,
+    selectTrackParentTranspositions,
+    (state: RootState, trackId?: string, tick: Tick = 0) => tick + 1,
   ],
-  (track, trackTranspositions, scaleTracks, tick) => {
+  (track, transpositions, parents, parentTranspositions, tick) => {
     if (!track) return;
 
-    let scale = getScaleTrackScale(track, { scaleTracks });
-    const transposition = getLastTransposition(trackTranspositions, tick);
-    if (!transposition) return scale;
+    // Transpose the parent tracks at the current tick
+    const transposedParents = transposeTracksAtTick(
+      parents,
+      parentTranspositions,
+      tick
+    );
 
-    const offsets = sortTranspositionOffsets(transposition.offsets);
-    for (const id of offsets) {
-      if (id === "_chromatic") {
-        scale = transposeScale(scale, getChromaticTranspose(transposition));
-      } else if (id === "_self") {
-        scale = rotateScale(scale, getChordalTranspose(transposition));
-      } else {
-        scale = transposeScale(scale, getScalarTranspose(transposition, id));
-      }
-    }
+    // Transpose the scale track at the current tick
+    const transposition = getLastTransposition(transpositions, tick, false);
+    const transposedScaleTrack = applyTranspositionToScaleTrack(
+      track,
+      transposition
+    );
 
-    return scale;
+    // Transpose the scale track along the transposed parent scales
+    const scaleTracks = createScaleTrackMap(transposedParents);
+    return getScaleTrackScale(transposedScaleTrack, scaleTracks);
   }
 );
 

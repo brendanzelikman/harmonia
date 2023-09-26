@@ -1,57 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union, without } from "lodash";
 import { ObjectPayload } from "redux/slices";
-import { initializeState, NormalizedState } from "redux/util";
-import {
-  Clip,
-  ClipId,
-  defaultPatternTrack,
-  defaultScaleTrack,
-  TrackId,
-  TrackType,
-} from "types";
-import { Transposition, TranspositionId } from "types/transposition";
+import { TrackId } from "types/tracks";
+import { SliceClipPayload } from "./clips";
+import { defaultSessionMap, SessionEntity } from "types/session";
 
-// A session entity refers to a scale or pattern track and its descendants
-interface SessionEntity {
-  id: TrackId;
-  type: TrackType;
-  depth: number;
-  trackIds: TrackId[];
-  clipIds: ClipId[];
-  transpositionIds: TranspositionId[];
-}
-// The default session entities are the default scale and pattern tracks
-const defaultScaleTrackEntity: SessionEntity = {
-  id: defaultScaleTrack.id,
-  type: defaultScaleTrack.type,
-  depth: 0,
-  trackIds: [defaultPatternTrack.id],
-  clipIds: [],
-  transpositionIds: [],
-};
-const defaultPatternTrackEntity: SessionEntity = {
-  id: defaultPatternTrack.id,
-  type: defaultPatternTrack.type,
-  depth: 1,
-  trackIds: [],
-  clipIds: [],
-  transpositionIds: [],
-};
-
-// The session map uses a normalized state with top-level information
-export interface SessionMapState
-  extends NormalizedState<TrackId, SessionEntity> {
-  topLevelIds: TrackId[];
-}
-const normalizedState = initializeState<TrackId, SessionEntity>([
-  defaultScaleTrackEntity,
-  defaultPatternTrackEntity,
-]);
-const initialState: SessionMapState = {
-  ...normalizedState,
-  topLevelIds: [defaultScaleTrackEntity.id],
-};
+const initialState = defaultSessionMap;
 
 // TRACKS
 
@@ -81,38 +35,16 @@ export type MigrateTrackInSessionPayload = {
 // A track can be cleared of all clips and transpositions
 export type ClearTrackInSessionPayload = TrackId;
 
-// CLIPS
-
-// Clips are added by id to a track
-export type AddClipsToSessionPayload = ObjectPayload;
-
-// Clips are removed by id
-export type RemoveClipsFromSessionPayload = ObjectPayload;
-
-// A clip can be sliced into two new clips
-export type SliceClipInSessionPayload = {
-  oldClipId: ClipId;
-  firstClipId: ClipId;
-  secondClipId: ClipId;
-};
-
-// TRANSPOSITIONS
-
-// Transpositions are added by id to a track
-export type AddTranspositionsToSessionPayload = ObjectPayload;
-
-// A transposition is removed by id
-export type RemoveTranspositionsFromSessionPayload = ObjectPayload;
-
 // CLIPS + TRANSPOSITIONS
-
-// Clips and transpositions can be added together to a track
+export type AddClipsToSessionPayload = ObjectPayload;
+export type RemoveClipsFromSessionPayload = ObjectPayload;
+export type SliceClipInSessionPayload = SliceClipPayload;
+export type AddTranspositionsToSessionPayload = ObjectPayload;
+export type RemoveTranspositionsFromSessionPayload = ObjectPayload;
 export type AddObjectsToSessionPayload = ObjectPayload;
-
-// Clips and transpositions can be removed together
 export type RemoveObjectsFromSessionPayload = ObjectPayload;
 
-// Get the objects of a track
+// Get the objects of a track as a map of track id to object ids
 const getObjectsByTrack = (arr?: { id: string; trackId: TrackId }[]) => {
   if (!arr?.length) return {};
   return arr.reduce((acc, clip) => {
@@ -134,6 +66,7 @@ export const sessionMapSlice = createSlice({
       const { id, parentId, trackIds, clipIds, transpositionIds, index } =
         action.payload;
       if (!id || state.byId[id]) return;
+
       // Create a new scale track entity
       const newScaleTrack: SessionEntity = {
         id,
@@ -148,17 +81,19 @@ export const sessionMapSlice = createSlice({
       if (parentId) {
         const scaleTrack = state.byId[parentId];
         if (!scaleTrack) return;
+        // Set the scale track's depth to one more than its parent
+        newScaleTrack.depth = scaleTrack.depth + 1;
         // Add the scale track to the parent at the specified index or at the end
         if (index !== undefined) {
           scaleTrack.trackIds.splice(index, 0, id);
         } else {
           scaleTrack.trackIds.push(id);
         }
-        newScaleTrack.depth = scaleTrack.depth + 1;
       } else {
         // Otherwise, add the scale track to the top level
         state.topLevelIds.push(id);
       }
+
       // Add the scale track to the session
       state.byId[id] = newScaleTrack;
       state.allIds.push(id);
@@ -172,6 +107,7 @@ export const sessionMapSlice = createSlice({
       if (!id) return;
       const scaleTrack = state.byId[id];
       if (!scaleTrack) return;
+
       // Recursively remove all of the scale track's children if they exist
       const removeChildren = (children: TrackId[]) => {
         children.forEach((childId) => {
@@ -183,6 +119,7 @@ export const sessionMapSlice = createSlice({
         });
       };
       removeChildren(scaleTrack.trackIds);
+
       // Remove the scale track from the session
       delete state.byId[id];
       state.allIds = without(state.allIds, id);
@@ -196,6 +133,7 @@ export const sessionMapSlice = createSlice({
       const { id, parentId, trackIds, clipIds, transpositionIds, index } =
         action.payload;
       if (!id || state.byId[id]) return;
+
       // Create a new pattern track entity
       const newPatternTrack: SessionEntity = {
         id,
@@ -206,6 +144,7 @@ export const sessionMapSlice = createSlice({
         transpositionIds: transpositionIds ?? [],
       };
 
+      // If there is a parent, add the pattern track to the parent
       if (parentId) {
         const scaleTrack = state.byId[parentId];
         if (!scaleTrack) return;
@@ -218,7 +157,7 @@ export const sessionMapSlice = createSlice({
         }
         newPatternTrack.depth = scaleTrack.depth + 1;
       } else {
-        // Otherwise, add the scale track to the top level
+        // Otherwise, add the pattern track to the top level
         state.topLevelIds.push(id);
       }
       // Add the pattern track to the session
@@ -353,18 +292,18 @@ export const sessionMapSlice = createSlice({
       state,
       action: PayloadAction<SliceClipInSessionPayload>
     ) => {
-      const { oldClipId, firstClipId, secondClipId } = action.payload;
-      if (!oldClipId || !firstClipId || !secondClipId) return;
+      const { oldClip, firstClip, secondClip } = action.payload;
+      if (!oldClip || !firstClip || !secondClip) return;
       // Find the track that contains the old clip
       const trackId = state.allIds.find((someId) =>
-        state.byId[someId].clipIds.includes(oldClipId)
+        state.byId[someId].clipIds.includes(oldClip.id)
       );
       if (!trackId) return;
       const track = state.byId[trackId];
       if (!track) return;
       // Add the new clips to the track and remove the old clip
-      track.clipIds = union(track.clipIds, [firstClipId, secondClipId]);
-      track.clipIds = without(track.clipIds, oldClipId);
+      track.clipIds = union(track.clipIds, [firstClip.id, secondClip.id]);
+      track.clipIds = without(track.clipIds, oldClip.id);
     },
     // Add transpositions to a track
     addTranspositionsToSession: (

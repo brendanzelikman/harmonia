@@ -1,5 +1,6 @@
 import { fill } from "lodash";
-import { MIDI, Pattern } from "types";
+import { Pattern } from "types/pattern";
+import { MIDI } from "types/midi";
 
 export const WholeNote: Pattern = {
   id: "whole-note",

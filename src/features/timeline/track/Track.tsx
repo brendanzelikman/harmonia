@@ -46,10 +46,10 @@ export const TrackDropdownMenu = (props: {
   children: JSX.Element;
 }) => {
   return (
-    <Menu as="div" className="relative inline-block text-left z-[90]">
+    <Menu as="div" className="relative inline-block text-left  z-[90]">
       {({ open }) => (
         <>
-          <div>
+          <div className="w-full text-center">
             <Menu.Button
               aria-label="Track Dropdown Menu"
               className={`w-full px-2 rounded ${

@@ -1,13 +1,7 @@
 import * as Scales from "redux/slices/scales";
 import { Note } from "types/units";
 import { connect, ConnectedProps } from "react-redux";
-import ScaleClass, {
-  rotateScale,
-  Scale,
-  ScaleId,
-  ScaleNoId,
-  transposeScale,
-} from "types/scale";
+import ScaleClass, { Scale, ScaleId } from "types/scale";
 import { ScaleEditor } from "./components/ScaleEditor";
 import { EditorProps } from "..";
 import {
@@ -27,7 +21,7 @@ import {
   PresetScaleGroupMap,
   PresetScaleList,
 } from "types/presets/scales";
-import { defaultScale, getScaleTrackNotes, ScaleTrack, TrackId } from "types";
+import { getScaleTrackScale, ScaleTrack, TrackId } from "types";
 import {
   addNoteToScaleTrack,
   clearNotesFromScaleTrack,
@@ -42,8 +36,7 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const scaleTrack = selectScaleTrack(state, trackId);
   const scaleTracks = selectScaleTrackMap(state);
 
-  const notes = getScaleTrackNotes(scaleTrack, { scaleTracks });
-  const scale = { ...defaultScale, notes };
+  const scale = getScaleTrackScale(scaleTrack, scaleTracks);
 
   const { past, future } = state.scales;
   const canUndoScales = past.length > 0 && past[0].allIds.length > 0;
@@ -52,7 +45,6 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const customScales = selectCustomScales(state);
 
   // Get all matching scales
-
   const defaultPresets = Object.values({
     ...PresetScaleGroupMap,
   }).flat();
@@ -135,27 +127,6 @@ const mapDispatchToProps = (dispatch: any) => ({
     if (offset === 0 || isNaN(offset)) return;
     dispatch(rotateScaleTrack(id, offset));
   },
-  randomTransposeScale: (scale: Scale) => {
-    const direction = Math.random() > 0.5 ? 1 : -1;
-    const random_T = Math.abs(Math.floor(Math.random() * 6) - 3) * direction;
-    const random_t = Math.abs(Math.floor(Math.random() * 6) - 3) * -direction;
-    const transposedScale = transposeScale(scale, random_T);
-    dispatch(
-      Scales.updateScale({
-        id: scale.id,
-        notes: rotateScale(transposedScale, random_t).notes,
-      })
-    );
-  },
-  randomizeScale: (id: ScaleId) => {
-    const scales = PresetScaleList;
-    return dispatch(
-      Scales.updateScale({
-        id,
-        notes: scales[Math.floor(Math.random() * scales.length)].notes,
-      })
-    );
-  },
   exportScaleToXML: (scale: Scale) => {
     const xml = ScaleClass.exportToXML(scale);
     if (!xml) return;
@@ -169,12 +140,12 @@ const mapDispatchToProps = (dispatch: any) => ({
     document.body.removeChild(link);
   },
   exportScaleToMIDI: (scale: Scale) => {
-    dispatch(exportScaleToMIDI(scale.id));
+    dispatch(exportScaleToMIDI(scale));
   },
   clearScaleTrack: (id: TrackId) => {
     dispatch(clearNotesFromScaleTrack(id));
   },
-  createScale: (scale: ScaleNoId) => {
+  createScale: (scale: Scale) => {
     return dispatch(
       Scales.createScale({
         notes: scale.notes,
@@ -182,7 +153,8 @@ const mapDispatchToProps = (dispatch: any) => ({
       })
     );
   },
-  deleteScale: (id: ScaleId) => {
+  deleteScale: (id?: ScaleId) => {
+    if (!id) return;
     dispatch(Scales.deleteScale(id));
   },
   playScale: (scale: Scale) => {

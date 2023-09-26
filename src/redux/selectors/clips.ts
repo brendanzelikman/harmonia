@@ -8,16 +8,10 @@ import { selectPatternMap } from "./patterns";
 import { selectPatternTrackMap } from "./patternTracks";
 import { selectScaleTrackMap } from "./scaleTracks";
 import { selectTranspositionMap } from "./transpositions";
-import {
-  PatternTrack,
-  ScaleTrack,
-  TrackId,
-  getScaleTrackScale,
-} from "types/tracks";
-import { chromaticScale } from "types/scale";
+import { TrackId } from "types/tracks";
 import { selectCellWidth, selectTimeline } from "./timeline";
 import { ticksToColumns } from "utils";
-import { GenericScale, getClipStream } from "types";
+import { getClipStream } from "types";
 import { selectSessionMap } from "./tracks";
 
 export const selectClipId = (state: RootState, id: ClipId) => {
@@ -74,32 +68,6 @@ export const selectClipDuration = createSelector(
   (clip, pattern) => {
     if (!clip || !pattern) return 0;
     return getClipTicks(clip, pattern);
-  }
-);
-
-// Select the pattern track of a clip
-export const selectClipPatternTrack = createSelector(
-  [selectClip, selectPatternTrackMap],
-  (clip, patternTracks): PatternTrack | undefined => {
-    return patternTracks[clip?.trackId];
-  }
-);
-
-// Select the scale track of a clip
-export const selectClipScaleTrack = createSelector(
-  [selectClipPatternTrack, selectScaleTrackMap],
-  (patternTrack, scaleTracks): ScaleTrack | undefined => {
-    if (!patternTrack?.parentId) return;
-    return scaleTracks[patternTrack.parentId];
-  }
-);
-
-// Select the scale of a clip from its track
-export const selectClipScale = createSelector(
-  [selectClipScaleTrack, selectScaleTrackMap],
-  (scaleTrack, scaleTracks): GenericScale => {
-    if (!scaleTrack) return chromaticScale;
-    return getScaleTrackScale(scaleTrack, { scaleTracks });
   }
 );
 
@@ -224,18 +192,6 @@ export const getClipChordAtTick = (
 export const selectClipsByTrackIds = createSelector(
   [selectClips, (state: RootState, trackIds: string[]) => trackIds],
   (clips, trackIds) => {
-    return clips.filter((clip) => {
-      return trackIds.includes(clip.trackId);
-    });
-  }
-);
-
-// Select all clips by pattern id
-export const selectClipsByPatternId = createSelector(
-  [selectClips, (state: RootState, patternId: string) => patternId],
-  (clips, patternId) => {
-    return clips.filter((clip) => {
-      return clip.patternId === patternId;
-    });
+    return clips.filter((clip) => trackIds.includes(clip.trackId));
   }
 );

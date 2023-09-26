@@ -5,23 +5,27 @@ import MusicXML from "./musicxml";
 import { Note, Pitch, XML } from "./units";
 import { getScaleKey } from "./key";
 import { DemoXML } from "assets/demoXML";
-import { PresetScaleList, PresetScaleMap } from "./presets/scales";
+import { PresetScaleList } from "./presets/scales";
 
 export type ScaleId = string;
 
 // A scale is a collection of notes that serves as a key for a track.
 // A scale can have a parent, which defines the container for transposition
 export interface Scale {
-  id: ScaleId;
-  name: string;
+  id?: ScaleId;
+  name?: string;
   notes: Note[];
 }
-export const isScale = (obj: any): obj is Scale => {
-  const { id, name, notes } = obj;
-  return id !== undefined && name !== undefined && notes !== undefined;
-};
+export interface ScaleWithId extends Scale {
+  id: ScaleId;
+}
+export interface PresetScale extends ScaleWithId {
+  name: string;
+}
 
-export type ScaleNoId = Omit<Scale, "id">;
+export const isScale = (obj: unknown): obj is Scale => {
+  return (obj as Scale).notes !== undefined;
+};
 
 export const chromaticScale: Scale = {
   id: "chromatic-scale",
@@ -36,7 +40,11 @@ export const testScale = (notes: Note[]) => {
   };
 };
 
-export const getScaleName = (scale?: GenericScale) => {
+export const createScaleTag = (scale: Scale) => {
+  return scale.notes.join(",");
+};
+
+export const getScaleName = (scale?: Scale) => {
   if (!scale) return "No Scale";
   const matchingScales = !!scale
     ? PresetScaleList.filter((p) => Scales.areRelated(scale, p))
@@ -64,7 +72,7 @@ export const getScaleName = (scale?: GenericScale) => {
 export default class Scales {
   public static TrackScaleName = "$$$$$_track_scale_$$$$$";
 
-  public static Pitches(scale: GenericScale) {
+  public static Pitches(scale: Scale) {
     return scale.notes.map((note) => MIDI.toPitchClass(note));
   }
   public static SortPitches(pitches: Pitch[]) {
@@ -103,7 +111,7 @@ export default class Scales {
   }
 
   // Returns true if the two scales are exactly equal
-  static areEqual = (scale1: GenericScale, scale2: GenericScale) => {
+  static areEqual = (scale1: Scale, scale2: Scale) => {
     if (scale1.notes.length !== scale2.notes.length) return false;
     for (let i = 0; i < scale1.notes.length; i++) {
       if (scale1.notes[i] % 12 !== scale2.notes[i] % 12) return false;
@@ -112,7 +120,7 @@ export default class Scales {
   };
 
   // Returns true if the two scales are related by transposition
-  static areRelated = (scale1: GenericScale, scale2: GenericScale) => {
+  static areRelated = (scale1: Scale, scale2: Scale) => {
     if (scale1.notes.length !== scale2.notes.length) return false;
     const length = scale1.notes.length;
 
@@ -130,7 +138,7 @@ export default class Scales {
   };
 
   // Returns true if the two scales are related by rotation
-  static areModes = (scale1: GenericScale, scale2: GenericScale) => {
+  static areModes = (scale1: Scale, scale2: Scale) => {
     for (let i = 0; i < scale1.notes.length; i++) {
       const mode = rotateScale(scale1, i);
       const isEqual = Scales.areEqual(mode, scale2);
@@ -146,29 +154,19 @@ export const defaultScale = {
 };
 
 export const initializeScale = (
-  scale: Partial<ScaleNoId> = defaultScale
-): Scale => ({
+  scale: Partial<Scale> = defaultScale
+): ScaleWithId => ({
   ...defaultScale,
   ...scale,
   id: nanoid(),
 });
 
-export interface GenericScale {
-  [key: string]: any;
-  notes: Note[];
-}
-export const transposeScale = (
-  scale: GenericScale,
-  offset: number
-): GenericScale => ({
+export const transposeScale = (scale: Scale, offset: number): Scale => ({
   ...scale,
   notes: scale.notes.map((note) => note + offset),
 });
 
-export const rotateScale = (
-  scale: GenericScale,
-  offset: number
-): GenericScale => {
+export const rotateScale = (scale: Scale, offset: number): Scale => {
   const length = Math.abs(offset);
   const step = offset > 0 ? 1 : -1;
   const modulus = scale.notes.length;

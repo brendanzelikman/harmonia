@@ -88,6 +88,15 @@ export function Timeline(props: TimelineProps) {
     return rows;
   }, [props.dependencyMap]);
 
+  const trackRowMap = useMemo(() => {
+    const trackRowMap: Record<TrackId, Row> = {};
+    rows.forEach((row) => {
+      if (!row.trackId) return;
+      trackRowMap[row.trackId] = row;
+    });
+    return trackRowMap;
+  }, [rows]);
+
   // Create the track column for the DataGrid
   const trackColumn = useMemo(
     (): Column<Row> => ({
@@ -173,17 +182,22 @@ export function Timeline(props: TimelineProps) {
       <>
         <TimelineBackground rows={rows} columns={columns} timeline={timeline} />
         <TimelineCursor timeline={timeline} />
-        <TimelineClips timeline={timeline} rows={rows} />
+        <TimelineClips
+          timeline={timeline}
+          rows={rows}
+          trackRowMap={trackRowMap}
+        />
         <TimelineTranspositions
           timeline={timeline}
           rows={rows}
+          trackRowMap={trackRowMap}
           backgroundWidth={
             columns.length * props.cellWidth + Constants.TRACK_WIDTH
           }
         />
       </>
     );
-  }, [timeline, rows, columns, props.cellWidth]);
+  }, [timeline, rows, trackRowMap, columns, props.cellWidth]);
 
   return (
     <div id="timeline" className="relative w-full h-full">

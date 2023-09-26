@@ -38,18 +38,9 @@ export const readMIDIFiles = (): AppThunk => (dispatch, getState) => {
 };
 
 export const playPattern =
-  (patternOrId: Pattern | PatternId): AppThunk =>
+  (pattern: Pattern): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
-    let pattern: Pattern | undefined;
-
-    if (typeof patternOrId === "string") {
-      pattern = selectPattern(state, patternOrId);
-    } else {
-      pattern = patternOrId;
-    }
-    if (!pattern) return;
-
     const sampler = getGlobalSampler();
     if (!sampler?.loaded) return;
 

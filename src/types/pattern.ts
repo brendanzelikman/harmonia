@@ -3,13 +3,12 @@ import { ticksToDuration, mod, ticksToToneSubdivision } from "utils";
 import { MIDI } from "./midi";
 import MusicXML from "./musicxml";
 import Scales, {
-  GenericScale,
   Scale,
   ScaleId,
   chromaticScale,
   transposeScale,
 } from "./scale";
-import { Key, Note, Pitch, Tick, Time, Velocity, XML } from "./units";
+import { Key, Pitch, Tick, Time, Velocity, XML } from "./units";
 import { inRange } from "lodash";
 import { Sampler } from "tone";
 import { InstrumentKey, isSamplerLoaded } from "./instrument";
@@ -44,6 +43,7 @@ export const isPattern = (obj: any): obj is Pattern => {
   return id !== undefined && name !== undefined && stream !== undefined;
 };
 export type PatternNoId = Omit<Pattern, "id">;
+export type PatternMap = Record<PatternId, Pattern>;
 
 export const initializePattern = (
   pattern: Partial<PatternNoId> = defaultPattern
@@ -66,7 +66,6 @@ export const testPattern = (stream: PatternStream = []) => {
     stream,
   };
 };
-
 // A pattern note is defined by a MIDI number, a velocity, and a duration in ticks
 export type PatternNote = {
   MIDI: number;
@@ -200,10 +199,9 @@ export const getStreamMidiNotes = (stream?: PatternStream) => {
 export const transposePatternStream = (
   stream: PatternStream,
   steps: number,
-  scale: GenericScale = chromaticScale
+  scale: Scale = chromaticScale
 ): PatternStream => {
   if (!stream.length) return stream;
-  if (!steps) return stream;
   const transposedStream: PatternStream = [];
   for (let i = 0; i < stream.length; i++) {
     const chord = stream[i];
@@ -217,10 +215,10 @@ export const transposePatternStream = (
 export const transposePatternChord = (
   chord: PatternChord,
   steps: number,
-  scale: GenericScale = chromaticScale,
+  scale: Scale = chromaticScale,
   stream?: PatternStream
 ): PatternChord => {
-  if (!chord.length) return chord;
+  if (!chord.length) return [];
   if (chord.some((note) => MIDI.isRest(note))) return chord;
 
   // Get the scale pitches and modulus/direction

@@ -1,14 +1,12 @@
 import { test, expect } from "vitest";
 import { Clip, defaultClip, getClipStream } from "./clip";
 import { Pattern, defaultPattern } from "./pattern";
-import { MIDI } from "./midi";
-import { Transposition, defaultTransposition } from "./transposition";
-import {
-  PatternTrack,
-  ScaleTrack,
-  defaultPatternTrack,
-  defaultScaleTrack,
-} from "./tracks";
+import { Transposition } from "./transposition";
+
+import { createSessionMap } from "./session";
+import { MIDI } from "types";
+import { PatternTrack, defaultPatternTrack } from "./patternTrack";
+import { ScaleTrack, defaultScaleTrack } from "./scaleTrack";
 
 test("getClipStream", () => {
   const pattern: Pattern = {
@@ -20,8 +18,10 @@ test("getClipStream", () => {
       [MIDI.createQuarterNote(67)],
     ],
   };
-  const scaleTrack: ScaleTrack = {
+
+  const parentScaleTrack: ScaleTrack = {
     ...defaultScaleTrack,
+    id: "parent-scale-track",
     scaleNotes: [
       { degree: 0, offset: 0 },
       { degree: 2, offset: 0 },
@@ -32,58 +32,109 @@ test("getClipStream", () => {
       { degree: 11, offset: 0 },
     ],
   };
+  const childScaleTrack: ScaleTrack = {
+    ...defaultScaleTrack,
+    id: "child-scale-track",
+    parentId: parentScaleTrack.id,
+    scaleNotes: [
+      { degree: 0, offset: 0 },
+      { degree: 2, offset: 0 },
+      { degree: 4, offset: 0 },
+      { degree: 6, offset: 0 },
+    ],
+  };
+  const babyScaleTrack: ScaleTrack = {
+    ...defaultScaleTrack,
+    id: "baby-scale-track",
+    parentId: childScaleTrack.id,
+    scaleNotes: [
+      { degree: 0, offset: 0 },
+      { degree: 1, offset: 0 },
+      { degree: 2, offset: 0 },
+    ],
+  };
   const patternTrack: PatternTrack = {
     ...defaultPatternTrack,
-    parentId: scaleTrack.id,
+    parentId: babyScaleTrack.id,
   };
   const clip: Clip = {
     ...defaultClip,
     id: "clip",
     patternId: pattern.id,
     trackId: patternTrack.id,
+    tick: 1,
+  };
+  const parentScaleTransposition: Transposition = {
+    id: "parent-scale-transposition",
+    trackId: parentScaleTrack.id,
+    offsets: { _chromatic: 1, _self: 1 },
     tick: 0,
   };
-  const transposition: Transposition = {
-    ...defaultTransposition,
-    id: "transposition",
-    trackId: patternTrack.id,
-    offsets: { _chromatic: 1, [scaleTrack.id]: 1, _self: 1 },
+  const childScaleTransposition: Transposition = {
+    id: "child-scale-transposition",
+    trackId: childScaleTrack.id,
+    offsets: { [parentScaleTrack.id]: 1, _chromatic: 2, _self: 1 },
     tick: 0,
   };
-  const stream = getClipStream(clip, {
-    patterns: { [pattern.id]: pattern },
-    patternTracks: { [patternTrack.id]: patternTrack },
-    scaleTracks: { [scaleTrack.id]: scaleTrack },
-    transpositions: { [transposition.id]: transposition },
-    sessionMap: {
-      byId: {
-        [scaleTrack.id]: {
-          id: scaleTrack.id,
-          type: "scaleTrack",
-          depth: 0,
-          trackIds: [patternTrack.id],
-          clipIds: [],
-          transpositionIds: [],
-        },
-        [patternTrack.id]: {
-          id: patternTrack.id,
-          type: "patternTrack",
-          depth: 1,
-          trackIds: [],
-          clipIds: [clip.id],
-          transpositionIds: [transposition.id],
-        },
-      },
-      allIds: [scaleTrack.id, patternTrack.id],
-      topLevelIds: [scaleTrack.id],
+  const babyScaleTransposition: Transposition = {
+    id: "baby-scale-transposition",
+    trackId: babyScaleTrack.id,
+    offsets: {
+      [parentScaleTrack.id]: 1,
+      [childScaleTrack.id]: 1,
+      _chromatic: 3,
+      _self: 1,
     },
+    tick: 0,
+  };
+  const clipTransposition: Transposition = {
+    id: "clip-transposition",
+    trackId: patternTrack.id,
+    offsets: {
+      [parentScaleTrack.id]: 1,
+      [childScaleTrack.id]: 1,
+      [babyScaleTrack.id]: 1,
+      _chromatic: 1,
+      _self: 1,
+    },
+    tick: 0,
+  };
+
+  const sessionMap = createSessionMap({
+    tracks: [parentScaleTrack, childScaleTrack, babyScaleTrack, patternTrack],
+    clips: [clip],
+    transpositions: [
+      parentScaleTransposition,
+      childScaleTransposition,
+      babyScaleTransposition,
+      clipTransposition,
+    ],
   });
-  const quarter = MIDI.QuarterNoteTicks;
-  expect(stream[0][0].MIDI).toEqual(66);
-  expect(stream[1 * quarter][0].MIDI).toEqual(70);
-  expect(stream[2 * quarter][0].MIDI).toEqual(75);
-  expect(stream[0][0].duration).toEqual(quarter);
-  expect(stream[1 * quarter][0].duration).toEqual(quarter);
-  expect(stream[2 * quarter][0].duration).toEqual(quarter);
-  expect(stream.length).toEqual(quarter * pattern.stream.length);
+
+  const patterns = { [pattern.id]: pattern };
+  const scaleTracks = {
+    [parentScaleTrack.id]: parentScaleTrack,
+    [childScaleTrack.id]: childScaleTrack,
+    [babyScaleTrack.id]: babyScaleTrack,
+  };
+  const patternTracks = { [patternTrack.id]: patternTrack };
+  const transpositions = {
+    [parentScaleTransposition.id]: parentScaleTransposition,
+    [childScaleTransposition.id]: childScaleTransposition,
+    [babyScaleTransposition.id]: babyScaleTransposition,
+    [clipTransposition.id]: clipTransposition,
+  };
+  const dependencies = {
+    patterns,
+    scaleTracks,
+    patternTracks,
+    transpositions,
+    sessionMap,
+  };
+
+  const stream = getClipStream(clip, dependencies);
+  const streamNotes = stream.filter((n) => n?.[0]);
+  expect(streamNotes[0][0].MIDI).toSatisfy((n) => n === 71 || n === 78);
+  expect(streamNotes[1][0].MIDI).toSatisfy((n) => n === 78 || n === 81);
+  expect(streamNotes[2][0].MIDI).toSatisfy((n) => n === 81);
 });

@@ -1,7 +1,13 @@
 import { connect, ConnectedProps } from "react-redux";
 import { useCallback } from "react";
 import { createPortal } from "react-dom";
-import { selectClips, selectRoot, selectTranspositions } from "redux/selectors";
+import {
+  selectClips,
+  selectRoot,
+  selectSelectedClips,
+  selectSelectedTranspositions,
+  selectTranspositions,
+} from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Clip, ClipId } from "types/clip";
 import { JSON } from "types/units";
@@ -21,22 +27,28 @@ import {
   createTranspositions,
   updateTranspositions,
 } from "redux/slices/transpositions";
+import { TrackId } from "types";
 
 export type ClipStreamRecord = Record<ClipId, JSON<PatternStream>>;
 interface TimelineClipsProps {
   timeline: DataGridHandle;
   rows: Row[];
+  trackRowMap: Record<TrackId, Row>;
 }
 
 const mapStateToProps = (state: RootState, ownProps: TimelineClipsProps) => {
   const clips = selectClips(state);
   const transpositions = selectTranspositions(state);
   const { selectedClipIds, selectedTranspositionIds } = selectRoot(state);
+  const selectedClips = selectSelectedClips(state);
+  const selectedTranspositions = selectSelectedTranspositions(state);
 
   return {
     ...ownProps,
     clips,
     transpositions,
+    selectedClips,
+    selectedTranspositions,
     selectedClipIds: selectedClipIds || [],
     selectedTranspositionIds: selectedTranspositionIds || [],
   };

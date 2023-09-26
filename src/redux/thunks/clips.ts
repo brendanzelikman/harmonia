@@ -31,13 +31,8 @@ import {
   getScalarTranspose,
 } from "types/transposition";
 import { Tick } from "types/units";
-import {
-  createClipsAndTranspositions,
-  deleteClipsAndTranspositions,
-} from "redux/slices/clips";
+import { createClipsAndTranspositions } from "redux/slices/clips";
 import { Row } from "features/timeline";
-import { subdivisionToTicks } from "utils";
-import { setClipboard } from "redux/slices/timeline";
 import { convertTicksToSeconds } from "redux/slices/transport";
 import { sliceClipInSession } from "redux/slices/sessionMap";
 
@@ -80,6 +75,10 @@ export const repeatClips =
     let newClips: Clip[] = [];
     let newTranspositions: Transposition[] = [];
 
+    const clipTranspositions = clips.map((clip) =>
+      Selectors.selectClipTranspositions(state, clip.id)
+    );
+
     for (let i = 1; i <= repeatCount; i++) {
       // Move the clips
       const movedClips = clips.map((clip) => ({
@@ -91,35 +90,29 @@ export const repeatClips =
       // Move the transpositions
       if (repeatTranspositions) {
         clips.forEach((clip, j) => {
-          const clipTranspositions = Selectors.selectClipTranspositions(
-            state,
-            clip.id
-          );
-          const currentTranspositions = clipTranspositions.filter(
-            (t: Transposition) =>
-              inRange(t.tick, clip.tick, clip.tick + clipTicks[j])
+          const transpositions = clipTranspositions[j];
+          const currentTranspositions = transpositions.filter((t) =>
+            inRange(t.tick, clip.tick, clip.tick + clipTicks[j])
           );
           if (currentTranspositions.length) {
-            const movedTranspositions = currentTranspositions.map(
-              (t: Transposition) => {
-                const tChromatic = getChromaticTranspose(t);
-                const tScalar = getScalarTranspose(t);
-                const tChordal = getChordalTranspose(t);
-                return {
-                  ...t,
-                  tick: t.tick + i * totalTicks,
-                  chromaticTransposition: repeatWithTransposition
-                    ? tChromatic + i * toolkitChromatic
-                    : tChromatic,
-                  scalarTransposition: repeatWithTransposition
-                    ? tScalar + i * toolkitScalar
-                    : tScalar,
-                  chordalTransposition: repeatWithTransposition
-                    ? tChordal + i * toolkitChordal
-                    : tChordal,
-                };
-              }
-            );
+            const movedTranspositions = currentTranspositions.map((t) => {
+              const tChromatic = getChromaticTranspose(t);
+              const tScalar = getScalarTranspose(t);
+              const tChordal = getChordalTranspose(t);
+              return {
+                ...t,
+                tick: t.tick + i * totalTicks,
+                chromaticTransposition: repeatWithTransposition
+                  ? tChromatic + i * toolkitChromatic
+                  : tChromatic,
+                scalarTransposition: repeatWithTransposition
+                  ? tScalar + i * toolkitScalar
+                  : tScalar,
+                chordalTransposition: repeatWithTransposition
+                  ? tChordal + i * toolkitChordal
+                  : tChordal,
+              };
+            });
             newTranspositions = [...newTranspositions, ...movedTranspositions];
           }
         });
@@ -140,6 +133,8 @@ export const mergeClips =
     const root = Selectors.selectRoot(state);
     const { toolkit } = root;
     const { mergeName, mergeTranspositions } = toolkit;
+    const selectedTranspositions =
+      Selectors.selectSelectedTranspositions(state);
     if (!clips || !clips.length) return;
     const sortedClips = clips.sort((a, b) => a.tick - b.tick);
     let oldTranspositions: Transposition[] = [];
@@ -164,7 +159,7 @@ export const mergeClips =
         const ticks = getClipTicks(clip, pattern);
         oldTranspositions = union(
           oldTranspositions,
-          Object.values(transpositions).filter((t) =>
+          selectedTranspositions.filter((t) =>
             inRange(t.tick, clip.tick, clip.tick + ticks)
           )
         );
@@ -228,36 +223,33 @@ export const sliceClip =
     const state = getState();
 
     // Get the clip from the store
-    const clip = Selectors.selectClip(state, clipId);
-    if (!clip) return;
+    const oldClip = Selectors.selectClip(state, clipId);
+    if (!oldClip) return;
 
     const stream = Selectors.selectClipStream(state, clipId);
 
-    const splitTick = tick - clip.tick;
-    if (tick === clip.tick || splitTick === stream.length) return;
+    const splitTick = tick - oldClip.tick;
+    if (tick === oldClip.tick || splitTick === stream.length) return;
 
     // Create two new clips pivoting at the tick
     const firstClip = initializeClip({
-      ...clip,
+      ...oldClip,
       duration: splitTick,
     });
     const secondClip = initializeClip({
-      ...clip,
+      ...oldClip,
       tick,
-      offset: clip.offset + splitTick,
+      offset: oldClip.offset + splitTick,
       duration: stream.length - splitTick,
     });
 
-    // Create the new clips
+    // Deselect the clip
     dispatch(deselectClip(clipId));
-    dispatch(Clips._sliceClip({ oldClip: clip, firstClip, secondClip }));
-    dispatch(
-      sliceClipInSession({
-        oldClipId: clipId,
-        firstClipId: firstClip.id,
-        secondClipId: secondClip.id,
-      })
-    );
+
+    // Slice the clip
+    const payload = { oldClip, firstClip, secondClip };
+    dispatch(Clips._sliceClip(payload));
+    dispatch(sliceClipInSession(payload));
   };
 
 export const exportClipsToMidi =

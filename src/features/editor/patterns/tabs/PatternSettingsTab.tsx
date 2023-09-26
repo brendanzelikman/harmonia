@@ -6,9 +6,11 @@ import {
   Pitch,
   Scale,
   ScaleId,
+  createScaleTag,
   defaultPatternOptions,
 } from "types";
 import { PresetScaleList, PresetScaleMap } from "types/presets/scales";
+import { nanoid } from "@reduxjs/toolkit";
 
 interface PatternSettingsProps extends PatternEditorProps {
   instrument: InstrumentKey;
@@ -67,7 +69,7 @@ export function PatternSettingsTab(props: PatternSettingsProps) {
         <Editor.CustomListbox
           value={scaleId}
           setValue={setScaleId}
-          options={PresetScaleList.map(({ id }) => id)}
+          options={PresetScaleList.map((s) => s?.id || createScaleTag(s))}
           getOptionName={(id) => PresetScaleMap[id]?.name ?? "Unknown Scale"}
         />
       </div>
