@@ -14,9 +14,7 @@ import {
 import { initializeState } from "redux/util";
 import { AppThunk } from "redux/store";
 import { selectRoot } from "redux/selectors";
-
 import { MIDI } from "types/midi";
-
 import { setSelectedPattern } from "./root";
 import { clamp, random, reverse, shuffle, union } from "lodash";
 import { mod } from "utils";

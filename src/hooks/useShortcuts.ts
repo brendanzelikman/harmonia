@@ -17,7 +17,6 @@ import {
   selectTimeline,
 } from "redux/selectors";
 import * as Thunks from "redux/thunks";
-import * as Root from "redux/slices/root";
 import * as Timeline from "redux/slices/timeline";
 import { UndoTypes } from "redux/undoTypes";
 import { clearState, readFiles, saveStateToFile } from "redux/util";
@@ -27,6 +26,7 @@ import { useEffect } from "react";
 import { Clip } from "types/clip";
 import { Transposition } from "types/transposition";
 import { hideEditor, showEditor } from "redux/slices/editor";
+import { deselectAllClips, deselectAllTranspositions } from "redux/slices/root";
 
 export default function useShortcuts() {
   const dispatch = useDispatch();
@@ -243,8 +243,8 @@ export default function useShortcuts() {
             dispatch(hideEditor());
           } else {
             // dispatch(Root.setSelectedTrack(undefined));
-            dispatch(Root.deselectAllClips());
-            dispatch(Root.deselectAllTranspositions());
+            dispatch(deselectAllClips());
+            dispatch(deselectAllTranspositions());
           }
         },
       },

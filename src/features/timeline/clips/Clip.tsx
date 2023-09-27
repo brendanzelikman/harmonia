@@ -135,12 +135,14 @@ function TimelineClip(props: ClipProps) {
   const ClipName = useMemo(() => {
     return () => (
       <label
-        className={`h-6 flex items-center shrink-0 text-xs text-white/80 font-medium p-1 border-b border-b-white/20 ${props.headerColor} whitespace-nowrap overflow-ellipsis`}
+        className={`h-6 flex items-center shrink-0 text-xs text-white/80 font-medium p-1 border-b border-b-white/20 ${
+          props.headerColor
+        } whitespace-nowrap overflow-ellipsis ${isSelected ? "italic" : ""}`}
       >
         {name}
       </label>
     );
-  }, [name, headerColor]);
+  }, [name, headerColor, isSelected]);
 
   // Clip body
   const ClipBody = useMemo(() => {

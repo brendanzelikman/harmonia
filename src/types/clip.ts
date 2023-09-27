@@ -166,7 +166,7 @@ export const getClipStream = (
     // Increment the chord count and continue if rest
     chordCount += 1;
     if (MIDI.isRest(chord)) {
-      stream.push([]);
+      stream.push(chord);
       continue;
     }
 

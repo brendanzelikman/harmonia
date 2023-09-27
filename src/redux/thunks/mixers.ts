@@ -1,7 +1,11 @@
-import { selectMixerById, selectPatternTrackByMixerId } from "redux/selectors";
+import {
+  selectMixerById,
+  selectPatternTrack,
+  selectPatternTrackByMixerId,
+} from "redux/selectors";
 import { updateMixer } from "redux/slices/mixers";
 import { AppThunk } from "redux/store";
-import { MixerId } from "types";
+import { MixerId, TrackId } from "types";
 import { INSTRUMENTS } from "types/instrument";
 
 export const setMixerVolume =
@@ -86,4 +90,56 @@ export const setMixerSolo =
 
     // Update the live mixer
     liveMixer.solo = solo;
+  };
+
+export const toggleTrackMute =
+  (trackId: TrackId): AppThunk =>
+  (dispatch, getState) => {
+    // Get the state mixer
+    const state = getState();
+    const track = selectPatternTrack(state, trackId);
+    if (!track) return;
+    const stateMixer = selectMixerById(state, track.mixerId);
+    if (!stateMixer) return;
+
+    // Get the live mixer
+    const liveMixer = INSTRUMENTS[track.id]?.mixer;
+    if (!liveMixer) return;
+
+    // Update the state mixer
+    dispatch(
+      updateMixer({
+        mixerId: stateMixer.id,
+        update: { mute: !stateMixer.mute },
+      })
+    );
+
+    // Update the live mixer
+    liveMixer.mute = !liveMixer.mute;
+  };
+
+export const toggleTrackSolo =
+  (trackId: TrackId): AppThunk =>
+  (dispatch, getState) => {
+    // Get the state mixer
+    const state = getState();
+    const track = selectPatternTrack(state, trackId);
+    if (!track) return;
+    const stateMixer = selectMixerById(state, track.mixerId);
+    if (!stateMixer) return;
+
+    // Get the live mixer
+    const liveMixer = INSTRUMENTS[track.id]?.mixer;
+    if (!liveMixer) return;
+
+    // Update the state mixer
+    dispatch(
+      updateMixer({
+        mixerId: stateMixer.id,
+        update: { solo: !stateMixer.solo },
+      })
+    );
+
+    // Update the live mixer
+    liveMixer.solo = !liveMixer.solo;
   };

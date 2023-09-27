@@ -1,12 +1,16 @@
 import { connect, ConnectedProps } from "react-redux";
-import { TrackId, TrackType } from "types/tracks";
+import { PatternTrack, Track, TrackId, TrackType } from "types/tracks";
 import { AppDispatch, RootState } from "redux/store";
 import { Timeline } from "./components/Timeline";
 import "react-data-grid/lib/styles.css";
 import { setSelectedTrack } from "redux/slices/root";
 import * as Selectors from "redux/selectors";
 import { createScaleTrack } from "redux/thunks/tracks";
-import { pasteSelectedClipsAndTranspositions } from "redux/thunks";
+import {
+  pasteSelectedClipsAndTranspositions,
+  toggleTrackMute,
+  toggleTrackSolo,
+} from "redux/thunks";
 import {
   offsetSelectedTranspositions,
   updateSelectedTranspositions,
@@ -54,6 +58,14 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     },
     updateSelectedTranspositions: (update: TranspositionOffsetRecord) => {
       dispatch(updateSelectedTranspositions(update));
+    },
+    toggleTrackMute: (trackId?: TrackId) => {
+      if (!trackId) return;
+      dispatch(toggleTrackMute(trackId));
+    },
+    toggleTrackSolo: (trackId?: TrackId) => {
+      if (!trackId) return;
+      dispatch(toggleTrackSolo(trackId));
     },
   };
 }

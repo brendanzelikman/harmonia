@@ -118,6 +118,7 @@ interface StreamInfo {
   trackId: TrackId;
   chord: PatternChord;
 }
+type TickRecord = Record<Tick, StreamInfo[]>;
 
 export const selectChordsByTicks = createSelector(
   [
@@ -129,6 +130,7 @@ export const selectChordsByTicks = createSelector(
     selectSessionMap,
   ],
   (clips, patterns, patternTracks, scaleTracks, transpositions, sessionMap) => {
+    // Get the clip streams for each clip
     const clipStreams = clips.map((clip) => {
       return getClipStream(clip, {
         patterns,
@@ -138,28 +140,27 @@ export const selectChordsByTicks = createSelector(
         sessionMap,
       });
     });
-    return clips.reduce((acc, clip, i) => {
-      const patternTrack = patternTracks[clip.trackId];
-      if (!patternTrack?.parentId) return acc;
-      const scaleTrack = scaleTracks[patternTrack.parentId];
-      if (!scaleTrack) return acc;
 
+    // Reduce the clip streams into a map of chords by tick
+    return clips.reduce((acc, clip, i) => {
+      // Get the corresponding stream
       const stream = clipStreams[i];
       if (!stream) return acc;
 
       const length = stream.length;
-      let newAcc = acc;
       for (let i = 0; i < length; i++) {
+        // Get the tick and chord
         const tick = clip.tick + i;
         const chord = getClipChordAtTick(stream, i);
-        if (!chord?.length) continue;
+        if (!chord) continue;
 
+        // Add the chord to the map
         const block = { trackId: clip.trackId, chord };
-        if (!newAcc[tick]) newAcc[tick] = [];
-        newAcc[tick].push(block);
+        if (!acc[tick]) acc[tick] = [];
+        acc[tick].push(block);
       }
       return acc;
-    }, {} as Record<Tick, StreamInfo[]>);
+    }, {} as TickRecord);
   }
 );
 
@@ -177,6 +178,7 @@ export const selectTransportEndTick = createSelector(
   }
 );
 
+// Get the chord at a given tick
 export const getClipChordAtTick = (
   stream: PatternStream,
   tick: Tick

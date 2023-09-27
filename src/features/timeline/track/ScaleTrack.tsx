@@ -126,12 +126,21 @@ function ScaleTrack(props: Props) {
           className="flex-auto h-7 bg-zinc-800 px-1 mr-2 caret-white outline-none rounded-md overflow-ellipsis text-sm text-white border-2 border-zinc-800 focus:border-indigo-500/50"
           onKeyDown={ScaleTrackName.onKeyDown}
         />
-        <label className="font-light w-4 text-center">
+        <label
+          className={`w-4 text-center ${
+            props.isScaleSelected ? "text-fuchsia-400 font-bold" : "font-light"
+          }`}
+        >
           {props.row.depth + 1}
         </label>
       </>
     );
-  }, [placeholder, ScaleTrackName.value, props.row.depth]);
+  }, [
+    placeholder,
+    ScaleTrackName.value,
+    props.row.depth,
+    props.isScaleSelected,
+  ]);
 
   // Scale editor button
   const ScaleEditorButton = useMemo(() => {

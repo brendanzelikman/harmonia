@@ -43,7 +43,7 @@ export type RepeatOptions = {
 };
 export const repeatClips =
   (
-    clipIds: ClipId[],
+    clips: Clip[],
     options?: RepeatOptions
   ): AppThunk<
     Promise<{ clipIds: ClipId[]; transpositionIds: TranspositionId[] }>
@@ -62,7 +62,6 @@ export const repeatClips =
     const toolkitScalar = getScalarTranspose(transpositionOffsets);
     const toolkitChordal = getChordalTranspose(transpositionOffsets);
 
-    const clips = Selectors.selectClipsByIds(state, clipIds);
     const clipTicks = clips.map((clip) =>
       Selectors.selectClipDuration(state, clip?.id)
     );

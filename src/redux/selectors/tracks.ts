@@ -156,28 +156,30 @@ export const selectTrackScaleAtTick = createSelector(
   }
 );
 
+// The essential information needed to render a track
+type TrackInfo = {
+  id: TrackId;
+  trackIds: TrackId[];
+  type: TrackType;
+  depth: number;
+};
+
+type TrackInfoRecord = {
+  byId: Record<TrackId, TrackInfo>;
+  allIds: TrackId[];
+  topLevelIds: TrackId[];
+};
+
+// Select the session map as a simplified record
 export const selectTrackDependencies = createSelector(
   [selectSessionMap],
-  (sessionMap) => {
-    const dependencies = {
-      topLevelIds: [] as string[],
-      byId: {} as Record<
-        string,
-        { id: string; trackIds: string[]; depth: number; type: TrackType }
-      >,
-      allIds: [] as string[],
-    };
-    dependencies["topLevelIds"] = sessionMap.topLevelIds;
-    dependencies["allIds"] = Object.keys(sessionMap.byId);
-    const tracks = Object.values(sessionMap.byId);
-    tracks.forEach((track) => {
-      dependencies.byId[track.id] = {
-        id: track.id,
-        trackIds: track.trackIds,
-        type: track.type,
-        depth: track.depth,
-      };
-    });
-    return dependencies;
-  }
+  (sessionMap): TrackInfoRecord => ({
+    ...sessionMap,
+    byId: Object.keys(sessionMap.byId).reduce((acc, id) => {
+      const track = sessionMap.byId[id];
+      const { trackIds, type, depth } = track;
+      acc[id] = { id, trackIds, type, depth };
+      return acc;
+    }, {} as Record<TrackId, TrackInfo>),
+  })
 );

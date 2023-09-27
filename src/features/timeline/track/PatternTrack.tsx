@@ -28,7 +28,7 @@ import { moveTrackInSession } from "redux/slices/sessionMap";
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const { selectedTrackId, scaleTrack } = ownProps;
   const track = ownProps.track as PatternTrackType;
-  const isSelected = selectedTrackId && track.id === selectedTrackId;
+  const isSelected = !!selectedTrackId && track.id === selectedTrackId;
 
   // Track instrument
   const instrumentName = getInstrumentName(track.instrument);
@@ -47,6 +47,7 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
     track,
     scaleTrack,
     mixerId: mixer?.id,
+    isSelected,
     onInstrumentEditor,
     instrumentName,
     volume,
@@ -341,7 +342,7 @@ function PatternTrack(props: Props) {
         onDragStart={cancelEvent}
       >
         <InstrumentEditorButton />
-        <div className="flex flex-col pl-2 ml-auto mr-1 space-y-1 select-none">
+        <div className="flex flex-col pl-2 ml-auto mr-1 space-y-1">
           <div className="flex space-x-1">
             <MuteButton />
             <SoloButton />
@@ -357,7 +358,7 @@ function PatternTrack(props: Props) {
       <div
         className={`rdg-track p-2 px-4 pl-1 flex h-full bg-gradient-to-r from-sky-800 to-emerald-500/50 text-white border-b border-b-white/20 ${
           isDragging ? "opacity-75" : ""
-        } ${props.isTrackSelected ? "bg-slate-500/50" : ""}`}
+        } ${props.isSelected ? "bg-slate-500/50" : ""}`}
         ref={trackRef}
         onClick={() => props.selectTrack(track.id)}
       >
@@ -368,7 +369,13 @@ function PatternTrack(props: Props) {
         </div>
       </div>
     );
-  }, [PatternTrackSliders, PatternTrackHeader, PatternTrackBody, isDragging]);
+  }, [
+    PatternTrackSliders,
+    PatternTrackHeader,
+    PatternTrackBody,
+    isDragging,
+    props.isSelected,
+  ]);
 
   return PatternTrack;
 }

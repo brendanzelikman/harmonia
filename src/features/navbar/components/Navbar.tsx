@@ -9,13 +9,14 @@ import { Transition } from "@headlessui/react";
 import PatternListbox from "./PatternListbox";
 import OnboardingTour from "./OnboardingTour";
 import {
+  blurOnEnter,
   cancelEvent,
   isHoldingCommand,
   isHoldingShift,
   isInputEvent,
 } from "utils";
 import useEventListeners from "hooks/useEventListeners";
-import { useState } from "react";
+import { InputHTMLAttributes, useState } from "react";
 
 export function Navbar() {
   const [showNavbar, setShowNavbar] = useState(true);
@@ -165,13 +166,16 @@ export const NavbarFormLabel = (props: any) => (
   </label>
 );
 
-export const NavbarFormInput = (props: any, ref?: any) => (
+interface NavbarFormInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  className?: string;
+}
+export const NavbarFormInput = (props: NavbarFormInputProps) => (
   <input
     {...props}
-    onChange={props.onChange}
-    className={`h-8 block px-2 bg-transparent rounded-lg text-sm focus:outline-none focus:ring-0 appearance-none ${
+    className={`h-8 block px-2 bg-transparent rounded-lg text-sm focus:outline-none placeholder-slate-400 focus:ring-0 appearance-none ${
       props.className ?? ""
     }`}
+    onKeyDown={blurOnEnter}
   />
 );
 

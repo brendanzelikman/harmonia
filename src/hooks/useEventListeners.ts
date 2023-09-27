@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { keyCode } from "utils";
 
 type Callback = (e: Event) => void;
 type KeyMap = Record<string, Record<string, Callback>>;

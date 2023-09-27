@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { convertTicksToSeconds } from "redux/slices/transport";
-import { Duration, MIDI, Tick, Transport, defaultTransport } from "types";
+import { Duration, MIDI, Tick, defaultTransport } from "types";
 import { durationToTicks } from "utils";
 import useAnimationFrame from "./useAnimationFrame";
 import useMetronome from "./useMetronome";

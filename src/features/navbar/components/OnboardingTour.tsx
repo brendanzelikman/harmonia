@@ -9,7 +9,6 @@ import { setTimelineState } from "redux/slices/timeline";
 import * as Root from "redux/slices/root";
 import { AppDispatch, RootState } from "redux/store";
 import { EditorId } from "types/editor";
-import { selectRoot } from "redux/selectors";
 
 const mapStateToProps = (state: RootState) => ({});
 

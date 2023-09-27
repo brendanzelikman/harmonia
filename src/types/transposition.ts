@@ -81,6 +81,17 @@ export const getScalarTranspose = (
   return (transposition as TranspositionOffsetRecord)[id] || 0;
 };
 
+// Get the scalar values of the transposition (T, T, ...)
+export const getScalarTransposes = (
+  transposition?: Partial<Transposition> | TranspositionOffsetRecord,
+  ids: TranspositionReferenceId[] = []
+) => {
+  if (!transposition || !ids.length) return [];
+  if (isTransposition(transposition))
+    return ids.map((id) => transposition.offsets?.[id] || 0);
+  return ids.map((id) => (transposition as TranspositionOffsetRecord)[id] || 0);
+};
+
 // Get the chordal value of the transposition (t)
 export const getChordalTranspose = (
   transposition?: Partial<Transposition> | TranspositionOffsetRecord

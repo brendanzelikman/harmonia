@@ -16,6 +16,7 @@ import {
   selectTrackParents,
 } from "redux/selectors";
 import { BsMagic } from "react-icons/bs";
+import { SlMagicWand } from "react-icons/sl";
 import { cancelEvent, ticksToColumns } from "utils";
 import { ClipId } from "types/clip";
 import { useTranspositionDrag } from "./dnd";
@@ -43,10 +44,11 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
 
   // Transposition values
   const parents = selectTrackParents(state, transposition.trackId);
+  const onScaleTrack = parents.at(-1)?.id === transposition.trackId;
   const chromatic = getChromaticTranspose(transposition);
   const scalars = parents
     .map((track) => getScalarTranspose(transposition, track?.id))
-    .slice(parents.at(-1)?.id === transposition.trackId ? 1 : 0);
+    .slice(0, onScaleTrack ? parents.length - 1 : undefined);
   const chordal = getChordalTranspose(transposition);
 
   // CSS properties
@@ -93,7 +95,7 @@ export default connector(TimelineTransposition);
 
 function TimelineTransposition(props: TranspositionProps) {
   const { top, left, width, height, isSelected } = props;
-  const { chromatic, scalars, chordal } = props;
+  const { chromatic, scalars, chordal, selectedTrackParents } = props;
   const heldKeys = useKeyHolder(["k", "q", "w", "s", "x", "e", "f"]);
 
   // Transposition drag hook with react-dnd
@@ -104,52 +106,83 @@ function TimelineTransposition(props: TranspositionProps) {
   const canTransposeScale = isSelected && props.canTransposeScale;
 
   // Transposition label
-  const TranspositionLabel = () => (
-    <div
-      className={`absolute flex items-center whitespace-nowrap`}
-      draggable
-      onDragStart={cancelEvent}
-    >
-      <BsMagic className="text-md mr-2" />
-      <label className="pointer-events-none">
+  const TranspositionLabel = useMemo(() => {
+    const chromaticLabel = (
+      <span
+        className={`mr-0.5 ${heldKeys.q && isSelected ? "font-semibold" : ""} ${
+          isSelected ? "italic" : ""
+        }`}
+      >
+        N{chromatic}
+      </span>
+    );
+    const chordalLabel = (
+      <span
+        className={`ml-0.5 ${heldKeys.e && isSelected ? "font-semibold" : ""} ${
+          isSelected ? "italic" : ""
+        }`}
+      >
+        t{chordal}
+      </span>
+    );
+    const scalarLabel = (offset: number, index: number) => {
+      const isBeforeLast = index < scalars.length - 1;
+      const hasParent = index < selectedTrackParents.length;
+      const isHoldingW = index === 0 && heldKeys.w;
+      const isHoldingS = index === 1 && heldKeys.s;
+      const isHoldingX = index === 2 && heldKeys.x;
+      const isHoldingKey = isHoldingW || isHoldingS || isHoldingX;
+      return (
         <span
-          className={`mr-0.5 ${heldKeys.q && isSelected ? "font-bold" : ""}`}
+          key={`${offset}-${index}`}
+          className={`${
+            canTransposeScale && hasParent && isHoldingKey ? "font-bold" : ""
+          } ${canTransposeScale && hasParent ? "italic" : ""}`}
         >
-          N{chromatic}
+          {offset}
+          {isBeforeLast ? <span className="mr-1">,</span> : ""}
         </span>
-        {scalars.length ? (
-          <span className={`mx-0.5`}>
-            {" • "}
-            <span className={`${canTransposeScale ? "font-bold" : ""}`}>T</span>
-            (
-            {scalars.map((s, i) => (
-              <span
-                key={`${s}-${i}`}
-                className={`${
-                  canTransposeScale &&
-                  ((i === 0 && heldKeys.w) ||
-                    (i === 1 && heldKeys.s) ||
-                    (i === 2 && heldKeys.x))
-                    ? "font-bold"
-                    : ""
-                }`}
-              >
-                {s}
-                {i < scalars.length - 1 ? <span className="mr-1">,</span> : ""}
-              </span>
-            ))}
-            )
-          </span>
-        ) : null}
+      );
+    };
+    const scalarLabels = scalars.length ? (
+      <>
+        <span className={`mx-0.5`}>
+          <label className={`${canTransposeScale ? "italic" : ""}`}>T</label>(
+          {scalars.map((s, i) => scalarLabel(s, i))})
+        </span>
         {" • "}
-        <span
-          className={`ml-0.5 ${heldKeys.e && isSelected ? "font-bold" : ""}`}
-        >
-          t{chordal}
-        </span>
-      </label>
-    </div>
-  );
+      </>
+    ) : null;
+    return (
+      <div
+        className={`absolute flex items-center whitespace-nowrap ${
+          isSelected ? "text-slate-100" : "text-slate-200"
+        }`}
+        draggable
+        onDragStart={cancelEvent}
+      >
+        {isSelected ? (
+          <SlMagicWand className="text-md mr-2" />
+        ) : (
+          <BsMagic className={`text-md mr-2`} />
+        )}
+        <div className="pointer-events-none">
+          {chromaticLabel}
+          {" • "}
+          {scalarLabels}
+          {chordalLabel}
+        </div>
+      </div>
+    );
+  }, [
+    chromatic,
+    scalars,
+    chordal,
+    isSelected,
+    heldKeys,
+    canTransposeScale,
+    selectedTrackParents,
+  ]);
 
   // Transposition header (icon + label)
   const TranspositionHeader = useMemo(() => {
@@ -165,7 +198,7 @@ function TimelineTransposition(props: TranspositionProps) {
             !isSelected ? "overflow-hidden" : ""
           }`}
         >
-          {TranspositionLabel()}
+          {TranspositionLabel}
         </div>
       </div>
     );

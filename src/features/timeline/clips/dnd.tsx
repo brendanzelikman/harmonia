@@ -3,7 +3,6 @@ import { Clip } from "types/clip";
 import { Transposition } from "types/transposition";
 import { ClipProps } from "./Clip";
 import { subdivisionToTicks, ticksToColumns } from "utils";
-import { union } from "lodash";
 
 interface DropResult {
   dropEffect: string;
@@ -42,7 +41,9 @@ export function useClipDrag(props: ClipProps) {
         const copying = dropResult?.dropEffect === "copy";
 
         // Get the selected clips and transpositions
-        const selectedClips = union(props.selectedClips, [clip]);
+        const selectedClips = props.selectedClips.includes(clip)
+          ? props.selectedClips
+          : [clip];
 
         // Compute the new array of clips
         let newClips: Clip[] = [];

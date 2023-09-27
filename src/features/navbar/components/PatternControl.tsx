@@ -17,20 +17,19 @@ import {
 } from "./Navbar";
 import {
   selectEditor,
-  selectPattern,
   selectRoot,
   selectScaleTrackMap,
   selectSelectedClips,
+  selectSelectedPattern,
+  selectSelectedTranspositions,
   selectTimeline,
   selectTrackParents,
 } from "redux/selectors";
-
 import * as Root from "redux/slices/root";
 import * as Timeline from "redux/slices/timeline";
-import { Clip, ClipId } from "types/clip";
+import { Clip } from "types/clip";
 import { RepeatOptions, mergeClips, repeatClips } from "redux/thunks/clips";
-import { FormEvent, forwardRef, useEffect, useMemo, useState } from "react";
-import { blurOnEnter } from "utils";
+import { FormEvent, useEffect, useMemo } from "react";
 import { hideEditor } from "redux/slices/editor";
 import { Toolkit } from "types/root";
 import { Transition } from "@headlessui/react";
@@ -38,40 +37,58 @@ import useKeyHolder from "hooks/useKeyHolder";
 import {
   TranspositionOffsetRecord,
   getChromaticTranspose,
-  getScalarTranspose,
+  getScalarTransposes,
 } from "types/transposition";
-import { getScaleName, getScaleTrackScale, transposeScale } from "types";
+import { Scale, getScaleName, getScaleTrackScale, transposeScale } from "types";
 
 const mapStateToProps = (state: RootState) => {
   const root = selectRoot(state);
   const editor = selectEditor(state);
   const timeline = selectTimeline(state);
   const scaleTracks = selectScaleTrackMap(state);
-  const selectedPattern = selectPattern(state, root.selectedPatternId);
-  const selectedScaleTracks = selectTrackParents(state, root.selectedTrackId);
-  const selectedTrackScales = selectedScaleTracks.map((track) =>
-    getScaleTrackScale(track, scaleTracks)
-  );
+
+  // Selected timeline objects
   const selectedClips = selectSelectedClips(state);
+  const selectedPattern = selectSelectedPattern(state);
+  const selectedTranspositions = selectSelectedTranspositions(state);
+  const isLive = !!selectedTranspositions.length;
+
+  // Selected track info
+  const parents = selectTrackParents(state, root.selectedTrackId);
+  const scales = parents.map((t) => getScaleTrackScale(t, scaleTracks));
+  const scaleIds = parents.map((t) => t?.id);
+
+  // Transposition offsets
   const { toolkit } = root;
-  const { transpositionOffsets } = toolkit;
-  const chromaticTranspose = getChromaticTranspose(transpositionOffsets);
-  const scalarTransposes = selectedTrackScales.map((scale) =>
-    getScalarTranspose(transpositionOffsets, scale?.id)
-  );
-  const chordalTranspose = getChromaticTranspose(transpositionOffsets);
+  const offsets = toolkit.transpositionOffsets;
+  const chromaticTranspose = getChromaticTranspose(offsets);
+  const scalarTransposes = getScalarTransposes(offsets, scaleIds);
+  const chordalTranspose = getChromaticTranspose(offsets);
+
+  // Pre-transposed scales/scale names based on toolkit
+  const transposedScales = parents.map((scale) => {
+    const trackScale = getScaleTrackScale(scale, scaleTracks);
+    return transposeScale(trackScale, chromaticTranspose);
+  });
+  const scaleNames = transposedScales.map((transposedScale, i) => {
+    const trackName = parents[i].name;
+    if (trackName?.length) return trackName;
+    return getScaleName(transposedScale || scales[i]);
+  });
+
   return {
     ...root,
     ...toolkit,
-    selectedScaleTracks,
-    selectedTrackScales,
+    selectedClips,
+    selectedPattern,
+    parents,
+    offsets,
+    scales,
+    scaleNames,
     chromaticTranspose,
     scalarTransposes,
     chordalTranspose,
-    selectedClipIds: root.selectedClipIds,
-    selectedClips,
-
-    selectedPattern,
+    isLive,
     onEditor: editor.id !== "hidden",
     onPatterns: editor.id === "patterns",
     addingClip: timeline.state === "adding",
@@ -114,9 +131,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(Timeline.toggleMergingClips());
       dispatch(mergeClips(clips));
     },
-    repeatClips: (ids: ClipId[], options?: RepeatOptions) => {
+    repeatClips: (clips: Clip[], options?: RepeatOptions) => {
       dispatch(Timeline.toggleRepeatingClips());
-      dispatch(repeatClips(ids, options));
+      dispatch(repeatClips(clips, options));
     },
   };
 };
@@ -142,24 +159,27 @@ const ControlButton = (props: {
   </NavButton>
 );
 
-const RefInput = (props: any) => {
-  return (
-    <input
-      {...props}
-      className="h-8 block px-2 bg-transparent rounded-lg default:text-sm focus:outline-none focus:ring-0 appearance-none w-16 mx-1 text-sm placeholder:text-slate-400 border-slate-400 focus:border-slate-200 focus:bg-fuchsia-700/80"
-      onKeyDown={blurOnEnter}
-      type="number"
-    />
-  );
-};
-
 function PatternControl(props: Props) {
-  const { selectedScaleTracks, selectedTrackScales } = props;
-  const offsets = props.toolkit.transpositionOffsets;
+  const { parents, offsets, scales, scaleNames } = props;
+  const heldKeys = useKeyHolder(["q", "w", "s", "x", "e"]);
+
+  // Handlers for updating transposition offsets
+  const setTranspositionValue = (key: string) => (value: number) => {
+    props.setToolkitValue("transpositionOffsets", {
+      ...props.transpositionOffsets,
+      [key]: value,
+    });
+  };
+
+  const setChromatic = setTranspositionValue("_chromatic");
+  const setScalar = setTranspositionValue;
+  const setChordal = setTranspositionValue("_self");
+
+  // Update the toolkit when the selected track changes
   useEffect(() => {
     const newOffsets = Object.keys(offsets).reduce((acc, id) => {
       const value = offsets[id];
-      if (selectedScaleTracks.find((track) => track.id === id)) {
+      if (parents.find((track) => track.id === id)) {
         return { ...acc, [id]: value };
       } else {
         return acc;
@@ -168,362 +188,446 @@ function PatternControl(props: Props) {
     if (Object.keys(newOffsets).length !== Object.keys(offsets).length) {
       props.setToolkitValue("transpositionOffsets", newOffsets);
     }
-  }, [selectedScaleTracks, offsets]);
+  }, [parents, offsets]);
 
-  const setChromatic = (value: number) => {
-    props.setToolkitValue("transpositionOffsets", {
-      ...props.transpositionOffsets,
-      _chromatic: value,
-    });
-  };
+  // Add a clip of the selected pattern to the timeline
+  const { addingClip, selectedPattern } = props;
 
-  const setChordal = (value: number) => {
-    props.setToolkitValue("transpositionOffsets", {
-      ...props.transpositionOffsets,
-      _self: value,
-    });
-  };
+  const AddClipButton = useMemo(
+    () => (
+      <div className="relative" id="add-pattern-button">
+        <ControlButton
+          label="Add Pattern Clip"
+          className={`${
+            addingClip
+              ? "bg-cyan-700 ring-2 ring-offset-2 ring-cyan-600/80 ring-offset-black"
+              : "bg-cyan-700/80"
+          }`}
+          onClick={props.toggleAdding}
+        >
+          <BsBrush className="p-0.5" />
+        </ControlButton>
+        <NavbarTooltip
+          className="left-[-3rem] bg-cyan-700/80 px-2 backdrop-blur"
+          show={!!addingClip}
+          content={`Adding ${selectedPattern?.name ?? "Pattern"}`}
+        />
+      </div>
+    ),
+    [addingClip, selectedPattern]
+  );
 
-  const setScalar = (value: number, id: string) => {
-    props.setToolkitValue("transpositionOffsets", {
-      ...props.transpositionOffsets,
-      [id]: value,
-    });
-  };
+  // Cut the selected clip from the timeline
+  const { cuttingClip } = props;
 
-  const selectedScaleNames = useMemo(() => {
-    if (!selectedTrackScales.length) return [];
-    const transposedScales = selectedTrackScales.map((scale) =>
-      transposeScale(scale, offsets._chromatic || 0)
+  const CutClipButton = useMemo(
+    () => (
+      <div className="relative">
+        <ControlButton
+          label="Cut Pattern Clip"
+          className={`${
+            cuttingClip
+              ? "bg-slate-600 ring-2 ring-offset-2 ring-slate-500/80 ring-offset-black"
+              : "bg-slate-600/80"
+          }`}
+          onClick={props.toggleCutting}
+        >
+          <BsScissors />
+        </ControlButton>
+        <NavbarTooltip
+          content="Cutting Pattern Clips"
+          className="left-[-3rem] bg-slate-600/80 px-2 backdrop-blur"
+          show={!!cuttingClip}
+        />
+      </div>
+    ),
+    [cuttingClip]
+  );
+
+  // Merge the selected clips/transpositions into a new clip
+  const { mergingClips, mergeName, mergeTranspositions, selectedClips } = props;
+
+  const MergeClipsButton = useMemo(() => {
+    // Name of the new merged clip
+    const NameGroup = () => (
+      <NavbarFormGroup>
+        <NavbarFormLabel className="pr-2">Name</NavbarFormLabel>
+        <NavbarFormInput
+          className="mx-1 w-36 text-sm border-slate-400 focus:border-slate-200 focus:bg-indigo-800/80"
+          placeholder="New Pattern"
+          type="text"
+          value={mergeName}
+          onChange={(e) => props.setToolkitValue("mergeName", e.target.value)}
+        />
+      </NavbarFormGroup>
     );
-    return transposedScales.map((transposedScale, i) => {
-      const trackName = selectedScaleTracks[i].name;
-      if (trackName?.length) return trackName;
-      return getScaleName(transposedScale || selectedTrackScales[i]);
-    });
-  }, [props.toolkit, selectedScaleTracks, selectedTrackScales]);
+    // True = include transpositions, false = only clips
+    const MergeTranspositions = () => (
+      <NavbarFormGroup>
+        <NavbarFormLabel>Merge Transpositions?</NavbarFormLabel>
+        <NavbarFormInput
+          className="mx-1 w-6 h-[24px] rounded-full focus:border-slate-200 focus:outline-none"
+          type="checkbox"
+          checked={!!mergeTranspositions}
+          onChange={() => props.toggleToolkitValue("mergeTranspositions")}
+        />
+      </NavbarFormGroup>
+    );
 
-  const [mergeNameInput, setMergeNameInput] = useState("");
-  useEffect(() => {
-    props.setToolkitValue("mergeName", mergeNameInput);
-  }, [mergeNameInput]);
+    // Merge if at least one clip selected
+    const MergeButton = () => (
+      <NavbarFormGroup className="p-1">
+        <button
+          className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
+            !selectedClips.length
+              ? "opacity-50 cursor-default"
+              : "opacity-100 cursor-pointer animate-pulse bg-purple-600"
+          }`}
+          disabled={!selectedClips.length}
+          onClick={() => props.mergeClips(selectedClips)}
+        >
+          {!selectedClips.length ? "Select 1+ Clips" : "Merge Selected Clips"}
+        </button>
+      </NavbarFormGroup>
+    );
 
-  const AddClipButton = () => (
-    <div className="relative" id="add-pattern-button">
-      <ControlButton
-        label="Add Pattern Clip"
-        className={`${
-          props.addingClip
-            ? "bg-cyan-700 ring-2 ring-offset-2 ring-cyan-600/80 ring-offset-black"
-            : "bg-cyan-700/80"
-        }`}
-        onClick={props.toggleAdding}
-      >
-        <BsBrush className="p-0.5" />
-      </ControlButton>
-      <NavbarTooltip
-        className="left-[-3rem] bg-cyan-700/80 px-2 backdrop-blur"
-        show={!!props.addingClip}
-        content={`Adding ${props.selectedPattern?.name ?? "Pattern"}`}
-      />
-    </div>
-  );
+    return (
+      <div className="flex flex-col relative h-full">
+        <ControlButton
+          label="Merge Pattern Clips"
+          onClick={props.toggleMerging}
+          className={`${
+            mergingClips
+              ? "bg-purple-700 ring-2 ring-offset-2 ring-purple-700/80 ring-offset-black"
+              : "bg-purple-700/80"
+          }`}
+        >
+          <BsLink45Deg />
+        </ControlButton>
+        <NavbarTooltip
+          className="left-[-6rem] bg-purple-800/90 backdrop-blur-lg w-[16rem]"
+          show={!!mergingClips}
+          content={
+            <div className="flex flex-col justify-center items-center">
+              <label className="h-7">Merging Pattern Clips</label>
+              {NameGroup()}
+              {MergeTranspositions()}
+              {MergeButton()}
+            </div>
+          }
+        />
+      </div>
+    );
+  }, [mergingClips, mergeName, mergeTranspositions, selectedClips]);
 
-  const CutClipButton = () => (
-    <div className="relative">
-      <ControlButton
-        label="Cut Pattern Clip"
-        className={`${
-          props.cuttingClip
-            ? "bg-slate-600 ring-2 ring-offset-2 ring-slate-500/80 ring-offset-black"
-            : "bg-slate-600/80"
-        }`}
-        onClick={props.toggleCutting}
-      >
-        <BsScissors />
-      </ControlButton>
-      <NavbarTooltip
-        content="Cutting Pattern Clips"
-        className="left-[-3rem] bg-slate-600/80 px-2 backdrop-blur"
-        show={!!props.cuttingClip}
-      />
-    </div>
-  );
+  // Repeat the selected clips/transpositions
+  const { repeatingClips, repeatCount } = props;
+  const { repeatTranspositions, repeatWithTransposition } = props;
 
-  const MergeClipsButton = () => (
-    <div className="flex flex-col relative h-full">
-      <ControlButton
-        label="Merge Pattern Clips"
-        onClick={props.toggleMerging}
-        className={`${
-          props.mergingClips
-            ? "bg-purple-700 ring-2 ring-offset-2 ring-purple-700/80 ring-offset-black"
-            : "bg-purple-700/80"
-        }`}
-      >
-        <BsLink45Deg />
-      </ControlButton>
-      <NavbarTooltip
-        className="left-[-6rem] bg-purple-800/90 backdrop-blur-lg w-[16rem]"
-        show={!!props.mergingClips}
-        content={
-          <div className="flex flex-col justify-center items-center">
-            <label className="h-7">Merging Pattern Clips</label>
-            <NavbarFormGroup>
-              <NavbarFormLabel className="pr-2">Name</NavbarFormLabel>
-              <NavbarFormInput
-                className="mx-1 w-36 text-sm border-slate-400 focus:border-slate-200 focus:bg-indigo-800/80"
-                placeholder="New Pattern"
-                type="text"
-                value={`${mergeNameInput}` ?? ""}
-                onChange={(e: any) => setMergeNameInput(e.target.value)}
-                onKeyDown={blurOnEnter}
-              />
-            </NavbarFormGroup>
-            <NavbarFormGroup>
-              <NavbarFormLabel>Merge Transpositions?</NavbarFormLabel>
-              <NavbarFormInput
-                className="mx-1 w-6 h-[24px] rounded-full focus:border-slate-200 focus:outline-none"
-                type="checkbox"
-                checked={!!props.mergeTranspositions}
-                onChange={() => props.toggleToolkitValue("mergeTranspositions")}
-              />
-            </NavbarFormGroup>
-            <NavbarFormGroup className="p-1">
-              <button
-                className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
-                  !props.selectedClipIds.length
-                    ? "opacity-50 cursor-default"
-                    : "opacity-100 cursor-pointer animate-pulse bg-purple-600"
-                }`}
-                disabled={!props.selectedClipIds.length}
-                onClick={() => props.mergeClips(props.selectedClips)}
-              >
-                {!props.selectedClipIds.length
-                  ? "Select 1+ Clips"
-                  : "Merge Selected Clips"}
-              </button>
-            </NavbarFormGroup>
-          </div>
-        }
-      />
-    </div>
-  );
+  const RepeatClipsButton = useMemo(() => {
+    // How many times to repeat the clips
+    const RepeatCount = () => (
+      <NavbarFormGroup>
+        <NavbarFormLabel>Count</NavbarFormLabel>
+        <NavbarFormInput
+          className="mx-1 w-16 border-slate-400 focus:border-slate-200 focus:bg-emerald-700/80"
+          type="number"
+          placeholder="0"
+          value={repeatCount}
+          onChange={(e: any) =>
+            props.setToolkitValue("repeatCount", e.target.value)
+          }
+        />
+      </NavbarFormGroup>
+    );
 
-  const RepeatClipsButton = () => (
-    <div className="flex flex-col relative">
-      <ControlButton
-        label="Repeat Clips"
-        onClick={props.toggleRepeating}
-        className={`${
-          props.repeatingClips
-            ? "bg-green-600 ring-2 ring-offset-2 ring-green-600/80 ring-offset-black"
-            : "bg-green-600"
-        }`}
-      >
-        <BsClock className="p-0.5" />
-      </ControlButton>
-      <NavbarTooltip
-        className="-left-[9rem] bg-green-600/90 backdrop-blur w-[20rem]"
-        show={!!props.repeatingClips}
-        content={
-          <div className="flex flex-col justify-center items-center py-1">
-            <label className="w-full text-center h-7">
-              Repeating Pattern Clips
-            </label>
-            <NavbarFormGroup>
-              <NavbarFormLabel>Count</NavbarFormLabel>
-              <NavbarFormInput
-                className="mx-1 w-16 border-slate-400 focus:border-slate-200 focus:bg-emerald-700/80"
-                type="number"
-                value={props.repeatCount}
-                onChange={(e: any) =>
-                  props.setToolkitValue("repeatCount", e.target.value)
-                }
-                onKeyDown={blurOnEnter}
-              />
-            </NavbarFormGroup>
-            <NavbarFormGroup>
-              <NavbarFormLabel>Copy Transpositions?</NavbarFormLabel>
-              <NavbarFormInput
-                className="mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none"
-                type="checkbox"
-                checked={!!props.repeatTranspositions}
-                onChange={() => {
-                  props.toggleToolkitValue("repeatTranspositions");
-                  if (props.repeatWithTransposition) {
-                    props.toggleToolkitValue("repeatWithTransposition");
-                  }
-                }}
-              />
-            </NavbarFormGroup>
-            <NavbarFormGroup>
-              <NavbarFormLabel
-                className={`${
-                  !props.repeatTranspositions ? "opacity-50 cursor-default" : ""
-                }`}
-              >
-                Transpose Incrementally?
-              </NavbarFormLabel>
-              <NavbarFormInput
-                className={`mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none`}
-                type="checkbox"
-                checked={!!props.repeatWithTransposition}
-                onChange={() =>
-                  props.toggleToolkitValue("repeatWithTransposition")
-                }
-                disabled={!props.repeatTranspositions}
-              />
-            </NavbarFormGroup>
-            <NavbarFormGroup className="p-1">
-              <button
-                className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
-                  !props.selectedClipIds.length
-                    ? "opacity-50 cursor-default border-slate-400"
-                    : "opacity-100 cursor-pointer bg-emerald-600 animate-pulse"
-                }`}
-                disabled={!props.selectedClipIds.length}
-                onClick={() => {
-                  props.repeatClips(props.selectedClipIds);
-                  props.toggleRepeating();
-                }}
-              >
-                {!props.selectedClipIds.length
-                  ? "Select 1+ Clips"
-                  : "Repeat Selected Clips"}
-              </button>
-            </NavbarFormGroup>
-          </div>
-        }
-      />
-    </div>
-  );
+    // True = include transpositions, false = only clips
+    const RepeatTranspositions = () => (
+      <NavbarFormGroup>
+        <NavbarFormLabel>Copy Transpositions?</NavbarFormLabel>
+        <NavbarFormInput
+          className="mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none"
+          type="checkbox"
+          checked={!!repeatTranspositions}
+          onChange={() => {
+            props.toggleToolkitValue("repeatTranspositions");
+            if (props.repeatWithTransposition) {
+              props.toggleToolkitValue("repeatWithTransposition");
+            }
+          }}
+        />
+      </NavbarFormGroup>
+    );
 
-  const TransposeButton = () => (
-    <div className="flex flex-col relative">
-      <ControlButton
-        label="Transpose Clip"
-        onClick={props.toggleTransposing}
-        className={`${
-          props.transposingClip
-            ? "bg-fuchsia-700 ring-2 ring-offset-2 ring-fuchsia-700/80 ring-offset-black"
-            : "bg-fuchsia-700/80"
-        }`}
-      >
-        <BsMagic className="-rotate-90 p-0.5" />
-      </ControlButton>
-      <NavbarTooltip
-        className="-left-[9rem] bg-fuchsia-800/90 backdrop-blur-lg w-[20rem]"
-        show={!!props.transposingClip}
-        content={
-          <div className="flex flex-col justify-center items-center py-1">
-            <label className="w-full text-center h-7 text-md">
-              Adding Transpositions
-            </label>
-            <NavbarFormGroup>
-              <NavbarFormLabel className="inline-flex items-center">
-                <NavbarInfoTooltip
-                  content="Steps along the chromatic scale"
-                  className="mr-2"
-                />
-                Chromatic Scale Offset
-              </NavbarFormLabel>
-              <RefInput
-                value={offsets._chromatic}
-                placeholder={0}
-                onChange={(e: FormEvent<HTMLInputElement>) =>
-                  setChromatic((e.target as HTMLInputElement).valueAsNumber)
-                }
-              />
-            </NavbarFormGroup>
-            {props.selectedScaleTracks.map((_, i) => {
-              const scaleTrack = selectedScaleTracks[i];
-              const scale = selectedTrackScales[i];
-              const name = selectedScaleNames[i];
-              const value = offsets[scaleTrack.id];
-              if (!scaleTrack || !scale) return null;
-              return (
-                <Transition
-                  key={scaleTrack.id}
-                  show={!!scaleTrack}
-                  enter="transition-all duration-150"
-                  enterFrom="opacity-0 scale-95"
-                  enterTo="opacity-100 scale-100"
-                  as="div"
-                  className="w-full"
-                >
-                  <NavbarFormGroup>
-                    <NavbarFormLabel className="inline-flex items-center">
-                      <NavbarInfoTooltip
-                        content="Steps along the track scale"
-                        className="mr-2"
-                      />
-                      {name} Offset
-                    </NavbarFormLabel>
-                    <RefInput
-                      value={value}
-                      placeholder={0}
-                      onChange={(e: FormEvent<HTMLInputElement>) =>
-                        setScalar(
-                          (e.target as HTMLInputElement).valueAsNumber,
-                          scaleTrack.id
-                        )
-                      }
-                    />
-                  </NavbarFormGroup>
-                </Transition>
-              );
-            })}
-            <NavbarFormGroup>
-              <NavbarFormLabel className="inline-flex items-center">
-                <NavbarInfoTooltip
-                  content="Steps along the chord"
-                  className="mr-2"
-                />
-                Pattern Scale Offset
-              </NavbarFormLabel>
-              <RefInput
-                value={offsets._self}
-                placeholder={0}
-                onChange={(e: FormEvent<HTMLInputElement>) =>
-                  setChordal((e.target as HTMLInputElement).valueAsNumber)
-                }
-              />
-            </NavbarFormGroup>
-            <NavbarFormGroup>
-              <NavbarFormLabel className="inline-flex items-center">
-                Duration
-              </NavbarFormLabel>
-              <RefInput
-                value={props.transpositionDuration}
-                placeholder={0}
-                onChange={(e: FormEvent<HTMLInputElement>) =>
-                  props.setToolkitValue(
-                    "transpositionDuration",
-                    (e.target as HTMLInputElement).valueAsNumber || 0
-                  )
-                }
-              />
-            </NavbarFormGroup>
-          </div>
-        }
-      />
-    </div>
-  );
+    // True = increment each repeated transposition with toolkit value
+    const IncrementTranspositions = () => (
+      <NavbarFormGroup>
+        <NavbarFormLabel
+          className={`${
+            !repeatTranspositions ? "opacity-50 cursor-default" : ""
+          }`}
+        >
+          Transpose Incrementally?
+        </NavbarFormLabel>
+        <NavbarFormInput
+          className={`mx-1 w-6 h-[24px] rounded-full border-slate-400 focus:ring-0 focus:outline-none`}
+          type="checkbox"
+          checked={!!repeatWithTransposition}
+          onChange={() => props.toggleToolkitValue("repeatWithTransposition")}
+          disabled={!repeatTranspositions}
+        />
+      </NavbarFormGroup>
+    );
 
-  const heldKeys = useKeyHolder(["q", "w", "s", "x", "e"]);
+    // Repeat if at least one clip selected
+    const RepeatButton = () => (
+      <NavbarFormGroup className="p-1">
+        <button
+          className={`w-full border px-3 py-1 rounded-lg appearance-none text-sm ${
+            !selectedClips.length
+              ? "opacity-50 cursor-default border-slate-400"
+              : "opacity-100 cursor-pointer bg-emerald-600 animate-pulse"
+          }`}
+          disabled={!selectedClips.length}
+          onClick={() => {
+            props.repeatClips(selectedClips);
+            props.toggleRepeating();
+          }}
+        >
+          {!selectedClips.length ? "Select 1+ Clips" : "Repeat Selected Clips"}
+        </button>
+      </NavbarFormGroup>
+    );
+    return (
+      <div className="flex flex-col relative">
+        <ControlButton
+          label="Repeat Clips"
+          onClick={props.toggleRepeating}
+          className={`${
+            props.repeatingClips
+              ? "bg-green-600 ring-2 ring-offset-2 ring-green-600/80 ring-offset-black"
+              : "bg-green-600"
+          }`}
+        >
+          <BsClock className="p-0.5" />
+        </ControlButton>
+        <NavbarTooltip
+          className="-left-[9rem] bg-green-600/90 backdrop-blur w-[20rem]"
+          show={!!repeatingClips}
+          content={
+            <div className="flex flex-col justify-center items-center py-1">
+              <label className="w-full text-center h-7">
+                Repeating Pattern Clips
+              </label>
+              {RepeatCount()}
+              {RepeatTranspositions()}
+              {IncrementTranspositions()}
+              {RepeatButton()}
+            </div>
+          }
+        />
+      </div>
+    );
+  }, [
+    repeatingClips,
+    repeatCount,
+    repeatTranspositions,
+    repeatWithTransposition,
+  ]);
 
-  return (
-    <div className="flex space-x-2">
-      {AddClipButton()}
-      {CutClipButton()}
-      {MergeClipsButton()}
-      {RepeatClipsButton()}
-      {TransposeButton()}
+  // Add a transposition to the timeline
+  const { transposingClip, transpositionDuration } = props;
+
+  const TransposeButton = useMemo(() => {
+    // The chromatic offset
+    const ChromaticOffset = () => (
+      <NavbarFormGroup>
+        <NavbarFormLabel className="inline-flex items-center">
+          <NavbarInfoTooltip
+            content="Steps along the chromatic scale"
+            className="mr-2"
+          />
+          Chromatic Scale Offset
+        </NavbarFormLabel>
+        <NavbarFormInput
+          className="w-16 focus:border-slate-200 border-slate-400"
+          type="number"
+          value={offsets._chromatic}
+          placeholder={"0"}
+          onChange={(e) => {
+            const value = (e.target as HTMLInputElement).valueAsNumber;
+            setChromatic(value);
+          }}
+        />
+      </NavbarFormGroup>
+    );
+
+    // The scalar offsets
+    const ScalarOffset = (_: any, i: number) => {
+      const scaleTrack = parents[i];
+      const scale = scales[i];
+      const name = scaleNames[i];
+      const value = offsets[scaleTrack.id];
+      if (!scaleTrack || !scale) return null;
+      return (
+        <Transition
+          key={scaleTrack.id}
+          show={!!scaleTrack}
+          enter="transition-all duration-150"
+          enterFrom="opacity-0 scale-95"
+          enterTo="opacity-100 scale-100"
+          as="div"
+          className="w-full"
+        >
+          <NavbarFormGroup>
+            <NavbarFormLabel className="inline-flex items-center">
+              <NavbarInfoTooltip
+                content="Steps along the track scale"
+                className="mr-2"
+              />
+              {name} Offset
+            </NavbarFormLabel>
+            <NavbarFormInput
+              className="w-16 focus:border-slate-200 border-slate-400"
+              type="number"
+              value={value}
+              placeholder={"0"}
+              onChange={(e: FormEvent<HTMLInputElement>) => {
+                const key = scaleTrack.id;
+                const value = (e.target as HTMLInputElement).valueAsNumber;
+                setScalar(key)(value);
+              }}
+            />
+          </NavbarFormGroup>
+        </Transition>
+      );
+    };
+    const ScalarOffsets = () => parents.map(ScalarOffset);
+
+    // The chordal offset
+    const ChordalOffset = () => (
+      <NavbarFormGroup>
+        <NavbarFormLabel className="inline-flex items-center">
+          <NavbarInfoTooltip content="Steps along the chord" className="mr-2" />
+          Pattern Scale Offset
+        </NavbarFormLabel>
+        <NavbarFormInput
+          className="w-16 focus:border-slate-200 border-slate-400"
+          value={offsets._self}
+          placeholder={"0"}
+          onChange={(e) => {
+            const value = (e.target as HTMLInputElement).valueAsNumber;
+            setChordal(value);
+          }}
+        />
+      </NavbarFormGroup>
+    );
+
+    // The duration of the transposition (0 = continuous)
+    const TranspositionDuration = () => (
+      <NavbarFormGroup>
+        <NavbarFormLabel className="inline-flex items-center">
+          Duration
+        </NavbarFormLabel>
+        <NavbarFormInput
+          className="w-16 focus:border-slate-200 border-slate-400"
+          value={transpositionDuration}
+          placeholder={"0"}
+          onChange={(e: FormEvent<HTMLInputElement>) =>
+            props.setToolkitValue(
+              "transpositionDuration",
+              (e.target as HTMLInputElement).valueAsNumber || 0
+            )
+          }
+        />
+      </NavbarFormGroup>
+    );
+
+    return (
+      <div className="flex flex-col relative">
+        <ControlButton
+          label="Transpose Clip"
+          onClick={props.toggleTransposing}
+          className={`${
+            transposingClip
+              ? "bg-fuchsia-700 ring-2 ring-offset-2 ring-fuchsia-700/80 ring-offset-black"
+              : "bg-fuchsia-700/80"
+          }`}
+        >
+          <BsMagic className="-rotate-90 p-0.5" />
+        </ControlButton>
+        <NavbarTooltip
+          className="-left-[9rem] bg-fuchsia-800/90 backdrop-blur-lg w-[20rem]"
+          show={!!transposingClip}
+          content={
+            <div className="flex flex-col justify-center items-center py-1">
+              <label className="w-full text-center h-7 text-md">
+                Adding Transpositions
+              </label>
+              {ChromaticOffset()}
+              {ScalarOffsets()}
+              {ChordalOffset()}
+              {TranspositionDuration()}
+            </div>
+          }
+        />
+      </div>
+    );
+  }, [
+    parents,
+    scales,
+    scaleNames,
+    offsets,
+    transposingClip,
+    transpositionDuration,
+  ]);
+
+  // Show which scales are being transposed live
+  const { isLive } = props;
+
+  const LiveLabel = useMemo(() => {
+    // The chromatic label
+    const ChromaticLabel = (
+      <>
+        <span className={`${heldKeys.q ? "text-slate-50" : "text-slate-500"}`}>
+          N
+        </span>
+        <span className="w-2">•</span>
+      </>
+    );
+
+    // The scalar labels
+    const ScalarLabel = (scale: Scale, i: number) => {
+      const isHoldingW = i === 0 && heldKeys.w;
+      const isHoldingS = i === 1 && heldKeys.s;
+      const isHoldingX = i === 2 && heldKeys.x;
+      const isHoldingKey = isHoldingW || isHoldingS || isHoldingX;
+      const textColor = isHoldingKey ? "text-slate-50" : "text-slate-500";
+      return (
+        <span
+          key={`scale-${i}-${scale.notes.join(",")}`}
+          className={`inline ${textColor}`}
+        >
+          T {i < scales.length - 1 ? "•" : ""}
+        </span>
+      );
+    };
+    const ScalarLabels = scales.length ? (
+      <>
+        {scales.map(ScalarLabel)}
+        <span className="w-2">•</span>
+      </>
+    ) : null;
+
+    const ChordalLabel = (
+      <span className={`${heldKeys.e ? "text-slate-50" : "text-slate-500"}`}>
+        t
+      </span>
+    );
+
+    return (
       <Transition
-        show={
-          !props.transposingClip && props.selectedTranspositionIds.length > 0
-        }
+        show={isLive}
         enter="transition-all duration-300"
         enterFrom="opacity-0 scale-0"
         enterTo="opacity-100 scale-100"
@@ -535,35 +639,22 @@ function PatternControl(props: Props) {
       >
         <label className="text-sm p-0 text-fuchsia-400">Live</label>
         <div className="flex text-xs space-x-1 text-slate-400">
-          <span
-            className={`${heldKeys.q ? "text-slate-50" : "text-slate-500"}`}
-          >
-            N
-          </span>
-          <span className="w-1">•</span>
-          {selectedTrackScales.map((scale, i) => (
-            <span
-              key={`scale-${i}-${scale.notes.join(",")}`}
-              className={`inline ${
-                ((i === 0 && heldKeys.w) ||
-                  (i === 1 && heldKeys.s) ||
-                  (i === 2 && heldKeys.x)) &&
-                scale
-                  ? "text-slate-50"
-                  : "text-slate-500"
-              }`}
-            >
-              T {i < selectedTrackScales.length - 1 ? "•" : ""}
-            </span>
-          ))}
-          <span className="w-2">•</span>
-          <span
-            className={`${heldKeys.e ? "text-slate-50" : "text-slate-500"}`}
-          >
-            t
-          </span>
+          {ChromaticLabel}
+          {ScalarLabels}
+          {ChordalLabel}
         </div>
       </Transition>
+    );
+  }, [heldKeys, scales, isLive]);
+
+  return (
+    <div className="flex space-x-2">
+      {AddClipButton}
+      {CutClipButton}
+      {MergeClipsButton}
+      {RepeatClipsButton}
+      {TransposeButton}
+      {LiveLabel}
     </div>
   );
 }

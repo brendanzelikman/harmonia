@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { selectPatternTrack } from "redux/selectors";
-
 import { AppThunk } from "redux/store";
 import { initializeState } from "redux/util";
 import { InstrumentKey, updateInstrument } from "types/instrument";

@@ -1,5 +1,5 @@
 import { DEFAULT_CELL_WIDTH, TRACK_WIDTH } from "appConstants";
-import { subdivisionToTicks, subdivisionToValue, ticksToColumns } from "utils";
+import { subdivisionToTicks, ticksToColumns } from "utils";
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { selectTick, selectTransport } from "./transport";
@@ -14,13 +14,13 @@ const selectTimelineColumn = createSelector([selectTimeline], (timeline) => {
   return subdivisionToTicks(timeline.subdivision);
 });
 
+// Select the tick based on the timeline subdivision
 export const selectTimelineTick = createSelector(
   [selectTimelineColumn, selectTick],
-  (ticks, tick) => {
-    return ticks * tick;
-  }
+  (ticks, tick) => ticks * tick
 );
 
+// Select the offset of the timeline tick (in px)
 export const selectTimelineTickOffset = createSelector(
   [selectTimeline, selectTick, selectCellWidth],
   (timeline, tick, cellWidth) => {
@@ -29,18 +29,19 @@ export const selectTimelineTickOffset = createSelector(
   }
 );
 
-// Select transport bpm and time signature
+// Select the transport bpm
 export const selectTransportBpm = createSelector(
   [selectTransport],
   (transport) => transport.bpm
 );
 
+// Select the transport time signature
 export const selectTransportTimeSignature = createSelector(
   [selectTransport],
   (transport) => transport.timeSignature
 );
 
-// Bars, beats, sixteenths of the timeline tick
+// Select the bars, beats, and sixteenths of the timeline tick
 export const selectBarsBeatsSixteenths = createSelector(
   [selectTransportBpm, selectTransportTimeSignature, selectTick],
   (bpm, timeSignature, tick) => {

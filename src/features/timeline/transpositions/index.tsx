@@ -44,7 +44,7 @@ const mapStateToProps = (
   const selectedClips = selectSelectedClips(state);
   const selectedTranspositions = selectSelectedTranspositions(state);
   const selectedTrackParents = selectTrackParents(state, selectedTrackId);
-  const canTransposeScale = selectedTrackParents.length;
+  const canTransposeScale = !!selectedTrackParents.length;
   const cellWidth = selectCellWidth(state);
 
   return {

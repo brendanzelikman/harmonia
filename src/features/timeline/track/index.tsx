@@ -5,6 +5,7 @@ import {
   selectScaleTrack,
   selectTrack,
   selectTrackIndex,
+  selectTrackParents,
   selectTrackScaleTrack,
   selectTrackTranspositions,
   selectTransport,
@@ -34,8 +35,10 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   // Track properties
   const track = selectTrack(state, ownProps.row.trackId);
   const scaleTrack = selectScaleTrack(state, track?.id);
+
+  const selectedParents = selectTrackParents(state, selectedTrackId);
+  const isScaleSelected = selectedParents.some(({ id }) => id === track?.id);
   const selectedScaleTrack = selectTrackScaleTrack(state, selectedTrackId);
-  const isTrackSelected = selectedTrackId === track?.id;
   const index = selectTrackIndex(state, track?.id);
 
   // Track transpositions
@@ -50,7 +53,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
     track,
     scaleTrack,
     selectedTrackId,
-    isTrackSelected,
+    isScaleSelected,
     index,
     chromatic,
     scalar,

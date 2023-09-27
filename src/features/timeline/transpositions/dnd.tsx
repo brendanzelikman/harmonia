@@ -3,7 +3,6 @@ import { Clip } from "types/clip";
 import { Transposition } from "types/transposition";
 import { TranspositionProps } from "./Transposition";
 import { subdivisionToTicks, ticksToColumns } from "utils";
-import { union } from "lodash";
 
 interface DropResult {
   dropEffect: string;
@@ -25,7 +24,7 @@ export function useTranspositionDrag(props: TranspositionProps) {
       },
       end: (item: any, monitor: any) => {
         if (!item.canDrop) return;
-        const { transpositions, subdivision } = props;
+        const { transpositions, subdivision, selectedTranspositions } = props;
 
         // Find the corresponding transposition
         const itemId = item.transposition?.id;
@@ -69,10 +68,11 @@ export function useTranspositionDrag(props: TranspositionProps) {
         }
 
         // Iterate over the selected transpositions
-        const selectedTranspositions = union(props.selectedTranspositions, [
-          transposition,
-        ]);
-        for (const transposition of selectedTranspositions) {
+        const selectedItems = selectedTranspositions.includes(transposition)
+          ? selectedTranspositions
+          : [transposition];
+
+        for (const transposition of selectedItems) {
           if (!transposition) return;
 
           // Get the index of the new track

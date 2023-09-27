@@ -13,23 +13,39 @@ interface ShortcutProps extends TimelineProps {
 }
 
 export default function useTimelineShortcuts(props: ShortcutProps) {
-  const keys = ["`", "x", "q", "w", "s", "x", "f", "e", "z"];
+  const keys = ["`", "x", "q", "w", "s", "x", "f", "e", "z", "y", "u"];
   const heldKeys = useKeyHolder(keys);
+
   const keyKeydown = (key: string) => (e: Event) => {
     if (isInputEvent(e) || isHoldingCommand(e)) return;
     cancelEvent(e);
-    const holdingShift = isHoldingShift(e);
+
+    const number = parseInt(key);
+    const patternTracks = props.rows.filter((r) => r.type === "patternTrack");
+
+    // Toggle mute if holding y
+    if (heldKeys.y) {
+      props.toggleTrackMute(patternTracks[number - 1]?.trackId);
+    }
+    // Toggle solo if holding u
+    if (heldKeys.u) {
+      props.toggleTrackSolo(patternTracks[number - 1]?.trackId);
+    }
+
+    // Compoute the initial offset based on up/down/shift
     const negative = heldKeys.z || heldKeys["`"];
     const dir = negative ? -1 : 1;
-
-    let offset = holdingShift ? 12 * dir : 0;
+    let offset = isHoldingShift(e) ? 12 * dir : 0;
     offset += parseInt(key) * dir;
 
+    // Apply chromatic offset if holding q
     if (heldKeys.q) {
       props.offsetSelectedTranspositions({
         _chromatic: offset,
       });
     }
+
+    // Apply scalar offsets if holding w, s, or x
     let scaleTrackIds = [];
     if (heldKeys.w) {
       const id = props.scaleTracks?.[0]?.id;
@@ -55,6 +71,7 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
       );
     }
 
+    // Apply chordal offset if holding e
     if (heldKeys.e) {
       props.offsetSelectedTranspositions({
         _self: offset,
@@ -65,10 +82,13 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
   const zeroKeydown = (e: Event) => {
     if (isInputEvent(e)) return;
     cancelEvent(e);
+
+    // Reset the chromatic offset if holding q
     if (heldKeys.q) {
       props.updateSelectedTranspositions({ _chromatic: 0 });
     }
 
+    // Reset the scalar offsets if holding w, s, or x
     let scaleTrackIds = [];
     if (heldKeys.w) {
       const id = props.scaleTracks?.[0]?.id;
@@ -93,6 +113,8 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
         )
       );
     }
+
+    // Reset the chordal offset if holding e
     if (heldKeys.e) {
       props.updateSelectedTranspositions({ _self: 0 });
     }

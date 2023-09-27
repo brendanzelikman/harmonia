@@ -233,10 +233,10 @@ const mixersSlice = createSlice({
         // Solo the mixer in the live instrument
         const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
         if (!mixerInstrument) return;
-        mixerInstrument.solo = false;
+        mixerInstrument.solo = true;
 
         // Solo the mixer in the state
-        mixer.solo = false;
+        mixer.solo = true;
       });
     },
     unsoloMixers: (state) => {
@@ -247,10 +247,10 @@ const mixersSlice = createSlice({
         // Solo the mixer in the live instrument
         const mixerInstrument = INSTRUMENTS[mixer.trackId]?.mixer;
         if (!mixerInstrument) return;
-        mixerInstrument.solo = true;
+        mixerInstrument.solo = false;
 
         // Solo the mixer in the state
-        mixer.solo = true;
+        mixer.solo = false;
       });
     },
   },
