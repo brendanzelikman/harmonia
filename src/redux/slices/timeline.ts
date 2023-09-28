@@ -1,5 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { MAX_CELL_WIDTH, MIN_CELL_WIDTH } from "appConstants";
+import {
+  MAX_CELL_HEIGHT,
+  MAX_CELL_WIDTH,
+  MIN_CELL_HEIGHT,
+  MIN_CELL_WIDTH,
+} from "appConstants";
 import { clamp } from "lodash";
 
 import {
@@ -15,7 +20,14 @@ export const timelineSlice = createSlice({
   initialState: defaultTimeline,
   reducers: {
     setCellWidth(state, action: PayloadAction<number>) {
-      state.cellWidth = clamp(action.payload, MIN_CELL_WIDTH, MAX_CELL_WIDTH);
+      state.cell.width = clamp(action.payload, MIN_CELL_WIDTH, MAX_CELL_WIDTH);
+    },
+    setCellHeight(state, action: PayloadAction<number>) {
+      state.cell.height = clamp(
+        action.payload,
+        MIN_CELL_HEIGHT,
+        MAX_CELL_HEIGHT
+      );
     },
     setSubdivision(state, action: PayloadAction<Subdivision>) {
       state.subdivision = action.payload;
@@ -78,6 +90,7 @@ export const {
   toggleTransposingClip,
 
   setCellWidth,
+  setCellHeight,
   setSubdivision,
   increaseSubdivision,
   decreaseSubdivision,

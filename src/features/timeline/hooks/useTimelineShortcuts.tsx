@@ -32,7 +32,7 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
       props.toggleTrackSolo(patternTracks[number - 1]?.trackId);
     }
 
-    // Compoute the initial offset based on up/down/shift
+    // Compute the initial offset based on up/down/shift
     const negative = heldKeys.z || heldKeys["`"];
     const dir = negative ? -1 : 1;
     let offset = isHoldingShift(e) ? 12 * dir : 0;
@@ -82,6 +82,14 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
   const zeroKeydown = (e: Event) => {
     if (isInputEvent(e)) return;
     cancelEvent(e);
+
+    // Unmute all tracks if holding y
+    if (heldKeys.y) {
+      props.unmuteTracks();
+    }
+    if (heldKeys.u) {
+      props.unsoloTracks();
+    }
 
     // Reset the chromatic offset if holding q
     if (heldKeys.q) {

@@ -82,11 +82,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
   createPatternTrack: (parentId: TrackId) => {
     dispatch(createPatternTrack({ parentId }));
   },
-  moveTrack: (props: {
-    dragId: TrackId;
-    hoverIndex: number;
-    hoverId: TrackId;
-  }) => {
+  moveTrack: (props: { dragId: TrackId; hoverId: TrackId }) => {
     return dispatch(moveScaleTrack(props));
   },
 });
@@ -97,7 +93,7 @@ type Props = ConnectedProps<typeof connector>;
 export default connector(ScaleTrack);
 
 function ScaleTrack(props: Props) {
-  const { track, placeholder, onScaleEditor } = props;
+  const { track, placeholder, onScaleEditor, cell } = props;
   const { chromatic, chordal } = props;
   const holdingK = useKeyHolder("k").k;
 
@@ -117,13 +113,15 @@ function ScaleTrack(props: Props) {
 
   // Scale track name field
   const ScaleTrackNameField = useMemo(() => {
+    const isSmall = cell.height < 100;
+    const className = isSmall ? "text-xs h-6" : "text-sm h-7";
     return () => (
       <>
         <input
           placeholder={placeholder}
           value={ScaleTrackName.value}
           onChange={ScaleTrackName.onChange}
-          className="flex-auto h-7 bg-zinc-800 px-1 mr-2 caret-white outline-none rounded-md overflow-ellipsis text-sm text-white border-2 border-zinc-800 focus:border-indigo-500/50"
+          className={`flex-auto ${className} bg-zinc-800 px-1 mr-2 caret-white outline-none rounded-md overflow-ellipsis text-white border-2 border-zinc-800 focus:border-indigo-500/50`}
           onKeyDown={ScaleTrackName.onKeyDown}
         />
         <label
@@ -137,32 +135,11 @@ function ScaleTrack(props: Props) {
     );
   }, [
     placeholder,
+    cell,
     ScaleTrackName.value,
     props.row.depth,
     props.isScaleSelected,
   ]);
-
-  // Scale editor button
-  const ScaleEditorButton = useMemo(() => {
-    return () => (
-      <TrackButton
-        className={`px-3 border-sky-600 ${
-          onScaleEditor
-            ? "bg-gradient-to-r from-[#0385b9] to-[#0275bf] background-pulse"
-            : ""
-        }`}
-        onClick={() =>
-          onScaleEditor
-            ? props.hideEditor()
-            : props.showEditor(track.id, "scale")
-        }
-      >
-        <label className="flex items-center cursor-pointer scale-button">
-          Scale <BsPencil className="ml-2" />
-        </label>
-      </TrackButton>
-    );
-  }, [onScaleEditor]);
 
   // Scale track dropdown menu
   const ScaleTrackDropdownMenu = useMemo(() => {
@@ -217,16 +194,33 @@ function ScaleTrack(props: Props) {
 
   // Scale track body
   const ScaleTrackBody = useMemo(() => {
+    const isSmall = cell.height < 100;
+    const className = isSmall ? "text-xs" : "text-sm";
     return () => (
       <div
-        className="flex items-center mt-2 w-full"
+        className={`flex items-center mt-2 w-full ${className}`}
         draggable
         onDragStart={cancelEvent}
       >
         <>
-          <ScaleEditorButton />
           <TrackButton
-            className={`px-3 border-emerald-600 active:bg-emerald-600 select-none`}
+            className={`px-3 border-sky-500 ${
+              onScaleEditor
+                ? "bg-gradient-to-r from-sky-600 to-sky-700 background-pulse"
+                : ""
+            }`}
+            onClick={() =>
+              onScaleEditor
+                ? props.hideEditor()
+                : props.showEditor(track.id, "scale")
+            }
+          >
+            <label className="flex items-center cursor-pointer scale-button">
+              Notes <BsPencil className="ml-2" />
+            </label>
+          </TrackButton>
+          <TrackButton
+            className={`px-3 border-emerald-500 active:bg-gradient-to-r active:from-emerald-500 active:to-teal-500 background-pulse select-none`}
             onClick={() => props.createPatternTrack(track.id)}
           >
             <label className="flex items-center cursor-pointer">
@@ -234,7 +228,7 @@ function ScaleTrack(props: Props) {
             </label>
           </TrackButton>
           <TrackButton
-            className={`px-3 border-sky-600 active:bg-sky-600 select-none`}
+            className={`px-3 border-sky-500 active:bg-gradient-to-r active:from-sky-500 active:to-teal-500 background-pulse select-none`}
             onClick={() => props.createScaleTrack(track.id)}
           >
             <label className="flex items-center cursor-pointer">
@@ -244,16 +238,15 @@ function ScaleTrack(props: Props) {
         </>
       </div>
     );
-  }, [ScaleEditorButton]);
+  }, [onScaleEditor, track, cell]);
 
   // Assembled scale track
   const ScaleTrack = useMemo(() => {
     return (
       <div
-        className={`rdg-track h-full p-2 bg-gradient-to-r from-sky-900/80 to-indigo-700/60 mix-blend-normal text-white border-b border-b-white/20 ${
+        className={`rdg-track h-full p-2 bg-gradient-to-r from-sky-900 to-indigo-800 text-white border-b border-b-white/20 ${
           isDragging ? "opacity-75" : ""
         } ${props.isSelected ? "bg-slate-500/50" : ""}`}
-        style={{ filter: `brightness(${1 + (2 * props.row.depth) / 10})` }}
         ref={ref}
         onClick={() => props.selectTrack(track.id)}
       >
@@ -270,13 +263,9 @@ function ScaleTrack(props: Props) {
 
 // Move the track for react-dnd
 export const moveScaleTrack =
-  (props: {
-    dragId: TrackId;
-    hoverId: TrackId;
-    hoverIndex: number;
-  }): AppThunk<boolean> =>
+  (props: { dragId: TrackId; hoverId: TrackId }): AppThunk<boolean> =>
   (dispatch, getState) => {
-    const { dragId, hoverIndex, hoverId } = props;
+    const { dragId, hoverId } = props;
     const state = getState();
 
     // Get the corresponding scale tracks
@@ -284,17 +273,18 @@ export const moveScaleTrack =
     const otherTrack = selectTrack(state, hoverId);
     if (!thisTrack || !otherTrack) return false;
 
-    // If one of the tracks is a pattern track, move the pattern track
+    // If the dragged track is a pattern track, move the pattern track
     const isThisPatternTrack = isPatternTrack(thisTrack);
     const isOtherPatternTrack = isPatternTrack(otherTrack);
-    if (isThisPatternTrack || isOtherPatternTrack) {
-      const patternTrackId = isThisPatternTrack ? thisTrack.id : otherTrack.id;
-      const scaleTrackId = isThisPatternTrack ? otherTrack.id : thisTrack.id;
+
+    if (isThisPatternTrack && !isOtherPatternTrack) {
+      const patternTrackId = thisTrack.id;
+      const scaleTrackId = otherTrack.id;
       dispatch(setPatternTrackScaleTrack(patternTrackId, scaleTrackId));
       return true;
     }
 
     // Move the scale track
-    dispatch(moveTrackInSession({ id: thisTrack.id, index: hoverIndex }));
+    dispatch(moveTrackInSession({ id: thisTrack.id, index: 0 }));
     return true;
   };

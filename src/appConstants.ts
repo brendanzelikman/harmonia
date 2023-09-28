@@ -33,10 +33,9 @@ export const DEFAULT_BEATS_PER_BAR = 4;
 
 // Timeline
 export const TRACK_WIDTH = 300;
-export const DEFAULT_CELL_WIDTH = 25;
-export const MIN_CELL_WIDTH = 25;
-export const MAX_CELL_WIDTH = 50;
 export const HEADER_HEIGHT = 80;
-export const CELL_HEIGHT = 120;
 export const TRANSPOSITION_HEIGHT = 20;
-export const INITIAL_MAX_ROWS = 8;
+export const MIN_CELL_WIDTH = 25;
+export const MAX_CELL_WIDTH = 100;
+export const MIN_CELL_HEIGHT = 80;
+export const MAX_CELL_HEIGHT = 120;

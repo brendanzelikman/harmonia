@@ -1,6 +1,7 @@
 .rdg-cell {
   outline: none;
   padding: 0;
+  box-shadow: none;
   overflow: visible;
 }
 .rdg-time-background {

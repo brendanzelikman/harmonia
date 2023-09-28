@@ -1,8 +1,15 @@
-import { MIN_GLOBAL_VOLUME, MAX_GLOBAL_VOLUME } from "appConstants";
-import { useState } from "react";
+import {
+  MIN_GLOBAL_VOLUME,
+  MAX_GLOBAL_VOLUME,
+  MIN_CELL_WIDTH,
+  MAX_CELL_WIDTH,
+  MAX_CELL_HEIGHT,
+  MIN_CELL_HEIGHT,
+} from "appConstants";
+import { KeyboardEvent, useMemo, useState } from "react";
 import { BsGearFill, BsVolumeDownFill, BsVolumeMuteFill } from "react-icons/bs";
 import { connect, ConnectedProps } from "react-redux";
-import { selectCellWidth, selectTransport } from "redux/selectors";
+import { selectCell, selectTransport } from "redux/selectors";
 import {
   setTransportBPM,
   setTransportMute,
@@ -19,13 +26,14 @@ import { showShortcuts } from "redux/slices/root";
 import { clamp } from "lodash";
 import useEventListeners from "hooks/useEventListeners";
 import { isHoldingCommand, isInputEvent } from "utils";
-import { setCellWidth } from "redux/slices/timeline";
+import { setCellWidth, setCellHeight } from "redux/slices/timeline";
+import { DEFAULT_CELL } from "types";
 
 const mapStateToProps = (state: RootState) => {
   const { bpm, timeSignature, volume, mute } = selectTransport(state);
 
-  const cellWidth = selectCellWidth(state);
-  return { bpm, timeSignature, volume, mute, cellWidth };
+  const cell = selectCell(state);
+  return { bpm, timeSignature, volume, mute, cell };
 };
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
@@ -46,6 +54,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     setCellWidth: (cellWidth: number) => {
       dispatch(setCellWidth(cellWidth));
     },
+    setCellHeight: (cellHeight: number) => {
+      dispatch(setCellHeight(cellHeight));
+    },
     showShortcuts: () => {
       dispatch(showShortcuts());
     },
@@ -58,36 +69,57 @@ type Props = ConnectedProps<typeof connector>;
 export default connector(Settings);
 
 function Settings(props: Props) {
-  const { bpm, timeSignature, volume, setVolume, cellWidth } = props;
+  const { bpm, timeSignature, volume, setVolume, cell } = props;
+
+  // BPM properties
   const [BPMInput, setBPMInput] = useState(bpm);
-  const [widthInput, setWidthInput] = useState(cellWidth / 25);
+  const onBPMKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !!e.currentTarget.value) {
+      props.setBPM(e.currentTarget.valueAsNumber);
+    }
+  };
+
+  // Time signature properties
   const [TS1, setTS1] = useState(timeSignature ? timeSignature[0] : 16);
   const TS2 = 16;
 
-  const onKeyDown = (e: any) => {
-    if (e.key === "Enter") {
-      e.currentTarget.blur();
-    }
-  };
-  const onBPMKeyDown = (e: any) => {
-    if (e.key === "Enter" && !!e.currentTarget.value) {
-      props.setBPM(e.currentTarget.value);
-    }
-  };
-  const onTSKeyDown = (e: any) => {
+  const onTSKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !isNaN(TS1) && !isNaN(TS2)) {
       props.setTimeSignature([TS1, TS2]);
     }
   };
 
-  const onWidthKeyDown = (e: any) => {
-    if (e.key === "Enter" && !isNaN(widthInput)) {
-      const width = clamp(parseFloat(e.currentTarget.value), 1, 2);
-      props.setCellWidth(width * 25);
-      setWidthInput(clamp(widthInput, 1, 2));
+  // Cell properties
+  const [CellInput, setCellInput] = useState(cell);
+  const setCellWidth = (width: number) =>
+    setCellInput((prev) => ({ ...prev, width: width || DEFAULT_CELL.width }));
+  const setCellHeight = (height: number) =>
+    setCellInput((prev) => ({
+      ...prev,
+      height: height || DEFAULT_CELL.height,
+    }));
+
+  const onWidthKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !isNaN(CellInput.width)) {
+      props.setCellWidth(CellInput.width);
+      setCellInput({
+        ...cell,
+        width: clamp(CellInput.width, MIN_CELL_WIDTH, MAX_CELL_WIDTH),
+      });
     }
   };
 
+  const onHeightKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !isNaN(CellInput.height)) {
+      props.setCellHeight(CellInput.height);
+      setCellInput({
+        ...cell,
+        height: clamp(CellInput.height, MIN_CELL_HEIGHT, MAX_CELL_HEIGHT),
+      });
+    }
+  };
+
+  // Settings visibility toggle
   const [show, setShow] = useState(false);
   useEventListeners(
     {
@@ -103,60 +135,66 @@ function Settings(props: Props) {
     [show, setShow]
   );
 
-  const SettingsTooltipContent = () => (
-    <>
-      <div className="flex flex-col justify-center items-center p-2">
-        <NavbarFormGroup>
-          <NavbarFormLabel className="font-bold w-36 mr-3">
-            Tempo (BPM)
-          </NavbarFormLabel>
-          <NavbarFormInput
-            className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
-            type="number"
-            value={BPMInput}
-            onChange={(e: any) => setBPMInput(parseInt(e.target.value))}
-            onKeyDown={(e: any) => {
-              onKeyDown(e);
-              onBPMKeyDown(e);
-            }}
-          />
-        </NavbarFormGroup>
-        <NavbarFormGroup>
-          <NavbarFormLabel className="w-36 mr-3">
-            16ths / Measure
-          </NavbarFormLabel>
-          <NavbarFormInput
-            className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
-            type="number"
-            value={TS1}
-            onChange={(e: any) => setTS1(parseInt(e.target.value))}
-            onKeyDown={(e: any) => {
-              onKeyDown(e);
-              onTSKeyDown(e);
-            }}
-          />
-        </NavbarFormGroup>
-        <NavbarFormGroup>
-          <NavbarFormLabel className="w-36 mr-3">Zoom (1 - 2)</NavbarFormLabel>
-          <NavbarFormInput
-            className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
-            type="number"
-            value={widthInput}
-            onChange={(e: any) => setWidthInput(parseFloat(e.target.value))}
-            onKeyDown={(e: any) => {
-              onKeyDown(e);
-              onWidthKeyDown(e);
-            }}
-          />
-        </NavbarFormGroup>
-        <NavbarFormGroup
-          className="border border-slate-400 rounded-lg mt-2 py-2 hover:bg-slate-600/50 active:bg-slate-800/50"
-          onClick={props.showShortcuts}
-        >
-          Open Shortcuts Menu
-        </NavbarFormGroup>
-      </div>
-    </>
+  const SettingsTooltipContent = useMemo(
+    () => (
+      <>
+        <div className="flex flex-col justify-center items-center p-2">
+          <NavbarFormGroup>
+            <NavbarFormLabel className="font-bold w-36 mr-3">
+              Tempo (BPM)
+            </NavbarFormLabel>
+            <NavbarFormInput
+              className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
+              type="number"
+              value={BPMInput}
+              onChange={(e) => setBPMInput(e.target.valueAsNumber)}
+              onKeyDown={onBPMKeyDown}
+            />
+          </NavbarFormGroup>
+          <NavbarFormGroup>
+            <NavbarFormLabel className="w-36 mr-3">
+              16ths / Measure
+            </NavbarFormLabel>
+            <NavbarFormInput
+              className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
+              type="number"
+              value={TS1}
+              onChange={(e) => setTS1(e.target.valueAsNumber)}
+              onKeyDown={onTSKeyDown}
+            />
+          </NavbarFormGroup>
+          <NavbarFormGroup>
+            <NavbarFormLabel className="w-36 mr-3">Cell Width</NavbarFormLabel>
+            <NavbarFormInput
+              className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
+              type="number"
+              placeholder={`${DEFAULT_CELL.width}`}
+              value={CellInput.width}
+              onChange={(e) => setCellWidth(e.target.valueAsNumber)}
+              onKeyDown={onWidthKeyDown}
+            />
+          </NavbarFormGroup>
+          <NavbarFormGroup>
+            <NavbarFormLabel className="w-36 mr-3">Cell Height</NavbarFormLabel>
+            <NavbarFormInput
+              className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
+              type="number"
+              placeholder={`${DEFAULT_CELL.height}`}
+              value={CellInput.height}
+              onChange={(e) => setCellHeight(e.target.valueAsNumber)}
+              onKeyDown={onHeightKeyDown}
+            />
+          </NavbarFormGroup>
+          <NavbarFormGroup
+            className="border border-slate-400 rounded-lg mt-2 py-2 hover:bg-slate-600/50 active:bg-slate-800/50"
+            onClick={props.showShortcuts}
+          >
+            Open Shortcuts Menu
+          </NavbarFormGroup>
+        </div>
+      </>
+    ),
+    [BPMInput, TS1, CellInput, props.showShortcuts]
   );
 
   const [draggingVolume, setDraggingVolume] = useState(false);
@@ -190,7 +228,7 @@ function Settings(props: Props) {
         value={props.mute ? MIN_GLOBAL_VOLUME : volume}
         min={MIN_GLOBAL_VOLUME}
         max={MAX_GLOBAL_VOLUME}
-        onChange={(e: any) => setVolume(parseInt(e.target.value))}
+        onChange={(e) => setVolume(parseInt(e.target.value))}
         onMouseDown={() => {
           setDraggingVolume(true);
           if (props.mute) props.setMute(false);

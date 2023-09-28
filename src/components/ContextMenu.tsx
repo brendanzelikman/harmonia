@@ -1,4 +1,4 @@
-import { Transition } from "@headlessui/react";
+import useEventListeners from "hooks/useEventListeners";
 import {
   useCallback,
   useEffect,
@@ -52,6 +52,17 @@ export default function ContextMenu(props: {
     };
   }, [targetId]);
 
+  useEventListeners(
+    {
+      Escape: {
+        keydown: () => {
+          setVisible(false);
+        },
+      },
+    },
+    []
+  );
+
   useLayoutEffect(() => {
     const node = contextRef.current;
     if (!node) return;
@@ -89,25 +100,22 @@ export default function ContextMenu(props: {
   );
 
   return (
-    <Transition
-      show={visible}
-      enter="transition ease-out duration-100"
-      enterFrom="transform opacity-0 scale-95"
-      enterTo="transform opacity-100 scale-100"
-      leave="transition ease-in duration-75"
-      leaveFrom="transform opacity-100 scale-100"
-      leaveTo="transform opacity-0 scale-95"
+    <div
       ref={contextRef}
-      className={`bg-slate-900/80 border border-slate-50/50 py-2 rounded-lg drop-shadow-2xl z-[100] font-nunito font-light ${
+      className={`absolute flex flex-col items-center bg-slate-900/80 border border-slate-50/50 py-2 rounded-lg drop-shadow-2xl z-[100] font-nunito font-light ${
         props.className ?? ""
-      } absolute flex flex-col items-center backdrop-blur-lg text-sm`}
+      } backdrop-blur-lg text-sm`}
+      onClick={() => setVisible(false)}
       style={{
         left: pos.x,
         top: pos.y,
+        opacity: visible ? 1 : 0,
+        transform: `scale(${visible ? 1 : 0.8})`,
+        transition: "opacity 100ms ease-in-out, transform 100ms ease-in-out",
+        pointerEvents: visible ? "all" : "none",
       }}
-      onClick={() => setVisible(false)}
     >
       <ul>{props.options.map(renderOption)}</ul>
-    </Transition>
+    </div>
   );
 }

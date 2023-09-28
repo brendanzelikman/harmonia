@@ -1,7 +1,7 @@
 import { connect, ConnectedProps } from "react-redux";
 import { AppDispatch, RootState } from "redux/store";
 import { TranspositionsProps } from ".";
-import { CELL_HEIGHT, HEADER_HEIGHT, TRANSPOSITION_HEIGHT } from "appConstants";
+import { HEADER_HEIGHT, TRANSPOSITION_HEIGHT } from "appConstants";
 import * as Root from "redux/slices/root";
 import { MouseEvent, useMemo } from "react";
 import {
@@ -11,6 +11,7 @@ import {
   Transposition,
 } from "types/transposition";
 import {
+  selectCellHeight,
   selectTimeline,
   selectTimelineTickOffset,
   selectTrackParents,
@@ -52,13 +53,13 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const chordal = getChordalTranspose(transposition);
 
   // CSS properties
-  const top = HEADER_HEIGHT + index * CELL_HEIGHT;
+  const height = selectCellHeight(state);
+  const top = HEADER_HEIGHT + index * height;
   const left = selectTimelineTickOffset(state, transposition.tick);
 
   const width = transposition.duration
     ? ticksToColumns(transposition.duration, subdivision) * cellWidth
     : ownProps.backgroundWidth - left;
-  const height = CELL_HEIGHT;
 
   return {
     ...ownProps,
@@ -213,12 +214,12 @@ function TimelineTransposition(props: TranspositionProps) {
         } absolute rounded-b pointer-events-none`}
         style={{
           width,
-          height: CELL_HEIGHT - TRANSPOSITION_HEIGHT,
+          height: height - TRANSPOSITION_HEIGHT,
           top: TRANSPOSITION_HEIGHT,
         }}
       ></div>
     );
-  }, [width, isSelected]);
+  }, [width, height, isSelected]);
 
   // Assembled transposition
   const Transposition = useMemo(() => {

@@ -1,11 +1,15 @@
 import { connect, ConnectedProps } from "react-redux";
-import { PatternTrack, Track, TrackId, TrackType } from "types/tracks";
+import { TrackId, TrackType } from "types/tracks";
 import { AppDispatch, RootState } from "redux/store";
 import { Timeline } from "./components/Timeline";
 import "react-data-grid/lib/styles.css";
 import { setSelectedTrack } from "redux/slices/root";
 import * as Selectors from "redux/selectors";
-import { createScaleTrack } from "redux/thunks/tracks";
+import {
+  createScaleTrack,
+  unmuteTracks,
+  unsoloTracks,
+} from "redux/thunks/tracks";
 import {
   pasteSelectedClipsAndTranspositions,
   toggleTrackMute,
@@ -24,7 +28,7 @@ function mapStateToProps(state: RootState) {
     Selectors.selectTrackDependencies(state)
   );
   const transport = Selectors.selectTransport(state);
-  const cellWidth = Selectors.selectCellWidth(state);
+  const cell = Selectors.selectCell(state);
   const { subdivision } = Selectors.selectTimeline(state);
   const { selectedTrackId } = Selectors.selectRoot(state);
   const scaleTracks = Selectors.selectTrackParents(state, selectedTrackId);
@@ -33,7 +37,8 @@ function mapStateToProps(state: RootState) {
     state: transport.state,
     subdivision,
     selectedTrackId,
-    cellWidth,
+    cellWidth: cell.width,
+    cellHeight: cell.height,
     showingEditor: editor.show,
     scaleTracks,
   };
@@ -66,6 +71,12 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     toggleTrackSolo: (trackId?: TrackId) => {
       if (!trackId) return;
       dispatch(toggleTrackSolo(trackId));
+    },
+    unmuteTracks: () => {
+      dispatch(unmuteTracks());
+    },
+    unsoloTracks: () => {
+      dispatch(unsoloTracks());
     },
   };
 }

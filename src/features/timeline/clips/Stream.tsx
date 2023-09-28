@@ -1,6 +1,7 @@
 import { MouseEvent, useCallback, useMemo } from "react";
 import { connect, ConnectedProps } from "react-redux";
 import {
+  selectCellHeight,
   selectCellWidth,
   selectClipStream,
   selectTimeline,
@@ -16,7 +17,7 @@ import {
 import { Time } from "types/units";
 import { percentOfRange, ticksToColumns } from "utils";
 import { MIDI } from "types/midi";
-import { CELL_HEIGHT, TRANSPOSITION_HEIGHT } from "appConstants";
+import { TRANSPOSITION_HEIGHT } from "appConstants";
 
 interface StreamProps {
   clip: Clip;
@@ -36,9 +37,10 @@ const mapStateToProps = (state: RootState, ownProps: StreamProps) => {
   const midiString = JSON.stringify(midiNotes);
   // CSS Properties
   const cellWidth = selectCellWidth(state);
+  const cellHeight = selectCellHeight(state);
   const margin = 8;
   const nameHeight = 24;
-  const height = CELL_HEIGHT - TRANSPOSITION_HEIGHT - nameHeight - margin;
+  const height = cellHeight - TRANSPOSITION_HEIGHT - nameHeight - margin;
 
   // Note properties
   const { noteColor } = getClipTheme(clip);

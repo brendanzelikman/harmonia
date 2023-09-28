@@ -6,11 +6,12 @@ import {
   selectClipWidth,
   selectClipName,
   selectClipPattern,
+  selectCellHeight,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Clip, ClipId, getClipTheme } from "types/clip";
 import { ClipsProps } from ".";
-import { CELL_HEIGHT, TRANSPOSITION_HEIGHT, HEADER_HEIGHT } from "appConstants";
+import { TRANSPOSITION_HEIGHT, HEADER_HEIGHT } from "appConstants";
 import { useClipDrag } from "./dnd";
 import * as Root from "redux/slices/root";
 import { MouseEvent, useCallback, useMemo } from "react";
@@ -45,10 +46,11 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const pattern = selectClipPattern(state, clip.id);
 
   // CSS properties
-  const top = HEADER_HEIGHT + index * CELL_HEIGHT + TRANSPOSITION_HEIGHT;
+  const cellHeight = selectCellHeight(state);
+  const top = HEADER_HEIGHT + index * cellHeight + TRANSPOSITION_HEIGHT;
   const left = selectTimelineTickOffset(state, clip.tick);
   const width = selectClipWidth(state, clip.id);
-  const height = CELL_HEIGHT - TRANSPOSITION_HEIGHT;
+  const height = cellHeight - TRANSPOSITION_HEIGHT;
   const { headerColor, bodyColor } = getClipTheme(clip);
 
   return {

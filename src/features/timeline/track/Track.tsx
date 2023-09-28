@@ -4,7 +4,8 @@ import PatternTrack from "./PatternTrack";
 import ScaleTrack from "./ScaleTrack";
 import { Menu, Transition } from "@headlessui/react";
 import { BsThreeDots } from "react-icons/bs";
-import { Fragment } from "react";
+import { Fragment, InputHTMLAttributes } from "react";
+import { TimelineCell } from "types";
 
 export function TrackComponent(props: TrackProps) {
   const { track } = props;
@@ -29,7 +30,7 @@ export const TrackButton = (props: {
       aria-label="Track Button"
       className={`${
         props.className ?? ""
-      } flex items-center justify-center rounded-md overflow-hidden min-w-7 h-7 m-1 font-light border`}
+      } flex flex-1 items-center justify-center rounded-md overflow-hidden min-w-6 min-h-[25px] max-h-[30px] m-1 font-light border`}
       onClick={(e) => {
         props.onClick?.();
         e.currentTarget.blur();
@@ -37,6 +38,26 @@ export const TrackButton = (props: {
     >
       {props.children}
     </button>
+  );
+};
+
+interface SliderProps extends InputHTMLAttributes<HTMLInputElement> {
+  cell: TimelineCell;
+}
+export const TrackSlider = (props: SliderProps) => {
+  return (
+    <input
+      {...props}
+      style={{
+        width: `${props.cell.height - 20}px`,
+        marginTop: `${0.5 * (props.cell.height - 20) - 10}px`,
+        transform: `rotate(270deg) translate(0px, -${
+          0.5 * (props.cell.height - 20) - 10
+        }px)`,
+      }}
+      type="range"
+      aria-orientation="vertical"
+    />
   );
 };
 

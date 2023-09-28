@@ -1,6 +1,7 @@
 import { FormatterProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
 import {
+  selectCell,
   selectRoot,
   selectScaleTrack,
   selectTrack,
@@ -35,6 +36,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   // Track properties
   const track = selectTrack(state, ownProps.row.trackId);
   const scaleTrack = selectScaleTrack(state, track?.id);
+  const cell = selectCell(state);
 
   const selectedParents = selectTrackParents(state, selectedTrackId);
   const isScaleSelected = selectedParents.some(({ id }) => id === track?.id);
@@ -51,6 +53,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   return {
     row,
     track,
+    cell,
     scaleTrack,
     selectedTrackId,
     isScaleSelected,
@@ -116,9 +119,5 @@ export interface DraggableTrackProps {
   track: Track;
   index: number;
   element?: any;
-  moveTrack: (props: {
-    dragId: TrackId;
-    hoverId: TrackId;
-    hoverIndex: number;
-  }) => boolean;
+  moveTrack: (props: { dragId: TrackId; hoverId: TrackId }) => boolean;
 }

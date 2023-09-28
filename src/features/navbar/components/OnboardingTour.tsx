@@ -47,7 +47,7 @@ const tourText = (props: { title: string; text?: string; body?: any }) =>
 `;
 
 function OnboardingTour(props: Props) {
-  const [finished, setFinished] = useState(false);
+  const [confetti, setConfetti] = useState(false);
 
   const defaultClass =
     "bg-slate-800/75 backdrop-blur text-slate-300 p-8 rounded-md text-sm font-nunito border-4 border-slate-900 ring-8 ring-sky-500/80 drop-shadow-2xl focus:outline-none z-90";
@@ -297,13 +297,13 @@ function OnboardingTour(props: Props) {
           classes:
             "bg-sky-600 font-bold px-4 py-2 rounded-lg mr-2 mt-5 hover:bg-sky-700 w-full",
           action() {
-            this.cancel();
+            window.location.reload();
           },
         },
       ],
       beforeShowPromise() {
         return new Promise<void>((resolve) => {
-          setFinished(true);
+          setConfetti(true);
           resolve();
         });
       },
@@ -312,46 +312,42 @@ function OnboardingTour(props: Props) {
   ];
 
   const tourOptions = {
-    defualtStepOptions: {
-      cancelIcon: {
-        enabled: true,
-      },
-    },
     useModalOverlay: true,
   };
   return (
     <ShepherdTour steps={steps} tourOptions={tourOptions}>
       <ShepherdTourContent
         {...props}
-        finished={finished}
-        setFinished={setFinished}
+        confetti={confetti}
+        setConfetti={setConfetti}
       />
     </ShepherdTour>
   );
 }
 
 interface ContentProps extends Props {
-  finished: boolean;
-  setFinished: (finished: boolean) => void;
+  confetti: boolean;
+  setConfetti: (confetti: boolean) => void;
 }
 
 function ShepherdTourContent(props: ContentProps) {
   const tour = useContext(ShepherdTourContext);
   const [isActive, setIsActive] = useState(false);
 
+  const callback = (finish = true) => {
+    if (finish) props.setConfetti(false);
+    props.endTour();
+    setIsActive(false);
+  };
+
   useEffect(() => {
-    const callback = (finish = true) => {
-      if (finish) props.setFinished(false);
-      props.endTour();
-      setIsActive(false);
-    };
     if (tour) {
-      tour.on("start", () => setIsActive(true));
-      tour.on("complete", () => callback(false));
-      tour.on("cancel", () => callback(true));
+      tour.once("start", () => setIsActive(true));
+      tour.once("complete", () => callback(false));
+      tour.once("cancel", () => callback(true));
     }
     return () => {
-      callback(true);
+      tour?.cancel();
     };
   }, []);
 
@@ -362,7 +358,7 @@ function ShepherdTourContent(props: ContentProps) {
       tour.cancel();
       setIsActive(false);
       props.endTour();
-      props.setFinished(false);
+      props.setConfetti(false);
     } else {
       props.hideEditor();
       tour.start();
@@ -383,7 +379,7 @@ function ShepherdTourContent(props: ContentProps) {
           }`}
         />
       </button>
-      {props.finished &&
+      {props.confetti &&
         createPortal(<ReactConfetti className="z-[80]" />, document.body)}
     </>
   );

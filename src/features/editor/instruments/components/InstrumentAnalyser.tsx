@@ -21,7 +21,7 @@ export function InstrumentAnalyser(props: AnalyserProps) {
   const frameDuration = 3;
   useAnimationFrame(
     () => {
-      if (mixer[type] !== undefined) {
+      if (mixer?.[type] !== undefined) {
         if (type === "fft") {
           const buffer = mixer[type].getValue();
           const minDB = -90;

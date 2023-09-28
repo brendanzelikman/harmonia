@@ -1,14 +1,21 @@
-import { DEFAULT_CELL_WIDTH, TRACK_WIDTH } from "appConstants";
+import { TRACK_WIDTH } from "appConstants";
 import { subdivisionToTicks, ticksToColumns } from "utils";
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { selectTick, selectTransport } from "./transport";
 import { MIDI } from "types/midi";
+import { DEFAULT_CELL } from "types";
 
 export const selectTimeline = (state: RootState) => state.timeline;
 
+export const selectCell = (state: RootState) =>
+  state.timeline.cell || DEFAULT_CELL;
+
 export const selectCellWidth = (state: RootState) =>
-  state.timeline.cellWidth || DEFAULT_CELL_WIDTH;
+  state.timeline.cell.width || DEFAULT_CELL.width;
+
+export const selectCellHeight = (state: RootState) =>
+  state.timeline.cell.height || DEFAULT_CELL.height;
 
 const selectTimelineColumn = createSelector([selectTimeline], (timeline) => {
   return subdivisionToTicks(timeline.subdivision);

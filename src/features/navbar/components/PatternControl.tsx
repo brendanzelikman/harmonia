@@ -533,7 +533,7 @@ function PatternControl(props: Props) {
           className="w-16 focus:border-slate-200 border-slate-400"
           value={transpositionDuration}
           placeholder={"0"}
-          onChange={(e: FormEvent<HTMLInputElement>) =>
+          onChange={(e) =>
             props.setToolkitValue(
               "transpositionDuration",
               (e.target as HTMLInputElement).valueAsNumber || 0

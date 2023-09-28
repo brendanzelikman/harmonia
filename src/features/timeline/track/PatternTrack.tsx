@@ -1,8 +1,13 @@
 import { connect, ConnectedProps } from "react-redux";
 import { AppDispatch, AppThunk, RootState } from "redux/store";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { TrackProps } from ".";
-import { TrackButton, TrackDropdownButton, TrackDropdownMenu } from "./Track";
+import {
+  TrackButton,
+  TrackDropdownButton,
+  TrackDropdownMenu,
+  TrackSlider,
+} from "./Track";
 import useDebouncedField from "hooks/useDebouncedField";
 import { getInstrumentName } from "types/instrument";
 import { setMixerPan, setMixerVolume } from "redux/thunks/mixers";
@@ -16,9 +21,18 @@ import { MIN_VOLUME, MAX_VOLUME, MIN_PAN, MAX_PAN } from "appConstants";
 import { DEFAULT_VOLUME, DEFAULT_PAN } from "appConstants";
 import { VOLUME_STEP, PAN_STEP } from "appConstants";
 import { Transition } from "@headlessui/react";
-import { selectEditor, selectMixerById, selectTrack } from "redux/selectors";
+import {
+  selectEditor,
+  selectMixerById,
+  selectSessionMap,
+  selectTrack,
+} from "redux/selectors";
 import { selectPatternTrack, selectScaleTrack } from "redux/selectors";
-import { isScaleTrack, PatternTrack as PatternTrackType } from "types/tracks";
+import {
+  isPatternTrack,
+  isScaleTrack,
+  PatternTrack as PatternTrackType,
+} from "types/tracks";
 import {
   setPatternTrackScaleTrack,
   updatePatternTrack,
@@ -61,11 +75,7 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
 };
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    moveTrack: (props: {
-      dragId: TrackId;
-      hoverIndex: number;
-      hoverId: TrackId;
-    }) => {
+    moveTrack: (props: { dragId: TrackId; hoverId: TrackId }) => {
       return dispatch(movePatternTrack(props));
     },
     setPatternTrackName: (track: Partial<PatternTrackType>, name: string) => {
@@ -86,7 +96,7 @@ type Props = ConnectedProps<typeof connector>;
 export default connector(PatternTrack);
 
 function PatternTrack(props: Props) {
-  const { track, mixerId, chromatic, scalar, chordal } = props;
+  const { track, mixerId, chromatic, scalar, chordal, cell } = props;
   const holdingK = useKeyHolder("k").k;
 
   // Drag and drop pattern tracks
@@ -142,12 +152,11 @@ function PatternTrack(props: Props) {
   // Pattern track volume slider
   const PatternTrackVolumeSlider = useMemo(() => {
     return () => (
-      <div className="w-6 z-[90] relative">
+      <div className="ml-1 w-6 z-[90] relative">
         <div className="w-full h-full">
-          <input
-            className={`w-[5.4rem] h-5 -ml-7 mr-[2.5rem] mt-[2.5rem] rotate-[270deg] accent-emerald-500`}
-            type="range"
-            aria-orientation="vertical"
+          <TrackSlider
+            cell={cell}
+            className={`h-5 rotate-[270deg] accent-emerald-500`}
             value={props.volume}
             min={MIN_VOLUME}
             max={MAX_VOLUME}
@@ -161,17 +170,16 @@ function PatternTrack(props: Props) {
         </div>
       </div>
     );
-  }, [props.volume, draggingVolume, PatternTrackVolumeTooltip]);
+  }, [props.volume, cell, draggingVolume, PatternTrackVolumeTooltip]);
 
   // Pattern track pan slider
   const PatternTrackPanSlider = useMemo(() => {
     return () => (
-      <div className="ml-1 mr-2 w-6 h-full z-[80] relative">
+      <div className="mr-1.5 w-6 h-full z-[80] relative">
         <div className="w-full h-full">
-          <input
-            className={`w-[5.4rem] h-5 mt-[2.5rem] -translate-x-[1.9rem] rotate-[270deg] accent-teal-400`}
-            type="range"
-            aria-orientation="vertical"
+          <TrackSlider
+            cell={cell}
+            className={`h-5 accent-teal-400`}
             value={props.pan}
             min={MIN_PAN}
             max={MAX_PAN}
@@ -185,12 +193,12 @@ function PatternTrack(props: Props) {
         </div>
       </div>
     );
-  }, [props.pan, draggingPan, PatternTrackPanTooltip]);
+  }, [props.pan, cell, draggingPan, PatternTrackPanTooltip]);
 
   // Pattern track volume + pan sliders
   const PatternTrackSliders = useMemo(() => {
     return () => (
-      <div className="flex w-24" draggable onDragStart={cancelEvent}>
+      <div className="flex" draggable onDragStart={cancelEvent}>
         {PatternTrackVolumeSlider()}
         {PatternTrackPanSlider()}
       </div>
@@ -199,11 +207,13 @@ function PatternTrack(props: Props) {
 
   // Instrument button
   const InstrumentEditorButton = useMemo(() => {
+    const isSmall = cell.height < 100;
+    const className = isSmall ? "text-xs px-2" : "text-sm px-3";
     return () => (
       <TrackButton
-        className={`px-3 border border-orange-500 ${
+        className={`${className} border border-orange-400 ${
           props.onInstrumentEditor
-            ? "bg-gradient-to-tr from-[#FF5A1F] to-[#DE450F] background-pulse"
+            ? "bg-gradient-to-r from-orange-500 to-orange-500/50 background-pulse"
             : ""
         }`}
         onClick={() =>
@@ -217,7 +227,7 @@ function PatternTrack(props: Props) {
         </label>
       </TrackButton>
     );
-  }, [props.onInstrumentEditor]);
+  }, [props.onInstrumentEditor, cell]);
 
   // Mute button
   const MuteButton = useMemo(() => {
@@ -266,13 +276,15 @@ function PatternTrack(props: Props) {
 
   // Pattern track name field
   const PatternTrackNameField = useMemo(() => {
+    const isSmall = cell.height < 100;
+    const size = isSmall ? "text-xs h-6" : "text-sm h-7";
     return () => (
       <>
         <input
           placeholder={props.instrumentName}
           value={PatternTrackName.value}
           onChange={PatternTrackName.onChange}
-          className="bg-zinc-800 px-1 h-7 mr-2 flex-auto caret-white outline-none rounded-md overflow-ellipsis text-sm text-gray-300 border-2 border-zinc-800 focus:border-indigo-500/50"
+          className={`bg-zinc-800 text-sm px-1 ${size} mr-2 flex-auto caret-white outline-none rounded-md overflow-ellipsis text-gray-300 border-2 border-zinc-800 focus:border-indigo-500/50`}
           onKeyDown={PatternTrackName.onKeyDown}
         />
         <label className="font-light w-4 text-center">
@@ -280,7 +292,7 @@ function PatternTrack(props: Props) {
         </label>
       </>
     );
-  }, [props.instrumentName, PatternTrackName.value, props.row.depth]);
+  }, [props.instrumentName, cell, PatternTrackName.value, props.row.depth]);
 
   // Pattern track dropdown menu
   const PatternTrackDropdownMenu = useMemo(() => {
@@ -322,7 +334,7 @@ function PatternTrack(props: Props) {
           Current: N{chromatic} • T{scalar} • t{chordal}
         </Transition>
         <div
-          className="w-full flex relative justify-end"
+          className="w-full min-h-[1.5rem] max-h-[2.5rem] flex flex-1 relative text-sm justify-end"
           draggable
           onDragStart={cancelEvent}
         >
@@ -356,16 +368,18 @@ function PatternTrack(props: Props) {
   const PatternTrack = useMemo(() => {
     return (
       <div
-        className={`rdg-track p-2 px-4 pl-1 flex h-full bg-gradient-to-r from-sky-800 to-emerald-500/50 text-white border-b border-b-white/20 ${
+        className={`rdg-track pt-0.5 bg-teal-700 flex w-full h-full text-white border-b border-b-white/20 ${
           isDragging ? "opacity-75" : ""
         } ${props.isSelected ? "bg-slate-500/50" : ""}`}
         ref={trackRef}
         onClick={() => props.selectTrack(track.id)}
       >
-        {PatternTrackSliders()}
-        <div className="w-full h-full flex flex-col items-center justify-evenly">
-          {PatternTrackHeader()}
-          {PatternTrackBody()}
+        <div className="w-full h-full pl-1 pt-1 pr-3 flex bg-gradient-to-r from-sky-700/80 to-emerald-600/80">
+          {PatternTrackSliders()}
+          <div className="w-full h-full flex flex-col items-center justify-center py-2">
+            {PatternTrackHeader()}
+            {PatternTrackBody()}
+          </div>
         </div>
       </div>
     );
@@ -382,53 +396,48 @@ function PatternTrack(props: Props) {
 
 // Move the track for react-dnd
 export const movePatternTrack =
-  (props: {
-    dragId: TrackId;
-    hoverIndex: number;
-    hoverId: TrackId;
-  }): AppThunk<boolean> =>
+  (props: { dragId: TrackId; hoverId: TrackId }): AppThunk<boolean> =>
   (dispatch, getState) => {
-    const { dragId, hoverIndex, hoverId } = props;
+    const { dragId, hoverId } = props;
     const state = getState();
+    const sessionMap = selectSessionMap(state).byId;
 
     // Get the corresponding pattern tracks
-    const thisPatternTrack = selectPatternTrack(state, dragId);
+    const thisTrack = selectTrack(state, dragId);
     const otherTrack = selectTrack(state, hoverId);
-    if (!thisPatternTrack || !otherTrack) return false;
+    if (!thisTrack || !otherTrack) return false;
 
-    // If the other track is a scale track, migrate the pattern track
-    if (isScaleTrack(otherTrack)) {
-      dispatch(
-        setPatternTrackScaleTrack(
-          thisPatternTrack.id,
-          otherTrack.id,
-          hoverIndex
-        )
-      );
+    const otherTrackParent = otherTrack.parentId
+      ? sessionMap[otherTrack.parentId]
+      : null;
+
+    const isThisPattern = isPatternTrack(thisTrack);
+    const isOtherPattern = isPatternTrack(otherTrack);
+
+    // If this = scale track and other = pattern track, move the scale track if possible
+    if (!isThisPattern && isOtherPattern) {
+      const index = otherTrackParent?.trackIds.indexOf(otherTrack.id);
+      if (index === undefined || index === -1) return false;
+      dispatch(moveTrackInSession({ id: thisTrack.id, index }));
       return true;
     }
 
     // Get the corresponding scale tracks
-    const thisScaleTrack = selectScaleTrack(state, thisPatternTrack.parentId);
-    const otherScaleTrack = selectScaleTrack(state, otherTrack.parentId);
-    if (!thisScaleTrack || !otherScaleTrack) return false;
+    const thisParent = selectScaleTrack(state, thisTrack.parentId);
+    const otherParent = selectScaleTrack(state, otherTrack.parentId);
+    if (!thisParent || !otherParent) return false;
+
     // If the pattern tracks are in the same scale track, move the pattern track
-    if (thisScaleTrack.id === otherScaleTrack.id) {
+    if (thisParent.id === otherParent.id) {
+      const index = sessionMap[thisParent.id].trackIds.indexOf(otherTrack.id);
       dispatch(
         moveTrackInSession({
-          id: thisPatternTrack.id,
-          index: hoverIndex,
+          id: thisTrack.id,
+          index,
         })
       );
-    } else {
-      // If the pattern tracks are in different scale tracks, change the scale track
-      dispatch(
-        setPatternTrackScaleTrack(
-          thisPatternTrack.id,
-          otherScaleTrack.id,
-          hoverIndex
-        )
-      );
     }
-    return true;
+
+    // If the pattern tracks are in different scale tracks, do nothing
+    return false;
   };

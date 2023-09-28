@@ -10,7 +10,8 @@
     "build": "tsc && vite build",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "samples": "node scripts/generateSamples.js && node scripts/generateCategories.js"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.9",

@@ -5,7 +5,7 @@ export const useTrackDrag = (props: DraggableTrackProps) => {
   return useDrag({
     type: "track",
     item: () => {
-      return { id: props.track.id, index: props.index };
+      return { id: props.track.id, type: props.track.type };
     },
     collect: (monitor: any) => ({
       isDragging: monitor.isDragging(),
@@ -19,19 +19,17 @@ export const useTrackDrop = (props: DraggableTrackProps) => {
     collect(monitor) {
       return {
         id: props.track.id,
-        index: props.index,
         handlerId: monitor.getHandlerId(),
       };
     },
-    hover(item: any, monitor: any) {
+    drop(item: any, monitor: any) {
       if (!props.element) return;
       const dragId = item.id;
       const hoverId = props.track.id;
-      const hoverIndex = props.index;
 
       // Don't replace items with themselves
       if (dragId === hoverId) return;
-      props.moveTrack({ dragId, hoverId, hoverIndex });
+      props.moveTrack({ dragId, hoverId });
     },
   });
 };

@@ -1,5 +1,5 @@
 import { isPatternTrack, PatternTrack, TrackId } from "./tracks";
-import { Analyser, Sampler } from "tone";
+import { Sampler } from "tone";
 import { defaultMixer, initializeMixer, Mixer, MixerInstance } from "./mixer";
 
 import categories from "assets/instruments/categories.json";
@@ -59,10 +59,10 @@ export const getInstrumentName = (instrument: InstrumentKey) => {
   const category = INSTRUMENT_CATEGORIES.find((key) =>
     categories[key].some((instrumentKey) => instrumentKey.key === instrument)
   );
-  if (!category) return "New Instrument";
+  if (!category) return "Unknown Instrument";
 
   const match = categories[category].find((name) => name.key === instrument);
-  return match?.name ?? "New Instrument";
+  return match?.name ?? "Unknown Instrument";
 };
 
 // Create a sampler from a given instrument key

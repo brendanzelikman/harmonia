@@ -1,143 +1,198 @@
 {
-  "keyboards": [
-    {
-      "key": "grand_piano",
-      "name": "Grand Piano"
-    },
-    {
-      "key": "electric_piano",
-      "name": "Electric Piano"
-    },
-    {
-      "key": "wurlitzer",
-      "name": "Wurlitzer"
-    },
-    {
-      "key": "clavichord",
-      "name": "Clavichord"
-    },
-    {
-      "key": "church_organ",
-      "name": "Church Organ"
-    },
-    {
-      "key": "electric_organ",
-      "name": "Electric Organ"
-    }
-  ],
-
-  "guitars": [
-    {
-      "key": "electric_guitar",
-      "name": "Electric Guitar"
-    },
-    {
-      "key": "electric_bass",
-      "name": "Electric Bass"
-    },
-    {
-      "key": "heavy_guitar",
-      "name": "Heavy Guitar"
-    },
-    {
-      "key": "tremolo_guitar",
-      "name": "Tremolo Guitar"
-    }
-  ],
-
-  "strings": [
-    {
-      "key": "violin",
-      "name": "Violin"
-    },
-    {
-      "key": "viola",
-      "name": "Viola"
-    },
-    {
-      "key": "cello",
-      "name": "Cello"
-    },
-    {
-      "key": "double_bass",
-      "name": "Double Bass"
-    },
-    {
-      "key": "string_ensemble",
-      "name": "String Ensemble"
-    }
-  ],
-
   "brass": [
     {
-      "key": "trumpet",
-      "name": "Trumpet"
+      "key": "brass_ensemble",
+      "name": "Brass Ensemble"
     },
     {
-      "key": "trombone",
-      "name": "Trombone"
-    },
-    {
-      "key": "tuba",
-      "name": "Tuba"
-    },
-    {
-      "key": "french_horn",
-      "name": "French Horn"
+      "key": "english_horn",
+      "name": "English Horn"
     },
     {
       "key": "saxophone",
       "name": "Saxophone"
     },
     {
-      "key": "brass_ensemble",
-      "name": "Brass Ensemble"
+      "key": "trombone",
+      "name": "Trombone"
+    },
+    {
+      "key": "trumpet",
+      "name": "Trumpet"
+    },
+    {
+      "key": "tuba",
+      "name": "Tuba"
     }
   ],
-
-  "woodwinds": [
+  "claps": [
     {
-      "key": "flute",
-      "name": "Flute"
+      "key": "707_clap",
+      "name": "707 Clap"
     },
     {
-      "key": "clarinet",
-      "name": "Clarinet"
+      "key": "build_clap",
+      "name": "Build Clap"
     },
     {
-      "key": "oboe",
-      "name": "Oboe"
+      "key": "digital_clap",
+      "name": "Digital Clap"
     },
     {
-      "key": "bassoon",
-      "name": "Bassoon"
+      "key": "machine_clap",
+      "name": "Machine Clap"
     },
     {
-      "key": "piccolo",
-      "name": "Piccolo"
+      "key": "punchy_clap",
+      "name": "Punchy Clap"
     },
     {
-      "key": "woodwind_ensemble",
-      "name": "Woodwind Ensemble"
+      "key": "snap",
+      "name": "Snap"
     }
   ],
-
+  "cymbals": [
+    {
+      "key": "build_crash",
+      "name": "Build Crash"
+    },
+    {
+      "key": "crash",
+      "name": "Crash"
+    },
+    {
+      "key": "dirty_crash",
+      "name": "Dirty Crash"
+    },
+    {
+      "key": "edm_crash",
+      "name": "Edm Crash"
+    },
+    {
+      "key": "oldskool_crash",
+      "name": "Oldskool Crash"
+    }
+  ],
+  "guitars": [
+    {
+      "key": "amped_guitar",
+      "name": "Amped Guitar"
+    },
+    {
+      "key": "electric_bass",
+      "name": "Electric Bass"
+    },
+    {
+      "key": "electric_guitar",
+      "name": "Electric Guitar"
+    },
+    {
+      "key": "heavy_guitar",
+      "name": "Heavy Guitar"
+    },
+    {
+      "key": "mute_guitar",
+      "name": "Mute Guitar"
+    },
+    {
+      "key": "palmed_bass",
+      "name": "Palmed Bass"
+    },
+    {
+      "key": "pixelated_guitar",
+      "name": "Pixelated Guitar"
+    },
+    {
+      "key": "slapped_bass",
+      "name": "Slapped Bass"
+    }
+  ],
+  "hats": [
+    {
+      "key": "acid_hat",
+      "name": "Acid Hat"
+    },
+    {
+      "key": "acoustic_closed_hat",
+      "name": "Acoustic Closed Hat"
+    },
+    {
+      "key": "acoustic_open_hat",
+      "name": "Acoustic Open Hat"
+    },
+    {
+      "key": "machine_closed_hat",
+      "name": "Machine Closed Hat"
+    },
+    {
+      "key": "machine_open_hat",
+      "name": "Machine Open Hat"
+    },
+    {
+      "key": "noisy_hat",
+      "name": "Noisy Hat"
+    }
+  ],
+  "keyboards": [
+    {
+      "key": "grand_piano",
+      "name": "Grand Piano"
+    },
+    {
+      "key": "padded_piano",
+      "name": "Padded Piano"
+    },
+    {
+      "key": "suitcase_organ",
+      "name": "Suitcase Organ"
+    },
+    {
+      "key": "suitcase_piano",
+      "name": "Suitcase Piano"
+    },
+    {
+      "key": "tonewheel_organ",
+      "name": "Tonewheel Organ"
+    },
+    {
+      "key": "wurly_piano",
+      "name": "Wurly Piano"
+    }
+  ],
+  "kicks": [
+    {
+      "key": "808_kick",
+      "name": "808 Kick"
+    },
+    {
+      "key": "analog_kick",
+      "name": "Analog Kick"
+    },
+    {
+      "key": "blunt_kick",
+      "name": "Blunt Kick"
+    },
+    {
+      "key": "edm_kick",
+      "name": "Edm Kick"
+    },
+    {
+      "key": "machine_kick",
+      "name": "Machine Kick"
+    },
+    {
+      "key": "tube_kick",
+      "name": "Tube Kick"
+    }
+  ],
   "mallets": [
-    {
-      "key": "marimba",
-      "name": "Marimba"
-    },
-    {
-      "key": "xylophone",
-      "name": "Xylophone"
-    },
-    {
-      "key": "vibraphone",
-      "name": "Vibraphone"
-    },
     {
       "key": "glockenspiel",
       "name": "Glockenspiel"
+    },
+    {
+      "key": "marimba",
+      "name": "Marimba"
     },
     {
       "key": "timpani",
@@ -146,21 +201,20 @@
     {
       "key": "tubular_bells",
       "name": "Tubular Bells"
+    },
+    {
+      "key": "vibraphone",
+      "name": "Vibraphone"
+    },
+    {
+      "key": "xylophone",
+      "name": "Xylophone"
     }
   ],
-
   "percussion": [
     {
-      "key": "kick",
-      "name": "Kick"
-    },
-    {
-      "key": "snare",
-      "name": "Snare"
-    },
-    {
-      "key": "hihat",
-      "name": "Hi-Hat"
+      "key": "bongo",
+      "name": "Bongo"
     },
     {
       "key": "clap",
@@ -171,20 +225,150 @@
       "name": "Conga"
     },
     {
-      "key": "bongo",
-      "name": "Bongo"
-    },
-    {
-      "key": "shaker",
-      "name": "Shaker"
+      "key": "crash",
+      "name": "Crash"
     },
     {
       "key": "cymbal",
       "name": "Cymbal"
     },
     {
-      "key": "crash",
-      "name": "Crash"
+      "key": "hihat",
+      "name": "Hihat"
+    },
+    {
+      "key": "kick",
+      "name": "Kick"
+    },
+    {
+      "key": "shaker",
+      "name": "Shaker"
+    },
+    {
+      "key": "snare",
+      "name": "Snare"
+    },
+    {
+      "key": "tom",
+      "name": "Tom"
+    }
+  ],
+  "snares": [
+    {
+      "key": "build_snare",
+      "name": "Build Snare"
+    },
+    {
+      "key": "clappy_snare",
+      "name": "Clappy Snare"
+    },
+    {
+      "key": "machine_snare",
+      "name": "Machine Snare"
+    },
+    {
+      "key": "rattled_snare",
+      "name": "Rattled Snare"
+    },
+    {
+      "key": "short_snare",
+      "name": "Short Snare"
+    }
+  ],
+  "strings": [
+    {
+      "key": "cello",
+      "name": "Cello"
+    },
+    {
+      "key": "double_bass",
+      "name": "Double Bass"
+    },
+    {
+      "key": "strings_ensemble",
+      "name": "Strings Ensemble"
+    },
+    {
+      "key": "viola",
+      "name": "Viola"
+    },
+    {
+      "key": "violin",
+      "name": "Violin"
+    }
+  ],
+  "toms": [
+    {
+      "key": "909_tom",
+      "name": "909 Tom"
+    },
+    {
+      "key": "analog_tom",
+      "name": "Analog Tom"
+    },
+    {
+      "key": "blast_tom",
+      "name": "Blast Tom"
+    },
+    {
+      "key": "electric_tom",
+      "name": "Electric Tom"
+    },
+    {
+      "key": "vintage_tom",
+      "name": "Vintage Tom"
+    }
+  ],
+  "vocals": [
+    {
+      "key": "hey",
+      "name": "Hey"
+    },
+    {
+      "key": "right",
+      "name": "Right"
+    },
+    {
+      "key": "uh",
+      "name": "Uh"
+    },
+    {
+      "key": "wha",
+      "name": "Wha"
+    },
+    {
+      "key": "yay",
+      "name": "Yay"
+    },
+    {
+      "key": "yeah",
+      "name": "Yeah"
+    }
+  ],
+  "woodwinds": [
+    {
+      "key": "bassoon",
+      "name": "Bassoon"
+    },
+    {
+      "key": "clarinet",
+      "name": "Clarinet"
+    },
+    {
+      "key": "flute",
+      "name": "Flute"
+    },
+    {
+      "key": "oboe",
+      "name": "Oboe"
+    },
+    {
+      "key": "piccolo",
+      "name": "Piccolo"
+    },
+    {
+      "key": "woodwinds_ensemble",
+      "name": "Woodwinds Ensemble"
     }
   ]
 }

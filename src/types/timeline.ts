@@ -1,4 +1,3 @@
-import { DEFAULT_CELL_WIDTH } from "appConstants";
 import { Clip } from "./clip";
 import { Transposition } from "./transposition";
 import { Subdivision } from "./units";
@@ -26,10 +25,19 @@ export type TimelineState =
   | "merging"
   | "idle";
 
+export interface TimelineCell {
+  width: number;
+  height: number;
+}
+export const DEFAULT_CELL: TimelineCell = {
+  width: 50,
+  height: 110,
+};
+
 export interface Timeline {
   state: TimelineState;
 
-  cellWidth: number;
+  cell: TimelineCell;
   subdivision: Subdivision;
 
   clipboard: TimelineClipboard;
@@ -37,7 +45,7 @@ export interface Timeline {
 
 export const defaultTimeline: Timeline = {
   state: "idle",
-  cellWidth: DEFAULT_CELL_WIDTH,
+  cell: DEFAULT_CELL,
   subdivision: "1/16",
   clipboard: { clips: [], transpositions: [] },
 };
@@ -45,7 +53,7 @@ export const defaultTimeline: Timeline = {
 export const isTimeline = (obj: unknown): obj is Timeline => {
   return (
     (obj as Timeline).state !== undefined &&
-    (obj as Timeline).cellWidth !== undefined &&
+    (obj as Timeline).cell !== undefined &&
     (obj as Timeline).subdivision !== undefined
   );
 };

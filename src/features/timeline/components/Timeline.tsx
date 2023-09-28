@@ -79,12 +79,6 @@ export function Timeline(props: TimelineProps) {
       depth: 0,
     });
 
-    // Add the remaining rows
-    const remainingRows = Constants.INITIAL_MAX_ROWS - trackIndex++;
-    for (let i = 0; i < remainingRows; i++) {
-      rows.push({ index: trackIndex++, type: "defaultTrack", depth: 0 });
-    }
-
     return rows;
   }, [props.dependencyMap]);
 
@@ -105,10 +99,7 @@ export function Timeline(props: TimelineProps) {
       width: Constants.TRACK_WIDTH,
       frozen: true,
       formatter: (formatterProps: FormatterProps<Row>) => {
-        // Return a button to add a new track on the last row
-        if (formatterProps.row.lastRow) {
-          return <AddTrackButton {...props} />;
-        }
+        if (formatterProps.row.lastRow) return <AddTrackButton {...props} />;
         // Return a track on all other rows if they exist
         if (!formatterProps.row.trackId) return null;
         return <Track {...formatterProps} />;
@@ -116,11 +107,11 @@ export function Timeline(props: TimelineProps) {
       // Return the top-left corner cell
       headerRenderer: () => (
         <div className="rdg-corner bg-zinc-900 h-full border-b border-b-slate-50/10">
-          <div className="h-full bg-gradient-to-r from-gray-800 to-gray-900 backdrop-blur-md pl-3"></div>
+          <div className="h-full bg-gradient-to-r from-gray-800 to-gray-900 backdrop-blur-md pl-3" />
         </div>
       ),
       cellClass() {
-        return "bg-gradient-to-r from-indigo-900 to-zinc-900";
+        return "bg-transparent";
       },
     }),
     []
@@ -200,29 +191,31 @@ export function Timeline(props: TimelineProps) {
   }, [timeline, rows, trackRowMap, columns, props.cellWidth]);
 
   return (
-    <div id="timeline" className="relative w-full h-full">
-      <TimelineContextMenu rows={rows} />
-      <DataGrid
-        className="data-grid w-full h-full bg-transparent"
-        ref={gridRef}
-        columns={trackedColumns}
-        rows={rows}
-        rowHeight={Constants.CELL_HEIGHT}
-        headerRowHeight={Constants.HEADER_HEIGHT}
-        enableVirtualization={true}
-      />
-      <TimelineElements />
-    </div>
+    <>
+      <div id="timeline" className="flex flex-col relative w-full h-full">
+        <TimelineContextMenu rows={rows} />
+        <DataGrid
+          className="data-grid w-full h-full bg-transparent"
+          ref={gridRef}
+          columns={trackedColumns}
+          rows={rows}
+          rowHeight={props.cellHeight}
+          headerRowHeight={Constants.HEADER_HEIGHT}
+          enableVirtualization={true}
+        />
+        <TimelineElements />
+      </div>
+    </>
   );
 }
 
 const AddTrackButton = (props: TimelineProps) => {
   return (
     <div
-      className={`rdg-track flex w-full h-full justify-center items-center bg-sky-600/50 hover:bg-sky-800/80 cursor-pointer`}
+      className={`rdg-track flex w-full h-full justify-center items-center hover:bg-sky-500/30 text-slate-50/0 hover:text-slate-100 ease-in-out transition-all duration-500 rounded cursor-pointer`}
       onClick={props.createScaleTrack}
     >
-      <h4 className="text-white text-lg font-light">Add a Scale Track</h4>
+      <h4 className="text-lg font-light">Add a Scale Track</h4>
     </div>
   );
 };

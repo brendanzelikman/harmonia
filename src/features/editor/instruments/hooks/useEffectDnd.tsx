@@ -23,7 +23,7 @@ export const useEffectDrop = (props: DraggableEffectProps) => {
         handlerId: monitor.getHandlerId(),
       };
     },
-    hover(item: any, monitor: any) {
+    drop(item: any, monitor: any) {
       if (!props.element) return;
       const dragIndex = item.index;
       const dragId = item.id;

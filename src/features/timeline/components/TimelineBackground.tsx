@@ -3,10 +3,10 @@ import { Row } from "..";
 import { createPortal } from "react-dom";
 import { Transition } from "@headlessui/react";
 import { RootState } from "redux/store";
-import { selectCellWidth, selectRoot } from "redux/selectors";
+import { selectCellHeight, selectCellWidth, selectRoot } from "redux/selectors";
 import { ConnectedProps, connect } from "react-redux";
 import { useMemo } from "react";
-import { HEADER_HEIGHT, CELL_HEIGHT, TRACK_WIDTH } from "appConstants";
+import { HEADER_HEIGHT, TRACK_WIDTH } from "appConstants";
 
 interface BackgroundProps {
   rows: Row[];
@@ -19,17 +19,18 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
   const { showingTour, tourStep } = selectRoot(state);
   // General dimensions
   const cellWidth = selectCellWidth(state);
+  const cellHeight = selectCellHeight(state);
   const headerHeight = HEADER_HEIGHT;
   const tourLeft =
     tourStep === 3 || tourStep === 4 || tourStep === 5 ? TRACK_WIDTH : 0;
 
   // Track background height
   const trackRows = rows.filter((row) => !!row.trackId);
-  const trackHeight = CELL_HEIGHT * trackRows.length;
+  const trackHeight = cellHeight * trackRows.length;
 
   // Background dimensions
   const width = columns.length * cellWidth;
-  const height = headerHeight + CELL_HEIGHT * rows.length;
+  const height = headerHeight + cellHeight * rows.length;
 
   return {
     ...ownProps,
@@ -76,25 +77,6 @@ function TimelineBackground(props: Props) {
     );
   }, [props.showingTour, props.tourLeft]);
 
-  // Live transposition background (potentially expensive)
-  // const LiveBackground = useCallback(() => {
-  //   return (
-  //     <Transition
-  //       show={props.live}
-  //       appear
-  //       enter="transition-opacity ease-in-out duration-150"
-  //       enterFrom="opacity-0"
-  //       enterTo="opacity-100"
-  //       leave="transition-opacity ease-in-out duration-150"
-  //       leaveFrom="opacity-100"
-  //       leaveTo="opacity-0"
-  //       as="div"
-  //       style={{ left: TRACK_WIDTH }}
-  //       className={`w-full h-full background-pulse absolute bg-gradient-to-r from-fuchsia-500/20 to-fuchsia-400/20 z-10 pointer-events-none`}
-  //     />
-  //   );
-  // }, [props.live]);
-
   // Time background (currently rendered)
   const TimeBackground = useMemo(() => {
     return () => (
@@ -119,11 +101,21 @@ function TimelineBackground(props: Props) {
     );
   }, [width, props.headerHeight]);
 
+  // Frozen track background
+  const FrozenTrackBackground = useMemo(() => {
+    return () => (
+      <div
+        className="-z-[10] sticky inset-0 h-screen flex flex-col bg-gradient-to-r from-sky-900 to-indigo-900/90 backdrop-blur"
+        style={{ width: TRACK_WIDTH }}
+      ></div>
+    );
+  }, []);
+
   // Track background
   const TrackBackground = useMemo(() => {
     return () => (
       <div
-        className="-z-20 absolute inset-0 flex flex-col bg-gradient-to-t from-[#083a8a] via-[#2c5387] to-[#514f7e]"
+        className="-z-20 absolute inset-0 flex flex-col"
         style={{ width, height }}
       >
         <div
@@ -145,9 +137,9 @@ function TimelineBackground(props: Props) {
         style={{ height, width }}
       >
         {TourBackground()}
-        {/* {LiveBackground()} */}
         <div className="relative w-full h-full">
           {TimeBackground()}
+          {FrozenTrackBackground()}
           {TrackBackground()}
         </div>
       </div>
@@ -156,7 +148,7 @@ function TimelineBackground(props: Props) {
 
   return createPortal(
     <>
-      <RenderedBackgrounds />
+      {RenderedBackgrounds()}
       <PrerenderedTimeBackground />
     </>,
     element

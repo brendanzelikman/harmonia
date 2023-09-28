@@ -175,7 +175,10 @@ export const NavbarFormInput = (props: NavbarFormInputProps) => (
     className={`h-8 block px-2 bg-transparent rounded-lg text-sm focus:outline-none placeholder-slate-400 focus:ring-0 appearance-none ${
       props.className ?? ""
     }`}
-    onKeyDown={blurOnEnter}
+    onKeyDown={(e) => {
+      props.onKeyDown?.(e);
+      blurOnEnter(e);
+    }}
   />
 );
 
