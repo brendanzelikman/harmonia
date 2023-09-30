@@ -21,7 +21,7 @@ export function CellComponent(props: CellProps) {
   return (
     <div
       ref={drop}
-      className={`relative cursor-pointer border-t border-t-white/20 text-white w-full h-full ${props.leftBorderClass} ${background}`}
+      className={`relative border-t border-t-white/20 text-white w-full h-full ${props.leftBorderClass} ${background}`}
       onClick={props.onClick}
     >
       {showCursor ? (

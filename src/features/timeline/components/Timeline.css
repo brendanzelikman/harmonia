@@ -4,22 +4,15 @@
   box-shadow: none;
   overflow: visible;
 }
-.rdg-time-background {
-  z-index: 0 !important;
-}
-.rdg-cell:has(.rdg-time),
-.rdg-time {
+
+.rdg-cell:has(.rdg-time) {
   z-index: 30 !important;
-}
-.rdg-corner,
-.rdg-cell:has(.rdg-corner) {
-  z-index: 90 !important;
 }
 .rdg-cell:has(.rdg-track) {
-  z-index: 30 !important;
+  z-index: 90 !important;
 }
 .rdg-clip {
-  z-index: 20 !important;
+  z-index: 10 !important;
   position: absolute;
   cursor: pointer;
   overflow: hidden;
@@ -28,11 +21,7 @@
 .rdg-row {
   --rdg-row-height: auto !important;
 }
-.rdg-track,
-.rdg-time,
-.rdg-corner {
-  z-index: 20 !important;
-}
+
 .rdg-track {
   animation: fadeIn 0.1s ease-in-out;
 }

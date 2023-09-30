@@ -6,6 +6,7 @@ import {
   selectRoot,
   selectSelectedClips,
   selectSelectedTranspositions,
+  selectTimeline,
   selectTranspositions,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
@@ -39,7 +40,9 @@ interface TimelineClipsProps {
 const mapStateToProps = (state: RootState, ownProps: TimelineClipsProps) => {
   const clips = selectClips(state);
   const transpositions = selectTranspositions(state);
-  const { selectedClipIds, selectedTranspositionIds } = selectRoot(state);
+  const { selectedPatternId, selectedClipIds, selectedTranspositionIds } =
+    selectRoot(state);
+  const timeline = selectTimeline(state);
   const selectedClips = selectSelectedClips(state);
   const selectedTranspositions = selectSelectedTranspositions(state);
 
@@ -49,6 +52,9 @@ const mapStateToProps = (state: RootState, ownProps: TimelineClipsProps) => {
     transpositions,
     selectedClips,
     selectedTranspositions,
+    addingClip: timeline.state === "adding",
+    subdivision: timeline.subdivision,
+    selectedPatternId,
     selectedClipIds: selectedClipIds || [],
     selectedTranspositionIds: selectedTranspositionIds || [],
   };

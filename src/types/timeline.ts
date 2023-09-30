@@ -30,8 +30,8 @@ export interface TimelineCell {
   height: number;
 }
 export const DEFAULT_CELL: TimelineCell = {
-  width: 50,
-  height: 110,
+  width: 25,
+  height: 120,
 };
 
 export interface Timeline {

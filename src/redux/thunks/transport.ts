@@ -40,9 +40,18 @@ import {
   isSamplerLoaded,
 } from "types/instrument";
 
-import { INSTRUMENTS, Tick, playPatternChord } from "types";
+import { INSTRUMENTS, MIDI, Tick, playPatternChord } from "types";
 import encodeWAV from "audiobuffer-to-wav";
 import { sleep } from "utils";
+import { clamp } from "lodash";
+import {
+  MAX_BPM,
+  MAX_TRANSPORT_VOLUME,
+  MAX_VOLUME,
+  MIN_BPM,
+  MIN_TRANSPORT_VOLUME,
+  MIN_VOLUME,
+} from "appConstants";
 
 const { _startTransport, _pauseTransport, _stopTransport, _seekTransport } =
   transportSlice.actions;
@@ -88,7 +97,11 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
           }
 
           // Play the chord
-          playPatternChord(sampler, chord, time);
+          playPatternChord(
+            sampler,
+            chord.map((note) => ({ ...note, MIDI: MIDI.clampNote(note.MIDI) })),
+            time
+          );
         }
       }
       // Schedule the next tick
@@ -185,8 +198,9 @@ export const setTransportLoopEnd =
 export const setTransportBPM =
   (bpm: number): AppThunk =>
   (dispatch) => {
-    Transport.bpm.value = bpm;
-    dispatch(_setBPM(bpm));
+    const value = clamp(bpm, MIN_BPM, MAX_BPM);
+    Transport.bpm.value = value;
+    dispatch(_setBPM(value));
   };
 
 // Set the time signature
@@ -201,8 +215,9 @@ export const setTransportTimeSignature =
 export const setTransportVolume =
   (volume: number): AppThunk =>
   (dispatch) => {
-    getDestination().volume.value = volume;
-    dispatch(_setVolume(volume));
+    const value = clamp(volume, MIN_TRANSPORT_VOLUME, MAX_TRANSPORT_VOLUME);
+    getDestination().volume.value = value;
+    dispatch(_setVolume(value));
   };
 
 // Set the mute

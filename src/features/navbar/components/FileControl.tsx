@@ -89,7 +89,7 @@ function FileControl(props: Props) {
   const UndoButton = () => (
     <NavButton
       className={`flex-col text-xs p-1 ${
-        props.canUndo ? "active:bg-sky-600/80" : ""
+        props.canUndo ? "active:bg-sky-500" : ""
       }`}
       onClick={props.canUndo ? props.undo : undefined}
       disabled={!props.canUndo}
@@ -103,7 +103,7 @@ function FileControl(props: Props) {
   const RedoButton = () => (
     <NavButton
       className={`h-full flex flex-col text-xs p-1 ${
-        props.canRedo ? "active:bg-sky-600/80" : ""
+        props.canRedo ? "active:bg-sky-500" : ""
       }`}
       onClick={props.canRedo ? props.redo : undefined}
       disabled={!props.canRedo}
@@ -124,7 +124,7 @@ function FileControl(props: Props) {
         />
         {/* <Label text="Save File" shortText="Save" /> */}
         <NavbarTooltip
-          className="bg-sky-950/80 backdrop-blur"
+          className="bg-sky-800"
           show={!!props.onFile}
           content={<FileTooltipContent {...props} />}
         />
@@ -138,7 +138,7 @@ function FileControl(props: Props) {
 function FileTooltipContent(props: Props) {
   const SaveToHAMButton = () => (
     <NavbarFormGroup
-      className="pr-1 h-8 hover:bg-sky-700/80"
+      className="pr-1 h-8 hover:bg-sky-600"
       onClick={props.saveToHAM}
     >
       <NavbarFormLabel>Save to HAM</NavbarFormLabel>
@@ -150,7 +150,7 @@ function FileTooltipContent(props: Props) {
 
   const SaveToMIDIButton = () => (
     <NavbarFormGroup
-      className="pr-1 h-8 hover:bg-sky-700/80"
+      className="pr-1 h-8 hover:bg-sky-600"
       onClick={props.saveToMIDI}
     >
       <NavbarFormLabel>Export to MIDI</NavbarFormLabel>
@@ -165,7 +165,7 @@ function FileTooltipContent(props: Props) {
     const finished = props.exportProgress === 100;
     return (
       <NavbarFormGroup
-        className="pr-1 h-8 hover:bg-sky-700/80"
+        className="pr-1 h-8 hover:bg-sky-600"
         onClick={props.recording ? props.stopSavingToWAV : props.saveToWAV}
       >
         <NavbarFormLabel className={``}>Export to WAV</NavbarFormLabel>
@@ -206,7 +206,7 @@ function FileTooltipContent(props: Props) {
 
   const UploadButton = () => (
     <NavbarFormGroup
-      className="pr-1 h-8 hover:bg-sky-700/80"
+      className="pr-1 h-8 hover:bg-sky-600"
       onClick={props.loadFromHAM}
     >
       <NavbarFormLabel>Load from HAM</NavbarFormLabel>
@@ -218,7 +218,7 @@ function FileTooltipContent(props: Props) {
 
   const DemoButton = () => (
     <NavbarFormGroup
-      className="pr-1 h-8 hover:bg-sky-700/80"
+      className="pr-1 h-8 hover:bg-sky-600"
       onClick={props.loadDemo}
     >
       <NavbarFormLabel>Load Demo</NavbarFormLabel>
@@ -229,7 +229,7 @@ function FileTooltipContent(props: Props) {
   );
 
   const ClearButton = () => (
-    <NavbarFormGroup className="h-full hover:bg-sky-700/80">
+    <NavbarFormGroup className="h-full hover:bg-sky-600">
       <Menu as="div" className="relative inline-block py-1 text-left w-full">
         {({ open, close }) => (
           <>
@@ -281,7 +281,7 @@ function FileTooltipContent(props: Props) {
   return (
     <div className="flex flex-col justify-center items-center">
       <input
-        className="bg-transparent rounded mb-2 m-1 text-sm focus:ring-0"
+        className="bg-transparent text-white placeholder-slate-400 placeholder-shown:border-slate-400 rounded mb-2 m-1 text-sm focus:ring-0 border border-slate-300 focus:border-blue-400 focus:bg-sky-700"
         type="text"
         placeholder="New Project"
         value={props.projectName}

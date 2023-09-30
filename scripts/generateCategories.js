@@ -6,8 +6,28 @@ const sampleDir = "public/samples";
 const categoryFolders = fs.readdirSync(sampleDir);
 
 const result = {};
+const orderedCategories = [
+  "keyboards",
+  "guitars",
+  "strings",
+  "woodwinds",
+  "brass",
+  "mallets",
+  "kicks",
+  "toms",
+  "snares",
+  "claps",
+  "hats",
+  "cymbals",
+  "percussion",
+  "vocals",
+];
 
-categoryFolders.forEach((category) => {
+const orderedCategoryFolders = _.sortBy(categoryFolders, (category) => {
+  return orderedCategories.indexOf(category);
+});
+
+orderedCategoryFolders.forEach((category) => {
   if (category === ".DS_Store") return;
   const instrumentDir = path.join(sampleDir, category);
   const instrumentFolders = fs.readdirSync(instrumentDir);

@@ -110,13 +110,15 @@ export function PatternEditor(props: PatternEditorProps) {
 
   const setPatternInstrument = async (instrumentKey: InstrumentKey) => {
     if (!pattern) return;
-    props.updatePattern({
-      ...pattern,
-      options: {
-        ...pattern.options,
-        instrument: instrumentKey,
+    props.updatePatterns([
+      {
+        ...pattern,
+        options: {
+          ...pattern.options,
+          instrument: instrumentKey,
+        },
       },
-    });
+    ]);
   };
 
   // Update global instrument when pattern instrument changes
@@ -160,21 +162,17 @@ export function PatternEditor(props: PatternEditorProps) {
     onDurationClick,
   });
 
-  if (!pattern) return null;
-
   return (
-    <Editor.Container
-      className={`text-white h-full absolute top-0 w-full`}
-      id="pattern-editor"
-    >
+    <Editor.Container id="pattern-editor">
       <PatternContextMenu {...cursorProps} {...funcProps} />
-      <Editor.Body>
+      <Editor.Body className="relative">
         <Transition
           show={props.showingPresets}
-          enter="transition-opacity duration-150"
+          appear
+          enter="transition-all ease-in-out duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
-          leave="transition-opacity duration-150"
+          leave="transition-all ease-in-out duration-300"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
@@ -189,7 +187,7 @@ export function PatternEditor(props: PatternEditorProps) {
         <Editor.Content>
           <Editor.Title
             editable={props.isCustom}
-            title={pattern.name ?? "Pattern"}
+            title={pattern?.name ?? "Pattern"}
             setTitle={(name) => props.setPatternName(pattern, name)}
             subtitle={props.patternCategory ?? "Category"}
             color={"bg-gradient-to-tr from-emerald-500 to-emerald-600"}

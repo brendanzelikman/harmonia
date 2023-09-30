@@ -59,7 +59,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
 
     // Add notes to pattern
     setEvents([]);
-    if (props.pattern) props.updatePattern({ ...props.pattern, stream });
+    if (props.pattern) props.updatePatterns([{ ...props.pattern, stream }]);
   };
 
   // Use recorder hook
@@ -112,7 +112,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
           >
             <div className="w-full h-full relative overflow-hidden rounded">
               <div
-                className="absolute w-[20rem] h-[20rem] left-[-5rem] top-[-5rem] animate-[s_5s_linear_infinite]"
+                className="absolute w-[20rem] h-[20rem] left-[-5rem] top-[-5rem] animate-[rotate_5s_linear_infinite]"
                 style={{
                   background:
                     "conic-gradient(#fd004c, #fe9000, #fff020, #3edf4b, #3363ff, #b102b7, #fd004c)",

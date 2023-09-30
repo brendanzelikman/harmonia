@@ -327,11 +327,12 @@ export class MIDI {
 
   // MIDI Note Numbers
   public static MinNote = 0;
-  public static MaxNote = 144;
+  public static MaxNote = 127;
   public static DefaultNote = 60;
 
   public static clampNote = (note?: Note): Note => {
     const value = note ?? this.DefaultNote;
+    if (value === this.Rest) return value;
     return clamp(value, this.MinNote, this.MaxNote);
   };
 

@@ -43,21 +43,29 @@ export const TrackButton = (props: {
 
 interface SliderProps extends InputHTMLAttributes<HTMLInputElement> {
   cell: TimelineCell;
+  icon: JSX.Element;
 }
 export const TrackSlider = (props: SliderProps) => {
+  const { cell, icon } = props;
+
+  const padding = 50;
+  const width = cell.height - padding;
+  const marginTop = 0.5 * width - 10;
+  const transform = `rotate(270deg) translate(30px,0)`;
+
   return (
-    <input
-      {...props}
-      style={{
-        width: `${props.cell.height - 20}px`,
-        marginTop: `${0.5 * (props.cell.height - 20) - 10}px`,
-        transform: `rotate(270deg) translate(0px, -${
-          0.5 * (props.cell.height - 20) - 10
-        }px)`,
-      }}
-      type="range"
-      aria-orientation="vertical"
-    />
+    <div className="flex w-8 flex-col items-center text-slate-300">
+      {icon && <label className="text-sm mb-8">{icon}</label>}
+      <input
+        {...props}
+        style={{
+          width,
+          marginTop,
+          transform,
+        }}
+        type="range"
+      />
+    </div>
   );
 };
 
@@ -67,13 +75,13 @@ export const TrackDropdownMenu = (props: {
   children: JSX.Element;
 }) => {
   return (
-    <Menu as="div" className="relative inline-block text-left  z-[90]">
+    <Menu as="div" className="relative inline-block z-[90]">
       {({ open }) => (
         <>
-          <div className="w-full text-center">
+          <div className="w-full">
             <Menu.Button
               aria-label="Track Dropdown Menu"
-              className={`w-full px-2 rounded ${
+              className={`w-full pl-2 rounded ${
                 open ? "text-indigo-400" : "text-white"
               }`}
             >
@@ -90,7 +98,7 @@ export const TrackDropdownMenu = (props: {
             leaveFrom="transform opacity-100 scale-100"
             leaveTo="transform opacity-0 scale-95"
           >
-            <Menu.Items className="absolute top-0 -right-[13rem] w-48 bg-zinc-900/80 backdrop-blur rounded text-md py-2 select-none focus:outline-none">
+            <Menu.Items className="absolute top-0 -right-[13.5rem] w-48 bg-zinc-900/80 backdrop-blur rounded text-md py-2 select-none focus:outline-none">
               {props.children}
             </Menu.Items>
           </Transition>

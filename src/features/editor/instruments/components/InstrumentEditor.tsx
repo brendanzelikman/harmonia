@@ -36,10 +36,11 @@ export function EditorInstrument(props: InstrumentEditorProps) {
       <Editor.Body className="relative">
         <Transition
           show={props.showingPresets}
-          enter="transition ease-in-out duration-300"
+          appear
+          enter="transition-all ease-in-out duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
-          leave="transition ease-in-out duration-300"
+          leave="transition-all ease-in-out duration-300"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >

@@ -66,6 +66,10 @@ export const testPattern = (stream: PatternStream = []) => {
     stream,
   };
 };
+export const createPatternTag = (pattern: Pattern): string => {
+  const streamTag = createPatternStreamTag(pattern.stream);
+  return `${pattern.id}:${pattern.name}:${streamTag}`;
+};
 // A pattern note is defined by a MIDI number, a velocity, and a duration in ticks
 export type PatternNote = {
   MIDI: number;
@@ -74,6 +78,9 @@ export type PatternNote = {
 };
 export const isPatternNoteValid = (note: PatternNote) => {
   return MIDI.isRest(note) || inRange(note.MIDI, MIDI.MinNote, MIDI.MaxNote);
+};
+export const createPatternNoteTag = (note: PatternNote): string => {
+  return `${note.MIDI}:${note.duration}:${note.velocity}`;
 };
 
 // A pattern chord is a collection of notes that are played at the same time.
@@ -86,12 +93,18 @@ export const isPatternChordValid = (chord?: PatternChord) => {
   if (!chord?.length) return false;
   return chord.every(isPatternNoteValid);
 };
+export const createPatternChordTag = (chord: PatternChord): string => {
+  return chord.map(createPatternNoteTag).join(",");
+};
 
 // A pattern stream is a collection of pattern chords
 export type PatternStream = PatternChord[];
 export const isPatternStreamValid = (stream?: PatternStream) => {
   if (!stream) return false;
   return stream.every(isPatternChordValid);
+};
+export const createPatternStreamTag = (stream: PatternStream): string => {
+  return stream.map(createPatternChordTag).join("|");
 };
 
 // Validate a pattern through its stream

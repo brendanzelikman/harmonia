@@ -8,6 +8,8 @@ export interface ScaleTrack extends TrackInterface {
   scaleNotes: ScaleTrackNote[];
 }
 
+// A scale track note uses a degree to index the parent scale and a MIDI offset
+// No parent scale = chromatic scale
 export type ScaleTrackNote = {
   degree: number;
   offset: number;

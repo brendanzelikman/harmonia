@@ -15,6 +15,7 @@ export interface SessionEntity {
   trackIds: TrackId[];
   clipIds: ClipId[];
   transpositionIds: TranspositionId[];
+  collapsed?: boolean;
 }
 
 // The default scale track entity is built from the default scale track

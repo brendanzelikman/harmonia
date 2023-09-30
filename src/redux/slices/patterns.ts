@@ -13,7 +13,7 @@ import {
 } from "types/pattern";
 import { initializeState } from "redux/util";
 import { AppThunk } from "redux/store";
-import { selectRoot } from "redux/selectors";
+import { selectPatterns, selectRoot } from "redux/selectors";
 import { MIDI } from "types/midi";
 import { setSelectedPattern } from "./root";
 import { clamp, random, reverse, shuffle, union } from "lodash";
@@ -22,37 +22,45 @@ import { PresetScaleGroupMap } from "types/presets/scales";
 
 const initialState = initializeState<PatternId, Pattern>([defaultPattern]);
 
-interface PatternAddNote {
+export type AddPatterns = Pattern[];
+export type RemovePatterns = PatternId[];
+export type UpdatePatterns = Partial<Pattern>[];
+
+export type AddPatternNote = {
   id: PatternId;
   patternNote: PatternNote;
   asChord?: boolean;
-}
+};
 
-interface PatternAddChord {
+export interface AddPatternChord {
   id: PatternId;
   patternChord: PatternChord;
 }
 
-interface PatternInsert {
+export interface InsertPatternNote {
   id: PatternId;
   patternNote: PatternNote;
   index: number;
 }
 
-interface PatternUpdateNote {
+export interface UpdatePatternNote {
   id: PatternId;
   index: number;
   patternNote: PatternNote;
   asChord?: boolean;
 }
+export interface RemovePatternNote {
+  id: PatternId;
+  index: number;
+}
 
-interface PatternUpdateChord {
+export interface UpdatePatternChord {
   id: PatternId;
   index: number;
   patternChord: PatternChord;
 }
 
-interface TranspositionPattern {
+export interface TransposePattern {
   id: PatternId;
   [key: string]: any;
 }
@@ -65,12 +73,7 @@ export const patternsSlice = createSlice({
       const patternIds = action.payload;
       state.allIds = patternIds;
     },
-    addPattern: (state, action: PayloadAction<Pattern>) => {
-      const pattern = action.payload;
-      state.allIds = union(state.allIds, [pattern.id]);
-      state.byId[pattern.id] = pattern;
-    },
-    addPatterns: (state, action: PayloadAction<Pattern[]>) => {
+    addPatterns: (state, action: PayloadAction<AddPatterns>) => {
       const patterns = action.payload;
       const patternIds = patterns.map((pattern) => pattern.id);
       state.allIds = union(state.allIds, patternIds);
@@ -78,14 +81,7 @@ export const patternsSlice = createSlice({
         state.byId[pattern.id] = pattern;
       });
     },
-    removePattern: (state, action: PayloadAction<PatternId>) => {
-      const patternId = action.payload;
-      const index = state.allIds.findIndex((id) => id === patternId);
-      if (index === -1) return;
-      state.allIds.splice(index, 1);
-      delete state.byId[patternId];
-    },
-    removePatterns: (state, action: PayloadAction<PatternId[]>) => {
+    removePatterns: (state, action: PayloadAction<RemovePatterns>) => {
       const patternIds = action.payload;
       patternIds.forEach((patternId) => {
         const index = state.allIds.findIndex((id) => id === patternId);
@@ -94,13 +90,7 @@ export const patternsSlice = createSlice({
         delete state.byId[patternId];
       });
     },
-    _updatePattern: (state, action: PayloadAction<Partial<Pattern>>) => {
-      const { id, ...rest } = action.payload;
-      if (!id) return;
-      if (!state.byId[id]) return;
-      state.byId[id] = { ...state.byId[id], ...rest };
-    },
-    _updatePatterns: (state, action: PayloadAction<Partial<Pattern>[]>) => {
+    updatePatterns: (state, action: PayloadAction<UpdatePatterns>) => {
       const patterns = action.payload;
       patterns.forEach((pattern) => {
         const { id, ...rest } = pattern;
@@ -108,7 +98,7 @@ export const patternsSlice = createSlice({
         state.byId[id] = { ...state.byId[id], ...rest };
       });
     },
-    addPatternNote: (state, action: PayloadAction<PatternAddNote>) => {
+    addPatternNote: (state, action: PayloadAction<AddPatternNote>) => {
       const { id, patternNote, asChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPatternValid(pattern)) return;
@@ -129,7 +119,7 @@ export const patternsSlice = createSlice({
         state.byId[id].stream[length - 1].push(patternNote);
       }
     },
-    addPatternChord: (state, action: PayloadAction<PatternAddChord>) => {
+    addPatternChord: (state, action: PayloadAction<AddPatternChord>) => {
       const { id, patternChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPatternValid(pattern)) return;
@@ -143,7 +133,7 @@ export const patternsSlice = createSlice({
       // If the chord is not a chord, add it to the end of the pattern
       state.byId[id].stream.push(patternChord);
     },
-    insertPatternNote: (state, action: PayloadAction<PatternInsert>) => {
+    insertPatternNote: (state, action: PayloadAction<InsertPatternNote>) => {
       const { id, patternNote, index } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPatternValid(pattern)) return;
@@ -153,7 +143,7 @@ export const patternsSlice = createSlice({
       const patternChord: PatternChord = [patternNote];
       state.byId[id].stream.splice(index + 1, 0, patternChord);
     },
-    updatePatternNote: (state, action: PayloadAction<PatternUpdateNote>) => {
+    updatePatternNote: (state, action: PayloadAction<UpdatePatternNote>) => {
       const { id, patternNote, index, asChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPatternValid(pattern)) return;
@@ -166,7 +156,7 @@ export const patternsSlice = createSlice({
         state.byId[id].stream[index].push(patternNote);
       }
     },
-    updatePatternChord: (state, action: PayloadAction<PatternUpdateChord>) => {
+    updatePatternChord: (state, action: PayloadAction<UpdatePatternChord>) => {
       const { id, patternChord, index } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPatternValid(pattern)) return;
@@ -174,14 +164,14 @@ export const patternsSlice = createSlice({
       if (index < 0 || index > pattern.stream.length) return;
       state.byId[id].stream[index] = patternChord;
     },
-    removePatternNote: (state, action) => {
+    removePatternNote: (state, action: PayloadAction<RemovePatternNote>) => {
       const { id, index } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPatternValid(pattern)) return;
       if (index < 0 || index > pattern.stream.length) return;
       state.byId[id].stream.splice(index, 1);
     },
-    transposePattern: (state, action: PayloadAction<TranspositionPattern>) => {
+    transposePattern: (state, action: PayloadAction<TransposePattern>) => {
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -192,7 +182,7 @@ export const patternsSlice = createSlice({
         return chord.map((note) => ({ ...note, MIDI: note.MIDI + transpose }));
       });
     },
-    rotatePattern: (state, action: PayloadAction<TranspositionPattern>) => {
+    rotatePattern: (state, action: PayloadAction<TransposePattern>) => {
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -220,7 +210,7 @@ export const patternsSlice = createSlice({
         }));
       });
     },
-    repeatPattern: (state, action: PayloadAction<TranspositionPattern>) => {
+    repeatPattern: (state, action: PayloadAction<TransposePattern>) => {
       const { id, repeat } = action.payload;
       if (repeat === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -238,7 +228,7 @@ export const patternsSlice = createSlice({
         pattern.stream.length / 2
       );
     },
-    continuePattern: (state, action: PayloadAction<TranspositionPattern>) => {
+    continuePattern: (state, action: PayloadAction<TransposePattern>) => {
       const { id, length } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -279,7 +269,7 @@ export const patternsSlice = createSlice({
         }));
       });
     },
-    phasePattern: (state, action: PayloadAction<TranspositionPattern>) => {
+    phasePattern: (state, action: PayloadAction<TransposePattern>) => {
       const { id, phase } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -306,7 +296,7 @@ export const patternsSlice = createSlice({
 
       state.byId[patternId].stream = shuffle(pattern.stream);
     },
-    harmonizePattern: (state, action: PayloadAction<TranspositionPattern>) => {
+    harmonizePattern: (state, action: PayloadAction<TransposePattern>) => {
       const { id, interval } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -320,7 +310,7 @@ export const patternsSlice = createSlice({
         ];
       });
     },
-    randomizePattern: (state, action: PayloadAction<TranspositionPattern>) => {
+    randomizePattern: (state, action: PayloadAction<TransposePattern>) => {
       const { id, length } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -374,12 +364,9 @@ export const patternsSlice = createSlice({
 
 export const {
   setPatternIds,
-  addPattern,
   addPatterns,
-  removePattern,
   removePatterns,
-  _updatePattern,
-  _updatePatterns,
+  updatePatterns,
   addPatternNote,
   addPatternChord,
   insertPatternNote,
@@ -402,55 +389,56 @@ export const {
   clearPattern,
 } = patternsSlice.actions;
 
-export const updatePattern =
-  (pattern: Partial<Pattern> = defaultPattern): AppThunk =>
-  (dispatch) => {
-    if (!pattern.id) return;
-    // Don't update the pattern if it's invalid
-    if (pattern.stream && !isPatternValid(pattern as Pattern)) return;
-    dispatch(_updatePattern(pattern));
-  };
-
-export const updatePatterns =
-  (patterns: Partial<Pattern>[] = []): AppThunk =>
-  (dispatch) => {
-    // Don't update the patterns if they're invalid
-    if (patterns.some((p) => p.stream && !isPatternValid(p as Pattern))) return;
-    dispatch(_updatePatterns(patterns));
-  };
-
 export const createPattern =
-  (
-    pattern: Partial<PatternNoId> = defaultPattern
-  ): AppThunk<Promise<PatternId>> =>
+  (pattern: Partial<PatternNoId> = {}): AppThunk<Promise<PatternId>> =>
   async (dispatch) => {
     return new Promise((resolve) => {
       const newPattern = initializePattern(pattern);
-      dispatch(addPattern(newPattern));
+      dispatch(addPatterns([newPattern]));
       resolve(newPattern.id);
     });
   };
 
 export const createPatterns =
-  (patterns: Partial<PatternNoId>[] = []): AppThunk =>
-  (dispatch) => {
-    const newPatterns = patterns.map((pattern) => initializePattern(pattern));
-    dispatch(addPatterns(newPatterns));
+  (patterns: Partial<PatternNoId>[] = []): AppThunk<Promise<PatternId[]>> =>
+  async (dispatch) => {
+    return new Promise((resolve) => {
+      const newPatterns = patterns.map((pattern) => initializePattern(pattern));
+      dispatch(addPatterns(newPatterns));
+      resolve(newPatterns.map((pattern) => pattern.id));
+    });
   };
 
 export const deletePattern =
   (id: PatternId): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
-    const patterns = state.patterns.present.allIds;
-    const index = patterns.findIndex((patternId) => patternId === id);
-    if (index === -1) return;
     const { selectedPatternId } = selectRoot(state);
+    const patterns = selectPatterns(state);
+    const index = patterns.findIndex((pattern) => pattern.id === id);
+    if (index === -1) return;
     if (selectedPatternId === id) {
-      const nextId = patterns?.[index - 1] || patterns?.[index + 1];
+      const nextId = patterns?.[index - 1]?.id || patterns?.[index + 1]?.id;
       if (nextId) dispatch(setSelectedPattern(nextId));
     }
-    dispatch(removePattern(id));
+    dispatch(removePatterns([id]));
+  };
+
+export const deletePatterns =
+  (ids: PatternId[]): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const patterns = state.patterns.present.allIds;
+    ids.forEach((id) => {
+      const index = patterns.findIndex((patternId) => patternId === id);
+      if (index === -1) return;
+      const { selectedPatternId } = selectRoot(state);
+      if (selectedPatternId === id) {
+        const nextId = patterns?.[index - 1] || patterns?.[index + 1];
+        if (nextId) dispatch(setSelectedPattern(nextId));
+      }
+      dispatch(removePatterns([id]));
+    });
   };
 
 export default patternsSlice.reducer;

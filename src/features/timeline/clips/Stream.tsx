@@ -34,7 +34,7 @@ const mapStateToProps = (state: RootState, ownProps: StreamProps) => {
   const streamNotes = getStreamTimelineNotes(stream);
   const midiNotes = getStreamMidiNotes(stream);
   const streamString = JSON.stringify(streamNotes);
-  const midiString = JSON.stringify(midiNotes);
+  // const midiString = JSON.stringify(midiNotes);
   // CSS Properties
   const cellWidth = selectCellWidth(state);
   const cellHeight = selectCellHeight(state);
@@ -43,8 +43,12 @@ const mapStateToProps = (state: RootState, ownProps: StreamProps) => {
   const height = cellHeight - TRANSPOSITION_HEIGHT - nameHeight - margin;
 
   // Note properties
+  const minNote = Math.min(...midiNotes);
+  const maxNote = Math.max(...midiNotes);
+  const noteCount = maxNote - minNote + 1;
+  const filledNotes = new Array(noteCount).fill(0).map((_, i) => i + minNote);
+  const midiString = JSON.stringify(filledNotes);
   const { noteColor } = getClipTheme(clip);
-  const noteCount = midiNotes.length;
   const noteHeight = Math.min(25, height / noteCount);
   return {
     clip,

@@ -19,7 +19,6 @@ import { MIDI } from "types/midi";
 import {
   PresetScaleGroupList,
   PresetScaleGroupMap,
-  PresetScaleList,
 } from "types/presets/scales";
 import { getScaleTrackScale, ScaleTrack, TrackId } from "types";
 import {

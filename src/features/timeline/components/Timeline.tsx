@@ -2,7 +2,7 @@ import DataGrid, {
   Column,
   DataGridHandle,
   FormatterProps,
-  HeaderRendererProps,
+  RowHeightArgs,
 } from "react-data-grid";
 import { Row, TimelineProps } from "..";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -12,17 +12,17 @@ import Cell from "../cell";
 import * as Constants from "appConstants";
 import TimelineClips from "../clips";
 import TimelineTranspositions from "../transpositions";
-import TimelineBackground from "./TimelineBackground";
+import TimelineGraphics from "./TimelineGraphics";
 import TimelineContextMenu from "./TimelineContextMenu";
-import TimelineCursor from "./TimelineCursor";
-import useTimelineShortcuts from "../hooks/useTimelineShortcuts";
-import "./Timeline.css";
+import TimelineShortcuts from "./TimelineShortcuts";
 import { TrackId } from "types";
+import { TrackInfoRecord } from "redux/selectors";
+import "./Timeline.css";
 
 export function Timeline(props: TimelineProps) {
   const [timeline, setTimeline] = useState<DataGridHandle>();
 
-  const dependencyMap = JSON.parse(props.dependencyMap);
+  const dependencyMap = JSON.parse(props.dependencyMap) as TrackInfoRecord;
   const gridRef = useCallback<(node: DataGridHandle) => void>(
     (node) => {
       const nodeId = node?.element?.classList[1];
@@ -67,8 +67,7 @@ export function Timeline(props: TimelineProps) {
         index: trackIndex++,
       });
       // Add the children tracks
-      const children = trackMap[trackId].trackIds;
-      addChildren(children);
+      addChildren(track.trackIds);
     }
 
     // Add the track button
@@ -82,6 +81,7 @@ export function Timeline(props: TimelineProps) {
     return rows;
   }, [props.dependencyMap]);
 
+  // Create a memoized map of trackId to row
   const trackRowMap = useMemo(() => {
     const trackRowMap: Record<TrackId, Row> = {};
     rows.forEach((row) => {
@@ -100,16 +100,9 @@ export function Timeline(props: TimelineProps) {
       frozen: true,
       formatter: (formatterProps: FormatterProps<Row>) => {
         if (formatterProps.row.lastRow) return <AddTrackButton {...props} />;
-        // Return a track on all other rows if they exist
         if (!formatterProps.row.trackId) return null;
         return <Track {...formatterProps} />;
       },
-      // Return the top-left corner cell
-      headerRenderer: () => (
-        <div className="rdg-corner bg-zinc-900 h-full border-b border-b-slate-50/10">
-          <div className="h-full bg-gradient-to-r from-gray-800 to-gray-900 backdrop-blur-md pl-3" />
-        </div>
-      ),
       cellClass() {
         return "bg-transparent";
       },
@@ -119,15 +112,15 @@ export function Timeline(props: TimelineProps) {
 
   // Create a memoized column for the DataGrid
   const column = useCallback(
-    (key: string) => ({
+    (key: string): Column<Row> => ({
       key,
       name: key,
       width: props.cellWidth,
       minWidth: 1,
-      formatter(formatterProps: FormatterProps<Row, unknown>) {
+      formatter(formatterProps) {
         return <Cell {...formatterProps} rows={rows} />;
       },
-      headerRenderer(props: HeaderRendererProps<Row, unknown>) {
+      headerRenderer(props) {
         return <TimeFormatter {...props} />;
       },
       cellClass() {
@@ -143,7 +136,7 @@ export function Timeline(props: TimelineProps) {
     const beatCount = Constants.MEASURE_COUNT * 128;
     // Add the body cells
     for (let i = 1; i <= beatCount; i++) {
-      columns.push(column(`${i}`));
+      columns.push(column(i.toString()));
     }
     return columns;
   }, [column]);
@@ -157,22 +150,16 @@ export function Timeline(props: TimelineProps) {
   useEffect(() => {
     if (!timeline?.element) return;
     if (props.state === "stopped") {
-      timeline.element.scrollTo({
-        left: 0,
-        behavior: "smooth",
-      });
+      timeline.element.scrollTo({ left: 0, behavior: "smooth" });
       return;
     }
   }, [timeline, props.state]);
-
-  useTimelineShortcuts({ ...props, rows });
 
   const TimelineElements = useMemo(() => {
     if (!timeline?.element) return () => null;
     return () => (
       <>
-        <TimelineBackground rows={rows} columns={columns} timeline={timeline} />
-        <TimelineCursor timeline={timeline} />
+        <TimelineGraphics rows={rows} columns={columns} timeline={timeline} />
         <TimelineClips
           timeline={timeline}
           rows={rows}
@@ -186,9 +173,21 @@ export function Timeline(props: TimelineProps) {
             columns.length * props.cellWidth + Constants.TRACK_WIDTH
           }
         />
+        <TimelineShortcuts rows={rows} />
       </>
     );
   }, [timeline, rows, trackRowMap, columns, props.cellWidth]);
+
+  // Row height callback for the DataGrid
+  const rowHeight = useCallback(
+    (row: RowHeightArgs<Row>) => {
+      if (row.type !== "ROW") return props.cellHeight;
+      if (row.row.trackId === undefined) return props.cellHeight;
+      if (!props.trackMap[row.row.trackId]?.collapsed) return props.cellHeight;
+      return Constants.COLLAPSED_TRACK_HEIGHT;
+    },
+    [props.cellHeight, props.trackMap]
+  );
 
   return (
     <>
@@ -199,7 +198,7 @@ export function Timeline(props: TimelineProps) {
           ref={gridRef}
           columns={trackedColumns}
           rows={rows}
-          rowHeight={props.cellHeight}
+          rowHeight={rowHeight}
           headerRowHeight={Constants.HEADER_HEIGHT}
           enableVirtualization={true}
         />
@@ -212,7 +211,7 @@ export function Timeline(props: TimelineProps) {
 const AddTrackButton = (props: TimelineProps) => {
   return (
     <div
-      className={`rdg-track flex w-full h-full justify-center items-center hover:bg-sky-500/30 text-slate-50/0 hover:text-slate-100 ease-in-out transition-all duration-500 rounded cursor-pointer`}
+      className={`rdg-track flex font-nunito w-full h-full justify-center items-center hover:bg-sky-500/30 text-slate-50/0 hover:text-slate-100 ease-in-out transition-all duration-500 rounded cursor-pointer`}
       onClick={props.createScaleTrack}
     >
       <h4 className="text-lg font-light">Add a Scale Track</h4>

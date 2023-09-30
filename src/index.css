@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .text-shadow,
+  .text-shadow-md {
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+  }
+  .text-shadow-sm {
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  }
+  .text-shadow-lg {
+    text-shadow: 0 0 10px rgba(0, 0, 0);
+  }
+  .rounded-full {
+    border-radius: 9999px;
+  }
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  .background-pulse {
+    background-size: 400% 400%;
+    animation: animate-gradient 5s ease-in-out infinite;
+  }
+}
+
 @font-face {
   font-family: "Nunito";
   src: url("/fonts/Nunito.ttf");
@@ -21,10 +44,6 @@ body,
 
 html {
   overflow: hidden;
-}
-
-.rounded-full {
-  border-radius: 9999px;
 }
 
 @keyframes animate-gradient {
@@ -48,19 +67,10 @@ html {
   }
 }
 
-@keyframes s {
+@keyframes rotate {
   100% {
     transform: rotate(-360deg);
   }
-}
-
-.fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-.background-pulse {
-  background-size: 400% 400%;
-  animation: animate-gradient 5s ease-in-out infinite;
 }
 
 body {

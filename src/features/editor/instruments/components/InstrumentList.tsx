@@ -1,5 +1,6 @@
 import {
   INSTRUMENT_CATEGORIES,
+  InstrumentCategory,
   getCategoryInstruments,
 } from "types/instrument";
 import { InstrumentEditorProps } from "..";
@@ -7,6 +8,16 @@ import * as Editor from "features/editor";
 import { Disclosure, Transition } from "@headlessui/react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { useCallback } from "react";
+import {
+  GiClarinet,
+  GiDrum,
+  GiGuitar,
+  GiPianoKeys,
+  GiSing,
+  GiTrumpet,
+  GiViolin,
+  GiXylophone,
+} from "react-icons/gi";
 
 export function InstrumentList(props: InstrumentEditorProps) {
   const renderInstrument = useCallback(
@@ -30,6 +41,18 @@ export function InstrumentList(props: InstrumentEditorProps) {
     [props.track]
   );
 
+  const Icon = (props: { category: InstrumentCategory }) => {
+    const { category } = props;
+    if (category === "keyboards") return <GiPianoKeys />;
+    if (category === "guitars") return <GiGuitar />;
+    if (category === "strings") return <GiViolin />;
+    if (category === "woodwinds") return <GiClarinet />;
+    if (category === "brass") return <GiTrumpet />;
+    if (category === "mallets") return <GiXylophone />;
+    if (category === "vocals") return <GiSing />;
+    return <GiDrum />;
+  };
+
   return (
     <Editor.List className="p-2">
       {INSTRUMENT_CATEGORIES.map((category) => (
@@ -37,13 +60,16 @@ export function InstrumentList(props: InstrumentEditorProps) {
           {({ open }) => (
             <>
               <Disclosure.Button className="outline-none">
-                <div className="flex items-center justify-center text-slate-50">
+                <div className="flex items-center justify-center">
                   <label
                     className={`capitalize py-2.5 px-2 ${
-                      open ? "font-extrabold" : "font-medium"
-                    } select-none`}
+                      category === props.instrumentCategory
+                        ? "text-orange-400"
+                        : "text-slate-50"
+                    } flex items-center select-none`}
                   >
-                    {category}
+                    <Icon category={category} />
+                    <span className={`ml-3`}>{category}</span>
                   </label>
                   <span className="ml-auto mr-2">
                     {open ? <BsChevronDown /> : <BsChevronUp />}

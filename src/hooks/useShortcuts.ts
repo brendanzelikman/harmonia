@@ -242,7 +242,6 @@ export default function useShortcuts() {
           if (editor.show) {
             dispatch(hideEditor());
           } else {
-            // dispatch(Root.setSelectedTrack(undefined));
             dispatch(deselectAllClips());
             dispatch(deselectAllTranspositions());
           }

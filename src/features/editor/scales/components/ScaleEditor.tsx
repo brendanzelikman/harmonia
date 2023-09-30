@@ -55,10 +55,11 @@ export function ScaleEditor(props: ScaleEditorProps) {
       <Editor.Body className="relative">
         <Transition
           show={props.showingPresets}
-          enter="transition-opacity duration-150"
+          appear
+          enter="transition-opacity ease-in-out duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
-          leave="transition-opacity duration-150"
+          leave="transition-opacity ease-in-out duration-300"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >

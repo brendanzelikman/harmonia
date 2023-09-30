@@ -32,15 +32,23 @@ export type MigrateTrackInSessionPayload = {
   index?: number;
 };
 
+// A track can be collapsed or expanded
+export type CollapseTracksInSessionPayload = TrackId[];
+export type ExpandTracksInSessionPayload = TrackId[];
+
 // A track can be cleared of all clips and transpositions
 export type ClearTrackInSessionPayload = TrackId;
 
-// CLIPS + TRANSPOSITIONS
+// Clips can be added, removed, and sliced
 export type AddClipsToSessionPayload = ObjectPayload;
 export type RemoveClipsFromSessionPayload = ObjectPayload;
 export type SliceClipInSessionPayload = SliceClipPayload;
+
+// Transpositions can be added and removed
 export type AddTranspositionsToSessionPayload = ObjectPayload;
 export type RemoveTranspositionsFromSessionPayload = ObjectPayload;
+
+// Clips and transpositions can be added and removed together
 export type AddObjectsToSessionPayload = ObjectPayload;
 export type RemoveObjectsFromSessionPayload = ObjectPayload;
 
@@ -243,6 +251,32 @@ export const sessionMapSlice = createSlice({
         state.topLevelIds.push(id);
       }
     },
+    // Collapse tracks in section
+    collapseTracksInSession: (
+      state,
+      action: PayloadAction<CollapseTracksInSessionPayload>
+    ) => {
+      const ids = action.payload;
+      if (!ids?.length) return;
+      ids.forEach((id) => {
+        const track = state.byId[id];
+        if (!track) return;
+        track.collapsed = true;
+      });
+    },
+    // Expand tracks in section
+    expandTracksInSession: (
+      state,
+      action: PayloadAction<ExpandTracksInSessionPayload>
+    ) => {
+      const ids = action.payload;
+      if (!ids?.length) return;
+      ids.forEach((id) => {
+        const track = state.byId[id];
+        if (!track) return;
+        track.collapsed = false;
+      });
+    },
     // Clear a track of all clips and transpositions
     clearTrackInSession: (
       state,
@@ -403,6 +437,8 @@ export const {
   removePatternTrackFromSession,
   moveTrackInSession,
   migrateTrackInSession,
+  collapseTracksInSession,
+  expandTracksInSession,
   clearTrackInSession,
   addClipsToSession,
   removeClipsFromSession,

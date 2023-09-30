@@ -9,8 +9,12 @@ import { setTimelineState } from "redux/slices/timeline";
 import * as Root from "redux/slices/root";
 import { AppDispatch, RootState } from "redux/store";
 import { EditorId } from "types/editor";
+import useEventListeners from "hooks/useEventListeners";
 
-const mapStateToProps = (state: RootState) => ({});
+const mapStateToProps = (state: RootState) => ({
+  showingTour: state.root.showingTour,
+  tourStep: state.root.tourStep,
+});
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
@@ -102,6 +106,7 @@ function OnboardingTour(props: Props) {
             "border border-slate-600/50 bg-slate-600 p-3 px-4 py-2 rounded-lg mx-2 hover:bg-slate-700 hover:border-slate-600/75",
           action() {
             this.cancel();
+            props.endTour();
           },
         },
       ],
@@ -342,21 +347,38 @@ function ShepherdTourContent(props: ContentProps) {
 
   useEffect(() => {
     if (tour) {
-      tour.once("start", () => setIsActive(true));
-      tour.once("complete", () => callback(false));
-      tour.once("cancel", () => callback(true));
+      tour.on("start", () => setIsActive(true));
+      tour.on("complete", () => callback(false));
+      tour.on("cancel", () => callback(true));
     }
     return () => {
-      tour?.cancel();
+      if (tour) {
+        tour.cancel();
+      }
     };
-  }, []);
+  }, [tour?.isActive()]);
+
+  useEventListeners(
+    {
+      Escape: {
+        keydown: () => {
+          if (tour?.isActive()) {
+            tour.cancel();
+            callback(true);
+          }
+          props.endTour();
+        },
+      },
+    },
+    [tour]
+  );
 
   if (!tour) return null;
 
   const onClick = () => {
-    if (tour.isActive()) {
-      tour.cancel();
+    if (tour.isActive() || isActive) {
       setIsActive(false);
+      tour.cancel();
       props.endTour();
       props.setConfetti(false);
     } else {
@@ -366,18 +388,15 @@ function ShepherdTourContent(props: ContentProps) {
     }
   };
 
-  const color = isActive ? "text-sky-600" : "text-slate-50";
+  const color = props.showingTour ? "text-sky-600" : "text-slate-50";
+  const buttonClass = props.showingTour
+    ? "rounded-full ring-2 ring-sky-600 ring-offset-4 ring-offset-gray-900"
+    : "";
 
   return (
     <>
       <button className={`ml-2 focus:outline-none ${color}`} onClick={onClick}>
-        <BsQuestionCircleFill
-          className={`text-2xl ${
-            isActive
-              ? "rounded-full ring-2 ring-sky-600 ring-offset-4 ring-offset-gray-900"
-              : ""
-          }`}
-        />
+        <BsQuestionCircleFill className={`text-2xl ${buttonClass}`} />
       </button>
       {props.confetti &&
         createPortal(<ReactConfetti className="z-[80]" />, document.body)}

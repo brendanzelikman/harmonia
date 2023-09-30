@@ -4,9 +4,11 @@ import { INSTRUMENTS } from "types/instrument";
 import {
   Track,
   TrackId,
+  TrackMap,
   TrackType,
   createScaleTrackMap,
   getScaleTrackScale,
+  getTrackChildren,
   getTrackParents,
   isScaleTrack,
 } from "types/tracks";
@@ -19,6 +21,7 @@ import { Tick } from "types/units";
 import {
   selectPatternTrack,
   selectPatternTrackIds,
+  selectPatternTrackMap,
   selectPatternTracks,
 } from "./patternTracks";
 import {
@@ -27,7 +30,7 @@ import {
   selectScaleTrackMap,
   selectScaleTracks,
 } from "./scaleTracks";
-import { selectTranspositionMap } from "./transpositions";
+import { selectTransposition, selectTranspositionMap } from "./transpositions";
 import { getTrackTranspositions } from "types/session";
 
 // Select the ID of a track
@@ -49,6 +52,14 @@ export const selectTrackIds = createSelector(
 export const selectTrack = createSelector(
   [selectScaleTrack, selectPatternTrack],
   (scaleTrack, patternTrack) => (scaleTrack || patternTrack) as Track
+);
+
+export const selectTrackMap = createSelector(
+  [selectScaleTrackMap, selectPatternTrackMap],
+  (scaleTrackMap, patternTrackMap): TrackMap => ({
+    ...scaleTrackMap,
+    ...patternTrackMap,
+  })
 );
 
 // Select a track scale from the store
@@ -103,7 +114,15 @@ export const selectTrackParents = createSelector(
   }
 );
 
-// Select the transpositions of the parent of a tarck
+// Select the children of a track in descending order
+export const selectTrackChildren = createSelector(
+  [selectTrack, selectTrackMap, selectSessionMap],
+  (track, trackMap, sessionMap) => {
+    return getTrackChildren(track, trackMap, sessionMap);
+  }
+);
+
+// Select the transpositions of the parent of a track
 export const selectTrackParentTranspositions = createSelector(
   [selectTrackParents, selectTranspositionMap, selectSessionMap],
   (parents, transpositions, sessionMap) => {
@@ -164,7 +183,7 @@ type TrackInfo = {
   depth: number;
 };
 
-type TrackInfoRecord = {
+export type TrackInfoRecord = {
   byId: Record<TrackId, TrackInfo>;
   allIds: TrackId[];
   topLevelIds: TrackId[];

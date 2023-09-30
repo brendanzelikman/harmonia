@@ -3,81 +3,44 @@ import { TrackId, TrackType } from "types/tracks";
 import { AppDispatch, RootState } from "redux/store";
 import { Timeline } from "./components/Timeline";
 import "react-data-grid/lib/styles.css";
-import { setSelectedTrack } from "redux/slices/root";
-import * as Selectors from "redux/selectors";
+import { createScaleTrack } from "redux/thunks";
 import {
-  createScaleTrack,
-  unmuteTracks,
-  unsoloTracks,
-} from "redux/thunks/tracks";
-import {
-  pasteSelectedClipsAndTranspositions,
-  toggleTrackMute,
-  toggleTrackSolo,
-} from "redux/thunks";
-import {
-  offsetSelectedTranspositions,
-  updateSelectedTranspositions,
-} from "redux/thunks/transpositions";
-import { hideEditor } from "redux/slices/editor";
-import { TranspositionOffsetRecord } from "types/transposition";
+  selectTrackDependencies,
+  selectTransport,
+  selectCell,
+  selectTimeline,
+  selectTrackMap,
+} from "redux/selectors";
+export interface Row {
+  trackId?: TrackId;
+  type: TrackType;
+  depth: number;
+  index: number;
+  lastRow?: boolean;
+  collapsed?: boolean;
+}
 
 function mapStateToProps(state: RootState) {
-  const editor = Selectors.selectEditor(state);
-  const dependencyMap = JSON.stringify(
-    Selectors.selectTrackDependencies(state)
-  );
-  const transport = Selectors.selectTransport(state);
-  const cell = Selectors.selectCell(state);
-  const { subdivision } = Selectors.selectTimeline(state);
-  const { selectedTrackId } = Selectors.selectRoot(state);
-  const scaleTracks = Selectors.selectTrackParents(state, selectedTrackId);
+  const trackDependencies = selectTrackDependencies(state);
+  const dependencyMap = JSON.stringify(trackDependencies);
+  const transport = selectTransport(state);
+  const cell = selectCell(state);
+  const { subdivision } = selectTimeline(state);
+  const trackMap = selectTrackMap(state);
+
   return {
     dependencyMap,
     state: transport.state,
     subdivision,
-    selectedTrackId,
     cellWidth: cell.width,
     cellHeight: cell.height,
-    showingEditor: editor.show,
-    scaleTracks,
+    trackMap,
   };
 }
 
 function mapDispatchToProps(dispatch: AppDispatch) {
   return {
-    createScaleTrack: () => {
-      return dispatch(createScaleTrack());
-    },
-    setSelectedTrack: (trackId: TrackId) => {
-      dispatch(setSelectedTrack(trackId));
-    },
-    hideEditor: () => {
-      dispatch(hideEditor());
-    },
-    pasteClipsAndTranspositions: (rows: Row[]) => {
-      dispatch(pasteSelectedClipsAndTranspositions(rows));
-    },
-    offsetSelectedTranspositions: (offset: TranspositionOffsetRecord) => {
-      dispatch(offsetSelectedTranspositions(offset));
-    },
-    updateSelectedTranspositions: (update: TranspositionOffsetRecord) => {
-      dispatch(updateSelectedTranspositions(update));
-    },
-    toggleTrackMute: (trackId?: TrackId) => {
-      if (!trackId) return;
-      dispatch(toggleTrackMute(trackId));
-    },
-    toggleTrackSolo: (trackId?: TrackId) => {
-      if (!trackId) return;
-      dispatch(toggleTrackSolo(trackId));
-    },
-    unmuteTracks: () => {
-      dispatch(unmuteTracks());
-    },
-    unsoloTracks: () => {
-      dispatch(unsoloTracks());
-    },
+    createScaleTrack: () => dispatch(createScaleTrack()),
   };
 }
 
@@ -85,13 +48,5 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 type Props = ConnectedProps<typeof connector>;
 export interface TimelineProps extends Props {}
-
-export interface Row {
-  trackId?: TrackId;
-  type: TrackType;
-  depth: number;
-  index: number;
-  lastRow?: boolean;
-}
 
 export default connector(Timeline);

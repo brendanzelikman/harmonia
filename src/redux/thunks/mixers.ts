@@ -1,3 +1,5 @@
+import { MAX_VOLUME, MIN_VOLUME } from "appConstants";
+import { clamp } from "lodash";
 import {
   selectMixerById,
   selectPatternTrack,
@@ -23,10 +25,13 @@ export const setMixerVolume =
     if (!liveMixer) return;
 
     // Update the state mixer
-    dispatch(updateMixer({ mixerId: stateMixer.id, update: { volume } }));
+    const value = clamp(volume, MIN_VOLUME, MAX_VOLUME);
+    dispatch(
+      updateMixer({ mixerId: stateMixer.id, update: { volume: value } })
+    );
 
     // Update the live mixer
-    liveMixer.volume = volume;
+    liveMixer.volume = value;
   };
 
 export const setMixerPan =

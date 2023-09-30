@@ -73,9 +73,8 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
   deletePattern: (id: PatternId) => {
     dispatch(Patterns.deletePattern(id));
   },
-  updatePattern: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
-    dispatch(Patterns.updatePattern(pattern));
+  updatePatterns: (patterns: Pattern[]) => {
+    dispatch(Patterns.updatePatterns(patterns));
   },
   copyPattern: async (pattern?: Pattern) => {
     if (!pattern || !isPatternValid(pattern)) return;
@@ -92,7 +91,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
   },
   setPatternName: (pattern?: Pattern, name?: string) => {
     if (!pattern || !isPatternValid(pattern)) return;
-    dispatch(Patterns.updatePattern({ id: pattern.id, name }));
+    dispatch(Patterns.updatePatterns([{ id: pattern.id, name }]));
   },
   addPatternNote: (
     id: PatternId,
@@ -163,10 +162,12 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
       });
     });
     dispatch(
-      Patterns.updatePattern({
-        id: pattern.id,
-        stream: transposedStream,
-      })
+      Patterns.updatePatterns([
+        {
+          id: pattern.id,
+          stream: transposedStream,
+        },
+      ])
     );
   },
   rotatePattern: (pattern?: Pattern, transpose?: number) => {

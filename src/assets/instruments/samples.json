@@ -398,28 +398,10 @@
   "bongo": {
     "C4": "c4.wav"
   },
-  "clap": {
-    "C4": "c4.wav"
-  },
   "conga": {
     "C4": "c4.wav"
   },
-  "cymbal": {
-    "C4": "c4.wav"
-  },
-  "hihat": {
-    "C4": "c4.wav"
-  },
-  "kick": {
-    "C4": "c4.wav"
-  },
   "shaker": {
-    "C4": "c4.wav"
-  },
-  "snare": {
-    "C4": "c4.wav"
-  },
-  "tom": {
     "C4": "c4.wav"
   },
   "build_snare": {

@@ -1,10 +1,11 @@
 import {
-  MIN_GLOBAL_VOLUME,
-  MAX_GLOBAL_VOLUME,
+  MIN_TRANSPORT_VOLUME,
+  MAX_TRANSPORT_VOLUME,
   MIN_CELL_WIDTH,
   MAX_CELL_WIDTH,
   MAX_CELL_HEIGHT,
   MIN_CELL_HEIGHT,
+  DEFAULT_BPM,
 } from "appConstants";
 import { KeyboardEvent, useMemo, useState } from "react";
 import { BsGearFill, BsVolumeDownFill, BsVolumeMuteFill } from "react-icons/bs";
@@ -45,7 +46,6 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(setTransportTimeSignature([TS1, TS2]));
     },
     setVolume: (volume: Volume) => {
-      if (volume < MIN_GLOBAL_VOLUME || volume > MAX_GLOBAL_VOLUME) return;
       dispatch(setTransportVolume(volume));
     },
     setMute: (mute: boolean) => {
@@ -92,11 +92,12 @@ function Settings(props: Props) {
   // Cell properties
   const [CellInput, setCellInput] = useState(cell);
   const setCellWidth = (width: number) =>
-    setCellInput((prev) => ({ ...prev, width: width || DEFAULT_CELL.width }));
+    setCellInput((prev) => ({ ...prev, width: width ?? DEFAULT_CELL.width }));
+
   const setCellHeight = (height: number) =>
     setCellInput((prev) => ({
       ...prev,
-      height: height || DEFAULT_CELL.height,
+      height: height ?? DEFAULT_CELL.height,
     }));
 
   const onWidthKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -146,6 +147,7 @@ function Settings(props: Props) {
             <NavbarFormInput
               className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
               type="number"
+              placeholder={DEFAULT_BPM.toString()}
               value={BPMInput}
               onChange={(e) => setBPMInput(e.target.valueAsNumber)}
               onKeyDown={onBPMKeyDown}
@@ -158,6 +160,7 @@ function Settings(props: Props) {
             <NavbarFormInput
               className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
               type="number"
+              placeholder={"16"}
               value={TS1}
               onChange={(e) => setTS1(e.target.valueAsNumber)}
               onKeyDown={onTSKeyDown}
@@ -168,21 +171,10 @@ function Settings(props: Props) {
             <NavbarFormInput
               className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
               type="number"
-              placeholder={`${DEFAULT_CELL.width}`}
+              placeholder={DEFAULT_CELL.width.toString()}
               value={CellInput.width}
               onChange={(e) => setCellWidth(e.target.valueAsNumber)}
               onKeyDown={onWidthKeyDown}
-            />
-          </NavbarFormGroup>
-          <NavbarFormGroup>
-            <NavbarFormLabel className="w-36 mr-3">Cell Height</NavbarFormLabel>
-            <NavbarFormInput
-              className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
-              type="number"
-              placeholder={`${DEFAULT_CELL.height}`}
-              value={CellInput.height}
-              onChange={(e) => setCellHeight(e.target.valueAsNumber)}
-              onKeyDown={onHeightKeyDown}
             />
           </NavbarFormGroup>
           <NavbarFormGroup
@@ -225,9 +217,9 @@ function Settings(props: Props) {
       <input
         className="w-24 accent-white caret-slate-50 mr-4"
         type="range"
-        value={props.mute ? MIN_GLOBAL_VOLUME : volume}
-        min={MIN_GLOBAL_VOLUME}
-        max={MAX_GLOBAL_VOLUME}
+        value={props.mute ? MIN_TRANSPORT_VOLUME : volume}
+        min={MIN_TRANSPORT_VOLUME}
+        max={MAX_TRANSPORT_VOLUME}
         onChange={(e) => setVolume(parseInt(e.target.value))}
         onMouseDown={() => {
           setDraggingVolume(true);

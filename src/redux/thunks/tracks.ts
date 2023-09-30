@@ -8,6 +8,7 @@ import {
   selectSessionMap,
   selectScaleTrack,
   selectClipsByIds,
+  selectTrackChildren,
 } from "redux/selectors";
 import {
   selectTransposition,
@@ -55,6 +56,8 @@ import {
   addPatternTrackToSession,
   addScaleTrackToSession,
   clearTrackInSession,
+  collapseTracksInSession,
+  expandTracksInSession,
   removePatternTrackFromSession,
   removeScaleTrackFromSession,
 } from "redux/slices/sessionMap";
@@ -258,6 +261,44 @@ export const unsoloTracks = (): AppThunk => (dispatch) => {
   dispatch(unsoloMixers());
 };
 
+export const collapseTrack =
+  (track?: Track): AppThunk =>
+  (dispatch) => {
+    if (!track) return;
+    dispatch(updateTrack({ ...track, collapsed: true }));
+    dispatch(collapseTracksInSession([track.id]));
+  };
+
+export const collapseTrackChildren =
+  (track?: Track): AppThunk =>
+  (dispatch, getState) => {
+    if (!track || isPatternTrack(track)) return;
+    const state = getState();
+    const children = selectTrackChildren(state, track.id);
+    dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: true }))));
+    dispatch(collapseTracksInSession(children.map((c) => c.id)));
+    return;
+  };
+
+export const expandTrack =
+  (track?: Track): AppThunk =>
+  (dispatch) => {
+    if (!track) return;
+    dispatch(updateTrack({ ...track, collapsed: false }));
+    dispatch(expandTracksInSession([track.id]));
+  };
+
+export const expandTrackChildren =
+  (track?: Track): AppThunk =>
+  (dispatch, getState) => {
+    if (!track || isPatternTrack(track)) return;
+    const state = getState();
+    const children = selectTrackChildren(state, track.id);
+    dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: false }))));
+    dispatch(expandTracksInSession(children.map((c) => c.id)));
+    return;
+  };
+
 export const updateTrack =
   (track: Partial<Track>): AppThunk =>
   (dispatch) => {
@@ -268,6 +309,20 @@ export const updateTrack =
     } else {
       throw new Error("Invalid track type");
     }
+  };
+
+export const updateTracks =
+  (tracks: Partial<Track>[]): AppThunk =>
+  (dispatch) => {
+    tracks.forEach((track) => {
+      if (isScaleTrack(track)) {
+        dispatch(ScaleTracks.updateScaleTrack(track));
+      } else if (isPatternTrack(track)) {
+        dispatch(PatternTracks.updatePatternTrack(track));
+      } else {
+        throw new Error("Invalid track type");
+      }
+    });
   };
 
 export const clearTrack =
@@ -287,7 +342,7 @@ export const deleteTrack =
     if (track && isScaleTrack(track)) {
       dispatch(ScaleTracks.removeScaleTrack(trackId));
       dispatch(removeScaleTrackFromSession(trackId));
-    } else {
+    } else if (isPatternTrack(track)) {
       dispatch(PatternTracks.removePatternTrack(trackId));
       dispatch(removePatternTrackFromSession(trackId));
       dispatch(Mixers.removeMixer({ mixerId: track.mixerId, trackId }));

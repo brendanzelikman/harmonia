@@ -4,16 +4,82 @@ import {
   isHoldingShift,
   isInputEvent,
 } from "utils";
-import { Row, TimelineProps } from "..";
+import { Row } from "..";
 import useEventListeners from "hooks/useEventListeners";
 import useKeyHolder from "hooks/useKeyHolder";
+import { AppDispatch, RootState } from "redux/store";
+import { selectEditor, selectRoot, selectTrackParents } from "redux/selectors";
+import { ConnectedProps, connect } from "react-redux";
+import { hideEditor } from "redux/slices/editor";
+import { setSelectedTrack } from "redux/slices/root";
+import {
+  pasteSelectedClipsAndTranspositions,
+  toggleTrackMute,
+  toggleTrackSolo,
+  unmuteTracks,
+  unsoloTracks,
+} from "redux/thunks";
+import {
+  offsetSelectedTranspositions,
+  updateSelectedTranspositions,
+} from "redux/thunks/transpositions";
+import { TrackId, TranspositionOffsetRecord } from "types";
 
-interface ShortcutProps extends TimelineProps {
+interface ShortcutProps {
   rows: Row[];
 }
 
-export default function useTimelineShortcuts(props: ShortcutProps) {
-  const keys = ["`", "x", "q", "w", "s", "x", "f", "e", "z", "y", "u"];
+const mapStateToProps = (state: RootState, ownProps: ShortcutProps) => {
+  const { selectedTrackId } = selectRoot(state);
+  const editor = selectEditor(state);
+  const scaleTracks = selectTrackParents(state, selectedTrackId);
+  return {
+    ...ownProps,
+    selectedTrackId,
+    showingEditor: editor.show,
+    scaleTracks,
+  };
+};
+
+const mapDispatchToProps = (dispatch: AppDispatch) => ({
+  setSelectedTrack: (trackId: TrackId) => {
+    dispatch(setSelectedTrack(trackId));
+  },
+  hideEditor: () => {
+    dispatch(hideEditor());
+  },
+  pasteClipsAndTranspositions: (rows: Row[]) => {
+    dispatch(pasteSelectedClipsAndTranspositions(rows));
+  },
+  offsetSelectedTranspositions: (offset: TranspositionOffsetRecord) => {
+    dispatch(offsetSelectedTranspositions(offset));
+  },
+  updateSelectedTranspositions: (update: TranspositionOffsetRecord) => {
+    dispatch(updateSelectedTranspositions(update));
+  },
+  toggleTrackMute: (trackId?: TrackId) => {
+    if (!trackId) return;
+    dispatch(toggleTrackMute(trackId));
+  },
+  toggleTrackSolo: (trackId?: TrackId) => {
+    if (!trackId) return;
+    dispatch(toggleTrackSolo(trackId));
+  },
+  unmuteTracks: () => {
+    dispatch(unmuteTracks());
+  },
+  unsoloTracks: () => {
+    dispatch(unsoloTracks());
+  },
+});
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+type Props = ConnectedProps<typeof connector>;
+
+export default connector(useTimelineShortcuts);
+
+function useTimelineShortcuts(props: Props) {
+  const keys = ["`", "x", "q", "w", "s", "x", "f", "e", "z", "y", "u", "z"];
   const heldKeys = useKeyHolder(keys);
 
   const keyKeydown = (key: string) => (e: Event) => {
@@ -37,6 +103,18 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
     const dir = negative ? -1 : 1;
     let offset = isHoldingShift(e) ? 12 * dir : 0;
     offset += parseInt(key) * dir;
+
+    // Apply all offsets if holding z
+    if (heldKeys.z) {
+      props.offsetSelectedTranspositions({
+        _chromatic: offset,
+        [props.scaleTracks?.[0]?.id ?? ""]: offset,
+        [props.scaleTracks?.[1]?.id ?? ""]: offset,
+        [props.scaleTracks?.[2]?.id ?? ""]: offset,
+        _self: offset,
+      });
+      return;
+    }
 
     // Apply chromatic offset if holding q
     if (heldKeys.q) {
@@ -89,6 +167,18 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
     }
     if (heldKeys.u) {
       props.unsoloTracks();
+    }
+
+    // Reset all offsets if holding z
+    if (heldKeys.z) {
+      props.updateSelectedTranspositions({
+        _chromatic: 0,
+        [props.scaleTracks?.[0]?.id ?? ""]: 0,
+        [props.scaleTracks?.[1]?.id ?? ""]: 0,
+        [props.scaleTracks?.[2]?.id ?? ""]: 0,
+        _self: 0,
+      });
+      return;
     }
 
     // Reset the chromatic offset if holding q
@@ -240,4 +330,6 @@ export default function useTimelineShortcuts(props: ShortcutProps) {
       heldKeys,
     ]
   );
+
+  return null;
 }

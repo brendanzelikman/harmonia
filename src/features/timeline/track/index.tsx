@@ -3,8 +3,8 @@ import { connect, ConnectedProps } from "react-redux";
 import {
   selectCell,
   selectRoot,
-  selectScaleTrack,
   selectTrack,
+  selectTrackChildren,
   selectTrackIndex,
   selectTrackParents,
   selectTrackScaleTrack,
@@ -35,13 +35,14 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
 
   // Track properties
   const track = selectTrack(state, ownProps.row.trackId);
-  const scaleTrack = selectScaleTrack(state, track?.id);
+  const scaleTrack = selectTrackScaleTrack(state, track?.id);
   const cell = selectCell(state);
 
   const selectedParents = selectTrackParents(state, selectedTrackId);
   const isScaleSelected = selectedParents.some(({ id }) => id === track?.id);
   const selectedScaleTrack = selectTrackScaleTrack(state, selectedTrackId);
   const index = selectTrackIndex(state, track?.id);
+  const children = selectTrackChildren(state, track?.id);
 
   // Track transpositions
   const transpositions = selectTrackTranspositions(state, track?.id);
@@ -58,6 +59,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
     selectedTrackId,
     isScaleSelected,
     index,
+    children,
     chromatic,
     scalar,
     chordal,
@@ -69,14 +71,32 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     updateTrack: (track: Partial<Track>) => {
       dispatch(Tracks.updateTrack(track));
     },
-    clearTrack: (trackId: TrackId) => {
-      dispatch(Tracks.clearTrack(trackId));
+    selectTrack: (trackId: TrackId) => {
+      dispatch(setSelectedTrack(trackId));
     },
-    deleteTrack: (trackId: TrackId) => {
-      dispatch(Tracks.deleteTrack(trackId));
+    clearTrack: (track: Track) => {
+      if (!track?.id) return;
+      dispatch(Tracks.clearTrack(track.id));
     },
-    duplicateTrack: (trackId: TrackId) => {
-      dispatch(Tracks.duplicateTrack(trackId));
+    deleteTrack: (track: Track) => {
+      if (!track?.id) return;
+      dispatch(Tracks.deleteTrack(track.id));
+    },
+    duplicateTrack: (track: Track) => {
+      if (!track?.id) return;
+      dispatch(Tracks.duplicateTrack(track.id));
+    },
+    collapseTrack: (track: Track) => {
+      dispatch(Tracks.collapseTrack(track));
+    },
+    expandTrack: (track: Track) => {
+      dispatch(Tracks.expandTrack(track));
+    },
+    collapseTrackChildren: (track: Track) => {
+      dispatch(Tracks.collapseTrackChildren(track));
+    },
+    expandTrackChildren: (track: Track) => {
+      dispatch(Tracks.expandTrackChildren(track));
     },
     showEditor: (trackId: TrackId, id: EditorId) => {
       dispatch(showEditor({ id, trackId }));
@@ -101,9 +121,6 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     },
     hideEditor: () => {
       dispatch(hideEditor());
-    },
-    selectTrack: (trackId: TrackId) => {
-      dispatch(setSelectedTrack(trackId));
     },
   };
 }

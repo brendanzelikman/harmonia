@@ -1,6 +1,6 @@
 import { connect, ConnectedProps } from "react-redux";
 import { AppDispatch, AppThunk, RootState } from "redux/store";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { TrackProps } from ".";
 import {
   TrackButton,
@@ -8,12 +8,27 @@ import {
   TrackDropdownMenu,
   TrackSlider,
 } from "./Track";
-import useDebouncedField from "hooks/useDebouncedField";
 import { getInstrumentName } from "types/instrument";
 import { setMixerPan, setMixerVolume } from "redux/thunks/mixers";
-import { BsEraser, BsPencil, BsTrash } from "react-icons/bs";
+import {
+  BsArrowsCollapse,
+  BsArrowsExpand,
+  BsEraser,
+  BsHeadphones,
+  BsPencil,
+  BsTrash,
+  BsVolumeDownFill,
+  BsVolumeOffFill,
+  BsVolumeUpFill,
+} from "react-icons/bs";
 import { BiCopy } from "react-icons/bi";
-import { cancelEvent, isHoldingOption, percentOfRange } from "utils";
+import {
+  blurOnEnter,
+  cancelEvent,
+  isHoldingCommand,
+  isHoldingOption,
+  percentOfRange,
+} from "utils";
 import { useTrackDrag, useTrackDrop } from "./dnd";
 import useKeyHolder from "hooks/useKeyHolder";
 import { isEditorOn, MixerId, TrackId, unpackMixer } from "types";
@@ -27,20 +42,14 @@ import {
   selectSessionMap,
   selectTrack,
 } from "redux/selectors";
-import { selectPatternTrack, selectScaleTrack } from "redux/selectors";
-import {
-  isPatternTrack,
-  isScaleTrack,
-  PatternTrack as PatternTrackType,
-} from "types/tracks";
-import {
-  setPatternTrackScaleTrack,
-  updatePatternTrack,
-} from "redux/slices/patternTracks";
+import { selectScaleTrack } from "redux/selectors";
+import { isPatternTrack, PatternTrack as PatternTrackType } from "types/tracks";
+import { updatePatternTrack } from "redux/slices/patternTracks";
 import { moveTrackInSession } from "redux/slices/sessionMap";
+import useEventListeners from "hooks/useEventListeners";
 
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
-  const { selectedTrackId, scaleTrack } = ownProps;
+  const { selectedTrackId } = ownProps;
   const track = ownProps.track as PatternTrackType;
   const isSelected = !!selectedTrackId && track.id === selectedTrackId;
 
@@ -59,7 +68,6 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   return {
     ...ownProps,
     track,
-    scaleTrack,
     mixerId: mixer?.id,
     isSelected,
     onInstrumentEditor,
@@ -78,7 +86,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     moveTrack: (props: { dragId: TrackId; hoverId: TrackId }) => {
       return dispatch(movePatternTrack(props));
     },
-    setPatternTrackName: (track: Partial<PatternTrackType>, name: string) => {
+    setTrackName: (track: Partial<PatternTrackType>, name: string) => {
       dispatch(updatePatternTrack({ id: track.id, name }));
     },
     setVolume: (mixerId: MixerId, volume: number) => {
@@ -97,7 +105,7 @@ export default connector(PatternTrack);
 
 function PatternTrack(props: Props) {
   const { track, mixerId, chromatic, scalar, chordal, cell } = props;
-  const holdingK = useKeyHolder("k").k;
+  const heldKeys = useKeyHolder(["k", "y", "u"]);
 
   // Drag and drop pattern tracks
   const [draggingVolume, setDraggingVolume] = useState(false);
@@ -110,102 +118,120 @@ function PatternTrack(props: Props) {
   });
   drag(drop(trackRef));
 
-  // Pattern track volume tooltip
-  const PatternTrackVolumeTooltip = useMemo(() => {
-    return () => (
-      <div
-        className={`w-[4.5rem] h-12 top-0 ml-6 absolute text-xs flex flex-col justify-center items-center rounded-lg border border-slate-50/50 bg-slate-900/80 backdrop-blur text-white`}
-      >
-        <div className={`relative w-[3rem] text-center pb-[3px] mb-0.5`}>
-          <span
-            style={{ width: `${props.volumePercent}%` }}
-            className={`absolute rounded left-0 -bottom-[1px] h-1 bg-emerald-500`}
-          />
-          <label className="bg-slate-800">Volume</label>
-        </div>
-        <label className="pb-1">{props.volume.toFixed(1)}dB</label>
-      </div>
-    );
-  }, [props.volume, props.volumePercent]);
-
-  // Pattern track pan tooltip
-  const PatternTrackPanTooltip = useMemo(() => {
-    const panPercent = !props.pan
-      ? "50L • 50R"
-      : `${props.panLeftPercent}L • ${props.panRightPercent}R`;
-    return () => (
-      <div
-        className={`top-0 ml-6 absolute text-xs flex flex-col justify-center items-center w-[4.5rem] h-12 rounded-lg border border-slate-50/50 bg-slate-900/80 backdrop-blur text-white`}
-      >
-        <div className={`relative w-8 text-center pb-[2px] mb-1`}>
-          <div
-            style={{ width: `${props.panRightPercent}%` }}
-            className={`absolute rounded left-0 -bottom-[1px] h-1 bg-teal-400`}
-          />
-          <label className="bg-slate-800">Pan</label>
-        </div>
-        <label className="pb-1">{panPercent}</label>
-      </div>
-    );
-  }, [props.pan, props.panLeftPercent, props.panRightPercent]);
-
   // Pattern track volume slider
   const PatternTrackVolumeSlider = useMemo(() => {
+    const height = cell.height - 55;
+    const top = -height * (props.volumePercent / 100) + height + 15;
+    const iconClass = `${
+      draggingVolume ? "text-emerald-400" : "text-white"
+    } transition-colors duration-200`;
+    const icon =
+      props.volume > -20 ? (
+        <BsVolumeUpFill className={iconClass} />
+      ) : props.volume > -40 ? (
+        <BsVolumeDownFill className={iconClass} />
+      ) : (
+        <BsVolumeOffFill className={iconClass} />
+      );
     return () => (
-      <div className="ml-1 w-6 z-[90] relative">
+      <div className="w-6 h-full z-[90] relative">
         <div className="w-full h-full">
           <TrackSlider
             cell={cell}
+            icon={icon}
             className={`h-5 rotate-[270deg] accent-emerald-500`}
             value={props.volume}
             min={MIN_VOLUME}
-            max={MAX_VOLUME}
+            max={MAX_VOLUME - VOLUME_STEP}
             step={VOLUME_STEP}
             onChange={(e) => props.setVolume(mixerId, e.target.valueAsNumber)}
-            onDoubleClick={() => props.setVolume(mixerId, DEFAULT_VOLUME)}
+            onDoubleClick={(e) => {
+              cancelEvent(e);
+              props.setVolume(mixerId, DEFAULT_VOLUME);
+            }}
             onMouseDown={() => setDraggingVolume(true)}
             onMouseUp={() => setDraggingVolume(false)}
           />
-          {draggingVolume ? <PatternTrackVolumeTooltip /> : null}
         </div>
+        {draggingVolume && (
+          <div
+            style={{ top }}
+            className={`absolute left-7 w-16 h-5 flex font-semibold items-center justify-center bg-emerald-700/80 backdrop-blur border border-slate-300 rounded text-xs`}
+          >
+            {props.volume.toFixed(0)}dB
+          </div>
+        )}
       </div>
     );
-  }, [props.volume, cell, draggingVolume, PatternTrackVolumeTooltip]);
+  }, [props.volume, cell, draggingVolume]);
 
   // Pattern track pan slider
   const PatternTrackPanSlider = useMemo(() => {
+    const height = cell.height - 55;
+    const top = -height * (props.panRightPercent / 100) + height + 15;
+    const iconClass = `${
+      draggingPan ? "text-teal-400" : "text-white"
+    } transition-colors duration-200`;
+    const icon = <BsHeadphones className={iconClass} />;
+
     return () => (
-      <div className="mr-1.5 w-6 h-full z-[80] relative">
+      <div className="w-6 h-full z-[80] relative">
         <div className="w-full h-full">
           <TrackSlider
             cell={cell}
+            icon={icon}
             className={`h-5 accent-teal-400`}
             value={props.pan}
             min={MIN_PAN}
             max={MAX_PAN}
             step={PAN_STEP}
             onChange={(e) => props.setPan(mixerId, parseFloat(e.target.value))}
-            onDoubleClick={() => props.setPan(mixerId, DEFAULT_PAN)}
+            onDoubleClick={(e) => {
+              cancelEvent(e);
+              props.setPan(mixerId, DEFAULT_PAN);
+            }}
             onMouseDown={() => setDraggingPan(true)}
             onMouseUp={() => setDraggingPan(false)}
           />
-          {draggingPan ? <PatternTrackPanTooltip /> : null}
         </div>
+        {draggingPan && (
+          <div
+            style={{ top }}
+            className={`absolute left-7 w-16 h-5 flex font-semibold items-center justify-center bg-teal-700/80 backdrop-blur border border-slate-300 rounded text-xs`}
+          >
+            {props.panLeftPercent}L • {props.panRightPercent}R
+          </div>
+        )}
       </div>
     );
-  }, [props.pan, cell, draggingPan, PatternTrackPanTooltip]);
+  }, [props.pan, cell, draggingPan]);
 
   // Pattern track volume + pan sliders
   const PatternTrackSliders = useMemo(() => {
     return () => (
-      <div className="flex" draggable onDragStart={cancelEvent}>
+      <div className="flex ml-0.5 mr-1" draggable onDragStart={cancelEvent}>
         {PatternTrackVolumeSlider()}
         {PatternTrackPanSlider()}
       </div>
     );
   }, [PatternTrackVolumeSlider, PatternTrackPanSlider]);
 
-  // Instrument button
+  const toggleEditor = () =>
+    props.onInstrumentEditor
+      ? props.hideEditor()
+      : props.showEditor(track.id, "instrument");
+
+  useEventListeners(
+    {
+      e: {
+        keydown: (e) =>
+          isHoldingCommand(e) && props.isSelected && toggleEditor(),
+      },
+    },
+    [toggleEditor]
+  );
+
+  // Instrument editor button
   const InstrumentEditorButton = useMemo(() => {
     const isSmall = cell.height < 100;
     const className = isSmall ? "text-xs px-2" : "text-sm px-3";
@@ -215,26 +241,26 @@ function PatternTrack(props: Props) {
           props.onInstrumentEditor
             ? "bg-gradient-to-r from-orange-500 to-orange-500/50 background-pulse"
             : ""
-        }`}
-        onClick={() =>
-          props.onInstrumentEditor
-            ? props.hideEditor()
-            : props.showEditor(track.id, "instrument")
-        }
+        } cursor-pointer`}
+        onClick={toggleEditor}
       >
-        <label className="cursor-pointer flex items-center instrument-button">
+        <label className="flex items-center instrument-button select-none cursor-pointer">
           Instrument/FX <BsPencil className="ml-2" />
         </label>
       </TrackButton>
     );
-  }, [props.onInstrumentEditor, cell]);
+  }, [props.onInstrumentEditor, toggleEditor, cell]);
 
   // Mute button
   const MuteButton = useMemo(() => {
     return () => (
       <div
-        className={`flex items-center justify-center rounded-full cursor-pointer w-6 h-6 font-bold text-sm border border-rose-500 ${
-          props.mute ? "bg-rose-500 text-white" : ""
+        className={`flex items-center justify-center rounded-full cursor-pointer w-6 h-6 mr-1 text-sm border-2 border-rose-500/80 ${
+          props.mute
+            ? "bg-rose-500 text-white"
+            : heldKeys.y
+            ? "text-shadow bg-rose-400/40"
+            : "bg-emerald-600/20"
         }`}
         onClick={(e) =>
           isHoldingOption(e.nativeEvent)
@@ -247,14 +273,18 @@ function PatternTrack(props: Props) {
         M
       </div>
     );
-  }, [props.mute]);
+  }, [props.mute, heldKeys]);
 
   // Solo button
   const SoloButton = useMemo(() => {
     return () => (
       <div
-        className={`flex items-center justify-center rounded-full cursor-pointer w-6 h-6 font-bold text-sm border border-yellow-400 ${
-          props.solo ? "bg-yellow-400 text-white" : ""
+        className={`flex items-center justify-center rounded-full cursor-pointer w-6 h-6 text-sm border-2 border-yellow-400/80 ${
+          props.solo
+            ? "bg-yellow-400 text-white"
+            : heldKeys.u
+            ? "text-shadow bg-yellow-400/30"
+            : "bg-emerald-600/20"
         }`}
         onClick={(e) =>
           isHoldingOption(e.nativeEvent)
@@ -267,12 +297,7 @@ function PatternTrack(props: Props) {
         S
       </div>
     );
-  }, [props.solo]);
-
-  // Pattern track name
-  const PatternTrackName = useDebouncedField<string>((name) => {
-    props.setPatternTrackName(track, name);
-  }, track.name);
+  }, [props.solo, heldKeys]);
 
   // Pattern track name field
   const PatternTrackNameField = useMemo(() => {
@@ -282,59 +307,97 @@ function PatternTrack(props: Props) {
       <>
         <input
           placeholder={props.instrumentName}
-          value={PatternTrackName.value}
-          onChange={PatternTrackName.onChange}
-          className={`bg-zinc-800 text-sm px-1 ${size} mr-2 flex-auto caret-white outline-none rounded-md overflow-ellipsis text-gray-300 border-2 border-zinc-800 focus:border-indigo-500/50`}
-          onKeyDown={PatternTrackName.onKeyDown}
+          value={track.name}
+          onChange={(e) => props.setTrackName(track, e.target.value)}
+          className={`bg-zinc-800 font-nunito text-sm px-1 ${size} w-full mr-2 flex-auto caret-white outline-none focus:ring-0 rounded-md overflow-ellipsis text-gray-300 border-2 border-zinc-800 focus:border-indigo-500`}
+          onKeyDown={blurOnEnter}
         />
-        <label className="font-light w-4 text-center">
+        <label className="font-light w-4 mb-1 text-center">
           {props.row.depth + 1}
         </label>
       </>
     );
-  }, [props.instrumentName, cell, PatternTrackName.value, props.row.depth]);
+  }, [props.instrumentName, cell, track, props.row.depth]);
 
   // Pattern track dropdown menu
   const PatternTrackDropdownMenu = useMemo(() => {
     return () => (
-      <TrackDropdownMenu>
-        <div className="flex flex-col w-full">
-          <TrackDropdownButton
-            content="Copy Track"
-            icon={<BiCopy />}
-            onClick={() => props.duplicateTrack(track.id)}
-          />
-          <TrackDropdownButton
-            content="Clear Track"
-            icon={<BsEraser />}
-            onClick={() => props.clearTrack(track.id)}
-          />
-          <TrackDropdownButton
-            content="Delete Track"
-            icon={<BsTrash />}
-            onClick={() => props.deleteTrack(track.id)}
-          />
-        </div>
-      </TrackDropdownMenu>
+      <div className="flex flex-col w-12 mr-1 items-end">
+        <TrackDropdownMenu>
+          <div className="flex flex-col w-full">
+            <TrackDropdownButton
+              content={`${track.collapsed ? "Expand " : "Collapse"} Track`}
+              icon={track.collapsed ? <BsArrowsExpand /> : <BsArrowsCollapse />}
+              onClick={() =>
+                track.collapsed
+                  ? props.expandTrack(track)
+                  : props.collapseTrack(track)
+              }
+            />
+            <TrackDropdownButton
+              content="Copy Track"
+              icon={<BiCopy />}
+              onClick={() => props.duplicateTrack(track)}
+            />
+            <TrackDropdownButton
+              content="Clear Track"
+              icon={<BsEraser />}
+              onClick={() => props.clearTrack(track)}
+            />
+            <TrackDropdownButton
+              content="Delete Track"
+              icon={<BsTrash />}
+              onClick={() => props.deleteTrack(track)}
+            />
+          </div>
+        </TrackDropdownMenu>
+        {!!track.collapsed && (
+          <label className="text-xs -mt-1">
+            <span
+              className={`mr-0.5 ${heldKeys.y ? "text-shadow-lg" : ""} ${
+                !!props.mute
+                  ? "text-shadow-sm text-rose-400 font-bold"
+                  : heldKeys.y
+                  ? "text-white font-semibold"
+                  : "text-slate-200"
+              }`}
+            >
+              M
+            </span>
+            •
+            <span
+              className={`ml-0.5 ${heldKeys.u ? "text-shadow-lg" : ""} ${
+                !!props.solo
+                  ? "text-shadow-sm text-yellow-300 font-bold"
+                  : heldKeys.u
+                  ? "text-white font-semibold"
+                  : "text-slate-200"
+              }`}
+            >
+              S
+            </span>
+          </label>
+        )}
+      </div>
     );
-  }, [track]);
+  }, [track, heldKeys, props.mute, props.solo]);
 
   // Pattern track header
   const PatternTrackHeader = useMemo(() => {
     return () => (
       <>
         <Transition
-          show={!!holdingK}
+          show={!!heldKeys.k}
           enter="transition-opacity duration-200"
           enterFrom="opacity-0"
           enterTo="opacity-100"
           as="label"
-          className="w-full text-gray-400 text-xs font-extralight pl-1"
+          className="w-full text-gray-300 text-xs font-extralight pl-1 pb-1"
         >
           Current: N{chromatic} • T{scalar} • t{chordal}
         </Transition>
         <div
-          className="w-full min-h-[1.5rem] max-h-[2.5rem] flex flex-1 relative text-sm justify-end"
+          className="w-full min-h-[1.5rem] max-h-[2.5rem] flex flex-1 relative items-center text-sm"
           draggable
           onDragStart={cancelEvent}
         >
@@ -343,7 +406,15 @@ function PatternTrack(props: Props) {
         </div>
       </>
     );
-  }, [props.row, PatternTrackNameField, holdingK, chromatic, scalar, chordal]);
+  }, [
+    props.row,
+    PatternTrackNameField,
+    PatternTrackDropdownMenu,
+    heldKeys,
+    chromatic,
+    scalar,
+    chordal,
+  ]);
 
   // Pattern track body
   const PatternTrackBody = useMemo(() => {
@@ -353,9 +424,9 @@ function PatternTrack(props: Props) {
         draggable
         onDragStart={cancelEvent}
       >
-        <InstrumentEditorButton />
-        <div className="flex flex-col pl-2 ml-auto mr-1 space-y-1">
-          <div className="flex space-x-1">
+        {InstrumentEditorButton()}
+        <div className="flex flex-col pl-2 ml-auto space-y-1">
+          <div className="flex">
             <MuteButton />
             <SoloButton />
           </div>
@@ -368,17 +439,37 @@ function PatternTrack(props: Props) {
   const PatternTrack = useMemo(() => {
     return (
       <div
-        className={`rdg-track pt-0.5 bg-teal-700 flex w-full h-full text-white border-b border-b-white/20 ${
+        className={`rdg-track border-b border-b-slate-300 p-2 bg-teal-600 flex w-full h-full text-white ${
           isDragging ? "opacity-75" : ""
-        } ${props.isSelected ? "bg-slate-500/50" : ""}`}
+        }`}
         ref={trackRef}
         onClick={() => props.selectTrack(track.id)}
       >
-        <div className="w-full h-full pl-1 pt-1 pr-3 flex bg-gradient-to-r from-sky-700/80 to-emerald-600/80">
-          {PatternTrackSliders()}
-          <div className="w-full h-full flex flex-col items-center justify-center py-2">
+        <div
+          className={`w-full h-full border-2 rounded items-center flex bg-gradient-to-r from-sky-700/80 to-emerald-700/50 ${
+            props.isSelected
+              ? props.onInstrumentEditor
+                ? "border-orange-400"
+                : "border-blue-400"
+              : "border-emerald-950"
+          }`}
+          onDoubleClick={() =>
+            props.onInstrumentEditor
+              ? props.hideEditor()
+              : props.showEditor(track.id, "instrument")
+          }
+        >
+          <Transition
+            show={!track.collapsed}
+            enter="transition-opacity duration-150"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+          >
+            {!track.collapsed ? PatternTrackSliders() : null}
+          </Transition>
+          <div className="w-full h-full flex flex-col items-center justify-center px-2 duration-150">
             {PatternTrackHeader()}
-            {PatternTrackBody()}
+            {!track.collapsed && PatternTrackBody()}
           </div>
         </div>
       </div>
@@ -388,7 +479,9 @@ function PatternTrack(props: Props) {
     PatternTrackHeader,
     PatternTrackBody,
     isDragging,
+    track,
     props.isSelected,
+    props.onInstrumentEditor,
   ]);
 
   return PatternTrack;

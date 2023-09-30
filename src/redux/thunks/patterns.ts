@@ -6,7 +6,6 @@ import {
   selectTransport,
 } from "redux/selectors";
 import { createClips } from "redux/slices/clips";
-
 import { AppThunk } from "redux/store";
 import { getGlobalSampler } from "types/instrument";
 import { MIDI } from "types/midi";
@@ -19,7 +18,7 @@ import {
 } from "types/pattern";
 import { defaultScale } from "types/scale";
 import { Midi } from "@tonejs/midi";
-import { createPattern, updatePattern } from "redux/slices/patterns";
+import { createPattern, updatePatterns } from "redux/slices/patterns";
 import { convertTicksToSeconds } from "redux/slices/transport";
 import { PresetPatternList } from "types/presets/patterns";
 
@@ -113,10 +112,12 @@ export const updatePatternByRegex =
     if (!parsedStream?.length) return;
 
     dispatch(
-      updatePattern({
-        id: pattern.id,
-        stream: [...pattern.stream, ...parsedStream],
-      })
+      updatePatterns([
+        {
+          id: pattern.id,
+          stream: [...pattern.stream, ...parsedStream],
+        },
+      ])
     );
   };
 

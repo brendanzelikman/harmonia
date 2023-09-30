@@ -21,6 +21,7 @@ export default connector(App);
 
 function App(props: Props) {
   useShortcuts();
+
   const App = useMemo(() => {
     return () => (
       <div className="fade-in flex flex-col flex-nowrap w-full h-screen overflow-auto">

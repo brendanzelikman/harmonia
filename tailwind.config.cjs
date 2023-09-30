@@ -20,9 +20,10 @@ module.exports = {
       },
 
       cursor: {
-        brush: "url(/cursors/brush.cur), pointer",
+        paintbrush: "url(/cursors/paintbrush.cur), pointer",
         scissors: "url(/cursors/scissors.cur), pointer",
         wand: "url(/cursors/wand.cur), pointer",
+        eyedropper: "url(/cursors/eyedropper.cur), pointer",
       },
       transformOrigin: {
         0: "0%",

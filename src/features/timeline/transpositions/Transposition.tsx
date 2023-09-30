@@ -1,7 +1,7 @@
 import { connect, ConnectedProps } from "react-redux";
 import { AppDispatch, RootState } from "redux/store";
 import { TranspositionsProps } from ".";
-import { HEADER_HEIGHT, TRANSPOSITION_HEIGHT } from "appConstants";
+import { COLLAPSED_TRACK_HEIGHT, TRANSPOSITION_HEIGHT } from "appConstants";
 import * as Root from "redux/slices/root";
 import { MouseEvent, useMemo } from "react";
 import {
@@ -14,6 +14,8 @@ import {
   selectCellHeight,
   selectTimeline,
   selectTimelineTickOffset,
+  selectTimelineTrackOffset,
+  selectTrack,
   selectTrackParents,
 } from "redux/selectors";
 import { BsMagic } from "react-icons/bs";
@@ -39,22 +41,27 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const transposing = timeline.state === "transposing";
   const addingClip = timeline.state === "adding";
 
-  // Transposition properties
-  const isSelected = selectedTranspositions?.some((t) => t.id === id);
-  const index = trackRowMap[transposition.trackId].index;
-
-  // Transposition values
+  // Transposition track
   const parents = selectTrackParents(state, transposition.trackId);
+  const track = selectTrack(state, transposition.trackId);
   const onScaleTrack = parents.at(-1)?.id === transposition.trackId;
+
+  // Transposition values;
   const chromatic = getChromaticTranspose(transposition);
   const scalars = parents
     .map((track) => getScalarTranspose(transposition, track?.id))
     .slice(0, onScaleTrack ? parents.length - 1 : undefined);
   const chordal = getChordalTranspose(transposition);
 
+  // Transposition properties
+  const isSelected = selectedTranspositions?.some((t) => t.id === id);
+  const isCollapsed = track.collapsed;
+  const index = trackRowMap[transposition.trackId].index;
+
   // CSS properties
-  const height = selectCellHeight(state);
-  const top = HEADER_HEIGHT + index * height;
+  const cellHeight = selectCellHeight(state);
+  const height = isCollapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
+  const top = selectTimelineTrackOffset(state, transposition);
   const left = selectTimelineTickOffset(state, transposition.tick);
 
   const width = transposition.duration
@@ -67,6 +74,7 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
     transposing,
     addingClip,
     isSelected,
+    isCollapsed,
     index,
     chromatic,
     scalars,
@@ -95,9 +103,9 @@ export type TranspositionProps = ConnectedProps<typeof connector>;
 export default connector(TimelineTransposition);
 
 function TimelineTransposition(props: TranspositionProps) {
-  const { top, left, width, height, isSelected } = props;
+  const { top, left, width, height, isSelected, isCollapsed } = props;
   const { chromatic, scalars, chordal, selectedTrackParents } = props;
-  const heldKeys = useKeyHolder(["k", "q", "w", "s", "x", "e", "f"]);
+  const heldKeys = useKeyHolder(["k", "q", "w", "s", "x", "e", "f", "z"]);
 
   // Transposition drag hook with react-dnd
   const [{ isDragging }, drag] = useTranspositionDrag(props);
@@ -110,18 +118,18 @@ function TimelineTransposition(props: TranspositionProps) {
   const TranspositionLabel = useMemo(() => {
     const chromaticLabel = (
       <span
-        className={`mr-0.5 ${heldKeys.q && isSelected ? "font-semibold" : ""} ${
-          isSelected ? "italic" : ""
-        }`}
+        className={`mr-0.5 ${
+          (heldKeys.q || heldKeys.z) && isSelected ? "text-shadow-lg" : ""
+        } ${isSelected ? "font-bold" : ""}`}
       >
         N{chromatic}
       </span>
     );
     const chordalLabel = (
       <span
-        className={`ml-0.5 ${heldKeys.e && isSelected ? "font-semibold" : ""} ${
-          isSelected ? "italic" : ""
-        }`}
+        className={`ml-0.5 ${
+          (heldKeys.e || heldKeys.z) && isSelected ? "text-shadow-lg" : ""
+        } ${isSelected ? "font-bold" : ""}`}
       >
         t{chordal}
       </span>
@@ -132,13 +140,15 @@ function TimelineTransposition(props: TranspositionProps) {
       const isHoldingW = index === 0 && heldKeys.w;
       const isHoldingS = index === 1 && heldKeys.s;
       const isHoldingX = index === 2 && heldKeys.x;
-      const isHoldingKey = isHoldingW || isHoldingS || isHoldingX;
+      const isHoldingKey = isHoldingW || isHoldingS || isHoldingX || heldKeys.z;
       return (
         <span
           key={`${offset}-${index}`}
           className={`${
-            canTransposeScale && hasParent && isHoldingKey ? "font-bold" : ""
-          } ${canTransposeScale && hasParent ? "italic" : ""}`}
+            canTransposeScale && hasParent && isHoldingKey
+              ? "text-shadow-lg"
+              : ""
+          } ${canTransposeScale && hasParent ? "font-bold" : ""}`}
         >
           {offset}
           {isBeforeLast ? <span className="mr-1">,</span> : ""}
@@ -148,15 +158,24 @@ function TimelineTransposition(props: TranspositionProps) {
     const scalarLabels = scalars.length ? (
       <>
         <span className={`mx-0.5`}>
-          <label className={`${canTransposeScale ? "italic" : ""}`}>T</label>(
-          {scalars.map((s, i) => scalarLabel(s, i))})
+          <label
+            className={`${canTransposeScale ? "font-bold" : ""} ${
+              canTransposeScale &&
+              (heldKeys.w || heldKeys.s || heldKeys.x || heldKeys.z)
+                ? "text-shadow-lg"
+                : ""
+            }`}
+          >
+            T
+          </label>
+          ({scalars.map((s, i) => scalarLabel(s, i))})
         </span>
         {" • "}
       </>
     ) : null;
     return (
       <div
-        className={`absolute flex items-center whitespace-nowrap ${
+        className={`flex items-center whitespace-nowrap ${
           isSelected ? "text-slate-100" : "text-slate-200"
         }`}
         draggable
@@ -193,9 +212,11 @@ function TimelineTransposition(props: TranspositionProps) {
         style={{ width, height: TRANSPOSITION_HEIGHT }}
       >
         <div
-          className={`relative w-full h-full group rounded-t-lg  ${
-            isSelected ? `border border-b-0` : ``
-          } flex pl-1 items-center bg-fuchsia-500/70 pointer-events-none ${
+          className={`relative w-full h-full group rounded-t-lg border border-b-0 ${
+            isSelected
+              ? `border-white bg-fuchsia-500/80`
+              : `border-white/0 bg-fuchsia-500/70`
+          } flex pl-1 items-center pointer-events-none ${
             !isSelected ? "overflow-hidden" : ""
           }`}
         >
@@ -203,14 +224,16 @@ function TimelineTransposition(props: TranspositionProps) {
         </div>
       </div>
     );
-  }, [width, isSelected, TranspositionLabel]);
+  }, [width, isSelected, TranspositionLabel, isCollapsed]);
 
   // Transposition body
   const TranspositionBody = useMemo(() => {
     return () => (
       <div
-        className={`bg-fuchsia-500/70 ${
-          isSelected ? `border border-t-0` : ``
+        className={`border border-t-0 ${
+          isSelected
+            ? `border-white bg-fuchsia-500/80`
+            : `border-white/0 bg-fuchsia-500/70`
         } absolute rounded-b pointer-events-none`}
         style={{
           width,

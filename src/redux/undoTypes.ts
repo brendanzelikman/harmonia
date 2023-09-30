@@ -1,5 +1,11 @@
 import { PayloadAction } from "@reduxjs/toolkit";
-import { createClipTag, createTranspositionTag } from "types";
+import {
+  createClipTag,
+  createPatternChordTag,
+  createPatternNoteTag,
+  createPatternTag,
+  createTranspositionTag,
+} from "types";
 import {
   AddClipsPayload,
   ClearClipsByTrackIdPayload,
@@ -31,6 +37,8 @@ import {
   AddObjectsToSessionPayload,
   AddTrackToSessionPayload,
   ClearTrackInSessionPayload,
+  CollapseTracksInSessionPayload,
+  ExpandTracksInSessionPayload,
   MigrateTrackInSessionPayload,
   MoveTrackInSessionPayload,
   RemoveClipsFromSessionPayload,
@@ -38,6 +46,16 @@ import {
   RemoveTrackFromSessionPayload,
   RemoveTranspositionsFromSessionPayload,
 } from "./slices/sessionMap";
+import {
+  AddPatterns,
+  RemovePatterns,
+  UpdatePatterns,
+  AddPatternNote,
+  AddPatternChord,
+  InsertPatternNote,
+  RemovePatternNote,
+  TransposePattern,
+} from "./slices/patterns";
 
 export const UndoTypes = {
   undoSession: "session/undo",
@@ -58,6 +76,36 @@ type ActionGroup = {
 
 const createTag = (items: any[], createTag: (t: any) => string): string => {
   return items.map(createTag).join(",");
+};
+
+const groupByPatternAction: ActionGroup = {
+  "patterns/addPatterns": (action: PayloadAction<AddPatterns>) => {
+    const patternTag = createTag(action.payload, createPatternTag);
+    return `ADD_PATTERNS:${patternTag}`;
+  },
+  "patterns/removePatterns": (action: PayloadAction<RemovePatterns>) => {
+    return `REMOVE_PATTERNS:${action.payload.join(",")}`;
+  },
+  "patterns/updatePatterns": (action: PayloadAction<UpdatePatterns>) => {
+    return `UPDATE_PATTERNS:${action.payload.join(",")}`;
+  },
+  "patterns/addPatternNote": (action: PayloadAction<AddPatternNote>) => {
+    const patternNoteTag = createPatternNoteTag(action.payload.patternNote);
+    return `ADD_PATTERN_NOTE:${action.payload.id}:${patternNoteTag}`;
+  },
+  "patterns/addPatternChord": (action: PayloadAction<AddPatternChord>) => {
+    const patternChordTag = createPatternChordTag(action.payload.patternChord);
+    return `ADD_PATTERN_CHORD:${action.payload.id}:${patternChordTag}`;
+  },
+  "patterns/insertPatternNote": (action: PayloadAction<InsertPatternNote>) => {
+    return `INSERT_PATTERN_NOTE:${action.payload.id}:${action.payload.index}`;
+  },
+  "patterns/removePatternNote": (action: PayloadAction<RemovePatternNote>) => {
+    return `REMOVE_PATTERN_NOTE:${action.payload.id}:${action.payload.index}`;
+  },
+  "patterns/transposePattern": (action: PayloadAction<TransposePattern>) => {
+    return `TRANSPOSE_PATTERN:${action.payload.id}`;
+  },
 };
 
 const groupByClipAction: ActionGroup = {
@@ -204,6 +252,16 @@ const groupBySessionAction: ActionGroup = {
   ) => {
     return `MIGRATE_TRACK:${action.payload}`;
   },
+  "session/collapseTracksInSession": (
+    action: PayloadAction<CollapseTracksInSessionPayload>
+  ) => {
+    return `COLLAPSE_TRACKS:${action.payload.join(",")}`;
+  },
+  "session/expandTracksInSession": (
+    action: PayloadAction<ExpandTracksInSessionPayload>
+  ) => {
+    return `EXPAND_TRACKS:${action.payload.join(",")}`;
+  },
   "session/clearTrackInSession": (
     action: PayloadAction<ClearTrackInSessionPayload>
   ) => {
@@ -280,6 +338,9 @@ export const groupByActionType = (action: PayloadAction) => {
   }
   if (action.type.startsWith("session/")) {
     return groupBySessionAction[action.type](action);
+  }
+  if (action.type.startsWith("patterns/")) {
+    return groupByPatternAction[action.type](action);
   }
   return `${action.type}:${action.payload}`;
 };

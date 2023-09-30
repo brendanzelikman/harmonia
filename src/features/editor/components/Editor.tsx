@@ -111,15 +111,13 @@ export function Editor(props: EditorProps) {
 
   return (
     <Transition
-      appear
       show={!!props.show}
-      enter="transition-all duration-150"
+      enter="transition-opacity duration-150"
       enterFrom="opacity-0"
       enterTo="opacity-100"
-      leave="transition-all duration-150"
+      leave="transition-opacity duration-150"
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
-      as="div"
       className={`absolute bottom-0 right-0 ${
         state.showingTracks ? `w-[calc(100%-300px)]` : `w-full`
       } h-full bg-gradient-to-t from-[#09203f] to-[#33454b] backdrop-blur-xl font-nunito`}
@@ -193,10 +191,11 @@ export const EditorTransition = (props: {
   return (
     <Transition
       show={!!props.show}
-      enter="transition-opacity duration-150"
+      appear
+      enter="transition-all duration-300"
       enterFrom="opacity-0"
       enterTo="opacity-100"
-      leave="transition-opacity duration-150"
+      leave="transition-all duration-300"
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
       className="relative w-full h-full"
@@ -337,10 +336,10 @@ export const MenuRow = (props: {
 }) => (
   <Transition
     appear
-    enter="transition-all duration-75"
+    enter="transition-all duration-150"
     enterFrom="opacity-0"
     enterTo="opacity-100"
-    leave="transition-all duration-75"
+    leave="transition-all duration-150"
     leaveFrom="opacity-100"
     leaveTo="opacity-0"
     as="div"

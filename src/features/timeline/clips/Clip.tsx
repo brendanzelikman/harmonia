@@ -1,17 +1,18 @@
 import { connect, ConnectedProps } from "react-redux";
 import {
   selectClipDuration,
-  selectTimeline,
   selectTimelineTickOffset,
   selectClipWidth,
   selectClipName,
   selectClipPattern,
   selectCellHeight,
+  selectTimelineTrackOffset,
+  selectTrack,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Clip, ClipId, getClipTheme } from "types/clip";
 import { ClipsProps } from ".";
-import { TRANSPOSITION_HEIGHT, HEADER_HEIGHT } from "appConstants";
+import { TRANSPOSITION_HEIGHT, COLLAPSED_TRACK_HEIGHT } from "appConstants";
 import { useClipDrag } from "./dnd";
 import * as Root from "redux/slices/root";
 import { MouseEvent, useCallback, useMemo } from "react";
@@ -33,31 +34,32 @@ interface OwnClipProps extends ClipsProps {
 const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const { clip, trackRowMap, selectedClips } = ownProps;
 
-  // Timeline properties
-  const timeline = selectTimeline(state);
-  const { subdivision } = timeline;
-  const transposing = timeline.state === "transposing";
-
   // Clip properties
-  const isSelected = selectedClips.some(({ id }) => id === clip.id);
+  const track = selectTrack(state, clip.trackId);
   const index = trackRowMap[clip.trackId].index;
   const name = selectClipName(state, clip.id);
   const duration = selectClipDuration(state, clip.id);
   const pattern = selectClipPattern(state, clip.id);
 
+  // Timeline properties
+  const isSelected = selectedClips.some(({ id }) => id === clip.id);
+  const isCollapsed = track.collapsed;
+
   // CSS properties
   const cellHeight = selectCellHeight(state);
-  const top = HEADER_HEIGHT + index * cellHeight + TRANSPOSITION_HEIGHT;
+  const top = selectTimelineTrackOffset(state, clip) + TRANSPOSITION_HEIGHT;
   const left = selectTimelineTickOffset(state, clip.tick);
   const width = selectClipWidth(state, clip.id);
-  const height = cellHeight - TRANSPOSITION_HEIGHT;
+  const height =
+    (!!track.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight) -
+    TRANSPOSITION_HEIGHT;
+
   const { headerColor, bodyColor } = getClipTheme(clip);
 
   return {
     ...ownProps,
-    subdivision,
-    transposing,
     isSelected,
+    isCollapsed,
     index,
     name,
     duration,
@@ -123,28 +125,37 @@ export type ClipProps = ConnectedProps<typeof connector>;
 export default connector(TimelineClip);
 
 function TimelineClip(props: ClipProps) {
-  const { clip, top, left, width, height, isSelected } = props;
-  const { name, headerColor, bodyColor, transposing } = props;
+  const { clip, top, left, width, height, addingClip, isSelected } = props;
+  const { name, headerColor, bodyColor } = props;
   const heldKeys = useKeyHolder("i");
+  const eyedropping = heldKeys.i;
 
   // Clip drag hook with react-dnd
   const [{ isDragging }, drag] = useClipDrag(props);
   const opacity = isDragging ? 0.5 : 1;
   const pointerEvents = isDragging ? "none" : "auto";
-  const style = { top, left, width, height, opacity, pointerEvents };
+  const style = { top, left, width, height, opacity };
 
   // Clip name
   const ClipName = useMemo(() => {
     return () => (
       <label
-        className={`h-6 flex items-center shrink-0 text-xs text-white/80 font-medium p-1 border-b border-b-white/20 ${
+        className={`h-6 flex items-center shrink-0 text-xs text-white/80 p-1 border-b border-b-white/20 ${
           props.headerColor
-        } whitespace-nowrap overflow-ellipsis ${isSelected ? "italic" : ""}`}
+        } whitespace-nowrap overflow-ellipsis ${
+          isSelected ? "font-bold" : "font-medium"
+        } select-none ${
+          addingClip
+            ? "cursor-paintbrush"
+            : eyedropping
+            ? "cursor-eyedropper"
+            : ""
+        }`}
       >
         {name}
       </label>
     );
-  }, [name, headerColor, isSelected]);
+  }, [name, headerColor, addingClip, eyedropping, isSelected]);
 
   // Clip body
   const ClipBody = useMemo(() => {
@@ -152,11 +163,11 @@ function TimelineClip(props: ClipProps) {
       <div className="w-full h-full relative">
         <div className="w-full h-full flex flex-col overflow-hidden">
           {ClipName()}
-          <Stream {...props} />
+          {!props.isCollapsed && <Stream {...props} />}
         </div>
       </div>
     );
-  }, [clip, ClipName]);
+  }, [clip, props.isCollapsed, ClipName]);
 
   const onClick = useCallback(
     (e: MouseEvent<HTMLDivElement>) =>
@@ -172,7 +183,11 @@ function TimelineClip(props: ClipProps) {
         className={`transition-all duration-75 ease-in-out rdg-clip border rounded-lg ${
           isSelected ? "border-white" : "border-slate-200/50"
         } ${
-          transposing ? "hover:ring-4 hover:ring-fuchsia-500" : ""
+          addingClip
+            ? "hover:ring-4 hover:ring-teal-500 cursor-paintbrush"
+            : eyedropping
+            ? "hover:ring-4 hover:ring-slate-300 cursor-eyedropper"
+            : ""
         } ${bodyColor}`}
         style={{ ...style, pointerEvents }}
         onClick={onClick}
@@ -181,7 +196,15 @@ function TimelineClip(props: ClipProps) {
         {ClipBody()}
       </div>
     );
-  }, [style, isSelected, transposing, bodyColor, onClick, ClipBody]);
+  }, [
+    style,
+    isSelected,
+    addingClip,
+    eyedropping,
+    bodyColor,
+    onClick,
+    ClipBody,
+  ]);
 
   if (props.index === -1) return null;
   return Clip;
@@ -192,6 +215,13 @@ interface ClipClickProps extends ClipProps {
   eyedropping: boolean;
 }
 const onClipClick = (props: ClipClickProps) => {
+  // Change the pattern if the user is adding a clip
+  if (props.addingClip && props.selectedPatternId) {
+    props.updateClips([
+      { id: props.clip.id, patternId: props.selectedPatternId },
+    ]);
+  }
+
   // Eyedrop the pattern if the user is holding the eyedrop key
   if (props.eyedropping) {
     props.setSelectedPattern(props.clip.patternId);

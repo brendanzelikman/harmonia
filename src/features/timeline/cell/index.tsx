@@ -47,12 +47,10 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   // CSS properties
   const backgroundClass =
     adding && isPatternTrack
-      ? "animate-pulse cursor-brush bg-sky-400/25 hover:bg-sky-700/50"
+      ? "animate-pulse cursor-paintbrush bg-sky-400/25 hover:bg-sky-700/50"
       : transposing && trackId
       ? "animate-pulse cursor-wand hover:bg-fuchsia-500/50 bg-fuchsia-500/25"
-      : root.selectedTrackId === trackId
-      ? "bg-slate-400/40"
-      : "bg-slate-500/50";
+      : "bg-transparent";
 
   const leftBorderClass =
     isMeasure && columnIndex > 1

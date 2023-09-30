@@ -93,12 +93,7 @@ export const getClipNotes = (
   const clipStream = clip.duration
     ? stream.slice(clip.offset, clip.offset + clip.duration)
     : stream.slice(clip.offset);
-
-  return clipStream.map((chord) => {
-    return chord.map((note) => {
-      return { ...note, MIDI: MIDI.clampNote(note.MIDI) };
-    });
-  }) as PatternStream;
+  return clipStream;
 };
 
 export const getClipStream = (

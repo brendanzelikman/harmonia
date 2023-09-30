@@ -26,22 +26,28 @@ export function PatternSettingsTab(props: PatternSettingsProps) {
     ...pattern.options,
   };
   const setTonic = (tonic: Pitch) => {
-    props.updatePattern({
-      ...pattern,
-      options: { ...pattern.options, tonic },
-    });
+    props.updatePatterns([
+      {
+        ...pattern,
+        options: { ...pattern.options, tonic },
+      },
+    ]);
   };
   const setQuantizeToScale = (quantizeToScale: boolean) => {
-    props.updatePattern({
-      ...pattern,
-      options: { ...pattern.options, quantizeToScale },
-    });
+    props.updatePatterns([
+      {
+        ...pattern,
+        options: { ...pattern.options, quantizeToScale },
+      },
+    ]);
   };
   const setScaleId = (scaleId: ScaleId) => {
-    props.updatePattern({
-      ...pattern,
-      options: { ...pattern.options, scaleId },
-    });
+    props.updatePatterns([
+      {
+        ...pattern,
+        options: { ...pattern.options, scaleId },
+      },
+    ]);
   };
 
   const InstrumentField = () => (

@@ -2,7 +2,7 @@ import { inRange, union } from "lodash";
 import * as Selectors from "redux/selectors";
 import * as Clips from "redux/slices/clips";
 import * as Transpositions from "redux/slices/transpositions";
-import { addPattern } from "redux/slices/patterns";
+import { createPattern } from "redux/slices/patterns";
 import {
   deselectClip,
   setSelectedClips,
@@ -172,7 +172,7 @@ export const mergeClips =
       stream,
       name: !!mergeName.length ? mergeName : "New Pattern",
     });
-    dispatch(addPattern(newPattern));
+    dispatch(createPattern(newPattern));
     dispatch(setSelectedPattern(newPattern.id));
 
     // Create a new clip
