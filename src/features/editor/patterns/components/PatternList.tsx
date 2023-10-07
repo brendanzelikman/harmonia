@@ -1,7 +1,7 @@
 import { Disclosure, Transition } from "@headlessui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
-import { Pattern, PatternId } from "types/pattern";
+import { Pattern, PatternId } from "types/Pattern";
 import * as Editor from "features/editor";
 import { PatternEditorProps } from "..";
 import { BiCopy } from "react-icons/bi";
@@ -11,7 +11,7 @@ import { usePatternDrop, usePatternDrag } from "../hooks/usePatternDnd";
 import {
   PresetPatternGroupList,
   PresetPatternGroupMap,
-} from "types/presets/patterns";
+} from "presets/patterns";
 
 export function PatternList(props: PatternEditorProps) {
   // Get all pattern presets, including custom patterns
@@ -245,7 +245,7 @@ export const CustomPattern = (props: CustomPatternProps) => {
       className={`flex justify-center items-center px-1 h-full rounded-r text-center font-thin border border-l-0 border-slate-50/50`}
       onClick={(e) => {
         e.stopPropagation();
-        props.deletePattern(pattern.id);
+        props.deletePatterns([pattern.id]);
       }}
     >
       <BsTrash />

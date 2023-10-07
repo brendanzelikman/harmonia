@@ -1,7 +1,15 @@
-export * from "./thunks/clips";
-export * from "./thunks/scales";
-export * from "./thunks/patterns";
-export * from "./thunks/mixers";
-export * from "./thunks/timeline";
-export * from "./thunks/tracks";
-export * from "./thunks/transport";
+export * from "./Pattern/PatternThunks";
+export * from "./Scale/ScaleThunks";
+
+export * from "./ScaleTrack/ScaleTrackThunks";
+export * from "./PatternTrack/PatternTrackThunks";
+export * from "./Track/TrackThunks";
+export * from "./Instrument/InstrumentThunks";
+
+export * from "./Clip/ClipThunks";
+export * from "./Transposition/TranspositionThunks";
+export * from "./Media/MediaThunks";
+
+export * from "./Timeline/TimelineThunks";
+export * from "./Transport/TransportThunks";
+export * from "./Root/RootThunks";

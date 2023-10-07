@@ -5,8 +5,7 @@ import "react-piano/dist/styles.css";
 import { WebMidi } from "webmidi";
 import { Sampler } from "tone";
 import { MIDI } from "types/midi";
-
-import { getGlobalSampler } from "types/instrument";
+import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 
 interface PianoProps {
   sampler?: Sampler;
@@ -17,7 +16,7 @@ interface PianoProps {
 }
 
 export function EditorPiano(props: PianoProps) {
-  const sampler = props.sampler ?? getGlobalSampler();
+  const sampler = props.sampler ?? LIVE_AUDIO_INSTANCES.global?.sampler;
   const hasPlay = props.playNote !== undefined;
   const hasStop = props.stopNote !== undefined;
 

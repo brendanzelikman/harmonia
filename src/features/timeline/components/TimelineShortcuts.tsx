@@ -8,22 +8,25 @@ import { Row } from "..";
 import useEventListeners from "hooks/useEventListeners";
 import useKeyHolder from "hooks/useKeyHolder";
 import { AppDispatch, RootState } from "redux/store";
-import { selectEditor, selectRoot, selectTrackParents } from "redux/selectors";
-import { ConnectedProps, connect } from "react-redux";
-import { hideEditor } from "redux/slices/editor";
-import { setSelectedTrack } from "redux/slices/root";
 import {
-  pasteSelectedClipsAndTranspositions,
-  toggleTrackMute,
-  toggleTrackSolo,
-  unmuteTracks,
-  unsoloTracks,
-} from "redux/thunks";
+  selectEditor,
+  selectPatternTrackMap,
+  selectRoot,
+  selectTrackParents,
+} from "redux/selectors";
+import { ConnectedProps, connect } from "react-redux";
+import { hideEditor } from "redux/Editor";
+import { setSelectedTrack } from "redux/Root";
+import { unmuteTracks, unsoloTracks } from "redux/thunks";
 import {
   offsetSelectedTranspositions,
   updateSelectedTranspositions,
-} from "redux/thunks/transpositions";
-import { TrackId, TranspositionOffsetRecord } from "types";
+} from "redux/Transposition";
+import { toggleInstrumentMute, toggleInstrumentSolo } from "redux/Instrument";
+import { TrackId } from "types/Track";
+import { TranspositionOffsetRecord } from "types/Transposition";
+import { pasteSelectedMedia } from "redux/Media";
+import { InstrumentId } from "types/Instrument";
 
 interface ShortcutProps {
   rows: Row[];
@@ -32,12 +35,16 @@ interface ShortcutProps {
 const mapStateToProps = (state: RootState, ownProps: ShortcutProps) => {
   const { selectedTrackId } = selectRoot(state);
   const editor = selectEditor(state);
-  const scaleTracks = selectTrackParents(state, selectedTrackId);
+  const scaleTracks = selectedTrackId
+    ? selectTrackParents(state, selectedTrackId)
+    : [];
+  const patternTrackMap = selectPatternTrackMap(state);
   return {
     ...ownProps,
     selectedTrackId,
     showingEditor: editor.show,
     scaleTracks,
+    patternTrackMap,
   };
 };
 
@@ -48,8 +55,8 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
   hideEditor: () => {
     dispatch(hideEditor());
   },
-  pasteClipsAndTranspositions: (rows: Row[]) => {
-    dispatch(pasteSelectedClipsAndTranspositions(rows));
+  pasteMedia: () => {
+    dispatch(pasteSelectedMedia());
   },
   offsetSelectedTranspositions: (offset: TranspositionOffsetRecord) => {
     dispatch(offsetSelectedTranspositions(offset));
@@ -57,13 +64,13 @@ const mapDispatchToProps = (dispatch: AppDispatch) => ({
   updateSelectedTranspositions: (update: TranspositionOffsetRecord) => {
     dispatch(updateSelectedTranspositions(update));
   },
-  toggleTrackMute: (trackId?: TrackId) => {
-    if (!trackId) return;
-    dispatch(toggleTrackMute(trackId));
+  toggleInstrumentMute: (instrumentId?: InstrumentId) => {
+    if (!instrumentId) return;
+    dispatch(toggleInstrumentMute(instrumentId));
   },
-  toggleTrackSolo: (trackId?: TrackId) => {
-    if (!trackId) return;
-    dispatch(toggleTrackSolo(trackId));
+  toggleInstrumentSolo: (instrumentId?: InstrumentId) => {
+    if (!instrumentId) return;
+    dispatch(toggleInstrumentSolo(instrumentId));
   },
   unmuteTracks: () => {
     dispatch(unmuteTracks());
@@ -88,14 +95,19 @@ function useTimelineShortcuts(props: Props) {
 
     const number = parseInt(key);
     const patternTracks = props.rows.filter((r) => r.type === "patternTrack");
+    const patternTrackId = patternTracks[number - 1]?.trackId;
+    const patternTrack = patternTrackId
+      ? props.patternTrackMap?.[patternTrackId]
+      : undefined;
+    const instrumentId = patternTrack?.instrumentId;
 
     // Toggle mute if holding y
-    if (heldKeys.y) {
-      props.toggleTrackMute(patternTracks[number - 1]?.trackId);
+    if (heldKeys.y && instrumentId) {
+      props.toggleInstrumentMute(instrumentId);
     }
     // Toggle solo if holding u
-    if (heldKeys.u) {
-      props.toggleTrackSolo(patternTracks[number - 1]?.trackId);
+    if (heldKeys.u && instrumentId) {
+      props.toggleInstrumentSolo(instrumentId);
     }
 
     // Compute the initial offset based on up/down/shift
@@ -318,7 +330,7 @@ function useTimelineShortcuts(props: Props) {
           if (isInputEvent(e) || !isHoldingCommand(e) || props.showingEditor)
             return;
           cancelEvent(e);
-          props.pasteClipsAndTranspositions(props.rows);
+          props.pasteMedia();
         },
       },
     },

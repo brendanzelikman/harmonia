@@ -1,17 +1,16 @@
-// Global
-export * from "./selectors/root";
-export * from "./selectors/scales";
-export * from "./selectors/patterns";
-export * from "./selectors/editor";
-export * from "./selectors/timeline";
+export * from "./Scale/ScaleSelectors";
+export * from "./Pattern/PatternSelectors";
+export * from "./Instrument/InstrumentSelectors";
+export * from "./Editor/EditorSelectors";
 
-// Timeline
-export * from "./selectors/tracks";
-export * from "./selectors/scaleTracks";
-export * from "./selectors/patternTracks";
-export * from "./selectors/clips";
-export * from "./selectors/transpositions";
+export * from "./ScaleTrack/ScaleTrackSelectors";
+export * from "./PatternTrack/PatternTrackSelectors";
+export * from "./Track/TrackSelectors";
 
-// Audio
-export * from "./selectors/transport";
-export * from "./selectors/mixers";
+export * from "./Clip/ClipSelectors";
+export * from "./Transposition/TranspositionSelectors";
+export * from "./Session/SessionSelectors";
+
+export * from "./Root/RootSelectors";
+export * from "./Transport/TransportSelectors";
+export * from "./Timeline/TimelineSelectors";

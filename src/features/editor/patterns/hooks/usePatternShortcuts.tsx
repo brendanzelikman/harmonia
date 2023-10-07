@@ -8,7 +8,7 @@ import {
 } from "utils";
 import { PatternEditorCursorProps } from "..";
 import { Duration } from "types/units";
-import { Pattern } from "types";
+import { Pattern } from "types/Pattern";
 
 interface PatternShortcutProps extends PatternEditorCursorProps {
   transposedPattern?: Pattern;
@@ -150,7 +150,7 @@ export default function usePatternShortcuts(props: PatternShortcutProps) {
         keydown: (e) => {
           if (isInputEvent(e) || !isHoldingCommand(e)) return;
           cancelEvent(e);
-          props.createPattern();
+          props.createPatterns();
         },
       },
 

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Duration, MIDI, Tick, defaultTransport } from "types";
 import { durationToTicks } from "utils";
 import useAnimationFrame from "./useAnimationFrame";
 import useMetronome from "./useMetronome";
 import { WebMidi } from "webmidi";
+import { defaultTransport } from "types/Transport";
+import { MIDI } from "types/midi";
+import { Duration, Tick } from "types/units";
 
 interface RecorderProps {
   bpm?: number;

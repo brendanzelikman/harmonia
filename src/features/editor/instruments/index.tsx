@@ -1,59 +1,68 @@
 import { connect, ConnectedProps } from "react-redux";
 import {
   selectSelectedTrackId,
-  selectPatternTrack,
-  selectMixerById,
+  selectPatternTrackById,
+  selectInstrumentById,
   selectTransport,
 } from "redux/selectors";
-import { setPatternTrackInstrument } from "redux/slices/patternTracks";
+
 import { AppDispatch, RootState } from "redux/store";
 import {
+  SafeEffect,
+  EffectId,
+  EffectKey,
   getCategoryInstruments,
   getInstrumentCategory,
   getInstrumentName,
   InstrumentCategory,
   InstrumentKey,
-  InstrumentType,
-} from "types/instrument";
-import { TrackId } from "types/tracks";
+  InstrumentId,
+} from "types/Instrument";
+import { TrackId } from "types/Track";
 import { EditorProps } from "..";
 import { EditorInstrument } from "./components/InstrumentEditor";
 import { StateProps } from "../components/Editor";
 import categories from "assets/instruments/categories.json";
-import { EffectId, Effect, EffectKey, MixerId } from "types";
 import {
-  addMixerEffect,
-  rearrangeMixerEffect,
-  removeAllMixerEffects,
-  removeMixerEffect,
-  resetMixerEffect,
-  updateMixerEffect,
-} from "redux/slices/mixers";
+  addInstrumentEffect,
+  rearrangeInstrumentEffect,
+  removeAllInstrumentEffects,
+  removeInstrumentEffect,
+  resetInstrumentEffect,
+  updateInstrumentEffect,
+} from "redux/Instrument";
+import {
+  setPatternTrackInstrument,
+  selectPatternTrackInstrumentKey,
+} from "redux/PatternTrack";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const trackId = selectSelectedTrackId(state);
   const transport = selectTransport(state);
-  const track = trackId ? selectPatternTrack(state, trackId) : undefined;
-  const mixer = track ? selectMixerById(state, track.mixerId) : undefined;
+  const track = trackId ? selectPatternTrackById(state, trackId) : undefined;
+  const instrument = track
+    ? selectInstrumentById(state, track.instrumentId)
+    : undefined;
 
-  const instruments = Object.keys(categories).reduce(
-    (acc, category) => [
-      ...acc,
-      ...getCategoryInstruments(category as InstrumentCategory),
-    ],
-    [] as InstrumentType[]
-  );
-
-  const instrumentKey = track?.instrument as InstrumentKey;
-  const instrumentName = getInstrumentName(instrumentKey);
-  const instrumentCategory = getInstrumentCategory(instrumentKey);
+  const instruments = Object.keys(categories)
+    .map((category) => getCategoryInstruments(category as InstrumentCategory))
+    .flat();
+  const instrumentKey = trackId
+    ? selectPatternTrackInstrumentKey(state, trackId)
+    : undefined;
+  const instrumentName = instrumentKey
+    ? getInstrumentName(instrumentKey)
+    : undefined;
+  const instrumentCategory = instrumentKey
+    ? getInstrumentCategory(instrumentKey)
+    : undefined;
   const isTransportStarted = transport.state === "started";
 
   return {
     ...ownProps,
     track,
-    mixer,
-    effects: mixer?.effects,
+    instrument,
+    effects: instrument?.effects,
     instruments,
     instrumentKey,
     instrumentName,
@@ -66,28 +75,42 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     setTrackInstrument: (trackId: TrackId, instrument: InstrumentKey) => {
       dispatch(setPatternTrackInstrument(trackId, instrument));
     },
-    updateMixerEffect: (mixerId: MixerId, update: Partial<Effect>) => {
+    updateInstrumentEffect: (
+      instrumentId: InstrumentId,
+      update: Partial<SafeEffect>
+    ) => {
       if (!update.id) return;
-      dispatch(updateMixerEffect({ mixerId, effectId: update.id, update }));
+      dispatch(
+        updateInstrumentEffect({
+          instrumentId,
+          effectId: update.id,
+          update,
+        })
+      );
     },
-    rearrangeMixerEffects: (
-      mixerId: MixerId,
+    rearrangeInstrumentEffects: (
+      instrumentId: InstrumentId,
       effectId: EffectId,
       index: number
     ) => {
-      dispatch(rearrangeMixerEffect({ mixerId, effectId, index }));
+      dispatch(rearrangeInstrumentEffect({ instrumentId, effectId, index }));
     },
-    addMixerEffect: (mixerId: MixerId, key: EffectKey) => {
-      dispatch(addMixerEffect({ mixerId, key }));
+    addInstrumentEffect: (instrumentId?: InstrumentId, key?: EffectKey) => {
+      if (!instrumentId || !key) return;
+      dispatch(addInstrumentEffect({ instrumentId, key }));
     },
-    removeMixerEffect: (mixerId: MixerId, effectId: EffectId) => {
-      dispatch(removeMixerEffect({ mixerId, effectId }));
+    removeInstrumentEffect: (
+      instrumentId: InstrumentId,
+      effectId: EffectId
+    ) => {
+      dispatch(removeInstrumentEffect({ instrumentId, effectId }));
     },
-    resetMixerEffect: (mixerId: MixerId, effectId: EffectId) => {
-      dispatch(resetMixerEffect({ mixerId, effectId }));
+    resetInstrumentEffect: (instrumentId: InstrumentId, effectId: EffectId) => {
+      dispatch(resetInstrumentEffect({ instrumentId, effectId }));
     },
-    removeAllMixerEffects: (mixerId: MixerId) => {
-      dispatch(removeAllMixerEffects(mixerId));
+    removeAllInstrumentEffects: (instrumentId?: InstrumentId) => {
+      if (!instrumentId) return;
+      dispatch(removeAllInstrumentEffects(instrumentId));
     },
   };
 };

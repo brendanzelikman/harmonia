@@ -1,27 +1,18 @@
-import * as Patterns from "redux/slices/patterns";
-import PatternClass, { PatternChord, isPatternValid } from "types/pattern";
+import { PatternChord, isPattern, exportPatternToXML } from "types/Pattern";
 
-import { Pattern, PatternId, PatternNote } from "types/pattern";
+import { Pattern, PatternId, PatternNote } from "types/Pattern";
 import { connect, ConnectedProps } from "react-redux";
 import { PatternEditor } from "./components/PatternEditor";
-import { setSelectedPattern } from "redux/slices/root";
 import {
   selectCustomPatterns,
   selectEditor,
-  selectPattern,
+  selectPatternById,
   selectPatternIds,
 } from "redux/selectors";
-import { EditorProps } from "..";
+import { EditorProps, StateProps } from "..";
 import { AppDispatch, RootState } from "redux/store";
-import { StateProps } from "../components/Editor";
-import {
-  exportPatternToMIDI,
-  playPattern,
-  updatePatternByRegex,
-} from "redux/thunks/patterns";
+
 import { UndoTypes } from "redux/undoTypes";
-import { hideEditor } from "redux/slices/editor";
-import { setTimelineState } from "redux/slices/timeline";
 import { OSMDCursor } from "lib/opensheetmusicdisplay";
 import { MIDI } from "types/midi";
 import { Duration, Timing } from "types/units";
@@ -29,13 +20,24 @@ import { durationToTicks } from "utils";
 import {
   PresetPatternGroupList,
   PresetPatternGroupMap,
-} from "types/presets/patterns";
+} from "presets/patterns";
+import { hideEditor } from "redux/Editor";
+import {
+  createPatterns,
+  deletePatterns,
+  playPattern,
+  exportPatternToMIDI,
+  updatePatternByRegex,
+} from "redux/Pattern";
+import { setSelectedPattern } from "redux/Root";
+import { setTimelineState } from "redux/Timeline";
+import { Patterns } from "redux/slices";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const editor = selectEditor(state);
 
   const pattern = ownProps.selectedPatternId
-    ? selectPattern(state, ownProps.selectedPatternId)
+    ? selectPatternById(state, ownProps.selectedPatternId)
     : undefined;
   const { past, future } = state.patterns;
   const canUndoPatterns = past.length > 0 && past[0].allIds.length > 0;
@@ -67,21 +69,21 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
 
 const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
   // Patterns
-  createPattern: (pattern?: Pattern) => {
-    return dispatch(Patterns.createPattern({ ...pattern }));
+  createPatterns: (patterns?: Partial<Pattern>[]) => {
+    return dispatch(createPatterns(patterns));
   },
-  deletePattern: (id: PatternId) => {
-    dispatch(Patterns.deletePattern(id));
+  deletePatterns: (ids: PatternId[]) => {
+    dispatch(deletePatterns(ids));
   },
   updatePatterns: (patterns: Pattern[]) => {
     dispatch(Patterns.updatePatterns(patterns));
   },
   copyPattern: async (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
-    const patternId = await dispatch(
-      Patterns.createPattern({ ...pattern, name: `${pattern.name} (Copy)` })
+    if (!pattern || !isPattern(pattern)) return;
+    const patternIds = await dispatch(
+      createPatterns([{ ...pattern, name: `${pattern.name} (Copy)` }])
     );
-    dispatch(setSelectedPattern(patternId));
+    dispatch(setSelectedPattern(patternIds?.[0]));
   },
   setPatternId: (id: PatternId) => {
     dispatch(setSelectedPattern(id));
@@ -90,7 +92,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     dispatch(Patterns.setPatternIds(ids));
   },
   setPatternName: (pattern?: Pattern, name?: string) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (!pattern || !isPattern(pattern)) return;
     dispatch(Patterns.updatePatterns([{ id: pattern.id, name }]));
   },
   addPatternNote: (
@@ -133,7 +135,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     index?: number,
     patternChord?: PatternChord
   ) => {
-    if (pattern === undefined || !isPatternValid(pattern)) return;
+    if (pattern === undefined || !isPattern(pattern)) return;
     if (index === undefined || patternChord === undefined) return;
     dispatch(
       Patterns.updatePatternChord({
@@ -144,7 +146,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     );
   },
   transposePattern: (pattern?: Pattern, transpose?: number) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (pattern === undefined || transpose == undefined) return;
     dispatch(Patterns.transposePattern({ id: pattern.id, transpose }));
   },
   transposePatternNote: (
@@ -152,7 +154,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     index?: number,
     transpose?: number
   ) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (pattern === undefined || !isPattern(pattern)) return;
     if (index === undefined || transpose === undefined) return;
     const transposedStream = pattern.stream.map((chord, i) => {
       if (i !== index) return chord;
@@ -171,69 +173,65 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     );
   },
   rotatePattern: (pattern?: Pattern, transpose?: number) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (pattern === undefined || transpose == undefined) return;
     dispatch(Patterns.rotatePattern({ id: pattern.id, transpose }));
   },
   invertPattern: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (pattern === undefined) return;
     dispatch(Patterns.invertPattern(pattern.id));
   },
   repeatPattern: (pattern?: Pattern, repeat?: number) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (pattern === undefined || repeat == undefined) return;
     dispatch(Patterns.repeatPattern({ id: pattern.id, repeat }));
   },
-  halvePattern: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
-    dispatch(Patterns.halvePattern(pattern.id));
-  },
   continuePattern: (pattern?: Pattern, length?: number) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (pattern === undefined || length == undefined) return;
     dispatch(Patterns.continuePattern({ id: pattern.id, length }));
   },
-  augmentPattern: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
-    dispatch(Patterns.augmentPattern(pattern.id));
+  phasePattern: (pattern?: Pattern, phase?: number) => {
+    if (pattern === undefined || phase == undefined) return;
+    dispatch(Patterns.phasePattern({ id: pattern.id, phase }));
   },
   diminishPattern: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (pattern === undefined) return;
     dispatch(Patterns.diminishPattern(pattern.id));
   },
+  augmentPattern: (pattern?: Pattern) => {
+    if (pattern === undefined) return;
+    dispatch(Patterns.augmentPattern(pattern.id));
+  },
+  reversePattern: (pattern?: Pattern) => {
+    if (!pattern || !isPattern(pattern)) return;
+    dispatch(Patterns.reversePattern(pattern.id));
+  },
   shufflePattern: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (pattern === undefined) return;
     dispatch(Patterns.shufflePattern(pattern.id));
   },
   randomizePattern: (pattern?: Pattern, length?: number) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (pattern === undefined || length == undefined) return;
     dispatch(Patterns.randomizePattern({ id: pattern.id, length }));
   },
-  reversePattern: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
-    dispatch(Patterns.reversePattern(pattern.id));
-  },
   harmonizePattern: (pattern?: Pattern, interval?: number) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (pattern === undefined || interval == undefined) return;
     dispatch(Patterns.harmonizePattern({ id: pattern.id, interval }));
-  },
-  phasePattern: (pattern?: Pattern, phase?: number) => {
-    if (!pattern || !isPatternValid(pattern)) return;
-    dispatch(Patterns.phasePattern({ id: pattern.id, phase }));
   },
   playPattern: (pattern: Pattern) => {
     dispatch(playPattern(pattern));
   },
   clearPattern: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (!pattern || !isPattern(pattern)) return;
     dispatch(Patterns.clearPattern(pattern.id));
   },
   startAddingPatternAsClip: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (!pattern || !isPattern(pattern)) return;
     dispatch(setSelectedPattern(pattern.id));
     dispatch(setTimelineState("adding"));
     dispatch(hideEditor());
   },
   exportPatternToXML: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
-    const xml = PatternClass.exportToXML(pattern);
+    if (!pattern || !isPattern(pattern)) return;
+    const xml = exportPatternToXML(pattern);
     if (!xml) return;
     const blob = new Blob([xml], { type: "text/musicxml" });
     const url = URL.createObjectURL(blob);
@@ -245,7 +243,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => ({
     document.body.removeChild(link);
   },
   exportPatternToMIDI: (pattern?: Pattern) => {
-    if (!pattern || !isPatternValid(pattern)) return;
+    if (!pattern || !isPattern(pattern)) return;
     dispatch(exportPatternToMIDI(pattern.id));
   },
   undoPatterns: () => {

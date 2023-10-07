@@ -1,10 +1,13 @@
 import { Frequency } from "tone";
+import { Subdivision as ToneSubdivision } from "tone/build/esm/core/type/Units";
+
 import {
   BPM,
   ChromaticScale,
   Key,
   Note,
   Pitch,
+  Subdivision,
   Tick,
   Time,
   Velocity,
@@ -324,10 +327,13 @@ export class MIDI {
     }
     return note?.MIDI === this.Rest;
   }
+  public static isNotRest(note: Array<{ MIDI: Note }> | Note | { MIDI: Note }) {
+    return !MIDI.isRest(note);
+  }
 
   // MIDI Note Numbers
   public static MinNote = 0;
-  public static MaxNote = 127;
+  public static MaxNote = 155;
   public static DefaultNote = 60;
 
   public static clampNote = (note?: Note): Note => {
@@ -474,8 +480,8 @@ export class MIDI {
     pitch: Pitch,
     arr: Note[],
     pitches?: Pitch[]
-  ): Pitch | undefined {
-    if (!arr.length) return;
+  ) {
+    if (!arr.length) throw new Error("Array must have at least one element");
     const notes = arr.map((n) => MIDI.ChromaticNumber(n));
     const note = MIDI.ChromaticNumber(pitch);
 
@@ -508,7 +514,50 @@ export class MIDI {
       return curr < prev ? curr : prev;
     });
 
-    // Return the closest pitch class
-    return MIDI.ChromaticKey[index];
+    // Find the closest pitch class
+    const pitchClass = MIDI.ChromaticKey[index];
+    if (!pitchClass) throw new Error("Pitch class not found");
+
+    // Return the pitch class
+    return pitchClass;
   }
+
+  public static ticksBySubdivision: Record<Subdivision, Tick> = {
+    "1/64": MIDI.SixtyFourthNoteTicks,
+    "1/32": MIDI.ThirtySecondNoteTicks,
+    "1/16": MIDI.SixteenthNoteTicks,
+    "1/8": MIDI.EighthNoteTicks,
+    "1/4": MIDI.QuarterNoteTicks,
+    "1/2": MIDI.HalfNoteTicks,
+    "1/1": MIDI.WholeNoteTicks,
+  };
+
+  public static toneSubdivisionsByTick: Record<Tick, ToneSubdivision> = {
+    [MIDI.WholeNoteTicks]: "1n",
+    [MIDI.DottedWholeNoteTicks]: "1n.",
+
+    [MIDI.HalfNoteTicks]: "2n",
+    [MIDI.DottedHalfNoteTicks]: "2n.",
+    [MIDI.TripletHalfNoteTicks]: "2t",
+
+    [MIDI.QuarterNoteTicks]: "4n",
+    [MIDI.DottedQuarterNoteTicks]: "4n.",
+    [MIDI.TripletQuarterNoteTicks]: "4t",
+
+    [MIDI.EighthNoteTicks]: "8n",
+    [MIDI.DottedEighthNoteTicks]: "8n.",
+    [MIDI.TripletEighthNoteTicks]: "8t",
+
+    [MIDI.SixteenthNoteTicks]: "16n",
+    [MIDI.DottedSixteenthNoteTicks]: "16n.",
+    [MIDI.TripletSixteenthNoteTicks]: "16t",
+
+    [MIDI.ThirtySecondNoteTicks]: "32n",
+    [MIDI.DottedThirtySecondNoteTicks]: "32n.",
+    [MIDI.TripletThirtySecondNoteTicks]: "32t",
+
+    [MIDI.SixtyFourthNoteTicks]: "64n",
+    [MIDI.DottedSixtyFourthNoteTicks]: "64n.",
+    [MIDI.TripletSixtyFourthNoteTicks]: "64t",
+  };
 }

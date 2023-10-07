@@ -8,12 +8,11 @@ import {
 } from "./Navbar";
 import { CiUndo, CiRedo, CiFileOn } from "react-icons/ci";
 import { UndoTypes } from "redux/undoTypes";
-import { setProjectName } from "redux/slices/root";
 import {
   selectEditor,
   selectRoot,
   selectTransport,
-  selectTransportEndTick,
+  selectTimelineEndTick,
 } from "redux/selectors";
 import { blurOnEnter, percentOfRange } from "utils";
 import { BiMusic, BiSave, BiTrash, BiUpload } from "react-icons/bi";
@@ -26,10 +25,14 @@ import {
 } from "redux/util";
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import { saveStateToMIDI } from "redux/thunks/clips";
-import { hideEditor, showEditor } from "redux/slices/editor";
-import { downloadTransport, stopRecording } from "redux/thunks";
+import {
+  downloadTransport,
+  saveStateToMIDI,
+  stopRecording,
+} from "redux/thunks";
 import { BsFiletypeWav } from "react-icons/bs";
+import { hideEditor, showEditor } from "redux/Editor";
+import { setProjectName } from "redux/Root";
 
 const mapStateToProps = (state: RootState) => {
   const canUndo = !!state.session.past?.length;
@@ -41,7 +44,7 @@ const mapStateToProps = (state: RootState) => {
   const transport = selectTransport(state);
   const endTick = transport.loop
     ? transport.loopEnd
-    : selectTransportEndTick(state);
+    : selectTimelineEndTick(state);
   const recording = transport.recording;
   const exportProgress = recording
     ? percentOfRange(transport.offlineTick ?? 0, 0, endTick)
@@ -124,7 +127,7 @@ function FileControl(props: Props) {
         />
         {/* <Label text="Save File" shortText="Save" /> */}
         <NavbarTooltip
-          className="bg-sky-800"
+          className="bg-gradient-to-t from-sky-900 to-sky-800"
           show={!!props.onFile}
           content={<FileTooltipContent {...props} />}
         />

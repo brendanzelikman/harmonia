@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { TimeProps } from ".";
 import { useLoopDrag, useLoopDrop } from "./dnd";
 import useKeyHolder from "hooks/useKeyHolder";

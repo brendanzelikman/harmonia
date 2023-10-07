@@ -15,7 +15,7 @@ import {
   INSTRUMENT_KEYS,
   InstrumentKey,
   getInstrumentName,
-} from "types/instrument";
+} from "types/Instrument";
 import wholeNote from "assets/noteheads/whole.png";
 import halfNote from "assets/noteheads/half.png";
 import quarterNote from "assets/noteheads/quarter.png";
@@ -214,7 +214,7 @@ export const Container = (props: {
   return (
     <div
       id={props.id}
-      className={`flex flex-col w-full h-full text-white ${
+      className={`flex fade-in-250 flex-col w-full h-full text-white ${
         props.className ?? ""
       }`}
     >

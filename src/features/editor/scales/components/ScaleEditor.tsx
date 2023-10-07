@@ -1,40 +1,37 @@
 import * as Editor from "features/editor";
-import Scales, { Scale } from "types/scale";
+import { Scale, exportScaleToXML, unpackScale } from "types/Scale";
 import { ScaleEditorProps } from "..";
 import useOSMD from "lib/opensheetmusicdisplay";
 import { DemoXML } from "assets/demoXML";
 import { Transition } from "@headlessui/react";
 import { useEffect, useState } from "react";
-import {
-  INSTRUMENTS,
-  InstrumentKey,
-  createGlobalInstrument,
-} from "types/instrument";
+import { LIVE_AUDIO_INSTANCES, InstrumentKey } from "types/Instrument";
 import useScaleShortcuts from "../hooks/useScaleShortcuts";
 import { ScaleContextMenu, ScaleList, ScaleControlTab, ScalePiano } from ".";
+import { createGlobalInstrument } from "redux/thunks";
 
 export function ScaleEditor(props: ScaleEditorProps) {
   // Score information
   const scale = props.scale as Scale;
-  const xml = scale ? Scales.exportToXML(scale) : DemoXML;
+  const xml = scale ? exportScaleToXML(scale) : DemoXML;
+  const notes = unpackScale(scale);
   const { cursor, score } = useOSMD({
     id: "scale-score",
     xml,
     className: "items-center w-full h-full p-4",
-    noteCount: scale?.notes.length ?? 0,
+    noteCount: notes.length,
   });
   useScaleShortcuts({ ...props, scale, cursor });
 
   // Sampler information
-  const globalInstrument = INSTRUMENTS["global"];
-  const [sampler, setSampler] = useState(globalInstrument?.sampler);
-  const [instrumentKey, setInstrumentKey] = useState(globalInstrument?.key);
+  const globalInstance = LIVE_AUDIO_INSTANCES.global;
+  const [sampler, setSampler] = useState(globalInstance?.sampler);
+  const [instrumentKey, setInstrumentKey] = useState(globalInstance?.key);
 
-  const setGlobalInstrument = async (instrumentKey: InstrumentKey) => {
-    const instrument = await createGlobalInstrument(instrumentKey);
+  const setGlobalInstrument = (instrumentKey: InstrumentKey) => {
+    const instrument = createGlobalInstrument(instrumentKey);
     if (!instrument) return;
-    const { sampler } = instrument;
-    setSampler(sampler);
+    setSampler(instrument.sampler);
   };
 
   // Update global instrument when pattern instrument changes
@@ -44,10 +41,10 @@ export function ScaleEditor(props: ScaleEditorProps) {
 
   // Update sampler/key when global instrument changes
   useEffect(() => {
-    if (!globalInstrument) return;
-    setSampler(globalInstrument.sampler);
-    setInstrumentKey(globalInstrument.key);
-  }, [globalInstrument]);
+    if (!globalInstance) return;
+    setSampler(globalInstance.sampler);
+    setInstrumentKey(globalInstance.key);
+  }, [globalInstance]);
 
   return (
     <Editor.Container id="scale-editor">

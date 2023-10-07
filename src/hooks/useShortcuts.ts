@@ -12,21 +12,21 @@ import {
   selectTransport,
   selectClipsByIds,
   selectTranspositionsByIds,
-  selectTrack,
+  selectTrackById,
   selectEditor,
   selectTimeline,
 } from "redux/selectors";
 import * as Thunks from "redux/thunks";
-import * as Timeline from "redux/slices/timeline";
+import * as Timeline from "redux/Timeline";
 import { UndoTypes } from "redux/undoTypes";
 import { clearState, readFiles, saveStateToFile } from "redux/util";
 import useEventListeners from "./useEventListeners";
-import { updateClipsAndTranspositions } from "redux/slices/clips";
+import { updateMedia } from "redux/Media";
 import { useEffect } from "react";
-import { Clip } from "types/clip";
-import { Transposition } from "types/transposition";
-import { hideEditor, showEditor } from "redux/slices/editor";
-import { deselectAllClips, deselectAllTranspositions } from "redux/slices/root";
+import { Clip } from "types/Clip";
+import { Transposition } from "types/Transposition";
+import { hideEditor, showEditor } from "redux/Editor";
+import { deselectAllClips, deselectAllTranspositions } from "redux/Root";
 
 export default function useShortcuts() {
   const dispatch = useDispatch();
@@ -38,7 +38,9 @@ export default function useShortcuts() {
 
   const { selectedClipIds, selectedPatternId, selectedTranspositionIds } = root;
   const selectedTrack = useAppSelector((state) =>
-    root.selectedTrackId ? selectTrack(state, root.selectedTrackId) : undefined
+    root.selectedTrackId
+      ? selectTrackById(state, root.selectedTrackId)
+      : undefined
   );
   const selectedClips = useAppSelector((state) =>
     selectClipsByIds(state, selectedClipIds)
@@ -89,7 +91,7 @@ export default function useShortcuts() {
           if (!isHoldingCommand(e)) return;
           cancelEvent(e);
 
-          dispatch(Thunks.cutSelectedClipsAndTranspositions());
+          dispatch(Thunks.cutSelectedMedia());
         },
       },
       // "Enter" = Stop
@@ -148,7 +150,7 @@ export default function useShortcuts() {
           cancelEvent(e);
 
           if (isHoldingCommand(e)) {
-            dispatch(Thunks.selectAllClipsAndTranspositions());
+            dispatch(Thunks.selectAllMedia());
           } else {
             dispatch(Timeline.toggleAddingClip());
             dispatch(hideEditor());
@@ -163,7 +165,7 @@ export default function useShortcuts() {
           cancelEvent(e);
 
           if (isHoldingCommand(e)) {
-            dispatch(Thunks.copySelectedClipsAndTranspositions());
+            dispatch(Thunks.copySelectedMedia());
           } else {
             dispatch(Timeline.toggleCuttingClip());
             dispatch(hideEditor());
@@ -176,7 +178,7 @@ export default function useShortcuts() {
         keydown: (e) => {
           if (isInputEvent(e) || !isHoldingCommand(e) || editor.show) return;
           cancelEvent(e);
-          dispatch(Thunks.duplicateSelectedClipsAndTranspositions());
+          dispatch(Thunks.duplicateSelectedMedia());
         },
       },
 
@@ -195,7 +197,7 @@ export default function useShortcuts() {
           if (isInputEvent(e) || !isHoldingShift(e)) return;
           if (editor.show) return;
           cancelEvent(e);
-          dispatch(Thunks.exportSelectedClipsToMidi());
+          dispatch(Thunks.exportSelectedClipsToMIDI());
         },
       },
       // "r" = Toggle Repeating
@@ -247,12 +249,12 @@ export default function useShortcuts() {
           }
         },
       },
-      // "Backspace" = Delete Clips and Transpositions
+      // "Backspace" = Delete media
       Backspace: {
         keydown: (e) => {
           if (isInputEvent(e) || editor.show) return;
           e.preventDefault();
-          dispatch(Thunks.deleteSelectedClipsAndTranspositions());
+          dispatch(Thunks.deleteSelectedMedia());
         },
       },
     },
@@ -289,7 +291,7 @@ export default function useShortcuts() {
           const objects = [...selectedClips, ...selectedTranspositions];
           if (objects.length) {
             const offset = subdivisionToTicks(timeline.subdivision);
-            // Create new clips and transpositions with the new times
+            // Create new media with the new times
             const newClips = selectedClips.map((clip) => ({
               ...clip,
               tick: clip.tick - offset,
@@ -308,8 +310,8 @@ export default function useShortcuts() {
             )
               return;
 
-            // Update the clips and transpositions
-            dispatch(updateClipsAndTranspositions(newClips, newTranspositions));
+            // Update the media
+            dispatch(updateMedia(newClips, newTranspositions));
             return;
           }
 
@@ -338,7 +340,7 @@ export default function useShortcuts() {
                 tick: transposition.tick + offset,
               })
             );
-            dispatch(updateClipsAndTranspositions(newClips, newTranspositions));
+            dispatch(updateMedia(newClips, newTranspositions));
             return;
           }
 

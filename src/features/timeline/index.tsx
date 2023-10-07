@@ -1,11 +1,11 @@
 import { connect, ConnectedProps } from "react-redux";
-import { TrackId, TrackType } from "types/tracks";
+import { TrackId, TrackType } from "types/Track";
 import { AppDispatch, RootState } from "redux/store";
 import { Timeline } from "./components/Timeline";
 import "react-data-grid/lib/styles.css";
 import { createScaleTrack } from "redux/thunks";
 import {
-  selectTrackDependencies,
+  selectTrackInfoRecord,
   selectTransport,
   selectCell,
   selectTimeline,
@@ -21,7 +21,7 @@ export interface Row {
 }
 
 function mapStateToProps(state: RootState) {
-  const trackDependencies = selectTrackDependencies(state);
+  const trackDependencies = selectTrackInfoRecord(state);
   const dependencyMap = JSON.stringify(trackDependencies);
   const transport = selectTransport(state);
   const cell = selectCell(state);

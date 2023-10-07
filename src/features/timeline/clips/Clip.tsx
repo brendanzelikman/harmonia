@@ -1,31 +1,29 @@
 import { connect, ConnectedProps } from "react-redux";
 import {
   selectClipDuration,
-  selectTimelineTickOffset,
+  selectTimelineTickLeft,
   selectClipWidth,
   selectClipName,
   selectClipPattern,
   selectCellHeight,
-  selectTimelineTrackOffset,
-  selectTrack,
+  selectTimelineObjectTop,
+  selectTrackById,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
-import { Clip, ClipId, getClipTheme } from "types/clip";
+import { Clip, ClipId, getClipTheme } from "types/Clip";
 import { ClipsProps } from ".";
 import { TRANSPOSITION_HEIGHT, COLLAPSED_TRACK_HEIGHT } from "appConstants";
 import { useClipDrag } from "./dnd";
-import * as Root from "redux/slices/root";
+import * as Root from "redux/Root/RootSlice";
 import { MouseEvent, useCallback, useMemo } from "react";
 import Stream from "./Stream";
-import { TranspositionNoId } from "types/transposition";
-import { rotatePattern, transposePattern } from "redux/slices/patterns";
-import { createTranspositions } from "redux/slices/transpositions";
-import { isHoldingOption, isHoldingShift } from "utils";
-import { selectRangeOfClips } from "redux/thunks";
-import { Row } from "..";
+import { TranspositionNoId } from "types/Transposition";
+import { rotatePattern, transposePattern } from "redux/Pattern";
+import { createTranspositions } from "redux/Transposition";
+
 import useKeyHolder from "hooks/useKeyHolder";
-import { PatternId } from "types";
-import { showEditor } from "redux/slices/editor";
+import { PatternId } from "types/Pattern";
+import { showEditor } from "redux/Editor";
 
 interface OwnClipProps extends ClipsProps {
   clip: Clip;
@@ -35,23 +33,23 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
   const { clip, trackRowMap, selectedClips } = ownProps;
 
   // Clip properties
-  const track = selectTrack(state, clip.trackId);
-  const index = trackRowMap[clip.trackId].index;
+  const track = selectTrackById(state, clip.trackId);
+  const index = trackRowMap[clip.trackId]?.index;
   const name = selectClipName(state, clip.id);
   const duration = selectClipDuration(state, clip.id);
   const pattern = selectClipPattern(state, clip.id);
 
   // Timeline properties
   const isSelected = selectedClips.some(({ id }) => id === clip.id);
-  const isCollapsed = track.collapsed;
+  const isCollapsed = !!track?.collapsed;
 
   // CSS properties
   const cellHeight = selectCellHeight(state);
-  const top = selectTimelineTrackOffset(state, clip) + TRANSPOSITION_HEIGHT;
-  const left = selectTimelineTickOffset(state, clip.tick);
+  const top = selectTimelineObjectTop(state, clip) + TRANSPOSITION_HEIGHT;
+  const left = selectTimelineTickLeft(state, clip.tick);
   const width = selectClipWidth(state, clip.id);
   const height =
-    (!!track.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight) -
+    (!!track?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight) -
     TRANSPOSITION_HEIGHT;
 
   const { headerColor, bodyColor } = getClipTheme(clip);
@@ -77,7 +75,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
     selectClip: (clipId: ClipId, another = false) => {
       if (another) {
-        dispatch(Root.addSelectedClip(clipId));
+        dispatch(Root.addSelectedClips([clipId]));
       } else {
         dispatch(Root.setSelectedClips([clipId]));
       }
@@ -88,8 +86,8 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     selectClips: (clipIds: ClipId[]) => {
       dispatch(Root.setSelectedClips(clipIds));
     },
-    deselectClip: (clipId: ClipId) => {
-      dispatch(Root.deselectClip(clipId));
+    removeSelectedClip: (clipId: ClipId) => {
+      dispatch(Root.removeSelectedClips([clipId]));
     },
     createTranspositions: (transpositions: Partial<TranspositionNoId>[]) => {
       dispatch(createTranspositions(transpositions));
@@ -107,9 +105,6 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
         })
       );
       dispatch(rotatePattern({ id: patternId, transpose: chordalTranspose }));
-    },
-    selectRangeOfClips(clip: Clip, rows: Row[]) {
-      dispatch(selectRangeOfClips(clip, rows));
     },
     showPatternEditor: (patternId?: PatternId) => {
       if (!patternId) return;
@@ -170,8 +165,7 @@ function TimelineClip(props: ClipProps) {
   }, [clip, props.isCollapsed, ClipName]);
 
   const onClick = useCallback(
-    (e: MouseEvent<HTMLDivElement>) =>
-      onClipClick({ ...props, e, eyedropping: heldKeys.i }),
+    (e: MouseEvent<HTMLDivElement>) => props.onClipClick(e, clip, heldKeys.i),
     [props, heldKeys]
   );
 
@@ -209,46 +203,3 @@ function TimelineClip(props: ClipProps) {
   if (props.index === -1) return null;
   return Clip;
 }
-
-interface ClipClickProps extends ClipProps {
-  e: MouseEvent;
-  eyedropping: boolean;
-}
-const onClipClick = (props: ClipClickProps) => {
-  // Change the pattern if the user is adding a clip
-  if (props.addingClip && props.selectedPatternId) {
-    props.updateClips([
-      { id: props.clip.id, patternId: props.selectedPatternId },
-    ]);
-  }
-
-  // Eyedrop the pattern if the user is holding the eyedrop key
-  if (props.eyedropping) {
-    props.setSelectedPattern(props.clip.patternId);
-    return;
-  }
-  // Deselect the clip if it is selected
-  if (props.isSelected) {
-    props.deselectClip(props.clip.id);
-    return;
-  }
-
-  const nativeEvent = props.e.nativeEvent as Event;
-  const holdingShift = isHoldingShift(nativeEvent);
-
-  // Select the clip if the user is not holding shift
-  if (!holdingShift) {
-    const holdingAlt = isHoldingOption(nativeEvent);
-    props.selectClip(props.clip.id, holdingAlt);
-    return;
-  }
-
-  // Just select the clip if there are no other selected clips
-  if (props.selectedClipIds.length === 0) {
-    props.selectClip(props.clip.id);
-    return;
-  }
-
-  // Select a range of clips if the user is holding shift
-  props.selectRangeOfClips(props.clip, props.rows);
-};

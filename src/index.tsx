@@ -11,7 +11,7 @@ import LoadedTransport from "providers/transport";
 import "./index.css";
 
 import { start } from "tone";
-import { startTransport } from "redux/thunks/transport";
+import { startTransport } from "redux/Transport";
 import { MIDIProvider } from "providers/midi";
 import ErrorPage from "components/ErrorPage";
 import LandingPage from "components/LandingPage";

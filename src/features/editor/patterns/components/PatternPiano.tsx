@@ -2,10 +2,9 @@ import { durationToTicks, ticksToToneSubdivision } from "utils";
 import { Sampler } from "tone";
 import { MIDI } from "types/midi";
 import { PatternEditorCursorProps } from "..";
-import { isSamplerLoaded } from "types/instrument";
 import { EditorPiano } from "features/editor/components";
-import { PatternNote } from "types/pattern";
-import { Scale } from "types";
+import { PatternNote } from "types/Pattern";
+import { Scale } from "types/Scale";
 import useKeyHolder from "hooks/useKeyHolder";
 
 interface PatternPianoProps extends PatternEditorCursorProps {
@@ -21,14 +20,14 @@ export function PatternPiano(props: PatternPianoProps) {
   const playNote = (sampler: Sampler, midiNumber: number) => {
     const velocity = props.noteVelocity ?? MIDI.DefaultVelocity;
     // Play the note
-    if (isSamplerLoaded(sampler)) {
+    if (sampler?.loaded) {
       const pitch = MIDI.toPitch(midiNumber);
       const scaledVelocity = velocity / MIDI.MaxVelocity;
       const ticks = durationToTicks(props.noteDuration, {
         dotted: props.noteTiming === "dotted",
         triplet: props.noteTiming === "triplet",
       });
-      const subdivision = ticksToToneSubdivision(ticks);
+      const subdivision = props.isCustom ? ticksToToneSubdivision(ticks) : "4n";
       sampler.triggerAttackRelease(
         pitch,
         subdivision,

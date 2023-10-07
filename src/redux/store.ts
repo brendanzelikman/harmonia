@@ -8,23 +8,20 @@ import * as Slices from "./slices";
 import undoable, { excludeAction } from "redux-undo";
 import { saveState, loadState } from "./util";
 import { groupByActionType, UndoTypes } from "./undoTypes";
+import { handleInstrumentMiddleware } from "./Instrument";
 
 const session = combineReducers({
-  clips: Slices.Clips.default,
   scaleTracks: Slices.ScaleTracks.default,
   patternTracks: Slices.PatternTracks.default,
+  clips: Slices.Clips.default,
   transpositions: Slices.Transpositions.default,
-  mixers: Slices.Mixers.default,
-  sessionMap: Slices.SessionMap.default,
+  instruments: Slices.Instruments.default,
+  session: Slices.Session.default,
 });
 
 const undoableSession = undoable(session, {
   groupBy: groupByActionType,
-  filter: excludeAction([
-    "mixers/addMixer",
-    "mixers/removeMixer",
-    "transport/setLoaded",
-  ]),
+  filter: excludeAction(["transport/setLoaded"]),
   undoType: UndoTypes.undoSession,
   redoType: UndoTypes.redoSession,
   limit: 16,
@@ -50,9 +47,9 @@ const timeline = Slices.Timeline.default;
 const transport = Slices.Transport.default;
 
 const reducer = combineReducers({
-  session: undoableSession,
   scales: undoableScales,
   patterns: undoablePatterns,
+  session: undoableSession,
   root,
   editor,
   timeline,
@@ -63,6 +60,7 @@ const preloadedState = loadState();
 export const store = configureStore({
   reducer,
   preloadedState,
+  middleware: (gDM) => gDM().concat(handleInstrumentMiddleware),
 });
 
 store.subscribe(() => {

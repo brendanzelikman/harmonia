@@ -2,29 +2,29 @@ import { connect, ConnectedProps } from "react-redux";
 import { AppDispatch, RootState } from "redux/store";
 import { TranspositionsProps } from ".";
 import { COLLAPSED_TRACK_HEIGHT, TRANSPOSITION_HEIGHT } from "appConstants";
-import * as Root from "redux/slices/root";
+import * as Root from "redux/Root";
 import { MouseEvent, useMemo } from "react";
 import {
-  getChordalTranspose,
-  getChromaticTranspose,
-  getScalarTranspose,
+  getChordalOffset,
+  getChromaticOffset,
+  getScalarOffset,
   Transposition,
-} from "types/transposition";
+} from "types/Transposition";
 import {
   selectCellHeight,
   selectTimeline,
-  selectTimelineTickOffset,
-  selectTimelineTrackOffset,
-  selectTrack,
+  selectTimelineTickLeft,
+  selectTimelineObjectTop,
+  selectTrackById,
   selectTrackParents,
 } from "redux/selectors";
 import { BsMagic } from "react-icons/bs";
 import { SlMagicWand } from "react-icons/sl";
 import { cancelEvent, ticksToColumns } from "utils";
-import { ClipId } from "types/clip";
+import { ClipId } from "types/Clip";
 import { useTranspositionDrag } from "./dnd";
 import useKeyHolder from "hooks/useKeyHolder";
-import { onTranspositionClick } from "redux/thunks/transpositions";
+import { onTranspositionClick } from "redux/Timeline";
 
 interface OwnClipProps extends TranspositionsProps {
   transposition: Transposition;
@@ -43,26 +43,27 @@ const mapStateToProps = (state: RootState, ownProps: OwnClipProps) => {
 
   // Transposition track
   const parents = selectTrackParents(state, transposition.trackId);
-  const track = selectTrack(state, transposition.trackId);
+  const track = selectTrackById(state, transposition.trackId);
   const onScaleTrack = parents.at(-1)?.id === transposition.trackId;
 
   // Transposition values;
-  const chromatic = getChromaticTranspose(transposition);
+  const { offsets } = transposition;
+  const chromatic = getChromaticOffset(offsets);
   const scalars = parents
-    .map((track) => getScalarTranspose(transposition, track?.id))
+    .map((track) => getScalarOffset(offsets, track?.id))
     .slice(0, onScaleTrack ? parents.length - 1 : undefined);
-  const chordal = getChordalTranspose(transposition);
+  const chordal = getChordalOffset(offsets);
 
   // Transposition properties
   const isSelected = selectedTranspositions?.some((t) => t.id === id);
-  const isCollapsed = track.collapsed;
+  const isCollapsed = !!track?.collapsed;
   const index = trackRowMap[transposition.trackId].index;
 
   // CSS properties
   const cellHeight = selectCellHeight(state);
   const height = isCollapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
-  const top = selectTimelineTrackOffset(state, transposition);
-  const left = selectTimelineTickOffset(state, transposition.tick);
+  const top = selectTimelineObjectTop(state, transposition);
+  const left = selectTimelineTickLeft(state, transposition.tick);
 
   const width = transposition.duration
     ? ticksToColumns(transposition.duration, subdivision) * cellWidth
@@ -92,7 +93,7 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: OwnClipProps) => {
       dispatch(Root.setSelectedClips(clipIds));
     },
     onTranspositionClick: (e: MouseEvent) => {
-      dispatch(onTranspositionClick(e, ownProps.transposition, ownProps.rows));
+      dispatch(onTranspositionClick(e, ownProps.transposition));
     },
   };
 };

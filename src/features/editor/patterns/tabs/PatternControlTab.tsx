@@ -18,8 +18,8 @@ export function PatternControlTab(props: PatternControlTabProps) {
       <Editor.MenuButton
         className="px-1 active:bg-emerald-600"
         onClick={async () => {
-          const patternId = await props.createPattern();
-          props.setPatternId(patternId);
+          const patternIds = await props.createPatterns([{}]);
+          props.setPatternId(patternIds?.[0]);
         }}
       >
         New

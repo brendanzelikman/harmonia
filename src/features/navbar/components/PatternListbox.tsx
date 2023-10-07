@@ -2,24 +2,23 @@ import { Listbox, Transition } from "@headlessui/react";
 import { connect, ConnectedProps } from "react-redux";
 import { AppDispatch, AppThunk, RootState } from "redux/store";
 import {
-  selectRoot,
   selectPatterns,
   selectCustomPatterns,
   selectSelectedPattern,
   selectEditor,
   selectTimeline,
 } from "redux/selectors";
-import { setSelectedPattern } from "redux/slices/root";
-import Patterns, { Pattern, PatternId } from "types/pattern";
+import { setSelectedPattern } from "redux/Root";
+import { Pattern, PatternId } from "types/Pattern";
 import { BsCheck, BsPencil } from "react-icons/bs";
 import { useCallback, useEffect } from "react";
-import { createPattern } from "redux/slices/patterns";
-import { hideEditor, showEditor } from "redux/slices/editor";
-import { clearTimelineState } from "redux/slices/timeline";
+import { createPatterns } from "redux/Pattern";
+import { hideEditor, showEditor } from "redux/Editor";
+import { clearTimelineState } from "redux/Timeline";
 import {
   PresetPatternGroupList,
   PresetPatternGroupMap,
-} from "types/presets/patterns";
+} from "presets/patterns";
 import { blurOnMouseUp } from "utils";
 
 const mapStateToProps = (state: RootState) => {
@@ -57,7 +56,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(onPatternsClick());
     },
     createNewPattern: () => {
-      return dispatch(createPattern());
+      return dispatch(createPatterns([{}]));
     },
   };
 };

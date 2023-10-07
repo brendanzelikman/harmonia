@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { useCallback } from "react";
+import { MouseEvent, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
   selectClips,
@@ -10,25 +10,22 @@ import {
   selectTranspositions,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
-import { Clip, ClipId } from "types/clip";
+import { Clip, ClipId } from "types/Clip";
 import { JSON } from "types/units";
-import { PatternStream } from "types/pattern";
+import { PatternStream } from "types/Pattern";
 import { Row } from "..";
-import {
-  createClips,
-  createClipsAndTranspositions,
-  updateClips,
-  updateClipsAndTranspositions,
-} from "redux/slices/clips";
-import { setSelectedClips, setSelectedTranspositions } from "redux/slices/root";
+import { createClips, updateClips } from "redux/Clip";
+import { setSelectedClips, setSelectedTranspositions } from "redux/Root";
 import TimelineClip from "./Clip";
 import { DataGridHandle } from "react-data-grid";
-import { Transposition, TranspositionId } from "types/transposition";
+import { Transposition, TranspositionId } from "types/Transposition";
 import {
   createTranspositions,
   updateTranspositions,
-} from "redux/slices/transpositions";
-import { TrackId } from "types";
+} from "redux/Transposition";
+import { TrackId } from "types/Track";
+import { createMedia, updateMedia } from "redux/Media";
+import { onClipClick } from "redux/Timeline";
 
 export type ClipStreamRecord = Record<ClipId, JSON<PatternStream>>;
 interface TimelineClipsProps {
@@ -80,17 +77,20 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     updateTranspositions: (transpositions: Transposition[]) => {
       dispatch(updateTranspositions({ clips: [], transpositions }));
     },
-    createClipsAndTranspositions(
-      clips: Partial<Clip>[],
-      transpositions: Partial<Transposition>[]
-    ) {
-      return dispatch(createClipsAndTranspositions(clips, transpositions));
+    onClipClick: (e: MouseEvent, clip: Clip, eyedropping = false) => {
+      dispatch(onClipClick(e, clip, eyedropping));
     },
-    updateClipsAndTranspositions(
+    createMedia(
       clips: Partial<Clip>[],
       transpositions: Partial<Transposition>[]
     ) {
-      return dispatch(updateClipsAndTranspositions(clips, transpositions));
+      return dispatch(createMedia(clips, transpositions));
+    },
+    updateMedia(
+      clips: Partial<Clip>[],
+      transpositions: Partial<Transposition>[]
+    ) {
+      return dispatch(updateMedia(clips, transpositions));
     },
   };
 };

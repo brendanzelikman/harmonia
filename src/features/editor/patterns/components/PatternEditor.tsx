@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import Patterns from "types/pattern";
+import { defaultPattern, exportPatternToXML } from "types/Pattern";
 import * as Editor from "features/editor";
 import useOSMD from "lib/opensheetmusicdisplay";
 import { Transition } from "@headlessui/react";
-import { InstrumentKey, createGlobalInstrument } from "types/instrument";
+import { InstrumentKey, LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import usePatternShortcuts from "../hooks/usePatternShortcuts";
 import { PatternEditorProps } from "..";
 import { Duration, Timing } from "types/units";
@@ -18,10 +18,11 @@ import {
   PatternSettingsTab,
   PatternTranspositionTab,
 } from ".";
-import { TranspositionOffsetRecord } from "types/transposition";
-import { INSTRUMENTS, chromaticScale, defaultPatternOptions } from "types";
+import { TranspositionOffsetRecord } from "types/Transposition";
 
-import { PresetScaleMap } from "types/presets/scales";
+import { PresetScaleMap } from "presets/scales";
+import { chromaticScale } from "types/Scale";
+import { createGlobalInstrument } from "redux/thunks";
 
 export const patternTabs = ["compose", "transform", "record", "settings"];
 export type PatternTab = (typeof patternTabs)[number];
@@ -36,8 +37,12 @@ export function PatternEditor(props: PatternEditorProps) {
     _self: 0,
   });
 
-  const { scaleId, quantizeToScale, instrument } = {
-    ...defaultPatternOptions,
+  const {
+    scaleId,
+    quantizeToScale,
+    instrumentKey: instrument,
+  } = {
+    ...defaultPattern.options,
     ...pattern?.options,
   };
 
@@ -50,7 +55,7 @@ export function PatternEditor(props: PatternEditorProps) {
 
   // Score information
   const xml = useMemo(() => {
-    return Patterns.exportToXML(transposedPattern);
+    return exportPatternToXML(transposedPattern);
   }, [transposedPattern]);
 
   const { score, cursor } = useOSMD({
@@ -96,28 +101,21 @@ export function PatternEditor(props: PatternEditorProps) {
   }, [cursor.hidden, inserting]);
 
   // Sampler information
-  const globalInstrument = INSTRUMENTS["global"];
-  const [sampler, setSampler] = useState(globalInstrument?.sampler);
-  const [instrumentKey, setInstrumentKey] = useState(globalInstrument?.key);
+  const globalInstance = LIVE_AUDIO_INSTANCES.global;
+  const [sampler, setSampler] = useState(globalInstance?.sampler);
+  const [instrumentKey, setInstrumentKey] = useState(globalInstance?.key);
 
-  const setGlobalInstrument = async (instrumentKey: InstrumentKey) => {
-    const instrument = await createGlobalInstrument(instrumentKey);
+  const setGlobalInstrument = (instrumentKey: InstrumentKey) => {
+    const instrument = createGlobalInstrument(instrumentKey);
     if (!instrument) return;
-    const { key, sampler } = instrument;
-    setSampler(sampler);
-    setInstrumentKey(key);
+    setSampler(instrument.sampler);
+    setInstrumentKey(instrument.key);
   };
 
-  const setPatternInstrument = async (instrumentKey: InstrumentKey) => {
+  const setPatternInstrument = (instrumentKey: InstrumentKey) => {
     if (!pattern) return;
     props.updatePatterns([
-      {
-        ...pattern,
-        options: {
-          ...pattern.options,
-          instrument: instrumentKey,
-        },
-      },
+      { ...pattern, options: { ...pattern.options, instrumentKey } },
     ]);
   };
 
@@ -127,12 +125,12 @@ export function PatternEditor(props: PatternEditorProps) {
     setGlobalInstrument(instrument);
   }, [instrument]);
 
-  // Update sampler/key when global instrument changes
+  // Update sampler/key when global instance changes
   useEffect(() => {
-    if (!globalInstrument) return;
-    setSampler(globalInstrument.sampler);
-    setInstrumentKey(globalInstrument.key);
-  }, [globalInstrument]);
+    if (!globalInstance) return;
+    setSampler(globalInstance.sampler);
+    setInstrumentKey(globalInstance.key);
+  }, [globalInstance]);
 
   // Function props based on current pattern and cursor
   const onRestClick = () => {

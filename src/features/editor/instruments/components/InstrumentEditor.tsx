@@ -1,11 +1,8 @@
 import * as Editor from "features/editor";
 import { Transition } from "@headlessui/react";
 import { InstrumentEditorProps } from "..";
-import { INSTRUMENTS } from "types/instrument";
-
-import { PatternTrack } from "types/tracks";
+import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { useEffect } from "react";
-
 import useInstrumentShortcuts from "../hooks/useInstrumentShortcuts";
 import {
   InstrumentAnalyser,
@@ -14,20 +11,19 @@ import {
   InstrumentPiano,
 } from ".";
 import { InstrumentEffectBar } from "./InstrumentEffectBar";
+import { PatternTrack } from "types/PatternTrack";
+import { getProperty } from "types/util";
 
 export function EditorInstrument(props: InstrumentEditorProps) {
-  const { instrumentKey } = props;
   const track = props.track as PatternTrack;
-
-  // Sampler information
-  const sampler = !!track ? INSTRUMENTS[track?.id]?.sampler : undefined;
+  const instance = getProperty(LIVE_AUDIO_INSTANCES, track.instrumentId);
 
   // Close editor if no instrument key
   useEffect(() => {
-    if (instrumentKey === undefined) {
+    if (props.instrumentKey === undefined) {
       props.hideEditor();
     }
-  }, [instrumentKey]);
+  }, [props.instrumentKey]);
 
   useInstrumentShortcuts({ ...props });
 
@@ -75,7 +71,7 @@ export function EditorInstrument(props: InstrumentEditorProps) {
           </div>
         </Editor.Content>
       </Editor.Body>
-      <InstrumentPiano {...props} sampler={sampler} />
+      <InstrumentPiano {...props} sampler={instance?.sampler} />
     </Editor.Container>
   );
 }

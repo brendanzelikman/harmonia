@@ -1,7 +1,7 @@
 import { cancelEvent, isHoldingShift, isInputEvent } from "utils";
 import useEventListeners from "hooks/useEventListeners";
 import { ScaleEditorProps } from "..";
-import { Scale } from "types/scale";
+import { Scale, unpackScale } from "types/Scale";
 import { OSMDCursor } from "lib/opensheetmusicdisplay";
 
 interface ScaleShortcutProps extends ScaleEditorProps {
@@ -10,9 +10,9 @@ interface ScaleShortcutProps extends ScaleEditorProps {
 }
 
 export default function useScaleShortcuts(props: ScaleShortcutProps) {
+  const notes = unpackScale(props.scale);
   const rewindCursor = () => props.cursor.setIndex(0);
-  const forwardCursor = () =>
-    props.cursor.setIndex((props.scale?.notes.length ?? 1) - 1);
+  const forwardCursor = () => props.cursor.setIndex((notes.length ?? 1) - 1);
 
   useEventListeners(
     {
@@ -65,7 +65,7 @@ export default function useScaleShortcuts(props: ScaleShortcutProps) {
           if (!props.cursor.hidden) {
             props.removeNoteFromScaleTrack(
               props.scaleTrack.id,
-              props.scale.notes[props.cursor.index]
+              notes[props.cursor.index]
             );
             return;
           }
@@ -146,10 +146,7 @@ export default function useScaleShortcuts(props: ScaleShortcutProps) {
         keydown: (e) => {
           if (isInputEvent(e) || !props.scaleTrack) return;
           cancelEvent(e);
-          if (
-            !props.cursor.hidden &&
-            props.cursor.index < props.scale.notes.length - 1
-          ) {
+          if (!props.cursor.hidden && props.cursor.index < notes.length - 1) {
             if (isHoldingShift(e)) {
               forwardCursor();
             } else {

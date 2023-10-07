@@ -2,8 +2,8 @@ import { ScaleEditorProps } from "..";
 import ContextMenu from "components/ContextMenu";
 
 export function ScaleContextMenu(props: ScaleEditorProps) {
-  const { scale } = props;
-  if (!scale) return null;
+  const { scale, scalePartial } = props;
+  if (!scalePartial) return null;
 
   const options = [
     {
@@ -20,40 +20,40 @@ export function ScaleContextMenu(props: ScaleEditorProps) {
     {
       label: "Save Scale",
       onClick: () => {
-        props.createScale({ ...scale, name: props.scaleName });
+        props.createScale({ ...scalePartial, name: props.scaleName });
       },
-      disabled: !scale,
+      disabled: !scalePartial,
     },
     {
       label: "Export Scale to MIDI",
       onClick: () => {
         props.exportScaleToMIDI({ ...scale, name: props.scaleName });
       },
-      disabled: !scale,
+      disabled: !scalePartial,
     },
     {
       label: "Export Scale to XML",
       onClick: () => {
         props.exportScaleToXML({ ...scale, name: props.scaleName });
       },
-      disabled: !scale,
+      disabled: !scalePartial,
       divideEnd: true,
     },
     {
       label: `${props.adding ? "Stop" : "Start"} Adding Notes`,
       onClick: props.adding ? props.clear : () => props.setState("adding"),
-      disabled: !scale,
+      disabled: !scalePartial,
     },
     {
       label: `${props.removing ? "Stop" : "Start"} Removing Notes`,
       onClick: props.removing ? props.clear : () => props.setState("removing"),
-      disabled: !scale,
+      disabled: !scalePartial,
     },
     {
       label: "Clear Scale",
       onClick: () =>
         props.scaleTrack ? props.clearScaleTrack(props.scaleTrack.id) : null,
-      disabled: !scale,
+      disabled: !scalePartial,
     },
   ];
   return (

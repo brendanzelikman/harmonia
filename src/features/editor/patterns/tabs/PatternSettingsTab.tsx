@@ -1,16 +1,11 @@
 import * as Editor from "features/editor";
 import { PatternEditorProps } from "..";
-import {
-  InstrumentKey,
-  MIDI,
-  Pitch,
-  Scale,
-  ScaleId,
-  createScaleTag,
-  defaultPatternOptions,
-} from "types";
-import { PresetScaleList, PresetScaleMap } from "types/presets/scales";
-import { nanoid } from "@reduxjs/toolkit";
+import { PresetScaleList, PresetScaleMap } from "presets/scales";
+import { InstrumentKey } from "types/Instrument";
+import { defaultPattern } from "types/Pattern";
+import { ScaleId, getScaleTag } from "types/Scale";
+import { MIDI } from "types/midi";
+import { Pitch } from "types/units";
 
 interface PatternSettingsProps extends PatternEditorProps {
   instrument: InstrumentKey;
@@ -21,8 +16,13 @@ export function PatternSettingsTab(props: PatternSettingsProps) {
   const { pattern } = props;
   if (!pattern) return null;
 
-  const { instrument, scaleId, tonic, quantizeToScale } = {
-    ...defaultPatternOptions,
+  const {
+    instrumentKey: instrument,
+    scaleId,
+    tonic,
+    quantizeToScale,
+  } = {
+    ...defaultPattern.options,
     ...pattern.options,
   };
   const setTonic = (tonic: Pitch) => {
@@ -75,7 +75,7 @@ export function PatternSettingsTab(props: PatternSettingsProps) {
         <Editor.CustomListbox
           value={scaleId}
           setValue={setScaleId}
-          options={PresetScaleList.map((s) => s?.id || createScaleTag(s))}
+          options={PresetScaleList.map((s) => s?.id || getScaleTag(s))}
           getOptionName={(id) => PresetScaleMap[id]?.name ?? "Unknown Scale"}
         />
       </div>

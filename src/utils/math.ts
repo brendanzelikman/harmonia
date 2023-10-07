@@ -1,5 +1,8 @@
 import { clamp } from "lodash";
 
+// Sanitize a number value
+export const sanitizeNumber = (value: number) => (isNaN(value) ? 0 : value);
+
 // Modulo that works with negative numbers
 export const mod = (n: number, m: number) => ((n % m) + m) % m;
 

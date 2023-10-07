@@ -1,28 +1,29 @@
-import * as Effects from "types/effect";
+import * as Effects from "types/Instrument/InstrumentEffectTypes";
 import { useRef } from "react";
-import { INSTRUMENTS, Effect, EffectId } from "types";
+import { LIVE_AUDIO_INSTANCES, SafeEffect, EffectId } from "types/Instrument";
 import { Slider } from "components/Slider";
 import { InstrumentEditorProps } from "..";
 import { useEffectDrop, useEffectDrag } from "../hooks/useEffectDnd";
 import { cancelEvent } from "utils";
 import { BsArrowClockwise, BsTrashFill } from "react-icons/bs";
 import { Transition } from "@headlessui/react";
+import { getProperty } from "types/util";
 
 interface InstrumentEffectsProps extends InstrumentEditorProps {}
 
 export function InstrumentEffects(props: InstrumentEffectsProps) {
-  const { track, mixer } = props;
+  const { track, instrument } = props;
 
-  if (!track || !mixer) return null;
+  if (!track || !instrument) return null;
 
   // Move an effect to a new index when dragging
   const moveEffect = (dragId: EffectId, hoverIndex: number) => {
-    if (!props.mixer) return;
-    const id = props.mixer.id;
-    props.rearrangeMixerEffects(id, dragId, hoverIndex);
+    if (!props.instrument) return;
+    const id = props.instrument.id;
+    props.rearrangeInstrumentEffects(id, dragId, hoverIndex);
   };
 
-  const mapEffectToSliders = (effect: Effect, index: number) => (
+  const mapEffectToSliders = (effect: SafeEffect, index: number) => (
     <InstrumentEffect
       {...props}
       key={effect.id}
@@ -38,7 +39,7 @@ export function InstrumentEffects(props: InstrumentEffectsProps) {
     >
       <div className="flex flex-col w-full h-full min-h-[10rem]">
         <div className="flex w-full overflow-scroll">
-          {mixer.effects.map((effect, index) =>
+          {instrument.effects.map((effect, index) =>
             mapEffectToSliders(effect, index)
           )}
         </div>
@@ -48,14 +49,14 @@ export function InstrumentEffects(props: InstrumentEffectsProps) {
 }
 
 export interface DraggableEffectProps extends InstrumentEditorProps {
-  effect: Effect;
+  effect: SafeEffect;
   index: number;
   element?: any;
   moveEffect: (dragId: EffectId, hoverIndex: number) => void;
 }
 
 export const InstrumentEffect = (props: DraggableEffectProps) => {
-  const { effect, updateMixerEffect, track, mixer } = props;
+  const { effect, updateInstrumentEffect, track, instrument } = props;
 
   // Ref information
   const ref = useRef<HTMLDivElement>(null);
@@ -66,32 +67,33 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
   });
   drag(drop(ref));
 
-  if (!track || !mixer) return null;
+  if (!track || !instrument) return null;
 
   const setTrackEffect = (props: Partial<Effects.EffectProps>) => {
-    updateMixerEffect(mixer.id, { ...props, id: effect.id });
+    updateInstrumentEffect(instrument.id, { ...props, id: effect.id });
   };
 
-  const ResetEffectButton = (effect: Effect) => (
+  const ResetEffectButton = (effect: SafeEffect) => (
     <div
       className="capitalize text-sm cursor-pointer"
-      onClick={() => props.resetMixerEffect(mixer.id, effect.id)}
+      onClick={() => props.resetInstrumentEffect(instrument.id, effect.id)}
     >
       <BsArrowClockwise />
     </div>
   );
 
-  const RemoveEffectButton = (effect: Effect) => (
+  const RemoveEffectButton = (effect: SafeEffect) => (
     <div className="text-xs mx-2 cursor-pointer hover:text-red-500">
       <BsTrashFill
-        onClick={() => props.removeMixerEffect(mixer.id, effect.id)}
+        onClick={() => props.removeInstrumentEffect(instrument.id, effect.id)}
       />
     </div>
   );
 
-  const name = Effects.EFFECT_NAMES[effect.key] ?? "Effect";
-  const liveMixer = INSTRUMENTS[track.id]?.mixer;
-  const trackEffect = liveMixer?.getEffectById(effect.id);
+  const name = Effects.EFFECT_NAMES_BY_KEY[effect.key] ?? "Effect";
+  const liveInstrument = getProperty(LIVE_AUDIO_INSTANCES, instrument.id);
+  const trackEffect = liveInstrument?.getEffectById(effect.id);
+
   const wasDisposed = !trackEffect || trackEffect?.node?.disposed;
 
   return (
@@ -182,7 +184,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 min={Effects.MIN_CHORUS_DELAY_TIME}
                 max={Effects.MAX_CHORUS_DELAY_TIME}
                 defaultValue={Effects.DEFAULT_CHORUS_DELAY_TIME}
-                value={effect.delay}
+                value={effect.delayTime}
                 onValueChange={(delay) => setTrackEffect({ delay })}
                 step={0.01}
                 label="Delay"
@@ -204,7 +206,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 min={Effects.MIN_FEEDBACK_DELAY_TIME}
                 max={Effects.MAX_FEEDBACK_DELAY_TIME}
                 defaultValue={Effects.DEFAULT_FEEDBACK_DELAY_TIME}
-                value={effect.delay}
+                value={effect.delayTime}
                 onValueChange={(delay) => setTrackEffect({ delay })}
                 step={0.01}
                 label="Time"
@@ -235,7 +237,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
                 min={Effects.MIN_PING_PONG_DELAY_TIME}
                 max={Effects.MAX_PING_PONG_DELAY_TIME}
                 defaultValue={Effects.DEFAULT_PING_PONG_DELAY_TIME}
-                value={effect.delay}
+                value={effect.delayTime}
                 onValueChange={(delay) => setTrackEffect({ delay })}
                 step={0.01}
                 label="Time"

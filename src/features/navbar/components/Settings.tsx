@@ -16,19 +16,19 @@ import {
   setTransportMute,
   setTransportTimeSignature,
   setTransportVolume,
-} from "redux/thunks/transport";
+} from "redux/Transport";
 import { AppDispatch, RootState } from "redux/store";
 import { BPM, Volume } from "types/units";
 import { NavbarTooltip } from "./Navbar";
 import { NavbarFormGroup } from "./Navbar";
 import { NavbarFormLabel } from "./Navbar";
 import { NavbarFormInput } from "./Navbar";
-import { showShortcuts } from "redux/slices/root";
+import { toggleShortcuts } from "redux/Root";
 import { clamp } from "lodash";
 import useEventListeners from "hooks/useEventListeners";
 import { isHoldingCommand, isInputEvent } from "utils";
-import { setCellWidth, setCellHeight } from "redux/slices/timeline";
-import { DEFAULT_CELL } from "types";
+import { setCellWidth, setCellHeight } from "redux/Timeline";
+import { DEFAULT_CELL } from "types/Timeline";
 
 const mapStateToProps = (state: RootState) => {
   const { bpm, timeSignature, volume, mute } = selectTransport(state);
@@ -57,8 +57,8 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     setCellHeight: (cellHeight: number) => {
       dispatch(setCellHeight(cellHeight));
     },
-    showShortcuts: () => {
-      dispatch(showShortcuts());
+    toggleShortcuts: () => {
+      dispatch(toggleShortcuts());
     },
   };
 };
@@ -179,14 +179,14 @@ function Settings(props: Props) {
           </NavbarFormGroup>
           <NavbarFormGroup
             className="border border-slate-400 rounded-lg mt-2 py-2 hover:bg-slate-600/50 active:bg-slate-800/50"
-            onClick={props.showShortcuts}
+            onClick={props.toggleShortcuts}
           >
             Open Shortcuts Menu
           </NavbarFormGroup>
         </div>
       </>
     ),
-    [BPMInput, TS1, CellInput, props.showShortcuts]
+    [BPMInput, TS1, CellInput, props.toggleShortcuts]
   );
 
   const [draggingVolume, setDraggingVolume] = useState(false);

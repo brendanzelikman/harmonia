@@ -3,7 +3,7 @@ import { InstrumentEditorProps } from "..";
 import {
   INSTRUMENT_CATEGORIES,
   getCategoryInstruments,
-} from "types/instrument";
+} from "types/Instrument";
 import {
   cancelEvent,
   isHoldingCommand,
@@ -25,7 +25,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
           cancelEvent(e);
-          props.addMixerEffect(track.mixerId, "reverb");
+          props.addInstrumentEffect(track.instrumentId, "reverb");
         },
       },
       // C = Add Chorus
@@ -34,7 +34,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
           cancelEvent(e);
-          props.addMixerEffect(track.mixerId, "chorus");
+          props.addInstrumentEffect(track.instrumentId, "chorus");
         },
       },
       // P = Add Phaser
@@ -43,7 +43,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
           cancelEvent(e);
-          props.addMixerEffect(track.mixerId, "phaser");
+          props.addInstrumentEffect(track.instrumentId, "phaser");
         },
       },
       // T = Add Tremolo
@@ -52,7 +52,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
           cancelEvent(e);
-          props.addMixerEffect(track.mixerId, "tremolo");
+          props.addInstrumentEffect(track.instrumentId, "tremolo");
         },
       },
       // V = Add Vibrato
@@ -61,7 +61,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
           cancelEvent(e);
-          props.addMixerEffect(track.mixerId, "vibrato");
+          props.addInstrumentEffect(track.instrumentId, "vibrato");
         },
       },
 
@@ -71,7 +71,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
           cancelEvent(e);
-          props.addMixerEffect(track.mixerId, "filter");
+          props.addInstrumentEffect(track.instrumentId, "filter");
         },
       },
       // E = Add Equalizer
@@ -80,7 +80,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
           cancelEvent(e);
-          props.addMixerEffect(track.mixerId, "equalizer");
+          props.addInstrumentEffect(track.instrumentId, "equalizer");
         },
       },
       // D = Add Distortion
@@ -89,7 +89,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
           cancelEvent(e);
-          props.addMixerEffect(track.mixerId, "distortion");
+          props.addInstrumentEffect(track.instrumentId, "distortion");
         },
       },
       // B = Add Bitcrusher
@@ -98,7 +98,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
           cancelEvent(e);
-          props.addMixerEffect(track.mixerId, "bitcrusher");
+          props.addInstrumentEffect(track.instrumentId, "bitcrusher");
         },
       },
       // Shift + D = Add Feedback Delay
@@ -107,7 +107,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
           if (!track || isHoldingCommand(e)) return;
           if (props.isTransportStarted) return;
           cancelEvent(e);
-          props.addMixerEffect(track.mixerId, "feedbackDelay");
+          props.addInstrumentEffect(track.instrumentId, "feedbackDelay");
         },
       },
       // Shift + P = Add Ping Pong Delay
@@ -115,7 +115,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
         keydown: (e) => {
           if (!track || isHoldingCommand(e)) return;
           if (props.isTransportStarted) return;
-          props.addMixerEffect(track.mixerId, "pingPongDelay");
+          props.addInstrumentEffect(track.instrumentId, "pingPongDelay");
         },
       },
       // Shift + C = Add Compressor
@@ -123,7 +123,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
         keydown: (e) => {
           if (!track || isHoldingCommand(e)) return;
           if (props.isTransportStarted) return;
-          props.addMixerEffect(track.mixerId, "compressor");
+          props.addInstrumentEffect(track.instrumentId, "compressor");
         },
       },
       // G = Add Gain
@@ -131,7 +131,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
         keydown: (e) => {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
-          props.addMixerEffect(track.mixerId, "gain");
+          props.addInstrumentEffect(track.instrumentId, "gain");
         },
       },
       // L = Add Limiter
@@ -139,7 +139,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
         keydown: (e) => {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
-          props.addMixerEffect(track.mixerId, "limiter");
+          props.addInstrumentEffect(track.instrumentId, "limiter");
         },
       },
       // W = Add Warp
@@ -147,7 +147,7 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
         keydown: (e) => {
           if (!track || isHoldingModifier(e)) return;
           if (props.isTransportStarted) return;
-          props.addMixerEffect(track.mixerId, "warp");
+          props.addInstrumentEffect(track.instrumentId, "warp");
         },
       },
       // Delete = Remove last effect
@@ -156,13 +156,13 @@ export default function useInstrumentShortcuts(props: InstrumentShortcutProps) {
         keydown: (e) => {
           if (!track || isInputEvent(e)) return;
           if (!isHoldingShift(e)) {
-            if (!props.mixer) return;
-            const lastEffect = props.mixer.effects.at(-1);
+            if (!props.instrument) return;
+            const lastEffect = props.instrument.effects.at(-1);
             if (!lastEffect) return;
-            props.removeMixerEffect(props.mixer.id, lastEffect.id);
+            props.removeInstrumentEffect(props.instrument.id, lastEffect.id);
             return;
           }
-          props.removeAllMixerEffects(track.mixerId);
+          props.removeAllInstrumentEffects(track.instrumentId);
         },
       },
       ArrowLeft: {

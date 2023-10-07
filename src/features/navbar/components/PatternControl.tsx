@@ -21,25 +21,29 @@ import {
   selectScaleTrackMap,
   selectSelectedClips,
   selectSelectedPattern,
+  selectSelectedTrack,
   selectSelectedTranspositions,
   selectTimeline,
   selectTrackParents,
 } from "redux/selectors";
-import * as Root from "redux/slices/root";
-import * as Timeline from "redux/slices/timeline";
-import { Clip } from "types/clip";
-import { RepeatOptions, mergeClips, repeatClips } from "redux/thunks/clips";
-import { FormEvent, useEffect, useMemo } from "react";
-import { hideEditor } from "redux/slices/editor";
-import { Toolkit } from "types/root";
+import * as Root from "redux/Root";
+import * as Timeline from "redux/Timeline";
+import { Clip } from "types/Clip";
+import { mergeClips, repeatClips } from "redux/Media";
+import { useMemo } from "react";
+import { hideEditor } from "redux/Editor";
+import { Toolkit } from "types/Root";
 import { Transition } from "@headlessui/react";
 import useKeyHolder from "hooks/useKeyHolder";
+import { getChromaticOffset, getScalarOffsets } from "types/Transposition";
+import { getScaleTrackScale } from "types/ScaleTrack";
 import {
-  TranspositionOffsetRecord,
-  getChromaticTranspose,
-  getScalarTransposes,
-} from "types/transposition";
-import { Scale, getScaleName, getScaleTrackScale, transposeScale } from "types";
+  getTransposedScale,
+  getScaleName,
+  getScaleTag,
+  Scale,
+} from "types/Scale";
+import { sanitizeNumber } from "utils";
 
 const mapStateToProps = (state: RootState) => {
   const root = selectRoot(state);
@@ -48,27 +52,31 @@ const mapStateToProps = (state: RootState) => {
   const scaleTracks = selectScaleTrackMap(state);
 
   // Selected timeline objects
+  const selectedTrack = selectSelectedTrack(state);
   const selectedClips = selectSelectedClips(state);
   const selectedPattern = selectSelectedPattern(state);
   const selectedTranspositions = selectSelectedTranspositions(state);
   const isLive = !!selectedTranspositions.length;
+  const onScaleTrack = selectedTrack?.type === "scaleTrack";
 
   // Selected track info
-  const parents = selectTrackParents(state, root.selectedTrackId);
+  const parents = selectedTrack
+    ? selectTrackParents(state, selectedTrack.id).slice(onScaleTrack ? 1 : 0)
+    : [];
   const scales = parents.map((t) => getScaleTrackScale(t, scaleTracks));
   const scaleIds = parents.map((t) => t?.id);
 
   // Transposition offsets
   const { toolkit } = root;
-  const offsets = toolkit.transpositionOffsets;
-  const chromaticTranspose = getChromaticTranspose(offsets);
-  const scalarTransposes = getScalarTransposes(offsets, scaleIds);
-  const chordalTranspose = getChromaticTranspose(offsets);
+  const offsets = Root.selectTranspositionOffsets(state);
+  const chromaticTranspose = getChromaticOffset(offsets);
+  const scalarTransposes = getScalarOffsets(offsets, scaleIds);
+  const chordalTranspose = getChromaticOffset(offsets);
 
   // Pre-transposed scales/scale names based on toolkit
   const transposedScales = parents.map((scale) => {
     const trackScale = getScaleTrackScale(scale, scaleTracks);
-    return transposeScale(trackScale, chromaticTranspose);
+    return getTransposedScale(trackScale, chromaticTranspose);
   });
   const scaleNames = transposedScales.map((transposedScale, i) => {
     const trackName = parents[i].name;
@@ -131,9 +139,9 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(Timeline.toggleMergingClips());
       dispatch(mergeClips(clips));
     },
-    repeatClips: (clips: Clip[], options?: RepeatOptions) => {
+    repeatClips: (clips: Clip[]) => {
       dispatch(Timeline.toggleRepeatingClips());
-      dispatch(repeatClips(clips, options));
+      dispatch(repeatClips(clips));
     },
   };
 };
@@ -174,21 +182,6 @@ function PatternControl(props: Props) {
   const setChromatic = setTranspositionValue("_chromatic");
   const setScalar = setTranspositionValue;
   const setChordal = setTranspositionValue("_self");
-
-  // Update the toolkit when the selected track changes
-  useEffect(() => {
-    const newOffsets = Object.keys(offsets).reduce((acc, id) => {
-      const value = offsets[id];
-      if (parents.find((track) => track.id === id)) {
-        return { ...acc, [id]: value };
-      } else {
-        return acc;
-      }
-    }, {} as TranspositionOffsetRecord);
-    if (Object.keys(newOffsets).length !== Object.keys(offsets).length) {
-      props.setToolkitValue("transpositionOffsets", newOffsets);
-    }
-  }, [parents, offsets]);
 
   // Add a clip of the selected pattern to the timeline
   const { addingClip, selectedPattern } = props;
@@ -308,7 +301,7 @@ function PatternControl(props: Props) {
           className="left-[-6rem] bg-purple-800/90 backdrop-blur-lg w-[16rem]"
           show={!!mergingClips}
           content={
-            <div className="flex flex-col justify-center items-center">
+            <div className="flex flex-col justify-center items-center pt-1">
               <label className="h-7">Merging Pattern Clips</label>
               {NameGroup()}
               {MergeTranspositions()}
@@ -415,7 +408,7 @@ function PatternControl(props: Props) {
           className="-left-[9rem] bg-green-600/90 backdrop-blur w-[20rem]"
           show={!!repeatingClips}
           content={
-            <div className="flex flex-col justify-center items-center py-1">
+            <div className="flex flex-col justify-center items-center pt-1">
               <label className="w-full text-center h-7">
                 Repeating Pattern Clips
               </label>
@@ -433,6 +426,7 @@ function PatternControl(props: Props) {
     repeatCount,
     repeatTranspositions,
     repeatWithTransposition,
+    selectedClips,
   ]);
 
   // Add a transposition to the timeline
@@ -454,10 +448,7 @@ function PatternControl(props: Props) {
           type="number"
           value={offsets._chromatic}
           placeholder={"0"}
-          onChange={(e) => {
-            const value = (e.target as HTMLInputElement).valueAsNumber;
-            setChromatic(value);
-          }}
+          onChange={(e) => setChromatic(sanitizeNumber(e.target.valueAsNumber))}
         />
       </NavbarFormGroup>
     );
@@ -492,11 +483,9 @@ function PatternControl(props: Props) {
               type="number"
               value={value}
               placeholder={"0"}
-              onChange={(e: FormEvent<HTMLInputElement>) => {
-                const key = scaleTrack.id;
-                const value = (e.target as HTMLInputElement).valueAsNumber;
-                setScalar(key)(value);
-              }}
+              onChange={(e) =>
+                setScalar(scaleTrack.id)(sanitizeNumber(e.target.valueAsNumber))
+              }
             />
           </NavbarFormGroup>
         </Transition>
@@ -513,12 +502,10 @@ function PatternControl(props: Props) {
         </NavbarFormLabel>
         <NavbarFormInput
           className="w-16 focus:border-slate-200 border-slate-400"
+          type="number"
           value={offsets._self}
           placeholder={"0"}
-          onChange={(e) => {
-            const value = (e.target as HTMLInputElement).valueAsNumber;
-            setChordal(value);
-          }}
+          onChange={(e) => setChordal(sanitizeNumber(e.target.valueAsNumber))}
         />
       </NavbarFormGroup>
     );
@@ -531,12 +518,13 @@ function PatternControl(props: Props) {
         </NavbarFormLabel>
         <NavbarFormInput
           className="w-16 focus:border-slate-200 border-slate-400"
+          type="number"
           value={transpositionDuration}
           placeholder={"0"}
           onChange={(e) =>
             props.setToolkitValue(
               "transpositionDuration",
-              (e.target as HTMLInputElement).valueAsNumber || 0
+              e.target.valueAsNumber || 0
             )
           }
         />
@@ -557,10 +545,10 @@ function PatternControl(props: Props) {
           <BsMagic className="-rotate-90 p-0.5" />
         </ControlButton>
         <NavbarTooltip
-          className="-left-[9rem] bg-fuchsia-800/90 backdrop-blur-lg w-[20rem]"
+          className="-left-[9rem] bg-fuchsia-800/90 backdrop-blur-lg min-w-[20rem]"
           show={!!transposingClip}
           content={
-            <div className="flex flex-col justify-center items-center py-1">
+            <div className="flex flex-col justify-center items-center pt-1 pr-2">
               <label className="w-full text-center h-7 text-md">
                 Adding Transpositions
               </label>
@@ -604,11 +592,8 @@ function PatternControl(props: Props) {
       const isHoldingKey = isHoldingW || isHoldingS || isHoldingX;
       const textColor = isHoldingKey ? "text-slate-50" : "text-slate-500";
       return (
-        <span
-          key={`scale-${i}-${scale.notes.join(",")}`}
-          className={`inline ${textColor}`}
-        >
-          T {i < scales.length - 1 ? "•" : ""}
+        <span key={getScaleTag(scale)} className={`inline ${textColor}`}>
+          T{scales.length > 1 ? i + 1 : ""} {i < scales.length - 1 ? "•" : ""}
         </span>
       );
     };
@@ -635,7 +620,7 @@ function PatternControl(props: Props) {
         leaveFrom="opacity-100 scale-100"
         leaveTo="opacity-0 scale-0"
         as="div"
-        className="flex flex-col items-center h-9 font-nunito font-light rounded-lg text-sm"
+        className="flex flex-col justify-center items-center pl-2 h-9 font-nunito font-light rounded-lg text-sm"
       >
         <label className="text-sm p-0 text-fuchsia-400">Live</label>
         <div className="flex text-xs space-x-1 text-slate-400">

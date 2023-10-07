@@ -1,19 +1,10 @@
 import { MIDI } from "types/midi";
-import { Subdivision as ToneSubdivision } from "tone/build/esm/core/type/Units";
 import { Duration, Subdivision, Tick } from "types/units";
 
 // Map all subdivisions to the respective ticks
-const ticksBySubdivision: Record<Subdivision, Tick> = {
-  "1/64": MIDI.SixtyFourthNoteTicks,
-  "1/32": MIDI.ThirtySecondNoteTicks,
-  "1/16": MIDI.SixteenthNoteTicks,
-  "1/8": MIDI.EighthNoteTicks,
-  "1/4": MIDI.QuarterNoteTicks,
-  "1/2": MIDI.HalfNoteTicks,
-  "1/1": MIDI.WholeNoteTicks,
-};
+
 export const subdivisionToTicks = (subdivision: Subdivision = "1/16"): Tick => {
-  return ticksBySubdivision[subdivision] || MIDI.QuarterNoteTicks;
+  return MIDI.ticksBySubdivision[subdivision] || MIDI.QuarterNoteTicks;
 };
 
 // Map all subdivisions to the respective values
@@ -31,36 +22,8 @@ export const subdivisionToValue = (subdivision: Subdivision = "1/16") => {
 };
 
 // Map all ticks to the respective Tone.js subdivisions
-export const toneSubdivisionsByTick: Record<Tick, ToneSubdivision> = {
-  [MIDI.WholeNoteTicks]: "1n",
-  [MIDI.DottedWholeNoteTicks]: "1n.",
-
-  [MIDI.HalfNoteTicks]: "2n",
-  [MIDI.DottedHalfNoteTicks]: "2n.",
-  [MIDI.TripletHalfNoteTicks]: "2t",
-
-  [MIDI.QuarterNoteTicks]: "4n",
-  [MIDI.DottedQuarterNoteTicks]: "4n.",
-  [MIDI.TripletQuarterNoteTicks]: "4t",
-
-  [MIDI.EighthNoteTicks]: "8n",
-  [MIDI.DottedEighthNoteTicks]: "8n.",
-  [MIDI.TripletEighthNoteTicks]: "8t",
-
-  [MIDI.SixteenthNoteTicks]: "16n",
-  [MIDI.DottedSixteenthNoteTicks]: "16n.",
-  [MIDI.TripletSixteenthNoteTicks]: "16t",
-
-  [MIDI.ThirtySecondNoteTicks]: "32n",
-  [MIDI.DottedThirtySecondNoteTicks]: "32n.",
-  [MIDI.TripletThirtySecondNoteTicks]: "32t",
-
-  [MIDI.SixtyFourthNoteTicks]: "64n",
-  [MIDI.DottedSixtyFourthNoteTicks]: "64n.",
-  [MIDI.TripletSixtyFourthNoteTicks]: "64t",
-};
 export const ticksToToneSubdivision = (beats: number) => {
-  return toneSubdivisionsByTick[beats] || "4n";
+  return MIDI.toneSubdivisionsByTick[beats] || "4n";
 };
 
 // Convert ticks to the number of columns

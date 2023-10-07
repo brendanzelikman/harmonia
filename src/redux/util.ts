@@ -1,9 +1,9 @@
-import { ID } from "types/units";
-import { AppThunk, RootState } from "./store";
-import { isRoot } from "types/root";
-import { isEditor } from "types/editor";
-import { isTimeline } from "types/timeline";
-import { isTransport } from "types/transport";
+import { isNormalizedState } from "types/util";
+import { RootState } from "./store";
+import { isEditor } from "types/Editor";
+import { isRoot } from "types/Root";
+import { isTimeline } from "types/Timeline";
+import { isTransport } from "types/Transport";
 
 export const isRootState = (obj: any): obj is RootState => {
   const { session, scales, patterns, root, editor, timeline, transport } = obj;
@@ -44,45 +44,11 @@ export const isRootState = (obj: any): obj is RootState => {
   return true;
 };
 
-// Create a normalized state with a Record of IDs and an array of IDs
-export interface NormalizedState<K extends ID, V> {
-  byId: Record<K, V>;
-  allIds: K[];
-}
-
-export const isNormalizedState = <K extends ID, V>(
-  obj: any
-): obj is NormalizedState<K, V> => {
-  if (!obj) return false;
-  const { byId, allIds } = obj;
-  return byId !== undefined && allIds !== undefined;
-};
-
-// Create a normalized state with a potential set of initial values
-export const initializeState = <K extends ID, V extends { id: ID }>(
-  initialValues?: V[]
-): NormalizedState<K, V> => {
-  if (!initialValues) return { byId: {} as Record<K, V>, allIds: [] };
-  const allIds = initialValues.map((value) => value.id as K) ?? [];
-  const byId =
-    initialValues?.reduce((acc, value) => {
-      acc[value.id as K] = value;
-      return acc;
-    }, {} as Record<K, V>) ?? ({} as Record<K, V>);
-
-  return { byId, allIds };
-};
-
 // Save the state to local storage
 export const saveState = (state: RootState) => {
   try {
     const editedState = {
       ...state,
-      root: {
-        ...state.root,
-        selectedClipIds: [],
-        selectedTranspositionIds: [],
-      },
       transport: {
         ...state.transport,
         state: "stopped",
@@ -93,9 +59,6 @@ export const saveState = (state: RootState) => {
       timeline: {
         ...state.timeline,
         state: "idle",
-      },
-      editor: {
-        ...state.editor,
       },
       session: { past: [], present: state.session.present, future: [] },
       scales: { past: [], present: state.scales.present, future: [] },

@@ -3,30 +3,30 @@ import { connect, ConnectedProps } from "react-redux";
 import {
   selectCell,
   selectRoot,
-  selectTrack,
+  selectTrackById,
   selectTrackChildren,
-  selectTrackIndex,
+  selectTrackIndexById,
   selectTrackParents,
   selectTrackScaleTrack,
   selectTrackTranspositions,
   selectTransport,
 } from "redux/selectors";
-import { setMixerMute, setMixerSolo } from "redux/thunks/mixers";
-import * as Tracks from "redux/thunks/tracks";
+import * as Tracks from "redux/Track";
 import { AppDispatch, RootState } from "redux/store";
-import { Track, TrackId } from "types/tracks";
+import { Track, TrackId } from "types/Track";
 import { Row } from "..";
 import { TrackComponent } from "./Track";
 import {
-  getChordalTranspose,
-  getChromaticTranspose,
-  getScalarTranspose,
+  getChordalOffset,
+  getChromaticOffset,
+  getScalarOffset,
   getLastTransposition,
-} from "types/transposition";
-import { hideEditor, showEditor } from "redux/slices/editor";
-import { EditorId } from "types/editor";
-import { setSelectedTrack } from "redux/slices/root";
-import { MixerId } from "types";
+} from "types/Transposition";
+import { hideEditor, showEditor } from "redux/Editor/EditorSlice";
+import { EditorId } from "types/Editor";
+import { setSelectedTrack } from "redux/Root";
+import { updateInstrument } from "redux/Instrument";
+import { InstrumentId } from "types/Instrument";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const { row } = ownProps;
@@ -34,22 +34,34 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const { selectedTrackId } = selectRoot(state);
 
   // Track properties
-  const track = selectTrack(state, ownProps.row.trackId);
-  const scaleTrack = selectTrackScaleTrack(state, track?.id);
+  const track = ownProps.row.trackId
+    ? selectTrackById(state, ownProps.row.trackId)
+    : undefined;
+  const scaleTrack = track ? selectTrackScaleTrack(state, track.id) : undefined;
   const cell = selectCell(state);
 
-  const selectedParents = selectTrackParents(state, selectedTrackId);
+  const selectedParents = selectedTrackId
+    ? selectTrackParents(state, selectedTrackId)
+    : [];
   const isScaleSelected = selectedParents.some(({ id }) => id === track?.id);
-  const selectedScaleTrack = selectTrackScaleTrack(state, selectedTrackId);
-  const index = selectTrackIndex(state, track?.id);
-  const children = selectTrackChildren(state, track?.id);
+  const selectedScaleTrack = selectedTrackId
+    ? selectTrackScaleTrack(state, selectedTrackId)
+    : undefined;
+  const index = track ? selectTrackIndexById(state, track.id) : -1;
+  const children = track ? selectTrackChildren(state, track.id) : [];
 
   // Track transpositions
-  const transpositions = selectTrackTranspositions(state, track?.id);
+  const transpositions = track
+    ? selectTrackTranspositions(state, track.id)
+    : [];
   const lastTransposition = getLastTransposition(transpositions, tick - 1);
-  const chromatic = getChromaticTranspose(lastTransposition);
-  const scalar = getScalarTranspose(lastTransposition, selectedScaleTrack?.id);
-  const chordal = getChordalTranspose(lastTransposition);
+
+  const offsets = lastTransposition?.offsets;
+  const chromatic = getChromaticOffset(offsets);
+  const scalar = selectedScaleTrack
+    ? getScalarOffset(offsets, selectedScaleTrack.id)
+    : undefined;
+  const chordal = getChordalOffset(offsets);
 
   return {
     row,
@@ -69,7 +81,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
 function mapDispatchToProps(dispatch: AppDispatch) {
   return {
     updateTrack: (track: Partial<Track>) => {
-      dispatch(Tracks.updateTrack(track));
+      dispatch(Tracks.updateTracks([track]));
     },
     selectTrack: (trackId: TrackId) => {
       dispatch(setSelectedTrack(trackId));
@@ -101,11 +113,11 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     showEditor: (trackId: TrackId, id: EditorId) => {
       dispatch(showEditor({ id, trackId }));
     },
-    setTrackMute: (mixerId: MixerId, mute: boolean) => {
-      dispatch(setMixerMute(mixerId, mute));
+    setTrackMute: (instrumentId: InstrumentId, mute: boolean) => {
+      dispatch(updateInstrument({ instrumentId, update: { mute } }));
     },
-    setTrackSolo: (mixerId: MixerId, solo: boolean) => {
-      dispatch(setMixerSolo(mixerId, solo));
+    setTrackSolo: (instrumentId: InstrumentId, solo: boolean) => {
+      dispatch(updateInstrument({ instrumentId, update: { solo } }));
     },
     muteTracks: () => {
       dispatch(Tracks.muteTracks());

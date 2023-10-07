@@ -16,7 +16,7 @@ export default connector(LoadingPage);
 function LoadingPage(props: Props) {
   if (props.loaded) return null;
   return (
-    <div className="flex flex-col items-center justify-center w-full h-screen shrink-0 cursor-pointer font-nunito">
+    <div className="flex flex-col items-center justify-center w-full h-screen shrink-0 cursor-pointer">
       <Splash />
       <h2 className="text-white/60 font-extralight font-nunito text-5xl animate-pulse ease-in-out">
         {props.loading ? "Loading File..." : "Click to Start"}

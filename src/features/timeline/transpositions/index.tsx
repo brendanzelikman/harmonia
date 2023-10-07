@@ -5,13 +5,14 @@ import { AppDispatch, RootState } from "redux/store";
 import { Row } from "..";
 import TimelineTransposition from "./Transposition";
 import { DataGridHandle } from "react-data-grid";
-import { Transposition } from "types/transposition";
+import { Transposition } from "types/Transposition";
 import {
   createTranspositions,
   deleteTranspositions,
   updateTranspositions,
-} from "redux/slices/transpositions";
-import { selectTranspositions } from "redux/selectors/transpositions";
+  selectTranspositions,
+} from "redux/Transposition";
+
 import {
   selectCellWidth,
   selectRoot,
@@ -19,14 +20,14 @@ import {
   selectSelectedTranspositions,
   selectTrackParents,
 } from "redux/selectors";
-import { Clip } from "types/clip";
+import { Clip } from "types/Clip";
+import { createMedia, updateMedia } from "redux/Media";
+import { toggleTransposingClip } from "redux/Timeline/TimelineSlice";
 import {
-  createClipsAndTranspositions,
-  updateClipsAndTranspositions,
-} from "redux/slices/clips";
-import { toggleTransposingClip } from "redux/slices/timeline";
-import { setSelectedClips, setSelectedTranspositions } from "redux/slices/root";
-import { TrackId } from "types/tracks";
+  setSelectedClips,
+  setSelectedTranspositions,
+} from "redux/Root/RootSlice";
+import { TrackId } from "types/Track";
 
 interface TimelineTranspositionsProps {
   timeline: DataGridHandle;
@@ -43,7 +44,9 @@ const mapStateToProps = (
   const transpositions = selectTranspositions(state);
   const selectedClips = selectSelectedClips(state);
   const selectedTranspositions = selectSelectedTranspositions(state);
-  const selectedTrackParents = selectTrackParents(state, selectedTrackId);
+  const selectedTrackParents = selectedTrackId
+    ? selectTrackParents(state, selectedTrackId)
+    : [];
   const canTransposeScale = !!selectedTrackParents.length;
   const cellWidth = selectCellWidth(state);
 
@@ -76,11 +79,11 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     toggleTransposingClip: () => {
       dispatch(toggleTransposingClip());
     },
-    createClipsAndTranspositions(
+    createMedia(
       clips: Partial<Clip>[],
       transpositions: Partial<Transposition>[]
     ) {
-      return dispatch(createClipsAndTranspositions(clips, transpositions)).then(
+      return dispatch(createMedia(clips, transpositions)).then(
         ({ clipIds, transpositionIds }) => {
           if (clipIds.length) {
             dispatch(setSelectedClips(clipIds));
@@ -91,11 +94,11 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
         }
       );
     },
-    updateClipsAndTranspositions(
+    updateMedia(
       clips: Partial<Clip>[],
       transpositions: Partial<Transposition>[]
     ) {
-      return dispatch(updateClipsAndTranspositions(clips, transpositions));
+      return dispatch(updateMedia(clips, transpositions));
     },
   };
 };

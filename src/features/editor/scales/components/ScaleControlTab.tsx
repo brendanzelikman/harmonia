@@ -2,7 +2,8 @@ import { Menu } from "@headlessui/react";
 import { ScaleEditorProps } from "..";
 import * as Editor from "features/editor";
 import { BsBrushFill, BsEraserFill, BsTrash } from "react-icons/bs";
-import { InstrumentKey } from "types";
+import { InstrumentKey } from "types/Instrument";
+import { unpackScale } from "types/Scale";
 
 interface ScaleControlTabProps extends ScaleEditorProps {
   instrument: InstrumentKey;
@@ -12,6 +13,7 @@ interface ScaleControlTabProps extends ScaleEditorProps {
 export function ScaleControlTab(props: ScaleControlTabProps) {
   const { scale, scaleTrack } = props;
   if (!scale || !scaleTrack) return null;
+  const notes = unpackScale(scale);
 
   const ExportButton = () => (
     <Editor.Tooltip
@@ -63,7 +65,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
         className="px-1 active:bg-sky-600"
         onClick={async () => {
           if (!scale) return;
-          props.createScale({ ...scale, name: props.scaleName });
+          props.createScale(props.scalePartial);
         }}
       >
         Save
@@ -80,7 +82,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
       <Editor.MenuButton
         className="px-1 active:text-emerald-500"
         onClick={() => props.playScale(scale)}
-        disabled={!scale?.notes.length}
+        disabled={!notes.length}
         disabledClass="px-1"
       >
         Play
@@ -222,8 +224,8 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
       <Editor.MenuGroup border={true}>
         <ExportButton />
         <SaveButton />
-        <UndoButton />
-        <RedoButton />
+        {/* <UndoButton />
+        <RedoButton /> */}
         <PlayButton />
       </Editor.MenuGroup>
       <Editor.MenuGroup border={true}>

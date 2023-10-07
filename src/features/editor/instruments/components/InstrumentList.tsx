@@ -1,8 +1,9 @@
 import {
   INSTRUMENT_CATEGORIES,
   InstrumentCategory,
+  CategorizedInstrument,
   getCategoryInstruments,
-} from "types/instrument";
+} from "types/Instrument";
 import { InstrumentEditorProps } from "..";
 import * as Editor from "features/editor";
 import { Disclosure, Transition } from "@headlessui/react";
@@ -21,11 +22,11 @@ import {
 
 export function InstrumentList(props: InstrumentEditorProps) {
   const renderInstrument = useCallback(
-    (instrument: any) => (
+    (instrument: CategorizedInstrument) => (
       <Editor.ListItem
         key={instrument.key}
         className={`select-none ${
-          props.track?.instrument === instrument.key
+          props.instrumentKey === instrument.key
             ? "font-semibold text-orange-500 border-l border-l-orange-500"
             : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
         }`}
@@ -38,7 +39,7 @@ export function InstrumentList(props: InstrumentEditorProps) {
         {instrument.name}
       </Editor.ListItem>
     ),
-    [props.track]
+    [props.track, props.instrumentKey]
   );
 
   const Icon = (props: { category: InstrumentCategory }) => {

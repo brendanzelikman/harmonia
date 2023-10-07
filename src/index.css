@@ -16,9 +16,17 @@
   .rounded-full {
     border-radius: 9999px;
   }
-  .fade-in {
+  .fade-in-250 {
+    animation: fadeIn 0.25s ease-in-out;
+  }
+  .fade-in,
+  .fade-in-500 {
     animation: fadeIn 0.5s ease-in-out;
   }
+  .fade-in-1000 {
+    animation: fadeIn 1s ease-in-out;
+  }
+
   .background-pulse {
     background-size: 400% 400%;
     animation: animate-gradient 5s ease-in-out infinite;

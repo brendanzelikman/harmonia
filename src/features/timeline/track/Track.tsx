@@ -1,11 +1,12 @@
-import { isPatternTrack, isScaleTrack } from "types/tracks";
 import { TrackProps } from ".";
 import PatternTrack from "./PatternTrack";
 import ScaleTrack from "./ScaleTrack";
 import { Menu, Transition } from "@headlessui/react";
 import { BsThreeDots } from "react-icons/bs";
 import { Fragment, InputHTMLAttributes } from "react";
-import { TimelineCell } from "types";
+import { isPatternTrack } from "types/PatternTrack";
+import { isScaleTrack } from "types/ScaleTrack";
+import { TimelineCell } from "types/Timeline";
 
 export function TrackComponent(props: TrackProps) {
   const { track } = props;

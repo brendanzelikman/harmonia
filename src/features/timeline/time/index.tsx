@@ -2,35 +2,40 @@ import { inRange } from "lodash";
 import { HeaderRendererProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
 import {
-  selectBarsBeatsSixteenths,
   selectTimeline,
-  selectTimelineTick,
+  selectTickFromColumn,
   selectTransport,
 } from "redux/selectors";
 import {
   seekTransport,
   setTransportLoopEnd,
   setTransportLoopStart,
-} from "redux/thunks/transport";
+} from "redux/Transport";
 import { AppDispatch, RootState } from "redux/store";
 import { Subdivision, Tick } from "types/units";
 import { Row } from "..";
 import { TimeFormatter } from "./Time";
 import { subdivisionToTicks } from "utils";
+import { convertTicksToBarsBeatsSixteenths } from "types/Transport";
 
 function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
+  const transport = selectTransport(state);
+  const { loop, loopStart, loopEnd } = transport;
+
   // Timeline properties
   const { subdivision } = selectTimeline(state);
   const tickLength = subdivisionToTicks(subdivision);
 
   // Tick properties
   const columnIndex = Number(ownProps.column.key);
-  const tick = selectTimelineTick(state, columnIndex - 1);
-  const { bars, beats, sixteenths } = selectBarsBeatsSixteenths(state, tick);
+  const tick = selectTickFromColumn(state, columnIndex - 1);
+  const { bars, beats, sixteenths } = convertTicksToBarsBeatsSixteenths(
+    transport,
+    tick
+  );
   const isMeasure = beats === 0 && sixteenths === 0;
 
   // Loop properties
-  const { loop, loopStart, loopEnd } = selectTransport(state);
   const inLoopRange = inRange(tick, loopStart, loopEnd);
   const onLoopStart = loopStart === tick;
   const onLoopEnd = loopEnd === tick + (tickLength - 1);

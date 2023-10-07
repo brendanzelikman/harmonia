@@ -1,27 +1,21 @@
 import { connect, ConnectedProps } from "react-redux";
-import {
-  createPatternTrack,
-  createScaleTrack,
-  updateTrack,
-} from "redux/thunks/tracks";
 import { AppDispatch, AppThunk, RootState } from "redux/store";
-import {
-  isPatternTrack,
-  ScaleTrack as ScaleTrackType,
-  Track,
-  TrackId,
-} from "types/tracks";
+import { Track, TrackId } from "types/Track";
 import { TrackProps } from ".";
 import { TrackButton, TrackDropdownButton, TrackDropdownMenu } from "./Track";
-import useDebouncedField from "hooks/useDebouncedField";
 import {
   selectTrackScaleAtTick,
   selectTransport,
-  selectTrack,
+  selectTrackById,
   selectEditor,
   selectSelectedTranspositionIds,
 } from "redux/selectors";
-import Scales, { chromaticScale } from "types/scale";
+import {
+  areScalesEqual,
+  areScalesRelated,
+  chromaticScale,
+  unpackScale,
+} from "types/Scale";
 import { MIDI } from "types/midi";
 import { BiCopy } from "react-icons/bi";
 import {
@@ -34,13 +28,19 @@ import {
 import { blurOnEnter, cancelEvent, isHoldingCommand } from "utils";
 import { useMemo, useRef } from "react";
 import { useTrackDrag, useTrackDrop } from "./dnd";
-import { setPatternTrackScaleTrack } from "redux/slices/patternTracks";
-import { PresetScaleList } from "types/presets/scales";
+import { isPatternTrack } from "types/PatternTrack";
+import { PresetScaleList } from "presets/scales";
 import useKeyHolder from "hooks/useKeyHolder";
-import { isEditorOn } from "types";
 import { Transition } from "@headlessui/react";
-import { moveTrackInSession } from "redux/slices/sessionMap";
+import { moveTrackInSession } from "redux/Session";
 import useEventListeners from "hooks/useEventListeners";
+import { isEditorOn } from "types/Editor";
+import { ScaleTrack as ScaleTrackType } from "types/ScaleTrack";
+import {
+  createPatternTrack,
+  setPatternTrackScaleTrack,
+} from "redux/PatternTrack";
+import { createScaleTrack, updateScaleTrack } from "redux/ScaleTrack";
 
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const { selectedTrackId } = ownProps;
@@ -51,6 +51,7 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const track = ownProps.track as ScaleTrackType;
   const isSelected = selectedTrackId === track.id;
   const scale = selectTrackScaleAtTick(state, track?.id, tick - 1);
+  const notes = unpackScale(scale);
 
   // Editor state
   const editor = selectEditor(state);
@@ -58,17 +59,17 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
 
   // Scale properties
   const presetMatch = scale
-    ? PresetScaleList.find((s) => Scales.areEqual(s, scale)) ||
-      PresetScaleList.find((s) => Scales.areRelated(s, scale))
+    ? PresetScaleList.find((s) => areScalesEqual(s, scale)) ||
+      PresetScaleList.find((s) => areScalesRelated(s, scale))
     : undefined;
 
   const placeholder = `${
-    !scale?.notes.length
+    !notes.length
       ? "Chromatic Scale"
-      : Scales.areRelated(scale, chromaticScale)
+      : areScalesRelated(notes, chromaticScale)
       ? "Chromatic Scale"
       : presetMatch && scale
-      ? `${MIDI.toPitchClass(scale.notes[0])} ${presetMatch.name}`
+      ? `${MIDI.toPitchClass(notes[0])} ${presetMatch.name}`
       : "Custom Scale"
   }`;
 
@@ -83,8 +84,8 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
 };
 
 const mapDispatchToProps = (dispatch: AppDispatch) => ({
-  setTrackName: (track: Partial<Track>, name: string) => {
-    dispatch(updateTrack({ id: track.id, name }));
+  setTrackName: (track: Partial<ScaleTrackType>, name: string) => {
+    dispatch(updateScaleTrack({ id: track.id, name }));
   },
   createScaleTrack: (parentId: TrackId) => {
     dispatch(createScaleTrack({ parentId }));
@@ -335,8 +336,8 @@ export const moveScaleTrack =
     const state = getState();
 
     // Get the corresponding scale tracks
-    const thisTrack = selectTrack(state, dragId);
-    const otherTrack = selectTrack(state, hoverId);
+    const thisTrack = selectTrackById(state, dragId);
+    const otherTrack = selectTrackById(state, hoverId);
     if (!thisTrack || !otherTrack) return false;
 
     // If the dragged track is a pattern track, move the pattern track

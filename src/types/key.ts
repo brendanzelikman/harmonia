@@ -1,7 +1,13 @@
 import { mod } from "utils";
-import { ChromaticKey, MajorKeys, MinorKeys } from "./presets/keys";
-import { PresetScaleMap as Presets } from "./presets/scales";
-import Scales, { Scale, ScaleId } from "./scale";
+import { ChromaticKey, MajorKeys, MinorKeys } from "../presets/keys";
+import { PresetScaleMap as Presets } from "../presets/scales";
+import {
+  Scale,
+  ScaleId,
+  areScalesEqual,
+  areScalesModes,
+  getTransposedScale,
+} from "./Scale";
 import { Key, Pitch } from "./units";
 
 export const raisePitch = (pitch: Pitch) => {
@@ -147,10 +153,7 @@ const newScale = new Array(12).fill(0);
 const createScales = (scaleId: ScaleId) => {
   const scale = Presets[scaleId];
   if (!scale) throw new Error(`Invalid scale id: ${scaleId}`);
-  return newScale.map((_, i) => ({
-    ...scale,
-    notes: scale.notes.map((x) => x + i),
-  }));
+  return newScale.map((_, i) => getTransposedScale(scale, i));
 };
 
 // Basic Scales
@@ -314,14 +317,14 @@ export const getScaleKey = (scale: Scale): Key => {
   // Check for strict equality
   for (const [scales, keys] of scalesToKeys) {
     for (let j = 0; j < 12; j++) {
-      if (Scales.areEqual(scale, scales[j])) return keys[j];
+      if (areScalesEqual(scale, scales[j])) return keys[j];
     }
   }
 
   // Check for mode equality
   for (const [scales, keys] of scalesToKeys) {
     for (let j = 0; j < 12; j++) {
-      if (Scales.areModes(scale, scales[j])) return keys[j];
+      if (areScalesModes(scale, scales[j])) return keys[j];
     }
   }
 

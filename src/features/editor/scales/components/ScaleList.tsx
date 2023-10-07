@@ -1,18 +1,23 @@
 import { Disclosure, Transition } from "@headlessui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
-import Scales, { Scale, ScaleId } from "types/scale";
+import {
+  Scale,
+  ScaleId,
+  ScaleObject,
+  areScalesEqual,
+  areScalesRelated,
+  getScaleName,
+  getScaleTag,
+  unpackScale,
+} from "types/Scale";
 import { ScaleEditorProps } from "..";
 import * as Editor from "features/editor";
-import { cancelEvent } from "utils";
-import useDebouncedField from "hooks/useDebouncedField";
+import { blurOnEnter, cancelEvent } from "utils";
 import { MIDI } from "types/midi";
 import { useScaleDrop, useScaleDrag } from "../hooks/useScaleDnd";
-import {
-  PresetScaleGroupMap,
-  PresetScaleGroupList,
-} from "types/presets/scales";
-import { mapScaleTrackNote } from "types";
+import { PresetScaleGroupMap, PresetScaleGroupList } from "presets/scales";
+import { mapScaleTrackNote } from "types/ScaleTrack";
 
 export function ScaleList(props: ScaleEditorProps) {
   const scale = props.scale;
@@ -25,7 +30,7 @@ export function ScaleList(props: ScaleEditorProps) {
   // Store the search query for filtering presets
   const [searchQuery, setSearchQuery] = useState("");
   const doesMatchScale = useCallback(
-    (scale: Scale) =>
+    (scale: ScaleObject) =>
       scale.name &&
       scale.name.toLowerCase().includes(searchQuery.toLowerCase()),
     [searchQuery]
@@ -64,10 +69,10 @@ export function ScaleList(props: ScaleEditorProps) {
 
   // Render a custom scale
   const renderCustomScale = useCallback(
-    (scale: Scale, index: number) => (
+    (scale: ScaleObject, index: number) => (
       <CustomScale
-        {...props}
         key={scale.id}
+        {...props}
         customScale={scale}
         index={index}
         moveScale={moveScale}
@@ -79,7 +84,7 @@ export function ScaleList(props: ScaleEditorProps) {
   // Render a preset scale
   const renderPresetScale = useCallback(
     (scale: Scale) => (
-      <PresetScale {...props} key={scale.id} presetScale={scale} />
+      <PresetScale {...props} key={getScaleTag(scale)} presetScale={scale} />
     ),
     [props]
   );
@@ -96,7 +101,7 @@ export function ScaleList(props: ScaleEditorProps) {
         ? presetScales.filter(doesMatchScale)
         : presetScales;
       const isCategorySelected = scale
-        ? scales.some((s) => Scales.areRelated(scale, s))
+        ? scales.some((s) => areScalesRelated(scale, s))
         : false;
       return (
         <Disclosure key={category}>
@@ -168,44 +173,56 @@ export const PresetScale = (props: PresetScaleProps) => {
   const scale = props.presetScale;
   const trackScale = props.scale;
   const scaleTrack = props.scaleTrack;
-  if (!scale || !trackScale || !scaleTrack) return null;
 
-  const firstScaleNote = trackScale.notes[0];
+  const trackScaleNotes = unpackScale(trackScale);
+  const scaleNotes = unpackScale(scale);
+  const name = getScaleName(scale);
+
+  const firstScaleNote = trackScaleNotes[0];
   const firstPitch = firstScaleNote ? MIDI.toPitchClass(firstScaleNote) : "";
-  const areScalesRelated = Scales.areRelated(scale, trackScale);
+  const isScaleRelated = areScalesRelated(scale, trackScale);
+  const isScaleEqual = areScalesEqual(scale, trackScale);
 
   const onScaleClick = () => {
     if (!scaleTrack) return;
     props.updateScaleTrack({
       ...props.scaleTrack,
-      scaleNotes: scale.notes.map(mapScaleTrackNote),
+      trackScale: scaleNotes.map(mapScaleTrackNote),
     });
   };
 
+  if (!scale || !trackScale || !scaleTrack) return null;
+
   return (
     <Editor.ListItem
-      className={`${
-        areScalesRelated
+      className={`group ${
+        isScaleRelated
           ? "text-sky-500 border-l border-l-sky-500"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       } select-none`}
       onClick={onScaleClick}
     >
       <div className="flex relative items-center h-6">
-        <input
+        <div
           className={`peer border-0 bg-transparent w-full rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis`}
-          value={`${scale.name} ${
-            areScalesRelated && firstPitch ? `(${firstPitch})` : ""
-          }`}
-          disabled
-        />
+        >
+          {(isScaleEqual || isScaleRelated) && firstPitch ? (
+            <>
+              <span className={`group-hover:hidden`}>{firstPitch} </span>
+              <span className={`hidden group-hover:inline`}>C </span>
+              {name}
+            </>
+          ) : (
+            name
+          )}
+        </div>
       </div>
     </Editor.ListItem>
   );
 };
 
 export interface CustomScaleProps extends ScaleEditorProps {
-  customScale: Scale;
+  customScale: ScaleObject;
   index: number;
   element?: any;
   moveScale: (dragId: ScaleId, hoverId: ScaleId) => void;
@@ -215,11 +232,6 @@ export const CustomScale = (props: CustomScaleProps) => {
   const scale = props.customScale;
   const trackScale = props.scale;
   const scaleTrack = props.scaleTrack;
-  const NameInput = useDebouncedField<string>(
-    (name: string) => props.setScaleName(scale, name),
-    scale.name
-  );
-
   const ref = useRef<HTMLDivElement>(null);
   const [{}, drop] = useScaleDrop({ ...props, element: ref.current });
   const [{ isDragging }, drag] = useScaleDrag({
@@ -228,15 +240,14 @@ export const CustomScale = (props: CustomScaleProps) => {
   });
   drag(drop(ref));
 
-  if (!scale || !trackScale) return null;
-
-  const areScalesRelated = Scales.areRelated(scale, trackScale);
+  const isScaleRelated = areScalesRelated(scale, trackScale);
+  const isScaleEqual = areScalesEqual(scale, trackScale);
 
   const onScaleClick = () => {
     if (!scaleTrack) return;
     props.updateScaleTrack({
       ...props.scaleTrack,
-      scaleNotes: scale.notes.map(mapScaleTrackNote),
+      trackScale: scale.notes.map(mapScaleTrackNote),
     });
   };
 
@@ -252,11 +263,15 @@ export const CustomScale = (props: CustomScaleProps) => {
     </div>
   );
 
+  if (!scale || !trackScale) return null;
+
   return (
     <Editor.ListItem
       className={`${isDragging ? "opacity-50" : "opacity-100"} ${
-        areScalesRelated
+        isScaleEqual
           ? "text-sky-500 border-l border-l-sky-500"
+          : isScaleRelated
+          ? "text-cyan-400 border-l border-l-cyan-400"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       }`}
       onClick={onScaleClick}
@@ -265,14 +280,10 @@ export const CustomScale = (props: CustomScaleProps) => {
         <input
           draggable
           onDragStart={cancelEvent}
-          className={`peer border border-white/50 bg-transparent h-full rounded-l p-2 cursor-pointer outline-none overflow-ellipsis ${
-            props.matchesAnyScale
-              ? "pointer-events-all focus:bg-zinc-800/30"
-              : "pointer-events-none"
-          }`}
-          value={NameInput.value}
-          onChange={NameInput.onChange}
-          onKeyDown={NameInput.onKeyDown}
+          className={`peer border border-white/50 bg-transparent h-full rounded-l p-2 cursor-pointer outline-none overflow-ellipsis`}
+          value={scale.name}
+          onChange={(e) => props.setScaleName(scale, e.target.value)}
+          onKeyDown={blurOnEnter}
         />
         <DeleteButton />
       </div>

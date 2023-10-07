@@ -72,8 +72,8 @@ export function PatternContextMenu(props: PatternContextMenuProps) {
   const NewPattern = {
     label: "Create New Pattern",
     onClick: async () => {
-      const patternId = await props.createPattern();
-      props.setPatternId(patternId);
+      const patternIds = await props.createPatterns();
+      props.setPatternId(patternIds?.[0]);
     },
   };
   const DuplicatePattern = {

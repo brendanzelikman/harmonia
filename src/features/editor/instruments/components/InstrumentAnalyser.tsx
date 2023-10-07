@@ -1,7 +1,9 @@
 import useAnimationFrame from "hooks/useAnimationFrame";
 import { clamp } from "lodash";
 import { useCallback, useEffect, useState } from "react";
-import { INSTRUMENTS, PatternTrack } from "types";
+import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
+import { PatternTrack } from "types/PatternTrack";
+import { getProperty } from "types/util";
 
 interface AnalyserProps {
   track: PatternTrack;
@@ -11,7 +13,7 @@ interface AnalyserProps {
 
 export function InstrumentAnalyser(props: AnalyserProps) {
   const { track, type, render } = props;
-  const mixer = INSTRUMENTS[track?.id]?.mixer;
+  const instance = getProperty(LIVE_AUDIO_INSTANCES, track.instrumentId);
 
   const [buffer, setBuffer] = useState<number[]>([]);
   const clearBuffer = () => {
@@ -21,9 +23,9 @@ export function InstrumentAnalyser(props: AnalyserProps) {
   const frameDuration = 3;
   useAnimationFrame(
     () => {
-      if (mixer?.[type] !== undefined) {
+      if (instance?.[type] !== undefined) {
         if (type === "fft") {
-          const buffer = mixer[type].getValue();
+          const buffer = instance[type].getValue();
           const minDB = -90;
           const maxDB = 0;
           const normalizedBuffer = buffer.map((x) => {
@@ -32,7 +34,7 @@ export function InstrumentAnalyser(props: AnalyserProps) {
           });
           setBuffer(Array.from(normalizedBuffer));
         } else {
-          const buffer = mixer[type].getValue();
+          const buffer = instance[type].getValue();
           const minDB = -60;
           const maxDB = -45;
           const scale = Math.pow(10, (maxDB - minDB) / 20);
@@ -50,7 +52,7 @@ export function InstrumentAnalyser(props: AnalyserProps) {
 
   useEffect(() => {
     setTimeout(() => clearBuffer(), 100);
-  }, [track?.instrument]);
+  }, [instance?.key]);
 
   const Buffer = useCallback(
     () =>

@@ -5,8 +5,8 @@ import { Fragment, useState } from "react";
 import { BsCheck } from "react-icons/bs";
 import { ConnectedProps, connect } from "react-redux";
 import { selectRoot } from "redux/selectors";
-import { hideShortcuts, showShortcuts } from "redux/slices/root";
 import { AppDispatch, RootState } from "redux/store";
+import { toggleShortcuts } from "redux/Root";
 
 const ShortcutCategory = (props: { name: string }) => {
   return (
@@ -589,8 +589,7 @@ function mapStateToProps(state: RootState) {
 
 function mapDispatchToProps(dispatch: AppDispatch) {
   return {
-    showShortcuts: () => dispatch(showShortcuts()),
-    hideShortcuts: () => dispatch(hideShortcuts()),
+    toggleShortcuts: () => dispatch(toggleShortcuts()),
   };
 }
 
@@ -612,11 +611,7 @@ function ShortcutsMenu(props: Props) {
       "?": {
         keydown: (e) => {
           if (isInputEvent(e)) return;
-          if (props.showingShortcuts) {
-            props.hideShortcuts();
-          } else {
-            props.showShortcuts();
-          }
+          props.toggleShortcuts();
         },
       },
     },
@@ -628,7 +623,7 @@ function ShortcutsMenu(props: Props) {
         open={props.showingShortcuts}
         as="div"
         className="relative font-nunito"
-        onClose={props.hideShortcuts}
+        onClose={props.toggleShortcuts}
       >
         <div className="fixed flex flex-col inset-0 p-2 pt-4 pb-8 z-50 bg-slate-800/80 text-slate-200 backdrop-blur overflow-scroll">
           <div className="flex justify-center">
@@ -653,7 +648,10 @@ function ShortcutsMenu(props: Props) {
               activeClass="bg-slate-700/75 drop-shadow-xl"
               class="hover:bg-slate-600/50 active:bg-slate-800"
             />
-            <ShortcutButton title="Close Menu" onClick={props.hideShortcuts} />
+            <ShortcutButton
+              title="Close Menu"
+              onClick={props.toggleShortcuts}
+            />
           </div>
           {view === "timeline" ? (
             <Transition.Child

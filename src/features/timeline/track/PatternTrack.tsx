@@ -8,8 +8,11 @@ import {
   TrackDropdownMenu,
   TrackSlider,
 } from "./Track";
-import { getInstrumentName } from "types/instrument";
-import { setMixerPan, setMixerVolume } from "redux/thunks/mixers";
+import {
+  getInstrumentName,
+  InstrumentId,
+  getInstrumentChannel,
+} from "types/Instrument";
 import {
   BsArrowsCollapse,
   BsArrowsExpand,
@@ -31,22 +34,28 @@ import {
 } from "utils";
 import { useTrackDrag, useTrackDrop } from "./dnd";
 import useKeyHolder from "hooks/useKeyHolder";
-import { isEditorOn, MixerId, TrackId, unpackMixer } from "types";
 import { MIN_VOLUME, MAX_VOLUME, MIN_PAN, MAX_PAN } from "appConstants";
 import { DEFAULT_VOLUME, DEFAULT_PAN } from "appConstants";
 import { VOLUME_STEP, PAN_STEP } from "appConstants";
 import { Transition } from "@headlessui/react";
 import {
   selectEditor,
-  selectMixerById,
-  selectSessionMap,
-  selectTrack,
+  selectInstrumentById,
+  selectPatternTrackInstrumentKey,
+  selectSession,
+  selectTrackById,
 } from "redux/selectors";
-import { selectScaleTrack } from "redux/selectors";
-import { isPatternTrack, PatternTrack as PatternTrackType } from "types/tracks";
-import { updatePatternTrack } from "redux/slices/patternTracks";
-import { moveTrackInSession } from "redux/slices/sessionMap";
+import { selectScaleTrackById } from "redux/selectors";
+import { updatePatternTrack } from "redux/PatternTrack";
+import { moveTrackInSession, selectSessionMap } from "redux/Session";
 import useEventListeners from "hooks/useEventListeners";
+import {
+  isPatternTrack,
+  PatternTrack as PatternTrackType,
+} from "types/PatternTrack";
+import { isEditorOn } from "types/Editor";
+import { TrackId } from "types/Track";
+import { updateInstrument } from "redux/Instrument";
 
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const { selectedTrackId } = ownProps;
@@ -54,9 +63,12 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const isSelected = !!selectedTrackId && track.id === selectedTrackId;
 
   // Track instrument
-  const instrumentName = getInstrumentName(track.instrument);
-  const mixer = selectMixerById(state, track.mixerId);
-  const { volume, pan, mute, solo } = unpackMixer(mixer);
+  const instrument = selectInstrumentById(state, track.instrumentId);
+  const instrumentKey = selectPatternTrackInstrumentKey(state, track.id);
+  const instrumentName = instrumentKey
+    ? getInstrumentName(instrumentKey)
+    : undefined;
+  const { volume, pan, mute, solo } = getInstrumentChannel(instrument);
   const volumePercent = percentOfRange(volume, MIN_VOLUME, MAX_VOLUME);
   const panLeftPercent = percentOfRange(pan, MAX_PAN, MIN_PAN);
   const panRightPercent = percentOfRange(pan, MIN_PAN, MAX_PAN);
@@ -68,7 +80,7 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   return {
     ...ownProps,
     track,
-    mixerId: mixer?.id,
+    instrumentId: track.instrumentId || "",
     isSelected,
     onInstrumentEditor,
     instrumentName,
@@ -89,11 +101,11 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     setTrackName: (track: Partial<PatternTrackType>, name: string) => {
       dispatch(updatePatternTrack({ id: track.id, name }));
     },
-    setVolume: (mixerId: MixerId, volume: number) => {
-      dispatch(setMixerVolume(mixerId, volume));
+    setVolume: (instrumentId: InstrumentId, volume: number) => {
+      dispatch(updateInstrument({ instrumentId, update: { volume } }));
     },
-    setPan: (mixerId: MixerId, pan: number) => {
-      dispatch(setMixerPan(mixerId, pan));
+    setPan: (instrumentId: InstrumentId, pan: number) => {
+      dispatch(updateInstrument({ instrumentId, update: { pan } }));
     },
   };
 };
@@ -104,7 +116,7 @@ type Props = ConnectedProps<typeof connector>;
 export default connector(PatternTrack);
 
 function PatternTrack(props: Props) {
-  const { track, mixerId, chromatic, scalar, chordal, cell } = props;
+  const { track, instrumentId, chromatic, scalar, chordal, cell } = props;
   const heldKeys = useKeyHolder(["k", "y", "u"]);
 
   // Drag and drop pattern tracks
@@ -144,10 +156,12 @@ function PatternTrack(props: Props) {
             min={MIN_VOLUME}
             max={MAX_VOLUME - VOLUME_STEP}
             step={VOLUME_STEP}
-            onChange={(e) => props.setVolume(mixerId, e.target.valueAsNumber)}
+            onChange={(e) =>
+              props.setVolume(instrumentId, e.target.valueAsNumber)
+            }
             onDoubleClick={(e) => {
               cancelEvent(e);
-              props.setVolume(mixerId, DEFAULT_VOLUME);
+              props.setVolume(instrumentId, DEFAULT_VOLUME);
             }}
             onMouseDown={() => setDraggingVolume(true)}
             onMouseUp={() => setDraggingVolume(false)}
@@ -185,10 +199,12 @@ function PatternTrack(props: Props) {
             min={MIN_PAN}
             max={MAX_PAN}
             step={PAN_STEP}
-            onChange={(e) => props.setPan(mixerId, parseFloat(e.target.value))}
+            onChange={(e) =>
+              props.setPan(instrumentId, parseFloat(e.target.value))
+            }
             onDoubleClick={(e) => {
               cancelEvent(e);
-              props.setPan(mixerId, DEFAULT_PAN);
+              props.setPan(instrumentId, DEFAULT_PAN);
             }}
             onMouseDown={() => setDraggingPan(true)}
             onMouseUp={() => setDraggingPan(false)}
@@ -267,7 +283,7 @@ function PatternTrack(props: Props) {
             ? props.mute
               ? props.unmuteTracks()
               : props.muteTracks()
-            : props.setTrackMute(track.mixerId, !props.mute)
+            : props.setTrackMute(instrumentId, !props.mute)
         }
       >
         M
@@ -291,7 +307,7 @@ function PatternTrack(props: Props) {
             ? props.solo
               ? props.unsoloTracks()
               : props.soloTracks()
-            : props.setTrackSolo(track.mixerId, !props.solo)
+            : props.setTrackSolo(instrumentId, !props.solo)
         }
       >
         S
@@ -493,11 +509,11 @@ export const movePatternTrack =
   (dispatch, getState) => {
     const { dragId, hoverId } = props;
     const state = getState();
-    const sessionMap = selectSessionMap(state).byId;
+    const sessionMap = selectSessionMap(state);
 
     // Get the corresponding pattern tracks
-    const thisTrack = selectTrack(state, dragId);
-    const otherTrack = selectTrack(state, hoverId);
+    const thisTrack = selectTrackById(state, dragId);
+    const otherTrack = selectTrackById(state, hoverId);
     if (!thisTrack || !otherTrack) return false;
 
     const otherTrackParent = otherTrack.parentId
@@ -516,8 +532,12 @@ export const movePatternTrack =
     }
 
     // Get the corresponding scale tracks
-    const thisParent = selectScaleTrack(state, thisTrack.parentId);
-    const otherParent = selectScaleTrack(state, otherTrack.parentId);
+    const thisParent = thisTrack.parentId
+      ? selectScaleTrackById(state, thisTrack.parentId)
+      : null;
+    const otherParent = otherTrack.parentId
+      ? selectScaleTrackById(state, otherTrack.parentId)
+      : null;
     if (!thisParent || !otherParent) return false;
 
     // If the pattern tracks are in the same scale track, move the pattern track

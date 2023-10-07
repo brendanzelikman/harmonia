@@ -2,9 +2,9 @@ import { connect, ConnectedProps } from "react-redux";
 import { selectEditor, selectRoot, selectTransport } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Editor } from "./components/Editor";
-import * as EditorSlice from "redux/slices/editor";
+import * as EditorSlice from "redux/Editor";
 import { Duration, Tick, Timing, Velocity } from "types/units";
-import { defaultEditor, EditorId, EditorState } from "types/editor";
+import { defaultEditor, EditorId, EditorState } from "types/Editor";
 import { durationToTicks } from "utils";
 
 function mapStateToProps(state: RootState) {

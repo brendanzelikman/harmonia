@@ -15,7 +15,7 @@ import TimelineTranspositions from "../transpositions";
 import TimelineGraphics from "./TimelineGraphics";
 import TimelineContextMenu from "./TimelineContextMenu";
 import TimelineShortcuts from "./TimelineShortcuts";
-import { TrackId } from "types";
+import { TrackId } from "types/Track";
 import { TrackInfoRecord } from "redux/selectors";
 import "./Timeline.css";
 

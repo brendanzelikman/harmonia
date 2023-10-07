@@ -6,14 +6,10 @@ import {
   selectClipStream,
   selectTimeline,
 } from "redux/selectors";
-import { sliceClip } from "redux/thunks/clips";
+import { sliceClip } from "redux/Clip";
 import { AppDispatch, RootState } from "redux/store";
-import { Clip, ClipId, getClipTheme } from "types/clip";
-import {
-  getStreamMidiNotes,
-  getStreamTimelineNotes,
-  TimelineNote,
-} from "types/pattern";
+import { Clip, ClipId, getClipTheme } from "types/Clip";
+import { PatternNote, getPatternStreamNoteSet } from "types/Pattern";
 import { Time } from "types/units";
 import { percentOfRange, ticksToColumns } from "utils";
 import { MIDI } from "types/midi";
@@ -31,10 +27,9 @@ const mapStateToProps = (state: RootState, ownProps: StreamProps) => {
 
   // Stream properties
   const stream = selectClipStream(state, clip.id);
-  const streamNotes = getStreamTimelineNotes(stream);
-  const midiNotes = getStreamMidiNotes(stream);
-  const streamString = JSON.stringify(streamNotes);
-  // const midiString = JSON.stringify(midiNotes);
+  const streamString = JSON.stringify(stream);
+  const midiNotes = getPatternStreamNoteSet(stream);
+
   // CSS Properties
   const cellWidth = selectCellWidth(state);
   const cellHeight = selectCellHeight(state);
@@ -43,13 +38,15 @@ const mapStateToProps = (state: RootState, ownProps: StreamProps) => {
   const height = cellHeight - TRANSPOSITION_HEIGHT - nameHeight - margin;
 
   // Note properties
-  const minNote = Math.min(...midiNotes);
-  const maxNote = Math.max(...midiNotes);
+  const minNote = midiNotes.length ? Math.min(...midiNotes) : 0;
+  const maxNote = midiNotes.length ? Math.max(...midiNotes) : 0;
   const noteCount = maxNote - minNote + 1;
   const filledNotes = new Array(noteCount).fill(0).map((_, i) => i + minNote);
   const midiString = JSON.stringify(filledNotes);
-  const { noteColor } = getClipTheme(clip);
   const noteHeight = Math.min(25, height / noteCount);
+  const { noteColor } = getClipTheme(clip);
+  const fontSize = Math.min(12, noteHeight) - 4;
+
   return {
     clip,
     streamString,
@@ -61,6 +58,7 @@ const mapStateToProps = (state: RootState, ownProps: StreamProps) => {
     noteColor,
     noteCount,
     noteHeight,
+    fontSize,
   };
 };
 
@@ -77,12 +75,18 @@ export default connector(Stream);
 
 function Stream(props: Props) {
   const { clip, slicingClip, sliceClip, subdivision, cellWidth } = props;
-  const { noteHeight, noteColor, noteCount, margin } = props;
-  const { streamString, midiString } = props;
+  const { noteHeight, noteColor, noteCount, margin, fontSize } = props;
+  const { midiString, streamString } = props;
+
+  // Unpack the stringified notes
   const streamNotes = useMemo(() => JSON.parse(streamString), [streamString]);
   const midiNotes = useMemo(() => JSON.parse(midiString), [midiString]);
+
+  // Get the offset of a note in pixels
   const noteOffset = useCallback(
-    (note: number) => midiNotes.indexOf(note) * noteHeight,
+    (note: number) =>
+      (midiNotes.length - 1) * noteHeight -
+      midiNotes.indexOf(note) * noteHeight,
     [midiNotes, noteHeight]
   );
 
@@ -99,26 +103,30 @@ function Stream(props: Props) {
 
   // Render a single note
   const renderNote = useCallback(
-    (note: TimelineNote, i: number) => {
+    (note: PatternNote, i: number, j: number) => {
+      const pitch = MIDI.toPitch(note.MIDI);
       const columns = ticksToColumns(note.duration || 0, subdivision);
+
+      const top = noteCount === 1 ? 25 : noteOffset(note.MIDI) + margin / 2;
+      const left = ticksToColumns(i, subdivision) * cellWidth;
       const width = columns * cellWidth - 2;
       const height = noteHeight - 2;
-      const top = noteCount === 1 ? "25px" : "";
-      const bottom = `${noteOffset(note.MIDI) + margin / 2}px`;
-      const left = ticksToColumns(note.start, subdivision) * cellWidth;
+
       const opacity =
         percentOfRange(
           note.velocity ?? MIDI.DefaultVelocity,
           MIDI.MinVelocity,
           MIDI.MaxVelocity
         ) / 100;
+
+      if (MIDI.isRest(note.MIDI)) return null;
       return (
         <li
-          key={i}
+          key={j}
           className={`absolute flex items-center justify-center shrink-0 rounded ${noteColor} border border-slate-950/80`}
-          style={{ width, height, left, top, bottom, opacity }}
+          style={{ width, height, left, top, opacity }}
         >
-          {width > 20 && noteHeight > 8 ? note.pitch : null}
+          {width > 20 && noteHeight > 8 ? pitch : null}
         </li>
       );
     },
@@ -127,7 +135,7 @@ function Stream(props: Props) {
 
   // Render a list of notes
   const renderNotes = useCallback(
-    (notes: TimelineNote[], i: number) => {
+    (notes: PatternNote[], i: number) => {
       return (
         <ul
           key={`chord-${i}`}
@@ -139,7 +147,7 @@ function Stream(props: Props) {
           style={{ width: cellWidth }}
           onClick={onClipCut(i)}
         >
-          {notes.map(renderNote)}
+          {notes.map((note, j) => renderNote(note, i, j))}
         </ul>
       );
     },
@@ -149,7 +157,7 @@ function Stream(props: Props) {
   return (
     <div
       className="w-full h-auto relative flex flex-grow font-extralight text-slate-50/80"
-      style={{ fontSize: `${Math.min(12, noteHeight) - 4}px` }}
+      style={{ fontSize }}
     >
       {streamNotes.map(renderNotes)}
     </div>

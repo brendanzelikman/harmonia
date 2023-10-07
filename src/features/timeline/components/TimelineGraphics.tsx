@@ -6,12 +6,13 @@ import { RootState } from "redux/store";
 import {
   selectCellHeight,
   selectCellWidth,
-  selectLastTimelineTrack,
   selectRoot,
   selectSelectedTrack,
-  selectTimelineTickOffset,
-  selectTimelineTrackOffset,
+  selectTimelineTickLeft,
+  selectTimelineObjectTop,
   selectTransport,
+  selectOrderedTrackIds,
+  selectTrackById,
 } from "redux/selectors";
 import { ConnectedProps, connect } from "react-redux";
 import { useMemo } from "react";
@@ -39,9 +40,12 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
     tourStep === 3 || tourStep === 4 || tourStep === 5 ? TRACK_WIDTH : 0;
 
   // Track background height
-  const lastTrack = selectLastTimelineTrack(state);
+  const lastTrackId = selectOrderedTrackIds(state).at(-1);
+  const lastTrack = lastTrackId
+    ? selectTrackById(state, lastTrackId)
+    : undefined;
   const tracksHeight = lastTrack
-    ? selectTimelineTrackOffset(state, { trackId: lastTrack.id })
+    ? selectTimelineObjectTop(state, lastTrack)
     : 0;
   const lastTrackHeight = lastTrack
     ? !!lastTrack.collapsed
@@ -52,7 +56,7 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
   // Selected track background
   const selectedTrack = selectSelectedTrack(state);
   const selectedTrackTop = selectedTrack
-    ? selectTimelineTrackOffset(state, { trackId: selectedTrack.id })
+    ? selectTimelineObjectTop(state, selectedTrack)
     : 0;
   const selectedTrackHeight = selectedTrack
     ? !!selectedTrack.collapsed
@@ -61,7 +65,7 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
     : 0;
 
   // Cursor properties
-  const cursorLeft = selectTimelineTickOffset(state, transport.tick);
+  const cursorLeft = selectTimelineTickLeft(state, transport.tick);
   const cursorWidth = cellWidth - 4;
   const cursorHeight = cellHeight;
   const showCursor = transport.state === "started" && !transport.recording;

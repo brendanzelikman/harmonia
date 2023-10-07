@@ -1,7 +1,7 @@
 import { EditorPiano } from "features/editor/components";
 import { InstrumentEditorProps } from "..";
 import { Sampler } from "tone";
-import { MIDI } from "types";
+import { MIDI } from "types/midi";
 
 interface InstrumentPianoProps extends InstrumentEditorProps {
   sampler?: Sampler;

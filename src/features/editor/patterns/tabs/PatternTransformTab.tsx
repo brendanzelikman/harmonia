@@ -1,4 +1,4 @@
-import { rotatePatternChord, transposePatternChord } from "types";
+import { rotatePatternChord, transposePatternChord } from "types/Pattern";
 import { PatternEditorCursorProps } from "..";
 import * as Editor from "features/editor";
 

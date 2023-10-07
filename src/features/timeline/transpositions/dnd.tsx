@@ -1,6 +1,6 @@
 import { useDrag } from "react-dnd";
-import { Clip } from "types/clip";
-import { Transposition } from "types/transposition";
+import { Clip } from "types/Clip";
+import { Transposition } from "types/Transposition";
 import { TranspositionProps } from "./Transposition";
 import { subdivisionToTicks, ticksToColumns } from "utils";
 
@@ -97,14 +97,14 @@ export function useTranspositionDrag(props: TranspositionProps) {
         if (newClips.some(({ tick }) => tick < 0)) return;
         if (newTranspositions.some(({ tick }) => tick < 0)) return;
 
-        // If not copying, update the clips and transpositions
+        // If not copying, update the media
         if (!copying) {
-          props.updateClipsAndTranspositions(newClips, newTranspositions);
+          props.updateMedia(newClips, newTranspositions);
           return;
         }
 
-        // Otherwise, create the new clips and transpositions
-        props.createClipsAndTranspositions(newClips, newTranspositions);
+        // Otherwise, create the new media
+        props.createMedia(newClips, newTranspositions);
       },
     }),
     [props]

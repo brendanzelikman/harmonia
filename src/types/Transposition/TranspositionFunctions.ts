@@ -1,0 +1,114 @@
+import { ERROR_TAG, Tick } from "types/units";
+import {
+  Transposition,
+  TranspositionOffsetRecord,
+  isTransposition,
+  OffsetId,
+  TranspositionMap,
+} from "./TranspositionTypes";
+
+/**
+ * Get the unique tag for a given Transposition.
+ * @param transposition The Transposition object.
+ * @returns Unique tag string.
+ * @throws {Error} if the Transposition is invalid.
+ */
+export const getTranspositionTag = (transposition: Partial<Transposition>) => {
+  if (!isTransposition(transposition)) return ERROR_TAG;
+  const { id, tick, trackId } = transposition;
+  const offsets = JSON.stringify(transposition.offsets);
+  return `${id}@${tick}@${trackId}@${offsets}`;
+};
+
+/**
+ * Creates a TranspositionMap from an array of Transpositions.
+ * @param transpositions The array of Transpositions.
+ * @returns A TranspositionMap.
+ */
+export const createTranspositionMap = (
+  transpositions: Transposition[]
+): TranspositionMap => {
+  return transpositions.reduce((acc, transposition) => {
+    acc[transposition.id] = transposition;
+    return acc;
+  }, {} as TranspositionMap);
+};
+
+/**
+ * Get the scalar offsets from the transposition record.
+ * @param offsets The {@link TranspositionOffsetRecord}.
+ * @param ids The {@link OffsetId}s to use as keys.
+ * @returns The scalar offsets or an empty array if the offsets or ids are missing.
+ */
+export const getScalarOffsets = (
+  offsets?: TranspositionOffsetRecord,
+  ids?: OffsetId[]
+) => {
+  if (!offsets || !ids) return [];
+  return ids.map((id) => offsets[id] || 0);
+};
+
+/**
+ * Get the scalar offset from the transposition record.
+ * @param offsets The {@link TranspositionOffsetRecord}.
+ * @param ids The {@link OffsetId}s to use.
+ * @returns The scalar offset or 0 if the offsets or id are missing.
+ */
+export const getScalarOffset = (
+  offsets?: TranspositionOffsetRecord,
+  id?: OffsetId
+) => {
+  if (!offsets || !id) return 0;
+  return offsets[id] || 0;
+};
+
+/**
+ * Get the chromatic offset from the transposition record.
+ * @param transposition The {@link TranspositionOffsetRecord}.
+ * @returns The chromatic offset or 0 if the key is missing.
+ */
+export const getChromaticOffset = (offsets?: TranspositionOffsetRecord) => {
+  if (!offsets) return 0;
+  return offsets._chromatic || 0;
+};
+
+/**
+ * Get the chordal offset from the transposition record.
+ * @param transposition The {@link TranspositionOffsetRecord}.
+ * @returns The chordal offset or 0 if the key is missing.
+ */
+export const getChordalOffset = (offsets?: TranspositionOffsetRecord) => {
+  if (!offsets) return 0;
+  return offsets._self || 0;
+};
+
+/**
+ * Get the last transposition occurring at or before the given tick.
+ * @param transpositions The {@link Transposition}s to search.
+ * @param tick The tick to search for.
+ * @param sort Optional. Whether to sort the transpositions by tick. Default True.
+ * @returns The matching transposition or undefined if none exist.
+ */
+export const getLastTransposition = (
+  transpositions: Transposition[],
+  tick: Tick = 0,
+  sort = true
+) => {
+  if (!transpositions) return undefined;
+
+  // Get the matching transpositions
+  const matchingTranspositions = transpositions.filter(
+    (t) =>
+      t.tick <= tick &&
+      (t.duration !== undefined ? t.tick + t.duration > tick : true)
+  );
+
+  // If no matching transpositions, return undefined
+  if (!matchingTranspositions.length) return undefined;
+
+  // If sort is false, return the first matching transposition
+  if (!sort) return matchingTranspositions[0];
+
+  // Otherwise, sort the matching transpositions by tick and return the first one
+  return matchingTranspositions.sort((a, b) => b.tick - a.tick)[0];
+};

@@ -1,6 +1,7 @@
 export type ID = string;
 export type XML = string;
 export type JSON<_> = string;
+export const ERROR_TAG = "error";
 
 // This is a pattern of any type
 type Pattern<T> = Array<T>;
@@ -81,3 +82,27 @@ export const SUBDIVISION_NAMES: Record<Duration, string> = {
   "64th": "1/64",
 };
 export type Subdivision = (typeof SUBDIVISION_NAMES)[Duration];
+
+export const ORDERED_SUBDIVISIONS: Subdivision[] = [
+  "1/1",
+  "1/2",
+  "1/4",
+  "1/8",
+  "1/16",
+  "1/32",
+  "1/64",
+];
+
+// TAILWIND
+
+export type TailwindColor = `bg-${string}-${string}`;
+
+// REDUX
+
+export type ActionType = {
+  type: string;
+  payload: any;
+};
+export type ActionGroup = {
+  [key: string]: (action: ActionType) => string;
+};

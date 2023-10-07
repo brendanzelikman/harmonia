@@ -28,7 +28,7 @@ export default function LandingPage() {
 export const MainButton = (props: { href: string; text: string }) => (
   <a
     href={props.href}
-    className="border border-slate-200/50 py-5 px-8 rounded-xl drop-shadow-xl text-slate-50 backdrop-blur bg-sky-700/40 hover:bg-gradient-to-t hover:from-sky-600/50 hover:to-sky-600/80 lg:text-4xl md:text-2xl text-sm"
+    className="border border-slate-400 py-5 px-8 rounded-2xl text-slate-100 backdrop-blur bg-gradient-to-b from-sky-500/50 hover:from-sky-600 to-sky-700/80 hover:to-sky-700 drop-shadow-xl sm:text-4xl text-sm font-light"
   >
     {props.text}
   </a>
@@ -37,7 +37,7 @@ export const MainButton = (props: { href: string; text: string }) => (
 const SplashScreen = () => (
   <Section>
     <Splash />
-    <MainButton href="/harmonia/playground" text="Visit the Playground" />
+    <MainButton href="/harmonia/playground" text="Make Music Now!" />
   </Section>
 );
 

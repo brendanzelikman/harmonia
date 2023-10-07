@@ -1,13 +1,12 @@
 import { BsStop, BsPause, BsPlay, BsArrowRepeat } from "react-icons/bs";
 import { connect, ConnectedProps } from "react-redux";
 import { selectTransport } from "redux/selectors";
-
-import { toggleTransportLoop } from "redux/thunks/transport";
 import {
   startTransport,
   pauseTransport,
   stopTransport,
-} from "redux/thunks/transport";
+  toggleTransportLoop,
+} from "redux/Transport";
 import { AppDispatch, RootState } from "redux/store";
 
 import { NavButton } from "./Navbar";
