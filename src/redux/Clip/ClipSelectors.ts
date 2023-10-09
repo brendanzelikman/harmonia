@@ -1,19 +1,16 @@
 import { RootState } from "redux/store";
-import { createSelector } from "@reduxjs/toolkit";
 import { selectSession, selectSessionMap } from "../Session";
 import { getProperties, getProperty } from "types/util";
-import {
-  getClipDuration,
-  isClip,
-  getClipStream,
-  getClipStreams,
-  ClipId,
-} from "types/Clip";
+import { getClipDuration, isClip, getClipStreams, ClipId } from "types/Clip";
 import { TrackId } from "types/Track";
-import { selectPatternMap } from "redux/Pattern";
-import { selectPatternTrackMap } from "redux/PatternTrack";
-import { selectScaleTrackMap } from "redux/ScaleTrack";
+import {
+  selectPatternMap,
+  selectPatternTrackMap,
+  selectScaleTrackMap,
+} from "redux/selectors";
 import { selectTranspositionMap } from "redux/Transposition";
+import { createDeepEqualSelector } from "redux/util";
+import { doesMediaOverlap } from "types/Media";
 
 /**
  * Select the clip map from the store.
@@ -36,7 +33,7 @@ export const selectClipIds = (state: RootState) =>
  * @param state The root state.
  * @returns An array of clips.
  */
-export const selectClips = createSelector(
+export const selectClips = createDeepEqualSelector(
   [selectClipMap, selectClipIds],
   (clipMap, clipIds) => getProperties(clipMap, clipIds)
 );
@@ -47,7 +44,7 @@ export const selectClips = createSelector(
  * @param id The ID of the clip.
  * @returns The clip.
  */
-export const selectClipById = (state: RootState, id: ClipId) => {
+export const selectClipById = (state: RootState, id?: ClipId) => {
   const clipMap = selectClipMap(state);
   return getProperty(clipMap, id);
 };
@@ -82,7 +79,7 @@ export const selectClipsByTrackIds = (
  * @param id The ID of the clip.
  * @returns The pattern ID of the clip.
  */
-export const selectClipPatternId = (state: RootState, id: ClipId) => {
+export const selectClipPatternId = (state: RootState, id?: ClipId) => {
   const clip = selectClipById(state, id);
   return clip?.patternId;
 };
@@ -93,7 +90,7 @@ export const selectClipPatternId = (state: RootState, id: ClipId) => {
  * @param id The ID of the clip.
  * @returns The pattern of the clip.
  */
-export const selectClipPattern = (state: RootState, id: ClipId) => {
+export const selectClipPattern = (state: RootState, id?: ClipId) => {
   const patternId = selectClipPatternId(state, id);
   const patternMap = selectPatternMap(state);
   return getProperty(patternMap, patternId);
@@ -107,7 +104,8 @@ export const selectClipPattern = (state: RootState, id: ClipId) => {
  */
 export const selectClipPatterns = (state: RootState, ids: ClipId[]) => {
   const patternMap = selectPatternMap(state);
-  return getProperties(patternMap, ids);
+  const patternIds = ids.map((id) => selectClipPatternId(state, id));
+  return getProperties(patternMap, patternIds);
 };
 
 /**
@@ -116,7 +114,7 @@ export const selectClipPatterns = (state: RootState, ids: ClipId[]) => {
  * @param id The ID of the clip.
  * @returns The name of the clip.
  */
-export const selectClipName = (state: RootState, id: ClipId) => {
+export const selectClipName = (state: RootState, id?: ClipId) => {
   const pattern = selectClipPattern(state, id);
   return pattern?.name;
 };
@@ -127,7 +125,7 @@ export const selectClipName = (state: RootState, id: ClipId) => {
  * @param id The ID of the clip.
  * @returns The duration in ticks.
  */
-export const selectClipDuration = (state: RootState, id: ClipId) => {
+export const selectClipDuration = (state: RootState, id?: ClipId) => {
   const clip = selectClipById(state, id);
   const pattern = selectClipPattern(state, id);
   return getClipDuration(clip, pattern);
@@ -151,7 +149,7 @@ export const selectClipDurations = (state: RootState, ids: ClipId[]) => {
  * @param id The ID of the clip.
  * @returns An array of transposition IDs.
  */
-export const selectClipTranspositionIds = (state: RootState, id: ClipId) => {
+export const selectClipTranspositionIds = (state: RootState, id?: ClipId) => {
   const clip = selectClipById(state, id);
   if (!isClip(clip)) return [];
   const session = selectSession(state);
@@ -165,34 +163,24 @@ export const selectClipTranspositionIds = (state: RootState, id: ClipId) => {
  * @param id The ID of the clip.
  * @returns An array of transpositions.
  */
-export const selectClipTranspositions = (state: RootState, id: ClipId) => {
-  const ids = selectClipTranspositionIds(state, id);
-  const transpositionMap = selectTranspositionMap(state);
-  return getProperties(transpositionMap, ids);
-};
-
-/**
- * Select the fully transposed stream of a clip.
- * @param state The root state.
- * @param id The ID of the clip.
- * @returns The transposed stream of the clip.
- */
-export const selectClipStream = (state: RootState, id: ClipId) => {
+export const selectClipTranspositions = (state: RootState, id?: ClipId) => {
   const clip = selectClipById(state, id);
   if (!isClip(clip)) return [];
-  const patternMap = selectPatternMap(state);
-  const patternTrackMap = selectPatternTrackMap(state);
-  const sessionMap = selectSessionMap(state);
-  const scaleTrackMap = selectScaleTrackMap(state);
+  const session = selectSession(state);
+  const entity = session.byId[clip.trackId];
+  if (!entity) return [];
   const transpositionMap = selectTranspositionMap(state);
-  return getClipStream(
-    clip,
-    patternMap,
-    patternTrackMap,
-    sessionMap,
-    scaleTrackMap,
-    transpositionMap
-  );
+  const ids = entity.transpositionIds;
+  const transpositions = getProperties(transpositionMap, ids);
+  const clipDuration = selectClipDuration(state, id);
+  return transpositions.filter((transposition) => {
+    return doesMediaOverlap(
+      clip,
+      transposition.tick,
+      transposition.tick + (transposition.duration ?? Infinity),
+      clipDuration
+    );
+  });
 };
 
 /**
@@ -200,7 +188,7 @@ export const selectClipStream = (state: RootState, id: ClipId) => {
  * @param state The root state.
  * @returns An array of transposed streams.
  */
-export const selectClipStreams = createSelector(
+export const selectClipStreams = createDeepEqualSelector(
   [
     selectClips,
     selectPatternMap,
@@ -211,3 +199,14 @@ export const selectClipStreams = createSelector(
   ],
   getClipStreams
 );
+
+/**
+ * Select the fully transposed stream of a clip.
+ * @param state The root state.
+ * @param id The ID of the clip.
+ * @returns The transposed stream of the clip.
+ */
+export const selectClipStream = (state: RootState, id?: ClipId) => {
+  const streams = selectClipStreams(state);
+  return getProperty(streams, id);
+};

@@ -36,8 +36,8 @@ function Timer(props: Props) {
     return "text-gray-300 border-slate-500";
   }, [isStarted, isPaused]);
 
-  return (
-    <div className="relative">
+  const Time = useMemo(() => {
+    return (
       <input
         type="text"
         id="timer"
@@ -45,6 +45,12 @@ function Timer(props: Props) {
         value={displayedTime}
         disabled
       />
+    );
+  }, [displayedTime, clipClass]);
+
+  return (
+    <div className="relative">
+      {Time}
       <label
         htmlFor="timer"
         className={`absolute text-xs ${

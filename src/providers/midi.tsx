@@ -18,6 +18,7 @@ export const MIDIContext = createContext<MIDIContextProps>({
   setSelectedOutput: () => {},
 });
 
+// Midi provider for persisting a selected input and output
 export const MIDIProvider = ({ children }: { children: any }) => {
   const [midiInputs, setMidiInputs] = useState<Input[]>([]);
   const [midiOutputs, setMidiOutputs] = useState<Output[]>([]);

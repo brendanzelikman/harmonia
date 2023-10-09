@@ -1,90 +1,97 @@
 import { useCallback } from "react";
 import { TimeProps } from ".";
-import { useLoopDrag, useLoopDrop } from "./dnd";
-import useKeyHolder from "hooks/useKeyHolder";
+import { useLoopDrag, useLoopDrop } from "./useLoopDragAndDrop";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
-// The time is contained in the header
 export function TimeFormatter(props: TimeProps) {
-  const { loop, onLoopStart, onLoopEnd } = props;
-  const heldKeys = useKeyHolder(["s", "e"]);
+  const { loop, onLoopStart, onLoopEnd, setLoopStart, setLoopEnd } = props;
+  const subdivision = props.subdivision;
+  const heldKeys = useHeldHotkeys(["s", "e"]);
 
-  // Loop start drag hook
+  // Drag and drop loop points
+  const [{ isOver }, drop] = useLoopDrop(props);
   const [LoopStart, startDrag] = useLoopDrag({
     ...props,
-    onEnd: (item: any) =>
-      props.setLoopStart(item.hoverIndex - 1, props.subdivision),
+    onEnd: (item: any) => setLoopStart(item.hoverIndex, subdivision),
   });
-  // Loop end drag hook
   const [LoopEnd, endDrag] = useLoopDrag({
     ...props,
-    onEnd: (item: any) =>
-      props.setLoopEnd(item.hoverIndex - 1, props.subdivision),
+    onEnd: (item: any) => setLoopEnd(item.hoverIndex, subdivision),
   });
 
-  // Loop point drop hook
-  const [{ isOver }, drop] = useLoopDrop(props);
-
-  // On click handler
+  /** The click handler for the time cell.
+   * * If the user is holding s, set the loop start.
+   * * If the user is holding e, set the loop end.
+   * * Otherwise, seek the transport to the time.
+   */
   const onClick = useCallback(() => {
-    // If holding s, set loop start
     if (loop && heldKeys.s) {
-      props.setLoopStart(props.columnIndex - 1, props.subdivision);
+      props.setLoopStart(props.columnIndex, subdivision);
       return;
     }
-    // If holding e, set loop end
     if (loop && heldKeys.e) {
-      props.setLoopEnd(props.columnIndex - 1, props.subdivision);
+      props.setLoopEnd(props.columnIndex, subdivision);
       return;
     }
-    // Otherwise, click on tick
     props.onClick(props.tick);
-  }, [loop, props.subdivision, heldKeys.s, heldKeys.e]);
+  }, [loop, subdivision, heldKeys.s, heldKeys.e]);
 
-  const padding = loop
-    ? onLoopStart
-      ? "pl-3"
-      : onLoopEnd
-      ? "pr-3"
-      : "pl-1"
-    : "pl-1";
+  /**
+   * The loop start point is rendered if on the loop start tick while looping.
+   */
+  const LoopStartPoint = onLoopStart ? (
+    <LoopPoint
+      isDragging={LoopStart.isDragging}
+      dragRef={startDrag}
+      className="border-l-8"
+    />
+  ) : null;
 
+  /**
+   * The loop end point is rendered if on the loop end tick while looping.
+   */
+  const LoopEndPoint = onLoopEnd ? (
+    <LoopPoint
+      isDragging={LoopEnd.isDragging}
+      dragRef={endDrag}
+      className="border-r-8"
+    />
+  ) : null;
+
+  /**
+   * The loop points are rendered only if the loop is active.
+   */
+  const LoopPoints = loop ? (
+    <>
+      {LoopStartPoint}
+      {LoopEndPoint}
+    </>
+  ) : null;
+
+  /**
+   * The measure number is rendered if the cell is a measure.
+   * If the measure is greater than 99, the font size is reduced.
+   */
+  const Measure = props.isMeasure ? (
+    <div className={props.measureClass}>{props.bars}</div>
+  ) : null;
+
+  // Assemble the class name
+  const background = isOver ? "bg-indigo-800" : "bg-black";
+  const className = `rdg-time ${background} ${props.className}`;
+
+  // Render the time cell
   return (
-    <div
-      ref={drop}
-      className={`rdg-time ${isOver ? "bg-indigo-800" : ""} ${props.className}`}
-      onClick={onClick}
-    >
-      {loop ? (
-        <>
-          {onLoopStart ? (
-            <LoopPoint
-              isDragging={LoopStart.isDragging}
-              dragRef={startDrag}
-              className="border-l-8"
-            />
-          ) : null}
-          {onLoopEnd ? (
-            <LoopPoint
-              isDragging={LoopEnd.isDragging}
-              dragRef={endDrag}
-              className="border-r-8"
-            />
-          ) : null}
-        </>
-      ) : null}
-      {props.isMeasure ? (
-        <div
-          className={`absolute ${
-            props.bars > 99 ? "text-[9px]" : ""
-          } ${padding}`}
-        >
-          {props.bars}
-        </div>
-      ) : null}
+    <div ref={drop} className={className} onClick={onClick}>
+      {LoopPoints}
+      {Measure}
     </div>
   );
 }
 
+/**
+ * The loop point is rendered as a draggable div.
+ */
 const LoopPoint = (props: {
   className?: string;
   isDragging: boolean;
@@ -94,9 +101,7 @@ const LoopPoint = (props: {
     className={`absolute top-0 left-0 w-full h-full border-indigo-700 hover:bg-slate-800 ${
       props.className ?? ""
     }`}
-    style={{
-      opacity: props.isDragging ? 0.9 : 1,
-    }}
+    style={{ opacity: props.isDragging ? 0.9 : 1 }}
     ref={props.dragRef}
   ></div>
 );

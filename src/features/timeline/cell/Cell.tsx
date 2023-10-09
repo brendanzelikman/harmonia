@@ -1,36 +1,23 @@
 import { CellProps } from ".";
-import { useCellDrop } from "./dnd";
+import { useCellDrop } from "./useCellDnd";
 
 export function CellComponent(props: CellProps) {
-  const { trackId, showCursor, backgroundClass, row } = props;
-
   // Cell drop hook with react-dnd
   const [{ isOver, canDrop }, drop] = useCellDrop(props);
+  const backgroundClass =
+    isOver && canDrop ? "bg-sky-950/30" : props.backgroundClass;
 
-  // If the cell is empty, then deselect the selected track
-  if (!trackId) {
-    return (
-      <div
-        className="w-full h-full bg-transparent"
-        onClick={() => props.setSelectedTrack(undefined)}
-      />
-    );
-  }
+  // If not on a track, return a blank cell that can still seek the transport
+  const EmptyCell = (
+    <div className="w-full h-full bg-transparent" onClick={props.onClick} />
+  );
+  if (!props.trackId) return EmptyCell;
 
-  const background = isOver && canDrop ? "bg-sky-950/30" : backgroundClass;
+  // Otherwise, return the cell
+  const className = `relative text-white w-full h-full ${props.borderClass} ${backgroundClass}`;
   return (
-    <div
-      ref={drop}
-      className={`relative border-t border-t-white/20 text-white w-full h-full ${props.leftBorderClass} ${background}`}
-      onClick={props.onClick}
-    >
-      {showCursor ? (
-        <div
-          className={`w-[2px] h-full absolute -left-[2px] ${
-            row.type === "patternTrack" ? "bg-emerald-500" : "bg-sky-500"
-          } animate-pulse`}
-        />
-      ) : null}
+    <div ref={drop} className={className} onClick={props.onClick}>
+      <div className={props.cursorClass} />
     </div>
   );
 }

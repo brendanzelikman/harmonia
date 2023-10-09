@@ -123,7 +123,7 @@ export const rootSlice = createSlice({
      * @param state The root slice.
      */
     deselectAllClips: (state) => {
-      state.selectedClipIds = [];
+      state.selectedClipIds.clear();
     },
     /**
      * Set the selected transposition IDs.
@@ -172,7 +172,7 @@ export const rootSlice = createSlice({
      * @param state The root slice.
      */
     deselectAllTranspositions: (state) => {
-      state.selectedTranspositionIds = [];
+      state.selectedTranspositionIds.clear();
     },
     /**
      * Set a toolkit value by key.

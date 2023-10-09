@@ -1,40 +1,39 @@
 import Navbar from "features/navbar";
 import Editor from "features/editor";
 import Timeline from "features/timeline";
-import useShortcuts from "hooks/useShortcuts";
-import { connect, ConnectedProps } from "react-redux";
-import { selectTransport } from "redux/selectors";
-import { RootState } from "redux/store";
-import LoadingPage from "components/LoadingPage";
 import Shortcuts from "features/shortcuts";
-import { useMemo } from "react";
 
-const mapStateToProps = (state: RootState) => {
-  const { loaded } = selectTransport(state);
-  return { loaded };
-};
+import useGlobalHotkeys from "hooks/useGlobalHotkeys";
+import useMidiController from "hooks/useMidiController";
 
-const connector = connect(mapStateToProps);
-type Props = ConnectedProps<typeof connector>;
+import { LoadingView } from "views";
+import { useAppSelector } from "redux/hooks";
+import { selectTransport } from "redux/selectors";
 
-export default connector(App);
+/**
+ * The main app is composed of four components.
+ * * Navbar: Transport, toolkit, etc.
+ * * Timeline: Tracks, media, etc.
+ * * Editor: Scales, patterns, etc.
+ * * Shortcuts: Shortcut menu.
+ */
+export default function App() {
+  useGlobalHotkeys();
+  useMidiController();
 
-function App(props: Props) {
-  useShortcuts();
+  // If the transport is not loaded, show a loading page.
+  const transport = useAppSelector(selectTransport);
+  if (!transport.loaded) return <LoadingView />;
 
-  const App = useMemo(() => {
-    return () => (
-      <div className="fade-in flex flex-col flex-nowrap w-full h-screen overflow-auto">
-        <Navbar />
-        <main className="relative flex w-full flex-auto overflow-hidden">
-          <Timeline />
-          <Editor />
-          <Shortcuts />
-        </main>
-      </div>
-    );
-  }, []);
-
-  if (!props.loaded) return <LoadingPage />;
-  return <App />;
+  // Otherwise, show the app.
+  return (
+    <div className="flex flex-col fade-in h-screen">
+      <Navbar />
+      <main className="relative flex flex-auto overflow-hidden">
+        <Timeline />
+        <Editor />
+        <Shortcuts />
+      </main>
+    </div>
+  );
 }

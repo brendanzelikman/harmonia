@@ -51,8 +51,7 @@ export function ScaleContextMenu(props: ScaleEditorProps) {
     },
     {
       label: "Clear Scale",
-      onClick: () =>
-        props.scaleTrack ? props.clearScaleTrack(props.scaleTrack.id) : null,
+      onClick: props.clearScaleTrack,
       disabled: !scalePartial,
     },
   ];

@@ -5,7 +5,7 @@ import { PatternEditorCursorProps } from "..";
 import { EditorPiano } from "features/editor/components";
 import { PatternNote } from "types/Pattern";
 import { Scale } from "types/Scale";
-import useKeyHolder from "hooks/useKeyHolder";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 interface PatternPianoProps extends PatternEditorCursorProps {
   scale: Scale;
@@ -14,7 +14,7 @@ interface PatternPianoProps extends PatternEditorCursorProps {
 
 export function PatternPiano(props: PatternPianoProps) {
   // Keep track of shift key
-  const holdingShift = useKeyHolder("Shift").Shift;
+  const holdingShift = useHeldHotkeys("Shift").Shift;
 
   // Play note event handler handling editor states
   const playNote = (sampler: Sampler, midiNumber: number) => {

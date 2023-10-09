@@ -3,7 +3,7 @@ import { Transition } from "@headlessui/react";
 import { InstrumentEditorProps } from "..";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { useEffect } from "react";
-import useInstrumentShortcuts from "../hooks/useInstrumentShortcuts";
+import useInstrumentShortcuts from "../hooks/useInstrumentHotkeys";
 import {
   InstrumentAnalyser,
   InstrumentEffects,
@@ -30,23 +30,12 @@ export function EditorInstrument(props: InstrumentEditorProps) {
   return (
     <Editor.Container>
       <Editor.Body className="relative">
-        <Transition
-          show={props.showingPresets}
-          appear
-          enter="transition-all ease-in-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="transition-all ease-in-out duration-300"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <Editor.Sidebar className="ease-in-out duration-300">
-            <Editor.SidebarHeader className="capitalize">
-              Instruments
-            </Editor.SidebarHeader>
-            <InstrumentList {...props} />
-          </Editor.Sidebar>
-        </Transition>
+        <Editor.Sidebar className="ease-in-out duration-300">
+          <Editor.SidebarHeader className="capitalize">
+            Instruments
+          </Editor.SidebarHeader>
+          <InstrumentList {...props} />
+        </Editor.Sidebar>
         <Editor.Content>
           <Editor.Title
             className="capitalize"

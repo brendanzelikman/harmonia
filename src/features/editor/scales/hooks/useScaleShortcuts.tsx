@@ -1,8 +1,7 @@
-import { cancelEvent, isHoldingShift, isInputEvent } from "utils";
-import useEventListeners from "hooks/useEventListeners";
 import { ScaleEditorProps } from "..";
 import { Scale, unpackScale } from "types/Scale";
 import { OSMDCursor } from "lib/opensheetmusicdisplay";
+import { useHotkeys } from "react-hotkeys-hook";
 
 interface ScaleShortcutProps extends ScaleEditorProps {
   scale: Scale;
@@ -10,154 +9,111 @@ interface ScaleShortcutProps extends ScaleEditorProps {
 }
 
 export default function useScaleShortcuts(props: ScaleShortcutProps) {
-  const notes = unpackScale(props.scale);
-  const rewindCursor = () => props.cursor.setIndex(0);
-  const forwardCursor = () => props.cursor.setIndex((notes.length ?? 1) - 1);
+  const { scaleTrack, scale, cursor } = props;
+  const notes = unpackScale(scale);
+  const rewindCursor = () => cursor.setIndex(0);
+  const forwardCursor = () => cursor.setIndex((notes.length ?? 1) - 1);
 
-  useEventListeners(
-    {
-      // Shift + Space = Play Scale
-      " ": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.scale) return;
-          if (!isHoldingShift(e)) return;
-          cancelEvent(e);
-          props.playScale(props.scale);
-        },
-      },
-      // C = Toggle Cursor
-      c: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.scale) return;
-          cancelEvent(e);
-          if (props.cursor.hidden) {
-            props.cursor.show();
-          } else {
-            props.cursor.hide();
-          }
-        },
-      },
-      // A = Start/Stop Adding Notes
-      a: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.adding) {
-            props.clear();
-          } else {
-            props.setState("adding");
-          }
-        },
-      },
-      // Delete = Start/Stop Removing Notes
-      // Cursor + Delete = Remove Note
-      // Shift + Delete = Clear Scale
-      Backspace: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.scaleTrack) return;
+  // Shift + Space = Play Scale
+  useHotkeys("shift+space", () => props.playScale(scale));
 
-          // Clear Scale
-          if (isHoldingShift(e)) {
-            props.clearScaleTrack(props.scaleTrack.id);
-            return;
-          }
+  // C = Toggle Cursor
+  useHotkeys("c", cursor.toggle);
 
-          // Delete Note
-          if (!props.cursor.hidden) {
-            props.removeNoteFromScaleTrack(
-              props.scaleTrack.id,
-              notes[props.cursor.index]
-            );
-            return;
-          }
+  // A = Toggle Adding Notes
+  useHotkeys("a", () => props.toggleState("adding"));
 
-          // Toggle Removing Notes
-          if (props.removing) {
-            props.clear();
-          } else {
-            props.setState("removing");
-          }
-        },
-      },
-      // "T" = Prompt for Scalar Transposition
-      T: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.scaleTrack) return;
-          const input = prompt("Transpose scale by N semitones:");
-          const sanitizedInput = parseInt(input ?? "");
-          if (isNaN(sanitizedInput)) return;
-          props.transposeScaleTrack(props.scaleTrack.id, sanitizedInput);
-        },
-      },
-      // "t" = Prompt for Chordal Transposition
-      t: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.scaleTrack) return;
-          const input = prompt("Transpose scale along N steps:");
-          const sanitizedInput = parseInt(input ?? "");
-          if (isNaN(sanitizedInput)) return;
-          props.rotateScaleTrack(props.scaleTrack.id, sanitizedInput);
-        },
-      },
-      // Up Arrow = Transpose Up 1 Semitone
-      // Shift + Up Arrow = Transpose Up 12 Semitones
-      ArrowUp: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.scaleTrack) return;
-          cancelEvent(e);
-          const holdingShift = isHoldingShift(e);
-          const offset = holdingShift ? 12 : 1;
-          props.transposeScaleTrack(props.scaleTrack.id, offset);
-        },
-      },
-      // Down Arrow = Transpose Down 1 Semitone
-      // Shift + Down Arrow = Transpose Down 12 Semitones
-      ArrowDown: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.scaleTrack) return;
-          cancelEvent(e);
-          const holdingShift = isHoldingShift(e);
-          const offset = holdingShift ? -12 : -1;
-          props.transposeScaleTrack(props.scaleTrack.id, offset);
-        },
-      },
-      // Left Arrow = Transpose Down 1 Chord Step
-      // Cursor + Left Arrow = Rewind Cursor
-      // Cursor + Shift + Left Arrow = Skip Cursor Left
-      ArrowLeft: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.scaleTrack) return;
-          cancelEvent(e);
-          const holdingShift = isHoldingShift(e);
-          if (!props.cursor.hidden && props.cursor.index > 0) {
-            if (holdingShift) {
-              rewindCursor();
-            } else {
-              props.cursor.prev();
-            }
-          } else {
-            props.rotateScaleTrack(props.scaleTrack.id, -1);
-          }
-        },
-      },
-      // Right Arrow = Transpose Up 1 Chord Step
-      // Cursor + Right Arrow = Advance Cursor
-      // Cursor + Shift + Right Arrow = Skip Cursor Right
-      ArrowRight: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.scaleTrack) return;
-          cancelEvent(e);
-          if (!props.cursor.hidden && props.cursor.index < notes.length - 1) {
-            if (isHoldingShift(e)) {
-              forwardCursor();
-            } else {
-              props.cursor.next();
-            }
-          } else {
-            props.rotateScaleTrack(props.scaleTrack.id, 1);
-          }
-        },
-      },
+  // Shift + Backspace = Clear Scale
+  useHotkeys("shift+backspace", props.clearScaleTrack, [scaleTrack]);
+
+  // Backspace = Toggle Removing Notes or Remove Note
+  useHotkeys(
+    "backspace",
+    () => {
+      if (cursor.hidden) {
+        props.toggleState("removing");
+      } else {
+        props.removeNoteFromScaleTrack(scaleTrack.id, notes[cursor.index]);
+      }
     },
-    [props]
+    [notes, cursor, scaleTrack]
   );
+
+  // T = Prompt for Scalar Transposition
+  useHotkeys(
+    "shift+t",
+    () => {
+      const input = prompt("Transpose scale by N semitones:");
+      const sanitizedInput = parseInt(input ?? "");
+      if (isNaN(sanitizedInput)) return;
+      props.transposeScaleTrack(scaleTrack.id, sanitizedInput);
+    },
+    [scaleTrack]
+  );
+
+  // R = Prompt for Chordal Transposition
+  useHotkeys(
+    "shift+r",
+    () => {
+      const input = prompt("Transpose scale along N steps:");
+      const sanitizedInput = parseInt(input ?? "");
+      if (isNaN(sanitizedInput)) return;
+      props.rotateScaleTrack(scaleTrack.id, sanitizedInput);
+    },
+    [scaleTrack]
+  );
+
+  // Up Arrow = Transpose Up 1 Semitone
+  useHotkeys("up", () => props.transposeScaleTrack(scaleTrack.id, 1), [
+    scaleTrack,
+  ]);
+
+  // Shift + Up Arrow = Transpose Up 12 Semitones
+  useHotkeys("shift+up", () => props.transposeScaleTrack(scaleTrack.id, 12), [
+    scaleTrack,
+  ]);
+
+  // Down Arrow = Transpose Down 1 Semitone
+  useHotkeys("down", () => props.transposeScaleTrack(scaleTrack.id, -1), [
+    scaleTrack,
+  ]);
+
+  // Shift + Down Arrow = Transpose Down 12 Semitones
+  useHotkeys(
+    "shift+down",
+    () => props.transposeScaleTrack(scaleTrack.id, -12),
+    [scaleTrack]
+  );
+
+  // Left Arrow = Transpose Down 1 Chord Step or Rewind Cursor
+  useHotkeys(
+    "left",
+    () => {
+      if (!cursor.hidden && cursor.index > 0) {
+        rewindCursor();
+      } else {
+        props.rotateScaleTrack(scaleTrack.id, -1);
+      }
+    },
+    [cursor, scaleTrack]
+  );
+
+  // Shift + Left Arrow = Skip Cursor Left
+  useHotkeys("shift+left", () => !cursor.hidden && rewindCursor(), [cursor]);
+
+  // Right Arrow = Transpose Up 1 Chord Step or Advance Cursor
+  useHotkeys(
+    "right",
+    () => {
+      if (!cursor.hidden && cursor.index < notes.length - 1) {
+        cursor.next();
+      } else {
+        props.rotateScaleTrack(scaleTrack.id, 1);
+      }
+    },
+    [cursor, notes, scaleTrack]
+  );
+
+  // Shift + Right Arrow = Skip Cursor Right
+  useHotkeys("shift+right", () => !cursor.hidden && forwardCursor(), [cursor]);
 }

@@ -4,6 +4,21 @@ import { isEditor } from "types/Editor";
 import { isRoot } from "types/Root";
 import { isTimeline } from "types/Timeline";
 import { isTransport } from "types/Transport";
+import { createSelectorCreator, defaultMemoize } from "reselect";
+import { isEqual } from "lodash";
+import { PayloadAction, Slice } from "@reduxjs/toolkit";
+
+export const isSliceAction = (slice: string) => (action: PayloadAction) =>
+  action.type.startsWith(slice);
+
+export const getSliceActions = (slice: Slice) => {
+  return Object.keys(slice.actions).map((key) => `${slice.name}/${key}`);
+};
+
+export const createDeepEqualSelector = createSelectorCreator(
+  defaultMemoize,
+  isEqual
+);
 
 export const isRootState = (obj: any): obj is RootState => {
   const { session, scales, patterns, root, editor, timeline, transport } = obj;
@@ -49,6 +64,13 @@ export const saveState = (state: RootState) => {
   try {
     const editedState = {
       ...state,
+      scales: { past: [], present: state.scales.present, future: [] },
+      patterns: { past: [], present: state.patterns.present, future: [] },
+      session: { past: [], present: state.session.present, future: [] },
+      timeline: {
+        ...state.timeline,
+        state: "idle",
+      },
       transport: {
         ...state.transport,
         state: "stopped",
@@ -56,13 +78,6 @@ export const saveState = (state: RootState) => {
         recording: false,
         tick: 0,
       },
-      timeline: {
-        ...state.timeline,
-        state: "idle",
-      },
-      session: { past: [], present: state.session.present, future: [] },
-      scales: { past: [], present: state.scales.present, future: [] },
-      patterns: { past: [], present: state.patterns.present, future: [] },
     };
     if (!isRootState(editedState)) {
       localStorage.removeItem("state");

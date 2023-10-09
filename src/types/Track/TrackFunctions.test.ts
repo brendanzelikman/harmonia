@@ -23,7 +23,6 @@ test("getTrackTag", () => {
   expect(patternTrackTag).include(mockPatternTrack.id);
   expect(patternTrackTag).include(mockPatternTrack.name);
   expect(patternTrackTag).include(mockPatternTrack.type);
-  expect(patternTrackTag).include(mockPatternTrack.instrumentId);
 });
 
 test("getTrackParents", () => {

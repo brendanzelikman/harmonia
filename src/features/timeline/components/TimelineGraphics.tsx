@@ -1,5 +1,4 @@
-import { Column, DataGridHandle } from "react-data-grid";
-import { Row } from "..";
+import { DataGridHandle } from "react-data-grid";
 import { createPortal } from "react-dom";
 import { Transition } from "@headlessui/react";
 import { RootState } from "redux/store";
@@ -13,9 +12,9 @@ import {
   selectTransport,
   selectOrderedTrackIds,
   selectTrackById,
+  selectTimelineColumnCount,
 } from "redux/selectors";
 import { ConnectedProps, connect } from "react-redux";
-import { useMemo } from "react";
 import {
   COLLAPSED_TRACK_HEIGHT,
   HEADER_HEIGHT,
@@ -23,15 +22,13 @@ import {
 } from "appConstants";
 
 interface BackgroundProps {
-  rows: Row[];
-  columns: Column<Row>[];
   timeline?: DataGridHandle;
 }
 
 const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
-  const { rows, columns } = ownProps;
   const { showingTour, tourStep } = selectRoot(state);
   const transport = selectTransport(state);
+  const columns = selectTimelineColumnCount(state);
 
   // General dimensions
   const cellWidth = selectCellWidth(state);
@@ -71,8 +68,9 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
   const showCursor = transport.state === "started" && !transport.recording;
 
   // Background dimensions
-  const width = columns.length * cellWidth;
-  const height = HEADER_HEIGHT + cellHeight * rows.length;
+  const width = columns * cellWidth;
+  const rowCount = selectOrderedTrackIds(state).length;
+  const height = HEADER_HEIGHT + cellHeight * rowCount;
 
   return {
     ...ownProps,
@@ -109,28 +107,25 @@ function TimelineBackground(props: Props) {
   if (!element) return null;
 
   // Onboarding tour background
-  const TourBackground = useMemo(() => {
-    return () => (
-      <Transition
-        show={props.showingTour}
-        appear
-        enter="transition-opacity ease-in-out duration-300"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity ease-in-out duration-300"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-        as="div"
-        style={{ left: props.tourLeft }}
-        className={`w-full h-screen transition-all duration-75 absolute bg-slate-900/50 backdrop-blur z-[90] pointer-events-none`}
-      />
-    );
-  }, [props.showingTour, props.tourLeft]);
+  const TourBackground = () => (
+    <Transition
+      show={props.showingTour}
+      appear
+      enter="transition-opacity ease-in-out duration-150"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+      leave="transition-opacity ease-in-out duration-150"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
+      as="div"
+      style={{ left: props.tourLeft }}
+      className={`w-full h-screen transition-all duration-300 absolute bg-slate-900/50 backdrop-blur z-[90] pointer-events-none`}
+    />
+  );
 
   // Timeline time cursor
-  const TimelineCursor = useMemo(() => {
-    if (!props.showCursor) return () => null;
-    return () => (
+  const TimelineCursor = () =>
+    props.showCursor ? (
       <div
         className="sticky inset-0 z-50 pointer-events-none"
         style={{ width, height: HEADER_HEIGHT }}
@@ -145,100 +140,65 @@ function TimelineBackground(props: Props) {
           }}
         />
       </div>
-    );
-  }, [props.showCursor, props.cursorWidth, props.cursorLeft, width]);
+    ) : null;
 
   // Timeline time background
-  const TimelineTimeBackground = useMemo(() => {
-    return () => (
-      <div
-        className="sticky inset-0 z-20 bg-black pointer-events-none"
-        style={{ width, height: HEADER_HEIGHT }}
-      ></div>
-    );
-  }, [width, props.cursorWidth]);
-
-  // Timeline track background
-  const TimelineTrackBackground = useMemo(() => {
-    return () => (
-      <div
-        className="z-[10] sticky inset-0 h-screen flex flex-col bg-gradient-to-r from-sky-900 to-indigo-900/90 backdrop-blur"
-        style={{ width: TRACK_WIDTH }}
-      ></div>
-    );
-  }, []);
+  const TimelineTimeBackground = () => (
+    <div
+      className="sticky inset-0 z-20 bg-black pointer-events-none"
+      style={{ width, height: HEADER_HEIGHT }}
+    ></div>
+  );
 
   // Timeline background
-  const TimelineBackground = useMemo(() => {
-    return () => (
+  const TimelineBackground = () => (
+    <div
+      className="-z-20 absolute inset-0 flex flex-col"
+      style={{ width, height }}
+    >
       <div
-        className="-z-20 absolute inset-0 flex flex-col"
-        style={{ width, height }}
-      >
-        <div
-          className="w-full bg-slate-500/80 shadow-xl"
-          style={{ height: props.tracksHeight + props.lastTrackHeight }}
-        />
-      </div>
-    );
-  }, [props.tracksHeight, props.lastTrackHeight, width, height]);
+        className="w-full bg-slate-500/80 shadow-xl"
+        style={{ height: props.tracksHeight + props.lastTrackHeight }}
+      />
+    </div>
+  );
 
   // Timeline background
-  const SelectedTrackBackground = useMemo(() => {
-    return () => (
-      <div
-        className="-z-10 absolute inset-0 bg-slate-400/40 flex flex-col pointer-events-none"
-        style={{
-          width,
-          height: props.selectedTrackHeight,
-          top: props.selectedTrackTop,
-        }}
-      ></div>
-    );
-  }, [
-    props.cellHeight,
-    width,
-    height,
-    props.selectedTrack,
-    props.selectedTrackTop,
-    props.selectedTrackHeight,
-  ]);
+  const SelectedTrackBackground = () => (
+    <div
+      className="-z-10 absolute inset-0 bg-slate-400/40 flex flex-col pointer-events-none"
+      style={{
+        width,
+        height: props.selectedTrackHeight,
+        top: props.selectedTrackTop,
+      }}
+    ></div>
+  );
 
   // Timeline top left corner
-  const TimelineTopLeftCorner = useMemo(() => {
-    return () => (
-      <div
-        className="sticky inset-0 -mb-20 z-[90] bg-gradient-to-r from-gray-800 to-gray-900"
-        style={{ width: TRACK_WIDTH, height: HEADER_HEIGHT }}
-      ></div>
-    );
-  }, []);
+  const TimelineTopLeftCorner = () => (
+    <div
+      className="sticky inset-0 -mb-20 z-[90] bg-gradient-to-r from-gray-800 to-gray-900"
+      style={{ width: TRACK_WIDTH, height: HEADER_HEIGHT }}
+    ></div>
+  );
 
   // Rendered backgrounds handled by the grid
-  const RenderedBackgrounds = useMemo(() => {
-    return () => (
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ height, width }}
-      >
-        {TourBackground()}
-        <div className="relative w-full h-full">
-          <TimelineTopLeftCorner />
-          <TimelineTimeBackground />
-          <SelectedTrackBackground />
-          <TimelineCursor />
-          <TimelineBackground />
-        </div>
+  const RenderedBackgrounds = () => (
+    <div
+      className="absolute inset-0 pointer-events-none"
+      style={{ height, width }}
+    >
+      {TourBackground()}
+      <div className="relative w-full h-full">
+        <TimelineTopLeftCorner />
+        <TimelineTimeBackground />
+        <SelectedTrackBackground />
+        <TimelineCursor />
+        <TimelineBackground />
       </div>
-    );
-  }, [
-    TourBackground,
-    TimelineTimeBackground,
-    TimelineCursor,
-    TimelineTrackBackground,
-    TimelineBackground,
-    SelectedTrackBackground,
-  ]);
+    </div>
+  );
 
   return createPortal(<>{RenderedBackgrounds()}</>, element);
 }

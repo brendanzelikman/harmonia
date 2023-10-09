@@ -40,12 +40,24 @@ function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
   const onLoopStart = loopStart === tick;
   const onLoopEnd = loopEnd === tick + (tickLength - 1);
 
+  // Measure properties
+  const measurePadding = loop
+    ? onLoopStart
+      ? "pl-3"
+      : onLoopEnd
+      ? "pr-3"
+      : "pl-1"
+    : "pl-1";
+
+  const measureClass = `${measurePadding} ${bars > 99 ? "text-[9px]" : ""}`;
+
   // Class properties
-  const className = `relative w-full h-full text-white hover:border hover:border-slate-200/80 cursor-pointer ${
+  const border = `hover:border hover:border-slate-200/80 ${
     loop && inLoopRange
-      ? "bg-black hover:bg-slate-800 border-b-8 border-b-indigo-700"
-      : `bg-black hover:bg-slate-800 border-slate-50/20`
+      ? "border-b-8 border-b-indigo-700"
+      : `border-slate-50/20`
   }`;
+  const className = `relative w-full h-full text-white hover:bg-slate-800 cursor-pointer ${border}`;
 
   return {
     ...ownProps,
@@ -54,6 +66,7 @@ function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
     bars,
     subdivision,
     isMeasure,
+    measureClass,
     className,
     loop,
     loopStart,
@@ -69,11 +82,11 @@ function mapDispatchToProps(dispatch: AppDispatch) {
       dispatch(seekTransport(tick));
     },
     setLoopStart: (column: number, subdivision: Subdivision) => {
-      const ticks = subdivisionToTicks(subdivision) * column;
+      const ticks = subdivisionToTicks(subdivision) * (column - 1);
       dispatch(setTransportLoopStart(ticks));
     },
     setLoopEnd: (column: number, subdivision: Subdivision) => {
-      const ticks = subdivisionToTicks(subdivision) * (column + 1);
+      const ticks = subdivisionToTicks(subdivision) * column;
       dispatch(setTransportLoopEnd(ticks - 1));
     },
   };

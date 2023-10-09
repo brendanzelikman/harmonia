@@ -6,7 +6,6 @@ import * as Editor from "features/editor";
 import { PatternEditorProps } from "..";
 import { BiCopy } from "react-icons/bi";
 import { cancelEvent } from "utils";
-import useDebouncedField from "hooks/useDebouncedField";
 import { usePatternDrop, usePatternDrag } from "../hooks/usePatternDnd";
 import {
   PresetPatternGroupList,
@@ -212,10 +211,6 @@ export interface CustomPatternProps extends PatternEditorProps {
 export const CustomPattern = (props: CustomPatternProps) => {
   // Pattern information
   const pattern = props.pattern;
-  const NameInput = useDebouncedField<string>(
-    (name: string) => props.setPatternName(pattern, name),
-    pattern.name
-  );
 
   // Ref information
   const ref = useRef<HTMLDivElement>(null);
@@ -270,9 +265,8 @@ export const CustomPattern = (props: CustomPatternProps) => {
               ? "pointer-events-all focus:bg-zinc-800/30"
               : "pointer-events-none"
           }`}
-          value={NameInput.value ?? ""}
-          onChange={NameInput.onChange}
-          onKeyDown={NameInput.onKeyDown}
+          value={pattern.name ?? ""}
+          onChange={(e) => props.setPatternName(pattern, e.target.value)}
         />
         <CopyButton />
         <DeleteButton />

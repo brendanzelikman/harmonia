@@ -17,7 +17,7 @@ import { ERROR_TAG, Note } from "types/units";
 import { TrackNote, TrackScale, isTrackScale } from "types/Track";
 
 /**
- * Get the unique tag for a given ScaleTrack.
+ * Get the unique tag of a given ScaleTrack.
  * @param clip Optional. The ScaleTrack object.
  * @returns Unique tag string. If the ScaleTrack is invalid, return the error tag.
  */

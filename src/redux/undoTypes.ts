@@ -6,6 +6,8 @@ import { SCALE_UNDO_TYPES } from "./Scale";
 import { SCALE_TRACK_UNDO_TYPES } from "./ScaleTrack";
 import { TRANSPOSITION_UNDO_TYPES } from "./Transposition";
 import { SESSION_UNDO_TYPES } from "./Session";
+import { INSTRUMENT_UNDO_TYPES } from "./Instrument";
+import { isSliceAction } from "./util";
 
 export const UndoTypes = {
   undoSession: "session/undo",
@@ -18,27 +20,31 @@ export const UndoTypes = {
 
 export const groupByActionType = (action: PayloadAction) => {
   const { type, payload } = action;
+  const isActionTyped = (slice: string) => isSliceAction(slice)(action);
 
-  if (type.startsWith("scales/")) {
+  if (isActionTyped("scales")) {
     return SCALE_UNDO_TYPES[type]?.(action) || type;
   }
-  if (type.startsWith("patterns/")) {
+  if (isActionTyped("patterns")) {
     return PATTERN_UNDO_TYPES[type]?.(action) || type;
   }
-  if (type.startsWith("clips/")) {
+  if (isActionTyped("clips")) {
     return CLIP_UNDO_TYPES[type]?.(action) || type;
   }
-  if (type.startsWith("transpositions/")) {
+  if (isActionTyped("transpositions")) {
     return TRANSPOSITION_UNDO_TYPES[type]?.(action) || type;
   }
-  if (type.startsWith("scaleTracks/")) {
+  if (isActionTyped("scaleTracks")) {
     return SCALE_TRACK_UNDO_TYPES[type]?.(action) || type;
   }
-  if (type.startsWith("patternTracks/")) {
+  if (isActionTyped("patternTracks")) {
     return PATTERN_TRACK_UNDO_TYPES[type]?.(action) || type;
   }
-  if (type.startsWith("session/")) {
+  if (isActionTyped("session")) {
     return SESSION_UNDO_TYPES[type]?.(action) || type;
+  }
+  if (isActionTyped("instruments")) {
+    return INSTRUMENT_UNDO_TYPES[type]?.(action) || type;
   }
 
   return `${type}:${payload}`;

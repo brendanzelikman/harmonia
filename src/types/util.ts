@@ -56,7 +56,7 @@ export const initializeState = <K extends ID, V extends { id: ID }>(
  * @returns The object with the given ID. If no key is given, returns undefined.
  */
 export const getProperty = <T, K extends keyof T>(obj: T, key?: K) => {
-  return key ? obj[key] : undefined;
+  return key !== undefined ? obj[key] : undefined;
 };
 
 /**
@@ -67,9 +67,9 @@ export const getProperty = <T, K extends keyof T>(obj: T, key?: K) => {
  */
 export const getProperties = <T, K extends keyof T>(
   obj: T,
-  keys: K[]
+  keys: (K | undefined)[]
 ): T[K][] => {
-  return keys.map((key) => obj[key]).filter(Boolean);
+  return keys.map((key) => getProperty(obj, key)).filter(Boolean) as T[K][];
 };
 
 /**

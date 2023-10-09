@@ -1,6 +1,7 @@
 import {
   COLLAPSED_TRACK_HEIGHT,
   HEADER_HEIGHT,
+  MEASURE_COUNT,
   TRACK_WIDTH,
 } from "appConstants";
 import { subdivisionToTicks, ticksToColumns } from "utils";
@@ -15,10 +16,14 @@ import {
   selectClipDuration,
   selectClipStreams,
   selectClips,
+  selectOrderedTrackIds,
   selectPatternMap,
   selectPatternTrackMap,
   selectSession,
+  selectTrackById,
 } from "redux/selectors";
+import { createDeepEqualSelector } from "redux/util";
+import { isTrack } from "types/Track";
 
 /**
  * Select the timeline object from the store.
@@ -66,7 +71,7 @@ export const selectCellHeight = (state: RootState) =>
  * @param id The ID of the clip.
  * @returns The width of the clip.
  */
-export const selectClipWidth = (state: RootState, id: ClipId) => {
+export const selectClipWidth = (state: RootState, id?: ClipId) => {
   const duration = selectClipDuration(state, id);
   const timeline = selectTimeline(state);
   const cellWidth = selectCellWidth(state);
@@ -106,16 +111,55 @@ export const selectTickFromColumn = (state: RootState, column: number) => {
 };
 
 /**
+ * Select the timeline column count.
+ * @param state The root state.
+ * @returns The column count.
+ */
+export const selectTimelineColumnCount = (state: RootState) => {
+  return MEASURE_COUNT * 128;
+};
+
+/**
+ * Select the background width of the timeline.
+ * @param state The root state.
+ * @returns The background width.
+ */
+export const selectTimelineBackgroundWidth = (state: RootState) => {
+  const cellWidth = selectCellWidth(state);
+  const columns = selectTimelineColumnCount(state);
+  return columns * cellWidth + TRACK_WIDTH;
+};
+
+/**
  * Select the left offset of the timeline tick in pixels.
  * @param state The root state.
  * @param tick The tick to select.
  * @returns The left value.
  */
-export const selectTimelineTickLeft = (state: RootState, tick: Tick) => {
+export const selectTimelineTickLeft = (state: RootState, tick: Tick = 0) => {
   const timeline = selectTimeline(state);
   const cellWidth = selectCellWidth(state);
   const columns = ticksToColumns(tick, timeline.subdivision);
   return TRACK_WIDTH + Math.round(columns * cellWidth);
+};
+
+/**
+ * Select the height of a timeline object based on whether the track is collapsed.
+ * @param state The root state.
+ * @param object The timeline object.
+ * @returns The height of the timeline object.
+ */
+export const selectTimelineObjectHeight = (
+  state: RootState,
+  object?: TimelineObject
+) => {
+  const cellHeight = selectCellHeight(state);
+  if (isTrack(object)) {
+    return object.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
+  } else {
+    const track = selectTrackById(state, object?.trackId);
+    return track?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
+  }
 };
 
 /**
@@ -126,7 +170,7 @@ export const selectTimelineTickLeft = (state: RootState, tick: Tick) => {
  */
 export const selectTimelineObjectTop = (
   state: RootState,
-  object: TimelineObject
+  object?: TimelineObject
 ) => {
   const session = selectSession(state);
   const cellHeight = selectCellHeight(state);
@@ -182,6 +226,22 @@ export const selectTimelineObjectTop = (
 };
 
 /**
+ * Select the track index of a timeline object.
+ * @param state The root state.
+ * @param object The timeline object.
+ * @returns The track index.
+ */
+export const selectTimelineObjectTrackIndex = (
+  state: RootState,
+  object?: TimelineObject
+) => {
+  if (!object) return -1;
+  const orderedTrackIds = selectOrderedTrackIds(state);
+  const id = isTrack(object) ? object.id : object.trackId;
+  return orderedTrackIds.indexOf(id);
+};
+
+/**
  * A map of ticks to a record of chords to play at that tick.
  */
 export type ChordsByTicks = Record<Tick, InstrumentChordRecord>;
@@ -191,44 +251,58 @@ export type ChordsByTicks = Record<Tick, InstrumentChordRecord>;
  * @param state The root state.
  * @returns A map of ticks to an array of chords to be played at that tick.
  */
-export const selectChordsByTicks = createSelector(
+export const selectChordsByTicks = createDeepEqualSelector(
   [selectClips, selectClipStreams, selectPatternTrackMap],
   (clips, clipStreams, patternTrackMap) => {
-    // Reduce the clip streams into a map of chords by tick
-    return clipStreams.reduce((acc, stream, i) => {
-      const length = stream.length;
+    const result = {} as ChordsByTicks;
+    const length = clips.length;
+
+    // Iterate through each clip stream
+    for (let i = 0; i < length; i++) {
       const clip = clips[i];
+      const stream = clipStreams[clip.id];
+      const streamLength = stream.length;
+      if (!clip) continue;
+
+      // Get the pattern track
+      const patternTrack = patternTrackMap[clip.trackId];
+      if (!patternTrack) continue;
+
+      // Get the instrument ID
+      const instrumentStateId = patternTrack.instrumentId;
+      if (!instrumentStateId) continue;
+
+      const baseTick = clip.tick;
 
       // Iterate through each chord in the stream
-      for (let i = 0; i < length; i++) {
-        // Get the clip
-        if (!clip) continue;
-
-        // Get the pattern track
-        const patternTrack = patternTrackMap[clip.trackId];
-        if (!patternTrack) continue;
-
-        // Get the instrument ID
-        const instrumentStateId = patternTrack.instrumentId;
-        if (!instrumentStateId) continue;
-
+      for (let j = 0; j < streamLength; j++) {
         // Get the current chord
-        const chord = getPatternChordAtTick(stream, i);
+        const chord = getPatternChordAtTick(stream, j);
         if (!chord) continue;
 
         // Get the current tick within the clip
-        const tick = clip.tick + i;
+        const tick = baseTick + j;
 
         // Add the chord to the map
-        acc[tick] = {
-          ...acc[tick],
-          [instrumentStateId]: chord,
-        };
+        if (result[tick] === undefined) result[tick] = {};
+        result[tick][instrumentStateId] = chord;
       }
-      return acc;
-    }, {} as ChordsByTicks);
+    }
+
+    return result;
   }
 );
+
+/**
+ * Get the chord record at the given tick.
+ * @param state The root state.
+ * @param tick The tick.
+ * @returns The chord record.
+ */
+export const selectChordsAtTick = (state: RootState, tick: Tick) => {
+  const chordsByTicks = selectChordsByTicks(state);
+  return chordsByTicks[tick];
+};
 
 /**
  * Select the timeline end tick based on the clips.

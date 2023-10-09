@@ -60,8 +60,9 @@ export const updateSelectedTranspositions =
     const selectedTranspositions = selectSelectedTranspositions(state);
     if (!selectedTranspositions.length) return;
 
+    const isEmpty = !Object.keys(offsets).length;
     const transpositions = selectedTranspositions.map((t) => {
-      return { ...t, offsets: { ...t.offsets, ...offsets } };
+      return { ...t, offsets: isEmpty ? {} : { ...t.offsets, ...offsets } };
     });
     dispatch(updateTranspositions({ transpositions }));
   };

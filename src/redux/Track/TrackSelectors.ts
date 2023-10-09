@@ -1,7 +1,12 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
 import { Tick } from "types/units";
-import { NormalizedState, createMap, getProperty } from "types/util";
+import {
+  NormalizedState,
+  createMap,
+  getProperties,
+  getProperty,
+} from "types/util";
 import {
   Track,
   TrackId,
@@ -28,6 +33,7 @@ import {
 import { selectPatternTracks, selectPatternTrackMap } from "../PatternTrack";
 import { selectTranspositionMap } from "../Transposition";
 import { selectSession, selectSessionMap } from "../Session";
+import { createDeepEqualSelector } from "redux/util";
 
 /**
  * Select the track map from the store.
@@ -58,7 +64,7 @@ export const selectTracks = createSelector(
  * @param id - The ID of the track.
  * @returns The track or undefined.
  */
-export const selectTrackById = (state: RootState, id: TrackId) => {
+export const selectTrackById = (state: RootState, id?: TrackId) => {
   const trackMap = selectTrackMap(state);
   return getProperty(trackMap, id);
 };
@@ -68,12 +74,12 @@ export const selectTrackById = (state: RootState, id: TrackId) => {
  * @param state - The root state.
  * @returns A list of track IDs.
  */
-export const selectOrderedTrackIds = createSelector(
+export const selectOrderedTrackIds = createDeepEqualSelector(
   [selectSession],
   (sessionMap) => {
     // Initialize the ordered tracks
     const { topLevelIds, byId } = sessionMap;
-    const orderedTracks: TrackId[] = [];
+    const orderedTrackIds: TrackId[] = [];
 
     // Recursively add all children of a track
     const addChildren = (children: TrackId[]) => {
@@ -81,7 +87,7 @@ export const selectOrderedTrackIds = createSelector(
       children.forEach((trackId) => {
         const entity = byId[trackId];
         if (!entity) return;
-        orderedTracks.push(trackId);
+        orderedTrackIds.push(trackId);
         addChildren(entity.trackIds);
       });
     };
@@ -90,11 +96,21 @@ export const selectOrderedTrackIds = createSelector(
     for (const trackId of topLevelIds) {
       const entity = byId[trackId];
       if (!entity) continue;
-      orderedTracks.push(trackId);
+      orderedTrackIds.push(trackId);
       addChildren(entity.trackIds);
     }
-    return orderedTracks;
+    return orderedTrackIds;
   }
+);
+
+/**
+ * Select all tracks ordered by index from the store.
+ * @param state - The root state.
+ * @returns A list of tracks.
+ */
+export const selectOrderedTracks = createDeepEqualSelector(
+  [selectTrackMap, selectOrderedTrackIds],
+  (trackMap, orderedTrackIds) => getProperties(trackMap, orderedTrackIds)
 );
 
 /**
@@ -125,7 +141,7 @@ export const selectTrackIndexById = (state: RootState, id: TrackId) => {
  * @param id - The ID of the track.
  * @returns An array of parent tracks.
  */
-export const selectTrackParents = (state: RootState, id: TrackId) => {
+export const selectTrackParents = (state: RootState, id?: TrackId) => {
   const track = selectTrackById(state, id);
   if (!track) return [];
   const trackMap = selectTrackMap(state);
@@ -138,7 +154,7 @@ export const selectTrackParents = (state: RootState, id: TrackId) => {
  * @param id - The ID of the track.
  * @returns An array of child tracks.
  */
-export const selectTrackChildren = (state: RootState, id: TrackId) => {
+export const selectTrackChildren = (state: RootState, id?: TrackId) => {
   const track = selectTrackById(state, id);
   if (!track) return [];
   const trackMap = selectTrackMap(state);
@@ -191,7 +207,7 @@ export const selectTrackParentTranspositions = (
  */
 export const selectTrackScaleTrack = (
   state: RootState,
-  id: TrackId
+  id?: TrackId
 ): ScaleTrack | undefined => {
   const track = selectTrackById(state, id);
   if (!track) return undefined;
@@ -206,7 +222,7 @@ export const selectTrackScaleTrack = (
  * @param id The ID of the track.
  * @returns The scale or undefined if not found.
  */
-export const selectTrackScale = (state: RootState, id: TrackId) => {
+export const selectTrackScale = (state: RootState, id?: TrackId) => {
   const scaleTrackMap = selectScaleTrackMap(state);
   const track = selectTrackById(state, id);
   if (!track) return;
@@ -286,7 +302,7 @@ export interface TrackInfoRecord extends NormalizedState<TrackId, TrackInfo> {
  * @param id - The ID of the track.
  * @returns The `TrackInfoRecord`.
  */
-export const selectTrackInfoRecord = createSelector(
+export const selectTrackInfoRecord = createDeepEqualSelector(
   [selectSession],
   (session): TrackInfoRecord => ({
     ...session,

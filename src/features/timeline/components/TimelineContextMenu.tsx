@@ -2,8 +2,10 @@ import ContextMenu, { ContextMenuOption } from "components/ContextMenu";
 import { ConnectedProps, connect } from "react-redux";
 import {
   selectRoot,
+  selectSelectedClips,
   selectSelectedPattern,
   selectSelectedTrack,
+  selectSelectedTranspositions,
   selectTimeline,
   selectTrackScale,
 } from "redux/selectors";
@@ -34,45 +36,21 @@ import {
   deleteSelectedMedia,
   selectAllMedia,
 } from "redux/Media";
+import { useDeepEqualSelector } from "redux/hooks";
 
 const mapStateToProps = (state: RootState) => {
-  const {
-    toolkit,
-    selectedPatternId,
-    selectedTrackId,
-    selectedClipIds,
-    selectedTranspositionIds,
-  } = selectRoot(state);
+  const { toolkit, selectedTrackId } = selectRoot(state);
 
   const { clipboard } = selectTimeline(state);
   const selectedPattern = selectSelectedPattern(state);
   const selectedTrack = selectSelectedTrack(state);
-  const selectedScale = selectedTrack?.id
-    ? selectTrackScale(state, selectedTrack?.id)
-    : undefined;
 
   const isPatternTrackSelected = selectedTrack && isPatternTrack(selectedTrack);
-  const areClipsSelected = selectedClipIds?.length > 0;
-  const areTranspositionsSelected = selectedTranspositionIds?.length > 0;
-  const isSelectionEmpty = !areClipsSelected && !areTranspositionsSelected;
 
   const areClipsInClipboard = clipboard?.clips?.length > 0;
   const areTranspositionsInClipboard = clipboard?.transpositions?.length > 0;
   const isClipboardEmpty =
     !areClipsInClipboard && !areTranspositionsInClipboard;
-
-  const canCut = !isSelectionEmpty;
-  const canCopy = !isSelectionEmpty;
-  const canPaste =
-    !isClipboardEmpty &&
-    selectedTrack &&
-    (isScaleTrack(selectedTrack) ? !areClipsInClipboard : true);
-  const canDuplicate = !isSelectionEmpty && selectedTrack;
-  const canDelete = !isSelectionEmpty;
-  const canExport = areClipsSelected;
-  const canUndo = state.session.past.length > 0;
-  const canRedo = state.session.future.length > 0;
-  const canColor = areClipsSelected;
 
   const { transpositionOffsets } = toolkit;
   const chromaticTranspose = getChromaticOffset(transpositionOffsets);
@@ -81,22 +59,17 @@ const mapStateToProps = (state: RootState) => {
     selectedTrackId
   );
   const chordalTranspose = getChordalOffset(transpositionOffsets);
-
+  const canUndo = state.session.past.length > 0;
+  const canRedo = state.session.future.length > 0;
   return {
-    selectedTrack,
-    selectedScale,
-    isPatternTrackSelected,
-    selectedPattern,
-    selectedClipIds,
-    canCut,
-    canCopy,
-    canPaste,
-    canDuplicate,
-    canDelete,
-    canExport,
+    areClipsInClipboard,
+    areTranspositionsInClipboard,
+    isClipboardEmpty,
     canUndo,
     canRedo,
-    canColor,
+    selectedTrack,
+    isPatternTrackSelected,
+    selectedPattern,
     chromaticTranspose,
     scalarTranspose,
     chordalTranspose,
@@ -124,13 +97,30 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
 const connector = connect(mapStateToProps, mapDispatchToProps);
 export type TimelineContextMenuProps = ConnectedProps<typeof connector>;
 
-interface Props extends TimelineContextMenuProps {
-  rows: Row[];
-}
+interface Props extends TimelineContextMenuProps {}
 
 export default connector(TimelineContextMenu);
 
 function TimelineContextMenu(props: Props) {
+  const clips = useDeepEqualSelector(selectSelectedClips);
+  const transpositions = useDeepEqualSelector(selectSelectedTranspositions);
+  const areClipsSelected = clips?.length > 0;
+  const areTranspositionsSelected = transpositions?.length > 0;
+  const isSelectionEmpty = !areClipsSelected && !areTranspositionsSelected;
+  const canCut = !isSelectionEmpty;
+  const canCopy = !isSelectionEmpty;
+  const canPaste =
+    !props.isClipboardEmpty &&
+    props.selectedTrack &&
+    (isScaleTrack(props.selectedTrack) ? !props.areClipsInClipboard : true);
+  const canDuplicate = !isSelectionEmpty && props.selectedTrack;
+  const canDelete = !isSelectionEmpty;
+  const canExport = areClipsSelected;
+
+  const canColor = areClipsSelected;
+  const selectedScale = useDeepEqualSelector((state) =>
+    selectTrackScale(state, props.selectedTrack?.id)
+  );
   const Undo = {
     label: "Undo Last Action",
     onClick: props.undoSession,
@@ -145,33 +135,33 @@ function TimelineContextMenu(props: Props) {
   const Cut = {
     label: `Cut Selection`,
     onClick: props.cutMedia,
-    disabled: !props.canCut,
+    disabled: !canCut,
   };
   const Copy = {
     label: `Copy Selection`,
     onClick: props.copyMedia,
-    disabled: !props.canCopy,
+    disabled: !canCopy,
   };
   const Paste = {
     label: `Paste From Clipboard`,
     onClick: () => props.pasteMedia(),
-    disabled: !props.canPaste,
-    divideEnd: !props.canDuplicate && !props.canDelete && !props.canExport,
+    disabled: !canPaste,
+    divideEnd: !canDuplicate && !canDelete && !canExport,
   };
   const Duplicate = {
     label: "Duplicate Selection",
     onClick: () => props.duplicateMedia(),
-    disabled: !props.canDuplicate,
+    disabled: !canDuplicate,
   };
   const Delete = {
     label: `Delete Selection`,
     onClick: props.deleteMedia,
-    disabled: !props.canDelete,
+    disabled: !canDelete,
   };
   const Export = {
     label: "Export to MIDI",
     onClick: props.exportClips,
-    disabled: !props.canExport,
+    disabled: !canExport,
     divideEnd: true,
   };
   const AddScaleTrack = {
@@ -192,7 +182,7 @@ function TimelineContextMenu(props: Props) {
     label: `Add ${
       props.selectedTrack
         ? `(N${props.chromaticTranspose}${
-            props.selectedTrack && props.selectedScale
+            props.selectedTrack && selectedScale
               ? `, T${props.scalarTranspose}, `
               : `, `
           }t${props.chordalTranspose})`
@@ -200,7 +190,7 @@ function TimelineContextMenu(props: Props) {
     }`,
     onClick: () => props.addTransposition(),
     disabled: !props.selectedTrack,
-    divideEnd: props.canColor,
+    divideEnd: canColor,
   };
 
   const ClipColorCircle = ({ color }: { color: ClipColor }) => {
@@ -209,9 +199,9 @@ function TimelineContextMenu(props: Props) {
       <span
         className={`w-4 h-4 m-1 rounded-full ${clipColor} border cursor-pointer`}
         onClick={() =>
-          props.updateClips(props.selectedClipIds.map((id) => ({ id, color })))
+          props.updateClips(clips.map((clip) => ({ ...clip, color })))
         }
-      ></span>
+      />
     );
   };
 
@@ -224,23 +214,23 @@ function TimelineContextMenu(props: Props) {
       </div>
     ),
     onClick: () => null,
-    disabled: !props.canColor,
+    disabled: !canColor,
   };
 
   const menuOptions = [
     Undo,
     Redo,
-    props.canCut ? Cut : null,
-    props.canCopy ? Copy : null,
-    props.canPaste ? Paste : null,
-    props.canDuplicate ? Duplicate : null,
-    props.canDelete ? Delete : null,
-    props.canExport ? Export : null,
+    canCut ? Cut : null,
+    canCopy ? Copy : null,
+    canPaste ? Paste : null,
+    canDuplicate ? Duplicate : null,
+    canDelete ? Delete : null,
+    canExport ? Export : null,
     AddScaleTrack,
     AddPatternTrack,
     AddPattern,
     AddTransposition,
-    props.canColor ? ClipColor : null,
+    canColor ? ClipColor : null,
   ];
   const options = menuOptions.filter(Boolean) as ContextMenuOption[];
   return <ContextMenu targetId="timeline" options={options} />;

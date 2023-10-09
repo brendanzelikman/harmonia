@@ -6,7 +6,6 @@ import {
   getMediaClips,
   getMediaTranspositions,
   getDuplicatedMedia,
-  getMediaStartTick,
   getMediaDuration,
 } from "types/Media";
 import { inRange, union } from "lodash";
@@ -14,10 +13,6 @@ import {
   Transposition,
   TranspositionId,
   TranspositionOffsetRecord,
-  getChordalOffset,
-  getChromaticOffset,
-  getScalarOffset,
-  getScalarOffsets,
   initializeTransposition,
   isTransposition,
 } from "types/Transposition";
@@ -47,7 +42,7 @@ import {
   selectClipDuration,
 } from "redux/selectors";
 
-import { PatternStream, initializePattern } from "types/Pattern";
+import { PatternStream } from "types/Pattern";
 
 /**
  * Creates a list of media and adds them to the store.

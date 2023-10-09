@@ -7,17 +7,14 @@ import {
   selectTrackById,
   selectTransport,
 } from "redux/selectors";
-import * as Slices from "redux/slices";
-import { AppDispatch, AppThunk, RootState } from "redux/store";
+import { AppDispatch, RootState } from "redux/store";
 import { TrackId } from "types/Track";
 import { Row } from "..";
 import { CellComponent } from "./Cell";
-import { seekTransport } from "redux/Transport";
-import { createClips } from "redux/Clip/ClipThunks";
 import { setSelectedTrack } from "redux/Root/RootSlice";
 import { isPatternTrack } from "types/PatternTrack";
-import { createTranspositions } from "redux/Transposition";
 import { convertTicksToBarsBeatsSixteenths } from "types/Transport";
+import { onCellClick } from "redux/Timeline";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const columnIndex = Number(ownProps.column.key);
@@ -49,7 +46,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const isSelected = root.selectedTrackId === trackId;
   const showCursor = idle && onTime && isSelected;
 
-  // CSS properties
+  // The background corresponds to the timeline state
   const backgroundClass =
     adding && onPatternTrack
       ? "animate-pulse cursor-paintbrush bg-sky-400/25 hover:bg-sky-700/50"
@@ -57,66 +54,38 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
       ? "animate-pulse cursor-wand hover:bg-fuchsia-500/50 bg-fuchsia-500/25"
       : "bg-transparent";
 
-  const leftBorderClass =
+  // Left border is white for measure lines, slate for other lines
+  const borderClass = `border-t border-t-white/20 ${
     isMeasure && columnIndex > 1
       ? "border-l-2 border-l-white/20"
-      : "border-l-0.5 border-l-slate-700/50";
+      : "border-l-0.5 border-l-slate-700/50"
+  }`;
+
+  // Cursor is green for pattern tracks, blue for scale tracks
+  const cursorColor =
+    ownProps.row.type === "patternTrack" ? "bg-emerald-500" : "bg-sky-500";
+
+  // Cursor pulses when not playing
+  const cursorAnimation = `animate-pulse transition-all duration-75 ${
+    showCursor ? "block" : "hidden"
+  } pointer-events-none`;
+
+  // Cursor position is offset by a bit
+  const cursorPosition = `w-[2px] -left-[2px] h-full absolute`;
+
+  // Assemble the cursor class
+  const cursorClass = `${cursorColor} ${cursorAnimation} ${cursorPosition}`;
 
   return {
     ...ownProps,
     columnIndex,
     trackId,
-    showCursor,
     backgroundClass,
-    leftBorderClass,
+    borderClass,
+    showCursor,
+    cursorClass,
   };
 }
-
-const onClick =
-  (columnIndex: number, trackId?: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const tick = selectTickFromColumn(state, columnIndex - 1);
-    // If no track is selected, seek the transport to the time
-    if (!trackId) {
-      dispatch(seekTransport(tick));
-      dispatch(Slices.Root.deselectAllClips());
-      dispatch(Slices.Root.deselectAllTranspositions());
-      return;
-    }
-    const root = selectRoot(state);
-    const timeline = selectTimeline(state);
-    const { toolkit, selectedPatternId } = root;
-
-    const track = selectTrackById(state, trackId);
-    const onPatternTrack = !!track && isPatternTrack(track);
-    const adding = timeline.state === "adding";
-
-    // Create a clip if adding and on a pattern track
-    if (adding && selectedPatternId && onPatternTrack) {
-      const clip = { patternId: selectedPatternId, trackId, tick };
-      dispatch(createClips([clip]));
-      return;
-    }
-
-    // Create a transposition if transposing
-    if (timeline.state === "transposing") {
-      const offsets = toolkit.transpositionOffsets;
-      const duration = toolkit.transpositionDuration || undefined;
-      dispatch(createTranspositions([{ trackId, tick, offsets, duration }]));
-      return;
-    }
-
-    // Seek the transport to the time
-    dispatch(seekTransport(tick));
-
-    // Select the track
-    if (trackId) dispatch(setSelectedTrack(trackId));
-
-    // Deselect all media
-    dispatch(Slices.Root.deselectAllClips());
-    dispatch(Slices.Root.deselectAllTranspositions());
-  };
 
 function mapDispatchToProps(
   dispatch: AppDispatch,
@@ -126,7 +95,7 @@ function mapDispatchToProps(
   const columnIndex = Number(ownProps.column.key);
   return {
     onClick: () => {
-      dispatch(onClick(columnIndex, trackId));
+      dispatch(onCellClick(columnIndex, trackId));
     },
     setSelectedTrack: (trackId?: TrackId) => {
       dispatch(setSelectedTrack(trackId));

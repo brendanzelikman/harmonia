@@ -48,6 +48,14 @@ export const editorSlice = createSlice({
       state.state = action.payload;
     },
     /**
+     * Toggle the editor state between the given state and idle.
+     * @param state The editor state.
+     * @param action The payload action.
+     */
+    toggleEditorState: (state, action: PayloadAction<EditorState>) => {
+      state.state = state.state === action.payload ? "idle" : action.payload;
+    },
+    /**
      * Set the note duration within the editor.
      * @param state The editor state.
      * @param action The payload action.
@@ -105,6 +113,7 @@ export const {
   _showEditor,
   hideEditor,
   setEditorState,
+  toggleEditorState,
   setEditorNoteDuration,
   setEditorNoteTiming,
   setEditorNoteVelocity,

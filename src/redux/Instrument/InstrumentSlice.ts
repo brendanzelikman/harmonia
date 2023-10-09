@@ -15,13 +15,27 @@ import { initializeState } from "types/util";
 import { MAX_PAN, MAX_VOLUME, MIN_PAN, MIN_VOLUME } from "appConstants";
 import { UndoTypes } from "../undoTypes";
 import { RootState } from "redux/store";
+import {
+  selectInstrumentIds,
+  selectInstrumentMap,
+} from "./InstrumentSelectors";
+import { PatternTrack } from "types/PatternTrack";
+import { TrackId } from "types/Track";
 
 const initialState = initializeState<InstrumentId, Instrument>([]);
 
 /**
- * An `Instrument` can be added to the store.
+ * An `Instrument` can be added with a `PatternTrack` to the store.
  */
-export type AddInstrumentPayload = Instrument;
+export type AddInstrumentPayload = {
+  track: PatternTrack;
+  instrument: Instrument;
+};
+
+/**
+ * An `Instrument` can also be added offline without a track.
+ */
+export type AddInstrumentOfflinePayload = Instrument;
 
 /**
  * An `InstrumentEffect` can be added to an `Instrument` by key.
@@ -58,9 +72,10 @@ export type RearrangeInstrumentEffectPayload = {
 };
 
 /**
- * An `Instrument` can be removed by ID.
+ * An `Instrument` needs to be removed from the store with a track ID.
  */
 export type RemoveInstrumentPayload = {
+  trackId: TrackId;
   instrumentId: InstrumentId;
 };
 
@@ -115,16 +130,29 @@ export type ToggleInstrumentSoloPayload = InstrumentId;
  * @property `unsoloInstruments` - Unsolo all instruments.
  *
  */
-const instrumentsSlice = createSlice({
+export const instrumentsSlice = createSlice({
   name: "instruments",
   initialState,
   reducers: {
     /**
-     * Add an instrument to the store.
+     * Add an instrument to the store (online).
      * @param state The current state.
      * @param action The payload action containing the instrument.
      */
     addInstrument: (state, action: PayloadAction<AddInstrumentPayload>) => {
+      const { instrument } = action.payload;
+      state.allIds = union(state.allIds, [instrument.id]);
+      state.byId[instrument.id] = instrument;
+    },
+    /**
+     * Add an instrument to the store (offline)
+     * @param state The current state.
+     * @param action The payload action containing the instrument.
+     */
+    addInstrumentOffline: (
+      state,
+      action: PayloadAction<AddInstrumentOfflinePayload>
+    ) => {
       const instrument = action.payload;
       state.allIds = union(state.allIds, [instrument.id]);
       state.byId[instrument.id] = instrument;
@@ -475,6 +503,7 @@ const instrumentsSlice = createSlice({
 
 export const {
   addInstrument,
+  addInstrumentOffline,
   addInstrumentEffect,
   updateInstrument,
   updateInstrumentEffect,
@@ -498,28 +527,50 @@ export default instrumentsSlice.reducer;
  */
 export const handleInstrumentMiddleware: Middleware =
   (store) => (next) => (action) => {
+    const type = action.type;
+
+    // Get the old state
+    const oldState = store.getState() as RootState;
+    const oldInstrumentIds = selectInstrumentIds(oldState);
+    const oldInstrumentMap = selectInstrumentMap(oldState);
+
     // Let the action pass through
-    const result = next(action);
+    const result = next(action) as RootState;
 
-    // Apply filter to undo/redo actions
-    if (
-      action.type === UndoTypes.undoSession ||
-      action.type === UndoTypes.redoSession
-    ) {
-      const state = store.getState() as RootState;
+    // Get the new state
+    const nextState = store.getState() as RootState;
+    const newInstrumentMap = selectInstrumentMap(nextState);
+    const newInstrumentIds = selectInstrumentIds(nextState);
 
-      // Iterate through instruments and recreate all audio instances
-      for (const id in state.session.present.instruments.byId) {
-        const instrument = state.session.present.instruments.byId[id];
+    // Get all instrument IDs
+    const allIds = union(oldInstrumentIds, newInstrumentIds);
+
+    // Validate all instruments if undoing/redoing the session
+    if (type === UndoTypes.undoSession || type === UndoTypes.redoSession) {
+      for (const id of allIds) {
+        // Get the instruments
+        const oldInstrument = oldInstrumentMap[id];
+        const newInstrument = newInstrumentMap[id];
         const instance = LIVE_AUDIO_INSTANCES[id];
-        if (!instance) continue;
 
-        // Rebuild the instance
-        LIVE_AUDIO_INSTANCES[id] = new LiveAudioInstance({
-          ...instance.getInitializationProps(),
-          ...instrument,
-        });
+        // If the instance has stopped existing, delete it and continue
+        if (!newInstrument || !instance) {
+          instance?.dispose();
+          delete LIVE_AUDIO_INSTANCES[id];
+          continue;
+        }
+
+        // If the instrument has started existing, create a new instance
+        if (!oldInstrument) {
+          LIVE_AUDIO_INSTANCES[id] = new LiveAudioInstance({
+            ...instance.getInitializationProps(),
+            ...newInstrument,
+          });
+          continue;
+        }
       }
     }
+
+    // Return the result
     return result;
   };

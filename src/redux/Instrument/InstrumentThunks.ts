@@ -1,7 +1,7 @@
 import { AppThunk } from "redux/store";
 import { PatternTrack } from "types/PatternTrack";
 import { selectInstrumentById } from "./InstrumentSelectors";
-import { addInstrument } from "./InstrumentSlice";
+import { addInstrument, addInstrumentOffline } from "./InstrumentSlice";
 import {
   Instrument,
   LiveAudioInstance,
@@ -21,32 +21,39 @@ import {
 export const createInstrument =
   (
     track: PatternTrack,
-    offline = false,
-    oldInstrument?: Instrument
+    options: {
+      offline?: boolean;
+      oldInstrument?: Instrument;
+      recording?: boolean;
+    } = {}
   ): AppThunk<LiveAudioInstance> =>
   (dispatch, getState) => {
     const state = getState();
 
     // Get the instrument of the track
     const trackInstrument = selectInstrumentById(state, track.instrumentId);
-    const instrument = oldInstrument ?? trackInstrument;
+    const oldInstrument = options.oldInstrument ?? trackInstrument;
 
-    // Dispose the old instrument if it exists
-    if (track.instrumentId && !offline) {
+    // Dispose the old instrument if it exists (and is not being recorded)
+    if (track.instrumentId && !options.recording) {
       LIVE_AUDIO_INSTANCES[track.instrumentId]?.dispose();
       delete LIVE_AUDIO_INSTANCES[track.instrumentId];
     }
 
     // Create a new instrument, using the old instrument ID if it exists
-    const newInstrument = initializeInstrument(instrument);
-    if (track.instrumentId !== undefined) newInstrument.id = track.instrumentId;
+    const instrument = initializeInstrument(oldInstrument);
+    if (track.instrumentId !== undefined) instrument.id = track.instrumentId;
 
     // Create a new instance
-    const instance = new LiveAudioInstance(newInstrument);
-    LIVE_AUDIO_INSTANCES[instance.id] = instance;
+    const instance = new LiveAudioInstance(instrument);
+    if (options.recording) return instance;
 
     // Add the instrument to the store and update the instance
-    if (!offline) dispatch(addInstrument(newInstrument));
+    if (!!options.offline) {
+      dispatch(addInstrumentOffline(instrument));
+    } else {
+      dispatch(addInstrument({ track, instrument }));
+    }
 
     // Return the new instance
     return instance;
@@ -87,7 +94,9 @@ export const createGlobalInstrument = (
 export const buildInstruments =
   (tracks: PatternTrack[]): AppThunk =>
   (dispatch) => {
-    tracks.forEach((track) => dispatch(createInstrument(track)));
+    tracks.forEach((track) =>
+      dispatch(createInstrument(track, { offline: true }))
+    );
   };
 
 /**

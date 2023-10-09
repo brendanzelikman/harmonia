@@ -1,4 +1,4 @@
-import useEventListeners from "hooks/useEventListeners";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
   useCallback,
   useEffect,
@@ -52,16 +52,7 @@ export default function ContextMenu(props: {
     };
   }, [targetId]);
 
-  useEventListeners(
-    {
-      Escape: {
-        keydown: () => {
-          setVisible(false);
-        },
-      },
-    },
-    []
-  );
+  useHotkeys("escape", () => setVisible(false));
 
   useLayoutEffect(() => {
     const node = contextRef.current;

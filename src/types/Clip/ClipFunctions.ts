@@ -7,7 +7,7 @@ import * as Session from "types/Session";
 import { MIDI } from "types/midi";
 import { ERROR_TAG } from "types/units";
 import { createMap } from "types/util";
-import { Clip, isClip } from "./ClipTypes";
+import { Clip, ClipId, isClip } from "./ClipTypes";
 import {
   ClipTheme,
   DEFAULT_CLIP_THEME,
@@ -16,7 +16,7 @@ import {
 } from "./ClipThemes";
 
 /**
- * Get the unique tag for a given Clip.
+ * Get the unique tag of a given Clip.
  * @param clip Optional. The Clip object.
  * @returns Unique tag string. If the Clip is invalid, return the error tag.
  */
@@ -47,7 +47,7 @@ export const getClipDuration = (clip?: Clip, pattern?: Pattern.Pattern) => {
  * @param clip The Clip object.
  * @returns The ClipTheme object. If the Clip is invalid, return the default ClipTheme.
  */
-export const getClipTheme = (clip: Clip): ClipTheme => {
+export const getClipTheme = (clip?: Clip): ClipTheme => {
   if (!isClip(clip)) return DEFAULT_CLIP_THEME;
   const color = clip.color ?? DEFAULT_CLIP_COLOR;
   return CLIP_THEMES[color] ?? DEFAULT_CLIP_THEME;
@@ -89,7 +89,8 @@ export const getClipStream = (
   if (!Pattern.isPattern(pattern)) return [] as Pattern.PatternStream;
 
   // Make sure the pattern has a stream
-  const ticks = Pattern.getPatternStreamTicks(pattern.stream);
+  const patternStream = pattern.stream;
+  const ticks = Pattern.getPatternStreamTicks(patternStream);
   if (isNaN(ticks) || ticks < 1) return [];
 
   // Get the clip's pattern track
@@ -125,7 +126,7 @@ export const getClipStream = (
     }
 
     // Get the chord at the current index
-    const chord = pattern.stream[chordCount];
+    const chord = patternStream[chordCount];
     if (!Pattern.isPatternChord(chord)) {
       stream.push([]);
       continue;
@@ -166,7 +167,7 @@ export const getClipStream = (
     );
 
     // Get the transposed pattern stream
-    const patternStream = Track.getTransposedPatternStream({
+    const transposedStream = Track.getTransposedPatternStream({
       pattern,
       transposition,
       quantizations,
@@ -175,7 +176,7 @@ export const getClipStream = (
     });
 
     // Add the transposed chord to the clip stream
-    const clipChord = patternStream[chordCount - 1];
+    const clipChord = transposedStream[chordCount - 1];
     if (!clipChord) {
       stream.push([]);
       continue;
@@ -191,7 +192,7 @@ export const getClipStream = (
  * Get the fully transposed streams of an array of clips using information from the Redux store.
  * @param clips The array of Clip objects.
  * @param dependencies The dependencies of the clips
- * @returns An array of fully transposed PatternStreams. If any of the dependencies are invalid, return an empty array.
+ * @returns A map of clip IDs to fully transposed PatternStreams. If any of the dependencies are invalid, return an empty object.
  */
 export const getClipStreams = (
   clips: Clip[],
@@ -201,14 +202,15 @@ export const getClipStreams = (
   scaleTrackMap: ScaleTrack.ScaleTrackMap,
   transpositionMap: Transposition.TranspositionMap
 ) => {
-  return clips.map((clip) =>
-    getClipStream(
-      clip,
+  return clips.reduce((acc, cur) => {
+    const stream = getClipStream(
+      cur,
       patternMap,
       patternTrackMap,
       sessionMap,
       scaleTrackMap,
       transpositionMap
-    )
-  );
+    );
+    return { ...acc, [cur.id]: stream };
+  }, {} as Record<ClipId, Pattern.PatternStream>);
 };

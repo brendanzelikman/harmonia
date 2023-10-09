@@ -16,6 +16,8 @@ import {
   soloInstruments,
   unsoloInstruments,
   removeInstrument,
+  selectInstrumentById,
+  updateInstrument,
 } from "redux/Instrument";
 import {
   clearTranspositionsByTrackId,
@@ -30,6 +32,7 @@ import {
 import {
   createPatternTrack,
   removePatternTrack,
+  selectPatternTrackById,
   updatePatternTrack,
 } from "redux/PatternTrack";
 import { createMedia } from "redux/thunks";
@@ -40,6 +43,9 @@ import {
   selectTrackMap,
   selectTrackChildren,
 } from "./TrackSelectors";
+import { MouseEvent } from "react";
+import { isHoldingOption } from "utils";
+import { getProperty } from "types/util";
 
 /**
  * Create a track in the store.
@@ -78,8 +84,9 @@ export const updateTracks =
  * @param trackId The ID of the track.
  */
 export const clearTrack =
-  (trackId: TrackId): AppThunk =>
+  (trackId?: TrackId): AppThunk =>
   (dispatch) => {
+    if (!trackId) return;
     dispatch(clearClipsByTrackId(trackId));
     dispatch(clearTranspositionsByTrackId(trackId));
     dispatch(Session.clearTrackInSession(trackId));
@@ -90,7 +97,7 @@ export const clearTrack =
  * @param trackId The ID of the track.
  */
 export const deleteTrack =
-  (trackId: TrackId): AppThunk =>
+  (trackId?: TrackId): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
     const track = selectTrackById(state, trackId);
@@ -98,21 +105,26 @@ export const deleteTrack =
 
     // Remove the track
     if (isScaleTrack(track)) {
-      dispatch(removeScaleTrack(trackId));
-      dispatch(Session.removeScaleTrackFromSession(trackId));
+      dispatch(removeScaleTrack(track.id));
+      dispatch(Session.removeScaleTrackFromSession(track.id));
     } else {
-      dispatch(removePatternTrack(trackId));
-      dispatch(removeInstrument({ instrumentId: track.instrumentId }));
-      dispatch(Session.removePatternTrackFromSession(trackId));
+      dispatch(removePatternTrack(track.id));
+      dispatch(
+        removeInstrument({
+          trackId: track.id,
+          instrumentId: track.instrumentId,
+        })
+      );
+      dispatch(Session.removePatternTrackFromSession(track.id));
     }
 
     // Remove all media
-    dispatch(removeClipsByTrackId(trackId));
-    dispatch(removeTranspositionsByTrackId(trackId));
+    dispatch(removeClipsByTrackId(track.id));
+    dispatch(removeTranspositionsByTrackId(track.id));
 
     // Remove all child tracks
     const sessionMap = selectSessionMap(state);
-    const children = sessionMap[trackId]?.trackIds ?? [];
+    const children = sessionMap[track.id]?.trackIds ?? [];
     for (const id of children) {
       dispatch(deleteTrack(id));
     }
@@ -130,12 +142,12 @@ export const deleteTrack =
  * @param id The ID of the track.
  */
 export const duplicateTrack =
-  (id: TrackId): AppThunk =>
+  (id?: TrackId): AppThunk =>
   async (dispatch, getState) => {
     const state = getState();
     const sessionMap = selectSessionMap(state);
     const track = selectTrackById(state, id);
-    const entity = sessionMap[id];
+    const entity = getProperty(sessionMap, id);
     if (!track || !entity) return;
 
     // Create the new track and get its ID
@@ -194,8 +206,11 @@ export const duplicateTrack =
  * @param track The track to collapse.
  */
 export const collapseTrack =
-  (track?: Track): AppThunk =>
-  (dispatch) => {
+  (trackId?: TrackId): AppThunk =>
+  (dispatch, getState) => {
+    if (!trackId) return;
+    const state = getState();
+    const track = selectTrackById(state, trackId);
     if (!track) return;
     dispatch(updateTracks([{ ...track, collapsed: true }]));
     dispatch(Session.collapseTracksInSession([track.id]));
@@ -206,10 +221,11 @@ export const collapseTrack =
  * @param track The track whose children to collapse.
  */
 export const collapseTrackChildren =
-  (track?: Track): AppThunk =>
+  (trackId?: TrackId): AppThunk =>
   (dispatch, getState) => {
-    if (!track || isPatternTrack(track)) return;
     const state = getState();
+    const track = selectTrackById(state, trackId);
+    if (!track || isPatternTrack(track)) return;
     const children = selectTrackChildren(state, track.id);
     dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: true }))));
     dispatch(Session.collapseTracksInSession(children.map((c) => c.id)));
@@ -220,8 +236,10 @@ export const collapseTrackChildren =
  * @param track The track to expand.
  */
 export const expandTrack =
-  (track?: Track): AppThunk =>
-  (dispatch) => {
+  (trackId?: TrackId): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const track = selectTrackById(state, trackId);
     if (!track) return;
     dispatch(updateTracks([{ ...track, collapsed: false }]));
     dispatch(Session.expandTracksInSession([track.id]));
@@ -232,10 +250,11 @@ export const expandTrack =
  * @param track The track whose children to expand.
  */
 export const expandTrackChildren =
-  (track?: Track): AppThunk =>
+  (trackId?: TrackId): AppThunk =>
   (dispatch, getState) => {
-    if (!track || isPatternTrack(track)) return;
     const state = getState();
+    const track = selectTrackById(state, trackId);
+    if (!track || isPatternTrack(track)) return;
     const children = selectTrackChildren(state, track.id);
     dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: false }))));
     dispatch(Session.expandTracksInSession(children.map((c) => c.id)));
@@ -269,3 +288,53 @@ export const soloTracks = (): AppThunk => (dispatch) => {
 export const unsoloTracks = (): AppThunk => (dispatch) => {
   dispatch(unsoloInstruments());
 };
+
+/**
+ * Toggle the mute state of a track.
+ */
+export const toggleTrackMute =
+  (e: MouseEvent, id?: TrackId): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const track = selectPatternTrackById(state, id);
+    if (!track) return;
+
+    // Get the track's instrument
+    const { instrumentId } = track;
+    const instrument = selectInstrumentById(state, instrumentId);
+    if (!instrument) return;
+
+    // If not holding option, toggle the track mute
+    if (!e || isHoldingOption(e.nativeEvent)) {
+      const update = { mute: !instrument.mute };
+      dispatch(updateInstrument({ instrumentId, update }));
+    }
+
+    // Otherwise, toggle all tracks
+    dispatch(instrument.mute ? unmuteTracks() : muteTracks());
+  };
+
+/**
+ * Toggle the solo state of a track.
+ */
+export const toggleTrackSolo =
+  (e: MouseEvent, id?: TrackId): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+    const track = selectPatternTrackById(state, id);
+    if (!track) return;
+
+    // Get the track's instrument
+    const { instrumentId } = track;
+    const instrument = selectInstrumentById(state, instrumentId);
+    if (!instrument) return;
+
+    // If not holding option, toggle the track solo
+    if (!e || isHoldingOption(e.nativeEvent)) {
+      const update = { solo: !instrument.solo };
+      dispatch(updateInstrument({ instrumentId, update }));
+    }
+
+    // Otherwise, toggle all tracks
+    dispatch(instrument.solo ? unsoloTracks() : soloTracks());
+  };

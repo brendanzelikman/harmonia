@@ -17,7 +17,7 @@ import {
 import { mod } from "utils";
 
 /**
- * Get the unique tag for a given Scale.
+ * Get the unique tag of a given Scale.
  * @param clip Optional. The Scale object.
  * @returns Unique tag string. If the Scale is invalid, return the error tag.
  */

@@ -89,17 +89,18 @@ export const deleteClips =
  * @param tick The tick to slice the clip at.
  */
 export const sliceClip =
-  (clipId: ClipId, tick: Tick): AppThunk =>
+  (clipId?: ClipId, tick: Tick = 0): AppThunk =>
   (dispatch, getState) => {
+    if (!clipId) return;
     const state = getState();
 
     // Get the clip and stream from the store
     const oldClip = selectClipById(state, clipId);
     const stream = selectClipStream(state, clipId);
-    if (!oldClip || !stream.length) return;
+    if (!oldClip || !stream?.length) return;
 
     // Find the tick to split the clip at
-    const splitTick = tick - oldClip.tick;
+    const splitTick = tick - oldClip.tick + 1;
     if (tick === oldClip.tick || splitTick === stream.length) return;
 
     // Create two new clips pivoting at the tick

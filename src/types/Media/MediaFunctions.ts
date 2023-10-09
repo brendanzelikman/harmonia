@@ -103,7 +103,13 @@ export const getMediaTrackIds = (
     media.some((item) => item.trackId === id)
   );
   const endIndex = trackIds.findIndex((id) => id === trackId);
-  return trackIds.slice(startIndex, endIndex + 1);
+  if (startIndex === -1 || endIndex === -1) return [];
+
+  if (startIndex > endIndex) {
+    return trackIds.slice(endIndex, startIndex + 1);
+  } else {
+    return trackIds.slice(startIndex, endIndex + 1);
+  }
 };
 
 /**
@@ -123,7 +129,7 @@ export const getMediaStartTick = (media: Media[]) => {
  */
 export const getMediaEndTick = (media: Media[], durations?: Tick[]) => {
   return media.reduce((acc, item, index) => {
-    const duration = durations?.[index] || item.duration || 1;
+    const duration = durations?.[index] ?? item.duration ?? 1;
     return Math.max(acc, item.tick + duration);
   }, -Infinity);
 };
@@ -228,4 +234,23 @@ export const getDuplicatedMedia = (
     return Math.max(acc, item.tick + durations[index]);
   }, 0);
   return getOffsetedMedia(media, endTick);
+};
+
+/**
+ * Return true if the media overlaps with the given tick range.
+ */
+export const doesMediaOverlap = (
+  media: Media,
+  startTick: number,
+  endTick: number,
+  mediaDuration?: Tick
+) => {
+  // Get the duration of the media
+  const duration = mediaDuration ?? media.duration;
+  if (duration === undefined) return false;
+
+  // Make sure the item is in the range
+  const itemStartTick = media.tick;
+  const itemEndTick = itemStartTick + duration;
+  return itemStartTick < endTick && itemEndTick > startTick;
 };

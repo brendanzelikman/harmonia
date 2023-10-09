@@ -22,6 +22,7 @@ export interface OSMDCursor {
   hide: () => void;
   next: () => void;
   prev: () => void;
+  toggle: () => void;
 }
 interface OSMDReturn {
   score: JSX.Element;
@@ -64,6 +65,13 @@ export default function useOSMD({
     if (showingCursor && osmd?.cursor) {
       osmd.cursor.hide();
       setShowingCursor(false);
+    }
+  };
+  const toggleCursor = () => {
+    if (showingCursor) {
+      hideCursor();
+    } else {
+      showCursor();
     }
   };
   const nextCursor = () => {
@@ -191,6 +199,7 @@ export default function useOSMD({
       hidden: !showingCursor,
       show: showCursor,
       hide: hideCursor,
+      toggle: toggleCursor,
       next: nextCursor,
       prev: prevCursor,
     },

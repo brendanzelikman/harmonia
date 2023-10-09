@@ -7,8 +7,8 @@ import { Media } from "types/Media";
  * @param object The `TimelineObject`.
  * @returns The track ID.
  */
-export const getTimelineObjectTrackId = (object: TimelineObject) => {
-  return isTrack(object) ? object.id : object.trackId;
+export const getTimelineObjectTrackId = (object?: TimelineObject) => {
+  return isTrack(object) ? object.id : object?.trackId;
 };
 
 /**

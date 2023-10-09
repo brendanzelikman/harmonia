@@ -6,7 +6,7 @@ export interface LoopProps extends TimeProps {
   onEnd: (item: any) => void;
 }
 
-interface LoopPoint {
+export interface LoopPoint {
   tick: Tick;
   hoverIndex: number;
 }

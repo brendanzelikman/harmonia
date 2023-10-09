@@ -5,10 +5,11 @@ import {
   ThunkAction,
 } from "@reduxjs/toolkit";
 import * as Slices from "./slices";
-import undoable, { excludeAction } from "redux-undo";
-import { saveState, loadState } from "./util";
+import undoable, { includeAction } from "redux-undo";
+import { saveState, loadState, getSliceActions } from "./util";
 import { groupByActionType, UndoTypes } from "./undoTypes";
 import { handleInstrumentMiddleware } from "./Instrument";
+import { difference } from "lodash";
 
 const session = combineReducers({
   scaleTracks: Slices.ScaleTracks.default,
@@ -21,7 +22,16 @@ const session = combineReducers({
 
 const undoableSession = undoable(session, {
   groupBy: groupByActionType,
-  filter: excludeAction(["transport/setLoaded"]),
+  filter: includeAction([
+    ...getSliceActions(Slices.ScaleTracks.scaleTracksSlice),
+    ...getSliceActions(Slices.PatternTracks.patternTracksSlice),
+    ...getSliceActions(Slices.Clips.clipsSlice),
+    ...getSliceActions(Slices.Transpositions.transpositionsSlice),
+    ...getSliceActions(Slices.Instruments.instrumentsSlice).filter(
+      (action) => action !== "instruments/addInstrumentOffline"
+    ),
+    ...getSliceActions(Slices.Session.sessionSlice),
+  ]),
   undoType: UndoTypes.undoSession,
   redoType: UndoTypes.redoSession,
   limit: 16,

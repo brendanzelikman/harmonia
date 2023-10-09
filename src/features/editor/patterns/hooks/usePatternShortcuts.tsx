@@ -1,14 +1,7 @@
-import { useMemo, useState } from "react";
-import useEventListeners from "hooks/useEventListeners";
-import {
-  cancelEvent,
-  isHoldingCommand,
-  isHoldingShift,
-  isInputEvent,
-} from "utils";
 import { PatternEditorCursorProps } from "..";
 import { Duration } from "types/units";
 import { Pattern } from "types/Pattern";
+import { useHotkeys } from "react-hotkeys-hook";
 
 interface PatternShortcutProps extends PatternEditorCursorProps {
   transposedPattern?: Pattern;
@@ -16,323 +9,235 @@ interface PatternShortcutProps extends PatternEditorCursorProps {
 }
 
 export default function usePatternShortcuts(props: PatternShortcutProps) {
-  // Detect shift and alt key
-  const [holdingShift, setHoldingShift] = useState(false);
-  const [holdingAlt, setHoldingAlt] = useState(false);
-
   const rewindCursor = () => props.cursor.setIndex(0);
   const forwardCursor = () =>
     props.cursor.setIndex((props.pattern?.stream.length ?? 1) - 1);
 
-  useEventListeners(
-    {
-      // 1 = Select 64th Note
-      1: {
-        keydown: (e) => {
-          if (isInputEvent(e) || isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("64th");
-        },
-      },
-      // 2 = Select 32nd Note
-      2: {
-        keydown: (e) => {
-          if (isInputEvent(e) || isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("32nd");
-        },
-      },
-      // 3 = Select 16th Note
-      3: {
-        keydown: (e) => {
-          if (isInputEvent(e) || isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("16th");
-        },
-      },
-      // 4 = Select Eighth Note
-      4: {
-        keydown: (e) => {
-          if (isInputEvent(e) || isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("eighth");
-        },
-      },
-      // 5 = Select Quarter Note
-      5: {
-        keydown: (e) => {
-          if (isInputEvent(e) || isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("quarter");
-        },
-      },
-      // 6 = Select Half Note
-      6: {
-        keydown: (e) => {
-          if (isInputEvent(e) || isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("half");
-        },
-      },
-      // 7 = Select Whole Note
-      7: {
-        keydown: (e) => {
-          if (isInputEvent(e) || isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.onDurationClick("whole");
-        },
-      },
+  // 1 = Select 64th Note
+  useHotkeys("1", () => props.onDurationClick("64th"));
 
-      // A = Start/Stop Adding Notes
-      a: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.adding || props.inserting) {
-            props.clear();
-          } else {
-            props.setState("adding");
-          }
-        },
-      },
+  // 2 = Select 32nd Note
+  useHotkeys("2", () => props.onDurationClick("32nd"));
 
-      // Delete = Remove Note
-      // Shift + Delete = Clear Pattern
-      Backspace: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (!props.pattern) return;
-          cancelEvent(e);
-          if (isHoldingShift(e)) {
-            props.clearPattern(props.pattern);
-          } else {
-            if (props.cursor.hidden) return;
-            const onLast =
-              props.cursor.index === props.pattern.stream.length - 1;
-            props.removePatternNote(props.pattern.id, props.cursor.index);
-            if (onLast) props.cursor.prev();
-          }
-        },
-      },
+  // 3 = Select 16th Note
+  useHotkeys("3", () => props.onDurationClick("16th"));
 
-      // 0 = Input Rest
-      0: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.onRestClick(props.pattern, props.cursor);
-        },
-      },
+  // 4 = Select Eighth Note
+  useHotkeys("4", () => props.onDurationClick("eighth"));
 
-      // . = Toggle Dotted Note
-      ".": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.setNoteTiming(
-            props.noteTiming === "dotted" ? "straight" : "dotted"
-          );
-        },
-      },
+  // 5 = Select Quarter Note
+  useHotkeys("5", () => props.onDurationClick("quarter"));
 
-      // t = Toggle Triplet Note
-      t: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          props.setNoteTiming(
-            props.noteTiming === "triplet" ? "straight" : "triplet"
-          );
-        },
-      },
+  // 6 = Select Half Note
+  useHotkeys("6", () => props.onDurationClick("half"));
 
-      // Cmd + N = Create New Pattern
-      n: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.createPatterns();
-        },
-      },
+  // 7 = Select Whole Note
+  useHotkeys("7", () => props.onDurationClick("whole"));
 
-      // Cmd + D = Duplicate Pattern
-      d: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.copyPattern(props.pattern);
-        },
-      },
+  // A = Start/Stop Adding Notes
+  useHotkeys(
+    "a",
+    () =>
+      props.adding || props.inserting
+        ? props.clear()
+        : props.setState("adding"),
+    [props.adding, props.inserting]
+  );
 
-      // C = Show/Hide Cursor
-      c: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          if (props.pattern)
-            props.cursor.hidden ? props.cursor.show() : props.cursor.hide();
-        },
-      },
-      // x = Start/Stop Anchoring Note
-      x: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          if (props.cursor.hidden) return;
-          props.setState(props.inserting ? "adding" : "inserting");
-        },
-      },
-      // Left Arrow = Move Cursor Left
-      // Shift + Left Arrow = Skip Cursor Left
-      ArrowLeft: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
+  // Backspace = Remove Note if Showing Cursor
+  useHotkeys(
+    "backspace",
+    () => {
+      if (!props.pattern || props.cursor.hidden) return;
+      const onLast = props.cursor.index === props.pattern.stream.length - 1;
+      props.removePatternNote(props.pattern.id, props.cursor.index);
+      if (onLast) props.cursor.prev();
+    },
+    [props.pattern, props.cursor]
+  );
 
-          if (props.cursor.hidden) {
-            props.rotatePattern(props.pattern, -1);
-            return;
-          }
+  // Shift + Backspace = Clear Pattern
+  useHotkeys("shift+backspace", () => props.clearPattern(props.pattern), [
+    props.pattern,
+  ]);
 
-          if (isHoldingShift(e)) {
-            rewindCursor();
-          } else {
-            props.cursor.prev();
-          }
-        },
-      },
-      // Right Arrow = Move Cursor Right
-      // Shift + Right Arrow = Skip Cursor Right
-      ArrowRight: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
+  // 0 = Input Rest
+  useHotkeys("0", () => props.onRestClick(props.pattern, props.cursor), [
+    props.cursor,
+    props.pattern,
+  ]);
 
-          if (props.cursor.hidden) {
-            props.rotatePattern(props.pattern, 1);
-            return;
-          }
+  // . = Toggle Dotted Note
+  useHotkeys(
+    ".",
+    () =>
+      props.setNoteTiming(
+        props.noteTiming === "dotted" ? "straight" : "dotted"
+      ),
+    [props.noteTiming]
+  );
 
-          if (isHoldingShift(e)) {
-            forwardCursor();
-          } else {
-            props.cursor.next();
-          }
-        },
-      },
+  // t = Toggle Triplet Note
+  useHotkeys(
+    "t",
+    () =>
+      props.setNoteTiming(
+        props.noteTiming === "triplet" ? "straight" : "triplet"
+      ),
+    [props.noteTiming]
+  );
 
-      // X = Export Pattern to XML
-      X: {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          cancelEvent(e);
-          if (props.pattern) props.exportPatternToXML(props.pattern);
-        },
-      },
-      // M = Export Pattern to MIDI
-      M: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingShift(e)) return;
-          cancelEvent(e);
-          if (props.pattern) props.exportPatternToMIDI(props.pattern);
-        },
-      },
+  // Meta + D = Duplicate Pattern
+  useHotkeys("meta+d", () => props.copyPattern(props.pattern), [props.pattern]);
 
-      // Up Arrow = Transpose Up Pattern or Note
-      ArrowUp: {
-        keydown: (e) => {
-          if (!props.pattern) return;
-          cancelEvent(e);
-          const holdingShift = isHoldingShift(e);
-          const offset = holdingShift ? 12 : 1;
-          if (props.cursor.hidden) {
-            props.transposePattern(props.pattern, offset);
-          } else {
-            props.transposePatternNote(
-              props.pattern,
-              props.cursor.index,
-              offset
-            );
-          }
-        },
-      },
-      // Down Arrow = Transpose Note Down
-      ArrowDown: {
-        keydown: (e) => {
-          if (!props.pattern) return;
-          cancelEvent(e);
-          const holdingShift = isHoldingShift(e);
-          const offset = holdingShift ? -12 : -1;
-          if (props.cursor.hidden) {
-            props.transposePattern(props.pattern, offset);
-          } else {
-            props.transposePatternNote(
-              props.pattern,
-              props.cursor.index,
-              offset
-            );
-          }
-        },
-      },
-      Shift: {
-        keydown: (e) => !isInputEvent(e) && setHoldingShift(true),
-        keyup: (e) => !isInputEvent(e) && setHoldingShift(false),
-      },
-      Alt: {
-        keydown: (e) => !isInputEvent(e) && setHoldingAlt(true),
-        keyup: (e) => !isInputEvent(e) && setHoldingAlt(false),
-      },
-      // "r" = Prompt for repeat
-      r: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          if (isHoldingCommand(e)) return;
-          const input = prompt("Repeat pattern N times:");
-          const sanitizedInput = parseInt(input ?? "");
-          if (isNaN(sanitizedInput)) return;
-          props.repeatPattern(props.pattern, sanitizedInput);
-        },
-      },
-      // "," = Continue Pattern
-      ",": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !props.pattern) return;
-          if (isHoldingCommand(e)) return;
-          const input = prompt("Continue pattern for N notes:");
-          const sanitizedInput = parseInt(input ?? "");
-          if (isNaN(sanitizedInput)) return;
-          props.continuePattern(props.pattern, sanitizedInput);
-        },
-      },
+  // C = Toggle Cursor
+  useHotkeys("c", props.cursor.toggle);
 
-      // "Cmd + '-'" = Diminish Pattern
-      "-": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.diminishPattern(props.pattern);
-        },
-      },
-      // "Cmd + '+'" = Augment Pattern
-      "=": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingCommand(e)) return;
-          cancelEvent(e);
-          props.augmentPattern(props.pattern);
-        },
-      },
-      // Shift + Space = Play Pattern
-      " ": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingShift(e)) return;
-          // Play Pattern Track
-          if (props.selectedPatternId && props.transposedPattern) {
-            props.playPattern(props.transposedPattern);
-            return;
-          }
-        },
-      },
+  // X = Toggle Anchor
+  useHotkeys("x", () => !props.cursor.hidden && props.toggleState("inserting"));
+
+  // Left Arrow = Rotate Pattern or Move Cursor Left
+  useHotkeys(
+    "left",
+    () => {
+      if (props.cursor.hidden) {
+        props.rotatePattern(props.pattern, -1);
+      } else {
+        props.cursor.prev();
+      }
+    },
+    [props.cursor, props.pattern]
+  );
+
+  // Shift + Left Arrow = Skip Cursor Left
+  useHotkeys("shift+left", rewindCursor, [props.cursor]);
+
+  // Right Arrow = Rotate Pattern or Move Cursor Right
+  useHotkeys(
+    "right",
+    () => {
+      if (props.cursor.hidden) {
+        props.rotatePattern(props.pattern, 1);
+      } else {
+        props.cursor.next();
+      }
+    },
+    [props.cursor, props.pattern]
+  );
+
+  // Shift + Right Arrow = Skip Cursor Right
+  useHotkeys("shift+right", forwardCursor, [props.cursor]);
+
+  // Up Arrow = Transpose Up 1 Step
+  useHotkeys(
+    "up",
+    () => {
+      if (props.cursor.hidden) {
+        props.transposePattern(props.pattern, 1);
+      } else {
+        props.transposePatternNote(props.pattern, props.cursor.index, 1);
+      }
+    },
+    [props.cursor, props.pattern]
+  );
+
+  // Shift + Up Arrow = Transpose Up 1 Octave
+  useHotkeys(
+    "shift+up",
+    () => {
+      if (props.cursor.hidden) {
+        props.transposePattern(props.pattern, 12);
+      } else {
+        props.transposePatternNote(props.pattern, props.cursor.index, 12);
+      }
+    },
+    [props.cursor, props.pattern]
+  );
+
+  // Down Arrow = Transpose Down 1 Step
+  useHotkeys(
+    "down",
+    () => {
+      if (props.cursor.hidden) {
+        props.transposePattern(props.pattern, -1);
+      } else {
+        props.transposePatternNote(props.pattern, props.cursor.index, -1);
+      }
+    },
+    [props.cursor, props.pattern]
+  );
+
+  // Shift + Down Arrow = Transpose Down 1 Octave
+  useHotkeys(
+    "shift+down",
+    () => {
+      if (props.cursor.hidden) {
+        props.transposePattern(props.pattern, -12);
+      } else {
+        props.transposePatternNote(props.pattern, props.cursor.index, -12);
+      }
+    },
+    [props.cursor, props.pattern]
+  );
+
+  // X = Export Pattern to XML
+  useHotkeys("x", () => props.exportPatternToXML(props.pattern), [
+    props.pattern,
+  ]);
+
+  // M = Export Pattern to MIDI
+  useHotkeys("m", () => props.exportPatternToMIDI(props.pattern), [
+    props.pattern,
+  ]);
+
+  // r = Prompt for repeat
+  useHotkeys(
+    "r",
+    () => {
+      if (!props.pattern) return;
+      const input = prompt("Repeat pattern N times:");
+      const sanitizedInput = parseInt(input ?? "");
+      if (isNaN(sanitizedInput)) return;
+      props.repeatPattern(props.pattern, sanitizedInput);
+    },
+    [props.pattern]
+  );
+
+  // , = Continue Pattern
+  useHotkeys(
+    ",",
+    () => {
+      if (!props.pattern) return;
+      const input = prompt("Continue pattern for N notes:");
+      const sanitizedInput = parseInt(input ?? "");
+      if (isNaN(sanitizedInput)) return;
+      props.continuePattern(props.pattern, sanitizedInput);
+    },
+    { splitKey: ";" },
+    [props.pattern]
+  );
+
+  // Meta + "-" = Diminish Pattern
+  useHotkeys("meta+-", () => props.diminishPattern(props.pattern), [
+    props.pattern,
+  ]);
+
+  // Meta + "+" = Augment Pattern
+  useHotkeys(
+    "meta_+",
+    () => props.augmentPattern(props.pattern),
+    { combinationKey: "_" },
+    [props.pattern]
+  );
+
+  // Shift + Space = Play Pattern
+  useHotkeys(
+    "shift+space",
+    () => {
+      if (props.selectedPatternId && props.transposedPattern) {
+        props.playPattern(props.transposedPattern);
+      }
     },
     [props]
   );
-
-  return { holdingShift, holdingAlt };
 }

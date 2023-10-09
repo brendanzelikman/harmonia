@@ -1,12 +1,11 @@
 import { Dialog, Listbox, Transition } from "@headlessui/react";
-import { isInputEvent } from "utils";
-import useEventListeners from "hooks/useEventListeners";
 import { Fragment, useState } from "react";
 import { BsCheck } from "react-icons/bs";
 import { ConnectedProps, connect } from "react-redux";
 import { selectRoot } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { toggleShortcuts } from "redux/Root";
+import { useHotkeys } from "react-hotkeys-hook";
 
 const ShortcutCategory = (props: { name: string }) => {
   return (
@@ -98,21 +97,18 @@ function TimelineShortcuts() {
           shortcut="Up/Down Arrow"
           description="Select Previous/Next Track"
         />
-        <Shortcut shortcut="Click" description="Select a Timeline Object" />
+        <Shortcut shortcut="Click" description="Select Media" />
         <Shortcut
           shortcut="Option + Click"
-          description="Select Individual Timeline Objects"
+          description="Select Individual Media"
         />
-        <Shortcut
-          shortcut="⇧ + Click"
-          description="Select Range of Timeline Objects"
-        />
-        <Shortcut shortcut="⌘ + A" description="Select All Timeline Objects" />
-        <Shortcut shortcut="⌘ + C" description="Copy Timeline Objects" />
-        <Shortcut shortcut="⌘ + X" description="Cut Timeline Objects" />
-        <Shortcut shortcut="⌘ + V" description="Paste Timeline Objects" />
-        <Shortcut shortcut="⌘ + D" description="Duplicate Timeline Objects" />
-        <Shortcut shortcut="Delete" description="Delete Timeline Objects" />
+        <Shortcut shortcut="⇧ + Click" description="Select Range of Media" />
+        <Shortcut shortcut="⌘ + A" description="Select All Media" />
+        <Shortcut shortcut="⌘ + C" description="Copy Media" />
+        <Shortcut shortcut="⌘ + X" description="Cut Media" />
+        <Shortcut shortcut="⌘ + V" description="Paste Media" />
+        <Shortcut shortcut="⌘ + D" description="Duplicate Media" />
+        <Shortcut shortcut="Delete" description="Delete Media" />
         <Shortcut
           shortcut='⌘ + "+"'
           description="Zoom In (Increase Subdivision)"
@@ -606,17 +602,8 @@ function ShortcutsMenu(props: Props) {
   const viewTimeline = () => setView("timeline");
   const viewEditor = () => setView("editor");
   const viewTranspositions = () => setView("transpositions");
-  useEventListeners(
-    {
-      "?": {
-        keydown: (e) => {
-          if (isInputEvent(e)) return;
-          props.toggleShortcuts();
-        },
-      },
-    },
-    [props.showingShortcuts]
-  );
+  useHotkeys("?", props.toggleShortcuts);
+
   return (
     <Transition appear show={props.showingShortcuts} as={Fragment}>
       <Dialog

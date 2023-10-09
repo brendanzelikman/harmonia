@@ -6,11 +6,36 @@ import {
   InstrumentName,
   CategorizedInstrument,
   defaultInstrument,
+  SafeEffect,
 } from "types/Instrument";
 import samples from "assets/instruments/samples.json";
 import categories from "assets/instruments/categories.json";
 import { SamplesMap } from "lib/tone";
 
+/**
+ * Get the unique tag of a given Instrument.
+ * @param instrument The Instrument object.
+ * @returns Unique tag string. If the Instrument is invalid, return the error tag.
+ */
+export const getInstrumentTag = (instrument: Partial<Instrument>) => {
+  if (!instrument) return "invalid-instrument";
+  const effectTags = instrument.effects?.map(getInstrumentEffectTag);
+  return `${instrument.id}@${instrument.key}@${instrument.volume}@${instrument.pan}@${effectTags}`;
+};
+
+/**
+ * Get the unique tag of a given Instrument effect.
+ * @param effect The Instrument effect object.
+ * @returns Unique tag string. If the effect is invalid, return the error tag.
+ */
+export const getInstrumentEffectTag = (effect: Partial<SafeEffect>) => {
+  if (!effect) return "invalid-effect";
+  let tag = "";
+  for (const [key, value] of Object.entries(effect)) {
+    tag += `${key}@${value}`;
+  }
+  return tag;
+};
 /**
  * Unpack the channel of an instrument.
  * @param instrument - Optional. The instrument.

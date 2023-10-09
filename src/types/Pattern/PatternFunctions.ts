@@ -22,6 +22,7 @@ import {
   defaultPattern,
 } from "./PatternTypes";
 import { Sampler } from "tone";
+import { range } from "lodash";
 
 /**
  * Get the options of a given Pattern.
@@ -36,7 +37,7 @@ export const getPatternOptions = (pattern?: Pattern) => {
 };
 
 /**
- * Get the unique tag for a given Pattern.
+ * Get the unique tag of a given Pattern.
  * @param pattern The Pattern object.
  * @returns Unique tag string. If the Pattern is invalid, return the error tag.
  */
@@ -48,7 +49,7 @@ export const getPatternTag = (pattern: Pattern) => {
 };
 
 /**
- * Get the unique tag for a given PatternNote.
+ * Get the unique tag of a given PatternNote.
  * @param patternNote The PatternNote object.
  * @returns Unique tag string. If the PatternNote is invalid, return the error tag.
  */
@@ -59,7 +60,7 @@ export const getPatternNoteTag = (patternNote: PatternNote) => {
 };
 
 /**
- * Get the unique tag for a given PatternChord.
+ * Get the unique tag of a given PatternChord.
  * @param patternChord The PatternChord object.
  * @returns Unique tag string. If the PatternChord is invalid, return the error tag.
  */
@@ -69,7 +70,7 @@ export const getPatternChordTag = (patternChord: PatternChord) => {
 };
 
 /**
- * Get the unique tag for a given PatternStream.
+ * Get the unique tag of a given PatternStream.
  * @param stream The PatternStream object.
  * @returns Unique tag string. If the PatternStream is invalid, return the error tag.
  */
@@ -110,19 +111,20 @@ export const getPatternStreamChord = (stream: PatternStream) => {
 };
 
 /**
- * Flattens a PatternStream into a sorted set of unique MIDI notes.
+ * Get the MIDI range of a PatternStream.
  * @param stream The PatternStream object.
- * @returns A sorted array of unique MIDI notes. If the PatternStream is invalid, return an empty array.
+ * @returns The MIDI range of the PatternStream. If the PatternStream is invalid, return an empty array.
  */
-export const getPatternStreamNoteSet = (stream: PatternStream) => {
+export const getPatternStreamRange = (stream?: PatternStream) => {
   if (!isPatternStream(stream) || !stream.length) return [];
 
   // Get the pattern stream chord
   const streamChord = getPatternStreamChord(stream);
+  if (!streamChord.length) return [];
 
-  // Return the sorted chord as a set
-  const sortedChord = streamChord.sort((a, b) => a - b);
-  return [...new Set(sortedChord)];
+  const min = Math.min(...streamChord);
+  const max = Math.max(...streamChord);
+  return range(min, max + 1);
 };
 
 /**
@@ -320,9 +322,7 @@ export const rotatePatternStream = (
 
   // Get the new notes based around middle C in MIDI
   const notes = streamScale.map((pitch) => MIDI.ChromaticNumber(pitch) + 60);
-  const chordScale = { id: "", name: "", notes };
-
-  return transposePatternStream(stream, steps, chordScale);
+  return transposePatternStream(stream, steps, notes);
 };
 
 /**

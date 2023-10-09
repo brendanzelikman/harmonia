@@ -4,24 +4,15 @@
   box-shadow: none;
   overflow: visible;
 }
-
 .rdg-cell:has(.rdg-time) {
   z-index: 30 !important;
 }
 .rdg-cell:has(.rdg-track) {
   z-index: 90 !important;
 }
-.rdg-clip {
-  z-index: 10 !important;
-  position: absolute;
-  cursor: pointer;
-  overflow: hidden;
-  animation: fadeIn 0.1s ease-in-out;
-}
 .rdg-row {
   --rdg-row-height: auto !important;
 }
-
 .rdg-track {
   animation: fadeIn 0.1s ease-in-out;
 }

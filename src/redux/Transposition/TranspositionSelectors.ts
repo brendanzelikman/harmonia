@@ -1,4 +1,5 @@
 import { RootState } from "redux/store";
+import { createDeepEqualSelector } from "redux/util";
 import { createSelector } from "reselect";
 import { getProperty, getProperties, selectId, selectIds } from "types/util";
 
@@ -22,7 +23,7 @@ export const selectTranspositionMap = (state: RootState) =>
  * Select all transpositions from the store.
  * @returns An array of transpositions.
  */
-export const selectTranspositions = createSelector(
+export const selectTranspositions = createDeepEqualSelector(
   [selectTranspositionMap, selectTranspositionIds],
   getProperties
 );

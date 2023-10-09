@@ -7,8 +7,8 @@ import { ScaleTrack, ScaleTrackType } from "types/ScaleTrack";
 export type Track = ScaleTrack | PatternTrack;
 export type TrackId = ID;
 export type TrackNoId = Omit<Track, "id">;
-export type DefaultTrackType = "defaultTrack";
-export type TrackType = ScaleTrackType | PatternTrackType | DefaultTrackType;
+export type EmptyTrackType = "emptyTrack";
+export type TrackType = ScaleTrackType | PatternTrackType | EmptyTrackType;
 export type TrackMap = Record<TrackId, Track>;
 
 /**
@@ -64,13 +64,13 @@ export const initializeTrack = (
 
 export const defaultTrack: TrackInterface = {
   id: "default-track",
-  type: "defaultTrack",
+  type: "emptyTrack",
   name: "",
 };
 
 export const mockTrack: TrackInterface = {
   id: "mock-track",
-  type: "defaultTrack",
+  type: "emptyTrack",
   name: "Mock Track",
 };
 

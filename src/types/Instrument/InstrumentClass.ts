@@ -1,4 +1,3 @@
-import { inRange, omit } from "lodash";
 import * as Tone from "tone";
 import { InstrumentKey, Instrument, InstrumentId } from "./InstrumentTypes";
 import * as Instruments from "../Instrument";
@@ -75,6 +74,9 @@ export class LiveAudioInstance {
       this.waveform,
       Tone.getDestination()
     );
+
+    // Add to the record if not already in there
+    if (!LIVE_AUDIO_INSTANCES[id]) LIVE_AUDIO_INSTANCES[id] = this;
   }
 
   /**
@@ -100,7 +102,7 @@ export class LiveAudioInstance {
     return this.channel.volume.value;
   }
   set volume(value: Volume) {
-    this.channel.volume.value = value;
+    if (!this.mute) this.channel.volume.value = value;
   }
   /**
    * The pan of the instrument from -1 to 1.

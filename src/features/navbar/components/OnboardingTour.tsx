@@ -9,7 +9,7 @@ import { setTimelineState } from "redux/Timeline";
 import * as Root from "redux/Root";
 import { AppDispatch, RootState } from "redux/store";
 import { EditorId } from "types/Editor";
-import useEventListeners from "hooks/useEventListeners";
+import { useHotkeys } from "react-hotkeys-hook";
 
 const mapStateToProps = (state: RootState) => ({
   showingTour: state.root.showingTour,
@@ -358,20 +358,13 @@ function ShepherdTourContent(props: ContentProps) {
     };
   }, [tour?.isActive()]);
 
-  useEventListeners(
-    {
-      Escape: {
-        keydown: () => {
-          if (tour?.isActive()) {
-            tour.cancel();
-            callback(true);
-          }
-          props.endTour();
-        },
-      },
-    },
-    [tour]
-  );
+  useHotkeys("escape", () => {
+    if (tour?.isActive()) {
+      tour.cancel();
+      callback(true);
+    }
+    props.endTour();
+  });
 
   if (!tour) return null;
 

@@ -1,12 +1,16 @@
 import { RootState } from "redux/store";
 import {
   selectClipMap,
+  selectOrderedTrackIds,
   selectPatternMap,
   selectTrackMap,
+  selectTrackParents,
   selectTranspositionMap,
 } from "redux/selectors";
 import { getProperties, getProperty } from "types/util";
 import { TranspositionOffsetRecord } from "types/Transposition";
+import { createDeepEqualSelector } from "redux/util";
+import { Media } from "types/Media";
 
 /**
  * Select the root.
@@ -70,26 +74,61 @@ export const selectSelectedTrack = (state: RootState) => {
 };
 
 /**
+ * Select the index of the currently selected track.
+ * @param state The root state.
+ * @returns The index of the currently selected track or -1 if none is selected.
+ */
+export const selectSelectedTrackIndex = (state: RootState) => {
+  const selectedTrackId = selectSelectedTrackId(state);
+  if (!selectedTrackId) return -1;
+  const orderedTrackIds = selectOrderedTrackIds(state);
+  return orderedTrackIds.indexOf(selectedTrackId);
+};
+
+/**
+ * Select the parents of the currently selected track.
+ * @param state The root state.
+ * @returns The parents of the currently selected track or an empty array if none is selected.
+ */
+export const selectSelectedTrackParents = (state: RootState) => {
+  const selectedTrack = selectSelectedTrack(state);
+  if (!selectedTrack) return [];
+  return selectTrackParents(state, selectedTrack.id);
+};
+
+/**
  * Select the currently selected clips.
  * @param state The root state.
  * @returns The currently selected clips.
  */
-export const selectSelectedClips = (state: RootState) => {
-  const clipMap = selectClipMap(state);
-  const selectedClipIds = selectSelectedClipIds(state);
-  return getProperties(clipMap, selectedClipIds);
-};
+export const selectSelectedClips = createDeepEqualSelector(
+  [selectClipMap, selectSelectedClipIds],
+  (clipMap, selectedClipIds) => getProperties(clipMap, selectedClipIds)
+);
 
 /**
  * Select the currently selected transpositions.
  * @param state The root state.
  * @returns The currently selected transpositions or an empty array if none are selected or found.
  */
-export const selectSelectedTranspositions = (state: RootState) => {
-  const transpositionMap = selectTranspositionMap(state);
-  const selectedTranspositionIds = selectSelectedTranspositionIds(state);
-  return getProperties(transpositionMap, selectedTranspositionIds);
-};
+export const selectSelectedTranspositions = createDeepEqualSelector(
+  [selectTranspositionMap, selectSelectedTranspositionIds],
+  (transpositionMap, selectedTranspositionIds) =>
+    getProperties(transpositionMap, selectedTranspositionIds)
+);
+
+/**
+ * Select all selected media.
+ * @param state The root state.
+ * @returns An array of selected media.
+ */
+export const selectSelectedMedia = createDeepEqualSelector(
+  [selectSelectedClips, selectSelectedTranspositions],
+  (selectedClips, selectedTranspositions): Media[] => [
+    ...selectedClips,
+    ...selectedTranspositions,
+  ]
+);
 
 /**
  * Select the transposition offsets.

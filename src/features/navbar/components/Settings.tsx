@@ -3,8 +3,6 @@ import {
   MAX_TRANSPORT_VOLUME,
   MIN_CELL_WIDTH,
   MAX_CELL_WIDTH,
-  MAX_CELL_HEIGHT,
-  MIN_CELL_HEIGHT,
   DEFAULT_BPM,
 } from "appConstants";
 import { KeyboardEvent, useMemo, useState } from "react";
@@ -25,10 +23,9 @@ import { NavbarFormLabel } from "./Navbar";
 import { NavbarFormInput } from "./Navbar";
 import { toggleShortcuts } from "redux/Root";
 import { clamp } from "lodash";
-import useEventListeners from "hooks/useEventListeners";
-import { isHoldingCommand, isInputEvent } from "utils";
 import { setCellWidth, setCellHeight } from "redux/Timeline";
 import { DEFAULT_CELL } from "types/Timeline";
+import { useHotkeys } from "react-hotkeys-hook";
 
 const mapStateToProps = (state: RootState) => {
   const { bpm, timeSignature, volume, mute } = selectTransport(state);
@@ -94,12 +91,6 @@ function Settings(props: Props) {
   const setCellWidth = (width: number) =>
     setCellInput((prev) => ({ ...prev, width: width ?? DEFAULT_CELL.width }));
 
-  const setCellHeight = (height: number) =>
-    setCellInput((prev) => ({
-      ...prev,
-      height: height ?? DEFAULT_CELL.height,
-    }));
-
   const onWidthKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !isNaN(CellInput.width)) {
       props.setCellWidth(CellInput.width);
@@ -110,30 +101,13 @@ function Settings(props: Props) {
     }
   };
 
-  const onHeightKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !isNaN(CellInput.height)) {
-      props.setCellHeight(CellInput.height);
-      setCellInput({
-        ...cell,
-        height: clamp(CellInput.height, MIN_CELL_HEIGHT, MAX_CELL_HEIGHT),
-      });
-    }
-  };
-
   // Settings visibility toggle
   const [show, setShow] = useState(false);
-  useEventListeners(
-    {
-      // Command + , = Toggle Settings
-      ",": {
-        keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingCommand(e)) return;
-          e.preventDefault();
-          setShow(!show);
-        },
-      },
-    },
-    [show, setShow]
+  useHotkeys(
+    "meta+,",
+    () => setShow(!show),
+    { preventDefault: true, splitKey: ";" },
+    [show]
   );
 
   const SettingsTooltipContent = useMemo(

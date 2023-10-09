@@ -19,8 +19,11 @@ import {
   selectScaleTrackById,
   selectScaleTrackMap,
 } from "./ScaleTrackSelectors";
-import { addScaleTrackToSession } from "redux/Session";
+import { addScaleTrackToSession, moveTrackInSession } from "redux/Session";
 import { getProperty } from "types/util";
+import { setPatternTrackScaleTrack } from "redux/PatternTrack";
+import { selectTrackById } from "redux/selectors";
+import { isPatternTrack } from "types/PatternTrack";
 
 /**
  * Create a `ScaleTrack` with an optional initial track.
@@ -227,7 +230,7 @@ export const rotateScaleTrack =
  * @param scaleTrackId The ID of the scale track to clear.
  */
 export const clearNotesFromScaleTrack =
-  (scaleTrackId: TrackId): AppThunk =>
+  (scaleTrackId?: TrackId): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
 
@@ -237,4 +240,35 @@ export const clearNotesFromScaleTrack =
 
     // Dispatch the update
     dispatch(updateScaleTrack({ id: scaleTrackId, trackScale: [] }));
+  };
+
+/**
+ * Move the scale track to the index of the given track ID.
+ * @param props The drag and hover IDs.
+ */
+export const moveScaleTrack =
+  (props: { dragId: TrackId; hoverId: TrackId }): AppThunk<boolean> =>
+  (dispatch, getState) => {
+    const { dragId, hoverId } = props;
+    const state = getState();
+
+    // Get the corresponding scale tracks
+    const thisTrack = selectTrackById(state, dragId);
+    const otherTrack = selectTrackById(state, hoverId);
+    if (!thisTrack || !otherTrack) return false;
+
+    // If the dragged track is a pattern track, move the pattern track
+    const isThisPatternTrack = isPatternTrack(thisTrack);
+    const isOtherPatternTrack = isPatternTrack(otherTrack);
+
+    if (isThisPatternTrack && !isOtherPatternTrack) {
+      const patternTrackId = thisTrack.id;
+      const scaleTrackId = otherTrack.id;
+      dispatch(setPatternTrackScaleTrack(patternTrackId, scaleTrackId));
+      return true;
+    }
+
+    // Move the scale track
+    dispatch(moveTrackInSession({ id: thisTrack.id, index: 0 }));
+    return true;
   };

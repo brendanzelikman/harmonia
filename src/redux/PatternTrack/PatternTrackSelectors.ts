@@ -37,7 +37,7 @@ export const selectPatternTracks = createSelector(
  * @param id The pattern track ID.
  * @returns The pattern track object or undefined if not found.
  */
-export const selectPatternTrackById = (state: RootState, id: TrackId) => {
+export const selectPatternTrackById = (state: RootState, id?: TrackId) => {
   const patternTrackMap = selectPatternTrackMap(state);
   return getProperty(patternTrackMap, id);
 };

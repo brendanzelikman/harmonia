@@ -23,6 +23,7 @@ import {
   selectPatternTrackMap,
   selectRoot,
   selectPatternTrackAudioInstances,
+  selectChordsAtTick,
 } from "redux/selectors";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 
@@ -64,7 +65,6 @@ export const loadTransport = (): AppThunk => async (dispatch, getState) => {
   } finally {
     // Take an extra lil bit to load :)
     await sleep(5.12);
-
     // Set the transport as loaded
     dispatch(TransportSlice.setLoaded(true));
     dispatch(TransportSlice.setLoading(false));
@@ -295,29 +295,30 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
   // Schedule patterns if the transport is stopped
   if (transport.state === "stopped") {
     const pulse = convertTicksToSeconds(transport, 1);
+
     // Schedule the transport
     Tone.Transport.scheduleRepeat((time) => {
       const state = getState();
       const transport = selectTransport(state);
 
       // Get the chord record at the current tick
-      const chordsByTick = selectChordsByTicks(state);
-      const chordRecord = chordsByTick[transport.tick] ?? {};
-      const instrumentIds = Object.keys(chordRecord);
+      const chordRecord = selectChordsAtTick(state, transport.tick);
 
       // Iterate over the instruments that are to be played at the current tick
-      for (const instrumentId of instrumentIds) {
-        // Get the chord to be played
-        const chord = chordRecord[instrumentId];
+      if (chordRecord) {
+        for (const instrumentId in chordRecord) {
+          // Get the chord to be played
+          const chord = chordRecord[instrumentId];
+          if (!chord) continue;
 
-        // Get the live audio instance
-        const instance = LIVE_AUDIO_INSTANCES[instrumentId];
-        if (!instance.isLoaded()) continue;
+          // Get the live audio instance
+          const instance = LIVE_AUDIO_INSTANCES[instrumentId];
+          if (!instance.isLoaded()) continue;
 
-        // Play the realized pattern chord using the sampler
-        playPatternChord(instance.sampler, chord, time);
+          // Play the realized pattern chord using the sampler
+          playPatternChord(instance.sampler, chord, time);
+        }
       }
-
       // Schedule the next tick
       const nextTick = getNextTransportTick(transport);
       dispatch(TransportSlice._seekTransport(nextTick));
@@ -364,7 +365,7 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
     for (const trackId in oldSamplers) {
       const patternTrack = patternTrackMap[trackId];
       const instance = dispatch(
-        Instrument.createInstrument(patternTrack, true)
+        Instrument.createInstrument(patternTrack, { recording: true })
       );
       if (!instance) continue;
       samplers[trackId] = instance.sampler;

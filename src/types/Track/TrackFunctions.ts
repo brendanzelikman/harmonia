@@ -2,7 +2,6 @@ import {
   Pattern,
   transposePatternStream,
   rotatePatternStream,
-  isPattern,
 } from "types/Pattern";
 import {
   Transposition,
@@ -21,14 +20,12 @@ import {
   TrackScale,
   isTrackScale,
   isTrackMap,
+  TrackInterface,
 } from "./TrackTypes";
-import { isPatternTrack, getPatternTrackTag } from "types/PatternTrack";
 import {
   isScaleTrack,
-  getScaleTrackTag,
   ScaleTrackMap,
   ScaleTrack,
-  isScaleTrackMap,
   getChromaticallyTransposedTrackScale,
   getChordallyTransposedTrackScale,
   getScalarlyTransposedTrackScale,
@@ -36,18 +33,13 @@ import {
 } from "types/ScaleTrack";
 
 /**
- * Get the unique tag for a given Track.
+ * Get the unique tag of a given Track.
  * @param clip Optional. The Track object.
  * @returns Unique tag string. If the Track is not a ScaleTrack or a PatternTrack, return the error tag.
  */
-export const getTrackTag = (track: Track) => {
+export const getTrackTag = (track: TrackInterface) => {
   if (!isTrack(track)) return ERROR_TAG;
-  const typedTag = isScaleTrack(track)
-    ? getScaleTrackTag(track)
-    : isPatternTrack(track)
-    ? getPatternTrackTag(track)
-    : ERROR_TAG;
-  return typedTag;
+  return `${track.id}@${track.name}@${track.type}@${track.parentId}`;
 };
 
 /**
@@ -189,7 +181,6 @@ export const getTransposedScaleTrack = (
   return { ...newTrack, trackScale };
 };
 
-// Transpose the scale tracks at the given tick
 /**
  * Transpose the scale tracks at the given tick.
  * @param tracks The ScaleTracks to transpose.
@@ -265,9 +256,9 @@ export const getTransposedPatternStream = ({
   scaleTracks?: ScaleTrackMap;
   quantizations?: boolean[];
 }) => {
-  if (!isPattern(pattern)) return [];
-  if (!isTransposition(transposition)) return pattern.stream;
-  if (!isScaleTrackMap(scaleTracks)) return pattern.stream;
+  if (!pattern) return [];
+  if (!transposition) return pattern.stream;
+  if (!scaleTracks) return pattern.stream;
   if (!tracks || tracks?.some((track) => !isScaleTrack(track))) return [];
 
   // Initialize the loop variables

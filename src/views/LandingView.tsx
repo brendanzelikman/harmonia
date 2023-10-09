@@ -1,72 +1,49 @@
-import useEventListeners from "hooks/useEventListeners";
-import { Background, Splash } from "./Logo";
+import { Background, Splash } from "../components/Logo";
 
-export default function LandingPage() {
-  useEventListeners(
-    {
-      " ": {
-        keydown: () => {
-          window.location.href = "/harmonia/playground";
-        },
-      },
-    },
-    []
-  );
-  return (
-    <main className="relative font-nunito fade-in flex flex-col w-full h-screen overflow-scroll">
-      <Background />
-      <SplashScreen />
-      <TimelineHero />
-      <ScaleHero />
-      <PatternHero />
-      <LibraryHero />
-      <ContactHero />
-    </main>
-  );
-}
-
-export const MainButton = (props: { href: string; text: string }) => (
+export const MainButton = () => (
   <a
-    href={props.href}
+    href={"/harmonia/playground"}
     className="border border-slate-400 py-5 px-8 rounded-2xl text-slate-100 backdrop-blur bg-gradient-to-b from-sky-500/50 hover:from-sky-600 to-sky-700/80 hover:to-sky-700 drop-shadow-xl sm:text-4xl text-sm font-light"
   >
-    {props.text}
+    Make Music Now!
   </a>
 );
 
-const SplashScreen = () => (
-  <Section>
-    <Splash />
-    <MainButton href="/harmonia/playground" text="Make Music Now!" />
-  </Section>
-);
+export const LandingView = () => {
+  const SplashScreen = () => (
+    <Section>
+      <Splash />
+      <MainButton />
+    </Section>
+  );
 
-const HeroQuote = (props: { title: string; text: string }) => (
-  <section className="flex lg:w-2/5 mb-10 md:w-full justify-center items-center">
-    <blockquote className="lg:w-[32rem] md:w-full text-center white">
-      <h3 className="mb-2 text-slate-50 font-semibold text-2xl whitespace-pre-line">
-        {props.title}
-      </h3>
-      <p className="text-slate-200 font-light text-xl max-h-16">{props.text}</p>
-    </blockquote>
-  </section>
-);
+  const HeroQuote = (props: { title: string; text: string }) => (
+    <section className="flex lg:w-2/5 mb-10 md:w-full justify-center items-center">
+      <blockquote className="lg:w-[32rem] md:w-full text-center white">
+        <h3 className="mb-2 text-slate-50 font-semibold text-2xl whitespace-pre-line">
+          {props.title}
+        </h3>
+        <p className="text-slate-200 font-light text-xl max-h-16">
+          {props.text}
+        </p>
+      </blockquote>
+    </section>
+  );
 
-const HeroImage = (props: { src: string }) => (
-  <img
-    src={props.src}
-    className="w-1/2 border-2 border-indigo-400/25 drop-shadow-2xl shadow-xl shadow-sky-600/50 rounded-xl"
-  />
-);
+  const HeroImage = (props: { src: string }) => (
+    <img
+      src={props.src}
+      className="w-1/2 border-2 border-indigo-400/25 drop-shadow-2xl shadow-xl shadow-sky-600/50 rounded-xl"
+    />
+  );
 
-const Section = (props: { children: React.ReactNode }) => (
-  <section className="flex flex-col items-center justify-center w-full h-screen shrink-0">
-    {props.children}
-  </section>
-);
+  const Section = (props: { children: React.ReactNode }) => (
+    <section className="flex flex-col items-center justify-center w-full h-screen shrink-0">
+      {props.children}
+    </section>
+  );
 
-function TimelineHero() {
-  return (
+  const TimelineHero = () => (
     <Section>
       <HeroImage src="timeline.png" />
       <div className="w-full flex flex-row flex-wrap justify-center my-4 mt-8">
@@ -92,10 +69,8 @@ function TimelineHero() {
       </div>
     </Section>
   );
-}
 
-function ScaleHero() {
-  return (
+  const ScaleHero = () => (
     <Section>
       <HeroImage src="scaleEditor.png" />
       <div className="w-full flex flex-row flex-wrap justify-center my-4 mt-8">
@@ -120,10 +95,8 @@ function ScaleHero() {
       </div>
     </Section>
   );
-}
 
-function PatternHero() {
-  return (
+  const PatternHero = () => (
     <Section>
       <HeroImage src="patternEditor.png" />
       <div className="w-full flex flex-row flex-wrap justify-center my-4 mt-8">
@@ -148,61 +121,24 @@ function PatternHero() {
       </div>
     </Section>
   );
-}
 
-function LibraryHero() {
-  return (
+  const LibraryHero = () => (
     <Section>
-      <div className="w-full items-center justify-center flex flex-row flex-wrap px-4 space-x-6">
-        <a
-          href="https://react.dev/"
-          target="_blank"
-          className="md:w-1/6 w-[100px] flex justify-center my-4"
-        >
-          <img
-            className="max-w-[200px] w-full drop-shadow-2xl"
-            src="lib/react.png"
-          />
+      <div className="w-full items-center justify-center flex flex-row flex-wrap px-4 space-x-6 [&>a>img]:drop-shadow-2xl [&>a]:md:w-1/6 [&>a]:w-[100px] [&>a>img]:max-w-[200px] [&>a>img]:w-full">
+        <a href="https://react.dev/" target="_blank" className="">
+          <img className="" src="lib/react.png" />
         </a>
-        <a
-          href="https://www.typescriptlang.org/"
-          target="_blank"
-          className="md:w-1/6 w-[100px] flex justify-center my-4"
-        >
-          <img
-            className="max-w-[200px] w-full drop-shadow-2xl"
-            src="lib/typescript.png"
-          />
+        <a href="https://www.typescriptlang.org/" target="_blank">
+          <img src="lib/typescript.png" />
         </a>
-        <a
-          href="https://redux.js.org/"
-          target="_blank"
-          className="md:w-1/6 w-[100px] flex justify-center my-4"
-        >
-          <img
-            className="max-w-[200px] w-full drop-shadow-2xl"
-            src="lib/redux.png"
-          />
+        <a href="https://redux.js.org/" target="_blank">
+          <img src="lib/redux.png" />
         </a>
-        <a
-          href="https://tonejs.github.io/"
-          target="_blank"
-          className="md:w-1/6 w-[100px] flex justify-center my-4"
-        >
-          <img
-            className="max-w-[200px] w-full drop-shadow-2xl"
-            src="lib/tone.png"
-          />
+        <a href="https://tonejs.github.io/" target="_blank">
+          <img src="lib/tone.png" />
         </a>
-        <a
-          href="https://tailwindcss.com/"
-          target="_blank"
-          className="md:w-1/6 w-[100px] flex justify-center my-4"
-        >
-          <img
-            className="max-w-[200px] w-full drop-shadow-2xl"
-            src="lib/tailwind.png"
-          />
+        <a href="https://tailwindcss.com/" target="_blank">
+          <img src="lib/tailwind.png" />
         </a>
       </div>
       <div className="text-center mt-16 font-bold lg:text-6xl md:text-4xl text-2xl text-slate-100 drop-shadow-2xl">
@@ -213,10 +149,8 @@ function LibraryHero() {
       </div>
     </Section>
   );
-}
 
-function ContactHero() {
-  return (
+  const ContactHero = () => (
     <Section>
       <a
         href="mailto:brendanzelikman@gmail.com"
@@ -242,4 +176,16 @@ function ContactHero() {
       </div>
     </Section>
   );
-}
+
+  return (
+    <main className="relative font-nunito fade-in flex flex-col w-full h-screen overflow-scroll">
+      <Background />
+      <SplashScreen />
+      <TimelineHero />
+      <ScaleHero />
+      <PatternHero />
+      <LibraryHero />
+      <ContactHero />
+    </main>
+  );
+};

@@ -8,13 +8,12 @@ import { defaultEditor, EditorId, EditorState } from "types/Editor";
 import { durationToTicks } from "utils";
 
 function mapStateToProps(state: RootState) {
-  const { selectedPatternId, showingTour } = selectRoot(state);
+  const { selectedPatternId, selectedTrackId, showingTour } = selectRoot(state);
   const editor = selectEditor(state);
   const adding = editor.state === "adding";
   const inserting = editor.state === "inserting";
   const removing = editor.state === "removing";
   const transport = selectTransport(state);
-
   const noteTicks = durationToTicks(editor.noteDuration, {
     dotted: editor.noteTiming === "dotted",
     triplet: editor.noteTiming === "triplet",
@@ -22,6 +21,7 @@ function mapStateToProps(state: RootState) {
 
   return {
     selectedPatternId,
+    selectedTrackId,
     ...defaultEditor,
     ...editor,
     noteTicks,
@@ -43,6 +43,9 @@ function mapDispatchToProps(dispatch: AppDispatch) {
     },
     setState: (action: EditorState) => {
       dispatch(EditorSlice.setEditorState(action));
+    },
+    toggleState: (action: EditorState) => {
+      dispatch(EditorSlice.toggleEditorState(action));
     },
     clear: () => {
       dispatch(EditorSlice.setEditorState("idle"));

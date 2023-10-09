@@ -30,12 +30,11 @@ import * as Root from "redux/Root";
 import * as Timeline from "redux/Timeline";
 import { Clip } from "types/Clip";
 import { mergeClips, repeatClips } from "redux/Media";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { hideEditor } from "redux/Editor";
 import { Toolkit } from "types/Root";
 import { Transition } from "@headlessui/react";
-import useKeyHolder from "hooks/useKeyHolder";
-import { getChromaticOffset, getScalarOffsets } from "types/Transposition";
+import { getChromaticOffset } from "types/Transposition";
 import { getScaleTrackScale } from "types/ScaleTrack";
 import {
   getTransposedScale,
@@ -44,59 +43,31 @@ import {
   Scale,
 } from "types/Scale";
 import { sanitizeNumber } from "utils";
+import { useDeepEqualSelector } from "redux/hooks";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 const mapStateToProps = (state: RootState) => {
   const root = selectRoot(state);
   const editor = selectEditor(state);
   const timeline = selectTimeline(state);
-  const scaleTracks = selectScaleTrackMap(state);
+  const scaleTrackMap = selectScaleTrackMap(state);
 
   // Selected timeline objects
   const selectedTrack = selectSelectedTrack(state);
-  const selectedClips = selectSelectedClips(state);
   const selectedPattern = selectSelectedPattern(state);
-  const selectedTranspositions = selectSelectedTranspositions(state);
-  const isLive = !!selectedTranspositions.length;
   const onScaleTrack = selectedTrack?.type === "scaleTrack";
 
-  // Selected track info
-  const parents = selectedTrack
-    ? selectTrackParents(state, selectedTrack.id).slice(onScaleTrack ? 1 : 0)
-    : [];
-  const scales = parents.map((t) => getScaleTrackScale(t, scaleTracks));
-  const scaleIds = parents.map((t) => t?.id);
-
-  // Transposition offsets
+  //Transposition offsets
   const { toolkit } = root;
   const offsets = Root.selectTranspositionOffsets(state);
-  const chromaticTranspose = getChromaticOffset(offsets);
-  const scalarTransposes = getScalarOffsets(offsets, scaleIds);
-  const chordalTranspose = getChromaticOffset(offsets);
-
-  // Pre-transposed scales/scale names based on toolkit
-  const transposedScales = parents.map((scale) => {
-    const trackScale = getScaleTrackScale(scale, scaleTracks);
-    return getTransposedScale(trackScale, chromaticTranspose);
-  });
-  const scaleNames = transposedScales.map((transposedScale, i) => {
-    const trackName = parents[i].name;
-    if (trackName?.length) return trackName;
-    return getScaleName(transposedScale || scales[i]);
-  });
-
   return {
     ...root,
-    ...toolkit,
-    selectedClips,
+    scaleTrackMap,
+    selectedTrack,
     selectedPattern,
-    parents,
+    toolkit,
     offsets,
-    scales,
-    scaleNames,
-    chromaticTranspose,
-    scalarTransposes,
-    chordalTranspose,
-    isLive,
+    onScaleTrack,
     onEditor: editor.id !== "hidden",
     onPatterns: editor.id === "patterns",
     addingClip: timeline.state === "adding",
@@ -168,13 +139,48 @@ const ControlButton = (props: {
 );
 
 function PatternControl(props: Props) {
-  const { parents, offsets, scales, scaleNames } = props;
-  const heldKeys = useKeyHolder(["q", "w", "s", "x", "e"]);
+  const { selectedTrack, offsets, scaleTrackMap } = props;
+  const {
+    mergeName,
+    mergeTranspositions,
+    repeatCount,
+    repeatTranspositions,
+    repeatWithTransposition,
+    transpositionDuration,
+  } = props.toolkit;
 
+  // Selected track info
+  const parents = useDeepEqualSelector((state) =>
+    selectTrackParents(state, selectedTrack?.id).slice(
+      props.onScaleTrack ? 1 : 0
+    )
+  );
+  const scales = parents.map((t) => getScaleTrackScale(t, scaleTrackMap));
+  const scaleIds = parents.map((t) => t?.id);
+  const chromaticTranspose = getChromaticOffset(offsets);
+
+  // Transposition offsets
+  const transposedScales = parents.map((scale) => {
+    const trackScale = getScaleTrackScale(scale, scaleTrackMap);
+    return getTransposedScale(trackScale, chromaticTranspose);
+  });
+  const scaleNames = transposedScales.map((transposedScale, i) => {
+    const trackName = parents[i].name;
+    if (trackName?.length) return trackName;
+    return getScaleName(transposedScale || scales[i]);
+  });
+
+  const selectedClips = useDeepEqualSelector(selectSelectedClips);
+  const selectedTranspositions = useDeepEqualSelector(
+    selectSelectedTranspositions
+  );
+  const isLive = !!selectedTranspositions.length;
+
+  const heldKeys = useHeldHotkeys(["q", "w", "s", "x", "e"]);
   // Handlers for updating transposition offsets
   const setTranspositionValue = (key: string) => (value: number) => {
     props.setToolkitValue("transpositionOffsets", {
-      ...props.transpositionOffsets,
+      ...offsets,
       [key]: value,
     });
   };
@@ -238,7 +244,7 @@ function PatternControl(props: Props) {
   );
 
   // Merge the selected clips/transpositions into a new clip
-  const { mergingClips, mergeName, mergeTranspositions, selectedClips } = props;
+  const { mergingClips } = props;
 
   const MergeClipsButton = useMemo(() => {
     // Name of the new merged clip
@@ -314,8 +320,7 @@ function PatternControl(props: Props) {
   }, [mergingClips, mergeName, mergeTranspositions, selectedClips]);
 
   // Repeat the selected clips/transpositions
-  const { repeatingClips, repeatCount } = props;
-  const { repeatTranspositions, repeatWithTransposition } = props;
+  const { repeatingClips } = props;
 
   const RepeatClipsButton = useMemo(() => {
     // How many times to repeat the clips
@@ -344,7 +349,7 @@ function PatternControl(props: Props) {
           checked={!!repeatTranspositions}
           onChange={() => {
             props.toggleToolkitValue("repeatTranspositions");
-            if (props.repeatWithTransposition) {
+            if (repeatWithTransposition) {
               props.toggleToolkitValue("repeatWithTransposition");
             }
           }}
@@ -430,7 +435,7 @@ function PatternControl(props: Props) {
   ]);
 
   // Add a transposition to the timeline
-  const { transposingClip, transpositionDuration } = props;
+  const { transposingClip } = props;
 
   const TransposeButton = useMemo(() => {
     // The chromatic offset
@@ -570,67 +575,61 @@ function PatternControl(props: Props) {
     transpositionDuration,
   ]);
 
-  // Show which scales are being transposed live
-  const { isLive } = props;
+  // The chromatic label
+  const ChromaticLabel = (
+    <>
+      <span className={`${heldKeys.q ? "text-slate-50" : "text-slate-500"}`}>
+        N
+      </span>
+      <span className="w-2">•</span>
+    </>
+  );
 
-  const LiveLabel = useMemo(() => {
-    // The chromatic label
-    const ChromaticLabel = (
-      <>
-        <span className={`${heldKeys.q ? "text-slate-50" : "text-slate-500"}`}>
-          N
-        </span>
-        <span className="w-2">•</span>
-      </>
-    );
-
-    // The scalar labels
-    const ScalarLabel = (scale: Scale, i: number) => {
-      const isHoldingW = i === 0 && heldKeys.w;
-      const isHoldingS = i === 1 && heldKeys.s;
-      const isHoldingX = i === 2 && heldKeys.x;
-      const isHoldingKey = isHoldingW || isHoldingS || isHoldingX;
-      const textColor = isHoldingKey ? "text-slate-50" : "text-slate-500";
-      return (
-        <span key={getScaleTag(scale)} className={`inline ${textColor}`}>
-          T{scales.length > 1 ? i + 1 : ""} {i < scales.length - 1 ? "•" : ""}
-        </span>
-      );
-    };
-    const ScalarLabels = scales.length ? (
-      <>
-        {scales.map(ScalarLabel)}
-        <span className="w-2">•</span>
-      </>
-    ) : null;
-
-    const ChordalLabel = (
-      <span className={`${heldKeys.e ? "text-slate-50" : "text-slate-500"}`}>
-        t
+  // The scalar labels
+  const ScalarLabel = (scale: Scale, i: number) => {
+    const isHoldingW = i === 0 && heldKeys.w;
+    const isHoldingS = i === 1 && heldKeys.s;
+    const isHoldingX = i === 2 && heldKeys.x;
+    const isHoldingKey = isHoldingW || isHoldingS || isHoldingX;
+    const textColor = isHoldingKey ? "text-slate-50" : "text-slate-500";
+    return (
+      <span key={getScaleTag(scale)} className={`inline ${textColor}`}>
+        T{scales.length > 1 ? i + 1 : ""} {i < scales.length - 1 ? "•" : ""}
       </span>
     );
+  };
+  const ScalarLabels = scales.length ? (
+    <>
+      {scales.map(ScalarLabel)}
+      <span className="w-2">•</span>
+    </>
+  ) : null;
 
-    return (
-      <Transition
-        show={isLive}
-        enter="transition-all duration-300"
-        enterFrom="opacity-0 scale-0"
-        enterTo="opacity-100 scale-100"
-        leave="transition-all duration-300"
-        leaveFrom="opacity-100 scale-100"
-        leaveTo="opacity-0 scale-0"
-        as="div"
-        className="flex flex-col justify-center items-center pl-2 h-9 font-nunito font-light rounded-lg text-sm"
-      >
-        <label className="text-sm p-0 text-fuchsia-400">Live</label>
-        <div className="flex text-xs space-x-1 text-slate-400">
-          {ChromaticLabel}
-          {ScalarLabels}
-          {ChordalLabel}
-        </div>
-      </Transition>
-    );
-  }, [heldKeys, scales, isLive]);
+  const ChordalLabel = (
+    <span className={`${heldKeys.e ? "text-slate-50" : "text-slate-500"}`}>
+      t
+    </span>
+  );
+  const LiveLabel = (
+    <Transition
+      show={isLive}
+      enter="transition-all duration-300"
+      enterFrom="opacity-0 scale-0"
+      enterTo="opacity-100 scale-100"
+      leave="transition-all duration-300"
+      leaveFrom="opacity-100 scale-100"
+      leaveTo="opacity-0 scale-0"
+      as="div"
+      className="flex flex-col justify-center items-center pl-2 h-9 font-nunito font-light rounded-lg text-sm"
+    >
+      <label className="text-sm p-0 text-fuchsia-400">Live</label>
+      <div className="flex text-xs space-x-1 text-slate-400 whitespace-nowrap">
+        {ChromaticLabel}
+        {ScalarLabels}
+        {ChordalLabel}
+      </div>
+    </Transition>
+  );
 
   return (
     <div className="flex space-x-2">

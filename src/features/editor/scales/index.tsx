@@ -19,6 +19,7 @@ import {
   selectScaleIds,
   selectScaleTrackById,
   selectScaleTrackMap,
+  selectSelectedTrack,
 } from "redux/selectors";
 import { UndoTypes } from "redux/undoTypes";
 import { RootState } from "redux/store";
@@ -39,10 +40,10 @@ import {
 } from "redux/thunks";
 import { updateScaleTrack } from "redux/ScaleTrack";
 import { TrackId } from "types/Track";
+import { EditorState } from "types/Editor";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
-  const trackId = selectSelectedTrackId(state);
-  const scaleTrack = trackId ? selectScaleTrackById(state, trackId) : undefined;
+  const scaleTrack = selectSelectedTrack(state) as ScaleTrack;
   const scaleTracks = selectScaleTrackMap(state);
 
   const scale = getScaleTrackScale(scaleTrack, scaleTracks);
@@ -74,72 +75,75 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   };
 };
 
-const mapDispatchToProps = (dispatch: any) => ({
-  // Scales
-  setScaleIds: (ids: ScaleId[]) => {
-    dispatch(Scales.setScaleIds(ids));
-  },
-  updateScaleTrack: (scaleTrack: Partial<ScaleTrack>) => {
-    dispatch(updateScaleTrack(scaleTrack));
-  },
-  setScaleName: (scale: ScaleObject, name: string) => {
-    dispatch(Scales.updateScale({ id: scale.id, name }));
-  },
-  addNoteToScaleTrack: (id: TrackId, note: Note) => {
-    dispatch(addNoteToScaleTrack(id, note));
-  },
-  removeNoteFromScaleTrack: (id: TrackId, note: Note) => {
-    dispatch(removeNoteFromScaleTrack(id, note));
-  },
-  transposeScaleTrack: (id: TrackId, offset: number) => {
-    if (offset === 0 || isNaN(offset)) return;
-    dispatch(transposeScaleTrack(id, offset));
-  },
-  rotateScaleTrack: (id: TrackId, offset: number) => {
-    if (offset === 0 || isNaN(offset)) return;
-    dispatch(rotateScaleTrack(id, offset));
-  },
-  exportScaleToXML: (scale: Scale) => {
-    const xml = exportScaleToXML(scale);
-    if (!xml) return;
-    const blob = new Blob([xml], { type: "text/musicxml" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const name = getScaleName(scale);
-    link.download = `${name}.musicxml`;
-    document.body.appendChild(link);
-    link.href = url;
-    link.click();
-    document.body.removeChild(link);
-  },
-  exportScaleToMIDI: (scale: Scale) => {
-    dispatch(exportScaleToMIDI(scale));
-  },
-  clearScaleTrack: (id: TrackId) => {
-    dispatch(clearNotesFromScaleTrack(id));
-  },
-  createScale: (scale: ScaleNoId) => {
-    return dispatch(
-      createScale({
-        notes: scale.notes,
-        name: scale.name ?? "New Scale",
-      })
-    );
-  },
-  deleteScale: (id?: ScaleId) => {
-    if (!id) return;
-    dispatch(deleteScale(id));
-  },
-  playScale: (scale: Scale) => {
-    dispatch(playScale(scale));
-  },
-  undoScales: () => {
-    dispatch({ type: UndoTypes.undoScales });
-  },
-  redoScales: () => {
-    dispatch({ type: UndoTypes.redoScales });
-  },
-});
+const mapDispatchToProps = (dispatch: any, ownProps: EditorProps) => {
+  const id = ownProps.selectedTrackId;
+  return {
+    // Scales
+    setScaleIds: (ids: ScaleId[]) => {
+      dispatch(Scales.setScaleIds(ids));
+    },
+    updateScaleTrack: (scaleTrack: Partial<ScaleTrack>) => {
+      dispatch(updateScaleTrack(scaleTrack));
+    },
+    setScaleName: (scale: ScaleObject, name: string) => {
+      dispatch(Scales.updateScale({ id: scale.id, name }));
+    },
+    addNoteToScaleTrack: (id: TrackId, note: Note) => {
+      dispatch(addNoteToScaleTrack(id, note));
+    },
+    removeNoteFromScaleTrack: (id: TrackId, note: Note) => {
+      dispatch(removeNoteFromScaleTrack(id, note));
+    },
+    transposeScaleTrack: (id: TrackId, offset: number) => {
+      if (offset === 0 || isNaN(offset)) return;
+      dispatch(transposeScaleTrack(id, offset));
+    },
+    rotateScaleTrack: (id: TrackId, offset: number) => {
+      if (offset === 0 || isNaN(offset)) return;
+      dispatch(rotateScaleTrack(id, offset));
+    },
+    exportScaleToXML: (scale: Scale) => {
+      const xml = exportScaleToXML(scale);
+      if (!xml) return;
+      const blob = new Blob([xml], { type: "text/musicxml" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const name = getScaleName(scale);
+      link.download = `${name}.musicxml`;
+      document.body.appendChild(link);
+      link.href = url;
+      link.click();
+      document.body.removeChild(link);
+    },
+    exportScaleToMIDI: (scale: Scale) => {
+      dispatch(exportScaleToMIDI(scale));
+    },
+    clearScaleTrack: () => {
+      dispatch(clearNotesFromScaleTrack(id));
+    },
+    createScale: (scale: ScaleNoId) => {
+      return dispatch(
+        createScale({
+          notes: scale.notes,
+          name: scale.name ?? "New Scale",
+        })
+      );
+    },
+    deleteScale: (id?: ScaleId) => {
+      if (!id) return;
+      dispatch(deleteScale(id));
+    },
+    playScale: (scale: Scale) => {
+      dispatch(playScale(scale));
+    },
+    undoScales: () => {
+      dispatch({ type: UndoTypes.undoScales });
+    },
+    redoScales: () => {
+      dispatch({ type: UndoTypes.redoScales });
+    },
+  };
+};
 
 const connector = connect(mapStateToProps, mapDispatchToProps);
 

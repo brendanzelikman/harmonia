@@ -3,28 +3,24 @@ import PatternTrack from "./PatternTrack";
 import ScaleTrack from "./ScaleTrack";
 import { Menu, Transition } from "@headlessui/react";
 import { BsThreeDots } from "react-icons/bs";
-import { Fragment, InputHTMLAttributes } from "react";
+import { Fragment, InputHTMLAttributes, MouseEvent, ReactNode } from "react";
 import { isPatternTrack } from "types/PatternTrack";
 import { isScaleTrack } from "types/ScaleTrack";
 import { TimelineCell } from "types/Timeline";
+import { blurOnEnter, cancelEvent } from "utils";
+import { omit } from "lodash";
 
 export function TrackComponent(props: TrackProps) {
-  const { track } = props;
-  if (!track) return null;
-
-  if (isScaleTrack(track)) {
-    return <ScaleTrack {...props} />;
-  }
-  if (isPatternTrack(track)) {
-    return <PatternTrack {...props} />;
-  }
+  if (!props.track) return null;
+  if (isScaleTrack(props.track)) return <ScaleTrack {...props} />;
+  if (isPatternTrack(props.track)) return <PatternTrack {...props} />;
   return null;
 }
 
 export const TrackButton = (props: {
   className?: string;
-  onClick?: () => void;
-  children: JSX.Element;
+  onClick?: (e: MouseEvent) => void;
+  children: ReactNode;
 }) => {
   return (
     <button
@@ -33,18 +29,40 @@ export const TrackButton = (props: {
         props.className ?? ""
       } flex flex-1 items-center justify-center rounded-md overflow-hidden min-w-6 min-h-[25px] max-h-[30px] m-1 font-light border`}
       onClick={(e) => {
-        props.onClick?.();
+        props.onClick?.(e);
         e.currentTarget.blur();
       }}
+      onDoubleClick={cancelEvent}
     >
-      {props.children}
+      <label className="flex items-center pointer-events-none">
+        {props.children}
+      </label>
     </button>
+  );
+};
+
+interface TrackNameProps extends InputHTMLAttributes<HTMLInputElement> {
+  cell: TimelineCell;
+}
+export const TrackName = (props: TrackNameProps) => {
+  const isSmall = props.cell.height < 100;
+  const size = isSmall ? "text-xs h-6" : "text-sm h-7";
+  return (
+    <input
+      {...props}
+      className={`flex-auto font-nunito ${size} bg-zinc-800 px-1 w-full mr-2 caret-white outline-none focus:ring-0 rounded-md overflow-ellipsis text-gray-300 border-2 border-zinc-800 focus:border-indigo-500`}
+      onKeyDown={blurOnEnter}
+    />
   );
 };
 
 interface SliderProps extends InputHTMLAttributes<HTMLInputElement> {
   cell: TimelineCell;
   icon: JSX.Element;
+  showTooltip: boolean;
+  tooltipTop: number;
+  tooltipClassName: string;
+  tooltipContent: string;
 }
 export const TrackSlider = (props: SliderProps) => {
   const { cell, icon } = props;
@@ -54,29 +72,56 @@ export const TrackSlider = (props: SliderProps) => {
   const marginTop = 0.5 * width - 10;
   const transform = `rotate(270deg) translate(30px,0)`;
 
+  const inputProps = omit(props, [
+    "cell",
+    "icon",
+    "showTooltip",
+    "tooltipTop",
+    "tooltipClassName",
+    "tooltipContent",
+  ]);
   return (
-    <div className="flex w-8 flex-col items-center text-slate-300">
-      {icon && <label className="text-sm mb-8">{icon}</label>}
-      <input
-        {...props}
-        style={{
-          width,
-          marginTop,
-          transform,
-        }}
-        type="range"
-      />
-    </div>
+    <>
+      <div className="flex w-8 flex-col items-center text-slate-300">
+        {icon && <label className="text-sm mb-8">{icon}</label>}
+        <input
+          {...inputProps}
+          style={{
+            width,
+            marginTop,
+            transform,
+          }}
+          type="range"
+          onDoubleClick={(e) => {
+            props.onDoubleClick?.(e);
+            cancelEvent(e);
+          }}
+        />
+      </div>
+      {props.showTooltip && (
+        <div
+          style={{ top: props.tooltipTop }}
+          className={`${
+            props.tooltipClassName ?? ""
+          } absolute left-7 w-16 h-5 flex font-semibold items-center justify-center backdrop-blur border border-slate-300 rounded text-xs`}
+        >
+          {props.tooltipContent}
+        </div>
+      )}
+    </>
   );
 };
 
 export const TrackDropdownMenu = (props: {
   className?: string;
   content?: string;
-  children: JSX.Element;
+  children: ReactNode;
 }) => {
   return (
-    <Menu as="div" className="relative inline-block z-[90]">
+    <Menu
+      as="div"
+      className="relative inline-block focus:ring-0 active:ring-0 focus:border-0 active:border-0"
+    >
       {({ open }) => (
         <>
           <div className="w-full">
@@ -84,9 +129,9 @@ export const TrackDropdownMenu = (props: {
               aria-label="Track Dropdown Menu"
               className={`w-full pl-2 rounded ${
                 open ? "text-indigo-400" : "text-white"
-              }`}
+              } outline-none`}
             >
-              <BsThreeDots className="text-xl" />
+              <BsThreeDots className="text-xl " />
             </Menu.Button>
           </div>
           <Transition

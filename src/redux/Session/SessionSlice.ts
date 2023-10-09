@@ -3,16 +3,12 @@ import { union, without } from "lodash";
 import { SliceClipPayload } from "../Clip/ClipSlice";
 import { defaultSession, SessionEntity } from "types/Session";
 import { MediaPayload } from "types/Media";
-import { TrackId } from "types/Track";
+import { TrackId, TrackInterface } from "types/Track";
 
 /**
  * A track can be added by ID with an optional parent ID at an optional index.
  */
-export interface AddTrackToSessionPayload extends Partial<SessionEntity> {
-  id: TrackId;
-  parentId?: TrackId;
-  index?: number;
-}
+export type AddTrackToSessionPayload = TrackInterface;
 /**
  * A track can be removed by ID.
  */
@@ -110,18 +106,17 @@ export const sessionSlice = createSlice({
       state,
       action: PayloadAction<AddTrackToSessionPayload>
     ) => {
-      const { id, parentId, trackIds, clipIds, transpositionIds, index } =
-        action.payload;
+      const { id, parentId, type } = action.payload;
       if (!id || state.byId[id]) return;
 
       // Create a new scale track entity
       const newScaleTrack: SessionEntity = {
         id,
-        type: "scaleTrack",
+        type,
         depth: 0,
-        trackIds: trackIds ?? [],
-        clipIds: clipIds ?? [],
-        transpositionIds: transpositionIds ?? [],
+        trackIds: [],
+        clipIds: [],
+        transpositionIds: [],
       };
 
       // If there is a parent, add the scale track to the parent
@@ -130,12 +125,8 @@ export const sessionSlice = createSlice({
         if (!scaleTrack) return;
         // Set the scale track's depth to one more than its parent
         newScaleTrack.depth = scaleTrack.depth + 1;
-        // Add the scale track to the parent at the specified index or at the end
-        if (index !== undefined) {
-          scaleTrack.trackIds.splice(index, 0, id);
-        } else {
-          scaleTrack.trackIds.push(id);
-        }
+        // Add the scale track to the parent
+        scaleTrack.trackIds.push(id);
       } else {
         // Otherwise, add the scale track to the top level
         state.topLevelIds.push(id);
@@ -185,33 +176,26 @@ export const sessionSlice = createSlice({
       state,
       action: PayloadAction<AddTrackToSessionPayload>
     ) => {
-      const { id, parentId, trackIds, clipIds, transpositionIds, index } =
-        action.payload;
+      const { id, parentId, type } = action.payload;
       if (!id || state.byId[id]) return;
 
       // Create a new pattern track entity
       const newPatternTrack: SessionEntity = {
         id,
         depth: 0,
-        type: "patternTrack",
-        trackIds: trackIds ?? [],
-        clipIds: clipIds ?? [],
-        transpositionIds: transpositionIds ?? [],
+        type,
+        trackIds: [],
+        clipIds: [],
+        transpositionIds: [],
       };
 
       // If there is a parent, add the pattern track to the parent
       if (parentId) {
         const scaleTrack = state.byId[parentId];
         if (!scaleTrack) return;
-
         newPatternTrack.depth = scaleTrack.depth + 1;
-
         // Add the scale track to the parent at the specified index or at the end
-        if (index !== undefined) {
-          scaleTrack.trackIds.splice(index, 0, id);
-        } else {
-          scaleTrack.trackIds.push(id);
-        }
+        scaleTrack.trackIds.push(id);
       } else {
         // Otherwise, add the pattern track to the top level
         state.topLevelIds.push(id);

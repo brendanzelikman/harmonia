@@ -8,7 +8,7 @@ import {
 } from "./TranspositionTypes";
 
 /**
- * Get the unique tag for a given Transposition.
+ * Get the unique tag of a given Transposition.
  * @param transposition The Transposition object.
  * @returns Unique tag string.
  * @throws {Error} if the Transposition is invalid.
@@ -98,9 +98,7 @@ export const getLastTransposition = (
 
   // Get the matching transpositions
   const matchingTranspositions = transpositions.filter(
-    (t) =>
-      t.tick <= tick &&
-      (t.duration !== undefined ? t.tick + t.duration > tick : true)
+    (t) => t.tick <= tick && (!!t.duration ? t.tick + t.duration > tick : true)
   );
 
   // If no matching transpositions, return undefined

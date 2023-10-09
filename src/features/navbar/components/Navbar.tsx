@@ -8,31 +8,13 @@ import { BsGithub, BsQuestionCircle } from "react-icons/bs";
 import { Transition } from "@headlessui/react";
 import PatternListbox from "./PatternListbox";
 import OnboardingTour from "./OnboardingTour";
-import {
-  blurOnEnter,
-  cancelEvent,
-  isHoldingCommand,
-  isHoldingShift,
-  isInputEvent,
-} from "utils";
-import useEventListeners from "hooks/useEventListeners";
+import { blurOnEnter } from "utils";
 import { InputHTMLAttributes, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export function Navbar() {
   const [showNavbar, setShowNavbar] = useState(true);
-  useEventListeners(
-    {
-      f: {
-        keydown: (e) => {
-          if (isInputEvent(e) || !isHoldingCommand(e) || !isHoldingShift(e))
-            return;
-          cancelEvent(e);
-          setShowNavbar(!showNavbar);
-        },
-      },
-    },
-    [showNavbar, setShowNavbar]
-  );
+  useHotkeys("meta+shift+f", () => setShowNavbar(!showNavbar), [showNavbar]);
   return (
     <Transition
       show={showNavbar}

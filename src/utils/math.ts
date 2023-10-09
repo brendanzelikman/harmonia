@@ -6,6 +6,9 @@ export const sanitizeNumber = (value: number) => (isNaN(value) ? 0 : value);
 // Modulo that works with negative numbers
 export const mod = (n: number, m: number) => ((n % m) + m) % m;
 
+// Normalize a number in a range (0 - 1)
+export const normalize = (x: number, m: number, n: number) => (x - m) / (n - m);
+
 // Get the percentage of a number in a range (0% - 100%)
 export const percentOfRange = (x: number, m: number, n: number) =>
   clamp(Math.round((100 * (x - m)) / (n - m)), 0, 100);

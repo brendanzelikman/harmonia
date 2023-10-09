@@ -23,7 +23,7 @@ export const MAX_TRANSPORT_VOLUME = 0;
 // Track Volume
 export const DEFAULT_VOLUME = -6;
 export const MIN_VOLUME = -60;
-export const MAX_VOLUME = 0;
+export const MAX_VOLUME = 6;
 export const VOLUME_STEP = 0.1;
 
 // Track Pan

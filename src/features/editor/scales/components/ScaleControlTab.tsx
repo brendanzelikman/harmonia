@@ -168,9 +168,7 @@ export function ScaleControlTab(props: ScaleControlTabProps) {
     >
       <Editor.MenuButton
         className="px-1 active:text-gray-400"
-        onClick={() =>
-          props.scaleTrack && props.clearScaleTrack(props.scaleTrack.id)
-        }
+        onClick={props.clearScaleTrack}
       >
         <BsTrash className="text-lg" />
       </Editor.MenuButton>

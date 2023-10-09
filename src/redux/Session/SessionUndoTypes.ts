@@ -4,12 +4,14 @@ import { getClipTag } from "types/Clip";
 import { getTranspositionTag } from "types/Transposition";
 import { createTag } from "types/util";
 import * as SessionSlice from "./SessionSlice";
+import { getTrackTag } from "types/Track";
 
 export const SESSION_UNDO_TYPES: ActionGroup = {
   "session/addScaleTrackToSession": (
     action: PayloadAction<SessionSlice.AddTrackToSessionPayload>
   ) => {
-    return `ADD_TRACK:${action.payload.id}`;
+    const tag = createTag(action.payload, getTrackTag);
+    return `ADD_TRACK:${tag}`;
   },
   "session/removeScaleTrackFromSession": (
     action: PayloadAction<SessionSlice.RemoveTrackFromSessionPayload>
@@ -19,7 +21,8 @@ export const SESSION_UNDO_TYPES: ActionGroup = {
   "session/addPatternTrackToSession": (
     action: PayloadAction<SessionSlice.AddTrackToSessionPayload>
   ) => {
-    return `ADD_TRACK:${action.payload.id}`;
+    const tag = createTag(action.payload, getTrackTag);
+    return `ADD_TRACK:${tag}`;
   },
   "session/removePatternTrackFromSession": (
     action: PayloadAction<SessionSlice.RemoveTrackFromSessionPayload>

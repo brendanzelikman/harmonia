@@ -13,27 +13,16 @@ import "./index.css";
 import { start } from "tone";
 import { startTransport } from "redux/Transport";
 import { MIDIProvider } from "providers/midi";
-import ErrorPage from "components/ErrorPage";
-import LandingPage from "components/LandingPage";
+import { ErrorView, LandingView } from "views";
 
 export const container: HTMLElement = document.getElementById("root")!;
 if (!container.children.length) {
   const router = createBrowserRouter(
     [
-      {
-        path: "/",
-        element: <LandingPage />,
-        errorElement: <ErrorPage />,
-      },
-      {
-        path: "/playground",
-        element: <App />,
-        errorElement: <ErrorPage />,
-      },
+      { path: "/", element: <LandingView />, errorElement: <ErrorView /> },
+      { path: "/playground", element: <App />, errorElement: <ErrorView /> },
     ],
-    {
-      basename: "/harmonia",
-    }
+    { basename: "/harmonia" }
   );
 
   const root = ReactDOM.createRoot(container);

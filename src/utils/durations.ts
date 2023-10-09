@@ -28,7 +28,7 @@ export const ticksToToneSubdivision = (beats: number) => {
 
 // Convert ticks to the number of columns
 export const ticksToColumns = (
-  ticks: Tick,
+  ticks: Tick = 0,
   subdivision: Subdivision = "1/16"
 ) => {
   const ticksPerSubdivision = subdivisionToTicks(subdivision);
