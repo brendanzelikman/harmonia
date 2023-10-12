@@ -222,7 +222,7 @@ function PatternTrackComponent(props: PatternTrackProps) {
   /**
    * The Pattern Track volume slider controls the volume of the track's instrument.
    */
-  const PatternTrackVolumeSlider = (
+  const PatternTrackVolumeSlider = () => (
     <div className="w-6 h-full z-[90] relative">
       <TrackSlider
         className={`h-5 accent-emerald-500`}
@@ -247,7 +247,7 @@ function PatternTrackComponent(props: PatternTrackProps) {
   /**
    * The Pattern Track pan slider controls the pan of the track's instrument.
    */
-  const PatternTrackPanSlider = (
+  const PatternTrackPanSlider = () => (
     <div className="w-6 h-full z-[89] relative">
       <TrackSlider
         className={`h-5 accent-teal-400`}
@@ -282,8 +282,8 @@ function PatternTrackComponent(props: PatternTrackProps) {
     >
       {!track.collapsed ? (
         <div className="flex ml-0.5 mr-1" draggable onDragStart={cancelEvent}>
-          {PatternTrackVolumeSlider}
-          {PatternTrackPanSlider}
+          {PatternTrackVolumeSlider()}
+          {PatternTrackPanSlider()}
         </div>
       ) : null}
     </Transition>

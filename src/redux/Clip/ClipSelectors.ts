@@ -6,6 +6,7 @@ import { TrackId } from "types/Track";
 import {
   selectPatternMap,
   selectPatternTrackMap,
+  selectScaleMap,
   selectScaleTrackMap,
 } from "redux/selectors";
 import { selectTranspositionMap } from "redux/Transposition";
@@ -193,9 +194,10 @@ export const selectClipStreams = createDeepEqualSelector(
     selectClips,
     selectPatternMap,
     selectPatternTrackMap,
-    selectSessionMap,
+    selectScaleMap,
     selectScaleTrackMap,
     selectTranspositionMap,
+    selectSessionMap,
   ],
   getClipStreams
 );

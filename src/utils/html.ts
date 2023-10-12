@@ -1,4 +1,4 @@
-import { DragEvent } from "react";
+import { DragEvent, MouseEvent } from "react";
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export const keyCode = (key: string) => key.toUpperCase().charCodeAt(0);
@@ -7,6 +7,7 @@ type GenericEvent =
   | Event
   | DragEvent<HTMLElement>
   | React.MouseEvent<HTMLElement, MouseEvent>
+  | MouseEvent
   | React.TouchEvent<HTMLElement>;
 
 export const cancelEvent = (e: GenericEvent) => {

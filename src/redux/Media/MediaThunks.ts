@@ -31,7 +31,7 @@ import * as Clips from "redux/Clip";
 import * as Transpositions from "redux/Transposition";
 import * as Session from "redux/Session";
 import * as Root from "redux/Root";
-import { setClipboard } from "redux/Timeline";
+import { selectSubdivisionTicks, setClipboard } from "redux/Timeline";
 import {
   selectTransport,
   selectOrderedTrackIds,
@@ -40,9 +40,11 @@ import {
   selectPatternTrackMap,
   selectScaleTrackMap,
   selectClipDuration,
+  selectScaleMap,
 } from "redux/selectors";
 
 import { PatternStream } from "types/Pattern";
+import { Transport } from "tone";
 
 /**
  * Creates a list of media and adds them to the store.
@@ -192,7 +194,6 @@ export const pasteSelectedMedia =
   > =>
   (dispatch, getState) => {
     const state = getState();
-    const { tick } = selectTransport(state);
     const emptyPromise = Promise.resolve({ clipIds: [], transpositionIds: [] });
 
     // Do nothing if there are no tracks
@@ -211,7 +212,7 @@ export const pasteSelectedMedia =
     // Get the offseted media
     const offsetedMedia = getOffsetedMedia(
       media,
-      tick,
+      Transport.ticks,
       selectedTrackId,
       trackIds
     );
@@ -282,6 +283,47 @@ export const duplicateSelectedMedia =
   };
 
 /**
+ * Move all selected media by the given offset.
+ */
+export const moveSelectedMedia =
+  (offset: number): AppThunk =>
+  (dispatch, getState) => {
+    if (!offset) return;
+    const state = getState();
+    const selectedMedia = Root.selectSelectedMedia(state);
+
+    // Move the media and make sure it's valid
+    const newMedia = selectedMedia.map((media) => ({
+      ...media,
+      tick: media.tick + offset,
+    }));
+    if (newMedia.some((media) => media.tick < 0)) return;
+
+    // Update the media
+    const newClips = getMediaClips(newMedia);
+    const newTranspositions = getMediaTranspositions(newMedia);
+    dispatch(updateMedia(newClips, newTranspositions));
+  };
+
+/**
+ * Move all selected media to the left by one subdivision tick.
+ */
+export const moveSelectedMediaLeft = (): AppThunk => (dispatch, getState) => {
+  const state = getState();
+  const ticks = selectSubdivisionTicks(state);
+  dispatch(moveSelectedMedia(-ticks));
+};
+
+/**
+ * Move all selected media to the right by one subdivision tick.
+ */
+export const moveSelectedMediaRight = (): AppThunk => (dispatch, getState) => {
+  const state = getState();
+  const ticks = selectSubdivisionTicks(state);
+  dispatch(moveSelectedMedia(ticks));
+};
+
+/**
  * Delete all selected media.
  */
 export const deleteSelectedMedia = (): AppThunk => (dispatch, getState) => {
@@ -306,6 +348,7 @@ export const mergeClips =
     const patternMap = Patterns.selectPatternMap(state);
     const transpositionMap = Transpositions.selectTranspositionMap(state);
     const patternTrackMap = selectPatternTrackMap(state);
+    const scaleMap = selectScaleMap(state);
     const scaleTrackMap = selectScaleTrackMap(state);
 
     // Get the info from the toolkit
@@ -328,9 +371,10 @@ export const mergeClips =
             clip,
             patternMap,
             patternTrackMap,
-            sessionMap,
+            scaleMap,
             scaleTrackMap,
-            transpositionMap
+            transpositionMap,
+            sessionMap
           )
         : getClipNotes(clip, pattern.stream);
 
@@ -354,12 +398,10 @@ export const mergeClips =
 
     // Create and select a new pattern
     const patternIds = await dispatch(
-      Patterns.createPatterns([
-        {
-          stream,
-          name: !!mergeName.length ? mergeName : "New Pattern",
-        },
-      ])
+      Patterns.createPattern({
+        stream,
+        name: !!mergeName.length ? mergeName : "New Pattern",
+      })
     );
     if (!patternIds?.length) return;
     const patternId = patternIds[0];

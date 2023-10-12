@@ -1,6 +1,5 @@
 import { expect, test } from "vitest";
 import * as ScaleTypes from "./ScaleTypes";
-import { getRotatedScale, getTransposedScale } from "./ScaleFunctions";
 
 test("initializeScale", () => {
   const scale = ScaleTypes.initializeScale();
@@ -44,46 +43,4 @@ test("isScaleArray", () => {
 
   // Test an invalid scale array
   expect(ScaleTypes.isScaleArray(ScaleTypes.chromaticScale)).toBeFalsy();
-});
-
-test("unpackScale", () => {
-  const notes = ScaleTypes.chromaticNotes;
-  expect(ScaleTypes.unpackScale(ScaleTypes.chromaticScale)).toEqual(notes);
-  expect(ScaleTypes.unpackScale(ScaleTypes.chromaticNotes)).toEqual(notes);
-});
-
-test("areScalesEqual", () => {
-  const scale = ScaleTypes.mockScale;
-
-  // Test an equal scale
-  const equalScale = getTransposedScale(scale, 12);
-  expect(ScaleTypes.areScalesEqual(scale, equalScale)).toBeTruthy();
-
-  // Test an unequal scale
-  const unequalScale = getTransposedScale(scale, 2);
-  expect(ScaleTypes.areScalesEqual(scale, unequalScale)).toBeFalsy();
-});
-
-test("areScalesRelated", () => {
-  const scale = ScaleTypes.mockScale;
-
-  // Test a related scale
-  const relatedScale = getTransposedScale(scale, 1);
-  expect(ScaleTypes.areScalesRelated(scale, relatedScale)).toBeTruthy();
-
-  // Test an unrelated scale
-  const unrelatedScale = getRotatedScale(scale, 1);
-  expect(ScaleTypes.areScalesRelated(scale, unrelatedScale)).toBeFalsy();
-});
-
-test("areScalesModes", () => {
-  const scale = ScaleTypes.mockScale;
-
-  // Test a mode
-  const relatedScale = getRotatedScale(scale, 1);
-  expect(ScaleTypes.areScalesModes(scale, relatedScale)).toBeTruthy();
-
-  // Test an unrelated scale
-  const unrelatedScale = ScaleTypes.unpackScale(scale).slice(1);
-  expect(ScaleTypes.areScalesModes(scale, unrelatedScale)).toBeFalsy();
 });

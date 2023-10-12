@@ -9,7 +9,7 @@ import undoable, { includeAction } from "redux-undo";
 import { saveState, loadState, getSliceActions } from "./util";
 import { groupByActionType, UndoTypes } from "./undoTypes";
 import { handleInstrumentMiddleware } from "./Instrument";
-import { difference } from "lodash";
+import { Transport } from "tone";
 
 const session = combineReducers({
   scaleTracks: Slices.ScaleTracks.default,
@@ -23,6 +23,8 @@ const session = combineReducers({
 const undoableSession = undoable(session, {
   groupBy: groupByActionType,
   filter: includeAction([
+    ...getSliceActions(Slices.Scales.scalesSlice),
+    ...getSliceActions(Slices.Patterns.patternsSlice),
     ...getSliceActions(Slices.ScaleTracks.scaleTracksSlice),
     ...getSliceActions(Slices.PatternTracks.patternTracksSlice),
     ...getSliceActions(Slices.Clips.clipsSlice),
@@ -75,7 +77,7 @@ export const store = configureStore({
 
 store.subscribe(() => {
   const state = store.getState();
-  if (state.transport.state !== "started") saveState(state);
+  if (Transport.state !== "started") saveState(state);
 });
 
 export type RootState = ReturnType<typeof store.getState>;

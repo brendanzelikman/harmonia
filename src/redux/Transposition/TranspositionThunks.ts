@@ -1,6 +1,7 @@
 import {
   TranspositionId,
   TranspositionNoId,
+  getOffsettedTransposition,
   initializeTransposition,
 } from "types/Transposition";
 import { AppThunk } from "redux/store";
@@ -8,9 +9,9 @@ import { Transposition, TranspositionOffsetRecord } from "types/Transposition";
 import { addMediaToSession, removeMediaFromSession } from "redux/Session";
 import { selectSelectedTranspositions } from "redux/selectors";
 import {
+  _updateTranspositions,
   addTranspositions,
   removeTranspositions,
-  updateTranspositions,
 } from "./TranspositionSlice";
 
 /**
@@ -60,11 +61,10 @@ export const updateSelectedTranspositions =
     const selectedTranspositions = selectSelectedTranspositions(state);
     if (!selectedTranspositions.length) return;
 
-    const isEmpty = !Object.keys(offsets).length;
     const transpositions = selectedTranspositions.map((t) => {
-      return { ...t, offsets: isEmpty ? {} : { ...t.offsets, ...offsets } };
+      return { ...t, offsets: { ...t.offsets, ...offsets } };
     });
-    dispatch(updateTranspositions({ transpositions }));
+    dispatch(_updateTranspositions({ transpositions }));
   };
 
 /**
@@ -79,22 +79,26 @@ export const offsetSelectedTranspositions =
     if (!selectedTranspositions.length) return;
 
     // Offset each transposition
-    const transpositions = selectedTranspositions.map((t) => {
-      const newOffsets = Object.keys({ ...t.offsets, ...offset }).reduce(
-        (acc, cur) => {
-          if (!cur?.length) return acc;
-          const curOffset = t.offsets[cur] || 0;
-          const newOffset = offset[cur] || 0;
-          const newCurOffset = curOffset + newOffset;
-          return { ...acc, [cur]: newCurOffset };
-        },
-        {} as TranspositionOffsetRecord
-      );
-
-      // Return the transposition with the new offsets
-      return { ...t, offsets: { ...t.offsets, ...newOffsets } };
-    });
+    const transpositions = selectedTranspositions.map((t) =>
+      getOffsettedTransposition(t, offset)
+    );
 
     // Update the transpositions
-    dispatch(updateTranspositions({ transpositions }));
+    dispatch(_updateTranspositions({ transpositions }));
+  };
+
+/**
+ * Reset the selected transpositions.
+ */
+export const resetSelectedTranspositions =
+  (): AppThunk => (dispatch, getState) => {
+    const state = getState();
+    const selectedTranspositions = selectSelectedTranspositions(state);
+    if (!selectedTranspositions.length) return;
+
+    const transpositions = selectedTranspositions.map((t) => ({
+      ...t,
+      offsets: {} as TranspositionOffsetRecord,
+    }));
+    dispatch(_updateTranspositions({ transpositions }));
   };

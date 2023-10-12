@@ -14,7 +14,11 @@ import {
   MIN_BPM,
   MIN_TRANSPORT_VOLUME,
 } from "appConstants";
-import { convertTicksToSeconds, getNextTransportTick } from "types/Transport";
+import {
+  convertSecondsToTicks,
+  convertTicksToSeconds,
+  getNextTransportTick,
+} from "types/Transport";
 import { selectTransport } from "./TransportSelectors";
 import {
   selectPatternTracks,
@@ -25,63 +29,97 @@ import {
   selectPatternTrackAudioInstances,
   selectChordsAtTick,
 } from "redux/selectors";
-import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
+import { LIVE_AUDIO_INSTANCES, LIVE_RECORDER_INSTANCE } from "types/Instrument";
+import { MIDI } from "types/midi";
+
+export const TICK_UPDATE_EVENT = "tickUpdate";
 
 /**
- * Load the transport upon rendering the app.
+ * Dispatch a tick update event.
  */
-export const loadTransport = (): AppThunk => async (dispatch, getState) => {
-  // Build the instruments
-  const state = getState();
-  const transport = selectTransport(state);
-  const patternTracks = selectPatternTracks(state);
-
-  // Try to load the transport
-  try {
-    // Wait for the Tone context to start
-    await Tone.start();
-
-    // Unload the transport
-    dispatch(TransportSlice.setLoaded(false));
-    dispatch(TransportSlice.setLoading(true));
-
-    // Copy the transport state into the Tone transport
-    const { loop, loopStart, loopEnd, bpm, volume, mute } = transport;
-    Tone.Transport.loop = loop;
-    Tone.Transport.loopStart = convertTicksToSeconds(transport, loopStart);
-    Tone.Transport.loopEnd = convertTicksToSeconds(transport, loopEnd);
-    Tone.Transport.bpm.value = bpm;
-    Tone.getDestination().volume.value = volume;
-    Tone.getDestination().mute = mute;
-
-    // Create the global instrument
-    Instrument.createGlobalInstrument();
-
-    // Build the instruments from the pattern tracks
-    dispatch(Instrument.buildInstruments(patternTracks));
-  } catch (e) {
-    // If there is an error, log it
-    console.error(e);
-  } finally {
-    // Take an extra lil bit to load :)
-    await sleep(5.12);
-    // Set the transport as loaded
-    dispatch(TransportSlice.setLoaded(true));
-    dispatch(TransportSlice.setLoading(false));
-  }
+export const dispatchTickUpdate = (tick: Tick) => {
+  const customEvent = new CustomEvent(TICK_UPDATE_EVENT, { detail: tick });
+  window.dispatchEvent(customEvent);
 };
 
 /**
- * Unload the transport upon unmounting the app, destroying all instruments.
+ * Start the transport, using `Tone.scheduleRepeat` to schedule all samplers to play their patterns.
+ * The transport will fetch the chord record every tick so that the state is always up to date.
+ * If the transport is already started, this function will do nothing.
  */
-export const unloadTransport = (): AppThunk => (dispatch) => {
-  // Unload and stop the transport
-  dispatch(TransportSlice.setLoaded(false));
-  dispatch(TransportSlice.setLoading(false));
-  dispatch(stopTransport());
+export const startTransport = (): AppThunk => (dispatch, getState) => {
+  // Make sure the Tone context is running
+  if (Tone.getContext().state !== "running") {
+    stopTransport();
+    startTone(true);
+    return;
+  }
 
-  // Destroy all instruments
-  Instrument.destroyInstruments();
+  // Make sure the transport is not already started or downloading
+  const oldState = getState();
+  const transport = selectTransport(oldState);
+  if (transport.state === "started" || transport.downloading) return;
+
+  // Schedule patterns if the transport is stopped
+  if (transport.state === "stopped") {
+    const pulse = convertTicksToSeconds(transport, 1);
+    const bpm = Tone.Transport.bpm.value;
+    const conversionRatio = (bpm * Tone.Transport.PPQ) / 60;
+    const loopStart = Tone.Time(Tone.Transport.loopStart).toTicks();
+    const loopEnd = Tone.Time(Tone.Transport.loopEnd).toTicks();
+
+    // Schedule the transport
+    const startTime = Tone.Transport.now();
+    Tone.Transport.scheduleRepeat((time) => {
+      // Get the current tick
+      const currentTime = time - startTime;
+      let tick = Math.round(currentTime * conversionRatio);
+      if (Tone.Transport.loop) {
+        tick = (tick % (loopEnd - loopStart)) + loopStart;
+      }
+
+      // Dispatch a tick update event
+      dispatchTickUpdate(Tone.Transport.ticks);
+
+      // Get the chord record at the current tick
+      const state = getState();
+      const chordRecord = selectChordsAtTick(state, tick);
+
+      // Iterate over the instruments that are to be played at the current tick
+      if (chordRecord) {
+        for (const instrumentId in chordRecord) {
+          // Get the chord to be played
+          const chord = chordRecord[instrumentId];
+          if (!chord) continue;
+
+          // Get the live audio instance
+          const instance = LIVE_AUDIO_INSTANCES[instrumentId];
+          if (!instance.isLoaded()) continue;
+
+          // Play the realized pattern chord using the sampler
+          playPatternChord(instance.sampler, chord, time);
+        }
+      }
+    }, pulse);
+  }
+
+  // Start the transport
+  Tone.Transport.start();
+  dispatch(TransportSlice._startTransport());
+};
+
+/**
+ * Pause the transport.
+ */
+export const pauseTransport = (): AppThunk => (dispatch, getState) => {
+  // Make sure the transport is not downloading
+  const state = getState();
+  const transport = selectTransport(state);
+  if (transport.downloading) return;
+
+  // Pause the transport
+  Tone.Transport.pause();
+  dispatch(TransportSlice._pauseTransport());
 };
 
 /**
@@ -91,10 +129,11 @@ export const unloadTransport = (): AppThunk => (dispatch) => {
 export const stopTransport =
   (tick?: Tick): AppThunk =>
   (dispatch, getState) => {
-    // Make sure the transport is not recording
+    // Make sure the transport is not downloading
     const state = getState();
     const transport = selectTransport(state);
-    if (transport.recording) return;
+
+    if (transport.downloading) return;
 
     // Stop the transport
     dispatch(TransportSlice._stopTransport());
@@ -102,22 +141,24 @@ export const stopTransport =
     Tone.Transport.cancel();
     Tone.Transport.position = 0;
 
+    // Dispatch a tick update event
+    dispatchTickUpdate(Tone.Transport.ticks);
+
     // Seek to the given tick if provided
     if (tick) dispatch(seekTransport(tick));
   };
 
 /**
- * Pause the transport.
+ * Toggle the transport between playing and paused/stopped.
  */
-export const pauseTransport = (): AppThunk => (dispatch, getState) => {
-  // Make sure the transport is not recording
+export const toggleTransport = (): AppThunk => (dispatch, getState) => {
   const state = getState();
   const transport = selectTransport(state);
-  if (transport.recording) return;
-
-  // Pause the transport
-  Tone.Transport.pause();
-  dispatch(TransportSlice._pauseTransport());
+  if (transport.state === "started") {
+    dispatch(pauseTransport());
+  } else {
+    dispatch(startTransport());
+  }
 };
 
 /**
@@ -127,19 +168,34 @@ export const pauseTransport = (): AppThunk => (dispatch, getState) => {
 export const seekTransport =
   (tick: Tick): AppThunk =>
   (dispatch, getState) => {
-    // Make sure the transport is not recording
+    if (tick < 0) return;
+
+    // Make sure the transport is not downloading
     const state = getState();
     const transport = selectTransport(state);
-    if (transport.recording) return;
+    if (transport.downloading) return;
 
     // Convert the tick to seconds
     const seconds = convertTicksToSeconds(transport, tick);
-    if (tick < 0 || seconds < 0) return;
+    if (seconds < 0) return;
 
     // Seek the transport
     Tone.Transport.seconds = seconds;
-    dispatch(TransportSlice._seekTransport(tick));
   };
+
+/**
+ * Move the playhead of the transport one tick left.
+ */
+export const movePlayheadLeft = (): AppThunk => (dispatch) => {
+  dispatch(seekTransport(Tone.Transport.ticks - 1));
+};
+
+/**
+ * Move the playhead of the transport one tick right.
+ */
+export const movePlayheadRight = (): AppThunk => (dispatch) => {
+  dispatch(seekTransport(Tone.Transport.ticks + 1));
+};
 
 /**
  * Set the transport loop state to true or false.
@@ -258,77 +314,169 @@ export const setTransportMute =
   };
 
 /**
+ * Toggle the transport mute state.
+ */
+export const toggleTransportMute = (): AppThunk => (dispatch, getState) => {
+  const state = getState();
+  const transport = selectTransport(state);
+  dispatch(setTransportMute(!transport.mute));
+};
+
+/**
+ * Load the transport upon rendering the app.
+ */
+export const loadTransport = (): AppThunk => async (dispatch, getState) => {
+  // Build the instruments
+  const state = getState();
+  const transport = selectTransport(state);
+  const patternTracks = selectPatternTracks(state);
+
+  // Try to load the transport
+  try {
+    // Wait for the Tone context to start
+    await Tone.start();
+
+    // Unload the transport
+    dispatch(TransportSlice.setLoaded(false));
+    dispatch(TransportSlice.setLoading(true));
+
+    // Copy the transport state into the Tone transport
+    const { loop, loopStart, loopEnd, bpm, volume, mute } = transport;
+    Tone.Transport.PPQ = MIDI.PPQ;
+    Tone.Transport.loop = loop;
+    Tone.Transport.loopStart = convertTicksToSeconds(transport, loopStart);
+    Tone.Transport.loopEnd = convertTicksToSeconds(transport, loopEnd);
+    Tone.Transport.bpm.value = bpm;
+    Tone.getDestination().volume.value = volume;
+    Tone.getDestination().mute = mute;
+
+    // Create the global instrument
+    Instrument.createGlobalInstrument();
+
+    // Connect the recorder
+    Tone.getDestination().connect(LIVE_RECORDER_INSTANCE);
+
+    // Build the instruments from the pattern tracks
+    dispatch(Instrument.buildInstruments(patternTracks));
+  } catch (e) {
+    // If there is an error, log it
+    console.error(e);
+  } finally {
+    // Take an extra lil bit to load :)
+    await sleep(5.12);
+    // Set the transport as loaded
+    dispatch(TransportSlice.setLoaded(true));
+    dispatch(TransportSlice.setLoading(false));
+  }
+};
+
+/**
+ * Unload the transport upon unmounting the app, destroying all instruments.
+ */
+export const unloadTransport = (): AppThunk => (dispatch) => {
+  // Unload and stop the transport
+  dispatch(TransportSlice.setLoaded(false));
+  dispatch(TransportSlice.setLoading(false));
+  dispatch(stopTransport());
+
+  // Destroy all instruments
+  Instrument.destroyInstruments();
+};
+
+/**
  * Start recording the transport.
  */
-export const startRecording = (): AppThunk => (dispatch) => {
-  dispatch(TransportSlice.setOfflineTick(0));
+export const startRecordingTransport = (): AppThunk => (dispatch) => {
   dispatch(TransportSlice.setRecording(true));
+
+  // Start the recorder if not started
+  if (LIVE_RECORDER_INSTANCE.state === "started") return;
+  LIVE_RECORDER_INSTANCE.start();
 };
 
 /**
- * Stop recording the transport.
+ * Stop recording the transport and save the recording.
  * @returns
  */
-export const stopRecording = (): AppThunk => (dispatch) => {
-  dispatch(TransportSlice.setOfflineTick(0));
+export const stopRecordingTransport = (): AppThunk => (dispatch, getState) => {
   dispatch(TransportSlice.setRecording(false));
+  if (LIVE_RECORDER_INSTANCE.state !== "started") return;
+
+  // Stop the transport
+  dispatch(stopTransport());
+
+  // Stop the recorder and get the blob
+  LIVE_RECORDER_INSTANCE.stop().then(async (toneBlob) => {
+    // Create an audio context
+    const context = new AudioContext();
+
+    // Read blob into array buffer
+    const arrayBuffer = await toneBlob.arrayBuffer();
+
+    // Decode the WebM buffer into an audio buffer
+    const audioBuffer = await context.decodeAudioData(arrayBuffer);
+
+    // Encode the audio buffer into a WAV file
+    const wav = encodeWAV(audioBuffer);
+
+    // Create a blob from the WAV file
+    const blob = new Blob([wav], { type: "audio/wav" });
+    const url = URL.createObjectURL(blob);
+
+    // Download the file
+    const state = getState();
+    const { projectName } = selectRoot(state);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${projectName ?? "Project"} Recording.wav`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 };
 
 /**
- * Start the transport, using `Tone.scheduleRepeat` to schedule all samplers to play their patterns.
- * The transport will fetch the chord record every tick so that the state is always up to date.
- * If the transport is already started, this function will do nothing.
+ * Toggles the transport recording state.
  */
-export const startTransport = (): AppThunk => (dispatch, getState) => {
-  // Make sure the Tone context is running
-  if (Tone.getContext().state !== "running") {
-    stopTransport();
-    startTone(true);
-    return;
-  }
+export const toggleTransportRecording =
+  (): AppThunk => (dispatch, getState) => {
+    const state = getState();
+    const transport = selectTransport(state);
+    if (transport.recording) {
+      dispatch(stopRecordingTransport());
+    } else {
+      dispatch(startRecordingTransport());
+    }
+  };
 
-  // Make sure the transport is not already started or recording
-  const oldState = getState();
-  const transport = selectTransport(oldState);
-  if (transport.state === "started" || transport.recording) return;
-
-  // Schedule patterns if the transport is stopped
-  if (transport.state === "stopped") {
-    const pulse = convertTicksToSeconds(transport, 1);
-
-    // Schedule the transport
-    Tone.Transport.scheduleRepeat((time) => {
-      const state = getState();
-      const transport = selectTransport(state);
-
-      // Get the chord record at the current tick
-      const chordRecord = selectChordsAtTick(state, transport.tick);
-
-      // Iterate over the instruments that are to be played at the current tick
-      if (chordRecord) {
-        for (const instrumentId in chordRecord) {
-          // Get the chord to be played
-          const chord = chordRecord[instrumentId];
-          if (!chord) continue;
-
-          // Get the live audio instance
-          const instance = LIVE_AUDIO_INSTANCES[instrumentId];
-          if (!instance.isLoaded()) continue;
-
-          // Play the realized pattern chord using the sampler
-          playPatternChord(instance.sampler, chord, time);
-        }
-      }
-      // Schedule the next tick
-      const nextTick = getNextTransportTick(transport);
-      dispatch(TransportSlice._seekTransport(nextTick));
-    }, pulse);
-  }
-
-  // Start the transport
-  Tone.Transport.start();
-  dispatch(TransportSlice._startTransport());
+/**
+ * Start downloading the transport.
+ */
+export const startDownloadingTransport = (): AppThunk => (dispatch) => {
+  dispatch(TransportSlice.setOfflineTick(0));
+  dispatch(TransportSlice.setDownloading(true));
 };
+
+/**
+ * Stop downloading the transport.
+ */
+export const stopDownloadingTransport = (): AppThunk => (dispatch) => {
+  dispatch(TransportSlice.setOfflineTick(0));
+  dispatch(TransportSlice.setDownloading(false));
+};
+
+/**
+ * Toggle the transport downloading state.
+ */
+export const toggleTransportDownloading =
+  (): AppThunk => (dispatch, getState) => {
+    const state = getState();
+    const transport = selectTransport(state);
+    if (transport.downloading) {
+      dispatch(stopDownloadingTransport());
+    } else {
+      dispatch(startDownloadingTransport());
+    }
+  };
 
 /**
  * Download the transport into a WAV file.
@@ -342,9 +490,7 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
   if (oldTransport.state === "started") return;
 
   // Make sure the recording will be longer than 0 seconds
-  const ticks = oldTransport.loop
-    ? oldTransport.loopEnd
-    : selectTimelineEndTick(oldState);
+  const ticks = selectTimelineEndTick(oldState);
   if (ticks <= 0) return;
 
   // Get the samplers
@@ -355,8 +501,8 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
   const duration = convertTicksToSeconds(oldTransport, ticks);
   const pulse = convertTicksToSeconds(oldTransport, 1);
 
-  // Start recording
-  dispatch(startRecording());
+  // Start downloading
+  dispatch(startDownloadingTransport());
 
   // Start the offline transport
   const offlineBuffer = await Tone.Offline(async (offlineContext) => {
@@ -365,19 +511,20 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
     for (const trackId in oldSamplers) {
       const patternTrack = patternTrackMap[trackId];
       const instance = dispatch(
-        Instrument.createInstrument(patternTrack, { recording: true })
+        Instrument.createInstrument(patternTrack, { downloading: true })
       );
       if (!instance) continue;
       samplers[trackId] = instance.sampler;
     }
 
     // Schedule the offline transport
+    offlineContext.transport.PPQ = MIDI.PPQ;
     offlineContext.transport.scheduleRepeat((time) => {
       const state = getState();
       const transport = selectTransport(state);
 
-      // Cancel the operation if recording ever stops
-      if (!transport.recording) {
+      // Cancel the operation if downloading ever stops
+      if (!transport.downloading) {
         offlineContext.transport.stop();
         offlineContext.transport.cancel();
         return;
@@ -385,7 +532,7 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
 
       // Get the chord record at the current tick
       const chordsByTick = selectChordsByTicks(state);
-      const chords = chordsByTick[transport.offlineTick] ?? {};
+      const chords = chordsByTick[offlineContext.transport.ticks] ?? {};
       const instrumentIds = Object.keys(chords);
 
       // Iterate over the instruments that are to be played at the current tick
@@ -395,16 +542,18 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
         playPatternChord(sampler, chord, time);
       }
       // Schedule the next tick
-      dispatch(TransportSlice.setOfflineTick(transport.offlineTick + 1));
+      dispatch(
+        TransportSlice.setOfflineTick(offlineContext.transport.ticks + 1)
+      );
     }, pulse);
 
     // Start the transport
     offlineContext.transport.start();
   }, duration);
 
-  // Make sure the transport is still recording
+  // Make sure the transport is still downloading
   const currentTransport = selectTransport(getState());
-  if (!currentTransport.recording) return;
+  if (!currentTransport.downloading) return;
 
   // Get the data from the buffer
   const buffer = offlineBuffer.get();
@@ -423,6 +572,6 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
   a.click();
   URL.revokeObjectURL(url);
 
-  // Stop the recording
-  dispatch(stopRecording());
+  // Stop the download
+  dispatch(stopDownloadingTransport());
 };

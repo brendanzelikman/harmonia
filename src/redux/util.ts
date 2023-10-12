@@ -6,7 +6,7 @@ import { isTimeline } from "types/Timeline";
 import { isTransport } from "types/Transport";
 import { createSelectorCreator, defaultMemoize } from "reselect";
 import { isEqual } from "lodash";
-import { PayloadAction, Slice } from "@reduxjs/toolkit";
+import { Action, Dispatch, PayloadAction, Slice } from "@reduxjs/toolkit";
 
 export const isSliceAction = (slice: string) => (action: PayloadAction) =>
   action.type.startsWith(slice);
@@ -19,6 +19,13 @@ export const createDeepEqualSelector = createSelectorCreator(
   defaultMemoize,
   isEqual
 );
+
+export const createPromptedAction =
+  (promptStr: string, dispatchFn: (input: number) => unknown) => () => {
+    const input = prompt(promptStr);
+    const sanitizedInput = parseInt(input ?? "");
+    if (!isNaN(sanitizedInput)) dispatchFn(sanitizedInput);
+  };
 
 export const isRootState = (obj: any): obj is RootState => {
   const { session, scales, patterns, root, editor, timeline, transport } = obj;
@@ -62,7 +69,7 @@ export const isRootState = (obj: any): obj is RootState => {
 // Save the state to local storage
 export const saveState = (state: RootState) => {
   try {
-    const editedState = {
+    const editedState: RootState = {
       ...state,
       scales: { past: [], present: state.scales.present, future: [] },
       patterns: { past: [], present: state.patterns.present, future: [] },
@@ -76,7 +83,7 @@ export const saveState = (state: RootState) => {
         state: "stopped",
         loaded: false,
         recording: false,
-        tick: 0,
+        downloading: false,
       },
     };
     if (!isRootState(editedState)) {

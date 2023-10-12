@@ -24,7 +24,7 @@ export const createInstrument =
     options: {
       offline?: boolean;
       oldInstrument?: Instrument;
-      recording?: boolean;
+      downloading?: boolean;
     } = {}
   ): AppThunk<LiveAudioInstance> =>
   (dispatch, getState) => {
@@ -34,8 +34,8 @@ export const createInstrument =
     const trackInstrument = selectInstrumentById(state, track.instrumentId);
     const oldInstrument = options.oldInstrument ?? trackInstrument;
 
-    // Dispose the old instrument if it exists (and is not being recorded)
-    if (track.instrumentId && !options.recording) {
+    // Dispose the old instrument if it exists (and is not being downloaded)
+    if (track.instrumentId && !options.downloading) {
       LIVE_AUDIO_INSTANCES[track.instrumentId]?.dispose();
       delete LIVE_AUDIO_INSTANCES[track.instrumentId];
     }
@@ -46,7 +46,7 @@ export const createInstrument =
 
     // Create a new instance
     const instance = new LiveAudioInstance(instrument);
-    if (options.recording) return instance;
+    if (options.downloading) return instance;
 
     // Add the instrument to the store and update the instance
     if (!!options.offline) {

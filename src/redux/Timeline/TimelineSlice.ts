@@ -18,7 +18,7 @@ import { ORDERED_SUBDIVISIONS } from "types/units";
  * The timeline slice is responsible for managing the data grid and oversees all tracked objects.
  * It contains dimensions about the timeline, such as the cell width, height, subdivision, etc.
  *
- *  @property `setCellWidth` - Set the width of a timeline cell.
+ * @property `setCellWidth` - Set the width of a timeline cell.
  * @property `setCellHeight` - Set the height of a timeline cell.
  * @property `setSubdivision` - Set the subdivision of a timeline cell.
  * @property `increaseSubdivision` - Increase the subdivision of a timeline cell.
@@ -31,6 +31,10 @@ import { ORDERED_SUBDIVISIONS } from "types/units";
  * @property `toggleMergingClips` - Toggle the merging clips state.
  * @property `toggleRepeatingClips` - Toggle the repeating clips state.
  * @property `toggleTransposingClip` - Toggle the transposing clip state.
+ * @property `startDraggingClip` - Start dragging a clip.
+ * @property `stopDraggingClip` - Stop dragging a clip.
+ * @property `startDraggingTransposition` - Start dragging a transposition.
+ * @property `stopDraggingTransposition` - Stop dragging a transposition.
  *
  */
 export const timelineSlice = createSlice({
@@ -151,6 +155,34 @@ export const timelineSlice = createSlice({
       const isTransposing = state.state === "transposing";
       state.state = isTransposing ? "idle" : "transposing";
     },
+    /**
+     * Start dragging a clip.
+     * @param state - The current timeline state.
+     */
+    startDraggingClip: (state) => {
+      state.draggingClip = true;
+    },
+    /**
+     * Stop dragging a clip.
+     * @param state - The current timeline state.
+     */
+    stopDraggingClip: (state) => {
+      state.draggingClip = false;
+    },
+    /**
+     * Start dragging a transposition.
+     * @param state - The current timeline state.
+     */
+    startDraggingTransposition: (state) => {
+      state.draggingTransposition = true;
+    },
+    /**
+     * Stop dragging a transposition.
+     * @param state - The current timeline state.
+     */
+    stopDraggingTransposition: (state) => {
+      state.draggingTransposition = false;
+    },
   },
 });
 
@@ -171,6 +203,10 @@ export const {
   decreaseSubdivision,
 
   setClipboard,
+  startDraggingClip,
+  stopDraggingClip,
+  startDraggingTransposition,
+  stopDraggingTransposition,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

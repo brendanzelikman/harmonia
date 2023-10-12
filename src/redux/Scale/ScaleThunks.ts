@@ -1,19 +1,25 @@
 import { ticksToToneSubdivision } from "utils";
-import { selectTransport } from "redux/selectors";
+import { selectScaleById, selectTransport } from "redux/selectors";
 import { convertTicksToSeconds } from "types/Transport";
 import { AppThunk } from "redux/store";
 import { MIDI } from "types/midi";
 import {
   Scale,
   ScaleId,
-  defaultScale,
   getScaleName,
-  initializeScale,
-  unpackScale,
+  getScaleNotes,
+  NestedScaleObject,
+  defaultNestedScale,
+  NestedScaleId,
+  initializeNestedScale,
+  getOffsettedNestedScale,
+  getNestedScaleNotes,
+  getRotatedNestedScale,
 } from "types/Scale";
 import { Midi } from "@tonejs/midi";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
-import { addScale, removeScale } from "./ScaleSlice";
+import { addScale, removeScale, updateScale } from "./ScaleSlice";
+import { TrackId } from "types/Track";
 
 /**
  * Creates a scale and adds it to the store.
@@ -21,10 +27,12 @@ import { addScale, removeScale } from "./ScaleSlice";
  * @returns A promise that resolves to the scale ID.
  */
 export const createScale =
-  (scale: Partial<Scale> = defaultScale): AppThunk<Promise<ScaleId>> =>
+  (
+    scale: Partial<NestedScaleObject> = defaultNestedScale
+  ): AppThunk<Promise<NestedScaleId>> =>
   async (dispatch) => {
     return new Promise((resolve) => {
-      const newScale = initializeScale(scale);
+      const newScale = initializeNestedScale(scale);
       dispatch(addScale(newScale));
       resolve(newScale.id);
     });
@@ -45,6 +53,60 @@ export const deleteScale =
   };
 
 /**
+ * Transpose a scale by the given offset.
+ * @param id The ID of the scale to transpose.
+ * @param offset The offset to transpose the track by.
+ */
+export const transposeScale =
+  (id: ScaleId, offset: number): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+
+    // Get the scale track
+    const scale = selectScaleById(state, id);
+    if (!scale) return;
+
+    // Transpose the scale track scale
+    const transposedScale = getOffsettedNestedScale(scale, offset);
+    const notes = getNestedScaleNotes(transposedScale);
+
+    // Dispatch the update
+    dispatch(updateScale({ id, notes }));
+  };
+
+/**
+ * Rotate a scale by the given offset.
+ * @param id The ID of the scale to rotate.
+ * @param offset The offset to rotate the scale by.
+ */
+export const rotateScale =
+  (id: ScaleId, offset: number): AppThunk =>
+  (dispatch, getState) => {
+    const state = getState();
+
+    // Get the scale track
+    const scale = selectScaleById(state, id);
+    if (!scale) return;
+
+    // Transpose the scale track scale
+    const transposedScale = getRotatedNestedScale(scale, offset);
+    const notes = getNestedScaleNotes(transposedScale);
+
+    // Dispatch the update
+    dispatch(updateScale({ id, notes }));
+  };
+
+/**
+ * Clear all notes from a scale.
+ * @param id The ID of the scale track to clear.
+ */
+export const clearNotesFromScale =
+  (id: TrackId): AppThunk =>
+  (dispatch) => {
+    dispatch(updateScale({ id, notes: [] }));
+  };
+
+/**
  * Plays a scale using the global instrument.
  * @param scale The scale to play.
  */
@@ -62,7 +124,7 @@ export const playScale =
     instance.solo = true;
 
     // Unpack the scale
-    const notes = unpackScale(scale);
+    const notes = getScaleNotes(scale);
     const noteCount = notes.length;
 
     // Iterate through the notes and play them
@@ -108,7 +170,7 @@ export const exportScaleToMIDI =
     const track = midi.addTrack();
 
     // Get the scale notes and name
-    const notes = unpackScale(scale);
+    const notes = getScaleNotes(scale);
     const name = getScaleName(scale);
 
     // Add the notes to the track

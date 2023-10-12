@@ -24,7 +24,7 @@ export class MIDI {
   }
   // Convert seconds to tcks based on the PPQ and BPM
   public static secondsToTicks(seconds: Time, bpm: BPM): Tick {
-    return (seconds * bpm * this.PPQ) / 60;
+    return Math.round((seconds * bpm * this.PPQ) / 60);
   }
 
   // Create a note with optional MIDI, duration, and velocity

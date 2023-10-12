@@ -34,19 +34,16 @@ import {
   moveScaleTrack,
   updateScaleTrack,
 } from "redux/ScaleTrack";
-import { useDeepEqualSelector } from "redux/hooks";
+import { useAppSelector, useDeepEqualSelector } from "redux/hooks";
 import { useScaleTrackStyles } from "./hooks/useScaleTrackStyles";
 import { toggleTrackScaleEditor } from "redux/Editor";
+import { Transport } from "tone";
+import useTransportTick from "hooks/useTransportTick";
 
 const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const track = ownProps.track as ScaleTrackType;
   const { selectedTrackId } = ownProps;
   const isSelected = selectedTrackId === track.id;
-
-  // Track scale
-  const { tick } = selectTransport(state);
-  const scale = selectTrackScaleAtTick(state, track?.id, tick - 1);
-  const placeholder = getScaleName(scale);
 
   // Editor state
   const editor = selectEditor(state);
@@ -57,7 +54,6 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
     id: track.id,
     track,
     isSelected,
-    placeholder,
     onScaleEditor,
   };
 };
@@ -66,10 +62,10 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: TrackProps) => {
   const trackId = ownProps.track?.id;
   return {
     createScaleTrack: () => {
-      dispatch(createScaleTrack({ parentId: ownProps.track?.id }));
+      dispatch(createScaleTrack({ parentId: trackId }));
     },
     createPatternTrack: () => {
-      dispatch(createPatternTrack({ parentId: ownProps.track?.id }));
+      dispatch(createPatternTrack({ parentId: trackId }));
     },
     toggleScaleEditor: () => {
       dispatch(toggleTrackScaleEditor(trackId));
@@ -89,7 +85,13 @@ export type ScaleTrackProps = ConnectedProps<typeof connector>;
 export default connector(ScaleTrackComponent);
 
 function ScaleTrackComponent(props: ScaleTrackProps) {
-  const { id, track, placeholder, toggleScaleEditor } = props;
+  const { id, track, toggleScaleEditor } = props;
+
+  const tick = useTransportTick();
+  const scale = useAppSelector((state) =>
+    selectTrackScaleAtTick(state, track?.id, tick)
+  );
+  const placeholder = getScaleName(scale);
 
   // Track properties
   const children = useDeepEqualSelector((_) => selectTrackChildren(_, id));

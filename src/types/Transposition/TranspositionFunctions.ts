@@ -36,8 +36,8 @@ export const createTranspositionMap = (
 
 /**
  * Get the scalar offsets from the transposition record.
- * @param offsets The {@link TranspositionOffsetRecord}.
- * @param ids The {@link OffsetId}s to use as keys.
+ * @param offsets The `TranspositionOffsetRecord`.
+ * @param ids The `OffsetId`s to use as keys.
  * @returns The scalar offsets or an empty array if the offsets or ids are missing.
  */
 export const getScalarOffsets = (
@@ -50,8 +50,8 @@ export const getScalarOffsets = (
 
 /**
  * Get the scalar offset from the transposition record.
- * @param offsets The {@link TranspositionOffsetRecord}.
- * @param ids The {@link OffsetId}s to use.
+ * @param offsets The `TranspositionOffsetRecord`.
+ * @param ids The `OffsetId`s to use.
  * @returns The scalar offset or 0 if the offsets or id are missing.
  */
 export const getScalarOffset = (
@@ -64,7 +64,7 @@ export const getScalarOffset = (
 
 /**
  * Get the chromatic offset from the transposition record.
- * @param transposition The {@link TranspositionOffsetRecord}.
+ * @param transposition The `TranspositionOffsetRecord`.
  * @returns The chromatic offset or 0 if the key is missing.
  */
 export const getChromaticOffset = (offsets?: TranspositionOffsetRecord) => {
@@ -74,7 +74,7 @@ export const getChromaticOffset = (offsets?: TranspositionOffsetRecord) => {
 
 /**
  * Get the chordal offset from the transposition record.
- * @param transposition The {@link TranspositionOffsetRecord}.
+ * @param transposition The `TranspositionOffsetRecord`.
  * @returns The chordal offset or 0 if the key is missing.
  */
 export const getChordalOffset = (offsets?: TranspositionOffsetRecord) => {
@@ -83,8 +83,33 @@ export const getChordalOffset = (offsets?: TranspositionOffsetRecord) => {
 };
 
 /**
+ * Get the offseted transposition by adding the given offsets to the given transposition.
+ * @param transposition The `Transposition` to offset.
+ * @param offsets The `TranspositionOffsetRecord` to apply.
+ * @returns The offseted `Transposition`.
+ */
+export const getOffsettedTransposition = (
+  transposition: Transposition,
+  offsets: TranspositionOffsetRecord
+): Transposition => {
+  const offsetKeys = Object.keys({ ...transposition.offsets, ...offsets });
+
+  // Offset each transposition
+  const newOffsets = offsetKeys.reduce((acc, cur) => {
+    if (!cur?.length) return acc;
+    const curOffset = transposition.offsets[cur] || 0;
+    const newOffset = offsets[cur] || 0;
+    const newCurOffset = curOffset + newOffset;
+    return { ...acc, [cur]: newCurOffset };
+  }, {} as TranspositionOffsetRecord);
+
+  // Return the transposition with the new offsets
+  return { ...transposition, offsets: newOffsets };
+};
+
+/**
  * Get the last transposition occurring at or before the given tick.
- * @param transpositions The {@link Transposition}s to search.
+ * @param transpositions The `Transposition`s to search.
  * @param tick The tick to search for.
  * @param sort Optional. Whether to sort the transpositions by tick. Default True.
  * @returns The matching transposition or undefined if none exist.
@@ -98,7 +123,8 @@ export const getLastTransposition = (
 
   // Get the matching transpositions
   const matchingTranspositions = transpositions.filter(
-    (t) => t.tick <= tick && (!!t.duration ? t.tick + t.duration > tick : true)
+    (t) =>
+      t && t.tick <= tick && (!!t.duration ? t.tick + t.duration > tick : true)
   );
 
   // If no matching transpositions, return undefined

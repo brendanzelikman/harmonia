@@ -1,14 +1,20 @@
 import { uniqBy } from "lodash";
 import { AppThunk } from "redux/store";
-import { chromaticScale, unpackScale } from "types/Scale";
+import {
+  chromaticNotes,
+  chromaticScale,
+  getNestedNoteAsMidi,
+  getNestedScaleNotes,
+  getOffsettedNestedScale,
+  getRotatedNestedScale,
+  getScaleNotes,
+  initializeNestedScale,
+  nestedChromaticNotes,
+} from "types/Scale";
 import {
   isScaleTrack,
   getScaleTrackScale,
-  getTrackNoteAsMidi,
-  getChromaticallyTransposedTrackScale,
-  getChordallyTransposedTrackScale,
   ScaleTrack,
-  defaultScaleTrack,
   initializeScaleTrack,
 } from "types/ScaleTrack";
 import { TrackId } from "types/Track";
@@ -22,8 +28,9 @@ import {
 import { addScaleTrackToSession, moveTrackInSession } from "redux/Session";
 import { getProperty } from "types/util";
 import { setPatternTrackScaleTrack } from "redux/PatternTrack";
-import { selectTrackById } from "redux/selectors";
+import { selectScaleMap, selectTrackById } from "redux/selectors";
 import { isPatternTrack } from "types/PatternTrack";
+import { addScale, updateScale } from "redux/Scale/ScaleSlice";
 
 /**
  * Create a `ScaleTrack` with an optional initial track.
@@ -34,15 +41,24 @@ export const createScaleTrack =
   (initialTrack?: Partial<ScaleTrack>): AppThunk<Promise<TrackId>> =>
   (dispatch, getState) => {
     const state = getState();
+    const scaleMap = selectScaleMap(state);
 
     // Get the parent track of the initial track to inherit the scale
     const parentTrack = selectScaleTrackById(state, initialTrack?.parentId);
-    const parentNotes = parentTrack?.trackScale ?? defaultScaleTrack.trackScale;
-    const trackScale = parentNotes.map((_, i) => ({ degree: i, offset: 0 }));
+    const parentScale = getProperty(scaleMap, parentTrack?.scaleId);
+    const parentNotes = parentScale?.notes ?? nestedChromaticNotes;
 
-    // Create and add the scale track
+    // Create a new scale for the track
+    const notes = parentNotes.map((_, i) => ({ degree: i, offset: 0 }));
+    const scale = initializeNestedScale({ notes });
+
+    // Create and add the scale track and scale
     return new Promise(async (resolve) => {
-      const scaleTrack = initializeScaleTrack({ ...initialTrack, trackScale });
+      const scaleTrack = initializeScaleTrack({
+        ...initialTrack,
+        scaleId: scale.id,
+      });
+      dispatch(addScale(scale));
       dispatch(addScaleTrack(scaleTrack));
       dispatch(addScaleTrackToSession(scaleTrack));
       resolve(scaleTrack.id);
@@ -62,43 +78,45 @@ export const addNoteToScaleTrack =
     // Get the scale track
     const scaleTrackMap = selectScaleTrackMap(state);
     const scaleTrack = scaleTrackMap[scaleTrackId];
-    if (!scaleTrack || !isScaleTrack(scaleTrack)) return;
+    if (!scaleTrack) return;
+
+    // Get the scale
+    const scaleMap = selectScaleMap(state);
+    const scale = getProperty(scaleMap, scaleTrack.scaleId);
+    const scaleNotes = getNestedScaleNotes(scale);
+    if (!scale) return;
 
     // Get the scale of the parent track
     const parent = getProperty(scaleTrackMap, scaleTrack?.parentId);
-    const scale = parent
-      ? getScaleTrackScale(parent, scaleTrackMap)
-      : chromaticScale;
-
-    // Unpack the notes of the scale
-    const notes = unpackScale(scale);
-    if (!notes?.length) return;
+    const parentScale = getScaleTrackScale(parent, scaleTrackMap, scaleMap);
+    const parentNotes = getScaleNotes(parentScale);
+    if (!parentNotes?.length) return;
 
     // Get the lowest note in the scale
-    const low = scaleTrack.trackScale.at(0);
+    const low = scaleNotes.at(0);
     const lowOffset = low?.offset || 0;
     const lowDegree = low?.degree || 0;
-    const lowNote = getTrackNoteAsMidi(scale, low);
+    const lowNote = getNestedNoteAsMidi(parentScale, low);
 
     // Get the highest note in the scale
-    const high = scaleTrack.trackScale.at(-1);
+    const high = scaleNotes.at(-1);
     const highOffset = high?.offset || 0;
     const highDegree = high?.degree || 0;
-    const highNote = getTrackNoteAsMidi(scale, high);
+    const highNote = getNestedNoteAsMidi(parentScale, high);
 
     // Find the closest pitch to the scale notes
     const pitch = MIDI.toPitchClass(note);
-    const closestPitch = MIDI.closestPitchClass(pitch, notes);
+    const closestPitch = MIDI.closestPitchClass(pitch, parentNotes);
     if (!closestPitch) return;
 
     // Get the degree of the closest pitch
-    const degree = notes.findIndex(
+    const degree = parentNotes.findIndex(
       (note) => MIDI.toPitchClass(note) === closestPitch
     );
     if (degree < 0) return;
 
     // Get the offset of the note in the scale with the closest pitch
-    const scaleNote = notes[degree];
+    const scaleNote = parentNotes[degree];
     let offset = MIDI.OctaveDistance(scaleNote, note) * 12;
 
     // Check if the scale currently does or will overshoot an octave
@@ -129,16 +147,16 @@ export const addNoteToScaleTrack =
     const scaleTrackNote = { degree, offset };
 
     // Splice the note into the scale
-    const newScale = [...scaleTrack.trackScale];
-    newScale.splice(degree, 0, scaleTrackNote);
+    const splicedNotes = [...scaleNotes];
+    splicedNotes.splice(degree, 0, scaleTrackNote);
 
     // Remove duplicate notes and sort the scale
-    const trackScale = uniqBy(newScale, "degree").sort(
+    const newNotes = uniqBy(splicedNotes, "degree").sort(
       (a, b) => a.degree + a.offset * 12 - (b.degree + b.offset * 12)
     );
 
     // Dispatch the update
-    dispatch(updateScaleTrack({ id: scaleTrackId, trackScale }));
+    dispatch(updateScale({ id: scale.id, notes: newNotes }));
   };
 
 /**
@@ -157,89 +175,21 @@ export const removeNoteFromScaleTrack =
     if (!scaleTrack || !isScaleTrack(scaleTrack)) return;
 
     // Get the scale track scale
-    const trackScale = [...scaleTrack.trackScale];
-    const scale = getScaleTrackScale(scaleTrack, scaleTrackMap);
+    const scaleMap = selectScaleMap(state);
+    const scale = scaleMap[scaleTrack.scaleId];
+    const notes = getNestedScaleNotes(scale);
     if (!scale) return;
 
-    // Unpack the notes of the scale
-    const notes = unpackScale(scale);
-    if (!notes?.length) return;
-
     // Find the index of the pitch in the scale
+    const trackScale = getScaleTrackScale(scaleTrack, scaleTrackMap, scaleMap);
+    const trackNotes = getScaleNotes(trackScale);
     const pitch = MIDI.toPitchClass(note);
-    const index = notes.findIndex((p) => MIDI.toPitchClass(p) === pitch);
+    const index = trackNotes.findIndex((p) => MIDI.toPitchClass(p) === pitch);
     if (index < 0) return;
 
     // Splice the note from the scale track
-    trackScale.splice(index, 1);
-
-    // Dispatch the update
-    dispatch(updateScaleTrack({ id: scaleTrackId, trackScale }));
-  };
-
-/**
- * Transpose a scale track by the given offset.
- * @param id The ID of the scale track to transpose.
- * @param offset The offset to transpose the scale track by.
- */
-export const transposeScaleTrack =
-  (id: TrackId, offset: number): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-
-    // Get the scale track
-    const scaleTrack = selectScaleTrackById(state, id);
-    if (!scaleTrack) return;
-
-    // Transpose the scale track scale
-    const trackScale = getChromaticallyTransposedTrackScale(
-      scaleTrack.trackScale,
-      offset
-    );
-    // Dispatch the update
-    dispatch(updateScaleTrack({ id, trackScale }));
-  };
-
-/**
- * Rotate a scale track by the given offset.
- * @param scaleTrackId The ID of the scale track to rotate.
- * @param offset The offset to rotate the scale track by.
- */
-export const rotateScaleTrack =
-  (scaleTrackId: TrackId, offset: number): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-
-    // Get the scale track
-    const scaleTrack = selectScaleTrackById(state, scaleTrackId);
-    if (!scaleTrack) return;
-
-    // Rotate the scale track scale
-    const trackScale = getChordallyTransposedTrackScale(
-      scaleTrack.trackScale,
-      offset
-    );
-    if (!trackScale) return;
-
-    // Dispatch the update
-    dispatch(updateScaleTrack({ id: scaleTrackId, trackScale }));
-  };
-
-/**
- * Clear all notes from a scale track.
- * @param scaleTrackId The ID of the scale track to clear.
- */
-export const clearNotesFromScaleTrack =
-  (scaleTrackId?: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-
-    // Get the scale track
-    const scaleTrack = selectScaleTrackById(state, scaleTrackId);
-    if (!scaleTrack) return;
-
-    // Dispatch the update
-    dispatch(updateScaleTrack({ id: scaleTrackId, trackScale: [] }));
+    notes.splice(index, 1);
+    dispatch(updateScale({ id: scale.id, notes }));
   };
 
 /**

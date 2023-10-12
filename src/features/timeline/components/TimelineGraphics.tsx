@@ -7,9 +7,7 @@ import {
   selectCellWidth,
   selectRoot,
   selectSelectedTrack,
-  selectTimelineTickLeft,
   selectTimelineObjectTop,
-  selectTransport,
   selectOrderedTrackIds,
   selectTrackById,
   selectTimelineColumnCount,
@@ -20,6 +18,7 @@ import {
   HEADER_HEIGHT,
   TRACK_WIDTH,
 } from "appConstants";
+import TimelineCursor from "./TimelineCursor";
 
 interface BackgroundProps {
   timeline?: DataGridHandle;
@@ -27,7 +26,6 @@ interface BackgroundProps {
 
 const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
   const { showingTour, tourStep } = selectRoot(state);
-  const transport = selectTransport(state);
   const columns = selectTimelineColumnCount(state);
 
   // General dimensions
@@ -38,12 +36,8 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
 
   // Track background height
   const lastTrackId = selectOrderedTrackIds(state).at(-1);
-  const lastTrack = lastTrackId
-    ? selectTrackById(state, lastTrackId)
-    : undefined;
-  const tracksHeight = lastTrack
-    ? selectTimelineObjectTop(state, lastTrack)
-    : 0;
+  const lastTrack = selectTrackById(state, lastTrackId);
+  const tracksHeight = selectTimelineObjectTop(state, lastTrack);
   const lastTrackHeight = lastTrack
     ? !!lastTrack.collapsed
       ? COLLAPSED_TRACK_HEIGHT
@@ -52,9 +46,8 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
 
   // Selected track background
   const selectedTrack = selectSelectedTrack(state);
-  const selectedTrackTop = selectedTrack
-    ? selectTimelineObjectTop(state, selectedTrack)
-    : 0;
+  const selectedTrackTop = selectTimelineObjectTop(state, selectedTrack);
+
   const selectedTrackHeight = selectedTrack
     ? !!selectedTrack.collapsed
       ? COLLAPSED_TRACK_HEIGHT
@@ -62,10 +55,7 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
     : 0;
 
   // Cursor properties
-  const cursorLeft = selectTimelineTickLeft(state, transport.tick);
-  const cursorWidth = cellWidth - 4;
   const cursorHeight = cellHeight;
-  const showCursor = transport.state === "started" && !transport.recording;
 
   // Background dimensions
   const width = columns * cellWidth;
@@ -77,10 +67,7 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
     tourLeft,
     tourStep,
     showingTour,
-    cursorLeft,
-    cursorWidth,
     cursorHeight,
-    showCursor,
     width,
     height,
     cellWidth,
@@ -98,13 +85,12 @@ const mapDispatchToProps = {};
 const connector = connect(mapStateToProps, mapDispatchToProps);
 type Props = ConnectedProps<typeof connector>;
 
-export default connector(TimelineBackground);
+export default connector(TimelineGraphics);
 
 // Timeline background so that the tracks can be scrolled
-function TimelineBackground(props: Props) {
+function TimelineGraphics(props: Props) {
   const { timeline, width, height } = props;
   const element = timeline?.element;
-  if (!element) return null;
 
   // Onboarding tour background
   const TourBackground = () => (
@@ -122,25 +108,6 @@ function TimelineBackground(props: Props) {
       className={`w-full h-screen transition-all duration-300 absolute bg-slate-900/50 backdrop-blur z-[90] pointer-events-none`}
     />
   );
-
-  // Timeline time cursor
-  const TimelineCursor = () =>
-    props.showCursor ? (
-      <div
-        className="sticky inset-0 z-50 pointer-events-none"
-        style={{ width, height: HEADER_HEIGHT }}
-      >
-        <div
-          className="relative bg-green-500"
-          style={{
-            height: HEADER_HEIGHT,
-            marginTop: -HEADER_HEIGHT,
-            width: props.cursorWidth,
-            left: props.cursorLeft,
-          }}
-        />
-      </div>
-    ) : null;
 
   // Timeline time background
   const TimelineTimeBackground = () => (
@@ -183,22 +150,27 @@ function TimelineBackground(props: Props) {
     ></div>
   );
 
+  const TimelineElements = () => (
+    <div className="relative w-full h-full">
+      <TimelineTopLeftCorner />
+      <TimelineTimeBackground />
+      <SelectedTrackBackground />
+      <TimelineCursor />
+      <TimelineBackground />
+    </div>
+  );
+
   // Rendered backgrounds handled by the grid
-  const RenderedBackgrounds = () => (
+  const RenderedBackgrounds = (
     <div
       className="absolute inset-0 pointer-events-none"
       style={{ height, width }}
     >
       {TourBackground()}
-      <div className="relative w-full h-full">
-        <TimelineTopLeftCorner />
-        <TimelineTimeBackground />
-        <SelectedTrackBackground />
-        <TimelineCursor />
-        <TimelineBackground />
-      </div>
+      <TimelineElements />
     </div>
   );
 
-  return createPortal(<>{RenderedBackgrounds()}</>, element);
+  if (!element) return null;
+  return createPortal(RenderedBackgrounds, element);
 }

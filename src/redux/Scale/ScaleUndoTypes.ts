@@ -1,12 +1,12 @@
 import { PayloadAction } from "@reduxjs/toolkit";
 import { ActionGroup } from "types/units";
 import { createTag } from "types/util";
-import { getScaleTag } from "types/Scale";
+import { getNestedScaleTag } from "types/Scale";
 import * as ScaleSlice from "./ScaleSlice";
 
 export const SCALE_UNDO_TYPES: ActionGroup = {
   "scales/addScale": (action: PayloadAction<ScaleSlice.AddScalePayload>) => {
-    const scaleTag = createTag(action.payload, getScaleTag);
+    const scaleTag = createTag(action.payload, getNestedScaleTag);
     return `ADD_SCALE:${scaleTag}`;
   },
   "scales/removeScale": (
@@ -17,7 +17,7 @@ export const SCALE_UNDO_TYPES: ActionGroup = {
   "scales/updateScale": (
     action: PayloadAction<ScaleSlice.UpdateScalePayload>
   ) => {
-    const scaleTag = createTag(action.payload, getScaleTag);
+    const scaleTag = createTag(action.payload, getNestedScaleTag);
     return `UPDATE_SCALE:${scaleTag}`;
   },
   "scales/addNoteToScale": (

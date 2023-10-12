@@ -5,7 +5,6 @@ import {
 } from "types/Pattern";
 import {
   Transposition,
-  isTransposition,
   getChromaticOffset,
   getChordalOffset,
   getScalarOffset,
@@ -17,8 +16,6 @@ import {
   isTrack,
   Track,
   TrackMap,
-  TrackScale,
-  isTrackScale,
   isTrackMap,
   TrackInterface,
 } from "./TrackTypes";
@@ -26,11 +23,18 @@ import {
   isScaleTrack,
   ScaleTrackMap,
   ScaleTrack,
-  getChromaticallyTransposedTrackScale,
-  getChordallyTransposedTrackScale,
-  getScalarlyTransposedTrackScale,
   getScaleTrackScale,
 } from "types/ScaleTrack";
+import {
+  NestedScale,
+  NestedScaleMap,
+  ScaleMap,
+  applyTranspositionToNestedScale,
+  getNestedScaleNotes,
+  getTransposedNestedScale,
+  nestedChromaticScale,
+} from "types/Scale";
+import { getProperty } from "types/util";
 
 /**
  * Get the unique tag of a given Track.
@@ -104,81 +108,51 @@ export const getTrackChildren = (
 };
 
 /**
- * Gets the transposed track scale with chromatic and chordal offsets applied.
- * @param trackScale The TrackScale to transpose.
- * @param transposition The Transposition to apply.
- * @returns A transposed TrackScale. If the TrackScale or Transposition is invalid, return the original TrackScale.
- */
-export const getTransposedTrackScale = (
-  trackScale: TrackScale,
-  transposition?: Transposition
-) => {
-  // If any parameter is invalid, return the original track scale
-  if (!isTrackScale(trackScale)) return trackScale;
-  if (!isTransposition(transposition)) return trackScale;
-  const { offsets } = transposition;
-
-  // Transpose the track scale chromatically
-  const N = getChromaticOffset(offsets);
-  const s1 = getChromaticallyTransposedTrackScale(trackScale, N);
-
-  // Transpose the track scale chordally
-  const t = getChordalOffset(offsets);
-  const s2 = getChordallyTransposedTrackScale(s1, t);
-
-  // Return the transposed track scale
-  const transposedTrackScale = s2;
-  return transposedTrackScale;
-};
-
-/**
  * Gets the transposed scale track with all offsets applied to the track and its parents.
  * @param track The ScaleTrack to transpose.
  * @param parents The parent ScaleTracks of the ScaleTrack.
  * @param transposition The Transposition to apply.
- * @returns A transposed ScaleTrack. If any parameter is invalid, return the original ScaleTrack.
+ * @returns A `NestedScale`.
  */
-export const getTransposedScaleTrack = (
+export const getTransposedScaleTrackScale = (
   track: ScaleTrack,
   parents: ScaleTrack[],
+  scaleMap: NestedScaleMap,
   transposition?: Transposition
-) => {
-  // If any parameter is invalid, return the original scale track
-  if (!isScaleTrack(track)) return track;
-  if (parents.some((parent) => !isScaleTrack(parent))) return track;
-  if (!isTransposition(transposition)) return track;
+): NestedScale => {
+  // If no scale exists, then return the nested chromatic scale
+  const scale = scaleMap[track.scaleId];
+  if (!scale || !transposition) return nestedChromaticScale;
 
   // Initialize the loop variables
-  let newlyTransposedParents = [...parents] || [];
-  let parent, child;
-  let newTrack = track;
+  const parentCount = parents.length;
+  let transposedScales = parents
+    .map((_) => getProperty(scaleMap, _.scaleId))
+    .filter(Boolean) as NestedScale[];
+  if (parentCount !== transposedScales.length) return nestedChromaticScale;
 
   // Transpose the scales sequentially based on the parents/offsets
-  for (let j = 1; j <= parents.length; j++) {
-    parent = newlyTransposedParents[j - 1];
-    child = newlyTransposedParents[j] || track;
+  let notes = getNestedScaleNotes(scale);
+  for (let j = 1; j <= parentCount; j++) {
+    const parent = parents[j - 1];
+    const parentScale = transposedScales[j - 1];
+    const childScale = transposedScales[j] || scale;
 
-    // Transpose the scale track scalarly
+    // Transpose the scale
     const scalar = getScalarOffset(transposition.offsets, parent.id);
-    const trackScale = getScalarlyTransposedTrackScale(
-      child.trackScale,
+    const transposedScale = getTransposedNestedScale(
+      childScale,
       scalar,
-      parent.trackScale
+      parentScale
     );
-
-    // Update the track and parents with the transposed scale track
-    newTrack = { ...child, trackScale };
-    newlyTransposedParents[j] = newTrack;
+    // Update the track and parents
+    notes = getNestedScaleNotes(transposedScale);
+    transposedScales[j] = transposedScale;
   }
 
   // Apply the final chromatic/chordal offsets to the track scale
-  const trackScale = getTransposedTrackScale(
-    newTrack.trackScale,
-    transposition
-  );
-
-  // Return the transposed scale track
-  return { ...newTrack, trackScale };
+  const finalScale = applyTranspositionToNestedScale(notes, transposition);
+  return finalScale;
 };
 
 /**
@@ -186,52 +160,59 @@ export const getTransposedScaleTrack = (
  * @param tracks The ScaleTracks to transpose.
  * @param transpositions A 2D array of Transpositions to apply to each ScaleTrack.
  * @param tick Optional. The tick to transpose the ScaleTracks at.
- * @returns An array of transposed ScaleTracks. If any parameter is invalid, return the original ScaleTracks.
+ * @returns An array of transposed NestedScales.
  */
-export const getTransposedScaleTracksAtTick = (
+export const getTransposedScaleTrackScalesAtTick = (
   tracks: ScaleTrack[],
   transpositions: Transposition[][],
+  scaleMap: NestedScaleMap,
   tick: Tick = 0
-) => {
-  // If any parameter is invalid, return the original tracks
-  if (tracks.some((track) => !isScaleTrack(track))) return tracks;
-  if (!transpositions.length) return tracks;
+): NestedScale[] => {
+  if (!transpositions.length || tracks.some((track) => !isScaleTrack(track))) {
+    return tracks.map((t) => scaleMap[t.scaleId]);
+  }
 
-  // Get the godfather and apply base transpositions
-  const godfatherScale = tracks[0].trackScale;
-  const godfatherTranspositions = transpositions[0];
-  const godfatherTrackScale = getTransposedTrackScale(
-    godfatherScale,
-    getLastTransposition(godfatherTranspositions, tick)
+  // Get the base track scale and apply transpositions
+  const base = tracks[0];
+  const baseScale = getProperty(scaleMap, base.scaleId);
+  const baseTranspositions = transpositions[0];
+  const baseTransposition = getLastTransposition(baseTranspositions, tick);
+  const transposedBaseScale = applyTranspositionToNestedScale(
+    baseScale,
+    baseTransposition
   );
-  const godfather = { ...tracks[0], trackScale: godfatherTrackScale };
 
   // Initialize the transposed tracks with the godfather
-  const transposedTracks = [godfather];
+  const transposedScales = [transposedBaseScale];
 
   // Iterate down child scale tracks and apply transpositions if they exist
   for (let i = 1; i < tracks.length; i++) {
-    // Get the current track and transposition
+    // Get the current track scale and transposition
     const track = tracks[i];
+
+    // If no scale exists, break early
+    const scale = getProperty(scaleMap, track.scaleId);
+    if (!scale) break;
+
+    // If no transposition exists, use the current scale
     const transposition = getLastTransposition(transpositions[i], tick, false);
+    if (!transposition) transposedScales.push(scale);
 
-    // If no transposition exists, then just push the track
-    if (!transposition) {
-      transposedTracks.push(track);
-      continue;
-    }
-
-    // Otherwise, add the transposed scale track
-    const transposedTrack = getTransposedScaleTrack(
+    // Otherwise, transpose the scale
+    const parents = tracks.slice(0, i);
+    const transposedScale = getTransposedScaleTrackScale(
       track,
-      transposedTracks,
+      parents,
+      scaleMap,
       transposition
     );
-    transposedTracks.push(transposedTrack);
+
+    // Push the transposed scale
+    transposedScales.push(transposedScale);
   }
 
   // Return the transposed tracks
-  return transposedTracks;
+  return transposedScales;
 };
 
 /**
@@ -247,18 +228,19 @@ export const getTransposedPatternStream = ({
   pattern,
   transposition,
   tracks,
-  scaleTracks,
+  scaleMap,
+  scaleTrackMap: scaleTracks,
   quantizations,
 }: {
   pattern: Pattern;
   transposition?: Transposition;
   tracks?: ScaleTrack[];
-  scaleTracks?: ScaleTrackMap;
+  scaleMap?: NestedScaleMap;
+  scaleTrackMap?: ScaleTrackMap;
   quantizations?: boolean[];
 }) => {
   if (!pattern) return [];
-  if (!transposition) return pattern.stream;
-  if (!scaleTracks) return pattern.stream;
+  if (!scaleMap || !transposition || !scaleTracks) return pattern.stream;
   if (!tracks || tracks?.some((track) => !isScaleTrack(track))) return [];
 
   // Initialize the loop variables
@@ -267,13 +249,12 @@ export const getTransposedPatternStream = ({
   // Compute the pattern stream through all transposed parents
   const patternStream = tracks.reduce((acc, track, i) => {
     // Get the scale track scale and offset
-    const scale = getScaleTrackScale(track, scaleTracks);
+    const scale = getScaleTrackScale(track, scaleTracks, scaleMap);
     const offset = offsets[track.id];
 
     // Quantize the parent to the scale if a transposition exists
     const shouldQuantize = quantizations?.[i];
-    if (shouldQuantize ? offset === undefined : offset === 0) return acc;
-
+    if (shouldQuantize ? offset === undefined : !offset) return acc;
     // Otherwise, transpose the pattern stream
     return transposePatternStream(acc, offset, scale);
   }, pattern.stream);

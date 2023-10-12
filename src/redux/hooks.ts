@@ -9,7 +9,7 @@ import { isEqual } from "lodash";
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 type DispatchFunc = () => AppDispatch;
 
-export const useDispatch: DispatchFunc = useReduxDispatch;
+export const useAppDispatch: DispatchFunc = useReduxDispatch;
 export const useAppSelector: TypedUseSelectorHook<RootState> = useReduxSelector;
 export const useDeepEqualSelector = <T>(selector: (state: RootState) => T): T =>
   useAppSelector(selector, isEqual);

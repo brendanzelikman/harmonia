@@ -35,7 +35,7 @@ export const selectInstruments = createSelector(
  * @param id The instrument ID.
  * @returns The instrument.
  */
-export const selectInstrumentById = (state: RootState, id: TrackId) => {
+export const selectInstrumentById = (state: RootState, id?: TrackId) => {
   const instrumentMap = selectInstrumentMap(state);
   return getProperty(instrumentMap, id);
 };

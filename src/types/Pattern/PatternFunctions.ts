@@ -6,7 +6,7 @@ import {
   getScalePitchClasses,
   getSortedPitchClasses,
   isScale,
-  unpackScale,
+  getScaleNotes,
 } from "types/Scale";
 import { ERROR_TAG, Key, Tick } from "types/units";
 import { mod, ticksToToneSubdivision } from "utils";
@@ -41,10 +41,9 @@ export const getPatternOptions = (pattern?: Pattern) => {
  * @param pattern The Pattern object.
  * @returns Unique tag string. If the Pattern is invalid, return the error tag.
  */
-export const getPatternTag = (pattern: Pattern) => {
-  if (!isPattern(pattern)) return ERROR_TAG;
+export const getPatternTag = (pattern: Partial<Pattern>) => {
   const { id, name, stream } = pattern;
-  const streamTag = getPatternStreamTag(stream);
+  const streamTag = stream ? getPatternStreamTag(stream) : "";
   return `${id}@${name}@${streamTag}`;
 };
 
@@ -158,7 +157,7 @@ export const getRealizedPatternNotes = (
   if (!isPattern(pattern) || !isScale(scale)) return [];
 
   // Get the pitches of the scale
-  const scaleNotes = unpackScale(scale);
+  const scaleNotes = getScaleNotes(scale);
   const pitches = scaleNotes.map((note) => MIDI.toPitchClass(note));
 
   // Initialize loop variables

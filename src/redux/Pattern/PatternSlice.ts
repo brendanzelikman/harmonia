@@ -18,19 +18,19 @@ import { initializeState } from "types/util";
 const initialState = initializeState<PatternId, Pattern>([defaultPattern]);
 
 /**
- * `Patterns` can be added to the store.
+ * A `Pattern` can be added to the store.
  */
-export type AddPatterns = Pattern[];
+export type AddPatternPayload = Pattern;
 
 /**
- * `Patterns` can be removed from the store by ID.
+ * A `Pattern` can be removed from the store by ID.
  */
-export type RemovePatterns = PatternId[];
+export type RemovePatternPayload = PatternId;
 
 /**
- * `Patterns` can be updated in the store.
+ * A `Pattern` can be updated in the store.
  */
-export type UpdatePatterns = Partial<Pattern>[];
+export type UpdatePatternPayload = Partial<Pattern>;
 
 /**
  * A `PatternNote` can be added to a `Pattern` in the store.
@@ -38,7 +38,7 @@ export type UpdatePatterns = Partial<Pattern>[];
  * @property `patternNote` - The `PatternNote` to add.
  * @property `asChord` - Optional. If true, add the `PatternNote` to the end of the last `PatternChord`.
  */
-export type AddPatternNote = {
+export type AddPatternNotePayload = {
   id: PatternId;
   patternNote: PatternNote;
   asChord?: boolean;
@@ -51,7 +51,7 @@ export type AddPatternNote = {
  * @property `patternNote` - The `PatternNote` to update.
  *
  */
-export interface UpdatePatternNote extends AddPatternNote {
+export interface UpdatePatternNotePayload extends AddPatternNotePayload {
   index: number;
 }
 
@@ -60,7 +60,7 @@ export interface UpdatePatternNote extends AddPatternNote {
  * @property `id` - The ID of the `Pattern`.
  * @property `patternChord` - The `PatternChord` to add.
  */
-export type AddPatternChord = {
+export type AddPatternChordPayload = {
   id: PatternId;
   patternChord: PatternChord;
 };
@@ -71,87 +71,87 @@ export type AddPatternChord = {
  * @property `index` - The index of the `PatternChord` to update.
  * @property `patternChord` - The `PatternChord` to update.
  */
-export interface UpdatePatternChord extends AddPatternChord {
+export interface UpdatePatternChordPayload extends AddPatternChordPayload {
   index: number;
 }
 
 /**
  * A `PatternNote` can be inserted at a specific index.
  */
-export type InsertPatternNote = UpdatePatternNote;
+export type InsertPatternNotePayload = UpdatePatternNotePayload;
 
 /**
  * A `PatternNote` can be removed by index.
  */
-export type RemovePatternNote = { id: PatternId; index: number };
+export type RemovePatternNotePayload = { id: PatternId; index: number };
 
 /**
  * A `Pattern` can be cleared of all notes.
  */
-export type ClearPattern = PatternId;
+export type ClearPatternPayload = PatternId;
 
 /**
  * A `Pattern` can be transposed by a number of semitones.
  */
-export type TransposePattern = { id: PatternId; transpose: number };
+export type TransposePatternPayload = { id: PatternId; transpose: number };
 
 /**
  * A `Pattern` can be rotated by a number of semitones.
  */
-export type RotatePattern = { id: PatternId; transpose: number };
+export type RotatePatternPayload = { id: PatternId; transpose: number };
 
 /**
  * A `Pattern` can be repeated a number of times.
  */
-export type RepeatPattern = { id: PatternId; repeat: number };
+export type RepeatPatternPayload = { id: PatternId; repeat: number };
 
 /**
  * A `Pattern` can be continued for a particular length.
  */
-export type ContinuePattern = { id: PatternId; length: number };
+export type ContinuePatternPayload = { id: PatternId; length: number };
 
 /**
  * A `Pattern` can be phased by a number of steps.
  */
-export type PhasePattern = { id: PatternId; phase: number };
+export type PhasePatternPayload = { id: PatternId; phase: number };
 
 /**
  * A `Pattern` can be diminished by a factor of 2.
  */
-export type DiminishPattern = PatternId;
+export type DiminishPatternPayload = PatternId;
 
 /**
  * A `Pattern` can be augmented by a factor of 2.
  */
-export type AugmentPattern = PatternId;
+export type AugmentPatternPayload = PatternId;
 
 /**
  * A `Pattern` can be reversed.
  */
-export type ReversePattern = PatternId;
+export type ReversePatternPayload = PatternId;
 
 /**
  * A `Pattern` can be shuffled.
  */
-export type ShufflePattern = PatternId;
+export type ShufflePatternPayload = PatternId;
 
 /**
  * A `Pattern` can be harmonized with a particular interval.
  */
-export type HarmonizePattern = { id: PatternId; interval: number };
+export type HarmonizePatternPayload = { id: PatternId; interval: number };
 
 /**
  * A `Pattern` can be randomized with a particular length.
  */
-export type RandomizePattern = { id: PatternId; length: number };
+export type RandomizePatternPayload = { id: PatternId; length: number };
 
 /**
  * The `patternsSlice` contains all of the `Patterns` in the store.
  *
  * @property `setPatternIds` - Set the IDs of the `Patterns` in the store (used for dragging)
- * @property `addPatterns` - Add a list of `Patterns` to the store.
- * @property `removePatterns` - Remove a list of `Patterns` from the store.
- * @property `updatePatterns` - Update a list of `Patterns` in the store.
+ * @property `addPattern` - Add a `Pattern` to the store.
+ * @property `removePattern` - Remove a `Pattern` from the store.
+ * @property `updatePattern` - Update a `Pattern` in the store.
  * @property `addPatternNote` - Add a `PatternNote` to a `Pattern` in the store.
  * @property `addPatternChord` - Add a `PatternChord` to a `Pattern` in the store.
  * @property `updatePatternNote` - Update a `PatternNote` in a `Pattern` in the store.
@@ -187,51 +187,43 @@ export const patternsSlice = createSlice({
       state.allIds = patternIds;
     },
     /**
-     * Add a list of `Patterns` to the store.
+     * Add a `Pattern` to the store.
      * @param state The patterns state.
      * @param action The payload action containing the patterns to add.
      */
-    addPatterns: (state, action: PayloadAction<AddPatterns>) => {
-      const patterns = action.payload;
-      const patternIds = patterns.map((pattern) => pattern.id);
-      state.allIds = union(state.allIds, patternIds);
-      patterns.forEach((pattern) => {
-        state.byId[pattern.id] = pattern;
-      });
+    addPattern: (state, action: PayloadAction<AddPatternPayload>) => {
+      const pattern = action.payload;
+      state.allIds = union(state.allIds, [pattern.id]);
+      state.byId[pattern.id] = pattern;
     },
     /**
-     * Remove a list of `Patterns` from the store.
+     * Remove a `Pattern` from the store.
      * @param state The patterns state.
      * @param action The payload action containing the pattern IDs to remove.
      */
-    removePatterns: (state, action: PayloadAction<RemovePatterns>) => {
-      const patternIds = action.payload;
-      patternIds.forEach((patternId) => {
-        const index = state.allIds.findIndex((id) => id === patternId);
-        if (index === -1) return;
-        state.allIds.splice(index, 1);
-        delete state.byId[patternId];
-      });
+    removePattern: (state, action: PayloadAction<RemovePatternPayload>) => {
+      const patternId = action.payload;
+      delete state.byId[patternId];
+      const index = state.allIds.findIndex((id) => id === patternId);
+      if (index === -1) return;
+      state.allIds.splice(index, 1);
     },
     /**
-     * Update a list of `Patterns` in the store.
+     * Update a `Pattern` in the store.
      * @param state The patterns state.
      * @param action The payload action containing the patterns to update.
      */
-    updatePatterns: (state, action: PayloadAction<UpdatePatterns>) => {
-      const patterns = action.payload;
-      patterns.forEach((pattern) => {
-        const { id, ...rest } = pattern;
-        if (!id) return;
-        state.byId[id] = { ...state.byId[id], ...rest };
-      });
+    updatePattern: (state, action: PayloadAction<UpdatePatternPayload>) => {
+      const { id, ...rest } = action.payload;
+      if (!id) return;
+      state.byId[id] = { ...state.byId[id], ...rest };
     },
     /**
      * Add a `PatternNote` to a `Pattern` in the store.
      * @param state The patterns state.
      * @param action The payload action containing the `PatternNote` to add.
      */
-    addPatternNote: (state, action: PayloadAction<AddPatternNote>) => {
+    addPatternNote: (state, action: PayloadAction<AddPatternNotePayload>) => {
       const { id, patternNote, asChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPattern(pattern)) return;
@@ -257,7 +249,7 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `PatternChord` to add.
      */
-    addPatternChord: (state, action: PayloadAction<AddPatternChord>) => {
+    addPatternChord: (state, action: PayloadAction<AddPatternChordPayload>) => {
       const { id, patternChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPattern(pattern)) return;
@@ -276,7 +268,10 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `PatternNote` to update.
      */
-    updatePatternNote: (state, action: PayloadAction<UpdatePatternNote>) => {
+    updatePatternNote: (
+      state,
+      action: PayloadAction<UpdatePatternNotePayload>
+    ) => {
       const { id, patternNote, index, asChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPattern(pattern)) return;
@@ -294,7 +289,10 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `PatternChord` to update.
      */
-    updatePatternChord: (state, action: PayloadAction<UpdatePatternChord>) => {
+    updatePatternChord: (
+      state,
+      action: PayloadAction<UpdatePatternChordPayload>
+    ) => {
       const { id, patternChord, index } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPattern(pattern)) return;
@@ -307,7 +305,10 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `PatternNote` to insert.
      */
-    insertPatternNote: (state, action: PayloadAction<InsertPatternNote>) => {
+    insertPatternNote: (
+      state,
+      action: PayloadAction<InsertPatternNotePayload>
+    ) => {
       const { id, patternNote, index } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPattern(pattern)) return;
@@ -322,7 +323,10 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `PatternNote` to remove.
      */
-    removePatternNote: (state, action: PayloadAction<RemovePatternNote>) => {
+    removePatternNote: (
+      state,
+      action: PayloadAction<RemovePatternNotePayload>
+    ) => {
       const { id, index } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPattern(pattern)) return;
@@ -334,7 +338,10 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID and transpose value.
      */
-    transposePattern: (state, action: PayloadAction<TransposePattern>) => {
+    transposePattern: (
+      state,
+      action: PayloadAction<TransposePatternPayload>
+    ) => {
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -350,7 +357,7 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID and rotate value.
      */
-    rotatePattern: (state, action: PayloadAction<TransposePattern>) => {
+    rotatePattern: (state, action: PayloadAction<TransposePatternPayload>) => {
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -388,7 +395,7 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID and repeat value.
      */
-    repeatPattern: (state, action: PayloadAction<RepeatPattern>) => {
+    repeatPattern: (state, action: PayloadAction<RepeatPatternPayload>) => {
       const { id, repeat } = action.payload;
       if (repeat === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
@@ -401,7 +408,7 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID and length value.
      */
-    continuePattern: (state, action: PayloadAction<ContinuePattern>) => {
+    continuePattern: (state, action: PayloadAction<ContinuePatternPayload>) => {
       const { id, length } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -415,7 +422,7 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID and phase value.
      */
-    phasePattern: (state, action: PayloadAction<PhasePattern>) => {
+    phasePattern: (state, action: PayloadAction<PhasePatternPayload>) => {
       const { id, phase } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -433,7 +440,7 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
-    augmentPattern: (state, action: PayloadAction<AugmentPattern>) => {
+    augmentPattern: (state, action: PayloadAction<AugmentPatternPayload>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
       if (!pattern) return;
@@ -454,7 +461,7 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
-    diminishPattern: (state, action: PayloadAction<DiminishPattern>) => {
+    diminishPattern: (state, action: PayloadAction<DiminishPatternPayload>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
       if (!pattern) return;
@@ -475,7 +482,7 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
-    reversePattern: (state, action: PayloadAction<ReversePattern>) => {
+    reversePattern: (state, action: PayloadAction<ReversePatternPayload>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
       if (!pattern) return;
@@ -487,7 +494,7 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
-    shufflePattern: (state, action: PayloadAction<ShufflePattern>) => {
+    shufflePattern: (state, action: PayloadAction<ShufflePatternPayload>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
       if (!pattern) return;
@@ -499,7 +506,10 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID and interval value.
      */
-    harmonizePattern: (state, action: PayloadAction<HarmonizePattern>) => {
+    harmonizePattern: (
+      state,
+      action: PayloadAction<HarmonizePatternPayload>
+    ) => {
       const { id, interval } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -518,7 +528,10 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID and length value.
      */
-    randomizePattern: (state, action: PayloadAction<RandomizePattern>) => {
+    randomizePattern: (
+      state,
+      action: PayloadAction<RandomizePatternPayload>
+    ) => {
       const { id, length } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
@@ -565,7 +578,7 @@ export const patternsSlice = createSlice({
      * @param state The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
-    clearPattern: (state, action: PayloadAction<ClearPattern>) => {
+    clearPattern: (state, action: PayloadAction<ClearPatternPayload>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
       if (!pattern) return;
@@ -577,9 +590,9 @@ export const patternsSlice = createSlice({
 
 export const {
   setPatternIds,
-  addPatterns,
-  removePatterns,
-  updatePatterns,
+  addPattern,
+  removePattern,
+  updatePattern,
   addPatternNote,
   addPatternChord,
   insertPatternNote,

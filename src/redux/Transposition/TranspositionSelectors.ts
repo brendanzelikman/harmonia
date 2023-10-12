@@ -1,6 +1,7 @@
 import { RootState } from "redux/store";
 import { createDeepEqualSelector } from "redux/util";
 import { createSelector } from "reselect";
+import { TrackId } from "types/Track";
 import { getProperty, getProperties, selectId, selectIds } from "types/util";
 
 /**
@@ -43,11 +44,13 @@ export const selectTranspositionsByIds = createSelector(
  * @param state The root state.
  * @param trackIds The track IDs.
  */
-export const selectTranspositionsByTrackIds = createSelector(
-  [selectTranspositions, selectIds],
-  (transpositions, trackIds) =>
-    transpositions.filter((t) => trackIds.includes(t.trackId))
-);
+export const selectTranspositionsByTrackIds = (
+  state: RootState,
+  trackIds: TrackId[]
+) => {
+  const transpositions = selectTranspositions(state);
+  return transpositions.filter((t) => trackIds.includes(t.trackId));
+};
 
 /**
  * Select a specific transposition from the store by ID.

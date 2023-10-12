@@ -1,0 +1,167 @@
+import { Menu } from "@headlessui/react";
+import { PatternEditorCursorProps } from "..";
+import * as Editor from "features/Editor";
+import { PatternTab, PATTERN_TABS } from "../components/PatternEditor";
+import { capitalize } from "lodash";
+
+interface PatternControlTabProps extends PatternEditorCursorProps {
+  activeTab: PatternTab;
+  setActiveTab: (tab: PatternTab) => void;
+}
+
+export function PatternControlTab(props: PatternControlTabProps) {
+  const { pattern } = props;
+
+  if (!pattern) return null;
+  const NewButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`New Pattern`}>
+      <Editor.MenuButton
+        className="px-1 active:bg-emerald-600"
+        onClick={props.createPattern}
+      >
+        New
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const InputButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Input Pattern`}>
+      <Editor.MenuButton
+        className="px-1 active:bg-emerald-600"
+        onClick={() => {
+          const value = prompt("Enter a pattern by keyword:");
+          if (!value || !props.isCustom) return;
+          if (value) props.updatePatternByRegex(value);
+        }}
+        disabled={!props.isCustom}
+        disabledClass="px-1"
+      >
+        Input
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const CopyButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Copy Pattern`}>
+      <Editor.MenuButton
+        className="px-1 active:bg-teal-600"
+        onClick={() => props.copyPattern(pattern)}
+        disabled={props.isEmpty}
+        disabledClass="px-1"
+      >
+        Copy
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const ExportButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Export Pattern`}>
+      <Editor.MenuButton disabled={props.isEmpty}>
+        <Menu>
+          <div className="relative z-50">
+            <Menu.Button className="py-1 px-1 rounded active:bg-slate-600">
+              Export
+            </Menu.Button>
+            <Menu.Items className="absolute w-auto mt-2 left-1 py-1.5 px-1 rounded-lg border-0.5 border-slate-200/80 whitespace-nowrap bg-slate-800">
+              <Menu.Item>
+                <div
+                  className="hover:bg-slate-600/80 px-4 rounded"
+                  onClick={() => props.exportPatternToMIDI(pattern)}
+                >
+                  Export MIDI
+                </div>
+              </Menu.Item>
+              <Menu.Item>
+                <div
+                  className="hover:bg-slate-600/80 px-4 rounded"
+                  onClick={() => props.exportPatternToXML(pattern)}
+                >
+                  Export XML
+                </div>
+              </Menu.Item>
+            </Menu.Items>
+          </div>
+        </Menu>
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const UndoButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Undo Change`}>
+      <Editor.MenuButton
+        className="active:bg-slate-500 p-1"
+        disabledClass="p-1"
+        onClick={props.undoPatterns}
+        disabled={!props.isCustom || !props.canUndoPatterns}
+      >
+        Undo
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const RedoButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Redo Change`}>
+      <Editor.MenuButton
+        className="active:bg-slate-500 p-1"
+        disabledClass="p-1"
+        onClick={props.redoPatterns}
+        disabled={!props.isCustom || !props.canRedoPatterns}
+      >
+        Redo
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const PlayButton = () => (
+    <Editor.Tooltip show={props.showingTooltips} content={`Play Pattern`}>
+      <Editor.MenuButton
+        className="px-1 active:bg-emerald-600"
+        disabled={props.isEmpty}
+        disabledClass="px-1"
+        onClick={() => props.playPattern(pattern)}
+      >
+        Play
+      </Editor.MenuButton>
+    </Editor.Tooltip>
+  );
+
+  const Tabs = () => (
+    <div className="flex items-center font-light px-1 text-xs">
+      {PATTERN_TABS.map((tab) => (
+        <Editor.Tooltip
+          key={tab}
+          show={props.showingTooltips}
+          content={`Select ${capitalize(tab)} Tab`}
+        >
+          <div
+            className={`capitalize cursor-pointer mx-2 select-none ${
+              props.activeTab === tab ? "text-green-400" : "text-slate-500"
+            }`}
+            onClick={() => props.setActiveTab(tab)}
+          >
+            {tab}
+          </div>
+        </Editor.Tooltip>
+      ))}
+    </div>
+  );
+
+  return (
+    <>
+      <Editor.MenuGroup border={true}>
+        <ExportButton />
+        <NewButton />
+        <InputButton />
+        <CopyButton />
+        <PlayButton />
+      </Editor.MenuGroup>
+      {props.isCustom ? (
+        <Editor.MenuGroup border={true}>
+          <UndoButton />
+          <RedoButton />
+        </Editor.MenuGroup>
+      ) : null}
+      {props.isCustom ? <Tabs /> : null}
+    </>
+  );
+}

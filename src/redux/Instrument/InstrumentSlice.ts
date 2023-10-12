@@ -560,13 +560,14 @@ export const handleInstrumentMiddleware: Middleware =
           continue;
         }
 
-        // If the instrument has started existing, create a new instance
-        if (!oldInstrument) {
+        // If the instrument or effect has started existing, recreate the instance
+        const oldEffectCount = oldInstrument?.effects.length ?? 0;
+        const newEffectCount = newInstrument.effects.length;
+        if (!oldInstrument || newEffectCount > oldEffectCount) {
           LIVE_AUDIO_INSTANCES[id] = new LiveAudioInstance({
             ...instance.getInitializationProps(),
             ...newInstrument,
           });
-          continue;
         }
       }
     }

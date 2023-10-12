@@ -15,6 +15,7 @@ import { setSelectedTrack } from "redux/Root/RootSlice";
 import { isPatternTrack } from "types/PatternTrack";
 import { convertTicksToBarsBeatsSixteenths } from "types/Transport";
 import { onCellClick } from "redux/Timeline";
+import { Transport } from "tone";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const columnIndex = Number(ownProps.column.key);
@@ -36,7 +37,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const isMeasure = beats === 0 && sixteenths === 0;
 
   // Transport properties
-  const onTime = tick === transport.tick;
+  const onTime = tick === Transport.ticks;
   const isStarted = transport.state === "started";
   const idle = !adding && !transposing && !transport.recording && !isStarted;
 

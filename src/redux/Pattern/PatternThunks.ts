@@ -11,16 +11,16 @@ import {
   PatternId,
   PatternNoId,
   PatternStream,
+  defaultPattern,
   getRealizedPatternNotes,
   initializePattern,
   transposePatternStream,
 } from "types/Pattern";
-import { defaultScale } from "types/Scale";
 import { Midi } from "@tonejs/midi";
 import {
-  addPatterns,
-  removePatterns,
-  updatePatterns,
+  addPattern,
+  removePattern,
+  updatePattern,
   selectPatternIds,
 } from "redux/Pattern";
 import { convertTicksToSeconds } from "types/Transport";
@@ -29,17 +29,19 @@ import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { setSelectedPattern } from "redux/Root";
 
 /**
- * Creates a list of patterns and adds them to the store.
- * @param scale Optional. `Partial<PatternNoId>[]` to override default values.
- * @returns A promise that resolves to an array of pattern ID.
+ * Creates a pattern and adds it to the store.
+ * @param scale Optional. `Partial<PatternNoId>` to override default values.
+ * @returns A promise that resolves to the ID of the created pattern.
  */
-export const createPatterns =
-  (patterns: Partial<PatternNoId>[] = []): AppThunk<Promise<PatternId[]>> =>
+export const createPattern =
+  (
+    pattern: Partial<PatternNoId> = defaultPattern
+  ): AppThunk<Promise<PatternId>> =>
   async (dispatch) => {
     return new Promise((resolve) => {
-      const newPatterns = patterns.map(initializePattern);
-      dispatch(addPatterns(newPatterns));
-      resolve(newPatterns.map((pattern) => pattern.id));
+      const newPattern = initializePattern(pattern);
+      dispatch(addPattern(newPattern));
+      resolve(newPattern.id);
     });
   };
 
@@ -47,26 +49,23 @@ export const createPatterns =
  * Removes a list of patterns from the store.
  * @param ids The IDs of the patterns to remove.
  */
-export const deletePatterns =
-  (ids: PatternId[]): AppThunk =>
+export const deletePattern =
+  (id: PatternId): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
     const { selectedPatternId } = selectRoot(state);
     const patternIds = selectPatternIds(state);
 
-    // Remove the patterns
-    ids.forEach((id) => {
-      // Get the index of the pattern to remove
-      const index = patternIds.findIndex((patternId) => patternId === id);
-      if (index === -1) return;
-      // If the pattern is selected, select the previous or next pattern
-      if (selectedPatternId === id) {
-        const nextId = patternIds?.[index - 1] || patternIds?.[index + 1];
-        if (nextId) dispatch(setSelectedPattern(nextId));
-      }
-      // Remove the pattern
-      dispatch(removePatterns([id]));
-    });
+    // Get the index of the pattern to remove
+    const index = patternIds.findIndex((patternId) => patternId === id);
+    if (index === -1) return;
+    // If the pattern is selected, select the previous or next pattern
+    if (selectedPatternId === id) {
+      const nextId = patternIds?.[index - 1] || patternIds?.[index + 1];
+      if (nextId) dispatch(setSelectedPattern(nextId));
+    }
+    // Remove the pattern
+    dispatch(removePattern(id));
   };
 
 /**
@@ -74,8 +73,9 @@ export const deletePatterns =
  * @param pattern The pattern to play.
  */
 export const playPattern =
-  (pattern: Pattern): AppThunk =>
+  (pattern?: Pattern): AppThunk =>
   (dispatch, getState) => {
+    if (!pattern) return;
     const state = getState();
     const transport = selectTransport(state);
 
@@ -84,7 +84,7 @@ export const playPattern =
     if (!instance.isLoaded()) return;
 
     // Get the realized pattern notes
-    const stream = getRealizedPatternNotes(pattern, defaultScale);
+    const stream = getRealizedPatternNotes(pattern);
     if (!stream.length) return;
 
     // Make sure the instance is heard
@@ -189,7 +189,7 @@ export const updatePatternByRegex =
     };
 
     // Dispatch the update
-    dispatch(updatePatterns([newPattern]));
+    dispatch(updatePattern(newPattern));
   };
 
 /**

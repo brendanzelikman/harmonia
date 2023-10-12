@@ -1,28 +1,24 @@
 import { nanoid } from "@reduxjs/toolkit";
-import {
-  TrackId,
-  TrackInterface,
-  TrackScale,
-  defaultTrackScale,
-  isTrackInterface,
-} from "types/Track/TrackTypes";
+import { NestedScaleId, ScaleId } from "types/Scale";
+import { TrackId, TrackInterface, isTrackInterface } from "types/Track";
 
 // Types
 export type ScaleTrackType = "scaleTrack";
 export type ScaleTrackNoId = Omit<ScaleTrack, "id">;
 export type ScaleTrackMap = Record<TrackId, ScaleTrack>;
+export const ScaleTrackScaleName = "$$$$$_track_scale_$$$$$";
 
 /**
- * A `ScaleTrack` represents a `Track` with its own `TrackScale`.
+ * A `ScaleTrack` represents a `Track` with its own `NestedScale`.
  * @property `id` - The unique ID of the track.
  * @property `parentId` - Optional. The ID of the parent track.
  * @property `name` - The name of the track.
  * @property `type` - The type of the track.
  * @property `collapsed` - Optional. Whether the track is collapsed.
- * @property `trackScale` - The scale of the track.
+ * @property `scaleId` - The ID of the track's `NestedScale`.
  */
 export interface ScaleTrack extends TrackInterface {
-  trackScale: TrackScale;
+  scaleId: NestedScaleId;
 }
 
 /**
@@ -39,14 +35,15 @@ export const defaultScaleTrack: ScaleTrack = {
   type: "scaleTrack",
   name: "",
   parentId: undefined,
-  trackScale: defaultTrackScale,
+  scaleId: "default-nested-scale",
 };
 
 export const mockScaleTrack: ScaleTrack = {
   id: "mock-scale-track",
   type: "scaleTrack",
   name: "Mock Scale Track",
-  trackScale: defaultTrackScale,
+  parentId: undefined,
+  scaleId: "mock-nested-scale",
 };
 
 /**
@@ -59,7 +56,7 @@ export const isScaleTrack = (obj: unknown): obj is ScaleTrack => {
   return (
     isTrackInterface(candidate) &&
     candidate.type === "scaleTrack" &&
-    candidate?.trackScale !== undefined
+    candidate.scaleId !== undefined
   );
 };
 

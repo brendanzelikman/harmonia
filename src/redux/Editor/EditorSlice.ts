@@ -4,6 +4,7 @@ import { TrackId } from "types/Track";
 import { Duration, Tick, Timing } from "types/units";
 import { setSelectedTrack } from "../Root/RootSlice";
 import { defaultEditor, EditorId, EditorState } from "types/Editor";
+import { clearTimelineState } from "redux/Timeline";
 
 /**
  * The editor slice contains information about the editor.
@@ -38,6 +39,15 @@ export const editorSlice = createSlice({
     hideEditor: (state) => {
       state.id = "hidden";
       state.show = false;
+    },
+    /**
+     * Toggle the editor between the given ID and "hidden".
+     * @param state The editor state.
+     * @param action The payload action.
+     */
+    toggleEditor: (state, action: PayloadAction<EditorId>) => {
+      state.id = state.id === action.payload ? "hidden" : action.payload;
+      state.show = state.id !== "hidden";
     },
     /**
      * Set the editor state.
@@ -112,6 +122,7 @@ export const editorSlice = createSlice({
 export const {
   _showEditor,
   hideEditor,
+  toggleEditor,
   setEditorState,
   toggleEditorState,
   setEditorNoteDuration,
@@ -132,6 +143,7 @@ export const showEditor =
   (dispatch) => {
     dispatch(_showEditor(id));
     if (trackId) dispatch(setSelectedTrack(trackId));
+    dispatch(clearTimelineState());
   };
 
 export default editorSlice.reducer;

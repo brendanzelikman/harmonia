@@ -13,7 +13,13 @@ import {
   selectClipStream,
   sliceClip,
 } from "redux/Clip";
-import { onClipClick, onClipDragEnd, selectTimeline } from "redux/Timeline";
+import {
+  onClipClick,
+  onClipDragEnd,
+  selectTimeline,
+  startDraggingClip,
+  stopDraggingClip,
+} from "redux/Timeline";
 import { useClipStyles } from "./hooks/useClipStyles";
 import { Tick } from "types/units";
 import { pick } from "lodash";
@@ -24,7 +30,7 @@ const mapStateToProps = (state: RootState, ownProps: { id: ClipId }) => {
   const clip = selectClipById(state, ownProps.id);
   const name = selectClipName(state, ownProps.id);
   const timeline = selectTimeline(state);
-  const { subdivision } = timeline;
+  const { subdivision, draggingTransposition } = timeline;
   const isAdding = timeline.state === "adding";
   const isSlicing = timeline.state === "cutting";
   const isTransposing = timeline.state === "transposing";
@@ -36,6 +42,7 @@ const mapStateToProps = (state: RootState, ownProps: { id: ClipId }) => {
     isSlicing,
     isTransposing,
     subdivision,
+    draggingTransposition,
   };
 };
 
@@ -51,8 +58,12 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     onCut: (clipId: ClipId, tick: Tick) => {
       dispatch(sliceClip(clipId, tick));
     },
+    onDragStart: () => {
+      dispatch(startDraggingClip());
+    },
     onDragEnd: (item: any, monitor: any) => {
       dispatch(onClipDragEnd(item, monitor));
+      dispatch(stopDraggingClip());
     },
   };
 };

@@ -28,28 +28,6 @@ export interface TrackInterface {
 }
 
 /**
- * A track note is defined by a degree and an offset.
- * @property degree: number - The degree of the note in the parent scale.
- * @property offset: number - The MIDI offset of the note.
- * @example
- * // The 3rd note of the parent scale shifted up one octave
- * [60, 61, 62, 63] { degree: 2, offset: 12 } = 74
- */
-export type TrackNote = {
-  degree: number;
-  offset: number;
-};
-
-/**
- * A track scale is a collection of track notes.
- * If a track has no parent, then its parent scale is the chromatic scale.
- */
-export type TrackScale = TrackNote[];
-export const defaultTrackScale: TrackScale = new Array(12)
-  .fill(0)
-  .map((_, i) => ({ degree: i, offset: 0 }));
-
-/**
  * Initializes a TrackInterface with a unique ID.
  * @param track - Optional. Partial TrackInterfaec to override default values.
  * @returns An initialized TrackInterface with a unique ID.
@@ -109,24 +87,4 @@ export const isTrackMap = (obj: unknown): obj is TrackMap => {
     candidate !== undefined &&
     Object.values(candidate).every((track) => isTrack(track))
   );
-};
-
-/**
- * Checks if a given object is of type ScaleTrackNote.
- * @param obj The object to check.
- * @returns True if the object is a ScaleTrackNote, otherwise false.
- */
-export const isTrackNote = (obj: unknown): obj is TrackNote => {
-  const candidate = obj as TrackNote;
-  return candidate?.degree !== undefined && candidate?.offset !== undefined;
-};
-
-/**
- * Checks if a given object is of type ScaleTrackScale.
- * @param obj The object to check.
- * @returns True if the object is a ScaleTrackScale, otherwise false.
- */
-export const isTrackScale = (obj: unknown): obj is TrackScale => {
-  const candidate = obj as TrackScale;
-  return candidate !== undefined && candidate?.every(isTrackNote);
 };

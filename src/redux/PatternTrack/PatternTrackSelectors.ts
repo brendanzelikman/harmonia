@@ -48,7 +48,10 @@ export const selectPatternTrackById = (state: RootState, id?: TrackId) => {
  * @param id The pattern track ID.
  * @returns The instrument.
  */
-export const selectPatternTrackInstrument = (state: RootState, id: TrackId) => {
+export const selectPatternTrackInstrument = (
+  state: RootState,
+  id?: TrackId
+) => {
   const patternTrack = selectPatternTrackById(state, id);
   if (!patternTrack?.instrumentId) return undefined;
   return selectInstrumentById(state, patternTrack.instrumentId);
@@ -62,7 +65,7 @@ export const selectPatternTrackInstrument = (state: RootState, id: TrackId) => {
  */
 export const selectPatternTrackInstrumentKey = (
   state: RootState,
-  id: TrackId
+  id?: TrackId
 ) => {
   const instrument = selectPatternTrackInstrument(state, id);
   return instrument?.key;

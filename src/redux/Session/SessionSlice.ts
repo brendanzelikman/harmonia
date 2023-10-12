@@ -2,8 +2,9 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union, without } from "lodash";
 import { SliceClipPayload } from "../Clip/ClipSlice";
 import { defaultSession, SessionEntity } from "types/Session";
-import { MediaPayload } from "types/Media";
+import { MediaPayload, PartialMediaPayload } from "types/Media";
 import { TrackId, TrackInterface } from "types/Track";
+import { isTransposition } from "types/Transposition";
 
 /**
  * A track can be added by ID with an optional parent ID at an optional index.
@@ -54,9 +55,14 @@ export type SliceClipInSessionPayload = SliceClipPayload;
 export type AddObjectsToSessionPayload = MediaPayload;
 
 /**
- * meedia can be removed from the session within a bundle.
+ * Media can be removed from the session within a bundle.
  */
 export type RemoveObjectsFromSessionPayload = MediaPayload;
+
+/**
+ * Media can be updated in the session within a bundle.
+ */
+export type UpdateObjectsInSessionPayload = PartialMediaPayload;
 
 /**
  * Reduce an array of objects to a map of track id to object ids.
@@ -84,13 +90,10 @@ const getObjectsByTrack = (arr?: { id: string; trackId: TrackId }[]) => {
  * @property `collapseTracksInSession` - Collapse tracks in the session.
  * @property `expandTracksInSession` - Expand tracks in the session.
  * @property `clearTrackInSession` - Clear a track of all media.
- * @property `addClipsToSession` - Add clips to the session.
- * @property `removeClipsFromSession` - Remove clips from the session.
  * @property `sliceClipInSession` - Slice a clip into two new clips.
- * @property `addTranspositionsToSession` - Add transpositions to the session.
- * @property `removeTranspositionsFromSession` - Remove transpositions from the session.
  * @property `addMediaToSession` - Add media to the session.
  * @property `removeMediaFromSession` - Remove media from the session.
+ * @property `updateMediaInSession` - Update media in the session.
  *
  */
 export const sessionSlice = createSlice({
@@ -434,6 +437,40 @@ export const sessionSlice = createSlice({
         );
       });
     },
+    /**
+     * Update media in the session, changing track IDs where necessary.
+     * @param state The session state.
+     * @param action The payload action.
+     */
+    updateMediaInSession: (
+      state,
+      action: PayloadAction<UpdateObjectsInSessionPayload>
+    ) => {
+      const { clips, transpositions } = action.payload;
+
+      const media = [...(clips || []), ...(transpositions || [])];
+      // Move media if their track IDs have changed
+      for (const item of media) {
+        const { id, trackId } = item;
+        if (!id || !trackId) continue;
+        const entity = state.byId[trackId];
+        if (!entity) continue;
+        const field = isTransposition(item) ? "transpositionIds" : "clipIds";
+        if (entity[field].includes(id)) continue;
+
+        // Remove the clip from its old track
+        const oldTrackId = state.allIds.find((someId) =>
+          state.byId[someId][field].includes(id)
+        );
+        if (!oldTrackId) continue;
+        const oldEntity = state.byId[oldTrackId];
+        if (!oldEntity) continue;
+        oldEntity[field] = without(oldEntity[field], id);
+
+        // Add the clip to its new track
+        entity[field].push(id);
+      }
+    },
   },
 });
 
@@ -450,6 +487,7 @@ export const {
   sliceClipInSession,
   addMediaToSession,
   removeMediaFromSession,
+  updateMediaInSession,
 } = sessionSlice.actions;
 
 export default sessionSlice.reducer;

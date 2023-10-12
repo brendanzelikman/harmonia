@@ -18,6 +18,7 @@ import {
 import { useAppSelector, useDeepEqualSelector } from "redux/hooks";
 import { MIDI } from "types/midi";
 import { normalize, ticksToColumns } from "utils";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 interface ClipStyleProps extends ClipProps {
   stream?: PatternStream;
@@ -28,11 +29,15 @@ interface ClipStyleProps extends ClipProps {
 export const useClipStyles = (props: ClipStyleProps) => {
   const { clip, stream } = props;
   const selectedClipIds = useDeepEqualSelector(selectSelectedClipIds);
-  const clipTranspositions = useDeepEqualSelector((state) =>
-    selectClipTranspositions(state, clip?.id)
+  const clipTranspositions = useDeepEqualSelector((_) =>
+    selectClipTranspositions(_, clip?.id)
   );
   const isSelected = selectedClipIds.some((id) => id === clip?.id);
-  const hasTransposition = props.isTransposing || clipTranspositions.length > 0;
+  const hasTransposition =
+    props.draggingTransposition ||
+    props.isTransposing ||
+    clipTranspositions.length > 0;
+
   // Cell
   const cellHeight = useAppSelector((_) => selectTimelineObjectHeight(_, clip));
   const cellTop = useAppSelector((_) => selectTimelineObjectTop(_, clip));
@@ -49,15 +54,16 @@ export const useClipStyles = (props: ClipStyleProps) => {
     : cellHeight;
 
   // Theme
-  const body = `w-full h-full relative flex flex-col overflow-hidden`;
+  const body = `w-full h-full relative flex flex-col overflow-scroll`;
   const { headerColor, bodyColor, noteColor } = getClipTheme(clip);
 
   // Name
   const nameHeight = 24;
 
   // Stream
+  const heldKeys = useHeldHotkeys(["v"]);
   const margin = 8;
-  const streamHeight = height - nameHeight - margin;
+  const streamHeight = height - nameHeight - margin + (heldKeys.v ? 150 : 0);
   const streamRange = getPatternStreamRange(stream);
   const noteCount = streamRange.length;
   const noteHeight = Math.min(20, streamHeight / noteCount);
@@ -109,7 +115,7 @@ export const useClipStyles = (props: ClipStyleProps) => {
       MIDI.MinVelocity,
       MIDI.MaxVelocity
     );
-    const border = `border border-slate-950/80 rounded`;
+    const border = `border border-slate-950/80 rounded transition-all duration-150`;
     return {
       top,
       left,
@@ -131,7 +137,6 @@ export const useClipStyles = (props: ClipStyleProps) => {
     bodyColor,
     noteColor,
     nameHeight,
-    streamHeight,
     noteHeight,
     chordWidth,
     chordClass,

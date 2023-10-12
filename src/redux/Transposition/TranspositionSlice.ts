@@ -1,9 +1,14 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  ActionCreatorWithPayload,
+  createSlice,
+  PayloadAction,
+} from "@reduxjs/toolkit";
 import { initializeState } from "types/util";
 import { TrackId } from "types/Track";
 import { Transposition, TranspositionId } from "types/Transposition";
 import { without } from "lodash";
 import { MediaPayload, PartialMediaPayload } from "types/Media";
+import { updateMediaInSession } from "redux/Session";
 
 const initialTranspositions = initializeState<TranspositionId, Transposition>();
 
@@ -84,7 +89,7 @@ export const transpositionsSlice = createSlice({
      * @param state The transpositions state.
      * @param action The payload action containing the transpositions to update.
      */
-    updateTranspositions: (
+    _updateTranspositions: (
       state,
       action: PayloadAction<UpdateTranspositionsPayload>
     ) => {
@@ -92,13 +97,9 @@ export const transpositionsSlice = createSlice({
       if (!transpositions?.length) return;
       transpositions.forEach((transposition) => {
         const { id, ...rest } = transposition;
-
         if (!id) return;
         if (!state.byId[id]) return;
-        state.byId[id] = {
-          ...state.byId[id],
-          ...rest,
-        };
+        state.byId[id] = { ...state.byId[id], ...rest };
       });
     },
     /**
@@ -145,9 +146,15 @@ export const transpositionsSlice = createSlice({
 export const {
   addTranspositions,
   removeTranspositions,
-  updateTranspositions,
+  _updateTranspositions,
   removeTranspositionsByTrackId,
   clearTranspositionsByTrackId,
 } = transpositionsSlice.actions;
+
+export const updateTranspositions =
+  (media: PartialMediaPayload) => (dispatch: any) => {
+    dispatch(_updateTranspositions(media));
+    dispatch(updateMediaInSession(media));
+  };
 
 export default transpositionsSlice.reducer;

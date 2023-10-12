@@ -1,7 +1,7 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { MAX_BPM, MAX_VOLUME, MIN_BPM, MIN_VOLUME } from "appConstants";
 import { clamp } from "lodash";
-import { defaultTransport } from "types/Transport";
+import { defaultTransport, setGlobalOfflineTick } from "types/Transport";
 import { BPM, Tick, Volume } from "types/units";
 
 /**
@@ -13,7 +13,6 @@ import { BPM, Tick, Volume } from "types/units";
  * @property `_startTransport` - Set the transport state to "started".
  * @property `_stopTransport` - Set the transport state to "stopped" and reset the tick to 0.
  * @property `_pauseTransport` - Set the transport state to "paused".
- * @property `_seekTransport` - Set the transport tick to the given value.
  * @property `_loopTransport` - Set the transport loop to true or false.
  * @property `_setLoopStart` - Set the transport loop start to the given tick.
  * @property `_setLoopEnd` - Set the transport loop end to the given tick.
@@ -24,6 +23,7 @@ import { BPM, Tick, Volume } from "types/units";
  * @property `setLoaded` - Set the transport loaded state to true or false.
  * @property `setLoading` - Set the transport loading state to true or false.
  * @property `setRecording` - Set the transport recording state to true or false.
+ * @property `setDownloading` - Set the transport downloading state to true or false.
  * @property `setOfflineTick` - Set the transport offline tick to the given value.
  *
  */
@@ -43,7 +43,6 @@ export const transportSlice = createSlice({
      * @param state - The current transport state.
      */
     _stopTransport: (state) => {
-      state.tick = 0;
       state.state = "stopped";
     },
     /**
@@ -52,14 +51,6 @@ export const transportSlice = createSlice({
      */
     _pauseTransport: (state) => {
       state.state = "paused";
-    },
-    /**
-     * Set the transport tick to the given value.
-     * @param state - The current transport state.
-     * @param action - The payload action containing the tick value.
-     */
-    _seekTransport: (state, action: PayloadAction<Tick>) => {
-      state.tick = action.payload;
     },
     /**
      * Set the transport loop to true or false.
@@ -144,12 +135,20 @@ export const transportSlice = createSlice({
       state.recording = action.payload;
     },
     /**
+     * Set the transport downloading state to true or false.
+     * @param state - The current transport state.
+     * @param action - The payload action containing the downloading value.
+     */
+    setDownloading: (state, action) => {
+      state.downloading = action.payload;
+    },
+    /**
      * Set the transport offline tick to the given value.
      * @param state - The current transport state.
      * @param action - The payload action containing the offline tick value.
      */
     setOfflineTick: (state, action) => {
-      state.offlineTick = action.payload;
+      setGlobalOfflineTick(action.payload);
     },
   },
 });
@@ -158,7 +157,6 @@ export const {
   _startTransport,
   _stopTransport,
   _pauseTransport,
-  _seekTransport,
   _loopTransport,
   _setLoopStart,
   _setLoopEnd,
@@ -169,6 +167,7 @@ export const {
   setLoaded,
   setLoading,
   setRecording,
+  setDownloading,
   setOfflineTick,
 } = transportSlice.actions;
 

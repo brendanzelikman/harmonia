@@ -1,34 +1,44 @@
+import * as EditorSlice from "redux/Editor";
 import { connect, ConnectedProps } from "react-redux";
-import { selectEditor, selectRoot, selectTransport } from "redux/selectors";
+import {
+  selectEditor,
+  selectRoot,
+  selectSelectedPattern,
+  selectSelectedTrack,
+  selectTransport,
+} from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import { Editor } from "./components/Editor";
-import * as EditorSlice from "redux/Editor";
 import { Duration, Tick, Timing, Velocity } from "types/units";
 import { defaultEditor, EditorId, EditorState } from "types/Editor";
 import { durationToTicks } from "utils";
 
 function mapStateToProps(state: RootState) {
-  const { selectedPatternId, selectedTrackId, showingTour } = selectRoot(state);
+  const { showingTour } = selectRoot(state);
+  const selectedPattern = selectSelectedPattern(state);
+  const selectedTrack = selectSelectedTrack(state);
+
   const editor = selectEditor(state);
   const adding = editor.state === "adding";
   const inserting = editor.state === "inserting";
   const removing = editor.state === "removing";
-  const transport = selectTransport(state);
+
+  const { bpm } = selectTransport(state);
   const noteTicks = durationToTicks(editor.noteDuration, {
     dotted: editor.noteTiming === "dotted",
     triplet: editor.noteTiming === "triplet",
   });
 
   return {
-    selectedPatternId,
-    selectedTrackId,
     ...defaultEditor,
     ...editor,
-    noteTicks,
+    selectedPattern,
+    selectedTrack,
     adding,
     inserting,
     removing,
-    bpm: transport.bpm,
+    bpm,
+    noteTicks,
     showingTour,
   };
 }

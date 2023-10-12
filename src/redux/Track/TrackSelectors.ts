@@ -14,8 +14,7 @@ import {
   TrackType,
   getTrackChildren,
   getTrackParents,
-  getTransposedScaleTracksAtTick,
-  getTransposedTrackScale,
+  getTransposedScaleTrackScalesAtTick,
 } from "types/Track";
 import {
   ScaleTrack,
@@ -34,6 +33,12 @@ import { selectPatternTracks, selectPatternTrackMap } from "../PatternTrack";
 import { selectTranspositionMap } from "../Transposition";
 import { selectSession, selectSessionMap } from "../Session";
 import { createDeepEqualSelector } from "redux/util";
+import {
+  NestedScaleMap,
+  applyTranspositionToNestedScale,
+  chromaticScale,
+} from "types/Scale";
+import { selectScaleMap } from "redux/Scale";
 
 /**
  * Select the track map from the store.
@@ -223,17 +228,19 @@ export const selectTrackScaleTrack = (
  * @returns The scale or undefined if not found.
  */
 export const selectTrackScale = (state: RootState, id?: TrackId) => {
-  const scaleTrackMap = selectScaleTrackMap(state);
   const track = selectTrackById(state, id);
+  const scaleTrackMap = selectScaleTrackMap(state);
+  const scaleMap = selectScaleMap(state);
   if (!track) return;
 
   // If the track is a scale track, return its scale
-  if (isScaleTrack(track)) return getScaleTrackScale(track, scaleTrackMap);
+  if (isScaleTrack(track)) {
+    return getScaleTrackScale(track, scaleTrackMap, scaleMap);
+  }
 
-  // If the track is a pattern track, return the scale of its parent
+  // Otherwise, return the scale of its parent
   const scaleTrack = getProperty(scaleTrackMap, track.parentId);
-  if (!scaleTrack) return;
-  return getScaleTrackScale(scaleTrack, scaleTrackMap);
+  return getScaleTrackScale(scaleTrack, scaleTrackMap, scaleMap);
 };
 
 /**
@@ -241,7 +248,7 @@ export const selectTrackScale = (state: RootState, id?: TrackId) => {
  * @param state The root state.
  * @param trackId The ID of the track.
  * @param tick The tick.
- * @returns The scale or undefined if not found.
+ * @returns The scale or the chromatic scale if not found.
  */
 export const selectTrackScaleAtTick = (
   state: RootState,
@@ -250,15 +257,25 @@ export const selectTrackScaleAtTick = (
 ) => {
   const track = selectTrackById(state, trackId);
   const scaleTrack = selectTrackScaleTrack(state, trackId);
-  if (!track || !scaleTrack) return;
+  const scaleTrackMap = selectScaleTrackMap(state);
+  if (!track || !scaleTrack) return chromaticScale;
+
+  // Get the track scale and transpositions
+  const scaleMap = selectScaleMap(state);
+  const scale = getProperty(scaleMap, scaleTrack.scaleId);
   const transpositions = selectTrackTranspositions(state, trackId);
+  if (!scale) return chromaticScale;
+
+  // Get the track's parents and their transpositions
   const parents = selectTrackParents(state, trackId);
   const parentTranspositions = selectTrackParentTranspositions(state, trackId);
+
+  // Transpose the parents at the current tick
   const currentTick = tick + 1;
-  // Transpose the parent tracks at the current tick
-  const transposedParents = getTransposedScaleTracksAtTick(
+  const transposedParents = getTransposedScaleTrackScalesAtTick(
     parents,
     parentTranspositions,
+    scaleMap,
     currentTick
   );
 
@@ -268,14 +285,14 @@ export const selectTrackScaleAtTick = (
     currentTick,
     false
   );
-  const transposedScaleTrack = {
-    ...track,
-    trackScale: getTransposedTrackScale(scaleTrack.trackScale, transposition),
-  };
+  const transposedScale = applyTranspositionToNestedScale(scale, transposition);
 
-  // Transpose the scale track along the transposed parent scales
-  const scaleTrackMap = createMap<ScaleTrackMap>(transposedParents);
-  return getScaleTrackScale(transposedScaleTrack, scaleTrackMap);
+  // Transpose the scale along the transposed parent scales
+  const transposedScaleMap = createMap<NestedScaleMap>([
+    ...transposedParents,
+    transposedScale,
+  ]);
+  return getScaleTrackScale(scaleTrack, scaleTrackMap, transposedScaleMap);
 };
 
 /**

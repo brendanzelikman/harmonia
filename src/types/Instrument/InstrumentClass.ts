@@ -14,6 +14,11 @@ export type LiveInstrumentMap = Record<InstrumentId, LiveAudioInstance>;
 export const LIVE_AUDIO_INSTANCES: LiveInstrumentMap = {};
 
 /**
+ * The live recorder instance.
+ */
+export const LIVE_RECORDER_INSTANCE = new Tone.Recorder();
+
+/**
  * The live audio instance class stores Tone.js objects and effects.
  * @property id - The instrument ID.
  * @property key - The instrument key.
@@ -376,8 +381,10 @@ export class LiveAudioInstance {
     this.sampler.disconnect();
     this.channel.disconnect();
     this.effects.forEach((e) => e.node.disconnect());
-    /// Chain the sampler, effects, and analyzers to the destination
-    const nodes = effects.map((e) => e.node) as Tone.InputNode[];
+
+    // Chain the sampler, effects, and analyzers to the destination
+    const newEffects = [...effects];
+    const nodes = newEffects.map((e) => e.node) as Tone.InputNode[];
     this.sampler = this.sampler.chain(
       this.channel,
       ...nodes,

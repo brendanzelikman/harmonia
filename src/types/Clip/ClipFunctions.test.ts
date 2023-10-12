@@ -13,6 +13,8 @@ import { PatternTrack, defaultPatternTrack } from "types/PatternTrack";
 import { ScaleTrack, defaultScaleTrack } from "types/ScaleTrack";
 import { createSession } from "types/Session";
 import { Transposition } from "types/Transposition";
+import { NestedScale, initializeNestedScale } from "types/Scale";
+import { createMap } from "types/util";
 
 test("getClipTag", () => {
   const tag = ClipFunctions.getClipTag(mockClip);
@@ -66,10 +68,9 @@ test("getClipStream", () => {
     ],
   };
 
-  const parentScaleTrack: ScaleTrack = {
-    ...defaultScaleTrack,
-    id: "parent-scale-track",
-    trackScale: [
+  // Create the parent in a C major scale
+  const parentScale: NestedScale = initializeNestedScale({
+    notes: [
       { degree: 0, offset: 0 },
       { degree: 2, offset: 0 },
       { degree: 4, offset: 0 },
@@ -78,27 +79,43 @@ test("getClipStream", () => {
       { degree: 9, offset: 0 },
       { degree: 11, offset: 0 },
     ],
-  };
-  const childScaleTrack: ScaleTrack = {
+  });
+
+  const parentScaleTrack: ScaleTrack = {
     ...defaultScaleTrack,
-    id: "child-scale-track",
-    parentId: parentScaleTrack.id,
-    trackScale: [
+    id: "parent-scale-track",
+    scaleId: parentScale.id,
+  };
+
+  // Create the child in a four step scale
+  const childScale = initializeNestedScale({
+    notes: [
       { degree: 0, offset: 0 },
       { degree: 2, offset: 0 },
       { degree: 4, offset: 0 },
       { degree: 6, offset: 0 },
     ],
-  };
-  const babyScaleTrack: ScaleTrack = {
+  });
+  const childScaleTrack: ScaleTrack = {
     ...defaultScaleTrack,
-    id: "baby-scale-track",
-    parentId: childScaleTrack.id,
-    trackScale: [
+    id: "child-scale-track",
+    parentId: parentScaleTrack.id,
+    scaleId: childScale.id,
+  };
+
+  // Create the baby in a three step scale
+  const babyScale = initializeNestedScale({
+    notes: [
       { degree: 0, offset: 0 },
       { degree: 1, offset: 0 },
       { degree: 2, offset: 0 },
     ],
+  });
+  const babyScaleTrack: ScaleTrack = {
+    ...defaultScaleTrack,
+    id: "baby-scale-track",
+    parentId: childScaleTrack.id,
+    scaleId: babyScale.id,
   };
   const patternTrack: PatternTrack = {
     ...defaultPatternTrack,
@@ -158,13 +175,15 @@ test("getClipStream", () => {
     ],
   });
 
-  const patterns = { [pattern.id]: pattern };
-  const scaleTracks = {
-    [parentScaleTrack.id]: parentScaleTrack,
-    [childScaleTrack.id]: childScaleTrack,
-    [babyScaleTrack.id]: babyScaleTrack,
-  };
-  const patternTracks = { [patternTrack.id]: patternTrack };
+  const patterns = createMap([pattern]);
+  const patternTrackMap = { [patternTrack.id]: patternTrack };
+
+  const scaleMap = createMap([parentScale, childScale, babyScale]);
+  const scaleTrackMap = createMap([
+    parentScaleTrack,
+    childScaleTrack,
+    babyScaleTrack,
+  ]);
   const transpositions = {
     [parentScaleTransposition.id]: parentScaleTransposition,
     [childScaleTransposition.id]: childScaleTransposition,
@@ -174,10 +193,11 @@ test("getClipStream", () => {
   const stream = ClipFunctions.getClipStream(
     clip,
     patterns,
-    patternTracks,
-    session.byId,
-    scaleTracks,
-    transpositions
+    patternTrackMap,
+    scaleMap,
+    scaleTrackMap,
+    transpositions,
+    session.byId
   );
   const streamNotes = stream.filter((n) => n?.[0]);
   expect(streamNotes[0][0].MIDI).toSatisfy((n) => n === 71 || n === 78);

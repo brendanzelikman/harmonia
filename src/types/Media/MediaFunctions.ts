@@ -71,11 +71,10 @@ export const getMediaInRange = (
   return media.filter((item, i) => {
     // Get the duration of the media
     const duration = mediaDuration ? mediaDuration[i] : item.duration;
-    if (duration === undefined) return false;
 
     // Make sure the item is in the range
     const itemStartTick = item.tick;
-    const itemEndTick = itemStartTick + duration;
+    const itemEndTick = itemStartTick + (duration ?? 1);
     return itemStartTick < endTick && itemEndTick > startTick;
   });
 };

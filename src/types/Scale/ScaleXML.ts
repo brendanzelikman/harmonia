@@ -3,7 +3,8 @@ import { getScaleKey } from "types/key";
 import MusicXML from "types/musicxml";
 import { XML } from "types/units";
 import { durationToTicks } from "utils";
-import { Scale, isScale, unpackScale } from "./ScaleTypes";
+import { Scale, isScale } from "./ScaleTypes";
+import { getScaleNotes } from "./ScaleFunctions";
 
 /**
  * Export a Scale to XML.
@@ -15,7 +16,7 @@ export const exportScaleToXML = (scale?: Scale): XML => {
   if (!isScale(scale)) return DemoXML;
 
   // Unpack the scale
-  const notes = unpackScale(scale);
+  const notes = getScaleNotes(scale);
   const key = getScaleKey(scale);
 
   // Create the XML notes

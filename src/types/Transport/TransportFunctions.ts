@@ -1,6 +1,7 @@
 import { MIDI } from "types/midi";
 import { Tick, Time } from "types/units";
 import { Transport } from "./TransportTypes";
+import { Transport as ToneTransport } from "tone";
 
 /**
  * Convert ticks to seconds.
@@ -57,12 +58,36 @@ export const convertTicksToBarsBeatsSixteenths = (
 };
 
 /**
+ * Checks if the transport is started or not.
+ * @param transport The transport.
+ * @returns True if the transport is started, false otherwise.
+ */
+export const isTransportStarted = (transport: Transport) =>
+  transport.state === "started";
+
+/**
+ * Checks if the transport is stopped or not.
+ * @param transport The transport.
+ * @returns True if the transport is stopped, false otherwise.
+ */
+export const isTransportStopped = (transport: Transport) =>
+  transport.state === "stopped";
+
+/**
+ * Checks if the transport is paused or not.
+ * @param transport The transport.
+ * @returns True if the transport is paused, false otherwise.
+ */
+export const isTransportPaused = (transport: Transport) =>
+  transport.state === "paused";
+
+/**
  * Get the next tick in the transport.
  * @param transport The transport.
  * @returns The next tick or the start of the loop if the transport has looped.
  */
 export const getNextTransportTick = (transport: Transport): Tick => {
-  return transport.loop && transport.tick === transport.loopEnd
+  return transport.loop && ToneTransport.ticks === transport.loopEnd
     ? transport.loopStart
-    : transport.tick + 1;
+    : ToneTransport.ticks + 1;
 };

@@ -16,8 +16,13 @@ import {
   selectTranspositionById,
 } from "redux/selectors";
 import { cancelEvent } from "utils";
-import { useTranspositionDrag } from "./hooks/useTranspositionDrag";
-import { onTranspositionClick, onTranspositionDragEnd } from "redux/Timeline";
+import { useTranspositionDrag } from "./hooks/useTranspositionDnd";
+import {
+  onTranspositionClick,
+  onTranspositionDragEnd,
+  startDraggingTransposition,
+  stopDraggingTransposition,
+} from "redux/Timeline";
 import { useDeepEqualSelector } from "redux/hooks";
 import { useTranspositionStyles } from "./hooks/useTranspositionStyles";
 import { pick } from "lodash";
@@ -31,9 +36,10 @@ const mapStateToProps = (
   const selectedTrackId = selectSelectedTrackId(state);
   const cellWidth = selectCellWidth(state);
   const timeline = selectTimeline(state);
-  const { subdivision } = timeline;
   const isAdding = timeline.state === "adding";
   const isTransposing = timeline.state === "transposing";
+  const { subdivision, draggingClip } = timeline;
+
   return {
     ...ownProps,
     transposition,
@@ -42,6 +48,7 @@ const mapStateToProps = (
     isAdding,
     selectedTrackId,
     cellWidth,
+    draggingClip,
   };
 };
 
@@ -50,8 +57,12 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     onClick: (e: MouseEvent, transposition?: Transposition) => {
       dispatch(onTranspositionClick(e, transposition));
     },
+    onDragStart: () => {
+      dispatch(startDraggingTransposition());
+    },
     onDragEnd: (item: any, monitor: any) => {
       dispatch(onTranspositionDragEnd(item, monitor));
+      dispatch(stopDraggingTransposition());
     },
   };
 };
@@ -107,15 +118,13 @@ function TimelineTransposition(props: TranspositionProps) {
    * The chromatic label displays the chromatic offset as Nx.
    */
   const chromaticLabel = (
-    <span className={`mr-1 ${styles.chromaticClass}`}>N{chromatic}</span>
+    <span className={styles.chromaticClass}>N{chromatic}</span>
   );
 
   /**
    * The chordal label displays the chordal offset as tX.
    */
-  const chordalLabel = (
-    <span className={`ml-1 ${styles.chordalClass}`}>t{chordal}</span>
-  );
+  const chordalLabel = <span className={styles.chordalClass}>t{chordal}</span>;
 
   /**
    * The scalar labels correspond to each parent track, displayed as T(X, Y, Z).
@@ -123,7 +132,7 @@ function TimelineTransposition(props: TranspositionProps) {
   const ScalarLabels = useMemo(() => {
     if (!scalars.length) return null;
     return (
-      <span className={`mx-1`}>
+      <span>
         <label className={`${styles.scalarTLabel}`}>T</label>(
         {scalars.map(scalarLabel)})
       </span>
@@ -132,20 +141,34 @@ function TimelineTransposition(props: TranspositionProps) {
 
   /**
    * The transposition label contains the chromatic, scalar, and chordal labels,
-   * displayed as Nx • T(X, Y, Z) • tX.
+   * displayed as Nx • T(X, Y, Z) • tX. The labels are vertically stacked if the
+   * transposition is small.
    */
   const TranspositionLabel = (
     <div
-      className={`flex h-full items-center whitespace-nowrap pl-1 pt-0.5 ${styles.labelColor}`}
+      className={`flex relative h-full items-center whitespace-nowrap z-20 pt-0.5 ${styles.labelColor}`}
       draggable
       onDragStart={cancelEvent}
     >
       {styles.Icon}
-      {chromaticLabel}
-      {" • "}
-      {ScalarLabels}
-      {scalars.length ? " • " : ""}
-      {chordalLabel}
+      {styles.isSmall ? (
+        <div
+          className="absolute flex px-2 border border-slate-200/50 flex-col bg-fuchsia-500 rounded"
+          style={{ top: -(scalars.length ? 3 : 2) * 22 - 5 }}
+        >
+          {chromaticLabel}
+          {ScalarLabels}
+          {chordalLabel}
+        </div>
+      ) : (
+        <div className="flex space-x-1">
+          {chromaticLabel}
+          <span>{" • "}</span>
+          {ScalarLabels}
+          {scalars.length ? <span>{" • "}</span> : null}
+          {chordalLabel}
+        </div>
+      )}
     </div>
   );
 
@@ -158,6 +181,30 @@ function TimelineTransposition(props: TranspositionProps) {
       style={{ height: styles.height }}
     >
       {TranspositionLabel}
+      <div
+        className={`${styles.hueClass} bg-fuchsia-400`}
+        style={{ opacity: styles.chromaticUpOpacity }}
+      />
+      <div
+        className={`${styles.hueClass} bg-fuchsia-700`}
+        style={{ opacity: styles.chromaticDownOpacity }}
+      />
+      <div
+        className={`${styles.hueClass} bg-indigo-400`}
+        style={{ opacity: styles.scalarUpOpacity }}
+      />
+      <div
+        className={`${styles.hueClass} bg-indigo-700`}
+        style={{ opacity: styles.scalarDownOpacity }}
+      />
+      <div
+        className={`${styles.hueClass} bg-pink-400`}
+        style={{ opacity: styles.chordalUpOpacity }}
+      />
+      <div
+        className={`${styles.hueClass} bg-pink-700`}
+        style={{ opacity: styles.chordalDownOpacity }}
+      />
     </div>
   );
 

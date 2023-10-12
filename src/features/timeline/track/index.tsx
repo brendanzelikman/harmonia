@@ -5,7 +5,6 @@ import {
   selectRoot,
   selectTrackById,
   selectTrackIndexById,
-  selectTrackScaleTrack,
 } from "redux/selectors";
 import * as Tracks from "redux/Track";
 import { AppDispatch, RootState } from "redux/store";
@@ -16,15 +15,15 @@ import { setSelectedTrack } from "redux/Root";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const { row } = ownProps;
-  const track = selectTrackById(state, ownProps.row.trackId);
   const { selectedTrackId } = selectRoot(state);
+  const track = selectTrackById(state, ownProps.row.trackId);
   const cell = selectCell(state);
   const index = track ? selectTrackIndexById(state, track.id) : -1;
   return {
     row,
+    selectedTrackId,
     track,
     cell,
-    selectedTrackId,
     index,
   };
 }

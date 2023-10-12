@@ -37,7 +37,7 @@ export const selectPatternMap = createSelector(
  */
 export const selectPatterns = createSelector(
   [selectPatternMap, selectPatternIds],
-  getProperties
+  (patternMap, patternIds) => getProperties(patternMap, patternIds)
 );
 
 /**
@@ -48,10 +48,7 @@ export const selectPatterns = createSelector(
 export const selectCustomPatterns = createSelector(
   [selectPatterns],
   (patterns) =>
-    patterns.filter(
-      ({ id }) =>
-        id && (id === "new-pattern" || PresetPatternMap[id] === undefined)
-    )
+    patterns.filter(({ id }) => id && PresetPatternMap[id] === undefined)
 );
 
 /**

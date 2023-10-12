@@ -4,9 +4,16 @@ import { MIDI } from "../midi";
 import { Tick, BPM, Time, Volume } from "../units";
 
 /**
+ * The current tick is stored as a global variable.
+ */
+export let globalOfflineTick: Tick = 0;
+export const setGlobalOfflineTick = (tick: Tick) => {
+  globalOfflineTick = tick;
+};
+
+/**
  * The `Transport` contains information about playback and the Tone.js Transport.
  *
- * @property `tick` - The current tick.
  * @property `state` - The current playback state, e.g. "started".
  * @property `bpm` - The current beats per minute.
  * @property `timeSignature` - The time signature of the transport.
@@ -18,11 +25,10 @@ import { Tick, BPM, Time, Volume } from "../units";
  * @property `loaded` - Whether the transport is loaded.
  * @property `loading` - Whether the transport is loading.
  * @property `recording` - Whether the transport is recording.
- * @property `offlineTick` - The current tick of the offline transport.
+ * @property `downloading` - Whether the transport is downloading.
  *
  */
 export interface Transport {
-  tick: Tick;
   state: PlaybackState;
   bpm: BPM;
   timeSignature: [number, number];
@@ -36,13 +42,11 @@ export interface Transport {
 
   loaded: boolean;
   loading: boolean;
-
   recording: boolean;
-  offlineTick: Tick;
+  downloading: boolean;
 }
 
 export const defaultTransport: Transport = {
-  tick: 0,
   state: "stopped",
   bpm: DEFAULT_BPM,
   loop: false,
@@ -54,7 +58,7 @@ export const defaultTransport: Transport = {
   loaded: false,
   loading: false,
   recording: false,
-  offlineTick: 0,
+  downloading: false,
 };
 
 /**
@@ -65,7 +69,6 @@ export const defaultTransport: Transport = {
 export const isTransport = (obj: unknown): obj is Transport => {
   const candidate = obj as Transport;
   return (
-    candidate?.tick !== undefined &&
     candidate?.state !== undefined &&
     candidate?.bpm !== undefined &&
     candidate?.loop !== undefined &&

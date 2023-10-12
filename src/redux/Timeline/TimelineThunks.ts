@@ -52,6 +52,7 @@ import { isPatternTrack } from "types/PatternTrack";
 import { isPattern } from "types/Pattern";
 import { updateMedia, createMedia } from "redux/thunks";
 import { TrackId } from "types/Track";
+import { Transport } from "tone";
 
 /**
  * The handler for when a cell is clicked.
@@ -175,6 +176,7 @@ export const onClipClick =
     const selectedClips = selectSelectedClips(state);
     const selectedMedia = union(selectedClips, [clip]);
     const selectedMediaIds = selectedMedia.map((item) => item.id);
+
     // Compute the start and end time of the selection
     const startTick = getMediaStartTick(selectedMedia);
     const durations = selectClipDurations(state, selectedMediaIds);
@@ -243,7 +245,7 @@ export const onTranspositionClick =
     }
 
     // Select a range of transpositions if the user is holding shift
-    const selectedMedia = [...selectedTranspositions, transposition];
+    const selectedMedia = union(selectedTranspositions, [transposition]);
 
     // Compute the start and end time of the selection
     const startTick = getMediaStartTick(selectedMedia);
@@ -261,7 +263,7 @@ export const onTranspositionClick =
     // Get all transpositions that are in the tick range
     const rangeMedia = getMediaInRange(trackTranspositions, startTick, endTick);
     const rangeTranspositions = getMediaTranspositions(rangeMedia);
-    const rangeTranspositionIds = rangeTranspositions.map((t) => t.id);
+    const rangeTranspositionIds = rangeTranspositions.map((_) => _.id);
 
     // Select the transpositions
     dispatch(setSelectedTranspositions(rangeTranspositionIds));
@@ -286,7 +288,7 @@ export const onClipDragEnd =
     const rowIndex = orderedTrackIds.indexOf(clip.trackId);
     if (rowIndex === -1) return;
     const rowOffset = item.hoveringRow - rowIndex;
-    const clipCol = ticksToColumns(clip?.tick, subdivision);
+    const clipCol = ticksToColumns(clip.tick, subdivision);
     const colOffset = item.hoveringColumn - clipCol - 1;
     const tickOffset = colOffset * subdivisionToTicks(subdivision);
 
@@ -301,16 +303,14 @@ export const onClipDragEnd =
       : [];
 
     // Compute the new array of clips
-    let newClips: Clip[] = [];
-    let newTranspositions: Transposition[] = [];
+    const newClips: Clip[] = [];
+    const newTranspositions: Transposition[] = [];
 
     // Iterate over the selected clips
     for (const clip of targetedClips) {
-      if (!clip) return;
-
       // Get the index of the new track
-      const trackIndex = orderedTrackIds.indexOf(clip.trackId);
-      if (trackIndex === -1) return;
+      const trackIndex = orderedTrackIds.indexOf(clip?.trackId);
+      if (!clip || trackIndex === -1) return;
 
       // Get the new track
       const newIndex = trackIndex + rowOffset;
@@ -402,11 +402,9 @@ export const onTranspositionDragEnd =
 
     // Iterate over the selected clips
     for (const clip of selectedClips) {
-      if (!clip) return;
-
       // Get the index of the new track
-      const trackIndex = orderedTrackIds.indexOf(clip.trackId);
-      if (trackIndex === -1) return;
+      const trackIndex = orderedTrackIds.indexOf(clip?.trackId);
+      if (!clip || trackIndex === -1) return;
 
       // Get the new track
       const newIndex = trackIndex + rowOffset;
@@ -428,11 +426,9 @@ export const onTranspositionDragEnd =
       : [transposition];
 
     for (const transposition of selectedItems) {
-      if (!transposition) return;
-
       // Get the index of the new track
-      const trackIndex = orderedTrackIds.indexOf(transposition.trackId);
-      if (trackIndex === -1) return;
+      const trackIndex = orderedTrackIds.indexOf(transposition?.trackId);
+      if (!transposition || trackIndex === -1) return;
 
       // Get the new track
       const newIndex = trackIndex + rowOffset;
@@ -469,14 +465,13 @@ export const addTranspositionToTimeline =
   (): AppThunk => (dispatch, getState) => {
     const state = getState();
     const { toolkit, selectedTrackId } = selectRoot(state);
-    const { tick } = selectTransport(state);
     const { transpositionOffsets, transpositionDuration } = toolkit;
     if (!selectedTrackId) return;
     const transposition = {
       trackId: selectedTrackId,
       offsets: transpositionOffsets,
       duration: transpositionDuration || undefined,
-      tick,
+      tick: Transport.ticks,
     };
     dispatch(createTranspositions([transposition]));
   };
@@ -486,20 +481,13 @@ export const addTranspositionToTimeline =
  */
 export const addPatternToTimeline = (): AppThunk => (dispatch, getState) => {
   const state = getState();
-  const { tick } = selectTransport(state);
   const pattern = selectSelectedPattern(state);
   const track = selectSelectedTrack(state);
   if (!isPattern(pattern) || !isPatternTrack(track)) return;
-  dispatch(createClips([{ patternId: pattern.id, trackId: track.id, tick }]));
-};
-
-/**
- * Export all selected clips to a MIDI file.
- * @param options The options for the MIDI file.
- */
-export const exportSelectedClipsToMIDI =
-  (): AppThunk => (dispatch, getState) => {
-    const state = getState();
-    const { selectedClipIds } = selectRoot(state);
-    dispatch(exportClipsToMidi(selectedClipIds));
+  const clip = {
+    patternId: pattern.id,
+    trackId: track.id,
+    tick: Transport.ticks,
   };
+  dispatch(createClips([clip]));
+};

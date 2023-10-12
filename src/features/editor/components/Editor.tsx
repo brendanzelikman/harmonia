@@ -7,9 +7,9 @@ import {
 } from "react-icons/bs";
 import { EditorProps } from "..";
 import { Tooltip as FBTooltip } from "flowbite-react";
-import EditorInstrument from "../instruments";
-import EditorPatterns from "../patterns";
-import EditorScales from "../scales";
+import EditorInstrument from "../Instrument";
+import EditorPatterns from "../Pattern";
+import EditorScales from "../Scale";
 import { useState } from "react";
 import {
   INSTRUMENT_KEYS,

@@ -4,6 +4,7 @@ import { ID, Pitch, Tick, Velocity } from "../units";
 import { InstrumentKey } from "../Instrument";
 
 // Pattern Types
+
 export type PatternId = ID;
 export type PatternNoId = Omit<Pattern, "id">;
 export type PatternWithOptions = Pattern & { options: PatternOptions };

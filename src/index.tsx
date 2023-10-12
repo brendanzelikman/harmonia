@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Provider } from "react-redux";
+import { Provider as ReduxProvider } from "react-redux";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -14,6 +14,7 @@ import { start } from "tone";
 import { startTransport } from "redux/Transport";
 import { MIDIProvider } from "providers/midi";
 import { ErrorView, LandingView } from "views";
+import { HotkeysProvider } from "react-hotkeys-hook";
 
 export const container: HTMLElement = document.getElementById("root")!;
 if (!container.children.length) {
@@ -29,12 +30,14 @@ if (!container.children.length) {
   root.render(
     <React.StrictMode>
       <DndProvider backend={HTML5Backend}>
-        <Provider store={store}>
+        <ReduxProvider store={store}>
           <MIDIProvider>
-            <RouterProvider router={router} />
+            <HotkeysProvider initiallyActiveScopes={["timeline"]}>
+              <RouterProvider router={router} />
+            </HotkeysProvider>
           </MIDIProvider>
           <LoadedTransport />
-        </Provider>
+        </ReduxProvider>
       </DndProvider>
     </React.StrictMode>
   );

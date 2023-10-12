@@ -10,7 +10,7 @@ export const mod = (n: number, m: number) => ((n % m) + m) % m;
 export const normalize = (x: number, m: number, n: number) => (x - m) / (n - m);
 
 // Get the percentage of a number in a range (0% - 100%)
-export const percentOfRange = (x: number, m: number, n: number) =>
+export const percentOfRange = (x = 0, m = 0, n = 0) =>
   clamp(Math.round((100 * (x - m)) / (n - m)), 0, 100);
 
 // Closest number in array

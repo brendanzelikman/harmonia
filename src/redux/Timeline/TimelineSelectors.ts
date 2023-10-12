@@ -21,6 +21,7 @@ import {
   selectPatternTrackMap,
   selectSession,
   selectTrackById,
+  selectTransport,
 } from "redux/selectors";
 import { createDeepEqualSelector } from "redux/util";
 import { isTrack } from "types/Track";
@@ -305,13 +306,14 @@ export const selectChordsAtTick = (state: RootState, tick: Tick) => {
 };
 
 /**
- * Select the timeline end tick based on the clips.
+ * Select the timeline end tick based on the clips and loop state.
  * @param state The root state.
  * @returns The end tick.
  */
 export const selectTimelineEndTick = createSelector(
-  [selectClips, selectPatternMap],
-  (clips, patternMap) => {
+  [selectClips, selectPatternMap, selectTransport],
+  (clips, patternMap, transport) => {
+    if (transport.loop) return transport.loopEnd;
     const lastTick = clips.reduce((last, clip) => {
       const pattern = patternMap[clip.patternId];
       if (!pattern) return last;

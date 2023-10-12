@@ -1,7 +1,7 @@
-import Navbar from "features/navbar";
-import Editor from "features/editor";
-import Timeline from "features/timeline";
-import Shortcuts from "features/shortcuts";
+import Navbar from "features/Navbar";
+import Editor from "features/Editor";
+import Timeline from "features/Timeline";
+import Shortcuts from "features/Shortcuts/ShortcutsMenu";
 
 import useGlobalHotkeys from "hooks/useGlobalHotkeys";
 import useMidiController from "hooks/useMidiController";

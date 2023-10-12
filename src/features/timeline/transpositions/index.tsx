@@ -5,7 +5,7 @@ import { selectTranspositionIds } from "redux/Transposition";
 import { useDeepEqualSelector } from "redux/hooks";
 import { TimelinePortalElement } from "..";
 
-export default function TimelineTranspositions(props: TimelinePortalElement) {
+export function TimelineTranspositions(props: TimelinePortalElement) {
   const transpositionIds = useDeepEqualSelector(selectTranspositionIds);
   const { element } = props.timeline;
   if (!element || !transpositionIds.length) return null;

@@ -4,6 +4,7 @@ import { TrackId } from "types/Track";
 import { initializeState } from "types/util";
 import { MediaPayload, PartialMediaPayload } from "types/Media";
 import { union } from "lodash";
+import { updateMediaInSession } from "redux/Session";
 
 const initialState = initializeState<ClipId, Clip>();
 
@@ -90,7 +91,7 @@ export const clipsSlice = createSlice({
      * @param state The clips state.
      * @param action The payload action.
      */
-    updateClips: (state, action: PayloadAction<UpdateClipsPayload>) => {
+    _updateClips: (state, action: PayloadAction<UpdateClipsPayload>) => {
       const { clips } = action.payload;
       if (!clips?.length) return;
       clips.forEach((clip) => {
@@ -169,11 +170,16 @@ export const clipsSlice = createSlice({
 export const {
   addClips,
   removeClips,
-  updateClips,
+  _updateClips,
   removeClipsByTrackId,
   clearClipsByTrackId,
 } = clipsSlice.actions;
 
 export const _sliceClip = clipsSlice.actions.sliceClip;
+
+export const updateClips = (media: PartialMediaPayload) => (dispatch: any) => {
+  dispatch(_updateClips(media));
+  dispatch(updateMediaInSession(media));
+};
 
 export default clipsSlice.reducer;

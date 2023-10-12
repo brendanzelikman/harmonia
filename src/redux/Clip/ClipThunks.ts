@@ -32,6 +32,7 @@ import {
   selectTransport,
   selectTrackById,
   selectOrderedTrackIds,
+  selectScaleMap,
 } from "redux/selectors";
 import { Midi } from "@tonejs/midi";
 import { TrackId } from "types/Track";
@@ -141,7 +142,8 @@ export const exportClipsToMidi =
     const root = selectRoot(state);
     const patterns = selectPatternMap(state);
     const patternTracks = selectPatternTrackMap(state);
-    const scaleTracks = selectScaleTrackMap(state);
+    const scaleTrackMap = selectScaleTrackMap(state);
+    const scaleMap = selectScaleMap(state);
     const transport = selectTransport(state);
     const sessionMap = selectSessionMap(state);
     const transpositionMap = selectTranspositionMap(state);
@@ -184,9 +186,10 @@ export const exportClipsToMidi =
           clip,
           patterns,
           patternTracks,
-          sessionMap,
-          scaleTracks,
-          transpositionMap
+          scaleMap,
+          scaleTrackMap,
+          transpositionMap,
+          sessionMap
         );
 
         // Iterate through each chord

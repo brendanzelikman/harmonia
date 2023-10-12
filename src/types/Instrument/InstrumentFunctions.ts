@@ -10,7 +10,8 @@ import {
 } from "types/Instrument";
 import samples from "assets/instruments/samples.json";
 import categories from "assets/instruments/categories.json";
-import { SamplesMap } from "lib/tone";
+
+import { SamplerOptions } from "tone";
 
 /**
  * Get the unique tag of a given Instrument.
@@ -56,7 +57,7 @@ export const getInstrumentChannel = (instrument?: Instrument) => {
  * @returns The instrument category.
  */
 export const getInstrumentCategory = (
-  key: InstrumentKey
+  key?: InstrumentKey
 ): InstrumentCategory => {
   const category = INSTRUMENT_CATEGORIES.find((category) =>
     categories[category].some((instrument) => instrument.key === key)
@@ -69,7 +70,7 @@ export const getInstrumentCategory = (
  * @param key - The instrument key.
  * @returns The instrument name.
  */
-export const getInstrumentName = (key: InstrumentKey): InstrumentName => {
+export const getInstrumentName = (key?: InstrumentKey): InstrumentName => {
   const category = getInstrumentCategory(key);
   if (!category) return "Unknown Instrument";
   const match = categories[category].find((name) => name.key === key);
@@ -81,7 +82,9 @@ export const getInstrumentName = (key: InstrumentKey): InstrumentName => {
  * @param key - The instrument key.
  * @returns The instrument sample map.
  */
-export const getInstrumentSamplesMap = (key: InstrumentKey): SamplesMap => {
+export const getInstrumentSamplesMap = (
+  key: InstrumentKey
+): SamplerOptions["urls"] => {
   return samples[key];
 };
 

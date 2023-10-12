@@ -5,7 +5,6 @@ import * as Track from "types/Track";
 import * as Transposition from "types/Transposition";
 import * as Session from "types/Session";
 import { MIDI } from "types/midi";
-import { ERROR_TAG } from "types/units";
 import { createMap } from "types/util";
 import { Clip, ClipId, isClip } from "./ClipTypes";
 import {
@@ -14,15 +13,16 @@ import {
   DEFAULT_CLIP_COLOR,
   CLIP_THEMES,
 } from "./ClipThemes";
+import { NestedScaleMap } from "types/Scale";
 
 /**
  * Get the unique tag of a given Clip.
  * @param clip Optional. The Clip object.
  * @returns Unique tag string. If the Clip is invalid, return the error tag.
  */
-export const getClipTag = (clip?: Partial<Clip>) => {
-  if (!isClip(clip)) return ERROR_TAG;
-  return `${clip.id}@${clip.patternId}@${clip.trackId}@${clip.tick}@${clip.offset}`;
+export const getClipTag = (clip: Partial<Clip>) => {
+  const { id, patternId, trackId, tick, offset } = clip;
+  return `${id}@${patternId}@${trackId}@${tick}@${offset}`;
 };
 
 /**
@@ -78,9 +78,10 @@ export const getClipStream = (
   clip: Clip,
   patternMap: Pattern.PatternMap,
   patternTrackMap: PatternTrack.PatternTrackMap,
-  sessionMap: Session.SessionMap,
+  scaleMap: NestedScaleMap,
   scaleTrackMap: ScaleTrack.ScaleTrackMap,
-  transpositionMap: Transposition.TranspositionMap
+  transpositionMap: Transposition.TranspositionMap,
+  sessionMap: Session.SessionMap
 ) => {
   if (!isClip(clip)) return [] as Pattern.PatternStream;
 
@@ -151,12 +152,13 @@ export const getClipStream = (
     const tick = startTick + i - clip.offset;
 
     // Transpose the parent tracks at the current tick
-    const transposedParents = Track.getTransposedScaleTracksAtTick(
+    const transposedParents = Track.getTransposedScaleTrackScalesAtTick(
       parents,
       parentTranspositions,
+      scaleMap,
       tick
     );
-    const scaleTracks = createMap<ScaleTrack.ScaleTrackMap>(transposedParents);
+    const transposedScaleMap = createMap<NestedScaleMap>(transposedParents);
     const transposition = Transposition.getLastTransposition(
       clipTranspositions,
       tick,
@@ -170,9 +172,10 @@ export const getClipStream = (
     const transposedStream = Track.getTransposedPatternStream({
       pattern,
       transposition,
+      tracks: parents,
+      scaleMap: transposedScaleMap,
+      scaleTrackMap,
       quantizations,
-      tracks: transposedParents,
-      scaleTracks,
     });
 
     // Add the transposed chord to the clip stream
@@ -198,18 +201,20 @@ export const getClipStreams = (
   clips: Clip[],
   patternMap: Pattern.PatternMap,
   patternTrackMap: PatternTrack.PatternTrackMap,
-  sessionMap: Session.SessionMap,
+  scaleMap: NestedScaleMap,
   scaleTrackMap: ScaleTrack.ScaleTrackMap,
-  transpositionMap: Transposition.TranspositionMap
+  transpositionMap: Transposition.TranspositionMap,
+  sessionMap: Session.SessionMap
 ) => {
   return clips.reduce((acc, cur) => {
     const stream = getClipStream(
       cur,
       patternMap,
       patternTrackMap,
-      sessionMap,
+      scaleMap,
       scaleTrackMap,
-      transpositionMap
+      transpositionMap,
+      sessionMap
     );
     return { ...acc, [cur.id]: stream };
   }, {} as Record<ClipId, Pattern.PatternStream>);

@@ -60,12 +60,16 @@ export const DEFAULT_CELL: TimelineCell = {
  * @property `cell` - The dimensions of a timeline cell.
  * @property `clipboard` - The media copied to the clipboard.
  * @property `subdivision` - The current subdivision of the timeline.
+ * @property `draggingClip` - A boolean indicating if a clip is being dragged.
+ * @property `draggingTransposition` - A boolean indicating if a transposition is being dragged.
  */
 export interface Timeline {
   state: TimelineState;
   clipboard: TimelineClipboard;
   cell: TimelineCell;
   subdivision: Subdivision;
+  draggingClip: boolean;
+  draggingTransposition: boolean;
 }
 
 export const defaultTimeline: Timeline = {
@@ -73,6 +77,8 @@ export const defaultTimeline: Timeline = {
   cell: DEFAULT_CELL,
   clipboard: DEFAULT_CLIPBOARD,
   subdivision: "1/16",
+  draggingClip: false,
+  draggingTransposition: false,
 };
 
 /**
@@ -86,6 +92,8 @@ export const isTimeline = (obj: unknown): obj is Timeline => {
     candidate?.state !== undefined &&
     candidate?.clipboard !== undefined &&
     candidate?.cell !== undefined &&
-    candidate?.subdivision !== undefined
+    candidate?.subdivision !== undefined &&
+    candidate?.draggingClip !== undefined &&
+    candidate?.draggingTransposition !== undefined
   );
 };
