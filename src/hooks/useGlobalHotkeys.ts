@@ -2,8 +2,8 @@ import { useAppSelector, useAppDispatch } from "redux/hooks";
 import { selectEditor } from "redux/selectors";
 import { clearState, readFiles, saveStateToFile } from "redux/util";
 import { hideEditor } from "redux/Editor";
-import { deselectAllClips, deselectAllTranspositions } from "redux/Root";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
+import { updateMediaSelection } from "redux/Timeline";
 
 export default function useGlobalHotkeys() {
   const dispatch = useAppDispatch();
@@ -25,10 +25,9 @@ export default function useGlobalHotkeys() {
       if (editor.show) {
         dispatch(hideEditor());
       } else {
-        dispatch(deselectAllClips());
-        dispatch(deselectAllTranspositions());
+        dispatch(updateMediaSelection({ clipIds: [], transpositionIds: [] }));
       }
     },
-    [editor.show, editor.id]
+    [editor.show]
   );
 }

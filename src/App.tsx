@@ -1,7 +1,7 @@
 import Navbar from "features/Navbar";
 import Editor from "features/Editor";
 import Timeline from "features/Timeline";
-import Shortcuts from "features/Shortcuts/ShortcutsMenu";
+import Shortcuts from "features/Shortcuts";
 
 import useGlobalHotkeys from "hooks/useGlobalHotkeys";
 import useMidiController from "hooks/useMidiController";
@@ -9,6 +9,7 @@ import useMidiController from "hooks/useMidiController";
 import { LoadingView } from "views";
 import { useAppSelector } from "redux/hooks";
 import { selectTransport } from "redux/selectors";
+import { TourBackground } from "features/Tour";
 
 /**
  * The main app is composed of four components.
@@ -28,6 +29,7 @@ export default function App() {
   // Otherwise, show the app.
   return (
     <div className="flex flex-col fade-in h-screen">
+      <TourBackground />
       <Navbar />
       <main className="relative flex flex-auto overflow-hidden">
         <Timeline />

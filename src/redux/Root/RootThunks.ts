@@ -1,12 +1,12 @@
 import { AppThunk } from "redux/store";
-import {
-  selectClipIds,
-  selectOrderedTrackIds,
-  selectRoot,
-} from "redux/selectors";
+import { selectClipIds, selectOrderedTrackIds } from "redux/selectors";
 import { exportClipsToMidi } from "redux/Clip";
 import { mod } from "utils";
-import { setSelectedTrack } from "./RootSlice";
+import {
+  selectSelectedClipIds,
+  selectSelectedTrackId,
+  setSelectedTrackId,
+} from "redux/Timeline";
 import { loadStateFromString } from "redux/util";
 
 /**
@@ -14,7 +14,7 @@ import { loadStateFromString } from "redux/util";
  */
 export const selectPreviousTrack = (): AppThunk => (dispatch, getState) => {
   const state = getState();
-  const { selectedTrackId } = selectRoot(state);
+  const selectedTrackId = selectSelectedTrackId(state);
   if (!selectedTrackId) return;
 
   // Get the tracks from the store
@@ -26,7 +26,7 @@ export const selectPreviousTrack = (): AppThunk => (dispatch, getState) => {
   const previousTrackId = orderedTrackIds[mod(index - 1, trackCount)];
 
   // Dispatch the action
-  dispatch(setSelectedTrack(previousTrackId));
+  dispatch(setSelectedTrackId(previousTrackId));
 };
 
 /**
@@ -34,7 +34,7 @@ export const selectPreviousTrack = (): AppThunk => (dispatch, getState) => {
  */
 export const selectNextTrack = (): AppThunk => (dispatch, getState) => {
   const state = getState();
-  const { selectedTrackId } = selectRoot(state);
+  const selectedTrackId = selectSelectedTrackId(state);
   if (!selectedTrackId) return;
 
   // Get the tracks from the store
@@ -46,7 +46,7 @@ export const selectNextTrack = (): AppThunk => (dispatch, getState) => {
   const nextTrackId = orderedTrackIds[mod(index + 1, trackCount)];
 
   // Dispatch the action
-  dispatch(setSelectedTrack(nextTrackId));
+  dispatch(setSelectedTrackId(nextTrackId));
 };
 
 /**
@@ -56,7 +56,7 @@ export const selectNextTrack = (): AppThunk => (dispatch, getState) => {
 export const exportSelectedClipsToMIDI =
   (): AppThunk => (dispatch, getState) => {
     const state = getState();
-    const { selectedClipIds } = selectRoot(state);
+    const selectedClipIds = selectSelectedClipIds(state);
     dispatch(exportClipsToMidi(selectedClipIds));
   };
 

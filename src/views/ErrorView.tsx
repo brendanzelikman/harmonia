@@ -20,8 +20,8 @@ export const ErrorView = () => {
   // The user is advised with a note on how to clear the state.
   const ErrorAdvice = () => {
     const heldClass = "text-blue-400 font-bold";
-    const shiftClass = heldKeys.Shift ? heldClass : "";
-    const backspaceClass = heldKeys.Backspace ? heldClass : "";
+    const shiftClass = heldKeys.shift ? heldClass : "";
+    const backspaceClass = heldKeys.backspace ? heldClass : "";
     return (
       <p className="text-slate-400">
         (Note: Press{" "}

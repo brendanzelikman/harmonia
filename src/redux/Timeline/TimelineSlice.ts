@@ -7,34 +7,32 @@ import {
   MIN_CELL_WIDTH,
 } from "appConstants";
 import { Subdivision } from "tone/build/esm/core/type/Units";
-import {
-  defaultTimeline,
-  TimelineState,
-  TimelineClipboard,
-} from "types/Timeline";
+import { defaultTimeline, TimelineState } from "types/Timeline";
 import { ORDERED_SUBDIVISIONS } from "types/units";
+import {
+  MediaClipboard,
+  MediaDraft,
+  MediaDragState,
+  MediaSelection,
+} from "types/Media";
+import { TrackId } from "types/Track";
 
 /**
  * The timeline slice is responsible for managing the data grid and oversees all tracked objects.
  * It contains dimensions about the timeline, such as the cell width, height, subdivision, etc.
  *
+ * @property `setTimelineState` - Set the timeline state.
+ * @property `clearTimelineState` - Clear the timeline state.
  * @property `setCellWidth` - Set the width of a timeline cell.
  * @property `setCellHeight` - Set the height of a timeline cell.
  * @property `setSubdivision` - Set the subdivision of a timeline cell.
  * @property `increaseSubdivision` - Increase the subdivision of a timeline cell.
  * @property `decreaseSubdivision` - Decrease the subdivision of a timeline cell.
- * @property `setTimelineState` - Set the timeline state.
- * @property `clearTimelineState` - Clear the timeline state.
- * @property `setClipboard` - Set the clipboard.
- * @property `toggleAddingClip` - Toggle the adding clip state.
- * @property `toggleCuttingClip` - Toggle the cutting clip state.
- * @property `toggleMergingClips` - Toggle the merging clips state.
- * @property `toggleRepeatingClips` - Toggle the repeating clips state.
- * @property `toggleTransposingClip` - Toggle the transposing clip state.
- * @property `startDraggingClip` - Start dragging a clip.
- * @property `stopDraggingClip` - Stop dragging a clip.
- * @property `startDraggingTransposition` - Start dragging a transposition.
- * @property `stopDraggingTransposition` - Stop dragging a transposition.
+ * @property `setSelectedTrackId` - Set the selected track ID.
+ * @property `updateMediaClipboard` - Update the clipboard with the given media.
+ * @property `updateMediaDraft` - Update the drafted media.
+ * @property `updateMediaSelection` - Update the selected media.
+ * @property `updateMediaDragState` - Update the drag state of the media.
  *
  */
 export const timelineSlice = createSlice({
@@ -107,81 +105,87 @@ export const timelineSlice = createSlice({
       state.state = "idle";
     },
     /**
-     * Set the clipboard to the given media.
+     * Set the selected track ID.
      * @param state - The current timeline state.
-     * @param action - The payload action containing the clipboard entry.
+     * @param action - The payload action containing the track ID.
      */
-    setClipboard: (state, action: PayloadAction<TimelineClipboard>) => {
-      const clipboard = action.payload;
-      state.clipboard = clipboard;
+    setSelectedTrackId: (state, action: PayloadAction<TrackId | undefined>) => {
+      state.selectedTrackId = action.payload;
     },
     /**
-     * Toggle the adding clip state.
+     * Update the clipboard with the given media.
      * @param state - The current timeline state.
+     * @param action - The payload action containing the media.
      */
-    toggleAddingClip: (state) => {
-      const isAdding = state.state === "adding";
-      state.state = isAdding ? "idle" : "adding";
+    updateMediaClipboard: (
+      state,
+      action: PayloadAction<Partial<MediaClipboard>>
+    ) => {
+      const { mediaClipboard } = state;
+      const { clips, transpositions } = action.payload;
+      if (clips) {
+        mediaClipboard.clips = clips;
+      }
+      if (transpositions) {
+        mediaClipboard.transpositions = transpositions;
+      }
     },
     /**
-     * Toggle the cutting clip state.
+     * Update the drafted media.
      * @param state - The current timeline state.
+     * @param action - The payload action containing a partial media draft.
      */
-    toggleCuttingClip: (state) => {
-      const isCutting = state.state === "cutting";
-      state.state = isCutting ? "idle" : "cutting";
+    updateMediaDraft: (state, action: PayloadAction<Partial<MediaDraft>>) => {
+      const { mediaDraft } = state;
+      const { clip, transposition } = action.payload;
+      if (clip) {
+        mediaDraft.clip = { ...mediaDraft.clip, ...clip };
+      }
+      if (transposition)
+        mediaDraft.transposition = {
+          ...mediaDraft.transposition,
+          ...transposition,
+          offsets: {
+            ...mediaDraft.transposition.offsets,
+            ...transposition.offsets,
+          },
+        };
     },
     /**
-     * Toggle the merging clips state.
+     * Update the selected media.
      * @param state - The current timeline state.
+     * @param action - The payload action containing a partial media selection.
      */
-    toggleMergingClips: (state) => {
-      const isMerging = state.state === "merging";
-      state.state = isMerging ? "idle" : "merging";
+    updateMediaSelection: (
+      state,
+      action: PayloadAction<Partial<MediaSelection>>
+    ) => {
+      const { mediaSelection } = state;
+      const { clipIds, transpositionIds } = action.payload;
+      if (clipIds) {
+        mediaSelection.clipIds = clipIds;
+      }
+      if (transpositionIds) {
+        mediaSelection.transpositionIds = transpositionIds;
+      }
     },
     /**
-     * Toggle the repeating clips state.
+     * Update the drag state of the media.
      * @param state - The current timeline state.
+     * @param action - The payload action containing a partial media drag state.
      */
-    toggleRepeatingClips: (state) => {
-      const isRepeating = state.state === "repeating";
-      state.state = isRepeating ? "idle" : "repeating";
-    },
-    /**
-     * Toggle the transposing clip state.
-     * @param state - The current timeline state.
-     */
-    toggleTransposingClip: (state) => {
-      const isTransposing = state.state === "transposing";
-      state.state = isTransposing ? "idle" : "transposing";
-    },
-    /**
-     * Start dragging a clip.
-     * @param state - The current timeline state.
-     */
-    startDraggingClip: (state) => {
-      state.draggingClip = true;
-    },
-    /**
-     * Stop dragging a clip.
-     * @param state - The current timeline state.
-     */
-    stopDraggingClip: (state) => {
-      state.draggingClip = false;
-    },
-    /**
-     * Start dragging a transposition.
-     * @param state - The current timeline state.
-     */
-    startDraggingTransposition: (state) => {
-      state.draggingTransposition = true;
-    },
-    /**
-     * Stop dragging a transposition.
-     * @param state - The current timeline state.
-     */
-    stopDraggingTransposition: (state) => {
-      state.draggingTransposition = false;
+    updateMediaDragState: (
+      state,
+      action: PayloadAction<Partial<MediaDragState>>
+    ) => {
+      const { mediaDragState } = state;
+      const { draggingClip, draggingTransposition } = action.payload;
+      if (draggingClip !== undefined) {
+        mediaDragState.draggingClip = draggingClip;
+      }
+      if (draggingTransposition !== undefined) {
+        mediaDragState.draggingTransposition = draggingTransposition;
+      }
     },
   },
 });
@@ -190,23 +194,17 @@ export const {
   setTimelineState,
   clearTimelineState,
 
-  toggleAddingClip,
-  toggleCuttingClip,
-  toggleMergingClips,
-  toggleRepeatingClips,
-  toggleTransposingClip,
-
   setCellWidth,
   setCellHeight,
   setSubdivision,
   increaseSubdivision,
   decreaseSubdivision,
 
-  setClipboard,
-  startDraggingClip,
-  stopDraggingClip,
-  startDraggingTransposition,
-  stopDraggingTransposition,
+  setSelectedTrackId,
+  updateMediaSelection,
+  updateMediaClipboard,
+  updateMediaDraft,
+  updateMediaDragState,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

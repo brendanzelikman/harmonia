@@ -1,6 +1,5 @@
 import * as Session from "../Session/SessionSlice";
 import { AppThunk } from "redux/store";
-import { setSelectedTrack } from "../Root/RootSlice";
 import { hideEditor } from "../Editor/EditorSlice";
 import { isPatternTrack } from "types/PatternTrack";
 import { isScaleTrack } from "types/ScaleTrack";
@@ -36,7 +35,6 @@ import {
   updatePatternTrack,
 } from "redux/PatternTrack";
 import { createMedia } from "redux/thunks";
-import { selectSelectedTrackId } from "redux/Root";
 import { selectSessionMap } from "redux/Session";
 import {
   selectTrackById,
@@ -46,6 +44,7 @@ import {
 import { MouseEvent } from "react";
 import { isHoldingOption } from "utils";
 import { getProperty } from "types/util";
+import { selectSelectedTrackId, setSelectedTrackId } from "redux/Timeline";
 
 /**
  * Create a track in the store.
@@ -132,7 +131,7 @@ export const deleteTrack =
     // Clear the editor/selection if showing the deleted track
     const editorTrackId = selectSelectedTrackId(state);
     if (editorTrackId === trackId) {
-      dispatch(setSelectedTrack(undefined));
+      dispatch(setSelectedTrackId(undefined));
       dispatch(hideEditor());
     }
   };
@@ -162,7 +161,8 @@ export const duplicateTrack =
     );
     const newClips = clips.map((c) => ({ ...c, trackId }));
     const newTranspositions = transpositions.map((t) => ({ ...t, trackId }));
-    dispatch(createMedia(newClips, newTranspositions));
+    const payload = { clips: newClips, transpositions: newTranspositions };
+    dispatch(createMedia(payload));
 
     // Duplicate the original track's children if it has any
     if (!isScaleTrack(track)) return;
@@ -190,7 +190,8 @@ export const duplicateTrack =
           ...t,
           trackId: newParentId,
         }));
-        dispatch(createMedia(newClips, newTranspositions));
+        const payload = { clips: newClips, transpositions: newTranspositions };
+        dispatch(createMedia(payload));
 
         // Add the track's children
         const babies = sessionMap[child.id]?.trackIds;

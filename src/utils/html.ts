@@ -36,6 +36,27 @@ export const isHoldingModifier = (e: GenericEvent) => {
   return isHoldingShift(e) || isHoldingOption(e) || isHoldingCommand(e);
 };
 
+export const isLetterKey = (e: KeyboardEvent) => {
+  return /^[a-zA-Z]$/.test(e.key);
+};
+
+export const SHIFTED_KEY_MAP: Record<string, string> = {
+  "1": "!",
+  "2": "@",
+  "3": "#",
+  "4": "$",
+  "5": "%",
+  "6": "^",
+  "7": "&",
+  "8": "*",
+  "9": "(",
+  "-": "_",
+  "=": "+",
+  "`": "~",
+};
+export const upperCase = (key: string) =>
+  SHIFTED_KEY_MAP[key] || key.toUpperCase();
+
 export const blurOnEnter = (e: React.KeyboardEvent) => {
   if (e.key === "Enter") {
     (e.currentTarget as HTMLElement).blur();

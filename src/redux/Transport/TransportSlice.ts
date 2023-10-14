@@ -1,7 +1,7 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { MAX_BPM, MAX_VOLUME, MIN_BPM, MIN_VOLUME } from "appConstants";
 import { clamp } from "lodash";
-import { defaultTransport, setGlobalOfflineTick } from "types/Transport";
+import { defaultTransport } from "types/Transport";
 import { BPM, Tick, Volume } from "types/units";
 
 /**
@@ -142,14 +142,6 @@ export const transportSlice = createSlice({
     setDownloading: (state, action) => {
       state.downloading = action.payload;
     },
-    /**
-     * Set the transport offline tick to the given value.
-     * @param state - The current transport state.
-     * @param action - The payload action containing the offline tick value.
-     */
-    setOfflineTick: (state, action) => {
-      setGlobalOfflineTick(action.payload);
-    },
   },
 });
 
@@ -168,7 +160,6 @@ export const {
   setLoading,
   setRecording,
   setDownloading,
-  setOfflineTick,
 } = transportSlice.actions;
 
 export default transportSlice.reducer;

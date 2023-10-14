@@ -5,7 +5,7 @@ import {
   Options,
   OptionsOrDependencyArray,
 } from "react-hotkeys-hook/dist/types";
-import { isHoldingShift } from "utils";
+import { SHIFTED_KEY_MAP, isHoldingShift, isLetterKey, upperCase } from "utils";
 
 /**
  * A hook that overrides the default hotkey behavior.
@@ -39,8 +39,14 @@ export const useScopedHotkeys =
     callback: HotkeyCallback,
     options?: OptionsOrDependencyArray,
     dependencies?: OptionsOrDependencyArray
-  ) =>
-    useOverridingHotkeys(keys, callback, { ...options, scopes }, dependencies);
+  ) => {
+    const hotkeyOptions =
+      options && !Array.isArray(options)
+        ? { ...(options as Options), scopes }
+        : { scopes };
+
+    useOverridingHotkeys(keys, callback, hotkeyOptions, dependencies);
+  };
 
 /**
  * A hook that returns a record of keys that are currently being held down.
@@ -57,14 +63,19 @@ export const useHeldHotkeys = (
 
   // Set the key to true when it is pressed down
   const keydown = (e: KeyboardEvent) => {
-    const key = isHoldingShift(e) ? e.key.toUpperCase() : e.key.toLowerCase();
+    const isLetter = isLetterKey(e);
+    const key = isLetter
+      ? isHoldingShift(e)
+        ? upperCase(e.key)
+        : e.key.toLowerCase()
+      : e.key.toLowerCase();
     setHeldKeys((prev) => ({ ...prev, [key]: true }));
   };
 
   // Set the key (and its shift variant) to false when it is released
   const keyup = (e: KeyboardEvent) => {
     const lower = e.key.toLowerCase();
-    const upper = e.key.toUpperCase();
+    const upper = upperCase(e.key);
     setHeldKeys((prev) => ({ ...prev, [lower]: false, [upper]: false }));
   };
 

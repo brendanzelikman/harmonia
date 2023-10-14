@@ -2,9 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AppThunk } from "redux/store";
 import { TrackId } from "types/Track";
 import { Duration, Tick, Timing } from "types/units";
-import { setSelectedTrack } from "../Root/RootSlice";
 import { defaultEditor, EditorId, EditorState } from "types/Editor";
-import { clearTimelineState } from "redux/Timeline";
 
 /**
  * The editor slice contains information about the editor.
@@ -132,18 +130,5 @@ export const {
   setEditorRecordingTiming,
   setEditorRecordingQuantization,
 } = editorSlice.actions;
-
-/**
- * Show the editor with the given ID and select a track if provided.
- * @param id The editor ID.
- * @param trackId The track ID to select.
- */
-export const showEditor =
-  ({ id, trackId }: { id: EditorId; trackId?: TrackId }): AppThunk =>
-  (dispatch) => {
-    dispatch(_showEditor(id));
-    if (trackId) dispatch(setSelectedTrack(trackId));
-    dispatch(clearTimelineState());
-  };
 
 export default editorSlice.reducer;

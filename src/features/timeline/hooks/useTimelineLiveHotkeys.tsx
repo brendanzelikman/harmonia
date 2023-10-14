@@ -1,4 +1,9 @@
-import { cancelEvent, isHoldingShift, isInputEvent } from "utils";
+import {
+  cancelEvent,
+  isHoldingShift,
+  isInputEvent,
+  SHIFTED_KEY_MAP,
+} from "utils";
 import {
   selectEditor,
   selectOrderedTracks,
@@ -42,6 +47,7 @@ export const useTimelineLiveHotkeys = () => {
     "-": "10",
     "=": "11",
   };
+
   const zeroKeys = ["0", ")", "z"];
   const keys = ["`", "q", "w", "s", "x", "f", "e", "z", "y", "u"];
   const heldKeys = useHeldHotkeys(keys);
@@ -56,7 +62,7 @@ export const useTimelineLiveHotkeys = () => {
   );
 
   const keyKeydown = (key: string) => (e: KeyboardEvent) => {
-    if (e.key !== keyMap[key]) return;
+    if (e.key !== keyMap[key] && e.key !== SHIFTED_KEY_MAP[key]) return;
     // Get the number of the key
     const number = parseInt(key);
     if (isNaN(number)) return;

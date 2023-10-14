@@ -33,12 +33,19 @@ import { LIVE_AUDIO_INSTANCES, LIVE_RECORDER_INSTANCE } from "types/Instrument";
 import { MIDI } from "types/midi";
 
 export const TICK_UPDATE_EVENT = "tickUpdate";
+export const OFFLINE_TICK_UPDATE_EVENT = "offlineTickUpdate";
 
 /**
  * Dispatch a tick update event.
  */
-export const dispatchTickUpdate = (tick: Tick) => {
-  const customEvent = new CustomEvent(TICK_UPDATE_EVENT, { detail: tick });
+export const dispatchTickUpdate = (
+  tick: Tick,
+  options?: { offline: boolean }
+) => {
+  const event = options?.offline
+    ? OFFLINE_TICK_UPDATE_EVENT
+    : TICK_UPDATE_EVENT;
+  const customEvent = new CustomEvent(event, { detail: tick });
   window.dispatchEvent(customEvent);
 };
 
@@ -55,10 +62,10 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
     return;
   }
 
-  // Make sure the transport is not already started or downloading
+  // Make sure the transport is not already started
   const oldState = getState();
   const transport = selectTransport(oldState);
-  if (transport.state === "started" || transport.downloading) return;
+  if (transport.state === "started") return;
 
   // Schedule patterns if the transport is stopped
   if (transport.state === "stopped") {
@@ -111,13 +118,7 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
 /**
  * Pause the transport.
  */
-export const pauseTransport = (): AppThunk => (dispatch, getState) => {
-  // Make sure the transport is not downloading
-  const state = getState();
-  const transport = selectTransport(state);
-  if (transport.downloading) return;
-
-  // Pause the transport
+export const pauseTransport = (): AppThunk => (dispatch) => {
   Tone.Transport.pause();
   dispatch(TransportSlice._pauseTransport());
 };
@@ -128,13 +129,7 @@ export const pauseTransport = (): AppThunk => (dispatch, getState) => {
  */
 export const stopTransport =
   (tick?: Tick): AppThunk =>
-  (dispatch, getState) => {
-    // Make sure the transport is not downloading
-    const state = getState();
-    const transport = selectTransport(state);
-
-    if (transport.downloading) return;
-
+  (dispatch) => {
     // Stop the transport
     dispatch(TransportSlice._stopTransport());
     Tone.Transport.stop();
@@ -169,11 +164,8 @@ export const seekTransport =
   (tick: Tick): AppThunk =>
   (dispatch, getState) => {
     if (tick < 0) return;
-
-    // Make sure the transport is not downloading
     const state = getState();
     const transport = selectTransport(state);
-    if (transport.downloading) return;
 
     // Convert the tick to seconds
     const seconds = convertTicksToSeconds(transport, tick);
@@ -452,7 +444,7 @@ export const toggleTransportRecording =
  * Start downloading the transport.
  */
 export const startDownloadingTransport = (): AppThunk => (dispatch) => {
-  dispatch(TransportSlice.setOfflineTick(0));
+  dispatchTickUpdate(0, { offline: true });
   dispatch(TransportSlice.setDownloading(true));
 };
 
@@ -460,7 +452,7 @@ export const startDownloadingTransport = (): AppThunk => (dispatch) => {
  * Stop downloading the transport.
  */
 export const stopDownloadingTransport = (): AppThunk => (dispatch) => {
-  dispatch(TransportSlice.setOfflineTick(0));
+  dispatchTickUpdate(0, { offline: true });
   dispatch(TransportSlice.setDownloading(false));
 };
 
@@ -523,6 +515,9 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
       const state = getState();
       const transport = selectTransport(state);
 
+      // Dispatch the tick update
+      dispatchTickUpdate(offlineContext.transport.ticks, { offline: true });
+
       // Cancel the operation if downloading ever stops
       if (!transport.downloading) {
         offlineContext.transport.stop();
@@ -541,10 +536,6 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
         const sampler = samplers[instrumentId];
         playPatternChord(sampler, chord, time);
       }
-      // Schedule the next tick
-      dispatch(
-        TransportSlice.setOfflineTick(offlineContext.transport.ticks + 1)
-      );
     }, pulse);
 
     // Start the transport

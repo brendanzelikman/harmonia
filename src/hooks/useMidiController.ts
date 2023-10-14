@@ -11,14 +11,13 @@ import {
 import {
   selectSelectedTrack,
   selectSelectedTrackIndex,
-  setSelectedTrack,
-} from "redux/Root";
+  setSelectedTrackId,
+} from "redux/Timeline";
 import {
   useAppSelector,
   useDeepEqualSelector,
   useAppDispatch,
 } from "redux/hooks";
-import { selectOrderedTrackIds, selectTransport } from "redux/selectors";
 import { normalize, mod } from "utils";
 import { updateSelectedTranspositions } from "redux/Transposition";
 import {
@@ -26,11 +25,13 @@ import {
   pauseTransport,
   startTransport,
   setTransportLoop,
+  selectTransport,
 } from "redux/Transport";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { getProperty } from "types/util";
 import { PatternTrack } from "types/PatternTrack";
 import { MIDI } from "types/midi";
+import { selectOrderedTrackIds } from "redux/Track";
 
 const ARTURIA_KEYLAB_TRACK_CC = 60;
 const ARTURIA_KEYLAB_VOLUME_CCS = [73, 75, 79, 72, 80, 81, 82, 83];
@@ -46,7 +47,6 @@ const ARTURIA_KEYLAB_MOD_BYTE = 176;
 // CC support for my MIDI controller :)
 export default function useMidiController() {
   const dispatch = useAppDispatch();
-
   const transport = useAppSelector(selectTransport);
   const patternTrackMap = useAppSelector(selectPatternTrackMap);
   const orderedTrackIds = useDeepEqualSelector(selectOrderedTrackIds);
@@ -148,7 +148,7 @@ export default function useMidiController() {
         const newTrackId = orderedTrackIds[newIndex];
         if (!newTrackId) return;
 
-        dispatch(setSelectedTrack(newTrackId));
+        dispatch(setSelectedTrackId(newTrackId));
       }
 
       // Handle the volume index if it's a volume CC

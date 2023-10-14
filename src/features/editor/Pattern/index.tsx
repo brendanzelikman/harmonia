@@ -28,8 +28,7 @@ import {
   exportPatternToMIDI,
   updatePatternByRegex,
 } from "redux/Pattern";
-import { setSelectedPattern } from "redux/Root";
-import { setTimelineState } from "redux/Timeline";
+import { setTimelineState, updateMediaDraft } from "redux/Timeline";
 import { Patterns } from "redux/slices";
 
 const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
@@ -68,10 +67,14 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
 const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => {
   const pattern = ownProps.selectedPattern;
   const id = pattern?.id;
+  const setSelectedPattern = (patternId?: PatternId) => {
+    if (!patternId) return;
+    dispatch(updateMediaDraft({ clip: { patternId } }));
+  };
   return {
     createPattern: async () => {
       const id = await dispatch(createPattern());
-      if (id) dispatch(setSelectedPattern(id));
+      setSelectedPattern(id);
     },
     deletePattern: (id: PatternId) => {
       dispatch(deletePattern(id));
@@ -84,10 +87,10 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => {
       const id = await dispatch(
         createPattern({ ..._pattern, name: `${_pattern.name} (Copy)` })
       );
-      if (id) dispatch(setSelectedPattern(id));
+      if (id) setSelectedPattern(id);
     },
     setSelectedPattern: (id: PatternId) => {
-      dispatch(setSelectedPattern(id));
+      setSelectedPattern(id);
     },
     setPatternIds: (ids: PatternId[]) => {
       dispatch(Patterns.setPatternIds(ids));
@@ -191,8 +194,8 @@ const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => {
     },
     startAddingPatternAsClip: () => {
       if (!id) return;
-      dispatch(setSelectedPattern(id));
-      dispatch(setTimelineState("adding"));
+      setSelectedPattern(id);
+      dispatch(setTimelineState("addingClips"));
       dispatch(hideEditor());
     },
     exportPatternToXML: (pattern?: Pattern) => {

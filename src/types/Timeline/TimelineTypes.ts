@@ -1,43 +1,34 @@
-import { Track } from "types/Track";
-import { Clip } from "../Clip";
-import { Transposition } from "../Transposition";
+import { Track, TrackId } from "types/Track";
 import { Subdivision } from "../units";
-import { Media } from "types/Media";
+import {
+  DEFAULT_MEDIA_CLIPBOARD,
+  DEFAULT_MEDIA_DRAFT,
+  DEFAULT_MEDIA_DRAG_STATE,
+  DEFAULT_MEDIA_SELECTION,
+  Media,
+  MediaClipboard,
+  MediaDraft,
+  MediaDragState,
+  MediaSelection,
+} from "types/Media";
 
 // Types
 export type TimelineObject = Track | Media;
 
 /**
  * The `TimelineState` contains the current state of the timeline.
- * @const `adding` - The user is adding clips.
- * @const `cutting` - The user is cutting clips.
- * @const `transposing` - The user is adding transpositions
- * @const `repeating` - The user is repeating clips/transpositions.
- * @const `merging` - The user is merging clips/transpositions.
+ * @const `addingClips` - The user is adding clips.
+ * @const `addingTranspositions` - The user is adding transpositions.
+ * @const `slicingMedia` - The user is slicing media.
+ * @const `mergingMedia` - The user is merging media.
  * @const `idle` - The user is not performing any actions.
  */
 export type TimelineState =
-  | "adding"
-  | "cutting"
-  | "transposing"
-  | "repeating"
-  | "merging"
+  | "addingClips"
+  | "addingTranspositions"
+  | "slicingMedia"
+  | "mergingMedia"
   | "idle";
-
-/**
- * The `TimelineClipboard` contains the media copied to the clipboard.
- * @property `clips` - The clips copied to the clipboard.
- * @property `transpositions` - The transpositions copied to the clipboard.
- */
-export type TimelineClipboard = {
-  clips: Clip[];
-  transpositions: Transposition[];
-};
-
-export const DEFAULT_CLIPBOARD: TimelineClipboard = {
-  clips: [],
-  transpositions: [],
-};
 
 /**
  * The `TimelineCell` contains the dimensions of a timeline cell.
@@ -57,28 +48,34 @@ export const DEFAULT_CELL: TimelineCell = {
 /**
  * The `Timeline` contains information about the data grid and manages all tracked objects.
  * @property `state` - The current action state of the timeline.
- * @property `cell` - The dimensions of a timeline cell.
- * @property `clipboard` - The media copied to the clipboard.
  * @property `subdivision` - The current subdivision of the timeline.
- * @property `draggingClip` - A boolean indicating if a clip is being dragged.
- * @property `draggingTransposition` - A boolean indicating if a transposition is being dragged.
+ * @property `cell` - The dimensions of a timeline cell.
+ * @property `selectedTrackId` - The ID of the currently selected track.
+ * @property `mediaSelection` - The selected media.
+ * @property `mediaDraft` - The drafted media.
+ * @property `mediaClipboard` - The copied media.
+ * @property `mediaDragState` - The drag state of the media.
  */
 export interface Timeline {
   state: TimelineState;
-  clipboard: TimelineClipboard;
-  cell: TimelineCell;
   subdivision: Subdivision;
-  draggingClip: boolean;
-  draggingTransposition: boolean;
+  cell: TimelineCell;
+  selectedTrackId?: TrackId;
+  mediaSelection: MediaSelection;
+  mediaDraft: MediaDraft;
+  mediaClipboard: MediaClipboard;
+  mediaDragState: MediaDragState;
 }
 
 export const defaultTimeline: Timeline = {
   state: "idle",
-  cell: DEFAULT_CELL,
-  clipboard: DEFAULT_CLIPBOARD,
   subdivision: "1/16",
-  draggingClip: false,
-  draggingTransposition: false,
+  cell: DEFAULT_CELL,
+  selectedTrackId: undefined,
+  mediaSelection: DEFAULT_MEDIA_SELECTION,
+  mediaDraft: DEFAULT_MEDIA_DRAFT,
+  mediaClipboard: DEFAULT_MEDIA_CLIPBOARD,
+  mediaDragState: DEFAULT_MEDIA_DRAG_STATE,
 };
 
 /**
@@ -90,10 +87,11 @@ export const isTimeline = (obj: unknown): obj is Timeline => {
   const candidate = obj as Timeline;
   return (
     candidate?.state !== undefined &&
-    candidate?.clipboard !== undefined &&
     candidate?.cell !== undefined &&
     candidate?.subdivision !== undefined &&
-    candidate?.draggingClip !== undefined &&
-    candidate?.draggingTransposition !== undefined
+    candidate?.mediaSelection !== undefined &&
+    candidate?.mediaDraft !== undefined &&
+    candidate?.mediaClipboard !== undefined &&
+    candidate?.mediaDragState !== undefined
   );
 };

@@ -227,10 +227,7 @@ export const getScaleName = (scale?: Scale) => {
   }
 
   // Find the matching preset scales
-  const matchingScales = PresetScaleList.filter((p) =>
-    areScalesRelated(scale, p)
-  );
-  const matchingScale = matchingScales.find((s) => areScalesRelated(s, scale));
+  const matchingScale = PresetScaleList.find((s) => areScalesRelated(s, scale));
 
   // Get the name of the scale from the matching scale, NOT the underlying scale
   const firstScaleNote = scaleNotes?.[0];

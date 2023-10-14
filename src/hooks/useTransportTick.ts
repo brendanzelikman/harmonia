@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { TICK_UPDATE_EVENT } from "redux/Transport";
+import { OFFLINE_TICK_UPDATE_EVENT, TICK_UPDATE_EVENT } from "redux/Transport";
 
-export default function useTransportTick() {
+export default function useTransportTick(options?: { offline: boolean }) {
   const [tick, setTick] = useState(0);
 
   // Update the tick when the event is received
@@ -10,9 +10,13 @@ export default function useTransportTick() {
       setTick(event.detail);
     };
     const listener = updateTick as EventListener;
-    window.addEventListener(TICK_UPDATE_EVENT, listener);
-    return () => window.removeEventListener(TICK_UPDATE_EVENT, listener);
-  }, []);
+    const event = options?.offline
+      ? OFFLINE_TICK_UPDATE_EVENT
+      : TICK_UPDATE_EVENT;
+    window.addEventListener(event, listener);
+    return () => window.removeEventListener(event, listener);
+  }, [options]);
 
+  // Return the tick
   return tick;
 }

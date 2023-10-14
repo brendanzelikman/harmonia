@@ -6,13 +6,20 @@ import * as Root from "redux/Root";
 import { useAppSelector, useAppDispatch } from "redux/hooks";
 import { useScopedHotkeys, useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { showEditor } from "redux/Editor";
+import { redoSession, undoSession } from "redux/Session";
 
 const useHotkeys = useScopedHotkeys("timeline");
 
 export default function useTimelineHotkeys() {
   const dispatch = useAppDispatch();
-  const selectedMedia = useAppSelector(Root.selectSelectedMedia);
+  const selectedMedia = useAppSelector(Timeline.selectSelectedMedia);
   const mediaLength = selectedMedia.length;
+
+  // Meta + Z = Undo Session
+  useHotkeys("meta+z", () => dispatch(undoSession()));
+
+  // Meta + Shift + Z = Redo Session
+  useHotkeys("meta+shift+z", () => dispatch(redoSession()));
 
   // Space = Play/Pause Transport
   useHotkeys("space", () => dispatch(Transport.toggleTransport()));
@@ -27,9 +34,6 @@ export default function useTimelineHotkeys() {
   useOverridingHotkeys("meta+shift+m", () =>
     dispatch(Transport.toggleTransportMute())
   );
-
-  // Meta + P = Toggle Pattern Editor
-  useHotkeys("meta+p", () => dispatch(showEditor({ id: "patterns" })));
 
   // Meta + Option + M = Save Timeline to MIDI
   useHotkeys("meta+alt+m", () => dispatch(Root.saveStateToMIDI()));
@@ -55,26 +59,26 @@ export default function useTimelineHotkeys() {
   // Backspace = Delete Selected Media
   useHotkeys("backspace", () => dispatch(Media.deleteSelectedMedia()));
 
+  // P = Toggle Pattern Editor
+  useHotkeys("p", () => dispatch(showEditor({ id: "patterns" })));
+
   // A = Toggle Adding Clip
-  useHotkeys("a", () => dispatch(Timeline.toggleAddingClip()));
+  useHotkeys("a", () => dispatch(Timeline.toggleAddingClips()));
 
-  // C = Toggle Cutting Clip
-  useHotkeys("c", () => dispatch(Timeline.toggleCuttingClip()));
+  // T = Toggle Adding Transpositions
+  useHotkeys("t", () => dispatch(Timeline.toggleAddingTranspositions()));
 
-  // M = Toggle Merging Clips
-  useHotkeys("m", () => dispatch(Timeline.toggleMergingClips()));
+  // Alt + C = Toggle Slicing Media
+  useHotkeys("alt+c", () => dispatch(Timeline.toggleSlicingMedia()));
 
-  // R = Toggle Repeating Clips
-  useHotkeys("r", () => dispatch(Timeline.toggleRepeatingClips()));
-
-  // T = Toggle Transposing Clip
-  useHotkeys("t", () => dispatch(Timeline.toggleTransposingClip()));
+  // Alt + M = Toggle Merging Media
+  useHotkeys("alt+m", () => dispatch(Timeline.toggleMergingMedia()));
 
   // Meta + "-" = Decrease Subdivision
-  useHotkeys("meta+-", () => dispatch(Timeline.decreaseSubdivision()));
+  useHotkeys(["meta+minus"], () => dispatch(Timeline.decreaseSubdivision()));
 
   // Meta + "=" = Increase Subdivision
-  useHotkeys("meta+=", () => dispatch(Timeline.increaseSubdivision()));
+  useHotkeys(["meta+="], () => dispatch(Timeline.increaseSubdivision()));
 
   // Left Arrow = Move Media Left or Move Playhead Left
   useHotkeys(
@@ -98,8 +102,12 @@ export default function useTimelineHotkeys() {
   );
 
   // Up Arrow = Select Previous Track
-  useHotkeys("up", () => dispatch(Root.selectPreviousTrack()));
+  useHotkeys("up", () => !mediaLength && dispatch(Root.selectPreviousTrack()), [
+    mediaLength,
+  ]);
 
   // Down Arrow = Select Next Track
-  useHotkeys("down", () => dispatch(Root.selectNextTrack()));
+  useHotkeys("down", () => !mediaLength && dispatch(Root.selectNextTrack()), [
+    mediaLength,
+  ]);
 }

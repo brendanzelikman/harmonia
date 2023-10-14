@@ -2,7 +2,6 @@ import {
   addMediaToSession,
   removeMediaFromSession,
   selectSessionMap,
-  sliceClipInSession,
 } from "redux/Session";
 import { AppThunk } from "redux/store";
 import {
@@ -13,14 +12,9 @@ import {
   initializeClip,
   isClip,
 } from "types/Clip";
-import { Tick } from "types/units";
-import { _sliceClip, addClips, removeClips } from "./ClipSlice";
-import {
-  selectClipById,
-  selectClipStream,
-  selectClipsByIds,
-} from "./ClipSelectors";
-import { removeSelectedClips, selectRoot } from "redux/Root";
+import { addClips, removeClips } from "./ClipSlice";
+import { selectClipsByIds } from "./ClipSelectors";
+import { selectRoot } from "redux/Root";
 import { selectPatternMap } from "redux/Pattern";
 import {
   selectPatternTrackMap,
@@ -33,11 +27,14 @@ import {
   selectTrackById,
   selectOrderedTrackIds,
   selectScaleMap,
+  selectMediaSelection,
 } from "redux/selectors";
 import { Midi } from "@tonejs/midi";
 import { TrackId } from "types/Track";
 import { convertTicksToSeconds } from "types/Transport";
 import { MIDI } from "types/midi";
+import { updateMediaSelection } from "redux/Timeline";
+import { union } from "lodash";
 
 /**
  * Creates a list of clips and adds them to the store.
@@ -70,59 +67,27 @@ export const createClips =
  */
 export const deleteClips =
   (clips: Clip[]): AppThunk =>
-  (dispatch) => {
+  (dispatch, getState) => {
+    const state = getState();
+    const { clipIds } = selectMediaSelection(state);
     return new Promise((resolve) => {
       // Resolve false if any clips are invalid
       if (clips.some((clip) => !isClip(clip))) {
         resolve(false);
       }
       // Otherwise, delete the clips and resolve true
-      dispatch(removeSelectedClips(clips.map((clip) => clip.id)));
+      dispatch(
+        updateMediaSelection({
+          clipIds: union(
+            clipIds,
+            clips.map((clip) => clip.id)
+          ),
+        })
+      );
       dispatch(removeClips({ clips }));
       dispatch(removeMediaFromSession({ clips }));
       resolve(true);
     });
-  };
-
-/**
- * Slices a clip at a given tick.
- * @param clipId The ID of the clip to slice.
- * @param tick The tick to slice the clip at.
- */
-export const sliceClip =
-  (clipId?: ClipId, tick: Tick = 0): AppThunk =>
-  (dispatch, getState) => {
-    if (!clipId) return;
-    const state = getState();
-
-    // Get the clip and stream from the store
-    const oldClip = selectClipById(state, clipId);
-    const stream = selectClipStream(state, clipId);
-    if (!oldClip || !stream?.length) return;
-
-    // Find the tick to split the clip at
-    const splitTick = tick - oldClip.tick + 1;
-    if (tick === oldClip.tick || splitTick === stream.length) return;
-
-    // Create two new clips pivoting at the tick
-    const firstClip = initializeClip({
-      ...oldClip,
-      duration: splitTick,
-    });
-    const secondClip = initializeClip({
-      ...oldClip,
-      tick,
-      offset: oldClip.offset + splitTick,
-      duration: stream.length - splitTick,
-    });
-
-    // Deselect the clip
-    dispatch(removeSelectedClips([clipId]));
-
-    // Slice the clip
-    const payload = { oldClip, firstClip, secondClip };
-    dispatch(_sliceClip(payload));
-    dispatch(sliceClipInSession(payload));
   };
 
 /**

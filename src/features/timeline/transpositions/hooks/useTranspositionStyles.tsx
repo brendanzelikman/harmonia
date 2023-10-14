@@ -19,13 +19,14 @@ import {
 } from "types/Transposition";
 
 interface TranspositionStyleProps extends TranspositionProps {
+  isSlicing: boolean;
   isTransposing: boolean;
   isDragging: boolean;
   isHoldingKey: (key: string) => boolean;
 }
 
 export const useTranspositionStyles = (props: TranspositionStyleProps) => {
-  const { transposition, subdivision, cellWidth, isHoldingKey } = props;
+  const { transposition, subdivision, cellWidth, isSlicing: isCutting } = props;
   const tick = transposition?.tick ?? 0;
   const duration = transposition?.duration ?? 0;
   const offsets = transposition?.offsets ?? {};
@@ -49,12 +50,13 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
   );
 
   // Position
-  const position = `z-[9] absolute flex flex-col`;
+  const position = `z-[9] group absolute flex flex-col overflow-hidden`;
   const top = useAppSelector((_) => selectTimelineObjectTop(_, transposition));
   const left = useAppSelector((_) => selectTimelineTickLeft(_, tick));
 
   // The transposition width is either the duration or the remaining space
   const backgroundWidth = useAppSelector(selectTimelineBackgroundWidth);
+  const tickWidth = ticksToColumns(1, subdivision) * cellWidth;
   const width = !!duration
     ? ticksToColumns(duration, subdivision) * cellWidth
     : backgroundWidth - left;
@@ -63,10 +65,14 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
   const height = TRANSPOSITION_HEIGHT;
 
   // Selected transpositions have a border
-  const border = `border ${isSelected ? `border-white` : `border-white/0`}`;
+  const border = `rounded border ${
+    isSelected ? `border-white` : `border-slate-400`
+  }`;
 
   // Selected transpositions have darker backgrounds
-  const background = isSelected ? `bg-fuchsia-500/80` : `bg-fuchsia-500/70`;
+  const background = `${
+    isSelected ? `bg-fuchsia-500/80` : `bg-fuchsia-500/70`
+  } ${isCutting ? "opacity-60 group-hover:opacity-90" : ""}`;
 
   // Offsets create different hues
   const hueClass = "absolute inset-0 w-full";
@@ -98,7 +104,7 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
     chordalOffset < 0 ? Math.min(1, normalize(chordalOffset, -1, -12)) : 0;
 
   // Animation
-  const transition = `transition-all duration-75`;
+  const transition = `animate-[fadeIn_0.1s] transition-all duration-150 ease-in-out`;
   const opacity = props.isDragging ? 0.5 : props.draggingClip ? 0.7 : 1;
   const pointerEvents =
     props.isDragging || props.draggingClip || props.isAdding
@@ -109,43 +115,35 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
   const font = "font-light";
 
   // Cursor
-  const cursor = `cursor-pointer`;
+  const cursor = props.isSlicing ? "cursor-scissors" : "cursor-pointer";
 
   // Header
   const headerDisplay = `w-full flex relative items-center pointer-events-none ${
     isSelected ? "overflow-visible" : "overflow-hidden"
   }`;
-  const headerBorder = `border border-b-0 rounded-t ${
-    isSelected ? `border-white` : `border-white/0`
-  }`;
-
-  // Body
-  const bodyBorder = `border border-t-0 rounded-b ${
-    isSelected ? `border-white` : `border-white/0`
-  }`;
 
   // Labels
   const parentCount = selectedTrackParents.length;
   const canTransposeScalars = isSelected && !!parentCount;
-  const isHoldingZ = isHoldingKey("z");
-  const isHoldingQ = isHoldingKey("q");
-  const isHoldingE = isHoldingKey("e");
-  const isHoldingW = isHoldingKey("w");
-  const isHoldingS = isHoldingKey("s");
-  const isHoldingX = isHoldingKey("x");
+  const isHoldingZ = props.isHoldingKey("z");
+  const isHoldingQ = props.isHoldingKey("q");
+  const isHoldingE = props.isHoldingKey("e");
+  const isHoldingW = props.isHoldingKey("w");
+  const isHoldingS = props.isHoldingKey("s");
+  const isHoldingX = props.isHoldingKey("x");
 
   // Label text color
-  const labelColor = isSelected ? "text-white" : "text-white/80";
+  const labelColor = isSelected ? "text-white font-bold" : "text-white/80 pt-1";
 
   // The chromatic label lights up when transposing chromatically
   const chromaticClass = `${
     (isHoldingQ || isHoldingZ) && isSelected ? "text-shadow-lg" : ""
-  } ${isSelected ? "font-bold" : ""}`;
+  } ${isSelected ? "" : ""}`;
 
   // The chordal label lights up when transposing chordally
   const chordalClass = `${
     (isHoldingE || isHoldingZ) && isSelected ? "text-shadow-lg" : ""
-  } ${isSelected ? "font-bold" : ""}`;
+  } ${isSelected ? "" : ""}`;
 
   // The scalar label lights up when transposing the corresponding scalar
   const scalarClass = (i: number) => {
@@ -154,15 +152,13 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
     const onScale3 = isHoldingX && i === 2;
     const isTransposing = onScale1 || onScale2 || onScale3 || isHoldingZ;
     const canTransposeScalar = canTransposeScalars && i < parentCount;
-    return canTransposeScalar
-      ? `font-bold ${isTransposing ? "text-shadow-lg" : ""}`
-      : "";
+    return canTransposeScalar ? `${isTransposing ? "text-shadow-lg" : ""}` : "";
   };
 
   // The T lights up when any scalar is being transposed
   const onAnyScale = isHoldingW || isHoldingS || isHoldingX || isHoldingZ;
   const scalarTLabel = canTransposeScalars
-    ? `font-bold ${onAnyScale ? "text-shadow-lg" : ""}`
+    ? `${onAnyScale ? "text-shadow-lg" : ""}`
     : "";
 
   // The icon is a star wand when selected, magic wand otherwise
@@ -182,14 +178,13 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
     isSmall,
     border,
     background,
+    tickWidth,
     transition,
     opacity,
     pointerEvents,
     font,
     cursor,
     headerDisplay,
-    headerBorder,
-    bodyBorder,
     labelColor,
     hueClass,
     chromaticClass,

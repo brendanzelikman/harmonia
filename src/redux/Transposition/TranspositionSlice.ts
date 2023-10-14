@@ -6,7 +6,7 @@ import {
 import { initializeState } from "types/util";
 import { TrackId } from "types/Track";
 import { Transposition, TranspositionId } from "types/Transposition";
-import { without } from "lodash";
+import { union, without } from "lodash";
 import { MediaPayload, PartialMediaPayload } from "types/Media";
 import { updateMediaInSession } from "redux/Session";
 
@@ -28,6 +28,15 @@ export type RemoveTranspositionsPayload = MediaPayload;
 export type UpdateTranspositionsPayload = PartialMediaPayload;
 
 /**
+ * A transposition can be sliced into two new transpositions.
+ */
+export type SliceTranspositionPayload = {
+  oldTransposition: Transposition;
+  firstTransposition: Transposition;
+  secondTransposition: Transposition;
+};
+
+/**
  * `Transpositions` can be removed by track ID.
  */
 export type RemoveTranspositionsByTrackIdPayload = TrackId;
@@ -39,10 +48,12 @@ export type ClearTranspositionsByTrackIdPayload = TrackId;
 
 /**
  * The `transpositions` slice contains all transpositions in the session.
+ * Some functions are underscored to indicate that they should not be called directly.
  *
  * @property `addTranspositions` - Adds transpositions to the store.
  * @property `removeTranspositions` - Removes transpositions from the store.
- * @property `updateTranspositions` - Updates transpositions in the store.
+ * @property `_updateTranspositions` - Updates transpositions in the store.
+ * @property `_sliceTransposition` - Slices a transposition into two new transpositions.
  * @property `removeTranspositionsByTrackId` - Removes transpositions from the store by track ID.
  * @property `clearTranspositionsByTrackId` - Clears transpositions from the store by track ID.
  *
@@ -103,6 +114,33 @@ export const transpositionsSlice = createSlice({
       });
     },
     /**
+     * Slice a transposition into two new transpositions.
+     * @param state The transpositions state.
+     * @param action The payload action.
+     */
+    _sliceTransposition: (
+      state,
+      action: PayloadAction<SliceTranspositionPayload>
+    ) => {
+      const { oldTransposition, firstTransposition, secondTransposition } =
+        action.payload;
+      if (!oldTransposition || !firstTransposition || !secondTransposition)
+        return;
+      delete state.byId[oldTransposition.id];
+
+      //  Remove the old Transposition
+      const index = state.allIds.findIndex((id) => id === oldTransposition.id);
+      if (index === -1) return;
+      state.allIds.splice(index, 1);
+      //  Add the new Transpositions
+      state.allIds = union(state.allIds, [
+        firstTransposition.id,
+        secondTransposition.id,
+      ]);
+      state.byId[firstTransposition.id] = firstTransposition;
+      state.byId[secondTransposition.id] = secondTransposition;
+    },
+    /**
      * Remove transpositions from the store by track ID.
      * @param state The transpositions state.
      * @param action The payload action containing the track ID.
@@ -147,6 +185,7 @@ export const {
   addTranspositions,
   removeTranspositions,
   _updateTranspositions,
+  _sliceTransposition,
   removeTranspositionsByTrackId,
   clearTranspositionsByTrackId,
 } = transpositionsSlice.actions;

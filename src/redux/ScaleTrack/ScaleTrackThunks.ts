@@ -16,6 +16,7 @@ import {
   getScaleTrackScale,
   ScaleTrack,
   initializeScaleTrack,
+  ScaleTrackScaleName,
 } from "types/ScaleTrack";
 import { TrackId } from "types/Track";
 import { MIDI } from "types/midi";
@@ -50,7 +51,7 @@ export const createScaleTrack =
 
     // Create a new scale for the track
     const notes = parentNotes.map((_, i) => ({ degree: i, offset: 0 }));
-    const scale = initializeNestedScale({ notes });
+    const scale = initializeNestedScale({ name: ScaleTrackScaleName, notes });
 
     // Create and add the scale track and scale
     return new Promise(async (resolve) => {

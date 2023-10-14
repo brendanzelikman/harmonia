@@ -72,7 +72,7 @@ export const useClipStyles = (props: ClipStyleProps) => {
   // Chord
   const chordWidth = useAppSelector(selectCellWidth);
   const chordClass = props.isSlicing
-    ? "hover:bg-slate-400/50 bg-slate-500/50 border-slate-50/50 hover:border-r-4 cursor-scissors"
+    ? "bg-slate-500/50 group-hover:bg-slate-600/50 border-slate-50/50 hover:border-r-4 cursor-scissors"
     : "border-slate-50/10";
 
   // Animation

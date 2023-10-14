@@ -296,14 +296,18 @@ function PatternTrackComponent(props: PatternTrackProps) {
    * * The third button toggles the solo of the track's instrument.
    */
   const PatternTrackButtons = (
-    <div className="flex items-center" draggable onDragStart={cancelEvent}>
+    <div
+      className="w-full flex items-center"
+      draggable
+      onDragStart={cancelEvent}
+    >
       <TrackButton
         className={styles.instrumentButton}
         onClick={props.toggleInstrumentEditor}
       >
         Instrument/FX <BsPencil className="ml-2" />
       </TrackButton>
-      <div className="flex ml-2">
+      <div className="flex ml-2 justify-self-end">
         <button
           className={`mr-1 ${styles.audioButton} ${styles.muteBorder} ${styles.muteColor}`}
           onClick={props.toggleTrackMute}
@@ -331,7 +335,7 @@ function PatternTrackComponent(props: PatternTrackProps) {
       onDoubleClick={props.toggleInstrumentEditor}
     >
       {PatternTrackSliders}
-      <div className="w-full h-full flex flex-col items-center justify-center px-2 duration-150">
+      <div className="w-full h-full flex flex-col items-start justify-center px-2 duration-150">
         {PatternTrackHeader}
         {!track.collapsed && PatternTrackButtons}
       </div>

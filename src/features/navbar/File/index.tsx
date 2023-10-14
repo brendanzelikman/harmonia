@@ -1,4 +1,4 @@
-import { CiUndo, CiRedo, CiFileOn } from "react-icons/ci";
+import { CiUndo, CiRedo } from "react-icons/ci";
 import {
   selectEditor,
   selectRoot,
@@ -16,25 +16,28 @@ import {
   saveStateToMIDI,
   stopDownloadingTransport,
 } from "redux/thunks";
-import { BsFiletypeWav } from "react-icons/bs";
+import { BsFiletypeWav, BsMusicPlayerFill } from "react-icons/bs";
 import { toggleEditor } from "redux/Editor";
 import { loadDemo, setProjectName } from "redux/Root";
 import {
   NavbarButton,
   NavbarFormGroup,
+  NavbarFormInput,
   NavbarFormLabel,
   NavbarTooltip,
+  NavbarTooltipMenu,
 } from "../components";
 import { useAppDispatch, useAppSelector } from "redux/hooks";
 import { isEditorOn } from "types/Editor";
 import { redoSession, undoSession } from "redux/Session";
-import { globalOfflineTick } from "types/Transport";
+import useTransportTick from "hooks/useTransportTick";
 
-export default function FileControl() {
+export function NavbarFileMenu() {
   const dispatch = useAppDispatch();
   const canUndo = useAppSelector((state) => state.session.past.length);
   const canRedo = useAppSelector((state) => state.session.future.length);
   const { downloading } = useAppSelector(selectTransport);
+  const offlineTick = useTransportTick({ offline: true });
   const endTick = useAppSelector(selectTimelineEndTick);
   const root = useAppSelector(selectRoot);
   const editor = useAppSelector(selectEditor);
@@ -45,7 +48,7 @@ export default function FileControl() {
    */
   const UndoButton = () => (
     <NavbarButton
-      className={`text-xs p-1 ${canUndo ? "active:bg-sky-500" : ""}`}
+      className={`p-1 ${canUndo ? "active:bg-sky-500" : ""}`}
       onClick={() => canUndo && dispatch(undoSession())}
       disabled={!canUndo}
       disabledClass="text-white/50 cursor-default"
@@ -60,7 +63,7 @@ export default function FileControl() {
    */
   const RedoButton = () => (
     <NavbarButton
-      className={`text-xs p-1 ${canRedo ? "active:bg-sky-500" : ""}`}
+      className={`p-1 ${canRedo ? "active:bg-sky-500" : ""}`}
       onClick={() => canRedo && dispatch(redoSession())}
       disabled={!canRedo}
       disabledClass="text-white/50 cursor-default"
@@ -75,13 +78,11 @@ export default function FileControl() {
    */
   const SaveToHAMButton = () => (
     <NavbarFormGroup
-      className="pr-1 h-8 hover:bg-sky-600"
+      className="px-2 h-8 hover:bg-sky-600 cursor-pointer"
       onClick={saveStateToFile}
     >
       <NavbarFormLabel>Save to HAM</NavbarFormLabel>
-      <div className="text-2xl">
-        <BiSave />
-      </div>
+      <BiSave className="text-2xl" />
     </NavbarFormGroup>
   );
 
@@ -89,26 +90,12 @@ export default function FileControl() {
    * The load HAM button allows the user to read and load a Harmonia file.
    */
   const LoadFromHAMButton = () => (
-    <NavbarFormGroup className="pr-1 h-8 hover:bg-sky-600" onClick={readFiles}>
-      <NavbarFormLabel>Load from HAM</NavbarFormLabel>
-      <div className="text-2xl">
-        <BiUpload />
-      </div>
-    </NavbarFormGroup>
-  );
-
-  /**
-   * The save to MIDI button allows the user to save the current state to a MIDI file.
-   */
-  const SaveToMIDIButton = () => (
     <NavbarFormGroup
-      className="pr-1 h-8 hover:bg-sky-600"
-      onClick={() => dispatch(saveStateToMIDI())}
+      className="px-2 h-8 hover:bg-sky-600 cursor-pointer"
+      onClick={readFiles}
     >
-      <NavbarFormLabel>Export to MIDI</NavbarFormLabel>
-      <div className="text-2xl">
-        <SiMidi />
-      </div>
+      <NavbarFormLabel>Load from HAM</NavbarFormLabel>
+      <BiUpload className="text-2xl" />
     </NavbarFormGroup>
   );
 
@@ -116,9 +103,7 @@ export default function FileControl() {
    * The save to WAV button allows the user to export the project as a WAV file.
    */
   const SaveToWAVButton = useMemo(() => {
-    const progress = downloading
-      ? percentOfRange(globalOfflineTick, 0, endTick)
-      : 0;
+    const progress = downloading ? percentOfRange(offlineTick, 0, endTick) : 0;
     const percent = progress.toFixed(0);
     const finished = progress === 100;
     /**
@@ -156,7 +141,7 @@ export default function FileControl() {
 
     return () => (
       <NavbarFormGroup
-        className="pr-1 h-8 hover:bg-sky-600"
+        className="h-8 hover:bg-sky-600 cursor-pointer"
         onClick={
           downloading
             ? () => dispatch(stopDownloadingTransport())
@@ -170,20 +155,31 @@ export default function FileControl() {
         </div>
       </NavbarFormGroup>
     );
-  }, [downloading, globalOfflineTick, endTick]);
+  }, [downloading, offlineTick, endTick]);
+
+  /**
+   * The save to MIDI button allows the user to save the current state to a MIDI file.
+   */
+  const SaveToMIDIButton = () => (
+    <NavbarFormGroup
+      className="h-8 hover:bg-sky-600 cursor-pointer"
+      onClick={() => dispatch(saveStateToMIDI())}
+    >
+      <NavbarFormLabel>Export to MIDI</NavbarFormLabel>
+      <SiMidi className="text-2xl" />
+    </NavbarFormGroup>
+  );
 
   /**
    * The demo button allows the user to load the demo project.
    */
   const DemoButton = () => (
     <NavbarFormGroup
-      className="pr-1 h-8 hover:bg-sky-600"
+      className="h-8 hover:bg-sky-600 cursor-pointer"
       onClick={() => dispatch(loadDemo())}
     >
       <NavbarFormLabel>Load Demo</NavbarFormLabel>
-      <div className="text-2xl">
-        <BiMusic />
-      </div>
+      <BiMusic className="text-2xl" />
     </NavbarFormGroup>
   );
 
@@ -208,7 +204,7 @@ export default function FileControl() {
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
       >
-        <Menu.Items className="absolute flex flex-col items-center -top-8 -right-52 -mr-4 px-2 py-2 bg-slate-800 border border-slate-400 text-xs rounded">
+        <Menu.Items className="absolute flex flex-col items-center -top-8 -right-52 -mr-5 px-2 py-2 bg-slate-800 border border-slate-400 text-xs rounded">
           <div className="w-full text-center pb-1 mb-1 font-bold border-b border-b-slate-500/50">
             Clear Project?
           </div>
@@ -233,15 +229,13 @@ export default function FileControl() {
       </Transition>
     );
     return (
-      <NavbarFormGroup className="h-full hover:bg-sky-600">
-        <Menu as="div" className="relative inline-block py-1 text-left w-full">
+      <NavbarFormGroup className="h-8 hover:bg-sky-600 cursor-pointer">
+        <Menu as="div" className="w-full relative">
           {({ open, close }) => (
             <>
-              <Menu.Button className="pr-1 w-full inline-flex items-center">
+              <Menu.Button className="w-full inline-flex justify-between items-center">
                 <NavbarFormLabel>Clear Project</NavbarFormLabel>
-                <div className="text-2xl">
-                  <BiTrash className="text-2xl" />
-                </div>
+                <BiTrash className="text-2xl" />
               </Menu.Button>
               <ClearProjectTooltip open={open} close={close} />
             </>
@@ -255,8 +249,8 @@ export default function FileControl() {
    * The project name field allows the user to change the project name.
    */
   const ProjectNameField = () => (
-    <input
-      className="bg-transparent text-white placeholder-slate-400 placeholder-shown:border-slate-400 rounded mb-2 m-1 text-sm focus:ring-0 border border-slate-300 focus:border-blue-400 focus:bg-sky-700"
+    <NavbarFormInput
+      className="w-full focus:bg-sky-700/80 py-2 mb-2"
       type="text"
       placeholder="New Project"
       value={root.projectName}
@@ -269,37 +263,38 @@ export default function FileControl() {
    * The File button allows the user to toggle the file editor.
    */
   const FileButton = () => (
-    <CiFileOn
-      className={`text-3xl select-none cursor-pointer mr-1 ${
-        onFileEditor ? "text-sky-400" : ""
+    <BsMusicPlayerFill
+      className={`text-2xl select-none cursor-pointer mr-1 ${
+        onFileEditor ? "text-sky-500" : "text-slate-300"
       }`}
       onClick={() => dispatch(toggleEditor("file"))}
     />
   );
 
-  /**
-   * The File tooltip content contains all of the file controls.
-   */
-  const FileTooltipContent = () => (
-    <div className="flex flex-col justify-center items-center">
-      {ProjectNameField()}
-      <SaveToHAMButton />
-      <LoadFromHAMButton />
-      <SaveToWAVButton />
-      <SaveToMIDIButton />
-      <DemoButton />
-      <ClearButton />
-    </div>
-  );
+  const FileTooltip = () => {
+    return (
+      <NavbarTooltip
+        className="mt-2 bg-sky-800/75 shadow-xl"
+        show={!!onFileEditor}
+        content={
+          <NavbarTooltipMenu>
+            {ProjectNameField()}
+            <SaveToHAMButton />
+            <LoadFromHAMButton />
+            <SaveToWAVButton />
+            <SaveToMIDIButton />
+            <DemoButton />
+            <ClearButton />
+          </NavbarTooltipMenu>
+        }
+      />
+    );
+  };
 
   return (
     <div className="flex items-center">
       <FileButton />
-      <NavbarTooltip
-        className="bg-gradient-to-t from-sky-900 to-sky-800"
-        show={!!onFileEditor}
-        content={FileTooltipContent}
-      />
+      {FileTooltip()}
       <UndoButton />
       <RedoButton />
     </div>

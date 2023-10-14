@@ -11,11 +11,11 @@ import { AppDispatch, RootState } from "redux/store";
 import { TrackId } from "types/Track";
 import { Row } from "..";
 import { CellComponent } from "./Cell";
-import { setSelectedTrack } from "redux/Root/RootSlice";
 import { isPatternTrack } from "types/PatternTrack";
 import { convertTicksToBarsBeatsSixteenths } from "types/Transport";
-import { onCellClick } from "redux/Timeline";
+import { onCellClick, setSelectedTrackId } from "redux/Timeline";
 import { Transport } from "tone";
+import { isAddingClips, isAddingTranspositions } from "types/Timeline";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const columnIndex = Number(ownProps.column.key);
@@ -25,8 +25,8 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
 
   // Timeline properties
   const timeline = selectTimeline(state);
-  const adding = timeline.state === "adding";
-  const transposing = timeline.state === "transposing";
+  const adding = isAddingClips(timeline);
+  const transposing = isAddingTranspositions(timeline);
 
   // Tick properties
   const tick = selectTickFromColumn(state, columnIndex - 1);
@@ -44,7 +44,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   // Track properties
   const track = !!trackId ? selectTrackById(state, trackId) : undefined;
   const onPatternTrack = !!track && isPatternTrack(track);
-  const isSelected = root.selectedTrackId === trackId;
+  const isSelected = timeline.selectedTrackId === trackId;
   const showCursor = idle && onTime && isSelected;
 
   // The background corresponds to the timeline state
@@ -99,7 +99,7 @@ function mapDispatchToProps(
       dispatch(onCellClick(columnIndex, trackId));
     },
     setSelectedTrack: (trackId?: TrackId) => {
-      dispatch(setSelectedTrack(trackId));
+      dispatch(setSelectedTrackId(trackId));
     },
   };
 }

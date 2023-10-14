@@ -6,6 +6,7 @@ import {
   OffsetId,
   TranspositionMap,
 } from "./TranspositionTypes";
+import { TrackId } from "types/Track";
 
 /**
  * Get the unique tag of a given Transposition.
@@ -64,7 +65,7 @@ export const getScalarOffset = (
 
 /**
  * Get the chromatic offset from the transposition record.
- * @param transposition The `TranspositionOffsetRecord`.
+ * @param offsets The `TranspositionOffsetRecord`.
  * @returns The chromatic offset or 0 if the key is missing.
  */
 export const getChromaticOffset = (offsets?: TranspositionOffsetRecord) => {
@@ -74,12 +75,38 @@ export const getChromaticOffset = (offsets?: TranspositionOffsetRecord) => {
 
 /**
  * Get the chordal offset from the transposition record.
- * @param transposition The `TranspositionOffsetRecord`.
+ * @param offsets The `TranspositionOffsetRecord`.
  * @returns The chordal offset or 0 if the key is missing.
  */
 export const getChordalOffset = (offsets?: TranspositionOffsetRecord) => {
   if (!offsets) return 0;
   return offsets._self || 0;
+};
+
+/**
+ * Formats the offsets into a printable string.
+ * @param offsets The `TranspositionOffsetRecord` to format.
+ * @returns The formatted string.
+ */
+export const formatOffsets = (
+  offsets: TranspositionOffsetRecord,
+  orderedTrackIds?: TrackId[]
+) => {
+  if (!offsets) return "";
+  const offsetKeys = Object.keys(offsets);
+  const nonScalarKeys = offsetKeys.filter(
+    (k) => k !== "_chromatic" && k !== "_self"
+  );
+  const scalars = nonScalarKeys.sort((a, b) => {
+    const aIndex = orderedTrackIds?.indexOf(a) || 0;
+    const bIndex = orderedTrackIds?.indexOf(b) || 0;
+    return aIndex - bIndex;
+  });
+  const N = offsets._chromatic || 0;
+  const Ts = scalars.map((k) => offsets[k] || 0);
+  const t = offsets._self || 0;
+  if (!Ts.length) return `N${N} • t${t}`;
+  return `N${N} • T(${Ts.join(", ")}) • t${t}`;
 };
 
 /**

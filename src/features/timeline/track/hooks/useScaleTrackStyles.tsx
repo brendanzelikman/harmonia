@@ -1,8 +1,7 @@
 import { useAppSelector, useDeepEqualSelector } from "redux/hooks";
-import { selectSelectedTrackId } from "redux/Root";
 import { ScaleTrackProps } from "../ScaleTrack";
 import { selectTranspositionIds } from "redux/Transposition";
-import { selectTrackParents } from "redux/selectors";
+import { selectTrackParents, selectSelectedTrackId } from "redux/selectors";
 
 interface ScaleTrackStyleProps extends ScaleTrackProps {
   isDragging: boolean;

@@ -23,9 +23,8 @@ import {
   moveTrackInSession,
   selectSessionMap,
 } from "redux/Session";
-import { selectSelectedTrack } from "redux/Root";
 import { selectScaleTrackById } from "redux/ScaleTrack";
-import { selectTrackById } from "redux/selectors";
+import { selectTrackById, selectSelectedTrack } from "redux/selectors";
 
 /**
  * Create a `PatternTrack` with an optional initial track.

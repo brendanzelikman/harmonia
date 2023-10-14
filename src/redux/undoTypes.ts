@@ -1,12 +1,12 @@
 import { PayloadAction } from "@reduxjs/toolkit";
-import { CLIP_UNDO_TYPES } from "./Clip";
-import { PATTERN_UNDO_TYPES } from "./Pattern";
-import { PATTERN_TRACK_UNDO_TYPES } from "./PatternTrack";
-import { SCALE_UNDO_TYPES } from "./Scale";
-import { SCALE_TRACK_UNDO_TYPES } from "./ScaleTrack";
-import { TRANSPOSITION_UNDO_TYPES } from "./Transposition";
-import { SESSION_UNDO_TYPES } from "./Session";
-import { INSTRUMENT_UNDO_TYPES } from "./Instrument";
+import { CLIP_UNDO_TYPES } from "./Clip/ClipUndoTypes";
+import { PATTERN_UNDO_TYPES } from "./Pattern/PatternUndoTypes";
+import { PATTERN_TRACK_UNDO_TYPES } from "./PatternTrack/PatternTrackUndoTypes";
+import { SCALE_UNDO_TYPES } from "./Scale/ScaleUndoTypes";
+import { SCALE_TRACK_UNDO_TYPES } from "./ScaleTrack/ScaleTrackUndoTypes";
+import { TRANSPOSITION_UNDO_TYPES } from "./Transposition/TranspositionUndoTypes";
+import { SESSION_UNDO_TYPES } from "./Session/SessionUndoTypes";
+import { INSTRUMENT_UNDO_TYPES } from "./Instrument/InstrumentUndoTypes";
 import { isSliceAction } from "./util";
 
 export const UndoTypes = {

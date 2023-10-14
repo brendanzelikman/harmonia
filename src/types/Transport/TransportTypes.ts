@@ -4,14 +4,6 @@ import { MIDI } from "../midi";
 import { Tick, BPM, Time, Volume } from "../units";
 
 /**
- * The current tick is stored as a global variable.
- */
-export let globalOfflineTick: Tick = 0;
-export const setGlobalOfflineTick = (tick: Tick) => {
-  globalOfflineTick = tick;
-};
-
-/**
  * The `Transport` contains information about playback and the Tone.js Transport.
  *
  * @property `state` - The current playback state, e.g. "started".

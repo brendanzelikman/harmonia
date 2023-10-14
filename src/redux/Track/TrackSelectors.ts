@@ -16,12 +16,7 @@ import {
   getTrackParents,
   getTransposedScaleTrackScalesAtTick,
 } from "types/Track";
-import {
-  ScaleTrack,
-  ScaleTrackMap,
-  getScaleTrackScale,
-  isScaleTrack,
-} from "types/ScaleTrack";
+import { ScaleTrack, getScaleTrackScale, isScaleTrack } from "types/ScaleTrack";
 import { getLastTransposition } from "types/Transposition";
 import { getTrackTranspositions } from "types/Session";
 import {
@@ -38,7 +33,7 @@ import {
   applyTranspositionToNestedScale,
   chromaticScale,
 } from "types/Scale";
-import { selectScaleMap } from "redux/Scale";
+import { selectScaleMap } from "../Scale";
 
 /**
  * Select the track map from the store.

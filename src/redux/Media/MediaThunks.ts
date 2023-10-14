@@ -1,3 +1,8 @@
+import * as Patterns from "redux/Pattern";
+import * as Clips from "redux/Clip";
+import * as Transpositions from "redux/Transposition";
+import * as Session from "redux/Session";
+import * as Timeline from "redux/Timeline";
 import { AppThunk } from "redux/store";
 import { getClipboardMedia } from "types/Timeline";
 import {
@@ -7,35 +12,21 @@ import {
   getMediaTranspositions,
   getDuplicatedMedia,
   getMediaDuration,
+  Media,
+  PartialMediaPayload,
+  MediaPromise,
 } from "types/Media";
-import { inRange, union } from "lodash";
+import { without } from "lodash";
 import {
   Transposition,
-  TranspositionId,
-  TranspositionOffsetRecord,
   initializeTransposition,
   isTransposition,
 } from "types/Transposition";
+import { Clip, getClipStream, initializeClip, isClip } from "types/Clip";
+
+import { selectSubdivisionTicks } from "redux/Timeline";
 import {
-  Clip,
-  ClipId,
-  ClipNoId,
-  getClipDuration,
-  getClipNotes,
-  getClipStream,
-  initializeClip,
-  isClip,
-} from "types/Clip";
-import * as Patterns from "redux/Pattern";
-import * as Clips from "redux/Clip";
-import * as Transpositions from "redux/Transposition";
-import * as Session from "redux/Session";
-import * as Root from "redux/Root";
-import { selectSubdivisionTicks, setClipboard } from "redux/Timeline";
-import {
-  selectTransport,
   selectOrderedTrackIds,
-  selectTimeline,
   selectTrackMap,
   selectPatternTrackMap,
   selectScaleTrackMap,
@@ -43,8 +34,10 @@ import {
   selectScaleMap,
 } from "redux/selectors";
 
-import { PatternStream } from "types/Pattern";
 import { Transport } from "tone";
+import { Tick } from "types/units";
+import { PatternChord, PatternStream } from "types/Pattern";
+import { MIDI } from "types/midi";
 
 /**
  * Creates a list of media and adds them to the store.
@@ -53,20 +46,17 @@ import { Transport } from "tone";
  * @returns A promise that resolves to the list of clip IDs and transposition IDs.
  */
 export const createMedia =
-  (
-    partialClips: Partial<ClipNoId>[],
-    partialTranspositions: Partial<Transposition>[]
-  ): AppThunk<
-    Promise<{
-      clipIds: ClipId[];
-      transpositionIds: TranspositionId[];
-    }>
-  > =>
+  ({
+    clips: partialClips,
+    transpositions: partialTranspositions,
+  }: PartialMediaPayload): AppThunk<Promise<MediaPromise>> =>
   (dispatch) => {
     return new Promise((resolve) => {
       // Initialize the media
-      const clips = partialClips.map(initializeClip);
-      const transpositions = partialTranspositions.map(initializeTransposition);
+      const clips = (partialClips || []).map(initializeClip);
+      const transpositions = (partialTranspositions || []).map(
+        initializeTransposition
+      );
 
       // Add the media to the store
       const payload = { clips, transpositions };
@@ -89,26 +79,18 @@ export const createMedia =
  * @returns A promise that resolves to the list of clip IDs and transposition IDs.
  */
 export const updateMedia =
-  (
-    clips: Partial<Clip>[],
-    transpositions: Partial<Transposition>[]
-  ): AppThunk<
-    Promise<{
-      clipIds: ClipId[];
-      transpositionIds: TranspositionId[];
-    }>
-  > =>
+  (payload: PartialMediaPayload): AppThunk<Promise<MediaPromise>> =>
   (dispatch) => {
     return new Promise((resolve) => {
       // Update the media in the store
-      const payload = { clips, transpositions };
       dispatch(Clips.updateClips(payload));
       dispatch(Transpositions.updateTranspositions(payload));
 
       // Resolve the promise with the clip IDs and transposition IDs
-      const clipIds = clips?.map((clip) => clip.id!) || [];
-      const transpositionIds =
-        transpositions?.map((transposition) => transposition.id!) || [];
+      const clips = payload.clips || [];
+      const transpositions = payload.transpositions || [];
+      const clipIds = clips.map((clip) => clip.id!);
+      const transpositionIds = transpositions.map((t) => t.id!);
       const promiseResult = { clipIds, transpositionIds };
       resolve(promiseResult);
     });
@@ -122,16 +104,26 @@ export const updateMedia =
  */
 export const deleteMedia =
   (clips: Clip[], transpositions: Transposition[]): AppThunk =>
-  (dispatch) => {
+  (dispatch, getState) => {
+    const state = getState();
+    const mediaSelection = Timeline.selectMediaSelection(state);
     return new Promise((resolve) => {
       // Resolve to false if any clips or transpositions are invalid
       if (clips.some((clip) => !isClip(clip))) resolve(false);
       if (transpositions.some((t) => !isTransposition(t))) resolve(false);
 
       // Deselect the media
-      dispatch(Root.removeSelectedClips(clips.map((clip) => clip.id)));
       dispatch(
-        Root.removeSelectedTranspositions(transpositions.map((t) => t.id))
+        Timeline.updateMediaSelection({
+          clipIds: without(
+            mediaSelection.clipIds,
+            ...clips.map((clip) => clip.id)
+          ),
+          transpositionIds: without(
+            mediaSelection.transpositionIds,
+            ...transpositions.map((t) => t.id)
+          ),
+        })
       );
 
       // Delete the media
@@ -156,8 +148,7 @@ export const selectAllMedia = (): AppThunk => (dispatch, getState) => {
   const state = getState();
   const clipIds = Clips.selectClipIds(state);
   const transpositionIds = Transpositions.selectTranspositionIds(state);
-  dispatch(Root.setSelectedClips(clipIds));
-  dispatch(Root.setSelectedTranspositions(transpositionIds));
+  dispatch(Timeline.updateMediaSelection({ clipIds, transpositionIds }));
 };
 
 /**
@@ -165,9 +156,9 @@ export const selectAllMedia = (): AppThunk => (dispatch, getState) => {
  */
 export const copySelectedMedia = (): AppThunk => (dispatch, getState) => {
   const state = getState();
-  const clips = Root.selectSelectedClips(state);
-  const transpositions = Root.selectSelectedTranspositions(state);
-  dispatch(setClipboard({ clips, transpositions }));
+  const clips = Timeline.selectSelectedClips(state);
+  const transpositions = Timeline.selectSelectedTranspositions(state);
+  dispatch(Timeline.updateMediaClipboard({ clips, transpositions }));
 };
 
 /**
@@ -175,9 +166,9 @@ export const copySelectedMedia = (): AppThunk => (dispatch, getState) => {
  */
 export const cutSelectedMedia = (): AppThunk => (dispatch, getState) => {
   const state = getState();
-  const clips = Root.selectSelectedClips(state);
-  const transpositions = Root.selectSelectedTranspositions(state);
-  dispatch(setClipboard({ clips, transpositions }));
+  const clips = Timeline.selectSelectedClips(state);
+  const transpositions = Timeline.selectSelectedTranspositions(state);
+  dispatch(Timeline.updateMediaClipboard({ clips, transpositions }));
   dispatch(deleteMedia(clips, transpositions));
 };
 
@@ -185,57 +176,42 @@ export const cutSelectedMedia = (): AppThunk => (dispatch, getState) => {
  * Paste all media from the clipboard to the timeline, starting at the current tick from the selected track.
  * @returns A Promise resolving to the pasted clip and transposition IDs.
  */
-export const pasteSelectedMedia =
-  (): AppThunk<
-    Promise<{
-      clipIds: ClipId[];
-      transpositionIds: TranspositionId[];
-    }>
-  > =>
-  (dispatch, getState) => {
-    const state = getState();
-    const emptyPromise = Promise.resolve({ clipIds: [], transpositionIds: [] });
+export const pasteSelectedMedia = (): AppThunk => (dispatch, getState) => {
+  const state = getState();
+  const emptyPromise = Promise.resolve({ clipIds: [], transpositionIds: [] });
 
-    // Do nothing if there are no tracks
-    const trackIds = selectOrderedTrackIds(state);
-    if (!trackIds?.length) return emptyPromise;
+  // Do nothing if there are no tracks
+  const trackIds = selectOrderedTrackIds(state);
+  if (!trackIds?.length) return emptyPromise;
 
-    // Do nothing if no track is selected
-    const { selectedTrackId } = Root.selectRoot(state);
-    if (!selectedTrackId) return emptyPromise;
+  // Do nothing if no track is selected
+  const selectedTrackId = Timeline.selectSelectedTrackId(state);
+  if (!selectedTrackId) return emptyPromise;
 
-    // Get the media from the clipboard
-    const { clipboard } = selectTimeline(state);
-    const media = getClipboardMedia(clipboard);
-    if (!media?.length) return emptyPromise;
+  // Get the media from the clipboard
+  const clipboard = Timeline.selectMediaClipboard(state);
+  const media = getClipboardMedia(clipboard);
+  if (!media?.length) return emptyPromise;
 
-    // Get the offseted media
-    const offsetedMedia = getOffsetedMedia(
-      media,
-      Transport.ticks,
-      selectedTrackId,
-      trackIds
-    );
+  // Get the offseted media
+  const offsetedMedia = getOffsetedMedia(
+    media,
+    Transport.ticks,
+    selectedTrackId,
+    trackIds
+  );
 
-    // Make sure all of the media is valid
-    const trackMap = selectTrackMap(state);
-    const validMedia = getValidMedia(offsetedMedia, trackMap);
-    if (validMedia.length !== offsetedMedia.length) return emptyPromise;
+  // Make sure all of the media is valid
+  const trackMap = selectTrackMap(state);
+  const validMedia = getValidMedia(offsetedMedia, trackMap);
+  if (validMedia.length !== offsetedMedia.length) return emptyPromise;
 
-    // Create the media
-    const newClips = getMediaClips(validMedia);
-    const newTranspositions = getMediaTranspositions(validMedia);
-    dispatch(createMedia(newClips, newTranspositions));
-
-    // Select the new media
-    const clipIds = newClips.map((clip) => clip.id);
-    const transpositionIds = newTranspositions.map((t) => t.id);
-    dispatch(Root.setSelectedClips(clipIds));
-    dispatch(Root.setSelectedTranspositions(transpositionIds));
-
-    // Resolve the promise with the clip IDs and transposition IDs
-    return Promise.resolve({ clipIds, transpositionIds });
-  };
+  // Create the media
+  const newClips = getMediaClips(validMedia);
+  const newTranspositions = getMediaTranspositions(validMedia);
+  const payload = { clips: newClips, transpositions: newTranspositions };
+  return dispatch(createMedia(payload)).then(Timeline.updateMediaSelection);
+};
 
 /**
  * Duplicate all selected media.
@@ -244,18 +220,17 @@ export const duplicateSelectedMedia =
   (): AppThunk => async (dispatch, getState) => {
     const state = getState();
 
-    const { selectedClipIds, selectedTranspositionIds } =
-      Root.selectRoot(state);
-    if (!selectedClipIds.length && !selectedTranspositionIds.length) return;
+    const { clipIds, transpositionIds } = Timeline.selectMediaSelection(state);
+    if (!clipIds.length && !transpositionIds.length) return;
 
     // Get the selected clips and their durations
-    const clips = Root.selectSelectedClips(state);
+    const clips = Timeline.selectSelectedClips(state);
     const clipDurations = clips.map((clip) =>
       Clips.selectClipDuration(state, clip.id)
     );
 
     // Get the selected transpositions and their durations
-    const transpositions = Root.selectSelectedTranspositions(state);
+    const transpositions = Timeline.selectSelectedTranspositions(state);
     const transpositionDurations = transpositions.map(
       (transposition) => transposition.duration || 1
     );
@@ -267,19 +242,14 @@ export const duplicateSelectedMedia =
     // Duplicate the media
     const duplicatedMedia = getDuplicatedMedia(media, mediaDurations);
 
-    // Create the media
+    // Create and select the new media
     const duplicatedClips = getMediaClips(duplicatedMedia);
     const duplicatedTranspositions = getMediaTranspositions(duplicatedMedia);
-    const newMedia = await dispatch(
-      createMedia(duplicatedClips, duplicatedTranspositions)
-    );
-
-    // Select the new media
-    dispatch(Root.setSelectedClips(newMedia.clipIds));
-    dispatch(Root.setSelectedTranspositions(newMedia.transpositionIds));
-
-    // Return the clip IDs and transposition IDs
-    return newMedia;
+    const payload = {
+      clips: duplicatedClips,
+      transpositions: duplicatedTranspositions,
+    };
+    dispatch(createMedia(payload)).then(Timeline.updateMediaSelection);
   };
 
 /**
@@ -290,7 +260,7 @@ export const moveSelectedMedia =
   (dispatch, getState) => {
     if (!offset) return;
     const state = getState();
-    const selectedMedia = Root.selectSelectedMedia(state);
+    const selectedMedia = Timeline.selectSelectedMedia(state);
 
     // Move the media and make sure it's valid
     const newMedia = selectedMedia.map((media) => ({
@@ -302,7 +272,8 @@ export const moveSelectedMedia =
     // Update the media
     const newClips = getMediaClips(newMedia);
     const newTranspositions = getMediaTranspositions(newMedia);
-    dispatch(updateMedia(newClips, newTranspositions));
+    const payload = { clips: newClips, transpositions: newTranspositions };
+    dispatch(updateMedia(payload));
   };
 
 /**
@@ -328,22 +299,118 @@ export const moveSelectedMediaRight = (): AppThunk => (dispatch, getState) => {
  */
 export const deleteSelectedMedia = (): AppThunk => (dispatch, getState) => {
   const state = getState();
-  const clips = Root.selectSelectedClips(state);
-  const transpositions = Root.selectSelectedTranspositions(state);
+  const clips = Timeline.selectSelectedClips(state);
+  const transpositions = Timeline.selectSelectedTranspositions(state);
   dispatch(deleteMedia(clips, transpositions));
 };
 
 /**
- * Merge the selected clips (and transpositions if specified).
- * * If merging transpositions, any overlapping transpositions will be merged.
- * * If a merge name is specified, the new pattern will be named accordingly.
- * @param clips The clips to merge.
+ * Slice the media at a given tick.
+ * @param id The ID of the media to slice.
+ * @param tick The tick to slice the media at.
  */
-export const mergeClips =
-  (clips: Clip[]): AppThunk =>
-  async (dispatch, getState) => {
-    if (!clips || !clips.length) return;
+export const sliceMedia =
+  (media?: Media, tick: Tick = 0): AppThunk =>
+  (dispatch, getState) => {
+    if (!media || tick < 0) return;
     const state = getState();
+    const { clipIds, transpositionIds } = Timeline.selectMediaSelection(state);
+
+    // Get the clip and stream from the store
+    const oldClip = Clips.selectClipById(state, media.id);
+    const oldTransposition = Transpositions.selectTranspositionById(
+      state,
+      media.id
+    );
+    if (!oldClip && !oldTransposition) return;
+    const oldMedia = (oldClip || oldTransposition) as Media;
+    const isClip = !!oldClip;
+
+    const duration = getMediaDuration(
+      [oldMedia],
+      isClip ? [selectClipDuration(state, oldMedia.id)] : []
+    );
+
+    // Find the tick to split the clip at
+    const splitTick = tick - oldMedia.tick;
+    if (tick === oldMedia.tick || splitTick === duration) return;
+    if (splitTick < 0 || (isClip && splitTick > media.tick + duration)) return;
+
+    // Create two new items pivoting at the tick
+    const firstMedia: Media = isClip
+      ? initializeClip({
+          ...oldClip,
+          duration: splitTick,
+        })
+      : initializeTransposition({
+          ...oldTransposition,
+          duration: splitTick,
+        });
+
+    const secondMedia: Media = isClip
+      ? initializeClip({
+          ...oldClip,
+          tick,
+          offset: oldClip.offset + splitTick,
+          duration: duration - splitTick,
+        })
+      : initializeTransposition({
+          ...oldTransposition,
+          tick,
+          duration: !!oldMedia.duration ? duration - splitTick : 0,
+        });
+
+    // Deselect the media item
+    if (isClip) {
+      dispatch(
+        Timeline.updateMediaSelection({
+          clipIds: without(clipIds, oldMedia.id),
+        })
+      );
+    } else {
+      dispatch(
+        Timeline.updateMediaSelection({
+          transpositionIds: without(transpositionIds, oldMedia.id),
+        })
+      );
+    }
+
+    // Slice the media in its corresponding slice
+    if (isClip) {
+      if (!oldClip) return;
+      const clipPayload = {
+        oldClip,
+        firstClip: firstMedia as Clip,
+        secondClip: secondMedia as Clip,
+      };
+      dispatch(Clips._sliceClip(clipPayload));
+    } else {
+      if (!oldTransposition) return;
+      const transpositionPayload = {
+        oldTransposition,
+        firstTransposition: firstMedia as Transposition,
+        secondTransposition: secondMedia as Transposition,
+      };
+      dispatch(Transpositions._sliceTransposition(transpositionPayload));
+    }
+
+    // Slice the media in the session
+    const sessionPayload = {
+      oldId: oldMedia.id,
+      newIds: [firstMedia.id, secondMedia.id],
+    };
+    dispatch(Session.sliceMediaInSession(sessionPayload));
+  };
+
+/**
+ * Merge the selected media.
+ */
+export const mergeSelectedMedia =
+  (options: { name?: string } = {}): AppThunk =>
+  async (dispatch, getState) => {
+    const state = getState();
+    const selectedMedia = Timeline.selectSelectedMedia(state);
+    if (!selectedMedia.length) return;
     const sessionMap = Session.selectSessionMap(state);
     const patternMap = Patterns.selectPatternMap(state);
     const transpositionMap = Transpositions.selectTranspositionMap(state);
@@ -352,143 +419,71 @@ export const mergeClips =
     const scaleTrackMap = selectScaleTrackMap(state);
 
     // Get the info from the toolkit
-    const root = Root.selectRoot(state);
-    const selectedTranspositions = Root.selectSelectedTranspositions(state);
-    const { toolkit } = root;
-    const { mergeName, mergeTranspositions } = toolkit;
-    const sortedClips = clips.sort((a, b) => a.tick - b.tick);
-    let oldTranspositions: Transposition[] = [];
+    const selectedClips = Timeline.selectSelectedClips(state);
+    const selectedTranspositions = Timeline.selectSelectedTranspositions(state);
 
-    // Create a merged pattern by reducing the sorted
+    const patternNames: string[] = [];
+
+    // Iterate through all clips and merge their streams
+    const sortedClips = selectedClips.sort((a, b) => a.tick - b.tick);
     const stream = sortedClips.reduce((acc, clip) => {
       // Get the clip pattern
-      const pattern = Patterns.selectPatternById(state, clip.patternId);
+      const pattern = patternMap[clip.patternId];
       if (!pattern) return acc;
+      patternNames.push(pattern.name);
 
-      // Get all chords from the clip, transposing if specified
-      const allChords = mergeTranspositions
-        ? getClipStream(
-            clip,
-            patternMap,
-            patternTrackMap,
-            scaleMap,
-            scaleTrackMap,
-            transpositionMap,
-            sessionMap
-          )
-        : getClipNotes(clip, pattern.stream);
+      // Get the clip stream
+      const duration = selectClipDuration(state, clip.id);
+      let stream = getClipStream(
+        clip,
+        patternMap,
+        patternTrackMap,
+        scaleMap,
+        scaleTrackMap,
+        transpositionMap,
+        sessionMap
+      );
 
-      // Add any overlapping transpositions if merging
-      if (mergeTranspositions) {
-        const ticks = getClipDuration(clip, pattern);
-        oldTranspositions = union(
-          oldTranspositions,
-          selectedTranspositions.filter((t) =>
-            inRange(t.tick, clip.tick, clip.tick + ticks)
-          )
-        );
+      // Make sure the duration of the new stream is the same as the clip duration
+      let totalDuration = 0;
+      stream = stream.reduce((acc, chord) => {
+        if (totalDuration > duration) return acc;
+        const root = chord[0];
+        if (!root) return acc;
+        const chordDuration = root.duration;
+        if (totalDuration + chordDuration > duration) {
+          const newDuration = duration - totalDuration;
+          const newChord = chord.map((n) => ({
+            ...n,
+            duration: newDuration,
+          }));
+          totalDuration += newDuration;
+          return [...acc, newChord];
+        }
+        totalDuration += chordDuration;
+        return [...acc, chord];
+      }, [] as PatternStream);
+
+      if (!stream.length) {
+        const rest: PatternChord = [{ duration, MIDI: MIDI.Rest, velocity: 0 }];
+        stream = [rest];
       }
 
-      // Filter out any empty chords
-      const chords = allChords.filter((chord) => !!chord.length);
-
-      // Return the merged chords
-      return [...acc, ...chords];
+      // Return the merged stream
+      return [...acc, ...stream];
     }, [] as PatternStream);
 
     // Create and select a new pattern
-    const patternIds = await dispatch(
-      Patterns.createPattern({
-        stream,
-        name: !!mergeName.length ? mergeName : "New Pattern",
-      })
-    );
-    if (!patternIds?.length) return;
-    const patternId = patternIds[0];
-    dispatch(Root.setSelectedPattern(patternId));
+    const name = options?.name || patternNames.join(" + ");
+    const pattern = { stream, name };
+    const patternId = await dispatch(Patterns.createPattern(pattern));
+    Timeline.updateMediaDraft({ clip: { patternId } });
 
     // Create a new clip
     const { trackId, tick } = sortedClips[0];
-    await dispatch(Clips.createClips([{ trackId, patternId, tick }]));
+    const clip = { trackId, patternId, tick };
+    await dispatch(Clips.createClips([clip]));
 
-    // Delete the old clips
-    dispatch(Clips.deleteClips(clips));
-
-    // Delete any merged transpositions if merging
-    if (mergeTranspositions && oldTranspositions.length) {
-      dispatch(Transpositions.deleteTranspositions(oldTranspositions));
-    }
-  };
-
-export const repeatClips =
-  (
-    clips: Clip[]
-  ): AppThunk<
-    Promise<{
-      clipIds: ClipId[];
-      transpositionIds: TranspositionId[];
-    }>
-  > =>
-  async (dispatch, getState) => {
-    const state = getState();
-
-    // Unpack the toolkit
-    const root = Root.selectRoot(state);
-    const { toolkit } = root;
-    const { repeatCount } = toolkit;
-    const { repeatTranspositions, repeatWithTransposition } = toolkit;
-
-    // Get the total duration of the selection
-    const durations = clips.map((clip) => selectClipDuration(state, clip.id));
-    const duration = getMediaDuration(clips, durations);
-
-    // Get the clip transpositions ahead of time
-    const clipTranspositions = clips.map((clip) =>
-      Clips.selectClipTranspositions(state, clip.id)
-    );
-
-    // Initialize the loop variables
-    const newClips: Clip[] = [];
-    const newTranspositions: Transposition[] = [];
-
-    // Iterate through the repeat count
-    for (let i = 1; i <= repeatCount; i++) {
-      // Move the clips
-      const movedClips = clips.map((clip) => ({
-        ...clip,
-        tick: clip.tick + i * duration,
-      }));
-      newClips.push(...movedClips);
-
-      // Move the transpositions
-      if (!repeatTranspositions) continue;
-      clips.forEach((clip, j) => {
-        // Get the current transpositions of each clip
-        const transpositions = clipTranspositions[j];
-        const currentTranspositions = transpositions.filter(
-          (t) =>
-            t.tick <= clip.tick &&
-            clip.tick <= t.tick + (t.duration || 1) &&
-            t.tick + (t.duration || 1) <= clip.tick + durations[j]
-        );
-        // Iterate over the current transpositions
-        const movedTranspositions = currentTranspositions.map((t) => {
-          // Get the new offset record
-          const offsets = Object.keys(t.offsets).reduce((acc, key) => {
-            acc[key] = t.offsets[key];
-            if (repeatWithTransposition) acc[key] += t.offsets[key];
-            return acc;
-          }, {} as TranspositionOffsetRecord);
-
-          // Return the new transposition
-          return { ...t, tick: t.tick + i * duration, offsets };
-        });
-
-        // Add the moved transpositions to the list
-        if (!movedTranspositions.length) return;
-        newTranspositions.push(...movedTranspositions);
-      });
-    }
-    // Create the media
-    return dispatch(createMedia(newClips, newTranspositions));
+    // Delete the old media
+    dispatch(deleteMedia(selectedClips, selectedTranspositions));
   };

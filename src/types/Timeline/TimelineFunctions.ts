@@ -1,6 +1,41 @@
 import { isTrack } from "types/Track";
-import { TimelineClipboard, TimelineObject } from "./TimelineTypes";
-import { Media } from "types/Media";
+import { Timeline, TimelineObject } from "./TimelineTypes";
+import { Media, MediaClipboard } from "types/Media";
+
+/**
+ * Checks if the user is adding clips.
+ */
+export const isAddingClips = (timeline: Timeline) => {
+  return timeline.state === "addingClips";
+};
+
+/**
+ * Checks if the user is adding transpositions.
+ */
+export const isAddingTranspositions = (timeline: Timeline) => {
+  return timeline.state === "addingTranspositions";
+};
+
+/**
+ * Checks if the user is slicing media.
+ */
+export const isSlicingMedia = (timeline: Timeline) => {
+  return timeline.state === "slicingMedia";
+};
+
+/**
+ * Checks if the user is merging media.
+ */
+export const isMergingMedia = (timeline: Timeline) => {
+  return timeline.state === "mergingMedia";
+};
+
+/**
+ * Checks if the user is idle.
+ */
+export const isIdle = (timeline: Timeline) => {
+  return timeline.state === "idle";
+};
 
 /**
  * Get the track ID of a `TimelineObject`.
@@ -12,10 +47,10 @@ export const getTimelineObjectTrackId = (object?: TimelineObject) => {
 };
 
 /**
- * Get the media from the `TimelineClipboard`.
+ * Get the media from the `MediaClipboard`.
  * @param clipboard The clipboard.
  * @returns An array media.
  */
-export const getClipboardMedia = (clipboard: TimelineClipboard) => {
+export const getClipboardMedia = (clipboard: MediaClipboard) => {
   return [...clipboard.clips, ...clipboard.transpositions] as Media[];
 };

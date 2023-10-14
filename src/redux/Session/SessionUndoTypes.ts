@@ -55,21 +55,36 @@ export const SESSION_UNDO_TYPES: ActionGroup = {
     return `CLEAR_TRACK:${action.payload}`;
   },
   "session/addMediaToSession": (
-    action: PayloadAction<SessionSlice.AddObjectsToSessionPayload>
+    action: PayloadAction<SessionSlice.AddMediaToSessionPayload>
   ) => {
     const clips = action.payload.clips || [];
     const transpositions = action.payload.transpositions || [];
     const clipTag = createTag(clips, getClipTag);
     const transpositionTag = createTag(transpositions, getTranspositionTag);
-    return `ADD_MEDIA:${clipTag};${transpositionTag}`;
+    return `ADD_MEDIA:${clipTag},${transpositionTag}`;
   },
   "session/removeMediaFromSession": (
-    action: PayloadAction<SessionSlice.RemoveObjectsFromSessionPayload>
+    action: PayloadAction<SessionSlice.RemoveMediaFromSessionPayload>
   ) => {
     const clips = action.payload.clips || [];
     const transpositions = action.payload.transpositions || [];
     const clipTag = createTag(clips, getClipTag);
     const transpositionTag = createTag(transpositions, getTranspositionTag);
     return `REMOVE_MEDIA:${clipTag},${transpositionTag}`;
+  },
+  "session/updateMediaInSession": (
+    action: PayloadAction<SessionSlice.UpdateMediaInSessionPayload>
+  ) => {
+    const clips = action.payload.clips || [];
+    const transpositions = action.payload.transpositions || [];
+    const clipTag = createTag(clips, getClipTag);
+    const transpositionTag = createTag(transpositions, getTranspositionTag);
+    return `UPDATE_MEDIA:${clipTag},${transpositionTag}`;
+  },
+  "session/sliceMediaInSession": (
+    action: PayloadAction<SessionSlice.SliceMediaInSessionPayload>
+  ) => {
+    const { oldId, newIds } = action.payload;
+    return `SLICE_MEDIA:${oldId},${newIds.join(",")}`;
   },
 };

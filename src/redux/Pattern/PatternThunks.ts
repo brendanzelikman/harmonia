@@ -1,5 +1,6 @@
 import { ticksToToneSubdivision } from "utils";
 import {
+  selectDraftedClip,
   selectPatternById,
   selectRoot,
   selectTransport,
@@ -26,7 +27,7 @@ import {
 import { convertTicksToSeconds } from "types/Transport";
 import { PresetPatternList } from "presets/patterns";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
-import { setSelectedPattern } from "redux/Root";
+import { updateMediaDraft } from "redux/Timeline";
 
 /**
  * Creates a pattern and adds it to the store.
@@ -53,16 +54,16 @@ export const deletePattern =
   (id: PatternId): AppThunk =>
   (dispatch, getState) => {
     const state = getState();
-    const { selectedPatternId } = selectRoot(state);
+    const { patternId } = selectDraftedClip(state);
     const patternIds = selectPatternIds(state);
 
     // Get the index of the pattern to remove
     const index = patternIds.findIndex((patternId) => patternId === id);
     if (index === -1) return;
     // If the pattern is selected, select the previous or next pattern
-    if (selectedPatternId === id) {
+    if (patternId === id) {
       const nextId = patternIds?.[index - 1] || patternIds?.[index + 1];
-      if (nextId) dispatch(setSelectedPattern(nextId));
+      if (nextId) dispatch(updateMediaDraft({ clip: { patternId: nextId } }));
     }
     // Remove the pattern
     dispatch(removePattern(id));

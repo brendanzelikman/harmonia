@@ -23,7 +23,7 @@ import {
 } from "redux/Transport";
 import useTransportTick from "hooks/useTransportTick";
 
-export default function NavbarTransport() {
+export function NavbarTransport() {
   const dispatch = useAppDispatch();
   const transport = useAppSelector(selectTransport);
   const isStarted = isTransportStarted(transport);

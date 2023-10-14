@@ -1,15 +1,16 @@
-import Transport from "./Transport";
-import FileMenu from "./File";
-import Listbox from "./Listbox";
-import Toolkit from "./Toolkit";
-import Settings from "./Settings";
-import OnboardingTour from "./Tour";
-
+import { NavbarTransport } from "./Transport";
+import { NavbarFileMenu } from "./File";
+import { NavbarPatternListbox } from "./PatternListbox";
+import { NavbarToolkit } from "./Toolkit";
+import { NavbarSettingsMenu } from "./Settings";
 import { BsGithub } from "react-icons/bs";
 import { Transition } from "@headlessui/react";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { NavbarBrand, NavbarGroup } from "./components";
+import { OnboardingTour } from "features/Tour";
+
+export const NAV_HEIGHT = 60;
 
 export default function Navbar() {
   const [showNavbar, setShowNavbar] = useState(true);
@@ -25,34 +26,27 @@ export default function Navbar() {
       leaveFrom="opacity-100 scale-100"
       leaveTo="opacity-0"
       as="nav"
-      className="relative h-auto bg-gray-900 border-b-0.5 border-b-slate-700 shadow-xl py-2 text-slate-50 flex flex-nowrap flex-shrink-0 items-center z-30"
+      style={{ height: NAV_HEIGHT }}
+      className="relative bg-gray-900 border-b-0.5 border-b-slate-700 shadow-xl py-2 text-slate-50 flex flex-nowrap flex-shrink-0 items-center z-30"
     >
       <NavbarGroup className="flex-shrink-0 ml-3">
         <NavbarBrand />
       </NavbarGroup>
-      <NavbarGroup className="ml-5">
-        <FileMenu />
+      <NavbarGroup className="ml-4">
+        <NavbarFileMenu />
       </NavbarGroup>
       <NavbarGroup className="ml-3">
-        <Transport />
+        <NavbarTransport />
       </NavbarGroup>
-      <NavbarGroup className="ml-5">
-        <Listbox />
+      <NavbarGroup className="ml-4">
+        <NavbarPatternListbox />
       </NavbarGroup>
-      <NavbarGroup className="ml-5 mr-3">
-        <Toolkit />
+      <NavbarGroup className="ml-3">
+        <NavbarToolkit />
       </NavbarGroup>
       <NavbarGroup className="relative ml-auto mr-5 hidden md:flex">
-        <Settings />
+        <NavbarSettingsMenu />
         <OnboardingTour />
-        <a
-          href="https://www.github.com/brendanzelikman/harmonia"
-          target="_blank"
-          rel="noreferrer"
-          className="ml-4 text-2xl active:text-sky-600/80"
-        >
-          <BsGithub />
-        </a>
       </NavbarGroup>
     </Transition>
   );

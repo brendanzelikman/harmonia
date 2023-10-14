@@ -6,9 +6,23 @@ import {
 import { AppThunk } from "redux/store";
 import { isScaleTrack } from "types/ScaleTrack";
 import { TrackId } from "types/Track";
-import { hideEditor, showEditor } from "./EditorSlice";
+import { _showEditor, hideEditor } from "./EditorSlice";
 import { isPatternTrack } from "types/PatternTrack";
-import { isEditorOn } from "types/Editor";
+import { EditorId, isEditorOn } from "types/Editor";
+import { clearTimelineState, setSelectedTrackId } from "redux/Timeline";
+
+/**
+ * Show the editor with the given ID and select a track if provided.
+ * @param id The editor ID.
+ * @param trackId The track ID to select.
+ */
+export const showEditor =
+  ({ id, trackId }: { id: EditorId; trackId?: TrackId }): AppThunk =>
+  (dispatch) => {
+    dispatch(_showEditor(id));
+    dispatch(clearTimelineState());
+    if (trackId) dispatch(setSelectedTrackId(trackId));
+  };
 
 /**
  * Toggle the scale editor of a track.

@@ -208,7 +208,7 @@ export const PresetScale = (props: PresetScaleProps) => {
     >
       <div className="flex relative items-center h-6">
         <div
-          className={`peer border-0 bg-transparent w-full rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis`}
+          className={`border-0 bg-transparent w-full rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis whitespace-nowrap`}
         >
           {(isScaleEqual || isScaleRelated) && firstPitch ? (
             <>
@@ -284,7 +284,7 @@ export const CustomScale = (props: CustomScaleProps) => {
         <input
           draggable
           onDragStart={cancelEvent}
-          className={`peer border border-white/50 bg-transparent h-full rounded-l p-2 cursor-pointer outline-none overflow-ellipsis`}
+          className={`border border-white/50 bg-transparent h-full rounded-l p-2 cursor-pointer outline-none overflow-ellipsis whitespace-nowrap`}
           value={scale.name}
           onChange={(e) => props.setScaleName(scale, e.target.value)}
           onKeyDown={blurOnEnter}

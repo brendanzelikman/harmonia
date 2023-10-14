@@ -33,6 +33,13 @@ export const TRANSPOSITION_UNDO_TYPES: ActionGroup = {
     const transpositionTag = createTag(transpositions, getTranspositionTag);
     return `UPDATE_MEDIA:${clipTag},${transpositionTag}`;
   },
+  "transpositions/_sliceTransposition": (
+    action: PayloadAction<TranspositionSlice.SliceTranspositionPayload>
+  ) => {
+    const { oldTransposition, firstTransposition, secondTransposition } =
+      action.payload;
+    return `SLICE_MEDIA:${oldTransposition.id},${firstTransposition.id},${secondTransposition.id}`;
+  },
   "transpositions/removeTranspositionsByTrackId": (
     action: PayloadAction<TranspositionSlice.RemoveTranspositionsByTrackIdPayload>
   ) => {

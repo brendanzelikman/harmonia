@@ -197,19 +197,19 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
         className={styles.scaleEditorButton}
         onClick={toggleScaleEditor}
       >
-        Notes <BsPencil className="ml-2" />
+        Scale <BsPencil className="ml-2" />
       </TrackButton>
       <TrackButton
         className={styles.patternTrackButton}
         onClick={props.createPatternTrack}
       >
-        Pattern <BsPlusCircle className="ml-2" />
+        Track <BsPlusCircle className="ml-2" />
       </TrackButton>
       <TrackButton
         className={styles.scaleTrackButton}
         onClick={props.createScaleTrack}
       >
-        Scale <BsPlusCircle className="ml-2" />
+        Nest <BsPlusCircle className="ml-2" />
       </TrackButton>
     </div>
   );

@@ -20,6 +20,8 @@ import {
   NavbarFormLabel,
   NavbarFormInput,
   NavbarTooltip,
+  NavbarFormButton,
+  NavbarTooltipMenu,
 } from "../components";
 import { useAppDispatch, useAppSelector } from "redux/hooks";
 import { toggleShortcuts } from "redux/Root";
@@ -30,10 +32,10 @@ import {
   setTransportVolume,
   toggleTransportMute,
 } from "redux/Transport";
-import { selectCell } from "redux/Timeline";
+import { selectCell, setCellWidth } from "redux/Timeline";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 
-export default function NavbarSettings() {
+export function NavbarSettingsMenu() {
   const dispatch = useAppDispatch();
   const { bpm, timeSignature, volume, mute } = useAppSelector(selectTransport);
   const cell = useAppSelector(selectCell);
@@ -65,11 +67,9 @@ export default function NavbarSettings() {
   };
   const BPMField = () => (
     <NavbarFormGroup>
-      <NavbarFormLabel className="font-bold w-36 mr-3">
-        Tempo (BPM)
-      </NavbarFormLabel>
+      <NavbarFormLabel className="w-32">Tempo (BPM)</NavbarFormLabel>
       <NavbarFormInput
-        className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
+        className="focus:bg-slate-900/25 w-12 h-7"
         type="number"
         placeholder={DEFAULT_BPM.toString()}
         value={BPMInput}
@@ -89,9 +89,9 @@ export default function NavbarSettings() {
   };
   const TimeSignatureField = () => (
     <NavbarFormGroup>
-      <NavbarFormLabel className="w-36 mr-3">16ths / Measure</NavbarFormLabel>
+      <NavbarFormLabel className="w-32">16ths / Measure</NavbarFormLabel>
       <NavbarFormInput
-        className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
+        className="focus:bg-slate-900/25 w-12 h-7"
         type="number"
         placeholder={"16"}
         value={TS1}
@@ -103,11 +103,11 @@ export default function NavbarSettings() {
 
   // Cell field for non-immediate changes
   const [CellInput, setCellInput] = useState(cell);
-  const setCellWidth = (width: number) =>
+  const setInputWidth = (width: number) =>
     setCellInput((prev) => ({ ...prev, width: width ?? DEFAULT_CELL.width }));
   const onWidthKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !isNaN(CellInput.width)) {
-      setCellWidth(CellInput.width);
+      dispatch(setCellWidth(CellInput.width));
       setCellInput({
         ...cell,
         width: clamp(CellInput.width, MIN_CELL_WIDTH, MAX_CELL_WIDTH),
@@ -116,13 +116,13 @@ export default function NavbarSettings() {
   };
   const CellWidthField = () => (
     <NavbarFormGroup>
-      <NavbarFormLabel className="w-36 mr-3">Cell Width</NavbarFormLabel>
+      <NavbarFormLabel className="w-32">Cell Width</NavbarFormLabel>
       <NavbarFormInput
-        className="w-16 text-gray-300 focus:text-gray-50 focus:bg-slate-900/25 border-slate-400 focus:border-slate-300"
+        className="focus:bg-slate-900/25 w-12 h-7"
         type="number"
         placeholder={DEFAULT_CELL.width.toString()}
         value={CellInput.width}
-        onChange={(e) => setCellWidth(e.target.valueAsNumber)}
+        onChange={(e) => setInputWidth(e.target.valueAsNumber)}
         onKeyDown={onWidthKeyDown}
       />
     </NavbarFormGroup>
@@ -132,11 +132,13 @@ export default function NavbarSettings() {
    * The Shortcuts button opens the shortcuts menu.
    */
   const ShortcutsButton = () => (
-    <NavbarFormGroup
-      className="border border-slate-400 rounded-lg mt-2 py-2 hover:bg-slate-600/50 active:bg-slate-800/50"
-      onClick={() => dispatch(toggleShortcuts())}
-    >
-      Open Shortcuts Menu
+    <NavbarFormGroup className="pt-2">
+      <NavbarFormButton
+        className={`hover:bg-slate-600/50 active:bg-slate-800/50 w-12`}
+        onClick={() => dispatch(toggleShortcuts())}
+      >
+        Open Shortcuts Menu
+      </NavbarFormButton>
     </NavbarFormGroup>
   );
 
@@ -146,12 +148,17 @@ export default function NavbarSettings() {
    * as well as open the shortcuts menu.
    */
   const SettingsTooltipContent = () => (
-    <div className="flex flex-col justify-center items-center p-2">
-      {BPMField()}
-      {TimeSignatureField()}
-      {CellWidthField()}
-      <ShortcutsButton />
-    </div>
+    <NavbarTooltipMenu>
+      <div className="pb-2 mb-1 w-full text-center font-bold border-b">
+        Project Settings
+      </div>
+      <div className="w-full h-full py-2 space-y-2">
+        {BPMField()}
+        {TimeSignatureField()}
+        {CellWidthField()}
+        <ShortcutsButton />
+      </div>
+    </NavbarTooltipMenu>
   );
 
   const [draggingVolume, setDraggingVolume] = useState(false);
@@ -217,14 +224,17 @@ export default function NavbarSettings() {
   );
 
   return (
-    <div className="flex items-center">
+    <>
       {TransportVolumeField()}
-      <SettingsButton />
-      <NavbarTooltip
-        className="bg-slate-700/90 backdrop-blur"
-        content={SettingsTooltipContent}
-        show={show}
-      />
-    </div>
+
+      <div className="flex items-center">
+        <SettingsButton />
+        <NavbarTooltip
+          className="-left-[2rem] w-64 bg-slate-700/90 backdrop-blur"
+          content={SettingsTooltipContent}
+          show={show}
+        />
+      </div>
+    </>
   );
 }

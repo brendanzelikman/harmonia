@@ -2,7 +2,8 @@ import { FormatterProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
 import {
   selectCell,
-  selectRoot,
+  selectRootTour,
+  selectSelectedTrackId,
   selectTrackById,
   selectTrackIndexById,
 } from "redux/selectors";
@@ -11,13 +12,14 @@ import { AppDispatch, RootState } from "redux/store";
 import { Track, TrackId } from "types/Track";
 import { Row } from "..";
 import { TrackComponent } from "./Track";
-import { setSelectedTrack } from "redux/Root";
+import { setSelectedTrackId } from "redux/Timeline";
 
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const { row } = ownProps;
-  const { selectedTrackId } = selectRoot(state);
+  const selectedTrackId = selectSelectedTrackId(state);
   const track = selectTrackById(state, ownProps.row.trackId);
   const cell = selectCell(state);
+  const { id: tourId } = selectRootTour(state);
   const index = track ? selectTrackIndexById(state, track.id) : -1;
   return {
     row,
@@ -25,6 +27,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
     track,
     cell,
     index,
+    tourId,
   };
 }
 
@@ -35,7 +38,7 @@ function mapDispatchToProps(
   const trackId = ownProps.row.trackId;
   return {
     selectTrack: () => {
-      dispatch(setSelectedTrack(trackId));
+      dispatch(setSelectedTrackId(trackId));
     },
     clearTrack: () => {
       dispatch(Tracks.clearTrack(trackId));

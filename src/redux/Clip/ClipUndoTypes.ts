@@ -31,9 +31,9 @@ export const CLIP_UNDO_TYPES: ActionGroup = {
     const transpositionTag = createTag(transpositions, getTranspositionTag);
     return `UPDATE_MEDIA:${clipTag},${transpositionTag}`;
   },
-  "clips/sliceClip": (action: PayloadAction<ClipSlice.SliceClipPayload>) => {
-    const { oldClip } = action.payload;
-    return `SLICE_CLIP:${oldClip.id}`;
+  "clips/_sliceClip": (action: PayloadAction<ClipSlice.SliceClipPayload>) => {
+    const { oldClip, firstClip, secondClip } = action.payload;
+    return `SLICE_MEDIA:${oldClip.id},${firstClip.id},${secondClip.id}`;
   },
   "clips/removeClipsByTrackId": (
     action: PayloadAction<ClipSlice.RemoveClipsByTrackIdPayload>

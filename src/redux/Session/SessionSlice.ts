@@ -47,22 +47,25 @@ export type ClearTrackInSessionPayload = TrackId;
 /**
  * A clip can be sliced into two new clips.
  */
-export type SliceClipInSessionPayload = SliceClipPayload;
+export type SliceMediaInSessionPayload = {
+  oldId: string;
+  newIds: string[];
+};
 
 /**
  * Media can be added to the session within a bundle.
  */
-export type AddObjectsToSessionPayload = MediaPayload;
+export type AddMediaToSessionPayload = MediaPayload;
 
 /**
  * Media can be removed from the session within a bundle.
  */
-export type RemoveObjectsFromSessionPayload = MediaPayload;
+export type RemoveMediaFromSessionPayload = MediaPayload;
 
 /**
  * Media can be updated in the session within a bundle.
  */
-export type UpdateObjectsInSessionPayload = PartialMediaPayload;
+export type UpdateMediaInSessionPayload = PartialMediaPayload;
 
 /**
  * Reduce an array of objects to a map of track id to object ids.
@@ -90,10 +93,10 @@ const getObjectsByTrack = (arr?: { id: string; trackId: TrackId }[]) => {
  * @property `collapseTracksInSession` - Collapse tracks in the session.
  * @property `expandTracksInSession` - Expand tracks in the session.
  * @property `clearTrackInSession` - Clear a track of all media.
- * @property `sliceClipInSession` - Slice a clip into two new clips.
  * @property `addMediaToSession` - Add media to the session.
  * @property `removeMediaFromSession` - Remove media from the session.
  * @property `updateMediaInSession` - Update media in the session.
+ * @property `sliceMediaInSession` - Slice media into two.
  *
  */
 export const sessionSlice = createSlice({
@@ -355,35 +358,13 @@ export const sessionSlice = createSlice({
       track.transpositionIds = [];
     },
     /**
-     * Slice a clip into two new clips.
-     * @param state The session state.
-     * @param action The payload action.
-     */
-    sliceClipInSession: (
-      state,
-      action: PayloadAction<SliceClipInSessionPayload>
-    ) => {
-      const { oldClip, firstClip, secondClip } = action.payload;
-      if (!oldClip || !firstClip || !secondClip) return;
-      // Find the track that contains the old clip
-      const trackId = state.allIds.find((someId) =>
-        state.byId[someId].clipIds.includes(oldClip.id)
-      );
-      if (!trackId) return;
-      const track = state.byId[trackId];
-      if (!track) return;
-      // Add the new clips to the track and remove the old clip
-      track.clipIds = union(track.clipIds, [firstClip.id, secondClip.id]);
-      track.clipIds = without(track.clipIds, oldClip.id);
-    },
-    /**
      * Add media to the session.
      * @param state The session state.
      * @param action The payload action.
      */
     addMediaToSession: (
       state,
-      action: PayloadAction<AddObjectsToSessionPayload>
+      action: PayloadAction<AddMediaToSessionPayload>
     ) => {
       const { clips, transpositions } = action.payload;
 
@@ -419,7 +400,7 @@ export const sessionSlice = createSlice({
      */
     removeMediaFromSession: (
       state,
-      action: PayloadAction<RemoveObjectsFromSessionPayload>
+      action: PayloadAction<RemoveMediaFromSessionPayload>
     ) => {
       const { clips, transpositions } = action.payload;
       // Remove the media from every track
@@ -444,7 +425,7 @@ export const sessionSlice = createSlice({
      */
     updateMediaInSession: (
       state,
-      action: PayloadAction<UpdateObjectsInSessionPayload>
+      action: PayloadAction<UpdateMediaInSessionPayload>
     ) => {
       const { clips, transpositions } = action.payload;
 
@@ -471,6 +452,44 @@ export const sessionSlice = createSlice({
         entity[field].push(id);
       }
     },
+    /**
+     * Slice a media clip into two new clips.
+     * @param state The session state.
+     * @param action The payload action.
+     */
+    sliceMediaInSession: (
+      state,
+      action: PayloadAction<SliceMediaInSessionPayload>
+    ) => {
+      const { oldId, newIds } = action.payload;
+      // Find the track that contains the old clip
+      let isClip, trackId;
+      for (const id of state.allIds) {
+        const entity = state.byId[id];
+        if (!entity) continue;
+        if (entity.clipIds.includes(oldId)) {
+          isClip = true;
+          trackId = id;
+          break;
+        }
+        if (entity.transpositionIds.includes(oldId)) {
+          isClip = false;
+          trackId = id;
+          break;
+        }
+      }
+      if (!trackId) return;
+      const track = state.byId[trackId];
+      if (!track) return;
+      // Add the new ids to the track and remove the old id
+      if (isClip) {
+        track.clipIds = union(track.clipIds, newIds);
+        track.clipIds = without(track.clipIds, oldId);
+      } else {
+        track.transpositionIds = union(track.transpositionIds, newIds);
+        track.transpositionIds = without(track.transpositionIds, oldId);
+      }
+    },
   },
 });
 
@@ -484,10 +503,10 @@ export const {
   collapseTracksInSession,
   expandTracksInSession,
   clearTrackInSession,
-  sliceClipInSession,
   addMediaToSession,
   removeMediaFromSession,
   updateMediaInSession,
+  sliceMediaInSession,
 } = sessionSlice.actions;
 
 export default sessionSlice.reducer;

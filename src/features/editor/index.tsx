@@ -3,6 +3,7 @@ import { connect, ConnectedProps } from "react-redux";
 import {
   selectEditor,
   selectRoot,
+  selectRootTour,
   selectSelectedPattern,
   selectSelectedTrack,
   selectTransport,
@@ -14,7 +15,7 @@ import { defaultEditor, EditorId, EditorState } from "types/Editor";
 import { durationToTicks } from "utils";
 
 function mapStateToProps(state: RootState) {
-  const { showingTour } = selectRoot(state);
+  const { show: showingTour } = selectRootTour(state);
   const selectedPattern = selectSelectedPattern(state);
   const selectedTrack = selectSelectedTrack(state);
 

@@ -46,6 +46,7 @@ export const getScaleTrackScale = (
 
     // Get the scale notes of the parent track
     const parentScale = scaleMap[parentScaleTrack.scaleId];
+    if (!parentScale) break;
     const parentNotes = parentScale.notes;
 
     // Map the scale track's notes to its parents

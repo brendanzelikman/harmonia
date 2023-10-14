@@ -39,7 +39,7 @@ export const HEADER_HEIGHT = 80;
 export const TRANSPOSITION_HEIGHT = 20;
 
 // Cell
-export const MIN_CELL_WIDTH = 25;
+export const MIN_CELL_WIDTH = 20;
 export const MAX_CELL_WIDTH = 100;
 export const MIN_CELL_HEIGHT = 80;
 export const MAX_CELL_HEIGHT = 120;

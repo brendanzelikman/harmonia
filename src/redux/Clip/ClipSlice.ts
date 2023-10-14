@@ -44,11 +44,12 @@ export type ClearClipsByTrackIdPayload = TrackId;
 
 /**
  * The clips slice contains all clips in the session.
+ * Some functions are underscored to indicate that they should not be called directly.
  *
  * @property `addClips` - Add clips to the store.
  * @property `removeClips` - Remove clips from the store.
- * @property `updateClips` - Update clips in the store.
- * @property `sliceClip` - Slice a clip into two new clips.
+ * @property `_updateClips` - Update clips in the store.
+ * @property `_sliceClip` - Slice a clip into two new clips.
  * @property `removeClipsByTrackId` - Remove clips by track ID.
  * @property `clearClipsByTrackId` - Clear clips by track ID.
  *
@@ -104,11 +105,11 @@ export const clipsSlice = createSlice({
       });
     },
     /**
-     * Slice a clip into two new clips
+     * Slice a clip into two new clips.
      * @param state The clips state.
      * @param action The payload action.
      */
-    sliceClip: (state, action: PayloadAction<SliceClipPayload>) => {
+    _sliceClip: (state, action: PayloadAction<SliceClipPayload>) => {
       const { oldClip, firstClip, secondClip } = action.payload;
       if (!oldClip || !firstClip || !secondClip) return;
       delete state.byId[oldClip.id];
@@ -171,11 +172,10 @@ export const {
   addClips,
   removeClips,
   _updateClips,
+  _sliceClip,
   removeClipsByTrackId,
   clearClipsByTrackId,
 } = clipsSlice.actions;
-
-export const _sliceClip = clipsSlice.actions.sliceClip;
 
 export const updateClips = (media: PartialMediaPayload) => (dispatch: any) => {
   dispatch(_updateClips(media));

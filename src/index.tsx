@@ -17,7 +17,7 @@ import { ErrorView, LandingView } from "views";
 import { HotkeysProvider } from "react-hotkeys-hook";
 
 export const container: HTMLElement = document.getElementById("root")!;
-if (!container.children.length) {
+if (!container?.children.length) {
   const router = createBrowserRouter(
     [
       { path: "/", element: <LandingView />, errorElement: <ErrorView /> },
@@ -29,7 +29,7 @@ if (!container.children.length) {
   const root = ReactDOM.createRoot(container);
   root.render(
     <React.StrictMode>
-      <DndProvider backend={HTML5Backend}>
+      <DndProvider backend={HTML5Backend} key={1}>
         <ReduxProvider store={store}>
           <MIDIProvider>
             <HotkeysProvider initiallyActiveScopes={["timeline"]}>

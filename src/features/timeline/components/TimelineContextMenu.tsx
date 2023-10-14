@@ -1,22 +1,22 @@
 import ContextMenu, { ContextMenuOption } from "components/ContextMenu";
 import { ConnectedProps, connect } from "react-redux";
 import {
-  selectRoot,
+  selectDraftedTransposition,
+  selectMediaClipboard,
   selectSelectedClips,
   selectSelectedPattern,
   selectSelectedTrack,
+  selectSelectedTrackId,
   selectSelectedTranspositions,
-  selectTimeline,
   selectTrackScale,
 } from "redux/selectors";
 import { AppDispatch, RootState } from "redux/store";
 import {
-  addPatternToTimeline,
+  addClipToTimeline,
   createPatternTrackFromSelectedTrack,
   createScaleTrack,
   exportSelectedClipsToMIDI,
 } from "redux/thunks";
-import { Row } from "..";
 import { UndoTypes } from "redux/undoTypes";
 import { addTranspositionToTimeline } from "redux/Timeline";
 import { updateClips } from "redux/Clip";
@@ -39,9 +39,9 @@ import {
 import { useDeepEqualSelector } from "redux/hooks";
 
 const mapStateToProps = (state: RootState) => {
-  const { toolkit, selectedTrackId } = selectRoot(state);
+  const selectedTrackId = selectSelectedTrackId(state);
 
-  const { clipboard } = selectTimeline(state);
+  const clipboard = selectMediaClipboard(state);
   const selectedPattern = selectSelectedPattern(state);
   const selectedTrack = selectSelectedTrack(state);
 
@@ -52,13 +52,10 @@ const mapStateToProps = (state: RootState) => {
   const isClipboardEmpty =
     !areClipsInClipboard && !areTranspositionsInClipboard;
 
-  const { transpositionOffsets } = toolkit;
-  const chromaticTranspose = getChromaticOffset(transpositionOffsets);
-  const scalarTranspose = getScalarOffset(
-    transpositionOffsets,
-    selectedTrackId
-  );
-  const chordalTranspose = getChordalOffset(transpositionOffsets);
+  const { offsets } = selectDraftedTransposition(state);
+  const chromaticTranspose = getChromaticOffset(offsets);
+  const scalarTranspose = getScalarOffset(offsets, selectedTrackId);
+  const chordalTranspose = getChordalOffset(offsets);
   const canUndo = state.session.past.length > 0;
   const canRedo = state.session.future.length > 0;
   return {
@@ -86,7 +83,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     deleteMedia: () => dispatch(deleteSelectedMedia()),
     selectAllMedia: () => dispatch(selectAllMedia()),
     exportClips: () => dispatch(exportSelectedClipsToMIDI()),
-    addPattern: () => dispatch(addPatternToTimeline()),
+    addPattern: () => dispatch(addClipToTimeline()),
     addPatternTrack: () => dispatch(createPatternTrackFromSelectedTrack()),
     addScaleTrack: () => dispatch(createScaleTrack()),
     addTransposition: () => dispatch(addTranspositionToTimeline()),

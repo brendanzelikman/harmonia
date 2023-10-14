@@ -7,33 +7,34 @@ import { showEditor } from "redux/Editor";
 import { useDeepEqualSelector } from "redux/hooks";
 import { MouseEvent, useMemo } from "react";
 import { MIDI } from "types/midi";
-import {
-  selectClipById,
-  selectClipName,
-  selectClipStream,
-  sliceClip,
-} from "redux/Clip";
+import { selectClipById, selectClipName, selectClipStream } from "redux/Clip";
 import {
   onClipClick,
   onClipDragEnd,
   selectTimeline,
-  startDraggingClip,
-  stopDraggingClip,
+  updateMediaDraft,
+  updateMediaDragState,
 } from "redux/Timeline";
 import { useClipStyles } from "./hooks/useClipStyles";
 import { Tick } from "types/units";
 import { pick } from "lodash";
-import { setSelectedPattern } from "redux/Root";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { sliceMedia } from "redux/thunks";
+import {
+  isAddingClips,
+  isAddingTranspositions,
+  isSlicingMedia,
+} from "types/Timeline";
 
 const mapStateToProps = (state: RootState, ownProps: { id: ClipId }) => {
   const clip = selectClipById(state, ownProps.id);
   const name = selectClipName(state, ownProps.id);
   const timeline = selectTimeline(state);
-  const { subdivision, draggingTransposition } = timeline;
-  const isAdding = timeline.state === "adding";
-  const isSlicing = timeline.state === "cutting";
-  const isTransposing = timeline.state === "transposing";
+  const { subdivision, mediaDragState } = timeline;
+  const isAdding = isAddingClips(timeline);
+  const isSlicing = isSlicingMedia(timeline);
+  const isTransposing = isAddingTranspositions(timeline);
+  const draggingTransposition = mediaDragState.draggingTransposition;
   return {
     ...ownProps,
     clip,
@@ -49,21 +50,25 @@ const mapStateToProps = (state: RootState, ownProps: { id: ClipId }) => {
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
     showPatternEditor: (patternId?: PatternId) => {
-      dispatch(setSelectedPattern(patternId));
+      dispatch(updateMediaDraft({ clip: { patternId } }));
       dispatch(showEditor({ id: "patterns" }));
     },
-    onClick: (e: MouseEvent, clip?: Clip, eyedropping = false) => {
+    onClick: (
+      e: MouseEvent<HTMLDivElement>,
+      clip?: Clip,
+      eyedropping = false
+    ) => {
       dispatch(onClipClick(e, clip, eyedropping));
     },
-    onCut: (clipId: ClipId, tick: Tick) => {
-      dispatch(sliceClip(clipId, tick));
+    onCut: (clip: Clip, tick: Tick) => {
+      dispatch(sliceMedia(clip, tick));
     },
     onDragStart: () => {
-      dispatch(startDraggingClip());
+      dispatch(updateMediaDragState({ draggingClip: true }));
     },
     onDragEnd: (item: any, monitor: any) => {
       dispatch(onClipDragEnd(item, monitor));
-      dispatch(stopDraggingClip());
+      dispatch(updateMediaDragState({ draggingClip: false }));
     },
   };
 };
@@ -126,10 +131,10 @@ function TimelineClip(props: ClipProps) {
     if (!clip) return null;
     return (
       <ul
-        key={`chord-${i}`}
+        key={`${clip.id}-chord-${i}`}
         className={styles.chordClass}
         style={{ width: styles.chordWidth }}
-        onClick={() => isSlicing && props.onCut(clip.id, clip.tick + i)}
+        onClick={() => isSlicing && props.onCut(clip, clip.tick + i)}
       >
         {notes.map((_, j) => renderNote(_, i, j))}
       </ul>
@@ -154,7 +159,7 @@ function TimelineClip(props: ClipProps) {
   const ClipStream = useMemo(
     () =>
       !!stream && (
-        <div className="w-full h-auto relative flex flex-grow font-extralight text-slate-50/80">
+        <div className="group w-full h-auto relative flex flex-grow font-extralight text-slate-50/80">
           {stream.map(renderNotes)}
         </div>
       ),

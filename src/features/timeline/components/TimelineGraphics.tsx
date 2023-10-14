@@ -25,14 +25,11 @@ interface BackgroundProps {
 }
 
 const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
-  const { showingTour, tourStep } = selectRoot(state);
   const columns = selectTimelineColumnCount(state);
 
   // General dimensions
   const cellWidth = selectCellWidth(state);
   const cellHeight = selectCellHeight(state);
-  const tourLeft =
-    tourStep === 3 || tourStep === 4 || tourStep === 5 ? TRACK_WIDTH : 0;
 
   // Track background height
   const lastTrackId = selectOrderedTrackIds(state).at(-1);
@@ -64,9 +61,6 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
 
   return {
     ...ownProps,
-    tourLeft,
-    tourStep,
-    showingTour,
     cursorHeight,
     width,
     height,
@@ -91,23 +85,6 @@ export default connector(TimelineGraphics);
 function TimelineGraphics(props: Props) {
   const { timeline, width, height } = props;
   const element = timeline?.element;
-
-  // Onboarding tour background
-  const TourBackground = () => (
-    <Transition
-      show={props.showingTour}
-      appear
-      enter="transition-opacity ease-in-out duration-150"
-      enterFrom="opacity-0"
-      enterTo="opacity-100"
-      leave="transition-opacity ease-in-out duration-150"
-      leaveFrom="opacity-100"
-      leaveTo="opacity-0"
-      as="div"
-      style={{ left: props.tourLeft }}
-      className={`w-full h-screen transition-all duration-300 absolute bg-slate-900/50 backdrop-blur z-[90] pointer-events-none`}
-    />
-  );
 
   // Timeline time background
   const TimelineTimeBackground = () => (
@@ -150,27 +127,22 @@ function TimelineGraphics(props: Props) {
     ></div>
   );
 
-  const TimelineElements = () => (
-    <div className="relative w-full h-full">
-      <TimelineTopLeftCorner />
-      <TimelineTimeBackground />
-      <SelectedTrackBackground />
-      <TimelineCursor />
-      <TimelineBackground />
-    </div>
-  );
-
-  // Rendered backgrounds handled by the grid
-  const RenderedBackgrounds = (
+  // All the rendered backgrounds
+  const TimelineElements = (
     <div
       className="absolute inset-0 pointer-events-none"
       style={{ height, width }}
     >
-      {TourBackground()}
-      <TimelineElements />
+      <div className="relative w-full h-full">
+        <TimelineTopLeftCorner />
+        <TimelineTimeBackground />
+        <SelectedTrackBackground />
+        <TimelineCursor />
+        <TimelineBackground />
+      </div>
     </div>
   );
 
   if (!element) return null;
-  return createPortal(RenderedBackgrounds, element);
+  return createPortal(TimelineElements, element);
 }

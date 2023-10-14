@@ -191,7 +191,7 @@ export const PresetPattern = (props: PresetPatternProps) => {
     >
       <div className="flex relative items-center">
         <input
-          className={`peer border-0 bg-transparent h-6 rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis`}
+          className={`border-0 bg-transparent h-6 rounded p-1 cursor-pointer outline-none pointer-events-none overflow-ellipsis whitespace-nowrap`}
           value={pattern.name}
           disabled
         />
@@ -260,7 +260,7 @@ export const CustomPattern = (props: CustomPatternProps) => {
         <input
           draggable
           onDragStart={cancelEvent}
-          className={`peer border border-white/50 bg-transparent rounded-l h-full p-1 cursor-pointer outline-none overflow-ellipsis ${
+          className={`border border-white/50 bg-transparent rounded-l h-full p-1 cursor-pointer outline-none overflow-ellipsis whitespace-nowrap ${
             pattern.id === props.selectedPattern?.id
               ? "pointer-events-all focus:bg-zinc-800/30"
               : "pointer-events-none"

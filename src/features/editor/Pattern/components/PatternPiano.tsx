@@ -14,7 +14,7 @@ interface PatternPianoProps extends PatternEditorCursorProps {
 
 export function PatternPiano(props: PatternPianoProps) {
   // Keep track of shift key
-  const holdingShift = useHeldHotkeys("Shift").Shift;
+  const holdingShift = useHeldHotkeys("shift").shift;
 
   // Play note event handler handling editor states
   const playNote = (sampler: Sampler, midiNumber: number) => {

@@ -10,6 +10,7 @@ import {
 } from "types/Transposition";
 import {
   selectCellWidth,
+  selectMediaDragState,
   selectSelectedTrackId,
   selectTimeline,
   selectTrackParents,
@@ -20,13 +21,17 @@ import { useTranspositionDrag } from "./hooks/useTranspositionDnd";
 import {
   onTranspositionClick,
   onTranspositionDragEnd,
-  startDraggingTransposition,
-  stopDraggingTransposition,
+  updateMediaDragState,
 } from "redux/Timeline";
 import { useDeepEqualSelector } from "redux/hooks";
 import { useTranspositionStyles } from "./hooks/useTranspositionStyles";
 import { pick } from "lodash";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import {
+  isAddingClips,
+  isAddingTranspositions,
+  isSlicingMedia,
+} from "types/Timeline";
 
 const mapStateToProps = (
   state: RootState,
@@ -36,9 +41,11 @@ const mapStateToProps = (
   const selectedTrackId = selectSelectedTrackId(state);
   const cellWidth = selectCellWidth(state);
   const timeline = selectTimeline(state);
-  const isAdding = timeline.state === "adding";
-  const isTransposing = timeline.state === "transposing";
-  const { subdivision, draggingClip } = timeline;
+  const { subdivision } = timeline;
+  const isAdding = isAddingClips(timeline);
+  const isSlicing = isSlicingMedia(timeline);
+  const isTransposing = isAddingTranspositions(timeline);
+  const { draggingClip } = selectMediaDragState(state);
 
   return {
     ...ownProps,
@@ -46,6 +53,7 @@ const mapStateToProps = (
     subdivision,
     isTransposing,
     isAdding,
+    isSlicing,
     selectedTrackId,
     cellWidth,
     draggingClip,
@@ -54,15 +62,15 @@ const mapStateToProps = (
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    onClick: (e: MouseEvent, transposition?: Transposition) => {
+    onClick: (e: MouseEvent<HTMLDivElement>, transposition?: Transposition) => {
       dispatch(onTranspositionClick(e, transposition));
     },
     onDragStart: () => {
-      dispatch(startDraggingTransposition());
+      dispatch(updateMediaDragState({ draggingTransposition: true }));
     },
     onDragEnd: (item: any, monitor: any) => {
       dispatch(onTranspositionDragEnd(item, monitor));
-      dispatch(stopDraggingTransposition());
+      dispatch(updateMediaDragState({ draggingTransposition: false }));
     },
   };
 };
@@ -73,7 +81,7 @@ export type TranspositionProps = ConnectedProps<typeof connector>;
 export default connector(TimelineTransposition);
 
 function TimelineTransposition(props: TranspositionProps) {
-  const { transposition, isTransposing } = props;
+  const { transposition, isTransposing, isSlicing } = props;
   const parents = useDeepEqualSelector((_) =>
     selectTrackParents(_, transposition?.trackId)
   );
@@ -86,6 +94,7 @@ function TimelineTransposition(props: TranspositionProps) {
   // Derive further styles
   const styles = useTranspositionStyles({
     ...props,
+    isSlicing,
     isTransposing,
     isDragging,
     isHoldingKey: (key) => heldKeys[key],
@@ -144,16 +153,16 @@ function TimelineTransposition(props: TranspositionProps) {
    * displayed as Nx • T(X, Y, Z) • tX. The labels are vertically stacked if the
    * transposition is small.
    */
-  const TranspositionLabel = (
+  const TranspositionLabel = () => (
     <div
-      className={`flex relative h-full items-center whitespace-nowrap z-20 pt-0.5 ${styles.labelColor}`}
+      className={`flex relative h-full items-center whitespace-nowrap z-20 ${styles.labelColor}`}
       draggable
       onDragStart={cancelEvent}
     >
       {styles.Icon}
       {styles.isSmall ? (
         <div
-          className="absolute flex px-2 border border-slate-200/50 flex-col bg-fuchsia-500 rounded"
+          className="absolute flex px-2 border border-slate-200/50 flex-col rounded"
           style={{ top: -(scalars.length ? 3 : 2) * 22 - 5 }}
         >
           {chromaticLabel}
@@ -175,50 +184,60 @@ function TimelineTransposition(props: TranspositionProps) {
   /**
    * The transposition header sits above a clip and contains the transposition label.
    */
-  const TranspositionHeader = (
-    <div
-      className={`${styles.headerDisplay} ${styles.headerBorder} ${styles.background}`}
-      style={{ height: styles.height }}
-    >
-      {TranspositionLabel}
+  const TranspositionHeader = () => {
+    return (
       <div
-        className={`${styles.hueClass} bg-fuchsia-400`}
-        style={{ opacity: styles.chromaticUpOpacity }}
-      />
-      <div
-        className={`${styles.hueClass} bg-fuchsia-700`}
-        style={{ opacity: styles.chromaticDownOpacity }}
-      />
-      <div
-        className={`${styles.hueClass} bg-indigo-400`}
-        style={{ opacity: styles.scalarUpOpacity }}
-      />
-      <div
-        className={`${styles.hueClass} bg-indigo-700`}
-        style={{ opacity: styles.scalarDownOpacity }}
-      />
-      <div
-        className={`${styles.hueClass} bg-pink-400`}
-        style={{ opacity: styles.chordalUpOpacity }}
-      />
-      <div
-        className={`${styles.hueClass} bg-pink-700`}
-        style={{ opacity: styles.chordalDownOpacity }}
-      />
-    </div>
-  );
+        className={`${styles.headerDisplay} ${styles.background}`}
+        style={{ height: styles.height }}
+      >
+        <TranspositionLabel />
+      </div>
+    );
+  };
 
   /**
    * The transposition body is filled in behind a clip.
    */
-  const TranspositionBody = (
-    <div
-      className={`w-full h-full ${styles.background} ${styles.bodyBorder}`}
-    />
+  const TranspositionBody = () => (
+    <div className={`w-full h-full ${styles.background}`} />
   );
 
+  /**
+   * The transposition hues change with the offsets.
+   */
+  const TranspositionHues = () => {
+    return (
+      <div className="absolute inset-0">
+        <div
+          className={`${styles.hueClass} bg-fuchsia-400`}
+          style={{ opacity: styles.chromaticUpOpacity }}
+        />
+        <div
+          className={`${styles.hueClass} bg-fuchsia-700`}
+          style={{ opacity: styles.chromaticDownOpacity }}
+        />
+        <div
+          className={`${styles.hueClass} bg-rose-400`}
+          style={{ opacity: styles.scalarUpOpacity }}
+        />
+        <div
+          className={`${styles.hueClass} bg-rose-600`}
+          style={{ opacity: styles.scalarDownOpacity }}
+        />
+        <div
+          className={`${styles.hueClass} bg-pink-400`}
+          style={{ opacity: styles.chordalUpOpacity }}
+        />
+        <div
+          className={`${styles.hueClass} bg-pink-700`}
+          style={{ opacity: styles.chordalDownOpacity }}
+        />
+      </div>
+    );
+  };
+
   // Assemble the class name and style
-  const className = `${styles.position} ${styles.font} ${styles.cursor} ${styles.transition} ${styles.pointerEvents}`;
+  const className = `${styles.position} ${styles.border} ${styles.font} ${styles.cursor} ${styles.transition} ${styles.pointerEvents}`;
   const style = pick(styles, ["top", "left", "width", "opacity"]);
 
   // Render the transposition
@@ -229,8 +248,9 @@ function TimelineTransposition(props: TranspositionProps) {
       style={{ ...style, height: styles.cellHeight }}
       onClick={(e) => props.onClick(e, transposition)}
     >
-      {TranspositionHeader}
-      {TranspositionBody}
+      {TranspositionHeader()}
+      {TranspositionBody()}
+      <TranspositionHues />
     </div>
   );
 }
