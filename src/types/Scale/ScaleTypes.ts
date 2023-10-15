@@ -9,6 +9,7 @@ export type ScaleNoId = Omit<ScaleObject, "id">;
 export type NestedScaleId = string;
 export type NestedScaleMap = Record<NestedScaleId, NestedScaleObject>;
 export type NestedScaleNoId = Omit<NestedScaleObject, "id">;
+export const ScaleTrackScaleName = "$$$$$_track_scale_$$$$$";
 
 /**
  * A `ScaleArray` is an array of MIDI notes.

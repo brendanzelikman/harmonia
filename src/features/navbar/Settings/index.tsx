@@ -24,7 +24,6 @@ import {
   NavbarTooltipMenu,
 } from "../components";
 import { useAppDispatch, useAppSelector } from "redux/hooks";
-import { toggleShortcuts } from "redux/Root";
 import {
   selectTransport,
   setTransportBPM,
@@ -34,6 +33,8 @@ import {
 } from "redux/Transport";
 import { selectCell, setCellWidth } from "redux/Timeline";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
+import { TOGGLE_SHORTCUTS } from "features/Shortcuts";
+import { dispatchCustomEvent } from "utils/events";
 
 export function NavbarSettingsMenu() {
   const dispatch = useAppDispatch();
@@ -135,7 +136,7 @@ export function NavbarSettingsMenu() {
     <NavbarFormGroup className="pt-2">
       <NavbarFormButton
         className={`hover:bg-slate-600/50 active:bg-slate-800/50 w-12`}
-        onClick={() => dispatch(toggleShortcuts())}
+        onClick={() => dispatchCustomEvent(TOGGLE_SHORTCUTS)}
       >
         Open Shortcuts Menu
       </NavbarFormButton>

@@ -125,9 +125,7 @@ export function Editor(props: EditorProps) {
       <EditorNavbar />
       <div
         style={{ height: "calc(100% - 30px)" }}
-        className={`flex flex-col w-full z-50 relative ${
-          props.showingTour ? "opacity-50" : ""
-        }`}
+        className={`flex flex-col w-full z-50 relative`}
       >
         <div className="min-h-0 h-full" id="editor">
           {props.id === "scale" ? (

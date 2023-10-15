@@ -15,7 +15,9 @@ import { mod } from "utils";
 import { PresetScaleGroupMap } from "presets/scales";
 import { initializeState } from "types/util";
 
-const initialState = initializeState<PatternId, Pattern>([defaultPattern]);
+export const defaultPatternState = initializeState<PatternId, Pattern>([
+  defaultPattern,
+]);
 
 /**
  * A `Pattern` can be added to the store.
@@ -175,7 +177,7 @@ export type RandomizePatternPayload = { id: PatternId; length: number };
  */
 export const patternsSlice = createSlice({
   name: "patterns",
-  initialState,
+  initialState: defaultPatternState,
   reducers: {
     /**
      * Set the IDs of the `Patterns` in the store (used for dragging).

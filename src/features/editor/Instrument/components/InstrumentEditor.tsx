@@ -15,7 +15,6 @@ import { getProperty } from "types/util";
 
 export function EditorInstrument(props: InstrumentEditorProps) {
   const track = props.track as PatternTrack;
-  const instance = getProperty(LIVE_AUDIO_INSTANCES, track.instrumentId);
 
   // Close editor if no instrument key
   useEffect(() => {
@@ -25,6 +24,9 @@ export function EditorInstrument(props: InstrumentEditorProps) {
   }, [props.instrumentKey]);
 
   useInstrumentHotkeys({ ...props });
+
+  if (!track) return null;
+  const instance = getProperty(LIVE_AUDIO_INSTANCES, track.instrumentId);
 
   return (
     <Editor.Container>

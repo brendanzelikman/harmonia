@@ -43,6 +43,11 @@
   src: url("/fonts/OpenSans.ttf");
 }
 
+@font-face {
+  font-family: "Atari";
+  src: url("/fonts/Atari.ttf");
+}
+
 html,
 body,
 #root {

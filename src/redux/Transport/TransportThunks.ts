@@ -14,26 +14,23 @@ import {
   MIN_BPM,
   MIN_TRANSPORT_VOLUME,
 } from "appConstants";
-import {
-  convertSecondsToTicks,
-  convertTicksToSeconds,
-  getNextTransportTick,
-} from "types/Transport";
+import { convertTicksToSeconds } from "types/Transport";
 import { selectTransport } from "./TransportSelectors";
 import {
   selectPatternTracks,
   selectChordsByTicks,
   selectTimelineEndTick,
   selectPatternTrackMap,
-  selectRoot,
+  selectProject,
   selectPatternTrackAudioInstances,
   selectChordsAtTick,
 } from "redux/selectors";
 import { LIVE_AUDIO_INSTANCES, LIVE_RECORDER_INSTANCE } from "types/Instrument";
 import { MIDI } from "types/midi";
+import { dispatchCustomEvent } from "utils/events";
 
-export const TICK_UPDATE_EVENT = "tickUpdate";
-export const OFFLINE_TICK_UPDATE_EVENT = "offlineTickUpdate";
+export const UPDATE_TICK = "updateTick";
+export const UPDATE_OFFLINE_TICK = "updateOfflineTick";
 
 /**
  * Dispatch a tick update event.
@@ -42,11 +39,8 @@ export const dispatchTickUpdate = (
   tick: Tick,
   options?: { offline: boolean }
 ) => {
-  const event = options?.offline
-    ? OFFLINE_TICK_UPDATE_EVENT
-    : TICK_UPDATE_EVENT;
-  const customEvent = new CustomEvent(event, { detail: tick });
-  window.dispatchEvent(customEvent);
+  const event = options?.offline ? UPDATE_OFFLINE_TICK : UPDATE_TICK;
+  dispatchCustomEvent(event, tick);
 };
 
 /**
@@ -417,10 +411,10 @@ export const stopRecordingTransport = (): AppThunk => (dispatch, getState) => {
 
     // Download the file
     const state = getState();
-    const { projectName } = selectRoot(state);
+    const { name } = selectProject(state);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${projectName ?? "Project"} Recording.wav`;
+    a.download = `${name ?? "Project"} Recording.wav`;
     a.click();
     URL.revokeObjectURL(url);
   });
@@ -556,10 +550,10 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
   const url = URL.createObjectURL(blob);
 
   // Download the file
-  const { projectName } = selectRoot(oldState);
+  const { name } = selectProject(oldState);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${projectName ?? "project"}.wav`;
+  a.download = `${name ?? "project"}.wav`;
   a.click();
   URL.revokeObjectURL(url);
 

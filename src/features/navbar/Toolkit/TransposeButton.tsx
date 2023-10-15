@@ -134,7 +134,7 @@ export const ToolkitTransposeButton = () => {
           }
           type="number"
           placeholder={Infinity.toLocaleString()}
-          className="focus:bg-fuchsia-700 h-7 ml-4 w-16"
+          className="focus:bg-fuchsia-600 h-7 ml-4 w-16"
           onKeyDown={blurOnEnter}
         />
       </NavbarFormGroup>

@@ -1,26 +1,22 @@
 import { uniqBy } from "lodash";
 import { AppThunk } from "redux/store";
 import {
-  chromaticNotes,
-  chromaticScale,
   getNestedNoteAsMidi,
   getNestedScaleNotes,
-  getOffsettedNestedScale,
-  getRotatedNestedScale,
   getScaleNotes,
   initializeNestedScale,
   nestedChromaticNotes,
+  ScaleTrackScaleName,
 } from "types/Scale";
 import {
   isScaleTrack,
   getScaleTrackScale,
   ScaleTrack,
   initializeScaleTrack,
-  ScaleTrackScaleName,
 } from "types/ScaleTrack";
 import { TrackId } from "types/Track";
 import { MIDI } from "types/midi";
-import { addScaleTrack, updateScaleTrack } from "./ScaleTrackSlice";
+import { addScaleTrack } from "./ScaleTrackSlice";
 import { Note } from "types/units";
 import {
   selectScaleTrackById,

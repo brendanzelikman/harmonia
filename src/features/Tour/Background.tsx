@@ -1,12 +1,18 @@
 import { Transition } from "@headlessui/react";
 import { TRACK_WIDTH } from "appConstants";
 import { NAV_HEIGHT } from "features/Navbar";
-import { selectRootTour } from "redux/Root";
-import { useAppSelector } from "redux/hooks";
+import { useState } from "react";
+import { END_TOUR, SET_TOUR_ID, START_TOUR } from ".";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 
 // Onboarding tour background
 export const TourBackground = () => {
-  const { show, id } = useAppSelector(selectRootTour);
+  const [show, setShow] = useState(false);
+  const [id, setId] = useState("tour-step-welcome-to-harmonia");
+
+  useCustomEventListener(START_TOUR, () => setShow(true));
+  useCustomEventListener(END_TOUR, () => setShow(false));
+  useCustomEventListener(SET_TOUR_ID, (e: CustomEvent) => setId(e.detail));
 
   const Block = ({
     className,
@@ -52,26 +58,17 @@ export const TourBackground = () => {
     "tour-step-confetti",
   ];
   const onTimeline = stepsWithTimeline.includes(id);
-  const stepsWithEditor = [
-    "tour-step-pattern-editor-intro",
-    "tour-step-pattern-editor-conclusion",
-  ];
-  const onEditor = stepsWithEditor.includes(id);
   const BodyBlock = () => {
     const top = NAV_HEIGHT;
-    const left = onTracks ? TRACK_WIDTH : onEditor ? undefined : 0;
-    const right = onEditor ? `calc(100vw - ${TRACK_WIDTH}px)` : 0;
+    const left = onTracks ? TRACK_WIDTH : 0;
     const height = `calc(100% - ${NAV_HEIGHT}px)`;
     const opacity = onTimeline ? 0 : 1;
-    const transition = onEditor ? "none" : undefined;
     return Block({
       style: {
         top,
         left,
-        right,
         height,
         opacity,
-        transition,
       },
     });
   };

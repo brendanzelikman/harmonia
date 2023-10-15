@@ -1,7 +1,6 @@
 import { FormatterProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
 import {
-  selectRoot,
   selectTimeline,
   selectTickFromColumn,
   selectTrackById,
@@ -20,7 +19,6 @@ import { isAddingClips, isAddingTranspositions } from "types/Timeline";
 function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const columnIndex = Number(ownProps.column.key);
   const trackId = ownProps.row.trackId;
-  const root = selectRoot(state);
   const transport = selectTransport(state);
 
   // Timeline properties

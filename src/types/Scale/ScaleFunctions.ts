@@ -1,10 +1,10 @@
-import { ERROR_TAG, Note, Pitch } from "types/units";
+import { Note, Pitch } from "types/units";
 import { MIDI } from "../midi";
 import {
   PresetScaleGroupList,
   PresetScaleGroupMap,
   PresetScaleList,
-} from "../../presets/scales";
+} from "presets/scales";
 import {
   Scale,
   isScale,
@@ -19,9 +19,10 @@ import {
   NestedNote,
   chromaticScale,
   nestedChromaticScale,
+  ScaleTrackScaleName,
 } from "./ScaleTypes";
 import { mod } from "utils";
-import { ScaleTrackScaleName } from "types/ScaleTrack";
+
 import {
   Transposition,
   getChordalOffset,
@@ -350,16 +351,16 @@ export const getOffsettedNestedScale = (scale: NestedScale, offset = 0) => {
 
 /**
  * Rotate the `NestedScale` using the given chordal offset.
- * @param trackScale The TrackScale.
+ * @param scale The NestedScale.
  * @param offset The offset to rotate the nested scale by.
  * @returns The chordally transposed `NestedScale`.
  */
-export const getRotatedNestedScale = (trackScale: NestedScale, offset = 0) => {
+export const getRotatedNestedScale = (scale: NestedScale, offset = 0) => {
   // Avoid unnecessary work
-  if (offset === 0) return trackScale;
+  if (offset === 0) return scale;
 
   // Unpack the scale
-  const notes = getNestedScaleNotes(trackScale);
+  const notes = getNestedScaleNotes(scale);
   const modulus = notes.length;
 
   // Rotate the track scale
@@ -375,12 +376,12 @@ export const getRotatedNestedScale = (trackScale: NestedScale, offset = 0) => {
     const newOffset = note.offset + octaveDistance * 12;
 
     // Return the new note
-    return { degree: newDegree, offset: newOffset };
+    return { degree: newDegree, offset: newOffset } as NestedNote;
   });
 
   // Return the transposed track scale
-  if (isNestedScaleArray(trackScale)) return rotatedScale;
-  return { ...trackScale, notes: rotatedScale };
+  if (isNestedScaleArray(scale)) return rotatedScale;
+  return { ...scale, notes: rotatedScale };
 };
 
 /**
@@ -414,11 +415,12 @@ export const getTransposedNestedScale = (
     const newOffset = note.offset + octaveDistance * 12;
 
     // Return the new note
-    return { degree: newDegree, offset: newOffset };
+    return { degree: newDegree, offset: newOffset } as NestedNote;
   });
 
   // Return the transposed track scale
-  return transposedScale;
+  if (isNestedScaleArray(scale)) return transposedScale;
+  return { ...scale, notes: transposedScale };
 };
 
 /**

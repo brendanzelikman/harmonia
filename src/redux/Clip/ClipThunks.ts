@@ -14,7 +14,7 @@ import {
 } from "types/Clip";
 import { addClips, removeClips } from "./ClipSlice";
 import { selectClipsByIds } from "./ClipSelectors";
-import { selectRoot } from "redux/Root";
+import { selectProject } from "redux/Project";
 import { selectPatternMap } from "redux/Pattern";
 import {
   selectPatternTrackMap,
@@ -104,7 +104,7 @@ export const exportClipsToMidi =
     if (!clips.length) return;
 
     // Get the dependencies
-    const root = selectRoot(state);
+    const project = selectProject(state);
     const patterns = selectPatternMap(state);
     const patternTracks = selectPatternTrackMap(state);
     const scaleTrackMap = selectScaleTrackMap(state);
@@ -189,7 +189,7 @@ export const exportClipsToMidi =
     // Download the MIDI file
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${root.projectName || "file"}.mid`;
+    a.download = `${project.name || "file"}.mid`;
     a.click();
     URL.revokeObjectURL(url);
   };

@@ -11,6 +11,6 @@ export * from "./Clip/ClipSelectors";
 export * from "./Transposition/TranspositionSelectors";
 export * from "./Session/SessionSelectors";
 
-export * from "./Root/RootSelectors";
-export * from "./Transport/TransportSelectors";
 export * from "./Timeline/TimelineSelectors";
+export * from "./Transport/TransportSelectors";
+export * from "./Project/ProjectSelectors";

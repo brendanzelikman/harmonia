@@ -1,5 +1,4 @@
-import { ScaleId, ScaleMap, ScaleObject } from "types/Scale";
-
+import { ScaleMap, ScaleObject } from "types/Scale";
 import BasicScales from "./BasicScales";
 import BasicModes from "./BasicModes";
 import PentatonicScales from "./PentatonicScales";

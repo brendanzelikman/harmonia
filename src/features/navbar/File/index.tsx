@@ -1,24 +1,26 @@
 import { CiUndo, CiRedo } from "react-icons/ci";
 import {
   selectEditor,
-  selectRoot,
+  selectProject,
   selectTransport,
   selectTimelineEndTick,
 } from "redux/selectors";
 import { blurOnEnter, percentOfRange } from "utils";
 import { BiMusic, BiSave, BiTrash, BiUpload } from "react-icons/bi";
 import { SiMidi } from "react-icons/si";
-import { clearState, readFiles, saveStateToFile } from "redux/util";
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment, useMemo } from "react";
 import {
+  deleteCurrentProject,
   downloadTransport,
-  saveStateToMIDI,
+  readProjectFiles,
+  saveProjectAsHAM,
+  saveProjectAsMIDI,
   stopDownloadingTransport,
 } from "redux/thunks";
 import { BsFiletypeWav, BsMusicPlayerFill } from "react-icons/bs";
 import { toggleEditor } from "redux/Editor";
-import { loadDemo, setProjectName } from "redux/Root";
+import { setProjectName } from "redux/Project";
 import {
   NavbarButton,
   NavbarFormGroup,
@@ -31,15 +33,17 @@ import { useAppDispatch, useAppSelector } from "redux/hooks";
 import { isEditorOn } from "types/Editor";
 import { redoSession, undoSession } from "redux/Session";
 import useTransportTick from "hooks/useTransportTick";
+import { useNavigate } from "react-router-dom";
 
 export function NavbarFileMenu() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const canUndo = useAppSelector((state) => state.session.past.length);
   const canRedo = useAppSelector((state) => state.session.future.length);
   const { downloading } = useAppSelector(selectTransport);
   const offlineTick = useTransportTick({ offline: true });
   const endTick = useAppSelector(selectTimelineEndTick);
-  const root = useAppSelector(selectRoot);
+  const project = useAppSelector(selectProject);
   const editor = useAppSelector(selectEditor);
   const onFileEditor = isEditorOn(editor, "file");
 
@@ -79,7 +83,7 @@ export function NavbarFileMenu() {
   const SaveToHAMButton = () => (
     <NavbarFormGroup
       className="px-2 h-8 hover:bg-sky-600 cursor-pointer"
-      onClick={saveStateToFile}
+      onClick={() => dispatch(saveProjectAsHAM())}
     >
       <NavbarFormLabel>Save to HAM</NavbarFormLabel>
       <BiSave className="text-2xl" />
@@ -92,7 +96,7 @@ export function NavbarFileMenu() {
   const LoadFromHAMButton = () => (
     <NavbarFormGroup
       className="px-2 h-8 hover:bg-sky-600 cursor-pointer"
-      onClick={readFiles}
+      onClick={() => dispatch(readProjectFiles())}
     >
       <NavbarFormLabel>Load from HAM</NavbarFormLabel>
       <BiUpload className="text-2xl" />
@@ -163,7 +167,7 @@ export function NavbarFileMenu() {
   const SaveToMIDIButton = () => (
     <NavbarFormGroup
       className="h-8 hover:bg-sky-600 cursor-pointer"
-      onClick={() => dispatch(saveStateToMIDI())}
+      onClick={() => dispatch(saveProjectAsMIDI())}
     >
       <NavbarFormLabel>Export to MIDI</NavbarFormLabel>
       <SiMidi className="text-2xl" />
@@ -171,14 +175,14 @@ export function NavbarFileMenu() {
   );
 
   /**
-   * The demo button allows the user to load the demo project.
+   * The projects button allows the user to view their projects.
    */
-  const DemoButton = () => (
+  const ProjectsButton = () => (
     <NavbarFormGroup
       className="h-8 hover:bg-sky-600 cursor-pointer"
-      onClick={() => dispatch(loadDemo())}
+      onClick={() => navigate("/projects")}
     >
-      <NavbarFormLabel>Load Demo</NavbarFormLabel>
+      <NavbarFormLabel>View Projects</NavbarFormLabel>
       <BiMusic className="text-2xl" />
     </NavbarFormGroup>
   );
@@ -214,7 +218,7 @@ export function NavbarFileMenu() {
           <div className="flex w-full justify-center items-center space-x-2">
             <button
               className="w-1/2 px-2 py-1 rounded border border-red-500 hover:text-red-500 hover:drop-shadow cursor-pointer"
-              onClick={clearState}
+              onClick={() => dispatch(deleteCurrentProject())}
             >
               Yes
             </button>
@@ -253,7 +257,7 @@ export function NavbarFileMenu() {
       className="w-full focus:bg-sky-700/80 py-2 mb-2"
       type="text"
       placeholder="New Project"
-      value={root.projectName}
+      value={project.name}
       onChange={(e) => dispatch(setProjectName(e.target.value))}
       onKeyDown={blurOnEnter}
     />
@@ -283,7 +287,7 @@ export function NavbarFileMenu() {
             <LoadFromHAMButton />
             <SaveToWAVButton />
             <SaveToMIDIButton />
-            <DemoButton />
+            <ProjectsButton />
             <ClearButton />
           </NavbarTooltipMenu>
         }

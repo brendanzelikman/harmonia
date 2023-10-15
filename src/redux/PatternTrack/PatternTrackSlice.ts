@@ -19,7 +19,7 @@ export type RemovePatternTrackPayload = TrackId;
  */
 export type UpdatePatternTrackPayload = Partial<PatternTrack>;
 
-const initialState = initializeState<TrackId, PatternTrack>([
+export const defaultPatternTrackState = initializeState<TrackId, PatternTrack>([
   defaultPatternTrack,
 ]);
 
@@ -33,7 +33,7 @@ const initialState = initializeState<TrackId, PatternTrack>([
  */
 export const patternTracksSlice = createSlice({
   name: "patternTracks",
-  initialState,
+  initialState: defaultPatternTrackState,
   reducers: {
     /**
      * Add a PatternTrack to the store.

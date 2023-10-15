@@ -1,7 +1,7 @@
 import * as Timeline from "redux/Timeline";
 import * as Media from "redux/Media";
 import * as Transport from "redux/Transport";
-import * as Root from "redux/Root";
+import * as Project from "redux/Project";
 
 import { useAppSelector, useAppDispatch } from "redux/hooks";
 import { useScopedHotkeys, useOverridingHotkeys } from "lib/react-hotkeys-hook";
@@ -36,10 +36,10 @@ export default function useTimelineHotkeys() {
   );
 
   // Meta + Option + M = Save Timeline to MIDI
-  useHotkeys("meta+alt+m", () => dispatch(Root.saveStateToMIDI()));
+  useHotkeys("meta+alt+m", () => dispatch(Project.saveProjectAsMIDI()));
 
   // Shift + M = Export Selected Media
-  useHotkeys("shift+m", () => dispatch(Root.exportSelectedClipsToMIDI()));
+  useHotkeys("shift+m", () => dispatch(Timeline.exportSelectedClipsToMIDI()));
 
   // Meta + A = Select All Media
   useHotkeys("meta+a", () => dispatch(Media.selectAllMedia()));
@@ -102,12 +102,16 @@ export default function useTimelineHotkeys() {
   );
 
   // Up Arrow = Select Previous Track
-  useHotkeys("up", () => !mediaLength && dispatch(Root.selectPreviousTrack()), [
-    mediaLength,
-  ]);
+  useHotkeys(
+    "up",
+    () => !mediaLength && dispatch(Timeline.selectPreviousTrack()),
+    [mediaLength]
+  );
 
   // Down Arrow = Select Next Track
-  useHotkeys("down", () => !mediaLength && dispatch(Root.selectNextTrack()), [
-    mediaLength,
-  ]);
+  useHotkeys(
+    "down",
+    () => !mediaLength && dispatch(Timeline.selectNextTrack()),
+    [mediaLength]
+  );
 }

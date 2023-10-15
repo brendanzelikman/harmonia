@@ -5,7 +5,7 @@ import {
   initializeScaleTrack,
   mockScaleTrack,
 } from "./ScaleTrackTypes";
-import { NestedScaleMap, initializeNestedScale } from "types/Scale/ScaleTypes";
+import { NestedScaleMap, initializeNestedScale } from "types/Scale";
 
 test("getScaleTrackTag", () => {
   const tag = ScaleTrackFunctions.getScaleTrackTag(mockScaleTrack);

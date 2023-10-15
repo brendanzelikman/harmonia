@@ -12,4 +12,4 @@ export * from "./Media/MediaThunks";
 
 export * from "./Timeline/TimelineThunks";
 export * from "./Transport/TransportThunks";
-export * from "./Root/RootThunks";
+export * from "./Project/ProjectThunks";

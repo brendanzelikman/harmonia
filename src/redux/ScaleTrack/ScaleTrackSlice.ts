@@ -29,11 +29,13 @@ export type UpdateScaleTrackPayload = Partial<ScaleTrack>;
  *
  */
 
-const initialState = initializeState<ScaleId, ScaleTrack>([defaultScaleTrack]);
+export const defaultScaleTrackState = initializeState<ScaleId, ScaleTrack>([
+  defaultScaleTrack,
+]);
 
 export const scaleTracksSlice = createSlice({
   name: "scaleTracks",
-  initialState,
+  initialState: defaultScaleTrackState,
   reducers: {
     /**
      * Add a ScaleTrack to the store.

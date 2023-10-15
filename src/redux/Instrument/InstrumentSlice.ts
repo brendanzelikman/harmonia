@@ -22,7 +22,9 @@ import {
 import { PatternTrack } from "types/PatternTrack";
 import { TrackId } from "types/Track";
 
-const initialState = initializeState<InstrumentId, Instrument>([]);
+export const defaultInstrumentState = initializeState<InstrumentId, Instrument>(
+  []
+);
 
 /**
  * An `Instrument` can be added with a `PatternTrack` to the store.
@@ -132,7 +134,7 @@ export type ToggleInstrumentSoloPayload = InstrumentId;
  */
 export const instrumentsSlice = createSlice({
   name: "instruments",
-  initialState,
+  initialState: defaultInstrumentState,
   reducers: {
     /**
      * Add an instrument to the store (online).

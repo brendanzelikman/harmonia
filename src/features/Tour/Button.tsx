@@ -5,27 +5,27 @@ import { createPortal } from "react-dom";
 import { BsQuestionCircleFill } from "react-icons/bs";
 import { ShepherdTourContext } from "react-shepherd";
 import { hideEditor } from "redux/Editor";
-import { endTour, selectRootTour, startTour } from "redux/Root";
-import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { useAppDispatch } from "redux/hooks";
+import { END_TOUR, SET_TOUR_ID, START_TOUR } from ".";
+import { dispatchCustomEvent } from "utils/events";
 
 interface ContentProps {
   confetti: boolean;
   setConfetti: (confetti: boolean) => void;
 }
 
-export const ShepherdTourContent = (props: ContentProps) => {
+export const ShepherdTourButton = (props: ContentProps) => {
   const dispatch = useAppDispatch();
-  const { show } = useAppSelector(selectRootTour);
   const tour = useContext(ShepherdTourContext);
   const isActive = !!tour?.isActive();
   const [isStarted, setIsStarted] = useState(false);
-
   const cancelTour = () => tour?.cancel();
 
   const callback = () => {
     props.setConfetti(false);
-    dispatch(endTour());
     setIsStarted(false);
+    const event = new CustomEvent(END_TOUR);
+    window.dispatchEvent(event);
   };
 
   useEffect(() => {
@@ -51,19 +51,19 @@ export const ShepherdTourContent = (props: ContentProps) => {
 
   const onClick = () => {
     if (isActive || isStarted) {
-      props.setConfetti(false);
       tour.cancel();
+      dispatchCustomEvent(END_TOUR);
       setIsStarted(false);
-      dispatch(endTour());
+      props.setConfetti(false);
     } else {
-      dispatch(hideEditor());
       tour.start();
-      dispatch(startTour());
+      dispatchCustomEvent(START_TOUR);
+      dispatch(hideEditor());
     }
   };
 
-  const color = show ? "text-sky-600" : "text-slate-50";
-  const buttonClass = show
+  const color = isActive ? "text-sky-600" : "text-slate-50";
+  const buttonClass = isActive
     ? "rounded-full ring-2 ring-sky-600 ring-offset-4 ring-offset-gray-900"
     : "";
 

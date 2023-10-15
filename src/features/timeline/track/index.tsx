@@ -2,7 +2,6 @@ import { FormatterProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
 import {
   selectCell,
-  selectRootTour,
   selectSelectedTrackId,
   selectTrackById,
   selectTrackIndexById,
@@ -19,7 +18,6 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const selectedTrackId = selectSelectedTrackId(state);
   const track = selectTrackById(state, ownProps.row.trackId);
   const cell = selectCell(state);
-  const { id: tourId } = selectRootTour(state);
   const index = track ? selectTrackIndexById(state, track.id) : -1;
   return {
     row,
@@ -27,7 +25,6 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
     track,
     cell,
     index,
-    tourId,
   };
 }
 

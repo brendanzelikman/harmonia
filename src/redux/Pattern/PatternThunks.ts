@@ -2,7 +2,6 @@ import { ticksToToneSubdivision } from "utils";
 import {
   selectDraftedClip,
   selectPatternById,
-  selectRoot,
   selectTransport,
 } from "redux/selectors";
 import { AppThunk } from "redux/store";

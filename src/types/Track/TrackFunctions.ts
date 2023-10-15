@@ -28,10 +28,11 @@ import {
 import {
   NestedScale,
   NestedScaleMap,
-  ScaleMap,
   applyTranspositionToNestedScale,
   getNestedScaleNotes,
+  getScaleNotes,
   getTransposedNestedScale,
+  isNestedScaleArray,
   nestedChromaticScale,
 } from "types/Scale";
 import { getProperty } from "types/util";
@@ -152,7 +153,8 @@ export const getTransposedScaleTrackScale = (
 
   // Apply the final chromatic/chordal offsets to the track scale
   const finalScale = applyTranspositionToNestedScale(notes, transposition);
-  return finalScale;
+  if (!isNestedScaleArray(finalScale)) return finalScale;
+  return { ...scale, notes: finalScale };
 };
 
 /**
@@ -229,7 +231,7 @@ export const getTransposedPatternStream = ({
   transposition,
   tracks,
   scaleMap,
-  scaleTrackMap: scaleTracks,
+  scaleTrackMap,
   quantizations,
 }: {
   pattern: Pattern;
@@ -239,9 +241,9 @@ export const getTransposedPatternStream = ({
   scaleTrackMap?: ScaleTrackMap;
   quantizations?: boolean[];
 }) => {
-  if (!pattern) return [];
-  if (!scaleMap || !transposition || !scaleTracks) return pattern.stream;
-  if (!tracks || tracks?.some((track) => !isScaleTrack(track))) return [];
+  if (!scaleMap || !transposition || !scaleTrackMap) return pattern.stream;
+  if (!tracks || tracks?.some((track) => !isScaleTrack(track)))
+    return pattern.stream;
 
   // Initialize the loop variables
   const { offsets } = transposition;
@@ -249,7 +251,7 @@ export const getTransposedPatternStream = ({
   // Compute the pattern stream through all transposed parents
   const patternStream = tracks.reduce((acc, track, i) => {
     // Get the scale track scale and offset
-    const scale = getScaleTrackScale(track, scaleTracks, scaleMap);
+    const scale = getScaleTrackScale(track, scaleTrackMap, scaleMap);
     const offset = offsets[track.id];
 
     // Quantize the parent to the scale if a transposition exists

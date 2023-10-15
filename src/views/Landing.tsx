@@ -1,13 +1,17 @@
+import { useNavigate } from "react-router-dom";
 import { Background, Splash } from "../components/Logo";
 
-export const MainButton = () => (
-  <a
-    href={"/harmonia/playground"}
-    className="border border-slate-400 py-5 px-8 rounded-2xl text-slate-100 backdrop-blur bg-gradient-to-b from-sky-500/50 hover:from-sky-600 to-sky-700/80 hover:to-sky-700 drop-shadow-xl sm:text-4xl text-sm font-light"
-  >
-    Make Music Now!
-  </a>
-);
+export const MainButton = () => {
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => navigate("/projects")}
+      className="border border-slate-400 py-5 px-8 rounded-2xl text-slate-100 backdrop-blur bg-gradient-to-b from-sky-500/50 hover:from-sky-600 to-sky-700/80 hover:to-sky-700 drop-shadow-xl sm:text-4xl text-sm font-light"
+    >
+      Make Music Now!
+    </button>
+  );
+};
 
 export const LandingView = () => {
   const SplashScreen = () => (

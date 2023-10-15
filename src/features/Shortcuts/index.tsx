@@ -1,10 +1,11 @@
 import { Dialog, Listbox, Transition } from "@headlessui/react";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { BsCheck } from "react-icons/bs";
-import { selectRoot } from "redux/selectors";
-import { toggleShortcuts } from "redux/Root";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { useAppDispatch } from "redux/hooks";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
+
+export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
 
 function TimelineShortcuts() {
   return (
@@ -536,20 +537,24 @@ type ShortcutView = "timeline" | "editor" | "transpositions";
 
 export default function ShortcutsMenu() {
   const dispatch = useAppDispatch();
-  const { showingShortcuts } = useAppSelector(selectRoot);
+  const [show, setShow] = useState(false);
   const [view, setView] = useState<ShortcutView>("timeline");
   const viewTimeline = () => setView("timeline");
   const viewEditor = () => setView("editor");
   const viewTranspositions = () => setView("transpositions");
-  useHotkeys("shift+?", () => dispatch(toggleShortcuts()));
+
+  const toggleShortcuts = () => setShow(!show);
+
+  useCustomEventListener(TOGGLE_SHORTCUTS, () => setShow(!show));
+  useHotkeys("shift+?", toggleShortcuts);
 
   return (
-    <Transition appear show={showingShortcuts} as={Fragment}>
+    <Transition appear show={show} as={Fragment}>
       <Dialog
-        open={showingShortcuts}
+        open={show}
         as="div"
         className="relative font-nunito"
-        onClose={() => dispatch(toggleShortcuts())}
+        onClose={toggleShortcuts}
       >
         <div className="fixed flex flex-col inset-0 p-2 pt-4 pb-8 z-50 bg-slate-800/80 text-slate-200 backdrop-blur overflow-scroll">
           <div className="flex justify-center">
@@ -574,10 +579,7 @@ export default function ShortcutsMenu() {
               activeClass="bg-slate-700/75 drop-shadow-xl"
               class="hover:bg-slate-600/50 active:bg-slate-800"
             />
-            <ShortcutButton
-              title="Close Menu"
-              onClick={() => dispatch(toggleShortcuts())}
-            />
+            <ShortcutButton title="Close Menu" onClick={toggleShortcuts} />
           </div>
           {view === "timeline" ? (
             <Transition.Child

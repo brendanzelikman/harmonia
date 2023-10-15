@@ -9,6 +9,6 @@ export * as Clips from "./Clip/ClipSlice";
 export * as Transpositions from "./Transposition/TranspositionSlice";
 export * as Session from "./Session/SessionSlice";
 
-export * as Root from "./Root/RootSlice";
+export * as Project from "./Project/ProjectSlice";
 export * as Timeline from "./Timeline/TimelineSlice";
 export * as Transport from "./Transport/TransportSlice";

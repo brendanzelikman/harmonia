@@ -69,7 +69,7 @@ export interface Session extends NormalizedState<TrackId, SessionEntity> {
 export type SessionMap = Record<TrackId, SessionEntity>;
 
 /**
- * The default session map is initialized with a default scale track and a default pattern track.
+ * The default session is initialized with a default scale track and a default pattern track.
  */
 export const defaultSession: Session = {
   ...initializeState<TrackId, SessionEntity>([
@@ -80,9 +80,9 @@ export const defaultSession: Session = {
 };
 
 /**
- * Checks if a given object is of type `SessionMap`.
+ * Checks if a given object is of type `Session`.
  * @param obj The object to check.
- * @returns True if the object is a `SessionMap`, otherwise false.
+ * @returns True if the object is a `Session`, otherwise false.
  */
 export const isSession = (obj: unknown): obj is Session => {
   const candidate = obj as Session;

@@ -35,7 +35,7 @@ export const getScaleTrackScale = (
 
   // Get the parent and scale of the scale track
   let { parentId, scaleId: nestedScaleId } = scaleTrack;
-  let scale = scaleMap[nestedScaleId];
+  const scale = scaleMap[nestedScaleId];
   let notes = scale?.notes || [];
 
   // Keep going up parents while there is a parent scale track

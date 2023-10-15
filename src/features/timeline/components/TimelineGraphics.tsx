@@ -5,7 +5,6 @@ import { RootState } from "redux/store";
 import {
   selectCellHeight,
   selectCellWidth,
-  selectRoot,
   selectSelectedTrack,
   selectTimelineObjectTop,
   selectOrderedTrackIds,

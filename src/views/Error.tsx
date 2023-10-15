@@ -1,18 +1,20 @@
 import { useRouteError } from "react-router-dom";
-import { MainButton } from "./LandingView";
+import { MainButton } from "./Landing";
 import { Splash, Background } from "../components/Logo";
-import { clearState } from "redux/util";
 import { unpackError } from "lib/react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { deleteCurrentProject } from "redux/thunks";
+import { useAppDispatch } from "redux/hooks";
 
 export const ErrorView = () => {
+  const dispatch = useAppDispatch();
   const error = useRouteError();
   const { message, stack } = unpackError(error);
 
   // Clear the state when the user presses Shift + Backspace.
   const heldKeys = useHeldHotkeys(["Shift", "Backspace"]);
-  useHotkeys("shift+backspace", clearState);
+  useHotkeys("shift+backspace", () => dispatch(deleteCurrentProject()));
 
   // The error message is displayed in red.
   const ErrorMessage = () => <p className="text-red-500">{message}</p>;

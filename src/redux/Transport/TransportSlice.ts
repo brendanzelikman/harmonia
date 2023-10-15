@@ -24,7 +24,6 @@ import { BPM, Tick, Volume } from "types/units";
  * @property `setLoading` - Set the transport loading state to true or false.
  * @property `setRecording` - Set the transport recording state to true or false.
  * @property `setDownloading` - Set the transport downloading state to true or false.
- * @property `setOfflineTick` - Set the transport offline tick to the given value.
  *
  */
 export const transportSlice = createSlice({

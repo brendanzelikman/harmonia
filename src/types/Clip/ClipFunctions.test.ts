@@ -3,6 +3,7 @@ import { Clip, defaultClip, mockClip } from "./ClipTypes";
 import * as ClipFunctions from "./ClipFunctions";
 import {
   Pattern,
+  PatternMap,
   defaultPattern,
   getPatternStreamTicks,
   initializePattern,
@@ -10,10 +11,14 @@ import {
 } from "types/Pattern";
 import { MIDI } from "types/midi";
 import { PatternTrack, defaultPatternTrack } from "types/PatternTrack";
-import { ScaleTrack, defaultScaleTrack } from "types/ScaleTrack";
+import { ScaleTrack, ScaleTrackMap, defaultScaleTrack } from "types/ScaleTrack";
 import { createSession } from "types/Session";
-import { Transposition } from "types/Transposition";
-import { NestedScale, initializeNestedScale } from "types/Scale";
+import { Transposition, TranspositionMap } from "types/Transposition";
+import {
+  NestedScale,
+  NestedScaleMap,
+  initializeNestedScale,
+} from "types/Scale";
 import { createMap } from "types/util";
 
 test("getClipTag", () => {
@@ -174,30 +179,35 @@ test("getClipStream", () => {
       clipTransposition,
     ],
   });
+  const sessionMap = session.byId;
 
-  const patterns = createMap([pattern]);
+  const patternMap = createMap<PatternMap>([pattern]);
   const patternTrackMap = { [patternTrack.id]: patternTrack };
 
-  const scaleMap = createMap([parentScale, childScale, babyScale]);
-  const scaleTrackMap = createMap([
+  const scaleMap = createMap<NestedScaleMap>([
+    parentScale,
+    childScale,
+    babyScale,
+  ]);
+  const scaleTrackMap = createMap<ScaleTrackMap>([
     parentScaleTrack,
     childScaleTrack,
     babyScaleTrack,
   ]);
-  const transpositions = {
-    [parentScaleTransposition.id]: parentScaleTransposition,
-    [childScaleTransposition.id]: childScaleTransposition,
-    [babyScaleTransposition.id]: babyScaleTransposition,
-    [clipTransposition.id]: clipTransposition,
-  };
+  const transpositionMap = createMap<TranspositionMap>([
+    parentScaleTransposition,
+    childScaleTransposition,
+    babyScaleTransposition,
+    clipTransposition,
+  ]);
   const stream = ClipFunctions.getClipStream(
     clip,
-    patterns,
+    patternMap,
     patternTrackMap,
     scaleMap,
     scaleTrackMap,
-    transpositions,
-    session.byId
+    transpositionMap,
+    sessionMap
   );
   const streamNotes = stream.filter((n) => n?.[0]);
   expect(streamNotes[0][0].MIDI).toSatisfy((n) => n === 71 || n === 78);

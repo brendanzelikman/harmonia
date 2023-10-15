@@ -1,13 +1,8 @@
 import { RootState } from "redux/store";
 import { createSelector } from "reselect";
-import {
-  ScaleId,
-  getNestedScaleNotes,
-  realizeNestedScaleNotes,
-} from "types/Scale";
+import { ScaleId } from "types/Scale";
 import { getProperties, getProperty } from "types/util";
-import { PresetScaleList, PresetScaleMap } from "presets/scales";
-import { ScaleTrackScaleName } from "types/ScaleTrack";
+import { ScaleTrackScaleName } from "types/Scale";
 
 /**
  * Select all scale IDs from the store.

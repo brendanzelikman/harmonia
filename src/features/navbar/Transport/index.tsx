@@ -60,7 +60,7 @@ export function NavbarTransport() {
         htmlFor="timer"
         className={`absolute text-xs duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-0 bg-gray-900 rounded px-1 left-1.5`}
       >
-        Tick - {tick}
+        Tick: {tick}
       </label>
     </div>
   );

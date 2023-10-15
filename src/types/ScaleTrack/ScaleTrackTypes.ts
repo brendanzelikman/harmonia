@@ -6,7 +6,6 @@ import { TrackId, TrackInterface, isTrackInterface } from "types/Track";
 export type ScaleTrackType = "scaleTrack";
 export type ScaleTrackNoId = Omit<ScaleTrack, "id">;
 export type ScaleTrackMap = Record<TrackId, ScaleTrack>;
-export const ScaleTrackScaleName = "$$$$$_track_scale_$$$$$";
 
 /**
  * A `ScaleTrack` represents a `Track` with its own `NestedScale`.

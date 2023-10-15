@@ -10,7 +10,10 @@ import { union, without } from "lodash";
 import { MediaPayload, PartialMediaPayload } from "types/Media";
 import { updateMediaInSession } from "redux/Session";
 
-const initialTranspositions = initializeState<TranspositionId, Transposition>();
+export const defaultTranspositionState = initializeState<
+  TranspositionId,
+  Transposition
+>();
 
 /**
  * `Transpositions` can be added with a `MediaPayload`.
@@ -60,7 +63,7 @@ export type ClearTranspositionsByTrackIdPayload = TrackId;
  */
 export const transpositionsSlice = createSlice({
   name: "transpositions",
-  initialState: initialTranspositions,
+  initialState: defaultTranspositionState,
   reducers: {
     /**
      * Add transpositions to the store.

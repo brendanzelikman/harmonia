@@ -17,6 +17,7 @@ import {
   isHoldingOption,
   subdivisionToTicks,
   ticksToColumns,
+  mod,
 } from "utils";
 import {
   selectCellWidth,
@@ -36,6 +37,7 @@ import {
   selectClipDurations,
   selectClipsByTrackIds,
   createClips,
+  exportClipsToMidi,
 } from "redux/Clip";
 import { Transposition } from "types/Transposition";
 import { seekTransport } from "redux/Transport";
@@ -463,7 +465,9 @@ export const onClipDragEnd =
     }
 
     // Otherwise, create the new media
-    dispatch(createMedia(payload)).then(updateMediaSelection);
+    dispatch(createMedia(payload)).then((ids) =>
+      dispatch(updateMediaSelection(ids))
+    );
   };
 
 /**
@@ -556,7 +560,9 @@ export const onTranspositionDragEnd =
     }
 
     // Otherwise, create the new media
-    dispatch(createMedia(payload)).then(updateMediaSelection);
+    dispatch(createMedia(payload)).then((ids) =>
+      dispatch(updateMediaSelection(ids))
+    );
   };
 
 /**
@@ -602,4 +608,55 @@ export const addTranspositionToTimeline =
 
     // Create the transposition
     dispatch(createTranspositions([transposition]));
+  };
+
+/**
+ * Select the previous track in the timeline if possible.
+ */
+export const selectPreviousTrack = (): AppThunk => (dispatch, getState) => {
+  const state = getState();
+  const selectedTrackId = selectSelectedTrackId(state);
+  if (!selectedTrackId) return;
+
+  // Get the tracks from the store
+  const orderedTrackIds = selectOrderedTrackIds(state);
+  const trackCount = orderedTrackIds.length;
+
+  // Compute the new index
+  const index = orderedTrackIds.indexOf(selectedTrackId);
+  const previousTrackId = orderedTrackIds[mod(index - 1, trackCount)];
+
+  // Dispatch the action
+  dispatch(setSelectedTrackId(previousTrackId));
+};
+
+/**
+ * Select the next track in the timeline if possible.
+ */
+export const selectNextTrack = (): AppThunk => (dispatch, getState) => {
+  const state = getState();
+  const selectedTrackId = selectSelectedTrackId(state);
+  if (!selectedTrackId) return;
+
+  // Get the tracks from the store
+  const orderedTrackIds = selectOrderedTrackIds(state);
+  const trackCount = orderedTrackIds.length;
+
+  // Compute the new index
+  const index = orderedTrackIds.indexOf(selectedTrackId);
+  const nextTrackId = orderedTrackIds[mod(index + 1, trackCount)];
+
+  // Dispatch the action
+  dispatch(setSelectedTrackId(nextTrackId));
+};
+
+/**
+ * Export all selected clips to a MIDI file.
+ * @param options The options for the MIDI file.
+ */
+export const exportSelectedClipsToMIDI =
+  (): AppThunk => (dispatch, getState) => {
+    const state = getState();
+    const selectedClipIds = selectSelectedClipIds(state);
+    dispatch(exportClipsToMidi(selectedClipIds));
   };

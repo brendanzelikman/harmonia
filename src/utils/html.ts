@@ -66,3 +66,22 @@ export const blurOnEnter = (e: React.KeyboardEvent) => {
 export const blurOnMouseUp = (e: React.MouseEvent) => {
   (e.currentTarget as HTMLElement).blur();
 };
+
+export const isLocalStorageAvailable = () => {
+  const test = "test";
+  try {
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+export const getLocalStorageSpace = () => {
+  const storage = window.localStorage;
+  const usedSpace = JSON.stringify(storage).length;
+  const totalSpace = 5 * 1024 * 1024; // 5MB
+  const remainingSpace = totalSpace - usedSpace;
+  return { usedSpace, remainingSpace, totalSpace };
+};

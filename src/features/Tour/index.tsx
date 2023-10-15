@@ -1,4 +1,3 @@
-import * as Root from "redux/Root";
 import { useCallback, useMemo, useState } from "react";
 import { Step, ShepherdTour, Tour } from "react-shepherd";
 import { hideEditor, selectEditor, showEditor } from "redux/Editor";
@@ -6,10 +5,18 @@ import { selectTimeline, setTimelineState } from "redux/Timeline";
 import { useAppDispatch, useAppSelector } from "redux/hooks";
 import "lib/react-shepherd.css";
 import { EditorId, isEditorOn } from "types/Editor";
-import { ShepherdTourContent } from "./Content";
+import { ShepherdTourButton } from "./Button";
 import { TimelineState, isIdle } from "types/Timeline";
+import { dispatchCustomEvent } from "utils/events";
+
 export { TourBackground } from "./Background";
 
+// Custom events
+export const SET_TOUR_ID = "SET_TOUR_ID";
+export const START_TOUR = "START_TOUR";
+export const END_TOUR = "END_TOUR";
+
+/** The onboarding tour uses the react-shepherd library */
 export function OnboardingTour() {
   const dispatch = useAppDispatch();
   const editor = useAppSelector(selectEditor);
@@ -18,7 +25,6 @@ export function OnboardingTour() {
 
   const defaultClass =
     "bg-slate-800/75 backdrop-blur text-slate-300 p-8 rounded-md text-sm font-nunito border-4 border-slate-900 ring-8 ring-sky-500/80 drop-shadow-2xl focus:outline-none z-90";
-
   const defaultButtons: Step.StepOptionsButton[] = [
     {
       text: "Next",
@@ -26,7 +32,6 @@ export function OnboardingTour() {
         "bg-sky-600 font-bold px-4 py-2 rounded-lg mr-2 hover:bg-sky-700",
       action() {
         this.next();
-        dispatch(Root.nextTourStep());
       },
     },
     {
@@ -34,7 +39,6 @@ export function OnboardingTour() {
       classes: "bg-slate-600 p-3 px-4 py-2 rounded-lg mx-2 hover:bg-slate-700",
       action() {
         this.cancel();
-        dispatch(Root.endTour());
       },
     },
   ];
@@ -90,13 +94,9 @@ export function OnboardingTour() {
       text: options.text || "",
       classes: options.classes || defaultClass,
       buttons: options.buttons || defaultButtons,
-      beforeShowPromise:
-        options.beforeShowPromise ||
-        (() =>
-          new Promise<void>((resolve) => {
-            dispatch(Root.setTourId(options.id || "unknown-step"));
-            resolve();
-          })),
+      when: {
+        show: () => dispatchCustomEvent(SET_TOUR_ID, options.id),
+      },
     };
     return step;
   };
@@ -106,7 +106,6 @@ export function OnboardingTour() {
     (id: string, stateId: EditorId) => {
       return () =>
         new Promise((resolve) => {
-          dispatch(Root.setTourId(id));
           if (!isIdle(timeline)) dispatch(setTimelineState("idle"));
           if (isEditorOn(editor, stateId)) return resolve(true);
           dispatch(showEditor({ id: stateId }));
@@ -121,7 +120,6 @@ export function OnboardingTour() {
     (id: string, state: TimelineState) => {
       return () =>
         new Promise((resolve) => {
-          dispatch(Root.setTourId(id));
           dispatch(hideEditor());
           dispatch(setTimelineState(state));
           resolve(true);
@@ -174,7 +172,7 @@ export function OnboardingTour() {
         "border border-slate-600/50 bg-sky-600 font-bold px-4 py-2 rounded-lg mr-2 hover:bg-sky-700 hover:border-slate-600/75",
       action() {
         this.next();
-        dispatch(Root.nextTourStep());
+
         dispatch(hideEditor());
       },
     });
@@ -184,7 +182,6 @@ export function OnboardingTour() {
         "border border-slate-600/50 bg-slate-600 p-3 px-4 py-2 rounded-lg mx-2 hover:bg-slate-700 hover:border-slate-600/75",
       action() {
         this.cancel();
-        dispatch(Root.endTour());
       },
     });
     return createStep({ id, text, buttons: [yesButton, noButton] });
@@ -422,7 +419,6 @@ export function OnboardingTour() {
       beforeShowPromise: () =>
         new Promise<void>((resolve) => {
           setConfetti(true);
-          dispatch(Root.setTourId(id));
           dispatch(hideEditor());
           resolve();
         }),
@@ -451,7 +447,7 @@ export function OnboardingTour() {
   const tourOptions: Tour.TourOptions = { useModalOverlay: false };
   return (
     <ShepherdTour steps={steps} tourOptions={tourOptions}>
-      <ShepherdTourContent confetti={confetti} setConfetti={setConfetti} />
+      <ShepherdTourButton confetti={confetti} setConfetti={setConfetti} />
     </ShepherdTour>
   );
 }

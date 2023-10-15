@@ -6,9 +6,9 @@ import {
   defaultNestedScale,
   NestedScaleId,
   NestedScaleObject,
+  ScaleTrackScaleName,
 } from "types/Scale";
 import { Note } from "types/units";
-import { ScaleTrackScaleName } from "types/ScaleTrack";
 
 // The initial scale has the track scale name
 const initialScale = { ...defaultNestedScale, name: ScaleTrackScaleName };
@@ -58,9 +58,10 @@ export type RotateScalePayload = { id: NestedScaleId; offset: number };
  */
 export type ClearScalePayload = NestedScaleId;
 
-const initialState = initializeState<NestedScaleId, NestedScaleObject>([
-  initialScale,
-]);
+export const defaultScaleState = initializeState<
+  NestedScaleId,
+  NestedScaleObject
+>([initialScale]);
 
 /**
  * The scales slice contains all custom scales in the store.
@@ -73,7 +74,7 @@ const initialState = initializeState<NestedScaleId, NestedScaleObject>([
  */
 export const scalesSlice = createSlice({
   name: "scales",
-  initialState,
+  initialState: defaultScaleState,
   reducers: {
     /**
      * Set the list of scale IDs.

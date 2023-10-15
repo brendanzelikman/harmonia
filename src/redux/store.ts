@@ -4,12 +4,51 @@ import {
   configureStore,
   ThunkAction,
 } from "@reduxjs/toolkit";
+import { saveProjectToLocalStorage } from "redux/Project";
 import * as Slices from "./slices";
 import undoable, { includeAction } from "redux-undo";
-import { saveState, loadState, getSliceActions } from "./util";
+import { getSliceActions } from "./util";
 import { groupByActionType, UndoTypes } from "./undoTypes";
-import { handleInstrumentMiddleware } from "./Instrument";
+import {
+  defaultInstrumentState,
+  handleInstrumentMiddleware,
+} from "./Instrument";
 import { Transport } from "tone";
+import { defaultSession } from "types/Session";
+import { defaultEditor } from "types/Editor";
+import { defaultTimeline } from "types/Timeline";
+import { defaultTransport } from "types/Transport";
+import { defaultPatternState } from "./Pattern";
+import { defaultScaleState } from "./Scale";
+import { defaultScaleTrackState } from "./ScaleTrack";
+import { defaultPatternTrackState } from "./PatternTrack";
+import { defaultClipState } from "./Clip";
+import { defaultTranspositionState } from "./Transposition";
+import { CURRENT_PROJECT, initializeProject } from "types/Project";
+
+/**
+ * The default root state.
+ */
+export const defaultRootState: RootState = {
+  session: {
+    present: {
+      scaleTracks: defaultScaleTrackState,
+      patternTracks: defaultPatternTrackState,
+      clips: defaultClipState,
+      transpositions: defaultTranspositionState,
+      instruments: defaultInstrumentState,
+      session: defaultSession,
+    },
+    past: [],
+    future: [],
+  },
+  scales: { present: defaultScaleState, past: [], future: [] },
+  patterns: { present: defaultPatternState, past: [], future: [] },
+  project: initializeProject(),
+  editor: defaultEditor,
+  timeline: defaultTimeline,
+  transport: defaultTransport,
+};
 
 const session = combineReducers({
   scaleTracks: Slices.ScaleTracks.default,
@@ -53,7 +92,7 @@ const undoablePatterns = undoable(Slices.Patterns.default, {
   limit: 16,
 });
 
-const root = Slices.Root.default;
+const project = Slices.Project.default;
 const editor = Slices.Editor.default;
 const timeline = Slices.Timeline.default;
 const transport = Slices.Transport.default;
@@ -62,13 +101,31 @@ const reducer = combineReducers({
   scales: undoableScales,
   patterns: undoablePatterns,
   session: undoableSession,
-  root,
   editor,
   timeline,
   transport,
+  project,
 });
 
-const preloadedState = loadState();
+/** Try to load the current project from local storage. */
+export const getCurrentProject = () => {
+  try {
+    // Get the current project ID from local storage.
+    const id = localStorage.getItem(CURRENT_PROJECT);
+    if (!id) return;
+
+    // Get the state from local storage.
+    const serializedState = localStorage.getItem(id);
+    if (!serializedState) return;
+
+    // Otherwise, return the parsed state.
+    return JSON.parse(serializedState);
+  } catch (e) {
+    console.log(e);
+    return;
+  }
+};
+const preloadedState = getCurrentProject();
 export const store = configureStore({
   reducer,
   preloadedState,
@@ -76,8 +133,9 @@ export const store = configureStore({
 });
 
 store.subscribe(() => {
-  const state = store.getState();
-  if (Transport.state !== "started") saveState(state);
+  if (Transport.state !== "started") {
+    store.dispatch(saveProjectToLocalStorage());
+  }
 });
 
 export type RootState = ReturnType<typeof store.getState>;

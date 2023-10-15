@@ -1,4 +1,5 @@
 interface LogoProps {
+  className?: string;
   height?: string;
   width?: string;
   onClick?: () => void;
@@ -9,6 +10,7 @@ export default function Logo(props: LogoProps) {
     <img
       src="logo.svg"
       onClick={props.onClick}
+      className={props.className}
       style={{ height: props.height, width: props.width }}
     />
   );
@@ -27,7 +29,7 @@ export function Splash(props: { title?: string; spinning?: boolean }) {
         src="logo.svg"
         className={`sm:w-60 sm:h-60 w-36 h-36 mb-8 rounded-full shadow-xl shadow-slate-800/40 drop-shadow-2xl`}
       />
-      <h1 className="font-semibold text-slate-50 sm:text-8xl text-5xl">
+      <h1 className="font-semibold drop-shadow-xl text-slate-50 sm:text-8xl text-5xl">
         {props.title ?? "Harmonia"}
       </h1>
       <p className="my-1 text-slate-400 sm:text-3xl text-sm">

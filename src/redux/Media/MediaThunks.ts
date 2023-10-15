@@ -210,7 +210,9 @@ export const pasteSelectedMedia = (): AppThunk => (dispatch, getState) => {
   const newClips = getMediaClips(validMedia);
   const newTranspositions = getMediaTranspositions(validMedia);
   const payload = { clips: newClips, transpositions: newTranspositions };
-  return dispatch(createMedia(payload)).then(Timeline.updateMediaSelection);
+  return dispatch(createMedia(payload)).then((ids) =>
+    dispatch(Timeline.updateMediaSelection(ids))
+  );
 };
 
 /**
@@ -249,7 +251,9 @@ export const duplicateSelectedMedia =
       clips: duplicatedClips,
       transpositions: duplicatedTranspositions,
     };
-    dispatch(createMedia(payload)).then(Timeline.updateMediaSelection);
+    dispatch(createMedia(payload)).then((ids) =>
+      dispatch(Timeline.updateMediaSelection(ids))
+    );
   };
 
 /**

@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union, without } from "lodash";
-import { SliceClipPayload } from "../Clip/ClipSlice";
 import { defaultSession, SessionEntity } from "types/Session";
 import { MediaPayload, PartialMediaPayload } from "types/Media";
 import { TrackId, TrackInterface } from "types/Track";

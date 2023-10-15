@@ -481,7 +481,6 @@ export class MIDI {
     arr: Note[],
     pitches?: Pitch[]
   ) {
-    if (!arr.length) throw new Error("Array must have at least one element");
     const notes = arr.map((n) => MIDI.ChromaticNumber(n));
     const note = MIDI.ChromaticNumber(pitch);
 
@@ -512,7 +511,7 @@ export class MIDI {
 
       // If both are the same distance to the pitches, prefer the lower note
       return curr < prev ? curr : prev;
-    });
+    }, -1);
 
     // Find the closest pitch class
     const pitchClass = MIDI.ChromaticKey[index];

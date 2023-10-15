@@ -6,7 +6,7 @@ import { MediaPayload, PartialMediaPayload } from "types/Media";
 import { union } from "lodash";
 import { updateMediaInSession } from "redux/Session";
 
-const initialState = initializeState<ClipId, Clip>();
+export const defaultClipState = initializeState<ClipId, Clip>();
 
 /**
  * Clips can be added within a bundle.
@@ -56,7 +56,7 @@ export type ClearClipsByTrackIdPayload = TrackId;
  */
 export const clipsSlice = createSlice({
   name: "clips",
-  initialState,
+  initialState: defaultClipState,
   reducers: {
     /**
      * Add clips to the store.

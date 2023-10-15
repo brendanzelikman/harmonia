@@ -1,3 +1,4 @@
-export * from "./ErrorView";
-export * from "./LandingView";
-export * from "./LoadingView";
+export * from "./Error";
+export * from "./Projects";
+export * from "./Landing";
+export * from "./Loading";
