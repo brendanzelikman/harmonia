@@ -26,7 +26,7 @@ export function Splash(props: { title?: string; spinning?: boolean }) {
   return (
     <div className="flex flex-col py-24 -mt-16 items-center font-nunito">
       <img
-        src="logo.svg"
+        src="logo.png"
         className={`sm:w-60 sm:h-60 w-36 h-36 mb-8 rounded-full shadow-xl shadow-slate-800/40 drop-shadow-2xl`}
       />
       <h1 className="font-semibold drop-shadow-xl text-slate-50 sm:text-8xl text-5xl">

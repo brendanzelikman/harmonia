@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union, without } from "lodash";
-import { defaultSession, SessionEntity } from "types/Session";
+import { defaultTrackHierarchy, TrackNode } from "types/TrackHierarchy";
 import { MediaPayload, PartialMediaPayload } from "types/Media";
 import { TrackId, TrackInterface } from "types/Track";
 import { isTransposition } from "types/Transposition";
@@ -8,22 +8,22 @@ import { isTransposition } from "types/Transposition";
 /**
  * A track can be added by ID with an optional parent ID at an optional index.
  */
-export type AddTrackToSessionPayload = TrackInterface;
+export type AddTrackToHierarchyPayload = TrackInterface;
 /**
  * A track can be removed by ID.
  */
-export type RemoveTrackFromSessionPayload = TrackId;
+export type RemoveTrackFromHierarchyPayload = TrackId;
 /**
  * A track can be moved to a new index in its parent track.
  */
-export type MoveTrackInSessionPayload = {
+export type MoveTrackInHierarchyPayload = {
   id: TrackId;
   index: number;
 };
 /**
  * A track can be moved to a new index in a new parent track
  */
-export type MigrateTrackInSessionPayload = {
+export type MigrateTrackInHierarchyPayload = {
   id: TrackId;
   parentId?: TrackId;
   index?: number;
@@ -31,40 +31,40 @@ export type MigrateTrackInSessionPayload = {
 /**
  * Tracks can be collapsed by ID.
  */
-export type CollapseTracksInSessionPayload = TrackId[];
+export type CollapseTracksInHierarchyPayload = TrackId[];
 
 /**
  * Tracks can be expanded by ID.
  */
-export type ExpandTracksInSessionPayload = TrackId[];
+export type ExpandTracksInHierarchyPayload = TrackId[];
 
 /**
  * A track can be cleared of all media.
  */
-export type ClearTrackInSessionPayload = TrackId;
+export type ClearTrackInHierarchyPayload = TrackId;
 
 /**
  * A clip can be sliced into two new clips.
  */
-export type SliceMediaInSessionPayload = {
+export type SliceMediaInHierarchyPayload = {
   oldId: string;
   newIds: string[];
 };
 
 /**
- * Media can be added to the session within a bundle.
+ * Media can be added to the hierarchy within a bundle.
  */
-export type AddMediaToSessionPayload = MediaPayload;
+export type AddMediaToHierarchyPayload = MediaPayload;
 
 /**
- * Media can be removed from the session within a bundle.
+ * Media can be removed from the hierarchy within a bundle.
  */
-export type RemoveMediaFromSessionPayload = MediaPayload;
+export type RemoveMediaFromHierarchyPayload = MediaPayload;
 
 /**
- * Media can be updated in the session within a bundle.
+ * Media can be updated in the hierarchy within a bundle.
  */
-export type UpdateMediaInSessionPayload = PartialMediaPayload;
+export type UpdateMediaInHierarchyPayload = PartialMediaPayload;
 
 /**
  * Reduce an array of objects to a map of track id to object ids.
@@ -81,41 +81,41 @@ const getObjectsByTrack = (arr?: { id: string; trackId: TrackId }[]) => {
 };
 
 /**
- * The session slice contains all of the tracks, clips, and transpositions in the session.
+ * The hierarchy slice contains all of the tracks, clips, and transpositions in the hierarchy.
  *
- * @property `addScaleTrackToSession` - Add a scale track to the session.
- * @property `removeScaleTrackFromSession` - Remove a scale track from the session.
- * @property `addPatternTrackToSession` - Add a pattern track to the session.
- * @property `removePatternTrackFromSession` - Remove a pattern track from the session.
- * @property `moveTrackInSession` - Move a track to a new index in its parent track.
- * @property `migrateTrackInSession` - Move a track to a new index in a new parent track.
- * @property `collapseTracksInSession` - Collapse tracks in the session.
- * @property `expandTracksInSession` - Expand tracks in the session.
- * @property `clearTrackInSession` - Clear a track of all media.
- * @property `addMediaToSession` - Add media to the session.
- * @property `removeMediaFromSession` - Remove media from the session.
- * @property `updateMediaInSession` - Update media in the session.
- * @property `sliceMediaInSession` - Slice media into two.
+ * @property `addScaleTrackToHierarchy` - Add a scale track to the hierarchy.
+ * @property `removeScaleTrackFromHierarchy` - Remove a scale track from the hierarchy.
+ * @property `addPatternTrackToHierarchy` - Add a pattern track to the hierarchy.
+ * @property `removePatternTrackFromHierarchy` - Remove a pattern track from the hierarchy.
+ * @property `moveTrackInHierarchy` - Move a track to a new index in its parent track.
+ * @property `migrateTrackInHierarchy` - Move a track to a new index in a new parent track.
+ * @property `collapseTracksInHierarchy` - Collapse tracks in the hierarchy.
+ * @property `expandTracksInHierarchy` - Expand tracks in the hierarchy.
+ * @property `clearTrackInHierarchy` - Clear a track of all media.
+ * @property `addMediaToHierarchy` - Add media to the hierarchy.
+ * @property `removeMediaFromHierarchy` - Remove media from the hierarchy.
+ * @property `updateMediaInHierarchy` - Update media in the hierarchy.
+ * @property `sliceMediaInHierarchy` - Slice media into two.
  *
  */
-export const sessionSlice = createSlice({
-  name: "session",
-  initialState: defaultSession,
+export const trackHierarchySlice = createSlice({
+  name: "trackHierarchy",
+  initialState: defaultTrackHierarchy,
   reducers: {
     /**
-     * Add a scale track to the session.
-     * @param state The session state.
+     * Add a scale track to the hierarchy.
+     * @param state The hierarchy state.
      * @param action The payload action.
      */
-    addScaleTrackToSession: (
+    addScaleTrackToHierarchy: (
       state,
-      action: PayloadAction<AddTrackToSessionPayload>
+      action: PayloadAction<AddTrackToHierarchyPayload>
     ) => {
       const { id, parentId, type } = action.payload;
       if (!id || state.byId[id]) return;
 
-      // Create a new scale track entity
-      const newScaleTrack: SessionEntity = {
+      // Create a new scale track node
+      const newScaleTrack: TrackNode = {
         id,
         type,
         depth: 0,
@@ -137,18 +137,18 @@ export const sessionSlice = createSlice({
         state.topLevelIds.push(id);
       }
 
-      // Add the scale track to the session
+      // Add the scale track to the hierarchy
       state.byId[id] = newScaleTrack;
       state.allIds.push(id);
     },
     /**
-     * Remove a scale track from the session.
-     * @param state The session state.
+     * Remove a scale track from the hierarchy.
+     * @param state The hierarchy state.
      * @param action The payload action.
      */
-    removeScaleTrackFromSession: (
+    removeScaleTrackFromHierarchy: (
       state,
-      action: PayloadAction<RemoveTrackFromSessionPayload>
+      action: PayloadAction<RemoveTrackFromHierarchyPayload>
     ) => {
       const id = action.payload;
       if (!id) return;
@@ -167,25 +167,25 @@ export const sessionSlice = createSlice({
       };
       removeChildren(scaleTrack.trackIds);
 
-      // Remove the scale track from the session
+      // Remove the scale track from the hierarchy
       delete state.byId[id];
       state.allIds = without(state.allIds, id);
       state.topLevelIds = without(state.topLevelIds, id);
     },
     /**
-     * Add a pattern track to the session.
-     * @param state The session state.
+     * Add a pattern track to the hierarchy.
+     * @param state The hierarchy state.
      * @param action The payload action.
      */
-    addPatternTrackToSession: (
+    addPatternTrackToHierarchy: (
       state,
-      action: PayloadAction<AddTrackToSessionPayload>
+      action: PayloadAction<AddTrackToHierarchyPayload>
     ) => {
       const { id, parentId, type } = action.payload;
       if (!id || state.byId[id]) return;
 
-      // Create a new pattern track entity
-      const newPatternTrack: SessionEntity = {
+      // Create a new pattern track node
+      const newPatternTrack: TrackNode = {
         id,
         depth: 0,
         type,
@@ -205,24 +205,24 @@ export const sessionSlice = createSlice({
         // Otherwise, add the pattern track to the top level
         state.topLevelIds.push(id);
       }
-      // Add the pattern track to the session
+      // Add the pattern track to the hierarchy
       state.byId[id] = newPatternTrack;
       state.allIds.push(id);
     },
     /**
-     * Remove a pattern track from the session.
-     * @param state The session state.
+     * Remove a pattern track from the hierarchy.
+     * @param state The hierarchy state.
      * @param action The payload action.
      */
-    removePatternTrackFromSession: (
+    removePatternTrackFromHierarchy: (
       state,
-      action: PayloadAction<RemoveTrackFromSessionPayload>
+      action: PayloadAction<RemoveTrackFromHierarchyPayload>
     ) => {
       const id = action.payload;
       if (!id) return;
       const patternTrack = state.byId[id];
       if (!patternTrack) return;
-      // Remove the pattern track from the session
+      // Remove the pattern track from the hierarchy
       delete state.byId[id];
       state.allIds = without(state.allIds, id);
       // Find and remove the pattern track from its parent
@@ -236,13 +236,13 @@ export const sessionSlice = createSlice({
     },
     /**
      * Move a track to a new index in its parent track.
-     * @param state The session state.
+     * @param state The hierarchy state.
      * @param action The payload action.
-     * @returns The new session state.
+     * @returns The new hierarchy state.
      */
-    moveTrackInSession: (
+    moveTrackInHierarchy: (
       state,
-      action: PayloadAction<MoveTrackInSessionPayload>
+      action: PayloadAction<MoveTrackInHierarchyPayload>
     ) => {
       const { id, index } = action.payload;
       if (!id || index < 0) return;
@@ -265,12 +265,12 @@ export const sessionSlice = createSlice({
     },
     /**
      * Move a track to a new index in a new parent track.
-     * @param state The session state.
+     * @param state The hierarchy state.
      * @param action The payload action.
      */
-    migrateTrackInSession: (
+    migrateTrackInHierarchy: (
       state,
-      action: PayloadAction<MigrateTrackInSessionPayload>
+      action: PayloadAction<MigrateTrackInHierarchyPayload>
     ) => {
       const { id, parentId, index } = action.payload;
       if (!id) return;
@@ -307,13 +307,13 @@ export const sessionSlice = createSlice({
       }
     },
     /**
-     * Collapse the tracks in the session.
-     * @param state The session state.
+     * Collapse the tracks in the hierarchy.
+     * @param state The hierarchy state.
      * @param action The payload action.
      */
-    collapseTracksInSession: (
+    collapseTracksInHierarchy: (
       state,
-      action: PayloadAction<CollapseTracksInSessionPayload>
+      action: PayloadAction<CollapseTracksInHierarchyPayload>
     ) => {
       const ids = action.payload;
       ids.forEach((id) => {
@@ -323,14 +323,14 @@ export const sessionSlice = createSlice({
       });
     },
     /**
-     * Expand the tracks in the session.
-     * @param state The session state.
+     * Expand the tracks in the hierarchy.
+     * @param state The hierarchy state.
      * @param action The payload action.
-     * @returns The new session state.
+     * @returns The new hierarchy state.
      */
-    expandTracksInSession: (
+    expandTracksInHierarchy: (
       state,
-      action: PayloadAction<ExpandTracksInSessionPayload>
+      action: PayloadAction<ExpandTracksInHierarchyPayload>
     ) => {
       const ids = action.payload;
       ids.forEach((id) => {
@@ -341,13 +341,13 @@ export const sessionSlice = createSlice({
     },
     /**
      * Clear a track of all media.
-     * @param state The session state.
+     * @param state The hierarchy state.
      * @param action The payload action.
-     * @returns The new session state.
+     * @returns The new hierarchy state.
      */
-    clearTrackInSession: (
+    clearTrackInHierarchy: (
       state,
-      action: PayloadAction<ClearTrackInSessionPayload>
+      action: PayloadAction<ClearTrackInHierarchyPayload>
     ) => {
       const id = action.payload;
       if (!id) return;
@@ -357,13 +357,13 @@ export const sessionSlice = createSlice({
       track.transpositionIds = [];
     },
     /**
-     * Add media to the session.
-     * @param state The session state.
+     * Add media to the hierarchy.
+     * @param state The hierarchy state.
      * @param action The payload action.
      */
-    addMediaToSession: (
+    addMediaToHierarchy: (
       state,
-      action: PayloadAction<AddMediaToSessionPayload>
+      action: PayloadAction<AddMediaToHierarchyPayload>
     ) => {
       const { clips, transpositions } = action.payload;
 
@@ -393,13 +393,13 @@ export const sessionSlice = createSlice({
       });
     },
     /**
-     * Remove media from the session.
-     * @param state The session state.
+     * Remove media from the hierarchy.
+     * @param state The hierarchy state.
      * @param action The payload action.
      */
-    removeMediaFromSession: (
+    removeMediaFromHierarchy: (
       state,
-      action: PayloadAction<RemoveMediaFromSessionPayload>
+      action: PayloadAction<RemoveMediaFromHierarchyPayload>
     ) => {
       const { clips, transpositions } = action.payload;
       // Remove the media from every track
@@ -418,13 +418,13 @@ export const sessionSlice = createSlice({
       });
     },
     /**
-     * Update media in the session, changing track IDs where necessary.
-     * @param state The session state.
+     * Update media in the hierarchy, changing track IDs where necessary.
+     * @param state The hierarchy state.
      * @param action The payload action.
      */
-    updateMediaInSession: (
+    updateMediaInHierarchy: (
       state,
-      action: PayloadAction<UpdateMediaInSessionPayload>
+      action: PayloadAction<UpdateMediaInHierarchyPayload>
     ) => {
       const { clips, transpositions } = action.payload;
 
@@ -433,45 +433,45 @@ export const sessionSlice = createSlice({
       for (const item of media) {
         const { id, trackId } = item;
         if (!id || !trackId) continue;
-        const entity = state.byId[trackId];
-        if (!entity) continue;
+        const trackNode = state.byId[trackId];
+        if (!trackNode) continue;
         const field = isTransposition(item) ? "transpositionIds" : "clipIds";
-        if (entity[field].includes(id)) continue;
+        if (trackNode[field].includes(id)) continue;
 
         // Remove the clip from its old track
         const oldTrackId = state.allIds.find((someId) =>
           state.byId[someId][field].includes(id)
         );
         if (!oldTrackId) continue;
-        const oldEntity = state.byId[oldTrackId];
-        if (!oldEntity) continue;
-        oldEntity[field] = without(oldEntity[field], id);
+        const oldNode = state.byId[oldTrackId];
+        if (!oldNode) continue;
+        oldNode[field] = without(oldNode[field], id);
 
         // Add the clip to its new track
-        entity[field].push(id);
+        trackNode[field].push(id);
       }
     },
     /**
      * Slice a media clip into two new clips.
-     * @param state The session state.
+     * @param state The hierarchy state.
      * @param action The payload action.
      */
-    sliceMediaInSession: (
+    sliceMediaInHierarchy: (
       state,
-      action: PayloadAction<SliceMediaInSessionPayload>
+      action: PayloadAction<SliceMediaInHierarchyPayload>
     ) => {
       const { oldId, newIds } = action.payload;
       // Find the track that contains the old clip
       let isClip, trackId;
       for (const id of state.allIds) {
-        const entity = state.byId[id];
-        if (!entity) continue;
-        if (entity.clipIds.includes(oldId)) {
+        const trackNode = state.byId[id];
+        if (!trackNode) continue;
+        if (trackNode.clipIds.includes(oldId)) {
           isClip = true;
           trackId = id;
           break;
         }
-        if (entity.transpositionIds.includes(oldId)) {
+        if (trackNode.transpositionIds.includes(oldId)) {
           isClip = false;
           trackId = id;
           break;
@@ -493,19 +493,19 @@ export const sessionSlice = createSlice({
 });
 
 export const {
-  addScaleTrackToSession,
-  removeScaleTrackFromSession,
-  addPatternTrackToSession,
-  removePatternTrackFromSession,
-  moveTrackInSession,
-  migrateTrackInSession,
-  collapseTracksInSession,
-  expandTracksInSession,
-  clearTrackInSession,
-  addMediaToSession,
-  removeMediaFromSession,
-  updateMediaInSession,
-  sliceMediaInSession,
-} = sessionSlice.actions;
+  addScaleTrackToHierarchy,
+  removeScaleTrackFromHierarchy,
+  addPatternTrackToHierarchy,
+  removePatternTrackFromHierarchy,
+  moveTrackInHierarchy,
+  migrateTrackInHierarchy,
+  collapseTracksInHierarchy,
+  expandTracksInHierarchy,
+  clearTrackInHierarchy,
+  addMediaToHierarchy,
+  removeMediaFromHierarchy,
+  updateMediaInHierarchy,
+  sliceMediaInHierarchy,
+} = trackHierarchySlice.actions;
 
-export default sessionSlice.reducer;
+export default trackHierarchySlice.reducer;

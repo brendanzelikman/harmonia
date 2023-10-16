@@ -9,7 +9,7 @@ import {
 import { TranspositionProps } from "../Transposition";
 import { useAppSelector, useDeepEqualSelector } from "redux/hooks";
 import { normalize, ticksToColumns } from "utils";
-import { TRANSPOSITION_HEIGHT } from "appConstants";
+import { TRANSPOSITION_HEIGHT } from "utils/constants";
 import { BsMagic } from "react-icons/bs";
 import { SlMagicWand } from "react-icons/sl";
 import {
@@ -104,7 +104,6 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
     chordalOffset < 0 ? Math.min(1, normalize(chordalOffset, -1, -12)) : 0;
 
   // Animation
-  const transition = `animate-[fadeIn_0.1s] transition-all duration-150 ease-in-out`;
   const opacity = props.isDragging ? 0.5 : props.draggingClip ? 0.7 : 1;
   const pointerEvents =
     props.isDragging || props.draggingClip || props.isAdding
@@ -179,7 +178,6 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
     border,
     background,
     tickWidth,
-    transition,
     opacity,
     pointerEvents,
     font,

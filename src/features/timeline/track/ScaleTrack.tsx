@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, RootState } from "redux/store";
+import { AppDispatch, Project } from "redux/store";
 import { TrackId } from "types/Track";
 import { TrackProps } from ".";
 import {
@@ -40,7 +40,7 @@ import { toggleTrackScaleEditor } from "redux/Editor";
 import { Transport } from "tone";
 import useTransportTick from "hooks/useTransportTick";
 
-const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
+const mapStateToProps = (state: Project, ownProps: TrackProps) => {
   const track = ownProps.track as ScaleTrackType;
   const { selectedTrackId } = ownProps;
   const isSelected = selectedTrackId === track.id;

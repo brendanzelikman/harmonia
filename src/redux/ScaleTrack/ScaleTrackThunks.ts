@@ -22,7 +22,10 @@ import {
   selectScaleTrackById,
   selectScaleTrackMap,
 } from "./ScaleTrackSelectors";
-import { addScaleTrackToSession, moveTrackInSession } from "redux/Session";
+import {
+  addScaleTrackToHierarchy,
+  moveTrackInHierarchy,
+} from "redux/TrackHierarchy";
 import { getProperty } from "types/util";
 import { setPatternTrackScaleTrack } from "redux/PatternTrack";
 import { selectScaleMap, selectTrackById } from "redux/selectors";
@@ -57,7 +60,7 @@ export const createScaleTrack =
       });
       dispatch(addScale(scale));
       dispatch(addScaleTrack(scaleTrack));
-      dispatch(addScaleTrackToSession(scaleTrack));
+      dispatch(addScaleTrackToHierarchy(scaleTrack));
       resolve(scaleTrack.id);
     });
   };
@@ -216,6 +219,6 @@ export const moveScaleTrack =
     }
 
     // Move the scale track
-    dispatch(moveTrackInSession({ id: thisTrack.id, index: 0 }));
+    dispatch(moveTrackInHierarchy({ id: thisTrack.id, index: 0 }));
     return true;
   };

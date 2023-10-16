@@ -18,11 +18,11 @@ import {
   updateInstrument,
 } from "redux/Instrument";
 import {
-  addPatternTrackToSession,
-  migrateTrackInSession,
-  moveTrackInSession,
-  selectSessionMap,
-} from "redux/Session";
+  addPatternTrackToHierarchy,
+  migrateTrackInHierarchy,
+  moveTrackInHierarchy,
+  selectTrackNodeMap,
+} from "redux/TrackHierarchy";
 import { selectScaleTrackById } from "redux/ScaleTrack";
 import { selectTrackById, selectSelectedTrack } from "redux/selectors";
 
@@ -45,7 +45,7 @@ export const createPatternTrack =
 
       // Create the pattern track
       dispatch(addPatternTrack(patternTrack));
-      dispatch(addPatternTrackToSession(patternTrack));
+      dispatch(addPatternTrackToHierarchy(patternTrack));
 
       // Create an instrument for the track or use the old one
       const oldInstrument = initialTrack?.instrumentId
@@ -92,7 +92,7 @@ export const setPatternTrackScaleTrack =
     const newTrack = { ...patternTrack, parentId };
     dispatch(updatePatternTrack(newTrack));
     dispatch(
-      migrateTrackInSession({
+      migrateTrackInHierarchy({
         id: patternTrackId,
         parentId,
         index,
@@ -132,7 +132,7 @@ export const movePatternTrack =
   (dispatch, getState) => {
     const { dragId, hoverId } = props;
     const state = getState();
-    const sessionMap = selectSessionMap(state);
+    const trackNodeMap = selectTrackNodeMap(state);
 
     // Get the corresponding pattern tracks
     const thisTrack = selectTrackById(state, dragId);
@@ -140,7 +140,7 @@ export const movePatternTrack =
     if (!thisTrack || !otherTrack) return false;
 
     const otherTrackParent = otherTrack.parentId
-      ? sessionMap[otherTrack.parentId]
+      ? trackNodeMap[otherTrack.parentId]
       : null;
 
     const isThisPattern = isPatternTrack(thisTrack);
@@ -150,7 +150,7 @@ export const movePatternTrack =
     if (!isThisPattern && isOtherPattern) {
       const index = otherTrackParent?.trackIds.indexOf(otherTrack.id);
       if (index === undefined || index === -1) return false;
-      dispatch(moveTrackInSession({ id: thisTrack.id, index }));
+      dispatch(moveTrackInHierarchy({ id: thisTrack.id, index }));
       return true;
     }
 
@@ -165,9 +165,9 @@ export const movePatternTrack =
 
     // If the pattern tracks are in the same scale track, move the pattern track
     if (thisParent.id === otherParent.id) {
-      const index = sessionMap[thisParent.id].trackIds.indexOf(otherTrack.id);
+      const index = trackNodeMap[thisParent.id].trackIds.indexOf(otherTrack.id);
       dispatch(
-        moveTrackInSession({
+        moveTrackInHierarchy({
           id: thisTrack.id,
           index,
         })

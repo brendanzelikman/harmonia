@@ -1,29 +1,32 @@
 import { test, expect } from "vitest";
-import * as SessionFunctions from "./SessionFunctions";
+import * as Functions from "./TrackHierarchyFunctions";
 import { mockScaleTrack } from "types/ScaleTrack";
 import { mockPatternTrack } from "types/PatternTrack";
 import { ClipMap, mockClip } from "types/Clip";
 import { createTranspositionMap, mockTransposition } from "types/Transposition";
-import { mockPatternTrackEntity, mockScaleTrackEntity } from "./SessionTypes";
+import {
+  mockPatternTrackNode,
+  mockScaleTrackNode,
+} from "./TrackHierarchyTypes";
 import { createMap } from "types/util";
 
-test("createSession", () => {
-  // Create a mock session map
-  const session = SessionFunctions.createSession({
+test("createHierarchy", () => {
+  // Create a mock hierarchy
+  const hierarchy = Functions.createTrackHierarchy({
     tracks: [mockScaleTrack, mockPatternTrack],
     clips: [mockClip],
     transpositions: [mockTransposition],
   });
 
-  // Prepare the expected session map
-  const expectedSession = {
+  // Prepare the expected hierarchy
+  const expectedHierarchy = {
     allIds: [mockScaleTrack.id, mockPatternTrack.id],
     byId: {
       [mockScaleTrack.id]: {
-        ...mockScaleTrackEntity,
+        ...mockScaleTrackNode,
       },
       [mockPatternTrack.id]: {
-        ...mockPatternTrackEntity,
+        ...mockPatternTrackNode,
         clipIds: [mockClip.id],
         transpositionIds: [mockTransposition.id],
       },
@@ -31,37 +34,37 @@ test("createSession", () => {
     topLevelIds: [mockScaleTrack.id],
   };
 
-  expect(session).toEqual(expectedSession);
+  expect(hierarchy).toEqual(expectedHierarchy);
 });
 
 test("getTrackClips", () => {
-  const session = SessionFunctions.createSession({
+  const hierarchy = Functions.createTrackHierarchy({
     tracks: [mockScaleTrack, mockPatternTrack],
     clips: [mockClip],
     transpositions: [mockTransposition],
   });
-  const sessionMap = session.byId;
+  const trackNodeMap = hierarchy.byId;
   const clipMap = createMap<ClipMap>([mockClip]);
 
   // Test the scale track
-  const scaleTrackClips = SessionFunctions.getTrackClips(
+  const scaleTrackClips = Functions.getTrackClips(
     mockScaleTrack,
     clipMap,
-    sessionMap
+    trackNodeMap
   );
   expect(scaleTrackClips).toEqual([]);
 
   // Test the pattern track
-  const patternTrackClips = SessionFunctions.getTrackClips(
+  const patternTrackClips = Functions.getTrackClips(
     mockPatternTrack,
     clipMap,
-    sessionMap
+    trackNodeMap
   );
   expect(patternTrackClips).toEqual([mockClip]);
 });
 
 test("getTrackTranspositions", () => {
-  const session = SessionFunctions.createSession({
+  const hierarchy = Functions.createTrackHierarchy({
     tracks: [mockScaleTrack, mockPatternTrack],
     clips: [mockClip],
     transpositions: [mockTransposition],
@@ -69,18 +72,18 @@ test("getTrackTranspositions", () => {
   const transpositionMap = createTranspositionMap([mockTransposition]);
 
   // Test the scale track
-  const scaleTrackTranspositions = SessionFunctions.getTrackTranspositions(
+  const scaleTrackTranspositions = Functions.getTrackTranspositions(
     mockScaleTrack,
     transpositionMap,
-    session.byId
+    hierarchy.byId
   );
   expect(scaleTrackTranspositions).toEqual([]);
 
   // Test the pattern track
-  const patternTrackTranspositions = SessionFunctions.getTrackTranspositions(
+  const patternTrackTranspositions = Functions.getTrackTranspositions(
     mockPatternTrack,
     transpositionMap,
-    session.byId
+    hierarchy.byId
   );
   expect(patternTrackTranspositions).toEqual([mockTransposition]);
 });

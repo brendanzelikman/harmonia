@@ -8,60 +8,59 @@ import {
   isTranspositionMap,
 } from "../Transposition";
 import {
-  Session,
-  SessionEntity,
-  SessionMap,
-  isSession,
-  isSessionMap,
-} from "./SessionTypes";
+  TrackHierarchy,
+  TrackNode,
+  TrackNodeMap,
+  isTrackNodeMap,
+} from "./TrackHierarchyTypes";
 
 /**
- * Create a session map from tracks, clips, and transpositions.
+ * Create a `TrackHierarchy` from the given tracks, clips, and transpositions.
  * @param tracks - The tracks to include.
  * @param clips - The clips to include.
  * @param transpositions - The transpositions to include.
- * @returns A session map created from the tracks, clips, and transpositions. If an invalid configuration is provided, return an empty session map.
+ * @returns A `TrackHierarchy` created from the tracks, clips, and transpositions. If an invalid configuration is provided, the hierarchy will be empty.
  */
-export const createSession = (props: {
+export const createTrackHierarchy = (props: {
   tracks: Track[];
   clips: Clip[];
   transpositions: Transposition[];
-}): Session => {
-  // Initialize the session map
-  const session = {
-    ...initializeState<TrackId, SessionEntity>(),
+}): TrackHierarchy => {
+  // Initialize the track hierarchy
+  const hierarchy = {
+    ...initializeState<TrackId, TrackNode>(),
     topLevelIds: [] as string[],
   };
   const { tracks, clips, transpositions } = props;
 
   // Return early if any of the parameters are invalid
-  if (tracks.some((track) => !isTrack(track))) return session;
-  if (clips.some((clip) => !isClip(clip))) return session;
-  if (transpositions.some((t) => !isTransposition(t))) return session;
+  if (tracks.some((track) => !isTrack(track))) return hierarchy;
+  if (clips.some((clip) => !isClip(clip))) return hierarchy;
+  if (transpositions.some((t) => !isTransposition(t))) return hierarchy;
 
   // Initialize the loop variables
-  let sessionIds = 0;
+  let trackIds = 0;
   let previousIds = 0;
 
-  // Iterate through the tracks and create session entities
-  while (sessionIds < tracks.length) {
+  // Iterate through the tracks and create corresponding nodes
+  while (trackIds < tracks.length) {
     tracks.forEach((track, i) => {
       const { id, type, parentId } = track;
 
       // If the track is the first track, check if the number of tracks has changed. If not, return early.
       if (i === 0) {
-        if (sessionIds > 0 && previousIds === sessionIds) {
-          sessionIds = tracks.length;
+        if (trackIds > 0 && previousIds === trackIds) {
+          trackIds = tracks.length;
           return;
         } else {
-          previousIds = sessionIds;
+          previousIds = trackIds;
         }
       }
       // If the track already exists, return.
-      if (session.byId[id]) return;
+      if (hierarchy.byId[id]) return;
 
-      // Create the session entity
-      const entity: SessionEntity = {
+      // Create the track node
+      const node: TrackNode = {
         id,
         type,
         depth: 0,
@@ -72,65 +71,65 @@ export const createSession = (props: {
 
       // If the track is a top-level track, add it to the top-level IDs.
       if (!parentId) {
-        session.topLevelIds.push(id);
+        hierarchy.topLevelIds.push(id);
       } else {
         // Otherwise, add it to the parent track's track IDs and set the depth.
-        const parentEntity = session.byId[parentId];
-        if (!parentEntity) return;
-        parentEntity.trackIds.push(id);
-        entity.depth = parentEntity.depth + 1;
+        const parentNode = hierarchy.byId[parentId];
+        if (!parentNode) return;
+        parentNode.trackIds.push(id);
+        node.depth = parentNode.depth + 1;
       }
 
-      // Add the entity to the session map and increment the session IDs.
-      session.byId[id] = entity;
-      session.allIds.push(id);
-      sessionIds++;
+      // Add the node to the hierarchy and increment the number of track IDs.
+      hierarchy.byId[id] = node;
+      hierarchy.allIds.push(id);
+      trackIds++;
     });
   }
 
   // Add all clips to their respective tracks.
   clips.forEach((clip) => {
     const { id, trackId } = clip;
-    const entity = session.byId[trackId];
-    if (!entity) return;
-    entity.clipIds.push(id);
+    const node = hierarchy.byId[trackId];
+    if (!node) return;
+    node.clipIds.push(id);
   });
 
   // Add all transpositions to their respective tracks.
   transpositions.forEach((transposition) => {
     const { id, trackId } = transposition;
-    const entity = session.byId[trackId];
-    if (!entity) return;
-    entity.transpositionIds.push(id);
+    const node = hierarchy.byId[trackId];
+    if (!node) return;
+    node.transpositionIds.push(id);
   });
 
-  // Return the session.
-  return { ...session };
+  // Return the hierarchy.
+  return { ...hierarchy };
 };
 
 /**
- * Get the clips of a track in the session.
+ * Get the clips of a track in the node map, sorted by tick.
  * @param track The Track object.
  * @param clipMap The ClipMap object.
- * @param session The Session object.
- * @returns The clips of the track in the session. If any parameter is invalid, return an empty array.
+ * @param trackNodeMap The TrackNodeMap object.
+ * @returns The clips of the track. If any parameter is invalid, return an empty array.
  */
 export const getTrackClips = (
   track: Track,
   clipMap: ClipMap,
-  sessionMap: SessionMap
+  trackNodeMap: TrackNodeMap
 ) => {
   // Return an empty array if any parameter is invalid
   if (!isTrack(track)) return [];
   if (!isClipMap(clipMap)) return [];
-  if (!isSessionMap(sessionMap)) return [];
+  if (!isTrackNodeMap(trackNodeMap)) return [];
 
-  // Get the track entity from the session map
-  const trackEntity = sessionMap[track.id];
-  if (!trackEntity) return [];
+  // Get the track node from the track hierarchy
+  const trackNode = trackNodeMap[track.id];
+  if (!trackNode) return [];
 
-  // Map the entity's clip IDs to clips
-  const trackClipIds = trackEntity.clipIds;
+  // Map the node's clip IDs to clips
+  const trackClipIds = trackNode.clipIds;
   const trackClips = trackClipIds.map((id) => clipMap[id]);
 
   // Sort the clips by tick
@@ -141,28 +140,28 @@ export const getTrackClips = (
 };
 
 /**
- * Get the transpositions of a track in the session map.
+ * Get the transpositions of a track in the node map, sorted by tick.
  * @param track The Track object.
  * @param transpositionMap The TranspositionMap object.
- * @param sessionMap The SessionMap object.
- * @returns The transpositions of the track in the session map. If any parameter is invalid, return an empty array.
+ * @param trackNodeMap The trackNodeMap object.
+ * @returns The transpositions of the track. If any parameter is invalid, return an empty array.
  */
 export const getTrackTranspositions = (
   track: Track,
   transpositionMap: TranspositionMap,
-  sessionMap: SessionMap
+  trackNodeMap: TrackNodeMap
 ) => {
   // Return an empty array if any parameter is invalid
   if (!isTrack(track)) return [];
   if (!isTranspositionMap(transpositionMap)) return [];
-  if (!isSessionMap(sessionMap)) return [];
+  if (!isTrackNodeMap(trackNodeMap)) return [];
 
-  // Get the track entity from the session map
-  const trackEntity = sessionMap[track.id];
-  if (!trackEntity) return [];
+  // Get the track node from the track hierarchy
+  const trackNode = trackNodeMap[track.id];
+  if (!trackNode) return [];
 
-  // Map the entity's transposition IDs to transpositions
-  const trackTranspositionIds = trackEntity.transpositionIds;
+  // Map the node's transposition IDs to transpositions
+  const trackTranspositionIds = trackNode.transpositionIds;
   const trackTranspositions = trackTranspositionIds.map(
     (id) => transpositionMap[id]
   );

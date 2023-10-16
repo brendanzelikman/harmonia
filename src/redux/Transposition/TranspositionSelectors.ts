@@ -9,16 +9,16 @@ import { getProperty, getProperties, selectId, selectIds } from "types/util";
  * @param state The root state of the store.
  * @returns An array of transposition IDs.
  */
-export const selectTranspositionIds = (state: RootState) =>
-  state.session.present.transpositions.allIds;
+export const selectTranspositionIds = (state: Project) =>
+  state.arrangement.present.transpositions.allIds;
 
 /**
  * Select the transposition map from the store.
  * @param state The root state of the store.
  * @returns The transposition map.
  */
-export const selectTranspositionMap = (state: RootState) =>
-  state.session.present.transpositions.byId;
+export const selectTranspositionMap = (state: Project) =>
+  state.arrangement.present.transpositions.byId;
 
 /**
  * Select all transpositions from the store.
@@ -45,7 +45,7 @@ export const selectTranspositionsByIds = createSelector(
  * @param trackIds The track IDs.
  */
 export const selectTranspositionsByTrackIds = (
-  state: RootState,
+  state: Project,
   trackIds: TrackId[]
 ) => {
   const transpositions = selectTranspositions(state);

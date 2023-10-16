@@ -10,7 +10,7 @@ import {
   selectSelectedTranspositions,
   selectTrackScale,
 } from "redux/selectors";
-import { AppDispatch, RootState } from "redux/store";
+import { AppDispatch, Project } from "redux/store";
 import {
   addClipToTimeline,
   createPatternTrackFromSelectedTrack,
@@ -38,7 +38,7 @@ import {
 } from "redux/Media";
 import { useDeepEqualSelector } from "redux/hooks";
 
-const mapStateToProps = (state: RootState) => {
+const mapStateToProps = (state: Project) => {
   const selectedTrackId = selectSelectedTrackId(state);
 
   const clipboard = selectMediaClipboard(state);
@@ -56,8 +56,8 @@ const mapStateToProps = (state: RootState) => {
   const chromaticTranspose = getChromaticOffset(offsets);
   const scalarTranspose = getScalarOffset(offsets, selectedTrackId);
   const chordalTranspose = getChordalOffset(offsets);
-  const canUndo = state.session.past.length > 0;
-  const canRedo = state.session.future.length > 0;
+  const canUndo = state.arrangement.past.length > 0;
+  const canRedo = state.arrangement.future.length > 0;
   return {
     areClipsInClipboard,
     areTranspositionsInClipboard,
@@ -74,8 +74,8 @@ const mapStateToProps = (state: RootState) => {
 };
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    undoSession: () => dispatch({ type: UndoTypes.undoSession }),
-    redoSession: () => dispatch({ type: UndoTypes.redoSession }),
+    undoArrangement: () => dispatch({ type: UndoTypes.undoArrangement }),
+    redoArrangement: () => dispatch({ type: UndoTypes.redoArrangement }),
     copyMedia: () => dispatch(copySelectedMedia()),
     cutMedia: () => dispatch(cutSelectedMedia()),
     pasteMedia: () => dispatch(pasteSelectedMedia()),
@@ -120,12 +120,12 @@ function TimelineContextMenu(props: Props) {
   );
   const Undo = {
     label: "Undo Last Action",
-    onClick: props.undoSession,
+    onClick: props.undoArrangement,
     disabled: !props.canUndo,
   };
   const Redo = {
     label: "Redo Last Action",
-    onClick: props.redoSession,
+    onClick: props.redoArrangement,
     disabled: !props.canRedo,
     divideEnd: true,
   };

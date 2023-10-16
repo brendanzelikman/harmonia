@@ -6,14 +6,14 @@ export const MainButton = () => {
   return (
     <button
       onClick={() => navigate("/projects")}
-      className="border border-slate-400 py-5 px-8 rounded-2xl text-slate-100 backdrop-blur bg-gradient-to-b from-sky-500/50 hover:from-sky-600 to-sky-700/80 hover:to-sky-700 drop-shadow-xl sm:text-4xl text-sm font-light"
+      className="border py-5 px-8 text-slate-100 bg-slate-800/20 hover:bg-sky-950/90 hover:shadow-[0px_0px_10px_5px_rgb(15,150,200)] transition-all duration-300 border-slate-500 rounded-xl backdrop-blur drop-shadow-xl sm:text-4xl text-sm font-light"
     >
       Make Music Now!
     </button>
   );
 };
 
-export const LandingView = () => {
+export function LandingView() {
   const SplashScreen = () => (
     <Section>
       <Splash />
@@ -120,7 +120,7 @@ export const LandingView = () => {
 
         <HeroQuote
           title="MusicXML and MIDI Support"
-          text="Import and export your  to and from other music notation programs with ease."
+          text="Import and export your projects to and from other music notation programs with ease."
         />
       </div>
     </Section>
@@ -192,4 +192,4 @@ export const LandingView = () => {
       <ContactHero />
     </main>
   );
-};
+}

@@ -47,7 +47,7 @@ import { isPatternTrack } from "types/PatternTrack";
 import { updateMedia, createMedia, sliceMedia } from "redux/thunks";
 import { TrackId } from "types/Track";
 import { Transport } from "tone";
-import { TRACK_WIDTH } from "appConstants";
+import { TRACK_WIDTH } from "utils/constants";
 import {
   isAddingClips,
   isAddingTranspositions,

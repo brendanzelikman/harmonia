@@ -4,9 +4,9 @@ import { hideEditor } from "redux/Editor";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { updateMediaSelection } from "redux/Timeline";
 import {
-  saveProjectAsHAM,
-  readProjectFiles,
-  deleteCurrentProject,
+  exportProjectToHAM,
+  openLocalProjects,
+  clearProject,
 } from "redux/thunks";
 
 export default function useGlobalHotkeys() {
@@ -14,13 +14,13 @@ export default function useGlobalHotkeys() {
   const editor = useAppSelector(selectEditor);
 
   // Meta + S = Save Project
-  useOverridingHotkeys("meta+s", () => dispatch(saveProjectAsHAM()));
+  useOverridingHotkeys("meta+s", () => dispatch(exportProjectToHAM()));
 
   // Meta + O = Open Project
-  useOverridingHotkeys("meta+o", () => dispatch(readProjectFiles()));
+  useOverridingHotkeys("meta+o", () => dispatch(openLocalProjects()));
 
   // Meta + Alt + N = New Project
-  useOverridingHotkeys("meta+alt+n", () => dispatch(deleteCurrentProject()));
+  useOverridingHotkeys("meta+alt+n", () => dispatch(clearProject()));
 
   // Escape = Hide Editor
   useOverridingHotkeys(

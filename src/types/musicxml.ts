@@ -1,4 +1,4 @@
-import { DEFAULT_DURATION } from "appConstants";
+import { DEFAULT_DURATION } from "utils/constants";
 import { ticksToDuration } from "utils";
 import { Duration, Key, Note, XML } from "./units";
 import { MIDI } from "./midi";

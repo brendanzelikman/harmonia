@@ -8,7 +8,7 @@ import { TrackId } from "types/Track";
 import { Transposition, TranspositionId } from "types/Transposition";
 import { union, without } from "lodash";
 import { MediaPayload, PartialMediaPayload } from "types/Media";
-import { updateMediaInSession } from "redux/Session";
+import { updateMediaInHierarchy } from "redux/TrackHierarchy";
 
 export const defaultTranspositionState = initializeState<
   TranspositionId,
@@ -50,7 +50,7 @@ export type RemoveTranspositionsByTrackIdPayload = TrackId;
 export type ClearTranspositionsByTrackIdPayload = TrackId;
 
 /**
- * The `transpositions` slice contains all transpositions in the session.
+ * The `transpositions` slice contains all transpositions in the arrangement.
  * Some functions are underscored to indicate that they should not be called directly.
  *
  * @property `addTranspositions` - Adds transpositions to the store.
@@ -196,7 +196,7 @@ export const {
 export const updateTranspositions =
   (media: PartialMediaPayload) => (dispatch: any) => {
     dispatch(_updateTranspositions(media));
-    dispatch(updateMediaInSession(media));
+    dispatch(updateMediaInHierarchy(media));
   };
 
 export default transpositionsSlice.reducer;

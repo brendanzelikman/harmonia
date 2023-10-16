@@ -1,5 +1,5 @@
 import { Transition } from "@headlessui/react";
-import { TRACK_WIDTH } from "appConstants";
+import { TRACK_WIDTH } from "utils/constants";
 import { NAV_HEIGHT } from "features/Navbar";
 import { useState } from "react";
 import { END_TOUR, SET_TOUR_ID, START_TOUR } from ".";

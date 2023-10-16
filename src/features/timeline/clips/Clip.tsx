@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, RootState } from "redux/store";
+import { AppDispatch, Project } from "redux/store";
 import { Clip, ClipId } from "types/Clip";
 import { useClipDrag } from "./hooks/useClipDrag";
 import { PatternId, PatternNote } from "types/Pattern";
@@ -26,7 +26,7 @@ import {
   isSlicingMedia,
 } from "types/Timeline";
 
-const mapStateToProps = (state: RootState, ownProps: { id: ClipId }) => {
+const mapStateToProps = (state: Project, ownProps: { id: ClipId }) => {
   const clip = selectClipById(state, ownProps.id);
   const name = selectClipName(state, ownProps.id);
   const timeline = selectTimeline(state);
@@ -166,10 +166,8 @@ function TimelineClip(props: ClipProps) {
     [stream, renderNotes]
   );
 
-  if (!clip) return null;
-
   // Assemble the class name and style
-  const className = `${styles.position} ${styles.transition} ${styles.cursor} ${styles.ring} ${styles.opacity} ${styles.pointerEvents} ${styles.border}`;
+  const className = `fade-in-100 ${styles.position} ${styles.cursor} ${styles.ring} ${styles.opacity} ${styles.pointerEvents} ${styles.border}`;
   const style = pick(styles, ["top", "left", "width", "height", "fontSize"]);
 
   // Render the clip
@@ -178,8 +176,10 @@ function TimelineClip(props: ClipProps) {
       ref={drag}
       className={className}
       style={style}
-      onClick={(e) => props.onClick(e, clip, isEyedropping)}
-      onDoubleClick={() => props.showPatternEditor(clip.patternId)}
+      onClick={(e: MouseEvent<HTMLDivElement>) =>
+        props.onClick(e, clip, isEyedropping)
+      }
+      onDoubleClick={() => props.showPatternEditor(clip?.patternId)}
     >
       <div className={`${styles.body} ${styles.bodyColor}`}>
         {ClipName}

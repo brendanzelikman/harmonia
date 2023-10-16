@@ -22,7 +22,6 @@ import {
   ScaleTrackScaleName,
 } from "./ScaleTypes";
 import { mod } from "utils";
-
 import {
   Transposition,
   getChordalOffset,

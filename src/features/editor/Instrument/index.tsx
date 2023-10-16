@@ -6,7 +6,7 @@ import {
   selectTransport,
 } from "redux/selectors";
 
-import { AppDispatch, RootState } from "redux/store";
+import { AppDispatch, Project } from "redux/store";
 import {
   SafeEffect,
   EffectId,
@@ -36,7 +36,7 @@ import {
   selectPatternTrackInstrumentKey,
 } from "redux/PatternTrack";
 
-const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
+const mapStateToProps = (state: Project, ownProps: EditorProps) => {
   const trackId = selectSelectedTrackId(state);
   const transport = selectTransport(state);
   const track = trackId ? selectPatternTrackById(state, trackId) : undefined;

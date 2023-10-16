@@ -16,14 +16,14 @@ import {
   COLLAPSED_TRACK_HEIGHT,
   HEADER_HEIGHT,
   TRACK_WIDTH,
-} from "appConstants";
+} from "utils/constants";
 import TimelineCursor from "./TimelineCursor";
 
 interface BackgroundProps {
   timeline?: DataGridHandle;
 }
 
-const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
+const mapStateToProps = (state: Project, ownProps: BackgroundProps) => {
   const columns = selectTimelineColumnCount(state);
 
   // General dimensions

@@ -1,6 +1,6 @@
 import { getClipTheme } from "types/Clip";
 import { ClipProps } from "../Clip";
-import { TRANSPOSITION_HEIGHT } from "appConstants";
+import { TRANSPOSITION_HEIGHT } from "utils/constants";
 import {
   PatternNote,
   PatternStream,
@@ -14,6 +14,7 @@ import {
   selectCellWidth,
   selectSelectedClipIds,
   selectClipTranspositions,
+  selectDraftedClip,
 } from "redux/selectors";
 import { useAppSelector, useDeepEqualSelector } from "redux/hooks";
 import { MIDI } from "types/midi";
@@ -28,6 +29,7 @@ interface ClipStyleProps extends ClipProps {
 
 export const useClipStyles = (props: ClipStyleProps) => {
   const { clip, stream } = props;
+  const draftedClip = useAppSelector(selectDraftedClip);
   const selectedClipIds = useDeepEqualSelector(selectSelectedClipIds);
   const clipTranspositions = useDeepEqualSelector((_) =>
     selectClipTranspositions(_, clip?.id)
@@ -76,7 +78,6 @@ export const useClipStyles = (props: ClipStyleProps) => {
     : "border-slate-50/10";
 
   // Animation
-  const transition = `animate-[fadeIn_0.1s] transition-all duration-150 ease-in-out`;
   const opacity = props.isDragging ? "opacity-50" : "opacity-100";
   const pointerEvents = props.isDragging ? "pointer-events-none" : "";
 
@@ -86,11 +87,14 @@ export const useClipStyles = (props: ClipStyleProps) => {
   } rounded-lg overflow-hidden`;
 
   // Ring
-  const ring = props.isAdding
-    ? "hover:ring-4 hover:ring-teal-500"
-    : props.isEyedropping
-    ? "hover:ring-4 hover:ring-slate-300"
-    : "";
+  const isDifferentPattern =
+    draftedClip?.patternId !== clip?.patternId && !!draftedClip?.patternId;
+  const ring =
+    props.isAdding && isDifferentPattern
+      ? "hover:ring-4 hover:ring-teal-500"
+      : props.isEyedropping
+      ? "hover:ring-4 hover:ring-slate-300"
+      : "";
 
   // Cursor
   const cursor = props.isAdding
@@ -141,7 +145,6 @@ export const useClipStyles = (props: ClipStyleProps) => {
     chordWidth,
     chordClass,
     fontSize,
-    transition,
     opacity,
     pointerEvents,
     border,

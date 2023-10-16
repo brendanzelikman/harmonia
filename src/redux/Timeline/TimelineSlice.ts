@@ -5,7 +5,7 @@ import {
   MAX_CELL_WIDTH,
   MIN_CELL_HEIGHT,
   MIN_CELL_WIDTH,
-} from "appConstants";
+} from "utils/constants";
 import { Subdivision } from "tone/build/esm/core/type/Units";
 import { defaultTimeline, TimelineState } from "types/Timeline";
 import { ORDERED_SUBDIVISIONS } from "types/units";

@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, RootState } from "redux/store";
+import { AppDispatch, Project } from "redux/store";
 import { MouseEvent, useMemo } from "react";
 import {
   getChordalOffset,
@@ -32,11 +32,9 @@ import {
   isAddingTranspositions,
   isSlicingMedia,
 } from "types/Timeline";
+import { Transition } from "@headlessui/react";
 
-const mapStateToProps = (
-  state: RootState,
-  ownProps: { id: TranspositionId }
-) => {
+const mapStateToProps = (state: Project, ownProps: { id: TranspositionId }) => {
   const transposition = selectTranspositionById(state, ownProps.id);
   const selectedTrackId = selectSelectedTrackId(state);
   const cellWidth = selectCellWidth(state);
@@ -237,7 +235,7 @@ function TimelineTransposition(props: TranspositionProps) {
   };
 
   // Assemble the class name and style
-  const className = `${styles.position} ${styles.border} ${styles.font} ${styles.cursor} ${styles.transition} ${styles.pointerEvents}`;
+  const className = `fade-in-100 ${styles.position} ${styles.border} ${styles.font} ${styles.cursor} ${styles.pointerEvents}`;
   const style = pick(styles, ["top", "left", "width", "opacity"]);
 
   // Render the transposition
@@ -246,7 +244,9 @@ function TimelineTransposition(props: TranspositionProps) {
       ref={drag}
       className={className}
       style={{ ...style, height: styles.cellHeight }}
-      onClick={(e) => props.onClick(e, transposition)}
+      onClick={(e: MouseEvent<HTMLDivElement>) =>
+        props.onClick(e, transposition)
+      }
     >
       {TranspositionHeader()}
       {TranspositionBody()}

@@ -8,7 +8,7 @@ import { durationToTicks, ticksToToneSubdivision } from "utils";
 import { Note, Tick } from "types/units";
 import { Time } from "tone";
 import { Transition } from "@headlessui/react";
-import useRecorder from "hooks/useRecorder";
+import useMidiRecorder from "hooks/useMidiRecorder";
 
 interface PatternRecordTabProps extends PatternEditorCursorProps {
   input: Input | undefined;
@@ -64,7 +64,7 @@ export function PatternRecordTab(props: PatternRecordTabProps) {
 
   // Use recorder hook
   const { recording, startRecording, stopRecording, ticks, isAfterPickup } =
-    useRecorder({
+    useMidiRecorder({
       bpm: props.bpm,
       duration: props.recordingDuration,
       quantization: props.recordingQuantization,

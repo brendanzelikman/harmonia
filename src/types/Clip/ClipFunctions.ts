@@ -3,7 +3,7 @@ import * as PatternTrack from "types/PatternTrack";
 import * as ScaleTrack from "types/ScaleTrack";
 import * as Track from "types/Track";
 import * as Transposition from "types/Transposition";
-import * as Session from "types/Session";
+import * as TrackHierarchy from "types/TrackHierarchy";
 import { MIDI } from "types/midi";
 import { createMap } from "types/util";
 import { Clip, ClipId, isClip } from "./ClipTypes";
@@ -68,25 +68,31 @@ export const getClipNotes = (
   return stream.slice(clip.offset, clip.offset + clip.duration);
 };
 
+interface StreamDependencies {
+  patternMap: Pattern.PatternMap;
+  scaleMap: NestedScaleMap;
+  scaleTrackMap: ScaleTrack.ScaleTrackMap;
+  patternTrackMap: PatternTrack.PatternTrackMap;
+  transpositionMap: Transposition.TranspositionMap;
+  trackNodeMap: TrackHierarchy.TrackNodeMap;
+}
+
+interface ClipStreamDependencies extends StreamDependencies {
+  clip: Clip;
+}
+
 /**
  * Get the fully transposed stream of a clip using information from the Redux store.
  * @param clip  The Clip object.
  * @param dependencies The dependencies of the clip
  * @returns The fully transposed PatternStream of the clip. If any of the dependencies are invalid, return an empty array.
  */
-export const getClipStream = (
-  clip: Clip,
-  patternMap: Pattern.PatternMap,
-  patternTrackMap: PatternTrack.PatternTrackMap,
-  scaleMap: NestedScaleMap,
-  scaleTrackMap: ScaleTrack.ScaleTrackMap,
-  transpositionMap: Transposition.TranspositionMap,
-  sessionMap: Session.SessionMap
-) => {
+export const getClipStream = (props: ClipStreamDependencies) => {
+  const clip = props.clip;
   if (!isClip(clip)) return [] as Pattern.PatternStream;
 
   // Get the clip's pattern
-  const pattern = patternMap?.[clip.patternId];
+  const pattern = props.patternMap?.[clip.patternId];
   if (!Pattern.isPattern(pattern)) return [] as Pattern.PatternStream;
 
   // Make sure the pattern has a stream
@@ -95,21 +101,26 @@ export const getClipStream = (
   if (isNaN(ticks) || ticks < 1) return [];
 
   // Get the clip's pattern track
-  const patternTrack = patternTrackMap?.[clip.trackId];
+  const patternTrack = props.patternTrackMap?.[clip.trackId];
   if (!PatternTrack.isPatternTrack(patternTrack))
     return [] as Pattern.PatternStream;
 
   // Get all parent scale tracks and their transpositions
+  const { scaleMap, scaleTrackMap, transpositionMap, trackNodeMap } = props;
   const parents = Track.getTrackParents(patternTrack, scaleTrackMap);
   const parentTranspositions = parents.map((parent) =>
-    Session.getTrackTranspositions(parent, transpositionMap, sessionMap)
+    TrackHierarchy.getTrackTranspositions(
+      parent,
+      transpositionMap,
+      trackNodeMap
+    )
   );
 
   // Get the clip's transpositions
-  const clipTranspositions = Session.getTrackTranspositions(
+  const clipTranspositions = TrackHierarchy.getTrackTranspositions(
     patternTrack,
     transpositionMap,
-    sessionMap
+    trackNodeMap
   );
 
   // Initialize the loop variables
@@ -191,31 +202,20 @@ export const getClipStream = (
   return getClipNotes(clip, stream);
 };
 
+interface ClipsStreamDependencies extends StreamDependencies {
+  clips: Clip[];
+}
+
 /**
  * Get the fully transposed streams of an array of clips using information from the Redux store.
  * @param clips The array of Clip objects.
  * @param dependencies The dependencies of the clips
  * @returns A map of clip IDs to fully transposed PatternStreams. If any of the dependencies are invalid, return an empty object.
  */
-export const getClipStreams = (
-  clips: Clip[],
-  patternMap: Pattern.PatternMap,
-  patternTrackMap: PatternTrack.PatternTrackMap,
-  scaleMap: NestedScaleMap,
-  scaleTrackMap: ScaleTrack.ScaleTrackMap,
-  transpositionMap: Transposition.TranspositionMap,
-  sessionMap: Session.SessionMap
-) => {
-  return clips.reduce((acc, cur) => {
-    const stream = getClipStream(
-      cur,
-      patternMap,
-      patternTrackMap,
-      scaleMap,
-      scaleTrackMap,
-      transpositionMap,
-      sessionMap
-    );
+export const getClipStreams = (props: ClipsStreamDependencies) => {
+  if (!props.clips) return {};
+  return props.clips.reduce((acc, cur) => {
+    const stream = getClipStream({ ...props, clip: cur });
     return { ...acc, [cur.id]: stream };
   }, {} as Record<ClipId, Pattern.PatternStream>);
 };

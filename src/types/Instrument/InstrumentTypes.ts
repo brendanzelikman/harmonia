@@ -2,7 +2,7 @@ import categories from "assets/instruments/categories.json";
 import samples from "assets/instruments/samples.json";
 import { SafeEffect } from "./InstrumentEffectTypes";
 import { nanoid } from "@reduxjs/toolkit";
-import { DEFAULT_PAN, DEFAULT_VOLUME } from "appConstants";
+import { DEFAULT_PAN, DEFAULT_VOLUME } from "utils/constants";
 import { PatternChord } from "types/Pattern";
 export * from "./InstrumentEffectTypes";
 
@@ -76,7 +76,7 @@ export const initializeInstrument = (
 ): Instrument => ({ ...defaultInstrument, ...instrument, id: nanoid() });
 
 export const defaultInstrument: Instrument = {
-  id: "default-instrument-channel",
+  id: "default-instrument",
   key: "grand_piano",
   volume: DEFAULT_VOLUME,
   pan: DEFAULT_PAN,

@@ -1,33 +1,31 @@
 import { RootState } from "redux/store";
-import { selectSession, selectSessionMap } from "../Session";
+import { selectTrackHierarchy, selectTrackNodeMap } from "../TrackHierarchy";
 import { getProperties, getProperty } from "types/util";
 import { getClipDuration, isClip, getClipStreams, ClipId } from "types/Clip";
 import { TrackId } from "types/Track";
-import {
-  selectPatternMap,
-  selectPatternTrackMap,
-  selectScaleMap,
-  selectScaleTrackMap,
-} from "redux/selectors";
-import { selectTranspositionMap } from "redux/Transposition";
 import { createDeepEqualSelector } from "redux/util";
 import { doesMediaOverlap } from "types/Media";
+import { selectPatternMap } from "redux/Pattern/PatternSelectors";
+import { selectPatternTrackMap } from "redux/PatternTrack/PatternTrackSelectors";
+import { selectScaleMap } from "redux/Scale/ScaleSelectors";
+import { selectScaleTrackMap } from "redux/ScaleTrack/ScaleTrackSelectors";
+import { selectTranspositionMap } from "redux/Transposition/TranspositionSelectors";
 
 /**
  * Select the clip map from the store.
  * @param state  The root state.
  * @returns A clip map.
  */
-export const selectClipMap = (state: RootState) =>
-  state.session.present.clips.byId;
+export const selectClipMap = (state: Project) =>
+  state.arrangement.present.clips.byId;
 
 /**
  * Select all clip IDs from the store.
  * @param state  The root state.
  * @returns An array of clip IDs.
  */
-export const selectClipIds = (state: RootState) =>
-  state.session.present.clips.allIds;
+export const selectClipIds = (state: Project) =>
+  state.arrangement.present.clips.allIds;
 
 /**
  * Select all clips from the store.
@@ -45,7 +43,7 @@ export const selectClips = createDeepEqualSelector(
  * @param id The ID of the clip.
  * @returns The clip.
  */
-export const selectClipById = (state: RootState, id?: ClipId) => {
+export const selectClipById = (state: Project, id?: ClipId) => {
   const clipMap = selectClipMap(state);
   return getProperty(clipMap, id);
 };
@@ -56,7 +54,7 @@ export const selectClipById = (state: RootState, id?: ClipId) => {
  * @param ids The IDs of the clips.
  * @returns An array of clips.
  */
-export const selectClipsByIds = (state: RootState, ids: ClipId[]) => {
+export const selectClipsByIds = (state: Project, ids: ClipId[]) => {
   const clipMap = selectClipMap(state);
   return getProperties(clipMap, ids);
 };
@@ -66,10 +64,7 @@ export const selectClipsByIds = (state: RootState, ids: ClipId[]) => {
  * @param state The root state.
  * @param trackIds The track IDs.
  */
-export const selectClipsByTrackIds = (
-  state: RootState,
-  trackIds: TrackId[]
-) => {
+export const selectClipsByTrackIds = (state: Project, trackIds: TrackId[]) => {
   const clips = selectClips(state);
   return clips.filter((clip) => trackIds.includes(clip.trackId));
 };
@@ -80,7 +75,7 @@ export const selectClipsByTrackIds = (
  * @param id The ID of the clip.
  * @returns The pattern ID of the clip.
  */
-export const selectClipPatternId = (state: RootState, id?: ClipId) => {
+export const selectClipPatternId = (state: Project, id?: ClipId) => {
   const clip = selectClipById(state, id);
   return clip?.patternId;
 };
@@ -91,7 +86,7 @@ export const selectClipPatternId = (state: RootState, id?: ClipId) => {
  * @param id The ID of the clip.
  * @returns The pattern of the clip.
  */
-export const selectClipPattern = (state: RootState, id?: ClipId) => {
+export const selectClipPattern = (state: Project, id?: ClipId) => {
   const patternId = selectClipPatternId(state, id);
   const patternMap = selectPatternMap(state);
   return getProperty(patternMap, patternId);
@@ -103,7 +98,7 @@ export const selectClipPattern = (state: RootState, id?: ClipId) => {
  * @param ids The IDs of the clips.
  * @returns An array of patterns.
  */
-export const selectClipPatterns = (state: RootState, ids: ClipId[]) => {
+export const selectClipPatterns = (state: Project, ids: ClipId[]) => {
   const patternMap = selectPatternMap(state);
   const patternIds = ids.map((id) => selectClipPatternId(state, id));
   return getProperties(patternMap, patternIds);
@@ -115,7 +110,7 @@ export const selectClipPatterns = (state: RootState, ids: ClipId[]) => {
  * @param id The ID of the clip.
  * @returns The name of the clip.
  */
-export const selectClipName = (state: RootState, id?: ClipId) => {
+export const selectClipName = (state: Project, id?: ClipId) => {
   const pattern = selectClipPattern(state, id);
   return pattern?.name;
 };
@@ -126,7 +121,7 @@ export const selectClipName = (state: RootState, id?: ClipId) => {
  * @param id The ID of the clip.
  * @returns The duration in ticks.
  */
-export const selectClipDuration = (state: RootState, id?: ClipId) => {
+export const selectClipDuration = (state: Project, id?: ClipId) => {
   const clip = selectClipById(state, id);
   const pattern = selectClipPattern(state, id);
   return getClipDuration(clip, pattern);
@@ -138,7 +133,7 @@ export const selectClipDuration = (state: RootState, id?: ClipId) => {
  * @param ids The IDs of the clips.
  * @returns An array of durations.
  */
-export const selectClipDurations = (state: RootState, ids: ClipId[]) => {
+export const selectClipDurations = (state: Project, ids: ClipId[]) => {
   const clips = selectClipsByIds(state, ids);
   const patterns = selectClipPatterns(state, ids);
   return clips.map((clip, index) => getClipDuration(clip, patterns[index]));
@@ -150,12 +145,12 @@ export const selectClipDurations = (state: RootState, ids: ClipId[]) => {
  * @param id The ID of the clip.
  * @returns An array of transposition IDs.
  */
-export const selectClipTranspositionIds = (state: RootState, id?: ClipId) => {
+export const selectClipTranspositionIds = (state: Project, id?: ClipId) => {
   const clip = selectClipById(state, id);
   if (!isClip(clip)) return [];
-  const session = selectSession(state);
-  const entity = session.byId[clip.trackId];
-  return entity?.transpositionIds ?? [];
+  const trackHierarchy = selectTrackHierarchy(state);
+  const trackNode = trackHierarchy.byId[clip.trackId];
+  return trackNode?.transpositionIds ?? [];
 };
 
 /**
@@ -164,14 +159,14 @@ export const selectClipTranspositionIds = (state: RootState, id?: ClipId) => {
  * @param id The ID of the clip.
  * @returns An array of transpositions.
  */
-export const selectClipTranspositions = (state: RootState, id?: ClipId) => {
+export const selectClipTranspositions = (state: Project, id?: ClipId) => {
   const clip = selectClipById(state, id);
   if (!isClip(clip)) return [];
-  const session = selectSession(state);
-  const entity = session.byId[clip.trackId];
-  if (!entity) return [];
+  const trackHierarchy = selectTrackHierarchy(state);
+  const trackNode = trackHierarchy.byId[clip.trackId];
+  if (!trackNode) return [];
   const transpositionMap = selectTranspositionMap(state);
-  const ids = entity.transpositionIds;
+  const ids = trackNode.transpositionIds;
   const transpositions = getProperties(transpositionMap, ids);
   const clipDuration = selectClipDuration(state, id);
   return transpositions.filter((transposition) => {
@@ -197,9 +192,27 @@ export const selectClipStreams = createDeepEqualSelector(
     selectScaleMap,
     selectScaleTrackMap,
     selectTranspositionMap,
-    selectSessionMap,
+    selectTrackNodeMap,
   ],
-  getClipStreams
+  (
+    clips,
+    patternMap,
+    patternTrackMap,
+    scaleMap,
+    scaleTrackMap,
+    transpositionMap,
+    trackNodeMap
+  ) => {
+    return getClipStreams({
+      clips,
+      patternMap,
+      patternTrackMap,
+      scaleMap,
+      scaleTrackMap,
+      transpositionMap,
+      trackNodeMap,
+    });
+  }
 );
 
 /**
@@ -208,7 +221,7 @@ export const selectClipStreams = createDeepEqualSelector(
  * @param id The ID of the clip.
  * @returns The transposed stream of the clip.
  */
-export const selectClipStream = (state: RootState, id?: ClipId) => {
+export const selectClipStream = (state: Project, id?: ClipId) => {
   const streams = selectClipStreams(state);
   return getProperty(streams, id);
 };

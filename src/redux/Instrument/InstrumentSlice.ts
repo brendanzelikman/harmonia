@@ -5,6 +5,7 @@ import {
   InstrumentId,
   LiveAudioInstance,
   LIVE_AUDIO_INSTANCES,
+  defaultInstrument,
 } from "types/Instrument";
 import {
   SafeEffect,
@@ -12,7 +13,7 @@ import {
   EffectKey,
 } from "types/Instrument/InstrumentEffectTypes";
 import { initializeState } from "types/util";
-import { MAX_PAN, MAX_VOLUME, MIN_PAN, MIN_VOLUME } from "appConstants";
+import { MAX_PAN, MAX_VOLUME, MIN_PAN, MIN_VOLUME } from "utils/constants";
 import { UndoTypes } from "../undoTypes";
 import { RootState } from "redux/store";
 import {
@@ -23,7 +24,7 @@ import { PatternTrack } from "types/PatternTrack";
 import { TrackId } from "types/Track";
 
 export const defaultInstrumentState = initializeState<InstrumentId, Instrument>(
-  []
+  [defaultInstrument]
 );
 
 /**
@@ -532,23 +533,26 @@ export const handleInstrumentMiddleware: Middleware =
     const type = action.type;
 
     // Get the old state
-    const oldState = store.getState() as RootState;
+    const oldState = store.getState() as Project;
     const oldInstrumentIds = selectInstrumentIds(oldState);
     const oldInstrumentMap = selectInstrumentMap(oldState);
 
     // Let the action pass through
-    const result = next(action) as RootState;
+    const result = next(action) as Project;
 
     // Get the new state
-    const nextState = store.getState() as RootState;
+    const nextState = store.getState() as Project;
     const newInstrumentMap = selectInstrumentMap(nextState);
     const newInstrumentIds = selectInstrumentIds(nextState);
 
     // Get all instrument IDs
     const allIds = union(oldInstrumentIds, newInstrumentIds);
 
-    // Validate all instruments if undoing/redoing the session
-    if (type === UndoTypes.undoSession || type === UndoTypes.redoSession) {
+    // Validate all instruments if undoing/redoing the arrangement
+    if (
+      type === UndoTypes.undoArrangement ||
+      type === UndoTypes.redoArrangement
+    ) {
       for (const id of allIds) {
         // Get the instruments
         const oldInstrument = oldInstrumentMap[id];

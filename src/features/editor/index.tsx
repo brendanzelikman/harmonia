@@ -6,13 +6,13 @@ import {
   selectSelectedTrack,
   selectTransport,
 } from "redux/selectors";
-import { AppDispatch, RootState } from "redux/store";
+import { AppDispatch, Project } from "redux/store";
 import { Editor } from "./components/Editor";
 import { Duration, Tick, Timing, Velocity } from "types/units";
 import { defaultEditor, EditorId, EditorState } from "types/Editor";
 import { durationToTicks } from "utils";
 
-function mapStateToProps(state: RootState) {
+function mapStateToProps(state: Project) {
   const selectedPattern = selectSelectedPattern(state);
   const selectedTrack = selectSelectedTrack(state);
 

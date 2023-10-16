@@ -5,13 +5,13 @@ import { PATTERN_TRACK_UNDO_TYPES } from "./PatternTrack/PatternTrackUndoTypes";
 import { SCALE_UNDO_TYPES } from "./Scale/ScaleUndoTypes";
 import { SCALE_TRACK_UNDO_TYPES } from "./ScaleTrack/ScaleTrackUndoTypes";
 import { TRANSPOSITION_UNDO_TYPES } from "./Transposition/TranspositionUndoTypes";
-import { SESSION_UNDO_TYPES } from "./Session/SessionUndoTypes";
+import { ARRANGEMENT_UNDO_TYPES } from "./TrackHierarchy/TrackHierarchyUndoTypes";
 import { INSTRUMENT_UNDO_TYPES } from "./Instrument/InstrumentUndoTypes";
 import { isSliceAction } from "./util";
 
 export const UndoTypes = {
-  undoSession: "session/undo",
-  redoSession: "session/redo",
+  undoArrangement: "arrangement/undo",
+  redoArrangement: "arrangement/redo",
   undoScales: "scales/undo",
   redoScales: "scales/redo",
   undoPatterns: "patterns/undo",
@@ -40,11 +40,11 @@ export const groupByActionType = (action: PayloadAction) => {
   if (isActionTyped("patternTracks")) {
     return PATTERN_TRACK_UNDO_TYPES[type]?.(action) || type;
   }
-  if (isActionTyped("session")) {
-    return SESSION_UNDO_TYPES[type]?.(action) || type;
-  }
   if (isActionTyped("instruments")) {
     return INSTRUMENT_UNDO_TYPES[type]?.(action) || type;
+  }
+  if (isActionTyped("arrangement")) {
+    return ARRANGEMENT_UNDO_TYPES[type]?.(action) || type;
   }
 
   return `${type}:${payload}`;

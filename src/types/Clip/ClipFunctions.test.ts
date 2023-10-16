@@ -12,7 +12,7 @@ import {
 import { MIDI } from "types/midi";
 import { PatternTrack, defaultPatternTrack } from "types/PatternTrack";
 import { ScaleTrack, ScaleTrackMap, defaultScaleTrack } from "types/ScaleTrack";
-import { createSession } from "types/Session";
+import { createTrackHierarchy } from "types/TrackHierarchy";
 import { Transposition, TranspositionMap } from "types/Transposition";
 import {
   NestedScale,
@@ -169,7 +169,7 @@ test("getClipStream", () => {
     tick: 0,
   };
 
-  const session = createSession({
+  const trackHierarchy = createTrackHierarchy({
     tracks: [parentScaleTrack, childScaleTrack, babyScaleTrack, patternTrack],
     clips: [clip],
     transpositions: [
@@ -179,7 +179,7 @@ test("getClipStream", () => {
       clipTransposition,
     ],
   });
-  const sessionMap = session.byId;
+  const trackNodeMap = trackHierarchy.byId;
 
   const patternMap = createMap<PatternMap>([pattern]);
   const patternTrackMap = { [patternTrack.id]: patternTrack };
@@ -200,15 +200,15 @@ test("getClipStream", () => {
     babyScaleTransposition,
     clipTransposition,
   ]);
-  const stream = ClipFunctions.getClipStream(
+  const stream = ClipFunctions.getClipStream({
     clip,
     patternMap,
     patternTrackMap,
     scaleMap,
     scaleTrackMap,
     transpositionMap,
-    sessionMap
-  );
+    trackNodeMap,
+  });
   const streamNotes = stream.filter((n) => n?.[0]);
   expect(streamNotes[0][0].MIDI).toSatisfy((n) => n === 71 || n === 78);
   expect(streamNotes[1][0].MIDI).toSatisfy((n) => n === 78 || n === 81);

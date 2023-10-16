@@ -1,5 +1,5 @@
 import { PlaybackState } from "tone";
-import { DEFAULT_BPM } from "appConstants";
+import { DEFAULT_BPM } from "utils/constants";
 import { MIDI } from "../midi";
 import { Tick, BPM, Time, Volume } from "../units";
 
@@ -14,8 +14,6 @@ import { Tick, BPM, Time, Volume } from "../units";
  * @property `loopEnd` - The end of the loop in ticks.
  * @property `volume` - The volume of the transport.
  * @property `mute` - Whether the transport is muted.
- * @property `loaded` - Whether the transport is loaded.
- * @property `loading` - Whether the transport is loading.
  * @property `recording` - Whether the transport is recording.
  * @property `downloading` - Whether the transport is downloading.
  *
@@ -32,8 +30,6 @@ export interface Transport {
   volume: Volume;
   mute: boolean;
 
-  loaded: boolean;
-  loading: boolean;
   recording: boolean;
   downloading: boolean;
 }
@@ -47,8 +43,6 @@ export const defaultTransport: Transport = {
   volume: -6,
   mute: false,
   timeSignature: [16, 16],
-  loaded: false,
-  loading: false,
   recording: false,
   downloading: false,
 };

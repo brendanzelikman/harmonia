@@ -13,4 +13,7 @@ export default defineConfig({
   },
   assetsInclude: ["**/*.ham"],
   plugins: [react(), tsconfigPaths()],
+  resolve: {
+    mainFields: [],
+  },
 });

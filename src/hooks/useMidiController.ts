@@ -1,5 +1,5 @@
 import { UpdateInstrumentPayload, updateInstrument } from "redux/Instrument";
-import { MAX_VOLUME, MIN_VOLUME } from "appConstants";
+import { MAX_VOLUME, MIN_VOLUME } from "utils/constants";
 import { throttle } from "lodash";
 import { TranspositionOffsetRecord } from "types/Transposition";
 import { ControlChangeMessageEvent, MessageEvent, WebMidi } from "webmidi";

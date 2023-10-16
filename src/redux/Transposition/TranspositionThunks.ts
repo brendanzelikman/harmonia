@@ -6,7 +6,10 @@ import {
 } from "types/Transposition";
 import { AppThunk } from "redux/store";
 import { Transposition, TranspositionOffsetRecord } from "types/Transposition";
-import { addMediaToSession, removeMediaFromSession } from "redux/Session";
+import {
+  addMediaToHierarchy,
+  removeMediaFromHierarchy,
+} from "redux/TrackHierarchy";
 import { selectSelectedTranspositions } from "redux/selectors";
 import {
   _updateTranspositions,
@@ -31,7 +34,7 @@ export const createTranspositions =
 
       // Add the transpositions to the store
       dispatch(addTranspositions(payload));
-      dispatch(addMediaToSession(payload));
+      dispatch(addMediaToHierarchy(payload));
 
       // Resolve the promise
       const ids = transpositions.map((t) => t.id);
@@ -47,7 +50,7 @@ export const deleteTranspositions =
   (transpositions: Transposition[]): AppThunk =>
   (dispatch) => {
     dispatch(removeTranspositions({ transpositions }));
-    dispatch(removeMediaFromSession({ transpositions }));
+    dispatch(removeMediaFromHierarchy({ transpositions }));
   };
 
 /**

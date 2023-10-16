@@ -10,7 +10,7 @@ import {
   getScalarOffset,
   getLastTransposition,
 } from "types/Transposition";
-import { SessionMap, isSessionMap } from "types/Session";
+import { TrackNodeMap, isTrackNodeMap } from "types/TrackHierarchy";
 import { ERROR_TAG, Tick } from "types/units";
 import {
   isTrack,
@@ -83,27 +83,27 @@ export const getTrackParents = (
  * Gets the child tracks of a track.
  * @param track Optional. The Track to get the children of.
  * @param trackMap Optional. The TrackMap to get the children from.
- * @param sessionMap Optional. The SessionMap to get the children from.
+ * @param trackNodeMap Optional. The TrackNodeMap to get the children from.
  * @returns An array of child tracks. If any parameter is invalid, return an empty array.
  */
 export const getTrackChildren = (
   track: Track,
   trackMap: TrackMap,
-  sessionMap: SessionMap
+  trackNodeMap: TrackNodeMap
 ): Track[] => {
   if (!isTrack(track)) return [];
   if (!isTrackMap(trackMap)) return [];
-  if (!isSessionMap(sessionMap)) return [];
+  if (!isTrackNodeMap(trackNodeMap)) return [];
 
   const children: Track[] = [];
-  const entity = sessionMap[track.id];
-  if (!entity) return children;
-  for (let i = 0; i < entity.trackIds.length; i++) {
-    const id = entity.trackIds[i];
+  const trackNode = trackNodeMap[track.id];
+  if (!trackNode) return children;
+  for (let i = 0; i < trackNode.trackIds.length; i++) {
+    const id = trackNode.trackIds[i];
     const child = trackMap[id];
     if (!child) continue;
     children.push(child);
-    children.push(...getTrackChildren(child, trackMap, sessionMap));
+    children.push(...getTrackChildren(child, trackMap, trackNodeMap));
   }
   return children;
 };

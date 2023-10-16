@@ -2,7 +2,7 @@ import { startTone } from "index";
 import * as Instrument from "redux/Instrument";
 import * as TransportSlice from "./TransportSlice";
 import * as Tone from "tone";
-import { AppThunk } from "redux/store";
+import { AppThunk, Project } from "redux/store";
 import { playPatternChord } from "types/Pattern";
 import { Tick } from "types/units";
 import encodeWAV from "audiobuffer-to-wav";
@@ -13,7 +13,7 @@ import {
   MAX_TRANSPORT_VOLUME,
   MIN_BPM,
   MIN_TRANSPORT_VOLUME,
-} from "appConstants";
+} from "utils/constants";
 import { convertTicksToSeconds } from "types/Transport";
 import { selectTransport } from "./TransportSelectors";
 import {
@@ -21,7 +21,7 @@ import {
   selectChordsByTicks,
   selectTimelineEndTick,
   selectPatternTrackMap,
-  selectProject,
+  selectMetadata,
   selectPatternTrackAudioInstances,
   selectChordsAtTick,
 } from "redux/selectors";
@@ -31,6 +31,8 @@ import { dispatchCustomEvent } from "utils/events";
 
 export const UPDATE_TICK = "updateTick";
 export const UPDATE_OFFLINE_TICK = "updateOfflineTick";
+export const START_LOADING_TRANSPORT = "startLoadingTransport";
+export const STOP_LOADING_TRANSPORT = "stopLoadingTransport";
 
 /**
  * Dispatch a tick update event.
@@ -167,6 +169,9 @@ export const seekTransport =
 
     // Seek the transport
     Tone.Transport.seconds = seconds;
+
+    // Dispatch a tick update event
+    dispatchCustomEvent(UPDATE_TICK, tick);
   };
 
 /**
@@ -322,9 +327,7 @@ export const loadTransport = (): AppThunk => async (dispatch, getState) => {
     // Wait for the Tone context to start
     await Tone.start();
 
-    // Unload the transport
-    dispatch(TransportSlice.setLoaded(false));
-    dispatch(TransportSlice.setLoading(true));
+    dispatchCustomEvent(START_LOADING_TRANSPORT);
 
     // Copy the transport state into the Tone transport
     const { loop, loopStart, loopEnd, bpm, volume, mute } = transport;
@@ -351,8 +354,7 @@ export const loadTransport = (): AppThunk => async (dispatch, getState) => {
     // Take an extra lil bit to load :)
     await sleep(5.12);
     // Set the transport as loaded
-    dispatch(TransportSlice.setLoaded(true));
-    dispatch(TransportSlice.setLoading(false));
+    dispatchCustomEvent(STOP_LOADING_TRANSPORT);
   }
 };
 
@@ -411,7 +413,7 @@ export const stopRecordingTransport = (): AppThunk => (dispatch, getState) => {
 
     // Download the file
     const state = getState();
-    const { name } = selectProject(state);
+    const { name } = selectMetadata(state);
     const a = document.createElement("a");
     a.href = url;
     a.download = `${name ?? "Project"} Recording.wav`;
@@ -550,7 +552,7 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
   const url = URL.createObjectURL(blob);
 
   // Download the file
-  const { name } = selectProject(oldState);
+  const { name } = selectMetadata(oldState);
   const a = document.createElement("a");
   a.href = url;
   a.download = `${name ?? "project"}.wav`;

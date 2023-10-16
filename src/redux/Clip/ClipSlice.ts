@@ -4,7 +4,7 @@ import { TrackId } from "types/Track";
 import { initializeState } from "types/util";
 import { MediaPayload, PartialMediaPayload } from "types/Media";
 import { union } from "lodash";
-import { updateMediaInSession } from "redux/Session";
+import { updateMediaInHierarchy } from "redux/TrackHierarchy";
 
 export const defaultClipState = initializeState<ClipId, Clip>();
 
@@ -43,7 +43,7 @@ export type RemoveClipsByTrackIdPayload = TrackId;
 export type ClearClipsByTrackIdPayload = TrackId;
 
 /**
- * The clips slice contains all clips in the session.
+ * The clips slice contains all clips in the arrangement.
  * Some functions are underscored to indicate that they should not be called directly.
  *
  * @property `addClips` - Add clips to the store.
@@ -179,7 +179,7 @@ export const {
 
 export const updateClips = (media: PartialMediaPayload) => (dispatch: any) => {
   dispatch(_updateClips(media));
-  dispatch(updateMediaInSession(media));
+  dispatch(updateMediaInHierarchy(media));
 };
 
 export default clipsSlice.reducer;

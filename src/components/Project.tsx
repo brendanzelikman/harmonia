@@ -5,42 +5,57 @@ import { selectScaleMap } from "redux/Scale";
 import { selectScaleTrackMap, selectScaleTracks } from "redux/ScaleTrack";
 import { selectTimelineEndTick } from "redux/Timeline";
 import { selectTransport } from "redux/Transport";
+import { selectMetadata, selectClips } from "redux/selectors";
 import {
-  selectProject,
-  selectClips,
-  selectTrackParents,
-} from "redux/selectors";
-import { RootState } from "redux/store";
-import {
-  loadProjectById,
-  deleteProjectById,
-  saveProjectAsHAM,
-  createNewProject,
+  loadProject,
+  deleteProject,
+  exportProjectToHAM,
+  createProject,
+  loadProjectByPath,
 } from "redux/thunks";
 import { getInstrumentName } from "types/Instrument";
-import { getScaleName, realizeNestedScaleNotes } from "types/Scale";
+import { getScaleName } from "types/Scale";
 import { convertTicksToSeconds } from "types/Transport";
 import { cancelEvent } from "utils";
 import Logo from "./Logo";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useAppDispatch } from "redux/hooks";
 import { BiCopy } from "react-icons/bi";
 import { Transition } from "@headlessui/react";
 import { getScaleTrackScale } from "types/ScaleTrack";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { Project } from "types/Project";
 
 interface ProjectProps {
-  state: RootState;
+  state?: Project;
   index?: number;
+  filePath?: string;
 }
 
-export const Project = (props: ProjectProps) => {
+export function ProjectComponent(props: ProjectProps) {
   const dispatch = useAppDispatch();
-  const { state, index } = props;
+  const { index } = props;
+
+  const [state, setState] = useState(props.state ?? ({} as Project));
+  const [loaded, setLoaded] = useState(!!props.state);
+
+  useEffect(() => {
+    if (!props.state && !!props.filePath) {
+      fetch(props.filePath)
+        .then((res) => res.json())
+        .then(setState)
+        .then(() => setLoaded(true));
+    }
+  }, [props]);
+
+  const heldKeys = useHeldHotkeys("alt");
   const [deleting, setDeleting] = useState(false);
   const toggleDeleting = () => setDeleting((prev) => !prev);
 
+  if (!loaded) return null;
+
   // Get general info about the project
-  const project = selectProject(state);
+  const project = selectMetadata(state);
   const { id, name } = project;
   const dateCreated = new Date(project.dateCreated).toLocaleString();
   const lastUpdated = new Date(project.lastUpdated).toLocaleString();
@@ -84,11 +99,11 @@ export const Project = (props: ProjectProps) => {
     >
       <BsDownload
         className="px-1 hover:bg-slate-800 rounded"
-        onClick={() => dispatch(saveProjectAsHAM(state))}
+        onClick={() => dispatch(exportProjectToHAM(state))}
       />
       <BiCopy
         className="px-1 hover:bg-slate-800 rounded"
-        onClick={() => dispatch(createNewProject(state))}
+        onClick={() => createProject(state)}
       />
       <div className="flex relative h-full">
         <BsTrash
@@ -118,7 +133,7 @@ export const Project = (props: ProjectProps) => {
                 className="px-4 hover:bg-slate-700 hover:text-red-500 rounded"
                 onClick={(e) => {
                   cancelEvent(e);
-                  dispatch(deleteProjectById(project.id));
+                  dispatch(deleteProject(id));
                 }}
               >
                 Yes
@@ -137,15 +152,21 @@ export const Project = (props: ProjectProps) => {
   const ProjectLogo = () => (
     <div className="my-auto w-24 flex flex-col items-center text-sky-400 text-xl font-bold">
       <Logo className="h-16" />
-      {index !== undefined && <h1 className="my-1">File #{index + 1}</h1>}
-      <ProjectControl />
+      {index !== undefined && (
+        <h1 className="my-1">
+          {!!props.filePath ? "Demo" : "File"} #{index + 1}
+        </h1>
+      )}
+      {!!props.state && <ProjectControl />}
     </div>
   );
 
   /** Display the title and general info */
   const ProjectTitle = () => (
     <div className="mx-10 h-full flex-1 flex flex-col justify-center truncate [&>*]:truncate">
-      <h1 className="text-3xl text-white font-bold">{name}</h1>
+      <h1 className="text-3xl text-white font-bold">
+        {heldKeys.alt ? id.slice(17) : name}
+      </h1>
       <h6 className="text-slate-400">Date Created: {dateCreated}</h6>
       <h6 className="text-slate-400">Last Updated: {lastUpdated}</h6>
       <h2 className="mt-2 text-md">
@@ -223,15 +244,28 @@ export const Project = (props: ProjectProps) => {
       : "hover:shadow-[0px_0px_20px_0px_rgb(20,20,20)]"
   }`;
 
+  const onClick = () => {
+    !!props.filePath
+      ? dispatch(loadProjectByPath(props.filePath))
+      : dispatch(loadProject(id));
+  };
+
   return (
-    <div
+    <Transition
+      appear
+      enter="transition-opacity duration-300"
+      enterFrom="opacity-0"
+      enterTo="opacity-100"
+      leave="transition-opacity duration-300"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
       key={id}
       className={`group w-full flex p-4 h-40 bg-slate-900/90 hover:bg-slate-900 ${border} text-slate-200 text-sm cursor-pointer transition-all duration-150`}
-      onClick={() => dispatch(loadProjectById(id))}
+      onClick={onClick}
     >
       <ProjectLogo />
       <ProjectTitle />
       <ProjectBody />
-    </div>
+    </Transition>
   );
-};
+}

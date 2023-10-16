@@ -89,10 +89,10 @@ export const ToolkitMergeButton = () => {
         show={!!isMerging}
         content={
           <NavbarTooltipMenu>
-            <div className="pb-2 mb-1 w-full text-center font-bold border-b">
+            <div className="pb-2 mb-2 w-full text-center font-bold border-b">
               Merging Track Media
             </div>
-            <div className="w-full h-full p-2 space-y-2">
+            <div className="w-full h-full p-2 space-y-1">
               {NewPatternName()}
               <DispatchButton />
             </div>

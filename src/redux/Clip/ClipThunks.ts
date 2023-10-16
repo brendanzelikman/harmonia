@@ -1,8 +1,8 @@
 import {
-  addMediaToSession,
-  removeMediaFromSession,
-  selectSessionMap,
-} from "redux/Session";
+  addMediaToHierarchy,
+  removeMediaFromHierarchy,
+  selectTrackNodeMap,
+} from "redux/TrackHierarchy";
 import { AppThunk } from "redux/store";
 import {
   Clip,
@@ -14,7 +14,7 @@ import {
 } from "types/Clip";
 import { addClips, removeClips } from "./ClipSlice";
 import { selectClipsByIds } from "./ClipSelectors";
-import { selectProject } from "redux/Project";
+import { selectMetadata } from "redux/Metadata";
 import { selectPatternMap } from "redux/Pattern";
 import {
   selectPatternTrackMap,
@@ -29,11 +29,11 @@ import {
   selectScaleMap,
   selectMediaSelection,
 } from "redux/selectors";
+import { updateMediaSelection } from "redux/Timeline/TimelineSlice";
 import { Midi } from "@tonejs/midi";
 import { TrackId } from "types/Track";
 import { convertTicksToSeconds } from "types/Transport";
 import { MIDI } from "types/midi";
-import { updateMediaSelection } from "redux/Timeline";
 import { union } from "lodash";
 
 /**
@@ -51,7 +51,7 @@ export const createClips =
       // Add the clips to the store
       const payload = { clips };
       dispatch(addClips(payload));
-      dispatch(addMediaToSession(payload));
+      dispatch(addMediaToHierarchy(payload));
 
       // Resolve the promise with the clip IDs
       const clipIds = clips.map((clip) => clip.id);
@@ -85,7 +85,7 @@ export const deleteClips =
         })
       );
       dispatch(removeClips({ clips }));
-      dispatch(removeMediaFromSession({ clips }));
+      dispatch(removeMediaFromHierarchy({ clips }));
       resolve(true);
     });
   };
@@ -104,13 +104,13 @@ export const exportClipsToMidi =
     if (!clips.length) return;
 
     // Get the dependencies
-    const project = selectProject(state);
-    const patterns = selectPatternMap(state);
-    const patternTracks = selectPatternTrackMap(state);
+    const project = selectMetadata(state);
+    const patternMap = selectPatternMap(state);
+    const patternTrackMap = selectPatternTrackMap(state);
     const scaleTrackMap = selectScaleTrackMap(state);
     const scaleMap = selectScaleMap(state);
     const transport = selectTransport(state);
-    const sessionMap = selectSessionMap(state);
+    const trackNodeMap = selectTrackNodeMap(state);
     const transpositionMap = selectTranspositionMap(state);
 
     // Sort the clips
@@ -147,15 +147,15 @@ export const exportClipsToMidi =
       clips.forEach((clip) => {
         // Get the stream of the clip
         const time = convertTicksToSeconds(transport, clip.tick);
-        const stream = getClipStream(
+        const stream = getClipStream({
           clip,
-          patterns,
-          patternTracks,
+          patternMap,
+          patternTrackMap,
           scaleMap,
           scaleTrackMap,
           transpositionMap,
-          sessionMap
-        );
+          trackNodeMap,
+        });
 
         // Iterate through each chord
         for (let i = 0; i < stream.length; i++) {

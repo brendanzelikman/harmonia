@@ -165,7 +165,7 @@ export const ToolkitTransposeButton = () => {
         show={!!isAdding}
         content={
           <NavbarTooltipMenu>
-            <div className="pb-2 mb-1 w-full text-center font-bold border-b">
+            <div className="pb-2 mb-2 w-full text-center font-bold border-b">
               Transposing by {formatOffsets({ ...offsets, ...selectedOffsets })}
             </div>
             <div className="w-full h-full py-2 space-y-2">

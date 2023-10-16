@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { MAX_BPM, MAX_VOLUME, MIN_BPM, MIN_VOLUME } from "appConstants";
+import { MAX_BPM, MAX_VOLUME, MIN_BPM, MIN_VOLUME } from "utils/constants";
 import { clamp } from "lodash";
 import { defaultTransport } from "types/Transport";
 import { BPM, Tick, Volume } from "types/units";

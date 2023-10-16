@@ -4,7 +4,7 @@ import {
   MIN_CELL_WIDTH,
   MAX_CELL_WIDTH,
   DEFAULT_BPM,
-} from "appConstants";
+} from "utils/constants";
 import { KeyboardEvent, useState } from "react";
 import {
   BsGearFill,

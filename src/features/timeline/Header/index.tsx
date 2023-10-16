@@ -11,14 +11,14 @@ import {
   setTransportLoopEnd,
   setTransportLoopStart,
 } from "redux/Transport";
-import { AppDispatch, RootState } from "redux/store";
+import { AppDispatch, Project } from "redux/store";
 import { Subdivision, Tick } from "types/units";
 import { Row } from "..";
 import { HeaderFormatter } from "./Header";
 import { subdivisionToTicks } from "utils";
 import { convertTicksToBarsBeatsSixteenths } from "types/Transport";
 
-function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
+function mapStateToProps(state: Project, ownProps: HeaderRendererProps<Row>) {
   const transport = selectTransport(state);
   const { loop, loopStart, loopEnd } = transport;
 

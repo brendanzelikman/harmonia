@@ -1,40 +1,40 @@
-import Navbar from "features/Navbar";
-import Editor from "features/Editor";
-import Timeline from "features/Timeline";
-import Shortcuts from "features/Shortcuts";
-import useGlobalHotkeys from "hooks/useGlobalHotkeys";
-import useMidiController from "hooks/useMidiController";
+import { StrictMode } from "react";
+import { Provider as ReduxProvider } from "react-redux";
+import { MIDIProvider } from "providers/midi";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { HotkeysProvider } from "react-hotkeys-hook";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { store } from "redux/store";
+import { LandingView, ErrorView, HomeView, PlaygroundView } from "views";
 
-import { LoadingView } from "views";
-import { useAppSelector } from "redux/hooks";
-import { selectTransport } from "redux/selectors";
-import { TourBackground } from "features/Tour";
+export function App() {
+  const router = createBrowserRouter(
+    [
+      { path: "/", element: <LandingView />, errorElement: <ErrorView /> },
+      { path: "/projects", element: <HomeView view="projects" /> },
+      { path: "/demos", element: <HomeView view="demos" /> },
+      { path: "/profile", element: <HomeView view="profile" /> },
+      {
+        path: "/playground",
+        element: <PlaygroundView />,
+        errorElement: <ErrorView />,
+      },
+    ],
+    { basename: "/harmonia" }
+  );
 
-/**
- * The main app is composed of four components.
- * * Navbar: Transport, toolkit, etc.
- * * Timeline: Tracks, media, etc.
- * * Editor: Scales, patterns, etc.
- * * Shortcuts: Shortcut menu.
- */
-export default function App() {
-  useGlobalHotkeys();
-  useMidiController();
-
-  // If the transport is not loaded, show a loading page.
-  const transport = useAppSelector(selectTransport);
-  if (!transport.loaded) return <LoadingView />;
-
-  // Otherwise, show the app.
   return (
-    <div className="flex flex-col fade-in h-screen">
-      <TourBackground />
-      <Navbar />
-      <main className="relative flex flex-auto overflow-hidden">
-        <Timeline />
-        <Editor />
-        <Shortcuts />
-      </main>
-    </div>
+    <StrictMode>
+      <DndProvider backend={HTML5Backend} key={1}>
+        <ReduxProvider store={store}>
+          <MIDIProvider>
+            <HotkeysProvider initiallyActiveScopes={["timeline"]}>
+              <RouterProvider router={router} />
+            </HotkeysProvider>
+          </MIDIProvider>
+        </ReduxProvider>
+      </DndProvider>
+    </StrictMode>
   );
 }

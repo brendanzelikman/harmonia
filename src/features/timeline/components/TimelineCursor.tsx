@@ -1,4 +1,4 @@
-import { HEADER_HEIGHT } from "appConstants";
+import { HEADER_HEIGHT } from "utils/constants";
 import useTransportTick from "hooks/useTransportTick";
 import { memo } from "react";
 import { useAppSelector } from "redux/hooks";

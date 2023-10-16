@@ -1,15 +1,15 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { initializeProject } from "types/Project";
+import { initializeProjectMetadata } from "types/Project";
 /**
- * The project slice contains high-level information about the project.
+ * The meta slice contains high-level information about the project.
  *
  * @property `setProjectName` - Set the project name.
  * @property `setProjectId` - Set the project ID.
  * @property `updateProjectTimestamp` - Update the project timestamp.
  */
-export const projectSlice = createSlice({
-  name: "project",
-  initialState: initializeProject(),
+export const metadataSlice = createSlice({
+  name: "meta",
+  initialState: initializeProjectMetadata(),
   reducers: {
     /**
      * Set the project name.
@@ -38,6 +38,6 @@ export const projectSlice = createSlice({
 });
 
 export const { setProjectName, setProjectId, updateProjectTimestamp } =
-  projectSlice.actions;
+  metadataSlice.actions;
 
-export default projectSlice.reducer;
+export default metadataSlice.reducer;

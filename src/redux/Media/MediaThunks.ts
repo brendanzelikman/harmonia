@@ -1,7 +1,7 @@
 import * as Patterns from "redux/Pattern";
 import * as Clips from "redux/Clip";
 import * as Transpositions from "redux/Transposition";
-import * as Session from "redux/Session";
+import * as Hierarchy from "redux/TrackHierarchy";
 import * as Timeline from "redux/Timeline";
 import { AppThunk } from "redux/store";
 import { getClipboardMedia } from "types/Timeline";
@@ -62,7 +62,7 @@ export const createMedia =
       const payload = { clips, transpositions };
       dispatch(Clips.addClips(payload));
       dispatch(Transpositions.addTranspositions(payload));
-      dispatch(Session.addMediaToSession(payload));
+      dispatch(Hierarchy.addMediaToHierarchy(payload));
 
       // Resolve the promise with the clip IDs and transposition IDs
       const clipIds = clips.map((c) => c.id);
@@ -130,7 +130,7 @@ export const deleteMedia =
       dispatch(Clips.removeClips({ clips, transpositions }));
       dispatch(Transpositions.removeTranspositions({ transpositions }));
       dispatch(
-        Session.removeMediaFromSession({
+        Hierarchy.removeMediaFromHierarchy({
           clips,
           transpositions,
         })
@@ -398,12 +398,12 @@ export const sliceMedia =
       dispatch(Transpositions._sliceTransposition(transpositionPayload));
     }
 
-    // Slice the media in the session
-    const sessionPayload = {
+    // Slice the media in the hierarchy
+    const hierarchyPayload = {
       oldId: oldMedia.id,
       newIds: [firstMedia.id, secondMedia.id],
     };
-    dispatch(Session.sliceMediaInSession(sessionPayload));
+    dispatch(Hierarchy.sliceMediaInHierarchy(hierarchyPayload));
   };
 
 /**
@@ -415,7 +415,7 @@ export const mergeSelectedMedia =
     const state = getState();
     const selectedMedia = Timeline.selectSelectedMedia(state);
     if (!selectedMedia.length) return;
-    const sessionMap = Session.selectSessionMap(state);
+    const trackNodeMap = Hierarchy.selectTrackNodeMap(state);
     const patternMap = Patterns.selectPatternMap(state);
     const transpositionMap = Transpositions.selectTranspositionMap(state);
     const patternTrackMap = selectPatternTrackMap(state);
@@ -438,15 +438,15 @@ export const mergeSelectedMedia =
 
       // Get the clip stream
       const duration = selectClipDuration(state, clip.id);
-      let stream = getClipStream(
+      let stream = getClipStream({
         clip,
         patternMap,
         patternTrackMap,
         scaleMap,
         scaleTrackMap,
         transpositionMap,
-        sessionMap
-      );
+        trackNodeMap,
+      });
 
       // Make sure the duration of the new stream is the same as the clip duration
       let totalDuration = 0;

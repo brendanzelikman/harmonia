@@ -1,12 +1,12 @@
 import * as Timeline from "redux/Timeline";
 import * as Media from "redux/Media";
 import * as Transport from "redux/Transport";
-import * as Project from "redux/Project";
+import * as Project from "redux/Metadata";
 
 import { useAppSelector, useAppDispatch } from "redux/hooks";
 import { useScopedHotkeys, useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { showEditor } from "redux/Editor";
-import { redoSession, undoSession } from "redux/Session";
+import { redoArrangement, undoArrangement } from "redux/Arrangement";
 
 const useHotkeys = useScopedHotkeys("timeline");
 
@@ -15,11 +15,11 @@ export default function useTimelineHotkeys() {
   const selectedMedia = useAppSelector(Timeline.selectSelectedMedia);
   const mediaLength = selectedMedia.length;
 
-  // Meta + Z = Undo Session
-  useHotkeys("meta+z", () => dispatch(undoSession()));
+  // Meta + Z = Undo Arrangement
+  useHotkeys("meta+z", () => dispatch(undoArrangement()));
 
-  // Meta + Shift + Z = Redo Session
-  useHotkeys("meta+shift+z", () => dispatch(redoSession()));
+  // Meta + Shift + Z = Redo Arrangement
+  useHotkeys("meta+shift+z", () => dispatch(redoArrangement()));
 
   // Space = Play/Pause Transport
   useHotkeys("space", () => dispatch(Transport.toggleTransport()));

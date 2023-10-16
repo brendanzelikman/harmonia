@@ -4,16 +4,16 @@ import { TrackId, TrackType } from "../Track";
 import { TranspositionId } from "../Transposition";
 
 /**
- * A `SessionEntity` refers to a track and its media + children
+ * A `TrackNode` refers to a track and its media + children
  * @property `id` - The unique ID of the track.
  * @property `type` - The type of the track.
- * @property `depth` - The depth of the track in the session map.
+ * @property `depth` - The depth of the track in the TrackHierarchy map.
  * @property `trackIds` - The IDs of the child tracks.
  * @property `clipIds` - The IDs of the clips in the track.
  * @property `transpositionIds` - The IDs of the transpositions in the track.
  * @property `collapsed` - Optional. Whether the track is collapsed.
  */
-export interface SessionEntity {
+export interface TrackNode {
   id: TrackId;
   type: TrackType;
   depth: number;
@@ -23,7 +23,7 @@ export interface SessionEntity {
   collapsed?: boolean;
 }
 
-export const defaultScaleTrackEntity: SessionEntity = {
+export const defaultScaleTrackNode: TrackNode = {
   id: "default-scale-track",
   type: "scaleTrack",
   depth: 0,
@@ -31,7 +31,7 @@ export const defaultScaleTrackEntity: SessionEntity = {
   clipIds: [],
   transpositionIds: [],
 };
-export const mockScaleTrackEntity: SessionEntity = {
+export const mockScaleTrackNode: TrackNode = {
   id: "mock-scale-track",
   type: "scaleTrack",
   depth: 0,
@@ -40,7 +40,7 @@ export const mockScaleTrackEntity: SessionEntity = {
   transpositionIds: [],
 };
 
-export const defaultPatternTrackEntity: SessionEntity = {
+export const defaultPatternTrackNode: TrackNode = {
   id: "default-pattern-track",
   type: "patternTrack",
   depth: 1,
@@ -48,7 +48,7 @@ export const defaultPatternTrackEntity: SessionEntity = {
   clipIds: [],
   transpositionIds: [],
 };
-export const mockPatternTrackEntity: SessionEntity = {
+export const mockPatternTrackNode: TrackNode = {
   id: "mock-pattern-track",
   type: "patternTrack",
   depth: 1,
@@ -58,49 +58,49 @@ export const mockPatternTrackEntity: SessionEntity = {
 };
 
 /**
- * A `Session` is built upon a normalized state of `SessionEntity` objects.
+ * A `TrackHierarchy` is built upon a normalized state of `TrackNode` objects.
  * @property `allIds` - The IDs of all the tracks.
- * @property `byId` - The map of track IDs to `SessionEntity` objects.
+ * @property `byId` - The map of track IDs to `TrackNode` objects.
  * @property `topLevelIds` - The IDs of the top-level tracks.
  */
-export interface Session extends NormalizedState<TrackId, SessionEntity> {
+export interface TrackHierarchy extends NormalizedState<TrackId, TrackNode> {
   topLevelIds: TrackId[];
 }
-export type SessionMap = Record<TrackId, SessionEntity>;
+export type TrackNodeMap = Record<TrackId, TrackNode>;
 
 /**
- * The default session is initialized with a default scale track and a default pattern track.
+ * The default hierarchy is initialized with the default scale track and default pattern track.
  */
-export const defaultSession: Session = {
-  ...initializeState<TrackId, SessionEntity>([
-    defaultScaleTrackEntity,
-    defaultPatternTrackEntity,
+export const defaultTrackHierarchy: TrackHierarchy = {
+  ...initializeState<TrackId, TrackNode>([
+    defaultScaleTrackNode,
+    defaultPatternTrackNode,
   ]),
-  topLevelIds: [defaultScaleTrackEntity.id],
+  topLevelIds: [defaultScaleTrackNode.id],
 };
 
 /**
- * Checks if a given object is of type `Session`.
+ * Checks if a given object is of type `TrackHierarchy`.
  * @param obj The object to check.
- * @returns True if the object is a `Session`, otherwise false.
+ * @returns True if the object is a `TrackHierarchy`, otherwise false.
  */
-export const isSession = (obj: unknown): obj is Session => {
-  const candidate = obj as Session;
+export const isTrackHierarchy = (obj: unknown): obj is TrackHierarchy => {
+  const candidate = obj as TrackHierarchy;
   return (
     candidate?.allIds !== undefined &&
     candidate?.byId !== undefined &&
     candidate?.topLevelIds !== undefined &&
-    Object.values(candidate.byId).every(isSessionEntity)
+    Object.values(candidate.byId).every(isTrackNode)
   );
 };
 
 /**
- * Checks if a given object is of type `SessionEntity`.
+ * Checks if a given object is of type `TrackNode`.
  * @param obj The object to check.
- * @returns True if the object is a `SessionEntity`, otherwise false.
+ * @returns True if the object is a `TrackNode`, otherwise false.
  */
-export const isSessionEntity = (obj: unknown): obj is SessionEntity => {
-  const candidate = obj as SessionEntity;
+export const isTrackNode = (obj: unknown): obj is TrackNode => {
+  const candidate = obj as TrackNode;
   return (
     candidate?.id !== undefined &&
     candidate?.type !== undefined &&
@@ -112,13 +112,11 @@ export const isSessionEntity = (obj: unknown): obj is SessionEntity => {
 };
 
 /**
- * Checks if a given object is of type `SessionMap`.
+ * Checks if a given object is of type `TrackNodeMap`.
  * @param obj The object to check.
- * @returns True if the object is a `SessionMap`, otherwise false.
+ * @returns True if the object is a `TrackNodeMap`, otherwise false.
  */
-export const isSessionMap = (obj: unknown): obj is SessionMap => {
-  const candidate = obj as SessionMap;
-  return (
-    candidate != undefined && Object.values(candidate).every(isSessionEntity)
-  );
+export const isTrackNodeMap = (obj: unknown): obj is TrackNodeMap => {
+  const candidate = obj as TrackNodeMap;
+  return candidate != undefined && Object.values(candidate).every(isTrackNode);
 };

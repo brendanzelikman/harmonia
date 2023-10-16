@@ -16,8 +16,20 @@
   .rounded-full {
     border-radius: 9999px;
   }
+  .fade-in-100 {
+    animation: fadeIn 0.1s ease-in-out;
+  }
+  .fade-in-200 {
+    animation: fadeIn 0.2s ease-in-out;
+  }
   .fade-in-250 {
     animation: fadeIn 0.25s ease-in-out;
+  }
+  .fade-in-300 {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  .fade-in-400 {
+    animation: fadeIn 0.4s ease-in-out;
   }
   .fade-in,
   .fade-in-500 {
@@ -26,7 +38,9 @@
   .fade-in-1000 {
     animation: fadeIn 1s ease-in-out;
   }
-
+  .fade-out {
+    animation: fadeOut 0.5s ease-in-out;
+  }
   .background-pulse {
     background-size: 400% 400%;
     animation: animate-gradient 5s ease-in-out infinite;
@@ -80,9 +94,53 @@ html {
   }
 }
 
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 @keyframes rotate {
   100% {
     transform: rotate(-360deg);
+  }
+}
+
+@keyframes card-flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  20% {
+    transform: rotateY(1440deg);
+  }
+  40% {
+    transform: rotateX(180deg) rotateY(2880deg);
+  }
+  60% {
+    transform: rotateX(180deg) rotateY(4320deg);
+  }
+  80% {
+    transform: rotateX(360deg) rotateY(5760deg);
+  }
+  100% {
+    transform: rotateX(360deg) rotateY(7200deg);
+  }
+}
+
+.stretch-right {
+  transform-origin: left center;
+  animation: stretchright 0.1s ease-in-out;
+}
+
+@keyframes stretchright {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
   }
 }
 

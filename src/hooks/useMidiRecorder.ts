@@ -24,7 +24,7 @@ const defaultProps = {
   muteMetronome: false,
 };
 
-export default function useRecorder(props: RecorderProps = defaultProps) {
+export default function useMidiRecorder(props: RecorderProps = defaultProps) {
   const bpm = props.bpm ?? defaultProps.bpm;
   const duration = props.duration ?? defaultProps.duration;
   const pickup = props.pickup ?? defaultProps.pickup;

@@ -1,4 +1,4 @@
-import * as Session from "../Session/SessionSlice";
+import * as Hierarchy from "../TrackHierarchy/TrackHierarchySlice";
 import { AppThunk } from "redux/store";
 import { hideEditor } from "../Editor/EditorSlice";
 import { isPatternTrack } from "types/PatternTrack";
@@ -34,8 +34,7 @@ import {
   selectPatternTrackById,
   updatePatternTrack,
 } from "redux/PatternTrack";
-import { createMedia } from "redux/thunks";
-import { selectSessionMap } from "redux/Session";
+import { selectTrackNodeMap } from "redux/TrackHierarchy";
 import {
   selectTrackById,
   selectTrackMap,
@@ -45,6 +44,7 @@ import { MouseEvent } from "react";
 import { isHoldingOption } from "utils";
 import { getProperty } from "types/util";
 import { selectSelectedTrackId, setSelectedTrackId } from "redux/Timeline";
+import { createMedia } from "redux/Media";
 
 /**
  * Create a track in the store.
@@ -88,7 +88,7 @@ export const clearTrack =
     if (!trackId) return;
     dispatch(clearClipsByTrackId(trackId));
     dispatch(clearTranspositionsByTrackId(trackId));
-    dispatch(Session.clearTrackInSession(trackId));
+    dispatch(Hierarchy.clearTrackInHierarchy(trackId));
   };
 
 /**
@@ -105,7 +105,7 @@ export const deleteTrack =
     // Remove the track
     if (isScaleTrack(track)) {
       dispatch(removeScaleTrack(track.id));
-      dispatch(Session.removeScaleTrackFromSession(track.id));
+      dispatch(Hierarchy.removeScaleTrackFromHierarchy(track.id));
     } else {
       dispatch(removePatternTrack(track.id));
       dispatch(
@@ -114,7 +114,7 @@ export const deleteTrack =
           instrumentId: track.instrumentId,
         })
       );
-      dispatch(Session.removePatternTrackFromSession(track.id));
+      dispatch(Hierarchy.removePatternTrackFromHierarchy(track.id));
     }
 
     // Remove all media
@@ -122,8 +122,8 @@ export const deleteTrack =
     dispatch(removeTranspositionsByTrackId(track.id));
 
     // Remove all child tracks
-    const sessionMap = selectSessionMap(state);
-    const children = sessionMap[track.id]?.trackIds ?? [];
+    const trackNodeMap = selectTrackNodeMap(state);
+    const children = trackNodeMap[track.id]?.trackIds ?? [];
     for (const id of children) {
       dispatch(deleteTrack(id));
     }
@@ -144,20 +144,20 @@ export const duplicateTrack =
   (id?: TrackId): AppThunk =>
   async (dispatch, getState) => {
     const state = getState();
-    const sessionMap = selectSessionMap(state);
+    const trackNodeMap = selectTrackNodeMap(state);
     const track = selectTrackById(state, id);
-    const entity = getProperty(sessionMap, id);
-    if (!track || !entity) return;
+    const trackNode = getProperty(trackNodeMap, id);
+    if (!track || !trackNode) return;
 
     // Create the new track and get its ID
     const trackId = await dispatch(createTrack(track));
     if (!trackId) return;
 
     // Duplicate the original track's media
-    const clips = selectClipsByIds(state, entity.clipIds);
+    const clips = selectClipsByIds(state, trackNode.clipIds);
     const transpositions = selectTranspositionsByIds(
       state,
-      entity.transpositionIds
+      trackNode.transpositionIds
     );
     const newClips = clips.map((c) => ({ ...c, trackId }));
     const newTranspositions = transpositions.map((t) => ({ ...t, trackId }));
@@ -166,7 +166,7 @@ export const duplicateTrack =
 
     // Duplicate the original track's children if it has any
     if (!isScaleTrack(track)) return;
-    const childTracks = entity.trackIds;
+    const childTracks = trackNode.trackIds;
     const trackMap = selectTrackMap(state);
 
     // Recursively add the children of a track
@@ -177,8 +177,8 @@ export const duplicateTrack =
         const newParentId = await dispatch(createTrack({ ...child, parentId }));
 
         // Add the track's media
-        const clipIds = sessionMap[child.id]?.clipIds;
-        const transpositionIds = sessionMap[child.id]?.transpositionIds;
+        const clipIds = trackNodeMap[child.id]?.clipIds;
+        const transpositionIds = trackNodeMap[child.id]?.transpositionIds;
         if (!clipIds || !transpositionIds) return;
         const clips = selectClipsByIds(state, clipIds);
         const transpositions = selectTranspositionsByIds(
@@ -194,7 +194,7 @@ export const duplicateTrack =
         dispatch(createMedia(payload));
 
         // Add the track's children
-        const babies = sessionMap[child.id]?.trackIds;
+        const babies = trackNodeMap[child.id]?.trackIds;
         if (!babies) return;
         await addChildren(babies, newParentId);
       });
@@ -214,7 +214,7 @@ export const collapseTrack =
     const track = selectTrackById(state, trackId);
     if (!track) return;
     dispatch(updateTracks([{ ...track, collapsed: true }]));
-    dispatch(Session.collapseTracksInSession([track.id]));
+    dispatch(Hierarchy.collapseTracksInHierarchy([track.id]));
   };
 
 /**
@@ -229,7 +229,7 @@ export const collapseTrackChildren =
     if (!track || isPatternTrack(track)) return;
     const children = selectTrackChildren(state, track.id);
     dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: true }))));
-    dispatch(Session.collapseTracksInSession(children.map((c) => c.id)));
+    dispatch(Hierarchy.collapseTracksInHierarchy(children.map((c) => c.id)));
   };
 
 /**
@@ -243,7 +243,7 @@ export const expandTrack =
     const track = selectTrackById(state, trackId);
     if (!track) return;
     dispatch(updateTracks([{ ...track, collapsed: false }]));
-    dispatch(Session.expandTracksInSession([track.id]));
+    dispatch(Hierarchy.expandTracksInHierarchy([track.id]));
   };
 
 /**
@@ -258,7 +258,7 @@ export const expandTrackChildren =
     if (!track || isPatternTrack(track)) return;
     const children = selectTrackChildren(state, track.id);
     dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: false }))));
-    dispatch(Session.expandTracksInSession(children.map((c) => c.id)));
+    dispatch(Hierarchy.expandTracksInHierarchy(children.map((c) => c.id)));
     return;
   };
 

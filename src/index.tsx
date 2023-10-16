@@ -1,48 +1,13 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
-import { Provider as ReduxProvider } from "react-redux";
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
-import App from "./App";
+import { App } from "./App";
 import { AppThunk, store } from "redux/store";
-import LoadedTransport from "providers/transport";
-import "./index.css";
-
 import { start } from "tone";
 import { startTransport } from "redux/Transport";
-import { MIDIProvider } from "providers/midi";
-import { ErrorView, LandingView } from "views";
-import { HotkeysProvider } from "react-hotkeys-hook";
-import { ProjectsView } from "views/Projects";
+import "./index.css";
 
 export const container: HTMLElement = document.getElementById("root")!;
 if (!container?.children.length) {
-  const router = createBrowserRouter(
-    [
-      { path: "/", element: <LandingView />, errorElement: <ErrorView /> },
-      { path: "/projects", element: <ProjectsView /> },
-      { path: "/playground", element: <App />, errorElement: <ErrorView /> },
-    ],
-    { basename: "/harmonia" }
-  );
-
-  const root = ReactDOM.createRoot(container);
-  root.render(
-    <React.StrictMode>
-      <DndProvider backend={HTML5Backend} key={1}>
-        <ReduxProvider store={store}>
-          <MIDIProvider>
-            <HotkeysProvider initiallyActiveScopes={["timeline"]}>
-              <RouterProvider router={router} />
-            </HotkeysProvider>
-          </MIDIProvider>
-          <LoadedTransport />
-        </ReduxProvider>
-      </DndProvider>
-    </React.StrictMode>
-  );
+  ReactDOM.createRoot(container).render(<App />);
 }
 
 export const startTone =

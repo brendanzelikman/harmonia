@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, RootState } from "redux/store";
+import { AppDispatch, Project } from "redux/store";
 import { MouseEvent, useRef, useState } from "react";
 import { TrackProps } from ".";
 import {
@@ -24,9 +24,9 @@ import {
 import { BiCopy } from "react-icons/bi";
 import { cancelEvent, percentOfRange } from "utils";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDragAndDrop";
-import { MIN_VOLUME, MAX_VOLUME, MIN_PAN, MAX_PAN } from "appConstants";
-import { DEFAULT_VOLUME, DEFAULT_PAN } from "appConstants";
-import { VOLUME_STEP, PAN_STEP } from "appConstants";
+import { MIN_VOLUME, MAX_VOLUME, MIN_PAN, MAX_PAN } from "utils/constants";
+import { DEFAULT_VOLUME, DEFAULT_PAN } from "utils/constants";
+import { VOLUME_STEP, PAN_STEP } from "utils/constants";
 import { Transition } from "@headlessui/react";
 import {
   selectEditor,
@@ -43,7 +43,7 @@ import { toggleTrackInstrumentEditor } from "redux/Editor";
 import { usePatternTrackStyles } from "./hooks/usePatternTrackStyles";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
-const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
+const mapStateToProps = (state: Project, ownProps: TrackProps) => {
   const { selectedTrackId } = ownProps;
   const track = ownProps.track as PatternTrackType;
   const isSelected = !!selectedTrackId && track.id === selectedTrackId;
@@ -51,9 +51,7 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   // Track instrument
   const instrument = selectInstrumentById(state, track.instrumentId);
   const instrumentKey = selectPatternTrackInstrumentKey(state, track.id);
-  const instrumentName = instrumentKey
-    ? getInstrumentName(instrumentKey)
-    : undefined;
+  const instrumentName = getInstrumentName(instrumentKey);
   const { volume, pan, mute, solo } = getInstrumentChannel(instrument);
   const volumePercent = percentOfRange(volume, MIN_VOLUME, MAX_VOLUME);
   const panLeftPercent = percentOfRange(pan, MAX_PAN, MIN_PAN);

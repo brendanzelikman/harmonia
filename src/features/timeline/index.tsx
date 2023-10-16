@@ -33,7 +33,7 @@ import {
   HEADER_HEIGHT,
   MEASURE_COUNT,
   TRACK_WIDTH,
-} from "appConstants";
+} from "utils/constants";
 
 import "lib/react-data-grid.css";
 import "react-data-grid/lib/styles.css";

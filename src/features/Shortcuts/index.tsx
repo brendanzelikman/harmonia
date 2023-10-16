@@ -38,7 +38,7 @@ function TimelineShortcuts() {
         <Shortcut shortcut="?" description="Show/Hide Shortcuts" />
       </ShortcutSection>
       <ShortcutSection>
-        <ShortcutCategory name="Session Shortcuts" />
+        <ShortcutCategory name="Arrangement Shortcuts" />
         <Shortcut shortcut="A" description="Start/Stop Adding Clips" />
         <Shortcut shortcut="C" description="Start/Stop Cutting Clips" />
         <Shortcut shortcut="M" description="Start/Stop Merging Clips" />

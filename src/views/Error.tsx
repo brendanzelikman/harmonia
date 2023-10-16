@@ -4,17 +4,17 @@ import { Splash, Background } from "../components/Logo";
 import { unpackError } from "lib/react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { deleteCurrentProject } from "redux/thunks";
+import { clearProject } from "redux/thunks";
 import { useAppDispatch } from "redux/hooks";
 
-export const ErrorView = () => {
+export function ErrorView() {
   const dispatch = useAppDispatch();
   const error = useRouteError();
   const { message, stack } = unpackError(error);
 
   // Clear the state when the user presses Shift + Backspace.
   const heldKeys = useHeldHotkeys(["Shift", "Backspace"]);
-  useHotkeys("shift+backspace", () => dispatch(deleteCurrentProject()));
+  useHotkeys("shift+backspace", () => dispatch(clearProject()));
 
   // The error message is displayed in red.
   const ErrorMessage = () => <p className="text-red-500">{message}</p>;
@@ -61,4 +61,4 @@ export const ErrorView = () => {
       <ErrorStack />
     </>
   );
-};
+}

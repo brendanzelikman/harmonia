@@ -1,4 +1,5 @@
 export * from "./Error";
-export * from "./Projects";
+export * from "./Home";
 export * from "./Landing";
 export * from "./Loading";
+export * from "./Playground";

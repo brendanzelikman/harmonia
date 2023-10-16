@@ -1,8 +1,8 @@
-import { TrackId, TrackMap } from "types/Track/TrackTypes";
+import { TrackId, TrackMap } from "types/Track";
 import { Media } from "./MediaTypes";
-import { isClip } from "types/Clip/ClipTypes";
-import { isPatternTrack } from "types/PatternTrack/PatternTrackTypes";
-import { isTransposition } from "types/Transposition/TranspositionTypes";
+import { isClip } from "types/Clip";
+import { isPatternTrack } from "types/PatternTrack";
+import { isTransposition } from "types/Transposition";
 import { Tick } from "types/units";
 
 /**

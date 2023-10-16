@@ -12,7 +12,7 @@ export type TrackType = ScaleTrackType | PatternTrackType | EmptyTrackType;
 export type TrackMap = Record<TrackId, Track>;
 
 /**
- * A track interface represents a generic track in the session.
+ * A track interface represents a generic track in the arrangement.
  * @property id: {@link TrackId} - The unique ID of the track.
  * @property parentId: {@link TrackId} - Optional. The ID of the parent track.
  * @property name: string - The name of the track.

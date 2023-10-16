@@ -1,7 +1,7 @@
 import { CiUndo, CiRedo } from "react-icons/ci";
 import {
   selectEditor,
-  selectProject,
+  selectMetadata,
   selectTransport,
   selectTimelineEndTick,
 } from "redux/selectors";
@@ -11,16 +11,16 @@ import { SiMidi } from "react-icons/si";
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment, useMemo } from "react";
 import {
-  deleteCurrentProject,
+  clearProject,
   downloadTransport,
-  readProjectFiles,
-  saveProjectAsHAM,
-  saveProjectAsMIDI,
+  openLocalProjects,
+  exportProjectToHAM,
+  exportProjectToMIDI,
   stopDownloadingTransport,
 } from "redux/thunks";
 import { BsFiletypeWav, BsMusicPlayerFill } from "react-icons/bs";
 import { toggleEditor } from "redux/Editor";
-import { setProjectName } from "redux/Project";
+import { setProjectName } from "redux/Metadata";
 import {
   NavbarButton,
   NavbarFormGroup,
@@ -31,29 +31,29 @@ import {
 } from "../components";
 import { useAppDispatch, useAppSelector } from "redux/hooks";
 import { isEditorOn } from "types/Editor";
-import { redoSession, undoSession } from "redux/Session";
 import useTransportTick from "hooks/useTransportTick";
 import { useNavigate } from "react-router-dom";
+import { undoArrangement, redoArrangement } from "redux/Arrangement";
 
 export function NavbarFileMenu() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const canUndo = useAppSelector((state) => state.session.past.length);
-  const canRedo = useAppSelector((state) => state.session.future.length);
+  const canUndo = useAppSelector((state) => state.arrangement.past.length);
+  const canRedo = useAppSelector((state) => state.arrangement.future.length);
   const { downloading } = useAppSelector(selectTransport);
   const offlineTick = useTransportTick({ offline: true });
   const endTick = useAppSelector(selectTimelineEndTick);
-  const project = useAppSelector(selectProject);
+  const project = useAppSelector(selectMetadata);
   const editor = useAppSelector(selectEditor);
   const onFileEditor = isEditorOn(editor, "file");
 
   /**
-   * The undo button allows the user to undo the session.
+   * The undo button allows the user to undo the arrangement.
    */
   const UndoButton = () => (
     <NavbarButton
       className={`p-1 ${canUndo ? "active:bg-sky-500" : ""}`}
-      onClick={() => canUndo && dispatch(undoSession())}
+      onClick={() => canUndo && dispatch(undoArrangement())}
       disabled={!canUndo}
       disabledClass="text-white/50 cursor-default"
       label="undo"
@@ -63,12 +63,12 @@ export function NavbarFileMenu() {
   );
 
   /**
-   * The redo button allows the user to redo the session.
+   * The redo button allows the user to redo the arrangement.
    */
   const RedoButton = () => (
     <NavbarButton
       className={`p-1 ${canRedo ? "active:bg-sky-500" : ""}`}
-      onClick={() => canRedo && dispatch(redoSession())}
+      onClick={() => canRedo && dispatch(redoArrangement())}
       disabled={!canRedo}
       disabledClass="text-white/50 cursor-default"
       label="redo"
@@ -83,7 +83,7 @@ export function NavbarFileMenu() {
   const SaveToHAMButton = () => (
     <NavbarFormGroup
       className="px-2 h-8 hover:bg-sky-600 cursor-pointer"
-      onClick={() => dispatch(saveProjectAsHAM())}
+      onClick={() => dispatch(exportProjectToHAM())}
     >
       <NavbarFormLabel>Save to HAM</NavbarFormLabel>
       <BiSave className="text-2xl" />
@@ -96,7 +96,7 @@ export function NavbarFileMenu() {
   const LoadFromHAMButton = () => (
     <NavbarFormGroup
       className="px-2 h-8 hover:bg-sky-600 cursor-pointer"
-      onClick={() => dispatch(readProjectFiles())}
+      onClick={() => dispatch(openLocalProjects())}
     >
       <NavbarFormLabel>Load from HAM</NavbarFormLabel>
       <BiUpload className="text-2xl" />
@@ -167,7 +167,7 @@ export function NavbarFileMenu() {
   const SaveToMIDIButton = () => (
     <NavbarFormGroup
       className="h-8 hover:bg-sky-600 cursor-pointer"
-      onClick={() => dispatch(saveProjectAsMIDI())}
+      onClick={() => dispatch(exportProjectToMIDI())}
     >
       <NavbarFormLabel>Export to MIDI</NavbarFormLabel>
       <SiMidi className="text-2xl" />
@@ -218,7 +218,7 @@ export function NavbarFileMenu() {
           <div className="flex w-full justify-center items-center space-x-2">
             <button
               className="w-1/2 px-2 py-1 rounded border border-red-500 hover:text-red-500 hover:drop-shadow cursor-pointer"
-              onClick={() => dispatch(deleteCurrentProject())}
+              onClick={() => dispatch(clearProject())}
             >
               Yes
             </button>

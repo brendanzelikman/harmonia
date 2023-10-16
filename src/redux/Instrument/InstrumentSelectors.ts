@@ -8,16 +8,16 @@ import { getProperty, getProperties } from "types/util";
  * @param state The root state.
  * @returns An array of instrument IDs.
  */
-export const selectInstrumentIds = (state: RootState) =>
-  state.session.present.instruments.allIds;
+export const selectInstrumentIds = (state: Project) =>
+  state.arrangement.present.instruments.allIds;
 
 /**
  * Select the instrument map from the store.
  * @param state The root state.
  * @returns A map of instrument IDs to instruments.
  */
-export const selectInstrumentMap = (state: RootState) =>
-  state.session.present.instruments.byId;
+export const selectInstrumentMap = (state: Project) =>
+  state.arrangement.present.instruments.byId;
 
 /**
  * Select all instruments from the store.
@@ -35,7 +35,7 @@ export const selectInstruments = createSelector(
  * @param id The instrument ID.
  * @returns The instrument.
  */
-export const selectInstrumentById = (state: RootState, id?: TrackId) => {
+export const selectInstrumentById = (state: Project, id?: TrackId) => {
   const instrumentMap = selectInstrumentMap(state);
   return getProperty(instrumentMap, id);
 };

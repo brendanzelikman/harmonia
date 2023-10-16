@@ -18,22 +18,25 @@ import {
 } from "types/Track";
 import { ScaleTrack, getScaleTrackScale, isScaleTrack } from "types/ScaleTrack";
 import { getLastTransposition } from "types/Transposition";
-import { getTrackTranspositions } from "types/Session";
+import { getTrackTranspositions } from "types/TrackHierarchy";
 import {
   selectScaleTracks,
   selectScaleTrackMap,
   selectScaleTrackById,
-} from "../ScaleTrack";
-import { selectPatternTracks, selectPatternTrackMap } from "../PatternTrack";
-import { selectTranspositionMap } from "../Transposition";
-import { selectSession, selectSessionMap } from "../Session";
+} from "../ScaleTrack/ScaleTrackSelectors";
+import {
+  selectPatternTracks,
+  selectPatternTrackMap,
+} from "../PatternTrack/PatternTrackSelectors";
+import { selectTranspositionMap } from "../Transposition/TranspositionSelectors";
+import { selectTrackHierarchy, selectTrackNodeMap } from "../TrackHierarchy";
 import { createDeepEqualSelector } from "redux/util";
 import {
   NestedScaleMap,
   applyTranspositionToNestedScale,
   chromaticScale,
 } from "types/Scale";
-import { selectScaleMap } from "../Scale";
+import { selectScaleMap } from "../Scale/ScaleSelectors";
 
 /**
  * Select the track map from the store.
@@ -64,7 +67,7 @@ export const selectTracks = createSelector(
  * @param id - The ID of the track.
  * @returns The track or undefined.
  */
-export const selectTrackById = (state: RootState, id?: TrackId) => {
+export const selectTrackById = (state: Project, id?: TrackId) => {
   const trackMap = selectTrackMap(state);
   return getProperty(trackMap, id);
 };
@@ -75,29 +78,29 @@ export const selectTrackById = (state: RootState, id?: TrackId) => {
  * @returns A list of track IDs.
  */
 export const selectOrderedTrackIds = createDeepEqualSelector(
-  [selectSession],
-  (sessionMap) => {
+  [selectTrackHierarchy],
+  (hierarchy) => {
     // Initialize the ordered tracks
-    const { topLevelIds, byId } = sessionMap;
+    const { topLevelIds, byId } = hierarchy;
     const orderedTrackIds: TrackId[] = [];
 
     // Recursively add all children of a track
     const addChildren = (children: TrackId[]) => {
       if (!children?.length) return;
       children.forEach((trackId) => {
-        const entity = byId[trackId];
-        if (!entity) return;
+        const node = byId[trackId];
+        if (!node) return;
         orderedTrackIds.push(trackId);
-        addChildren(entity.trackIds);
+        addChildren(node.trackIds);
       });
     };
 
     // Add the scale tracks from the top level
     for (const trackId of topLevelIds) {
-      const entity = byId[trackId];
-      if (!entity) continue;
+      const node = byId[trackId];
+      if (!node) continue;
       orderedTrackIds.push(trackId);
-      addChildren(entity.trackIds);
+      addChildren(node.trackIds);
     }
     return orderedTrackIds;
   }
@@ -119,19 +122,19 @@ export const selectOrderedTracks = createDeepEqualSelector(
  * @param id - The ID of the track.
  * @returns The index of the track or -1 if not found.
  */
-export const selectTrackIndexById = (state: RootState, id: TrackId) => {
-  const session = selectSession(state);
+export const selectTrackIndexById = (state: Project, id: TrackId) => {
+  const hierarchy = selectTrackHierarchy(state);
   const track = selectTrackById(state, id);
   if (!track) return -1;
 
   // If the track is a scale track, try to find it in the top level
   if (isScaleTrack(track)) {
-    const topLevelIndex = session.topLevelIds.indexOf(track.id);
+    const topLevelIndex = hierarchy.topLevelIds.indexOf(track.id);
     if (topLevelIndex !== 0) return topLevelIndex;
   }
 
   // Otherwise, return the index of the track in its parent
-  const parent = getProperty(session.byId, track.parentId);
+  const parent = getProperty(hierarchy.byId, track.parentId);
   return parent ? parent.trackIds.indexOf(track.id) : -1;
 };
 
@@ -141,7 +144,7 @@ export const selectTrackIndexById = (state: RootState, id: TrackId) => {
  * @param id - The ID of the track.
  * @returns An array of parent tracks.
  */
-export const selectTrackParents = (state: RootState, id?: TrackId) => {
+export const selectTrackParents = (state: Project, id?: TrackId) => {
   const track = selectTrackById(state, id);
   if (!track) return [];
   const trackMap = selectTrackMap(state);
@@ -154,12 +157,12 @@ export const selectTrackParents = (state: RootState, id?: TrackId) => {
  * @param id - The ID of the track.
  * @returns An array of child tracks.
  */
-export const selectTrackChildren = (state: RootState, id?: TrackId) => {
+export const selectTrackChildren = (state: Project, id?: TrackId) => {
   const track = selectTrackById(state, id);
   if (!track) return [];
   const trackMap = selectTrackMap(state);
-  const sessionMap = selectSessionMap(state);
-  return getTrackChildren(track, trackMap, sessionMap);
+  const trackNodeMap = selectTrackNodeMap(state);
+  return getTrackChildren(track, trackMap, trackNodeMap);
 };
 
 /**
@@ -168,12 +171,12 @@ export const selectTrackChildren = (state: RootState, id?: TrackId) => {
  * @param id - The ID of the track.
  * @returns The transpositions of the track.
  */
-export const selectTrackTranspositions = (state: RootState, id: TrackId) => {
+export const selectTrackTranspositions = (state: Project, id: TrackId) => {
   const track = selectTrackById(state, id);
   if (!track) return [];
   const transpositionMap = selectTranspositionMap(state);
-  const sessionMap = selectSessionMap(state);
-  return getTrackTranspositions(track, transpositionMap, sessionMap);
+  const trackNodeMap = selectTrackNodeMap(state);
+  return getTrackTranspositions(track, transpositionMap, trackNodeMap);
 };
 
 /**
@@ -183,17 +186,17 @@ export const selectTrackTranspositions = (state: RootState, id: TrackId) => {
  * @returns An array of transpositions.
  */
 export const selectTrackParentTranspositions = (
-  state: RootState,
+  state: Project,
   id: TrackId
 ) => {
   const track = selectTrackById(state, id);
   if (!track) return [];
   const trackMap = selectTrackMap(state);
   const transpositionMap = selectTranspositionMap(state);
-  const sessionMap = selectSessionMap(state);
+  const trackNodeMap = selectTrackNodeMap(state);
   const parents = getTrackParents(track, trackMap);
   return parents.map((parent) =>
-    getTrackTranspositions(parent, transpositionMap, sessionMap)
+    getTrackTranspositions(parent, transpositionMap, trackNodeMap)
   );
 };
 
@@ -206,7 +209,7 @@ export const selectTrackParentTranspositions = (
  * @returns The scale track or undefined if not found.
  */
 export const selectTrackScaleTrack = (
-  state: RootState,
+  state: Project,
   id?: TrackId
 ): ScaleTrack | undefined => {
   const track = selectTrackById(state, id);
@@ -222,7 +225,7 @@ export const selectTrackScaleTrack = (
  * @param id The ID of the track.
  * @returns The scale or undefined if not found.
  */
-export const selectTrackScale = (state: RootState, id?: TrackId) => {
+export const selectTrackScale = (state: Project, id?: TrackId) => {
   const track = selectTrackById(state, id);
   const scaleTrackMap = selectScaleTrackMap(state);
   const scaleMap = selectScaleMap(state);
@@ -246,7 +249,7 @@ export const selectTrackScale = (state: RootState, id?: TrackId) => {
  * @returns The scale or the chromatic scale if not found.
  */
 export const selectTrackScaleAtTick = (
-  state: RootState,
+  state: Project,
   trackId: TrackId,
   tick: Tick = 0
 ) => {
@@ -302,7 +305,7 @@ export type TrackInfo = {
 
 /**
  * The `TrackInfoRecord` type stores a map of `TrackInfo` objects similarly to the
- * `Session` type.
+ * `TrackHierarchy` type.
  */
 export interface TrackInfoRecord extends NormalizedState<TrackId, TrackInfo> {
   topLevelIds: TrackId[];
@@ -315,11 +318,11 @@ export interface TrackInfoRecord extends NormalizedState<TrackId, TrackInfo> {
  * @returns The `TrackInfoRecord`.
  */
 export const selectTrackInfoRecord = createDeepEqualSelector(
-  [selectSession],
-  (session): TrackInfoRecord => ({
-    ...session,
-    byId: Object.keys(session.byId).reduce((acc, id) => {
-      const track = session.byId[id];
+  [selectTrackHierarchy],
+  (trackHierarchy): TrackInfoRecord => ({
+    ...trackHierarchy,
+    byId: Object.keys(trackHierarchy.byId).reduce((acc, id) => {
+      const track = trackHierarchy.byId[id];
       const { trackIds, type, depth } = track;
       return { ...acc, [id]: { id, trackIds, type, depth } };
     }, {} as Record<TrackId, TrackInfo>),

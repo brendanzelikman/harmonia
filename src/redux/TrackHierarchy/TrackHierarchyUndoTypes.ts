@@ -3,59 +3,59 @@ import { ActionGroup } from "types/units";
 import { getClipTag } from "types/Clip";
 import { getTranspositionTag } from "types/Transposition";
 import { createTag } from "types/util";
-import * as SessionSlice from "./SessionSlice";
+import * as HierarchySlice from ".";
 import { getTrackTag } from "types/Track";
 
-export const SESSION_UNDO_TYPES: ActionGroup = {
-  "session/addScaleTrackToSession": (
-    action: PayloadAction<SessionSlice.AddTrackToSessionPayload>
+export const ARRANGEMENT_UNDO_TYPES: ActionGroup = {
+  "arrangement/addScaleTrackToHierarchy": (
+    action: PayloadAction<HierarchySlice.AddTrackToHierarchyPayload>
   ) => {
     const tag = createTag(action.payload, getTrackTag);
     return `ADD_TRACK:${tag}`;
   },
-  "session/removeScaleTrackFromSession": (
-    action: PayloadAction<SessionSlice.RemoveTrackFromSessionPayload>
+  "arrangement/removeScaleTrackFromHierarchy": (
+    action: PayloadAction<HierarchySlice.RemoveTrackFromHierarchyPayload>
   ) => {
     return `REMOVE_TRACK:${action.payload}`;
   },
-  "session/addPatternTrackToSession": (
-    action: PayloadAction<SessionSlice.AddTrackToSessionPayload>
+  "arrangement/addPatternTrackToHierarchy": (
+    action: PayloadAction<HierarchySlice.AddTrackToHierarchyPayload>
   ) => {
     const tag = createTag(action.payload, getTrackTag);
     return `ADD_TRACK:${tag}`;
   },
-  "session/removePatternTrackFromSession": (
-    action: PayloadAction<SessionSlice.RemoveTrackFromSessionPayload>
+  "arrangement/removePatternTrackFromHierarchy": (
+    action: PayloadAction<HierarchySlice.RemoveTrackFromHierarchyPayload>
   ) => {
     return `REMOVE_TRACK:${action.payload}`;
   },
-  "session/moveTrackInSession": (
-    action: PayloadAction<SessionSlice.MoveTrackInSessionPayload>
+  "arrangement/moveTrackInHierarchy": (
+    action: PayloadAction<HierarchySlice.MoveTrackInHierarchyPayload>
   ) => {
     return `MOVE_TRACK:${action.payload}`;
   },
-  "session/migrateTrackInSession": (
-    action: PayloadAction<SessionSlice.MigrateTrackInSessionPayload>
+  "arrangement/migrateTrackInHierarchy": (
+    action: PayloadAction<HierarchySlice.MigrateTrackInHierarchyPayload>
   ) => {
     return `MIGRATE_TRACK:${action.payload}`;
   },
-  "session/collapseTracksInSession": (
-    action: PayloadAction<SessionSlice.CollapseTracksInSessionPayload>
+  "arrangement/collapseTracksInHierarchy": (
+    action: PayloadAction<HierarchySlice.CollapseTracksInHierarchyPayload>
   ) => {
     return `COLLAPSE_TRACKS:${action.payload.join(",")}`;
   },
-  "session/expandTracksInSession": (
-    action: PayloadAction<SessionSlice.ExpandTracksInSessionPayload>
+  "arrangement/expandTracksInHierarchy": (
+    action: PayloadAction<HierarchySlice.ExpandTracksInHierarchyPayload>
   ) => {
     return `EXPAND_TRACKS:${action.payload.join(",")}`;
   },
-  "session/clearTrackInSession": (
-    action: PayloadAction<SessionSlice.ClearTrackInSessionPayload>
+  "arrangement/clearTrackInHierarchy": (
+    action: PayloadAction<HierarchySlice.ClearTrackInHierarchyPayload>
   ) => {
     return `CLEAR_TRACK:${action.payload}`;
   },
-  "session/addMediaToSession": (
-    action: PayloadAction<SessionSlice.AddMediaToSessionPayload>
+  "arrangement/addMediaToHierarchy": (
+    action: PayloadAction<HierarchySlice.AddMediaToHierarchyPayload>
   ) => {
     const clips = action.payload.clips || [];
     const transpositions = action.payload.transpositions || [];
@@ -63,8 +63,8 @@ export const SESSION_UNDO_TYPES: ActionGroup = {
     const transpositionTag = createTag(transpositions, getTranspositionTag);
     return `ADD_MEDIA:${clipTag},${transpositionTag}`;
   },
-  "session/removeMediaFromSession": (
-    action: PayloadAction<SessionSlice.RemoveMediaFromSessionPayload>
+  "arrangement/removeMediaFromHierarchy": (
+    action: PayloadAction<HierarchySlice.RemoveMediaFromHierarchyPayload>
   ) => {
     const clips = action.payload.clips || [];
     const transpositions = action.payload.transpositions || [];
@@ -72,8 +72,8 @@ export const SESSION_UNDO_TYPES: ActionGroup = {
     const transpositionTag = createTag(transpositions, getTranspositionTag);
     return `REMOVE_MEDIA:${clipTag},${transpositionTag}`;
   },
-  "session/updateMediaInSession": (
-    action: PayloadAction<SessionSlice.UpdateMediaInSessionPayload>
+  "arrangement/updateMediaInHierarchy": (
+    action: PayloadAction<HierarchySlice.UpdateMediaInHierarchyPayload>
   ) => {
     const clips = action.payload.clips || [];
     const transpositions = action.payload.transpositions || [];
@@ -81,8 +81,8 @@ export const SESSION_UNDO_TYPES: ActionGroup = {
     const transpositionTag = createTag(transpositions, getTranspositionTag);
     return `UPDATE_MEDIA:${clipTag},${transpositionTag}`;
   },
-  "session/sliceMediaInSession": (
-    action: PayloadAction<SessionSlice.SliceMediaInSessionPayload>
+  "arrangement/sliceMediaInHierarchy": (
+    action: PayloadAction<HierarchySlice.SliceMediaInHierarchyPayload>
   ) => {
     const { oldId, newIds } = action.payload;
     return `SLICE_MEDIA:${oldId},${newIds.join(",")}`;
