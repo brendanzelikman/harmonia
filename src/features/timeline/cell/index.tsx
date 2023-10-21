@@ -6,7 +6,7 @@ import {
   selectTrackById,
   selectTransport,
 } from "redux/selectors";
-import { AppDispatch, Project } from "redux/store";
+import { AppDispatch, RootState } from "redux/store";
 import { TrackId } from "types/Track";
 import { Row } from "..";
 import { CellComponent } from "./Cell";
@@ -16,7 +16,7 @@ import { onCellClick, setSelectedTrackId } from "redux/Timeline";
 import { Transport } from "tone";
 import { isAddingClips, isAddingTranspositions } from "types/Timeline";
 
-function mapStateToProps(state: Project, ownProps: FormatterProps<Row>) {
+function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const columnIndex = Number(ownProps.column.key);
   const trackId = ownProps.row.trackId;
   const transport = selectTransport(state);

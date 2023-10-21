@@ -67,7 +67,7 @@ export const selectTracks = createSelector(
  * @param id - The ID of the track.
  * @returns The track or undefined.
  */
-export const selectTrackById = (state: Project, id?: TrackId) => {
+export const selectTrackById = (state: RootState, id?: TrackId) => {
   const trackMap = selectTrackMap(state);
   return getProperty(trackMap, id);
 };
@@ -122,7 +122,8 @@ export const selectOrderedTracks = createDeepEqualSelector(
  * @param id - The ID of the track.
  * @returns The index of the track or -1 if not found.
  */
-export const selectTrackIndexById = (state: Project, id: TrackId) => {
+export const selectTrackIndexById = (state: RootState, id?: TrackId) => {
+  if (!id) return -1;
   const hierarchy = selectTrackHierarchy(state);
   const track = selectTrackById(state, id);
   if (!track) return -1;
@@ -130,7 +131,7 @@ export const selectTrackIndexById = (state: Project, id: TrackId) => {
   // If the track is a scale track, try to find it in the top level
   if (isScaleTrack(track)) {
     const topLevelIndex = hierarchy.topLevelIds.indexOf(track.id);
-    if (topLevelIndex !== 0) return topLevelIndex;
+    if (topLevelIndex > -1) return topLevelIndex;
   }
 
   // Otherwise, return the index of the track in its parent
@@ -144,7 +145,7 @@ export const selectTrackIndexById = (state: Project, id: TrackId) => {
  * @param id - The ID of the track.
  * @returns An array of parent tracks.
  */
-export const selectTrackParents = (state: Project, id?: TrackId) => {
+export const selectTrackParents = (state: RootState, id?: TrackId) => {
   const track = selectTrackById(state, id);
   if (!track) return [];
   const trackMap = selectTrackMap(state);
@@ -157,7 +158,7 @@ export const selectTrackParents = (state: Project, id?: TrackId) => {
  * @param id - The ID of the track.
  * @returns An array of child tracks.
  */
-export const selectTrackChildren = (state: Project, id?: TrackId) => {
+export const selectTrackChildren = (state: RootState, id?: TrackId) => {
   const track = selectTrackById(state, id);
   if (!track) return [];
   const trackMap = selectTrackMap(state);
@@ -171,7 +172,7 @@ export const selectTrackChildren = (state: Project, id?: TrackId) => {
  * @param id - The ID of the track.
  * @returns The transpositions of the track.
  */
-export const selectTrackTranspositions = (state: Project, id: TrackId) => {
+export const selectTrackTranspositions = (state: RootState, id: TrackId) => {
   const track = selectTrackById(state, id);
   if (!track) return [];
   const transpositionMap = selectTranspositionMap(state);
@@ -186,7 +187,7 @@ export const selectTrackTranspositions = (state: Project, id: TrackId) => {
  * @returns An array of transpositions.
  */
 export const selectTrackParentTranspositions = (
-  state: Project,
+  state: RootState,
   id: TrackId
 ) => {
   const track = selectTrackById(state, id);
@@ -209,7 +210,7 @@ export const selectTrackParentTranspositions = (
  * @returns The scale track or undefined if not found.
  */
 export const selectTrackScaleTrack = (
-  state: Project,
+  state: RootState,
   id?: TrackId
 ): ScaleTrack | undefined => {
   const track = selectTrackById(state, id);
@@ -225,7 +226,7 @@ export const selectTrackScaleTrack = (
  * @param id The ID of the track.
  * @returns The scale or undefined if not found.
  */
-export const selectTrackScale = (state: Project, id?: TrackId) => {
+export const selectTrackScale = (state: RootState, id?: TrackId) => {
   const track = selectTrackById(state, id);
   const scaleTrackMap = selectScaleTrackMap(state);
   const scaleMap = selectScaleMap(state);
@@ -249,7 +250,7 @@ export const selectTrackScale = (state: Project, id?: TrackId) => {
  * @returns The scale or the chromatic scale if not found.
  */
 export const selectTrackScaleAtTick = (
-  state: Project,
+  state: RootState,
   trackId: TrackId,
   tick: Tick = 0
 ) => {

@@ -6,7 +6,6 @@ import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 export const HeaderFormatter = (props: TimeProps) => {
   const { loop, onLoopStart, onLoopEnd, setLoopStart, setLoopEnd } = props;
   const { subdivision, tick, columnIndex } = props;
-  const heldKeys = useHeldHotkeys(["alt+s", "alt+e"]);
 
   // Drag and drop loop points
   const [{ isOver }, drop] = useLoopDrop(props);
@@ -24,17 +23,20 @@ export const HeaderFormatter = (props: TimeProps) => {
    * * If the user is holding e, set the loop end.
    * * Otherwise, seek the transport to the time.
    */
+  const heldKeys = useHeldHotkeys(["s", "e"]);
+  const isHoldingS = heldKeys.s;
+  const isHoldingE = heldKeys.e;
   const onClick = useCallback(() => {
-    if (loop && heldKeys.s) {
+    if (loop && isHoldingS) {
       props.setLoopStart(columnIndex, subdivision);
       return;
     }
-    if (loop && heldKeys.e) {
+    if (loop && isHoldingE) {
       props.setLoopEnd(columnIndex, subdivision);
       return;
     }
     props.onClick(tick);
-  }, [loop, tick, columnIndex, subdivision, heldKeys]);
+  }, [loop, tick, columnIndex, subdivision, isHoldingS, isHoldingE]);
 
   /**
    * The loop start point is rendered if on the loop start tick while looping.

@@ -8,7 +8,7 @@ import { getProperty, getProperties } from "types/util";
  * @param state The RootState object.
  * @returns The scale track map.
  */
-export const selectScaleTrackMap = (state: Project) =>
+export const selectScaleTrackMap = (state: RootState) =>
   state.arrangement.present.scaleTracks.byId;
 
 /**
@@ -16,7 +16,7 @@ export const selectScaleTrackMap = (state: Project) =>
  * @param state The RootState object.
  * @returns A list of scale track IDs.
  */
-export const selectScaleTrackIds = (state: Project) =>
+export const selectScaleTrackIds = (state: RootState) =>
   state.arrangement.present.scaleTracks.allIds;
 
 /**
@@ -35,7 +35,7 @@ export const selectScaleTracks = createSelector(
  * @param id The ID of the scale track.
  * @returns The scale track.
  */
-export const selectScaleTrackById = (state: Project, id?: TrackId) => {
+export const selectScaleTrackById = (state: RootState, id?: TrackId) => {
   const scaleTrackMap = selectScaleTrackMap(state);
   return getProperty(scaleTrackMap, id);
 };

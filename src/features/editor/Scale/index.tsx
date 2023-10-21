@@ -38,7 +38,7 @@ import {
 import { updateScaleTrack } from "redux/ScaleTrack";
 import { getProperty } from "types/util";
 
-const mapStateToProps = (state: Project, ownProps: EditorProps) => {
+const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const scaleTrack = selectSelectedTrack(state) as ScaleTrack;
   const scaleTracks = selectScaleTrackMap(state);
   const scaleMap = Scales.selectScaleMap(state);

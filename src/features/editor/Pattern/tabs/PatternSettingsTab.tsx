@@ -6,6 +6,7 @@ import { defaultPattern } from "types/Pattern";
 import { ScaleId, getScaleTag } from "types/Scale";
 import { MIDI } from "types/midi";
 import { Pitch } from "types/units";
+import { Listbox } from "@headlessui/react";
 
 interface PatternSettingsProps extends PatternEditorProps {
   instrument: InstrumentKey;
@@ -79,7 +80,18 @@ export function PatternSettingsTab(props: PatternSettingsProps) {
   const QuantizeField = () => (
     <Editor.Tooltip show={props.showingTooltips} content={`Select Scale`}>
       <div className="mr-2 h-5 my-2 flex text-xs items-center">
-        <label className="px-1">Quantize to Scale?</label>
+        <label className="px-1">Scale Track:</label>
+        {/* <Listbox value="None">
+          {({ open }) => (
+            <>
+              <Listbox.Button className="w-32 h-full bg-transparent text-slate-900 border border-slate-500 rounded" />
+              <Listbox.Options>
+                <Listbox.Option value="None" />
+              </Listbox.Options>
+            </>
+          )}
+        </Listbox> */}
+
         <input
           checked={quantizeToScale}
           onChange={(e) => setQuantizeToScale(e.target.checked)}

@@ -5,4 +5,4 @@ import { RootState } from "redux/store";
  * @param state The RootState object.
  * @returns The editor object.
  */
-export const selectEditor = (state: Project) => state.editor;
+export const selectEditor = (state: RootState) => state.editor;

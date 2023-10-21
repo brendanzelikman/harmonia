@@ -144,8 +144,8 @@ export const ToolkitTransposeButton = () => {
   /** The Transpose Button toggles the dropdown menu */
   const TransposeButton = () => {
     const buttonClass = isAdding
-      ? "bg-fuchsia-700 ring-2 ring-offset-2 ring-fuchsia-700/80 ring-offset-black"
-      : "bg-fuchsia-700/80";
+      ? "bg-fuchsia-600 ring-2 ring-offset-2 ring-fuchsia-600/80 ring-offset-black"
+      : "bg-fuchsia-600/80";
     return (
       <ControlButton
         label="Transpose Clip"

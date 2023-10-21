@@ -306,9 +306,10 @@ export const toggleTrackMute =
     if (!instrument) return;
 
     // If not holding option, toggle the track mute
-    if (!e || isHoldingOption(e.nativeEvent)) {
+    if (!e || !isHoldingOption(e.nativeEvent)) {
       const update = { mute: !instrument.mute };
       dispatch(updateInstrument({ instrumentId, update }));
+      return;
     }
 
     // Otherwise, toggle all tracks
@@ -331,9 +332,10 @@ export const toggleTrackSolo =
     if (!instrument) return;
 
     // If not holding option, toggle the track solo
-    if (!e || isHoldingOption(e.nativeEvent)) {
+    if (!e || !isHoldingOption(e.nativeEvent)) {
       const update = { solo: !instrument.solo };
       dispatch(updateInstrument({ instrumentId, update }));
+      return;
     }
 
     // Otherwise, toggle all tracks

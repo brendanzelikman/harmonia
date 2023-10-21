@@ -7,17 +7,43 @@ import { HotkeysProvider } from "react-hotkeys-hook";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { store } from "redux/store";
 import { LandingView, ErrorView, HomeView, PlaygroundView } from "views";
+import { PrivateRoute } from "components/PrivateRoute";
 
 export function App() {
   const router = createBrowserRouter(
     [
       { path: "/", element: <LandingView />, errorElement: <ErrorView /> },
-      { path: "/projects", element: <HomeView view="projects" /> },
-      { path: "/demos", element: <HomeView view="demos" /> },
-      { path: "/profile", element: <HomeView view="profile" /> },
+      {
+        path: "/projects",
+        element: (
+          <PrivateRoute>
+            <HomeView view="projects" />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/demos",
+        element: (
+          <PrivateRoute>
+            <HomeView view="demos" />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/profile",
+        element: (
+          <PrivateRoute>
+            <HomeView view="profile" />
+          </PrivateRoute>
+        ),
+      },
       {
         path: "/playground",
-        element: <PlaygroundView />,
+        element: (
+          <PrivateRoute>
+            <PlaygroundView />
+          </PrivateRoute>
+        ),
         errorElement: <ErrorView />,
       },
     ],
@@ -26,15 +52,17 @@ export function App() {
 
   return (
     <StrictMode>
-      <DndProvider backend={HTML5Backend} key={1}>
-        <ReduxProvider store={store}>
-          <MIDIProvider>
-            <HotkeysProvider initiallyActiveScopes={["timeline"]}>
+      <HotkeysProvider
+        initiallyActiveScopes={["timeline", "transport", "media"]}
+      >
+        <DndProvider backend={HTML5Backend} key={1}>
+          <ReduxProvider store={store}>
+            <MIDIProvider>
               <RouterProvider router={router} />
-            </HotkeysProvider>
-          </MIDIProvider>
-        </ReduxProvider>
-      </DndProvider>
+            </MIDIProvider>
+          </ReduxProvider>
+        </DndProvider>
+      </HotkeysProvider>
     </StrictMode>
   );
 }

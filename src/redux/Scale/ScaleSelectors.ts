@@ -9,7 +9,7 @@ import { ScaleTrackScaleName } from "types/Scale";
  * @param state - The Redux store state.
  * @returns An array of all scale IDs.
  */
-export const selectScaleIds = (state: Project): ScaleId[] =>
+export const selectScaleIds = (state: RootState): ScaleId[] =>
   state.scales.present.allIds;
 
 /**
@@ -17,7 +17,7 @@ export const selectScaleIds = (state: Project): ScaleId[] =>
  * @param state - The Redux store state.
  * @returns The scale map.
  */
-export const selectScaleMap = (state: Project) => state.scales.present.byId;
+export const selectScaleMap = (state: RootState) => state.scales.present.byId;
 
 /**
  * Select all scales from the store (including track scales)
@@ -48,7 +48,7 @@ export const selectCustomScales = createSelector(
  * @param id - The ID of the scale to select.
  * @returns The scale.
  */
-export const selectScaleById = (state: Project, id: ScaleId) => {
+export const selectScaleById = (state: RootState, id: ScaleId) => {
   const scaleMap = selectScaleMap(state);
   return getProperty(scaleMap, id);
 };

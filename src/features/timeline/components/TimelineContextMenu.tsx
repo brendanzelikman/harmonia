@@ -10,7 +10,7 @@ import {
   selectSelectedTranspositions,
   selectTrackScale,
 } from "redux/selectors";
-import { AppDispatch, Project } from "redux/store";
+import { AppDispatch, RootState } from "redux/store";
 import {
   addClipToTimeline,
   createPatternTrackFromSelectedTrack,
@@ -38,7 +38,7 @@ import {
 } from "redux/Media";
 import { useDeepEqualSelector } from "redux/hooks";
 
-const mapStateToProps = (state: Project) => {
+const mapStateToProps = (state: RootState) => {
   const selectedTrackId = selectSelectedTrackId(state);
 
   const clipboard = selectMediaClipboard(state);

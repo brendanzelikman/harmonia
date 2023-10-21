@@ -1,6 +1,5 @@
 import { DataGridHandle } from "react-data-grid";
 import { createPortal } from "react-dom";
-import { Transition } from "@headlessui/react";
 import { RootState } from "redux/store";
 import {
   selectCellHeight,
@@ -23,7 +22,7 @@ interface BackgroundProps {
   timeline?: DataGridHandle;
 }
 
-const mapStateToProps = (state: Project, ownProps: BackgroundProps) => {
+const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
   const columns = selectTimelineColumnCount(state);
 
   // General dimensions

@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, Project } from "redux/store";
+import { AppDispatch, RootState } from "redux/store";
 import { MouseEvent, useMemo } from "react";
 import {
   getChordalOffset,
@@ -26,15 +26,16 @@ import {
 import { useDeepEqualSelector } from "redux/hooks";
 import { useTranspositionStyles } from "./hooks/useTranspositionStyles";
 import { pick } from "lodash";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import {
   isAddingClips,
   isAddingTranspositions,
   isSlicingMedia,
 } from "types/Timeline";
-import { Transition } from "@headlessui/react";
 
-const mapStateToProps = (state: Project, ownProps: { id: TranspositionId }) => {
+const mapStateToProps = (
+  state: RootState,
+  ownProps: { id: TranspositionId }
+) => {
   const transposition = selectTranspositionById(state, ownProps.id);
   const selectedTrackId = selectSelectedTrackId(state);
   const cellWidth = selectCellWidth(state);
@@ -85,7 +86,6 @@ function TimelineTransposition(props: TranspositionProps) {
   );
 
   // Transposition properties
-  const heldKeys = useHeldHotkeys(["k", "q", "w", "s", "x", "e", "f", "z"]);
   const [{ isDragging }, drag] = useTranspositionDrag(props);
   const onScaleTrack = parents.at(-1)?.id === transposition?.trackId;
 
@@ -95,7 +95,6 @@ function TimelineTransposition(props: TranspositionProps) {
     isSlicing,
     isTransposing,
     isDragging,
-    isHoldingKey: (key) => heldKeys[key],
   });
 
   // Transposition offset values

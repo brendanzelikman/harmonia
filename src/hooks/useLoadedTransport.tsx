@@ -5,11 +5,13 @@ import {
   loadTransport,
 } from "redux/Transport";
 import { useCustomEventListener } from "./useCustomEventListener";
-import { useAppDispatch } from "redux/hooks";
+import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { selectProjectId } from "redux/selectors";
 
 /** Load and unload the transport when the app mounts. */
 export function useLoadedTransport() {
   const dispatch = useAppDispatch();
+  const projectId = useAppSelector(selectProjectId);
   const [loaded, setLoaded] = useState(false);
 
   useCustomEventListener(START_LOADING_TRANSPORT, () => setLoaded(false));
@@ -20,7 +22,7 @@ export function useLoadedTransport() {
     return () => {
       dispatch(loadTransport());
     };
-  }, []);
+  }, [projectId]);
 
   return loaded;
 }

@@ -5,10 +5,10 @@ import {
   BsHeadphones,
 } from "react-icons/bs";
 import { PatternTrackProps } from "../PatternTrack";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 interface PatternTrackStylesProps extends PatternTrackProps {
   isDragging: boolean;
-  isHoldingKey: (key: string) => boolean;
   draggingVolume: boolean;
   draggingPan: boolean;
 }
@@ -61,8 +61,9 @@ export const usePatternTrackStyles = (props: PatternTrackStylesProps) => {
 
   // Audio buttons
   const audioButton = `w-6 h-6 rounded-full text-center`;
-  const isHoldingY = props.isHoldingKey("y");
-  const isHoldingU = props.isHoldingKey("u");
+  const heldKeys = useHeldHotkeys(["y", "u"]);
+  const isHoldingY = heldKeys.y;
+  const isHoldingU = heldKeys.u;
 
   // Mute button
   const muteBorder = `border-2 border-rose-500/80`;

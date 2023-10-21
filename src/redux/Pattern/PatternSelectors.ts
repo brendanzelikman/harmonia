@@ -9,7 +9,7 @@ import { PresetPatternMap } from "presets/patterns";
  * @param state The RootState object.
  * @returns An array of pattern IDs.
  */
-export const selectPatternIds = (state: Project) =>
+export const selectPatternIds = (state: RootState) =>
   state.patterns.present.allIds;
 
 /**
@@ -17,7 +17,7 @@ export const selectPatternIds = (state: Project) =>
  * @param state The RootState object.
  * @returns A map of pattern IDs to pattern objects.
  */
-export const _selectPatternMap = (state: Project) =>
+export const _selectPatternMap = (state: RootState) =>
   state.patterns.present.byId;
 
 /**
@@ -57,7 +57,7 @@ export const selectCustomPatterns = createSelector(
  * @param id The pattern ID.
  * @returns The pattern object or undefined if not found.
  */
-export const selectPatternById = (state: Project, id: string) => {
+export const selectPatternById = (state: RootState, id: string) => {
   const patternMap = selectPatternMap(state);
   return getProperty(patternMap, id);
 };

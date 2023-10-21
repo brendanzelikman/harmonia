@@ -104,7 +104,7 @@ export const exportClipsToMidi =
     if (!clips.length) return;
 
     // Get the dependencies
-    const project = selectMetadata(state);
+    const meta = selectMetadata(state);
     const patternMap = selectPatternMap(state);
     const patternTrackMap = selectPatternTrackMap(state);
     const scaleTrackMap = selectScaleTrackMap(state);
@@ -189,7 +189,7 @@ export const exportClipsToMidi =
     // Download the MIDI file
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${project.name || "file"}.mid`;
+    a.download = `${meta.name || "file"}.mid`;
     a.click();
     URL.revokeObjectURL(url);
   };

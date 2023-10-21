@@ -10,7 +10,7 @@ import { selectInstrumentById } from "redux/Instrument/InstrumentSelectors";
  * @param state The RootState object.
  * @returns A map of pattern track IDs to pattern track objects.
  */
-export const selectPatternTrackMap = (state: Project) =>
+export const selectPatternTrackMap = (state: RootState) =>
   state.arrangement.present.patternTracks.byId;
 
 /**
@@ -18,7 +18,7 @@ export const selectPatternTrackMap = (state: Project) =>
  * @param state The RootState object.
  * @returns An array of pattern track IDs.
  */
-export const selectPatternTrackIds = (state: Project) =>
+export const selectPatternTrackIds = (state: RootState) =>
   state.arrangement.present.patternTracks.allIds;
 
 /**
@@ -37,7 +37,7 @@ export const selectPatternTracks = createSelector(
  * @param id The pattern track ID.
  * @returns The pattern track object or undefined if not found.
  */
-export const selectPatternTrackById = (state: Project, id?: TrackId) => {
+export const selectPatternTrackById = (state: RootState, id?: TrackId) => {
   const patternTrackMap = selectPatternTrackMap(state);
   return getProperty(patternTrackMap, id);
 };
@@ -48,7 +48,10 @@ export const selectPatternTrackById = (state: Project, id?: TrackId) => {
  * @param id The pattern track ID.
  * @returns The instrument.
  */
-export const selectPatternTrackInstrument = (state: Project, id?: TrackId) => {
+export const selectPatternTrackInstrument = (
+  state: RootState,
+  id?: TrackId
+) => {
   const patternTrack = selectPatternTrackById(state, id);
   if (!patternTrack?.instrumentId) return undefined;
   return selectInstrumentById(state, patternTrack.instrumentId);
@@ -61,7 +64,7 @@ export const selectPatternTrackInstrument = (state: Project, id?: TrackId) => {
  * @returns The instrument key.
  */
 export const selectPatternTrackInstrumentKey = (
-  state: Project,
+  state: RootState,
   id?: TrackId
 ) => {
   const instrument = selectPatternTrackInstrument(state, id);
@@ -73,7 +76,7 @@ export const selectPatternTrackInstrumentKey = (
  * @param state The RootState object.
  * @returns A map of pattern track IDs to samplers.
  */
-export const selectPatternTrackAudioInstances = (state: Project) => {
+export const selectPatternTrackAudioInstances = (state: RootState) => {
   const patternTracks = selectPatternTracks(state);
   return patternTracks.reduce((acc, cur) => {
     if (!cur?.id || !cur.instrumentId) return acc;

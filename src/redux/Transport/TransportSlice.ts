@@ -110,22 +110,6 @@ export const transportSlice = createSlice({
       state.mute = action.payload;
     },
     /**
-     * Set the transport loaded state to true or false.
-     * @param state - The current transport state.
-     * @param action - The payload action containing the loaded value.
-     */
-    setLoaded: (state, action) => {
-      state.loaded = action.payload;
-    },
-    /**
-     * Set the transport loading state to true or false.
-     * @param state - The current transport state.
-     * @param action - The payload action containing the loading value.
-     */
-    setLoading: (state, action) => {
-      state.loading = action.payload;
-    },
-    /**
      * Set the transport recording state to true or false.
      * @param state - The current transport state.
      * @param action - The payload action containing the recording value.
@@ -155,8 +139,6 @@ export const {
   _setTimeSignature,
   _setVolume,
   _setMute,
-  setLoaded,
-  setLoading,
   setRecording,
   setDownloading,
 } = transportSlice.actions;

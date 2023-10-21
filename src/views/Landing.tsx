@@ -1,11 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import { Background, Splash } from "../components/Logo";
+import TimelineImage from "assets/images/timeline.png";
+import ScaleEditorImage from "assets/images/scaleEditor.png";
+import PatternEditorImage from "assets/images/patternEditor.png";
+import ReactImage from "assets/lib/react.png";
+import TypescriptImage from "assets/lib/typescript.png";
+import ReduxImage from "assets/lib/redux.png";
+import ToneImage from "assets/lib/tone.png";
+import TailwindImage from "assets/lib/tailwind.png";
+import { useAuthenticationStatus } from "hooks/useAuthenticationStatus";
+import { setAuthenticatedStatus } from "indexedDB";
 
-export const MainButton = () => {
-  const navigate = useNavigate();
+export const MainButton = (props: { onClick?: () => void }) => {
   return (
     <button
-      onClick={() => navigate("/projects")}
+      onClick={props.onClick}
       className="border py-5 px-8 text-slate-100 bg-slate-800/20 hover:bg-sky-950/90 hover:shadow-[0px_0px_10px_5px_rgb(15,150,200)] transition-all duration-300 border-slate-500 rounded-xl backdrop-blur drop-shadow-xl sm:text-4xl text-sm font-light"
     >
       Make Music Now!
@@ -14,10 +23,29 @@ export const MainButton = () => {
 };
 
 export function LandingView() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthenticationStatus();
+
+  const onClick = async () => {
+    if (isAuthenticated) {
+      return navigate("/projects");
+    } else {
+      const password = prompt("Enter the password to continue.");
+      if (password === import.meta.env.VITE_PASSWORD) {
+        await setAuthenticatedStatus(true);
+        alert("Password accepted!");
+        navigate("/projects");
+      } else {
+        await setAuthenticatedStatus(false);
+        alert("Incorrect password.");
+      }
+    }
+  };
+
   const SplashScreen = () => (
     <Section>
       <Splash />
-      <MainButton />
+      <MainButton onClick={onClick} />
     </Section>
   );
 
@@ -49,7 +77,7 @@ export function LandingView() {
 
   const TimelineHero = () => (
     <Section>
-      <HeroImage src="timeline.png" />
+      <HeroImage src={TimelineImage} />
       <div className="w-full flex flex-row flex-wrap justify-center my-4 mt-8">
         <HeroQuote
           title="Revolutionary Music Notation"
@@ -76,7 +104,7 @@ export function LandingView() {
 
   const ScaleHero = () => (
     <Section>
-      <HeroImage src="scaleEditor.png" />
+      <HeroImage src={ScaleEditorImage} />
       <div className="w-full flex flex-row flex-wrap justify-center my-4 mt-8">
         <HeroQuote
           title="Leverage the Power of Scales"
@@ -102,7 +130,7 @@ export function LandingView() {
 
   const PatternHero = () => (
     <Section>
-      <HeroImage src="patternEditor.png" />
+      <HeroImage src={PatternEditorImage} />
       <div className="w-full flex flex-row flex-wrap justify-center my-4 mt-8">
         <HeroQuote
           title="Think in Terms of Patterns"
@@ -129,20 +157,20 @@ export function LandingView() {
   const LibraryHero = () => (
     <Section>
       <div className="w-full items-center justify-center flex flex-row flex-wrap px-4 space-x-6 [&>a>img]:drop-shadow-2xl [&>a]:md:w-1/6 [&>a]:w-[100px] [&>a>img]:max-w-[200px] [&>a>img]:w-full">
-        <a href="https://react.dev/" target="_blank" className="">
-          <img className="" src="lib/react.png" />
+        <a href="https://react.dev/" target="_blank">
+          <img src={ReactImage} />
         </a>
         <a href="https://www.typescriptlang.org/" target="_blank">
-          <img src="lib/typescript.png" />
+          <img src={TypescriptImage} />
         </a>
         <a href="https://redux.js.org/" target="_blank">
-          <img src="lib/redux.png" />
+          <img src={ReduxImage} />
         </a>
         <a href="https://tonejs.github.io/" target="_blank">
-          <img src="lib/tone.png" />
+          <img src={ToneImage} />
         </a>
         <a href="https://tailwindcss.com/" target="_blank">
-          <img src="lib/tailwind.png" />
+          <img src={TailwindImage} />
         </a>
       </div>
       <div className="text-center mt-16 font-bold lg:text-6xl md:text-4xl text-2xl text-slate-100 drop-shadow-2xl">
@@ -185,11 +213,15 @@ export function LandingView() {
     <main className="relative font-nunito fade-in flex flex-col w-full h-screen overflow-scroll">
       <Background />
       <SplashScreen />
-      <TimelineHero />
-      <ScaleHero />
-      <PatternHero />
-      <LibraryHero />
-      <ContactHero />
+      {!!isAuthenticated && (
+        <>
+          <TimelineHero />
+          <ScaleHero />
+          <PatternHero />
+          <LibraryHero />
+          <ContactHero />
+        </>
+      )}
     </main>
   );
 }

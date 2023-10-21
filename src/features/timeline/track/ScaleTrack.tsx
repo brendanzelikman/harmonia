@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, Project } from "redux/store";
+import { AppDispatch, RootState } from "redux/store";
 import { TrackId } from "types/Track";
 import { TrackProps } from ".";
 import {
@@ -10,7 +10,6 @@ import {
 } from "./Track";
 import {
   selectTrackScaleAtTick,
-  selectTransport,
   selectEditor,
   selectTrackChildren,
 } from "redux/selectors";
@@ -23,7 +22,7 @@ import {
   BsPlusCircle,
   BsTrash,
 } from "react-icons/bs";
-import { cancelEvent } from "utils";
+import { cancelEvent, numberToUpper } from "utils";
 import { useRef } from "react";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDragAndDrop";
 import { isEditorOn } from "types/Editor";
@@ -37,10 +36,9 @@ import {
 import { useAppSelector, useDeepEqualSelector } from "redux/hooks";
 import { useScaleTrackStyles } from "./hooks/useScaleTrackStyles";
 import { toggleTrackScaleEditor } from "redux/Editor";
-import { Transport } from "tone";
 import useTransportTick from "hooks/useTransportTick";
 
-const mapStateToProps = (state: Project, ownProps: TrackProps) => {
+const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const track = ownProps.track as ScaleTrackType;
   const { selectedTrackId } = ownProps;
   const isSelected = selectedTrackId === track.id;
@@ -127,7 +125,10 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
    * The Scale Track depth corresponds to the number of parents.
    */
   const ScaleTrackDepth = (
-    <label className={styles.depthLabel}>{props.row.depth + 1}</label>
+    <label className={styles.depthLabel}>
+      {props.row.depth + 1}
+      {numberToUpper(props.index)}
+    </label>
   );
 
   /**

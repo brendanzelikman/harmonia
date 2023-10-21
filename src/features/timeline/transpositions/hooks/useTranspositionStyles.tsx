@@ -17,12 +17,12 @@ import {
   getChromaticOffset,
   getScalarOffsets,
 } from "types/Transposition";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 interface TranspositionStyleProps extends TranspositionProps {
   isSlicing: boolean;
   isTransposing: boolean;
   isDragging: boolean;
-  isHoldingKey: (key: string) => boolean;
 }
 
 export const useTranspositionStyles = (props: TranspositionStyleProps) => {
@@ -124,12 +124,13 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
   // Labels
   const parentCount = selectedTrackParents.length;
   const canTransposeScalars = isSelected && !!parentCount;
-  const isHoldingZ = props.isHoldingKey("z");
-  const isHoldingQ = props.isHoldingKey("q");
-  const isHoldingE = props.isHoldingKey("e");
-  const isHoldingW = props.isHoldingKey("w");
-  const isHoldingS = props.isHoldingKey("s");
-  const isHoldingX = props.isHoldingKey("x");
+  const heldKeys = useHeldHotkeys(["z", "q", "e", "w", "s", "x"]);
+  const isHoldingZ = heldKeys["z"];
+  const isHoldingQ = heldKeys["q"];
+  const isHoldingE = heldKeys["e"];
+  const isHoldingW = heldKeys["w"];
+  const isHoldingS = heldKeys["s"];
+  const isHoldingX = heldKeys["x"];
 
   // Label text color
   const labelColor = isSelected ? "text-white font-bold" : "text-white/80 pt-1";

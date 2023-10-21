@@ -43,7 +43,7 @@ export function NavbarFileMenu() {
   const { downloading } = useAppSelector(selectTransport);
   const offlineTick = useTransportTick({ offline: true });
   const endTick = useAppSelector(selectTimelineEndTick);
-  const project = useAppSelector(selectMetadata);
+  const meta = useAppSelector(selectMetadata);
   const editor = useAppSelector(selectEditor);
   const onFileEditor = isEditorOn(editor, "file");
 
@@ -257,7 +257,7 @@ export function NavbarFileMenu() {
       className="w-full focus:bg-sky-700/80 py-2 mb-2"
       type="text"
       placeholder="New Project"
-      value={project.name}
+      value={meta.name}
       onChange={(e) => dispatch(setProjectName(e.target.value))}
       onKeyDown={blurOnEnter}
     />

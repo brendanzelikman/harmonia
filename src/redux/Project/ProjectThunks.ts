@@ -1,3 +1,4 @@
+import { nanoid } from "@reduxjs/toolkit";
 import {
   uploadProjectToDB,
   setCurrentProjectId,
@@ -185,12 +186,11 @@ export const loadProjectByPath =
   async () => {
     try {
       // Parse the project from the file path
-      const projectText = await fetch(path).then((res) => res.text());
-      const project = JSON.parse(projectText);
-
-      // Upload the project to the database
-      await uploadProjectToDB(project);
-      await setCurrentProjectId(project.meta.id);
+      const project = await fetch(path).then((res) => res.json());
+      await uploadProjectToDB({
+        ...project,
+        meta: { ...project.meta, id: nanoid() },
+      });
     } catch (e) {
       console.error(e);
     } finally {
@@ -204,7 +204,7 @@ export const loadProjectByPath =
  */
 export const clearProject = (): AppThunk => (dispatch, getState) => {
   const state = getState();
-  const project = selectMetadata(state);
-  const newState = { ...defaultProject, project };
+  const meta = selectMetadata(state);
+  const newState = { ...defaultProject, meta };
   dispatch({ type: "setState", payload: newState });
 };

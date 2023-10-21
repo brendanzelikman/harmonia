@@ -2,7 +2,7 @@ import { startTone } from "index";
 import * as Instrument from "redux/Instrument";
 import * as TransportSlice from "./TransportSlice";
 import * as Tone from "tone";
-import { AppThunk, Project } from "redux/store";
+import { AppThunk } from "redux/store";
 import { playPatternChord } from "types/Pattern";
 import { Tick } from "types/units";
 import encodeWAV from "audiobuffer-to-wav";
@@ -46,39 +46,72 @@ export const dispatchTickUpdate = (
 };
 
 /**
+ * Seek the transport to the given tick.
+ * @param tick - The tick to seek to.
+ */
+export const seekTransport =
+  (tick: Tick): AppThunk =>
+  (dispatch, getState) => {
+    if (tick < 0) return;
+    // Seek the transport
+    Tone.Transport.position = Tone.Time(tick, "i").toSeconds();
+
+    if (scheduleId !== undefined) Tone.Transport.clear(scheduleId);
+
+    if (Tone.Transport.state === "started") {
+      dispatch(stopTransport());
+      dispatch(startTransport(tick));
+    }
+
+    // Dispatch a tick update event
+    dispatchCustomEvent(UPDATE_TICK, tick);
+  };
+
+let scheduleId: number;
+/**
  * Start the transport, using `Tone.scheduleRepeat` to schedule all samplers to play their patterns.
  * The transport will fetch the chord record every tick so that the state is always up to date.
  * If the transport is already started, this function will do nothing.
  */
-export const startTransport = (): AppThunk => (dispatch, getState) => {
-  // Make sure the Tone context is running
-  if (Tone.getContext().state !== "running") {
-    stopTransport();
-    startTone(true);
-    return;
-  }
+export const startTransport =
+  (tick?: Tick): AppThunk =>
+  (dispatch, getState) => {
+    // Make sure the Tone context is running
+    if (Tone.getContext().state !== "running") {
+      stopTransport();
+      startTone(true);
+      return;
+    }
 
-  // Make sure the transport is not already started
-  const oldState = getState();
-  const transport = selectTransport(oldState);
-  if (transport.state === "started") return;
+    // Make sure the transport is not already started
+    const oldState = getState();
+    const transport = selectTransport(oldState);
 
-  // Schedule patterns if the transport is stopped
-  if (transport.state === "stopped") {
+    // Schedule patterns if the transport is stopped
     const pulse = convertTicksToSeconds(transport, 1);
     const bpm = Tone.Transport.bpm.value;
     const conversionRatio = (bpm * Tone.Transport.PPQ) / 60;
     const loopStart = Tone.Time(Tone.Transport.loopStart).toTicks();
     const loopEnd = Tone.Time(Tone.Transport.loopEnd).toTicks();
 
-    // Schedule the transport
+    // Set the current Transport time if specified
+    const offset = tick ? convertTicksToSeconds(transport, tick) : 0;
+    if (tick) Tone.Transport.position = Tone.Time(tick, "i").toSeconds();
+
+    // Get the current start time
     const startTime = Tone.Transport.now();
-    Tone.Transport.scheduleRepeat((time) => {
-      // Get the current tick
-      const currentTime = time - startTime;
-      let tick = Math.round(currentTime * conversionRatio);
+
+    // Schedule the transport
+    if (scheduleId !== undefined) Tone.Transport.clear(scheduleId);
+    scheduleId = Tone.Transport.scheduleRepeat((time) => {
+      // Get the current time
+      const currentTime = time + offset - startTime;
+
+      // Convert the time into the tick and adjust for loop
+      let newTick = Math.round(currentTime * conversionRatio);
       if (Tone.Transport.loop) {
-        tick = (tick % (loopEnd - loopStart)) + loopStart;
+        // Set the new tick
+        newTick = (newTick % (loopEnd - loopStart)) + loopStart;
       }
 
       // Dispatch a tick update event
@@ -86,7 +119,7 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
 
       // Get the chord record at the current tick
       const state = getState();
-      const chordRecord = selectChordsAtTick(state, tick);
+      const chordRecord = selectChordsAtTick(state, newTick);
 
       // Iterate over the instruments that are to be played at the current tick
       if (chordRecord) {
@@ -97,19 +130,18 @@ export const startTransport = (): AppThunk => (dispatch, getState) => {
 
           // Get the live audio instance
           const instance = LIVE_AUDIO_INSTANCES[instrumentId];
-          if (!instance.isLoaded()) continue;
+          if (!instance?.isLoaded()) continue;
 
           // Play the realized pattern chord using the sampler
           playPatternChord(instance.sampler, chord, time);
         }
       }
     }, pulse);
-  }
 
-  // Start the transport
-  Tone.Transport.start();
-  dispatch(TransportSlice._startTransport());
-};
+    // Start the transport
+    Tone.Transport.start();
+    dispatch(TransportSlice._startTransport());
+  };
 
 /**
  * Pause the transport.
@@ -151,28 +183,6 @@ export const toggleTransport = (): AppThunk => (dispatch, getState) => {
     dispatch(startTransport());
   }
 };
-
-/**
- * Seek the transport to the given tick.
- * @param tick - The tick to seek to.
- */
-export const seekTransport =
-  (tick: Tick): AppThunk =>
-  (dispatch, getState) => {
-    if (tick < 0) return;
-    const state = getState();
-    const transport = selectTransport(state);
-
-    // Convert the tick to seconds
-    const seconds = convertTicksToSeconds(transport, tick);
-    if (seconds < 0) return;
-
-    // Seek the transport
-    Tone.Transport.seconds = seconds;
-
-    // Dispatch a tick update event
-    dispatchCustomEvent(UPDATE_TICK, tick);
-  };
 
 /**
  * Move the playhead of the transport one tick left.
@@ -363,8 +373,6 @@ export const loadTransport = (): AppThunk => async (dispatch, getState) => {
  */
 export const unloadTransport = (): AppThunk => (dispatch) => {
   // Unload and stop the transport
-  dispatch(TransportSlice.setLoaded(false));
-  dispatch(TransportSlice.setLoading(false));
   dispatch(stopTransport());
 
   // Destroy all instruments

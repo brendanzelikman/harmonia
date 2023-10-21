@@ -46,10 +46,10 @@ export function HomeView(props: { view: View }) {
       leave="transition-opacity duration-500"
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
-      className="p-8 w-full h-full flex flex-col items-center text-white font-nunito overflow-scroll"
+      className="p-8 w-full flex flex-col items-center text-white font-nunito overflow-scroll"
     >
       <Header />
-      <div className="w-full min-h-0 flex-1 px-4 py-2">
+      <div className="w-full min-h-0 h-full flex-1 px-4 py-2 mb-8">
         {view === "projects" && <Projects />}
         {view === "demos" && <Demos />}
         {view === "profile" && <Profile />}

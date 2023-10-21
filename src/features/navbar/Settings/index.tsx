@@ -68,9 +68,11 @@ export function NavbarSettingsMenu() {
   };
   const BPMField = () => (
     <NavbarFormGroup>
-      <NavbarFormLabel className="w-32">Tempo (BPM)</NavbarFormLabel>
+      <NavbarFormLabel className="w-32 font-light after:[`s`]">
+        Tempo (BPM):
+      </NavbarFormLabel>
       <NavbarFormInput
-        className="focus:bg-slate-900/25 w-12 h-7"
+        className="focus:bg-slate-900/25 w-[2rem] h-7"
         type="number"
         placeholder={DEFAULT_BPM.toString()}
         value={BPMInput}
@@ -90,9 +92,11 @@ export function NavbarSettingsMenu() {
   };
   const TimeSignatureField = () => (
     <NavbarFormGroup>
-      <NavbarFormLabel className="w-32">16ths / Measure</NavbarFormLabel>
+      <NavbarFormLabel className="w-32 font-light after:[`s`]">
+        16ths / Measure:
+      </NavbarFormLabel>
       <NavbarFormInput
-        className="focus:bg-slate-900/25 w-12 h-7"
+        className="focus:bg-slate-900/25 w-[2rem] h-7"
         type="number"
         placeholder={"16"}
         value={TS1}
@@ -117,9 +121,9 @@ export function NavbarSettingsMenu() {
   };
   const CellWidthField = () => (
     <NavbarFormGroup>
-      <NavbarFormLabel className="w-32">Cell Width</NavbarFormLabel>
+      <NavbarFormLabel className="w-32 font-light">Cell Width:</NavbarFormLabel>
       <NavbarFormInput
-        className="focus:bg-slate-900/25 w-12 h-7"
+        className="focus:bg-slate-900/25 w-[2rem] h-7"
         type="number"
         placeholder={DEFAULT_CELL.width.toString()}
         value={CellInput.width}
@@ -231,7 +235,7 @@ export function NavbarSettingsMenu() {
       <div className="flex items-center">
         <SettingsButton />
         <NavbarTooltip
-          className="-left-[2rem] w-64 bg-slate-700/90 backdrop-blur"
+          className="-left-[1rem] w-56 bg-slate-700/90 backdrop-blur"
           content={SettingsTooltipContent}
           show={show}
         />

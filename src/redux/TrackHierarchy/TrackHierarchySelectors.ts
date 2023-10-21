@@ -5,7 +5,7 @@ import { RootState } from "redux/store";
  * @param state The RootState object.
  * @returns The hierarchy object.
  */
-export const selectTrackHierarchy = (state: Project) =>
+export const selectTrackHierarchy = (state: RootState) =>
   state.arrangement.present.hierarchy;
 
 /**
@@ -13,7 +13,7 @@ export const selectTrackHierarchy = (state: Project) =>
  * @param state The RootState object.
  * @returns The node map.
  */
-export const selectTrackNodeMap = (state: Project) =>
+export const selectTrackNodeMap = (state: RootState) =>
   state.arrangement.present.hierarchy.byId;
 
 /**
@@ -21,5 +21,5 @@ export const selectTrackNodeMap = (state: Project) =>
  * @param state The RootState object.
  * @returns The hierarchy's list of IDs.
  */
-export const selectTrackNodeIds = (state: Project) =>
+export const selectTrackNodeIds = (state: RootState) =>
   state.arrangement.present.hierarchy.allIds;

@@ -20,6 +20,7 @@ import {
 import { Hertz } from "tone/build/esm/core/type/Units";
 import { Time } from "../units";
 import { nanoid } from "@reduxjs/toolkit";
+import { lowerCase } from "lodash";
 
 export type EffectId = string;
 
@@ -27,21 +28,21 @@ export type EffectId = string;
  * The effect key to effect node map.
  */
 export const EFFECTS_BY_KEY: Record<string, any> = {
-  reverb: Reverb,
-  chorus: Chorus,
-  phaser: Phaser,
-  tremolo: Tremolo,
-  vibrato: Vibrato,
-  filter: Filter,
-  equalizer: EQ3,
-  distortion: Distortion,
-  bitcrusher: BitCrusher,
-  feedbackDelay: FeedbackDelay,
-  pingPongDelay: PingPongDelay,
-  compressor: Compressor,
-  limiter: Limiter,
-  gain: Gain,
-  warp: PitchShift,
+  reverb: "Reverb",
+  chorus: "Chorus",
+  phaser: "Phaser",
+  tremolo: "Tremolo",
+  vibrato: "Vibrato",
+  filter: "Filter",
+  equalizer: "EQ3",
+  distortion: "Distortion",
+  bitcrusher: "BitCrusher",
+  feedbackDelay: "FeedbackDelay",
+  pingPongDelay: "PingPongDelay",
+  compressor: "Compressor",
+  limiter: "Limiter",
+  gain: "Gain",
+  warp: "PitchShift",
 };
 
 export type EffectKey = (typeof EFFECTS_BY_KEY)[keyof typeof EFFECTS_BY_KEY];
@@ -123,11 +124,14 @@ export const initializeToneEffect = (
   node: EffectNode,
   id?: EffectId
 ): ToneEffect => {
+  const keys = Object.keys(EFFECTS_BY_KEY);
+  const name = `${node.name}`;
+  const key = keys.find(
+    (key) => lowerCase(EFFECTS_BY_KEY[key]) === lowerCase(name)
+  ) as EffectKey;
   return {
     node,
-    key: Object.keys(EFFECTS_BY_KEY).find(
-      (key) => EFFECTS_BY_KEY[key].name.slice(1) === node.name
-    ) as EffectKey,
+    key,
     id: id?.length ? id : nanoid(),
   };
 };
@@ -153,7 +157,9 @@ export const getTypedEffectNode = (effect?: ToneEffect) => {
 export const getToneEffectProps = (effect?: ToneEffect) => {
   if (!effect) return {};
   const typedNode = getTypedEffectNode(effect);
+  if (!typedNode) return {};
   const props = EFFECT_PROPS_BY_KEY[effect.key];
+  if (!props) return {};
   return props.reduce((acc, cur) => {
     const _value = typedNode[cur];
     const isNested = _value instanceof Signal || _value instanceof Param;

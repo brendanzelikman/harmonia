@@ -78,7 +78,7 @@ export const getProperties = <T, K extends keyof T>(
  * @param id Optional. The ID to select.
  * @returns The ID.
  */
-export const selectId = (state: Project, id: ID) => id;
+export const selectId = (state: RootState, id: ID) => id;
 
 /**
  * Select a list of IDs from the state.
@@ -86,7 +86,7 @@ export const selectId = (state: Project, id: ID) => id;
  * @param ids Optional. The IDs to select.
  * @returns The IDs.
  */
-export const selectIds = (state: Project, ids: ID[]) => ids ?? [];
+export const selectIds = (state: RootState, ids: ID[]) => ids ?? [];
 
 /**
  * Select a tick, ignoring state.
@@ -94,7 +94,7 @@ export const selectIds = (state: Project, ids: ID[]) => ids ?? [];
  * @param tick Optional. The tick to select.
  * @returns The tick.
  */
-export const selectTick = (state: Project, tick: number) => tick;
+export const selectTick = (state: RootState, tick: number) => tick;
 
 /**
  * Create a string of tags from an array of items.

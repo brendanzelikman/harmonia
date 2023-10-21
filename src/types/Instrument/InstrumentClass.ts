@@ -217,6 +217,7 @@ export class LiveAudioInstance {
   ) => {
     // Get the corresponding effect
     const effect = this.getEffectById(id);
+    console.log("updating", effect);
     if (!effect) return;
 
     // Get the typed node of the effect

@@ -216,7 +216,7 @@ export function Profile() {
       className="w-full h-full flex py-4 space-x-16"
     >
       {AvatarPanel()}
-      <div className="flex flex-1 flex-col justify-between overflow-scroll">
+      <div className="flex flex-1 flex-col justify-between overflow-scroll space-y-2">
         {CardList({
           field: "favoriteWorks",
           title: "Favorite Works",

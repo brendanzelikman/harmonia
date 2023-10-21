@@ -23,7 +23,6 @@ import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 interface ClipStyleProps extends ClipProps {
   stream?: PatternStream;
-  isEyedropping: boolean;
   isDragging: boolean;
 }
 
@@ -61,9 +60,9 @@ export const useClipStyles = (props: ClipStyleProps) => {
 
   // Name
   const nameHeight = 24;
+  const heldKeys = useHeldHotkeys(["i"]);
 
   // Stream
-  const heldKeys = useHeldHotkeys(["v"]);
   const margin = 8;
   const streamHeight = height - nameHeight - margin + (heldKeys.v ? 150 : 0);
   const streamRange = getPatternStreamRange(stream);
@@ -89,17 +88,18 @@ export const useClipStyles = (props: ClipStyleProps) => {
   // Ring
   const isDifferentPattern =
     draftedClip?.patternId !== clip?.patternId && !!draftedClip?.patternId;
+  const isEyedropping = useHeldHotkeys(["i"]).i;
   const ring =
     props.isAdding && isDifferentPattern
       ? "hover:ring-4 hover:ring-teal-500"
-      : props.isEyedropping
+      : isEyedropping
       ? "hover:ring-4 hover:ring-slate-300"
       : "";
 
   // Cursor
   const cursor = props.isAdding
     ? "cursor-paintbrush"
-    : props.isEyedropping
+    : isEyedropping
     ? "cursor-eyedropper"
     : "cursor-pointer";
 

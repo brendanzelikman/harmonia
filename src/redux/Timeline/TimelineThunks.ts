@@ -70,6 +70,7 @@ export const toggleAddingClips = (): AppThunk => (dispatch, getState) => {
   const state = getState();
   const editor = selectEditor(state);
   const timeline = selectTimeline(state);
+  console.log("wtf", timeline);
   if (isAddingClips(timeline)) {
     dispatch(setTimelineState("idle"));
   } else {

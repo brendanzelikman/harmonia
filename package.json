@@ -26,6 +26,7 @@
     "esbuild": "^0.17.8",
     "flowbite": "^1.6.3",
     "flowbite-react": "^0.3.8",
+    "idb": "^7.1.1",
     "lodash": "^4.17.21",
     "lucide-react": "^0.265.0",
     "opensheetmusicdisplay": "^1.7.4",

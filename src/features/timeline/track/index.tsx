@@ -7,18 +7,18 @@ import {
   selectTrackIndexById,
 } from "redux/selectors";
 import * as Tracks from "redux/Track";
-import { AppDispatch, Project } from "redux/store";
+import { AppDispatch, RootState } from "redux/store";
 import { Track, TrackId } from "types/Track";
 import { Row } from "..";
 import { TrackComponent } from "./Track";
 import { setSelectedTrackId } from "redux/Timeline";
 
-function mapStateToProps(state: Project, ownProps: FormatterProps<Row>) {
+function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const { row } = ownProps;
   const selectedTrackId = selectSelectedTrackId(state);
   const track = selectTrackById(state, ownProps.row.trackId);
   const cell = selectCell(state);
-  const index = track ? selectTrackIndexById(state, track.id) : -1;
+  const index = selectTrackIndexById(state, track?.id);
   return {
     row,
     selectedTrackId,

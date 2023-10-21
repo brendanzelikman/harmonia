@@ -533,15 +533,15 @@ export const handleInstrumentMiddleware: Middleware =
     const type = action.type;
 
     // Get the old state
-    const oldState = store.getState() as Project;
+    const oldState = store.getState() as RootState;
     const oldInstrumentIds = selectInstrumentIds(oldState);
     const oldInstrumentMap = selectInstrumentMap(oldState);
 
     // Let the action pass through
-    const result = next(action) as Project;
+    const result = next(action) as RootState;
 
     // Get the new state
-    const nextState = store.getState() as Project;
+    const nextState = store.getState() as RootState;
     const newInstrumentMap = selectInstrumentMap(nextState);
     const newInstrumentIds = selectInstrumentIds(nextState);
 

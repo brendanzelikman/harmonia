@@ -9,7 +9,7 @@ import {
   selectPatternIds,
 } from "redux/selectors";
 import { EditorProps, StateProps } from "..";
-import { AppDispatch, Project } from "redux/store";
+import { AppDispatch, RootState } from "redux/store";
 
 import { UndoTypes } from "redux/undoTypes";
 import { OSMDCursor } from "lib/opensheetmusicdisplay";
@@ -31,7 +31,7 @@ import {
 import { setTimelineState, updateMediaDraft } from "redux/Timeline";
 import { Patterns } from "redux/slices";
 
-const mapStateToProps = (state: Project, ownProps: EditorProps) => {
+const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   const editor = selectEditor(state);
   const pattern = ownProps.selectedPattern;
 

@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, Project } from "redux/store";
+import { AppDispatch, RootState } from "redux/store";
 import { MouseEvent, useRef, useState } from "react";
 import { TrackProps } from ".";
 import {
@@ -22,7 +22,7 @@ import {
   BsTrash,
 } from "react-icons/bs";
 import { BiCopy } from "react-icons/bi";
-import { cancelEvent, percentOfRange } from "utils";
+import { cancelEvent, numberToLower, percentOfRange } from "utils";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDragAndDrop";
 import { MIN_VOLUME, MAX_VOLUME, MIN_PAN, MAX_PAN } from "utils/constants";
 import { DEFAULT_VOLUME, DEFAULT_PAN } from "utils/constants";
@@ -41,9 +41,8 @@ import { updateInstrument } from "redux/Instrument";
 import { toggleTrackMute, toggleTrackSolo } from "redux/Track";
 import { toggleTrackInstrumentEditor } from "redux/Editor";
 import { usePatternTrackStyles } from "./hooks/usePatternTrackStyles";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
-const mapStateToProps = (state: Project, ownProps: TrackProps) => {
+const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const { selectedTrackId } = ownProps;
   const track = ownProps.track as PatternTrackType;
   const isSelected = !!selectedTrackId && track.id === selectedTrackId;
@@ -111,8 +110,6 @@ export default connector(PatternTrackComponent);
 
 function PatternTrackComponent(props: PatternTrackProps) {
   const { track, instrumentId, cell } = props;
-  const heldKeys = useHeldHotkeys(["y", "u"]);
-  const isHoldingKey = (key: string) => heldKeys[key];
 
   // Drag and drop pattern tracks
   const [draggingVolume, setDraggingVolume] = useState(false);
@@ -129,7 +126,6 @@ function PatternTrackComponent(props: PatternTrackProps) {
   const styles = usePatternTrackStyles({
     ...props,
     isDragging,
-    isHoldingKey,
     draggingVolume,
     draggingPan,
   });
@@ -153,6 +149,7 @@ function PatternTrackComponent(props: PatternTrackProps) {
   const PatternTrackDepth = (
     <label className="font-light w-4 text-center mb-1">
       {props.row.depth + 1}
+      {numberToLower(props.index)}
     </label>
   );
 

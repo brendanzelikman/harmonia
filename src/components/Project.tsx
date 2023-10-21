@@ -23,8 +23,8 @@ import { useAppDispatch } from "redux/hooks";
 import { BiCopy } from "react-icons/bi";
 import { Transition } from "@headlessui/react";
 import { getScaleTrackScale } from "types/ScaleTrack";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { Project } from "types/Project";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 interface ProjectProps {
   state?: Project;
@@ -35,6 +35,7 @@ interface ProjectProps {
 export function ProjectComponent(props: ProjectProps) {
   const dispatch = useAppDispatch();
   const { index } = props;
+  const heldKeys = useHeldHotkeys(["alt"]);
 
   const [state, setState] = useState(props.state ?? ({} as Project));
   const [loaded, setLoaded] = useState(!!props.state);
@@ -48,17 +49,16 @@ export function ProjectComponent(props: ProjectProps) {
     }
   }, [props]);
 
-  const heldKeys = useHeldHotkeys("alt");
   const [deleting, setDeleting] = useState(false);
   const toggleDeleting = () => setDeleting((prev) => !prev);
 
   if (!loaded) return null;
 
   // Get general info about the project
-  const project = selectMetadata(state);
-  const { id, name } = project;
-  const dateCreated = new Date(project.dateCreated).toLocaleString();
-  const lastUpdated = new Date(project.lastUpdated).toLocaleString();
+  const meta = selectMetadata(state);
+  const { id, name } = meta;
+  const dateCreated = new Date(meta.dateCreated).toLocaleString();
+  const lastUpdated = new Date(meta.lastUpdated).toLocaleString();
   const transport = selectTransport(state);
   const { bpm, timeSignature } = transport;
 

@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, Project } from "redux/store";
+import { AppDispatch, RootState } from "redux/store";
 import { Clip, ClipId } from "types/Clip";
 import { useClipDrag } from "./hooks/useClipDrag";
 import { PatternId, PatternNote } from "types/Pattern";
@@ -18,15 +18,15 @@ import {
 import { useClipStyles } from "./hooks/useClipStyles";
 import { Tick } from "types/units";
 import { pick } from "lodash";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { sliceMedia } from "redux/thunks";
 import {
   isAddingClips,
   isAddingTranspositions,
   isSlicingMedia,
 } from "types/Timeline";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
-const mapStateToProps = (state: Project, ownProps: { id: ClipId }) => {
+const mapStateToProps = (state: RootState, ownProps: { id: ClipId }) => {
   const clip = selectClipById(state, ownProps.id);
   const name = selectClipName(state, ownProps.id);
   const timeline = selectTimeline(state);
@@ -80,17 +80,16 @@ export default connector(TimelineClip);
 
 function TimelineClip(props: ClipProps) {
   const { clip, isSlicing } = props;
+  const heldKeys = useHeldHotkeys("i");
   const stream = useDeepEqualSelector((_) => selectClipStream(_, clip?.id));
 
   // Clip properties
   const [{ isDragging }, drag] = useClipDrag(props);
-  const isEyedropping = useHeldHotkeys("i").i;
 
   // CSS properties
   const styles = useClipStyles({
     ...props,
     stream,
-    isEyedropping,
     isDragging,
   });
 
@@ -177,7 +176,7 @@ function TimelineClip(props: ClipProps) {
       className={className}
       style={style}
       onClick={(e: MouseEvent<HTMLDivElement>) =>
-        props.onClick(e, clip, isEyedropping)
+        props.onClick(e, clip, heldKeys.i)
       }
       onDoubleClick={() => props.showPatternEditor(clip?.patternId)}
     >

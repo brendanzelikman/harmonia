@@ -18,3 +18,9 @@ export const closest = (goal: number, arr: number[]) =>
   arr.reduce((prev, curr) => {
     return Math.abs(curr - goal) < Math.abs(prev - goal) ? curr : prev;
   });
+
+export const numberToLower = (number: number) =>
+  String.fromCharCode(number.toString().charCodeAt(0) + 49);
+
+export const numberToUpper = (number: number) =>
+  String.fromCharCode(number.toString().charCodeAt(0) + 17);

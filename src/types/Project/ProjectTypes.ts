@@ -65,7 +65,9 @@ export const initializeProject = (
   template: Project = defaultProject
 ): Project => {
   const meta = initializeProjectMetadata();
-  if (template) meta.name = `${template.meta.name} Copy`;
+  if (template.meta.name !== "New Project") {
+    meta.name = `${template.meta.name} Copy`;
+  }
   return { ...template, meta };
 };
 
