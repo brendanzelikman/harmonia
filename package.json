@@ -1,7 +1,7 @@
 {
   "name": "harmonia",
   "private": true,
-  "homepage": "https://brendanzelikman.github.io/harmonia",
+  "homepage": "https://brendanzelikman.github.io/harmonia/",
   "version": "1.0.0",
   "type": "module",
   "scripts": {

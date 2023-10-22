@@ -8,7 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -19,15 +18,14 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Test
+      - name: Run Test Scripts
         run: npm run test
 
-      - name: Build
+      - name: Build Project
         run: npm run build
 
-      - name: Deploy
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
           publish_dir: ./build
