@@ -1,6 +1,6 @@
 import { DataGridHandle } from "react-data-grid";
 import { createPortal } from "react-dom";
-import { RootState } from "redux/store";
+import { Project } from "types/Project";
 import {
   selectCellHeight,
   selectCellWidth,
@@ -22,17 +22,17 @@ interface BackgroundProps {
   timeline?: DataGridHandle;
 }
 
-const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
-  const columns = selectTimelineColumnCount(state);
+const mapStateToProps = (project: Project, ownProps: BackgroundProps) => {
+  const columns = selectTimelineColumnCount(project);
 
   // General dimensions
-  const cellWidth = selectCellWidth(state);
-  const cellHeight = selectCellHeight(state);
+  const cellWidth = selectCellWidth(project);
+  const cellHeight = selectCellHeight(project);
 
   // Track background height
-  const lastTrackId = selectOrderedTrackIds(state).at(-1);
-  const lastTrack = selectTrackById(state, lastTrackId);
-  const tracksHeight = selectTimelineObjectTop(state, lastTrack);
+  const lastTrackId = selectOrderedTrackIds(project).at(-1);
+  const lastTrack = selectTrackById(project, lastTrackId);
+  const tracksHeight = selectTimelineObjectTop(project, lastTrack);
   const lastTrackHeight = lastTrack
     ? !!lastTrack.collapsed
       ? COLLAPSED_TRACK_HEIGHT
@@ -40,8 +40,8 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
     : 0;
 
   // Selected track background
-  const selectedTrack = selectSelectedTrack(state);
-  const selectedTrackTop = selectTimelineObjectTop(state, selectedTrack);
+  const selectedTrack = selectSelectedTrack(project);
+  const selectedTrackTop = selectTimelineObjectTop(project, selectedTrack);
 
   const selectedTrackHeight = selectedTrack
     ? !!selectedTrack.collapsed
@@ -54,7 +54,7 @@ const mapStateToProps = (state: RootState, ownProps: BackgroundProps) => {
 
   // Background dimensions
   const width = columns * cellWidth;
-  const rowCount = selectOrderedTrackIds(state).length;
+  const rowCount = selectOrderedTrackIds(project).length;
   const height = HEADER_HEIGHT + cellHeight * rowCount;
 
   return {

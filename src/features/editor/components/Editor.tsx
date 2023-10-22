@@ -10,7 +10,7 @@ import { Tooltip as FBTooltip } from "flowbite-react";
 import EditorInstrument from "../Instrument";
 import EditorPatterns from "../Pattern";
 import EditorScales from "../Scale";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   INSTRUMENT_KEYS,
   InstrumentKey,
@@ -25,6 +25,7 @@ import thirtysecondNote from "assets/noteheads/32nd.png";
 import sixtyfourthNote from "assets/noteheads/64th.png";
 import { DURATIONS, DURATION_NAMES, Duration } from "types/units";
 import { EditorListbox, EditorListboxProps } from "./Listbox";
+import { useHotkeysContext } from "react-hotkeys-hook";
 export { EditorListbox as CustomListbox } from "./Listbox";
 
 export type StateProps = {
@@ -39,9 +40,29 @@ export type StateProps = {
 };
 
 export function Editor(props: EditorProps) {
+  const hotkeys = useHotkeysContext();
+
   // Only show the editor if the id is one of the visible states
   const visibleStates = ["scale", "patterns", "instrument"];
   if (!visibleStates.includes(props.id)) return null;
+
+  // Update the hotkey scope when the editor is visible
+  useEffect(() => {
+    const hasTimeline = hotkeys.enabledScopes.includes("timeline");
+
+    // Remove the timeline scope when the editor is shown
+    if (!!props.show && hasTimeline) {
+      hotkeys.disableScope("timeline");
+      hotkeys.enableScope("editor");
+      return;
+    }
+
+    // Enable the timeline scope when the editor is hidden
+    if (!props.show && !hasTimeline) {
+      hotkeys.disableScope("editor");
+      hotkeys.enableScope("timeline");
+    }
+  }, [props.show, hotkeys.enabledScopes]);
 
   // State management
   const [state, setState] = useState({

@@ -1,5 +1,5 @@
 import * as Hierarchy from "../TrackHierarchy/TrackHierarchySlice";
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import { hideEditor } from "../Editor/EditorSlice";
 import { isPatternTrack } from "types/PatternTrack";
 import { isScaleTrack } from "types/ScaleTrack";
@@ -51,7 +51,7 @@ import { createMedia } from "redux/Media";
  * @param track The track object.
  */
 export const createTrack =
-  (track: Track): AppThunk<Promise<TrackId>> =>
+  (track: Track): Thunk<Promise<TrackId>> =>
   (dispatch) => {
     return new Promise((resolve) => {
       if (isScaleTrack(track)) {
@@ -67,7 +67,7 @@ export const createTrack =
  * @param tracks The partial track objects.
  */
 export const updateTracks =
-  (tracks: Partial<Track>[]): AppThunk =>
+  (tracks: Partial<Track>[]): Thunk =>
   (dispatch) => {
     tracks.forEach((track) => {
       if (isScaleTrack(track)) {
@@ -83,7 +83,7 @@ export const updateTracks =
  * @param trackId The ID of the track.
  */
 export const clearTrack =
-  (trackId?: TrackId): AppThunk =>
+  (trackId?: TrackId): Thunk =>
   (dispatch) => {
     if (!trackId) return;
     dispatch(clearClipsByTrackId(trackId));
@@ -96,10 +96,10 @@ export const clearTrack =
  * @param trackId The ID of the track.
  */
 export const deleteTrack =
-  (trackId?: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const track = selectTrackById(state, trackId);
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
     if (!track) return;
 
     // Remove the track
@@ -122,14 +122,14 @@ export const deleteTrack =
     dispatch(removeTranspositionsByTrackId(track.id));
 
     // Remove all child tracks
-    const trackNodeMap = selectTrackNodeMap(state);
+    const trackNodeMap = selectTrackNodeMap(project);
     const children = trackNodeMap[track.id]?.trackIds ?? [];
     for (const id of children) {
       dispatch(deleteTrack(id));
     }
 
     // Clear the editor/selection if showing the deleted track
-    const editorTrackId = selectSelectedTrackId(state);
+    const editorTrackId = selectSelectedTrackId(project);
     if (editorTrackId === trackId) {
       dispatch(setSelectedTrackId(undefined));
       dispatch(hideEditor());
@@ -141,11 +141,11 @@ export const deleteTrack =
  * @param id The ID of the track.
  */
 export const duplicateTrack =
-  (id?: TrackId): AppThunk =>
-  async (dispatch, getState) => {
-    const state = getState();
-    const trackNodeMap = selectTrackNodeMap(state);
-    const track = selectTrackById(state, id);
+  (id?: TrackId): Thunk =>
+  async (dispatch, getProject) => {
+    const project = getProject();
+    const trackNodeMap = selectTrackNodeMap(project);
+    const track = selectTrackById(project, id);
     const trackNode = getProperty(trackNodeMap, id);
     if (!track || !trackNode) return;
 
@@ -154,9 +154,9 @@ export const duplicateTrack =
     if (!trackId) return;
 
     // Duplicate the original track's media
-    const clips = selectClipsByIds(state, trackNode.clipIds);
+    const clips = selectClipsByIds(project, trackNode.clipIds);
     const transpositions = selectTranspositionsByIds(
-      state,
+      project,
       trackNode.transpositionIds
     );
     const newClips = clips.map((c) => ({ ...c, trackId }));
@@ -167,7 +167,7 @@ export const duplicateTrack =
     // Duplicate the original track's children if it has any
     if (!isScaleTrack(track)) return;
     const childTracks = trackNode.trackIds;
-    const trackMap = selectTrackMap(state);
+    const trackMap = selectTrackMap(project);
 
     // Recursively add the children of a track
     const addChildren = async (trackIds: TrackId[], parentId: TrackId) => {
@@ -180,9 +180,9 @@ export const duplicateTrack =
         const clipIds = trackNodeMap[child.id]?.clipIds;
         const transpositionIds = trackNodeMap[child.id]?.transpositionIds;
         if (!clipIds || !transpositionIds) return;
-        const clips = selectClipsByIds(state, clipIds);
+        const clips = selectClipsByIds(project, clipIds);
         const transpositions = selectTranspositionsByIds(
-          state,
+          project,
           transpositionIds
         );
         const newClips = clips.map((c) => ({ ...c, trackId: newParentId }));
@@ -207,11 +207,11 @@ export const duplicateTrack =
  * @param track The track to collapse.
  */
 export const collapseTrack =
-  (trackId?: TrackId): AppThunk =>
-  (dispatch, getState) => {
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
     if (!trackId) return;
-    const state = getState();
-    const track = selectTrackById(state, trackId);
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
     if (!track) return;
     dispatch(updateTracks([{ ...track, collapsed: true }]));
     dispatch(Hierarchy.collapseTracksInHierarchy([track.id]));
@@ -222,12 +222,12 @@ export const collapseTrack =
  * @param track The track whose children to collapse.
  */
 export const collapseTrackChildren =
-  (trackId?: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const track = selectTrackById(state, trackId);
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
     if (!track || isPatternTrack(track)) return;
-    const children = selectTrackChildren(state, track.id);
+    const children = selectTrackChildren(project, track.id);
     dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: true }))));
     dispatch(Hierarchy.collapseTracksInHierarchy(children.map((c) => c.id)));
   };
@@ -237,10 +237,10 @@ export const collapseTrackChildren =
  * @param track The track to expand.
  */
 export const expandTrack =
-  (trackId?: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const track = selectTrackById(state, trackId);
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
     if (!track) return;
     dispatch(updateTracks([{ ...track, collapsed: false }]));
     dispatch(Hierarchy.expandTracksInHierarchy([track.id]));
@@ -251,12 +251,12 @@ export const expandTrack =
  * @param track The track whose children to expand.
  */
 export const expandTrackChildren =
-  (trackId?: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const track = selectTrackById(state, trackId);
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
     if (!track || isPatternTrack(track)) return;
-    const children = selectTrackChildren(state, track.id);
+    const children = selectTrackChildren(project, track.id);
     dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: false }))));
     dispatch(Hierarchy.expandTracksInHierarchy(children.map((c) => c.id)));
     return;
@@ -265,28 +265,28 @@ export const expandTrackChildren =
 /**
  * Mute all tracks.
  */
-export const muteTracks = (): AppThunk => (dispatch) => {
+export const muteTracks = (): Thunk => (dispatch) => {
   dispatch(muteInstruments());
 };
 
 /**
  * Unmute all tracks.
  */
-export const unmuteTracks = (): AppThunk => (dispatch) => {
+export const unmuteTracks = (): Thunk => (dispatch) => {
   dispatch(unmuteInstruments());
 };
 
 /**
  * Solo all tracks.
  */
-export const soloTracks = (): AppThunk => (dispatch) => {
+export const soloTracks = (): Thunk => (dispatch) => {
   dispatch(soloInstruments());
 };
 
 /**
  * Unsolo all tracks.
  */
-export const unsoloTracks = (): AppThunk => (dispatch) => {
+export const unsoloTracks = (): Thunk => (dispatch) => {
   dispatch(unsoloInstruments());
 };
 
@@ -294,15 +294,15 @@ export const unsoloTracks = (): AppThunk => (dispatch) => {
  * Toggle the mute state of a track.
  */
 export const toggleTrackMute =
-  (e: MouseEvent, id?: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const track = selectPatternTrackById(state, id);
+  (e: MouseEvent, id?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectPatternTrackById(project, id);
     if (!track) return;
 
     // Get the track's instrument
     const { instrumentId } = track;
-    const instrument = selectInstrumentById(state, instrumentId);
+    const instrument = selectInstrumentById(project, instrumentId);
     if (!instrument) return;
 
     // If not holding option, toggle the track mute
@@ -320,15 +320,15 @@ export const toggleTrackMute =
  * Toggle the solo state of a track.
  */
 export const toggleTrackSolo =
-  (e: MouseEvent, id?: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const track = selectPatternTrackById(state, id);
+  (e: MouseEvent, id?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectPatternTrackById(project, id);
     if (!track) return;
 
     // Get the track's instrument
     const { instrumentId } = track;
-    const instrument = selectInstrumentById(state, instrumentId);
+    const instrument = selectInstrumentById(project, instrumentId);
     if (!instrument) return;
 
     // If not holding option, toggle the track solo

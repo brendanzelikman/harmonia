@@ -181,7 +181,7 @@ export const patternsSlice = createSlice({
   reducers: {
     /**
      * Set the IDs of the `Patterns` in the store (used for dragging).
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the pattern IDs to set.
      */
     setPatternIds: (state, action: PayloadAction<PatternId[]>) => {
@@ -190,7 +190,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Add a `Pattern` to the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the patterns to add.
      */
     addPattern: (state, action: PayloadAction<AddPatternPayload>) => {
@@ -200,7 +200,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Remove a `Pattern` from the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the pattern IDs to remove.
      */
     removePattern: (state, action: PayloadAction<RemovePatternPayload>) => {
@@ -212,7 +212,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Update a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the patterns to update.
      */
     updatePattern: (state, action: PayloadAction<UpdatePatternPayload>) => {
@@ -222,7 +222,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Add a `PatternNote` to a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `PatternNote` to add.
      */
     addPatternNote: (state, action: PayloadAction<AddPatternNotePayload>) => {
@@ -248,7 +248,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Add a `PatternChord` to a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `PatternChord` to add.
      */
     addPatternChord: (state, action: PayloadAction<AddPatternChordPayload>) => {
@@ -267,7 +267,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Update a `PatternNote` in a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `PatternNote` to update.
      */
     updatePatternNote: (
@@ -288,7 +288,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Update a `PatternChord` in a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `PatternChord` to update.
      */
     updatePatternChord: (
@@ -304,7 +304,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Insert a `PatternNote` in a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `PatternNote` to insert.
      */
     insertPatternNote: (
@@ -322,7 +322,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Remove a `PatternNote` from a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `PatternNote` to remove.
      */
     removePatternNote: (
@@ -337,7 +337,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Transpose a `Pattern` in the store by a number of semitones.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID and transpose value.
      */
     transposePattern: (
@@ -356,7 +356,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Rotate a `Pattern` in the store by a number of steps.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID and rotate value.
      */
     rotatePattern: (state, action: PayloadAction<TransposePatternPayload>) => {
@@ -369,7 +369,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Invert a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
     invertPattern: (state, action: PayloadAction<PatternId>) => {
@@ -394,7 +394,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Repeat a `Pattern` in the store a number of times.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID and repeat value.
      */
     repeatPattern: (state, action: PayloadAction<RepeatPatternPayload>) => {
@@ -407,7 +407,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Continue a `Pattern` in the store for a particular length.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID and length value.
      */
     continuePattern: (state, action: PayloadAction<ContinuePatternPayload>) => {
@@ -421,7 +421,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Phase a `Pattern` in the store by a number of steps.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID and phase value.
      */
     phasePattern: (state, action: PayloadAction<PhasePatternPayload>) => {
@@ -439,7 +439,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Augment a `Pattern` in the store by a factor of 2.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
     augmentPattern: (state, action: PayloadAction<AugmentPatternPayload>) => {
@@ -460,7 +460,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Diminish a `Pattern` in the store by a factor of 2.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
     diminishPattern: (state, action: PayloadAction<DiminishPatternPayload>) => {
@@ -481,7 +481,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Reverse a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
     reversePattern: (state, action: PayloadAction<ReversePatternPayload>) => {
@@ -493,7 +493,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Shuffle a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
     shufflePattern: (state, action: PayloadAction<ShufflePatternPayload>) => {
@@ -505,7 +505,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Harmonize a `Pattern` in the store with a particular interval.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID and interval value.
      */
     harmonizePattern: (
@@ -527,7 +527,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Randomize a `Pattern` in the store with a particular length.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID and length value.
      */
     randomizePattern: (
@@ -577,7 +577,7 @@ export const patternsSlice = createSlice({
     },
     /**
      * Clear a `Pattern` in the store.
-     * @param state The patterns state.
+     * @param project The patterns state.
      * @param action The payload action containing the `Pattern` ID.
      */
     clearPattern: (state, action: PayloadAction<ClearPatternPayload>) => {

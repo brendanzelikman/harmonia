@@ -6,55 +6,55 @@ import { createTag } from "types/util";
 import * as HierarchySlice from ".";
 import { getTrackTag } from "types/Track";
 
-export const ARRANGEMENT_UNDO_TYPES: ActionGroup = {
-  "arrangement/addScaleTrackToHierarchy": (
+export const TRACK_HIERARCHY_UNDO_TYPES: ActionGroup = {
+  "trackHierarchy/addScaleTrackToHierarchy": (
     action: PayloadAction<HierarchySlice.AddTrackToHierarchyPayload>
   ) => {
     const tag = createTag(action.payload, getTrackTag);
     return `ADD_TRACK:${tag}`;
   },
-  "arrangement/removeScaleTrackFromHierarchy": (
+  "trackHierarchy/removeScaleTrackFromHierarchy": (
     action: PayloadAction<HierarchySlice.RemoveTrackFromHierarchyPayload>
   ) => {
     return `REMOVE_TRACK:${action.payload}`;
   },
-  "arrangement/addPatternTrackToHierarchy": (
+  "trackHierarchy/addPatternTrackToHierarchy": (
     action: PayloadAction<HierarchySlice.AddTrackToHierarchyPayload>
   ) => {
     const tag = createTag(action.payload, getTrackTag);
     return `ADD_TRACK:${tag}`;
   },
-  "arrangement/removePatternTrackFromHierarchy": (
+  "trackHierarchy/removePatternTrackFromHierarchy": (
     action: PayloadAction<HierarchySlice.RemoveTrackFromHierarchyPayload>
   ) => {
     return `REMOVE_TRACK:${action.payload}`;
   },
-  "arrangement/moveTrackInHierarchy": (
+  "trackHierarchy/moveTrackInHierarchy": (
     action: PayloadAction<HierarchySlice.MoveTrackInHierarchyPayload>
   ) => {
     return `MOVE_TRACK:${action.payload}`;
   },
-  "arrangement/migrateTrackInHierarchy": (
+  "trackHierarchy/migrateTrackInHierarchy": (
     action: PayloadAction<HierarchySlice.MigrateTrackInHierarchyPayload>
   ) => {
     return `MIGRATE_TRACK:${action.payload}`;
   },
-  "arrangement/collapseTracksInHierarchy": (
+  "trackHierarchy/collapseTracksInHierarchy": (
     action: PayloadAction<HierarchySlice.CollapseTracksInHierarchyPayload>
   ) => {
     return `COLLAPSE_TRACKS:${action.payload.join(",")}`;
   },
-  "arrangement/expandTracksInHierarchy": (
+  "trackHierarchy/expandTracksInHierarchy": (
     action: PayloadAction<HierarchySlice.ExpandTracksInHierarchyPayload>
   ) => {
     return `EXPAND_TRACKS:${action.payload.join(",")}`;
   },
-  "arrangement/clearTrackInHierarchy": (
+  "trackHierarchy/clearTrackInHierarchy": (
     action: PayloadAction<HierarchySlice.ClearTrackInHierarchyPayload>
   ) => {
     return `CLEAR_TRACK:${action.payload}`;
   },
-  "arrangement/addMediaToHierarchy": (
+  "trackHierarchy/addMediaToHierarchy": (
     action: PayloadAction<HierarchySlice.AddMediaToHierarchyPayload>
   ) => {
     const clips = action.payload.clips || [];
@@ -63,7 +63,7 @@ export const ARRANGEMENT_UNDO_TYPES: ActionGroup = {
     const transpositionTag = createTag(transpositions, getTranspositionTag);
     return `ADD_MEDIA:${clipTag},${transpositionTag}`;
   },
-  "arrangement/removeMediaFromHierarchy": (
+  "trackHierarchy/removeMediaFromHierarchy": (
     action: PayloadAction<HierarchySlice.RemoveMediaFromHierarchyPayload>
   ) => {
     const clips = action.payload.clips || [];
@@ -72,7 +72,7 @@ export const ARRANGEMENT_UNDO_TYPES: ActionGroup = {
     const transpositionTag = createTag(transpositions, getTranspositionTag);
     return `REMOVE_MEDIA:${clipTag},${transpositionTag}`;
   },
-  "arrangement/updateMediaInHierarchy": (
+  "trackHierarchy/updateMediaInHierarchy": (
     action: PayloadAction<HierarchySlice.UpdateMediaInHierarchyPayload>
   ) => {
     const clips = action.payload.clips || [];
@@ -81,7 +81,7 @@ export const ARRANGEMENT_UNDO_TYPES: ActionGroup = {
     const transpositionTag = createTag(transpositions, getTranspositionTag);
     return `UPDATE_MEDIA:${clipTag},${transpositionTag}`;
   },
-  "arrangement/sliceMediaInHierarchy": (
+  "trackHierarchy/sliceMediaInHierarchy": (
     action: PayloadAction<HierarchySlice.SliceMediaInHierarchyPayload>
   ) => {
     const { oldId, newIds } = action.payload;

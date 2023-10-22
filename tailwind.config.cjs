@@ -12,6 +12,9 @@ module.exports = {
   mode: "jit",
   theme: {
     extend: {
+      colors: {
+        transposition: "rgb(217 70 239 / 0.8)",
+      },
       fontFamily: {
         base: ["Open Sans", "sans-serif"],
         nunito: ["Nunito", "sans-serif"],

@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, RootState } from "redux/store";
+import { Project, Dispatch } from "types/Project";
 import { MouseEvent, useMemo } from "react";
 import {
   getChordalOffset,
@@ -23,28 +23,28 @@ import {
   onTranspositionDragEnd,
   updateMediaDragState,
 } from "redux/Timeline";
-import { useDeepEqualSelector } from "redux/hooks";
+import { useProjectDeepSelector } from "redux/hooks";
 import { useTranspositionStyles } from "./hooks/useTranspositionStyles";
 import { pick } from "lodash";
 import {
-  isAddingClips,
-  isAddingTranspositions,
-  isSlicingMedia,
+  isTimelineAddingClips,
+  isTimelineAddingTranspositions,
+  isTimelineSlicingMedia,
 } from "types/Timeline";
 
 const mapStateToProps = (
-  state: RootState,
+  project: Project,
   ownProps: { id: TranspositionId }
 ) => {
-  const transposition = selectTranspositionById(state, ownProps.id);
-  const selectedTrackId = selectSelectedTrackId(state);
-  const cellWidth = selectCellWidth(state);
-  const timeline = selectTimeline(state);
+  const transposition = selectTranspositionById(project, ownProps.id);
+  const selectedTrackId = selectSelectedTrackId(project);
+  const cellWidth = selectCellWidth(project);
+  const timeline = selectTimeline(project);
   const { subdivision } = timeline;
-  const isAdding = isAddingClips(timeline);
-  const isSlicing = isSlicingMedia(timeline);
-  const isTransposing = isAddingTranspositions(timeline);
-  const { draggingClip } = selectMediaDragState(state);
+  const isAdding = isTimelineAddingClips(timeline);
+  const isSlicing = isTimelineSlicingMedia(timeline);
+  const isTransposing = isTimelineAddingTranspositions(timeline);
+  const { draggingClip } = selectMediaDragState(project);
 
   return {
     ...ownProps,
@@ -59,7 +59,7 @@ const mapStateToProps = (
   };
 };
 
-const mapDispatchToProps = (dispatch: AppDispatch) => {
+const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     onClick: (e: MouseEvent<HTMLDivElement>, transposition?: Transposition) => {
       dispatch(onTranspositionClick(e, transposition));
@@ -81,7 +81,7 @@ export default connector(TimelineTransposition);
 
 function TimelineTransposition(props: TranspositionProps) {
   const { transposition, isTransposing, isSlicing } = props;
-  const parents = useDeepEqualSelector((_) =>
+  const parents = useProjectDeepSelector((_) =>
     selectTrackParents(_, transposition?.trackId)
   );
 
@@ -111,9 +111,8 @@ function TimelineTransposition(props: TranspositionProps) {
    * @return A rendered scalar label.
    */
   const scalarLabel = (offset: number, index: number) => {
-    const className = styles.scalarClass(index);
     return (
-      <span key={`${offset}-${index}`} className={className}>
+      <span key={`${offset}-${index}`}>
         {offset}
         {index < scalars.length - 1 ? ", " : ""}
       </span>
@@ -123,14 +122,12 @@ function TimelineTransposition(props: TranspositionProps) {
   /**
    * The chromatic label displays the chromatic offset as Nx.
    */
-  const chromaticLabel = (
-    <span className={styles.chromaticClass}>N{chromatic}</span>
-  );
+  const chromaticLabel = <span>N{chromatic}</span>;
 
   /**
    * The chordal label displays the chordal offset as tX.
    */
-  const chordalLabel = <span className={styles.chordalClass}>t{chordal}</span>;
+  const chordalLabel = <span>t{chordal}</span>;
 
   /**
    * The scalar labels correspond to each parent track, displayed as T(X, Y, Z).
@@ -139,11 +136,10 @@ function TimelineTransposition(props: TranspositionProps) {
     if (!scalars.length) return null;
     return (
       <span>
-        <label className={`${styles.scalarTLabel}`}>T</label>(
-        {scalars.map(scalarLabel)})
+        <span>T</span>({scalars.map(scalarLabel)})
       </span>
     );
-  }, [scalars, styles.scalarTLabel]);
+  }, [scalars]);
 
   /**
    * The transposition label contains the chromatic, scalar, and chordal labels,

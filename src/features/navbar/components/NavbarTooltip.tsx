@@ -21,9 +21,9 @@ export const NavbarTooltip = (props: any) => (
 export const NavbarInfoTooltip = (props: any) => (
   <div className={`relative ${props.className ?? ""}`}>
     <BsQuestionCircle className="w-5 h-5 text-gray-300 hover:text-gray-300 peer" />
-    <label className="text-xs absolute w-auto right-7 whitespace-nowrap peer-hover:visible invisible bg-fuchsia-700/90 backdrop-blur-lg font-light -top-1/2 p-2 rounded-xl border border-slate-200/50 inline-block text-right">
+    <span className="text-xs absolute w-auto right-7 whitespace-nowrap peer-hover:visible invisible bg-fuchsia-700/90 backdrop-blur-lg font-light -top-1/2 p-2 rounded-xl border border-slate-200/50 inline-block text-right">
       {props.content}
-    </label>
+    </span>
   </div>
 );
 

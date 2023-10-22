@@ -1,4 +1,4 @@
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import { PatternTrack } from "types/PatternTrack";
 import { selectInstrumentById } from "./InstrumentSelectors";
 import { addInstrument, addInstrumentOffline } from "./InstrumentSlice";
@@ -26,12 +26,12 @@ export const createInstrument =
       oldInstrument?: Instrument;
       downloading?: boolean;
     } = {}
-  ): AppThunk<LiveAudioInstance> =>
-  (dispatch, getState) => {
-    const state = getState();
+  ): Thunk<LiveAudioInstance> =>
+  (dispatch, getProject) => {
+    const project = getProject();
 
     // Get the instrument of the track
-    const trackInstrument = selectInstrumentById(state, track.instrumentId);
+    const trackInstrument = selectInstrumentById(project, track.instrumentId);
     const oldInstrument = options.oldInstrument ?? trackInstrument;
 
     // Dispose the old instrument if it exists (and is not being downloaded)
@@ -92,7 +92,7 @@ export const createGlobalInstrument = (
  * @param tracks The tracks.
  */
 export const buildInstruments =
-  (tracks: PatternTrack[]): AppThunk =>
+  (tracks: PatternTrack[]): Thunk =>
   (dispatch) => {
     tracks.forEach((track) =>
       dispatch(createInstrument(track, { offline: true }))

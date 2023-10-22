@@ -9,9 +9,9 @@ import {
 import { BsLink45Deg } from "react-icons/bs";
 import { ControlButton } from ".";
 import {
-  useAppDispatch,
-  useAppSelector,
-  useDeepEqualSelector,
+  useProjectDispatch,
+  useProjectSelector,
+  useProjectDeepSelector,
 } from "redux/hooks";
 import {
   selectSelectedClipIds,
@@ -19,15 +19,15 @@ import {
   selectTimeline,
 } from "redux/selectors";
 import { mergeSelectedMedia, toggleMergingMedia } from "redux/thunks";
-import { isMergingMedia } from "types/Timeline";
+import { isTimelineMergingMedia } from "types/Timeline";
 import { useState } from "react";
 
 export const ToolkitMergeButton = () => {
-  const dispatch = useAppDispatch();
-  const timeline = useAppSelector(selectTimeline);
-  const isMerging = isMergingMedia(timeline);
-  const selectedClipIds = useDeepEqualSelector(selectSelectedClipIds);
-  const selectedMedia = useDeepEqualSelector(selectSelectedMedia);
+  const dispatch = useProjectDispatch();
+  const timeline = useProjectSelector(selectTimeline);
+  const isMerging = isTimelineMergingMedia(timeline);
+  const selectedClipIds = useProjectDeepSelector(selectSelectedClipIds);
+  const selectedMedia = useProjectDeepSelector(selectSelectedMedia);
   const [mergeName, setMergeName] = useState("");
 
   /** The name of the new pattern obtained by merging */

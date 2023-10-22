@@ -14,9 +14,9 @@ import {
   setSelectedTrackId,
 } from "redux/Timeline";
 import {
-  useAppSelector,
-  useDeepEqualSelector,
-  useAppDispatch,
+  useProjectSelector,
+  useProjectDeepSelector,
+  useProjectDispatch,
 } from "redux/hooks";
 import { normalize, mod } from "utils";
 import { updateSelectedTranspositions } from "redux/Transposition";
@@ -46,13 +46,13 @@ const ARTURIA_KEYLAB_MOD_BYTE = 176;
 
 // CC support for my MIDI controller :)
 export default function useMidiController() {
-  const dispatch = useAppDispatch();
-  const transport = useAppSelector(selectTransport);
-  const patternTrackMap = useAppSelector(selectPatternTrackMap);
-  const orderedTrackIds = useDeepEqualSelector(selectOrderedTrackIds);
-  const trackIndex = useAppSelector(selectSelectedTrackIndex);
-  const patternTrackIds = useDeepEqualSelector(selectPatternTrackIds);
-  const selectedTrack = useAppSelector(selectSelectedTrack);
+  const dispatch = useProjectDispatch();
+  const transport = useProjectSelector(selectTransport);
+  const patternTrackMap = useProjectSelector(selectPatternTrackMap);
+  const orderedTrackIds = useProjectDeepSelector(selectOrderedTrackIds);
+  const trackIndex = useProjectSelector(selectSelectedTrackIndex);
+  const patternTrackIds = useProjectDeepSelector(selectPatternTrackIds);
+  const selectedTrack = useProjectSelector(selectSelectedTrack);
   const selectedAudioInstance = getProperty(
     LIVE_AUDIO_INSTANCES,
     (selectedTrack as PatternTrack)?.instrumentId

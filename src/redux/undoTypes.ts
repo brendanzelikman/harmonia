@@ -5,7 +5,7 @@ import { PATTERN_TRACK_UNDO_TYPES } from "./PatternTrack/PatternTrackUndoTypes";
 import { SCALE_UNDO_TYPES } from "./Scale/ScaleUndoTypes";
 import { SCALE_TRACK_UNDO_TYPES } from "./ScaleTrack/ScaleTrackUndoTypes";
 import { TRANSPOSITION_UNDO_TYPES } from "./Transposition/TranspositionUndoTypes";
-import { ARRANGEMENT_UNDO_TYPES } from "./TrackHierarchy/TrackHierarchyUndoTypes";
+import { TRACK_HIERARCHY_UNDO_TYPES } from "./TrackHierarchy/TrackHierarchyUndoTypes";
 import { INSTRUMENT_UNDO_TYPES } from "./Instrument/InstrumentUndoTypes";
 import { isSliceAction } from "./util";
 
@@ -43,8 +43,8 @@ export const groupByActionType = (action: PayloadAction) => {
   if (isActionTyped("instruments")) {
     return INSTRUMENT_UNDO_TYPES[type]?.(action) || type;
   }
-  if (isActionTyped("arrangement")) {
-    return ARRANGEMENT_UNDO_TYPES[type]?.(action) || type;
+  if (isActionTyped("trackHierarchy")) {
+    return TRACK_HIERARCHY_UNDO_TYPES[type]?.(action) || type;
   }
 
   return `${type}:${payload}`;

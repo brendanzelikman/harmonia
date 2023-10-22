@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import { TrackId } from "types/Track";
 import { Duration, Tick, Timing } from "types/units";
 import { defaultEditor, EditorId, EditorState } from "types/Editor";
@@ -23,7 +23,7 @@ export const editorSlice = createSlice({
   reducers: {
     /**
      * Show the editor with the given ID.
-     * @param state The editor state.
+     * @param project The editor state.
      * @param action The payload action;
      */
     _showEditor: (state, action: PayloadAction<EditorId>) => {
@@ -32,7 +32,7 @@ export const editorSlice = createSlice({
     },
     /**
      * Hide the editor and set the ID to "hidden".
-     * @param state The editor state.
+     * @param project The editor state.
      */
     hideEditor: (state) => {
       state.id = "hidden";
@@ -40,7 +40,7 @@ export const editorSlice = createSlice({
     },
     /**
      * Toggle the editor between the given ID and "hidden".
-     * @param state The editor state.
+     * @param project The editor state.
      * @param action The payload action.
      */
     toggleEditor: (state, action: PayloadAction<EditorId>) => {
@@ -49,7 +49,7 @@ export const editorSlice = createSlice({
     },
     /**
      * Set the editor state.
-     * @param state The editor state.
+     * @param project The editor state.
      * @param action The payload action.
      */
     setEditorState: (state, action: PayloadAction<EditorState>) => {
@@ -57,7 +57,7 @@ export const editorSlice = createSlice({
     },
     /**
      * Toggle the editor state between the given state and idle.
-     * @param state The editor state.
+     * @param project The editor state.
      * @param action The payload action.
      */
     toggleEditorState: (state, action: PayloadAction<EditorState>) => {
@@ -65,7 +65,7 @@ export const editorSlice = createSlice({
     },
     /**
      * Set the note duration within the editor.
-     * @param state The editor state.
+     * @param project The editor state.
      * @param action The payload action.
      */
     setEditorNoteDuration: (state, action: PayloadAction<Duration>) => {
@@ -73,7 +73,7 @@ export const editorSlice = createSlice({
     },
     /**
      * Set the note timing within the editor.
-     * @param state The editor state.
+     * @param project The editor state.
      * @param action The payload action.
      */
     setEditorNoteTiming: (state, action: PayloadAction<Timing>) => {
@@ -81,7 +81,7 @@ export const editorSlice = createSlice({
     },
     /**
      * Set the note velocity within the editor.
-     * @param state The editor state.
+     * @param project The editor state.
      * @param action The payload action.
      */
     setEditorNoteVelocity: (state, action: PayloadAction<number>) => {
@@ -89,7 +89,7 @@ export const editorSlice = createSlice({
     },
     /**
      * Set the recording duratino within the editor.
-     * @param state The editor state.
+     * @param project The editor state.
      * @param action The payload action.
      */
     setEditorRecordingDuration: (state, action: PayloadAction<Tick>) => {
@@ -97,7 +97,7 @@ export const editorSlice = createSlice({
     },
     /**
      * Set the recording timing within the editor.
-     * @param state The editor state.
+     * @param project The editor state.
      * @param action The payload action.
      */
     setEditorRecordingTiming: (state, action: PayloadAction<Timing>) => {
@@ -105,7 +105,7 @@ export const editorSlice = createSlice({
     },
     /**
      * Set whether the recording should be quantized within the editor.
-     * @param state The editor state.
+     * @param project The editor state.
      * @param action The payload action.
      */
     setEditorRecordingQuantization: (

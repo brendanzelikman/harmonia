@@ -5,36 +5,45 @@ import { Media, MediaClipboard } from "types/Media";
 /**
  * Checks if the user is adding clips.
  */
-export const isAddingClips = (timeline: Timeline) => {
+export const isTimelineAddingClips = (timeline: Timeline) => {
   return timeline.state === "addingClips";
 };
 
 /**
  * Checks if the user is adding transpositions.
  */
-export const isAddingTranspositions = (timeline: Timeline) => {
+export const isTimelineAddingTranspositions = (timeline: Timeline) => {
   return timeline.state === "addingTranspositions";
 };
 
 /**
  * Checks if the user is slicing media.
  */
-export const isSlicingMedia = (timeline: Timeline) => {
+export const isTimelineSlicingMedia = (timeline: Timeline) => {
   return timeline.state === "slicingMedia";
 };
 
 /**
  * Checks if the user is merging media.
  */
-export const isMergingMedia = (timeline: Timeline) => {
+export const isTimelineMergingMedia = (timeline: Timeline) => {
   return timeline.state === "mergingMedia";
 };
 
 /**
  * Checks if the user is idle.
  */
-export const isIdle = (timeline: Timeline) => {
+export const isTimelineIdle = (timeline: Timeline) => {
   return timeline.state === "idle";
+};
+
+/**
+ * Checks if the user is live.
+ */
+export const isTimelineLive = (timeline: Timeline) => {
+  const hasTranspositions = !!timeline.mediaSelection.transpositionIds.length;
+  const isActive = timeline.liveTranspositionSettings.enabled;
+  return hasTranspositions && isActive;
 };
 
 /**

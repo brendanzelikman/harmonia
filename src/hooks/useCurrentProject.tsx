@@ -5,11 +5,11 @@ import {
   uploadProjectToDB,
 } from "indexedDB";
 import { useEffect, useState } from "react";
-import { useAppDispatch } from "redux/hooks";
+import { useProjectDispatch } from "redux/hooks";
 import { defaultProject } from "types/Project";
 
 export function useCurrentProject() {
-  const dispatch = useAppDispatch();
+  const dispatch = useProjectDispatch();
   const [loaded, setLoaded] = useState(false);
 
   // Try to load the current project from the database on mount

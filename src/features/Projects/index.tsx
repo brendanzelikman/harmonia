@@ -6,7 +6,7 @@ import { BsPlus, BsUpload } from "react-icons/bs";
 import { getInstrumentName } from "types/Instrument";
 import { getScaleName } from "types/Scale";
 import { getScaleTrackScale } from "types/ScaleTrack";
-import { useAppDispatch } from "redux/hooks";
+import { useProjectDispatch } from "redux/hooks";
 import { ProjectComponent } from "components/Project";
 import { Transition } from "@headlessui/react";
 import { getProjectsFromDB } from "indexedDB";
@@ -20,7 +20,7 @@ import {
 import { useDatabaseCallback } from "hooks/useDatabaseCallback";
 
 export function Projects() {
-  const dispatch = useAppDispatch();
+  const dispatch = useProjectDispatch();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const updateProjects = async () => setProjects(await getProjectsFromDB());
@@ -34,19 +34,19 @@ export function Projects() {
   const [search, setSearch] = useState("");
   const filteredProjects = useMemo(
     () =>
-      projects.filter((state) => {
+      projects.filter((project) => {
         // Get the list of patterns used
-        const clips = Selectors.selectClips(state);
-        const patternMap = Selectors.selectPatternMap(state);
+        const clips = Selectors.selectClips(project);
+        const patternMap = Selectors.selectPatternMap(project);
         const allPatternIds = clips.map(({ patternId }) => patternId);
         const patternIds = [...new Set(allPatternIds)];
         const allPatternNames = patternIds.map((id) => patternMap[id]?.name);
         const patternNames = [...new Set(allPatternNames)].map(lowerCase);
 
         // Get the list of scales used
-        const scaleTracks = Selectors.selectScaleTracks(state);
-        const scaleTrackMap = Selectors.selectScaleTrackMap(state);
-        const scaleMap = Selectors.selectScaleMap(state);
+        const scaleTracks = Selectors.selectScaleTracks(project);
+        const scaleTrackMap = Selectors.selectScaleTrackMap(project);
+        const scaleMap = Selectors.selectScaleMap(project);
         const allScales = scaleTracks.map((track) =>
           getScaleTrackScale(track, scaleTrackMap, scaleMap)
         );
@@ -54,17 +54,17 @@ export function Projects() {
         const scaleNames = [...new Set(allScaleNames)].map(lowerCase);
 
         // Get the list of instruments used
-        const instruments = Selectors.selectInstruments(state);
+        const instruments = Selectors.selectInstruments(project);
         const allInstrumentNames = instruments.map(({ key }) =>
           getInstrumentName(key)
         );
         const instrumentNames = [...new Set(allInstrumentNames)].map(lowerCase);
 
         // Get the name of the project
-        const name = state.meta.name.toLowerCase();
+        const name = project.meta.name.toLowerCase();
 
         // Get the date of the project
-        const date = new Date(state.meta.dateCreated)
+        const date = new Date(project.meta.dateCreated)
           .toLocaleString("default", {
             year: "numeric",
             month: "long",
@@ -86,8 +86,12 @@ export function Projects() {
   // Display the list of projects
   const ProjectList = () => (
     <div className="w-full h-full space-y-8">
-      {filteredProjects.map((state, index) => (
-        <ProjectComponent state={state} index={index} key={state.meta.id} />
+      {filteredProjects.map((project, index) => (
+        <ProjectComponent
+          project={project}
+          index={index}
+          key={project.meta.id}
+        />
       ))}
     </div>
   );

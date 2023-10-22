@@ -1,7 +1,7 @@
 import { HEADER_HEIGHT } from "utils/constants";
 import useTransportTick from "hooks/useTransportTick";
 import { memo } from "react";
-import { useAppSelector } from "redux/hooks";
+import { useProjectSelector } from "redux/hooks";
 import {
   selectCellWidth,
   selectTimelineTickLeft,
@@ -9,15 +9,15 @@ import {
 } from "redux/selectors";
 
 const TimelineCursor = () => {
-  const transport = useAppSelector(selectTransport);
-  const cellWidth = useAppSelector(selectCellWidth);
+  const transport = useProjectSelector(selectTransport);
+  const cellWidth = useProjectSelector(selectCellWidth);
   const tick = useTransportTick();
 
   // Cursor properties
   const width = cellWidth - 4;
   const height = HEADER_HEIGHT;
   const marginTop = -HEADER_HEIGHT;
-  const left = useAppSelector((_) => selectTimelineTickLeft(_, tick));
+  const left = useProjectSelector((_) => selectTimelineTickLeft(_, tick));
   const showCursor = transport.state === "started" && !transport.downloading;
   if (!showCursor) return null;
 

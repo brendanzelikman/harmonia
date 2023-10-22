@@ -15,7 +15,7 @@ import {
 import { initializeState } from "types/util";
 import { MAX_PAN, MAX_VOLUME, MIN_PAN, MIN_VOLUME } from "utils/constants";
 import { UndoTypes } from "../undoTypes";
-import { RootState } from "redux/store";
+import { Project } from "types/Project";
 import {
   selectInstrumentIds,
   selectInstrumentMap,
@@ -139,7 +139,7 @@ export const instrumentsSlice = createSlice({
   reducers: {
     /**
      * Add an instrument to the store (online).
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument.
      */
     addInstrument: (state, action: PayloadAction<AddInstrumentPayload>) => {
@@ -149,7 +149,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Add an instrument to the store (offline)
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument.
      */
     addInstrumentOffline: (
@@ -162,7 +162,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Add an effect to an instrument.
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument ID and effect key.
      */
     addInstrumentEffect: (
@@ -187,7 +187,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Update an instrument.
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument ID and update.
      */
     updateInstrument: (
@@ -228,7 +228,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Update an instrument effect.
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument ID, effect ID, and update.
      */
     updateInstrumentEffect: (
@@ -255,7 +255,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Rearrange an instrument effect.
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument ID, effect ID, and new index.
      */
     rearrangeInstrumentEffect: (
@@ -287,7 +287,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Remove an instrument.
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument ID.
      */
     removeInstrument: (
@@ -312,7 +312,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Remove an instrument effect.
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument ID and effect ID.
      */
     removeInstrumentEffect: (
@@ -337,7 +337,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Reset an instrument effect.
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument ID and effect ID.
      */
     resetInstrumentEffect: (
@@ -368,7 +368,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Remove all effects from an instrument.
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument ID.
      */
     removeAllInstrumentEffects: (
@@ -389,7 +389,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Toggle an instrument's mute state.
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument ID.
      */
     toggleInstrumentMute: (
@@ -410,7 +410,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Toggle an instrument's solo state.
-     * @param state The current state.
+     * @param project The current state.
      * @param action The payload action containing the instrument ID.
      */
     toggleInstrumentSolo: (
@@ -431,7 +431,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Mute all instruments.
-     * @param state The current state.
+     * @param project The current state.
      */
     muteInstruments: (state) => {
       state.allIds.forEach((id) => {
@@ -449,7 +449,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Unmute all instruments.
-     * @param state The current state.
+     * @param project The current state.
      */
     unmuteInstruments: (state) => {
       state.allIds.forEach((id) => {
@@ -467,7 +467,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Solo all instruments.
-     * @param state The current state.
+     * @param project The current state.
      */
     soloInstruments: (state) => {
       state.allIds.forEach((id) => {
@@ -485,7 +485,7 @@ export const instrumentsSlice = createSlice({
     },
     /**
      * Unsolo all instruments.
-     * @param state The current state.
+     * @param project The current state.
      */
     unsoloInstruments: (state) => {
       state.allIds.forEach((id) => {
@@ -533,15 +533,15 @@ export const handleInstrumentMiddleware: Middleware =
     const type = action.type;
 
     // Get the old state
-    const oldState = store.getState() as RootState;
+    const oldState = store.getState() as Project;
     const oldInstrumentIds = selectInstrumentIds(oldState);
     const oldInstrumentMap = selectInstrumentMap(oldState);
 
     // Let the action pass through
-    const result = next(action) as RootState;
+    const result = next(action) as Project;
 
     // Get the new state
-    const nextState = store.getState() as RootState;
+    const nextState = store.getState() as Project;
     const newInstrumentMap = selectInstrumentMap(nextState);
     const newInstrumentIds = selectInstrumentIds(nextState);
 

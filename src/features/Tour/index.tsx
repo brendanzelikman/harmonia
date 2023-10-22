@@ -2,12 +2,13 @@ import { useCallback, useMemo, useState } from "react";
 import { Step, ShepherdTour, Tour } from "react-shepherd";
 import { hideEditor, selectEditor, showEditor } from "redux/Editor";
 import { selectTimeline, setTimelineState } from "redux/Timeline";
-import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import "lib/react-shepherd.css";
 import { EditorId, isEditorOn } from "types/Editor";
 import { ShepherdTourButton } from "./Button";
-import { TimelineState, isIdle } from "types/Timeline";
+import { TimelineState, isTimelineIdle } from "types/Timeline";
 import { dispatchCustomEvent } from "utils/events";
+import LogoImage from "assets/images/logo.png";
 
 export { TourBackground } from "./Background";
 
@@ -18,9 +19,9 @@ export const END_TOUR = "END_TOUR";
 
 /** The onboarding tour uses the react-shepherd library */
 export function OnboardingTour() {
-  const dispatch = useAppDispatch();
-  const editor = useAppSelector(selectEditor);
-  const timeline = useAppSelector(selectTimeline);
+  const dispatch = useProjectDispatch();
+  const editor = useProjectSelector(selectEditor);
+  const timeline = useProjectSelector(selectTimeline);
   const [confetti, setConfetti] = useState(false);
 
   const defaultClass =
@@ -55,7 +56,7 @@ export function OnboardingTour() {
       <div class="flex">
       <div class="flex flex-col">
         <div class="font-bold text-2xl mb-2">
-          <img src="logo.png" class="w-12 h-12 mr-1 inline-block" />
+          <img src="${LogoImage}" class="w-12 h-12 mr-1 inline-block" />
           ${props.title}
         </div>
         ${
@@ -106,7 +107,7 @@ export function OnboardingTour() {
     (id: string, stateId: EditorId) => {
       return () =>
         new Promise((resolve) => {
-          if (!isIdle(timeline)) dispatch(setTimelineState("idle"));
+          if (!isTimelineIdle(timeline)) dispatch(setTimelineState("idle"));
           if (isEditorOn(editor, stateId)) return resolve(true);
           dispatch(showEditor({ id: stateId }));
           resolve(true);
@@ -163,7 +164,7 @@ export function OnboardingTour() {
         <span class="text-slate-300 text-3xl font-bold mb-2">Ready for a Tour?</span>
         <span class="text-slate-400">We'll teach you the basics in no time, but feel free to explore at your own pace.</span>
       <p>
-      <img src="logo.png" class="flex-shrink-0 w-36 h-36 ml-4" />
+      <img src="${LogoImage}" class="flex-shrink-0 w-36 h-36 ml-4" />
     </div>
     `;
     const yesButton = createButton({

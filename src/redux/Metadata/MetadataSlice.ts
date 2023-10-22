@@ -13,7 +13,7 @@ export const metadataSlice = createSlice({
   reducers: {
     /**
      * Set the project name.
-     * @param state The project slice.
+     * @param project The project slice.
      * @param action The string to set.
      */
     setProjectName(state, action: PayloadAction<string>) {
@@ -21,7 +21,7 @@ export const metadataSlice = createSlice({
     },
     /**
      * Set the project ID.
-     * @param state The project slice.
+     * @param project The project slice.
      * @param action The ID to set.
      */
     setProjectId: (state, action: PayloadAction<string>) => {
@@ -29,7 +29,7 @@ export const metadataSlice = createSlice({
     },
     /**
      * Update the project's timestamp indicating last update.
-     * @param state The project slice.
+     * @param project The project slice.
      */
     updateProjectTimestamp: (state) => {
       state.lastUpdated = new Date().toISOString();

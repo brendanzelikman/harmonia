@@ -1,4 +1,4 @@
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import { TrackId } from "types/Track";
 import { InstrumentKey, initializeInstrument } from "types/Instrument";
 import {
@@ -32,9 +32,9 @@ import { selectTrackById, selectSelectedTrack } from "redux/selectors";
  * @returns A Promise that resolves with the ID of the created track.
  */
 export const createPatternTrack =
-  (initialTrack?: Partial<PatternTrack>): AppThunk<Promise<TrackId>> =>
-  (dispatch, getState) => {
-    const state = getState();
+  (initialTrack?: Partial<PatternTrack>): Thunk<Promise<TrackId>> =>
+  (dispatch, getProject) => {
+    const project = getProject();
     return new Promise(async (resolve) => {
       // Initialize a new pattern track and instrument
       const instrument = initializeInstrument();
@@ -49,7 +49,7 @@ export const createPatternTrack =
 
       // Create an instrument for the track or use the old one
       const oldInstrument = initialTrack?.instrumentId
-        ? selectInstrumentById(state, initialTrack.instrumentId)
+        ? selectInstrumentById(project, initialTrack.instrumentId)
         : undefined;
       dispatch(createInstrument(patternTrack, { oldInstrument }));
 
@@ -63,10 +63,10 @@ export const createPatternTrack =
  * @returns A Promise that resolves with the ID of the created track.
  */
 export const createPatternTrackFromSelectedTrack =
-  (): AppThunk<Promise<TrackId>> => (dispatch, getState) => {
+  (): Thunk<Promise<TrackId>> => (dispatch, getProject) => {
     return new Promise(async (resolve) => {
-      const state = getState();
-      const parent = selectSelectedTrack(state);
+      const project = getProject();
+      const parent = selectSelectedTrack(project);
       if (!parent) return;
       const parentId = isScaleTrack(parent) ? parent.id : parent.parentId;
       resolve(dispatch(createPatternTrack({ parentId })));
@@ -80,12 +80,12 @@ export const createPatternTrackFromSelectedTrack =
  * @param index - The index to add the PatternTrack to.
  */
 export const setPatternTrackScaleTrack =
-  (patternTrackId: TrackId, parentId: TrackId, index?: number): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
+  (patternTrackId: TrackId, parentId: TrackId, index?: number): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
 
     // Get the pattern track
-    const patternTrack = selectPatternTrackById(state, patternTrackId);
+    const patternTrack = selectPatternTrackById(project, patternTrackId);
     if (!patternTrack) return;
 
     // Update the pattern track with the new parent
@@ -106,12 +106,12 @@ export const setPatternTrackScaleTrack =
  * @param instrument - The instrument to set.
  */
 export const setPatternTrackInstrument =
-  (id: TrackId, key: InstrumentKey): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
+  (id: TrackId, key: InstrumentKey): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
 
     // Get the instrument
-    const instrument = selectPatternTrackInstrument(state, id);
+    const instrument = selectPatternTrackInstrument(project, id);
     if (!instrument) return;
 
     // Update the instrument with the new instrument
@@ -128,15 +128,15 @@ export const setPatternTrackInstrument =
  * @param props The drag and hover IDs.
  */
 export const movePatternTrack =
-  (props: { dragId: TrackId; hoverId: TrackId }): AppThunk<boolean> =>
-  (dispatch, getState) => {
+  (props: { dragId: TrackId; hoverId: TrackId }): Thunk<boolean> =>
+  (dispatch, getProject) => {
     const { dragId, hoverId } = props;
-    const state = getState();
-    const trackNodeMap = selectTrackNodeMap(state);
+    const project = getProject();
+    const trackNodeMap = selectTrackNodeMap(project);
 
     // Get the corresponding pattern tracks
-    const thisTrack = selectTrackById(state, dragId);
-    const otherTrack = selectTrackById(state, hoverId);
+    const thisTrack = selectTrackById(project, dragId);
+    const otherTrack = selectTrackById(project, hoverId);
     if (!thisTrack || !otherTrack) return false;
 
     const otherTrackParent = otherTrack.parentId
@@ -156,10 +156,10 @@ export const movePatternTrack =
 
     // Get the corresponding scale tracks
     const thisParent = thisTrack.parentId
-      ? selectScaleTrackById(state, thisTrack.parentId)
+      ? selectScaleTrackById(project, thisTrack.parentId)
       : null;
     const otherParent = otherTrack.parentId
-      ? selectScaleTrackById(state, otherTrack.parentId)
+      ? selectScaleTrackById(project, otherTrack.parentId)
       : null;
     if (!thisParent || !otherParent) return false;
 

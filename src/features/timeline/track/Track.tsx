@@ -34,9 +34,9 @@ export const TrackButton = (props: {
       }}
       onDoubleClick={cancelEvent}
     >
-      <label className="flex items-center pointer-events-none">
+      <span className="flex items-center pointer-events-none">
         {props.children}
-      </label>
+      </span>
     </button>
   );
 };
@@ -50,7 +50,7 @@ export const TrackName = (props: TrackNameProps) => {
   return (
     <input
       {...props}
-      className={`flex-auto font-nunito ${size} bg-zinc-800 px-1 w-full mr-2 caret-white outline-none focus:ring-0 rounded-md overflow-ellipsis text-gray-300 border-2 border-zinc-800 focus:border-indigo-500`}
+      className={`flex-auto font-nunito ${size} bg-zinc-800 px-1 w-full mr-2 caret-white outline-none focus:ring-0 rounded-md overflow-scroll text-gray-300 border-2 border-zinc-800 focus:border-indigo-500`}
       onKeyDown={blurOnEnter}
     />
   );
@@ -83,7 +83,7 @@ export const TrackSlider = (props: SliderProps) => {
   return (
     <>
       <div className="flex w-8 flex-col items-center text-slate-300">
-        {icon && <label className="text-sm mb-8">{icon}</label>}
+        {icon && <span className="text-sm mb-8">{icon}</span>}
         <input
           {...inputProps}
           style={{
@@ -127,11 +127,11 @@ export const TrackDropdownMenu = (props: {
           <div className="w-full">
             <Menu.Button
               aria-label="Track Dropdown Menu"
-              className={`w-full pl-2 rounded ${
+              className={`w-full h-full rounded ${
                 open ? "text-indigo-400" : "text-white"
               } outline-none`}
             >
-              <BsThreeDots className="text-xl " />
+              <BsThreeDots className="text-xl" />
             </Menu.Button>
           </div>
           <Transition

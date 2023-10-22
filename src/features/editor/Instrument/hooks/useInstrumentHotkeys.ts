@@ -1,5 +1,6 @@
+import { useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { InstrumentEditorProps } from "..";
-import { useHotkeys } from "react-hotkeys-hook";
+const useHotkeys = useScopedHotkeys("editor");
 
 interface InstrumentShortcutProps extends InstrumentEditorProps {}
 

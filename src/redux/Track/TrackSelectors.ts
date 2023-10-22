@@ -1,4 +1,4 @@
-import { RootState } from "redux/store";
+import { Project } from "types/Project";
 import { createSelector } from "reselect";
 import { Tick } from "types/units";
 import {
@@ -27,6 +27,7 @@ import {
 import {
   selectPatternTracks,
   selectPatternTrackMap,
+  selectPatternTrackById,
 } from "../PatternTrack/PatternTrackSelectors";
 import { selectTranspositionMap } from "../Transposition/TranspositionSelectors";
 import { selectTrackHierarchy, selectTrackNodeMap } from "../TrackHierarchy";
@@ -37,10 +38,11 @@ import {
   chromaticScale,
 } from "types/Scale";
 import { selectScaleMap } from "../Scale/ScaleSelectors";
+import { numberToLower, numberToUpper } from "utils";
 
 /**
  * Select the track map from the store.
- * @param state - The root state.
+ * @param project - The project.
  * @returns The track map.
  */
 export const selectTrackMap = createSelector(
@@ -53,7 +55,7 @@ export const selectTrackMap = createSelector(
 
 /**
  * Select all tracks from the store.
- * @param state - The root state.
+ * @param project - The project.
  * @returns A list of tracks.
  */
 export const selectTracks = createSelector(
@@ -63,18 +65,18 @@ export const selectTracks = createSelector(
 
 /**
  * Select a specific track by ID from the store.
- * @param state - The root state.
+ * @param project - The project.
  * @param id - The ID of the track.
  * @returns The track or undefined.
  */
-export const selectTrackById = (state: RootState, id?: TrackId) => {
-  const trackMap = selectTrackMap(state);
+export const selectTrackById = (project: Project, id?: TrackId) => {
+  const trackMap = selectTrackMap(project);
   return getProperty(trackMap, id);
 };
 
 /**
  * Select all track IDs ordered by index from the store.
- * @param state - The root state.
+ * @param project - The project.
  * @returns A list of track IDs.
  */
 export const selectOrderedTrackIds = createDeepEqualSelector(
@@ -108,7 +110,7 @@ export const selectOrderedTrackIds = createDeepEqualSelector(
 
 /**
  * Select all tracks ordered by index from the store.
- * @param state - The root state.
+ * @param project - The project.
  * @returns A list of tracks.
  */
 export const selectOrderedTracks = createDeepEqualSelector(
@@ -118,14 +120,14 @@ export const selectOrderedTracks = createDeepEqualSelector(
 
 /**
  * Select the index of a track by ID from the store.
- * @param state - The root state.
+ * @param project - The project.
  * @param id - The ID of the track.
  * @returns The index of the track or -1 if not found.
  */
-export const selectTrackIndexById = (state: RootState, id?: TrackId) => {
+export const selectTrackIndexById = (project: Project, id?: TrackId) => {
   if (!id) return -1;
-  const hierarchy = selectTrackHierarchy(state);
-  const track = selectTrackById(state, id);
+  const hierarchy = selectTrackHierarchy(project);
+  const track = selectTrackById(project, id);
   if (!track) return -1;
 
   // If the track is a scale track, try to find it in the top level
@@ -140,61 +142,93 @@ export const selectTrackIndexById = (state: RootState, id?: TrackId) => {
 };
 
 /**
+ * Select the label of a track by ID from the store.
+ * @param project - The project.
+ * @param id - The ID of the track.
+ * @returns The label of the track or undefined if not found.
+ */
+export const selectTrackLabelById = (project: Project, id?: TrackId) => {
+  if (!id) return undefined;
+
+  // Return just the index if the track is in the top level
+  const trackIndex = selectTrackIndexById(project, id) + 1;
+  const hierarchy = selectTrackHierarchy(project);
+  if (hierarchy.topLevelIds.includes(id)) return trackIndex;
+
+  // Otherwise, use all track parents to get the label
+  const parents = selectTrackParents(project, id);
+  const patternTrack = selectPatternTrackById(project, id);
+  const tracks = !!patternTrack ? [...parents, patternTrack] : parents;
+  const root = tracks[0];
+  const rest = tracks.slice(1);
+
+  // Get the index of the root and the letters of the rest
+  const rootIndex = hierarchy.topLevelIds.indexOf(root.id) + 1;
+  const restLetters = rest.map((track) => {
+    const index = selectTrackIndexById(project, track.id);
+    return numberToLower(index);
+  });
+
+  // Return the label
+  return `${rootIndex}${restLetters.join("")}`;
+};
+
+/**
  * Selects the parent tracks of a track.
- * @param state - The root state.
+ * @param project - The project.
  * @param id - The ID of the track.
  * @returns An array of parent tracks.
  */
-export const selectTrackParents = (state: RootState, id?: TrackId) => {
-  const track = selectTrackById(state, id);
+export const selectTrackParents = (project: Project, id?: TrackId) => {
+  const track = selectTrackById(project, id);
   if (!track) return [];
-  const trackMap = selectTrackMap(state);
+  const trackMap = selectTrackMap(project);
   return getTrackParents(track, trackMap);
 };
 
 /**
  * Selects the children of a track.
- * @param state - The root state.
+ * @param project - The project.
  * @param id - The ID of the track.
  * @returns An array of child tracks.
  */
-export const selectTrackChildren = (state: RootState, id?: TrackId) => {
-  const track = selectTrackById(state, id);
+export const selectTrackChildren = (project: Project, id?: TrackId) => {
+  const track = selectTrackById(project, id);
   if (!track) return [];
-  const trackMap = selectTrackMap(state);
-  const trackNodeMap = selectTrackNodeMap(state);
+  const trackMap = selectTrackMap(project);
+  const trackNodeMap = selectTrackNodeMap(project);
   return getTrackChildren(track, trackMap, trackNodeMap);
 };
 
 /**
  * Select the transpositions of a track by ID from the store.
- * @param state - The root state.
+ * @param project - The project.
  * @param id - The ID of the track.
  * @returns The transpositions of the track.
  */
-export const selectTrackTranspositions = (state: RootState, id: TrackId) => {
-  const track = selectTrackById(state, id);
+export const selectTrackTranspositions = (project: Project, id: TrackId) => {
+  const track = selectTrackById(project, id);
   if (!track) return [];
-  const transpositionMap = selectTranspositionMap(state);
-  const trackNodeMap = selectTrackNodeMap(state);
+  const transpositionMap = selectTranspositionMap(project);
+  const trackNodeMap = selectTrackNodeMap(project);
   return getTrackTranspositions(track, transpositionMap, trackNodeMap);
 };
 
 /**
  * Selects the transpositions of the parent of a track.
- * @param state - The root state.
+ * @param project - The project.
  * @param id - The ID of the track.
  * @returns An array of transpositions.
  */
 export const selectTrackParentTranspositions = (
-  state: RootState,
+  project: Project,
   id: TrackId
 ) => {
-  const track = selectTrackById(state, id);
+  const track = selectTrackById(project, id);
   if (!track) return [];
-  const trackMap = selectTrackMap(state);
-  const transpositionMap = selectTranspositionMap(state);
-  const trackNodeMap = selectTrackNodeMap(state);
+  const trackMap = selectTrackMap(project);
+  const transpositionMap = selectTranspositionMap(project);
+  const trackNodeMap = selectTrackNodeMap(project);
   const parents = getTrackParents(track, trackMap);
   return parents.map((parent) =>
     getTrackTranspositions(parent, transpositionMap, trackNodeMap)
@@ -205,31 +239,31 @@ export const selectTrackParentTranspositions = (
  * Select the scale track of a track by ID from the store.
  * * If the track is a scale track, return itself.
  * * If the track is a pattern track, return its parent.
- * @param state The root state.
+ * @param project The project.
  * @param id The ID of the track.
  * @returns The scale track or undefined if not found.
  */
 export const selectTrackScaleTrack = (
-  state: RootState,
+  project: Project,
   id?: TrackId
 ): ScaleTrack | undefined => {
-  const track = selectTrackById(state, id);
+  const track = selectTrackById(project, id);
   if (!track) return undefined;
   if (isScaleTrack(track)) return track;
   if (!track.parentId) return undefined;
-  return selectScaleTrackById(state, track.parentId);
+  return selectScaleTrackById(project, track.parentId);
 };
 
 /**
  * Select the scale of a specific track by ID from the store.
- * @param state The root state.
+ * @param project The project.
  * @param id The ID of the track.
  * @returns The scale or undefined if not found.
  */
-export const selectTrackScale = (state: RootState, id?: TrackId) => {
-  const track = selectTrackById(state, id);
-  const scaleTrackMap = selectScaleTrackMap(state);
-  const scaleMap = selectScaleMap(state);
+export const selectTrackScale = (project: Project, id?: TrackId) => {
+  const track = selectTrackById(project, id);
+  const scaleTrackMap = selectScaleTrackMap(project);
+  const scaleMap = selectScaleMap(project);
   if (!track) return;
 
   // If the track is a scale track, return its scale
@@ -244,30 +278,33 @@ export const selectTrackScale = (state: RootState, id?: TrackId) => {
 
 /**
  * Select the scale of a track at a given tick (accounting for transpositions).
- * @param state The root state.
+ * @param project The project.
  * @param trackId The ID of the track.
  * @param tick The tick.
  * @returns The scale or the chromatic scale if not found.
  */
 export const selectTrackScaleAtTick = (
-  state: RootState,
+  project: Project,
   trackId: TrackId,
   tick: Tick = 0
 ) => {
-  const track = selectTrackById(state, trackId);
-  const scaleTrack = selectTrackScaleTrack(state, trackId);
-  const scaleTrackMap = selectScaleTrackMap(state);
+  const track = selectTrackById(project, trackId);
+  const scaleTrack = selectTrackScaleTrack(project, trackId);
+  const scaleTrackMap = selectScaleTrackMap(project);
   if (!track || !scaleTrack) return chromaticScale;
 
   // Get the track scale and transpositions
-  const scaleMap = selectScaleMap(state);
+  const scaleMap = selectScaleMap(project);
   const scale = getProperty(scaleMap, scaleTrack.scaleId);
-  const transpositions = selectTrackTranspositions(state, trackId);
+  const transpositions = selectTrackTranspositions(project, trackId);
   if (!scale) return chromaticScale;
 
   // Get the track's parents and their transpositions
-  const parents = selectTrackParents(state, trackId);
-  const parentTranspositions = selectTrackParentTranspositions(state, trackId);
+  const parents = selectTrackParents(project, trackId);
+  const parentTranspositions = selectTrackParentTranspositions(
+    project,
+    trackId
+  );
 
   // Transpose the parents at the current tick
   const currentTick = tick + 1;
@@ -314,7 +351,7 @@ export interface TrackInfoRecord extends NormalizedState<TrackId, TrackInfo> {
 
 /**
  * Select the dependencies of a track as a simplified `TrackInfoRecord`.
- * @param state - The root state.
+ * @param project - The project.
  * @param id - The ID of the track.
  * @returns The `TrackInfoRecord`.
  */

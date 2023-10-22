@@ -13,9 +13,9 @@ import DataGrid, {
 } from "react-data-grid";
 import { useState, useCallback, useMemo } from "react";
 import {
-  useAppSelector,
-  useDeepEqualSelector,
-  useAppDispatch,
+  useProjectSelector,
+  useProjectDeepSelector,
+  useProjectDispatch,
 } from "redux/hooks";
 import TrackRenderer from "./Track";
 import CellRenderer from "./Cell";
@@ -52,10 +52,10 @@ export interface TimelinePortalElement {
 }
 
 export default function TimelineComponent() {
-  const dispatch = useAppDispatch();
-  const cell = useAppSelector(selectCell);
-  const dependencyMap = useDeepEqualSelector(selectTrackInfoRecord);
-  const trackMap = useDeepEqualSelector(selectTrackMap);
+  const dispatch = useProjectDispatch();
+  const cell = useProjectSelector(selectCell);
+  const dependencyMap = useProjectDeepSelector(selectTrackInfoRecord);
+  const trackMap = useProjectDeepSelector(selectTrackMap);
   const [timeline, setTimeline] = useState<DataGridHandle>();
   useTimelineHotkeys();
   useTimelineLiveHotkeys();

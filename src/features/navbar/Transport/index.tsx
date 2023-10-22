@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectTransport } from "redux/selectors";
 import { Transport } from "tone";
 import {
@@ -24,8 +24,8 @@ import {
 import useTransportTick from "hooks/useTransportTick";
 
 export function NavbarTransport() {
-  const dispatch = useAppDispatch();
-  const transport = useAppSelector(selectTransport);
+  const dispatch = useProjectDispatch();
+  const transport = useProjectSelector(selectTransport);
   const isStarted = isTransportStarted(transport);
   const isPaused = isTransportPaused(transport);
   const isStopped = isTransportStopped(transport);

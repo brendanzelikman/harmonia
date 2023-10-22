@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, RootState } from "redux/store";
+import { Project, Dispatch } from "types/Project";
 import { TrackId } from "types/Track";
 import { TrackProps } from ".";
 import {
@@ -19,10 +19,10 @@ import {
   BsArrowsCollapse,
   BsEraser,
   BsPencil,
-  BsPlusCircle,
+  BsPlus,
   BsTrash,
 } from "react-icons/bs";
-import { cancelEvent, numberToUpper } from "utils";
+import { cancelEvent } from "utils";
 import { useRef } from "react";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDragAndDrop";
 import { isEditorOn } from "types/Editor";
@@ -33,18 +33,18 @@ import {
   moveScaleTrack,
   updateScaleTrack,
 } from "redux/ScaleTrack";
-import { useAppSelector, useDeepEqualSelector } from "redux/hooks";
+import { useProjectSelector, useProjectDeepSelector } from "redux/hooks";
 import { useScaleTrackStyles } from "./hooks/useScaleTrackStyles";
 import { toggleTrackScaleEditor } from "redux/Editor";
 import useTransportTick from "hooks/useTransportTick";
 
-const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
+const mapStateToProps = (project: Project, ownProps: TrackProps) => {
   const track = ownProps.track as ScaleTrackType;
   const { selectedTrackId } = ownProps;
   const isSelected = selectedTrackId === track.id;
 
   // Editor state
-  const editor = selectEditor(state);
+  const editor = selectEditor(project);
   const onScaleEditor = isSelected && isEditorOn(editor, "scale");
 
   return {
@@ -56,7 +56,7 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   };
 };
 
-const mapDispatchToProps = (dispatch: AppDispatch, ownProps: TrackProps) => {
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: TrackProps) => {
   const trackId = ownProps.track?.id;
   return {
     createScaleTrack: () => {
@@ -83,16 +83,17 @@ export type ScaleTrackProps = ConnectedProps<typeof connector>;
 export default connector(ScaleTrackComponent);
 
 function ScaleTrackComponent(props: ScaleTrackProps) {
-  const { id, track, toggleScaleEditor } = props;
+  const { id, track } = props;
 
+  // Get the current tick
   const tick = useTransportTick();
-  const scale = useAppSelector((state) =>
-    selectTrackScaleAtTick(state, track?.id, tick)
-  );
-  const placeholder = getScaleName(scale);
 
-  // Track properties
-  const children = useDeepEqualSelector((_) => selectTrackChildren(_, id));
+  // Get the track scale
+  const scale = useProjectSelector((_) => selectTrackScaleAtTick(_, id, tick));
+  const scaleName = getScaleName(scale);
+
+  // Get the track children
+  const children = useProjectDeepSelector((_) => selectTrackChildren(_, id));
   const isChildCollapsed =
     children.length && children.some((track) => track?.collapsed);
 
@@ -114,21 +115,12 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
    */
   const ScaleTrackName = (
     <TrackName
+      id={track.id}
       cell={props.cell}
       value={track.name}
-      placeholder={placeholder}
+      placeholder={`Scale Track (${props.label})`}
       onChange={(e) => props.setTrackName(e.target.value)}
     />
-  );
-
-  /**
-   * The Scale Track depth corresponds to the number of parents.
-   */
-  const ScaleTrackDepth = (
-    <label className={styles.depthLabel}>
-      {props.row.depth + 1}
-      {numberToUpper(props.index)}
-    </label>
   );
 
   /**
@@ -172,7 +164,7 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
   );
 
   /**
-   * The Scale Track header displays the name, depth, and dropdown menu.
+   * The Scale Track header displays the name and dropdown menu.
    */
   const ScaleTrackHeader = (
     <div
@@ -181,8 +173,9 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
       onDragStart={cancelEvent}
     >
       {ScaleTrackName}
-      {ScaleTrackDepth}
-      {ScaleTrackDropdownMenu}
+      <div className="flex flex-col w-12 mr-1 items-end">
+        {ScaleTrackDropdownMenu}
+      </div>
     </div>
   );
 
@@ -192,26 +185,26 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
    * * The second button creates a nested pattern track.
    * * The third button creates a nested scale track.
    */
-  const ScaleTrackButtons = (
-    <div className={`w-full flex mt-2`} draggable onDragStart={cancelEvent}>
+  const ScaleTrackButtons = () => (
+    <div
+      className={`w-full flex items-center space-x-2 mt-2`}
+      draggable
+      onDragStart={cancelEvent}
+    >
       <TrackButton
         className={styles.scaleEditorButton}
-        onClick={toggleScaleEditor}
+        onClick={props.toggleScaleEditor}
       >
-        Scale <BsPencil className="ml-2" />
+        {scaleName} <BsPencil className="ml-2" />
       </TrackButton>
-      <TrackButton
-        className={styles.patternTrackButton}
-        onClick={props.createPatternTrack}
-      >
-        Track <BsPlusCircle className="ml-2" />
-      </TrackButton>
-      <TrackButton
-        className={styles.scaleTrackButton}
-        onClick={props.createScaleTrack}
-      >
-        Nest <BsPlusCircle className="ml-2" />
-      </TrackButton>
+      <div className="flex ml-2 space-x-1 justify-self-end">
+        <button className={styles.patternTrackButton}>
+          <BsPlus onClick={props.createPatternTrack} />
+        </button>
+        <button className={styles.scaleTrackButton}>
+          <BsPlus onClick={props.createScaleTrack} />
+        </button>
+      </div>
     </div>
   );
 
@@ -221,10 +214,10 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
   const ScaleTrackBody = (
     <div
       className={`${styles.innerTrack} ${styles.innerBorder} ${styles.gradient}`}
-      onDoubleClick={toggleScaleEditor}
+      onDoubleClick={props.toggleScaleEditor}
     >
       {ScaleTrackHeader}
-      {!track.collapsed && ScaleTrackButtons}
+      {!track.collapsed && <ScaleTrackButtons />}
     </div>
   );
 

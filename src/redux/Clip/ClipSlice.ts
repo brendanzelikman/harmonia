@@ -5,6 +5,7 @@ import { initializeState } from "types/util";
 import { MediaPayload, PartialMediaPayload } from "types/Media";
 import { union } from "lodash";
 import { updateMediaInHierarchy } from "redux/TrackHierarchy";
+import { Dispatch, Thunk } from "types/Project";
 
 export const defaultClipState = initializeState<ClipId, Clip>();
 
@@ -60,7 +61,7 @@ export const clipsSlice = createSlice({
   reducers: {
     /**
      * Add clips to the store.
-     * @param state The clips state.
+     * @param project The clips state.
      * @param action The payload action.
      */
     addClips: (state, action: PayloadAction<AddClipsPayload>) => {
@@ -74,7 +75,7 @@ export const clipsSlice = createSlice({
     },
     /**
      * Remove clips from the store.
-     * @param state The clips state.
+     * @param project The clips state.
      * @param action The payload action.
      */
     removeClips: (state, action: PayloadAction<RemoveClipsPayload>) => {
@@ -89,7 +90,7 @@ export const clipsSlice = createSlice({
     },
     /**
      * Update clips in the store.
-     * @param state The clips state.
+     * @param project The clips state.
      * @param action The payload action.
      */
     _updateClips: (state, action: PayloadAction<UpdateClipsPayload>) => {
@@ -106,7 +107,7 @@ export const clipsSlice = createSlice({
     },
     /**
      * Slice a clip into two new clips.
-     * @param state The clips state.
+     * @param project The clips state.
      * @param action The payload action.
      */
     _sliceClip: (state, action: PayloadAction<SliceClipPayload>) => {
@@ -125,7 +126,7 @@ export const clipsSlice = createSlice({
     },
     /**
      * Remove clips by track ID.
-     * @param state The clips state.
+     * @param project The clips state.
      * @param action The payload action.
      */
     removeClipsByTrackId: (
@@ -146,7 +147,7 @@ export const clipsSlice = createSlice({
     },
     /**
      * Clears clips by track ID.
-     * @param state The clips state.
+     * @param project The clips state.
      * @param action The payload action.
      */
     clearClipsByTrackId: (
@@ -177,9 +178,11 @@ export const {
   clearClipsByTrackId,
 } = clipsSlice.actions;
 
-export const updateClips = (media: PartialMediaPayload) => (dispatch: any) => {
-  dispatch(_updateClips(media));
-  dispatch(updateMediaInHierarchy(media));
-};
+export const updateClips =
+  (media: PartialMediaPayload): Thunk =>
+  (dispatch) => {
+    dispatch(_updateClips(media));
+    dispatch(updateMediaInHierarchy(media));
+  };
 
 export default clipsSlice.reducer;

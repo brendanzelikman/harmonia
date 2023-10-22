@@ -39,7 +39,7 @@ export const scaleTracksSlice = createSlice({
   reducers: {
     /**
      * Add a ScaleTrack to the store.
-     * @param state The scaleTracks state.
+     * @param project The scaleTracks state.
      * @param action The ScaleTrack to add.
      */
     addScaleTrack: (state, action: PayloadAction<AddScaleTrackPayload>) => {
@@ -49,7 +49,7 @@ export const scaleTracksSlice = createSlice({
     },
     /**
      * Remove a ScaleTrack from the store.
-     * @param state The scaleTracks state.
+     * @param project The scaleTracks state.
      * @param action The ScaleTrack ID to remove.
      */
     removeScaleTrack: (
@@ -65,7 +65,7 @@ export const scaleTracksSlice = createSlice({
     },
     /**
      * Update a ScaleTrack in the store.
-     * @param state The scaleTracks state.
+     * @param project The scaleTracks state.
      * @param action The ScaleTrack to update.
      */
     updateScaleTrack: (

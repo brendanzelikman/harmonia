@@ -10,7 +10,7 @@ import {
   selectSelectedTranspositions,
   selectTrackScale,
 } from "redux/selectors";
-import { AppDispatch, RootState } from "redux/store";
+import { Project, Dispatch } from "types/Project";
 import {
   addClipToTimeline,
   createPatternTrackFromSelectedTrack,
@@ -36,14 +36,14 @@ import {
   deleteSelectedMedia,
   selectAllMedia,
 } from "redux/Media";
-import { useDeepEqualSelector } from "redux/hooks";
+import { useProjectDeepSelector } from "redux/hooks";
 
-const mapStateToProps = (state: RootState) => {
-  const selectedTrackId = selectSelectedTrackId(state);
+const mapStateToProps = (project: Project) => {
+  const selectedTrackId = selectSelectedTrackId(project);
 
-  const clipboard = selectMediaClipboard(state);
-  const selectedPattern = selectSelectedPattern(state);
-  const selectedTrack = selectSelectedTrack(state);
+  const clipboard = selectMediaClipboard(project);
+  const selectedPattern = selectSelectedPattern(project);
+  const selectedTrack = selectSelectedTrack(project);
 
   const isPatternTrackSelected = selectedTrack && isPatternTrack(selectedTrack);
 
@@ -52,12 +52,12 @@ const mapStateToProps = (state: RootState) => {
   const isClipboardEmpty =
     !areClipsInClipboard && !areTranspositionsInClipboard;
 
-  const { offsets } = selectDraftedTransposition(state);
+  const { offsets } = selectDraftedTransposition(project);
   const chromaticTranspose = getChromaticOffset(offsets);
   const scalarTranspose = getScalarOffset(offsets, selectedTrackId);
   const chordalTranspose = getChordalOffset(offsets);
-  const canUndo = state.arrangement.past.length > 0;
-  const canRedo = state.arrangement.future.length > 0;
+  const canUndo = project.arrangement.past.length > 0;
+  const canRedo = project.arrangement.future.length > 0;
   return {
     areClipsInClipboard,
     areTranspositionsInClipboard,
@@ -72,7 +72,7 @@ const mapStateToProps = (state: RootState) => {
     chordalTranspose,
   };
 };
-const mapDispatchToProps = (dispatch: AppDispatch) => {
+const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     undoArrangement: () => dispatch({ type: UndoTypes.undoArrangement }),
     redoArrangement: () => dispatch({ type: UndoTypes.redoArrangement }),
@@ -99,8 +99,8 @@ interface Props extends TimelineContextMenuProps {}
 export default connector(TimelineContextMenu);
 
 function TimelineContextMenu(props: Props) {
-  const clips = useDeepEqualSelector(selectSelectedClips);
-  const transpositions = useDeepEqualSelector(selectSelectedTranspositions);
+  const clips = useProjectDeepSelector(selectSelectedClips);
+  const transpositions = useProjectDeepSelector(selectSelectedTranspositions);
   const areClipsSelected = clips?.length > 0;
   const areTranspositionsSelected = transpositions?.length > 0;
   const isSelectionEmpty = !areClipsSelected && !areTranspositionsSelected;
@@ -115,8 +115,8 @@ function TimelineContextMenu(props: Props) {
   const canExport = areClipsSelected;
 
   const canColor = areClipsSelected;
-  const selectedScale = useDeepEqualSelector((state) =>
-    selectTrackScale(state, props.selectedTrack?.id)
+  const selectedScale = useProjectDeepSelector((project) =>
+    selectTrackScale(project, props.selectedTrack?.id)
   );
   const Undo = {
     label: "Undo Last Action",

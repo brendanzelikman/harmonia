@@ -1,5 +1,5 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, RootState } from "redux/store";
+import { Project, Dispatch } from "types/Project";
 import { MouseEvent, useRef, useState } from "react";
 import { TrackProps } from ".";
 import {
@@ -42,14 +42,14 @@ import { toggleTrackMute, toggleTrackSolo } from "redux/Track";
 import { toggleTrackInstrumentEditor } from "redux/Editor";
 import { usePatternTrackStyles } from "./hooks/usePatternTrackStyles";
 
-const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
+const mapStateToProps = (project: Project, ownProps: TrackProps) => {
   const { selectedTrackId } = ownProps;
   const track = ownProps.track as PatternTrackType;
   const isSelected = !!selectedTrackId && track.id === selectedTrackId;
 
   // Track instrument
-  const instrument = selectInstrumentById(state, track.instrumentId);
-  const instrumentKey = selectPatternTrackInstrumentKey(state, track.id);
+  const instrument = selectInstrumentById(project, track.instrumentId);
+  const instrumentKey = selectPatternTrackInstrumentKey(project, track.id);
   const instrumentName = getInstrumentName(instrumentKey);
   const { volume, pan, mute, solo } = getInstrumentChannel(instrument);
   const volumePercent = percentOfRange(volume, MIN_VOLUME, MAX_VOLUME);
@@ -57,7 +57,7 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
   const panRightPercent = percentOfRange(pan, MIN_PAN, MAX_PAN);
 
   // Track editor state
-  const editor = selectEditor(state);
+  const editor = selectEditor(project);
   const onInstrumentEditor = isEditorOn(editor, "instrument") && isSelected;
 
   return {
@@ -76,7 +76,7 @@ const mapStateToProps = (state: RootState, ownProps: TrackProps) => {
     solo,
   };
 };
-const mapDispatchToProps = (dispatch: AppDispatch, ownProps: TrackProps) => {
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: TrackProps) => {
   const track = ownProps.track;
   return {
     moveTrack: (props: { dragId: TrackId; hoverId: TrackId }) => {
@@ -135,22 +135,16 @@ function PatternTrackComponent(props: PatternTrackProps) {
    * or its instrument if no name is set.
    */
   const PatternTrackName = (
-    <TrackName
-      cell={props.cell}
-      value={track.name}
-      placeholder={props.instrumentName}
-      onChange={(e) => props.setTrackName(track, e.target.value)}
-    />
-  );
-
-  /**
-   * The Pattern Track depth corresponds to the number of parents
-   */
-  const PatternTrackDepth = (
-    <label className="font-light w-4 text-center mb-1">
-      {props.row.depth + 1}
-      {numberToLower(props.index)}
-    </label>
+    <div className="w-full flex flex-col space-y-1">
+      <span className="text-xs text-orange-300 font-nunito"></span>
+      <TrackName
+        id={track.id}
+        cell={props.cell}
+        value={track.name}
+        placeholder={`Pattern Track (${props.label})`}
+        onChange={(e) => props.setTrackName(track, e.target.value)}
+      />
+    </div>
   );
 
   /**
@@ -189,14 +183,14 @@ function PatternTrackComponent(props: PatternTrackProps) {
    * The audio buttons will be condensed into text when the track is collapsed.
    */
   const CollapsedAudioButtons = !!track.collapsed && (
-    <label className="text-xs -mt-1 space-x-1">
+    <div className="text-xs -mt-1 space-x-1">
       <span className={styles.collapsedMuteButton}>M</span>•
       <span className={styles.collapsedSoloButton}>S</span>
-    </label>
+    </div>
   );
 
   /**
-   * The Pattern Track header displays the name, depth, and dropdown menu.
+   * The Pattern Track header displays the name and dropdown menu.
    * If the track is collapsed, the header will also display the audio buttons.
    */
   const PatternTrackHeader = (
@@ -206,7 +200,6 @@ function PatternTrackComponent(props: PatternTrackProps) {
       onDragStart={cancelEvent}
     >
       {PatternTrackName}
-      {PatternTrackDepth}
       <div className="flex flex-col w-12 mr-1 items-end">
         {PatternTrackDropdownMenu}
         {CollapsedAudioButtons}
@@ -300,11 +293,12 @@ function PatternTrackComponent(props: PatternTrackProps) {
         className={styles.instrumentButton}
         onClick={props.toggleInstrumentEditor}
       >
-        Instrument/FX <BsPencil className="ml-2" />
+        {props.instrumentName}
+        <BsPencil className="ml-2" />
       </TrackButton>
-      <div className="flex ml-2 justify-self-end">
+      <div className="flex ml-2 space-x-1 justify-self-end">
         <button
-          className={`mr-1 ${styles.audioButton} ${styles.muteBorder} ${styles.muteColor}`}
+          className={`${styles.audioButton} ${styles.muteBorder} ${styles.muteColor}`}
           onClick={props.toggleTrackMute}
           onDoubleClick={cancelEvent}
         >

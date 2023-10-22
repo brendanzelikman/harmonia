@@ -1,23 +1,23 @@
 import { BsBrush } from "react-icons/bs";
 import { ControlButton } from ".";
 import { NavbarTooltip } from "../components";
-import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectSelectedPattern, selectTimeline } from "redux/selectors";
 import { toggleAddingClips } from "redux/thunks";
-import { isAddingClips } from "types/Timeline";
+import { isTimelineAddingClips } from "types/Timeline";
 
 /**
  * Add a clip of the selected pattern to the timeline.
  */
 export const ToolkitClipButton = () => {
-  const dispatch = useAppDispatch();
-  const timeline = useAppSelector(selectTimeline);
-  const isAdding = isAddingClips(timeline);
-  const selectedPattern = useAppSelector(selectSelectedPattern);
+  const dispatch = useProjectDispatch();
+  const timeline = useProjectSelector(selectTimeline);
+  const isAddingClips = isTimelineAddingClips(timeline);
+  const selectedPattern = useProjectSelector(selectSelectedPattern);
   const patternName = selectedPattern?.name;
 
   const ClipButton = () => {
-    const buttonClass = isAdding
+    const buttonClass = isAddingClips
       ? "bg-cyan-700 ring-2 ring-offset-2 ring-cyan-600/80 ring-offset-black"
       : "bg-cyan-700/80";
 
@@ -37,7 +37,7 @@ export const ToolkitClipButton = () => {
     return (
       <NavbarTooltip
         className="-translate-x-1/2 left-8 bg-cyan-700/80 px-2 backdrop-blur"
-        show={!!isAdding}
+        show={!!isAddingClips}
         content={`Adding ${patternName}`}
       />
     );

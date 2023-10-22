@@ -1,4 +1,4 @@
-import { deleteDB, openDB } from "idb";
+import { openDB } from "idb";
 import { selectProjectId } from "redux/Metadata";
 import { Project, defaultProject, isProject } from "types/Project";
 import { User, UserUpdate, initializeUser } from "types/User";
@@ -10,7 +10,7 @@ export const CURRENT_ID_STORE = import.meta.env.VITE_CURRENT_STORE;
 export const USER_STORE = import.meta.env.VITE_USER_STORE;
 export const AUTH_STORE = import.meta.env.VITE_AUTH_STORE;
 
-export const db = await openDB(DATABASE_NAME, undefined, {
+export const db = openDB(DATABASE_NAME, undefined, {
   upgrade(db) {
     if (!db.objectStoreNames.contains(USER_STORE)) {
       db.createObjectStore(USER_STORE);
@@ -29,6 +29,7 @@ export const db = await openDB(DATABASE_NAME, undefined, {
 export const dbPromise = openDB(DATABASE_NAME);
 
 const initializeDB = async () => {
+  const db = await dbPromise;
   // Try to get the user
   let user = await db.get(USER_STORE, "user");
 

@@ -41,10 +41,10 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
               props.backgroundColor ?? "bg-slate-800/50"
             } peer font-light focus:outline-none`}
           >
-            <label className="flex items-center rounded text-left cursor-pointer w-30 text-ellipsis capitalize">
+            <span className="flex items-center rounded text-left cursor-pointer w-30 text-ellipsis capitalize">
               {props.icon}
               {name || props.placeholder || "Change Value"}
-            </label>
+            </span>
           </Listbox.Button>
           <Transition
             enter="transition ease-out duration-100"

@@ -9,6 +9,7 @@ import { Transposition, TranspositionId } from "types/Transposition";
 import { union, without } from "lodash";
 import { MediaPayload, PartialMediaPayload } from "types/Media";
 import { updateMediaInHierarchy } from "redux/TrackHierarchy";
+import { Dispatch, Thunk } from "types/Project";
 
 export const defaultTranspositionState = initializeState<
   TranspositionId,
@@ -67,7 +68,7 @@ export const transpositionsSlice = createSlice({
   reducers: {
     /**
      * Add transpositions to the store.
-     * @param state The transpositions state.
+     * @param project The transpositions state.
      * @param action The payload action containing the transpositions to add.
      */
     addTranspositions: (
@@ -83,7 +84,7 @@ export const transpositionsSlice = createSlice({
     },
     /**
      * Remove transpositions from the store.
-     * @param state The transpositions state.
+     * @param project The transpositions state.
      * @param action The payload action containing the transpositions to remove.
      */
     removeTranspositions: (
@@ -100,7 +101,7 @@ export const transpositionsSlice = createSlice({
     },
     /**
      * Update transpositions in the store.
-     * @param state The transpositions state.
+     * @param project The transpositions state.
      * @param action The payload action containing the transpositions to update.
      */
     _updateTranspositions: (
@@ -118,7 +119,7 @@ export const transpositionsSlice = createSlice({
     },
     /**
      * Slice a transposition into two new transpositions.
-     * @param state The transpositions state.
+     * @param project The transpositions state.
      * @param action The payload action.
      */
     _sliceTransposition: (
@@ -145,7 +146,7 @@ export const transpositionsSlice = createSlice({
     },
     /**
      * Remove transpositions from the store by track ID.
-     * @param state The transpositions state.
+     * @param project The transpositions state.
      * @param action The payload action containing the track ID.
      */
     removeTranspositionsByTrackId: (
@@ -164,7 +165,7 @@ export const transpositionsSlice = createSlice({
     },
     /**
      * Clear transpositions from the store by track ID.
-     * @param state The transpositions state.
+     * @param project The transpositions state.
      * @param action The payload action containing the track ID.
      */
     clearTranspositionsByTrackId: (
@@ -194,7 +195,8 @@ export const {
 } = transpositionsSlice.actions;
 
 export const updateTranspositions =
-  (media: PartialMediaPayload) => (dispatch: any) => {
+  (media: PartialMediaPayload): Thunk =>
+  (dispatch) => {
     dispatch(_updateTranspositions(media));
     dispatch(updateMediaInHierarchy(media));
   };

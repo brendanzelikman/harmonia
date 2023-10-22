@@ -16,7 +16,7 @@ import {
   selectClipTranspositions,
   selectDraftedClip,
 } from "redux/selectors";
-import { useAppSelector, useDeepEqualSelector } from "redux/hooks";
+import { useProjectSelector, useProjectDeepSelector } from "redux/hooks";
 import { MIDI } from "types/midi";
 import { normalize, ticksToColumns } from "utils";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
@@ -28,9 +28,9 @@ interface ClipStyleProps extends ClipProps {
 
 export const useClipStyles = (props: ClipStyleProps) => {
   const { clip, stream } = props;
-  const draftedClip = useAppSelector(selectDraftedClip);
-  const selectedClipIds = useDeepEqualSelector(selectSelectedClipIds);
-  const clipTranspositions = useDeepEqualSelector((_) =>
+  const draftedClip = useProjectSelector(selectDraftedClip);
+  const selectedClipIds = useProjectDeepSelector(selectSelectedClipIds);
+  const clipTranspositions = useProjectDeepSelector((_) =>
     selectClipTranspositions(_, clip?.id)
   );
   const isSelected = selectedClipIds.some((id) => id === clip?.id);
@@ -40,16 +40,18 @@ export const useClipStyles = (props: ClipStyleProps) => {
     clipTranspositions.length > 0;
 
   // Cell
-  const cellHeight = useAppSelector((_) => selectTimelineObjectHeight(_, clip));
-  const cellTop = useAppSelector((_) => selectTimelineObjectTop(_, clip));
+  const cellHeight = useProjectSelector((_) =>
+    selectTimelineObjectHeight(_, clip)
+  );
+  const cellTop = useProjectSelector((_) => selectTimelineObjectTop(_, clip));
 
   // Position
   const position = `z-[10] absolute`;
   const top = hasTransposition ? cellTop + TRANSPOSITION_HEIGHT : cellTop;
-  const left = useAppSelector((_) => selectTimelineTickLeft(_, clip?.tick));
+  const left = useProjectSelector((_) => selectTimelineTickLeft(_, clip?.tick));
 
   // Dimensions
-  const width = useAppSelector((_) => selectClipWidth(_, clip?.id));
+  const width = useProjectSelector((_) => selectClipWidth(_, clip?.id));
   const height = hasTransposition
     ? cellHeight - TRANSPOSITION_HEIGHT
     : cellHeight;
@@ -71,7 +73,7 @@ export const useClipStyles = (props: ClipStyleProps) => {
   const fontSize = Math.min(12, noteHeight) - 4;
 
   // Chord
-  const chordWidth = useAppSelector(selectCellWidth);
+  const chordWidth = useProjectSelector(selectCellWidth);
   const chordClass = props.isSlicing
     ? "bg-slate-500/50 group-hover:bg-slate-600/50 border-slate-50/50 hover:border-r-4 cursor-scissors"
     : "border-slate-50/10";

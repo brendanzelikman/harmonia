@@ -2,7 +2,7 @@ import { startTone } from "index";
 import * as Instrument from "redux/Instrument";
 import * as TransportSlice from "./TransportSlice";
 import * as Tone from "tone";
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import { playPatternChord } from "types/Pattern";
 import { Tick } from "types/units";
 import encodeWAV from "audiobuffer-to-wav";
@@ -50,8 +50,8 @@ export const dispatchTickUpdate = (
  * @param tick - The tick to seek to.
  */
 export const seekTransport =
-  (tick: Tick): AppThunk =>
-  (dispatch, getState) => {
+  (tick: Tick): Thunk =>
+  (dispatch, getProject) => {
     if (tick < 0) return;
     // Seek the transport
     Tone.Transport.position = Tone.Time(tick, "i").toSeconds();
@@ -74,8 +74,8 @@ let scheduleId: number;
  * If the transport is already started, this function will do nothing.
  */
 export const startTransport =
-  (tick?: Tick): AppThunk =>
-  (dispatch, getState) => {
+  (tick?: Tick): Thunk =>
+  (dispatch, getProject) => {
     // Make sure the Tone context is running
     if (Tone.getContext().state !== "running") {
       stopTransport();
@@ -84,8 +84,8 @@ export const startTransport =
     }
 
     // Make sure the transport is not already started
-    const oldState = getState();
-    const transport = selectTransport(oldState);
+    const oldProject = getProject();
+    const transport = selectTransport(oldProject);
 
     // Schedule patterns if the transport is stopped
     const pulse = convertTicksToSeconds(transport, 1);
@@ -118,8 +118,8 @@ export const startTransport =
       dispatchTickUpdate(Tone.Transport.ticks);
 
       // Get the chord record at the current tick
-      const state = getState();
-      const chordRecord = selectChordsAtTick(state, newTick);
+      const project = getProject();
+      const chordRecord = selectChordsAtTick(project, newTick);
 
       // Iterate over the instruments that are to be played at the current tick
       if (chordRecord) {
@@ -146,7 +146,7 @@ export const startTransport =
 /**
  * Pause the transport.
  */
-export const pauseTransport = (): AppThunk => (dispatch) => {
+export const pauseTransport = (): Thunk => (dispatch) => {
   Tone.Transport.pause();
   dispatch(TransportSlice._pauseTransport());
 };
@@ -156,7 +156,7 @@ export const pauseTransport = (): AppThunk => (dispatch) => {
  * @param tick - Optional. The tick to seek to.
  */
 export const stopTransport =
-  (tick?: Tick): AppThunk =>
+  (tick?: Tick): Thunk =>
   (dispatch) => {
     // Stop the transport
     dispatch(TransportSlice._stopTransport());
@@ -174,9 +174,9 @@ export const stopTransport =
 /**
  * Toggle the transport between playing and paused/stopped.
  */
-export const toggleTransport = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  const transport = selectTransport(state);
+export const toggleTransport = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const transport = selectTransport(project);
   if (transport.state === "started") {
     dispatch(pauseTransport());
   } else {
@@ -187,14 +187,14 @@ export const toggleTransport = (): AppThunk => (dispatch, getState) => {
 /**
  * Move the playhead of the transport one tick left.
  */
-export const movePlayheadLeft = (): AppThunk => (dispatch) => {
+export const movePlayheadLeft = (): Thunk => (dispatch) => {
   dispatch(seekTransport(Tone.Transport.ticks - 1));
 };
 
 /**
  * Move the playhead of the transport one tick right.
  */
-export const movePlayheadRight = (): AppThunk => (dispatch) => {
+export const movePlayheadRight = (): Thunk => (dispatch) => {
   dispatch(seekTransport(Tone.Transport.ticks + 1));
 };
 
@@ -203,11 +203,11 @@ export const movePlayheadRight = (): AppThunk => (dispatch) => {
  * @param loop - The boolean value.
  */
 export const setTransportLoop =
-  (loop: boolean): AppThunk =>
-  (dispatch, getState) => {
+  (loop: boolean): Thunk =>
+  (dispatch, getProject) => {
     // Get the transport
-    const state = getState();
-    const transport = selectTransport(state);
+    const project = getProject();
+    const transport = selectTransport(project);
 
     // Set the loop state
     dispatch(TransportSlice._loopTransport(loop));
@@ -224,9 +224,9 @@ export const setTransportLoop =
 /**
  * Toggle the transport loop state.
  */
-export const toggleTransportLoop = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  const transport = selectTransport(state);
+export const toggleTransportLoop = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const transport = selectTransport(project);
   dispatch(setTransportLoop(!transport.loop));
 };
 
@@ -235,11 +235,11 @@ export const toggleTransportLoop = (): AppThunk => (dispatch, getState) => {
  * @param tick - The tick to seek to.
  */
 export const setTransportLoopStart =
-  (tick: Tick): AppThunk =>
-  (dispatch, getState) => {
+  (tick: Tick): Thunk =>
+  (dispatch, getProject) => {
     // Get the transport
-    const state = getState();
-    const transport = selectTransport(state);
+    const project = getProject();
+    const transport = selectTransport(project);
 
     // Make sure the loop start is less than the loop end
     if (tick >= transport.loopEnd) return;
@@ -254,11 +254,11 @@ export const setTransportLoopStart =
  * @param tick - The tick to seek to.
  */
 export const setTransportLoopEnd =
-  (tick: Tick): AppThunk =>
-  (dispatch, getState) => {
+  (tick: Tick): Thunk =>
+  (dispatch, getProject) => {
     // Get the transport
-    const state = getState();
-    const transport = selectTransport(state);
+    const project = getProject();
+    const transport = selectTransport(project);
 
     // Make sure the loop end is greater than the loop start
     if (tick <= transport.loopStart) return;
@@ -273,7 +273,7 @@ export const setTransportLoopEnd =
  * @param bpm - The BPM.
  */
 export const setTransportBPM =
-  (bpm: number): AppThunk =>
+  (bpm: number): Thunk =>
   (dispatch) => {
     const value = clamp(bpm, MIN_BPM, MAX_BPM);
     Tone.Transport.bpm.value = value;
@@ -285,7 +285,7 @@ export const setTransportBPM =
  * @param timeSignature - The time signature.
  */
 export const setTransportTimeSignature =
-  (timeSignature: [number, number]): AppThunk =>
+  (timeSignature: [number, number]): Thunk =>
   (dispatch) => {
     Tone.Transport.timeSignature = timeSignature;
     dispatch(TransportSlice._setTimeSignature(timeSignature));
@@ -296,7 +296,7 @@ export const setTransportTimeSignature =
  * @param volume - The volume.
  */
 export const setTransportVolume =
-  (volume: number): AppThunk =>
+  (volume: number): Thunk =>
   (dispatch) => {
     const value = clamp(volume, MIN_TRANSPORT_VOLUME, MAX_TRANSPORT_VOLUME);
     Tone.getDestination().volume.value = value;
@@ -308,7 +308,7 @@ export const setTransportVolume =
  * @param mute - The boolean value.
  */
 export const setTransportMute =
-  (mute: boolean): AppThunk =>
+  (mute: boolean): Thunk =>
   (dispatch) => {
     Tone.getDestination().mute = mute;
     dispatch(TransportSlice._setMute(mute));
@@ -317,20 +317,20 @@ export const setTransportMute =
 /**
  * Toggle the transport mute state.
  */
-export const toggleTransportMute = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  const transport = selectTransport(state);
+export const toggleTransportMute = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const transport = selectTransport(project);
   dispatch(setTransportMute(!transport.mute));
 };
 
 /**
  * Load the transport upon rendering the app.
  */
-export const loadTransport = (): AppThunk => async (dispatch, getState) => {
+export const loadTransport = (): Thunk => async (dispatch, getProject) => {
   // Build the instruments
-  const state = getState();
-  const transport = selectTransport(state);
-  const patternTracks = selectPatternTracks(state);
+  const project = getProject();
+  const transport = selectTransport(project);
+  const patternTracks = selectPatternTracks(project);
 
   // Try to load the transport
   try {
@@ -371,7 +371,7 @@ export const loadTransport = (): AppThunk => async (dispatch, getState) => {
 /**
  * Unload the transport upon unmounting the app, destroying all instruments.
  */
-export const unloadTransport = (): AppThunk => (dispatch) => {
+export const unloadTransport = (): Thunk => (dispatch) => {
   // Unload and stop the transport
   dispatch(stopTransport());
 
@@ -382,7 +382,7 @@ export const unloadTransport = (): AppThunk => (dispatch) => {
 /**
  * Start recording the transport.
  */
-export const startRecordingTransport = (): AppThunk => (dispatch) => {
+export const startRecordingTransport = (): Thunk => (dispatch) => {
   dispatch(TransportSlice.setRecording(true));
 
   // Start the recorder if not started
@@ -394,7 +394,7 @@ export const startRecordingTransport = (): AppThunk => (dispatch) => {
  * Stop recording the transport and save the recording.
  * @returns
  */
-export const stopRecordingTransport = (): AppThunk => (dispatch, getState) => {
+export const stopRecordingTransport = (): Thunk => (dispatch, getProject) => {
   dispatch(TransportSlice.setRecording(false));
   if (LIVE_RECORDER_INSTANCE.state !== "started") return;
 
@@ -420,8 +420,8 @@ export const stopRecordingTransport = (): AppThunk => (dispatch, getState) => {
     const url = URL.createObjectURL(blob);
 
     // Download the file
-    const state = getState();
-    const { name } = selectMetadata(state);
+    const project = getProject();
+    const { name } = selectMetadata(project);
     const a = document.createElement("a");
     a.href = url;
     a.download = `${name ?? "Project"} Recording.wav`;
@@ -433,21 +433,16 @@ export const stopRecordingTransport = (): AppThunk => (dispatch, getState) => {
 /**
  * Toggles the transport recording state.
  */
-export const toggleTransportRecording =
-  (): AppThunk => (dispatch, getState) => {
-    const state = getState();
-    const transport = selectTransport(state);
-    if (transport.recording) {
-      dispatch(stopRecordingTransport());
-    } else {
-      dispatch(startRecordingTransport());
-    }
-  };
+export const toggleTransportRecording = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const transport = selectTransport(project);
+  dispatch(TransportSlice.setRecording(!transport.recording));
+};
 
 /**
  * Start downloading the transport.
  */
-export const startDownloadingTransport = (): AppThunk => (dispatch) => {
+export const startDownloadingTransport = (): Thunk => (dispatch) => {
   dispatchTickUpdate(0, { offline: true });
   dispatch(TransportSlice.setDownloading(true));
 };
@@ -455,7 +450,7 @@ export const startDownloadingTransport = (): AppThunk => (dispatch) => {
 /**
  * Stop downloading the transport.
  */
-export const stopDownloadingTransport = (): AppThunk => (dispatch) => {
+export const stopDownloadingTransport = (): Thunk => (dispatch) => {
   dispatchTickUpdate(0, { offline: true });
   dispatch(TransportSlice.setDownloading(false));
 };
@@ -464,9 +459,9 @@ export const stopDownloadingTransport = (): AppThunk => (dispatch) => {
  * Toggle the transport downloading state.
  */
 export const toggleTransportDownloading =
-  (): AppThunk => (dispatch, getState) => {
-    const state = getState();
-    const transport = selectTransport(state);
+  (): Thunk => (dispatch, getProject) => {
+    const project = getProject();
+    const transport = selectTransport(project);
     if (transport.downloading) {
       dispatch(stopDownloadingTransport());
     } else {
@@ -478,20 +473,20 @@ export const toggleTransportDownloading =
  * Download the transport into a WAV file.
  * Uses the `Tone.Offline` transport to schedule the samplers and `encodeWAV` to encode the buffer into a WAV file.
  */
-export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
-  const oldState = getState();
+export const downloadTransport = (): Thunk => async (dispatch, getProject) => {
+  const oldProject = getProject();
 
   // Make sure the transport is started
-  const oldTransport = selectTransport(oldState);
+  const oldTransport = selectTransport(oldProject);
   if (oldTransport.state === "started") return;
 
   // Make sure the recording will be longer than 0 seconds
-  const ticks = selectTimelineEndTick(oldState);
+  const ticks = selectTimelineEndTick(oldProject);
   if (ticks <= 0) return;
 
   // Get the samplers
-  const patternTrackMap = selectPatternTrackMap(oldState);
-  const oldSamplers = selectPatternTrackAudioInstances(oldState);
+  const patternTrackMap = selectPatternTrackMap(oldProject);
+  const oldSamplers = selectPatternTrackAudioInstances(oldProject);
 
   // Calculate the duration and pulse
   const duration = convertTicksToSeconds(oldTransport, ticks);
@@ -516,8 +511,8 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
     // Schedule the offline transport
     offlineContext.transport.PPQ = MIDI.PPQ;
     offlineContext.transport.scheduleRepeat((time) => {
-      const state = getState();
-      const transport = selectTransport(state);
+      const project = getProject();
+      const transport = selectTransport(project);
 
       // Dispatch the tick update
       dispatchTickUpdate(offlineContext.transport.ticks, { offline: true });
@@ -530,7 +525,7 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
       }
 
       // Get the chord record at the current tick
-      const chordsByTick = selectChordsByTicks(state);
+      const chordsByTick = selectChordsByTicks(project);
       const chords = chordsByTick[offlineContext.transport.ticks] ?? {};
       const instrumentIds = Object.keys(chords);
 
@@ -547,7 +542,7 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
   }, duration);
 
   // Make sure the transport is still downloading
-  const currentTransport = selectTransport(getState());
+  const currentTransport = selectTransport(getProject());
   if (!currentTransport.downloading) return;
 
   // Get the data from the buffer
@@ -560,7 +555,7 @@ export const downloadTransport = (): AppThunk => async (dispatch, getState) => {
   const url = URL.createObjectURL(blob);
 
   // Download the file
-  const { name } = selectMetadata(oldState);
+  const { name } = selectMetadata(oldProject);
   const a = document.createElement("a");
   a.href = url;
   a.download = `${name ?? "project"}.wav`;

@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { BsQuestionCircleFill } from "react-icons/bs";
 import { ShepherdTourContext } from "react-shepherd";
 import { hideEditor } from "redux/Editor";
-import { useAppDispatch } from "redux/hooks";
+import { useProjectDispatch } from "redux/hooks";
 import { END_TOUR, SET_TOUR_ID, START_TOUR } from ".";
 import { dispatchCustomEvent } from "utils/events";
 
@@ -15,7 +15,7 @@ interface ContentProps {
 }
 
 export const ShepherdTourButton = (props: ContentProps) => {
-  const dispatch = useAppDispatch();
+  const dispatch = useProjectDispatch();
   const tour = useContext(ShepherdTourContext);
   const isActive = !!tour?.isActive();
   const [isStarted, setIsStarted] = useState(false);

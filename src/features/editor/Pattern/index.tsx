@@ -9,7 +9,7 @@ import {
   selectPatternIds,
 } from "redux/selectors";
 import { EditorProps, StateProps } from "..";
-import { AppDispatch, RootState } from "redux/store";
+import { Project, Dispatch } from "types/Project";
 
 import { UndoTypes } from "redux/undoTypes";
 import { OSMDCursor } from "lib/opensheetmusicdisplay";
@@ -31,16 +31,16 @@ import {
 import { setTimelineState, updateMediaDraft } from "redux/Timeline";
 import { Patterns } from "redux/slices";
 
-const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
-  const editor = selectEditor(state);
+const mapStateToProps = (project: Project, ownProps: EditorProps) => {
+  const editor = selectEditor(project);
   const pattern = ownProps.selectedPattern;
 
-  const { past, future } = state.patterns;
+  const { past, future } = project.patterns;
   const canUndoPatterns = past.length > 0 && past[0].allIds.length > 0;
   const canRedoPatterns = future.length > 0;
 
-  const patternIds = selectPatternIds(state);
-  const customPatterns = selectCustomPatterns(state);
+  const patternIds = selectPatternIds(project);
+  const customPatterns = selectCustomPatterns(project);
 
   const patternCategory =
     PresetPatternGroupList.find((c) =>
@@ -64,7 +64,7 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   };
 };
 
-const mapDispatchToProps = (dispatch: AppDispatch, ownProps: EditorProps) => {
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: EditorProps) => {
   const pattern = ownProps.selectedPattern;
   const id = pattern?.id;
   const setSelectedPattern = (patternId?: PatternId) => {

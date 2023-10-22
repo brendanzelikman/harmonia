@@ -19,7 +19,7 @@ import { convertTicksToSeconds } from "types/Transport";
 import { cancelEvent } from "utils";
 import Logo from "./Logo";
 import { ReactNode, useEffect, useState } from "react";
-import { useAppDispatch } from "redux/hooks";
+import { useProjectDispatch } from "redux/hooks";
 import { BiCopy } from "react-icons/bi";
 import { Transition } from "@headlessui/react";
 import { getScaleTrackScale } from "types/ScaleTrack";
@@ -27,24 +27,24 @@ import { Project } from "types/Project";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 interface ProjectProps {
-  state?: Project;
+  project?: Project;
   index?: number;
   filePath?: string;
 }
 
 export function ProjectComponent(props: ProjectProps) {
-  const dispatch = useAppDispatch();
+  const dispatch = useProjectDispatch();
   const { index } = props;
   const heldKeys = useHeldHotkeys(["alt"]);
 
-  const [state, setState] = useState(props.state ?? ({} as Project));
-  const [loaded, setLoaded] = useState(!!props.state);
+  const [project, setProject] = useState(props.project ?? ({} as Project));
+  const [loaded, setLoaded] = useState(!!props.project);
 
   useEffect(() => {
-    if (!props.state && !!props.filePath) {
+    if (!props.project && !!props.filePath) {
       fetch(props.filePath)
         .then((res) => res.json())
-        .then(setState)
+        .then(setProject)
         .then(() => setLoaded(true));
     }
   }, [props]);
@@ -55,29 +55,29 @@ export function ProjectComponent(props: ProjectProps) {
   if (!loaded) return null;
 
   // Get general info about the project
-  const meta = selectMetadata(state);
+  const meta = selectMetadata(project);
   const { id, name } = meta;
   const dateCreated = new Date(meta.dateCreated).toLocaleString();
   const lastUpdated = new Date(meta.lastUpdated).toLocaleString();
-  const transport = selectTransport(state);
+  const transport = selectTransport(project);
   const { bpm, timeSignature } = transport;
 
   // Get the duration of the project
-  const endTick = selectTimelineEndTick(state);
+  const endTick = selectTimelineEndTick(project);
   const duration = convertTicksToSeconds(transport, endTick);
   const seconds = `${duration.toFixed(1)}s`;
 
   // Get the list of patterns used
-  const clips = selectClips(state);
-  const patternMap = selectPatternMap(state);
+  const clips = selectClips(project);
+  const patternMap = selectPatternMap(project);
   const allPatternIds = clips.map(({ patternId }) => patternId);
   const patternIds = [...new Set(allPatternIds)];
   const patternNames = patternIds.map((id) => patternMap[id]?.name);
 
   // Get the list of scales used
-  const scaleTracks = selectScaleTracks(state);
-  const scaleTrackMap = selectScaleTrackMap(state);
-  const scaleMap = selectScaleMap(state);
+  const scaleTracks = selectScaleTracks(project);
+  const scaleTrackMap = selectScaleTrackMap(project);
+  const scaleMap = selectScaleMap(project);
   const allScales = scaleTracks.map((track) =>
     getScaleTrackScale(track, scaleTrackMap, scaleMap)
   );
@@ -85,7 +85,7 @@ export function ProjectComponent(props: ProjectProps) {
   const scaleNames = [...new Set(allScaleNames)];
 
   // Get the list of instruments used
-  const instruments = selectInstruments(state);
+  const instruments = selectInstruments(project);
   const allInstrumentNames = instruments.map(({ key }) =>
     getInstrumentName(key)
   );
@@ -99,11 +99,11 @@ export function ProjectComponent(props: ProjectProps) {
     >
       <BsDownload
         className="px-1 hover:bg-slate-800 rounded"
-        onClick={() => dispatch(exportProjectToHAM(state))}
+        onClick={() => dispatch(exportProjectToHAM(project))}
       />
       <BiCopy
         className="px-1 hover:bg-slate-800 rounded"
-        onClick={() => createProject(state)}
+        onClick={() => createProject(project)}
       />
       <div className="flex relative h-full">
         <BsTrash
@@ -157,7 +157,7 @@ export function ProjectComponent(props: ProjectProps) {
           {!!props.filePath ? "Demo" : "File"} #{index + 1}
         </h1>
       )}
-      {!!props.state && <ProjectControl />}
+      {!!props.project && <ProjectControl />}
     </div>
   );
 

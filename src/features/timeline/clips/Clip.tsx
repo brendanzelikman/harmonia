@@ -1,10 +1,10 @@
 import { connect, ConnectedProps } from "react-redux";
-import { AppDispatch, RootState } from "redux/store";
+import { Project, Dispatch } from "types/Project";
 import { Clip, ClipId } from "types/Clip";
 import { useClipDrag } from "./hooks/useClipDrag";
 import { PatternId, PatternNote } from "types/Pattern";
 import { showEditor } from "redux/Editor";
-import { useDeepEqualSelector } from "redux/hooks";
+import { useProjectDeepSelector } from "redux/hooks";
 import { MouseEvent, useMemo } from "react";
 import { MIDI } from "types/midi";
 import { selectClipById, selectClipName, selectClipStream } from "redux/Clip";
@@ -20,20 +20,20 @@ import { Tick } from "types/units";
 import { pick } from "lodash";
 import { sliceMedia } from "redux/thunks";
 import {
-  isAddingClips,
-  isAddingTranspositions,
-  isSlicingMedia,
+  isTimelineAddingClips,
+  isTimelineAddingTranspositions,
+  isTimelineSlicingMedia,
 } from "types/Timeline";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
-const mapStateToProps = (state: RootState, ownProps: { id: ClipId }) => {
-  const clip = selectClipById(state, ownProps.id);
-  const name = selectClipName(state, ownProps.id);
-  const timeline = selectTimeline(state);
+const mapStateToProps = (project: Project, ownProps: { id: ClipId }) => {
+  const clip = selectClipById(project, ownProps.id);
+  const name = selectClipName(project, ownProps.id);
+  const timeline = selectTimeline(project);
   const { subdivision, mediaDragState } = timeline;
-  const isAdding = isAddingClips(timeline);
-  const isSlicing = isSlicingMedia(timeline);
-  const isTransposing = isAddingTranspositions(timeline);
+  const isAdding = isTimelineAddingClips(timeline);
+  const isSlicing = isTimelineSlicingMedia(timeline);
+  const isTransposing = isTimelineAddingTranspositions(timeline);
   const draggingTransposition = mediaDragState.draggingTransposition;
   return {
     ...ownProps,
@@ -47,7 +47,7 @@ const mapStateToProps = (state: RootState, ownProps: { id: ClipId }) => {
   };
 };
 
-const mapDispatchToProps = (dispatch: AppDispatch) => {
+const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     showPatternEditor: (patternId?: PatternId) => {
       dispatch(updateMediaDraft({ clip: { patternId } }));
@@ -81,7 +81,7 @@ export default connector(TimelineClip);
 function TimelineClip(props: ClipProps) {
   const { clip, isSlicing } = props;
   const heldKeys = useHeldHotkeys("i");
-  const stream = useDeepEqualSelector((_) => selectClipStream(_, clip?.id));
+  const stream = useProjectDeepSelector((_) => selectClipStream(_, clip?.id));
 
   // Clip properties
   const [{ isDragging }, drag] = useClipDrag(props);
@@ -144,12 +144,12 @@ function TimelineClip(props: ClipProps) {
    * The name of the clip, which is derived from the name of the pattern.
    */
   const ClipName = (
-    <label
+    <span
       className={`${styles.cursor} ${styles.headerColor} flex items-center shrink-0 text-xs text-white/80 p-1 border-b border-b-white/20 whitespace-nowrap overflow-ellipsis select-none`}
       style={{ height: styles.nameHeight }}
     >
       {props.name}
-    </label>
+    </span>
   );
 
   /**

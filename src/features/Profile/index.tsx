@@ -5,16 +5,23 @@ import { ReactNode, memo, useState } from "react";
 import { BsX } from "react-icons/bs";
 import { GiAura, GiSoundWaves } from "react-icons/gi";
 import Moment from "react-moment";
-import { Name, User } from "types/User";
+import { Name, User, UserUpdate } from "types/User";
 import { blurOnEnter, cancelEvent } from "utils";
+import BeethovenImage from "assets/images/beethoven.jpg";
 
 export function Profile() {
   const [user, setUser] = useState<User>();
-  const updateUser = async () => setUser(await getUserFromDB());
-  useDatabaseCallback(updateUser);
+  const fetchUser = async () => setUser(await getUserFromDB());
+  useDatabaseCallback(fetchUser);
+
+  const updateUser = async (user: UserUpdate) => {
+    if (!user) return;
+    await updateUserInDB(user);
+    await fetchUser();
+  };
 
   const Avatar = memo(() => {
-    const image = user?.photo ?? "/beethoven.jpg";
+    const image = user?.photo ?? BeethovenImage;
     return (
       <div
         className={`relative w-60 h-60 rounded-full border-4 border-slate-900`}
@@ -27,6 +34,7 @@ export function Profile() {
           className={`w-full h-full rounded-full cursor-pointer active:cursor-wand active:animate-[spin_1s_linear_1s_infinite] shadow-[0px_0px_20px_10px_rgb(14,120,170)] active:shadow-[0px_0px_15px_5px_rgb(150,40,120)] animate-[pulse_5s_cubic-bezier(0.4,0.2,0.8)_infinite] transition-all duration-500`}
           onClick={(e) => {
             cancelEvent(e);
+            if (!user) return;
             const fileInput = document.createElement("input");
             fileInput.type = "file";
             fileInput.accept = "image/*";
@@ -38,8 +46,7 @@ export function Profile() {
               const reader = new FileReader();
               reader.addEventListener("load", () => {
                 const base64 = reader.result as string;
-                const newUser = { ...user, photo: base64 } as User;
-                setUser(newUser);
+                updateUser({ id: user.id, photo: base64 });
               });
               reader.readAsDataURL(file);
             });
@@ -58,7 +65,10 @@ export function Profile() {
           placeholder="Your Name Goes Here!"
           onKeyDown={blurOnEnter}
           value={user?.name}
-          onChange={(e) => setUser({ ...user, name: e.target.value } as User)}
+          onChange={(e) => {
+            if (!user) return;
+            updateUser({ id: user.id, name: e.target.value });
+          }}
         />
         <div className="mt-4 flex flex-col text-slate-400">
           <div className="m-4 flex flex-col items-center">
@@ -68,8 +78,9 @@ export function Profile() {
               type="date"
               value={user?.birthday?.slice(0, 10)}
               onChange={(e) => {
+                if (!user) return;
                 const date = new Date(e.target.value).toISOString();
-                setUser({ ...user, birthday: date } as User);
+                updateUser({ id: user.id, birthday: date });
               }}
             />
           </div>
@@ -168,9 +179,8 @@ export function Profile() {
                   newName,
                   ...fieldValue.slice(index + 1),
                 ],
-              } as User;
-              await updateUserInDB(newUser);
-              await updateUser();
+              };
+              updateUser(newUser);
             }}
             onKeyDown={blurOnEnter}
           />

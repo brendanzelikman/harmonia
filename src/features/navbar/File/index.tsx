@@ -29,22 +29,26 @@ import {
   NavbarTooltip,
   NavbarTooltipMenu,
 } from "../components";
-import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { isEditorOn } from "types/Editor";
 import useTransportTick from "hooks/useTransportTick";
 import { useNavigate } from "react-router-dom";
 import { undoArrangement, redoArrangement } from "redux/Arrangement";
 
 export function NavbarFileMenu() {
-  const dispatch = useAppDispatch();
+  const dispatch = useProjectDispatch();
   const navigate = useNavigate();
-  const canUndo = useAppSelector((state) => state.arrangement.past.length);
-  const canRedo = useAppSelector((state) => state.arrangement.future.length);
-  const { downloading } = useAppSelector(selectTransport);
+  const canUndo = useProjectSelector(
+    (project) => project.arrangement.past.length
+  );
+  const canRedo = useProjectSelector(
+    (project) => project.arrangement.future.length
+  );
+  const { downloading } = useProjectSelector(selectTransport);
   const offlineTick = useTransportTick({ offline: true });
-  const endTick = useAppSelector(selectTimelineEndTick);
-  const meta = useAppSelector(selectMetadata);
-  const editor = useAppSelector(selectEditor);
+  const endTick = useProjectSelector(selectTimelineEndTick);
+  const meta = useProjectSelector(selectMetadata);
+  const editor = useProjectSelector(selectEditor);
   const onFileEditor = isEditorOn(editor, "file");
 
   /**
@@ -131,9 +135,9 @@ export function NavbarFileMenu() {
           className="h-1 self-start mb-1 w-full rounded bg-emerald-400 transition-all duration-300"
           style={{ width: `${percent}%` }}
         ></div>
-        <label className={`${finished ? "text-emerald-400" : "text-white/50"}`}>
+        <span className={`${finished ? "text-emerald-400" : "text-white/50"}`}>
           {finished ? "Exporting..." : "Rendering..."} {percent}%
-        </label>
+        </span>
         <button
           className="self-start mt-2 text-center border border-slate-500 bg-slate-800 p-1 px-2 rounded"
           onClick={() => dispatch(stopDownloadingTransport())}

@@ -1,13 +1,13 @@
 import { BsPencil } from "react-icons/bs";
-import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectEditor } from "redux/selectors";
 import { ControlButton } from ".";
 import { isEditorOn } from "types/Editor";
 import { hideEditor, showEditor } from "redux/Editor";
 
 export const ToolkitPatternButton = () => {
-  const dispatch = useAppDispatch();
-  const editor = useAppSelector(selectEditor);
+  const dispatch = useProjectDispatch();
+  const editor = useProjectSelector(selectEditor);
   const onPatternEditor = isEditorOn(editor, "patterns");
 
   const PatternButton = () => {

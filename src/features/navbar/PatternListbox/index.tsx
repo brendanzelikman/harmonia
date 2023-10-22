@@ -14,19 +14,19 @@ import {
 } from "presets/patterns";
 import { blurOnMouseUp } from "utils";
 import {
-  useAppDispatch,
-  useAppSelector,
-  useDeepEqualSelector,
+  useProjectDispatch,
+  useProjectSelector,
+  useProjectDeepSelector,
 } from "redux/hooks";
 import { isEditorOn } from "types/Editor";
 import { updateMediaDraft } from "redux/Timeline";
 
 export function NavbarPatternListbox() {
-  const dispatch = useAppDispatch();
-  const editor = useAppSelector(selectEditor);
-  const patterns = useDeepEqualSelector(selectPatterns);
-  const customPatterns = useDeepEqualSelector(selectCustomPatterns);
-  const selectedPattern = useAppSelector(selectSelectedPattern);
+  const dispatch = useProjectDispatch();
+  const editor = useProjectSelector(selectEditor);
+  const patterns = useProjectDeepSelector(selectPatterns);
+  const customPatterns = useProjectDeepSelector(selectCustomPatterns);
+  const selectedPattern = useProjectSelector(selectSelectedPattern);
   const onPatternEditor = isEditorOn(editor, "patterns");
   const setSelectedPattern = (patternId: PatternId) => {
     dispatch(updateMediaDraft({ clip: { patternId } }));
@@ -196,11 +196,11 @@ export function NavbarPatternListbox() {
    * The Pattern Label is a small label for the Pattern Listbox.
    */
   const PatternLabel = () => (
-    <label
+    <span
       className={`absolute text-xs text-emerald-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-0 bg-gray-900 rounded px-1 left-1`}
     >
       Selected Pattern
-    </label>
+    </span>
   );
 
   // Assemble the classname

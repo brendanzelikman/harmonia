@@ -1,8 +1,9 @@
 import { Transition } from "@headlessui/react";
 import { ProjectComponent } from "components/Project";
+import Demo1 from "assets/demos/demo.ham";
 
 export function Demos() {
-  const demos = ["/demos/demo.ham"];
+  const demos = [Demo1];
 
   // Display the list of demos
   const DemoList = () => (

@@ -4,11 +4,11 @@ import { Splash, Background } from "../components/Logo";
 import { unpackError } from "lib/react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 import { clearProject } from "redux/thunks";
-import { useAppDispatch } from "redux/hooks";
+import { useProjectDispatch } from "redux/hooks";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 export function ErrorView() {
-  const dispatch = useAppDispatch();
+  const dispatch = useProjectDispatch();
   const error = useRouteError();
   const { message, stack } = unpackError(error);
 

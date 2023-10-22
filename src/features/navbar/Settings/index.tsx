@@ -23,7 +23,7 @@ import {
   NavbarFormButton,
   NavbarTooltipMenu,
 } from "../components";
-import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import {
   selectTransport,
   setTransportBPM,
@@ -37,9 +37,10 @@ import { TOGGLE_SHORTCUTS } from "features/Shortcuts";
 import { dispatchCustomEvent } from "utils/events";
 
 export function NavbarSettingsMenu() {
-  const dispatch = useAppDispatch();
-  const { bpm, timeSignature, volume, mute } = useAppSelector(selectTransport);
-  const cell = useAppSelector(selectCell);
+  const dispatch = useProjectDispatch();
+  const { bpm, timeSignature, volume, mute } =
+    useProjectSelector(selectTransport);
+  const cell = useProjectSelector(selectCell);
 
   // Settings visibility toggle
   const [show, setShow] = useState(false);

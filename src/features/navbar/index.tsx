@@ -3,7 +3,6 @@ import { NavbarFileMenu } from "./File";
 import { NavbarPatternListbox } from "./PatternListbox";
 import { NavbarToolkit } from "./Toolkit";
 import { NavbarSettingsMenu } from "./Settings";
-import { BsGithub } from "react-icons/bs";
 import { Transition } from "@headlessui/react";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";

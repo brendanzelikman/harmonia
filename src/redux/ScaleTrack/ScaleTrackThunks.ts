@@ -1,5 +1,5 @@
 import { uniqBy } from "lodash";
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import {
   getNestedNoteAsMidi,
   getNestedScaleNotes,
@@ -38,13 +38,13 @@ import { addScale, updateScale } from "redux/Scale/ScaleSlice";
  * @returns A Promise that resolves with the ID of the created track.
  */
 export const createScaleTrack =
-  (initialTrack?: Partial<ScaleTrack>): AppThunk<Promise<TrackId>> =>
-  (dispatch, getState) => {
-    const state = getState();
-    const scaleMap = selectScaleMap(state);
+  (initialTrack?: Partial<ScaleTrack>): Thunk<Promise<TrackId>> =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const scaleMap = selectScaleMap(project);
 
     // Get the parent track of the initial track to inherit the scale
-    const parentTrack = selectScaleTrackById(state, initialTrack?.parentId);
+    const parentTrack = selectScaleTrackById(project, initialTrack?.parentId);
     const parentScale = getProperty(scaleMap, parentTrack?.scaleId);
     const parentNotes = parentScale?.notes ?? nestedChromaticNotes;
 
@@ -71,17 +71,17 @@ export const createScaleTrack =
  * @param note The note to add to the scale track.
  */
 export const addNoteToScaleTrack =
-  (scaleTrackId: TrackId, note: Note): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
+  (scaleTrackId: TrackId, note: Note): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
 
     // Get the scale track
-    const scaleTrackMap = selectScaleTrackMap(state);
+    const scaleTrackMap = selectScaleTrackMap(project);
     const scaleTrack = scaleTrackMap[scaleTrackId];
     if (!scaleTrack) return;
 
     // Get the scale
-    const scaleMap = selectScaleMap(state);
+    const scaleMap = selectScaleMap(project);
     const scale = getProperty(scaleMap, scaleTrack.scaleId);
     const scaleNotes = getNestedScaleNotes(scale);
     if (!scale) return;
@@ -165,17 +165,17 @@ export const addNoteToScaleTrack =
  * @param note The note to remove from the scale track.
  */
 export const removeNoteFromScaleTrack =
-  (scaleTrackId: TrackId, note: Note): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
+  (scaleTrackId: TrackId, note: Note): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
 
     // Get the scale track
-    const scaleTrackMap = selectScaleTrackMap(state);
+    const scaleTrackMap = selectScaleTrackMap(project);
     const scaleTrack = scaleTrackMap[scaleTrackId];
     if (!scaleTrack || !isScaleTrack(scaleTrack)) return;
 
     // Get the scale track scale
-    const scaleMap = selectScaleMap(state);
+    const scaleMap = selectScaleMap(project);
     const scale = scaleMap[scaleTrack.scaleId];
     const notes = getNestedScaleNotes(scale);
     if (!scale) return;
@@ -197,14 +197,14 @@ export const removeNoteFromScaleTrack =
  * @param props The drag and hover IDs.
  */
 export const moveScaleTrack =
-  (props: { dragId: TrackId; hoverId: TrackId }): AppThunk<boolean> =>
-  (dispatch, getState) => {
+  (props: { dragId: TrackId; hoverId: TrackId }): Thunk<boolean> =>
+  (dispatch, getProject) => {
     const { dragId, hoverId } = props;
-    const state = getState();
+    const project = getProject();
 
     // Get the corresponding scale tracks
-    const thisTrack = selectTrackById(state, dragId);
-    const otherTrack = selectTrackById(state, hoverId);
+    const thisTrack = selectTrackById(project, dragId);
+    const otherTrack = selectTrackById(project, hoverId);
     if (!thisTrack || !otherTrack) return false;
 
     // If the dragged track is a pattern track, move the pattern track

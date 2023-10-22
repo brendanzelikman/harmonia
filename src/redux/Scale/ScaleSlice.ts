@@ -78,7 +78,7 @@ export const scalesSlice = createSlice({
   reducers: {
     /**
      * Set the list of scale IDs.
-     * @param state The `scales` state.
+     * @param project The `scales` state.
      * @param action The payload action containing the list of scale IDs.
      */
     setScaleIds: (state, action: PayloadAction<SetScaleIdsPayload>) => {
@@ -87,7 +87,7 @@ export const scalesSlice = createSlice({
     },
     /**
      * Add a scale to the store.
-     * @param state The `scales` state.
+     * @param project The `scales` state.
      * @param action The payload action containing the scale.
      */
     addScale: (state, action: PayloadAction<AddScalePayload>) => {
@@ -97,7 +97,7 @@ export const scalesSlice = createSlice({
     },
     /**
      * Remove a scale from the store.
-     * @param state The `scales` state.
+     * @param project The `scales` state.
      * @param action The payload action containing the scale ID.
      */
     removeScale: (state, action: PayloadAction<RemoveScalePayload>) => {
@@ -109,7 +109,7 @@ export const scalesSlice = createSlice({
     },
     /**
      * Update a scale in the store.
-     * @param state The `scales` state.
+     * @param project The `scales` state.
      * @param action The payload action containing the scale ID and partial scale.
      */
     updateScale: (state, action: PayloadAction<UpdateScalePayload>) => {

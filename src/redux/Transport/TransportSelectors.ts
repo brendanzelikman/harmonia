@@ -1,21 +1,21 @@
-import { RootState } from "redux/store";
+import { Project } from "types/Project";
 
 /**
  * Select the transport state from the Redux store.
- * @param state - The root state.
+ * @param project - The project.
  * @returns The transport.
  */
-export const selectTransport = (state: RootState) => state.transport;
+export const selectTransport = (project: Project) => project.transport;
 
 /**
  * Select the transport BPM.
- * @param state - The root state.
+ * @param project - The project.
  */
-export const selectTransportBPM = (state: RootState) => state.transport.bpm;
+export const selectTransportBPM = (project: Project) => project.transport.bpm;
 
 /**
  * Select the transport time signature.
- * @param state - The root state.
+ * @param project - The project.
  */
-export const selectTransportTimeSignature = (state: RootState) =>
-  state.transport.timeSignature;
+export const selectTransportTimeSignature = (project: Project) =>
+  project.transport.timeSignature;

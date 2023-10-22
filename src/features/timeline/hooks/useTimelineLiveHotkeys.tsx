@@ -2,11 +2,16 @@ import { cancelEvent, isHoldingShift, isInputEvent } from "utils";
 import {
   selectEditor,
   selectOrderedTracks,
-  selectSelectedMedia,
   selectSelectedTrackParents,
-  selectTransport,
+  selectSelectedTranspositions,
+  selectLiveTranspositionSettings,
+  selectTimeline,
 } from "redux/selectors";
-import { useDeepEqualSelector, useAppDispatch } from "redux/hooks";
+import {
+  useProjectDeepSelector,
+  useProjectDispatch,
+  useProjectSelector,
+} from "redux/hooks";
 import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
 import { toggleInstrumentMute, toggleInstrumentSolo } from "redux/Instrument";
 
@@ -16,340 +21,356 @@ import {
 } from "redux/Transposition";
 import { isPatternTrack } from "types/PatternTrack";
 import { TranspositionOffsetRecord } from "types/Transposition";
-import {
-  startRecordingTransport,
-  stopRecordingTransport,
-} from "redux/Transport";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { unmuteTracks, unsoloTracks } from "redux/Track";
+import { getKeys, hasKeys } from "types/util";
+import { isTimelineLive } from "types/Timeline";
+import { toggleLiveTransposition } from "redux/Timeline";
+
+type KeyBinds = Record<string, number>;
+
+/**
+ * The numerical binds use the top number row.
+ */
+const NUMERICAL_BINDS: KeyBinds = {
+  "1": 1,
+  "2": 2,
+  "3": 3,
+  "4": 4,
+  "5": 5,
+  "6": 6,
+  "7": 7,
+  "8": 8,
+  "9": 9,
+  "-": 10,
+  "=": 11,
+};
+const NUMERICAL_ZERO_BINDS = ["z", "0"];
+
+/**
+ * The chromatic binds use the top key row.
+ */
+const CHROMATIC_BINDS = {
+  q: -5,
+  w: -4,
+  e: -3,
+  r: -2,
+  t: -1,
+  u: 1,
+  i: 2,
+  o: 3,
+  p: 4,
+  "[": 5,
+};
+
+/**
+ * The scalar binds use the middle key row.
+ */
+const SCALAR_BINDS = {
+  a: -5,
+  s: -4,
+  d: -3,
+  f: -2,
+  g: -1,
+  j: 1,
+  k: 2,
+  l: 3,
+  ";": 4,
+  "'": 5,
+};
+
+/**
+ * The chordal binds use the bottom key row.
+ * (Note that there is no room for t5).
+ */
+const CHORDAL_BINDS = {
+  z: -5,
+  x: -4,
+  c: -3,
+  v: -2,
+  b: -1,
+  m: 1,
+  ",": 2,
+  ".": 3,
+  "/": 4,
+};
+
+const ALPHABETICAL_BINDS: Record<string, KeyBinds> = {
+  chromatic: CHROMATIC_BINDS,
+  scalar: SCALAR_BINDS,
+  chordal: CHORDAL_BINDS,
+};
+const ALPHABETICAL_ZERO_BINDS = ["y", "h", "n", "`", "0"];
 
 export const useTimelineLiveHotkeys = () => {
-  const dispatch = useAppDispatch();
-  const { recording } = useDeepEqualSelector(selectTransport);
-  const editor = useDeepEqualSelector(selectEditor);
-  const orderedTracks = useDeepEqualSelector(selectOrderedTracks);
-  const scaleTracks = useDeepEqualSelector(selectSelectedTrackParents);
+  const hotkeys = useHotkeysContext();
+  const dispatch = useProjectDispatch();
+
+  // Get the timeline from the store
+  const timeline = useProjectSelector(selectTimeline);
+  const isLive = isTimelineLive(timeline);
+
+  // Get the live transposition settings
+  const transpositionSettings = useProjectSelector(
+    selectLiveTranspositionSettings
+  );
+  const transpositionMode = transpositionSettings.mode;
+  const isNumerical = transpositionMode === "numerical";
+
+  // Get additional dependencies from the store
+  const editor = useProjectDeepSelector(selectEditor);
+  const orderedTracks = useProjectDeepSelector(selectOrderedTracks);
+  const scaleTracks = useProjectDeepSelector(selectSelectedTrackParents);
 
   // Update the hotkey scope when a transposition is selected
-  const HotkeyScope = useHotkeysContext();
-  const mediaSelection = useDeepEqualSelector(selectSelectedMedia);
   useEffect(() => {
-    if (
-      !!mediaSelection.length &&
-      !HotkeyScope.enabledScopes.includes("mediaShortcuts")
-    ) {
-      HotkeyScope.enableScope("mediaShortcuts");
-      HotkeyScope.disableScope("timeline");
-    } else if (
-      !mediaSelection.length &&
-      !HotkeyScope.enabledScopes.includes("timeline")
-    ) {
-      HotkeyScope.disableScope("mediaShortcuts");
-      HotkeyScope.enableScope("timeline");
+    if (editor.show) return;
+    const enabledScopes = hotkeys.enabledScopes;
+    const hasTimeline = enabledScopes.includes("timeline");
+
+    // Disable the timeline scope if the user is live
+    if (!!isLive && hasTimeline) {
+      hotkeys.disableScope("timeline");
+      return;
     }
-  }, [mediaSelection, HotkeyScope.enabledScopes]);
+    // Enable the timeline scope if the user is not live
+    if (!isLive && !hasTimeline) {
+      hotkeys.enableScope("timeline");
+    }
+  }, [isLive, editor, hotkeys.enabledScopes]);
 
-  const keyMap: Record<string, string> = {
-    "1": "1",
-    "2": "2",
-    "3": "3",
-    "4": "4",
-    "5": "5",
-    "6": "6",
-    "7": "7",
-    "8": "8",
-    "9": "9",
-    "-": "10",
-    "=": "11",
-  };
+  // Get the keys for the current transposition mode
+  const keys = isNumerical
+    ? getKeys(NUMERICAL_BINDS)
+    : getKeys([CHROMATIC_BINDS, SCALAR_BINDS, CHORDAL_BINDS]);
 
-  const CHROMATIC_BINDS: Record<string, number> = {
-    q: -5,
-    w: -4,
-    e: -3,
-    r: -2,
-    t: -1,
-    u: 1,
-    i: 2,
-    o: 3,
-    p: 4,
-    "[": 5,
-  };
+  // Get the list of zero keys based on the transposition mode
+  const zeroKeys = isNumerical ? NUMERICAL_ZERO_BINDS : ALPHABETICAL_ZERO_BINDS;
 
-  const SCALAR_BINDS: Record<string, number> = {
-    a: -5,
-    s: -4,
-    d: -3,
-    f: -2,
-    g: -1,
-    j: 1,
-    k: 2,
-    l: 3,
-    ";": 4,
-    "'": 5,
-  };
+  // Extra keys required for each mode
+  const extraKeys = isNumerical
+    ? ["`", "q", "w", "s", "x", "e", "y", "u"]
+    : ["`", "]", "\\", "+"];
 
-  const CHORDAL_BINDS: Record<string, number> = {
-    z: -5,
-    x: -4,
-    c: -3,
-    v: -2,
-    b: -1,
-    m: 1,
-    ",": 2,
-    ".": 3,
-    "/": 4,
-  };
+  // Track all of the held keys
+  const allKeys = ["shift", "meta", ...keys, ...zeroKeys, ...extraKeys];
+  const heldKeys = useHeldHotkeys(allKeys, [allKeys]);
 
-  const zeroKeys = ["0", "y", "h", "n", "z"];
-  const keys = ["`", "q", "w", "s", "x", "f", "e", "z", "y", "u"];
-  const heldKeys = useHeldHotkeys([
-    "shift",
-    "backspace",
-    "meta",
-    "meta+y",
-    "meta+u",
-    ...keys,
-    ...zeroKeys,
-    "alt+y",
-    "alt+u",
-  ]);
+  // The callback for the numerical keydown event
+  const numericalKeydown = useCallback(
+    (e: KeyboardEvent) => {
+      if (isInputEvent(e) || editor.show) return;
 
-  useHotkeys(
-    "shift+r",
-    () =>
-      recording
-        ? dispatch(stopRecordingTransport())
-        : dispatch(startRecordingTransport()),
-    [recording]
-  );
+      // Try to get the number of the key
+      const number = parseInt(e.key);
+      if (isNaN(number)) return;
 
-  const keyKeydown = (e: KeyboardEvent) => {
-    // Get the number of the key
-    const number = parseInt(e.key);
-    // if (isNaN(number)) return;
-
-    // Get the pattern track by number (for mute/solo)
-    if (!isNaN(number)) {
+      // Get the pattern track by number (for mute/solo)
       const patternTracks = orderedTracks.filter(isPatternTrack);
       const patternTrack = patternTracks[number - 1];
       const instrumentId = patternTrack?.instrumentId;
 
       // Toggle mute if holding y
-      if (heldKeys.meta && heldKeys.y) {
-        e.preventDefault();
+      if (heldKeys.y) {
         dispatch(toggleInstrumentMute(instrumentId));
       }
       // Toggle solo if holding u
-      if (heldKeys.meta && heldKeys.u) {
-        e.preventDefault();
+      if (heldKeys.u) {
         dispatch(toggleInstrumentSolo(instrumentId));
       }
-    }
 
-    // Compute the initial offset based on up/down/shift
-    const offsets = {} as TranspositionOffsetRecord;
-    // const negative = heldKeys["`"];
-    // const dir = negative ? -1 : 1;
-    let offset = isHoldingShift(e) ? 5 : 0;
-    if (e.key in CHROMATIC_BINDS && !heldKeys.meta) {
-      offsets._chromatic = offset + CHROMATIC_BINDS[e.key];
-    }
-    if (e.key in SCALAR_BINDS && !heldKeys.meta) {
-      const scaleId = scaleTracks?.[0]?.id;
-      if (scaleId) {
-        offsets[scaleId] = offset + SCALAR_BINDS[e.key];
+      // Compute the transposition offset record
+      let offsets = {} as TranspositionOffsetRecord;
+      const negative = heldKeys["`"];
+      const dir = negative ? -1 : 1;
+      const offset = isHoldingShift(e) ? 12 : 0;
+
+      // Apply chromatic offset if holding q
+      if (heldKeys.q) {
+        offsets._chromatic = (offset + number) * dir;
       }
-    }
-    if (e.key in CHORDAL_BINDS && !heldKeys.meta) {
-      offsets._self = offset + CHORDAL_BINDS[e.key];
-    }
 
-    // // Apply chromatic offset if holding q
-    // if (heldKeys.q) {
-    //   offsets._chromatic = offset;
-    // }
+      // Apply scalar offsets if holding w, s, or x
+      const scalarKeys = ["w", "s", "x"];
+      scalarKeys.forEach((key) => {
+        const keyIndex = scalarKeys.indexOf(key);
+        const heldKey = heldKeys[key];
+        const id = scaleTracks[keyIndex]?.id;
+        if (heldKey && id) offsets[id] = (offset + number) * dir;
+      });
 
-    // // Apply scalar offsets if holding w, s, or x
-    // const scalarKeys = ["w", "s", "x"];
-    // scalarKeys.forEach((key) => {
-    //   const keyIndex = scalarKeys.indexOf(key);
-    //   const heldKey = heldKeys[key];
-    //   const id = scaleTracks[keyIndex]?.id;
-    //   if (heldKey && id) offsets[id] = offset;
-    // });
+      // Apply chordal offset if holding e
+      if (heldKeys.e) {
+        offsets._self = (offset + number) * dir;
+      }
 
-    // // Apply chordal offset if holding e
-    // if (heldKeys.e) {
-    //   offsets._self = offset;
-    // }
-    if (Object.keys(offsets).length) {
+      if (!hasKeys(offsets)) return;
       dispatch(offsetSelectedTranspositions(offsets));
-    }
-  };
+    },
+    [heldKeys, scaleTracks, toggleInstrumentMute, toggleInstrumentSolo]
+  );
 
-  const zeroKeydown = (e: KeyboardEvent) => {
-    const key = e.key;
-    if (!zeroKeys.includes(key)) return;
+  // The callback for the keyrow keydown event
+  const alphabeticalKeydown = useCallback(
+    (e: KeyboardEvent) => {
+      // Get the number of the key
+      const number = parseInt(e.key);
 
-    // Unmute all tracks if holding y
-    // if (isHotkeyPressed("alt") && isHotkeyPressed("y")) {
-    //   dispatch(unmuteTracks());
-    // }
+      // Get the pattern track by number (for mute/solo)
+      if (!isNaN(number)) {
+        const patternTracks = orderedTracks.filter(isPatternTrack);
+        const patternTrack = patternTracks[number - 1];
+        const instrumentId = patternTrack?.instrumentId;
 
-    // // Unsolo all tracks if holding u
-    // if (isHotkeyPressed("alt") && isHotkeyPressed("u")) {
-    //   dispatch(unsoloTracks());
-    // }
-
-    // Reset all offsets if holding z
-    // if (key === "z") {
-    //   dispatch(resetSelectedTranspositions());
-    //   return;
-    // }
-
-    const offsets = {} as TranspositionOffsetRecord;
-    if (e.key === "y") {
-      offsets._chromatic = 0;
-    }
-    if (e.key === "h") {
-      const scaleId = scaleTracks?.[0]?.id;
-      if (scaleId) {
-        offsets[scaleId] = 0;
+        // Toggle mute if holding -
+        if (heldKeys["]"]) {
+          dispatch(toggleInstrumentMute(instrumentId));
+        }
+        // Toggle solo if holding =
+        if (heldKeys[`\\`]) {
+          dispatch(toggleInstrumentSolo(instrumentId));
+        }
       }
-    }
-    if (e.key === "n") {
-      offsets._self = 0;
-    }
 
-    // Reset the chromatic offset if holding q
-    // if (heldKeys.q) {
-    //   offsets._chromatic = 0;
-    // }
+      // Compute the initial offset based on up/down/shift
+      let offsets = {} as TranspositionOffsetRecord;
+      let offset = isHoldingShift(e) ? 5 : 0;
 
-    // // Reset the scalar offsets if holding w, s, or x
-    // const scalarKeys = ["w", "s", "x"];
-    // scalarKeys.forEach((key) => {
-    //   const keyIndex = scalarKeys.indexOf(key);
-    //   const heldKey = heldKeys[key];
-    //   const id = scaleTracks[keyIndex]?.id;
-    //   if (heldKey && id) offsets[id] = 0;
-    // });
+      if (e.key in ALPHABETICAL_BINDS.chromatic && !heldKeys.meta) {
+        offsets._chromatic = offset + ALPHABETICAL_BINDS.chromatic[e.key];
+      }
+      if (e.key in ALPHABETICAL_BINDS.scalar && !heldKeys.meta) {
+        const scaleId = scaleTracks?.[0]?.id;
+        if (scaleId) {
+          offsets[scaleId] = offset + ALPHABETICAL_BINDS.scalar[e.key];
+        }
+      }
+      if (e.key in ALPHABETICAL_BINDS.chordal && !heldKeys.meta) {
+        offsets._self = offset + ALPHABETICAL_BINDS.chordal[e.key];
+      }
 
-    // // Reset the chordal offset if holding e
-    // if (heldKeys.e) {
-    //   offsets._self = 0;
-    // }
+      if (!hasKeys(offsets)) return;
+      dispatch(offsetSelectedTranspositions(offsets));
+    },
+    [
+      heldKeys,
+      scaleTracks,
+      toggleInstrumentMute,
+      toggleInstrumentSolo,
+      orderedTracks,
+    ]
+  );
 
-    if (Object.keys(offsets).length) {
+  // The callback for the numerical zero keydown event
+  const numericalZerokeydown = useCallback(
+    (e: KeyboardEvent) => {
+      const key = e.key;
+      if (!zeroKeys.includes(key)) return;
+      if (isInputEvent(e) || editor.show) return;
+
+      // Unmute all tracks if holding y
+      if (heldKeys.y) {
+        dispatch(unmuteTracks());
+      }
+
+      // Unsolo all tracks if holding u
+      if (heldKeys.u) {
+        dispatch(unsoloTracks());
+      }
+
+      const offsets: TranspositionOffsetRecord = {};
+      if (heldKeys.q) {
+        offsets._chromatic = 0;
+      }
+      const scaleKeys = ["w", "s", "x"];
+      for (const scaleKey of scaleKeys) {
+        if (heldKeys[scaleKey]) {
+          const scaleId = scaleTracks[scaleKeys.indexOf(scaleKey)]?.id;
+          if (scaleId) {
+            offsets[scaleId] = 0;
+          }
+        }
+      }
+      if (heldKeys.e) {
+        offsets._self = 0;
+      }
+      if (!hasKeys(offsets)) return;
       dispatch(updateSelectedTranspositions(offsets));
-    }
-  };
+    },
+    [heldKeys, scaleTracks]
+  );
 
+  // The callback for the alphabetical zero keydown event
+  const alphabeticalZeroKeydown = useCallback(
+    (e: KeyboardEvent) => {
+      const key = e.key;
+      if (!zeroKeys.includes(key)) return;
+      if (isInputEvent(e) || editor.show) return;
+      cancelEvent(e);
+
+      // Unmute all tracks if holding -
+      if (heldKeys["]"]) {
+        dispatch(unmuteTracks());
+      }
+      // Unsolo all tracks if holding =
+      if (heldKeys["\\"]) {
+        dispatch(unsoloTracks());
+      }
+
+      const offsets: TranspositionOffsetRecord = {};
+      if (key === "y") {
+        offsets._chromatic = 0;
+      }
+      if (key === "h") {
+        const scaleId = scaleTracks?.[0]?.id;
+        if (scaleId) {
+          offsets[scaleId] = 0;
+        }
+      }
+      if (key === "n") {
+        offsets._self = 0;
+      }
+      if (key === "`") {
+        offsets._chromatic = 0;
+        const scaleId = scaleTracks?.[0]?.id;
+        if (scaleId) {
+          offsets[scaleId] = 0;
+        }
+        offsets._self = 0;
+      }
+      if (!hasKeys(offsets)) return;
+      dispatch(updateSelectedTranspositions(offsets));
+    },
+    [heldKeys, scaleTracks]
+  );
+
+  /**
+   * Add the corresponding event listener to the window if the user is live.
+   * (This is a workaround for duplicated events with react-hotkeys)
+   */
   useEffect(() => {
-    window.addEventListener("keydown", keyKeydown);
+    if (!isLive) return;
+    const keydown = isNumerical ? numericalKeydown : alphabeticalKeydown;
+    const zeroKeydown = isNumerical
+      ? numericalZerokeydown
+      : alphabeticalZeroKeydown;
+
+    window.addEventListener("keydown", keydown);
     window.addEventListener("keydown", zeroKeydown);
 
     return () => {
-      window.removeEventListener("keydown", keyKeydown);
+      window.removeEventListener("keydown", keydown);
       window.removeEventListener("keydown", zeroKeydown);
     };
-  }, [keyKeydown, zeroKeydown]);
+  }, [
+    isLive,
+    isNumerical,
+    numericalKeydown,
+    alphabeticalKeydown,
+    numericalZerokeydown,
+    alphabeticalZeroKeydown,
+  ]);
 
-  //   // 1 = Transpose by 1/13 steps
-  //   useHotkeys(["1", "shift+1"], keyKeydown, [keyKeydown]);
-
-  //   // 2 = Transpose by 2/14 steps
-  //   useHotkeys(["2", "shift+2"], keyKeydown, [keyKeydown]);
-
-  //   // 3 = Transpose by 3/15 steps
-  //   useHotkeys(["3", "shift+3"], keyKeydown, [keyKeydown]);
-
-  //   // 4 = Transpose by 4/16 steps
-  //   useHotkeys(["4", "shift+4"], keyKeydown, [keyKeydown]);
-
-  //   // 5 = Transpose by 5/17 steps
-  //   useHotkeys(["5", "shift+5"], keyKeydown, [keyKeydown]);
-
-  //   // 6 = Transpose by 6/18 steps
-  //   useHotkeys(["6", "shift+6"], keyKeydown, [keyKeydown]);
-
-  //   // 7 = Transpose by 7/19 steps
-  //   useHotkeys(["7", "shift+7"], keyKeydown, [keyKeydown]);
-
-  //   // 8 = Transpose by 8/20 steps
-  //   useHotkeys(["8", "shift+8"], keyKeydown, [keyKeydown]);
-
-  //   // 9 = Transpose by 9/21 steps
-  //   useHotkeys(["9", "shift+9"], keyKeydown, [keyKeydown]);
-
-  //   // "-" = Transpose by 10/22 steps
-  //   useHotkeys(["-", "shift+-", "_", "shift+_"], keyKeydown, [keyKeydown]);
-
-  //   // "=" = Transpose by 11/23 steps
-  //   useHotkeys(
-  //     ["=", "+", "shift&=", "shift&+"],
-  //     keyKeydown,
-  //     { combinationKey: "&" },
-  //     [keyKeydown]
-  //   );
-
-  // "0" = Reset selected offsets, "z" = Reset all offsets
-  useHotkeys(["0", "y", "h", "n", "z"], zeroKeydown, [zeroKeydown]);
-
-  // Up arrow = Transpose up by 1/12 steps
-  useHotkeys(
-    ["up", "shift+up"],
-    (e) => {
-      if (isInputEvent(e) || editor.show) return;
-      cancelEvent(e);
-
-      // Offset the selected transpositions
-      const holdingShift = isHoldingShift(e);
-      // const N = heldKeys.q ? (holdingShift ? 12 : 1) : 0;
-      // const T1 = heldKeys.w ? (holdingShift ? 12 : 1) : 0;
-      // const T2 = heldKeys.s ? (holdingShift ? 12 : 1) : 0;
-      // const T3 = heldKeys.x ? (holdingShift ? 12 : 1) : 0;
-      // const t = heldKeys.e ? (holdingShift ? 12 : 1) : 0;
-      // dispatch(
-      //   offsetSelectedTranspositions({
-      //     _chromatic: N,
-      //     [scaleTracks?.[0]?.id ?? ""]: T1,
-      //     [scaleTracks?.[1]?.id ?? ""]: T2,
-      //     [scaleTracks?.[2]?.id ?? ""]: T3,
-      //     _self: t,
-      //   })
-      // );
-    },
-    [editor.show, scaleTracks]
-  );
-
-  // Down arrow = Transpose down by 1/12 steps
-  useHotkeys(
-    ["down", "shift+down"],
-    (e) => {
-      if (isInputEvent(e) || editor.show) return;
-      cancelEvent(e);
-
-      // Offset the selected transpositions
-      // const holdingShift = isHoldingShift(e);
-      // const N = heldKeys.q ? (holdingShift ? -12 : -1) : 0;
-      // const T1 = heldKeys.w ? (holdingShift ? -12 : -1) : 0;
-      // const T2 = heldKeys.s ? (holdingShift ? -12 : -1) : 0;
-      // const T3 = heldKeys.x ? (holdingShift ? -12 : -1) : 0;
-      // const t = heldKeys.e ? (holdingShift ? -12 : -1) : 0;
-      // dispatch(
-      //   offsetSelectedTranspositions({
-      //     ...{
-      //       _chromatic: N,
-      //       _self: t,
-      //     },
-      //     [scaleTracks?.[0]?.id ?? ""]: T1,
-      //     [scaleTracks?.[1]?.id ?? ""]: T2,
-      //     [scaleTracks?.[2]?.id ?? ""]: T3,
-      //   })
-      // );
-    },
-    [editor.show]
-  );
+  useHotkeys("shift+t", () => dispatch(toggleLiveTransposition()));
 };

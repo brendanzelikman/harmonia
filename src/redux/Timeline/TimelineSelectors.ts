@@ -5,7 +5,7 @@ import {
   TRACK_WIDTH,
 } from "utils/constants";
 import { subdivisionToTicks, ticksToColumns } from "utils";
-import { RootState } from "redux/store";
+import { Project } from "types/Project";
 import { createSelector } from "reselect";
 import { InstrumentChordRecord } from "types/Instrument";
 import { getPatternChordAtTick } from "types/Pattern";
@@ -38,144 +38,152 @@ import { selectTransport } from "../Transport/TransportSelectors";
  * Select the timeline object from the store.
  */
 export const selectTimelineObject = (
-  state: RootState,
+  project: Project,
   object: TimelineObject
 ) => object;
 
 /**
  * Select the timeline from the store.
  */
-export const selectTimeline = (state: RootState) => state.timeline;
+export const selectTimeline = (project: Project) => project.timeline;
 
 /**
  * Select the timeline cell.
  */
-export const selectCell = (state: RootState) => state.timeline.cell;
+export const selectCell = (project: Project) => project.timeline.cell;
 
 /**
  * Select the width of a timeline cell.
  */
-export const selectCellWidth = (state: RootState) => state.timeline.cell.width;
+export const selectCellWidth = (project: Project) =>
+  project.timeline.cell.width;
 
 /**
  * Select the height of a timeline cell.
  */
-export const selectCellHeight = (state: RootState) =>
-  state.timeline.cell.height;
+export const selectCellHeight = (project: Project) =>
+  project.timeline.cell.height;
 
 /**
  * Select the currently selected track ID.
  */
-export const selectSelectedTrackId = (state: RootState) =>
-  state.timeline.selectedTrackId;
+export const selectSelectedTrackId = (project: Project) =>
+  project.timeline.selectedTrackId;
 
 /**
  * Select the current media selection.
  */
-export const selectMediaSelection = (state: RootState) =>
-  state.timeline.mediaSelection;
+export const selectMediaSelection = (project: Project) =>
+  project.timeline.mediaSelection;
 
 /**
  * Select the currently selected clip IDs.
  */
-export const selectSelectedClipIds = (state: RootState) =>
-  state.timeline.mediaSelection.clipIds;
+export const selectSelectedClipIds = (project: Project) =>
+  project.timeline.mediaSelection.clipIds;
 
 /**
  * Select the currently selected transposition IDs.
  */
-export const selectSelectedTranspositionIds = (state: RootState) =>
-  state.timeline.mediaSelection.transpositionIds;
+export const selectSelectedTranspositionIds = (project: Project) =>
+  project.timeline.mediaSelection.transpositionIds;
 
 /**
  * Select the current media draft.
  */
-export const selectMediaDraft = (state: RootState) => state.timeline.mediaDraft;
+export const selectMediaDraft = (project: Project) =>
+  project.timeline.mediaDraft;
 
 /**
  * Select the currently drafted clip.
  */
-export const selectDraftedClip = (state: RootState) =>
-  state.timeline.mediaDraft.clip;
+export const selectDraftedClip = (project: Project) =>
+  project.timeline.mediaDraft.clip;
 
 /**
  * Select the currently drafted transposition.
  */
-export const selectDraftedTransposition = (state: RootState) =>
-  state.timeline.mediaDraft.transposition;
+export const selectDraftedTransposition = (project: Project) =>
+  project.timeline.mediaDraft.transposition;
 
 /**
  * Select the current media clipboard.
  */
-export const selectMediaClipboard = (state: RootState) =>
-  state.timeline.mediaClipboard;
+export const selectMediaClipboard = (project: Project) =>
+  project.timeline.mediaClipboard;
 
 /**
  * Select the currently copied clips.
  */
-export const selectCopiedClips = (state: RootState) =>
-  state.timeline.mediaClipboard.clips;
+export const selectCopiedClips = (project: Project) =>
+  project.timeline.mediaClipboard.clips;
 
 /**
  * Select the currently copied transpositions.
  */
-export const selectCopiedTranspositions = (state: RootState) =>
-  state.timeline.mediaClipboard.transpositions;
+export const selectCopiedTranspositions = (project: Project) =>
+  project.timeline.mediaClipboard.transpositions;
 
 /**
  * Select the current media drag state.
  */
-export const selectMediaDragState = (state: RootState) =>
-  state.timeline.mediaDragState;
+export const selectMediaDragState = (project: Project) =>
+  project.timeline.mediaDragState;
+
+/**
+ * Select the live transposition settings.
+ */
+export const selectLiveTranspositionSettings = (project: Project) =>
+  project.timeline.liveTranspositionSettings;
 
 /**
  * Select the currently selected pattern.
- * @param state The root state.
+ * @param project The project.
  * @returns The currently selected pattern or undefined if none is selected or found.
  */
-export const selectSelectedPattern = (state: RootState) => {
-  const patternMap = selectPatternMap(state);
-  const { patternId } = selectDraftedClip(state);
+export const selectSelectedPattern = (project: Project) => {
+  const patternMap = selectPatternMap(project);
+  const { patternId } = selectDraftedClip(project);
   return getProperty(patternMap, patternId);
 };
 
 /**
  * Select the currently selected track.
- * @param state The root state.
+ * @param project The project.
  * @returns The currently selected track or undefined if none is selected or found.
  */
-export const selectSelectedTrack = (state: RootState) => {
-  const trackMap = selectTrackMap(state);
-  const selectedTrackId = selectSelectedTrackId(state);
+export const selectSelectedTrack = (project: Project) => {
+  const trackMap = selectTrackMap(project);
+  const selectedTrackId = selectSelectedTrackId(project);
   return getProperty(trackMap, selectedTrackId);
 };
 
 /**
  * Select the index of the currently selected track.
- * @param state The root state.
+ * @param project The project.
  * @returns The index of the currently selected track or -1 if none is selected.
  */
-export const selectSelectedTrackIndex = (state: RootState) => {
-  const selectedTrackId = selectSelectedTrackId(state);
+export const selectSelectedTrackIndex = (project: Project) => {
+  const selectedTrackId = selectSelectedTrackId(project);
   if (!selectedTrackId) return -1;
-  const orderedTrackIds = selectOrderedTrackIds(state);
+  const orderedTrackIds = selectOrderedTrackIds(project);
   return orderedTrackIds.indexOf(selectedTrackId);
 };
 
 /**
  * Select the parents of the currently selected track.
- * @param state The root state.
+ * @param project The project.
  * @returns The parents of the currently selected track or an empty array if none is selected.
  */
-export const selectSelectedTrackParents = (state: RootState) => {
-  const selectedTrack = selectSelectedTrack(state);
+export const selectSelectedTrackParents = (project: Project) => {
+  const selectedTrack = selectSelectedTrack(project);
   if (!selectedTrack) return [];
-  return selectTrackParents(state, selectedTrack.id);
+  return selectTrackParents(project, selectedTrack.id);
 };
 
 /**
  * Select the currently selected clips.
- * @param state The root state.
+ * @param project The project.
  * @returns The currently selected clips.
  */
 export const selectSelectedClips = createDeepEqualSelector(
@@ -185,7 +193,7 @@ export const selectSelectedClips = createDeepEqualSelector(
 
 /**
  * Select the currently selected transpositions.
- * @param state The root state.
+ * @param project The project.
  * @returns The currently selected transpositions or an empty array if none are selected or found.
  */
 export const selectSelectedTranspositions = createDeepEqualSelector(
@@ -196,7 +204,7 @@ export const selectSelectedTranspositions = createDeepEqualSelector(
 
 /**
  * Select all selected media.
- * @param state The root state.
+ * @param project The project.
  * @returns An array of selected media.
  */
 export const selectSelectedMedia = createDeepEqualSelector(
@@ -210,10 +218,10 @@ export const selectSelectedMedia = createDeepEqualSelector(
 /**
  * Select the width of a clip in pixels. Always at least 1 pixel.
  */
-export const selectClipWidth = (state: RootState, id?: ClipId) => {
-  const duration = selectClipDuration(state, id);
-  const timeline = selectTimeline(state);
-  const cellWidth = selectCellWidth(state);
+export const selectClipWidth = (project: Project, id?: ClipId) => {
+  const duration = selectClipDuration(project, id);
+  const timeline = selectTimeline(project);
+  const cellWidth = selectCellWidth(project);
   const columns = ticksToColumns(duration, timeline.subdivision);
   return Math.max(cellWidth * columns, 1);
 };
@@ -225,8 +233,8 @@ export const selectClipWidth = (state: RootState, id?: ClipId) => {
  * ```Subdivision = 1/16```,
  * then ```Ticks = 96 / 16 = 6```
  */
-export const selectSubdivisionTicks = (state: RootState) => {
-  const timeline = selectTimeline(state);
+export const selectSubdivisionTicks = (project: Project) => {
+  const timeline = selectTimeline(project);
   return subdivisionToTicks(timeline.subdivision);
 };
 
@@ -238,8 +246,8 @@ export const selectSubdivisionTicks = (state: RootState) => {
  * and ```Column = 2```,
  * then ```Tick = 96 / 16 * 2 = 12```
  */
-export const selectTickFromColumn = (state: RootState, column: number) => {
-  const timeline = selectTimeline(state);
+export const selectTickFromColumn = (project: Project, column: number) => {
+  const timeline = selectTimeline(project);
   const ticks = subdivisionToTicks(timeline.subdivision);
   return ticks * column;
 };
@@ -247,25 +255,25 @@ export const selectTickFromColumn = (state: RootState, column: number) => {
 /**
  * Select the timeline column count.
  */
-export const selectTimelineColumnCount = (state: RootState) => {
+export const selectTimelineColumnCount = (project: Project) => {
   return MEASURE_COUNT * 128;
 };
 
 /**
  * Select the background width of the timeline.
  */
-export const selectTimelineBackgroundWidth = (state: RootState) => {
-  const cellWidth = selectCellWidth(state);
-  const columns = selectTimelineColumnCount(state);
+export const selectTimelineBackgroundWidth = (project: Project) => {
+  const cellWidth = selectCellWidth(project);
+  const columns = selectTimelineColumnCount(project);
   return columns * cellWidth + TRACK_WIDTH;
 };
 
 /**
  * Select the left offset of the timeline tick in pixels.
  */
-export const selectTimelineTickLeft = (state: RootState, tick: Tick = 0) => {
-  const timeline = selectTimeline(state);
-  const cellWidth = selectCellWidth(state);
+export const selectTimelineTickLeft = (project: Project, tick: Tick = 0) => {
+  const timeline = selectTimeline(project);
+  const cellWidth = selectCellWidth(project);
   const columns = ticksToColumns(tick, timeline.subdivision);
   return TRACK_WIDTH + Math.round(columns * cellWidth);
 };
@@ -274,14 +282,14 @@ export const selectTimelineTickLeft = (state: RootState, tick: Tick = 0) => {
  * Select the height of a timeline object based on whether the track is collapsed.
  */
 export const selectTimelineObjectHeight = (
-  state: RootState,
+  project: Project,
   object?: TimelineObject
 ) => {
-  const cellHeight = selectCellHeight(state);
+  const cellHeight = selectCellHeight(project);
   if (isTrack(object)) {
     return object.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
   } else {
-    const track = selectTrackById(state, object?.trackId);
+    const track = selectTrackById(project, object?.trackId);
     return track?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
   }
 };
@@ -290,11 +298,11 @@ export const selectTimelineObjectHeight = (
  * Select the top offset of the track in pixels based on the given track ID.
  */
 export const selectTimelineObjectTop = (
-  state: RootState,
+  project: Project,
   object?: TimelineObject
 ) => {
-  const trackHierarchy = selectTrackHierarchy(state);
-  const cellHeight = selectCellHeight(state);
+  const trackHierarchy = selectTrackHierarchy(project);
+  const cellHeight = selectCellHeight(project);
   let found = false;
   let top = HEADER_HEIGHT;
 
@@ -350,11 +358,11 @@ export const selectTimelineObjectTop = (
  * Select the track index of a timeline object.
  */
 export const selectTimelineObjectTrackIndex = (
-  state: RootState,
+  project: Project,
   object?: TimelineObject
 ) => {
   if (!object) return -1;
-  const orderedTrackIds = selectOrderedTrackIds(state);
+  const orderedTrackIds = selectOrderedTrackIds(project);
   const id = isTrack(object) ? object.id : object.trackId;
   return orderedTrackIds.indexOf(id);
 };
@@ -366,7 +374,7 @@ export type ChordsByTicks = Record<Tick, InstrumentChordRecord>;
 
 /**
  * Select all pattern chords to be played by each track at every tick.
- * @param state The root state.
+ * @param project The project.
  * @returns A map of ticks to an array of chords to be played at that tick.
  */
 export const selectChordsByTicks = createDeepEqualSelector(
@@ -413,18 +421,18 @@ export const selectChordsByTicks = createDeepEqualSelector(
 
 /**
  * Get the chord record at the given tick.
- * @param state The root state.
+ * @param project The project.
  * @param tick The tick.
  * @returns The chord record.
  */
-export const selectChordsAtTick = (state: RootState, tick: Tick) => {
-  const chordsByTicks = selectChordsByTicks(state);
+export const selectChordsAtTick = (project: Project, tick: Tick) => {
+  const chordsByTicks = selectChordsByTicks(project);
   return chordsByTicks[tick];
 };
 
 /**
  * Select the timeline end tick based on the clips and loop state.
- * @param state The root state.
+ * @param project The project.
  * @returns The end tick.
  */
 export const selectTimelineEndTick = createSelector(

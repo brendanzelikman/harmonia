@@ -1,8 +1,8 @@
-import { RootState } from "redux/store";
+import { Project } from "types/Project";
 
 /**
  * Select the editor from the state.
- * @param state The RootState object.
+ * @param project The Project object.
  * @returns The editor object.
  */
-export const selectEditor = (state: RootState) => state.editor;
+export const selectEditor = (project: Project) => project.editor;

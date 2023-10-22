@@ -104,7 +104,7 @@ export const trackHierarchySlice = createSlice({
   reducers: {
     /**
      * Add a scale track to the hierarchy.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      */
     addScaleTrackToHierarchy: (
@@ -143,7 +143,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Remove a scale track from the hierarchy.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      */
     removeScaleTrackFromHierarchy: (
@@ -174,7 +174,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Add a pattern track to the hierarchy.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      */
     addPatternTrackToHierarchy: (
@@ -211,7 +211,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Remove a pattern track from the hierarchy.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      */
     removePatternTrackFromHierarchy: (
@@ -236,7 +236,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Move a track to a new index in its parent track.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      * @returns The new hierarchy state.
      */
@@ -265,7 +265,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Move a track to a new index in a new parent track.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      */
     migrateTrackInHierarchy: (
@@ -308,7 +308,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Collapse the tracks in the hierarchy.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      */
     collapseTracksInHierarchy: (
@@ -324,7 +324,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Expand the tracks in the hierarchy.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      * @returns The new hierarchy state.
      */
@@ -341,7 +341,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Clear a track of all media.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      * @returns The new hierarchy state.
      */
@@ -358,7 +358,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Add media to the hierarchy.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      */
     addMediaToHierarchy: (
@@ -394,7 +394,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Remove media from the hierarchy.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      */
     removeMediaFromHierarchy: (
@@ -419,7 +419,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Update media in the hierarchy, changing track IDs where necessary.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      */
     updateMediaInHierarchy: (
@@ -453,7 +453,7 @@ export const trackHierarchySlice = createSlice({
     },
     /**
      * Slice a media clip into two new clips.
-     * @param state The hierarchy state.
+     * @param project The hierarchy state.
      * @param action The payload action.
      */
     sliceMediaInHierarchy: (

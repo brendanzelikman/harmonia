@@ -6,7 +6,7 @@ import {
   selectTrackById,
   selectTransport,
 } from "redux/selectors";
-import { AppDispatch, RootState } from "redux/store";
+import { Project, Dispatch } from "types/Project";
 import { TrackId } from "types/Track";
 import { Row } from "..";
 import { CellComponent } from "./Cell";
@@ -14,20 +14,23 @@ import { isPatternTrack } from "types/PatternTrack";
 import { convertTicksToBarsBeatsSixteenths } from "types/Transport";
 import { onCellClick, setSelectedTrackId } from "redux/Timeline";
 import { Transport } from "tone";
-import { isAddingClips, isAddingTranspositions } from "types/Timeline";
+import {
+  isTimelineAddingClips,
+  isTimelineAddingTranspositions,
+} from "types/Timeline";
 
-function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
+function mapStateToProps(project: Project, ownProps: FormatterProps<Row>) {
   const columnIndex = Number(ownProps.column.key);
   const trackId = ownProps.row.trackId;
-  const transport = selectTransport(state);
+  const transport = selectTransport(project);
 
   // Timeline properties
-  const timeline = selectTimeline(state);
-  const adding = isAddingClips(timeline);
-  const transposing = isAddingTranspositions(timeline);
+  const timeline = selectTimeline(project);
+  const adding = isTimelineAddingClips(timeline);
+  const transposing = isTimelineAddingTranspositions(timeline);
 
   // Tick properties
-  const tick = selectTickFromColumn(state, columnIndex - 1);
+  const tick = selectTickFromColumn(project, columnIndex - 1);
   const { beats, sixteenths } = convertTicksToBarsBeatsSixteenths(
     transport,
     tick
@@ -40,7 +43,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   const idle = !adding && !transposing && !transport.recording && !isStarted;
 
   // Track properties
-  const track = !!trackId ? selectTrackById(state, trackId) : undefined;
+  const track = !!trackId ? selectTrackById(project, trackId) : undefined;
   const onPatternTrack = !!track && isPatternTrack(track);
   const isSelected = timeline.selectedTrackId === trackId;
   const showCursor = idle && onTime && isSelected;
@@ -86,10 +89,7 @@ function mapStateToProps(state: RootState, ownProps: FormatterProps<Row>) {
   };
 }
 
-function mapDispatchToProps(
-  dispatch: AppDispatch,
-  ownProps: FormatterProps<Row>
-) {
+function mapDispatchToProps(dispatch: Dispatch, ownProps: FormatterProps<Row>) {
   const { trackId } = ownProps.row;
   const columnIndex = Number(ownProps.column.key);
   return {

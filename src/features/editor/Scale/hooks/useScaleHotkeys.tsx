@@ -1,8 +1,9 @@
 import { ScaleEditorProps } from "..";
 import { Scale, getScaleNotes } from "types/Scale";
 import { OSMDCursor } from "lib/opensheetmusicdisplay";
-import { useHotkeys } from "react-hotkeys-hook";
 import { createPromptedAction } from "redux/util";
+import { useScopedHotkeys } from "lib/react-hotkeys-hook";
+const useHotkeys = useScopedHotkeys("editor");
 
 interface ScaleShortcutProps extends ScaleEditorProps {
   scale: Scale;
@@ -14,6 +15,12 @@ export default function useScaleHotkeys(props: ScaleShortcutProps) {
   const notes = getScaleNotes(scale);
   const rewindCursor = () => cursor.setIndex(0);
   const forwardCursor = () => cursor.setIndex((notes.length ?? 1) - 1);
+
+  // Meta + Z = Undo Patterns
+  useHotkeys("meta+z", props.undoScales);
+
+  // Meta + Shift + Z = Redo Patterns
+  useHotkeys("meta+shift+z", props.redoScales);
 
   // Shift + Space = Play Scale
   useHotkeys("shift+space", () => props.playScale(scale));

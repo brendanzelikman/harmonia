@@ -1,18 +1,18 @@
 import { BsScissors } from "react-icons/bs";
 import { ControlButton } from ".";
 import { NavbarTooltip } from "../components";
-import { useAppDispatch, useAppSelector } from "redux/hooks";
+import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectTimeline } from "redux/selectors";
-import { isSlicingMedia } from "types/Timeline";
+import { isTimelineSlicingMedia } from "types/Timeline";
 import { toggleSlicingMedia } from "redux/thunks";
 
 /**
  * Slice media at a pivot point.
  */
 export const ToolkitSliceButton = () => {
-  const dispatch = useAppDispatch();
-  const timeline = useAppSelector(selectTimeline);
-  const isSlicing = isSlicingMedia(timeline);
+  const dispatch = useProjectDispatch();
+  const timeline = useProjectSelector(selectTimeline);
+  const isSlicing = isTimelineSlicingMedia(timeline);
 
   const SliceButton = () => {
     const buttonClass = isSlicing

@@ -4,7 +4,7 @@ import {
   getOffsettedTransposition,
   initializeTransposition,
 } from "types/Transposition";
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import { Transposition, TranspositionOffsetRecord } from "types/Transposition";
 import {
   addMediaToHierarchy,
@@ -25,7 +25,7 @@ import {
 export const createTranspositions =
   (
     transpositionNoIds: Partial<TranspositionNoId>[]
-  ): AppThunk<Promise<TranspositionId[]>> =>
+  ): Thunk<Promise<TranspositionId[]>> =>
   (dispatch) => {
     return new Promise((resolve) => {
       // Initialize the transpositions
@@ -47,7 +47,7 @@ export const createTranspositions =
  * @param transpositions The transpositions to delete.
  */
 export const deleteTranspositions =
-  (transpositions: Transposition[]): AppThunk =>
+  (transpositions: Transposition[]): Thunk =>
   (dispatch) => {
     dispatch(removeTranspositions({ transpositions }));
     dispatch(removeMediaFromHierarchy({ transpositions }));
@@ -58,10 +58,10 @@ export const deleteTranspositions =
  * @param offsets The offsets to apply to the selected transpositions.
  */
 export const updateSelectedTranspositions =
-  (offsets: TranspositionOffsetRecord): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const selectedTranspositions = selectSelectedTranspositions(state);
+  (offsets: TranspositionOffsetRecord): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const selectedTranspositions = selectSelectedTranspositions(project);
     if (!selectedTranspositions.length) return;
 
     const transpositions = selectedTranspositions.map((t) => {
@@ -75,10 +75,10 @@ export const updateSelectedTranspositions =
  * @param offset The offsets to apply to the selected transpositions.
  */
 export const offsetSelectedTranspositions =
-  (offset: TranspositionOffsetRecord): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const selectedTranspositions = selectSelectedTranspositions(state);
+  (offset: TranspositionOffsetRecord): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const selectedTranspositions = selectSelectedTranspositions(project);
     if (!selectedTranspositions.length) return;
 
     // Offset each transposition
@@ -94,9 +94,9 @@ export const offsetSelectedTranspositions =
  * Reset the selected transpositions.
  */
 export const resetSelectedTranspositions =
-  (): AppThunk => (dispatch, getState) => {
-    const state = getState();
-    const selectedTranspositions = selectSelectedTranspositions(state);
+  (): Thunk => (dispatch, getProject) => {
+    const project = getProject();
+    const selectedTranspositions = selectSelectedTranspositions(project);
     if (!selectedTranspositions.length) return;
 
     const transpositions = selectedTranspositions.map((t) => ({

@@ -1,4 +1,4 @@
-import { useAppSelector, useAppDispatch } from "redux/hooks";
+import { useProjectSelector, useProjectDispatch } from "redux/hooks";
 import { selectEditor } from "redux/selectors";
 import { hideEditor } from "redux/Editor";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
@@ -10,8 +10,8 @@ import {
 } from "redux/thunks";
 
 export default function useGlobalHotkeys() {
-  const dispatch = useAppDispatch();
-  const editor = useAppSelector(selectEditor);
+  const dispatch = useProjectDispatch();
+  const editor = useProjectSelector(selectEditor);
 
   // Meta + S = Save Project
   useOverridingHotkeys("meta+s", () => dispatch(exportProjectToHAM()));

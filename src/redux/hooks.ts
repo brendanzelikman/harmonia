@@ -3,13 +3,16 @@ import {
   useDispatch as useReduxDispatch,
   useSelector as useReduxSelector,
 } from "react-redux";
-import { AppDispatch, RootState } from "./store";
+import { Project, Dispatch } from "types/Project";
 import { isEqual } from "lodash";
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
-type DispatchFunc = () => AppDispatch;
+type DispatchFunc = () => Dispatch;
 
-export const useAppDispatch: DispatchFunc = useReduxDispatch;
-export const useAppSelector: TypedUseSelectorHook<RootState> = useReduxSelector;
-export const useDeepEqualSelector = <T>(selector: (state: RootState) => T): T =>
-  useAppSelector(selector, isEqual);
+export const useProjectDispatch: DispatchFunc = useReduxDispatch;
+export const useProjectSelector: TypedUseSelectorHook<Project> =
+  useReduxSelector;
+
+export const useProjectDeepSelector = <T>(
+  selector: (project: Project) => T
+): T => useProjectSelector(selector, isEqual);

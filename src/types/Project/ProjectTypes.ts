@@ -1,4 +1,4 @@
-import { nanoid } from "@reduxjs/toolkit";
+import { AnyAction, ThunkAction, nanoid } from "@reduxjs/toolkit";
 import { defaultClipState } from "redux/Clip";
 import { defaultInstrumentState } from "redux/Instrument";
 import { defaultPatternState } from "redux/Pattern";
@@ -6,7 +6,7 @@ import { defaultPatternTrackState } from "redux/PatternTrack";
 import { defaultScaleState } from "redux/Scale";
 import { defaultScaleTrackState } from "redux/ScaleTrack";
 import { defaultTranspositionState } from "redux/Transposition";
-import { RootState } from "redux/store";
+import { store } from "redux/store";
 import { defaultEditor, isEditor } from "types/Editor";
 import { defaultTimeline, isTimeline } from "types/Timeline";
 import { defaultTrackHierarchy } from "types/TrackHierarchy";
@@ -35,8 +35,15 @@ export const initializeProjectMetadata = (): ProjectMetadata => ({
   lastUpdated: new Date().toISOString(),
 });
 
-/** The Project type is exactly equal to the Redux state. */
-export type Project = RootState;
+/** The Project type is derived from the Redux state. */
+export type Project = ReturnType<typeof store.getState>;
+export type Dispatch = typeof store.dispatch;
+export type Thunk<ReturnType = void> = ThunkAction<
+  ReturnType,
+  Project,
+  unknown,
+  AnyAction
+>;
 
 /** The default project. */
 export const defaultProject: Project = {

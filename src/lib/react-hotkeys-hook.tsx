@@ -1,11 +1,11 @@
-import { useMemo, useState, DependencyList } from "react";
+import { useMemo, useState } from "react";
 import { Keys, useHotkeys } from "react-hotkeys-hook";
 import {
   HotkeyCallback,
   Options,
   OptionsOrDependencyArray,
 } from "react-hotkeys-hook/dist/types";
-import { SHIFTED_KEY_MAP, isHoldingShift, isLetterKey, upperCase } from "utils";
+import { isHoldingShift, isLetterKey, upperCase } from "utils";
 
 /**
  * A hook that overrides the default hotkey behavior.
@@ -56,7 +56,8 @@ export const useScopedHotkeys =
  */
 export const useHeldHotkeys = (
   keys: Keys,
-  options?: OptionsOrDependencyArray
+  options?: OptionsOrDependencyArray,
+  dependencies?: OptionsOrDependencyArray
 ) => {
   type KeyMap = Record<string, boolean>;
   const [heldKeys, setHeldKeys] = useState<KeyMap>({});
@@ -76,7 +77,7 @@ export const useHeldHotkeys = (
   const keyup = (e: KeyboardEvent) => {
     const lower = e.key.toLowerCase();
     const upper = upperCase(e.key);
-    setHeldKeys((prev) => ({ ...prev, [lower]: false, [upper]: false }));
+    setHeldKeys((prev) => ({ ...prev, [upper]: false, [lower]: false }));
   };
 
   // Call the appropriate callback based on the event type
@@ -89,7 +90,7 @@ export const useHeldHotkeys = (
     if (!Array.isArray(keys)) return keys;
     return keys.reduce((acc, key) => {
       const lower = key.toLowerCase();
-      const upper = `shift+${lower}`;
+      const upper = `shift*${lower}`;
       return [...acc, lower, upper];
     }, [] as Keys);
   }, [keys]);
@@ -102,8 +103,10 @@ export const useHeldHotkeys = (
       ...options,
       keydown: true,
       keyup: true,
+      splitKey: "&",
+      combinationKey: "*",
     },
-    [allKeys, callback]
+    [dependencies, allKeys, callback]
   );
 
   // Return the held keys

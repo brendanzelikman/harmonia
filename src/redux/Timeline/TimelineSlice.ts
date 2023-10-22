@@ -33,6 +33,7 @@ import { TrackId } from "types/Track";
  * @property `updateMediaDraft` - Update the drafted media.
  * @property `updateMediaSelection` - Update the selected media.
  * @property `updateMediaDragState` - Update the drag state of the media.
+ * @property `toggleTranspositionMode` - Toggles the transposition mode.
  *
  */
 export const timelineSlice = createSlice({
@@ -41,7 +42,7 @@ export const timelineSlice = createSlice({
   reducers: {
     /**
      * Set the width of a timeline cell.
-     * @param state - The current timeline state.
+     * @param project - The current timeline state.
      * @param action - The payload action containing the cell width.
      */
     setCellWidth(state, action: PayloadAction<number>) {
@@ -49,7 +50,7 @@ export const timelineSlice = createSlice({
     },
     /**
      * Set the height of a timeline cell.
-     * @param state - The current timeline state.
+     * @param project - The current timeline state.
      * @param action - The payload action containing the cell height.
      */
     setCellHeight(state, action: PayloadAction<number>) {
@@ -61,7 +62,7 @@ export const timelineSlice = createSlice({
     },
     /**
      * Set the subdivision of the timeline.
-     * @param state - The current timeline state.
+     * @param project - The current timeline state.
      * @param action - The payload action containing the subdivision.
      */
     setSubdivision(state, action: PayloadAction<Subdivision>) {
@@ -91,7 +92,7 @@ export const timelineSlice = createSlice({
     },
     /**
      * Set the timeline state.
-     * @param state - The current timeline state.
+     * @param project - The current timeline state.
      * @param action - The payload action containing the timeline state.
      */
     setTimelineState: (state, action: PayloadAction<TimelineState>) => {
@@ -99,14 +100,14 @@ export const timelineSlice = createSlice({
     },
     /**
      * Clear the timeline state.
-     * @param state - The current timeline state.
+     * @param project - The current timeline state.
      */
     clearTimelineState: (state) => {
       state.state = "idle";
     },
     /**
      * Set the selected track ID.
-     * @param state - The current timeline state.
+     * @param project - The current timeline state.
      * @param action - The payload action containing the track ID.
      */
     setSelectedTrackId: (state, action: PayloadAction<TrackId | undefined>) => {
@@ -114,7 +115,7 @@ export const timelineSlice = createSlice({
     },
     /**
      * Update the clipboard with the given media.
-     * @param state - The current timeline state.
+     * @param project - The current timeline state.
      * @param action - The payload action containing the media.
      */
     updateMediaClipboard: (
@@ -132,7 +133,7 @@ export const timelineSlice = createSlice({
     },
     /**
      * Update the drafted media.
-     * @param state - The current timeline state.
+     * @param project - The current timeline state.
      * @param action - The payload action containing a partial media draft.
      */
     updateMediaDraft: (state, action: PayloadAction<Partial<MediaDraft>>) => {
@@ -153,7 +154,7 @@ export const timelineSlice = createSlice({
     },
     /**
      * Update the selected media.
-     * @param state - The current timeline state.
+     * @param project - The current timeline state.
      * @param action - The payload action containing a partial media selection.
      */
     updateMediaSelection: (
@@ -171,7 +172,7 @@ export const timelineSlice = createSlice({
     },
     /**
      * Update the drag state of the media.
-     * @param state - The current timeline state.
+     * @param project - The current timeline state.
      * @param action - The payload action containing a partial media drag state.
      */
     updateMediaDragState: (
@@ -186,6 +187,22 @@ export const timelineSlice = createSlice({
       if (draggingTransposition !== undefined) {
         mediaDragState.draggingTransposition = draggingTransposition;
       }
+    },
+    /**
+     * Toggles whether live transposition is enabled.
+     */
+    toggleLiveTransposition: (state) => {
+      state.liveTranspositionSettings.enabled =
+        !state.liveTranspositionSettings.enabled;
+    },
+    /**
+     * Toggles the live transposition mode.
+     */
+    toggleLiveTranspositionMode: (state) => {
+      state.liveTranspositionSettings.mode =
+        state.liveTranspositionSettings.mode === "numerical"
+          ? "alphabetical"
+          : "numerical";
     },
   },
 });
@@ -205,6 +222,9 @@ export const {
   updateMediaClipboard,
   updateMediaDraft,
   updateMediaDragState,
+
+  toggleLiveTransposition,
+  toggleLiveTranspositionMode,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

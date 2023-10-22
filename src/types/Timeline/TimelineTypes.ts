@@ -14,6 +14,7 @@ import {
 
 // Types
 export type TimelineObject = Track | Media;
+export type TranspositionMode = "numerical" | "alphabetical";
 
 /**
  * The `TimelineState` contains the current state of the timeline.
@@ -46,6 +47,16 @@ export const DEFAULT_CELL: TimelineCell = {
 };
 
 /**
+ * The `LiveTranspositionSettings` specify its hotkeys and enabled status.
+ * @property `mode` - The transposition mode (numerical or alphabetical).
+ * @property `enabled` - Whether live transposition is enabled.
+ */
+export type LiveTranspositionSettings = {
+  mode: TranspositionMode;
+  enabled: boolean;
+};
+
+/**
  * The `Timeline` contains information about the data grid and manages all tracked objects.
  * @property `state` - The current action state of the timeline.
  * @property `subdivision` - The current subdivision of the timeline.
@@ -65,6 +76,7 @@ export interface Timeline {
   mediaDraft: MediaDraft;
   mediaClipboard: MediaClipboard;
   mediaDragState: MediaDragState;
+  liveTranspositionSettings: LiveTranspositionSettings;
 }
 
 export const defaultTimeline: Timeline = {
@@ -76,6 +88,10 @@ export const defaultTimeline: Timeline = {
   mediaDraft: DEFAULT_MEDIA_DRAFT,
   mediaClipboard: DEFAULT_MEDIA_CLIPBOARD,
   mediaDragState: DEFAULT_MEDIA_DRAG_STATE,
+  liveTranspositionSettings: {
+    mode: "numerical",
+    enabled: false,
+  },
 };
 
 /**
@@ -92,6 +108,7 @@ export const isTimeline = (obj: unknown): obj is Timeline => {
     candidate?.mediaSelection !== undefined &&
     candidate?.mediaDraft !== undefined &&
     candidate?.mediaClipboard !== undefined &&
-    candidate?.mediaDragState !== undefined
+    candidate?.mediaDragState !== undefined &&
+    candidate?.liveTranspositionSettings !== undefined
   );
 };

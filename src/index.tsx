@@ -1,9 +1,10 @@
 import ReactDOM from "react-dom/client";
 import { App } from "./App";
-import { AppThunk, store } from "redux/store";
 import { start } from "tone";
 import { startTransport } from "redux/Transport";
 import "./index.css";
+import { Thunk } from "types/Project";
+import { store } from "redux/store";
 
 export const container: HTMLElement = document.getElementById("root")!;
 if (!container?.children.length) {
@@ -11,7 +12,7 @@ if (!container?.children.length) {
 }
 
 export const startTone =
-  (startingTransport = false): AppThunk =>
+  (startingTransport = false): Thunk =>
   async (dispatch) => {
     await start();
     if (startingTransport) dispatch(startTransport());

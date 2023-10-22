@@ -11,24 +11,24 @@ import {
   setTransportLoopEnd,
   setTransportLoopStart,
 } from "redux/Transport";
-import { AppDispatch, RootState } from "redux/store";
+import { Project, Dispatch } from "types/Project";
 import { Subdivision, Tick } from "types/units";
 import { Row } from "..";
 import { HeaderFormatter } from "./Header";
 import { subdivisionToTicks } from "utils";
 import { convertTicksToBarsBeatsSixteenths } from "types/Transport";
 
-function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
-  const transport = selectTransport(state);
+function mapStateToProps(project: Project, ownProps: HeaderRendererProps<Row>) {
+  const transport = selectTransport(project);
   const { loop, loopStart, loopEnd } = transport;
 
   // Timeline properties
-  const { subdivision } = selectTimeline(state);
+  const { subdivision } = selectTimeline(project);
   const tickLength = subdivisionToTicks(subdivision);
 
   // Tick properties
   const columnIndex = Number(ownProps.column.key);
-  const tick = selectTickFromColumn(state, columnIndex - 1);
+  const tick = selectTickFromColumn(project, columnIndex - 1);
   const { bars, beats, sixteenths } = convertTicksToBarsBeatsSixteenths(
     transport,
     tick
@@ -78,7 +78,7 @@ function mapStateToProps(state: RootState, ownProps: HeaderRendererProps<Row>) {
   };
 }
 
-function mapDispatchToProps(dispatch: AppDispatch) {
+function mapDispatchToProps(dispatch: Dispatch) {
   return {
     onClick: (tick: Tick) => {
       dispatch(seekTransport(tick));

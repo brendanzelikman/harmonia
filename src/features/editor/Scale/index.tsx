@@ -19,7 +19,7 @@ import {
   selectSelectedTrack,
 } from "redux/selectors";
 import { UndoTypes } from "redux/undoTypes";
-import { RootState } from "redux/store";
+import { Dispatch, Project } from "types/Project";
 import { StateProps } from "../components/Editor";
 import {
   createScale,
@@ -38,19 +38,19 @@ import {
 import { updateScaleTrack } from "redux/ScaleTrack";
 import { getProperty } from "types/util";
 
-const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
-  const scaleTrack = selectSelectedTrack(state) as ScaleTrack;
-  const scaleTracks = selectScaleTrackMap(state);
-  const scaleMap = Scales.selectScaleMap(state);
+const mapStateToProps = (project: Project, ownProps: EditorProps) => {
+  const scaleTrack = selectSelectedTrack(project) as ScaleTrack;
+  const scaleTracks = selectScaleTrackMap(project);
+  const scaleMap = Scales.selectScaleMap(project);
   const scale = getScaleTrackScale(scaleTrack, scaleTracks, scaleMap);
   const nestedScale = getProperty(scaleMap, scaleTrack.scaleId);
 
-  const { past, future } = state.scales;
+  const { past, future } = project.scales;
   const canUndoScales = past.length > 0 && past[0].allIds.length > 0;
   const canRedoScales = future.length > 0;
 
-  const scaleIds = selectScaleIds(state);
-  const customScales = Scales.selectCustomScales(state);
+  const scaleIds = selectScaleIds(project);
+  const customScales = Scales.selectCustomScales(project);
 
   // Get the name and category from any matching scale
   const scaleName = getScaleName(scale);
@@ -74,7 +74,7 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
   };
 };
 
-const mapDispatchToProps = (dispatch: any, ownProps: EditorProps) => {
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: EditorProps) => {
   const track = ownProps.selectedTrack as ScaleTrack;
   const id = track?.id;
   const scaleId = track?.scaleId;

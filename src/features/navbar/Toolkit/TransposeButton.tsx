@@ -11,9 +11,9 @@ import {
 import { formatOffsets, getChromaticOffset } from "types/Transposition";
 import { getScaleName, getTransposedScale } from "types/Scale";
 import {
-  useAppDispatch,
-  useAppSelector,
-  useDeepEqualSelector,
+  useProjectDispatch,
+  useProjectSelector,
+  useProjectDeepSelector,
 } from "redux/hooks";
 import {
   selectScaleMap,
@@ -24,25 +24,25 @@ import {
   selectDraftedTransposition,
 } from "redux/selectors";
 import { getScaleTrackScale } from "types/ScaleTrack";
-import { isAddingTranspositions } from "types/Timeline";
+import { isTimelineAddingTranspositions } from "types/Timeline";
 import { toggleAddingTranspositions, updateMediaDraft } from "redux/Timeline";
 
 /**
  * Start adding transpositions with the given offsets.
  */
 export const ToolkitTransposeButton = () => {
-  const dispatch = useAppDispatch();
-  const timeline = useAppSelector(selectTimeline);
-  const isAdding = isAddingTranspositions(timeline);
-  const transposition = useAppSelector(selectDraftedTransposition);
+  const dispatch = useProjectDispatch();
+  const timeline = useProjectSelector(selectTimeline);
+  const isAdding = isTimelineAddingTranspositions(timeline);
+  const transposition = useProjectSelector(selectDraftedTransposition);
   const { offsets, duration } = transposition;
 
   // Selected track info
-  const selectedTrack = useDeepEqualSelector(selectSelectedTrack);
-  const scaleMap = useAppSelector(selectScaleMap);
-  const scaleTrackMap = useAppSelector(selectScaleTrackMap);
+  const selectedTrack = useProjectDeepSelector(selectSelectedTrack);
+  const scaleMap = useProjectSelector(selectScaleMap);
+  const scaleTrackMap = useProjectSelector(selectScaleTrackMap);
   const onScaleTrack = selectedTrack?.type === "scaleTrack";
-  const scaleTracks = useDeepEqualSelector((_) =>
+  const scaleTracks = useProjectDeepSelector((_) =>
     selectTrackParents(_, selectedTrack?.id)
   );
   const parents = onScaleTrack ? scaleTracks.slice(0, -1) : scaleTracks;
@@ -143,9 +143,11 @@ export const ToolkitTransposeButton = () => {
 
   /** The Transpose Button toggles the dropdown menu */
   const TransposeButton = () => {
-    const buttonClass = isAdding
-      ? "bg-fuchsia-600 ring-2 ring-offset-2 ring-fuchsia-600/80 ring-offset-black"
-      : "bg-fuchsia-600/80";
+    const buttonClass = `bg-transposition ring-2 ring-offset-2 ${
+      isAdding
+        ? "ring-transposition/80 ring-offset-black"
+        : "ring-transparent ring-offset-transparent"
+    }`;
     return (
       <ControlButton
         label="Transpose Clip"
@@ -161,7 +163,7 @@ export const ToolkitTransposeButton = () => {
   const TransposeTooltip = () => {
     return (
       <NavbarTooltip
-        className="-left-[6rem] bg-fuchsia-700 min-w-[15rem] px-3"
+        className="-left-[6rem] bg-fuchsia-600 min-w-[15rem] px-3"
         show={!!isAdding}
         content={
           <NavbarTooltipMenu>

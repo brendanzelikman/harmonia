@@ -8,7 +8,7 @@ import {
 } from "indexedDB";
 import { selectMetadata, selectProjectName } from "redux/Metadata";
 import { selectClipIds } from "redux/selectors";
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import { exportClipsToMidi } from "redux/thunks";
 import {
   Project,
@@ -58,10 +58,10 @@ export const deleteProject = (id: string) => () => {
  * @param project The state to save. If not specified, the current state is used.
  */
 export const saveProject =
-  (project?: Project): AppThunk =>
-  (dispatch, getState) => {
+  (project?: Project): Thunk =>
+  (dispatch, getProject) => {
     // Sanitize the project
-    const sanitizedProject = sanitizeProject(project || getState());
+    const sanitizedProject = sanitizeProject(project || getProject());
 
     // Update the project's timestamp
     const updatedProject = {
@@ -77,10 +77,10 @@ export const saveProject =
  * Export the project to a Harmonia file, using the given state if specified.
  */
 export const exportProjectToHAM =
-  (project?: Project): AppThunk =>
-  (dispatch, getState) => {
+  (project?: Project): Thunk =>
+  (dispatch, getProject) => {
     // Serialize the project
-    const sanitizedProject = sanitizeProject(project || getState());
+    const sanitizedProject = sanitizeProject(project || getProject());
     const projectJSON = JSON.stringify(sanitizedProject);
 
     // Create a blob and download it
@@ -99,9 +99,9 @@ export const exportProjectToHAM =
  * @param project The project to export. If not specified, the current project is used.
  */
 export const exportProjectToMIDI =
-  (project?: Project): AppThunk =>
-  (dispatch, getState) => {
-    const savedProject = project || getState();
+  (project?: Project): Thunk =>
+  (dispatch, getProject) => {
+    const savedProject = project || getProject();
     const clipIds = selectClipIds(savedProject);
     dispatch(exportClipsToMidi(clipIds));
   };
@@ -109,7 +109,7 @@ export const exportProjectToMIDI =
 /**
  * Open the user's file system and read local projects.
  */
-export const openLocalProjects = (): AppThunk => (dispatch) => {
+export const openLocalProjects = (): Thunk => (dispatch) => {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = ".ham";
@@ -127,7 +127,7 @@ export const openLocalProjects = (): AppThunk => (dispatch) => {
  * @param id The ID of the project to load.
  */
 export const loadProject =
-  (id: string): AppThunk =>
+  (id: string): Thunk =>
   async (dispatch) => {
     // Query the database
     const project = await getProjectFromDB(id);
@@ -146,7 +146,7 @@ export const loadProject =
  * Try to load a project from a Harmonia file.
  */
 export const loadProjectByFile =
-  (file: File): AppThunk =>
+  (file: File): Thunk =>
   (dispatch) => {
     try {
       const reader = new FileReader();
@@ -182,7 +182,7 @@ export const loadProjectByFile =
  * @param path The path to the project.
  */
 export const loadProjectByPath =
-  (path: string): AppThunk =>
+  (path: string): Thunk =>
   async () => {
     try {
       // Parse the project from the file path
@@ -202,9 +202,9 @@ export const loadProjectByPath =
 /**
  * Reset the project's state to the default.
  */
-export const clearProject = (): AppThunk => (dispatch, getState) => {
-  const state = getState();
-  const meta = selectMetadata(state);
+export const clearProject = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const meta = selectMetadata(project);
   const newState = { ...defaultProject, meta };
   dispatch({ type: "setState", payload: newState });
 };

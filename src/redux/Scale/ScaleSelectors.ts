@@ -1,4 +1,4 @@
-import { RootState } from "redux/store";
+import { Project } from "types/Project";
 import { createSelector } from "reselect";
 import { ScaleId } from "types/Scale";
 import { getProperties, getProperty } from "types/util";
@@ -6,22 +6,22 @@ import { ScaleTrackScaleName } from "types/Scale";
 
 /**
  * Select all scale IDs from the store.
- * @param state - The Redux store state.
+ * @param project - The Redux store state.
  * @returns An array of all scale IDs.
  */
-export const selectScaleIds = (state: RootState): ScaleId[] =>
-  state.scales.present.allIds;
+export const selectScaleIds = (project: Project): ScaleId[] =>
+  project.scales.present.allIds;
 
 /**
  * Select the scale map from the store.
- * @param state - The Redux store state.
+ * @param project - The Redux store state.
  * @returns The scale map.
  */
-export const selectScaleMap = (state: RootState) => state.scales.present.byId;
+export const selectScaleMap = (project: Project) => project.scales.present.byId;
 
 /**
  * Select all scales from the store (including track scales)
- * @param state - The Redux store state.
+ * @param project - The Redux store state.
  * @returns An array of scales.
  */
 export const selectScales = createSelector(
@@ -31,7 +31,7 @@ export const selectScales = createSelector(
 
 /**
  * Select all custom scales from the store (excluding track scales).
- * @param state - The Redux store state.
+ * @param project - The Redux store state.
  * @returns An array of scales.
  */
 export const selectCustomScales = createSelector(
@@ -44,11 +44,11 @@ export const selectCustomScales = createSelector(
 
 /**
  * Select a specific scale from the store.
- * @param state - The Redux store state.
+ * @param project - The Redux store state.
  * @param id - The ID of the scale to select.
  * @returns The scale.
  */
-export const selectScaleById = (state: RootState, id: ScaleId) => {
-  const scaleMap = selectScaleMap(state);
+export const selectScaleById = (project: Project, id: ScaleId) => {
+  const scaleMap = selectScaleMap(project);
   return getProperty(scaleMap, id);
 };

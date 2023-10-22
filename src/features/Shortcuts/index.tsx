@@ -2,7 +2,7 @@ import { Dialog, Listbox, Transition } from "@headlessui/react";
 import { Fragment, useEffect, useState } from "react";
 import { BsCheck } from "react-icons/bs";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useAppDispatch } from "redux/hooks";
+import { useProjectDispatch } from "redux/hooks";
 import { useCustomEventListener } from "hooks/useCustomEventListener";
 
 export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
@@ -536,7 +536,7 @@ function TranspositionWizard() {
 type ShortcutView = "timeline" | "editor" | "transpositions";
 
 export default function ShortcutsMenu() {
-  const dispatch = useAppDispatch();
+  const dispatch = useProjectDispatch();
   const [show, setShow] = useState(false);
   const [view, setView] = useState<ShortcutView>("timeline");
   const viewTimeline = () => setView("timeline");
@@ -640,9 +640,9 @@ export const ShortcutCategory = (props: { name: string }) => {
 export const Shortcut = (props: { shortcut: string; description: string }) => {
   return (
     <li className="flex justify-between items-center whitespace-nowrap">
-      <label className="text-bold min-w-[30px] text-center px-3 my-0.5 py-0.5 bg-slate-800/50 border border-slate-50/25 rounded mr-2 drop-shadow-xl">
+      <span className="text-bold min-w-[30px] text-center px-3 my-0.5 py-0.5 bg-slate-800/50 border border-slate-50/25 rounded mr-2 drop-shadow-xl">
         {props.shortcut}
-      </label>
+      </span>
       <span className="font-light drop-shadow-md">{props.description}</span>
     </li>
   );

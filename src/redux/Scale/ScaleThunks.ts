@@ -1,7 +1,7 @@
 import { ticksToToneSubdivision } from "utils";
 import { selectScaleById, selectTransport } from "redux/selectors";
 import { convertTicksToSeconds } from "types/Transport";
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import { MIDI } from "types/midi";
 import {
   Scale,
@@ -29,7 +29,7 @@ import { TrackId } from "types/Track";
 export const createScale =
   (
     scale: Partial<NestedScaleObject> = defaultNestedScale
-  ): AppThunk<Promise<NestedScaleId>> =>
+  ): Thunk<Promise<NestedScaleId>> =>
   async (dispatch) => {
     return new Promise((resolve) => {
       const newScale = initializeNestedScale(scale);
@@ -44,7 +44,7 @@ export const createScale =
  * @returns A promise that resolves when the scale is deleted.
  */
 export const deleteScale =
-  (id: ScaleId): AppThunk<Promise<void>> =>
+  (id: ScaleId): Thunk<Promise<void>> =>
   async (dispatch) => {
     return new Promise((resolve) => {
       dispatch(removeScale(id));
@@ -58,12 +58,12 @@ export const deleteScale =
  * @param offset The offset to transpose the track by.
  */
 export const transposeScale =
-  (id: ScaleId, offset: number): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
+  (id: ScaleId, offset: number): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
 
     // Get the scale track
-    const scale = selectScaleById(state, id);
+    const scale = selectScaleById(project, id);
     if (!scale) return;
 
     // Transpose the scale track scale
@@ -80,12 +80,12 @@ export const transposeScale =
  * @param offset The offset to rotate the scale by.
  */
 export const rotateScale =
-  (id: ScaleId, offset: number): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
+  (id: ScaleId, offset: number): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
 
     // Get the scale track
-    const scale = selectScaleById(state, id);
+    const scale = selectScaleById(project, id);
     if (!scale) return;
 
     // Transpose the scale track scale
@@ -101,7 +101,7 @@ export const rotateScale =
  * @param id The ID of the scale track to clear.
  */
 export const clearNotesFromScale =
-  (id: TrackId): AppThunk =>
+  (id: TrackId): Thunk =>
   (dispatch) => {
     dispatch(updateScale({ id, notes: [] }));
   };
@@ -111,10 +111,10 @@ export const clearNotesFromScale =
  * @param scale The scale to play.
  */
 export const playScale =
-  (scale: Scale): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const transport = selectTransport(state);
+  (scale: Scale): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const transport = selectTransport(project);
 
     // Get the global instrument
     const instance = LIVE_AUDIO_INSTANCES.global;
@@ -160,10 +160,10 @@ export const playScale =
  * @param scale The scale to export.
  */
 export const exportScaleToMIDI =
-  (scale: Scale): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const transport = selectTransport(state);
+  (scale: Scale): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const transport = selectTransport(project);
 
     // Create a new MIDI file with a single track
     const midi = new Midi();

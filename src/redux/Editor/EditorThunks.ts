@@ -3,7 +3,7 @@ import {
   selectSelectedTrackId,
   selectTrackById,
 } from "redux/selectors";
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import { isScaleTrack } from "types/ScaleTrack";
 import { TrackId } from "types/Track";
 import { _showEditor, hideEditor } from "./EditorSlice";
@@ -17,7 +17,7 @@ import { clearTimelineState, setSelectedTrackId } from "redux/Timeline";
  * @param trackId The track ID to select.
  */
 export const showEditor =
-  ({ id, trackId }: { id: EditorId; trackId?: TrackId }): AppThunk =>
+  ({ id, trackId }: { id: EditorId; trackId?: TrackId }): Thunk =>
   (dispatch) => {
     dispatch(_showEditor(id));
     dispatch(clearTimelineState());
@@ -29,13 +29,13 @@ export const showEditor =
  * @param trackId The track ID.
  */
 export const toggleTrackScaleEditor =
-  (trackId?: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const track = selectTrackById(state, trackId);
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
     if (!track || !isScaleTrack(track)) return;
-    const selectedTrackId = selectSelectedTrackId(state);
-    const editor = selectEditor(state);
+    const selectedTrackId = selectSelectedTrackId(project);
+    const editor = selectEditor(project);
     const onScale = isEditorOn(editor, "scale");
     const onEditor = trackId === selectedTrackId && onScale;
     if (onEditor) {
@@ -50,13 +50,13 @@ export const toggleTrackScaleEditor =
  * @param trackId The track ID.
  */
 export const toggleTrackInstrumentEditor =
-  (trackId?: TrackId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const track = selectTrackById(state, trackId);
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
     if (!track || !isPatternTrack(track)) return;
-    const selectedTrackId = selectSelectedTrackId(state);
-    const editor = selectEditor(state);
+    const selectedTrackId = selectSelectedTrackId(project);
+    const editor = selectEditor(project);
     const onInstrument = isEditorOn(editor, "instrument");
     const onEditor = trackId === selectedTrackId && onInstrument;
     if (onEditor) {

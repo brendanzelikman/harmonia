@@ -3,18 +3,20 @@ import * as Media from "redux/Media";
 import * as Transport from "redux/Transport";
 import * as Project from "redux/Project";
 
-import { useAppSelector, useAppDispatch } from "redux/hooks";
+import { useProjectSelector, useProjectDispatch } from "redux/hooks";
 import { useScopedHotkeys, useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { showEditor } from "redux/Editor";
 import { redoArrangement, undoArrangement } from "redux/Arrangement";
+import { useHotkeys } from "react-hotkeys-hook";
+import { useEffect } from "react";
 
 const useGlobalHotkeys = useScopedHotkeys("timeline");
 const useTransportHotkeys = useScopedHotkeys("transport");
 const useMediaHotkeys = useScopedHotkeys("media");
 
 export default function useTimelineHotkeys() {
-  const dispatch = useAppDispatch();
-  const selectedMedia = useAppSelector(Timeline.selectSelectedMedia);
+  const dispatch = useProjectDispatch();
+  const selectedMedia = useProjectSelector(Timeline.selectSelectedMedia);
   const mediaLength = selectedMedia.length;
 
   // Meta + Z = Undo Arrangement
@@ -29,8 +31,14 @@ export default function useTimelineHotkeys() {
   // Enter = Stop Transport
   useTransportHotkeys("enter", () => dispatch(Transport.stopTransport()));
 
+  // Stop the transport on unmount
+  useEffect(() => () => dispatch(Transport.stopTransport()), []);
+
   // L = Toggle Loop
   useGlobalHotkeys("l", () => dispatch(Transport.toggleTransportLoop()));
+
+  // Shift + R = Toggle Recording
+  useHotkeys("shift+r", () => dispatch(Transport.toggleTransportRecording()));
 
   // Meta + Shift + M = Toggle Transport Mute
   useOverridingHotkeys("meta+shift+m", () =>

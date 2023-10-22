@@ -37,7 +37,7 @@ export const patternTracksSlice = createSlice({
   reducers: {
     /**
      * Add a PatternTrack to the store.
-     * @param state The patternTracks state.
+     * @param project The patternTracks state.
      * @param action The PatternTrack to add.
      */
     addPatternTrack: (state, action: PayloadAction<AddPatternTrackPayload>) => {
@@ -47,7 +47,7 @@ export const patternTracksSlice = createSlice({
     },
     /**
      * Remove a PatternTrack from the store.
-     * @param state The patternTracks state.
+     * @param project The patternTracks state.
      * @param action The PatternTrack ID to remove.
      * @returns The PatternTrack ID.
      */
@@ -64,7 +64,7 @@ export const patternTracksSlice = createSlice({
     },
     /**
      * Update a PatternTrack in the store.
-     * @param state The patternTracks state.
+     * @param project The patternTracks state.
      * @param action The PatternTrack partial to update.
      * @returns The PatternTrack ID.
      */

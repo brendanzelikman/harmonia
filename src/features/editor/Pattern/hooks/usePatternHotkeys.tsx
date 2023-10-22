@@ -1,7 +1,8 @@
 import { PatternEditorCursorProps } from "..";
 import { Duration } from "types/units";
-import { useHotkeys } from "react-hotkeys-hook";
 import { createPromptedAction } from "redux/util";
+import { useScopedHotkeys } from "lib/react-hotkeys-hook";
+const useHotkeys = useScopedHotkeys("editor");
 
 interface PatternShortcutProps extends PatternEditorCursorProps {
   onDurationClick: (duration: Duration) => void;
@@ -12,6 +13,12 @@ export default function usePatternHotkeys(props: PatternShortcutProps) {
   const rewindCursor = () => cursor.setIndex(0);
   const forwardCursor = () =>
     cursor.setIndex((pattern?.stream.length ?? 1) - 1);
+
+  // Meta + Z = Undo Patterns
+  useHotkeys("meta+z", props.undoPatterns);
+
+  // Meta + Shift + Z = Redo Patterns
+  useHotkeys("meta+shift+z", props.redoPatterns);
 
   // 1 = Select 64th Note
   useHotkeys("1", () => props.onDurationClick("64th"));

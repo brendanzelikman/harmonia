@@ -3,7 +3,7 @@ import {
   removeMediaFromHierarchy,
   selectTrackNodeMap,
 } from "redux/TrackHierarchy";
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import {
   Clip,
   ClipId,
@@ -42,7 +42,7 @@ import { union } from "lodash";
  * @returns A promise that resolves to the list of clip IDs.
  */
 export const createClips =
-  (clipNoIds: Partial<ClipNoId>[]): AppThunk<Promise<{ clipIds: ClipId[] }>> =>
+  (clipNoIds: Partial<ClipNoId>[]): Thunk<Promise<{ clipIds: ClipId[] }>> =>
   (dispatch) => {
     return new Promise((resolve) => {
       // Initialize the clips
@@ -66,10 +66,10 @@ export const createClips =
  * @returns A promise that resolves to true if the clips were deleted.
  */
 export const deleteClips =
-  (clips: Clip[]): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const { clipIds } = selectMediaSelection(state);
+  (clips: Clip[]): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const { clipIds } = selectMediaSelection(project);
     return new Promise((resolve) => {
       // Resolve false if any clips are invalid
       if (clips.some((clip) => !isClip(clip))) {
@@ -95,30 +95,30 @@ export const deleteClips =
  * @param ids The IDs of the clips to export.
  */
 export const exportClipsToMidi =
-  (ids: ClipId[]): AppThunk =>
-  async (_dispatch, getState) => {
-    const state = getState();
+  (ids: ClipId[]): Thunk =>
+  async (_dispatch, getProject) => {
+    const project = getProject();
 
     // Get the clips
-    const clips = selectClipsByIds(state, ids);
+    const clips = selectClipsByIds(project, ids);
     if (!clips.length) return;
 
     // Get the dependencies
-    const meta = selectMetadata(state);
-    const patternMap = selectPatternMap(state);
-    const patternTrackMap = selectPatternTrackMap(state);
-    const scaleTrackMap = selectScaleTrackMap(state);
-    const scaleMap = selectScaleMap(state);
-    const transport = selectTransport(state);
-    const trackNodeMap = selectTrackNodeMap(state);
-    const transpositionMap = selectTranspositionMap(state);
+    const meta = selectMetadata(project);
+    const patternMap = selectPatternMap(project);
+    const patternTrackMap = selectPatternTrackMap(project);
+    const scaleTrackMap = selectScaleTrackMap(project);
+    const scaleMap = selectScaleMap(project);
+    const transport = selectTransport(project);
+    const trackNodeMap = selectTrackNodeMap(project);
+    const transpositionMap = selectTranspositionMap(project);
 
     // Sort the clips
     const sortedClips = clips.sort((a, b) => a.tick - b.tick);
 
     // Accumulate clips into tracks
     const clipsByTrack = sortedClips.reduce((acc, clip) => {
-      const track = selectTrackById(state, clip.trackId);
+      const track = selectTrackById(project, clip.trackId);
       if (!track) return acc;
       if (!acc[track.id]) acc[track.id] = [];
       acc[track.id].push(clip);
@@ -127,7 +127,7 @@ export const exportClipsToMidi =
 
     // Sort the trackIds descending by view order based on the track map
     const trackIds = Object.keys(clipsByTrack) as TrackId[];
-    const orderedTrackIds = selectOrderedTrackIds(state);
+    const orderedTrackIds = selectOrderedTrackIds(project);
     const clipTrackIds = orderedTrackIds.filter((id) => trackIds.includes(id));
 
     // Prepare a new MIDI file
@@ -136,7 +136,7 @@ export const exportClipsToMidi =
     // Iterate through each track
     clipTrackIds.forEach((trackId) => {
       // Get the pattern track
-      const track = selectPatternTrackById(state, trackId);
+      const track = selectPatternTrackById(project, trackId);
       if (!track) return;
 
       // Create a track for each clip

@@ -4,7 +4,7 @@ import {
   selectPatternById,
   selectTransport,
 } from "redux/selectors";
-import { AppThunk } from "redux/store";
+import { Thunk } from "types/Project";
 import { MIDI } from "types/midi";
 import {
   Pattern,
@@ -34,9 +34,7 @@ import { updateMediaDraft } from "redux/Timeline";
  * @returns A promise that resolves to the ID of the created pattern.
  */
 export const createPattern =
-  (
-    pattern: Partial<PatternNoId> = defaultPattern
-  ): AppThunk<Promise<PatternId>> =>
+  (pattern: Partial<PatternNoId> = defaultPattern): Thunk<Promise<PatternId>> =>
   async (dispatch) => {
     return new Promise((resolve) => {
       const newPattern = initializePattern(pattern);
@@ -50,11 +48,11 @@ export const createPattern =
  * @param ids The IDs of the patterns to remove.
  */
 export const deletePattern =
-  (id: PatternId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const { patternId } = selectDraftedClip(state);
-    const patternIds = selectPatternIds(state);
+  (id: PatternId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const { patternId } = selectDraftedClip(project);
+    const patternIds = selectPatternIds(project);
 
     // Get the index of the pattern to remove
     const index = patternIds.findIndex((patternId) => patternId === id);
@@ -73,11 +71,11 @@ export const deletePattern =
  * @param pattern The pattern to play.
  */
 export const playPattern =
-  (pattern?: Pattern): AppThunk =>
-  (dispatch, getState) => {
+  (pattern?: Pattern): Thunk =>
+  (dispatch, getProject) => {
     if (!pattern) return;
-    const state = getState();
-    const transport = selectTransport(state);
+    const project = getProject();
+    const transport = selectTransport(project);
 
     // Get the global audio instance
     const instance = LIVE_AUDIO_INSTANCES.global;
@@ -173,12 +171,12 @@ export const parsePatternRegex = (expression: string) => {
  * @param regex The regex expression to parse.
  */
 export const updatePatternByRegex =
-  (id: PatternId, regex: string): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
+  (id: PatternId, regex: string): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
 
     // Get the pattern and parsed stream
-    const pattern = selectPatternById(state, id);
+    const pattern = selectPatternById(project, id);
     const parsedStream = parsePatternRegex(regex);
     if (!pattern || !parsedStream?.length) return;
 
@@ -197,13 +195,13 @@ export const updatePatternByRegex =
  * @param id The ID of the pattern to export.
  */
 export const exportPatternToMIDI =
-  (id: PatternId): AppThunk =>
-  (dispatch, getState) => {
-    const state = getState();
-    const transport = selectTransport(state);
+  (id: PatternId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const transport = selectTransport(project);
 
     // Get the pattern
-    const pattern = selectPatternById(state, id);
+    const pattern = selectPatternById(project, id);
     if (!pattern) return;
 
     // Prepare a new MIDI file

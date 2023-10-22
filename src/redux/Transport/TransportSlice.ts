@@ -32,28 +32,28 @@ export const transportSlice = createSlice({
   reducers: {
     /**
      * Set the transport state to "started".
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      */
     _startTransport: (state) => {
       state.state = "started";
     },
     /**
      * Set the transport state to "stopped" and reset the tick to 0.
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      */
     _stopTransport: (state) => {
       state.state = "stopped";
     },
     /**
      * Set the transport state to "paused".
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      */
     _pauseTransport: (state) => {
       state.state = "paused";
     },
     /**
      * Set the transport loop to true or false.
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      * @param action - The payload action containing the loop value.
      */
     _loopTransport: (state, action: PayloadAction<boolean>) => {
@@ -61,7 +61,7 @@ export const transportSlice = createSlice({
     },
     /**
      * Set the transport loop start to the given tick.
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      * @param action - The payload action containing the loop start tick.
      */
     _setLoopStart: (state, action: PayloadAction<Tick>) => {
@@ -69,7 +69,7 @@ export const transportSlice = createSlice({
     },
     /**
      * Set the transport loop end to the given tick.
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      * @param action - The payload action containing the loop end tick.
      */
     _setLoopEnd: (state, action: PayloadAction<Tick>) => {
@@ -77,7 +77,7 @@ export const transportSlice = createSlice({
     },
     /**
      * Set the transport BPM to the given value.
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      * @param action - The payload action containing the BPM value.
      */
     _setBPM: (state, action: PayloadAction<BPM>) => {
@@ -86,7 +86,7 @@ export const transportSlice = createSlice({
     },
     /**
      * Set the transport time signature to the given value.
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      * @param action - The payload action containing the time signature value.
      */
     _setTimeSignature: (state, action: PayloadAction<[number, number]>) => {
@@ -94,7 +94,7 @@ export const transportSlice = createSlice({
     },
     /**
      * Set the transport volume to the given value.
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      * @param action - The payload action containing the volume value.
      */
     _setVolume: (state, action: PayloadAction<Volume>) => {
@@ -103,7 +103,7 @@ export const transportSlice = createSlice({
     },
     /**
      * Set the transport mute to true or false.
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      * @param action - The payload action containing the mute value.
      */
     _setMute: (state, action: PayloadAction<boolean>) => {
@@ -111,7 +111,7 @@ export const transportSlice = createSlice({
     },
     /**
      * Set the transport recording state to true or false.
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      * @param action - The payload action containing the recording value.
      */
     setRecording: (state, action) => {
@@ -119,7 +119,7 @@ export const transportSlice = createSlice({
     },
     /**
      * Set the transport downloading state to true or false.
-     * @param state - The current transport state.
+     * @param project - The current transport state.
      * @param action - The payload action containing the downloading value.
      */
     setDownloading: (state, action) => {

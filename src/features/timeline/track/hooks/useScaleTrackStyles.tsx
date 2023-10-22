@@ -1,4 +1,4 @@
-import { useAppSelector, useDeepEqualSelector } from "redux/hooks";
+import { useProjectSelector, useProjectDeepSelector } from "redux/hooks";
 import { ScaleTrackProps } from "../ScaleTrack";
 import { selectTranspositionIds } from "redux/Transposition";
 import { selectTrackParents, selectSelectedTrackId } from "redux/selectors";
@@ -7,9 +7,9 @@ interface ScaleTrackStyleProps extends ScaleTrackProps {
   isDragging: boolean;
 }
 export const useScaleTrackStyles = (props: ScaleTrackStyleProps) => {
-  const selectedTrackId = useAppSelector(selectSelectedTrackId);
-  const selectedTranspositionIds = useAppSelector(selectTranspositionIds);
-  const selectedParents = useDeepEqualSelector((_) =>
+  const selectedTrackId = useProjectSelector(selectSelectedTrackId);
+  const selectedTranspositionIds = useProjectSelector(selectTranspositionIds);
+  const selectedParents = useProjectDeepSelector((_) =>
     selectTrackParents(_, selectedTrackId)
   );
   const isSelected = props.track.id === selectedTrackId;
@@ -46,8 +46,8 @@ export const useScaleTrackStyles = (props: ScaleTrackStyleProps) => {
       ? "bg-gradient-to-r from-sky-600 to-sky-600/50 background-pulse"
       : ""
   }`;
-  const patternTrackButton = `px-4 active:bg-gradient-to-tr active:from-emerald-500 active:to-teal-500/50 border-emerald-500 background-pulse select-none`;
-  const scaleTrackButton = `px-3 border-indigo-400 active:bg-gradient-to-r active:from-indigo-400 active:to-indigo-500 background-pulse select-none`;
+  const patternTrackButton = `w-6 h-6 text-2xl flex items-center justify-center border rounded-full border-emerald-500 active:bg-emerald-500 select-none`;
+  const scaleTrackButton = `w-6 h-6 text-2xl flex items-center justify-center border rounded-full border-indigo-400 active:bg-indigo-500 select-none`;
 
   return {
     opacity,

@@ -6,7 +6,7 @@ import {
   selectTransport,
 } from "redux/selectors";
 
-import { AppDispatch, RootState } from "redux/store";
+import { Project, Dispatch } from "types/Project";
 import {
   SafeEffect,
   EffectId,
@@ -36,16 +36,16 @@ import {
   selectPatternTrackInstrumentKey,
 } from "redux/PatternTrack";
 
-const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
-  const trackId = selectSelectedTrackId(state);
-  const transport = selectTransport(state);
-  const track = trackId ? selectPatternTrackById(state, trackId) : undefined;
-  const instrument = selectInstrumentById(state, track?.instrumentId);
+const mapStateToProps = (project: Project, ownProps: EditorProps) => {
+  const trackId = selectSelectedTrackId(project);
+  const transport = selectTransport(project);
+  const track = trackId ? selectPatternTrackById(project, trackId) : undefined;
+  const instrument = selectInstrumentById(project, track?.instrumentId);
 
   const instruments = Object.keys(categories).flatMap((category) =>
     getCategoryInstruments(category as InstrumentCategory)
   );
-  const instrumentKey = selectPatternTrackInstrumentKey(state, trackId);
+  const instrumentKey = selectPatternTrackInstrumentKey(project, trackId);
   const instrumentName = getInstrumentName(instrumentKey);
   const instrumentCategory = getInstrumentCategory(instrumentKey);
   const isTransportStarted = transport.state === "started";
@@ -62,7 +62,7 @@ const mapStateToProps = (state: RootState, ownProps: EditorProps) => {
     isTransportStarted,
   };
 };
-const mapDispatchToProps = (dispatch: AppDispatch) => {
+const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     setTrackInstrument: (trackId: TrackId, instrument: InstrumentKey) => {
       dispatch(setPatternTrackInstrument(trackId, instrument));

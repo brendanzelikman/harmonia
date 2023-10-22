@@ -1,4 +1,4 @@
-import { RootState } from "redux/store";
+import { Project } from "types/Project";
 import { createSelector } from "reselect";
 import { PatternMap } from "types/Pattern";
 import { getProperty, getProperties } from "types/util";
@@ -6,23 +6,23 @@ import { PresetPatternMap } from "presets/patterns";
 
 /**
  * Select all pattern IDs from the store.
- * @param state The RootState object.
+ * @param project The Project object.
  * @returns An array of pattern IDs.
  */
-export const selectPatternIds = (state: RootState) =>
-  state.patterns.present.allIds;
+export const selectPatternIds = (project: Project) =>
+  project.patterns.present.allIds;
 
 /**
  * Select the pattern map from the store.
- * @param state The RootState object.
+ * @param project The Project object.
  * @returns A map of pattern IDs to pattern objects.
  */
-export const _selectPatternMap = (state: RootState) =>
-  state.patterns.present.byId;
+export const _selectPatternMap = (project: Project) =>
+  project.patterns.present.byId;
 
 /**
  * Select the pattern map from the store (integrated with preset patterns).
- * @param state The RootState object.
+ * @param project The Project object.
  * @returns A map of pattern IDs to pattern objects.
  */
 export const selectPatternMap = createSelector(
@@ -32,7 +32,7 @@ export const selectPatternMap = createSelector(
 
 /**
  * Select all patterns from the store.
- * @param state The RootState object.
+ * @param project The Project object.
  * @returns An array of patterns.
  */
 export const selectPatterns = createSelector(
@@ -42,7 +42,7 @@ export const selectPatterns = createSelector(
 
 /**
  * Select all non-preset patterns from the store.
- * @param state The RootState object.
+ * @param project The Project object.
  * @returns An array of patterns.
  */
 export const selectCustomPatterns = createSelector(
@@ -53,11 +53,11 @@ export const selectCustomPatterns = createSelector(
 
 /**
  * Select a specific pattern from the store.
- * @param state The RootState object.
+ * @param project The Project object.
  * @param id The pattern ID.
  * @returns The pattern object or undefined if not found.
  */
-export const selectPatternById = (state: RootState, id: string) => {
-  const patternMap = selectPatternMap(state);
+export const selectPatternById = (project: Project, id: string) => {
+  const patternMap = selectPatternMap(project);
   return getProperty(patternMap, id);
 };

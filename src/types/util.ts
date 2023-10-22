@@ -1,4 +1,4 @@
-import { RootState } from "redux/store";
+import { Project } from "types/Project";
 import { ID } from "./units";
 
 /**
@@ -73,28 +73,50 @@ export const getProperties = <T, K extends keyof T>(
 };
 
 /**
+ * Gets the keys of an object or an array of objects.
+ * @param obj The object or array of objects.
+ * @returns An array of keys.
+ */
+export const getKeys = <T extends Record<string, any>>(
+  obj: T | T[]
+): string[] => {
+  return Array.isArray(obj)
+    ? obj.flatMap((o) => Object.keys(o))
+    : Object.keys(obj);
+};
+
+/**
+ * Returns true if an object has any keys.
+ * @param obj The object to check.
+ * @returns True if the object has any keys, otherwise false.
+ */
+export const hasKeys = (obj: Record<string, any>) => {
+  return Object.keys(obj).length > 0;
+};
+
+/**
  * Select an ID, ignoring state.
- * @param state The RootState object.
+ * @param project The Project object.
  * @param id Optional. The ID to select.
  * @returns The ID.
  */
-export const selectId = (state: RootState, id: ID) => id;
+export const selectId = (project: Project, id: ID) => id;
 
 /**
  * Select a list of IDs from the state.
- * @param state The RootState object.
+ * @param project The Project object.
  * @param ids Optional. The IDs to select.
  * @returns The IDs.
  */
-export const selectIds = (state: RootState, ids: ID[]) => ids ?? [];
+export const selectIds = (project: Project, ids: ID[]) => ids ?? [];
 
 /**
  * Select a tick, ignoring state.
- * @param state The RootState object.
+ * @param project The Project object.
  * @param tick Optional. The tick to select.
  * @returns The tick.
  */
-export const selectTick = (state: RootState, tick: number) => tick;
+export const selectTick = (project: Project, tick: number) => tick;
 
 /**
  * Create a string of tags from an array of items.
