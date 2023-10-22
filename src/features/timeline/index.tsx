@@ -17,15 +17,13 @@ import {
   useProjectDeepSelector,
   useProjectDispatch,
 } from "redux/hooks";
-import TrackRenderer from "./Track";
-import CellRenderer from "./Cell";
+import TrackRenderer from "./track";
+import CellRenderer from "./cell";
 import HeaderRenderer from "./header";
-
-import { TimelineClips } from "./Clips";
-import { TimelineTranspositions } from "./Transpositions";
+import { TimelineClips } from "./clips";
+import { TimelineTranspositions } from "./transpositions";
 import TimelineContextMenu from "./components/TimelineContextMenu";
 import TimelineGraphics from "./components/TimelineGraphics";
-
 import useTimelineHotkeys from "./hooks/useTimelineHotkeys";
 import { useTimelineLiveHotkeys } from "./hooks/useTimelineLiveHotkeys";
 import {

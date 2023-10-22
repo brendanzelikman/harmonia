@@ -1,16 +1,16 @@
 import useGlobalHotkeys from "hooks/useGlobalHotkeys";
 import useMidiController from "hooks/useMidiController";
-import Shortcuts from "features/Shortcuts";
+import Shortcuts from "features/shortcuts";
 
 import { LoadingView } from "views";
-import { TourBackground } from "features/Tour";
+import { TourBackground } from "features/tour";
 import { useLoadedTransport } from "hooks/useLoadedTransport";
 import { useCurrentProject } from "hooks/useCurrentProject";
 import { Suspense, lazy } from "react";
 
 const Navbar = lazy(() => import("features/Navbar"));
 const Editor = lazy(() => import("features/Editor"));
-const Timeline = lazy(() => import("features/timeline"));
+const Timeline = lazy(() => import("features/Timeline"));
 
 export function PlaygroundView() {
   useGlobalHotkeys();

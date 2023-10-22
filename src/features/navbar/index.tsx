@@ -7,7 +7,7 @@ import { Transition } from "@headlessui/react";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { NavbarBrand, NavbarGroup } from "./components";
-import { OnboardingTour } from "features/Tour";
+import { OnboardingTour } from "features/tour";
 import { NAV_HEIGHT } from "utils";
 
 export default function Navbar() {
