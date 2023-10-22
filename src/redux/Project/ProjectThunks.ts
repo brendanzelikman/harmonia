@@ -139,7 +139,7 @@ export const loadProject =
     dispatch({ type: "setState", payload: project });
 
     // Redirect to the playground
-    window.location.href = window.location.origin + "/harmonia/playground";
+    window.location.href = window.location.origin + "/harmonia/#/playground";
   };
 
 /**
@@ -195,7 +195,7 @@ export const loadProjectByPath =
       console.error(e);
     } finally {
       // Redirect to the playground
-      window.location.href = window.location.origin + "/harmonia/playground";
+      window.location.href = window.location + "/harmonia/#/playground";
     }
   };
 
