@@ -17,11 +17,11 @@ import {
   useProjectDeepSelector,
   useProjectDispatch,
 } from "redux/hooks";
-import TrackRenderer from "./track";
-import CellRenderer from "./cell";
-import HeaderRenderer from "./header";
-import { TimelineClips } from "./clips";
-import { TimelineTranspositions } from "./transpositions";
+import TrackRenderer from "./Track";
+import CellRenderer from "./Cell";
+import HeaderRenderer from "./Header";
+import { TimelineClips } from "./Clips";
+import { TimelineTranspositions } from "./Transpositions";
 import TimelineContextMenu from "./components/TimelineContextMenu";
 import TimelineGraphics from "./components/TimelineGraphics";
 import useTimelineHotkeys from "./hooks/useTimelineHotkeys";

@@ -1,9 +1,9 @@
 import useGlobalHotkeys from "hooks/useGlobalHotkeys";
 import useMidiController from "hooks/useMidiController";
-import Shortcuts from "features/shortcuts";
+import Shortcuts from "features/Shortcuts";
 
 import { LoadingView } from "views";
-import { TourBackground } from "features/tour";
+import { TourBackground } from "features/Tour";
 import { useLoadedTransport } from "hooks/useLoadedTransport";
 import { useCurrentProject } from "hooks/useCurrentProject";
 import { Suspense, lazy } from "react";

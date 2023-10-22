@@ -1,7 +1,7 @@
 import { Transition } from "@headlessui/react";
-import { Demos } from "features/demos";
-import { Profile } from "features/profile";
-import { Projects } from "features/projects";
+import { Demos } from "features/Demos";
+import { Profile } from "features/Profile";
+import { Projects } from "features/Projects";
 import { BsArrowLeft } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 
