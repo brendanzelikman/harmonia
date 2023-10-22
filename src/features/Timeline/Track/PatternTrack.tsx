@@ -22,7 +22,7 @@ import {
   BsTrash,
 } from "react-icons/bs";
 import { BiCopy } from "react-icons/bi";
-import { cancelEvent, numberToLower, percentOfRange } from "utils";
+import { cancelEvent, percentOfRange } from "utils";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDragAndDrop";
 import { MIN_VOLUME, MAX_VOLUME, MIN_PAN, MAX_PAN } from "utils/constants";
 import { DEFAULT_VOLUME, DEFAULT_PAN } from "utils/constants";
@@ -293,8 +293,8 @@ function PatternTrackComponent(props: PatternTrackProps) {
         className={styles.instrumentButton}
         onClick={props.toggleInstrumentEditor}
       >
+        <BsPencil className="mr-2 flex-shrink-0" />
         {props.instrumentName}
-        <BsPencil className="ml-2" />
       </TrackButton>
       <div className="flex ml-2 space-x-1 justify-self-end">
         <button
@@ -324,7 +324,7 @@ function PatternTrackComponent(props: PatternTrackProps) {
       onDoubleClick={props.toggleInstrumentEditor}
     >
       {PatternTrackSliders}
-      <div className="w-full h-full flex flex-col items-start justify-center px-2 duration-150">
+      <div className="h-full flex flex-1 flex-col items-start justify-center truncate px-2 duration-150">
         {PatternTrackHeader}
         {!track.collapsed && PatternTrackButtons}
       </div>

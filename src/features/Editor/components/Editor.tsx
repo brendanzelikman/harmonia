@@ -42,28 +42,22 @@ export type StateProps = {
 export function Editor(props: EditorProps) {
   const hotkeys = useHotkeysContext();
 
-  // Only show the editor if the id is one of the visible states
-  const visibleStates = ["scale", "patterns", "instrument"];
-  if (!visibleStates.includes(props.id)) return null;
-
   // Update the hotkey scope when the editor is visible
   useEffect(() => {
-    const hasTimeline = hotkeys.enabledScopes.includes("timeline");
+    if (!props.show) return;
 
     // Remove the timeline scope when the editor is shown
-    if (!!props.show && hasTimeline) {
-      hotkeys.disableScope("timeline");
-      hotkeys.enableScope("editor");
-      return;
-    }
+    hotkeys.enableScope("editor");
+    hotkeys.disableScope("timeline");
 
     // Enable the timeline scope when the editor is hidden
-    if (!props.show && !hasTimeline) {
+    return () => {
       hotkeys.disableScope("editor");
       hotkeys.enableScope("timeline");
-    }
-  }, [props.show, hotkeys.enabledScopes]);
+    };
+  }, [props.show]);
 
+  console.log(hotkeys.enabledScopes);
   // State management
   const [state, setState] = useState({
     showingTracks: true,
@@ -129,6 +123,10 @@ export function Editor(props: EditorProps) {
       </span>
     </div>
   );
+
+  // Only show the editor if the id is one of the visible states
+  const visibleStates = ["scale", "patterns", "instrument"];
+  if (!visibleStates.includes(props.id)) return null;
 
   return (
     <Transition

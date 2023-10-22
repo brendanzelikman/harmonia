@@ -195,7 +195,8 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
         className={styles.scaleEditorButton}
         onClick={props.toggleScaleEditor}
       >
-        {scaleName} <BsPencil className="ml-2" />
+        <BsPencil className="mr-2 flex-shrink-0" />
+        {scaleName}
       </TrackButton>
       <div className="flex ml-2 space-x-1 justify-self-end">
         <button className={styles.patternTrackButton}>

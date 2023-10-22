@@ -100,7 +100,7 @@ export const usePatternTrackStyles = (props: PatternTrackStylesProps) => {
   const collapsedSoloButton = `${collapsedSoloColor} ${collapsedSoloShadow}`;
 
   // Instrument editor button
-  const instrumentButton = `px-3 border border-orange-400 ${
+  const instrumentButton = `px-2 border border-orange-400 ${
     props.onInstrumentEditor
       ? "bg-gradient-to-r from-orange-500 to-orange-500/50 background-pulse"
       : ""

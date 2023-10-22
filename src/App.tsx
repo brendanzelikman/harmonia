@@ -49,9 +49,7 @@ export function App() {
 
   return (
     <StrictMode>
-      <HotkeysProvider
-        initiallyActiveScopes={["timeline", "transport", "media"]}
-      >
+      <HotkeysProvider initiallyActiveScopes={["timeline", "transport"]}>
         <DndProvider backend={HTML5Backend} key={1}>
           <ReduxProvider store={store}>
             <MIDIProvider>

@@ -7,12 +7,10 @@ import { useProjectSelector, useProjectDispatch } from "redux/hooks";
 import { useScopedHotkeys, useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { showEditor } from "redux/Editor";
 import { redoArrangement, undoArrangement } from "redux/Arrangement";
-import { useHotkeys } from "react-hotkeys-hook";
 import { useEffect } from "react";
 
-const useGlobalHotkeys = useScopedHotkeys("timeline");
+const useHotkeys = useScopedHotkeys("timeline");
 const useTransportHotkeys = useScopedHotkeys("transport");
-const useMediaHotkeys = useScopedHotkeys("media");
 
 export default function useTimelineHotkeys() {
   const dispatch = useProjectDispatch();
@@ -35,7 +33,7 @@ export default function useTimelineHotkeys() {
   useEffect(() => () => dispatch(Transport.stopTransport()), []);
 
   // L = Toggle Loop
-  useGlobalHotkeys("l", () => dispatch(Transport.toggleTransportLoop()));
+  useHotkeys("l", () => dispatch(Transport.toggleTransportLoop()));
 
   // Shift + R = Toggle Recording
   useHotkeys("shift+r", () => dispatch(Transport.toggleTransportRecording()));
@@ -46,56 +44,52 @@ export default function useTimelineHotkeys() {
   );
 
   // Meta + Option + M = Save Timeline to MIDI
-  useGlobalHotkeys("meta+alt+m", () => dispatch(Project.exportProjectToMIDI()));
+  useHotkeys("meta+alt+m", () => dispatch(Project.exportProjectToMIDI()));
 
   // Shift + M = Export Selected Media
-  useMediaHotkeys("shift+m", () =>
-    dispatch(Timeline.exportSelectedClipsToMIDI())
-  );
+  useHotkeys("shift+m", () => dispatch(Timeline.exportSelectedClipsToMIDI()));
 
   // Meta + A = Select All Media
-  useMediaHotkeys("meta+a", () => dispatch(Media.selectAllMedia()));
+  useHotkeys("meta+a", () => dispatch(Media.selectAllMedia()));
 
   // Meta + C = Copy Selected Media
-  useMediaHotkeys("meta+c", () => dispatch(Media.copySelectedMedia()));
+  useHotkeys("meta+c", () => dispatch(Media.copySelectedMedia()));
 
   // Meta + V = Paste Copied Media
-  useMediaHotkeys("meta+v", () => dispatch(Media.pasteSelectedMedia()));
+  useHotkeys("meta+v", () => dispatch(Media.pasteSelectedMedia()));
 
   // Meta + X = Cut Selected Media
-  useMediaHotkeys("meta+x", () => dispatch(Media.cutSelectedMedia()));
+  useHotkeys("meta+x", () => dispatch(Media.cutSelectedMedia()));
 
   // Meta + D = Duplicate Selected Media
-  useMediaHotkeys("meta+d", () => dispatch(Media.duplicateSelectedMedia()));
+  useHotkeys("meta+d", () => dispatch(Media.duplicateSelectedMedia()));
 
   // Backspace = Delete Selected Media
-  useMediaHotkeys("backspace", () => dispatch(Media.deleteSelectedMedia()));
+  useHotkeys("backspace", () => dispatch(Media.deleteSelectedMedia()));
 
   // P = Toggle Pattern Editor
-  useGlobalHotkeys("p", () => dispatch(showEditor({ id: "patterns" })));
+  useHotkeys("p", () => dispatch(showEditor({ id: "patterns" })));
 
   // A = Toggle Adding Clip
-  useGlobalHotkeys("a", () => dispatch(Timeline.toggleAddingClips()));
+  useHotkeys("a", () => dispatch(Timeline.toggleAddingClips()));
 
   // T = Toggle Adding Transpositions
-  useGlobalHotkeys("t", () => dispatch(Timeline.toggleAddingTranspositions()));
+  useHotkeys("t", () => dispatch(Timeline.toggleAddingTranspositions()));
 
   // Alt + C = Toggle Slicing Media
-  useGlobalHotkeys("alt+c", () => dispatch(Timeline.toggleSlicingMedia()));
+  useHotkeys("alt+c", () => dispatch(Timeline.toggleSlicingMedia()));
 
   // Alt + M = Toggle Merging Media
-  useGlobalHotkeys("alt+m", () => dispatch(Timeline.toggleMergingMedia()));
+  useHotkeys("alt+m", () => dispatch(Timeline.toggleMergingMedia()));
 
   // Meta + "-" = Decrease Subdivision
-  useGlobalHotkeys(["meta+minus"], () =>
-    dispatch(Timeline.decreaseSubdivision())
-  );
+  useHotkeys(["meta+minus"], () => dispatch(Timeline.decreaseSubdivision()));
 
   // Meta + "=" = Increase Subdivision
-  useGlobalHotkeys(["meta+="], () => dispatch(Timeline.increaseSubdivision()));
+  useHotkeys(["meta+="], () => dispatch(Timeline.increaseSubdivision()));
 
   // Left Arrow = Move Media Left or Move Playhead Left
-  useMediaHotkeys(
+  useHotkeys(
     "left",
     () =>
       !!mediaLength
@@ -105,7 +99,7 @@ export default function useTimelineHotkeys() {
   );
 
   // Right Arrow = Move Media Right or Move Playhead Right
-  useMediaHotkeys(
+  useHotkeys(
     "right",
     () => {
       !!mediaLength
@@ -116,16 +110,8 @@ export default function useTimelineHotkeys() {
   );
 
   // Up Arrow = Select Previous Track
-  useMediaHotkeys(
-    "up",
-    () => !mediaLength && dispatch(Timeline.selectPreviousTrack()),
-    [mediaLength]
-  );
+  useHotkeys("up", () => dispatch(Timeline.selectPreviousTrack()), []);
 
   // Down Arrow = Select Next Track
-  useMediaHotkeys(
-    "down",
-    () => !mediaLength && dispatch(Timeline.selectNextTrack()),
-    [mediaLength]
-  );
+  useHotkeys("down", () => dispatch(Timeline.selectNextTrack()), []);
 }

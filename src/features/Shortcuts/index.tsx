@@ -24,26 +24,17 @@ function TimelineShortcuts() {
         <Shortcut shortcut="E + Click" description="Set Loop End" />
         <Shortcut shortcut="⌘ + P" description="Show/Hide Pattern Editor" />
         <Shortcut shortcut="Esc" description="Close Editor" />
-        <Shortcut
-          shortcut="Option + Mute"
-          description="Mute/Unmute All Tracks"
-        />
-        <Shortcut
-          shortcut="Option + Solo"
-          description="Solo/Unsolo All Tracks"
-        />
         <Shortcut shortcut="⌘ + ⇧ + M" description="Toggle Mute" />
         <Shortcut shortcut="⌘ + ⇧ + F" description="Toggle Fullscreen" />
         <Shortcut shortcut="⌘ + ," description="Show/Hide Settings" />
         <Shortcut shortcut="?" description="Show/Hide Shortcuts" />
       </ShortcutSection>
       <ShortcutSection>
-        <ShortcutCategory name="Arrangement Shortcuts" />
+        <ShortcutCategory name="Timeline Shortcuts" />
         <Shortcut shortcut="A" description="Start/Stop Adding Clips" />
-        <Shortcut shortcut="C" description="Start/Stop Cutting Clips" />
-        <Shortcut shortcut="M" description="Start/Stop Merging Clips" />
-        <Shortcut shortcut="R" description="Start/Stop Repeating Clips" />
         <Shortcut shortcut="T" description="Start/Stop Adding Transpositions" />
+        <Shortcut shortcut="Alt+C" description="Start/Stop Cutting Clips" />
+        <Shortcut shortcut="Alt + M" description="Start/Stop Merging Clips" />
         <Shortcut
           shortcut="Left/Right Arrow"
           description="Move Cursor Left/Right"

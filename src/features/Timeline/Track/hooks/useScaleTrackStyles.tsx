@@ -41,7 +41,7 @@ export const useScaleTrackStyles = (props: ScaleTrackStyleProps) => {
   }`;
 
   // Body
-  const scaleEditorButton = `px-3 border-sky-400 ${
+  const scaleEditorButton = `px-2 border-sky-400 ${
     props.onScaleEditor
       ? "bg-gradient-to-r from-sky-600 to-sky-600/50 background-pulse"
       : ""

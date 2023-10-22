@@ -122,23 +122,6 @@ export const useTimelineLiveHotkeys = () => {
   const orderedTracks = useProjectDeepSelector(selectOrderedTracks);
   const scaleTracks = useProjectDeepSelector(selectSelectedTrackParents);
 
-  // Update the hotkey scope when a transposition is selected
-  useEffect(() => {
-    if (editor.show) return;
-    const enabledScopes = hotkeys.enabledScopes;
-    const hasTimeline = enabledScopes.includes("timeline");
-
-    // Disable the timeline scope if the user is live
-    if (!!isLive && hasTimeline) {
-      hotkeys.disableScope("timeline");
-      return;
-    }
-    // Enable the timeline scope if the user is not live
-    if (!isLive && !hasTimeline) {
-      hotkeys.enableScope("timeline");
-    }
-  }, [isLive, editor, hotkeys.enabledScopes]);
-
   // Get the keys for the current transposition mode
   const keys = isNumerical
     ? getKeys(NUMERICAL_BINDS)

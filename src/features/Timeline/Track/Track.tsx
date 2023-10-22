@@ -27,16 +27,14 @@ export const TrackButton = (props: {
       aria-label="Track Button"
       className={`${
         props.className ?? ""
-      } flex flex-1 items-center justify-center rounded-md overflow-hidden min-w-6 min-h-[25px] max-h-[30px] m-1 font-light border`}
+      } flex flex-1 items-center rounded-md truncate min-w-6 min-h-[25px] max-h-[30px] m-1 font-light border`}
       onClick={(e) => {
         props.onClick?.(e);
         e.currentTarget.blur();
       }}
       onDoubleClick={cancelEvent}
     >
-      <span className="flex items-center pointer-events-none">
-        {props.children}
-      </span>
+      {props.children}
     </button>
   );
 };
