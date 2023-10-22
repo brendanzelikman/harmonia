@@ -8,8 +8,7 @@ import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { NavbarBrand, NavbarGroup } from "./components";
 import { OnboardingTour } from "features/Tour";
-
-export const NAV_HEIGHT = 60;
+import { NAV_HEIGHT } from "utils";
 
 export default function Navbar() {
   const [showNavbar, setShowNavbar] = useState(true);

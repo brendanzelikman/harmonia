@@ -43,3 +43,6 @@ export const MIN_CELL_WIDTH = 20;
 export const MAX_CELL_WIDTH = 100;
 export const MIN_CELL_HEIGHT = 80;
 export const MAX_CELL_HEIGHT = 120;
+
+// Navbar
+export const NAV_HEIGHT = 60;

@@ -1,6 +1,5 @@
 import { Transition } from "@headlessui/react";
-import { TRACK_WIDTH } from "utils/constants";
-import { NAV_HEIGHT } from "features/Navbar";
+import { TRACK_WIDTH, NAV_HEIGHT } from "utils/constants";
 import { useState } from "react";
 import { END_TOUR, SET_TOUR_ID, START_TOUR } from ".";
 import { useCustomEventListener } from "hooks/useCustomEventListener";

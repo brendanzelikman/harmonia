@@ -1,14 +1,16 @@
-import Navbar from "features/Navbar";
-import Editor from "features/Editor";
-import Timeline from "features/Timeline";
-import Shortcuts from "features/Shortcuts";
 import useGlobalHotkeys from "hooks/useGlobalHotkeys";
 import useMidiController from "hooks/useMidiController";
+import Shortcuts from "features/Shortcuts";
 
 import { LoadingView } from "views";
 import { TourBackground } from "features/Tour";
 import { useLoadedTransport } from "hooks/useLoadedTransport";
 import { useCurrentProject } from "hooks/useCurrentProject";
+import { Suspense, lazy } from "react";
+
+const Navbar = lazy(() => import("features/Navbar"));
+const Editor = lazy(() => import("features/Editor"));
+const Timeline = lazy(() => import("features/timeline"));
 
 export function PlaygroundView() {
   useGlobalHotkeys();
@@ -26,9 +28,11 @@ export function PlaygroundView() {
       <TourBackground />
       <Navbar />
       <main className="relative flex flex-auto overflow-hidden">
-        <Timeline />
-        <Editor />
-        <Shortcuts />
+        <Suspense>
+          <Timeline />
+          <Editor />
+          <Shortcuts />
+        </Suspense>
       </main>
     </div>
   );

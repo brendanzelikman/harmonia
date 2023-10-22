@@ -3,7 +3,6 @@ import {
   selectEditor,
   selectOrderedTracks,
   selectSelectedTrackParents,
-  selectSelectedTranspositions,
   selectLiveTranspositionSettings,
   selectTimeline,
 } from "redux/selectors";

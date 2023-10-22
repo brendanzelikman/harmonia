@@ -19,7 +19,7 @@ import {
 } from "redux/hooks";
 import TrackRenderer from "./Track";
 import CellRenderer from "./Cell";
-import HeaderRenderer from "./Header";
+import HeaderRenderer from "./header";
 
 import { TimelineClips } from "./Clips";
 import { TimelineTranspositions } from "./Transpositions";

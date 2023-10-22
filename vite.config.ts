@@ -9,6 +9,7 @@ export default defineConfig({
   },
   base: "/harmonia/",
   build: {
+    chunkSizeWarningLimit: 5000,
     outDir: "build",
   },
   assetsInclude: ["**/*.ham"],
