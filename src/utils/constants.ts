@@ -1,9 +1,7 @@
 import { Duration } from "types/units";
 
-export const LANDING_LINK = "https://brendanzelikman.github.io/harmonia";
-export const PLAYGROUND_LINK =
-  "https://brendanzelikman.github.io/harmonia/playground";
-export const REPO_LINK = "https://www.github.com/brendanzelikman/harmonia";
+export const LANDING_LINK = `${window.location.origin}/harmonia/`;
+export const PLAYGROUND_LINK = `${window.location.origin}/harmonia/#/playground`;
 
 // Tempo
 export const DEFAULT_BPM = 120;

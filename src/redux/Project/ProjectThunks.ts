@@ -17,7 +17,8 @@ import {
   initializeProject,
   sanitizeProject,
 } from "types/Project";
-import { dispatchCustomEvent } from "utils";
+import { PLAYGROUND_LINK, dispatchCustomEvent } from "utils";
+import { redirect } from "react-router-dom";
 
 export const CREATE_PROJECT = "createProject";
 export const DELETE_PROJECT = "deleteProject";
@@ -139,7 +140,7 @@ export const loadProject =
     dispatch({ type: "setState", payload: project });
 
     // Redirect to the playground
-    window.location.href = window.location.origin + "/harmonia/#/playground";
+    window.location.href = PLAYGROUND_LINK;
   };
 
 /**
@@ -195,7 +196,7 @@ export const loadProjectByPath =
       console.error(e);
     } finally {
       // Redirect to the playground
-      window.location.href = window.location + "/harmonia/#/playground";
+      window.location.href = PLAYGROUND_LINK;
     }
   };
 
