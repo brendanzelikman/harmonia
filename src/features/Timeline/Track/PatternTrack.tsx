@@ -267,6 +267,8 @@ function PatternTrackComponent(props: PatternTrackProps) {
       enter="transition-opacity duration-150"
       enterFrom="opacity-0"
       enterTo="opacity-100"
+      as="div"
+      className="flex-shrink-0"
     >
       {!track.collapsed ? (
         <div className="flex ml-0.5 mr-1" draggable onDragStart={cancelEvent}>
@@ -294,7 +296,7 @@ function PatternTrackComponent(props: PatternTrackProps) {
         onClick={props.toggleInstrumentEditor}
       >
         <BsPencil className="mr-2 flex-shrink-0" />
-        {props.instrumentName}
+        <span className="truncate">{props.instrumentName}</span>
       </TrackButton>
       <div className="flex ml-2 space-x-1 justify-self-end">
         <button
@@ -324,7 +326,7 @@ function PatternTrackComponent(props: PatternTrackProps) {
       onDoubleClick={props.toggleInstrumentEditor}
     >
       {PatternTrackSliders}
-      <div className="h-full flex flex-1 flex-col items-start justify-center truncate px-2 duration-150">
+      <div className="min-w-0 h-full flex flex-1 flex-col items-start justify-evenly p-2 duration-150">
         {PatternTrackHeader}
         {!track.collapsed && PatternTrackButtons}
       </div>

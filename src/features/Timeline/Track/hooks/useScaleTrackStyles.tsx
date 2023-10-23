@@ -24,7 +24,7 @@ export const useScaleTrackStyles = (props: ScaleTrackStyleProps) => {
 
   // Inner track
   const gradient = "bg-gradient-to-r from-sky-900 to-indigo-800";
-  const innerTrack = "h-full p-2 flex flex-col items-center justify-evenly";
+  const innerTrack = "w-full h-full items-center flex";
   const innerBorder = `rounded border-2 ${
     isSelected
       ? props.onScaleEditor

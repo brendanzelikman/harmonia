@@ -187,7 +187,7 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
    */
   const ScaleTrackButtons = () => (
     <div
-      className={`w-full flex items-center space-x-2 mt-2`}
+      className={`w-full flex items-center mt-2`}
       draggable
       onDragStart={cancelEvent}
     >
@@ -196,7 +196,7 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
         onClick={props.toggleScaleEditor}
       >
         <BsPencil className="mr-2 flex-shrink-0" />
-        {scaleName}
+        <span className="truncate">{scaleName}</span>
       </TrackButton>
       <div className="flex ml-2 space-x-1 justify-self-end">
         <button className={styles.patternTrackButton}>
@@ -217,8 +217,10 @@ function ScaleTrackComponent(props: ScaleTrackProps) {
       className={`${styles.innerTrack} ${styles.innerBorder} ${styles.gradient}`}
       onDoubleClick={props.toggleScaleEditor}
     >
-      {ScaleTrackHeader}
-      {!track.collapsed && <ScaleTrackButtons />}
+      <div className="min-w-0 h-full flex flex-1 flex-col items-start justify-evenly p-2 duration-150">
+        {ScaleTrackHeader}
+        {!track.collapsed && <ScaleTrackButtons />}
+      </div>
     </div>
   );
 

@@ -18,13 +18,13 @@ export const usePatternTrackStyles = (props: PatternTrackStylesProps) => {
 
   // Outer track
   const opacity = props.isDragging ? "opacity-50" : "opacity-100";
-  const padding = "h-full p-2 bg-teal-600";
+  const padding = "w-full h-full p-2 bg-teal-600";
   const text = `text-white ${isSmall ? "text-xs" : "text-sm"}`;
   const outerBorder = "border-b border-b-slate-300";
 
   // Inner track
   const gradient = "bg-gradient-to-r from-sky-700/80 to-emerald-700/50";
-  const innerTrack = "h-full items-center flex";
+  const innerTrack = "w-full h-full items-center flex";
   const innerBorder = `rounded border-2 ${
     props.isSelected
       ? props.onInstrumentEditor
