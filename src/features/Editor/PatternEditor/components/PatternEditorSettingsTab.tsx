@@ -2,11 +2,16 @@ import * as Listbox from "features/Editor/components/Listbox";
 import { PatternEditorProps } from "../PatternEditor";
 import { useProjectDeepSelector } from "redux/hooks";
 import { selectPatternTracks, selectTrackLabelMap } from "redux/selectors";
-import { updatePattern } from "redux/Pattern";
+import {
+  autoBindPattern,
+  clearPatternBindings,
+  updatePattern,
+} from "redux/Pattern";
 import { Editor } from "features/Editor/components";
+import { EasyTransition } from "components/Transition";
 
 export function PatternEditorSettingsTab(props: PatternEditorProps) {
-  const { dispatch, pattern, Tooltip } = props;
+  const { dispatch, pattern, Tooltip, Button } = props;
   const trackLabels = useProjectDeepSelector(selectTrackLabelMap);
 
   // Get the pattern track for this pattern.
@@ -14,29 +19,6 @@ export function PatternEditorSettingsTab(props: PatternEditorProps) {
   const patternTracks = useProjectDeepSelector(selectPatternTracks);
   const patternTrackOptions = ["no-track", ...patternTracks.map((t) => t.id)];
   const patternTrack = patternTracks.find((t) => t.id === ptId);
-
-  /** The user can bind a pattern track to a pattern. */
-  const PatternTrackField = () => (
-    <Tooltip content={`Select Pattern Track`}>
-      <div className="h-5 my-2 flex text-xs items-center space-x-2">
-        <span>Bind to Track:</span>
-        <Editor.CustomListbox
-          options={patternTrackOptions}
-          value={patternTrack?.id ?? "no-track"}
-          getOptionName={(option) =>
-            option === "no-track"
-              ? "No Pattern Track"
-              : `Pattern Track (${trackLabels[option]})`
-          }
-          setValue={(value) => {
-            if (!pattern) return;
-            const patternTrackId = value === "no-track" ? undefined : value;
-            dispatch(updatePattern({ ...pattern, patternTrackId }));
-          }}
-        />
-      </div>
-    </Tooltip>
-  );
 
   /** The user can use a custom instrument for a pattern. */
   const InstrumentField = () => (
@@ -55,6 +37,55 @@ export function PatternEditorSettingsTab(props: PatternEditorProps) {
     </Tooltip>
   );
 
+  /** The user can bind a pattern track to a pattern. */
+  const PatternTrackField = () => (
+    <Tooltip content={`Select Pattern Track`}>
+      <div className="h-5 my-2 flex text-xs items-center space-x-2">
+        <span>Bind to Track:</span>
+        <Editor.CustomListbox
+          options={patternTrackOptions}
+          value={patternTrack?.id ?? "no-track"}
+          getOptionName={(option) =>
+            option === "no-track"
+              ? "No Pattern Track"
+              : `Pattern Track (${trackLabels[option]})`
+          }
+          setValue={(value) => {
+            if (!pattern) return;
+            if (value === "no-track") {
+              dispatch(clearPatternBindings(pattern?.id, true));
+            } else {
+              dispatch(updatePattern({ ...pattern, patternTrackId: value }));
+            }
+          }}
+        />
+      </div>
+    </Tooltip>
+  );
+
+  /** The user can choose to auto-bind their pattern or clear all binds. */
+  const NoteBindField = () => (
+    <div className="flex text-xs items-center space-x-2">
+      <span>Notes:</span>
+      <Button
+        border
+        className="focus:opacity-80 focus:border-emerald-500 focus:text-emerald-400"
+        label="Auto-Bind to Track Scales"
+        onClick={() => dispatch(autoBindPattern(pattern?.id))}
+      >
+        Auto-Bind
+      </Button>
+      <Button
+        border
+        className="focus:opacity-80"
+        label="Clear All Note Bindings"
+        onClick={() => dispatch(clearPatternBindings(pattern?.id))}
+      >
+        Clear Binds
+      </Button>
+    </div>
+  );
+
   return (
     <Editor.Tab show={props.isCustom} border={false}>
       <Editor.TabGroup border={false}>
@@ -63,6 +94,11 @@ export function PatternEditorSettingsTab(props: PatternEditorProps) {
       <Editor.TabGroup border={false}>
         <PatternTrackField />
       </Editor.TabGroup>
+      <EasyTransition show={!!pattern?.patternTrackId}>
+        <Editor.TabGroup border={false}>
+          <NoteBindField />
+        </Editor.TabGroup>
+      </EasyTransition>
     </Editor.Tab>
   );
 }

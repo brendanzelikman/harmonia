@@ -48,7 +48,7 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
       type="button"
       className={classNames(
         buttonProps.className,
-        `flex justify-center my-auto h-6 items-center font-light bg-transparent rounded text-xs select-none`,
+        `flex justify-center my-auto h-6 items-center font-light bg-transparent rounded text-xs truncate select-none`,
         {
           "px-0": !props.padding,
           "px-2": props.padding === undefined || !!props.padding,

@@ -81,25 +81,27 @@ export const startTransport =
     const pulse = convertTicksToSeconds(transport, 1);
     const bpm = Tone.Transport.bpm.value;
     const conversionRatio = (bpm * Tone.Transport.PPQ) / 60;
-    const loopStart = Tone.Time(Tone.Transport.loopStart).toTicks();
-    const loopEnd = Tone.Time(Tone.Transport.loopEnd).toTicks();
+    const { loop, loopStart, loopEnd } = transport;
 
     // Set the current Transport time if specified
     const offset = tick ? convertTicksToSeconds(transport, tick) : 0;
-    if (tick) Tone.Transport.position = Tone.Time(tick, "i").toSeconds();
+    if (tick !== undefined) {
+      Tone.Transport.position = Tone.Time(tick, "i").toSeconds();
+    }
 
     // Get the current start time
     const startTime = Tone.Transport.now();
+    const startSeconds = Tone.Transport.seconds;
 
     // Schedule the transport
     if (scheduleId !== undefined) Tone.Transport.clear(scheduleId);
     scheduleId = Tone.Transport.scheduleRepeat((time) => {
       // Get the current time
-      const currentTime = time + offset - startTime;
+      const currentTime = time + offset - startTime + startSeconds;
 
       // Convert the time into the tick and adjust for loop
       let newTick = Math.round(currentTime * conversionRatio);
-      if (Tone.Transport.loop) {
+      if (loop) {
         // Set the new tick
         newTick = (newTick % (loopEnd - loopStart)) + loopStart;
       }

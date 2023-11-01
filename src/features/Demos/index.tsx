@@ -1,9 +1,10 @@
 import { Transition } from "@headlessui/react";
 import { ProjectComponent } from "components/Project";
 import Demo1 from "assets/demos/demo.ham";
+import Demo2 from "assets/demos/lick.ham";
 
 export function Demos() {
-  const demos = [Demo1];
+  const demos = [Demo1, Demo2];
 
   // Display the list of demos
   const DemoList = () => (

@@ -8,6 +8,7 @@ import {
   selectPatternById,
   selectScaleTrackScales,
   selectTrackChain,
+  selectTrackMidiScaleMap,
   selectTrackScaleChain,
   selectTransport,
 } from "redux/selectors";
@@ -27,17 +28,26 @@ import {
   resolvePatternStreamToMidi,
 } from "types/Pattern";
 import { Midi } from "@tonejs/midi";
-import { addPattern, removePattern, selectPatternIds } from "redux/Pattern";
+import {
+  addPattern,
+  removePattern,
+  selectPatternIds,
+  updatePattern,
+} from "redux/Pattern";
 import { convertTicksToSeconds } from "types/Transport";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { updateMediaDraft } from "redux/Timeline";
 import { DemoXML } from "assets/demoXML";
-import { resolveScaleChainToMidi } from "types/Scale";
+import {
+  ScaleVector,
+  isNestedNote,
+  resolveScaleChainToMidi,
+} from "types/Scale";
 import { getScaleKey } from "utils/key";
 import { MusicXML } from "lib/musicxml";
 import { Seconds, XML } from "types/units";
 import { Sampler } from "tone";
-import { getMidiPitch } from "utils/midi";
+import { getMidiOctaveDistance, getMidiPitch } from "utils/midi";
 import {
   EighthNoteTicks,
   WholeNoteTicks,
@@ -45,6 +55,8 @@ import {
 } from "utils/durations";
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { downloadBlob } from "utils/html";
+import { reverse } from "lodash";
+import { getDegreeOfNoteInTrack } from "redux/thunks";
 
 /** Creates a pattern and adds it to the slice. */
 export const createPattern =
@@ -87,6 +99,90 @@ export const deletePattern =
 
     // Remove the pattern
     dispatch(removePattern(id));
+  };
+
+/** Auto-bind a pattern to use the highest scales possible for each note. */
+export const autoBindPattern =
+  (id?: PatternId): Thunk =>
+  (dispatch, getProject) => {
+    if (!id) return;
+    const project = getProject();
+    const pattern = selectPatternById(project, id);
+    if (!pattern || !pattern.patternTrackId) return;
+
+    // Get all of the pattern's scales
+    const scaleTrackMap = selectTrackMidiScaleMap(project);
+    const trackChain = [...selectTrackChain(project, pattern.patternTrackId)];
+    const scaleChain = selectTrackScaleChain(project, pattern.patternTrackId);
+
+    // Order the pattern's MIDI scales from highest to lowest
+    trackChain.reverse();
+    const trackMidiScales = trackChain.map((track) => scaleTrackMap[track.id]);
+
+    // Map the pattern's stream to the highest scales
+    const midiStream = resolvePatternStreamToMidi(pattern.stream, scaleChain);
+    const mappedStream = pattern.stream.map((block, i) => {
+      // Skip if the block is a rest
+      const midiBlock = midiStream[i];
+      if (isPatternRest(block) || isPatternRest(midiBlock)) return block;
+
+      // Iterate over each note of the block
+      return block.map((note, j) => {
+        const midiNote = midiBlock[j].MIDI;
+        // For each note, iterate over every track
+        for (let t = 0; t < trackChain.length; t++) {
+          // Find if a degree exists in the track
+          const track = trackChain[t];
+          const degree = dispatch(getDegreeOfNoteInTrack(track?.id, note));
+          if (degree < 0) continue;
+
+          // If a degree is found, find the corresponding MIDI note
+          const midiScale = trackMidiScales[t];
+          const scaleMidi = midiScale?.[degree];
+          if (!midiScale || !scaleMidi) continue;
+
+          const octave = getMidiOctaveDistance(scaleMidi, midiNote);
+          const offset: ScaleVector = { octave };
+
+          // Return the new note
+          return {
+            duration: note.duration,
+            velocity: note.velocity,
+            degree,
+            offset,
+            scaleId: track.scaleId,
+          };
+        }
+
+        // If not possible, just return the note as is
+        return note;
+      });
+    });
+
+    dispatch(updatePattern({ id, stream: mappedStream }));
+  };
+
+/** Clear the bindings of a pattern so that all notes are MIDI. */
+export const clearPatternBindings =
+  (id?: PatternId, clearTrack = false): Thunk =>
+  (dispatch, getProject) => {
+    if (!id) return;
+    const project = getProject();
+    const pattern = selectPatternById(project, id);
+    if (!pattern) return;
+
+    // Get the MIDI stream
+    const scaleChain = selectTrackScaleChain(project, pattern.patternTrackId);
+    const midiStream = resolvePatternStreamToMidi(pattern.stream, scaleChain);
+
+    // Update the pattern
+    dispatch(
+      updatePattern({
+        id,
+        stream: midiStream,
+        patternTrackId: clearTrack ? undefined : pattern.patternTrackId,
+      })
+    );
   };
 
 /** Play a pattern using the global audio instance. */

@@ -288,7 +288,11 @@ export const resolvePatternChordToMidi = (
     if (!isNestedNote(note)) return note;
 
     // If the note doesn't have a scale, realize it within the chromatic scale
-    const defaultNote = { ...note, MIDI: getScaleNoteAsMidiValue(note) };
+    const defaultNote = {
+      duration: note.duration,
+      velocity: note.velocity,
+      MIDI: getScaleNoteAsMidiValue(note),
+    };
     if (!scales || !note.scaleId) return defaultNote;
 
     // Try to find the note's scale in the scale chain
@@ -297,7 +301,11 @@ export const resolvePatternChordToMidi = (
 
     // Resolve the note to MIDI using the scales preceding it
     const parentScales = scales.slice(0, scaleIndex + 1);
-    return { ...note, MIDI: resolvePatternNoteToMidi(note, parentScales) };
+    return {
+      duration: note.duration,
+      velocity: note.velocity,
+      MIDI: resolvePatternNoteToMidi(note, parentScales),
+    };
   });
 };
 
