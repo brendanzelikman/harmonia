@@ -2,12 +2,16 @@ import { connect, ConnectedProps } from "react-redux";
 import { Project, Dispatch } from "types/Project";
 import { Clip, ClipId } from "types/Clip";
 import { useClipDrag } from "./hooks/useClipDrag";
-import { PatternId, PatternNote } from "types/Pattern";
+import {
+  isPatternRest,
+  PatternId,
+  PatternMidiBlock,
+  PatternMidiNote,
+} from "types/Pattern";
 import { showEditor } from "redux/Editor";
 import { useProjectDeepSelector } from "redux/hooks";
 import { MouseEvent, useMemo } from "react";
-import { MIDI } from "types/midi";
-import { selectClipById, selectClipName, selectClipStream } from "redux/Clip";
+import { selectClipById, selectClipName } from "redux/Clip";
 import {
   onClipClick,
   onClipDragEnd,
@@ -25,6 +29,8 @@ import {
   isTimelineSlicingMedia,
 } from "types/Timeline";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { getMidiPitch } from "utils/midi";
+import { selectClipStream } from "redux/Arrangement";
 
 const mapStateToProps = (project: Project, ownProps: { id: ClipId }) => {
   const clip = selectClipById(project, ownProps.id);
@@ -51,7 +57,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     showPatternEditor: (patternId?: PatternId) => {
       dispatch(updateMediaDraft({ clip: { patternId } }));
-      dispatch(showEditor({ id: "patterns" }));
+      dispatch(showEditor("patterns"));
     },
     onClick: (
       e: MouseEvent<HTMLDivElement>,
@@ -93,15 +99,10 @@ function TimelineClip(props: ClipProps) {
     isDragging,
   });
 
-  /**
-   * Render a single note in a chord.
-   * @param note The note to render.
-   * @param j The index of the note in the chord.
-   */
-  const renderNote = (note: PatternNote, i = 0, j = 0) => {
-    if (MIDI.isRest(note.MIDI)) return null;
+  /** Render a single MIDI notes. */
+  const renderNote = (note: PatternMidiNote, i = 0, j = 0) => {
     const noteStyles = styles.getNoteStyles(note, i);
-    const pitch = MIDI.toPitch(note.MIDI);
+    const pitch = getMidiPitch(note.MIDI);
     const style = pick(noteStyles, [
       "top",
       "left",
@@ -120,14 +121,9 @@ function TimelineClip(props: ClipProps) {
     );
   };
 
-  /**
-   * Render a list of notes in a chord.
-   * @param notes The notes in the chord.
-   * @param i The index of the chord.
-   * @returns A rendered list of notes.
-   */
-  const renderNotes = (notes: PatternNote[], i: number) => {
-    if (!clip) return null;
+  /** Render a list of notes in a chord. */
+  const renderBlock = (block: PatternMidiBlock, i: number) => {
+    if (!clip || isPatternRest(block)) return null;
     return (
       <ul
         key={`${clip.id}-chord-${i}`}
@@ -135,7 +131,7 @@ function TimelineClip(props: ClipProps) {
         style={{ width: styles.chordWidth }}
         onClick={() => isSlicing && props.onCut(clip, clip.tick + i)}
       >
-        {notes.map((_, j) => renderNote(_, i, j))}
+        {block.map((_, j) => renderNote(_, i, j))}
       </ul>
     );
   };
@@ -157,12 +153,12 @@ function TimelineClip(props: ClipProps) {
    */
   const ClipStream = useMemo(
     () =>
-      !!stream && (
+      !!stream.length && (
         <div className="group w-full h-auto relative flex flex-grow font-extralight text-slate-50/80">
-          {stream.map(renderNotes)}
+          {stream.map(renderBlock)}
         </div>
       ),
-    [stream, renderNotes]
+    [stream, renderBlock]
   );
 
   // Assemble the class name and style

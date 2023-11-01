@@ -8,7 +8,7 @@ import {
   selectTimelineObjectTop,
   selectOrderedTrackIds,
   selectTrackById,
-  selectTimelineColumnCount,
+  selectTimelineColumns,
 } from "redux/selectors";
 import { ConnectedProps, connect } from "react-redux";
 import {
@@ -23,7 +23,7 @@ interface BackgroundProps {
 }
 
 const mapStateToProps = (project: Project, ownProps: BackgroundProps) => {
-  const columns = selectTimelineColumnCount(project);
+  const columns = selectTimelineColumns(project);
 
   // General dimensions
   const cellWidth = selectCellWidth(project);

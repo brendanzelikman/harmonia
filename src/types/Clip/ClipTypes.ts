@@ -3,23 +3,32 @@ import { PatternId } from "types/Pattern";
 import { TrackId } from "types/Track";
 import { ID, Tick } from "types/units";
 import { ClipColor } from "./ClipThemes";
+import { isPlainObject, isString } from "lodash";
+import {
+  NormalRecord,
+  NormalState,
+  createNormalState,
+} from "utils/normalizedState";
+import { isFiniteNumber, isOptionalType } from "types/util";
 
-// Clip Types
+// ------------------------------------------------------------
+// Clip Generics
+// ------------------------------------------------------------
+
 export type ClipId = ID;
 export type ClipNoId = Omit<Clip, "id">;
-export type ClipMap = Record<ClipId, Clip>;
+export type ClipPartial = Partial<Clip>;
+export type ClipUpdate = Partial<Clip> & { id: ClipId };
+export type ClipMap = NormalRecord<ClipId, Clip>;
+export type ClipState = NormalState<ClipMap>;
+
+// ------------------------------------------------------------
+// Clip Definitions
+// ------------------------------------------------------------
 
 /**
- * A `Clip` is an instance of a `Pattern` that is played at a time in a `Track`.
- *
- * @property `id` - The id of the clip.
- * @property `patternId` - The id of the pattern that the clip points to.
- * @property `trackId` - The id of the track that the clip is in.
- * @property `tick` - The tick that the clip starts at.
- * @property `offset` - The offset of the clip from the start of the pattern.
- * @property `duration` - The duration of the clip.
- * @property `color` - The color of the clip.
- *
+ * A `Clip` is an instance of a `Pattern` that is played within a `Track`
+ * at a specified tick for a given duration or until the end of the `Pattern`.
  */
 export interface Clip {
   id: ClipId;
@@ -33,19 +42,16 @@ export interface Clip {
   color?: ClipColor;
 }
 
-/**
- * Initializes a `Clip` with a unique ID.
- * @param clip - Optional. `Partial<ClipNoId>` to override default values.
- * @returns An initialized `Clip` with a unique ID.
- */
+// ------------------------------------------------------------
+// Clip Initialization
+// ------------------------------------------------------------
+
+/** Create a clip with a unique ID. */
 export const initializeClip = (
   clip: Partial<ClipNoId> = defaultClip
-): Clip => ({
-  ...defaultClip,
-  ...clip,
-  id: nanoid(),
-});
+): Clip => ({ ...defaultClip, ...clip, id: nanoid() });
 
+/** The default clip is used for initialization. */
 export const defaultClip: Clip = {
   id: "default-clip",
   patternId: "default-pattern",
@@ -54,6 +60,7 @@ export const defaultClip: Clip = {
   offset: 0,
 };
 
+/** The mock clip is used for testing. */
 export const mockClip: Clip = {
   id: "mock-clip",
   patternId: "mock-pattern",
@@ -63,28 +70,23 @@ export const mockClip: Clip = {
   duration: 2,
 };
 
-/**
- * Checks if a given object is of type `Clip`.
- * @param obj The object to check.
- * @returns True if the object is a `Clip`, otherwise false.
- */
+/** The default clip state is used for Redux. */
+export const defaultClipState: ClipState = createNormalState<ClipMap>();
+
+// ------------------------------------------------------------
+// Clip Type Guards
+// ------------------------------------------------------------
+
+/** Checks if a given object is of type `Clip`. */
 export const isClip = (obj: unknown): obj is Clip => {
   const candidate = obj as Clip;
   return (
-    candidate?.id !== undefined &&
-    candidate?.patternId !== undefined &&
-    candidate?.trackId !== undefined &&
-    candidate?.tick !== undefined &&
-    candidate?.offset !== undefined
+    isPlainObject(candidate) &&
+    isString(candidate.id) &&
+    isString(candidate.patternId) &&
+    isString(candidate.trackId) &&
+    isFiniteNumber(candidate.tick) &&
+    isFiniteNumber(candidate.offset) &&
+    isOptionalType(candidate.duration, isFiniteNumber)
   );
-};
-
-/**
- * Checks if a given object is of type `ClipMap`.
- * @param obj The object to check.
- * @returns True if the object is a `ClipMap`, otherwise false.
- */
-export const isClipMap = (obj: unknown): obj is ClipMap => {
-  const candidate = obj as ClipMap;
-  return candidate !== undefined && Object.values(candidate).every(isClip);
 };

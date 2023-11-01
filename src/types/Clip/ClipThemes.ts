@@ -1,4 +1,4 @@
-import { TailwindColor } from "types/units";
+import { Color } from "types/units";
 
 export const CLIP_COLORS = [
   "red",
@@ -22,16 +22,16 @@ export const DEFAULT_CLIP_COLOR: ClipColor = "sky";
 
 /**
  * A curated color palette for a Clip using Tailwind CSS color names.
- * @property headerColor: {@link TailwindColor} - The color of the Clip header.
- * @property bodyColor: {@link TailwindColor} - The color of the Clip body.
- * @property noteColor: {@link TailwindColor} - The color of the Clip notes.
- * @property iconColor: {@link TailwindColor} - The color of the Clip icons.
+ * @property headerColor: {@link Color} - The color of the Clip header.
+ * @property bodyColor: {@link Color} - The color of the Clip body.
+ * @property noteColor: {@link Color} - The color of the Clip notes.
+ * @property iconColor: {@link Color} - The color of the Clip icons.
  */
 export interface ClipTheme {
-  headerColor: TailwindColor;
-  bodyColor: TailwindColor;
-  noteColor: TailwindColor;
-  iconColor: TailwindColor;
+  headerColor: Color;
+  bodyColor: Color;
+  noteColor: Color;
+  iconColor: Color;
 }
 
 /**

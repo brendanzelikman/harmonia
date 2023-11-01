@@ -1,5 +1,5 @@
 import { BsMagic } from "react-icons/bs";
-import { blurOnEnter } from "utils";
+import { blurOnEnter } from "utils/html";
 import { ControlButton } from ".";
 import {
   NavbarFormGroup,
@@ -8,7 +8,10 @@ import {
   NavbarTooltip,
   NavbarTooltipMenu,
 } from "../components";
-import { formatOffsets, getChromaticOffset } from "types/Transposition";
+import {
+  getTranspositionVectorAsString,
+  getChromaticOffset,
+} from "types/Transposition";
 import { getScaleName, getTransposedScale } from "types/Scale";
 import {
   useProjectDispatch,
@@ -16,14 +19,12 @@ import {
   useProjectDeepSelector,
 } from "redux/hooks";
 import {
-  selectScaleMap,
-  selectScaleTrackMap,
   selectTimeline,
-  selectTrackParents,
+  selectTrackChain,
   selectSelectedTrack,
   selectDraftedTransposition,
+  selectTrackMidiScale,
 } from "redux/selectors";
-import { getScaleTrackScale } from "types/ScaleTrack";
 import { isTimelineAddingTranspositions } from "types/Timeline";
 import { toggleAddingTranspositions, updateMediaDraft } from "redux/Timeline";
 
@@ -35,33 +36,33 @@ export const ToolkitTransposeButton = () => {
   const timeline = useProjectSelector(selectTimeline);
   const isAdding = isTimelineAddingTranspositions(timeline);
   const transposition = useProjectSelector(selectDraftedTransposition);
-  const { offsets, duration } = transposition;
+  const { vector, duration } = transposition;
 
   // Selected track info
   const selectedTrack = useProjectDeepSelector(selectSelectedTrack);
-  const scaleMap = useProjectSelector(selectScaleMap);
-  const scaleTrackMap = useProjectSelector(selectScaleTrackMap);
-  const onScaleTrack = selectedTrack?.type === "scaleTrack";
-  const scaleTracks = useProjectDeepSelector((_) =>
-    selectTrackParents(_, selectedTrack?.id)
+  const trackChain = useProjectDeepSelector((_) =>
+    selectTrackChain(_, selectedTrack?.id)
   );
-  const parents = onScaleTrack ? scaleTracks.slice(0, -1) : scaleTracks;
-  const scales = parents.map((t) => getScaleTrackScale(t, scaleTrackMap));
-  const chromaticTranspose = getChromaticOffset(offsets);
+  const scales = useProjectSelector((_) =>
+    trackChain.map((t) => selectTrackMidiScale(_, t.id))
+  );
+  const chromaticTranspose = getChromaticOffset(vector);
   const selectedOffsets = {
-    ...parents.reduce(
-      (acc, t) => ({ ...acc, [t.id]: offsets?.[t.id] || 0 }),
+    ...trackChain.reduce(
+      (acc, t) => ({ ...acc, [t.id]: vector?.[t.id] || 0 }),
       {}
     ),
   };
 
   // Transposition offsets
-  const transposedScales = parents.map((scale) => {
-    const trackScale = getScaleTrackScale(scale, scaleTrackMap, scaleMap);
-    return getTransposedScale(trackScale, chromaticTranspose);
-  });
+  const transposedScales = useProjectSelector((_) =>
+    trackChain.map((scale) => {
+      const trackScale = selectTrackMidiScale(_, scale.id);
+      return getTransposedScale(trackScale, chromaticTranspose);
+    })
+  );
   const scaleNames = transposedScales.map((transposedScale, i) => {
-    const trackName = parents[i].name;
+    const trackName = trackChain[i].name;
     if (trackName?.length) return trackName;
     return getScaleName(transposedScale || scales[i]);
   });
@@ -70,14 +71,14 @@ export const ToolkitTransposeButton = () => {
   const setTranspositionValue = (key: string, value: number) => {
     dispatch(
       updateMediaDraft({
-        transposition: { offsets: { ...offsets, [key]: value } },
+        transposition: { vector: { ...vector, [key]: value } },
       })
     );
   };
 
   /** An input element for a given offset ID */
   const OffsetInput = (id: string) => {
-    const value = isNaN(offsets?.[id] || NaN) ? "" : offsets?.[id];
+    const value = isNaN(vector?.[id] || NaN) ? "" : vector?.[id];
     return (
       <NavbarFormInput
         value={value}
@@ -94,7 +95,7 @@ export const ToolkitTransposeButton = () => {
   const ChromaticOffsetInput = () => (
     <NavbarFormGroup>
       <NavbarFormLabel className="w-32">Chromatic Offset:</NavbarFormLabel>
-      {OffsetInput("_chromatic")}
+      {OffsetInput("chromatic")}
     </NavbarFormGroup>
   );
 
@@ -102,13 +103,13 @@ export const ToolkitTransposeButton = () => {
   const ChordalOffsetInput = () => (
     <NavbarFormGroup>
       <NavbarFormLabel className="w-32">Chordal Offset:</NavbarFormLabel>
-      {OffsetInput("_self")}
+      {OffsetInput("chordal")}
     </NavbarFormGroup>
   );
 
   /** The scalar offset inputs */
   const ScalarOffsetInputs = () => {
-    return parents.map(({ id }, i) => (
+    return trackChain.map(({ id }, i) => (
       <NavbarFormGroup key={`scalar-offset-${id}`}>
         <NavbarFormLabel className="w-32">
           <span className="text-gray-300">({i + 1})</span> {scaleNames[i]}:{" "}
@@ -168,7 +169,11 @@ export const ToolkitTransposeButton = () => {
         content={
           <NavbarTooltipMenu>
             <div className="pb-2 mb-2 w-full text-center font-bold border-b">
-              Transposing by {formatOffsets({ ...offsets, ...selectedOffsets })}
+              Transposing by{" "}
+              {getTranspositionVectorAsString({
+                ...vector,
+                ...selectedOffsets,
+              })}
             </div>
             <div className="w-full h-full py-2 space-y-2">
               {ChromaticOffsetInput()}

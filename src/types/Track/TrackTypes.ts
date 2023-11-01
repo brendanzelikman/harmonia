@@ -1,9 +1,17 @@
 import { ID } from "types/units";
 import { nanoid } from "@reduxjs/toolkit";
-import { PatternTrack, PatternTrackType } from "types/PatternTrack";
-import { ScaleTrack, ScaleTrackType } from "types/ScaleTrack";
+import {
+  PatternTrack,
+  PatternTrackType,
+  isPatternTrack,
+} from "types/PatternTrack";
+import { ScaleTrack, ScaleTrackType, isScaleTrack } from "types/ScaleTrack";
+import { isPlainObject, isString } from "lodash";
 
-// Types
+// ------------------------------------------------------------
+// Track Generics
+// ------------------------------------------------------------
+
 export type Track = ScaleTrack | PatternTrack;
 export type TrackId = ID;
 export type TrackNoId = Omit<Track, "id">;
@@ -11,14 +19,11 @@ export type EmptyTrackType = "emptyTrack";
 export type TrackType = ScaleTrackType | PatternTrackType | EmptyTrackType;
 export type TrackMap = Record<TrackId, Track>;
 
-/**
- * A track interface represents a generic track in the arrangement.
- * @property id: {@link TrackId} - The unique ID of the track.
- * @property parentId: {@link TrackId} - Optional. The ID of the parent track.
- * @property name: string - The name of the track.
- * @property type: {@link TrackType} - The type of the track.
- * @property collapsed: boolean - Optional. Whether the track is collapsed.
- */
+// ------------------------------------------------------------
+// Track Definitions
+// ------------------------------------------------------------
+
+/** A track interface represents a generic track in the arrangement. */
 export interface TrackInterface {
   id: TrackId;
   parentId?: TrackId;
@@ -27,64 +32,49 @@ export interface TrackInterface {
   collapsed?: boolean;
 }
 
-/**
- * Initializes a TrackInterface with a unique ID.
- * @param track - Optional. Partial TrackInterfaec to override default values.
- * @returns An initialized TrackInterface with a unique ID.
- */
-export const initializeTrack = (
-  track: Partial<TrackNoId> = defaultTrack
-): TrackInterface => ({
-  ...defaultTrack,
-  ...track,
-  id: nanoid(),
-});
+// ------------------------------------------------------------
+// Track Initialization
+// ------------------------------------------------------------
 
-export const defaultTrack: TrackInterface = {
+export const initializeTrackInterface = (
+  track: Partial<TrackInterface> = defaultTrackInterface
+): TrackInterface => ({ ...defaultTrackInterface, ...track, id: nanoid() });
+
+export const defaultTrackInterface: TrackInterface = {
   id: "default-track",
   type: "emptyTrack",
   name: "",
 };
 
-export const mockTrack: TrackInterface = {
+export const mockTrackInterface: TrackInterface = {
   id: "mock-track",
   type: "emptyTrack",
   name: "Mock Track",
 };
 
-/**
- * Checks if a given object is of type Track.
- * @param obj The object to check.
- * @returns True if the object is a Track, otherwise false.
- */
+// ------------------------------------------------------------
+// Track Type Guards
+// ------------------------------------------------------------
+
+/** Checks if a given object is of type `Track` */
 export const isTrack = (obj: unknown): obj is Track => {
   const candidate = obj as Track;
-  return isTrackInterface(candidate);
+  return isScaleTrack(candidate) || isPatternTrack(candidate);
 };
 
-/**
- * Checks if a given object is of type TrackInterface.
- * @param obj The object to check.
- * @returns True if the object is a TrackInterface, otherwise false.
- */
+/** Checks if a given object is of type `TrackInterface` */
 export const isTrackInterface = (obj: unknown): obj is TrackInterface => {
   const candidate = obj as TrackInterface;
   return (
-    candidate?.id !== undefined &&
-    candidate?.name !== undefined &&
-    candidate?.type !== undefined
+    isPlainObject(obj) &&
+    isString(candidate.id) &&
+    isString(candidate.name) &&
+    isString(candidate.type)
   );
 };
 
-/**
- * Checks if a given object is of type TrackMap.
- * @param obj The object to check.
- * @returns True if the object is a TrackMap, otherwise false.
- */
+/** Checks if a given object is of type TrackMap. */
 export const isTrackMap = (obj: unknown): obj is TrackMap => {
   const candidate = obj as TrackMap;
-  return (
-    candidate !== undefined &&
-    Object.values(candidate).every((track) => isTrack(track))
-  );
+  return isPlainObject(obj) && Object.values(candidate).every(isTrack);
 };

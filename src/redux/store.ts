@@ -1,31 +1,19 @@
 import * as Slices from "./slices";
-import {
-  AnyAction,
-  combineReducers,
-  configureStore,
-  ThunkAction,
-} from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import undoable, { includeAction } from "redux-undo";
-import { getSliceActions } from "./util";
 import { groupByActionType, UndoTypes } from "./undoTypes";
 import { handleInstrumentMiddleware } from "./Instrument";
-import { Transport } from "tone";
 import { saveProject } from "./Project/ProjectThunks";
+import { arrangementActions } from "./Arrangement";
+
+const editor = Slices.Editor.default;
+const meta = Slices.Metadata.default;
+const timeline = Slices.Timeline.default;
+const transport = Slices.Transport.default;
 
 const undoableArrangement = undoable(Slices.Arrangement.default, {
   groupBy: groupByActionType,
-  filter: includeAction([
-    ...getSliceActions(Slices.Scales.scalesSlice),
-    ...getSliceActions(Slices.Patterns.patternsSlice),
-    ...getSliceActions(Slices.ScaleTracks.scaleTracksSlice),
-    ...getSliceActions(Slices.PatternTracks.patternTracksSlice),
-    ...getSliceActions(Slices.Clips.clipsSlice),
-    ...getSliceActions(Slices.Transpositions.transpositionsSlice),
-    ...getSliceActions(Slices.Instruments.instrumentsSlice).filter(
-      (action) => action !== "instruments/addInstrumentOffline"
-    ),
-    ...getSliceActions(Slices.TrackHierarchy.trackHierarchySlice),
-  ]),
+  filter: includeAction(arrangementActions),
   undoType: UndoTypes.undoArrangement,
   redoType: UndoTypes.redoArrangement,
   limit: 16,
@@ -45,11 +33,6 @@ const undoablePatterns = undoable(Slices.Patterns.default, {
   limit: 16,
 });
 
-const meta = Slices.Metadata.default;
-const editor = Slices.Editor.default;
-const timeline = Slices.Timeline.default;
-const transport = Slices.Transport.default;
-
 const appReducer = combineReducers({
   meta,
   transport,
@@ -60,21 +43,19 @@ const appReducer = combineReducers({
   editor,
 });
 
+/** Inject the reducer with an overwriter */
 const reducer: typeof appReducer = (state, action) => {
-  if (action.type === "setState") {
-    return action.payload;
-  } else {
-    return appReducer(state, action);
-  }
+  if (action.type === "setProject") return action.payload;
+  return appReducer(state, action);
 };
 
+/** Configure the store with instrument-validating middleware. */
 export const store = configureStore({
   reducer,
   middleware: (gDM) => gDM().concat(handleInstrumentMiddleware),
 });
 
+/** Auto-save the project. */
 store.subscribe(() => {
-  if (Transport.state !== "started") {
-    store.dispatch(saveProject());
-  }
+  store.dispatch(saveProject());
 });

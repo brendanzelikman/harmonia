@@ -1,208 +1,140 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
-  defaultPattern,
   Pattern,
   PatternChord,
   PatternId,
   PatternNote,
   PatternStream,
   isPattern,
-  rotatePatternStream,
+  PatternUpdate,
+  defaultPatternState,
+  isPatternChord,
+  isPatternMidiNote,
+  isPatternRest,
+  getPatternBlockDuration,
+  PatternBlock,
 } from "types/Pattern";
-import { MIDI } from "types/midi";
 import { clamp, random, reverse, shuffle, union } from "lodash";
-import { mod } from "utils";
+import { mod } from "utils/math";
+import { isNestedNote, resolveScaleToMidi, sumScaleVectors } from "types/Scale";
+import {
+  DottedWholeNoteTicks,
+  SixteenthNoteTicks,
+  SixtyFourthNoteTicks,
+  TripletSixtyFourthNoteTicks,
+  WholeNoteTicks,
+} from "utils/durations";
 import { PresetScaleGroupMap } from "presets/scales";
-import { initializeState } from "types/util";
+import { DEFAULT_VELOCITY } from "utils/constants";
 
-export const defaultPatternState = initializeState<PatternId, Pattern>([
-  defaultPattern,
-]);
+// ------------------------------------------------------------
+// Pattern Payload Types
+// ------------------------------------------------------------
 
-/**
- * A `Pattern` can be added to the store.
- */
+/** A `Pattern` can be added to the store. */
 export type AddPatternPayload = Pattern;
 
-/**
- * A `Pattern` can be removed from the store by ID.
- */
+/** A `Pattern` can be removed from the store by ID. */
 export type RemovePatternPayload = PatternId;
 
-/**
- * A `Pattern` can be updated in the store.
- */
-export type UpdatePatternPayload = Partial<Pattern>;
+/** A `Pattern` can be updated in the store. */
+export type UpdatePatternPayload = PatternUpdate;
 
-/**
- * A `PatternNote` can be added to a `Pattern` in the store.
- * @property `id` - The ID of the `Pattern`.
- * @property `patternNote` - The `PatternNote` to add.
- * @property `asChord` - Optional. If true, add the `PatternNote` to the end of the last `PatternChord`.
- */
+/** A `PatternNote` can be added to a `Pattern` in the store. */
 export type AddPatternNotePayload = {
   id: PatternId;
-  patternNote: PatternNote;
+  note: PatternNote;
   asChord?: boolean;
 };
 
-/**
- * A `PatternNote` can be updated by index.
- * @property `id` - The ID of the `Pattern`.
- * @property `index` - The index of the `PatternNote` to update.
- * @property `patternNote` - The `PatternNote` to update.
- *
- */
+/** A `PatternNote` can be updated by index. */
 export interface UpdatePatternNotePayload extends AddPatternNotePayload {
   index: number;
 }
 
-/**
- * A `PatternChord` can be added to a `Pattern` in the store.
- * @property `id` - The ID of the `Pattern`.
- * @property `patternChord` - The `PatternChord` to add.
- */
-export type AddPatternChordPayload = {
-  id: PatternId;
-  patternChord: PatternChord;
-};
+/** A `PatternNote` can be inserted at a specific index. */
+export type InsertPatternNotePayload = UpdatePatternNotePayload;
 
-/**
- * A `PatternChord` can be updated by index.
- * @property `id` - The ID of the `Pattern`.
- * @property `index` - The index of the `PatternChord` to update.
- * @property `patternChord` - The `PatternChord` to update.
- */
-export interface UpdatePatternChordPayload extends AddPatternChordPayload {
+/** A `PatternBlock` can be added to a `Pattern` in the store. */
+export type AddPatternBlockPayload = { id: PatternId; block: PatternBlock };
+
+/** A `PatternBlock` can be inserted at a specific index. */
+export interface InsertPatternBlockPayload {
+  id: PatternId;
+  block: PatternBlock;
   index: number;
 }
 
-/**
- * A `PatternNote` can be inserted at a specific index.
- */
-export type InsertPatternNotePayload = UpdatePatternNotePayload;
+/** A `PatternBlock` can be updated by index. */
+export interface UpdatePatternBlockPayload {
+  id: PatternId;
+  block: PatternBlock;
+  index: number;
+}
 
-/**
- * A `PatternNote` can be removed by index.
- */
-export type RemovePatternNotePayload = { id: PatternId; index: number };
+/** A `PatternBlock` can be transposed with an index and offset. */
+export type TransposePatternBlockPayload = {
+  id: PatternId;
+  index: number;
+  transpose: number;
+};
 
-/**
- * A `Pattern` can be cleared of all notes.
- */
+/** A `PatternBlock` can be removed by index. */
+export type RemovePatternBlockPayload = { id: PatternId; index: number };
+
+/** A `Pattern` can be cleared of all notes. */
 export type ClearPatternPayload = PatternId;
 
-/**
- * A `Pattern` can be transposed by a number of semitones.
- */
+/** A `Pattern` can be transposed by a number of semitones. */
 export type TransposePatternPayload = { id: PatternId; transpose: number };
 
-/**
- * A `Pattern` can be rotated by a number of semitones.
- */
+/** A `Pattern` can be rotated by a number of semitones. */
 export type RotatePatternPayload = { id: PatternId; transpose: number };
 
-/**
- * A `Pattern` can be repeated a number of times.
- */
+/** A `Pattern` can be repeated a number of times. */
 export type RepeatPatternPayload = { id: PatternId; repeat: number };
 
-/**
- * A `Pattern` can be continued for a particular length.
- */
+/** A `Pattern` can be continued for a particular length. */
 export type ContinuePatternPayload = { id: PatternId; length: number };
 
-/**
- * A `Pattern` can be phased by a number of steps.
- */
+/** A `Pattern` can be phased by a number of steps. */
 export type PhasePatternPayload = { id: PatternId; phase: number };
 
-/**
- * A `Pattern` can be diminished by a factor of 2.
- */
-export type DiminishPatternPayload = PatternId;
+/** A `Pattern` can be stretched by a scaling factor. */
+export type StretchPatternPayload = { id: PatternId; factor: number };
 
-/**
- * A `Pattern` can be augmented by a factor of 2.
- */
-export type AugmentPatternPayload = PatternId;
-
-/**
- * A `Pattern` can be reversed.
- */
+/** A `Pattern` can be reversed. */
 export type ReversePatternPayload = PatternId;
 
-/**
- * A `Pattern` can be shuffled.
- */
+/** A `Pattern` can be shuffled. */
 export type ShufflePatternPayload = PatternId;
 
-/**
- * A `Pattern` can be harmonized with a particular interval.
- */
+/** A `Pattern` can be harmonized with a particular interval. */
 export type HarmonizePatternPayload = { id: PatternId; interval: number };
 
-/**
- * A `Pattern` can be randomized with a particular length.
- */
+/** A `Pattern` can be randomized with a particular length. */
 export type RandomizePatternPayload = { id: PatternId; length: number };
 
-/**
- * The `patternsSlice` contains all of the `Patterns` in the store.
- *
- * @property `setPatternIds` - Set the IDs of the `Patterns` in the store (used for dragging)
- * @property `addPattern` - Add a `Pattern` to the store.
- * @property `removePattern` - Remove a `Pattern` from the store.
- * @property `updatePattern` - Update a `Pattern` in the store.
- * @property `addPatternNote` - Add a `PatternNote` to a `Pattern` in the store.
- * @property `addPatternChord` - Add a `PatternChord` to a `Pattern` in the store.
- * @property `updatePatternNote` - Update a `PatternNote` in a `Pattern` in the store.
- * @property `updatePatternChord` - Update a `PatternChord` in a `Pattern` in the store.
- * @property `insertPatternNote` - Insert a `PatternNote` in a `Pattern` in the store.
- * @property `removePatternNote` - Remove a `PatternNote` from a `Pattern` in the store.
- * @property `transposePattern` - Transpose a `Pattern` in the store by a number of semitones.
- * @property `rotatePattern` - Rotate a `Pattern` in the store by a number of steps.
- * @property `invertPattern` - Invert a `Pattern` in the store.
- * @property `repeatPattern` - Repeat a `Pattern` in the store a number of times.
- * @property `continuePattern` - Continue a `Pattern` in the store for a particular length.
- * @property `augmentPattern` - Augment a `Pattern` in the store by a factor of 2.
- * @property `diminishPattern` - Diminish a `Pattern` in the store by a factor of 2.
- * @property `shufflePattern` - Shuffle a `Pattern` in the store.
- * @property `phasePattern` - Phase a `Pattern` in the store by a number of steps.
- * @property `reversePattern` - Reverse a `Pattern` in the store.
- * @property `harmonizePattern` - Harmonize a `Pattern` in the store with a particular interval.
- * @property `randomizePattern` - Randomize a `Pattern` in the store with a particular length.
- * @property `clearPattern` - Clear a `Pattern` in the store.
- *
- */
+// ------------------------------------------------------------
+// Pattern Slice Definition
+// ------------------------------------------------------------
+
 export const patternsSlice = createSlice({
   name: "patterns",
   initialState: defaultPatternState,
   reducers: {
-    /**
-     * Set the IDs of the `Patterns` in the store (used for dragging).
-     * @param project The patterns state.
-     * @param action The payload action containing the pattern IDs to set.
-     */
+    /** Set the list of pattern IDs. */
     setPatternIds: (state, action: PayloadAction<PatternId[]>) => {
       const patternIds = action.payload;
       state.allIds = patternIds;
     },
-    /**
-     * Add a `Pattern` to the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the patterns to add.
-     */
+    /** Add a pattern to the slice. */
     addPattern: (state, action: PayloadAction<AddPatternPayload>) => {
       const pattern = action.payload;
       state.allIds = union(state.allIds, [pattern.id]);
       state.byId[pattern.id] = pattern;
     },
-    /**
-     * Remove a `Pattern` from the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the pattern IDs to remove.
-     */
+    /** Remove a pattern from the slice. */
     removePattern: (state, action: PayloadAction<RemovePatternPayload>) => {
       const patternId = action.payload;
       delete state.byId[patternId];
@@ -210,136 +142,125 @@ export const patternsSlice = createSlice({
       if (index === -1) return;
       state.allIds.splice(index, 1);
     },
-    /**
-     * Update a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the patterns to update.
-     */
+    /** Update a pattern in the slice. */
     updatePattern: (state, action: PayloadAction<UpdatePatternPayload>) => {
       const { id, ...rest } = action.payload;
       if (!id) return;
       state.byId[id] = { ...state.byId[id], ...rest };
     },
-    /**
-     * Add a `PatternNote` to a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the `PatternNote` to add.
-     */
+    /** Add a note to a pattern. */
     addPatternNote: (state, action: PayloadAction<AddPatternNotePayload>) => {
-      const { id, patternNote, asChord } = action.payload;
+      const { id, note, asChord } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPattern(pattern)) return;
 
-      // If the pattern is empty, add the note as the first chord
-      if (pattern.stream.length === 0) {
-        const chord: PatternChord = [patternNote];
-        state.byId[id].stream = [chord];
-        return;
-      }
       // If the note is not a chord, add it to the end of the pattern
       if (!asChord) {
-        const patternChord: PatternChord = [patternNote];
-        state.byId[id].stream.push(patternChord);
+        state.byId[id].stream.push([note]);
       } else {
         // If the note is a chord, add it to the end of the last chord
         const length = pattern.stream.length;
-        state.byId[id].stream[length - 1].push(patternNote);
+        const lastBlock = pattern.stream[length - 1];
+        if (isPatternRest(lastBlock)) {
+          state.byId[id].stream.push([note]);
+        } else {
+          lastBlock.push(note);
+        }
       }
     },
-    /**
-     * Add a `PatternChord` to a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the `PatternChord` to add.
-     */
-    addPatternChord: (state, action: PayloadAction<AddPatternChordPayload>) => {
-      const { id, patternChord } = action.payload;
-      const pattern = state.byId[id];
-      if (!pattern || !isPattern(pattern)) return;
-
-      // If the pattern is empty, add the chord as the first chord
-      if (pattern.stream.length === 0) {
-        state.byId[id].stream = [patternChord];
-        return;
-      }
-
-      // If the chord is not a chord, add it to the end of the pattern
-      state.byId[id].stream.push(patternChord);
-    },
-    /**
-     * Update a `PatternNote` in a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the `PatternNote` to update.
-     */
-    updatePatternNote: (
-      state,
-      action: PayloadAction<UpdatePatternNotePayload>
-    ) => {
-      const { id, patternNote, index, asChord } = action.payload;
-      const pattern = state.byId[id];
-      if (!pattern || !isPattern(pattern)) return;
-
-      if (index < 0 || index > pattern.stream.length) return;
-
-      if (MIDI.isRest(patternNote) || !asChord) {
-        state.byId[id].stream[index] = [patternNote];
-      } else {
-        state.byId[id].stream[index].push(patternNote);
-      }
-    },
-    /**
-     * Update a `PatternChord` in a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the `PatternChord` to update.
-     */
-    updatePatternChord: (
-      state,
-      action: PayloadAction<UpdatePatternChordPayload>
-    ) => {
-      const { id, patternChord, index } = action.payload;
-      const pattern = state.byId[id];
-      if (!pattern || !isPattern(pattern)) return;
-
-      if (index < 0 || index > pattern.stream.length) return;
-      state.byId[id].stream[index] = patternChord;
-    },
-    /**
-     * Insert a `PatternNote` in a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the `PatternNote` to insert.
-     */
+    /** Insert a note into a pattern. */
     insertPatternNote: (
       state,
       action: PayloadAction<InsertPatternNotePayload>
     ) => {
-      const { id, patternNote, index } = action.payload;
+      const { id, note, index } = action.payload;
       const pattern = state.byId[id];
       if (!pattern || !isPattern(pattern)) return;
 
       if (index < 0 || index > pattern.stream.length) return;
 
-      const patternChord: PatternChord = [patternNote];
+      const patternChord: PatternChord = [note];
       state.byId[id].stream.splice(index + 1, 0, patternChord);
     },
-    /**
-     * Remove a `PatternNote` from a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the `PatternNote` to remove.
-     */
-    removePatternNote: (
+    /** Update a note in a pattern. */
+    updatePatternNote: (
       state,
-      action: PayloadAction<RemovePatternNotePayload>
+      action: PayloadAction<UpdatePatternNotePayload>
+    ) => {
+      const { id, note, index, asChord } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern || !isPattern(pattern)) return;
+      if (index < 0 || index > pattern.stream.length) return;
+      if (!asChord) {
+        state.byId[id].stream[index] = [note];
+      } else {
+        const block = pattern.stream[index];
+        if (isPatternRest(block)) {
+          state.byId[id].stream[index] = [note];
+          return;
+        } else {
+          block.push(note);
+        }
+      }
+    },
+    /** Add a block to a pattern. */
+    addPatternBlock: (state, action: PayloadAction<AddPatternBlockPayload>) => {
+      const { id, block } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+      state.byId[id].stream.push(block);
+    },
+    /** Insert a block to a pattern. */
+    insertPatternBlock: (
+      state,
+      action: PayloadAction<InsertPatternBlockPayload>
+    ) => {
+      const { id, block, index } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+      if (index < 0 || index > pattern.stream.length) return;
+      state.byId[id].stream.splice(index, 0, block);
+    },
+    /** Update a block in a pattern. */
+    updatePatternBlock: (
+      state,
+      action: PayloadAction<UpdatePatternBlockPayload>
+    ) => {
+      const { id, block, index } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern || index < 0 || index > pattern.stream.length) return;
+      state.byId[id].stream[index] = block;
+    },
+    /** Transpose a block in a pattern chromatically if it not a rest. */
+    transposePatternBlock: (
+      state,
+      action: PayloadAction<TransposePatternBlockPayload>
+    ) => {
+      const { id, index, transpose } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern || index < 0 || index > pattern.stream.length) return;
+      const block = pattern.stream[index];
+      if (!isPatternChord(block)) return;
+      pattern.stream[index] = block.map((note) => {
+        if (!isNestedNote(note)) {
+          return { ...note, MIDI: note.MIDI + transpose };
+        }
+        const offset = sumScaleVectors([note.offset, { chromatic: transpose }]);
+        return { ...note, offset };
+      });
+    },
+    /** Remove a block from a pattern. */
+    removePatternBlock: (
+      state,
+      action: PayloadAction<RemovePatternBlockPayload>
     ) => {
       const { id, index } = action.payload;
       const pattern = state.byId[id];
-      if (!pattern || !isPattern(pattern)) return;
+      if (!pattern) return;
       if (index < 0 || index > pattern.stream.length) return;
       state.byId[id].stream.splice(index, 1);
     },
-    /**
-     * Transpose a `Pattern` in the store by a number of semitones.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID and transpose value.
-     */
+    /** Transpose a pattern by a number of steps. */
     transposePattern: (
       state,
       action: PayloadAction<TransposePatternPayload>
@@ -347,56 +268,20 @@ export const patternsSlice = createSlice({
       const { id, transpose } = action.payload;
       if (transpose === 0) return; // Avoid unnecessary work
       const pattern = state.byId[id];
-      if (!pattern || !isPattern(pattern)) return;
-
-      pattern.stream = pattern.stream.map((chord) => {
-        if (MIDI.isRest(chord)) return chord;
-        return chord.map((note) => ({ ...note, MIDI: note.MIDI + transpose }));
+      pattern.stream = pattern.stream.map((block) => {
+        if (!isPatternChord(block)) return block;
+        return block.map((note) => {
+          if (isPatternMidiNote(note)) {
+            return { ...note, MIDI: clamp(note.MIDI + transpose, 0, 127) };
+          }
+          return {
+            ...note,
+            offset: sumScaleVectors([note.offset, { chromatic: transpose }]),
+          };
+        });
       });
     },
-    /**
-     * Rotate a `Pattern` in the store by a number of steps.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID and rotate value.
-     */
-    rotatePattern: (state, action: PayloadAction<TransposePatternPayload>) => {
-      const { id, transpose } = action.payload;
-      if (transpose === 0) return; // Avoid unnecessary work
-      const pattern = state.byId[id];
-      if (!pattern) return;
-
-      pattern.stream = rotatePatternStream(pattern.stream, transpose);
-    },
-    /**
-     * Invert a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID.
-     */
-    invertPattern: (state, action: PayloadAction<PatternId>) => {
-      const patternId = action.payload;
-      const pattern = state.byId[patternId];
-      if (!pattern) return;
-
-      const baseChord = pattern.stream.find(
-        (chord) => chord.length > 0 && MIDI.isNotRest(chord)
-      );
-      if (!baseChord) return;
-
-      const baseMIDI = baseChord[0].MIDI;
-      pattern.stream = pattern.stream.map((chord) => {
-        if (MIDI.isRest(chord)) return chord;
-
-        return chord.map((note) => ({
-          ...note,
-          MIDI: baseMIDI - (note.MIDI - baseMIDI),
-        }));
-      });
-    },
-    /**
-     * Repeat a `Pattern` in the store a number of times.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID and repeat value.
-     */
+    /** Repeat a pattern a certain number of times. */
     repeatPattern: (state, action: PayloadAction<RepeatPatternPayload>) => {
       const { id, repeat } = action.payload;
       if (repeat === 0) return; // Avoid unnecessary work
@@ -405,11 +290,7 @@ export const patternsSlice = createSlice({
 
       state.byId[id].stream = new Array(repeat + 1).fill(pattern.stream).flat();
     },
-    /**
-     * Continue a `Pattern` in the store for a particular length.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID and length value.
-     */
+    /** Continue a pattern for a certain number of notes. */
     continuePattern: (state, action: PayloadAction<ContinuePatternPayload>) => {
       const { id, length } = action.payload;
       const pattern = state.byId[id];
@@ -419,11 +300,7 @@ export const patternsSlice = createSlice({
         .fill(0)
         .map((_, i) => pattern.stream[i % pattern.stream.length]);
     },
-    /**
-     * Phase a `Pattern` in the store by a number of steps.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID and phase value.
-     */
+    /** Phase a pattern by a certain number of steps. */
     phasePattern: (state, action: PayloadAction<PhasePatternPayload>) => {
       const { id, phase } = action.payload;
       const pattern = state.byId[id];
@@ -437,53 +314,24 @@ export const patternsSlice = createSlice({
       }
       state.byId[id].stream = stream;
     },
-    /**
-     * Augment a `Pattern` in the store by a factor of 2.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID.
-     */
-    augmentPattern: (state, action: PayloadAction<AugmentPatternPayload>) => {
-      const patternId = action.payload;
-      const pattern = state.byId[patternId];
+    /** Stretch a pattern by a scaling factor. */
+    stretchPattern: (state, action: PayloadAction<StretchPatternPayload>) => {
+      const { id, factor } = action.payload;
+      const pattern = state.byId[id];
       if (!pattern) return;
 
-      pattern.stream = pattern.stream.map((chord) => {
-        return chord.map((note) => ({
-          ...note,
-          duration: clamp(
-            note.duration * 2,
-            MIDI.SixtyFourthNoteTicks,
-            MIDI.WholeNoteTicks
-          ),
-        }));
+      pattern.stream = pattern.stream.map((block) => {
+        const duration = getPatternBlockDuration(block);
+        const newDuration = clamp(
+          duration * factor,
+          SixtyFourthNoteTicks,
+          WholeNoteTicks
+        );
+        if (isPatternRest(block)) return { duration: newDuration };
+        return block.map((note) => ({ ...note, duration: newDuration }));
       });
     },
-    /**
-     * Diminish a `Pattern` in the store by a factor of 2.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID.
-     */
-    diminishPattern: (state, action: PayloadAction<DiminishPatternPayload>) => {
-      const patternId = action.payload;
-      const pattern = state.byId[patternId];
-      if (!pattern) return;
-
-      pattern.stream = pattern.stream.map((chord) => {
-        return chord.map((note) => ({
-          ...note,
-          duration: clamp(
-            note.duration / 2,
-            MIDI.SixtyFourthNoteTicks,
-            MIDI.WholeNoteTicks
-          ),
-        }));
-      });
-    },
-    /**
-     * Reverse a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID.
-     */
+    /** Reverse the stream of a pattern. */
     reversePattern: (state, action: PayloadAction<ReversePatternPayload>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
@@ -491,11 +339,7 @@ export const patternsSlice = createSlice({
 
       state.byId[patternId].stream = reverse(pattern.stream);
     },
-    /**
-     * Shuffle a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID.
-     */
+    /** Shuffle the stream of a pattern. */
     shufflePattern: (state, action: PayloadAction<ShufflePatternPayload>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
@@ -503,11 +347,7 @@ export const patternsSlice = createSlice({
 
       state.byId[patternId].stream = shuffle(pattern.stream);
     },
-    /**
-     * Harmonize a `Pattern` in the store with a particular interval.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID and interval value.
-     */
+    /** Harmonize a pattern with a given interval. */
     harmonizePattern: (
       state,
       action: PayloadAction<HarmonizePatternPayload>
@@ -516,20 +356,26 @@ export const patternsSlice = createSlice({
       const pattern = state.byId[id];
       if (!pattern) return;
 
-      state.byId[id].stream = pattern.stream.map((chord) => {
-        if (!chord.length) return chord;
-        if (MIDI.isRest(chord)) return chord;
+      const newStream: PatternStream = pattern.stream.map((block) => {
+        if (isPatternRest(block)) return block;
         return [
-          ...chord,
-          ...chord.map((note) => ({ ...note, MIDI: note.MIDI + interval })),
+          ...block,
+          ...block.map((note) => {
+            if (isNestedNote(note)) {
+              return {
+                ...note,
+                offset: sumScaleVectors([note.offset, { chromatic: interval }]),
+              };
+            } else {
+              return { ...note, MIDI: clamp(note.MIDI + interval, 0, 127) };
+            }
+          }),
         ];
       });
+
+      pattern.stream = newStream;
     },
-    /**
-     * Randomize a `Pattern` in the store with a particular length.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID and length value.
-     */
+    /** Randomize a pattern in the store with a specific length. */
     randomizePattern: (
       state,
       action: PayloadAction<RandomizePatternPayload>
@@ -537,54 +383,38 @@ export const patternsSlice = createSlice({
       const { id, length } = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
-
       const noteCount = length;
       const stream: PatternStream = [];
       const restPercent = 0.1;
       for (let i = 0; i < noteCount; i++) {
         const seed = Math.random();
-
         if (seed < restPercent) {
-          stream.push([
-            {
-              duration: MIDI.SixteenthNoteTicks,
-              MIDI: MIDI.Rest,
-              velocity: MIDI.DefaultVelocity,
-            },
-          ]);
+          stream.push({ duration: SixteenthNoteTicks });
         } else {
           const noteCount = 1;
           const scales = PresetScaleGroupMap["Basic Scales"];
           const scale = scales[Math.floor(Math.random() * scales.length)];
-          let midiNotes = [...scale.notes.map((n) => n - 7), ...scale.notes];
-          const chord: PatternChord = new Array(noteCount)
-            .fill(0)
-            .map((_, i) => {
-              const index = random(0, midiNotes.length - 1);
-              const midi = midiNotes[index];
-              midiNotes = midiNotes.filter((note) => note !== midi);
-              return {
-                duration: MIDI.SixteenthNoteTicks,
-                velocity: MIDI.DefaultVelocity,
-                MIDI: midi,
-              };
-            });
+          let midiNotes = resolveScaleToMidi(scale);
+          const chord: PatternBlock = new Array(noteCount).fill(0).map((_) => {
+            const index = random(0, midiNotes.length - 1);
+            const midi = midiNotes[index];
+            midiNotes = midiNotes.filter((note) => note !== midi);
+            return {
+              duration: SixteenthNoteTicks,
+              velocity: DEFAULT_VELOCITY,
+              MIDI: midi,
+            };
+          });
           stream.push(chord);
         }
       }
-
       state.byId[id].stream = stream;
     },
-    /**
-     * Clear a `Pattern` in the store.
-     * @param project The patterns state.
-     * @param action The payload action containing the `Pattern` ID.
-     */
+    /** Clear the notes of a pattern in the slice. */
     clearPattern: (state, action: PayloadAction<ClearPatternPayload>) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
       if (!pattern) return;
-
       state.byId[patternId].stream = [];
     },
   },
@@ -596,18 +426,17 @@ export const {
   removePattern,
   updatePattern,
   addPatternNote,
-  addPatternChord,
   insertPatternNote,
-  removePatternNote,
   updatePatternNote,
-  updatePatternChord,
+  addPatternBlock,
+  insertPatternBlock,
+  updatePatternBlock,
+  transposePatternBlock,
+  removePatternBlock,
   transposePattern,
-  rotatePattern,
-  invertPattern,
   repeatPattern,
   continuePattern,
-  augmentPattern,
-  diminishPattern,
+  stretchPattern,
   shufflePattern,
   phasePattern,
   reversePattern,

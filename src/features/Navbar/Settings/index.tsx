@@ -34,7 +34,7 @@ import {
 import { selectCell, setCellWidth } from "redux/Timeline";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { TOGGLE_SHORTCUTS } from "features/Shortcuts";
-import { dispatchCustomEvent } from "utils/events";
+import { dispatchCustomEvent } from "utils/html";
 
 export function NavbarSettingsMenu() {
   const dispatch = useProjectDispatch();

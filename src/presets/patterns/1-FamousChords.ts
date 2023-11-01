@@ -1,15 +1,15 @@
 import { Pattern } from "types/Pattern";
-import { MIDI } from "types/midi";
+import * as _ from "utils/durations";
 
 export const TristanChord: Pattern = {
   id: "tristan-chord",
   name: "Tristan Chord",
   stream: [
     [
-      MIDI.createQuarterNote(53),
-      MIDI.createQuarterNote(59),
-      MIDI.createQuarterNote(63),
-      MIDI.createQuarterNote(68),
+      _.createQuarterNote(53),
+      _.createQuarterNote(59),
+      _.createQuarterNote(63),
+      _.createQuarterNote(68),
     ],
   ],
 };
@@ -18,12 +18,12 @@ export const MysticChord: Pattern = {
   name: "Mystic Chord",
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(66),
-      MIDI.createQuarterNote(70),
-      MIDI.createQuarterNote(76),
-      MIDI.createQuarterNote(81),
-      MIDI.createQuarterNote(86),
+      _.createQuarterNote(60),
+      _.createQuarterNote(66),
+      _.createQuarterNote(70),
+      _.createQuarterNote(76),
+      _.createQuarterNote(81),
+      _.createQuarterNote(86),
     ],
   ],
 };
@@ -32,11 +32,11 @@ export const ElektraChord: Pattern = {
   name: "Elektra Chord",
   stream: [
     [
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(71),
-      MIDI.createQuarterNote(73),
-      MIDI.createQuarterNote(77),
-      MIDI.createQuarterNote(80),
+      _.createQuarterNote(64),
+      _.createQuarterNote(71),
+      _.createQuarterNote(73),
+      _.createQuarterNote(77),
+      _.createQuarterNote(80),
     ],
   ],
 };
@@ -45,11 +45,11 @@ export const FarbenChord: Pattern = {
   name: "Farben Chord",
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(68),
-      MIDI.createQuarterNote(71),
-      MIDI.createQuarterNote(76),
-      MIDI.createQuarterNote(82),
+      _.createQuarterNote(60),
+      _.createQuarterNote(68),
+      _.createQuarterNote(71),
+      _.createQuarterNote(76),
+      _.createQuarterNote(82),
     ],
   ],
 };
@@ -58,14 +58,14 @@ export const RiteOfSpringChord: Pattern = {
   name: "Rite of Spring Chord",
   stream: [
     [
-      MIDI.createQuarterNote(40),
-      MIDI.createQuarterNote(44),
-      MIDI.createQuarterNote(47),
-      MIDI.createQuarterNote(52),
-      MIDI.createQuarterNote(55),
-      MIDI.createQuarterNote(58),
-      MIDI.createQuarterNote(61),
-      MIDI.createQuarterNote(63),
+      _.createQuarterNote(40),
+      _.createQuarterNote(44),
+      _.createQuarterNote(47),
+      _.createQuarterNote(52),
+      _.createQuarterNote(55),
+      _.createQuarterNote(58),
+      _.createQuarterNote(61),
+      _.createQuarterNote(63),
     ],
   ],
 };
@@ -74,10 +74,10 @@ export const DreamChord: Pattern = {
   name: "Dream Chord",
   stream: [
     [
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(72),
-      MIDI.createQuarterNote(73),
-      MIDI.createQuarterNote(74),
+      _.createQuarterNote(67),
+      _.createQuarterNote(72),
+      _.createQuarterNote(73),
+      _.createQuarterNote(74),
     ],
   ],
 };
@@ -87,12 +87,12 @@ export const HendrixChord: Pattern = {
   name: "Hendrix Chord",
   stream: [
     [
-      MIDI.createQuarterNote(40),
-      MIDI.createQuarterNote(52),
-      MIDI.createQuarterNote(56),
-      MIDI.createQuarterNote(62),
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(67),
+      _.createQuarterNote(40),
+      _.createQuarterNote(52),
+      _.createQuarterNote(56),
+      _.createQuarterNote(62),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
     ],
   ],
 };
@@ -101,11 +101,11 @@ export const SoWhatChord: Pattern = {
   name: "So What Chord",
   stream: [
     [
-      MIDI.createQuarterNote(52),
-      MIDI.createQuarterNote(57),
-      MIDI.createQuarterNote(62),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(71),
+      _.createQuarterNote(52),
+      _.createQuarterNote(57),
+      _.createQuarterNote(62),
+      _.createQuarterNote(67),
+      _.createQuarterNote(71),
     ],
   ],
 };
@@ -114,11 +114,11 @@ export const BondChord: Pattern = {
   name: "James Bond Chord",
   stream: [
     [
-      MIDI.createQuarterNote(52),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(71),
-      MIDI.createQuarterNote(75),
-      MIDI.createQuarterNote(78),
+      _.createQuarterNote(52),
+      _.createQuarterNote(67),
+      _.createQuarterNote(71),
+      _.createQuarterNote(75),
+      _.createQuarterNote(78),
     ],
   ],
 };
@@ -127,12 +127,12 @@ export const KennyBarronMajorChord: Pattern = {
   name: "Kenny Barron Major Chord",
   stream: [
     [
-      MIDI.createQuarterNote(48),
-      MIDI.createQuarterNote(55),
-      MIDI.createQuarterNote(62),
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(71),
-      MIDI.createQuarterNote(78),
+      _.createQuarterNote(48),
+      _.createQuarterNote(55),
+      _.createQuarterNote(62),
+      _.createQuarterNote(64),
+      _.createQuarterNote(71),
+      _.createQuarterNote(78),
     ],
   ],
 };
@@ -141,12 +141,12 @@ export const KennyBarronMinorChord: Pattern = {
   name: "Kenny Barron Minor Chord",
   stream: [
     [
-      MIDI.createQuarterNote(48),
-      MIDI.createQuarterNote(55),
-      MIDI.createQuarterNote(62),
-      MIDI.createQuarterNote(63),
-      MIDI.createQuarterNote(70),
-      MIDI.createQuarterNote(77),
+      _.createQuarterNote(48),
+      _.createQuarterNote(55),
+      _.createQuarterNote(62),
+      _.createQuarterNote(63),
+      _.createQuarterNote(70),
+      _.createQuarterNote(77),
     ],
   ],
 };

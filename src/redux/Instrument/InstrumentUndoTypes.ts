@@ -1,52 +1,53 @@
+import * as _ from "./InstrumentSlice";
 import { PayloadAction } from "@reduxjs/toolkit";
-import { ActionGroup } from "types/units";
-import * as InstrumentSlice from "./InstrumentSlice";
-import { getInstrumentEffectTag, getInstrumentTag } from "types/Instrument";
-import { createTag } from "types/util";
-import { getTrackTag } from "types/Track";
+import { ActionGroup } from "redux/util";
+import {
+  getInstrumentEffectAsString,
+  getInstrumentAsString,
+} from "types/Instrument";
+import { getTrackAsString } from "types/Track";
 
 export const INSTRUMENT_UNDO_TYPES: ActionGroup = {
   "instruments/addInstrument": (
-    action: PayloadAction<InstrumentSlice.AddInstrumentPayload>
+    action: PayloadAction<_.AddInstrumentPayload>
   ) => {
-    const tag = createTag(action.payload.track, getTrackTag);
-    return `ADD_TRACK:${tag}`;
+    return `ADD_TRACK:${getTrackAsString(action.payload.track)}`;
   },
   "instruments/removeInstrument": (
-    action: PayloadAction<InstrumentSlice.RemoveInstrumentPayload>
+    action: PayloadAction<_.RemoveInstrumentPayload>
   ) => {
     const id = action.payload.trackId;
     return `REMOVE_TRACK:${id}`;
   },
   "instruments/addInstrumentEffect": (
-    action: PayloadAction<InstrumentSlice.AddInstrumentEffectPayload>
+    action: PayloadAction<_.AddInstrumentEffectPayload>
   ) => {
-    return `${action.payload.instrumentId}:${action.payload.key}`;
+    return `${action.payload.id}:${action.payload.key}`;
   },
   "instruments/removeInstrumentEffect": (
-    action: PayloadAction<InstrumentSlice.RemoveInstrumentEffectPayload>
+    action: PayloadAction<_.RemoveInstrumentEffectPayload>
   ) => {
-    return `${action.payload.instrumentId}:${action.payload.effectId}`;
+    return `${action.payload.id}:${action.payload.effectId}`;
   },
   "instruments/updateInstrument": (
-    action: PayloadAction<InstrumentSlice.UpdateInstrumentPayload>
+    action: PayloadAction<_.UpdateInstrumentPayload>
   ) => {
-    const tag = getInstrumentTag(action.payload.update);
-    return `${action.payload.instrumentId}:${tag}`;
+    const tag = getInstrumentAsString(action.payload.update);
+    return `${action.payload.id}:${tag}`;
   },
   "instruments/updateInstrumentEffect": (
-    action: PayloadAction<InstrumentSlice.UpdateInstrumentEffectPayload>
+    action: PayloadAction<_.UpdateInstrumentEffectPayload>
   ) => {
-    const tag = getInstrumentEffectTag(action.payload.update);
-    return `${action.payload.instrumentId}:${tag}`;
+    const tag = getInstrumentEffectAsString(action.payload.update);
+    return `${action.payload.id}:${tag}`;
   },
   "instruments/resetInstrumentEffect": (
-    action: PayloadAction<InstrumentSlice.ResetInstrumentEffectPayload>
+    action: PayloadAction<_.ResetInstrumentEffectPayload>
   ) => {
-    return `${action.payload.instrumentId}:${action.payload.effectId}`;
+    return `${action.payload.id}:${action.payload.effectId}`;
   },
   "instruments/removeAllInstrumentEffects": (
-    action: PayloadAction<InstrumentSlice.RemoveAllInstrumentEffectsPayload>
+    action: PayloadAction<_.RemoveAllInstrumentEffectsPayload>
   ) => {
     return `${action.payload}`;
   },

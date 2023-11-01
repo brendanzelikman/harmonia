@@ -1,16 +1,14 @@
-export * from "./Scale/ScaleSelectors";
-export * from "./Pattern/PatternSelectors";
-export * from "./Instrument/InstrumentSelectors";
-export * from "./Editor/EditorSelectors";
-
-export * from "./ScaleTrack/ScaleTrackSelectors";
-export * from "./PatternTrack/PatternTrackSelectors";
-export * from "./Track/TrackSelectors";
-
+export * from "./Arrangement/ArrangementSelectors";
 export * from "./Clip/ClipSelectors";
-export * from "./Transposition/TranspositionSelectors";
-export * from "./TrackHierarchy/TrackHierarchySelectors";
-
-export * from "./Timeline/TimelineSelectors";
-export * from "./Transport/TransportSelectors";
+export * from "./Editor/EditorSelectors";
+export * from "./Instrument/InstrumentSelectors";
 export * from "./Metadata/MetadataSelectors";
+export * from "./Pattern/PatternSelectors";
+export * from "./PatternTrack/PatternTrackSelectors";
+export * from "./Scale/ScaleSelectors";
+export * from "./ScaleTrack/ScaleTrackSelectors";
+export * from "./Timeline/TimelineSelectors";
+export * from "./Track/TrackSelectors";
+export * from "./TrackHierarchy/TrackHierarchySelectors";
+export * from "./Transport/TransportSelectors";
+export * from "./Transposition/TranspositionSelectors";

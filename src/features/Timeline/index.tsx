@@ -1,7 +1,7 @@
 import { TrackId, TrackType } from "types/Track";
 import { createScaleTrack } from "redux/thunks";
 import {
-  selectTrackInfoRecord,
+  selectTrackRenderDependencies,
   selectCell,
   selectTrackMap,
 } from "redux/selectors";
@@ -24,7 +24,7 @@ import { TimelineClips } from "./Clips";
 import { TimelineTranspositions } from "./Transpositions";
 import TimelineContextMenu from "./components/TimelineContextMenu";
 import TimelineGraphics from "./components/TimelineGraphics";
-import useTimelineHotkeys from "./hooks/useTimelineHotkeys";
+import { useTimelineHotkeys } from "./hooks/useTimelineHotkeys";
 import { useTimelineLiveHotkeys } from "./hooks/useTimelineLiveHotkeys";
 import {
   COLLAPSED_TRACK_HEIGHT,
@@ -49,10 +49,10 @@ export interface TimelinePortalElement {
   timeline: DataGridHandle;
 }
 
-export default function TimelineComponent() {
+export function Timeline() {
   const dispatch = useProjectDispatch();
   const cell = useProjectSelector(selectCell);
-  const dependencyMap = useProjectDeepSelector(selectTrackInfoRecord);
+  const dependencyMap = useProjectDeepSelector(selectTrackRenderDependencies);
   const trackMap = useProjectDeepSelector(selectTrackMap);
   const [timeline, setTimeline] = useState<DataGridHandle>();
   useTimelineHotkeys();
@@ -114,9 +114,7 @@ export default function TimelineComponent() {
     return rows;
   }, [dependencyMap]);
 
-  /**
-   * The Add Track button is located directly under the last track, appearing on hover.
-   */
+  /** The Add Track button is located directly under the last track, appearing on hover. */
   const AddTrackButton = (
     <div
       className={`rdg-track flex font-nunito w-full h-full justify-center items-center hover:bg-sky-500/30 text-slate-50/0 hover:text-slate-100 ease-in-out transition-all duration-500 rounded cursor-pointer`}
@@ -148,9 +146,7 @@ export default function TimelineComponent() {
     []
   );
 
-  /**
-   * The column is memoized so that it is not recreated on every render.
-   */
+  /** The column is memoized so that it is not recreated on every render. */
   const column = useCallback(
     (key: string): Column<Row> => ({
       key,

@@ -1,8 +1,4 @@
 import { Project } from "types/Project";
 
-/**
- * Select the editor from the state.
- * @param project The Project object.
- * @returns The editor object.
- */
+/** Select the editor. */
 export const selectEditor = (project: Project) => project.editor;

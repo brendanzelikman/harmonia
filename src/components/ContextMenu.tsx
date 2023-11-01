@@ -14,7 +14,7 @@ export interface ContextMenuOption {
   divideEnd?: boolean;
 }
 
-export default function ContextMenu(props: {
+export function ContextMenu(props: {
   targetId: string;
   className?: string;
   options: ContextMenuOption[];

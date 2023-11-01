@@ -1,68 +1,102 @@
 import { DragEvent, MouseEvent } from "react";
 
-export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-export const keyCode = (key: string) => key.toUpperCase().charCodeAt(0);
+// ------------------------------------------------------------
+// Custom Events
+// ------------------------------------------------------------
 
+/** Dispatch a custom window event of the given type and detail. */
+export const dispatchCustomEvent = (type: string, detail?: unknown) => {
+  const customEvent = new CustomEvent(type, { detail });
+  window.dispatchEvent(customEvent);
+};
+
+/** Prompts the user then applies a callback for the numerical result. */
+export const promptUser =
+  (message: string, callback: (input: number) => unknown) => () => {
+    const input = prompt(message);
+    const sanitizedInput = parseInt(input ?? "");
+    if (!isNaN(sanitizedInput)) callback(sanitizedInput);
+  };
+
+/** Download the given blob using an optional file name. */
+export const downloadBlob = (blob: Blob, fileName?: string) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName ?? "file";
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+// ------------------------------------------------------------
+// Generic Events
+// ------------------------------------------------------------
+
+type GenericKeyboardEvent = KeyboardEvent | React.KeyboardEvent<HTMLElement>;
+type GenericMouseEvent = MouseEvent | React.MouseEvent<HTMLElement, MouseEvent>;
+type GenericDragEvent = DragEvent<HTMLElement> | React.DragEvent<HTMLElement>;
+type GenericTouchEvent = TouchEvent | React.TouchEvent<HTMLElement>;
+
+/** A `GenericEvent` includes HTML and React events in addition to the native Event. */
 type GenericEvent =
   | Event
-  | DragEvent<HTMLElement>
-  | React.MouseEvent<HTMLElement, MouseEvent>
-  | MouseEvent
-  | React.TouchEvent<HTMLElement>;
+  | GenericKeyboardEvent
+  | GenericMouseEvent
+  | GenericDragEvent
+  | GenericTouchEvent;
 
+/** Blur the targeted element of the event. */
+export const blurEvent = (e: GenericEvent) => {
+  (e.currentTarget as HTMLElement).blur();
+};
+
+/** Blur the targeted element when the user presses Enter.  */
+export const blurOnEnter = (e: GenericEvent) => {
+  if ((e as GenericKeyboardEvent).key === "Enter") {
+    (e.currentTarget as HTMLElement).blur();
+  }
+};
+
+/** Cancel the event and stop all propagation. */
 export const cancelEvent = (e: GenericEvent) => {
   e.preventDefault();
   e.stopPropagation();
 };
 
+// ------------------------------------------------------------
+// Generic Event Helpers
+// ------------------------------------------------------------
+
+/** Check if the user is targeting an input or textarea element. */
 export const isInputEvent = (e: GenericEvent) => {
   const target = e.target as HTMLElement;
   return target.tagName === "INPUT" || target.tagName === "TEXTAREA";
 };
 
+/** Check if the user is holding shift during an event. */
 export const isHoldingShift = (e: GenericEvent) => {
   const keyboardEvent = e as KeyboardEvent;
   return keyboardEvent.shiftKey;
 };
+
+/** Check if the user is holding alt/option during an event. */
 export const isHoldingOption = (e: GenericEvent) => {
   const keyboardEvent = e as KeyboardEvent;
   return keyboardEvent.altKey;
 };
-export const isHoldingCommand = (e: GenericEvent) => {
+
+/** Check if the user is holding meta during an event. */
+export const isHoldingMeta = (e: GenericEvent) => {
   const keyboardEvent = e as KeyboardEvent;
   return keyboardEvent.metaKey || keyboardEvent.ctrlKey;
 };
+
+/** Check if the user is holding any modifier during an event. */
 export const isHoldingModifier = (e: GenericEvent) => {
-  return isHoldingShift(e) || isHoldingOption(e) || isHoldingCommand(e);
+  return isHoldingShift(e) || isHoldingOption(e) || isHoldingMeta(e);
 };
 
-export const isLetterKey = (e: KeyboardEvent) => {
-  return /^[a-zA-Z]$/.test(e.key);
-};
-
-export const SHIFTED_KEY_MAP: Record<string, string> = {
-  "1": "!",
-  "2": "@",
-  "3": "#",
-  "4": "$",
-  "5": "%",
-  "6": "^",
-  "7": "&",
-  "8": "*",
-  "9": "(",
-  "-": "_",
-  "=": "+",
-  "`": "~",
-};
-export const upperCase = (key: string) =>
-  SHIFTED_KEY_MAP[key] || key.toUpperCase();
-
-export const blurOnEnter = (e: React.KeyboardEvent) => {
-  if (e.key === "Enter") {
-    (e.currentTarget as HTMLElement).blur();
-  }
-};
-
-export const blurOnMouseUp = (e: React.MouseEvent) => {
-  (e.currentTarget as HTMLElement).blur();
+/** Check if the user is pressing a letter key during a keyboard event. */
+export const isPressingLetter = (e: GenericEvent) => {
+  return /^[a-zA-Z]$/.test((e as KeyboardEvent).key);
 };

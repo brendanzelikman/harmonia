@@ -1,7 +1,7 @@
 import { useProjectSelector, useProjectDeepSelector } from "redux/hooks";
 import { ScaleTrackProps } from "../ScaleTrack";
 import { selectTranspositionIds } from "redux/Transposition";
-import { selectTrackParents, selectSelectedTrackId } from "redux/selectors";
+import { selectTrackChain, selectSelectedTrackId } from "redux/selectors";
 
 interface ScaleTrackStyleProps extends ScaleTrackProps {
   isDragging: boolean;
@@ -10,7 +10,7 @@ export const useScaleTrackStyles = (props: ScaleTrackStyleProps) => {
   const selectedTrackId = useProjectSelector(selectSelectedTrackId);
   const selectedTranspositionIds = useProjectSelector(selectTranspositionIds);
   const selectedParents = useProjectDeepSelector((_) =>
-    selectTrackParents(_, selectedTrackId)
+    selectTrackChain(_, selectedTrackId)
   );
   const isSelected = props.track.id === selectedTrackId;
   const isScaleSelected = selectedParents.some(({ id }) => id === props.id);

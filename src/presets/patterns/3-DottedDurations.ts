@@ -1,24 +1,24 @@
 import { fill } from "lodash";
 import { Pattern } from "types/Pattern";
-import { MIDI } from "types/midi";
+import * as _ from "utils/durations";
 
 export const DottedWholeNotes: Pattern = {
   id: "dotted-whole-note",
   name: "Dotted Whole Note",
   aliases: ["dotted whole note", "dotted whole"],
-  stream: [[MIDI.createDottedWholeNote()], [MIDI.createDottedWholeNote()]],
+  stream: [[_.createDottedWholeNote()], [_.createDottedWholeNote()]],
 };
 export const DottedHalfNotes: Pattern = {
   id: "dotted-half-notes",
   name: "Dotted Half Notes",
   aliases: ["dotted half notes", "dotted halfs", "dotted halves"],
-  stream: fill(Array(4), [MIDI.createDottedHalfNote()]),
+  stream: fill(Array(4), [_.createDottedHalfNote()]),
 };
 export const DottedQuarterNotes: Pattern = {
   id: "dotted-quarter-notes",
   name: "Dotted Quarter Notes",
   aliases: ["dotted quarter notes", "dotted quarters"],
-  stream: fill(Array(4), [MIDI.createDottedQuarterNote()]),
+  stream: fill(Array(4), [_.createDottedQuarterNote()]),
 };
 export const DottedEighthNotes: Pattern = {
   id: "dotted-eighth-notes",
@@ -29,7 +29,7 @@ export const DottedEighthNotes: Pattern = {
     "dotted 8th notes",
     "dotted 8ths",
   ],
-  stream: fill(Array(8), [MIDI.createDottedEighthNote()]),
+  stream: fill(Array(8), [_.createDottedEighthNote()]),
 };
 export const DottedSixteenthNotes: Pattern = {
   id: "dotted-sixteenth-notes",
@@ -41,7 +41,7 @@ export const DottedSixteenthNotes: Pattern = {
     "dotted 16th notes",
   ],
 
-  stream: fill(Array(16), [MIDI.createDottedSixteenthNote()]),
+  stream: fill(Array(16), [_.createDottedSixteenthNote()]),
 };
 export const DottedThirtySecondNotes: Pattern = {
   id: "dotted-thirty-second-notes",
@@ -54,7 +54,7 @@ export const DottedThirtySecondNotes: Pattern = {
     "dotted 32nds",
     "dotted 32nd notes",
   ],
-  stream: fill(Array(32), [MIDI.createDottedThirtySecondNote()]),
+  stream: fill(Array(32), [_.createDottedThirtySecondNote()]),
 };
 export const DottedSixtyFourthNotes: Pattern = {
   id: "dotted-sixty-fourth-notes",
@@ -67,7 +67,7 @@ export const DottedSixtyFourthNotes: Pattern = {
     "dotted 64ths",
     "dotted 64th notes",
   ],
-  stream: fill(Array(64), [MIDI.createDottedSixtyFourthNote()]),
+  stream: fill(Array(64), [_.createDottedSixtyFourthNote()]),
 };
 
 export default {

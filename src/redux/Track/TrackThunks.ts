@@ -26,6 +26,7 @@ import {
 import {
   createScaleTrack,
   removeScaleTrack,
+  selectScaleTrackByScaleId,
   updateScaleTrack,
 } from "redux/ScaleTrack";
 import {
@@ -39,33 +40,28 @@ import {
   selectTrackById,
   selectTrackMap,
   selectTrackChildren,
+  selectTrackMidiScale,
 } from "./TrackSelectors";
 import { MouseEvent } from "react";
-import { isHoldingOption } from "utils";
-import { getProperty } from "types/util";
+import { isHoldingOption } from "utils/html";
+import { getValueByKey } from "utils/objects";
 import { selectSelectedTrackId, setSelectedTrackId } from "redux/Timeline";
 import { createMedia } from "redux/Media";
+import { PatternNote } from "types/Pattern";
+import { NestedNote, isNestedNote } from "types/Scale";
 
-/**
- * Create a track in the store.
- * @param track The track object.
- */
+/** Add and create a new track.. */
 export const createTrack =
-  (track: Track): Thunk<Promise<TrackId>> =>
+  (track: Track): Thunk<TrackId> =>
   (dispatch) => {
-    return new Promise((resolve) => {
-      if (isScaleTrack(track)) {
-        resolve(dispatch(createScaleTrack(track)));
-      } else {
-        resolve(dispatch(createPatternTrack(track)));
-      }
-    });
+    if (isScaleTrack(track)) {
+      return dispatch(createScaleTrack(track));
+    } else {
+      return dispatch(createPatternTrack(track));
+    }
   };
 
-/**
- * Update multiple tracks in the store.
- * @param tracks The partial track objects.
- */
+/** Update a list of tracks. */
 export const updateTracks =
   (tracks: Partial<Track>[]): Thunk =>
   (dispatch) => {
@@ -78,10 +74,7 @@ export const updateTracks =
     });
   };
 
-/**
- * Clear a track of all media.
- * @param trackId The ID of the track.
- */
+/** Clear a track of all media. */
 export const clearTrack =
   (trackId?: TrackId): Thunk =>
   (dispatch) => {
@@ -91,10 +84,7 @@ export const clearTrack =
     dispatch(Hierarchy.clearTrackInHierarchy(trackId));
   };
 
-/**
- * Delete a track from the store.
- * @param trackId The ID of the track.
- */
+/** Delete a track. */
 export const deleteTrack =
   (trackId?: TrackId): Thunk =>
   (dispatch, getProject) => {
@@ -111,7 +101,7 @@ export const deleteTrack =
       dispatch(
         removeInstrument({
           trackId: track.id,
-          instrumentId: track.instrumentId,
+          id: track.instrumentId,
         })
       );
       dispatch(Hierarchy.removePatternTrackFromHierarchy(track.id));
@@ -136,21 +126,134 @@ export const deleteTrack =
     }
   };
 
-/**
- * Duplicate a track and all of its media/children.
- * @param id The ID of the track.
- */
+/** Collapse a track in the slice and hierarchy. */
+export const collapseTrack =
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    if (!trackId) return;
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
+    if (!track) return;
+    dispatch(updateTracks([{ ...track, collapsed: true }]));
+    dispatch(Hierarchy.collapseTracksInHierarchy([track.id]));
+  };
+
+/** Collapse all children of a track in the slice and hierarchy. */
+export const collapseTrackChildren =
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
+    if (!track || isPatternTrack(track)) return;
+    const children = selectTrackChildren(project, track.id);
+    dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: true }))));
+    dispatch(Hierarchy.collapseTracksInHierarchy(children.map((c) => c.id)));
+  };
+
+/** Expand a track in the slice and hierarchy. */
+export const expandTrack =
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
+    if (!track) return;
+    dispatch(updateTracks([{ ...track, collapsed: false }]));
+    dispatch(Hierarchy.expandTracksInHierarchy([track.id]));
+  };
+
+/** Expand all children of a track in the slice and hierarchy. */
+export const expandTrackChildren =
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
+    if (!track || isPatternTrack(track)) return;
+    const children = selectTrackChildren(project, track.id);
+    dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: false }))));
+    dispatch(Hierarchy.expandTracksInHierarchy(children.map((c) => c.id)));
+    return;
+  };
+
+/** Mute all tracks. */
+export const muteTracks = (): Thunk => (dispatch) => {
+  dispatch(muteInstruments());
+};
+
+/** Unmute all tracks. */
+export const unmuteTracks = (): Thunk => (dispatch) => {
+  dispatch(unmuteInstruments());
+};
+
+/** Solo all tracks. */
+export const soloTracks = (): Thunk => (dispatch) => {
+  dispatch(soloInstruments());
+};
+
+/** Unsolo all tracks. */
+export const unsoloTracks = (): Thunk => (dispatch) => {
+  dispatch(unsoloInstruments());
+};
+
+/** Toggle the mute state of a track. */
+export const toggleTrackMute =
+  (e: MouseEvent, id?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectPatternTrackById(project, id);
+    if (!track) return;
+
+    // Get the track's instrument
+    const { instrumentId } = track;
+    const instrument = selectInstrumentById(project, instrumentId);
+    if (!instrument) return;
+
+    // If not holding option, toggle the track mute
+    if (!e || !isHoldingOption(e.nativeEvent)) {
+      const update = { mute: !instrument.mute };
+      dispatch(updateInstrument({ id: instrumentId, update }));
+      return;
+    }
+
+    // Otherwise, toggle all tracks
+    dispatch(instrument.mute ? unmuteTracks() : muteTracks());
+  };
+
+/** Toggle the solo state of a track. */
+export const toggleTrackSolo =
+  (e: MouseEvent, id?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectPatternTrackById(project, id);
+    if (!track) return;
+
+    // Get the track's instrument
+    const { instrumentId } = track;
+    const instrument = selectInstrumentById(project, instrumentId);
+    if (!instrument) return;
+
+    // If not holding option, toggle the track solo
+    if (!e || !isHoldingOption(e.nativeEvent)) {
+      const update = { solo: !instrument.solo };
+      dispatch(updateInstrument({ id: instrumentId, update }));
+      return;
+    }
+
+    // Otherwise, toggle all tracks
+    dispatch(instrument.solo ? unsoloTracks() : soloTracks());
+  };
+
+/** Duplicate a track and all of its media/children in the slice and hierarchy. */
 export const duplicateTrack =
   (id?: TrackId): Thunk =>
-  async (dispatch, getProject) => {
+  (dispatch, getProject) => {
     const project = getProject();
     const trackNodeMap = selectTrackNodeMap(project);
     const track = selectTrackById(project, id);
-    const trackNode = getProperty(trackNodeMap, id);
+    const trackNode = getValueByKey(trackNodeMap, id);
     if (!track || !trackNode) return;
 
     // Create the new track and get its ID
-    const trackId = await dispatch(createTrack(track));
+    const trackId = dispatch(createTrack(track));
     if (!trackId) return;
 
     // Duplicate the original track's media
@@ -174,7 +277,7 @@ export const duplicateTrack =
       const children = trackIds.map((id) => trackMap[id]);
       children.forEach(async (child) => {
         // Create the child track
-        const newParentId = await dispatch(createTrack({ ...child, parentId }));
+        const newParentId = dispatch(createTrack({ ...child, parentId }));
 
         // Add the track's media
         const clipIds = trackNodeMap[child.id]?.clipIds;
@@ -196,148 +299,33 @@ export const duplicateTrack =
         // Add the track's children
         const babies = trackNodeMap[child.id]?.trackIds;
         if (!babies) return;
-        await addChildren(babies, newParentId);
+        addChildren(babies, newParentId);
       });
     };
-    await addChildren(childTracks, trackId);
+    addChildren(childTracks, trackId);
   };
 
-/**
- *  Collapse a track.
- * @param track The track to collapse.
- */
-export const collapseTrack =
-  (trackId?: TrackId): Thunk =>
+/** Get the degree of the pattern note in the given track's scale.  */
+export const getDegreeOfNoteInTrack =
+  (trackId: TrackId, patternNote?: PatternNote): Thunk<number> =>
   (dispatch, getProject) => {
-    if (!trackId) return;
+    if (!patternNote) return -1;
     const project = getProject();
-    const track = selectTrackById(project, trackId);
-    if (!track) return;
-    dispatch(updateTracks([{ ...track, collapsed: true }]));
-    dispatch(Hierarchy.collapseTracksInHierarchy([track.id]));
-  };
+    const trackMidiScale = selectTrackMidiScale(project, trackId);
+    const isNested = isNestedNote(patternNote);
 
-/**
- * Collapse all children of a track.
- * @param track The track whose children to collapse.
- */
-export const collapseTrackChildren =
-  (trackId?: TrackId): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const track = selectTrackById(project, trackId);
-    if (!track || isPatternTrack(track)) return;
-    const children = selectTrackChildren(project, track.id);
-    dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: true }))));
-    dispatch(Hierarchy.collapseTracksInHierarchy(children.map((c) => c.id)));
-  };
-
-/**
- * Expand a track.
- * @param track The track to expand.
- */
-export const expandTrack =
-  (trackId?: TrackId): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const track = selectTrackById(project, trackId);
-    if (!track) return;
-    dispatch(updateTracks([{ ...track, collapsed: false }]));
-    dispatch(Hierarchy.expandTracksInHierarchy([track.id]));
-  };
-
-/**
- * Expand all children of a track.
- * @param track The track whose children to expand.
- */
-export const expandTrackChildren =
-  (trackId?: TrackId): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const track = selectTrackById(project, trackId);
-    if (!track || isPatternTrack(track)) return;
-    const children = selectTrackChildren(project, track.id);
-    dispatch(updateTracks(children.map((c) => ({ ...c, collapsed: false }))));
-    dispatch(Hierarchy.expandTracksInHierarchy(children.map((c) => c.id)));
-    return;
-  };
-
-/**
- * Mute all tracks.
- */
-export const muteTracks = (): Thunk => (dispatch) => {
-  dispatch(muteInstruments());
-};
-
-/**
- * Unmute all tracks.
- */
-export const unmuteTracks = (): Thunk => (dispatch) => {
-  dispatch(unmuteInstruments());
-};
-
-/**
- * Solo all tracks.
- */
-export const soloTracks = (): Thunk => (dispatch) => {
-  dispatch(soloInstruments());
-};
-
-/**
- * Unsolo all tracks.
- */
-export const unsoloTracks = (): Thunk => (dispatch) => {
-  dispatch(unsoloInstruments());
-};
-
-/**
- * Toggle the mute state of a track.
- */
-export const toggleTrackMute =
-  (e: MouseEvent, id?: TrackId): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const track = selectPatternTrackById(project, id);
-    if (!track) return;
-
-    // Get the track's instrument
-    const { instrumentId } = track;
-    const instrument = selectInstrumentById(project, instrumentId);
-    if (!instrument) return;
-
-    // If not holding option, toggle the track mute
-    if (!e || !isHoldingOption(e.nativeEvent)) {
-      const update = { mute: !instrument.mute };
-      dispatch(updateInstrument({ instrumentId, update }));
-      return;
+    // Get the MIDI of the note, realizing if necessary
+    let MIDI: number;
+    if (!isNested) MIDI = patternNote.MIDI;
+    else {
+      const note = patternNote as NestedNote;
+      const track = selectScaleTrackByScaleId(project, note?.scaleId);
+      const midiScale = selectTrackMidiScale(project, track?.id);
+      const midi = getValueByKey(midiScale, note?.degree);
+      MIDI = midi ?? -1;
     }
 
-    // Otherwise, toggle all tracks
-    dispatch(instrument.mute ? unmuteTracks() : muteTracks());
-  };
-
-/**
- * Toggle the solo state of a track.
- */
-export const toggleTrackSolo =
-  (e: MouseEvent, id?: TrackId): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const track = selectPatternTrackById(project, id);
-    if (!track) return;
-
-    // Get the track's instrument
-    const { instrumentId } = track;
-    const instrument = selectInstrumentById(project, instrumentId);
-    if (!instrument) return;
-
-    // If not holding option, toggle the track solo
-    if (!e || !isHoldingOption(e.nativeEvent)) {
-      const update = { solo: !instrument.solo };
-      dispatch(updateInstrument({ instrumentId, update }));
-      return;
-    }
-
-    // Otherwise, toggle all tracks
-    dispatch(instrument.solo ? unsoloTracks() : soloTracks());
+    // Index the MIDI scale and return the degree
+    if (MIDI < 0) return -1;
+    return trackMidiScale.findIndex((s) => s % 12 === MIDI % 12);
   };

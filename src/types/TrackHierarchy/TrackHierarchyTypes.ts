@@ -1,28 +1,68 @@
-import { NormalizedState, initializeState } from "../util";
+import { NormalState, createNormalState } from "utils/normalizedState";
 import { ClipId } from "../Clip";
 import { TrackId, TrackType } from "../Track";
 import { TranspositionId } from "../Transposition";
+import { isArray, isPlainObject, isString } from "lodash";
+import {
+  areObjectKeysTyped,
+  areObjectValuesTyped,
+  isBoundedNumber,
+  isFiniteNumber,
+  isTypedArray,
+} from "types/util";
 
-/**
- * A `TrackNode` refers to a track and its media + children
- * @property `id` - The unique ID of the track.
- * @property `type` - The type of the track.
- * @property `depth` - The depth of the track in the TrackHierarchy map.
- * @property `trackIds` - The IDs of the child tracks.
- * @property `clipIds` - The IDs of the clips in the track.
- * @property `transpositionIds` - The IDs of the transpositions in the track.
- * @property `collapsed` - Optional. Whether the track is collapsed.
- */
-export interface TrackNode {
+// ------------------------------------------------------------
+// Track Hierarchy Generics
+// ------------------------------------------------------------
+
+export type TrackNodeState = NormalState<TrackNodeMap>;
+
+// ------------------------------------------------------------
+// Track Hierarchy Definitions
+// ------------------------------------------------------------
+
+/** The `TrackRenderData` interface stores essential information needed to render a track. */
+export interface TrackRenderData {
   id: TrackId;
+  trackIds: TrackId[];
   type: TrackType;
   depth: number;
-  trackIds: TrackId[];
+}
+
+/** A `TrackNode` stores track render data and additional dependencies. */
+export interface TrackNode extends TrackRenderData {
   clipIds: ClipId[];
   transpositionIds: TranspositionId[];
   collapsed?: boolean;
 }
 
+/** A `TrackRenderMap` is a record of track render data stored by ID. */
+export type TrackRenderMap = Record<TrackId, TrackRenderData>;
+
+/** A `TrackNodeMap` is a record of track nodes stored by ID.  */
+export type TrackNodeMap = Record<TrackId, TrackNode>;
+
+/** The `TrackRenderDependencies` is built upon a normalized state of `TrackRenderData` */
+export interface TrackRenderDependencies extends NormalState<TrackRenderMap> {
+  topLevelIds: TrackId[];
+}
+
+/** A `TrackHierarchy` is built upon a normalized state of `TrackNodes` */
+export interface TrackHierarchy extends NormalState<TrackNodeMap> {
+  topLevelIds: TrackId[];
+}
+
+// ------------------------------------------------------------
+// Track Hierarchy Initialization
+// ------------------------------------------------------------
+
+/** Create a track hierarchy. */
+export const initializeTrackHierarchy = (): TrackHierarchy => ({
+  ...createNormalState<TrackNodeMap>(),
+  topLevelIds: [] as string[],
+});
+
+/** The default scale track node corresponds to the default scale track. */
 export const defaultScaleTrackNode: TrackNode = {
   id: "default-scale-track",
   type: "scaleTrack",
@@ -31,6 +71,18 @@ export const defaultScaleTrackNode: TrackNode = {
   clipIds: [],
   transpositionIds: [],
 };
+
+/** The default pattern track node corresponds to the default pattern track. */
+export const defaultPatternTrackNode: TrackNode = {
+  id: "default-pattern-track",
+  type: "patternTrack",
+  depth: 1,
+  trackIds: [],
+  clipIds: [],
+  transpositionIds: [],
+};
+
+/** The mock scale track node is used for testing. */
 export const mockScaleTrackNode: TrackNode = {
   id: "mock-scale-track",
   type: "scaleTrack",
@@ -40,14 +92,7 @@ export const mockScaleTrackNode: TrackNode = {
   transpositionIds: [],
 };
 
-export const defaultPatternTrackNode: TrackNode = {
-  id: "default-pattern-track",
-  type: "patternTrack",
-  depth: 1,
-  trackIds: [],
-  clipIds: [],
-  transpositionIds: [],
-};
+/** The mock pattern track node is used for testing. */
 export const mockPatternTrackNode: TrackNode = {
   id: "mock-pattern-track",
   type: "patternTrack",
@@ -57,66 +102,44 @@ export const mockPatternTrackNode: TrackNode = {
   transpositionIds: ["mock-transposition"],
 };
 
-/**
- * A `TrackHierarchy` is built upon a normalized state of `TrackNode` objects.
- * @property `allIds` - The IDs of all the tracks.
- * @property `byId` - The map of track IDs to `TrackNode` objects.
- * @property `topLevelIds` - The IDs of the top-level tracks.
- */
-export interface TrackHierarchy extends NormalizedState<TrackId, TrackNode> {
-  topLevelIds: TrackId[];
-}
-export type TrackNodeMap = Record<TrackId, TrackNode>;
-
-/**
- * The default hierarchy is initialized with the default scale track and default pattern track.
- */
-export const defaultTrackHierarchy: TrackHierarchy = {
-  ...initializeState<TrackId, TrackNode>([
+/** The default track node state is used for initialization. */
+export const defaultTrackNodeState: TrackNodeState =
+  createNormalState<TrackNodeMap>([
     defaultScaleTrackNode,
     defaultPatternTrackNode,
-  ]),
+  ]);
+
+/** The default track hierarchy is used for Redux. */
+export const defaultTrackHierarchy: TrackHierarchy = {
+  ...defaultTrackNodeState,
   topLevelIds: [defaultScaleTrackNode.id],
 };
 
-/**
- * Checks if a given object is of type `TrackHierarchy`.
- * @param obj The object to check.
- * @returns True if the object is a `TrackHierarchy`, otherwise false.
- */
-export const isTrackHierarchy = (obj: unknown): obj is TrackHierarchy => {
-  const candidate = obj as TrackHierarchy;
-  return (
-    candidate?.allIds !== undefined &&
-    candidate?.byId !== undefined &&
-    candidate?.topLevelIds !== undefined &&
-    Object.values(candidate.byId).every(isTrackNode)
-  );
-};
+// ------------------------------------------------------------
+// Track Hierarchy Type Guards
+// ------------------------------------------------------------
 
-/**
- * Checks if a given object is of type `TrackNode`.
- * @param obj The object to check.
- * @returns True if the object is a `TrackNode`, otherwise false.
- */
+/** Checks if a given object is of type `TrackNode`. */
 export const isTrackNode = (obj: unknown): obj is TrackNode => {
   const candidate = obj as TrackNode;
   return (
-    candidate?.id !== undefined &&
-    candidate?.type !== undefined &&
-    candidate?.depth !== undefined &&
-    candidate?.trackIds !== undefined &&
-    candidate?.clipIds !== undefined &&
-    candidate?.transpositionIds !== undefined
+    isString(candidate.id) &&
+    isString(candidate.type) &&
+    isFiniteNumber(candidate.depth) &&
+    isTypedArray(candidate.trackIds, isString) &&
+    isTypedArray(candidate.clipIds, isString) &&
+    isTypedArray(candidate.transpositionIds, isString)
   );
 };
 
-/**
- * Checks if a given object is of type `TrackNodeMap`.
- * @param obj The object to check.
- * @returns True if the object is a `TrackNodeMap`, otherwise false.
- */
-export const isTrackNodeMap = (obj: unknown): obj is TrackNodeMap => {
-  const candidate = obj as TrackNodeMap;
-  return candidate != undefined && Object.values(candidate).every(isTrackNode);
+/** Checks if a given object is of type `TrackHierarchy`. */
+export const isTrackHierarchy = (obj: unknown): obj is TrackHierarchy => {
+  const candidate = obj as TrackHierarchy;
+  return (
+    isPlainObject(candidate) &&
+    isTypedArray(candidate.allIds, isString) &&
+    isTypedArray(candidate.topLevelIds, isString) &&
+    areObjectKeysTyped(candidate.byId, isString) &&
+    areObjectValuesTyped(candidate.byId, isTrackNode)
+  );
 };

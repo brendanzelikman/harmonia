@@ -12,6 +12,8 @@ import {
   selectTrackScaleAtTick,
   selectEditor,
   selectTrackChildren,
+  selectTrackMidiScale,
+  selectTrackScaleNameAtTick,
 } from "redux/selectors";
 import { getScaleName } from "types/Scale";
 import { BiCopy } from "react-icons/bi";
@@ -22,10 +24,9 @@ import {
   BsPlus,
   BsTrash,
 } from "react-icons/bs";
-import { cancelEvent } from "utils";
+import { cancelEvent } from "utils/html";
 import { useRef } from "react";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDragAndDrop";
-import { isEditorOn } from "types/Editor";
 import { ScaleTrack as ScaleTrackType } from "types/ScaleTrack";
 import { createPatternTrack } from "redux/PatternTrack";
 import {
@@ -36,7 +37,8 @@ import {
 import { useProjectSelector, useProjectDeepSelector } from "redux/hooks";
 import { useScaleTrackStyles } from "./hooks/useScaleTrackStyles";
 import { toggleTrackScaleEditor } from "redux/Editor";
-import useTransportTick from "hooks/useTransportTick";
+import { useTransportTick } from "hooks";
+import { isScaleEditorOpen } from "types/Editor";
 
 const mapStateToProps = (project: Project, ownProps: TrackProps) => {
   const track = ownProps.track as ScaleTrackType;
@@ -45,7 +47,7 @@ const mapStateToProps = (project: Project, ownProps: TrackProps) => {
 
   // Editor state
   const editor = selectEditor(project);
-  const onScaleEditor = isSelected && isEditorOn(editor, "scale");
+  const onScaleEditor = isSelected && isScaleEditorOpen(editor);
 
   return {
     ...ownProps,
@@ -85,12 +87,11 @@ export default connector(ScaleTrackComponent);
 function ScaleTrackComponent(props: ScaleTrackProps) {
   const { id, track } = props;
 
-  // Get the current tick
+  // Get the track scale name at the current tick
   const tick = useTransportTick();
-
-  // Get the track scale
-  const scale = useProjectSelector((_) => selectTrackScaleAtTick(_, id, tick));
-  const scaleName = getScaleName(scale);
+  const scaleName = useProjectSelector((_) =>
+    selectTrackScaleNameAtTick(_, id, tick)
+  );
 
   // Get the track children
   const children = useProjectDeepSelector((_) => selectTrackChildren(_, id));

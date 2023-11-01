@@ -6,9 +6,7 @@ import {
   MIN_CELL_HEIGHT,
   MIN_CELL_WIDTH,
 } from "utils/constants";
-import { Subdivision } from "tone/build/esm/core/type/Units";
 import { defaultTimeline, TimelineState } from "types/Timeline";
-import { ORDERED_SUBDIVISIONS } from "types/units";
 import {
   MediaClipboard,
   MediaDraft,
@@ -16,111 +14,109 @@ import {
   MediaSelection,
 } from "types/Media";
 import { TrackId } from "types/Track";
+import { Subdivision } from "utils/durations";
 
-/**
- * The timeline slice is responsible for managing the data grid and oversees all tracked objects.
- * It contains dimensions about the timeline, such as the cell width, height, subdivision, etc.
- *
- * @property `setTimelineState` - Set the timeline state.
- * @property `clearTimelineState` - Clear the timeline state.
- * @property `setCellWidth` - Set the width of a timeline cell.
- * @property `setCellHeight` - Set the height of a timeline cell.
- * @property `setSubdivision` - Set the subdivision of a timeline cell.
- * @property `increaseSubdivision` - Increase the subdivision of a timeline cell.
- * @property `decreaseSubdivision` - Decrease the subdivision of a timeline cell.
- * @property `setSelectedTrackId` - Set the selected track ID.
- * @property `updateMediaClipboard` - Update the clipboard with the given media.
- * @property `updateMediaDraft` - Update the drafted media.
- * @property `updateMediaSelection` - Update the selected media.
- * @property `updateMediaDragState` - Update the drag state of the media.
- * @property `toggleTranspositionMode` - Toggles the transposition mode.
- *
- */
+// ------------------------------------------------------------
+// Timeline Payload Types
+// ------------------------------------------------------------
+
+/** The width of a cell can be set. */
+export type SetCellWidthPayload = number;
+
+/** The height of a cell can be set. */
+export type SetCellHeightPayload = number;
+
+/** The subdivision of the timeline can be set. */
+export type SetSubdivisionPayload = Subdivision;
+
+/** The state of the timeline can be set. */
+export type SetTimelineStatePayload = TimelineState;
+
+/** The state of the timeline can be cleared. */
+export type ClearTimelineStatePayload = void;
+
+/** The selected track ID can be set or cleared. */
+export type SetSelectedTrackIdPayload = TrackId | undefined;
+
+/** The media selection can be updated with partial values. */
+export type UpdateMediaSelectionPayload = Partial<MediaSelection>;
+
+/** The media clipboard can be updated with partial values. */
+export type UpdateMediaClipboardPayload = Partial<MediaClipboard>;
+
+/** The media draft can be updated with partial values. */
+export type UpdateMediaDraftPayload = Partial<MediaDraft>;
+
+/** The media drag state can be updated with partial values. */
+export type UpdateMediaDragStatePayload = Partial<MediaDragState>;
+
+// ------------------------------------------------------------
+// Timeline Slice Definition
+// ------------------------------------------------------------
+
 export const timelineSlice = createSlice({
   name: "timeline",
   initialState: defaultTimeline,
   reducers: {
-    /**
-     * Set the width of a timeline cell.
-     * @param project - The current timeline state.
-     * @param action - The payload action containing the cell width.
-     */
-    setCellWidth(state, action: PayloadAction<number>) {
+    /** Set the width of a timeline cell. */
+    setCellWidth(state, action: PayloadAction<SetCellWidthPayload>) {
       state.cell.width = clamp(action.payload, MIN_CELL_WIDTH, MAX_CELL_WIDTH);
     },
-    /**
-     * Set the height of a timeline cell.
-     * @param project - The current timeline state.
-     * @param action - The payload action containing the cell height.
-     */
-    setCellHeight(state, action: PayloadAction<number>) {
+    /** Set the height of a timeline cell. */
+    setCellHeight(state, action: PayloadAction<SetCellHeightPayload>) {
       state.cell.height = clamp(
         action.payload,
         MIN_CELL_HEIGHT,
         MAX_CELL_HEIGHT
       );
     },
-    /**
-     * Set the subdivision of the timeline.
-     * @param project - The current timeline state.
-     * @param action - The payload action containing the subdivision.
-     */
-    setSubdivision(state, action: PayloadAction<Subdivision>) {
+    /** Set the subdivision of the timeline. */
+    setSubdivision(state, action: PayloadAction<SetSubdivisionPayload>) {
       state.subdivision = action.payload;
     },
-    /**
-     * Increase the subdivision of the timeline.
-     * @param state - The current timeline state.
-     */
+    /** Increase the subdivision of the timeline. */
     increaseSubdivision(state) {
-      const index = ORDERED_SUBDIVISIONS.indexOf(state.subdivision);
-      if (index < 0) return;
-      if (index < ORDERED_SUBDIVISIONS.length - 1) {
-        state.subdivision = ORDERED_SUBDIVISIONS[index + 1];
-      }
+      if (state.subdivision.includes("64")) return;
+      const match = state.subdivision.match(/\d+/);
+      if (!match) return;
+      const oldValue = parseInt(match[0]);
+      const newValue = Math.min(oldValue * 2, 64);
+      const newSubdivision = state.subdivision.replace(/\d+/, `${newValue}`);
+      state.subdivision = newSubdivision as Subdivision;
     },
-    /**
-     * Decrease the subdivision of the timeline.
-     * @param state - The current timeline state.
-     */
+    /** Decrease the subdivision of the timeline. */
     decreaseSubdivision(state) {
-      const index = ORDERED_SUBDIVISIONS.indexOf(state.subdivision);
-      if (index > ORDERED_SUBDIVISIONS.length - 1) return;
-      if (index > 0) {
-        state.subdivision = ORDERED_SUBDIVISIONS[index - 1];
-      }
+      if (state.subdivision.includes("1") && !state.subdivision.includes("16"))
+        return;
+      const match = state.subdivision.match(/\d+/);
+      if (!match) return;
+      const oldValue = parseInt(match[0]);
+      const newValue = Math.max(oldValue / 2, 1);
+      const newSubdivision = state.subdivision.replace(/\d+/, `${newValue}`);
+      state.subdivision = newSubdivision as Subdivision;
     },
-    /**
-     * Set the timeline state.
-     * @param project - The current timeline state.
-     * @param action - The payload action containing the timeline state.
-     */
-    setTimelineState: (state, action: PayloadAction<TimelineState>) => {
+    /** Set the timeline state. */
+    setTimelineState: (
+      state,
+      action: PayloadAction<SetTimelineStatePayload>
+    ) => {
       state.state = action.payload;
     },
-    /**
-     * Clear the timeline state.
-     * @param project - The current timeline state.
-     */
+    /** Clear the timeline state. */
     clearTimelineState: (state) => {
       state.state = "idle";
     },
-    /**
-     * Set the selected track ID.
-     * @param project - The current timeline state.
-     * @param action - The payload action containing the track ID.
-     */
-    setSelectedTrackId: (state, action: PayloadAction<TrackId | undefined>) => {
+    /** Set the selected track ID. */
+    setSelectedTrackId: (
+      state,
+      action: PayloadAction<SetSelectedTrackIdPayload>
+    ) => {
       state.selectedTrackId = action.payload;
     },
-    /**
-     * Update the clipboard with the given media.
-     * @param project - The current timeline state.
-     * @param action - The payload action containing the media.
-     */
+    /** Update the media clipboard. */
     updateMediaClipboard: (
       state,
-      action: PayloadAction<Partial<MediaClipboard>>
+      action: PayloadAction<UpdateMediaClipboardPayload>
     ) => {
       const { mediaClipboard } = state;
       const { clips, transpositions } = action.payload;
@@ -131,12 +127,11 @@ export const timelineSlice = createSlice({
         mediaClipboard.transpositions = transpositions;
       }
     },
-    /**
-     * Update the drafted media.
-     * @param project - The current timeline state.
-     * @param action - The payload action containing a partial media draft.
-     */
-    updateMediaDraft: (state, action: PayloadAction<Partial<MediaDraft>>) => {
+    /** Update the media draft. */
+    updateMediaDraft: (
+      state,
+      action: PayloadAction<UpdateMediaDraftPayload>
+    ) => {
       const { mediaDraft } = state;
       const { clip, transposition } = action.payload;
       if (clip) {
@@ -146,20 +141,16 @@ export const timelineSlice = createSlice({
         mediaDraft.transposition = {
           ...mediaDraft.transposition,
           ...transposition,
-          offsets: {
-            ...mediaDraft.transposition.offsets,
-            ...transposition.offsets,
+          vector: {
+            ...mediaDraft.transposition.vector,
+            ...transposition.vector,
           },
         };
     },
-    /**
-     * Update the selected media.
-     * @param project - The current timeline state.
-     * @param action - The payload action containing a partial media selection.
-     */
+    /** Update the media selection. */
     updateMediaSelection: (
       state,
-      action: PayloadAction<Partial<MediaSelection>>
+      action: PayloadAction<UpdateMediaSelectionPayload>
     ) => {
       const { mediaSelection } = state;
       const { clipIds, transpositionIds } = action.payload;
@@ -170,14 +161,10 @@ export const timelineSlice = createSlice({
         mediaSelection.transpositionIds = transpositionIds;
       }
     },
-    /**
-     * Update the drag state of the media.
-     * @param project - The current timeline state.
-     * @param action - The payload action containing a partial media drag state.
-     */
+    /** Update the media drag state. */
     updateMediaDragState: (
       state,
-      action: PayloadAction<Partial<MediaDragState>>
+      action: PayloadAction<UpdateMediaDragStatePayload>
     ) => {
       const { mediaDragState } = state;
       const { draggingClip, draggingTransposition } = action.payload;
@@ -188,16 +175,12 @@ export const timelineSlice = createSlice({
         mediaDragState.draggingTransposition = draggingTransposition;
       }
     },
-    /**
-     * Toggles whether live transposition is enabled.
-     */
+    /** Toggle whether live transposition is enabled. */
     toggleLiveTransposition: (state) => {
       state.liveTranspositionSettings.enabled =
         !state.liveTranspositionSettings.enabled;
     },
-    /**
-     * Toggles the live transposition mode.
-     */
+    /** Toggle the live transposition mode. */
     toggleLiveTranspositionMode: (state) => {
       state.liveTranspositionSettings.mode =
         state.liveTranspositionSettings.mode === "numerical"
@@ -210,19 +193,16 @@ export const timelineSlice = createSlice({
 export const {
   setTimelineState,
   clearTimelineState,
-
   setCellWidth,
   setCellHeight,
   setSubdivision,
   increaseSubdivision,
   decreaseSubdivision,
-
   setSelectedTrackId,
   updateMediaSelection,
   updateMediaClipboard,
   updateMediaDraft,
   updateMediaDragState,
-
   toggleLiveTransposition,
   toggleLiveTranspositionMode,
 } = timelineSlice.actions;

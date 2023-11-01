@@ -4,10 +4,10 @@ import { hideEditor, selectEditor, showEditor } from "redux/Editor";
 import { selectTimeline, setTimelineState } from "redux/Timeline";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import "lib/react-shepherd.css";
-import { EditorId, isEditorOn } from "types/Editor";
+import { EditorView } from "types/Editor";
 import { ShepherdTourButton } from "./Button";
 import { TimelineState, isTimelineIdle } from "types/Timeline";
-import { dispatchCustomEvent } from "utils/events";
+import { dispatchCustomEvent } from "utils/html";
 import LogoImage from "assets/images/logo.png";
 
 export { TourBackground } from "./Background";
@@ -104,12 +104,12 @@ export function OnboardingTour() {
 
   /** A memoized promise for ensuring the editor is on a particular state */
   const ensureEditorState = useCallback(
-    (id: string, stateId: EditorId) => {
+    (id: string, view: EditorView) => {
       return () =>
         new Promise((resolve) => {
           if (!isTimelineIdle(timeline)) dispatch(setTimelineState("idle"));
-          if (isEditorOn(editor, stateId)) return resolve(true);
-          dispatch(showEditor({ id: stateId }));
+          if (editor.view === view) return resolve(true);
+          dispatch(showEditor(view));
           resolve(true);
         });
     },
@@ -221,8 +221,8 @@ export function OnboardingTour() {
       All descendant tracks will be constrained to the track's scale.`,
       list: [
         `<li>• The ${Scale} button opens the ${ScaleEditor}.</li>`,
-        `<li>• The <span class="text-green-400">Track</span> button creates a new ${PatternTrack}.</li>`,
-        `<li>• The ${Nest} button creates a nested ${ScaleTrack}.</li>`,
+        `<li>• The <span class="text-green-400">+</span> button creates a new ${PatternTrack}.</li>`,
+        `<li>• The <span class="text-indigo-500">+</span> button creates a nested ${ScaleTrack}.</li>`,
       ],
     });
     return createStep({ id, text });
@@ -239,21 +239,6 @@ export function OnboardingTour() {
         `<li>• The ${Instrument} button opens the ${InstrumentEditor}.</li>`,
         `<li>• The ${Volume} & ${Pan} sliders adjust the loudness and stereo balance.</li>`,
         `<li>• The ${Mute} & ${Solo} buttons control the output relative to all tracks.</li>`,
-      ],
-    });
-    return createStep({ id, text });
-  }, []);
-
-  /* Tour Step: Track Conclusion */
-  const step_trackConclusion = useMemo(() => {
-    const id = "tour-step-track-conclusion";
-    const text = createText({
-      title: "One More Thing About Tracks...",
-      text: `Finally, each ${Track} has a few things in common:`,
-      list: [
-        `<li>• The name of a ${Track} defaults to the name of its ${Scale} or ${Instrument}.</li>`,
-        `<li>• The number in the ${Track} indicates its depth, i.e. the number of parents plus one.</li>`,
-        `<li>• The position of a ${Track} can be rearranged by dragging and dropping.</li>`,
       ],
     });
     return createStep({ id, text });
@@ -292,7 +277,7 @@ export function OnboardingTour() {
       id,
       text,
       buttons,
-      beforeShowPromise: ensureEditorState(id, "hidden"),
+      beforeShowPromise: ensureEditorState(id, null),
       advanceOn: { selector: "#pattern-editor-button", event: "click" },
     });
   }, [ensureEditorState]);
@@ -334,7 +319,7 @@ export function OnboardingTour() {
       clicking on the ${Brush} and selecting any beat in the grid.`,
       list: [
         `<li>• A ${Clip} can only be arranged within a ${PatternTrack}.</li>`,
-        `<li>• Every note in a ${Clip} is constrained to the track's scale.</li>`,
+        `<li>• A ${Clip} will always display the name of its pattern.</li>`,
         `<li>• You can double click on any ${Clip} to open the ${PatternEditor}.</li>`,
       ],
     });
@@ -362,25 +347,6 @@ export function OnboardingTour() {
       id,
       text,
       beforeShowPromise: ensureTimelineState(id, "addingTranspositions"),
-    });
-  }, [ensureTimelineState]);
-
-  /** Tour Step: Track Media */
-  const step_trackMedia = useMemo(() => {
-    const id = "tour-step-track-media";
-    const text = createText({
-      title: "Clips + Transpositions = Success!",
-      text: `Together, ${Clips} and ${Transpositions} form the playable media of your project.`,
-      list: [
-        `<li>• You can use your mouse to drag and drop media around the grid.</li>`,
-        `<li>• You can slice media by clicking on the ${Scissors} and selecting the desired beat.</li>`,
-        `<li>• You can merge media by clicking on the ${Chain} and following the dropdown menu.</li>`,
-      ],
-    });
-    return createStep({
-      id,
-      text,
-      beforeShowPromise: ensureTimelineState(id, "idle"),
     });
   }, [ensureTimelineState]);
 
@@ -432,7 +398,6 @@ export function OnboardingTour() {
     step_trackIntro,
     step_theScaleTrack,
     step_thePatternTrack,
-    step_trackConclusion,
     step_tutorialIntro,
     step_navbarIntro,
     step_patternEditorPrompt,
@@ -440,7 +405,6 @@ export function OnboardingTour() {
     step_patternEditorConclusion,
     step_addingClips,
     step_addingTranspositions,
-    step_trackMedia,
     step_savingWork,
     step_confetti,
   ];

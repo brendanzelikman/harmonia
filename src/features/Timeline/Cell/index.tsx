@@ -2,7 +2,7 @@ import { FormatterProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
 import {
   selectTimeline,
-  selectTickFromColumn,
+  selectColumnTicks,
   selectTrackById,
   selectTransport,
 } from "redux/selectors";
@@ -30,7 +30,7 @@ function mapStateToProps(project: Project, ownProps: FormatterProps<Row>) {
   const transposing = isTimelineAddingTranspositions(timeline);
 
   // Tick properties
-  const tick = selectTickFromColumn(project, columnIndex - 1);
+  const tick = selectColumnTicks(project, columnIndex - 1);
   const { beats, sixteenths } = convertTicksToBarsBeatsSixteenths(
     transport,
     tick

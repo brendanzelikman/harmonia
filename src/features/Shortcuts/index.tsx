@@ -3,7 +3,7 @@ import { Fragment, useEffect, useState } from "react";
 import { BsCheck } from "react-icons/bs";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useProjectDispatch } from "redux/hooks";
-import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { useCustomEventListener } from "hooks";
 
 export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
 
@@ -526,7 +526,7 @@ function TranspositionWizard() {
 
 type ShortcutView = "timeline" | "editor" | "transpositions";
 
-export default function ShortcutsMenu() {
+export function ShortcutsMenu() {
   const dispatch = useProjectDispatch();
   const [show, setShow] = useState(false);
   const [view, setView] = useState<ShortcutView>("timeline");

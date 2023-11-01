@@ -1,165 +1,176 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { ScaleId } from "../Scale";
-import { ID, Pitch, Tick, Velocity } from "../units";
+import {
+  MidiObject,
+  ScaleId,
+  ScaleNoteObject,
+  isMidiObject,
+  isScaleNoteObject,
+} from "../Scale";
+import { ID } from "../units";
 import { InstrumentKey } from "../Instrument";
+import { TrackId } from "types/Track";
+import { isPlainObject, isString } from "lodash";
+import {
+  NormalRecord,
+  NormalState,
+  createNormalState,
+} from "utils/normalizedState";
+import { UndoableHistory, createUndoableHistory } from "utils/undoableHistory";
+import {
+  isBoundedNumber,
+  isFiniteNumber,
+  isOptionalType,
+  isOptionalTypedArray,
+  isTypedArray,
+} from "types/util";
+import { getKeyCount } from "utils/objects";
+import { Timed, Playable, Chord, Stream } from "types/units";
 
-// Pattern Types
+// ------------------------------------------------------------
+// Pattern Generics
+// ------------------------------------------------------------
 
 export type PatternId = ID;
 export type PatternNoId = Omit<Pattern, "id">;
-export type PatternWithOptions = Pattern & { options: PatternOptions };
-export type PatternMap = Record<PatternId, Pattern>;
+export type PatternPartial = Partial<Pattern>;
+export type PatternUpdate = Partial<Pattern> & { id: PatternId };
+export type PatternMap = NormalRecord<PatternId, Pattern>;
+export type PatternState = NormalState<PatternMap>;
+export type PatternHistory = UndoableHistory<PatternState>;
 
-/**
- * A `Pattern` represents a sequential stream of notes.
- * @property `id` - The unique ID of the pattern.
- * @property `stream` - A sequential list of chords.
- * @property `name` - The name of the pattern.
- * @property `aliases` - Optional. A list of aliases for the pattern.
- * @property `options` - Optional. The pattern options.
- */
+/** A `PatternRest` is a non-playable note with a duration. */
+export type PatternRest = Timed<{}>;
+
+/** A `PatternNote` is a playable note with a duration. */
+export type PatternNote = Playable<ScaleNoteObject>;
+export type PatternMidiNote = Playable<MidiObject>;
+
+/** A `PatternChord` is a group of `PatternNotes` */
+export type PatternChord = Chord<PatternNote>;
+export type PatternMidiChord = Chord<PatternMidiNote>;
+
+/** A `PatternBlock` is a `PatternChord` or a `PatternRest` */
+export type PatternBlock = PatternChord | PatternRest;
+export type PatternMidiBlock = PatternMidiChord | PatternRest;
+
+/** A `PatternStream` is a sequence of `PatternChords` and `PatternRests`. */
+export type PatternStream = Stream<PatternBlock>;
+export type PatternMidiStream = Stream<PatternMidiBlock>;
+
+/** A `Pattern` contains an ID and a sequential list of chords. */
 export interface Pattern {
   id: PatternId;
   stream: PatternStream;
-  name: string;
-
+  name?: string;
   aliases?: string[];
-  options?: Partial<PatternOptions>;
+  instrumentKey?: InstrumentKey;
+  patternTrackId?: TrackId;
 }
 
-/**
- * A `PatternNote` is defined by a MIDI number, a duration, and a velocity.
- * @example
- * // A C4 note
- * { MIDI: 60, duration: 96, velocity: 127 }
- */
-export type PatternNote = {
-  MIDI: number;
-  duration: Tick;
-  velocity: Velocity;
-};
+// ------------------------------------------------------------
+// Pattern Initialization
+// ------------------------------------------------------------
 
-/**
- * A `PatternChord` is a simultaneous collection of `PatternNotes`.
- * @example
- * // A C Major Chord
- * [{ MIDI: 60, duration: 96, velocity: 127 },
- * { MIDI: 64, duration: 96, velocity: 127 },
- * { MIDI: 67, duration: 96, velocity: 127 }]
- */
-export type PatternChord = PatternNote[];
-
-/**
- * A `PatternStream` is a sequential list of `PatternChords`.
- * @example
- * // A C Major Chord arpeggio
- * [[{ MIDI: 60, duration: 96, velocity: 127 }],
- * [{ MIDI: 64, duration: 96, velocity: 127 }],
- * [{ MIDI: 67, duration: 96, velocity: 127 }]]
- */
-export type PatternStream = PatternChord[];
-
-/**
- * The `PatternOptions` interface is a set of options that can be applied to a pattern.
- * @property `instrument` - The instrument to play the pattern with.
- * @property `tonic` - The tonic pitch of the pattern.
- * @property `scaleId` - The scale ID of the pattern.
- * @property `quantizeToScale` - Whether to quantize the pattern to the scale.
- */
-export interface PatternOptions {
-  instrumentKey: InstrumentKey;
-  tonic: Pitch;
-  scaleId: ScaleId;
-  quantizeToScale: boolean;
-}
-
-/**
- * Initializes a `Pattern` with a unique ID.
- * @param pattern - Optional. `Partial<Pattern>` to override default values.
- * @returns An initialized `Pattern` with a unique ID.
- */
+/** Create a pattern with a unique ID. */
 export const initializePattern = (
   pattern: Partial<PatternNoId> = defaultPattern
-): Pattern => ({
-  ...defaultPattern,
-  ...pattern,
-  id: nanoid(),
-});
+): Pattern => ({ ...defaultPattern, ...pattern, id: nanoid() });
 
-export const defaultPattern: PatternWithOptions = {
+/** The default pattern is used for initialization. */
+export const defaultPattern: Pattern = {
   id: "new-pattern",
   name: "New Pattern",
   stream: [],
-  options: {
-    instrumentKey: "grand_piano",
-    tonic: "C",
-    scaleId: "chromatic-scale",
-    quantizeToScale: false,
-  },
 };
 
-export const mockPattern: Pattern = {
-  id: "mock-pattern",
-  name: "Mock Pattern",
-  stream: [[{ MIDI: 60, duration: 96, velocity: 127 }]],
-  aliases: ["Mock Pattern"],
-  options: defaultPattern.options,
+/** The default pattern state is used for Redux. */
+export const defaultPatternState = createNormalState<PatternMap>([
+  defaultPattern,
+]);
+
+/** The undoable pattern history is used for Redux. */
+export const defaultPatternHistory: PatternHistory =
+  createUndoableHistory<PatternState>(defaultPatternState);
+
+// ------------------------------------------------------------
+// Pattern Type Guards
+// ------------------------------------------------------------
+
+/** Checks if a given object is a timed note. */
+export const isTimedNote = <T = unknown>(obj: T): obj is Timed<T> => {
+  const candidate = obj as Timed<unknown>;
+  return isPlainObject(candidate) && isFiniteNumber(candidate.duration);
 };
 
-/**
- * Checks if a given object is of type `Pattern`.
- * @param obj The object to check.
- * @returns True if the object is a `Pattern`, otherwise false.
- */
+/** Checks if a given object is a playable note. */
+export const isPlayableNote = (obj: unknown): obj is Playable<unknown> => {
+  const candidate = obj as Playable<unknown>;
+  return isTimedNote(candidate) && isBoundedNumber(candidate.velocity, 0, 127);
+};
+
+/** Checks if a given object is a rest note. */
+export const isPatternRest = (obj: unknown): obj is PatternRest => {
+  const candidate = obj as PatternNote;
+  return isTimedNote(candidate) && getKeyCount(candidate) === 1;
+};
+
+/** Checks if a given object is of type `PatternNote`. */
+export const isPatternNote = (obj: unknown): obj is PatternNote => {
+  const candidate = obj as PatternNote;
+  return isScaleNoteObject(candidate) && isPlayableNote(candidate);
+};
+
+/** Checks if a given object is of type `PatternMidiNote`. */
+export const isPatternMidiNote = (obj: unknown): obj is PatternMidiNote => {
+  const candidate = obj as PatternMidiNote;
+  return isMidiObject(candidate) && isFiniteNumber(candidate.duration);
+};
+
+/** Checks if a given object is of type `PatternChord`. */
+export const isPatternChord = (obj: unknown): obj is PatternChord => {
+  const candidate = obj as PatternChord;
+  return isTypedArray(candidate, isPatternNote);
+};
+
+/** Checks if a given object is of type `PatternMidiChord`. */
+export const isPatternMidiChord = (obj: unknown): obj is PatternMidiChord => {
+  const candidate = obj as PatternMidiChord;
+  return isTypedArray(candidate, isPatternMidiNote);
+};
+
+/** Checks if a given object is of type `PatternBlock`. */
+export const isPatternBlock = (obj: unknown): obj is PatternBlock => {
+  const candidate = obj as PatternBlock;
+  return isPatternChord(candidate) || isPatternRest(candidate);
+};
+
+/** Checks if a given object is of type `PatternMidiBlock`. */
+export const isPatternMidiBlock = (obj: unknown): obj is PatternMidiBlock => {
+  const candidate = obj as PatternMidiBlock;
+  return isPatternMidiChord(candidate) || isPatternRest(candidate);
+};
+
+/** Checks if a given object is of type `PatternStream`. */
+export const isPatternStream = (obj: unknown): obj is PatternStream => {
+  const candidate = obj as PatternStream;
+  return isTypedArray(candidate, isPatternBlock);
+};
+
+/** Checks if a given object is of type `PatternMidiStream`. */
+export const isPatternMidiStream = (obj: unknown): obj is PatternMidiStream => {
+  const candidate = obj as PatternMidiStream;
+  return isTypedArray(candidate, isPatternMidiBlock);
+};
+
+/** Checks if a given object is of type `Pattern`. */
 export const isPattern = (obj: unknown): obj is Pattern => {
   const candidate = obj as Pattern;
   return (
-    candidate?.id !== undefined &&
-    candidate?.stream !== undefined &&
-    candidate?.name !== undefined
+    isPlainObject(candidate) &&
+    isString(candidate.id) &&
+    isPatternStream(candidate.stream) &&
+    isOptionalType(candidate.name, isString) &&
+    isOptionalType(candidate.instrumentKey, isString) &&
+    isOptionalTypedArray(candidate.aliases, isString)
   );
-};
-
-/**
- * Checks if a given object is of type `PatternMap`.
- * @param obj The object to check.
- * @returns True if the object is a `PatternMap`, otherwise false.
- */
-export const isPatternMap = (obj: unknown): obj is PatternMap => {
-  const candidate = obj as PatternMap;
-  return candidate !== undefined && Object.values(candidate).every(isPattern);
-};
-
-/**
- * Checks if a given object is of type `PatternNote`.
- * @param obj The object to check.
- * @returns True if the object is a `PatternNote`, otherwise false.
- */
-export const isPatternNote = (obj: unknown): obj is PatternNote => {
-  const candidate = obj as PatternNote;
-  return (
-    candidate?.MIDI !== undefined &&
-    candidate?.duration !== undefined &&
-    candidate?.velocity !== undefined
-  );
-};
-
-/**
- * Checks if a given object is of type `PatternChord`.
- * @param obj The object to check.
- * @returns True if the object is a `PatternChord`, otherwise false.
- */
-export const isPatternChord = (obj: unknown): obj is PatternChord => {
-  const candidate = obj as PatternChord;
-  return candidate !== undefined && candidate?.every(isPatternNote);
-};
-
-/**
- * Checks if a given object is of type `PatternStream`.
- * @param obj The object to check.
- * @returns True if the object is a `PatternStream`, otherwise false.
- */
-export const isPatternStream = (obj: unknown): obj is PatternStream => {
-  const candidate = obj as PatternStream;
-  return candidate !== undefined && candidate?.every(isPatternChord);
 };

@@ -5,21 +5,21 @@ import {
   selectSelectedPattern,
   selectEditor,
 } from "redux/selectors";
-import { Pattern, PatternId } from "types/Pattern";
+import { Pattern } from "types/Pattern";
 import { BsCheck } from "react-icons/bs";
 import { useCallback, useEffect } from "react";
 import {
   PresetPatternGroupList,
   PresetPatternGroupMap,
 } from "presets/patterns";
-import { blurOnMouseUp } from "utils";
+import { blurEvent } from "utils/html";
 import {
   useProjectDispatch,
   useProjectSelector,
   useProjectDeepSelector,
 } from "redux/hooks";
-import { isEditorOn } from "types/Editor";
-import { updateMediaDraft } from "redux/Timeline";
+import { setSelectedPattern } from "redux/Media";
+import { isPatternEditorOpen } from "types/Editor";
 
 export function NavbarPatternListbox() {
   const dispatch = useProjectDispatch();
@@ -27,15 +27,12 @@ export function NavbarPatternListbox() {
   const patterns = useProjectDeepSelector(selectPatterns);
   const customPatterns = useProjectDeepSelector(selectCustomPatterns);
   const selectedPattern = useProjectSelector(selectSelectedPattern);
-  const onPatternEditor = isEditorOn(editor, "patterns");
-  const setSelectedPattern = (patternId: PatternId) => {
-    dispatch(updateMediaDraft({ clip: { patternId } }));
-  };
+  const onPatternEditor = isPatternEditorOpen(editor);
 
   // Set the selected pattern to the first pattern in the list.
   useEffect(() => {
     if (!selectedPattern) {
-      setSelectedPattern(patterns[0]?.id);
+      dispatch(setSelectedPattern(patterns[0]?.id));
     }
   }, [selectedPattern, patterns]);
 
@@ -45,9 +42,7 @@ export function NavbarPatternListbox() {
     "Custom Patterns": customPatterns,
   };
 
-  /**
-   * Render a pattern in the listbox.
-   */
+  /** Render a pattern in the listbox. */
   const renderPattern = useCallback(
     (pattern: Pattern) => {
       const isPatternSelected = selectedPattern?.id === pattern.id;
@@ -86,9 +81,7 @@ export function NavbarPatternListbox() {
     [selectedPattern]
   );
 
-  /**
-   * Render a pattern category in the listbox.
-   */
+  /** Render a pattern category in the listbox. */
   const renderPatternCategory = useCallback(
     (category: string) => {
       const newCategoryPatterns = [
@@ -126,16 +119,12 @@ export function NavbarPatternListbox() {
     [selectedPattern]
   );
 
-  /**
-   * Checks if a pattern is in a given category.
-   */
+  /** Checks if a pattern is in a given category. */
   const isPatternInCategory = (pattern: Pattern, category: string) => {
     return PatternGroups[category].some((m) => m.id === pattern.id);
   };
 
-  /**
-   * The selected pattern is displayed in the listbox button.
-   */
+  /** The selected pattern is displayed in the listbox button. */
   const SelectedPatternName = () => {
     const opacity = !selectedPattern?.id ? "opacity-75" : "opacity-100";
     const name = !selectedPattern?.id ? "No Pattern" : selectedPattern.name;
@@ -143,22 +132,18 @@ export function NavbarPatternListbox() {
     return <span className={nameClass}>{name}</span>;
   };
 
-  /**
-   * Clicking on the Pattern Listbox button toggles the dropdown menu.
-   */
+  /** Clicking on the Pattern Listbox button toggles the dropdown menu. */
   const PatternListboxButton = () => (
     <Listbox.Button
       className="select-none relative w-full h-10 items-center flex cursor-pointer rounded-md bg-gray-900 text-white text-left shadow-md focus:outline-none"
-      onMouseUp={blurOnMouseUp}
+      onMouseUp={blurEvent}
     >
       <SelectedPatternName />
       {/* <PatternEditorButton /> */}
     </Listbox.Button>
   );
 
-  /**
-   * The Pattern Dropdown Menu shows all custom and preset patterns.
-   */
+  /** The Pattern Dropdown Menu shows all custom and preset patterns. */
   const PatternDropdownMenu = (props: { open: boolean }) => (
     <Transition
       show={props.open}
@@ -176,12 +161,13 @@ export function NavbarPatternListbox() {
     </Transition>
   );
 
-  /**
-   * The Pattern Listbox is a dropdown menu that allows the user to select a pattern.
-   */
+  /** The Pattern Listbox is a dropdown menu that allows the user to select a pattern. */
   const PatternListbox = () => {
     return (
-      <Listbox value={selectedPattern?.id ?? ""} onChange={setSelectedPattern}>
+      <Listbox
+        value={selectedPattern?.id ?? "major-chord"}
+        onChange={(id) => dispatch(setSelectedPattern(id))}
+      >
         {({ open }) => (
           <div className="relative">
             <PatternListboxButton />
@@ -192,9 +178,7 @@ export function NavbarPatternListbox() {
     );
   };
 
-  /**
-   * The Pattern Label is a small label for the Pattern Listbox.
-   */
+  /** The Pattern Label is a small label for the Pattern Listbox. */
   const PatternLabel = () => (
     <span
       className={`absolute text-xs text-emerald-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-0 bg-gray-900 rounded px-1 left-1`}

@@ -33,7 +33,7 @@ export const ToolkitSliceButton = () => {
     const tooltipClass = "left-[-3.2rem] bg-slate-600/80 px-2 backdrop-blur";
     return (
       <NavbarTooltip
-        content="Slicing Track Media"
+        content="Portaling Track Media"
         className={tooltipClass}
         show={!!isSlicing}
       />

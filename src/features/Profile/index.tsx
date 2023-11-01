@@ -1,12 +1,12 @@
 import { Transition } from "@headlessui/react";
-import { useDatabaseCallback } from "hooks/useDatabaseCallback";
+import { useDatabaseCallback } from "hooks";
 import { getUserFromDB, updateUserInDB } from "indexedDB";
 import { ReactNode, memo, useState } from "react";
 import { BsX } from "react-icons/bs";
 import { GiAura, GiSoundWaves } from "react-icons/gi";
 import Moment from "react-moment";
 import { Name, User, UserUpdate } from "types/User";
-import { blurOnEnter, cancelEvent } from "utils";
+import { blurOnEnter, cancelEvent } from "utils/html";
 import BeethovenImage from "assets/images/beethoven.jpg";
 
 export function Profile() {

@@ -1,5 +1,5 @@
 import { Pattern } from "types/Pattern";
-import { MIDI } from "types/midi";
+import * as _ from "utils/durations";
 
 export const Major7thChord: Pattern = {
   id: "major-7th-chord",
@@ -14,10 +14,10 @@ export const Major7thChord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(71),
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
+      _.createQuarterNote(71),
     ],
   ],
 };
@@ -34,10 +34,10 @@ export const Major7thSus2Chord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(62),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(71),
+      _.createQuarterNote(60),
+      _.createQuarterNote(62),
+      _.createQuarterNote(67),
+      _.createQuarterNote(71),
     ],
   ],
 };
@@ -54,10 +54,10 @@ export const Major7thSus4Chord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(65),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(71),
+      _.createQuarterNote(60),
+      _.createQuarterNote(65),
+      _.createQuarterNote(67),
+      _.createQuarterNote(71),
     ],
   ],
 };
@@ -76,10 +76,10 @@ export const Major7thFlat5Chord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(66),
-      MIDI.createQuarterNote(71),
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(66),
+      _.createQuarterNote(71),
     ],
   ],
 };
@@ -96,10 +96,10 @@ export const Minor7thChord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(63),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(70),
+      _.createQuarterNote(60),
+      _.createQuarterNote(63),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
     ],
   ],
 };
@@ -116,10 +116,10 @@ export const Minor7thSus2Chord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(62),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(70),
+      _.createQuarterNote(60),
+      _.createQuarterNote(62),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
     ],
   ],
 };
@@ -136,10 +136,10 @@ export const Minor7thSus4Chord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(65),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(70),
+      _.createQuarterNote(60),
+      _.createQuarterNote(65),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
     ],
   ],
 };
@@ -156,10 +156,10 @@ export const Dominant7thChord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(70),
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
     ],
   ],
 };
@@ -179,10 +179,10 @@ export const Dominant7thFlat5Chord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(66),
-      MIDI.createQuarterNote(70),
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(66),
+      _.createQuarterNote(70),
     ],
   ],
 };
@@ -201,10 +201,10 @@ export const Dominant7thSharp5Chord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(68),
-      MIDI.createQuarterNote(70),
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(68),
+      _.createQuarterNote(70),
     ],
   ],
 };
@@ -223,10 +223,10 @@ export const Minor7thFlat5Chord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(63),
-      MIDI.createQuarterNote(66),
-      MIDI.createQuarterNote(70),
+      _.createQuarterNote(60),
+      _.createQuarterNote(63),
+      _.createQuarterNote(66),
+      _.createQuarterNote(70),
     ],
   ],
 };
@@ -243,10 +243,10 @@ export const MinorMajor7thChord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(63),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(71),
+      _.createQuarterNote(60),
+      _.createQuarterNote(63),
+      _.createQuarterNote(67),
+      _.createQuarterNote(71),
     ],
   ],
 };
@@ -263,10 +263,10 @@ export const Diminished7thChord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(63),
-      MIDI.createQuarterNote(66),
-      MIDI.createQuarterNote(69),
+      _.createQuarterNote(60),
+      _.createQuarterNote(63),
+      _.createQuarterNote(66),
+      _.createQuarterNote(69),
     ],
   ],
 };
@@ -290,10 +290,10 @@ export const Augmented7thChord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(68),
-      MIDI.createQuarterNote(71),
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(68),
+      _.createQuarterNote(71),
     ],
   ],
 };

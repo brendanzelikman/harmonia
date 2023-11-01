@@ -1,237 +1,208 @@
-import { Note } from "../units";
-import { range } from "lodash";
+import { isArray, isPlainObject, isString, range } from "lodash";
 import { nanoid } from "@reduxjs/toolkit";
+import {
+  NormalRecord,
+  NormalState,
+  createNormalState,
+} from "utils/normalizedState";
+import { UndoableHistory, createUndoableHistory } from "utils/undoableHistory";
+import { SCALE_TRACK_SCALE_NAME } from "utils/constants";
+import {
+  areObjectKeysTyped,
+  areObjectValuesTyped,
+  isBoundedNumber,
+  isFiniteNumber,
+  isOptionalType,
+  isOptionalTypedArray,
+} from "types/util";
 
-// General Types
+// ------------------------------------------------------------
+// Scale Generics
+// ------------------------------------------------------------
+
 export type ScaleId = string;
-export type ScaleMap = Record<ScaleId, ScaleObject>;
 export type ScaleNoId = Omit<ScaleObject, "id">;
-export type NestedScaleId = string;
-export type NestedScaleMap = Record<NestedScaleId, NestedScaleObject>;
-export type NestedScaleNoId = Omit<NestedScaleObject, "id">;
-export const ScaleTrackScaleName = "$$$$$_track_scale_$$$$$";
+export type ScalePartial = Partial<ScaleObject>;
+export type ScaleUpdate = ScalePartial & { id: ScaleId };
+export type ScaleMap = NormalRecord<ScaleId, ScaleObject>;
+export type ScaleState = NormalState<ScaleMap>;
+export type ScaleHistory = UndoableHistory<ScaleState>;
 
-/**
- * A `ScaleArray` is an array of MIDI notes.
- */
-export type ScaleArray = Note[];
+// ------------------------------------------------------------
+// Scale Definitions
+// ------------------------------------------------------------
 
-/**
- * A `ScaleObject` is an object with a unique ID, name, and array of MIDI notes.
- */
-export type ScaleObject = {
-  id: ScaleId;
-  name: string;
-  notes: Note[];
-};
+/** A scalar offset is contextualized by a scale ID. */
+export type ScaleVectorId = "chromatic" | "octave" | ScaleId;
 
-/**
- * A `Scale` is a collection of MIDI notes stored as an array or object.
- * @example
- * // Array
- * const scale: Scale = [60, 62, 64, 65, 67, 69, 71];
- *
- * // Object
- * const scale: Scale = {
- *   id: "example-scale",
- *   name: "Example Scale",
- *   notes: [60, 62, 64, 65, 67, 69, 71],
- * };
- */
-export type Scale = ScaleArray | ScaleObject;
+/** A scale vector contains all of a scale's offsets. */
+export type ScaleVector = Record<ScaleVectorId, number>;
 
-/**
- * A `NestedNote` is defined by a degree and an offset.
- * @property degree: number - The degree of the note in the parent scale.
- * @property offset: number - The MIDI offset of the note.
- * @example
- * // The 3rd note of the parent scale shifted up one octave
- * [60, 61, 62, 63] { degree: 2, offset: 12 } = 74
- */
+/** A `MidiNoteValue` is a number between 0 and 127. */
+export type MidiValue = number;
+
+/** A `MidiNoteObject` contains a `MidiNoteValue`. */
+export type MidiObject = { MIDI: MidiValue };
+
+/** A `MidiNote` is either a `MidiNoteValue` or a `MidiNoteObject`. */
+export type MidiNote = MidiObject | MidiValue;
+
+/** A `NestedNote` references a scale by degree. */
 export type NestedNote = {
   degree: number;
-  offset: number;
+  offset?: ScaleVector;
+  scaleId?: ScaleId;
 };
 
-/**
- * A `NestedScaleArray` is an array of `NestedNote`s.
- */
-export type NestedScaleArray = NestedNote[];
+/** A `ScaleNote` is either a `MidiNote` or a `NestedNote`. */
+export type ScaleNote = MidiNote | NestedNote;
 
-/**
- * A `NestedScaleObject` is an object with a unique ID, name, and array of `NestedNote`s.
- */
-export type NestedScaleObject = {
-  id: NestedScaleId;
-  name: string;
-  notes: NestedScaleArray;
-};
+/** A `ScaleNoteObject` is a `ScaleNote` that is an object. */
+export type ScaleNoteObject = MidiObject | NestedNote;
 
-/**
- * A nested scale is a collection of nested notes.
- * If no parent is defined, then the chromatic scale is used.
- * @example
- * // Array
- * const nestedScale: NestedScale = [
- *  { degree: 0, offset: 0 },
- *  { degree: 4, offset: 0 },
- *  { degree: 7, offset: 0 }
- * ]
- * // Object
- * const nestedScale: NestedScale = {
- *  id: "example-nested-scale",
- *  name: "Example Nested Scale",
- *  notes: [
- *    { degree: 0, offset: 0 },
- *    { degree: 4, offset: 0 },
- *    { degree: 7, offset: 0 }
- *  ]
- */
-export type NestedScale = NestedScaleArray | NestedScaleObject;
+/** A `ScaleArray` is an array of `ScaleNotes`. */
+export type ScaleArray = ScaleNote[];
 
-/**
- * Initializes a `Scale` with a unique ID.
- * @param scale - Optional. `Partial<Scale>` to override default values.
- * @returns An initialized `Scale` with a unique ID.
- */
+/** A `ScaleObject` is an object with an ID and array of notes. */
+export interface ScaleObject {
+  id: ScaleId;
+  notes: ScaleArray;
+  name?: string;
+  aliases?: string[];
+}
+
+/** A `Scale` is either a `ScaleObject` or a `ScaleArray`. */
+export type Scale = ScaleObject | ScaleArray;
+
+/** A `ScaleChain` is an array of `ScaleObjects` */
+export type ScaleChain = ScaleObject[];
+
+// ------------------------------------------------------------
+// Scale Initialization
+// ------------------------------------------------------------
+
+/** Create a scale with a unique ID */
 export const initializeScale = (
   scale: Partial<ScaleObject> = chromaticScale
-): ScaleObject => ({
-  ...chromaticScale,
-  ...scale,
-  id: nanoid(),
-});
+): ScaleObject => ({ ...chromaticScale, ...scale, id: nanoid() });
 
-/**
- * Initializes a `NestedScale` with a unique ID.
- * @param scale - Optional. `Partial<NestedScale>` to override default values.
- * @returns An initialized `NestedScale` with a unique ID.
- */
-export const initializeNestedScale = (
-  scale: Partial<NestedScaleObject> = nestedChromaticScale
-): NestedScaleObject => ({
-  ...nestedChromaticScale,
-  ...scale,
-  id: nanoid(),
-});
+/** The chromatic notes are a range of MidiValues. */
+export const chromaticNotes: MidiValue[] = range(60, 72);
 
-// The chromatic scale is globally available as an array and object
-export const chromaticNotes: ScaleArray = range(60, 72);
+/** The chromatic scale is a ScaleObject containing MIDIValues.  */
 export const chromaticScale: ScaleObject = {
   id: "chromatic-scale",
   name: "Chromatic Scale",
   notes: chromaticNotes,
 };
-export const defaultScale = { ...chromaticScale, id: "default-scale" };
 
-// The nested chromatic scale is provided for convenience
-export const nestedChromaticNotes: NestedScaleArray = range(12).map((i) => ({
+/** The nested chromatic notes are an array of NestedNotes. */
+export const nestedChromaticNotes: ScaleArray = range(12).map((i) => ({
   degree: i,
-  offset: 0,
+  offset: { _chromatic: 0 },
 }));
-export const nestedChromaticScale: NestedScaleObject = {
+
+/** The nested chromatic scale is a ScaleObject containing NestedNotes. */
+export const nestedChromaticScale: ScaleObject = {
   id: "nested-chromatic-scale",
   name: "Chromatic Scale",
   notes: nestedChromaticNotes,
 };
-export const defaultNestedScale = {
+
+/** The default scale is a ScaleObject with nested notes. */
+export const defaultScale: ScaleObject = {
   ...nestedChromaticScale,
   id: "default-nested-scale",
 };
 
-// Mocks used for testing
-export const mockScale = {
-  id: "mock-scale",
-  name: "Mock Scale",
-  notes: [60, 62, 64, 65, 67, 69, 71],
-};
-export const mockNestedScale = {
+/** The mock scale is used for testing. */
+export const mockScale: ScaleObject = {
   id: "mock-nested-scale",
-  name: "Mock Nested Scale",
-  notes: [
-    { degree: 0, offset: 0 },
-    { degree: 4, offset: 0 },
-    { degree: 7, offset: 0 },
-  ],
+  name: "Mock Scale",
+  notes: [0, 2, 4, 5, 7, 9, 11].map((degree) => ({ degree })),
 };
 
-/**
- * Checks if a given object is of type `Scale`.
- * @param obj The object to check.
- * @returns True if the object is a `Scale`, otherwise false.
- */
-export const isScale = (obj: unknown): obj is Scale => {
-  const candidate = obj as Scale;
-  return isScaleArray(candidate) || isScaleObject(candidate);
+/** The default scale state is used for Redux. */
+export const defaultScaleState: ScaleState = createNormalState<ScaleMap>([
+  { ...defaultScale, name: SCALE_TRACK_SCALE_NAME },
+]);
+
+/** The default scale history is used for Redux. */
+export const defaultScaleHistory: ScaleHistory =
+  createUndoableHistory<ScaleState>(defaultScaleState);
+
+// ------------------------------------------------------------
+// Scale Type Guards
+// ------------------------------------------------------------
+
+/** Checks if a given object is of type `ScaleVector`. */
+export const isScaleVector = (obj: unknown): obj is ScaleVector => {
+  const candidate = obj as ScaleVector;
+  return (
+    isPlainObject(candidate) &&
+    areObjectKeysTyped(candidate, isString) &&
+    areObjectValuesTyped(candidate, isFiniteNumber)
+  );
 };
 
-/**
- * Checks if a given object is of type `ScaleObject`.
- * @param obj The object to check.
- * @returns True if the object is a `ScaleObject`, otherwise false.
- */
+/** Checks if a given object is of type `MidiValue`. */
+export const isMidiValue = (obj: unknown): obj is MidiValue => {
+  const candidate = obj as MidiValue;
+  return isBoundedNumber(candidate, 0, 127);
+};
+
+/** Checks if a given object is of type `MidiObject`. */
+export const isMidiObject = (obj: unknown): obj is MidiObject => {
+  const candidate = obj as MidiObject;
+  return isPlainObject(candidate) && isMidiValue(candidate.MIDI);
+};
+
+/** Checks if a given object is of type `MidiNote`. */
+export const isMidiNote = (obj: unknown): obj is MidiNote => {
+  return isMidiObject(obj) || isMidiValue(obj);
+};
+
+/** Checks if a given object is of type `NestedNote`. */
+export const isNestedNote = (obj: unknown): obj is NestedNote => {
+  const candidate = obj as NestedNote;
+  return (
+    isPlainObject(candidate) &&
+    isFiniteNumber(candidate.degree) &&
+    isOptionalType(candidate.scaleId, isString) &&
+    isOptionalType(candidate.offset, isScaleVector)
+  );
+};
+
+/** Checks if a given object is of type `ScaleNote`. */
+export const isScaleNote = (obj: unknown): obj is ScaleNote => {
+  return isMidiNote(obj) || isNestedNote(obj);
+};
+
+/** Checks if a given object is of type `ScaleNoteObject`. */
+export const isScaleNoteObject = (obj: unknown): obj is ScaleNoteObject => {
+  return isMidiObject(obj) || isNestedNote(obj);
+};
+
+/** Checks if a given object is of type `ScaleArray`. */
+export const isScaleArray = (obj: unknown): obj is ScaleArray => {
+  const candidate = obj as ScaleArray;
+  return isArray(candidate) && candidate.every(isScaleNote);
+};
+
+/** Checks if a given object is of type `ScaleObject`. */
 export const isScaleObject = (obj: unknown): obj is ScaleObject => {
   const candidate = obj as ScaleObject;
   return (
-    candidate?.id !== undefined &&
-    candidate?.name !== undefined &&
-    candidate?.notes !== undefined
+    isPlainObject(candidate) &&
+    isString(candidate.id) &&
+    isScaleArray(candidate.notes) &&
+    isOptionalType(candidate.name, isString) &&
+    isOptionalTypedArray(candidate.aliases, isString)
   );
 };
 
-/**
- * Checks if a given object is of type `ScaleArray`.
- * @param obj The object to check.
- * @returns True if the object is a `ScaleArray`, otherwise false.
- */
-export const isScaleArray = (obj: unknown): obj is ScaleArray => {
-  const candidate = obj as ScaleArray;
-  return (
-    Array.isArray(candidate) &&
-    candidate.every((note) => typeof note === "number")
-  );
-};
-
-/**
- * Checks if a given object is of type `NestedNote`.
- * @param obj The object to check.
- * @returns True if the object is a `NestedNote`, otherwise false.
- */
-export const isNestedNote = (obj: unknown): obj is NestedNote => {
-  const candidate = obj as NestedNote;
-  return candidate?.degree !== undefined && candidate?.offset !== undefined;
-};
-
-/**
- * Checks if a given object is of type `NestedScale`.
- * @param obj The object to check.
- * @returns True if the object is a `NestedScale`, otherwise false.
- */
-export const isNestedScale = (obj: unknown): obj is NestedScale => {
-  const candidate = obj as NestedScale;
-  return isNestedScaleArray(candidate) || isNestedScaleObject(candidate);
-};
-
-/**
- * Checks if a given object is of type `NestedScaleArray`.
- * @param obj The object to check.
- * @returns True if the object is a `NestedScaleArray`, otherwise false.
- */
-export const isNestedScaleArray = (obj: unknown): obj is NestedScaleArray => {
-  const candidate = obj as NestedScaleArray;
-  return Array.isArray(candidate) && candidate.every(isNestedNote);
-};
-
-/**
- * Checks if a given object is of type `NestedScaleObject`.
- * @param obj The object to check.
- * @returns True if the object is a `NestedScaleObject`, otherwise false.
- */
-export const isNestedScaleObject = (obj: unknown): obj is NestedScaleObject => {
-  const candidate = obj as NestedScaleObject;
-  return (
-    candidate?.id !== undefined &&
-    candidate?.name !== undefined &&
-    isNestedScaleArray(candidate.notes)
-  );
+/** Checks if a given object is of type `Scale`. */
+export const isScale = (obj: unknown): obj is Scale => {
+  const candidate = obj as Scale;
+  return isScaleArray(candidate) || isScaleObject(candidate);
 };

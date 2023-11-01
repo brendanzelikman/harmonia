@@ -3,31 +3,16 @@ import { InstrumentKey, Instrument, InstrumentId } from "./InstrumentTypes";
 import * as Instruments from "../Instrument";
 import { Volume } from "../units";
 
-/**
- * A map of instrument IDs to live audio instances.
- */
+/** A map of instrument IDs to live audio instances. */
 export type LiveInstrumentMap = Record<InstrumentId, LiveAudioInstance>;
 
-/**
- * The global map of live audio instances.
- */
+/** The global map of live audio instances. */
 export const LIVE_AUDIO_INSTANCES: LiveInstrumentMap = {};
 
-/**
- * The live recorder instance.
- */
+/** The live recorder instance. */
 export const LIVE_RECORDER_INSTANCE = new Tone.Recorder();
 
-/**
- * The live audio instance class stores Tone.js objects and effects.
- * @property id - The instrument ID.
- * @property key - The instrument key.
- * @property sampler - The sampler.
- * @property channel - The channel.
- * @property effects - The effects.
- * @property fft - The FFT.
- * @property waveform - The waveform.
- */
+/** The live audio instance class stores Tone.js objects and effects. */
 export class LiveAudioInstance {
   id: InstrumentId;
   key: InstrumentKey;

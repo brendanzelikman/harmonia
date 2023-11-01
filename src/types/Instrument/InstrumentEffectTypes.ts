@@ -1,24 +1,6 @@
-import {
-  Reverb,
-  Chorus,
-  FeedbackDelay,
-  PingPongDelay,
-  Phaser,
-  Tremolo,
-  Vibrato,
-  Distortion,
-  BitCrusher,
-  Filter,
-  EQ3,
-  Compressor,
-  Limiter,
-  Gain,
-  PitchShift,
-  Signal,
-  Param,
-} from "tone";
+import { Signal, Param } from "tone";
 import { Hertz } from "tone/build/esm/core/type/Units";
-import { Time } from "../units";
+import { Seconds } from "../units";
 import { nanoid } from "@reduxjs/toolkit";
 import { lowerCase } from "lodash";
 
@@ -182,13 +164,19 @@ export const getSafeToneEffect = (effect: ToneEffect): SafeEffect => {
   return { id, key, ...values };
 };
 
+// ------------------------------------------------------------
 // Effects
+// ------------------------------------------------------------
+
 export interface EffectProps extends SafeEffect {}
 export const DEFAULT_WET = 0;
 export const MIN_WET = 0;
 export const MAX_WET = 1;
 
+// ------------------------------------------------------------
 // Reverb
+// ------------------------------------------------------------
+
 export interface ReverbProps {
   wet: number;
   decay: number;
@@ -215,7 +203,10 @@ export const defaultReverb: ReverbEffect = {
   preDelay: DEFAULT_REVERB_PREDELAY,
 };
 
+// ------------------------------------------------------------
 // Chorus
+// ------------------------------------------------------------
+
 export interface ChorusProps {
   wet: number;
   frequency: number;
@@ -248,10 +239,13 @@ export const defaultChorus: ChorusEffect = {
   depth: DEFAULT_CHORUS_DEPTH,
 };
 
+// ------------------------------------------------------------
 // Feedback Delay
+// ------------------------------------------------------------
+
 export interface FeedbackDelayProps {
   wet: number;
-  delayTime: Time;
+  delayTime: Seconds;
   feedback: number;
 }
 
@@ -275,10 +269,13 @@ export const defaultFeedbackDelay: FeedbackDelayEffect = {
   feedback: DEFAULT_FEEDBACK_DELAY_FEEDBACK,
 };
 
+// ------------------------------------------------------------
 // Ping Pong Delay
+// ------------------------------------------------------------
+
 export interface PingPongDelayProps {
   wet: number;
-  delayTime: Time;
+  delayTime: Seconds;
   feedback: number;
 }
 
@@ -302,7 +299,10 @@ export const defaultPingPongDelay: PingPongDelayEffect = {
   feedback: DEFAULT_PING_PONG_DELAY_FEEDBACK,
 };
 
+// ------------------------------------------------------------
 // Phaser
+// ------------------------------------------------------------
+
 export interface PhaserProps {
   wet: number;
   frequency: number;
@@ -336,7 +336,10 @@ export const defaultPhaser: PhaserEffect = {
   baseFrequency: DEFAULT_PHASER_BASE_FREQUENCY,
 };
 
+// ------------------------------------------------------------
 // Tremolo
+// ------------------------------------------------------------
+
 export interface TremoloProps {
   wet: number;
   frequency: number;
@@ -363,7 +366,9 @@ export const defaultTremolo: TremoloEffect = {
   depth: DEFAULT_TREMOLO_DEPTH,
 };
 
+// ------------------------------------------------------------
 // Vibrato
+// ------------------------------------------------------------
 
 export interface VibratoProps {
   wet: number;
@@ -391,7 +396,10 @@ export const defaultVibrato: VibratoEffect = {
   depth: DEFAULT_VIBRATO_DEPTH,
 };
 
+// ------------------------------------------------------------
 // Distortion
+// ------------------------------------------------------------
+
 export interface DistortionProps {
   wet: number;
   distortion: number;
@@ -411,7 +419,10 @@ export const defaultDistortion: DistortionEffect = {
   distortion: DEFAULT_DISTORTION,
 };
 
+// ------------------------------------------------------------
 // Bitcrusher
+// ------------------------------------------------------------
+
 export interface BitCrusherProps {
   wet: number;
   bits: number;
@@ -431,7 +442,10 @@ export const defaultBitCrusher: BitCrusherEffect = {
   bits: DEFAULT_BITCRUSHER_BITS,
 };
 
+// ------------------------------------------------------------
 // Equalizer
+// ------------------------------------------------------------
+
 export interface EqualizerProps {
   low: number;
   mid: number;
@@ -477,7 +491,10 @@ export const defaultEqualizer: EqualizerEffect = {
   highFrequency: DEFAULT_EQUALIZER_HIGH_FREQUENCY,
 };
 
+// ------------------------------------------------------------
 // Filter
+// ------------------------------------------------------------
+
 export interface FilterProps {
   frequency: number;
   type: BiquadFilterType;
@@ -504,7 +521,10 @@ export const defaultFilter: FilterEffect = {
   Q: DEFAULT_FILTER_Q,
 };
 
+// ------------------------------------------------------------
 // Compressor
+// ------------------------------------------------------------
+
 export interface CompressorProps {
   ratio: number;
   threshold: number;
@@ -550,7 +570,10 @@ export const defaultCompressor: CompressorEffect = {
   knee: DEFAULT_COMPRESSOR_KNEE,
 };
 
+// ------------------------------------------------------------
 // Limiter
+// ------------------------------------------------------------
+
 export interface LimiterProps {
   threshold: number;
 }
@@ -568,7 +591,10 @@ export const defaultLimiter: LimiterEffect = {
   threshold: DEFAULT_LIMITER_THRESHOLD,
 };
 
+// ------------------------------------------------------------
 // Gain
+// ------------------------------------------------------------
+
 export interface GainProps {
   gain: number;
 }
@@ -587,7 +613,10 @@ export const defaultGain: GainEffect = {
   gain: DEFAULT_GAIN,
 };
 
+// ------------------------------------------------------------
 // Warp
+// ------------------------------------------------------------
+
 export interface WarpProps {
   wet: number;
   pitch: Hertz;

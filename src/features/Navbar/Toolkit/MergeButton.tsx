@@ -6,7 +6,6 @@ import {
   NavbarFormButton,
   NavbarTooltipMenu,
 } from "../components";
-import { BsLink45Deg } from "react-icons/bs";
 import { ControlButton } from ".";
 import {
   useProjectDispatch,
@@ -21,6 +20,7 @@ import {
 import { mergeSelectedMedia, toggleMergingMedia } from "redux/thunks";
 import { isTimelineMergingMedia } from "types/Timeline";
 import { useState } from "react";
+import { GiPestleMortar } from "react-icons/gi";
 
 export const ToolkitMergeButton = () => {
   const dispatch = useProjectDispatch();
@@ -69,7 +69,7 @@ export const ToolkitMergeButton = () => {
   const MergeButton = () => {
     return (
       <ControlButton
-        label="Merge Pattern Clips"
+        label="Fuse Media"
         onClick={() => dispatch(toggleMergingMedia())}
         className={`${
           isMerging
@@ -77,7 +77,7 @@ export const ToolkitMergeButton = () => {
             : "bg-purple-700/80"
         }`}
       >
-        <BsLink45Deg />
+        <GiPestleMortar />
       </ControlButton>
     );
   };

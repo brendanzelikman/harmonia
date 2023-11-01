@@ -5,14 +5,13 @@ import {
   InstrumentId,
   LiveAudioInstance,
   LIVE_AUDIO_INSTANCES,
-  defaultInstrument,
+  defaultInstrumentState,
 } from "types/Instrument";
 import {
   SafeEffect,
   EffectId,
   EffectKey,
 } from "types/Instrument/InstrumentEffectTypes";
-import { initializeState } from "types/util";
 import { MAX_PAN, MAX_VOLUME, MIN_PAN, MIN_VOLUME } from "utils/constants";
 import { UndoTypes } from "../undoTypes";
 import { Project } from "types/Project";
@@ -23,192 +22,106 @@ import {
 import { PatternTrack } from "types/PatternTrack";
 import { TrackId } from "types/Track";
 
-export const defaultInstrumentState = initializeState<InstrumentId, Instrument>(
-  [defaultInstrument]
-);
+// ------------------------------------------------------------
+// Payload Types
+// ------------------------------------------------------------
 
-/**
- * An `Instrument` can be added with a `PatternTrack` to the store.
- */
+/** An `Instrument` can be added with a `PatternTrack` to the store. */
 export type AddInstrumentPayload = {
   track: PatternTrack;
   instrument: Instrument;
 };
 
-/**
- * An `Instrument` can also be added offline without a track.
- */
-export type AddInstrumentOfflinePayload = Instrument;
+/** An `Instrument` can be separately added for the OfflineAudioContext. */
+export type AddOfflineInstrumentPayload = Instrument;
 
-/**
- * An `InstrumentEffect` can be added to an `Instrument` by key.
- */
+/** An `InstrumentEffect` can be added to an `Instrument` by key. */
 export type AddInstrumentEffectPayload = {
-  instrumentId: InstrumentId;
+  id: InstrumentId;
   key: EffectKey;
 };
 
-/**
- * An `Instrument` can be updated by ID.
- */
+/** An `Instrument` can be updated by ID. */
 export type UpdateInstrumentPayload = {
-  instrumentId: InstrumentId;
+  id: InstrumentId;
   update: Partial<Instrument>;
 };
 
-/**
- * An `InstrumentEffect` can be updated by ID.
- */
+/** An `InstrumentEffect` can be updated by ID. */
 export type UpdateInstrumentEffectPayload = {
-  instrumentId: InstrumentId;
+  id: InstrumentId;
   effectId: EffectId;
   update: Partial<SafeEffect>;
 };
 
-/**
- * An `InstrumentEffect` can be rearranged to a new index.
- */
+/** An `InstrumentEffect` can be rearranged to a new index. */
 export type RearrangeInstrumentEffectPayload = {
-  instrumentId: InstrumentId;
+  id: InstrumentId;
   effectId: EffectId;
   index: number;
 };
 
-/**
- * An `Instrument` needs to be removed from the store with a track ID.
- */
+/** An `Instrument` needs to be removed from the store with a track ID. */
 export type RemoveInstrumentPayload = {
   trackId: TrackId;
-  instrumentId: InstrumentId;
+  id: InstrumentId;
 };
 
-/**
- * An `InstrumentEffect` can be removed by ID.
- */
+/** An `InstrumentEffect` can be removed by ID. */
 export type RemoveInstrumentEffectPayload = {
-  instrumentId: InstrumentId;
+  id: InstrumentId;
   effectId: EffectId;
 };
 
-/**
- * An `InstrumentEffect` can be reset by ID.
- */
+/** An `InstrumentEffect` can be reset by ID. */
 export type ResetInstrumentEffectPayload = {
-  instrumentId: InstrumentId;
+  id: InstrumentId;
   effectId: EffectId;
 };
 
-/**
- * All `InstrumentEffects` can be removed from an `Instrument`.
- */
+/** All `InstrumentEffects` can be removed from an `Instrument`. */
 export type RemoveAllInstrumentEffectsPayload = InstrumentId;
 
-/**
- * An `Instrument` can be muted or unmuted.
- */
+/** An `Instrument` can be muted or unmuted. */
 export type ToggleInstrumentMutePayload = InstrumentId;
 
-/**
- * An `Instrument` can be soloed or unsoloed.
- */
+/** An `Instrument` can be soloed or unsoloed. */
 export type ToggleInstrumentSoloPayload = InstrumentId;
 
-/**
- * The `InstrumentsSlice` stores all `Instrument` objects and effects.
- *
- * @property `addInstrument` - Add an instrument to the store.
- * @property `addInstrumentEffect` - Add an effect to an instrument.
- * @property `updateInstrument` - Update an instrument.
- * @property `updateInstrumentEffect` - Update an instrument effect.
- * @property `rearrangeInstrumentEffect` - Rearrange an instrument effect.
- * @property `removeInstrument` - Remove an instrument.
- * @property `removeInstrumentEffect` - Remove an instrument effect.
- * @property `resetInstrumentEffect` - Reset an instrument effect.
- * @property `removeAllInstrumentEffects` - Remove all effects from an instrument.
- * @property `toggleInstrumentMute` - Toggle an instrument's mute state.
- * @property `toggleInstrumentSolo` - Toggle an instrument's solo state.
- * @property `muteInstruments` - Mute all instruments.
- * @property `unmuteInstruments` - Unmute all instruments.
- * @property `soloInstruments` - Solo all instruments.
- * @property `unsoloInstruments` - Unsolo all instruments.
- *
- */
+// ------------------------------------------------------------
+// Slice Definition
+// ------------------------------------------------------------
+
 export const instrumentsSlice = createSlice({
   name: "instruments",
   initialState: defaultInstrumentState,
   reducers: {
-    /**
-     * Add an instrument to the store (online).
-     * @param project The current state.
-     * @param action The payload action containing the instrument.
-     */
+    /** Add an instrument to the slice. */
     addInstrument: (state, action: PayloadAction<AddInstrumentPayload>) => {
       const { instrument } = action.payload;
       state.allIds = union(state.allIds, [instrument.id]);
       state.byId[instrument.id] = instrument;
     },
-    /**
-     * Add an instrument to the store (offline)
-     * @param project The current state.
-     * @param action The payload action containing the instrument.
-     */
-    addInstrumentOffline: (
-      state,
-      action: PayloadAction<AddInstrumentOfflinePayload>
-    ) => {
-      const instrument = action.payload;
-      state.allIds = union(state.allIds, [instrument.id]);
-      state.byId[instrument.id] = instrument;
-    },
-    /**
-     * Add an effect to an instrument.
-     * @param project The current state.
-     * @param action The payload action containing the instrument ID and effect key.
-     */
-    addInstrumentEffect: (
-      state,
-      action: PayloadAction<AddInstrumentEffectPayload>
-    ) => {
-      const { instrumentId, key } = action.payload;
-      const instrument = state.byId[instrumentId];
-      if (!instrument) return;
-
-      // Add the effect to the live instance
-      const liveInstance = LIVE_AUDIO_INSTANCES[instrumentId];
-      if (!liveInstance) return;
-      const effectId = liveInstance.addEffect(key);
-
-      // Add the effect to the state
-      instrument.effects.push({
-        ...LiveAudioInstance.defaultEffect(key),
-        id: effectId,
-        key,
-      });
-    },
-    /**
-     * Update an instrument.
-     * @param project The current state.
-     * @param action The payload action containing the instrument ID and update.
-     */
+    /** Update an instrument. */
     updateInstrument: (
       state,
       action: PayloadAction<UpdateInstrumentPayload>
     ) => {
-      const { instrumentId, update } = action.payload;
-      const instrument = state.byId[instrumentId];
+      const { id, update } = action.payload;
+      const instrument = state.byId[id];
       if (!instrument) return;
 
       // Update the instrument in the state
       state.byId[instrument.id] = { ...instrument, ...update };
 
       // Update the live instance if it exists
-      const instance = LIVE_AUDIO_INSTANCES[instrumentId];
+      const instance = LIVE_AUDIO_INSTANCES[id];
       if (!instance) return;
 
       // Recreate the sampler if the instrument key changed
       if (update.key !== undefined) {
         instance.key = update.key;
-        LIVE_AUDIO_INSTANCES[instrumentId] = new LiveAudioInstance({
+        LIVE_AUDIO_INSTANCES[id] = new LiveAudioInstance({
           ...instance.getInitializationProps(),
           key: update.key,
         });
@@ -226,26 +139,64 @@ export const instrumentsSlice = createSlice({
         instance.pan = clamp(update.pan, MIN_PAN, MAX_PAN);
       }
     },
-    /**
-     * Update an instrument effect.
-     * @param project The current state.
-     * @param action The payload action containing the instrument ID, effect ID, and update.
-     */
+    /** Remove an instrument from the slice. */
+    removeInstrument: (
+      state,
+      action: PayloadAction<RemoveInstrumentPayload>
+    ) => {
+      const { id } = action.payload;
+      const instrument = state.byId[id];
+      if (!instrument) return;
+
+      // Remove the live instrument
+      const instance = LIVE_AUDIO_INSTANCES[id];
+      if (!instance) return;
+      instance?.dispose();
+      delete LIVE_AUDIO_INSTANCES[id];
+
+      // Remove the instrument from the state
+      delete state.byId[id];
+      const index = state.allIds.findIndex((id) => id === id);
+      if (index === -1) return;
+      state.allIds.splice(index, 1);
+    },
+    /** Add an effect to an instrument. */
+    addInstrumentEffect: (
+      state,
+      action: PayloadAction<AddInstrumentEffectPayload>
+    ) => {
+      const { id, key } = action.payload;
+      const instrument = state.byId[id];
+      if (!instrument) return;
+
+      // Add the effect to the live instance
+      const liveInstance = LIVE_AUDIO_INSTANCES[id];
+      if (!liveInstance) return;
+      const effectId = liveInstance.addEffect(key);
+
+      // Add the effect to the state
+      instrument.effects.push({
+        ...LiveAudioInstance.defaultEffect(key),
+        id: effectId,
+        key,
+      });
+    },
+    /** Update an effect in an instrument. */
     updateInstrumentEffect: (
       state,
       action: PayloadAction<UpdateInstrumentEffectPayload>
     ) => {
-      const { instrumentId, effectId, update } = action.payload;
-      const instrument = state.byId[instrumentId];
+      const { id, effectId, update } = action.payload;
+      const instrument = state.byId[id];
       if (!instrument) return;
 
       // Update the effect in the live instrument
-      const instance = LIVE_AUDIO_INSTANCES[instrumentId];
+      const instance = LIVE_AUDIO_INSTANCES[id];
       if (!instance) return;
       instance.updateEffectById(effectId, update);
 
       // Update the effect in the state
-      state.byId[instrumentId] = {
+      state.byId[id] = {
         ...instrument,
         effects: instrument.effects.map((effect) => {
           if (effect.id !== effectId) return effect;
@@ -253,21 +204,36 @@ export const instrumentsSlice = createSlice({
         }),
       };
     },
-    /**
-     * Rearrange an instrument effect.
-     * @param project The current state.
-     * @param action The payload action containing the instrument ID, effect ID, and new index.
-     */
+    /** Remove an effect from an instrument. */
+    removeInstrumentEffect: (
+      state,
+      action: PayloadAction<RemoveInstrumentEffectPayload>
+    ) => {
+      const { id, effectId } = action.payload;
+      const instrument = Object.values(state.byId).find(({ id }) => id === id);
+      if (!instrument) return;
+
+      // Remove the effect from the live instrument
+      const instance = LIVE_AUDIO_INSTANCES[id];
+      if (!instance) return;
+      instance.removeEffectById(effectId);
+
+      // Remove the effect from the state
+      const index = instrument.effects.findIndex(({ id }) => id === effectId);
+      if (index === -1) return;
+      instrument.effects.splice(index, 1);
+    },
+    /** Rearrange an instrument effect to a new index. */
     rearrangeInstrumentEffect: (
       state,
       action: PayloadAction<RearrangeInstrumentEffectPayload>
     ) => {
-      const { instrumentId, effectId, index } = action.payload;
-      const instrument = state.byId[instrumentId];
+      const { id, effectId, index } = action.payload;
+      const instrument = state.byId[id];
       if (!instrument) return;
 
       // Get the live instrument
-      const instance = LIVE_AUDIO_INSTANCES[instrumentId];
+      const instance = LIVE_AUDIO_INSTANCES[id];
       if (!instance) return;
 
       // Get the old index of the effect
@@ -285,16 +251,156 @@ export const instrumentsSlice = createSlice({
       instrument.effects.splice(oldIndex, 1);
       instrument.effects.splice(index, 0, effect);
     },
-    /**
-     * Remove an instrument.
-     * @param project The current state.
-     * @param action The payload action containing the instrument ID.
-     */
-    removeInstrument: (
+    /** Reset an effect of an instrument. */
+    resetInstrumentEffect: (
       state,
-      action: PayloadAction<RemoveInstrumentPayload>
+      action: PayloadAction<ResetInstrumentEffectPayload>
     ) => {
-      const { instrumentId } = action.payload;
+      const { id, effectId } = action.payload;
+      const instrument = state.byId[id];
+      if (!instrument) return;
+
+      // Get the effect from the state
+      const index = instrument.effects.findIndex(({ id }) => id === effectId);
+      if (index === -1) return;
+      const effect = instrument.effects[index];
+      if (!effect) return;
+
+      // Reset the effect in the live instrument
+      const instance = LIVE_AUDIO_INSTANCES[id];
+      if (!instance) return;
+      instance.resetEffect(effect);
+
+      // Reset the effect in the state
+      instrument.effects[index] = {
+        ...effect,
+        ...LiveAudioInstance.defaultEffect(effect.key),
+        id: effectId,
+      };
+    },
+    /** Remove all effects from an instrument. */
+    removeAllInstrumentEffects: (
+      state,
+      action: PayloadAction<RemoveAllInstrumentEffectsPayload>
+    ) => {
+      const id = action.payload;
+      const instrument = state.byId[id];
+      if (!instrument) return;
+
+      // Remove all effects from the live instrument
+      const instance = LIVE_AUDIO_INSTANCES[id];
+      if (!instance) return;
+      instance.removeAllEffects();
+
+      // Remove all effects from the state
+      instrument.effects = [];
+    },
+    /** Toggle an instrument's mute state. */
+    toggleInstrumentMute: (
+      state,
+      action: PayloadAction<ToggleInstrumentMutePayload>
+    ) => {
+      const id = action.payload;
+      const instrument = state.byId[id];
+      if (!instrument) return;
+
+      // Toggle mute in the live instrument
+      const instance = LIVE_AUDIO_INSTANCES[id];
+      if (!instance) return;
+      instance.mute = !instance.mute;
+
+      // Toggle mute in the state
+      instrument.mute = !instrument.mute;
+    },
+    /** Toggle an instrument's solo state. */
+    toggleInstrumentSolo: (
+      state,
+      action: PayloadAction<ToggleInstrumentSoloPayload>
+    ) => {
+      const id = action.payload;
+      const instrument = state.byId[id];
+      if (!instrument) return;
+
+      // Toggle solo in the live instrument
+      const instance = LIVE_AUDIO_INSTANCES[id];
+      if (!instance) return;
+      instance.solo = !instance.solo;
+
+      // Toggle solo in the state
+      instrument.solo = !instrument.solo;
+    },
+    /** Mute all instruments. */
+    muteInstruments: (state) => {
+      state.allIds.forEach((id) => {
+        const instrument = state.byId[id];
+        if (!instrument) return;
+
+        // Mute the instrument in the live instrument
+        const instance = LIVE_AUDIO_INSTANCES[id];
+        if (!instance) return;
+        instance.mute = true;
+
+        // Mute the instrument in the state
+        instrument.mute = true;
+      });
+    },
+    /** Unmute all instruments. */
+    unmuteInstruments: (state) => {
+      state.allIds.forEach((id) => {
+        const instrument = state.byId[id];
+        if (!instrument) return;
+
+        // Mute the instrument in the live instrument
+        const instance = LIVE_AUDIO_INSTANCES[id];
+        if (!instance) return;
+        instance.mute = false;
+
+        // Mute the instrument in the state
+        instrument.mute = false;
+      });
+    },
+    /** Solo all instruments. */
+    soloInstruments: (state) => {
+      state.allIds.forEach((id) => {
+        const instrument = state.byId[id];
+        if (!instrument) return;
+
+        // Solo the instrument in the live instrument
+        const instance = LIVE_AUDIO_INSTANCES[id];
+        if (!instance) return;
+        instance.solo = true;
+
+        // Solo the instrument in the state
+        instrument.solo = true;
+      });
+    },
+    /** Unsolo all instruments. */
+    unsoloInstruments: (state) => {
+      state.allIds.forEach((id) => {
+        const instrument = state.byId[id];
+        if (!instrument) return;
+
+        // Solo the instrument in the live instrument
+        const instance = LIVE_AUDIO_INSTANCES[id];
+        if (!instance) return;
+        instance.solo = false;
+
+        // Solo the instrument in the state
+        instrument.solo = false;
+      });
+    },
+    /** (PRIVATE) Add an offline instrument. */
+    _addOfflineInstrument: (
+      state,
+      action: PayloadAction<AddOfflineInstrumentPayload>
+    ) => {
+      const instrument = action.payload;
+      state.allIds = union(state.allIds, [instrument.id]);
+      state.byId[instrument.id] = instrument;
+    },
+    /** (PRIVATE) Remove an offline instrument. */
+    _removeOfflineInstrument: (state, action: PayloadAction<InstrumentId>) => {
+      const instrumentId = action.payload;
       const instrument = state.byId[instrumentId];
       if (!instrument) return;
 
@@ -310,209 +416,17 @@ export const instrumentsSlice = createSlice({
       if (index === -1) return;
       state.allIds.splice(index, 1);
     },
-    /**
-     * Remove an instrument effect.
-     * @param project The current state.
-     * @param action The payload action containing the instrument ID and effect ID.
-     */
-    removeInstrumentEffect: (
-      state,
-      action: PayloadAction<RemoveInstrumentEffectPayload>
-    ) => {
-      const { instrumentId, effectId } = action.payload;
-      const instrument = Object.values(state.byId).find(
-        ({ id }) => id === instrumentId
-      );
-      if (!instrument) return;
-
-      // Remove the effect from the live instrument
-      const instance = LIVE_AUDIO_INSTANCES[instrumentId];
-      if (!instance) return;
-      instance.removeEffectById(effectId);
-
-      // Remove the effect from the state
-      const index = instrument.effects.findIndex(({ id }) => id === effectId);
-      if (index === -1) return;
-      instrument.effects.splice(index, 1);
-    },
-    /**
-     * Reset an instrument effect.
-     * @param project The current state.
-     * @param action The payload action containing the instrument ID and effect ID.
-     */
-    resetInstrumentEffect: (
-      state,
-      action: PayloadAction<ResetInstrumentEffectPayload>
-    ) => {
-      const { instrumentId, effectId } = action.payload;
-      const instrument = state.byId[instrumentId];
-      if (!instrument) return;
-
-      // Get the effect from the state
-      const index = instrument.effects.findIndex(({ id }) => id === effectId);
-      if (index === -1) return;
-      const effect = instrument.effects[index];
-      if (!effect) return;
-
-      // Reset the effect in the live instrument
-      const instance = LIVE_AUDIO_INSTANCES[instrumentId];
-      if (!instance) return;
-      instance.resetEffect(effect);
-
-      // Reset the effect in the state
-      instrument.effects[index] = {
-        ...effect,
-        ...LiveAudioInstance.defaultEffect(effect.key),
-        id: effectId,
-      };
-    },
-    /**
-     * Remove all effects from an instrument.
-     * @param project The current state.
-     * @param action The payload action containing the instrument ID.
-     */
-    removeAllInstrumentEffects: (
-      state,
-      action: PayloadAction<RemoveAllInstrumentEffectsPayload>
-    ) => {
-      const instrumentId = action.payload;
-      const instrument = state.byId[instrumentId];
-      if (!instrument) return;
-
-      // Remove all effects from the live instrument
-      const instance = LIVE_AUDIO_INSTANCES[instrumentId];
-      if (!instance) return;
-      instance.removeAllEffects();
-
-      // Remove all effects from the state
-      instrument.effects = [];
-    },
-    /**
-     * Toggle an instrument's mute state.
-     * @param project The current state.
-     * @param action The payload action containing the instrument ID.
-     */
-    toggleInstrumentMute: (
-      state,
-      action: PayloadAction<ToggleInstrumentMutePayload>
-    ) => {
-      const instrumentId = action.payload;
-      const instrument = state.byId[instrumentId];
-      if (!instrument) return;
-
-      // Toggle mute in the live instrument
-      const instance = LIVE_AUDIO_INSTANCES[instrumentId];
-      if (!instance) return;
-      instance.mute = !instance.mute;
-
-      // Toggle mute in the state
-      instrument.mute = !instrument.mute;
-    },
-    /**
-     * Toggle an instrument's solo state.
-     * @param project The current state.
-     * @param action The payload action containing the instrument ID.
-     */
-    toggleInstrumentSolo: (
-      state,
-      action: PayloadAction<ToggleInstrumentSoloPayload>
-    ) => {
-      const instrumentId = action.payload;
-      const instrument = state.byId[instrumentId];
-      if (!instrument) return;
-
-      // Toggle solo in the live instrument
-      const instance = LIVE_AUDIO_INSTANCES[instrumentId];
-      if (!instance) return;
-      instance.solo = !instance.solo;
-
-      // Toggle solo in the state
-      instrument.solo = !instrument.solo;
-    },
-    /**
-     * Mute all instruments.
-     * @param project The current state.
-     */
-    muteInstruments: (state) => {
-      state.allIds.forEach((id) => {
-        const instrument = state.byId[id];
-        if (!instrument) return;
-
-        // Mute the instrument in the live instrument
-        const instance = LIVE_AUDIO_INSTANCES[id];
-        if (!instance) return;
-        instance.mute = true;
-
-        // Mute the instrument in the state
-        instrument.mute = true;
-      });
-    },
-    /**
-     * Unmute all instruments.
-     * @param project The current state.
-     */
-    unmuteInstruments: (state) => {
-      state.allIds.forEach((id) => {
-        const instrument = state.byId[id];
-        if (!instrument) return;
-
-        // Mute the instrument in the live instrument
-        const instance = LIVE_AUDIO_INSTANCES[id];
-        if (!instance) return;
-        instance.mute = false;
-
-        // Mute the instrument in the state
-        instrument.mute = false;
-      });
-    },
-    /**
-     * Solo all instruments.
-     * @param project The current state.
-     */
-    soloInstruments: (state) => {
-      state.allIds.forEach((id) => {
-        const instrument = state.byId[id];
-        if (!instrument) return;
-
-        // Solo the instrument in the live instrument
-        const instance = LIVE_AUDIO_INSTANCES[id];
-        if (!instance) return;
-        instance.solo = true;
-
-        // Solo the instrument in the state
-        instrument.solo = true;
-      });
-    },
-    /**
-     * Unsolo all instruments.
-     * @param project The current state.
-     */
-    unsoloInstruments: (state) => {
-      state.allIds.forEach((id) => {
-        const instrument = state.byId[id];
-        if (!instrument) return;
-
-        // Solo the instrument in the live instrument
-        const instance = LIVE_AUDIO_INSTANCES[id];
-        if (!instance) return;
-        instance.solo = false;
-
-        // Solo the instrument in the state
-        instrument.solo = false;
-      });
-    },
   },
 });
 
 export const {
   addInstrument,
-  addInstrumentOffline,
-  addInstrumentEffect,
   updateInstrument,
-  updateInstrumentEffect,
-  rearrangeInstrumentEffect,
   removeInstrument,
+  addInstrumentEffect,
+  updateInstrumentEffect,
   removeInstrumentEffect,
+  rearrangeInstrumentEffect,
   resetInstrumentEffect,
   removeAllInstrumentEffects,
   toggleInstrumentMute,
@@ -521,13 +435,18 @@ export const {
   unmuteInstruments,
   soloInstruments,
   unsoloInstruments,
+  _addOfflineInstrument,
+  _removeOfflineInstrument,
 } = instrumentsSlice.actions;
+
+export const PRIVATE_INSTRUMENT_ACTIONS = [
+  "_addOfflineInstrument",
+  "_removeOfflineInstrument",
+];
 
 export default instrumentsSlice.reducer;
 
-/**
- * A custom middleware to recreate all audio instances when undoing/redoing.
- */
+/** A custom middleware to recreate all audio instances when undoing/redoing. */
 export const handleInstrumentMiddleware: Middleware =
   (store) => (next) => (action) => {
     const type = action.type;
@@ -549,10 +468,8 @@ export const handleInstrumentMiddleware: Middleware =
     const allIds = union(oldInstrumentIds, newInstrumentIds);
 
     // Validate all instruments if undoing/redoing the arrangement
-    if (
-      type === UndoTypes.undoArrangement ||
-      type === UndoTypes.redoArrangement
-    ) {
+    const { undoArrangement, redoArrangement } = UndoTypes;
+    if (type === undoArrangement || type === redoArrangement) {
       for (const id of allIds) {
         // Get the instruments
         const oldInstrument = oldInstrumentMap[id];

@@ -7,7 +7,7 @@ interface LogoProps {
   onClick?: () => void;
 }
 
-export default function Logo(props: LogoProps) {
+export function Logo(props: LogoProps) {
   return (
     <img
       src={LogoImage}

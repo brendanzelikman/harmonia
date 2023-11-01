@@ -1,13 +1,11 @@
-import { ERROR_TAG } from "../units";
-import { PatternTrack, isPatternTrack } from "./PatternTrackTypes";
+import { PatternTrack, PatternTrackUpdate } from "./PatternTrackTypes";
 
-/**
- * Get the unique tag of a given PatternTrack.
- * @param clip Optional. The PatternTrack object.
- * @returns Unique tag string. If the PatternTrack is invalid, return the error tag.
- */
-export const getPatternTrackTag = (track: Partial<PatternTrack>) => {
-  if (!isPatternTrack(track)) return ERROR_TAG;
-  const { id, parentId, name, type, instrumentId } = track;
-  return `${id}@${parentId}@${name}@${type}@${instrumentId}`;
+/** Get a `PatternTrack` as a string. */
+export const getPatternTrackAsString = (track: PatternTrack) => {
+  return JSON.stringify(track);
+};
+
+/** Get a `PatternTrackUpdate` as a string. */
+export const getPatternTrackUpdateAsString = (update: PatternTrackUpdate) => {
+  return JSON.stringify(update);
 };

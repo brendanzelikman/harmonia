@@ -1,69 +1,48 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Clip, ClipId } from "types/Clip";
+import { Clip, defaultClipState } from "types/Clip";
 import { TrackId } from "types/Track";
-import { initializeState } from "types/util";
-import { MediaPayload, PartialMediaPayload } from "types/Media";
+import {
+  RemoveMediaPayload,
+  CreateMediaPayload,
+  UpdateMediaPayload,
+} from "types/Media";
 import { union } from "lodash";
-import { updateMediaInHierarchy } from "redux/TrackHierarchy";
-import { Dispatch, Thunk } from "types/Project";
 
-export const defaultClipState = initializeState<ClipId, Clip>();
+// ------------------------------------------------------------
+// Payload Types
+// ------------------------------------------------------------
 
-/**
- * Clips can be added within a bundle.
- */
-export type AddClipsPayload = MediaPayload;
+/** Clips can only be added as media. */
+export type AddClipsPayload = CreateMediaPayload;
 
-/**
- * Clips can be removed within a bundle.
- */
-export type RemoveClipsPayload = MediaPayload;
+/** Clips can only be updated as media. */
+export type UpdateClipsPayload = UpdateMediaPayload;
 
-/**
- * Clips can be updated within a bundle.
- */
-export type UpdateClipsPayload = PartialMediaPayload;
+/** Clips can only be removed as media IDs. */
+export type RemoveClipsPayload = RemoveMediaPayload;
 
-/**
- * A clip can be sliced into two new clips.
- */
+/** A clip can be sliced into two new clips. */
 export type SliceClipPayload = {
   oldClip: Clip;
   firstClip: Clip;
   secondClip: Clip;
 };
 
-/**
- * Clips can be removed by track ID.
- */
+/** Clips can be removed by track ID. */
 export type RemoveClipsByTrackIdPayload = TrackId;
 
-/**
- * Clips can be cleared by track ID.
- */
+/** Clips can be cleared by track ID. */
 export type ClearClipsByTrackIdPayload = TrackId;
 
-/**
- * The clips slice contains all clips in the arrangement.
- * Some functions are underscored to indicate that they should not be called directly.
- *
- * @property `addClips` - Add clips to the store.
- * @property `removeClips` - Remove clips from the store.
- * @property `_updateClips` - Update clips in the store.
- * @property `_sliceClip` - Slice a clip into two new clips.
- * @property `removeClipsByTrackId` - Remove clips by track ID.
- * @property `clearClipsByTrackId` - Clear clips by track ID.
- *
- */
+// ------------------------------------------------------------
+// Slice Definitions
+// ------------------------------------------------------------
+
 export const clipsSlice = createSlice({
   name: "clips",
   initialState: defaultClipState,
   reducers: {
-    /**
-     * Add clips to the store.
-     * @param project The clips state.
-     * @param action The payload action.
-     */
+    /** Add a list of clips to the slice. */
     addClips: (state, action: PayloadAction<AddClipsPayload>) => {
       const { clips } = action.payload;
       if (!clips?.length) return;
@@ -73,26 +52,7 @@ export const clipsSlice = createSlice({
         state.byId[clip.id] = clip;
       });
     },
-    /**
-     * Remove clips from the store.
-     * @param project The clips state.
-     * @param action The payload action.
-     */
-    removeClips: (state, action: PayloadAction<RemoveClipsPayload>) => {
-      const { clips } = action.payload;
-      if (!clips?.length) return;
-      clips.forEach((clip) => {
-        delete state.byId[clip.id];
-        const index = state.allIds.findIndex((id) => id === clip.id);
-        if (index === -1) return;
-        state.allIds.splice(index, 1);
-      });
-    },
-    /**
-     * Update clips in the store.
-     * @param project The clips state.
-     * @param action The payload action.
-     */
+    /** (PRIVATE) Update a list of clips in the slice. */
     _updateClips: (state, action: PayloadAction<UpdateClipsPayload>) => {
       const { clips } = action.payload;
       if (!clips?.length) return;
@@ -105,11 +65,18 @@ export const clipsSlice = createSlice({
         };
       });
     },
-    /**
-     * Slice a clip into two new clips.
-     * @param project The clips state.
-     * @param action The payload action.
-     */
+    /** Remove a list of clips from the slice. */
+    removeClips: (state, action: PayloadAction<RemoveClipsPayload>) => {
+      const { clipIds } = action.payload;
+      if (!clipIds?.length) return;
+      clipIds.forEach((clipId) => {
+        delete state.byId[clipId];
+        const index = state.allIds.findIndex((id) => id === clipId);
+        if (index === -1) return;
+        state.allIds.splice(index, 1);
+      });
+    },
+    /** Slice a clip into two new clips. */
     _sliceClip: (state, action: PayloadAction<SliceClipPayload>) => {
       const { oldClip, firstClip, secondClip } = action.payload;
       if (!oldClip || !firstClip || !secondClip) return;
@@ -124,11 +91,7 @@ export const clipsSlice = createSlice({
       state.byId[firstClip.id] = firstClip;
       state.byId[secondClip.id] = secondClip;
     },
-    /**
-     * Remove clips by track ID.
-     * @param project The clips state.
-     * @param action The payload action.
-     */
+    /** Remove a list of clips by track ID. */
     removeClipsByTrackId: (
       state,
       action: PayloadAction<RemoveClipsByTrackIdPayload>
@@ -145,11 +108,7 @@ export const clipsSlice = createSlice({
         state.allIds.splice(index, 1);
       });
     },
-    /**
-     * Clears clips by track ID.
-     * @param project The clips state.
-     * @param action The payload action.
-     */
+    /** Clear a list of clips by track ID. */
     clearClipsByTrackId: (
       state,
       action: PayloadAction<ClearClipsByTrackIdPayload>
@@ -171,18 +130,11 @@ export const clipsSlice = createSlice({
 
 export const {
   addClips,
-  removeClips,
   _updateClips,
+  removeClips,
   _sliceClip,
   removeClipsByTrackId,
   clearClipsByTrackId,
 } = clipsSlice.actions;
-
-export const updateClips =
-  (media: PartialMediaPayload): Thunk =>
-  (dispatch) => {
-    dispatch(_updateClips(media));
-    dispatch(updateMediaInHierarchy(media));
-  };
 
 export default clipsSlice.reducer;

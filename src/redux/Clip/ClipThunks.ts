@@ -1,180 +1,102 @@
+import * as _ from "redux/selectors";
 import {
   addMediaToHierarchy,
   removeMediaFromHierarchy,
-  selectTrackNodeMap,
+  updateMediaInHierarchy,
 } from "redux/TrackHierarchy";
 import { Thunk } from "types/Project";
-import {
-  Clip,
-  ClipId,
-  ClipNoId,
-  getClipStream,
-  initializeClip,
-  isClip,
-} from "types/Clip";
-import { addClips, removeClips } from "./ClipSlice";
-import { selectClipsByIds } from "./ClipSelectors";
-import { selectMetadata } from "redux/Metadata";
-import { selectPatternMap } from "redux/Pattern";
-import {
-  selectPatternTrackMap,
-  selectPatternTrackById,
-} from "redux/PatternTrack";
-import { selectScaleTrackMap } from "redux/ScaleTrack";
-import { selectTranspositionMap } from "redux/Transposition";
-import {
-  selectTransport,
-  selectTrackById,
-  selectOrderedTrackIds,
-  selectScaleMap,
-  selectMediaSelection,
-} from "redux/selectors";
-import { updateMediaSelection } from "redux/Timeline/TimelineSlice";
 import { Midi } from "@tonejs/midi";
-import { TrackId } from "types/Track";
+import { ClipId, ClipNoId, initializeClip } from "types/Clip";
+import { _updateClips, addClips, removeClips } from "./ClipSlice";
+import { updateMediaSelection } from "redux/Timeline/TimelineSlice";
+import { isUndefined, without } from "lodash";
+import { RemoveMediaPayload, UpdateMediaPayload } from "types/Media";
+import { isPatternRest } from "types/Pattern";
 import { convertTicksToSeconds } from "types/Transport";
-import { MIDI } from "types/midi";
-import { union } from "lodash";
+import { hasKeys } from "utils/objects";
 
-/**
- * Creates a list of clips and adds them to the store.
- * @param clipNoIds The list of clips to create.
- * @returns A promise that resolves to the list of clip IDs.
- */
+/** Create a list of clips and add them to the clip slice and hierarchy. */
 export const createClips =
-  (clipNoIds: Partial<ClipNoId>[]): Thunk<Promise<{ clipIds: ClipId[] }>> =>
+  (clipNoIds: Partial<ClipNoId>[]): Thunk<ClipId[]> =>
   (dispatch) => {
-    return new Promise((resolve) => {
-      // Initialize the clips
-      const clips = clipNoIds.map(initializeClip);
-
-      // Add the clips to the store
-      const payload = { clips };
-      dispatch(addClips(payload));
-      dispatch(addMediaToHierarchy(payload));
-
-      // Resolve the promise with the clip IDs
-      const clipIds = clips.map((clip) => clip.id);
-      const promiseResult = { clipIds };
-      resolve(promiseResult);
-    });
+    if (!clipNoIds.length) return [];
+    const clips = clipNoIds.map(initializeClip);
+    dispatch(addClips({ clips }));
+    dispatch(addMediaToHierarchy({ clips }));
+    return clips.map((clip) => clip.id);
   };
 
-/**
- * Deletes a list of clips from the store.
- * @param clips The list of clips to delete.
- * @returns A promise that resolves to true if the clips were deleted.
- */
+/** Update the clips in the slice and hierarchy. */
+export const updateClips =
+  (media: UpdateMediaPayload): Thunk =>
+  (dispatch) => {
+    if (!media.clips?.length) return;
+    dispatch(_updateClips(media));
+    dispatch(updateMediaInHierarchy(media));
+  };
+
+/** Delete a list of clips from the clip slice and hierarchy. */
 export const deleteClips =
-  (clips: Clip[]): Thunk =>
+  (mediaIds: RemoveMediaPayload): Thunk =>
   (dispatch, getProject) => {
+    if (!mediaIds.clipIds?.length) return;
+
+    // Delete the clips from the slice and hierarchy.
+    dispatch(removeClips(mediaIds));
+    dispatch(removeMediaFromHierarchy(mediaIds));
+
+    // Filter the clips out of the media selection
     const project = getProject();
-    const { clipIds } = selectMediaSelection(project);
-    return new Promise((resolve) => {
-      // Resolve false if any clips are invalid
-      if (clips.some((clip) => !isClip(clip))) {
-        resolve(false);
-      }
-      // Otherwise, delete the clips and resolve true
-      dispatch(
-        updateMediaSelection({
-          clipIds: union(
-            clipIds,
-            clips.map((clip) => clip.id)
-          ),
-        })
-      );
-      dispatch(removeClips({ clips }));
-      dispatch(removeMediaFromHierarchy({ clips }));
-      resolve(true);
-    });
+    const mediaSelection = _.selectMediaSelection(project);
+    const selectedClipIds = mediaSelection.clipIds;
+    const filteredIds = without(selectedClipIds, ...mediaIds.clipIds);
+    dispatch(updateMediaSelection({ clipIds: filteredIds }));
   };
 
-/**
- *  Export the clips to a MIDI file.
- * @param ids The IDs of the clips to export.
- */
+/** Export a list of clips to MIDI by ID and download them as a file. */
 export const exportClipsToMidi =
   (ids: ClipId[]): Thunk =>
   async (_dispatch, getProject) => {
     const project = getProject();
-
-    // Get the clips
-    const clips = selectClipsByIds(project, ids);
-    if (!clips.length) return;
-
-    // Get the dependencies
-    const meta = selectMetadata(project);
-    const patternMap = selectPatternMap(project);
-    const patternTrackMap = selectPatternTrackMap(project);
-    const scaleTrackMap = selectScaleTrackMap(project);
-    const scaleMap = selectScaleMap(project);
-    const transport = selectTransport(project);
-    const trackNodeMap = selectTrackNodeMap(project);
-    const transpositionMap = selectTranspositionMap(project);
-
-    // Sort the clips
-    const sortedClips = clips.sort((a, b) => a.tick - b.tick);
-
-    // Accumulate clips into tracks
-    const clipsByTrack = sortedClips.reduce((acc, clip) => {
-      const track = selectTrackById(project, clip.trackId);
-      if (!track) return acc;
-      if (!acc[track.id]) acc[track.id] = [];
-      acc[track.id].push(clip);
-      return acc;
-    }, {} as Record<TrackId, Clip[]>);
-
-    // Sort the trackIds descending by view order based on the track map
-    const trackIds = Object.keys(clipsByTrack) as TrackId[];
-    const orderedTrackIds = selectOrderedTrackIds(project);
-    const clipTrackIds = orderedTrackIds.filter((id) => trackIds.includes(id));
+    const hierarchy = _.selectTrackHierarchy(project);
+    const meta = _.selectMetadata(project);
+    const transport = _.selectTransport(project);
+    const trackIds = _.selectOrderedTrackIds(project);
+    const clipStreamMap = _.selectClipStreamMap(project);
+    if (!hasKeys(clipStreamMap)) return;
 
     // Prepare a new MIDI file
     const midi = new Midi();
 
     // Iterate through each track
-    clipTrackIds.forEach((trackId) => {
-      // Get the pattern track
-      const track = selectPatternTrackById(project, trackId);
-      if (!track) return;
+    trackIds.forEach((trackId) => {
+      const track = _.selectPatternTrackById(project, trackId);
+      const trackClipIds = hierarchy.byId[trackId].clipIds;
+      const clipIds = trackClipIds.filter((id) => ids.includes(id));
+      if (!track || !clipIds.length) return;
 
       // Create a track for each clip
       const midiTrack = midi.addTrack();
-      const clips = clipsByTrack[trackId];
-
-      // Add the notes of each clip
-      clips.forEach((clip) => {
+      clipIds.forEach((id) => {
         // Get the stream of the clip
-        const time = convertTicksToSeconds(transport, clip.tick);
-        const stream = getClipStream({
-          clip,
-          patternMap,
-          patternTrackMap,
-          scaleMap,
-          scaleTrackMap,
-          transpositionMap,
-          trackNodeMap,
-        });
+        const startTime = _.selectClipStartTime(project, id);
+        const stream = clipStreamMap[id];
+        if (isUndefined(startTime) || isUndefined(stream)) return;
 
-        // Iterate through each chord
+        // Iterate through each block
         for (let i = 0; i < stream.length; i++) {
-          const chord = stream[i];
-          // Skip if the chord is a rest
-          if (!chord.length || MIDI.isRest(chord)) continue;
+          const block = stream[i];
 
-          // Get the duration of the chord in seconds
-          const firstNote = chord[0];
-          const duration = convertTicksToSeconds(transport, firstNote.duration);
+          // Skip the block if it's a rest or empty
+          if (isPatternRest(block) || !block.length) continue;
+
+          // Get the current time of the block
+          const time = startTime + convertTicksToSeconds(transport, i);
 
           // Add each note to the MIDI track
-          for (const note of chord) {
-            midiTrack.addNote({
-              midi: note.MIDI,
-              velocity: note.velocity ?? MIDI.DefaultVelocity,
-              time: time + convertTicksToSeconds(transport, i),
-              duration,
-            });
+          for (const note of block) {
+            const { MIDI, duration, velocity } = note;
+            midiTrack.addNote({ midi: MIDI, duration, time, velocity });
           }
         }
       });

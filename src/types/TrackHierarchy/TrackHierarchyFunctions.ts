@@ -1,49 +1,29 @@
-import { initializeState } from "../util";
-import { Clip, ClipMap, isClip, isClipMap } from "../Clip";
-import { Track, TrackId, isTrack } from "../Track";
-import {
-  Transposition,
-  TranspositionMap,
-  isTransposition,
-  isTranspositionMap,
-} from "../Transposition";
+import { Clip } from "../Clip";
+import { Track, TrackId } from "../Track";
+import { Transposition } from "../Transposition";
 import {
   TrackHierarchy,
   TrackNode,
   TrackNodeMap,
-  isTrackNodeMap,
+  initializeTrackHierarchy,
 } from "./TrackHierarchyTypes";
 
-/**
- * Create a `TrackHierarchy` from the given tracks, clips, and transpositions.
- * @param tracks - The tracks to include.
- * @param clips - The clips to include.
- * @param transpositions - The transpositions to include.
- * @returns A `TrackHierarchy` created from the tracks, clips, and transpositions. If an invalid configuration is provided, the hierarchy will be empty.
- */
+/** Create a `TrackHierarchy` from the given tracks, clips, and transpositions. */
 export const createTrackHierarchy = (props: {
-  tracks: Track[];
-  clips: Clip[];
-  transpositions: Transposition[];
+  tracks?: Track[];
+  clips?: Clip[];
+  transpositions?: Transposition[];
 }): TrackHierarchy => {
-  // Initialize the track hierarchy
-  const hierarchy = {
-    ...initializeState<TrackId, TrackNode>(),
-    topLevelIds: [] as string[],
-  };
+  const hierarchy = initializeTrackHierarchy();
   const { tracks, clips, transpositions } = props;
+  const trackCount = tracks?.length ?? 0;
+  if (!tracks || !trackCount) return hierarchy;
 
-  // Return early if any of the parameters are invalid
-  if (tracks.some((track) => !isTrack(track))) return hierarchy;
-  if (clips.some((clip) => !isClip(clip))) return hierarchy;
-  if (transpositions.some((t) => !isTransposition(t))) return hierarchy;
-
-  // Initialize the loop variables
   let trackIds = 0;
   let previousIds = 0;
 
-  // Iterate through the tracks and create corresponding nodes
-  while (trackIds < tracks.length) {
+  // Iterate through the tracks and create nodes for each track
+  while (trackIds < trackCount) {
     tracks.forEach((track, i) => {
       const { id, type, parentId } = track;
 
@@ -88,89 +68,51 @@ export const createTrackHierarchy = (props: {
   }
 
   // Add all clips to their respective tracks.
-  clips.forEach((clip) => {
-    const { id, trackId } = clip;
-    const node = hierarchy.byId[trackId];
-    if (!node) return;
-    node.clipIds.push(id);
-  });
+  if (clips?.length)
+    clips.forEach((clip) => {
+      const { id, trackId } = clip;
+      const node = hierarchy.byId[trackId];
+      if (!node) return;
+      node.clipIds.push(id);
+    });
 
   // Add all transpositions to their respective tracks.
-  transpositions.forEach((transposition) => {
-    const { id, trackId } = transposition;
-    const node = hierarchy.byId[trackId];
-    if (!node) return;
-    node.transpositionIds.push(id);
-  });
+  if (transpositions?.length)
+    transpositions.forEach((transposition) => {
+      const { id, trackId } = transposition;
+      const node = hierarchy.byId[trackId];
+      if (!node) return;
+      node.transpositionIds.push(id);
+    });
 
   // Return the hierarchy.
   return { ...hierarchy };
 };
 
-/**
- * Get the clips of a track in the node map, sorted by tick.
- * @param track The Track object.
- * @param clipMap The ClipMap object.
- * @param trackNodeMap The TrackNodeMap object.
- * @returns The clips of the track. If any parameter is invalid, return an empty array.
- */
-export const getTrackClips = (
-  track: Track,
-  clipMap: ClipMap,
-  trackNodeMap: TrackNodeMap
-) => {
-  // Return an empty array if any parameter is invalid
-  if (!isTrack(track)) return [];
-  if (!isClipMap(clipMap)) return [];
-  if (!isTrackNodeMap(trackNodeMap)) return [];
-
-  // Get the track node from the track hierarchy
-  const trackNode = trackNodeMap[track.id];
-  if (!trackNode) return [];
-
-  // Map the node's clip IDs to clips
-  const trackClipIds = trackNode.clipIds;
-  const trackClips = trackClipIds.map((id) => clipMap[id]);
-
-  // Sort the clips by tick
-  const sortedClips = trackClips.sort((a, b) => a.tick - b.tick);
-
-  // Return the sorted clips
-  return sortedClips;
+/** Get the child IDs of a track by ID. */
+export const getTrackChildIds = (id: TrackId, trackNodeMap: TrackNodeMap) => {
+  const children: TrackId[] = [];
+  const trackNode = trackNodeMap[id];
+  if (!trackNode) return children;
+  for (let i = 0; i < trackNode.trackIds.length; i++) {
+    const id = trackNode.trackIds[i];
+    const child = trackNodeMap[id];
+    if (!child) continue;
+    children.push(child.id);
+    children.push(...getTrackChildIds(child.id, trackNodeMap));
+  }
+  return children;
 };
 
-/**
- * Get the transpositions of a track in the node map, sorted by tick.
- * @param track The Track object.
- * @param transpositionMap The TranspositionMap object.
- * @param trackNodeMap The trackNodeMap object.
- * @returns The transpositions of the track. If any parameter is invalid, return an empty array.
- */
-export const getTrackTranspositions = (
-  track: Track,
-  transpositionMap: TranspositionMap,
-  trackNodeMap: TrackNodeMap
+/** Get the clip IDs of a track by ID. */
+export const getTrackClipIds = (id: TrackId, trackNodeMap?: TrackNodeMap) => {
+  return trackNodeMap?.[id]?.clipIds ?? [];
+};
+
+/** Get the transposition IDs of a track by ID. */
+export const getTrackTranspositionIds = (
+  id: TrackId,
+  trackNodeMap?: TrackNodeMap
 ) => {
-  // Return an empty array if any parameter is invalid
-  if (!isTrack(track)) return [];
-  if (!isTranspositionMap(transpositionMap)) return [];
-  if (!isTrackNodeMap(trackNodeMap)) return [];
-
-  // Get the track node from the track hierarchy
-  const trackNode = trackNodeMap[track.id];
-  if (!trackNode) return [];
-
-  // Map the node's transposition IDs to transpositions
-  const trackTranspositionIds = trackNode.transpositionIds;
-  const trackTranspositions = trackTranspositionIds.map(
-    (id) => transpositionMap[id]
-  );
-
-  // Sort the transpositions by tick
-  const sortedTranspositions = trackTranspositions.sort(
-    (a, b) => b.tick - a.tick
-  );
-
-  // Return the sorted transpositions
-  return sortedTranspositions;
+  return trackNodeMap?.[id]?.transpositionIds ?? [];
 };

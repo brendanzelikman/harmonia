@@ -1,67 +1,92 @@
 import {
+  selectCustomPatterns,
   selectEditor,
   selectSelectedTrackId,
-  selectTrackById,
 } from "redux/selectors";
 import { Thunk } from "types/Project";
-import { isScaleTrack } from "types/ScaleTrack";
 import { TrackId } from "types/Track";
-import { _showEditor, hideEditor } from "./EditorSlice";
-import { isPatternTrack } from "types/PatternTrack";
-import { EditorId, isEditorOn } from "types/Editor";
-import { clearTimelineState, setSelectedTrackId } from "redux/Timeline";
+import {
+  _setEditorView,
+  hideEditor,
+  setEditorAction,
+  toggleEditorAction,
+} from "./EditorSlice";
+import {
+  EditorView,
+  isEditorAddingNotes,
+  isInstrumentEditorOpen,
+  isScaleEditorOpen,
+} from "types/Editor";
+import {
+  clearTimelineState,
+  selectSelectedPattern,
+  setSelectedTrackId,
+} from "redux/Timeline";
 
-/**
- * Show the editor with the given ID and select a track if provided.
- * @param id The editor ID.
- * @param trackId The track ID to select.
- */
+/** Show the editor with the given ID and track if provided. */
 export const showEditor =
-  ({ id, trackId }: { id: EditorId; trackId?: TrackId }): Thunk =>
-  (dispatch) => {
-    dispatch(_showEditor(id));
+  (view: EditorView, trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const editor = selectEditor(project);
+    const customPatterns = selectCustomPatterns(project);
+    const pattern = selectSelectedPattern(project);
+
+    // Start adding notes if opening a custom pattern
+    const onPatterns = view === "patterns";
+    const isAdding = isEditorAddingNotes(editor);
+    const isCustom = pattern && customPatterns.some((p) => p.id === pattern.id);
+    if (onPatterns && !isAdding && isCustom) {
+      dispatch(toggleEditorAction("addingNotes"));
+    } else if (onPatterns && isAdding && isCustom) {
+    } else {
+      dispatch(setEditorAction(undefined));
+    }
+
+    // Set the editor view
+    dispatch(_setEditorView(view));
     dispatch(clearTimelineState());
+
+    // Set the selected track if specified
     if (trackId) dispatch(setSelectedTrackId(trackId));
   };
 
-/**
- * Toggle the scale editor of a track.
- * @param trackId The track ID.
- */
+/** Toggle the scale editor of a track.*/
 export const toggleTrackScaleEditor =
-  (trackId?: TrackId): Thunk =>
+  (id?: TrackId): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const track = selectTrackById(project, trackId);
-    if (!track || !isScaleTrack(track)) return;
+
+    // Check if the editor is already on the track scale
     const selectedTrackId = selectSelectedTrackId(project);
     const editor = selectEditor(project);
-    const onScale = isEditorOn(editor, "scale");
-    const onEditor = trackId === selectedTrackId && onScale;
-    if (onEditor) {
+    const onScale = isScaleEditorOpen(editor);
+    const onTrack = id === selectedTrackId;
+
+    // Toggle the editor
+    if (onScale && onTrack) {
       dispatch(hideEditor());
     } else {
-      dispatch(showEditor({ id: "scale", trackId }));
+      dispatch(showEditor("scale", id));
     }
   };
 
-/**
- * Toggle the instrument editor of a track.
- * @param trackId The track ID.
- */
+/** Toggle the instrument editor of a track. */
 export const toggleTrackInstrumentEditor =
-  (trackId?: TrackId): Thunk =>
+  (id?: TrackId): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const track = selectTrackById(project, trackId);
-    if (!track || !isPatternTrack(track)) return;
+
+    // Check if the editor is already on the track instrument
     const selectedTrackId = selectSelectedTrackId(project);
     const editor = selectEditor(project);
-    const onInstrument = isEditorOn(editor, "instrument");
-    const onEditor = trackId === selectedTrackId && onInstrument;
+    const onInstrument = isInstrumentEditorOpen(editor);
+    const onEditor = id === selectedTrackId && onInstrument;
+
+    // Toggle the editor
     if (onEditor) {
       dispatch(hideEditor());
     } else {
-      dispatch(showEditor({ id: "instrument", trackId }));
+      dispatch(showEditor("instrument", id));
     }
   };

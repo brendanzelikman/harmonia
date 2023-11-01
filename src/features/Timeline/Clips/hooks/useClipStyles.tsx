@@ -1,11 +1,12 @@
 import { getClipTheme } from "types/Clip";
 import { ClipProps } from "../Clip";
-import { TRANSPOSITION_HEIGHT } from "utils/constants";
 import {
-  PatternNote,
-  PatternStream,
-  getPatternStreamRange,
-} from "types/Pattern";
+  DEFAULT_VELOCITY,
+  MAX_VELOCITY,
+  MIN_VELOCITY,
+  TRANSPOSITION_HEIGHT,
+} from "utils/constants";
+import { PatternMidiNote, PatternMidiStream } from "types/Pattern";
 import {
   selectTimelineObjectTop,
   selectTimelineTickLeft,
@@ -17,12 +18,13 @@ import {
   selectDraftedClip,
 } from "redux/selectors";
 import { useProjectSelector, useProjectDeepSelector } from "redux/hooks";
-import { MIDI } from "types/midi";
-import { normalize, ticksToColumns } from "utils";
+import { getMidiStreamRange } from "types/Pattern/PatternFunctions";
+import { normalize } from "utils/math";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { getTickColumns } from "utils/durations";
 
 interface ClipStyleProps extends ClipProps {
-  stream?: PatternStream;
+  stream?: PatternMidiStream;
   isDragging: boolean;
 }
 
@@ -67,7 +69,7 @@ export const useClipStyles = (props: ClipStyleProps) => {
   // Stream
   const margin = 8;
   const streamHeight = height - nameHeight - margin + (heldKeys.v ? 150 : 0);
-  const streamRange = getPatternStreamRange(stream);
+  const streamRange = getMidiStreamRange(stream);
   const noteCount = streamRange.length;
   const noteHeight = Math.min(20, streamHeight / noteCount);
   const fontSize = Math.min(12, noteHeight) - 4;
@@ -106,20 +108,20 @@ export const useClipStyles = (props: ClipStyleProps) => {
     : "cursor-pointer";
 
   // Note Styles
-  const getNoteStyles = (note: PatternNote, i = 0) => {
-    const columns = ticksToColumns(note.duration || 0, props.subdivision);
+  const getNoteStyles = (note: PatternMidiNote, i = 0) => {
+    const columns = getTickColumns(note.duration || 0, props.subdivision);
     const noteOffset = note.MIDI - streamRange[0];
     const offset = (noteCount - noteOffset - 1) * noteHeight;
     const top =
       noteCount === 1
         ? (streamHeight - noteHeight) / 2
         : offset + noteHeight / 2;
-    const left = ticksToColumns(i, props.subdivision) * chordWidth;
+    const left = getTickColumns(i, props.subdivision) * chordWidth;
     const width = columns * chordWidth - 2;
     const opacity = normalize(
-      note.velocity ?? MIDI.DefaultVelocity,
-      MIDI.MinVelocity,
-      MIDI.MaxVelocity
+      note.velocity ?? DEFAULT_VELOCITY,
+      MIN_VELOCITY,
+      MAX_VELOCITY
     );
     const border = `border border-slate-950/80 rounded transition-all duration-150`;
     return {

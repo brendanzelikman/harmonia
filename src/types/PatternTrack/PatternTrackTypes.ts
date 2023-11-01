@@ -1,38 +1,49 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { InstrumentId } from "../Instrument";
+import { TrackId, TrackInterface } from "types/Track/TrackTypes";
+import { isPlainObject, isString } from "lodash";
 import {
-  TrackId,
-  TrackInterface,
-  isTrackInterface,
-} from "types/Track/TrackTypes";
+  NormalRecord,
+  NormalState,
+  createNormalState,
+} from "utils/normalizedState";
 
-// Types
+// ------------------------------------------------------------
+// Pattern Track Generics
+// ------------------------------------------------------------
+
 export type PatternTrackType = "patternTrack";
 export type PatternTrackNoId = Omit<PatternTrack, "id">;
-export type PatternTrackMap = Record<TrackId, PatternTrack>;
+export type PatternTrackPartial = Partial<PatternTrack>;
+export type PatternTrackUpdate = Partial<PatternTrack> & { id: TrackId };
+export type PatternTrackMap = NormalRecord<TrackId, PatternTrack>;
+export type PatternTrackState = NormalState<PatternTrackMap>;
 
-/**
- * A `PatternTrack` is a kind of `Track` with its own instrument.
- * @property `id` - The unique ID of the track.
- * @property `parentId` - Optional. The ID of the parent track.
- * @property `name` - The name of the track.
- * @property `type` - The type of the track.
- * @property `collapsed` - Optional. Whether the track is collapsed.
- * @property `instrumentId` - The ID of the track's instrument.
- */
+// ------------------------------------------------------------
+// Pattern Track Definitions
+// ------------------------------------------------------------
+
+/** A `PatternTrack` is a `Track` with its own instrument. */
 export interface PatternTrack extends TrackInterface {
+  type: "patternTrack";
   instrumentId: InstrumentId;
 }
 
-/**
- * Initializes a `PatternTrack` with a unique ID.
- * @param clip - Optional. `Partial<PatternTrack>` to override default values.
- * @returns An initialized `PatternTrack` with a unique ID.
- */
+// ------------------------------------------------------------
+// Pattern Track Initialization
+// ------------------------------------------------------------
+
+/** Create a pattern track with a unique ID. */
 export const initializePatternTrack = (
   track: Partial<PatternTrackNoId> = defaultPatternTrack
-): PatternTrack => ({ ...defaultPatternTrack, ...track, id: nanoid() });
+): PatternTrack => ({
+  ...defaultPatternTrack,
+  ...track,
+  type: "patternTrack",
+  id: nanoid(),
+});
 
+/** The default pattern track is used for initialization. */
 export const defaultPatternTrack: PatternTrack = {
   id: "default-pattern-track",
   parentId: "default-scale-track",
@@ -41,6 +52,7 @@ export const defaultPatternTrack: PatternTrack = {
   instrumentId: "default-instrument",
 };
 
+/** The mock pattern track is used for testing. */
 export const mockPatternTrack: PatternTrack = {
   id: "mock-pattern-track",
   parentId: "mock-scale-track",
@@ -49,28 +61,29 @@ export const mockPatternTrack: PatternTrack = {
   instrumentId: "mock-instrument",
 };
 
-/**
- * Checks if a given object is of type `PatternTrack`.
- * @param obj The object to check.
- * @returns True if the object is a `PatternTrack`, otherwise false.
- */
+/** The default pattern track state is used for Redux. */
+export const defaultPatternTrackState: PatternTrackState =
+  createNormalState<PatternTrackMap>([defaultPatternTrack]);
+
+// ------------------------------------------------------------
+// Pattern Track Type Guards
+// ------------------------------------------------------------
+
+/** Checks if a given object is of type `PatternTrack`. */
 export const isPatternTrack = (obj: unknown): obj is PatternTrack => {
   const candidate = obj as PatternTrack;
   return (
-    isTrackInterface(candidate) &&
+    isPlainObject(candidate) &&
+    isString(candidate.id) &&
     candidate.type === "patternTrack" &&
-    candidate.instrumentId !== undefined
+    isString(candidate.instrumentId)
   );
 };
 
-/**
- * Checks if a given object is of type `PatternTrackMap`.
- * @param obj The object to check.
- * @returns True if the object is a `PatternTrackMap`, otherwise false.
- */
+/** Checks if a given object is of type `PatternTrackMap`. */
 export const isPatternTrackMap = (obj: unknown): obj is PatternTrackMap => {
   const candidate = obj as PatternTrackMap;
   return (
-    candidate !== undefined && Object.values(candidate).every(isPatternTrack)
+    isPlainObject(candidate) && Object.values(candidate).every(isPatternTrack)
   );
 };

@@ -22,7 +22,8 @@ import {
   BsTrash,
 } from "react-icons/bs";
 import { BiCopy } from "react-icons/bi";
-import { cancelEvent, percentOfRange } from "utils";
+import { cancelEvent } from "utils/html";
+import { percent } from "utils/math";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDragAndDrop";
 import { MIN_VOLUME, MAX_VOLUME, MIN_PAN, MAX_PAN } from "utils/constants";
 import { DEFAULT_VOLUME, DEFAULT_PAN } from "utils/constants";
@@ -35,12 +36,13 @@ import {
 } from "redux/selectors";
 import { movePatternTrack, updatePatternTrack } from "redux/PatternTrack";
 import { PatternTrack as PatternTrackType } from "types/PatternTrack";
-import { isEditorOn } from "types/Editor";
+import { isInstrumentEditorOpen } from "types/Editor";
 import { TrackId } from "types/Track";
 import { updateInstrument } from "redux/Instrument";
 import { toggleTrackMute, toggleTrackSolo } from "redux/Track";
 import { toggleTrackInstrumentEditor } from "redux/Editor";
 import { usePatternTrackStyles } from "./hooks/usePatternTrackStyles";
+import { Pan, Volume } from "types/units";
 
 const mapStateToProps = (project: Project, ownProps: TrackProps) => {
   const { selectedTrackId } = ownProps;
@@ -52,13 +54,13 @@ const mapStateToProps = (project: Project, ownProps: TrackProps) => {
   const instrumentKey = selectPatternTrackInstrumentKey(project, track.id);
   const instrumentName = getInstrumentName(instrumentKey);
   const { volume, pan, mute, solo } = getInstrumentChannel(instrument);
-  const volumePercent = percentOfRange(volume, MIN_VOLUME, MAX_VOLUME);
-  const panLeftPercent = percentOfRange(pan, MAX_PAN, MIN_PAN);
-  const panRightPercent = percentOfRange(pan, MIN_PAN, MAX_PAN);
+  const volumePercent = percent(volume, MIN_VOLUME, MAX_VOLUME);
+  const panLeftPercent = percent(pan, MAX_PAN, MIN_PAN);
+  const panRightPercent = percent(pan, MIN_PAN, MAX_PAN);
 
   // Track editor state
   const editor = selectEditor(project);
-  const onInstrumentEditor = isEditorOn(editor, "instrument") && isSelected;
+  const onInstrumentEditor = isInstrumentEditorOpen(editor) && isSelected;
 
   return {
     ...ownProps,
@@ -85,11 +87,11 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: TrackProps) => {
     setTrackName: (track: Partial<PatternTrackType>, name: string) => {
       dispatch(updatePatternTrack({ id: track.id, name }));
     },
-    setVolume: (instrumentId: InstrumentId, volume: number) => {
-      dispatch(updateInstrument({ instrumentId, update: { volume } }));
+    setVolume: (instrumentId: InstrumentId, volume: Volume) => {
+      dispatch(updateInstrument({ id: instrumentId, update: { volume } }));
     },
-    setPan: (instrumentId: InstrumentId, pan: number) => {
-      dispatch(updateInstrument({ instrumentId, update: { pan } }));
+    setPan: (instrumentId: InstrumentId, pan: Pan) => {
+      dispatch(updateInstrument({ id: instrumentId, update: { pan } }));
     },
     toggleTrackMute: (e: MouseEvent) => {
       dispatch(toggleTrackMute(e, track?.id));

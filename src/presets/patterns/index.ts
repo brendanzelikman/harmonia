@@ -34,7 +34,7 @@ import SimpleRhythms from "./4-SimpleRhythms";
 import LatinRhythms from "./4-LatinRhythms";
 import ClavePatterns from "./4-ClaveRhythms";
 import BellPatterns from "./4-BellRhythms";
-import { createMap } from "types/util";
+import { createMap } from "utils/objects";
 
 export * as SimpleRhythms from "./4-SimpleRhythms";
 export * as LatinRhythms from "./4-LatinRhythms";

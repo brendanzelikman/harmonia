@@ -46,6 +46,5 @@ export const groupByActionType = (action: PayloadAction) => {
   if (isActionTyped("trackHierarchy")) {
     return TRACK_HIERARCHY_UNDO_TYPES[type]?.(action) || type;
   }
-
   return `${type}:${payload}`;
 };

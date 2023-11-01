@@ -1,27 +1,23 @@
+import * as _ from "./PatternTrackSlice";
 import { PayloadAction } from "@reduxjs/toolkit";
-import { ActionGroup } from "types/units";
-import * as PatternTrackSlice from "./PatternTrackSlice";
-import { createTag } from "types/util";
-import { getPatternTrackTag } from "types/PatternTrack";
-import { getTrackTag } from "types/Track";
+import { ActionGroup } from "redux/util";
+import { getPatternTrackUpdateAsString as getUpdateAsString } from "types/PatternTrack";
+import { getTrackAsString } from "types/Track";
 
 export const PATTERN_TRACK_UNDO_TYPES: ActionGroup = {
   "patternTracks/addPatternTrack": (
-    action: PayloadAction<PatternTrackSlice.AddPatternTrackPayload>
+    action: PayloadAction<_.AddPatternTrackPayload>
   ) => {
-    const tag = createTag(action.payload, getTrackTag);
-    return `ADD_TRACK:${tag}`;
+    return `ADD_TRACK:${getTrackAsString(action.payload)}`;
   },
   "patternTracks/removePatternTrack": (
-    action: PayloadAction<PatternTrackSlice.RemovePatternTrackPayload>
+    action: PayloadAction<_.RemovePatternTrackPayload>
   ) => {
-    const id = action.payload;
-    return `REMOVE_TRACK:${id}`;
+    return `REMOVE_TRACK:${action.payload}`;
   },
   "patternTracks/updatePatternTrack": (
-    action: PayloadAction<PatternTrackSlice.UpdatePatternTrackPayload>
+    action: PayloadAction<_.UpdatePatternTrackPayload>
   ) => {
-    const patternTrackTag = createTag(action.payload, getPatternTrackTag);
-    return `UPDATE_PATTERN_TRACK:${patternTrackTag}`;
+    return `UPDATE_PATTERN_TRACK:${getUpdateAsString(action.payload)}`;
   },
 };

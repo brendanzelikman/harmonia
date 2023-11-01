@@ -1,133 +1,109 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Thunk } from "types/Project";
-import { TrackId } from "types/Track";
-import { Duration, Tick, Timing } from "types/units";
-import { defaultEditor, EditorId, EditorState } from "types/Editor";
+import { createSlice, PayloadAction as Action } from "@reduxjs/toolkit";
+import { Tick } from "types/units";
+import { defaultEditor, EditorView, EditorAction } from "types/Editor";
+import {
+  DurationType,
+  getDottedDuration,
+  getStraightDuration,
+  getTripletDuration,
+  isDottedDuration,
+  isTripletDuration,
+} from "utils/durations";
 
-/**
- * The editor slice contains information about the editor.
- *
- * @property `showEditor` - Show the editor with the given ID.
- * @property `hideEditor` - Hide the editor and set the ID to "hidden".
- * @property `setEditorState` - Set the editor state.
- * @property `setEditorNoteDuration` - Set the note duration within the editor.
- * @property `setEditorNoteTiming` - Set the note timing within the editor.
- * @property `setEditorNoteVelocity` - Set the note velocity within the editor.
- * @property `setEditorRecordingDuration` - Set the recording duration within the editor.
- * @property `setEditorRecordingTiming` - Set the recording timing within the editor.
- * @property `setEditorRecordingQuantization` - Set whether the recording should be quantized within the editor.
- */
+// ------------------------------------------------------------
+// Editor Slice Definition
+// ------------------------------------------------------------
+
 export const editorSlice = createSlice({
   name: "editor",
   initialState: defaultEditor,
   reducers: {
-    /**
-     * Show the editor with the given ID.
-     * @param project The editor state.
-     * @param action The payload action;
-     */
-    _showEditor: (state, action: PayloadAction<EditorId>) => {
-      state.id = action.payload;
-      state.show = true;
+    /** (PRIVATE) Set the view of the editor. */
+    _setEditorView: (state, action: Action<EditorView>) => {
+      state.view = action.payload;
     },
-    /**
-     * Hide the editor and set the ID to "hidden".
-     * @param project The editor state.
-     */
+    /** Clear the view of the editor. */
     hideEditor: (state) => {
-      state.id = "hidden";
-      state.show = false;
+      delete state.view;
     },
-    /**
-     * Toggle the editor between the given ID and "hidden".
-     * @param project The editor state.
-     * @param action The payload action.
-     */
-    toggleEditor: (state, action: PayloadAction<EditorId>) => {
-      state.id = state.id === action.payload ? "hidden" : action.payload;
-      state.show = state.id !== "hidden";
+    /** Toggle the editor between the given ID and hidden. */
+    toggleEditor: (state, action: Action<EditorView>) => {
+      if (state.view) delete state.view;
+      else state.view = action.payload;
     },
-    /**
-     * Set the editor state.
-     * @param project The editor state.
-     * @param action The payload action.
-     */
-    setEditorState: (state, action: PayloadAction<EditorState>) => {
-      state.state = action.payload;
+    /** Set the editor action. */
+    setEditorAction: (state, action: Action<EditorAction | undefined>) => {
+      if (action.payload === undefined) delete state.action;
+      else state.action = action.payload;
     },
-    /**
-     * Toggle the editor state between the given state and idle.
-     * @param project The editor state.
-     * @param action The payload action.
-     */
-    toggleEditorState: (state, action: PayloadAction<EditorState>) => {
-      state.state = state.state === action.payload ? "idle" : action.payload;
+    /** Toggle the editor state between the given state and idle. */
+    toggleEditorAction: (state, action: Action<EditorAction>) => {
+      if (state.action === action.payload) delete state.action;
+      else state.action = action.payload;
     },
-    /**
-     * Set the note duration within the editor.
-     * @param project The editor state.
-     * @param action The payload action.
-     */
-    setEditorNoteDuration: (state, action: PayloadAction<Duration>) => {
-      state.noteDuration = action.payload;
+    /** Toggle the editor preset visibility. */
+    toggleEditorPresets: (state) => {
+      state.settings.global.showSidebar = !state.settings.global.showSidebar;
     },
-    /**
-     * Set the note timing within the editor.
-     * @param project The editor state.
-     * @param action The payload action.
-     */
-    setEditorNoteTiming: (state, action: PayloadAction<Timing>) => {
-      state.noteTiming = action.payload;
+    /** Toggle the editor track visibility. */
+    toggleEditorTracks: (state) => {
+      state.settings.global.showTracks = !state.settings.global.showTracks;
     },
-    /**
-     * Set the note velocity within the editor.
-     * @param project The editor state.
-     * @param action The payload action.
-     */
-    setEditorNoteVelocity: (state, action: PayloadAction<number>) => {
-      state.noteVelocity = action.payload;
+    /** Toggle the editor piano visibility. */
+    toggleEditorPiano: (state) => {
+      state.settings.global.showPiano = !state.settings.global.showPiano;
     },
-    /**
-     * Set the recording duratino within the editor.
-     * @param project The editor state.
-     * @param action The payload action.
-     */
-    setEditorRecordingDuration: (state, action: PayloadAction<Tick>) => {
-      state.recordingDuration = action.payload;
+    /** Toggle the editor tooltip visibility. */
+    toggleEditorTooltips: (state) => {
+      state.settings.global.showTooltips = !state.settings.global.showTooltips;
     },
-    /**
-     * Set the recording timing within the editor.
-     * @param project The editor state.
-     * @param action The payload action.
-     */
-    setEditorRecordingTiming: (state, action: PayloadAction<Timing>) => {
-      state.recordingTiming = action.payload;
+    /** Set the edited note duration. */
+    setEditorNoteDuration: (state, action: Action<DurationType>) => {
+      state.settings.note.duration = action.payload;
     },
-    /**
-     * Set whether the recording should be quantized within the editor.
-     * @param project The editor state.
-     * @param action The payload action.
-     */
-    setEditorRecordingQuantization: (
-      state,
-      action: PayloadAction<Duration>
-    ) => {
-      state.recordingQuantization = action.payload;
+    /** Toggle the edited note duration between straight and dotted. */
+    toggleEditorDottedDuration: (state) => {
+      const duration = state.settings.note.duration;
+      if (isDottedDuration(duration)) {
+        state.settings.note.duration = getStraightDuration(duration);
+      } else {
+        state.settings.note.duration = getDottedDuration(duration);
+      }
+    },
+    /** Toggle the edited note duration between straight and triplet. */
+    toggleEditorTripletDuration: (state) => {
+      const duration = state.settings.note.duration;
+      if (isTripletDuration(duration)) {
+        state.settings.note.duration = getStraightDuration(duration);
+      } else {
+        state.settings.note.duration = getTripletDuration(duration);
+      }
+    },
+    /** Set the edited recording length. */
+    setEditorRecordingLength: (state, action: Action<Tick>) => {
+      state.settings.recording.ticks = action.payload;
+    },
+    /** Set the edited recording quantization. */
+    setEditorRecordingQuantization: (state, action: Action<DurationType>) => {
+      state.settings.recording.quantization = action.payload;
     },
   },
 });
 
 export const {
-  _showEditor,
+  _setEditorView,
   hideEditor,
   toggleEditor,
-  setEditorState,
-  toggleEditorState,
+  setEditorAction,
+  toggleEditorAction,
   setEditorNoteDuration,
-  setEditorNoteTiming,
-  setEditorNoteVelocity,
-  setEditorRecordingDuration,
-  setEditorRecordingTiming,
+  toggleEditorPresets,
+  toggleEditorTracks,
+  toggleEditorPiano,
+  toggleEditorTooltips,
+  toggleEditorDottedDuration,
+  toggleEditorTripletDuration,
+  setEditorRecordingLength,
   setEditorRecordingQuantization,
 } = editorSlice.actions;
 

@@ -1,48 +1,47 @@
-import { ticksToToneSubdivision } from "utils";
 import { selectScaleById, selectTransport } from "redux/selectors";
 import { convertTicksToSeconds } from "types/Transport";
 import { Thunk } from "types/Project";
-import { MIDI } from "types/midi";
 import {
   Scale,
   ScaleId,
   getScaleName,
-  getScaleNotes,
-  NestedScaleObject,
-  defaultNestedScale,
-  NestedScaleId,
-  initializeNestedScale,
-  getOffsettedNestedScale,
-  getNestedScaleNotes,
-  getRotatedNestedScale,
+  getScaleAsArray,
+  defaultScale,
+  getRotatedScale,
+  getScaleNoteAsMidiValue,
+  isScale,
+  ScaleObject,
+  initializeScale,
+  getTransposedScale,
+  getScaleNoteAsPitchClass,
 } from "types/Scale";
 import { Midi } from "@tonejs/midi";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { addScale, removeScale, updateScale } from "./ScaleSlice";
-import { TrackId } from "types/Track";
+import { DemoXML } from "assets/demoXML";
+import { getScaleKey } from "utils/key";
+import { MusicXML } from "lib/musicxml";
+import { XML } from "types/units";
+import {
+  EighthNoteTicks,
+  getDurationTicks,
+  getTickSubdivision,
+} from "utils/durations";
+import { getMidiPitch } from "utils/midi";
+import { downloadBlob } from "utils/html";
 
-/**
- * Creates a scale and adds it to the store.
- * @param scale Optional. `Partial<Scale>` to override default values.
- * @returns A promise that resolves to the scale ID.
- */
+/** Creates a scale and adds it to the store, resolving to the ID if successful. */
 export const createScale =
-  (
-    scale: Partial<NestedScaleObject> = defaultNestedScale
-  ): Thunk<Promise<NestedScaleId>> =>
+  (scale: Partial<ScaleObject> = defaultScale): Thunk<Promise<ScaleId>> =>
   async (dispatch) => {
     return new Promise((resolve) => {
-      const newScale = initializeNestedScale(scale);
+      const newScale = initializeScale(scale);
       dispatch(addScale(newScale));
       resolve(newScale.id);
     });
   };
 
-/**
- * Deletes a scale from the store by ID.
- * @param id The ID of the scale to delete.
- * @returns A promise that resolves when the scale is deleted.
- */
+/** Deletes a scale from the store by ID, resolving when complete. */
 export const deleteScale =
   (id: ScaleId): Thunk<Promise<void>> =>
   async (dispatch) => {
@@ -52,64 +51,41 @@ export const deleteScale =
     });
   };
 
-/**
- * Transpose a scale by the given offset.
- * @param id The ID of the scale to transpose.
- * @param offset The offset to transpose the track by.
- */
+/** Transpose a scale by ID with the given offset. */
 export const transposeScale =
-  (id: ScaleId, offset: number): Thunk =>
+  (id?: ScaleId, offset: number = 0): Thunk =>
   (dispatch, getProject) => {
+    if (!id || !offset) return;
     const project = getProject();
-
-    // Get the scale track
     const scale = selectScaleById(project, id);
     if (!scale) return;
-
-    // Transpose the scale track scale
-    const transposedScale = getOffsettedNestedScale(scale, offset);
-    const notes = getNestedScaleNotes(transposedScale);
-
-    // Dispatch the update
+    const transposedScale = getTransposedScale(scale, offset);
+    const notes = getScaleAsArray(transposedScale);
     dispatch(updateScale({ id, notes }));
   };
 
-/**
- * Rotate a scale by the given offset.
- * @param id The ID of the scale to rotate.
- * @param offset The offset to rotate the scale by.
- */
+/** Rotate a scale by ID with the given offset. */
 export const rotateScale =
-  (id: ScaleId, offset: number): Thunk =>
+  (id?: ScaleId, offset?: number): Thunk =>
   (dispatch, getProject) => {
+    if (!id || !offset) return;
     const project = getProject();
-
-    // Get the scale track
     const scale = selectScaleById(project, id);
     if (!scale) return;
-
-    // Transpose the scale track scale
-    const transposedScale = getRotatedNestedScale(scale, offset);
-    const notes = getNestedScaleNotes(transposedScale);
-
-    // Dispatch the update
+    const transposedScale = getRotatedScale(scale, offset);
+    const notes = getScaleAsArray(transposedScale);
     dispatch(updateScale({ id, notes }));
   };
 
-/**
- * Clear all notes from a scale.
- * @param id The ID of the scale track to clear.
- */
-export const clearNotesFromScale =
-  (id: TrackId): Thunk =>
+/** Clear the notes of a scale by ID. */
+export const clearScale =
+  (id?: ScaleId): Thunk =>
   (dispatch) => {
+    if (!id) return;
     dispatch(updateScale({ id, notes: [] }));
   };
 
-/**
- * Plays a scale using the global instrument.
- * @param scale The scale to play.
- */
+/** Play a scale using the global instrument if it is loaded. */
 export const playScale =
   (scale: Scale): Thunk =>
   (dispatch, getProject) => {
@@ -124,16 +100,17 @@ export const playScale =
     instance.solo = true;
 
     // Unpack the scale
-    const notes = getScaleNotes(scale);
+    const notes = getScaleAsArray(scale);
     const noteCount = notes.length;
 
     // Iterate through the notes and play them
     let time = 0;
     for (let i = 0; i < noteCount; i++) {
       const note = notes[i];
-      const duration = convertTicksToSeconds(transport, MIDI.EighthNoteTicks);
-      const subdivision = ticksToToneSubdivision(MIDI.EighthNoteTicks);
-      const pitch = MIDI.toPitch(note);
+      const duration = convertTicksToSeconds(transport, EighthNoteTicks);
+      const subdivision = getTickSubdivision(EighthNoteTicks);
+      const midi = getScaleNoteAsMidiValue(note);
+      const pitch = getMidiPitch(midi);
       setTimeout(() => {
         if (!instance.isLoaded()) return;
         instance.sampler.triggerAttackRelease([pitch], subdivision);
@@ -144,10 +121,10 @@ export const playScale =
     // Play the tonic on top to complete the scale
     setTimeout(() => {
       if (!scale || !instance.isLoaded()) return;
-      const tonicOnTop = notes[0] + 12;
-      const pitch = MIDI.toPitch(tonicOnTop);
-      const subdivision = ticksToToneSubdivision(MIDI.EighthNoteTicks);
-      const seconds = convertTicksToSeconds(transport, MIDI.EighthNoteTicks);
+      const tonicOnTop = getScaleNoteAsMidiValue(notes[0]) + 12;
+      const pitch = getMidiPitch(tonicOnTop);
+      const subdivision = getTickSubdivision(EighthNoteTicks);
+      const seconds = convertTicksToSeconds(transport, EighthNoteTicks);
       instance.sampler.triggerAttackRelease([pitch], subdivision);
       setTimeout(() => {
         instance.solo = false;
@@ -155,12 +132,9 @@ export const playScale =
     }, time * 1000);
   };
 
-/**
- * Exports a scale to a MIDI file.
- * @param scale The scale to export.
- */
+/** Export a scale to MIDI and download it as a file. */
 export const exportScaleToMIDI =
-  (scale: Scale): Thunk =>
+  (scale?: Scale): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const transport = selectTransport(project);
@@ -170,14 +144,14 @@ export const exportScaleToMIDI =
     const track = midi.addTrack();
 
     // Get the scale notes and name
-    const notes = getScaleNotes(scale);
+    const notes = getScaleAsArray(scale);
     const name = getScaleName(scale);
 
     // Add the notes to the track
     notes.forEach((note, i) => {
       track.addNote({
-        midi: note,
-        time: convertTicksToSeconds(transport, i * MIDI.EighthNoteTicks),
+        midi: getScaleNoteAsMidiValue(note),
+        time: convertTicksToSeconds(transport, i * EighthNoteTicks),
       });
     });
 
@@ -191,4 +165,54 @@ export const exportScaleToMIDI =
     a.download = `${name || "scale"}.mid`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+/** Export a Scale to XML and return the XML string, downloading if specified. */
+export const exportScaleToXML =
+  (scale?: Scale, download = false): Thunk<XML> =>
+  (dispatch, getProject) => {
+    // Return the demo XML if the scale is invalid
+    if (!isScale(scale)) return DemoXML;
+
+    // Unpack the scale
+    const notes = getScaleAsArray(scale);
+    const key = getScaleKey(scale);
+
+    // Create the XML notes
+    const xmlNotes = notes.map((note) => {
+      const midi = getScaleNoteAsMidiValue(note);
+      const quarterTicks = getDurationTicks("quarter");
+      return MusicXML.createBlock(
+        [{ MIDI: midi, duration: quarterTicks, velocity: 60 }],
+        {
+          type: "quarter",
+          duration: getDurationTicks("quarter"),
+          voice: 1,
+          staff: midi >= 58 ? 1 : 2,
+          key,
+        }
+      );
+    });
+
+    // Create the measure
+    const measure = MusicXML.createMeasure(xmlNotes);
+
+    // Create the part
+    const id = `scale`;
+    const part = MusicXML.createPart(id, [measure]);
+    const scorePart = MusicXML.createScorePart(id);
+    const partList = MusicXML.createPartList([scorePart]);
+
+    // Create the score
+    const score = MusicXML.createScore(partList, [part]);
+    const xml = MusicXML.serialize(score);
+
+    // Download the blob if specified
+    if (download) {
+      const blob = new Blob([xml], { type: MusicXML.MIME_TYPE });
+      downloadBlob(blob, `${key || "scale"}.xml`);
+    }
+
+    // Return the XML string
+    return xml;
   };

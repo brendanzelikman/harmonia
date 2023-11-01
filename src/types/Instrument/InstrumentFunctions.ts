@@ -13,23 +13,12 @@ import categories from "assets/instruments/categories.json";
 
 import { SamplerOptions } from "tone";
 
-/**
- * Get the unique tag of a given Instrument.
- * @param instrument The Instrument object.
- * @returns Unique tag string. If the Instrument is invalid, return the error tag.
- */
-export const getInstrumentTag = (instrument: Partial<Instrument>) => {
-  if (!instrument) return "invalid-instrument";
-  const effectTags = instrument.effects?.map(getInstrumentEffectTag);
-  return `${instrument.id}@${instrument.key}@${instrument.volume}@${instrument.pan}@${effectTags}`;
-};
+// ------------------------------------------------------------
+// Instrument Serializers
+// ------------------------------------------------------------
 
-/**
- * Get the unique tag of a given Instrument effect.
- * @param effect The Instrument effect object.
- * @returns Unique tag string. If the effect is invalid, return the error tag.
- */
-export const getInstrumentEffectTag = (effect: Partial<SafeEffect>) => {
+/** Get an `InstrumentEffect` as a string. */
+export const getInstrumentEffectAsString = (effect: Partial<SafeEffect>) => {
   if (!effect) return "invalid-effect";
   let tag = "";
   for (const [key, value] of Object.entries(effect)) {
@@ -37,11 +26,19 @@ export const getInstrumentEffectTag = (effect: Partial<SafeEffect>) => {
   }
   return tag;
 };
-/**
- * Unpack the channel of an instrument.
- * @param instrument - Optional. The instrument.
- * @returns The unpacked channel. If no instrument is provided, the default channel is returned.
- */
+
+/** Get an `Instrument` as a string. */
+export const getInstrumentAsString = (instrument: Partial<Instrument>) => {
+  if (!instrument) return "invalid-instrument";
+  const effectTags = instrument.effects?.map(getInstrumentEffectAsString);
+  return `${instrument.id}@${instrument.key}@${instrument.volume}@${instrument.pan}@${effectTags}`;
+};
+
+// ------------------------------------------------------------
+// Property Getters
+// ------------------------------------------------------------
+
+/** Unpack the channel of an instrument. */
 export const getInstrumentChannel = (instrument?: Instrument) => {
   return {
     volume: instrument?.volume || defaultInstrument.volume,
@@ -51,11 +48,7 @@ export const getInstrumentChannel = (instrument?: Instrument) => {
   };
 };
 
-/**
- * Get the category of an instrument from its key.
- * @param key - The instrument key.
- * @returns The instrument category.
- */
+/** Get the category of an instrument by key. */
 export const getInstrumentCategory = (
   key?: InstrumentKey
 ): InstrumentCategory => {
@@ -65,11 +58,7 @@ export const getInstrumentCategory = (
   return category || "keyboards";
 };
 
-/**
- * Get the name of an instrument from its key.
- * @param key - The instrument key.
- * @returns The instrument name.
- */
+/** Get the name of an instrument by key. */
 export const getInstrumentName = (key?: InstrumentKey): InstrumentName => {
   const category = getInstrumentCategory(key);
   if (!category) return "Unknown Instrument";
@@ -77,31 +66,19 @@ export const getInstrumentName = (key?: InstrumentKey): InstrumentName => {
   return match?.name ?? "Unknown Instrument";
 };
 
-/**
- * Get the sample map of an instrument from its key.
- * @param key - The instrument key.
- * @returns The instrument sample map.
- */
+/** Get the sample map of an instrument by key. */
 export const getInstrumentSamplesMap = (
   key: InstrumentKey
 ): SamplerOptions["urls"] => {
   return samples[key];
 };
 
-/**
- * Get the base URL of an instrument's samples from its key.
- * @param key - The instrument key.
- * @returns The instrument sample base URL.
- */
+/** Get the base URL of an instrument's samples by key. */
 export const getInstrumentSamplesBaseUrl = (key: InstrumentKey) => {
   const category = getInstrumentCategory(key);
   return `${window.location.origin + `/harmonia/samples/${category}/${key}/`}`;
 };
 
-/**
- * Get the list of instruments corresponding to a given category.
- * @param category - The instrument category.
- * @returns The list of instruments.
- */
+/** Get a list of instruments corresponding to the given category. */
 export const getCategoryInstruments = (category: InstrumentCategory) =>
   categories[category] as CategorizedInstrument[];

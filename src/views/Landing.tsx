@@ -8,7 +8,7 @@ import TypescriptImage from "assets/lib/typescript.png";
 import ReduxImage from "assets/lib/redux.png";
 import ToneImage from "assets/lib/tone.png";
 import TailwindImage from "assets/lib/tailwind.png";
-import { useAuthenticationStatus } from "hooks/useAuthenticationStatus";
+import { useAuthenticationStatus } from "hooks";
 import { setAuthenticatedStatus } from "indexedDB";
 
 export const MainButton = (props: { onClick?: () => void }) => {

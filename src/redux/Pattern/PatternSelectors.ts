@@ -1,63 +1,60 @@
 import { Project } from "types/Project";
 import { createSelector } from "reselect";
 import { PatternMap } from "types/Pattern";
-import { getProperty, getProperties } from "types/util";
-import { PresetPatternMap } from "presets/patterns";
+import { getValueByKey, getValuesByKeys } from "utils/objects";
+import {
+  PresetPatternGroupList,
+  PresetPatternGroupMap,
+  PresetPatternMap,
+} from "presets/patterns";
+import { createDeepEqualSelector } from "redux/util";
 
-/**
- * Select all pattern IDs from the store.
- * @param project The Project object.
- * @returns An array of pattern IDs.
- */
-export const selectPatternIds = (project: Project) =>
-  project.patterns.present.allIds;
+/** Select the pattern past length. */
+export const selectPatternPastLength = (project: Project) =>
+  project.patterns.past.length;
 
-/**
- * Select the pattern map from the store.
- * @param project The Project object.
- * @returns A map of pattern IDs to pattern objects.
- */
+/** Select the pattern future length. */
+export const selectPatternFutureLength = (project: Project) =>
+  project.patterns.future.length;
+
+/** Select the pattern map. */
 export const _selectPatternMap = (project: Project) =>
   project.patterns.present.byId;
 
-/**
- * Select the pattern map from the store (integrated with preset patterns).
- * @param project The Project object.
- * @returns A map of pattern IDs to pattern objects.
- */
+/** Select all pattern IDs. */
+export const selectPatternIds = (project: Project) =>
+  project.patterns.present.allIds;
+
+/** Select the pattern map (integrated with preset patterns). */
 export const selectPatternMap = createSelector(
   [_selectPatternMap],
   (patternMap): PatternMap => ({ ...patternMap, ...PresetPatternMap })
 );
 
-/**
- * Select all patterns from the store.
- * @param project The Project object.
- * @returns An array of patterns.
- */
-export const selectPatterns = createSelector(
+/** Select all patterns. */
+export const selectPatterns = createDeepEqualSelector(
   [selectPatternMap, selectPatternIds],
-  (patternMap, patternIds) => getProperties(patternMap, patternIds)
+  (patternMap, patternIds) => getValuesByKeys(patternMap, patternIds)
 );
 
-/**
- * Select all non-preset patterns from the store.
- * @param project The Project object.
- * @returns An array of patterns.
- */
-export const selectCustomPatterns = createSelector(
+/** Select all non-preset patterns. */
+export const selectCustomPatterns = createDeepEqualSelector(
   [selectPatterns],
   (patterns) =>
     patterns.filter(({ id }) => id && PresetPatternMap[id] === undefined)
 );
 
-/**
- * Select a specific pattern from the store.
- * @param project The Project object.
- * @param id The pattern ID.
- * @returns The pattern object or undefined if not found.
- */
-export const selectPatternById = (project: Project, id: string) => {
+/** Select a pattern by ID. */
+export const selectPatternById = (project: Project, id?: string) => {
   const patternMap = selectPatternMap(project);
-  return getProperty(patternMap, id);
+  return getValueByKey(patternMap, id);
+};
+
+/** Select the category of a pattern by ID. */
+export const selectPatternCategory = (_: Project, id?: string) => {
+  return (
+    PresetPatternGroupList.find((c) =>
+      PresetPatternGroupMap[c].some((m) => m.id === id)
+    ) ?? "Custom Patterns"
+  );
 };

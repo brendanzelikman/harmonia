@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 
-export default function useAnimationFrame(
+export function useAnimationFrame(
   callback: () => void,
   interval: number = 1000,
   active: boolean = false

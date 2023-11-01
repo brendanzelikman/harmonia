@@ -2,13 +2,13 @@ import { BsPencil } from "react-icons/bs";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectEditor } from "redux/selectors";
 import { ControlButton } from ".";
-import { isEditorOn } from "types/Editor";
 import { hideEditor, showEditor } from "redux/Editor";
+import { isPatternEditorOpen } from "types/Editor";
 
 export const ToolkitPatternButton = () => {
   const dispatch = useProjectDispatch();
   const editor = useProjectSelector(selectEditor);
-  const onPatternEditor = isEditorOn(editor, "patterns");
+  const onPatternEditor = isPatternEditorOpen(editor);
 
   const PatternButton = () => {
     const buttonClass = onPatternEditor
@@ -20,7 +20,7 @@ export const ToolkitPatternButton = () => {
         onClick={() =>
           onPatternEditor
             ? dispatch(hideEditor())
-            : dispatch(showEditor({ id: "patterns" }))
+            : dispatch(showEditor("patterns"))
         }
       >
         <BsPencil className="p-[3px]" />

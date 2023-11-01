@@ -1,5 +1,11 @@
 import { Listbox, Transition } from "@headlessui/react";
-import { BsCheck } from "react-icons/bs";
+import { BsCheck, BsMusicNoteBeamed, BsSoundwave } from "react-icons/bs";
+import {
+  InstrumentKey,
+  getInstrumentName,
+  INSTRUMENT_KEYS,
+} from "types/Instrument";
+import { DurationType, DURATION_TYPES, DURATION_NAMES } from "utils/durations";
 
 export interface EditorListboxProps<T> {
   value: T | undefined;
@@ -14,6 +20,7 @@ export interface EditorListboxProps<T> {
   className?: string;
   borderColor?: string | undefined;
   backgroundColor?: string | undefined;
+  disabled?: boolean;
 }
 
 export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
@@ -22,12 +29,12 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
   const getOptionValue = props.getOptionValue ?? ((value: T) => value);
   const getOptionName = props.getOptionName ?? ((value: T) => value);
 
-  const name = props.value ? getOptionName(props.value) : undefined;
+  const name = !!props.value ? getOptionName(props.value) : undefined;
   const defaultValue = props.options[0];
   const value = props.value ?? defaultValue;
 
   return (
-    <Listbox value={value} onChange={props.onChange}>
+    <Listbox value={value} onChange={props.onChange} disabled={props.disabled}>
       {({ open }) => (
         <div
           className={`relative z-40 focus-within:z-50 flex flex-col justify-center ${
@@ -35,13 +42,17 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
           }`}
         >
           <Listbox.Button
-            className={`text-xs z-40 flex text-ellipsis whitespace-nowrap rounded border-[1.5px] px-2 p-1 ${
-              open ? "text-slate-400" : "text-slate-300"
-            } ${props.borderColor ?? "border-slate-500/50"} ${
-              props.backgroundColor ?? "bg-slate-800/50"
+            className={`text-xs z-40 flex text-ellipsis whitespace-nowrap rounded border px-2 p-1 ${
+              props.disabled
+                ? "text-slate-400 cursor-default"
+                : open
+                ? "text-slate-400"
+                : "text-white"
+            } ${props.borderColor ?? "border-slate-500"} ${
+              props.backgroundColor ?? "bg-transparent"
             } peer font-light focus:outline-none`}
           >
-            <span className="flex items-center rounded text-left cursor-pointer w-30 text-ellipsis capitalize">
+            <span className="flex items-center rounded text-left w-30 text-ellipsis capitalize">
               {props.icon}
               {name || props.placeholder || "Change Value"}
             </span>
@@ -99,5 +110,43 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
         </div>
       )}
     </Listbox>
+  );
+};
+
+export const DurationListbox = (
+  props: Pick<
+    EditorListboxProps<DurationType>,
+    "value" | "setValue" | "className" | "borderColor"
+  >
+) => {
+  const options = DURATION_TYPES;
+  const value = props.value ?? options[0];
+  return (
+    <EditorListbox
+      value={value}
+      setValue={props.setValue}
+      getOptionName={(d) => DURATION_NAMES[d]}
+      icon={<BsMusicNoteBeamed className="mr-2" />}
+      options={options}
+      placeholder="Change Duration"
+      borderColor={props.borderColor}
+      className={props.className}
+    />
+  );
+};
+
+export const InstrumentListbox = (props: {
+  value: InstrumentKey;
+  setValue: (instrument: InstrumentKey) => void;
+}) => {
+  return (
+    <EditorListbox
+      value={props.value}
+      setValue={props.setValue}
+      getOptionName={getInstrumentName}
+      icon={<BsSoundwave className="mr-2" />}
+      options={INSTRUMENT_KEYS}
+      placeholder="Change Instrument"
+    />
   );
 };

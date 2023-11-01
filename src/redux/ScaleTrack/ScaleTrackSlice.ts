@@ -1,57 +1,40 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union } from "lodash";
-import { initializeState } from "types/util";
-import { ScaleId } from "types/Scale";
 import { TrackId } from "types/Track";
-import { ScaleTrack, defaultScaleTrack } from "types/ScaleTrack";
+import {
+  ScaleTrack,
+  ScaleTrackUpdate,
+  defaultScaleTrackState,
+} from "types/ScaleTrack";
 
-/**
- * A ScaleTrack can be added to the store.
- */
+// ------------------------------------------------------------
+// Payload Types
+// ------------------------------------------------------------
+
+/** A ScaleTrack can be added to the store. */
 export type AddScaleTrackPayload = ScaleTrack;
 
-/**
- * A ScaleTrack can be removed from the store by ID.
- */
+/** A ScaleTrack can be removed from the store. */
 export type RemoveScaleTrackPayload = TrackId;
 
-/**
- * A ScaleTrack can be updated in the store.
- */
-export type UpdateScaleTrackPayload = Partial<ScaleTrack>;
+/** A ScaleTrack can be updated in the store. */
+export type UpdateScaleTrackPayload = ScaleTrackUpdate;
 
-/**
- * The scaleTracks slice contains all of the ScaleTracks in the store.
- *
- * @property {@link addScaleTrack} - Add a ScaleTrack to the store.
- * @property {@link removeScaleTrack} - Remove a ScaleTrack from the store.
- * @property {@link updateScaleTrack} - Update a ScaleTrack in the store.
- *
- */
-
-export const defaultScaleTrackState = initializeState<ScaleId, ScaleTrack>([
-  defaultScaleTrack,
-]);
+// ------------------------------------------------------------
+// Slice Definition
+// ------------------------------------------------------------
 
 export const scaleTracksSlice = createSlice({
   name: "scaleTracks",
   initialState: defaultScaleTrackState,
   reducers: {
-    /**
-     * Add a ScaleTrack to the store.
-     * @param project The scaleTracks state.
-     * @param action The ScaleTrack to add.
-     */
+    /** Add a scale track to the slice. */
     addScaleTrack: (state, action: PayloadAction<AddScaleTrackPayload>) => {
       const scaleTrack = action.payload;
       state.allIds = union(state.allIds, [scaleTrack.id]);
       state.byId[scaleTrack.id] = scaleTrack;
     },
-    /**
-     * Remove a ScaleTrack from the store.
-     * @param project The scaleTracks state.
-     * @param action The ScaleTrack ID to remove.
-     */
+    /** Remove a scale track from the slice. */
     removeScaleTrack: (
       state,
       action: PayloadAction<RemoveScaleTrackPayload>
@@ -63,11 +46,7 @@ export const scaleTracksSlice = createSlice({
       if (index === -1) return;
       state.allIds.splice(index, 1);
     },
-    /**
-     * Update a ScaleTrack in the store.
-     * @param project The scaleTracks state.
-     * @param action The ScaleTrack to update.
-     */
+    /** Update a scale track in the slice. */
     updateScaleTrack: (
       state,
       action: PayloadAction<Partial<UpdateScaleTrackPayload>>

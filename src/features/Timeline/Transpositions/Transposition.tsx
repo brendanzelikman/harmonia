@@ -4,7 +4,7 @@ import { MouseEvent, useMemo } from "react";
 import {
   getChordalOffset,
   getChromaticOffset,
-  getScalarOffset,
+  getTranspositionOffsetById,
   Transposition,
   TranspositionId,
 } from "types/Transposition";
@@ -13,10 +13,10 @@ import {
   selectMediaDragState,
   selectSelectedTrackId,
   selectTimeline,
-  selectTrackParents,
+  selectTrackChain,
   selectTranspositionById,
 } from "redux/selectors";
-import { cancelEvent } from "utils";
+import { cancelEvent } from "utils/html";
 import { useTranspositionDrag } from "./hooks/useTranspositionDnd";
 import {
   onTranspositionClick,
@@ -82,7 +82,7 @@ export default connector(TimelineTransposition);
 function TimelineTransposition(props: TranspositionProps) {
   const { transposition, isTransposing, isSlicing } = props;
   const parents = useProjectDeepSelector((_) =>
-    selectTrackParents(_, transposition?.trackId)
+    selectTrackChain(_, transposition?.trackId)
   );
 
   // Transposition properties
@@ -98,10 +98,12 @@ function TimelineTransposition(props: TranspositionProps) {
   });
 
   // Transposition offset values
-  const chromatic = getChromaticOffset(transposition?.offsets);
-  const chordal = getChordalOffset(transposition?.offsets);
+  const chromatic = getChromaticOffset(transposition?.vector);
+  const chordal = getChordalOffset(transposition?.vector);
   const scalars = parents
-    .map((track) => getScalarOffset(transposition?.offsets, track?.id))
+    .map((track) =>
+      getTranspositionOffsetById(transposition?.vector, track?.id)
+    )
     .slice(0, onScaleTrack ? parents.length - 1 : undefined);
 
   /**

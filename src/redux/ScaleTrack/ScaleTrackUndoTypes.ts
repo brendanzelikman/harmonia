@@ -1,27 +1,23 @@
+import * as _ from "./ScaleTrackSlice";
 import { PayloadAction } from "@reduxjs/toolkit";
-import { ActionGroup } from "types/units";
-import * as ScaleTrackSlice from "./ScaleTrackSlice";
-import { getScaleTrackTag } from "types/ScaleTrack";
-import { createTag } from "types/util";
-import { getTrackTag } from "types/Track";
+import { ActionGroup } from "redux/util";
+import { getScaleTrackUpdateAsString } from "types/ScaleTrack";
+import { getTrackAsString } from "types/Track";
 
 export const SCALE_TRACK_UNDO_TYPES: ActionGroup = {
   "scaleTracks/addScaleTrack": (
-    action: PayloadAction<ScaleTrackSlice.AddScaleTrackPayload>
+    action: PayloadAction<_.AddScaleTrackPayload>
   ) => {
-    const tag = createTag(action.payload, getTrackTag);
-    return `ADD_TRACK:${tag}`;
+    return `ADD_TRACK:${getTrackAsString(action.payload)}`;
   },
   "scaleTracks/removeScaleTrack": (
-    action: PayloadAction<ScaleTrackSlice.RemoveScaleTrackPayload>
+    action: PayloadAction<_.RemoveScaleTrackPayload>
   ) => {
-    const id = action.payload;
-    return `REMOVE_TRACK:${id}`;
+    return `REMOVE_TRACK:${action.payload}`;
   },
   "scaleTracks/updateScaleTrack": (
-    action: PayloadAction<ScaleTrackSlice.UpdateScaleTrackPayload>
+    action: PayloadAction<_.UpdateScaleTrackPayload>
   ) => {
-    const scaleTrackTag = createTag(action.payload, getScaleTrackTag);
-    return `UPDATE_SCALE_TRACK:${scaleTrackTag}`;
+    return `UPDATE_SCALE_TRACK:${getScaleTrackUpdateAsString(action.payload)}`;
   },
 };

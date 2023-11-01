@@ -1,23 +1,27 @@
-import useGlobalHotkeys from "hooks/useGlobalHotkeys";
-import useMidiController from "hooks/useMidiController";
-import Navbar from "features/Navbar";
-import Timeline from "features/Timeline";
-import Editor from "features/Editor";
-import Shortcuts from "features/Shortcuts";
+import {
+  useGlobalHotkeys,
+  useMidiController,
+  useTransportLoader,
+  useProjectLoader,
+} from "hooks";
+import { Navbar } from "features/Navbar";
+import { Timeline } from "features/Timeline";
+import { Editor } from "features/Editor/Editor";
+import { ShortcutsMenu } from "features/Shortcuts";
 import { LoadingView } from "views";
 import { TourBackground } from "features/Tour";
-import { useLoadedTransport } from "hooks/useLoadedTransport";
-import { useCurrentProject } from "hooks/useCurrentProject";
 
+/** The playground contains the DAW */
 export function PlaygroundView() {
+  const isProjectLoaded = useProjectLoader();
+  const isTransportLoaded = useTransportLoader();
   useGlobalHotkeys();
   useMidiController();
 
   // If the project or transport is not loaded, show a loading page.
-  const isProjectLoaded = useCurrentProject();
-  const isTransportLoaded = useLoadedTransport();
-  if (!isProjectLoaded || !isTransportLoaded)
+  if (!isProjectLoaded || !isTransportLoaded) {
     return <LoadingView isTransportLoaded={isTransportLoaded} />;
+  }
 
   // Otherwise, show the playground.
   return (
@@ -27,7 +31,7 @@ export function PlaygroundView() {
       <main className="relative flex flex-auto overflow-hidden">
         <Timeline />
         <Editor />
-        <Shortcuts />
+        <ShortcutsMenu />
       </main>
     </div>
   );

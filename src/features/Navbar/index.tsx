@@ -8,9 +8,9 @@ import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { NavbarBrand, NavbarGroup } from "./components";
 import { OnboardingTour } from "features/Tour";
-import { NAV_HEIGHT } from "utils";
+import { NAV_HEIGHT } from "utils/constants";
 
-export default function Navbar() {
+export function Navbar() {
   const [showNavbar, setShowNavbar] = useState(true);
   useHotkeys("meta+shift+f", () => setShowNavbar(!showNavbar), [showNavbar]);
 

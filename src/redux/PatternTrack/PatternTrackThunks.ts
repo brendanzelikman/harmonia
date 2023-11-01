@@ -32,45 +32,39 @@ import { selectTrackById, selectSelectedTrack } from "redux/selectors";
  * @returns A Promise that resolves with the ID of the created track.
  */
 export const createPatternTrack =
-  (initialTrack?: Partial<PatternTrack>): Thunk<Promise<TrackId>> =>
+  (initialTrack?: Partial<PatternTrack>): Thunk<TrackId> =>
   (dispatch, getProject) => {
     const project = getProject();
-    return new Promise(async (resolve) => {
-      // Initialize a new pattern track and instrument
-      const instrument = initializeInstrument();
-      const patternTrack = initializePatternTrack({
-        ...initialTrack,
-        instrumentId: instrument.id,
-      });
 
-      // Create the pattern track
-      dispatch(addPatternTrack(patternTrack));
-      dispatch(addPatternTrackToHierarchy(patternTrack));
-
-      // Create an instrument for the track or use the old one
-      const oldInstrument = initialTrack?.instrumentId
-        ? selectInstrumentById(project, initialTrack.instrumentId)
-        : undefined;
-      dispatch(createInstrument(patternTrack, { oldInstrument }));
-
-      // Resolve with the ID of the created track
-      resolve(patternTrack.id);
+    // Initialize a new pattern track and instrument
+    const instrument = initializeInstrument();
+    const patternTrack = initializePatternTrack({
+      ...initialTrack,
+      instrumentId: instrument.id,
     });
+
+    // Create the pattern track
+    dispatch(addPatternTrack(patternTrack));
+    dispatch(addPatternTrackToHierarchy(patternTrack));
+
+    // Create an instrument for the track or use the old one
+    const oldInstrument = initialTrack?.instrumentId
+      ? selectInstrumentById(project, initialTrack.instrumentId)
+      : undefined;
+    dispatch(createInstrument(patternTrack, { oldInstrument }));
+
+    // Return ID of the created track
+    return patternTrack.id;
   };
 
-/**
- * Create a `PatternTrack` using the selected track as a parent.
- * @returns A Promise that resolves with the ID of the created track.
- */
+/** Create a `PatternTrack` using the selected track as a parent. */
 export const createPatternTrackFromSelectedTrack =
-  (): Thunk<Promise<TrackId>> => (dispatch, getProject) => {
-    return new Promise(async (resolve) => {
-      const project = getProject();
-      const parent = selectSelectedTrack(project);
-      if (!parent) return;
-      const parentId = isScaleTrack(parent) ? parent.id : parent.parentId;
-      resolve(dispatch(createPatternTrack({ parentId })));
-    });
+  (): Thunk<TrackId | undefined> => (dispatch, getProject) => {
+    const project = getProject();
+    const parent = selectSelectedTrack(project);
+    if (!parent) return undefined;
+    const parentId = isScaleTrack(parent) ? parent.id : parent.parentId;
+    return dispatch(createPatternTrack({ parentId }));
   };
 
 /**
@@ -106,8 +100,9 @@ export const setPatternTrackScaleTrack =
  * @param instrument - The instrument to set.
  */
 export const setPatternTrackInstrument =
-  (id: TrackId, key: InstrumentKey): Thunk =>
+  (id?: TrackId, key?: InstrumentKey): Thunk =>
   (dispatch, getProject) => {
+    if (!id || !key) return;
     const project = getProject();
 
     // Get the instrument
@@ -117,7 +112,7 @@ export const setPatternTrackInstrument =
     // Update the instrument with the new instrument
     dispatch(
       updateInstrument({
-        instrumentId: instrument.id,
+        id: instrument.id,
         update: { key },
       })
     );

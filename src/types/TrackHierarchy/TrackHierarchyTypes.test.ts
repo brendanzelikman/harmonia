@@ -1,32 +1,45 @@
 import { test, expect } from "vitest";
-import * as Types from "./TrackHierarchyTypes";
+import * as _ from "./TrackHierarchyTypes";
 import { mockScaleTrack } from "types/ScaleTrack";
 import { mockPatternTrack } from "types/PatternTrack";
 
-test("isTrackHierarchy", () => {
-  const validHierarchy: Types.TrackHierarchy = {
-    allIds: [mockScaleTrack.id, mockPatternTrack.id],
-    byId: {
-      [mockScaleTrack.id]: Types.mockScaleTrackNode,
-      [mockPatternTrack.id]: Types.mockPatternTrackNode,
-    },
-    topLevelIds: [mockScaleTrack.id],
-  };
-  expect(Types.isTrackHierarchy(validHierarchy)).toBeTruthy();
+test("isTrackNode should only return true for valid track nodes", () => {
+  expect(_.isTrackNode(_.mockScaleTrackNode)).toBe(true);
+  expect(_.isTrackNode(_.mockPatternTrackNode)).toBe(true);
 
-  const invalidHierarchy = {
-    "mock-hierarchy": "invalid",
-  };
-  expect(Types.isTrackHierarchy(invalidHierarchy)).toBeFalsy();
+  expect(_.isTrackNode({})).toBe(false);
+  expect(_.isTrackNode(mockScaleTrack)).toBe(false);
+  expect(_.isTrackNode(mockPatternTrack)).toBe(false);
 });
 
-test("isTrackNode", () => {
-  // Test valid nodes
-  expect(Types.isTrackNode(Types.mockScaleTrackNode)).toBeTruthy();
-  expect(Types.isTrackNode(Types.mockPatternTrackNode)).toBeTruthy();
+test("isTrackHierarchy should return true for valid hierarchies", () => {
+  expect(_.isTrackHierarchy({ allIds: [], byId: {}, topLevelIds: [] })).toBe(
+    true
+  );
+  expect(
+    _.isTrackHierarchy({
+      allIds: [mockScaleTrack.id, mockPatternTrack.id],
+      byId: {
+        [mockScaleTrack.id]: _.mockScaleTrackNode,
+        [mockPatternTrack.id]: _.mockPatternTrackNode,
+      },
+      topLevelIds: [mockScaleTrack.id],
+    })
+  ).toBe(true);
+});
 
-  // Test invalid nodes
-  expect(Types.isTrackNode({})).toBeFalsy();
-  expect(Types.isTrackNode(mockScaleTrack)).toBeFalsy();
-  expect(Types.isTrackNode(mockPatternTrack)).toBeFalsy();
+test("isTrackHierarchy should return false for invalid hierarchies", () => {
+  expect(_.isTrackHierarchy(undefined)).toBe(false);
+  expect(_.isTrackHierarchy({})).toBe(false);
+  expect(_.isTrackHierarchy({ allIds: [], byId: {} })).toBe(false);
+  expect(
+    _.isTrackHierarchy({
+      allIds: [mockScaleTrack.id, mockPatternTrack.id],
+      byId: {
+        [mockScaleTrack.id]: _.mockScaleTrackNode,
+        [mockPatternTrack.id]: _.mockPatternTrackNode,
+      },
+      topLevelIds: [mockScaleTrack],
+    })
+  ).toBe(false);
 });

@@ -1,36 +1,33 @@
 import { expect, test } from "vitest";
-import * as TrackTypes from "./TrackTypes";
-import { mockPatternTrack } from "types/PatternTrack/PatternTrackTypes";
-import { mockScaleTrack } from "types/ScaleTrack/ScaleTrackTypes";
+import * as _ from "./TrackTypes";
+import { mockPatternTrack } from "types/PatternTrack";
+import { mockScaleTrack } from "types/ScaleTrack";
 
-test("initializeTrack", () => {
-  // Test that the id is added
-  const track = TrackTypes.initializeTrack(TrackTypes.mockTrack);
-  expect(track).toEqual({ ...TrackTypes.mockTrack, id: track.id });
+test("initializeTrackInterface should create a TrackInterface with a unique ID", () => {
+  const oldTrack = _.initializeTrackInterface();
+  const track = _.initializeTrackInterface(oldTrack);
+  expect(track.id).toBeDefined();
+  expect(track.id).not.toEqual(oldTrack.id);
 });
 
-test("isTrack", () => {
-  // Test valid tracks
-  expect(TrackTypes.isTrack(mockScaleTrack)).toBeTruthy();
-  expect(TrackTypes.isTrack(mockPatternTrack)).toBeTruthy();
+test("isTrackInterface should only return true for valid interfaces", () => {
+  expect(_.isTrackInterface(_.defaultTrackInterface)).toBe(true);
+  expect(_.isTrackInterface(_.mockTrackInterface)).toBe(true);
+  expect(_.isTrackInterface(mockScaleTrack)).toBe(true);
+  expect(_.isTrackInterface(mockPatternTrack)).toBe(true);
 
-  // Test invalid tracks
-  expect(TrackTypes.isTrack({})).toBeFalsy();
-  expect(TrackTypes.isTrack({ id: "invalid" })).toBeFalsy();
+  expect(_.isTrackInterface(undefined)).toBe(false);
+  expect(_.isTrackInterface({})).toBe(false);
+  expect(_.isTrackInterface([])).toBe(false);
 });
 
-test("isTrackMap", () => {
-  // Test a valid track map
-  const validTrackMap: TrackTypes.TrackMap = {
-    "mock-scale-track": mockScaleTrack,
-    "mock-pattern-track": mockPatternTrack,
-  };
-  expect(TrackTypes.isTrackMap(validTrackMap)).toBeTruthy();
+test("isTrack should only return true for valid tracks", () => {
+  expect(_.isTrack(mockScaleTrack)).toBe(true);
+  expect(_.isTrack(mockPatternTrack)).toBe(true);
 
-  // Test an invalid track map
-  const invalidTrackMap = {
-    "mock-scale-track": mockScaleTrack,
-    "mock-pattern-track": "invalid",
-  };
-  expect(TrackTypes.isTrackMap(invalidTrackMap)).toBeFalsy();
+  expect(_.isTrack(undefined)).toBe(false);
+  expect(_.isTrack(_.defaultTrackInterface)).toBe(false);
+  expect(_.isTrack(_.mockTrackInterface)).toBe(false);
+  expect(_.isTrack({})).toBe(false);
+  expect(_.isTrack([])).toBe(false);
 });

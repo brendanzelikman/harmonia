@@ -1,39 +1,28 @@
 import { AnyAction, ThunkAction, nanoid } from "@reduxjs/toolkit";
-import { defaultClipState } from "redux/Clip";
-import { defaultInstrumentState } from "redux/Instrument";
-import { defaultPatternState } from "redux/Pattern";
-import { defaultPatternTrackState } from "redux/PatternTrack";
-import { defaultScaleState } from "redux/Scale";
-import { defaultScaleTrackState } from "redux/ScaleTrack";
-import { defaultTranspositionState } from "redux/Transposition";
+import { isPlainObject, isString } from "lodash";
 import { store } from "redux/store";
+import {
+  defaultArrangementHistory,
+  isNormalLiveArrangement,
+} from "types/Arrangement";
 import { defaultEditor, isEditor } from "types/Editor";
+import { defaultPatternHistory, isPattern } from "types/Pattern";
+import { defaultScaleHistory, isScaleObject } from "types/Scale";
 import { defaultTimeline, isTimeline } from "types/Timeline";
-import { defaultTrackHierarchy } from "types/TrackHierarchy";
 import { defaultTransport, isTransport } from "types/Transport";
-import { isNormalizedState } from "types/util";
+import { isUndoableHistory } from "utils/undoableHistory";
 
-/**
- * The `ProjectMetadata` interface contains general, high-level info.
- * @property `id` - The ID of the project.
- * @property `name` - The name of the project.
- * @property `dateCreated` - The date the project was created.
- * @property `lastUpdated` - The date the project was last updated.
- */
+// ------------------------------------------------------------
+// Project Definitions
+// ------------------------------------------------------------
+
+/** The `ProjectMetadata` contains the top-level info of the project. */
 export interface ProjectMetadata {
   id: string;
   name: string;
   dateCreated: string;
   lastUpdated: string;
 }
-
-/** Initialize new metadata for a project. */
-export const initializeProjectMetadata = (): ProjectMetadata => ({
-  id: `harmonia-project-${nanoid()}`,
-  name: "New Project",
-  dateCreated: new Date().toISOString(),
-  lastUpdated: new Date().toISOString(),
-});
 
 /** The Project type is derived from the Redux state. */
 export type Project = ReturnType<typeof store.getState>;
@@ -45,29 +34,19 @@ export type Thunk<ReturnType = void> = ThunkAction<
   AnyAction
 >;
 
-/** The default project. */
-export const defaultProject: Project = {
-  meta: initializeProjectMetadata(),
-  transport: defaultTransport,
-  timeline: defaultTimeline,
-  editor: defaultEditor,
-  scales: { present: defaultScaleState, past: [], future: [] },
-  patterns: { present: defaultPatternState, past: [], future: [] },
-  arrangement: {
-    present: {
-      scaleTracks: defaultScaleTrackState,
-      patternTracks: defaultPatternTrackState,
-      instruments: defaultInstrumentState,
-      clips: defaultClipState,
-      transpositions: defaultTranspositionState,
-      hierarchy: defaultTrackHierarchy,
-    },
-    past: [],
-    future: [],
-  },
-};
+// ------------------------------------------------------------
+// Project Initialization
+// ------------------------------------------------------------
 
-/** Creates a new project using the given template */
+/** Create project metadata with a unique ID and the current date. */
+export const initializeProjectMetadata = (): ProjectMetadata => ({
+  id: `harmonia-project-${nanoid()}`,
+  name: "New Project",
+  dateCreated: new Date().toISOString(),
+  lastUpdated: new Date().toISOString(),
+});
+
+/** Create a project with unique metadata. */
 export const initializeProject = (
   template: Project = defaultProject
 ): Project => {
@@ -78,47 +57,44 @@ export const initializeProject = (
   return { ...template, meta };
 };
 
-/**
- * Checks if a given object is of type `Project`.
- * @param obj The object to check.
- * @returns True if the object is a `Project`, otherwise false.
- */
-export const isProjectMetaData = (obj: unknown): obj is ProjectMetadata => {
+export const defaultProject: Project = {
+  meta: initializeProjectMetadata(),
+  transport: defaultTransport,
+  timeline: defaultTimeline,
+  editor: defaultEditor,
+  scales: defaultScaleHistory,
+  patterns: defaultPatternHistory,
+  arrangement: defaultArrangementHistory,
+};
+
+// ------------------------------------------------------------
+// Project Type Guards
+// ------------------------------------------------------------
+
+/** Checks if a given object is of type `ProjectMetadata`. */
+export const isProjectMetadata = (obj: unknown): obj is ProjectMetadata => {
   const candidate = obj as ProjectMetadata;
   return (
-    candidate?.id !== undefined &&
-    candidate?.name !== undefined &&
-    candidate?.dateCreated !== undefined &&
-    candidate?.lastUpdated !== undefined
+    isPlainObject(candidate) &&
+    isString(candidate.id) &&
+    isString(candidate.name) &&
+    isString(candidate.dateCreated) &&
+    isString(candidate.lastUpdated)
   );
 };
 
+/** Checks if a given object is of type `Project`. */
 export const isProject = (obj: unknown): obj is Project => {
   const candidate = obj as Project;
-  if (!candidate) return false;
-
-  // Validate the arrangement
-  const arrangement = candidate.arrangement?.present;
-  if (!arrangement) return false;
-  if (!isNormalizedState(arrangement.clips)) return false;
-  if (!isNormalizedState(arrangement.transpositions)) return false;
-  if (!isNormalizedState(arrangement.patternTracks)) return false;
-  if (!isNormalizedState(arrangement.scaleTracks)) return false;
-
-  // Validate the scales
-  const scales = candidate.scales?.present;
-  if (!isNormalizedState(scales)) return false;
-
-  // Validate the patterns
-  const patterns = candidate.patterns?.present;
-  if (!isNormalizedState(patterns)) return false;
-
-  // Validate the rest of the state
-  if (!isTransport(candidate.transport)) return false;
-  if (!isTimeline(candidate.timeline)) return false;
-  if (!isEditor(candidate.editor)) return false;
-  if (!isProjectMetaData(candidate.meta)) return false;
-
-  // Return true if all validations pass
-  return true;
+  return (
+    isPlainObject(candidate) &&
+    isProjectMetadata(candidate.meta) &&
+    isTransport(candidate.transport) &&
+    isTimeline(candidate.timeline) &&
+    isEditor(candidate.editor) &&
+    isUndoableHistory(candidate.scales, isScaleObject) &&
+    isUndoableHistory(candidate.patterns, isPattern) &&
+    isUndoableHistory(candidate.arrangement) &&
+    isNormalLiveArrangement(candidate.arrangement.present)
+  );
 };

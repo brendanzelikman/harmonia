@@ -1,136 +1,131 @@
 import { test, expect } from "vitest";
-import * as PatternFunctions from "./PatternFunctions";
-import { initializePattern, mockPattern } from "./PatternTypes";
-import { MIDI } from "../midi";
+import * as _ from "./PatternFunctions";
+import { NestedNote, Scale, mockScale } from "types/Scale";
+import { Pattern, PatternMidiStream, PatternStream } from "./PatternTypes";
 
-test("getPatternTag", () => {
-  const tag = PatternFunctions.getPatternTag(mockPattern);
-  const streamTag = PatternFunctions.getPatternStreamTag(mockPattern.stream);
-  expect(tag).toContain(mockPattern.id);
-  expect(tag).toContain(mockPattern.name);
-  expect(tag).toContain(streamTag);
+const scale1: Scale = {
+  id: "s1",
+  notes: [60, 62, 64, 65, 67, 69, 71],
+};
+const scale2: Scale = {
+  id: "s2",
+  notes: [{ degree: 0 }, { degree: 2 }, { degree: 5 }],
+};
+
+const n0 = { MIDI: 60 };
+const n1 = { degree: 0, scaleId: "s2" };
+const n2 = { degree: 1, scaleId: "s2" };
+const n3 = { degree: 2, offset: { s1: 1 }, scaleId: "s2" };
+const n4 = { degree: 2, scaleId: "s2" };
+const n5 = { degree: 2, offset: { chromatic: -1 }, scaleId: "s2" };
+const n6 = { degree: 2, scaleId: "s2" };
+const n7 = { degree: 3, scaleId: "s1" };
+const n8 = { degree: 2, scaleId: "s1" };
+
+const notes = [n0, n1, n2, n3, n4, n5, n6, n7, n8];
+const stream = notes.map((n) => _.createPatternChordFromScaleNote(n));
+const pattern: Pattern = { id: "p", stream };
+const chain = [scale1, scale2];
+
+test("getPatternBlockDuration should return the correct duration of a block", () => {
+  const chord = [
+    { MIDI: 1, duration: 96, velocity: 1 },
+    { MIDI: 1, duration: 1, velocity: 1 },
+  ];
+  const rest = { duration: 96 };
+  expect(_.getPatternBlockDuration(chord)).toBe(96);
+  expect(_.getPatternBlockDuration(rest)).toBe(96);
 });
 
-test("getPatternNoteTag", () => {
-  const note = mockPattern.stream[0][0];
-  const noteTag = PatternFunctions.getPatternNoteTag(note);
-  expect(noteTag).toContain(note.MIDI);
-  expect(noteTag).toContain(note.duration);
-  expect(noteTag).toContain(note.velocity);
+test("getPatternStreamDuration should correctly sum the duration of a stream", () => {
+  const stream1 = [[{ MIDI: 1, duration: 96, velocity: 1 }]];
+  const stream2 = [[{ degree: 1, duration: 96, velocity: 1 }]];
+  const stream3 = [...stream1, ...stream2];
+  expect(_.getPatternStreamDuration(stream1)).toBe(96);
+  expect(_.getPatternStreamDuration(stream2)).toBe(96);
+  expect(_.getPatternStreamDuration(stream3)).toBe(192);
 });
 
-test("getPatternChordTag", () => {
-  const chord = mockPattern.stream[0];
-  const chordTag = PatternFunctions.getPatternChordTag(chord);
-  expect(chordTag).toContain(chord[0].MIDI);
-  expect(chordTag).toContain(chord[0].duration);
-  expect(chordTag).toContain(chord[0].velocity);
+test("getPatternBlockAtIndex should return the correct block at the given index", () => {
+  const chord = [{ MIDI: 1, duration: 96, velocity: 1 }];
+  const rest = { duration: 96 };
+  const stream = [chord, rest];
+  expect(_.getPatternBlockAtIndex(stream, 0)).toEqual(chord);
+  expect(_.getPatternBlockAtIndex(stream, 1)).toEqual(rest);
+  expect(_.getPatternBlockAtIndex(stream, 2)).toEqual([]);
 });
 
-test("getPatternStreamTag", () => {
-  const stream = mockPattern.stream;
-  const streamTag = PatternFunctions.getPatternStreamTag(stream);
-  for (const chord of stream) {
-    const chordTag = PatternFunctions.getPatternChordTag(chord);
-    expect(streamTag).toContain(chordTag);
-  }
+test("getMidiStreamScale should return the intrinsic scale of a stream", () => {
+  const notes = [72, 73, 60];
+  const stream = notes.map((n) => _.createPatternChordFromScaleNote(n));
+  const midiStream = _.resolvePatternStreamToMidi(stream);
+  expect(_.getMidiStreamScale(midiStream)).toEqual([0, 1]);
 });
 
-test("getPatternStreamTicks", () => {
-  const stream = mockPattern.stream;
-  const ticks = PatternFunctions.getPatternStreamTicks(stream);
-  const expectedTicks = stream.reduce(
-    (acc, chord) => acc + chord[0].duration,
-    0
-  );
-  expect(ticks).toEqual(expectedTicks);
+test("getTransposedMidiStream should correctly transpose a MIDI stream", () => {
+  const chords = [60, 71].map((n) => _.createPatternChordFromScaleNote(n));
+  const midiStream = chords as PatternMidiStream;
+
+  const transposedNone = _.getTransposedMidiStream(midiStream, 0);
+  const transposedUp = _.getTransposedMidiStream(midiStream, 1);
+  const transposedDown = _.getTransposedMidiStream(midiStream, -1);
+
+  expect(_.getMidiStreamValues(transposedNone)).toEqual([60, 71]);
+  expect(_.getMidiStreamValues(transposedUp)).toEqual([61, 72]);
+  expect(_.getMidiStreamValues(transposedDown)).toEqual([59, 70]);
 });
 
-test("getRealizedPatternNotes", () => {
-  const scale1 = [60, 61, 62];
-  const scale2 = [60, 63];
-  const pattern = initializePattern({
-    stream: [
-      [MIDI.createQuarterNote(60)],
-      [MIDI.createQuarterNote(61)],
-      [MIDI.createQuarterNote(62)],
-      [MIDI.createQuarterNote(72)],
-      [MIDI.createQuarterNote(73)],
-      [MIDI.createQuarterNote(74)],
-    ],
+test("getRotatedMidiStream should correctly rotate a MIDI stream", () => {
+  const chords = [60, 71].map((n) => _.createPatternChordFromScaleNote(n));
+  const midiStream = chords as PatternMidiStream;
+
+  const rotatedNone = _.getRotatedMidiStream(midiStream, 0);
+  const rotatedUp = _.getRotatedMidiStream(midiStream, 1);
+  const rotatedDown = _.getRotatedMidiStream(midiStream, -1);
+
+  expect(_.getMidiStreamValues(rotatedNone)).toEqual([60, 71]);
+  expect(_.getMidiStreamValues(rotatedUp)).toEqual([71, 72]);
+  expect(_.getMidiStreamValues(rotatedDown)).toEqual([59, 60]);
+});
+
+test("getTransposedPatternStream should correctly transpose a pattern stream", () => {
+  const stream: PatternStream = [
+    [{ degree: 0, scaleId: mockScale.id, duration: 1, velocity: 1 }],
+  ];
+  const posedStream = _.getTransposedPatternStream(stream, {
+    [mockScale.id]: 1,
+    chromatic: 1,
   });
-  const stream1 = PatternFunctions.getRealizedPatternNotes(pattern, scale1);
-  const stream2 = PatternFunctions.getRealizedPatternNotes(pattern, scale2);
-  expect(stream1[0][0].MIDI).toEqual(60);
-  expect(stream1[1][0].MIDI).toEqual(61);
-  expect(stream1[2][0].MIDI).toEqual(62);
-  expect(stream1[3][0].MIDI).toEqual(72);
-  expect(stream1[4][0].MIDI).toEqual(73);
-  expect(stream1[5][0].MIDI).toEqual(74);
-  expect(stream2[0][0].MIDI).toEqual(60);
-  expect(stream2[1][0].MIDI).toEqual(60);
-  expect(stream2[2][0].MIDI).toEqual(63);
-  expect(stream2[3][0].MIDI).toEqual(72);
-  expect(stream2[4][0].MIDI).toEqual(72);
-  expect(stream2[5][0].MIDI).toEqual(75);
+  const resolvedStream = _.resolvePatternStreamToMidi(posedStream, [mockScale]);
+  expect(_.getMidiStreamValues(resolvedStream)).toEqual([63]);
 });
 
-test("transposePatternStream", () => {
-  const scale = [60, 61, 64, 68, 70];
-  const pattern = initializePattern({
-    stream: [
-      [MIDI.createQuarterNote(60), MIDI.createQuarterNote(61)],
-      [MIDI.createQuarterNote(64)],
-      [MIDI.createQuarterNote(67)],
-    ],
-  });
-  const stream = PatternFunctions.getRealizedPatternNotes(pattern, scale);
-  const transposedUp = PatternFunctions.transposePatternStream(
-    stream,
-    1,
-    scale
-  );
-  const transposedDown = PatternFunctions.transposePatternStream(
-    stream,
-    -1,
-    scale
-  );
-  expect(stream[0][0].MIDI).toEqual(60);
-  expect(stream[0][1].MIDI).toEqual(61);
-  expect(stream[1][0].MIDI).toEqual(64);
-  expect(stream[2][0].MIDI).toEqual(68);
-  expect(transposedUp[0][0].MIDI).toEqual(61);
-  expect(transposedUp[0][1].MIDI).toEqual(64);
-  expect(transposedUp[1][0].MIDI).toEqual(68);
-  expect(transposedUp[2][0].MIDI).toEqual(70);
-  expect(transposedDown[0][0].MIDI).toEqual(58);
-  expect(transposedDown[0][1].MIDI).toEqual(60);
-  expect(transposedDown[1][0].MIDI).toEqual(61);
-  expect(transposedDown[2][0].MIDI).toEqual(64);
+test("resolvePatternNoteToMidi should correctly resolve a note to MIDI", () => {
+  const scale: Scale = { id: "s1", notes: [60, 62, 64, 66, 68, 70, 72] };
+  const n1 = { degree: 0, duration: 1, velocity: 1 };
+  const n2 = { degree: 1, offset: { chromatic: 1 }, duration: 1, velocity: 1 };
+  const n3 = { degree: 2, offset: { octave: 1 }, duration: 1, velocity: 1 };
+  const n4 = { degree: 3, offset: { s1: 1 }, duration: 1, velocity: 1 };
+  expect(_.resolvePatternNoteToMidi(n1, [scale])).toBe(60);
+  expect(_.resolvePatternNoteToMidi(n2, [scale])).toBe(63);
+  expect(_.resolvePatternNoteToMidi(n3, [scale])).toBe(76);
+  expect(_.resolvePatternNoteToMidi(n4, [scale])).toBe(68);
 });
 
-test("rotatePatternStream", () => {
-  const scale = [60, 61, 64, 68, 70];
-  const pattern = initializePattern({
-    stream: [
-      [MIDI.createQuarterNote(60), MIDI.createQuarterNote(61)],
-      [MIDI.createQuarterNote(64)],
-      [MIDI.createQuarterNote(67)],
-    ],
-  });
-  const stream = PatternFunctions.getRealizedPatternNotes(pattern, scale);
-  const rotatedUp = PatternFunctions.rotatePatternStream(stream, 1);
-  const rotatedDown = PatternFunctions.rotatePatternStream(stream, -1);
-  expect(stream[0][0].MIDI).toEqual(60);
-  expect(stream[0][1].MIDI).toEqual(61);
-  expect(stream[1][0].MIDI).toEqual(64);
-  expect(stream[2][0].MIDI).toEqual(68);
-  expect(rotatedUp[0][0].MIDI).toEqual(61);
-  expect(rotatedUp[0][1].MIDI).toEqual(64);
-  expect(rotatedUp[1][0].MIDI).toEqual(68);
-  expect(rotatedUp[2][0].MIDI).toEqual(72);
-  expect(rotatedDown[0][0].MIDI).toEqual(56);
-  expect(rotatedDown[0][1].MIDI).toEqual(60);
-  expect(rotatedDown[1][0].MIDI).toEqual(61);
-  expect(rotatedDown[2][0].MIDI).toEqual(64);
+test("resolvePatternBlockToMidi should correctly resolve a block to MIDI", () => {
+  const midiChord = _.resolvePatternBlockToMidi(stream[7], chain);
+  const midiValue = _.getMidiStreamValues([midiChord]);
+  expect(midiValue).toEqual([65]);
+});
+
+test("resolvePatternStreamToMidi should correctly resolve a stream to MIDI", () => {
+  const midiStream = _.resolvePatternStreamToMidi(stream, chain);
+  const midiValues = _.getMidiStreamValues(midiStream);
+  expect(midiValues).toEqual([60, 60, 64, 71, 69, 68, 69, 65, 64]);
+});
+
+test("resolvePatternToMidi should correctly resolve a pattern to MIDI", () => {
+  const midiStream = _.resolvePatternToMidi(pattern, chain);
+  const midiValues = _.getMidiStreamValues(midiStream);
+  expect(midiValues).toEqual([60, 60, 64, 71, 69, 68, 69, 65, 64]);
 });

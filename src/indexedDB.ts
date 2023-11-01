@@ -3,7 +3,10 @@ import { selectProjectId } from "redux/Metadata";
 import { Project, defaultProject, isProject } from "types/Project";
 import { User, UserUpdate, initializeUser } from "types/User";
 
-// Database
+// ------------------------------------------------------------
+// Database Constants
+// ------------------------------------------------------------
+
 export const DATABASE_NAME = import.meta.env.VITE_DATABASE_NAME;
 export const PROJECT_STORE = import.meta.env.VITE_PROJECT_STORE;
 export const CURRENT_ID_STORE = import.meta.env.VITE_CURRENT_STORE;
@@ -12,6 +15,9 @@ export const AUTH_STORE = import.meta.env.VITE_AUTH_STORE;
 
 export const db = openDB(DATABASE_NAME, undefined, {
   upgrade(db) {
+    if (!db.objectStoreNames.contains(AUTH_STORE)) {
+      db.createObjectStore(AUTH_STORE);
+    }
     if (!db.objectStoreNames.contains(USER_STORE)) {
       db.createObjectStore(USER_STORE);
     }
@@ -21,12 +27,13 @@ export const db = openDB(DATABASE_NAME, undefined, {
     if (!db.objectStoreNames.contains(PROJECT_STORE)) {
       db.createObjectStore(PROJECT_STORE, { keyPath: "meta.id" });
     }
-    if (!db.objectStoreNames.contains(AUTH_STORE)) {
-      db.createObjectStore(AUTH_STORE);
-    }
   },
 });
 export const dbPromise = openDB(DATABASE_NAME);
+
+// ------------------------------------------------------------
+// Database Initialization
+// ------------------------------------------------------------
 
 const initializeDB = async () => {
   const db = await dbPromise;
@@ -52,37 +59,33 @@ const initializeDB = async () => {
 
 initializeDB().catch(console.error);
 
-/**
- * Try to set the authentication status.
- * @param status The status to set.
- */
+// ------------------------------------------------------------
+// Database Authentication
+// ------------------------------------------------------------
+
+/** Try to set the authentication status. */
 export async function setAuthenticatedStatus(status: boolean): Promise<void> {
   const db = await dbPromise;
   await db.put(AUTH_STORE, status, "authenticated");
 }
 
-/**
- * Try to get the authentication status.
- */
+/** Try to get the authentication status. */
 export async function getAuthenticatedStatus(): Promise<boolean> {
   const db = await dbPromise;
   return db.get(AUTH_STORE, "authenticated");
 }
 
-/**
- * Try to get the user from the database.
- * @returns A promise that resolves to the user or undefined if it doesn't exist.
- */
+// ------------------------------------------------------------
+// Database User
+// ------------------------------------------------------------
+
+/** Get the current user as a promise. */
 export async function getUserFromDB(): Promise<User | undefined> {
   const db = await dbPromise;
   return db.get(USER_STORE, "user");
 }
 
-/**
- * Try to update the user in the database.
- * @param user Partial. The user to update.
- * @returns A promise that resolves to true if the update was successful.
- */
+/** Update the current user, resolving to true if successful. */
 export async function updateUserInDB(user: UserUpdate): Promise<boolean> {
   const db = await dbPromise;
   const currentUser = await db.get(USER_STORE, "user");
@@ -91,12 +94,31 @@ export async function updateUserInDB(user: UserUpdate): Promise<boolean> {
   return true;
 }
 
-/**
- * Create a new project in the database.
- * @param project The project to upload.
- * @returns A promise that resolves to true if the upload was successful.
- * @error The promise is rejected if the project is invalid.
- */
+// ------------------------------------------------------------
+// Database Current Project ID
+// ------------------------------------------------------------
+
+/** Update the current project ID, resolving to true if successful. */
+export async function setCurrentProjectId(id: string): Promise<boolean> {
+  const db = await dbPromise;
+  const project = await db.get(PROJECT_STORE, id);
+  if (!project) return false;
+  await db.put(CURRENT_ID_STORE, { id }, "currentProject");
+  return true;
+}
+
+/** Get the current project ID as a promise. */
+export async function getCurrentProjectId(): Promise<string | undefined> {
+  const db = await dbPromise;
+  const current = await db.get(CURRENT_ID_STORE, "currentProject");
+  return current?.id;
+}
+
+// ------------------------------------------------------------
+// Database Projects
+// ------------------------------------------------------------
+
+/** Upload a project, resolving to true if successful. */
 export const uploadProjectToDB = async (project: Project): Promise<boolean> => {
   if (!isProject(project)) throw new Error("Invalid project.");
   const db = await dbPromise;
@@ -105,12 +127,7 @@ export const uploadProjectToDB = async (project: Project): Promise<boolean> => {
   return true;
 };
 
-/**
- * Update the project in the database only if it exists.
- * @param project The state to update.
- * @returns A promise that resolves to true if the update was successful.
- * @error The promise is rejected if the state is invalid.
- */
+/** Update the project, resolving to true if successful. */
 export async function updateProjectInDB(project: Project): Promise<boolean> {
   if (!isProject(project)) throw new Error("Invalid state.");
   const db = await dbPromise;
@@ -120,11 +137,7 @@ export async function updateProjectInDB(project: Project): Promise<boolean> {
   return true;
 }
 
-/**
- * Delete the project from the database.
- * @param id The ID of the project to delete.
- * @returns A promise that resolves to true if the deletion was successful.
- */
+/** Delete a project by ID, resolving to true if successful. */
 export async function deleteProjectFromDB(id: string): Promise<boolean> {
   const db = await dbPromise;
   await db.delete(PROJECT_STORE, id);
@@ -135,46 +148,16 @@ export async function deleteProjectFromDB(id: string): Promise<boolean> {
   return true;
 }
 
-/**
- * Get all projects from the database.
- * @returns A promise that resolves to an array of projects.
- */
+/** Get the list of all projects as a promise. */
 export async function getProjectsFromDB(): Promise<Project[]> {
   const db = await dbPromise;
   return db.getAll(PROJECT_STORE);
 }
 
-/**
- * Get the project with the given ID from the database.
- * @param id The ID of the project to get.
- * @returns A promise that resolves to the project or undefined if it doesn't exist.
- */
+/** Get the project with the given ID as a promise. */
 export async function getProjectFromDB(
   id: string
 ): Promise<Project | undefined> {
   const db = await dbPromise;
   return db.get(PROJECT_STORE, id);
-}
-
-/**
- * Set the ID of the current project in the database.
- * @param id The ID of the project to set as current.
- * @returns A promise that resolves to true if the update was successful.
- */
-export async function setCurrentProjectId(id: string): Promise<boolean> {
-  const db = await dbPromise;
-  const project = await db.get(PROJECT_STORE, id);
-  if (!project) return false;
-  await db.put(CURRENT_ID_STORE, { id }, "currentProject");
-  return true;
-}
-
-/**
- * Get the ID of the current project from the database.
- * @returns A promise that resolves to the current project ID or undefined if it doesn't exist.
- */
-export async function getCurrentProjectId(): Promise<string | undefined> {
-  const db = await dbPromise;
-  const current = await db.get(CURRENT_ID_STORE, "currentProject");
-  return current?.id;
 }

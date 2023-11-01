@@ -1,11 +1,10 @@
 import * as Selectors from "redux/selectors";
-import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { useCustomEventListener, useDatabaseCallback } from "hooks";
 import { lowerCase } from "lodash";
 import { useState, useMemo } from "react";
 import { BsPlus, BsUpload } from "react-icons/bs";
 import { getInstrumentName } from "types/Instrument";
 import { getScaleName } from "types/Scale";
-import { getScaleTrackScale } from "types/ScaleTrack";
 import { useProjectDispatch } from "redux/hooks";
 import { ProjectComponent } from "components/Project";
 import { Transition } from "@headlessui/react";
@@ -17,7 +16,6 @@ import {
   createProject,
   openLocalProjects,
 } from "redux/Project";
-import { useDatabaseCallback } from "hooks/useDatabaseCallback";
 
 export function Projects() {
   const dispatch = useProjectDispatch();
@@ -45,10 +43,8 @@ export function Projects() {
 
         // Get the list of scales used
         const scaleTracks = Selectors.selectScaleTracks(project);
-        const scaleTrackMap = Selectors.selectScaleTrackMap(project);
-        const scaleMap = Selectors.selectScaleMap(project);
-        const allScales = scaleTracks.map((track) =>
-          getScaleTrackScale(track, scaleTrackMap, scaleMap)
+        const allScales = scaleTracks.map(({ id }) =>
+          Selectors.selectTrackMidiScale(project, id)
         );
         const allScaleNames = allScales.map(getScaleName);
         const scaleNames = [...new Set(allScaleNames)].map(lowerCase);

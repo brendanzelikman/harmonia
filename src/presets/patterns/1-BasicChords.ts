@@ -1,16 +1,12 @@
 import { Pattern } from "types/Pattern";
-import { MIDI } from "types/midi";
+import * as _ from "utils/durations";
 
 export const MajorChord: Pattern = {
   id: "major-chord",
   name: "Major Chord",
   aliases: ["maj", "maj chord", "major", "major chord", "M", "M chord"],
   stream: [
-    [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(67),
-    ],
+    [_.createQuarterNote(60), _.createQuarterNote(64), _.createQuarterNote(67)],
   ],
 };
 export const MinorChord: Pattern = {
@@ -18,11 +14,7 @@ export const MinorChord: Pattern = {
   name: "Minor Chord",
   aliases: ["min", "min chord", "minor", "minor chord", "m", "m chord"],
   stream: [
-    [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(63),
-      MIDI.createQuarterNote(67),
-    ],
+    [_.createQuarterNote(60), _.createQuarterNote(63), _.createQuarterNote(67)],
   ],
 };
 export const DiminishedChord: Pattern = {
@@ -38,10 +30,10 @@ export const DiminishedChord: Pattern = {
   ],
   stream: [
     [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(63),
-      MIDI.createQuarterNote(66),
-      MIDI.createQuarterNote(69),
+      _.createQuarterNote(60),
+      _.createQuarterNote(63),
+      _.createQuarterNote(66),
+      _.createQuarterNote(69),
     ],
   ],
 };
@@ -50,11 +42,7 @@ export const AugmentedChord: Pattern = {
   name: "Augmented Chord",
   aliases: ["aug", "aug chord", "+", "+ chord"],
   stream: [
-    [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(64),
-      MIDI.createQuarterNote(68),
-    ],
+    [_.createQuarterNote(60), _.createQuarterNote(64), _.createQuarterNote(68)],
   ],
 };
 export const Sus2Chord: Pattern = {
@@ -62,11 +50,7 @@ export const Sus2Chord: Pattern = {
   name: "Sus2 Chord",
   aliases: ["sus2", "sus2 chord"],
   stream: [
-    [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(62),
-      MIDI.createQuarterNote(67),
-    ],
+    [_.createQuarterNote(60), _.createQuarterNote(62), _.createQuarterNote(67)],
   ],
 };
 export const Sus4Chord: Pattern = {
@@ -74,11 +58,7 @@ export const Sus4Chord: Pattern = {
   name: "Sus4 Chord",
   aliases: ["sus4", "sus4 chord"],
   stream: [
-    [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(65),
-      MIDI.createQuarterNote(67),
-    ],
+    [_.createQuarterNote(60), _.createQuarterNote(65), _.createQuarterNote(67)],
   ],
 };
 export const QuartalChord: Pattern = {
@@ -86,11 +66,7 @@ export const QuartalChord: Pattern = {
   name: "Quartal Chord",
   aliases: ["quartal", "quartal chord", "q", "q chord"],
   stream: [
-    [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(65),
-      MIDI.createQuarterNote(70),
-    ],
+    [_.createQuarterNote(60), _.createQuarterNote(65), _.createQuarterNote(70)],
   ],
 };
 export const QuintalChord: Pattern = {
@@ -98,11 +74,7 @@ export const QuintalChord: Pattern = {
   name: "Quintal Chord",
   aliases: ["quintal", "quintal chord"],
   stream: [
-    [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(74),
-    ],
+    [_.createQuarterNote(60), _.createQuarterNote(67), _.createQuarterNote(74)],
   ],
 };
 
@@ -111,17 +83,13 @@ export const PowerChord: Pattern = {
   name: "Power Chord",
   aliases: ["5", "5 chord"],
   stream: [
-    [
-      MIDI.createQuarterNote(60),
-      MIDI.createQuarterNote(67),
-      MIDI.createQuarterNote(72),
-    ],
+    [_.createQuarterNote(60), _.createQuarterNote(67), _.createQuarterNote(72)],
   ],
 };
 export const Octave: Pattern = {
   id: "octave",
   name: "Octave",
-  stream: [[MIDI.createQuarterNote(60), MIDI.createQuarterNote(72)]],
+  stream: [[_.createQuarterNote(60), _.createQuarterNote(72)]],
 };
 
 export default {

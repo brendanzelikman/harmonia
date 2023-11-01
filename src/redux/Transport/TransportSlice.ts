@@ -4,124 +4,61 @@ import { clamp } from "lodash";
 import { defaultTransport } from "types/Transport";
 import { BPM, Tick, Volume } from "types/units";
 
-/**
- * The transport slice is responsible for synchronizing the Tone.js Transport with the Redux store.
- * It contains the state of the transport, such as the current tick, the current BPM, etc.
- * Some actions are underscored to indicate that they should not be called directly.
- * Instead, they should be called by the corresponding thunk.
- *
- * @property `_startTransport` - Set the transport state to "started".
- * @property `_stopTransport` - Set the transport state to "stopped" and reset the tick to 0.
- * @property `_pauseTransport` - Set the transport state to "paused".
- * @property `_loopTransport` - Set the transport loop to true or false.
- * @property `_setLoopStart` - Set the transport loop start to the given tick.
- * @property `_setLoopEnd` - Set the transport loop end to the given tick.
- * @property `_setBPM` - Set the transport BPM to the given value.
- * @property `_setTimeSignature` - Set the transport time signature to the given value.
- * @property `_setVolume` - Set the transport volume to the given value.
- * @property `_setMute` - Set the transport mute to true or false.
- * @property `setLoaded` - Set the transport loaded state to true or false.
- * @property `setLoading` - Set the transport loading state to true or false.
- * @property `setRecording` - Set the transport recording state to true or false.
- * @property `setDownloading` - Set the transport downloading state to true or false.
- *
- */
+// ------------------------------------------------------------
+// Transport Slice Definition
+// ------------------------------------------------------------
+
 export const transportSlice = createSlice({
   name: "transport",
   initialState: defaultTransport,
   reducers: {
-    /**
-     * Set the transport state to "started".
-     * @param project - The current transport state.
-     */
+    /** (PRIVATE) Set the transport state to started. */
     _startTransport: (state) => {
       state.state = "started";
     },
-    /**
-     * Set the transport state to "stopped" and reset the tick to 0.
-     * @param project - The current transport state.
-     */
+    /** (PRIVATE) Set the transport state to stopped. */
     _stopTransport: (state) => {
       state.state = "stopped";
     },
-    /**
-     * Set the transport state to "paused".
-     * @param project - The current transport state.
-     */
+    /** (PRIVATE) Set the transport state to paused. */
     _pauseTransport: (state) => {
       state.state = "paused";
     },
-    /**
-     * Set the transport loop to true or false.
-     * @param project - The current transport state.
-     * @param action - The payload action containing the loop value.
-     */
+    /** (PRIVATE) Set the transport loop to the given boolean. */
     _loopTransport: (state, action: PayloadAction<boolean>) => {
       state.loop = action.payload;
     },
-    /**
-     * Set the transport loop start to the given tick.
-     * @param project - The current transport state.
-     * @param action - The payload action containing the loop start tick.
-     */
+    /** (PRIVATE) Set the transport loop start to the given tick. */
     _setLoopStart: (state, action: PayloadAction<Tick>) => {
       state.loopStart = action.payload;
     },
-    /**
-     * Set the transport loop end to the given tick.
-     * @param project - The current transport state.
-     * @param action - The payload action containing the loop end tick.
-     */
+    /** (PRIVATE) Set the transport loop end to the given tick. */
     _setLoopEnd: (state, action: PayloadAction<Tick>) => {
       state.loopEnd = action.payload;
     },
-    /**
-     * Set the transport BPM to the given value.
-     * @param project - The current transport state.
-     * @param action - The payload action containing the BPM value.
-     */
+    /** (PRIVATE) Set the transport BPM to the given value. */
     _setBPM: (state, action: PayloadAction<BPM>) => {
       const bpm = action.payload;
       state.bpm = clamp(bpm, MIN_BPM, MAX_BPM);
     },
-    /**
-     * Set the transport time signature to the given value.
-     * @param project - The current transport state.
-     * @param action - The payload action containing the time signature value.
-     */
+    /** (PRIVATE) Set the transport time signature to the given value. */
     _setTimeSignature: (state, action: PayloadAction<[number, number]>) => {
       state.timeSignature = action.payload;
     },
-    /**
-     * Set the transport volume to the given value.
-     * @param project - The current transport state.
-     * @param action - The payload action containing the volume value.
-     */
+    /** (PRIVATE) Set the transport volume to the given value. */
     _setVolume: (state, action: PayloadAction<Volume>) => {
       const volume = action.payload;
       state.volume = clamp(volume, MIN_VOLUME, MAX_VOLUME);
     },
-    /**
-     * Set the transport mute to true or false.
-     * @param project - The current transport state.
-     * @param action - The payload action containing the mute value.
-     */
+    /** (PRIVATE) Set the transport mute to true or false. */
     _setMute: (state, action: PayloadAction<boolean>) => {
       state.mute = action.payload;
     },
-    /**
-     * Set the transport recording state to true or false.
-     * @param project - The current transport state.
-     * @param action - The payload action containing the recording value.
-     */
+    /** Set the transport recording state to true or false. */
     setRecording: (state, action) => {
       state.recording = action.payload;
     },
-    /**
-     * Set the transport downloading state to true or false.
-     * @param project - The current transport state.
-     * @param action - The payload action containing the downloading value.
-     */
+    /** Set the transport downloading state to true or false. */
     setDownloading: (state, action) => {
       state.downloading = action.payload;
     },

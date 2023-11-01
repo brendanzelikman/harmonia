@@ -1,76 +1,63 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union, without } from "lodash";
 import { defaultTrackHierarchy, TrackNode } from "types/TrackHierarchy";
-import { MediaPayload, PartialMediaPayload } from "types/Media";
+import {
+  RemoveMediaPayload,
+  CreateMediaPayload,
+  UpdateMediaPayload,
+} from "types/Media";
 import { TrackId, TrackInterface } from "types/Track";
 import { isTransposition } from "types/Transposition";
 
-/**
- * A track can be added by ID with an optional parent ID at an optional index.
- */
+// ------------------------------------------------------------
+// Track Payload Types
+// ------------------------------------------------------------
+
+/** A track can be added by ID with an optional parent ID at an optional index. */
 export type AddTrackToHierarchyPayload = TrackInterface;
-/**
- * A track can be removed by ID.
- */
+
+/** A track can be removed by ID. */
 export type RemoveTrackFromHierarchyPayload = TrackId;
-/**
- * A track can be moved to a new index in its parent track.
- */
-export type MoveTrackInHierarchyPayload = {
-  id: TrackId;
-  index: number;
-};
-/**
- * A track can be moved to a new index in a new parent track
- */
+
+/** A track can be moved to a new index in its parent track. */
+export type MoveTrackInHierarchyPayload = { id: TrackId; index: number };
+
+/** A track can be moved to a new index in a new parent track */
 export type MigrateTrackInHierarchyPayload = {
   id: TrackId;
   parentId?: TrackId;
   index?: number;
 };
-/**
- * Tracks can be collapsed by ID.
- */
+
+/** Tracks can be collapsed by ID. */
 export type CollapseTracksInHierarchyPayload = TrackId[];
 
-/**
- * Tracks can be expanded by ID.
- */
+/** Tracks can be expanded by ID. */
 export type ExpandTracksInHierarchyPayload = TrackId[];
 
-/**
- * A track can be cleared of all media.
- */
+/** A track can be cleared of all media. */
 export type ClearTrackInHierarchyPayload = TrackId;
 
-/**
- * A clip can be sliced into two new clips.
- */
+// ------------------------------------------------------------
+// Media Payload Types
+// ------------------------------------------------------------
+
+/** A clip can be sliced into two new clips. */
 export type SliceMediaInHierarchyPayload = {
   oldId: string;
   newIds: string[];
 };
 
-/**
- * Media can be added to the hierarchy within a bundle.
- */
-export type AddMediaToHierarchyPayload = MediaPayload;
+/** Media can only be added to the hierarchy together. */
+export type AddMediaToHierarchyPayload = CreateMediaPayload;
 
-/**
- * Media can be removed from the hierarchy within a bundle.
- */
-export type RemoveMediaFromHierarchyPayload = MediaPayload;
+/** Media can only be updated in the hierarchy together. */
+export type UpdateMediaInHierarchyPayload = UpdateMediaPayload;
 
-/**
- * Media can be updated in the hierarchy within a bundle.
- */
-export type UpdateMediaInHierarchyPayload = PartialMediaPayload;
+/** Media can only be removed from the hierarchy together. */
+export type RemoveMediaFromHierarchyPayload = RemoveMediaPayload;
 
-/**
- * Reduce an array of objects to a map of track id to object ids.
- * @param arr An array of objects.
- * @returns A map of track id to object ids.
- */
+/** Reduce an array of objects to a map of track id to object ids. */
 const getObjectsByTrack = (arr?: { id: string; trackId: TrackId }[]) => {
   if (!arr?.length) return {};
   return arr.reduce((acc, clip) => {
@@ -80,33 +67,14 @@ const getObjectsByTrack = (arr?: { id: string; trackId: TrackId }[]) => {
   }, {} as Record<TrackId, string[]>);
 };
 
-/**
- * The hierarchy slice contains all of the tracks, clips, and transpositions in the hierarchy.
- *
- * @property `addScaleTrackToHierarchy` - Add a scale track to the hierarchy.
- * @property `removeScaleTrackFromHierarchy` - Remove a scale track from the hierarchy.
- * @property `addPatternTrackToHierarchy` - Add a pattern track to the hierarchy.
- * @property `removePatternTrackFromHierarchy` - Remove a pattern track from the hierarchy.
- * @property `moveTrackInHierarchy` - Move a track to a new index in its parent track.
- * @property `migrateTrackInHierarchy` - Move a track to a new index in a new parent track.
- * @property `collapseTracksInHierarchy` - Collapse tracks in the hierarchy.
- * @property `expandTracksInHierarchy` - Expand tracks in the hierarchy.
- * @property `clearTrackInHierarchy` - Clear a track of all media.
- * @property `addMediaToHierarchy` - Add media to the hierarchy.
- * @property `removeMediaFromHierarchy` - Remove media from the hierarchy.
- * @property `updateMediaInHierarchy` - Update media in the hierarchy.
- * @property `sliceMediaInHierarchy` - Slice media into two.
- *
- */
+// ------------------------------------------------------------
+// Slice Definition
+// ------------------------------------------------------------
 export const trackHierarchySlice = createSlice({
   name: "trackHierarchy",
   initialState: defaultTrackHierarchy,
   reducers: {
-    /**
-     * Add a scale track to the hierarchy.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     */
+    /** Add a scale track to the hierarchy. */
     addScaleTrackToHierarchy: (
       state,
       action: PayloadAction<AddTrackToHierarchyPayload>
@@ -141,11 +109,7 @@ export const trackHierarchySlice = createSlice({
       state.byId[id] = newScaleTrack;
       state.allIds.push(id);
     },
-    /**
-     * Remove a scale track from the hierarchy.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     */
+    /** Remove a scale track from the hierarchy. */
     removeScaleTrackFromHierarchy: (
       state,
       action: PayloadAction<RemoveTrackFromHierarchyPayload>
@@ -172,11 +136,7 @@ export const trackHierarchySlice = createSlice({
       state.allIds = without(state.allIds, id);
       state.topLevelIds = without(state.topLevelIds, id);
     },
-    /**
-     * Add a pattern track to the hierarchy.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     */
+    /** Add a pattern track to the hierarchy. */
     addPatternTrackToHierarchy: (
       state,
       action: PayloadAction<AddTrackToHierarchyPayload>
@@ -209,11 +169,7 @@ export const trackHierarchySlice = createSlice({
       state.byId[id] = newPatternTrack;
       state.allIds.push(id);
     },
-    /**
-     * Remove a pattern track from the hierarchy.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     */
+    /** Remove a pattern track from the hierarchy. */
     removePatternTrackFromHierarchy: (
       state,
       action: PayloadAction<RemoveTrackFromHierarchyPayload>
@@ -234,12 +190,7 @@ export const trackHierarchySlice = createSlice({
       if (!scaleTrack) return;
       scaleTrack.trackIds = without(scaleTrack.trackIds, id);
     },
-    /**
-     * Move a track to a new index in its parent track.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     * @returns The new hierarchy state.
-     */
+    /** Move a track to a new index in its parent track. */
     moveTrackInHierarchy: (
       state,
       action: PayloadAction<MoveTrackInHierarchyPayload>
@@ -263,11 +214,7 @@ export const trackHierarchySlice = createSlice({
       parentScaleTrack.trackIds.splice(oldIndex, 1);
       parentScaleTrack.trackIds.splice(index, 0, id);
     },
-    /**
-     * Move a track to a new index in a new parent track.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     */
+    /** Move a track to a new index in a new parent track. */
     migrateTrackInHierarchy: (
       state,
       action: PayloadAction<MigrateTrackInHierarchyPayload>
@@ -306,11 +253,7 @@ export const trackHierarchySlice = createSlice({
         state.topLevelIds.push(id);
       }
     },
-    /**
-     * Collapse the tracks in the hierarchy.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     */
+    /** Collapse the tracks in the hierarchy. */
     collapseTracksInHierarchy: (
       state,
       action: PayloadAction<CollapseTracksInHierarchyPayload>
@@ -322,12 +265,7 @@ export const trackHierarchySlice = createSlice({
         track.collapsed = true;
       });
     },
-    /**
-     * Expand the tracks in the hierarchy.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     * @returns The new hierarchy state.
-     */
+    /** Expand the tracks in the hierarchy. */
     expandTracksInHierarchy: (
       state,
       action: PayloadAction<ExpandTracksInHierarchyPayload>
@@ -339,12 +277,7 @@ export const trackHierarchySlice = createSlice({
         track.collapsed = false;
       });
     },
-    /**
-     * Clear a track of all media.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     * @returns The new hierarchy state.
-     */
+    /** Clear a track of all media. */
     clearTrackInHierarchy: (
       state,
       action: PayloadAction<ClearTrackInHierarchyPayload>
@@ -356,11 +289,7 @@ export const trackHierarchySlice = createSlice({
       track.clipIds = [];
       track.transpositionIds = [];
     },
-    /**
-     * Add media to the hierarchy.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     */
+    /** Add media to the hierarchy. */
     addMediaToHierarchy: (
       state,
       action: PayloadAction<AddMediaToHierarchyPayload>
@@ -392,36 +321,7 @@ export const trackHierarchySlice = createSlice({
         );
       });
     },
-    /**
-     * Remove media from the hierarchy.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     */
-    removeMediaFromHierarchy: (
-      state,
-      action: PayloadAction<RemoveMediaFromHierarchyPayload>
-    ) => {
-      const { clips, transpositions } = action.payload;
-      // Remove the media from every track
-      state.allIds.forEach((trackId) => {
-        const track = state.byId[trackId];
-        if (!track) return;
-        const clipIds = (clips || []).map((clip) => clip.id);
-        const transpositionIds = (transpositions || []).map(
-          (transposition) => transposition.id
-        );
-        track.clipIds = without(track.clipIds, ...clipIds);
-        track.transpositionIds = without(
-          track.transpositionIds,
-          ...transpositionIds
-        );
-      });
-    },
-    /**
-     * Update media in the hierarchy, changing track IDs where necessary.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     */
+    /** Update media in the hierarchy, changing track IDs where necessary. */
     updateMediaInHierarchy: (
       state,
       action: PayloadAction<UpdateMediaInHierarchyPayload>
@@ -451,11 +351,24 @@ export const trackHierarchySlice = createSlice({
         trackNode[field].push(id);
       }
     },
-    /**
-     * Slice a media clip into two new clips.
-     * @param project The hierarchy state.
-     * @param action The payload action.
-     */
+    /** Remove media from the hierarchy. */
+    removeMediaFromHierarchy: (
+      state,
+      action: PayloadAction<RemoveMediaFromHierarchyPayload>
+    ) => {
+      const { clipIds, transpositionIds } = action.payload;
+      // Remove the media from every track
+      state.allIds.forEach((trackId) => {
+        const track = state.byId[trackId];
+        if (!track) return;
+        track.clipIds = without(track.clipIds, ...clipIds);
+        track.transpositionIds = without(
+          track.transpositionIds,
+          ...transpositionIds
+        );
+      });
+    },
+    /** Slice a media clip into two new clips. */
     sliceMediaInHierarchy: (
       state,
       action: PayloadAction<SliceMediaInHierarchyPayload>
@@ -503,8 +416,8 @@ export const {
   expandTracksInHierarchy,
   clearTrackInHierarchy,
   addMediaToHierarchy,
-  removeMediaFromHierarchy,
   updateMediaInHierarchy,
+  removeMediaFromHierarchy,
   sliceMediaInHierarchy,
 } = trackHierarchySlice.actions;
 

@@ -1,85 +1,84 @@
 import { expect, test } from "vitest";
 import {
-  Transposition,
-  defaultTransposition,
+  initializeTransposition,
   mockTransposition,
 } from "./TranspositionTypes";
-import * as TranspositionFunctions from "./TranspositionFunctions";
+import * as _ from "./TranspositionFunctions";
 
 test("getTranspositionTag", () => {
-  const tag = TranspositionFunctions.getTranspositionTag(mockTransposition);
+  const tag = _.getTranspositionAsString(mockTransposition);
   expect(tag).toContain(mockTransposition.id);
   expect(tag).toContain(mockTransposition.tick);
   expect(tag).toContain(mockTransposition.trackId);
 });
 
-test("getScalarOffsets", () => {
-  const mockOffsets = TranspositionFunctions.getScalarOffsets(
-    mockTransposition.offsets,
-    ["mock_track"]
-  );
-  expect(mockOffsets).toEqual([mockTransposition.offsets.mock_track]);
-
-  const invalidOffsets = TranspositionFunctions.getScalarOffsets(
-    mockTransposition.offsets,
-    undefined
-  );
-  expect(invalidOffsets).toEqual([]);
+test("getChromaticOffset should return the correct chromatic value if it exists", () => {
+  const chromaticOffset = _.getChromaticOffset(mockTransposition.vector);
+  expect(chromaticOffset).toEqual(mockTransposition.vector.chromatic);
 });
 
-test("getScalarOffset", () => {
-  const mockOffset = TranspositionFunctions.getScalarOffset(
-    mockTransposition.offsets,
+test("getChromaticOffset should return 0 if the chromatic value does not exist", () => {
+  expect(_.getChromaticOffset(undefined)).toEqual(0);
+  expect(_.getChromaticOffset({})).toEqual(0);
+  expect(_.getChromaticOffset({ chordal: 1 })).toEqual(0);
+});
+
+test("getChordalOffset should return the correct chordal value if it exists", () => {
+  const chordalOffset = _.getChordalOffset(mockTransposition.vector);
+  expect(chordalOffset).toEqual(mockTransposition.vector.chordal);
+});
+
+test("getChordalOffset should return 0 if the chordal value does not exist", () => {
+  expect(_.getChordalOffset(undefined)).toEqual(0);
+  expect(_.getChordalOffset({})).toEqual(0);
+  expect(_.getChordalOffset({ chromatic: 1 })).toEqual(0);
+});
+
+test("getTranspositionOffsetById should return the correct value if it exists", () => {
+  const offset = _.getTranspositionOffsetById(
+    mockTransposition.vector,
     "mock_track"
   );
-  expect(mockOffset).toEqual(mockTransposition.offsets.mock_track);
-
-  const invalidOffset = TranspositionFunctions.getScalarOffset(
-    mockTransposition.offsets,
-    undefined
-  );
-  expect(invalidOffset).toEqual(0);
+  expect(offset).toEqual(mockTransposition.vector.mock_track);
 });
 
-test("getChromaticOffset", () => {
-  const chromaticOffset = TranspositionFunctions.getChromaticOffset(
-    mockTransposition.offsets
+test("getTranspositionOffsetById should return 0 if the value does not exist", () => {
+  expect(_.getTranspositionOffsetById(undefined, "mock_track")).toEqual(0);
+  expect(_.getTranspositionOffsetById({}, "mock_track")).toEqual(0);
+  expect(_.getTranspositionOffsetById({ chromatic: 1 }, "mock_track")).toEqual(
+    0
   );
-  expect(chromaticOffset).toEqual(mockTransposition.offsets._chromatic);
-
-  const invalidOffset = TranspositionFunctions.getChromaticOffset(undefined);
-  expect(invalidOffset).toEqual(0);
 });
 
-test("getChordalOffset", () => {
-  const chordalOffset = TranspositionFunctions.getChordalOffset(
-    mockTransposition.offsets
-  );
-  expect(chordalOffset).toEqual(mockTransposition.offsets._self);
-
-  const invalidOffset = TranspositionFunctions.getChordalOffset(undefined);
-  expect(invalidOffset).toEqual(0);
+test("getTranspositionOffsetsById should return the correct values if they exist", () => {
+  const offsets = _.getTranspositionOffsetsById(mockTransposition.vector, [
+    "chromatic",
+    "chordal",
+    "mock_track",
+  ]);
+  expect(offsets).toEqual([
+    mockTransposition.vector.chromatic,
+    mockTransposition.vector.chordal,
+    mockTransposition.vector.mock_track,
+  ]);
 });
 
-test("getLastTransposition", () => {
-  const transpositions: Transposition[] = [
-    { ...defaultTransposition, id: "t1", tick: 0 },
-    { ...defaultTransposition, id: "t2", tick: 1 },
-    { ...defaultTransposition, id: "t3", tick: 2 },
-    { ...defaultTransposition, id: "t4", tick: 3 },
-  ];
-  const t0 = TranspositionFunctions.getLastTransposition(transpositions, 0);
-  expect(t0).toEqual(transpositions[0]);
+test("getTranspositionOffsetsById should return 0 where the values do not exist", () => {
+  const offsets = _.getTranspositionOffsetsById(mockTransposition.vector, [
+    "mock_track",
+    "mock_track_2",
+  ]);
+  expect(offsets).toEqual([mockTransposition.vector.mock_track, 0]);
+});
 
-  const t1 = TranspositionFunctions.getLastTransposition(transpositions, 1);
-  expect(t1).toEqual(transpositions[1]);
+test("getCurrentTransposition should correctly return the current transposition if it exists", () => {
+  const t1 = initializeTransposition({ tick: 1, duration: 3 });
+  const t2 = initializeTransposition({ tick: 2, duration: 1 });
+  const t3 = initializeTransposition({ tick: 3 });
+  const transpositions = [t1, t2, t3];
 
-  const t2 = TranspositionFunctions.getLastTransposition(transpositions, 2);
-  expect(t2).toEqual(transpositions[2]);
-
-  const t3 = TranspositionFunctions.getLastTransposition(transpositions, 3);
-  expect(t3).toEqual(transpositions[3]);
-
-  const t4 = TranspositionFunctions.getLastTransposition(transpositions, 4);
-  expect(t4).toEqual(transpositions[3]);
+  expect(_.getCurrentTransposition(transpositions, 0)).toEqual(undefined);
+  expect(_.getCurrentTransposition(transpositions, 1)).toEqual(t1);
+  expect(_.getCurrentTransposition(transpositions, 2)).toEqual(t2);
+  expect(_.getCurrentTransposition(transpositions, 3)).toEqual(t3);
 });

@@ -6,8 +6,8 @@ import { BsQuestionCircleFill } from "react-icons/bs";
 import { ShepherdTourContext } from "react-shepherd";
 import { hideEditor } from "redux/Editor";
 import { useProjectDispatch } from "redux/hooks";
-import { END_TOUR, SET_TOUR_ID, START_TOUR } from ".";
-import { dispatchCustomEvent } from "utils/events";
+import { END_TOUR, START_TOUR } from ".";
+import { dispatchCustomEvent } from "utils/html";
 
 interface ContentProps {
   confetti: boolean;

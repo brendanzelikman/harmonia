@@ -17,16 +17,12 @@ import {
   initializeProject,
   sanitizeProject,
 } from "types/Project";
-import { PLAYGROUND_LINK, dispatchCustomEvent } from "utils";
-import { redirect } from "react-router-dom";
+import { dispatchCustomEvent } from "utils/html";
 
 export const CREATE_PROJECT = "createProject";
 export const DELETE_PROJECT = "deleteProject";
 
-/**
- * Try to create a new project, using the given template if specified.
- * @param template The template project to use.
- */
+/** Try to create a new project, using the given template if specified. */
 export const createProject = async (template?: Project) => {
   const project = initializeProject(template);
   const id = project.meta.id;
@@ -40,10 +36,7 @@ export const createProject = async (template?: Project) => {
   }
 };
 
-/**
- * Try to delete the project from the database.
- * @param id The ID of the project to delete.
- */
+/** Try to delete the project from the database. */
 export const deleteProject = (id: string) => () => {
   try {
     deleteProjectFromDB(id);
@@ -54,10 +47,7 @@ export const deleteProject = (id: string) => () => {
   }
 };
 
-/**
- * Try to save the project to the database, sanitizing it first.
- * @param project The state to save. If not specified, the current state is used.
- */
+/** Try to save the project to the database, sanitizing it first. */
 export const saveProject =
   (project?: Project): Thunk =>
   (dispatch, getProject) => {
@@ -74,9 +64,7 @@ export const saveProject =
     updateProjectInDB(updatedProject);
   };
 
-/**
- * Export the project to a Harmonia file, using the given state if specified.
- */
+/** Export the project to a Harmonia file, using the given state if specified. */
 export const exportProjectToHAM =
   (project?: Project): Thunk =>
   (dispatch, getProject) => {
@@ -85,7 +73,7 @@ export const exportProjectToHAM =
     const projectJSON = JSON.stringify(sanitizedProject);
 
     // Create a blob and download it
-    const blob = new Blob([projectJSON], { type: "text/plain" });
+    const blob = new Blob([projectJSON], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     const name = selectProjectName(sanitizedProject);
@@ -95,10 +83,7 @@ export const exportProjectToHAM =
     URL.revokeObjectURL(url);
   };
 
-/**
- * Export the project to a MIDI file based on its clips, using the given project if specified.
- * @param project The project to export. If not specified, the current project is used.
- */
+/** Export the project to a MIDI file based on its clips, using the given project if specified. */
 export const exportProjectToMIDI =
   (project?: Project): Thunk =>
   (dispatch, getProject) => {
@@ -107,9 +92,7 @@ export const exportProjectToMIDI =
     dispatch(exportClipsToMidi(clipIds));
   };
 
-/**
- * Open the user's file system and read local projects.
- */
+/** Open the user's file system and read local projects. */
 export const openLocalProjects = (): Thunk => (dispatch) => {
   const input = document.createElement("input");
   input.type = "file";
@@ -123,29 +106,22 @@ export const openLocalProjects = (): Thunk => (dispatch) => {
   input.click();
 };
 
-/**
- * Try to load the project by ID from the database.
- * @param id The ID of the project to load.
- */
+/** Try to load the project by ID from the database. */
 export const loadProject =
-  (id: string): Thunk =>
+  (id: string, callback?: () => void): Thunk =>
   async (dispatch) => {
-    // Query the database
-    const project = await getProjectFromDB(id);
-
-    // Update the current project ID
-    await setCurrentProjectId(id);
-
-    // Update the Redux state
-    dispatch({ type: "setState", payload: project });
-
-    // Redirect to the playground
-    window.location.href = PLAYGROUND_LINK;
+    try {
+      const project = await getProjectFromDB(id);
+      await setCurrentProjectId(id);
+      dispatch({ type: "setProject", payload: project });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      callback?.();
+    }
   };
 
-/**
- * Try to load a project from a Harmonia file.
- */
+/** Try to load a project from a Harmonia file. */
 export const loadProjectByFile =
   (file: File): Thunk =>
   (dispatch) => {
@@ -178,15 +154,11 @@ export const loadProjectByFile =
     }
   };
 
-/**
- * Try to load the project from the given path.
- * @param path The path to the project.
- */
+/** Try to load the project from the given path. */
 export const loadProjectByPath =
-  (path: string): Thunk =>
+  (path: string, callback?: () => void): Thunk =>
   async () => {
     try {
-      // Parse the project from the file path
       const project = await fetch(path).then((res) => res.json());
       await uploadProjectToDB({
         ...project,
@@ -195,17 +167,13 @@ export const loadProjectByPath =
     } catch (e) {
       console.error(e);
     } finally {
-      // Redirect to the playground
-      window.location.href = PLAYGROUND_LINK;
+      callback?.();
     }
   };
 
-/**
- * Reset the project's state to the default.
- */
+/** Reset the project's state to the default. */
 export const clearProject = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const meta = selectMetadata(project);
-  const newState = { ...defaultProject, meta };
-  dispatch({ type: "setState", payload: newState });
+  dispatch({ type: "setProject", payload: { ...defaultProject, meta } });
 };

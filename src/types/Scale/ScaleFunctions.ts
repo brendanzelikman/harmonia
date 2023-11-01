@@ -1,488 +1,454 @@
-import { Note, Pitch } from "types/units";
-import { MIDI } from "../midi";
+import * as _ from "./ScaleTypes";
+import * as ScaleFunctions from "./ScaleFunctions";
+import { Key, PitchClass } from "types/units";
 import {
   PresetScaleGroupList,
   PresetScaleGroupMap,
   PresetScaleList,
+  PresetScaleMap,
 } from "presets/scales";
-import {
-  Scale,
-  isScale,
-  isScaleArray,
-  isScaleObject,
-  NestedScale,
-  chromaticNotes,
-  isNestedScaleArray,
-  isNestedScale,
-  ScaleArray,
-  isNestedNote,
-  NestedNote,
-  chromaticScale,
-  nestedChromaticScale,
-  ScaleTrackScaleName,
-} from "./ScaleTypes";
-import { mod } from "utils";
 import {
   Transposition,
   getChordalOffset,
   getChromaticOffset,
 } from "types/Transposition";
-import { isEqual } from "lodash";
+import { isEqual, isUndefined, range } from "lodash";
+import { mod } from "utils/math";
+import { getMidiPitchClass } from "utils/midi";
+import { SCALE_TRACK_SCALE_NAME } from "utils/constants";
+import { isScale } from "./ScaleTypes";
+import { getValueByKey } from "utils/objects";
 
-/**
- * Get the unique tag of a given `Scale`.
- * @param scale Optional. The `Scale` object.
- * @returns Unique tag string.
- */
-export const getScaleTag = (scale: Partial<Scale>) => {
-  if (Array.isArray(scale) || isScaleArray(scale)) return scale.join(",");
-  const { id, name, notes } = scale;
-  return `${id}@${name}@${notes?.join(",")}`;
+// ------------------------------------------------------------
+// Scale Serializers
+// ------------------------------------------------------------
+
+/** Get a `MidiNote` as a string. */
+export const getMidiNoteAsString = (note: _.MidiNote) => {
+  if (_.isMidiValue(note)) return note.toString();
+  return note.MIDI.toString();
 };
 
-/**
- * Get the unique tag of a given `NestedScale`.
- * @param scale Optional. The `NestedScale` object.
- * @returns Unique tag string.
- */
-export const getNestedScaleTag = (scale: Partial<NestedScale>) => {
-  if (Array.isArray(scale) || isNestedScaleArray(scale)) return scale.join(",");
-  const { id, name, notes } = scale;
-  const noteTag = notes ? notes.map(getNestedNoteTag).join(",") : "";
-  return `${id}@${name}@${noteTag}`;
+/** Get a `NestedNote` as a string. */
+export const getNestedNoteAsString = (note: _.NestedNote) => {
+  return `${note.degree}@${JSON.stringify(note.offset)}@${note.scaleId}`;
 };
 
-/**
- * Get the unique tag of a given NestedNote.
- * @param note Optional. The NestedNote object.
- * @returns Unique tag string.
- */
-export const getNestedNoteTag = (note: Partial<NestedNote>) => {
-  const { degree, offset } = note;
-  return `${degree}@${offset}`;
+/** Get a `ScaleNote` as a string. */
+export const getScaleNoteAsString = (note: _.ScaleNote) => {
+  if (_.isMidiNote(note)) return getMidiNoteAsString(note);
+  return getNestedNoteAsString(note);
 };
 
-/**
- * Unpacks the notes of a `Scale`.
- * @param scale The `Scale` to unpack.
- * @returns An array of MIDI notes. If the `Scale` is invalid, return an empty array.
- */
-export const getScaleNotes = (scale?: Scale): ScaleArray => {
-  if (isScaleArray(scale)) return [...scale];
-  if (isScaleObject(scale)) return [...scale.notes];
-  return [];
+/** Get a `ScaleArray` as a string. */
+export const getScaleArrayAsString = (scale: _.ScaleArray) => {
+  return scale.map(getScaleNoteAsString).join(",");
 };
 
-/**
- * Unpacks the notes of a `NestedScale`.
- * @param scale The `NestedScale` to unpack.
- * @returns An array of `NestedNotes`. If the `NestedScale` is invalid, return an empty array.
- */
-export const getNestedScaleNotes = (scale?: NestedScale): NestedNote[] => {
-  if (isNestedScaleArray(scale)) return [...scale];
-  if (isNestedScale(scale)) return [...scale.notes];
-  return [];
+/** Get a `ScaleObject` as a string. */
+export const getScaleObjectAsString = (scale: _.ScaleObject) => {
+  return `${scale.id}@${scale.name}@${getScaleArrayAsString(scale.notes)}`;
 };
 
-/**
- * Resolves the notes of a `NestedScale` by applying the chromatic scale
- * @param scale The `NestedScale` to extract.
- * @returns An array of MIDI notes. If the `NestedScale` is invalid, return an empty array.
- */
-export const resolveNestedScale = (scale: NestedScale): ScaleArray => {
-  const notes = getNestedScaleNotes(scale);
-  return notes.map(({ degree, offset }) => chromaticNotes[degree] + offset);
+/** Get a `Scale` as a string. */
+export const getScaleAsString = (scale: _.Scale) => {
+  if (_.isScaleArray(scale)) return getScaleArrayAsString(scale);
+  return getScaleObjectAsString(scale);
 };
 
-/**
- * Applies a `NestedNote` to a `NestedScale` to get another `NestedNote`.
- * @param scale The `NestedScale` to apply the `NestedNote` to.
- * @param note Optional. The `NestedNote` to apply.
- * @returns A `NestedNote`. If the `NestedScale` or `NestedNote` is invalid, return an empty array.
- */
-export const applyNestedNote = (
-  scale: NestedScale,
-  note?: NestedNote
-): NestedNote => {
-  if (!isNestedScale(scale) || !isNestedNote) return { degree: 0, offset: 0 };
-  const notes = getNestedScaleNotes(scale);
-  const { degree, offset } = note || { degree: 0, offset: 0 };
-  const appliedNote = notes[degree];
-  if (!appliedNote) return { degree, offset };
-  return { degree: appliedNote.degree, offset: appliedNote.offset + offset };
+/** Get a `ScaleUpdate` as a string. */
+export const getScaleUpdateAsString = (scale: _.ScaleUpdate) => {
+  return JSON.stringify(scale);
 };
 
-/**
- * Maps a MIDI note to a corresponding NestedNote within the chromatic scale.
- * @param Note The MIDI note.
- * @returns The mapped NestedNote.
- * */
-export const mapNestedNote = (note: Note): NestedNote => {
-  // Get the pitch class of the note
-  const pitch = MIDI.toPitchClass(note);
-  const chromaticNotes = getScaleNotes(chromaticScale);
-  const chromaticPitches = chromaticNotes.map((n) => MIDI.toPitchClass(n));
+// ------------------------------------------------------------
+// Scale Type Operations
+// ------------------------------------------------------------
 
-  // Get the degree and offset of the note
-  const degree = chromaticPitches.indexOf(pitch);
-  if (degree < 0) return { degree: 0, offset: 0 };
-  const offset = MIDI.OctaveDistance(chromaticNotes[degree], note) * 12;
-
-  // Return the scale track note
-  return { degree, offset };
+/** Sum a `MidiNote` with a number or array of numbers */
+export const getTransposedMidiNote = (
+  note: _.MidiNote,
+  ...offsets: number[]
+) => {
+  const sum = offsets.flat().reduce((acc, cur) => acc + cur, 0);
+  const value = getMidiNoteAsValue(note);
+  const midi = value + sum;
+  return _.isMidiObject(note) ? { ...note, MIDI: midi } : midi;
 };
 
-/**
- * Uses a Scale to map a ScaleTrackNote to a corresponding MIDI note.
- * @param scale - The array of notes.
- * @param trackNote - Optional. The ScaleTrackNote. If undefined, return the root note of the scale.
- * @returns The mapped MIDI note.
- */
-export const getNestedNoteAsMidi = (
-  scale: Scale,
-  trackNote?: NestedNote
-): Note => {
-  const notes = getScaleNotes(scale);
-  return notes[trackNote?.degree || 0] + (trackNote?.offset || 0);
-};
-
-/**
- * Realizes the notes of the last `NestedScale` within the array provided,
- * using precedent `NestedScale`s as parents.
- * @param scaleOrArray The `NestedScale` or `NestedScale`s to unpack.
- * @returns An array of MIDI notes. If the `NestedScale` is invalid, return an empty array.
- */
-
-export const realizeNestedScaleNotes = (
-  scaleOrArray: NestedScale | NestedScale[]
-): ScaleArray => {
-  // If a single scale is provided, return the resolved scale notes
-  if (isNestedScale(scaleOrArray)) {
-    return resolveNestedScale(scaleOrArray);
-  }
-
-  // Otherwise, spread the array into a new set of scales
-  const scales = [...scaleOrArray];
-  const scaleCount = scales.length;
-  if (scaleCount === 0) return [];
-
-  // Get the last scale
-  let scale = scales.pop();
-  if (!scale) return [];
-
-  // Keep chaining the scales until there are no more
-  while (scales.length) {
-    const parent = scales.pop();
-    if (!parent) break;
-
-    // Unpack the scale notes
-    const notes = getNestedScaleNotes(scale);
-
-    // Map the scale notes to the parent
-    scale = notes.map((note) => applyNestedNote(parent, note));
-  }
-
-  // Return the notes of the last scale applied to the chromatic scale
-  return resolveNestedScale(scale);
-};
-
-/**
- * Gets the scale as a list of pitch classes.
- * @param scale The Scale to convert.
- * @returns An array of pitch classes. If the Scale is invalid, return an empty array.
- */
-export const getScalePitchClasses = (scale: Scale) => {
-  if (!isScale(scale)) return [];
-  const notes = getScaleNotes(scale);
-  return notes.map((note) => MIDI.toPitchClass(note));
-};
-
-/**
- * Sorts the list of pitch classes by chromatic number.
- * @param pitches The pitches to sort.
- * @returns A sorted array of pitch classes.
- */
-export const getSortedPitchClasses = (pitches: Pitch[]) => {
-  return pitches.sort(
-    (a, b) => MIDI.ChromaticNumber(a) - MIDI.ChromaticNumber(b)
+/** Sum an array of `ScaleVector`s together. */
+export const sumScaleVectors = (offsets: (_.ScaleVector | undefined)[]) => {
+  return offsets.reduce(
+    (acc: _.ScaleVector, cur: _.ScaleVector | undefined) => {
+      if (!cur) return acc;
+      const keys = Object.keys(cur);
+      keys.forEach((key) => {
+        const value = cur[key];
+        acc[key] = (acc[key] || 0) + value;
+      });
+      return acc;
+    },
+    {} as _.ScaleVector
   );
 };
 
-/**
- * Gets the name of a preset scale matching the given scale.
- * @param scale Optional. The scale to match.
- * @returns The name of the matching preset scale.
- */
-export const getScaleName = (scale?: Scale) => {
+/** Get the degree of a `ScaleNote` */
+export const getScaleNoteDegree = (note?: _.ScaleNote) => {
+  if (!note) return 0;
+  if (_.isNestedNote(note)) return note.degree;
+  return getMidiNoteAsValue(note) % 12;
+};
+
+/** Get the octave offset of a `ScaleNote` */
+export const getScaleNoteOctaveOffset = (note?: _.ScaleNote) => {
+  if (!note) return 0;
+  if (_.isNestedNote(note)) return note.offset?.octave || 0;
+  return Math.floor((getMidiNoteAsValue(note) - 60) / 12);
+};
+
+// ------------------------------------------------------------
+// Scale Type Conversions
+// ------------------------------------------------------------
+
+/** Get a `MidiNote` as a number. */
+export const getMidiNoteAsValue = (note?: _.MidiNote) => {
+  if (!_.isMidiNote(note)) return 0;
+  return _.isMidiValue(note) ? note : note.MIDI;
+};
+
+/** Get a `MidiNote` as a `ScaleNote` (using the chromatic scale). */
+export const getMidiNoteAsScaleNote = (note: _.MidiNote): _.ScaleNote => {
+  const midi = getMidiNoteAsValue(note);
+  const degree = mod(midi, 12);
+  const octave = Math.floor((midi - 60) / 12);
+  const offset = octave ? { octave } : undefined;
+  return { degree, offset: offset };
+};
+
+/** Get a `ScaleNote` as a `MidiValue` (using the chromatic scale). */
+export const getScaleNoteAsMidiValue = (note?: _.ScaleNote): _.MidiValue => {
+  if (!note) return 0;
+  if (_.isMidiNote(note)) return getMidiNoteAsValue(note);
+  const { degree, offset } = note;
+  const chromatic = offset?.chromatic || 0;
+  const octave = offset?.octave || 0;
+  return _.chromaticNotes[degree] + chromatic + octave * 12;
+};
+
+/** Get a `ScaleNote` as a pitch class (e.g. C#) */
+export const getScaleNoteAsPitchClass = (note: _.ScaleNote): PitchClass => {
+  const midi = getScaleNoteAsMidiValue(note);
+  return getMidiPitchClass(midi);
+};
+
+/** Get a `Scale` as an array of notes. */
+export const getScaleAsArray = (scale?: _.Scale): _.ScaleArray => {
+  if (!scale) return [];
+  return _.isScaleArray(scale) ? scale : scale.notes;
+};
+
+/** Get a `Scale` as a list of pitch classes. */
+export const getScaleAsKey = (scale: _.Scale): Key => {
+  const notes = getScaleAsArray(scale);
+  return notes.map(getScaleNoteAsPitchClass);
+};
+
+// ------------------------------------------------------------
+// Property Getters
+// ------------------------------------------------------------
+
+/** Gets the name of a preset scale matching the given scale. */
+export const getScaleName = (scale?: _.Scale) => {
   // Return "No Scale" if the scale is invalid
-  if (!isScale(scale)) return "No Scale";
+  if (!_.isScale(scale)) return "No Scale";
 
   // Return "Empty Scale" if the scale is empty
-  const scaleNotes = getScaleNotes(scale);
+  const scaleNotes = getScaleAsArray(scale);
   if (!scaleNotes.length) return "Empty Scale";
 
   // Return the scale name if it exists and is not equal to the track name
-  if (isScaleObject(scale)) {
-    if (scale.name && scale.name !== ScaleTrackScaleName) return scale.name;
+  if (_.isScaleObject(scale)) {
+    if (scale.name && scale.name !== SCALE_TRACK_SCALE_NAME)
+      return scale.name ?? "";
   }
 
   // Find the matching preset scales
-  const matchingScale = PresetScaleList.find((s) => areScalesRelated(s, scale));
+  const matchingScale = PresetScaleList.find((s) =>
+    ScaleFunctions.areScalesRelated(s, scale)
+  );
 
   // Get the name of the scale from the matching scale, NOT the underlying scale
   const firstScaleNote = scaleNotes?.[0];
-  const firstPitch = firstScaleNote ? MIDI.toPitchClass(firstScaleNote) : "";
+  const firstPitch = firstScaleNote
+    ? getScaleNoteAsPitchClass(firstScaleNote)
+    : "";
 
   // Construct the scale name with the first pitch and matching scale name
   const scaleName = matchingScale
-    ? isEqual(matchingScale, chromaticScale)
+    ? isEqual(matchingScale, _.chromaticScale)
       ? matchingScale.name
       : `${!!firstPitch ? `${firstPitch}` : ""} ${matchingScale.name}`
     : "Custom Scale";
 
   // Return the scale name
-  return scaleName;
+  return scaleName ?? "Custom Scale";
 };
 
-/**
- * Gets the category of a preset scale matching the given scale.
- * @param scale Optional. The scale to match.
- * @returns The category of the matching preset scale.
- */
-export const getScaleCategory = (scale?: Scale) => {
-  if (!isScale(scale)) return "No Category";
+/** Gets the category of a preset scale matching the given scale. */
+export const getScaleCategory = (scale?: _.Scale) => {
+  if (!_.isScale(scale)) return "No Category";
   return (
     PresetScaleGroupList.find((c) => {
-      return PresetScaleGroupMap[c].some((m) => areScalesRelated(m, scale));
+      return PresetScaleGroupMap[c].some((m) =>
+        ScaleFunctions.areScalesRelated(m, scale)
+      );
     }) ?? "Custom Scales"
   );
 };
-/**
- * Gets the scale transposed by the given offset.
- * @param scale Optional. The Scale to transpose.
- * @param offset Optional. The offset to transpose by.
- * @returns The transposed Scale. If the Scale is invalid, return an empty array.
- */
-export const getTransposedScale = (
-  scale?: Scale,
-  offset: number = 0
-): Scale => {
-  // Return an empty array if the scale is invalid
-  if (!isScale(scale)) return [];
 
-  // Avoid unecessary work
-  if (offset === 0) return scale;
+// ------------------------------------------------------------
+// Scale Functions
+// ------------------------------------------------------------
 
-  // Unpack the scale
-  const notes = getScaleNotes(scale);
-  if (!notes.length) return scale;
-
-  // Transpose the scale notes
-  const transposedNotes = notes.map((note) => note + offset);
-
-  // Return the transposed scale
-  if (isScaleArray(scale)) return transposedNotes;
-  return { ...scale, notes: transposedNotes };
+/** Create a list of scales in all 12 keys from a preset ID. */
+export const createScalesInAllKeys = (scaleId: _.ScaleId) => {
+  const scale = PresetScaleMap[scaleId];
+  if (!scale) throw new Error(`Invalid scale id: ${scaleId}`);
+  return new Array(12).fill(0).map((_, i) => getTransposedScale(scale, i));
 };
 
-/**
- * Gets the scale rotated by the given offset.
- * @param scale Optional. The Scale to rotate.
- * @param offset Optional. The offset to rotate by.
- * @returns The rotated Scale. If the Scale is invalid, return an empty array.
- */
-export const getRotatedScale = (scale?: Scale, offset: number = 0): Scale => {
-  // Return an empty array if the scale is invalid
-  if (!isScale(scale)) return [];
+/** Update a `Scale` with new notes. */
+export const getUpdatedScale = <T extends _.Scale>(
+  scale: T,
+  notes: _.ScaleArray
+): T => {
+  if (_.isScaleArray(scale)) return notes as T;
+  return { ...scale, notes };
+};
 
-  // Avoid unecessary work
-  if (offset === 0) return scale;
+/** Cycle a `ScaleNote` through a `Scale`, applying any relevant offsets. */
+export const cycleNoteThroughScale = (
+  note?: _.ScaleNote,
+  scale?: _.Scale
+): _.ScaleNote => {
+  if (!note) return -1;
+  if (!scale || _.isMidiNote(note)) return note;
 
-  // Unpack the scale
-  const notes = getScaleNotes(scale);
-  if (!notes.length) return scale;
-
-  // Initialize loop variables
-  const length = Math.abs(offset);
-  const step = offset > 0 ? 1 : -1;
+  // Get the scale notes
+  const notes = getScaleAsArray(scale);
   const modulus = notes.length;
 
-  // Rotate the scale notes
-  const rotatedNotes = notes.map((_, i) => {
-    let newIndex = i;
-    let offset = 0;
+  // Determine if there is an offset for the scale within the note
+  const { degree, offset } = note;
+  const hasOffset =
+    !!offset &&
+    _.isScaleObject(scale) &&
+    (!isUndefined(offset?.[scale.id]) ||
+      !isUndefined(getValueByKey(offset, note?.scaleId)));
+  const scaleOffset = hasOffset ? offset?.[scale.id] : 0;
 
-    // Apply the rotation sequentially
-    for (let j = 0; j < length; j++) {
-      // Compute the next index, adjusting offset if necessary
-      const nextIndex = mod(newIndex + step, modulus);
-      if (step > 0 && nextIndex <= newIndex) offset += 12;
-      if (step < 0 && nextIndex >= newIndex) offset -= 12;
-      newIndex = nextIndex;
-    }
-    // Return the rotated note
-    return notes[newIndex] + offset;
-  });
+  // Get the parent note using the new degree
+  let newDegree = degree + scaleOffset;
+  let parentNote = notes[mod(newDegree, modulus)];
+  if (!parentNote) return -1;
 
-  // Return the rotated scale
-  if (isScaleArray(scale)) return rotatedNotes;
-  return { ...scale, notes: rotatedNotes };
+  // Adjust the octave displacement accordingly
+  const octave = Math.floor(newDegree / modulus);
+
+  // If the parent note is a MIDI note, add all displacements and return
+  if (!_.isNestedNote(parentNote)) {
+    const chromatic = offset?.chromatic ?? 0;
+    const oldOctave = offset?.octave ?? 0;
+    const midiOffset = chromatic + (oldOctave + octave) * 12;
+    return getTransposedMidiNote(parentNote, midiOffset);
+  }
+
+  // If the parent note is a NestedNote, apply to the private displacement and return
+  const newOffset = sumScaleVectors([
+    note.offset,
+    parentNote.offset,
+    { octave },
+  ]);
+  return {
+    ...parentNote,
+    offset: newOffset,
+  };
 };
 
-/**
- * Offset the `NestedScale` using the given chromatic offset.
- * @param scale The NestedScale.
- * @param offset The offset to transpose the nested scale by.
- * @returns The chromatically transposed `NestedScale`.
- */
-export const getOffsettedNestedScale = (scale: NestedScale, offset = 0) => {
-  // Avoid unnecessary work
-  if (offset === 0) return scale;
-
-  // Offset the scale
-  const notes = getNestedScaleNotes(scale);
-  const offsetedNotes = notes.map((n) => ({ ...n, offset: n.offset + offset }));
-
-  // Return the offseted scale
-  if (isNestedScaleArray(scale)) return offsetedNotes;
-  return { ...scale, notes: offsetedNotes };
+/** Chain a `ScaleNote` through the `Scales` provided, applying any relevant offsets. */
+export const cycleNoteThroughScales = (
+  note: _.ScaleNote,
+  scales: _.Scale[]
+): _.ScaleNote => {
+  const scaleCount = scales.length;
+  if (!scaleCount) return note;
+  let chainedNote = note;
+  for (let i = scaleCount - 1; i >= 0; i--) {
+    const scale = scales[i];
+    chainedNote = cycleNoteThroughScale(chainedNote, scale);
+  }
+  return chainedNote;
 };
 
-/**
- * Rotate the `NestedScale` using the given chordal offset.
- * @param scale The NestedScale.
- * @param offset The offset to rotate the nested scale by.
- * @returns The chordally transposed `NestedScale`.
- */
-export const getRotatedNestedScale = (scale: NestedScale, offset = 0) => {
-  // Avoid unnecessary work
-  if (offset === 0) return scale;
-
-  // Unpack the scale
-  const notes = getNestedScaleNotes(scale);
-  const modulus = notes.length;
-
-  // Rotate the track scale
-  const rotatedScale = notes.map((note, i) => {
-    // Get the new degree
-    const summedIndex = i + offset;
-    const newIndex = mod(summedIndex, modulus);
-    const newDegree = notes[newIndex].degree;
-
-    // Get the new offset
-    const octaveWrap = notes[newIndex].degree < note.degree ? 1 : 0;
-    const octaveDistance = octaveWrap + Math.floor(offset / modulus);
-    const newOffset = note.offset + octaveDistance * 12;
-
-    // Return the new note
-    return { degree: newDegree, offset: newOffset } as NestedNote;
-  });
-
-  // Return the transposed track scale
-  if (isNestedScaleArray(scale)) return rotatedScale;
-  return { ...scale, notes: rotatedScale };
-};
-
-/**
- * Transpose the `NestedScale` using the given scalar offset and parent scale.
- * @param scale The `NestedScale`.
- * @param offset The offset to transpose the nested scale by.
- * @param parent The parent `NestedScale` to use for transposition.
- * @returns The scalarly transposed `NestedScale`.
- */
-export const getTransposedNestedScale = (
-  scale: NestedScale,
-  offset: number,
-  parent: NestedScale
+/** Resolve a `ScaleNote` to a `MidiNoteValue` using the `Scales` provided. */
+export const resolveScaleNoteToMidi = (
+  note: _.ScaleNote,
+  scales: _.Scale[]
 ) => {
-  // Avoid unnecessary work
-  if (offset === 0) return scale;
+  const chainedNote = cycleNoteThroughScales(note, scales);
+  return getScaleNoteAsMidiValue(chainedNote);
+};
+
+/** Resolve a `Scale` to an array of `MidiNoteValues`. */
+export const resolveScaleToMidi = (scale?: _.Scale): _.MidiValue[] => {
+  if (!scale) return [];
+  const notes = getScaleAsArray(scale);
+  return notes.map(getScaleNoteAsMidiValue);
+};
+
+/** Resolve a list of `Scales` to an array of `MidiNoteValues`, starting from the end. */
+export const resolveScaleChainToMidi = (scales: _.Scale[]): _.MidiValue[] => {
+  const allScales = [...scales];
+  const scaleCount = allScales.length;
+  if (scaleCount < 2) return resolveScaleToMidi(allScales[0]);
+
+  // Get the last scale in the array
+  let cur = allScales.pop();
+  if (!cur) return [];
+
+  // While there are parents, unpack the scale and apply offsets
+  while (allScales.length) {
+    const parent = allScales.pop();
+    if (!parent) break;
+
+    // Get a new scale by chaining the current notes through the parent
+    const curNotes = getScaleAsArray(cur);
+    cur = curNotes.map((note) => cycleNoteThroughScale(note, parent));
+  }
+
+  // Return the notes of the last scale applied to the chromatic scale
+  return resolveScaleToMidi(cur);
+};
+
+/** Get a `Scale` tranposed by the given number of steps along the parent scale. */
+export const getTransposedScale = <T extends _.Scale>(
+  scale: T,
+  steps = 0,
+  parent?: _.Scale
+): T => {
+  if (steps === 0) return scale;
 
   // Get the notes of the scale and its parent
-  const scaleNotes = getNestedScaleNotes(scale);
-  const parentNotes = getNestedScaleNotes(parent);
-
-  // Transpose the track scale along the parent scale
+  const scaleNotes = getScaleAsArray(scale);
+  const parentNotes = getScaleAsArray(parent);
   const modulus = parentNotes.length;
-  const transposedScale = scaleNotes.map((note) => {
-    // Get the new degree
-    const summedDegree = note.degree + offset;
-    const newDegree = mod(summedDegree, modulus);
 
-    // Get the new offset
-    const octaveDistance = Math.floor(summedDegree / modulus);
-    const newOffset = note.offset + octaveDistance * 12;
+  // If no parent exists, just transpose the current scale chromatically
+  // - If on a MIDI note, transpose by semitones
+  // - Otherwise, chain the chromatic offset
+  if (!parent || !modulus) {
+    const transposedNotes = scaleNotes.map((note) => {
+      if (_.isMidiNote(note)) return getTransposedMidiNote(note, steps);
+      const offset = sumScaleVectors([note.offset, { chromatic: steps }]);
+      return { ...note, offset };
+    });
+    return getUpdatedScale(scale, transposedNotes);
+  }
+
+  // Get the unique scale degrees that are available
+  // - If the scale is its own parent, use a range of indices
+  // - Otherwise, use the parent scale degrees
+  const isParent = isEqual(scale, parent);
+  const parentDegrees = parentNotes.map(getScaleNoteDegree);
+  const degrees = [...new Set(isParent ? parentDegrees : range(modulus))];
+  const degreeCount = degrees.length;
+
+  // Iterate over the scale notes and transpose
+  const transposedNotes = scaleNotes.map((note) => {
+    // Find the index of the note within the available degrees
+    const curIndex = degrees.findIndex((d) => d === getScaleNoteDegree(note));
+    const summedIndex = curIndex + steps;
+    const moddedIndex = mod(summedIndex, degreeCount);
+
+    // Get the degree and octave of the new note
+    const degree = degrees[moddedIndex];
+    const octave = Math.floor(summedIndex / degreeCount);
+    const parentNote = parentNotes[moddedIndex];
+
+    // If the note and new note are both MIDI, return the new note
+    if (_.isMidiNote(note) && _.isMidiNote(parentNote)) {
+      return getTransposedMidiNote(parentNote, octave * 12);
+    }
+
+    // Otherwise, chain any old and new offsets to the new note
+    const previousOffset = !_.isMidiNote(note) ? note.offset : {};
+    const octaveOffset: _.ScaleVector = !!octave ? { octave } : {};
+    const offset = sumScaleVectors([previousOffset, octaveOffset]);
 
     // Return the new note
-    return { degree: newDegree, offset: newOffset } as NestedNote;
+    const hasOffsets = !!Object.keys(offset).length;
+    return hasOffsets ? { degree, offset } : { degree };
   });
 
-  // Return the transposed track scale
-  if (isNestedScaleArray(scale)) return transposedScale;
-  return { ...scale, notes: transposedScale };
+  // Return the transposed scale
+  return getUpdatedScale(scale, transposedNotes);
 };
 
-/**
- * Gets the transposed `NestedScale` with chromatic and chordal offsets applied.
- * @param scale The NestedScale to transpose.
- * @param transposition The Transposition to apply.
- * @returns A transposed and rotated `NestedScale`.
- */
-export const applyTranspositionToNestedScale = (
-  scale?: NestedScale,
+/** Get a `Scale` rotated by a given number of steps along itself. */
+export const getRotatedScale = <T extends _.Scale>(scale: T, steps = 0) => {
+  return getTransposedScale(scale, steps, scale);
+};
+
+/** Get a `Scale` with chromatic and chordal offsets applied to it. */
+export const getFullyTransposedScale = <T extends _.Scale>(
+  scale?: T,
   transposition?: Transposition
-): NestedScale => {
-  if (!scale) return nestedChromaticScale;
+): T => {
+  if (!scale) return _.nestedChromaticScale as T;
   if (!transposition) return scale;
-  const { offsets } = transposition;
+  const { vector } = transposition;
 
   // Transpose the track scale chromatically
-  const N = getChromaticOffset(offsets);
-  const s1 = getOffsettedNestedScale(scale, N);
+  const N = getChromaticOffset(vector);
+  const s1 = getTransposedScale(scale, N);
 
   // Transpose the track scale chordally
-  const t = getChordalOffset(offsets);
-  const s2 = getRotatedNestedScale(s1, t);
+  const t = getChordalOffset(vector);
+  const s2 = getRotatedScale(s1, t);
 
   // Return the transposed scale
   const transposedTrackScale = s2;
   return transposedTrackScale;
 };
 
-/**
- * Returns true if two `Scales` are exactly equal.
- * @param scale1 The first scale.
- * @param scale2 The second scale.
- * @returns True if the two `Scales` are equal, otherwise false.
- */
-export const areScalesEqual = (scale1: Scale, scale2: Scale) => {
-  if (!isScale(scale1) || !isScale(scale2)) return false;
+// ------------------------------------------------------------
+// Scale Equality Checks
+// ------------------------------------------------------------
+
+/** Returns true if both objects are equivalent `Scales`. */
+export const areScalesEqual = (obj1?: unknown, obj2?: unknown) => {
+  if (!isScale(obj1) || !isScale(obj2)) return false;
 
   // Unpack the scales
-  const scale1Notes = getScaleNotes(scale1);
-  const scale2Notes = getScaleNotes(scale2);
+  const scale1Notes = getScaleAsArray(obj1);
+  const scale2Notes = getScaleAsArray(obj2);
 
   // Return false if the scales are different lengths
   if (scale1Notes.length !== scale2Notes.length) return false;
 
-  // Return true if the chromatic number of notes is the same in both scales
-  return scale1Notes.every(
-    (_, i) => mod(scale1Notes[i], 12) === mod(scale2Notes[i], 12)
-  );
+  // Return true if the scale keys are the same
+  const key1 = getScaleAsKey(obj1);
+  const key2 = getScaleAsKey(obj2);
+  return isEqual(key1, key2);
 };
 
-/**
- * Returns true if two `Scales` are related by transposition.
- * @param scale1 The first scale.
- * @param scale2 The second scale.
- * @returns True if the two `Scales` are related, otherwise false.
- */
-export const areScalesRelated = (scale1: Scale, scale2: Scale) => {
-  if (!isScale(scale1) || !isScale(scale2)) return false;
+/** Returns true if both objects are `Scales` related by transposition  */
+export const areScalesRelated = (obj1?: unknown, obj2?: unknown) => {
+  if (!isScale(obj1) || !isScale(obj2)) return false;
 
   // Unpack the scales
-  const scale1Notes = getScaleNotes(scale1);
-  const scale2Notes = getScaleNotes(scale2);
+  const scale1Notes = getScaleAsArray(obj1);
+  const scale2Notes = getScaleAsArray(obj2);
 
   // Return false if the scales are different lengths
   if (scale1Notes.length !== scale2Notes.length) return false;
@@ -493,33 +459,32 @@ export const areScalesRelated = (scale1: Scale, scale2: Scale) => {
   if (scale1Tonic === undefined || scale2Tonic === undefined) return false;
 
   // Get the distance between the two tonics
-  const offset = scale2Tonic - scale1Tonic;
+  const midi1 = getScaleNoteAsMidiValue(scale1Tonic);
+  const midi2 = getScaleNoteAsMidiValue(scale2Tonic);
+  const offset = midi2 - midi1;
 
   // Return true if the distance between all notes is the same in both scales
-  return scale1Notes.every(
-    (_, i) => scale1Notes[i] + offset === scale2Notes[i]
-  );
+  return scale1Notes.every((note, i) => {
+    const thisMidi = getScaleNoteAsMidiValue(note);
+    const thatMidi = getScaleNoteAsMidiValue(scale2Notes[i]);
+    return thatMidi - thisMidi === offset;
+  });
 };
 
-/**
- * Returns true if the two `Scales` are related by rotation.
- * @param scale1 The first scale.
- * @param scale2 The second scale.
- * @returns True if the two `Scales` are related, otherwise false.
- */
-export const areScalesModes = (scale1: Scale, scale2: Scale) => {
-  if (!isScale(scale1) || !isScale(scale2)) return false;
+/** Returns true if both objects are `Scales` related by mode. */
+export const areScalesModes = (obj1?: unknown, obj2?: unknown) => {
+  if (!isScale(obj1) || !isScale(obj2)) return false;
 
   // Unpack the scales
-  const scale1Notes = getScaleNotes(scale1);
-  const scale2Notes = getScaleNotes(scale2);
+  const scale1Notes = getScaleAsArray(obj1);
+  const scale2Notes = getScaleAsArray(obj2);
 
   // Check the lengths of the scales
   if (scale1Notes.length !== scale2Notes.length) return false;
 
   // Return true if some rotation of the first scale is equal to the second scale
   return scale1Notes.some((_, i) => {
-    const mode = getRotatedScale(scale1, i);
-    return areScalesEqual(mode, scale2);
+    const mode = getRotatedScale(obj1, i);
+    return areScalesEqual(mode, obj2);
   });
 };

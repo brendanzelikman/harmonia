@@ -1,67 +1,65 @@
 import { test, expect } from "vitest";
-import * as TrackFunctions from "./TrackFunctions";
-import {
-  mockPatternTrack,
-  initializePatternTrack,
-} from "types/PatternTrack/PatternTrackTypes";
-import {
-  mockScaleTrack,
-  initializeScaleTrack,
-  ScaleTrackMap,
-} from "types/ScaleTrack/ScaleTrackTypes";
-import { createMap } from "types/util";
+import * as _ from "./TrackFunctions";
+import { initializePatternTrack } from "types/PatternTrack/PatternTrackTypes";
+import { initializeScaleTrack } from "types/ScaleTrack/ScaleTrackTypes";
+import { createMap } from "utils/objects";
 
-test("getTrackTag", () => {
-  // Test a scale track
-  const scaleTrackTag = TrackFunctions.getTrackTag(mockScaleTrack);
-  expect(scaleTrackTag).include(mockScaleTrack.id);
-  expect(scaleTrackTag).include(mockScaleTrack.name);
-  expect(scaleTrackTag).include(mockScaleTrack.type);
+test("getScaleTrackIdChain should return the correct chain of IDs", () => {
+  const t1 = initializeScaleTrack();
+  const t2 = initializeScaleTrack({ parentId: t1.id });
+  const t3 = initializePatternTrack({ parentId: t2.id });
+  const trackMap = createMap([t1, t2, t3]);
 
-  // Test a pattern track
-  const patternTrackTag = TrackFunctions.getTrackTag(mockPatternTrack);
-  expect(patternTrackTag).include(mockPatternTrack.id);
-  expect(patternTrackTag).include(mockPatternTrack.name);
-  expect(patternTrackTag).include(mockPatternTrack.type);
+  const t1IdChain = _.getScaleTrackIdChain(t1.id, trackMap);
+  const t2IdChain = _.getScaleTrackIdChain(t2.id, trackMap);
+  const t3IdChain = _.getScaleTrackIdChain(t3.id, trackMap);
+
+  expect(t1IdChain).toEqual([t1.id]);
+  expect(t2IdChain).toEqual([t1.id, t2.id]);
+  expect(t3IdChain).toEqual([t1.id, t2.id]);
 });
 
-test("getTrackParents", () => {
-  const parentTrack = initializeScaleTrack({
-    ...mockScaleTrack,
-  });
-  const childTrack = initializeScaleTrack({
-    ...mockScaleTrack,
-    parentId: parentTrack.id,
-  });
-  const babyTrack = initializePatternTrack({
-    ...mockPatternTrack,
-    parentId: childTrack.id,
-  });
-  const trackMap = createMap<ScaleTrackMap>([parentTrack, childTrack]);
+test("getScaleTrackChain should return the correct chain of tracks", () => {
+  const t1 = initializeScaleTrack();
+  const t2 = initializeScaleTrack({ parentId: t1.id });
+  const t3 = initializePatternTrack({ parentId: t2.id });
+  const trackMap = createMap([t1, t2, t3]);
 
-  // Test the parent track
-  const parentParents = TrackFunctions.getTrackParents(parentTrack, trackMap);
-  expect(parentParents).toEqual([parentTrack]);
+  const t1TrackChain = _.getScaleTrackChain(t1.id, trackMap);
+  const t2TrackChain = _.getScaleTrackChain(t2.id, trackMap);
+  const t3TrackChain = _.getScaleTrackChain(t3.id, trackMap);
 
-  // Test the child track
-  const childParents = TrackFunctions.getTrackParents(childTrack, trackMap);
-  expect(childParents).toEqual([parentTrack, childTrack]);
-
-  // Test the baby track
-  const babyParents = TrackFunctions.getTrackParents(babyTrack, trackMap);
-  expect(babyParents).toEqual([parentTrack, childTrack]);
+  expect(t1TrackChain).toEqual([t1]);
+  expect(t2TrackChain).toEqual([t1, t2]);
+  expect(t3TrackChain).toEqual([t1, t2]);
 });
 
-test("getTrackChildren", () => {
-  const parentTrack = initializeScaleTrack({
-    ...mockScaleTrack,
-  });
-  const childTrack = initializeScaleTrack({
-    ...mockScaleTrack,
-    parentId: parentTrack.id,
-  });
-  const babyTrack = initializePatternTrack({
-    ...mockPatternTrack,
-    parentId: childTrack.id,
-  });
+test("getTrackParentIds should return the correct list of IDs", () => {
+  const t1 = initializeScaleTrack();
+  const t2 = initializeScaleTrack({ parentId: t1.id });
+  const t3 = initializePatternTrack({ parentId: t2.id });
+  const trackMap = createMap([t1, t2, t3]);
+
+  const t1ParentIds = _.getTrackParentIds(t1.id, trackMap);
+  const t2ParentIds = _.getTrackParentIds(t2.id, trackMap);
+  const t3ParentIds = _.getTrackParentIds(t3.id, trackMap);
+
+  expect(t1ParentIds).toEqual([]);
+  expect(t2ParentIds).toEqual([t1.id]);
+  expect(t3ParentIds).toEqual([t1.id, t2.id]);
+});
+
+test("getTrackParents should return the correct list of parents", () => {
+  const t1 = initializeScaleTrack();
+  const t2 = initializeScaleTrack({ parentId: t1.id });
+  const t3 = initializePatternTrack({ parentId: t2.id });
+  const trackMap = createMap([t1, t2, t3]);
+
+  const t1Parents = _.getTrackParents(t1.id, trackMap);
+  const t2Parents = _.getTrackParents(t2.id, trackMap);
+  const t3Parents = _.getTrackParents(t3.id, trackMap);
+
+  expect(t1Parents).toEqual([]);
+  expect(t2Parents).toEqual([t1]);
+  expect(t3Parents).toEqual([t1, t2]);
 });

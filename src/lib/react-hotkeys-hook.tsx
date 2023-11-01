@@ -1,3 +1,4 @@
+import { isArray } from "lodash";
 import { useMemo, useState } from "react";
 import { Keys, useHotkeys } from "react-hotkeys-hook";
 import {
@@ -5,55 +6,78 @@ import {
   Options,
   OptionsOrDependencyArray,
 } from "react-hotkeys-hook/dist/types";
-import { isHoldingShift, isLetterKey, upperCase } from "utils";
+import { isHoldingShift, isPressingLetter } from "utils/html";
 
-/**
- * A hook that overrides the default hotkey behavior.
- * @param keys The keys to listen for.
- * @param callback The callback to call when the keys are pressed.
- * @param options Optional. The options to pass to `useHotkeys`.
- * @param dependencies Optional. The dependencies to pass to `useHotkeys`.
- */
+/** Personally keep track of shifted key transformations.  */
+export const SHIFTED_KEY_MAP: Record<string, string> = {
+  "1": "!",
+  "2": "@",
+  "3": "#",
+  "4": "$",
+  "5": "%",
+  "6": "^",
+  "7": "&",
+  "8": "*",
+  "9": "(",
+  "-": "_",
+  "=": "+",
+  "`": "~",
+};
+
+/** Custom upper case handler for special shifts. */
+const upperCase = (key: string) => SHIFTED_KEY_MAP[key] || key.toUpperCase();
+
+/** A custom hook that overrides the default hotkey behavior. */
 export const useOverridingHotkeys = (
   keys: Keys,
-  callback: HotkeyCallback,
+  callback?: HotkeyCallback,
   options?: OptionsOrDependencyArray,
   dependencies?: OptionsOrDependencyArray
 ) => {
-  const hotkeyOptions =
-    options && !Array.isArray(options)
-      ? { ...(options as Options), preventDefault: true }
-      : { preventDefault: true };
+  const hotkeyCallback = callback === undefined ? () => null : callback;
+  const hotkeyOptions = isArray(options)
+    ? { preventDefault: true }
+    : isArray(dependencies)
+    ? { ...options, preventDefault: true }
+    : { preventDefault: true };
+  const hotkeyDependencies = isArray(options)
+    ? options
+    : isArray(dependencies)
+    ? dependencies
+    : [];
 
-  useHotkeys(keys, callback, hotkeyOptions, dependencies);
+  return useHotkeys(keys, hotkeyCallback, hotkeyOptions, hotkeyDependencies);
 };
 
-/**
- * Creates a scoped hook that overrides the default hotkey behavior.
- * @returns A scoped hook that overrides the default hotkey behavior.
- */
+/** A custom hook that uses a specific scope and overrides the default hotkey behavior. */
 export const useScopedHotkeys =
   (scopes: string) =>
   (
     keys: Keys,
-    callback: HotkeyCallback,
+    callback?: HotkeyCallback,
     options?: OptionsOrDependencyArray,
     dependencies?: OptionsOrDependencyArray
   ) => {
-    const hotkeyOptions =
-      options && !Array.isArray(options)
-        ? { ...(options as Options), scopes }
-        : { scopes };
-
-    useOverridingHotkeys(keys, callback, hotkeyOptions, dependencies);
+    const hotkeyCallback = callback === undefined ? () => null : callback;
+    const hotkeyOptions = isArray(options)
+      ? { preventDefault: true, scopes }
+      : isArray(dependencies)
+      ? { ...options, preventDefault: true, scopes }
+      : { preventDefault: true, scopes };
+    const hotkeyDependencies = isArray(options)
+      ? options
+      : isArray(dependencies)
+      ? dependencies
+      : [];
+    return useOverridingHotkeys(
+      keys,
+      hotkeyCallback,
+      hotkeyOptions,
+      hotkeyDependencies
+    );
   };
 
-/**
- * A hook that returns a record of keys that are currently being held down.
- * @param keys The keys to listen for.
- * @param options The options to pass to `useHotkeys`.
- * @returns A record of keys that are currently being held down.
- */
+/** A custom hook that returns a record of keys that are currently being held down. */
 export const useHeldHotkeys = (
   keys: Keys,
   options?: OptionsOrDependencyArray,
@@ -64,7 +88,7 @@ export const useHeldHotkeys = (
 
   // Set the key to true when it is pressed down
   const keydown = (e: KeyboardEvent) => {
-    const isLetter = isLetterKey(e);
+    const isLetter = isPressingLetter(e);
     const key = isLetter
       ? isHoldingShift(e)
         ? upperCase(e.key)

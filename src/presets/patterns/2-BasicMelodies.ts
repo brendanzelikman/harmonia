@@ -1,5 +1,5 @@
 import { Pattern } from "types/Pattern";
-import { MIDI } from "types/midi";
+import * as _ from "utils/durations";
 
 export const StraightMajorArpeggio: Pattern = {
   id: "straight-major-arpeggio",
@@ -13,10 +13,10 @@ export const StraightMajorArpeggio: Pattern = {
     "M arp",
   ],
   stream: [
-    [MIDI.createSixteenthNote(60)],
-    [MIDI.createSixteenthNote(64)],
-    [MIDI.createSixteenthNote(67)],
-    [MIDI.createSixteenthNote(72)],
+    [_.createSixteenthNote(60)],
+    [_.createSixteenthNote(64)],
+    [_.createSixteenthNote(67)],
+    [_.createSixteenthNote(72)],
   ],
 };
 export const TripletMajorArpeggio: Pattern = {
@@ -31,9 +31,9 @@ export const TripletMajorArpeggio: Pattern = {
     "M triplet arp",
   ],
   stream: [
-    [MIDI.createTripletEighthNote(60)],
-    [MIDI.createTripletEighthNote(64)],
-    [MIDI.createTripletEighthNote(67)],
+    [_.createTripletEighthNote(60)],
+    [_.createTripletEighthNote(64)],
+    [_.createTripletEighthNote(67)],
   ],
 };
 
@@ -49,10 +49,10 @@ export const StraightMinorArpeggio: Pattern = {
     "m arp",
   ],
   stream: [
-    [MIDI.createSixteenthNote(60)],
-    [MIDI.createSixteenthNote(63)],
-    [MIDI.createSixteenthNote(67)],
-    [MIDI.createSixteenthNote(72)],
+    [_.createSixteenthNote(60)],
+    [_.createSixteenthNote(63)],
+    [_.createSixteenthNote(67)],
+    [_.createSixteenthNote(72)],
   ],
 };
 export const TripletMinorArpeggio: Pattern = {
@@ -67,9 +67,9 @@ export const TripletMinorArpeggio: Pattern = {
     "m triplet arp",
   ],
   stream: [
-    [MIDI.createTripletEighthNote(60)],
-    [MIDI.createTripletEighthNote(63)],
-    [MIDI.createTripletEighthNote(67)],
+    [_.createTripletEighthNote(60)],
+    [_.createTripletEighthNote(63)],
+    [_.createTripletEighthNote(67)],
   ],
 };
 export const StraightDiminishedArpeggio: Pattern = {
@@ -84,10 +84,10 @@ export const StraightDiminishedArpeggio: Pattern = {
     "o arp",
   ],
   stream: [
-    [MIDI.createSixteenthNote(60)],
-    [MIDI.createSixteenthNote(63)],
-    [MIDI.createSixteenthNote(66)],
-    [MIDI.createSixteenthNote(69)],
+    [_.createSixteenthNote(60)],
+    [_.createSixteenthNote(63)],
+    [_.createSixteenthNote(66)],
+    [_.createSixteenthNote(69)],
   ],
 };
 export const TripletDiminishedArpeggio: Pattern = {
@@ -102,9 +102,9 @@ export const TripletDiminishedArpeggio: Pattern = {
     "o triplet arp",
   ],
   stream: [
-    [MIDI.createTripletEighthNote(60)],
-    [MIDI.createTripletEighthNote(63)],
-    [MIDI.createTripletEighthNote(66)],
+    [_.createTripletEighthNote(60)],
+    [_.createTripletEighthNote(63)],
+    [_.createTripletEighthNote(66)],
   ],
 };
 export const StraightAugmentedArpeggio: Pattern = {
@@ -119,10 +119,10 @@ export const StraightAugmentedArpeggio: Pattern = {
     "+ arp",
   ],
   stream: [
-    [MIDI.createSixteenthNote(60)],
-    [MIDI.createSixteenthNote(64)],
-    [MIDI.createSixteenthNote(68)],
-    [MIDI.createSixteenthNote(72)],
+    [_.createSixteenthNote(60)],
+    [_.createSixteenthNote(64)],
+    [_.createSixteenthNote(68)],
+    [_.createSixteenthNote(72)],
   ],
 };
 export const TripletAugmentedArpeggio: Pattern = {
@@ -137,9 +137,9 @@ export const TripletAugmentedArpeggio: Pattern = {
     "+ triplet arp",
   ],
   stream: [
-    [MIDI.createTripletEighthNote(60)],
-    [MIDI.createTripletEighthNote(64)],
-    [MIDI.createTripletEighthNote(68)],
+    [_.createTripletEighthNote(60)],
+    [_.createTripletEighthNote(64)],
+    [_.createTripletEighthNote(68)],
   ],
 };
 
@@ -155,10 +155,10 @@ export const Major7thArpeggio: Pattern = {
     "M7 arp",
   ],
   stream: [
-    [MIDI.createSixteenthNote(60)],
-    [MIDI.createSixteenthNote(64)],
-    [MIDI.createSixteenthNote(67)],
-    [MIDI.createSixteenthNote(71)],
+    [_.createSixteenthNote(60)],
+    [_.createSixteenthNote(64)],
+    [_.createSixteenthNote(67)],
+    [_.createSixteenthNote(71)],
   ],
 };
 export const Minor7thArpeggio: Pattern = {
@@ -173,10 +173,10 @@ export const Minor7thArpeggio: Pattern = {
     "m7 arp",
   ],
   stream: [
-    [MIDI.createSixteenthNote(60)],
-    [MIDI.createSixteenthNote(63)],
-    [MIDI.createSixteenthNote(67)],
-    [MIDI.createSixteenthNote(70)],
+    [_.createSixteenthNote(60)],
+    [_.createSixteenthNote(63)],
+    [_.createSixteenthNote(67)],
+    [_.createSixteenthNote(70)],
   ],
 };
 export const Dominant7thArpeggio: Pattern = {
@@ -191,10 +191,10 @@ export const Dominant7thArpeggio: Pattern = {
     "dominant 7th arp",
   ],
   stream: [
-    [MIDI.createSixteenthNote(60)],
-    [MIDI.createSixteenthNote(64)],
-    [MIDI.createSixteenthNote(67)],
-    [MIDI.createSixteenthNote(70)],
+    [_.createSixteenthNote(60)],
+    [_.createSixteenthNote(64)],
+    [_.createSixteenthNote(67)],
+    [_.createSixteenthNote(70)],
   ],
 };
 
@@ -214,10 +214,10 @@ export const HalfDiminished7thArpeggio: Pattern = {
     "half diminished 7th arp",
   ],
   stream: [
-    [MIDI.createSixteenthNote(60)],
-    [MIDI.createSixteenthNote(63)],
-    [MIDI.createSixteenthNote(66)],
-    [MIDI.createSixteenthNote(70)],
+    [_.createSixteenthNote(60)],
+    [_.createSixteenthNote(63)],
+    [_.createSixteenthNote(66)],
+    [_.createSixteenthNote(70)],
   ],
 };
 
@@ -239,10 +239,10 @@ export const Augmented7thArpeggio: Pattern = {
     "major 7th #5 arp",
   ],
   stream: [
-    [MIDI.createSixteenthNote(60)],
-    [MIDI.createSixteenthNote(64)],
-    [MIDI.createSixteenthNote(68)],
-    [MIDI.createSixteenthNote(71)],
+    [_.createSixteenthNote(60)],
+    [_.createSixteenthNote(64)],
+    [_.createSixteenthNote(68)],
+    [_.createSixteenthNote(71)],
   ],
 };
 export const MinorMajor7thArpeggio: Pattern = {
@@ -257,10 +257,10 @@ export const MinorMajor7thArpeggio: Pattern = {
     "minor major 7th arp",
   ],
   stream: [
-    [MIDI.createSixteenthNote(60)],
-    [MIDI.createSixteenthNote(63)],
-    [MIDI.createSixteenthNote(67)],
-    [MIDI.createSixteenthNote(71)],
+    [_.createSixteenthNote(60)],
+    [_.createSixteenthNote(63)],
+    [_.createSixteenthNote(67)],
+    [_.createSixteenthNote(71)],
   ],
 };
 

@@ -1,32 +1,46 @@
-import { MIDI } from "types/midi";
-import { Tick, Time } from "types/units";
+import { Tick, Seconds } from "types/units";
 import { Transport } from "./TransportTypes";
 import { Transport as ToneTransport } from "tone";
+import {
+  SixteenthNoteTicks,
+  secondsToTicks,
+  ticksToSeconds,
+} from "utils/durations";
 
-/**
- * Convert ticks to seconds.
- * @param transport The transport.
- * @param tick The value in ticks.
- * @return The value in seconds.
- */
-export const convertTicksToSeconds = (transport: Transport, tick: Tick): Time =>
-  MIDI.ticksToSeconds(tick, transport.bpm);
+/** Checks if the transport is started or not. */
+export const isTransportStarted = (
+  transport: Transport | typeof ToneTransport
+) => transport.state === "started";
 
-/**
- * Convert seconds to ticks.
- * @param transport The transport.
- * @param time The value in seconds.
- * @returns The value in ticks.
- */
-export const convertSecondsToTicks = (transport: Transport, time: Time): Tick =>
-  MIDI.secondsToTicks(time, transport.bpm);
+/** Checks if the transport is stopped or not. */
+export const isTransportStopped = (
+  transport: Transport | typeof ToneTransport
+) => transport.state === "stopped";
 
-/**
- * Convert ticks to bars, beats, and sixteenths.
- * @param transport The transport.
- * @param tick The value in ticks.
- * @returns The value in bars, beats, and sixteenths.
- */
+/** Checks if the transport is paused or not. */
+export const isTransportPaused = (
+  transport: Transport | typeof ToneTransport
+) => transport.state === "paused";
+
+/** Get the next tick in the transport, looping back if necessary. */
+export const getNextTransportTick = (transport: Transport): Tick => {
+  return transport.loop && ToneTransport.ticks === transport.loopEnd
+    ? transport.loopStart
+    : ToneTransport.ticks + 1;
+};
+/** Convert ticks to seconds using the transport. */
+export const convertTicksToSeconds = (
+  transport: Transport,
+  tick: Tick
+): Seconds => ticksToSeconds(tick, transport.bpm);
+
+/** Convert seconds to ticks using the transport. */
+export const convertSecondsToTicks = (
+  transport: Transport,
+  time: Seconds
+): Tick => secondsToTicks(time, transport.bpm);
+
+/** Convert ticks to (bars:beats:sixteenths) using the transport. */
 export const convertTicksToBarsBeatsSixteenths = (
   transport: Transport,
   tick: Tick
@@ -36,11 +50,11 @@ export const convertTicksToBarsBeatsSixteenths = (
 
   // Get the number of sixteenths and ticks per bar
   const sixteenthsPerBar = timeSignature?.[0] ?? 16;
-  const ticksPerBar = sixteenthsPerBar * MIDI.SixteenthNoteTicks;
+  const ticksPerBar = sixteenthsPerBar * SixteenthNoteTicks;
 
   // Find the total seconds and seconds per bar
-  const totalSeconds = MIDI.ticksToSeconds(tick, bpm);
-  const secondsPerBar = MIDI.ticksToSeconds(ticksPerBar, bpm);
+  const totalSeconds = ticksToSeconds(tick, bpm);
+  const secondsPerBar = ticksToSeconds(ticksPerBar, bpm);
 
   // Divide the total seconds by the seconds per bar to get the bars
   const dirtyBars = totalSeconds / secondsPerBar;
@@ -57,37 +71,10 @@ export const convertTicksToBarsBeatsSixteenths = (
   return { bars, beats, sixteenths };
 };
 
-/**
- * Checks if the transport is started or not.
- * @param transport The transport.
- * @returns True if the transport is started, false otherwise.
- */
-export const isTransportStarted = (transport: Transport) =>
-  transport.state === "started";
-
-/**
- * Checks if the transport is stopped or not.
- * @param transport The transport.
- * @returns True if the transport is stopped, false otherwise.
- */
-export const isTransportStopped = (transport: Transport) =>
-  transport.state === "stopped";
-
-/**
- * Checks if the transport is paused or not.
- * @param transport The transport.
- * @returns True if the transport is paused, false otherwise.
- */
-export const isTransportPaused = (transport: Transport) =>
-  transport.state === "paused";
-
-/**
- * Get the next tick in the transport.
- * @param transport The transport.
- * @returns The next tick or the start of the loop if the transport has looped.
- */
-export const getNextTransportTick = (transport: Transport): Tick => {
-  return transport.loop && ToneTransport.ticks === transport.loopEnd
-    ? transport.loopStart
-    : ToneTransport.ticks + 1;
-};
+/** Get the transport with the user idled. */
+export const getIdleTransport = (transport: Transport): Transport => ({
+  ...transport,
+  state: "stopped",
+  recording: false,
+  downloading: false,
+});

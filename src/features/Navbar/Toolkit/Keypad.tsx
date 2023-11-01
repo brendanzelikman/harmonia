@@ -1,11 +1,6 @@
 import { Transition } from "@headlessui/react";
 
-import {
-  BsCalculator,
-  BsKeyboard,
-  BsPower,
-  BsQuestionCircle,
-} from "react-icons/bs";
+import { BsCalculator, BsKeyboard, BsPower } from "react-icons/bs";
 import {
   toggleLiveTransposition,
   toggleLiveTranspositionMode,
@@ -19,29 +14,23 @@ import {
   selectSelectedTranspositions,
   selectLiveTranspositionSettings,
   selectSelectedTrack,
-  selectScaleMap,
-  selectScaleTrackMap,
-  selectSelectedTrackParents,
   selectTrackScaleTrack,
+  selectTrackMidiScale,
 } from "redux/selectors";
-import { getScaleName } from "types/Scale";
-import { getScaleTrackScale } from "types/ScaleTrack";
 
 export const ToolkitKeypad = () => {
   const dispatch = useProjectDispatch();
-  const scaleTrackMap = useProjectSelector(selectScaleTrackMap);
-  const scaleMap = useProjectSelector(selectScaleMap);
 
   // Get the current track/scale track
-  const parents = useProjectSelector(selectSelectedTrackParents);
   const track = useProjectSelector(selectSelectedTrack);
   const scaleTrack = useProjectSelector((_) =>
     selectTrackScaleTrack(_, track?.id)
   );
 
   // Get the current scale
-  const scale = getScaleTrackScale(scaleTrack, scaleTrackMap, scaleMap);
-  const scaleName = getScaleName(scale);
+  const scale = useProjectSelector((_) =>
+    selectTrackMidiScale(_, scaleTrack?.id)
+  );
 
   // Get the transpositions
   const transpositions = useProjectDeepSelector(selectSelectedTranspositions);

@@ -1,11 +1,14 @@
 import { BsDownload, BsTrash } from "react-icons/bs";
 import { selectInstruments } from "redux/Instrument";
 import { selectPatternMap } from "redux/Pattern";
-import { selectScaleMap } from "redux/Scale";
-import { selectScaleTrackMap, selectScaleTracks } from "redux/ScaleTrack";
-import { selectTimelineEndTick } from "redux/Timeline";
+import { selectScaleTracks } from "redux/ScaleTrack";
 import { selectTransport } from "redux/Transport";
-import { selectMetadata, selectClips } from "redux/selectors";
+import {
+  selectMetadata,
+  selectClips,
+  selectTrackMidiScale,
+  selectLastArrangementTick,
+} from "redux/selectors";
 import {
   loadProject,
   deleteProject,
@@ -16,15 +19,16 @@ import {
 import { getInstrumentName } from "types/Instrument";
 import { getScaleName } from "types/Scale";
 import { convertTicksToSeconds } from "types/Transport";
-import { cancelEvent } from "utils";
-import Logo from "./Logo";
+import { cancelEvent } from "utils/html";
+import { Logo } from "./Logo";
 import { ReactNode, useEffect, useState } from "react";
 import { useProjectDispatch } from "redux/hooks";
 import { BiCopy } from "react-icons/bi";
 import { Transition } from "@headlessui/react";
-import { getScaleTrackScale } from "types/ScaleTrack";
 import { Project } from "types/Project";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { useNavigate } from "react-router-dom";
+import { getPatternName } from "types/Pattern";
 
 interface ProjectProps {
   project?: Project;
@@ -34,6 +38,7 @@ interface ProjectProps {
 
 export function ProjectComponent(props: ProjectProps) {
   const dispatch = useProjectDispatch();
+  const navigate = useNavigate();
   const { index } = props;
   const heldKeys = useHeldHotkeys(["alt"]);
 
@@ -63,23 +68,20 @@ export function ProjectComponent(props: ProjectProps) {
   const { bpm, timeSignature } = transport;
 
   // Get the duration of the project
-  const endTick = selectTimelineEndTick(project);
-  const duration = convertTicksToSeconds(transport, endTick);
+  const lastTick = selectLastArrangementTick(project);
+  const duration = convertTicksToSeconds(transport, lastTick);
   const seconds = `${duration.toFixed(1)}s`;
 
   // Get the list of patterns used
   const clips = selectClips(project);
   const patternMap = selectPatternMap(project);
-  const allPatternIds = clips.map(({ patternId }) => patternId);
-  const patternIds = [...new Set(allPatternIds)];
-  const patternNames = patternIds.map((id) => patternMap[id]?.name);
+  const clipPatterns = clips.map(({ patternId }) => patternMap[patternId]);
+  const patternNames = [...new Set(clipPatterns.map(getPatternName))];
 
   // Get the list of scales used
   const scaleTracks = selectScaleTracks(project);
-  const scaleTrackMap = selectScaleTrackMap(project);
-  const scaleMap = selectScaleMap(project);
   const allScales = scaleTracks.map((track) =>
-    getScaleTrackScale(track, scaleTrackMap, scaleMap)
+    selectTrackMidiScale(project, track.id)
   );
   const allScaleNames = allScales.map(getScaleName);
   const scaleNames = [...new Set(allScaleNames)];
@@ -244,10 +246,11 @@ export function ProjectComponent(props: ProjectProps) {
       : "hover:shadow-[0px_0px_20px_0px_rgb(20,20,20)]"
   }`;
 
+  const callback = () => navigate("/playground");
   const onClick = () => {
     !!props.filePath
-      ? dispatch(loadProjectByPath(props.filePath))
-      : dispatch(loadProject(id));
+      ? dispatch(loadProjectByPath(props.filePath, callback))
+      : dispatch(loadProject(id, callback));
   };
 
   return (

@@ -1,26 +1,21 @@
 import ReactDOM from "react-dom/client";
 import { App } from "./App";
-import { start } from "tone";
-import { startTransport } from "redux/Transport";
+import { start as startAudioContext } from "tone";
 import "./index.css";
-import { Thunk } from "types/Project";
-import { store } from "redux/store";
 
-export const container: HTMLElement = document.getElementById("root")!;
-if (!container?.children.length) {
-  ReactDOM.createRoot(container).render(<App />);
-}
-
-export const startTone =
-  (startingTransport = false): Thunk =>
-  async (dispatch) => {
-    await start();
-    if (startingTransport) dispatch(startTransport());
-  };
-
-const initializeContext = async () => {
-  store.dispatch(startTone());
-  container.removeEventListener("mousedown", initializeContext);
+/** Initialize the audio context when the user presses an input. */
+const initializeContext = () => {
+  startAudioContext();
+  container?.removeEventListener("mousedown", initializeContext);
+  container?.removeEventListener("keydown", initializeContext);
 };
 
-container.addEventListener("mousedown", initializeContext);
+/** The root container for the application. */
+const container = document.getElementById("root");
+
+/** Render the application within the root if there are no children. */
+if (container && !container?.children.length) {
+  container.addEventListener("keydown", initializeContext);
+  container.addEventListener("mousedown", initializeContext);
+  ReactDOM.createRoot(container).render(<App />);
+}

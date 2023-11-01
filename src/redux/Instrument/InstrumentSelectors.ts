@@ -1,41 +1,24 @@
 import { Project } from "types/Project";
 import { createSelector } from "reselect";
 import { TrackId } from "types/Track";
-import { getProperty, getProperties } from "types/util";
+import { getValueByKey, getValuesByKeys } from "utils/objects";
 
-/**
- * Select all instrument IDs from the store.
- * @param project The project.
- * @returns An array of instrument IDs.
- */
-export const selectInstrumentIds = (project: Project) =>
-  project.arrangement.present.instruments.allIds;
-
-/**
- * Select the instrument map from the store.
- * @param project The project.
- * @returns A map of instrument IDs to instruments.
- */
+/** Select the instrument map. */
 export const selectInstrumentMap = (project: Project) =>
   project.arrangement.present.instruments.byId;
 
-/**
- * Select all instruments from the store.
- * @param project The project.
- * @returns An array of instruments.
- */
+/** Select the list of instrument IDs. */
+export const selectInstrumentIds = (project: Project) =>
+  project.arrangement.present.instruments.allIds;
+
+/** Select all instruments. */
 export const selectInstruments = createSelector(
   [selectInstrumentMap, selectInstrumentIds],
-  getProperties
+  getValuesByKeys
 );
 
-/**
- * Select a specific instrument by ID from the store.
- * @param project The project.
- * @param id The instrument ID.
- * @returns The instrument.
- */
+/** Select an instrument by ID or return undefined if not found. */
 export const selectInstrumentById = (project: Project, id?: TrackId) => {
   const instrumentMap = selectInstrumentMap(project);
-  return getProperty(instrumentMap, id);
+  return getValueByKey(instrumentMap, id);
 };

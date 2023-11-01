@@ -12,7 +12,7 @@ import { useEffect } from "react";
 const useHotkeys = useScopedHotkeys("timeline");
 const useTransportHotkeys = useScopedHotkeys("transport");
 
-export default function useTimelineHotkeys() {
+export function useTimelineHotkeys() {
   const dispatch = useProjectDispatch();
   const selectedMedia = useProjectSelector(Timeline.selectSelectedMedia);
   const mediaLength = selectedMedia.length;
@@ -50,7 +50,7 @@ export default function useTimelineHotkeys() {
   useHotkeys("shift+m", () => dispatch(Timeline.exportSelectedClipsToMIDI()));
 
   // Meta + A = Select All Media
-  useHotkeys("meta+a", () => dispatch(Media.selectAllMedia()));
+  useHotkeys("meta+a", () => dispatch(Media.addAllMediaToSelection()));
 
   // Meta + C = Copy Selected Media
   useHotkeys("meta+c", () => dispatch(Media.copySelectedMedia()));
@@ -68,7 +68,7 @@ export default function useTimelineHotkeys() {
   useHotkeys("backspace", () => dispatch(Media.deleteSelectedMedia()));
 
   // P = Toggle Pattern Editor
-  useHotkeys("p", () => dispatch(showEditor({ id: "patterns" })));
+  useHotkeys("p", () => dispatch(showEditor("patterns")));
 
   // A = Toggle Adding Clip
   useHotkeys("a", () => dispatch(Timeline.toggleAddingClips()));

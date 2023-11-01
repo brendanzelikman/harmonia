@@ -1,26 +1,22 @@
-import { test, assert, expect } from "vitest";
-import * as ClipTypes from "./ClipTypes";
+import { expect, test } from "vitest";
+import * as _ from "./ClipTypes";
 
-test("initializeClip", () => {
-  const clip = ClipTypes.initializeClip(ClipTypes.mockClip);
-  expect(clip).toEqual({ ...ClipTypes.mockClip, id: clip.id });
-  assert(typeof clip.id === "string");
+test("initializeClip should create a clip with a unique ID", () => {
+  const oldClip = _.initializeClip();
+  const clip = _.initializeClip(oldClip);
+  expect(clip.id).toBeDefined();
+  expect(clip.id).not.toEqual(oldClip.id);
 });
 
-test("isClip", () => {
-  const validClip: ClipTypes.Clip = ClipTypes.initializeClip();
-  assert(ClipTypes.isClip(validClip));
+test("isClip should only return true for valid clips", () => {
+  expect(_.isClip(_.defaultClip)).toBe(true);
+  expect(_.isClip(_.mockClip)).toBe(true);
 
-  const invalidClip = { stream: [], name: "Invalid" };
-  assert(!ClipTypes.isClip(invalidClip));
-});
-
-test("isClipMap", () => {
-  const validClipMap: ClipTypes.ClipMap = {
-    "valid-clip": ClipTypes.initializeClip(),
-  };
-  assert(ClipTypes.isClipMap(validClipMap));
-
-  const invalidClipMap = { "invalid-clip": { stream: [] } };
-  assert(!ClipTypes.isClipMap(invalidClipMap));
+  expect(_.isClip(undefined)).toBe(false);
+  expect(_.isClip({})).toBe(false);
+  expect(_.isClip([])).toBe(false);
+  expect(_.isClip({ ..._.mockClip, id: 1 })).toBe(false);
+  expect(_.isClip({ ..._.mockClip, trackId: 1 })).toBe(false);
+  expect(_.isClip({ ..._.mockClip, tick: "1" })).toBe(false);
+  expect(_.isClip({ ..._.mockClip, tick: Infinity })).toBe(false);
 });

@@ -1,36 +1,36 @@
 import { fill } from "lodash";
 import { Pattern } from "types/Pattern";
-import { MIDI } from "types/midi";
+import * as _ from "utils/durations";
 
 export const WholeNote: Pattern = {
   id: "whole-note",
   name: "Straight Whole Note",
   aliases: ["whole note"],
-  stream: [[MIDI.createWholeNote()]],
+  stream: [[_.createWholeNote()]],
 };
 export const HalfNotes: Pattern = {
   id: "half-notes",
   name: "Straight Half Notes",
   aliases: ["half notes", "halfs", "halves"],
-  stream: fill(Array(2), [MIDI.createHalfNote()]),
+  stream: fill(Array(2), [_.createHalfNote()]),
 };
 export const QuarterNotes: Pattern = {
   id: "quarter-notes",
   name: "Straight Quarter Notes",
   aliases: ["quarter notes", "quarters"],
-  stream: fill(Array(4), [MIDI.createQuarterNote()]),
+  stream: fill(Array(4), [_.createQuarterNote()]),
 };
 export const EighthNotes: Pattern = {
   id: "eighth-notes",
   name: "Straight Eighth Notes",
   aliases: ["eighth notes", "eighths", "8ths", "8th notes"],
-  stream: fill(Array(8), [MIDI.createEighthNote()]),
+  stream: fill(Array(8), [_.createEighthNote()]),
 };
 export const SixteenthNotes: Pattern = {
   id: "sixteenth-notes",
   name: "Straight Sixteenth Notes",
   aliases: ["sixteenth notes", "sixteenths", "16ths", "16th notes"],
-  stream: fill(Array(16), [MIDI.createSixteenthNote()]),
+  stream: fill(Array(16), [_.createSixteenthNote()]),
 };
 export const ThirtySecondNotes: Pattern = {
   id: "thirty-second-notes",
@@ -43,7 +43,7 @@ export const ThirtySecondNotes: Pattern = {
     "32nds",
     "32nd notes",
   ],
-  stream: fill(Array(32), [MIDI.createThirtySecondNote()]),
+  stream: fill(Array(32), [_.createThirtySecondNote()]),
 };
 export const SixtyFourthNotes: Pattern = {
   id: "sixty-fourth-notes",
@@ -56,7 +56,7 @@ export const SixtyFourthNotes: Pattern = {
     "64ths",
     "64th notes",
   ],
-  stream: fill(Array(64), [MIDI.createSixtyFourthNote()]),
+  stream: fill(Array(64), [_.createSixtyFourthNote()]),
 };
 
 export default {

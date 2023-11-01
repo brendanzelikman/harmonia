@@ -21,7 +21,7 @@ import {
   toggleTransportLoop,
   toggleTransportRecording,
 } from "redux/Transport";
-import useTransportTick from "hooks/useTransportTick";
+import { useTransportTick } from "hooks";
 
 export function NavbarTransport() {
   const dispatch = useProjectDispatch();

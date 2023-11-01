@@ -7,7 +7,7 @@ import { Fragment, InputHTMLAttributes, MouseEvent, ReactNode } from "react";
 import { isPatternTrack } from "types/PatternTrack";
 import { isScaleTrack } from "types/ScaleTrack";
 import { TimelineCell } from "types/Timeline";
-import { blurOnEnter, cancelEvent } from "utils";
+import { blurOnEnter, cancelEvent } from "utils/html";
 import { omit } from "lodash";
 
 export function TrackComponent(props: TrackProps) {

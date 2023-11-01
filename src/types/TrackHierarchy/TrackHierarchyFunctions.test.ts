@@ -1,25 +1,22 @@
 import { test, expect } from "vitest";
-import * as Functions from "./TrackHierarchyFunctions";
+import * as _ from "./TrackHierarchyFunctions";
 import { mockScaleTrack } from "types/ScaleTrack";
 import { mockPatternTrack } from "types/PatternTrack";
-import { ClipMap, mockClip } from "types/Clip";
-import { createTranspositionMap, mockTransposition } from "types/Transposition";
+import { mockClip } from "types/Clip";
+import { mockTransposition } from "types/Transposition";
 import {
+  isTrackHierarchy,
   mockPatternTrackNode,
   mockScaleTrackNode,
 } from "./TrackHierarchyTypes";
-import { createMap } from "types/util";
 
-test("createHierarchy", () => {
-  // Create a mock hierarchy
-  const hierarchy = Functions.createTrackHierarchy({
+test("createHierarchy should produce a valid hierarchy", () => {
+  const hierarchy = _.createTrackHierarchy({
     tracks: [mockScaleTrack, mockPatternTrack],
     clips: [mockClip],
     transpositions: [mockTransposition],
   });
-
-  // Prepare the expected hierarchy
-  const expectedHierarchy = {
+  expect(hierarchy).toEqual({
     allIds: [mockScaleTrack.id, mockPatternTrack.id],
     byId: {
       [mockScaleTrack.id]: {
@@ -32,58 +29,45 @@ test("createHierarchy", () => {
       },
     },
     topLevelIds: [mockScaleTrack.id],
-  };
-
-  expect(hierarchy).toEqual(expectedHierarchy);
+  });
+  expect(isTrackHierarchy(hierarchy)).toBe(true);
 });
 
-test("getTrackClips", () => {
-  const hierarchy = Functions.createTrackHierarchy({
+test("getTrackChildIds should return the correct child IDs of a track", () => {
+  const hierarchy = _.createTrackHierarchy({
     tracks: [mockScaleTrack, mockPatternTrack],
     clips: [mockClip],
     transpositions: [mockTransposition],
   });
-  const trackNodeMap = hierarchy.byId;
-  const clipMap = createMap<ClipMap>([mockClip]);
-
-  // Test the scale track
-  const scaleTrackClips = Functions.getTrackClips(
-    mockScaleTrack,
-    clipMap,
-    trackNodeMap
-  );
-  expect(scaleTrackClips).toEqual([]);
-
-  // Test the pattern track
-  const patternTrackClips = Functions.getTrackClips(
-    mockPatternTrack,
-    clipMap,
-    trackNodeMap
-  );
-  expect(patternTrackClips).toEqual([mockClip]);
+  const stChildIds = _.getTrackChildIds(mockScaleTrack.id, hierarchy.byId);
+  expect(stChildIds).toEqual([mockPatternTrack.id]);
+  const ptChildIds = _.getTrackChildIds(mockPatternTrack.id, hierarchy.byId);
+  expect(ptChildIds).toEqual([]);
 });
 
-test("getTrackTranspositions", () => {
-  const hierarchy = Functions.createTrackHierarchy({
+test("getTrackClipIds should return the correct clip IDs of a track", () => {
+  const hierarchy = _.createTrackHierarchy({
     tracks: [mockScaleTrack, mockPatternTrack],
     clips: [mockClip],
     transpositions: [mockTransposition],
   });
-  const transpositionMap = createTranspositionMap([mockTransposition]);
+  const stClipIds = _.getTrackClipIds(mockScaleTrack.id, hierarchy.byId);
+  expect(stClipIds).toEqual([]);
+  const ptClipIds = _.getTrackClipIds(mockPatternTrack.id, hierarchy.byId);
+  expect(ptClipIds).toEqual([mockClip.id]);
+});
 
-  // Test the scale track
-  const scaleTrackTranspositions = Functions.getTrackTranspositions(
-    mockScaleTrack,
-    transpositionMap,
+test("getTrackTranspositionIds should return the correct transposition IDs of a track", () => {
+  const hierarchy = _.createTrackHierarchy({
+    tracks: [mockScaleTrack, mockPatternTrack],
+    clips: [mockClip],
+    transpositions: [mockTransposition],
+  });
+  const stPoses = _.getTrackTranspositionIds(mockScaleTrack.id, hierarchy.byId);
+  expect(stPoses).toEqual([]);
+  const ptPoses = _.getTrackTranspositionIds(
+    mockPatternTrack.id,
     hierarchy.byId
   );
-  expect(scaleTrackTranspositions).toEqual([]);
-
-  // Test the pattern track
-  const patternTrackTranspositions = Functions.getTrackTranspositions(
-    mockPatternTrack,
-    transpositionMap,
-    hierarchy.byId
-  );
-  expect(patternTrackTranspositions).toEqual([mockTransposition]);
+  expect(ptPoses).toEqual([mockTransposition.id]);
 });

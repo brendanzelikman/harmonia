@@ -1,207 +1,411 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Cursor,
   IOSMDOptions,
   OpenSheetMusicDisplay as OSMD,
 } from "opensheetmusicdisplay";
+import { MidiNote } from "types/Scale";
+import { PatternMidiStream, isPatternMidiChord } from "types/Pattern";
+import { clamp } from "lodash";
 
-interface OSMDProps {
-  id: string;
+// ------------------------------------------------------------
+// OSMD Constants
+// ------------------------------------------------------------
+
+const ZOOM = 1.1;
+const MARGIN_X = 3;
+const MARGIN_Y = 2;
+
+// ------------------------------------------------------------
+// OSMD Interfaces
+// ------------------------------------------------------------
+
+/** The OSMD hook requires an XML string and accepts a stream or array of notes. */
+export interface BaseProps {
   xml: string;
-  noteCount: number;
+  id?: string;
   className?: string;
-  noteClassName?: string;
   options?: IOSMDOptions;
   ignoreCursor?: boolean;
+  noteClasses?: string[];
+  noteColor?: string;
+  onNoteClick?: NoteCallback;
 }
+export type StreamProps = BaseProps & { stream: PatternMidiStream };
+export type ArrayProps = BaseProps & { notes: MidiNote[] };
+export type NoteList = PatternMidiStream | MidiNote[];
+export type Props = StreamProps | ArrayProps;
 
-export interface OSMDCursor {
-  index: number;
-  setIndex: (index: number) => void;
-  hidden: boolean;
-  show: () => void;
-  hide: () => void;
-  next: () => void;
-  prev: () => void;
-  toggle: () => void;
-}
-interface OSMDReturn {
+/** The default score options hide all non-note information. */
+const defaultOptions: IOSMDOptions = {
+  autoResize: true,
+  drawTitle: false,
+  drawSubtitle: false,
+  drawPartNames: false,
+  drawMeasureNumbers: false,
+  drawTimeSignatures: false,
+  disableCursor: false,
+};
+
+// ------------------------------------------------------------
+// OSMD Score
+// ------------------------------------------------------------
+
+/** The hook returns a reference to the score, cursor, and notes. */
+export interface ScoreProps {
   score: JSX.Element;
   osmd?: OSMD;
-  cursor: OSMDCursor;
+  cursor: CursorProps;
+  notes: NoteProps[];
 }
 
-export default function useOSMD({
-  id,
-  xml,
-  noteCount,
-  className,
-  noteClassName,
-  options,
-  ignoreCursor,
-}: OSMDProps): OSMDReturn {
+/** Formats the engraving rules of a score. */
+function formatScoreEngravingRules(score?: OSMD) {
+  if (!score) return;
+  score.EngravingRules.LastSystemMaxScalingFactor = 2.5;
+  score.EngravingRules.PageLeftMargin = MARGIN_X;
+  score.EngravingRules.PageRightMargin = MARGIN_X;
+  score.EngravingRules.PageTopMargin = MARGIN_Y;
+  score.EngravingRules.PageBottomMargin = MARGIN_Y;
+}
+
+/** Render an XML string as a score using a list of notes. */
+export function useOSMD(props: Props): ScoreProps {
+  const { id, xml, className, ignoreCursor } = props;
+
+  // Score info
   const ref = useRef<HTMLDivElement>(null);
   const [osmd, setOSMD] = useState<OSMD>();
+  const options: IOSMDOptions = { ...defaultOptions, ...props.options };
 
-  const osmdOptions: IOSMDOptions = {
-    autoResize: true,
-    drawTitle: false,
-    drawSubtitle: false,
-    drawPartNames: false,
-    drawMeasureNumbers: false,
-    drawTimeSignatures: false,
-    tupletsBracketed: true,
-    ...options,
-  };
+  // Note info
+  const [noteElements, setNoteElements] = useState<NoteProps[]>([]);
+  const notes = "stream" in props ? props.stream : props.notes;
+  const noteCount = notes.length;
 
-  const [cursorIndex, setCursorIndex] = useState(0);
-  const [showingCursor, setShowingCursor] = useState(false);
-  const showCursor = () => {
-    if (!showingCursor && osmd?.cursor && noteCount > 0) {
-      osmd.cursor.show();
-      setShowingCursor(true);
-    }
-  };
-  const hideCursor = () => {
-    if (showingCursor && osmd?.cursor) {
-      osmd.cursor.hide();
-      setShowingCursor(false);
-    }
-  };
-  const toggleCursor = () => {
-    if (showingCursor) {
-      hideCursor();
-    } else {
-      showCursor();
-    }
-  };
-  const nextCursor = () => {
-    if (noteCount && cursorIndex === noteCount - 1) return;
-    if (osmd?.cursor) {
-      osmd.cursor.next();
-      setCursorIndex((index) =>
-        noteCount ? Math.min(noteCount, index + 1) : index + 1
-      );
-    }
-  };
-  const prevCursor = () => {
-    if (cursorIndex === 0) return;
-    if (osmd?.cursor) {
-      osmd.cursor.previous();
-      setCursorIndex((index) => Math.max(0, index - 1));
-    }
-  };
+  // Cursor info
+  const cursor = useOSMDCursor(osmd, noteCount);
 
+  // Re-render the score whenever any props change
   useEffect(() => {
     if (!ref.current) return;
 
-    let score: OSMD;
-    const marginX = 3;
-    const marginY = 2;
-    const zoom = 1.1;
-
+    // Check if the score and canvas exist
     const doesScoreExist = !!osmd;
     const doesCanvasExist = !!document.getElementById("osmdCanvasPage1");
 
+    // Re-create the score unless the score and canvas exist
+    let score: OSMD;
     if (doesScoreExist && doesCanvasExist) {
       score = osmd;
     } else {
-      score = new OSMD(ref.current, osmdOptions);
-
-      score.EngravingRules.LastSystemMaxScalingFactor = 2.5;
-      score.EngravingRules.PageLeftMargin = marginX;
-      score.EngravingRules.PageRightMargin = marginX;
-      score.EngravingRules.PageTopMargin = marginY;
-      score.EngravingRules.PageBottomMargin = marginY;
+      score = new OSMD(ref.current, options);
+      formatScoreEngravingRules(score);
       setOSMD(score);
     }
 
+    // Try to load the XML, then render the score
     score
       .load(xml)
       .then(() => {
-        score.zoom = zoom;
+        score.zoom = ZOOM;
         score.render();
       })
       .finally(() => {
         setTimeout(() => {
-          if (!ignoreCursor && showingCursor && osmd?.cursor) {
-            // Set the style of the cursor
-            osmd.cursor.cursorElement.style.height = `${Math.round(
-              120 * zoom
-            )}px`;
-            osmd.cursor.cursorElement.style.backgroundColor = "turquoise";
-            osmd.cursor.cursorElement.style.opacity = "0.5";
-
-            // Keep showing the cursor if there are notes
-            if (noteCount > 0) {
-              osmd.cursor.show();
-              setShowingCursor(true);
-            } else {
-              osmd.cursor.hide();
-              setShowingCursor(false);
-            }
-            // Clamp the cursor index if it's out of bounds
-            if (cursorIndex > noteCount) {
-              setCursorIndex(noteCount - 1);
-            } else {
-              // Otherwise, move the cursor to the correct index
-              if (cursorIndex > 0) {
-                for (let i = 0; i < cursorIndex; i++) {
-                  score.cursor.next();
-                }
-              }
-            }
-          }
-          // Add a click listener to each note
-          const notes = document.querySelectorAll(`.vf-stavenote`);
-          const length = notes.length / 2;
-
-          const sortedNotes = [...notes];
-          sortedNotes.forEach((note, index) => {
-            note.classList.add("cursor-pointer");
-            note.addEventListener("click", () => {
-              // Show the cursor
-              setShowingCursor(true);
-              // Update the cursor index
-              const i = index % length;
-              setCursorIndex(i);
-              if (i === cursorIndex) return;
-              // Move the actual cursor based on the offset
-              const offset = Math.abs(i - cursorIndex);
-              if (i < cursorIndex) {
-                for (let j = 0; j < offset; j++) {
-                  if (i < cursorIndex) {
-                    score.cursor.previous();
-                  } else {
-                    score.cursor.next();
-                  }
-                }
-              }
+          // Format and render the cursor if it is visible and not ignored
+          if (!ignoreCursor && !cursor.hidden && !!osmd?.cursor) {
+            renderCursor({
+              userCursor: cursor,
+              scoreCursor: osmd?.cursor,
+              noteCount,
+              index: cursor.index,
             });
+          }
+
+          // Apply a callback to each note and update the note elements
+          const noteElements = getStaveNotes(
+            notes,
+            props.noteClasses ?? [],
+            (index) => props.onNoteClick?.(cursor, index)
+          );
+          setNoteElements(noteElements);
+
+          // Apply the color to each note if specified
+          const noteColor = props.noteColor ?? "fill-black";
+          noteElements.forEach((elt) => {
+            const id = elt.element.id;
+            const heads = [
+              ...document.querySelectorAll(`#${id} .vf-modifiers path`),
+              ...document.querySelectorAll(`#${id} .vf-note .vf-notehead path`),
+            ];
+            heads.forEach((head) => head.removeAttribute("fill"));
+            heads.forEach((head) => head.classList.add(noteColor));
           });
         }, 10);
       });
   }, [
+    cursor.index,
+    cursor.hidden,
     id,
     xml,
-    noteClassName,
     noteCount,
-    cursorIndex,
-    showingCursor,
     ignoreCursor,
+    props.onNoteClick,
+    props.noteClasses,
+    props.noteColor,
   ]);
 
-  return {
-    score: <div ref={ref} id={id} className={className}></div>,
-    osmd,
-    cursor: {
-      index: cursorIndex,
-      setIndex: setCursorIndex,
-      hidden: !showingCursor,
-      show: showCursor,
-      hide: hideCursor,
-      toggle: toggleCursor,
-      next: nextCursor,
-      prev: prevCursor,
+  // Return the score, cursor, and notes
+  return useMemo<ScoreProps>(
+    () => ({
+      score: <div ref={ref} id={id} className={className}></div>,
+      osmd,
+      cursor,
+      notes: noteElements,
+    }),
+    [id, className, cursor]
+  );
+}
+
+// ------------------------------------------------------------
+// OSMD Cursor
+// ------------------------------------------------------------
+
+/** The cursor contains various methods for score navigation. */
+interface CursorProps {
+  index: number;
+  setIndex: (index: number) => void;
+  hidden: boolean;
+  show: (index?: number) => void;
+  hide: () => void;
+  toggle: () => void;
+  next: () => void;
+  prev: () => void;
+  skipStart: () => void;
+  skipEnd: () => void;
+}
+
+/** Render the user and score cursor independently as the score is rendered. */
+function renderCursor(props: {
+  scoreCursor?: Cursor;
+  userCursor?: CursorProps;
+  noteCount: number;
+  index: number;
+}) {
+  const { userCursor, scoreCursor, noteCount, index } = props;
+  if (!userCursor || !scoreCursor) return;
+
+  const height = Math.round(120 * ZOOM);
+  scoreCursor.cursorElement.style.height = `${height}px`;
+  scoreCursor.cursorElement.style.backgroundColor = "turquoise";
+  scoreCursor.cursorElement.style.opacity = "0.5";
+
+  // Update the indices
+  userCursor.setIndex(index);
+  scoreCursor.reset();
+  for (let i = 0; i < index; i++) scoreCursor.next();
+
+  // Update the visibility
+  if (noteCount > 0) {
+    scoreCursor.show();
+    userCursor.show();
+  } else {
+    scoreCursor.hide();
+    userCursor.hide();
+  }
+}
+
+/** The cursor hook returns a reference to the cursor element and its methods. */
+function useOSMDCursor(osmd?: OSMD, noteCount = 1): CursorProps {
+  const element = useMemo(() => osmd?.cursor, [osmd]) as Cursor | undefined;
+  const [hidden, setHidden] = useState(true);
+  const [index, _setIndex] = useState(0);
+  const setIndex = (i: number) => _setIndex(clamp(i, 0, noteCount - 1));
+
+  /** Show the cursor. */
+  const show = useCallback(
+    (index?: number) => {
+      if (index !== undefined) setIndex(index);
+      if (!hidden) return;
+      setHidden(false);
+      if (element) element.show();
     },
-  };
+    [hidden]
+  );
+
+  /** Hide the cursor. */
+  const hide = useCallback(() => {
+    if (hidden) return;
+    setHidden(true);
+    if (element) element.hide();
+  }, [hidden]);
+
+  /** Toggle the cursor. */
+  const toggle = useCallback(() => (hidden ? show() : hide()), [hidden]);
+
+  /** Move the cursor to the next note. */
+  const next = useCallback(() => {
+    setIndex(index + 1);
+    if (element) element.next();
+  }, [index]);
+
+  /** Move the cursor to the previous note. */
+  const prev = useCallback(() => {
+    setIndex(index - 1);
+    if (element) element.previous();
+  }, [index]);
+
+  /** Move the cursor to the start of the score. */
+  const skipStart = useCallback(() => {
+    setIndex(0);
+  }, []);
+
+  /** Move the cursor to the end of the score. */
+  const skipEnd = useCallback(() => {
+    setIndex(noteCount - 1);
+  }, [noteCount]);
+
+  return useMemo<CursorProps>(
+    () => ({
+      element,
+      index,
+      setIndex,
+      hidden,
+      show,
+      hide,
+      toggle,
+      next,
+      prev,
+      skipStart,
+      skipEnd,
+    }),
+    [element, index, hidden, show, hide, toggle, next, prev, skipStart, skipEnd]
+  );
+}
+
+// ------------------------------------------------------------
+// OSMD Notes
+// ------------------------------------------------------------
+
+/** Each note specifies its index in the score and the stream. */
+interface NoteProps {
+  element: Element;
+  scoreIndex: number;
+  streamIndex: number;
+}
+
+/** The note callback accepts a cursor and stream index. */
+export type NoteCallback = (cursor: CursorProps, index: number) => void;
+
+/** Get the list of stave notes in the document with the callback. */
+export function getStaveNotes(
+  notes: NoteList,
+  classNames: string[],
+  callback: (index: number) => void
+) {
+  // Get all stave notes in the document
+  const noteElements: NoteProps[] = [];
+  const streamIndices = getStreamIndices(notes);
+  const staveNotes = [...document.querySelectorAll(`.vf-stavenote`)];
+
+  // Iterate through each note and handle its element
+  staveNotes.forEach((staveNote, scoreIndex) => {
+    // Get the corresponding stream index
+    const streamIndex = streamIndices[scoreIndex];
+
+    // Add a callback to each stave note
+    staveNote.classList.add(...["relative", ...classNames]);
+    staveNote.addEventListener("click", () => callback?.(streamIndex));
+
+    // Add the element and indices to the note elements
+    const note = { element: staveNote, scoreIndex, streamIndex };
+    noteElements.push(note);
+  });
+
+  // Return the list of note elements
+  return noteElements;
+}
+
+/** Select the score from the notes and return their corresponding stream indices. */
+function getStreamIndices(notes: NoteList) {
+  const elements = [...document.querySelectorAll(`.vf-clef, .vf-stavenote`)];
+  const clefIndices = getStreamIndicesByClef(notes);
+  const systems = [] as number[][];
+
+  // Initialize loop variables
+  const system = [] as number[];
+  let onBassClef = false;
+  let noteIndex = 0;
+  let noteCount = 0;
+
+  // Iterate over all clefs and notes
+  for (let i = 0; i < elements.length; i++) {
+    const element = elements[i];
+    const isClef = element.classList.contains("vf-clef");
+
+    // If the element is a clef, reset the note index and switch clefs
+    if (isClef) {
+      if (i === 0) continue;
+
+      // If on the bass clef, add the previous system and clear the clefs
+      if (onBassClef) {
+        systems.push([...system]);
+        noteCount += noteIndex;
+        system.clear();
+      }
+
+      // Switch clefs and reset the note index
+      onBassClef = !onBassClef;
+      noteIndex = 0;
+      continue;
+    }
+
+    // Otherwise, add the note according to its clef
+    const index = noteCount + noteIndex;
+    const inTreble = clefIndices.treble.includes(index);
+    const inBass = clefIndices.bass.includes(index);
+    if (!onBassClef && inTreble) noteIndex++;
+    else if (onBassClef && inBass) noteIndex++;
+    else if (inTreble || inBass) noteIndex++;
+
+    system.push(index);
+  }
+
+  // Add the last system and return the indices
+  systems.push([...system]);
+  const clefs = systems.flat();
+  const indices = clefs.flat();
+  return indices;
+}
+
+/** Organize a list of notes into clef and treble indices. */
+function getStreamIndicesByClef(notes: NoteList) {
+  const grouped = { treble: [] as number[], bass: [] as number[] };
+
+  // Iterate over each note
+  notes.forEach((chord, i) => {
+    if (!isPatternMidiChord(chord)) {
+      grouped.treble.push(i);
+      grouped.bass.push(i);
+      return;
+    }
+
+    // Filter the chord into treble and bass notes
+    const trebleNotes = chord.filter((note) => note.MIDI >= 58);
+    const bassNotes = chord.filter((note) => note.MIDI < 58);
+
+    // Add the index to the correct clef
+    if (trebleNotes.length > 0 && bassNotes.length > 0) {
+      grouped.treble.push(i);
+      grouped.bass.push(i);
+    } else if (trebleNotes.length > 0 && bassNotes.length === 0) {
+      grouped.treble.push(i);
+    } else if (bassNotes.length > 0 && trebleNotes.length === 0) {
+      grouped.bass.push(i);
+    }
+  });
+
+  // Return the grouped indices
+  return grouped;
 }

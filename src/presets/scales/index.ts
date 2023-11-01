@@ -5,7 +5,7 @@ import PentatonicScales from "./PentatonicScales";
 import HexatonicScales from "./HexatonicScales";
 import OctatonicScales from "./OctatonicScales";
 import UncommonScales from "./UncommonScales";
-import { createMap } from "types/util";
+import { createMap } from "utils/objects";
 
 // Return a map of preset group key to preset group
 // e.g. { "Common Scales": [ ... ], "Common Modes": [ ... ], ... }

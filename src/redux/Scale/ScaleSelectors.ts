@@ -1,54 +1,42 @@
 import { Project } from "types/Project";
 import { createSelector } from "reselect";
 import { ScaleId } from "types/Scale";
-import { getProperties, getProperty } from "types/util";
-import { ScaleTrackScaleName } from "types/Scale";
+import { getValuesByKeys, getValueByKey } from "utils/objects";
+import { createDeepEqualSelector } from "redux/util";
+import { SCALE_TRACK_SCALE_NAME } from "utils/constants";
 
-/**
- * Select all scale IDs from the store.
- * @param project - The Redux store state.
- * @returns An array of all scale IDs.
- */
-export const selectScaleIds = (project: Project): ScaleId[] =>
-  project.scales.present.allIds;
+/** Select the scale past length. */
+export const selectScalePastLength = (project: Project) =>
+  project.scales.past.length;
 
-/**
- * Select the scale map from the store.
- * @param project - The Redux store state.
- * @returns The scale map.
- */
+/** Select the scale future length. */
+export const selectScaleFutureLength = (project: Project) =>
+  project.scales.future.length;
+
+/** Select the scale map. */
 export const selectScaleMap = (project: Project) => project.scales.present.byId;
 
-/**
- * Select all scales from the store (including track scales)
- * @param project - The Redux store state.
- * @returns An array of scales.
- */
-export const selectScales = createSelector(
+/** Select all scale IDs. */
+export const selectScaleIds = (project: Project) =>
+  project.scales.present.allIds;
+
+/** Select all scales (including track scales) */
+export const selectScales = createDeepEqualSelector(
   [selectScaleMap, selectScaleIds],
-  (scaleMap, ids) => getProperties(scaleMap, ids)
+  (scaleMap, ids) => getValuesByKeys(scaleMap, ids)
 );
 
-/**
- * Select all custom scales from the store (excluding track scales).
- * @param project - The Redux store state.
- * @returns An array of scales.
- */
+/** Select all custom scales (excluding track scales). */
 export const selectCustomScales = createSelector(
   [selectScaleMap, selectScaleIds],
   (scaleMap, ids) => {
-    const scales = getProperties(scaleMap, ids);
-    return scales.filter((scale) => scale.name !== ScaleTrackScaleName);
+    const scales = getValuesByKeys(scaleMap, ids);
+    return scales.filter((scale) => scale.name !== SCALE_TRACK_SCALE_NAME);
   }
 );
 
-/**
- * Select a specific scale from the store.
- * @param project - The Redux store state.
- * @param id - The ID of the scale to select.
- * @returns The scale.
- */
+/** Select a specific scale. */
 export const selectScaleById = (project: Project, id: ScaleId) => {
   const scaleMap = selectScaleMap(project);
-  return getProperty(scaleMap, id);
+  return getValueByKey(scaleMap, id);
 };

@@ -3,7 +3,7 @@ import { HeaderRendererProps } from "react-data-grid";
 import { connect, ConnectedProps } from "react-redux";
 import {
   selectTimeline,
-  selectTickFromColumn,
+  selectColumnTicks,
   selectTransport,
 } from "redux/selectors";
 import {
@@ -12,10 +12,10 @@ import {
   setTransportLoopStart,
 } from "redux/Transport";
 import { Project, Dispatch } from "types/Project";
-import { Subdivision, Tick } from "types/units";
+import { Tick } from "types/units";
 import { Row } from "..";
 import { HeaderFormatter } from "./Header";
-import { subdivisionToTicks } from "utils";
+import { Subdivision, getSubdivisionTicks } from "utils/durations";
 import { convertTicksToBarsBeatsSixteenths } from "types/Transport";
 
 function mapStateToProps(project: Project, ownProps: HeaderRendererProps<Row>) {
@@ -24,11 +24,11 @@ function mapStateToProps(project: Project, ownProps: HeaderRendererProps<Row>) {
 
   // Timeline properties
   const { subdivision } = selectTimeline(project);
-  const tickLength = subdivisionToTicks(subdivision);
+  const tickLength = getSubdivisionTicks(subdivision);
 
   // Tick properties
   const columnIndex = Number(ownProps.column.key);
-  const tick = selectTickFromColumn(project, columnIndex - 1);
+  const tick = selectColumnTicks(project, columnIndex - 1);
   const { bars, beats, sixteenths } = convertTicksToBarsBeatsSixteenths(
     transport,
     tick
@@ -84,11 +84,11 @@ function mapDispatchToProps(dispatch: Dispatch) {
       dispatch(seekTransport(tick));
     },
     setLoopStart: (column: number, subdivision: Subdivision) => {
-      const ticks = subdivisionToTicks(subdivision) * (column - 1);
+      const ticks = getSubdivisionTicks(subdivision) * (column - 1);
       dispatch(setTransportLoopStart(ticks));
     },
     setLoopEnd: (column: number, subdivision: Subdivision) => {
-      const ticks = subdivisionToTicks(subdivision) * column;
+      const ticks = getSubdivisionTicks(subdivision) * column;
       dispatch(setTransportLoopEnd(ticks - 1));
     },
   };

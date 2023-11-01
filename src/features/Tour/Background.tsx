@@ -2,7 +2,7 @@ import { Transition } from "@headlessui/react";
 import { TRACK_WIDTH, NAV_HEIGHT } from "utils/constants";
 import { useState } from "react";
 import { END_TOUR, SET_TOUR_ID, START_TOUR } from ".";
-import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { useCustomEventListener } from "hooks";
 
 // Onboarding tour background
 export const TourBackground = () => {
@@ -33,7 +33,6 @@ export const TourBackground = () => {
     "tour-step-pattern-editor-conclusion",
     "tour-step-adding-clips",
     "tour-step-adding-transpositions",
-    "tour-step-track-media",
     "tour-step-saving-work",
     "tour-step-confetti",
   ];
@@ -51,11 +50,7 @@ export const TourBackground = () => {
     "tour-step-track-conclusion",
   ];
   const onTracks = stepsWithTracks.includes(id);
-  const stepsWithTimeline = [
-    "tour-step-track-media",
-    "tour-step-saving-work",
-    "tour-step-confetti",
-  ];
+  const stepsWithTimeline = ["tour-step-saving-work", "tour-step-confetti"];
   const onTimeline = stepsWithTimeline.includes(id);
   const BodyBlock = () => {
     const top = NAV_HEIGHT;

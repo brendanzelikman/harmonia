@@ -1,5 +1,5 @@
 import { ButtonHTMLAttributes, InputHTMLAttributes } from "react";
-import { blurOnEnter } from "utils";
+import { blurOnEnter } from "utils/html";
 
 export const NavbarFormGroup = (props: any) => (
   <div

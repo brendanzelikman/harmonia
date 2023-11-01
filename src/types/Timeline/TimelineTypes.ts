@@ -1,5 +1,5 @@
 import { Track, TrackId } from "types/Track";
-import { Subdivision } from "../units";
+import { Subdivision } from "utils/durations";
 import {
   DEFAULT_MEDIA_CLIPBOARD,
   DEFAULT_MEDIA_DRAFT,
@@ -10,63 +10,43 @@ import {
   MediaDraft,
   MediaDragState,
   MediaSelection,
+  isMediaClipboard,
+  isMediaDraft,
+  isMediaDragState,
+  isMediaSelection,
 } from "types/Media";
+import { isBoolean, isPlainObject, isString } from "lodash";
 
-// Types
+// ------------------------------------------------------------
+// Timeline Generics
+// ------------------------------------------------------------
 export type TimelineObject = Track | Media;
 export type TranspositionMode = "numerical" | "alphabetical";
 
-/**
- * The `TimelineState` contains the current state of the timeline.
- * @const `addingClips` - The user is adding clips.
- * @const `addingTranspositions` - The user is adding transpositions.
- * @const `slicingMedia` - The user is slicing media.
- * @const `mergingMedia` - The user is merging media.
- * @const `idle` - The user is not performing any actions.
- */
-export type TimelineState =
-  | "addingClips"
-  | "addingTranspositions"
-  | "slicingMedia"
-  | "mergingMedia"
-  | "idle";
+// ------------------------------------------------------------
+// Timeline Definitions
+// ------------------------------------------------------------
 
-/**
- * The `TimelineCell` contains the dimensions of a timeline cell.
- * @property `width` - The width of the cell.
- * @property `height` - The height of the cell.
- */
-export type TimelineCell = {
-  width: number;
-  height: number;
-};
+/**  The `TimelineState` contains the current action of the user. */
+export const TIMELINE_STATES = [
+  "addingClips",
+  "addingTranspositions",
+  "slicingMedia",
+  "mergingMedia",
+  "idle",
+] as const;
+export type TimelineState = (typeof TIMELINE_STATES)[number];
 
-export const DEFAULT_CELL: TimelineCell = {
-  width: 25,
-  height: 120,
-};
+/** The `TimelineCell` contains the dimensions of a timeline cell. */
+export type TimelineCell = { width: number; height: number };
 
-/**
- * The `LiveTranspositionSettings` specify its hotkeys and enabled status.
- * @property `mode` - The transposition mode (numerical or alphabetical).
- * @property `enabled` - Whether live transposition is enabled.
- */
+/** The `LiveTranspositionSettings` specify its hotkey mode and enabled status. */
 export type LiveTranspositionSettings = {
   mode: TranspositionMode;
   enabled: boolean;
 };
 
-/**
- * The `Timeline` contains information about the data grid and manages all tracked objects.
- * @property `state` - The current action state of the timeline.
- * @property `subdivision` - The current subdivision of the timeline.
- * @property `cell` - The dimensions of a timeline cell.
- * @property `selectedTrackId` - The ID of the currently selected track.
- * @property `mediaSelection` - The selected media.
- * @property `mediaDraft` - The drafted media.
- * @property `mediaClipboard` - The copied media.
- * @property `mediaDragState` - The drag state of the media.
- */
+/** The `Timeline` contains information about the data grid and manages all tracked objects. */
 export interface Timeline {
   state: TimelineState;
   subdivision: Subdivision;
@@ -79,9 +59,19 @@ export interface Timeline {
   liveTranspositionSettings: LiveTranspositionSettings;
 }
 
+// ------------------------------------------------------------
+// Timeline Defaults
+// ------------------------------------------------------------
+
+export const DEFAULT_CELL: TimelineCell = {
+  width: 25,
+  height: 120,
+};
+
+/** The default timeline is used for initialization. */
 export const defaultTimeline: Timeline = {
   state: "idle",
-  subdivision: "1/16",
+  subdivision: "16n",
   cell: DEFAULT_CELL,
   selectedTrackId: undefined,
   mediaSelection: DEFAULT_MEDIA_SELECTION,
@@ -94,21 +84,50 @@ export const defaultTimeline: Timeline = {
   },
 };
 
-/**
- * Checks if a given object is of type `Timeline`.
- * @param obj The object to check.
- * @returns True if the object is a `Timeline`, otherwise false.
- */
+// ------------------------------------------------------------
+// Timeline Type Guards
+// ------------------------------------------------------------
+
+/** Checks if a given object is of type `TimelineState` */
+export const isTimelineState = (obj: unknown): obj is TimelineState => {
+  const candidate = obj as TimelineState;
+  return isString(candidate) && TIMELINE_STATES.includes(candidate);
+};
+
+/** Checks if a given object is of type `TimelineCell` */
+export const isTimelineCell = (obj: unknown): obj is TimelineCell => {
+  const candidate = obj as TimelineCell;
+  return (
+    isPlainObject(candidate) &&
+    isFinite(candidate.width) &&
+    isFinite(candidate.height)
+  );
+};
+
+/** Checks if a given object is of type `LiveTranspositionSettings` */
+export const isLiveTranspositionSettings = (
+  obj: unknown
+): obj is LiveTranspositionSettings => {
+  const candidate = obj as LiveTranspositionSettings;
+  return (
+    isPlainObject(candidate) &&
+    (candidate.mode === "numerical" || candidate.mode === "alphabetical") &&
+    isBoolean(candidate.enabled)
+  );
+};
+
+/** Checks if a given object is of type `Timeline` */
 export const isTimeline = (obj: unknown): obj is Timeline => {
   const candidate = obj as Timeline;
   return (
-    candidate?.state !== undefined &&
-    candidate?.cell !== undefined &&
+    isPlainObject(candidate) &&
+    isTimelineState(candidate.state) &&
+    isTimelineCell(candidate.cell) &&
     candidate?.subdivision !== undefined &&
-    candidate?.mediaSelection !== undefined &&
-    candidate?.mediaDraft !== undefined &&
-    candidate?.mediaClipboard !== undefined &&
-    candidate?.mediaDragState !== undefined &&
-    candidate?.liveTranspositionSettings !== undefined
+    isMediaSelection(candidate.mediaSelection) &&
+    isMediaDraft(candidate.mediaDraft) &&
+    isMediaClipboard(candidate.mediaClipboard) &&
+    isMediaDragState(candidate.mediaDragState) &&
+    isLiveTranspositionSettings(candidate.liveTranspositionSettings)
   );
 };

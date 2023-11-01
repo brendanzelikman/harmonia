@@ -1,88 +1,89 @@
+import * as _ from ".";
+
 import { PayloadAction } from "@reduxjs/toolkit";
-import { ActionGroup } from "types/units";
-import { getClipTag } from "types/Clip";
-import { getTranspositionTag } from "types/Transposition";
-import { createTag } from "types/util";
-import * as HierarchySlice from ".";
-import { getTrackTag } from "types/Track";
+import { ActionGroup } from "redux/util";
+import { getClipAsString, getClipUpdateAsString } from "types/Clip";
+import {
+  getTranspositionAsString,
+  getTranspositionUpdateAsString,
+} from "types/Transposition";
+import { toString } from "utils/objects";
+import { getTrackAsString } from "types/Track";
 
 export const TRACK_HIERARCHY_UNDO_TYPES: ActionGroup = {
   "trackHierarchy/addScaleTrackToHierarchy": (
-    action: PayloadAction<HierarchySlice.AddTrackToHierarchyPayload>
+    action: PayloadAction<_.AddTrackToHierarchyPayload>
   ) => {
-    const tag = createTag(action.payload, getTrackTag);
+    const tag = toString(action.payload, getTrackAsString);
     return `ADD_TRACK:${tag}`;
   },
   "trackHierarchy/removeScaleTrackFromHierarchy": (
-    action: PayloadAction<HierarchySlice.RemoveTrackFromHierarchyPayload>
+    action: PayloadAction<_.RemoveTrackFromHierarchyPayload>
   ) => {
     return `REMOVE_TRACK:${action.payload}`;
   },
   "trackHierarchy/addPatternTrackToHierarchy": (
-    action: PayloadAction<HierarchySlice.AddTrackToHierarchyPayload>
+    action: PayloadAction<_.AddTrackToHierarchyPayload>
   ) => {
-    const tag = createTag(action.payload, getTrackTag);
+    const tag = toString(action.payload, getTrackAsString);
     return `ADD_TRACK:${tag}`;
   },
   "trackHierarchy/removePatternTrackFromHierarchy": (
-    action: PayloadAction<HierarchySlice.RemoveTrackFromHierarchyPayload>
+    action: PayloadAction<_.RemoveTrackFromHierarchyPayload>
   ) => {
     return `REMOVE_TRACK:${action.payload}`;
   },
   "trackHierarchy/moveTrackInHierarchy": (
-    action: PayloadAction<HierarchySlice.MoveTrackInHierarchyPayload>
+    action: PayloadAction<_.MoveTrackInHierarchyPayload>
   ) => {
     return `MOVE_TRACK:${action.payload}`;
   },
   "trackHierarchy/migrateTrackInHierarchy": (
-    action: PayloadAction<HierarchySlice.MigrateTrackInHierarchyPayload>
+    action: PayloadAction<_.MigrateTrackInHierarchyPayload>
   ) => {
     return `MIGRATE_TRACK:${action.payload}`;
   },
   "trackHierarchy/collapseTracksInHierarchy": (
-    action: PayloadAction<HierarchySlice.CollapseTracksInHierarchyPayload>
+    action: PayloadAction<_.CollapseTracksInHierarchyPayload>
   ) => {
     return `COLLAPSE_TRACKS:${action.payload.join(",")}`;
   },
   "trackHierarchy/expandTracksInHierarchy": (
-    action: PayloadAction<HierarchySlice.ExpandTracksInHierarchyPayload>
+    action: PayloadAction<_.ExpandTracksInHierarchyPayload>
   ) => {
     return `EXPAND_TRACKS:${action.payload.join(",")}`;
   },
   "trackHierarchy/clearTrackInHierarchy": (
-    action: PayloadAction<HierarchySlice.ClearTrackInHierarchyPayload>
+    action: PayloadAction<_.ClearTrackInHierarchyPayload>
   ) => {
     return `CLEAR_TRACK:${action.payload}`;
   },
   "trackHierarchy/addMediaToHierarchy": (
-    action: PayloadAction<HierarchySlice.AddMediaToHierarchyPayload>
+    action: PayloadAction<_.AddMediaToHierarchyPayload>
   ) => {
-    const clips = action.payload.clips || [];
-    const transpositions = action.payload.transpositions || [];
-    const clipTag = createTag(clips, getClipTag);
-    const transpositionTag = createTag(transpositions, getTranspositionTag);
-    return `ADD_MEDIA:${clipTag},${transpositionTag}`;
+    const { clips, transpositions } = action.payload;
+    const clipTag = toString(clips, getClipAsString);
+    const poseTag = toString(transpositions, getTranspositionAsString);
+    return `ADD_MEDIA:${clipTag},${poseTag}`;
   },
   "trackHierarchy/removeMediaFromHierarchy": (
-    action: PayloadAction<HierarchySlice.RemoveMediaFromHierarchyPayload>
+    action: PayloadAction<_.RemoveMediaFromHierarchyPayload>
   ) => {
-    const clips = action.payload.clips || [];
-    const transpositions = action.payload.transpositions || [];
-    const clipTag = createTag(clips, getClipTag);
-    const transpositionTag = createTag(transpositions, getTranspositionTag);
-    return `REMOVE_MEDIA:${clipTag},${transpositionTag}`;
+    const { clipIds, transpositionIds } = action.payload;
+    const clipTag = toString(clipIds);
+    const poseTag = toString(transpositionIds);
+    return `REMOVE_MEDIA:${clipTag},${poseTag}`;
   },
   "trackHierarchy/updateMediaInHierarchy": (
-    action: PayloadAction<HierarchySlice.UpdateMediaInHierarchyPayload>
+    action: PayloadAction<_.UpdateMediaInHierarchyPayload>
   ) => {
-    const clips = action.payload.clips || [];
-    const transpositions = action.payload.transpositions || [];
-    const clipTag = createTag(clips, getClipTag);
-    const transpositionTag = createTag(transpositions, getTranspositionTag);
-    return `UPDATE_MEDIA:${clipTag},${transpositionTag}`;
+    const { clips, transpositions } = action.payload;
+    const clipTag = toString(clips, getClipUpdateAsString);
+    const poseTag = toString(transpositions, getTranspositionUpdateAsString);
+    return `UPDATE_MEDIA:${clipTag},${poseTag}`;
   },
   "trackHierarchy/sliceMediaInHierarchy": (
-    action: PayloadAction<HierarchySlice.SliceMediaInHierarchyPayload>
+    action: PayloadAction<_.SliceMediaInHierarchyPayload>
   ) => {
     const { oldId, newIds } = action.payload;
     return `SLICE_MEDIA:${oldId},${newIds.join(",")}`;

@@ -1,42 +1,33 @@
-import { assert, expect, test } from "vitest";
-import * as TranspositionTypes from "./TranspositionTypes";
+import { expect, test } from "vitest";
+import * as _ from "./TranspositionTypes";
 
-test("initializeTransposition", () => {
-  // Test that the id is added
-  const transposition = TranspositionTypes.initializeTransposition(
-    TranspositionTypes.mockTransposition
-  );
-  expect(transposition).toEqual({
-    ...TranspositionTypes.mockTransposition,
-    id: transposition.id,
-  });
+test("initializeTransposition should create a Transposition with a unique ID", () => {
+  const p1 = _.initializeTransposition();
+  const p2 = _.initializeTransposition(p1);
+  expect(p2.id).toBeDefined();
+  expect(p2.id).not.toEqual(p1.id);
 });
 
-test("isTransposition", () => {
-  // Test a valid transposition
-  const validTransposition: TranspositionTypes.Transposition =
-    TranspositionTypes.initializeTransposition(
-      TranspositionTypes.mockTransposition
-    );
-  assert(TranspositionTypes.isTransposition(validTransposition));
+test("isTranspositionVector should only return true for valid vectors", () => {
+  expect(_.isTranspositionVector({})).toBe(true);
+  expect(_.isTranspositionVector(_.defaultTransposition.vector)).toBe(true);
+  expect(_.isTranspositionVector(_.mockPose.vector)).toBe(true);
 
-  // Test an invalid transposition
-  const invalidTransposition = { id: "invalid", trackId: "Invalid" };
-  assert(!TranspositionTypes.isTransposition(invalidTransposition));
+  expect(_.isTranspositionVector({ chromatic: "1" })).toBe(false);
+  expect(_.isTranspositionVector(undefined)).toBe(false);
+  expect(_.isTranspositionVector([])).toBe(false);
 });
 
-test("isTranspositionMap", () => {
-  // Test a valid transposition map
-  const validTranspositionMap: TranspositionTypes.TranspositionMap = {
-    "valid-transposition": TranspositionTypes.initializeTransposition(
-      TranspositionTypes.mockTransposition
-    ),
-  };
-  assert(TranspositionTypes.isTranspositionMap(validTranspositionMap));
+test("isTransposition should only return true for valid transpositions", () => {
+  expect(_.isTransposition(_.defaultTransposition)).toBe(true);
+  expect(_.isTransposition(_.mockPose)).toBe(true);
+  expect(_.isTransposition({ ..._.mockPose, duration: 0 })).toBe(true);
+  expect(_.isTransposition({ ..._.mockPose, duration: Infinity })).toBe(true);
+  expect(_.isTransposition({ ..._.mockPose, duration: undefined })).toBe(true);
 
-  // Test an invalid transposition map
-  const invalidTranspositionMap = {
-    "invalid-transposition": { id: "invalid", trackId: "Invalid" },
-  };
-  assert(!TranspositionTypes.isTranspositionMap(invalidTranspositionMap));
+  expect(_.isTransposition({ ..._.mockPose, duration: "0" })).toBe(false);
+  expect(_.isTransposition({ ..._.mockPose, id: 1 })).toBe(false);
+  expect(_.isTransposition({ ..._.mockPose, tick: "1" })).toBe(false);
+  expect(_.isTransposition(undefined)).toBe(false);
+  expect(_.isTransposition([])).toBe(false);
 });

@@ -4,19 +4,20 @@ import {
   selectTimelineObjectHeight,
   selectTimelineObjectTop,
   selectTimelineTickLeft,
-  selectTrackParents,
+  selectTrackChain,
 } from "redux/selectors";
 import { TranspositionProps } from "../Transposition";
 import { useProjectSelector, useProjectDeepSelector } from "redux/hooks";
-import { normalize, ticksToColumns } from "utils";
+import { getTickColumns } from "utils/durations";
 import { TRANSPOSITION_HEIGHT } from "utils/constants";
 import { BsMagic } from "react-icons/bs";
 import { SlMagicWand } from "react-icons/sl";
 import {
   getChordalOffset,
   getChromaticOffset,
-  getScalarOffsets,
+  getTranspositionOffsetsById,
 } from "types/Transposition";
+import { normalize } from "utils/math";
 
 interface TranspositionStyleProps extends TranspositionProps {
   isSlicing: boolean;
@@ -28,7 +29,7 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
   const { transposition, subdivision, cellWidth, isSlicing: isCutting } = props;
   const tick = transposition?.tick ?? 0;
   const duration = transposition?.duration ?? 0;
-  const offsets = transposition?.offsets ?? {};
+  const offsets = transposition?.vector ?? {};
 
   // Selected transpositions
   const selectedTranspositionIds = useProjectDeepSelector(
@@ -40,7 +41,7 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
 
   // Selected track
   const selectedTrackParents = useProjectDeepSelector((project) =>
-    selectTrackParents(project, props.selectedTrackId)
+    selectTrackChain(project, props.selectedTrackId)
   );
 
   // Cell
@@ -57,9 +58,9 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
 
   // The transposition width is either the duration or the remaining space
   const backgroundWidth = useProjectSelector(selectTimelineBackgroundWidth);
-  const tickWidth = ticksToColumns(1, subdivision) * cellWidth;
+  const tickWidth = getTickColumns(1, subdivision) * cellWidth;
   const width = !!duration
-    ? ticksToColumns(duration, subdivision) * cellWidth
+    ? getTickColumns(duration, subdivision) * cellWidth
     : backgroundWidth - left;
 
   const isSmall = width < 2 * cellWidth;
@@ -86,7 +87,7 @@ export const useTranspositionStyles = (props: TranspositionStyleProps) => {
     chromaticOffset < 0 ? Math.min(1, normalize(chromaticOffset, -1, -12)) : 0;
 
   // Scalar = Indigo
-  const scalarOffsets = getScalarOffsets(
+  const scalarOffsets = getTranspositionOffsetsById(
     offsets,
     selectedTrackParents.map((t) => t.id)
   );

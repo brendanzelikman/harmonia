@@ -1,4 +1,4 @@
-import ContextMenu, { ContextMenuOption } from "components/ContextMenu";
+import { ContextMenu, ContextMenuOption } from "components/ContextMenu";
 import { ConnectedProps, connect } from "react-redux";
 import {
   selectDraftedTransposition,
@@ -23,9 +23,9 @@ import { updateClips } from "redux/Clip";
 import {
   getChordalOffset,
   getChromaticOffset,
-  getScalarOffset,
+  getTranspositionOffsetById,
 } from "types/Transposition";
-import { CLIP_THEMES, CLIP_COLORS, Clip, ClipColor } from "types/Clip";
+import { CLIP_THEMES, CLIP_COLORS, ClipColor, ClipUpdate } from "types/Clip";
 import { isPatternTrack } from "types/PatternTrack";
 import { isScaleTrack } from "types/ScaleTrack";
 import {
@@ -34,7 +34,7 @@ import {
   pasteSelectedMedia,
   duplicateSelectedMedia,
   deleteSelectedMedia,
-  selectAllMedia,
+  addAllMediaToSelection,
 } from "redux/Media";
 import { useProjectDeepSelector } from "redux/hooks";
 
@@ -52,10 +52,10 @@ const mapStateToProps = (project: Project) => {
   const isClipboardEmpty =
     !areClipsInClipboard && !areTranspositionsInClipboard;
 
-  const { offsets } = selectDraftedTransposition(project);
-  const chromaticTranspose = getChromaticOffset(offsets);
-  const scalarTranspose = getScalarOffset(offsets, selectedTrackId);
-  const chordalTranspose = getChordalOffset(offsets);
+  const { vector } = selectDraftedTransposition(project);
+  const chromaticTranspose = getChromaticOffset(vector);
+  const scalarTranspose = getTranspositionOffsetById(vector, selectedTrackId);
+  const chordalTranspose = getChordalOffset(vector);
   const canUndo = project.arrangement.past.length > 0;
   const canRedo = project.arrangement.future.length > 0;
   return {
@@ -81,13 +81,13 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
     pasteMedia: () => dispatch(pasteSelectedMedia()),
     duplicateMedia: () => dispatch(duplicateSelectedMedia()),
     deleteMedia: () => dispatch(deleteSelectedMedia()),
-    selectAllMedia: () => dispatch(selectAllMedia()),
+    selectAllMedia: () => dispatch(addAllMediaToSelection()),
     exportClips: () => dispatch(exportSelectedClipsToMIDI()),
     addPattern: () => dispatch(addClipToTimeline()),
     addPatternTrack: () => dispatch(createPatternTrackFromSelectedTrack()),
     addScaleTrack: () => dispatch(createScaleTrack()),
     addTransposition: () => dispatch(addTranspositionToTimeline()),
-    updateClips: (clips: Partial<Clip>[]) => dispatch(updateClips({ clips })),
+    updateClips: (clips: ClipUpdate[]) => dispatch(updateClips({ clips })),
   };
 };
 

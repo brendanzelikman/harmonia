@@ -7,44 +7,31 @@ import { HotkeysProvider } from "react-hotkeys-hook";
 import { RouterProvider, createHashRouter } from "react-router-dom";
 import { store } from "redux/store";
 import { LandingView, ErrorView, HomeView, PlaygroundView } from "views";
-import { PrivateRoute } from "components/PrivateRoute";
+import { SecureRoute } from "components/Route";
 
 export function App() {
   const router = createHashRouter([
-    { path: "/", element: <LandingView />, errorElement: <ErrorView /> },
+    {
+      path: "/",
+      element: <SecureRoute component={<LandingView />} />,
+    },
     {
       path: "/projects",
-      element: (
-        <PrivateRoute>
-          <HomeView view="projects" />
-        </PrivateRoute>
-      ),
+      element: <SecureRoute private component={<HomeView view="projects" />} />,
     },
     {
       path: "/demos",
-      element: (
-        <PrivateRoute>
-          <HomeView view="demos" />
-        </PrivateRoute>
-      ),
+      element: <SecureRoute private component={<HomeView view="demos" />} />,
     },
     {
       path: "/profile",
-      element: (
-        <PrivateRoute>
-          <HomeView view="profile" />
-        </PrivateRoute>
-      ),
+      element: <SecureRoute private component={<HomeView view="profile" />} />,
     },
     {
       path: "/playground",
-      element: (
-        <PrivateRoute>
-          <PlaygroundView />
-        </PrivateRoute>
-      ),
-      errorElement: <ErrorView />,
+      element: <SecureRoute private component={<PlaygroundView />} />,
     },
+    { errorElement: <ErrorView /> },
   ]);
 
   return (

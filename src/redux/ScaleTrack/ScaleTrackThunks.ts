@@ -1,23 +1,22 @@
-import { uniqBy } from "lodash";
 import { Thunk } from "types/Project";
 import {
-  getNestedNoteAsMidi,
-  getNestedScaleNotes,
-  getScaleNotes,
-  initializeNestedScale,
+  chromaticScale,
+  getMidiNoteAsValue,
+  getScaleAsKey,
+  getScaleNoteDegree,
+  getScaleNoteOctaveOffset,
+  initializeScale,
+  isMidiNote,
+  isNestedNote,
   nestedChromaticNotes,
-  ScaleTrackScaleName,
+  NestedNote,
+  resolveScaleChainToMidi,
+  resolveScaleNoteToMidi,
+  ScaleArray,
 } from "types/Scale";
-import {
-  isScaleTrack,
-  getScaleTrackScale,
-  ScaleTrack,
-  initializeScaleTrack,
-} from "types/ScaleTrack";
-import { TrackId } from "types/Track";
-import { MIDI } from "types/midi";
+import { ScaleTrack, initializeScaleTrack } from "types/ScaleTrack";
+import { getScaleTrackChain, TrackId } from "types/Track";
 import { addScaleTrack } from "./ScaleTrackSlice";
-import { Note } from "types/units";
 import {
   selectScaleTrackById,
   selectScaleTrackMap,
@@ -26,53 +25,55 @@ import {
   addScaleTrackToHierarchy,
   moveTrackInHierarchy,
 } from "redux/TrackHierarchy";
-import { getProperty } from "types/util";
+import { getValueByKey } from "utils/objects";
 import { setPatternTrackScaleTrack } from "redux/PatternTrack";
-import { selectScaleMap, selectTrackById } from "redux/selectors";
+import {
+  selectScaleMap,
+  selectScaleTrackScale,
+  selectTrackById,
+  selectTrackHierarchy,
+  selectTrackMidiScale,
+  selectTrackScaleChain,
+} from "redux/selectors";
 import { isPatternTrack } from "types/PatternTrack";
 import { addScale, updateScale } from "redux/Scale/ScaleSlice";
+import { SCALE_TRACK_SCALE_NAME } from "utils/constants";
+import { MIDI } from "types/units";
+import { getMidiPitchClass } from "utils/midi";
+import { getClosestPitchClass } from "utils/pitch";
 
-/**
- * Create a `ScaleTrack` with an optional initial track.
- * @param initialTrack - The initial track to create.
- * @returns A Promise that resolves with the ID of the created track.
- */
+/** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
-  (initialTrack?: Partial<ScaleTrack>): Thunk<Promise<TrackId>> =>
+  (initialTrack?: Partial<ScaleTrack>): Thunk<TrackId> =>
   (dispatch, getProject) => {
     const project = getProject();
     const scaleMap = selectScaleMap(project);
 
     // Get the parent track of the initial track to inherit the scale
     const parentTrack = selectScaleTrackById(project, initialTrack?.parentId);
-    const parentScale = getProperty(scaleMap, parentTrack?.scaleId);
+    const parentScale = getValueByKey(scaleMap, parentTrack?.scaleId);
     const parentNotes = parentScale?.notes ?? nestedChromaticNotes;
 
     // Create a new scale for the track
-    const notes = parentNotes.map((_, i) => ({ degree: i, offset: 0 }));
-    const scale = initializeNestedScale({ name: ScaleTrackScaleName, notes });
+    const notes: ScaleArray = parentNotes.map((_, i) => ({ degree: i }));
+    const scale = initializeScale({ name: SCALE_TRACK_SCALE_NAME, notes });
 
     // Create and add the scale track and scale
-    return new Promise(async (resolve) => {
-      const scaleTrack = initializeScaleTrack({
-        ...initialTrack,
-        scaleId: scale.id,
-      });
-      dispatch(addScale(scale));
-      dispatch(addScaleTrack(scaleTrack));
-      dispatch(addScaleTrackToHierarchy(scaleTrack));
-      resolve(scaleTrack.id);
+    const scaleTrack = initializeScaleTrack({
+      ...initialTrack,
+      scaleId: scale.id,
     });
+    dispatch(addScale(scale));
+    dispatch(addScaleTrack(scaleTrack));
+    dispatch(addScaleTrackToHierarchy(scaleTrack));
+    return scaleTrack.id;
   };
 
-/**
- * Add a note to a scale track using its parent track's scale.
- * @param scaleTrackId The ID of the scale track to add the note to.
- * @param note The note to add to the scale track.
- */
+/** Add a note to a scale track using its parent track's scale. */
 export const addNoteToScaleTrack =
-  (scaleTrackId: TrackId, note: Note): Thunk =>
+  (scaleTrackId?: TrackId, note: MIDI = 60): Thunk =>
   (dispatch, getProject) => {
+    if (!scaleTrackId) return;
     const project = getProject();
 
     // Get the scale track
@@ -82,120 +83,181 @@ export const addNoteToScaleTrack =
 
     // Get the scale
     const scaleMap = selectScaleMap(project);
-    const scale = getProperty(scaleMap, scaleTrack.scaleId);
-    const scaleNotes = getNestedScaleNotes(scale);
+    const scale = getValueByKey(scaleMap, scaleTrack.scaleId);
+
     if (!scale) return;
 
-    // Get the scale of the parent track
-    const parent = getProperty(scaleTrackMap, scaleTrack?.parentId);
-    const parentScale = getScaleTrackScale(parent, scaleTrackMap, scaleMap);
-    const parentNotes = getScaleNotes(parentScale);
-    if (!parentNotes?.length) return;
+    // Get the track's scale chain => MIDI notes
+    const trackChain = getScaleTrackChain(scaleTrackId, scaleTrackMap);
+    const scaleChain = selectTrackScaleChain(project, scaleTrackId);
+    const scaleNotes = resolveScaleChainToMidi(scaleChain);
+    const scaleLength = scaleNotes.length;
+
+    // Get the parent track's scale chain => MIDI notes
+    const parent = getValueByKey(scaleTrackMap, scaleTrack.parentId);
+    const parentScaleChain = parent
+      ? selectTrackScaleChain(project, parent.id)
+      : [chromaticScale];
+    const parentNotes = resolveScaleChainToMidi(parentScaleChain);
+    const parentKey = getScaleAsKey(parentNotes);
+
+    // Find the closest pitch to the parent notes
+    const pitch = getMidiPitchClass(note);
+    const closestPitch = getClosestPitchClass(pitch, parentNotes);
+    if (!closestPitch) return;
+    if (!parentKey.includes(pitch)) return;
 
     // Get the lowest note in the scale
-    const low = scaleNotes.at(0);
-    const lowOffset = low?.offset || 0;
-    const lowDegree = low?.degree || 0;
-    const lowNote = getNestedNoteAsMidi(parentScale, low);
+    const low = scaleNotes[0];
+    const lowOctave = getScaleNoteOctaveOffset(low);
+    const lowDegree = getScaleNoteDegree(low);
 
     // Get the highest note in the scale
-    const high = scaleNotes.at(-1);
-    const highOffset = high?.offset || 0;
-    const highDegree = high?.degree || 0;
-    const highNote = getNestedNoteAsMidi(parentScale, high);
+    const high = scaleNotes[scaleLength - 1];
+    const highOctave = getScaleNoteOctaveOffset(high);
+    const highDegree = getScaleNoteDegree(high);
 
-    // Find the closest pitch to the scale notes
-    const pitch = MIDI.toPitchClass(note);
-    const closestPitch = MIDI.closestPitchClass(pitch, parentNotes);
-    if (!closestPitch) return;
-
-    // Get the degree of the closest pitch
-    const degree = parentNotes.findIndex(
-      (note) => MIDI.toPitchClass(note) === closestPitch
-    );
+    // Get the degree of the closest pitch in the parent
+    const degree = parentKey.findIndex((pitch) => pitch === closestPitch);
     if (degree < 0) return;
 
     // Get the offset of the note in the scale with the closest pitch
     const scaleNote = parentNotes[degree];
-    let offset = MIDI.OctaveDistance(scaleNote, note) * 12;
+    let octave = Math.floor((note - scaleNote) / 12);
 
     // Check if the scale currently does or will overshoot an octave
     const overshootsOctave =
-      highNote - lowNote > 12 || note - lowNote > 12 || highNote - note > 12;
+      high - low > 12 || note - low > 12 || high - note > 12;
 
     // If the scale overshoots an octave, adjust the offset
-    if (overshootsOctave) {
+    if (overshootsOctave && !!scaleNotes.length) {
       // If the note is lower than the scale, adjust the offset to be higher
       // only if the degree is less than the lowest degree in the scale
-      if (highNote - note > 12) {
-        if (degree < highDegree && degree < lowDegree) {
-          offset = lowOffset + 12;
+      if (note - low > 12) {
+        if (degree > highDegree && degree < lowDegree) {
+          octave = lowOctave + 1;
         } else {
-          offset = lowOffset;
+          octave = lowOctave;
         }
-      } else if (note - lowNote > 12) {
+      } else if (high - note > 12) {
         // If the note is higher than the scale, adjust the offset to be lower
         // only if the degree is greater than the highest degree in the scale
-        if (degree > lowDegree && degree > highDegree) {
-          offset = highOffset - 12;
+        if (degree < lowDegree && degree > highDegree) {
+          octave = highOctave - 1;
         } else {
-          offset = highOffset;
+          octave = highOctave;
         }
       }
     }
     // Create the scale track note
-    const scaleTrackNote = { degree, offset };
+    const newNote: NestedNote = {
+      degree,
+      offset: { octave },
+      scaleId: scale.id,
+    };
 
-    // Splice the note into the scale
-    const splicedNotes = [...scaleNotes];
-    splicedNotes.splice(degree, 0, scaleTrackNote);
+    // Do nothing if the note exists by pitch class
+    const parentScales = trackChain
+      .map((p) => scaleMap[p.scaleId])
+      .slice(0, -1);
+    const newMIDI = resolveScaleNoteToMidi(newNote, parentScales);
+    const newPitch = getMidiPitchClass(newMIDI);
+    const key = scaleNotes.map((n) => getMidiPitchClass(n));
+    if (key.includes(newPitch)) return;
 
-    // Remove duplicate notes and sort the scale
-    const newNotes = uniqBy(splicedNotes, "degree").sort(
-      (a, b) => a.degree + a.offset * 12 - (b.degree + b.offset * 12)
+    // Find the index where the MIDI is in between the values
+    let index = scaleNotes.findIndex((n, i) =>
+      newMIDI > n && i + 1 in scaleNotes ? newMIDI < scaleNotes[i + 1] : true
     );
+    if (scaleNotes.length < 2) index = newMIDI > scaleNotes[0] ? 1 : 0;
+    else if (index < 0) index = scaleNotes.length - 1;
+    else index++;
+
+    // Splice the new note into the original scale
+    const newNotes = [...scale.notes];
+    newNotes.splice(index, 0, newNote);
 
     // Dispatch the update
     dispatch(updateScale({ id: scale.id, notes: newNotes }));
   };
 
-/**
- * Remove a note from a scale track.
- * @param scaleTrackId The ID of the scale track to remove the note from.
- * @param note The note to remove from the scale track.
- */
+/** Remove a note from a scale track. */
 export const removeNoteFromScaleTrack =
-  (scaleTrackId: TrackId, note: Note): Thunk =>
+  (scaleTrackId?: TrackId, note: MIDI = 60): Thunk =>
   (dispatch, getProject) => {
+    if (!scaleTrackId) return;
     const project = getProject();
-
-    // Get the scale track
-    const scaleTrackMap = selectScaleTrackMap(project);
-    const scaleTrack = scaleTrackMap[scaleTrackId];
-    if (!scaleTrack || !isScaleTrack(scaleTrack)) return;
-
-    // Get the scale track scale
-    const scaleMap = selectScaleMap(project);
-    const scale = scaleMap[scaleTrack.scaleId];
-    const notes = getNestedScaleNotes(scale);
-    if (!scale) return;
-
-    // Find the index of the pitch in the scale
-    const trackScale = getScaleTrackScale(scaleTrack, scaleTrackMap, scaleMap);
-    const trackNotes = getScaleNotes(trackScale);
-    const pitch = MIDI.toPitchClass(note);
-    const index = trackNotes.findIndex((p) => MIDI.toPitchClass(p) === pitch);
+    const midiScale = selectTrackMidiScale(project, scaleTrackId);
+    const index = midiScale.findIndex((n) => n % 12 === note % 12);
     if (index < 0) return;
-
-    // Splice the note from the scale track
-    notes.splice(index, 1);
-    dispatch(updateScale({ id: scale.id, notes }));
+    dispatch(removeNoteFromScaleTrackByIndex(scaleTrackId, index));
   };
 
-/**
- * Move the scale track to the index of the given track ID.
- * @param props The drag and hover IDs.
- */
+/** Remove a note from a scale track by index. */
+export const removeNoteFromScaleTrackByIndex =
+  (scaleTrackId?: TrackId, index = 0): Thunk =>
+  (dispatch, getProject) => {
+    if (!scaleTrackId) return;
+    const project = getProject();
+    const hierarchy = selectTrackHierarchy(project);
+    const scale = selectScaleTrackScale(project, scaleTrackId);
+    const midiScale = selectTrackMidiScale(project, scaleTrackId);
+    if (!scale || !midiScale) return;
+
+    // Get the MIDI number of the note
+    const midi = midiScale[index];
+
+    // Remove the degrees from the track and recursively from the children
+    const removeNoteFromTrack = (id: TrackId, degree: number) => {
+      const scale = selectScaleTrackScale(project, id);
+      if (!scale) return;
+      const notes = [...scale.notes];
+
+      // Find the index where the MIDI or degree occurs
+      const index = notes.findIndex((n) => {
+        if (isMidiNote(n)) return getMidiNoteAsValue(n) % 12 === midi % 12;
+        return n.degree === degree;
+      });
+      if (index < 0) return;
+
+      // Remove the index from the scale
+      notes.splice(index, 1);
+
+      // Lower all the degrees above the removed degree
+      const length = notes.length;
+      for (let i = index; i < length; i++) {
+        const note = notes[i];
+        if (isNestedNote(note)) {
+          notes[i] = { ...note, degree: note.degree - 1 };
+        }
+      }
+
+      // Update the scale
+      dispatch(updateScale({ id: scale.id, notes }));
+
+      // Remove the affected indices from the children
+      const childIds = hierarchy.byId[id]?.trackIds || [];
+      for (const childId of childIds) {
+        removeNoteFromTrack(childId, index);
+      }
+    };
+
+    // Get the hierarchy node
+    let node = hierarchy.byId[scaleTrackId];
+    if (!node) return;
+
+    // Splice the note from the scale track
+    const notes = [...scale.notes];
+    notes.splice(index, 1);
+    dispatch(updateScale({ id: scale.id, notes }));
+
+    // Recursively remove the note from the children
+    for (const childId of node.trackIds) {
+      removeNoteFromTrack(childId, index);
+    }
+  };
+
+/** Move the scale track to the index of the given track ID. */
 export const moveScaleTrack =
   (props: { dragId: TrackId; hoverId: TrackId }): Thunk<boolean> =>
   (dispatch, getProject) => {

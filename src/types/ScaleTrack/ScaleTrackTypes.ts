@@ -1,34 +1,49 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { NestedScaleId, ScaleId } from "types/Scale";
-import { TrackId, TrackInterface, isTrackInterface } from "types/Track";
+import { isPlainObject, isString } from "lodash";
+import { ScaleId } from "types/Scale";
+import { TrackId, TrackInterface } from "types/Track";
+import {
+  NormalRecord,
+  NormalState,
+  createNormalState,
+} from "utils/normalizedState";
 
-// Types
+// ------------------------------------------------------------
+// Scale Track Generics
+// ------------------------------------------------------------
+
 export type ScaleTrackType = "scaleTrack";
 export type ScaleTrackNoId = Omit<ScaleTrack, "id">;
-export type ScaleTrackMap = Record<TrackId, ScaleTrack>;
+export type ScaleTrackPartial = Partial<ScaleTrack>;
+export type ScaleTrackUpdate = Partial<ScaleTrack> & { id: TrackId };
+export type ScaleTrackMap = NormalRecord<TrackId, ScaleTrack>;
+export type ScaleTrackState = NormalState<ScaleTrackMap>;
 
-/**
- * A `ScaleTrack` represents a `Track` with its own `NestedScale`.
- * @property `id` - The unique ID of the track.
- * @property `parentId` - Optional. The ID of the parent track.
- * @property `name` - The name of the track.
- * @property `type` - The type of the track.
- * @property `collapsed` - Optional. Whether the track is collapsed.
- * @property `scaleId` - The ID of the track's `NestedScale`.
- */
+// ------------------------------------------------------------
+// Scale Track Definitions
+// ------------------------------------------------------------
+
+/** A `ScaleTrack` is a `Track` with its own `Scale`. */
 export interface ScaleTrack extends TrackInterface {
-  scaleId: NestedScaleId;
+  type: "scaleTrack";
+  scaleId: ScaleId;
 }
 
-/**
- * Initializes a `ScaleTrack with a unique ID.
- * @param clip - Optional. `Partial<ScaleTrack>` to override default values.
- * @returns An initialized `ScaleTrack` with a unique ID.
- */
+// ------------------------------------------------------------
+// Scale Track Initialization
+// ------------------------------------------------------------
+
+/** Create a scale track with a unique ID. */
 export const initializeScaleTrack = (
   scaleTrack: Partial<ScaleTrackNoId> = defaultScaleTrack
-): ScaleTrack => ({ ...defaultScaleTrack, ...scaleTrack, id: nanoid() });
+): ScaleTrack => ({
+  ...defaultScaleTrack,
+  ...scaleTrack,
+  type: "scaleTrack",
+  id: nanoid(),
+});
 
+/** The default scale track is used for initialization. */
 export const defaultScaleTrack: ScaleTrack = {
   id: "default-scale-track",
   type: "scaleTrack",
@@ -37,6 +52,7 @@ export const defaultScaleTrack: ScaleTrack = {
   scaleId: "default-nested-scale",
 };
 
+/** The mock scale track is used for testing. */
 export const mockScaleTrack: ScaleTrack = {
   id: "mock-scale-track",
   type: "scaleTrack",
@@ -45,29 +61,29 @@ export const mockScaleTrack: ScaleTrack = {
   scaleId: "mock-nested-scale",
 };
 
-/**
- * Checks if a given object is of type `ScaleTrack`.
- * @param obj The object to check.
- * @returns True if the object is a `ScaleTrack`, otherwise false.
- */
+//* The default scale track state is used for Redux. */
+export const defaultScaleTrackState: ScaleTrackState =
+  createNormalState<ScaleTrackMap>([defaultScaleTrack]);
+
+// ------------------------------------------------------------
+// Scale Track Type Guards
+// ------------------------------------------------------------
+
+/** Checks if a given object is of type `ScaleTrack`. */
 export const isScaleTrack = (obj: unknown): obj is ScaleTrack => {
   const candidate = obj as ScaleTrack;
   return (
-    isTrackInterface(candidate) &&
+    isPlainObject(candidate) &&
+    isString(candidate.id) &&
     candidate.type === "scaleTrack" &&
-    candidate.scaleId !== undefined
+    isString(candidate.scaleId)
   );
 };
 
-/**
- * Checks if a given object is of type `ScaleTrackMap`.
- * @param obj The object to check.
- * @returns True if the object is a `ScaleTrackMap`, otherwise false.
- */
+/** Checks if a given object is of type `ScaleTrackMap`. */
 export const isScaleTrackMap = (obj: unknown): obj is ScaleTrackMap => {
   const candidate = obj as ScaleTrackMap;
   return (
-    candidate !== undefined &&
-    Object.values(candidate).every((track) => isScaleTrack(track))
+    isPlainObject(candidate) && Object.values(candidate).every(isScaleTrack)
   );
 };

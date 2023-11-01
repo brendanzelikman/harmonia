@@ -1,86 +1,118 @@
 import { nanoid } from "@reduxjs/toolkit";
+import { isNumber, isPlainObject, isString, isUndefined } from "lodash";
 import { TrackId } from "types/Track";
-import { ID, Tick, Offset } from "types/units";
+import { ID, Tick } from "types/units";
+import {
+  NormalRecord,
+  NormalState,
+  createNormalState,
+} from "utils/normalizedState";
 
-// Types
+// ------------------------------------------------------------
+// Transposition Generics
+// ------------------------------------------------------------
+
 export type TranspositionId = ID;
 export type TranspositionNoId = Omit<Transposition, "id">;
-export type TranspositionMap = Record<TranspositionId, Transposition>;
-export type TrackTranspositionRecord = Record<TrackId, Transposition[]>;
+export type TranspositionPartial = Partial<Transposition>;
+export type TranspositionUpdate = TranspositionPartial & { id: ID };
+export type TrackTranspositionMap = Record<TrackId, Transposition[]>;
+export type TranspositionMap = NormalRecord<TranspositionId, Transposition>;
+export type TranspositionState = NormalState<TranspositionMap>;
+
+// ------------------------------------------------------------
+// Transposition Definitions
+// ------------------------------------------------------------
+
+/** A transposition vector is contextualized by a track. */
+export type TranspositionVectorId = TrackId | "chromatic" | "chordal";
+
+/** A transposition vector contains all of a transposition's offsets. */
+export type TranspositionVector = Record<TranspositionVectorId, number>;
 
 /**
- * A `Transposition` is a set of scalar offsets that are applied to a `Track`.
- * @property `id` - The ID of the transposition.
- * @property `trackId` - The ID of the track that the transposition is applied to.
- * @property `offsets` - The offsets of the transposition.
- * @property `tick` - The tick that the transposition starts at.
- * @property `duration` - Optional. The duration of the transposition. If undefined, the transposition is applied indefinitely.
+ * A `Transposition` contains a vector of scalar offsets that are applied to a `Track`
+ * at a specified tick for a given duration or continuously (if duration = 0 or undefined).
  */
 export type Transposition = {
   id: TranspositionId;
   trackId: TrackId;
-  offsets: TranspositionOffsetRecord;
   tick: Tick;
+  vector: TranspositionVector;
   duration?: Tick;
 };
+export type Pose = Transposition;
 
-// A transposition offset is contextualized by a track's scale or it is applied chromatically/chordally
-export type OffsetId = TrackId | "_chromatic" | "_self";
-export type TranspositionOffsetRecord = Record<OffsetId, Offset>;
+// ------------------------------------------------------------
+// Transposition Initialization
+// ------------------------------------------------------------
 
-/**
- * Initializes a `Transposition` with a unique ID.
- * @param pattern - Optional. `Partial<Transposition>` to override default values.
- * @returns An initialized `Transposition` with a unique ID.
- */
+/** Create a transposition with a unique ID. */
 export const initializeTransposition = (
   transposition: Partial<TranspositionNoId> = defaultTransposition
-) => ({
+): Transposition => ({
   ...defaultTransposition,
   ...transposition,
   id: nanoid(),
 });
+export const initializePose = initializeTransposition;
 
+/** The default transposition is used for initialization. */
 export const defaultTransposition: Transposition = {
   id: "default-transposition",
   trackId: "default-track",
-  offsets: {},
+  vector: {},
   tick: 0,
 };
+export const defaultPose = defaultTransposition;
 
+/** The mock transposition is used for testing. */
 export const mockTransposition: Transposition = {
   id: "mock-transposition",
   trackId: "mock-pattern-track",
-  offsets: {
-    _chromatic: 1,
-    _self: 1,
+  vector: {
+    chromatic: 1,
+    chordal: 1,
     mock_track: 1,
   },
   tick: 0,
 };
+export const mockPose = mockTransposition;
 
-/**
- * Checks if a given object is of type `Transposition`.
- * @param obj The object to check.
- * @returns True if the object is a `Transposition`, otherwise false.
- */
+/** The default transposition state is used for Redux. */
+export const defaultTranspositionState: TranspositionState =
+  createNormalState<TranspositionMap>();
+
+// ------------------------------------------------------------
+// Transposition Type Guards
+// ------------------------------------------------------------
+
+/** Checks if a given object is of type `TranspositionVector` */
+export const isTranspositionVector = (
+  obj: unknown
+): obj is TranspositionVector => {
+  const candidate = obj as TranspositionVector;
+  return isPlainObject(candidate) && Object.values(candidate).every(isNumber);
+};
+
+/** Checks if a given object is of type `Transposition`. */
 export const isTransposition = (obj: unknown): obj is Transposition => {
   const candidate = obj as Transposition;
   return (
-    candidate?.id !== undefined &&
-    candidate?.trackId !== undefined &&
-    candidate?.offsets !== undefined
+    isPlainObject(candidate) &&
+    isString(candidate.id) &&
+    isString(candidate.trackId) &&
+    isNumber(candidate.tick) &&
+    isFinite(candidate.tick) &&
+    (isUndefined(candidate.duration) || isNumber(candidate.duration)) &&
+    isTranspositionVector(candidate.vector)
   );
 };
 
-/**
- * Checks if a given object is of type `TranspositionMap`.
- * @param obj The object to check.
- * @returns True if the object is a `TranspositionMap`, otherwise false.
- */
+/** Checks if a given object is of type `TranspositionMap`. */
 export const isTranspositionMap = (obj: unknown): obj is TranspositionMap => {
   const candidate = obj as TranspositionMap;
   return (
-    candidate !== undefined && Object.values(candidate).every(isTransposition)
+    isPlainObject(candidate) && Object.values(candidate).every(isTransposition)
   );
 };
