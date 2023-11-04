@@ -13,7 +13,7 @@ export const SCALE_TRACK_UNDO_TYPES: ActionGroup = {
   "scaleTracks/removeScaleTrack": (
     action: PayloadAction<_.RemoveScaleTrackPayload>
   ) => {
-    return `REMOVE_TRACK:${action.payload}`;
+    return `REMOVE_TRACK:${action.payload.originalId}`;
   },
   "scaleTracks/updateScaleTrack": (
     action: PayloadAction<_.UpdateScaleTrackPayload>

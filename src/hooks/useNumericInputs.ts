@@ -1,18 +1,19 @@
 import { clamp } from "lodash";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 
-type Callback = (number: number) => void;
+type NumericInputMap = Record<string, string>;
+export type NumericInputCallback = (number: number | undefined) => void;
 
-export interface NumericInputProps {
+export interface NumericInputOptions {
   id: string;
   initialValue?: number;
-  callback: Callback;
+  callback: NumericInputCallback;
   min?: number;
   max?: number;
 }
 
-export function useNumericInputs(props: NumericInputProps[]) {
-  const [inputs, setInputs] = useState<Record<string, string>>(mapProps(props));
+export function useNumericInputs(options: NumericInputOptions[]) {
+  const [inputs, setInputs] = useState<NumericInputMap>(mapProps(options));
 
   const getValue = (id: string) => {
     return inputs[id] ?? "0";
@@ -22,26 +23,42 @@ export function useNumericInputs(props: NumericInputProps[]) {
   };
 
   const onChange = (id: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = props.find((p) => p.id === id);
+    const input = options.find((p) => p.id === id);
     if (!input) return;
+    const currentValue = getValue(id);
 
-    // Remove all numbers and sanitize the input
-    let number = parseInt(e.target.value.match(/\d+(?!.*\d)/)?.[0] ?? "0");
-    if (e.target.value.includes("-")) number *= -1;
+    // Parse the input value and check if it is negative
+    let match = e.target.value.match(/(?:=|^)\s*(-?\d+(?:-\w+)?)/)?.[1];
 
-    // Clamp the value to the min/max
-    number = clamp(number, input.min ?? -Infinity, input.max ?? Infinity);
-    const newValue = number.toString();
-    setValue(input.id, newValue);
+    // Check for negative values and get the sign
+    const matchCount = [...e.target.value].filter((_) => _ === "-").length;
+    const matchSign = Math.pow(-1, matchCount);
+    const isCurrentValueNegative = currentValue.includes("-");
+    const currentValueSign = isCurrentValueNegative ? -1 : 1;
+    const sign = matchSign * currentValueSign;
 
-    // Fire the callback
+    let value = parseInt(match ?? "") * sign;
+
+    // Clamp the value
+    value = clamp(value, input.min ?? -Infinity, input.max ?? Infinity);
+
+    // Set the value using the string
+    let string = isNaN(value) ? `${sign < 0 ? "-" : ""}0` : value.toString();
+
+    if ((!string.length || string === "0") && sign < 0) string = "-";
+    else if (currentValue === "0" && string === "") string = "0";
+
+    setValue(input.id, string);
+
+    // Fire the callback with the number
+    const number = isNaN(value) ? undefined : value;
     input.callback(number);
   };
 
   return { getValue, setValue, onChange };
 }
 
-function mapProps(props: NumericInputProps[]) {
+function mapProps(props: NumericInputOptions[]) {
   return props.reduce(
     (acc, cur) => ({ ...acc, [cur.id]: (cur.initialValue || 0).toString() }),
     {}

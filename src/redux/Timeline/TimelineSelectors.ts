@@ -6,13 +6,16 @@ import {
 } from "utils/constants";
 import { getSubdivisionTicks, getTickColumns } from "utils/durations";
 import { Project } from "types/Project";
-import { TimelineObject, getTimelineObjectTrackId } from "types/Timeline";
-import { isTrack } from "types/Track";
-import { Media } from "types/Media";
+import { getTimelineObjectTrackId } from "types/Timeline";
+import { Tracked, isTrack } from "types/Track";
+import { Media, MediaClip } from "types/Media";
 import { Tick } from "types/units";
 import { getValueByKey, getValuesByKeys } from "utils/objects";
 import { createDeepEqualSelector } from "redux/util";
-import { selectPatternMap } from "redux/Pattern/PatternSelectors";
+import {
+  selectPatternById,
+  selectPatternMap,
+} from "redux/Pattern/PatternSelectors";
 import {
   selectTrackById,
   selectTrackMap,
@@ -24,8 +27,10 @@ import {
   selectOrderedTrackIds,
   selectTrackHierarchy,
 } from "../TrackHierarchy/TrackHierarchySelectors";
-import { selectClipDuration } from "redux/Clip/ClipSelectors";
-import { ClipId } from "types/Clip";
+import { Clip, getClipDuration } from "types/Clip";
+import { Transposition } from "types/Transposition";
+import { isFiniteNumber } from "types/util";
+import { selectPortalMap } from "redux/Portal/PortalSelectors";
 
 /** Select the timeline from the store. */
 export const selectTimeline = (project: Project) => project.timeline;
@@ -124,8 +129,12 @@ export const selectSelectedClipIds = (project: Project) =>
   project.timeline.mediaSelection.clipIds;
 
 /** Select the currently selected transposition IDs. */
-export const selectSelectedTranspositionIds = (project: Project) =>
-  project.timeline.mediaSelection.transpositionIds;
+export const selectSelectedPoseIds = (project: Project) =>
+  project.timeline.mediaSelection.poseIds;
+
+/** Select the currently selected portal IDs. */
+export const selectSelectedPortalIds = (project: Project) =>
+  project.timeline.mediaSelection.portalIds;
 
 /** Select the currently selected clips. */
 export const selectSelectedClips = createDeepEqualSelector(
@@ -134,19 +143,27 @@ export const selectSelectedClips = createDeepEqualSelector(
 );
 
 /** Select the currently selected transpositions. */
-export const selectSelectedTranspositions = createDeepEqualSelector(
-  [selectTranspositionMap, selectSelectedTranspositionIds],
-  (transpositionMap, selectedTranspositionIds) =>
-    getValuesByKeys(transpositionMap, selectedTranspositionIds)
+export const selectSelectedPoses = createDeepEqualSelector(
+  [selectTranspositionMap, selectSelectedPoseIds],
+  (poseMap, poseIds) => getValuesByKeys(poseMap, poseIds)
+);
+
+/** Select the currently selected portals. */
+export const selectSelectedPortals = createDeepEqualSelector(
+  [selectPortalMap, selectSelectedPortalIds],
+  (portalMap, portalIds) => getValuesByKeys(portalMap, portalIds)
 );
 
 /** Select all selected media. */
+export const selectSelectedMediaClips = createDeepEqualSelector(
+  [selectSelectedClips, selectSelectedPoses],
+  (clips, poses): MediaClip[] => [...clips, ...poses]
+);
+
+/** Select all selected media clips. */
 export const selectSelectedMedia = createDeepEqualSelector(
-  [selectSelectedClips, selectSelectedTranspositions],
-  (selectedClips, selectedTranspositions): Media[] => [
-    ...selectedClips,
-    ...selectedTranspositions,
-  ]
+  [selectSelectedClips, selectSelectedPoses, selectSelectedPortals],
+  (clips, poses, portals): Media => [...clips, ...poses, ...portals]
 );
 
 // ------------------------------------------------------------
@@ -162,8 +179,12 @@ export const selectDraftedClip = (project: Project) =>
   project.timeline.mediaDraft.clip;
 
 /** Select the currently drafted transposition. */
-export const selectDraftedTransposition = (project: Project) =>
-  project.timeline.mediaDraft.transposition;
+export const selectDraftedPose = (project: Project) =>
+  project.timeline.mediaDraft.pose;
+
+/** Select the currently drafted transposition. */
+export const selectDraftedPortal = (project: Project) =>
+  project.timeline.mediaDraft.portal;
 
 /** Select the currently selected pattern. */
 export const selectSelectedPattern = (project: Project) => {
@@ -185,8 +206,12 @@ export const selectCopiedClips = (project: Project) =>
   project.timeline.mediaClipboard.clips;
 
 /** Select the currently copied transpositions. */
-export const selectCopiedTranspositions = (project: Project) =>
-  project.timeline.mediaClipboard.transpositions;
+export const selectCopiedPoses = (project: Project) =>
+  project.timeline.mediaClipboard.poses;
+
+/** Select the currently copied portals. */
+export const selectCopiedPortals = (project: Project) =>
+  project.timeline.mediaClipboard.portals;
 
 // ------------------------------------------------------------
 // Media Drag State
@@ -209,9 +234,9 @@ export const selectLiveTranspositionSettings = (project: Project) =>
 // ------------------------------------------------------------
 
 /** Select the height of a timeline object based on whether the track is collapsed. */
-export const selectTimelineObjectHeight = (
+export const selectTimelineObjectHeight = <T>(
   project: Project,
-  object?: TimelineObject
+  object?: Tracked<T>
 ) => {
   const cellHeight = selectCellHeight(project);
   if (isTrack(object)) {
@@ -223,9 +248,9 @@ export const selectTimelineObjectHeight = (
 };
 
 /** Select the top offset of the track in pixels based on the given track ID. */
-export const selectTimelineObjectTop = (
+export const selectTrackedObjectTop = <T>(
   project: Project,
-  object?: TimelineObject
+  object?: Tracked<T>
 ) => {
   const trackHierarchy = selectTrackHierarchy(project);
   const cellHeight = selectCellHeight(project);
@@ -281,9 +306,9 @@ export const selectTimelineObjectTop = (
 };
 
 /** Select the track index of a timeline object. */
-export const selectTimelineObjectTrackIndex = (
+export const selectTimelineObjectTrackIndex = <T>(
   project: Project,
-  object?: TimelineObject
+  object?: Tracked<T>
 ) => {
   if (!object) return -1;
   const orderedTrackIds = selectOrderedTrackIds(project);
@@ -292,10 +317,28 @@ export const selectTimelineObjectTrackIndex = (
 };
 
 /** Select the width of a clip in pixels. Always at least 1 pixel. */
-export const selectClipWidth = (project: Project, id?: ClipId) => {
-  const duration = selectClipDuration(project, id);
+export const selectClipWidth = (project: Project, clip?: Clip) => {
+  const pattern = selectPatternById(project, clip?.patternId);
+  const duration = getClipDuration(clip, pattern);
   const timeline = selectTimeline(project);
   const cellWidth = selectCellWidth(project);
   const columns = getTickColumns(duration, timeline.subdivision);
   return Math.max(cellWidth * columns, 1);
+};
+
+/** Select the width of a transposition. */
+export const selectTranspositionWidth = (
+  project: Project,
+  transposition: Transposition
+) => {
+  const { subdivision, cell } = selectTimeline(project);
+  const { tick, duration } = transposition;
+  const left = selectTimelineTickLeft(project, tick);
+  const backgroundWidth = selectTimelineBackgroundWidth(project);
+
+  // If the duration is not finite or a number, return the remaining background width
+  if (!isFiniteNumber(duration)) return backgroundWidth - left;
+
+  // Otherwise, return the width of the transposition
+  return getTickColumns(duration, subdivision) * cell.width;
 };

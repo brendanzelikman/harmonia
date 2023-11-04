@@ -15,7 +15,9 @@ import {
 export type TranspositionId = ID;
 export type TranspositionNoId = Omit<Transposition, "id">;
 export type TranspositionPartial = Partial<Transposition>;
-export type TranspositionUpdate = TranspositionPartial & { id: ID };
+export type TranspositionUpdate = TranspositionPartial & {
+  id: TranspositionId;
+};
 export type TrackTranspositionMap = Record<TrackId, Transposition[]>;
 export type TranspositionMap = NormalRecord<TranspositionId, Transposition>;
 export type TranspositionState = NormalState<TranspositionMap>;
@@ -32,7 +34,7 @@ export type TranspositionVector = Record<TranspositionVectorId, number>;
 
 /**
  * A `Transposition` contains a vector of scalar offsets that are applied to a `Track`
- * at a specified tick for a given duration or continuously (if duration = 0 or undefined).
+ * at a specified tick for a given duration or continuously (if duration = Infinity or undefined).
  */
 export type Transposition = {
   id: TranspositionId;

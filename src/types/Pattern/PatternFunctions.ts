@@ -108,6 +108,7 @@ export const getPatternCategory = (pattern?: Pattern) => {
 /** Get the total duration of a `PatternBlock` in ticks. */
 export const getPatternBlockDuration = (block: PatternBlock): Tick => {
   if (isPatternRest(block)) return block.duration;
+  if (!block.length) return 0;
   const noteDurations = block.map((note) => note.duration);
   return Math.max(...noteDurations);
 };

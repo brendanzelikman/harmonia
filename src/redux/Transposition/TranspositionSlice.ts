@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { TrackId } from "types/Track";
+import { RemoveTrackPayload, TrackId } from "types/Track";
 import { defaultTranspositionState, Transposition } from "types/Transposition";
 import { union, without } from "lodash";
 import {
@@ -29,7 +29,7 @@ export type SliceTranspositionPayload = {
 };
 
 /** A transposition can be removed by track ID. */
-export type RemoveTranspositionsByTrackIdPayload = TrackId;
+export type RemoveTranspositionsByTrackIdPayload = RemoveTrackPayload;
 
 /** A transposition can be cleared by track ID. */
 export type ClearTranspositionsByTrackIdPayload = TrackId;
@@ -47,9 +47,9 @@ export const transpositionsSlice = createSlice({
       state,
       action: PayloadAction<AddTranspositionsPayload>
     ) => {
-      const { transpositions } = action.payload;
-      if (!transpositions?.length) return;
-      transpositions.forEach((transposition) => {
+      const { poses } = action.payload;
+      if (!poses?.length) return;
+      poses.forEach((transposition) => {
         state.byId[transposition.id] = transposition;
         state.allIds.push(transposition.id);
       });
@@ -59,9 +59,9 @@ export const transpositionsSlice = createSlice({
       state,
       action: PayloadAction<UpdateTranspositionsPayload>
     ) => {
-      const { transpositions } = action.payload;
-      if (!transpositions?.length) return;
-      transpositions.forEach((transposition) => {
+      const { poses } = action.payload;
+      if (!poses?.length) return;
+      poses.forEach((transposition) => {
         const { id, ...rest } = transposition;
         if (!id) return;
         if (!state.byId[id]) return;
@@ -73,12 +73,12 @@ export const transpositionsSlice = createSlice({
       state,
       action: PayloadAction<RemoveTranspositionsPayload>
     ) => {
-      const { transpositionIds } = action.payload;
-      if (!transpositionIds?.length) return;
-      transpositionIds.forEach((id) => {
+      const { poseIds } = action.payload;
+      if (!poseIds?.length) return;
+      poseIds.forEach((id) => {
         delete state.byId[id];
       });
-      state.allIds = without(state.allIds, ...transpositionIds);
+      state.allIds = without(state.allIds, ...poseIds);
     },
     /** (PRIVATE) Slice a transposition into two new transpositions. */
     _sliceTransposition: (
@@ -108,10 +108,10 @@ export const transpositionsSlice = createSlice({
       state,
       action: PayloadAction<RemoveTranspositionsByTrackIdPayload>
     ) => {
-      const trackId = action.payload;
-      if (!trackId) return;
+      const { id } = action.payload;
+      if (!id) return;
       const transpositionIds = state.allIds.filter(
-        (id) => state.byId[id].trackId === trackId
+        (tId) => state.byId[tId].trackId === id
       );
       transpositionIds.forEach((id) => {
         delete state.byId[id];

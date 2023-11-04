@@ -2,10 +2,8 @@ import { BiAnchor } from "react-icons/bi";
 import {
   BsBrushFill,
   BsPencilFill,
-  BsEraser,
   BsTrash,
   BsCursorFill,
-  BsNodePlusFill,
   BsEraserFill,
   BsPlusCircleFill,
 } from "react-icons/bs";
@@ -25,7 +23,6 @@ import {
   getDurationFromType,
   getDurationImage,
   getDurationName,
-  getDurationTicks,
   getStraightDuration,
   isDottedDuration,
   isTripletDuration,
@@ -34,7 +31,6 @@ import classNames from "classnames";
 
 export function PatternEditorComposeTab(props: PatternEditorProps) {
   const { dispatch, pattern, cursor, Button } = props;
-  const { chord } = props;
   const { isInserting, isCustom, isEmpty } = props;
 
   const isAdding = props.isAdding && cursor.hidden;

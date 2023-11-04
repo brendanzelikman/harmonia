@@ -25,7 +25,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useProjectDispatch } from "redux/hooks";
 import { BiCopy } from "react-icons/bi";
 import { Transition } from "@headlessui/react";
-import { Project } from "types/Project";
+import { Project, isProject } from "types/Project";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
 import { getPatternName } from "types/Pattern";
@@ -44,6 +44,7 @@ export function ProjectComponent(props: ProjectProps) {
 
   const [project, setProject] = useState(props.project ?? ({} as Project));
   const [loaded, setLoaded] = useState(!!props.project);
+  const isInvalid = !isProject(project);
 
   useEffect(() => {
     if (!props.project && !!props.filePath) {
@@ -263,8 +264,12 @@ export function ProjectComponent(props: ProjectProps) {
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
       key={id}
-      className={`group w-full flex p-4 h-40 bg-slate-900/90 hover:bg-slate-900 ${border} text-slate-200 text-sm cursor-pointer transition-all duration-150`}
-      onClick={onClick}
+      className={`group w-full flex p-4 h-40 ${
+        isInvalid
+          ? "bg-slate-800 ring ring-red-500 cursor-not-allowed"
+          : "bg-slate-900/90 hover:bg-slate-900 cursor-pointer"
+      }  ${border} text-slate-200 text-sm transition-all duration-150`}
+      onClick={() => !isInvalid && onClick()}
     >
       <ProjectLogo />
       <ProjectTitle />

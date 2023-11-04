@@ -14,7 +14,7 @@ import {
 } from "redux/hooks";
 import {
   selectSelectedClipIds,
-  selectSelectedMedia,
+  selectSelectedMediaClips,
   selectTimeline,
 } from "redux/selectors";
 import { mergeSelectedMedia, toggleMergingMedia } from "redux/thunks";
@@ -27,7 +27,7 @@ export const ToolkitMergeButton = () => {
   const timeline = useProjectSelector(selectTimeline);
   const isMerging = isTimelineMergingMedia(timeline);
   const selectedClipIds = useProjectDeepSelector(selectSelectedClipIds);
-  const selectedMedia = useProjectDeepSelector(selectSelectedMedia);
+  const selectedMedia = useProjectDeepSelector(selectSelectedMediaClips);
   const [mergeName, setMergeName] = useState("");
 
   /** The name of the new pattern obtained by merging */
@@ -69,12 +69,12 @@ export const ToolkitMergeButton = () => {
   const MergeButton = () => {
     return (
       <ControlButton
-        label="Fuse Media"
+        label="Merge Media"
         onClick={() => dispatch(toggleMergingMedia())}
         className={`${
           isMerging
-            ? "bg-purple-700 ring-2 ring-offset-2 ring-purple-700/80 ring-offset-black"
-            : "bg-purple-700/80"
+            ? "bg-purple-600 ring-2 ring-offset-2 ring-purple-600/80 ring-offset-black"
+            : "bg-purple-600/80"
         }`}
       >
         <GiPestleMortar />
@@ -85,7 +85,7 @@ export const ToolkitMergeButton = () => {
   const MergeTooltip = () => {
     return (
       <NavbarTooltip
-        className="left-[-6rem] bg-purple-700 min-w-[15rem]"
+        className="left-[-6rem] bg-purple-600 min-w-[15rem]"
         show={!!isMerging}
         content={
           <NavbarTooltipMenu>

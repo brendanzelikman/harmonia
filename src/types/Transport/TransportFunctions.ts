@@ -41,7 +41,7 @@ export const convertSecondsToTicks = (
 ): Tick => secondsToTicks(time, transport.bpm);
 
 /** Convert ticks to (bars:beats:sixteenths) using the transport. */
-export const convertTicksToBarsBeatsSixteenths = (
+export const convertTicksToFormattedTime = (
   transport: Transport,
   tick: Tick
 ) => {

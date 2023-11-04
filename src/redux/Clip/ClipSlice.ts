@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Clip, defaultClipState } from "types/Clip";
-import { TrackId } from "types/Track";
+import { RemoveTrackPayload, TrackId } from "types/Track";
 import {
   RemoveMediaPayload,
   CreateMediaPayload,
@@ -29,7 +29,7 @@ export type SliceClipPayload = {
 };
 
 /** Clips can be removed by track ID. */
-export type RemoveClipsByTrackIdPayload = TrackId;
+export type RemoveClipsByTrackIdPayload = RemoveTrackPayload;
 
 /** Clips can be cleared by track ID. */
 export type ClearClipsByTrackIdPayload = TrackId;
@@ -59,10 +59,7 @@ export const clipsSlice = createSlice({
       clips.forEach((clip) => {
         const { id, ...rest } = clip;
         if (!id) return;
-        state.byId[id] = {
-          ...state.byId[id],
-          ...rest,
-        };
+        state.byId[id] = { ...state.byId[id], ...rest };
       });
     },
     /** Remove a list of clips from the slice. */
@@ -96,10 +93,10 @@ export const clipsSlice = createSlice({
       state,
       action: PayloadAction<RemoveClipsByTrackIdPayload>
     ) => {
-      const trackId = action.payload;
-      if (!trackId) return;
+      const { id } = action.payload;
+      if (!id) return;
       const clips = Object.values(state.byId).filter(
-        (clip) => clip.trackId === trackId
+        (clip) => clip.trackId === id
       );
       clips.forEach((clip) => {
         delete state.byId[clip.id];

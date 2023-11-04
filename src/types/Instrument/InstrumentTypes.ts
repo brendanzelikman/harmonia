@@ -11,7 +11,7 @@ import {
   MIN_VOLUME,
 } from "utils/constants";
 import { PatternMidiChord } from "types/Pattern";
-import { createNormalState } from "utils/normalizedState";
+import { NormalState, createNormalState } from "utils/normalizedState";
 import { Pan, Tick, Volume } from "types/units";
 import { isArray, isBoolean, isPlainObject, isString } from "lodash";
 import { isBoundedNumber } from "types/util";
@@ -29,6 +29,7 @@ export type InstrumentKey = keyof typeof samples;
 export type InstrumentCategory = keyof typeof categories;
 export type InstrumentName = (typeof INSTRUMENT_NAMES)[number];
 export type InstrumentMap = Record<InstrumentId, Instrument>;
+export type InstrumentState = NormalState<InstrumentMap>;
 
 // ------------------------------------------------------------
 // Instrument Definitions

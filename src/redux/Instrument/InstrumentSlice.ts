@@ -64,6 +64,7 @@ export type RearrangeInstrumentEffectPayload = {
 /** An `Instrument` needs to be removed from the store with a track ID. */
 export type RemoveInstrumentPayload = {
   trackId: TrackId;
+  originalTrackId: TrackId;
   id: InstrumentId;
 };
 

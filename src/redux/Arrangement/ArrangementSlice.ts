@@ -5,6 +5,7 @@ import {
   instrumentsSlice,
 } from "redux/Instrument/InstrumentSlice";
 import { patternTracksSlice } from "redux/PatternTrack/PatternTrackSlice";
+import { portalsSlice } from "redux/Portal";
 import { scaleTracksSlice } from "redux/ScaleTrack/ScaleTrackSlice";
 import { trackHierarchySlice } from "redux/TrackHierarchy/TrackHierarchySlice";
 import { transpositionsSlice } from "redux/Transposition/TranspositionSlice";
@@ -18,6 +19,7 @@ const arrangementReducer = combineReducers({
   clips: clipsSlice.reducer,
   transpositions: transpositionsSlice.reducer,
   hierarchy: trackHierarchySlice.reducer,
+  portals: portalsSlice.reducer,
 });
 
 export default arrangementReducer;
@@ -29,6 +31,7 @@ export const arrangementActions = [
   ...getSliceActions(clipsSlice),
   ...getSliceActions(transpositionsSlice),
   ...getSliceActions(trackHierarchySlice),
+  ...getSliceActions(portalsSlice),
   ...getSliceActions(instrumentsSlice).filter(
     (action) => !PRIVATE_INSTRUMENT_ACTIONS.includes(action)
   ),

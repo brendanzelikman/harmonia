@@ -7,7 +7,7 @@ import {
   getCurrentTransposition,
   getTranspositionOffsetById,
 } from "types/Transposition";
-import { Arrangement } from "types/Arrangement";
+import { TrackArrangement } from "types/Arrangement";
 import { getTrackTranspositionIds } from "types/TrackHierarchy";
 import { getKeys } from "utils/objects";
 
@@ -81,7 +81,7 @@ export const getTrackParents = (id: TrackId, trackMap: TrackMap): Track[] => {
 };
 
 /** A track scale chain is dependent on the arrangement. */
-export interface TrackScaleChainDependencies extends Partial<Arrangement> {
+export interface TrackScaleChainDependencies extends Partial<TrackArrangement> {
   tick?: Tick;
   scales?: ScaleMap;
 }

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { union } from "lodash";
-import { TrackId } from "types/Track";
+import { RemoveTrackPayload, TrackId } from "types/Track";
 import {
   ScaleTrack,
   ScaleTrackUpdate,
@@ -15,7 +15,7 @@ import {
 export type AddScaleTrackPayload = ScaleTrack;
 
 /** A ScaleTrack can be removed from the store. */
-export type RemoveScaleTrackPayload = TrackId;
+export type RemoveScaleTrackPayload = RemoveTrackPayload;
 
 /** A ScaleTrack can be updated in the store. */
 export type UpdateScaleTrackPayload = ScaleTrackUpdate;
@@ -39,10 +39,10 @@ export const scaleTracksSlice = createSlice({
       state,
       action: PayloadAction<RemoveScaleTrackPayload>
     ) => {
-      const trackId = action.payload;
-      delete state.byId[trackId];
+      const { id } = action.payload;
+      delete state.byId[id];
 
-      const index = state.allIds.findIndex((id) => id === trackId);
+      const index = state.allIds.findIndex((tId) => tId === id);
       if (index === -1) return;
       state.allIds.splice(index, 1);
     },

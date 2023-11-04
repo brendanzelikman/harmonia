@@ -14,7 +14,8 @@ function TimelineShortcuts() {
         <ShortcutCategory name="Project Shortcuts" />
         <Shortcut shortcut="⌘ + S" description="Save Project" />
         <Shortcut shortcut="⌘ + O" description="Open Project" />
-        <Shortcut shortcut="⌘ + ⌥ + N" description="New Project" />
+        <Shortcut shortcut="⌘ + ⌥ + N" description="Clear Project" />
+        <Shortcut shortcut="⌘ + P" description="View Projects" />
         <Shortcut shortcut="⌘ + Z" description="Undo Action" />
         <Shortcut shortcut="⌘ + ⇧ + Z" description="Redo Action" />
         <Shortcut shortcut="Space" description="Play/Pause Timeline" />
@@ -22,22 +23,25 @@ function TimelineShortcuts() {
         <Shortcut shortcut="L" description="Toggle Loop" />
         <Shortcut shortcut="S + Click" description="Set Loop Start" />
         <Shortcut shortcut="E + Click" description="Set Loop End" />
-        <Shortcut shortcut="⌘ + P" description="Show/Hide Pattern Editor" />
+        <Shortcut shortcut="Shift + R" description="Toggle Recording" />
         <Shortcut shortcut="Esc" description="Close Editor" />
-        <Shortcut shortcut="⌘ + ⇧ + M" description="Toggle Mute" />
         <Shortcut shortcut="⌘ + ⇧ + F" description="Toggle Fullscreen" />
-        <Shortcut shortcut="⌘ + ," description="Show/Hide Settings" />
-        <Shortcut shortcut="?" description="Show/Hide Shortcuts" />
+        <Shortcut shortcut="⌘ + ⇧ + M" description="Toggle Mute" />
+        <Shortcut shortcut="⌥ + ⇧ + M" description="Export Project to MIDI" />
+        <Shortcut shortcut="⌘ + ," description="Toggle Settings" />
+        <Shortcut shortcut="?" description="Toggle Shortcuts" />
       </ShortcutSection>
       <ShortcutSection>
         <ShortcutCategory name="Timeline Shortcuts" />
-        <Shortcut shortcut="A" description="Start/Stop Adding Clips" />
-        <Shortcut shortcut="T" description="Start/Stop Adding Transpositions" />
-        <Shortcut shortcut="Alt+C" description="Start/Stop Cutting Clips" />
-        <Shortcut shortcut="Alt + M" description="Start/Stop Merging Clips" />
+        <Shortcut shortcut="C" description="Compose with Pattern Editor" />
+        <Shortcut shortcut="A" description="Toggle Adding Clips" />
+        <Shortcut shortcut="T" description="Toggle Adding Transpositions" />
+        <Shortcut shortcut="Alt + S" description="Toggle Slicing Media" />
+        <Shortcut shortcut="Alt + S" description="Toggle Portaling Media" />
+        <Shortcut shortcut="Alt + M" description="Toggle Merging Media" />
         <Shortcut
           shortcut="Left/Right Arrow"
-          description="Move Cursor Left/Right"
+          description="Move Cursor/Media Left/Right"
         />
         <Shortcut
           shortcut="Up/Down Arrow"
@@ -56,12 +60,8 @@ function TimelineShortcuts() {
         <Shortcut shortcut="⌘ + D" description="Duplicate Media" />
         <Shortcut shortcut="Delete" description="Delete Media" />
         <Shortcut
-          shortcut='⌘ + "+"'
-          description="Zoom In (Increase Subdivision)"
-        />
-        <Shortcut
-          shortcut='⌘ + "-"'
-          description="Zoom Out (Decrease Subdivision)"
+          shortcut="⌘ +/-"
+          description="Increase/Decrease Subdivision"
         />
       </ShortcutSection>
 
@@ -70,10 +70,9 @@ function TimelineShortcuts() {
         <Shortcut shortcut="Hold Q" description="Transpose Chromatically" />
         <Shortcut shortcut="Hold W" description="Transpose Along the Scale" />
         <Shortcut shortcut="Hold E" description="Transpose Along the Chord" />
-        <Shortcut shortcut="Hold X / `" description="Apply Negative Offset" />
+        <Shortcut shortcut="Hold `" description="Apply Negative Offset" />
         <Shortcut shortcut="Hold ⇧" description="Add 12/-12 to Offset" />
-        <Shortcut shortcut="Up / Down Arrow" description="Transpose Up/Down" />
-
+        <Shortcut shortcut="Z" description="Set All Values to 0" />
         <Shortcut shortcut="0" description="Set Absolute Value to 0" />
         <Shortcut shortcut="1" description="Add 1/-1 to Offset and Transpose" />
         <Shortcut shortcut="2" description="Add 2/-2 to Offset and Transpose" />

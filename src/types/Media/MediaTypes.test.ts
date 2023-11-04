@@ -5,11 +5,11 @@ import { defaultTransposition } from "types/Transposition";
 import { defaultClip } from "types/Clip";
 
 test("isMedia should only return true for valid media", () => {
-  expect(_.isMedia(defaultClip)).toBe(true);
-  expect(_.isMedia(defaultTransposition)).toBe(true);
-  expect(_.isMedia(undefined)).toBe(false);
-  expect(_.isMedia({})).toBe(false);
-  expect(_.isMedia(mockPatternTrack)).toBe(false);
+  expect(_.isMediaClip(defaultClip)).toBe(true);
+  expect(_.isMediaClip(defaultTransposition)).toBe(true);
+  expect(_.isMediaClip(undefined)).toBe(false);
+  expect(_.isMediaClip({})).toBe(false);
+  expect(_.isMediaClip(mockPatternTrack)).toBe(false);
 });
 
 test("isMediaSelection should only return true for selections", () => {

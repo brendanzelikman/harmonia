@@ -10,9 +10,9 @@ import {
 } from "../components";
 import {
   getTranspositionVectorAsString,
-  getChromaticOffset,
+  TranspositionVector,
 } from "types/Transposition";
-import { getScaleName, getTransposedScale } from "types/Scale";
+import { getScaleName } from "types/Scale";
 import {
   useProjectDispatch,
   useProjectSelector,
@@ -20,119 +20,96 @@ import {
 } from "redux/hooks";
 import {
   selectTimeline,
-  selectTrackChain,
   selectSelectedTrack,
-  selectDraftedTransposition,
-  selectTrackMidiScale,
+  selectDraftedPose,
+  selectScaleMap,
+  selectScaleTrackMap,
+  selectTrackParents,
 } from "redux/selectors";
 import { isTimelineAddingTranspositions } from "types/Timeline";
 import { toggleAddingTranspositions, updateMediaDraft } from "redux/Timeline";
+import { useNumericInputs } from "hooks";
+import { pick } from "lodash";
 
-/**
- * Start adding transpositions with the given offsets.
- */
 export const ToolkitTransposeButton = () => {
   const dispatch = useProjectDispatch();
   const timeline = useProjectSelector(selectTimeline);
+  const scaleMap = useProjectSelector(selectScaleMap);
+  const scaleTrackMap = useProjectSelector(selectScaleTrackMap);
   const isAdding = isTimelineAddingTranspositions(timeline);
-  const transposition = useProjectSelector(selectDraftedTransposition);
+  const transposition = useProjectSelector(selectDraftedPose);
   const { vector, duration } = transposition;
 
   // Selected track info
-  const selectedTrack = useProjectDeepSelector(selectSelectedTrack);
-  const trackChain = useProjectDeepSelector((_) =>
-    selectTrackChain(_, selectedTrack?.id)
+  const track = useProjectDeepSelector(selectSelectedTrack);
+  const tracks = useProjectDeepSelector((_) =>
+    selectTrackParents(_, track?.id)
   );
-  const scales = useProjectSelector((_) =>
-    trackChain.map((t) => selectTrackMidiScale(_, t.id))
+  const trackIds = useProjectSelector((_) => tracks.map((t) => t.id));
+  const offsetIds = ["chromatic", ...trackIds, "chordal"];
+  const filteredVector = pick(vector, offsetIds) as TranspositionVector;
+
+  /** Store the numeric input of each drafted offset */
+  const NoteOffsets = useNumericInputs(
+    offsetIds.map((id) => ({
+      id,
+      initialValue: vector?.[id] ?? 0,
+      callback: (value) => {
+        const update = { vector: { ...vector, [id]: value ?? 0 } };
+        dispatch(updateMediaDraft({ pose: update }));
+      },
+    }))
   );
-  const chromaticTranspose = getChromaticOffset(vector);
-  const selectedOffsets = {
-    ...trackChain.reduce(
-      (acc, t) => ({ ...acc, [t.id]: vector?.[t.id] || 0 }),
-      {}
-    ),
-  };
 
-  // Transposition offsets
-  const transposedScales = useProjectSelector((_) =>
-    trackChain.map((scale) => {
-      const trackScale = selectTrackMidiScale(_, scale.id);
-      return getTransposedScale(trackScale, chromaticTranspose);
-    })
-  );
-  const scaleNames = transposedScales.map((transposedScale, i) => {
-    const trackName = trackChain[i].name;
-    if (trackName?.length) return trackName;
-    return getScaleName(transposedScale || scales[i]);
-  });
-
-  /** Handlers for updating transposition offsets */
-  const setTranspositionValue = (key: string, value: number) => {
-    dispatch(
-      updateMediaDraft({
-        transposition: { vector: { ...vector, [key]: value } },
-      })
-    );
-  };
-
-  /** An input element for a given offset ID */
+  /** Create an input element for a given offset ID. */
   const OffsetInput = (id: string) => {
-    const value = isNaN(vector?.[id] || NaN) ? "" : vector?.[id];
     return (
       <NavbarFormInput
-        value={value}
-        onChange={(e) => setTranspositionValue(id, parseInt(e.target.value))}
-        type="text"
+        value={NoteOffsets.getValue(id)}
+        onChange={NoteOffsets.onChange(id)}
         placeholder="0"
+        type="string"
         className="focus:bg-fuchsia-600 h-7 ml-4 w-16"
-        onKeyDown={blurOnEnter}
       />
     );
   };
 
-  /** The chromatic offset input */
-  const ChromaticOffsetInput = () => (
-    <NavbarFormGroup>
-      <NavbarFormLabel className="w-32">Chromatic Offset:</NavbarFormLabel>
-      {OffsetInput("chromatic")}
-    </NavbarFormGroup>
-  );
-
-  /** The chordal offset input */
-  const ChordalOffsetInput = () => (
-    <NavbarFormGroup>
-      <NavbarFormLabel className="w-32">Chordal Offset:</NavbarFormLabel>
-      {OffsetInput("chordal")}
-    </NavbarFormGroup>
-  );
-
   /** The scalar offset inputs */
-  const ScalarOffsetInputs = () => {
-    return trackChain.map(({ id }, i) => (
-      <NavbarFormGroup key={`scalar-offset-${id}`}>
-        <NavbarFormLabel className="w-32">
-          <span className="text-gray-300">({i + 1})</span> {scaleNames[i]}:{" "}
-        </NavbarFormLabel>
-        {OffsetInput(id)}
-      </NavbarFormGroup>
-    ));
+  const OffsetInputs = () => {
+    return offsetIds.map((id, i) => {
+      let name = "";
+      if (id === "chromatic") name = "Chromatic Offset";
+      else if (id === "chordal") name = "Chordal Offset";
+      else name = getScaleName(scaleMap[scaleTrackMap[id]?.scaleId]);
+      return (
+        <NavbarFormGroup key={`offset-${id}`}>
+          <NavbarFormLabel className="w-32">
+            <span className="text-gray-300">({i + 1})</span> {name}:{" "}
+          </NavbarFormLabel>
+          {OffsetInput(id)}
+        </NavbarFormGroup>
+      );
+    });
   };
 
   /** The duration input */
+  const Duration = useNumericInputs([
+    {
+      id: "duration",
+      initialValue: duration,
+      min: 0,
+      callback: (duration) => {
+        dispatch(updateMediaDraft({ pose: { duration } }));
+      },
+    },
+  ]);
   const DurationInput = () => {
     return (
       <NavbarFormGroup>
         <NavbarFormLabel className="w-32">Duration (Ticks):</NavbarFormLabel>
         <NavbarFormInput
-          value={duration}
-          onChange={(e) =>
-            dispatch(
-              updateMediaDraft({
-                transposition: { duration: e.target.valueAsNumber },
-              })
-            )
-          }
+          value={Duration.getValue("duration")}
+          onChange={Duration.onChange("duration")}
           type="number"
           placeholder={Infinity.toLocaleString()}
           className="focus:bg-fuchsia-600 h-7 ml-4 w-16"
@@ -169,16 +146,10 @@ export const ToolkitTransposeButton = () => {
         content={
           <NavbarTooltipMenu>
             <div className="pb-2 mb-2 w-full text-center font-bold border-b">
-              Transposing by{" "}
-              {getTranspositionVectorAsString({
-                ...vector,
-                ...selectedOffsets,
-              })}
+              Transposing by {getTranspositionVectorAsString(filteredVector)}
             </div>
             <div className="w-full h-full py-2 space-y-2">
-              {ChromaticOffsetInput()}
-              {ScalarOffsetInputs()}
-              {ChordalOffsetInput()}
+              {OffsetInputs()}
               {DurationInput()}
             </div>
           </NavbarTooltipMenu>

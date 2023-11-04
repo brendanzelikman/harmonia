@@ -11,7 +11,7 @@ import {
   removeMediaFromHierarchy,
   updateMediaInHierarchy,
 } from "redux/TrackHierarchy";
-import { selectSelectedTranspositions } from "redux/selectors";
+import { selectSelectedPoses } from "redux/selectors";
 import {
   _updateTranspositions,
   addTranspositions,
@@ -21,18 +21,18 @@ import { RemoveMediaPayload, UpdateMediaPayload } from "types/Media";
 
 /** Create a list of transpositions and add them to the slice and hierarchy. */
 export const createTranspositions =
-  (poses: Partial<TranspositionNoId>[]): Thunk<TranspositionId[]> =>
+  (initialPoses: Partial<TranspositionNoId>[]): Thunk<TranspositionId[]> =>
   (dispatch) => {
     // Create the transpositions
-    const transpositions = poses.map(initializeTransposition);
-    const payload = { transpositions };
+    const poses = initialPoses.map(initializeTransposition);
+    const payload = { poses };
 
     // Add the transpositions to the slice and hierarchy.
     dispatch(addTranspositions(payload));
     dispatch(addMediaToHierarchy(payload));
 
     // Return the newly created transposition IDs
-    return transpositions.map((t) => t.id);
+    return poses.map((t) => t.id);
   };
 
 /** Update a list of transpositions. */
@@ -56,12 +56,12 @@ export const updateSelectedTranspositions =
   (vector: TranspositionVector): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const selectedPoses = selectSelectedTranspositions(project);
+    const selectedPoses = selectSelectedPoses(project);
     if (!selectedPoses.length) return;
-    const transpositions = selectedPoses.map((t) => {
+    const poses = selectedPoses.map((t) => {
       return { ...t, vector: { ...t.vector, ...vector } };
     });
-    dispatch(_updateTranspositions({ transpositions }));
+    dispatch(_updateTranspositions({ poses }));
   };
 
 /** Offset the selected transpositions by the given vector. */
@@ -69,27 +69,27 @@ export const offsetSelectedTranspositions =
   (vector: TranspositionVector): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const selectedPoses = selectSelectedTranspositions(project);
+    const selectedPoses = selectSelectedPoses(project);
     if (!selectedPoses.length) return;
 
     // Offset each transposition
-    const transpositions = selectedPoses.map((t) =>
+    const poses = selectedPoses.map((t) =>
       getOffsettedTransposition(t, vector)
     );
 
     // Update the transpositions
-    dispatch(_updateTranspositions({ transpositions }));
+    dispatch(_updateTranspositions({ poses }));
   };
 
 /** Reset the vector of the selected transpositions. */
 export const resetSelectedTranspositions =
   (): Thunk => (dispatch, getProject) => {
     const project = getProject();
-    const selectedPoses = selectSelectedTranspositions(project);
+    const selectedPoses = selectSelectedPoses(project);
     if (!selectedPoses.length) return;
-    const transpositions = selectedPoses.map((t) => ({
+    const poses = selectedPoses.map((t) => ({
       ...t,
       vector: {} as TranspositionVector,
     }));
-    dispatch(_updateTranspositions({ transpositions }));
+    dispatch(_updateTranspositions({ poses }));
   };

@@ -1,6 +1,12 @@
 import { useDrag, useDrop } from "react-dnd";
-import { DraggableTrackProps } from "..";
+import { Track, TrackId } from "types/Track";
 
+export interface DraggableTrackProps {
+  track: Track;
+  index: number;
+  element?: any;
+  moveTrack: (dragId: TrackId, hoverId: TrackId) => void;
+}
 export const useTrackDrag = (props: DraggableTrackProps) => {
   return useDrag({
     type: "track",
@@ -24,7 +30,7 @@ export const useTrackDrop = (props: DraggableTrackProps) => {
       const dragId = item.id;
       const hoverId = props.track.id;
       if (dragId === hoverId) return;
-      props.moveTrack({ dragId, hoverId });
+      props.moveTrack(dragId, hoverId);
     },
   });
 };

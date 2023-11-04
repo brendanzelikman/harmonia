@@ -28,6 +28,7 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
     disabledClass,
     weakClass,
     placeTooltip,
+    padding,
     prompt,
     callback,
     options,
@@ -50,8 +51,8 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
         buttonProps.className,
         `flex justify-center my-auto h-6 items-center font-light bg-transparent rounded text-xs truncate select-none`,
         {
-          "px-0": !props.padding,
-          "px-2": props.padding === undefined || !!props.padding,
+          "px-0": !padding,
+          "px-2": padding === undefined || !!padding,
           "cursor-default": disabled,
           "border border-slate-500": !!border,
           [weakClass ?? ""]: !active && !disabled,
@@ -78,7 +79,7 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
             show={open}
             duration={100}
             scale={50}
-            as={Menu.Items}
+            asType={Menu.Items}
             className="absolute flex flex-col z-[90] top-8 px-2 whitespace-nowrap -mr-5 py-2 bg-slate-900/90 backdrop-blur border border-slate-400 text-sm rounded"
           >
             {options.map((option, i) => (

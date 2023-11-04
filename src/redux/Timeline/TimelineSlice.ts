@@ -15,6 +15,7 @@ import {
 } from "types/Media";
 import { TrackId } from "types/Track";
 import { Subdivision } from "utils/durations";
+import { PortalFragment } from "types/Portal";
 
 // ------------------------------------------------------------
 // Timeline Payload Types
@@ -119,12 +120,15 @@ export const timelineSlice = createSlice({
       action: PayloadAction<UpdateMediaClipboardPayload>
     ) => {
       const { mediaClipboard } = state;
-      const { clips, transpositions } = action.payload;
+      const { clips, poses, portals } = action.payload;
       if (clips) {
         mediaClipboard.clips = clips;
       }
-      if (transpositions) {
-        mediaClipboard.transpositions = transpositions;
+      if (poses) {
+        mediaClipboard.poses = poses;
+      }
+      if (portals) {
+        mediaClipboard.portals = portals;
       }
     },
     /** Update the media draft. */
@@ -133,19 +137,22 @@ export const timelineSlice = createSlice({
       action: PayloadAction<UpdateMediaDraftPayload>
     ) => {
       const { mediaDraft } = state;
-      const { clip, transposition } = action.payload;
+      const { clip, pose, portal } = action.payload;
       if (clip) {
         mediaDraft.clip = { ...mediaDraft.clip, ...clip };
       }
-      if (transposition)
-        mediaDraft.transposition = {
-          ...mediaDraft.transposition,
-          ...transposition,
-          vector: {
-            ...mediaDraft.transposition.vector,
-            ...transposition.vector,
-          },
+      if (pose) {
+        const oldPose = mediaDraft.pose;
+        const oldVector = oldPose.vector;
+        mediaDraft.pose = {
+          ...oldPose,
+          ...pose,
+          vector: { ...oldVector, ...pose.vector },
         };
+      }
+      if (portal) {
+        mediaDraft.portal = portal;
+      }
     },
     /** Update the media selection. */
     updateMediaSelection: (
@@ -153,12 +160,15 @@ export const timelineSlice = createSlice({
       action: PayloadAction<UpdateMediaSelectionPayload>
     ) => {
       const { mediaSelection } = state;
-      const { clipIds, transpositionIds } = action.payload;
+      const { clipIds, poseIds, portalIds } = action.payload;
       if (clipIds) {
         mediaSelection.clipIds = clipIds;
       }
-      if (transpositionIds) {
-        mediaSelection.transpositionIds = transpositionIds;
+      if (poseIds) {
+        mediaSelection.poseIds = poseIds;
+      }
+      if (portalIds) {
+        mediaSelection.portalIds = portalIds;
       }
     },
     /** Update the media drag state. */
@@ -167,12 +177,15 @@ export const timelineSlice = createSlice({
       action: PayloadAction<UpdateMediaDragStatePayload>
     ) => {
       const { mediaDragState } = state;
-      const { draggingClip, draggingTransposition } = action.payload;
+      const { draggingClip, draggingPose, draggingPortal } = action.payload;
       if (draggingClip !== undefined) {
         mediaDragState.draggingClip = draggingClip;
       }
-      if (draggingTransposition !== undefined) {
-        mediaDragState.draggingTransposition = draggingTransposition;
+      if (draggingPose !== undefined) {
+        mediaDragState.draggingPose = draggingPose;
+      }
+      if (draggingPortal !== undefined) {
+        mediaDragState.draggingPortal = draggingPortal;
       }
     },
     /** Toggle whether live transposition is enabled. */

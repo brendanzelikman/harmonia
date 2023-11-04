@@ -1,17 +1,20 @@
 import { isPlainObject } from "lodash";
-import { ClipMap, defaultClipState, isClip } from "types/Clip";
+import { ClipMap, ClipState, defaultClipState, isClip } from "types/Clip";
 import {
-  InstrumentMap,
+  InstrumentState,
   defaultInstrumentState,
   isInstrument,
 } from "types/Instrument";
 import {
   PatternTrackMap,
+  PatternTrackState,
   defaultPatternTrackState,
   isPatternTrack,
 } from "types/PatternTrack";
+import { PortalState, defaultPortalState, isPortal } from "types/Portal";
 import {
   ScaleTrackMap,
+  ScaleTrackState,
   defaultScaleTrackState,
   isScaleTrack,
 } from "types/ScaleTrack";
@@ -24,22 +27,19 @@ import {
 } from "types/TrackHierarchy";
 import {
   TranspositionMap,
+  TranspositionState,
   defaultTranspositionState,
   isTransposition,
 } from "types/Transposition";
-import {
-  NormalState,
-  isNormalRecord,
-  isNormalState,
-} from "utils/normalizedState";
+import { isNormalRecord, isNormalState } from "utils/normalizedState";
 import { UndoableHistory, createUndoableHistory } from "utils/undoableHistory";
 
 // ------------------------------------------------------------
 // Arrangement Definitions
 // ------------------------------------------------------------
 
-/** An arrangement stores track/media information in `NormalRecords` */
-export interface Arrangement {
+/** A track arrangement stores track/media object maps. */
+export interface TrackArrangement {
   tracks: TrackNodeMap;
   scaleTracks: ScaleTrackMap;
   patternTracks: PatternTrackMap;
@@ -47,40 +47,33 @@ export interface Arrangement {
   transpositions: TranspositionMap;
 }
 
-/** The live arrangement stores track/media/instrument information. */
-export interface LiveArrangement extends Arrangement {
-  instruments: InstrumentMap;
-}
-
-/** A normal arrangement stores `NormalStates` instead of `NormalRecords` */
-export interface NormalArrangement {
-  scaleTracks: NormalState<ScaleTrackMap>;
-  patternTracks: NormalState<PatternTrackMap>;
-  clips: NormalState<ClipMap>;
-  transpositions: NormalState<TranspositionMap>;
+/** A live arrangement stores the full track arrangement with instruments and portals. */
+export interface LiveArrangement {
   hierarchy: TrackHierarchy;
-}
-
-/** A normal live arrangement stores a `NormalState` of the instruments as well. */
-export interface NormalLiveArrangement extends NormalArrangement {
-  instruments: NormalState<InstrumentMap>;
+  scaleTracks: ScaleTrackState;
+  patternTracks: PatternTrackState;
+  clips: ClipState;
+  transpositions: TranspositionState;
+  portals: PortalState;
+  instruments: InstrumentState;
 }
 
 /** An undoable arrangement history is used for Redux. */
-export type ArrangementHistory = UndoableHistory<NormalLiveArrangement>;
+export type ArrangementHistory = UndoableHistory<LiveArrangement>;
 
 // ------------------------------------------------------------
 // Arrangement Initialization
 // ------------------------------------------------------------
 
 /** The default live arrangement is used for initialization. */
-export const defaultArrangement: NormalLiveArrangement = {
+export const defaultArrangement: LiveArrangement = {
+  hierarchy: defaultTrackHierarchy,
   scaleTracks: defaultScaleTrackState,
   patternTracks: defaultPatternTrackState,
-  instruments: defaultInstrumentState,
   clips: defaultClipState,
   transpositions: defaultTranspositionState,
-  hierarchy: defaultTrackHierarchy,
+  portals: defaultPortalState,
+  instruments: defaultInstrumentState,
 };
 
 /** The undoable arrangement history is used for Redux. */
@@ -92,8 +85,8 @@ export const defaultArrangementHistory: ArrangementHistory =
 // ------------------------------------------------------------
 
 /** Checks if a given object is of type `Arrangement`. */
-export const isArrangement = (obj: unknown): obj is Arrangement => {
-  const candidate = obj as Arrangement;
+export const isArrangement = (obj: unknown): obj is TrackArrangement => {
+  const candidate = obj as TrackArrangement;
   return (
     isPlainObject(candidate) &&
     isNormalRecord(candidate.tracks, isTrackNode) &&
@@ -104,35 +97,17 @@ export const isArrangement = (obj: unknown): obj is Arrangement => {
   );
 };
 
-/** Checks if a given object is of type `LiveArrangement`. */
+/** Checks if a given object is of type `NormalLiveArrangement`. */
 export const isLiveArrangement = (obj: unknown): obj is LiveArrangement => {
   const candidate = obj as LiveArrangement;
-  return (
-    isArrangement(candidate) &&
-    isNormalRecord(candidate.instruments, isInstrument)
-  );
-};
-
-/** Checks if a given object is of type `NormalArrangement`. */
-export const isNormalArrangement = (obj: unknown): obj is NormalArrangement => {
-  const candidate = obj as NormalArrangement;
   return (
     isPlainObject(candidate) &&
     isNormalState(candidate.scaleTracks, isScaleTrack) &&
     isNormalState(candidate.patternTracks, isPatternTrack) &&
     isNormalState(candidate.clips, isClip) &&
     isNormalState(candidate.transpositions, isTransposition) &&
-    isTrackHierarchy(candidate.hierarchy)
-  );
-};
-
-/** Checks if a given object is of type `NormalLiveArrangement`. */
-export const isNormalLiveArrangement = (
-  obj: unknown
-): obj is NormalLiveArrangement => {
-  const candidate = obj as NormalLiveArrangement;
-  return (
-    isNormalArrangement(candidate) &&
-    isNormalState(candidate.instruments, isInstrument)
+    isTrackHierarchy(candidate.hierarchy) &&
+    isNormalState(candidate.instruments, isInstrument) &&
+    isNormalState(candidate.portals, isPortal)
   );
 };

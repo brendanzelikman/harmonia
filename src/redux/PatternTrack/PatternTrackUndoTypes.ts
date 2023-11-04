@@ -13,7 +13,7 @@ export const PATTERN_TRACK_UNDO_TYPES: ActionGroup = {
   "patternTracks/removePatternTrack": (
     action: PayloadAction<_.RemovePatternTrackPayload>
   ) => {
-    return `REMOVE_TRACK:${action.payload}`;
+    return `REMOVE_TRACK:${action.payload.originalId}`;
   },
   "patternTracks/updatePatternTrack": (
     action: PayloadAction<_.UpdatePatternTrackPayload>

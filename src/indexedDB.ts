@@ -129,7 +129,7 @@ export const uploadProjectToDB = async (project: Project): Promise<boolean> => {
 
 /** Update the project, resolving to true if successful. */
 export async function updateProjectInDB(project: Project): Promise<boolean> {
-  if (!isProject(project)) throw new Error("Invalid state.");
+  if (!isProject(project)) throw new Error("Invalid project.");
   const db = await dbPromise;
   const existingProject = await db.get(PROJECT_STORE, selectProjectId(project));
   if (!existingProject) return false;

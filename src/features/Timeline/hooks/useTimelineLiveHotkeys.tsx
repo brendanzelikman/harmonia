@@ -103,7 +103,6 @@ const ALPHABETICAL_BINDS: Record<string, KeyBinds> = {
 const ALPHABETICAL_ZERO_BINDS = ["y", "h", "n", "`", "0"];
 
 export const useTimelineLiveHotkeys = () => {
-  const hotkeys = useHotkeysContext();
   const dispatch = useProjectDispatch();
 
   // Get the timeline from the store

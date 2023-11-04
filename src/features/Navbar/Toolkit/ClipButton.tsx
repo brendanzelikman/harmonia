@@ -18,8 +18,8 @@ export const ToolkitClipButton = () => {
 
   const ClipButton = () => {
     const buttonClass = isAddingClips
-      ? "bg-cyan-700 ring-2 ring-offset-2 ring-cyan-600/80 ring-offset-black"
-      : "bg-cyan-700/80";
+      ? "bg-teal-500 ring-2 ring-offset-2 ring-teal-500/80 ring-offset-black"
+      : "bg-teal-500/80";
 
     return (
       <ControlButton
@@ -36,7 +36,7 @@ export const ToolkitClipButton = () => {
     if (!selectedPattern) return null;
     return (
       <NavbarTooltip
-        className="-translate-x-1/2 left-8 bg-cyan-700/80 px-2 backdrop-blur"
+        className="-translate-x-1/2 left-8 bg-teal-500/80 px-2 backdrop-blur"
         show={!!isAddingClips}
         content={`Adding ${patternName}`}
       />

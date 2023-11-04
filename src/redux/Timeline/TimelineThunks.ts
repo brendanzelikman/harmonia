@@ -2,16 +2,19 @@ import * as _ from "./TimelineSelectors";
 import { Thunk } from "types/Project";
 import {
   createTranspositions,
+  selectTranspositionDuration,
+  selectTranspositionDurations,
   selectTranspositionsByTrackIds,
+  updateTranspositions,
 } from "../Transposition";
-import { Clip } from "types/Clip";
+import { Clip, ClipNoId } from "types/Clip";
 import {
   getMediaStartTick,
   getMediaEndTick,
   getMediaTrackIds,
   getMediaInRange,
-  getMediaClips,
-  getMediaTranspositions,
+  getClipsFromMedia,
+  getTranspositionsFromMedia,
 } from "types/Media";
 import { MouseEvent } from "react";
 import {
@@ -21,12 +24,12 @@ import {
   createClips,
   exportClipsToMidi,
 } from "redux/Clip";
-import { Transposition } from "types/Transposition";
+import { Transposition, TranspositionNoId } from "types/Transposition";
 import { seekTransport } from "redux/Transport";
 import { selectTrackById } from "redux/Track";
-import { union, without } from "lodash";
+import { isUndefined, union, without } from "lodash";
 import { isPatternTrack } from "types/PatternTrack";
-import { updateMedia, createMedia, sliceMedia } from "redux/thunks";
+import { sliceMedia } from "redux/thunks";
 import { TrackId } from "types/Track";
 import { Transport } from "tone";
 import { TRACK_WIDTH } from "utils/constants";
@@ -34,6 +37,7 @@ import {
   isTimelineAddingClips,
   isTimelineAddingTranspositions,
   isTimelineMergingMedia,
+  isTimelinePortalingMedia,
   isTimelineSlicingMedia,
 } from "types/Timeline";
 import {
@@ -42,11 +46,18 @@ import {
   updateMediaDraft,
   updateMediaSelection,
 } from "./TimelineSlice";
-import { selectEditor, selectOrderedTrackIds } from "redux/selectors";
-import { hideEditor } from "redux/Editor";
-import { getSubdivisionTicks, getTickColumns } from "utils/durations";
+import {
+  selectEditor,
+  selectOrderedTrackIds,
+  selectPortalsByTrackIds,
+} from "redux/selectors";
+import { hideEditor, showEditor } from "redux/Editor";
+import { getTickColumns } from "utils/durations";
 import { isHoldingShift, isHoldingOption } from "utils/html";
 import { mod } from "utils/math";
+import { Portal, initializePortal } from "types/Portal";
+import { addPortals } from "redux/Portal";
+import { hasKeys } from "utils/objects";
 
 /** Toggles the timeline between adding clips and not adding clips. */
 export const toggleAddingClips = (): Thunk => (dispatch, getProject) => {
@@ -88,6 +99,19 @@ export const toggleSlicingMedia = (): Thunk => (dispatch, getProject) => {
   }
 };
 
+/** Toggles the timeline between portaling media and not portaling media. */
+export const togglePortalingMedia = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const editor = selectEditor(project);
+  const timeline = _.selectTimeline(project);
+  if (isTimelinePortalingMedia(timeline)) {
+    dispatch(setTimelineState("idle"));
+  } else {
+    dispatch(setTimelineState("portalingMedia"));
+    if (editor.view) dispatch(hideEditor());
+  }
+};
+
 /** Toggles the timeline between merging media and not merging media. */
 export const toggleMergingMedia = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -118,7 +142,7 @@ export const onCellClick =
     // If no track is selected, seek the transport to the time and deselect all media
     if (trackId === undefined) {
       dispatch(seekTransport(tick));
-      dispatch(updateMediaSelection({ clipIds: [], transpositionIds: [] }));
+      dispatch(updateMediaSelection({ clipIds: [], poseIds: [] }));
       return;
     }
     const timeline = _.selectTimeline(project);
@@ -128,7 +152,8 @@ export const onCellClick =
     const onPatternTrack = !!track && isPatternTrack(track);
 
     // Try to create a clip if adding clips
-    if (isTimelineAddingClips(timeline)) {
+    const isAdding = isTimelineAddingClips(timeline);
+    if (isAdding) {
       if (!onPatternTrack) return;
 
       // Get the pattern ID from the draft
@@ -136,17 +161,33 @@ export const onCellClick =
       if (!patternId) return;
 
       // Create the clip
-      const clip = { ...mediaDraft.clip, patternId, trackId, tick };
-      dispatch(createClips([clip]));
+      dispatch(createClipFromMediaDraft({ patternId, trackId, tick }));
       return;
     }
 
     // Create a transposition if adding transpositions
-    if (isTimelineAddingTranspositions(timeline)) {
-      // Create the transposition
-      const transposition = { ...mediaDraft.transposition, trackId, tick };
-      dispatch(createTranspositions([transposition]));
+    const isTransposing = isTimelineAddingTranspositions(timeline);
+    if (isTransposing) {
+      dispatch(createTranspositionFromMediaDraft({ tick, trackId }));
       return;
+    }
+
+    // Set the fragment if portaling and there's no current fragment
+    const isPortaling = isTimelinePortalingMedia(timeline);
+    if (isPortaling && !hasKeys(mediaDraft.portal)) {
+      dispatch(updateMediaDraft({ portal: { tick, trackId } }));
+      return;
+    }
+
+    // Create a portal if portaling and there's a current fragment
+    if (isPortaling && hasKeys(mediaDraft.portal)) {
+      const portal = initializePortal({
+        ...mediaDraft.portal,
+        portaledTrackId: trackId,
+        portaledTick: tick,
+      });
+      dispatch(addPortals({ portals: [portal] }));
+      dispatch(togglePortalingMedia());
     }
 
     // Otherwise, seek the transport to the time
@@ -156,7 +197,7 @@ export const onCellClick =
     if (trackId) dispatch(setSelectedTrackId(trackId));
 
     // Deselect all media
-    dispatch(updateMediaSelection({ clipIds: [], transpositionIds: [] }));
+    dispatch(updateMediaSelection({ clipIds: [], poseIds: [] }));
   };
 
 /**
@@ -195,9 +236,8 @@ export const onClipClick =
     // Deselect the clip if it is selected
     const isClipSelected = mediaSelection.clipIds.includes(clip.id);
     if (isClipSelected) {
-      dispatch(
-        updateMediaSelection({ clipIds: without(selectedClipIds, clip.id) })
-      );
+      const newIds = without(selectedClipIds, clip.id);
+      dispatch(updateMediaSelection({ clipIds: newIds }));
       return;
     }
 
@@ -208,9 +248,8 @@ export const onClipClick =
     if (!holdingShift) {
       const holdingOption = isHoldingOption(nativeEvent);
       if (holdingOption) {
-        dispatch(
-          updateMediaSelection({ clipIds: union(selectedClipIds, [clip.id]) })
-        );
+        const newIds = union(selectedClipIds, [clip.id]);
+        dispatch(updateMediaSelection({ clipIds: newIds }));
       } else {
         dispatch(updateMediaSelection({ clipIds: [clip.id] }));
       }
@@ -218,7 +257,7 @@ export const onClipClick =
     }
 
     // Just select the clip if there are no other selected clips
-    if (!mediaSelection.clipIds) {
+    if (!selectedClipIds.length) {
       dispatch(updateMediaSelection({ clipIds: [clip.id] }));
       return;
     }
@@ -242,11 +281,19 @@ export const onClipClick =
 
     // Get all clips that are in the tick range
     const media = getMediaInRange(clips, clipDurations, [startTick, endTick]);
-    const mediaClips = getMediaClips(media);
+    const mediaClips = getClipsFromMedia(media);
     const mediaClipIds = mediaClips.map((clip) => clip.id);
 
     // Select the clips
     dispatch(updateMediaSelection({ clipIds: mediaClipIds }));
+  };
+
+/** Update the media draft and show the pattern editor when a clip is double clicked. */
+export const onClipDoubleClick =
+  (clip: Clip): Thunk =>
+  (dispatch) => {
+    dispatch(updateMediaDraft({ clip: { patternId: clip.patternId } }));
+    dispatch(showEditor("patterns"));
   };
 
 /**
@@ -256,7 +303,6 @@ export const onClipClick =
  * * If the user is holding Shift, a range of transpositions will be selected.
  * * Otherwise, the transposition will be selected.
  */
-
 export const onTranspositionClick =
   (
     e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>,
@@ -267,8 +313,8 @@ export const onTranspositionClick =
     const project = getProject();
     const timeline = _.selectTimeline(project);
     const cellWidth = _.selectCellWidth(project);
-    const selectedTranspositionIds = _.selectSelectedTranspositionIds(project);
-    const selectedTranspositions = _.selectSelectedTranspositions(project);
+    const selectedPoseIds = _.selectSelectedPoseIds(project);
+    const selectedTranspositions = _.selectSelectedPoses(project);
     const nativeEvent = e.nativeEvent as Event;
 
     // Slice the transposition if slicing
@@ -283,16 +329,20 @@ export const onTranspositionClick =
       return;
     }
 
+    // Update the transposition if transposing
+    if (isTimelineAddingTranspositions(timeline)) {
+      const draft = _.selectDraftedPose(project);
+      const newPose = { ...transposition, ...draft };
+      dispatch(updateTranspositions({ poses: [newPose] }));
+    }
+
     // Deselect the transposition if it is selected
     const isSelected = selectedTranspositions.some(
       (t) => t.id === transposition.id
     );
     if (isSelected) {
-      dispatch(
-        updateMediaSelection({
-          transpositionIds: without(selectedTranspositionIds, transposition.id),
-        })
-      );
+      const newIds = without(selectedPoseIds, transposition.id);
+      dispatch(updateMediaSelection({ poseIds: newIds }));
       return;
     }
 
@@ -301,24 +351,17 @@ export const onTranspositionClick =
     if (!holdingShift) {
       const holdingOption = isHoldingOption(nativeEvent);
       if (holdingOption) {
-        dispatch(
-          updateMediaSelection({
-            transpositionIds: union(selectedTranspositionIds, [
-              transposition.id,
-            ]),
-          })
-        );
+        const newIds = union(selectedPoseIds, [transposition.id]);
+        dispatch(updateMediaSelection({ poseIds: newIds }));
       } else {
-        dispatch(
-          updateMediaSelection({ transpositionIds: [transposition.id] })
-        );
+        dispatch(updateMediaSelection({ poseIds: [transposition.id] }));
       }
       return;
     }
 
     // Just select the transposition if there are no other selected transpositions
-    if (selectedTranspositions.length === 0) {
-      dispatch(updateMediaSelection({ transpositionIds: [transposition.id] }));
+    if (!selectedTranspositions.length) {
+      dispatch(updateMediaSelection({ poseIds: [transposition.id] }));
       return;
     }
 
@@ -337,232 +380,126 @@ export const onTranspositionClick =
       transposition.trackId
     );
     const poses = selectTranspositionsByTrackIds(project, trackIds);
-    const poseDurations = poses.map((pose) => pose.duration ?? Infinity);
+    const poseIds = poses.map((_) => _.id);
+    const poseDurations = selectTranspositionDurations(project, poseIds);
 
     // Get all transpositions that are in the tick range
     const media = getMediaInRange(poses, poseDurations, [startTick, endTick]);
-    const mediaPoses = getMediaTranspositions(media);
+    const mediaPoses = getTranspositionsFromMedia(media);
     const mediaPoseIds = mediaPoses.map((_) => _.id);
 
     // Select the transpositions
-    dispatch(updateMediaSelection({ transpositionIds: mediaPoseIds }));
+    dispatch(updateMediaSelection({ poseIds: mediaPoseIds }));
   };
 
-/** The handler for when a clip is dragged. */
-export const onClipDragEnd =
-  (item: any, monitor: any): Thunk =>
+/**
+ * The handler for when a portal is clicked.
+ * * If the user is holding Alt, the portal will be added to the selection.
+ * * If the user is holding Shift, a range of portals will be selected.
+ * * Otherwise, the portal will be selected.
+ * @param e The mouse event.
+ * @param portal The portal that was clicked.
+ */
+export const onPortalClick =
+  (e: MouseEvent<HTMLDivElement>, portal: Portal): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const orderedTrackIds = selectOrderedTrackIds(project);
-    const { subdivision } = _.selectTimeline(project);
-    const selectedClips = _.selectSelectedClips(project);
-    const selectedTranspositions = _.selectSelectedTranspositions(project);
+    const timeline = _.selectTimeline(project);
+    const { mediaSelection } = timeline;
+    const selectedPortalIds = _.selectSelectedPortalIds(project);
 
-    // Find the corresponding clip
-    const clip = item.clip;
-
-    // Compute the offset of the drag
-    const rowIndex = orderedTrackIds.indexOf(clip.trackId);
-    if (rowIndex === -1) return;
-    const rowOffset = item.hoveringRow - rowIndex;
-    const clipCol = getTickColumns(clip.tick, subdivision);
-    const colOffset = item.hoveringColumn - clipCol - 1;
-    const tickOffset = colOffset * getSubdivisionTicks(subdivision);
-
-    // Get the drop result
-    const dropResult = monitor.getDropResult();
-    const copying = dropResult?.dropEffect === "copy";
-    // Get the selected media
-    const targetedClips = clip
-      ? selectedClips.includes(clip)
-        ? selectedClips
-        : [clip]
-      : [];
-
-    // Compute the new array of clips
-    const newClips: Clip[] = [];
-    const newTranspositions: Transposition[] = [];
-
-    // Iterate over the selected clips
-    for (const clip of targetedClips) {
-      // Get the index of the new track
-      const trackIndex = orderedTrackIds.indexOf(clip?.trackId);
-      if (!clip || trackIndex === -1) return;
-
-      // Get the new track
-      const newIndex = trackIndex + rowOffset;
-      const newTrackId = orderedTrackIds[newIndex];
-      const newTrack = selectTrackById(project, newTrackId);
-      if (!newTrack?.id || newTrack.type !== "patternTrack") return;
-
-      // Compute the new clip
-      newClips.push({
-        ...clip,
-        trackId: newTrack.id,
-        tick: clip.tick + tickOffset,
-      });
-    }
-
-    // Iterate over the selected transpositions
-    for (const transposition of selectedTranspositions) {
-      if (!transposition) return;
-
-      // Get the index of the new track
-      const trackIndex = orderedTrackIds.indexOf(transposition.trackId);
-      if (trackIndex === -1) return;
-
-      // Get the new track
-      const newIndex = trackIndex + rowOffset;
-      const newTrackId = orderedTrackIds[newIndex];
-
-      // Compute the new transposition
-      newTranspositions.push({
-        ...transposition,
-        trackId: newTrackId,
-        tick: transposition.tick + tickOffset,
-      });
-    }
-
-    // Make sure the entire operation is valid
-    if (newClips.some(({ tick }) => tick < 0)) return;
-    if (newTranspositions.some(({ tick }) => tick < 0)) return;
-
-    const payload = { clips: newClips, transpositions: newTranspositions };
-
-    // If not copying, update the media
-    if (!copying) {
-      dispatch(updateMedia(payload));
+    // Deselect the portal if it is selected
+    const isSelected = mediaSelection.portalIds.includes(portal.id);
+    if (isSelected) {
+      const newIds = without(selectedPortalIds, portal.id);
+      dispatch(updateMediaSelection({ portalIds: newIds }));
       return;
     }
 
-    // Otherwise, create the new media
-    const mediaIds = dispatch(createMedia(payload));
+    const nativeEvent = e.nativeEvent as Event;
+    const holdingShift = isHoldingShift(nativeEvent);
 
-    dispatch(updateMediaSelection(mediaIds));
-  };
-
-/** The handler for when a transposition is dragged. */
-export const onTranspositionDragEnd =
-  (item: any, monitor: any): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const orderedTrackIds = selectOrderedTrackIds(project);
-    const { subdivision } = _.selectTimeline(project);
-    const selectedClips = _.selectSelectedClips(project);
-    const selectedTranspositions = _.selectSelectedTranspositions(project);
-
-    // Find the corresponding transposition
-    const transposition = item.transposition;
-
-    // Compute the offset of the drag
-    const rowIndex = orderedTrackIds.indexOf(transposition.trackId);
-    if (rowIndex === -1) return;
-    const rowOffset = item.hoveringRow - rowIndex;
-    const columns = getTickColumns(transposition.tick, subdivision);
-    const colOffset = item.hoveringColumn - columns - 1;
-    const tickOffset = colOffset * getSubdivisionTicks(subdivision);
-
-    // Get the drop result
-    const dropResult = monitor.getDropResult();
-    const copying = dropResult?.dropEffect === "copy";
-
-    // Compute the new array of clips
-    let newClips: Clip[] = [];
-    let newTranspositions: Transposition[] = [];
-
-    // Iterate over the selected clips
-    for (const clip of selectedClips) {
-      // Get the index of the new track
-      const trackIndex = orderedTrackIds.indexOf(clip?.trackId);
-      if (!clip || trackIndex === -1) return;
-
-      // Get the new track
-      const newIndex = trackIndex + rowOffset;
-      const newTrackId = orderedTrackIds[newIndex];
-      const newTrack = selectTrackById(project, newTrackId);
-      if (!newTrack?.id || newTrack.type !== "patternTrack") return;
-
-      // Compute the new clip
-      newClips.push({
-        ...clip,
-        trackId: newTrack.id,
-        tick: clip.tick + tickOffset,
-      });
-    }
-
-    // Iterate over the selected transpositions
-    const selectedItems = selectedTranspositions.includes(transposition)
-      ? selectedTranspositions
-      : [transposition];
-
-    for (const transposition of selectedItems) {
-      // Get the index of the new track
-      const trackIndex = orderedTrackIds.indexOf(transposition?.trackId);
-      if (!transposition || trackIndex === -1) return;
-
-      // Get the new track
-      const newIndex = trackIndex + rowOffset;
-      const trackId = orderedTrackIds[newIndex];
-      if (!trackId) return;
-
-      // Compute the new transposition
-      newTranspositions.push({
-        ...transposition,
-        trackId,
-        tick: transposition.tick + tickOffset,
-      });
-    }
-
-    // Make sure the entire operation is valid
-    if (newClips.some(({ tick }) => tick < 0)) return;
-    if (newTranspositions.some(({ tick }) => tick < 0)) return;
-
-    const payload = { clips: newClips, transpositions: newTranspositions };
-
-    // If not copying, update the media
-    if (!copying) {
-      dispatch(updateMedia(payload));
+    // Select the portal if the user is not holding shift
+    if (!holdingShift) {
+      const holdingOption = isHoldingOption(nativeEvent);
+      if (holdingOption) {
+        const newIds = union(selectedPortalIds, [portal.id]);
+        dispatch(updateMediaSelection({ portalIds: newIds }));
+      } else {
+        dispatch(updateMediaSelection({ portalIds: [portal.id] }));
+      }
       return;
     }
 
-    // Otherwise, create the new media
-    const mediaIds = dispatch(createMedia(payload));
-    dispatch(updateMediaSelection(mediaIds));
+    // Just select the portal if there are no other selected portals
+    if (!selectedPortalIds.length) {
+      dispatch(updateMediaSelection({ portalIds: [portal.id] }));
+      return;
+    }
+
+    // Select a range of portals if the user is holding shift
+    const selectedPortals = _.selectSelectedPortals(project);
+    const selectedMedia = union(selectedPortals, [portal]);
+
+    // Compute the start and end time of the selection
+    const startTick = getMediaStartTick(selectedMedia);
+    const endTick = getMediaEndTick(
+      selectedMedia,
+      selectedMedia.map((_) => 1)
+    );
+
+    // Get all portals that are in the track range
+    const orderedIds = selectOrderedTrackIds(project);
+    const trackIds = getMediaTrackIds(
+      selectedPortals,
+      orderedIds,
+      portal.trackId
+    );
+    const portals = selectPortalsByTrackIds(project, trackIds);
+    const durations = portals.map((_) => 1);
+
+    // Get all portals that are in the tick range
+    const media = getMediaInRange(portals, durations, [startTick, endTick]);
+    const mediaPortals = getClipsFromMedia(media);
+    const mediaPortalIds = mediaPortals.map((portal) => portal.id);
+
+    // Select the clips
+    dispatch(updateMediaSelection({ portalIds: mediaPortalIds }));
   };
 
 /** Add a clip to the currently selected track using the media draft. */
-export const addClipToTimeline = (): Thunk => (dispatch, getProject) => {
-  const project = getProject();
+export const createClipFromMediaDraft =
+  (partial?: Partial<ClipNoId>): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const selectedTrackId = _.selectSelectedTrackId(project);
 
-  // Get the selected track ID
-  const selectedTrackId = _.selectSelectedTrackId(project);
-  if (!selectedTrackId) return;
+    // Get the drafted clip
+    const draft = { ..._.selectDraftedClip(project), ...partial };
+    const clip = {
+      ...draft,
+      trackId: isUndefined(draft.trackId) ? selectedTrackId : draft.trackId,
+      tick: isUndefined(draft.tick) ? Transport.ticks : draft.tick,
+    };
 
-  // Get the drafted clip
-  const draftedClip = _.selectDraftedClip(project);
-  const clip = {
-    ...draftedClip,
-    tick: Transport.ticks,
+    // Create the clip
+    dispatch(createClips([clip]));
   };
 
-  // Create the clip
-  dispatch(createClips([clip]));
-};
-
 /** Add a transposition to the currently selected track using the media draft. */
-export const addTranspositionToTimeline =
-  (): Thunk => (dispatch, getProject) => {
+export const createTranspositionFromMediaDraft =
+  (partial?: Partial<TranspositionNoId>): Thunk =>
+  (dispatch, getProject) => {
     const project = getProject();
-
-    // Get the selected track ID
     const selectedTrackId = _.selectSelectedTrackId(project);
-    if (!selectedTrackId) return;
 
     // Get the drafted transposition
-    const draftedTransposition = _.selectDraftedTransposition(project);
+    const draft = { ..._.selectDraftedPose(project), ...partial };
     const transposition = {
-      ...draftedTransposition,
-      tick: Transport.ticks,
+      ...draft,
+      tick: isUndefined(draft.tick) ? Transport.ticks : draft.tick,
+      trackId: isUndefined(draft.trackId) ? selectedTrackId : draft.trackId,
+      duration: isUndefined(draft.duration) ? Infinity : draft.duration,
     };
 
     // Create the transposition

@@ -9,10 +9,12 @@ import {
   clearProject,
 } from "redux/thunks";
 import { isEditorVisible } from "types/Editor";
+import { useNavigate } from "react-router-dom";
 
 /** Use global hotkeys for the project */
 export function useGlobalHotkeys() {
   const dispatch = useProjectDispatch();
+  const navigate = useNavigate();
   const editor = useProjectSelector(selectEditor);
   const isVisible = isEditorVisible(editor);
 
@@ -25,6 +27,9 @@ export function useGlobalHotkeys() {
   // Meta + Alt + N = New Project
   useOverridingHotkeys("meta+alt+n", () => dispatch(clearProject()));
 
+  // Meta + P = View Projects
+  useOverridingHotkeys("meta+p", () => navigate("/projects"));
+
   // Escape = Hide Editor
   useOverridingHotkeys(
     "escape",
@@ -32,7 +37,9 @@ export function useGlobalHotkeys() {
       if (isVisible) {
         dispatch(hideEditor());
       } else {
-        dispatch(updateMediaSelection({ clipIds: [], transpositionIds: [] }));
+        dispatch(
+          updateMediaSelection({ clipIds: [], poseIds: [], portalIds: [] })
+        );
       }
     },
     [isVisible]

@@ -10,6 +10,7 @@ import { TrackId } from "types/Track";
 import { ScaleTrackMap } from "types/ScaleTrack";
 import { getKeys } from "utils/objects";
 import { ScaleVector } from "types/Scale";
+import { isNumber } from "lodash";
 
 // ------------------------------------------------------------
 // Transposition Serializers
@@ -17,7 +18,8 @@ import { ScaleVector } from "types/Scale";
 
 /** Get a `Transposition` as a string. */
 export const getTranspositionAsString = (transposition: Transposition) => {
-  return JSON.stringify(transposition);
+  const { id, tick, trackId, vector } = transposition;
+  return `${id},${tick},${trackId},${getTranspositionVectorAsString(vector)}`;
 };
 
 /** Get a `TranspositionUpdate` as a string. */
@@ -130,7 +132,7 @@ export const getCurrentTransposition = (
   // Get the matches
   const matches = transpositions.filter((t) => {
     const startsBefore = t.tick <= tick;
-    const endsAfter = !!t.duration ? t.tick + t.duration > tick : true;
+    const endsAfter = isNumber(t.duration) ? t.tick + t.duration > tick : true;
     return startsBefore && endsAfter;
   });
 

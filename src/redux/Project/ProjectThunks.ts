@@ -112,12 +112,12 @@ export const loadProject =
   async (dispatch) => {
     try {
       const project = await getProjectFromDB(id);
+      if (!isProject(project)) throw new Error("Invalid project");
       await setCurrentProjectId(id);
       dispatch({ type: "setProject", payload: project });
+      callback?.();
     } catch (e) {
       console.error(e);
-    } finally {
-      callback?.();
     }
   };
 
@@ -135,7 +135,7 @@ export const loadProjectByFile =
         const project = JSON.parse(projectString);
 
         if (!isProject(project)) {
-          throw new Error("Invalid project file.");
+          throw new Error("Invalid project.");
         }
 
         // Upload or save the project depending on whether it already exists

@@ -38,11 +38,7 @@ import { convertTicksToSeconds } from "types/Transport";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { updateMediaDraft } from "redux/Timeline";
 import { DemoXML } from "assets/demoXML";
-import {
-  ScaleVector,
-  isNestedNote,
-  resolveScaleChainToMidi,
-} from "types/Scale";
+import { ScaleVector, resolveScaleChainToMidi } from "types/Scale";
 import { getScaleKey } from "utils/key";
 import { MusicXML } from "lib/musicxml";
 import { Seconds, XML } from "types/units";
@@ -55,8 +51,7 @@ import {
 } from "utils/durations";
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { downloadBlob } from "utils/html";
-import { reverse } from "lodash";
-import { getDegreeOfNoteInTrack } from "redux/thunks";
+import { getDegreeOfNoteInTrack, setSelectedPattern } from "redux/thunks";
 
 /** Creates a pattern and adds it to the slice. */
 export const createPattern =
@@ -64,6 +59,7 @@ export const createPattern =
   (dispatch) => {
     const newPattern = initializePattern(pattern);
     dispatch(addPattern(newPattern));
+    dispatch(setSelectedPattern(newPattern.id));
     return newPattern.id;
   };
 
@@ -76,6 +72,7 @@ export const copyPattern =
       name: `${pattern.name} Copy`,
     });
     dispatch(addPattern(newPattern));
+    dispatch(setSelectedPattern(newPattern.id));
     return newPattern.id;
   };
 
@@ -356,7 +353,7 @@ export const exportPatternToXML =
       const ticks = getPatternBlockDuration(block);
       const type = getStraightDuration(getTickDuration(ticks));
       const firstNote = isPatternRest(block) ? undefined : block?.[0];
-      const isTriplet = isTripletNote(firstNote);
+      const isTriplet = isTripletNote(firstNote) && type !== "quarter";
 
       // Create the XML note
       const xmlNote = MusicXML.createBlock(block, {

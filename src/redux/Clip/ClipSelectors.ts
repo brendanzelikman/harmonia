@@ -3,7 +3,7 @@ import { getValuesByKeys, getValueByKey } from "utils/objects";
 import { getClipDuration, isClip, ClipId } from "types/Clip";
 import { TrackId } from "types/Track";
 import { createDeepEqualSelector } from "redux/util";
-import { doesMediaOverlapRange } from "types/Media";
+import { doesMediaElementOverlapRange } from "types/Media";
 import { selectPatternMap } from "redux/Pattern/PatternSelectors";
 import { selectTranspositionMap } from "redux/Transposition/TranspositionSelectors";
 import { convertTicksToSeconds } from "types/Transport";
@@ -106,7 +106,7 @@ export const selectClipTranspositions = (project: Project, id?: ClipId) => {
   const transpositions = getValuesByKeys(transpositionMap, ids);
   const clipDuration = selectClipDuration(project, id);
   return transpositions.filter((transposition) => {
-    return doesMediaOverlapRange(clip, clipDuration, [
+    return doesMediaElementOverlapRange(clip, clipDuration, [
       transposition.tick,
       transposition.tick + (transposition.duration ?? Infinity),
     ]);

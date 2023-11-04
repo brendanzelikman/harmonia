@@ -15,6 +15,12 @@ test("isPatternTrack should only return true for valid pattern tracks", () => {
   expect(_.isPatternTrack(undefined)).toBe(false);
   expect(_.isPatternTrack({})).toBe(false);
   expect(_.isPatternTrack(mockScaleTrack)).toBe(false);
+});
+
+test("isPatternTrack should return false for tracks with the wrong type", () => {
+  expect(_.isPatternTrack({ ..._.mockPatternTrack, type: undefined })).toBe(
+    false
+  );
   expect(_.isPatternTrack({ ..._.mockPatternTrack, type: "scaleTrack" })).toBe(
     false
   );

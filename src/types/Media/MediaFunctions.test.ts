@@ -7,15 +7,17 @@ import { createMap } from "utils/objects";
 import { initializeScaleTrack } from "types/ScaleTrack";
 
 test("getMediaClips should only include clips", () => {
-  expect(_.getMediaClips([mockClip, mockPose])).toEqual([mockClip]);
-  expect(_.getMediaClips([mockClip])).toEqual([mockClip]);
-  expect(_.getMediaClips([mockPose])).toEqual([]);
+  expect(_.getClipsFromMedia([mockClip, mockPose])).toEqual([mockClip]);
+  expect(_.getClipsFromMedia([mockClip])).toEqual([mockClip]);
+  expect(_.getClipsFromMedia([mockPose])).toEqual([]);
 });
 
 test("getMediaTranspositions should only include transpositions", () => {
-  expect(_.getMediaTranspositions([mockClip, mockPose])).toEqual([mockPose]);
-  expect(_.getMediaTranspositions([mockClip])).toEqual([]);
-  expect(_.getMediaTranspositions([mockPose])).toEqual([mockPose]);
+  expect(_.getTranspositionsFromMedia([mockClip, mockPose])).toEqual([
+    mockPose,
+  ]);
+  expect(_.getTranspositionsFromMedia([mockClip])).toEqual([]);
+  expect(_.getTranspositionsFromMedia([mockPose])).toEqual([mockPose]);
 });
 
 test("sortMedia should correctly sort the media by tick", () => {
@@ -77,7 +79,7 @@ test("getMediaEndTick should return the correct end tick without durations", () 
 test("getMediaEndTick should return the correct end tick with durations", () => {
   const clip = initializeClip({ tick: 1 });
   const pose = initializePose({ tick: 2 });
-  expect(_.getMediaEndTick([clip, pose], [2, 3])).toEqual(5);
+  expect(_.getMediaEndTick([clip, pose], [2, 3])).toEqual(6);
 });
 
 test("getMediaDuration should return the correct duration without durations", () => {
@@ -89,7 +91,7 @@ test("getMediaDuration should return the correct duration without durations", ()
 test("getMediaDuration should return the correct duration with durations", () => {
   const clip = initializeClip({ tick: 1 });
   const pose = initializePose({ tick: 5 });
-  expect(_.getMediaDuration([clip, pose], [3, 4])).toEqual(8);
+  expect(_.getMediaDuration([clip, pose], [3, 4])).toEqual(9);
 });
 
 test("getMediaStartIndex should return the correct start index if found", () => {
@@ -173,15 +175,15 @@ test("getDuplicatedMedia should correctly duplicate each item after its duration
   const media = [clip, pose];
   const newMedia = _.getDuplicatedMedia(media, [2, 4]);
   expect(media[0].tick).toEqual(1);
-  expect(newMedia[0].tick).toEqual(6);
+  expect(newMedia[0].tick).toEqual(7);
   expect(media[1].tick).toEqual(2);
-  expect(newMedia[1].tick).toEqual(7);
+  expect(newMedia[1].tick).toEqual(8);
   expect(_.getMediaDuration(media)).toEqual(_.getMediaDuration(newMedia));
 });
 
 test("doesMediaOverlap should only return true when the media overlaps the range", () => {
   const clip = initializeClip({ tick: 1 });
   const pose = initializePose({ tick: 2 });
-  expect(_.doesMediaOverlapRange(clip, 5, [4, 5])).toBe(true);
-  expect(_.doesMediaOverlapRange(pose, 1, [4, 5])).toBe(false);
+  expect(_.doesMediaElementOverlapRange(clip, 5, [4, 5])).toBe(true);
+  expect(_.doesMediaElementOverlapRange(pose, 1, [4, 5])).toBe(false);
 });

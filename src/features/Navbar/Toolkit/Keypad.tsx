@@ -11,7 +11,7 @@ import {
   useProjectDeepSelector,
 } from "redux/hooks";
 import {
-  selectSelectedTranspositions,
+  selectSelectedPoses,
   selectLiveTranspositionSettings,
   selectSelectedTrack,
   selectTrackScaleTrack,
@@ -33,7 +33,7 @@ export const ToolkitKeypad = () => {
   );
 
   // Get the transpositions
-  const transpositions = useProjectDeepSelector(selectSelectedTranspositions);
+  const transpositions = useProjectDeepSelector(selectSelectedPoses);
   const areTranspositionsSelected = !!transpositions.length;
 
   // Get the transposition mode

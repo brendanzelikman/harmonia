@@ -1,33 +1,33 @@
 import { Transition } from "@headlessui/react";
 
-interface TransitionProps {
+interface TransitionProps extends React.HTMLProps<HTMLDivElement> {
   show: boolean;
   children?: React.ReactNode;
   duration?: number;
   scale?: number;
   className?: string;
   style?: React.CSSProperties;
-  as?: React.ElementType;
+  asType?: React.ElementType;
 }
 
-export function EasyTransition(props: TransitionProps) {
-  const duration = `duration-${props.duration || 300}`;
-  const scale = `scale-${props.scale || 100}`;
+export const EasyTransition: React.FC<TransitionProps> = (props) => {
+  const { duration, scale, asType, ...restProps } = props;
+  const durationClass = `duration-${duration ?? 300}`;
+  const scaleClass = `scale-${scale ?? 100}`;
 
   return (
     <Transition
-      show={!!props.show}
+      {...restProps}
+      as="div"
       appear
-      enter={`transition-all ease-in-out ${duration}`}
-      enterFrom={`opacity-0 ${scale}`}
+      enter={`transition-all ease-in-out ${durationClass}`}
+      enterFrom={`opacity-0 ${scaleClass}`}
       enterTo="opacity-100 scale-100"
-      leave={`transition-all ease-in-out ${duration}`}
+      leave={`transition-all ease-in-out ${durationClass}`}
       leaveFrom="opacity-100 scale-100"
-      leaveTo={`opacity-0 ${scale}`}
-      className={props.className}
-      style={props.style}
+      leaveTo={`opacity-0 ${scaleClass}`}
     >
       {props.children}
     </Transition>
   );
-}
+};

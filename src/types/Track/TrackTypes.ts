@@ -1,4 +1,4 @@
-import { ID } from "types/units";
+import { ID, Tick } from "types/units";
 import { nanoid } from "@reduxjs/toolkit";
 import {
   PatternTrack,
@@ -18,6 +18,7 @@ export type TrackNoId = Omit<Track, "id">;
 export type EmptyTrackType = "emptyTrack";
 export type TrackType = ScaleTrackType | PatternTrackType | EmptyTrackType;
 export type TrackMap = Record<TrackId, Track>;
+export type RemoveTrackPayload = { id: TrackId; originalId: TrackId };
 
 // ------------------------------------------------------------
 // Track Definitions
@@ -31,6 +32,11 @@ export interface TrackInterface {
   type: TrackType;
   collapsed?: boolean;
 }
+
+/** A tracked object is either a track or an object placed at a tick in a track. */
+export type Tracked<T> = T extends Track
+  ? T
+  : T & { id: ID; tick: Tick; trackId: TrackId };
 
 // ------------------------------------------------------------
 // Track Initialization

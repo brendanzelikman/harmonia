@@ -5,6 +5,7 @@ import { ToolkitKeypad } from "./Keypad";
 import { ToolkitPatternButton } from "./PatternButton";
 import { ToolkitSliceButton } from "./SliceButton";
 import { ToolkitMergeButton } from "./MergeButton";
+import { ToolkitPortalButton } from "./PortalButton";
 
 export const ControlButton = (props: {
   className?: string;
@@ -30,6 +31,7 @@ export function NavbarToolkit() {
         <ToolkitClipButton />
         <ToolkitTransposeButton />
         <ToolkitSliceButton />
+        <ToolkitPortalButton />
         <ToolkitMergeButton />
       </div>
       <div className="ml-3">

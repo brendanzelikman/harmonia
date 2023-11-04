@@ -5,6 +5,7 @@ export * as Instruments from "./Instrument/InstrumentSlice";
 export * as Metadata from "./Metadata/MetadataSlice";
 export * as Patterns from "./Pattern/PatternSlice";
 export * as PatternTracks from "./PatternTrack/PatternTrackSlice";
+export * as Portals from "./Portal/PortalSlice";
 export * as Scales from "./Scale/ScaleSlice";
 export * as ScaleTracks from "./ScaleTrack/ScaleTrackSlice";
 export * as Timeline from "./Timeline/TimelineSlice";

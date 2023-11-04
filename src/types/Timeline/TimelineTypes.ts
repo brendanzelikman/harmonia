@@ -1,11 +1,10 @@
-import { Track, TrackId } from "types/Track";
+import { TrackId } from "types/Track";
 import { Subdivision } from "utils/durations";
 import {
   DEFAULT_MEDIA_CLIPBOARD,
   DEFAULT_MEDIA_DRAFT,
   DEFAULT_MEDIA_DRAG_STATE,
   DEFAULT_MEDIA_SELECTION,
-  Media,
   MediaClipboard,
   MediaDraft,
   MediaDragState,
@@ -18,12 +17,6 @@ import {
 import { isBoolean, isPlainObject, isString } from "lodash";
 
 // ------------------------------------------------------------
-// Timeline Generics
-// ------------------------------------------------------------
-export type TimelineObject = Track | Media;
-export type TranspositionMode = "numerical" | "alphabetical";
-
-// ------------------------------------------------------------
 // Timeline Definitions
 // ------------------------------------------------------------
 
@@ -32,6 +25,7 @@ export const TIMELINE_STATES = [
   "addingClips",
   "addingTranspositions",
   "slicingMedia",
+  "portalingMedia",
   "mergingMedia",
   "idle",
 ] as const;
@@ -45,6 +39,7 @@ export type LiveTranspositionSettings = {
   mode: TranspositionMode;
   enabled: boolean;
 };
+export type TranspositionMode = "numerical" | "alphabetical";
 
 /** The `Timeline` contains information about the data grid and manages all tracked objects. */
 export interface Timeline {
@@ -73,7 +68,6 @@ export const defaultTimeline: Timeline = {
   state: "idle",
   subdivision: "16n",
   cell: DEFAULT_CELL,
-  selectedTrackId: undefined,
   mediaSelection: DEFAULT_MEDIA_SELECTION,
   mediaDraft: DEFAULT_MEDIA_DRAFT,
   mediaClipboard: DEFAULT_MEDIA_CLIPBOARD,

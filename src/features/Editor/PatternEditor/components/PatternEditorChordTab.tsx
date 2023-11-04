@@ -1,6 +1,6 @@
 import { Editor } from "features/Editor/components";
-import { useNumericInputs } from "hooks";
-import { useState, useEffect } from "react";
+import { NumericInputOptions, useNumericInputs } from "hooks";
+import { useEffect } from "react";
 import { updatePatternBlock } from "redux/Pattern";
 import {
   selectTrackScaleMap,
@@ -26,6 +26,8 @@ import {
 } from "redux/hooks";
 import { PatternEditorProps } from "../PatternEditor";
 import { usePatternEditorChordIndex } from "../hooks/usePatternEditorChordIndex";
+import { isUndefined } from "lodash";
+import { isFiniteNumber } from "types/util";
 
 export function PatternEditorChordTab(props: PatternEditorProps) {
   const { dispatch, pattern, cursor, block, chord, Tooltip } = props;
@@ -83,8 +85,9 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
       initialValue: 100,
       min: 0,
       max: 127,
-      callback: (velocity) => {
+      callback: (value) => {
         if (!id || !block || isPatternRest(block)) return;
+        const velocity = isUndefined(value) ? 0 : value;
         const newChord = block.map((note, i) =>
           i === chordIndex ? { ...note, velocity } : note
         );
@@ -200,10 +203,13 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
   };
 
   /** All note scales are available, as well as the chromatic scale. */
-  const offsetOptions = noteScaleIds.map((scaleId) => ({
+  const offsetOptions: NumericInputOptions[] = noteScaleIds.map((scaleId) => ({
     id: scaleId,
-    initialValue: nestedNote?.offset?.[scaleId] ?? 0,
-    callback: (offset: number) => onOffsetChange(scaleId, offset),
+    initialValue: nestedNote?.offset?.[scaleId],
+    callback: (value) => {
+      if (isUndefined(value)) onOffsetChange(scaleId, 0);
+      else onOffsetChange(scaleId, value);
+    },
   }));
 
   /** Each note offset has a corresponding input */
@@ -214,12 +220,11 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
         // Get the track label and current note input value
         const track = noteTracks.find((t) => t.scaleId === id);
         const trackLabel = track ? trackLabelMap[track.id] : undefined;
-        const value = NoteOffsets.getValue(id);
         return (
           <Editor.NumericField
             key={id}
             className="w-[4.5rem]"
-            value={value}
+            value={NoteOffsets.getValue(id)}
             onChange={NoteOffsets.onChange(id)}
             leadingText={id === "chromatic" ? "N = " : `T(${trackLabel}) = `}
             min={-100}
@@ -240,8 +245,13 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
     if (!nestedNote) return;
     noteScaleIds.forEach((id) => {
       const offsets = nestedNote.offset || {};
-      const offset = getValueByKey(offsets, id) ?? 0;
-      NoteOffsets.setValue(id, offset.toString());
+      const offset = getValueByKey(offsets, id);
+      const currentValue = NoteOffsets.getValue(id);
+      if (!isUndefined(offset) && currentValue !== "-") {
+        NoteOffsets.setValue(id, offset.toString());
+      } else if (currentValue !== "-") {
+        NoteOffsets.setValue(id, "0");
+      }
     });
   }, [chordIndex, noteScaleIds, patternNote, nestedNote]);
 

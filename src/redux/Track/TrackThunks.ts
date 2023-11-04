@@ -25,12 +25,14 @@ import {
 } from "redux/Transposition";
 import {
   createScaleTrack,
+  moveScaleTrack,
   removeScaleTrack,
   selectScaleTrackByScaleId,
   updateScaleTrack,
 } from "redux/ScaleTrack";
 import {
   createPatternTrack,
+  movePatternTrack,
   removePatternTrack,
   selectPatternTrackById,
   updatePatternTrack,
@@ -49,6 +51,7 @@ import { selectSelectedTrackId, setSelectedTrackId } from "redux/Timeline";
 import { createMedia } from "redux/Media";
 import { PatternNote } from "types/Pattern";
 import { NestedNote, isNestedNote } from "types/Scale";
+import { clearPortalsByTrackId, removePortalsByTrackId } from "redux/Portal";
 
 /** Add and create a new track.. */
 export const createTrack =
@@ -74,6 +77,17 @@ export const updateTracks =
     });
   };
 
+/** Move a track from the drag ID to the hover ID. */
+export const moveTrack =
+  (track: Track, dragId: TrackId, hoverId: TrackId): Thunk =>
+  (dispatch) => {
+    if (track.type === "scaleTrack") {
+      dispatch(moveScaleTrack({ dragId, hoverId }));
+    } else {
+      dispatch(movePatternTrack({ dragId, hoverId }));
+    }
+  };
+
 /** Clear a track of all media. */
 export const clearTrack =
   (trackId?: TrackId): Thunk =>
@@ -81,46 +95,51 @@ export const clearTrack =
     if (!trackId) return;
     dispatch(clearClipsByTrackId(trackId));
     dispatch(clearTranspositionsByTrackId(trackId));
+    dispatch(clearPortalsByTrackId(trackId));
     dispatch(Hierarchy.clearTrackInHierarchy(trackId));
   };
 
 /** Delete a track. */
 export const deleteTrack =
-  (trackId?: TrackId): Thunk =>
+  (id: TrackId, originalId: TrackId = id): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const track = selectTrackById(project, trackId);
+    const track = selectTrackById(project, id);
     if (!track) return;
 
-    // Remove the track
-    if (isScaleTrack(track)) {
-      dispatch(removeScaleTrack(track.id));
-      dispatch(Hierarchy.removeScaleTrackFromHierarchy(track.id));
-    } else {
-      dispatch(removePatternTrack(track.id));
-      dispatch(
-        removeInstrument({
-          trackId: track.id,
-          id: track.instrumentId,
-        })
-      );
-      dispatch(Hierarchy.removePatternTrackFromHierarchy(track.id));
-    }
-
-    // Remove all media
-    dispatch(removeClipsByTrackId(track.id));
-    dispatch(removeTranspositionsByTrackId(track.id));
+    // Remove all media elements
+    dispatch(removeClipsByTrackId({ id, originalId }));
+    dispatch(removeTranspositionsByTrackId({ id, originalId }));
+    dispatch(removePortalsByTrackId({ id, originalId }));
 
     // Remove all child tracks
     const trackNodeMap = selectTrackNodeMap(project);
-    const children = trackNodeMap[track.id]?.trackIds ?? [];
+    const children = trackNodeMap[id]?.trackIds ?? [];
     for (const id of children) {
-      dispatch(deleteTrack(id));
+      dispatch(deleteTrack(id, originalId));
+    }
+
+    // Remove the track if it is a scale track
+    if (track.type === "scaleTrack") {
+      dispatch(removeScaleTrack({ id, originalId }));
+      dispatch(Hierarchy.removeScaleTrackFromHierarchy({ id, originalId }));
+    }
+    // Remove the track and instrument if it is a pattern track
+    if (track.type === "patternTrack") {
+      dispatch(removePatternTrack({ id, originalId }));
+      dispatch(
+        removeInstrument({
+          trackId: id,
+          originalTrackId: originalId,
+          id: track.instrumentId,
+        })
+      );
+      dispatch(Hierarchy.removePatternTrackFromHierarchy({ id, originalId }));
     }
 
     // Clear the editor/selection if showing the deleted track
     const editorTrackId = selectSelectedTrackId(project);
-    if (editorTrackId === trackId) {
+    if (editorTrackId === id) {
       dispatch(setSelectedTrackId(undefined));
       dispatch(hideEditor());
     }

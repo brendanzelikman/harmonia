@@ -35,16 +35,6 @@ test("getClipDuration should return the correct duration for a clip without it s
   expect(ticks).toBe(getPatternStreamDuration(defaultPattern.stream));
 });
 
-test("getClipNotes should return the correct slice of notes", () => {
-  const originalStream = createPatternStreamFromMidiValues([60, 61, 62, 63]);
-  const pattern = initializePattern({ stream: originalStream });
-  const clip = { ...mockClip, patternId: pattern.id, offset: 1, duration: 2 };
-  const stream = resolvePatternStreamToMidi(pattern.stream, []);
-  const notes = _.getClipNotes(clip, stream);
-  const values = getMidiStreamValues(notes);
-  expect(values).toEqual([61, 62]);
-});
-
 test("getClipStream should work with just a pattern of MIDI notes", () => {
   const originalStream = createPatternStreamFromMidiValues([60, 61, 62, 63]);
   const pattern = initializePattern({ stream: originalStream });

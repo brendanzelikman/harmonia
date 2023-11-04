@@ -5,13 +5,6 @@ import {
 } from "./TranspositionTypes";
 import * as _ from "./TranspositionFunctions";
 
-test("getTranspositionTag", () => {
-  const tag = _.getTranspositionAsString(mockTransposition);
-  expect(tag).toContain(mockTransposition.id);
-  expect(tag).toContain(mockTransposition.tick);
-  expect(tag).toContain(mockTransposition.trackId);
-});
-
 test("getChromaticOffset should return the correct chromatic value if it exists", () => {
   const chromaticOffset = _.getChromaticOffset(mockTransposition.vector);
   expect(chromaticOffset).toEqual(mockTransposition.vector.chromatic);

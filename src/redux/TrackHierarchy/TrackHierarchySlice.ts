@@ -6,7 +6,7 @@ import {
   CreateMediaPayload,
   UpdateMediaPayload,
 } from "types/Media";
-import { TrackId, TrackInterface } from "types/Track";
+import { RemoveTrackPayload, TrackId, TrackInterface } from "types/Track";
 import { isTransposition } from "types/Transposition";
 
 // ------------------------------------------------------------
@@ -17,7 +17,7 @@ import { isTransposition } from "types/Transposition";
 export type AddTrackToHierarchyPayload = TrackInterface;
 
 /** A track can be removed by ID. */
-export type RemoveTrackFromHierarchyPayload = TrackId;
+export type RemoveTrackFromHierarchyPayload = RemoveTrackPayload;
 
 /** A track can be moved to a new index in its parent track. */
 export type MoveTrackInHierarchyPayload = { id: TrackId; index: number };
@@ -42,7 +42,7 @@ export type ClearTrackInHierarchyPayload = TrackId;
 // Media Payload Types
 // ------------------------------------------------------------
 
-/** A clip can be sliced into two new clips. */
+/** A media element can be sliced into two new elements. */
 export type SliceMediaInHierarchyPayload = {
   oldId: string;
   newIds: string[];
@@ -114,7 +114,7 @@ export const trackHierarchySlice = createSlice({
       state,
       action: PayloadAction<RemoveTrackFromHierarchyPayload>
     ) => {
-      const id = action.payload;
+      const { id } = action.payload;
       if (!id) return;
       const scaleTrack = state.byId[id];
       if (!scaleTrack) return;
@@ -174,13 +174,14 @@ export const trackHierarchySlice = createSlice({
       state,
       action: PayloadAction<RemoveTrackFromHierarchyPayload>
     ) => {
-      const id = action.payload;
+      const { id } = action.payload;
       if (!id) return;
       const patternTrack = state.byId[id];
       if (!patternTrack) return;
       // Remove the pattern track from the hierarchy
       delete state.byId[id];
       state.allIds = without(state.allIds, id);
+
       // Find and remove the pattern track from its parent
       const parentId = state.allIds.find((someId) =>
         state.byId[someId].trackIds.includes(id)
@@ -294,11 +295,11 @@ export const trackHierarchySlice = createSlice({
       state,
       action: PayloadAction<AddMediaToHierarchyPayload>
     ) => {
-      const { clips, transpositions } = action.payload;
+      const { clips, poses } = action.payload;
 
       // Add the clips to their respective tracks
       const clipsByTrack = getObjectsByTrack(clips);
-      const transpositionsByTrack = getObjectsByTrack(transpositions);
+      const transpositionsByTrack = getObjectsByTrack(poses);
 
       // Add the clips to their respective tracks
       Object.keys(clipsByTrack).forEach((trackId) => {
@@ -314,7 +315,7 @@ export const trackHierarchySlice = createSlice({
         const track = state.byId[trackId];
         if (!track) return;
         const transpositionIds = transpositionsByTrack[trackId];
-        if (!transpositions?.length) return;
+        if (!poses?.length) return;
         track.transpositionIds = union(
           track.transpositionIds,
           transpositionIds
@@ -326,9 +327,9 @@ export const trackHierarchySlice = createSlice({
       state,
       action: PayloadAction<UpdateMediaInHierarchyPayload>
     ) => {
-      const { clips, transpositions } = action.payload;
+      const { clips, poses } = action.payload;
 
-      const media = [...(clips || []), ...(transpositions || [])];
+      const media = [...(clips || []), ...(poses || [])];
       // Move media if their track IDs have changed
       for (const item of media) {
         const { id, trackId } = item;
@@ -356,16 +357,13 @@ export const trackHierarchySlice = createSlice({
       state,
       action: PayloadAction<RemoveMediaFromHierarchyPayload>
     ) => {
-      const { clipIds, transpositionIds } = action.payload;
+      const { clipIds, poseIds } = action.payload;
       // Remove the media from every track
       state.allIds.forEach((trackId) => {
         const track = state.byId[trackId];
         if (!track) return;
         track.clipIds = without(track.clipIds, ...clipIds);
-        track.transpositionIds = without(
-          track.transpositionIds,
-          ...transpositionIds
-        );
+        track.transpositionIds = without(track.transpositionIds, ...poseIds);
       });
     },
     /** Slice a media clip into two new clips. */

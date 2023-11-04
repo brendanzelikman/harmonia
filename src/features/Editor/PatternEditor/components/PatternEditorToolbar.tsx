@@ -114,6 +114,7 @@ export function PatternEditorToolbar(props: PatternEditorTabProps) {
         const color = onTab ? "text-green-400" : "text-slate-500";
         return (
           <Button
+            key={tab}
             label={`Select ${capitalize(tab)} Tab`}
             className={`${color} mx-1 capitalize cursor-pointer select-none`}
             onClick={() => props.setTab(tab)}

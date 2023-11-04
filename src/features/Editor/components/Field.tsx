@@ -22,7 +22,7 @@ export const EditorNumericField: React.FC<EditorNumericFieldProps> = (
           "text-white": !isZero,
         }
       )}
-      value={`${leadingText}${props.value ?? 0}`}
+      value={`${leadingText}${props.value}`}
       type="string"
       onKeyDown={blurOnEnter}
     />

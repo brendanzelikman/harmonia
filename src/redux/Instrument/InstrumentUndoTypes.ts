@@ -16,8 +16,7 @@ export const INSTRUMENT_UNDO_TYPES: ActionGroup = {
   "instruments/removeInstrument": (
     action: PayloadAction<_.RemoveInstrumentPayload>
   ) => {
-    const id = action.payload.trackId;
-    return `REMOVE_TRACK:${id}`;
+    return `REMOVE_TRACK:${action.payload.originalTrackId}`;
   },
   "instruments/addInstrumentEffect": (
     action: PayloadAction<_.AddInstrumentEffectPayload>

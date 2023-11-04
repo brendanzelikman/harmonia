@@ -30,7 +30,6 @@ export default function useInstrumentEditorHotkeys(
     "c",
     () => {
       if (!instrument) return;
-      console.log(instrument.id);
       dispatch(addInstrumentEffect({ id: instrument.id, key: "chorus" }));
     },
     [instrument]

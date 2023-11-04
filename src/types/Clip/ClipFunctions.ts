@@ -12,19 +12,18 @@ import {
   getPatternBlockDuration,
   resolvePatternStreamToMidi,
   PatternMidiStream,
-  isPatternMidiStream,
   getTransposedPatternStream,
   isPatternRest,
 } from "types/Pattern";
-import { Arrangement } from "types/Arrangement";
+import { TrackArrangement } from "types/Arrangement";
 import { ScaleMap } from "types/Scale";
 import { getTrackScaleChain } from "types/Track";
-import { getTrackTranspositionIds } from "types/TrackHierarchy";
 import { getValuesByKeys } from "utils/objects";
 import {
   getCurrentTransposition,
   getTranspositionScaleVector,
 } from "types/Transposition";
+import { parsePortalChunkId } from "types/Portal";
 
 // ------------------------------------------------------------
 // Clip Serializers
@@ -32,7 +31,8 @@ import {
 
 /** Get a `Clip` as a string. */
 export const getClipAsString = (clip: Clip) => {
-  return JSON.stringify(clip);
+  const { id, trackId, patternId, tick, offset } = clip;
+  return `${id},${trackId},${patternId},${tick},${offset}`;
 };
 
 /** Get a `ClipUpdate` as a string. */
@@ -63,22 +63,12 @@ export const getClipDuration = (clip?: Clip, pattern?: Pattern) => {
   return ticks - clip.offset;
 };
 
-/** Get the notes of a `Clip` based on its offset and duration. */
-export const getClipNotes = (
-  clip: Clip,
-  stream: PatternMidiStream
-): PatternMidiStream => {
-  if (!isClip(clip) || !isPatternMidiStream(stream)) return [];
-  if (clip.duration === undefined) return stream.slice(clip.offset);
-  return stream.slice(clip.offset, clip.offset + clip.duration);
-};
-
 // ------------------------------------------------------------
 // Clip Stream
 // ------------------------------------------------------------
 
 /** A `Clip` can require the entire arrangement to compute its stream. */
-export interface ClipStreamDependencies extends Partial<Arrangement> {
+export interface ClipStreamDependencies extends Partial<TrackArrangement> {
   pattern: Pattern;
   scales?: ScaleMap;
 }
@@ -95,13 +85,25 @@ export const getClipStream = (
   if (!pattern) return [];
 
   // Initialize the loop variables
-  const totalTicks = getClipDuration(clip, pattern);
   const stream = [] as PatternMidiStream;
   let blockCount = 0;
   let streamDuration = 0;
+  const totalTicks = getPatternStreamDuration(pattern.stream);
+
+  // Get the offset of the clip
+  let storedOffset = 0;
+  for (let i = 0; i < pattern.stream.length; i++) {
+    if (storedOffset >= clip.offset) break;
+    const duration = getPatternBlockDuration(pattern.stream[i]);
+    storedOffset += duration;
+    blockCount += 1;
+  }
 
   // Try to find the transpositions of the clip's track
-  const poseIds = getTrackTranspositionIds(trackId, arrangement?.tracks);
+  const trackNode = arrangement?.tracks?.[trackId];
+  const poseIds = Object.keys(poseMap).filter((id) =>
+    trackNode?.transpositionIds?.includes(parsePortalChunkId(id))
+  );
   const poses = getValuesByKeys(poseMap, poseIds);
 
   // Create a stream of blocks for every tick
@@ -126,7 +128,7 @@ export const getClipStream = (
     }
 
     // Otherwise, transpose the pattern stream using the clip's current transposition
-    const tick = clip.tick + i - clip.offset;
+    const tick = clip.tick + i;
     const pose = getCurrentTransposition(poses, tick);
     const vector = getTranspositionScaleVector(pose, scaleTracks);
     const currentStream = getTransposedPatternStream(pattern.stream, vector);
@@ -143,5 +145,6 @@ export const getClipStream = (
   }
 
   // Return the stream of the clip
-  return getClipNotes(clip, stream);
+  if (clip.duration === undefined) return stream;
+  return stream.slice(0, clip.duration);
 };

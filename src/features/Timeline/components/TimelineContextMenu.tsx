@@ -1,208 +1,185 @@
-import { ContextMenu, ContextMenuOption } from "components/ContextMenu";
-import { ConnectedProps, connect } from "react-redux";
+import classNames from "classnames";
+import { ContextMenuOption, ContextMenu } from "components/ContextMenu";
+import { updateClips } from "redux/Clip";
 import {
-  selectDraftedTransposition,
+  copySelectedMedia,
+  cutSelectedMedia,
+  deleteSelectedMedia,
+  duplicateSelectedMedia,
+  pasteSelectedMedia,
+} from "redux/Media";
+import { createPatternTrackFromSelectedTrack } from "redux/PatternTrack";
+import { createScaleTrack } from "redux/ScaleTrack";
+import {
+  createClipFromMediaDraft,
+  createTranspositionFromMediaDraft,
+  exportSelectedClipsToMIDI,
+  selectDraftedPose,
   selectMediaClipboard,
   selectSelectedClips,
   selectSelectedPattern,
   selectSelectedTrack,
-  selectSelectedTrackId,
-  selectSelectedTranspositions,
-  selectTrackScale,
+  selectSelectedPoses,
+} from "redux/Timeline";
+import {
+  useProjectDeepSelector,
+  useProjectDispatch,
+  useProjectSelector,
+} from "redux/hooks";
+import {
+  selectArrangementFutureLength,
+  selectArrangementPastLength,
 } from "redux/selectors";
-import { Project, Dispatch } from "types/Project";
-import {
-  addClipToTimeline,
-  createPatternTrackFromSelectedTrack,
-  createScaleTrack,
-  exportSelectedClipsToMIDI,
-} from "redux/thunks";
 import { UndoTypes } from "redux/undoTypes";
-import { addTranspositionToTimeline } from "redux/Timeline";
-import { updateClips } from "redux/Clip";
-import {
-  getChordalOffset,
-  getChromaticOffset,
-  getTranspositionOffsetById,
-} from "types/Transposition";
-import { CLIP_THEMES, CLIP_COLORS, ClipColor, ClipUpdate } from "types/Clip";
-import { isPatternTrack } from "types/PatternTrack";
-import { isScaleTrack } from "types/ScaleTrack";
-import {
-  copySelectedMedia,
-  cutSelectedMedia,
-  pasteSelectedMedia,
-  duplicateSelectedMedia,
-  deleteSelectedMedia,
-  addAllMediaToSelection,
-} from "redux/Media";
-import { useProjectDeepSelector } from "redux/hooks";
+import { CLIP_THEMES, CLIP_COLORS, ClipColor } from "types/Clip";
+import { getChordalOffset, getChromaticOffset } from "types/Transposition";
 
-const mapStateToProps = (project: Project) => {
-  const selectedTrackId = selectSelectedTrackId(project);
+export function TimelineContextMenu() {
+  const dispatch = useProjectDispatch();
 
-  const clipboard = selectMediaClipboard(project);
-  const selectedPattern = selectSelectedPattern(project);
-  const selectedTrack = selectSelectedTrack(project);
-
-  const isPatternTrackSelected = selectedTrack && isPatternTrack(selectedTrack);
-
-  const areClipsInClipboard = clipboard?.clips?.length > 0;
-  const areTranspositionsInClipboard = clipboard?.transpositions?.length > 0;
-  const isClipboardEmpty =
-    !areClipsInClipboard && !areTranspositionsInClipboard;
-
-  const { vector } = selectDraftedTransposition(project);
-  const chromaticTranspose = getChromaticOffset(vector);
-  const scalarTranspose = getTranspositionOffsetById(vector, selectedTrackId);
-  const chordalTranspose = getChordalOffset(vector);
-  const canUndo = project.arrangement.past.length > 0;
-  const canRedo = project.arrangement.future.length > 0;
-  return {
-    areClipsInClipboard,
-    areTranspositionsInClipboard,
-    isClipboardEmpty,
-    canUndo,
-    canRedo,
-    selectedTrack,
-    isPatternTrackSelected,
-    selectedPattern,
-    chromaticTranspose,
-    scalarTranspose,
-    chordalTranspose,
-  };
-};
-const mapDispatchToProps = (dispatch: Dispatch) => {
-  return {
-    undoArrangement: () => dispatch({ type: UndoTypes.undoArrangement }),
-    redoArrangement: () => dispatch({ type: UndoTypes.redoArrangement }),
-    copyMedia: () => dispatch(copySelectedMedia()),
-    cutMedia: () => dispatch(cutSelectedMedia()),
-    pasteMedia: () => dispatch(pasteSelectedMedia()),
-    duplicateMedia: () => dispatch(duplicateSelectedMedia()),
-    deleteMedia: () => dispatch(deleteSelectedMedia()),
-    selectAllMedia: () => dispatch(addAllMediaToSelection()),
-    exportClips: () => dispatch(exportSelectedClipsToMIDI()),
-    addPattern: () => dispatch(addClipToTimeline()),
-    addPatternTrack: () => dispatch(createPatternTrackFromSelectedTrack()),
-    addScaleTrack: () => dispatch(createScaleTrack()),
-    addTransposition: () => dispatch(addTranspositionToTimeline()),
-    updateClips: (clips: ClipUpdate[]) => dispatch(updateClips({ clips })),
-  };
-};
-
-const connector = connect(mapStateToProps, mapDispatchToProps);
-export type TimelineContextMenuProps = ConnectedProps<typeof connector>;
-
-interface Props extends TimelineContextMenuProps {}
-
-export default connector(TimelineContextMenu);
-
-function TimelineContextMenu(props: Props) {
+  // Get the currently selected objects
   const clips = useProjectDeepSelector(selectSelectedClips);
-  const transpositions = useProjectDeepSelector(selectSelectedTranspositions);
+  const poses = useProjectDeepSelector(selectSelectedPoses);
+  const pattern = useProjectSelector(selectSelectedPattern);
+  const track = useProjectSelector(selectSelectedTrack);
+  const onScaleTrack = track?.type === "patternTrack";
+
+  // Get the drafted transposition
+  const { vector } = useProjectDeepSelector(selectDraftedPose);
+  const N = getChromaticOffset(vector);
+  const chordalTranspose = getChordalOffset(vector);
+
+  // Get the clipboard
+  const clipboard = useProjectDeepSelector(selectMediaClipboard);
+  const areClipsInBoard = clipboard?.clips?.length > 0;
+  const arePosesInBoard = clipboard?.poses?.length > 0;
+  const arePortalsInBoard = clipboard?.portals?.length > 0;
+
+  // Get the selected media
   const areClipsSelected = clips?.length > 0;
-  const areTranspositionsSelected = transpositions?.length > 0;
-  const isSelectionEmpty = !areClipsSelected && !areTranspositionsSelected;
+  const arePosesSelected = poses?.length > 0;
+  const arePortalsSelected = arePortalsInBoard;
+  const isSelectionEmpty =
+    !areClipsSelected && !arePosesSelected && !arePortalsSelected;
+  const isBoardEmpty =
+    !areClipsInBoard && !arePosesInBoard && !arePortalsInBoard;
+
+  // Determine which actions are available
+  const canUndo = useProjectSelector(selectArrangementPastLength);
+  const canRedo = useProjectSelector(selectArrangementFutureLength);
   const canCut = !isSelectionEmpty;
   const canCopy = !isSelectionEmpty;
-  const canPaste =
-    !props.isClipboardEmpty &&
-    props.selectedTrack &&
-    (isScaleTrack(props.selectedTrack) ? !props.areClipsInClipboard : true);
-  const canDuplicate = !isSelectionEmpty && props.selectedTrack;
+  const canPaste = !isBoardEmpty && track && !(areClipsInBoard && onScaleTrack);
+  const canDuplicate = !isSelectionEmpty && track;
   const canDelete = !isSelectionEmpty;
   const canExport = areClipsSelected;
-
   const canColor = areClipsSelected;
-  const selectedScale = useProjectDeepSelector((project) =>
-    selectTrackScale(project, props.selectedTrack?.id)
-  );
+
+  // Undo the last timeline action
   const Undo = {
     label: "Undo Last Action",
-    onClick: props.undoArrangement,
-    disabled: !props.canUndo,
+    onClick: () => dispatch({ type: UndoTypes.undoArrangement }),
+    disabled: !canUndo,
   };
+
+  // Redo the last timeline action
   const Redo = {
     label: "Redo Last Action",
-    onClick: props.redoArrangement,
-    disabled: !props.canRedo,
+    onClick: () => dispatch({ type: UndoTypes.redoArrangement }),
+    disabled: !canRedo,
     divideEnd: true,
   };
+
+  // Cut the currently selected media
   const Cut = {
     label: `Cut Selection`,
-    onClick: props.cutMedia,
+    onClick: () => dispatch(cutSelectedMedia()),
     disabled: !canCut,
   };
+
+  // Copy the currently selected media
   const Copy = {
     label: `Copy Selection`,
-    onClick: props.copyMedia,
+    onClick: () => dispatch(copySelectedMedia()),
     disabled: !canCopy,
   };
+
+  // Paste the currently selected media at the current track/time
   const Paste = {
     label: `Paste From Clipboard`,
-    onClick: () => props.pasteMedia(),
+    onClick: () => dispatch(pasteSelectedMedia()),
     disabled: !canPaste,
     divideEnd: !canDuplicate && !canDelete && !canExport,
   };
+
+  // Duplicate the currently selected media
   const Duplicate = {
     label: "Duplicate Selection",
-    onClick: () => props.duplicateMedia(),
+    onClick: () => dispatch(duplicateSelectedMedia()),
     disabled: !canDuplicate,
   };
+
+  // Delete the currently selected media
   const Delete = {
     label: `Delete Selection`,
-    onClick: props.deleteMedia,
+    onClick: () => dispatch(deleteSelectedMedia()),
     disabled: !canDelete,
   };
+
+  // Export the currently selected clips to MIDI
   const Export = {
     label: "Export to MIDI",
-    onClick: props.exportClips,
+    onClick: () => dispatch(exportSelectedClipsToMIDI()),
     disabled: !canExport,
     divideEnd: true,
   };
+
+  // Add a scale track to the timeline
   const AddScaleTrack = {
     label: "Add Scale Track",
-    onClick: props.addScaleTrack,
+    onClick: () => dispatch(createScaleTrack()),
   };
+
+  // Create a pattern track from the selected track
   const AddPatternTrack = {
     label: "Add Pattern Track",
-    onClick: props.addPatternTrack,
-    disabled: !props.selectedTrack,
+    onClick: () => dispatch(createPatternTrackFromSelectedTrack()),
+    disabled: !track,
   };
+
+  // Add the currently drafted clip to the timeline
   const AddPattern = {
-    label: `Add ${props.selectedPattern?.name ?? "New Pattern"}`,
-    onClick: props.addPattern,
-    disabled: !props.isPatternTrackSelected,
+    label: `Add ${pattern?.name ?? "New Pattern"}`,
+    onClick: () => dispatch(createClipFromMediaDraft()),
+    disabled: onScaleTrack,
   };
+
+  // Add the currently drafted transposition to the timeline
   const AddTransposition = {
-    label: `Add ${
-      props.selectedTrack
-        ? `(N${props.chromaticTranspose}${
-            props.selectedTrack && selectedScale
-              ? `, T${props.scalarTranspose}, `
-              : `, `
-          }t${props.chordalTranspose})`
-        : "Transposition"
-    }`,
-    onClick: () => props.addTransposition(),
-    disabled: !props.selectedTrack,
+    label: `Add ${track ? `(N${N}t${chordalTranspose})` : "Transposition"}`,
+    onClick: () => dispatch(createTranspositionFromMediaDraft()),
+    disabled: !track,
     divideEnd: canColor,
   };
 
-  const ClipColorCircle = ({ color }: { color: ClipColor }) => {
-    const clipColor = CLIP_THEMES[color].iconColor;
+  // Change the color of the currently selected clips
+  const ClipColorCircle: React.FC<{ color: ClipColor }> = ({ color }) => {
     return (
       <span
-        className={`w-4 h-4 m-1 rounded-full ${clipColor} border cursor-pointer`}
-        onClick={() =>
-          props.updateClips(clips.map((clip) => ({ ...clip, color })))
-        }
+        className={classNames(
+          CLIP_THEMES[color].iconColor,
+          `w-4 h-4 m-1 rounded-full border cursor-pointer`
+        )}
+        onClick={() => {
+          const newClips = clips.map((clip) => ({ ...clip, color }));
+          dispatch(updateClips({ clips: newClips }));
+        }}
       />
     );
   };
 
-  const ClipColor = {
+  // Show the color options for the currently selected clips
+  const ClipColors = {
     label: (
       <div className="w-32 flex flex-wrap">
         {CLIP_COLORS.map((color) => (
@@ -214,6 +191,7 @@ function TimelineContextMenu(props: Props) {
     disabled: !canColor,
   };
 
+  // Assemble all of the menu options
   const menuOptions = [
     Undo,
     Redo,
@@ -227,8 +205,12 @@ function TimelineContextMenu(props: Props) {
     AddPatternTrack,
     AddPattern,
     AddTransposition,
-    canColor ? ClipColor : null,
+    canColor ? ClipColors : null,
   ];
+
+  // Filter out the null options
   const options = menuOptions.filter(Boolean) as ContextMenuOption[];
+
+  // Render the context menu
   return <ContextMenu targetId="timeline" options={options} />;
 }

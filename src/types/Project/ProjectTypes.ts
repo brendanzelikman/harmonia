@@ -3,7 +3,7 @@ import { isPlainObject, isString } from "lodash";
 import { store } from "redux/store";
 import {
   defaultArrangementHistory,
-  isNormalLiveArrangement,
+  isLiveArrangement,
 } from "types/Arrangement";
 import { defaultEditor, isEditor } from "types/Editor";
 import { defaultPatternHistory, isPattern } from "types/Pattern";
@@ -95,6 +95,6 @@ export const isProject = (obj: unknown): obj is Project => {
     isUndoableHistory(candidate.scales, isScaleObject) &&
     isUndoableHistory(candidate.patterns, isPattern) &&
     isUndoableHistory(candidate.arrangement) &&
-    isNormalLiveArrangement(candidate.arrangement.present)
+    isLiveArrangement(candidate.arrangement.present)
   );
 };

@@ -43,12 +43,11 @@ import {
   chromaticNotes,
   resolveScaleChainToMidi,
   isNestedNote,
-  resolveScaleToMidi,
   getScaleName,
 } from "types/Scale";
 import { selectScaleMap } from "../Scale/ScaleSelectors";
 import { numberToLower } from "utils/math";
-import { PatternNote, isPatternMidiNote } from "types/Pattern";
+import { PatternNote } from "types/Pattern";
 
 // ------------------------------------------------------------
 // Track Selectors

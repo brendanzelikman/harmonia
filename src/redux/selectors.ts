@@ -5,6 +5,7 @@ export * from "./Instrument/InstrumentSelectors";
 export * from "./Metadata/MetadataSelectors";
 export * from "./Pattern/PatternSelectors";
 export * from "./PatternTrack/PatternTrackSelectors";
+export * from "./Portal/PortalSelectors";
 export * from "./Scale/ScaleSelectors";
 export * from "./ScaleTrack/ScaleTrackSelectors";
 export * from "./Timeline/TimelineSelectors";

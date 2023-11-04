@@ -1,28 +1,35 @@
 import { TrackId, TrackMap } from "types/Track";
-import { Media } from "./MediaTypes";
+import { Media, MediaClip, MediaClips, MediaElement } from "./MediaTypes";
 import { isClip } from "types/Clip";
 import { isPatternTrack } from "types/PatternTrack";
 import { isTransposition } from "types/Transposition";
 import { Tick } from "types/units";
+import { applyPortalsToMedia, isPortal } from "types/Portal";
+import { isUndefined } from "lodash";
 
 /** Get the clips from the media. */
-export const getMediaClips = (media: Media[]) => {
+export const getClipsFromMedia = (media: Media) => {
   return media.filter(isClip);
 };
 
 /** Get the transpositions from the media. */
-export const getMediaTranspositions = (media: Media[]) => {
+export const getTranspositionsFromMedia = (media: Media) => {
   return media.filter(isTransposition);
 };
 
-/** Sort the media by tick. */
-export const sortMedia = (media: Media[]) => {
-  return media.sort((a, b) => a.tick - b.tick);
+/** Get the portals from the media. */
+export const getPortalsFromMedia = (media: Media) => {
+  return media.filter(isPortal);
 };
 
-/** Get the valid media based on valid ticks and tracks. */
-export const getValidMedia = (media: Media[], trackMap: TrackMap) => {
-  return media.filter((item) => {
+/** Sort the media clips by tick. */
+export const sortMedia = (clips: MediaClips) => {
+  return clips.sort((a, b) => a.tick - b.tick);
+};
+
+/** Get the valid media clips based on valid ticks and tracks. */
+export const getValidMedia = (clips: Media, trackMap: TrackMap): Media => {
+  return clips.filter((item) => {
     // Make sure the tick is valid
     if (item.tick < 0) return false;
 
@@ -38,33 +45,56 @@ export const getValidMedia = (media: Media[], trackMap: TrackMap) => {
   });
 };
 
+/** Get the duration of a media element and try to use the provided value. */
+export const getMediaElementDuration = (
+  element: MediaElement,
+  value?: Tick
+) => {
+  if (!isUndefined(value)) return value;
+  if (isPortal(element)) return 1;
+  return element?.duration ?? 1;
+};
+
 /** Get the earliest start tick of all media. If there is no media, return Infinity. */
-export const getMediaStartTick = (media: Media[]) => {
+export const getMediaStartTick = (media: Media) => {
   return media.reduce((acc, item) => Math.min(acc, item.tick), Infinity);
 };
 
 /** Get the latest end tick of all media. If there is no media, return -Infinity. */
-export const getMediaEndTick = (media: Media[], durations?: Tick[]) => {
-  return media.reduce((acc, item, index) => {
-    const duration = durations?.[index] ?? item.duration ?? 1;
-    return Math.max(acc, item.tick + duration);
+export const getMediaEndTick = (media: Media, mediaDurations?: Tick[]) => {
+  // Get the portals and their indices
+  const portals = getPortalsFromMedia(media);
+  const portalIndices = media
+    .map((item, i) => (isPortal(item) ? i : -1))
+    .filter((i) => i > -1);
+
+  // Get the elements and their durations
+  const elements = media.filter((item) => !isPortal(item)) as MediaClip[];
+  const durations =
+    mediaDurations?.filter((_, i) => !portalIndices.includes(i)) ?? [];
+
+  // Apply the elements through the portals first
+  const chunkedMedia = applyPortalsToMedia(elements, portals, durations).flat();
+  return chunkedMedia.reduce((acc, item, index) => {
+    const duration = getMediaElementDuration(item, durations?.[index]);
+    return Math.max(acc, item.tick + duration + 1);
   }, -Infinity);
 };
 
 /** Get the duration of all media. If there is no media, return 0. */
-export const getMediaDuration = (media: Media[], durations?: Tick[]) => {
+export const getMediaDuration = (media: Media, durations?: Tick[]) => {
   return getMediaEndTick(media, durations) - getMediaStartTick(media);
 };
 
 /** Get the media that starts in the given tick range. */
 export const getMediaInRange = (
-  media: Media[],
+  media: Media,
   mediaDuration: Tick[],
   [startTick, endTick]: [number, number]
-) => {
+): Media => {
   return media.filter((item, i) => {
     // Get the duration of the media
-    const duration = mediaDuration ? mediaDuration[i] : item.duration;
+    const duration = getMediaElementDuration(item, mediaDuration?.[i]);
 
     // Make sure the item is in the range
     const itemStartTick = item.tick;
@@ -74,13 +104,13 @@ export const getMediaInRange = (
 };
 
 /** Return true if the media overlaps with the given tick range. */
-export const doesMediaOverlapRange = (
-  media: Media,
+export const doesMediaElementOverlapRange = (
+  media: MediaElement,
   mediaDuration: Tick,
   [startTick, endTick]: [number, number]
 ) => {
   // Get the duration of the media
-  const duration = mediaDuration ?? media.duration;
+  const duration = getMediaElementDuration(media, mediaDuration);
   if (duration === undefined) return false;
 
   // Make sure the item is in the range
@@ -94,7 +124,7 @@ export const doesMediaOverlapRange = (
  * If the track ID is not provided, return the track IDs that have media.
  */
 export const getMediaTrackIds = (
-  media: Media[],
+  media: Media,
   trackIds: TrackId[],
   trackId?: TrackId
 ) => {
@@ -118,18 +148,18 @@ export const getMediaTrackIds = (
 };
 
 /** Get the starting track index of the media using the list of ordered track IDs. */
-export const getMediaStartIndex = (media: Media[], trackIds: TrackId[]) => {
+export const getMediaStartIndex = (media: Media, trackIds: TrackId[]) => {
   return trackIds.findIndex((id) => media.some((item) => item.trackId === id));
 };
 
 /** Get the offset of the start tick of all media and the given tick. */
-export const getMediaTickOffset = (media: Media[], tick: number) => {
+export const getMediaTickOffset = (media: Media, tick: number) => {
   return tick - getMediaStartTick(media);
 };
 
 /** Get the offset between the starting track index of the media and the index of the given track ID. */
 export const getMediaIndexOffset = (
-  media: Media[],
+  media: Media,
   trackId: TrackId,
   trackIds: TrackId[]
 ) => {
@@ -141,11 +171,11 @@ export const getMediaIndexOffset = (
 
 /** Get the offsetted media starting from the new tick and optional track ID to start from. */
 export const getOffsettedMedia = (
-  media: Media[],
+  media: Media,
   tick: number,
   trackId?: TrackId,
   trackIds?: TrackId[]
-): Media[] => {
+): Media => {
   // Get the track offset
   const shouldOffsetTracks = !!trackId && trackIds;
   const trackOffset = shouldOffsetTracks
@@ -154,20 +184,31 @@ export const getOffsettedMedia = (
 
   // Iterate through the media and offset each item
   const offsetedMedia = media.map((item) => {
-    const offsetedItem = { ...item };
+    let element = { ...item };
 
     // Offset the tick
     const tickOffset = getMediaTickOffset(media, tick);
-    offsetedItem.tick += tickOffset;
+    element.tick += tickOffset;
 
     // Offset the track ID if the parameters are provided and in range
-    const trackIndex = trackIds?.indexOf(item.trackId);
-    if (trackIndex === undefined) return offsetedItem;
-    const newTrackId = trackIds?.[trackIndex + trackOffset];
-    if (newTrackId) offsetedItem.trackId = newTrackId;
+    const trackIndex = trackIds?.indexOf(item.trackId) ?? -1;
+    const entryId = trackIds?.[trackIndex + trackOffset];
+    if (trackIndex > -1 && entryId) element.trackId = entryId;
+
+    // Update the portaled parameters if the item is a portal
+    if (isPortal(element)) {
+      // Update the portaled tick
+      element.portaledTick += tickOffset;
+
+      // Update the portaled track ID
+      const { portaledTrackId } = element;
+      const exitIndex = trackIds?.indexOf(portaledTrackId) ?? -1;
+      const exitId = trackIds?.[exitIndex + trackOffset];
+      if (exitIndex > -1 && exitId) element.portaledTrackId = exitId;
+    }
 
     // Return the offseted item
-    return offsetedItem;
+    return element;
   });
 
   // Return the offseted media
@@ -175,10 +216,7 @@ export const getOffsettedMedia = (
 };
 
 /** Get the duplicated media starting at the end of the given media. */
-export const getDuplicatedMedia = (
-  media: Media[],
-  durations: Tick[]
-): Media[] => {
+export const getDuplicatedMedia = (media: Media, durations: Tick[]) => {
   const endTick = getMediaEndTick(media, durations);
   return getOffsettedMedia(media, endTick);
 };

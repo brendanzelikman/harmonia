@@ -67,8 +67,8 @@ export function useTimelineHotkeys() {
   // Backspace = Delete Selected Media
   useHotkeys("backspace", () => dispatch(Media.deleteSelectedMedia()));
 
-  // P = Toggle Pattern Editor
-  useHotkeys("p", () => dispatch(showEditor("patterns")));
+  // Alt+P = Toggle Pattern Editor
+  useHotkeys("c", () => dispatch(showEditor("patterns")));
 
   // A = Toggle Adding Clip
   useHotkeys("a", () => dispatch(Timeline.toggleAddingClips()));
@@ -77,10 +77,13 @@ export function useTimelineHotkeys() {
   useHotkeys("t", () => dispatch(Timeline.toggleAddingTranspositions()));
 
   // Alt + C = Toggle Slicing Media
-  useHotkeys("alt+c", () => dispatch(Timeline.toggleSlicingMedia()));
+  useHotkeys("alt+s", () => dispatch(Timeline.toggleSlicingMedia()));
 
   // Alt + M = Toggle Merging Media
   useHotkeys("alt+m", () => dispatch(Timeline.toggleMergingMedia()));
+
+  // P = Toggle Adding Portals
+  useHotkeys("alt+p", () => dispatch(Timeline.togglePortalingMedia()));
 
   // Meta + "-" = Decrease Subdivision
   useHotkeys(["meta+minus"], () => dispatch(Timeline.decreaseSubdivision()));

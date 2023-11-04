@@ -8,6 +8,7 @@ import { TRANSPOSITION_UNDO_TYPES } from "./Transposition/TranspositionUndoTypes
 import { TRACK_HIERARCHY_UNDO_TYPES } from "./TrackHierarchy/TrackHierarchyUndoTypes";
 import { INSTRUMENT_UNDO_TYPES } from "./Instrument/InstrumentUndoTypes";
 import { isSliceAction } from "./util";
+import { PORTAL_UNDO_TYPES } from "./Portal/PortalUndoTypes";
 
 export const UndoTypes = {
   undoArrangement: "arrangement/undo",
@@ -33,6 +34,9 @@ export const groupByActionType = (action: PayloadAction) => {
   }
   if (isActionTyped("transpositions")) {
     return TRANSPOSITION_UNDO_TYPES[type]?.(action) || type;
+  }
+  if (isActionTyped("portals")) {
+    return PORTAL_UNDO_TYPES[type]?.(action) || type;
   }
   if (isActionTyped("scaleTracks")) {
     return SCALE_TRACK_UNDO_TYPES[type]?.(action) || type;

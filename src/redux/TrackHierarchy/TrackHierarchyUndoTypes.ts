@@ -9,6 +9,7 @@ import {
 } from "types/Transposition";
 import { toString } from "utils/objects";
 import { getTrackAsString } from "types/Track";
+import { getPortalAsString, getPortalUpdateAsString } from "types/Portal";
 
 export const TRACK_HIERARCHY_UNDO_TYPES: ActionGroup = {
   "trackHierarchy/addScaleTrackToHierarchy": (
@@ -20,7 +21,7 @@ export const TRACK_HIERARCHY_UNDO_TYPES: ActionGroup = {
   "trackHierarchy/removeScaleTrackFromHierarchy": (
     action: PayloadAction<_.RemoveTrackFromHierarchyPayload>
   ) => {
-    return `REMOVE_TRACK:${action.payload}`;
+    return `REMOVE_TRACK:${action.payload.originalId}`;
   },
   "trackHierarchy/addPatternTrackToHierarchy": (
     action: PayloadAction<_.AddTrackToHierarchyPayload>
@@ -31,7 +32,7 @@ export const TRACK_HIERARCHY_UNDO_TYPES: ActionGroup = {
   "trackHierarchy/removePatternTrackFromHierarchy": (
     action: PayloadAction<_.RemoveTrackFromHierarchyPayload>
   ) => {
-    return `REMOVE_TRACK:${action.payload}`;
+    return `REMOVE_TRACK:${action.payload.originalId}`;
   },
   "trackHierarchy/moveTrackInHierarchy": (
     action: PayloadAction<_.MoveTrackInHierarchyPayload>
@@ -61,26 +62,29 @@ export const TRACK_HIERARCHY_UNDO_TYPES: ActionGroup = {
   "trackHierarchy/addMediaToHierarchy": (
     action: PayloadAction<_.AddMediaToHierarchyPayload>
   ) => {
-    const { clips, transpositions } = action.payload;
+    const { clips, poses, portals } = action.payload;
     const clipTag = toString(clips, getClipAsString);
-    const poseTag = toString(transpositions, getTranspositionAsString);
-    return `ADD_MEDIA:${clipTag},${poseTag}`;
+    const poseTag = toString(poses, getTranspositionAsString);
+    const portalTag = toString(portals, getPortalAsString);
+    return `ADD_MEDIA:${clipTag},${poseTag},${portalTag}`;
   },
   "trackHierarchy/removeMediaFromHierarchy": (
     action: PayloadAction<_.RemoveMediaFromHierarchyPayload>
   ) => {
-    const { clipIds, transpositionIds } = action.payload;
+    const { clipIds, poseIds, portalIds } = action.payload;
     const clipTag = toString(clipIds);
-    const poseTag = toString(transpositionIds);
-    return `REMOVE_MEDIA:${clipTag},${poseTag}`;
+    const poseTag = toString(poseIds);
+    const portalTag = toString(portalIds);
+    return `REMOVE_MEDIA:${clipTag},${poseTag},${portalTag}`;
   },
   "trackHierarchy/updateMediaInHierarchy": (
     action: PayloadAction<_.UpdateMediaInHierarchyPayload>
   ) => {
-    const { clips, transpositions } = action.payload;
+    const { clips, poses, portals } = action.payload;
     const clipTag = toString(clips, getClipUpdateAsString);
-    const poseTag = toString(transpositions, getTranspositionUpdateAsString);
-    return `UPDATE_MEDIA:${clipTag},${poseTag}`;
+    const poseTag = toString(poses, getTranspositionUpdateAsString);
+    const portalTag = toString(portals, getPortalUpdateAsString);
+    return `UPDATE_MEDIA:${clipTag},${poseTag},${portalTag}`;
   },
   "trackHierarchy/sliceMediaInHierarchy": (
     action: PayloadAction<_.SliceMediaInHierarchyPayload>

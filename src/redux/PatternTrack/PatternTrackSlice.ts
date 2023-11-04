@@ -5,7 +5,7 @@ import {
   PatternTrackUpdate,
   defaultPatternTrackState,
 } from "types/PatternTrack";
-import { TrackId } from "types/Track";
+import { RemoveTrackPayload, TrackId } from "types/Track";
 
 // ------------------------------------------------------------
 // Payload Types
@@ -15,7 +15,7 @@ import { TrackId } from "types/Track";
 export type AddPatternTrackPayload = PatternTrack;
 
 /** A `PatternTrack` can be removed from the store by ID. */
-export type RemovePatternTrackPayload = TrackId;
+export type RemovePatternTrackPayload = RemoveTrackPayload;
 
 /** A `PatternTrack` can be updated in the store. */
 export type UpdatePatternTrackPayload = PatternTrackUpdate;
@@ -39,9 +39,9 @@ export const patternTracksSlice = createSlice({
       state,
       action: PayloadAction<RemovePatternTrackPayload>
     ) => {
-      const trackId = action.payload;
-      delete state.byId[trackId];
-      const index = state.allIds.findIndex((id) => id === trackId);
+      const { id } = action.payload;
+      delete state.byId[id];
+      const index = state.allIds.findIndex((tId) => id === tId);
       if (index > -1) state.allIds.splice(index, 1);
     },
     /** Update a pattern track in the slice. */
