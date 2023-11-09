@@ -5,7 +5,7 @@ import {
   getScaleAsKey,
   getScaleNoteDegree,
   getScaleNoteOctaveOffset,
-  initializeScale,
+  initializeScaleTrackScale,
   isMidiNote,
   isNestedNote,
   nestedChromaticNotes,
@@ -13,6 +13,8 @@ import {
   resolveScaleChainToMidi,
   resolveScaleNoteToMidi,
   ScaleArray,
+  ScaleObject,
+  sortScaleNotesByDegree,
 } from "types/Scale";
 import { ScaleTrack, initializeScaleTrack } from "types/ScaleTrack";
 import { getScaleTrackChain, TrackId } from "types/Track";
@@ -37,10 +39,11 @@ import {
 } from "redux/selectors";
 import { isPatternTrack } from "types/PatternTrack";
 import { addScale, updateScale } from "redux/Scale/ScaleSlice";
-import { SCALE_TRACK_SCALE_NAME } from "utils/constants";
 import { MIDI } from "types/units";
 import { getMidiPitchClass } from "utils/midi";
 import { getClosestPitchClass } from "utils/pitch";
+import { random, range, sample, sampleSize } from "lodash";
+import { PresetScaleList } from "presets/scales";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
@@ -56,7 +59,7 @@ export const createScaleTrack =
 
     // Create a new scale for the track
     const notes: ScaleArray = parentNotes.map((_, i) => ({ degree: i }));
-    const scale = initializeScale({ name: SCALE_TRACK_SCALE_NAME, notes });
+    const scale = initializeScaleTrackScale({ notes });
 
     // Create and add the scale track and scale
     const scaleTrack = initializeScaleTrack({
@@ -68,6 +71,43 @@ export const createScaleTrack =
     dispatch(addScaleTrackToHierarchy(scaleTrack));
     return scaleTrack.id;
   };
+
+/** Create a random hierarchy of `ScaleTracks` */
+export const createRandomHierarchy = (): Thunk => (dispatch) => {
+  // Get a random size for the hierarchy
+  const size = random(1, 3);
+  const scales: ScaleObject[] = [];
+  const scaleTracks: ScaleTrack[] = [];
+
+  // Create a root scale by grabbing a preset
+  const baseScale = sample(PresetScaleList) || chromaticScale;
+  const baseNotes = sampleSize(baseScale.notes, random(8, 12));
+  const sortedNotes = sortScaleNotesByDegree(baseNotes);
+  const scale = initializeScaleTrackScale({ notes: sortedNotes });
+  scales.push(scale);
+
+  // Create a randomized scale for each level of the hierarchy
+  for (let i = 2; i <= size; i++) {
+    const maxLength = scales[i - 2].notes.length;
+    const degrees = range(0, maxLength).map((degree) => ({ degree }));
+    const scaleSize = Math.max(2, random(maxLength / 2, maxLength - 1));
+    const notes = sampleSize(degrees, scaleSize);
+    const sortedNotes = sortScaleNotesByDegree(notes);
+    const scale = initializeScaleTrackScale({ notes: sortedNotes });
+    scales.push(scale);
+  }
+
+  // Create a scale track for each scale and chain the parents
+  for (let i = 0; i < size; i++) {
+    const scale = scales[i];
+    const parentId = i > 0 ? scaleTracks[i - 1].id : undefined;
+    const scaleTrack = initializeScaleTrack({ parentId, scaleId: scale.id });
+    dispatch(addScale(scale));
+    dispatch(addScaleTrack(scaleTrack));
+    dispatch(addScaleTrackToHierarchy(scaleTrack));
+    scaleTracks.push(scaleTrack);
+  }
+};
 
 /** Add a note to a scale track using its parent track's scale. */
 export const addNoteToScaleTrack =

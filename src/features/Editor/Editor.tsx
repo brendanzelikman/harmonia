@@ -1,7 +1,7 @@
 import * as _ from "types/Editor";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectEditor } from "redux/Editor";
-import { EditorNavbar } from "./components/Navbar";
+import { EditorNavbar } from "./components/EditorNavbar";
 import { useHotkeyScope } from "hooks";
 import { EasyTransition } from "components/Transition";
 import { Track } from "types/Track";
@@ -13,8 +13,8 @@ import { Instrument, InstrumentKey, LiveAudioInstance } from "types/Instrument";
 import { useEditorInstrument } from "./hooks/useEditorInstrument";
 import { Dispatch } from "types/Project";
 import { Editor } from "./components";
-import { EditorTooltipProps } from "./components/Tooltip";
-import { EditorButtonProps } from "./components/Button";
+import { EditorTooltipProps } from "./components/EditorTooltip";
+import { EditorButtonProps } from "./components/EditorButton";
 import { useEditorView } from "./hooks/useEditorView";
 import classNames from "classnames";
 
@@ -135,16 +135,17 @@ function EditorComponent() {
     "w-full": !isShowingTracks,
   };
   const editorClass = classNames(
-    "absolute bottom-0 right-0 h-full bg-gradient-to-t from-[#09203f] to-[#33454b] backdrop-blur-xl font-nunito transition-all",
+    "absolute bottom-0 right-0 h-full bg-gradient-to-t from-[#09203f] to-[#33454b] backdrop-blur-xl font-nunito transition-all fade-in-200",
     editorWidth
   );
 
   /** Only show the editor if it is active. */
+  if (!isOpen) return null;
   return (
-    <EasyTransition show={!!isOpen} duration={150} className={editorClass}>
+    <div className={editorClass}>
       <EditorNavbar {...editorProps} />
       {EditorView}
-    </EasyTransition>
+    </div>
   );
 }
 

@@ -11,7 +11,7 @@ import { ScoreProps } from "lib/opensheetmusicdisplay";
 import { ScaleEditor } from "./components";
 import { UndoTypes } from "redux/undoTypes";
 import { EditorProps } from "..";
-import { getScaleCategory, getScaleName } from "types/Scale";
+import { getScaleCategory } from "types/Scale";
 
 export interface ScaleEditorProps extends EditorProps, ScoreProps {
   // The scale editor passes additional information about the scale

@@ -1,22 +1,22 @@
 import classNames from "classnames";
-import { EditorButton as Button } from "./Button";
-import { EditorNumericField as NumericField } from "./Field";
-import { EditorHeader as Header } from "./Header";
-import { EditorList as List, EditorListItem as ListItem } from "./List";
+import { EditorButton as Button } from "./EditorButton";
+import { EditorNumericField as NumericField } from "./EditorField";
+import { EditorHeader as Header } from "./EditorHeader";
+import { EditorList as List, EditorListItem as ListItem } from "./EditorList";
 import {
   EditorListbox as CustomListbox,
   DurationListbox,
   InstrumentListbox,
-} from "./Listbox";
-import { EditorPiano as Piano } from "./Piano";
-import { EditorScore as Score } from "./Score";
-import { EditorSearchBox as SearchBox } from "./SearchBox";
+} from "./EditorListbox";
+import { EditorPiano as Piano } from "./EditorPiano";
+import { EditorScore as Score } from "./EditorScore";
+import { EditorSearchBox as SearchBox } from "./EditorSearchBox";
 import {
   EditorSidebar as Sidebar,
   EditorSidebarHeader as SidebarHeader,
-} from "./Sidebar";
-import { EditorTabGroup as TabGroup, EditorTab as Tab } from "./Tab";
-import { EditorTooltip as Tooltip } from "./Tooltip";
+} from "./EditorSidebar";
+import { EditorTabGroup as TabGroup, EditorTab as Tab } from "./EditorTab";
+import { EditorTooltip as Tooltip } from "./EditorTooltip";
 
 const Container: React.FC<React.HTMLProps<HTMLDivElement>> = (props) => {
   return (
@@ -24,7 +24,7 @@ const Container: React.FC<React.HTMLProps<HTMLDivElement>> = (props) => {
       {...props}
       className={classNames(
         props.className,
-        `flex fade-in-300 flex-col w-full h-full text-white`
+        `flex flex-col w-full h-full text-white`
       )}
     >
       {props.children}

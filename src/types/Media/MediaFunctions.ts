@@ -75,7 +75,10 @@ export const getMediaEndTick = (media: Media, mediaDurations?: Tick[]) => {
 
   // Apply the elements through the portals first
   const chunkedMedia = applyPortalsToMedia(elements, portals, durations).flat();
-  return chunkedMedia.reduce((acc, item, index) => {
+  const allMedia = [...chunkedMedia, ...portals];
+
+  // Get the end tick of all media
+  return allMedia.reduce((acc, item, index) => {
     const duration = getMediaElementDuration(item, durations?.[index]);
     return Math.max(acc, item.tick + duration + 1);
   }, -Infinity);

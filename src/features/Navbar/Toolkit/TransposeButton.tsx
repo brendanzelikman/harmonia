@@ -1,6 +1,6 @@
 import { BsMagic } from "react-icons/bs";
 import { blurOnEnter } from "utils/html";
-import { ControlButton } from ".";
+import { NavbarToolkitButton } from "../components/NavbarToolkitButton";
 import {
   NavbarFormGroup,
   NavbarFormLabel,
@@ -127,13 +127,13 @@ export const ToolkitTransposeButton = () => {
         : "ring-transparent ring-offset-transparent"
     }`;
     return (
-      <ControlButton
+      <NavbarToolkitButton
         label="Transpose Clip"
         onClick={() => dispatch(toggleAddingTranspositions())}
         className={buttonClass}
       >
         <BsMagic className="-rotate-90 p-0.5" />
-      </ControlButton>
+      </NavbarToolkitButton>
     );
   };
 
@@ -152,6 +152,11 @@ export const ToolkitTransposeButton = () => {
               {OffsetInputs()}
               {DurationInput()}
             </div>
+            {!track && (
+              <p className="my-2 text-slate-300 px-2 py-1 bg-fuchsia-600/50 border border-slate-300/80 rounded opacity-80">
+                Select a Scale Track to Transpose Scales
+              </p>
+            )}
           </NavbarTooltipMenu>
         }
       />

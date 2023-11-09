@@ -1,11 +1,13 @@
-import { Pattern, PatternId, PatternMap } from "types/Pattern";
+import { Pattern, PatternMap } from "types/Pattern";
 
 // Chords
+import BasicIntervals from "./1-BasicIntervals";
 import BasicChords from "./1-BasicChords";
 import SeventhChords from "./1-SeventhChords";
 import ExtendedChords from "./1-ExtendedChords";
 import FamousChords from "./1-FamousChords";
 
+export * as BasicIntervals from "./1-BasicIntervals";
 export * as BasicChords from "./1-BasicChords";
 export * as SeventhChords from "./1-SeventhChords";
 export * as ExtendedChords from "./1-ExtendedChords";
@@ -42,6 +44,7 @@ export * as ClavePatterns from "./4-ClaveRhythms";
 export * as BellPatterns from "./4-BellRhythms";
 
 const Chords = {
+  "Basic Intervals": Object.values(BasicIntervals),
   "Basic Chords": Object.values(BasicChords),
   "Seventh Chords": Object.values(SeventhChords),
   "Extended Chords": Object.values(ExtendedChords),

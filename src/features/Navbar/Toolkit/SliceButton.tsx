@@ -1,5 +1,5 @@
 import { BsScissors } from "react-icons/bs";
-import { ControlButton } from ".";
+import { NavbarToolkitButton } from "../components/NavbarToolkitButton";
 import { NavbarTooltip } from "../components";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectTimeline } from "redux/selectors";
@@ -13,21 +13,21 @@ export const ToolkitSliceButton = () => {
 
   const SliceButton = () => {
     const buttonClass = isSlicing
-      ? "bg-slate-500 ring-2 ring-offset-2 ring-slate-500/80 ring-offset-black"
-      : "bg-slate-500/80";
+      ? "text-sky-100 bg-slate-600 ring-2 ring-offset-2 ring-slate-500/80 ring-offset-black"
+      : "text-sky-100 bg-slate-600";
     return (
-      <ControlButton
+      <NavbarToolkitButton
         label="Slice Track Media"
         className={buttonClass}
         onClick={() => dispatch(toggleSlicingMedia())}
       >
         <BsScissors />
-      </ControlButton>
+      </NavbarToolkitButton>
     );
   };
 
   const SliceTooltip = () => {
-    const tooltipClass = "left-[-3.2rem] bg-slate-500/80 px-2 backdrop-blur";
+    const tooltipClass = "left-[-3.2rem] bg-slate-600/80 px-2 backdrop-blur";
     return (
       <NavbarTooltip
         content="Slicing Track Media"

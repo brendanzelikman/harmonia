@@ -22,7 +22,8 @@ import {
   NavbarTooltip,
   NavbarFormButton,
   NavbarTooltipMenu,
-} from "../components";
+  NavbarButton,
+} from "./components";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import {
   selectTransport,
@@ -52,12 +53,14 @@ export function NavbarSettingsMenu() {
    * Clicking the button toggles the visibility of the tooltip menu.
    */
   const SettingsButton = () => {
-    const className = `text-2xl cursor-pointer mr-2 ${
-      show
-        ? "text-slate-500 drop-shadow-xl rounded-full ring-2 ring-offset-4 ring-slate-500 ring-offset-gray-900"
-        : ""
+    const className = `cursor-pointer mr-1 ${
+      show ? "text-slate-500 drop-shadow-xl rounded-full " : ""
     }`;
-    return <BsGearFill className={className} onClick={() => setShow(!show)} />;
+    return (
+      <NavbarButton className={className}>
+        <BsGearFill onClick={() => setShow(!show)} />
+      </NavbarButton>
+    );
   };
 
   // BPM field for non-immediate changes
@@ -185,7 +188,7 @@ export function NavbarSettingsMenu() {
     );
     return (
       <div
-        className="mr-2 cursor-pointer relative text-3xl"
+        className="mr-2 cursor-pointer relative xl:text-3xl text-xl"
         onClick={() => dispatch(toggleTransportMute())}
       >
         {VolumeIcon}
@@ -232,7 +235,6 @@ export function NavbarSettingsMenu() {
   return (
     <>
       {TransportVolumeField()}
-
       <div className="flex items-center">
         <SettingsButton />
         <NavbarTooltip

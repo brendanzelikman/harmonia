@@ -164,6 +164,24 @@ export const Dominant7thChord: Pattern = {
   ],
 };
 
+export const Dominant7thNo5Chord: Pattern = {
+  id: "dominant-7th-no-5-chord",
+  name: "Dominant 7th (No 5) Chord",
+  aliases: [
+    "dom7no5",
+    "dom7no5 chord",
+    "7no5",
+    "7no5 chord",
+    "dominant 7th no 5",
+    "dominant 7th no 5 chord",
+    "dominant 7th no5",
+    "dominant 7th no5 chord",
+  ],
+  stream: [
+    [_.createQuarterNote(60), _.createQuarterNote(64), _.createQuarterNote(70)],
+  ],
+};
+
 export const Dominant7thFlat5Chord: Pattern = {
   id: "dominant-7th-b5-chord",
   name: "Dominant 7th (b5) Chord",
@@ -298,6 +316,21 @@ export const Augmented7thChord: Pattern = {
   ],
 };
 
+export const SevenSixChord: Pattern = {
+  id: "7-6-chord",
+  name: "7-6 Chord",
+  aliases: ["7-6", "7-6 chord"],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
+      _.createQuarterNote(69),
+      _.createQuarterNote(70),
+    ],
+  ],
+};
+
 export default {
   Major7thChord,
   Major7thSus2Chord,
@@ -309,8 +342,10 @@ export default {
   Minor7thFlat5Chord,
   MinorMajor7thChord,
   Dominant7thChord,
+  Dominant7thNo5Chord,
   Dominant7thFlat5Chord,
   Dominant7thSharp5Chord,
   Diminished7thChord,
   Augmented7thChord,
+  SevenSixChord,
 };

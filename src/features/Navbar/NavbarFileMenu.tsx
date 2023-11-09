@@ -30,7 +30,7 @@ import {
   NavbarFormLabel,
   NavbarTooltip,
   NavbarTooltipMenu,
-} from "../components";
+} from "./components";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { useTransportTick } from "hooks";
 import { useNavigate } from "react-router-dom";
@@ -53,7 +53,7 @@ export function NavbarFileMenu() {
   /** The undo button allows the user to undo the arrangement. */
   const UndoButton = () => (
     <NavbarButton
-      className={`p-1 ${canUndo ? "active:bg-sky-500" : ""}`}
+      className={`p-1 rounded-full ${canUndo ? "active:text-sky-600" : ""}`}
       onClick={() => canUndo && dispatch(undoArrangement())}
       disabled={!canUndo}
       disabledClass="text-white/50 cursor-default"
@@ -66,7 +66,7 @@ export function NavbarFileMenu() {
   /** The redo button allows the user to redo the arrangement. */
   const RedoButton = () => (
     <NavbarButton
-      className={`p-1 ${canRedo ? "active:bg-sky-500" : ""}`}
+      className={`p-1 rounded-full ${canRedo ? "active:text-sky-600" : ""}`}
       onClick={() => canRedo && dispatch(redoArrangement())}
       disabled={!canRedo}
       disabledClass="text-white/50 cursor-default"
@@ -246,19 +246,21 @@ export function NavbarFileMenu() {
 
   /** The file button allows the user to toggle the file editor. */
   const FileButton = () => (
-    <BsMusicPlayerFill
-      className={`text-2xl select-none cursor-pointer mr-1 ${
-        onFileEditor ? "text-sky-500" : "text-slate-300"
-      }`}
-      onClick={() => dispatch(toggleEditor("file"))}
-    />
+    <NavbarButton className="rounded-full p-1.5">
+      <BsMusicPlayerFill
+        className={`w-full h-full select-none cursor-pointer ${
+          onFileEditor ? "text-sky-500" : "text-slate-300"
+        }`}
+        onClick={() => dispatch(toggleEditor("file"))}
+      />
+    </NavbarButton>
   );
 
   /** The file tooltip displays the entire file menu. */
   const FileTooltip = () => {
     return (
       <NavbarTooltip
-        className="mt-2 bg-sky-800/75 shadow-xl"
+        className="mt-2 bg-sky-700/80 backdrop-blur shadow-xl"
         show={!!onFileEditor}
         content={
           <NavbarTooltipMenu>

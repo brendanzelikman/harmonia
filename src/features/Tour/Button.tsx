@@ -8,6 +8,7 @@ import { hideEditor } from "redux/Editor";
 import { useProjectDispatch } from "redux/hooks";
 import { END_TOUR, START_TOUR } from ".";
 import { dispatchCustomEvent } from "utils/html";
+import { NavbarButton } from "features/Navbar/components";
 
 interface ContentProps {
   confetti: boolean;
@@ -69,9 +70,9 @@ export const ShepherdTourButton = (props: ContentProps) => {
 
   return (
     <>
-      <button className={`ml-2 focus:outline-none ${color}`} onClick={onClick}>
-        <BsQuestionCircleFill className={`text-2xl ${buttonClass}`} />
-      </button>
+      <NavbarButton className={`focus:outline-none ${color}`} onClick={onClick}>
+        <BsQuestionCircleFill className={buttonClass} />
+      </NavbarButton>
       {props.confetti &&
         createPortal(<ReactConfetti className="z-[80]" />, document.body)}
     </>

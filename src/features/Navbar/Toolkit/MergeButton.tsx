@@ -6,28 +6,23 @@ import {
   NavbarFormButton,
   NavbarTooltipMenu,
 } from "../components";
-import { ControlButton } from ".";
+import { NavbarToolkitButton } from "../components/NavbarToolkitButton";
 import {
   useProjectDispatch,
   useProjectSelector,
   useProjectDeepSelector,
 } from "redux/hooks";
-import {
-  selectSelectedClipIds,
-  selectSelectedMediaClips,
-  selectTimeline,
-} from "redux/selectors";
+import { selectSelectedClipIds, selectTimeline } from "redux/selectors";
 import { mergeSelectedMedia, toggleMergingMedia } from "redux/thunks";
 import { isTimelineMergingMedia } from "types/Timeline";
 import { useState } from "react";
-import { GiPestleMortar } from "react-icons/gi";
+import { GiLinkedRings } from "react-icons/gi";
 
 export const ToolkitMergeButton = () => {
   const dispatch = useProjectDispatch();
   const timeline = useProjectSelector(selectTimeline);
   const isMerging = isTimelineMergingMedia(timeline);
   const selectedClipIds = useProjectDeepSelector(selectSelectedClipIds);
-  const selectedMedia = useProjectDeepSelector(selectSelectedMediaClips);
   const [mergeName, setMergeName] = useState("");
 
   /** The name of the new pattern obtained by merging */
@@ -68,31 +63,31 @@ export const ToolkitMergeButton = () => {
 
   const MergeButton = () => {
     return (
-      <ControlButton
+      <NavbarToolkitButton
         label="Merge Media"
         onClick={() => dispatch(toggleMergingMedia())}
         className={`${
           isMerging
-            ? "bg-purple-600 ring-2 ring-offset-2 ring-purple-600/80 ring-offset-black"
-            : "bg-purple-600/80"
+            ? "bg-indigo-600 ring-2 ring-offset-2 ring-indigo-600/80 ring-offset-black"
+            : "bg-indigo-600"
         }`}
       >
-        <GiPestleMortar />
-      </ControlButton>
+        <GiLinkedRings className="p-0.5" />
+      </NavbarToolkitButton>
     );
   };
 
   const MergeTooltip = () => {
     return (
       <NavbarTooltip
-        className="left-[-6rem] bg-purple-600 min-w-[15rem]"
+        className="left-[-6rem] bg-indigo-600 min-w-[15rem]"
         show={!!isMerging}
         content={
           <NavbarTooltipMenu>
             <div className="pb-2 mb-2 w-full text-center font-bold border-b">
               Merging Track Media
             </div>
-            <div className="w-full h-full p-2 space-y-1">
+            <div className="w-full h-full p-2 space-y-2">
               {NewPatternName()}
               <DispatchButton />
             </div>

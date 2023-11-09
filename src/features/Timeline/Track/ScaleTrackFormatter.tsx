@@ -175,7 +175,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
       draggable
       onDragStart={cancelEvent}
     >
-      <div className="w-full flex items-center ml-2 space-x-1 justify-self-end">
+      <div className="w-full flex items-center space-x-1 justify-self-end">
         <ScaleEditorButton />
         <PatternTrackButton />
         <ScaleTrackButton />

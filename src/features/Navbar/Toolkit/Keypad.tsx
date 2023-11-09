@@ -13,24 +13,10 @@ import {
 import {
   selectSelectedPoses,
   selectLiveTranspositionSettings,
-  selectSelectedTrack,
-  selectTrackScaleTrack,
-  selectTrackMidiScale,
 } from "redux/selectors";
 
 export const ToolkitKeypad = () => {
   const dispatch = useProjectDispatch();
-
-  // Get the current track/scale track
-  const track = useProjectSelector(selectSelectedTrack);
-  const scaleTrack = useProjectSelector((_) =>
-    selectTrackScaleTrack(_, track?.id)
-  );
-
-  // Get the current scale
-  const scale = useProjectSelector((_) =>
-    selectTrackMidiScale(_, scaleTrack?.id)
-  );
 
   // Get the transpositions
   const transpositions = useProjectDeepSelector(selectSelectedPoses);
@@ -165,7 +151,9 @@ export const ToolkitKeypad = () => {
   const TransposeLabel = () => {
     return (
       <div className={`w-full flex items-center justify-center space-x-2`}>
-        <span className="font-bold">Live Transposition</span>
+        <span className="font-bold hidden xl:block whitespace-nowrap">
+          Live Transposition
+        </span>
         <ShortcutIcon />
         <PowerButton />
       </div>

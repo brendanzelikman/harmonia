@@ -1,5 +1,5 @@
 import { TrackId, TrackType } from "types/Track";
-import { createScaleTrack } from "redux/thunks";
+import { createRandomHierarchy, createScaleTrack } from "redux/thunks";
 import {
   selectTrackRenderDependencies,
   selectCell,
@@ -36,6 +36,7 @@ import "lib/react-data-grid.css";
 import "react-data-grid/lib/styles.css";
 import { TimelinePortals } from "./Portals";
 import { CellFormatter } from "./Cell";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 export interface Row {
   trackId?: TrackId;
@@ -55,6 +56,7 @@ export function Timeline() {
   const cell = useProjectSelector(selectCell);
   const dependencyMap = useProjectDeepSelector(selectTrackRenderDependencies);
   const trackMap = useProjectDeepSelector(selectTrackMap);
+  const heldKeys = useHeldHotkeys(["alt"]);
   const [timeline, setTimeline] = useState<DataGridHandle>();
   useTimelineHotkeys();
   useTimelineLiveHotkeys();
@@ -114,9 +116,13 @@ export function Timeline() {
   const AddTrackButton = (
     <div
       className={`rdg-track flex font-nunito w-full h-full justify-center items-center hover:bg-sky-500/30 text-slate-50/0 hover:text-slate-100 ease-in-out transition-all duration-500 rounded cursor-pointer`}
-      onClick={() => dispatch(createScaleTrack())}
+      onClick={() =>
+        dispatch(heldKeys.alt ? createRandomHierarchy() : createScaleTrack())
+      }
     >
-      <h4 className="text-lg font-light select-none">Add a Scale Track</h4>
+      <h4 className="text-lg font-light select-none">
+        Add a {!!heldKeys.alt ? "Random Hierarchy" : "Scale Track"}
+      </h4>
     </div>
   );
 
@@ -134,7 +140,7 @@ export function Timeline() {
       },
       cellClass: "bg-transparent",
     }),
-    []
+    [heldKeys.alt]
   );
 
   /** The column is memoized so that it is not recreated on every render. */

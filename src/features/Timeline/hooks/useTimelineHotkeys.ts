@@ -67,6 +67,9 @@ export function useTimelineHotkeys() {
   // Backspace = Delete Selected Media
   useHotkeys("backspace", () => dispatch(Media.deleteSelectedMedia()));
 
+  // Meta + Backspace = Delete Selected Track
+  useHotkeys("meta+backspace", () => dispatch(Timeline.deleteSelectedTrack()));
+
   // Alt+P = Toggle Pattern Editor
   useHotkeys("c", () => dispatch(showEditor("patterns")));
 

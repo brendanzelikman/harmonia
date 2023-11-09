@@ -44,10 +44,24 @@ import {
   resolveScaleChainToMidi,
   isNestedNote,
   getScaleName,
+  areScalesRelated,
+  getScaleNoteAsPitchClass,
 } from "types/Scale";
 import { selectScaleMap } from "../Scale/ScaleSelectors";
 import { numberToLower } from "utils/math";
-import { PatternNote } from "types/Pattern";
+import {
+  Pattern,
+  PatternMidiStream,
+  PatternNote,
+  getMidiStreamScale,
+} from "types/Pattern";
+import {
+  BasicIntervals,
+  BasicChords,
+  SeventhChords,
+  ExtendedChords,
+  FamousChords,
+} from "presets/patterns";
 
 // ------------------------------------------------------------
 // Track Selectors
@@ -334,8 +348,32 @@ export const selectTrackScaleNameAtTick = (
   const scale = selectTrackScaleAtTick(project, trackId, tick);
   if (!scaleChain.length || !scale) return "Custom Scale";
   const fullChain = [...scaleChain.slice(0, -1), scale];
-  const midiScale = resolveScaleChainToMidi(fullChain);
-  return getScaleName(midiScale);
+  const midiScale = resolveScaleChainToMidi(fullChain).map((_) => _ % 12);
+  const scaleName = getScaleName(midiScale);
+
+  // If the scale returns as custom, try to match the MIDI with a preset pattern
+  if (scaleName === "Custom Scale") {
+    const presetPatterns = [
+      ...Object.values(BasicIntervals.default),
+      ...Object.values(BasicChords.default),
+      ...Object.values(SeventhChords.default),
+      ...Object.values(ExtendedChords.default),
+      ...Object.values(FamousChords.default),
+    ];
+    const presetMatch = presetPatterns.find((preset) => {
+      const scaleStream = getMidiStreamScale(
+        preset.stream as PatternMidiStream
+      );
+      return areScalesRelated(scaleStream, midiScale);
+    });
+    if (presetMatch) {
+      const firstPitch = getScaleNoteAsPitchClass(midiScale[0]);
+      return `${firstPitch} ${presetMatch.name}`;
+    }
+  }
+
+  // Otherwise, return the scale name
+  return scaleName;
 };
 
 /** Select the scale of a track as an array of `MidiValues`. */

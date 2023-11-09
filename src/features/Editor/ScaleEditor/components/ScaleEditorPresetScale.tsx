@@ -9,7 +9,7 @@ export interface PresetScaleProps extends ScaleEditorProps {
 }
 
 export const PresetScale = (props: PresetScaleProps) => {
-  const { dispatch, presetScale, scale, track } = props;
+  const { dispatch, presetScale, scale } = props;
   const isEqual = _.areScalesEqual(presetScale, scale);
   const isRelated = _.areScalesRelated(presetScale, scale);
   const notes = _.getScaleAsArray(presetScale);

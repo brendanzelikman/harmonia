@@ -71,9 +71,9 @@ export const EditorPiano: React.FC<PianoProps> = (props) => {
     };
   }, [sampler, playNote, stopNote]);
 
+  if (!props.show) return null;
   return (
-    <EasyTransition
-      show={props.show}
+    <div
       className={classNames(
         `h-40 flex-shrink-0 overflow-scroll`,
         props.className
@@ -89,6 +89,6 @@ export const EditorPiano: React.FC<PianoProps> = (props) => {
           stopNote={(midi: number) => stopNote(sampler, midi)}
         />
       </div>
-    </EasyTransition>
+    </div>
   );
 };

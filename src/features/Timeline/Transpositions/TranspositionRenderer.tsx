@@ -48,6 +48,7 @@ interface TranspositionRendererProps {
 export function TranspositionRenderer(props: TranspositionRendererProps) {
   const { transposition, chunkId, isSelected } = props;
   const { tick, trackId, vector } = transposition;
+  const vectorString = getTranspositionVectorAsString(vector);
   const dispatch = useProjectDispatch();
   const parents = useProjectDeepSelector((_) => selectTrackParents(_, trackId));
 
@@ -85,7 +86,7 @@ export function TranspositionRenderer(props: TranspositionRendererProps) {
   const left = use((_) => selectTimelineTickLeft(_, tick));
   const width = use((_) => selectTranspositionWidth(_, transposition));
   const height = use((_) => selectTimelineObjectHeight(_, transposition));
-  const isSmall = width < 2 * timeline.cell.width;
+  const isSmall = width < vectorString.length * 8;
 
   /** The transposition header sits above a clip and contains the transposition label. */
   const TranspositionHeader = useMemo(() => {

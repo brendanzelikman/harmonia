@@ -115,11 +115,9 @@ export function InstrumentEditorAnalyser(props: InstrumentEditorAnalyserProps) {
   return (
     <div
       className={classNames(
-        "w-full h-[85px] my-2 flex  flex-col flex-shrink-0 border border-slate-500 rounded-lg overflow-hidden",
-        {
-          "bg-slate-900 text-slate-100": render,
-          "bg-slate-900/75 text-slate-400": !render,
-        }
+        "w-full h-[85px] my-2 flex flex-col flex-shrink-0 border border-slate-500 rounded-lg overflow-hidden",
+        { "bg-slate-900 text-slate-100": render },
+        { "bg-slate-900/75 text-slate-400": !render }
       )}
     >
       <AnalyserTitle />

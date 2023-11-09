@@ -166,9 +166,9 @@ export function ProjectComponent(props: ProjectProps) {
 
   /** Display the title and general info */
   const ProjectTitle = () => (
-    <div className="mx-10 h-full flex-1 flex flex-col justify-center truncate [&>*]:truncate">
+    <div className="ml-5 mr-3 h-full flex-1 flex flex-col justify-center truncate [&>*]:truncate">
       <h1 className="text-3xl text-white font-bold">
-        {heldKeys.alt ? id.slice(17) : name}
+        {heldKeys.alt ? id.slice(!props.filePath ? 0 : 17) : name}
       </h1>
       <h6 className="text-slate-400">Date Created: {dateCreated}</h6>
       <h6 className="text-slate-400">Last Updated: {lastUpdated}</h6>
@@ -199,7 +199,7 @@ export function ProjectComponent(props: ProjectProps) {
     children: ReactNode;
   }) => (
     <div
-      className={`mx-4 px-4 py-1 bg-slate-800 border border-slate-500 rounded-lg flex flex-col items-center flex-shrink-0 h-full w-60 overflow-scroll text-ellipsis ${
+      className={`lg:w-48 xl:w-60 h-full px-2 lg:px-4 py-1 bg-slate-800 border border-slate-500 rounded-lg flex flex-col items-center flex-shrink-0 overflow-scroll text-ellipsis ${
         props.className ?? ""
       }`}
     >
@@ -225,7 +225,7 @@ export function ProjectComponent(props: ProjectProps) {
 
   /** Display some types and a dropdown menu */
   const ProjectBody = () => (
-    <div className="flex flex-shrink-0 justify-end">
+    <div className="hidden lg:flex flex-shrink-0 justify-end xl:space-x-8 lg:space-x-4 space-x-2">
       <TypeContainer className="group-hover:shadow-[0px_0px_20px_-5px_rgb(16,185,129)]">
         <TypeHeader className="text-emerald-500">Patterns</TypeHeader>
         <TypeList>{renderTypeList(patternNames)}</TypeList>

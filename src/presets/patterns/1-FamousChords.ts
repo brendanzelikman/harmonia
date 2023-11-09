@@ -1,6 +1,13 @@
 import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
+export const VienneseTrichord: Pattern = {
+  id: "viennese-trichord",
+  name: "Viennese Trichord",
+  stream: [
+    [_.createQuarterNote(60), _.createQuarterNote(66), _.createQuarterNote(67)],
+  ],
+};
 export const TristanChord: Pattern = {
   id: "tristan-chord",
   name: "Tristan Chord",
@@ -10,6 +17,21 @@ export const TristanChord: Pattern = {
       _.createQuarterNote(59),
       _.createQuarterNote(63),
       _.createQuarterNote(68),
+    ],
+  ],
+};
+export const BridgeChord: Pattern = {
+  id: "bridge-chord",
+  name: "Bridge Chord",
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(63),
+      _.createQuarterNote(67),
+      _.createQuarterNote(71),
+      _.createQuarterNote(86),
+      _.createQuarterNote(90),
+      _.createQuarterNote(93),
     ],
   ],
 };
@@ -53,6 +75,21 @@ export const FarbenChord: Pattern = {
     ],
   ],
 };
+export const OdeToNapoleonChord: Pattern = {
+  id: "ode-to-napoleon-chord",
+  name: "Ode to Napoleon Chord",
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(61),
+      _.createQuarterNote(64),
+      _.createQuarterNote(65),
+      _.createQuarterNote(68),
+      _.createQuarterNote(69),
+    ],
+  ],
+};
+
 export const RiteOfSpringChord: Pattern = {
   id: "rite-of-spring-chord",
   name: "Rite of Spring Chord",
@@ -150,17 +187,33 @@ export const KennyBarronMinorChord: Pattern = {
     ],
   ],
 };
+export const MuMajorChord: Pattern = {
+  id: "mu-major-chord",
+  name: "Mu Major Chord",
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(62),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
+    ],
+  ],
+};
 
 export default {
+  VienneseTrichord,
   TristanChord,
+  BridgeChord,
   MysticChord,
   ElektraChord,
   FarbenChord,
+  OdeToNapoleonChord,
   RiteOfSpringChord,
   DreamChord,
   SoWhatChord,
   KennyBarronMajorChord,
   KennyBarronMinorChord,
+  MuMajorChord,
   HendrixChord,
   BondChord,
 };

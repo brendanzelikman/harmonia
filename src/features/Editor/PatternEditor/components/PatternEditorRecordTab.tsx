@@ -1,6 +1,6 @@
 import { BsFillRecordCircleFill, BsSoundwave } from "react-icons/bs";
 import { PatternEditorProps } from "../PatternEditor";
-import * as Listbox from "features/Editor/components/Listbox";
+import * as Listbox from "features/Editor/components/EditorListbox";
 import { useCallback, useEffect, useState } from "react";
 import { WebMidi, NoteMessageEvent } from "webmidi";
 import {

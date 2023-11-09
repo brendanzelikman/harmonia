@@ -48,31 +48,26 @@ const ARTURIA_KEYLAB_MOD_BYTE = 176;
 export function useMidiController() {
   const dispatch = useProjectDispatch();
   const transport = useProjectSelector(selectTransport);
-  const patternTrackMap = useProjectSelector(selectPatternTrackMap);
+  const patternTrackMap = useProjectDeepSelector(selectPatternTrackMap);
   const orderedTrackIds = useProjectDeepSelector(selectOrderedTrackIds);
   const trackIndex = useProjectSelector(selectSelectedTrackIndex);
   const patternTrackIds = useProjectDeepSelector(selectPatternTrackIds);
   const selectedTrack = useProjectSelector(selectSelectedTrack);
-  const selectedAudioInstance = getValueByKey(
-    LIVE_AUDIO_INSTANCES,
-    (selectedTrack as PatternTrack)?.instrumentId
-  );
+  const selectedAudioInstance = selectedTrack
+    ? LIVE_AUDIO_INSTANCES[(selectedTrack as PatternTrack).instrumentId]
+    : undefined;
 
   // Throttle the instrument updates to avoid lag
   const throttledUpdates: Record<string, Function> = {};
   const handleInstrumentUpdate = useCallback(
     (obj: UpdateInstrumentPayload) => {
-      const { id: instrumentId, update } = obj;
-
       // Create a throttled function if it doesn't exist
-      if (!throttledUpdates[instrumentId]) {
-        const func = (_obj: typeof obj) => dispatch(updateInstrument(_obj));
-        const throttledFunc = throttle(func, 50, { trailing: true });
-        throttledUpdates[instrumentId] = throttledFunc;
-      }
+      const func = () => dispatch(updateInstrument(obj));
+      const throttledFunc = throttle(func, 50, { trailing: true });
+      throttledUpdates[obj.id] = throttledFunc;
 
       // Call the throttled function
-      throttledUpdates[instrumentId]({ instrumentId, update });
+      throttledUpdates[obj.id]();
     },
     [throttledUpdates]
   );
@@ -132,7 +127,7 @@ export function useMidiController() {
         return;
       }
     },
-    [trackIndex, transport.loop, transport.state]
+    [trackIndex, transport, handleTranspositionUpdate]
   );
 
   // Add a listener for control change messages
@@ -162,8 +157,9 @@ export function useMidiController() {
         const normalValue = normalize(e.rawValue, 0, 127);
         const volumeRange = MAX_VOLUME - MIN_VOLUME;
         const volume = volumeRange * normalValue + MIN_VOLUME;
+        const instrumentId = patternTrack.instrumentId;
         handleInstrumentUpdate({
-          id: patternTrack.instrumentId,
+          id: instrumentId,
           update: { volume },
         });
         return;
@@ -178,8 +174,9 @@ export function useMidiController() {
         if (!patternTrack) return;
         const normalValue = normalize(e.rawValue, 0, 127);
         const pan = normalValue * 2 - 1;
+        const instrumentId = patternTrack.instrumentId;
         handleInstrumentUpdate({
-          id: patternTrack.instrumentId,
+          id: instrumentId,
           update: { pan },
         });
         return;

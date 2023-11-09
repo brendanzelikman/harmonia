@@ -16,9 +16,9 @@ export function HomeView(props: { view: View }) {
   // Display the header of the home page.
   const Header = () => {
     return (
-      <div className="w-full flex items-center h-20 flex-shrink-0 bg-slate-900/90 text-slate-500 shadow-2xl backdrop-blur p-4 rounded-lg ring-4 ring-sky-600/50 text-5xl overflow-scroll">
+      <div className="w-full flex items-center h-20 flex-shrink-0 bg-slate-900/90 text-slate-500 shadow-2xl backdrop-blur p-4 rounded-lg ring-4 ring-sky-600/50 lg:text-5xl text-3xl overflow-scroll">
         <BsArrowLeft
-          className="p-3 mr-4 bg-slate-900/50 hover:bg-slate-900 border border-slate-500 rounded-full cursor-pointer"
+          className="w-fit min-w-fit p-2 mr-4 bg-slate-900/50 hover:bg-slate-900 border border-slate-500 rounded-full cursor-pointer"
           onClick={() => navigate("/")}
         />
         <Link to="/projects" className={linkClass("projects")}>

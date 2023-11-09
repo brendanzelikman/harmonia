@@ -106,6 +106,11 @@ export const getScaleNoteOctaveOffset = (note?: _.ScaleNote) => {
   return Math.floor((getMidiNoteAsValue(note) - 60) / 12);
 };
 
+/** Sort the `ScaleArray` by degree. */
+export const sortScaleNotesByDegree = (notes: _.ScaleArray) => {
+  return notes.sort((a, b) => getScaleNoteDegree(a) - getScaleNoteDegree(b));
+};
+
 // ------------------------------------------------------------
 // Scale Type Conversions
 // ------------------------------------------------------------
@@ -178,14 +183,11 @@ export const getScaleName = (scale?: _.Scale) => {
   );
 
   // Get the name of the scale from the matching scale, NOT the underlying scale
-  const firstScaleNote = scaleNotes?.[0];
-  const firstPitch = firstScaleNote
-    ? getScaleNoteAsPitchClass(firstScaleNote)
-    : "";
+  const firstPitch = scaleNotes ? getScaleNoteAsPitchClass(scaleNotes[0]) : "";
 
   // Construct the scale name with the first pitch and matching scale name
   const scaleName = matchingScale
-    ? isEqual(matchingScale, _.chromaticScale)
+    ? areScalesEqual(matchingScale, _.chromaticScale)
       ? matchingScale.name
       : `${!!firstPitch ? `${firstPitch}` : ""} ${matchingScale.name}`
     : "Custom Scale";

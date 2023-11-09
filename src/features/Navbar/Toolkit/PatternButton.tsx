@@ -1,7 +1,7 @@
 import { BsPencil } from "react-icons/bs";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectEditor } from "redux/selectors";
-import { ControlButton } from ".";
+import { NavbarToolkitButton } from "../components/NavbarToolkitButton";
 import { hideEditor, showEditor } from "redux/Editor";
 import { isPatternEditorOpen } from "types/Editor";
 
@@ -13,9 +13,9 @@ export const ToolkitPatternButton = () => {
   const PatternButton = () => {
     const buttonClass = onPatternEditor
       ? "bg-green-500 ring-2 ring-offset-2 ring-green-500/80 ring-offset-black"
-      : "bg-green-500/80";
+      : "bg-green-500";
     return (
-      <ControlButton
+      <NavbarToolkitButton
         className={buttonClass}
         onClick={() =>
           onPatternEditor
@@ -24,7 +24,7 @@ export const ToolkitPatternButton = () => {
         }
       >
         <BsPencil className="p-[3px]" />
-      </ControlButton>
+      </NavbarToolkitButton>
     );
   };
 

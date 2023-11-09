@@ -18,10 +18,8 @@ import { clamp, random, reverse, shuffle, union } from "lodash";
 import { mod } from "utils/math";
 import { isNestedNote, resolveScaleToMidi, sumScaleVectors } from "types/Scale";
 import {
-  DottedWholeNoteTicks,
   SixteenthNoteTicks,
   SixtyFourthNoteTicks,
-  TripletSixtyFourthNoteTicks,
   WholeNoteTicks,
 } from "utils/durations";
 import { PresetScaleGroupMap } from "presets/scales";
@@ -347,6 +345,23 @@ export const patternsSlice = createSlice({
 
       state.byId[patternId].stream = shuffle(pattern.stream);
     },
+    /** Arpeggiate the stream of a pattern. */
+    arpeggiatePattern: (state, action: PayloadAction<PatternId>) => {
+      const id = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+
+      state.byId[id].stream = pattern.stream
+        .map((block) => {
+          if (!isPatternChord(block)) return block;
+          const duration = getPatternBlockDuration(block);
+          return block.map((note) => {
+            const newNote: PatternNote = { ...note, duration };
+            return [newNote];
+          });
+        })
+        .flat();
+    },
     /** Harmonize a pattern with a given interval. */
     harmonizePattern: (
       state,
@@ -440,6 +455,7 @@ export const {
   shufflePattern,
   phasePattern,
   reversePattern,
+  arpeggiatePattern,
   harmonizePattern,
   randomizePattern,
   clearPattern,

@@ -119,6 +119,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
   return (
     <Transition
       appear
+      show={true}
       enter="transition-all ease-in-out duration-150"
       enterFrom="opacity-0 transform scale-0"
       enterTo="opacity-100 transform scale-100"
@@ -127,7 +128,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
       leaveTo="opacity-0 transform scale-0"
       className={`flex ml-2 mr-5 md:mr-3 my-2 select-none min-w-fit min-h-[9rem] ${
         isDragging || wasDisposed ? "opacity-50" : ""
-      } bg-slate-700/50 border border-slate-600 rounded-lg overflow-hidden capitalize `}
+      } bg-slate-700/50 border border-slate-600 rounded-lg active:ring transition-all overflow-hidden capitalize `}
       ref={ref}
       as="div"
     >

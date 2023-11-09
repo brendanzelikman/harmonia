@@ -2,7 +2,6 @@ import * as _ from "./TimelineSelectors";
 import { Thunk } from "types/Project";
 import {
   createTranspositions,
-  selectTranspositionDuration,
   selectTranspositionDurations,
   selectTranspositionsByTrackIds,
   updateTranspositions,
@@ -15,6 +14,7 @@ import {
   getMediaInRange,
   getClipsFromMedia,
   getTranspositionsFromMedia,
+  getPortalsFromMedia,
 } from "types/Media";
 import { MouseEvent } from "react";
 import {
@@ -29,7 +29,7 @@ import { seekTransport } from "redux/Transport";
 import { selectTrackById } from "redux/Track";
 import { isUndefined, union, without } from "lodash";
 import { isPatternTrack } from "types/PatternTrack";
-import { sliceMedia } from "redux/thunks";
+import { deleteTrack, sliceMedia } from "redux/thunks";
 import { TrackId } from "types/Track";
 import { Transport } from "tone";
 import { TRACK_WIDTH } from "utils/constants";
@@ -58,6 +58,7 @@ import { mod } from "utils/math";
 import { Portal, initializePortal } from "types/Portal";
 import { addPortals } from "redux/Portal";
 import { hasKeys } from "utils/objects";
+import * as Timeline from "redux/Timeline";
 
 /** Toggles the timeline between adding clips and not adding clips. */
 export const toggleAddingClips = (): Thunk => (dispatch, getProject) => {
@@ -314,7 +315,7 @@ export const onTranspositionClick =
     const timeline = _.selectTimeline(project);
     const cellWidth = _.selectCellWidth(project);
     const selectedPoseIds = _.selectSelectedPoseIds(project);
-    const selectedTranspositions = _.selectSelectedPoses(project);
+    const selectedPoses = _.selectSelectedPoses(project);
     const nativeEvent = e.nativeEvent as Event;
 
     // Slice the transposition if slicing
@@ -337,9 +338,7 @@ export const onTranspositionClick =
     }
 
     // Deselect the transposition if it is selected
-    const isSelected = selectedTranspositions.some(
-      (t) => t.id === transposition.id
-    );
+    const isSelected = selectedPoses.some((t) => t.id === transposition.id);
     if (isSelected) {
       const newIds = without(selectedPoseIds, transposition.id);
       dispatch(updateMediaSelection({ poseIds: newIds }));
@@ -360,13 +359,13 @@ export const onTranspositionClick =
     }
 
     // Just select the transposition if there are no other selected transpositions
-    if (!selectedTranspositions.length) {
+    if (!selectedPoses.length) {
       dispatch(updateMediaSelection({ poseIds: [transposition.id] }));
       return;
     }
 
     // Select a range of transpositions if the user is holding shift
-    const selectedMedia = union(selectedTranspositions, [transposition]);
+    const selectedMedia = union(selectedPoses, [transposition]);
 
     // Compute the start and end time of the selection
     const startTick = getMediaStartTick(selectedMedia);
@@ -375,7 +374,7 @@ export const onTranspositionClick =
     // Get all transpositions that are in the track range
     const orderedIds = selectOrderedTrackIds(project);
     const trackIds = getMediaTrackIds(
-      selectedTranspositions,
+      selectedPoses,
       orderedIds,
       transposition.trackId
     );
@@ -386,7 +385,7 @@ export const onTranspositionClick =
     // Get all transpositions that are in the tick range
     const media = getMediaInRange(poses, poseDurations, [startTick, endTick]);
     const mediaPoses = getTranspositionsFromMedia(media);
-    const mediaPoseIds = mediaPoses.map((_) => _.id);
+    const mediaPoseIds = mediaPoses.map((pose) => pose.id);
 
     // Select the transpositions
     dispatch(updateMediaSelection({ poseIds: mediaPoseIds }));
@@ -460,7 +459,7 @@ export const onPortalClick =
 
     // Get all portals that are in the tick range
     const media = getMediaInRange(portals, durations, [startTick, endTick]);
-    const mediaPortals = getClipsFromMedia(media);
+    const mediaPortals = getPortalsFromMedia(media);
     const mediaPortalIds = mediaPortals.map((portal) => portal.id);
 
     // Select the clips
@@ -548,4 +547,11 @@ export const exportSelectedClipsToMIDI =
     const project = getProject();
     const selectedClipIds = _.selectSelectedClipIds(project);
     dispatch(exportClipsToMidi(selectedClipIds));
-  };
+  }; /** Delete the selected track. */
+
+export const deleteSelectedTrack = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const trackId = Timeline.selectSelectedTrackId(project);
+  if (!trackId) return;
+  dispatch(deleteTrack(trackId));
+};

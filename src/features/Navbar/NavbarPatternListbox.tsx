@@ -20,6 +20,7 @@ import {
 } from "redux/hooks";
 import { setSelectedPattern } from "redux/Media";
 import { isPatternEditorOpen } from "types/Editor";
+import { createPortal } from "react-dom";
 
 export function NavbarPatternListbox() {
   const dispatch = useProjectDispatch();
@@ -94,7 +95,7 @@ export function NavbarPatternListbox() {
       // Get the category style
       const isPadded = newCategoryPatterns.includes(category);
       const categoryPadding = isPadded ? "pt-0.5" : "pt-0";
-      const categoryClass = `${categoryPadding} group relative h-full bg-slate-300/50`;
+      const categoryClass = `${categoryPadding} group relative h-full bg-slate-300/50 whitespace-nowrap`;
 
       // Get the label style
       const isCategorySelected =
@@ -139,7 +140,6 @@ export function NavbarPatternListbox() {
       onMouseUp={blurEvent}
     >
       <SelectedPatternName />
-      {/* <PatternEditorButton /> */}
     </Listbox.Button>
   );
 
@@ -155,7 +155,7 @@ export function NavbarPatternListbox() {
       leaveFrom="transform opacity-100 scale-100"
       leaveTo="transform opacity-0 scale-90"
     >
-      <Listbox.Options className="font-nunito absolute z-10 w-full py-1 bg-slate-800 border border-white/50 text-base rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+      <Listbox.Options className="font-nunito absolute z-10 min-w-full max-w-fit py-1 bg-slate-800 border border-white/50 text-base rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
         {PresetPatternGroupList.map(renderPatternCategory)}
       </Listbox.Options>
     </Transition>
@@ -192,7 +192,7 @@ export function NavbarPatternListbox() {
     ? "border-green-400 ring-1 ring-green-400"
     : "border-slate-400/80";
 
-  const className = `w-40 z-[80] relative flex flex-col rounded-md select-none border rounded-b-md ${borderClass}`;
+  const className = `xl:w-40 w-32 z-[80] relative flex flex-col rounded-md select-none border rounded-b-md ${borderClass}`;
 
   // Return the component
   return (

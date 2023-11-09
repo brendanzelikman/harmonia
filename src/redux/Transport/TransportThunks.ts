@@ -370,7 +370,11 @@ export const stopRecordingTransport = (): Thunk => (dispatch, getProject) => {
 export const toggleTransportRecording = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const transport = selectTransport(project);
-  dispatch(TransportSlice.setRecording(!transport.recording));
+  if (transport.recording) {
+    dispatch(stopRecordingTransport());
+  } else {
+    dispatch(startRecordingTransport());
+  }
 };
 
 /** Start downloading the transport. */

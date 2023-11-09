@@ -1,4 +1,4 @@
-import * as Listbox from "features/Editor/components/Listbox";
+import * as Listbox from "features/Editor/components/EditorListbox";
 import { PatternEditorProps } from "../PatternEditor";
 import { useProjectDeepSelector } from "redux/hooks";
 import { selectPatternTracks, selectTrackLabelMap } from "redux/selectors";

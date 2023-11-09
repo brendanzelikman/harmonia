@@ -32,7 +32,11 @@ import {
 } from "redux/selectors";
 import { UndoTypes } from "redux/undoTypes";
 import { CLIP_THEMES, CLIP_COLORS, ClipColor } from "types/Clip";
-import { getChordalOffset, getChromaticOffset } from "types/Transposition";
+import {
+  getChordalOffset,
+  getChromaticOffset,
+  getTranspositionVectorAsString,
+} from "types/Transposition";
 
 export function TimelineContextMenu() {
   const dispatch = useProjectDispatch();
@@ -156,7 +160,9 @@ export function TimelineContextMenu() {
 
   // Add the currently drafted transposition to the timeline
   const AddTransposition = {
-    label: `Add ${track ? `(N${N}t${chordalTranspose})` : "Transposition"}`,
+    label: `Add ${
+      track ? getTranspositionVectorAsString(vector) : "Transposition"
+    }`,
     onClick: () => dispatch(createTranspositionFromMediaDraft()),
     disabled: !track,
     divideEnd: canColor,

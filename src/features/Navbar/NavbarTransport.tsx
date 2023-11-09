@@ -7,7 +7,6 @@ import {
   isTransportStarted,
   isTransportStopped,
 } from "types/Transport";
-import { NavbarButton, NavbarButtonProps } from "../components";
 import {
   BsStop,
   BsPause,
@@ -22,6 +21,7 @@ import {
   toggleTransportRecording,
 } from "redux/Transport";
 import { useTransportTick } from "hooks";
+import { TransportButton } from "./components";
 
 export function NavbarTransport() {
   const dispatch = useProjectDispatch();
@@ -47,7 +47,7 @@ export function NavbarTransport() {
     else if (isStarted) color = "text-gray-50 border-emerald-400";
     else if (isPaused) color = "text-gray-100 border-slate-300";
     else color = "text-gray-300 border-slate-500";
-    return `${color} font-light block px-2 py-1.5 w-32 text-md bg-transparent rounded-lg border appearance-none focus:border-fuchsia-500 focus:outline-none focus:ring-0 peer`;
+    return `${color} font-light block px-2 py-1.5 xl:w-32 w-24 text-md bg-transparent rounded-lg border appearance-none focus:border-fuchsia-500 focus:outline-none focus:ring-0 peer`;
   }, [isStarted, isPaused, isRecording]);
 
   /**
@@ -65,20 +65,6 @@ export function NavbarTransport() {
     </div>
   );
 
-  /**
-   * Each transport button has a gradient background and a label.
-   */
-
-  const TransportButton = (props: NavbarButtonProps) => (
-    <NavbarButton
-      {...props}
-      className={`w-10 h-10 border border-slate-500 rounded-full ${
-        props.className ?? ""
-      }`}
-    >
-      {props.children}
-    </NavbarButton>
-  );
   const buttonColor = "bg-slate-800";
 
   /** The transport controls consists of four buttons:

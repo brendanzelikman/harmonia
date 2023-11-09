@@ -110,6 +110,7 @@ export const instrumentsSlice = createSlice({
     ) => {
       const { id, update } = action.payload;
       const instrument = state.byId[id];
+
       if (!instrument) return;
 
       // Update the instrument in the state
@@ -478,8 +479,8 @@ export const handleInstrumentMiddleware: Middleware =
         const instance = LIVE_AUDIO_INSTANCES[id];
 
         // If the instance has stopped existing, delete it and continue
-        if (!newInstrument || !instance) {
-          instance?.dispose();
+        if (!newInstrument) {
+          instance?.dispose?.();
           delete LIVE_AUDIO_INSTANCES[id];
           continue;
         }
@@ -489,7 +490,7 @@ export const handleInstrumentMiddleware: Middleware =
         const newEffectCount = newInstrument.effects.length;
         if (!oldInstrument || newEffectCount > oldEffectCount) {
           LIVE_AUDIO_INSTANCES[id] = new LiveAudioInstance({
-            ...instance.getInitializationProps(),
+            ...instance?.getInitializationProps?.(),
             ...newInstrument,
           });
         }

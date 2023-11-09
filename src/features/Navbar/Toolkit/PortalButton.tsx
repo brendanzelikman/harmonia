@@ -1,4 +1,4 @@
-import { ControlButton } from ".";
+import { NavbarToolkitButton } from "../components/NavbarToolkitButton";
 import { NavbarTooltip } from "../components";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectTimeline } from "redux/selectors";
@@ -26,27 +26,28 @@ export const ToolkitPortalButton = () => {
 
   const PortalButton = () => {
     const buttonClass = classNames({
-      "bg-sky-500/80": !isPortaling && !isFragment,
+      "bg-sky-600": !isPortaling && !isFragment,
       "ring-2 ring-offset-2 ring-offset-black": isPortaling,
-      "bg-sky-500 ring-sky-500/80": isPortaling && !isFragment,
+      "bg-sky-600 ring-sky-600/80": isPortaling && !isFragment,
       "bg-orange-400 ring-orange-400/80": isPortaling && isFragment,
     });
     return (
-      <ControlButton
+      <NavbarToolkitButton
         label="Portal Track Media"
         className={buttonClass}
         onClick={() => dispatch(togglePortalingMedia())}
       >
         <GiPortal />
-      </ControlButton>
+      </NavbarToolkitButton>
     );
   };
 
   const PortalTooltip = () => {
-    const tooltipClass = classNames("left-[-3.2rem] px-2 backdrop-blur", {
-      "bg-sky-600": isPortaling && !isFragment,
-      "bg-orange-400": isPortaling && isFragment,
-    });
+    const tooltipClass = classNames(
+      "left-[-3.2rem] duration-150 px-2 backdrop-blur",
+      { "bg-sky-600": isPortaling && !isFragment },
+      { "bg-orange-400": isPortaling && isFragment }
+    );
     return (
       <NavbarTooltip
         content="Portaling Track Media"

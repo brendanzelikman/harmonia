@@ -29,7 +29,7 @@ export const getTranspositionUpdateAsString = (update: TranspositionUpdate) => {
 
 /** Get a `TranspositionVector` as a string. */
 export const getTranspositionVectorAsString = (
-  vector: TranspositionVector,
+  vector?: TranspositionVector,
   orderedTrackIds?: TrackId[]
 ) => {
   if (!vector) return "";

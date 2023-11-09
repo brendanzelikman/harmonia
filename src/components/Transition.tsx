@@ -20,12 +20,13 @@ export const EasyTransition: React.FC<TransitionProps> = (props) => {
       {...restProps}
       as="div"
       appear
-      enter={`transition-all ease-in-out ${durationClass}`}
+      enter={`transition-all ease-in-out `}
       enterFrom={`opacity-0 ${scaleClass}`}
       enterTo="opacity-100 scale-100"
-      leave={`transition-all ease-in-out ${durationClass}`}
+      leave={`transition-all ease-in-out `}
       leaveFrom="opacity-100 scale-100"
       leaveTo={`opacity-0 ${scaleClass}`}
+      style={{ transitionDuration: `${props.duration ?? 300}` }}
     >
       {props.children}
     </Transition>

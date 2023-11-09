@@ -81,10 +81,15 @@ export type ScaleChain = ScaleObject[];
 // Scale Initialization
 // ------------------------------------------------------------
 
-/** Create a scale with a unique ID */
+/** Create a scale with a unique ID. */
 export const initializeScale = (
   scale: Partial<ScaleObject> = chromaticScale
 ): ScaleObject => ({ ...chromaticScale, ...scale, id: nanoid() });
+
+/** Create a scale track scale with a unique ID. */
+export const initializeScaleTrackScale = (
+  scale: Partial<ScaleObject> = chromaticScale
+): ScaleObject => initializeScale({ ...scale, name: SCALE_TRACK_SCALE_NAME });
 
 /** The chromatic notes are a range of MidiValues. */
 export const chromaticNotes: MidiValue[] = range(60, 72);
