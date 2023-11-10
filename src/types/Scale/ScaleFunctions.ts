@@ -447,6 +447,7 @@ export const areScalesEqual = (obj1?: unknown, obj2?: unknown) => {
 /** Returns true if both objects are `Scales` related by transposition  */
 export const areScalesRelated = (obj1?: unknown, obj2?: unknown) => {
   if (!isScale(obj1) || !isScale(obj2)) return false;
+  if (areScalesEqual(obj1, obj2)) return true;
 
   // Unpack the scales
   const scale1Notes = getScaleAsArray(obj1);

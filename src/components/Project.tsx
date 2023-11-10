@@ -8,6 +8,7 @@ import {
   selectClips,
   selectTrackMidiScale,
   selectLastArrangementTick,
+  selectTrackScaleNameAtTick,
 } from "redux/selectors";
 import {
   loadProject,
@@ -81,10 +82,9 @@ export function ProjectComponent(props: ProjectProps) {
 
   // Get the list of scales used
   const scaleTracks = selectScaleTracks(project);
-  const allScales = scaleTracks.map((track) =>
-    selectTrackMidiScale(project, track.id)
+  const allScaleNames = scaleTracks.map((track) =>
+    selectTrackScaleNameAtTick(project, track.id, 0)
   );
-  const allScaleNames = allScales.map(getScaleName);
   const scaleNames = [...new Set(allScaleNames)];
 
   // Get the list of instruments used

@@ -348,7 +348,7 @@ export const selectTrackScaleNameAtTick = (
   const scale = selectTrackScaleAtTick(project, trackId, tick);
   if (!scaleChain.length || !scale) return "Custom Scale";
   const fullChain = [...scaleChain.slice(0, -1), scale];
-  const midiScale = resolveScaleChainToMidi(fullChain).map((_) => _ % 12);
+  const midiScale = resolveScaleChainToMidi(fullChain);
   const scaleName = getScaleName(midiScale);
 
   // If the scale returns as custom, try to match the MIDI with a preset pattern
