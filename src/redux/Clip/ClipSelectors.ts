@@ -5,7 +5,7 @@ import { TrackId } from "types/Track";
 import { createDeepEqualSelector } from "redux/util";
 import { doesMediaElementOverlapRange } from "types/Media";
 import { selectPatternMap } from "redux/Pattern/PatternSelectors";
-import { selectTranspositionMap } from "redux/Transposition/TranspositionSelectors";
+import { selectPoseMap } from "redux/Pose/PoseSelectors";
 import { convertTicksToSeconds } from "types/Transport";
 import { selectTrackHierarchy } from "redux/TrackHierarchy/TrackHierarchySelectors";
 import { selectTransport } from "redux/Transport/TransportSelectors";
@@ -85,30 +85,30 @@ export const selectClipDurations = (project: Project, ids: ClipId[]) => {
   return clips.map((clip, index) => getClipDuration(clip, patterns[index]));
 };
 
-/** Select the transposition IDs of a clip. */
-export const selectClipTranspositionIds = (project: Project, id?: ClipId) => {
+/** Select the pose IDs of a clip. */
+export const selectClipPoseIds = (project: Project, id?: ClipId) => {
   const clip = selectClipById(project, id);
   if (!isClip(clip)) return [];
   const trackHierarchy = selectTrackHierarchy(project);
   const trackNode = trackHierarchy.byId[clip.trackId];
-  return trackNode?.transpositionIds ?? [];
+  return trackNode?.poseIds ?? [];
 };
 
-/** Select the transpositions of a clip. */
-export const selectClipTranspositions = (project: Project, id?: ClipId) => {
+/** Select the poses of a clip. */
+export const selectClipPoses = (project: Project, id?: ClipId) => {
   const clip = selectClipById(project, id);
   if (!isClip(clip)) return [];
   const trackHierarchy = selectTrackHierarchy(project);
   const trackNode = trackHierarchy.byId[clip.trackId];
   if (!trackNode) return [];
-  const transpositionMap = selectTranspositionMap(project);
-  const ids = trackNode.transpositionIds;
-  const transpositions = getValuesByKeys(transpositionMap, ids);
+  const poseMap = selectPoseMap(project);
+  const ids = trackNode.poseIds;
+  const poses = getValuesByKeys(poseMap, ids);
   const clipDuration = selectClipDuration(project, id);
-  return transpositions.filter((transposition) => {
+  return poses.filter((pose) => {
     return doesMediaElementOverlapRange(clip, clipDuration, [
-      transposition.tick,
-      transposition.tick + (transposition.duration ?? Infinity),
+      pose.tick,
+      pose.tick + (pose.duration ?? Infinity),
     ]);
   });
 };

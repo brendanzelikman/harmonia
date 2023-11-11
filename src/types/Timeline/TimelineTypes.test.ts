@@ -13,13 +13,11 @@ test("isTimelineCell should only return true for valid timeline cells", () => {
   expect(_.isTimelineCell({})).toBe(false);
 });
 
-test("isLiveTranspositionSettings should only return true for valid settings", () => {
-  expect(
-    _.isLiveTranspositionSettings(_.defaultTimeline.liveTranspositionSettings)
-  ).toBe(true);
-  expect(_.isLiveTranspositionSettings({})).toBe(false);
-  expect(_.isLiveTranspositionSettings({ transpose: 1 })).toBe(false);
-  expect(_.isLiveTranspositionSettings({ enabled: true })).toBe(false);
+test("islivePoseSettings should only return true for valid settings", () => {
+  expect(_.isLivePoseSettings(_.defaultTimeline.livePoseSettings)).toBe(true);
+  expect(_.isLivePoseSettings({})).toBe(false);
+  expect(_.isLivePoseSettings({ transpose: 1 })).toBe(false);
+  expect(_.isLivePoseSettings({ enabled: true })).toBe(false);
 });
 
 test("isTimeline should only return true for valid timelines", () => {

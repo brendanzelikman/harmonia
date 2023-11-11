@@ -1,23 +1,19 @@
 import { useMemo } from "react";
-import {
-  getTranspositionVectorAsString,
-  Transposition,
-  TranspositionId,
-} from "types/Transposition";
+import { getPoseVectorAsString, Pose, PoseId } from "types/Pose";
 import {
   selectMediaDragState,
   selectTimeline,
   selectTrackParents,
-  selectTranspositionWidth,
+  selectPoseWidth,
 } from "redux/selectors";
 import { cancelEvent } from "utils/html";
-import { useTranspositionDrag } from "./useTranspositionDragAndDrop";
+import { usePoseDrag } from "./usePoseDragAndDrop";
 import {
-  onTranspositionClick,
+  onPoseClick,
   selectTimelineObjectHeight,
   selectTimelineTickLeft,
   selectTrackedObjectTop,
-  toggleAddingTranspositions,
+  toggleAddingPoses,
   updateMediaDragState,
 } from "redux/Timeline";
 import {
@@ -28,44 +24,44 @@ import {
 import { pick } from "lodash";
 import {
   isTimelineAddingClips,
-  isTimelineAddingTranspositions,
+  isTimelineAddingPoses,
   isTimelinePortalingMedia,
   isTimelineSlicingMedia,
 } from "types/Timeline";
 import { BsMagic } from "react-icons/bs";
 import { SlMagicWand } from "react-icons/sl";
-import { TRANSPOSITION_HEIGHT } from "utils/constants";
+import { POSE_HEIGHT } from "utils/constants";
 import { EasyTransition } from "components/Transition";
 import classNames from "classnames";
 import { onMediaDragEnd } from "redux/Media";
 
-interface TranspositionRendererProps {
-  transposition: Transposition;
-  chunkId: TranspositionId;
+interface PoseRendererProps {
+  pose: Pose;
+  chunkId: PoseId;
   isSelected: boolean;
 }
 
-export function TranspositionRenderer(props: TranspositionRendererProps) {
-  const { transposition, chunkId, isSelected } = props;
-  const { tick, trackId, vector } = transposition;
-  const vectorString = getTranspositionVectorAsString(vector);
+export function PoseRenderer(props: PoseRendererProps) {
+  const { pose, chunkId, isSelected } = props;
+  const { tick, trackId, vector } = pose;
+  const vectorString = getPoseVectorAsString(vector);
   const dispatch = useProjectDispatch();
   const parents = useProjectDeepSelector((_) => selectTrackParents(_, trackId));
 
-  /** Update the timeline when dragging transpositions. */
+  /** Update the timeline when dragging poses. */
   const onDragStart = () => {
     dispatch(updateMediaDragState({ draggingPose: true }));
   };
 
-  /** Update the timeline when releasing transpositions and call the thunk. */
+  /** Update the timeline when releasing poses and call the thunk. */
   const onDragEnd = (item: any, monitor: any) => {
     dispatch(updateMediaDragState({ draggingPose: false }));
     dispatch(onMediaDragEnd(item, monitor));
   };
 
-  /** A custom hook for dragging transpositions into cells */
-  const [{ isDragging }, drag] = useTranspositionDrag({
-    transposition: { ...transposition, id: chunkId },
+  /** A custom hook for dragging poses into cells */
+  const [{ isDragging }, drag] = usePoseDrag({
+    pose: { ...pose, id: chunkId },
     onDragStart,
     onDragEnd,
   });
@@ -76,20 +72,20 @@ export function TranspositionRenderer(props: TranspositionRendererProps) {
   const timeline = use(selectTimeline);
   const isAdding = isTimelineAddingClips(timeline);
   const isSlicing = isTimelineSlicingMedia(timeline);
-  const isTransposing = isTimelineAddingTranspositions(timeline);
+  const isTransposing = isTimelineAddingPoses(timeline);
   const isPortaling = isTimelinePortalingMedia(timeline);
   const isActive = isPortaling || isDragging || isAdding;
   const isDraggingOther = draggingClip || draggingPortal;
 
-  // Transposition dimensions
-  const top = use((_) => selectTrackedObjectTop(_, transposition));
+  // Pose dimensions
+  const top = use((_) => selectTrackedObjectTop(_, pose));
   const left = use((_) => selectTimelineTickLeft(_, tick));
-  const width = use((_) => selectTranspositionWidth(_, transposition));
-  const height = use((_) => selectTimelineObjectHeight(_, transposition));
+  const width = use((_) => selectPoseWidth(_, pose));
+  const height = use((_) => selectTimelineObjectHeight(_, pose));
   const isSmall = width < vectorString.length * 8;
 
-  /** The transposition header sits above a clip and contains the transposition label. */
-  const TranspositionHeader = useMemo(() => {
+  /** The pose header sits above a clip and contains the pose label. */
+  const PoseHeader = useMemo(() => {
     // The icon is a star wand when selected, magic wand otherwise
     const IconType = isSelected ? SlMagicWand : BsMagic;
 
@@ -105,10 +101,10 @@ export function TranspositionRenderer(props: TranspositionRendererProps) {
       "chordal",
       ...parents.map((track) => track.id),
     ]);
-    const vectorString = getTranspositionVectorAsString(filteredVector);
+    const vectorString = getPoseVectorAsString(filteredVector);
 
-    // The transposition height refers to the notch above the clip
-    const height = TRANSPOSITION_HEIGHT;
+    // The pose height refers to the notch above the clip
+    const height = POSE_HEIGHT;
 
     return (
       <div
@@ -134,15 +130,15 @@ export function TranspositionRenderer(props: TranspositionRendererProps) {
     );
   }, [isSelected, vector, parents, isSmall]);
 
-  /** The transposition body is filled in behind a clip. */
-  const TranspositionBody = useMemo(() => {
+  /** The pose body is filled in behind a clip. */
+  const PoseBody = useMemo(() => {
     return <div className={`w-full fade-in-100 flex-grow`} />;
   }, []);
 
   // Assemble the classname
   const className = classNames(
     "group absolute flex flex-col",
-    "bg-transposition border rounded",
+    "bg-pose border rounded",
     isSelected ? "overflow-visible" : "overflow-hidden",
     isSelected ? "border-white " : "border-slate-400",
     { "cursor-scissors": isSlicing },
@@ -153,17 +149,17 @@ export function TranspositionRenderer(props: TranspositionRendererProps) {
     isDragging ? "opacity-50" : isDraggingOther ? "opacity-80" : "opacity-100"
   );
 
-  // Render the transposition
+  // Render the pose
   return (
     <div
       ref={drag}
       className={className}
       style={{ top, left, width, height }}
-      onClick={(e) => dispatch(onTranspositionClick(e, transposition))}
-      onDoubleClick={() => dispatch(toggleAddingTranspositions())}
+      onClick={(e) => dispatch(onPoseClick(e, pose))}
+      onDoubleClick={() => dispatch(toggleAddingPoses())}
     >
-      {TranspositionHeader}
-      {TranspositionBody}
+      {PoseHeader}
+      {PoseBody}
     </div>
   );
 }

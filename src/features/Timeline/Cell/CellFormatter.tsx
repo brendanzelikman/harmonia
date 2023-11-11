@@ -10,7 +10,7 @@ import { selectTransport } from "redux/Transport";
 import { isPatternTrack } from "types/PatternTrack";
 import {
   isTimelineAddingClips,
-  isTimelineAddingTranspositions,
+  isTimelineAddingPoses,
   isTimelinePortalingMedia,
 } from "types/Timeline";
 import {
@@ -33,7 +33,7 @@ export function CellFormatter(props: FormatterProps<Row>) {
   // Timeline properties
   const timeline = useProjectSelector(selectTimeline);
   const isAdding = onPatternTrack && isTimelineAddingClips(timeline);
-  const isTransposing = isTimelineAddingTranspositions(timeline);
+  const isTransposing = isTimelineAddingPoses(timeline);
   const isPortaling = isTimelinePortalingMedia(timeline);
   const isTrackSelected = timeline.selectedTrackId === trackId;
   const fragment = timeline.mediaDraft.portal;

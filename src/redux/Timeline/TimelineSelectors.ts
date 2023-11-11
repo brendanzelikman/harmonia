@@ -22,13 +22,13 @@ import {
   selectTrackChain,
 } from "../Track/TrackSelectors";
 import { selectClipMap } from "../Clip/ClipSelectors";
-import { selectTranspositionMap } from "../Transposition/TranspositionSelectors";
+import { selectPoseMap } from "../Pose/PoseSelectors";
 import {
   selectOrderedTrackIds,
   selectTrackHierarchy,
 } from "../TrackHierarchy/TrackHierarchySelectors";
 import { Clip, getClipDuration } from "types/Clip";
-import { Transposition } from "types/Transposition";
+import { Pose } from "types/Pose";
 import { isFiniteNumber } from "types/util";
 import { selectPortalMap } from "redux/Portal/PortalSelectors";
 
@@ -128,7 +128,7 @@ export const selectMediaSelection = (project: Project) =>
 export const selectSelectedClipIds = (project: Project) =>
   project.timeline.mediaSelection.clipIds;
 
-/** Select the currently selected transposition IDs. */
+/** Select the currently selected pose IDs. */
 export const selectSelectedPoseIds = (project: Project) =>
   project.timeline.mediaSelection.poseIds;
 
@@ -142,9 +142,9 @@ export const selectSelectedClips = createDeepEqualSelector(
   (clipMap, selectedClipIds) => getValuesByKeys(clipMap, selectedClipIds)
 );
 
-/** Select the currently selected transpositions. */
+/** Select the currently selected poses. */
 export const selectSelectedPoses = createDeepEqualSelector(
-  [selectTranspositionMap, selectSelectedPoseIds],
+  [selectPoseMap, selectSelectedPoseIds],
   (poseMap, poseIds) => getValuesByKeys(poseMap, poseIds)
 );
 
@@ -178,11 +178,11 @@ export const selectMediaDraft = (project: Project) =>
 export const selectDraftedClip = (project: Project) =>
   project.timeline.mediaDraft.clip;
 
-/** Select the currently drafted transposition. */
+/** Select the currently drafted pose. */
 export const selectDraftedPose = (project: Project) =>
   project.timeline.mediaDraft.pose;
 
-/** Select the currently drafted transposition. */
+/** Select the currently drafted pose. */
 export const selectDraftedPortal = (project: Project) =>
   project.timeline.mediaDraft.portal;
 
@@ -205,7 +205,7 @@ export const selectMediaClipboard = (project: Project) =>
 export const selectCopiedClips = (project: Project) =>
   project.timeline.mediaClipboard.clips;
 
-/** Select the currently copied transpositions. */
+/** Select the currently copied poses. */
 export const selectCopiedPoses = (project: Project) =>
   project.timeline.mediaClipboard.poses;
 
@@ -222,12 +222,12 @@ export const selectMediaDragState = (project: Project) =>
   project.timeline.mediaDragState;
 
 // ------------------------------------------------------------
-// Transposition Settings
+// Pose Settings
 // ------------------------------------------------------------
 
-/** Select the live transposition settings. */
-export const selectLiveTranspositionSettings = (project: Project) =>
-  project.timeline.liveTranspositionSettings;
+/** Select the live pose settings. */
+export const selectLivePoseSettings = (project: Project) =>
+  project.timeline.livePoseSettings;
 
 // ------------------------------------------------------------
 // Timeline Objects
@@ -326,19 +326,16 @@ export const selectClipWidth = (project: Project, clip?: Clip) => {
   return Math.max(cellWidth * columns, 1);
 };
 
-/** Select the width of a transposition. */
-export const selectTranspositionWidth = (
-  project: Project,
-  transposition: Transposition
-) => {
+/** Select the width of a pose. */
+export const selectPoseWidth = (project: Project, pose: Pose) => {
   const { subdivision, cell } = selectTimeline(project);
-  const { tick, duration } = transposition;
+  const { tick, duration } = pose;
   const left = selectTimelineTickLeft(project, tick);
   const backgroundWidth = selectTimelineBackgroundWidth(project);
 
   // If the duration is not finite or a number, return the remaining background width
   if (!isFiniteNumber(duration)) return backgroundWidth - left;
 
-  // Otherwise, return the width of the transposition
+  // Otherwise, return the width of the pose
   return getTickColumns(duration, subdivision) * cell.width;
 };

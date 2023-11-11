@@ -188,15 +188,14 @@ export const timelineSlice = createSlice({
         mediaDragState.draggingPortal = draggingPortal;
       }
     },
-    /** Toggle whether live transposition is enabled. */
-    toggleLiveTransposition: (state) => {
-      state.liveTranspositionSettings.enabled =
-        !state.liveTranspositionSettings.enabled;
+    /** Toggle whether live posing is enabled. */
+    toggleLivePose: (state) => {
+      state.livePoseSettings.enabled = !state.livePoseSettings.enabled;
     },
-    /** Toggle the live transposition mode. */
-    toggleLiveTranspositionMode: (state) => {
-      state.liveTranspositionSettings.mode =
-        state.liveTranspositionSettings.mode === "numerical"
+    /** Toggle the live pose mode. */
+    toggleLivePoseMode: (state) => {
+      state.livePoseSettings.mode =
+        state.livePoseSettings.mode === "numerical"
           ? "alphabetical"
           : "numerical";
     },
@@ -216,8 +215,8 @@ export const {
   updateMediaClipboard,
   updateMediaDraft,
   updateMediaDragState,
-  toggleLiveTransposition,
-  toggleLiveTranspositionMode,
+  toggleLivePose,
+  toggleLivePoseMode,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

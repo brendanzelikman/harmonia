@@ -1,12 +1,12 @@
 import { expect, test } from "vitest";
 import * as _ from "./MediaTypes";
 import { mockPatternTrack } from "types/PatternTrack";
-import { defaultTransposition } from "types/Transposition";
+import { defaultPose } from "types/Pose";
 import { defaultClip } from "types/Clip";
 
 test("isMedia should only return true for valid media", () => {
   expect(_.isMediaClip(defaultClip)).toBe(true);
-  expect(_.isMediaClip(defaultTransposition)).toBe(true);
+  expect(_.isMediaClip(defaultPose)).toBe(true);
   expect(_.isMediaClip(undefined)).toBe(false);
   expect(_.isMediaClip({})).toBe(false);
   expect(_.isMediaClip(mockPatternTrack)).toBe(false);

@@ -25,12 +25,7 @@ import {
   isTrackHierarchy,
   isTrackNode,
 } from "types/TrackHierarchy";
-import {
-  TranspositionMap,
-  TranspositionState,
-  defaultTranspositionState,
-  isTransposition,
-} from "types/Transposition";
+import { PoseMap, PoseState, defaultPoseState, isPose } from "types/Pose";
 import { isNormalRecord, isNormalState } from "utils/normalizedState";
 import { UndoableHistory, createUndoableHistory } from "utils/undoableHistory";
 
@@ -44,7 +39,7 @@ export interface TrackArrangement {
   scaleTracks: ScaleTrackMap;
   patternTracks: PatternTrackMap;
   clips: ClipMap;
-  transpositions: TranspositionMap;
+  poses: PoseMap;
 }
 
 /** A live arrangement stores the full track arrangement with instruments and portals. */
@@ -53,7 +48,7 @@ export interface LiveArrangement {
   scaleTracks: ScaleTrackState;
   patternTracks: PatternTrackState;
   clips: ClipState;
-  transpositions: TranspositionState;
+  poses: PoseState;
   portals: PortalState;
   instruments: InstrumentState;
 }
@@ -71,7 +66,7 @@ export const defaultArrangement: LiveArrangement = {
   scaleTracks: defaultScaleTrackState,
   patternTracks: defaultPatternTrackState,
   clips: defaultClipState,
-  transpositions: defaultTranspositionState,
+  poses: defaultPoseState,
   portals: defaultPortalState,
   instruments: defaultInstrumentState,
 };
@@ -93,7 +88,7 @@ export const isArrangement = (obj: unknown): obj is TrackArrangement => {
     isNormalRecord(candidate.scaleTracks, isScaleTrack) &&
     isNormalRecord(candidate.patternTracks, isPatternTrack) &&
     isNormalRecord(candidate.clips, isClip) &&
-    isNormalRecord(candidate.transpositions, isTransposition)
+    isNormalRecord(candidate.poses, isPose)
   );
 };
 
@@ -105,7 +100,7 @@ export const isLiveArrangement = (obj: unknown): obj is LiveArrangement => {
     isNormalState(candidate.scaleTracks, isScaleTrack) &&
     isNormalState(candidate.patternTracks, isPatternTrack) &&
     isNormalState(candidate.clips, isClip) &&
-    isNormalState(candidate.transpositions, isTransposition) &&
+    isNormalState(candidate.poses, isPose) &&
     isTrackHierarchy(candidate.hierarchy) &&
     isNormalState(candidate.instruments, isInstrument) &&
     isNormalState(candidate.portals, isPortal)

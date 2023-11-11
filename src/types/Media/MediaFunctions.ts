@@ -2,7 +2,7 @@ import { TrackId, TrackMap } from "types/Track";
 import { Media, MediaClip, MediaClips, MediaElement } from "./MediaTypes";
 import { isClip } from "types/Clip";
 import { isPatternTrack } from "types/PatternTrack";
-import { isTransposition } from "types/Transposition";
+import { isPose } from "types/Pose";
 import { Tick } from "types/units";
 import { applyPortalsToMedia, isPortal } from "types/Portal";
 import { isUndefined } from "lodash";
@@ -12,9 +12,9 @@ export const getClipsFromMedia = (media: Media) => {
   return media.filter(isClip);
 };
 
-/** Get the transpositions from the media. */
-export const getTranspositionsFromMedia = (media: Media) => {
-  return media.filter(isTransposition);
+/** Get the poses from the media. */
+export const getPosesFromMedia = (media: Media) => {
+  return media.filter(isPose);
 };
 
 /** Get the portals from the media. */

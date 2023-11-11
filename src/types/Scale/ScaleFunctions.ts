@@ -7,11 +7,7 @@ import {
   PresetScaleList,
   PresetScaleMap,
 } from "presets/scales";
-import {
-  Transposition,
-  getChordalOffset,
-  getChromaticOffset,
-} from "types/Transposition";
+import { Pose, getChordalOffset, getChromaticOffset } from "types/Pose";
 import { isEqual, isUndefined, range } from "lodash";
 import { mod } from "utils/math";
 import { getMidiPitchClass } from "utils/midi";
@@ -404,11 +400,11 @@ export const getRotatedScale = <T extends _.Scale>(scale: T, steps = 0) => {
 /** Get a `Scale` with chromatic and chordal offsets applied to it. */
 export const getFullyTransposedScale = <T extends _.Scale>(
   scale?: T,
-  transposition?: Transposition
+  pose?: Pose
 ): T => {
   if (!scale) return _.nestedChromaticScale as T;
-  if (!transposition) return scale;
-  const { vector } = transposition;
+  if (!pose) return scale;
+  const { vector } = pose;
 
   // Transpose the track scale chromatically
   const N = getChromaticOffset(vector);

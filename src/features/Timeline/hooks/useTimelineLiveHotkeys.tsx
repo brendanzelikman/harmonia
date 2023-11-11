@@ -3,7 +3,7 @@ import {
   selectEditor,
   selectOrderedTracks,
   selectSelectedTrackParents,
-  selectLiveTranspositionSettings,
+  selectLivePoseSettings,
   selectTimeline,
 } from "redux/selectors";
 import {
@@ -14,18 +14,15 @@ import {
 import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
 import { toggleInstrumentMute, toggleInstrumentSolo } from "redux/Instrument";
 
-import {
-  offsetSelectedTranspositions,
-  updateSelectedTranspositions,
-} from "redux/Transposition";
+import { offsetSelectedPoses, updateSelectedPoses } from "redux/Pose";
 import { isPatternTrack } from "types/PatternTrack";
-import { TranspositionVector } from "types/Transposition";
+import { PoseVector } from "types/Pose";
 import { useCallback, useEffect } from "react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { unmuteTracks, unsoloTracks } from "redux/Track";
 import { getKeys, hasKeys } from "utils/objects";
 import { isTimelineLive } from "types/Timeline";
-import { toggleLiveTransposition } from "redux/Timeline";
+import { toggleLivePose } from "redux/Timeline";
 
 type KeyBinds = Record<string, number>;
 
@@ -109,24 +106,22 @@ export const useTimelineLiveHotkeys = () => {
   const timeline = useProjectSelector(selectTimeline);
   const isLive = isTimelineLive(timeline);
 
-  // Get the live transposition settings
-  const transpositionSettings = useProjectSelector(
-    selectLiveTranspositionSettings
-  );
-  const transpositionMode = transpositionSettings.mode;
-  const isNumerical = transpositionMode === "numerical";
+  // Get the live pose settings
+  const poseSettings = useProjectSelector(selectLivePoseSettings);
+  const poseMode = poseSettings.mode;
+  const isNumerical = poseMode === "numerical";
 
   // Get additional dependencies from the store
   const editor = useProjectDeepSelector(selectEditor);
   const orderedTracks = useProjectDeepSelector(selectOrderedTracks);
   const scaleTracks = useProjectDeepSelector(selectSelectedTrackParents);
 
-  // Get the keys for the current transposition mode
+  // Get the keys for the current pose mode
   const keys = isNumerical
     ? getKeys(NUMERICAL_BINDS)
     : getKeys([CHROMATIC_BINDS, SCALAR_BINDS, CHORDAL_BINDS]);
 
-  // Get the list of zero keys based on the transposition mode
+  // Get the list of zero keys based on the pose mode
   const zeroKeys = isNumerical ? NUMERICAL_ZERO_BINDS : ALPHABETICAL_ZERO_BINDS;
 
   // Extra keys required for each mode
@@ -160,8 +155,8 @@ export const useTimelineLiveHotkeys = () => {
       dispatch(toggleInstrumentSolo(instrumentId));
     }
 
-    // Compute the transposition offset record
-    let vector = {} as TranspositionVector;
+    // Compute the pose offset record
+    let vector = {} as PoseVector;
     const negative = heldKeys["`"];
     const dir = negative ? -1 : 1;
     const offset = isHoldingShift(e) ? 12 : 0;
@@ -186,7 +181,7 @@ export const useTimelineLiveHotkeys = () => {
     }
 
     if (!hasKeys(vector)) return;
-    dispatch(offsetSelectedTranspositions(vector));
+    dispatch(offsetSelectedPoses(vector));
   };
 
   // The callback for the keyrow keydown event
@@ -211,7 +206,7 @@ export const useTimelineLiveHotkeys = () => {
     }
 
     // Compute the initial offset based on up/down/shift
-    let vector = {} as TranspositionVector;
+    let vector = {} as PoseVector;
     let offset = isHoldingShift(e) ? 5 : 0;
 
     if (e.key in ALPHABETICAL_BINDS.chromatic && !heldKeys.meta) {
@@ -228,7 +223,7 @@ export const useTimelineLiveHotkeys = () => {
     }
 
     if (!hasKeys(vector)) return;
-    dispatch(offsetSelectedTranspositions(vector));
+    dispatch(offsetSelectedPoses(vector));
   };
 
   // The callback for the numerical zero keydown event
@@ -248,7 +243,7 @@ export const useTimelineLiveHotkeys = () => {
         dispatch(unsoloTracks());
       }
 
-      const vector: TranspositionVector = {};
+      const vector: PoseVector = {};
       if (heldKeys.q) {
         vector.chromatic = 0;
       }
@@ -265,7 +260,7 @@ export const useTimelineLiveHotkeys = () => {
         vector.chordal = 0;
       }
       if (!hasKeys(vector)) return;
-      dispatch(updateSelectedTranspositions(vector));
+      dispatch(updateSelectedPoses(vector));
     },
     [heldKeys, scaleTracks]
   );
@@ -287,7 +282,7 @@ export const useTimelineLiveHotkeys = () => {
         dispatch(unsoloTracks());
       }
 
-      const vector: TranspositionVector = {};
+      const vector: PoseVector = {};
       if (key === "y") {
         vector.chromatic = 0;
       }
@@ -309,7 +304,7 @@ export const useTimelineLiveHotkeys = () => {
         vector.chordal = 0;
       }
       if (!hasKeys(vector)) return;
-      dispatch(updateSelectedTranspositions(vector));
+      dispatch(updateSelectedPoses(vector));
     },
     [heldKeys, scaleTracks]
   );
@@ -341,5 +336,5 @@ export const useTimelineLiveHotkeys = () => {
     alphabeticalZeroKeydown,
   ]);
 
-  useHotkeys("shift+t", () => dispatch(toggleLiveTransposition()));
+  useHotkeys("shift+t", () => dispatch(toggleLivePose()));
 };

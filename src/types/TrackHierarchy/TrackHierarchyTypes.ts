@@ -1,7 +1,7 @@
 import { NormalState, createNormalState } from "utils/normalizedState";
 import { ClipId } from "../Clip";
 import { TrackId, TrackType } from "../Track";
-import { TranspositionId } from "../Transposition";
+import { PoseId } from "../Pose";
 import { isArray, isPlainObject, isString } from "lodash";
 import {
   areObjectKeysTyped,
@@ -32,7 +32,7 @@ export interface TrackRenderData {
 /** A `TrackNode` stores track render data and additional dependencies. */
 export interface TrackNode extends TrackRenderData {
   clipIds: ClipId[];
-  transpositionIds: TranspositionId[];
+  poseIds: PoseId[];
   collapsed?: boolean;
 }
 
@@ -69,7 +69,7 @@ export const defaultScaleTrackNode: TrackNode = {
   depth: 0,
   trackIds: ["default-pattern-track"],
   clipIds: [],
-  transpositionIds: [],
+  poseIds: [],
 };
 
 /** The default pattern track node corresponds to the default pattern track. */
@@ -79,7 +79,7 @@ export const defaultPatternTrackNode: TrackNode = {
   depth: 1,
   trackIds: [],
   clipIds: [],
-  transpositionIds: [],
+  poseIds: [],
 };
 
 /** The mock scale track node is used for testing. */
@@ -89,7 +89,7 @@ export const mockScaleTrackNode: TrackNode = {
   depth: 0,
   trackIds: ["mock-pattern-track"],
   clipIds: [],
-  transpositionIds: [],
+  poseIds: [],
 };
 
 /** The mock pattern track node is used for testing. */
@@ -99,7 +99,7 @@ export const mockPatternTrackNode: TrackNode = {
   depth: 1,
   trackIds: [],
   clipIds: ["mock-clip"],
-  transpositionIds: ["mock-transposition"],
+  poseIds: ["mock-pose"],
 };
 
 /** The default track node state is used for initialization. */
@@ -128,7 +128,7 @@ export const isTrackNode = (obj: unknown): obj is TrackNode => {
     isFiniteNumber(candidate.depth) &&
     isTypedArray(candidate.trackIds, isString) &&
     isTypedArray(candidate.clipIds, isString) &&
-    isTypedArray(candidate.transpositionIds, isString)
+    isTypedArray(candidate.poseIds, isString)
   );
 };
 

@@ -8,10 +8,7 @@ import {
   NavbarTooltip,
   NavbarTooltipMenu,
 } from "../components";
-import {
-  getTranspositionVectorAsString,
-  TranspositionVector,
-} from "types/Transposition";
+import { getPoseVectorAsString, PoseVector } from "types/Pose";
 import { getScaleName } from "types/Scale";
 import {
   useProjectDispatch,
@@ -26,8 +23,8 @@ import {
   selectScaleTrackMap,
   selectTrackParents,
 } from "redux/selectors";
-import { isTimelineAddingTranspositions } from "types/Timeline";
-import { toggleAddingTranspositions, updateMediaDraft } from "redux/Timeline";
+import { isTimelineAddingPoses } from "types/Timeline";
+import { toggleAddingPoses, updateMediaDraft } from "redux/Timeline";
 import { useNumericInputs } from "hooks";
 import { pick } from "lodash";
 
@@ -36,9 +33,9 @@ export const ToolkitTransposeButton = () => {
   const timeline = useProjectSelector(selectTimeline);
   const scaleMap = useProjectSelector(selectScaleMap);
   const scaleTrackMap = useProjectSelector(selectScaleTrackMap);
-  const isAdding = isTimelineAddingTranspositions(timeline);
-  const transposition = useProjectSelector(selectDraftedPose);
-  const { vector, duration } = transposition;
+  const isAdding = isTimelineAddingPoses(timeline);
+  const pose = useProjectSelector(selectDraftedPose);
+  const { vector, duration } = pose;
 
   // Selected track info
   const track = useProjectDeepSelector(selectSelectedTrack);
@@ -47,7 +44,7 @@ export const ToolkitTransposeButton = () => {
   );
   const trackIds = useProjectSelector((_) => tracks.map((t) => t.id));
   const offsetIds = ["chromatic", ...trackIds, "chordal"];
-  const filteredVector = pick(vector, offsetIds) as TranspositionVector;
+  const filteredVector = pick(vector, offsetIds) as PoseVector;
 
   /** Store the numeric input of each drafted offset */
   const NoteOffsets = useNumericInputs(
@@ -121,15 +118,15 @@ export const ToolkitTransposeButton = () => {
 
   /** The Transpose Button toggles the dropdown menu */
   const TransposeButton = () => {
-    const buttonClass = `bg-transposition ring-2 ring-offset-2 ${
+    const buttonClass = `bg-pose ring-2 ring-offset-2 ${
       isAdding
-        ? "ring-transposition/80 ring-offset-black"
+        ? "ring-pose/80 ring-offset-black"
         : "ring-transparent ring-offset-transparent"
     }`;
     return (
       <NavbarToolkitButton
         label="Transpose Clip"
-        onClick={() => dispatch(toggleAddingTranspositions())}
+        onClick={() => dispatch(toggleAddingPoses())}
         className={buttonClass}
       >
         <BsMagic className="-rotate-90 p-0.5" />
@@ -146,7 +143,7 @@ export const ToolkitTransposeButton = () => {
         content={
           <NavbarTooltipMenu>
             <div className="pb-2 mb-2 w-full text-center font-bold border-b">
-              Transposing by {getTranspositionVectorAsString(filteredVector)}
+              Transposing by {getPoseVectorAsString(filteredVector)}
             </div>
             <div className="w-full h-full py-2 space-y-2">
               {OffsetInputs()}

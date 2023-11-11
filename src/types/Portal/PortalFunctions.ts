@@ -1,12 +1,8 @@
 import { Portal, PortalUpdate, PortaledMedia } from "./PortalTypes";
 import { isArray } from "lodash";
-import {
-  getClipsFromMedia,
-  getTranspositionsFromMedia,
-  MediaClip,
-} from "types/Media";
+import { getClipsFromMedia, getPosesFromMedia, MediaClip } from "types/Media";
 import { Clip, isClip } from "types/Clip";
-import { Transposition } from "types/Transposition";
+import { Pose } from "types/Pose";
 import { isFiniteNumber } from "types/util";
 
 /** Get a `Portal` as a string. */
@@ -136,15 +132,12 @@ export const applyPortalsToClip = (
   return getClipsFromMedia(portaledMedia);
 };
 
-/** Process the transposition through the given portals if it has an explicit duration. */
-export const applyPortalsToTransposition = (
-  transposition: Transposition,
-  portals: Portal[]
-): Transposition[] => {
-  const duration = transposition.duration;
-  if (!isFiniteNumber(duration) || !duration) return [transposition];
-  const portaledMedia = applyPortalsToMedia(transposition, portals, duration);
-  return getTranspositionsFromMedia(portaledMedia);
+/** Process the pose through the given portals if it has an explicit duration. */
+export const applyPortalsToPose = (pose: Pose, portals: Portal[]): Pose[] => {
+  const duration = pose.duration;
+  if (!isFiniteNumber(duration) || !duration) return [pose];
+  const portaledMedia = applyPortalsToMedia(pose, portals, duration);
+  return getPosesFromMedia(portaledMedia);
 };
 
 /** Process the clips through the given portals. */
@@ -157,30 +150,25 @@ export const applyPortalsToClips = (
   return portaledMedia.map(getClipsFromMedia).flat();
 };
 
-/** Process the transpositions through the given portals. */
-export const applyPortalsToTranspositions = (
-  transpositions: Transposition[],
+/** Process the poses through the given portals. */
+export const applyPortalsToPoses = (
+  poses: Pose[],
   portals: Portal[]
-): Transposition[] => {
-  // Filter transpositions into finite and infinite
-  const finiteTranspositions: Transposition[] = [];
-  const infiniteTranspositions: Transposition[] = [];
-  transpositions.forEach((pose) => {
+): Pose[] => {
+  // Filter poses into finite and infinite
+  const finitePoses: Pose[] = [];
+  const infinitePoses: Pose[] = [];
+  poses.forEach((pose) => {
     if (isFiniteNumber(pose.duration) && pose.duration) {
-      finiteTranspositions.push(pose);
+      finitePoses.push(pose);
     } else {
-      infiniteTranspositions.push(pose);
+      infinitePoses.push(pose);
     }
   });
 
-  // Apply portals to finite transpositions
-  const portaledMedia = finiteTranspositions.map((t) =>
-    applyPortalsToTransposition(t, portals)
-  );
+  // Apply portals to finite poses
+  const portaledMedia = finitePoses.map((t) => applyPortalsToPose(t, portals));
 
-  // Return the transpositions
-  return [
-    ...infiniteTranspositions,
-    ...portaledMedia.map(getTranspositionsFromMedia).flat(),
-  ];
+  // Return the poses
+  return [...infinitePoses, ...portaledMedia.map(getPosesFromMedia).flat()];
 };

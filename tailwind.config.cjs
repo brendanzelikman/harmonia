@@ -13,7 +13,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        transposition: "rgb(217 70 239 / 0.8)",
+        pose: "rgb(217 70 239 / 0.8)",
       },
       fontFamily: {
         base: ["Open Sans", "sans-serif"],

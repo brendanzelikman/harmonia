@@ -1,34 +1,26 @@
 import { Transition } from "@headlessui/react";
 
 import { BsCalculator, BsKeyboard, BsPower } from "react-icons/bs";
-import {
-  toggleLiveTransposition,
-  toggleLiveTranspositionMode,
-} from "redux/Timeline";
+import { toggleLivePose, toggleLivePoseMode } from "redux/Timeline";
 import {
   useProjectDispatch,
   useProjectSelector,
   useProjectDeepSelector,
 } from "redux/hooks";
-import {
-  selectSelectedPoses,
-  selectLiveTranspositionSettings,
-} from "redux/selectors";
+import { selectSelectedPoses, selectLivePoseSettings } from "redux/selectors";
 
 export const ToolkitKeypad = () => {
   const dispatch = useProjectDispatch();
 
-  // Get the transpositions
-  const transpositions = useProjectDeepSelector(selectSelectedPoses);
-  const areTranspositionsSelected = !!transpositions.length;
+  // Get the poses
+  const poses = useProjectDeepSelector(selectSelectedPoses);
+  const arePosesSelected = !!poses.length;
 
-  // Get the transposition mode
-  const transpositionSettings = useProjectSelector(
-    selectLiveTranspositionSettings
-  );
-  const transpositionMode = transpositionSettings.mode;
-  const isEnabled = transpositionSettings.enabled;
-  const isNumerical = transpositionMode === "numerical";
+  // Get the pose mode
+  const poseSettings = useProjectSelector(selectLivePoseSettings);
+  const poseMode = poseSettings.mode;
+  const isEnabled = poseSettings.enabled;
+  const isNumerical = poseMode === "numerical";
 
   // Get the numerical shortcuts.
   const NumericalShortcuts = () => {
@@ -121,7 +113,7 @@ export const ToolkitKeypad = () => {
     return (
       <div
         className={`relative ${isEnabled ? "cursor-pointer" : ""}`}
-        onClick={() => dispatch(toggleLiveTranspositionMode())}
+        onClick={() => dispatch(toggleLivePoseMode())}
       >
         {isNumerical ? (
           <BsCalculator className={iconClass} />
@@ -142,12 +134,12 @@ export const ToolkitKeypad = () => {
             ? "text-slate-200 hover:text-pink-300"
             : "pointer-events-none text-slate-300"
         }`}
-        onClick={() => dispatch(toggleLiveTransposition())}
+        onClick={() => dispatch(toggleLivePose())}
       />
     );
   };
 
-  // The transpose label showing the current types of transpositions available.
+  // The transpose label showing the current types of poses available.
   const TransposeLabel = () => {
     return (
       <div className={`w-full flex items-center justify-center space-x-2`}>
@@ -165,12 +157,11 @@ export const ToolkitKeypad = () => {
     ? "bg-fuchsia-500/90 border-fuchsia-200/80 text-white"
     : "bg-slate-500/50 border-slate-300 text-slate-300 opacity-75 hover:opacity-100";
 
-  const onClick = () =>
-    !isEnabled ? dispatch(toggleLiveTransposition()) : null;
+  const onClick = () => (!isEnabled ? dispatch(toggleLivePose()) : null);
 
   return (
     <Transition
-      show={areTranspositionsSelected}
+      show={arePosesSelected}
       enter="transition-all duration-300"
       enterFrom="opacity-0 scale-0"
       enterTo="opacity-100 scale-100"

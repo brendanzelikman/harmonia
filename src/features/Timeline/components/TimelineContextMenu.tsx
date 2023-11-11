@@ -12,7 +12,7 @@ import { createPatternTrackFromSelectedTrack } from "redux/PatternTrack";
 import { createScaleTrack } from "redux/ScaleTrack";
 import {
   createClipFromMediaDraft,
-  createTranspositionFromMediaDraft,
+  createPoseFromMediaDraft,
   exportSelectedClipsToMIDI,
   selectDraftedPose,
   selectMediaClipboard,
@@ -35,8 +35,8 @@ import { CLIP_THEMES, CLIP_COLORS, ClipColor } from "types/Clip";
 import {
   getChordalOffset,
   getChromaticOffset,
-  getTranspositionVectorAsString,
-} from "types/Transposition";
+  getPoseVectorAsString,
+} from "types/Pose";
 
 export function TimelineContextMenu() {
   const dispatch = useProjectDispatch();
@@ -48,7 +48,7 @@ export function TimelineContextMenu() {
   const track = useProjectSelector(selectSelectedTrack);
   const onScaleTrack = track?.type === "patternTrack";
 
-  // Get the drafted transposition
+  // Get the drafted pose
   const { vector } = useProjectDeepSelector(selectDraftedPose);
   const N = getChromaticOffset(vector);
   const chordalTranspose = getChordalOffset(vector);
@@ -158,12 +158,10 @@ export function TimelineContextMenu() {
     disabled: onScaleTrack,
   };
 
-  // Add the currently drafted transposition to the timeline
-  const AddTransposition = {
-    label: `Add ${
-      track ? getTranspositionVectorAsString(vector) : "Transposition"
-    }`,
-    onClick: () => dispatch(createTranspositionFromMediaDraft()),
+  // Add the currently drafted pose to the timeline
+  const AddPose = {
+    label: `Add ${track ? getPoseVectorAsString(vector) : "Transposition"}`,
+    onClick: () => dispatch(createPoseFromMediaDraft()),
     disabled: !track,
     divideEnd: canColor,
   };
@@ -210,7 +208,7 @@ export function TimelineContextMenu() {
     AddScaleTrack,
     AddPatternTrack,
     AddPattern,
-    AddTransposition,
+    AddPose,
     canColor ? ClipColors : null,
   ];
 

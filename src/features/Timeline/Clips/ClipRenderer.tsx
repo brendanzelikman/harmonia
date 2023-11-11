@@ -12,7 +12,7 @@ import {
   useProjectSelector as use,
 } from "redux/hooks";
 import { useMemo } from "react";
-import { selectClipName, selectClipTranspositions } from "redux/Clip";
+import { selectClipName, selectClipPoses } from "redux/Clip";
 import {
   onClipClick,
   selectClipWidth,
@@ -26,7 +26,7 @@ import {
 import { onClipDoubleClick, onMediaDragEnd, sliceMedia } from "redux/thunks";
 import {
   isTimelineAddingClips,
-  isTimelineAddingTranspositions,
+  isTimelineAddingPoses,
   isTimelinePortalingMedia,
   isTimelineSlicingMedia,
 } from "types/Timeline";
@@ -34,11 +34,7 @@ import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { getMidiPitch } from "utils/midi";
 import { selectPortaledClipStream } from "redux/Arrangement";
 import { selectTrackById } from "redux/Track";
-import {
-  TRANSPOSITION_HEIGHT,
-  MIN_VELOCITY,
-  MAX_VELOCITY,
-} from "utils/constants";
+import { POSE_HEIGHT, MIN_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { getTickColumns } from "utils/durations";
 import { normalize } from "utils/math";
 import classNames from "classnames";
@@ -82,7 +78,7 @@ export function ClipRenderer(props: ClipRendererProps) {
   const isAdding = isTimelineAddingClips(timeline);
   const isSlicing = isTimelineSlicingMedia(timeline);
   const isPortaling = isTimelinePortalingMedia(timeline);
-  const isTransposing = isTimelineAddingTranspositions(timeline);
+  const isTransposing = isTimelineAddingPoses(timeline);
   const isDraggingOther = draggingPose || draggingPortal;
 
   // Clip info
@@ -90,15 +86,15 @@ export function ClipRenderer(props: ClipRendererProps) {
   const name = use((_) => selectClipName(_, clip.id));
   const stream = useDeep((_) => selectPortaledClipStream(_, chunkId));
   const track = use((_) => selectTrackById(_, clip.trackId));
-  const clipPoses = useDeep((_) => selectClipTranspositions(_, clip.id));
+  const clipPoses = useDeep((_) => selectClipPoses(_, clip.id));
   const isShort =
     dragState.draggingPose || isTransposing || clipPoses.length > 0;
 
   // Clip dimensions
   const trackTop = use((_) => selectTrackedObjectTop(_, clip));
   const trackHeight = use((_) => selectTimelineObjectHeight(_, clip));
-  const top = isShort ? trackTop + TRANSPOSITION_HEIGHT : trackTop;
-  const height = isShort ? trackHeight - TRANSPOSITION_HEIGHT : trackHeight;
+  const top = isShort ? trackTop + POSE_HEIGHT : trackTop;
+  const height = isShort ? trackHeight - POSE_HEIGHT : trackHeight;
   const width = use((_) => selectClipWidth(_, clip));
   const left = use((_) => selectTimelineTickLeft(_, clip?.tick));
   const nameHeight = 24;

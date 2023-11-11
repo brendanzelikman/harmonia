@@ -20,7 +20,7 @@ import {
 import { TrackFormatter } from "./Track";
 import { TimelineHeaderRenderer } from "./Header";
 import { PortaledClips } from "./Clips";
-import { PortaledTranspositions } from "./Transpositions";
+import { PortaledPoses } from "./Poses";
 import { TimelineContextMenu } from "./components/TimelineContextMenu";
 import { TimelineGraphics } from "./components/TimelineGraphics";
 import { useTimelineHotkeys } from "./hooks/useTimelineHotkeys";
@@ -190,7 +190,7 @@ export function Timeline() {
       <>
         <TimelineGraphics timeline={timeline} />
         <PortaledClips timeline={timeline} />
-        <PortaledTranspositions timeline={timeline} />
+        <PortaledPoses timeline={timeline} />
         <TimelinePortals timeline={timeline} />
       </>
     );

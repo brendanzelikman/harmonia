@@ -1,6 +1,6 @@
 import { Clip } from "../Clip";
 import { Track, TrackId } from "../Track";
-import { Transposition } from "../Transposition";
+import { Pose } from "../Pose";
 import {
   TrackHierarchy,
   TrackNode,
@@ -8,14 +8,14 @@ import {
   initializeTrackHierarchy,
 } from "./TrackHierarchyTypes";
 
-/** Create a `TrackHierarchy` from the given tracks, clips, and transpositions. */
+/** Create a `TrackHierarchy` from the given tracks, clips, and poses. */
 export const createTrackHierarchy = (props: {
   tracks?: Track[];
   clips?: Clip[];
-  transpositions?: Transposition[];
+  poses?: Pose[];
 }): TrackHierarchy => {
   const hierarchy = initializeTrackHierarchy();
-  const { tracks, clips, transpositions } = props;
+  const { tracks, clips, poses } = props;
   const trackCount = tracks?.length ?? 0;
   if (!tracks || !trackCount) return hierarchy;
 
@@ -46,7 +46,7 @@ export const createTrackHierarchy = (props: {
         depth: 0,
         trackIds: [],
         clipIds: [],
-        transpositionIds: [],
+        poseIds: [],
       };
 
       // If the track is a top-level track, add it to the top-level IDs.
@@ -76,13 +76,13 @@ export const createTrackHierarchy = (props: {
       node.clipIds.push(id);
     });
 
-  // Add all transpositions to their respective tracks.
-  if (transpositions?.length)
-    transpositions.forEach((transposition) => {
-      const { id, trackId } = transposition;
+  // Add all poses to their respective tracks.
+  if (poses?.length)
+    poses.forEach((pose) => {
+      const { id, trackId } = pose;
       const node = hierarchy.byId[trackId];
       if (!node) return;
-      node.transpositionIds.push(id);
+      node.poseIds.push(id);
     });
 
   // Return the hierarchy.
@@ -109,10 +109,7 @@ export const getTrackClipIds = (id: TrackId, trackNodeMap?: TrackNodeMap) => {
   return trackNodeMap?.[id]?.clipIds ?? [];
 };
 
-/** Get the transposition IDs of a track by ID. */
-export const getTrackTranspositionIds = (
-  id: TrackId,
-  trackNodeMap?: TrackNodeMap
-) => {
-  return trackNodeMap?.[id]?.transpositionIds ?? [];
+/** Get the pose IDs of a track by ID. */
+export const getTrackPoseIds = (id: TrackId, trackNodeMap?: TrackNodeMap) => {
+  return trackNodeMap?.[id]?.poseIds ?? [];
 };

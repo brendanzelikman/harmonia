@@ -1,7 +1,7 @@
 import { UpdateInstrumentPayload, updateInstrument } from "redux/Instrument";
 import { MAX_VOLUME, MIN_VOLUME } from "utils/constants";
 import { throttle } from "lodash";
-import { TranspositionVector } from "types/Transposition";
+import { PoseVector } from "types/Pose";
 import { ControlChangeMessageEvent, MessageEvent, WebMidi } from "webmidi";
 import { useCallback, useEffect } from "react";
 import {
@@ -19,7 +19,7 @@ import {
   useProjectDispatch,
 } from "redux/hooks";
 import { normalize, mod } from "utils/math";
-import { updateSelectedTranspositions } from "redux/Transposition";
+import { updateSelectedPoses } from "redux/Pose";
 import {
   stopTransport,
   pauseTransport,
@@ -72,9 +72,9 @@ export function useMidiController() {
     [throttledUpdates]
   );
 
-  // Throttle the transposition updates to avoid lag
-  const handleTranspositionUpdate = throttle(
-    (obj: TranspositionVector) => dispatch(updateSelectedTranspositions(obj)),
+  // Throttle the pose updates to avoid lag
+  const handlePoseUpdate = throttle(
+    (obj: PoseVector) => dispatch(updateSelectedPoses(obj)),
     50,
     { trailing: true }
   );
@@ -92,7 +92,7 @@ export function useMidiController() {
         const normalValue = normalize(e.message.data?.[2], 0, 127);
         const pitchRange = 12;
         const offset = Math.floor(normalValue * pitchRange) - pitchRange / 2;
-        handleTranspositionUpdate({ chromatic: offset });
+        handlePoseUpdate({ chromatic: offset });
         return;
       }
 
@@ -103,7 +103,7 @@ export function useMidiController() {
         const chordalRange = 12;
         const offset =
           Math.floor(normalValue * chordalRange) - chordalRange / 2;
-        handleTranspositionUpdate({ chordal: offset });
+        handlePoseUpdate({ chordal: offset });
         return;
       }
 
@@ -127,7 +127,7 @@ export function useMidiController() {
         return;
       }
     },
-    [trackIndex, transport, handleTranspositionUpdate]
+    [trackIndex, transport, handlePoseUpdate]
   );
 
   // Add a listener for control change messages

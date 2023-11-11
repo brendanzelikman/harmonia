@@ -4,7 +4,7 @@ import { PATTERN_UNDO_TYPES } from "./Pattern/PatternUndoTypes";
 import { PATTERN_TRACK_UNDO_TYPES } from "./PatternTrack/PatternTrackUndoTypes";
 import { SCALE_UNDO_TYPES } from "./Scale/ScaleUndoTypes";
 import { SCALE_TRACK_UNDO_TYPES } from "./ScaleTrack/ScaleTrackUndoTypes";
-import { TRANSPOSITION_UNDO_TYPES } from "./Transposition/TranspositionUndoTypes";
+import { POSE_UNDO_TYPES } from "./Pose/PoseUndoTypes";
 import { TRACK_HIERARCHY_UNDO_TYPES } from "./TrackHierarchy/TrackHierarchyUndoTypes";
 import { INSTRUMENT_UNDO_TYPES } from "./Instrument/InstrumentUndoTypes";
 import { isSliceAction } from "./util";
@@ -32,8 +32,8 @@ export const groupByActionType = (action: PayloadAction) => {
   if (isActionTyped("clips")) {
     return CLIP_UNDO_TYPES[type]?.(action) || type;
   }
-  if (isActionTyped("transpositions")) {
-    return TRANSPOSITION_UNDO_TYPES[type]?.(action) || type;
+  if (isActionTyped("poses")) {
+    return POSE_UNDO_TYPES[type]?.(action) || type;
   }
   if (isActionTyped("portals")) {
     return PORTAL_UNDO_TYPES[type]?.(action) || type;

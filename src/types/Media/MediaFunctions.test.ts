@@ -1,7 +1,7 @@
 import { test, expect } from "vitest";
 import * as _ from "./MediaFunctions";
 import { initializeClip, mockClip } from "types/Clip";
-import { initializePose, mockPose } from "types/Transposition";
+import { initializePose, mockPose } from "types/Pose";
 import { initializePatternTrack } from "types/PatternTrack";
 import { createMap } from "utils/objects";
 import { initializeScaleTrack } from "types/ScaleTrack";
@@ -12,12 +12,10 @@ test("getMediaClips should only include clips", () => {
   expect(_.getClipsFromMedia([mockPose])).toEqual([]);
 });
 
-test("getMediaTranspositions should only include transpositions", () => {
-  expect(_.getTranspositionsFromMedia([mockClip, mockPose])).toEqual([
-    mockPose,
-  ]);
-  expect(_.getTranspositionsFromMedia([mockClip])).toEqual([]);
-  expect(_.getTranspositionsFromMedia([mockPose])).toEqual([mockPose]);
+test("getMediaPoses should only include poses", () => {
+  expect(_.getPosesFromMedia([mockClip, mockPose])).toEqual([mockPose]);
+  expect(_.getPosesFromMedia([mockClip])).toEqual([]);
+  expect(_.getPosesFromMedia([mockPose])).toEqual([mockPose]);
 });
 
 test("sortMedia should correctly sort the media by tick", () => {

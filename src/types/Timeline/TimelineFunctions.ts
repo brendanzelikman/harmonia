@@ -13,9 +13,9 @@ export const isTimelineAddingClips = (timeline: Timeline) => {
   return timeline.state === "addingClips";
 };
 
-/** Checks if the user is adding transpositions. */
-export const isTimelineAddingTranspositions = (timeline: Timeline) => {
-  return timeline.state === "addingTranspositions";
+/** Checks if the user is adding poses. */
+export const isTimelineAddingPoses = (timeline: Timeline) => {
+  return timeline.state === "addingPoses";
 };
 
 /** Checks if the user is slicing media. */
@@ -41,7 +41,7 @@ export const isTimelineIdle = (timeline: Timeline) => {
 /** Checks if the user is live. */
 export const isTimelineLive = (timeline: Timeline) => {
   const hasPoses = !!timeline.mediaSelection.poseIds.length;
-  const isActive = timeline.liveTranspositionSettings.enabled;
+  const isActive = timeline.livePoseSettings.enabled;
   return hasPoses && isActive;
 };
 

@@ -19,10 +19,10 @@ import {
   updateInstrument,
 } from "redux/Instrument";
 import {
-  clearTranspositionsByTrackId,
-  removeTranspositionsByTrackId,
-  selectTranspositionsByIds,
-} from "redux/Transposition";
+  clearPosesByTrackId,
+  removePosesByTrackId,
+  selectPosesByIds,
+} from "redux/Pose";
 import {
   createScaleTrack,
   moveScaleTrack,
@@ -94,7 +94,7 @@ export const clearTrack =
   (dispatch) => {
     if (!trackId) return;
     dispatch(clearClipsByTrackId(trackId));
-    dispatch(clearTranspositionsByTrackId(trackId));
+    dispatch(clearPosesByTrackId(trackId));
     dispatch(clearPortalsByTrackId(trackId));
     dispatch(Hierarchy.clearTrackInHierarchy(trackId));
   };
@@ -109,7 +109,7 @@ export const deleteTrack =
 
     // Remove all media elements
     dispatch(removeClipsByTrackId({ id, originalId }));
-    dispatch(removeTranspositionsByTrackId({ id, originalId }));
+    dispatch(removePosesByTrackId({ id, originalId }));
     dispatch(removePortalsByTrackId({ id, originalId }));
 
     // Remove all child tracks
@@ -277,13 +277,10 @@ export const duplicateTrack =
 
     // Duplicate the original track's media
     const clips = selectClipsByIds(project, trackNode.clipIds);
-    const transpositions = selectTranspositionsByIds(
-      project,
-      trackNode.transpositionIds
-    );
+    const poses = selectPosesByIds(project, trackNode.poseIds);
     const newClips = clips.map((c) => ({ ...c, trackId }));
-    const newTranspositions = transpositions.map((t) => ({ ...t, trackId }));
-    const payload = { clips: newClips, transpositions: newTranspositions };
+    const newPoses = poses.map((t) => ({ ...t, trackId }));
+    const payload = { clips: newClips, poses: newPoses };
     dispatch(createMedia(payload));
 
     // Duplicate the original track's children if it has any
@@ -300,19 +297,16 @@ export const duplicateTrack =
 
         // Add the track's media
         const clipIds = trackNodeMap[child.id]?.clipIds;
-        const transpositionIds = trackNodeMap[child.id]?.transpositionIds;
-        if (!clipIds || !transpositionIds) return;
+        const poseIds = trackNodeMap[child.id]?.poseIds;
+        if (!clipIds || !poseIds) return;
         const clips = selectClipsByIds(project, clipIds);
-        const transpositions = selectTranspositionsByIds(
-          project,
-          transpositionIds
-        );
+        const poses = selectPosesByIds(project, poseIds);
         const newClips = clips.map((c) => ({ ...c, trackId: newParentId }));
-        const newTranspositions = transpositions.map((t) => ({
+        const newPoses = poses.map((t) => ({
           ...t,
           trackId: newParentId,
         }));
-        const payload = { clips: newClips, transpositions: newTranspositions };
+        const payload = { clips: newClips, poses: newPoses };
         dispatch(createMedia(payload));
 
         // Add the track's children

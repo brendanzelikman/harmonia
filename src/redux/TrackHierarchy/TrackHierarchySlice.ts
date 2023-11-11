@@ -7,7 +7,7 @@ import {
   UpdateMediaPayload,
 } from "types/Media";
 import { RemoveTrackPayload, TrackId, TrackInterface } from "types/Track";
-import { isTransposition } from "types/Transposition";
+import { isPose } from "types/Pose";
 
 // ------------------------------------------------------------
 // Track Payload Types
@@ -89,7 +89,7 @@ export const trackHierarchySlice = createSlice({
         depth: 0,
         trackIds: [],
         clipIds: [],
-        transpositionIds: [],
+        poseIds: [],
       };
 
       // If there is a parent, add the scale track to the parent
@@ -151,7 +151,7 @@ export const trackHierarchySlice = createSlice({
         type,
         trackIds: [],
         clipIds: [],
-        transpositionIds: [],
+        poseIds: [],
       };
 
       // If there is a parent, add the pattern track to the parent
@@ -288,7 +288,7 @@ export const trackHierarchySlice = createSlice({
       const track = state.byId[id];
       if (!track) return;
       track.clipIds = [];
-      track.transpositionIds = [];
+      track.poseIds = [];
     },
     /** Add media to the hierarchy. */
     addMediaToHierarchy: (
@@ -299,7 +299,7 @@ export const trackHierarchySlice = createSlice({
 
       // Add the clips to their respective tracks
       const clipsByTrack = getObjectsByTrack(clips);
-      const transpositionsByTrack = getObjectsByTrack(poses);
+      const posesByTrack = getObjectsByTrack(poses);
 
       // Add the clips to their respective tracks
       Object.keys(clipsByTrack).forEach((trackId) => {
@@ -310,16 +310,13 @@ export const trackHierarchySlice = createSlice({
         track.clipIds = union(track.clipIds, clipIds);
       });
 
-      // Add the transpositions to their respective tracks
-      Object.keys(transpositionsByTrack).forEach((trackId) => {
+      // Add the poses to their respective tracks
+      Object.keys(posesByTrack).forEach((trackId) => {
         const track = state.byId[trackId];
         if (!track) return;
-        const transpositionIds = transpositionsByTrack[trackId];
+        const poseIds = posesByTrack[trackId];
         if (!poses?.length) return;
-        track.transpositionIds = union(
-          track.transpositionIds,
-          transpositionIds
-        );
+        track.poseIds = union(track.poseIds, poseIds);
       });
     },
     /** Update media in the hierarchy, changing track IDs where necessary. */
@@ -336,7 +333,7 @@ export const trackHierarchySlice = createSlice({
         if (!id || !trackId) continue;
         const trackNode = state.byId[trackId];
         if (!trackNode) continue;
-        const field = isTransposition(item) ? "transpositionIds" : "clipIds";
+        const field = isPose(item) ? "poseIds" : "clipIds";
         if (trackNode[field].includes(id)) continue;
 
         // Remove the clip from its old track
@@ -363,7 +360,7 @@ export const trackHierarchySlice = createSlice({
         const track = state.byId[trackId];
         if (!track) return;
         track.clipIds = without(track.clipIds, ...clipIds);
-        track.transpositionIds = without(track.transpositionIds, ...poseIds);
+        track.poseIds = without(track.poseIds, ...poseIds);
       });
     },
     /** Slice a media clip into two new clips. */
@@ -382,7 +379,7 @@ export const trackHierarchySlice = createSlice({
           trackId = id;
           break;
         }
-        if (trackNode.transpositionIds.includes(oldId)) {
+        if (trackNode.poseIds.includes(oldId)) {
           isClip = false;
           trackId = id;
           break;
@@ -396,8 +393,8 @@ export const trackHierarchySlice = createSlice({
         track.clipIds = union(track.clipIds, newIds);
         track.clipIds = without(track.clipIds, oldId);
       } else {
-        track.transpositionIds = union(track.transpositionIds, newIds);
-        track.transpositionIds = without(track.transpositionIds, oldId);
+        track.poseIds = union(track.poseIds, newIds);
+        track.poseIds = without(track.poseIds, oldId);
       }
     },
   },

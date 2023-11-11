@@ -19,10 +19,7 @@ import { TrackArrangement } from "types/Arrangement";
 import { ScaleMap } from "types/Scale";
 import { getTrackScaleChain } from "types/Track";
 import { getValuesByKeys } from "utils/objects";
-import {
-  getCurrentTransposition,
-  getTranspositionScaleVector,
-} from "types/Transposition";
+import { getCurrentPose, getPoseScaleVector } from "types/Pose";
 import { parsePortalChunkId } from "types/Portal";
 
 // ------------------------------------------------------------
@@ -81,7 +78,7 @@ export const getClipStream = (
   const { trackId } = clip;
   const { pattern, scales, ...arrangement } = deps;
   const scaleTracks = arrangement?.scaleTracks ?? {};
-  const poseMap = arrangement?.transpositions ?? {};
+  const poseMap = arrangement?.poses ?? {};
   if (!pattern) return [];
 
   // Initialize the loop variables
@@ -99,10 +96,10 @@ export const getClipStream = (
     blockCount += 1;
   }
 
-  // Try to find the transpositions of the clip's track
+  // Try to find the poses of the clip's track
   const trackNode = arrangement?.tracks?.[trackId];
   const poseIds = Object.keys(poseMap).filter((id) =>
-    trackNode?.transpositionIds?.includes(parsePortalChunkId(id))
+    trackNode?.poseIds?.includes(parsePortalChunkId(id))
   );
   const poses = getValuesByKeys(poseMap, poseIds);
 
@@ -127,10 +124,10 @@ export const getClipStream = (
       continue;
     }
 
-    // Otherwise, transpose the pattern stream using the clip's current transposition
+    // Otherwise, transpose the pattern stream using the clip's current pose
     const tick = clip.tick + i;
-    const pose = getCurrentTransposition(poses, tick);
-    const vector = getTranspositionScaleVector(pose, scaleTracks);
+    const pose = getCurrentPose(poses, tick);
+    const vector = getPoseScaleVector(pose, scaleTracks);
     const currentStream = getTransposedPatternStream(pattern.stream, vector);
 
     // Get the transposed scale chain using the arrangement at the current tick
@@ -138,7 +135,7 @@ export const getClipStream = (
     const chain = getTrackScaleChain(trackId, chainDeps);
 
     // Get the resolved MIDI stream using the current stream and scale chain.
-    // The transposition is provided to apply chromatic/chordal offsets at the end.
+    // The pose is provided to apply chromatic/chordal offsets at the end.
     const newStream = resolvePatternStreamToMidi(currentStream, chain, pose);
     const newChord = newStream[blockCount - 1];
     stream.push(newChord);

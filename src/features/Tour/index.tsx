@@ -146,8 +146,8 @@ export function OnboardingTour() {
   const Solo = `<span class="text-yellow-300">Solo</span>`;
   const Clip = `<span class="text-teal-400">Clip</span>`;
   const Clips = `<span class="text-teal-400">Clips</span>`;
-  const Transposition = `<span class="text-fuchsia-500">Transposition</span>`;
-  const Transpositions = `<span class="text-fuchsia-500">Transpositions</span>`;
+  const Pose = `<span class="text-fuchsia-500">Transposition</span>`;
+  const Poses = `<span class="text-fuchsia-500">Transpositions</span>`;
   const Pencil = `<span class="text-emerald-400">Pencil</span>`;
   const Brush = `<span class="text-teal-400">Brush</span>`;
   const Wand = `<span class="text-fuchsia-500">Wand</span>`;
@@ -330,23 +330,23 @@ export function OnboardingTour() {
     });
   }, [ensureTimelineState]);
 
-  /** Tour Step: Adding Transpositions */
-  const step_addingTranspositions = useMemo(() => {
-    const id = "tour-step-adding-transpositions";
+  /** Tour Step: Adding Poses */
+  const step_addingPoses = useMemo(() => {
+    const id = "tour-step-adding-poses";
     const text = createText({
       title: "Adding Transpositions to Tracks",
-      text: `Here comes the fun part! You can add a ${Transposition} by 
+      text: `Here comes the fun part! You can add a ${Pose} by 
       clicking on the ${Wand}, customizing it in the dropdown menu, and selecting any beat in the grid.`,
       list: [
-        `<li>• A ${Transposition} can be arranged within a ${ScaleTrack} or a ${PatternTrack}.</li>`,
-        `<li>• A ${Transposition} can be applied chromatically, chordally, or along any parent scale.</li>`,
-        `<li>• A ${Transposition} will be applied indefinitely unless a duration is specified.</li>`,
+        `<li>• A ${Pose} can be arranged within a ${ScaleTrack} or a ${PatternTrack}.</li>`,
+        `<li>• A ${Pose} can be applied chromatically, chordally, or along any parent scale.</li>`,
+        `<li>• A ${Pose} will be applied indefinitely unless a duration is specified.</li>`,
       ],
     });
     return createStep({
       id,
       text,
-      beforeShowPromise: ensureTimelineState(id, "addingTranspositions"),
+      beforeShowPromise: ensureTimelineState(id, "addingPoses"),
     });
   }, [ensureTimelineState]);
 
@@ -404,7 +404,7 @@ export function OnboardingTour() {
     step_patternEditorIntro,
     step_patternEditorConclusion,
     step_addingClips,
-    step_addingTranspositions,
+    step_addingPoses,
     step_savingWork,
     step_confetti,
   ];

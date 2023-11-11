@@ -76,8 +76,8 @@ export function useTimelineHotkeys() {
   // A = Toggle Adding Clip
   useHotkeys("a", () => dispatch(Timeline.toggleAddingClips()));
 
-  // T = Toggle Adding Transpositions
-  useHotkeys("t", () => dispatch(Timeline.toggleAddingTranspositions()));
+  // T = Toggle Adding Poses
+  useHotkeys("t", () => dispatch(Timeline.toggleAddingPoses()));
 
   // Alt + C = Toggle Slicing Media
   useHotkeys("alt+s", () => dispatch(Timeline.toggleSlicingMedia()));

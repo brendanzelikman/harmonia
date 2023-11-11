@@ -2,13 +2,9 @@ import { Track, TrackMap, TrackInterface, TrackId } from "./TrackTypes";
 import { isScaleTrack, ScaleTrack } from "types/ScaleTrack";
 import { Tick } from "types/units";
 import { ScaleMap, chromaticScale, getTransposedScale } from "types/Scale";
-import {
-  Transposition,
-  getCurrentTransposition,
-  getTranspositionOffsetById,
-} from "types/Transposition";
+import { Pose, getCurrentPose, getPoseOffsetById } from "types/Pose";
 import { TrackArrangement } from "types/Arrangement";
-import { getTrackTranspositionIds } from "types/TrackHierarchy";
+import { getTrackPoseIds } from "types/TrackHierarchy";
 import { getKeys } from "utils/objects";
 
 // ------------------------------------------------------------
@@ -110,13 +106,13 @@ export const getTrackScaleChain = (
   const chainLength = trackChain.length;
   if (!chainLength) return defaultChain;
 
-  // Get the track's transpositions if the tick is specified
+  // Get the track's poses if the tick is specified
   const noTick = tick === undefined;
   const trackChainPoseIds = noTick
     ? []
-    : trackChain.map((t) => getTrackTranspositionIds(t.id, nodes));
+    : trackChain.map((t) => getTrackPoseIds(t.id, nodes));
 
-  // Iterate down child scale tracks and apply transpositions if they exist
+  // Iterate down child scale tracks and apply poses if they exist
   const newChain = [];
   for (let i = 0; i < chainLength; i++) {
     // Get the track and scale
@@ -129,27 +125,27 @@ export const getTrackScaleChain = (
       continue;
     }
 
-    // Try to get the transposition at the current tick
+    // Try to get the pose at the current tick
     const poseIds = trackChainPoseIds[i];
     const poses = poseIds
-      .map((id) => arrangement.transpositions?.[id])
-      .filter(Boolean) as Transposition[];
-    const pose = getCurrentTransposition(poses, tick, false);
+      .map((id) => arrangement.poses?.[id])
+      .filter(Boolean) as Pose[];
+    const pose = getCurrentPose(poses, tick, false);
 
-    // If no transposition exists, just push the scale
+    // If no pose exists, just push the scale
     if (pose === undefined) {
       newChain.push(scale);
       continue;
     }
 
-    // Otherwise, transpose the scale by every offset in the transposition
+    // Otherwise, transpose the scale by every offset in the pose
     const vectorKeys = getKeys(pose.vector);
     let newScale = scale;
 
     // Iterate through the offsets and transpose the scale
     for (const id of vectorKeys) {
-      // Get the offset from the transposition vector
-      const offset = getTranspositionOffsetById(pose.vector, id);
+      // Get the offset from the pose vector
+      const offset = getPoseOffsetById(pose.vector, id);
 
       // Get the parent scale from the new chain (to iteratively transpose)
       const parentScale = i > 0 ? newChain[i - 1] : undefined;

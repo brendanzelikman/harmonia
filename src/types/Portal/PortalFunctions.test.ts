@@ -3,7 +3,7 @@ import * as _ from "./PortalFunctions";
 import { initializeClip, isClip } from "types/Clip";
 import { initializePortal, initializePortalFromFragments } from "./PortalTypes";
 import { getClipsFromMedia } from "types/Media";
-import { initializeTransposition } from "types/Transposition";
+import { initializePose } from "types/Pose";
 
 test("createPortalChunk should correctly append a tag to the media's ID", () => {
   const clip = initializeClip({ trackId: "track1" });
@@ -222,8 +222,8 @@ test("applyPortalsToClip should return the correct clip chunks", () => {
   expect(clips[1].offset).toBe(5);
 });
 
-test("getPortaledTransposition should return the correct transposition chunks", () => {
-  const pose = initializeTransposition({ trackId: "track1", duration: 10 });
+test("getPortaledPose should return the correct pose chunks", () => {
+  const pose = initializePose({ trackId: "track1", duration: 10 });
   const portal = initializePortal({
     tick: 5,
     trackId: "track1",
@@ -231,7 +231,7 @@ test("getPortaledTransposition should return the correct transposition chunks", 
     portaledTrackId: "track2",
   });
 
-  const poses = _.applyPortalsToTransposition(pose, [portal]);
+  const poses = _.applyPortalsToPose(pose, [portal]);
   expect(poses.length).toBe(2);
 
   // Check the first pose
@@ -245,8 +245,8 @@ test("getPortaledTransposition should return the correct transposition chunks", 
   expect(poses[1].duration).toBe(5);
 });
 
-test("getPortaledTransposition should ignore the portal if the transposition has infinite duration", () => {
-  const pose = initializeTransposition({ trackId: "track1" });
+test("getPortaledPose should ignore the portal if the pose has infinite duration", () => {
+  const pose = initializePose({ trackId: "track1" });
   const portal = initializePortal({
     tick: 5,
     trackId: "track1",
@@ -254,7 +254,7 @@ test("getPortaledTransposition should ignore the portal if the transposition has
     portaledTrackId: "track2",
   });
 
-  const poses = _.applyPortalsToTransposition(pose, [portal]);
+  const poses = _.applyPortalsToPose(pose, [portal]);
   expect(poses.length).toBe(1);
 
   // Check the first pose

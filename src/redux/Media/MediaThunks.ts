@@ -1,6 +1,6 @@
 import * as Patterns from "redux/Pattern";
 import * as Clips from "redux/Clip";
-import * as Poses from "redux/Transposition";
+import * as Poses from "redux/Pose";
 import * as Hierarchy from "redux/TrackHierarchy";
 import * as Timeline from "redux/Timeline";
 import { Thunk } from "types/Project";
@@ -9,7 +9,7 @@ import {
   getOffsettedMedia,
   getValidMedia,
   getClipsFromMedia,
-  getTranspositionsFromMedia,
+  getPosesFromMedia,
   getDuplicatedMedia,
   getMediaDuration,
   MediaClip,
@@ -20,11 +20,7 @@ import {
   MediaElement,
 } from "types/Media";
 import { isNumber, union, unionBy, without } from "lodash";
-import {
-  Transposition,
-  TranspositionUpdate,
-  initializeTransposition,
-} from "types/Transposition";
+import { Pose, PoseUpdate, initializePose } from "types/Pose";
 import { Clip, ClipUpdate, initializeClip } from "types/Clip";
 import { selectSubdivisionTicks } from "redux/Timeline";
 import {
@@ -63,13 +59,13 @@ export const createMedia =
   (dispatch) => {
     // Initialize the media
     const clips = (update.clips || []).map(initializeClip);
-    const poses = (update.poses || []).map(initializeTransposition);
+    const poses = (update.poses || []).map(initializePose);
     const portals = (update.portals || []).map(initializePortal);
     const payload = { clips, poses, portals };
 
     // Add the media to the respective slices and track hierarchy
     dispatch(Clips.addClips(payload));
-    dispatch(Poses.addTranspositions(payload));
+    dispatch(Poses.addPoses(payload));
     dispatch(Portals.addPortals(payload));
     dispatch(Hierarchy.addMediaToHierarchy(payload));
 
@@ -86,7 +82,7 @@ export const updateMedia =
   (dispatch) => {
     // Update the media in the respective slices
     dispatch(Clips.updateClips(payload));
-    dispatch(Poses.updateTranspositions(payload));
+    dispatch(Poses.updatePoses(payload));
     dispatch(Portals.updatePortals(payload));
 
     // Update the media in the track hierarchy
@@ -109,7 +105,7 @@ export const deleteMedia =
 
     // Delete the media from the slices and hierarchy
     dispatch(Clips.removeClips(payload));
-    dispatch(Poses.removeTranspositions(payload));
+    dispatch(Poses.removePoses(payload));
     dispatch(Portals.removePortals(payload));
     dispatch(Hierarchy.removeMediaFromHierarchy(payload));
   };
@@ -118,7 +114,7 @@ export const deleteMedia =
 export const addAllMediaToSelection = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const clipIds = Clips.selectClipIds(project);
-  const poseIds = Poses.selectTranspositionIds(project);
+  const poseIds = Poses.selectPoseIds(project);
   const portalIds = selectPortalIds(project);
   dispatch(Timeline.updateMediaSelection({ clipIds, poseIds, portalIds }));
 };
@@ -186,7 +182,7 @@ export const pasteSelectedMedia =
 
     // Prepare the new media
     const clips = getClipsFromMedia(validMedia);
-    const poses = getTranspositionsFromMedia(validMedia);
+    const poses = getPosesFromMedia(validMedia);
     const portals = getPortalsFromMedia(validMedia);
 
     // Create the new media
@@ -207,9 +203,9 @@ export const duplicateSelectedMedia =
     const clips = Timeline.selectSelectedClips(project);
     const clipDurations = Clips.selectClipDurations(project, clipIds);
 
-    // Get the selected transpositions and their durations
+    // Get the selected poses and their durations
     const poses = Timeline.selectSelectedPoses(project);
-    const poseDurations = Poses.selectTranspositionDurations(project, poseIds);
+    const poseDurations = Poses.selectPoseDurations(project, poseIds);
 
     // Get the selected portals
     const portals = Timeline.selectSelectedPortals(project);
@@ -225,7 +221,7 @@ export const duplicateSelectedMedia =
 
     // Create and select the new media
     const newClips = getClipsFromMedia(duplicatedMedia);
-    const newPoses = getTranspositionsFromMedia(duplicatedMedia);
+    const newPoses = getPosesFromMedia(duplicatedMedia);
     const newPortals = getPortalsFromMedia(duplicatedMedia);
     const mediaIds = dispatch(
       createMedia({
@@ -300,11 +296,11 @@ export const moveSelectedMedia =
 
     // Update the media
     const newClips = getClipsFromMedia(mediaClips);
-    const newTranspositions = getTranspositionsFromMedia(mediaClips);
+    const newPoses = getPosesFromMedia(mediaClips);
     dispatch(
       updateMedia({
         clips: newClips,
-        poses: newTranspositions,
+        poses: newPoses,
         portals: newPortals,
       })
     );
@@ -362,9 +358,9 @@ export const sliceMedia =
 
     // Get the media from the store
     const oldClip = Clips.selectClipById(project, media.id);
-    const oldTransposition = Poses.selectTranspositionById(project, media.id);
-    if (!oldClip && !oldTransposition) return;
-    const oldMedia = (oldClip || oldTransposition) as MediaClip;
+    const oldPose = Poses.selectPoseById(project, media.id);
+    if (!oldClip && !oldPose) return;
+    const oldMedia = (oldClip || oldPose) as MediaClip;
     const isClip = !!oldClip;
 
     // Get the duration of the media
@@ -372,7 +368,7 @@ export const sliceMedia =
       [oldMedia],
       isClip
         ? [selectClipDuration(project, oldMedia.id)]
-        : [Poses.selectTranspositionDuration(project, oldMedia.id)]
+        : [Poses.selectPoseDuration(project, oldMedia.id)]
     );
 
     // Find the tick to split the clip at
@@ -383,7 +379,7 @@ export const sliceMedia =
     // Create the first item lasting until the split tick.
     const firstMedia: MediaClip = isClip
       ? initializeClip({ ...oldClip, duration: splitTick })
-      : initializeTransposition({ ...oldTransposition, duration: splitTick });
+      : initializePose({ ...oldPose, duration: splitTick });
 
     // Create the second item lasting from the split tick until the end.
     const secondMedia: MediaClip = isClip
@@ -393,8 +389,8 @@ export const sliceMedia =
           offset: oldClip.offset + splitTick,
           duration: duration - splitTick,
         })
-      : initializeTransposition({
-          ...oldTransposition,
+      : initializePose({
+          ...oldPose,
           tick,
           duration: isNumber(oldMedia.duration)
             ? duration - splitTick
@@ -426,13 +422,13 @@ export const sliceMedia =
       };
       dispatch(Clips._sliceClip(clipPayload));
     } else {
-      if (!oldTransposition) return;
-      const transpositionPayload = {
-        oldTransposition,
-        firstTransposition: firstMedia as Transposition,
-        secondTransposition: secondMedia as Transposition,
+      if (!oldPose) return;
+      const posePayload = {
+        oldPose,
+        firstPose: firstMedia as Pose,
+        secondPose: secondMedia as Pose,
       };
-      dispatch(Poses._sliceTransposition(transpositionPayload));
+      dispatch(Poses._slicePose(posePayload));
     }
 
     // Slice the media in the hierarchy
@@ -518,7 +514,7 @@ export const mergeSelectedMedia =
     dispatch(deleteMedia({ clipIds, poseIds, portalIds: [] }));
   };
 
-/** The handler for when a transposition is dragged. */
+/** The handler for when a media clip is dragged. */
 export const onMediaDragEnd =
   (item: any, monitor: any): Thunk =>
   (dispatch, getProject) => {
@@ -531,7 +527,7 @@ export const onMediaDragEnd =
 
     // Get the value from the item
     const element: MediaElement =
-      item.clip || item.transposition || item.portalEntry || item.portalExit;
+      item.clip || item.pose || item.portalEntry || item.portalExit;
 
     // Compute the offset of the drag from the element's trackId
     const rowIndex = orderedTrackIds.indexOf(element.trackId);
@@ -553,8 +549,8 @@ export const onMediaDragEnd =
       : selectedClips;
 
     // Get the list of poses by merging the chunk with the selection
-    const poses = item.transposition
-      ? unionBy([item.transposition, ...selectedPoses], (pose) =>
+    const poses = item.pose
+      ? unionBy([item.pose, ...selectedPoses], (pose) =>
           parsePortalChunkId(pose.id)
         )
       : selectedPoses;
@@ -564,7 +560,7 @@ export const onMediaDragEnd =
 
     // Prepare the new media
     const newClips: ClipUpdate[] = [];
-    const newPoses: TranspositionUpdate[] = [];
+    const newPoses: PoseUpdate[] = [];
     const newPortals: PortalUpdate[] = [];
 
     // Iterate over the targeted clips
@@ -593,7 +589,7 @@ export const onMediaDragEnd =
       });
     }
 
-    // Iterate over the targeted transpositions
+    // Iterate over the targeted poses
     for (const pose of poses) {
       // Get the new track
       const trackIndex = orderedTrackIds.indexOf(pose?.trackId);
@@ -605,7 +601,7 @@ export const onMediaDragEnd =
       const poseId = pose.id;
       if (poseId.includes("-chunk-")) {
         const originalId = parsePortalChunkId(poseId);
-        const realPose = Poses.selectTranspositionById(project, originalId);
+        const realPose = Poses.selectPoseById(project, originalId);
         if (!realPose) return;
         newPoses.push({
           ...realPose,

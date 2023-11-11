@@ -11,4 +11,4 @@ export * as ScaleTracks from "./ScaleTrack/ScaleTrackSlice";
 export * as Timeline from "./Timeline/TimelineSlice";
 export * as TrackHierarchy from "./TrackHierarchy/TrackHierarchySlice";
 export * as Transport from "./Transport/TransportSlice";
-export * as Transpositions from "./Transposition/TranspositionSlice";
+export * as Poses from "./Pose/PoseSlice";

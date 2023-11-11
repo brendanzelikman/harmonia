@@ -1,11 +1,11 @@
 import * as _ from "./TimelineSelectors";
 import { Thunk } from "types/Project";
 import {
-  createTranspositions,
-  selectTranspositionDurations,
-  selectTranspositionsByTrackIds,
-  updateTranspositions,
-} from "../Transposition";
+  createPoses,
+  selectPoseDurations,
+  selectPosesByTrackIds,
+  updatePoses,
+} from "../Pose";
 import { Clip, ClipNoId } from "types/Clip";
 import {
   getMediaStartTick,
@@ -13,7 +13,7 @@ import {
   getMediaTrackIds,
   getMediaInRange,
   getClipsFromMedia,
-  getTranspositionsFromMedia,
+  getPosesFromMedia,
   getPortalsFromMedia,
 } from "types/Media";
 import { MouseEvent } from "react";
@@ -24,7 +24,7 @@ import {
   createClips,
   exportClipsToMidi,
 } from "redux/Clip";
-import { Transposition, TranspositionNoId } from "types/Transposition";
+import { Pose, PoseNoId } from "types/Pose";
 import { seekTransport } from "redux/Transport";
 import { selectTrackById } from "redux/Track";
 import { isUndefined, union, without } from "lodash";
@@ -35,7 +35,7 @@ import { Transport } from "tone";
 import { TRACK_WIDTH } from "utils/constants";
 import {
   isTimelineAddingClips,
-  isTimelineAddingTranspositions,
+  isTimelineAddingPoses,
   isTimelineMergingMedia,
   isTimelinePortalingMedia,
   isTimelineSlicingMedia,
@@ -73,19 +73,18 @@ export const toggleAddingClips = (): Thunk => (dispatch, getProject) => {
   }
 };
 
-/** Toggles the timeline between adding transpositions and not adding transpositions. */
-export const toggleAddingTranspositions =
-  (): Thunk => (dispatch, getProject) => {
-    const project = getProject();
-    const editor = selectEditor(project);
-    const timeline = _.selectTimeline(project);
-    if (isTimelineAddingTranspositions(timeline)) {
-      dispatch(setTimelineState("idle"));
-    } else {
-      dispatch(setTimelineState("addingTranspositions"));
-      if (editor.view) dispatch(hideEditor());
-    }
-  };
+/** Toggles the timeline between adding poses and not adding poses. */
+export const toggleAddingPoses = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const editor = selectEditor(project);
+  const timeline = _.selectTimeline(project);
+  if (isTimelineAddingPoses(timeline)) {
+    dispatch(setTimelineState("idle"));
+  } else {
+    dispatch(setTimelineState("addingPoses"));
+    if (editor.view) dispatch(hideEditor());
+  }
+};
 
 /** Toggles the timeline between slicing media and not slicing media. */
 export const toggleSlicingMedia = (): Thunk => (dispatch, getProject) => {
@@ -130,7 +129,7 @@ export const toggleMergingMedia = (): Thunk => (dispatch, getProject) => {
  * The handler for when a cell is clicked.
  * * If no track is selected, seek the transport to the time and deselect all media.
  * * If the user is adding clips to the timeline, create a clip.
- * * If the user is transposing, create a transposition.
+ * * If the user is transposing, create a pose.
  * * Otherwise, seek the transport to the time and select the track.
  */
 
@@ -166,10 +165,10 @@ export const onCellClick =
       return;
     }
 
-    // Create a transposition if adding transpositions
-    const isTransposing = isTimelineAddingTranspositions(timeline);
+    // Create a pose if adding poses
+    const isTransposing = isTimelineAddingPoses(timeline);
     if (isTransposing) {
-      dispatch(createTranspositionFromMediaDraft({ tick, trackId }));
+      dispatch(createPoseFromMediaDraft({ tick, trackId }));
       return;
     }
 
@@ -298,19 +297,16 @@ export const onClipDoubleClick =
   };
 
 /**
- * The handler for when a transposition is clicked.
- * * If the user is adding transpositions to the timeline, add the transposition
- * * If the user is holding Alt, the transposition will be added to the selection.
- * * If the user is holding Shift, a range of transpositions will be selected.
- * * Otherwise, the transposition will be selected.
+ * The handler for when a pose is clicked.
+ * * If the user is adding poses to the timeline, add the pose
+ * * If the user is holding Alt, the pose will be added to the selection.
+ * * If the user is holding Shift, a range of poses will be selected.
+ * * Otherwise, the pose will be selected.
  */
-export const onTranspositionClick =
-  (
-    e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>,
-    transposition?: Transposition
-  ): Thunk =>
+export const onPoseClick =
+  (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, pose?: Pose): Thunk =>
   (dispatch, getProject) => {
-    if (!transposition) return;
+    if (!pose) return;
     const project = getProject();
     const timeline = _.selectTimeline(project);
     const cellWidth = _.selectCellWidth(project);
@@ -318,7 +314,7 @@ export const onTranspositionClick =
     const selectedPoses = _.selectSelectedPoses(project);
     const nativeEvent = e.nativeEvent as Event;
 
-    // Slice the transposition if slicing
+    // Slice the pose if slicing
     if (isTimelineSlicingMedia(timeline)) {
       const grid = e.currentTarget.offsetParent;
       if (!grid) return;
@@ -326,68 +322,64 @@ export const onTranspositionClick =
       const tickWidth = cellWidth * subdivisionTick;
       const cursorLeft = e.clientX - TRACK_WIDTH;
       const tick = Math.round(cursorLeft / tickWidth);
-      dispatch(sliceMedia(transposition, tick));
+      dispatch(sliceMedia(pose, tick));
       return;
     }
 
-    // Update the transposition if transposing
-    if (isTimelineAddingTranspositions(timeline)) {
+    // Update the pose if transposing
+    if (isTimelineAddingPoses(timeline)) {
       const draft = _.selectDraftedPose(project);
-      const newPose = { ...transposition, ...draft };
-      dispatch(updateTranspositions({ poses: [newPose] }));
+      const newPose = { ...pose, ...draft };
+      dispatch(updatePoses({ poses: [newPose] }));
     }
 
-    // Deselect the transposition if it is selected
-    const isSelected = selectedPoses.some((t) => t.id === transposition.id);
+    // Deselect the pose if it is selected
+    const isSelected = selectedPoses.some((t) => t.id === pose.id);
     if (isSelected) {
-      const newIds = without(selectedPoseIds, transposition.id);
+      const newIds = without(selectedPoseIds, pose.id);
       dispatch(updateMediaSelection({ poseIds: newIds }));
       return;
     }
 
-    // Select the transposition if the user is not holding shift
+    // Select the pose if the user is not holding shift
     const holdingShift = isHoldingShift(nativeEvent);
     if (!holdingShift) {
       const holdingOption = isHoldingOption(nativeEvent);
       if (holdingOption) {
-        const newIds = union(selectedPoseIds, [transposition.id]);
+        const newIds = union(selectedPoseIds, [pose.id]);
         dispatch(updateMediaSelection({ poseIds: newIds }));
       } else {
-        dispatch(updateMediaSelection({ poseIds: [transposition.id] }));
+        dispatch(updateMediaSelection({ poseIds: [pose.id] }));
       }
       return;
     }
 
-    // Just select the transposition if there are no other selected transpositions
+    // Just select the pose if there are no other selected poses
     if (!selectedPoses.length) {
-      dispatch(updateMediaSelection({ poseIds: [transposition.id] }));
+      dispatch(updateMediaSelection({ poseIds: [pose.id] }));
       return;
     }
 
-    // Select a range of transpositions if the user is holding shift
-    const selectedMedia = union(selectedPoses, [transposition]);
+    // Select a range of poses if the user is holding shift
+    const selectedMedia = union(selectedPoses, [pose]);
 
     // Compute the start and end time of the selection
     const startTick = getMediaStartTick(selectedMedia);
     const endTick = getMediaEndTick(selectedMedia);
 
-    // Get all transpositions that are in the track range
+    // Get all poses that are in the track range
     const orderedIds = selectOrderedTrackIds(project);
-    const trackIds = getMediaTrackIds(
-      selectedPoses,
-      orderedIds,
-      transposition.trackId
-    );
-    const poses = selectTranspositionsByTrackIds(project, trackIds);
+    const trackIds = getMediaTrackIds(selectedPoses, orderedIds, pose.trackId);
+    const poses = selectPosesByTrackIds(project, trackIds);
     const poseIds = poses.map((_) => _.id);
-    const poseDurations = selectTranspositionDurations(project, poseIds);
+    const poseDurations = selectPoseDurations(project, poseIds);
 
-    // Get all transpositions that are in the tick range
+    // Get all poses that are in the tick range
     const media = getMediaInRange(poses, poseDurations, [startTick, endTick]);
-    const mediaPoses = getTranspositionsFromMedia(media);
+    const mediaPoses = getPosesFromMedia(media);
     const mediaPoseIds = mediaPoses.map((pose) => pose.id);
 
-    // Select the transpositions
+    // Select the poses
     dispatch(updateMediaSelection({ poseIds: mediaPoseIds }));
   };
 
@@ -485,24 +477,24 @@ export const createClipFromMediaDraft =
     dispatch(createClips([clip]));
   };
 
-/** Add a transposition to the currently selected track using the media draft. */
-export const createTranspositionFromMediaDraft =
-  (partial?: Partial<TranspositionNoId>): Thunk =>
+/** Add a pose to the currently selected track using the media draft. */
+export const createPoseFromMediaDraft =
+  (partial?: Partial<PoseNoId>): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const selectedTrackId = _.selectSelectedTrackId(project);
 
-    // Get the drafted transposition
+    // Get the drafted pose
     const draft = { ..._.selectDraftedPose(project), ...partial };
-    const transposition = {
+    const pose = {
       ...draft,
       tick: isUndefined(draft.tick) ? Transport.ticks : draft.tick,
       trackId: isUndefined(draft.trackId) ? selectedTrackId : draft.trackId,
       duration: isUndefined(draft.duration) ? Infinity : draft.duration,
     };
 
-    // Create the transposition
-    dispatch(createTranspositions([transposition]));
+    // Create the pose
+    dispatch(createPoses([pose]));
   };
 
 /** Select the previous track in the timeline if possible. */

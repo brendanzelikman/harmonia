@@ -11,4 +11,4 @@ export * from "./ScaleTrack/ScaleTrackThunks";
 export * from "./Timeline/TimelineThunks";
 export * from "./Track/TrackThunks";
 export * from "./Transport/TransportThunks";
-export * from "./Transposition/TranspositionThunks";
+export * from "./Pose/PoseThunks";

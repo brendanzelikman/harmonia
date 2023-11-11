@@ -13,7 +13,7 @@ import {
 } from "redux/Timeline";
 import {
   isTimelineAddingClips,
-  isTimelineAddingTranspositions,
+  isTimelineAddingPoses,
   isTimelinePortalingMedia,
 } from "types/Timeline";
 import { selectTrackById } from "redux/Track";
@@ -24,7 +24,7 @@ export function TimelinePortals(props: TimelinePortalElement) {
   const selectedIds = useProjectSelector(selectSelectedPortalIds);
   const timeline = useProjectSelector(selectTimeline);
   const isClipping = isTimelineAddingClips(timeline);
-  const isTransposing = isTimelineAddingTranspositions(timeline);
+  const isTransposing = isTimelineAddingPoses(timeline);
   const isPortaling = isTimelinePortalingMedia(timeline);
   const { width, height } = useProjectSelector(selectCell);
 

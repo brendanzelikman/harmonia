@@ -87,7 +87,7 @@ export function LandingView() {
 
         <HeroQuote
           title="Pattern-Based Music Making"
-          text="Introducing a unique and powerful approach for composing with musical scales and transpositions."
+          text="Introducing a unique and powerful approach for composing with musical scales and poses."
         />
         <HeroQuote
           title="Innovative and Educational"

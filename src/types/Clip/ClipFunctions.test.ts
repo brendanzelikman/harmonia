@@ -12,7 +12,7 @@ import {
 } from "types/Pattern";
 import { initializeScale, mockScale } from "types/Scale";
 import { createMap } from "utils/objects";
-import { initializeTransposition } from "types/Transposition";
+import { initializePose } from "types/Pose";
 import { initializePatternTrack } from "types/PatternTrack";
 import { TrackHierarchy } from "types/TrackHierarchy";
 import { initializeScaleTrack } from "types/ScaleTrack";
@@ -114,10 +114,10 @@ test("getClipStream should not transpose a pattern of notes wihout any tracks", 
   const pattern = initializePattern({ stream: originalStream });
   const clip = initializeClip({ patternId: pattern.id });
 
-  const transposition = initializeTransposition({ vector: { chromatic: 1 } });
-  const transpositions = createMap([transposition]);
+  const pose = initializePose({ vector: { chromatic: 1 } });
+  const poses = createMap([pose]);
 
-  const clipStream = _.getClipStream(clip, { pattern, transpositions });
+  const clipStream = _.getClipStream(clip, { pattern, poses: poses });
   const midiStream = resolvePatternStreamToMidi(clipStream, []);
   const values = getMidiStreamValues(midiStream);
 
@@ -142,15 +142,15 @@ test("getClipStream should not transpose a pattern of notes without the hierarch
     patternId: pattern.id,
   });
 
-  const transposition = initializeTransposition({
+  const pose = initializePose({
     trackId: patternTrack.id,
     vector: { chromatic: 1 },
   });
-  const transpositions = createMap([transposition]);
+  const poses = createMap([pose]);
 
   const clipStream = _.getClipStream(clip, {
     pattern,
-    transpositions,
+    poses: poses,
     patternTracks,
   });
   const midiStream = resolvePatternStreamToMidi(clipStream, []);
@@ -169,11 +169,11 @@ test("getClipStream should correctly transpose and rotate a pattern when a track
     patternId: pattern.id,
   });
 
-  const transposition = initializeTransposition({
+  const pose = initializePose({
     trackId: patternTrack.id,
     vector: { chromatic: 1, chordal: 1 },
   });
-  const transpositions = createMap([transposition]);
+  const poses = createMap([pose]);
 
   const hierarchy: TrackHierarchy = {
     byId: {
@@ -183,7 +183,7 @@ test("getClipStream should correctly transpose and rotate a pattern when a track
         depth: 0,
         trackIds: [],
         clipIds: [],
-        transpositionIds: [transposition.id],
+        poseIds: [pose.id],
       },
     },
     allIds: [patternTrack.id],
@@ -192,7 +192,7 @@ test("getClipStream should correctly transpose and rotate a pattern when a track
 
   const clipStream = _.getClipStream(clip, {
     pattern,
-    transpositions,
+    poses: poses,
     patternTracks,
     tracks: hierarchy.byId,
   });
@@ -214,15 +214,15 @@ test("getClipStream should work with fully loaded dependencies", () => {
   const t2 = initializeScaleTrack({ scaleId: major7Scale.id, parentId: t1.id });
   const t3 = initializePatternTrack({ parentId: t2.id });
 
-  const t1Pose = initializeTransposition({
+  const t1Pose = initializePose({
     trackId: t1.id,
     vector: { chromatic: 2 },
   });
-  const t2Pose = initializeTransposition({
+  const t2Pose = initializePose({
     trackId: t2.id,
     vector: { [t1.id]: 1 },
   });
-  const t3Pose = initializeTransposition({
+  const t3Pose = initializePose({
     trackId: t3.id,
     vector: { [t1.id]: 1, [t2.id]: 1 },
   });
@@ -230,7 +230,7 @@ test("getClipStream should work with fully loaded dependencies", () => {
   const scales = createMap([majorScale, major7Scale]);
   const scaleTracks = createMap([t1, t2]);
   const patternTracks = createMap([t3]);
-  const transpositions = createMap([t1Pose, t2Pose, t3Pose]);
+  const poses = createMap([t1Pose, t2Pose, t3Pose]);
 
   const nestedNotes = [
     { degree: 0, offset: { chromatic: -1 }, scaleId: majorScale.id },
@@ -255,7 +255,7 @@ test("getClipStream should work with fully loaded dependencies", () => {
         depth: 1,
         trackIds: [t2.id],
         clipIds: [],
-        transpositionIds: [t1Pose.id],
+        poseIds: [t1Pose.id],
       },
       [t2.id]: {
         id: t2.id,
@@ -263,7 +263,7 @@ test("getClipStream should work with fully loaded dependencies", () => {
         depth: 2,
         trackIds: [t3.id],
         clipIds: [],
-        transpositionIds: [t2Pose.id],
+        poseIds: [t2Pose.id],
       },
       [t3.id]: {
         id: t3.id,
@@ -271,7 +271,7 @@ test("getClipStream should work with fully loaded dependencies", () => {
         depth: 3,
         trackIds: [],
         clipIds: [clip.id],
-        transpositionIds: [t3Pose.id],
+        poseIds: [t3Pose.id],
       },
     },
     allIds: [t1.id, t2.id, t3.id],
@@ -280,7 +280,7 @@ test("getClipStream should work with fully loaded dependencies", () => {
 
   const clipStream = _.getClipStream(clip, {
     pattern,
-    transpositions,
+    poses: poses,
     patternTracks,
     scaleTracks,
     scales,

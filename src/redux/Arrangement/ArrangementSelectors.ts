@@ -4,10 +4,7 @@ import { selectPatternTrackMap } from "redux/PatternTrack";
 import { selectPortals } from "redux/Portal/PortalSelectors";
 import { selectScaleMap } from "redux/Scale";
 import { selectTransport } from "redux/Transport";
-import {
-  selectTranspositionMap,
-  selectTranspositions,
-} from "redux/Transposition";
+import { selectPoseMap, selectPoses } from "redux/Pose";
 import { createDeepEqualSelector } from "redux/util";
 import { createSelector } from "reselect";
 import { TrackArrangement, LiveArrangement } from "types/Arrangement";
@@ -28,10 +25,10 @@ import {
 import {
   applyPortalsToClip,
   applyPortalsToClips,
-  applyPortalsToTranspositions,
+  applyPortalsToPoses,
 } from "types/Portal";
 import { Project } from "types/Project";
-import { TranspositionMap } from "types/Transposition";
+import { PoseMap } from "types/Pose";
 import { Tick } from "types/units";
 import { getValueByKey } from "utils/objects";
 
@@ -55,7 +52,7 @@ export const selectTrackArrangement = createSelector(
     scaleTracks: arrangement.scaleTracks.byId,
     patternTracks: arrangement.patternTracks.byId,
     clips: arrangement.clips.byId,
-    transpositions: arrangement.transpositions.byId,
+    poses: arrangement.poses.byId,
   })
 );
 
@@ -78,31 +75,27 @@ export const selectPortaledClipMap = createSelector(
   }
 );
 
-/** Select the portaled transpositions. */
-export const selectPortaledTranspositionMap = createSelector(
-  [selectTranspositionMap, selectPortals],
-  (transpositionMap, portals) => {
-    // Portal the transpositions
-    const poses = Object.values(transpositionMap);
-    const portaledPoses = applyPortalsToTranspositions(poses, portals);
+/** Select the portaled poses. */
+export const selectPortaledPoseMap = createSelector(
+  [selectPoseMap, selectPortals],
+  (poseMap, portals) => {
+    // Portal the poses
+    const poses = Object.values(poseMap);
+    const portaledPoses = applyPortalsToPoses(poses, portals);
 
-    // Return the new transposition map
+    // Return the new pose map
     return portaledPoses.reduce((acc, pose) => {
       acc[pose.id] = pose;
       return acc;
-    }, {} as TranspositionMap);
+    }, {} as PoseMap);
   }
 );
 
 /** Select the track arrangement after portals have been applied.  */
 export const selectPortaledArrangement = createSelector(
-  [
-    selectTrackArrangement,
-    selectPortaledClipMap,
-    selectPortaledTranspositionMap,
-  ],
-  (arrangement, clips, transpositions): TrackArrangement => {
-    return { ...arrangement, clips, transpositions };
+  [selectTrackArrangement, selectPortaledClipMap, selectPortaledPoseMap],
+  (arrangement, clips, poses): TrackArrangement => {
+    return { ...arrangement, clips, poses: poses };
   }
 );
 

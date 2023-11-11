@@ -1,44 +1,39 @@
 import { isArray, isBoolean, isPlainObject, isString } from "lodash";
 import { Clip, ClipId, ClipUpdate, isClip } from "types/Clip";
 import { Portal, PortalId, PortalUpdate, isPortal } from "types/Portal";
-import {
-  Transposition,
-  TranspositionId,
-  TranspositionUpdate,
-  isTransposition,
-} from "types/Transposition";
+import { Pose, PoseId, PoseUpdate, isPose } from "types/Pose";
 import { isTypedArray } from "types/util";
 
 // ------------------------------------------------------------
 // Media Definitions
 // ------------------------------------------------------------
 
-/** `MediaClip` refers to a clip or transposition. */
-export type MediaClip = Clip | Transposition;
+/** `MediaClip` refers to a clip or pose. */
+export type MediaClip = Clip | Pose;
 export type MediaClips = MediaClip[];
 
-/** A `MediaElement` refers to a clip, transposition, or portal. */
+/** A `MediaElement` refers to a clip, pose, or portal. */
 export type MediaElement = MediaClip | Portal;
 export type Media = MediaElement[];
 
 /** A `MediaSelection` contains selected media. */
 export type MediaSelection = {
   clipIds: ClipId[];
-  poseIds: TranspositionId[];
+  poseIds: PoseId[];
   portalIds: PortalId[];
 };
 
 /** A `MediaClipboard` contains copied media. */
 export type MediaClipboard = {
   clips: Clip[];
-  poses: Transposition[];
+  poses: Pose[];
   portals: Portal[];
 };
 
 /** A `MediaDraft` contains partially drafted media. */
 export type MediaDraft = {
   clip: Partial<Clip>;
-  pose: Partial<Transposition>;
+  pose: Partial<Pose>;
   portal: Partial<Portal>;
 };
 
@@ -49,27 +44,27 @@ export type MediaDragState = {
   draggingPortal: boolean;
 };
 
-/** A `NewMediaPayload` contains IDs of clips and transpositions. */
+/** A `NewMediaPayload` contains IDs of clips and poses. */
 export type NewMediaPayload = {
   clipIds: ClipId[];
-  poseIds: TranspositionId[];
+  poseIds: PoseId[];
   portalIds: PortalId[];
 };
 
-/** A `CreateMediaPayload` contains clips and/or transpositions. */
+/** A `CreateMediaPayload` contains clips and/or poses. */
 export type CreateMediaPayload = {
   clips?: Clip[];
-  poses?: Transposition[];
+  poses?: Pose[];
   portals?: Portal[];
 };
 
-/** A `RemoveMediaPayload` contains IDs of clips and transpositions. */
+/** A `RemoveMediaPayload` contains IDs of clips and poses. */
 export type RemoveMediaPayload = NewMediaPayload;
 
-/** An `UpdateMediaPayload` contains updated clips and/or transpositions. */
+/** An `UpdateMediaPayload` contains updated clips and/or poses. */
 export type UpdateMediaPayload = {
   clips?: ClipUpdate[];
-  poses?: TranspositionUpdate[];
+  poses?: PoseUpdate[];
   portals?: PortalUpdate[];
 };
 
@@ -104,7 +99,7 @@ export const DEFAULT_MEDIA_DRAG_STATE: MediaDragState = {
 
 /** Checks if a given object is of type `MediaClip` */
 export const isMediaClip = (obj: unknown): obj is MediaClip => {
-  return isClip(obj) || isTransposition(obj);
+  return isClip(obj) || isPose(obj);
 };
 
 /** Checks if a given object is of type `Media` */
@@ -129,7 +124,7 @@ export const isMediaClipboard = (obj: unknown): obj is MediaClipboard => {
   return (
     isPlainObject(candidate) &&
     isTypedArray(candidate.clips, isClip) &&
-    isTypedArray(candidate.poses, isTransposition) &&
+    isTypedArray(candidate.poses, isPose) &&
     isTypedArray(candidate.portals, isPortal)
   );
 };

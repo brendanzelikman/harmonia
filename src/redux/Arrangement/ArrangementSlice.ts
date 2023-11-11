@@ -8,7 +8,7 @@ import { patternTracksSlice } from "redux/PatternTrack/PatternTrackSlice";
 import { portalsSlice } from "redux/Portal";
 import { scaleTracksSlice } from "redux/ScaleTrack/ScaleTrackSlice";
 import { trackHierarchySlice } from "redux/TrackHierarchy/TrackHierarchySlice";
-import { transpositionsSlice } from "redux/Transposition/TranspositionSlice";
+import { posesSlice } from "redux/Pose/PoseSlice";
 import { getSliceActions } from "redux/util";
 
 /** The arrangement reducer creates a shared history. */
@@ -17,7 +17,7 @@ const arrangementReducer = combineReducers({
   patternTracks: patternTracksSlice.reducer,
   instruments: instrumentsSlice.reducer,
   clips: clipsSlice.reducer,
-  transpositions: transpositionsSlice.reducer,
+  poses: posesSlice.reducer,
   hierarchy: trackHierarchySlice.reducer,
   portals: portalsSlice.reducer,
 });
@@ -29,7 +29,7 @@ export const arrangementActions = [
   ...getSliceActions(scaleTracksSlice),
   ...getSliceActions(patternTracksSlice),
   ...getSliceActions(clipsSlice),
-  ...getSliceActions(transpositionsSlice),
+  ...getSliceActions(posesSlice),
   ...getSliceActions(trackHierarchySlice),
   ...getSliceActions(portalsSlice),
   ...getSliceActions(instrumentsSlice).filter(

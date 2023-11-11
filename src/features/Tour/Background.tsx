@@ -32,7 +32,7 @@ export const TourBackground = () => {
     "tour-step-pattern-editor-intro",
     "tour-step-pattern-editor-conclusion",
     "tour-step-adding-clips",
-    "tour-step-adding-transpositions",
+    "tour-step-adding-poses",
     "tour-step-saving-work",
     "tour-step-confetti",
   ];

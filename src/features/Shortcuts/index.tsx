@@ -193,7 +193,7 @@ function EditorShortcuts() {
   );
 }
 
-function TranspositionWizard() {
+function PoseWizard() {
   const [scaleOption, setScaleOption] = useState("Diatonic Transpositions");
   const scaleOptions = [
     "Diatonic Transpositions",
@@ -523,7 +523,7 @@ function TranspositionWizard() {
   );
 }
 
-type ShortcutView = "timeline" | "editor" | "transpositions";
+type ShortcutView = "timeline" | "editor" | "poses";
 
 export function ShortcutsMenu() {
   const dispatch = useProjectDispatch();
@@ -531,7 +531,7 @@ export function ShortcutsMenu() {
   const [view, setView] = useState<ShortcutView>("timeline");
   const viewTimeline = () => setView("timeline");
   const viewEditor = () => setView("editor");
-  const viewTranspositions = () => setView("transpositions");
+  const viewPoses = () => setView("poses");
 
   const toggleShortcuts = () => setShow(!show);
 
@@ -564,8 +564,8 @@ export function ShortcutsMenu() {
             />
             <ShortcutButton
               title="Transposition Wizard"
-              onClick={viewTranspositions}
-              active={view === "transpositions"}
+              onClick={viewPoses}
+              active={view === "poses"}
               activeClass="bg-slate-700/75 drop-shadow-xl"
               class="hover:bg-slate-600/50 active:bg-slate-800"
             />
@@ -599,7 +599,7 @@ export function ShortcutsMenu() {
               <EditorShortcuts />
             </Transition.Child>
           ) : null}
-          {view === "transpositions" ? (
+          {view === "poses" ? (
             <Transition.Child
               className="flex h-full justify-center items-center flex-wrap"
               as="ul"
@@ -610,7 +610,7 @@ export function ShortcutsMenu() {
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <TranspositionWizard />
+              <PoseWizard />
             </Transition.Child>
           ) : null}
         </div>

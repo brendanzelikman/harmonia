@@ -1,20 +1,20 @@
 import { useDrag } from "react-dnd";
-import { Transposition } from "types/Transposition";
+import { Pose } from "types/Pose";
 
-interface TranspositionDragProps {
-  transposition: Transposition;
+interface PoseDragProps {
+  pose: Pose;
   onDragStart: () => void;
   onDragEnd: (item: any, monitor: any) => void;
 }
 
-export function useTranspositionDrag(props: TranspositionDragProps) {
-  const { transposition } = props;
+export function usePoseDrag(props: PoseDragProps) {
+  const { pose } = props;
   return useDrag(
     () => ({
-      type: "transposition",
+      type: "pose",
       item: () => {
         props.onDragStart();
-        return { transposition };
+        return { pose };
       },
       collect(monitor) {
         return { isDragging: monitor.isDragging() };
@@ -24,6 +24,6 @@ export function useTranspositionDrag(props: TranspositionDragProps) {
         props.onDragEnd(item, monitor);
       },
     }),
-    [transposition]
+    [pose]
   );
 }

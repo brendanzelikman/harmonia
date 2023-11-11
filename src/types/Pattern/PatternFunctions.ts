@@ -16,7 +16,6 @@ import {
   PatternStream,
   isPatternStream,
   Pattern,
-  isPatternMidiNote,
   PatternUpdate,
   PatternMidiStream,
   PatternMidiChord,
@@ -26,11 +25,7 @@ import {
   isPatternMidiChord,
   PatternMidiBlock,
 } from "./PatternTypes";
-import {
-  Transposition,
-  getChordalOffset,
-  getChromaticOffset,
-} from "types/Transposition";
+import { Pose, getChordalOffset, getChromaticOffset } from "types/Pose";
 import { mod } from "utils/math";
 import { toString } from "utils/objects";
 import { getMidiPitchClass } from "utils/midi";
@@ -319,18 +314,18 @@ export const resolvePatternBlockToMidi = (
   return resolvePatternChordToMidi(block, scales);
 };
 
-/** Resolve a `PatternStream` to MIDI using a `ScaleChain` and `Transposition` */
+/** Resolve a `PatternStream` to MIDI using a `ScaleChain` and `Pose` */
 export const resolvePatternStreamToMidi = (
   stream: PatternStream,
   scales?: ScaleChain,
-  pose?: Transposition
+  pose?: Pose
 ): PatternMidiStream => {
   if (!stream) return [];
 
   // Get the stream with or without the scales
   let midiStream = stream.map((b) => resolvePatternBlockToMidi(b, scales));
 
-  // Return the stream if no transposition is specified
+  // Return the stream if no pose is specified
   if (!pose) return midiStream;
 
   // Apply the chromatic offset

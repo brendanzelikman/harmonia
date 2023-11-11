@@ -12,4 +12,4 @@ export * from "./Timeline/TimelineSelectors";
 export * from "./Track/TrackSelectors";
 export * from "./TrackHierarchy/TrackHierarchySelectors";
 export * from "./Transport/TransportSelectors";
-export * from "./Transposition/TranspositionSelectors";
+export * from "./Pose/PoseSelectors";

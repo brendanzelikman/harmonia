@@ -86,11 +86,6 @@ export const PowerChord: Pattern = {
     [_.createQuarterNote(60), _.createQuarterNote(67), _.createQuarterNote(72)],
   ],
 };
-export const Octave: Pattern = {
-  id: "octave",
-  name: "Octave",
-  stream: [[_.createQuarterNote(60), _.createQuarterNote(72)]],
-};
 
 export default {
   MajorChord,
@@ -102,5 +97,4 @@ export default {
   QuartalChord,
   QuintalChord,
   PowerChord,
-  Octave,
 };

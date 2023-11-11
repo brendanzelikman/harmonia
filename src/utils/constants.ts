@@ -49,6 +49,6 @@ export const MIN_CELL_WIDTH = 20;
 export const MAX_CELL_WIDTH = 100;
 export const MIN_CELL_HEIGHT = 80;
 export const MAX_CELL_HEIGHT = 120;
-export const TRANSPOSITION_HEIGHT = 20;
+export const POSE_HEIGHT = 20;
 export const NAV_HEIGHT = 60;
 export const SCALE_TRACK_SCALE_NAME = "$$$$$_track_scale_$$$$$";

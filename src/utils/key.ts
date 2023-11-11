@@ -103,7 +103,7 @@ const minorPentatonicKeys = minorKeys;
 const inKeys = lowerKeys(minorKeys, 1, 8);
 const yoKeys = minorKeys;
 const insenKeys = lowerKeys(minorKeys, 1);
-const hirajoshiKeys = lowerKeys(minorKeys, 8);
+const hirajoshiKeys = lowerKeys(minorKeys, 9);
 const iwatoKeys = lowerKeys(minorKeys, 1, 6);
 
 // ------------------------------------------------------------

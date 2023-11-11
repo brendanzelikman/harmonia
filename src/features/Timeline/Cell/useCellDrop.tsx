@@ -12,7 +12,7 @@ export function useCellDrop(props: CellDropProps) {
   const { trackId, columnIndex, row } = props;
   return useDrop(
     () => ({
-      accept: ["clip", "transposition", "portal"],
+      accept: ["clip", "pose", "portal"],
       collect: (monitor) => ({
         canDrop: monitor.canDrop(),
         isOver: monitor.isOver(),

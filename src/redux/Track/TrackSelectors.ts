@@ -11,14 +11,8 @@ import {
   getTrackParents,
 } from "types/Track";
 import { isScaleTrack } from "types/ScaleTrack";
-import {
-  getCurrentTransposition,
-  getTranspositionOffsetById,
-} from "types/Transposition";
-import {
-  getTrackChildIds,
-  getTrackTranspositionIds,
-} from "types/TrackHierarchy";
+import { getCurrentPose, getPoseOffsetById } from "types/Pose";
+import { getTrackChildIds, getTrackPoseIds } from "types/TrackHierarchy";
 import {
   selectScaleTracks,
   selectScaleTrackMap,
@@ -29,7 +23,7 @@ import {
   selectPatternTrackMap,
   selectPatternTrackById,
 } from "../PatternTrack/PatternTrackSelectors";
-import { selectTranspositionMap } from "../Transposition/TranspositionSelectors";
+import { selectPoseMap } from "../Pose/PoseSelectors";
 import {
   selectOrderedTrackIds,
   selectTrackHierarchy,
@@ -182,29 +176,26 @@ export const selectTrackLabelById = (project: Project, id?: TrackId) => {
 };
 
 // ------------------------------------------------------------
-// Transposition Selectors
+// Pose Selectors
 // ------------------------------------------------------------
 
-/** Select the transpositions of a track by ID. */
-export const selectTrackTranspositions = (project: Project, id: TrackId) => {
-  const transpositionMap = selectTranspositionMap(project);
+/** Select the poses of a track by ID. */
+export const selectTrackPoses = (project: Project, id: TrackId) => {
+  const poseMap = selectPoseMap(project);
   const trackNodeMap = selectTrackNodeMap(project);
-  const ids = getTrackTranspositionIds(id, trackNodeMap);
-  return getValuesByKeys(transpositionMap, ids);
+  const ids = getTrackPoseIds(id, trackNodeMap);
+  return getValuesByKeys(poseMap, ids);
 };
 
-/** Selects the transpositions of the parent of a track. */
-export const selectTrackParentTranspositions = (
-  project: Project,
-  id: TrackId
-) => {
+/** Selects the poses of the parent of a track. */
+export const selectTrackParentPoses = (project: Project, id: TrackId) => {
   const trackMap = selectTrackMap(project);
-  const transpositionMap = selectTranspositionMap(project);
+  const poseMap = selectPoseMap(project);
   const trackNodeMap = selectTrackNodeMap(project);
   const parents = getScaleTrackIdChain(id, trackMap);
   return parents.map((parent) => {
-    const ids = getTrackTranspositionIds(parent, trackNodeMap);
-    return getValuesByKeys(transpositionMap, ids);
+    const ids = getTrackPoseIds(parent, trackNodeMap);
+    return getValuesByKeys(poseMap, ids);
   });
 };
 
@@ -287,18 +278,18 @@ export const selectTrackScaleChainAtTick = (
 ) => {
   const scaleMap = selectScaleMap(project);
   const chain = selectTrackChain(project, trackId);
-  const poses = chain.map((t) => selectTrackTranspositions(project, t.id));
+  const poses = chain.map((t) => selectTrackPoses(project, t.id));
   if (!chain.length) return [];
 
   const newChain = [];
 
-  // Iterate down child scale tracks and apply transpositions if they exist
+  // Iterate down child scale tracks and apply poses if they exist
   for (let i = 0; i < chain.length; i++) {
     const track = chain[i];
     const scale = scaleMap[track.scaleId];
 
-    // Try to get the transposition at the current tick
-    const pose = getCurrentTransposition(poses[i], tick, false);
+    // Try to get the pose at the current tick
+    const pose = getCurrentPose(poses[i], tick, false);
     if (pose === undefined) {
       newChain.push(scale);
       continue;
@@ -310,7 +301,7 @@ export const selectTrackScaleChainAtTick = (
 
     for (const id of offsetKeys) {
       if (id === "chromatic" || id === "chordal") continue;
-      const scalar = getTranspositionOffsetById(pose.vector, id);
+      const scalar = getPoseOffsetById(pose.vector, id);
       const parentScale = i ? scaleMap[chain[i - 1].scaleId] : undefined;
       newScale = getTransposedScale(newScale, scalar, parentScale);
     }
@@ -323,7 +314,7 @@ export const selectTrackScaleChainAtTick = (
   return newChain;
 };
 
-/** Select the scale of a track at a given tick (applying chromatic/chordal transpositions). */
+/** Select the scale of a track at a given tick (applying chromatic/chordal poses). */
 export const selectTrackScaleAtTick = (
   project: Project,
   trackId: TrackId,
@@ -332,8 +323,8 @@ export const selectTrackScaleAtTick = (
   const scaleChain = selectTrackScaleChainAtTick(project, trackId, tick);
   if (!scaleChain.length) return chromaticScale;
   const scale = scaleChain.at(-1);
-  const poses = selectTrackTranspositions(project, trackId);
-  const pose = getCurrentTransposition(poses, tick, false);
+  const poses = selectTrackPoses(project, trackId);
+  const pose = getCurrentPose(poses, tick, false);
   return getFullyTransposedScale(scale, pose);
 };
 

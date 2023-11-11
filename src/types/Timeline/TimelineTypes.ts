@@ -23,7 +23,7 @@ import { isBoolean, isPlainObject, isString } from "lodash";
 /**  The `TimelineState` contains the current action of the user. */
 export const TIMELINE_STATES = [
   "addingClips",
-  "addingTranspositions",
+  "addingPoses",
   "slicingMedia",
   "portalingMedia",
   "mergingMedia",
@@ -34,12 +34,12 @@ export type TimelineState = (typeof TIMELINE_STATES)[number];
 /** The `TimelineCell` contains the dimensions of a timeline cell. */
 export type TimelineCell = { width: number; height: number };
 
-/** The `LiveTranspositionSettings` specify its hotkey mode and enabled status. */
-export type LiveTranspositionSettings = {
-  mode: TranspositionMode;
+/** The `LivePoseSettings` specify its hotkey mode and enabled status. */
+export type LivePoseSettings = {
+  mode: PoseMode;
   enabled: boolean;
 };
-export type TranspositionMode = "numerical" | "alphabetical";
+export type PoseMode = "numerical" | "alphabetical";
 
 /** The `Timeline` contains information about the data grid and manages all tracked objects. */
 export interface Timeline {
@@ -51,7 +51,7 @@ export interface Timeline {
   mediaDraft: MediaDraft;
   mediaClipboard: MediaClipboard;
   mediaDragState: MediaDragState;
-  liveTranspositionSettings: LiveTranspositionSettings;
+  livePoseSettings: LivePoseSettings;
 }
 
 // ------------------------------------------------------------
@@ -72,7 +72,7 @@ export const defaultTimeline: Timeline = {
   mediaDraft: DEFAULT_MEDIA_DRAFT,
   mediaClipboard: DEFAULT_MEDIA_CLIPBOARD,
   mediaDragState: DEFAULT_MEDIA_DRAG_STATE,
-  liveTranspositionSettings: {
+  livePoseSettings: {
     mode: "numerical",
     enabled: false,
   },
@@ -98,11 +98,9 @@ export const isTimelineCell = (obj: unknown): obj is TimelineCell => {
   );
 };
 
-/** Checks if a given object is of type `LiveTranspositionSettings` */
-export const isLiveTranspositionSettings = (
-  obj: unknown
-): obj is LiveTranspositionSettings => {
-  const candidate = obj as LiveTranspositionSettings;
+/** Checks if a given object is of type `LivePoseSettings` */
+export const isLivePoseSettings = (obj: unknown): obj is LivePoseSettings => {
+  const candidate = obj as LivePoseSettings;
   return (
     isPlainObject(candidate) &&
     (candidate.mode === "numerical" || candidate.mode === "alphabetical") &&
@@ -122,6 +120,6 @@ export const isTimeline = (obj: unknown): obj is Timeline => {
     isMediaDraft(candidate.mediaDraft) &&
     isMediaClipboard(candidate.mediaClipboard) &&
     isMediaDragState(candidate.mediaDragState) &&
-    isLiveTranspositionSettings(candidate.liveTranspositionSettings)
+    isLivePoseSettings(candidate.livePoseSettings)
   );
 };
