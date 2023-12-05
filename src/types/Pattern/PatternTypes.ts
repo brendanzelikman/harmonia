@@ -1,12 +1,11 @@
 import { nanoid } from "@reduxjs/toolkit";
 import {
   MidiObject,
-  ScaleId,
   ScaleNoteObject,
   isMidiObject,
   isScaleNoteObject,
 } from "../Scale";
-import { ID } from "../units";
+import { ID, Tick } from "../units";
 import { InstrumentKey } from "../Instrument";
 import { TrackId } from "types/Track";
 import { isPlainObject, isString } from "lodash";
@@ -23,7 +22,6 @@ import {
   isOptionalTypedArray,
   isTypedArray,
 } from "types/util";
-import { getKeyCount } from "utils/objects";
 import { Timed, Playable, Chord, Stream } from "types/units";
 
 // ------------------------------------------------------------
@@ -38,26 +36,30 @@ export type PatternMap = NormalRecord<PatternId, Pattern>;
 export type PatternState = NormalState<PatternMap>;
 export type PatternHistory = UndoableHistory<PatternState>;
 
+// ------------------------------------------------------------
+// Pattern Definitions
+// ------------------------------------------------------------
+
 /** A `PatternRest` is a non-playable note with a duration. */
-export type PatternRest = Timed<{}>;
+export type PatternRest = { duration: Tick };
 
 /** A `PatternNote` is a playable note with a duration. */
 export type PatternNote = Playable<ScaleNoteObject>;
 export type PatternMidiNote = Playable<MidiObject>;
 
 /** A `PatternChord` is a group of `PatternNotes` */
-export type PatternChord = Chord<PatternNote>;
-export type PatternMidiChord = Chord<PatternMidiNote>;
+export type PatternChord = PatternNote | Chord<PatternNote>;
+export type PatternMidiChord = PatternMidiNote | Chord<PatternMidiNote>;
 
 /** A `PatternBlock` is a `PatternChord` or a `PatternRest` */
 export type PatternBlock = PatternChord | PatternRest;
-export type PatternMidiBlock = PatternMidiChord | PatternRest;
+export type PatternMidiBlock = PatternMidiNote | PatternMidiChord | PatternRest;
 
-/** A `PatternStream` is a sequence of `PatternChords` and `PatternRests`. */
+/** A `PatternStream` is a sequence of `PatternBlocks`. */
 export type PatternStream = Stream<PatternBlock>;
 export type PatternMidiStream = Stream<PatternMidiBlock>;
 
-/** A `Pattern` contains an ID and a sequential list of chords. */
+/** A `Pattern` contains a sequential list of chords. */
 export interface Pattern {
   id: PatternId;
   stream: PatternStream;
@@ -111,7 +113,7 @@ export const isPlayableNote = (obj: unknown): obj is Playable<unknown> => {
 /** Checks if a given object is a rest note. */
 export const isPatternRest = (obj: unknown): obj is PatternRest => {
   const candidate = obj as PatternNote;
-  return isTimedNote(candidate) && getKeyCount(candidate) === 1;
+  return isTimedNote(candidate) && Object.keys(candidate).length === 1;
 };
 
 /** Checks if a given object is of type `PatternNote`. */
@@ -129,13 +131,15 @@ export const isPatternMidiNote = (obj: unknown): obj is PatternMidiNote => {
 /** Checks if a given object is of type `PatternChord`. */
 export const isPatternChord = (obj: unknown): obj is PatternChord => {
   const candidate = obj as PatternChord;
-  return isTypedArray(candidate, isPatternNote);
+  return isPatternNote(candidate) || isTypedArray(candidate, isPatternNote);
 };
 
 /** Checks if a given object is of type `PatternMidiChord`. */
 export const isPatternMidiChord = (obj: unknown): obj is PatternMidiChord => {
   const candidate = obj as PatternMidiChord;
-  return isTypedArray(candidate, isPatternMidiNote);
+  return (
+    isPatternMidiNote(candidate) || isTypedArray(candidate, isPatternMidiNote)
+  );
 };
 
 /** Checks if a given object is of type `PatternBlock`. */

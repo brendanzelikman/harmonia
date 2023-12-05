@@ -6,7 +6,7 @@ import {
   UpdateMediaPayload,
 } from "types/Media";
 import { defaultPortalState } from "types/Portal";
-import { RemoveTrackPayload, TrackId } from "types/Track";
+import { TrackId } from "types/Track";
 
 // ------------------------------------------------------------
 // Portal Payload Types
@@ -19,13 +19,19 @@ export type AddPortalsPayload = CreateMediaPayload;
 export type UpdatePortalsPayload = UpdateMediaPayload;
 
 /** A list of portals can be removed from the slice by ID. */
-export type RemovePortalsPayload = RemoveMediaPayload;
+export interface RemovePortalsPayload extends RemoveMediaPayload {
+  callerId?: TrackId;
+  tag?: string;
+}
 
 /** A list of portals can be removed from the slice when clearing a track ID. */
 export type ClearPortalsByTrackIdPayload = TrackId;
 
 /** A list of portals can be removed from the slice when removing a track ID. */
-export type RemovePortalsByTrackIdPayload = RemoveTrackPayload;
+export type RemovePortalsByTrackIdPayload = {
+  id: TrackId;
+  ancestorId: TrackId;
+};
 
 // ------------------------------------------------------------
 // Portal Slice Definition
@@ -60,41 +66,10 @@ export const portalsSlice = createSlice({
         delete state.byId[id];
       });
     },
-    clearPortalsByTrackId: (
-      state,
-      action: PayloadAction<ClearPortalsByTrackIdPayload>
-    ) => {
-      const trackId = action.payload;
-      if (!trackId) return;
-      const portalIds = Object.values(state.byId)
-        .filter((portal) => portal.trackId === trackId)
-        .map((portal) => portal.id);
-      state.allIds = without(state.allIds, ...portalIds);
-      portalIds.forEach((id) => delete state.byId[id]);
-    },
-    removePortalsByTrackId: (
-      state,
-      action: PayloadAction<RemovePortalsByTrackIdPayload>
-    ) => {
-      const { id } = action.payload;
-      if (!id) return;
-      const portalIds = Object.values(state.byId)
-        .filter(
-          (portal) => portal.trackId === id || portal.portaledTrackId === id
-        )
-        .map((portal) => portal.id);
-      state.allIds = without(state.allIds, ...portalIds);
-      portalIds.forEach((id) => delete state.byId[id]);
-    },
   },
 });
 
-export const {
-  addPortals,
-  updatePortals,
-  removePortals,
-  clearPortalsByTrackId,
-  removePortalsByTrackId,
-} = portalsSlice.actions;
+export const { addPortals, updatePortals, removePortals } =
+  portalsSlice.actions;
 
 export default portalsSlice.reducer;

@@ -2,10 +2,7 @@ import { Editor } from "features/Editor/components";
 import { ScaleEditorProps } from "../ScaleEditor";
 import { Sampler } from "tone";
 import { getMidiPitch } from "utils/midi";
-import {
-  addNoteToScaleTrack,
-  removeNoteFromScaleTrack,
-} from "redux/ScaleTrack";
+import { addNoteToScaleTrack, removeNoteFromScaleTrack } from "redux/Track";
 
 export function ScaleEditorPiano(props: ScaleEditorProps) {
   const { instance, track, isAdding, isRemoving, isShowingPiano } = props;

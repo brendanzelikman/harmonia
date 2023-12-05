@@ -8,26 +8,19 @@ test("initializePose should create a pose with a unique ID", () => {
   expect(p2.id).not.toEqual(p1.id);
 });
 
-test("isPoseVector should only return true for valid vectors", () => {
-  expect(_.isPoseVector({})).toBe(true);
-  expect(_.isPoseVector(_.defaultPose.vector)).toBe(true);
-  expect(_.isPoseVector(_.mockPose.vector)).toBe(true);
-
-  expect(_.isPoseVector({ chromatic: "1" })).toBe(false);
-  expect(_.isPoseVector(undefined)).toBe(false);
-  expect(_.isPoseVector([])).toBe(false);
+test("isPoseStream should only return true for valid streams", () => {
+  expect(_.isPoseStream([])).toBe(true);
+  expect(_.isPoseStream(_.mockPose.stream)).toBe(true);
+  expect(_.isPoseStream([{ duration: 1, vector: { a: 1 } }])).toBe(true);
 });
 
 test("isPose should only return true for valid poses", () => {
   expect(_.isPose(_.defaultPose)).toBe(true);
   expect(_.isPose(_.mockPose)).toBe(true);
-  expect(_.isPose({ ..._.mockPose, duration: 0 })).toBe(true);
-  expect(_.isPose({ ..._.mockPose, duration: Infinity })).toBe(true);
-  expect(_.isPose({ ..._.mockPose, duration: undefined })).toBe(true);
+  expect(_.isPose({ ..._.mockPose, stream: [] })).toBe(true);
 
-  expect(_.isPose({ ..._.mockPose, duration: "0" })).toBe(false);
+  expect(_.isPose({ ..._.mockPose, stream: "0" })).toBe(false);
   expect(_.isPose({ ..._.mockPose, id: 1 })).toBe(false);
-  expect(_.isPose({ ..._.mockPose, tick: "1" })).toBe(false);
   expect(_.isPose(undefined)).toBe(false);
   expect(_.isPose([])).toBe(false);
 });

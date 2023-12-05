@@ -2,7 +2,6 @@ import { BsGear } from "react-icons/bs";
 import * as _ from "redux/Editor";
 import { useState } from "react";
 import { EditorProps } from "..";
-import { EasyTransition } from "components/Transition";
 
 export function EditorNavbar(props: EditorProps) {
   const { dispatch } = props;
@@ -18,11 +17,8 @@ export function EditorNavbar(props: EditorProps) {
     </span>
   );
 
-  const SettingsOptions = (
-    <EasyTransition
-      show={showingSettings}
-      className="flex space-x-3 [&>div]:cursor-pointer"
-    >
+  const SettingsOptions = !showingSettings ? null : (
+    <div className="flex space-x-3 [&>div]:cursor-pointer animate-in fade-in">
       <div onClick={() => dispatch(_.toggleEditorTracks())}>
         {props.isShowingTracks ? "Hide" : "Show"} Tracks
       </div>
@@ -38,7 +34,7 @@ export function EditorNavbar(props: EditorProps) {
       <div onClick={() => dispatch(_.toggleEditorPiano())}>
         {props.isShowingPiano ? "Hide" : "Show"} Piano
       </div>
-    </EasyTransition>
+    </div>
   );
 
   return (

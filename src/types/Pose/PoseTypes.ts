@@ -1,12 +1,14 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { isNumber, isPlainObject, isString, isUndefined } from "lodash";
+import { isNumber, isPlainObject, isString } from "lodash";
 import { TrackId } from "types/Track";
-import { ID, Tick } from "types/units";
+import { ID, Stream } from "types/units";
+import { areObjectValuesTyped, isOptionalType, isTypedArray } from "types/util";
 import {
   NormalRecord,
   NormalState,
   createNormalState,
 } from "utils/normalizedState";
+import { createUndoableHistory } from "utils/undoableHistory";
 
 // ------------------------------------------------------------
 // Pose Generics
@@ -24,22 +26,42 @@ export type PoseState = NormalState<PoseMap>;
 // Pose Definitions
 // ------------------------------------------------------------
 
-/** A pose vector is contextualized by a track. */
+/** A `PoseVector` contains a list of offsets applied to a note. */
+export type PoseVector = Record<PoseVectorId, number>;
 export type PoseVectorId = TrackId | "chromatic" | "chordal";
 
-/** A pose vector contains all of a pose's offsets. */
-export type PoseVector = Record<PoseVectorId, number>;
+/** A `PoseModule` can be infinite or have a finite, repeatable duration */
+export interface PoseModule {
+  duration?: number;
+  repeat?: number;
+  chain?: PoseVector;
+}
+
+/** A `PoseVectorModule` is a `PoseModule` with an extractable `PoseVector` */
+export interface PoseVectorModule extends PoseModule {
+  vector: PoseVector;
+}
+
+/** A `PoseStreamModule` is a `PoseModule` containing a nested `PoseStream` */
+export interface PoseStreamModule extends PoseModule {
+  stream: PoseStream;
+}
+
+/** A `PoseBlock` is either a `PoseVectorModule` or a `PoseStreamModule` */
+export type PoseBlock = PoseVectorModule | PoseStreamModule;
+
+/** A `PoseStream` is a sequence of recursive modules. */
+export type PoseStream = Stream<PoseBlock>;
 
 /**
- * A `Pose` (or Transposition) contains a vector of scalar offsets that are applied to a `Track`
+ * A `Pose` (or Transposition) contains a sequential list of vectors that are applied to a `Track`
  * at a specified tick for a given duration or continuously (if duration = Infinity or undefined).
  */
 export type Pose = {
   id: PoseId;
-  trackId: TrackId;
-  tick: Tick;
-  vector: PoseVector;
-  duration?: Tick;
+  stream: PoseStream;
+  name?: string;
+  trackId?: TrackId;
 };
 
 // ------------------------------------------------------------
@@ -58,25 +80,30 @@ export const initializePose = (
 /** The default pose is used for initialization. */
 export const defaultPose: Pose = {
   id: "default-pose",
-  trackId: "default-track",
-  vector: {},
-  tick: 0,
+  name: "New Pose",
+  stream: [{ vector: {} }],
 };
 
 /** The mock pose is used for testing. */
 export const mockPose: Pose = {
   id: "mock-pose",
   trackId: "mock-pattern-track",
-  vector: {
-    chromatic: 1,
-    chordal: 1,
-    mock_track: 1,
-  },
-  tick: 0,
+  stream: [
+    {
+      vector: { chromatic: 1, chordal: 1, mock_track: 1 },
+      duration: 24,
+    },
+  ],
 };
 
 /** The default pose state is used for Redux. */
-export const defaultPoseState: PoseState = createNormalState<PoseMap>();
+export const defaultPoseState: PoseState = createNormalState<PoseMap>([
+  defaultPose,
+]);
+
+/** The undoable pose history is used for Redux. */
+export const defaultPoseHistory =
+  createUndoableHistory<PoseState>(defaultPoseState);
 
 // ------------------------------------------------------------
 // Pose Type Guards
@@ -85,7 +112,41 @@ export const defaultPoseState: PoseState = createNormalState<PoseMap>();
 /** Checks if a given object is of type `PoseVector` */
 export const isPoseVector = (obj: unknown): obj is PoseVector => {
   const candidate = obj as PoseVector;
-  return isPlainObject(candidate) && Object.values(candidate).every(isNumber);
+  return isPlainObject(candidate) && areObjectValuesTyped(candidate, isNumber);
+};
+
+/** Checks if a given object is of type `PoseModule` */
+export const isPoseModule = (obj: unknown): obj is PoseModule => {
+  const candidate = obj as PoseModule;
+  return (
+    isOptionalType(candidate.duration, isNumber) &&
+    isOptionalType(candidate.repeat, isNumber) &&
+    isOptionalType(candidate.chain, isPoseVector)
+  );
+};
+
+/** Checks if a given object is of type `PoseVectorModule` */
+export const isPoseVectorModule = (obj: unknown): obj is PoseVectorModule => {
+  const candidate = obj as PoseVectorModule;
+  return isPoseModule(candidate) && isPoseVector(candidate.vector);
+};
+
+/** Checks if a given object is of type `PoseStreamModule` */
+export const isPoseStreamModule = (obj: unknown): obj is PoseStreamModule => {
+  const candidate = obj as PoseStreamModule;
+  return isPoseModule(candidate) && isPoseStream(candidate.stream);
+};
+
+/** Checks if a given object is of type `PoseBlock` */
+export const isPoseBlock = (obj: unknown): obj is PoseBlock => {
+  const candidate = obj as PoseBlock;
+  return isPoseVectorModule(candidate) || isPoseStreamModule(candidate);
+};
+
+/** Checks if a given object is of type `PoseStream` */
+export const isPoseStream = (obj: unknown): obj is PoseStream => {
+  const candidate = obj as PoseStream;
+  return isTypedArray(candidate, isPoseBlock);
 };
 
 /** Checks if a given object is of type `Pose`. */
@@ -94,11 +155,8 @@ export const isPose = (obj: unknown): obj is Pose => {
   return (
     isPlainObject(candidate) &&
     isString(candidate.id) &&
-    isString(candidate.trackId) &&
-    isNumber(candidate.tick) &&
-    isFinite(candidate.tick) &&
-    (isUndefined(candidate.duration) || isNumber(candidate.duration)) &&
-    isPoseVector(candidate.vector)
+    isPoseStream(candidate.stream) &&
+    isOptionalType(candidate.name, isString)
   );
 };
 

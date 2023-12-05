@@ -1,45 +1,42 @@
 import * as _ from "./ClipSlice";
 import { PayloadAction } from "@reduxjs/toolkit";
 import { ActionGroup } from "redux/util";
-import { getClipAsString, getClipUpdateAsString } from "types/Clip";
-import { getPortalAsString, getPortalUpdateAsString } from "types/Portal";
-import { getPoseAsString, getPoseUpdateAsString } from "types/Pose";
+import { getClipUpdateAsString } from "types/Clip";
+import { getPortalUpdateAsString } from "types/Portal";
 import { toString } from "utils/objects";
 
 export const CLIP_UNDO_TYPES: ActionGroup = {
   "clips/addClips": (action: PayloadAction<_.AddClipsPayload>) => {
-    const { clips, poses, portals } = action.payload;
-    const clipTag = toString(clips, getClipAsString);
-    const poseTag = toString(poses, getPoseAsString);
-    const portalTag = toString(portals, getPortalAsString);
-    return `ADD_MEDIA:${clipTag},${poseTag},${portalTag}`;
+    const { clips, portals, callerId } = action.payload;
+    const clipTag = toString(clips, JSON.stringify);
+    const portalTag = toString(portals, JSON.stringify);
+
+    if (callerId) return `ADD_TRACK:${callerId}`;
+    return `ADD_MEDIA:${clipTag},${portalTag}`;
   },
-  "clips/_updateClips": (action: PayloadAction<_.UpdateClipsPayload>) => {
-    const { clips, poses, portals } = action.payload;
+  "clips/updateClips": (action: PayloadAction<_.UpdateClipsPayload>) => {
+    const { clips, portals } = action.payload;
     const clipTag = toString(clips, getClipUpdateAsString);
-    const poseTag = toString(poses, getPoseUpdateAsString);
     const portalTag = toString(portals, getPortalUpdateAsString);
-    return `UPDATE_MEDIA:${clipTag},${poseTag},${portalTag}`;
+    return `UPDATE_MEDIA:${clipTag},${portalTag}`;
   },
   "clips/removeClips": (action: PayloadAction<_.RemoveClipsPayload>) => {
-    const { clipIds, poseIds, portalIds } = action.payload;
+    const { clipIds, portalIds, callerId, tag } = action.payload;
     const clipTag = toString(clipIds);
-    const poseTag = toString(poseIds);
     const portalTag = toString(portalIds);
-    return `REMOVE_MEDIA:${clipTag},${poseTag},${portalTag}`;
+
+    if (callerId && tag === "CLEAR") return `CLEAR_TRACK:${callerId}`;
+    if (callerId && tag === "REMOVE") return `REMOVE_TRACK:${callerId}`;
+
+    return `REMOVE_MEDIA:${clipTag},${portalTag}`;
   },
   "clips/_sliceClip": (action: PayloadAction<_.SliceClipPayload>) => {
     const { oldClip, firstClip, secondClip } = action.payload;
     return `SLICE_MEDIA:${oldClip.id},${firstClip.id},${secondClip.id}`;
   },
-  "clips/clearClipsByTrackId": (
-    action: PayloadAction<_.ClearClipsByTrackIdPayload>
-  ) => {
-    return `CLEAR_TRACK:${action.payload}`;
-  },
-  "clips/removeClipsByTrackId": (
-    action: PayloadAction<_.RemoveClipsByTrackIdPayload>
-  ) => {
-    return `REMOVE_TRACK:${action.payload.originalId}`;
+  "clips/_mergeClips": (action: PayloadAction<_.MergeClipsPayload>) => {
+    const { oldClips, newClip } = action.payload;
+    const clipTag = toString(oldClips);
+    return `MERGE_MEDIA:${clipTag},${newClip.id}`;
   },
 };

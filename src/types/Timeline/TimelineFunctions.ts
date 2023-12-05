@@ -1,36 +1,31 @@
 import { isTrack } from "types/Track";
 import { Timeline } from "./TimelineTypes";
 import { Tracked } from "types/Track/TrackTypes";
-import {
-  DEFAULT_MEDIA_DRAG_STATE,
-  Media,
-  MediaClip,
-  MediaClipboard,
-} from "types/Media";
+import { DEFAULT_MEDIA_DRAG_STATE, Media, MediaClipboard } from "types/Media";
 
-/** Checks if the user is adding clips. */
-export const isTimelineAddingClips = (timeline: Timeline) => {
-  return timeline.state === "addingClips";
+/** Checks if the user is adding pattern clips. */
+export const isTimelineAddingPatternClips = (timeline: Timeline) => {
+  return timeline.state === "addingPatternClips";
 };
 
 /** Checks if the user is adding poses. */
-export const isTimelineAddingPoses = (timeline: Timeline) => {
-  return timeline.state === "addingPoses";
+export const isTimelineAddingPoseClips = (timeline: Timeline) => {
+  return timeline.state === "addingPoseClips";
 };
 
 /** Checks if the user is slicing media. */
-export const isTimelineSlicingMedia = (timeline: Timeline) => {
-  return timeline.state === "slicingMedia";
+export const isTimelineSlicingClips = (timeline: Timeline) => {
+  return timeline.state === "slicingClips";
 };
 
 /** Checks if the user is slicing media. */
-export const isTimelinePortalingMedia = (timeline: Timeline) => {
-  return timeline.state === "portalingMedia";
+export const isTimelinePortalingClips = (timeline: Timeline) => {
+  return timeline.state === "portalingClips";
 };
 
 /** Checks if the user is merging media. */
-export const isTimelineMergingMedia = (timeline: Timeline) => {
-  return timeline.state === "mergingMedia";
+export const isTimelineMergingClips = (timeline: Timeline) => {
+  return timeline.state === "mergingClips";
 };
 
 /** Checks if the user is idle. */
@@ -40,8 +35,8 @@ export const isTimelineIdle = (timeline: Timeline) => {
 
 /** Checks if the user is live. */
 export const isTimelineLive = (timeline: Timeline) => {
-  const hasPoses = !!timeline.mediaSelection.poseIds.length;
-  const isActive = timeline.livePoseSettings.enabled;
+  const hasPoses = !!timeline.mediaSelection.poseClipIds.length;
+  const isActive = timeline.livePlay.enabled;
   return hasPoses && isActive;
 };
 
@@ -52,7 +47,7 @@ export const getTimelineObjectTrackId = <T>(object?: Tracked<T>) => {
 
 /** Get the media from the `MediaClipboard` */
 export const getClipboardMedia = (clipboard: MediaClipboard): Media => {
-  return [...clipboard.clips, ...clipboard.poses, ...clipboard.portals];
+  return [...clipboard.clips, ...clipboard.portals];
 };
 
 /** Get the timeline with the user idled. */

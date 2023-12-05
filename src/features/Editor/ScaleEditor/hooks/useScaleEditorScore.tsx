@@ -3,8 +3,10 @@ import { EditorProps } from "features/Editor";
 import { NoteCallback, useOSMD } from "lib/opensheetmusicdisplay";
 import { useCallback, useMemo } from "react";
 import { exportScaleToXML } from "redux/Scale";
-import { removeNoteFromScaleTrackByIndex } from "redux/ScaleTrack";
-import { selectTrackMidiScale } from "redux/Track";
+import {
+  selectTrackMidiScale,
+  removeNoteFromScaleTrackByIndex,
+} from "redux/Track";
 import { useProjectDeepSelector } from "redux/hooks";
 
 export function useScaleEditorScore(props: EditorProps) {

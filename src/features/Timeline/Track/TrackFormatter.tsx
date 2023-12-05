@@ -9,14 +9,19 @@ import {
   selectSelectedTrackId,
   setSelectedTrackId,
 } from "redux/Timeline";
-import { Track, TrackId } from "types/Track";
+import {
+  PatternTrack,
+  ScaleTrack,
+  Track,
+  TrackId,
+  isPatternTrack,
+  isScaleTrack,
+} from "types/Track";
 import {
   selectTrackById,
   selectTrackIndexById,
   selectTrackLabelById,
 } from "redux/Track";
-import { ScaleTrack } from "types/ScaleTrack";
-import { PatternTrack } from "types/PatternTrack";
 import { TimelineCell } from "types/Timeline";
 
 export interface TrackFormatterProps {
@@ -26,7 +31,7 @@ export interface TrackFormatterProps {
   index: number;
   isSelected: boolean;
 
-  updateTrack: (update: Partial<Track>) => void;
+  renameTrack: (name: string) => void;
   moveTrack: (dragId: TrackId, hoverId: TrackId) => void;
   selectTrack: () => void;
   clearTrack: () => void;
@@ -48,18 +53,21 @@ export function TrackFormatter(props: FormatterProps<Row>) {
   const index = useProjectSelector((_) => selectTrackIndexById(_, track?.id));
   if (!trackId || !track) return null;
 
-  const updateTrack = (partial: Partial<Track>) =>
-    dispatch(_.updateTracks([{ ...partial, id: trackId }]));
+  const renameTrack = (name: string) =>
+    dispatch(_.renameTrack({ id: trackId, name }));
 
-  const moveTrack = (dragId: TrackId, hoverId: TrackId) =>
-    !!track && dispatch(_.moveTrack(track, dragId, hoverId));
+  const moveTrack = (dragId: TrackId, hoverId: TrackId) => {
+    if (isScaleTrack(track)) dispatch(_.moveScaleTrack({ dragId, hoverId }));
+    if (isPatternTrack(track))
+      dispatch(_.movePatternTrack({ dragId, hoverId }));
+  };
 
   const selectTrack = () => dispatch(setSelectedTrackId(trackId));
   const clearTrack = () => dispatch(_.clearTrack(trackId));
   const deleteTrack = () => dispatch(_.deleteTrack(trackId));
   const duplicateTrack = () => dispatch(_.duplicateTrack(trackId));
-  const collapseTrack = () => dispatch(_.collapseTrack(trackId));
-  const expandTrack = () => dispatch(_.expandTrack(trackId));
+  const collapseTrack = () => dispatch(_.collapseTracks([trackId]));
+  const expandTrack = () => dispatch(_.expandTracks([trackId]));
   const collapseChildren = () => dispatch(_.collapseTrackChildren(trackId));
   const expandChildren = () => dispatch(_.expandTrackChildren(trackId));
 
@@ -70,7 +78,7 @@ export function TrackFormatter(props: FormatterProps<Row>) {
     isSelected,
     index,
     label,
-    updateTrack,
+    renameTrack,
     moveTrack,
     selectTrack,
     clearTrack,
@@ -82,13 +90,13 @@ export function TrackFormatter(props: FormatterProps<Row>) {
     expandChildren,
   };
 
-  if (track.type === "scaleTrack") {
-    return <ScaleTrackFormatter {...trackProps} track={track as ScaleTrack} />;
+  if (isScaleTrack(track)) {
+    const typedTrack = track as ScaleTrack;
+    return <ScaleTrackFormatter {...trackProps} track={typedTrack} />;
   }
-  if (track.type === "patternTrack") {
-    return (
-      <PatternTrackFormatter {...trackProps} track={track as PatternTrack} />
-    );
+  if (isPatternTrack(track)) {
+    const typedTrack = track as PatternTrack;
+    return <PatternTrackFormatter {...trackProps} track={typedTrack} />;
   }
   return null;
 }

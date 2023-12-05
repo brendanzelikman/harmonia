@@ -9,22 +9,27 @@ export const isEditorOpen = (editor: Editor) => {
   return !!editor.view;
 };
 
-/** Checks if the pattern editor is active. */
+/** Checks if the pattern editor is open. */
 export const isPatternEditorOpen = (editor: Editor) => {
-  return editor.view === "patterns";
+  return editor.view === "pattern";
 };
 
-/** Checks if the scale editor is active. */
+/** Checks if the pose editor is open. */
+export const isPoseEditorOpen = (editor: Editor) => {
+  return editor.view === "pose";
+};
+
+/** Checks if the scale editor is open. */
 export const isScaleEditorOpen = (editor: Editor) => {
   return editor.view === "scale";
 };
 
-/** Checks if the instrument editor is active. */
+/** Checks if the instrument editor is open. */
 export const isInstrumentEditorOpen = (editor: Editor) => {
   return editor.view === "instrument";
 };
 
-/** Checks if the file editor is active. */
+/** Checks if the file editor is open. */
 export const isFileEditorOpen = (editor: Editor) => {
   return editor.view === "file";
 };
@@ -33,6 +38,12 @@ export const isFileEditorOpen = (editor: Editor) => {
 export const isEditorVisible = (editor: Editor) => {
   return !!editor.view && editor.view !== "file";
 };
+
+/** Get the editor with the user idled. */
+export const getIdleEditor = (editor: Editor): Editor => ({
+  ...editor,
+  view: undefined,
+});
 
 // ------------------------------------------------------------
 // Editor Action

@@ -20,13 +20,7 @@ export const CLIP_COLORS = [
 export type ClipColor = (typeof CLIP_COLORS)[number];
 export const DEFAULT_CLIP_COLOR: ClipColor = "sky";
 
-/**
- * A curated color palette for a Clip using Tailwind CSS color names.
- * @property headerColor: {@link Color} - The color of the Clip header.
- * @property bodyColor: {@link Color} - The color of the Clip body.
- * @property noteColor: {@link Color} - The color of the Clip notes.
- * @property iconColor: {@link Color} - The color of the Clip icons.
- */
+/** A curated color palette for a Clip using Tailwind CSS color names. */
 export interface ClipTheme {
   headerColor: Color;
   bodyColor: Color;
@@ -34,9 +28,7 @@ export interface ClipTheme {
   iconColor: Color;
 }
 
-/**
- * A map of {@link ClipColor} keys to {@link ClipTheme} values.
- */
+/** A map of clip colors to their respective themes. */
 export const CLIP_THEMES: Record<ClipColor, ClipTheme> = {
   red: {
     headerColor: "bg-red-800",
@@ -81,8 +73,8 @@ export const CLIP_THEMES: Record<ClipColor, ClipTheme> = {
     iconColor: "bg-cyan-500",
   },
   sky: {
-    headerColor: "bg-sky-950",
-    bodyColor: "bg-sky-800/70",
+    headerColor: "bg-slate-900/80",
+    bodyColor: "bg-sky-700/70",
     noteColor: "bg-sky-950",
     iconColor: "bg-sky-700",
   },

@@ -1,6 +1,5 @@
 import { Menu } from "@headlessui/react";
 import classNames from "classnames";
-import { EasyTransition } from "components/Transition";
 import { promptUser } from "utils/html";
 
 export interface EditorButtonProps extends React.HTMLProps<HTMLButtonElement> {
@@ -75,13 +74,7 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
           <Menu.Button as="div" className="flex justify-center z-[80]">
             <Button open={open} />
           </Menu.Button>
-          <EasyTransition
-            show={open}
-            duration={100}
-            scale={50}
-            asType={Menu.Items}
-            className="absolute flex flex-col z-[90] top-8 px-2 whitespace-nowrap -mr-5 py-2 bg-slate-900/90 backdrop-blur border border-slate-400 text-sm rounded"
-          >
+          <Menu.Items className="absolute flex flex-col z-[90] top-8 px-2 whitespace-nowrap -mr-5 py-2 bg-slate-900/90 backdrop-blur border border-slate-400 text-sm rounded animate-in fade-in zoom-in-50 duration-100">
             {options.map((option, i) => (
               <div
                 key={i}
@@ -91,7 +84,7 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
                 {option.label}
               </div>
             ))}
-          </EasyTransition>
+          </Menu.Items>
         </>
       )}
     </Menu>

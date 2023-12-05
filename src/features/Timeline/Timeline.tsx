@@ -1,10 +1,6 @@
-import { TrackId, TrackType } from "types/Track";
+import { TrackId } from "types/Track";
 import { createRandomHierarchy, createScaleTrack } from "redux/thunks";
-import {
-  selectTrackRenderDependencies,
-  selectCell,
-  selectTrackMap,
-} from "redux/selectors";
+import { selectCell, selectTrackIds, selectTrackMap } from "redux/selectors";
 import DataGrid, {
   Column,
   DataGridHandle,
@@ -19,8 +15,7 @@ import {
 } from "redux/hooks";
 import { TrackFormatter } from "./Track";
 import { TimelineHeaderRenderer } from "./Header";
-import { PortaledClips } from "./Clips";
-import { PortaledPoses } from "./Poses";
+import { TimelineClips } from "./Clips";
 import { TimelineContextMenu } from "./components/TimelineContextMenu";
 import { TimelineGraphics } from "./components/TimelineGraphics";
 import { useTimelineHotkeys } from "./hooks/useTimelineHotkeys";
@@ -38,27 +33,18 @@ import { TimelinePortals } from "./Portals";
 import { CellFormatter } from "./Cell";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
-export interface Row {
-  trackId?: TrackId;
-  type: TrackType;
-  depth: number;
-  index: number;
-  lastRow?: boolean;
-  collapsed?: boolean;
-}
+export type Row = { index: number; trackId?: TrackId; trackButton?: boolean };
 
-export interface TimelinePortalElement {
-  timeline: DataGridHandle;
-}
+export type TimelinePortalElement = { timeline?: DataGridHandle };
 
 export function Timeline() {
   const dispatch = useProjectDispatch();
   const cell = useProjectSelector(selectCell);
-  const dependencyMap = useProjectDeepSelector(selectTrackRenderDependencies);
+  const trackIds = useProjectDeepSelector(selectTrackIds);
   const trackMap = useProjectDeepSelector(selectTrackMap);
   const heldKeys = useHeldHotkeys(["alt"]);
   const [timeline, setTimeline] = useState<DataGridHandle>();
-  useTimelineHotkeys();
+  useTimelineHotkeys(timeline);
   useTimelineLiveHotkeys();
 
   /** The grid ref stores the react-data-grid element. */
@@ -73,49 +59,18 @@ export function Timeline() {
     [timeline]
   );
 
-  /** The rows are built from the dependency map. */
-  const rows: Row[] = useMemo((): Row[] => {
+  /** The rows are built from the ordered list of track IDs. */
+  const rows = useMemo(() => {
     const rows: Row[] = [];
-    const topLevelIds = dependencyMap.topLevelIds;
-    const trackMap = dependencyMap.byId;
-
-    // Recursively add all children of a track
-    const addChildren = (children: TrackId[]) => {
-      if (!children?.length) return;
-      children.forEach((trackId) => {
-        const child = trackMap[trackId];
-        if (!child) return;
-        rows.push({ ...child, trackId, index: trackIndex++ });
-        addChildren(child.trackIds);
-      });
-    };
-
-    // Add the scale tracks from the top level
-    let trackIndex = 0;
-    for (const trackId of topLevelIds) {
-      const track = trackMap[trackId];
-      if (!track) continue;
-      // Add the row
-      rows.push({ ...track, trackId, index: trackIndex++ });
-      // Add the children tracks
-      addChildren(track.trackIds);
-    }
-
-    // Add the track button
-    rows.push({
-      index: trackIndex++,
-      lastRow: true,
-      type: "emptyTrack",
-      depth: 0,
-    });
-
+    rows.push(...trackIds.map((id, i) => ({ index: i, trackId: id })));
+    rows.push({ trackButton: true, index: rows.length });
     return rows;
-  }, [dependencyMap]);
+  }, [trackIds]);
 
   /** The Add Track button is located directly under the last track, appearing on hover. */
   const AddTrackButton = (
     <div
-      className={`rdg-track flex font-nunito w-full h-full justify-center items-center hover:bg-sky-500/30 text-slate-50/0 hover:text-slate-100 ease-in-out transition-all duration-500 rounded cursor-pointer`}
+      className={`rdg-track flex font-nunito w-full h-full justify-center items-center hover:bg-indigo-500/30 text-slate-50/0 hover:text-slate-100 ease-in-out transition-all duration-500 rounded cursor-pointer`}
       onClick={() =>
         dispatch(heldKeys.alt ? createRandomHierarchy() : createScaleTrack())
       }
@@ -134,7 +89,7 @@ export function Timeline() {
       width: TRACK_WIDTH,
       frozen: true,
       formatter: (formatterProps: FormatterProps<Row>) => {
-        if (formatterProps.row.lastRow) return AddTrackButton;
+        if (formatterProps.row.trackButton) return AddTrackButton;
         if (!formatterProps.row.trackId) return null;
         return <TrackFormatter {...formatterProps} />;
       },
@@ -189,8 +144,7 @@ export function Timeline() {
     return (
       <>
         <TimelineGraphics timeline={timeline} />
-        <PortaledClips timeline={timeline} />
-        <PortaledPoses timeline={timeline} />
+        <TimelineClips timeline={timeline} />
         <TimelinePortals timeline={timeline} />
       </>
     );
@@ -212,7 +166,10 @@ export function Timeline() {
   }, [trackedColumns, rows, rowHeight]);
 
   return (
-    <div id="timeline" className="flex flex-col relative w-full h-full">
+    <div
+      id="timeline"
+      className="flex flex-col relative w-full h-full animate-in fade-in zoom-in-150"
+    >
       <TimelineContextMenu />
       {TimelineGrid}
       {TimelineElements}

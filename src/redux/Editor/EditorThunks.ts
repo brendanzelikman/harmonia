@@ -33,7 +33,7 @@ export const showEditor =
     const pattern = selectSelectedPattern(project);
 
     // Start adding notes if opening a custom pattern
-    const onPatterns = view === "patterns";
+    const onPatterns = view === "pattern";
     const isAdding = isEditorAddingNotes(editor);
     const isCustom = pattern && customPatterns.some((p) => p.id === pattern.id);
     if (onPatterns && !isAdding && isCustom) {

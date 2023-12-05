@@ -37,6 +37,7 @@ export function useProjectLoader() {
 
       // If the project loads, set the state
       dispatch({ type: "setProject", payload: project });
+
       setLoaded(true);
     };
   }, []);

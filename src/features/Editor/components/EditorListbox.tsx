@@ -1,4 +1,4 @@
-import { Listbox, Transition } from "@headlessui/react";
+import { Listbox } from "@headlessui/react";
 import { BsCheck, BsMusicNoteBeamed, BsSoundwave } from "react-icons/bs";
 import {
   InstrumentKey,
@@ -57,56 +57,47 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
               {name || props.placeholder || "Change Value"}
             </span>
           </Listbox.Button>
-          <Transition
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-            className="peer"
-          >
-            <Listbox.Options className="absolute z-50 w-40 py-1 mt-1 overflow-auto text-xs bg-slate-800 border border-slate-500 backdrop-blur rounded-md shadow-lg max-h-60 capitalize focus:outline-none">
-              {props.options.map((option) => {
-                const optionKey = getOptionKey(option);
-                const optionValue = getOptionValue(option);
-                const optionName = getOptionName(option);
-                return (
-                  <Listbox.Option
-                    key={optionKey}
-                    value={optionValue}
-                    className={({ active }) =>
-                      `group cursor-pointer select-none relative py-2 pl-6 pr-4 ${
-                        active
-                          ? "text-emerald-900 bg-emerald-500"
-                          : "text-gray-200"
-                      }`
-                    }
-                    onClick={() => props.setValue(option)}
-                  >
-                    {({ selected }) => (
-                      <>
+
+          <Listbox.Options className="absolute peer animate-in fade-in zoom-in-95 duration-150 z-50 w-40 py-1 mt-1 overflow-auto text-xs bg-slate-800 border border-slate-500 backdrop-blur rounded-md shadow-lg max-h-60 capitalize focus:outline-none">
+            {props.options.map((option) => {
+              const optionKey = getOptionKey(option);
+              const optionValue = getOptionValue(option);
+              const optionName = getOptionName(option);
+              return (
+                <Listbox.Option
+                  key={optionKey}
+                  value={optionValue}
+                  className={({ active }) =>
+                    `group cursor-pointer select-none relative py-2 pl-6 pr-4 ${
+                      active
+                        ? "text-emerald-900 bg-emerald-500"
+                        : "text-gray-200"
+                    }`
+                  }
+                  onClick={() => props.setValue(option)}
+                >
+                  {({ selected }) => (
+                    <>
+                      <span
+                        className={`${
+                          selected ? "font-medium" : "font-normal"
+                        } block truncate`}
+                      >
+                        {`${optionName}`}
+                      </span>
+                      {selected ? (
                         <span
-                          className={`${
-                            selected ? "font-medium" : "font-normal"
-                          } block truncate`}
+                          className={`text-emerald-600 group-hover:text-emerald-800 absolute inset-y-0 left-0 flex items-center pl-2`}
                         >
-                          {`${optionName}`}
+                          <BsCheck />
                         </span>
-                        {selected ? (
-                          <span
-                            className={`text-emerald-600 group-hover:text-emerald-800 absolute inset-y-0 left-0 flex items-center pl-2`}
-                          >
-                            <BsCheck />
-                          </span>
-                        ) : null}
-                      </>
-                    )}
-                  </Listbox.Option>
-                );
-              })}
-            </Listbox.Options>
-          </Transition>
+                      ) : null}
+                    </>
+                  )}
+                </Listbox.Option>
+              );
+            })}
+          </Listbox.Options>
         </div>
       )}
     </Listbox>

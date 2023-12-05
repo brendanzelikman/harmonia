@@ -8,7 +8,6 @@ import {
   updatePattern,
 } from "redux/Pattern";
 import { Editor } from "features/Editor/components";
-import { EasyTransition } from "components/Transition";
 
 export function PatternEditorSettingsTab(props: PatternEditorProps) {
   const { dispatch, pattern, Tooltip, Button } = props;
@@ -44,6 +43,7 @@ export function PatternEditorSettingsTab(props: PatternEditorProps) {
         <span>Bind to Track:</span>
         <Editor.CustomListbox
           options={patternTrackOptions}
+          borderColor={patternTrack ? "border-emerald-500" : "border-slate-500"}
           value={patternTrack?.id ?? "no-track"}
           getOptionName={(option) =>
             option === "no-track"
@@ -94,11 +94,11 @@ export function PatternEditorSettingsTab(props: PatternEditorProps) {
       <Editor.TabGroup border={false}>
         <PatternTrackField />
       </Editor.TabGroup>
-      <EasyTransition show={!!pattern?.patternTrackId}>
+      {!!pattern?.patternTrackId && (
         <Editor.TabGroup border={false}>
           <NoteBindField />
         </Editor.TabGroup>
-      </EasyTransition>
+      )}
     </Editor.Tab>
   );
 }

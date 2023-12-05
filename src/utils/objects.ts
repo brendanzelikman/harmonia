@@ -1,11 +1,41 @@
+import { inRange } from "lodash";
 import { ID } from "types/units";
 
 /** Create a map connecting IDs to objects from an array of objects. */
-export const createMap = <T extends Record<ID, any>>(values: any[]): T => {
+export const createMap = <T extends { id: ID; [key: string]: any }>(
+  values: T[]
+) => {
   return values.reduce((acc, value) => {
     acc[value.id] = value;
     return acc;
-  }, {} as T);
+  }, {} as Record<ID, T>);
+};
+
+/** Create a map grouping objects with the field provided. */
+export const createMapByField = <T extends Record<ID, any>>(
+  values: T[],
+  field: keyof T
+): Record<string, T[]> => {
+  return values.reduce((acc, value) => {
+    const key = value[field];
+    acc[key] = [...(acc[key] ?? []), value];
+    return acc;
+  }, {} as Record<string, T[]>);
+};
+
+/** Create a map overwriting values with the provided function */
+export const createMapWithFn = <
+  OldValue extends { id: ID; [key: string]: any },
+  OldEntry extends OldValue | OldValue[],
+  NewValue extends unknown
+>(
+  oldRecord: Record<ID, OldEntry>,
+  fn: (oldEntry: OldEntry) => NewValue
+) => {
+  return Object.keys(oldRecord).reduce((acc, key) => {
+    acc[key] = fn(oldRecord[key]);
+    return acc;
+  }, {} as Record<string, NewValue>);
 };
 
 /** Create a string from an item or array of items. */
@@ -42,6 +72,11 @@ export const getValueByKey = <T, K extends keyof T>(obj?: T, key?: K) => {
   return key !== undefined ? obj?.[key] : undefined;
 };
 
+/** Get an array from a record by key or return an empty array. */
+export const getArrayByKey = <T, K extends keyof T>(obj?: T, key?: K) => {
+  return getValueByKey(obj, key) || ([] as T[K]);
+};
+
 /** Get an array of objects from a record using the given keys. */
 export const getValuesByKeys = <T, K extends keyof T>(
   obj: T,
@@ -63,4 +98,17 @@ export const hasKeys = (obj: Record<string, any>) => {
 /** Find the first entry containing the value within the given record. */
 export const findEntry = (value: unknown, object: Record<any, unknown>) => {
   return Object.entries(object).find(([, v]) => v === value);
+};
+
+/** Splice or push to an array */
+export const spliceOrPush = <T>(
+  array: T[],
+  value: T,
+  index: number | undefined
+) => {
+  if (index !== undefined && inRange(index, 0, array.length)) {
+    array.splice(index, 0, value);
+  } else {
+    array.push(value);
+  }
 };

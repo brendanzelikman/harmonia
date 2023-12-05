@@ -5,50 +5,25 @@ import {
   defaultInstrumentState,
   isInstrument,
 } from "types/Instrument";
-import {
-  PatternTrackMap,
-  PatternTrackState,
-  defaultPatternTrackState,
-  isPatternTrack,
-} from "types/PatternTrack";
 import { PortalState, defaultPortalState, isPortal } from "types/Portal";
-import {
-  ScaleTrackMap,
-  ScaleTrackState,
-  defaultScaleTrackState,
-  isScaleTrack,
-} from "types/ScaleTrack";
-import {
-  TrackHierarchy,
-  TrackNodeMap,
-  defaultTrackHierarchy,
-  isTrackHierarchy,
-  isTrackNode,
-} from "types/TrackHierarchy";
-import { PoseMap, PoseState, defaultPoseState, isPose } from "types/Pose";
 import { isNormalRecord, isNormalState } from "utils/normalizedState";
 import { UndoableHistory, createUndoableHistory } from "utils/undoableHistory";
+import { TrackMap, TrackState, defaultTrackState, isTrack } from "types/Track";
 
 // ------------------------------------------------------------
 // Arrangement Definitions
 // ------------------------------------------------------------
 
-/** A track arrangement stores track/media object maps. */
+/** A track arrangement stores track/clip object maps. */
 export interface TrackArrangement {
-  tracks: TrackNodeMap;
-  scaleTracks: ScaleTrackMap;
-  patternTracks: PatternTrackMap;
+  tracks: TrackMap;
   clips: ClipMap;
-  poses: PoseMap;
 }
 
 /** A live arrangement stores the full track arrangement with instruments and portals. */
 export interface LiveArrangement {
-  hierarchy: TrackHierarchy;
-  scaleTracks: ScaleTrackState;
-  patternTracks: PatternTrackState;
+  tracks: TrackState;
   clips: ClipState;
-  poses: PoseState;
   portals: PortalState;
   instruments: InstrumentState;
 }
@@ -62,11 +37,8 @@ export type ArrangementHistory = UndoableHistory<LiveArrangement>;
 
 /** The default live arrangement is used for initialization. */
 export const defaultArrangement: LiveArrangement = {
-  hierarchy: defaultTrackHierarchy,
-  scaleTracks: defaultScaleTrackState,
-  patternTracks: defaultPatternTrackState,
+  tracks: defaultTrackState,
   clips: defaultClipState,
-  poses: defaultPoseState,
   portals: defaultPortalState,
   instruments: defaultInstrumentState,
 };
@@ -84,11 +56,8 @@ export const isArrangement = (obj: unknown): obj is TrackArrangement => {
   const candidate = obj as TrackArrangement;
   return (
     isPlainObject(candidate) &&
-    isNormalRecord(candidate.tracks, isTrackNode) &&
-    isNormalRecord(candidate.scaleTracks, isScaleTrack) &&
-    isNormalRecord(candidate.patternTracks, isPatternTrack) &&
-    isNormalRecord(candidate.clips, isClip) &&
-    isNormalRecord(candidate.poses, isPose)
+    isNormalRecord(candidate.tracks, isTrack) &&
+    isNormalRecord(candidate.clips, isClip)
   );
 };
 
@@ -97,11 +66,8 @@ export const isLiveArrangement = (obj: unknown): obj is LiveArrangement => {
   const candidate = obj as LiveArrangement;
   return (
     isPlainObject(candidate) &&
-    isNormalState(candidate.scaleTracks, isScaleTrack) &&
-    isNormalState(candidate.patternTracks, isPatternTrack) &&
+    isNormalState(candidate.tracks, isTrack) &&
     isNormalState(candidate.clips, isClip) &&
-    isNormalState(candidate.poses, isPose) &&
-    isTrackHierarchy(candidate.hierarchy) &&
     isNormalState(candidate.instruments, isInstrument) &&
     isNormalState(candidate.portals, isPortal)
   );

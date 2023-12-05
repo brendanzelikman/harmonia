@@ -1,12 +1,12 @@
 import { useProjectSelector, useProjectDispatch } from "redux/hooks";
 import { selectEditor } from "redux/selectors";
-import { hideEditor } from "redux/Editor";
+import { hideEditor, toggleEditor } from "redux/Editor";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
-import { updateMediaSelection } from "redux/Timeline";
+import { selectTimeline, updateMediaSelection } from "redux/Timeline";
 import {
   exportProjectToHAM,
   openLocalProjects,
-  clearProject,
+  createProject,
 } from "redux/thunks";
 import { isEditorVisible } from "types/Editor";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 export function useGlobalHotkeys() {
   const dispatch = useProjectDispatch();
   const navigate = useNavigate();
+  const timeline = useProjectSelector(selectTimeline);
   const editor = useProjectSelector(selectEditor);
   const isVisible = isEditorVisible(editor);
 
@@ -25,12 +26,21 @@ export function useGlobalHotkeys() {
   useOverridingHotkeys("meta+o", () => dispatch(openLocalProjects()));
 
   // Meta + Alt + N = New Project
-  useOverridingHotkeys("meta+alt+n", () => dispatch(clearProject()));
+  useOverridingHotkeys("meta+alt+n", () =>
+    dispatch(() => createProject().then(() => location.reload()))
+  );
 
   // Meta + P = View Projects
-  useOverridingHotkeys("meta+p", () => navigate("/projects"));
+  useOverridingHotkeys("meta+shift+p", () => navigate("/projects"));
 
-  // Escape = Hide Editor
+  // Meta + E = Toggle Editor
+  useOverridingHotkeys(
+    "meta+e",
+    () => dispatch(toggleEditor(timeline.selectedClipType)),
+    [timeline.selectedClipType]
+  );
+
+  // Escape = Hide Editor or Clear Selection
   useOverridingHotkeys(
     "escape",
     () => {
@@ -38,7 +48,11 @@ export function useGlobalHotkeys() {
         dispatch(hideEditor());
       } else {
         dispatch(
-          updateMediaSelection({ clipIds: [], poseIds: [], portalIds: [] })
+          updateMediaSelection({
+            patternClipIds: [],
+            poseClipIds: [],
+            portalIds: [],
+          })
         );
       }
     },

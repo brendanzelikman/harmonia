@@ -7,11 +7,12 @@ export interface DraggableTrackProps {
   element?: any;
   moveTrack: (dragId: TrackId, hoverId: TrackId) => void;
 }
+
 export const useTrackDrag = (props: DraggableTrackProps) => {
   return useDrag({
     type: "track",
     item: () => {
-      return { id: props.track.id, type: props.track.type };
+      return { id: props.track.id };
     },
     collect: (monitor: any) => ({
       isDragging: monitor.isDragging(),

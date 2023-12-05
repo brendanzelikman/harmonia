@@ -1,9 +1,12 @@
-import { Portal, PortalUpdate, PortaledMedia } from "./PortalTypes";
-import { isArray } from "lodash";
-import { getClipsFromMedia, getPosesFromMedia, MediaClip } from "types/Media";
-import { Clip, isClip } from "types/Clip";
-import { Pose } from "types/Pose";
-import { isFiniteNumber } from "types/util";
+import {
+  Portal,
+  PortalUpdate,
+  Portaled,
+  PortaledClipId,
+  initializePortaledClip,
+} from "./PortalTypes";
+import { Clip, ClipId, isClip } from "types/Clip";
+import { Tick } from "types/units";
 
 /** Get a `Portal` as a string. */
 export const getPortalAsString = (portal: Portal) => {
@@ -16,58 +19,29 @@ export const getPortalUpdateAsString = (update: PortalUpdate) => {
   return JSON.stringify(update);
 };
 
-/** Create a portal chunk by appending a tag to the ID. */
-export const createPortalChunk = (
-  media: PortaledMedia,
-  chunkNumber: number
-): PortaledMedia => {
-  return { ...media, id: `${media.id}-chunk-${chunkNumber}` };
-};
-
 /** Get the original media ID from a portaled media chunk. */
-export const parsePortalChunkId = (mediaId: string): string =>
-  mediaId.split("-chunk-")[0];
+export const getOriginalIdFromPortaledClip = (clipId: PortaledClipId) =>
+  clipId.split("-chunk-")[0] as ClipId;
 
-/** Get the portaled chunks of media based on the given media and portals. */
-
-// Overload #1: Accept a single piece of media and return an array of portaled media
-export function applyPortalsToMedia(
-  media: MediaClip,
+/** Get a list of each clip's portaled chunks based on the given clips and portals. */
+export function applyPortalsToClips<T extends Clip>(
+  clips: T[],
   portals: Portal[],
-  duration: number
-): PortaledMedia[];
+  durations: Tick[]
+) {
+  return clips.map((clip, i) => {
+    const duration = durations[i];
+    if (duration < 0 || duration === Infinity) return [{ ...clip, duration }];
 
-// Overload #2: Accept an array of media and return an array of portaled media arrays
-export function applyPortalsToMedia(
-  media: MediaClip[],
-  portals: Portal[],
-  durations: number[]
-): PortaledMedia[][];
-
-// Implementation
-export function applyPortalsToMedia<T extends MediaClip | MediaClip[]>(
-  media: T,
-  portals: Portal[],
-  duration: number | number[]
-): PortaledMedia[] | PortaledMedia[][] {
-  // Get the media and duration arrays
-  const isMediaArray = isArray(media);
-  const mediaArray = isMediaArray ? media : [media];
-  const isDurationArray = isArray(duration);
-  const durationArray = isDurationArray ? duration : [duration];
-
-  // Iterate through each media
-  const portaledMediaArray = mediaArray.map((media, i) => {
-    const duration = durationArray[i];
-    if (duration < 0 || duration === Infinity) return [];
     // Start with the media bounds
-    const startTick = media.tick;
-    const endTick = media.tick + duration;
+    const startTick = clip.tick;
+    const endTick = clip.tick + duration;
 
-    const chunks: PortaledMedia[] = [];
+    // Initialize the chunks
+    const portaledClips: Portaled<T>[] = [];
     let tick = 0;
     let chunkLength = 0;
-    let fragment = { trackId: media.trackId, tick: media.tick };
+    let fragment = { trackId: clip.trackId, tick: clip.tick };
 
     // Iterate through each tick
     for (let i = startTick; i < endTick; i++) {
@@ -86,89 +60,44 @@ export function applyPortalsToMedia<T extends MediaClip | MediaClip[]>(
       }
 
       // Otherwise, get the new chunk and update the fragment
-      let chunk = createPortalChunk(
-        { ...media, ...fragment, duration: chunkLength },
-        chunks.length + 1
+      let chunk = initializePortaledClip<T>(
+        { ...clip, ...fragment, duration: chunkLength },
+        portaledClips.length + 1
       );
 
       // If the item is a clip, then increment its offset
-      if (isClip(chunk) && chunks.length > 0)
-        chunk.offset += tick - chunkLength;
+      if (portaledClips.length > 0)
+        chunk.offset = (chunk.offset ?? 0) + tick - chunkLength;
 
       // Update the fragment
       fragment = { trackId: portal.portaledTrackId, tick: portal.portaledTick };
 
       // Push the chunk
-      chunks.push(chunk);
+      portaledClips.push(chunk);
       chunkLength = 1;
       tick++;
     }
 
     // Push the final chunk
-    let finalChunk = createPortalChunk(
-      { ...media, ...fragment, duration: chunkLength },
-      chunks.length + 1
+    let finalChunk = initializePortaledClip<T>(
+      { ...clip, ...fragment, duration: chunkLength },
+      portaledClips.length + 1
     );
-    if (isClip(finalChunk) && chunks.length > 0) {
-      finalChunk.offset += tick - chunkLength;
+    if (portaledClips.length > 0) {
+      finalChunk.offset = (finalChunk.offset ?? 0) + tick - chunkLength;
     }
-    chunks.push(finalChunk);
+    portaledClips.push(finalChunk);
 
     // Return the chunks
-    return chunks;
-  });
-
-  // Return the corresponding media
-  return isMediaArray ? portaledMediaArray : portaledMediaArray.flat();
+    return portaledClips;
+  }) as Portaled<T>[][];
 }
 
 /** Process the clip through the given portals. */
-export const applyPortalsToClip = (
-  clip: Clip,
+export const applyPortalsToClip = <T extends Clip>(
+  clip: T,
   portals: Portal[],
-  duration: number
-): Clip[] => {
-  const portaledMedia = applyPortalsToMedia(clip, portals, duration);
-  return getClipsFromMedia(portaledMedia);
-};
-
-/** Process the pose through the given portals if it has an explicit duration. */
-export const applyPortalsToPose = (pose: Pose, portals: Portal[]): Pose[] => {
-  const duration = pose.duration;
-  if (!isFiniteNumber(duration) || !duration) return [pose];
-  const portaledMedia = applyPortalsToMedia(pose, portals, duration);
-  return getPosesFromMedia(portaledMedia);
-};
-
-/** Process the clips through the given portals. */
-export const applyPortalsToClips = (
-  clips: Clip[],
-  portals: Portal[],
-  durations: number[]
-): Clip[] => {
-  const portaledMedia = applyPortalsToMedia(clips, portals, durations);
-  return portaledMedia.map(getClipsFromMedia).flat();
-};
-
-/** Process the poses through the given portals. */
-export const applyPortalsToPoses = (
-  poses: Pose[],
-  portals: Portal[]
-): Pose[] => {
-  // Filter poses into finite and infinite
-  const finitePoses: Pose[] = [];
-  const infinitePoses: Pose[] = [];
-  poses.forEach((pose) => {
-    if (isFiniteNumber(pose.duration) && pose.duration) {
-      finitePoses.push(pose);
-    } else {
-      infinitePoses.push(pose);
-    }
-  });
-
-  // Apply portals to finite poses
-  const portaledMedia = finitePoses.map((t) => applyPortalsToPose(t, portals));
-
-  // Return the poses
-  return [...infinitePoses, ...portaledMedia.map(getPosesFromMedia).flat()];
+  duration: Tick
+) => {
+  return applyPortalsToClips([clip], portals, [duration])[0];
 };

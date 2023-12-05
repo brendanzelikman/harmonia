@@ -5,18 +5,18 @@ import {
   getInstrumentEffectAsString,
   getInstrumentAsString,
 } from "types/Instrument";
-import { getTrackAsString } from "types/Track";
 
 export const INSTRUMENT_UNDO_TYPES: ActionGroup = {
   "instruments/addInstrument": (
     action: PayloadAction<_.AddInstrumentPayload>
   ) => {
-    return `ADD_TRACK:${getTrackAsString(action.payload.track)}`;
+    const { track } = action.payload;
+    return `ADD_TRACK:${track.id}`;
   },
   "instruments/removeInstrument": (
     action: PayloadAction<_.RemoveInstrumentPayload>
   ) => {
-    return `REMOVE_TRACK:${action.payload.originalTrackId}`;
+    return `REMOVE_TRACK:${action.payload.trackId}`;
   },
   "instruments/addInstrumentEffect": (
     action: PayloadAction<_.AddInstrumentEffectPayload>

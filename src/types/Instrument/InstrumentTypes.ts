@@ -10,7 +10,7 @@ import {
   MIN_PAN,
   MIN_VOLUME,
 } from "utils/constants";
-import { PatternMidiChord } from "types/Pattern";
+import { PatternMidiChord, PatternMidiNote } from "types/Pattern";
 import { NormalState, createNormalState } from "utils/normalizedState";
 import { Pan, Tick, Volume } from "types/units";
 import { isArray, isBoolean, isPlainObject, isString } from "lodash";
@@ -23,8 +23,8 @@ export * from "./InstrumentEffectTypes";
 
 export type InstrumentId = string;
 export type InstrumentNoId = Omit<Instrument, "id">;
-export type InstrumentChordRecord = Record<InstrumentId, PatternMidiChord>;
-export type InstrumentChordsByTicks = Record<Tick, InstrumentChordRecord>;
+export type InstrumentNoteRecord = Record<InstrumentId, PatternMidiNote[]>;
+export type InstrumentNotesByTicks = Record<Tick, InstrumentNoteRecord>;
 export type InstrumentKey = keyof typeof samples;
 export type InstrumentCategory = keyof typeof categories;
 export type InstrumentName = (typeof INSTRUMENT_NAMES)[number];

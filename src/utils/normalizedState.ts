@@ -41,17 +41,17 @@ export function createNormalState<R extends NormalRecord>(
 ): NormalState<R>;
 
 // Overload #2: ID and NormalObject
-export function createNormalState<K extends ID, V extends NormalObject>(
+export function createNormalState<V extends NormalObject>(
   initialValues?: V[]
-): NormalState<NormalRecord<K, V>>;
+): NormalState<NormalRecord<ID, V>>;
 
 // Implementation
-export function createNormalState<K extends ID, V extends NormalObject>(
+export function createNormalState<V extends NormalObject>(
   initialValues?: V[]
-): NormalState<NormalRecord<K, V>> {
-  if (!initialValues) return { byId: {} as NormalRecord<K, V>, allIds: [] };
+): NormalState<NormalRecord<ID, V>> {
+  if (!initialValues) return { byId: {} as NormalRecord<ID, V>, allIds: [] };
   const allIds = initialValues.map((value) => value.id) ?? [];
-  const byId = createMap<Record<K, V>>(initialValues);
+  const byId = createMap(initialValues);
   return { byId, allIds };
 }
 

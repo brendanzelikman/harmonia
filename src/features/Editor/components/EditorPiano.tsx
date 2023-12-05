@@ -6,7 +6,6 @@ import { WebMidi } from "webmidi";
 import { Sampler } from "tone";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { getMidiPitch } from "utils/midi";
-import { EasyTransition } from "components/Transition";
 import classNames from "classnames";
 
 interface PianoProps {

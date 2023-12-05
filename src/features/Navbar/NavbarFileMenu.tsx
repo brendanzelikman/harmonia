@@ -19,6 +19,7 @@ import {
   exportProjectToHAM,
   exportProjectToMIDI,
   stopDownloadingTransport,
+  createProject,
 } from "redux/thunks";
 import { BsFiletypeWav, BsMusicPlayerFill } from "react-icons/bs";
 import { toggleEditor } from "redux/Editor";
@@ -79,7 +80,7 @@ export function NavbarFileMenu() {
   /** The save to HAM button allows the user to save the current state to a Harmonia file. */
   const SaveToHAMButton = () => (
     <NavbarFormGroup
-      className="px-2 h-8 hover:bg-sky-600 cursor-pointer"
+      className="px-2 h-8 hover:bg-indigo-500/25 cursor-pointer"
       onClick={() => dispatch(exportProjectToHAM())}
     >
       <NavbarFormLabel>Save to HAM</NavbarFormLabel>
@@ -90,7 +91,7 @@ export function NavbarFileMenu() {
   /** The load HAM button allows the user to read and load a Harmonia file. */
   const LoadFromHAMButton = () => (
     <NavbarFormGroup
-      className="px-2 h-8 hover:bg-sky-600 cursor-pointer"
+      className="px-2 h-8 hover:bg-indigo-500/25 cursor-pointer"
       onClick={() => dispatch(openLocalProjects())}
     >
       <NavbarFormLabel>Load from HAM</NavbarFormLabel>
@@ -136,11 +137,15 @@ export function NavbarFileMenu() {
 
     return () => (
       <NavbarFormGroup
-        className="h-8 hover:bg-sky-600 cursor-pointer"
-        onClick={
-          downloading
-            ? () => dispatch(stopDownloadingTransport())
-            : () => dispatch(downloadTransport())
+        className={`h-8 ${
+          !endTick ? "text-slate-500" : "hover:bg-indigo-500/25 cursor-pointer"
+        }`}
+        onClick={() =>
+          !endTick
+            ? null
+            : downloading
+            ? dispatch(stopDownloadingTransport())
+            : dispatch(downloadTransport())
         }
       >
         <NavbarFormLabel className={``}>Export to WAV</NavbarFormLabel>
@@ -155,7 +160,9 @@ export function NavbarFileMenu() {
   /** The save to MIDI button allows the user to save the current state to a MIDI file. */
   const SaveToMIDIButton = () => (
     <NavbarFormGroup
-      className="h-8 hover:bg-sky-600 cursor-pointer"
+      className={`h-8 ${
+        !endTick ? "text-slate-500" : "hover:bg-indigo-500/25 cursor-pointer"
+      }`}
       onClick={() => dispatch(exportProjectToMIDI())}
     >
       <NavbarFormLabel>Export to MIDI</NavbarFormLabel>
@@ -163,13 +170,13 @@ export function NavbarFileMenu() {
     </NavbarFormGroup>
   );
 
-  /** The projects button allows the user to view their projects. */
-  const ProjectsButton = () => (
+  /** The new project button allows the user to create a new project. */
+  const NewProjectButton = () => (
     <NavbarFormGroup
-      className="h-8 hover:bg-sky-600 cursor-pointer"
-      onClick={() => navigate("/projects")}
+      className="h-8 hover:bg-indigo-500/25 cursor-pointer"
+      onClick={() => createProject().then(() => location.reload())}
     >
-      <NavbarFormLabel>View Projects</NavbarFormLabel>
+      <NavbarFormLabel>Open New Project</NavbarFormLabel>
       <BiMusic className="text-2xl" />
     </NavbarFormGroup>
   );
@@ -200,13 +207,13 @@ export function NavbarFileMenu() {
           </span>
           <div className="flex w-full justify-center items-center space-x-2">
             <button
-              className="w-1/2 px-2 py-1 rounded border border-red-500 hover:text-red-500 hover:drop-shadow cursor-pointer"
+              className="w-1/2 px-2 py-1 rounded border border-red-500 hover:text-red-500 hover:shadow-md cursor-pointer"
               onClick={() => dispatch(clearProject())}
             >
               Yes
             </button>
             <button
-              className="w-1/2 px-2 py-1 rounded border border-slate-500 hover:text-slate-500 hover:drop-shadow cursor-pointer"
+              className="w-1/2 px-2 py-1 rounded border border-slate-500 hover:text-slate-500 hover:shadow-md cursor-pointer"
               onClick={props.close}
             >
               No
@@ -216,7 +223,7 @@ export function NavbarFileMenu() {
       </Transition>
     );
     return (
-      <NavbarFormGroup className="h-8 hover:bg-sky-600 cursor-pointer">
+      <NavbarFormGroup className="h-8 hover:bg-indigo-500/25 cursor-pointer">
         <Menu as="div" className="w-full relative">
           {({ open, close }) => (
             <>
@@ -235,7 +242,7 @@ export function NavbarFileMenu() {
   /** The project name field allows the user to change the project name. */
   const ProjectNameField = () => (
     <NavbarFormInput
-      className="w-full focus:bg-sky-700/80 py-2 mb-2"
+      className="w-full focus:bg-indigo-900/50 py-2 mb-2"
       type="text"
       placeholder="New Project"
       value={meta.name}
@@ -249,7 +256,7 @@ export function NavbarFileMenu() {
     <NavbarButton className="rounded-full p-1.5">
       <BsMusicPlayerFill
         className={`w-full h-full select-none cursor-pointer ${
-          onFileEditor ? "text-sky-500" : "text-slate-300"
+          onFileEditor ? "text-indigo-500" : "text-slate-300"
         }`}
         onClick={() => dispatch(toggleEditor("file"))}
       />
@@ -260,16 +267,16 @@ export function NavbarFileMenu() {
   const FileTooltip = () => {
     return (
       <NavbarTooltip
-        className="mt-2 bg-sky-700/80 backdrop-blur shadow-xl"
+        className="mt-2 bg-slate-900/70 backdrop-blur"
         show={!!onFileEditor}
         content={
           <NavbarTooltipMenu>
             {ProjectNameField()}
+            <NewProjectButton />
             <SaveToHAMButton />
             <LoadFromHAMButton />
             <SaveToWAVButton />
             <SaveToMIDIButton />
-            <ProjectsButton />
             <ClearButton />
           </NavbarTooltipMenu>
         }

@@ -8,13 +8,13 @@ import {
   isPattern,
   PatternUpdate,
   defaultPatternState,
-  isPatternChord,
   isPatternMidiNote,
-  isPatternRest,
   getPatternBlockDuration,
   PatternBlock,
+  getPatternChordNotes,
+  isPatternChord,
 } from "types/Pattern";
-import { clamp, random, reverse, shuffle, union } from "lodash";
+import { clamp, isArray, random, reverse, shuffle, union } from "lodash";
 import { mod } from "utils/math";
 import { isNestedNote, resolveScaleToMidi, sumScaleVectors } from "types/Scale";
 import {
@@ -159,10 +159,10 @@ export const patternsSlice = createSlice({
         // If the note is a chord, add it to the end of the last chord
         const length = pattern.stream.length;
         const lastBlock = pattern.stream[length - 1];
-        if (isPatternRest(lastBlock)) {
-          state.byId[id].stream.push([note]);
-        } else {
+        if (isArray(lastBlock)) {
           lastBlock.push(note);
+        } else {
+          state.byId[id].stream.push([note]);
         }
       }
     },
@@ -193,11 +193,10 @@ export const patternsSlice = createSlice({
         state.byId[id].stream[index] = [note];
       } else {
         const block = pattern.stream[index];
-        if (isPatternRest(block)) {
-          state.byId[id].stream[index] = [note];
-          return;
-        } else {
+        if (isPatternChord(block) && isArray(block)) {
           block.push(note);
+        } else {
+          state.byId[id].stream[index] = [note];
         }
       }
     },
@@ -239,7 +238,8 @@ export const patternsSlice = createSlice({
       if (!pattern || index < 0 || index > pattern.stream.length) return;
       const block = pattern.stream[index];
       if (!isPatternChord(block)) return;
-      pattern.stream[index] = block.map((note) => {
+      const notes = getPatternChordNotes(block);
+      pattern.stream[index] = notes.map((note) => {
         if (!isNestedNote(note)) {
           return { ...note, MIDI: note.MIDI + transpose };
         }
@@ -268,7 +268,8 @@ export const patternsSlice = createSlice({
       const pattern = state.byId[id];
       pattern.stream = pattern.stream.map((block) => {
         if (!isPatternChord(block)) return block;
-        return block.map((note) => {
+        const notes = getPatternChordNotes(block);
+        return notes.map((note) => {
           if (isPatternMidiNote(note)) {
             return { ...note, MIDI: clamp(note.MIDI + transpose, 0, 127) };
           }
@@ -325,8 +326,9 @@ export const patternsSlice = createSlice({
           SixtyFourthNoteTicks,
           WholeNoteTicks
         );
-        if (isPatternRest(block)) return { duration: newDuration };
-        return block.map((note) => ({ ...note, duration: newDuration }));
+        if (!isPatternChord(block)) return { duration: newDuration };
+        const notes = getPatternChordNotes(block);
+        return notes.map((note) => ({ ...note, duration: newDuration }));
       });
     },
     /** Reverse the stream of a pattern. */
@@ -354,8 +356,9 @@ export const patternsSlice = createSlice({
       state.byId[id].stream = pattern.stream
         .map((block) => {
           if (!isPatternChord(block)) return block;
+          const notes = getPatternChordNotes(block);
           const duration = getPatternBlockDuration(block);
-          return block.map((note) => {
+          return notes.map((note) => {
             const newNote: PatternNote = { ...note, duration };
             return [newNote];
           });
@@ -372,10 +375,11 @@ export const patternsSlice = createSlice({
       if (!pattern) return;
 
       const newStream: PatternStream = pattern.stream.map((block) => {
-        if (isPatternRest(block)) return block;
+        if (!isPatternChord(block)) return block;
+        const notes = getPatternChordNotes(block);
         return [
-          ...block,
-          ...block.map((note) => {
+          ...notes,
+          ...notes.map((note) => {
             if (isNestedNote(note)) {
               return {
                 ...note,

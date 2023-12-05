@@ -7,11 +7,11 @@ import { Row } from "../Timeline";
 import { selectColumnTicks, selectTimeline } from "redux/Timeline";
 import { selectTrackById } from "redux/Track";
 import { selectTransport } from "redux/Transport";
-import { isPatternTrack } from "types/PatternTrack";
+import { isPatternTrack } from "types/Track";
 import {
-  isTimelineAddingClips,
-  isTimelineAddingPoses,
-  isTimelinePortalingMedia,
+  isTimelineAddingPatternClips,
+  isTimelineAddingPoseClips,
+  isTimelinePortalingClips,
 } from "types/Timeline";
 import {
   convertTicksToFormattedTime,
@@ -19,6 +19,7 @@ import {
 } from "types/Transport";
 import { Transport } from "tone";
 import { hasKeys } from "utils/objects";
+import { useMemo } from "react";
 
 export function CellFormatter(props: FormatterProps<Row>) {
   const dispatch = useProjectDispatch();
@@ -32,26 +33,26 @@ export function CellFormatter(props: FormatterProps<Row>) {
 
   // Timeline properties
   const timeline = useProjectSelector(selectTimeline);
-  const isAdding = onPatternTrack && isTimelineAddingClips(timeline);
-  const isTransposing = isTimelineAddingPoses(timeline);
-  const isPortaling = isTimelinePortalingMedia(timeline);
+  const addingPatterns =
+    onPatternTrack && isTimelineAddingPatternClips(timeline);
+  const addingPoses = isTimelineAddingPoseClips(timeline);
+  const portalingClips = isTimelinePortalingClips(timeline);
   const isTrackSelected = timeline.selectedTrackId === trackId;
   const fragment = timeline.mediaDraft.portal;
 
   // Tick/measure properties
   const transport = useProjectSelector(selectTransport);
+  const { bpm, timeSignature } = transport;
   const isStarted = isTransportStarted(transport) || transport.recording;
   const tick = useProjectSelector((_) => selectColumnTicks(_, columnIndex - 1));
-  const { beats, sixteenths } = convertTicksToFormattedTime(transport, tick);
   const onTime = tick === Transport.ticks;
-  const isMeasure = beats === 0 && sixteenths === 0;
 
   // Timeline cursor properties
-  const idle = !isAdding && !isTransposing && !isPortaling && !isStarted;
+  const idle = !addingPatterns && !addingPoses && !portalingClips && !isStarted;
   const showCursor = idle && onTime && isTrackSelected;
   const timelineCursor = classNames(
-    "w-[2px] -left-[2px] h-full absolute animate-pulse transition-all duration-75 pointer-events-none",
-    row.type === "patternTrack" ? "bg-emerald-500" : "bg-sky-500",
+    "w-[2px] -left-[2px] h-full absolute pointer-events-none",
+    onPatternTrack ? "bg-emerald-500" : "bg-sky-500",
     showCursor ? "block" : "hidden"
   );
 
@@ -63,6 +64,11 @@ export function CellFormatter(props: FormatterProps<Row>) {
   });
 
   // The left border is white for measure lines, slate for other lines
+  const { beats, sixteenths } = useMemo(
+    () => convertTicksToFormattedTime(tick, { bpm, timeSignature }),
+    [tick, bpm, timeSignature]
+  );
+  const isMeasure = beats === 0 && sixteenths === 0;
   const border = classNames(
     "border-t border-t-white/20",
     { "border-l-2 border-l-white/20": isMeasure && columnIndex > 1 },
@@ -71,23 +77,23 @@ export function CellFormatter(props: FormatterProps<Row>) {
 
   // The user cursor corresponds to the timeline state
   const cursor = classNames(
-    { "cursor-paintbrush": isAdding && onPatternTrack },
-    { "cursor-wand": isTransposing && trackId },
-    { "cursor-pointer": isPortaling }
+    { "cursor-paintbrush": addingPatterns && onPatternTrack },
+    { "cursor-wand": addingPoses && trackId },
+    { "cursor-pointer": portalingClips }
   );
 
   // The cell background changes heavily based on the state.
   const background =
     isOver && canDrop
       ? "bg-sky-950/30"
-      : isAdding && onPatternTrack
-      ? "animate-pulse bg-sky-400/25 hover:bg-sky-700/50"
-      : isTransposing && trackId
-      ? "animate-pulse hover:bg-fuchsia-500/50 bg-fuchsia-500/25"
-      : isPortaling
+      : addingPatterns && onPatternTrack
+      ? "bg-sky-400/25 hover:bg-sky-700/50"
+      : addingPoses && trackId
+      ? "hover:bg-fuchsia-500/50 bg-fuchsia-500/25"
+      : portalingClips
       ? !hasKeys(fragment)
-        ? "animate-pulse hover:bg-sky-400/50 bg-sky-400/25"
-        : "animate-pulse hover:bg-orange-400/50 bg-orange-400/25"
+        ? "hover:bg-sky-400/50 bg-sky-400/25"
+        : "hover:bg-orange-400/50 bg-orange-400/25"
       : "bg-transparent";
 
   // Assemble the class

@@ -8,18 +8,20 @@ import {
   duplicateSelectedMedia,
   pasteSelectedMedia,
 } from "redux/Media";
-import { createPatternTrackFromSelectedTrack } from "redux/PatternTrack";
-import { createScaleTrack } from "redux/ScaleTrack";
 import {
-  createClipFromMediaDraft,
-  createPoseFromMediaDraft,
+  createScaleTrack,
+  createPatternTrackFromSelectedTrack,
+} from "redux/Track";
+import {
+  createPatternClipFromMediaDraft,
+  createPoseClipFromMediaDraft,
   exportSelectedClipsToMIDI,
-  selectDraftedPose,
   selectMediaClipboard,
-  selectSelectedClips,
+  selectSelectedPatternClips,
   selectSelectedPattern,
   selectSelectedTrack,
-  selectSelectedPoses,
+  selectSelectedPoseClips,
+  selectSelectedPose,
 } from "redux/Timeline";
 import {
   useProjectDeepSelector,
@@ -32,41 +34,33 @@ import {
 } from "redux/selectors";
 import { UndoTypes } from "redux/undoTypes";
 import { CLIP_THEMES, CLIP_COLORS, ClipColor } from "types/Clip";
-import {
-  getChordalOffset,
-  getChromaticOffset,
-  getPoseVectorAsString,
-} from "types/Pose";
+import { isScaleTrack } from "types/Track";
 
 export function TimelineContextMenu() {
   const dispatch = useProjectDispatch();
 
   // Get the currently selected objects
-  const clips = useProjectDeepSelector(selectSelectedClips);
-  const poses = useProjectDeepSelector(selectSelectedPoses);
+  const patternClips = useProjectDeepSelector(selectSelectedPatternClips);
+  const poseClips = useProjectDeepSelector(selectSelectedPoseClips);
   const pattern = useProjectSelector(selectSelectedPattern);
+  const pose = useProjectSelector(selectSelectedPose);
   const track = useProjectSelector(selectSelectedTrack);
-  const onScaleTrack = track?.type === "patternTrack";
+  const onScaleTrack = isScaleTrack(track);
 
   // Get the drafted pose
-  const { vector } = useProjectDeepSelector(selectDraftedPose);
-  const N = getChromaticOffset(vector);
-  const chordalTranspose = getChordalOffset(vector);
 
   // Get the clipboard
   const clipboard = useProjectDeepSelector(selectMediaClipboard);
   const areClipsInBoard = clipboard?.clips?.length > 0;
-  const arePosesInBoard = clipboard?.poses?.length > 0;
   const arePortalsInBoard = clipboard?.portals?.length > 0;
 
   // Get the selected media
-  const areClipsSelected = clips?.length > 0;
-  const arePosesSelected = poses?.length > 0;
+  const areClipsSelected = patternClips?.length > 0;
+  const arePosesSelected = poseClips?.length > 0;
   const arePortalsSelected = arePortalsInBoard;
   const isSelectionEmpty =
     !areClipsSelected && !arePosesSelected && !arePortalsSelected;
-  const isBoardEmpty =
-    !areClipsInBoard && !arePosesInBoard && !arePortalsInBoard;
+  const isBoardEmpty = !areClipsInBoard && !arePortalsInBoard;
 
   // Determine which actions are available
   const canUndo = useProjectSelector(selectArrangementPastLength);
@@ -154,14 +148,14 @@ export function TimelineContextMenu() {
   // Add the currently drafted clip to the timeline
   const AddPattern = {
     label: `Add ${pattern?.name ?? "New Pattern"}`,
-    onClick: () => dispatch(createClipFromMediaDraft()),
+    onClick: () => dispatch(createPatternClipFromMediaDraft()),
     disabled: onScaleTrack,
   };
 
   // Add the currently drafted pose to the timeline
   const AddPose = {
-    label: `Add ${track ? getPoseVectorAsString(vector) : "Transposition"}`,
-    onClick: () => dispatch(createPoseFromMediaDraft()),
+    label: `Add ${pose?.name ?? "New Pose"}`,
+    onClick: () => dispatch(createPoseClipFromMediaDraft()),
     disabled: !track,
     divideEnd: canColor,
   };
@@ -175,7 +169,7 @@ export function TimelineContextMenu() {
           `w-4 h-4 m-1 rounded-full border cursor-pointer`
         )}
         onClick={() => {
-          const newClips = clips.map((clip) => ({ ...clip, color }));
+          const newClips = patternClips.map((clip) => ({ ...clip, color }));
           dispatch(updateClips({ clips: newClips }));
         }}
       />

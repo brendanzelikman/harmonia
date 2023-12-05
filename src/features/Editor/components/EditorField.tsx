@@ -9,20 +9,21 @@ export interface EditorNumericFieldProps
 export const EditorNumericField: React.FC<EditorNumericFieldProps> = (
   props
 ) => {
-  const { leadingText, ...input } = props;
-  const isZero = input.value === "0";
+  const { leadingText, placeholder, ...input } = props;
+  const isPlaceholder = placeholder && input.value === placeholder;
   return (
     <input
       {...input}
+      draggable={false}
       className={classNames(
-        props.className,
-        "h-[26px] text-center rounded bg-transparent text-xs px-1 border border-slate-500 focus:ring-0 focus:border-teal-500/80 focus:outline-none",
+        "min-h-[26px] text-center rounded text-xs px-1 border focus:ring-0 focus:outline-none",
         {
-          "text-slate-400": isZero,
-          "text-white": !isZero,
-        }
+          "text-slate-300": isPlaceholder,
+          "text-white": !isPlaceholder,
+        },
+        props.className
       )}
-      value={`${leadingText}${props.value}`}
+      value={`${leadingText ?? ""}${isPlaceholder ? placeholder : props.value}`}
       type="string"
       onKeyDown={blurOnEnter}
     />

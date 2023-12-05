@@ -7,6 +7,7 @@ import eighthNote from "assets/noteheads/eighth.png";
 import halfNote from "assets/noteheads/half.png";
 import quarterNote from "assets/noteheads/quarter.png";
 import wholeNote from "assets/noteheads/whole.png";
+import { PoseVector } from "types/Pose";
 
 // ------------------------------------------------------------
 // Global Pulse
@@ -42,6 +43,21 @@ export const createNoteFromDuration = (
 export const createNoteFactory = (duration: DurationType) => {
   return (MIDI: number = 60, velocity: Velocity = 100) => {
     return createNoteFromDuration(MIDI, velocity, duration);
+  };
+};
+
+/** Create a pose vector module using the name of a note duration. */
+export const createVectorModuleFromDuration = (
+  vector: PoseVector = {},
+  duration: DurationType = "quarter"
+) => {
+  return { vector, duration: DURATION_TICKS[duration] };
+};
+
+/** Create a vector module factory for a specific note duration. */
+export const createVectorModuleFactory = (duration: DurationType) => {
+  return (vector: PoseVector = {}) => {
+    return createVectorModuleFromDuration(vector, duration);
   };
 };
 
@@ -142,6 +158,15 @@ export const createSixteenthRest = createRestFactory("16th");
 export const createThirtySecondRest = createRestFactory("32nd");
 export const createSixtyFourthRest = createRestFactory("64th");
 
+// Straight Vectors
+export const createWholeVector = createVectorModuleFactory("whole");
+export const createHalfVector = createVectorModuleFactory("half");
+export const createQuarterVector = createVectorModuleFactory("quarter");
+export const createEighthVector = createVectorModuleFactory("eighth");
+export const createSixteenthVector = createVectorModuleFactory("16th");
+export const createThirtySecondVector = createVectorModuleFactory("32nd");
+export const createSixtyFourthVector = createVectorModuleFactory("64th");
+
 // ------------------------------------------------------------
 // Dotted Notes
 // ------------------------------------------------------------
@@ -218,6 +243,21 @@ export const createDottedThirtySecondRest = () =>
   createRestFactory("32nd-dotted");
 export const createDottedSixtyFourthRest = createRestFactory("64th-dotted");
 export const createDottedRest = createRestFactory("quarter-dotted");
+
+// Dotted Vectors
+export const createDottedWholeVector =
+  createVectorModuleFactory("whole-dotted");
+export const createDottedHalfVector = createVectorModuleFactory("half-dotted");
+export const createDottedQuarterVector =
+  createVectorModuleFactory("quarter-dotted");
+export const createDottedEighthVector =
+  createVectorModuleFactory("eighth-dotted");
+export const createDottedSixteenthVector =
+  createVectorModuleFactory("16th-dotted");
+export const createDottedThirtySecondVector =
+  createVectorModuleFactory("32nd-dotted");
+export const createDottedSixtyFourthVector =
+  createVectorModuleFactory("64th-dotted");
 
 // ------------------------------------------------------------
 // Triplet Notes
@@ -298,6 +338,22 @@ export const createTripletEighthRest = createRestFactory("eighth-triplet");
 export const createTripletSixteenthRest = createRestFactory("16th-triplet");
 export const createTripletThirtySecondRest = createRestFactory("32nd-triplet");
 export const createTripletSixtyFourthRest = createRestFactory("64th-triplet");
+
+// Triplet Vectors
+export const createTripletWholeVector =
+  createVectorModuleFactory("whole-triplet");
+export const createTripletHalfVector =
+  createVectorModuleFactory("half-triplet");
+export const createTripletQuarterVector =
+  createVectorModuleFactory("quarter-triplet");
+export const createTripletEighthVector =
+  createVectorModuleFactory("eighth-triplet");
+export const createTripletSixteenthVector =
+  createVectorModuleFactory("16th-triplet");
+export const createTripletThirtySecondVector =
+  createVectorModuleFactory("32nd-triplet");
+export const createTripletSixtyFourthVector =
+  createVectorModuleFactory("64th-triplet");
 
 // ------------------------------------------------------------
 // All Notes

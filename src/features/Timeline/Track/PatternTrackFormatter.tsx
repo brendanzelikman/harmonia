@@ -28,9 +28,8 @@ import { VOLUME_STEP, PAN_STEP } from "utils/constants";
 import {
   selectEditor,
   selectInstrumentById,
-  selectPatternTrackInstrumentKey,
+  selectTrackInstrumentKey,
 } from "redux/selectors";
-import { PatternTrack } from "types/PatternTrack";
 import { isInstrumentEditorOpen } from "types/Editor";
 import { TrackFormatterProps } from "./TrackFormatter";
 import { useProjectDispatch, useProjectSelector as use } from "redux/hooks";
@@ -38,12 +37,11 @@ import {
   toggleTrackInstrumentEditor,
   toggleTrackMute,
   toggleTrackSolo,
-  updateTracks,
 } from "redux/thunks";
 import { updateInstrument } from "redux/Instrument";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import classNames from "classnames";
-import { EasyTransition } from "components/Transition";
+import { PatternTrack } from "types/Track";
 
 interface PatternTrackProps extends TrackFormatterProps {
   track: PatternTrack;
@@ -72,7 +70,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   // Instrument info
   const instrument = use((_) => selectInstrumentById(_, track.instrumentId));
   const instrumentId = instrument?.id ?? "global";
-  const iKey = use((_) => selectPatternTrackInstrumentKey(_, track.id));
+  const iKey = use((_) => selectTrackInstrumentKey(_, track.id));
   const instrumentName = getInstrumentName(iKey);
   const { volume, pan, mute, solo } = getInstrumentChannel(instrument);
   const [draggingVolume, setDraggingVolume] = useState(false);
@@ -91,7 +89,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
           id={track.id}
           value={track.name}
           placeholder={`Pattern Track (${label})`}
-          onChange={(e) => props.updateTrack({ name: e.target.value })}
+          onChange={(e) => props.renameTrack(e.target.value)}
         />
       </div>
     );
@@ -104,10 +102,10 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         <TrackDropdownButton
           content={`${track.collapsed ? "Expand " : "Collapse"} Track`}
           icon={track.collapsed ? <BsArrowsExpand /> : <BsArrowsCollapse />}
-          onClick={track.collapsed ? props.expandTrack : props.expandTrack}
+          onClick={track.collapsed ? props.expandTrack : props.collapseTrack}
         />
         <TrackDropdownButton
-          content="Copy Track"
+          content="Duplicate Track"
           icon={<BiCopy />}
           onClick={props.duplicateTrack}
         />
@@ -141,8 +139,9 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
       { "text-white font-semibold": !solo && isHoldingU }
     );
     return (
-      <div className="text-xs -mt-1 space-x-1">
-        <span className={muteButton}>M</span>•
+      <div className="text-xs -mt-1 space-x-1 -mr-1">
+        <span className={muteButton}>M</span>
+        <span>•</span>
         <span className={soloButton}>S</span>
       </div>
     );
@@ -272,16 +271,12 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const PatternTrackSliders = () => {
     if (track.collapsed) return null;
     return (
-      <EasyTransition
-        show={!track.collapsed}
-        duration={150}
-        className="flex-shrink-0 z-50"
-      >
+      <div className="flex-shrink-0 z-50">
         <div className="flex ml-0.5 mr-1" draggable onDragStart={cancelEvent}>
           {PatternTrackVolumeSlider()}
           {PatternTrackPanSlider()}
         </div>
-      </EasyTransition>
+      </div>
     );
   };
 
@@ -352,6 +347,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         className="w-full flex items-center"
         draggable
         onDragStart={cancelEvent}
+        onDoubleClick={cancelEvent}
       >
         <InstrumentEditorButton />
         <div className="flex ml-2 space-x-1 justify-self-end">

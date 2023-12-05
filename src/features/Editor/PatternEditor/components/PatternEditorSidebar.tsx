@@ -22,7 +22,6 @@ import {
 } from "redux/Pattern";
 import { setSelectedPattern } from "redux/Media";
 import { Editor } from "features/Editor/components";
-import { EasyTransition } from "components/Transition";
 
 export function PatternEditorSidebar(props: PatternEditorProps) {
   const { dispatch, pattern } = props;
@@ -169,16 +168,15 @@ export function PatternEditorSidebar(props: PatternEditorProps) {
     [pattern, renderCustomPattern, renderPresetPattern, searchQuery]
   );
 
+  if (!props.isShowingSidebar) return null;
   return (
-    <EasyTransition show={props.isShowingSidebar}>
-      <Editor.Sidebar className={`ease-in-out duration-300`}>
-        <Editor.SidebarHeader className="border-b border-b-slate-500/50 mb-2">
-          Preset Patterns
-        </Editor.SidebarHeader>
-        <Editor.SearchBox query={searchQuery} setQuery={setSearchQuery} />
-        <Editor.List>{patternCategories.map(renderCategory)}</Editor.List>
-      </Editor.Sidebar>
-    </EasyTransition>
+    <Editor.Sidebar className={`ease-in-out duration-300`}>
+      <Editor.SidebarHeader className="border-b border-b-slate-500/50 mb-2">
+        Preset Patterns
+      </Editor.SidebarHeader>
+      <Editor.SearchBox query={searchQuery} setQuery={setSearchQuery} />
+      <Editor.List>{patternCategories.map(renderCategory)}</Editor.List>
+    </Editor.Sidebar>
   );
 }
 

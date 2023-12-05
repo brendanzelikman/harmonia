@@ -11,8 +11,9 @@ import { usePatternEditorScore } from "./hooks/usePatternEditorScore";
 import { UndoTypes } from "redux/undoTypes";
 import {
   PatternBlock,
-  PatternMidiChord,
+  PatternMidiNote,
   getPatternBlockAtIndex,
+  getPatternMidiChordNotes,
   isPatternChord,
   resolvePatternChordToMidi as resolveMidiChord,
 } from "types/Pattern";
@@ -20,6 +21,7 @@ import { Input } from "webmidi";
 import { getDurationTicks } from "utils/durations";
 import { usePatternEditorDefaultPattern } from "./hooks/usePatternEditorDefaultPattern";
 import { selectTrackScaleChain } from "redux/Track";
+import { getValueByKey } from "utils/objects";
 
 /** The pattern editor uses the pattern history and a score. */
 export interface PatternEditorProps extends EditorProps, ScoreProps {
@@ -31,7 +33,7 @@ export interface PatternEditorProps extends EditorProps, ScoreProps {
   onRest: boolean;
   onChord: boolean;
   block?: PatternBlock;
-  chord?: PatternMidiChord;
+  notes?: PatternMidiNote[];
 
   // The pattern editor has specific score callbacks
   onBlockClick: () => void;
@@ -59,7 +61,7 @@ function PatternEditorComponent(props: EditorProps) {
 
   // The pattern editor passes additional information about the pattern
   const id = pattern?.id;
-  const isCustom = !PresetPatternMap[pattern?.id ?? ""];
+  const isCustom = !getValueByKey(PresetPatternMap, id);
   const isEmpty = !pattern?.stream?.length;
   const duration = getDurationTicks(props.settings.note.duration);
 
@@ -70,16 +72,17 @@ function PatternEditorComponent(props: EditorProps) {
     ? undefined
     : getPatternBlockAtIndex(pattern?.stream ?? [], index);
   const onRest = !isPatternChord(block);
-  const chord = !block || onRest ? undefined : resolveMidiChord(block, scales);
-  const onChord = !!chord?.length;
+  const chord = block && !onRest ? resolveMidiChord(block, scales) : undefined;
+  const onChord = !!chord;
+  const notes = chord ? getPatternMidiChordNotes(chord) : [];
 
   /** The handler for when the note button/hotkey is clicked. */
   const onBlockClick = useCallback(() => {
     if (!id) return;
 
     // Change the current chord's duration if it exists or insert a note
-    const block = chord?.length
-      ? chord.map((note) => ({ ...note, duration }))
+    const block = notes.length
+      ? notes.map((note) => ({ ...note, duration }))
       : [{ MIDI: 60, duration, velocity: 100 }];
 
     // Dispatch the appropriate action
@@ -95,7 +98,7 @@ function PatternEditorComponent(props: EditorProps) {
     if (isRemoving) {
       dispatch(_.removePatternBlock({ id, index }));
     }
-  }, [id, index, duration, chord, hidden, isAdding, isInserting, isRemoving]);
+  }, [id, index, duration, notes, hidden, isAdding, isInserting, isRemoving]);
 
   /** The handler for when the rest button/hotkey is clicked. */
   const onRestClick = useCallback(() => {
@@ -149,7 +152,7 @@ function PatternEditorComponent(props: EditorProps) {
     onRest,
     onChord,
     block,
-    chord,
+    notes,
     onBlockClick,
     onRestClick,
     onEraseClick,

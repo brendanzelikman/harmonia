@@ -23,7 +23,7 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   // Meta + Shift + Z = Redo Patterns
   useHotkeys("meta+shift+z", canRedo ? redo : undefined, [canRedo]);
 
-  // N = Block Click
+  // N = Note Click
   useHotkeys("n", props.onBlockClick, [props.onBlockClick]);
 
   // 0 = Rest Click
@@ -165,7 +165,7 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   // M = Export Pattern to MIDI
   useHotkeys("shift+m", () => id && dispatch(_.exportPatternToMIDI(id)), [id]);
 
-  // r = Prompt for repeat
+  // R = Prompt for repeat
   useHotkeys(
     "r",
     promptUser("Repeat pattern N times", (n) => {
@@ -175,11 +175,10 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
 
   // , = Continue Pattern
   useHotkeys(
-    ",",
+    "comma",
     promptUser("Continue pattern for N notes", (n) => {
       if (id) dispatch(_.continuePattern({ id, length: n }));
     }),
-    { splitKey: "," },
     [id]
   );
 
@@ -187,13 +186,15 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   useHotkeys(
     "meta+minus",
     () => id && dispatch(_.stretchPattern({ id, factor: 0.5 })),
+    { preventDefault: true },
     [id]
   );
 
-  // Meta + "+" = Augment Pattern
+  // Meta + "=" = Augment Pattern
   useHotkeys(
-    "meta+plus",
+    "meta+=",
     () => id && dispatch(_.stretchPattern({ id, factor: 2 })),
+    { preventDefault: true },
     [id]
   );
 

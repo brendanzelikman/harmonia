@@ -3,9 +3,12 @@ import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectEditor } from "redux/Editor";
 import { EditorNavbar } from "./components/EditorNavbar";
 import { useHotkeyScope } from "hooks";
-import { EasyTransition } from "components/Transition";
 import { Track } from "types/Track";
-import { selectSelectedPattern, selectSelectedTrack } from "redux/Timeline";
+import {
+  selectSelectedPattern,
+  selectSelectedPose,
+  selectSelectedTrack,
+} from "redux/Timeline";
 import { ScaleObject } from "types/Scale";
 import { Pattern } from "types/Pattern";
 import { selectTrackScale } from "redux/Track";
@@ -17,6 +20,8 @@ import { EditorTooltipProps } from "./components/EditorTooltip";
 import { EditorButtonProps } from "./components/EditorButton";
 import { useEditorView } from "./hooks/useEditorView";
 import classNames from "classnames";
+import { Pose } from "types/Pose";
+import { useEffect, useState } from "react";
 
 export interface EditorProps extends _.Editor {
   dispatch: Dispatch;
@@ -25,6 +30,7 @@ export interface EditorProps extends _.Editor {
   track?: Track;
   scale?: ScaleObject;
   pattern?: Pattern;
+  pose?: Pose;
 
   // Each view has a corresponding instrument available
   instrument?: Instrument;
@@ -34,6 +40,7 @@ export interface EditorProps extends _.Editor {
   // The editor can only be in one view at a time
   onScaleEditor: boolean;
   onPatternEditor: boolean;
+  onPoseEditor: boolean;
   onInstrumentEditor: boolean;
 
   // The editor has various states describing it
@@ -63,6 +70,7 @@ function EditorComponent() {
   const track = useProjectSelector(selectSelectedTrack);
   const scale = useProjectSelector((_) => selectTrackScale(_, track?.id));
   const pattern = useProjectSelector(selectSelectedPattern);
+  const pose = useProjectSelector(selectSelectedPose);
 
   // Each view has a corresponding instrument available
   const { instrument, setInstrument, instance } = useEditorInstrument();
@@ -70,6 +78,7 @@ function EditorComponent() {
   // The editor can only be in one view at a time
   const onScaleEditor = _.isScaleEditorOpen(editor);
   const onPatternEditor = _.isPatternEditorOpen(editor);
+  const onPoseEditor = _.isPoseEditorOpen(editor);
   const onInstrumentEditor = _.isInstrumentEditorOpen(editor);
 
   // The editor has various states describing it
@@ -106,11 +115,13 @@ function EditorComponent() {
     track,
     scale,
     pattern,
+    pose,
     instrument,
     setInstrument,
     instance,
     onScaleEditor,
     onPatternEditor,
+    onPoseEditor,
     onInstrumentEditor,
     isOpen,
     isVisible,
@@ -128,19 +139,16 @@ function EditorComponent() {
 
   /** Only render the editor if it is visible. */
   const { EditorView } = useEditorView(editorProps);
-  if (!isVisible) return null;
 
-  const editorWidth = {
-    "w-[calc(100%-300px)]": isShowingTracks,
-    "w-full": !isShowingTracks,
-  };
   const editorClass = classNames(
-    "absolute bottom-0 right-0 h-full bg-gradient-to-t from-[#09203f] to-[#33454b] backdrop-blur-xl font-nunito transition-all fade-in-200",
-    editorWidth
+    isShowingTracks ? "w-[calc(100%-300px)]" : "w-full",
+    "top-0 right-0 h-full bg-gradient-to-t from-[#09203f] to-[#33454b]",
+    "font-nunito transition-all duration-300",
+    { "absolute animate-in fade-in": isVisible },
+    { "hidden animate-out fade-out pointer-events-none": !isVisible }
   );
 
   /** Only show the editor if it is active. */
-  if (!isOpen) return null;
   return (
     <div className={editorClass}>
       <EditorNavbar {...editorProps} />

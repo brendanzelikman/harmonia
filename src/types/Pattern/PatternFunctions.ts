@@ -8,6 +8,7 @@ import {
   isNestedNote,
   sumScaleVectors,
   ScaleVector,
+  ScaleObject,
 } from "types/Scale";
 import { Key, Tick } from "types/units";
 import {
@@ -24,8 +25,11 @@ import {
   isPatternRest,
   isPatternMidiChord,
   PatternMidiBlock,
+  PatternMidiNote,
+  isPatternNote,
+  isPatternChord,
 } from "./PatternTypes";
-import { Pose, getChordalOffset, getChromaticOffset } from "types/Pose";
+import { PoseVector, getVector_t, getVector_N } from "types/Pose";
 import { mod } from "utils/math";
 import { toString } from "utils/objects";
 import { getMidiPitchClass } from "utils/midi";
@@ -57,6 +61,7 @@ export const getPatternChordAsString = (chord: PatternChord) => {
 
 /** Get a `PatternBlock` as a string. */
 export const getPatternBlockAsString = (block: PatternBlock) => {
+  if (isPatternNote(block)) return getPatternNoteAsString(block);
   if (isPatternRest(block)) return getPatternRestAsString(block);
   return getPatternChordAsString(block);
 };
@@ -102,6 +107,7 @@ export const getPatternCategory = (pattern?: Pattern) => {
 
 /** Get the total duration of a `PatternBlock` in ticks. */
 export const getPatternBlockDuration = (block: PatternBlock): Tick => {
+  if (isPatternNote(block)) return block.duration;
   if (isPatternRest(block)) return block.duration;
   if (!block.length) return 0;
   const noteDurations = block.map((note) => note.duration);
@@ -189,6 +195,13 @@ export const createPatternStreamFromMidiValues = (
   return midiValues.map((midi) => [{ MIDI: midi, duration, velocity }]);
 };
 
+/** Create a `Scale` from a `Pattern` */
+export const createScaleFromPattern = (pattern: Pattern): ScaleObject => ({
+  id: `${pattern.id}-scale`,
+  name: pattern.name,
+  notes: getMidiStreamScale(pattern.stream as PatternMidiStream),
+});
+
 // ------------------------------------------------------------
 // Pattern Transpositions
 // ------------------------------------------------------------
@@ -198,8 +211,9 @@ export const updatePatternBlockOffset = (
   block: PatternBlock,
   vector: ScaleVector
 ): PatternBlock => {
-  if (isPatternRest(block)) return block;
-  return block.map((note) => {
+  if (!isPatternChord(block)) return block;
+  const notes = getPatternChordNotes(block);
+  return notes.map((note) => {
     if (!isNestedNote(note)) return note;
     return { ...note, offset: { ...note.offset, ...vector } };
   });
@@ -211,8 +225,9 @@ export const getTransposedPatternStream = (
   vector: ScaleVector
 ): PatternStream => {
   return stream.map((block) => {
-    if (isPatternRest(block)) return block;
-    return block.map((note) => {
+    if (!isPatternChord(block)) return block;
+    const notes = getPatternChordNotes(block);
+    return notes.map((note) => {
       if (!isNestedNote(note)) return note;
       return {
         ...note,
@@ -230,8 +245,9 @@ export const getTransposedMidiStream = (
 ): PatternMidiStream => {
   if (!offset) return midiStream;
   return midiStream.map((block) => {
-    if (isPatternRest(block)) return block;
-    return block.map((note) => ({ ...note, MIDI: note.MIDI + offset }));
+    if (!isPatternMidiChord(block)) return block;
+    const notes = getPatternMidiChordNotes(block);
+    return notes.map((note) => ({ ...note, MIDI: note.MIDI + offset }));
   });
 };
 
@@ -244,8 +260,9 @@ export const getRotatedMidiStream = (
   const step = Math.sign(offset);
   for (let i = 0; i < Math.abs(offset); i++) {
     midiStream = midiStream.map((block) => {
-      if (isPatternRest(block)) return block;
-      return block.map((note) => {
+      if (!isPatternMidiChord(block)) return block;
+      const notes = getPatternMidiChordNotes(block);
+      return notes.map((note) => {
         const lastDegree = streamScale.indexOf(mod(note.MIDI, 12));
         const nextDegree = mod(lastDegree + step, streamScale.length);
         let distance = streamScale[nextDegree] - streamScale[lastDegree];
@@ -262,6 +279,16 @@ export const getRotatedMidiStream = (
 // Pattern MIDI Resolutions
 // ------------------------------------------------------------
 
+/** Get a `PatternChord` as an array of notes. */
+export const getPatternChordNotes = (chord: PatternChord) => {
+  return Array.isArray(chord) ? chord : [chord];
+};
+
+/** Get a `PatternMidiChord` as an array of notes. */
+export const getPatternMidiChordNotes = (chord: PatternMidiChord) => {
+  return Array.isArray(chord) ? chord : [chord];
+};
+
 /** Resolve a `PatternNote` to a `MidiValue` using the `Scales` provided. */
 export const resolvePatternNoteToMidi = (
   note: PatternNote,
@@ -275,11 +302,12 @@ export const resolvePatternNoteToMidi = (
 export const resolvePatternChordToMidi = (
   chord: PatternChord,
   scales?: ScaleChain
-): PatternMidiChord => {
-  const chordLength = chord.length;
+): PatternMidiNote[] => {
+  const notes = getPatternChordNotes(chord);
+  const chordLength = notes.length;
   if (!chordLength) return [];
 
-  return chord.map((note) => {
+  return notes.map((note) => {
     // If the note is a MIDI note, return it as is
     if (!isNestedNote(note)) return note;
 
@@ -310,15 +338,15 @@ export const resolvePatternBlockToMidi = (
   block: PatternBlock,
   scales?: ScaleChain
 ): PatternMidiBlock => {
-  if (isPatternRest(block)) return block;
+  if (!isPatternChord(block)) return block;
   return resolvePatternChordToMidi(block, scales);
 };
 
-/** Resolve a `PatternStream` to MIDI using a `ScaleChain` and `Pose` */
+/** Resolve a `PatternStream` to MIDI using a `ScaleChain` and `PoseVector` */
 export const resolvePatternStreamToMidi = (
   stream: PatternStream,
   scales?: ScaleChain,
-  pose?: Pose
+  vector?: PoseVector
 ): PatternMidiStream => {
   if (!stream) return [];
 
@@ -326,14 +354,14 @@ export const resolvePatternStreamToMidi = (
   let midiStream = stream.map((b) => resolvePatternBlockToMidi(b, scales));
 
   // Return the stream if no pose is specified
-  if (!pose) return midiStream;
+  if (!vector) return midiStream;
 
   // Apply the chromatic offset
-  const N = getChromaticOffset(pose?.vector);
+  const N = getVector_N(vector);
   midiStream = getTransposedMidiStream(midiStream, N);
 
   // Apply the chordal offset
-  const t = getChordalOffset(pose?.vector);
+  const t = getVector_t(vector);
   midiStream = getRotatedMidiStream(midiStream, t);
 
   // Return the stream

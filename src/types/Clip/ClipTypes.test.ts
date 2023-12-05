@@ -9,14 +9,14 @@ test("initializeClip should create a clip with a unique ID", () => {
 });
 
 test("isClip should only return true for valid clips", () => {
-  expect(_.isClip(_.defaultClip)).toBe(true);
-  expect(_.isClip(_.mockClip)).toBe(true);
+  expect(_.isClip(_.defaultPatternClip)).toBe(true);
+  expect(_.isClip(_.defaultPatternClip)).toBe(true);
 
   expect(_.isClip(undefined)).toBe(false);
   expect(_.isClip({})).toBe(false);
   expect(_.isClip([])).toBe(false);
-  expect(_.isClip({ ..._.mockClip, id: 1 })).toBe(false);
-  expect(_.isClip({ ..._.mockClip, trackId: 1 })).toBe(false);
-  expect(_.isClip({ ..._.mockClip, tick: "1" })).toBe(false);
-  expect(_.isClip({ ..._.mockClip, tick: Infinity })).toBe(false);
+  expect(_.isClip({ ..._.defaultPatternClip, id: 1 })).toBe(false);
+  expect(_.isClip({ ..._.defaultPatternClip, trackId: 1 })).toBe(false);
+  expect(_.isClip({ ..._.defaultPatternClip, tick: "1" })).toBe(false);
+  expect(_.isClip({ ..._.defaultPatternClip, tick: Infinity })).toBe(false);
 });

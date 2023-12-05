@@ -8,7 +8,6 @@ import { PresetScaleGroupMap, PresetScaleGroupList } from "presets/scales";
 import { useProjectDeepSelector } from "redux/hooks";
 import { selectCustomScales, selectScaleIds } from "redux/selectors";
 import { setScaleIds } from "redux/Scale";
-import { EasyTransition } from "components/Transition";
 import classNames from "classnames";
 import { PresetScale } from "./ScaleEditorPresetScale";
 import { CustomScale } from "./ScaleEditorCustomScale";
@@ -140,13 +139,15 @@ export function ScaleEditorSidebar(props: ScaleEditorProps) {
                     <CategoryIcon />
                   </div>
                 </Disclosure.Button>
-                <EasyTransition duration={150} scale={95} show={isOpen}>
-                  <Disclosure.Panel static={isOpen}>
-                    {scales.map(
-                      isCustomCategory ? renderCustomScale : renderPresetScale
-                    )}
-                  </Disclosure.Panel>
-                </EasyTransition>
+                {!isOpen ? null : (
+                  <div className="animate-in fade-in zoom-in-95 duration-75">
+                    <Disclosure.Panel static={isOpen}>
+                      {scales.map(
+                        isCustomCategory ? renderCustomScale : renderPresetScale
+                      )}
+                    </Disclosure.Panel>
+                  </div>
+                )}
               </>
             );
           }}
@@ -163,15 +164,14 @@ export function ScaleEditorSidebar(props: ScaleEditorProps) {
     ]
   );
 
+  if (!props.isShowingSidebar) return null;
   return (
-    <EasyTransition show={props.isShowingSidebar}>
-      <Editor.Sidebar>
-        <Editor.SidebarHeader className="border-b border-b-slate-500/50 mb-2">
-          Preset Scales
-        </Editor.SidebarHeader>
-        <Editor.SearchBox query={searchQuery} setQuery={setSearchQuery} />
-        <Editor.List>{scaleCategories.map(renderCategory)}</Editor.List>
-      </Editor.Sidebar>
-    </EasyTransition>
+    <Editor.Sidebar>
+      <Editor.SidebarHeader className="border-b border-b-slate-500/50 mb-2">
+        Preset Scales
+      </Editor.SidebarHeader>
+      <Editor.SearchBox query={searchQuery} setQuery={setSearchQuery} />
+      <Editor.List>{scaleCategories.map(renderCategory)}</Editor.List>
+    </Editor.Sidebar>
   );
 }

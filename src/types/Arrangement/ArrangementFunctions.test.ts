@@ -1,0 +1,309 @@
+import { Pose, initializePose } from "types/Pose";
+import {
+  getScaleName,
+  initializeScale,
+  resolveScaleChainToMidi,
+} from "types/Scale";
+import { initializeScaleTrack } from "types/Track";
+import { test, expect } from "vitest";
+import { getTrackScaleChain } from "./ArrangementFunctions";
+import { createMap } from "utils/objects";
+import { PoseClip, initializePoseClip } from "types/Clip";
+
+// ------------------------------------------------------------
+// Test Definitions
+// ------------------------------------------------------------
+
+// Create the scales
+const scale1 = initializeScale({
+  name: "",
+  notes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((n) => ({
+    degree: n,
+  })),
+});
+const scale2 = initializeScale({
+  name: "",
+  notes: [0, 2, 4, 5, 7, 9, 11].map((n) => ({
+    degree: n,
+  })),
+});
+const scale3 = initializeScale({
+  name: "",
+  notes: [0, 1, 2, 3, 4, 5, 6].map((n) => ({
+    degree: n,
+  })),
+});
+const scale4 = initializeScale({
+  name: "",
+  notes: [0, 2, 4, 6].map((n) => ({
+    degree: n,
+  })),
+});
+
+// Create the scale tracks
+const st1 = initializeScaleTrack({ scaleId: scale1.id });
+const st2 = initializeScaleTrack({ scaleId: scale2.id });
+const st3 = initializeScaleTrack({ scaleId: scale3.id });
+const st4 = initializeScaleTrack({ scaleId: scale4.id });
+
+// Update the track dependencies
+st1.trackIds = [st2.id];
+st2.trackIds = [st3.id];
+st3.trackIds = [st4.id];
+st2.parentId = st1.id;
+st3.parentId = st2.id;
+st4.parentId = st3.id;
+
+// Create the pose stream
+const v1 = { chromatic: 1 };
+const v2 = { chromatic: -1 };
+const v3 = { chordal: 1 };
+const v4 = { chordal: -1 };
+const v5 = { [st1.id]: 1 };
+const v6 = { [st2.id]: 1 };
+const v7 = { [st3.id]: 1 };
+const v8 = { [st4.id]: 1 };
+const stream = [v1, v2, v3, v4, v5, v6, v7, v8].map((v) => ({
+  duration: 1,
+  vector: v,
+}));
+
+// Create the poses
+const p1 = initializePose({ trackId: st1.id, stream });
+const p2 = initializePose({ trackId: st2.id, stream });
+const p3 = initializePose({ trackId: st3.id, stream });
+const p4 = initializePose({ trackId: st4.id, stream });
+
+// Create the pose clips
+const pc1 = initializePoseClip({ poseId: p1.id, trackId: st1.id });
+const pc2 = initializePoseClip({ poseId: p2.id, trackId: st2.id });
+const pc3 = initializePoseClip({ poseId: p3.id, trackId: st3.id });
+const pc4 = initializePoseClip({ poseId: p4.id, trackId: st4.id });
+
+// Create the dependencies
+const tracks = createMap([st1, st2, st3, st4]);
+const scales = createMap([scale1, scale2, scale3, scale4]);
+const poses = createMap([p1, p2, p3, p4]);
+
+// Get the chain using the given pose clip and tick
+const getChainAtTick = (clip: PoseClip, tick: number) => {
+  const clips = createMap([clip]);
+  return getTrackScaleChain(st4.id, { tracks, clips, scales, poses, tick });
+};
+
+// Get the list of scale names
+const getScaleNames = (clip: PoseClip, tick: number) => {
+  const scales = getChainAtTick(clip, tick);
+  const midiScales = scales.map((_, i) =>
+    resolveScaleChainToMidi(scales.slice(0, i + 1))
+  );
+  return midiScales.map((s) => getScaleName(s, s));
+};
+
+// ------------------------------------------------------------
+// Test Cases
+// ------------------------------------------------------------
+
+test("getTrackScaleChain should return the correct scales with a pose applied to track 1", () => {
+  expect(getScaleNames(pc1, 0)).toEqual([
+    "Chromatic Scale",
+    "C# Major Scale",
+    "C# Major Scale",
+    "C# Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc1, 1)).toEqual([
+    "Chromatic Scale",
+    "B Major Scale",
+    "B Major Scale",
+    "B Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc1, 2)).toEqual([
+    "Chromatic Scale",
+    "C# Major Scale",
+    "C# Major Scale",
+    "C# Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc1, 3)).toEqual([
+    "Chromatic Scale",
+    "B Major Scale",
+    "B Major Scale",
+    "B Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc1, 4)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc1, 5)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc1, 6)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc1, 7)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C Major 7th Chord",
+  ]);
+});
+
+test("getTrackScaleChain should return the correct scales with a pose applied to track 1a", () => {
+  expect(getScaleNames(pc2, 0)).toEqual([
+    "Chromatic Scale",
+    "C# Major Scale",
+    "C# Major Scale",
+    "C# Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc2, 1)).toEqual([
+    "Chromatic Scale",
+    "B Major Scale",
+    "B Major Scale",
+    "B Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc2, 2)).toEqual([
+    "Chromatic Scale",
+    "D Dorian Scale",
+    "D Dorian Scale",
+    "D Minor 7th Chord",
+  ]);
+  expect(getScaleNames(pc2, 3)).toEqual([
+    "Chromatic Scale",
+    "B Locrian Scale",
+    "B Locrian Scale",
+    "B Minor 7th (b5) Chord",
+  ]);
+  expect(getScaleNames(pc2, 4)).toEqual([
+    "Chromatic Scale",
+    "C# Major Scale",
+    "C# Major Scale",
+    "C# Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc2, 5)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc2, 6)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc2, 7)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C Major 7th Chord",
+  ]);
+});
+
+test("getTrackScaleChain should return the correct scales with a pose applied to track 1aa", () => {
+  expect(getScaleNames(pc3, 0)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C# Major Scale",
+    "C# Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc3, 1)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "B Major Scale",
+    "B Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc3, 2)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "D Dorian Scale",
+    "D Minor 7th Chord",
+  ]);
+  expect(getScaleNames(pc3, 3)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "B Locrian Scale",
+    "B Minor 7th (b5) Chord",
+  ]);
+  expect(getScaleNames(pc3, 4)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C# Major Scale",
+    "C# Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc3, 5)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "D Dorian Scale",
+    "D Minor 7th Chord",
+  ]);
+  expect(getScaleNames(pc3, 6)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc3, 7)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C Major 7th Chord",
+  ]);
+});
+
+test("getTrackScaleChain should return the correct scales with a pose applied to track 1aaa", () => {
+  expect(getScaleNames(pc4, 0)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C# Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc4, 1)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "B Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc4, 2)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "Custom Scale",
+  ]);
+  expect(getScaleNames(pc4, 3)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "Custom Scale",
+  ]);
+  expect(getScaleNames(pc4, 4)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C# Major 7th Chord",
+  ]);
+  expect(getScaleNames(pc4, 5)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "D Minor 7th Chord",
+  ]);
+  expect(getScaleNames(pc4, 6)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "D Minor 7th Chord",
+  ]);
+  expect(getScaleNames(pc4, 7)).toEqual([
+    "Chromatic Scale",
+    "C Major Scale",
+    "C Major Scale",
+    "C Major 7th Chord",
+  ]);
+});

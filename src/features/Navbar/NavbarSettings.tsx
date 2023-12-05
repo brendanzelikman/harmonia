@@ -34,7 +34,7 @@ import {
 } from "redux/Transport";
 import { selectCell, setCellWidth } from "redux/Timeline";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
-import { TOGGLE_SHORTCUTS } from "features/Shortcuts";
+import { TOGGLE_SHORTCUTS } from "features/Shortcuts/ShortcutsMenu";
 import { dispatchCustomEvent } from "utils/html";
 
 export function NavbarSettingsMenu() {
@@ -46,7 +46,7 @@ export function NavbarSettingsMenu() {
   // Settings visibility toggle
   const [show, setShow] = useState(false);
   const toggleShow = () => setShow((prev) => !prev);
-  useOverridingHotkeys("meta+,", toggleShow, { splitKey: ";" });
+  useOverridingHotkeys("meta+comma", toggleShow);
 
   /**
    * The Settings button is rendered as a gear icon.
@@ -54,7 +54,7 @@ export function NavbarSettingsMenu() {
    */
   const SettingsButton = () => {
     const className = `cursor-pointer mr-1 ${
-      show ? "text-slate-500 drop-shadow-xl rounded-full " : ""
+      show ? "text-slate-500 shadow-xl rounded-full " : ""
     }`;
     return (
       <NavbarButton className={className}>
@@ -76,7 +76,7 @@ export function NavbarSettingsMenu() {
         Tempo (BPM):
       </NavbarFormLabel>
       <NavbarFormInput
-        className="focus:bg-slate-900/25 w-[2rem] h-7"
+        className="focus:bg-slate-900/25 ring-slate-400 w-[2rem] h-7"
         type="number"
         placeholder={DEFAULT_BPM.toString()}
         value={BPMInput}
@@ -100,7 +100,7 @@ export function NavbarSettingsMenu() {
         16ths / Measure:
       </NavbarFormLabel>
       <NavbarFormInput
-        className="focus:bg-slate-900/25 w-[2rem] h-7"
+        className="focus:bg-slate-900/25 ring-slate-400 w-[2rem] h-7"
         type="number"
         placeholder={"16"}
         value={TS1}
@@ -127,7 +127,7 @@ export function NavbarSettingsMenu() {
     <NavbarFormGroup>
       <NavbarFormLabel className="w-32 font-light">Cell Width:</NavbarFormLabel>
       <NavbarFormInput
-        className="focus:bg-slate-900/25 w-[2rem] h-7"
+        className="focus:bg-slate-800/25 ring-slate-400 w-[2rem] h-7"
         type="number"
         placeholder={DEFAULT_CELL.width.toString()}
         value={CellInput.width}
@@ -141,7 +141,7 @@ export function NavbarSettingsMenu() {
    * The Shortcuts button opens the shortcuts menu.
    */
   const ShortcutsButton = () => (
-    <NavbarFormGroup className="pt-2">
+    <NavbarFormGroup className="pt-1">
       <NavbarFormButton
         className={`hover:bg-slate-600/50 active:bg-slate-800/50 w-12`}
         onClick={() => dispatchCustomEvent(TOGGLE_SHORTCUTS)}
@@ -158,10 +158,10 @@ export function NavbarSettingsMenu() {
    */
   const SettingsTooltipContent = () => (
     <NavbarTooltipMenu>
-      <div className="pb-2 mb-1 w-full text-center font-bold border-b">
+      <div className="pb-2 mb-2 w-full text-center font-bold border-b">
         Project Settings
       </div>
-      <div className="w-full h-full py-2 space-y-2">
+      <div className="w-full h-full py-2 space-y-3">
         {BPMField()}
         {TimeSignatureField()}
         {CellWidthField()}
@@ -238,7 +238,7 @@ export function NavbarSettingsMenu() {
       <div className="flex items-center">
         <SettingsButton />
         <NavbarTooltip
-          className="-left-[1rem] w-56 bg-slate-700/90 backdrop-blur"
+          className="-left-[1rem] w-56 bg-slate-600/70 backdrop-blur"
           content={SettingsTooltipContent}
           show={show}
         />

@@ -1,56 +1,54 @@
 import * as _ from "redux/selectors";
-import {
-  addMediaToHierarchy,
-  removeMediaFromHierarchy,
-  updateMediaInHierarchy,
-} from "redux/TrackHierarchy";
 import { Thunk } from "types/Project";
 import { Midi } from "@tonejs/midi";
-import { ClipId, ClipNoId, initializeClip } from "types/Clip";
-import { _updateClips, addClips, removeClips } from "./ClipSlice";
+import {
+  Clip,
+  ClipId,
+  PatternClipId,
+  PoseClipId,
+  initializeClip,
+} from "types/Clip";
+import { _sliceClip } from "./ClipSlice";
 import { updateMediaSelection } from "redux/Timeline/TimelineSlice";
 import { isUndefined, without } from "lodash";
-import { RemoveMediaPayload, UpdateMediaPayload } from "types/Media";
-import { isPatternRest } from "types/Pattern";
+import { getPatternMidiChordNotes, isPatternMidiChord } from "types/Pattern";
 import { convertTicksToSeconds } from "types/Transport";
 import { hasKeys } from "utils/objects";
+import { Tick } from "types/units";
 
-/** Create a list of clips and add them to the clip slice and hierarchy. */
-export const createClips =
-  (clipNoIds: Partial<ClipNoId>[]): Thunk<ClipId[]> =>
-  (dispatch) => {
-    if (!clipNoIds.length) return [];
-    const clips = clipNoIds.map(initializeClip);
-    dispatch(addClips({ clips }));
-    dispatch(addMediaToHierarchy({ clips }));
-    return clips.map((clip) => clip.id);
-  };
-
-/** Update the clips in the slice and hierarchy. */
-export const updateClips =
-  (media: UpdateMediaPayload): Thunk =>
-  (dispatch) => {
-    if (!media.clips?.length) return;
-    dispatch(_updateClips(media));
-    dispatch(updateMediaInHierarchy(media));
-  };
-
-/** Delete a list of clips from the clip slice and hierarchy. */
-export const deleteClips =
-  (mediaIds: RemoveMediaPayload): Thunk =>
+/** Slice a clip and make sure the old ID is no longer selected. */
+export const sliceClip =
+  (clip?: Clip, tick: Tick = 0): Thunk =>
   (dispatch, getProject) => {
-    if (!mediaIds.clipIds?.length) return;
-
-    // Delete the clips from the slice and hierarchy.
-    dispatch(removeClips(mediaIds));
-    dispatch(removeMediaFromHierarchy(mediaIds));
-
-    // Filter the clips out of the media selection
+    if (!clip) return;
     const project = getProject();
-    const mediaSelection = _.selectMediaSelection(project);
-    const selectedClipIds = mediaSelection.clipIds;
-    const filteredIds = without(selectedClipIds, ...mediaIds.clipIds);
-    dispatch(updateMediaSelection({ clipIds: filteredIds }));
+    const { patternClipIds, poseClipIds } = _.selectMediaSelection(project);
+    const duration = _.selectClipDuration(project, clip?.id);
+
+    // Find the tick to split the clip at
+    const splitTick = tick - clip.tick;
+    if (tick === clip.tick || splitTick === duration) return;
+    if (splitTick < 0 || splitTick > clip.tick + duration) return;
+
+    // Get the two new clips
+    const firstClip = initializeClip({ ...clip, duration: splitTick });
+    const secondClip = initializeClip({
+      ...clip,
+      tick,
+      offset: (clip.offset || 0) + splitTick,
+      duration: duration - splitTick,
+    });
+
+    // Slice the clip
+    dispatch(_sliceClip({ oldClip: clip, firstClip, secondClip }));
+
+    // Filter the old clip out of the media selection
+    dispatch(
+      updateMediaSelection({
+        patternClipIds: without(patternClipIds, clip.id) as PatternClipId[],
+        poseClipIds: without(poseClipIds, clip.id) as PoseClipId[],
+      })
+    );
   };
 
 /** Export a list of clips to MIDI by ID and download them as a file. */
@@ -58,11 +56,10 @@ export const exportClipsToMidi =
   (ids: ClipId[]): Thunk =>
   async (_dispatch, getProject) => {
     const project = getProject();
-    const hierarchy = _.selectTrackHierarchy(project);
     const meta = _.selectMetadata(project);
     const transport = _.selectTransport(project);
-    const trackIds = _.selectOrderedTrackIds(project);
-    const clipStreamMap = _.selectClipStreamMap(project);
+    const trackIds = _.selectTrackIds(project);
+    const clipStreamMap = _.selectPatternClipStreamMap(project);
     if (!hasKeys(clipStreamMap)) return;
 
     // Prepare a new MIDI file
@@ -70,17 +67,15 @@ export const exportClipsToMidi =
 
     // Iterate through each track
     trackIds.forEach((trackId) => {
-      const track = _.selectPatternTrackById(project, trackId);
-      const trackClipIds = hierarchy.byId[trackId].clipIds;
-      const clipIds = trackClipIds.filter((id) => ids.includes(id));
-      if (!track || !clipIds.length) return;
+      const clips = _.selectClipsByTrackIds(project, [trackId]);
+      if (!clips.length) return;
 
-      // Create a track for each clip
+      // Create a MIDI track and add each clip
       const midiTrack = midi.addTrack();
-      clipIds.forEach((id) => {
+      clips.forEach((clip) => {
         // Get the stream of the clip
-        const startTime = _.selectClipStartTime(project, id);
-        const stream = clipStreamMap[id];
+        const startTime = _.selectClipStartTime(project, clip.id);
+        const stream = clipStreamMap[clip.id];
         if (isUndefined(startTime) || isUndefined(stream)) return;
 
         // Iterate through each block
@@ -88,13 +83,15 @@ export const exportClipsToMidi =
           const block = stream[i];
 
           // Skip the block if it's a rest or empty
-          if (isPatternRest(block) || !block.length) continue;
+          if (!isPatternMidiChord(block)) continue;
+          const notes = getPatternMidiChordNotes(block);
+          if (!notes.length) continue;
 
           // Get the current time of the block
           const time = startTime + convertTicksToSeconds(transport, i);
 
           // Add each note to the MIDI track
-          for (const note of block) {
+          for (const note of notes) {
             const { MIDI, duration, velocity } = note;
             midiTrack.addNote({ midi: MIDI, duration, time, velocity });
           }

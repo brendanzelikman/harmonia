@@ -1,4 +1,4 @@
-import { Tick, Seconds } from "types/units";
+import { Tick, Seconds, BPM } from "types/units";
 import { Transport } from "./TransportTypes";
 import { Transport as ToneTransport } from "tone";
 import {
@@ -42,10 +42,10 @@ export const convertSecondsToTicks = (
 
 /** Convert ticks to (bars:beats:sixteenths) using the transport. */
 export const convertTicksToFormattedTime = (
-  transport: Transport,
-  tick: Tick
+  tick: Tick,
+  deps: { bpm: BPM; timeSignature: [number, number] }
 ) => {
-  const { bpm, timeSignature } = transport;
+  const { bpm, timeSignature } = deps;
   if (!bpm || !timeSignature) return { bars: 0, beats: 0, sixteenths: 0 };
 
   // Get the number of sixteenths and ticks per bar

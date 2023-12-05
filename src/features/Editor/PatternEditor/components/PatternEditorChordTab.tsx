@@ -1,20 +1,22 @@
 import { Editor } from "features/Editor/components";
-import { NumericInputOptions, useNumericInputs } from "hooks";
+import { NumericInputOption, useNumericInputs } from "hooks";
 import { useEffect } from "react";
 import { updatePatternBlock } from "redux/Pattern";
 import {
   selectTrackScaleMap,
   selectTrackMidiScaleMap,
   selectTrackLabelMap,
-  selectTrackChain,
+  selectScaleTrackChainIds,
   selectTrackScaleChain,
-  selectTrackIdsMatchingNote,
+  selectTrackIdsWithPossibleScales,
+  selectScaleTracksByIds,
+  selectScaleTrackChain,
 } from "redux/Track";
 import { getDegreeOfNoteInTrack } from "redux/thunks";
 import {
+  getPatternChordNotes,
   isPatternChord,
   isPatternMidiNote,
-  isPatternRest,
   PatternBlock,
 } from "types/Pattern";
 import { isNestedNote, NestedNote } from "types/Scale";
@@ -26,11 +28,10 @@ import {
 } from "redux/hooks";
 import { PatternEditorProps } from "../PatternEditor";
 import { usePatternEditorChordIndex } from "../hooks/usePatternEditorChordIndex";
-import { isUndefined } from "lodash";
-import { isFiniteNumber } from "types/util";
+import { isArray, isUndefined } from "lodash";
 
 export function PatternEditorChordTab(props: PatternEditorProps) {
-  const { dispatch, pattern, cursor, block, chord, Tooltip } = props;
+  const { dispatch, pattern, cursor, block, notes, Tooltip } = props;
   const id = pattern?.id;
   const trackId = pattern?.patternTrackId;
   const index = cursor?.index;
@@ -39,20 +40,30 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
   const trackScaleMap = useSelector(selectTrackScaleMap);
   const trackMidiScaleMap = useSelector(selectTrackMidiScaleMap);
   const trackLabelMap = useSelector(selectTrackLabelMap);
-  const trackChain = useSelector((_) => selectTrackChain(_, trackId));
-  const trackChainIds = trackChain.map((t) => t.id);
+  const trackChainIds = useSelector((_) =>
+    selectScaleTrackChainIds(_, trackId)
+  );
+  const trackChain = useSelector((_) =>
+    selectScaleTracksByIds(_, trackChainIds)
+  );
 
   // Currently indexed chord
   const { chordIndex, setChordIndex } = usePatternEditorChordIndex(props);
-  const patternNote = isPatternChord(block) ? block[chordIndex] : undefined;
+  const patternNote = isPatternChord(block)
+    ? isArray(block)
+      ? block[chordIndex]
+      : block
+    : undefined;
   const isNested = isNestedNote(patternNote);
   const nestedNote = isNested ? (patternNote as NestedNote) : undefined;
-  const midiNote = chord ? chord[chordIndex] : undefined;
+  const midiNote = notes?.[chordIndex];
 
   // Currently indexed nested note
   const noteScaleId = nestedNote?.scaleId;
   const noteTrack = trackChain.find((t) => t.scaleId === noteScaleId);
-  const noteTracks = useSelector((_) => selectTrackChain(_, noteTrack?.id));
+  const noteTracks = useSelector((_) =>
+    selectScaleTrackChain(_, noteTrack?.id)
+  );
   const noteScaleIds = useProjectDeepSelector((_) => [
     "chromatic",
     ...selectTrackScaleChain(_, noteTrack?.id).map((s) => s.id),
@@ -60,9 +71,9 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
 
   /** The user can select the current index of the chord. */
   const ChordIndexField = () => {
-    const options = chord ? chord.map((note) => note.MIDI) : [];
+    const options = notes ? notes.map((note) => note.MIDI) : [];
     if (!block || !midiNote) return null;
-    const isChord = chord && chord.length < 2;
+    const isChord = !notes?.length;
     return (
       <Tooltip content={`Select Note Scale`}>
         <div className="h-5 flex text-xs items-center">
@@ -86,9 +97,10 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
       min: 0,
       max: 127,
       callback: (value) => {
-        if (!id || !block || isPatternRest(block)) return;
+        if (!id || !block || !isPatternChord(block)) return;
         const velocity = isUndefined(value) ? 0 : value;
-        const newChord = block.map((note, i) =>
+        const notes = getPatternChordNotes(block);
+        const newChord = notes.map((note, i) =>
           i === chordIndex ? { ...note, velocity } : note
         );
         dispatch(updatePatternBlock({ id, index, block: newChord }));
@@ -97,7 +109,7 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
   ]);
   const VelocityField = (
     <Editor.NumericField
-      className="w-24"
+      className="w-24 bg-transparent border-slate-500  focus:border-teal-500/80"
       value={Velocity.getValue("velocity")}
       onChange={Velocity.onChange("velocity")}
       min={0}
@@ -108,7 +120,7 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
 
   const scaleTrackOptions = useSelector((_) => [
     "no-scale",
-    ...selectTrackIdsMatchingNote(_, trackChainIds, patternNote),
+    ...selectTrackIdsWithPossibleScales(_, trackChainIds, patternNote),
   ]);
 
   /** The user can select a scale to bind to the note using its scale track. */
@@ -126,7 +138,7 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
       const degree = dispatch(getDegreeOfNoteInTrack(trackId, patternNote));
       const trackLabel = trackLabelMap[trackId];
       if (disabled) return "No Scales Available";
-      if (trackId === "no-scale") return "Lock to MIDI";
+      if (trackId === "no-scale") return "Locking MIDI Note";
       if (degree < 0) return `Scale Track (${trackLabel})`;
 
       // Otherwise, show the track label and degree
@@ -135,11 +147,11 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
 
     /** Set the value of the option */
     const setValue = (trackId: string) => {
-      if (!id || !block || !chord || isPatternRest(block)) return;
+      if (!id || !block || !notes) return;
 
       // If selecting no scale, remove all scale info
       if (trackId === "no-scale") {
-        const newChord = chord.map((note, i) => {
+        const newChord = notes.map((note, i) => {
           const { MIDI, duration, velocity } = note;
           if (i !== chordIndex) return note;
           return { MIDI, duration, velocity };
@@ -154,7 +166,7 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
       const scaleId = trackScaleMap[trackId]?.id;
 
       // Update the new block using the scale degrees
-      const newBlock: PatternBlock = block.map((note, i) => {
+      const newBlock: PatternBlock = notes.map((note, i) => {
         if (i !== chordIndex) return note;
 
         // Get the info for the note
@@ -193,8 +205,9 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
   /** The user can set the offsets of a note with a variable number of input fields. */
   const onOffsetChange = (scaleId: string, offset: number) => {
     if (!id || !scaleId || !nestedNote || !block) return;
-    if (isPatternRest(block)) return;
-    const newChord: PatternBlock = block.map((note, i) =>
+    if (!isPatternChord(block)) return;
+    const notes = getPatternChordNotes(block);
+    const newChord: PatternBlock = notes.map((note, i) =>
       i === chordIndex && isNestedNote(note)
         ? { ...note, offset: { ...note.offset, [scaleId]: offset } }
         : note
@@ -203,7 +216,7 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
   };
 
   /** All note scales are available, as well as the chromatic scale. */
-  const offsetOptions: NumericInputOptions[] = noteScaleIds.map((scaleId) => ({
+  const offsetOptions: NumericInputOption[] = noteScaleIds.map((scaleId) => ({
     id: scaleId,
     initialValue: nestedNote?.offset?.[scaleId],
     callback: (value) => {
@@ -223,7 +236,7 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
         return (
           <Editor.NumericField
             key={id}
-            className="w-[4.5rem]"
+            className="w-[4.5rem] bg-transparent border-slate-500  focus:border-teal-500/80"
             value={NoteOffsets.getValue(id)}
             onChange={NoteOffsets.onChange(id)}
             leadingText={id === "chromatic" ? "N = " : `T(${trackLabel}) = `}

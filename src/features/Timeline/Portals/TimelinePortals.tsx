@@ -12,9 +12,9 @@ import {
   selectSelectedPortalIds,
 } from "redux/Timeline";
 import {
-  isTimelineAddingClips,
-  isTimelineAddingPoses,
-  isTimelinePortalingMedia,
+  isTimelineAddingPatternClips,
+  isTimelineAddingPoseClips,
+  isTimelinePortalingClips,
 } from "types/Timeline";
 import { selectTrackById } from "redux/Track";
 import { hasKeys } from "utils/objects";
@@ -23,9 +23,9 @@ export function TimelinePortals(props: TimelinePortalElement) {
   const portals = useProjectDeepSelector(selectPortals);
   const selectedIds = useProjectSelector(selectSelectedPortalIds);
   const timeline = useProjectSelector(selectTimeline);
-  const isClipping = isTimelineAddingClips(timeline);
-  const isTransposing = isTimelineAddingPoses(timeline);
-  const isPortaling = isTimelinePortalingMedia(timeline);
+  const isClipping = isTimelineAddingPatternClips(timeline);
+  const isTransposing = isTimelineAddingPoseClips(timeline);
+  const isPortaling = isTimelinePortalingClips(timeline);
   const { width, height } = useProjectSelector(selectCell);
 
   // Get the fragment info
@@ -40,7 +40,7 @@ export function TimelinePortals(props: TimelinePortalElement) {
     selectTimelineTickLeft(_, fragment?.tick)
   );
 
-  const { element } = props.timeline;
+  const element = props.timeline?.element;
   if (!element) return null;
 
   // Render the portal with the given id

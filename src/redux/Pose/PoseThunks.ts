@@ -1,45 +1,56 @@
-import { PoseId, PoseNoId, getOffsettedPose, initializePose } from "types/Pose";
+import {
+  Pose,
+  PoseId,
+  PoseNoId,
+  defaultPose,
+  initializePose,
+  offsetPoseStreamVectors,
+  resetPoseStreamVectors,
+  updatePoseStreamVectors,
+} from "types/Pose";
 import { Thunk } from "types/Project";
 import { PoseVector } from "types/Pose";
 import {
-  addMediaToHierarchy,
-  removeMediaFromHierarchy,
-  updateMediaInHierarchy,
-} from "redux/TrackHierarchy";
-import { selectSelectedPoses } from "redux/selectors";
-import { _updatePoses, addPoses, removePoses } from "./PoseSlice";
-import { RemoveMediaPayload, UpdateMediaPayload } from "types/Media";
+  selectPoseById,
+  selectPoseMap,
+  selectSelectedPoseClips,
+} from "redux/selectors";
+import { addPose, clearPose, updatePose, updatePoses } from "./PoseSlice";
+import { setSelectedPose } from "redux/thunks";
 
-/** Create a list of poses and add them to the slice and hierarchy. */
-export const createPoses =
-  (initialPoses: Partial<PoseNoId>[]): Thunk<PoseId[]> =>
+/** Create a pose. */
+export const createPose =
+  (poseNoId: Partial<PoseNoId> = defaultPose): Thunk<PoseId> =>
   (dispatch) => {
-    // Create the poses
-    const poses = initialPoses.map(initializePose);
-    const payload = { poses };
-
-    // Add the poses to the slice and hierarchy.
-    dispatch(addPoses(payload));
-    dispatch(addMediaToHierarchy(payload));
-
-    // Return the newly created pose IDs
-    return poses.map((t) => t.id);
+    const pose = initializePose(poseNoId);
+    dispatch(addPose(pose));
+    dispatch(setSelectedPose(pose.id));
+    return pose.id;
   };
 
-/** Update a list of poses. */
-export const updatePoses =
-  (media: UpdateMediaPayload): Thunk =>
+/** Duplicate a pose. */
+export const copyPose =
+  (pose: Pose = defaultPose): Thunk =>
   (dispatch) => {
-    dispatch(_updatePoses(media));
-    dispatch(updateMediaInHierarchy(media));
+    return dispatch(createPose({ ...pose, name: `${pose.name} Copy` }));
   };
 
-/** Remove a list of poses from the store. */
-export const deletePoses =
-  (mediaIds: RemoveMediaPayload): Thunk =>
-  (dispatch) => {
-    dispatch(removePoses(mediaIds));
-    dispatch(removeMediaFromHierarchy(mediaIds));
+/** Repeat the stream of a pose. */
+export const repeatPoseStream =
+  (id: PoseId, value: number): Thunk =>
+  (dispatch, getProject) => {
+    if (value < 0) return;
+    if (value === 0) {
+      dispatch(clearPose(id));
+      return;
+    }
+    const project = getProject();
+    const pose = selectPoseById(project, id);
+    if (!pose) return;
+    const stream = new Array(pose.stream.length * value)
+      .fill(pose.stream)
+      .flat();
+    dispatch(updatePose({ id, stream }));
   };
 
 /** Update the selected poses with the given vector. */
@@ -47,12 +58,19 @@ export const updateSelectedPoses =
   (vector: PoseVector): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const selectedPoses = selectSelectedPoses(project);
-    if (!selectedPoses.length) return;
-    const poses = selectedPoses.map((t) => {
-      return { ...t, vector: { ...t.vector, ...vector } };
-    });
-    dispatch(_updatePoses({ poses }));
+    const poseMap = selectPoseMap(project);
+
+    // Get the unique poses that are currently selected
+    const poseClips = selectSelectedPoseClips(project);
+    const poseIds = [...new Set(poseClips.map((t) => t.poseId))];
+    const poses = poseIds.map((id) => poseMap[id]);
+
+    // Update the streams of the corresponding poses
+    const newPoses = poses.map((pose) => ({
+      ...pose,
+      stream: updatePoseStreamVectors(pose.stream, vector),
+    }));
+    dispatch(updatePoses(newPoses));
   };
 
 /** Offset the selected poses by the given vector. */
@@ -60,24 +78,35 @@ export const offsetSelectedPoses =
   (vector: PoseVector): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const selectedPoses = selectSelectedPoses(project);
-    if (!selectedPoses.length) return;
+    const poseMap = selectPoseMap(project);
 
-    // Offset each pose
-    const poses = selectedPoses.map((t) => getOffsettedPose(t, vector));
+    // Get the unique poses that are currently selected
+    const poseClips = selectSelectedPoseClips(project);
+    const poseIds = [...new Set(poseClips.map((t) => t.poseId))];
+    const poses = poseIds.map((id) => poseMap[id]);
 
-    // Update the poses
-    dispatch(_updatePoses({ poses }));
+    // Update the streams of the corresponding poses
+    const newPoses = poses.map((pose) => ({
+      ...pose,
+      stream: offsetPoseStreamVectors(pose.stream, vector),
+    }));
+    dispatch(updatePoses(newPoses));
   };
 
 /** Reset the vector of the selected poses. */
 export const resetSelectedPoses = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
-  const selectedPoses = selectSelectedPoses(project);
-  if (!selectedPoses.length) return;
-  const poses = selectedPoses.map((t) => ({
-    ...t,
-    vector: {} as PoseVector,
+  const poseMap = selectPoseMap(project);
+
+  // Get the unique poses that are currently selected
+  const poseClips = selectSelectedPoseClips(project);
+  const poseIds = [...new Set(poseClips.map((t) => t.poseId))];
+  const poses = poseIds.map((id) => poseMap[id]);
+
+  // Update the streams of the corresponding poses
+  const newPoses = poses.map((pose) => ({
+    ...pose,
+    stream: resetPoseStreamVectors(pose.stream),
   }));
-  dispatch(_updatePoses({ poses }));
+  dispatch(updatePoses(newPoses));
 };

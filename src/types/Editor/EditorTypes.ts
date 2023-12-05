@@ -11,15 +11,16 @@ import { isBoundedNumber } from "types/util";
 
 /** The editor view can be dedicated or hidden. */
 export type EditorView = DedicatedEditorView | HiddenEditorView;
-export type DedicatedEditorView = "scale" | "instrument" | "patterns";
+export type DedicatedEditorView = "pattern" | "pose" | "scale" | "instrument";
 export type HiddenEditorView = "file" | null;
 
 /** A list of views currently supported by the editor. */
 export const EDITOR_VIEWS = [
-  "file",
+  "pattern",
+  "pose",
   "scale",
   "instrument",
-  "patterns",
+  "file",
 ] as EditorView[];
 
 /** The editor can have a specific action specified. */

@@ -1,15 +1,16 @@
 import { expect, test } from "vitest";
 import * as _ from "./MediaTypes";
-import { mockPatternTrack } from "types/PatternTrack";
-import { defaultPose } from "types/Pose";
-import { defaultClip } from "types/Clip";
+import { defaultPatternTrack } from "types/Track";
+import { defaultPatternClip, defaultPoseClip } from "types/Clip";
+import { defaultPattern } from "types/Pattern";
 
 test("isMedia should only return true for valid media", () => {
-  expect(_.isMediaClip(defaultClip)).toBe(true);
-  expect(_.isMediaClip(defaultPose)).toBe(true);
-  expect(_.isMediaClip(undefined)).toBe(false);
-  expect(_.isMediaClip({})).toBe(false);
-  expect(_.isMediaClip(mockPatternTrack)).toBe(false);
+  expect(_.isMedia(defaultPatternClip)).toBe(true);
+  expect(_.isMedia(defaultPoseClip)).toBe(true);
+  expect(_.isMedia(undefined)).toBe(false);
+  expect(_.isMedia({})).toBe(false);
+  expect(_.isMedia(defaultPattern)).toBe(false);
+  expect(_.isMedia(defaultPatternTrack)).toBe(false);
 });
 
 test("isMediaSelection should only return true for selections", () => {

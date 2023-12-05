@@ -22,11 +22,11 @@ import { isBoolean, isPlainObject, isString } from "lodash";
 
 /**  The `TimelineState` contains the current action of the user. */
 export const TIMELINE_STATES = [
-  "addingClips",
-  "addingPoses",
-  "slicingMedia",
-  "portalingMedia",
-  "mergingMedia",
+  "addingPatternClips",
+  "addingPoseClips",
+  "slicingClips",
+  "portalingClips",
+  "mergingClips",
   "idle",
 ] as const;
 export type TimelineState = (typeof TIMELINE_STATES)[number];
@@ -34,8 +34,11 @@ export type TimelineState = (typeof TIMELINE_STATES)[number];
 /** The `TimelineCell` contains the dimensions of a timeline cell. */
 export type TimelineCell = { width: number; height: number };
 
-/** The `LivePoseSettings` specify its hotkey mode and enabled status. */
-export type LivePoseSettings = {
+/** The selected clip type determines the visible interface. */
+export type SelectedClipType = "pattern" | "pose";
+
+/** The `LivePlay` interface specify its hotkey mode and enabled status. */
+export type LivePlay = {
   mode: PoseMode;
   enabled: boolean;
 };
@@ -47,11 +50,12 @@ export interface Timeline {
   subdivision: Subdivision;
   cell: TimelineCell;
   selectedTrackId?: TrackId;
+  selectedClipType: SelectedClipType;
   mediaSelection: MediaSelection;
   mediaDraft: MediaDraft;
   mediaClipboard: MediaClipboard;
   mediaDragState: MediaDragState;
-  livePoseSettings: LivePoseSettings;
+  livePlay: LivePlay;
 }
 
 // ------------------------------------------------------------
@@ -68,11 +72,13 @@ export const defaultTimeline: Timeline = {
   state: "idle",
   subdivision: "16n",
   cell: DEFAULT_CELL,
+  selectedTrackId: undefined,
+  selectedClipType: "pattern",
   mediaSelection: DEFAULT_MEDIA_SELECTION,
   mediaDraft: DEFAULT_MEDIA_DRAFT,
   mediaClipboard: DEFAULT_MEDIA_CLIPBOARD,
   mediaDragState: DEFAULT_MEDIA_DRAG_STATE,
-  livePoseSettings: {
+  livePlay: {
     mode: "numerical",
     enabled: false,
   },
@@ -98,9 +104,9 @@ export const isTimelineCell = (obj: unknown): obj is TimelineCell => {
   );
 };
 
-/** Checks if a given object is of type `LivePoseSettings` */
-export const isLivePoseSettings = (obj: unknown): obj is LivePoseSettings => {
-  const candidate = obj as LivePoseSettings;
+/** Checks if a given object is of type `LivePlay` */
+export const isLivePlay = (obj: unknown): obj is LivePlay => {
+  const candidate = obj as LivePlay;
   return (
     isPlainObject(candidate) &&
     (candidate.mode === "numerical" || candidate.mode === "alphabetical") &&
@@ -120,6 +126,6 @@ export const isTimeline = (obj: unknown): obj is Timeline => {
     isMediaDraft(candidate.mediaDraft) &&
     isMediaClipboard(candidate.mediaClipboard) &&
     isMediaDragState(candidate.mediaDragState) &&
-    isLivePoseSettings(candidate.livePoseSettings)
+    isLivePlay(candidate.livePlay)
   );
 };

@@ -1,28 +1,28 @@
 import { cancelEvent, isHoldingShift, isInputEvent } from "utils/html";
 import {
   selectEditor,
-  selectOrderedTracks,
   selectSelectedTrackParents,
-  selectLivePoseSettings,
+  selectLivePlaySettings,
   selectTimeline,
+  selectTracks,
 } from "redux/selectors";
 import {
   useProjectDeepSelector,
   useProjectDispatch,
   useProjectSelector,
 } from "redux/hooks";
-import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
+import { useHotkeys } from "react-hotkeys-hook";
 import { toggleInstrumentMute, toggleInstrumentSolo } from "redux/Instrument";
 
 import { offsetSelectedPoses, updateSelectedPoses } from "redux/Pose";
-import { isPatternTrack } from "types/PatternTrack";
+import { isPatternTrack } from "types/Track";
 import { PoseVector } from "types/Pose";
 import { useCallback, useEffect } from "react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { unmuteTracks, unsoloTracks } from "redux/Track";
 import { getKeys, hasKeys } from "utils/objects";
 import { isTimelineLive } from "types/Timeline";
-import { toggleLivePose } from "redux/Timeline";
+import { toggleLivePlay } from "redux/Timeline";
 
 type KeyBinds = Record<string, number>;
 
@@ -107,13 +107,13 @@ export const useTimelineLiveHotkeys = () => {
   const isLive = isTimelineLive(timeline);
 
   // Get the live pose settings
-  const poseSettings = useProjectSelector(selectLivePoseSettings);
-  const poseMode = poseSettings.mode;
+  const livePlay = useProjectSelector(selectLivePlaySettings);
+  const poseMode = livePlay.mode;
   const isNumerical = poseMode === "numerical";
 
   // Get additional dependencies from the store
   const editor = useProjectDeepSelector(selectEditor);
-  const orderedTracks = useProjectDeepSelector(selectOrderedTracks);
+  const orderedTracks = useProjectDeepSelector(selectTracks);
   const scaleTracks = useProjectDeepSelector(selectSelectedTrackParents);
 
   // Get the keys for the current pose mode
@@ -227,7 +227,7 @@ export const useTimelineLiveHotkeys = () => {
   };
 
   // The callback for the numerical zero keydown event
-  const numericalZerokeydown = useCallback(
+  const numericalZeroKeydown = useCallback(
     (e: KeyboardEvent) => {
       const key = e.key;
       if (!zeroKeys.includes(key)) return;
@@ -262,7 +262,7 @@ export const useTimelineLiveHotkeys = () => {
       if (!hasKeys(vector)) return;
       dispatch(updateSelectedPoses(vector));
     },
-    [heldKeys, scaleTracks]
+    [heldKeys, zeroKeys, editor, scaleTracks]
   );
 
   // The callback for the alphabetical zero keydown event
@@ -306,7 +306,7 @@ export const useTimelineLiveHotkeys = () => {
       if (!hasKeys(vector)) return;
       dispatch(updateSelectedPoses(vector));
     },
-    [heldKeys, scaleTracks]
+    [heldKeys, zeroKeys, editor, scaleTracks]
   );
 
   /**
@@ -317,7 +317,7 @@ export const useTimelineLiveHotkeys = () => {
     if (!isLive) return;
     const keydown = isNumerical ? numericalKeydown : alphabeticalKeydown;
     const zeroKeydown = isNumerical
-      ? numericalZerokeydown
+      ? numericalZeroKeydown
       : alphabeticalZeroKeydown;
 
     window.addEventListener("keydown", keydown);
@@ -332,9 +332,9 @@ export const useTimelineLiveHotkeys = () => {
     isNumerical,
     numericalKeydown,
     alphabeticalKeydown,
-    numericalZerokeydown,
+    numericalZeroKeydown,
     alphabeticalZeroKeydown,
   ]);
 
-  useHotkeys("shift+t", () => dispatch(toggleLivePose()));
+  useHotkeys("shift+t", () => dispatch(toggleLivePlay()));
 };

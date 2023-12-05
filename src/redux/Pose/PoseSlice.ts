@@ -1,38 +1,61 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { RemoveTrackPayload, TrackId } from "types/Track";
-import { defaultPoseState, Pose } from "types/Pose";
-import { union, without } from "lodash";
+import { union } from "lodash";
 import {
-  RemoveMediaPayload,
-  CreateMediaPayload,
-  UpdateMediaPayload,
-} from "types/Media";
+  defaultPoseState,
+  Pose,
+  PoseBlock,
+  PoseId,
+  PoseUpdate,
+} from "types/Pose";
 
 // ------------------------------------------------------------
 // Pose Payload Types
 // ------------------------------------------------------------
 
-/** A pose can only be added as media. */
-export type AddPosesPayload = CreateMediaPayload;
+/** The list of pose IDs can be directly set (used for dragging). */
+export type SetPoseIdsPayload = PoseId[];
 
-/** A pose can only be updated as media. */
-export type UpdatePosesPayload = UpdateMediaPayload;
+/** A pose can be added to the slice. */
+export type AddPosePayload = Pose;
 
-/** A pose can only be removed as media. */
-export type RemovePosesPayload = RemoveMediaPayload;
+/** A pose can be updated with any property. */
+export type UpdatePosePayload = PoseUpdate;
 
-/** A pose can be sliced into two new poses. */
-export type SlicePosePayload = {
-  oldPose: Pose;
-  firstPose: Pose;
-  secondPose: Pose;
+/** A list of poses can be updated. */
+export type UpdatePosesPayload = PoseUpdate[];
+
+/** A pose can be removed by ID. */
+export type RemovePosePayload = PoseId;
+
+/** A pose block can be added at a specific index. */
+export type AddPoseBlockPayload = {
+  id: PoseId;
+  block: PoseBlock;
+  index?: number;
 };
 
-/** A pose can be removed by track ID. */
-export type RemovePosesByTrackIdPayload = RemoveTrackPayload;
+/** A pose block can be updated at a specific index. */
+export type UpdatePoseBlockPayload = {
+  id: PoseId;
+  block: PoseBlock;
+  index: number;
+};
 
-/** A pose can be cleared by track ID. */
-export type ClearPosesByTrackIdPayload = TrackId;
+/** A pose block can be removed by index. */
+export type RemovePoseBlockPayload = {
+  id: PoseId;
+  index: number;
+};
+
+/** A pose block can be moved from one index to another. */
+export type MovePoseBlockPayload = {
+  id: PoseId;
+  oldIndex: number;
+  newIndex: number;
+};
+
+/** A pose can be cleared of all blocks */
+export type ClearPosePayload = PoseId;
 
 // ------------------------------------------------------------
 // Pose Slice Definition
@@ -42,91 +65,94 @@ export const posesSlice = createSlice({
   name: "poses",
   initialState: defaultPoseState,
   reducers: {
-    /** Add a list of poses to the slice. */
-    addPoses: (state, action: PayloadAction<AddPosesPayload>) => {
-      const { poses } = action.payload;
-      if (!poses?.length) return;
-      poses.forEach((pose) => {
-        state.byId[pose.id] = pose;
-        state.allIds.push(pose.id);
-      });
+    /** Set the list of pose IDs. */
+    setPoseIds: (state, action: PayloadAction<SetPoseIdsPayload>) => {
+      state.allIds = action.payload;
     },
-    /** (PRIVATE) Update a list of poses in the slice. */
-    _updatePoses: (state, action: PayloadAction<UpdatePosesPayload>) => {
-      const { poses } = action.payload;
-      if (!poses?.length) return;
-      poses.forEach((pose) => {
-        const { id, ...rest } = pose;
-        if (!id) return;
-        if (!state.byId[id]) return;
-        state.byId[id] = { ...state.byId[id], ...rest };
-      });
-    },
-    /** Remove a list of poses from the slice. */
-    removePoses: (state, action: PayloadAction<RemovePosesPayload>) => {
-      const { poseIds } = action.payload;
-      if (!poseIds?.length) return;
-      poseIds.forEach((id) => {
-        delete state.byId[id];
-      });
-      state.allIds = without(state.allIds, ...poseIds);
-    },
-    /** (PRIVATE) Slice a pose into two new poses. */
-    _slicePose: (state, action: PayloadAction<SlicePosePayload>) => {
-      const { oldPose, firstPose, secondPose } = action.payload;
-      if (!oldPose || !firstPose || !secondPose) return;
-      delete state.byId[oldPose.id];
-
-      //  Remove the old pose
-      const index = state.allIds.findIndex((id) => id === oldPose.id);
-      if (index === -1) return;
-      state.allIds.splice(index, 1);
-
-      //  Add the new poses
-      state.allIds = union(state.allIds, [firstPose.id, secondPose.id]);
-      state.byId[firstPose.id] = firstPose;
-      state.byId[secondPose.id] = secondPose;
-    },
-    /** Remove all poses with a given track ID. */
-    removePosesByTrackId: (
-      state,
-      action: PayloadAction<RemovePosesByTrackIdPayload>
-    ) => {
+    /** Add a new pose. */
+    addPose: (state, action: PayloadAction<AddPosePayload>) => {
       const { id } = action.payload;
-      if (!id) return;
-      const poseIds = state.allIds.filter(
-        (tId) => state.byId[tId].trackId === id
-      );
-      poseIds.forEach((id) => {
-        delete state.byId[id];
-      });
-      state.allIds = without(state.allIds, ...poseIds);
+      state.allIds = union(state.allIds, [id]);
+      state.byId[id] = action.payload;
     },
-    /** Clear all poses with a given track ID. */
-    clearPosesByTrackId: (
-      state,
-      action: PayloadAction<ClearPosesByTrackIdPayload>
-    ) => {
-      const trackId = action.payload;
-      if (!trackId) return;
-      const poseIds = state.allIds.filter(
-        (id) => state.byId[id].trackId === trackId
-      );
-      poseIds.forEach((id) => {
-        delete state.byId[id];
+    /** Update an existing pose. */
+    updatePose: (state, action: PayloadAction<UpdatePosePayload>) => {
+      const { id } = action.payload;
+      if (!state.byId[id]) return;
+      state.byId[id] = { ...state.byId[id], ...action.payload };
+    },
+    /** Update a list of existing poses. */
+    updatePoses: (state, action: PayloadAction<UpdatePosesPayload>) => {
+      const updates = action.payload;
+      updates.forEach((update) => {
+        const { id } = update;
+        if (!state.byId[id]) return;
+        state.byId[id] = { ...state.byId[id], ...update };
       });
-      state.allIds = without(state.allIds, ...poseIds);
+    },
+    /** Remove an existing pose. */
+    removePose: (state, action: PayloadAction<RemovePosePayload>) => {
+      const id = action.payload;
+      state.allIds = state.allIds.filter((poseId) => poseId !== id);
+      delete state.byId[id];
+    },
+    /** Add a pose block to a pose. */
+    addPoseBlock: (state, action: PayloadAction<AddPoseBlockPayload>) => {
+      const { id, block, index } = action.payload;
+      const pose = state.byId[id];
+      if (!pose) return;
+      const { stream } = pose;
+      if (index === undefined) {
+        stream.push(block);
+      } else {
+        stream.splice(index, 0, block);
+      }
+    },
+    /** Update a pose block at a specific index. */
+    updatePoseBlock: (state, action: PayloadAction<UpdatePoseBlockPayload>) => {
+      const { id, block, index } = action.payload;
+      const pose = state.byId[id];
+      if (!pose) return;
+      state.byId[id].stream[index] = block;
+    },
+    /** Remove a pose block at a specific index. */
+    removePoseBlock: (state, action: PayloadAction<RemovePoseBlockPayload>) => {
+      const { id, index } = action.payload;
+      const pose = state.byId[id];
+      if (!pose) return;
+      if (index < 0 || index > pose.stream.length) return;
+      state.byId[id].stream.splice(index, 1);
+    },
+    /** Move a pose block from one index to another. */
+    movePoseBlock: (state, action: PayloadAction<MovePoseBlockPayload>) => {
+      const { id, oldIndex, newIndex } = action.payload;
+      const pose = state.byId[id];
+      if (!pose) return;
+      const { stream } = pose;
+      const block = stream.splice(oldIndex, 1)[0];
+      state.byId[id].stream.splice(newIndex, 0, block);
+    },
+    /** Clear all pose blocks from a pose. */
+    clearPose: (state, action: PayloadAction<ClearPosePayload>) => {
+      const id = action.payload;
+      const pose = state.byId[id];
+      if (!pose) return;
+      pose.stream = [];
     },
   },
 });
 
 export const {
-  addPoses,
-  _updatePoses,
-  removePoses,
-  _slicePose,
-  removePosesByTrackId,
-  clearPosesByTrackId,
+  setPoseIds,
+  addPose,
+  updatePose,
+  updatePoses,
+  removePose,
+  addPoseBlock,
+  updatePoseBlock,
+  removePoseBlock,
+  movePoseBlock,
+  clearPose,
 } = posesSlice.actions;
 
 export default posesSlice.reducer;

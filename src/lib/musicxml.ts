@@ -1,5 +1,5 @@
 import { DEFAULT_DURATION } from "utils/constants";
-import { Key, MIDI, Tick, XML } from "../types/units";
+import { Key, Tick, XML } from "../types/units";
 import * as _ from "utils/midi";
 import {
   DurationType,
@@ -18,8 +18,9 @@ import {
   PatternMidiBlock,
   PatternMidiNote,
   PatternRest,
+  getPatternMidiChordNotes,
+  isPatternMidiChord,
   isPatternMidiNote,
-  isPatternRest,
 } from "types/Pattern";
 import { MidiNote } from "types/Scale";
 
@@ -275,7 +276,7 @@ const createBlock = (block: PatternMidiBlock, noteOptions?: NoteOptions) => {
   const dot = noteOptions?.dot || isDottedNote({ duration });
   const triplet = noteOptions?.triplet || isTripletNote({ duration });
   const key = noteOptions?.key;
-  if (isPatternRest(block)) {
+  if (!isPatternMidiChord(block)) {
     const restOptions = {
       type,
       duration,
@@ -295,8 +296,9 @@ const createBlock = (block: PatternMidiBlock, noteOptions?: NoteOptions) => {
     return rests.join("");
   }
 
+  const notes = getPatternMidiChordNotes(block);
   const pivotNote = 58;
-  const allNoteOptions = block.map((note, i, arr) => {
+  const allNoteOptions = notes.map((note, i, arr) => {
     const notFirstInStaff1 =
       i > 0 && !!arr.slice(0, i).find((n) => n.MIDI >= pivotNote);
     const notFirstInStaff2 =
@@ -329,7 +331,7 @@ const createBlock = (block: PatternMidiBlock, noteOptions?: NoteOptions) => {
   });
 
   const xmlNotes = allNoteOptions.map((noteOptions, i) =>
-    createNote(block[i], noteOptions)
+    createNote(notes[i], noteOptions)
   );
 
   // Create a rest for each staff that is missing a note

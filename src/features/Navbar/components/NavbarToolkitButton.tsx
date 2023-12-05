@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { NavbarButton } from ".";
 
 export const NavbarToolkitButton = (props: {
@@ -8,9 +9,10 @@ export const NavbarToolkitButton = (props: {
 }) => (
   <NavbarButton
     {...props}
-    className={`border border-slate-400/50 rounded-full xl:text-2xl text-xl ${
-      props.className ?? ""
-    }`}
+    className={classNames(
+      props.className,
+      `border rounded-full xl:text-2xl text-xl`
+    )}
   >
     {props.children}
   </NavbarButton>

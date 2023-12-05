@@ -1,10 +1,8 @@
-import { TrackId, TrackMap } from "types/Track";
-import { Media, MediaClip, MediaClips, MediaElement } from "./MediaTypes";
-import { isClip } from "types/Clip";
-import { isPatternTrack } from "types/PatternTrack";
-import { isPose } from "types/Pose";
+import { TrackId, TrackMap, isPatternTrack } from "types/Track";
+import { Media, MediaElement } from "./MediaTypes";
+import { Clip, isClip, isPatternClip, isPoseClip } from "types/Clip";
 import { Tick } from "types/units";
-import { applyPortalsToMedia, isPortal } from "types/Portal";
+import { applyPortalsToClips, isPortal } from "types/Portal";
 import { isUndefined } from "lodash";
 
 /** Get the clips from the media. */
@@ -12,9 +10,14 @@ export const getClipsFromMedia = (media: Media) => {
   return media.filter(isClip);
 };
 
+/** Get the pattern clips from the media. */
+export const getPatternClipsFromMedia = (media: Media) => {
+  return media.filter(isPatternClip);
+};
+
 /** Get the poses from the media. */
-export const getPosesFromMedia = (media: Media) => {
-  return media.filter(isPose);
+export const getPoseClipsFromMedia = (media: Media) => {
+  return media.filter(isPoseClip);
 };
 
 /** Get the portals from the media. */
@@ -23,13 +26,13 @@ export const getPortalsFromMedia = (media: Media) => {
 };
 
 /** Sort the media clips by tick. */
-export const sortMedia = (clips: MediaClips) => {
-  return clips.sort((a, b) => a.tick - b.tick);
+export const sortMediaByTick = (media: Media) => {
+  return media.sort((a, b) => a.tick - b.tick);
 };
 
 /** Get the valid media clips based on valid ticks and tracks. */
-export const getValidMedia = (clips: Media, trackMap: TrackMap): Media => {
-  return clips.filter((item) => {
+export const getValidMedia = (media: Media, trackMap: TrackMap): Media => {
+  return media.filter((item) => {
     // Make sure the tick is valid
     if (item.tick < 0) return false;
 
@@ -38,7 +41,7 @@ export const getValidMedia = (clips: Media, trackMap: TrackMap): Media => {
     if (!track) return false;
 
     // Make sure the clip is in a pattern track
-    if (isClip(item) && !isPatternTrack(track)) return false;
+    if (isPatternClip(item) && !isPatternTrack(track)) return false;
 
     // Return true if all checks pass
     return true;
@@ -68,19 +71,23 @@ export const getMediaEndTick = (media: Media, mediaDurations?: Tick[]) => {
     .map((item, i) => (isPortal(item) ? i : -1))
     .filter((i) => i > -1);
 
-  // Get the elements and their durations
-  const elements = media.filter((item) => !isPortal(item)) as MediaClip[];
+  // Get all clips and their durations
+  const clips = getClipsFromMedia(media);
   const durations =
     mediaDurations?.filter((_, i) => !portalIndices.includes(i)) ?? [];
 
-  // Apply the elements through the portals first
-  const chunkedMedia = applyPortalsToMedia(elements, portals, durations).flat();
-  const allMedia = [...chunkedMedia, ...portals];
+  // Apply the clips through the portals first
+  const portaledClips = applyPortalsToClips(clips, portals, durations).flat();
+  const processedMedia = media.map((item) =>
+    isClip(item)
+      ? portaledClips.find((clip) => clip.id === item.id) ?? item
+      : item
+  );
 
-  // Get the end tick of all media
-  return allMedia.reduce((acc, item, index) => {
-    const duration = getMediaElementDuration(item, durations?.[index]);
-    return Math.max(acc, item.tick + duration + 1);
+  // Get the end tick of the processed media
+  return processedMedia.reduce((acc, item, index) => {
+    const duration = getMediaElementDuration(item, mediaDurations?.[index]);
+    return Math.max(acc, item.tick + duration);
   }, -Infinity);
 };
 

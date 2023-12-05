@@ -1,0 +1,153 @@
+import classNames from "classnames";
+import { lowerCase } from "lodash";
+import { useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { selectPatternClips } from "redux/Clip";
+import { selectInstruments } from "redux/Instrument";
+import { selectPatternMap } from "redux/Pattern";
+import { useProjectDispatch } from "redux/hooks";
+import { selectScaleTracks, selectTrackMidiScale } from "redux/selectors";
+import {
+  createProject,
+  openLocalProjects,
+  loadRandomProject,
+  deleteEmptyProjects,
+  exportProjectsToZIP,
+} from "redux/thunks";
+import { getInstrumentName } from "types/Instrument";
+import { isProject } from "types/Project";
+import { getScaleName } from "types/Scale";
+import { ProjectListProps } from "./useProjectList";
+
+interface ProjectSearchProps extends ProjectListProps {}
+
+export function useProjectSearch(props: ProjectSearchProps) {
+  const { projects, searchingDemos } = props;
+  const dispatch = useProjectDispatch();
+  const navigate = useNavigate();
+
+  // Get the filtered projects
+  const [query, setQuery] = useState("");
+  const results = projects
+    .filter(({ project }) => {
+      if (!isProject(project)) return false;
+      // Get the list of patterns used
+      const patternMap = selectPatternMap(project);
+      const patternClips = selectPatternClips(project);
+      const allPatternIds = patternClips.map(({ patternId }) => patternId);
+      const patternIds = [...new Set(allPatternIds)];
+      const allPatternNames = patternIds.map((id) => patternMap[id]?.name);
+      const patternNames = [...new Set(allPatternNames)].map(lowerCase);
+
+      // Get the list of scales used
+      const scaleTracks = selectScaleTracks(project);
+      const allScales = scaleTracks.map(({ id }) =>
+        selectTrackMidiScale(project, id)
+      );
+      const allScaleNames = allScales.map((scale) => getScaleName(scale));
+      const scaleNames = [...new Set(allScaleNames)].map(lowerCase);
+
+      // Get the list of instruments used
+      const instruments = selectInstruments(project);
+      const allInstrumentNames = instruments.map(({ key }) =>
+        getInstrumentName(key)
+      );
+      const instrumentNames = [...new Set(allInstrumentNames)].map(lowerCase);
+
+      // Get the name of the project
+      const name = project.meta.name.toLowerCase();
+
+      // Get the date of the project
+      const date = new Date(project.meta.dateCreated)
+        .toLocaleString("default", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+        .toLowerCase();
+
+      // Filter the projects by search term
+      const term = query.toLowerCase().trim();
+      const hasPattern = patternNames.some((_) => _.includes(term));
+      const hasScale = scaleNames.some((_) => _.includes(term));
+      const hasInstrument = instrumentNames.some((_) => _.includes(term));
+      const hasName = name.includes(term);
+      const hasDate = date.includes(term);
+      return hasPattern || hasScale || hasInstrument || hasName || hasDate;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.project.meta.lastUpdated);
+      const dateB = new Date(b.project.meta.lastUpdated);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+  // Display the search bar and new project button
+  const SearchBar = () => {
+    const inputClass = classNames(
+      "w-full h-10 px-4 rounded-lg text-slate-200 shadow-xl",
+      "bg-transparent focus:outline-none focus:ring-2",
+      "border border-slate-400 focus:border-transparent",
+      searchingDemos ? "focus:ring-indigo-300/70" : "focus:ring-sky-400/70"
+    );
+    return (
+      <div className="flex w-full items-center gap-3">
+        <input
+          name="project-search"
+          type="text"
+          className={inputClass}
+          placeholder={`Search ${
+            searchingDemos ? "Demos" : "Projects"
+          } by Name, Date, Patterns, Scales, Instruments, etc.`}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+    );
+  };
+
+  const ControlBar = () => {
+    return (
+      <div className="hidden lg:flex lg:animate-in lg:fade-in lg:duration-75 w-full items-center gap-3 text-sm px-1 [&>button]:text-sky-500 [&>button:active]:text-sky-400">
+        <button onClick={() => createProject()}>Create a Project</button>•
+        <button onClick={() => dispatch(openLocalProjects())}>
+          Upload a Project
+        </button>
+        •
+        <button
+          onClick={() =>
+            dispatch(loadRandomProject(() => navigate("/playground")))
+          }
+        >
+          Open a Random Project
+        </button>
+        •
+        <button onClick={() => deleteEmptyProjects()}>
+          Delete Empty Projects
+        </button>
+        •
+        <button onClick={() => exportProjectsToZIP()}>
+          Export All Projects
+        </button>
+      </div>
+    );
+  };
+
+  const SearchMenu = useCallback(() => {
+    const menuClass = classNames(
+      "w-full my-6 p-4 rounded-lg",
+      "flex flex-col items-center gap-4",
+      "ring-2 shadow-xl backdrop-blur",
+      searchingDemos
+        ? "bg-indigo-950/80 ring-indigo-400/50"
+        : "bg-slate-950/60 ring-sky-500/50"
+    );
+    return (
+      <div className={menuClass}>
+        {SearchBar()}
+        {!searchingDemos && ControlBar()}
+      </div>
+    );
+  }, [searchingDemos, SearchBar, ControlBar]);
+
+  return { results, SearchMenu };
+}

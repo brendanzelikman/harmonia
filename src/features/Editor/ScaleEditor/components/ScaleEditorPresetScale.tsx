@@ -3,17 +3,21 @@ import { updateScale } from "redux/Scale";
 import * as _ from "types/Scale";
 import { ScaleEditorProps } from "../ScaleEditor";
 import classNames from "classnames";
+import { useProjectSelector } from "redux/hooks";
+import { selectTrackScaleChain } from "redux/selectors";
 
 export interface PresetScaleProps extends ScaleEditorProps {
   presetScale: _.Scale;
 }
 
 export const PresetScale = (props: PresetScaleProps) => {
-  const { dispatch, presetScale, scale } = props;
+  const { dispatch, presetScale, scale, track } = props;
   const isEqual = _.areScalesEqual(presetScale, scale);
   const isRelated = _.areScalesRelated(presetScale, scale);
   const notes = _.getScaleAsArray(presetScale);
-  const name = _.getScaleName(presetScale);
+  const midiNotes = _.resolveScaleToMidi(presetScale);
+  const name = _.getScaleName(presetScale, midiNotes);
+  const scales = useProjectSelector((_) => selectTrackScaleChain(_, track?.id));
 
   // A preset scale will display its tonic pitch
   const trackScaleNotes = _.getScaleAsArray(scale);
@@ -25,7 +29,8 @@ export const PresetScale = (props: PresetScaleProps) => {
   // Clicking on a preset scale will update the current scale
   const onScaleClick = () => {
     if (!scale) return;
-    dispatch(updateScale({ id: scale.id, notes }));
+    const newNotes = _.getDegreesFromScaleChain(notes, scales.slice(0, -1));
+    dispatch(updateScale({ id: scale.id, notes: newNotes }));
   };
 
   // A preset scale will display its name and its first pitch if it can

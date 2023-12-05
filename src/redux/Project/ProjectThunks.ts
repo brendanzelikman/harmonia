@@ -5,10 +5,11 @@ import {
   updateProjectInDB,
   getProjectFromDB,
   deleteProjectFromDB,
+  getProjectsFromDB,
 } from "indexedDB";
 import { selectMetadata, selectProjectName } from "redux/Metadata";
 import { selectClipIds } from "redux/selectors";
-import { Thunk } from "types/Project";
+import { Thunk, isProjectEmpty } from "types/Project";
 import { exportClipsToMidi } from "redux/thunks";
 import {
   Project,
@@ -18,6 +19,8 @@ import {
   sanitizeProject,
 } from "types/Project";
 import { dispatchCustomEvent } from "utils/html";
+import { sample } from "lodash";
+import JSZip from "jszip";
 
 export const CREATE_PROJECT = "createProject";
 export const DELETE_PROJECT = "deleteProject";
@@ -44,6 +47,19 @@ export const deleteProject = (id: string) => () => {
     console.error(e);
   } finally {
     dispatchCustomEvent(DELETE_PROJECT, id);
+  }
+};
+
+/** Delete all empty projects. */
+export const deleteEmptyProjects = async () => {
+  try {
+    const projects = await getProjectsFromDB();
+    const emptyProjects = projects.filter(isProjectEmpty);
+    emptyProjects.forEach((project) => deleteProjectFromDB(project.meta.id));
+  } catch (e) {
+    console.error(e);
+  } finally {
+    dispatchCustomEvent(DELETE_PROJECT, "all");
   }
 };
 
@@ -91,6 +107,37 @@ export const exportProjectToMIDI =
     const clipIds = selectClipIds(savedProject);
     dispatch(exportClipsToMidi(clipIds));
   };
+
+/** Export all projects to Harmonia files and download them as a zip. */
+export const exportProjectsToZIP = async () => {
+  try {
+    // Convert the projects to blobs
+    const projects = (await getProjectsFromDB()).map(sanitizeProject);
+    const jsons = projects.map((project) => JSON.stringify(project));
+    const blobs = jsons.map((_) => new Blob([_], { type: "application/json" }));
+
+    // Add each blob to a new zip
+    const zip = new JSZip();
+    blobs.forEach((blob, i) => {
+      const projectName = selectProjectName(projects[i]);
+      const fileName = `${projectName ?? "project"}.ham`;
+      zip.file(fileName, blob);
+    });
+
+    // Finalize the archive
+    const content = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(content);
+    const link = document.createElement("a");
+
+    // Download the zip
+    link.download = "harmonia_projects.zip";
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error(e);
+  }
+};
 
 /** Open the user's file system and read local projects. */
 export const openLocalProjects = (): Thunk => (dispatch) => {
@@ -164,6 +211,22 @@ export const loadProjectByPath =
         ...project,
         meta: { ...project.meta, id: nanoid() },
       });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      callback?.();
+    }
+  };
+
+/** Try to load a project at random. */
+export const loadRandomProject =
+  (callback?: () => void): Thunk =>
+  async (dispatch) => {
+    try {
+      const projects = await getProjectsFromDB();
+      const randomProject = sample(projects);
+      if (!randomProject) return;
+      dispatch(loadProject(randomProject.meta.id));
     } catch (e) {
       console.error(e);
     } finally {

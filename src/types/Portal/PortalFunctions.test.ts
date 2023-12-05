@@ -1,27 +1,26 @@
 import { test, expect } from "vitest";
 import * as _ from "./PortalFunctions";
-import { initializeClip, isClip } from "types/Clip";
+import { initializePatternClip } from "types/Clip";
 import { initializePortal, initializePortalFromFragments } from "./PortalTypes";
-import { getClipsFromMedia } from "types/Media";
-import { initializePose } from "types/Pose";
+import { getPatternClipsFromMedia } from "types/Media";
 
 test("createPortalChunk should correctly append a tag to the media's ID", () => {
-  const clip = initializeClip({ trackId: "track1" });
+  const clip = initializePatternClip({ trackId: "track1" });
   const clipDuration = 10;
-  const clipChunks = _.applyPortalsToMedia(clip, [], clipDuration);
+  const clipChunks = _.applyPortalsToClip(clip, [], clipDuration);
   expect(clipChunks.every((clip) => clip.id.includes("-chunk-"))).toBe(true);
 });
 
 test("parsePortalChunkId should correctly process a portaled media ID", () => {
-  const mediaId = "media1-chunk-1";
-  const originalMediaId = _.parsePortalChunkId(mediaId);
-  expect(originalMediaId).toBe("media1");
+  const mediaId = "patternClip-1-chunk-1";
+  const originalMediaId = _.getOriginalIdFromPortaledClip(mediaId);
+  expect(originalMediaId).toBe("patternClip-1");
 });
 
 test("applyPortalsToMedia should return a single chunk with no portals", () => {
-  const clip = initializeClip({ trackId: "track1" });
+  const clip = initializePatternClip({ trackId: "track1" });
   const clipDuration = 10;
-  const clipChunks = _.applyPortalsToMedia(clip, [], clipDuration);
+  const clipChunks = _.applyPortalsToClip(clip, [], clipDuration);
   expect(clipChunks.length).toBe(1);
   expect(clipChunks[0]).toEqual({
     ...clip,
@@ -31,10 +30,10 @@ test("applyPortalsToMedia should return a single chunk with no portals", () => {
 });
 
 test("applyPortalsToMedia should return a single chunk with an irrelevant portal", () => {
-  const clip = initializeClip({ trackId: "track1" });
+  const clip = initializePatternClip({ trackId: "track1" });
   const clipDuration = 10;
   const portal = initializePortal({});
-  const clipChunks = _.applyPortalsToMedia(clip, [portal], clipDuration);
+  const clipChunks = _.applyPortalsToClip(clip, [portal], clipDuration);
   expect(clipChunks.length).toBe(1);
   expect(clipChunks[0]).toEqual({
     ...clip,
@@ -44,7 +43,7 @@ test("applyPortalsToMedia should return a single chunk with an irrelevant portal
 });
 
 test("applyPortalsToMedia should return a single chunk for a reversed portal ", () => {
-  const clip = initializeClip({ trackId: "track1" });
+  const clip = initializePatternClip({ trackId: "track1" });
   const clipDuration = 10;
   const portal = initializePortal({
     tick: 5,
@@ -53,8 +52,8 @@ test("applyPortalsToMedia should return a single chunk for a reversed portal ", 
     portaledTrackId: "track1",
   });
 
-  const chunks = _.applyPortalsToMedia(clip, [portal], clipDuration);
-  const clips = getClipsFromMedia(chunks);
+  const chunks = _.applyPortalsToClip(clip, [portal], clipDuration);
+  const clips = getPatternClipsFromMedia(chunks);
   expect(chunks.length).toBe(1);
   expect(clips.length).toBe(1);
 
@@ -66,7 +65,7 @@ test("applyPortalsToMedia should return a single chunk for a reversed portal ", 
 });
 
 test("applyPortalsToMedia should correctly return two chunks for a clip going through a portal", () => {
-  const clip = initializeClip({ trackId: "track1" });
+  const clip = initializePatternClip({ trackId: "track1" });
   const clipDuration = 10;
   const portal = initializePortal({
     tick: 5,
@@ -75,8 +74,8 @@ test("applyPortalsToMedia should correctly return two chunks for a clip going th
     portaledTrackId: "track2",
   });
 
-  const chunks = _.applyPortalsToMedia(clip, [portal], clipDuration);
-  const clips = getClipsFromMedia(chunks);
+  const chunks = _.applyPortalsToClip(clip, [portal], clipDuration);
+  const clips = getPatternClipsFromMedia(chunks);
   expect(chunks.length).toBe(2);
   expect(clips.length).toBe(2);
 
@@ -94,7 +93,7 @@ test("applyPortalsToMedia should correctly return two chunks for a clip going th
 });
 
 test("applyPortalsToMedia should correctly return three chunks for a clip going through two portals", () => {
-  const clip = initializeClip({ trackId: "track1" });
+  const clip = initializePatternClip({ trackId: "track1" });
   const clipDuration = 12;
   const portal1 = initializePortalFromFragments(
     { trackId: "track1", tick: 5 },
@@ -106,8 +105,8 @@ test("applyPortalsToMedia should correctly return three chunks for a clip going 
   );
 
   // Get the portaled chunks
-  const chunks = _.applyPortalsToMedia(clip, [portal1, portal2], clipDuration);
-  const clips = getClipsFromMedia(chunks);
+  const chunks = _.applyPortalsToClip(clip, [portal1, portal2], clipDuration);
+  const clips = getPatternClipsFromMedia(chunks);
   expect(chunks.length).toBe(3);
   expect(clips.length).toBe(3);
 
@@ -131,7 +130,7 @@ test("applyPortalsToMedia should correctly return three chunks for a clip going 
 });
 
 test("applyPortalsToMedia should work with a tight feedback loop", () => {
-  const clip = initializeClip({ tick: 1, trackId: "track1" });
+  const clip = initializePatternClip({ tick: 1, trackId: "track1" });
   const clipDuration = 20;
   const portal1 = initializePortalFromFragments(
     { trackId: "track1", tick: 2 },
@@ -143,8 +142,8 @@ test("applyPortalsToMedia should work with a tight feedback loop", () => {
   );
 
   // Get the portaled chunks
-  const chunks = _.applyPortalsToMedia(clip, [portal1, portal2], clipDuration);
-  const clips = getClipsFromMedia(chunks);
+  const chunks = _.applyPortalsToClip(clip, [portal1, portal2], clipDuration);
+  const clips = getPatternClipsFromMedia(chunks);
   expect(chunks.length).toBe(20);
   expect(clips.length).toBe(20);
 
@@ -165,7 +164,7 @@ test("applyPortalsToMedia should work with a tight feedback loop", () => {
 });
 
 test("applyPortalsToMedia should not be able to infinitely loop", () => {
-  const clip = initializeClip({ trackId: "track1" });
+  const clip = initializePatternClip({ trackId: "track1" });
   const clipDuration = 10;
   const portal1 = initializePortalFromFragments(
     { trackId: "track1", tick: 5 },
@@ -177,8 +176,8 @@ test("applyPortalsToMedia should not be able to infinitely loop", () => {
   );
 
   // Get the portaled chunks
-  const chunks = _.applyPortalsToMedia(clip, [portal1, portal2], clipDuration);
-  const clips = getClipsFromMedia(chunks);
+  const chunks = _.applyPortalsToClip(clip, [portal1, portal2], clipDuration);
+  const clips = getPatternClipsFromMedia(chunks);
   expect(chunks.length).toBe(2);
   expect(clips.length).toBe(2);
 
@@ -193,71 +192,4 @@ test("applyPortalsToMedia should not be able to infinitely loop", () => {
   expect(clips[1].tick).toBe(5);
   expect(clips[1].duration).toBe(5);
   expect(clips[1].offset).toBe(5);
-});
-
-test("applyPortalsToClip should return the correct clip chunks", () => {
-  const clip = initializeClip({ trackId: "track1" });
-  const clipDuration = 10;
-  const portal = initializePortal({
-    tick: 5,
-    trackId: "track1",
-    portaledTick: 10,
-    portaledTrackId: "track2",
-  });
-
-  const clips = _.applyPortalsToClip(clip, [portal], clipDuration);
-  expect(clips.length).toBe(2);
-  expect(clips.every(isClip)).toBe(true);
-
-  // Check the first clip
-  expect(clips[0].trackId).toBe("track1");
-  expect(clips[0].tick).toBe(0);
-  expect(clips[0].duration).toBe(5);
-  expect(clips[0].offset).toBe(0);
-
-  // Check the second clip
-  expect(clips[1].trackId).toBe("track2");
-  expect(clips[1].tick).toBe(10);
-  expect(clips[1].duration).toBe(5);
-  expect(clips[1].offset).toBe(5);
-});
-
-test("getPortaledPose should return the correct pose chunks", () => {
-  const pose = initializePose({ trackId: "track1", duration: 10 });
-  const portal = initializePortal({
-    tick: 5,
-    trackId: "track1",
-    portaledTick: 10,
-    portaledTrackId: "track2",
-  });
-
-  const poses = _.applyPortalsToPose(pose, [portal]);
-  expect(poses.length).toBe(2);
-
-  // Check the first pose
-  expect(poses[0].trackId).toBe("track1");
-  expect(poses[0].tick).toBe(0);
-  expect(poses[0].duration).toBe(5);
-
-  // Check the second pose
-  expect(poses[1].trackId).toBe("track2");
-  expect(poses[1].tick).toBe(10);
-  expect(poses[1].duration).toBe(5);
-});
-
-test("getPortaledPose should ignore the portal if the pose has infinite duration", () => {
-  const pose = initializePose({ trackId: "track1" });
-  const portal = initializePortal({
-    tick: 5,
-    trackId: "track1",
-    portaledTick: 10,
-    portaledTrackId: "track2",
-  });
-
-  const poses = _.applyPortalsToPose(pose, [portal]);
-  expect(poses.length).toBe(1);
-
-  // Check the first pose
-  expect(poses[0].trackId).toBe(pose.trackId);
-  expect(poses[0].tick).toBe(pose.tick);
 });

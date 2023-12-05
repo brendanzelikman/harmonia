@@ -1,17 +1,29 @@
 import { Project } from "types/Project";
 import { createDeepEqualSelector } from "redux/util";
-import { TrackId } from "types/Track";
 import { getValueByKey, getValuesByKeys } from "utils/objects";
-import { PoseId } from "types/Pose";
-import { isFiniteNumber } from "types/util";
+import { PoseId, PoseMap } from "types/Pose";
+import { createSelector } from "reselect";
+import { PresetPoseMap } from "presets/poses";
+
+/** Select the pose past length. */
+export const selectPosePastLength = (project: Project) =>
+  project.poses.past.length;
+
+/** Select the pose future length. */
+export const selectPoseFutureLength = (project: Project) =>
+  project.poses.future.length;
 
 /** Select the pose map. */
-export const selectPoseMap = (project: Project) =>
-  project.arrangement.present.poses.byId;
+export const _selectPoseMap = (project: Project) => project.poses.present.byId;
+
+/** Select the pattern map (integrated with preset patterns). */
+export const selectPoseMap = createSelector(
+  [_selectPoseMap],
+  (poseMap): PoseMap => ({ ...PresetPoseMap, ...poseMap })
+);
 
 /** Select all pose IDs. */
-export const selectPoseIds = (project: Project) =>
-  project.arrangement.present.poses.allIds;
+export const selectPoseIds = (project: Project) => project.poses.present.allIds;
 
 /** Select all poses. */
 export const selectPoses = createDeepEqualSelector(
@@ -19,8 +31,14 @@ export const selectPoses = createDeepEqualSelector(
   getValuesByKeys
 );
 
+/** Select all non-preset poses. */
+export const selectCustomPoses = createDeepEqualSelector(
+  [selectPoses],
+  (poses) => poses.filter(({ id }) => id && PresetPoseMap[id] === undefined)
+);
+
 /** Select a pose by ID. */
-export const selectPoseById = (project: Project, id: PoseId) => {
+export const selectPoseById = (project: Project, id?: PoseId) => {
   const poseMap = selectPoseMap(project);
   return getValueByKey(poseMap, id);
 };
@@ -29,27 +47,4 @@ export const selectPoseById = (project: Project, id: PoseId) => {
 export const selectPosesByIds = (project: Project, ids: PoseId[]) => {
   const poseMap = selectPoseMap(project);
   return getValuesByKeys(poseMap, ids);
-};
-
-/** Select a list of poses by track ID. */
-export const selectPosesByTrackIds = (
-  project: Project,
-  trackIds: TrackId[]
-) => {
-  const poses = selectPoses(project);
-  return poses.filter((t) => trackIds.includes(t.trackId));
-};
-
-/** Select the duration of a pose. */
-export const selectPoseDuration = (project: Project, id: PoseId) => {
-  const pose = selectPoseById(project, id);
-  if (!pose) return 0;
-  const { duration } = pose;
-  if (isFiniteNumber(duration)) return duration;
-  return Infinity;
-};
-
-/** Select the duration of a pose. */
-export const selectPoseDurations = (project: Project, ids: PoseId[]) => {
-  return ids.map((id) => selectPoseDuration(project, id));
 };

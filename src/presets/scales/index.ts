@@ -1,4 +1,4 @@
-import { ScaleMap, ScaleObject } from "types/Scale";
+import { ScaleObject } from "types/Scale";
 import BasicScales from "./BasicScales";
 import BasicModes from "./BasicModes";
 import PentatonicScales from "./PentatonicScales";
@@ -20,8 +20,8 @@ export const PresetScaleGroupMap = {
 };
 
 export type ScaleGroupMap = typeof PresetScaleGroupMap;
-export type ScaleGroup = keyof ScaleGroupMap;
-export type ScaleGroupList = ScaleGroup[];
+export type ScaleGroupKey = keyof ScaleGroupMap;
+export type ScaleGroupList = ScaleGroupKey[];
 
 // Return a list of all preset groups
 // e.g. [ "Common Scales", "Common Modes", ... ]
@@ -35,4 +35,4 @@ export const PresetScaleList = Object.values(PresetScaleGroupMap).flat();
 
 // Return a map of preset scale id to preset scale
 // e.g. { "major-scale": Major Scale, "minor-scale": Minor Scale, ... }
-export const PresetScaleMap = createMap<ScaleMap>(PresetScaleList);
+export const PresetScaleMap = createMap<ScaleObject>(PresetScaleList);

@@ -19,8 +19,8 @@ import {
   selectInstrumentIds,
   selectInstrumentMap,
 } from "./InstrumentSelectors";
-import { PatternTrack } from "types/PatternTrack";
-import { TrackId } from "types/Track";
+import { TrackId, PatternTrack } from "types/Track";
+import { getKeys } from "utils/objects";
 
 // ------------------------------------------------------------
 // Payload Types
@@ -62,11 +62,7 @@ export type RearrangeInstrumentEffectPayload = {
 };
 
 /** An `Instrument` needs to be removed from the store with a track ID. */
-export type RemoveInstrumentPayload = {
-  trackId: TrackId;
-  originalTrackId: TrackId;
-  id: InstrumentId;
-};
+export type RemoveInstrumentPayload = { id: InstrumentId; trackId: TrackId };
 
 /** An `InstrumentEffect` can be removed by ID. */
 export type RemoveInstrumentEffectPayload = {
@@ -158,7 +154,7 @@ export const instrumentsSlice = createSlice({
 
       // Remove the instrument from the state
       delete state.byId[id];
-      const index = state.allIds.findIndex((id) => id === id);
+      const index = state.allIds.findIndex((i) => i === id);
       if (index === -1) return;
       state.allIds.splice(index, 1);
     },
@@ -212,7 +208,7 @@ export const instrumentsSlice = createSlice({
       action: PayloadAction<RemoveInstrumentEffectPayload>
     ) => {
       const { id, effectId } = action.payload;
-      const instrument = Object.values(state.byId).find(({ id }) => id === id);
+      const instrument = Object.values(state.byId).find((i) => i.id === id);
       if (!instrument) return;
 
       // Remove the effect from the live instrument
@@ -334,61 +330,50 @@ export const instrumentsSlice = createSlice({
     /** Mute all instruments. */
     muteInstruments: (state) => {
       state.allIds.forEach((id) => {
+        // Mute the instrument
         const instrument = state.byId[id];
-        if (!instrument) return;
+        if (instrument) instrument.mute = true;
 
-        // Mute the instrument in the live instrument
+        // Mute the instance
         const instance = LIVE_AUDIO_INSTANCES[id];
-        if (!instance) return;
-        instance.mute = true;
-
-        // Mute the instrument in the state
-        instrument.mute = true;
+        if (instance) instance.mute = true;
       });
     },
     /** Unmute all instruments. */
     unmuteInstruments: (state) => {
       state.allIds.forEach((id) => {
+        // Unmute the instrument
         const instrument = state.byId[id];
-        if (!instrument) return;
+        if (instrument) instrument.mute = false;
 
-        // Mute the instrument in the live instrument
+        // Unmute the instance
         const instance = LIVE_AUDIO_INSTANCES[id];
-        if (!instance) return;
-        instance.mute = false;
-
-        // Mute the instrument in the state
-        instrument.mute = false;
+        if (instance) instance.mute = false;
       });
     },
     /** Solo all instruments. */
     soloInstruments: (state) => {
       state.allIds.forEach((id) => {
+        // Solo the instrument
         const instrument = state.byId[id];
-        if (!instrument) return;
+        if (instrument) instrument.solo = true;
 
-        // Solo the instrument in the live instrument
+        // Solo the instance
         const instance = LIVE_AUDIO_INSTANCES[id];
-        if (!instance) return;
-        instance.solo = true;
-
-        // Solo the instrument in the state
-        instrument.solo = true;
+        if (instance) instance.solo = true;
       });
     },
     /** Unsolo all instruments. */
     unsoloInstruments: (state) => {
+      console.log(state.allIds.length);
       state.allIds.forEach((id) => {
+        // Unsolo the instrument
         const instrument = state.byId[id];
-        if (!instrument) return;
+        if (instrument) instrument.solo = false;
 
-        // Solo the instrument in the live instrument
+        // Unsolo the instance
         const instance = LIVE_AUDIO_INSTANCES[id];
-        if (!instance) return;
-        instance.solo = false;
-
-        // Solo the instrument in the state
-        instrument.solo = false;
+        if (instance) instance.solo = false;
       });
     },
     /** (PRIVATE) Add an offline instrument. */

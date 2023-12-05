@@ -12,7 +12,7 @@ export function useCellDrop(props: CellDropProps) {
   const { trackId, columnIndex, row } = props;
   return useDrop(
     () => ({
-      accept: ["clip", "pose", "portal"],
+      accept: ["clip", "portal"],
       collect: (monitor) => ({
         canDrop: monitor.canDrop(),
         isOver: monitor.isOver(),
@@ -21,6 +21,8 @@ export function useCellDrop(props: CellDropProps) {
         item.trackId = trackId;
         item.canDrop = true;
         item.hoveringColumn = columnIndex;
+
+        // Update the row index if the item is hovering over a row
         item.hoveringRow = row.index;
       },
     }),

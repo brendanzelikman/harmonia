@@ -5,10 +5,6 @@ import { PoseVector } from "types/Pose";
 import { ControlChangeMessageEvent, MessageEvent, WebMidi } from "webmidi";
 import { useCallback, useEffect } from "react";
 import {
-  selectPatternTrackMap,
-  selectPatternTrackIds,
-} from "redux/PatternTrack";
-import {
   selectSelectedTrack,
   selectSelectedTrackIndex,
   setSelectedTrackId,
@@ -28,10 +24,13 @@ import {
   selectTransport,
 } from "redux/Transport";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
-import { getValueByKey } from "utils/objects";
-import { PatternTrack } from "types/PatternTrack";
-import { selectOrderedTrackIds } from "redux/TrackHierarchy";
 import { getMidiPitch } from "utils/midi";
+import {
+  selectPatternTrackMap,
+  selectPatternTracks,
+  selectTrackIds,
+} from "redux/selectors";
+import { PatternTrack } from "types/Track";
 
 const ARTURIA_KEYLAB_TRACK_CC = 60;
 const ARTURIA_KEYLAB_VOLUME_CCS = [73, 75, 79, 72, 80, 81, 82, 83];
@@ -49,9 +48,9 @@ export function useMidiController() {
   const dispatch = useProjectDispatch();
   const transport = useProjectSelector(selectTransport);
   const patternTrackMap = useProjectDeepSelector(selectPatternTrackMap);
-  const orderedTrackIds = useProjectDeepSelector(selectOrderedTrackIds);
+  const orderedTrackIds = useProjectDeepSelector(selectTrackIds);
   const trackIndex = useProjectSelector(selectSelectedTrackIndex);
-  const patternTrackIds = useProjectDeepSelector(selectPatternTrackIds);
+  const patternTracks = useProjectDeepSelector(selectPatternTracks);
   const selectedTrack = useProjectSelector(selectSelectedTrack);
   const selectedAudioInstance = selectedTrack
     ? LIVE_AUDIO_INSTANCES[(selectedTrack as PatternTrack).instrumentId]
@@ -150,9 +149,7 @@ export function useMidiController() {
         e.controller.number
       );
       if (volumeIndex >= 0) {
-        const patternTrackId = patternTrackIds[volumeIndex];
-        if (!patternTrackId) return;
-        const patternTrack = patternTrackMap[patternTrackId];
+        const patternTrack = patternTracks[volumeIndex];
         if (!patternTrack) return;
         const normalValue = normalize(e.rawValue, 0, 127);
         const volumeRange = MAX_VOLUME - MIN_VOLUME;
@@ -168,9 +165,7 @@ export function useMidiController() {
       // Handle the pan index if it's a pan CC
       const panIndex = ARTURIA_KEYLAB_PAN_CCS.indexOf(e.controller.number);
       if (panIndex >= 0) {
-        const patternTrackId = patternTrackIds[panIndex];
-        if (!patternTrackId) return;
-        const patternTrack = patternTrackMap[patternTrackId];
+        const patternTrack = patternTracks[panIndex];
         if (!patternTrack) return;
         const normalValue = normalize(e.rawValue, 0, 127);
         const pan = normalValue * 2 - 1;
@@ -182,7 +177,7 @@ export function useMidiController() {
         return;
       }
     },
-    [patternTrackIds, patternTrackMap, trackIndex, orderedTrackIds]
+    [patternTrackMap, trackIndex, orderedTrackIds]
   );
 
   const playInstanceNote = useCallback(

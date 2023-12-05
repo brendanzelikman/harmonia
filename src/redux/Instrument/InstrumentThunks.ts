@@ -1,5 +1,5 @@
 import { Thunk } from "types/Project";
-import { PatternTrack } from "types/PatternTrack";
+import { PatternTrack } from "types/Track";
 import { selectInstrumentById } from "./InstrumentSelectors";
 import { addInstrument, _addOfflineInstrument } from "./InstrumentSlice";
 import {
@@ -19,7 +19,10 @@ interface InstrumentOptions {
 
 /** Create a `LiveAudioInstance` and `Instrument` for a given `PatternTrack`. */
 export const createInstrument =
-  (track: PatternTrack, options: InstrumentOptions): Thunk<LiveAudioInstance> =>
+  (
+    track: PatternTrack,
+    options: InstrumentOptions = {}
+  ): Thunk<LiveAudioInstance> =>
   (dispatch, getProject) => {
     const project = getProject();
 

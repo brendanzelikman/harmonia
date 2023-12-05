@@ -5,7 +5,7 @@ import {
   selectCellWidth,
   selectSelectedTrack,
   selectTrackedObjectTop,
-  selectOrderedTrackIds,
+  selectTrackIds,
   selectTrackById,
   selectTimelineColumns,
 } from "redux/selectors";
@@ -22,7 +22,7 @@ interface BackgroundProps {
 }
 
 // Timeline background so that the tracks can be scrolled
-export const TimelineGraphics: React.FC<BackgroundProps> = (props) => {
+export const TimelineGraphics = (props: BackgroundProps) => {
   const { timeline } = props;
 
   // Cell dimensions
@@ -30,7 +30,7 @@ export const TimelineGraphics: React.FC<BackgroundProps> = (props) => {
   const cellHeight = use(selectCellHeight);
 
   // The track dimensions are derived from the last track
-  const trackIds = use(selectOrderedTrackIds);
+  const trackIds = use(selectTrackIds);
   const trackCount = trackIds.length;
   const ltId = trackIds.at(-1);
   const lt = use((_) => selectTrackById(_, ltId));
@@ -59,12 +59,13 @@ export const TimelineGraphics: React.FC<BackgroundProps> = (props) => {
   /** The timeline tracks background.  */
   const TimelineTracksBackground = () => {
     return (
-      <div
-        className="-z-20 absolute inset-0 flex flex-col"
-        style={{ width, height }}
-      >
+      <div className="-z-20 absolute inset-0 flex" style={{ width, height }}>
         <div
-          className="w-full bg-slate-500/80 shadow-xl"
+          className="bg-transparent"
+          style={{ width: TRACK_WIDTH, height: tracksHeight }}
+        ></div>
+        <div
+          className="flex-1 bg-slate-400/25 shadow-xl"
           style={{ height: tracksHeight }}
         />
       </div>
@@ -74,7 +75,7 @@ export const TimelineGraphics: React.FC<BackgroundProps> = (props) => {
   /** The selected track has a lighter background than other tracks. */
   const SelectedTrackBackground = () => (
     <div
-      className="-z-10 absolute inset-0 bg-slate-400/40 flex flex-col pointer-events-none"
+      className="-z-10 absolute inset-0 bg-slate-300/25 flex flex-col pointer-events-none"
       style={{ width, height: stHeight, top: stTop }}
     />
   );

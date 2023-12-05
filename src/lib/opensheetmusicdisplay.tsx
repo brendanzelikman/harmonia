@@ -5,7 +5,11 @@ import {
   OpenSheetMusicDisplay as OSMD,
 } from "opensheetmusicdisplay";
 import { MidiNote } from "types/Scale";
-import { PatternMidiStream, isPatternMidiChord } from "types/Pattern";
+import {
+  PatternMidiStream,
+  getPatternMidiChordNotes,
+  isPatternMidiChord,
+} from "types/Pattern";
 import { clamp } from "lodash";
 
 // ------------------------------------------------------------
@@ -56,7 +60,7 @@ export interface ScoreProps {
   score: JSX.Element;
   osmd?: OSMD;
   cursor: CursorProps;
-  notes: NoteProps[];
+  scoreNotes: NoteProps[];
 }
 
 /** Formats the engraving rules of a score. */
@@ -112,37 +116,35 @@ export function useOSMD(props: Props): ScoreProps {
         score.render();
       })
       .finally(() => {
-        setTimeout(() => {
-          // Format and render the cursor if it is visible and not ignored
-          if (!ignoreCursor && !cursor.hidden && !!osmd?.cursor) {
-            renderCursor({
-              userCursor: cursor,
-              scoreCursor: osmd?.cursor,
-              noteCount,
-              index: cursor.index,
-            });
-          }
-
-          // Apply a callback to each note and update the note elements
-          const noteElements = getStaveNotes(
-            notes,
-            props.noteClasses ?? [],
-            (index) => props.onNoteClick?.(cursor, index)
-          );
-          setNoteElements(noteElements);
-
-          // Apply the color to each note if specified
-          const noteColor = props.noteColor ?? "fill-black";
-          noteElements.forEach((elt) => {
-            const id = elt.element.id;
-            const heads = [
-              ...document.querySelectorAll(`#${id} .vf-modifiers path`),
-              ...document.querySelectorAll(`#${id} .vf-note .vf-notehead path`),
-            ];
-            heads.forEach((head) => head.removeAttribute("fill"));
-            heads.forEach((head) => head.classList.add(noteColor));
+        // Format and render the cursor if it is visible and not ignored
+        if (!ignoreCursor && !cursor.hidden && !!osmd?.cursor) {
+          renderCursor({
+            userCursor: cursor,
+            scoreCursor: osmd?.cursor,
+            noteCount,
+            index: cursor.index,
           });
-        }, 10);
+        }
+
+        // Apply a callback to each note and update the note elements
+        const noteElements = getStaveNotes(
+          notes,
+          props.noteClasses ?? [],
+          (index) => props.onNoteClick?.(cursor, index)
+        );
+        setNoteElements(noteElements);
+
+        // Apply the color to each note if specified
+        const noteColor = props.noteColor ?? "fill-black";
+        noteElements.forEach((elt) => {
+          const id = elt.element.id;
+          const heads = [
+            ...document.querySelectorAll(`#${id} .vf-modifiers path`),
+            ...document.querySelectorAll(`#${id} .vf-note .vf-notehead path`),
+          ];
+          heads.forEach((head) => head.removeAttribute("fill"));
+          heads.forEach((head) => head.classList.add(noteColor));
+        });
       });
   }, [
     cursor.index,
@@ -162,7 +164,7 @@ export function useOSMD(props: Props): ScoreProps {
       score: <div ref={ref} id={id} className={className}></div>,
       osmd,
       cursor,
-      notes: noteElements,
+      scoreNotes: noteElements,
     }),
     [id, className, cursor]
   );
@@ -391,9 +393,11 @@ function getStreamIndicesByClef(notes: NoteList) {
       return;
     }
 
+    const notes = getPatternMidiChordNotes(chord);
+
     // Filter the chord into treble and bass notes
-    const trebleNotes = chord.filter((note) => note.MIDI >= 58);
-    const bassNotes = chord.filter((note) => note.MIDI < 58);
+    const trebleNotes = notes.filter((note) => note.MIDI >= 58);
+    const bassNotes = notes.filter((note) => note.MIDI < 58);
 
     // Add the index to the correct clef
     if (trebleNotes.length > 0 && bassNotes.length > 0) {

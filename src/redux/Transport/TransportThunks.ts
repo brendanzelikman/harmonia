@@ -17,10 +17,10 @@ import {
   selectPatternTracks,
   selectChordsByTicks,
   selectLastArrangementTick,
-  selectPatternTrackMap,
   selectMetadata,
-  selectPatternTrackAudioInstances,
+  selectTrackAudioInstanceMap,
   selectChordsAtTick,
+  selectTrackMap,
 } from "redux/selectors";
 import {
   InstrumentId,
@@ -30,6 +30,7 @@ import {
 import { dispatchCustomEvent } from "utils/html";
 import { playPatternChord } from "redux/thunks";
 import { PPQ } from "utils/durations";
+import { isPatternTrack } from "types/Track";
 
 let scheduleId: number;
 
@@ -417,8 +418,8 @@ export const downloadTransport = (): Thunk => async (dispatch, getProject) => {
   if (ticks <= 0) return;
 
   // Get the samplers
-  const patternTrackMap = selectPatternTrackMap(oldProject);
-  const oldSamplers = selectPatternTrackAudioInstances(oldProject);
+  const trackMap = selectTrackMap(oldProject);
+  const oldSamplers = selectTrackAudioInstanceMap(oldProject);
 
   // Calculate the duration and pulse
   const duration = convertTicksToSeconds(oldTransport, ticks);
@@ -434,7 +435,8 @@ export const downloadTransport = (): Thunk => async (dispatch, getProject) => {
     // Create new samplers for the offline transport
     const samplers: Record<string, Tone.Sampler> = {};
     for (const trackId in oldSamplers) {
-      const patternTrack = patternTrackMap[trackId];
+      const patternTrack = trackMap[trackId];
+      if (!isPatternTrack(patternTrack)) continue;
       const instance = dispatch(
         Instrument.createInstrument(patternTrack, {
           offline: true,

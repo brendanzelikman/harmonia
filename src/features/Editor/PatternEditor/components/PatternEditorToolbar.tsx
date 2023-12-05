@@ -128,7 +128,7 @@ export function PatternEditorToolbar(props: PatternEditorTabProps) {
 
   return (
     <Editor.Tab show={true} border={true}>
-      <Editor.TabGroup border={true}>
+      <Editor.TabGroup border={props.isCustom}>
         <ExportButton />
         <NewButton />
         <CopyButton />

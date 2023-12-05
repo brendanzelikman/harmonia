@@ -1,6 +1,11 @@
 import { expect, test } from "vitest";
-import { defaultClip, initializeClip, mockClip } from "./ClipTypes";
+import {
+  defaultPatternClip,
+  initializePatternClip,
+  initializePoseClip,
+} from "./ClipTypes";
 import * as _ from "./ClipFunctions";
+import * as ArrangementFunctions from "types/Arrangement/ArrangementFunctions";
 import {
   createPatternChordFromScaleNote,
   createPatternStreamFromMidiValues,
@@ -13,9 +18,7 @@ import {
 import { initializeScale, mockScale } from "types/Scale";
 import { createMap } from "utils/objects";
 import { initializePose } from "types/Pose";
-import { initializePatternTrack } from "types/PatternTrack";
-import { TrackHierarchy } from "types/TrackHierarchy";
-import { initializeScaleTrack } from "types/ScaleTrack";
+import { initializeScaleTrack, initializePatternTrack } from "types/Track";
 
 const degrees = [0, 2, 4, 6].map((degree) => ({
   degree,
@@ -26,21 +29,24 @@ const originalStream = [12, ...degrees].map((d) =>
 );
 
 test("getClipDuration should return the correct duration for a clip with it specified", () => {
-  const ticks = _.getClipDuration(mockClip, defaultPattern);
-  expect(ticks).toEqual(mockClip.duration);
+  const clip = initializePatternClip({ duration: 5 });
+  const ticks = _.getClipDuration(clip, defaultPattern.stream);
+  expect(ticks).toEqual(clip.duration);
 });
 
 test("getClipDuration should return the correct duration for a clip without it specified", () => {
-  const ticks = _.getClipDuration(defaultClip, defaultPattern);
+  const ticks = _.getClipDuration(defaultPatternClip, defaultPattern.stream);
   expect(ticks).toBe(getPatternStreamDuration(defaultPattern.stream));
 });
 
 test("getClipStream should work with just a pattern of MIDI notes", () => {
   const originalStream = createPatternStreamFromMidiValues([60, 61, 62, 63]);
   const pattern = initializePattern({ stream: originalStream });
-  const clip = initializeClip({ patternId: pattern.id });
+  const clip = initializePatternClip({ patternId: pattern.id });
 
-  const clipStream = _.getClipStream(clip, { pattern });
+  const clipStream = ArrangementFunctions.getPatternClipStream(clip, {
+    pattern,
+  });
   const midiStream = resolvePatternStreamToMidi(clipStream, []);
   const values = getMidiStreamValues(midiStream);
 
@@ -54,8 +60,10 @@ test("getClipStream should work with just a pattern of nested notes", () => {
   }));
   const originalStream = degrees.map((d) => createPatternChordFromScaleNote(d));
   const pattern = initializePattern({ stream: originalStream });
-  const clip = initializeClip({ patternId: pattern.id });
-  const clipStream = _.getClipStream(clip, { pattern });
+  const clip = initializePatternClip({ patternId: pattern.id });
+  const clipStream = ArrangementFunctions.getPatternClipStream(clip, {
+    pattern,
+  });
   const midiStream = resolvePatternStreamToMidi(clipStream, []);
   const values = getMidiStreamValues(midiStream);
 
@@ -66,9 +74,11 @@ test("getClipStream should work with just a pattern of mixed notes", () => {
   const notes = [60, { degree: 0, offset: { chromatic: -2, octave: 1 } }];
   const originalStream = notes.map((n) => createPatternChordFromScaleNote(n));
   const pattern = initializePattern({ stream: originalStream });
-  const clip = initializeClip({ patternId: pattern.id });
+  const clip = initializePatternClip({ patternId: pattern.id });
 
-  const clipStream = _.getClipStream(clip, { pattern });
+  const clipStream = ArrangementFunctions.getPatternClipStream(clip, {
+    pattern,
+  });
   const midiStream = resolvePatternStreamToMidi(clipStream, []);
   const values = getMidiStreamValues(midiStream);
 
@@ -77,12 +87,15 @@ test("getClipStream should work with just a pattern of mixed notes", () => {
 
 test("getClipStream should work with a pattern of mixed notes and a MIDI scale", () => {
   const pattern = initializePattern({ stream: originalStream });
-  const clip = initializeClip({ patternId: pattern.id });
+  const clip = initializePatternClip({ patternId: pattern.id });
 
   const scale = initializeScale({ notes: [60, 62, 64, 65, 67, 69, 71] });
   const scales = createMap([scale]);
 
-  const clipStream = _.getClipStream(clip, { pattern, scales });
+  const clipStream = ArrangementFunctions.getPatternClipStream(clip, {
+    pattern,
+    scales,
+  });
   const midiStream = resolvePatternStreamToMidi(clipStream, []);
   const values = getMidiStreamValues(midiStream);
 
@@ -91,12 +104,15 @@ test("getClipStream should work with a pattern of mixed notes and a MIDI scale",
 
 test("getClipStream should work with a pattern of mixed notes and a nested scale", () => {
   const pattern = initializePattern({ stream: originalStream });
-  const clip = initializeClip({ patternId: pattern.id });
+  const clip = initializePatternClip({ patternId: pattern.id });
 
   const scale = mockScale;
   const scales = createMap([scale]);
 
-  const clipStream = _.getClipStream(clip, { pattern, scales });
+  const clipStream = ArrangementFunctions.getPatternClipStream(clip, {
+    pattern,
+    scales,
+  });
   const midiStream = resolvePatternStreamToMidi(clipStream, []);
   const values = getMidiStreamValues(midiStream);
 
@@ -112,19 +128,24 @@ test("getClipStream should not transpose a pattern of notes wihout any tracks", 
     createPatternChordFromScaleNote(d)
   );
   const pattern = initializePattern({ stream: originalStream });
-  const clip = initializeClip({ patternId: pattern.id });
+  const clip = initializePatternClip({ patternId: pattern.id });
 
-  const pose = initializePose({ vector: { chromatic: 1 } });
+  const pose = initializePose({
+    stream: [{ vector: { chromatic: 1 }, duration: Infinity }],
+  });
   const poses = createMap([pose]);
 
-  const clipStream = _.getClipStream(clip, { pattern, poses: poses });
+  const clipStream = ArrangementFunctions.getPatternClipStream(clip, {
+    pattern,
+    poses: poses,
+  });
   const midiStream = resolvePatternStreamToMidi(clipStream, []);
   const values = getMidiStreamValues(midiStream);
 
   expect(values).toEqual([12, 70, 72, 74, 76]);
 });
 
-test("getClipStream should not transpose a pattern of notes without the hierarchy", () => {
+test("getClipStream should not transpose a pattern of notes without any clips", () => {
   const degrees = [0, 2, 4, 6].map((degree) => ({
     degree,
     offset: { octave: 1, chromatic: -2 },
@@ -132,69 +153,69 @@ test("getClipStream should not transpose a pattern of notes without the hierarch
   const originalStream = [12, ...degrees].map((d) =>
     createPatternChordFromScaleNote(d)
   );
+  let patternTrack = initializePatternTrack({});
+
+  // Create the pattern clip
   const pattern = initializePattern({ stream: originalStream });
-
-  const patternTrack = initializePatternTrack({});
-  const patternTracks = createMap([patternTrack]);
-
-  const clip = initializeClip({
-    trackId: patternTrack.id,
+  const patternClip = initializePatternClip({
     patternId: pattern.id,
+    trackId: patternTrack.id,
   });
 
+  // Create the pose clip
   const pose = initializePose({
-    trackId: patternTrack.id,
-    vector: { chromatic: 1 },
+    stream: [{ vector: { chromatic: 1 }, duration: Infinity }],
   });
+  const poseClip = initializePoseClip({
+    poseId: pose.id,
+    trackId: patternTrack.id,
+  });
+
+  // Create the track and pose maps
+  const tracks = createMap([patternTrack]);
   const poses = createMap([pose]);
 
-  const clipStream = _.getClipStream(clip, {
+  const stream = ArrangementFunctions.getPatternClipStream(patternClip, {
     pattern,
-    poses: poses,
-    patternTracks,
+    poses,
+    tracks,
   });
-  const midiStream = resolvePatternStreamToMidi(clipStream, []);
+  const midiStream = resolvePatternStreamToMidi(stream, []);
   const values = getMidiStreamValues(midiStream);
 
   expect(values).toEqual([12, 70, 72, 74, 76]);
 });
 
-test("getClipStream should correctly transpose and rotate a pattern when a track and hierarchy is provided", () => {
-  const patternTrack = initializePatternTrack({});
-  const patternTracks = createMap([patternTrack]);
-
+test("getClipStream should correctly transpose and rotate a pattern when tracks and clips are provided", () => {
   const pattern = initializePattern({ stream: originalStream });
-  const clip = initializeClip({
+  const pose = initializePose({
+    stream: [{ vector: { chromatic: 1, chordal: 1 }, duration: Infinity }],
+  });
+  let patternTrack = initializePatternTrack({});
+
+  // Create the pattern clip
+  const patternClip = initializePatternClip({
     trackId: patternTrack.id,
     patternId: pattern.id,
   });
 
-  const pose = initializePose({
+  // Create the pose clip
+  const poseClip = initializePoseClip({
     trackId: patternTrack.id,
-    vector: { chromatic: 1, chordal: 1 },
+    poseId: pose.id,
   });
+
+  // Create the track map
+  const tracks = createMap([patternTrack]);
+  const clips = createMap([patternClip, poseClip]);
   const poses = createMap([pose]);
 
-  const hierarchy: TrackHierarchy = {
-    byId: {
-      [patternTrack.id]: {
-        id: patternTrack.id,
-        type: "patternTrack",
-        depth: 0,
-        trackIds: [],
-        clipIds: [],
-        poseIds: [pose.id],
-      },
-    },
-    allIds: [patternTrack.id],
-    topLevelIds: [patternTrack.id],
-  };
-
-  const clipStream = _.getClipStream(clip, {
+  // Get the stream
+  const clipStream = ArrangementFunctions.getPatternClipStream(patternClip, {
     pattern,
-    poses: poses,
-    patternTracks,
-    tracks: hierarchy.byId,
+    poses,
+    tracks,
+    clips,
   });
   const midiStream = resolvePatternStreamToMidi(clipStream);
   const values = getMidiStreamValues(midiStream);
@@ -210,28 +231,34 @@ test("getClipStream should work with fully loaded dependencies", () => {
   const major7Notes = [0, 2, 4, 6].map((degree) => ({ degree }));
   const major7Scale = initializeScale({ notes: major7Notes });
 
+  // Create the first track
   const t1 = initializeScaleTrack({ scaleId: majorScale.id });
-  const t2 = initializeScaleTrack({ scaleId: major7Scale.id, parentId: t1.id });
+
+  // Create the second track
+  const t2 = initializeScaleTrack({ parentId: t1.id, scaleId: major7Scale.id });
+
+  // Create the third track
   const t3 = initializePatternTrack({ parentId: t2.id });
 
+  // Create the first pose and clip
   const t1Pose = initializePose({
-    trackId: t1.id,
-    vector: { chromatic: 2 },
+    stream: [{ vector: { chromatic: 2 } }],
   });
+  const t1PoseClip = initializePoseClip({ poseId: t1Pose.id, trackId: t1.id });
+
+  // Create the second pose and clip
   const t2Pose = initializePose({
-    trackId: t2.id,
-    vector: { [t1.id]: 1 },
+    stream: [{ vector: { [t1.id]: 1 } }],
   });
+  const t2PoseClip = initializePoseClip({ poseId: t2Pose.id, trackId: t2.id });
+
+  // Create the third pose and clip
   const t3Pose = initializePose({
-    trackId: t3.id,
-    vector: { [t1.id]: 1, [t2.id]: 1 },
+    stream: [{ vector: { [t1.id]: 1, [t2.id]: 1 } }],
   });
+  const t3PoseClip = initializePoseClip({ poseId: t3Pose.id, trackId: t3.id });
 
-  const scales = createMap([majorScale, major7Scale]);
-  const scaleTracks = createMap([t1, t2]);
-  const patternTracks = createMap([t3]);
-  const poses = createMap([t1Pose, t2Pose, t3Pose]);
-
+  // Create the pattern
   const nestedNotes = [
     { degree: 0, offset: { chromatic: -1 }, scaleId: majorScale.id },
     { degree: 0, offset: { [majorScale.id]: 1 }, scaleId: majorScale.id },
@@ -242,49 +269,25 @@ test("getClipStream should work with fully loaded dependencies", () => {
   const stream = nestedNotes.map((n) => createPatternChordFromScaleNote(n));
   const pattern = initializePattern({ stream });
 
-  const clip = initializeClip({
-    trackId: t3.id,
+  // Create the pattern clip
+  const patternClip = initializePatternClip({
     patternId: pattern.id,
+    trackId: t3.id,
   });
 
-  const hierarchy: TrackHierarchy = {
-    byId: {
-      [t1.id]: {
-        id: t1.id,
-        type: "scaleTrack",
-        depth: 1,
-        trackIds: [t2.id],
-        clipIds: [],
-        poseIds: [t1Pose.id],
-      },
-      [t2.id]: {
-        id: t2.id,
-        type: "scaleTrack",
-        depth: 2,
-        trackIds: [t3.id],
-        clipIds: [],
-        poseIds: [t2Pose.id],
-      },
-      [t3.id]: {
-        id: t3.id,
-        type: "patternTrack",
-        depth: 3,
-        trackIds: [],
-        clipIds: [clip.id],
-        poseIds: [t3Pose.id],
-      },
-    },
-    allIds: [t1.id, t2.id, t3.id],
-    topLevelIds: [t1.id],
-  };
+  // Create the maps
+  const scales = createMap([majorScale, major7Scale]);
+  const tracks = createMap([t1, t2, t3]);
+  const clips = createMap([patternClip, t1PoseClip, t2PoseClip, t3PoseClip]);
+  const poses = createMap([t1Pose, t2Pose, t3Pose]);
 
-  const clipStream = _.getClipStream(clip, {
+  // Get the stream
+  const clipStream = ArrangementFunctions.getPatternClipStream(patternClip, {
     pattern,
-    poses: poses,
-    patternTracks,
-    scaleTracks,
+    tracks,
+    clips,
+    poses,
     scales,
-    tracks: hierarchy.byId,
   });
   const midiStream = resolvePatternStreamToMidi(clipStream);
   const values = getMidiStreamValues(midiStream);

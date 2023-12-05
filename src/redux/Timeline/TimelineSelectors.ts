@@ -7,30 +7,35 @@ import {
 import { getSubdivisionTicks, getTickColumns } from "utils/durations";
 import { Project } from "types/Project";
 import { getTimelineObjectTrackId } from "types/Timeline";
-import { Tracked, isTrack } from "types/Track";
-import { Media, MediaClip } from "types/Media";
+import { Track, Tracked, getTrackIndex, isTrack } from "types/Track";
+import { Media } from "types/Media";
 import { Tick } from "types/units";
 import { getValueByKey, getValuesByKeys } from "utils/objects";
 import { createDeepEqualSelector } from "redux/util";
-import {
-  selectPatternById,
-  selectPatternMap,
-} from "redux/Pattern/PatternSelectors";
+import { selectPatternMap } from "redux/Pattern/PatternSelectors";
 import {
   selectTrackById,
   selectTrackMap,
-  selectTrackChain,
+  selectScaleTrackChain,
+  selectTrackIds,
+  selectTopLevelTracks,
+  selectTrackChildren,
 } from "../Track/TrackSelectors";
 import { selectClipMap } from "../Clip/ClipSelectors";
 import { selectPoseMap } from "../Pose/PoseSelectors";
 import {
-  selectOrderedTrackIds,
-  selectTrackHierarchy,
-} from "../TrackHierarchy/TrackHierarchySelectors";
-import { Clip, getClipDuration } from "types/Clip";
-import { Pose } from "types/Pose";
+  Clip,
+  PatternClip,
+  PatternClipId,
+  PoseClip,
+  PoseClipId,
+  getClipDuration,
+  isPatternClip,
+  isPoseClip,
+} from "types/Clip";
 import { isFiniteNumber } from "types/util";
 import { selectPortalMap } from "redux/Portal/PortalSelectors";
+import { createSelector } from "reselect";
 
 /** Select the timeline from the store. */
 export const selectTimeline = (project: Project) => project.timeline;
@@ -102,18 +107,16 @@ export const selectSelectedTrack = (project: Project) => {
 };
 
 /** Select the index of the currently selected track or -1 if undefined. */
-export const selectSelectedTrackIndex = (project: Project) => {
-  const selectedTrackId = selectSelectedTrackId(project);
-  if (!selectedTrackId) return -1;
-  const orderedTrackIds = selectOrderedTrackIds(project);
-  return orderedTrackIds.indexOf(selectedTrackId);
-};
+export const selectSelectedTrackIndex = createSelector(
+  [selectSelectedTrackId, selectTrackMap],
+  (trackId, trackMap) => (trackId ? getTrackIndex(trackId, trackMap) : -1)
+);
 
 /** Select the parents of the currently selected track. */
 export const selectSelectedTrackParents = (project: Project) => {
   const selectedTrack = selectSelectedTrack(project);
   if (!selectedTrack) return [];
-  return selectTrackChain(project, selectedTrack.id);
+  return selectScaleTrackChain(project, selectedTrack.id);
 };
 
 // ------------------------------------------------------------
@@ -124,28 +127,36 @@ export const selectSelectedTrackParents = (project: Project) => {
 export const selectMediaSelection = (project: Project) =>
   project.timeline.mediaSelection;
 
-/** Select the currently selected clip IDs. */
-export const selectSelectedClipIds = (project: Project) =>
-  project.timeline.mediaSelection.clipIds;
+/** Select the currently selected pattern clip IDs. */
+export const selectSelectedPatternClipIds = (
+  project: Project
+): PatternClipId[] => project.timeline.mediaSelection.patternClipIds;
 
-/** Select the currently selected pose IDs. */
-export const selectSelectedPoseIds = (project: Project) =>
-  project.timeline.mediaSelection.poseIds;
+/** Select the currently selected pose clip IDs. */
+export const selectSelectedPoseClipIds = (project: Project): PoseClipId[] =>
+  project.timeline.mediaSelection.poseClipIds;
+
+/** Select the currently selected clip IDs. */
+export const selectSelectedClipIds = (project: Project) => {
+  const { patternClipIds, poseClipIds } = project.timeline.mediaSelection;
+  return [...patternClipIds, ...poseClipIds];
+};
 
 /** Select the currently selected portal IDs. */
 export const selectSelectedPortalIds = (project: Project) =>
   project.timeline.mediaSelection.portalIds;
 
 /** Select the currently selected clips. */
-export const selectSelectedClips = createDeepEqualSelector(
-  [selectClipMap, selectSelectedClipIds],
-  (clipMap, selectedClipIds) => getValuesByKeys(clipMap, selectedClipIds)
+export const selectSelectedPatternClips = createDeepEqualSelector(
+  [selectClipMap, selectSelectedPatternClipIds],
+  (clipMap, selectedClipIds) =>
+    getValuesByKeys(clipMap, selectedClipIds).filter(isPatternClip)
 );
 
 /** Select the currently selected poses. */
-export const selectSelectedPoses = createDeepEqualSelector(
-  [selectPoseMap, selectSelectedPoseIds],
-  (poseMap, poseIds) => getValuesByKeys(poseMap, poseIds)
+export const selectSelectedPoseClips = createDeepEqualSelector(
+  [selectClipMap, selectSelectedPoseClipIds],
+  (poseMap, poseIds) => getValuesByKeys(poseMap, poseIds).filter(isPoseClip)
 );
 
 /** Select the currently selected portals. */
@@ -154,16 +165,16 @@ export const selectSelectedPortals = createDeepEqualSelector(
   (portalMap, portalIds) => getValuesByKeys(portalMap, portalIds)
 );
 
-/** Select all selected media. */
-export const selectSelectedMediaClips = createDeepEqualSelector(
-  [selectSelectedClips, selectSelectedPoses],
-  (clips, poses): MediaClip[] => [...clips, ...poses]
+/** Select all selected clips. */
+export const selectSelectedClips = createDeepEqualSelector(
+  [selectSelectedPatternClips, selectSelectedPoseClips],
+  (patternClips, poseClips) => [...patternClips, ...poseClips]
 );
 
-/** Select all selected media clips. */
+/** Select all selected media. */
 export const selectSelectedMedia = createDeepEqualSelector(
-  [selectSelectedClips, selectSelectedPoses, selectSelectedPortals],
-  (clips, poses, portals): Media => [...clips, ...poses, ...portals]
+  [selectSelectedClips, selectSelectedPortals],
+  (clips, portals): Media => [...clips, ...portals]
 );
 
 // ------------------------------------------------------------
@@ -175,12 +186,12 @@ export const selectMediaDraft = (project: Project) =>
   project.timeline.mediaDraft;
 
 /** Select the currently drafted clip. */
-export const selectDraftedClip = (project: Project) =>
-  project.timeline.mediaDraft.clip;
+export const selectDraftedPatternClip = (project: Project) =>
+  project.timeline.mediaDraft.patternClip;
 
 /** Select the currently drafted pose. */
-export const selectDraftedPose = (project: Project) =>
-  project.timeline.mediaDraft.pose;
+export const selectDraftedPoseClip = (project: Project) =>
+  project.timeline.mediaDraft.poseClip;
 
 /** Select the currently drafted pose. */
 export const selectDraftedPortal = (project: Project) =>
@@ -189,8 +200,15 @@ export const selectDraftedPortal = (project: Project) =>
 /** Select the currently selected pattern. */
 export const selectSelectedPattern = (project: Project) => {
   const patternMap = selectPatternMap(project);
-  const { patternId } = selectDraftedClip(project);
+  const { patternId } = selectDraftedPatternClip(project);
   return getValueByKey(patternMap, patternId);
+};
+
+/** Select the currently selected pose. */
+export const selectSelectedPose = (project: Project) => {
+  const poseMap = selectPoseMap(project);
+  const { poseId } = selectDraftedPoseClip(project);
+  return getValueByKey(poseMap, poseId);
 };
 
 // ------------------------------------------------------------
@@ -204,10 +222,6 @@ export const selectMediaClipboard = (project: Project) =>
 /** Select the currently copied clips. */
 export const selectCopiedClips = (project: Project) =>
   project.timeline.mediaClipboard.clips;
-
-/** Select the currently copied poses. */
-export const selectCopiedPoses = (project: Project) =>
-  project.timeline.mediaClipboard.poses;
 
 /** Select the currently copied portals. */
 export const selectCopiedPortals = (project: Project) =>
@@ -226,8 +240,8 @@ export const selectMediaDragState = (project: Project) =>
 // ------------------------------------------------------------
 
 /** Select the live pose settings. */
-export const selectLivePoseSettings = (project: Project) =>
-  project.timeline.livePoseSettings;
+export const selectLivePlaySettings = (project: Project) =>
+  project.timeline.livePlay;
 
 // ------------------------------------------------------------
 // Timeline Objects
@@ -252,22 +266,21 @@ export const selectTrackedObjectTop = <T>(
   project: Project,
   object?: Tracked<T>
 ) => {
-  const trackHierarchy = selectTrackHierarchy(project);
+  const topLevelTracks = selectTopLevelTracks(project);
   const cellHeight = selectCellHeight(project);
   let found = false;
   let top = HEADER_HEIGHT;
 
   // Recursively get the top offset with the children
-  const getChildrenTop = (childIds: string[]): number => {
+  const getChildrenTop = (tracks: Track[]): number => {
     let acc = 0;
 
     // Iterate through each child
-    for (let i = 0; i < childIds.length; i++) {
+    for (let i = 0; i < tracks.length; i++) {
       if (found) return acc;
 
       // Get the child
-      const id = childIds[i];
-      const child = trackHierarchy.byId[id];
+      const child = tracks[i];
       if (!child) continue;
 
       // If the child is the object, return the top offset
@@ -276,29 +289,27 @@ export const selectTrackedObjectTop = <T>(
         return acc;
       }
       // Otherwise, add the height of the child and its children
+      const children = selectTrackChildren(project, child.id);
       acc += child.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
-      acc += getChildrenTop(child.trackIds);
+      acc += getChildrenTop(children);
     }
     return acc;
   };
 
   // Iterate through each top-level track
-  const topLevelIdCount = trackHierarchy.topLevelIds.length;
+  const topLevelIdCount = topLevelTracks.length;
   for (let i = 0; i < topLevelIdCount; i++) {
     // If the object is found, return the top offset
     if (found) return top;
 
-    // Get the top-level id
-    const topLevelId = trackHierarchy.topLevelIds[i];
-    if (topLevelId === getTimelineObjectTrackId(object)) break;
-
-    // Get the top-level node
-    const trackNode = trackHierarchy.byId[topLevelId];
-    if (!trackNode) continue;
+    // Get the top-level track
+    const topLevelTrack = topLevelTracks[i];
+    if (topLevelTrack.id === getTimelineObjectTrackId(object)) break;
 
     // Add the height of the node and its children
-    top += !!trackNode.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
-    top += getChildrenTop(trackNode.trackIds);
+    top += !!topLevelTrack.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
+    const children = selectTrackChildren(project, topLevelTrack.id);
+    top += getChildrenTop(children);
   }
 
   // Return the top offset
@@ -311,31 +322,44 @@ export const selectTimelineObjectTrackIndex = <T>(
   object?: Tracked<T>
 ) => {
   if (!object) return -1;
-  const orderedTrackIds = selectOrderedTrackIds(project);
+  const orderedTrackIds = selectTrackIds(project);
   const id = isTrack(object) ? object.id : object.trackId;
   return orderedTrackIds.indexOf(id);
 };
 
-/** Select the width of a clip in pixels. Always at least 1 pixel. */
-export const selectClipWidth = (project: Project, clip?: Clip) => {
-  const pattern = selectPatternById(project, clip?.patternId);
-  const duration = getClipDuration(clip, pattern);
+/** Select the width of a pattern clip in pixels. Always at least 1 pixel. */
+export const selectPatternClipWidth = (
+  project: Project,
+  clip?: PatternClip
+) => {
+  if (!clip) return 1;
   const timeline = selectTimeline(project);
-  const cellWidth = selectCellWidth(project);
+  const duration = getClipDuration(clip);
   const columns = getTickColumns(duration, timeline.subdivision);
-  return Math.max(cellWidth * columns, 1);
+  const width = Math.max(timeline.cell.width * columns, 1);
+  return width;
 };
 
-/** Select the width of a pose. */
-export const selectPoseWidth = (project: Project, pose: Pose) => {
-  const { subdivision, cell } = selectTimeline(project);
-  const { tick, duration } = pose;
-  const left = selectTimelineTickLeft(project, tick);
+/** Select the width of a pose clip in pixels. */
+export const selectPoseClipWidth = (project: Project, clip?: PoseClip) => {
+  if (!clip) return 1;
+  const timeline = selectTimeline(project);
+  const duration = getClipDuration(clip);
   const backgroundWidth = selectTimelineBackgroundWidth(project);
+  const left = selectTimelineTickLeft(project, clip.tick);
 
-  // If the duration is not finite or a number, return the remaining background width
+  // If the duration is infinite, return the remaining width of the timeline
   if (!isFiniteNumber(duration)) return backgroundWidth - left;
 
   // Otherwise, return the width of the pose
-  return getTickColumns(duration, subdivision) * cell.width;
+  const columns = getTickColumns(duration, timeline.subdivision);
+  const width = Math.max(timeline.cell.width * columns, 1);
+  return width;
+};
+
+/** Select the width of a clip in pixels. */
+export const selectClipWidth = (project: Project, clip?: Clip) => {
+  if (isPatternClip(clip)) return selectPatternClipWidth(project, clip);
+  if (isPoseClip(clip)) return selectPoseClipWidth(project, clip);
+  return 1;
 };

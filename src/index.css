@@ -16,34 +16,25 @@
   .rounded-full {
     border-radius: 9999px;
   }
-  .fade-in-100 {
-    animation: fadeIn 0.1s ease-in-out;
-  }
-  .fade-in-200 {
-    animation: fadeIn 0.2s ease-in-out;
-  }
-  .fade-in-250 {
-    animation: fadeIn 0.25s ease-in-out;
-  }
-  .fade-in-300 {
-    animation: fadeIn 0.3s ease-in-out;
-  }
-  .fade-in-400 {
-    animation: fadeIn 0.4s ease-in-out;
-  }
-  .fade-in,
-  .fade-in-500 {
-    animation: fadeIn 0.5s ease-in-out;
-  }
-  .fade-in-1000 {
-    animation: fadeIn 1s ease-in-out;
-  }
-  .fade-out {
-    animation: fadeOut 0.5s ease-in-out;
-  }
   .background-pulse {
     background-size: 400% 400%;
     animation: animate-gradient 5s ease-in-out infinite;
+  }
+  .container-row {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+  .container-col {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 }
 
@@ -82,24 +73,6 @@ html {
   }
   100% {
     background-position: 0% 50%;
-  }
-}
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
   }
 }
 
@@ -147,7 +120,7 @@ html {
 body {
   font-family: "Open Sans";
   /* background: linear-gradient(#4161b3, #087dbc, #34c1b3, #85449f); */
-  background: linear-gradient(0deg, #083a8a, #2c6387, #514f7e);
+  background: linear-gradient(0deg, #123978, #387196, rgb(76, 73, 139));
   background-size: 100%;
   overflow: auto;
 }

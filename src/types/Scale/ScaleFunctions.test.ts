@@ -274,33 +274,15 @@ test("getTransposedScale should correctly transpose a scale using a parent", () 
   };
 
   // Test scale2 transposed by 1 within scale1
-  const p1 = _.getTransposedScale(scale2, 1, scale1);
-  expect(p1).toEqual({
-    id: "s2",
-    notes: [
-      { degree: 1 },
-      { degree: 3 },
-      { degree: 6, offset: { s1: 1 } },
-      { degree: 6 },
-    ],
-  });
+  const p1 = _.getTransposedScale(scale2, 1, "s1");
   expect(_.resolveScaleChainToMidi([scale1, p1])).toEqual([62, 65, 72, 71]);
 
-  // Test scale2 transposed by 1 within scale2
-  const p2 = _.getTransposedScale(scale2, 1, scale2);
-  expect(p2).toEqual({
-    id: "s2",
-    notes: [
-      { degree: 2 },
-      { degree: 5 },
-      { degree: 0, offset: { octave: 1, s1: 1 } },
-      { degree: 0, offset: { octave: 1 } },
-    ],
-  });
-  expect(_.resolveScaleChainToMidi([scale1, p2])).toEqual([64, 69, 74, 72]);
+  // Test scale2 not transposed along scale2
+  const p2 = _.getTransposedScale(scale2, 1, "s2");
+  expect(_.resolveScaleChainToMidi([scale1, p2])).toEqual([60, 64, 71, 69]);
 });
 
-test("getRotatedScale should behave exactly like getTransposedScale", () => {
+test("getRotatedScale should correctly rotate a scale", () => {
   // Scale 1 = C major scale
   const scale1: Scale = {
     id: "s1",
@@ -317,23 +299,11 @@ test("getRotatedScale should behave exactly like getTransposedScale", () => {
     ],
   };
 
-  // Test scale1 transposed by 1 within scale1
+  // Test scale1 rotated by 1
   const p1 = _.getRotatedScale(scale1, 1);
-  expect(p1).toEqual({
-    id: "s1",
-    notes: [62, 64, 65, 67, 69, 71, 72],
-  });
+  expect(_.resolveScaleChainToMidi([p1])).toEqual([62, 64, 65, 67, 69, 71, 72]);
 
-  // Test scale2 transposed by 1 within scale2
+  // Test scale2 rotated by 1
   const p2 = _.getRotatedScale(scale2, 1);
-  expect(p2).toEqual({
-    id: "s2",
-    notes: [
-      { degree: 2 },
-      { degree: 5 },
-      { degree: 0, offset: { octave: 1, s1: 1 } },
-      { degree: 0, offset: { octave: 1 } },
-    ],
-  });
-  expect(_.resolveScaleChainToMidi([scale1, p2])).toEqual([64, 69, 74, 72]);
+  expect(_.resolveScaleChainToMidi([scale1, p2])).toEqual([64, 71, 69, 72]);
 });

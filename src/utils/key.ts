@@ -80,8 +80,8 @@ const dorianScales = createScalesInAllKeys("dorian-scale");
 const phrygianScales = createScalesInAllKeys("phrygian-scale");
 const locrianScales = createScalesInAllKeys("locrian-scale");
 
-const lydianKeys = raiseKeys(majorKeys, 6);
-const mixolydianKeys = lowerKeys(majorKeys, 10);
+const lydianKeys = majorKeys;
+const mixolydianKeys = lowerKeys(majorKeys, 11);
 const dorianKeys = raiseKeys(minorKeys, 8);
 const phrygianKeys = lowerKeys(minorKeys, 1);
 const locrianKeys = lowerKeys(phrygianKeys, 6);
@@ -102,9 +102,9 @@ const majorPentatonicKeys = majorKeys;
 const minorPentatonicKeys = minorKeys;
 const inKeys = lowerKeys(minorKeys, 1, 8);
 const yoKeys = minorKeys;
-const insenKeys = lowerKeys(minorKeys, 1);
-const hirajoshiKeys = lowerKeys(minorKeys, 9);
-const iwatoKeys = lowerKeys(minorKeys, 1, 6);
+const insenKeys = minorKeys;
+const hirajoshiKeys = minorKeys;
+const iwatoKeys = minorKeys;
 
 // ------------------------------------------------------------
 // Hexatonic Scale Keys

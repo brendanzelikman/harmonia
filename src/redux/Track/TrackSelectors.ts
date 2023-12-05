@@ -1,265 +1,346 @@
+import * as _ from "types/Track";
+import * as Scale from "types/Scale";
 import { Project } from "types/Project";
 import { createSelector } from "reselect";
 import { Tick } from "types/units";
-import { getValuesByKeys, getValueByKey } from "utils/objects";
 import {
-  Track,
-  TrackId,
-  TrackMap,
-  getScaleTrackChain,
-  getScaleTrackIdChain,
-  getTrackParents,
-} from "types/Track";
-import { isScaleTrack } from "types/ScaleTrack";
-import { getCurrentPose, getPoseOffsetById } from "types/Pose";
-import { getTrackChildIds, getTrackPoseIds } from "types/TrackHierarchy";
-import {
-  selectScaleTracks,
-  selectScaleTrackMap,
-  selectScaleTrackById,
-} from "../ScaleTrack/ScaleTrackSelectors";
-import {
-  selectPatternTracks,
-  selectPatternTrackMap,
-  selectPatternTrackById,
-} from "../PatternTrack/PatternTrackSelectors";
+  getValuesByKeys,
+  getValueByKey,
+  createMap,
+  createMapWithFn,
+  getArrayByKey,
+} from "utils/objects";
 import { selectPoseMap } from "../Pose/PoseSelectors";
-import {
-  selectOrderedTrackIds,
-  selectTrackHierarchy,
-  selectTrackNodeMap,
-} from "../TrackHierarchy";
-import {
-  getFullyTransposedScale,
-  chromaticScale,
-  getTransposedScale,
-  MidiValue,
-  chromaticNotes,
-  resolveScaleChainToMidi,
-  isNestedNote,
-  getScaleName,
-  areScalesRelated,
-  getScaleNoteAsPitchClass,
-} from "types/Scale";
 import { selectScaleMap } from "../Scale/ScaleSelectors";
-import { numberToLower } from "utils/math";
+import { PatternNote } from "types/Pattern";
+import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
+import { TrackId } from "types/Track";
+import { selectInstrumentMap } from "redux/Instrument";
 import {
-  Pattern,
-  PatternMidiStream,
-  PatternNote,
-  getMidiStreamScale,
-} from "types/Pattern";
-import {
-  BasicIntervals,
-  BasicChords,
-  SeventhChords,
-  ExtendedChords,
-  FamousChords,
-} from "presets/patterns";
+  createArraySelector,
+  createDeepEqualSelector,
+  createTransformedArraySelector,
+  createValueListSelector,
+  createValueSelector,
+} from "redux/util";
+import { getTrackScaleChain } from "types/Arrangement";
+import { selectTrackArrangement } from "redux/selectors";
 
 // ------------------------------------------------------------
-// Track Selectors
+// General Tracks
 // ------------------------------------------------------------
 
 /** Select the track map. */
-export const selectTrackMap = createSelector(
-  [selectScaleTrackMap, selectPatternTrackMap],
-  (scaleTrackMap, patternTrackMap): TrackMap => ({
-    ...scaleTrackMap,
-    ...patternTrackMap,
-  })
+export const selectTrackMap = (project: Project): _.TrackMap =>
+  project.arrangement.present.tracks.byId;
+
+/** Select the unordered list of track IDs. */
+export const selectTrackIds = createSelector(
+  [selectTrackMap],
+  _.getOrderedTrackIds
 );
 
 /** Select all tracks. */
-export const selectTracks = createSelector(
-  [selectScaleTracks, selectPatternTracks],
-  (scaleTracks, patternTracks): Track[] => [...scaleTracks, ...patternTracks]
+export const selectTracks = createDeepEqualSelector(
+  [selectTrackMap, selectTrackIds],
+  getValuesByKeys
 );
 
 /** Select a track by ID or return undefined if not found. */
-export const selectTrackById = (project: Project, id?: TrackId) => {
+export const selectTrackById = (project: Project, id?: _.TrackId) => {
   const trackMap = selectTrackMap(project);
   return getValueByKey(trackMap, id);
 };
 
 /** Select a list of tracks by ID. */
-export const selectTracksByIds = (project: Project, ids: TrackId[]) => {
+export const selectTracksByIds = (project: Project, ids: _.TrackId[]) => {
   const trackMap = selectTrackMap(project);
   return getValuesByKeys(trackMap, ids);
 };
 
-/** Select the chained ancestors of a track. */
-export const selectTrackChain = (project: Project, id?: TrackId) => {
-  if (!id) return [];
-  const trackMap = selectTrackMap(project);
-  return getScaleTrackChain(id, trackMap);
+// ------------------------------------------------------------
+// Scale Tracks
+// ------------------------------------------------------------
+
+/** Select all scale tracks. */
+export const selectScaleTracks = createDeepEqualSelector([selectTracks], (t) =>
+  t.filter(_.isScaleTrack)
+);
+
+/** Select all scale track IDs. */
+export const selectScaleTrackIds = createDeepEqualSelector(
+  [selectScaleTracks],
+  (tracks) => tracks.map((track) => track.id)
+);
+
+/** Select the scale track map. */
+export const selectScaleTrackMap = createDeepEqualSelector(
+  [selectScaleTracks],
+  createMap
+);
+
+/** Select a scale track by ID or return undefined if not found. */
+export const selectScaleTrackById = createValueSelector(selectScaleTrackMap);
+
+/** Select a list of scale tracks by ID. */
+export const selectScaleTracksByIds =
+  createValueListSelector(selectScaleTrackMap);
+
+/** Select a ScaleTrack with its scale ID. */
+export const selectScaleTrackByScaleId = (
+  project: Project,
+  scaleId?: Scale.ScaleId
+) => {
+  const scaleTracks = selectScaleTracks(project);
+  return scaleTracks.find((track) => track.scaleId === scaleId);
 };
 
-/** Select the IDs of the chained ancestors of a track. */
-export const selectTrackIdChain = (project: Project, id?: TrackId) => {
-  if (!id) return [];
-  const trackMap = selectTrackMap(project);
-  return getScaleTrackIdChain(id, trackMap);
-};
+// ------------------------------------------------------------
+// Pattern Tracks
+// ------------------------------------------------------------
 
-/** Select the parents of a track. */
-export const selectTrackParents = (project: Project, id?: TrackId) => {
-  if (!id) return [];
-  const trackMap = selectTrackMap(project);
-  return getTrackParents(id, trackMap);
-};
+/** Select all pattern tracks. */
+export const selectPatternTracks = createDeepEqualSelector(
+  [selectTracks],
+  (tracks) => tracks.filter(_.isPatternTrack)
+);
+
+/** Select the pattern track map. */
+export const selectPatternTrackMap = createDeepEqualSelector(
+  [selectPatternTracks],
+  createMap
+);
+
+/** Select a pattern track by ID or return undefined if not found. */
+export const selectPatternTrackById = createValueSelector(
+  selectPatternTrackMap
+);
+
+/** Select a list of pattern tracks by ID. */
+export const selectPatternTracksByIds = createValueListSelector(
+  selectPatternTrackMap
+);
+
+// ------------------------------------------------------------
+// Track Ancestors
+// ------------------------------------------------------------
+
+/** Select all top level tracks. */
+export const selectTopLevelTracks = createDeepEqualSelector(
+  [selectTracks],
+  (tracks) => tracks.filter((track) => !track.parentId)
+);
+
+/** Select the map of all tracks to their ancestor ids. */
+export const selectTrackAncestorIdsMap = createSelector(
+  [selectTrackMap],
+  (trackMap) =>
+    createMapWithFn(trackMap, (t) => _.getTrackAncestorIds(t.id, trackMap))
+);
+
+/** Select the ancestor IDs of a track. */
+export const selectTrackAncestorIds = createArraySelector(
+  selectTrackAncestorIdsMap
+);
+
+// ------------------------------------------------------------
+// Scale Track Chain
+// ------------------------------------------------------------
+
+/** Select the map of all tracks to their scale track chains. */
+export const selectScaleTrackChainIdsMap = createSelector(
+  [selectTrackMap],
+  (trackMap) =>
+    createMapWithFn(trackMap, (t) => _.getScaleTrackChainIds(t.id, trackMap))
+);
+
+/** Select the IDs of a track's scale track chain. */
+export const selectScaleTrackChainIds = createArraySelector(
+  selectScaleTrackChainIdsMap
+);
+
+/** Select the scale track chain of a track. */
+export const selectScaleTrackChain = createTransformedArraySelector(
+  selectScaleTrackChainIdsMap,
+  selectScaleTracksByIds
+);
+
+// ------------------------------------------------------------
+// Track Descendants
+// ------------------------------------------------------------
+
+/** Select the map of all tracks to their descendants. */
+export const selectTrackDescendantIdsMap = createSelector(
+  [selectTrackMap],
+  (trackMap) =>
+    createMapWithFn(trackMap, (t) => _.getTrackDescendantIds(t.id, trackMap))
+);
+
+/** Select the IDs of the descendants of a track. */
+export const selectTrackDescendantIds = createArraySelector(
+  selectTrackDescendantIdsMap
+);
+
+/** Select the descendants of a track. */
+export const selectTrackDescendants = createTransformedArraySelector(
+  selectTrackDescendantIdsMap,
+  selectTracksByIds
+);
 
 /** Select the children of a track. */
-export const selectTrackChildren = (project: Project, id?: TrackId) => {
-  if (!id) return [];
-  const trackNodeMap = selectTrackNodeMap(project);
-  const childIds = getTrackChildIds(id, trackNodeMap);
-  return selectTracksByIds(project, childIds);
-};
-
-/** Select a record of tracks and their labels. */
-export const selectTrackLabelMap = (project: Project) => {
-  const trackIds = selectOrderedTrackIds(project);
-  return trackIds.reduce((acc, id) => {
-    // Return just the index if the track is in the top level
-    const trackIndex = selectTrackIndexById(project, id) + 1;
-    const hierarchy = selectTrackHierarchy(project);
-    if (hierarchy.topLevelIds.includes(id))
-      return { ...acc, [id]: `${trackIndex}` };
-
-    // Otherwise, use all track parents to get the label
-    const parents = selectTrackChain(project, id);
-    const patternTrack = selectPatternTrackById(project, id);
-    const tracks = !!patternTrack ? [...parents, patternTrack] : parents;
-    const root = tracks[0];
-    const rest = tracks.slice(1);
-
-    // Get the index of the root and the letters of the rest
-    const rootIndex = hierarchy.topLevelIds.indexOf(root.id) + 1;
-    const restLetters = rest.map((track) => {
-      const index = selectTrackIndexById(project, track.id);
-      return numberToLower(index);
-    });
-
-    // Return the label
-    return { ...acc, [id]: `${rootIndex}${restLetters.join("")}` };
-  }, {} as Record<TrackId, string>);
+export const selectTrackChildren = (project: Project, id?: _.TrackId) => {
+  const tracks = selectTracks(project);
+  return tracks.filter((track) => track.parentId === id);
 };
 
 // ------------------------------------------------------------
-// Property Selectors
+// Track Depth, Label, and Index Selectors
 // ------------------------------------------------------------
 
-/** Select the index of a track by ID. */
-export const selectTrackIndexById = (project: Project, id?: TrackId) => {
-  if (!id) return -1;
-  const hierarchy = selectTrackHierarchy(project);
-  const track = selectTrackById(project, id);
-  if (!track) return -1;
+/** Select the record of all tracks and their depths. */
+export const selectTrackDepthMap = createSelector(
+  [selectTrackMap],
+  (trackMap) =>
+    createMapWithFn(trackMap, (t) => _.getTrackDepth(t.id, trackMap))
+);
 
-  // If the track is a scale track, try to find it in the top level
-  if (isScaleTrack(track)) {
-    const topLevelIndex = hierarchy.topLevelIds.indexOf(track.id);
-    if (topLevelIndex > -1) return topLevelIndex;
-  }
+/** Select the record of all tracks and their labels. */
+export const selectTrackLabelMap = createSelector(
+  [selectTrackMap],
+  (trackMap) =>
+    createMapWithFn(trackMap, (t) => _.getTrackLabel(t.id, trackMap))
+);
 
-  // Otherwise, return the index of the track in its parent
-  const parent = getValueByKey(hierarchy.byId, track.parentId);
-  return parent ? parent.trackIds.indexOf(track.id) : -1;
-};
+/** Select the record of all tracks and their indices. */
+export const selectTrackIndexMap = createSelector(
+  [selectTrackMap],
+  (trackMap) =>
+    createMapWithFn(trackMap, (t) => _.getTrackIndex(t.id, trackMap))
+);
+
+/** Select the depth of a track by ID. */
+export const selectTrackDepthById = createValueSelector(selectTrackDepthMap, 0);
 
 /** Select the label of a track by ID. */
-export const selectTrackLabelById = (project: Project, id?: TrackId) => {
-  if (!id) return undefined;
-  const labels = selectTrackLabelMap(project);
-  return labels[id];
+export const selectTrackLabelById = createValueSelector(
+  selectTrackLabelMap,
+  "*"
+);
+
+/** Select the index of a track by ID. */
+export const selectTrackIndexById = createValueSelector(
+  selectTrackIndexMap,
+  -1
+);
+
+// ------------------------------------------------------------
+// Track Instrument Selectors
+// ------------------------------------------------------------
+
+/** Select the record of all pattern tracks to their instruments. */
+export const selectTrackInstrumentMap = createSelector(
+  [selectPatternTrackMap, selectInstrumentMap],
+  (trackMap, instrumentMap) =>
+    createMapWithFn(trackMap, (t) => instrumentMap[t.instrumentId])
+);
+
+/** Select the record of all tracks to their audio instances. */
+export const selectTrackAudioInstanceMap = createSelector(
+  [selectTrackMap],
+  (trackMap) =>
+    createMapWithFn(trackMap, (t) =>
+      getValueByKey(
+        LIVE_AUDIO_INSTANCES,
+        (t as _.PatternTrack).instrumentId ?? "global"
+      )
+    )
+);
+
+/** Select the instrument of a track. */
+export const selectTrackInstrument = (project: Project, id?: TrackId) => {
+  const instrumentMap = selectTrackInstrumentMap(project);
+  return getValueByKey(instrumentMap, id);
+};
+
+/** Select the instrument key of a track. */
+export const selectTrackInstrumentKey = (project: Project, id?: TrackId) => {
+  const instrument = selectTrackInstrument(project, id);
+  return instrument?.key;
 };
 
 // ------------------------------------------------------------
-// Pose Selectors
+// Track Scale Selectors
 // ------------------------------------------------------------
 
-/** Select the poses of a track by ID. */
-export const selectTrackPoses = (project: Project, id: TrackId) => {
-  const poseMap = selectPoseMap(project);
-  const trackNodeMap = selectTrackNodeMap(project);
-  const ids = getTrackPoseIds(id, trackNodeMap);
-  return getValuesByKeys(poseMap, ids);
-};
+/** Select the map of all tracks to their scale chains. */
+export const selectTrackScaleChainMap = createDeepEqualSelector(
+  [selectTrackMap, selectScaleMap],
+  (trackMap, scaleMap) =>
+    createMapWithFn(trackMap, (t) => {
+      const chainIds = _.getScaleTrackChainIds(t.id, trackMap);
+      const chain = getValuesByKeys(trackMap, chainIds).filter(_.isScaleTrack);
+      return chain.map((track) => scaleMap[track.scaleId]);
+    })
+);
 
-/** Selects the poses of the parent of a track. */
-export const selectTrackParentPoses = (project: Project, id: TrackId) => {
-  const trackMap = selectTrackMap(project);
-  const poseMap = selectPoseMap(project);
-  const trackNodeMap = selectTrackNodeMap(project);
-  const parents = getScaleTrackIdChain(id, trackMap);
-  return parents.map((parent) => {
-    const ids = getTrackPoseIds(parent, trackNodeMap);
-    return getValuesByKeys(poseMap, ids);
-  });
-};
+/** Select the map of all tracks to their scales. */
+export const selectTrackScaleMap = createDeepEqualSelector(
+  [selectScaleTrackMap, selectScaleMap],
+  (trackMap, scaleMap) => createMapWithFn(trackMap, (t) => scaleMap[t.scaleId])
+);
 
-/** Select the scale track of a track by ID. */
-export const selectTrackScaleTrack = (project: Project, id?: TrackId) => {
-  const track = selectTrackById(project, id);
-  if (!track) return undefined;
-  if (isScaleTrack(track)) return track;
-  if (!track.parentId) return undefined;
-  return selectScaleTrackById(project, track.parentId);
-};
-
-// ------------------------------------------------------------
-// Scale Selectors
-// ------------------------------------------------------------
+/** Select the map of all tracks to their MIDI scales. */
+export const selectTrackMidiScaleMap = createDeepEqualSelector(
+  [selectTrackMap, selectTrackScaleChainMap],
+  (trackMap, scaleChainMap) =>
+    createMapWithFn(trackMap, (t) => {
+      const scales = getArrayByKey(scaleChainMap, t.id);
+      return Scale.resolveScaleChainToMidi(scales);
+    })
+);
 
 /** Select the scale chain of a specific track by ID. */
-export const selectTrackScaleChain = (project: Project, id?: TrackId) => {
-  const scaleMap = selectScaleMap(project);
-  const trackChain = selectTrackChain(project, id);
-  return trackChain.map((track) => scaleMap[track.scaleId]);
-};
+export const selectTrackScaleChain = createArraySelector(
+  selectTrackScaleChainMap
+);
 
 /** Select the scale of a specific track by ID. */
-export const selectTrackScale = (project: Project, id?: TrackId) => {
+export const selectTrackScale = (project: Project, id?: _.TrackId) => {
   const scaleChain = selectTrackScaleChain(project, id);
   return scaleChain.at(-1);
 };
 
-/** Select the map of all tracks to their scales. */
-export const selectTrackScaleMap = (project: Project) => {
-  const scaleMap = selectScaleMap(project);
-  const trackMap = selectTrackMap(project);
-  return Object.fromEntries(
-    Object.entries(trackMap).map(([id]) => [
-      id,
-      scaleMap[selectTrackScaleTrack(project, id)?.scaleId ?? -1],
-    ])
-  );
-};
+/** Select the scale of a track as an array of `MidiValues`. */
+export const selectTrackMidiScale = createArraySelector(
+  selectTrackMidiScaleMap
+);
 
 /** Select the tracks from the given IDs whose scales could contain the given chord.  */
-export const selectTrackIdsMatchingNote = (
+export const selectTrackIdsWithPossibleScales = (
   project: Project,
-  ids: TrackId[],
+  ids: _.TrackId[],
   note?: PatternNote
 ) => {
   if (!note) return [];
-  const scaleMap = selectScaleMap(project);
-  const trackMap = selectScaleTrackMap(project);
+  const trackMap = selectTrackMap(project);
+  const scaleTracks = selectScaleTracks(project);
   const midiScaleMap = selectTrackMidiScaleMap(project);
   return ids.filter((id) => {
     const midiScale = midiScaleMap[id];
+    const track = trackMap[id];
+    if (!midiScale || !_.isScaleTrack(track)) return false;
+
     // Return true if a nested note matches the scale ID or otherwise midi value
     return midiScale.some((scaleMidi) => {
       let midi;
 
-      // If the note is nested, return true if the note's scale ID matches
-      if (isNestedNote(note)) {
-        if (trackMap[id]?.scaleId === note.scaleId) return true;
-        const trackId = Object.keys(trackMap).find(
-          (key) => trackMap[key]?.scaleId === note.scaleId
+      // If the note is nested, return true if the note's scale ID matches the track's scale ID
+      if (Scale.isNestedNote(note)) {
+        if (track?.scaleId === note.scaleId) return true;
+        const scaleTrack = scaleTracks.find(
+          (track) => track?.scaleId === note.scaleId
         );
-        const scale = trackId ? midiScaleMap[trackId] : midiScale;
+        const scale = scaleTrack ? midiScaleMap[scaleTrack.id] : midiScale;
         midi = scale[note.degree];
       } else {
         midi = note.MIDI;
@@ -270,130 +351,40 @@ export const selectTrackIdsMatchingNote = (
   });
 };
 
+// ------------------------------------------------------------
+// Track Tick-Based Scale Selectors
+// ------------------------------------------------------------
+
 /** Select the scale chain of a specific track at a given tick.  */
 export const selectTrackScaleChainAtTick = (
   project: Project,
-  trackId: TrackId,
+  trackId: _.TrackId,
   tick: Tick = 0
 ) => {
-  const scaleMap = selectScaleMap(project);
-  const chain = selectTrackChain(project, trackId);
-  const poses = chain.map((t) => selectTrackPoses(project, t.id));
-  if (!chain.length) return [];
-
-  const newChain = [];
-
-  // Iterate down child scale tracks and apply poses if they exist
-  for (let i = 0; i < chain.length; i++) {
-    const track = chain[i];
-    const scale = scaleMap[track.scaleId];
-
-    // Try to get the pose at the current tick
-    const pose = getCurrentPose(poses[i], tick, false);
-    if (pose === undefined) {
-      newChain.push(scale);
-      continue;
-    }
-
-    // Transpose the scale by each offset
-    let newScale = scale;
-    const offsetKeys = Object.keys(pose.vector);
-
-    for (const id of offsetKeys) {
-      if (id === "chromatic" || id === "chordal") continue;
-      const scalar = getPoseOffsetById(pose.vector, id);
-      const parentScale = i ? scaleMap[chain[i - 1].scaleId] : undefined;
-      newScale = getTransposedScale(newScale, scalar, parentScale);
-    }
-
-    // Push the transposed scale
-    newChain.push(newScale);
-  }
-
-  // Return the transposed tracks
-  return newChain;
+  const scales = selectScaleMap(project);
+  const poses = selectPoseMap(project);
+  const arrangement = selectTrackArrangement(project);
+  return getTrackScaleChain(trackId, { ...arrangement, scales, poses, tick });
 };
 
 /** Select the scale of a track at a given tick (applying chromatic/chordal poses). */
 export const selectTrackScaleAtTick = (
   project: Project,
-  trackId: TrackId,
+  trackId: _.TrackId,
   tick: Tick = 0
 ) => {
   const scaleChain = selectTrackScaleChainAtTick(project, trackId, tick);
-  if (!scaleChain.length) return chromaticScale;
-  const scale = scaleChain.at(-1);
-  const poses = selectTrackPoses(project, trackId);
-  const pose = getCurrentPose(poses, tick, false);
-  return getFullyTransposedScale(scale, pose);
+  return scaleChain.at(-1) || Scale.chromaticScale;
 };
 
 /** Select the name of a track at a given tick. */
 export const selectTrackScaleNameAtTick = (
   project: Project,
-  trackId?: TrackId,
+  trackId?: _.TrackId,
   tick: Tick = 0
 ) => {
   if (!trackId) return "Custom Scale";
   const scaleChain = selectTrackScaleChainAtTick(project, trackId, tick);
-  const scale = selectTrackScaleAtTick(project, trackId, tick);
-  if (!scaleChain.length || !scale) return "Custom Scale";
-  const fullChain = [...scaleChain.slice(0, -1), scale];
-  const midiScale = resolveScaleChainToMidi(fullChain);
-  const scaleName = getScaleName(midiScale);
-
-  // If the scale returns as custom, try to match the MIDI with a preset pattern
-  if (scaleName === "Custom Scale") {
-    const presetPatterns = [
-      ...Object.values(BasicIntervals.default),
-      ...Object.values(BasicChords.default),
-      ...Object.values(SeventhChords.default),
-      ...Object.values(ExtendedChords.default),
-      ...Object.values(FamousChords.default),
-    ];
-    const presetMatch = presetPatterns.find((preset) => {
-      const scaleStream = getMidiStreamScale(
-        preset.stream as PatternMidiStream
-      );
-      return areScalesRelated(scaleStream, midiScale);
-    });
-    if (presetMatch) {
-      const firstPitch = getScaleNoteAsPitchClass(midiScale[0]);
-      return `${firstPitch} ${presetMatch.name}`;
-    }
-  }
-
-  // Otherwise, return the scale name
-  return scaleName;
-};
-
-/** Select the scale of a track as an array of `MidiValues`. */
-export const selectTrackMidiScale = (
-  project: Project,
-  id?: TrackId
-): MidiValue[] => {
-  // Get the scale track
-  const scaleTrackMap = selectScaleTrackMap(project);
-  const scaleTrack = getValueByKey(scaleTrackMap, id);
-  if (!id || !scaleTrack) return [];
-
-  // Get the scales of the scale track and its parents
-  const scaleMap = selectScaleMap(project);
-  const parents = getScaleTrackChain(id, scaleTrackMap);
-  const scales = parents.map((parent) => scaleMap[parent.scaleId]);
-  if (scales.some((scale) => !scale)) return chromaticNotes;
-
-  // Chain the scale through its parents
-  return resolveScaleChainToMidi(scales);
-};
-
-/** Select the map of all tracks to their midi scales. */
-export const selectTrackMidiScaleMap = (project: Project) => {
-  const scaleTrackMap = selectScaleTrackMap(project);
-  return Object.fromEntries(
-    Object.entries(scaleTrackMap).map(([id, scaleTrack]) => [
-      id,
-      selectTrackMidiScale(project, scaleTrack.id),
-    ])
-  );
+  const midiScale = Scale.resolveScaleChainToMidi(scaleChain);
+  return Scale.getScaleName(midiScale, midiScale);
 };

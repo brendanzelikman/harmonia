@@ -1,4 +1,4 @@
-import { Pattern, PatternMap } from "types/Pattern";
+import { Pattern } from "types/Pattern";
 
 // Chords
 import BasicIntervals from "./1-BasicIntervals";
@@ -95,4 +95,4 @@ export const PresetPatternList = Object.values(PresetPatternGroupMap).flat();
 
 // Return a map of preset pattern id to preset pattern
 // e.g. {"Major Chord": Major Chord, "Minor Chord": Minor Chord, ...}
-export const PresetPatternMap = createMap<PatternMap>(PresetPatternList);
+export const PresetPatternMap = createMap<Pattern>(PresetPatternList);

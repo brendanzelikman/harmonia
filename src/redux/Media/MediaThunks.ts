@@ -1,131 +1,124 @@
 import * as Patterns from "redux/Pattern";
 import * as Clips from "redux/Clip";
-import * as Poses from "redux/Pose";
-import * as Hierarchy from "redux/TrackHierarchy";
 import * as Timeline from "redux/Timeline";
 import { Thunk } from "types/Project";
 import { getClipboardMedia } from "types/Timeline";
+import * as _ from "types/Media";
+import { isArray, unionBy, without } from "lodash";
 import {
-  getOffsettedMedia,
-  getValidMedia,
-  getClipsFromMedia,
-  getPosesFromMedia,
-  getDuplicatedMedia,
-  getMediaDuration,
-  MediaClip,
-  UpdateMediaPayload,
-  RemoveMediaPayload,
-  NewMediaPayload,
-  getPortalsFromMedia,
-  MediaElement,
-} from "types/Media";
-import { isNumber, union, unionBy, without } from "lodash";
-import { Pose, PoseUpdate, initializePose } from "types/Pose";
-import { Clip, ClipUpdate, initializeClip } from "types/Clip";
+  ClipUpdate,
+  initializeClip,
+  isPatternClip,
+  isPoseClip,
+  Clip,
+  ClipNoId,
+  PatternClipId,
+  PoseClipId,
+  isPatternClipId,
+  isPoseClipId,
+  initializePatternClip,
+} from "types/Clip";
 import { selectSubdivisionTicks } from "redux/Timeline";
 import {
-  selectOrderedTrackIds,
+  selectTrackIds,
   selectTrackMap,
-  selectClipDuration,
-  selectClipStream,
+  selectPatternClipStream,
   selectPortals,
   selectTrackById,
   selectPortalIds,
 } from "redux/selectors";
 import { Transport } from "tone";
-import { Tick } from "types/units";
 import {
   PatternId,
   PatternMidiStream,
   PatternStream,
   getPatternBlockDuration,
+  getPatternMidiChordNotes,
   getPatternName,
-  getPatternStreamDuration,
-  isPatternRest,
-  isPatternStream,
+  isPatternMidiChord,
 } from "types/Pattern";
 import { setEditorAction } from "redux/Editor";
 import {
+  PortalNoId,
   PortalUpdate,
   initializePortal,
-  parsePortalChunkId,
+  getOriginalIdFromPortaledClip,
 } from "types/Portal";
 import { Portals } from "redux/slices";
 import { getSubdivisionTicks, getTickColumns } from "utils/durations";
+import { isPatternTrack } from "types/Track";
 
 /** Create a list of media and add it to the slice and hierarchy. */
 export const createMedia =
-  (update: UpdateMediaPayload): Thunk<NewMediaPayload> =>
+  (update: {
+    clips?: ClipNoId[];
+    portals?: PortalNoId[];
+  }): Thunk<_.NewMediaPayload> =>
   (dispatch) => {
     // Initialize the media
     const clips = (update.clips || []).map(initializeClip);
-    const poses = (update.poses || []).map(initializePose);
     const portals = (update.portals || []).map(initializePortal);
-    const payload = { clips, poses, portals };
+    const payload = { clips, portals };
 
     // Add the media to the respective slices and track hierarchy
     dispatch(Clips.addClips(payload));
-    dispatch(Poses.addPoses(payload));
     dispatch(Portals.addPortals(payload));
-    dispatch(Hierarchy.addMediaToHierarchy(payload));
 
     // Return the newly created media IDs
     const clipIds = clips.map((c) => c.id);
-    const poseIds = poses.map((t) => t.id);
     const portalIds = portals.map((p) => p.id);
-    return { clipIds, poseIds, portalIds };
+    return { clipIds, portalIds };
   };
 
 /** Update a list of media. */
 export const updateMedia =
-  (payload: UpdateMediaPayload): Thunk =>
+  (payload: _.UpdateMediaPayload): Thunk =>
   (dispatch) => {
-    // Update the media in the respective slices
     dispatch(Clips.updateClips(payload));
-    dispatch(Poses.updatePoses(payload));
     dispatch(Portals.updatePortals(payload));
-
-    // Update the media in the track hierarchy
-    dispatch(Hierarchy.updateMediaInHierarchy(payload));
   };
 
 /** Delete a list of media from the store. */
 export const deleteMedia =
-  (payload: RemoveMediaPayload): Thunk =>
+  (payload: _.RemoveMediaPayload): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const mediaSelection = Timeline.selectMediaSelection(project);
-    const oldClipIds = payload.clipIds;
-    const oldPoseIds = payload.poseIds;
+    const oldClipIds = payload.clipIds ?? [];
 
     // Remove the media from the media selection
-    const clipIds = without(mediaSelection.clipIds, ...oldClipIds);
-    const poseIds = without(mediaSelection.poseIds, ...oldPoseIds);
-    dispatch(Timeline.updateMediaSelection({ clipIds, poseIds }));
+    const oldPatternClipIds = mediaSelection.patternClipIds;
+    const oldPoseClipIds = mediaSelection.poseClipIds;
+    const patternClipIds = without(
+      oldPatternClipIds,
+      ...oldClipIds
+    ) as PatternClipId[];
+    const poseClipIds = without(oldPoseClipIds, ...oldClipIds) as PoseClipId[];
+    dispatch(Timeline.updateMediaSelection({ patternClipIds, poseClipIds }));
 
     // Delete the media from the slices and hierarchy
     dispatch(Clips.removeClips(payload));
-    dispatch(Poses.removePoses(payload));
     dispatch(Portals.removePortals(payload));
-    dispatch(Hierarchy.removeMediaFromHierarchy(payload));
   };
 
 /** Add all media to the selection. */
 export const addAllMediaToSelection = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
-  const clipIds = Clips.selectClipIds(project);
-  const poseIds = Poses.selectPoseIds(project);
+  const clips = Clips.selectClips(project);
+  const patternClipIds = clips.filter(isPatternClip).map((clip) => clip.id);
+  const poseClipIds = clips.filter(isPoseClip).map((clip) => clip.id);
   const portalIds = selectPortalIds(project);
-  dispatch(Timeline.updateMediaSelection({ clipIds, poseIds, portalIds }));
+  dispatch(
+    Timeline.updateMediaSelection({ patternClipIds, poseClipIds, portalIds })
+  );
 };
 
 /** Copy all selected media to the clipboard. */
 export const copySelectedMedia = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
-  const clips = Timeline.selectSelectedClips(project);
-  const poses = Timeline.selectSelectedPoses(project);
+  const clips = Timeline.selectSelectedPatternClips(project);
   const portals = Timeline.selectSelectedPortals(project);
-  dispatch(Timeline.updateMediaClipboard({ clips, poses, portals }));
+  dispatch(Timeline.updateMediaClipboard({ clips, portals }));
 };
 
 /** Cut all selected media into the clipboard, deleting them. */
@@ -133,16 +126,14 @@ export const cutSelectedMedia = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
 
   // Copy the media to the clipboard
-  const clips = Timeline.selectSelectedClips(project);
-  const poses = Timeline.selectSelectedPoses(project);
+  const clips = Timeline.selectSelectedPatternClips(project);
   const portals = Timeline.selectSelectedPortals(project);
-  dispatch(Timeline.updateMediaClipboard({ clips, poses, portals }));
+  dispatch(Timeline.updateMediaClipboard({ clips, portals }));
 
   // Delete the media
-  const clipIds = Timeline.selectSelectedClipIds(project);
-  const poseIds = Timeline.selectSelectedPoseIds(project);
+  const clipIds = Timeline.selectSelectedPatternClipIds(project);
   const portalIds = Timeline.selectSelectedPortalIds(project);
-  dispatch(deleteMedia({ clipIds, poseIds, portalIds }));
+  dispatch(deleteMedia({ clipIds, portalIds }));
 };
 
 /**
@@ -150,12 +141,12 @@ export const cutSelectedMedia = (): Thunk => (dispatch, getProject) => {
  * starting at the current tick from the selected track.
  */
 export const pasteSelectedMedia =
-  (): Thunk<NewMediaPayload> => (dispatch, getProject) => {
+  (): Thunk<_.NewMediaPayload> => (dispatch, getProject) => {
     const project = getProject();
     const noMedia = { clipIds: [], poseIds: [], portalIds: [] };
 
     // Do nothing if there are no tracks
-    const trackIds = selectOrderedTrackIds(project);
+    const trackIds = selectTrackIds(project);
     if (!trackIds?.length) return noMedia;
 
     // Do nothing if no track is selected
@@ -168,7 +159,7 @@ export const pasteSelectedMedia =
     if (!media?.length) return noMedia;
 
     // Get the offseted media
-    const offsetedMedia = getOffsettedMedia(
+    const offsetedMedia = _.getOffsettedMedia(
       media,
       Transport.ticks,
       selectedTrackId,
@@ -177,16 +168,15 @@ export const pasteSelectedMedia =
 
     // Make sure all of the media is valid
     const trackMap = selectTrackMap(project);
-    const validMedia = getValidMedia(offsetedMedia, trackMap);
+    const validMedia = _.getValidMedia(offsetedMedia, trackMap);
     if (validMedia.length !== offsetedMedia.length) return noMedia;
 
     // Prepare the new media
-    const clips = getClipsFromMedia(validMedia);
-    const poses = getPosesFromMedia(validMedia);
-    const portals = getPortalsFromMedia(validMedia);
+    const clips = _.getClipsFromMedia(validMedia);
+    const portals = _.getPortalsFromMedia(validMedia);
 
     // Create the new media
-    const newMedia = dispatch(createMedia({ clips, poses, portals }));
+    const newMedia = dispatch(createMedia({ clips, portals }));
     dispatch(Timeline.updateMediaSelection(newMedia));
     return newMedia;
   };
@@ -196,41 +186,40 @@ export const duplicateSelectedMedia =
   (): Thunk => async (dispatch, getProject) => {
     const project = getProject();
     const mediaSelection = Timeline.selectMediaSelection(project);
-    const { clipIds, poseIds } = mediaSelection;
-    if (!clipIds.length && !poseIds.length) return;
+    const { patternClipIds, poseClipIds } = mediaSelection;
+    if (!patternClipIds.length && !poseClipIds.length) return;
 
     // Get the selected clips and their durations
-    const clips = Timeline.selectSelectedClips(project);
-    const clipDurations = Clips.selectClipDurations(project, clipIds);
-
-    // Get the selected poses and their durations
-    const poses = Timeline.selectSelectedPoses(project);
-    const poseDurations = Poses.selectPoseDurations(project, poseIds);
+    const clips = Timeline.selectSelectedPatternClips(project);
+    const clipDurations = Clips.selectClipDurations(project, patternClipIds);
 
     // Get the selected portals
     const portals = Timeline.selectSelectedPortals(project);
     const portalDurations = portals.map((_) => 1);
 
     // Duplicate the media
-    const media = [...clips, ...poses, ...portals];
-    const duplicatedMedia = getDuplicatedMedia(media, [
+    const media = [...clips, ...portals];
+    const duplicatedMedia = _.getDuplicatedMedia(media, [
       ...clipDurations,
-      ...poseDurations,
       ...portalDurations,
     ]);
 
     // Create and select the new media
-    const newClips = getClipsFromMedia(duplicatedMedia);
-    const newPoses = getPosesFromMedia(duplicatedMedia);
-    const newPortals = getPortalsFromMedia(duplicatedMedia);
+    const newClips = _.getClipsFromMedia(duplicatedMedia);
+    const newPortals = _.getPortalsFromMedia(duplicatedMedia);
     const mediaIds = dispatch(
-      createMedia({
-        clips: newClips,
-        poses: newPoses,
-        portals: newPortals,
+      createMedia({ clips: newClips, portals: newPortals })
+    );
+    const newPatternClipIds = (mediaIds.clipIds ?? []).filter(isPatternClipId);
+    const newPoseClipIds = (mediaIds.clipIds ?? []).filter(isPoseClipId);
+
+    dispatch(
+      Timeline.updateMediaSelection({
+        patternClipIds: newPatternClipIds,
+        poseClipIds: newPoseClipIds,
+        portalIds: mediaIds.portalIds,
       })
     );
-    dispatch(Timeline.updateMediaSelection(mediaIds));
   };
 
 /** Move all selected media by the given offset. */
@@ -256,8 +245,8 @@ export const moveSelectedMedia =
     });
     if (newPortals.some((p) => p.tick < 0 || p.portaledTick < 0)) return;
 
-    // Move the media elements through any portal that they go through
-    const selectedClips = Timeline.selectSelectedMediaClips(project);
+    // Then, move the media elements through any portal that they go through
+    const selectedClips = Timeline.selectSelectedClips(project);
     const mediaClips = selectedClips.map((media) => {
       for (let i = 0; i < magnitude; i++) {
         // If the media is moving right, check if it goes through a portal
@@ -291,19 +280,12 @@ export const moveSelectedMedia =
         // Otherwise, move the media back from the portal
         return { ...media, trackId: portal.trackId, tick: portal.tick };
       }
-    }) as MediaClip[];
+    }) as Clip[];
     if (mediaClips.some((media) => media.tick < 0)) return;
 
     // Update the media
-    const newClips = getClipsFromMedia(mediaClips);
-    const newPoses = getPosesFromMedia(mediaClips);
-    dispatch(
-      updateMedia({
-        clips: newClips,
-        poses: newPoses,
-        portals: newPortals,
-      })
-    );
+    const newClips = _.getClipsFromMedia(mediaClips);
+    dispatch(updateMedia({ clips: newClips, portals: newPortals }));
   };
 
 /** Move all selected media to the left by one subdivision tick. */
@@ -324,9 +306,8 @@ export const moveSelectedMediaRight = (): Thunk => (dispatch, getProject) => {
 export const deleteSelectedMedia = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const clipIds = Timeline.selectSelectedClipIds(project);
-  const poseIds = Timeline.selectSelectedPoseIds(project);
   const portalIds = Timeline.selectSelectedPortalIds(project);
-  dispatch(deleteMedia({ clipIds, poseIds, portalIds }));
+  dispatch(deleteMedia({ clipIds, portalIds }));
 };
 
 /** Set the selected pattern by updating the media draft. */
@@ -344,99 +325,14 @@ export const setSelectedPattern =
     }
 
     // Update the media draft
-    dispatch(Timeline.updateMediaDraft({ clip: { patternId } }));
+    dispatch(Timeline.updateMediaDraft({ patternClip: { patternId } }));
   };
 
-/** Slice the media at a given tick. */
-export const sliceMedia =
-  (media?: MediaClip, tick: Tick = 0): Thunk =>
-  (dispatch, getProject) => {
-    if (!media || tick < 0) return;
-    const project = getProject();
-    const mediaSelection = Timeline.selectMediaSelection(project);
-    const { clipIds, poseIds } = mediaSelection;
-
-    // Get the media from the store
-    const oldClip = Clips.selectClipById(project, media.id);
-    const oldPose = Poses.selectPoseById(project, media.id);
-    if (!oldClip && !oldPose) return;
-    const oldMedia = (oldClip || oldPose) as MediaClip;
-    const isClip = !!oldClip;
-
-    // Get the duration of the media
-    const duration = getMediaDuration(
-      [oldMedia],
-      isClip
-        ? [selectClipDuration(project, oldMedia.id)]
-        : [Poses.selectPoseDuration(project, oldMedia.id)]
-    );
-
-    // Find the tick to split the clip at
-    const splitTick = tick - oldMedia.tick;
-    if (tick === oldMedia.tick || splitTick === duration) return;
-    if (splitTick < 0 || (isClip && splitTick > media.tick + duration)) return;
-
-    // Create the first item lasting until the split tick.
-    const firstMedia: MediaClip = isClip
-      ? initializeClip({ ...oldClip, duration: splitTick })
-      : initializePose({ ...oldPose, duration: splitTick });
-
-    // Create the second item lasting from the split tick until the end.
-    const secondMedia: MediaClip = isClip
-      ? initializeClip({
-          ...oldClip,
-          tick,
-          offset: oldClip.offset + splitTick,
-          duration: duration - splitTick,
-        })
-      : initializePose({
-          ...oldPose,
-          tick,
-          duration: isNumber(oldMedia.duration)
-            ? duration - splitTick
-            : Infinity,
-        });
-
-    // Deselect the media item if it was selected
-    if (isClip) {
-      dispatch(
-        Timeline.updateMediaSelection({
-          clipIds: without(clipIds, oldMedia.id),
-        })
-      );
-    } else {
-      dispatch(
-        Timeline.updateMediaSelection({
-          poseIds: without(poseIds, oldMedia.id),
-        })
-      );
-    }
-
-    // Slice the media in its corresponding slice
-    if (isClip) {
-      if (!oldClip) return;
-      const clipPayload = {
-        oldClip,
-        firstClip: firstMedia as Clip,
-        secondClip: secondMedia as Clip,
-      };
-      dispatch(Clips._sliceClip(clipPayload));
-    } else {
-      if (!oldPose) return;
-      const posePayload = {
-        oldPose,
-        firstPose: firstMedia as Pose,
-        secondPose: secondMedia as Pose,
-      };
-      dispatch(Poses._slicePose(posePayload));
-    }
-
-    // Slice the media in the hierarchy
-    const hierarchyPayload = {
-      oldId: oldMedia.id,
-      newIds: [firstMedia.id, secondMedia.id],
-    };
-    dispatch(Hierarchy.sliceMediaInHierarchy(hierarchyPayload));
+/** Set the selected pose by updating the media draft. */
+export const setSelectedPose =
+  (poseId: PatternId): Thunk =>
+  (dispatch) => {
+    dispatch(Timeline.updateMediaDraft({ poseClip: { poseId } }));
   };
 
 /** Merge the selected media. */
@@ -445,12 +341,11 @@ export const mergeSelectedMedia =
   async (dispatch, getProject) => {
     const project = getProject();
     const patternMap = Patterns.selectPatternMap(project);
-    const clips = Timeline.selectSelectedClips(project);
-    const poses = Timeline.selectSelectedPoses(project);
+    const patternClips = Timeline.selectSelectedPatternClips(project);
     const patternNames: string[] = [];
 
     // Iterate through all clips and merge their streams
-    const sortedClips = clips.sort((a, b) => a.tick - b.tick);
+    const sortedClips = patternClips.sort((a, b) => a.tick - b.tick);
     const totalStream = sortedClips.reduce((acc, clip) => {
       // Get the clip pattern
       const pattern = patternMap[clip.patternId];
@@ -458,11 +353,11 @@ export const mergeSelectedMedia =
       patternNames.push(getPatternName(pattern));
 
       // Get the clip stream
-      const duration = selectClipDuration(project, clip.id);
+      const duration = Clips.selectClipDuration(project, clip.id);
       let totalDuration = 0;
 
       // Make sure the duration of the new stream is the same as the clip duration
-      const stream = selectClipStream(project, clip.id).reduce(
+      const stream = selectPatternClipStream(project, clip.id).reduce(
         (streamAcc, block) => {
           if (totalDuration > duration) return streamAcc;
           const blockDuration = getPatternBlockDuration(block);
@@ -472,11 +367,12 @@ export const mergeSelectedMedia =
             // If the block is a rest, just add it to the stream
             const newDuration = duration - totalDuration;
             totalDuration += newDuration;
-            if (isPatternRest(block))
+            if (!isPatternMidiChord(block))
               return [...streamAcc, { duration: newDuration }];
 
             // Otherwise, shorten all notes and add the chord to the stream
-            const chord = block.map((n) => ({ ...n, duration: newDuration }));
+            const notes = getPatternMidiChordNotes(block);
+            const chord = notes.map((n) => ({ ...n, duration: newDuration }));
             return [...streamAcc, chord];
           }
 
@@ -498,20 +394,15 @@ export const mergeSelectedMedia =
 
     // Create and select a new pattern
     const name = options?.name || patternNames.join(" + ");
-    const stream = totalStream.filter((b) => isPatternRest(b) || b.length);
+    const stream = totalStream.filter((b) => isArray(b) && !!b.length);
     const pattern = { stream, name };
     const patternId = dispatch(Patterns.createPattern(pattern));
-    Timeline.updateMediaDraft({ clip: { patternId } });
+    Timeline.updateMediaDraft({ patternClip: { patternId } });
 
     // Create a new clip
     const { trackId, tick } = sortedClips[0];
-    const clip = { trackId, patternId, tick };
-    dispatch(Clips.createClips([clip]));
-
-    // Delete the old media
-    const clipIds = clips.map((clip) => clip.id);
-    const poseIds = poses.map((pose) => pose.id);
-    dispatch(deleteMedia({ clipIds, poseIds, portalIds: [] }));
+    const clip = initializePatternClip({ trackId, patternId, tick });
+    dispatch(Clips._mergeClips({ oldClips: patternClips, newClip: clip }));
   };
 
 /** The handler for when a media clip is dragged. */
@@ -519,15 +410,14 @@ export const onMediaDragEnd =
   (item: any, monitor: any): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const orderedTrackIds = selectOrderedTrackIds(project);
+    const orderedTrackIds = selectTrackIds(project);
     const { subdivision } = Timeline.selectTimeline(project);
     const selectedClips = Timeline.selectSelectedClips(project);
-    const selectedPoses = Timeline.selectSelectedPoses(project);
     const selectedPortals = Timeline.selectSelectedPortals(project);
 
     // Get the value from the item
-    const element: MediaElement =
-      item.clip || item.pose || item.portalEntry || item.portalExit;
+    const element: _.MediaElement =
+      item.clip || item.portalEntry || item.portalExit;
 
     // Compute the offset of the drag from the element's trackId
     const rowIndex = orderedTrackIds.indexOf(element.trackId);
@@ -544,23 +434,15 @@ export const onMediaDragEnd =
     // Get the list of clips by merging the chunk with the selection
     const clips = item.clip
       ? unionBy([item.clip, ...selectedClips], (clip) =>
-          parsePortalChunkId(clip.id)
+          getOriginalIdFromPortaledClip(clip.id)
         )
       : selectedClips;
-
-    // Get the list of poses by merging the chunk with the selection
-    const poses = item.pose
-      ? unionBy([item.pose, ...selectedPoses], (pose) =>
-          parsePortalChunkId(pose.id)
-        )
-      : selectedPoses;
 
     // Get the list of portals as is
     const portals = selectedPortals;
 
     // Prepare the new media
     const newClips: ClipUpdate[] = [];
-    const newPoses: PoseUpdate[] = [];
     const newPortals: PortalUpdate[] = [];
 
     // Iterate over the targeted clips
@@ -568,7 +450,7 @@ export const onMediaDragEnd =
       let originalClip = clip;
       // If the clip is a chunk, get the original one
       if (clip.id.includes("-chunk-")) {
-        const originalId = parsePortalChunkId(clip.id);
+        const originalId = getOriginalIdFromPortaledClip(clip.id);
         const realClip = Clips.selectClipById(project, originalId);
         if (!realClip) return;
         originalClip = realClip;
@@ -579,41 +461,13 @@ export const onMediaDragEnd =
       const newIndex = trackIndex + rowOffset;
       const trackId = orderedTrackIds[newIndex];
       const newTrack = selectTrackById(project, trackId);
-      if (trackIndex < 0 || newTrack?.type !== "patternTrack") return;
+      if (trackIndex < 0) return;
+      if (isPatternClip(clip) && !isPatternTrack(newTrack)) return;
 
       // Push the new clip
-      newClips.push({
-        ...originalClip,
-        trackId,
-        tick: clip.tick + tickOffset,
-      });
+      newClips.push({ ...originalClip, trackId, tick: clip.tick + tickOffset });
     }
 
-    // Iterate over the targeted poses
-    for (const pose of poses) {
-      // Get the new track
-      const trackIndex = orderedTrackIds.indexOf(pose?.trackId);
-      const newIndex = trackIndex + rowOffset;
-      const trackId = orderedTrackIds[newIndex];
-      if (trackIndex < 0 || !trackId) return;
-
-      // If the pose is a chunk, get the original one
-      const poseId = pose.id;
-      if (poseId.includes("-chunk-")) {
-        const originalId = parsePortalChunkId(poseId);
-        const realPose = Poses.selectPoseById(project, originalId);
-        if (!realPose) return;
-        newPoses.push({
-          ...realPose,
-          trackId,
-          tick: pose.tick + tickOffset,
-        });
-      }
-      // Otherwise, push the pose as is
-      else {
-        newPoses.push({ ...pose, trackId, tick: pose.tick + tickOffset });
-      }
-    }
     // Move the portal entry fragment, if any
     if (item.portalEntry) {
       const index = orderedTrackIds.indexOf(item.portalEntry.trackId);
@@ -670,18 +524,20 @@ export const onMediaDragEnd =
 
     // Make sure the entire operation is valid
     if (newClips.some((item) => item.tick && item.tick < 0)) return;
-    if (newPoses.some((item) => item.tick && item.tick < 0)) return;
     if (newPortals.some((item) => item.tick && item.tick < 0)) return;
-
-    const payload = { clips: newClips, poses: newPoses, portals: newPortals };
 
     // If not copying, update the media
     if (!copying) {
-      dispatch(updateMedia(payload));
+      dispatch(updateMedia({ clips: newClips, portals: newPortals }));
       return;
     }
 
     // Otherwise, create the new media
-    const mediaIds = dispatch(createMedia(payload));
+    const mediaIds = dispatch(
+      createMedia({
+        clips: newClips as ClipNoId[],
+        portals: newPortals as PortalNoId[],
+      })
+    );
     dispatch(Timeline.updateMediaSelection(mediaIds));
   };

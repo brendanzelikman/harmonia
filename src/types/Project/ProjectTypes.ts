@@ -7,6 +7,7 @@ import {
 } from "types/Arrangement";
 import { defaultEditor, isEditor } from "types/Editor";
 import { defaultPatternHistory, isPattern } from "types/Pattern";
+import { defaultPoseHistory, isPose } from "types/Pose";
 import { defaultScaleHistory, isScaleObject } from "types/Scale";
 import { defaultTimeline, isTimeline } from "types/Timeline";
 import { defaultTransport, isTransport } from "types/Transport";
@@ -59,12 +60,13 @@ export const initializeProject = (
 
 export const defaultProject: Project = {
   meta: initializeProjectMetadata(),
-  transport: defaultTransport,
-  timeline: defaultTimeline,
-  editor: defaultEditor,
   scales: defaultScaleHistory,
   patterns: defaultPatternHistory,
+  poses: defaultPoseHistory,
   arrangement: defaultArrangementHistory,
+  timeline: defaultTimeline,
+  editor: defaultEditor,
+  transport: defaultTransport,
 };
 
 // ------------------------------------------------------------
@@ -89,12 +91,13 @@ export const isProject = (obj: unknown): obj is Project => {
   return (
     isPlainObject(candidate) &&
     isProjectMetadata(candidate.meta) &&
-    isTransport(candidate.transport) &&
-    isTimeline(candidate.timeline) &&
-    isEditor(candidate.editor) &&
     isUndoableHistory(candidate.scales, isScaleObject) &&
     isUndoableHistory(candidate.patterns, isPattern) &&
+    isUndoableHistory(candidate.poses, isPose) &&
     isUndoableHistory(candidate.arrangement) &&
-    isLiveArrangement(candidate.arrangement.present)
+    isLiveArrangement(candidate.arrangement.present) &&
+    isTimeline(candidate.timeline) &&
+    isEditor(candidate.editor) &&
+    isTransport(candidate.transport)
   );
 };

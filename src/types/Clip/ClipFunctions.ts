@@ -1,4 +1,14 @@
-import { Clip, ClipUpdate, isClip } from "./ClipTypes";
+import {
+  PatternClip,
+  PoseClip,
+  ClipUpdate,
+  isClip,
+  Clip,
+  ClipStream,
+  isPatternClip,
+  isPoseClip,
+  ClipId,
+} from "./ClipTypes";
 import {
   ClipTheme,
   DEFAULT_CLIP_THEME,
@@ -6,21 +16,15 @@ import {
   CLIP_THEMES,
 } from "./ClipThemes";
 import {
-  Pattern,
-  isPattern,
-  getPatternStreamDuration,
-  getPatternBlockDuration,
-  resolvePatternStreamToMidi,
-  PatternMidiStream,
-  getTransposedPatternStream,
-  isPatternRest,
-} from "types/Pattern";
-import { TrackArrangement } from "types/Arrangement";
-import { ScaleMap } from "types/Scale";
-import { getTrackScaleChain } from "types/Track";
-import { getValuesByKeys } from "utils/objects";
-import { getCurrentPose, getPoseScaleVector } from "types/Pose";
-import { parsePortalChunkId } from "types/Portal";
+  Pose,
+  getPoseStreamDuration,
+  getPoseVectorAtIndex,
+  isPoseStream,
+} from "types/Pose";
+import { getPatternStreamDuration, isPatternStream } from "types/Pattern";
+import { TrackId } from "types/Track";
+import { Tick } from "types/units";
+import { isFiniteNumber } from "types/util";
 
 // ------------------------------------------------------------
 // Clip Serializers
@@ -28,13 +32,39 @@ import { parsePortalChunkId } from "types/Portal";
 
 /** Get a `Clip` as a string. */
 export const getClipAsString = (clip: Clip) => {
-  const { id, trackId, patternId, tick, offset } = clip;
-  return `${id},${trackId},${patternId},${tick},${offset}`;
+  const { id, trackId, tick, offset, duration, color } = clip;
+  return `${id},${trackId},${tick},${offset},${duration},${color}`;
+};
+
+/** Get a `PatternClip` as a string. */
+export const getPatternClipAsString = (clip: PatternClip) => {
+  const { patternId } = clip;
+  return `${getClipAsString(clip)},${patternId}`;
+};
+
+/** Get a `PoseClip` as a string. */
+export const getPoseClipAsString = (clip: PoseClip) => {
+  const { poseId } = clip;
+  return `${getClipAsString(clip)},${poseId}`;
 };
 
 /** Get a `ClipUpdate` as a string. */
 export const getClipUpdateAsString = (clip: ClipUpdate) => {
   return JSON.stringify(clip);
+};
+
+// ------------------------------------------------------------
+// Clip Helpers
+// ------------------------------------------------------------
+
+/** Reduce an array of clips to a track clip map. */
+export const getClipsByTrack = (clips: Clip[]) => {
+  if (!clips?.length) return {};
+  return clips.reduce((acc, clip) => {
+    if (!acc[clip.trackId]) acc[clip.trackId] = [];
+    acc[clip.trackId].push(clip.id);
+    return acc;
+  }, {} as Record<TrackId, ClipId[]>);
 };
 
 // ------------------------------------------------------------
@@ -48,100 +78,99 @@ export const getClipTheme = (clip?: Clip): ClipTheme => {
   return CLIP_THEMES[color] ?? DEFAULT_CLIP_THEME;
 };
 
-/** Get the total duration of a `Clip` in ticks */
-export const getClipDuration = (clip?: Clip, pattern?: Pattern) => {
-  if (!isClip(clip) || !isPattern(pattern)) return 1;
+/** Get the offset of a `Clip`. */
+export const getClipOffset = (clip?: Clip): number => {
+  return isClip(clip) ? clip.offset ?? 0 : 0;
+};
+
+/** Get the duration of a `ClipStream`. */
+export const getClipStreamDuration = (stream: ClipStream): number => {
+  if (isPatternStream(stream)) return getPatternStreamDuration(stream);
+  if (isPoseStream(stream)) return getPoseStreamDuration(stream);
+  return 1;
+};
+
+/** Get the total duration of a `Clip` using its field or the duration of the stream provided. */
+export const getClipDuration = (clip?: Clip, stream?: ClipStream) => {
+  if (!isClip(clip)) return 1;
 
   // If the clip has a duration, return it
   if (clip.duration !== undefined) return clip.duration ?? 1;
 
-  // Otherwise, return the pattern's duration
-  const ticks = getPatternStreamDuration(pattern.stream);
-  return ticks - clip.offset;
+  // Otherwise, return the stream's duration
+  if (!stream) return 1;
+  const streamDuration = getClipStreamDuration(stream);
+  const streamOffset = getClipOffset(clip);
+  return Math.max(streamDuration - streamOffset, 1);
 };
 
+// -------------------------------------------- ----------------
+// Pattern Clip Functions
 // ------------------------------------------------------------
-// Clip Stream
+
+/** Get the `PatternClips` from a list of clips. */
+export const getPatternClips = (clips: Clip[]): PatternClip[] => {
+  return clips.filter(isPatternClip);
+};
+
+/** Get the `PatternClips` of a given track from a list of clips. */
+export const getPatternClipsByTrackId = (
+  clips: Clip[],
+  trackId: TrackId
+): PatternClip[] => {
+  return getPatternClips(clips).filter((clip) => clip.trackId === trackId);
+};
+
+// -------------------------------------------- ----------------
+// Pose Clip Functions
 // ------------------------------------------------------------
 
-/** A `Clip` can require the entire arrangement to compute its stream. */
-export interface ClipStreamDependencies extends Partial<TrackArrangement> {
-  pattern: Pattern;
-  scales?: ScaleMap;
-}
+/** Get the `PoseClips` from a list of `Clips` */
+export const getPoseClips = (clips: Clip[]): PoseClip[] => {
+  return clips.filter(isPoseClip);
+};
 
-/** Get the stream of a `Clip` */
-export const getClipStream = (
-  clip: Clip,
-  deps: ClipStreamDependencies
-): PatternMidiStream => {
-  const { trackId } = clip;
-  const { pattern, scales, ...arrangement } = deps;
-  const scaleTracks = arrangement?.scaleTracks ?? {};
-  const poseMap = arrangement?.poses ?? {};
-  if (!pattern) return [];
+/** Get the `PoseClips` of a given track from a list of clips. */
+export const getPoseClipsByTrackId = (
+  clips: Clip[],
+  trackId: TrackId
+): PoseClip[] => {
+  return getPoseClips(clips).filter((clip) => clip.trackId === trackId);
+};
 
-  // Initialize the loop variables
-  const stream = [] as PatternMidiStream;
-  let blockCount = 0;
-  let streamDuration = 0;
-  const totalTicks = getPatternStreamDuration(pattern.stream);
+/** Get the current pose vector occurring at the given tick. */
+export const getPoseVectorAtTick = (
+  clip?: PoseClip,
+  pose?: Pose,
+  tick?: number
+) => {
+  if (!clip || !pose || tick === undefined) return {};
+  return getPoseVectorAtIndex(pose.stream, tick - clip.tick);
+};
 
-  // Get the offset of the clip
-  let storedOffset = 0;
-  for (let i = 0; i < pattern.stream.length; i++) {
-    if (storedOffset >= clip.offset) break;
-    const duration = getPatternBlockDuration(pattern.stream[i]);
-    storedOffset += duration;
-    blockCount += 1;
-  }
+/** Get the current pose occurring at or before the given tick. */
+export const getCurrentPoseClip = (
+  poseClips: PoseClip[],
+  tick: Tick = 0,
+  sort = true
+) => {
+  if (!poseClips.length) return undefined;
 
-  // Try to find the poses of the clip's track
-  const trackNode = arrangement?.tracks?.[trackId];
-  const poseIds = Object.keys(poseMap).filter((id) =>
-    trackNode?.poseIds?.includes(parsePortalChunkId(id))
-  );
-  const poses = getValuesByKeys(poseMap, poseIds);
+  // Get the matches
+  const matches = poseClips.filter((t) => {
+    const startsBefore = t.tick <= tick;
+    const endsAfter = isFiniteNumber(t.duration)
+      ? t.tick + t.duration > tick
+      : true;
+    return startsBefore && endsAfter;
+  });
 
-  // Create a stream of blocks for every tick
-  for (let i = 0; i < totalTicks; i++) {
-    const block = pattern.stream[blockCount];
+  // If no matching poses, return undefined
+  if (!matches.length) return undefined;
 
-    // If a block is being played or there's no block, continue
-    if (streamDuration > i || !block) {
-      stream.push([]);
-      continue;
-    }
+  // If sort is false, return the first matching pose
+  if (!sort) return matches[0];
 
-    // Increment the stream duration when the block is reached
-    const blockDuration = getPatternBlockDuration(block);
-    if (streamDuration === i) streamDuration += blockDuration;
-    blockCount += 1;
-
-    // If the block is a rest, add it and skip to the next block
-    if (isPatternRest(block)) {
-      stream.push({ duration: blockDuration });
-      continue;
-    }
-
-    // Otherwise, transpose the pattern stream using the clip's current pose
-    const tick = clip.tick + i;
-    const pose = getCurrentPose(poses, tick);
-    const vector = getPoseScaleVector(pose, scaleTracks);
-    const currentStream = getTransposedPatternStream(pattern.stream, vector);
-
-    // Get the transposed scale chain using the arrangement at the current tick
-    const chainDeps = { ...arrangement, scales, tick };
-    const chain = getTrackScaleChain(trackId, chainDeps);
-
-    // Get the resolved MIDI stream using the current stream and scale chain.
-    // The pose is provided to apply chromatic/chordal offsets at the end.
-    const newStream = resolvePatternStreamToMidi(currentStream, chain, pose);
-    const newChord = newStream[blockCount - 1];
-    stream.push(newChord);
-  }
-
-  // Return the stream of the clip
-  if (clip.duration === undefined) return stream;
-  return stream.slice(0, clip.duration);
+  // Otherwise, sort the matching poses by tick and return the first one
+  return matches.sort((a, b) => b.tick - a.tick)[0];
 };

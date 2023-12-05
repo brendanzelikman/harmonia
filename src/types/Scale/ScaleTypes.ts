@@ -127,9 +127,15 @@ export const mockScale: ScaleObject = {
   notes: [0, 2, 4, 5, 7, 9, 11].map((degree) => ({ degree })),
 };
 
+/** The default scale track scale is used in practice. */
+export const defaultScaleTrackScale: ScaleObject = {
+  ...defaultScale,
+  name: SCALE_TRACK_SCALE_NAME,
+};
+
 /** The default scale state is used for Redux. */
 export const defaultScaleState: ScaleState = createNormalState<ScaleMap>([
-  { ...defaultScale, name: SCALE_TRACK_SCALE_NAME },
+  defaultScaleTrackScale,
 ]);
 
 /** The default scale history is used for Redux. */

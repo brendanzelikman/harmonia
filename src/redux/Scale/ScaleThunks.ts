@@ -1,4 +1,13 @@
-import { selectScaleById, selectTransport } from "redux/selectors";
+import {
+  selectScaleById,
+  selectScaleTrackByScaleId,
+  selectScaleTracksByIds,
+  selectTrackAncestorIds,
+  selectTrackDescendantIds,
+  selectTrackDescendants,
+  selectTrackScaleChain,
+  selectTransport,
+} from "redux/selectors";
 import { convertTicksToSeconds } from "types/Transport";
 import { Thunk } from "types/Project";
 import {
@@ -13,7 +22,6 @@ import {
   ScaleObject,
   initializeScale,
   getTransposedScale,
-  getScaleNoteAsPitchClass,
 } from "types/Scale";
 import { Midi } from "@tonejs/midi";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
@@ -29,6 +37,7 @@ import {
 } from "utils/durations";
 import { getMidiPitch } from "utils/midi";
 import { downloadBlob } from "utils/html";
+import { isScaleTrack } from "types/Track";
 
 /** Creates a scale and adds it to the store, resolving to the ID if successful. */
 export const createScale =
@@ -80,9 +89,16 @@ export const rotateScale =
 /** Clear the notes of a scale by ID. */
 export const clearScale =
   (id?: ScaleId): Thunk =>
-  (dispatch) => {
+  (dispatch, getProject) => {
     if (!id) return;
-    dispatch(updateScale({ id, notes: [] }));
+    const project = getProject();
+    const scaleTrack = selectScaleTrackByScaleId(project, id);
+    if (!scaleTrack) return;
+    const descendants = selectTrackDescendants(project, scaleTrack.id);
+    for (const track of [...descendants, scaleTrack]) {
+      if (!isScaleTrack(track)) continue;
+      dispatch(updateScale({ id: track.scaleId, notes: [] }));
+    }
   };
 
 /** Play a scale using the global instrument if it is loaded. */

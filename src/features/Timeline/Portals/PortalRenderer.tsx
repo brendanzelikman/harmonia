@@ -59,10 +59,10 @@ export function TimelinePortal(props: TimelinePortalProps) {
     onDragEnd,
   });
   const dragState = use(selectMediaDragState);
-  const { draggingClip, draggingPose } = dragState;
+  const { draggingPatternClip, draggingPoseClip } = dragState;
   const isDragging = Entry.isDragging || Exit.isDragging;
   const isActive = isPortaling || isClipping || isTransposing;
-  const isDraggingOther = draggingClip || draggingPose;
+  const isDraggingOther = draggingPatternClip || draggingPoseClip;
 
   // Get the entry portal info
   const entryTrack = use((_) => selectTrackById(_, portal?.trackId));
@@ -80,7 +80,7 @@ export function TimelinePortal(props: TimelinePortalProps) {
       src={portalIcon}
       draggable
       className={classNames(
-        "w-full h-full -rotate-2 drop-shadow-xl invert pointer-events-none"
+        "w-full h-full -rotate-2 shadow-xl invert pointer-events-none"
       )}
     />
   );

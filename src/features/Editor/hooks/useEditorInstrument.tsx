@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { selectEditor } from "redux/Editor";
 import { createGlobalInstrument, selectInstrumentById } from "redux/Instrument";
-import {
-  selectPatternTrackById,
-  setPatternTrackInstrument,
-} from "redux/PatternTrack";
+import { selectPatternTrackById, setPatternTrackInstrument } from "redux/Track";
 import { selectSelectedPattern, selectSelectedTrackId } from "redux/Timeline";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import {

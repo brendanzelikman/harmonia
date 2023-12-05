@@ -8,7 +8,7 @@ export const EditorSidebar: React.FC<React.HTMLProps<HTMLDivElement>> = (
       {...props}
       className={classNames(
         props.className,
-        `flex min-w-[17rem] h-full flex-col rounded-xl overflow-hidden pr-2 pl-1`
+        `flex min-w-[17rem] whitespace-nowrap h-full flex-col rounded-xl overflow-hidden pl-1`
       )}
     >
       {props.children}

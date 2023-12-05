@@ -15,7 +15,7 @@ export interface PatternEditorTabProps extends PatternEditorProps {
   setTab: (t: string) => void;
 }
 
-export const PatternEditorContent: React.FC<PatternEditorProps> = (props) => {
+export function PatternEditorContent(props: PatternEditorProps) {
   const { dispatch, pattern, isCustom, score } = props;
   const category = getPatternCategory(pattern);
 
@@ -54,4 +54,4 @@ export const PatternEditorContent: React.FC<PatternEditorProps> = (props) => {
       <Editor.Score className={`bg-white/90 mt-2`} score={score} />
     </Editor.Content>
   );
-};
+}

@@ -13,6 +13,7 @@ import { convertTicksToFormattedTime } from "types/Transport";
 import { HeaderRendererProps } from "react-data-grid";
 import { Row } from "../Timeline";
 import classNames from "classnames";
+import { useCallback } from "react";
 
 interface HeaderProps extends HeaderRendererProps<Row> {}
 
@@ -27,7 +28,7 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
 
   // Loop properties derived from the transport
   const transport = useProjectSelector(selectTransport);
-  const { loop, loopStart, loopEnd } = transport;
+  const { bpm, timeSignature, loop, loopStart, loopEnd } = transport;
   const inLoopRange = inRange(tick, loopStart, loopEnd);
   const onLoopStart = loopStart === tick;
   const onLoopEnd = loopEnd === tick + (tickLength - 1);
@@ -93,8 +94,11 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
   };
 
   /** The measure number is rendered if the cell is a measure. */
-  const Measure = () => {
-    const formattedTime = convertTicksToFormattedTime(transport, tick);
+  const Measure = useCallback(() => {
+    const formattedTime = convertTicksToFormattedTime(tick, {
+      bpm,
+      timeSignature,
+    });
     const { bars, beats, sixteenths } = formattedTime;
     const isMeasure = beats === 0 && sixteenths === 0;
 
@@ -107,7 +111,7 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
       { "text-[9px]": bars > 99 }
     );
     return <>{!!isMeasure && <div className={className}>{bars}</div>}</>;
-  };
+  }, [tick, bpm, timeSignature, loop, onLoopStart, onLoopEnd]);
 
   // Assemble the class names for the header cell
   const className = classNames(

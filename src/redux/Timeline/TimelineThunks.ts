@@ -1,46 +1,48 @@
 import * as _ from "./TimelineSelectors";
 import { Thunk } from "types/Project";
 import {
-  createPoses,
-  selectPoseDurations,
-  selectPosesByTrackIds,
-  updatePoses,
-} from "../Pose";
-import { Clip, ClipNoId } from "types/Clip";
+  PatternClip,
+  PoseClip,
+  initializePatternClip,
+  initializePoseClip,
+} from "types/Clip";
 import {
   getMediaStartTick,
   getMediaEndTick,
   getMediaTrackIds,
   getMediaInRange,
-  getClipsFromMedia,
-  getPosesFromMedia,
+  getPatternClipsFromMedia,
+  getPoseClipsFromMedia,
   getPortalsFromMedia,
 } from "types/Media";
 import { MouseEvent } from "react";
 import {
   updateClips,
-  selectClipDurations,
   selectClipsByTrackIds,
-  createClips,
   exportClipsToMidi,
 } from "redux/Clip";
-import { Pose, PoseNoId } from "types/Pose";
 import { seekTransport } from "redux/Transport";
 import { selectTrackById } from "redux/Track";
 import { isUndefined, union, without } from "lodash";
-import { isPatternTrack } from "types/PatternTrack";
-import { deleteTrack, sliceMedia } from "redux/thunks";
-import { TrackId } from "types/Track";
+import {
+  createMedia,
+  deleteTrack,
+  setSelectedPattern,
+  setSelectedPose,
+  sliceClip,
+} from "redux/thunks";
+import { TrackId, isPatternTrack } from "types/Track";
 import { Transport } from "tone";
 import { TRACK_WIDTH } from "utils/constants";
 import {
-  isTimelineAddingClips,
-  isTimelineAddingPoses,
-  isTimelineMergingMedia,
-  isTimelinePortalingMedia,
-  isTimelineSlicingMedia,
+  isTimelineAddingPatternClips,
+  isTimelineAddingPoseClips,
+  isTimelineMergingClips,
+  isTimelinePortalingClips,
+  isTimelineSlicingClips,
 } from "types/Timeline";
 import {
+  setSelectedClipType,
   setSelectedTrackId,
   setTimelineState,
   updateMediaDraft,
@@ -48,8 +50,9 @@ import {
 } from "./TimelineSlice";
 import {
   selectEditor,
-  selectOrderedTrackIds,
+  selectTrackIds,
   selectPortalsByTrackIds,
+  selectClipDurations,
 } from "redux/selectors";
 import { hideEditor, showEditor } from "redux/Editor";
 import { getTickColumns } from "utils/durations";
@@ -58,69 +61,103 @@ import { mod } from "utils/math";
 import { Portal, initializePortal } from "types/Portal";
 import { addPortals } from "redux/Portal";
 import { hasKeys } from "utils/objects";
-import * as Timeline from "redux/Timeline";
 
-/** Toggles the timeline between adding clips and not adding clips. */
+/** Toggles the selected clip type between patterns and poses. */
+export const toggleSelectedClipType = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const timeline = _.selectTimeline(project);
+  const otherType =
+    timeline.selectedClipType === "pattern" ? "pose" : "pattern";
+  dispatch(setSelectedClipType(otherType));
+
+  if (isTimelineAddingPatternClips(timeline)) {
+    dispatch(setTimelineState("addingPoseClips"));
+  }
+  if (isTimelineAddingPoseClips(timeline)) {
+    dispatch(setTimelineState("addingPatternClips"));
+  }
+};
+
+/** Toggles the timeline between adding clips of the selected type and not. */
 export const toggleAddingClips = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
-  const editor = selectEditor(project);
   const timeline = _.selectTimeline(project);
-  if (isTimelineAddingClips(timeline)) {
+
+  // If the timeline is already adding clips, set it to idle
+  if (timeline.state !== "idle") {
     dispatch(setTimelineState("idle"));
-  } else {
-    dispatch(setTimelineState("addingClips"));
-    if (editor.view) dispatch(hideEditor());
+    return;
+  }
+
+  // Otherwise, set the timeline to adding clips
+  if (timeline.selectedClipType === "pattern") {
+    dispatch(setTimelineState("addingPatternClips"));
+  } else if (timeline.selectedClipType === "pose") {
+    dispatch(setTimelineState("addingPoseClips"));
   }
 };
 
-/** Toggles the timeline between adding poses and not adding poses. */
-export const toggleAddingPoses = (): Thunk => (dispatch, getProject) => {
+/** Toggles the timeline between adding pattern clips and not. */
+export const toggleAddingPatternClips = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const editor = selectEditor(project);
   const timeline = _.selectTimeline(project);
-  if (isTimelineAddingPoses(timeline)) {
+  if (isTimelineAddingPatternClips(timeline)) {
     dispatch(setTimelineState("idle"));
   } else {
-    dispatch(setTimelineState("addingPoses"));
+    dispatch(setTimelineState("addingPatternClips"));
     if (editor.view) dispatch(hideEditor());
   }
 };
 
-/** Toggles the timeline between slicing media and not slicing media. */
+/** Toggles the timeline between adding pose clips and not. */
+export const toggleAddingPoseClips = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const editor = selectEditor(project);
+  const timeline = _.selectTimeline(project);
+  if (isTimelineAddingPoseClips(timeline)) {
+    dispatch(setTimelineState("idle"));
+  } else {
+    dispatch(setTimelineState("addingPoseClips"));
+    if (editor.view) dispatch(hideEditor());
+  }
+};
+
+/** Toggles the timeline between slicing media and not.. */
 export const toggleSlicingMedia = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const editor = selectEditor(project);
   const timeline = _.selectTimeline(project);
-  if (isTimelineSlicingMedia(timeline)) {
+  if (isTimelineSlicingClips(timeline)) {
     dispatch(setTimelineState("idle"));
   } else {
-    dispatch(setTimelineState("slicingMedia"));
+    dispatch(setTimelineState("slicingClips"));
     if (editor.view) dispatch(hideEditor());
   }
 };
 
-/** Toggles the timeline between portaling media and not portaling media. */
+/** Toggles the timeline between portaling media and nots. */
 export const togglePortalingMedia = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const editor = selectEditor(project);
   const timeline = _.selectTimeline(project);
-  if (isTimelinePortalingMedia(timeline)) {
+  if (isTimelinePortalingClips(timeline)) {
     dispatch(setTimelineState("idle"));
   } else {
-    dispatch(setTimelineState("portalingMedia"));
+    dispatch(setTimelineState("portalingClips"));
     if (editor.view) dispatch(hideEditor());
   }
 };
 
-/** Toggles the timeline between merging media and not merging media. */
+/** Toggles the timeline between merging media and not. */
 export const toggleMergingMedia = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const editor = selectEditor(project);
   const timeline = _.selectTimeline(project);
-  if (isTimelineMergingMedia(timeline)) {
+  if (isTimelineMergingClips(timeline)) {
     dispatch(setTimelineState("idle"));
   } else {
-    dispatch(setTimelineState("mergingMedia"));
+    dispatch(setTimelineState("mergingClips"));
     if (editor.view) dispatch(hideEditor());
   }
 };
@@ -142,7 +179,13 @@ export const onCellClick =
     // If no track is selected, seek the transport to the time and deselect all media
     if (trackId === undefined) {
       dispatch(seekTransport(tick));
-      dispatch(updateMediaSelection({ clipIds: [], poseIds: [] }));
+      dispatch(
+        updateMediaSelection({
+          patternClipIds: [],
+          poseClipIds: [],
+          portalIds: [],
+        })
+      );
       return;
     }
     const timeline = _.selectTimeline(project);
@@ -151,29 +194,29 @@ export const onCellClick =
     const track = selectTrackById(project, trackId);
     const onPatternTrack = !!track && isPatternTrack(track);
 
-    // Try to create a clip if adding clips
-    const isAdding = isTimelineAddingClips(timeline);
-    if (isAdding) {
+    // Try to create a pattern clip if adding pattern clips
+    const isAddingPatternClips = isTimelineAddingPatternClips(timeline);
+    if (isAddingPatternClips) {
       if (!onPatternTrack) return;
 
       // Get the pattern ID from the draft
-      const { patternId } = mediaDraft.clip;
+      const { patternId } = mediaDraft.patternClip;
       if (!patternId) return;
 
       // Create the clip
-      dispatch(createClipFromMediaDraft({ patternId, trackId, tick }));
+      dispatch(createPatternClipFromMediaDraft({ patternId, trackId, tick }));
       return;
     }
 
     // Create a pose if adding poses
-    const isTransposing = isTimelineAddingPoses(timeline);
-    if (isTransposing) {
-      dispatch(createPoseFromMediaDraft({ tick, trackId }));
+    const isAddingPoseClips = isTimelineAddingPoseClips(timeline);
+    if (isAddingPoseClips) {
+      dispatch(createPoseClipFromMediaDraft({ tick, trackId }));
       return;
     }
 
     // Set the fragment if portaling and there's no current fragment
-    const isPortaling = isTimelinePortalingMedia(timeline);
+    const isPortaling = isTimelinePortalingClips(timeline);
     if (isPortaling && !hasKeys(mediaDraft.portal)) {
       dispatch(updateMediaDraft({ portal: { tick, trackId } }));
       return;
@@ -197,11 +240,11 @@ export const onCellClick =
     if (trackId) dispatch(setSelectedTrackId(trackId));
 
     // Deselect all media
-    dispatch(updateMediaSelection({ clipIds: [], poseIds: [] }));
+    dispatch(updateMediaSelection({ patternClipIds: [], poseClipIds: [] }));
   };
 
 /**
- * The handler for when a clip is clicked.
+ * The handler for when a pattern clip is clicked.
  * * If the user is eyedropping, the pattern will be changed instead of the clip.
  * * If the user is adding clips to the timeline, the clip's pattern will be changed.
  * * If the user is holding Alt, the clip will be added to the selection.
@@ -211,33 +254,37 @@ export const onCellClick =
  * @param clip The clip that was clicked.
  * @param eyedropping Whether the user is eyedropping or not.
  */
-export const onClipClick =
-  (e: MouseEvent<HTMLDivElement>, clip?: Clip, eyedropping = false): Thunk =>
+export const onPatternClipClick =
+  (
+    e: MouseEvent<HTMLDivElement>,
+    clip?: PatternClip,
+    eyedropping = false
+  ): Thunk =>
   (dispatch, getProject) => {
     if (!clip) return;
     const project = getProject();
     const timeline = _.selectTimeline(project);
-    const { mediaSelection, mediaDraft } = timeline;
-    const selectedClipIds = _.selectSelectedClipIds(project);
-    const patternId = mediaDraft.clip.patternId;
+    const { mediaDraft } = timeline;
+    const selectedClipIds = _.selectSelectedPatternClipIds(project);
+    const patternId = mediaDraft.patternClip.patternId;
 
     // Eyedrop the pattern if the user is eyedropping
     if (eyedropping) {
-      dispatch(updateMediaDraft({ clip: { patternId } }));
+      dispatch(setSelectedPattern(clip.patternId));
       return;
     }
 
     // Change the pattern if the user is adding clips
-    if (isTimelineAddingClips(timeline) && patternId) {
+    if (isTimelineAddingPatternClips(timeline) && patternId) {
       dispatch(updateClips({ clips: [{ ...clip, patternId }] }));
       return;
     }
 
     // Deselect the clip if it is selected
-    const isClipSelected = mediaSelection.clipIds.includes(clip.id);
+    const isClipSelected = selectedClipIds.includes(clip.id);
     if (isClipSelected) {
       const newIds = without(selectedClipIds, clip.id);
-      dispatch(updateMediaSelection({ clipIds: newIds }));
+      dispatch(updateMediaSelection({ patternClipIds: newIds }));
       return;
     }
 
@@ -249,21 +296,21 @@ export const onClipClick =
       const holdingOption = isHoldingOption(nativeEvent);
       if (holdingOption) {
         const newIds = union(selectedClipIds, [clip.id]);
-        dispatch(updateMediaSelection({ clipIds: newIds }));
+        dispatch(updateMediaSelection({ patternClipIds: newIds }));
       } else {
-        dispatch(updateMediaSelection({ clipIds: [clip.id] }));
+        dispatch(updateMediaSelection({ patternClipIds: [clip.id] }));
       }
       return;
     }
 
     // Just select the clip if there are no other selected clips
     if (!selectedClipIds.length) {
-      dispatch(updateMediaSelection({ clipIds: [clip.id] }));
+      dispatch(updateMediaSelection({ patternClipIds: [clip.id] }));
       return;
     }
 
     // Select a range of clips if the user is holding shift
-    const selectedClips = _.selectSelectedClips(project);
+    const selectedClips = _.selectSelectedPatternClips(project);
     const selectedMedia = union(selectedClips, [clip]);
     const selectedMediaIds = selectedMedia.map((item) => item.id);
 
@@ -273,7 +320,7 @@ export const onClipClick =
     const endTick = getMediaEndTick(selectedMedia, durations);
 
     // Get all clips that are in the track range
-    const orderedIds = selectOrderedTrackIds(project);
+    const orderedIds = selectTrackIds(project);
     const trackIds = getMediaTrackIds(selectedClips, orderedIds, clip.trackId);
     const clips = selectClipsByTrackIds(project, trackIds);
     const clipIds = clips.map((clip) => clip.id);
@@ -281,19 +328,19 @@ export const onClipClick =
 
     // Get all clips that are in the tick range
     const media = getMediaInRange(clips, clipDurations, [startTick, endTick]);
-    const mediaClips = getClipsFromMedia(media);
+    const mediaClips = getPatternClipsFromMedia(media);
     const mediaClipIds = mediaClips.map((clip) => clip.id);
 
     // Select the clips
-    dispatch(updateMediaSelection({ clipIds: mediaClipIds }));
+    dispatch(updateMediaSelection({ patternClipIds: mediaClipIds }));
   };
 
-/** Update the media draft and show the pattern editor when a clip is double clicked. */
-export const onClipDoubleClick =
-  (clip: Clip): Thunk =>
+/** Update the media draft and show the pattern editor when a pattern clip is double clicked. */
+export const onPatternClipDoubleClick =
+  (clip: PatternClip): Thunk =>
   (dispatch) => {
-    dispatch(updateMediaDraft({ clip: { patternId: clip.patternId } }));
-    dispatch(showEditor("patterns"));
+    dispatch(updateMediaDraft({ patternClip: { patternId: clip.patternId } }));
+    dispatch(showEditor("pattern"));
   };
 
 /**
@@ -303,41 +350,50 @@ export const onClipDoubleClick =
  * * If the user is holding Shift, a range of poses will be selected.
  * * Otherwise, the pose will be selected.
  */
-export const onPoseClick =
-  (e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>, pose?: Pose): Thunk =>
+export const onPoseClipClick =
+  (
+    e: MouseEvent<HTMLDivElement, globalThis.MouseEvent>,
+    clip?: PoseClip,
+    eyedropping = false
+  ): Thunk =>
   (dispatch, getProject) => {
-    if (!pose) return;
+    if (!clip) return;
     const project = getProject();
     const timeline = _.selectTimeline(project);
     const cellWidth = _.selectCellWidth(project);
-    const selectedPoseIds = _.selectSelectedPoseIds(project);
-    const selectedPoses = _.selectSelectedPoses(project);
+    const selectedPoseIds = _.selectSelectedPoseClipIds(project);
+    const selectedPoses = _.selectSelectedPoseClips(project);
     const nativeEvent = e.nativeEvent as Event;
 
+    if (eyedropping) {
+      dispatch(setSelectedPose(clip.poseId));
+      return;
+    }
+
     // Slice the pose if slicing
-    if (isTimelineSlicingMedia(timeline)) {
+    if (isTimelineSlicingClips(timeline)) {
       const grid = e.currentTarget.offsetParent;
       if (!grid) return;
       const subdivisionTick = getTickColumns(1, timeline.subdivision);
       const tickWidth = cellWidth * subdivisionTick;
       const cursorLeft = e.clientX - TRACK_WIDTH;
       const tick = Math.round(cursorLeft / tickWidth);
-      dispatch(sliceMedia(pose, tick));
+      dispatch(sliceClip(clip, tick));
       return;
     }
 
     // Update the pose if transposing
-    if (isTimelineAddingPoses(timeline)) {
-      const draft = _.selectDraftedPose(project);
-      const newPose = { ...pose, ...draft };
-      dispatch(updatePoses({ poses: [newPose] }));
+    if (isTimelineAddingPoseClips(timeline)) {
+      const draft = _.selectDraftedPoseClip(project);
+      const newClip = { ...clip, ...draft };
+      dispatch(updateClips({ clips: [newClip] }));
     }
 
     // Deselect the pose if it is selected
-    const isSelected = selectedPoses.some((t) => t.id === pose.id);
+    const isSelected = selectedPoses.some((t) => t.id === clip.id);
     if (isSelected) {
-      const newIds = without(selectedPoseIds, pose.id);
-      dispatch(updateMediaSelection({ poseIds: newIds }));
+      const newIds = without(selectedPoseIds, clip.id);
+      dispatch(updateMediaSelection({ poseClipIds: newIds }));
       return;
     }
 
@@ -346,41 +402,50 @@ export const onPoseClick =
     if (!holdingShift) {
       const holdingOption = isHoldingOption(nativeEvent);
       if (holdingOption) {
-        const newIds = union(selectedPoseIds, [pose.id]);
-        dispatch(updateMediaSelection({ poseIds: newIds }));
+        const newIds = union(selectedPoseIds, [clip.id]);
+        dispatch(updateMediaSelection({ poseClipIds: newIds }));
       } else {
-        dispatch(updateMediaSelection({ poseIds: [pose.id] }));
+        dispatch(updateMediaSelection({ poseClipIds: [clip.id] }));
       }
       return;
     }
 
     // Just select the pose if there are no other selected poses
     if (!selectedPoses.length) {
-      dispatch(updateMediaSelection({ poseIds: [pose.id] }));
+      dispatch(updateMediaSelection({ poseClipIds: [clip.id] }));
       return;
     }
 
     // Select a range of poses if the user is holding shift
-    const selectedMedia = union(selectedPoses, [pose]);
+    const selectedMedia = union(selectedPoses, [clip]);
 
     // Compute the start and end time of the selection
     const startTick = getMediaStartTick(selectedMedia);
     const endTick = getMediaEndTick(selectedMedia);
 
     // Get all poses that are in the track range
-    const orderedIds = selectOrderedTrackIds(project);
-    const trackIds = getMediaTrackIds(selectedPoses, orderedIds, pose.trackId);
-    const poses = selectPosesByTrackIds(project, trackIds);
+    const orderedIds = selectTrackIds(project);
+    const trackIds = getMediaTrackIds(selectedPoses, orderedIds, clip.trackId);
+    const poses = selectClipsByTrackIds(project, trackIds);
     const poseIds = poses.map((_) => _.id);
-    const poseDurations = selectPoseDurations(project, poseIds);
+    const poseDurations = selectClipDurations(project, poseIds);
 
     // Get all poses that are in the tick range
     const media = getMediaInRange(poses, poseDurations, [startTick, endTick]);
-    const mediaPoses = getPosesFromMedia(media);
+    const mediaPoses = getPoseClipsFromMedia(media);
     const mediaPoseIds = mediaPoses.map((pose) => pose.id);
 
     // Select the poses
-    dispatch(updateMediaSelection({ poseIds: mediaPoseIds }));
+    dispatch(updateMediaSelection({ poseClipIds: mediaPoseIds }));
+  };
+
+/** Update the media draft and show the pose editor when a pose clip is double clicked. */
+export const onPoseClipDoubleClick =
+  (clip?: PoseClip): Thunk =>
+  (dispatch) => {
+    if (!clip) return;
+    dispatch(updateMediaDraft({ poseClip: { poseId: clip.poseId } }));
+    dispatch(showEditor("pose"));
   };
 
 /**
@@ -440,7 +505,7 @@ export const onPortalClick =
     );
 
     // Get all portals that are in the track range
-    const orderedIds = selectOrderedTrackIds(project);
+    const orderedIds = selectTrackIds(project);
     const trackIds = getMediaTrackIds(
       selectedPortals,
       orderedIds,
@@ -459,42 +524,41 @@ export const onPortalClick =
   };
 
 /** Add a clip to the currently selected track using the media draft. */
-export const createClipFromMediaDraft =
-  (partial?: Partial<ClipNoId>): Thunk =>
+export const createPatternClipFromMediaDraft =
+  (partial?: Partial<PatternClip>): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const selectedTrackId = _.selectSelectedTrackId(project);
 
     // Get the drafted clip
-    const draft = { ..._.selectDraftedClip(project), ...partial };
-    const clip = {
+    const draft = { ..._.selectDraftedPatternClip(project), ...partial };
+    const clip = initializePatternClip({
       ...draft,
       trackId: isUndefined(draft.trackId) ? selectedTrackId : draft.trackId,
       tick: isUndefined(draft.tick) ? Transport.ticks : draft.tick,
-    };
+    });
 
     // Create the clip
-    dispatch(createClips([clip]));
+    dispatch(createMedia({ clips: [clip] }));
   };
 
 /** Add a pose to the currently selected track using the media draft. */
-export const createPoseFromMediaDraft =
-  (partial?: Partial<PoseNoId>): Thunk =>
+export const createPoseClipFromMediaDraft =
+  (partial?: Partial<PoseClip>): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const selectedTrackId = _.selectSelectedTrackId(project);
 
     // Get the drafted pose
-    const draft = { ..._.selectDraftedPose(project), ...partial };
-    const pose = {
+    const draft = { ..._.selectDraftedPoseClip(project), ...partial };
+    const clip = initializePoseClip({
       ...draft,
       tick: isUndefined(draft.tick) ? Transport.ticks : draft.tick,
       trackId: isUndefined(draft.trackId) ? selectedTrackId : draft.trackId,
-      duration: isUndefined(draft.duration) ? Infinity : draft.duration,
-    };
+    });
 
     // Create the pose
-    dispatch(createPoses([pose]));
+    dispatch(createMedia({ clips: [clip] }));
   };
 
 /** Select the previous track in the timeline if possible. */
@@ -504,7 +568,7 @@ export const selectPreviousTrack = (): Thunk => (dispatch, getProject) => {
   if (!selectedTrackId) return;
 
   // Get the tracks from the store
-  const orderedTrackIds = selectOrderedTrackIds(project);
+  const orderedTrackIds = selectTrackIds(project);
   const trackCount = orderedTrackIds.length;
 
   // Compute the new index
@@ -522,7 +586,7 @@ export const selectNextTrack = (): Thunk => (dispatch, getProject) => {
   if (!selectedTrackId) return;
 
   // Get the tracks from the store
-  const orderedTrackIds = selectOrderedTrackIds(project);
+  const orderedTrackIds = selectTrackIds(project);
   const trackCount = orderedTrackIds.length;
 
   // Compute the new index
@@ -537,13 +601,14 @@ export const selectNextTrack = (): Thunk => (dispatch, getProject) => {
 export const exportSelectedClipsToMIDI =
   (): Thunk => (dispatch, getProject) => {
     const project = getProject();
-    const selectedClipIds = _.selectSelectedClipIds(project);
+    const selectedClipIds = _.selectSelectedPatternClipIds(project);
     dispatch(exportClipsToMidi(selectedClipIds));
-  }; /** Delete the selected track. */
+  };
 
+/** Delete the selected track. */
 export const deleteSelectedTrack = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
-  const trackId = Timeline.selectSelectedTrackId(project);
+  const trackId = _.selectSelectedTrackId(project);
   if (!trackId) return;
   dispatch(deleteTrack(trackId));
 };

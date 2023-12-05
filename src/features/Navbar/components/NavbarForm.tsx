@@ -14,7 +14,7 @@ export const NavbarFormGroup = (props: any) => (
 
 export const NavbarFormLabel = (props: any) => (
   <label
-    className={`text-sm text-slate-100 group-focus-within:text-shadow pointer-events-none ${
+    className={`text-sm group-focus-within:text-shadow pointer-events-none ${
       props.className ?? ""
     }`}
     onClick={props.onClick}
@@ -29,7 +29,7 @@ interface NavbarFormInputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const NavbarFormInput = (props: NavbarFormInputProps) => (
   <input
     {...props}
-    className={`block flex-auto px-2 bg-transparent rounded-md text-sm focus:outline-none text-white disabled:text-slate-400 disabled:placeholder-slate-400 placeholder-slate-300 border border-slate-400 focus:border-slate-300 focus:ring-0 appearance-none ${
+    className={`block flex-auto px-2 bg-transparent rounded-md text-sm focus:outline-none text-white disabled:text-slate-400 disabled:placeholder-slate-400 placeholder-slate-300 border-0 focus:border-0 ring-1 ring-slate-500 focus:ring-slate-300 appearance-none ${
       props.className ?? ""
     }`}
     onKeyDown={(e) => {

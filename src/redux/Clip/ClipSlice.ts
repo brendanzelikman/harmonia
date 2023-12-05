@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Clip, defaultClipState } from "types/Clip";
-import { RemoveTrackPayload, TrackId } from "types/Track";
+import { TrackId } from "types/Track";
 import {
   RemoveMediaPayload,
   CreateMediaPayload,
@@ -12,14 +12,19 @@ import { union } from "lodash";
 // Payload Types
 // ------------------------------------------------------------
 
-/** Clips can only be added as media. */
-export type AddClipsPayload = CreateMediaPayload;
+/** A list of clips can be added to the slice. */
+export interface AddClipsPayload extends CreateMediaPayload {
+  callerId?: TrackId;
+}
 
-/** Clips can only be updated as media. */
+/** A list of clips can be updated in the slice. */
 export type UpdateClipsPayload = UpdateMediaPayload;
 
-/** Clips can only be removed as media IDs. */
-export type RemoveClipsPayload = RemoveMediaPayload;
+/** A list of clips can be removed by ID. */
+export interface RemoveClipsPayload extends RemoveMediaPayload {
+  callerId?: TrackId;
+  tag?: string;
+}
 
 /** A clip can be sliced into two new clips. */
 export type SliceClipPayload = {
@@ -28,11 +33,11 @@ export type SliceClipPayload = {
   secondClip: Clip;
 };
 
-/** Clips can be removed by track ID. */
-export type RemoveClipsByTrackIdPayload = RemoveTrackPayload;
-
-/** Clips can be cleared by track ID. */
-export type ClearClipsByTrackIdPayload = TrackId;
+/** A list of clips can be merged into a new clip. */
+export type MergeClipsPayload = {
+  oldClips: Clip[];
+  newClip: Clip;
+};
 
 // ------------------------------------------------------------
 // Slice Definitions
@@ -52,14 +57,14 @@ export const clipsSlice = createSlice({
         state.byId[clip.id] = clip;
       });
     },
-    /** (PRIVATE) Update a list of clips in the slice. */
-    _updateClips: (state, action: PayloadAction<UpdateClipsPayload>) => {
+    /** Update a list of clips in the slice. */
+    updateClips: (state, action: PayloadAction<UpdateClipsPayload>) => {
       const { clips } = action.payload;
       if (!clips?.length) return;
       clips.forEach((clip) => {
-        const { id, ...rest } = clip;
+        const { id } = clip;
         if (!id) return;
-        state.byId[id] = { ...state.byId[id], ...rest };
+        state.byId[id] = { ...state.byId[id], ...clip } as Clip;
       });
     },
     /** Remove a list of clips from the slice. */
@@ -77,61 +82,39 @@ export const clipsSlice = createSlice({
     _sliceClip: (state, action: PayloadAction<SliceClipPayload>) => {
       const { oldClip, firstClip, secondClip } = action.payload;
       if (!oldClip || !firstClip || !secondClip) return;
-      delete state.byId[oldClip.id];
 
       //  Remove the old clip
       const index = state.allIds.findIndex((id) => id === oldClip.id);
       if (index === -1) return;
       state.allIds.splice(index, 1);
+      delete state.byId[oldClip.id];
+
       //  Add the new clips
       state.allIds = union(state.allIds, [firstClip.id, secondClip.id]);
       state.byId[firstClip.id] = firstClip;
       state.byId[secondClip.id] = secondClip;
     },
-    /** Remove a list of clips by track ID. */
-    removeClipsByTrackId: (
-      state,
-      action: PayloadAction<RemoveClipsByTrackIdPayload>
-    ) => {
-      const { id } = action.payload;
-      if (!id) return;
-      const clips = Object.values(state.byId).filter(
-        (clip) => clip.trackId === id
-      );
-      clips.forEach((clip) => {
-        delete state.byId[clip.id];
+    /** Merge a list of clips into a new clip. */
+    _mergeClips: (state, action: PayloadAction<MergeClipsPayload>) => {
+      const { oldClips, newClip } = action.payload;
+      if (!oldClips?.length || !newClip) return;
+
+      // Remove the old clips
+      oldClips.forEach((clip) => {
         const index = state.allIds.findIndex((id) => id === clip.id);
         if (index === -1) return;
         state.allIds.splice(index, 1);
-      });
-    },
-    /** Clear a list of clips by track ID. */
-    clearClipsByTrackId: (
-      state,
-      action: PayloadAction<ClearClipsByTrackIdPayload>
-    ) => {
-      const trackId = action.payload;
-      if (!trackId) return;
-      const clips = Object.values(state.byId).filter(
-        (clip) => clip.trackId === trackId
-      );
-      clips.forEach((clip) => {
         delete state.byId[clip.id];
-        const index = state.allIds.findIndex((id) => id === clip.id);
-        if (index === -1) return;
-        state.allIds.splice(index, 1);
       });
+
+      // Add the new clip
+      state.allIds = union(state.allIds, [newClip.id]);
+      state.byId[newClip.id] = newClip;
     },
   },
 });
 
-export const {
-  addClips,
-  _updateClips,
-  removeClips,
-  _sliceClip,
-  removeClipsByTrackId,
-  clearClipsByTrackId,
-} = clipsSlice.actions;
+export const { addClips, updateClips, removeClips, _sliceClip, _mergeClips } =
+  clipsSlice.actions;
 
 export default clipsSlice.reducer;

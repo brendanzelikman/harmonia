@@ -151,7 +151,11 @@ export async function deleteProjectFromDB(id: string): Promise<boolean> {
 /** Get the list of all projects as a promise. */
 export async function getProjectsFromDB(): Promise<Project[]> {
   const db = await dbPromise;
-  return db.getAll(PROJECT_STORE);
+  const projects = await db.getAll(PROJECT_STORE);
+  for (const project of projects) {
+    if (!isProject(project)) deleteProjectFromDB(project.meta.id);
+  }
+  return projects.filter(isProject);
 }
 
 /** Get the project with the given ID as a promise. */

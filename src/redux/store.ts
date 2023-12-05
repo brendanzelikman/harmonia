@@ -33,11 +33,19 @@ const undoablePatterns = undoable(Slices.Patterns.default, {
   limit: 16,
 });
 
+const undoablePoses = undoable(Slices.Poses.default, {
+  groupBy: groupByActionType,
+  undoType: UndoTypes.undoPoses,
+  redoType: UndoTypes.redoPoses,
+  limit: 16,
+});
+
 const appReducer = combineReducers({
   meta,
   transport,
   scales: undoableScales,
   patterns: undoablePatterns,
+  poses: undoablePoses,
   arrangement: undoableArrangement,
   timeline,
   editor,
@@ -58,4 +66,5 @@ export const store = configureStore({
 /** Auto-save the project. */
 store.subscribe(() => {
   store.dispatch(saveProject());
+  (window as any).getState = () => store.getState();
 });

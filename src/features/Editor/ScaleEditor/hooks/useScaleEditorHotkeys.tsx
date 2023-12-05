@@ -39,7 +39,7 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
   // T = Prompt for Transposition
   useHotkeys(
     "shift+t",
-    promptUser("Transpose scale along N semitones", (n) =>
+    promptUser("Transpose scale along N semitones:", (n) =>
       dispatch(transposeScale(scale?.id, n))
     ),
     [scale]
@@ -48,7 +48,7 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
   // R = Prompt for Rotation
   useHotkeys(
     "shift+r",
-    promptUser("Transpose scale along N semitones", (n) =>
+    promptUser("Rotate scale along N steps:", (n) =>
       dispatch(rotateScale(scale?.id, n))
     ),
     [scale]

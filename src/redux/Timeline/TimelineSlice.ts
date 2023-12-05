@@ -114,18 +114,19 @@ export const timelineSlice = createSlice({
     ) => {
       state.selectedTrackId = action.payload;
     },
+    /** Set the selected clip type. */
+    setSelectedClipType: (state, action: PayloadAction<"pattern" | "pose">) => {
+      state.selectedClipType = action.payload;
+    },
     /** Update the media clipboard. */
     updateMediaClipboard: (
       state,
       action: PayloadAction<UpdateMediaClipboardPayload>
     ) => {
       const { mediaClipboard } = state;
-      const { clips, poses, portals } = action.payload;
+      const { clips, portals } = action.payload;
       if (clips) {
         mediaClipboard.clips = clips;
-      }
-      if (poses) {
-        mediaClipboard.poses = poses;
       }
       if (portals) {
         mediaClipboard.portals = portals;
@@ -137,18 +138,12 @@ export const timelineSlice = createSlice({
       action: PayloadAction<UpdateMediaDraftPayload>
     ) => {
       const { mediaDraft } = state;
-      const { clip, pose, portal } = action.payload;
-      if (clip) {
-        mediaDraft.clip = { ...mediaDraft.clip, ...clip };
+      const { patternClip, poseClip, portal } = action.payload;
+      if (patternClip) {
+        mediaDraft.patternClip = { ...mediaDraft.patternClip, ...patternClip };
       }
-      if (pose) {
-        const oldPose = mediaDraft.pose;
-        const oldVector = oldPose.vector;
-        mediaDraft.pose = {
-          ...oldPose,
-          ...pose,
-          vector: { ...oldVector, ...pose.vector },
-        };
+      if (poseClip) {
+        mediaDraft.poseClip = { ...mediaDraft.poseClip, ...poseClip };
       }
       if (portal) {
         mediaDraft.portal = portal;
@@ -160,12 +155,12 @@ export const timelineSlice = createSlice({
       action: PayloadAction<UpdateMediaSelectionPayload>
     ) => {
       const { mediaSelection } = state;
-      const { clipIds, poseIds, portalIds } = action.payload;
-      if (clipIds) {
-        mediaSelection.clipIds = clipIds;
+      const { patternClipIds, poseClipIds, portalIds } = action.payload;
+      if (patternClipIds) {
+        mediaSelection.patternClipIds = patternClipIds;
       }
-      if (poseIds) {
-        mediaSelection.poseIds = poseIds;
+      if (poseClipIds) {
+        mediaSelection.poseClipIds = poseClipIds;
       }
       if (portalIds) {
         mediaSelection.portalIds = portalIds;
@@ -177,27 +172,27 @@ export const timelineSlice = createSlice({
       action: PayloadAction<UpdateMediaDragStatePayload>
     ) => {
       const { mediaDragState } = state;
-      const { draggingClip, draggingPose, draggingPortal } = action.payload;
-      if (draggingClip !== undefined) {
-        mediaDragState.draggingClip = draggingClip;
+      const { draggingPatternClip, draggingPoseClip, draggingPortal } =
+        action.payload;
+
+      if (draggingPatternClip !== undefined) {
+        mediaDragState.draggingPatternClip = draggingPatternClip;
       }
-      if (draggingPose !== undefined) {
-        mediaDragState.draggingPose = draggingPose;
+      if (draggingPoseClip !== undefined) {
+        mediaDragState.draggingPoseClip = draggingPoseClip;
       }
       if (draggingPortal !== undefined) {
         mediaDragState.draggingPortal = draggingPortal;
       }
     },
     /** Toggle whether live posing is enabled. */
-    toggleLivePose: (state) => {
-      state.livePoseSettings.enabled = !state.livePoseSettings.enabled;
+    toggleLivePlay: (state) => {
+      state.livePlay.enabled = !state.livePlay.enabled;
     },
     /** Toggle the live pose mode. */
-    toggleLivePoseMode: (state) => {
-      state.livePoseSettings.mode =
-        state.livePoseSettings.mode === "numerical"
-          ? "alphabetical"
-          : "numerical";
+    toggleLivePlayMode: (state) => {
+      state.livePlay.mode =
+        state.livePlay.mode === "numerical" ? "alphabetical" : "numerical";
     },
   },
 });
@@ -211,12 +206,13 @@ export const {
   increaseSubdivision,
   decreaseSubdivision,
   setSelectedTrackId,
+  setSelectedClipType,
   updateMediaSelection,
   updateMediaClipboard,
   updateMediaDraft,
   updateMediaDragState,
-  toggleLivePose,
-  toggleLivePoseMode,
+  toggleLivePlay,
+  toggleLivePlayMode,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

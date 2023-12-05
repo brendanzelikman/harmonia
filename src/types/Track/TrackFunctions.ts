@@ -1,11 +1,7 @@
-import { Track, TrackMap, TrackInterface, TrackId } from "./TrackTypes";
-import { isScaleTrack, ScaleTrack } from "types/ScaleTrack";
-import { Tick } from "types/units";
-import { ScaleMap, chromaticScale, getTransposedScale } from "types/Scale";
-import { Pose, getCurrentPose, getPoseOffsetById } from "types/Pose";
-import { TrackArrangement } from "types/Arrangement";
-import { getTrackPoseIds } from "types/TrackHierarchy";
-import { getKeys } from "utils/objects";
+import { getValueByKey } from "utils/objects";
+import { TrackMap, TrackInterface, TrackId } from "./TrackTypes";
+import { isScaleTrack } from "types/Track";
+import { numberToLower } from "utils/math";
 
 // ------------------------------------------------------------
 // String Conversion
@@ -17,11 +13,118 @@ export const getTrackAsString = (track: TrackInterface) => {
 };
 
 // ------------------------------------------------------------
-// Track Functions
+// Track Map Properties
 // ------------------------------------------------------------
 
-/** Get the IDs of the chained ancestors of the given track by ID. */
-export const getScaleTrackIdChain = (
+/** Get the list of top level tracks. */
+export const getTopLevelTracks = (trackMap: TrackMap) => {
+  return Object.values(trackMap).filter((t) => !t.parentId);
+};
+
+/** Get the list of ordered track IDs. */
+export const getOrderedTrackIds = (trackMap: TrackMap) => {
+  const topLevelTracks = getTopLevelTracks(trackMap);
+  const trackIds: TrackId[] = [];
+
+  // Recursively add all children of a track
+  const addChildren = (children: TrackId[]) => {
+    if (!children?.length) return;
+    children.forEach((trackId) => {
+      const node = trackMap[trackId];
+      if (!node) return;
+      trackIds.push(trackId);
+      addChildren(node.trackIds);
+    });
+  };
+
+  // Add all tracks from the top level
+  topLevelTracks.forEach((track) => {
+    trackIds.push(track.id);
+    addChildren(track.trackIds);
+  });
+
+  // Return the track IDs
+  return trackIds;
+};
+
+// ------------------------------------------------------------
+// Track Properties
+// ------------------------------------------------------------
+
+/** Get the depth of a track relative to the top level. */
+export const getTrackDepth = (id: TrackId, trackMap: TrackMap) => {
+  let track = trackMap[id];
+  let depth = 1;
+  while (track?.parentId) {
+    depth++;
+    track = trackMap[track.parentId];
+    if (track?.id === id) break;
+  }
+  return depth;
+};
+
+/** Get the track index in its parent. */
+export const getTrackIndex = (id: TrackId, trackMap: TrackMap) => {
+  const topLevelTracks = getTopLevelTracks(trackMap);
+  const track = trackMap[id];
+  if (!track) return -1;
+
+  // If the track is a scale track, try to find it in the top level
+  if (isScaleTrack(track)) {
+    const topLevelIndex = topLevelTracks.findIndex((track) => track.id === id);
+    if (topLevelIndex > -1) return topLevelIndex;
+  }
+
+  // Otherwise, return the index of the track in its parent
+  const parent = getValueByKey(trackMap, track.parentId);
+  return parent?.trackIds.indexOf(track.id) ?? -1;
+};
+
+/** Get the label of a track. */
+export const getTrackLabel = (id: TrackId, trackMap: TrackMap) => {
+  const track = trackMap[id];
+  if (!track) return "";
+
+  // Return just the index if the track is in the top level
+  const trackIndex = getTrackIndex(id, trackMap) + 1;
+  if (!track?.parentId || trackIndex === 0) return `${trackIndex}`;
+
+  // Otherwise, use all track parents to get the label
+  const topLevelTracks = getTopLevelTracks(trackMap);
+  const ancestorIds = getTrackAncestorIds(id, trackMap);
+  const trackIds = [...ancestorIds, id];
+
+  // Get the index of the root track
+  const rootId = trackIds[0];
+  const rootIndex = topLevelTracks.findIndex((t) => rootId === t.id) + 1;
+
+  // Get the letters of the rest of the tracks
+  const rest = trackIds.slice(1);
+  const restLetters = rest.map((track) => {
+    const index = getTrackIndex(track, trackMap);
+    return numberToLower(index);
+  });
+
+  // Return the label
+  return `${rootIndex}${restLetters.join("")}`;
+};
+
+/** Get the Scale Track or parent Scale Track of a Pattern Track. */
+export const getScaleTrack = (id: TrackId, trackMap: TrackMap) => {
+  const track = trackMap[id];
+  if (!track) return undefined;
+  if (isScaleTrack(track)) return track;
+  const parent = getValueByKey(trackMap, track.parentId);
+  if (isScaleTrack(parent)) return parent;
+  return undefined;
+};
+
+// ------------------------------------------------------------
+// Scale Track Chain
+// ------------------------------------------------------------
+
+/** Get the scale track ID chain of a track. */
+export const getScaleTrackChainIds = (
   id: TrackId,
   trackMap: TrackMap
 ): TrackId[] => {
@@ -47,117 +150,35 @@ export const getScaleTrackIdChain = (
   return trackIds;
 };
 
-/** Get the chained ancestors of a `Track`, including itself if it is a `ScaleTrack`. */
-export const getScaleTrackChain = (
-  id: TrackId,
-  trackMap: TrackMap
-): ScaleTrack[] => {
-  const idChain = getScaleTrackIdChain(id, trackMap);
-  const chain = idChain.map((id) => trackMap[id]);
-  return chain as ScaleTrack[];
+/** Get the scale track chain of a track. */
+export const getScaleTrackChain = (id: TrackId, trackMap: TrackMap) => {
+  const trackIds = getScaleTrackChainIds(id, trackMap);
+  return trackIds.map((id) => trackMap[id]).filter(isScaleTrack);
 };
 
-/** Get the parent IDs of a `Track`. */
-export const getTrackParentIds = (
+// ------------------------------------------------------------
+// Ancestors and Descendants
+// ------------------------------------------------------------
+
+/** Get the ancestor IDs of a track. */
+export const getTrackAncestorIds = (
   id: TrackId,
   trackMap: TrackMap
 ): TrackId[] => {
   const track = trackMap[id];
-  const idChain = getScaleTrackIdChain(id, trackMap);
+  const idChain = getScaleTrackChainIds(id, trackMap);
   return isScaleTrack(track) ? idChain.slice(0, -1) : idChain;
 };
 
-/** Get the parent tracks of a `Track`. */
-export const getTrackParents = (id: TrackId, trackMap: TrackMap): Track[] => {
-  const track = trackMap[id];
-  const idChain = getScaleTrackIdChain(id, trackMap);
-  const slicedIdChain = isScaleTrack(track) ? idChain.slice(0, -1) : idChain;
-  const trackChain = slicedIdChain.map((id) => trackMap[id]);
-  return trackChain.filter(isScaleTrack);
-};
-
-/** A track scale chain is dependent on the arrangement. */
-export interface TrackScaleChainDependencies extends Partial<TrackArrangement> {
-  tick?: Tick;
-  scales?: ScaleMap;
-}
-
-/** Get the scale chain of a track by ID, transposing if a tick is specified.  */
-export const getTrackScaleChain = (
-  id: TrackId,
-  deps: TrackScaleChainDependencies
-) => {
-  const { scales, tick, ...arrangement } = deps;
-  const defaultChain = [chromaticScale];
-  if (!arrangement) return [chromaticScale];
-
-  // Try to get the track from the arrangement
-  const nodes = arrangement.tracks ?? {};
-  const track = nodes[id];
-  if (!track) return defaultChain;
-
-  // Get the track map from the arrangement
-  const scaleTracks = arrangement.scaleTracks ?? {};
-  const patternTracks = arrangement.patternTracks ?? {};
-  const tracks = { ...scaleTracks, ...patternTracks };
-
-  // Get all tracks
-  const trackChain = getScaleTrackChain(id, tracks);
-  const chainLength = trackChain.length;
-  if (!chainLength) return defaultChain;
-
-  // Get the track's poses if the tick is specified
-  const noTick = tick === undefined;
-  const trackChainPoseIds = noTick
-    ? []
-    : trackChain.map((t) => getTrackPoseIds(t.id, nodes));
-
-  // Iterate down child scale tracks and apply poses if they exist
-  const newChain = [];
-  for (let i = 0; i < chainLength; i++) {
-    // Get the track and scale
-    const track = trackChain[i];
-    const scale = scales?.[track.scaleId] ?? chromaticScale;
-
-    // If no tick is specified, just push the scale
-    if (noTick) {
-      newChain.push(scale);
-      continue;
-    }
-
-    // Try to get the pose at the current tick
-    const poseIds = trackChainPoseIds[i];
-    const poses = poseIds
-      .map((id) => arrangement.poses?.[id])
-      .filter(Boolean) as Pose[];
-    const pose = getCurrentPose(poses, tick, false);
-
-    // If no pose exists, just push the scale
-    if (pose === undefined) {
-      newChain.push(scale);
-      continue;
-    }
-
-    // Otherwise, transpose the scale by every offset in the pose
-    const vectorKeys = getKeys(pose.vector);
-    let newScale = scale;
-
-    // Iterate through the offsets and transpose the scale
-    for (const id of vectorKeys) {
-      // Get the offset from the pose vector
-      const offset = getPoseOffsetById(pose.vector, id);
-
-      // Get the parent scale from the new chain (to iteratively transpose)
-      const parentScale = i > 0 ? newChain[i - 1] : undefined;
-
-      // Get the transposed scale using the offset and parent scale
-      newScale = getTransposedScale(newScale, offset, parentScale);
-    }
-
-    // Push the transposed scale to the chain
-    newChain.push(newScale);
+/** Get the descendant IDs of a track by ID. */
+export const getTrackDescendantIds = (id: TrackId, trackMap: TrackMap) => {
+  const tracks = Object.values(trackMap);
+  const descendantIds: TrackId[] = [];
+  const children = tracks.filter((track) => track.parentId === id);
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    descendantIds.push(child.id);
+    descendantIds.push(...getTrackDescendantIds(child.id, trackMap));
   }
-
-  // Return the transposed scale chain
-  return newChain;
+  return descendantIds;
 };

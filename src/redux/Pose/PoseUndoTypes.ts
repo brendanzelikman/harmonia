@@ -1,49 +1,52 @@
+import * as _ from "./PoseSlice";
 import { PayloadAction } from "@reduxjs/toolkit";
 import { ActionGroup } from "redux/util";
-import { getClipAsString, getClipUpdateAsString } from "types/Clip";
-import { getPoseAsString, getPoseUpdateAsString } from "types/Pose";
+import {
+  getPoseAsString,
+  getPoseBlockAsString,
+  getPoseUpdateAsString,
+} from "types/Pose";
 import { toString } from "utils/objects";
-import * as PoseSlice from "./PoseSlice";
-import { getPortalAsString, getPortalUpdateAsString } from "types/Portal";
 
 export const POSE_UNDO_TYPES: ActionGroup = {
-  "poses/addPoses": (action: PayloadAction<PoseSlice.AddPosesPayload>) => {
-    const { clips, poses, portals } = action.payload;
-    const clipTag = toString(clips, getClipAsString);
-    const poseTag = toString(poses, getPoseAsString);
-    const portalTag = toString(portals, getPortalAsString);
-    return `ADD_MEDIA:${clipTag},${poseTag},${portalTag}`;
+  "poses/addPose": (action: PayloadAction<_.AddPosePayload>) => {
+    const poseTag = getPoseAsString(action.payload);
+    return `ADD_POSE:${poseTag}`;
   },
-  "poses/_updatePoses": (
-    action: PayloadAction<PoseSlice.UpdatePosesPayload>
+  "poses/updatePose": (action: PayloadAction<_.UpdatePosePayload>) => {
+    const poseTag = getPoseUpdateAsString(action.payload);
+    return `UPDATE_POSE:${poseTag}`;
+  },
+  "poses/updatePoses": (action: PayloadAction<_.UpdatePosesPayload>) => {
+    const poseTag = toString(action.payload, getPoseUpdateAsString);
+    return `UPDATE_POSES:${poseTag}`;
+  },
+  "poses/removePose": (action: PayloadAction<_.RemovePosePayload>) => {
+    return `REMOVE_POSE:${action.payload}`;
+  },
+  "poses/addPoseBlock": (action: PayloadAction<_.AddPoseBlockPayload>) => {
+    const { id, block, index } = action.payload;
+    const blockTag = getPoseBlockAsString(block);
+    return `ADD_POSE_BLOCK:${id},${index},${blockTag}`;
+  },
+  "poses/updatePoseBlock": (
+    action: PayloadAction<_.UpdatePoseBlockPayload>
   ) => {
-    const { clips, poses, portals } = action.payload;
-    const clipTag = toString(clips, getClipUpdateAsString);
-    const poseTag = toString(poses, getPoseUpdateAsString);
-    const portalTag = toString(portals, getPortalUpdateAsString);
-    return `UPDATE_MEDIA:${clipTag},${poseTag},${portalTag}`;
+    const { id, index, block } = action.payload;
+    const blockTag = getPoseBlockAsString(block);
+    return `UPDATE_POSE_BLOCK:${id},${index},${blockTag}`;
   },
-  "poses/removePoses": (
-    action: PayloadAction<PoseSlice.RemovePosesPayload>
+  "poses/removePoseBlock": (
+    action: PayloadAction<_.RemovePoseBlockPayload>
   ) => {
-    const { clipIds, poseIds, portalIds } = action.payload;
-    const clipTag = toString(clipIds);
-    const poseTag = toString(poseIds);
-    const portalTag = toString(portalIds);
-    return `REMOVE_MEDIA:${clipTag},${poseTag},${portalTag}`;
+    const { id, index } = action.payload;
+    return `REMOVE_POSE_BLOCK:${id},${index}`;
   },
-  "poses/_slicePose": (action: PayloadAction<PoseSlice.SlicePosePayload>) => {
-    const { oldPose, firstPose, secondPose } = action.payload;
-    return `SLICE_MEDIA:${oldPose.id},${firstPose.id},${secondPose.id}`;
+  "poses/movePoseBlock": (action: PayloadAction<_.MovePoseBlockPayload>) => {
+    const { id, oldIndex, newIndex } = action.payload;
+    return `MOVE_POSE_BLOCK:${id},${oldIndex},${newIndex}`;
   },
-  "poses/clearPosesByTrackId": (
-    action: PayloadAction<PoseSlice.ClearPosesByTrackIdPayload>
-  ) => {
-    return `CLEAR_TRACK:${action.payload}`;
-  },
-  "poses/removePosesByTrackId": (
-    action: PayloadAction<PoseSlice.RemovePosesByTrackIdPayload>
-  ) => {
-    return `REMOVE_TRACK:${action.payload.originalId}`;
+  "poses/clearPose": (action: PayloadAction<_.ClearPosePayload>) => {
+    return `CLEAR_POSE:${action.payload}`;
   },
 };

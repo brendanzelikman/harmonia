@@ -4,10 +4,9 @@ import {
   getTickSubdivision,
 } from "utils/durations";
 import {
-  selectDraftedClip,
+  selectDraftedPatternClip,
   selectPatternById,
-  selectScaleTrackScales,
-  selectTrackChain,
+  selectScaleTrackChain,
   selectTrackMidiScaleMap,
   selectTrackScaleChain,
   selectTransport,
@@ -20,10 +19,12 @@ import {
   PatternNoId,
   defaultPattern,
   getPatternBlockDuration,
+  getPatternChordNotes,
+  getPatternMidiChordNotes,
   initializePattern,
   isPatternChord,
+  isPatternMidiChord,
   isPatternMidiNote,
-  isPatternRest,
   resolvePatternNoteToMidi,
   resolvePatternStreamToMidi,
 } from "types/Pattern";
@@ -67,13 +68,9 @@ export const createPattern =
 export const copyPattern =
   (pattern: Pattern = defaultPattern): Thunk<PatternId> =>
   (dispatch) => {
-    const newPattern = initializePattern({
-      ...pattern,
-      name: `${pattern.name} Copy`,
-    });
-    dispatch(addPattern(newPattern));
-    dispatch(setSelectedPattern(newPattern.id));
-    return newPattern.id;
+    return dispatch(
+      createPattern({ ...pattern, name: `${pattern.name} Copy` })
+    );
   };
 
 /** Removes a list of patterns from the store. */
@@ -81,7 +78,7 @@ export const deletePattern =
   (id: PatternId): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const { patternId } = selectDraftedClip(project);
+    const { patternId } = selectDraftedPatternClip(project);
     const patternIds = selectPatternIds(project);
 
     // Get the index of the pattern to remove
@@ -91,7 +88,8 @@ export const deletePattern =
     // If the pattern is selected, select the previous or next pattern
     if (patternId === id) {
       const nextId = patternIds?.[index - 1] || patternIds?.[index + 1];
-      if (nextId) dispatch(updateMediaDraft({ clip: { patternId: nextId } }));
+      if (nextId)
+        dispatch(updateMediaDraft({ patternClip: { patternId: nextId } }));
     }
 
     // Remove the pattern
@@ -109,7 +107,9 @@ export const autoBindPattern =
 
     // Get all of the pattern's scales
     const scaleTrackMap = selectTrackMidiScaleMap(project);
-    const trackChain = [...selectTrackChain(project, pattern.patternTrackId)];
+    const trackChain = [
+      ...selectScaleTrackChain(project, pattern.patternTrackId),
+    ];
     const scaleChain = selectTrackScaleChain(project, pattern.patternTrackId);
 
     // Order the pattern's MIDI scales from highest to lowest
@@ -121,11 +121,16 @@ export const autoBindPattern =
     const mappedStream = pattern.stream.map((block, i) => {
       // Skip if the block is a rest
       const midiBlock = midiStream[i];
-      if (isPatternRest(block) || isPatternRest(midiBlock)) return block;
+      if (!isPatternChord(block) || !isPatternMidiChord(midiBlock))
+        return block;
+
+      // Get the notes from both blocks
+      const notes = getPatternChordNotes(block);
+      const midiNotes = getPatternMidiChordNotes(midiBlock);
 
       // Iterate over each note of the block
-      return block.map((note, j) => {
-        const midiNote = midiBlock[j].MIDI;
+      return notes.map((note, j) => {
+        const midiNote = midiNotes[j].MIDI;
         // For each note, iterate over every track
         for (let t = 0; t < trackChain.length; t++) {
           // Find if a degree exists in the track
@@ -214,14 +219,15 @@ export const playPattern =
 
       // Compute the time and skip if it's a rest
       const seconds = convertTicksToSeconds(transport, blockDuration);
-      if (isPatternRest(block)) {
+      if (!isPatternMidiChord(block)) {
         time += seconds;
         continue;
       }
 
       // Compute the subdivisions and pitches
       const subdivision = getTickSubdivision(blockDuration);
-      const pitches = block.map((note) => getMidiPitch(note.MIDI));
+      const notes = getPatternMidiChordNotes(block);
+      const pitches = notes.map((note) => getMidiPitch(note.MIDI));
 
       // Set a timeout to play the chord
       setTimeout(() => {
@@ -257,9 +263,7 @@ export const exportPatternToMIDI =
     if (!streamLength) return;
 
     // Get the scales needed for the pattern based on its track
-    const parents = selectTrackChain(project, pattern?.patternTrackId);
-    const parentIds = parents.map((p) => p.id);
-    const scales = selectScaleTrackScales(project, parentIds);
+    const scales = selectTrackScaleChain(project, pattern?.patternTrackId);
 
     // Prepare a new MIDI file
     const midi = new Midi();
@@ -278,7 +282,8 @@ export const exportPatternToMIDI =
 
       // Add the notes to the track
       const noteTime = convertTicksToSeconds(transport, time);
-      for (const note of block) {
+      const notes = getPatternChordNotes(block);
+      for (const note of notes) {
         if (isPatternMidiNote(note)) {
           track.addNote({
             midi: note.MIDI,
@@ -352,7 +357,10 @@ export const exportPatternToXML =
       // Extract info from the chord
       const ticks = getPatternBlockDuration(block);
       const type = getStraightDuration(getTickDuration(ticks));
-      const firstNote = isPatternRest(block) ? undefined : block?.[0];
+      const notes = isPatternMidiChord(block)
+        ? getPatternMidiChordNotes(block)
+        : undefined;
+      const firstNote = notes ? notes[0] : undefined;
       const isTriplet = isTripletNote(firstNote) && type !== "quarter";
 
       // Create the XML note
@@ -410,21 +418,23 @@ export const playPatternChord = (
   chord: PatternMidiChord,
   time: Seconds
 ) => {
-  // Do nothing if the chord is invalid or empty
-  if (!isPatternChord(chord) || !chord.length) return;
-
   // Do nothing if the sampler is not loaded
   if (!sampler || !sampler.loaded) return;
 
+  // Do nothing if the chord is invalid or empty
+  if (!isPatternMidiChord(chord)) return;
+
   // Get the pitches
-  const pitches: string[] = chord.map((note) => getMidiPitch(note.MIDI));
+  const notes = getPatternMidiChordNotes(chord);
+  if (!notes.length) return;
+  const pitches: string[] = notes.map((note) => getMidiPitch(note.MIDI));
 
   // Get the Tone.js subdivision
-  const duration = chord[0].duration ?? EighthNoteTicks;
+  const duration = getPatternBlockDuration(notes) ?? EighthNoteTicks;
   const subdivision = getTickSubdivision(duration);
 
-  // Get the velocity scaled for TOne.js
-  const velocity = chord[0].velocity ?? DEFAULT_VELOCITY;
+  // Get the velocity scaled for Tone.js
+  const velocity = notes[0].velocity ?? DEFAULT_VELOCITY;
   const scaledVelocity = velocity / MAX_VELOCITY;
 
   // Play the chord with the sampler

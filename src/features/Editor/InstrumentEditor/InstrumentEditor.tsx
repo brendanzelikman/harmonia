@@ -1,9 +1,8 @@
 import { Editor } from "features/Editor/components";
 import { InstrumentEditor } from "./components";
 import useInstrumentEditorHotkeys from "./hooks/useInstrumentEditorHotkeys";
-import { PatternTrack } from "types/PatternTrack";
+import { PatternTrack } from "types/Track";
 import { EditorProps } from "../Editor";
-import { getDestination } from "tone";
 import { useState } from "react";
 
 export interface InstrumentEditorProps extends EditorProps {
