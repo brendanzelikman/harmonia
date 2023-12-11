@@ -29,6 +29,7 @@ import {
 } from "redux/selectors";
 import { isPatternTrack } from "types/Track";
 import { PortaledClipMap, applyPortalsToClips } from "types/Portal";
+import { sendMessageToPlugin } from "server";
 
 /** Select the length of the arrangement past. */
 export const selectArrangementPastLength = (project: Project) =>
@@ -157,15 +158,15 @@ export const selectChordsByTicks = createDeepEqualSelector(
   ],
   (arrangement, streamMap, tracks) => {
     const result = {} as InstrumentNotesByTicks;
-    const streamKeys = Object.keys(streamMap) as ClipId[];
+    const clipIds = Object.keys(streamMap) as ClipId[];
     const clipMap = arrangement.clips ?? {};
 
     // Iterate through each clip stream
-    for (const key of streamKeys) {
+    for (const key of clipIds) {
       const clip = clipMap[key];
       const stream = streamMap[key];
       const streamLength = stream.length;
-      if (!clip) continue;
+      if (!clip || !streamLength) continue;
 
       // Get the pattern track
       const patternTrack = tracks[clip.trackId];
@@ -185,6 +186,8 @@ export const selectChordsByTicks = createDeepEqualSelector(
 
         // Get the current tick within the clip
         const notes = getPatternMidiChordNotes(block);
+        if (!notes.length) continue;
+
         const tick = baseTick + j;
 
         // Add the chord to the map
@@ -198,6 +201,10 @@ export const selectChordsByTicks = createDeepEqualSelector(
       }
     }
 
+    // Send the result to the plugin
+    // console.log(JSON.stringify(result));
+
+    // Return the result
     return result;
   }
 );

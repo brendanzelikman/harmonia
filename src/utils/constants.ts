@@ -13,6 +13,7 @@ export const DEFAULT_BEATS_PER_BAR = 4;
 // Volume Settings
 // ------------------------------------------------------------
 
+export const DEFAULT_INSTRUMENT_KEY = "upright-piano";
 export const DEFAULT_VOLUME = -6;
 export const MIN_VOLUME = -60;
 export const MAX_VOLUME = 6;

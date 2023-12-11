@@ -143,7 +143,7 @@ function EditorComponent() {
   const editorClass = classNames(
     isShowingTracks ? "w-[calc(100%-300px)]" : "w-full",
     "top-0 right-0 h-full bg-gradient-to-t from-[#09203f] to-[#33454b]",
-    "font-nunito transition-all duration-300",
+    "font-nunito z-10 transition-all duration-300",
     { "absolute animate-in fade-in": isVisible },
     { "hidden animate-out fade-out pointer-events-none": !isVisible }
   );

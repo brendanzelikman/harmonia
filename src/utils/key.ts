@@ -81,7 +81,7 @@ const phrygianScales = createScalesInAllKeys("phrygian-scale");
 const locrianScales = createScalesInAllKeys("locrian-scale");
 
 const lydianKeys = majorKeys;
-const mixolydianKeys = lowerKeys(majorKeys, 11);
+const mixolydianKeys = majorKeys;
 const dorianKeys = raiseKeys(minorKeys, 8);
 const phrygianKeys = lowerKeys(minorKeys, 1);
 const locrianKeys = lowerKeys(phrygianKeys, 6);

@@ -1,139 +1,569 @@
 {
-  "keyboards": [
+  "Keyboards": [
     {
-      "key": "grand_piano",
-      "name": "Grand Piano"
+      "key": "bored-of-canada",
+      "name": "Bored Of Canada"
     },
     {
-      "key": "padded_piano",
-      "name": "Padded Piano"
+      "key": "caveman-bass-16",
+      "name": "Caveman Bass (16)"
     },
     {
-      "key": "suitcase_organ",
-      "name": "Suitcase Organ"
+      "key": "caveman-bass-8",
+      "name": "Caveman Bass (8)"
     },
     {
-      "key": "suitcase_piano",
-      "name": "Suitcase Piano"
+      "key": "caveman-bass-all",
+      "name": "Caveman Bass (All)"
     },
     {
-      "key": "tonewheel_organ",
-      "name": "Tonewheel Organ"
+      "key": "caveman-clarinet",
+      "name": "Caveman Clarinet"
     },
     {
-      "key": "wurly_piano",
-      "name": "Wurly Piano"
+      "key": "caveman-flute",
+      "name": "Caveman Flute"
+    },
+    {
+      "key": "caveman-trombone",
+      "name": "Caveman Trombone"
+    },
+    {
+      "key": "caveman-trompette",
+      "name": "Caveman Trompette"
+    },
+    {
+      "key": "caveman-violin",
+      "name": "Caveman Violin"
+    },
+    {
+      "key": "mellow-organ",
+      "name": "Mellow Organ"
+    },
+    {
+      "key": "micro-piano",
+      "name": "Micro Piano"
+    },
+    {
+      "key": "organ",
+      "name": "Organ"
+    },
+    {
+      "key": "roger-piano",
+      "name": "Roger Piano"
+    },
+    {
+      "key": "sly-piano",
+      "name": "Sly Piano"
+    },
+    {
+      "key": "upright-piano",
+      "name": "Upright Piano"
+    },
+    {
+      "key": "upright-piano-loud",
+      "name": "Upright Piano (Loud)"
+    },
+    {
+      "key": "upright-piano-soft",
+      "name": "Upright Piano (Soft)"
+    },
+    {
+      "key": "whoopie-bass",
+      "name": "Whoopie Bass"
     }
   ],
-  "guitars": [
+  "Strings": [
     {
-      "key": "amped_guitar",
-      "name": "Amped Guitar"
+      "key": "cello-pizzicato",
+      "name": "Cello (Pizzicato)"
     },
     {
-      "key": "electric_bass",
-      "name": "Electric Bass"
+      "key": "cello-staccato",
+      "name": "Cello (Staccato)"
     },
     {
-      "key": "electric_guitar",
-      "name": "Electric Guitar"
+      "key": "cello-staccato-loud",
+      "name": "Cello (Staccato, Loud)"
     },
     {
-      "key": "heavy_guitar",
-      "name": "Heavy Guitar"
+      "key": "cello-staccato-soft",
+      "name": "Cello (Staccato, Soft)"
     },
     {
-      "key": "mute_guitar",
-      "name": "Mute Guitar"
+      "key": "cello-sustained",
+      "name": "Cello (Sustained)"
     },
     {
-      "key": "palmed_bass",
-      "name": "Palmed Bass"
+      "key": "cello-sustained-loud",
+      "name": "Cello (Sustained, Loud)"
     },
     {
-      "key": "pixelated_guitar",
-      "name": "Pixelated Guitar"
+      "key": "cello-sustained-soft",
+      "name": "Cello (Sustained, Soft)"
     },
     {
-      "key": "slapped_bass",
-      "name": "Slapped Bass"
+      "key": "cello-section-pizzicato",
+      "name": "Cello Section (Pizzicato)"
+    },
+    {
+      "key": "cello-section-spiccato",
+      "name": "Cello Section (Spiccato)"
+    },
+    {
+      "key": "cello-section-tremolo",
+      "name": "Cello Section (Tremolo)"
+    },
+    {
+      "key": "cello-section-vibrato",
+      "name": "Cello Section (Vibrato)"
+    },
+    {
+      "key": "contrabass-pizzicato",
+      "name": "Contrabass (Pizzicato)"
+    },
+    {
+      "key": "contrabass-spiccato",
+      "name": "Contrabass (Spiccato)"
+    },
+    {
+      "key": "contrabass-tremolo",
+      "name": "Contrabass (Tremolo)"
+    },
+    {
+      "key": "contrabass-vibrato",
+      "name": "Contrabass (Vibrato)"
+    },
+    {
+      "key": "harp",
+      "name": "Harp"
+    },
+    {
+      "key": "meatbass",
+      "name": "Meatbass"
+    },
+    {
+      "key": "meatbass-arco",
+      "name": "Meatbass (Arco)"
+    },
+    {
+      "key": "meatbass-arco-loud",
+      "name": "Meatbass (Arco, Loud)"
+    },
+    {
+      "key": "meatbass-arco-meaty",
+      "name": "Meatbass (Arco, Meaty)"
+    },
+    {
+      "key": "meatbass-arco-soft",
+      "name": "Meatbass (Arco, Soft)"
+    },
+    {
+      "key": "meatbass-pizz",
+      "name": "Meatbass (Pizz)"
+    },
+    {
+      "key": "meatbass-pizz-loud",
+      "name": "Meatbass (Pizz, Loud)"
+    },
+    {
+      "key": "meatbass-pizz-meaty",
+      "name": "Meatbass (Pizz, Meaty)"
+    },
+    {
+      "key": "viola-section-pizzicato",
+      "name": "Viola Section (Pizzicato)"
+    },
+    {
+      "key": "viola-section-spiccato",
+      "name": "Viola Section (Spiccato)"
+    },
+    {
+      "key": "viola-section-tremolo",
+      "name": "Viola Section (Tremolo)"
+    },
+    {
+      "key": "viola-section-vibrato",
+      "name": "Viola Section (Vibrato)"
+    },
+    {
+      "key": "violin-pizzicato",
+      "name": "Violin (Pizzicato)"
+    },
+    {
+      "key": "violin-spiccato",
+      "name": "Violin (Spiccato)"
+    },
+    {
+      "key": "violin-tremolo",
+      "name": "Violin (Tremolo)"
+    },
+    {
+      "key": "violin-vibrato",
+      "name": "Violin (Vibrato)"
+    },
+    {
+      "key": "violin-section-pizzicato",
+      "name": "Violin Section (Pizzicato)"
+    },
+    {
+      "key": "violin-section-spiccato",
+      "name": "Violin Section (Spiccato)"
+    },
+    {
+      "key": "violin-section-tremolo",
+      "name": "Violin Section (Tremolo)"
+    },
+    {
+      "key": "violin-section-vibrato",
+      "name": "Violin Section (Vibrato)"
     }
   ],
-  "strings": [
+  "Guitars": [
     {
-      "key": "cello",
-      "name": "Cello"
+      "key": "acoustic-guitar",
+      "name": "Acoustic Guitar"
     },
     {
-      "key": "double_bass",
-      "name": "Double Bass"
+      "key": "acoustic-guitar-loud",
+      "name": "Acoustic Guitar (Loud)"
     },
     {
-      "key": "strings_ensemble",
-      "name": "Strings Ensemble"
+      "key": "acoustic-guitar-soft",
+      "name": "Acoustic Guitar (Soft)"
     },
     {
-      "key": "viola",
-      "name": "Viola"
+      "key": "black-guitar",
+      "name": "Black Guitar"
     },
     {
-      "key": "violin",
-      "name": "Violin"
+      "key": "black-guitar-loud",
+      "name": "Black Guitar (Loud)"
+    },
+    {
+      "key": "black-guitar-soft",
+      "name": "Black Guitar (Soft)"
+    },
+    {
+      "key": "black-guitar-staccato",
+      "name": "Black Guitar (Staccato)"
+    },
+    {
+      "key": "green-guitar",
+      "name": "Green Guitar"
+    },
+    {
+      "key": "green-guitar-loud",
+      "name": "Green Guitar (Loud)"
+    },
+    {
+      "key": "green-guitar-soft",
+      "name": "Green Guitar (Soft)"
+    },
+    {
+      "key": "green-guitar-staccato",
+      "name": "Green Guitar (Staccato)"
+    },
+    {
+      "key": "shiny-guitar",
+      "name": "Shiny Guitar"
+    },
+    {
+      "key": "shiny-guitar-loud",
+      "name": "Shiny Guitar (Loud)"
+    },
+    {
+      "key": "shiny-guitar-soft",
+      "name": "Shiny Guitar (Soft)"
     }
   ],
-  "woodwinds": [
+  "Basses": [
     {
-      "key": "bassoon",
-      "name": "Bassoon"
+      "key": "baby-blue-bass",
+      "name": "Baby Blue Bass"
     },
     {
-      "key": "clarinet",
-      "name": "Clarinet"
+      "key": "baby-blue-bass-loud",
+      "name": "Baby Blue Bass (Loud)"
     },
     {
-      "key": "flute",
-      "name": "Flute"
+      "key": "dark-black-bass",
+      "name": "Dark Black Bass"
     },
     {
-      "key": "oboe",
-      "name": "Oboe"
+      "key": "dark-black-bass-loud",
+      "name": "Dark Black Bass (Loud)"
     },
     {
-      "key": "piccolo",
-      "name": "Piccolo"
+      "key": "dark-black-bass-soft",
+      "name": "Dark Black Bass (Soft)"
     },
     {
-      "key": "woodwinds_ensemble",
-      "name": "Woodwinds Ensemble"
+      "key": "dark-black-bass-staccato",
+      "name": "Dark Black Bass (Staccato)"
+    },
+    {
+      "key": "fashionbass",
+      "name": "Fashionbass"
+    },
+    {
+      "key": "fashionbass-loud",
+      "name": "Fashionbass (Loud)"
+    },
+    {
+      "key": "fashionbass-soft",
+      "name": "Fashionbass (Soft)"
+    },
+    {
+      "key": "pastabass-fetuccine",
+      "name": "Pastabass (Fetuccine)"
+    },
+    {
+      "key": "pastabass-linguine",
+      "name": "Pastabass (Linguine)"
+    },
+    {
+      "key": "pastabass-spaghetti",
+      "name": "Pastabass (Spaghetti)"
+    },
+    {
+      "key": "pastabass-tagliatelle",
+      "name": "Pastabass (Tagliatelle)"
     }
   ],
-  "brass": [
+  "Brass": [
     {
-      "key": "brass_ensemble",
-      "name": "Brass Ensemble"
+      "key": "cnd-war-tuba-staccato",
+      "name": "CND War Tuba (Staccato)"
     },
     {
-      "key": "english_horn",
-      "name": "English Horn"
+      "key": "cnd-war-tuba-staccato-loud",
+      "name": "CND War Tuba (Staccato, Loud)"
     },
     {
-      "key": "saxophone",
-      "name": "Saxophone"
+      "key": "cnd-war-tuba-staccato-soft",
+      "name": "CND War Tuba (Staccato, Soft)"
     },
     {
-      "key": "trombone",
-      "name": "Trombone"
+      "key": "cnd-war-tuba-sustained",
+      "name": "CND War Tuba (Sustained)"
     },
     {
-      "key": "trumpet",
-      "name": "Trumpet"
+      "key": "cnd-war-tuba-sustained-loud",
+      "name": "CND War Tuba (Sustained, Loud)"
     },
     {
-      "key": "tuba",
-      "name": "Tuba"
+      "key": "cnd-war-tuba-sustained-soft",
+      "name": "CND War Tuba (Sustained, Soft)"
+    },
+    {
+      "key": "dyn-war-tuba-staccato",
+      "name": "DYN War Tuba (Staccato)"
+    },
+    {
+      "key": "dyn-war-tuba-staccato-loud",
+      "name": "DYN War Tuba (Staccato, Loud)"
+    },
+    {
+      "key": "dyn-war-tuba-staccato-soft",
+      "name": "DYN War Tuba (Staccato, Soft)"
+    },
+    {
+      "key": "dyn-war-tuba-sustained",
+      "name": "DYN War Tuba (Sustained)"
+    },
+    {
+      "key": "dyn-war-tuba-sustained-loud",
+      "name": "DYN War Tuba (Sustained, Loud)"
+    },
+    {
+      "key": "dyn-war-tuba-sustained-soft",
+      "name": "DYN War Tuba (Sustained, Soft)"
+    },
+    {
+      "key": "f-horn-staccato",
+      "name": "F Horn (Staccato)"
+    },
+    {
+      "key": "f-horn-sustained",
+      "name": "F Horn (Sustained)"
+    },
+    {
+      "key": "harmon-mute-trumpet-loud",
+      "name": "Harmon Mute Trumpet (Loud)"
+    },
+    {
+      "key": "harmon-mute-trumpet-soft",
+      "name": "Harmon Mute Trumpet (Soft)"
+    },
+    {
+      "key": "straight-mute-trumpet-loud",
+      "name": "Straight Mute Trumpet (Loud)"
+    },
+    {
+      "key": "straight-mute-trumpet-soft",
+      "name": "Straight Mute Trumpet (Soft)"
+    },
+    {
+      "key": "trombone-staccato",
+      "name": "Trombone (Staccato)"
+    },
+    {
+      "key": "trombone-staccato-loud",
+      "name": "Trombone (Staccato, Loud)"
+    },
+    {
+      "key": "trombone-staccato-soft",
+      "name": "Trombone (Staccato, Soft)"
+    },
+    {
+      "key": "trombone-sustained",
+      "name": "Trombone (Sustained)"
+    },
+    {
+      "key": "trombone-sustained-loud",
+      "name": "Trombone (Sustained, Loud)"
+    },
+    {
+      "key": "trombone-sustained-soft",
+      "name": "Trombone (Sustained, Soft)"
+    },
+    {
+      "key": "trumpet-staccato",
+      "name": "Trumpet (Staccato)"
+    },
+    {
+      "key": "trumpet-staccato-loud",
+      "name": "Trumpet (Staccato, Loud)"
+    },
+    {
+      "key": "trumpet-staccato-soft",
+      "name": "Trumpet (Staccato, Soft)"
+    },
+    {
+      "key": "trumpet-sustained-loud",
+      "name": "Trumpet (Sustained, Loud)"
+    },
+    {
+      "key": "trumpet-sustained-soft",
+      "name": "Trumpet (Sustained, Soft)"
     }
   ],
-  "mallets": [
+  "Woodwinds": [
+    {
+      "key": "bassoon-staccato",
+      "name": "Bassoon (Staccato)"
+    },
+    {
+      "key": "bassoon-sustained",
+      "name": "Bassoon (Sustained)"
+    },
+    {
+      "key": "bassoon-vibrato",
+      "name": "Bassoon (Vibrato)"
+    },
+    {
+      "key": "bear-sax-staccato",
+      "name": "Bear Sax (Staccato)"
+    },
+    {
+      "key": "bear-sax-staccato-loud",
+      "name": "Bear Sax (Staccato, Loud)"
+    },
+    {
+      "key": "bear-sax-staccato-soft",
+      "name": "Bear Sax (Staccato, Soft)"
+    },
+    {
+      "key": "bear-sax-sustained",
+      "name": "Bear Sax (Sustained)"
+    },
+    {
+      "key": "bear-sax-sustained-loud",
+      "name": "Bear Sax (Sustained, Loud)"
+    },
+    {
+      "key": "bear-sax-sustained-soft",
+      "name": "Bear Sax (Sustained, Soft)"
+    },
+    {
+      "key": "clarinet-staccato",
+      "name": "Clarinet (Staccato)"
+    },
+    {
+      "key": "clarinet-staccato-loud",
+      "name": "Clarinet (Staccato, Loud)"
+    },
+    {
+      "key": "clarinet-staccato-soft",
+      "name": "Clarinet (Staccato, Soft)"
+    },
+    {
+      "key": "clarinet-sustained",
+      "name": "Clarinet (Sustained)"
+    },
+    {
+      "key": "clarinet-sustained-loud",
+      "name": "Clarinet (Sustained, Loud)"
+    },
+    {
+      "key": "clarinet-sustained-soft",
+      "name": "Clarinet (Sustained, Soft)"
+    },
+    {
+      "key": "flute-staccato",
+      "name": "Flute (Staccato)"
+    },
+    {
+      "key": "flute-sustained",
+      "name": "Flute (Sustained)"
+    },
+    {
+      "key": "flute-vibrato",
+      "name": "Flute (Vibrato)"
+    },
+    {
+      "key": "oboe-staccato",
+      "name": "Oboe (Staccato)"
+    },
+    {
+      "key": "oboe-sustained",
+      "name": "Oboe (Sustained)"
+    },
+    {
+      "key": "oboe-vibrato",
+      "name": "Oboe (Vibrato)"
+    },
+    {
+      "key": "piccolo-staccato",
+      "name": "Piccolo (Staccato)"
+    },
+    {
+      "key": "piccolo-sustained",
+      "name": "Piccolo (Sustained)"
+    },
+    {
+      "key": "squidpipes-long",
+      "name": "Squidpipes (Long)"
+    },
+    {
+      "key": "squidpipes-short",
+      "name": "Squidpipes (Short)"
+    }
+  ],
+  "Mallets": [
+    {
+      "key": "bass-drum",
+      "name": "Bass Drum"
+    },
+    {
+      "key": "bass-drum-loud",
+      "name": "Bass Drum (Loud)"
+    },
+    {
+      "key": "bass-drum-soft",
+      "name": "Bass Drum (Soft)"
+    },
     {
       "key": "glockenspiel",
       "name": "Glockenspiel"
@@ -143,204 +573,752 @@
       "name": "Marimba"
     },
     {
+      "key": "metal-hit-1",
+      "name": "Metal Hit 1"
+    },
+    {
+      "key": "metal-hit-2",
+      "name": "Metal Hit 2"
+    },
+    {
+      "key": "metal-hit-3",
+      "name": "Metal Hit 3"
+    },
+    {
       "key": "timpani",
       "name": "Timpani"
     },
     {
-      "key": "tubular_bells",
-      "name": "Tubular Bells"
+      "key": "timpani-loud",
+      "name": "Timpani (Loud)"
     },
     {
-      "key": "vibraphone",
-      "name": "Vibraphone"
+      "key": "timpani-soft",
+      "name": "Timpani (Soft)"
+    },
+    {
+      "key": "timpani-roll",
+      "name": "Timpani Roll"
+    },
+    {
+      "key": "timpani-roll-loud",
+      "name": "Timpani Roll (Loud)"
     },
     {
       "key": "xylophone",
       "name": "Xylophone"
     }
   ],
-  "kicks": [
+  "Bells": [
     {
-      "key": "808_kick",
-      "name": "808 Kick"
+      "key": "agogo-bell-1",
+      "name": "Agogo Bell 1"
     },
     {
-      "key": "analog_kick",
-      "name": "Analog Kick"
+      "key": "agogo-bell-2",
+      "name": "Agogo Bell 2"
     },
     {
-      "key": "blunt_kick",
-      "name": "Blunt Kick"
+      "key": "agogo-bell-3",
+      "name": "Agogo Bell 3"
     },
     {
-      "key": "edm_kick",
-      "name": "Edm Kick"
+      "key": "bell-tree-metal-scrape",
+      "name": "Bell Tree (Metal Scrape)"
     },
     {
-      "key": "machine_kick",
-      "name": "Machine Kick"
+      "key": "bell-tree-scrape",
+      "name": "Bell Tree (Scrape)"
     },
     {
-      "key": "tube_kick",
-      "name": "Tube Kick"
+      "key": "bell-tree-wood-scrape",
+      "name": "Bell Tree (Wood Scrape)"
+    },
+    {
+      "key": "nepalese-bell",
+      "name": "Nepalese Bell"
+    },
+    {
+      "key": "nepalese-bell-double",
+      "name": "Nepalese Bell (Double)"
+    },
+    {
+      "key": "nepalese-bell-triple",
+      "name": "Nepalese Bell (Triple)"
+    },
+    {
+      "key": "sleigh-bell-1",
+      "name": "Sleigh Bell 1"
+    },
+    {
+      "key": "sleigh-bell-1-loud",
+      "name": "Sleigh Bell 1 (Loud)"
+    },
+    {
+      "key": "sleigh-bell-1-quiet",
+      "name": "Sleigh Bell 1 (Quiet)"
+    },
+    {
+      "key": "sleigh-bell-1-shake",
+      "name": "Sleigh Bell 1 (Shake)"
+    },
+    {
+      "key": "sleigh-bell-2",
+      "name": "Sleigh Bell 2"
+    },
+    {
+      "key": "sleigh-bell-2-loud",
+      "name": "Sleigh Bell 2 (Loud)"
+    },
+    {
+      "key": "sleigh-bell-2-shake",
+      "name": "Sleigh Bell 2 (Shake)"
+    },
+    {
+      "key": "tubular-bells",
+      "name": "Tubular Bells"
     }
   ],
-  "toms": [
+  "Kick Drums": [
     {
-      "key": "909_tom",
-      "name": "909 Tom"
+      "key": "dn-b-kick",
+      "name": "DnB Kick"
     },
     {
-      "key": "analog_tom",
-      "name": "Analog Tom"
+      "key": "hard-kick-1",
+      "name": "Hard Kick 1"
     },
     {
-      "key": "blast_tom",
-      "name": "Blast Tom"
+      "key": "hard-kick-2",
+      "name": "Hard Kick 2"
     },
     {
-      "key": "electric_tom",
-      "name": "Electric Tom"
+      "key": "hard-kick-3",
+      "name": "Hard Kick 3"
     },
     {
-      "key": "vintage_tom",
-      "name": "Vintage Tom"
+      "key": "knife-party-kick",
+      "name": "Knife Party Kick"
+    },
+    {
+      "key": "soft-bright-kick-1",
+      "name": "Soft Bright Kick 1"
+    },
+    {
+      "key": "soft-bright-kick-2",
+      "name": "Soft Bright Kick 2"
+    },
+    {
+      "key": "soft-bright-kick-3",
+      "name": "Soft Bright Kick 3"
+    },
+    {
+      "key": "soft-bright-kick-4",
+      "name": "Soft Bright Kick 4"
     }
   ],
-  "snares": [
+  "Snare Drums": [
     {
-      "key": "build_snare",
-      "name": "Build Snare"
+      "key": "snare-1",
+      "name": "Snare 1"
     },
     {
-      "key": "clappy_snare",
-      "name": "Clappy Snare"
+      "key": "snare-1-click",
+      "name": "Snare 1 (Click)"
     },
     {
-      "key": "machine_snare",
-      "name": "Machine Snare"
+      "key": "snare-1-loud",
+      "name": "Snare 1 (Loud)"
     },
     {
-      "key": "rattled_snare",
-      "name": "Rattled Snare"
+      "key": "snare-1-no-snare",
+      "name": "Snare 1 (No Snare)"
     },
     {
-      "key": "short_snare",
-      "name": "Short Snare"
+      "key": "snare-1-rimshot",
+      "name": "Snare 1 (Rimshot)"
+    },
+    {
+      "key": "snare-1-soft",
+      "name": "Snare 1 (Soft)"
+    },
+    {
+      "key": "snare-2",
+      "name": "Snare 2"
+    },
+    {
+      "key": "snare-2-click",
+      "name": "Snare 2 (Click)"
+    },
+    {
+      "key": "snare-2-loud",
+      "name": "Snare 2 (Loud)"
+    },
+    {
+      "key": "snare-2-no-snare",
+      "name": "Snare 2 (No Snare)"
+    },
+    {
+      "key": "snare-2-rimshot",
+      "name": "Snare 2 (Rimshot)"
+    },
+    {
+      "key": "snare-2-soft",
+      "name": "Snare 2 (Soft)"
+    },
+    {
+      "key": "snare-3",
+      "name": "Snare 3"
+    },
+    {
+      "key": "snare-3-click",
+      "name": "Snare 3 (Click)"
+    },
+    {
+      "key": "snare-3-loud",
+      "name": "Snare 3 (Loud)"
+    },
+    {
+      "key": "snare-3-rimshot",
+      "name": "Snare 3 (Rimshot)"
+    },
+    {
+      "key": "snare-3-soft",
+      "name": "Snare 3 (Soft)"
     }
   ],
-  "claps": [
+  "Tenor Drums": [
     {
-      "key": "707_clap",
-      "name": "707 Clap"
+      "key": "dr-tom-1",
+      "name": "DR Tom 1"
     },
     {
-      "key": "build_clap",
-      "name": "Build Clap"
+      "key": "dr-tom-2",
+      "name": "DR Tom 2"
     },
     {
-      "key": "digital_clap",
-      "name": "Digital Clap"
+      "key": "dr-tom-3",
+      "name": "DR Tom 3"
     },
     {
-      "key": "machine_clap",
-      "name": "Machine Clap"
+      "key": "dr-tom-4",
+      "name": "DR Tom 4"
     },
     {
-      "key": "punchy_clap",
-      "name": "Punchy Clap"
+      "key": "dr-tom-5",
+      "name": "DR Tom 5"
     },
     {
-      "key": "snap",
-      "name": "Snap"
+      "key": "high-tenor-drum",
+      "name": "High Tenor Drum"
+    },
+    {
+      "key": "high-tenor-drum-loud",
+      "name": "High Tenor Drum (Loud)"
+    },
+    {
+      "key": "high-tenor-drum-soft",
+      "name": "High Tenor Drum (Soft)"
+    },
+    {
+      "key": "low-tenor-drum",
+      "name": "Low Tenor Drum"
+    },
+    {
+      "key": "low-tenor-drum-loud",
+      "name": "Low Tenor Drum (Loud)"
+    },
+    {
+      "key": "low-tenor-drum-soft",
+      "name": "Low Tenor Drum (Soft)"
     }
   ],
-  "hats": [
+  "Cymbals": [
     {
-      "key": "acid_hat",
-      "name": "Acid Hat"
+      "key": "clash-cymbals-loose-loud",
+      "name": "Clash Cymbals (Loose, Loud)"
     },
     {
-      "key": "acoustic_closed_hat",
-      "name": "Acoustic Closed Hat"
+      "key": "clash-cymbals-loose-soft",
+      "name": "Clash Cymbals (Loose, Soft)"
     },
     {
-      "key": "acoustic_open_hat",
-      "name": "Acoustic Open Hat"
+      "key": "clash-cymbals-tight",
+      "name": "Clash Cymbals (Tight)"
     },
     {
-      "key": "machine_closed_hat",
-      "name": "Machine Closed Hat"
+      "key": "suspended-cymbal-hard",
+      "name": "Suspended Cymbal (Hard)"
     },
     {
-      "key": "machine_open_hat",
-      "name": "Machine Open Hat"
+      "key": "suspended-cymbal-hard-loud",
+      "name": "Suspended Cymbal (Hard, Loud)"
     },
     {
-      "key": "noisy_hat",
-      "name": "Noisy Hat"
+      "key": "suspended-cymbal-hard-quiet",
+      "name": "Suspended Cymbal (Hard, Quiet)"
+    },
+    {
+      "key": "suspended-cymbal-metal",
+      "name": "Suspended Cymbal (Metal)"
+    },
+    {
+      "key": "suspended-cymbal-metal-loud",
+      "name": "Suspended Cymbal (Metal, Loud)"
+    },
+    {
+      "key": "suspended-cymbal-metal-quiet",
+      "name": "Suspended Cymbal (Metal, Quiet)"
+    },
+    {
+      "key": "suspended-cymbal-soft",
+      "name": "Suspended Cymbal (Soft)"
+    },
+    {
+      "key": "suspended-cymbal-soft-loud",
+      "name": "Suspended Cymbal (Soft, Loud)"
+    },
+    {
+      "key": "suspended-cymbal-soft-quiet",
+      "name": "Suspended Cymbal (Soft, Quiet)"
+    },
+    {
+      "key": "suspended-cymbal-wood",
+      "name": "Suspended Cymbal (Wood)"
+    },
+    {
+      "key": "suspended-cymbal-wood-loud",
+      "name": "Suspended Cymbal (Wood, Loud)"
+    },
+    {
+      "key": "suspended-cymbal-wood-quiet",
+      "name": "Suspended Cymbal (Wood, Quiet)"
     }
   ],
-  "cymbals": [
+  "Wood Percussion": [
     {
-      "key": "build_crash",
-      "name": "Build Crash"
+      "key": "bongo-high",
+      "name": "Bongo (High)"
     },
     {
-      "key": "crash",
-      "name": "Crash"
+      "key": "bongo-low",
+      "name": "Bongo (Low)"
     },
     {
-      "key": "dirty_crash",
-      "name": "Dirty Crash"
+      "key": "claves-loud",
+      "name": "Claves (Loud)"
     },
     {
-      "key": "edm_crash",
-      "name": "Edm Crash"
+      "key": "claves-soft",
+      "name": "Claves (Soft)"
     },
     {
-      "key": "oldskool_crash",
-      "name": "Oldskool Crash"
-    }
-  ],
-  "percussion": [
-    {
-      "key": "bongo",
-      "name": "Bongo"
+      "key": "guiro-long",
+      "name": "Guiro (Long)"
     },
     {
-      "key": "conga",
-      "name": "Conga"
+      "key": "guiro-short",
+      "name": "Guiro (Short)"
     },
     {
-      "key": "crash",
-      "name": "Crash"
+      "key": "log-drum-high",
+      "name": "Log Drum (High)"
+    },
+    {
+      "key": "log-drum-high-loud",
+      "name": "Log Drum (High, Loud)"
+    },
+    {
+      "key": "log-drum-high-quiet",
+      "name": "Log Drum (High, Quiet)"
+    },
+    {
+      "key": "log-drum-low",
+      "name": "Log Drum (Low)"
+    },
+    {
+      "key": "log-drum-low-loud",
+      "name": "Log Drum (Low, Loud)"
+    },
+    {
+      "key": "log-drum-low-quiet",
+      "name": "Log Drum (Low, Quiet)"
+    },
+    {
+      "key": "maraca",
+      "name": "Maraca"
+    },
+    {
+      "key": "maraca-shake",
+      "name": "Maraca Shake"
+    },
+    {
+      "key": "ratchet",
+      "name": "Ratchet"
+    },
+    {
+      "key": "ratchet-fast",
+      "name": "Ratchet (Fast)"
+    },
+    {
+      "key": "ratchet-slow",
+      "name": "Ratchet (Slow)"
     },
     {
       "key": "shaker",
       "name": "Shaker"
+    },
+    {
+      "key": "slapstick",
+      "name": "Slapstick"
+    },
+    {
+      "key": "tambourine-down",
+      "name": "Tambourine (Down)"
+    },
+    {
+      "key": "tambourine-fast-roll",
+      "name": "Tambourine (Fast Roll)"
+    },
+    {
+      "key": "tambourine-shake",
+      "name": "Tambourine (Shake)"
+    },
+    {
+      "key": "tambourine-slow-roll",
+      "name": "Tambourine (Slow Roll)"
+    },
+    {
+      "key": "tambourine-up",
+      "name": "Tambourine (Up)"
+    },
+    {
+      "key": "vibraslap",
+      "name": "Vibraslap"
+    },
+    {
+      "key": "wood-block-loud",
+      "name": "Wood Block (Loud)"
+    },
+    {
+      "key": "wood-block-soft",
+      "name": "Wood Block (Soft)"
     }
   ],
-  "vocals": [
+  "Metal Percussion": [
+    {
+      "key": "cabasa",
+      "name": "Cabasa"
+    },
+    {
+      "key": "cowbell",
+      "name": "Cowbell"
+    },
+    {
+      "key": "drum-brake",
+      "name": "Drum Brake"
+    },
+    {
+      "key": "drum-brake-loud",
+      "name": "Drum Brake (Loud)"
+    },
+    {
+      "key": "drum-brake-soft",
+      "name": "Drum Brake (Soft)"
+    },
+    {
+      "key": "flexatone-fast",
+      "name": "Flexatone (Fast)"
+    },
+    {
+      "key": "flexatone-slow",
+      "name": "Flexatone (Slow)"
+    },
+    {
+      "key": "gong-hard",
+      "name": "Gong (Hard)"
+    },
+    {
+      "key": "gong-smack",
+      "name": "Gong (Smack)"
+    },
+    {
+      "key": "gong-soft",
+      "name": "Gong (Soft)"
+    },
+    {
+      "key": "triangle-1-loud",
+      "name": "Triangle 1 (Loud)"
+    },
+    {
+      "key": "triangle-1-roll",
+      "name": "Triangle 1 (Roll)"
+    },
+    {
+      "key": "triangle-1-soft",
+      "name": "Triangle 1 (Soft)"
+    },
+    {
+      "key": "triangle-2-loud",
+      "name": "Triangle 2 (Loud)"
+    },
+    {
+      "key": "triangle-2-roll",
+      "name": "Triangle 2 (Roll)"
+    },
+    {
+      "key": "triangle-2-soft",
+      "name": "Triangle 2 (Soft)"
+    },
+    {
+      "key": "triangle-3-loud",
+      "name": "Triangle 3 (Loud)"
+    },
+    {
+      "key": "triangle-3-roll",
+      "name": "Triangle 3 (Roll)"
+    },
+    {
+      "key": "triangle-3-soft",
+      "name": "Triangle 3 (Soft)"
+    }
+  ],
+  "Trvth Drumkit": [
+    {
+      "key": "bass-drum-trvth",
+      "name": "Bass Drum (Trvth)"
+    },
+    {
+      "key": "crash-1-bell-trvth",
+      "name": "Crash 1 + Bell (Trvth)"
+    },
+    {
+      "key": "crash-2-bell-trvth",
+      "name": "Crash 2 + Bell (Trvth)"
+    },
+    {
+      "key": "crash-cymbal-trvth",
+      "name": "Crash Cymbal (Trvth)"
+    },
+    {
+      "key": "floor-tom-trvth",
+      "name": "Floor Tom (Trvth)"
+    },
+    {
+      "key": "hi-tom-trvth",
+      "name": "Hi Tom (Trvth)"
+    },
+    {
+      "key": "mid-tom-trvth",
+      "name": "Mid Tom (Trvth)"
+    },
+    {
+      "key": "open-hi-hat-trvth",
+      "name": "Open Hi-Hat (Trvth)"
+    },
+    {
+      "key": "pedal-hi-hat-trvth",
+      "name": "Pedal Hi-Hat (Trvth)"
+    },
+    {
+      "key": "ride-cymbal-trvth",
+      "name": "Ride Cymbal (Trvth)"
+    },
+    {
+      "key": "ride-cymbal-bell-trvth",
+      "name": "Ride Cymbal + Bell (Trvth)"
+    },
+    {
+      "key": "snare-drum-trvth",
+      "name": "Snare Drum (Trvth)"
+    }
+  ],
+  "Amen Breaks": [
+    {
+      "key": "amen-break-1-140-bpm",
+      "name": "Amen Break 1 (140 BPM)"
+    },
+    {
+      "key": "amen-break-2-160-bpm",
+      "name": "Amen Break 2 (160 BPM)"
+    },
+    {
+      "key": "amen-break-3-160-bpm",
+      "name": "Amen Break 3 (160 BPM)"
+    },
+    {
+      "key": "amen-break-4-165-bpm",
+      "name": "Amen Break 4 (165 BPM)"
+    },
+    {
+      "key": "amen-break-5-200-bpm",
+      "name": "Amen Break 5 (200 BPM)"
+    }
+  ],
+  "Animal Sounds": [
+    {
+      "key": "alien-call",
+      "name": "Alien Call"
+    },
+    {
+      "key": "cat-meow",
+      "name": "Cat Meow"
+    },
+    {
+      "key": "cow-moo",
+      "name": "Cow Moo"
+    },
+    {
+      "key": "cricket-chirp",
+      "name": "Cricket Chirp"
+    },
+    {
+      "key": "dog-bark",
+      "name": "Dog Bark"
+    },
+    {
+      "key": "dog-bark-close",
+      "name": "Dog Bark (Close)"
+    },
+    {
+      "key": "pig-oink",
+      "name": "Pig Oink"
+    },
+    {
+      "key": "rooster-crow",
+      "name": "Rooster Crow"
+    }
+  ],
+  "Miscellaneous Sounds": [
+    {
+      "key": "ambience",
+      "name": "Ambience"
+    },
+    {
+      "key": "brick-scrape",
+      "name": "Brick Scrape"
+    },
+    {
+      "key": "bubbles",
+      "name": "Bubbles"
+    },
+    {
+      "key": "cash-register",
+      "name": "Cash Register"
+    },
+    {
+      "key": "chip-zap",
+      "name": "Chip Zap"
+    },
+    {
+      "key": "glass-break",
+      "name": "Glass Break"
+    },
+    {
+      "key": "punch",
+      "name": "Punch"
+    },
+    {
+      "key": "static-noise",
+      "name": "Static Noise"
+    },
+    {
+      "key": "whoosh",
+      "name": "Whoosh"
+    },
+    {
+      "key": "zap-1",
+      "name": "Zap 1"
+    },
+    {
+      "key": "zap-2",
+      "name": "Zap 2"
+    },
+    {
+      "key": "zap-3",
+      "name": "Zap 3"
+    }
+  ],
+  "Death Metal Vocals": [
+    {
+      "key": "all-right",
+      "name": "All Right"
+    },
+    {
+      "key": "are-you-ready",
+      "name": "Are You Ready"
+    },
+    {
+      "key": "argh",
+      "name": "Argh"
+    },
+    {
+      "key": "ay",
+      "name": "Ay"
+    },
+    {
+      "key": "blah",
+      "name": "Blah"
+    },
+    {
+      "key": "do-you-understand",
+      "name": "Do You Understand"
+    },
+    {
+      "key": "ey",
+      "name": "Ey"
+    },
+    {
+      "key": "go",
+      "name": "Go"
+    },
+    {
+      "key": "here-it-comes",
+      "name": "Here It Comes"
+    },
+    {
+      "key": "here-we-go",
+      "name": "Here We Go"
+    },
     {
       "key": "hey",
       "name": "Hey"
     },
     {
-      "key": "right",
-      "name": "Right"
+      "key": "inhale-1",
+      "name": "Inhale 1"
     },
     {
-      "key": "uh",
-      "name": "Uh"
+      "key": "inhale-2",
+      "name": "Inhale 2"
     },
     {
-      "key": "wha",
-      "name": "Wha"
+      "key": "oh",
+      "name": "Oh"
     },
     {
-      "key": "yay",
-      "name": "Yay"
+      "key": "oi",
+      "name": "Oi"
+    },
+    {
+      "key": "oo",
+      "name": "Oo"
+    },
+    {
+      "key": "the-humans-are-coming",
+      "name": "The Humans Are Coming"
+    },
+    {
+      "key": "turn-it-up",
+      "name": "Turn It Up"
+    },
+    {
+      "key": "turn-up-the-bass",
+      "name": "Turn Up The Bass"
+    },
+    {
+      "key": "ugh",
+      "name": "Ugh"
     },
     {
       "key": "yeah",

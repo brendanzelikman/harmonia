@@ -166,7 +166,7 @@ export function NavbarPatternListbox() {
       leaveFrom="transform opacity-100 scale-100"
       leaveTo="transform opacity-0 scale-90"
     >
-      <Listbox.Options className="font-nunito absolute z-10 min-w-full max-w-fit py-1 bg-slate-800 border border-white/50 text-base rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+      <Listbox.Options className="font-nunito absolute min-w-full max-w-fit py-1 bg-slate-800 border border-white/50 text-base rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
         {PresetPatternGroupList.map(renderPatternCategory)}
       </Listbox.Options>
     </Transition>

@@ -1,17 +1,21 @@
 {
   "name": "harmonia",
   "private": true,
+  "main": "main.js",
   "homepage": "https://brendanzelikman.github.io/harmonia/",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "test": "vitest",
+    "start": "electron-forge start",
     "build": "tsc && vite build",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "preview": "vite preview",
-    "samples": "node scripts/generateSamples.js && node scripts/generateCategories.js"
+    "samples": "node scripts/generateSamples.js && node scripts/generateCategories.js",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.9",
@@ -23,7 +27,9 @@
     "class-variance-authority": "^0.7.0",
     "classnames": "^2.3.2",
     "clsx": "^2.0.0",
+    "concurrently": "^8.2.2",
     "d3-color": "^3.1.0",
+    "electron-squirrel-startup": "^1.0.0",
     "esbuild": "^0.17.8",
     "flowbite": "^1.6.3",
     "flowbite-react": "^0.3.8",
@@ -54,8 +60,15 @@
     "webmidi": "^3.1.4"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^7.2.0",
+    "@electron-forge/maker-deb": "^7.2.0",
+    "@electron-forge/maker-rpm": "^7.2.0",
+    "@electron-forge/maker-squirrel": "^7.2.0",
+    "@electron-forge/maker-zip": "^7.2.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.2.0",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.6",
+    "@tailwindcss/typography": "^0.5.10",
     "@types/jest": "^29.5.4",
     "@types/lodash": "^4.14.191",
     "@types/react": "^18.0.26",
@@ -63,6 +76,7 @@
     "@types/react-scroll-sync": "^0.8.4",
     "@vitejs/plugin-react": "^3.0.0",
     "autoprefixer": "^10.4.13",
+    "electron": "^28.0.0",
     "gh-pages": "^5.0.0",
     "postcss": "^8.4.21",
     "tailwindcss": "^3.3.1",

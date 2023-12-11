@@ -1,4 +1,5 @@
 import {
+  SixteenthNoteTicks,
   getStraightDuration,
   getTickDuration,
   getTickSubdivision,
@@ -6,6 +7,7 @@ import {
 import {
   selectDraftedPatternClip,
   selectPatternById,
+  selectPatternTrackById,
   selectScaleTrackChain,
   selectTrackMidiScaleMap,
   selectTrackScaleChain,
@@ -17,6 +19,7 @@ import {
   PatternId,
   PatternMidiChord,
   PatternNoId,
+  PatternStream,
   defaultPattern,
   getPatternBlockDuration,
   getPatternChordNotes,
@@ -39,7 +42,11 @@ import { convertTicksToSeconds } from "types/Transport";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { updateMediaDraft } from "redux/Timeline";
 import { DemoXML } from "assets/demoXML";
-import { ScaleVector, resolveScaleChainToMidi } from "types/Scale";
+import {
+  ScaleVector,
+  getScaleAsArray,
+  resolveScaleChainToMidi,
+} from "types/Scale";
 import { getScaleKey } from "utils/key";
 import { MusicXML } from "lib/musicxml";
 import { Seconds, XML } from "types/units";
@@ -53,6 +60,8 @@ import {
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { downloadBlob } from "utils/html";
 import { getDegreeOfNoteInTrack, setSelectedPattern } from "redux/thunks";
+import { random, sample } from "lodash";
+import BasicScales from "presets/scales/BasicScales";
 
 /** Creates a pattern and adds it to the slice. */
 export const createPattern =
@@ -94,6 +103,51 @@ export const deletePattern =
 
     // Remove the pattern
     dispatch(removePattern(id));
+  };
+
+/** Randomize a pattern using a random scale or the pattern's track chain */
+export const randomizePattern =
+  (id: PatternId, length: number): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const pattern = selectPatternById(project, id);
+    if (!pattern) return;
+
+    // Get a random scale from the pattern track if possible
+    const { patternTrackId } = pattern;
+    const track = selectPatternTrackById(project, patternTrackId);
+    const scaleChain = selectTrackScaleChain(project, patternTrackId);
+    const scales = track ? scaleChain : Object.values(BasicScales);
+    const scale = sample(scales);
+
+    // Initialize the pattern stream
+    const noteCount = length;
+    const stream: PatternStream = [];
+    const restPercent = 0.1;
+
+    // Iterate over the note count
+    for (let i = 0; i < noteCount; i++) {
+      const seed = Math.random();
+      if (seed < restPercent) {
+        stream.push({ duration: SixteenthNoteTicks });
+      } else {
+        const noteCount = 1;
+        const scaleNotes = getScaleAsArray(scale);
+        const chord = new Array(noteCount).fill(0).map((_) => {
+          const degree = random(0, scaleNotes.length - 1);
+          return {
+            degree,
+            duration: SixteenthNoteTicks,
+            velocity: DEFAULT_VELOCITY,
+            scaleId: scale?.id,
+          };
+        });
+        stream.push(chord);
+      }
+    }
+
+    // Update the pattern
+    dispatch(updatePattern({ id, stream }));
   };
 
 /** Auto-bind a pattern to use the highest scales possible for each note. */

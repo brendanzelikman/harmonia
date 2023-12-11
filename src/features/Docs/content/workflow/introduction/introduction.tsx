@@ -20,9 +20,13 @@ export function WorkflowIntroductionDocsContent() {
               Of course, there are many different ways to create a project, but
               we can cover a great detail of information by starting with a
               simple workflow. Here, we will give you a crash course on using
-              the website by recreating the Ode to Barry demo from scratch! If
-              this is your first time using the website, we recommend that you
-              follow along in order, since the content builds upon itself.
+              the website by recreating the Ode to Barry demo from scratch! This
+              tutorial might not always be updated with the most recent version
+              of the website, since the interfaces are constantly evolving, but
+              it will always cover all that you need to know about creating a
+              project! If this is your first time using the website, we
+              recommend that you follow along in order, since the content builds
+              upon itself.
             </DocsParagraph>
             <DocsParagraph>
               Here is the outline for the lessons we have planned:

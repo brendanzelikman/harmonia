@@ -10,6 +10,7 @@ import {
   isScaleEditorOpen,
 } from "types/Editor";
 import { InstrumentKey, LIVE_AUDIO_INSTANCES } from "types/Instrument";
+import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 
 export function useEditorInstrument() {
   const dispatch = useProjectDispatch();
@@ -62,8 +63,8 @@ export function useEditorInstrument() {
     }
 
     // Set the instrument to piano by default on the scale editor
-    if (onScaleEditor && instance?.key !== "grand_piano") {
-      setInstrument("grand_piano");
+    if (onScaleEditor && instance?.key !== DEFAULT_INSTRUMENT_KEY) {
+      setInstrument(DEFAULT_INSTRUMENT_KEY);
     }
   }, [onInstrumentEditor, onPatternEditor, onScaleEditor, pattern, track]);
 

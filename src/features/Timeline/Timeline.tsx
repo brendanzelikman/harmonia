@@ -168,7 +168,7 @@ export function Timeline() {
   return (
     <div
       id="timeline"
-      className="flex flex-col relative w-full h-full animate-in fade-in zoom-in-150"
+      className="flex flex-col relative w-full h-full animate-in fade-in duration-75"
     >
       <TimelineContextMenu />
       {TimelineGrid}

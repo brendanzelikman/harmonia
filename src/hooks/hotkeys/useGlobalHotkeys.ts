@@ -27,7 +27,7 @@ export function useGlobalHotkeys() {
 
   // Meta + Alt + N = New Project
   useOverridingHotkeys("meta+alt+n", () =>
-    dispatch(() => createProject().then(() => location.reload()))
+    createProject().then(() => location.reload())
   );
 
   // Meta + P = View Projects

@@ -96,11 +96,6 @@ export const PATTERN_UNDO_TYPES: ActionGroup = {
   ) => {
     return `HARMONIZE_PATTERN:${action.payload.id}:${action.payload.interval}`;
   },
-  "patterns/randomizePattern": (
-    action: PayloadAction<_.RandomizePatternPayload>
-  ) => {
-    return `RANDOMIZE_PATTERN:${action.payload}`;
-  },
   "patterns/clearPattern": (action: PayloadAction<_.ClearPatternPayload>) => {
     return `CLEAR_PATTERN:${action.payload}`;
   },

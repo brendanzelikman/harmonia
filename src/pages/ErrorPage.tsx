@@ -1,6 +1,6 @@
 import { useRouteError } from "react-router-dom";
-import { MainButton } from "./LandingPage";
-import { Splash, Background } from "../components/Logo";
+import { MainButton } from "../components/MainButton";
+import { Splash } from "../components/Logo";
 import { unpackError } from "lib/react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 import { clearProject } from "redux/thunks";
@@ -54,7 +54,6 @@ export function ErrorPage() {
             <ErrorAdvice />
           </div>
           <div className="w-full h-full flex flex-col justify-center items-center">
-            <Background />
             <Splash />
             <MainButton />
           </div>

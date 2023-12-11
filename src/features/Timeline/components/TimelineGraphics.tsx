@@ -34,7 +34,11 @@ export const TimelineGraphics = (props: BackgroundProps) => {
   const trackCount = trackIds.length;
   const ltId = trackIds.at(-1);
   const lt = use((_) => selectTrackById(_, ltId));
-  const ltHeight = lt?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
+  const ltHeight = lt
+    ? lt.collapsed
+      ? COLLAPSED_TRACK_HEIGHT
+      : cellHeight
+    : 0;
   const tracksHeight = ltHeight + use((_) => selectTrackedObjectTop(_, lt));
 
   // Selected track dimensions

@@ -34,14 +34,12 @@ import {
 } from "./components";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { useTransportTick } from "hooks";
-import { useNavigate } from "react-router-dom";
 import { undoArrangement, redoArrangement } from "redux/Arrangement";
 import { percent } from "utils/math";
 import { isFileEditorOpen } from "types/Editor";
 
 export function NavbarFileMenu() {
   const dispatch = useProjectDispatch();
-  const navigate = useNavigate();
   const canUndo = useProjectSelector(selectArrangementPastLength);
   const canRedo = useProjectSelector(selectArrangementFutureLength);
   const { downloading } = useProjectSelector(selectTransport);
@@ -253,12 +251,14 @@ export function NavbarFileMenu() {
 
   /** The file button allows the user to toggle the file editor. */
   const FileButton = () => (
-    <NavbarButton className="rounded-full p-1.5">
+    <NavbarButton
+      className="rounded-full p-1.5"
+      onClick={() => dispatch(toggleEditor("file"))}
+    >
       <BsMusicPlayerFill
         className={`w-full h-full select-none cursor-pointer ${
           onFileEditor ? "text-indigo-500" : "text-slate-300"
         }`}
-        onClick={() => dispatch(toggleEditor("file"))}
       />
     </NavbarButton>
   );

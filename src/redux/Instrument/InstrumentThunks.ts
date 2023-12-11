@@ -10,6 +10,7 @@ import {
   InstrumentKey,
   defaultReverb,
 } from "types/Instrument";
+import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 
 interface InstrumentOptions {
   offline?: boolean;
@@ -56,9 +57,12 @@ export const createInstrument =
   };
 
 /** Create the global instrument using the given instrument key. */
-export const createGlobalInstrument = (key: InstrumentKey = "grand_piano") => {
+export const createGlobalInstrument = (
+  key: InstrumentKey = DEFAULT_INSTRUMENT_KEY
+) => {
   // Dispose and delete the old instrument
   const oldInstrument = LIVE_AUDIO_INSTANCES.global;
+  if (oldInstrument?.key === key) return;
   if (oldInstrument) oldInstrument.dispose();
   delete LIVE_AUDIO_INSTANCES.global;
 

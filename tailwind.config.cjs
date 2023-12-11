@@ -2,6 +2,7 @@ const flowbite = require("flowbite/plugin");
 const forms = require("@tailwindcss/forms");
 const aspectRatio = require("@tailwindcss/aspect-ratio");
 const animate = require("tailwindcss-animate");
+const typography = require("@tailwindcss/typography");
 const nav = 60;
 
 /** @type {import('tailwindcss').Config} */
@@ -27,6 +28,7 @@ module.exports = {
       fontFamily: {
         base: ["Open Sans", "sans-serif"],
         nunito: ["Nunito", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
         atari: ["Atari", "sans-serif"],
       },
       backgroundImage: {
@@ -48,5 +50,5 @@ module.exports = {
   corePlugins: {
     aspectRatio: false,
   },
-  plugins: [flowbite, forms, aspectRatio, animate],
+  plugins: [flowbite, typography, forms, aspectRatio, animate],
 };

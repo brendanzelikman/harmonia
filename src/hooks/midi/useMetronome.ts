@@ -29,7 +29,7 @@ export function useMetronome(props = defaultMetronomeProps) {
   useEffect(() => {
     const sampler = new Sampler({
       urls: { C4: "c4.wav" },
-      baseUrl: `${window.location.origin}/harmonia/samples/percussion/conga/`,
+      baseUrl: `${window.location.origin}/harmonia/instruments/percussion/conga/`,
     });
     sampler.toDestination();
     metronome.current = sampler;

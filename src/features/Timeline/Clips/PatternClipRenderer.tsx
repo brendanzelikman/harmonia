@@ -149,7 +149,7 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
         "absolute flex items-center justify-center shrink-0",
         "border border-slate-950/80 rounded transition-all duration-200"
       );
-      const shouldShowSymbol = width > 20 && noteHeight > 8;
+      const shouldShowSymbol = width > 20 && noteHeight > 5;
       const symbol = showMidi ? midi : pitch;
 
       // Return the note

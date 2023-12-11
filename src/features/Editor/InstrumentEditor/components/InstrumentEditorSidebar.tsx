@@ -46,13 +46,13 @@ export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
   /** Each instrument has a corresponding icon for its category */
   const Icon = (props: { category: InstrumentCategory }) => {
     const { category } = props;
-    if (category === "keyboards") return <GiPianoKeys />;
-    if (category === "guitars") return <GiGuitar />;
-    if (category === "strings") return <GiViolin />;
-    if (category === "woodwinds") return <GiClarinet />;
-    if (category === "brass") return <GiTrumpet />;
-    if (category === "mallets") return <GiXylophone />;
-    if (category === "vocals") return <GiSing />;
+    if (category === "Keyboards") return <GiPianoKeys />;
+    if (category === "Guitars") return <GiGuitar />;
+    if (category === "Strings") return <GiViolin />;
+    if (category === "Woodwinds") return <GiClarinet />;
+    if (category === "Brass") return <GiTrumpet />;
+    if (category === "Mallets") return <GiXylophone />;
+    if (category === "Death Metal Vocals") return <GiSing />;
     return <GiDrum />;
   };
 

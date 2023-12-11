@@ -39,6 +39,7 @@ import {
   PresetPatternGroupList,
   PresetPatternGroupMap,
 } from "presets/patterns";
+import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 
 // ------------------------------------------------------------
 // Pattern Serializers
@@ -92,7 +93,7 @@ export const getPatternName = (pattern?: Pattern) => {
 
 /** Get the instrument key of a pattern. */
 export const getPatternInstrumentKey = (pattern?: Pattern) => {
-  return pattern?.instrumentKey ?? "grand_piano";
+  return pattern?.instrumentKey ?? DEFAULT_INSTRUMENT_KEY;
 };
 
 /** Get the category of a pattern. */

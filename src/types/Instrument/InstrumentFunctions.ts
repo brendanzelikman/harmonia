@@ -55,7 +55,7 @@ export const getInstrumentCategory = (
   const category = INSTRUMENT_CATEGORIES.find((category) =>
     categories[category].some((instrument) => instrument.key === key)
   );
-  return category || "keyboards";
+  return category || "Keyboards";
 };
 
 /** Get the name of an instrument by key. */
@@ -70,13 +70,16 @@ export const getInstrumentName = (key?: InstrumentKey): InstrumentName => {
 export const getInstrumentSamplesMap = (
   key: InstrumentKey
 ): SamplerOptions["urls"] => {
-  return samples[key];
+  return samples[key] || {};
 };
 
 /** Get the base URL of an instrument's samples by key. */
 export const getInstrumentSamplesBaseUrl = (key: InstrumentKey) => {
   const category = getInstrumentCategory(key);
-  return `${window.location.origin + `/harmonia/samples/${category}/${key}/`}`;
+  const name = getInstrumentName(key);
+  return `${
+    window.location.origin + `/harmonia/instruments/${category}/${name}/`
+  }`;
 };
 
 /** Get a list of instruments corresponding to the given category. */

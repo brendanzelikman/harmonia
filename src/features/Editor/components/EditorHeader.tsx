@@ -15,6 +15,7 @@ export const EditorHeader: React.FC<HeaderProps> = (props) => {
   /** The title is placed over the strip and can be editable. */
   const Title = (
     <input
+      id="instrument-title"
       className={classNames(
         `w-full bg-transparent text-3xl font-semibold ring-0 border-0 p-0 focus:border outline-none rounded focus:bg-slate-800/30`,
         {

@@ -3,6 +3,7 @@ import {
   START_LOADING_TRANSPORT,
   STOP_LOADING_TRANSPORT,
   loadTransport,
+  unloadTransport,
 } from "redux/Transport";
 import { useCustomEventListener } from "../useCustomEventListener";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
@@ -20,7 +21,7 @@ export function useTransportLoader() {
   useEffect(() => {
     dispatch(loadTransport());
     return () => {
-      dispatch(loadTransport());
+      dispatch(unloadTransport());
     };
   }, [projectId]);
 

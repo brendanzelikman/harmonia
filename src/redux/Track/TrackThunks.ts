@@ -123,7 +123,6 @@ export const duplicateTrack =
       const instrument = allInstruments.find(
         (i) => i.id === track.instrumentId
       );
-      console.log(track, instrument);
       if (instrument) dispatch(addInstrument({ instrument, track }));
     });
     dispatch(addClips({ clips: allClips, callerId }));

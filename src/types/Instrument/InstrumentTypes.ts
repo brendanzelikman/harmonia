@@ -3,6 +3,7 @@ import samples from "assets/instruments/samples.json";
 import { SafeEffect } from "./InstrumentEffectTypes";
 import { nanoid } from "@reduxjs/toolkit";
 import {
+  DEFAULT_INSTRUMENT_KEY,
   DEFAULT_PAN,
   DEFAULT_VOLUME,
   MAX_PAN,
@@ -10,7 +11,7 @@ import {
   MIN_PAN,
   MIN_VOLUME,
 } from "utils/constants";
-import { PatternMidiChord, PatternMidiNote } from "types/Pattern";
+import { PatternMidiNote } from "types/Pattern";
 import { NormalState, createNormalState } from "utils/normalizedState";
 import { Pan, Tick, Volume } from "types/units";
 import { isArray, isBoolean, isPlainObject, isString } from "lodash";
@@ -64,7 +65,7 @@ export const initializeInstrument = (
 /** The default instrument is used for initialization. */
 export const defaultInstrument: Instrument = {
   id: "default-instrument",
-  key: "grand_piano",
+  key: DEFAULT_INSTRUMENT_KEY,
   volume: DEFAULT_VOLUME,
   pan: DEFAULT_PAN,
   mute: false,

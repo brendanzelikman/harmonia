@@ -15,6 +15,7 @@ import {
 } from "redux/thunks";
 import { UndoTypes } from "redux/undoTypes";
 import { toggleEditorAction } from "redux/Editor";
+import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 
 export function ScaleEditorToolbar(props: ScaleEditorProps) {
   const { dispatch, scale, scaleName, isAdding, isRemoving, Button } = props;
@@ -157,7 +158,7 @@ export function ScaleEditorToolbar(props: ScaleEditorProps) {
   /** The user can change the instrument of the scale. */
   const ScaleInstrumentListbox = () => (
     <Editor.InstrumentListbox
-      value={props.instance?.key ?? "grand_piano"}
+      value={props.instance?.key ?? DEFAULT_INSTRUMENT_KEY}
       setValue={props.setInstrument}
     />
   );

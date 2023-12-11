@@ -14,16 +14,10 @@ import {
   getPatternChordNotes,
   isPatternChord,
 } from "types/Pattern";
-import { clamp, isArray, random, reverse, shuffle, union } from "lodash";
+import { clamp, isArray, reverse, shuffle, union } from "lodash";
 import { mod } from "utils/math";
-import { isNestedNote, resolveScaleToMidi, sumScaleVectors } from "types/Scale";
-import {
-  SixteenthNoteTicks,
-  SixtyFourthNoteTicks,
-  WholeNoteTicks,
-} from "utils/durations";
-import { PresetScaleGroupMap } from "presets/scales";
-import { DEFAULT_VELOCITY } from "utils/constants";
+import { isNestedNote, sumScaleVectors } from "types/Scale";
+import { SixtyFourthNoteTicks, WholeNoteTicks } from "utils/durations";
 
 // ------------------------------------------------------------
 // Pattern Payload Types
@@ -109,9 +103,6 @@ export type ShufflePatternPayload = PatternId;
 
 /** A `Pattern` can be harmonized with a particular interval. */
 export type HarmonizePatternPayload = { id: PatternId; interval: number };
-
-/** A `Pattern` can be randomized with a particular length. */
-export type RandomizePatternPayload = { id: PatternId; length: number };
 
 // ------------------------------------------------------------
 // Pattern Slice Definition
@@ -394,41 +385,6 @@ export const patternsSlice = createSlice({
 
       pattern.stream = newStream;
     },
-    /** Randomize a pattern in the store with a specific length. */
-    randomizePattern: (
-      state,
-      action: PayloadAction<RandomizePatternPayload>
-    ) => {
-      const { id, length } = action.payload;
-      const pattern = state.byId[id];
-      if (!pattern) return;
-      const noteCount = length;
-      const stream: PatternStream = [];
-      const restPercent = 0.1;
-      for (let i = 0; i < noteCount; i++) {
-        const seed = Math.random();
-        if (seed < restPercent) {
-          stream.push({ duration: SixteenthNoteTicks });
-        } else {
-          const noteCount = 1;
-          const scales = PresetScaleGroupMap["Basic Scales"];
-          const scale = scales[Math.floor(Math.random() * scales.length)];
-          let midiNotes = resolveScaleToMidi(scale);
-          const chord: PatternBlock = new Array(noteCount).fill(0).map((_) => {
-            const index = random(0, midiNotes.length - 1);
-            const midi = midiNotes[index];
-            midiNotes = midiNotes.filter((note) => note !== midi);
-            return {
-              duration: SixteenthNoteTicks,
-              velocity: DEFAULT_VELOCITY,
-              MIDI: midi,
-            };
-          });
-          stream.push(chord);
-        }
-      }
-      state.byId[id].stream = stream;
-    },
     /** Clear the notes of a pattern in the slice. */
     clearPattern: (state, action: PayloadAction<ClearPatternPayload>) => {
       const patternId = action.payload;
@@ -461,7 +417,6 @@ export const {
   reversePattern,
   arpeggiatePattern,
   harmonizePattern,
-  randomizePattern,
   clearPattern,
 } = patternsSlice.actions;
 

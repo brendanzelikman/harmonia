@@ -73,7 +73,7 @@ export const createScaleTrack =
 /** Create a random hierarchy of `ScaleTracks` */
 export const createRandomHierarchy = (): Thunk => (dispatch) => {
   // Get a random size for the hierarchy
-  const size = random(1, 3);
+  let size = random(2, 5);
   const scales: ScaleObject[] = [];
   const scaleTracks: ScaleTrack[] = [];
 
@@ -93,6 +93,10 @@ export const createRandomHierarchy = (): Thunk => (dispatch) => {
     const sortedNotes = sortScaleNotesByDegree(notes);
     const scale = initializeScaleTrackScale({ notes: sortedNotes });
     scales.push(scale);
+    if (notes.length === 2) {
+      size = i;
+      break;
+    }
   }
 
   // Create a scale track for each scale and chain the parents

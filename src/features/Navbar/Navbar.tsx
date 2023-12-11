@@ -82,7 +82,7 @@ export function Navbar(props: { view: View }) {
   const PlaygroundNavbarContent = useCallback(() => {
     return (
       <div className="w-full flex text-slate-50">
-        <NavbarGroup className="ml-4">
+        <NavbarGroup className="ml-3">
           <NavbarFileMenu />
         </NavbarGroup>
         <NavbarGroup className="ml-3">
@@ -91,7 +91,7 @@ export function Navbar(props: { view: View }) {
         <NavbarGroup className="ml-3">
           <NavbarToolkit />
         </NavbarGroup>
-        <NavbarGroup className="relative ml-auto mr-2 hidden md:flex">
+        <NavbarGroup className="relative ml-auto hidden md:flex">
           <NavbarSettingsMenu />
           {Tour.Button}
         </NavbarGroup>

@@ -18,12 +18,6 @@ export function Logo(props: LogoProps) {
   );
 }
 
-export function Background() {
-  return (
-    <div className="w-screen h-screen fixed bg-gradient-to-t from-[#083a8a] via-[#2c6387] to-[#514f7e] -z-10"></div>
-  );
-}
-
 export function Splash(props: { title?: string; spinning?: boolean }) {
   return (
     <div className="flex flex-col py-24 -mt-16 items-center font-nunito">

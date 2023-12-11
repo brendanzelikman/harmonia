@@ -119,8 +119,7 @@ html {
 
 body {
   font-family: "Open Sans";
-  /* background: linear-gradient(#4161b3, #087dbc, #34c1b3, #85449f); */
-  background: linear-gradient(0deg, #123978, #387196, rgb(76, 73, 139));
+  background: linear-gradient(0deg, #223e8b, #327199, #5b57ae);
   background-size: 100%;
   overflow: auto;
 }

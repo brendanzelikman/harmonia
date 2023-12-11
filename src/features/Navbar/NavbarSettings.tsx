@@ -57,8 +57,8 @@ export function NavbarSettingsMenu() {
       show ? "text-slate-500 shadow-xl rounded-full " : ""
     }`;
     return (
-      <NavbarButton className={className}>
-        <BsGearFill onClick={() => setShow(!show)} />
+      <NavbarButton className={className} onClick={() => setShow(!show)}>
+        <BsGearFill />
       </NavbarButton>
     );
   };
@@ -208,7 +208,7 @@ export function NavbarSettingsMenu() {
    */
   const TransportVolumeSlider = () => (
     <input
-      className="w-24 accent-white caret-slate-50 mr-4"
+      className="w-24 accent-white caret-slate-50 mr-3"
       type="range"
       value={mute ? MIN_TRANSPORT_VOLUME : volume}
       min={MIN_TRANSPORT_VOLUME}

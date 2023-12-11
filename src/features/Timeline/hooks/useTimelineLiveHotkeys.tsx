@@ -126,7 +126,7 @@ export const useTimelineLiveHotkeys = () => {
 
   // Extra keys required for each mode
   const extraKeys = isNumerical
-    ? ["`", "q", "w", "s", "x", "e", "y", "u"]
+    ? ["`", "q", "w", "s", "x", "e", "y", "u", "o"]
     : ["`", "]", "\\", "+"];
 
   // Track all of the held keys
@@ -137,8 +137,15 @@ export const useTimelineLiveHotkeys = () => {
   const numericalKeydown = (e: KeyboardEvent) => {
     if (isInputEvent(e) || editor.view) return;
 
+    const negative = heldKeys["`"];
+
     // Try to get the number of the key
     const number = parseInt(e.key);
+    if (e.key === "o") {
+      const offset = negative ? -12 : 12;
+      dispatch(offsetSelectedPoses({ chromatic: offset }));
+      return;
+    }
     if (isNaN(number)) return;
 
     // Get the pattern track by number (for mute/solo)
@@ -157,7 +164,6 @@ export const useTimelineLiveHotkeys = () => {
 
     // Compute the pose offset record
     let vector = {} as PoseVector;
-    const negative = heldKeys["`"];
     const dir = negative ? -1 : 1;
     const offset = isHoldingShift(e) ? 12 : 0;
 

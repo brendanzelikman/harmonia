@@ -1,571 +1,2409 @@
 {
-  "brass_ensemble": {
-    "24": "24.wav",
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav",
-    "102": "102.wav",
-    "108": "108.wav"
-  },
-  "english_horn": {
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav"
-  },
-  "saxophone": {
-    "24": "24.wav",
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav",
-    "102": "102.wav",
-    "108": "108.wav"
-  },
-  "trombone": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav"
-  },
-  "trumpet": {
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav"
-  },
-  "tuba": {
-    "24": "24.wav",
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav"
-  },
-  "707_clap": {
-    "60": "60.wav"
-  },
-  "build_clap": {
-    "60": "60.wav"
-  },
-  "digital_clap": {
-    "60": "60.wav"
-  },
-  "machine_clap": {
-    "60": "60.wav"
-  },
-  "punchy_clap": {
-    "60": "60.wav"
-  },
-  "snap": {
-    "60": "60.wav"
-  },
-  "build_crash": {
-    "60": "60.wav"
-  },
-  "crash": {
-    "C4": "c4.wav"
-  },
-  "dirty_crash": {
-    "60": "60.wav"
-  },
-  "edm_crash": {
-    "60": "60.wav"
-  },
-  "oldskool_crash": {
-    "60": "60.wav"
-  },
-  "amped_guitar": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav"
-  },
-  "electric_bass": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav"
-  },
-  "electric_guitar": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav"
-  },
-  "heavy_guitar": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav"
-  },
-  "mute_guitar": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav"
-  },
-  "palmed_bass": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav"
-  },
-  "pixelated_guitar": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav"
-  },
-  "slapped_bass": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav"
-  },
-  "acid_hat": {
-    "60": "60.wav"
-  },
-  "acoustic_closed_hat": {
-    "60": "60.wav"
-  },
-  "acoustic_open_hat": {
-    "60": "60.wav"
-  },
-  "machine_closed_hat": {
-    "60": "60.wav"
-  },
-  "machine_open_hat": {
-    "60": "60.wav"
-  },
-  "noisy_hat": {
-    "60": "60.wav"
-  },
-  "grand_piano": {
-    "24": "24.wav",
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav",
-    "102": "102.wav",
-    "108": "108.wav"
-  },
-  "padded_piano": {
-    "24": "24.wav",
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav",
-    "102": "102.wav",
-    "108": "108.wav"
-  },
-  "suitcase_organ": {
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav",
-    "102": "102.wav",
-    "108": "108.wav",
-    "72 2": "72 2.wav",
-    "78 2": "78 2.wav",
-    "84 2": "84 2.wav",
-    "90 2": "90 2.wav",
-    "96 2": "96 2.wav"
-  },
-  "suitcase_piano": {
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav",
-    "30 2": "30 2.wav",
-    "36 2": "36 2.wav",
-    "42 2": "42 2.wav",
-    "48 2": "48 2.wav",
-    "54 2": "54 2.wav",
-    "60 2": "60 2.wav",
-    "66 2": "66 2.wav",
-    "72 2": "72 2.wav",
-    "78 2": "78 2.wav",
-    "84 2": "84 2.wav",
-    "90 2": "90 2.wav",
-    "96 2": "96 2.wav"
-  },
-  "tonewheel_organ": {
-    "24": "24.wav",
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav",
-    "102": "102.wav",
-    "108": "108.wav",
-    "102 2": "102 2.wav",
-    "108 2": "108 2.wav",
-    "24 2": "24 2.wav",
-    "30 2": "30 2.wav",
-    "36 2": "36 2.wav",
-    "42 2": "42 2.wav",
-    "48 2": "48 2.wav",
-    "54 2": "54 2.wav",
-    "60 2": "60 2.wav",
-    "66 2": "66 2.wav",
-    "72 2": "72 2.wav",
-    "78 2": "78 2.wav",
-    "84 2": "84 2.wav",
-    "90 2": "90 2.wav"
-  },
-  "wurly_piano": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav"
-  },
-  "808_kick": {
-    "60": "60.wav"
-  },
-  "analog_kick": {
-    "60": "60.wav"
-  },
-  "blunt_kick": {
-    "60": "60.wav"
-  },
-  "edm_kick": {
-    "60": "60.wav"
-  },
-  "machine_kick": {
-    "60": "60.wav"
-  },
-  "tube_kick": {
-    "60": "60.wav"
-  },
-  "glockenspiel": {
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav"
-  },
-  "marimba": {
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav"
-  },
-  "timpani": {
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav"
-  },
-  "tubular_bells": {
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav"
-  },
-  "vibraphone": {
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav"
-  },
-  "xylophone": {
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav",
-    "102": "102.wav",
-    "108": "108.wav"
-  },
-  "bongo": {
-    "C4": "c4.wav"
-  },
-  "conga": {
-    "C4": "c4.wav"
-  },
-  "shaker": {
-    "C4": "c4.wav"
-  },
-  "build_snare": {
-    "60": "60.wav"
-  },
-  "clappy_snare": {
-    "60": "60.wav"
-  },
-  "machine_snare": {
-    "60": "60.wav"
-  },
-  "rattled_snare": {
-    "60": "60.wav"
-  },
-  "short_snare": {
-    "60": "60.wav"
-  },
-  "cello": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav"
-  },
-  "double_bass": {
-    "24": "24.wav",
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav"
-  },
-  "strings_ensemble": {
-    "24": "24.wav",
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav"
-  },
-  "viola": {
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav"
-  },
-  "violin": {
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav"
-  },
-  "909_tom": {
-    "60": "60.wav"
-  },
-  "analog_tom": {
-    "60": "60.wav"
-  },
-  "blast_tom": {
-    "60": "60.wav"
-  },
-  "electric_tom": {
-    "60": "60.wav"
-  },
-  "vintage_tom": {
-    "60": "60.wav"
+  "amen-break-1-140-bpm": {
+    "c4": "c4.wav"
+  },
+  "amen-break-2-160-bpm": {
+    "c4": "c4.wav"
+  },
+  "amen-break-3-160-bpm": {
+    "c4": "c4.wav"
+  },
+  "amen-break-4-165-bpm": {
+    "c4": "c4.wav"
+  },
+  "amen-break-5-200-bpm": {
+    "c4": "c4.wav"
+  },
+  "alien-call": {
+    "eb5": "eb5.wav"
+  },
+  "cat-meow": {
+    "c4": "c4.wav"
+  },
+  "cow-moo": {
+    "c4": "c4.wav"
+  },
+  "cricket-chirp": {
+    "c4": "c4.wav"
+  },
+  "dog-bark": {
+    "c4": "c4.wav"
+  },
+  "dog-bark-close": {
+    "c4": "c4.wav"
+  },
+  "pig-oink": {
+    "c4": "c4.wav"
+  },
+  "rooster-crow": {
+    "c4": "c4.wav"
+  },
+  "baby-blue-bass": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "baby-blue-bass-loud": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "dark-black-bass": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "dark-black-bass-loud": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "dark-black-bass-soft": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "dark-black-bass-staccato": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "fashionbass": {
+    "ab1": "ab1.wav",
+    "ab2": "ab2.wav",
+    "ab3": "ab3.wav",
+    "ab4": "ab4.wav",
+    "b1": "b1.wav",
+    "b2": "b2.wav",
+    "b3": "b3.wav",
+    "d1": "d1.wav",
+    "d2": "d2.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "f1": "f1.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav"
+  },
+  "fashionbass-loud": {
+    "ab1": "ab1.wav",
+    "ab2": "ab2.wav",
+    "ab3": "ab3.wav",
+    "ab4": "ab4.wav",
+    "b1": "b1.wav",
+    "b2": "b2.wav",
+    "b3": "b3.wav",
+    "d1": "d1.wav",
+    "d2": "d2.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "f1": "f1.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav"
+  },
+  "fashionbass-soft": {
+    "ab1": "ab1.wav",
+    "ab2": "ab2.wav",
+    "ab3": "ab3.wav",
+    "ab4": "ab4.wav",
+    "b1": "b1.wav",
+    "b2": "b2.wav",
+    "b3": "b3.wav",
+    "d1": "d1.wav",
+    "d2": "d2.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "f1": "f1.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav"
+  },
+  "pastabass-fetuccine": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "bb5": "bb5.wav",
+    "db3": "db3.wav",
+    "db4": "db4.wav",
+    "db5": "db5.wav",
+    "db6": "db6.wav",
+    "e2": "e2.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav",
+    "g2": "g2.wav",
+    "g3": "g3.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav"
+  },
+  "pastabass-linguine": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "bb5": "bb5.wav",
+    "db2": "db2.wav",
+    "db3": "db3.wav",
+    "db4": "db4.wav",
+    "db5": "db5.wav",
+    "db6": "db6.wav",
+    "e2": "e2.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav",
+    "g2": "g2.wav",
+    "g3": "g3.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav"
+  },
+  "pastabass-spaghetti": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "bb5": "bb5.wav",
+    "db2": "db2.wav",
+    "db3": "db3.wav",
+    "db4": "db4.wav",
+    "db5": "db5.wav",
+    "db6": "db6.wav",
+    "e2": "e2.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav",
+    "g2": "g2.wav",
+    "g3": "g3.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav"
+  },
+  "pastabass-tagliatelle": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "bb5": "bb5.wav",
+    "db2": "db2.wav",
+    "db3": "db3.wav",
+    "db4": "db4.wav",
+    "db5": "db5.wav",
+    "db6": "db6.wav",
+    "e2": "e2.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav",
+    "g2": "g2.wav",
+    "g3": "g3.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav"
+  },
+  "agogo-bell-1": {
+    "c4": "c4.wav"
+  },
+  "agogo-bell-2": {
+    "c4": "c4.wav"
+  },
+  "agogo-bell-3": {
+    "c4": "c4.wav"
+  },
+  "bell-tree-metal-scrape": {
+    "c4": "c4.wav"
+  },
+  "bell-tree-scrape": {
+    "c4": "c4.wav"
+  },
+  "bell-tree-wood-scrape": {
+    "c4": "c4.wav"
+  },
+  "nepalese-bell": {
+    "c4": "c4.wav"
+  },
+  "nepalese-bell-double": {
+    "c4": "c4.wav"
+  },
+  "nepalese-bell-triple": {
+    "c4": "c4.wav"
+  },
+  "sleigh-bell-1": {
+    "c4": "c4.wav"
+  },
+  "sleigh-bell-1-loud": {
+    "c4": "c4.wav"
+  },
+  "sleigh-bell-1-quiet": {
+    "c4": "c4.wav"
+  },
+  "sleigh-bell-1-shake": {
+    "c4": "c4.wav"
+  },
+  "sleigh-bell-2": {
+    "c4": "c4.wav"
+  },
+  "sleigh-bell-2-loud": {
+    "c4": "c4.wav"
+  },
+  "sleigh-bell-2-shake": {
+    "c4": "c4.wav"
+  },
+  "tubular-bells": {
+    "c4": "c4.wav",
+    "g4": "g4.wav"
+  },
+  "cnd-war-tuba-staccato": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "cnd-war-tuba-staccato-loud": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "cnd-war-tuba-staccato-soft": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "cnd-war-tuba-sustained": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "cnd-war-tuba-sustained-loud": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "cnd-war-tuba-sustained-soft": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "dyn-war-tuba-staccato": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "dyn-war-tuba-staccato-loud": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "dyn-war-tuba-staccato-soft": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "dyn-war-tuba-sustained": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "dyn-war-tuba-sustained-loud": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "dyn-war-tuba-sustained-soft": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "gb0": "gb0.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav"
+  },
+  "f-horn-staccato": {
+    "a2": "a2.wav",
+    "bb1": "bb1.wav",
+    "c1": "c1.wav",
+    "c3": "c3.wav",
+    "d2": "d2.wav",
+    "eb1": "eb1.wav",
+    "f2": "f2.wav",
+    "f4": "f4.wav",
+    "g1": "g1.wav"
+  },
+  "f-horn-sustained": {
+    "a2": "a2.wav",
+    "bb1": "bb1.wav",
+    "c1": "c1.wav",
+    "c3": "c3.wav",
+    "d2": "d2.wav",
+    "eb1": "eb1.wav",
+    "f2": "f2.wav",
+    "f4": "f4.wav",
+    "g1": "g1.wav"
+  },
+  "harmon-mute-trumpet-loud": {
+    "a4": "a4.wav",
+    "ab3": "ab3.wav",
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "c3": "c3.wav",
+    "d4": "d4.wav",
+    "eb3": "eb3.wav",
+    "f4": "f4.wav"
+  },
+  "harmon-mute-trumpet-soft": {
+    "a4": "a4.wav",
+    "ab3": "ab3.wav",
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "c3": "c3.wav",
+    "d4": "d4.wav",
+    "eb3": "eb3.wav",
+    "f4": "f4.wav"
+  },
+  "straight-mute-trumpet-loud": {
+    "a4": "a4.wav",
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "c3": "c3.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "f4": "f4.wav",
+    "g3": "g3.wav"
+  },
+  "straight-mute-trumpet-soft": {
+    "a4": "a4.wav",
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "c3": "c3.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "f4": "f4.wav",
+    "g3": "g3.wav"
+  },
+  "trombone-staccato": {},
+  "trombone-staccato-loud": {
+    "bb0": "bb0.wav",
+    "bb1": "bb1.wav",
+    "bb2": "bb2.wav",
+    "d3": "d3.wav",
+    "f1": "f1.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav"
+  },
+  "trombone-staccato-soft": {
+    "bb0": "bb0.wav",
+    "bb1": "bb1.wav",
+    "bb2": "bb2.wav",
+    "d3": "d3.wav",
+    "f1": "f1.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav"
+  },
+  "trombone-sustained": {
+    "bb0": "bb0.wav",
+    "bb1": "bb1.wav",
+    "c3": "c3.wav",
+    "d2": "d2.wav",
+    "db1": "db1.wav",
+    "db3": "db3.wav",
+    "eb1": "eb1.wav",
+    "eb3": "eb3.wav",
+    "f1": "f1.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav"
+  },
+  "trombone-sustained-loud": {
+    "bb1": "bb1.wav",
+    "c3": "c3.wav",
+    "d2": "d2.wav",
+    "db3": "db3.wav",
+    "eb1": "eb1.wav",
+    "eb3": "eb3.wav",
+    "f1": "f1.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav"
+  },
+  "trombone-sustained-soft": {
+    "bb0": "bb0.wav",
+    "bb1": "bb1.wav",
+    "c3": "c3.wav",
+    "d2": "d2.wav",
+    "db1": "db1.wav",
+    "db3": "db3.wav",
+    "eb1": "eb1.wav",
+    "eb3": "eb3.wav",
+    "f1": "f1.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav"
+  },
+  "trumpet-staccato": {
+    "a2": "a2.wav",
+    "a4": "a4.wav",
+    "bb3": "bb3.wav",
+    "c3": "c3.wav",
+    "c5": "c5.wav",
+    "d4": "d4.wav",
+    "eb3": "eb3.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "g3": "g3.wav"
+  },
+  "trumpet-staccato-loud": {
+    "a2": "a2.wav",
+    "a4": "a4.wav",
+    "bb3": "bb3.wav",
+    "c3": "c3.wav",
+    "c5": "c5.wav",
+    "d4": "d4.wav",
+    "eb3": "eb3.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "g3": "g3.wav"
+  },
+  "trumpet-staccato-soft": {
+    "a2": "a2.wav",
+    "a4": "a4.wav",
+    "bb3": "bb3.wav",
+    "c3": "c3.wav",
+    "c5": "c5.wav",
+    "d4": "d4.wav",
+    "eb3": "eb3.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "g3": "g3.wav"
+  },
+  "trumpet-sustained-loud": {
+    "a2": "a2.wav",
+    "a4": "a4.wav",
+    "bb3": "bb3.wav",
+    "c3": "c3.wav",
+    "c5": "c5.wav",
+    "d4": "d4.wav",
+    "eb3": "eb3.wav",
+    "f2": "f2.wav",
+    "f4": "f4.wav",
+    "g3": "g3.wav"
+  },
+  "trumpet-sustained-soft": {
+    "a2": "a2.wav",
+    "a4": "a4.wav",
+    "bb3": "bb3.wav",
+    "c3": "c3.wav",
+    "c5": "c5.wav",
+    "d4": "d4.wav",
+    "eb3": "eb3.wav",
+    "f2": "f2.wav",
+    "f4": "f4.wav",
+    "g3": "g3.wav"
+  },
+  "clash-cymbals-loose-loud": {
+    "c4": "c4.wav"
+  },
+  "clash-cymbals-loose-soft": {
+    "c4": "c4.wav"
+  },
+  "clash-cymbals-tight": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-hard": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-hard-loud": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-hard-quiet": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-metal": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-metal-loud": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-metal-quiet": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-soft": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-soft-loud": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-soft-quiet": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-wood": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-wood-loud": {
+    "c4": "c4.wav"
+  },
+  "suspended-cymbal-wood-quiet": {
+    "c4": "c4.wav"
+  },
+  "all-right": {
+    "c4": "c4.wav"
+  },
+  "are-you-ready": {
+    "c4": "c4.wav"
+  },
+  "argh": {
+    "c4": "c4.wav"
+  },
+  "ay": {
+    "c4": "c4.wav"
+  },
+  "blah": {
+    "c4": "c4.wav"
+  },
+  "do-you-understand": {
+    "c4": "c4.wav"
+  },
+  "ey": {
+    "c4": "c4.wav"
+  },
+  "go": {
+    "c4": "c4.wav"
+  },
+  "here-it-comes": {
+    "c4": "c4.wav"
+  },
+  "here-we-go": {
+    "c4": "c4.wav"
   },
   "hey": {
-    "60": "60.wav"
+    "c4": "c4.wav"
   },
-  "right": {
-    "60": "60.wav"
+  "inhale-1": {
+    "c4": "c4.wav"
   },
-  "uh": {
-    "60": "60.wav"
+  "inhale-2": {
+    "c4": "c4.wav"
   },
-  "wha": {
-    "60": "60.wav"
+  "oh": {
+    "c4": "c4.wav"
   },
-  "yay": {
-    "60": "60.wav"
+  "oi": {
+    "c4": "c4.wav"
+  },
+  "oo": {
+    "c4": "c4.wav"
+  },
+  "the-humans-are-coming": {
+    "c4": "c4.wav"
+  },
+  "turn-it-up": {
+    "c4": "c4.wav"
+  },
+  "turn-up-the-bass": {
+    "c4": "c4.wav"
+  },
+  "ugh": {
+    "c4": "c4.wav"
   },
   "yeah": {
-    "60": "60.wav"
+    "c4": "c4.wav"
   },
-  "bassoon": {
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav"
+  "acoustic-guitar": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "e2": "e2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav"
   },
-  "clarinet": {
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav"
+  "acoustic-guitar-loud": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "e2": "e2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav"
   },
-  "flute": {
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav"
+  "acoustic-guitar-soft": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "e2": "e2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav"
   },
-  "oboe": {
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav"
+  "black-guitar": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "e3": "e3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
   },
-  "piccolo": {
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav",
-    "102": "102.wav",
-    "108": "108.wav"
+  "black-guitar-loud": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "e3": "e3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
   },
-  "woodwinds_ensemble": {
-    "24": "24.wav",
-    "30": "30.wav",
-    "36": "36.wav",
-    "42": "42.wav",
-    "48": "48.wav",
-    "54": "54.wav",
-    "60": "60.wav",
-    "66": "66.wav",
-    "72": "72.wav",
-    "78": "78.wav",
-    "84": "84.wav",
-    "90": "90.wav",
-    "96": "96.wav",
-    "102": "102.wav",
-    "108": "108.wav"
+  "black-guitar-soft": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "e3": "e3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "black-guitar-staccato": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "green-guitar": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "e3": "e3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "green-guitar-loud": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "e3": "e3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "green-guitar-soft": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "e3": "e3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "green-guitar-staccato": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "e3": "e3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "shiny-guitar": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "e2": "e2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav"
+  },
+  "shiny-guitar-loud": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "e2": "e2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav"
+  },
+  "shiny-guitar-soft": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "e2": "e2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav"
+  },
+  "bored-of-canada": {
+    "g5": "g5.wav"
+  },
+  "caveman-bass-16": {
+    "a2": "a2.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "caveman-bass-8": {
+    "a2": "a2.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "caveman-bass-all": {
+    "a2": "a2.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "caveman-clarinet": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "caveman-flute": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "caveman-trombone": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "caveman-trompette": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "caveman-violin": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav"
+  },
+  "mellow-organ": {
+    "c5": "c5.wav"
+  },
+  "micro-piano": {
+    "c4": "c4.wav"
+  },
+  "organ": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "eb5": "eb5.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav",
+    "gb5": "gb5.wav"
+  },
+  "roger-piano": {
+    "c2": "c2.wav"
+  },
+  "sly-piano": {
+    "c6": "c6.wav"
+  },
+  "upright-piano": {
+    "21": "21.wav",
+    "29": "29.wav",
+    "37": "37.wav",
+    "45": "45.wav",
+    "53": "53.wav",
+    "61": "61.wav",
+    "69": "69.wav",
+    "77": "77.wav",
+    "85": "85.wav",
+    "93": "93.wav",
+    "101": "101.wav",
+    "109": "109.wav"
+  },
+  "upright-piano-loud": {
+    "21": "21.wav",
+    "29": "29.wav",
+    "37": "37.wav",
+    "45": "45.wav",
+    "53": "53.wav",
+    "61": "61.wav",
+    "69": "69.wav",
+    "77": "77.wav",
+    "85": "85.wav",
+    "93": "93.wav",
+    "101": "101.wav",
+    "109": "109.wav"
+  },
+  "upright-piano-soft": {
+    "21": "21.wav",
+    "29": "29.wav",
+    "37": "37.wav",
+    "45": "45.wav",
+    "53": "53.wav",
+    "61": "61.wav",
+    "69": "69.wav",
+    "77": "77.wav",
+    "85": "85.wav",
+    "93": "93.wav",
+    "101": "101.wav",
+    "109": "109.wav"
+  },
+  "whoopie-bass": {
+    "c5": "c5.wav"
+  },
+  "dn-b-kick": {
+    "c4": "c4.wav"
+  },
+  "hard-kick-1": {
+    "c4": "c4.wav"
+  },
+  "hard-kick-2": {
+    "c4": "c4.wav"
+  },
+  "hard-kick-3": {
+    "c4": "c4.wav"
+  },
+  "knife-party-kick": {
+    "c4": "c4.wav"
+  },
+  "soft-bright-kick-1": {
+    "c4": "c4.wav"
+  },
+  "soft-bright-kick-2": {
+    "c4": "c4.wav"
+  },
+  "soft-bright-kick-3": {
+    "c4": "c4.wav"
+  },
+  "soft-bright-kick-4": {
+    "c4": "c4.wav"
+  },
+  "bass-drum": {
+    "c4": "c4.wav"
+  },
+  "bass-drum-loud": {
+    "c4": "c4.wav"
+  },
+  "bass-drum-soft": {
+    "c4": "c4.wav"
+  },
+  "glockenspiel": {
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav",
+    "g6": "g6.wav"
+  },
+  "marimba": {
+    "b2": "b2.wav",
+    "b4": "b4.wav",
+    "c2": "c2.wav",
+    "c4": "c4.wav",
+    "c6": "c6.wav",
+    "f1": "f1.wav",
+    "f3": "f3.wav",
+    "f5": "f5.wav",
+    "g2": "g2.wav",
+    "g4": "g4.wav"
+  },
+  "metal-hit-1": {
+    "c4": "c4.wav"
+  },
+  "metal-hit-2": {
+    "c4": "c4.wav"
+  },
+  "metal-hit-3": {
+    "c4": "c4.wav"
+  },
+  "timpani": {
+    "c4": "c4.wav"
+  },
+  "timpani-loud": {
+    "c4": "c4.wav"
+  },
+  "timpani-soft": {
+    "c4": "c4.wav"
+  },
+  "timpani-roll": {
+    "c4": "c4.wav"
+  },
+  "timpani-roll-loud": {
+    "c4": "c4.wav"
+  },
+  "xylophone": {
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "g3": "g3.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav",
+    "g6": "g6.wav"
+  },
+  "cabasa": {
+    "c4": "c4.wav"
+  },
+  "cowbell": {
+    "c4": "c4.wav"
+  },
+  "drum-brake": {
+    "c4": "c4.wav"
+  },
+  "drum-brake-loud": {
+    "c4": "c4.wav"
+  },
+  "drum-brake-soft": {
+    "c4": "c4.wav"
+  },
+  "flexatone-fast": {
+    "c4": "c4.wav"
+  },
+  "flexatone-slow": {
+    "c4": "c4.wav"
+  },
+  "gong-hard": {
+    "c4": "c4.wav"
+  },
+  "gong-smack": {
+    "c4": "c4.wav"
+  },
+  "gong-soft": {
+    "c4": "c4.wav"
+  },
+  "triangle-1-loud": {
+    "c4": "c4.wav"
+  },
+  "triangle-1-roll": {
+    "c4": "c4.wav"
+  },
+  "triangle-1-soft": {
+    "c4": "c4.wav"
+  },
+  "triangle-2-loud": {
+    "c4": "c4.wav"
+  },
+  "triangle-2-roll": {
+    "c4": "c4.wav"
+  },
+  "triangle-2-soft": {
+    "c4": "c4.wav"
+  },
+  "triangle-3-loud": {
+    "c4": "c4.wav"
+  },
+  "triangle-3-roll": {
+    "c4": "c4.wav"
+  },
+  "triangle-3-soft": {
+    "c4": "c4.wav"
+  },
+  "ambience": {
+    "c4": "c4.wav"
+  },
+  "brick-scrape": {
+    "c4": "c4.wav"
+  },
+  "bubbles": {
+    "c4": "c4.wav"
+  },
+  "cash-register": {
+    "c4": "c4.wav"
+  },
+  "chip-zap": {
+    "c4": "c4.wav"
+  },
+  "glass-break": {
+    "c4": "c4.wav"
+  },
+  "punch": {
+    "c4": "c4.wav"
+  },
+  "static-noise": {
+    "c4": "c4.wav"
+  },
+  "whoosh": {
+    "c4": "c4.wav"
+  },
+  "zap-1": {
+    "c4": "c4.wav"
+  },
+  "zap-2": {
+    "c4": "c4.wav"
+  },
+  "zap-3": {
+    "c4": "c4.wav"
+  },
+  "snare-1": {
+    "c4": "c4.wav"
+  },
+  "snare-1-click": {
+    "c4": "c4.wav"
+  },
+  "snare-1-loud": {
+    "c4": "c4.wav"
+  },
+  "snare-1-no-snare": {
+    "c4": "c4.wav"
+  },
+  "snare-1-rimshot": {
+    "c4": "c4.wav"
+  },
+  "snare-1-soft": {
+    "c4": "c4.wav"
+  },
+  "snare-2": {
+    "c4": "c4.wav"
+  },
+  "snare-2-click": {
+    "c4": "c4.wav"
+  },
+  "snare-2-loud": {
+    "c4": "c4.wav"
+  },
+  "snare-2-no-snare": {
+    "c4": "c4.wav"
+  },
+  "snare-2-rimshot": {
+    "c4": "c4.wav"
+  },
+  "snare-2-soft": {
+    "c4": "c4.wav"
+  },
+  "snare-3": {
+    "c4": "c4.wav"
+  },
+  "snare-3-click": {
+    "c4": "c4.wav"
+  },
+  "snare-3-loud": {
+    "c4": "c4.wav"
+  },
+  "snare-3-rimshot": {
+    "c4": "c4.wav"
+  },
+  "snare-3-soft": {
+    "c4": "c4.wav"
+  },
+  "cello-pizzicato": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "cello-staccato": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "cello-staccato-loud": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "cello-staccato-soft": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb1": "eb1.wav",
+    "gb1": "gb1.wav"
+  },
+  "cello-sustained": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "cello-sustained-loud": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "cello-sustained-soft": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "cello-section-pizzicato": {
+    "a2": "a2.wav",
+    "b1": "b1.wav",
+    "b3": "b3.wav",
+    "c1": "c1.wav",
+    "c3": "c3.wav",
+    "d4": "d4.wav",
+    "e1": "e1.wav",
+    "e3": "e3.wav",
+    "f2": "f2.wav",
+    "f4": "f4.wav",
+    "g1": "g1.wav",
+    "g3": "g3.wav"
+  },
+  "cello-section-spiccato": {
+    "a2": "a2.wav",
+    "b1": "b1.wav",
+    "b3": "b3.wav",
+    "c1": "c1.wav",
+    "c3": "c3.wav",
+    "d2": "d2.wav",
+    "d4": "d4.wav",
+    "e1": "e1.wav",
+    "e3": "e3.wav",
+    "f2": "f2.wav",
+    "f4": "f4.wav",
+    "g1": "g1.wav",
+    "g3": "g3.wav"
+  },
+  "cello-section-tremolo": {
+    "a2": "a2.wav",
+    "b1": "b1.wav",
+    "b3": "b3.wav",
+    "c3": "c3.wav",
+    "d2": "d2.wav",
+    "d4": "d4.wav",
+    "e1": "e1.wav",
+    "e3": "e3.wav",
+    "f2": "f2.wav",
+    "f4": "f4.wav",
+    "g1": "g1.wav",
+    "g3": "g3.wav"
+  },
+  "cello-section-vibrato": {
+    "a2": "a2.wav",
+    "b1": "b1.wav",
+    "b3": "b3.wav",
+    "c1": "c1.wav",
+    "c3": "c3.wav",
+    "d2": "d2.wav",
+    "d4": "d4.wav",
+    "e1": "e1.wav",
+    "e3": "e3.wav",
+    "f2": "f2.wav",
+    "f4": "f4.wav",
+    "g1": "g1.wav",
+    "g3": "g3.wav"
+  },
+  "contrabass-pizzicato": {
+    "ab1": "ab1.wav",
+    "ab2": "ab2.wav",
+    "bb0": "bb0.wav",
+    "c1": "c1.wav",
+    "db2": "db2.wav",
+    "e1": "e1.wav",
+    "e2": "e2.wav",
+    "g0": "g0.wav"
+  },
+  "contrabass-spiccato": {
+    "a1": "a1.wav",
+    "c1": "c1.wav",
+    "db2": "db2.wav",
+    "e0": "e0.wav",
+    "e1": "e1.wav",
+    "g0": "g0.wav"
+  },
+  "contrabass-tremolo": {
+    "ab1": "ab1.wav",
+    "ab2": "ab2.wav",
+    "b2": "b2.wav",
+    "c1": "c1.wav",
+    "e0": "e0.wav",
+    "e1": "e1.wav",
+    "e2": "e2.wav",
+    "g0": "g0.wav"
+  },
+  "contrabass-vibrato": {
+    "a1": "a1.wav",
+    "ab2": "ab2.wav",
+    "b2": "b2.wav",
+    "c1": "c1.wav",
+    "db2": "db2.wav",
+    "e1": "e1.wav",
+    "e2": "e2.wav",
+    "g0": "g0.wav",
+    "gb1": "gb1.wav"
+  },
+  "harp": {
+    "a2": "a2.wav",
+    "a4": "a4.wav",
+    "a6": "a6.wav",
+    "b1": "b1.wav",
+    "b3": "b3.wav",
+    "b5": "b5.wav",
+    "b6": "b6.wav",
+    "c3": "c3.wav",
+    "c5": "c5.wav",
+    "d2": "d2.wav",
+    "d4": "d4.wav",
+    "d6": "d6.wav",
+    "e1": "e1.wav",
+    "e3": "e3.wav",
+    "e5": "e5.wav",
+    "f2": "f2.wav",
+    "f4": "f4.wav",
+    "f6": "f6.wav",
+    "g3": "g3.wav",
+    "g5": "g5.wav"
+  },
+  "meatbass": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "meatbass-arco": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "meatbass-arco-loud": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "meatbass-arco-meaty": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "meatbass-arco-soft": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "eb4": "eb4.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav",
+    "gb4": "gb4.wav"
+  },
+  "meatbass-pizz": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "meatbass-pizz-loud": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "meatbass-pizz-meaty": {
+    "a0": "a0.wav",
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "c1": "c1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "viola-section-pizzicato": {
+    "a3": "a3.wav",
+    "b2": "b2.wav",
+    "b4": "b4.wav",
+    "c2": "c2.wav",
+    "c4": "c4.wav",
+    "e2": "e2.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav",
+    "f3": "f3.wav",
+    "g2": "g2.wav",
+    "g4": "g4.wav"
+  },
+  "viola-section-spiccato": {
+    "a3": "a3.wav",
+    "b2": "b2.wav",
+    "b4": "b4.wav",
+    "c2": "c2.wav",
+    "c4": "c4.wav",
+    "d3": "d3.wav",
+    "d5": "d5.wav",
+    "e2": "e2.wav",
+    "e4": "e4.wav",
+    "f3": "f3.wav",
+    "g2": "g2.wav",
+    "g4": "g4.wav"
+  },
+  "viola-section-tremolo": {
+    "a3": "a3.wav",
+    "b2": "b2.wav",
+    "b4": "b4.wav",
+    "c2": "c2.wav",
+    "c4": "c4.wav",
+    "d3": "d3.wav",
+    "d5": "d5.wav",
+    "e2": "e2.wav",
+    "e4": "e4.wav",
+    "f3": "f3.wav",
+    "g2": "g2.wav",
+    "g4": "g4.wav"
+  },
+  "viola-section-vibrato": {
+    "a3": "a3.wav",
+    "b2": "b2.wav",
+    "b4": "b4.wav",
+    "c2": "c2.wav",
+    "c4": "c4.wav",
+    "e2": "e2.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav",
+    "f3": "f3.wav",
+    "g2": "g2.wav",
+    "g4": "g4.wav"
+  },
+  "violin-pizzicato": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav",
+    "e6": "e6.wav",
+    "g3": "g3.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav"
+  },
+  "violin-spiccato": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav",
+    "g2": "g2.wav",
+    "g3": "g3.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav"
+  },
+  "violin-tremolo": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav",
+    "g2": "g2.wav",
+    "g3": "g3.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav"
+  },
+  "violin-vibrato": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav",
+    "e6": "e6.wav",
+    "g3": "g3.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav",
+    "g6": "g6.wav"
+  },
+  "violin-section-pizzicato": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "b2": "b2.wav",
+    "b4": "b4.wav",
+    "c4": "c4.wav",
+    "d3": "d3.wav",
+    "d5": "d5.wav",
+    "e4": "e4.wav",
+    "g2": "g2.wav",
+    "g4": "g4.wav",
+    "gb3": "gb3.wav"
+  },
+  "violin-section-spiccato": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "b2": "b2.wav",
+    "b4": "b4.wav",
+    "c4": "c4.wav",
+    "d3": "d3.wav",
+    "d5": "d5.wav",
+    "e4": "e4.wav",
+    "g2": "g2.wav",
+    "g4": "g4.wav",
+    "gb3": "gb3.wav"
+  },
+  "violin-section-tremolo": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "b2": "b2.wav",
+    "b4": "b4.wav",
+    "c4": "c4.wav",
+    "d3": "d3.wav",
+    "d5": "d5.wav",
+    "e4": "e4.wav",
+    "g2": "g2.wav",
+    "g4": "g4.wav",
+    "gb3": "gb3.wav"
+  },
+  "violin-section-vibrato": {
+    "a2": "a2.wav",
+    "a3": "a3.wav",
+    "b2": "b2.wav",
+    "b4": "b4.wav",
+    "c4": "c4.wav",
+    "d3": "d3.wav",
+    "d5": "d5.wav",
+    "e4": "e4.wav",
+    "g2": "g2.wav",
+    "g4": "g4.wav",
+    "gb3": "gb3.wav"
+  },
+  "dr-tom-1": {
+    "c4": "c4.wav"
+  },
+  "dr-tom-2": {
+    "c4": "c4.wav"
+  },
+  "dr-tom-3": {
+    "c4": "c4.wav"
+  },
+  "dr-tom-4": {
+    "c4": "c4.wav"
+  },
+  "dr-tom-5": {
+    "c4": "c4.wav"
+  },
+  "high-tenor-drum": {
+    "c4": "c4.wav"
+  },
+  "high-tenor-drum-loud": {
+    "c4": "c4.wav"
+  },
+  "high-tenor-drum-soft": {
+    "c4": "c4.wav"
+  },
+  "low-tenor-drum": {
+    "c4": "c4.wav"
+  },
+  "low-tenor-drum-loud": {
+    "c4": "c4.wav"
+  },
+  "low-tenor-drum-soft": {
+    "c4": "c4.wav"
+  },
+  "bass-drum-trvth": {
+    "c4": "c4.wav"
+  },
+  "crash-1-bell-trvth": {
+    "c4": "c4.wav"
+  },
+  "crash-2-bell-trvth": {
+    "c4": "c4.wav"
+  },
+  "crash-cymbal-trvth": {
+    "c4": "c4.wav"
+  },
+  "floor-tom-trvth": {
+    "c4": "c4.wav"
+  },
+  "hi-tom-trvth": {
+    "c4": "c4.wav"
+  },
+  "mid-tom-trvth": {
+    "c4": "c4.wav"
+  },
+  "open-hi-hat-trvth": {
+    "c4": "c4.wav"
+  },
+  "pedal-hi-hat-trvth": {
+    "c4": "c4.wav"
+  },
+  "ride-cymbal-trvth": {
+    "c4": "c4.wav"
+  },
+  "ride-cymbal-bell-trvth": {
+    "c4": "c4.wav"
+  },
+  "snare-drum-trvth": {
+    "c4": "c4.wav"
+  },
+  "bongo-high": {
+    "c4": "c4.wav"
+  },
+  "bongo-low": {
+    "c4": "c4.wav"
+  },
+  "claves-loud": {
+    "c4": "c4.wav"
+  },
+  "claves-soft": {
+    "c4": "c4.wav"
+  },
+  "guiro-long": {
+    "c4": "c4.wav"
+  },
+  "guiro-short": {
+    "c4": "c4.wav"
+  },
+  "log-drum-high": {
+    "c4": "c4.wav"
+  },
+  "log-drum-high-loud": {
+    "c4": "c4.wav"
+  },
+  "log-drum-high-quiet": {
+    "c4": "c4.wav"
+  },
+  "log-drum-low": {
+    "c4": "c4.wav"
+  },
+  "log-drum-low-loud": {
+    "c4": "c4.wav"
+  },
+  "log-drum-low-quiet": {
+    "c4": "c4.wav"
+  },
+  "maraca": {
+    "c4": "c4.wav"
+  },
+  "maraca-shake": {
+    "c4": "c4.wav"
+  },
+  "ratchet": {
+    "c4": "c4.wav"
+  },
+  "ratchet-fast": {
+    "c4": "c4.wav"
+  },
+  "ratchet-slow": {
+    "c4": "c4.wav"
+  },
+  "shaker": {
+    "c4": "c4.wav"
+  },
+  "slapstick": {
+    "c4": "c4.wav"
+  },
+  "tambourine-down": {
+    "c4": "c4.wav"
+  },
+  "tambourine-fast-roll": {
+    "c4": "c4.wav"
+  },
+  "tambourine-shake": {
+    "c4": "c4.wav"
+  },
+  "tambourine-slow-roll": {
+    "c4": "c4.wav"
+  },
+  "tambourine-up": {
+    "c4": "c4.wav"
+  },
+  "vibraslap": {
+    "c4": "c4.wav"
+  },
+  "wood-block-loud": {
+    "c4": "c4.wav"
+  },
+  "wood-block-soft": {
+    "c4": "c4.wav"
+  },
+  "bassoon-staccato": {
+    "a1": "a1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "e2": "e2.wav",
+    "e3": "e3.wav",
+    "f1": "f1.wav",
+    "g2": "g2.wav",
+    "g3": "g3.wav"
+  },
+  "bassoon-sustained": {
+    "a1": "a1.wav",
+    "a3": "a3.wav",
+    "ab3": "ab3.wav",
+    "bb0": "bb0.wav",
+    "bb1": "bb1.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "db1": "db1.wav",
+    "eb3": "eb3.wav",
+    "f1": "f1.wav",
+    "g2": "g2.wav"
+  },
+  "bassoon-vibrato": {
+    "a1": "a1.wav",
+    "a3": "a3.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "e3": "e3.wav",
+    "g1": "g1.wav",
+    "g2": "g2.wav",
+    "g3": "g3.wav"
+  },
+  "bear-sax-staccato": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "bear-sax-staccato-loud": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "bear-sax-staccato-soft": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "bear-sax-sustained": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "bear-sax-sustained-loud": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "bear-sax-sustained-soft": {
+    "a1": "a1.wav",
+    "a2": "a2.wav",
+    "c2": "c2.wav",
+    "c3": "c3.wav",
+    "eb1": "eb1.wav",
+    "eb2": "eb2.wav",
+    "eb3": "eb3.wav",
+    "gb1": "gb1.wav",
+    "gb2": "gb2.wav",
+    "gb3": "gb3.wav"
+  },
+  "clarinet-staccato": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "d2": "d2.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "f5": "f5.wav"
+  },
+  "clarinet-staccato-loud": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "d2": "d2.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "d5": "d5.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "f5": "f5.wav"
+  },
+  "clarinet-staccato-soft": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "d2": "d2.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "f5": "f5.wav"
+  },
+  "clarinet-sustained": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "d2": "d2.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "d5": "d5.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "gb5": "gb5.wav"
+  },
+  "clarinet-sustained-loud": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "d2": "d2.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "d5": "d5.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "gb5": "gb5.wav"
+  },
+  "clarinet-sustained-soft": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "d2": "d2.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "d5": "d5.wav",
+    "f2": "f2.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "gb5": "gb5.wav"
+  },
+  "flute-staccato": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav"
+  },
+  "flute-sustained": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav"
+  },
+  "flute-vibrato": {
+    "a3": "a3.wav",
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "c3": "c3.wav",
+    "c4": "c4.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "e3": "e3.wav",
+    "e4": "e4.wav",
+    "e5": "e5.wav"
+  },
+  "oboe-staccato": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "d5": "d5.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "f5": "f5.wav"
+  },
+  "oboe-sustained": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "d5": "d5.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "f5": "f5.wav"
+  },
+  "oboe-vibrato": {
+    "bb2": "bb2.wav",
+    "bb3": "bb3.wav",
+    "bb4": "bb4.wav",
+    "d3": "d3.wav",
+    "d4": "d4.wav",
+    "d5": "d5.wav",
+    "f3": "f3.wav",
+    "f4": "f4.wav",
+    "f5": "f5.wav"
+  },
+  "piccolo-staccato": {
+    "bb4": "bb4.wav",
+    "bb5": "bb5.wav",
+    "bb6": "bb6.wav",
+    "g5": "g5.wav",
+    "g6": "g6.wav"
+  },
+  "piccolo-sustained": {
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "g4": "g4.wav",
+    "g5": "g5.wav",
+    "g6": "g6.wav"
+  },
+  "squidpipes-long": {
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "a7": "a7.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "c8": "c8.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "eb7": "eb7.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav",
+    "gb7": "gb7.wav"
+  },
+  "squidpipes-short": {
+    "a4": "a4.wav",
+    "a5": "a5.wav",
+    "a6": "a6.wav",
+    "a7": "a7.wav",
+    "c5": "c5.wav",
+    "c6": "c6.wav",
+    "c7": "c7.wav",
+    "c8": "c8.wav",
+    "eb5": "eb5.wav",
+    "eb6": "eb6.wav",
+    "eb7": "eb7.wav",
+    "gb5": "gb5.wav",
+    "gb6": "gb6.wav",
+    "gb7": "gb7.wav"
   }
 }

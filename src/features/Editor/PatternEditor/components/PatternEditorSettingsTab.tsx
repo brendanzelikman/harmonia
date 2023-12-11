@@ -8,6 +8,7 @@ import {
   updatePattern,
 } from "redux/Pattern";
 import { Editor } from "features/Editor/components";
+import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 
 export function PatternEditorSettingsTab(props: PatternEditorProps) {
   const { dispatch, pattern, Tooltip, Button } = props;
@@ -25,7 +26,7 @@ export function PatternEditorSettingsTab(props: PatternEditorProps) {
       <div className="h-5 my-2 flex text-xs items-center space-x-2">
         <label className="px-1">Preset Instrument:</label>
         <Listbox.InstrumentListbox
-          value={pattern?.instrumentKey ?? "grand_piano"}
+          value={pattern?.instrumentKey ?? DEFAULT_INSTRUMENT_KEY}
           setValue={(value) => {
             if (!pattern) return;
             dispatch(updatePattern({ ...pattern, instrumentKey: value }));

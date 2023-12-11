@@ -150,7 +150,7 @@ export function PatternEditorTransformTab(props: PatternEditorProps) {
         className="border"
         onClick={promptUser(
           "Randomize this pattern for N notes:",
-          (n: number) => id && dispatch(_.randomizePattern({ id, length: n }))
+          (n: number) => id && dispatch(_.randomizePattern(id, n))
         )}
         weakClass="active:bg-purple-500 border-purple-500"
         disabled={!props.isCustom}

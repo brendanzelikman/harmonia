@@ -1,28 +1,36 @@
 import fs from "fs";
 import path from "path";
+import _ from "lodash";
 
-const sampleDir = "public/samples";
+const sampleDir = "public/instruments";
 const categoryFolders = fs.readdirSync(sampleDir);
 
 const result = {};
 
+// Iterate over every category folder
 categoryFolders.forEach((category) => {
-  if (category === ".DS_Store") return;
+  if (category === ".DS_Store" || category.endsWith(".md")) return;
   const instrumentDir = path.join(sampleDir, category);
   const instrumentFolders = fs.readdirSync(instrumentDir);
 
+  // Iterate over every instrument in the category
   instrumentFolders.forEach((instrument) => {
     if (instrument === ".DS_Store") return;
     const sampleDir = path.join(instrumentDir, instrument);
     const sampleFiles = fs.readdirSync(sampleDir);
 
+    // Iterate over every sample in the instrument
     const mapping = {};
     sampleFiles.forEach((file) => {
       if (file === ".DS_Store") return;
-      const note = path.basename(file, ".wav").toUpperCase();
-      mapping[note] = file;
+      const pitch = path.basename(file, ".wav");
+      // const midi = Tone.Midi(pitch).toMidi();
+      mapping[pitch] = file;
     });
-    result[instrument] = mapping;
+
+    // Add the instrument to the result
+    const key = _.kebabCase(instrument);
+    result[key] = mapping;
   });
 });
 
