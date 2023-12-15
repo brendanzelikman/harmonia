@@ -11,7 +11,8 @@ export function PatternEditorTransformTab(props: PatternEditorProps) {
       <Editor.Button
         className="border"
         onClick={promptUser(
-          "Repeat this pattern N times:",
+          "Repeat Your Pattern",
+          "How many times would you like to repeat your pattern?",
           (n) => id && dispatch(_.repeatPattern({ id, repeat: n }))
         )}
         weakClass="border-emerald-600 active:bg-emerald-600"
@@ -28,7 +29,8 @@ export function PatternEditorTransformTab(props: PatternEditorProps) {
       <Editor.Button
         className="border"
         onClick={promptUser(
-          "Continue this pattern for N notes:",
+          "Continue Your Pattern",
+          "How many notes would you like to repeat your pattern for?",
           (n) => id && dispatch(_.continuePattern({ id, length: n }))
         )}
         weakClass="active:bg-emerald-600 border-emerald-600"
@@ -45,7 +47,8 @@ export function PatternEditorTransformTab(props: PatternEditorProps) {
       <Editor.Button
         className="border"
         onClick={promptUser(
-          "Phase this pattern by N notes:",
+          "Phase Your Pattern",
+          "How many notes would you like to phase your pattern by?",
           (n) => id && dispatch(_.phasePattern({ id, phase: n }))
         )}
         weakClass="active:bg-emerald-600 border-emerald-600"
@@ -132,7 +135,8 @@ export function PatternEditorTransformTab(props: PatternEditorProps) {
       <Editor.Button
         className="border"
         onClick={promptUser(
-          "Harmonize this pattern with an interval of N semitones:",
+          "Harmonize Your Pattern",
+          "What interval would you like to harmonize your pattern by?",
           (n) => id && dispatch(_.harmonizePattern({ id, interval: n }))
         )}
         weakClass="active:bg-purple-500 border-purple-500"
@@ -149,7 +153,8 @@ export function PatternEditorTransformTab(props: PatternEditorProps) {
       <Editor.Button
         className="border"
         onClick={promptUser(
-          "Randomize this pattern for N notes:",
+          "Randomize Your Pattern",
+          "How many random notes would you like to add?",
           (n: number) => id && dispatch(_.randomizePattern(id, n))
         )}
         weakClass="active:bg-purple-500 border-purple-500"

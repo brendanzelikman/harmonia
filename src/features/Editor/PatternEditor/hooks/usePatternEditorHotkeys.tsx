@@ -168,17 +168,25 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   // R = Prompt for repeat
   useHotkeys(
     "r",
-    promptUser("Repeat pattern N times", (n) => {
-      if (id) dispatch(_.repeatPattern({ id, repeat: n }));
-    })
+    promptUser(
+      "Repeat Your Pattern",
+      "How many times would you like to repeat your pattern?",
+      (n) => {
+        if (id) dispatch(_.repeatPattern({ id, repeat: n }));
+      }
+    )
   );
 
   // , = Continue Pattern
   useHotkeys(
     "comma",
-    promptUser("Continue pattern for N notes", (n) => {
-      if (id) dispatch(_.continuePattern({ id, length: n }));
-    }),
+    promptUser(
+      "Continue Your Pattern",
+      "How many notes would you like to continue your pattern for?",
+      (n) => {
+        if (id) dispatch(_.continuePattern({ id, length: n }));
+      }
+    ),
     [id]
   );
 

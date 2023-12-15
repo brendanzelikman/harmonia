@@ -1,4 +1,3 @@
-import { Key } from "types/units";
 import MajorKeys from "./MajorKeys";
 import MinorKeys from "./MinorKeys";
 

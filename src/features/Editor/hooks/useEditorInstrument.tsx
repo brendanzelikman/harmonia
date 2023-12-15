@@ -33,6 +33,7 @@ export function useEditorInstrument() {
       // Change the global instrument if not on the instrument editor
       if (!onInstrumentEditor) {
         const instrument = createGlobalInstrument(instrumentKey);
+        if (!instrument) return;
         _setInstance(instrument);
       } else {
         _setInstance(LIVE_AUDIO_INSTANCES[id]);

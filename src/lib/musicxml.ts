@@ -202,7 +202,7 @@ const createNote = (
   const duration = noteOptions?.duration || 1;
   const durationTag = `<duration>${duration}</duration>`;
 
-  /** The voice tag is important for clef management. */
+  /** The voice tag is used for clef management. */
   const voice = 1;
   const voiceTag = `<voice>${voice}</voice>`;
 
@@ -338,7 +338,7 @@ const createBlock = (block: PatternMidiBlock, noteOptions?: NoteOptions) => {
   const staffs = allNoteOptions.map((note) => note.staff);
   const missingStaffs = [1, 2].filter((staff) => !staffs.includes(staff));
   const staffRests = missingStaffs.map((staff) =>
-    MusicXML.createNote(
+    createNote(
       { duration },
       {
         type,

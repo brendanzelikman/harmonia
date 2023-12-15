@@ -60,6 +60,7 @@ export function usePoseEditorHotkeys(props: PoseEditorProps) {
   useHotkeys(
     "r",
     promptUser(
+      "Repeat Your Stream",
       "How many times would you like to repeat this stream?",
       (value) => id && dispatch(repeatPoseStream(id, value))
     ),

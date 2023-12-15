@@ -5,7 +5,7 @@ import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { selectTimeline, updateMediaSelection } from "redux/Timeline";
 import {
   exportProjectToHAM,
-  openLocalProjects,
+  loadFromLocalProjects,
   createProject,
 } from "redux/thunks";
 import { isEditorVisible } from "types/Editor";
@@ -23,7 +23,7 @@ export function useGlobalHotkeys() {
   useOverridingHotkeys("meta+s", () => dispatch(exportProjectToHAM()));
 
   // Meta + O = Open Project
-  useOverridingHotkeys("meta+o", () => dispatch(openLocalProjects()));
+  useOverridingHotkeys("meta+o", () => dispatch(loadFromLocalProjects()));
 
   // Meta + Alt + N = New Project
   useOverridingHotkeys("meta+alt+n", () =>

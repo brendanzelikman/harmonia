@@ -39,8 +39,10 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
   // T = Prompt for Transposition
   useHotkeys(
     "shift+t",
-    promptUser("Transpose scale along N semitones:", (n) =>
-      dispatch(transposeScale(scale?.id, n))
+    promptUser(
+      "Transpose Your Scale",
+      "How many semitones would you like to transpose your scale by?",
+      (n) => dispatch(transposeScale(scale?.id, n))
     ),
     [scale]
   );
@@ -48,8 +50,10 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
   // R = Prompt for Rotation
   useHotkeys(
     "shift+r",
-    promptUser("Rotate scale along N steps:", (n) =>
-      dispatch(rotateScale(scale?.id, n))
+    promptUser(
+      "Rotate Your Scale",
+      "How many steps would you like to rotate your scale by?",
+      (n) => dispatch(rotateScale(scale?.id, n))
     ),
     [scale]
   );
@@ -70,27 +74,27 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
     scale,
   ]);
 
-  // Left Arrow = Transpose Down 1 Chord Step or Rewind Cursor
+  // Left Arrow = Rotate Down 1 Step or Rewind Cursor
   useHotkeys(
     "left",
     () => {
       if (!cursor.hidden && cursor.index > 0) {
         cursor.prev();
       } else {
-        dispatch(transposeScale(scale?.id, -1));
+        dispatch(rotateScale(scale?.id, -1));
       }
     },
     [cursor, cursor]
   );
 
-  // Right Arrow = Transpose Up 1 Chord Step or Advance Cursor
+  // Right Arrow = Rotate Up 1 Step or Advance Cursor
   useHotkeys(
     "right",
     () => {
       if (!cursor.hidden && cursor.index < notes.length - 1) {
         cursor.next();
       } else {
-        dispatch(transposeScale(scale?.id, 1));
+        dispatch(rotateScale(scale?.id, 1));
       }
     },
     [cursor, scale, notes]

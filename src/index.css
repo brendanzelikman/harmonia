@@ -103,20 +103,6 @@ html {
   }
 }
 
-.stretch-right {
-  transform-origin: left center;
-  animation: stretchright 0.1s ease-in-out;
-}
-
-@keyframes stretchright {
-  0% {
-    transform: scaleX(0);
-  }
-  100% {
-    transform: scaleX(1);
-  }
-}
-
 body {
   font-family: "Open Sans";
   background: linear-gradient(0deg, #223e8b, #327199, #5b57ae);

@@ -5,6 +5,11 @@ export const ChromaticScale: ScaleObject = {
   name: "Chromatic Scale",
   notes: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
 };
+export const NoScale: ScaleObject = {
+  id: "no-scale",
+  name: "No Scale",
+  notes: [],
+};
 export const MajorScale: ScaleObject = {
   id: "major-scale",
   name: "Major Scale",
@@ -15,21 +20,29 @@ export const MinorScale: ScaleObject = {
   name: "Minor Scale",
   notes: [60, 62, 63, 65, 67, 68, 70],
 };
-export const HarmonicMinorScale: ScaleObject = {
-  id: "harmonic-minor-scale",
-  name: "Harmonic Minor Scale",
-  notes: [60, 62, 63, 65, 67, 68, 71],
+
+export const MajorPentatonicScale: ScaleObject = {
+  id: "major-pentatonic-scale",
+  name: "Major Pentatonic Scale",
+  notes: [60, 62, 64, 67, 69],
 };
-export const MelodicMinorScale: ScaleObject = {
-  id: "melodic-minor-scale",
-  name: "Melodic Minor Scale",
-  notes: [60, 62, 63, 65, 67, 69, 71],
+export const MinorPentatonicScale: ScaleObject = {
+  id: "minor-pentatonic-scale",
+  name: "Minor Pentatonic Scale",
+  notes: [60, 63, 65, 67, 70],
+};
+export const BluesScale: ScaleObject = {
+  id: "blues-scale",
+  name: "Blues Scale",
+  notes: [60, 63, 65, 66, 67, 70],
 };
 
 export default {
   ChromaticScale,
+  NoScale,
   MajorScale,
   MinorScale,
-  HarmonicMinorScale,
-  MelodicMinorScale,
+  MajorPentatonicScale,
+  MinorPentatonicScale,
+  BluesScale,
 };

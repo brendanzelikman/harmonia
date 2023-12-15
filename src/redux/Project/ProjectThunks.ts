@@ -6,10 +6,11 @@ import {
   getProjectFromDB,
   deleteProjectFromDB,
   getProjectsFromDB,
+  getCurrentProjectId,
 } from "indexedDB";
 import { selectMetadata, selectProjectName } from "redux/Metadata";
 import { selectClipIds } from "redux/selectors";
-import { Thunk, isProjectEmpty } from "types/Project";
+import { Thunk, isProjectEmpty, mergeProjects } from "types/Project";
 import { exportClipsToMidi } from "redux/thunks";
 import {
   Project,
@@ -140,7 +141,7 @@ export const exportProjectsToZIP = async () => {
 };
 
 /** Open the user's file system and read local projects. */
-export const openLocalProjects = (): Thunk => (dispatch) => {
+export const loadFromLocalProjects = (): Thunk => (dispatch) => {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = ".ham";
@@ -165,6 +166,60 @@ export const loadProject =
       callback?.();
     } catch (e) {
       console.error(e);
+    }
+  };
+
+/** Open the user's file system and read local projects. */
+export const mergeFromLocalProjects = (): Thunk => (dispatch) => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".ham";
+  input.addEventListener("change", (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) {
+      dispatch(mergeProjectByFile(file));
+    }
+  });
+  input.click();
+};
+
+/** Try to merge a project from a Harmonia file. */
+export const mergeProjectByFile =
+  (file: File): Thunk =>
+  (dispatch) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        if (!e.target?.result) return;
+
+        // Parse the project from the file
+        const projectString = e.target.result as string;
+        const project = JSON.parse(projectString);
+
+        if (!isProject(project)) {
+          throw new Error("Invalid project.");
+        }
+
+        // Merge the project with the current project
+        const currentProjectId = await getCurrentProjectId();
+        if (!currentProjectId) return;
+        const currentProject = await getProjectFromDB(currentProjectId);
+        if (!currentProject) return;
+        const mergedProject = mergeProjects(currentProject, project);
+
+        // Upload or save the project depending on whether it already exists
+        const existingProject = await getProjectFromDB(mergedProject.meta.id);
+        if (!existingProject) {
+          uploadProjectToDB(mergedProject);
+        } else {
+          updateProjectInDB(mergedProject);
+        }
+      };
+      reader.readAsText(file);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      window.location.reload();
     }
   };
 

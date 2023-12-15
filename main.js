@@ -12,9 +12,7 @@ function createWindow() {
   });
   win.maximize();
   win.show();
-  setTimeout(() => {
-    win.loadURL("http://localhost:3000/harmonia/");
-  }, 1000);
+  win.loadURL("http://localhost:3000/harmonia/");
 }
 
 const dockMenu = Menu.buildFromTemplate([

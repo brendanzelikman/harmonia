@@ -15,11 +15,12 @@ import { Fragment, useMemo } from "react";
 import {
   clearProject,
   downloadTransport,
-  openLocalProjects,
+  loadFromLocalProjects,
   exportProjectToHAM,
   exportProjectToMIDI,
   stopDownloadingTransport,
   createProject,
+  mergeFromLocalProjects,
 } from "redux/thunks";
 import { BsFiletypeWav, BsMusicPlayerFill } from "react-icons/bs";
 import { toggleEditor } from "redux/Editor";
@@ -86,11 +87,22 @@ export function NavbarFileMenu() {
     </NavbarFormGroup>
   );
 
+  /** The merge from HAM button allows the user to read and merge a Harmonia file. */
+  const MergeFromHAMButton = () => (
+    <NavbarFormGroup
+      className="px-2 h-8 hover:bg-indigo-500/25 cursor-pointer"
+      onClick={() => dispatch(mergeFromLocalProjects())}
+    >
+      <NavbarFormLabel>Merge with HAM</NavbarFormLabel>
+      <BiUpload className="text-2xl" />
+    </NavbarFormGroup>
+  );
+
   /** The load HAM button allows the user to read and load a Harmonia file. */
   const LoadFromHAMButton = () => (
     <NavbarFormGroup
       className="px-2 h-8 hover:bg-indigo-500/25 cursor-pointer"
-      onClick={() => dispatch(openLocalProjects())}
+      onClick={() => dispatch(loadFromLocalProjects())}
     >
       <NavbarFormLabel>Load from HAM</NavbarFormLabel>
       <BiUpload className="text-2xl" />

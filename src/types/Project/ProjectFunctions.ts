@@ -1,8 +1,14 @@
 import { clearUndoableHistory } from "utils/undoableHistory";
-import { Project } from "./ProjectTypes";
+import {
+  Project,
+  ProjectArrangement,
+  ProjectPatterns,
+  ProjectPoses,
+  ProjectScales,
+} from "./ProjectTypes";
 import { defaultTimeline, getIdleTimeline } from "types/Timeline";
 import { defaultTransport, getIdleTransport } from "types/Transport";
-import { difference, isEqual } from "lodash";
+import { difference, isEqual, merge } from "lodash";
 import { defaultEditor, getIdleEditor } from "types/Editor";
 import { defaultInstrument } from "types/Instrument";
 import { defaultPattern } from "types/Pattern";
@@ -19,6 +25,18 @@ export const sanitizeProject = (project: Project): Project => ({
   timeline: getIdleTimeline(project.timeline),
   transport: getIdleTransport(project.transport),
   editor: getIdleEditor(project.editor),
+});
+
+/** Merge the two Projects */
+export const mergeProjects = (p1: Project, p2: Project): Project => ({
+  meta: merge(p1.meta, p2.meta),
+  scales: merge(p1.scales, p2.scales),
+  patterns: merge(p1.patterns, p2.patterns),
+  poses: merge(p1.poses, p2.poses),
+  arrangement: merge(p1.arrangement, p2.arrangement),
+  timeline: merge(p1.timeline, p2.timeline),
+  transport: merge(p1.transport, p2.transport),
+  editor: merge(p1.editor, p2.editor),
 });
 
 /** Returns true if a project has not been changed from default settings. */

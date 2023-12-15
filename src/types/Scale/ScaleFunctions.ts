@@ -233,7 +233,7 @@ export const getScaleCategory = (scale?: _.Scale) => {
 /** Create a list of scales in all 12 keys from a preset ID. */
 export const createScalesInAllKeys = (scaleId: _.ScaleId) => {
   const scale = PresetScaleMap[scaleId];
-  if (!scale) throw new Error(`Invalid scale id: ${scaleId}`);
+  if (!scale) return new Array(12).fill([]);
   return new Array(12).fill(0).map((_, i) => getTransposedScale(scale, i));
 };
 

@@ -5,9 +5,9 @@ export const BebopMajorScale: ScaleObject = {
   name: "Bebop Major Scale",
   notes: [60, 62, 64, 65, 67, 68, 69, 71],
 };
-export const BebopDorianScale: ScaleObject = {
-  id: "bebop-dorian-scale",
-  name: "Bebop Dorian Scale",
+export const BebopMinorScale: ScaleObject = {
+  id: "bebop-minor-scale",
+  name: "Bebop Minor Scale",
   notes: [60, 62, 63, 64, 65, 67, 69, 70],
 };
 export const BebopHarmonicMinorScale: ScaleObject = {
@@ -38,7 +38,7 @@ export const OctatonicHWScale: ScaleObject = {
 
 export default {
   BebopMajorScale,
-  BebopDorianScale,
+  BebopMinorScale,
   BebopHarmonicMinorScale,
   BebopMelodicMinorScale,
   BebopDominantScale,

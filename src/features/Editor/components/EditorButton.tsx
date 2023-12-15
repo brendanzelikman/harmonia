@@ -12,7 +12,8 @@ export interface EditorButtonProps extends React.HTMLProps<HTMLButtonElement> {
   disabledClass?: string;
   weakClass?: string;
   placeTooltip?: "top" | "bottom" | "left" | "right";
-  prompt?: string;
+  promptTitle?: string;
+  promptMessage?: string;
   callback?: (value: any) => void;
   options?: { onClick: () => void; label: string }[];
 }
@@ -28,7 +29,8 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
     weakClass,
     placeTooltip,
     padding,
-    prompt,
+    promptTitle,
+    promptMessage,
     callback,
     options,
     ...buttonProps
@@ -41,8 +43,8 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
       onClick={
         disabled
           ? undefined
-          : !!prompt && !!callback
-          ? promptUser(prompt, callback)
+          : !!promptTitle && !!promptMessage && !!callback
+          ? promptUser(promptTitle, promptMessage, callback)
           : buttonProps.onClick
       }
       type="button"

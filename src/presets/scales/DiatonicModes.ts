@@ -5,13 +5,11 @@ export const LydianScale: ScaleObject = {
   name: "Lydian Scale",
   notes: [60, 62, 64, 66, 67, 69, 71],
 };
-
 export const IonianScale: ScaleObject = {
   id: "ionian-scale",
   name: "Ionian Scale",
   notes: [60, 62, 64, 65, 67, 69, 71],
 };
-
 export const MixolydianScale: ScaleObject = {
   id: "mixolydian-scale",
   name: "Mixolydian Scale",

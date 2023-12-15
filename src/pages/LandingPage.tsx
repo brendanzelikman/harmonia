@@ -13,7 +13,9 @@ import TailwindImage from "assets/lib/tailwind.png";
 import { useAuthenticationStatus } from "hooks";
 import { setAuthenticatedStatus } from "indexedDB";
 import LogoImage from "assets/images/logo.png";
+import LandingBackground from "assets/images/landing-background.png";
 import classNames from "classnames";
+import { promptModal } from "components/Modal";
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -23,14 +25,15 @@ export function LandingPage() {
     if (isAuthenticated) {
       return navigate("/projects");
     } else {
-      const password = prompt("Enter the password to continue.");
+      const password = await promptModal(
+        "Welcome to Harmonia!",
+        "Please enter the password to proceed."
+      );
       if (password === import.meta.env.VITE_PASSWORD) {
-        await setAuthenticatedStatus(true);
-        alert("Password accepted!");
+        setAuthenticatedStatus(true);
         navigate("/projects");
       } else {
-        await setAuthenticatedStatus(false);
-        alert("Incorrect password.");
+        setAuthenticatedStatus(false);
       }
     }
   };
@@ -40,16 +43,19 @@ export function LandingPage() {
       <div className="relative flex flex-col pt-16 items-center font-nunito text-slate-50">
         <img
           src={LogoImage}
-          className={`w-2/3 max-w-[300px] mb-8 rounded-full transition-all shadow-xl shadow-sky-600/80`}
+          className={`w-2/3 max-w-[300px] rounded-full transition-all shadow-[0_0_50px_50px_#01bcfa30]`}
         />
-        <h1 className="mt-2 mb-2 font-nunito sm:text-8xl text-5xl">Harmonia</h1>
-        <p className="font-light sm:text-4xl text-xl">
-          A Playground for Composition
+        <h1 className="my-2 font-bold sm:text-9xl text-6xl drop-shadow-xl">
+          Harmonia
+        </h1>
+        <p className="font-normal sm:text-4xl text-xl drop-shadow-xl">
+          Illuminate the Geometry of Music
         </p>
       </div>
+
       <button
         onClick={onClick}
-        className="mt-16 py-6 px-9 text-slate-100 bg-sky-600/40 hover:bg-sky-950/90 hover:shadow-[0px_0px_10px_5px_rgb(15,150,200)] active:animate-pulse transition-all duration-300 ring-2 ring-slate-900/20 hover:ring-slate-100/20 rounded-2xl backdrop-blur-xl shadow-2xl drop-shadow-2xl sm:text-4xl text-2xl font-light"
+        className="mt-16 py-6 px-9 text-slate-100 bg-sky-500/60 hover:bg-sky-950/90 hover:shadow-[0px_0px_10px_5px_rgb(15,150,200)] active:animate-pulse transition-all duration-300 ring-2 ring-slate-900/20 hover:ring-slate-100/20 rounded-2xl backdrop-blur-xl shadow-2xl drop-shadow-2xl sm:text-4xl text-2xl font-light"
       >
         Make Music Now!
       </button>
@@ -119,7 +125,7 @@ export function LandingPage() {
   const ScaleHero = () => (
     <Section>
       <HeroImage src={ScaleEditorImage} />
-      <div className="w-full flex flex-row flex-wrap justify-center gap-x-8 px-8  my-4 mt-8">
+      <div className="w-full flex flex-row flex-wrap justify-center gap-x-8 px-8 my-4 mt-8">
         <HeroQuote
           title="Freely Shape Your Terrain"
           text="Craft any scales you can imagine and revise them at any moment with the dedicated Scale Editor."
@@ -212,41 +218,18 @@ export function LandingPage() {
       <div className="text-center mt-16 font-bold lg:text-6xl md:text-4xl text-2xl text-slate-100">
         Powered by Cutting-Edge Libraries
       </div>
-      <div className="lg:mt-8 md:mt-4 mt-2 font-semibold lg:text-3xl md:text-xl text-md text-slate-400">
+      <div className="lg:mt-8 md:mt-4 mt-2 font-normal lg:text-3xl md:text-xl text-md text-slate-400">
         Built with React, Typescript, Redux, Tone.js, Tailwind, et al.
-      </div>
-    </Section>
-  );
-
-  const ContactHero = () => (
-    <Section>
-      <a
-        href="mailto:brendanzelikman@gmail.com"
-        className="w-full text-center"
-        target="_blank"
-        rel="noreferrer"
-      >
-        <input
-          className="max-w-[700px] w-2/3 h-20 p-4 bg-slate-300 text-4xl font-light cursor-pointer rounded-xl text-slate-700 dropshadow-2xl ring-2 ring-indigo-400/50 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:ring-offset-2 focus:ring-offset-indigo-400/50"
-          placeholder="I would definitely use Harmonia because..."
-          disabled
-        />
-      </a>
-      <div className="mt-16 text-center font-bold md:text-6xl text-4xl text-slate-100">
-        Contact Us? Contact Us!
-      </div>
-      <div className="md:mt-8 mt-4 text-center font-semibold md:text-3xl text-lg text-slate-400">
-        Please{" "}
-        <a href="mailto:brendanzelikman@gmail.com" className="underline">
-          email us
-        </a>{" "}
-        with all of your questions, comments, and concerns.
       </div>
     </Section>
   );
 
   return (
     <main className="relative font-nunito animate-in fade-in duration-75 flex flex-col w-full h-screen overflow-scroll">
+      <img
+        src={LandingBackground}
+        className="fixed inset-0 h-screen opacity-50"
+      />
       <SplashScreen />
       {!!isAuthenticated && (
         <>
@@ -255,7 +238,6 @@ export function LandingPage() {
           <PatternHero />
           <PoseHero />
           <LibraryHero />
-          <ContactHero />
         </>
       )}
     </main>

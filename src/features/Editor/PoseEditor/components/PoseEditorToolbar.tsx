@@ -72,6 +72,7 @@ export function PoseEditorToolbar(props: PoseEditorProps) {
     <Button
       label="Repeat Pose Stream"
       onClick={promptUser(
+        "Repeat Your Stream",
         "How many times would you like to repeat this stream?",
         (value) => dispatch(repeatPoseStream(pose.id, value))
       )}

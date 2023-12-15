@@ -35,6 +35,12 @@ export type Thunk<ReturnType = void> = ThunkAction<
   AnyAction
 >;
 
+// There are some partial types defined for Projects as well.
+export type ProjectPatterns = Project["patterns"];
+export type ProjectPoses = Project["poses"];
+export type ProjectScales = Project["scales"];
+export type ProjectArrangement = Project["arrangement"];
+
 // ------------------------------------------------------------
 // Project Initialization
 // ------------------------------------------------------------

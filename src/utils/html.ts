@@ -1,3 +1,4 @@
+import { promptModal } from "components/Modal";
 import { DragEvent, MouseEvent } from "react";
 
 // ------------------------------------------------------------
@@ -12,8 +13,9 @@ export const dispatchCustomEvent = (type: string, detail?: unknown) => {
 
 /** Prompts the user then applies a callback for the numerical result. */
 export const promptUser =
-  (message: string, callback: (input: number) => unknown) => () => {
-    const input = prompt(message);
+  (title: string, message: string, callback: (input: number) => unknown) =>
+  async () => {
+    const input = await promptModal(title, message);
     const sanitizedInput = parseInt(input ?? "");
     if (!isNaN(sanitizedInput)) callback(sanitizedInput);
   };

@@ -134,7 +134,8 @@ export function ScaleEditorToolbar(props: ScaleEditorProps) {
       weakClass="active:bg-fuchsia-500/80"
       disabled={!notes.length}
       disabledClass="text-slate-500"
-      prompt="Transpose scale by N semitones:"
+      promptTitle="Transpose Your Scale"
+      promptMessage="How many semitones would you like to transpose your scale by?"
       callback={(n: number) => dispatch(transposeScale(scale?.id, n))}
     >
       Transpose
@@ -148,7 +149,8 @@ export function ScaleEditorToolbar(props: ScaleEditorProps) {
       weakClass={`active:bg-fuchsia-500/80`}
       disabled={!notes.length}
       disabledClass="text-slate-500"
-      prompt="Rotate scale by N steps:"
+      promptTitle="Rotate Your Scale"
+      promptMessage="How many steps would you like to rotate your scale by?"
       callback={(n: number) => dispatch(rotateScale(scale?.id, n))}
     >
       Rotate

@@ -9,7 +9,7 @@ import { useProjectDispatch } from "redux/hooks";
 import { selectScaleTracks, selectTrackMidiScale } from "redux/selectors";
 import {
   createProject,
-  openLocalProjects,
+  loadFromLocalProjects,
   loadRandomProject,
   deleteEmptyProjects,
   exportProjectsToZIP,
@@ -109,7 +109,7 @@ export function useProjectSearch(props: ProjectSearchProps) {
     return (
       <div className="hidden lg:flex lg:animate-in lg:fade-in lg:duration-75 w-full items-center gap-3 text-sm px-1 [&>button]:text-sky-500 [&>button:active]:text-sky-400">
         <button onClick={() => createProject()}>Create a Project</button>•
-        <button onClick={() => dispatch(openLocalProjects())}>
+        <button onClick={() => dispatch(loadFromLocalProjects())}>
           Upload a Project
         </button>
         •

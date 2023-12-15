@@ -76,6 +76,7 @@ export function MainPage(props: { view?: View }) {
     { "pt-nav": view !== "playground" }
   );
 
+  // A view wrapper that fades in different views
   const ViewWrapper = useCallback(
     (props: { view: View; children: ReactNode }) => {
       if (props.view !== view) return null;

@@ -26,8 +26,16 @@ export const getMidiChromaticNumber = (pitch: MIDI | Pitch) => {
 export const getMidiOctaveNumber = (note: MIDI, key = CHROMATIC_KEY) => {
   const octave = Math.floor((note - 12) / 12);
   const number = getMidiChromaticNumber(note);
+
+  // Handle lower edge cases
   if (number === 0 && key[0] === "B#") return octave - 1;
+  if (number === 1 && key[1] === "B##") return octave - 1;
+
+  // Handle upper edge cases
+  if (number === 10 && key[10] === "Cbb") return octave + 1;
   if (number === 11 && key[11] === "Cb") return octave + 1;
+
+  // Return the octave
   return octave;
 };
 

@@ -82,7 +82,7 @@ export const fMinorKey: Key = [
   "Eb",
   "E",
   "F",
-  "F#",
+  "Gb",
   "G",
   "Ab",
   "A",
@@ -125,7 +125,7 @@ export const aFlatMinorKey: Key = [
   "Db",
   "D",
   "Eb",
-  "E",
+  "Fb",
   "F",
   "Gb",
   "G",
@@ -146,7 +146,7 @@ export const aMinorKey: Key = [
   "G",
   "G#",
   "A",
-  "A#",
+  "Bb",
   "B",
 ];
 
@@ -162,7 +162,7 @@ export const bFlatMinorKey: Key = [
   "Ab",
   "A",
   "Bb",
-  "B",
+  "Cb",
 ];
 
 export const bMinorKey: Key = [
