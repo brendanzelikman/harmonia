@@ -133,12 +133,15 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
       const noteOffset = note.MIDI - streamRange[0];
 
       const offset = (streamLength - noteOffset - 1) * noteHeight;
-      const top = showFlat
-        ? j * noteHeight
-        : streamLength === 1
-        ? (streamHeight - noteHeight) / 2
-        : offset + noteHeight / 2;
+      const top = Math.round(
+        showFlat
+          ? j * noteHeight
+          : streamLength === 1
+          ? (streamHeight - noteHeight) / 2
+          : offset + noteHeight / 2
+      );
 
+      console.log(j);
       // Get the opacity of the note from its velocity
       const opacity = normalize(note.velocity, MIN_VELOCITY, MAX_VELOCITY);
 
@@ -163,8 +166,8 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
       cell,
       noteColor,
       subdivision,
+      showFlat,
       showMidi,
-      showPitch,
       noteHeight,
       streamRange,
       streamLength,
@@ -176,9 +179,11 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
     (block: PatternMidiBlock, i: number) => {
       if (!clip || !isPatternMidiChord(block)) return null;
       const notes = getPatternMidiChordNotes(block);
-      const chordClass = isSlicingClips
-        ? "bg-slate-500/50 group-hover:bg-slate-600/50 border-slate-50/50 hover:border-r-4 cursor-scissors"
-        : "border-slate-50/10";
+      const chordClass = classNames(
+        isSlicingClips
+          ? "bg-slate-500/50 group-hover:bg-slate-600/50 border-slate-50/50 hover:border-r-4 cursor-scissors"
+          : "border-slate-50/10"
+      );
       return (
         <ul
           key={`${clip.id}-chord-${i}`}

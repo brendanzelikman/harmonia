@@ -19,7 +19,7 @@ import {
   getTransposedScale,
 } from "types/Scale";
 import { TrackId, getScaleTrackChain } from "types/Track";
-import { Tick } from "types/units";
+import { StrummedChord, Tick } from "types/units";
 import { getValueByKey } from "utils/objects";
 import { TrackArrangement } from "./ArrangementTypes";
 import {
@@ -30,6 +30,13 @@ import {
   getTransposedPatternStream,
   resolvePatternStreamToMidi,
   isPatternChord,
+  isPatternStrummedChord,
+  getPatternChordNotes,
+  isPatternMidiNote,
+  isPatternMidiChord,
+  getPatternMidiChordNotes,
+  PatternMidiNote,
+  isPatternRest,
 } from "types/Pattern";
 
 // ------------------------------------------------------------
@@ -216,6 +223,9 @@ export const getPatternClipStream = (
       continue;
     }
 
+    const notes = getPatternChordNotes(block);
+    const noteCount = notes.length;
+
     // Otherwise, transpose the pattern stream using the clip's current pose
     const tick = clip.tick + i;
     const poseClip = getCurrentPoseClip(poseClips, tick, false);
@@ -238,7 +248,65 @@ export const getPatternClipStream = (
     );
     const newChord = newStream[blockCount - 1];
 
-    stream.push(newChord);
+    // If the block is not strummed, just push the chord to the stream
+    if (!isPatternStrummedChord(block) || isPatternRest(newChord)) {
+      stream.push(newChord);
+      continue;
+    }
+
+    // Otherwise, extract the properties of the strummed chord
+    const strummedChord = block as StrummedChord<PatternMidiNote>;
+    const strumDirection = strummedChord.strumDirection ?? "up";
+    const strumRange = block.strumRange ?? [0, 0];
+    const strumDuration = strumRange[1] + strumRange[0];
+    const strumStep = strumDuration / noteCount;
+
+    // Get the notes of the strummed chord
+    const strumNotes = getPatternMidiChordNotes(newChord);
+
+    // Add the notes to the current index of the stream, offset by the strum range
+    const currentIndex = stream.length;
+    for (let j = 0; j < noteCount; j++) {
+      // Get the index of the note to add based on the strum direction
+      const index = strumDirection === "up" ? j : noteCount - j - 1;
+
+      // Get the offset by stepping along the strum range, clamping to the stream
+      let offset = j * Math.round(strumStep) - strumRange[0];
+
+      const strummedTick = currentIndex + offset;
+      if (strummedTick < 0) offset = Math.max(-currentIndex, offset);
+
+      // Get the new note and adjust its duration
+      const note = strumNotes[index];
+      const newNote = { ...note, duration: note.duration - offset };
+
+      // Find the target block based on the strum offset
+      const currentBlock = stream[strummedTick];
+
+      // If the target block is empty, add the note to the stream
+      if (!isPatternMidiChord(currentBlock)) {
+        stream[strummedTick] = [newNote];
+      }
+
+      // If the target block is a note, replace it with a chord
+      else if (isPatternMidiNote(currentBlock)) {
+        stream[strummedTick] = [currentBlock, newNote];
+      }
+
+      // Otherwise, push the note to the target block
+      else {
+        stream[currentIndex + offset] = [
+          ...getPatternMidiChordNotes(currentBlock),
+          newNote,
+        ];
+      }
+    }
+
+    // Fill in the rest of the stream with empty arrays if necessary
+    const lastIndex = currentIndex + strumDuration;
+    for (let j = currentIndex; j < lastIndex; j++) {
+      if (!stream[j]) stream[j] = [];
+    }
   }
 
   // Return the stream of the clip

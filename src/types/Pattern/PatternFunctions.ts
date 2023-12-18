@@ -28,6 +28,10 @@ import {
   PatternMidiNote,
   isPatternNote,
   isPatternChord,
+  isPatternBlockedChord,
+  isPatternStrummedChord,
+  PatternStrummedChord,
+  PatternBlockedChord,
 } from "./PatternTypes";
 import { PoseVector, getVector_t, getVector_N } from "types/Pose";
 import { mod } from "utils/math";
@@ -57,7 +61,16 @@ export const getPatternNoteAsString = (note: PatternNote) => {
 
 /** Get a `PatternChord` as a string. */
 export const getPatternChordAsString = (chord: PatternChord) => {
-  return toString(chord, getPatternNoteAsString);
+  if (isPatternBlockedChord(chord)) {
+    return toString(chord, getPatternNoteAsString);
+  } else if (isPatternStrummedChord(chord)) {
+    const directionTag = chord.strumDirection;
+    const rangeTag = `${chord.strumRange[0]}-${chord.strumRange[1]}`;
+    const chordTag = toString(chord.chord, getPatternNoteAsString);
+    return `${chordTag} ${directionTag} ${rangeTag}`;
+  } else {
+    return toString(chord, getPatternNoteAsString);
+  }
 };
 
 /** Get a `PatternBlock` as a string. */
@@ -110,8 +123,9 @@ export const getPatternCategory = (pattern?: Pattern) => {
 export const getPatternBlockDuration = (block: PatternBlock): Tick => {
   if (isPatternNote(block)) return block.duration;
   if (isPatternRest(block)) return block.duration;
-  if (!block.length) return 0;
-  const noteDurations = block.map((note) => note.duration);
+  const notes = getPatternChordNotes(block);
+  if (!notes.length) return 0;
+  const noteDurations = notes.map((note) => note.duration);
   return Math.max(...noteDurations);
 };
 
@@ -131,7 +145,10 @@ export const getPatternBlockAtIndex = (
 
 /** Get a `PatternMidiStream` flattened into an array of `PatternMidiNotes` */
 export const getMidiStreamNotes = (stream: PatternMidiStream) => {
-  return stream.filter(isPatternMidiChord).flat();
+  return stream
+    .filter(isPatternMidiChord)
+    .map((c) => (isPatternStrummedChord(c) ? c.chord : c))
+    .flat();
 };
 
 /** Get a `PatternMidiStream` flattened into an array of `MIDIValues` */
@@ -202,6 +219,41 @@ export const createScaleFromPattern = (pattern: Pattern): ScaleObject => ({
   name: pattern.name,
   notes: getMidiStreamScale(pattern.stream as PatternMidiStream),
 });
+
+/** Toggle the strum of a chord */
+export function togglePatternChordStrum(
+  chord: PatternStrummedChord
+): PatternBlockedChord;
+export function togglePatternChordStrum(
+  chord: PatternBlockedChord
+): PatternStrummedChord;
+export function togglePatternChordStrum(chord: PatternChord): PatternChord {
+  if (isPatternStrummedChord(chord)) return chord.chord;
+  if (Array.isArray(chord)) {
+    return {
+      chord,
+      strumDirection: "up",
+      strumRange: [0, 0],
+    };
+  } else {
+    return {
+      chord: [chord],
+      strumDirection: "up",
+      strumRange: [0, 0],
+    };
+  }
+}
+
+/** Edit the strum of a strummed chord. */
+export const editPatternChordStrum = (
+  chord: PatternStrummedChord,
+  strum: Partial<{
+    strumDirection: "up" | "down";
+    strumRange: [number, number];
+  }>
+): PatternStrummedChord => {
+  return { ...chord, ...strum };
+};
 
 // ------------------------------------------------------------
 // Pattern Transpositions
@@ -282,12 +334,29 @@ export const getRotatedMidiStream = (
 
 /** Get a `PatternChord` as an array of notes. */
 export const getPatternChordNotes = (chord: PatternChord) => {
-  return Array.isArray(chord) ? chord : [chord];
+  if (!isPatternChord(chord)) return [];
+  if (isPatternStrummedChord(chord)) return chord.chord;
+  if (Array.isArray(chord)) return chord;
+  return [chord];
 };
 
 /** Get a `PatternMidiChord` as an array of notes. */
 export const getPatternMidiChordNotes = (chord: PatternMidiChord) => {
-  return Array.isArray(chord) ? chord : [chord];
+  if (!isPatternMidiChord(chord)) return [];
+  if (isPatternStrummedChord(chord)) return chord.chord;
+  if (Array.isArray(chord)) return chord;
+  return [chord];
+};
+
+/** Update the notes of a `PatternChord` */
+export const updatePatternChordNotes = (
+  chord: PatternChord,
+  notes: PatternNote[]
+): PatternChord => {
+  if (!isPatternChord(chord)) return chord;
+  if (isPatternStrummedChord(chord)) return { ...chord, chord: notes };
+  if (Array.isArray(chord)) return notes;
+  return [notes[0]];
 };
 
 /** Resolve a `PatternNote` to a `MidiValue` using the `Scales` provided. */
@@ -308,7 +377,7 @@ export const resolvePatternChordToMidi = (
   const chordLength = notes.length;
   if (!chordLength) return [];
 
-  return notes.map((note) => {
+  const newChord = notes.map((note) => {
     // If the note is a MIDI note, return it as is
     if (!isNestedNote(note)) return note;
 
@@ -332,6 +401,12 @@ export const resolvePatternChordToMidi = (
       MIDI: resolvePatternNoteToMidi(note, parentScales),
     };
   });
+
+  const midiChord = updatePatternChordNotes(
+    chord,
+    newChord
+  ) as PatternMidiChord;
+  return getPatternMidiChordNotes(midiChord);
 };
 
 /** Resolve a `PatternBlock` to `MIDI` using the `Scales` provided. */

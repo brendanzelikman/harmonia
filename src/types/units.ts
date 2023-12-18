@@ -18,7 +18,14 @@ export type PitchClass = string;
 export type Key = PitchClass[];
 export type Timed<T> = T & { duration: Tick };
 export type Playable<T> = Timed<T> & { velocity: Velocity };
-export type Chord<T> = T[];
+
+export type BlockedChord<T> = T | T[];
+export type StrummedChord<T> = {
+  chord: T[];
+  strumRange: [Tick, Tick];
+  strumDirection: "up" | "down";
+};
+export type Chord<T> = BlockedChord<T> | StrummedChord<T>;
 export type Stream<T> = T[];
 
 // ------------------------------------------------------------

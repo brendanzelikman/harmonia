@@ -14,10 +14,17 @@ import {
 } from "redux/Track";
 import { getDegreeOfNoteInTrack } from "redux/thunks";
 import {
+  editPatternChordStrum,
   getPatternChordNotes,
+  isPatternBlockedChord,
   isPatternChord,
   isPatternMidiNote,
+  isPatternNote,
+  isPatternStrummedChord,
   PatternBlock,
+  PatternChord,
+  togglePatternChordStrum,
+  updatePatternChordNotes,
 } from "types/Pattern";
 import { isNestedNote, NestedNote } from "types/Scale";
 import { getMidiOctaveDistance } from "utils/midi";
@@ -28,7 +35,7 @@ import {
 } from "redux/hooks";
 import { PatternEditorProps } from "../PatternEditor";
 import { usePatternEditorChordIndex } from "../hooks/usePatternEditorChordIndex";
-import { isArray, isUndefined } from "lodash";
+import { isUndefined } from "lodash";
 
 export function PatternEditorChordTab(props: PatternEditorProps) {
   const { dispatch, pattern, cursor, block, notes, Tooltip } = props;
@@ -49,10 +56,13 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
 
   // Currently indexed chord
   const { chordIndex, setChordIndex } = usePatternEditorChordIndex(props);
-  const patternNote = isPatternChord(block)
-    ? isArray(block)
-      ? block[chordIndex]
-      : block
+  const patternChord = isPatternChord(block)
+    ? (block as PatternChord)
+    : undefined;
+  const patternNote = patternChord
+    ? getPatternChordNotes(patternChord)[chordIndex]
+    : isPatternNote(block)
+    ? block
     : undefined;
   const isNested = isNestedNote(patternNote);
   const nestedNote = isNested ? (patternNote as NestedNote) : undefined;
@@ -97,13 +107,14 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
       min: 0,
       max: 127,
       callback: (value) => {
-        if (!id || !block || !isPatternChord(block)) return;
+        if (!id || !patternChord) return;
         const velocity = isUndefined(value) ? 0 : value;
-        const notes = getPatternChordNotes(block);
+        const notes = getPatternChordNotes(patternChord);
         const newChord = notes.map((note, i) =>
           i === chordIndex ? { ...note, velocity } : note
         );
-        dispatch(updatePatternBlock({ id, index, block: newChord }));
+        const newBlock = updatePatternChordNotes(patternChord, newChord);
+        dispatch(updatePatternBlock({ id, index, block: newBlock }));
       },
     },
   ]);
@@ -147,16 +158,20 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
 
     /** Set the value of the option */
     const setValue = (trackId: string) => {
-      if (!id || !block || !notes) return;
+      if (!id || !block || !notes || !patternChord) return;
+      const blockNotes = isPatternChord(block)
+        ? getPatternChordNotes(block)
+        : [];
 
       // If selecting no scale, remove all scale info
       if (trackId === "no-scale") {
-        const newChord = notes.map((note, i) => {
-          const { MIDI, duration, velocity } = note;
+        const newChord = blockNotes.map((note, i) => {
+          const { duration, velocity } = note;
           if (i !== chordIndex) return note;
-          return { MIDI, duration, velocity };
+          return { MIDI: notes[i].MIDI, duration, velocity };
         });
-        dispatch(updatePatternBlock({ id, index, block: newChord }));
+        const newBlock = updatePatternChordNotes(patternChord, newChord);
+        dispatch(updatePatternBlock({ id, index, block: newBlock }));
         return;
       }
 
@@ -166,7 +181,7 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
       const scaleId = trackScaleMap[trackId]?.id;
 
       // Update the new block using the scale degrees
-      const newBlock: PatternBlock = notes.map((note, i) => {
+      const newChord: PatternBlock = blockNotes.map((note, i) => {
         if (i !== chordIndex) return note;
 
         // Get the info for the note
@@ -182,6 +197,7 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
         // Return the note without any MIDI
         return { scaleId, degree, offset, duration, velocity };
       });
+      const newBlock = updatePatternChordNotes(patternChord, newChord);
 
       // Update the block
       dispatch(updatePatternBlock({ id, index, block: newBlock }));
@@ -207,12 +223,13 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
     if (!id || !scaleId || !nestedNote || !block) return;
     if (!isPatternChord(block)) return;
     const notes = getPatternChordNotes(block);
-    const newChord: PatternBlock = notes.map((note, i) =>
+    const newChord = notes.map((note, i) =>
       i === chordIndex && isNestedNote(note)
         ? { ...note, offset: { ...note.offset, [scaleId]: offset } }
         : note
     );
-    dispatch(updatePatternBlock({ id, index, block: newChord }));
+    const newBlock = updatePatternChordNotes(block, newChord);
+    dispatch(updatePatternBlock({ id, index, block: newBlock }));
   };
 
   /** All note scales are available, as well as the chromatic scale. */
@@ -268,11 +285,122 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
     });
   }, [chordIndex, noteScaleIds, patternNote, nestedNote]);
 
+  /** Toggle the chord strum between "off", "up", and "down" */
+  const ChordStrumDirection = () => {
+    type StrumDirection = "off" | "up" | "down";
+    const options: StrumDirection[] = ["off", "up", "down"];
+
+    // Get the current value from the block
+    const value = isPatternStrummedChord(block) ? block.strumDirection : "off";
+
+    // Set the value based on the current block
+    const setValue = (value: StrumDirection) => {
+      if (!id) return;
+      // If the chord is off, remove the strum or do nothing
+      if (value === "off") {
+        if (isPatternStrummedChord(block)) {
+          const newBlock = [...block.chord];
+          dispatch(updatePatternBlock({ id, index, block: newBlock }));
+        }
+      } else {
+        // If the chord is strummed, update the strum direction
+        if (isPatternStrummedChord(block)) {
+          const newBlock = editPatternChordStrum(block, {
+            strumDirection: value,
+          });
+          dispatch(updatePatternBlock({ id, index, block: newBlock }));
+        }
+        // If the chord is blocked, toggle the strum and update
+        else if (isPatternBlockedChord(block)) {
+          const newBlock = editPatternChordStrum(
+            togglePatternChordStrum(block),
+            { strumDirection: value }
+          );
+          dispatch(updatePatternBlock({ id, index, block: newBlock }));
+        }
+      }
+    };
+    return (
+      <Tooltip content={`Select Note Scale`}>
+        <div className="h-5 flex text-xs items-center">
+          <Editor.CustomListbox
+            value={value}
+            options={options}
+            getOptionName={(option) => `Strum = ${option}`}
+            setValue={setValue}
+          />
+        </div>
+      </Tooltip>
+    );
+  };
+
+  /** Adjust the range of the chord strum if it is enabled. */
+  const StrumRangeInputs = useNumericInputs([
+    {
+      id: "strumRange-0",
+      initialValue: 0,
+      min: 0,
+      callback: (value) => {
+        if (!id) return;
+        if (!isPatternStrummedChord(block)) return;
+        const newBlock = editPatternChordStrum(block, {
+          strumRange: [value ?? 0, block.strumRange[1]],
+        });
+        dispatch(updatePatternBlock({ id, index, block: newBlock }));
+      },
+    },
+    {
+      id: "strumRange-1",
+      initialValue: 0,
+      min: 0,
+      callback: (value) => {
+        if (!id) return;
+        if (!isPatternStrummedChord(block)) return;
+        const newBlock = editPatternChordStrum(block, {
+          strumRange: [block.strumRange[0], value ?? 0],
+        });
+        dispatch(updatePatternBlock({ id, index, block: newBlock }));
+      },
+    },
+  ]);
+  const ChordStrumRange = () => {
+    if (!isPatternStrummedChord(block)) return null;
+    return (
+      <>
+        <Editor.NumericField
+          className="w-20 bg-transparent border-slate-500  focus:border-teal-500/80"
+          value={StrumRangeInputs.getValue("strumRange-0")}
+          onChange={StrumRangeInputs.onChange("strumRange-0")}
+          min={0}
+          leadingText="Before = "
+        />
+        <Editor.NumericField
+          className="w-20 bg-transparent border-slate-500  focus:border-teal-500/80"
+          value={StrumRangeInputs.getValue("strumRange-1")}
+          onChange={StrumRangeInputs.onChange("strumRange-1")}
+          min={0}
+          leadingText="After = "
+        />
+      </>
+    );
+  };
+  /** Set the strum range when the chord changes. */
+  useEffect(() => {
+    if (!isPatternStrummedChord(block)) return;
+    const range = block.strumRange;
+    StrumRangeInputs.setValue("strumRange-0", range[0].toString());
+    StrumRangeInputs.setValue("strumRange-1", range[1].toString());
+  }, [chordIndex, block]);
+
   return (
     <Editor.Tab show={props.isCustom && !cursor.hidden} border={false}>
       <Editor.TabGroup border>
         <ChordIndexField />
         {VelocityField}
+      </Editor.TabGroup>
+      <Editor.TabGroup border>
+        <ChordStrumDirection />
+        {ChordStrumRange()}
       </Editor.TabGroup>
       <Editor.TabGroup>
         <ScaleTrackField />

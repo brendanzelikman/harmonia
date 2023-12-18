@@ -5,10 +5,10 @@ import {
   isMidiObject,
   isScaleNoteObject,
 } from "../Scale";
-import { ID, Tick } from "../units";
+import { BlockedChord, ID, StrummedChord, Tick } from "../units";
 import { InstrumentKey } from "../Instrument";
 import { TrackId } from "types/Track";
-import { isPlainObject, isString } from "lodash";
+import { isArray, isPlainObject, isString, isUndefined } from "lodash";
 import {
   NormalRecord,
   NormalState,
@@ -48,12 +48,14 @@ export type PatternNote = Playable<ScaleNoteObject>;
 export type PatternMidiNote = Playable<MidiObject>;
 
 /** A `PatternChord` is a group of `PatternNotes` */
-export type PatternChord = PatternNote | Chord<PatternNote>;
-export type PatternMidiChord = PatternMidiNote | Chord<PatternMidiNote>;
+export type PatternBlockedChord = BlockedChord<PatternNote>;
+export type PatternStrummedChord = StrummedChord<PatternNote>;
+export type PatternChord = Chord<PatternNote>;
+export type PatternMidiChord = Chord<PatternMidiNote>;
 
 /** A `PatternBlock` is a `PatternChord` or a `PatternRest` */
 export type PatternBlock = PatternChord | PatternRest;
-export type PatternMidiBlock = PatternMidiNote | PatternMidiChord | PatternRest;
+export type PatternMidiBlock = PatternMidiChord | PatternRest;
 
 /** A `PatternStream` is a sequence of `PatternBlocks`. */
 export type PatternStream = Stream<PatternBlock>;
@@ -128,17 +130,44 @@ export const isPatternMidiNote = (obj: unknown): obj is PatternMidiNote => {
   return isMidiObject(candidate) && isFiniteNumber(candidate.duration);
 };
 
+/** Checks if a given object is of type `PatternBlockedChord`. */
+export const isPatternBlockedChord = (
+  obj: unknown
+): obj is PatternBlockedChord => {
+  const candidate = obj as PatternBlockedChord;
+  return isTypedArray(candidate, isPatternNote);
+};
+
+/** Checks if a given object is of type `PatternStrummedChord`. */
+export const isPatternStrummedChord = (
+  obj: unknown
+): obj is PatternStrummedChord => {
+  const candidate = obj as PatternStrummedChord;
+  return (
+    isPlainObject(candidate) &&
+    isPatternBlockedChord(candidate.chord) &&
+    isTypedArray(candidate.strumRange, isFiniteNumber) &&
+    isString(candidate.strumDirection)
+  );
+};
+
 /** Checks if a given object is of type `PatternChord`. */
 export const isPatternChord = (obj: unknown): obj is PatternChord => {
   const candidate = obj as PatternChord;
-  return isPatternNote(candidate) || isTypedArray(candidate, isPatternNote);
+  return (
+    isPatternNote(candidate) ||
+    isPatternBlockedChord(candidate) ||
+    isPatternStrummedChord(candidate)
+  );
 };
 
 /** Checks if a given object is of type `PatternMidiChord`. */
 export const isPatternMidiChord = (obj: unknown): obj is PatternMidiChord => {
   const candidate = obj as PatternMidiChord;
   return (
-    isPatternMidiNote(candidate) || isTypedArray(candidate, isPatternMidiNote)
+    isPatternMidiNote(candidate) ||
+    isPatternBlockedChord(candidate) ||
+    isPatternStrummedChord(candidate)
   );
 };
 

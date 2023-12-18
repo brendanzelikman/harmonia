@@ -28,8 +28,10 @@ import {
   isPatternChord,
   isPatternMidiChord,
   isPatternMidiNote,
+  isPatternStrummedChord,
   resolvePatternNoteToMidi,
   resolvePatternStreamToMidi,
+  updatePatternChordNotes,
 } from "types/Pattern";
 import { Midi } from "@tonejs/midi";
 import {
@@ -175,15 +177,16 @@ export const autoBindPattern =
     const mappedStream = pattern.stream.map((block, i) => {
       // Skip if the block is a rest
       const midiBlock = midiStream[i];
-      if (!isPatternChord(block) || !isPatternMidiChord(midiBlock))
+      if (!isPatternChord(block) || !isPatternMidiChord(midiBlock)) {
         return block;
+      }
 
       // Get the notes from both blocks
       const notes = getPatternChordNotes(block);
       const midiNotes = getPatternMidiChordNotes(midiBlock);
 
       // Iterate over each note of the block
-      return notes.map((note, j) => {
+      const newChord = notes.map((note, j) => {
         const midiNote = midiNotes[j].MIDI;
         // For each note, iterate over every track
         for (let t = 0; t < trackChain.length; t++) {
@@ -213,6 +216,9 @@ export const autoBindPattern =
         // If not possible, just return the note as is
         return note;
       });
+
+      const newBlock = updatePatternChordNotes(block, newChord);
+      return newBlock;
     });
 
     dispatch(updatePattern({ id, stream: mappedStream }));
@@ -230,12 +236,21 @@ export const clearPatternBindings =
     // Get the MIDI stream
     const scaleChain = selectTrackScaleChain(project, pattern.patternTrackId);
     const midiStream = resolvePatternStreamToMidi(pattern.stream, scaleChain);
+    const newStream = pattern.stream.map((block, i) => {
+      if (isPatternStrummedChord(block)) {
+        const midiBlock = midiStream[i];
+        if (!isPatternMidiChord(midiBlock)) return block;
+        const notes = getPatternMidiChordNotes(midiBlock);
+        return updatePatternChordNotes(block, notes);
+      }
+      return block;
+    });
 
     // Update the pattern
     dispatch(
       updatePattern({
         id,
-        stream: midiStream,
+        stream: newStream,
         patternTrackId: clearTrack ? undefined : pattern.patternTrackId,
       })
     );
