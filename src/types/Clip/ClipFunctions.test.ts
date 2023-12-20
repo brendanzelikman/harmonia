@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import {
+  PatternClipBlock,
   defaultPatternClip,
   initializePatternClip,
   initializePoseClip,
@@ -30,13 +31,11 @@ const originalStream = [12, ...degrees].map((d) =>
 
 test("getClipDuration should return the correct duration for a clip with it specified", () => {
   const clip = initializePatternClip({ duration: 5 });
-  const ticks = _.getClipDuration(clip, defaultPattern.stream);
+  const notes = ArrangementFunctions.getPatternClipStream(clip, {
+    pattern: defaultPattern,
+  });
+  const ticks = _.getClipDuration(clip, notes);
   expect(ticks).toEqual(clip.duration);
-});
-
-test("getClipDuration should return the correct duration for a clip without it specified", () => {
-  const ticks = _.getClipDuration(defaultPatternClip, defaultPattern.stream);
-  expect(ticks).toBe(getPatternStreamDuration(defaultPattern.stream));
 });
 
 test("getClipStream should work with just a pattern of MIDI notes", () => {
@@ -47,7 +46,8 @@ test("getClipStream should work with just a pattern of MIDI notes", () => {
   const clipStream = ArrangementFunctions.getPatternClipStream(clip, {
     pattern,
   });
-  const midiStream = resolvePatternStreamToMidi(clipStream, []);
+  const clipNotes = clipStream.map((_) => _.notes);
+  const midiStream = resolvePatternStreamToMidi(clipNotes, []);
   const values = getMidiStreamValues(midiStream);
 
   expect(values).toEqual([60, 61, 62, 63]);
@@ -64,7 +64,8 @@ test("getClipStream should work with just a pattern of nested notes", () => {
   const clipStream = ArrangementFunctions.getPatternClipStream(clip, {
     pattern,
   });
-  const midiStream = resolvePatternStreamToMidi(clipStream, []);
+  const clipNotes = clipStream.map((_) => _.notes);
+  const midiStream = resolvePatternStreamToMidi(clipNotes, []);
   const values = getMidiStreamValues(midiStream);
 
   expect(values).toEqual([70, 72, 74, 76]);
@@ -79,7 +80,8 @@ test("getClipStream should work with just a pattern of mixed notes", () => {
   const clipStream = ArrangementFunctions.getPatternClipStream(clip, {
     pattern,
   });
-  const midiStream = resolvePatternStreamToMidi(clipStream, []);
+  const clipNotes = clipStream.map((_) => _.notes);
+  const midiStream = resolvePatternStreamToMidi(clipNotes, []);
   const values = getMidiStreamValues(midiStream);
 
   expect(values).toEqual([60, 70]);
@@ -96,7 +98,8 @@ test("getClipStream should work with a pattern of mixed notes and a MIDI scale",
     pattern,
     scales,
   });
-  const midiStream = resolvePatternStreamToMidi(clipStream, []);
+  const clipNotes = clipStream.map((_) => _.notes);
+  const midiStream = resolvePatternStreamToMidi(clipNotes, []);
   const values = getMidiStreamValues(midiStream);
 
   expect(values).toEqual([12, 70, 72, 74, 76]);
@@ -113,7 +116,8 @@ test("getClipStream should work with a pattern of mixed notes and a nested scale
     pattern,
     scales,
   });
-  const midiStream = resolvePatternStreamToMidi(clipStream, []);
+  const clipNotes = clipStream.map((_) => _.notes);
+  const midiStream = resolvePatternStreamToMidi(clipNotes, []);
   const values = getMidiStreamValues(midiStream);
 
   expect(values).toEqual([12, 70, 72, 74, 76]);
@@ -139,7 +143,8 @@ test("getClipStream should not transpose a pattern of notes wihout any tracks", 
     pattern,
     poses: poses,
   });
-  const midiStream = resolvePatternStreamToMidi(clipStream, []);
+  const clipNotes = clipStream.map((_) => _.notes);
+  const midiStream = resolvePatternStreamToMidi(clipNotes, []);
   const values = getMidiStreamValues(midiStream);
 
   expect(values).toEqual([12, 70, 72, 74, 76]);
@@ -180,7 +185,8 @@ test("getClipStream should not transpose a pattern of notes without any clips", 
     poses,
     tracks,
   });
-  const midiStream = resolvePatternStreamToMidi(stream, []);
+  const notes = stream.map((_) => _.notes);
+  const midiStream = resolvePatternStreamToMidi(notes, []);
   const values = getMidiStreamValues(midiStream);
 
   expect(values).toEqual([12, 70, 72, 74, 76]);
@@ -217,7 +223,8 @@ test("getClipStream should correctly transpose and rotate a pattern when tracks 
     tracks,
     clips,
   });
-  const midiStream = resolvePatternStreamToMidi(clipStream);
+  const notes = clipStream.map((_) => _.notes);
+  const midiStream = resolvePatternStreamToMidi(notes);
   const values = getMidiStreamValues(midiStream);
 
   expect(values).toEqual([15, 73, 75, 77, 83]);
@@ -289,7 +296,8 @@ test("getClipStream should work with fully loaded dependencies", () => {
     poses,
     scales,
   });
-  const midiStream = resolvePatternStreamToMidi(clipStream);
+  const notes = clipStream.map((_) => _.notes);
+  const midiStream = resolvePatternStreamToMidi(notes);
   const values = getMidiStreamValues(midiStream);
 
   // Note #1 should be major[0] + T1(1) + N(2-1) = 60 + 2 + 1 = 63

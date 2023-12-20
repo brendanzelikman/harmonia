@@ -1,9 +1,5 @@
 import { useMemo } from "react";
-import {
-  selectMediaDragState,
-  selectTimeline,
-  selectClipName,
-} from "redux/selectors";
+import { selectMediaDragState, selectClipName } from "redux/selectors";
 import { cancelEvent } from "utils/html";
 import { usePoseClipDrag } from "./usePoseClipDrag";
 import {
@@ -23,7 +19,6 @@ import classNames from "classnames";
 import { onMediaDragEnd } from "redux/Media";
 import { PoseClip, PoseClipId } from "types/Clip";
 import { ClipRendererProps } from "./TimelineClips";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 interface PoseClipRendererProps extends ClipRendererProps {
   clip: PoseClip;

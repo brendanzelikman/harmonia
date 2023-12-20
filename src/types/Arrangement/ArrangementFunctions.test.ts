@@ -1,4 +1,4 @@
-import { Pose, initializePose } from "types/Pose";
+import { initializePose } from "types/Pose";
 import {
   getScaleName,
   initializeScale,

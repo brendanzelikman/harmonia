@@ -1,5 +1,6 @@
 import {
   PatternClip,
+  PatternClipMidiStream,
   PoseClip,
   getCurrentPoseClip,
   getPoseClipsByTrackId,
@@ -24,7 +25,6 @@ import { getValueByKey } from "utils/objects";
 import { TrackArrangement } from "./ArrangementTypes";
 import {
   Pattern,
-  PatternMidiStream,
   getPatternStreamDuration,
   getPatternBlockDuration,
   getTransposedPatternStream,
@@ -32,11 +32,9 @@ import {
   isPatternChord,
   isPatternStrummedChord,
   getPatternChordNotes,
-  isPatternMidiNote,
   isPatternMidiChord,
   getPatternMidiChordNotes,
   PatternMidiNote,
-  isPatternRest,
 } from "types/Pattern";
 
 // ------------------------------------------------------------
@@ -177,7 +175,7 @@ export interface PatternStreamDependencies extends Partial<TrackArrangement> {
 export const getPatternClipStream = (
   clip: PatternClip,
   deps: PatternStreamDependencies
-): PatternMidiStream => {
+): PatternClipMidiStream => {
   const { trackId } = clip;
   const { pattern, poses, scales, ...arrangement } = deps;
   const tracks = arrangement?.tracks ?? {};
@@ -185,7 +183,7 @@ export const getPatternClipStream = (
   if (!pattern) return [];
 
   // Initialize the loop variables
-  const stream = [] as PatternMidiStream;
+  const stream: PatternClipMidiStream = [];
   const streamLength = pattern.stream.length;
   let blockCount = 0;
   let streamDuration = 0;
@@ -207,10 +205,8 @@ export const getPatternClipStream = (
   for (let i = 0; i < totalTicks; i++) {
     const block = pattern.stream[blockCount];
 
-    // If a block is being played or there's no block, continue
-    if (i < streamDuration || !block) {
-      if (i < stream.length) continue;
-      stream.push([]);
+    // If a block is being played or there's no chord, continue
+    if (i < streamDuration || !isPatternChord(block)) {
       continue;
     }
 
@@ -219,16 +215,11 @@ export const getPatternClipStream = (
     if (streamDuration === i) streamDuration += blockDuration;
     blockCount += 1;
 
-    // If the block is a rest, add it and skip to the next block
-    if (!isPatternChord(block)) {
-      stream.push({ duration: blockDuration });
-      continue;
-    }
-
+    // Get the notes and size of the chord
     const notes = getPatternChordNotes(block);
     const noteCount = notes.length;
 
-    // Otherwise, transpose the pattern stream using the clip's current pose
+    // Transpose the pattern stream using the clip's current pose
     const tick = clip.tick + i;
     const poseClip = getCurrentPoseClip(poseClips, tick, false);
     const pose = getValueByKey(poses, poseClip?.poseId);
@@ -249,10 +240,13 @@ export const getPatternClipStream = (
       poseClipVector
     );
     const newChord = newStream[blockCount - 1];
+    if (!isPatternMidiChord(newChord)) continue;
 
     // If the block is not strummed, just push the chord to the stream
-    if (!isPatternStrummedChord(block) || isPatternRest(newChord)) {
-      stream.push(newChord);
+    if (!isPatternStrummedChord(block)) {
+      const newNotes = getPatternMidiChordNotes(newChord);
+      const startTick = clip.tick + i;
+      stream.push({ notes: newNotes, startTick });
       continue;
     }
 
@@ -265,7 +259,6 @@ export const getPatternClipStream = (
     const strumNotes = getPatternMidiChordNotes(newChord);
 
     // Add the notes to the current index of the stream, offset by the strum range
-    const currentIndex = stream.length;
     for (let j = 0; j < noteCount; j++) {
       // Get the index of the note to add based on the strum direction
       const index = strumDirection === "up" ? j : noteCount - j - 1;
@@ -277,37 +270,17 @@ export const getPatternClipStream = (
       if (noteCount === 1) offset = strumRange[1] - strumRange[0];
 
       // If the offset goes negative, clamp it to the stream
-      const strummedTick = currentIndex + offset;
-      if (strummedTick < 0) offset = Math.max(-currentIndex, offset);
+      const strummedTick = tick + offset;
+      if (strummedTick < 0) offset = Math.max(-tick, offset);
 
       // Get the new note and adjust its duration
       const note = strumNotes[index];
       const newNote = { ...note, duration: note.duration - offset };
+      const startTick = clip.tick + i + offset;
+      const block = { notes: [newNote], startTick };
 
-      // Find the target block based on the strum offset
-      const currentBlock = stream[strummedTick];
-
-      // If the target block is empty, add the note to the stream
-      if (!isPatternMidiChord(currentBlock)) {
-        stream[strummedTick] = [newNote];
-      }
-
-      // If the target block is a note, replace it with a chord
-      else if (isPatternMidiNote(currentBlock)) {
-        stream[strummedTick] = [currentBlock, newNote];
-      }
-
-      // Otherwise, push the note to the target block
-      else {
-        const currentNotes = getPatternMidiChordNotes(currentBlock);
-        stream[strummedTick] = [...currentNotes, newNote];
-      }
-    }
-
-    // Fill in the rest of the stream with empty arrays if necessary
-    const lastIndex = currentIndex + strumDuration;
-    for (let j = currentIndex; j < lastIndex; j++) {
-      if (!stream[j]) stream[j] = [];
+      // Push the block to the stream
+      stream.push(block);
     }
   }
 

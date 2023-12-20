@@ -30,6 +30,7 @@ import {
 import { Transport } from "tone";
 import {
   PatternId,
+  PatternMidiChord,
   PatternMidiStream,
   PatternStream,
   getPatternBlockDuration,
@@ -190,8 +191,11 @@ export const duplicateSelectedMedia =
     if (!patternClipIds.length && !poseClipIds.length) return;
 
     // Get the selected clips and their durations
-    const clips = Timeline.selectSelectedPatternClips(project);
-    const clipDurations = Clips.selectClipDurations(project, patternClipIds);
+    const patternClips = Timeline.selectSelectedClips(project);
+    const poseClips = Timeline.selectSelectedPoseClips(project);
+    const clips = [...patternClips, ...poseClips];
+    const clipIds = [...patternClipIds, ...poseClipIds];
+    const clipDurations = Clips.selectClipDurations(project, clipIds);
 
     // Get the selected portals
     const portals = Timeline.selectSelectedPortals(project);
@@ -360,25 +364,27 @@ export const mergeSelectedMedia =
       const stream = selectPatternClipStream(project, clip.id).reduce(
         (streamAcc, block) => {
           if (totalDuration > duration) return streamAcc;
-          const blockDuration = getPatternBlockDuration(block);
+          const blockDuration = getPatternBlockDuration(block.notes);
 
           // If the block duration is longer than the clip duration, shorten it
           if (totalDuration + blockDuration > duration) {
             // If the block is a rest, just add it to the stream
             const newDuration = duration - totalDuration;
             totalDuration += newDuration;
-            if (!isPatternMidiChord(block))
+            if (!isPatternMidiChord(block.notes))
               return [...streamAcc, { duration: newDuration }];
 
             // Otherwise, shorten all notes and add the chord to the stream
-            const notes = getPatternMidiChordNotes(block);
-            const chord = notes.map((n) => ({ ...n, duration: newDuration }));
+            const chord = block.notes.map((n) => ({
+              ...n,
+              duration: newDuration,
+            }));
             return [...streamAcc, chord];
           }
 
           // Otherwise, sum the duration and add the block to the stream
           totalDuration += blockDuration;
-          return [...streamAcc, block];
+          return [...streamAcc, block.notes];
         },
         [] as PatternMidiStream
       );

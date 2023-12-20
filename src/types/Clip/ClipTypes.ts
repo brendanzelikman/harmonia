@@ -1,5 +1,12 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { PatternBlock, PatternId, PatternStream } from "types/Pattern";
+import {
+  PatternBlock,
+  PatternChord,
+  PatternId,
+  PatternMidiNote,
+  PatternNote,
+  PatternStream,
+} from "types/Pattern";
 import { PoseBlock, PoseId, PoseStream } from "types/Pose";
 import { TrackId } from "types/Track";
 import { ID, Tick } from "types/units";
@@ -52,8 +59,16 @@ export type PatternClip = ClipInterface & {
   patternId: PatternId;
 };
 export type PatternClipId = `patternClip-${ID}`;
-export type PatternClipStream = PatternStream;
-export type PatternClipBlock = PatternBlock;
+export type PatternClipStream = PatternClipBlock[];
+export type PatternClipBlock = {
+  notes: PatternNote[];
+  startTick: Tick;
+};
+export type PatternClipMidiStream = PatternClipMidiBlock[];
+export type PatternClipMidiBlock = {
+  notes: PatternMidiNote[];
+  startTick: Tick;
+};
 
 // ------------------------------------------------------------
 // Pose Clip Definitions

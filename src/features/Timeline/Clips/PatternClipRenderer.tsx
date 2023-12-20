@@ -1,10 +1,13 @@
-import { PatternClip, getClipTheme, PatternClipId } from "types/Clip";
+import {
+  PatternClip,
+  getClipTheme,
+  PatternClipId,
+  PatternClipMidiBlock,
+} from "types/Clip";
 import { usePatternClipDrag } from "./usePatternClipDrag";
 import {
   getMidiStreamRange,
-  getPatternMidiChordNotes,
   isPatternMidiChord,
-  PatternMidiBlock,
   PatternMidiNote,
 } from "types/Pattern";
 import {
@@ -103,7 +106,7 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
   // Clip stream dimensions
   const STREAM_MARGIN = 8;
   const streamHeight = height - NAME_HEIGHT - STREAM_MARGIN;
-  const streamRange = getMidiStreamRange(stream);
+  const streamRange = getMidiStreamRange(stream.map((_) => _.notes));
   const streamLength = streamRange.length;
 
   // Clip note dimensions
@@ -175,14 +178,15 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
 
   /** Render a list of notes in a chord. */
   const renderBlock = useCallback(
-    (block: PatternMidiBlock, i: number) => {
-      if (!clip || !isPatternMidiChord(block)) return null;
-      const notes = getPatternMidiChordNotes(block);
+    (block: PatternClipMidiBlock, i: number) => {
+      const { notes } = block;
+      if (!clip || !isPatternMidiChord(notes)) return null;
       const chordClass = classNames(
         isSlicingClips
           ? "bg-slate-500/50 group-hover:bg-slate-600/50 border-slate-50/50 hover:border-r-4 cursor-scissors"
           : "border-slate-50/10"
       );
+      const index = block.startTick - clip.tick;
       return (
         <ul
           key={`${clip.id}-chord-${i}`}
@@ -192,7 +196,7 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
             isSlicingClips && dispatch(sliceClip(clip, clip.tick + i))
           }
         >
-          {notes.map((_, j) => renderNote(_, i, j))}
+          {notes.map((_, j) => renderNote(_, index, j))}
         </ul>
       );
     },

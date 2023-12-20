@@ -129,7 +129,6 @@ export const randomizePatternPitches =
       const noteCount = chordNotes.length;
 
       const randomDegrees = sampleSize(range(0, scaleNotes.length), noteCount);
-      console.log(randomDegrees);
       const newNotes = chordNotes.map((note, i) => {
         const degree = randomDegrees[i];
         const newNote = {

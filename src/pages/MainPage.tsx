@@ -19,6 +19,7 @@ import Nest from "assets/demos/nest.ham";
 import Barry from "assets/demos/barry.ham";
 import Wind from "assets/demos/wind.ham";
 import Marimba from "assets/demos/marimba.ham";
+import Strum from "assets/demos/strum.ham";
 
 export type View = (typeof views)[number];
 export const views = ["projects", "demos", "docs", "playground"] as const;
@@ -29,7 +30,7 @@ export function MainPage(props: { view?: View }) {
   const params = useParams<{ view: View }>();
   const view = props.view || params.view || "projects";
   const [projects, setProjects] = useState<Project[]>([]);
-  const demoPaths = [Nest, Barry, Wind, Marimba];
+  const demoPaths = [Nest, Barry, Wind, Marimba, Strum];
   const updateProjects = async () => setProjects(await getProjectsFromDB());
 
   // Update whenever the database changes

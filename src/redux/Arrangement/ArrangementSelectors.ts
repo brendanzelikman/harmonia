@@ -10,14 +10,8 @@ import {
   LiveArrangement,
   getPatternClipStream,
 } from "types/Arrangement";
-import { ClipId, isPatternClip } from "types/Clip";
+import { ClipId, PatternClipMidiStream, isPatternClip } from "types/Clip";
 import { InstrumentNotesByTicks } from "types/Instrument";
-import {
-  getPatternBlockAtIndex,
-  getPatternMidiChordNotes,
-  isPatternMidiChord,
-  PatternMidiStream,
-} from "types/Pattern";
 import { Project } from "types/Project";
 import { Tick } from "types/units";
 import { getValueByKey } from "utils/objects";
@@ -96,7 +90,7 @@ export const selectPatternClipStreamMap = createDeepEqualSelector(
     selectPoseMap,
   ],
   (clips, arrangement, scales, patterns, poses) => {
-    const map = {} as Record<ClipId, PatternMidiStream>;
+    const map = {} as Record<ClipId, PatternClipMidiStream>;
 
     for (const clip of clips) {
       const pattern = patterns[clip.patternId];
@@ -121,7 +115,7 @@ export const selectPatternClipStream = createArraySelector(
 export const selectPortaledPatternClipStreamMap = createDeepEqualSelector(
   [selectPortaledArrangement, selectScaleMap, selectPatternMap, selectPoseMap],
   (arrangement, scales, patterns, poses) => {
-    const map = {} as Record<ClipId, PatternMidiStream>;
+    const map = {} as Record<ClipId, PatternClipMidiStream>;
     const patternClips = Object.values(arrangement.clips).filter(isPatternClip);
 
     // Iterate through each clip and get the stream
@@ -175,28 +169,20 @@ export const selectChordsByTicks = createDeepEqualSelector(
       const instrumentStateId = patternTrack.instrumentId;
       if (!instrumentStateId) continue;
 
-      const baseTick = clip.tick;
-
       // Iterate through each chord in the stream
       for (let j = 0; j < streamLength; j++) {
         // Get the current chord
-        const block = getPatternBlockAtIndex(stream, j);
-        if (!block || !isPatternMidiChord(block)) continue;
-
-        // Get the current tick within the clip
-        const notes = getPatternMidiChordNotes(block);
+        const { notes, startTick } = stream[j];
         if (!notes.length) continue;
 
-        const tick = baseTick + j;
-
         // Add the chord to the map if it does not exist
-        if (result[tick] === undefined) {
-          result[tick] = {};
+        if (result[startTick] === undefined) {
+          result[startTick] = {};
         }
-        if (result[tick][instrumentStateId] === undefined) {
-          result[tick][instrumentStateId] = [];
+        if (result[startTick][instrumentStateId] === undefined) {
+          result[startTick][instrumentStateId] = [];
         }
-        result[tick][instrumentStateId].push(...notes);
+        result[startTick][instrumentStateId].push(...notes);
       }
     }
 

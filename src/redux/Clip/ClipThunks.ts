@@ -58,7 +58,10 @@ export const exportClipsToMidi =
     const project = getProject();
     const meta = _.selectMetadata(project);
     const transport = _.selectTransport(project);
-    const trackIds = _.selectTrackIds(project);
+    const clips = _.selectClips(project).filter((_) => ids.includes(_.id));
+    const tracks = _.selectTracks(project).filter((track) =>
+      clips.some((clip) => clip.trackId === track.id)
+    );
     const clipStreamMap = _.selectPatternClipStreamMap(project);
     if (!hasKeys(clipStreamMap)) return;
 
@@ -66,8 +69,10 @@ export const exportClipsToMidi =
     const midi = new Midi();
 
     // Iterate through each track
-    trackIds.forEach((trackId) => {
-      const clips = _.selectClipsByTrackIds(project, [trackId]);
+    tracks.forEach((track) => {
+      const clips = _.selectClipsByTrackIds(project, [track.id]).filter(
+        (clip) => ids.includes(clip.id)
+      );
       if (!clips.length) return;
 
       // Create a MIDI track and add each clip
@@ -80,19 +85,16 @@ export const exportClipsToMidi =
 
         // Iterate through each block
         for (let i = 0; i < stream.length; i++) {
-          const block = stream[i];
-
-          // Skip the block if it's a rest or empty
-          if (!isPatternMidiChord(block)) continue;
-          const notes = getPatternMidiChordNotes(block);
+          const { notes, startTick } = stream[i];
           if (!notes.length) continue;
 
           // Get the current time of the block
-          const time = startTime + convertTicksToSeconds(transport, i);
+          const time = convertTicksToSeconds(transport, startTick);
 
           // Add each note to the MIDI track
           for (const note of notes) {
-            const { MIDI, duration, velocity } = note;
+            const { MIDI, velocity } = note;
+            const duration = convertTicksToSeconds(transport, note.duration);
             midiTrack.addNote({ midi: MIDI, duration, time, velocity });
           }
         }
