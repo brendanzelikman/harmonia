@@ -228,7 +228,7 @@ export function LandingPage() {
     <main className="relative font-nunito animate-in fade-in duration-75 flex flex-col w-full h-screen overflow-scroll">
       <img
         src={LandingBackground}
-        className="fixed inset-0 h-screen opacity-50"
+        className="fixed opacity-50 h-screen landing-background"
       />
       <SplashScreen />
       {!!isAuthenticated && (

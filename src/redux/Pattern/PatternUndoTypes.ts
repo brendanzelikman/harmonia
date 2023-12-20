@@ -18,6 +18,9 @@ export const PATTERN_UNDO_TYPES: ActionGroup = {
   "patterns/removePattern": (action: PayloadAction<_.RemovePatternPayload>) => {
     return `REMOVE_PATTERN:${action.payload}`;
   },
+  "patterns/clearPattern": (action: PayloadAction<_.ClearPatternPayload>) => {
+    return `CLEAR_PATTERN:${action.payload}`;
+  },
   "patterns/addPatternNote": (
     action: PayloadAction<_.AddPatternNotePayload>
   ) => {
@@ -76,6 +79,7 @@ export const PATTERN_UNDO_TYPES: ActionGroup = {
   "patterns/phasePattern": (action: PayloadAction<_.PhasePatternPayload>) => {
     return `PHASE_PATTERN:${action.payload.id}:${action.payload.phase}`;
   },
+
   "patterns/stretchPattern": (
     action: PayloadAction<_.StretchPatternPayload>
   ) => {
@@ -86,17 +90,79 @@ export const PATTERN_UNDO_TYPES: ActionGroup = {
   ) => {
     return `REVERSE_PATTERN:${action.payload}`;
   },
-  "patterns/shufflePattern": (
+  "patterns/shufflePatternStream": (
     action: PayloadAction<_.ShufflePatternPayload>
   ) => {
-    return `SHUFFLE_PATTERN:${action.payload}`;
+    return `SHUFFLE_PATTERN_STREAM:${action.payload}`;
+  },
+  "patterns/shufflePatternPitches": (
+    action: PayloadAction<_.ShufflePatternPayload>
+  ) => {
+    return `SHUFFLE_PATTERN_PITCHES:${action.payload}`;
+  },
+  "patterns/shufflePatternVelocities": (
+    action: PayloadAction<_.ShufflePatternPayload>
+  ) => {
+    return `SHUFFLE_PATTERN_VELOCITIES:${action.payload}`;
+  },
+  "patterns/subdividePattern": (
+    action: PayloadAction<_.SubdividePatternPayload>
+  ) => {
+    return `SUBDIVIDE_PATTERN:${action.payload}`;
+  },
+  "patterns/mergePattern": (action: PayloadAction<_.MergePatternPayload>) => {
+    return `MERGE_PATTERN:${action.payload}`;
+  },
+  "patterns/flattenPattern": (
+    action: PayloadAction<_.FlattenPatternPayload>
+  ) => {
+    return `FLATTEN_PATTERN:${action.payload}`;
   },
   "patterns/harmonizePattern": (
     action: PayloadAction<_.HarmonizePatternPayload>
   ) => {
     return `HARMONIZE_PATTERN:${action.payload.id}:${action.payload.interval}`;
   },
-  "patterns/clearPattern": (action: PayloadAction<_.ClearPatternPayload>) => {
-    return `CLEAR_PATTERN:${action.payload}`;
+  "patterns/interpolatePattern": (
+    action: PayloadAction<_.InterpolatePatternPayload>
+  ) => {
+    return `HARMONIZE_PATTERN:${action.payload.id}:${action.payload.fillCount}`;
+  },
+  "patterns/setPatternPitches": (
+    action: PayloadAction<_.SetPatternPitchesPayload>
+  ) => {
+    const { id, pitch } = action.payload;
+    return `SET_PATTERN_PITCHES:${id},${pitch}`;
+  },
+  "patterns/setPatternDurations": (
+    action: PayloadAction<_.SetPatternDurationsPayload>
+  ) => {
+    const { id, duration } = action.payload;
+    return `SET_PATTERN_DURATIONS:${id},${duration}`;
+  },
+  "patterns/setPatternVelocities": (
+    action: PayloadAction<_.SetPatternVelocitiesPayload>
+  ) => {
+    const { id, velocity } = action.payload;
+    return `SET_PATTERN_VELOCITIES:${id},${velocity}`;
+  },
+  "patterns/graduatePatternVelocities": (
+    action: PayloadAction<_.GraduatePatternVelocitiesPayload>
+  ) => {
+    const { id, startIndex, endIndex, startVelocity, endVelocity } =
+      action.payload;
+    return `GRADUATE_PATTERN_VELOCITIES:${id},${startIndex},${endIndex},${startVelocity},${endVelocity}`;
+  },
+  "patterns/randomizePatternVelocities": (
+    action: PayloadAction<_.RandomizePatternPayload>
+  ) => {
+    const id = action.payload;
+    return `RANDOMIZE_PATTERN_VELOCITIES:${id}`;
+  },
+  "patterns/randomizePatternDurations": (
+    action: PayloadAction<_.RandomizePatternPayload>
+  ) => {
+    const id = action.payload;
+    return `RANDOMIZE_PATTERN_DURATIONS:${id}`;
   },
 };

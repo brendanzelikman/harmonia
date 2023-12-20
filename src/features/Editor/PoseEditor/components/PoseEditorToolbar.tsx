@@ -2,7 +2,7 @@ import { Editor } from "features/Editor/components";
 import { PoseEditorProps } from "../PoseEditor";
 import { copyPose, createPose, repeatPoseStream } from "redux/thunks";
 import { addPoseBlock, clearPose, updatePose } from "redux/Pose";
-import { promptUser } from "utils/html";
+import { promptUserForNumber } from "utils/html";
 
 export function PoseEditorToolbar(props: PoseEditorProps) {
   const { dispatch, pose, Button, isCustom } = props;
@@ -71,7 +71,7 @@ export function PoseEditorToolbar(props: PoseEditorProps) {
   const RepeatButton = () => (
     <Button
       label="Repeat Pose Stream"
-      onClick={promptUser(
+      onClick={promptUserForNumber(
         "Repeat Your Stream",
         "How many times would you like to repeat this stream?",
         (value) => dispatch(repeatPoseStream(pose.id, value))

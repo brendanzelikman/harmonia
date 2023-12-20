@@ -129,6 +129,16 @@ export const getPatternBlockDuration = (block: PatternBlock): Tick => {
   return Math.max(...noteDurations);
 };
 
+/** Get the total velocity of a `PatternBlock` in ticks. */
+export const getPatternBlockVelocity = (block: PatternBlock): Tick => {
+  if (isPatternNote(block)) return block.velocity;
+  if (isPatternRest(block)) return 0;
+  const notes = getPatternChordNotes(block);
+  if (!notes.length) return 0;
+  const noteVelocities = notes.map((note) => note.velocity);
+  return Math.max(...noteVelocities);
+};
+
 /** Get the total duration of a `PatternStream` in ticks. */
 export const getPatternStreamDuration = (stream: PatternStream): Tick => {
   if (!isPatternStream(stream) || !stream.length) return 1;

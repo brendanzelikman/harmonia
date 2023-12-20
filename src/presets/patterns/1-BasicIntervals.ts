@@ -1,6 +1,12 @@
 import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
+export const Note: Pattern = {
+  id: "note",
+  name: "Note",
+  stream: [_.createQuarterNote(60)],
+};
+
 export const Unison: Pattern = {
   id: "unison",
   name: "Unison",
@@ -92,6 +98,7 @@ export const Octave: Pattern = {
 };
 
 export default {
+  Note,
   Unison,
   MinorSecond,
   MajorSecond,

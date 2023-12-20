@@ -6,7 +6,7 @@ import {
   removePoseBlock,
   repeatPoseStream,
 } from "redux/Pose";
-import { promptUser } from "utils/html";
+import { promptUserForNumber } from "utils/html";
 import {
   EighthNoteTicks,
   HalfNoteTicks,
@@ -59,7 +59,7 @@ export function usePoseEditorHotkeys(props: PoseEditorProps) {
   // R = Repeat Stream
   useHotkeys(
     "r",
-    promptUser(
+    promptUserForNumber(
       "Repeat Your Stream",
       "How many times would you like to repeat this stream?",
       (value) => id && dispatch(repeatPoseStream(id, value))

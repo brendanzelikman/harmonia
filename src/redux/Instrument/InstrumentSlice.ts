@@ -119,6 +119,7 @@ export const instrumentsSlice = createSlice({
       // Recreate the sampler if the instrument key changed
       if (update.key !== undefined) {
         instance.key = update.key;
+
         LIVE_AUDIO_INSTANCES[id] = new LiveAudioInstance({
           ...instance.getInitializationProps(),
           key: update.key,

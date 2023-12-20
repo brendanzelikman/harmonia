@@ -186,13 +186,14 @@ export const getPatternClipStream = (
 
   // Initialize the loop variables
   const stream = [] as PatternMidiStream;
+  const streamLength = pattern.stream.length;
   let blockCount = 0;
   let streamDuration = 0;
   const totalTicks = getPatternStreamDuration(pattern.stream);
 
   // Get the offset of the clip
   let storedOffset = 0;
-  for (let i = 0; i < pattern.stream.length; i++) {
+  for (let i = 0; i < streamLength; i++) {
     if (storedOffset >= (clip.offset ?? 0)) break;
     const duration = getPatternBlockDuration(pattern.stream[i]);
     storedOffset += duration;
@@ -207,7 +208,8 @@ export const getPatternClipStream = (
     const block = pattern.stream[blockCount];
 
     // If a block is being played or there's no block, continue
-    if (streamDuration > i || !block) {
+    if (i < streamDuration || !block) {
+      if (i < stream.length) continue;
       stream.push([]);
       continue;
     }
@@ -259,9 +261,7 @@ export const getPatternClipStream = (
     const strumDirection = strummedChord.strumDirection ?? "up";
     const strumRange = block.strumRange ?? [0, 0];
     const strumDuration = strumRange[1] + strumRange[0];
-    const strumStep = strumDuration / noteCount;
-
-    // Get the notes of the strummed chord
+    const strumStep = strumDuration / Math.max(1, noteCount - 1);
     const strumNotes = getPatternMidiChordNotes(newChord);
 
     // Add the notes to the current index of the stream, offset by the strum range
@@ -273,6 +273,10 @@ export const getPatternClipStream = (
       // Get the offset by stepping along the strum range, clamping to the stream
       let offset = j * Math.round(strumStep) - strumRange[0];
 
+      // If there is one note, apply the strum range
+      if (noteCount === 1) offset = strumRange[1] - strumRange[0];
+
+      // If the offset goes negative, clamp it to the stream
       const strummedTick = currentIndex + offset;
       if (strummedTick < 0) offset = Math.max(-currentIndex, offset);
 
@@ -295,10 +299,8 @@ export const getPatternClipStream = (
 
       // Otherwise, push the note to the target block
       else {
-        stream[currentIndex + offset] = [
-          ...getPatternMidiChordNotes(currentBlock),
-          newNote,
-        ];
+        const currentNotes = getPatternMidiChordNotes(currentBlock);
+        stream[strummedTick] = [...currentNotes, newNote];
       }
     }
 

@@ -110,6 +110,19 @@ body {
   overflow: auto;
 }
 
+.landing-background {
+  animation: animateLandingBackground 30s ease-in-out alternate infinite;
+}
+
+@keyframes animateLandingBackground {
+  0% {
+    scale: 1;
+  }
+  50% {
+    scale: 10;
+  }
+}
+
 *::-webkit-scrollbar {
   display: none;
 }

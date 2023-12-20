@@ -1,7 +1,7 @@
 import { Editor } from "features/Editor/components";
 import { NumericInputOption, useNumericInputs } from "hooks";
 import { useEffect } from "react";
-import { updatePatternBlock } from "redux/Pattern";
+import { removePatternBlock, updatePatternBlock } from "redux/Pattern";
 import {
   selectTrackScaleMap,
   selectTrackMidiScaleMap,
@@ -36,9 +36,11 @@ import {
 import { PatternEditorProps } from "../PatternEditor";
 import { usePatternEditorChordIndex } from "../hooks/usePatternEditorChordIndex";
 import { isUndefined } from "lodash";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 export function PatternEditorChordTab(props: PatternEditorProps) {
   const { dispatch, pattern, cursor, block, notes, Tooltip } = props;
+  const heldKeys = useHeldHotkeys("alt");
   const id = pattern?.id;
   const trackId = pattern?.patternTrackId;
   const index = cursor?.index;
@@ -81,18 +83,34 @@ export function PatternEditorChordTab(props: PatternEditorProps) {
 
   /** The user can select the current index of the chord. */
   const ChordIndexField = () => {
-    const options = notes ? notes.map((note) => note.MIDI) : [];
+    const options = notes ?? [];
     if (!block || !midiNote) return null;
     const isChord = !notes?.length;
+    const onClick = () => {
+      if (!id || !patternChord) return;
+      const notes = getPatternChordNotes(patternChord);
+      const newNotes = notes.filter((_, i) => i !== chordIndex);
+      const newBlock = updatePatternChordNotes(patternChord, newNotes);
+      if (!newNotes.length) {
+        dispatch(removePatternBlock({ id, index }));
+      } else {
+        dispatch(updatePatternBlock({ id, index, block: newBlock }));
+      }
+    };
     return (
       <Tooltip content={`Select Note Scale`}>
         <div className="h-5 flex text-xs items-center">
           <Editor.CustomListbox
-            value={midiNote.MIDI}
+            borderColor={heldKeys.alt ? "border-red-500" : undefined}
+            value={midiNote}
             disabled={isChord}
             options={options}
-            getOptionName={(option) => `MIDI = ${option}`}
+            getOptionKey={(option, i) => `note-${i}-${option.MIDI}`}
+            getOptionName={(option, i) =>
+              `Note ${(i ?? 0) + 1} (MIDI = ${option.MIDI})`
+            }
             setValue={(value) => setChordIndex(options.indexOf(value))}
+            onClick={heldKeys.alt ? onClick : undefined}
           />
         </div>
       </Tooltip>

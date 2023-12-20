@@ -1,6 +1,6 @@
 import { Menu } from "@headlessui/react";
 import classNames from "classnames";
-import { promptUser } from "utils/html";
+import { promptUserForNumber } from "utils/html";
 
 export interface EditorButtonProps extends React.HTMLProps<HTMLButtonElement> {
   label?: string;
@@ -44,7 +44,7 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
         disabled
           ? undefined
           : !!promptTitle && !!promptMessage && !!callback
-          ? promptUser(promptTitle, promptMessage, callback)
+          ? promptUserForNumber(promptTitle, promptMessage, callback)
           : buttonProps.onClick
       }
       type="button"

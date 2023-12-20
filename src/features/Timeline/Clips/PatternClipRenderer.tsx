@@ -141,7 +141,6 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
           : offset + noteHeight / 2
       );
 
-      console.log(j);
       // Get the opacity of the note from its velocity
       const opacity = normalize(note.velocity, MIN_VELOCITY, MAX_VELOCITY);
 

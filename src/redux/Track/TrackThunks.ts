@@ -10,7 +10,6 @@ import {
   removeInstrument,
   selectInstrumentById,
   updateInstrument,
-  createInstrument,
   addInstrument,
 } from "redux/Instrument";
 

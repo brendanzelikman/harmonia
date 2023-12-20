@@ -1,5 +1,4 @@
 import {
-  SixteenthNoteTicks,
   getStraightDuration,
   getTickDuration,
   getTickSubdivision,
@@ -19,7 +18,6 @@ import {
   PatternId,
   PatternMidiChord,
   PatternNoId,
-  PatternStream,
   defaultPattern,
   getPatternBlockDuration,
   getPatternChordNotes,
@@ -62,8 +60,9 @@ import {
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { downloadBlob } from "utils/html";
 import { getDegreeOfNoteInTrack, setSelectedPattern } from "redux/thunks";
-import { random, sample } from "lodash";
-import BasicScales from "presets/scales/BasicScales";
+import { random, range, sample, sampleSize } from "lodash";
+import { PresetScaleList } from "presets/scales";
+import { normalize } from "utils/math";
 
 /** Creates a pattern and adds it to the slice. */
 export const createPattern =
@@ -108,8 +107,8 @@ export const deletePattern =
   };
 
 /** Randomize a pattern using a random scale or the pattern's track chain */
-export const randomizePattern =
-  (id: PatternId, length: number): Thunk =>
+export const randomizePatternPitches =
+  (id: PatternId): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const pattern = selectPatternById(project, id);
@@ -119,34 +118,32 @@ export const randomizePattern =
     const { patternTrackId } = pattern;
     const track = selectPatternTrackById(project, patternTrackId);
     const scaleChain = selectTrackScaleChain(project, patternTrackId);
-    const scales = track ? scaleChain : Object.values(BasicScales);
+    const scales = track ? scaleChain : Object.values(PresetScaleList);
     const scale = sample(scales);
 
     // Initialize the pattern stream
-    const noteCount = length;
-    const stream: PatternStream = [];
-    const restPercent = 0.1;
+    const stream = pattern.stream.map((block) => {
+      if (!isPatternChord(block)) return block;
+      const scaleNotes = getScaleAsArray(scale);
+      const chordNotes = getPatternChordNotes(block);
+      const noteCount = chordNotes.length;
 
-    // Iterate over the note count
-    for (let i = 0; i < noteCount; i++) {
-      const seed = Math.random();
-      if (seed < restPercent) {
-        stream.push({ duration: SixteenthNoteTicks });
-      } else {
-        const noteCount = 1;
-        const scaleNotes = getScaleAsArray(scale);
-        const chord = new Array(noteCount).fill(0).map((_) => {
-          const degree = random(0, scaleNotes.length - 1);
-          return {
-            degree,
-            duration: SixteenthNoteTicks,
-            velocity: DEFAULT_VELOCITY,
-            scaleId: scale?.id,
-          };
-        });
-        stream.push(chord);
-      }
-    }
+      const randomDegrees = sampleSize(range(0, scaleNotes.length), noteCount);
+      console.log(randomDegrees);
+      const newNotes = chordNotes.map((note, i) => {
+        const degree = randomDegrees[i];
+        const newNote = {
+          duration: note.duration,
+          velocity: note.velocity,
+          degree,
+          scaleId: scale?.id,
+        };
+        return newNote;
+      });
+
+      const newChord = updatePatternChordNotes(block, newNotes);
+      return newChord;
+    });
 
     // Update the pattern
     dispatch(updatePattern({ id, stream }));
@@ -237,13 +234,11 @@ export const clearPatternBindings =
     const scaleChain = selectTrackScaleChain(project, pattern.patternTrackId);
     const midiStream = resolvePatternStreamToMidi(pattern.stream, scaleChain);
     const newStream = pattern.stream.map((block, i) => {
-      if (isPatternStrummedChord(block)) {
-        const midiBlock = midiStream[i];
-        if (!isPatternMidiChord(midiBlock)) return block;
-        const notes = getPatternMidiChordNotes(midiBlock);
-        return updatePatternChordNotes(block, notes);
-      }
-      return block;
+      if (!isPatternChord(block)) return block;
+      const midiBlock = midiStream[i];
+      if (!isPatternMidiChord(midiBlock)) return block;
+      const notes = getPatternMidiChordNotes(midiBlock);
+      return updatePatternChordNotes(block, notes);
     });
 
     // Update the pattern
@@ -301,7 +296,12 @@ export const playPattern =
       // Set a timeout to play the chord
       setTimeout(() => {
         if (!instance.isLoaded()) return;
-        instance.sampler.triggerAttackRelease(pitches, subdivision);
+        instance.sampler.triggerAttackRelease(
+          pitches,
+          subdivision,
+          undefined,
+          normalize(notes[0]?.velocity, 0, 127)
+        );
       }, time * 1000);
 
       // Accumulate time

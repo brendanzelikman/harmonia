@@ -1,4 +1,5 @@
 import { Listbox } from "@headlessui/react";
+import classNames from "classnames";
 import { BsCheck, BsMusicNoteBeamed, BsSoundwave } from "react-icons/bs";
 import {
   InstrumentKey,
@@ -12,12 +13,14 @@ export interface EditorListboxProps<T> {
   setValue: (value: T) => void;
   onChange?: (value: T) => void;
   options: T[];
-  getOptionKey?: (value: T) => any;
-  getOptionValue?: (value: T) => any;
-  getOptionName?: (value: T) => string;
+  getOptionKey?: (value: T, index?: number) => any;
+  getOptionValue?: (value: T, index?: number) => any;
+  getOptionName?: (value: T, index?: number) => string;
+  onClick?: () => void;
   placeholder?: string;
   icon?: any;
   className?: string;
+  optionClassName?: (value: T) => string;
   borderColor?: string | undefined;
   backgroundColor?: string | undefined;
   disabled?: boolean;
@@ -29,7 +32,8 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
   const getOptionValue = props.getOptionValue ?? ((value: T) => value);
   const getOptionName = props.getOptionName ?? ((value: T) => value);
 
-  const name = !!props.value ? getOptionName(props.value) : undefined;
+  const index = props.options.findIndex((option) => option === props.value);
+  const name = !!props.value ? getOptionName(props.value, index) : undefined;
   const defaultValue = props.options[0];
   const value = props.value ?? defaultValue;
 
@@ -37,12 +41,13 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
     <Listbox value={value} onChange={props.onChange} disabled={props.disabled}>
       {({ open }) => (
         <div
-          className={`relative z-40 focus-within:z-50 flex flex-col justify-center ${
+          className={`relative flex flex-col justify-center ${
             props.className ?? ""
           }`}
+          onClick={props.onClick}
         >
           <Listbox.Button
-            className={`text-xs z-40 flex text-ellipsis whitespace-nowrap rounded border px-2 p-1 ${
+            className={`text-xs flex text-ellipsis whitespace-nowrap rounded border px-2 p-1 ${
               props.disabled
                 ? "text-slate-400 cursor-default"
                 : open
@@ -52,27 +57,30 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
               props.backgroundColor ?? "bg-transparent"
             } peer font-light focus:outline-none`}
           >
-            <span className="flex items-center rounded text-left w-30 text-ellipsis capitalize">
+            <span className="flex items-center rounded text-left w-30 text-ellipsis capitalize gap-2">
               {props.icon}
               {name || props.placeholder || "Change Value"}
             </span>
           </Listbox.Button>
 
-          <Listbox.Options className="absolute peer animate-in fade-in zoom-in-95 duration-150 z-50 w-40 py-1 mt-1 overflow-auto text-xs bg-slate-800 border border-slate-500 backdrop-blur rounded-md shadow-lg max-h-60 capitalize focus:outline-none">
-            {props.options.map((option) => {
-              const optionKey = getOptionKey(option);
-              const optionValue = getOptionValue(option);
-              const optionName = getOptionName(option);
+          <Listbox.Options className="absolute z-50 top-6 peer animate-in fade-in zoom-in-95 duration-150 min-w-[10rem] py-1 mt-1 overflow-auto text-xs bg-slate-800/95 border border-slate-500 rounded-md shadow-lg max-h-60 capitalize focus:outline-none">
+            {props.options.map((option, index) => {
+              const optionKey = getOptionKey(option, index);
+              const optionValue = getOptionValue(option, index);
+              const optionName = getOptionName(option, index);
               return (
                 <Listbox.Option
                   key={optionKey}
                   value={optionValue}
                   className={({ active }) =>
-                    `group cursor-pointer select-none relative py-2 pl-6 pr-4 ${
-                      active
-                        ? "text-emerald-900 bg-emerald-500"
-                        : "text-gray-200"
-                    }`
+                    classNames(
+                      props.optionClassName?.(option),
+                      `group cursor-pointer select-none relative py-2 pl-6 pr-4 ${
+                        active
+                          ? "text-emerald-900 bg-emerald-500"
+                          : "text-gray-200"
+                      }`
+                    )
                   }
                   onClick={() => props.setValue(option)}
                 >

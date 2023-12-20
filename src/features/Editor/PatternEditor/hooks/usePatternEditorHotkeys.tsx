@@ -1,4 +1,4 @@
-import { promptUser } from "utils/html";
+import { promptUserForNumber } from "utils/html";
 import { useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { PatternEditorProps } from "../PatternEditor";
 import {
@@ -168,7 +168,7 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   // R = Prompt for repeat
   useHotkeys(
     "r",
-    promptUser(
+    promptUserForNumber(
       "Repeat Your Pattern",
       "How many times would you like to repeat your pattern?",
       (n) => {
@@ -180,7 +180,7 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   // , = Continue Pattern
   useHotkeys(
     "comma",
-    promptUser(
+    promptUserForNumber(
       "Continue Your Pattern",
       "How many notes would you like to continue your pattern for?",
       (n) => {

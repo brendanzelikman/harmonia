@@ -579,6 +579,8 @@ export const getDurationImage = (duration: DurationType) => {
 
 /** Get the duration of a tick. */
 export const getTickDuration = (ticks: Tick) => {
+  if (ticks > WholeNoteTicks) return "whole";
+  if (ticks < TripletSixtyFourthNoteTicks) return "64th";
   return findEntry(ticks, DURATION_TICKS)?.[0] as DurationType;
 };
 

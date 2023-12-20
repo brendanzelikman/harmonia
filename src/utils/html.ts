@@ -12,7 +12,15 @@ export const dispatchCustomEvent = (type: string, detail?: unknown) => {
 };
 
 /** Prompts the user then applies a callback for the numerical result. */
-export const promptUser =
+export const promptUserForString =
+  (title: string, message: string, callback: (input: string) => unknown) =>
+  async () => {
+    const input = await promptModal(title, message);
+    callback(input);
+  };
+
+/** Prompts the user then applies a callback for the numerical result. */
+export const promptUserForNumber =
   (title: string, message: string, callback: (input: number) => unknown) =>
   async () => {
     const input = await promptModal(title, message);

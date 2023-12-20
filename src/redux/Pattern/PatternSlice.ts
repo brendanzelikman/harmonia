@@ -13,11 +13,25 @@ import {
   PatternBlock,
   getPatternChordNotes,
   isPatternChord,
+  updatePatternChordNotes,
 } from "types/Pattern";
-import { clamp, isArray, reverse, shuffle, union } from "lodash";
+import {
+  clamp,
+  inRange,
+  isArray,
+  reverse,
+  shuffle,
+  union,
+  uniqBy,
+} from "lodash";
 import { mod } from "utils/math";
 import { isNestedNote, sumScaleVectors } from "types/Scale";
-import { SixtyFourthNoteTicks, WholeNoteTicks } from "utils/durations";
+import {
+  getDurationTicks,
+  SixtyFourthNoteTicks,
+  StraightDurationType,
+} from "utils/durations";
+import { Frequency } from "tone";
 
 // ------------------------------------------------------------
 // Pattern Payload Types
@@ -104,6 +118,42 @@ export type ShufflePatternPayload = PatternId;
 /** A `Pattern` can be harmonized with a particular interval. */
 export type HarmonizePatternPayload = { id: PatternId; interval: number };
 
+/** A `Pattern` can have all of its notes set to a pitch. */
+export type SetPatternPitchesPayload = { id: PatternId; pitch: string };
+
+/** A `Pattern` can have all of its notes set to a pitch. */
+export type SetPatternDurationsPayload = { id: PatternId; duration: number };
+
+/** A `Pattern` can have all of its notes set to a velocity. */
+export type SetPatternVelocitiesPayload = { id: PatternId; velocity: number };
+
+/** A `Pattern` can have its notes graduated within a range of indices. */
+export type GraduatePatternVelocitiesPayload = {
+  id: PatternId;
+  startIndex: number;
+  endIndex: number;
+  startVelocity: number;
+  endVelocity: number;
+};
+
+/** A `Pattern` can have its notes interpolated. */
+export type InterpolatePatternPayload = {
+  id: PatternId;
+  fillCount: number;
+};
+
+/** A `Pattern` can have its notes flattened. */
+export type FlattenPatternPayload = PatternId;
+
+/** A `Pattern` can have its notes subdivided. */
+export type SubdividePatternPayload = PatternId;
+
+/** A `Pattern` can have its notes arpeggiated. */
+export type MergePatternPayload = PatternId;
+
+/** A `Pattern` can have its notes randomized. */
+export type RandomizePatternPayload = PatternId;
+
 // ------------------------------------------------------------
 // Pattern Slice Definition
 // ------------------------------------------------------------
@@ -136,6 +186,13 @@ export const patternsSlice = createSlice({
       const { id, ...rest } = action.payload;
       if (!id) return;
       state.byId[id] = { ...state.byId[id], ...rest };
+    },
+    /** Clear the notes of a pattern in the slice. */
+    clearPattern: (state, action: PayloadAction<ClearPatternPayload>) => {
+      const patternId = action.payload;
+      const pattern = state.byId[patternId];
+      if (!pattern) return;
+      state.byId[patternId].stream = [];
     },
     /** Add a note to a pattern. */
     addPatternNote: (state, action: PayloadAction<AddPatternNotePayload>) => {
@@ -219,7 +276,7 @@ export const patternsSlice = createSlice({
       if (!pattern || index < 0 || index > pattern.stream.length) return;
       state.byId[id].stream[index] = block;
     },
-    /** Transpose a block in a pattern chromatically if it not a rest. */
+    /** Transpose a block in a pattern chromatically if it is not a rest. */
     transposePatternBlock: (
       state,
       action: PayloadAction<TransposePatternBlockPayload>
@@ -278,7 +335,7 @@ export const patternsSlice = createSlice({
       const pattern = state.byId[id];
       if (!pattern) return;
 
-      state.byId[id].stream = new Array(repeat + 1).fill(pattern.stream).flat();
+      state.byId[id].stream = new Array(repeat).fill(pattern.stream).flat();
     },
     /** Continue a pattern for a certain number of notes. */
     continuePattern: (state, action: PayloadAction<ContinuePatternPayload>) => {
@@ -315,7 +372,7 @@ export const patternsSlice = createSlice({
         const newDuration = clamp(
           duration * factor,
           SixtyFourthNoteTicks,
-          WholeNoteTicks
+          Infinity
         );
         if (!isPatternChord(block)) return { duration: newDuration };
         const notes = getPatternChordNotes(block);
@@ -331,31 +388,181 @@ export const patternsSlice = createSlice({
       state.byId[patternId].stream = reverse(pattern.stream);
     },
     /** Shuffle the stream of a pattern. */
-    shufflePattern: (state, action: PayloadAction<ShufflePatternPayload>) => {
+    shufflePatternStream: (
+      state,
+      action: PayloadAction<ShufflePatternPayload>
+    ) => {
+      const patternId = action.payload;
+      const pattern = state.byId[patternId];
+      if (!pattern) return;
+      state.byId[patternId].stream = shuffle(pattern.stream);
+    },
+    /** Shuffle the pitches of a pattern. */
+    shufflePatternPitches: (
+      state,
+      action: PayloadAction<ShufflePatternPayload>
+    ) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
       if (!pattern) return;
 
-      state.byId[patternId].stream = shuffle(pattern.stream);
+      // Get all notes in the pattern
+      const notes = pattern.stream
+        .filter(isPatternChord)
+        .map(getPatternChordNotes)
+        .flat();
+      const shuffledNotes = shuffle(notes);
+      const shuffledStream = [];
+
+      // Iterate over the pattern
+      for (const block of pattern.stream) {
+        // Push the rests as is
+        if (!isPatternChord(block)) {
+          shuffledStream.push(block);
+          continue;
+        }
+
+        // Sample the notes by popping them off the array
+        const notes = getPatternChordNotes(block);
+        const sampledNotes = notes
+          .map((note) => {
+            const shuffledNote = shuffledNotes.pop();
+            if (!shuffledNote) return undefined;
+            return {
+              ...shuffledNote,
+              duration: note.duration,
+              velocity: note.velocity,
+            };
+          })
+          .filter(Boolean) as PatternNote[];
+
+        // Return the updated chord
+        const updatedChord = updatePatternChordNotes(block, sampledNotes);
+        shuffledStream.push(updatedChord);
+      }
+
+      state.byId[patternId].stream = shuffledStream;
     },
-    /** Arpeggiate the stream of a pattern. */
-    arpeggiatePattern: (state, action: PayloadAction<PatternId>) => {
+
+    /** Subdivide the stream of a pattern. */
+    subdividePattern: (
+      state,
+      action: PayloadAction<SubdividePatternPayload>
+    ) => {
       const id = action.payload;
       const pattern = state.byId[id];
       if (!pattern) return;
 
-      state.byId[id].stream = pattern.stream
-        .map((block) => {
-          if (!isPatternChord(block)) return block;
-          const notes = getPatternChordNotes(block);
-          const duration = getPatternBlockDuration(block);
-          return notes.map((note) => {
-            const newNote: PatternNote = { ...note, duration };
-            return [newNote];
-          });
-        })
-        .flat();
+      const newStream = [];
+      for (const block of pattern.stream) {
+        if (!isPatternChord(block)) {
+          newStream.push(block);
+          continue;
+        }
+
+        const notes = getPatternChordNotes(block);
+        const newChord = notes.map((note) => {
+          const duration = note.duration / 2;
+          return { ...note, duration };
+        });
+
+        newStream.push(newChord);
+        newStream.push(newChord);
+      }
+
+      state.byId[id].stream = newStream;
     },
+    /** Merge the stream of a pattern. */
+    mergePattern: (state, action: PayloadAction<MergePatternPayload>) => {
+      const id = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+
+      const allNotes = pattern.stream
+        .filter(isPatternChord)
+        .map(getPatternChordNotes)
+        .flat();
+      const uniqueNotes = uniqBy(allNotes, (note) =>
+        isNestedNote(note) ? note.degree : note.MIDI
+      );
+
+      const newChord = new Array(uniqueNotes.length).fill(0).map((_, i) => {
+        return uniqueNotes[i];
+      });
+
+      state.byId[id].stream = [newChord];
+    },
+    /** Interpolate the stream of a pattern. */
+    flattenPattern: (state, action: PayloadAction<FlattenPatternPayload>) => {
+      const patternId = action.payload;
+      const pattern = state.byId[patternId];
+      if (!pattern) return;
+
+      state.byId[patternId].stream = pattern.stream.flatMap((block) => {
+        if (!isPatternChord(block)) return block;
+        const notes = getPatternChordNotes(block);
+        return notes;
+      });
+    },
+    /** Flatten the stream of a pattern. */
+    interpolatePattern: (
+      state,
+      action: PayloadAction<InterpolatePatternPayload>
+    ) => {
+      const { id, fillCount } = action.payload;
+      if (fillCount < 1) return;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+      const streamLength = pattern.stream.length;
+
+      const newStream = [];
+      for (let i = 0; i < streamLength; i++) {
+        const block = pattern.stream[i];
+
+        if (!isPatternChord(block)) {
+          newStream.push(block);
+          continue;
+        }
+
+        newStream.push(block);
+        if (i === streamLength - 1) continue;
+
+        const nextBlock = pattern.stream[i + 1];
+        if (!isPatternChord(nextBlock)) continue;
+
+        const blockNotes = getPatternChordNotes(block);
+        const blockRoot = blockNotes.find(isPatternMidiNote);
+        const blockDuration = getPatternBlockDuration(block);
+        const blockVelocity = blockNotes[0].velocity;
+
+        const nextBlockNotes = getPatternChordNotes(nextBlock);
+        const nextBlockRoot = nextBlockNotes.find(isPatternMidiNote);
+        const nextBlockVelocity = nextBlockNotes[0].velocity;
+
+        if (!blockRoot || !nextBlockRoot) continue;
+
+        const rootDistance = nextBlockRoot.MIDI - blockRoot.MIDI;
+        const velocityDistance = nextBlockVelocity - blockVelocity;
+
+        const rootStepSize = rootDistance / (fillCount + 1);
+        const velocityStepSize = velocityDistance / fillCount;
+
+        const interpolatedChords = new Array(fillCount).fill(0).map((_, i) => {
+          const newRoot = blockRoot.MIDI + Math.round(rootStepSize * (i + 1));
+          const newVelocity = blockVelocity + Math.round(velocityStepSize * i);
+          return {
+            duration: blockDuration,
+            velocity: newVelocity,
+            MIDI: newRoot,
+          };
+        });
+
+        newStream.push(...interpolatedChords);
+      }
+
+      state.byId[id].stream = newStream;
+    },
+
     /** Harmonize a pattern with a given interval. */
     harmonizePattern: (
       state,
@@ -385,12 +592,199 @@ export const patternsSlice = createSlice({
 
       pattern.stream = newStream;
     },
-    /** Clear the notes of a pattern in the slice. */
-    clearPattern: (state, action: PayloadAction<ClearPatternPayload>) => {
+
+    /** Set the pitches of the stream of a pattern. */
+    setPatternPitches: (
+      state,
+      action: PayloadAction<SetPatternPitchesPayload>
+    ) => {
+      const { id, pitch } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+
+      const MIDI = Frequency(pitch).toMidi();
+
+      state.byId[id].stream = pattern.stream.map((block) => {
+        if (!isPatternChord(block)) return block;
+        const notes = getPatternChordNotes(block);
+        const updatedNotes = notes.map((note) => ({ ...note, MIDI }));
+        return updatePatternChordNotes(block, updatedNotes);
+      });
+    },
+
+    /** Set the durations of the stream of a pattern. */
+    setPatternDurations: (
+      state,
+      action: PayloadAction<SetPatternDurationsPayload>
+    ) => {
+      const { id, duration } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+
+      state.byId[id].stream = pattern.stream.map((block) => {
+        if (!isPatternChord(block)) return block;
+        const notes = getPatternChordNotes(block);
+        const updatedNotes = notes.map((note) => ({ ...note, duration }));
+        return updatePatternChordNotes(block, updatedNotes);
+      });
+    },
+
+    /** Set the velocities of the stream of a pattern. */
+    setPatternVelocities: (
+      state,
+      action: PayloadAction<SetPatternVelocitiesPayload>
+    ) => {
+      const { id, velocity } = action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+
+      state.byId[id].stream = pattern.stream.map((block) => {
+        if (!isPatternChord(block)) return block;
+        const notes = getPatternChordNotes(block);
+        const updatedNotes = notes.map((note) => ({ ...note, velocity }));
+        return updatePatternChordNotes(block, updatedNotes);
+      });
+    },
+
+    /** Graduate the velocities of the stream of a pattern. */
+    graduatePatternVelocities: (
+      state,
+      action: PayloadAction<GraduatePatternVelocitiesPayload>
+    ) => {
+      const { id, startIndex, endIndex, startVelocity, endVelocity } =
+        action.payload;
+      const pattern = state.byId[id];
+      if (!pattern) return;
+
+      const velocityRange = endVelocity - startVelocity;
+      const stepCount = endIndex - startIndex + 1;
+      const stepSize = velocityRange / Math.max(stepCount - 1, 1);
+
+      state.byId[id].stream = pattern.stream.map((block, i) => {
+        if (!inRange(i, startIndex, endIndex + 1)) return block;
+        if (!isPatternChord(block)) return block;
+        const offset = i - startIndex;
+        const velocity = startVelocity + Math.round(offset * stepSize);
+        const notes = getPatternChordNotes(block);
+        const updatedNotes = notes.map((note) => ({ ...note, velocity }));
+        return updatePatternChordNotes(block, updatedNotes);
+      });
+    },
+
+    /** Shuffle the velocities of a pattern. */
+    shufflePatternVelocities: (
+      state,
+      action: PayloadAction<ShufflePatternPayload>
+    ) => {
       const patternId = action.payload;
       const pattern = state.byId[patternId];
       if (!pattern) return;
-      state.byId[patternId].stream = [];
+
+      // Get all notes in the pattern
+      const notes = pattern.stream
+        .filter(isPatternChord)
+        .map(getPatternChordNotes)
+        .flat();
+      const shuffledNotes = shuffle(notes);
+      const shuffledStream = [];
+
+      // Iterate over the pattern
+      for (const block of pattern.stream) {
+        // Push the rests as is
+        if (!isPatternChord(block)) {
+          shuffledStream.push(block);
+          continue;
+        }
+
+        // Sample the notes by popping them off the array
+        const notes = getPatternChordNotes(block);
+        const sampledNotes = notes
+          .map((note) => {
+            const shuffledNote = shuffledNotes.pop();
+            if (!shuffledNote) return undefined;
+            return { ...note, velocity: shuffledNote.velocity };
+          })
+          .filter(Boolean) as PatternNote[];
+
+        // Return the updated chord
+        const updatedChord = updatePatternChordNotes(block, sampledNotes);
+        shuffledStream.push(updatedChord);
+      }
+
+      state.byId[patternId].stream = shuffledStream;
+    },
+
+    /** Randomize the velocities of each note */
+    randomizePatternVelocities: (state, action: PayloadAction<PatternId>) => {
+      const patternId = action.payload;
+      const pattern = state.byId[patternId];
+      if (!pattern) return;
+
+      // Iterate over the pattern
+      const newStream = pattern.stream.map((block) => {
+        if (!isPatternChord(block)) return block;
+
+        // Create a new chord with random velocities
+        const notes = getPatternChordNotes(block);
+        const updatedNotes = notes.map((note) => ({
+          ...note,
+          velocity: Math.round(Math.random() * 127),
+        }));
+
+        const updatedChord = updatePatternChordNotes(block, updatedNotes);
+        return updatedChord;
+      });
+
+      state.byId[patternId].stream = newStream;
+    },
+
+    /** Randomize the durations of each note */
+    randomizePatternDurations: (state, action: PayloadAction<PatternId>) => {
+      const patternId = action.payload;
+      const pattern = state.byId[patternId];
+      if (!pattern) return;
+
+      // Create a seeded duration record
+      const durationSeeds: Record<StraightDurationType, number> = {
+        "64th": 0.025,
+        "32nd": 0.1,
+        "16th": 0.2,
+        eighth: 0.3,
+        quarter: 0.2,
+        half: 0.1,
+        whole: 0.025,
+      };
+
+      const sampleDuration = () => {
+        let sum = 0;
+        let r = Math.random();
+        for (const duration in durationSeeds) {
+          const type = duration as StraightDurationType;
+          sum += durationSeeds[type];
+          if (r <= sum) return getDurationTicks(type);
+        }
+      };
+
+      // Iterate over the pattern
+      const newStream = pattern.stream.map((block) => {
+        if (!isPatternChord(block)) return block;
+
+        // Create a new chord with random velocities
+        const notes = getPatternChordNotes(block);
+        const sampledDuration = sampleDuration();
+
+        const updatedNotes = notes.map((note) => {
+          return {
+            ...note,
+            duration: sampledDuration ?? note.duration,
+          };
+        });
+
+        const updatedChord = updatePatternChordNotes(block, updatedNotes);
+        return updatedChord;
+      });
+
+      state.byId[patternId].stream = newStream;
     },
   },
 });
@@ -400,24 +794,43 @@ export const {
   addPattern,
   removePattern,
   updatePattern,
+  clearPattern,
+
   addPatternNote,
   insertPatternNote,
   updatePatternNote,
+
   addPatternBlock,
   insertPatternBlock,
   updatePatternBlock,
-  transposePatternBlock,
   removePatternBlock,
-  transposePattern,
+
+  setPatternDurations,
   repeatPattern,
   continuePattern,
   stretchPattern,
-  shufflePattern,
+
+  subdividePattern,
+  mergePattern,
+  flattenPattern,
+  interpolatePattern,
+
   phasePattern,
   reversePattern,
-  arpeggiatePattern,
+  shufflePatternStream,
+
+  setPatternPitches,
+  transposePattern,
+  transposePatternBlock,
   harmonizePattern,
-  clearPattern,
+  shufflePatternPitches,
+
+  setPatternVelocities,
+  graduatePatternVelocities,
+  shufflePatternVelocities,
+
+  randomizePatternVelocities,
+  randomizePatternDurations,
 } = patternsSlice.actions;
 
 export default patternsSlice.reducer;

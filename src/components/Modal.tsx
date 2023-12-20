@@ -1,6 +1,7 @@
 import { Dialog } from "@headlessui/react";
 import { ReactNode, useState } from "react";
 import { render, unmountComponentAtNode } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { blurOnEnter } from "utils/html";
 
 interface ModalProps {
@@ -28,9 +29,7 @@ const Modal = (props: ModalProps) => {
               <img src="/logo.png" className="h-12" />
               {title}
             </Dialog.Title>
-            <div className="mt-2 text-sm text-slate-300">
-              <Dialog.Description>{description}</Dialog.Description>
-            </div>
+            <p className="mt-2 text-sm text-slate-300">{description}</p>
             <div className="mt-6 flex gap-3 items-center">
               <input
                 type="text"
@@ -66,9 +65,10 @@ export const promptModal = (
   return new Promise((resolve, reject) => {
     const root = document.createElement("div");
     document.body.appendChild(root);
+    const modalRoot = createRoot(root);
 
     const cleanup = () => {
-      unmountComponentAtNode(root);
+      modalRoot.unmount();
       document.body.removeChild(root);
     };
 
@@ -82,15 +82,14 @@ export const promptModal = (
       reject();
     };
 
-    render(
+    modalRoot.render(
       <Modal
         isOpen={true}
         title={title}
         description={description}
         onSubmit={onSubmit}
         onCancel={onCancel}
-      />,
-      root
+      />
     );
   });
 };

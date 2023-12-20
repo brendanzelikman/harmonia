@@ -1,5 +1,5 @@
 import { ScaleEditorProps } from "../ScaleEditor";
-import { promptUser } from "utils/html";
+import { promptUserForNumber } from "utils/html";
 import { useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { useProjectDeepSelector } from "redux/hooks";
 import {
@@ -39,7 +39,7 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
   // T = Prompt for Transposition
   useHotkeys(
     "shift+t",
-    promptUser(
+    promptUserForNumber(
       "Transpose Your Scale",
       "How many semitones would you like to transpose your scale by?",
       (n) => dispatch(transposeScale(scale?.id, n))
@@ -50,7 +50,7 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
   // R = Prompt for Rotation
   useHotkeys(
     "shift+r",
-    promptUser(
+    promptUserForNumber(
       "Rotate Your Scale",
       "How many steps would you like to rotate your scale by?",
       (n) => dispatch(rotateScale(scale?.id, n))

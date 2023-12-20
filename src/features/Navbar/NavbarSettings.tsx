@@ -76,7 +76,7 @@ export function NavbarSettingsMenu() {
         Tempo (BPM):
       </NavbarFormLabel>
       <NavbarFormInput
-        className="focus:bg-slate-900/25 ring-slate-400 w-[2rem] h-7"
+        className="focus:bg-slate-900/25 w-[2rem] h-7"
         type="number"
         placeholder={DEFAULT_BPM.toString()}
         value={BPMInput}
@@ -100,7 +100,7 @@ export function NavbarSettingsMenu() {
         16ths / Measure:
       </NavbarFormLabel>
       <NavbarFormInput
-        className="focus:bg-slate-900/25 ring-slate-400 w-[2rem] h-7"
+        className="focus:bg-slate-900/25 w-[2rem] h-7"
         type="number"
         placeholder={"16"}
         value={TS1}
@@ -127,7 +127,7 @@ export function NavbarSettingsMenu() {
     <NavbarFormGroup>
       <NavbarFormLabel className="w-32 font-light">Cell Width:</NavbarFormLabel>
       <NavbarFormInput
-        className="focus:bg-slate-800/25 ring-slate-400 w-[2rem] h-7"
+        className="focus:bg-slate-800/25 w-[2rem] h-7"
         type="number"
         placeholder={DEFAULT_CELL.width.toString()}
         value={CellInput.width}

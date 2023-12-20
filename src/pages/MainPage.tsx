@@ -9,14 +9,16 @@ import { useDatabaseCallback, useCustomEventListener } from "hooks";
 import { getProjectsFromDB } from "indexedDB";
 import { CREATE_PROJECT, DELETE_PROJECT } from "redux/thunks";
 import { Project } from "types/Project";
-
-import Nest from "assets/demos/nest.ham";
-import Barry from "assets/demos/barry.ham";
 import { useProjectFetcher } from "features/Projects/hooks/useProjectFetcher";
 import { TourBackground } from "features/Tour";
 import { useProjectSelector } from "redux/hooks";
 import { selectProjectName } from "redux/Metadata";
 import { useBrowserTitle } from "hooks/useBrowserTitle";
+import LandingBackground from "assets/images/landing-background.png";
+import Nest from "assets/demos/nest.ham";
+import Barry from "assets/demos/barry.ham";
+import Wind from "assets/demos/wind.ham";
+import Marimba from "assets/demos/marimba.ham";
 
 export type View = (typeof views)[number];
 export const views = ["projects", "demos", "docs", "playground"] as const;
@@ -27,7 +29,7 @@ export function MainPage(props: { view?: View }) {
   const params = useParams<{ view: View }>();
   const view = props.view || params.view || "projects";
   const [projects, setProjects] = useState<Project[]>([]);
-  const demoPaths = [Nest, Barry];
+  const demoPaths = [Nest, Barry, Wind, Marimba];
   const updateProjects = async () => setProjects(await getProjectsFromDB());
 
   // Update whenever the database changes
@@ -72,7 +74,7 @@ export function MainPage(props: { view?: View }) {
   const transitionClass = classNames(
     "w-full h-full pt-nav flex flex-col items-center",
     "text-white font-nunito",
-    { "bg-slate-950/60": view === "docs" },
+    { "bg-slate-950/50": view === "docs" },
     { "pt-nav": view !== "playground" }
   );
 
@@ -89,10 +91,25 @@ export function MainPage(props: { view?: View }) {
     [view]
   );
 
+  // The background appears for projects and demos
+  const showBackground = view === "projects" || view === "demos";
+  const MainBackground = (
+    <img
+      src={LandingBackground}
+      className={classNames(
+        showBackground
+          ? "animate-in fade-in opacity-50"
+          : "animate-out fade-out opacity-0",
+        "fixed h-screen landing-background select-none duration-300 -z-10"
+      )}
+    />
+  );
+
   // Render the main page
   return (
     <div className="w-full h-screen relative overflow-hidden">
       <Navbar view={view} />
+      {MainBackground}
       <TourBackground />
       <div className={transitionClass}>
         <ViewWrapper view="projects">{ProjectList()}</ViewWrapper>
