@@ -8,7 +8,7 @@ function createWindow() {
     title: "Harmonia",
     show: false,
     backgroundColor: "#2e2c29",
-    icon: "./src/assets/logo",
+    icon: "./src/assets/images/logo",
   });
   win.maximize();
   win.show();
@@ -37,7 +37,7 @@ app
   })
   .then(createWindow);
 
-app.dock.setIcon("./src/assets/logo.png");
+app.dock.setIcon("./src/assets/images/logo.png");
 app.setName("Harmonia");
 app.name = "Harmonia";
 

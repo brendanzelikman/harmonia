@@ -363,19 +363,20 @@ export const mergeSelectedMedia =
       // Make sure the duration of the new stream is the same as the clip duration
       const stream = selectPatternClipStream(project, clip.id).reduce(
         (streamAcc, block) => {
+          const { notes } = block;
           if (totalDuration > duration) return streamAcc;
-          const blockDuration = getPatternBlockDuration(block.notes);
+          const blockDuration = getPatternBlockDuration(notes);
 
           // If the block duration is longer than the clip duration, shorten it
           if (totalDuration + blockDuration > duration) {
             // If the block is a rest, just add it to the stream
             const newDuration = duration - totalDuration;
             totalDuration += newDuration;
-            if (!isPatternMidiChord(block.notes))
+            if (!isPatternMidiChord(block))
               return [...streamAcc, { duration: newDuration }];
 
             // Otherwise, shorten all notes and add the chord to the stream
-            const chord = block.notes.map((n) => ({
+            const chord = notes.map((n) => ({
               ...n,
               duration: newDuration,
             }));
@@ -384,7 +385,7 @@ export const mergeSelectedMedia =
 
           // Otherwise, sum the duration and add the block to the stream
           totalDuration += blockDuration;
-          return [...streamAcc, block.notes];
+          return [...streamAcc, notes];
         },
         [] as PatternMidiStream
       );

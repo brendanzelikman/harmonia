@@ -19,13 +19,13 @@ export const AppRouter = createHashRouter([
     errorElement: <ErrorPage />,
   },
   {
-    path: "/docs",
-    element: <SecureRoute private component={<MainPage view="docs" />} />,
+    path: "/playground",
+    element: <SecureRoute private component={<MainPage view="playground" />} />,
     errorElement: <ErrorPage />,
   },
   {
-    path: "/playground",
-    element: <SecureRoute private component={<MainPage view="playground" />} />,
+    path: "/docs",
+    element: <SecureRoute private component={<MainPage view="docs" />} />,
     errorElement: <ErrorPage />,
   },
   {

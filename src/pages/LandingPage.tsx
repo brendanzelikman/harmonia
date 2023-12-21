@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import TimelineImage from "assets/images/timeline1.png";
 import ScaleEditorImage from "assets/images/scaleEditor.png";
@@ -16,6 +16,7 @@ import LogoImage from "assets/images/logo.png";
 import LandingBackground from "assets/images/landing-background.png";
 import classNames from "classnames";
 import { promptModal } from "components/Modal";
+import { PriceOption } from "components/PriceOption";
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ export function LandingPage() {
 
       <button
         onClick={onClick}
-        className="mt-16 py-6 px-9 text-slate-100 bg-sky-500/60 hover:bg-sky-950/90 hover:shadow-[0px_0px_10px_5px_rgb(15,150,200)] active:animate-pulse transition-all duration-300 ring-2 ring-slate-900/20 hover:ring-slate-100/20 rounded-2xl backdrop-blur-xl shadow-2xl drop-shadow-2xl sm:text-4xl text-2xl font-light"
+        className="mt-16 py-6 px-9 text-slate-100 bg-[#00aaff]/70 active:bg-blue-950/90 hover:shadow-[0px_0px_10px_5px_rgb(15,150,200)] transition-all duration-300 ring-2 ring-slate-900/20 hover:ring-slate-100/20 rounded-2xl backdrop-blur-xl shadow-2xl drop-shadow-2xl sm:text-4xl text-2xl font-light"
       >
         Make Music Now!
       </button>
@@ -83,7 +84,7 @@ export function LandingPage() {
   );
 
   const Section = (props: {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     className?: string;
   }) => (
     <section
@@ -92,7 +93,7 @@ export function LandingPage() {
         "relative flex flex-col items-center w-full min-h-screen py-5 shrink-0"
       )}
     >
-      {props.children}
+      {props.children ?? null}
     </section>
   );
 
@@ -224,20 +225,114 @@ export function LandingPage() {
     </Section>
   );
 
+  const WhyHero = () => (
+    <Section className="flex flex-col py-10 px-5 justify-center text-white">
+      <div className="relative p-12 h-full overflow-hidden prose prose-lg prose-invert bg-blue-900/50 rounded-2xl border-4 backdrop-blur border-slate-50/50">
+        <img
+          className="absolute inset-0 w-full h-full object-cover -z-10 opacity-20"
+          src={LandingBackground}
+        />
+        <h1>Why Harmonia?</h1>
+        <p>
+          Music will always have something indescribable to it. No matter how
+          descriptively we may write, music can never be perfectly distilled
+          into words. Instead, it is a subjective experience that is continually
+          shaped by a multitiude of factors—our anatomy, our brain chemistry,
+          our worldview, our culture, our education, our speakers, and so on.
+          Generative audio may be useful for replicating stock sounds or
+          creating coffee shop music, but an algorithm can never completely
+          understand the difference between theory and practice.
+        </p>
+        <p>
+          Harmonia is not only a liberation of the digital composer from the
+          constraints of current software but a stand against the trend of
+          deconstructing music into data. For in this reduction, we lose the
+          magic that comes from putting together the pieces of the puzzle
+          ourselves, from putting on our headphones and entering a vast sonic
+          landscape of our own. Harmonia is a tool for any composer to reclaim
+          their creativity and leverage the power of the computer to realize
+          their musical vision to the fullest extent humanly possible.{" "}
+          <Link to="/playground" className="italic no-underline cursor-pointer">
+            Go build.
+          </Link>
+        </p>
+      </div>
+    </Section>
+  );
+
+  const PricingHero = () => (
+    <Section className="py-10 px-5 justify-center text-white">
+      <div className="w-full flex flex-wrap justify-center gap-16">
+        <PriceOption
+          name="Free"
+          price={0}
+          description="Work any time on the web."
+          features={[
+            "Access to Playground",
+            "Export to HAM + WAV",
+            "Access to Limited Presets",
+            "Up to 10 Projects",
+            "All Demos Available",
+            "Full Documentation",
+            "Community Support",
+          ]}
+        />
+        <PriceOption
+          name="Pro"
+          price={20}
+          monthly
+          description="Unleash the Playground."
+          features={[
+            "Live Mixing and Posing",
+            "Export to MIDI + MusicXML",
+            "Access to Curated Presets",
+            "Up to 25 Projects",
+            "Compatible with MIDI Devices",
+            "Developer Gratitude",
+            "Email Support",
+          ]}
+        />
+        <PriceOption
+          name="Virtuoso"
+          price={50}
+          monthly
+          description="Go even further beyond."
+          features={[
+            "Desktop Application",
+            "VST Plugin",
+            "Access to All Presets",
+            "Unlimited Projects",
+            "Compatible with DAWs",
+            "Developer Love",
+            "Request Any Feature",
+          ]}
+        />
+      </div>
+      <h1 className="mt-20 text-3xl p-4 px-6 rounded-2xl font-light bg-slate-950/50 border border-gray-600 backdrop-blur">
+        Pricing will be implemented soon. Please stay tuned!
+      </h1>
+    </Section>
+  );
+
+  const Observatory = () => <Section></Section>;
+
   return (
     <main className="relative font-nunito animate-in fade-in duration-75 flex flex-col w-full h-screen overflow-scroll">
       <img
         src={LandingBackground}
-        className="fixed opacity-50 h-screen landing-background"
+        className="fixed opacity-50 h-screen object-cover landing-background"
       />
       <SplashScreen />
       {!!isAuthenticated && (
         <>
+          <PricingHero />
+          <LibraryHero />
           <TimelineHero />
           <ScaleHero />
           <PatternHero />
           <PoseHero />
-          <LibraryHero />
+          <WhyHero />
+          <Observatory />
         </>
       )}
     </main>

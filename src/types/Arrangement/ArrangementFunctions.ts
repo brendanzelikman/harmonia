@@ -203,17 +203,16 @@ export const getPatternClipStream = (
 
   // Create a stream of blocks for every tick
   for (let i = 0; i < totalTicks; i++) {
-    const block = pattern.stream[blockCount];
+    if (i < streamDuration) continue;
+    if (clip.duration !== undefined && i >= clip.duration) break;
 
-    // If a block is being played or there's no chord, continue
-    if (i < streamDuration || !isPatternChord(block)) {
-      continue;
-    }
+    const block = pattern.stream[blockCount];
+    const blockDuration = getPatternBlockDuration(block);
 
     // Increment the stream duration when the block is reached
-    const blockDuration = getPatternBlockDuration(block);
     if (streamDuration === i) streamDuration += blockDuration;
     blockCount += 1;
+    if (!isPatternChord(block)) continue;
 
     // Get the notes and size of the chord
     const notes = getPatternChordNotes(block);
@@ -245,8 +244,7 @@ export const getPatternClipStream = (
     // If the block is not strummed, just push the chord to the stream
     if (!isPatternStrummedChord(block)) {
       const newNotes = getPatternMidiChordNotes(newChord);
-      const startTick = clip.tick + i;
-      stream.push({ notes: newNotes, startTick });
+      stream.push({ notes: newNotes, startTick: tick });
       continue;
     }
 
@@ -285,6 +283,5 @@ export const getPatternClipStream = (
   }
 
   // Return the stream of the clip
-  if (clip.duration === undefined) return stream;
-  return stream.slice(0, clip.duration);
+  return stream;
 };

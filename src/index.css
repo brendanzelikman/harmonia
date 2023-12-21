@@ -111,7 +111,7 @@ body {
 }
 
 .landing-background {
-  animation: animateLandingBackground 30s ease-in-out alternate infinite;
+  animation: animateLandingBackground 30s ease-in-out infinite;
 }
 
 @keyframes animateLandingBackground {
@@ -120,6 +120,9 @@ body {
   }
   50% {
     scale: 10;
+  }
+  100% {
+    scale: 1;
   }
 }
 
