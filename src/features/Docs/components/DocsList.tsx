@@ -31,18 +31,24 @@ export function DocsList(props: DocsListProps) {
       className={listClass}
       start={numerical && start ? start : undefined}
     >
-      {items.map((item) => {
+      {items.map((item, i) => {
         return (
-          <li className={classNames(props.className, "text-slate-400")}>
+          <li
+            key={`item-${i}`}
+            className={classNames(props.className, "text-slate-400")}
+          >
             <strong className="text-slate-300 font-semibold">
               {item.title}
             </strong>
             {`: `}
             {item.description ?? null}
             <br />
-            {item.examples?.map((example) => {
+            {item.examples?.map((example, i) => {
               return (
-                <span className="my-4 ml-4 px-2 bg-slate-900/50 rounded font-light text-slate-500">
+                <span
+                  key={`example-${i}`}
+                  className="my-4 ml-4 px-2 bg-slate-900/50 rounded font-light text-slate-500"
+                >
                   {`${props.ie ? "i.e." : `e.g.`} ${example}`}
                   <br />
                 </span>

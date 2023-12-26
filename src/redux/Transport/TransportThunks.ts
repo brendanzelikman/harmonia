@@ -92,6 +92,7 @@ export const startTransport =
 
     // Get the current start time
     const startTime = Tone.Transport.now();
+    const loopStartTime = Tone.Time(loopStart, "i").toSeconds();
     const startSeconds = Tone.Transport.seconds;
 
     // Schedule the transport
@@ -102,9 +103,10 @@ export const startTransport =
 
       // Convert the time into the tick and adjust for loop
       let newTick = Math.round(currentTime * conversionRatio);
-      if (loop) {
+      if (loop && currentTime >= loopStartTime) {
         // Set the new tick
-        newTick = (newTick % (loopEnd - loopStart)) + loopStart;
+        newTick =
+          (newTick % (loopEnd - loopStart)) + Math.min(loopStart, newTick);
       }
 
       // Dispatch a tick update event
@@ -113,7 +115,6 @@ export const startTransport =
       // Get the chord record at the current tick
       const project = getProject();
       const chordRecord = selectChordsAtTick(project, newTick);
-
       // Iterate over the instruments that are to be played at the current tick
       if (chordRecord) {
         for (const instrumentId in chordRecord) {

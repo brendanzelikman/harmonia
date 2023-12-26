@@ -32,6 +32,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { uniq } from "lodash";
 import classNames from "classnames";
 import { ProjectItem } from "./hooks/useProjectList";
+import { motion } from "framer-motion";
 
 interface ProjectFormatterProps extends ProjectItem {
   index?: number;
@@ -272,7 +273,10 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
   );
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, x: -25 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ damping: 10, delay: (index ?? 0) * 0.05 }}
       key={id}
       className={projectClass}
       onClick={() => !isInvalid && onClick()}
@@ -280,6 +284,6 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
       <ProjectLogo />
       <ProjectTitle />
       <ProjectBody />
-    </div>
+    </motion.div>
   );
 }

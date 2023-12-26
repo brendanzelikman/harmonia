@@ -121,12 +121,24 @@ export const getPatternCategory = (pattern?: Pattern) => {
 
 /** Get the total duration of a `PatternBlock` in ticks. */
 export const getPatternBlockDuration = (block: PatternBlock): Tick => {
+  // Return the duration of a note or rest
   if (isPatternNote(block)) return block.duration;
   if (isPatternRest(block)) return block.duration;
+
+  // Get the notes of the chord
   const notes = getPatternChordNotes(block);
   if (!notes.length) return 0;
+
+  // Get the max duration of the notes in the chord
   const noteDurations = notes.map((note) => note.duration);
-  return Math.max(...noteDurations);
+  const maxDuration = Math.max(...noteDurations);
+
+  // Add the strum range to the duration if the chord is strummed
+  if (isPatternStrummedChord(block)) {
+    return maxDuration + block.strumRange[0] + block.strumRange[1];
+  } else {
+    return maxDuration;
+  }
 };
 
 /** Get the total velocity of a `PatternBlock` in ticks. */

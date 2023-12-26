@@ -6,7 +6,11 @@ import {
   TrackDropdownMenu,
   TrackDropdownButton,
 } from "./components";
-import { getInstrumentName, getInstrumentChannel } from "types/Instrument";
+import {
+  getInstrumentName,
+  getInstrumentChannel,
+  LIVE_AUDIO_INSTANCES,
+} from "types/Instrument";
 import {
   BsArrowsCollapse,
   BsArrowsExpand,
@@ -17,9 +21,10 @@ import {
   BsVolumeDownFill,
   BsVolumeOffFill,
   BsVolumeUpFill,
+  BsWifi,
 } from "react-icons/bs";
 import { BiCopy } from "react-icons/bi";
-import { cancelEvent } from "utils/html";
+import { cancelEvent, promptUserForNumber } from "utils/html";
 import { percent } from "utils/math";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDragAndDrop";
 import { MIN_VOLUME, MAX_VOLUME, MIN_PAN, MAX_PAN } from "utils/constants";
@@ -42,6 +47,10 @@ import { updateInstrument } from "redux/Instrument";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import classNames from "classnames";
 import { PatternTrack } from "types/Track";
+import { useAuthenticationStatus } from "hooks";
+import { bindTrackToPort, clearTrackPort } from "redux/Track";
+import { promptModal } from "components/Modal";
+import isElectron from "is-electron";
 
 interface PatternTrackProps extends TrackFormatterProps {
   track: PatternTrack;
@@ -49,6 +58,7 @@ interface PatternTrackProps extends TrackFormatterProps {
 
 export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const { track, cell, label, isSelected } = props;
+  const auth = useAuthenticationStatus();
   const dispatch = useProjectDispatch();
 
   // Track drag and drop
@@ -97,8 +107,34 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
 
   /** The Pattern Track dropdown menu allows the user to perform general actions on the track. */
   const PatternTrackDropdownMenu = () => {
+    const onPortClick = async () => {
+      const instrument = LIVE_AUDIO_INSTANCES[instrumentId];
+      if (!instrument) return;
+      if (track.port === undefined) {
+        const result = await promptModal(
+          "Bind Your Track",
+          "Please input a port number between 1 and 16."
+        );
+        const parsedPort = parseInt(result);
+        if (isNaN(parsedPort) || parsedPort < 1 || parsedPort > 16) return;
+        const port = 9000 + parsedPort;
+        dispatch(bindTrackToPort({ id: track.id, port }));
+      } else {
+        dispatch(clearTrackPort(track.id));
+      }
+    };
+    const showPortMenu = auth.isVirtuoso && !!isElectron();
     return (
       <TrackDropdownMenu>
+        {showPortMenu && (
+          <TrackDropdownButton
+            content={`${track.port === undefined ? "Link" : "Linking"} Track${
+              track.port !== undefined ? ` (${track.port})` : ""
+            }`}
+            icon={<BsWifi />}
+            onClick={onPortClick}
+          />
+        )}
         <TrackDropdownButton
           content={`${track.collapsed ? "Expand " : "Collapse"} Track`}
           icon={track.collapsed ? <BsArrowsExpand /> : <BsArrowsCollapse />}

@@ -28,6 +28,8 @@ import {
   createValueSelector,
 } from "redux/util";
 import * as _ from "types/Track";
+import { isPose } from "types/Pose";
+import { getPatternStreamDuration } from "types/Pattern";
 
 /** Select the clip map from the store. */
 export const selectClipMap = (project: Project) =>
@@ -90,20 +92,27 @@ export const selectClipDurationMap = createSelector(
   (clipMap, referenceMap) =>
     createMapWithFn(clipMap, (clip) => {
       const reference = getValueByKey(referenceMap, clip.id);
-      return getClipDuration(clip, reference?.stream);
+      if (!reference) return 0;
+      if (isPose(reference)) {
+        return getClipDuration(clip, reference.stream);
+      } else {
+        return clip.duration !== undefined
+          ? clip.duration
+          : getPatternStreamDuration(reference.stream);
+      }
     })
 );
-
-/** Select the name of a clip by using the name of its reference. */
-export const selectClipName = createValueSelector(selectClipNameMap, "Clip");
-
-/** Select the duration of a clip. */
-export const selectClipDuration = createValueSelector(selectClipDurationMap, 0);
 
 /** Select the durations of a list of clips. */
 export const selectClipDurations = createValueListSelector(
   selectClipDurationMap
 );
+
+/** Select the duration of a clip. */
+export const selectClipDuration = createValueSelector(selectClipDurationMap, 0);
+
+/** Select the name of a clip by using the name of its reference. */
+export const selectClipName = createValueSelector(selectClipNameMap, "Clip");
 
 /** Select the start time of a clip in seconds. */
 export const selectClipStartTime = (project: Project, id?: ClipId) => {

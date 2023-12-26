@@ -12,6 +12,7 @@ import samples from "assets/instruments/samples.json";
 import categories from "assets/instruments/categories.json";
 
 import { SamplerOptions } from "tone";
+import isElectron from "is-electron";
 
 // ------------------------------------------------------------
 // Instrument Serializers
@@ -77,9 +78,8 @@ export const getInstrumentSamplesMap = (
 export const getInstrumentSamplesBaseUrl = (key: InstrumentKey) => {
   const category = getInstrumentCategory(key);
   const name = getInstrumentName(key);
-  return `${
-    window.location.origin + `/harmonia/instruments/${category}/${name}/`
-  }`;
+  const base = isElectron() ? `` : `${window.location.origin}/harmonia`;
+  return `${base + `/instruments/${category}/${name}/`}`;
 };
 
 /** Get a list of instruments corresponding to the given category. */

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useRouteError } from "react-router-dom";
 
 import TimelineImage from "assets/images/timeline1.png";
 import ScaleEditorImage from "assets/images/scaleEditor.png";
@@ -11,55 +11,114 @@ import ReduxImage from "assets/lib/redux.png";
 import ToneImage from "assets/lib/tone.png";
 import TailwindImage from "assets/lib/tailwind.png";
 import { useAuthenticationStatus } from "hooks";
-import { setAuthenticatedStatus } from "indexedDB";
+import { setAuthenticationStatus } from "indexedDB";
 import LogoImage from "assets/images/logo.png";
 import LandingBackground from "assets/images/landing-background.png";
 import classNames from "classnames";
 import { promptModal } from "components/Modal";
 import { PriceOption } from "components/PriceOption";
+import { useCallback, useMemo, useRef } from "react";
+import { useBrowserTitle } from "hooks/useBrowserTitle";
+import { unpackError } from "lib/react-router-dom";
+import { HTMLMotionProps, motion } from "framer-motion";
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthenticationStatus();
+  const auth = useAuthenticationStatus();
 
-  const onClick = async () => {
-    if (isAuthenticated) {
-      return navigate("/projects");
+  // Check for an error
+  const error = useRouteError();
+  const hasError = !!error;
+  const ErrorText = unpackError(error);
+
+  // The error stack is displayed below the main view upon scrolling down.
+  const ErrorStack = () => (
+    <div className="w-full p-4 bg-slate-800 text-slate-50">
+      <pre className="text-xs">{ErrorText.stack}</pre>
+    </div>
+  );
+
+  const browserTitle = useMemo(() => {
+    if (auth.isFree) return "Harmonia (Free)";
+    if (auth.isPro) return "Harmonia (Pro)";
+    if (auth.isVirtuoso) return "Harmonia (Virtuoso)";
+    return "Harmonia";
+  }, [auth]);
+
+  useBrowserTitle(browserTitle);
+
+  // Prompt the user for the password
+  const promptPassword = useCallback(async () => {
+    const password = await promptModal(
+      "Welcome to Harmonia!",
+      "Please enter the password to proceed."
+    );
+    if (password === import.meta.env.VITE_FREE_PASSWORD) {
+      setAuthenticationStatus("free");
+      navigate("/demos");
+    } else if (password === import.meta.env.VITE_PRO_PASSWORD) {
+      setAuthenticationStatus("pro");
+      navigate("/projects");
+    } else if (password === import.meta.env.VITE_VIRTUOSO_PASSWORD) {
+      setAuthenticationStatus("virtuoso");
+      navigate("/projects");
     } else {
-      const password = await promptModal(
-        "Welcome to Harmonia!",
-        "Please enter the password to proceed."
-      );
-      if (password === import.meta.env.VITE_PASSWORD) {
-        setAuthenticatedStatus(true);
-        navigate("/projects");
-      } else {
-        setAuthenticatedStatus(false);
-      }
+      setAuthenticationStatus(undefined);
+    }
+  }, []);
+
+  const onClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (auth.isAuthenticated && !e.altKey) {
+      if (e.shiftKey) return navigate("/playground");
+      return navigate(auth.isAtLeastPro ? "/projects" : "/demos");
+    } else {
+      promptPassword();
     }
   };
 
   const SplashScreen = () => (
     <Section>
       <div className="relative flex flex-col pt-16 items-center font-nunito text-slate-50">
-        <img
+        <motion.img
+          initial={{ opacity: 0, scale: 0 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{
+            ease: "linear",
+            duration: 0.2,
+          }}
           src={LogoImage}
           className={`w-2/3 max-w-[300px] rounded-full transition-all shadow-[0_0_50px_50px_#01bcfa30]`}
         />
-        <h1 className="my-2 font-bold sm:text-9xl text-6xl drop-shadow-xl">
+        <motion.h1
+          initial={{ opacity: 0, translateY: 50, scale: 1.5 }}
+          whileInView={{ opacity: 1, translateY: 0, scale: 1 }}
+          className="my-2 font-bold sm:text-9xl text-6xl drop-shadow-xl"
+        >
           Harmonia
-        </h1>
-        <p className="font-normal sm:text-4xl text-xl drop-shadow-xl">
-          Illuminate the Geometry of Music
-        </p>
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, translateY: 5 }}
+          whileInView={{ opacity: 1, translateY: 0 }}
+          transition={{ delay: 0.3, duration: 1 }}
+          className={classNames(
+            { "font-normal sm:text-4xl text-xl drop-shadow-xl": !hasError },
+            { "font-light sm:text-2xl text-lg text-red-500": hasError }
+          )}
+        >
+          {hasError ? ErrorText.message : "Illuminate the Geometry of Music"}
+        </motion.p>
+        <motion.button
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          whileHover={{ scale: 1.05 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+          type="button"
+          onClick={onClick}
+          className="mt-16 py-6 px-9 text-slate-100 bg-[#00aaff]/70 active:bg-blue-950/90 hover:shadow-[0px_0px_10px_10px_rgb(15,150,200)] ring-2 ring-slate-900/20 hover:ring-slate-100/20 rounded-2xl backdrop-blur-xl shadow-2xl drop-shadow-2xl sm:text-4xl text-2xl font-light"
+        >
+          Make Music Now!
+        </motion.button>
       </div>
-
-      <button
-        onClick={onClick}
-        className="mt-16 py-6 px-9 text-slate-100 bg-[#00aaff]/70 active:bg-blue-950/90 hover:shadow-[0px_0px_10px_5px_rgb(15,150,200)] transition-all duration-300 ring-2 ring-slate-900/20 hover:ring-slate-100/20 rounded-2xl backdrop-blur-xl shadow-2xl drop-shadow-2xl sm:text-4xl text-2xl font-light"
-      >
-        Make Music Now!
-      </button>
     </Section>
   );
 
@@ -76,9 +135,9 @@ export function LandingPage() {
     </section>
   );
 
-  const HeroImage = (props: { src: string }) => (
-    <img
-      src={props.src}
+  const HeroImage = (props: HTMLMotionProps<"img">) => (
+    <motion.img
+      {...props}
       className="w-[66%] max-w-[800px] border-8 border-gray-900/80 backdrop-blur shadow-[0_0_30px_0_rgb(15,170,200)] rounded-lg"
     />
   );
@@ -97,10 +156,25 @@ export function LandingPage() {
     </section>
   );
 
+  const HeroQuoteContainer = (props: { children?: React.ReactNode }) => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      transition={{ delay: 0.1 }}
+      className="w-full flex flex-row flex-wrap justify-center gap-x-8 px-8 my-4 mt-8"
+    >
+      {props.children}
+    </motion.div>
+  );
+
   const TimelineHero = () => (
     <Section>
-      <HeroImage src={TimelineImage} />
-      <div className="w-full flex flex-row flex-wrap justify-center gap-x-8 px-8 my-4 mt-8">
+      <HeroImage
+        src={TimelineImage}
+        initial={{ opacity: 0, translateY: 50 }}
+        whileInView={{ opacity: 1, translateY: 0 }}
+      />
+      <HeroQuoteContainer>
         <HeroQuote
           title="Revolutionary Music Notation"
           text="Upgrading the digital audio workstation with the power to create musical structures of infinite complexity."
@@ -119,14 +193,18 @@ export function LandingPage() {
           title="Unleash Your Creativity"
           text="Explore a universe of musical possibilities that were previously inaccessible to the digital composer."
         />
-      </div>
+      </HeroQuoteContainer>
     </Section>
   );
 
   const ScaleHero = () => (
     <Section>
-      <HeroImage src={ScaleEditorImage} />
-      <div className="w-full flex flex-row flex-wrap justify-center gap-x-8 px-8 my-4 mt-8">
+      <HeroImage
+        src={ScaleEditorImage}
+        initial={{ opacity: 0, translateX: -50 }}
+        whileInView={{ opacity: 1, translateX: 0 }}
+      />
+      <HeroQuoteContainer>
         <HeroQuote
           title="Freely Shape Your Terrain"
           text="Craft any scales you can imagine and revise them at any moment with the dedicated Scale Editor."
@@ -143,14 +221,18 @@ export function LandingPage() {
           title="Easily Bounce Off Presets"
           text="Waste no time and get started right away with carefully curated presets from various genres of music."
         />
-      </div>
+      </HeroQuoteContainer>
     </Section>
   );
 
   const PatternHero = () => (
     <Section>
-      <HeroImage src={PatternEditorImage} />
-      <div className="w-full flex flex-row flex-wrap justify-center gap-x-8 px-8 my-4 mt-8">
+      <HeroImage
+        src={PatternEditorImage}
+        initial={{ opacity: 0, translateX: 50 }}
+        whileInView={{ opacity: 1, translateX: 0 }}
+      />
+      <HeroQuoteContainer>
         <HeroQuote
           title="Organically Sketch Your Patterns"
           text="Write out the building blocks of your music and painlessly develop them with the dedicated Pattern Editor."
@@ -169,14 +251,18 @@ export function LandingPage() {
           title="Avoid the Pain of Revision"
           text="Never lose your ideas again and effortlessly rework your music by making sweeping changes in seconds."
         />
-      </div>
+      </HeroQuoteContainer>
     </Section>
   );
 
   const PoseHero = () => (
     <Section>
-      <HeroImage src={PoseImage} />
-      <div className="w-full flex flex-row flex-wrap justify-center gap-x-8 px-8 my-4 mt-8">
+      <HeroImage
+        src={PoseImage}
+        initial={{ opacity: 0, translateY: 100 }}
+        whileInView={{ opacity: 1, translateY: 0 }}
+      />
+      <HeroQuoteContainer>
         <HeroQuote
           title="Model Your Musical Motion"
           text="Clearly express any transpositions, arpeggiations, voice leadings, chord progressions, and even entire song forms."
@@ -193,13 +279,17 @@ export function LandingPage() {
           title="Forget About Manual Work"
           text="Let Harmonia do the heavy lifting for you and focus on creatively shaping your music in different ways."
         />
-      </div>
+      </HeroQuoteContainer>
     </Section>
   );
 
   const LibraryHero = () => (
     <Section className="justify-center">
-      <div className="w-full items-center justify-center flex flex-row flex-wrap px-4 space-x-6 [&>a]:md:w-1/6 [&>a]:w-[100px] [&>a>img]:max-w-[200px] [&>a>img]:w-full">
+      <motion.div
+        className="relative w-full items-center justify-center flex flex-row flex-wrap px-4 space-x-6 [&>a]:md:w-1/6 [&>a]:w-[100px] [&>a>img]:max-w-[200px] [&>a>img]:w-full"
+        initial={{ opacity: 0, translateY: 100 }}
+        whileInView={{ opacity: 1, translateY: 0 }}
+      >
         <a href="https://react.dev/" target="_blank">
           <img src={ReactImage} />
         </a>
@@ -215,7 +305,7 @@ export function LandingPage() {
         <a href="https://tailwindcss.com/" target="_blank">
           <img src={TailwindImage} />
         </a>
-      </div>
+      </motion.div>
       <div className="text-center mt-16 font-bold lg:text-6xl md:text-4xl text-2xl text-slate-100">
         Powered by Cutting-Edge Libraries
       </div>
@@ -227,13 +317,30 @@ export function LandingPage() {
 
   const WhyHero = () => (
     <Section className="flex flex-col py-10 px-5 justify-center text-white">
-      <div className="relative p-12 h-full overflow-hidden prose prose-lg prose-invert bg-blue-900/50 rounded-2xl border-4 backdrop-blur border-slate-50/50">
+      <motion.div
+        className="relative p-12 overflow-hidden prose prose-lg prose-invert bg-blue-900/50 rounded-2xl border-4 backdrop-blur border-slate-50/50"
+        initial={{ opacity: 0, y: 50, rotate: -5 }}
+        whileInView={{
+          opacity: 1,
+          y: 0,
+          rotate: 0,
+        }}
+        transition={{ delay: 0.1, damping: 1, duration: 0.3, stiffness: 100 }}
+      >
         <img
           className="absolute inset-0 w-full h-full object-cover -z-10 opacity-20"
           src={LandingBackground}
         />
         <h1>Why Harmonia?</h1>
-        <p>
+        <motion.p
+          initial={{ opacity: 0, skewX: 5, x: -10 }}
+          whileInView={{
+            opacity: 1,
+            skewX: 0,
+            x: 0,
+          }}
+          transition={{ delay: 0.1 }}
+        >
           Music will always have something indescribable to it. No matter how
           descriptively we may write, music can never be perfectly distilled
           into words. Instead, it is a subjective experience that is continually
@@ -242,79 +349,149 @@ export function LandingPage() {
           Generative audio may be useful for replicating stock sounds or
           creating coffee shop music, but an algorithm can never completely
           understand the difference between theory and practice.
-        </p>
-        <p>
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0, skewX: 5, x: -10 }}
+          whileInView={{
+            opacity: 1,
+            skewX: 0,
+            x: 0,
+          }}
+          transition={{ delay: 0.2 }}
+        >
           Harmonia is not only a liberation of the digital composer from the
           constraints of current software but a stand against the trend of
           deconstructing music into data. For in this reduction, we lose the
-          magic that comes from putting together the pieces of the puzzle
-          ourselves, from putting on our headphones and entering a vast sonic
-          landscape of our own. Harmonia is a tool for any composer to reclaim
-          their creativity and leverage the power of the computer to realize
-          their musical vision to the fullest extent humanly possible.{" "}
+          magic that comes from crafting a musical landscape that can be
+          sculpted entirely by our own choices—with no right or wrong answers.
+          Harmonia is a tool for any and every composer seeking to realize their
+          musical vision to the fullest extent humanly possible.{" "}
           <Link to="/playground" className="italic no-underline cursor-pointer">
             Go build.
           </Link>
-        </p>
-      </div>
+        </motion.p>
+        <motion.p
+          className="text-right"
+          initial={{ opacity: 0, x: 10 }}
+          whileInView={{
+            opacity: 1,
+            x: 0,
+          }}
+          transition={{ delay: 0.4, duration: 0.3 }}
+        >
+          - Brendan Zelikman
+        </motion.p>
+      </motion.div>
     </Section>
   );
 
   const PricingHero = () => (
     <Section className="py-10 px-5 justify-center text-white">
       <div className="w-full flex flex-wrap justify-center gap-16">
-        <PriceOption
-          name="Free"
-          price={0}
-          description="Work any time on the web."
-          features={[
-            "Access to Playground",
-            "Export to HAM + WAV",
-            "Access to Limited Presets",
-            "Up to 10 Projects",
-            "All Demos Available",
-            "Full Documentation",
-            "Community Support",
-          ]}
-        />
-        <PriceOption
-          name="Pro"
-          price={20}
-          monthly
-          description="Unleash the Playground."
-          features={[
-            "Live Mixing and Posing",
-            "Export to MIDI + MusicXML",
-            "Access to Curated Presets",
-            "Up to 25 Projects",
-            "Compatible with MIDI Devices",
-            "Developer Gratitude",
-            "Email Support",
-          ]}
-        />
-        <PriceOption
-          name="Virtuoso"
-          price={50}
-          monthly
-          description="Go even further beyond."
-          features={[
-            "Desktop Application",
-            "VST Plugin",
-            "Access to All Presets",
-            "Unlimited Projects",
-            "Compatible with DAWs",
-            "Developer Love",
-            "Request Any Feature",
-          ]}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{ delay: 0.1 }}
+        >
+          <PriceOption
+            name="free"
+            price={0}
+            description="Work any time on the web."
+            features={[
+              "Access to Website",
+              "Export to HAM + WAV",
+              "Access to Limited Presets",
+              "Read/Write Local Projects",
+              "All Core Functionality",
+              "Full Documentation",
+              "Community Support",
+            ]}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{ delay: 0.2 }}
+        >
+          <PriceOption
+            name="pro"
+            price={10}
+            monthly
+            description="Unleash the Playground."
+            features={[
+              "Live Mixing and Posing",
+              "Export to MIDI + MusicXML",
+              "Access to Extensive Presets",
+              "Store Up to 100 Projects",
+              "Compatible with MIDI Devices",
+              "Developer Gratitude",
+              "Email Support",
+            ]}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 100 }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{ delay: 0.3 }}
+        >
+          <PriceOption
+            name="virtuoso"
+            price={20}
+            monthly
+            description="Go even further beyond."
+            features={[
+              "Desktop Application",
+              "Sync With VST Plugin",
+              "Access to All Presets",
+              "Store Unlimited Projects",
+              "Real-Time Collaboration",
+              "Developer Love",
+              "Request Any Feature",
+            ]}
+          />
+        </motion.div>
       </div>
-      <h1 className="mt-20 text-3xl p-4 px-6 rounded-2xl font-light bg-slate-950/50 border border-gray-600 backdrop-blur">
+
+      <motion.h1
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        className="mt-20 text-3xl p-4 px-6 rounded-xl font-light bg-slate-950/50 ring-1 ring-gray-500 backdrop-blur"
+      >
         Pricing will be implemented soon. Please stay tuned!
-      </h1>
+      </motion.h1>
     </Section>
   );
 
-  const Observatory = () => <Section></Section>;
+  const Observatory = () => (
+    <Section className="mt-4">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        className="mt-auto text-blue-200/50 select-none"
+      >
+        Background Credits:{" "}
+        <a
+          href="https://coolbackgrounds.io/"
+          className="hover:text-blue-400 transition-colors duration-200"
+          target="_blank"
+        >
+          CoolBackgrounds.io
+        </a>
+      </motion.div>
+    </Section>
+  );
+
+  const showBody = !hasError && !!auth.isAuthenticated;
+  const showStack = hasError;
 
   return (
     <main className="relative font-nunito animate-in fade-in duration-75 flex flex-col w-full h-screen overflow-scroll">
@@ -323,7 +500,7 @@ export function LandingPage() {
         className="fixed opacity-50 h-screen object-cover landing-background"
       />
       <SplashScreen />
-      {!!isAuthenticated && (
+      {showBody && (
         <>
           <PricingHero />
           <LibraryHero />
@@ -335,6 +512,7 @@ export function LandingPage() {
           <Observatory />
         </>
       )}
+      {showStack && <ErrorStack />}
     </main>
   );
 }

@@ -31,6 +31,7 @@ import {
   selectTrackIds,
 } from "redux/selectors";
 import { PatternTrack } from "types/Track";
+import { useAuthenticationStatus } from "hooks/db/useAuthenticationStatus";
 
 const ARTURIA_KEYLAB_TRACK_CC = 60;
 const ARTURIA_KEYLAB_VOLUME_CCS = [73, 75, 79, 72, 80, 81, 82, 83];
@@ -46,6 +47,7 @@ const ARTURIA_KEYLAB_MOD_BYTE = 176;
 // CC support for my MIDI controller :)
 export function useMidiController() {
   const dispatch = useProjectDispatch();
+  const auth = useAuthenticationStatus();
   const transport = useProjectSelector(selectTransport);
   const patternTrackMap = useProjectDeepSelector(selectPatternTrackMap);
   const orderedTrackIds = useProjectDeepSelector(selectTrackIds);
@@ -204,6 +206,7 @@ export function useMidiController() {
 
   // Synchronize with MIDI controller via WebMidi
   useEffect(() => {
+    if (auth.isFree) return;
     const onEnabled = () => {
       WebMidi.inputs.forEach((input) => {
         input.addListener("midimessage", midiListener);
@@ -218,5 +221,5 @@ export function useMidiController() {
         input.removeListener();
       });
     };
-  }, [midiListener, controlListener, playInstanceNote, stopInstanceNote]);
+  }, [auth, midiListener, controlListener, playInstanceNote, stopInstanceNote]);
 }

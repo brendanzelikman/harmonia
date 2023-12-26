@@ -63,11 +63,13 @@ export type PatternClipStream = PatternClipBlock[];
 export type PatternClipBlock = {
   notes: PatternNote[];
   startTick: Tick;
+  strumIndex?: number;
 };
 export type PatternClipMidiStream = PatternClipMidiBlock[];
 export type PatternClipMidiBlock = {
   notes: PatternMidiNote[];
   startTick: Tick;
+  strumIndex?: number;
 };
 
 // ------------------------------------------------------------

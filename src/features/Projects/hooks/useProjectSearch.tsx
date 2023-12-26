@@ -18,13 +18,29 @@ import { getInstrumentName } from "types/Instrument";
 import { isProject } from "types/Project";
 import { getScaleName } from "types/Scale";
 import { ProjectListProps } from "./useProjectList";
+import { useAuthenticationStatus } from "hooks";
+import {
+  FREE_PROJECT_LIMIT,
+  PRO_PROJECT_LIMIT,
+  VIRTUOSO_PROJECT_LIMIT,
+} from "utils/constants";
+import { motion } from "framer-motion";
 
 interface ProjectSearchProps extends ProjectListProps {}
 
 export function useProjectSearch(props: ProjectSearchProps) {
   const { projects, searchingDemos } = props;
+  const auth = useAuthenticationStatus();
   const dispatch = useProjectDispatch();
   const navigate = useNavigate();
+
+  // Check if projects are capped
+  const areProjectsCapped = useMemo(() => {
+    if (auth.isFree) return projects.length >= FREE_PROJECT_LIMIT;
+    if (auth.isPro) return projects.length >= PRO_PROJECT_LIMIT;
+    if (auth.isVirtuoso) return projects.length >= VIRTUOSO_PROJECT_LIMIT;
+    return true;
+  }, [auth, projects]);
 
   // Get the filtered projects
   const [query, setQuery] = useState("");
@@ -107,9 +123,15 @@ export function useProjectSearch(props: ProjectSearchProps) {
 
   const ControlBar = () => {
     return (
-      <div className="hidden lg:flex lg:animate-in lg:fade-in lg:duration-75 w-full items-center gap-3 text-sm px-1 [&>button]:text-sky-500 [&>button:active]:text-sky-400">
-        <button onClick={() => createProject()}>Create a Project</button>•
-        <button onClick={() => dispatch(loadFromLocalProjects())}>
+      <div className="hidden lg:flex lg:animate-in lg:fade-in lg:duration-75 w-full items-center gap-3 text-sm px-1 [&>button]:text-sky-500 [&>button:disabled]:text-sky-700 [&>button:active]:text-sky-400">
+        <button onClick={() => createProject()} disabled={areProjectsCapped}>
+          Create a Project
+        </button>
+        •
+        <button
+          onClick={() => dispatch(loadFromLocalProjects())}
+          disabled={areProjectsCapped}
+        >
           Upload a Project
         </button>
         •
@@ -142,10 +164,15 @@ export function useProjectSearch(props: ProjectSearchProps) {
         : "bg-slate-950/60 ring-sky-500/50"
     );
     return (
-      <div className={menuClass}>
+      <motion.div
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ damping: 0.2 }}
+        className={menuClass}
+      >
         {SearchBar()}
         {!searchingDemos && ControlBar()}
-      </div>
+      </motion.div>
     );
   }, [searchingDemos, SearchBar, ControlBar]);
 

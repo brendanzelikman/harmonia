@@ -256,6 +256,15 @@ export const selectTrackAudioInstanceMap = createSelector(
     )
 );
 
+/** Select the record of all pattern tracks to their instruments. */
+export const selectInstrumentTrackMap = createSelector(
+  [selectPatternTracks, selectInstrumentMap],
+  (tracks, instrumentMap) =>
+    createMapWithFn(instrumentMap, (i) =>
+      tracks.find((t) => t.instrumentId === i.id)
+    )
+);
+
 /** Select the instrument of a track. */
 export const selectTrackInstrument = (project: Project, id?: TrackId) => {
   const instrumentMap = selectTrackInstrumentMap(project);

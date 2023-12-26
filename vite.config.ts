@@ -4,15 +4,15 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  server: {
-    port: 3000,
-  },
+  server: { port: 3000 },
   base: "/harmonia/",
   build: {
     chunkSizeWarningLimit: 5000,
     outDir: "build",
   },
-  assetsInclude: ["**/*.ham"],
+  assetsInclude: ["**/*.ham", ""],
   plugins: [react(), tsconfigPaths()],
-  resolve: { mainFields: [] },
+  resolve: {
+    mainFields: ["module", "jsnext:main", "jsnext"],
+  },
 });

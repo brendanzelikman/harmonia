@@ -34,13 +34,14 @@ import {
   NavbarTooltipMenu,
 } from "./components";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
-import { useTransportTick } from "hooks";
+import { useAuthenticationStatus, useTransportTick } from "hooks";
 import { undoArrangement, redoArrangement } from "redux/Arrangement";
 import { percent } from "utils/math";
 import { isFileEditorOpen } from "types/Editor";
 
 export function NavbarFileMenu() {
   const dispatch = useProjectDispatch();
+  const auth = useAuthenticationStatus();
   const canUndo = useProjectSelector(selectArrangementPastLength);
   const canRedo = useProjectSelector(selectArrangementFutureLength);
   const { downloading } = useProjectSelector(selectTransport);
@@ -284,11 +285,11 @@ export function NavbarFileMenu() {
         content={
           <NavbarTooltipMenu>
             {ProjectNameField()}
-            <NewProjectButton />
+            {auth.isAtLeastPro && <NewProjectButton />}
             <SaveToHAMButton />
             <LoadFromHAMButton />
             <SaveToWAVButton />
-            <SaveToMIDIButton />
+            {auth.isAtLeastPro && <SaveToMIDIButton />}
             <ClearButton />
           </NavbarTooltipMenu>
         }

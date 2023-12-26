@@ -10,10 +10,12 @@ import {
 } from "redux/thunks";
 import { isEditorVisible } from "types/Editor";
 import { useNavigate } from "react-router-dom";
+import { useAuthenticationStatus } from "hooks/db/useAuthenticationStatus";
 
 /** Use global hotkeys for the project */
 export function useGlobalHotkeys() {
   const dispatch = useProjectDispatch();
+  const { isAtLeastPro } = useAuthenticationStatus();
   const navigate = useNavigate();
   const timeline = useProjectSelector(selectTimeline);
   const editor = useProjectSelector(selectEditor);
@@ -31,7 +33,11 @@ export function useGlobalHotkeys() {
   );
 
   // Meta + P = View Projects
-  useOverridingHotkeys("meta+shift+p", () => navigate("/projects"));
+  useOverridingHotkeys(
+    "meta+shift+p",
+    () => navigate(isAtLeastPro ? "/projects" : "/demos"),
+    [isAtLeastPro]
+  );
 
   // Meta + E = Toggle Editor
   useOverridingHotkeys(

@@ -57,7 +57,7 @@ export function PatternEditorComposeTab(props: PatternEditorProps) {
         label={content}
         content={content}
         active={isActive}
-        activeClass="text-emerald-500 animate-pulse"
+        activeClass="text-emerald-500"
         onClick={() => dispatch(toggleEditorAction("addingNotes"))}
       >
         {isInserting ? (

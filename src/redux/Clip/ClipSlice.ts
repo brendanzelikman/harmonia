@@ -83,16 +83,16 @@ export const clipsSlice = createSlice({
       const { oldClip, firstClip, secondClip } = action.payload;
       if (!oldClip || !firstClip || !secondClip) return;
 
+      //  Add the new clips
+      state.allIds = union(state.allIds, [firstClip.id, secondClip.id]);
+      state.byId[firstClip.id] = firstClip;
+      state.byId[secondClip.id] = secondClip;
+
       //  Remove the old clip
       const index = state.allIds.findIndex((id) => id === oldClip.id);
       if (index === -1) return;
       state.allIds.splice(index, 1);
       delete state.byId[oldClip.id];
-
-      //  Add the new clips
-      state.allIds = union(state.allIds, [firstClip.id, secondClip.id]);
-      state.byId[firstClip.id] = firstClip;
-      state.byId[secondClip.id] = secondClip;
     },
     /** Merge a list of clips into a new clip. */
     _mergeClips: (state, action: PayloadAction<MergeClipsPayload>) => {

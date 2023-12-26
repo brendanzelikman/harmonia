@@ -4,8 +4,12 @@ import { useProjectList } from "features/Projects";
 import { Playground } from "../features/Playground";
 import { Navbar } from "features/Navbar";
 import { useParams } from "react-router-dom";
-import { ReactNode, useCallback, useMemo, useState } from "react";
-import { useDatabaseCallback, useCustomEventListener } from "hooks";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useDatabaseCallback,
+  useCustomEventListener,
+  useAuthenticationStatus,
+} from "hooks";
 import { getProjectsFromDB } from "indexedDB";
 import { CREATE_PROJECT, DELETE_PROJECT } from "redux/thunks";
 import { Project } from "types/Project";
@@ -23,20 +27,32 @@ import Strum from "assets/demos/strum.ham";
 
 export type View = (typeof views)[number];
 export const views = ["projects", "demos", "docs", "playground"] as const;
-export const viewCount = views.length;
 
 /* The main page of the app */
-export function MainPage(props: { view?: View }) {
+interface MainPageProps {
+  view?: View;
+}
+export function MainPage(props: MainPageProps) {
+  const auth = useAuthenticationStatus();
   const params = useParams<{ view: View }>();
   const view = props.view || params.view || "projects";
   const [projects, setProjects] = useState<Project[]>([]);
   const demoPaths = [Nest, Barry, Wind, Marimba, Strum];
-  const updateProjects = async () => setProjects(await getProjectsFromDB());
 
-  // Update whenever the database changes
-  useDatabaseCallback(updateProjects);
+  // Update the list of projects based on the authentication status
+  const updateProjects = async () => {
+    if (!auth.isAuthenticated) return;
+    const fetchedProjects = await getProjectsFromDB();
+    setProjects(fetchedProjects);
+  };
+
+  // Update whenever the database or view changes
+  useDatabaseCallback(updateProjects, [auth.isAuthenticated]);
   useCustomEventListener(CREATE_PROJECT, updateProjects);
   useCustomEventListener(DELETE_PROJECT, updateProjects);
+  useEffect(() => {
+    updateProjects();
+  }, [view]);
 
   // Get the list of projects
   const fetchedProjects = useProjectFetcher({ projects });
@@ -113,7 +129,9 @@ export function MainPage(props: { view?: View }) {
       {MainBackground}
       <TourBackground />
       <div className={transitionClass}>
-        <ViewWrapper view="projects">{ProjectList()}</ViewWrapper>
+        {auth.isAtLeastPro && (
+          <ViewWrapper view="projects">{ProjectList()}</ViewWrapper>
+        )}
         <ViewWrapper view="demos">{DemoList()}</ViewWrapper>
         <ViewWrapper view="docs">{Docs()}</ViewWrapper>
         <ViewWrapper view="playground">

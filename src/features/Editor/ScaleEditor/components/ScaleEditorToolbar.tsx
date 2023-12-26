@@ -1,9 +1,7 @@
 import { Editor } from "features/Editor/components";
-import { Menu } from "@headlessui/react";
 import { ScaleEditorProps } from "../ScaleEditor";
 import { BsEraserFill, BsPencilFill, BsTrash } from "react-icons/bs";
 import { getScaleAsArray } from "types/Scale";
-import { useProjectDispatch } from "redux/hooks";
 import {
   clearScale,
   createScale,
@@ -18,29 +16,35 @@ import { toggleEditorAction } from "redux/Editor";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 
 export function ScaleEditorToolbar(props: ScaleEditorProps) {
-  const { dispatch, scale, scaleName, isAdding, isRemoving, Button } = props;
+  const { dispatch, auth, scale, scaleName, isAdding, isRemoving, Button } =
+    props;
   const notes = getScaleAsArray(scale);
 
-  const ExportButton = () => (
-    <Editor.Button
-      label="Export Scale"
-      options={[
-        {
-          onClick: () =>
-            scale && dispatch(exportScaleToMIDI({ ...scale, name: scaleName })),
-          label: "Export MIDI",
-        },
-        {
-          onClick: () =>
-            scale &&
-            dispatch(exportScaleToXML({ ...scale, name: scaleName }, true)),
-          label: "Export XML",
-        },
-      ]}
-    >
-      Export
-    </Editor.Button>
-  );
+  const ExportButton = () => {
+    if (auth.isFree) return null;
+
+    return (
+      <Editor.Button
+        label="Export Scale"
+        options={[
+          {
+            onClick: () =>
+              scale &&
+              dispatch(exportScaleToMIDI({ ...scale, name: scaleName })),
+            label: "Export MIDI",
+          },
+          {
+            onClick: () =>
+              scale &&
+              dispatch(exportScaleToXML({ ...scale, name: scaleName }, true)),
+            label: "Export XML",
+          },
+        ]}
+      >
+        Export
+      </Editor.Button>
+    );
+  };
 
   const SaveButton = () => (
     <Button
@@ -93,7 +97,7 @@ export function ScaleEditorToolbar(props: ScaleEditorProps) {
     <Button
       label={`${isAdding ? "Stop Adding" : "Add Notes"}`}
       active={isAdding}
-      activeClass="text-emerald-400 animate-pulse"
+      activeClass="text-emerald-400"
       onClick={() => dispatch(toggleEditorAction("addingNotes"))}
     >
       <BsPencilFill className="text-lg" />
@@ -105,7 +109,7 @@ export function ScaleEditorToolbar(props: ScaleEditorProps) {
     <Button
       label={`${isRemoving ? "Stop Removing" : "Remove Notes"}`}
       active={isRemoving}
-      activeClass="text-red-400 animate-pulse"
+      activeClass="text-red-400"
       disabled={!notes.length}
       disabledClass="text-slate-500"
       onClick={() => dispatch(toggleEditorAction("removingNotes"))}
@@ -166,7 +170,7 @@ export function ScaleEditorToolbar(props: ScaleEditorProps) {
   );
 
   return (
-    <Editor.Tab show={true} border={false}>
+    <Editor.Tab className="z-20" show={true} border={false}>
       <Editor.TabGroup border={true}>
         <ExportButton />
         <SaveButton />

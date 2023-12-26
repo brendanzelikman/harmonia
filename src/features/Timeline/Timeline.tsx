@@ -4,8 +4,8 @@ import { selectCell, selectTrackIds, selectTrackMap } from "redux/selectors";
 import DataGrid, {
   Column,
   DataGridHandle,
-  FormatterProps,
   RowHeightArgs,
+  FormatterProps,
 } from "react-data-grid";
 import { useState, useCallback, useMemo } from "react";
 import {
@@ -26,12 +26,11 @@ import {
   MEASURE_COUNT,
   TRACK_WIDTH,
 } from "utils/constants";
-
-import "lib/react-data-grid.css";
-import "react-data-grid/lib/styles.css";
 import { TimelinePortals } from "./Portals";
 import { CellFormatter } from "./Cell";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import "lib/react-data-grid.css";
+import "react-data-grid/lib/styles.css";
 
 export type Row = { index: number; trackId?: TrackId; trackButton?: boolean };
 

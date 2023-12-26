@@ -11,7 +11,7 @@ export const EditorScore: React.FC<ScoreProps> = (props) => {
       {...divProps}
       className={classNames(
         divProps.className,
-        `bg-white relative z-10 w-full flex items-center h-auto min-h-[200px] overflow-auto border-2 shadow-xl rounded-lg`
+        `bg-white relative w-full flex items-center h-auto min-h-[200px] overflow-auto border-2 shadow-xl rounded-lg`
       )}
     >
       {props.score}

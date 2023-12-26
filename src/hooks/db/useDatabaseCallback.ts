@@ -2,8 +2,8 @@ import { db } from "indexedDB";
 import { useEffect } from "react";
 
 /** Use a callback after the database loads */
-export function useDatabaseCallback(callback: () => void) {
+export function useDatabaseCallback(callback: () => void, deps?: any[]) {
   useEffect(() => {
     db.then((db) => !!db && callback());
-  }, []);
+  }, deps ?? []);
 }

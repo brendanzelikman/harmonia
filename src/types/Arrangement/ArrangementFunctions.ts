@@ -252,7 +252,9 @@ export const getPatternClipStream = (
     const strummedChord = block as StrummedChord<PatternMidiNote>;
     const strumDirection = strummedChord.strumDirection ?? "up";
     const strumRange = block.strumRange ?? [0, 0];
-    const strumDuration = strumRange[1] + strumRange[0];
+    const start = strumRange[0];
+    const end = strumRange[1];
+    const strumDuration = start + end;
     const strumStep = strumDuration / Math.max(1, noteCount - 1);
     const strumNotes = getPatternMidiChordNotes(newChord);
 
@@ -262,10 +264,10 @@ export const getPatternClipStream = (
       const index = strumDirection === "up" ? j : noteCount - j - 1;
 
       // Get the offset by stepping along the strum range, clamping to the stream
-      let offset = j * Math.round(strumStep) - strumRange[0];
+      let offset = j * Math.round(strumStep) - start;
 
       // If there is one note, apply the strum range
-      if (noteCount === 1) offset = strumRange[1] - strumRange[0];
+      if (noteCount === 1) offset = end - start;
 
       // If the offset goes negative, clamp it to the stream
       const strummedTick = tick + offset;
@@ -273,9 +275,14 @@ export const getPatternClipStream = (
 
       // Get the new note and adjust its duration
       const note = strumNotes[index];
-      const newNote = { ...note, duration: note.duration - offset };
       const startTick = clip.tick + i + offset;
-      const block = { notes: [newNote], startTick };
+
+      // The new note has at least its inital duration, plus the distance until the end
+      const newNote = {
+        ...note,
+        duration: note.duration + strumDuration - offset,
+      };
+      const block = { notes: [newNote], startTick, strumIndex: j };
 
       // Push the block to the stream
       stream.push(block);

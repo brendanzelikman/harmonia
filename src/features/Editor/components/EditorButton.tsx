@@ -1,6 +1,6 @@
 import { Menu } from "@headlessui/react";
 import classNames from "classnames";
-import { promptUserForNumber } from "utils/html";
+import { cancelEvent, promptUserForNumber } from "utils/html";
 
 export interface EditorButtonProps extends React.HTMLProps<HTMLButtonElement> {
   label?: string;
@@ -11,7 +11,6 @@ export interface EditorButtonProps extends React.HTMLProps<HTMLButtonElement> {
   activeClass?: string;
   disabledClass?: string;
   weakClass?: string;
-  placeTooltip?: "top" | "bottom" | "left" | "right";
   promptTitle?: string;
   promptMessage?: string;
   callback?: (value: any) => void;
@@ -27,7 +26,6 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
     activeClass,
     disabledClass,
     weakClass,
-    placeTooltip,
     padding,
     promptTitle,
     promptMessage,
@@ -70,13 +68,17 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
 
   // Return a menu if there are any options provided
   return (
-    <Menu as="div" className="relative">
+    <Menu as="div" className="relative z-50">
       {({ open }) => (
         <>
-          <Menu.Button as="div" className="flex justify-center z-[80]">
+          <Menu.Button
+            as="div"
+            className="flex justify-center"
+            onClick={disabled ? cancelEvent : undefined}
+          >
             <Button open={open} />
           </Menu.Button>
-          <Menu.Items className="absolute flex flex-col z-[90] top-8 px-2 whitespace-nowrap -mr-5 py-2 bg-slate-900/90 backdrop-blur border border-slate-400 text-sm rounded animate-in fade-in zoom-in-50 duration-100">
+          <Menu.Items className="absolute flex flex-col top-8 px-2 whitespace-nowrap -mr-5 py-2 bg-slate-900/90 backdrop-blur border border-slate-400 text-sm rounded animate-in fade-in zoom-in-50 duration-100">
             {options.map((option, i) => (
               <div
                 key={i}

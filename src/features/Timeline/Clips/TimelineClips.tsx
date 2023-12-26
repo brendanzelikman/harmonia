@@ -1,7 +1,6 @@
 import { createPortal } from "react-dom";
 import {
   Clip,
-  ClipId,
   PatternClip,
   PoseClip,
   isPatternClip,
@@ -17,7 +16,7 @@ import {
 import { Portaled, getOriginalIdFromPortaledClip } from "types/Portal";
 import { PatternClipRenderer } from "./PatternClipRenderer";
 import { PoseClipRenderer } from "./PoseClipRenderer";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import {
   isTimelineAddingPatternClips,

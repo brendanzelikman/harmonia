@@ -11,7 +11,6 @@ import {
 import { _sliceClip } from "./ClipSlice";
 import { updateMediaSelection } from "redux/Timeline/TimelineSlice";
 import { isUndefined, without } from "lodash";
-import { getPatternMidiChordNotes, isPatternMidiChord } from "types/Pattern";
 import { convertTicksToSeconds } from "types/Transport";
 import { hasKeys } from "utils/objects";
 import { Tick } from "types/units";
@@ -39,9 +38,6 @@ export const sliceClip =
       duration: duration - splitTick,
     });
 
-    // Slice the clip
-    dispatch(_sliceClip({ oldClip: clip, firstClip, secondClip }));
-
     // Filter the old clip out of the media selection
     dispatch(
       updateMediaSelection({
@@ -49,6 +45,9 @@ export const sliceClip =
         poseClipIds: without(poseClipIds, clip.id) as PoseClipId[],
       })
     );
+
+    // Slice the clip
+    dispatch(_sliceClip({ oldClip: clip, firstClip, secondClip }));
   };
 
 /** Export a list of clips to MIDI by ID and download them as a file. */

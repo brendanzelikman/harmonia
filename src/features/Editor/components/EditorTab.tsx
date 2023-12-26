@@ -4,12 +4,15 @@ export const EditorTab = (props: {
   show: boolean;
   border?: boolean;
   children?: any;
+  className?: string;
 }) =>
   !props.show ? null : (
     <div
-      className={`flex w-full items-center h-10 py-1 z-[40] text-slate-200 animate-in fade-in duration-150 ${
+      className={classNames(
+        props.className,
+        `flex w-full items-center h-10 py-1 text-slate-200 animate-in fade-in duration-150`,
         props.border ? "border-b border-b-slate-500" : ""
-      }`}
+      )}
     >
       {props.children}
     </div>

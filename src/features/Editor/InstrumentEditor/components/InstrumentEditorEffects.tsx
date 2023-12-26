@@ -1,6 +1,6 @@
 import * as Effects from "types/Instrument/InstrumentEffectTypes";
 import { useRef } from "react";
-import { SafeEffect, EffectId } from "types/Instrument";
+import { SafeEffect, EffectId, LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { Slider } from "components/Slider";
 import { InstrumentEditorProps } from "../InstrumentEditor";
 import { useEffectDrop, useEffectDrag } from "../hooks/useInstrumentEditorDnd";
@@ -112,25 +112,18 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
     </div>
   );
 
-  const trackEffect = instance ? instance.getEffectById(effect.id) : undefined;
+  const trackEffect = instance
+    ? LIVE_AUDIO_INSTANCES[instance.id].getEffectById(effect.id)
+    : undefined;
   const name = Effects.EFFECT_NAMES_BY_KEY[effect.key] ?? "Effect";
   const wasDisposed = !trackEffect || trackEffect?.node?.disposed;
 
   return (
-    <Transition
-      appear
-      show={true}
-      enter="transition-all ease-in-out duration-150"
-      enterFrom="opacity-0 transform scale-0"
-      enterTo="opacity-100 transform scale-100"
-      leave="transition-all ease-in-out duration-150"
-      leaveFrom="opacity-100 transform scale-100"
-      leaveTo="opacity-0 transform scale-0"
-      className={`flex ml-2 mr-5 md:mr-3 my-2 select-none min-w-fit min-h-[9rem] ${
-        isDragging || wasDisposed ? "opacity-50" : ""
-      } bg-slate-700/50 border border-slate-600 rounded-lg active:ring transition-all overflow-hidden capitalize `}
+    <div
+      className={`animate-in fade-in zoom-in duration-150 flex ml-2 mr-5 md:mr-3 my-2 select-none min-w-fit min-h-[9rem] ${
+        isDragging || wasDisposed ? "opacity-50" : "opacity-100"
+      } bg-slate-700/50 border border-slate-600 rounded-lg active:ring transition-all overflow-hidden capitalize`}
       ref={ref}
-      as="div"
     >
       <div className="w-full mx-2 py-2">
         <div className="w-full flex items-center mb-4 bg-slate-800 border-0.5 border-slate-600/50 rounded">
@@ -605,6 +598,6 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
           ) : null}
         </div>
       </div>
-    </Transition>
+    </div>
   );
 };

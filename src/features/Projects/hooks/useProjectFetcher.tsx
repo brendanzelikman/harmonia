@@ -17,6 +17,7 @@ export function useProjectFetcher(props: ProjectFetcherProps): Project[] {
   const [loaded, setLoaded] = useState(false);
   const [fetching, setFetching] = useState(false);
 
+  // Update the projects if they change
   useEffect(() => {
     if (incomingProjects && !isEqual(props.projects, projects)) {
       setProjects(incomingProjects);
@@ -24,14 +25,13 @@ export function useProjectFetcher(props: ProjectFetcherProps): Project[] {
     }
   }, [incomingProjects, projects]);
 
+  // Start fetching if we have paths but no projects
   const shouldFetch = !!(!hasProjects && hasPaths && !loaded && !fetching);
-
   useEffect(() => {
-    if (shouldFetch) {
-      setFetching(true);
-    }
+    if (shouldFetch) setFetching(true);
   }, [shouldFetch]);
 
+  // Fetch the projects by path
   useEffect(() => {
     if (!fetching) return;
     const fetchProjects = async () => {
@@ -45,6 +45,7 @@ export function useProjectFetcher(props: ProjectFetcherProps): Project[] {
     fetchProjects();
   }, [fetching]);
 
+  // Return the projects once they are loaded
   if (!loaded) return [];
   return projects ?? [];
 }

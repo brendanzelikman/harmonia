@@ -36,6 +36,9 @@ export type CollapseTracksPayload = TrackId[];
 /** A list of tracks can be expanded by ID. */
 export type ExpandTracksPayload = TrackId[];
 
+/** A track can be bound to a port number. */
+export type BindTrackToPortPayload = { id: TrackId; port: number };
+
 // ------------------------------------------------------------
 // Track Slice Definition
 // ------------------------------------------------------------
@@ -175,6 +178,29 @@ export const tracksSlice = createSlice({
         track.collapsed = false;
       });
     },
+    /** Bind a track to a port number. */
+    bindTrackToPort: (state, action: PayloadAction<BindTrackToPortPayload>) => {
+      const { id, port } = action.payload;
+
+      // Bind the track to the port
+      const track = state.byId[id];
+      if (!track) return;
+      track.port = port;
+
+      // Remove any other tracks with the same port number
+      const otherTrackIds = state.allIds.filter((_) => _ !== id);
+      otherTrackIds.forEach((trackId) => {
+        const track = state.byId[trackId];
+        if (!track) return;
+        if (track.port === port) track.port = undefined;
+      });
+    },
+    /** Clear the port binding of a track. */
+    clearTrackPort: (state, action: PayloadAction<TrackId>) => {
+      const track = state.byId[action.payload];
+      if (!track) return;
+      track.port = undefined;
+    },
   },
 });
 
@@ -186,6 +212,8 @@ export const {
   migrateTrack,
   collapseTracks,
   expandTracks,
+  bindTrackToPort,
+  clearTrackPort,
 } = tracksSlice.actions;
 
 export default tracksSlice.reducer;

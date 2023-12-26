@@ -2,7 +2,7 @@ import * as _ from "types/Editor";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectEditor } from "redux/Editor";
 import { EditorNavbar } from "./components/EditorNavbar";
-import { useHotkeyScope } from "hooks";
+import { useAuthenticationStatus, useHotkeyScope } from "hooks";
 import { Track } from "types/Track";
 import {
   selectSelectedPattern,
@@ -21,10 +21,10 @@ import { EditorButtonProps } from "./components/EditorButton";
 import { useEditorView } from "./hooks/useEditorView";
 import classNames from "classnames";
 import { Pose } from "types/Pose";
-import { useEffect, useState } from "react";
 
 export interface EditorProps extends _.Editor {
   dispatch: Dispatch;
+  auth: ReturnType<typeof useAuthenticationStatus>;
 
   // The editor uses currently selected objects for various purposes
   track?: Track;
@@ -64,6 +64,7 @@ export interface EditorProps extends _.Editor {
 
 function EditorComponent() {
   const dispatch = useProjectDispatch();
+  const auth = useAuthenticationStatus();
   const editor = useProjectSelector(selectEditor);
 
   // The editor uses currently selected objects for various purposes
@@ -100,7 +101,7 @@ function EditorComponent() {
     <Editor.Tooltip {...props} show={isShowingTooltips} />
   );
   const Button = (props: EditorButtonProps) => (
-    <Tooltip content={props.label ?? ""} placement={props.placeTooltip}>
+    <Tooltip content={props.label ?? ""}>
       <Editor.Button {...props} />
     </Tooltip>
   );
@@ -112,6 +113,7 @@ function EditorComponent() {
   const editorProps: EditorProps = {
     ...editor,
     dispatch,
+    auth,
     track,
     scale,
     pattern,

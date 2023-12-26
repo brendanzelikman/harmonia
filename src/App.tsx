@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { Provider as ReduxProvider } from "react-redux";
-import { MIDIProvider } from "providers/midi";
+import { MIDIProvider } from "./providers/midi";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { HotkeysProvider } from "react-hotkeys-hook";

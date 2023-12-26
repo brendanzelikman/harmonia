@@ -5,6 +5,10 @@ import { DragEvent, MouseEvent } from "react";
 // Custom Events
 // ------------------------------------------------------------
 
+/** Sleep the user for the given time. */
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 /** Dispatch a custom window event of the given type and detail. */
 export const dispatchCustomEvent = (type: string, detail?: unknown) => {
   const customEvent = new CustomEvent(type, { detail });

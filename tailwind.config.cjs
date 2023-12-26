@@ -1,21 +1,20 @@
-const flowbite = require("flowbite/plugin");
-const forms = require("@tailwindcss/forms");
-const aspectRatio = require("@tailwindcss/aspect-ratio");
-const animate = require("tailwindcss-animate");
-const typography = require("@tailwindcss/typography");
+import forms from "@tailwindcss/forms";
+import aspectRatio from "@tailwindcss/aspect-ratio";
+import animate from "tailwindcss-animate";
+import typography from "@tailwindcss/typography";
+
 const nav = 60;
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "node_modules/flowbite-react/**/*.{js,jsx,ts,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   mode: "jit",
   theme: {
     extend: {
       colors: {
+        free: "#818cf8", // indigo-400
+        pro: "#c084fc", // fuchsia-400
+        virtuoso: "#38bdf8", // sky-400
         scale: "#0ea5e9", // sky-500
         pattern: "#34d399", // emerald-400
         pose: "#f472b6", // pink-400
@@ -50,5 +49,5 @@ module.exports = {
   corePlugins: {
     aspectRatio: false,
   },
-  plugins: [flowbite, typography, forms, aspectRatio, animate],
+  plugins: [typography, forms, aspectRatio, animate],
 };

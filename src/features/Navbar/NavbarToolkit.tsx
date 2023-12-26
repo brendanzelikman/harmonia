@@ -12,8 +12,10 @@ import { NavbarClipTypeButton } from "./Toolkit/NavbarClipTypeButton";
 import { useProjectSelector } from "redux/hooks";
 import { selectTimeline } from "redux/Timeline";
 import { NavbarGroup } from "./components";
+import { useAuthenticationStatus } from "hooks";
 
 export function NavbarToolkit() {
+  const auth = useAuthenticationStatus();
   const timeline = useProjectSelector(selectTimeline);
   const onPatterns = timeline.selectedClipType === "pattern";
 
@@ -48,7 +50,7 @@ export function NavbarToolkit() {
         <NavbarSliceClipButton />
         <NavbarMergeClipsButton />
         <NavbarPortalButton />
-        <NavbarLivePlayButton />
+        {!auth.isFree && <NavbarLivePlayButton />}
       </NavbarGroup>
     </div>
   );

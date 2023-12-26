@@ -26,6 +26,7 @@ import {
   selectPortals,
   selectTrackById,
   selectPortalIds,
+  selectPatternClipStreamMap,
 } from "redux/selectors";
 import { Transport } from "tone";
 import {
@@ -34,9 +35,12 @@ import {
   PatternMidiStream,
   PatternStream,
   getPatternBlockDuration,
+  getPatternChordNotes,
   getPatternMidiChordNotes,
   getPatternName,
   isPatternMidiChord,
+  isPatternRest,
+  updatePatternChordNotes,
 } from "types/Pattern";
 import { setEditorAction } from "redux/Editor";
 import {
@@ -361,34 +365,36 @@ export const mergeSelectedMedia =
       let totalDuration = 0;
 
       // Make sure the duration of the new stream is the same as the clip duration
-      const stream = selectPatternClipStream(project, clip.id).reduce(
-        (streamAcc, block) => {
-          const { notes } = block;
-          if (totalDuration > duration) return streamAcc;
-          const blockDuration = getPatternBlockDuration(notes);
+      const stream = [...pattern.stream].reduce((streamAcc, block) => {
+        if (isPatternRest(block)) {
+          totalDuration += block.duration;
+          return [...streamAcc, block];
+        }
+        const notes = getPatternChordNotes(block);
+        if (totalDuration > duration) return streamAcc;
+        const blockDuration = getPatternBlockDuration(notes);
 
-          // If the block duration is longer than the clip duration, shorten it
-          if (totalDuration + blockDuration > duration) {
-            // If the block is a rest, just add it to the stream
-            const newDuration = duration - totalDuration;
-            totalDuration += newDuration;
-            if (!isPatternMidiChord(block))
-              return [...streamAcc, { duration: newDuration }];
+        // If the block duration is longer than the clip duration, shorten it
+        if (totalDuration + blockDuration > duration) {
+          // If the block is a rest, just add it to the stream
+          const newDuration = duration - totalDuration;
+          totalDuration += newDuration;
+          if (!isPatternMidiChord(block))
+            return [...streamAcc, { duration: newDuration }];
 
-            // Otherwise, shorten all notes and add the chord to the stream
-            const chord = notes.map((n) => ({
-              ...n,
-              duration: newDuration,
-            }));
-            return [...streamAcc, chord];
-          }
+          // Otherwise, shorten all notes and add the chord to the stream
+          const chord = notes.map((n) => ({
+            ...n,
+            duration: newDuration,
+          }));
+          const newChord = updatePatternChordNotes(block, chord);
+          return [...streamAcc, newChord];
+        }
 
-          // Otherwise, sum the duration and add the block to the stream
-          totalDuration += blockDuration;
-          return [...streamAcc, notes];
-        },
-        [] as PatternMidiStream
-      );
+        // Otherwise, sum the duration and add the block to the stream
+        totalDuration += blockDuration;
+        return [...streamAcc, notes];
+      }, [] as PatternStream);
 
       // If the stream is empty, add a rest
       if (!stream.length) {

@@ -12,7 +12,7 @@ import * as _ from "redux/Pattern";
 const useHotkeys = useScopedHotkeys("editor");
 
 export function usePatternEditorHotkeys(props: PatternEditorProps) {
-  const { dispatch, undo, redo } = props;
+  const { dispatch, auth, undo, redo } = props;
   const { pattern, cursor, canUndo, canRedo } = props;
   const id = pattern?.id;
   const index = cursor.index;
@@ -158,12 +158,17 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   // X = Export Pattern to XML
   useHotkeys(
     "shift+x",
-    () => pattern && dispatch(_.exportPatternToXML(pattern, true)),
-    [pattern]
+    () =>
+      !auth.isFree && pattern && dispatch(_.exportPatternToXML(pattern, true)),
+    [auth, pattern]
   );
 
   // M = Export Pattern to MIDI
-  useHotkeys("shift+m", () => id && dispatch(_.exportPatternToMIDI(id)), [id]);
+  useHotkeys(
+    "shift+m",
+    () => !auth.isFree && id && dispatch(_.exportPatternToMIDI(id)),
+    [auth, id]
+  );
 
   // R = Prompt for repeat
   useHotkeys(

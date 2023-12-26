@@ -210,10 +210,7 @@ export function PatternEditorRecordTab(props: PatternEditorProps) {
   };
 
   const RecordButton = () => (
-    <Tooltip
-      placement="bottom"
-      content={`${recording ? "Stop Recording" : "Start Recording"}`}
-    >
+    <Tooltip content={`${recording ? "Stop Recording" : "Start Recording"}`}>
       <Editor.Button
         className={`p-1 ${
           recording ? (isAfterPickup ? "text-red-400" : "text-red-200") : ""

@@ -231,7 +231,7 @@ export function Docs() {
     const tag = getTopicTag(topic);
     if (tag !== currentTag) return null;
     return (
-      <DocsContainer>
+      <DocsContainer key={tag}>
         <DocsGradient gradient={getGradient(topic)} />
         {renderTopicContent(topic)}
       </DocsContainer>
@@ -244,7 +244,9 @@ export function Docs() {
         {topicGroups.map(renderTopicGroupLinks)}
       </div>
       <div className="flex flex-col flex-1 gap-8">
-        {topicGroups.map((group) => docTree[group].map(renderTopic))}
+        {topicGroups.map((group) => (
+          <div key={group}>{docTree[group].map(renderTopic)}</div>
+        ))}
         {!currentTag && <Navigate to="/docs/types/scale" replace />}
       </div>
     </div>

@@ -23,6 +23,7 @@ import {
 } from "redux/selectors";
 import { isPatternTrack } from "types/Track";
 import { PortaledClipMap, applyPortalsToClips } from "types/Portal";
+import isElectron from "is-electron";
 
 /** Select the length of the arrangement past. */
 export const selectArrangementPastLength = (project: Project) =>
@@ -149,7 +150,7 @@ export const selectChordsByTicks = createDeepEqualSelector(
     selectPortaledPatternClipStreamMap,
     selectTrackMap,
   ],
-  (arrangement, streamMap, tracks) => {
+  (arrangement, streamMap, trackMap) => {
     const result = {} as InstrumentNotesByTicks;
     const clipIds = Object.keys(streamMap) as ClipId[];
     const clipMap = arrangement.clips ?? {};
@@ -162,7 +163,7 @@ export const selectChordsByTicks = createDeepEqualSelector(
       if (!clip || !streamLength) continue;
 
       // Get the pattern track
-      const patternTrack = tracks[clip.trackId];
+      const patternTrack = trackMap[clip.trackId];
       if (!isPatternTrack(patternTrack)) continue;
 
       // Get the instrument ID
@@ -186,6 +187,17 @@ export const selectChordsByTicks = createDeepEqualSelector(
       }
     }
 
+    // Send the result to the plugin if applicable
+    if (isElectron()) {
+      const message = `${JSON.stringify(result)}\n`;
+      const tracks = Object.values(trackMap);
+      const ports = tracks
+        .map((track) => track.port)
+        .filter(Boolean) as number[];
+      ports.forEach((port) => {
+        window.electronAPI.send("send-udp-message", { message, port });
+      });
+    }
     // Return the result
     return result;
   }

@@ -1,4 +1,10 @@
-import { TooltipProps, Tooltip } from "flowbite-react";
+import { TooltipProps } from "@radix-ui/react-tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "components/Tooltip";
 
 export interface EditorTooltipProps extends TooltipProps {
   show?: boolean;
@@ -6,18 +12,20 @@ export interface EditorTooltipProps extends TooltipProps {
 }
 
 export function EditorTooltip(props: EditorTooltipProps) {
-  const { children, show, ...rest } = props;
+  const { children, show } = props;
   return !!show ? (
-    <Tooltip
-      animation={`duration-500`}
-      className="z-50 text-xs"
-      placement={props.placement ?? "bottom"}
-      {...rest}
-    >
-      <div className="my-auto w-full h-full flex items-center justify-center">
-        {children}
-      </div>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="my-auto w-full h-full flex items-center justify-center">
+            {children}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent className="bg-slate-950">
+          {props.content}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   ) : (
     <div className="w-full my-auto h-full flex items-center justify-center">
       {children}

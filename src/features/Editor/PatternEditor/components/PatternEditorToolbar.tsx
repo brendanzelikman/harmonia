@@ -11,7 +11,7 @@ import { PatternEditorTabProps } from "./PatternEditorContent";
 import { useEffect } from "react";
 
 export function PatternEditorToolbar(props: PatternEditorTabProps) {
-  const { dispatch, pattern, isEmpty, Button, onChord } = props;
+  const { dispatch, auth, pattern, isEmpty, Button, onChord } = props;
 
   /** The user can create a new pattern. */
   const NewButton = () => (
@@ -37,25 +37,29 @@ export function PatternEditorToolbar(props: PatternEditorTabProps) {
   );
 
   /** The user can export a pattern to MIDI or MusicXML. */
-  const ExportButton = () => (
-    <Button
-      label="Export Pattern"
-      disabled={isEmpty}
-      weakClass="active:bg-slate-600"
-      options={[
-        {
-          onClick: () => dispatch(exportPatternToMIDI(pattern?.id)),
-          label: "Export MIDI",
-        },
-        {
-          onClick: () => dispatch(exportPatternToXML(pattern)),
-          label: "Export XML",
-        },
-      ]}
-    >
-      Export
-    </Button>
-  );
+  const ExportButton = () => {
+    if (auth.isFree) return null;
+    return (
+      <Button
+        label="Export Pattern"
+        disabled={isEmpty}
+        disabledClass="text-slate-500"
+        weakClass="active:bg-slate-600 cursor-pointer"
+        options={[
+          {
+            onClick: () => dispatch(exportPatternToMIDI(pattern?.id)),
+            label: "Export MIDI",
+          },
+          {
+            onClick: () => dispatch(exportPatternToXML(pattern)),
+            label: "Export XML",
+          },
+        ]}
+      >
+        Export
+      </Button>
+    );
+  };
 
   /** The user can undo the pattern history. */
   const UndoButton = () => (
@@ -127,7 +131,7 @@ export function PatternEditorToolbar(props: PatternEditorTabProps) {
   );
 
   return (
-    <Editor.Tab show={true} border={true}>
+    <Editor.Tab className="z-20" show={true} border={true}>
       <Editor.TabGroup border={props.isCustom}>
         <ExportButton />
         <NewButton />

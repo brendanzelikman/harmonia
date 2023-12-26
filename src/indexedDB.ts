@@ -2,6 +2,11 @@ import { openDB } from "idb";
 import { selectProjectId } from "redux/Metadata";
 import { Project, defaultProject, isProject } from "types/Project";
 import { User, UserUpdate, initializeUser } from "types/User";
+import {
+  FREE_PROJECT_LIMIT,
+  PRO_PROJECT_LIMIT,
+  VIRTUOSO_PROJECT_LIMIT,
+} from "utils/constants";
 
 // ------------------------------------------------------------
 // Database Constants
@@ -63,14 +68,18 @@ initializeDB().catch(console.error);
 // Database Authentication
 // ------------------------------------------------------------
 
+export type AuthenticationStatus = undefined | "free" | "pro" | "virtuoso";
+
 /** Try to set the authentication status. */
-export async function setAuthenticatedStatus(status: boolean): Promise<void> {
+export async function setAuthenticationStatus(
+  status: AuthenticationStatus
+): Promise<void> {
   const db = await dbPromise;
   await db.put(AUTH_STORE, status, "authenticated");
 }
 
 /** Try to get the authentication status. */
-export async function getAuthenticatedStatus(): Promise<boolean> {
+export async function getAuthenticationStatus(): Promise<AuthenticationStatus> {
   const db = await dbPromise;
   return db.get(AUTH_STORE, "authenticated");
 }
@@ -114,48 +123,124 @@ export async function getCurrentProjectId(): Promise<string | undefined> {
   return current?.id;
 }
 
+/** Replace the current project with a new project, resolving to the new ID if successful. */
+export async function replaceCurrentProject(
+  project: Project
+): Promise<string | undefined> {
+  const db = await dbPromise;
+
+  // Try to get the current project ID
+  const currentId = await getCurrentProjectId();
+
+  // If no current project ID, add the project to the database
+  if (!currentId) {
+    await uploadProjectToDB(project);
+  }
+
+  // Otherwise, delete the current project and add the new project
+  else {
+    await deleteProjectFromDB(currentId);
+    await uploadProjectToDB(project);
+  }
+
+  // Return the new project ID
+  return project.meta.id;
+}
+
 // ------------------------------------------------------------
 // Database Projects
 // ------------------------------------------------------------
 
 /** Upload a project, resolving to true if successful. */
 export const uploadProjectToDB = async (project: Project): Promise<boolean> => {
+  // Check if the project is valid
   if (!isProject(project)) throw new Error("Invalid project.");
   const db = await dbPromise;
+
+  // Check if the user is authenticated
+  const auth = await getAuthenticationStatus();
+  if (auth === undefined) return false;
+
+  // Check if the user has reached their project limit
+  const projects = await db.getAll(PROJECT_STORE);
+  const projectCount = projects.length;
+  if (auth === "free" && projectCount >= FREE_PROJECT_LIMIT) {
+    return false;
+  } else if (auth === "pro" && projectCount >= PRO_PROJECT_LIMIT) {
+    return false;
+  } else if (auth === "virtuoso" && projectCount >= VIRTUOSO_PROJECT_LIMIT) {
+    return false;
+  }
+
+  // Add the project to the database
   await db.put(PROJECT_STORE, project);
+
+  // Set the current project ID
   await setCurrentProjectId(project.meta.id);
+
+  // Return true if successful
   return true;
 };
 
 /** Update the project, resolving to true if successful. */
 export async function updateProjectInDB(project: Project): Promise<boolean> {
+  // Check if the project is valid
   if (!isProject(project)) throw new Error("Invalid project.");
   const db = await dbPromise;
+
+  // Check if the project exists
   const existingProject = await db.get(PROJECT_STORE, selectProjectId(project));
   if (!existingProject) return false;
+
+  // Update the project
   await db.put(PROJECT_STORE, project);
+
+  // Return true if successful
   return true;
 }
 
 /** Delete a project by ID, resolving to true if successful. */
 export async function deleteProjectFromDB(id: string): Promise<boolean> {
   const db = await dbPromise;
+
+  // Try to delete the project
   await db.delete(PROJECT_STORE, id);
+
+  // Check the current project ID
   const currentId = await getCurrentProjectId();
+
+  // Clear the current project ID if it matches the deleted project
   if (currentId === id) {
     await db.delete(CURRENT_ID_STORE, "currentProject");
   }
+
+  // Return true if successful
   return true;
 }
 
 /** Get the list of all projects as a promise. */
 export async function getProjectsFromDB(): Promise<Project[]> {
   const db = await dbPromise;
+
+  // Check if the user is authenticated
+  const auth = await getAuthenticationStatus();
+  if (auth === undefined) return [];
+
+  // Get all of the user's projects
   const projects = await db.getAll(PROJECT_STORE);
+
+  // Delete any invalid projects from the database
   for (const project of projects) {
-    if (!isProject(project)) deleteProjectFromDB(project.meta.id);
+    if (!isProject(project)) {
+      projects.splice(projects.indexOf(project), 1);
+      await deleteProjectFromDB(project.meta.id);
+    }
   }
-  return projects.filter(isProject);
+
+  // Return the projects based on the user's project limit
+  if (auth === "free") return projects.slice(0, 1);
+  if (auth === "pro") return projects.slice(0, 100);
+  return projects;
 }
 
 /** Get the project with the given ID as a promise. */
@@ -163,5 +248,11 @@ export async function getProjectFromDB(
   id: string
 ): Promise<Project | undefined> {
   const db = await dbPromise;
+
+  // Check if the user is authenticated
+  const auth = await getAuthenticationStatus();
+  if (auth === undefined) return undefined;
+
+  // Return the project if it exists
   return db.get(PROJECT_STORE, id);
 }

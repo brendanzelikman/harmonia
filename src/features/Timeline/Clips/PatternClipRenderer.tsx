@@ -3,10 +3,12 @@ import {
   getClipTheme,
   PatternClipId,
   PatternClipMidiBlock,
+  getClipDuration,
 } from "types/Clip";
 import { usePatternClipDrag } from "./usePatternClipDrag";
 import {
   getMidiStreamRange,
+  getPatternBlockDuration,
   isPatternMidiChord,
   PatternMidiNote,
 } from "types/Pattern";
@@ -24,7 +26,6 @@ import {
   selectTimelineTickLeft,
   selectTrackedObjectTop,
   updateMediaDragState,
-  selectClipWidth,
 } from "redux/Timeline";
 import {
   onPatternClipDoubleClick,
@@ -40,6 +41,7 @@ import { normalize } from "utils/math";
 import classNames from "classnames";
 import { isScaleTrack } from "types/Track";
 import { ClipRendererProps } from "./TimelineClips";
+import { clamp } from "lodash";
 
 interface PatternClipRendererProps extends ClipRendererProps {
   clip: PatternClip;
@@ -89,6 +91,8 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
   const stream = useDeep((_) =>
     selectPortaledPatternClipStream(_, portaledClip.id)
   );
+  const clipDuration = getClipDuration(clip, stream);
+  const endTick = clip.tick + clipDuration;
   const track = use((_) => selectTrackById(_, clip.trackId));
   const clipPoses = useDeep((_) => selectPatternClipPoseClips(_, clip.id));
   const isShort =
@@ -99,7 +103,8 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
   const trackHeight = use((_) => selectTimelineObjectHeight(_, clip));
   const top = isShort ? trackTop + POSE_HEIGHT : trackTop;
   const height = isShort ? trackHeight - POSE_HEIGHT : trackHeight;
-  const width = use((_) => selectClipWidth(_, portaledClip));
+  const columns = getTickColumns(clipDuration, subdivision);
+  const width = columns * cell.width;
   const left = use((_) => selectTimelineTickLeft(_, clip?.tick));
   const NAME_HEIGHT = 24;
 
@@ -121,12 +126,17 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
 
   /** Render a single MIDI note in the clip. */
   const renderNote = useCallback(
-    (note: PatternMidiNote, i = 0, j = 0) => {
+    (props: {
+      note: PatternMidiNote;
+      clipIndex: number;
+      chordIndex: number;
+    }) => {
+      const { note, clipIndex, chordIndex } = props;
       const midi = note.MIDI;
       const pitch = getMidiPitch(midi);
 
       // Get the left offset of the note from its tick
-      const left = getTickColumns(i, subdivision) * cell.width;
+      const left = getTickColumns(clipIndex, subdivision) * cell.width;
 
       // Get the width of the note from its duration
       const columns = getTickColumns(note.duration || 0, subdivision);
@@ -134,11 +144,10 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
 
       // Get the offset of the note from its MIDI relative to the stream
       const noteOffset = note.MIDI - streamRange[0];
-
       const offset = (streamLength - noteOffset - 1) * noteHeight;
       const top = Math.round(
         showFlat
-          ? j * noteHeight
+          ? chordIndex * noteHeight
           : streamLength === 1
           ? (streamHeight - noteHeight) / 2
           : offset + noteHeight / 2
@@ -159,7 +168,11 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
 
       // Return the note
       return (
-        <li key={`${note}-${i}-${j}`} className={noteClass} style={style}>
+        <li
+          key={`${note}-${clipIndex}-${chordIndex}`}
+          className={noteClass}
+          style={style}
+        >
           {shouldShowSymbol && <>{symbol}</>}
         </li>
       );
@@ -168,8 +181,8 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
       cell,
       noteColor,
       subdivision,
-      showFlat,
-      showMidi,
+      !!showFlat,
+      !!showMidi,
       noteHeight,
       streamRange,
       streamLength,
@@ -179,24 +192,42 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
   /** Render a list of notes in a chord. */
   const renderBlock = useCallback(
     (block: PatternClipMidiBlock, i: number) => {
-      const { notes } = block;
+      const { notes, startTick, strumIndex } = block;
       if (!clip || !isPatternMidiChord(notes)) return null;
       const chordClass = classNames(
-        isSlicingClips
-          ? "bg-slate-500/50 group-hover:bg-slate-600/50 border-slate-50/50 hover:border-r-4 cursor-scissors"
-          : "border-slate-50/10"
+        {
+          "bg-slate-500/50 group-hover:bg-slate-600/50 cursor-scissors":
+            isSlicingClips,
+        },
+        {
+          "hover:border-r-4 border-slate-50/50":
+            isSlicingClips && i < stream.length - 1,
+        },
+        { "border-slate-50/10": !isSlicingClips }
       );
+      // Get the remainder of the clip's duration
+      const remainder = endTick - startTick;
+      const blockDuration = getPatternBlockDuration(block.notes);
+      const duration = clamp(blockDuration, 0, remainder);
+      const width = duration * cell.width;
       const index = block.startTick - clip.tick;
+      const blockEndTick = block.startTick + duration;
       return (
         <ul
           key={`${clip.id}-chord-${i}`}
           className={chordClass}
-          style={{ width: cell.width }}
+          style={{ width }}
           onClick={() =>
-            isSlicingClips && dispatch(sliceClip(clip, clip.tick + i))
+            isSlicingClips && dispatch(sliceClip(clip, blockEndTick))
           }
         >
-          {notes.map((_, j) => renderNote(_, index, j))}
+          {notes.map((note, j) =>
+            renderNote({
+              note,
+              clipIndex: index,
+              chordIndex: Math.max(j, strumIndex ?? 0),
+            })
+          )}
         </ul>
       );
     },
@@ -250,7 +281,7 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
     { "hover:animate-pulse hover:ring hover:ring-teal-500": isAddingPatterns },
     { "cursor-eyedropper hover:ring hover:ring-slate-300": isEyedropping },
     { "cursor-pointer": !isAddingPatterns && !isEyedropping },
-    isDragging ? "opacity-50" : "opacity-100",
+    isDragging ? "opacity-50 pointer-events-none" : "opacity-100",
     isDraggingOther || isPortalingClips ? "pointer-events-none" : "",
     isSelected ? "font-bold" : "font-medium",
     isSelected

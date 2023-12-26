@@ -38,6 +38,7 @@ export interface TrackInterface extends TrackRowData {
   name?: string;
   parentId?: TrackId;
   collapsed?: boolean;
+  port?: number;
 }
 
 // ------------------------------------------------------------

@@ -7,6 +7,8 @@ import {
   deleteProjectFromDB,
   getProjectsFromDB,
   getCurrentProjectId,
+  getAuthenticationStatus,
+  replaceCurrentProject,
 } from "indexedDB";
 import { selectMetadata, selectProjectName } from "redux/Metadata";
 import { selectClipIds } from "redux/selectors";
@@ -22,6 +24,8 @@ import {
 import { dispatchCustomEvent } from "utils/html";
 import { sample } from "lodash";
 import JSZip from "jszip";
+import isElectron from "is-electron";
+import { store } from "redux/store";
 
 export const CREATE_PROJECT = "createProject";
 export const DELETE_PROJECT = "deleteProject";
@@ -226,7 +230,10 @@ export const mergeProjectByFile =
 /** Try to load a project from a Harmonia file. */
 export const loadProjectByFile =
   (file: File): Thunk =>
-  (dispatch) => {
+  async (dispatch) => {
+    const auth = await getAuthenticationStatus();
+    if (auth === undefined) return;
+
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
@@ -240,8 +247,15 @@ export const loadProjectByFile =
           throw new Error("Invalid project.");
         }
 
-        // Upload or save the project depending on whether it already exists
+        // Try to get the existing project
         const existingProject = await getProjectFromDB(project.meta.id);
+
+        // Replace the current project if the free tier has a project
+        if (auth === "free") {
+          await replaceCurrentProject(project);
+        }
+
+        // Upload or save the project depending on whether it already exists
         if (!existingProject) {
           uploadProjectToDB(project);
         } else {
@@ -260,12 +274,26 @@ export const loadProjectByFile =
 export const loadProjectByPath =
   (path: string, callback?: () => void): Thunk =>
   async () => {
+    // Check if the user is authenticated
+    const auth = await getAuthenticationStatus();
+    if (auth === undefined) return;
+
     try {
+      // Get the project from the path
       const project = await fetch(path).then((res) => res.json());
-      await uploadProjectToDB({
-        ...project,
-        meta: { ...project.meta, id: nanoid() },
-      });
+
+      // Replace the current project if the free tier has a project
+      if (auth === "free") {
+        await replaceCurrentProject(project);
+      }
+
+      // Upload the project to the database
+      else {
+        await uploadProjectToDB({
+          ...project,
+          meta: { ...project.meta, id: nanoid() },
+        });
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -295,3 +323,15 @@ export const clearProject = (): Thunk => (dispatch, getProject) => {
   const meta = selectMetadata(project);
   dispatch({ type: "setProject", payload: { ...defaultProject, meta } });
 };
+
+if (isElectron()) {
+  window.electronAPI.receive("new-project", () => {
+    createProject().then(() => location.reload());
+  });
+  window.electronAPI.receive("export-project-to-ham", () => {
+    store.dispatch(exportProjectToHAM());
+  });
+  window.electronAPI.receive("export-project-to-midi", () => {
+    store.dispatch(exportProjectToMIDI());
+  });
+}

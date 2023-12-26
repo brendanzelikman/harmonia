@@ -1,5 +1,5 @@
 import { isArray } from "lodash";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Keys, useHotkeys } from "react-hotkeys-hook";
 import {
   HotkeyCallback,
@@ -105,9 +105,9 @@ export const useHeldHotkeys = (
   };
 
   // Call the appropriate callback based on the event type
-  const callback = (e: KeyboardEvent) => {
+  const callback = useCallback((e: KeyboardEvent) => {
     e.type === "keydown" ? keydown(e) : keyup(e);
-  };
+  }, []);
 
   // Parse the keys and add all shift modifiers
   const allKeys = useMemo(() => {

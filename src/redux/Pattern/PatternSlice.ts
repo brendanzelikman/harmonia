@@ -207,8 +207,12 @@ export const patternsSlice = createSlice({
         // If the note is a chord, add it to the end of the last chord
         const length = pattern.stream.length;
         const lastBlock = pattern.stream[length - 1];
-        if (isArray(lastBlock)) {
-          lastBlock.push(note);
+        if (isPatternChord(lastBlock)) {
+          const notes = getPatternChordNotes(lastBlock);
+          state.byId[id].stream[length - 1] = updatePatternChordNotes(
+            lastBlock,
+            [...notes, note]
+          );
         } else {
           state.byId[id].stream.push([note]);
         }
@@ -241,10 +245,14 @@ export const patternsSlice = createSlice({
         state.byId[id].stream[index] = [note];
       } else {
         const block = pattern.stream[index];
-        if (isPatternChord(block) && isArray(block)) {
-          block.push(note);
+        if (isPatternChord(block)) {
+          const notes = getPatternChordNotes(block);
+          pattern.stream[index] = updatePatternChordNotes(block, [
+            ...notes,
+            note,
+          ]);
         } else {
-          state.byId[id].stream[index] = [note];
+          pattern.stream[index] = [note];
         }
       }
     },

@@ -11,6 +11,7 @@ import {
   isPatternMidiChord,
 } from "types/Pattern";
 import { clamp } from "lodash";
+import { sleep } from "utils/html";
 
 // ------------------------------------------------------------
 // OSMD Constants
@@ -115,7 +116,8 @@ export function useOSMD(props: Props): ScoreProps {
         score.zoom = ZOOM;
         score.render();
       })
-      .finally(() => {
+      .finally(async () => {
+        await sleep(10);
         // Format and render the cursor if it is visible and not ignored
         if (!ignoreCursor && !cursor.hidden && !!osmd?.cursor) {
           renderCursor({

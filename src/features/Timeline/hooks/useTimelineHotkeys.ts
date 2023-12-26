@@ -8,7 +8,7 @@ import { useScopedHotkeys, useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { redoArrangement, undoArrangement } from "redux/Arrangement";
 import { useEffect } from "react";
 import { DataGridHandle } from "react-data-grid";
-import { useTransportTick } from "hooks";
+import { useAuthenticationStatus, useTransportTick } from "hooks";
 import { TRACK_WIDTH } from "utils/constants";
 
 const useHotkeys = useScopedHotkeys("timeline");
@@ -16,6 +16,7 @@ const useTransportHotkeys = useScopedHotkeys("transport");
 
 export function useTimelineHotkeys(timeline?: DataGridHandle) {
   const dispatch = useProjectDispatch();
+  const { isFree } = useAuthenticationStatus();
   const tick = useTransportTick();
   const tickLeft = useProjectSelector((_) =>
     Timeline.selectTimelineTickLeft(_, tick)
@@ -77,7 +78,11 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
   );
 
   // Meta + Option + M = Save Timeline to MIDI
-  useHotkeys("meta+alt+m", () => dispatch(Project.exportProjectToMIDI()));
+  useHotkeys(
+    "meta+alt+m",
+    () => !isFree && dispatch(Project.exportProjectToMIDI()),
+    [isFree]
+  );
 
   // Meta + Option + W = Save Timeline to WAV
   useHotkeys("meta+alt+w", () => {

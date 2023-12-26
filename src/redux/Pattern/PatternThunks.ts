@@ -499,7 +499,7 @@ export const playPatternChord = (
 
   // Get the Tone.js subdivision
   const duration = getPatternBlockDuration(notes) ?? EighthNoteTicks;
-  const subdivision = getTickSubdivision(duration);
+  const subdivision = `${duration}i`;
 
   // Get the velocity scaled for Tone.js
   const velocity = notes[0].velocity ?? DEFAULT_VELOCITY;

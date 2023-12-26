@@ -1,17 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NavbarFileMenu } from "./NavbarFileMenu";
 import { NavbarSettingsMenu } from "./NavbarSettings";
 import { NavbarToolkit } from "./NavbarToolkit";
 import { NavbarTransport } from "./NavbarTransport";
 import { NavbarGroup, NavbarBrand } from "./components";
-import { View, viewCount, views } from "pages";
+import { View, views } from "pages";
 import { Link } from "react-router-dom";
-import { useCustomEventListener } from "hooks";
+import { useAuthenticationStatus, useCustomEventListener } from "hooks";
 import classNames from "classnames";
 import { useOnboardingTour } from "features/Tour";
 
 export function Navbar(props: { view: View }) {
   const { view } = props;
+  const auth = useAuthenticationStatus();
   const Tour = useOnboardingTour();
 
   // Listen for the playground to load
@@ -34,7 +35,12 @@ export function Navbar(props: { view: View }) {
       if (v !== "playground" && isLoadingPlayground) return null;
       const linkClass = classNames(
         "font-semilight",
-        { "text-indigo-400/70 active:text-indigo-300": v === "playground" },
+        { "text-free/70 active:text-free": v === "playground" && auth.isFree },
+        { "text-pro/70 active:text-pro": v === "playground" && auth.isPro },
+        {
+          "text-virtuoso/70 active:text-virtuoso":
+            v === "playground" && auth.isVirtuoso,
+        },
         { "text-slate-200": v !== "playground" && view === v },
         { "text-slate-500": v !== "playground" && view !== v }
       );
@@ -46,12 +52,16 @@ export function Navbar(props: { view: View }) {
         </Link>
       );
     },
-    [isLoadingPlayground, view]
+    [isLoadingPlayground, auth, view]
   );
 
   // Render the links to the views
   const renderLinks = useCallback(() => {
-    return views.map((v, i) => {
+    const visibleViews = views.filter(
+      (v) => auth.isAtLeastPro || v !== "projects"
+    );
+    const viewCount = visibleViews.length;
+    return visibleViews.map((v, i) => {
       const shouldAddDivider = i < viewCount - 1 && !isLoadingPlayground;
       return (
         <div className="flex items-center capitalize" key={`link-${v}`}>
@@ -65,18 +75,11 @@ export function Navbar(props: { view: View }) {
   /** The default navbar group containing projects, docs, etc. */
   const DefaultNavbarContent = useCallback(() => {
     return (
-      <div className={"w-full flex text-slate-500"}>
-        <Link
-          reloadDocument
-          to="/projects"
-          className="text-white w-fit mr-auto ml-4 text-3xl"
-        >
-          Harmonia
-        </Link>
+      <div className={"w-full flex text-slate-500 justify-end"}>
         {renderLinks()}
       </div>
     );
-  }, [renderLinks, onPlayground]);
+  }, [renderLinks, auth.isAtLeastPro, onPlayground]);
 
   /** The playground's navbar group */
   const PlaygroundNavbarContent = useCallback(() => {
