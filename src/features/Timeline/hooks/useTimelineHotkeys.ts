@@ -166,6 +166,27 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
     [mediaLength]
   );
 
+  // Shift + Left Arrow = Move Media Left or Move Playhead Left
+  useHotkeys(
+    "shift + left",
+    () =>
+      !!mediaLength
+        ? dispatch(Media.moveSelectedMediaLeft(1))
+        : dispatch(Transport.movePlayheadLeft(1)),
+    [mediaLength]
+  );
+
+  // Shift Right Arrow = Move Media Right or Move Playhead Right
+  useHotkeys(
+    "shift + right",
+    () => {
+      !!mediaLength
+        ? dispatch(Media.moveSelectedMediaRight(1))
+        : dispatch(Transport.movePlayheadRight(1));
+    },
+    [mediaLength]
+  );
+
   // Up Arrow = Select Previous Track
   useHotkeys("up", () => dispatch(Timeline.selectPreviousTrack()), []);
 

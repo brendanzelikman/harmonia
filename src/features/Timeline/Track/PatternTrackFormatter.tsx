@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TrackButton } from "./components/TrackButton";
 import {
   TrackName,
@@ -17,6 +17,7 @@ import {
   BsEraser,
   BsHeadphones,
   BsPencil,
+  BsPlugin,
   BsTrash,
   BsVolumeDownFill,
   BsVolumeOffFill,
@@ -24,10 +25,17 @@ import {
   BsWifi,
 } from "react-icons/bs";
 import { BiCopy } from "react-icons/bi";
-import { cancelEvent, promptUserForNumber } from "utils/html";
+import { cancelEvent } from "utils/html";
 import { percent } from "utils/math";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDragAndDrop";
-import { MIN_VOLUME, MAX_VOLUME, MIN_PAN, MAX_PAN } from "utils/constants";
+import {
+  MIN_VOLUME,
+  MAX_VOLUME,
+  MIN_PAN,
+  MAX_PAN,
+  PLUGIN_PORT_RANGE,
+  PLUGIN_STARTING_PORT,
+} from "utils/constants";
 import { DEFAULT_VOLUME, DEFAULT_PAN } from "utils/constants";
 import { VOLUME_STEP, PAN_STEP } from "utils/constants";
 import {
@@ -37,7 +45,11 @@ import {
 } from "redux/selectors";
 import { isInstrumentEditorOpen } from "types/Editor";
 import { TrackFormatterProps } from "./TrackFormatter";
-import { useProjectDispatch, useProjectSelector as use } from "redux/hooks";
+import {
+  useProjectDispatch,
+  useProjectSelector as use,
+  useProjectDeepSelector,
+} from "redux/hooks";
 import {
   toggleTrackInstrumentEditor,
   toggleTrackMute,
@@ -51,6 +63,9 @@ import { useAuthenticationStatus } from "hooks";
 import { bindTrackToPort, clearTrackPort } from "redux/Track";
 import { promptModal } from "components/Modal";
 import isElectron from "is-electron";
+import { selectPluginData } from "redux/Plugin";
+import { sendPluginData } from "types/Plugin";
+import { useHotkeys } from "react-hotkeys-hook";
 
 interface PatternTrackProps extends TrackFormatterProps {
   track: PatternTrack;
@@ -90,6 +105,26 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const isSmall = cell.height < 100;
   const sliderHeight = cell.height - 55;
 
+  // Plugin info
+  const pluginData = useProjectDeepSelector((_) =>
+    selectPluginData(_, track.id)
+  );
+
+  // Send plugin data when it changes
+  useEffect(() => {
+    if (!pluginData) return;
+    sendPluginData(pluginData);
+  }, [pluginData]);
+
+  useHotkeys(
+    "f",
+    () => {
+      if (!pluginData || !isSelected) return;
+      sendPluginData(pluginData);
+    },
+    [pluginData, isSelected]
+  );
+
   /** A Pattern Track will display its name or the name of its instrument. */
   const PatternTrackName = () => {
     return (
@@ -107,32 +142,47 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
 
   /** The Pattern Track dropdown menu allows the user to perform general actions on the track. */
   const PatternTrackDropdownMenu = () => {
+    const showPortFeatures = auth.isVirtuoso && !!isElectron();
+    const channel = track.port ? track.port - PLUGIN_STARTING_PORT : 0;
+
     const onPortClick = async () => {
-      const instrument = LIVE_AUDIO_INSTANCES[instrumentId];
-      if (!instrument) return;
-      if (track.port === undefined) {
-        const result = await promptModal(
-          "Bind Your Track",
-          "Please input a port number between 1 and 16."
-        );
-        const parsedPort = parseInt(result);
-        if (isNaN(parsedPort) || parsedPort < 1 || parsedPort > 16) return;
-        const port = 9000 + parsedPort;
-        dispatch(bindTrackToPort({ id: track.id, port }));
-      } else {
+      // Clear the port if it is already bound
+      if (track.port !== undefined) {
         dispatch(clearTrackPort(track.id));
+        return;
       }
+
+      // Prompt the user for a channel
+      const result = await promptModal(
+        "Bind Your Track",
+        `Please input a channel between 1 and ${PLUGIN_PORT_RANGE}.`
+      );
+      const value = parseInt(result);
+      if (isNaN(value) || value < 1 || value > PLUGIN_PORT_RANGE) return;
+
+      // Bind the track to the port
+      const port = PLUGIN_STARTING_PORT + value;
+      dispatch(bindTrackToPort({ id: track.id, port }));
     };
-    const showPortMenu = auth.isVirtuoso && !!isElectron();
+
     return (
       <TrackDropdownMenu>
-        {showPortMenu && (
+        {showPortFeatures && (
           <TrackDropdownButton
-            content={`${track.port === undefined ? "Link" : "Linking"} Track${
-              track.port !== undefined ? ` (${track.port})` : ""
-            }`}
+            content={
+              track.port === undefined
+                ? "Connect to Plugin"
+                : `Serving Channel ${channel}`
+            }
             icon={<BsWifi />}
             onClick={onPortClick}
+          />
+        )}
+        {!!pluginData && (
+          <TrackDropdownButton
+            content={`Flush To Plugin`}
+            icon={<BsPlugin />}
+            onClick={() => sendPluginData(pluginData)}
           />
         )}
         <TrackDropdownButton

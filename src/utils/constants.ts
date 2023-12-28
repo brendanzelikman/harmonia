@@ -7,6 +7,13 @@ export const PRO_PROJECT_LIMIT = 100;
 export const VIRTUOSO_PROJECT_LIMIT = Infinity;
 
 // ------------------------------------------------------------
+// Plugin Settings
+// ------------------------------------------------------------
+
+export const PLUGIN_STARTING_PORT = 51200;
+export const PLUGIN_PORT_RANGE = 16;
+
+// ------------------------------------------------------------
 // Tempo and Rhythm
 // ------------------------------------------------------------
 

@@ -1,3 +1,5 @@
+import classNames from "classnames";
+
 export interface SliderProps {
   min: number;
   max: number;
@@ -6,6 +8,8 @@ export interface SliderProps {
   value: number;
   onValueChange: (value: number) => void;
   label?: string;
+  hideValue?: boolean;
+  horizontal?: boolean;
 }
 
 export function Slider(props: SliderProps) {
@@ -16,7 +20,10 @@ export function Slider(props: SliderProps) {
       onDoubleClick={() => props.onValueChange(props.defaultValue)}
     >
       <input
-        className="w-16 rotate-[270deg] mt-4 mb-6 text-center"
+        className={classNames(
+          !!props.horizontal ? "w-32" : "w-16 rotate-[270deg]",
+          `mt-4 mb-6 text-center`
+        )}
         type="range"
         value={value}
         onChange={(e) => props.onValueChange(e.target.valueAsNumber)}
@@ -27,7 +34,9 @@ export function Slider(props: SliderProps) {
       <label className="text-xs mt-2 font-bold text-slate-400">
         {props.label}
       </label>
-      <label className="text-xs font-light text-white">{value}</label>
+      {!props.hideValue && (
+        <label className="text-xs font-light text-white">{value}</label>
+      )}
     </div>
   );
 }

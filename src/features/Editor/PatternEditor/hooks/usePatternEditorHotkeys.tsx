@@ -179,7 +179,8 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
       (n) => {
         if (id) dispatch(_.repeatPattern({ id, repeat: n }));
       }
-    )
+    ),
+    [id]
   );
 
   // , = Continue Pattern

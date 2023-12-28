@@ -7,6 +7,7 @@ import { HotkeysProvider } from "react-hotkeys-hook";
 import { RouterProvider } from "react-router-dom";
 import { store } from "redux/store";
 import { AppRouter } from "routes";
+import { LazyMotion, domAnimation } from "framer-motion";
 
 export function App() {
   return (
@@ -15,7 +16,9 @@ export function App() {
         <DndProvider backend={HTML5Backend} key={1}>
           <ReduxProvider store={store}>
             <MIDIProvider>
-              <RouterProvider router={AppRouter} />
+              <LazyMotion features={domAnimation}>
+                <RouterProvider router={AppRouter} />
+              </LazyMotion>
             </MIDIProvider>
           </ReduxProvider>
         </DndProvider>

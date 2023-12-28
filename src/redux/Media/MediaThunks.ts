@@ -52,6 +52,7 @@ import {
 import { Portals } from "redux/slices";
 import { getSubdivisionTicks, getTickColumns } from "utils/durations";
 import { isPatternTrack } from "types/Track";
+import { Tick } from "types/units";
 
 /** Create a list of media and add it to the slice and hierarchy. */
 export const createMedia =
@@ -297,18 +298,22 @@ export const moveSelectedMedia =
   };
 
 /** Move all selected media to the left by one subdivision tick. */
-export const moveSelectedMediaLeft = (): Thunk => (dispatch, getProject) => {
-  const project = getProject();
-  const ticks = selectSubdivisionTicks(project);
-  dispatch(moveSelectedMedia(-ticks));
-};
+export const moveSelectedMediaLeft =
+  (amount?: Tick): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const ticks = selectSubdivisionTicks(project);
+    dispatch(moveSelectedMedia(amount ? -amount : -ticks));
+  };
 
 /** Move all selected media to the right by one subdivision tick. */
-export const moveSelectedMediaRight = (): Thunk => (dispatch, getProject) => {
-  const project = getProject();
-  const ticks = selectSubdivisionTicks(project);
-  dispatch(moveSelectedMedia(ticks));
-};
+export const moveSelectedMediaRight =
+  (amount?: Tick): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const ticks = selectSubdivisionTicks(project);
+    dispatch(moveSelectedMedia(amount ?? ticks));
+  };
 
 /** Delete all selected media. */
 export const deleteSelectedMedia = (): Thunk => (dispatch, getProject) => {

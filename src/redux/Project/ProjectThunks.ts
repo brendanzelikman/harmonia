@@ -160,16 +160,19 @@ export const loadFromLocalProjects = (): Thunk => (dispatch) => {
 
 /** Try to load the project by ID from the database. */
 export const loadProject =
-  (id: string, callback?: () => void): Thunk =>
+  (id: string, callback?: () => void): Thunk<Promise<boolean>> =>
   async (dispatch) => {
     try {
       const project = await getProjectFromDB(id);
       if (!isProject(project)) throw new Error("Invalid project");
       await setCurrentProjectId(id);
       dispatch({ type: "setProject", payload: project });
-      callback?.();
     } catch (e) {
       console.error(e);
+      return false;
+    } finally {
+      callback?.();
+      return true;
     }
   };
 
@@ -309,7 +312,7 @@ export const loadRandomProject =
       const projects = await getProjectsFromDB();
       const randomProject = sample(projects);
       if (!randomProject) return;
-      dispatch(loadProject(randomProject.meta.id));
+      await dispatch(loadProject(randomProject.meta.id));
     } catch (e) {
       console.error(e);
     } finally {

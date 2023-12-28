@@ -7,6 +7,7 @@ import {
   PRO_PROJECT_LIMIT,
   VIRTUOSO_PROJECT_LIMIT,
 } from "utils/constants";
+import { dispatchCustomEvent } from "utils/html";
 
 // ------------------------------------------------------------
 // Database Constants
@@ -76,6 +77,7 @@ export async function setAuthenticationStatus(
 ): Promise<void> {
   const db = await dbPromise;
   await db.put(AUTH_STORE, status, "authenticated");
+  dispatchCustomEvent("authenticationChanged");
 }
 
 /** Try to get the authentication status. */

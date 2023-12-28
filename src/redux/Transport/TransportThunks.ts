@@ -21,6 +21,7 @@ import {
   selectTrackAudioInstanceMap,
   selectChordsAtTick,
   selectTrackMap,
+  selectSubdivisionTicks,
 } from "redux/selectors";
 import {
   InstrumentId,
@@ -115,6 +116,7 @@ export const startTransport =
       // Get the chord record at the current tick
       const project = getProject();
       const chordRecord = selectChordsAtTick(project, newTick);
+
       // Iterate over the instruments that are to be played at the current tick
       if (chordRecord) {
         for (const instrumentId in chordRecord) {
@@ -167,14 +169,22 @@ export const toggleTransport = (): Thunk => (dispatch, getProject) => {
 };
 
 /** Move the playhead of the transport one tick left. */
-export const movePlayheadLeft = (): Thunk => (dispatch) => {
-  dispatch(seekTransport(Tone.Transport.ticks - 1));
-};
+export const movePlayheadLeft =
+  (amount?: Tick): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const ticks = selectSubdivisionTicks(project);
+    dispatch(seekTransport(Tone.Transport.ticks - (amount ?? ticks)));
+  };
 
 /** Move the playhead of the transport one tick right. */
-export const movePlayheadRight = (): Thunk => (dispatch) => {
-  dispatch(seekTransport(Tone.Transport.ticks + 1));
-};
+export const movePlayheadRight =
+  (amount?: Tick): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const ticks = selectSubdivisionTicks(project);
+    dispatch(seekTransport(Tone.Transport.ticks + (amount ?? ticks)));
+  };
 
 /** Set the transport loop state to the given boolean. */
 export const setTransportLoop =

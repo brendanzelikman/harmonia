@@ -15,7 +15,7 @@ import { useAuthenticationStatus } from "hooks/db/useAuthenticationStatus";
 /** Use global hotkeys for the project */
 export function useGlobalHotkeys() {
   const dispatch = useProjectDispatch();
-  const { isAtLeastPro } = useAuthenticationStatus();
+  const { isAtLeastStatus } = useAuthenticationStatus();
   const navigate = useNavigate();
   const timeline = useProjectSelector(selectTimeline);
   const editor = useProjectSelector(selectEditor);
@@ -35,8 +35,8 @@ export function useGlobalHotkeys() {
   // Meta + P = View Projects
   useOverridingHotkeys(
     "meta+shift+p",
-    () => navigate(isAtLeastPro ? "/projects" : "/demos"),
-    [isAtLeastPro]
+    () => navigate(isAtLeastStatus("pro") ? "/projects" : "/demos"),
+    [isAtLeastStatus("pro")]
   );
 
   // Meta + E = Toggle Editor

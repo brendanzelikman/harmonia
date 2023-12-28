@@ -243,7 +243,7 @@ export function Docs() {
       <div className="flex flex-col w-1/4 min-w-[350px] gap-8 px-8 pt-8 pb-8 border-r border-r-slate-500 overflow-scroll">
         {topicGroups.map(renderTopicGroupLinks)}
       </div>
-      <div className="flex flex-col flex-1 gap-8">
+      <div className="flex flex-col flex-1 overflow-scroll">
         {topicGroups.map((group) => (
           <div key={group}>{docTree[group].map(renderTopic)}</div>
         ))}

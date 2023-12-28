@@ -1,13 +1,16 @@
 import { useAnimationFrame } from "hooks";
 import { clamp } from "lodash";
 import { useEffect, useState } from "react";
-import { InstrumentEditorProps } from "../InstrumentEditor";
 import classNames from "classnames";
 import { normalize } from "utils/math";
 import { getContext } from "tone";
+import { LiveAudioInstance } from "types/Instrument";
 
-interface InstrumentEditorAnalyserProps extends InstrumentEditorProps {
+interface InstrumentEditorAnalyserProps {
   type: "fft" | "waveform";
+  isPlaying: boolean;
+  instance?: LiveAudioInstance;
+  className?: string;
 }
 
 export function InstrumentEditorAnalyser(props: InstrumentEditorAnalyserProps) {
@@ -115,7 +118,8 @@ export function InstrumentEditorAnalyser(props: InstrumentEditorAnalyserProps) {
   return (
     <div
       className={classNames(
-        "w-full h-[85px] my-2 flex flex-col flex-shrink-0 border border-slate-500 rounded-lg overflow-hidden",
+        props.className,
+        "w-full h-[85px] my-2 flex flex-col flex-1 flex-shrink-0 border border-slate-500 rounded-lg overflow-hidden",
         { "bg-slate-900 text-slate-100": render },
         { "bg-slate-900/75 text-slate-400": !render }
       )}
@@ -125,7 +129,7 @@ export function InstrumentEditorAnalyser(props: InstrumentEditorAnalyserProps) {
         style={{ backgroundColor: `rgb(15, 25, 45, ${phase.toFixed(1)})` }}
         id={`bufferCanvas-${type}`}
         className="w-full bg-transparent"
-        height="80"
+        height={"80"}
       />
     </div>
   );

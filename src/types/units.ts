@@ -36,6 +36,7 @@ export type Tick = number;
 export type BPM = number;
 export type PPQ = number;
 export type Seconds = number;
+export type Samples = number;
 
 // ------------------------------------------------------------
 // Audio Units

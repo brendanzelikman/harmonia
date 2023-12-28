@@ -32,7 +32,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { uniq } from "lodash";
 import classNames from "classnames";
 import { ProjectItem } from "./hooks/useProjectList";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 
 interface ProjectFormatterProps extends ProjectItem {
   index?: number;
@@ -260,23 +260,29 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
 
   const border = deleting
     ? "shadow-[0_0_20px_0_rgb(255,0,0)]"
-    : "shadow-xl hover:shadow-[0_0_20px_0_rgb(20,20,20)]";
+    : props.filePath
+    ? "shadow-xl hover:shadow-[0_0_15px_0_rgba(0,0,0,0.5)]"
+    : "shadow-xl hover:shadow-[0_0_15px_0_rgba(0,0,0,0.5)]";
 
   const projectClass = classNames(
     "flex group w-full relative p-4 h-40",
     "rounded-lg border border-slate-400",
     "text-slate-200 text-sm",
     border,
-    props.filePath ? "bg-indigo-950/90" : "bg-slate-900/90",
+    props.filePath ? "bg-[#0a001f]/70" : "bg-slate-900/90",
     { "ring ring-red-500 cursor-not-allowed": isInvalid },
     { "cursor-pointer backdrop-blur shadow-xl": !isInvalid }
   );
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -25 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ damping: 10, delay: (index ?? 0) * 0.05 }}
+      animate={{
+        opacity: 1,
+        x: 0,
+        transition: { damping: 10, delay: (index ?? 0) * 0.05 },
+      }}
+      whileHover={{ scale: 1.01, transition: { delay: 0, duration: 0.1 } }}
       key={id}
       className={projectClass}
       onClick={() => !isInvalid && onClick()}
@@ -284,6 +290,6 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
       <ProjectLogo />
       <ProjectTitle />
       <ProjectBody />
-    </motion.div>
+    </m.div>
   );
 }

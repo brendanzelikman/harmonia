@@ -5,7 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 export function NavbarBrand() {
   const { pathname } = useLocation();
   const auth = useAuthenticationStatus();
-  const projectPath = auth.isAtLeastPro ? "/projects" : "/demos";
+  const projectPath = auth.isAtLeastStatus("pro") ? "/projects" : "/demos";
   const onProjects = pathname === projectPath;
   const to = onProjects ? "/" : projectPath;
   const notOnPlayground = pathname !== "/playground";

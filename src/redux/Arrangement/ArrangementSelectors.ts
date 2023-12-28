@@ -14,16 +14,14 @@ import { ClipId, PatternClipMidiStream, isPatternClip } from "types/Clip";
 import { InstrumentNotesByTicks } from "types/Instrument";
 import { Project } from "types/Project";
 import { Tick } from "types/units";
-import { getValueByKey } from "utils/objects";
 import {
   selectClipDurationMap,
   selectPatternClips,
   selectPoseMap,
   selectTrackMap,
 } from "redux/selectors";
-import { isPatternTrack } from "types/Track";
+import { TrackId, isPatternTrack } from "types/Track";
 import { PortaledClipMap, applyPortalsToClips } from "types/Portal";
-import isElectron from "is-electron";
 
 /** Select the length of the arrangement past. */
 export const selectArrangementPastLength = (project: Project) =>
@@ -135,13 +133,55 @@ export const selectPortaledPatternClipStreamMap = createDeepEqualSelector(
 );
 
 /** Select the fully transposed stream of a portaled clip. */
-export const selectPortaledPatternClipStream = (
-  project: Project,
-  id?: ClipId
-) => {
-  const streamMap = selectPortaledPatternClipStreamMap(project);
-  return getValueByKey(streamMap, id) ?? [];
-};
+export const selectPortaledPatternClipStream = createArraySelector(
+  selectPortaledPatternClipStreamMap
+);
+
+/** Select the map of tracks to their fully portaled pattern clips */
+export const selectTrackPortaledPatternClipStreamMap = createDeepEqualSelector(
+  [selectPortaledArrangement, selectPortaledPatternClipStreamMap],
+  (arrangement, streamMap) => {
+    const clipMap = arrangement.clips;
+    const trackMap = arrangement.tracks;
+    const trackIds = Object.keys(trackMap) as TrackId[];
+    const clipIds = Object.keys(streamMap) as ClipId[];
+
+    const result = {} as Record<TrackId, PatternClipMidiStream[]>;
+
+    // Insert the initial tracks with empty arrays
+    for (const trackId of trackIds) {
+      if (result[trackId] === undefined) {
+        result[trackId] = [];
+      }
+    }
+
+    // Iterate through each portaled clip ID
+    for (const clipId of clipIds) {
+      const clip = clipMap[clipId];
+      if (!clip) continue;
+
+      // Get the pattern track
+      const patternTrack = trackMap[clip.trackId];
+      if (!isPatternTrack(patternTrack)) continue;
+
+      // Get the stream
+      const stream = streamMap[clipId];
+      if (!stream) continue;
+
+      // Add the stream to the result
+      const trackId = patternTrack.id;
+      result[trackId].push(stream);
+    }
+
+    // Return the result
+    return result;
+  }
+);
+
+/** Select the fully portaled clip streams of a track. */
+export const selectTrackPortaledPatternClipStreams = createArraySelector(
+  selectTrackPortaledPatternClipStreamMap
+);
 
 /** Select all pattern chords to be played by each track at every tick. */
 export const selectChordsByTicks = createDeepEqualSelector(
@@ -186,22 +226,11 @@ export const selectChordsByTicks = createDeepEqualSelector(
         result[startTick][instrumentStateId].push(...notes);
       }
     }
-
-    // Send the result to the plugin if applicable
-    if (isElectron()) {
-      const message = `${JSON.stringify(result)}\n`;
-      const tracks = Object.values(trackMap);
-      const ports = tracks
-        .map((track) => track.port)
-        .filter(Boolean) as number[];
-      ports.forEach((port) => {
-        window.electronAPI.send("send-udp-message", { message, port });
-      });
-    }
     // Return the result
     return result;
   }
 );
+
 /** Select the chord record at the given tick. */
 export const selectChordsAtTick = (project: Project, tick: Tick) => {
   const chordsByTicks = selectChordsByTicks(project);

@@ -11,6 +11,9 @@ module.exports = {
   mode: "jit",
   theme: {
     extend: {
+      animation: {
+        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+      },
       colors: {
         free: "#818cf8", // indigo-400
         pro: "#c084fc", // fuchsia-400
@@ -42,7 +45,16 @@ module.exports = {
       height: { nav },
       margin: { nav },
       padding: { nav },
+      spacing: {
+        18: "4.5rem",
+        76: "19rem",
+      },
       transformOrigin: { 0: "0%" },
+      transitionDuration: {
+        10000: "10s",
+        20000: "20s",
+        30000: "30s",
+      },
       borderWidth: { 0.5: "0.5px" },
     },
   },

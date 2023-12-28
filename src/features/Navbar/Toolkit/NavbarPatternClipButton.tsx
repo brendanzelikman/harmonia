@@ -16,8 +16,10 @@ export const NavbarPatternClipButton = () => {
 
   const PatternClipButton = () => {
     const buttonClass = classNames(
-      "bg-teal-500 border-slate-400/50",
-      active ? "ring-2 ring-offset-2 ring-teal-500/80 ring-offset-black" : ""
+      "bg-pattern-clip/80 border-slate-400/50",
+      active
+        ? "ring-2 ring-offset-2 ring-pattern-clip/80 ring-offset-black"
+        : ""
     );
     return (
       <NavbarToolkitButton
@@ -34,7 +36,7 @@ export const NavbarPatternClipButton = () => {
     if (!selectedPattern) return null;
     return (
       <NavbarTooltip
-        className="-translate-x-1/2 left-8 bg-teal-500/80 px-2 backdrop-blur"
+        className="-translate-x-1/2 left-8 bg-pattern-clip/80 px-2 backdrop-blur"
         show={!!active}
         content={`Arranging ${patternName}`}
       />

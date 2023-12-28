@@ -285,11 +285,11 @@ export function NavbarFileMenu() {
         content={
           <NavbarTooltipMenu>
             {ProjectNameField()}
-            {auth.isAtLeastPro && <NewProjectButton />}
+            {auth.isAtLeastStatus("pro") && <NewProjectButton />}
             <SaveToHAMButton />
             <LoadFromHAMButton />
             <SaveToWAVButton />
-            {auth.isAtLeastPro && <SaveToMIDIButton />}
+            {auth.isAtLeastStatus("pro") && <SaveToMIDIButton />}
             <ClearButton />
           </NavbarTooltipMenu>
         }

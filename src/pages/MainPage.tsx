@@ -129,7 +129,7 @@ export function MainPage(props: MainPageProps) {
       {MainBackground}
       <TourBackground />
       <div className={transitionClass}>
-        {auth.isAtLeastPro && (
+        {auth.isAtLeastStatus("pro") && (
           <ViewWrapper view="projects">{ProjectList()}</ViewWrapper>
         )}
         <ViewWrapper view="demos">{DemoList()}</ViewWrapper>

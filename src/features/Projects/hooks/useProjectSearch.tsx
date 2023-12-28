@@ -24,7 +24,7 @@ import {
   PRO_PROJECT_LIMIT,
   VIRTUOSO_PROJECT_LIMIT,
 } from "utils/constants";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 
 interface ProjectSearchProps extends ProjectListProps {}
 
@@ -160,11 +160,11 @@ export function useProjectSearch(props: ProjectSearchProps) {
       "flex flex-col items-center gap-4",
       "ring-2 shadow-xl backdrop-blur",
       searchingDemos
-        ? "bg-indigo-950/80 ring-indigo-400/50"
+        ? "bg-indigo-950/90 ring-indigo-400/50"
         : "bg-slate-950/60 ring-sky-500/50"
     );
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: -5 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ damping: 0.2 }}
@@ -172,7 +172,7 @@ export function useProjectSearch(props: ProjectSearchProps) {
       >
         {SearchBar()}
         {!searchingDemos && ControlBar()}
-      </motion.div>
+      </m.div>
     );
   }, [searchingDemos, SearchBar, ControlBar]);
 

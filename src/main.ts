@@ -1,18 +1,7 @@
-import {
-  app,
-  ipcMain,
-  BrowserWindow,
-  Menu,
-  ipcRenderer,
-  MenuItemConstructorOptions,
-  MenuItem,
-} from "electron";
+import { app, ipcMain, BrowserWindow } from "electron";
 import dgram from "dgram";
 import path from "path";
 import Squirrel from "electron-squirrel-startup";
-import { isPlainObject } from "lodash";
-
-const socket = dgram.createSocket("udp4");
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (Squirrel) {
@@ -51,7 +40,6 @@ const createWindow = () => {
 app.dock.setIcon(path.join(__dirname, "logo.png"));
 app.setName("Harmonia");
 app.name = "Harmonia";
-const isMac = process.platform === "darwin";
 
 // Create the main window when Electron is ready
 app.on("ready", () => {
@@ -60,9 +48,6 @@ app.on("ready", () => {
 
 // Quit when all windows are closed, except on macOS.
 app.on("window-all-closed", () => {
-  if (socket) {
-    socket.close();
-  }
   if (process.platform !== "darwin") {
     app.quit();
   }
@@ -82,6 +67,7 @@ interface UdpMessageProps {
 
 // Send a UDP message to the given port
 ipcMain.on("send-udp-message", (e: any, args: UdpMessageProps[]) => {
+  const socket = dgram.createSocket("udp4");
   for (const arg of args) {
     const { message, port } = arg;
     const buffer = Buffer.from(message);

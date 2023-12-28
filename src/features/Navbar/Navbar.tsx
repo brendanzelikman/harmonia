@@ -58,7 +58,7 @@ export function Navbar(props: { view: View }) {
   // Render the links to the views
   const renderLinks = useCallback(() => {
     const visibleViews = views.filter(
-      (v) => auth.isAtLeastPro || v !== "projects"
+      (v) => auth.isAtLeastStatus("pro") || v !== "projects"
     );
     const viewCount = visibleViews.length;
     return visibleViews.map((v, i) => {
@@ -70,16 +70,16 @@ export function Navbar(props: { view: View }) {
         </div>
       );
     });
-  }, [isLoadingPlayground, renderLink]);
+  }, [isLoadingPlayground, renderLink, auth]);
 
   /** The default navbar group containing projects, docs, etc. */
   const DefaultNavbarContent = useCallback(() => {
     return (
-      <div className={"w-full flex text-slate-500 justify-end"}>
+      <div className={"w-full flex text-slate-500 justify-end pr-2"}>
         {renderLinks()}
       </div>
     );
-  }, [renderLinks, auth.isAtLeastPro, onPlayground]);
+  }, [renderLinks, onPlayground]);
 
   /** The playground's navbar group */
   const PlaygroundNavbarContent = useCallback(() => {

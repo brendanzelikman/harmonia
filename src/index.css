@@ -130,6 +130,13 @@ body {
   display: none;
 }
 
+.landing-piano .ReactPiano__Key--active {
+  --landing-key: rgb(201, 200, 205);
+  background: var(--landing-key);
+  border-color: var(--landing-key);
+  user-select: none;
+}
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
