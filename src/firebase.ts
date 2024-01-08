@@ -1,7 +1,6 @@
-import firebase from "firebase/compat/app";
-import "firebase/compat/auth";
-import "firebase/compat/firestore";
-import { GoogleAuthProvider, OAuthProvider } from "firebase/auth";
+import { initializeApp } from "firebase/app";
+import { GoogleAuthProvider, OAuthProvider, getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 import {
   FIREBASE_LIVE_API_KEY,
   FIREBASE_MODE,
@@ -44,13 +43,13 @@ microsoftProvider.setCustomParameters({ prompt: "consent" });
 microsoftProvider.addScope("User.Read");
 
 // Export Firebase App
-export const firebaseApp = firebase.initializeApp(firebaseConfig);
+export const firebaseApp = initializeApp(firebaseConfig);
 export type FirebaseApp = typeof firebaseApp;
 
 // Export Firebase Auth Types
-export const firebaseAuth = firebase.auth(firebaseApp);
+export const firebaseAuth = getAuth(firebaseApp);
 export type FirebaseAuth = typeof firebaseAuth;
 
 // Export Firestore Database
-export const firestore = firebase.firestore(firebaseApp);
+export const firestore = getFirestore(firebaseApp);
 export type Firestore = typeof firestore;

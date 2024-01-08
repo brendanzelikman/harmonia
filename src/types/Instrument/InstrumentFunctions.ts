@@ -78,7 +78,7 @@ export const getInstrumentSamplesMap = (
 export const getInstrumentSamplesBaseUrl = (key: InstrumentKey) => {
   const category = getInstrumentCategory(key);
   const name = getInstrumentName(key);
-  return `${import.meta.env.BASE_URL}src/assets/samples/${category}/${name}/`;
+  return `${import.meta.env.BASE_URL}samples/${category}/${name}/`;
 };
 
 /** Get a list of instruments corresponding to the given category. */
