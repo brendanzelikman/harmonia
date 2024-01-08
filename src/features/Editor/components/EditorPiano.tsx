@@ -7,7 +7,7 @@ import { Sampler } from "tone";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { getMidiPitch } from "utils/midi";
 import classNames from "classnames";
-import { useAuthenticationStatus } from "hooks";
+import { useSubscription } from "providers/subscription";
 
 interface PianoProps {
   sampler: Sampler | undefined;
@@ -18,7 +18,7 @@ interface PianoProps {
 }
 
 export const EditorPiano: React.FC<PianoProps> = (props) => {
-  const auth = useAuthenticationStatus();
+  const { isProdigy } = useSubscription();
   const sampler = props.sampler ?? LIVE_AUDIO_INSTANCES.global?.sampler;
   const hasPlay = props.playNote !== undefined;
   const hasStop = props.stopNote !== undefined;
@@ -53,7 +53,7 @@ export const EditorPiano: React.FC<PianoProps> = (props) => {
 
   // Synchronize with MIDI controller via WebMidi
   useEffect(() => {
-    if (auth.isFree) return;
+    if (isProdigy) return;
     // Attach a listener to each MIDI input
     const onEnabled = () => {
       WebMidi.inputs.forEach((input) => {
@@ -71,7 +71,7 @@ export const EditorPiano: React.FC<PianoProps> = (props) => {
         input.removeListener();
       });
     };
-  }, [auth, sampler, playNote, stopNote]);
+  }, [isProdigy, sampler, playNote, stopNote]);
 
   if (!props.show) return null;
   return (

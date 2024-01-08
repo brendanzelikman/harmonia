@@ -2,7 +2,7 @@ import fs from "fs";
 import _ from "lodash";
 import path from "path";
 
-const sampleDir = "public/instruments";
+const sampleDir = "src/assets/samples";
 const categoryFolders = fs.readdirSync(sampleDir);
 
 // Get the list of categories

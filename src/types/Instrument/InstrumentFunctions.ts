@@ -78,8 +78,7 @@ export const getInstrumentSamplesMap = (
 export const getInstrumentSamplesBaseUrl = (key: InstrumentKey) => {
   const category = getInstrumentCategory(key);
   const name = getInstrumentName(key);
-  const base = isElectron() ? `` : `${window.location.origin}/harmonia`;
-  return `${base + `/instruments/${category}/${name}/`}`;
+  return `${import.meta.env.BASE_URL}src/assets/samples/${category}/${name}/`;
 };
 
 /** Get a list of instruments corresponding to the given category. */

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { UPDATE_OFFLINE_TICK, UPDATE_TICK } from "redux/Transport";
-import { useCustomEventListener } from "../useCustomEventListener";
+import { useCustomEventListener } from "../window/useCustomEventListener";
 
 /** Get the current tick using a custom event listener */
 export function useTransportTick(options?: { offline: boolean }) {

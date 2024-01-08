@@ -7,7 +7,7 @@ const nav = 60;
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx,cur}"],
   mode: "jit",
   theme: {
     extend: {
@@ -15,9 +15,12 @@ module.exports = {
         "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       colors: {
-        free: "#818cf8", // indigo-400
-        pro: "#c084fc", // fuchsia-400
+        prodigy: "#818cf8", // indigo-400
+        maestro: "#c084fc", // fuchsia-400
         virtuoso: "#38bdf8", // sky-400
+        "prodigy-dark": "#3730a3", // indigo-800
+        "maestro-dark": "#c026d3", // fuchsia-600
+        "virtuoso-dark": "#0284c7", // sky-600
         scale: "#0ea5e9", // sky-500
         pattern: "#34d399", // emerald-400
         pose: "#f472b6", // pink-400

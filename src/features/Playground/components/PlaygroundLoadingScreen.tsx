@@ -1,4 +1,4 @@
-import { Splash } from "../../../components/Logo";
+import { Splash } from "components/Logo";
 import { PlaygroundLoadState } from "../hooks/usePlaygroundLoader";
 
 interface PlaygroundLoadingScreenProps {

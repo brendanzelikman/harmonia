@@ -115,6 +115,7 @@ export function TimelineContextMenu() {
     label: "Duplicate Selection",
     onClick: () => dispatch(duplicateSelectedMedia()),
     disabled: !canDuplicate,
+    divideEnd: !canDelete && !canExport,
   };
 
   // Delete the currently selected media
@@ -122,6 +123,7 @@ export function TimelineContextMenu() {
     label: `Delete Selection`,
     onClick: () => dispatch(deleteSelectedMedia()),
     disabled: !canDelete,
+    divideEnd: !canExport,
   };
 
   // Export the currently selected clips to MIDI

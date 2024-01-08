@@ -71,16 +71,17 @@ const docTree = {
       name: "Live Mixing and Posing",
       path: "techniques/live-mixing-and-posing",
     },
+    { name: "Using the VST Plugin", path: "techniques/using-the-vst-plugin" },
   ],
   "Core Libraries": [
     { name: "React", path: "react" },
-    { name: "Redux", path: "redux" },
     { name: "Typescript", path: "typescript" },
+    { name: "Redux", path: "redux" },
     { name: "Tone.js", path: "tone.js" },
-    { name: "WebMIDI", path: "webmidi" },
-    { name: "OpenSheetMusicDisplay", path: "opensheetmusicdisplay" },
-    { name: "Tailwind CSS", path: "tailwind-css" },
-    { name: "Headless UI", path: "headless-ui" },
+    { name: "Vite", path: "vite" },
+    { name: "Electron", path: "electron" },
+    { name: "Tailwind", path: "tailwind" },
+    { name: "Framer", path: "framer" },
   ],
 } as const;
 
@@ -88,14 +89,14 @@ type TopicGroup = keyof typeof docTree;
 const topicGroups = Object.keys(docTree) as TopicGroup[];
 
 const libraryTree: Record<string, string> = {
-  typescript: "https://www.typescriptlang.org/",
   react: "https://react.dev/",
+  typescript: "https://www.typescriptlang.org/",
   redux: "https://redux.js.org/",
-  webmidi: "https://webmidijs.org/",
   "tone.js": "https://tonejs.github.io/",
-  "tailwind-css": "https://tailwindcss.com/",
-  "headless-ui": "https://headlessui.com/",
-  opensheetmusicdisplay: "https://opensheetmusicdisplay.org/",
+  vite: "https://vitejs.dev/",
+  electron: "https://www.electronjs.org/",
+  tailwind: "https://tailwindcss.com/",
+  framer: "https://www.framer.com/",
 };
 
 export const getTopicName = (topic: Topic) => topic.name;
@@ -135,6 +136,7 @@ export function Docs() {
         )}
         key={tag}
         to={path}
+        target={isLibrary ? "_blank" : undefined}
       >
         {name}
       </Link>
@@ -195,15 +197,14 @@ export function Docs() {
 
     if (tag === "keyboard-shortcuts")
       return <Content.KeyboardShortcutsDocsContent />;
-
-    if (tag === "efficient-voice-leadings")
-      return <Content.EfficientVoiceLeadingsDocsContent />;
-
-    if (tag === "live-mixing-and-posing")
-      return <Content.LiveMixingAndPosingDocsContent />;
-
     if (tag === "using-midi-controllers")
       return <Content.UsingMidiControllersDocsContent />;
+    if (tag === "efficient-voice-leadings")
+      return <Content.EfficientVoiceLeadingsDocsContent />;
+    if (tag === "live-mixing-and-posing")
+      return <Content.LiveMixingAndPosingDocsContent />;
+    if (tag === "using-the-vst-plugin")
+      return <Content.UsingTheVSTPluginDocsContent />;
   };
 
   const getGradient = (topic: Topic) => {
@@ -239,7 +240,7 @@ export function Docs() {
   };
 
   return (
-    <div className="flex w-full h-full rounded font-light animate-in fade-in">
+    <div className="flex w-full h-full rounded font-light bg-blue-900/30 backdrop-blur-sm">
       <div className="flex flex-col w-1/4 min-w-[350px] gap-8 px-8 pt-8 pb-8 border-r border-r-slate-500 overflow-scroll">
         {topicGroups.map(renderTopicGroupLinks)}
       </div>

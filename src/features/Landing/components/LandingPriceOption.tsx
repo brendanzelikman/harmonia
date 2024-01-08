@@ -7,6 +7,7 @@ interface LandingPriceBoxProps {
   description: string;
   features: string[];
   isEnabled?: boolean;
+  onClick?: () => void;
 }
 
 export function LandingPriceBox(props: LandingPriceBoxProps) {
@@ -14,10 +15,12 @@ export function LandingPriceBox(props: LandingPriceBoxProps) {
 
   return (
     <div
+      onClick={props.onClick}
       className={classNames(
         "flex flex-col w-96 items-center p-12 py-10 rounded-xl",
         "bg-slate-950/80 backdrop-blur",
-        { "ring-free": name === "prodigy" },
+        props.onClick ? "cursor-pointer" : "cursor-default",
+        { "ring-prodigy": name === "prodigy" },
         { "ring-pro": name === "maestro" },
         { "ring-virtuoso": name === "virtuoso" },
         { "ring-4 ring-opacity-75": isEnabled },

@@ -8,21 +8,27 @@ import { RouterProvider } from "react-router-dom";
 import { store } from "redux/store";
 import { AppRouter } from "routes";
 import { LazyMotion, domAnimation } from "framer-motion";
+import { AuthenticationProvider } from "providers/authentication";
+import { SubscriptionProvider } from "providers/subscription";
 
 export function App() {
   return (
     <StrictMode>
-      <HotkeysProvider initiallyActiveScopes={["timeline", "transport"]}>
-        <DndProvider backend={HTML5Backend} key={1}>
-          <ReduxProvider store={store}>
-            <MIDIProvider>
-              <LazyMotion features={domAnimation}>
-                <RouterProvider router={AppRouter} />
-              </LazyMotion>
-            </MIDIProvider>
-          </ReduxProvider>
-        </DndProvider>
-      </HotkeysProvider>
+      <AuthenticationProvider>
+        <SubscriptionProvider>
+          <HotkeysProvider initiallyActiveScopes={["timeline", "transport"]}>
+            <DndProvider backend={HTML5Backend} key={1}>
+              <ReduxProvider store={store}>
+                <MIDIProvider>
+                  <LazyMotion features={domAnimation}>
+                    <RouterProvider router={AppRouter} />
+                  </LazyMotion>
+                </MIDIProvider>
+              </ReduxProvider>
+            </DndProvider>
+          </HotkeysProvider>
+        </SubscriptionProvider>
+      </AuthenticationProvider>
     </StrictMode>
   );
 }

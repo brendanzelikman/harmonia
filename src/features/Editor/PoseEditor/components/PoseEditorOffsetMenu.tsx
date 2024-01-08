@@ -2,7 +2,10 @@ import classNames from "classnames";
 import { PoseEditorVectorProps } from "./PoseEditorVector";
 import { Editor } from "features/Editor/components";
 import { Listbox } from "@headlessui/react";
-import { NumericInputOption, useNumericInputs } from "hooks/useNumericInputs";
+import {
+  NumericInputOption,
+  useNumericInputs,
+} from "hooks/window/useNumericInputs";
 import { useEffect } from "react";
 import {
   PoseVectorId,

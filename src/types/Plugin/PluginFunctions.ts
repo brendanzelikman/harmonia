@@ -9,6 +9,5 @@ export const sendPluginData = (data: PluginData) => {
   const EOF = "\n";
   const message = `${dataString}${EOF}`;
   const packet = { message, port };
-  console.log(`Sending message to port ${port}`);
   window.electronAPI.send("send-udp-message", packet);
 };

@@ -23,7 +23,7 @@ import { unmuteTracks, unsoloTracks } from "redux/Track";
 import { getKeys, hasKeys } from "utils/objects";
 import { isTimelineLive } from "types/Timeline";
 import { toggleLivePlay } from "redux/Timeline";
-import { useAuthenticationStatus } from "hooks";
+import { useSubscription } from "providers/subscription";
 
 type KeyBinds = Record<string, number>;
 
@@ -102,7 +102,7 @@ const ALPHABETICAL_ZERO_BINDS = ["y", "h", "n", "`", "0"];
 
 export const useTimelineLiveHotkeys = () => {
   const dispatch = useProjectDispatch();
-  const auth = useAuthenticationStatus();
+  const { isProdigy } = useSubscription();
 
   // Get the timeline from the store
   const timeline = useProjectSelector(selectTimeline);
@@ -322,7 +322,7 @@ export const useTimelineLiveHotkeys = () => {
    * (This is a workaround for duplicated events with react-hotkeys)
    */
   useEffect(() => {
-    if (!isLive || auth.isFree) return;
+    if (!isLive || isProdigy) return;
     const keydown = isNumerical ? numericalKeydown : alphabeticalKeydown;
     const zeroKeydown = isNumerical
       ? numericalZeroKeydown
@@ -336,7 +336,7 @@ export const useTimelineLiveHotkeys = () => {
       window.removeEventListener("keydown", zeroKeydown);
     };
   }, [
-    auth,
+    isProdigy,
     isLive,
     isNumerical,
     numericalKeydown,

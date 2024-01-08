@@ -14,15 +14,16 @@ import {
 import { UndoTypes } from "redux/undoTypes";
 import { toggleEditorAction } from "redux/Editor";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
+import { useContext } from "react";
+import { SubscriptionContext, useSubscription } from "providers/subscription";
 
 export function ScaleEditorToolbar(props: ScaleEditorProps) {
-  const { dispatch, auth, scale, scaleName, isAdding, isRemoving, Button } =
-    props;
+  const { dispatch, scale, scaleName, isAdding, isRemoving, Button } = props;
+  const { isProdigy } = useSubscription();
   const notes = getScaleAsArray(scale);
 
   const ExportButton = () => {
-    if (auth.isFree) return null;
-
+    if (isProdigy) return null;
     return (
       <Editor.Button
         label="Export Scale"

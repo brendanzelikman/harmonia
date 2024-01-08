@@ -25,3 +25,4 @@ export * from "./techniques/keyboard-shortcuts";
 export * from "./techniques/efficient-voice-leadings";
 export * from "./techniques/live-mixing-and-posing";
 export * from "./techniques/using-midi-controllers";
+export * from "./techniques/using-the-vst-plugin";

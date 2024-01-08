@@ -6,13 +6,17 @@ import { NavbarTransport } from "./NavbarTransport";
 import { NavbarGroup, NavbarBrand } from "./components";
 import { View, views } from "pages";
 import { Link } from "react-router-dom";
-import { useAuthenticationStatus, useCustomEventListener } from "hooks";
+import { useCustomEventListener } from "hooks";
 import classNames from "classnames";
 import { useOnboardingTour } from "features/Tour";
+import { useSubscription } from "providers/subscription";
+import { Tooltip, TooltipProvider, TooltipTrigger } from "components/Tooltip";
+import { TooltipContent } from "@radix-ui/react-tooltip";
 
 export function Navbar(props: { view: View }) {
   const { view } = props;
-  const auth = useAuthenticationStatus();
+  const { isProdigy, isMaestro, isVirtuoso, isAtLeastStatus, isDesktop } =
+    useSubscription();
   const Tour = useOnboardingTour();
 
   // Listen for the playground to load
@@ -28,37 +32,59 @@ export function Navbar(props: { view: View }) {
   // Check if the view is the playground
   const onPlayground = view === "playground";
   const isLoadingPlayground = onPlayground && !didPlaygroundLoad;
+  const canPlay = !(isDesktop && !isVirtuoso);
 
   // Render the link to the view
   const renderLink = useCallback(
     (v: View) => {
-      if (v !== "playground" && isLoadingPlayground) return null;
+      const onPlayground = v === "playground";
+      if (!onPlayground && isLoadingPlayground) return null;
+      const onProdigy = onPlayground && isProdigy;
+      const onMaestro = onPlayground && isMaestro;
+      const onVirtuoso = onPlayground && isVirtuoso;
+      const invalidPlayground = !canPlay && onPlayground;
       const linkClass = classNames(
         "font-semilight",
-        { "text-free/70 active:text-free": v === "playground" && auth.isFree },
-        { "text-pro/70 active:text-pro": v === "playground" && auth.isPro },
-        {
-          "text-virtuoso/70 active:text-virtuoso":
-            v === "playground" && auth.isVirtuoso,
-        },
-        { "text-slate-200": v !== "playground" && view === v },
-        { "text-slate-500": v !== "playground" && view !== v }
+        { "text-prodigy/70 active:text-prodigy": onProdigy },
+        { "text-maestro/70 active:text-maestro": onMaestro },
+
+        { "text-virtuoso/70 active:text-virtuoso": onVirtuoso },
+        { "text-slate-200": !onPlayground && view === v },
+        { "text-slate-500": !onPlayground && view !== v }
       );
+      if (invalidPlayground) {
+        return (
+          <div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger className="text-slate-700/70 cursor-not-allowed">
+                  Playground
+                </TooltipTrigger>
+                <TooltipContent className="mt-4 mr-2 animate-in fade-in duration-300 p-2 w-48 text-xs text-white bg-slate-900/80 backdrop-blur rounded border border-slate-500 normal-case">
+                  You must be a{" "}
+                  <Link to="/profile" className="text-virtuoso">
+                    Virtuoso
+                  </Link>{" "}
+                  user to use the Playground on Desktop.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        );
+      }
       return (
         <Link to={`/${v}`} className={linkClass}>
-          {v === "playground" && isLoadingPlayground
-            ? "Loading Playground..."
-            : v}
+          {onPlayground && isLoadingPlayground ? "Loading Playground..." : v}
         </Link>
       );
     },
-    [isLoadingPlayground, auth, view]
+    [isLoadingPlayground, isProdigy, isMaestro, isVirtuoso, view]
   );
 
   // Render the links to the views
   const renderLinks = useCallback(() => {
     const visibleViews = views.filter(
-      (v) => auth.isAtLeastStatus("pro") || v !== "projects"
+      (v) => isAtLeastStatus("maestro") || v !== "projects"
     );
     const viewCount = visibleViews.length;
     return visibleViews.map((v, i) => {
@@ -70,7 +96,7 @@ export function Navbar(props: { view: View }) {
         </div>
       );
     });
-  }, [isLoadingPlayground, renderLink, auth]);
+  }, [isLoadingPlayground, isAtLeastStatus, renderLink]);
 
   /** The default navbar group containing projects, docs, etc. */
   const DefaultNavbarContent = useCallback(() => {

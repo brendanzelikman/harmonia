@@ -5,8 +5,25 @@ import { LandingPage, MainPage } from "pages";
 export const AppRouter = createHashRouter([
   {
     path: "/",
-    element: <SecureRoute component={<LandingPage />} />,
-    errorElement: <LandingPage />,
+    element: <SecureRoute component={<LandingPage action="idle" />} />,
+    errorElement: <LandingPage action="idle" />,
+  },
+  {
+    path: "/login",
+    element: <SecureRoute component={<LandingPage action="login" />} />,
+    errorElement: <LandingPage action="idle" />,
+  },
+  {
+    path: "/magic-link",
+    element: <SecureRoute component={<LandingPage action="magic-link" />} />,
+    errorElement: <LandingPage action="idle" />,
+  },
+  {
+    path: "/magic-electron",
+    element: (
+      <SecureRoute component={<LandingPage action="magic-electron" />} />
+    ),
+    errorElement: <LandingPage action="idle" />,
   },
   {
     path: "/projects",
@@ -23,6 +40,10 @@ export const AppRouter = createHashRouter([
   {
     path: "/docs",
     element: <SecureRoute private component={<MainPage view="docs" />} />,
+  },
+  {
+    path: "/profile",
+    element: <SecureRoute private component={<MainPage view="profile" />} />,
   },
   {
     path: "/docs/types/:topic",

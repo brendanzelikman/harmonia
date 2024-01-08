@@ -1,17 +1,19 @@
-import { LandingLibraryHero } from "./LandingLibraryHero";
-import { LandingObservatory } from "./LandingObservatory";
-import { LandingPatternHero } from "./LandingPatternHero";
-import { LandingPianoHero } from "./LandingPianoHero";
-import { LandingPortalHero } from "./LandingPortalHero";
-import { LandingPoseHero } from "./LandingPoseHero";
-import { LandingPricingHero } from "./LandingPricingHero";
-import { LandingScaleHero } from "./LandingScaleHero";
-import { LandingSplashScreen } from "./LandingSplashScreen";
-import { LandingTimelineHero } from "./LandingTimelineHero";
-import { LandingWhyHero } from "./LandingWhyHero";
+import { LandingLibraryHero } from "./views/LandingLibraryHero";
+import { AccountPage } from "../Account/AccountPage";
+import { LandingObservatory } from "./views/LandingObservatory";
+import { LandingPatternHero } from "./views/LandingPatternHero";
+import { LandingPianoHero } from "./views/LandingPianoHero";
+import { LandingPortalHero } from "./views/LandingPortalHero";
+import { LandingPoseHero } from "./views/LandingPoseHero";
+import { LandingPricingHero } from "./views/LandingPricingHero";
+import { LandingScaleHero } from "./views/LandingScaleHero";
+import { LandingSplashScreen } from "./views/LandingSplashScreen";
+import { LandingTimelineHero } from "./views/LandingTimelineHero";
+import { LandingWhyHero } from "./views/LandingWhyHero";
 
 export const Landing = {
   SplashScreen: LandingSplashScreen,
+  LoginScreen: AccountPage,
   PricingHero: LandingPricingHero,
   LibraryHero: LandingLibraryHero,
   TimelineHero: LandingTimelineHero,

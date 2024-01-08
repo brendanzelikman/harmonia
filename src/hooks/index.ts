@@ -1,8 +1,8 @@
-export * from "./useAnimationFrame";
-export * from "./useCustomEventListener";
-export * from "./useNumericInputs";
+export * from "./window/useAnimationFrame";
+export * from "./window/useBrowserTitle";
+export * from "./window/useCustomEventListener";
+export * from "./window/useNumericInputs";
 
-export * from "./db/useAuthenticationStatus";
 export * from "./db/useProjectLoader";
 export * from "./db/useDatabaseCallback";
 

@@ -18,29 +18,35 @@ import { getInstrumentName } from "types/Instrument";
 import { isProject } from "types/Project";
 import { getScaleName } from "types/Scale";
 import { ProjectListProps } from "./useProjectList";
-import { useAuthenticationStatus } from "hooks";
 import {
-  FREE_PROJECT_LIMIT,
-  PRO_PROJECT_LIMIT,
+  PRODIGY_PROJECT_LIMIT,
+  MAESTRO_PROJECT_LIMIT,
   VIRTUOSO_PROJECT_LIMIT,
 } from "utils/constants";
 import { m } from "framer-motion";
+import { useSubscription } from "providers/subscription";
 
 interface ProjectSearchProps extends ProjectListProps {}
 
 export function useProjectSearch(props: ProjectSearchProps) {
   const { projects, searchingDemos } = props;
-  const auth = useAuthenticationStatus();
+  const subscription = useSubscription();
   const dispatch = useProjectDispatch();
   const navigate = useNavigate();
 
   // Check if projects are capped
   const areProjectsCapped = useMemo(() => {
-    if (auth.isFree) return projects.length >= FREE_PROJECT_LIMIT;
-    if (auth.isPro) return projects.length >= PRO_PROJECT_LIMIT;
-    if (auth.isVirtuoso) return projects.length >= VIRTUOSO_PROJECT_LIMIT;
+    if (subscription.isProdigy) {
+      return projects.length >= PRODIGY_PROJECT_LIMIT;
+    }
+    if (subscription.isMaestro) {
+      return projects.length >= MAESTRO_PROJECT_LIMIT;
+    }
+    if (subscription.isVirtuoso) {
+      return projects.length >= VIRTUOSO_PROJECT_LIMIT;
+    }
     return true;
-  }, [auth, projects]);
+  }, [subscription, projects]);
 
   // Get the filtered projects
   const [query, setQuery] = useState("");
@@ -103,7 +109,7 @@ export function useProjectSearch(props: ProjectSearchProps) {
       "w-full h-10 px-4 rounded-lg text-slate-200 shadow-xl",
       "bg-transparent focus:outline-none focus:ring-2",
       "border border-slate-400 focus:border-transparent",
-      searchingDemos ? "focus:ring-indigo-300/70" : "focus:ring-sky-400/70"
+      searchingDemos ? "focus:ring-indigo-300/50" : "focus:ring-sky-400/70"
     );
     return (
       <div className="flex w-full items-center gap-3">
@@ -160,7 +166,7 @@ export function useProjectSearch(props: ProjectSearchProps) {
       "flex flex-col items-center gap-4",
       "ring-2 shadow-xl backdrop-blur",
       searchingDemos
-        ? "bg-indigo-950/90 ring-indigo-400/50"
+        ? "bg-gray-900/90 ring-gray-400/50"
         : "bg-slate-950/60 ring-sky-500/50"
     );
     return (

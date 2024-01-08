@@ -1,10 +1,52 @@
 // ------------------------------------------------------------
-// Project Settings
+// Project Settings - Product Info
 // ------------------------------------------------------------
 
-export const FREE_PROJECT_LIMIT = 1;
-export const PRO_PROJECT_LIMIT = 100;
+export const FIREBASE_MODE = import.meta.env.VITE_FIREBASE_MODE;
+export const IS_LIVE = FIREBASE_MODE === "live";
+export const FIREBASE_LIVE_API_KEY = import.meta.env.VITE_FIREBASE_LIVE_API_KEY;
+export const FIREBASE_TEST_API_KEY = import.meta.env.VITE_FIREBASE_TEST_API_KEY;
+
+// Website Location
+export const WEBSITE_TEST_LOCATION = import.meta.env.VITE_WEBSITE_TEST_LOCATION;
+export const WEBSITE_LIVE_LOCATION = import.meta.env.VITE_WEBSITE_LIVE_LOCATION;
+export const WEBSITE_LOCATION = IS_LIVE
+  ? WEBSITE_LIVE_LOCATION
+  : WEBSITE_TEST_LOCATION;
+
+// ------------------------------------------------------------
+// Project Settings - Subscriptions
+// ------------------------------------------------------------
+
+export type SubscriptionStatus = "prodigy" | "maestro" | "virtuoso";
+
+// Project Limits
+export const PRODIGY_PROJECT_LIMIT = 1;
+export const MAESTRO_PROJECT_LIMIT = 50;
 export const VIRTUOSO_PROJECT_LIMIT = Infinity;
+
+// Maestro Price
+export const MAESTRO_TEST_PRICE_ID = import.meta.env.VITE_MAESTRO_TEST_PRICE_ID;
+export const MAESTRO_LIVE_PRICE_ID = import.meta.env.VITE_MAESTRO_LIVE_PRICE_ID;
+export const MAESTRO_PRICE_ID = IS_LIVE
+  ? MAESTRO_LIVE_PRICE_ID
+  : MAESTRO_TEST_PRICE_ID;
+
+// Virtuoso Price
+export const VIRTUOSO_TEST_PRICE_ID = import.meta.env
+  .VITE_VIRTUOSO_TEST_PRICE_ID;
+export const VIRTUOSO_LIVE_PRICE_ID = import.meta.env
+  .VITE_VIRTUOSO_LIVE_PRICE_ID;
+export const VIRTUOSO_PRICE_ID = IS_LIVE
+  ? VIRTUOSO_LIVE_PRICE_ID
+  : VIRTUOSO_TEST_PRICE_ID;
+
+// Subscription Prices
+export const PRICE_RECORD = {
+  prodigy: null,
+  maestro: IS_LIVE ? MAESTRO_LIVE_PRICE_ID : MAESTRO_TEST_PRICE_ID,
+  virtuoso: IS_LIVE ? VIRTUOSO_LIVE_PRICE_ID : VIRTUOSO_TEST_PRICE_ID,
+};
 
 // ------------------------------------------------------------
 // Plugin Settings
@@ -12,6 +54,14 @@ export const VIRTUOSO_PROJECT_LIMIT = Infinity;
 
 export const PLUGIN_STARTING_PORT = 51200;
 export const PLUGIN_PORT_RANGE = 16;
+
+// ------------------------------------------------------------
+// Indexed Database
+// ------------------------------------------------------------
+
+export const INDEXED_DATABASE_NAME = import.meta.env.VITE_INDEXED_DATABASE_NAME;
+export const PROJECT_STORE = import.meta.env.VITE_PROJECT_STORE;
+export const CURRENT_ID_STORE = import.meta.env.VITE_CURRENT_ID_STORE;
 
 // ------------------------------------------------------------
 // Tempo and Rhythm

@@ -33,17 +33,20 @@ import { uniq } from "lodash";
 import classNames from "classnames";
 import { ProjectItem } from "./hooks/useProjectList";
 import { m } from "framer-motion";
+import { useSubscription } from "providers/subscription";
 
 interface ProjectFormatterProps extends ProjectItem {
   index?: number;
 }
 
 export function ProjectFormatter(props: ProjectFormatterProps) {
+  const { canPlay } = useSubscription();
   const dispatch = useProjectDispatch();
   const navigate = useNavigate();
   const { index, project } = props;
   const heldKeys = useHeldHotkeys(["alt"]);
   const isInvalid = !isProject(project);
+  const isDemo = !!props.filePath;
 
   const [deleting, setDeleting] = useState(false);
   const toggleDeleting = () => setDeleting((prev) => !prev);
@@ -153,16 +156,14 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
     const logoClass = classNames(
       "w-24 my-auto flex flex-col items-center",
       "text-xl font-bold",
-      props.filePath ? "text-indigo-300/80" : "text-sky-400"
+      isDemo ? "text-slate-400" : "text-sky-400"
     );
     return (
       <div className={logoClass}>
-        <Logo
-          className={`h-16 ${props.filePath ? "mix-blend-luminosity" : ""}`}
-        />
+        <Logo className={`h-16 ${isDemo ? "mix-blend-luminosity" : ""}`} />
         {index !== undefined && (
           <h1 className="my-1">
-            {!!props.filePath ? "HAM" : "HAM"} #{index + 1}
+            {isDemo ? "HAM" : "HAM"} #{index + 1}
           </h1>
         )}
         {!!props.project && <ProjectControl />}
@@ -251,27 +252,35 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
     </div>
   );
 
-  const callback = () => navigate("/playground");
-  const onClick = () => {
-    !!props.filePath
-      ? dispatch(loadProjectByPath(props.filePath, callback))
-      : dispatch(loadProject(id, callback));
+  // Navigate to the playground if conditions are met
+  const callback = () => {
+    if (isInvalid || !canPlay) return;
+    navigate("/playground");
   };
 
-  const border = deleting
-    ? "shadow-[0_0_20px_0_rgb(255,0,0)]"
-    : props.filePath
-    ? "shadow-xl hover:shadow-[0_0_15px_0_rgba(0,0,0,0.5)]"
-    : "shadow-xl hover:shadow-[0_0_15px_0_rgba(0,0,0,0.5)]";
+  // Load the project by path or database if necessary
+  const onClick = () => {
+    if (isInvalid || !canPlay) return;
+    if (props.filePath) {
+      dispatch(loadProjectByPath(props.filePath, callback));
+    } else {
+      dispatch(loadProject(id, callback));
+    }
+  };
 
   const projectClass = classNames(
     "flex group w-full relative p-4 h-40",
     "rounded-lg border border-slate-400",
     "text-slate-200 text-sm",
-    border,
-    props.filePath ? "bg-[#0a001f]/70" : "bg-slate-900/90",
+    isDemo ? "bg-gray-900/90" : "bg-slate-900/90",
     { "ring ring-red-500 cursor-not-allowed": isInvalid },
-    { "cursor-pointer backdrop-blur shadow-xl": !isInvalid }
+    { "backdrop-blur shadow-xl": !isInvalid },
+    { "cursor-pointer": !isInvalid && canPlay },
+    deleting
+      ? "shadow-[0_0_20px_0_rgb(255,0,0)]"
+      : isDemo
+      ? "shadow-xl hover:shadow-[0_0_15px_0_rgba(0,0,0,0.5)]"
+      : "shadow-xl hover:shadow-[0_0_15px_0_rgba(0,0,0,0.5)]"
   );
 
   return (
@@ -285,7 +294,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
       whileHover={{ scale: 1.01, transition: { delay: 0, duration: 0.1 } }}
       key={id}
       className={projectClass}
-      onClick={() => !isInvalid && onClick()}
+      onClick={onClick}
     >
       <ProjectLogo />
       <ProjectTitle />

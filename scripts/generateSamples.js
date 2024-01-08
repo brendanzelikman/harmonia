@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import _ from "lodash";
 
-const sampleDir = "public/instruments";
+const sampleDir = "src/assets/samples";
 const categoryFolders = fs.readdirSync(sampleDir);
 
 const result = {};
@@ -24,7 +24,6 @@ categoryFolders.forEach((category) => {
     sampleFiles.forEach((file) => {
       if (file === ".DS_Store") return;
       const pitch = path.basename(file, ".wav");
-      // const midi = Tone.Midi(pitch).toMidi();
       mapping[pitch] = file;
     });
 

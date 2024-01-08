@@ -1,14 +1,18 @@
-import { useAuthenticationStatus } from "hooks";
+import { useAuthentication } from "providers/authentication";
 import { Navigate } from "react-router-dom";
 
 type PrivateRouteProps = { children: JSX.Element };
 type SecureRouteProps = { private?: boolean; component: JSX.Element };
 
 export function PrivateRoute(props: PrivateRouteProps) {
-  const Auth = useAuthenticationStatus();
-  if (Auth.isLoadingAuthentication) return null;
-  if (Auth.isAuthenticated) return props.children;
-  return <Navigate to="/" />;
+  const { isAuthenticated, isLoaded } = useAuthentication();
+
+  return (
+    <>
+      {isAuthenticated && props.children}
+      {isLoaded && !isAuthenticated && <Navigate to="/" />}
+    </>
+  );
 }
 
 export function SecureRoute(props: SecureRouteProps) {

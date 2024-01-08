@@ -8,11 +8,13 @@ import {
   toggleEditorTripletDuration,
 } from "redux/Editor";
 import * as _ from "redux/Pattern";
+import { useSubscription } from "providers/subscription";
 
 const useHotkeys = useScopedHotkeys("editor");
 
 export function usePatternEditorHotkeys(props: PatternEditorProps) {
-  const { dispatch, auth, undo, redo } = props;
+  const { dispatch, undo, redo } = props;
+  const { isProdigy } = useSubscription();
   const { pattern, cursor, canUndo, canRedo } = props;
   const id = pattern?.id;
   const index = cursor.index;
@@ -159,15 +161,15 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   useHotkeys(
     "shift+x",
     () =>
-      !auth.isFree && pattern && dispatch(_.exportPatternToXML(pattern, true)),
-    [auth, pattern]
+      !isProdigy && pattern && dispatch(_.exportPatternToXML(pattern, true)),
+    [isProdigy, pattern]
   );
 
   // M = Export Pattern to MIDI
   useHotkeys(
     "shift+m",
-    () => !auth.isFree && id && dispatch(_.exportPatternToMIDI(id)),
-    [auth, id]
+    () => !isProdigy && id && dispatch(_.exportPatternToMIDI(id)),
+    [isProdigy, id]
   );
 
   // R = Prompt for repeat

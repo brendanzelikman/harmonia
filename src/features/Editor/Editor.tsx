@@ -2,7 +2,7 @@ import * as _ from "types/Editor";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectEditor } from "redux/Editor";
 import { EditorNavbar } from "./components/EditorNavbar";
-import { useAuthenticationStatus, useHotkeyScope } from "hooks";
+import { useHotkeyScope } from "hooks";
 import { Track } from "types/Track";
 import {
   selectSelectedPattern,
@@ -24,7 +24,6 @@ import { Pose } from "types/Pose";
 
 export interface EditorProps extends _.Editor {
   dispatch: Dispatch;
-  auth: ReturnType<typeof useAuthenticationStatus>;
 
   // The editor uses currently selected objects for various purposes
   track?: Track;
@@ -64,7 +63,6 @@ export interface EditorProps extends _.Editor {
 
 function EditorComponent() {
   const dispatch = useProjectDispatch();
-  const auth = useAuthenticationStatus();
   const editor = useProjectSelector(selectEditor);
 
   // The editor uses currently selected objects for various purposes
@@ -113,7 +111,6 @@ function EditorComponent() {
   const editorProps: EditorProps = {
     ...editor,
     dispatch,
-    auth,
     track,
     scale,
     pattern,

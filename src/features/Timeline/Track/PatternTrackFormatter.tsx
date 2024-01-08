@@ -6,11 +6,7 @@ import {
   TrackDropdownMenu,
   TrackDropdownButton,
 } from "./components";
-import {
-  getInstrumentName,
-  getInstrumentChannel,
-  LIVE_AUDIO_INSTANCES,
-} from "types/Instrument";
+import { getInstrumentName, getInstrumentChannel } from "types/Instrument";
 import {
   BsArrowsCollapse,
   BsArrowsExpand,
@@ -59,13 +55,13 @@ import { updateInstrument } from "redux/Instrument";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import classNames from "classnames";
 import { PatternTrack } from "types/Track";
-import { useAuthenticationStatus } from "hooks";
 import { bindTrackToPort, clearTrackPort } from "redux/Track";
-import { promptModal } from "components/Modal";
+import { promptModal } from "components/PromptModal";
 import isElectron from "is-electron";
 import { selectPluginData } from "redux/Plugin";
 import { sendPluginData } from "types/Plugin";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useSubscription } from "providers/subscription";
 
 interface PatternTrackProps extends TrackFormatterProps {
   track: PatternTrack;
@@ -73,7 +69,7 @@ interface PatternTrackProps extends TrackFormatterProps {
 
 export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const { track, cell, label, isSelected } = props;
-  const auth = useAuthenticationStatus();
+  const { isVirtuoso } = useSubscription();
   const dispatch = useProjectDispatch();
 
   // Track drag and drop
@@ -142,7 +138,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
 
   /** The Pattern Track dropdown menu allows the user to perform general actions on the track. */
   const PatternTrackDropdownMenu = () => {
-    const showPortFeatures = auth.isVirtuoso && !!isElectron();
+    const showPortFeatures = isVirtuoso && !!isElectron();
     const channel = track.port ? track.port - PLUGIN_STARTING_PORT : 0;
 
     const onPortClick = async () => {

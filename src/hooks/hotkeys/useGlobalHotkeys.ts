@@ -10,12 +10,12 @@ import {
 } from "redux/thunks";
 import { isEditorVisible } from "types/Editor";
 import { useNavigate } from "react-router-dom";
-import { useAuthenticationStatus } from "hooks/db/useAuthenticationStatus";
+import { useSubscription } from "providers/subscription";
 
 /** Use global hotkeys for the project */
 export function useGlobalHotkeys() {
   const dispatch = useProjectDispatch();
-  const { isAtLeastStatus } = useAuthenticationStatus();
+  const { isProdigy, isAtLeastStatus } = useSubscription();
   const navigate = useNavigate();
   const timeline = useProjectSelector(selectTimeline);
   const editor = useProjectSelector(selectEditor);
@@ -28,15 +28,20 @@ export function useGlobalHotkeys() {
   useOverridingHotkeys("meta+o", () => dispatch(loadFromLocalProjects()));
 
   // Meta + Alt + N = New Project
-  useOverridingHotkeys("meta+alt+n", () =>
-    createProject().then(() => location.reload())
+  useOverridingHotkeys(
+    "meta+alt+n",
+    () => {
+      if (isProdigy) return;
+      createProject().then(() => location.reload());
+    },
+    [isProdigy]
   );
 
   // Meta + P = View Projects
   useOverridingHotkeys(
     "meta+shift+p",
-    () => navigate(isAtLeastStatus("pro") ? "/projects" : "/demos"),
-    [isAtLeastStatus("pro")]
+    () => navigate(isAtLeastStatus("maestro") ? "/projects" : "/demos"),
+    [isAtLeastStatus("maestro")]
   );
 
   // Meta + E = Toggle Editor

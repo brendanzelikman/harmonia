@@ -3,7 +3,9 @@ import {
   PoseId,
   PoseNoId,
   defaultPose,
+  getVectorKeys,
   initializePose,
+  isPoseVectorModule,
   offsetPoseStreamVectors,
   resetPoseStreamVectors,
   updatePoseStreamVectors,
@@ -17,6 +19,7 @@ import {
 } from "redux/selectors";
 import { addPose, clearPose, updatePose, updatePoses } from "./PoseSlice";
 import { setSelectedPose } from "redux/thunks";
+import { random } from "lodash";
 
 /** Create a pose. */
 export const createPose =
@@ -50,6 +53,28 @@ export const repeatPoseStream =
     const stream = new Array(pose.stream.length * value)
       .fill(pose.stream)
       .flat();
+    dispatch(updatePose({ id, stream }));
+  };
+
+/** Randomize the stream of a pose. */
+export const randomizePoseStream =
+  (id: PoseId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const pose = selectPoseById(project, id);
+    if (!pose) return;
+    const stream = pose.stream.map((v) => {
+      if (isPoseVectorModule(v)) {
+        const keys = getVectorKeys(v.vector);
+        const vector = keys.reduce(
+          (acc, key) => ({ ...acc, [key]: random(-3, 3) }),
+          {}
+        );
+        return { ...v, vector };
+      } else {
+        return v;
+      }
+    });
     dispatch(updatePose({ id, stream }));
   };
 

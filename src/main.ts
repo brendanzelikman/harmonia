@@ -1,6 +1,7 @@
-import { app, ipcMain, BrowserWindow } from "electron";
+import { app, ipcMain, BrowserWindow, protocol } from "electron";
 import dgram from "dgram";
 import path from "path";
+import url from "url";
 import Squirrel from "electron-squirrel-startup";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -8,10 +9,13 @@ if (Squirrel) {
   app.quit();
 }
 
+let mainWindow: BrowserWindow;
+
+// Create the main window
 const createWindow = () => {
-  // Create the browser window
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     webPreferences: {
+      contextIsolation: true,
       nodeIntegration: true,
       preload: path.join(__dirname, "preload.js"),
     },
@@ -25,8 +29,15 @@ const createWindow = () => {
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+    mainWindow.loadURL(
+      url.format({
+        pathname: path.join(
+          __dirname,
+          `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`
+        ),
+        protocol: "file:",
+        slashes: true,
+      })
     );
   }
 
@@ -40,6 +51,22 @@ const createWindow = () => {
 app.dock.setIcon(path.join(__dirname, "logo.png"));
 app.setName("Harmonia");
 app.name = "Harmonia";
+
+// Register the app protocol
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "harmonia",
+    privileges: { secure: true, standard: true, supportFetchAPI: true },
+  },
+]);
+
+app.setAsDefaultProtocolClient("harmonia");
+app.on("open-url", (e, url) => {
+  const slicedUrl = url.slice(`harmonia://`.length);
+  if (mainWindow) {
+    mainWindow.webContents.send("magic-link", slicedUrl);
+  }
+});
 
 // Create the main window when Electron is ready
 app.on("ready", () => {

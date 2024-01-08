@@ -1,16 +1,16 @@
-import { useAuthenticationStatus } from "hooks";
-import { AuthenticationStatus } from "indexedDB";
+import { SubscriptionStatus } from "utils/constants";
+import { useSubscription } from "providers/subscription";
 import { useCallback } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
 
 export const useLandingHotkeys = () => {
   const navigate = useNavigate();
-  const { isAtLeastStatus } = useAuthenticationStatus();
+  const { isAtLeastStatus } = useSubscription();
 
   // Fire the callback if the user is at least the given status
   const authCallback = useCallback(
-    (callback: () => void, status: AuthenticationStatus = "free") => {
+    (callback: () => void, status: SubscriptionStatus = "prodigy") => {
       return () => {
         if (isAtLeastStatus(status)) callback();
       };
@@ -21,7 +21,7 @@ export const useLandingHotkeys = () => {
   // Redirect the user to their projects
   useHotkeys(
     "shift+enter",
-    authCallback(() => navigate("/projects"), "pro"),
+    authCallback(() => navigate("/projects"), "maestro"),
     [authCallback]
   );
 

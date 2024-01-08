@@ -1,6 +1,11 @@
 import { Editor } from "features/Editor/components";
 import { PoseEditorProps } from "../PoseEditor";
-import { copyPose, createPose, repeatPoseStream } from "redux/thunks";
+import {
+  copyPose,
+  createPose,
+  randomizePoseStream,
+  repeatPoseStream,
+} from "redux/thunks";
 import { addPoseBlock, clearPose, updatePose } from "redux/Pose";
 import { promptUserForNumber } from "utils/html";
 
@@ -83,6 +88,18 @@ export function PoseEditorToolbar(props: PoseEditorProps) {
     </Button>
   );
 
+  /** The user can randomize the stream of the pose. */
+  const RandomizeButton = () => (
+    <Button
+      label="Clear Pose Stream"
+      onClick={() => dispatch(randomizePoseStream(id))}
+      disabled={!pose.stream.length}
+      disabledClass="text-slate-500"
+    >
+      Randomize Stream
+    </Button>
+  );
+
   /** The user can clear the stream of the pose. */
   const ClearButton = () => (
     <Button
@@ -111,6 +128,7 @@ export function PoseEditorToolbar(props: PoseEditorProps) {
         <Editor.TabGroup border={false}>
           <VectorButton />
           <RepeatButton />
+          <RandomizeButton />
           <ClearButton />
         </Editor.TabGroup>
       )}

@@ -1,22 +1,32 @@
 import { useNavigate } from "react-router-dom";
-import { useAuthenticationStatus } from "hooks";
-import { useHotkeys } from "react-hotkeys-hook";
 import { useLandingError } from "features/Landing/hooks/useLandingError";
-import { useLandingPassword } from "features/Landing/hooks/useLandingPassword";
 import { useLandingHotkeys } from "features/Landing/hooks/useLandingHotkeys";
 import Background from "assets/images/landing-background.png";
-import { LandingSplashScreen } from "features/Landing/LandingSplashScreen";
 import { Landing } from "features/Landing";
+import { useAuthentication } from "providers/authentication";
+import { useSubscription } from "providers/subscription";
 
-export function LandingPage() {
+export const landingActions = [
+  "idle",
+  "login",
+  "magic-link",
+  "magic-electron",
+] as const;
+export type LandingAction = (typeof landingActions)[number];
+interface LandingPageProps {
+  action: LandingAction;
+}
+
+export function LandingPage(props: LandingPageProps) {
+  const { action } = props;
   const navigate = useNavigate();
-  const { isAuthenticated, isAtLeastStatus } = useAuthenticationStatus();
-  const { promptPassword } = useLandingPassword();
+  const { isAuthenticated, checkPassword } = useAuthentication();
+  const { isAtLeastStatus } = useSubscription();
   useLandingHotkeys();
 
   // Handle the landing page errors
   const { hasError, errorMessage, ErrorStack } = useLandingError();
-  const showBody = !hasError && !!isAuthenticated;
+  const showBody = !hasError && !!isAuthenticated && action === "idle";
   const showStack = hasError;
 
   // Show the error in the subtitle if there is one
@@ -25,19 +35,14 @@ export function LandingPage() {
     ? "font-light sm:text-2xl text-lg text-red-500"
     : "font-normal sm:text-4xl text-xl drop-shadow-xl";
 
-  // Prompt the user for the password
-  useHotkeys("meta+shift+p", () => promptPassword(false));
-
   // Redirect the user or prompt them for the password
-  // * Shift + Click = Go To Playground
-  // * Alt + Click = Prompt Password
-  // * Click = Go To Projects
-  const onButtonClick = (e: React.MouseEvent) => {
+  const onButtonClick = async (e: React.MouseEvent) => {
+    await checkPassword();
     if (isAuthenticated && !e.altKey) {
       if (e.shiftKey) return navigate("/playground");
-      return navigate(isAtLeastStatus("pro") ? "/projects" : "/demos");
+      return navigate(isAtLeastStatus("maestro") ? "/projects" : "/demos");
     } else {
-      promptPassword(true);
+      navigate("/login");
     }
   };
 
@@ -47,11 +52,14 @@ export function LandingPage() {
         src={Background}
         className="fixed opacity-50 h-screen object-cover landing-background"
       />
-      <LandingSplashScreen
-        subtitle={subtitle}
-        subtitleClass={subtitleClass}
-        onButtonClick={onButtonClick}
-      />
+      {action === "idle" && (
+        <Landing.SplashScreen
+          subtitle={subtitle}
+          subtitleClass={subtitleClass}
+          onButtonClick={onButtonClick}
+        />
+      )}
+      {action !== "idle" && <Landing.LoginScreen action={action} />}
       {showBody && (
         <>
           <Landing.PricingHero />

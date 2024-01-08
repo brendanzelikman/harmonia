@@ -6,7 +6,7 @@ import {
   getDurationTicks,
   ticksToSeconds,
 } from "utils/durations";
-import { useAnimationFrame } from "../useAnimationFrame";
+import { useAnimationFrame } from "../window/useAnimationFrame";
 import { useMetronome } from "./useMetronome";
 import { WebMidi } from "webmidi";
 import { defaultTransport } from "types/Transport";

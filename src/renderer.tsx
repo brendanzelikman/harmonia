@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom/client";
 import { App } from "./App";
 import { start as startAudioContext } from "tone";
-import "./index.css";
+import "./renderer.css";
 
 /** Initialize the audio context when the user presses an input. */
 const initializeContext = () => {

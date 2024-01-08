@@ -9,9 +9,11 @@ import {
 import { Editor } from "features/Editor/components";
 import { PatternEditorTabProps } from "./PatternEditorContent";
 import { useEffect } from "react";
+import { useSubscription } from "providers/subscription";
 
 export function PatternEditorToolbar(props: PatternEditorTabProps) {
-  const { dispatch, auth, pattern, isEmpty, Button, onChord } = props;
+  const { dispatch, pattern, isEmpty, Button, onChord } = props;
+  const subscription = useSubscription();
 
   /** The user can create a new pattern. */
   const NewButton = () => (
@@ -38,7 +40,7 @@ export function PatternEditorToolbar(props: PatternEditorTabProps) {
 
   /** The user can export a pattern to MIDI or MusicXML. */
   const ExportButton = () => {
-    if (auth.isFree) return null;
+    if (subscription.isProdigy) return null;
     return (
       <Button
         label="Export Pattern"

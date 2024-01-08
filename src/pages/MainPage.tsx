@@ -5,11 +5,7 @@ import { Playground } from "../features/Playground";
 import { Navbar } from "features/Navbar";
 import { useParams } from "react-router-dom";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import {
-  useDatabaseCallback,
-  useCustomEventListener,
-  useAuthenticationStatus,
-} from "hooks";
+import { useDatabaseCallback, useCustomEventListener } from "hooks";
 import { getProjectsFromDB } from "indexedDB";
 import { CREATE_PROJECT, DELETE_PROJECT } from "redux/thunks";
 import { Project } from "types/Project";
@@ -17,23 +13,33 @@ import { useProjectFetcher } from "features/Projects/hooks/useProjectFetcher";
 import { TourBackground } from "features/Tour";
 import { useProjectSelector } from "redux/hooks";
 import { selectProjectName } from "redux/Metadata";
-import { useBrowserTitle } from "hooks/useBrowserTitle";
+import { useBrowserTitle } from "hooks";
 import LandingBackground from "assets/images/landing-background.png";
 import Nest from "assets/demos/nest.ham";
 import Barry from "assets/demos/barry.ham";
 import Wind from "assets/demos/wind.ham";
 import Marimba from "assets/demos/marimba.ham";
 import Strum from "assets/demos/strum.ham";
+import { UserProfile } from "features/Profile";
+import { useAuthentication } from "providers/authentication";
+import { useSubscription } from "providers/subscription";
 
 export type View = (typeof views)[number];
-export const views = ["projects", "demos", "docs", "playground"] as const;
+export const views = [
+  "projects",
+  "demos",
+  "docs",
+  "profile",
+  "playground",
+] as const;
 
 /* The main page of the app */
 interface MainPageProps {
   view?: View;
 }
 export function MainPage(props: MainPageProps) {
-  const auth = useAuthenticationStatus();
+  const { user } = useAuthentication();
+  const { isAtLeastStatus } = useSubscription();
   const params = useParams<{ view: View }>();
   const view = props.view || params.view || "projects";
   const [projects, setProjects] = useState<Project[]>([]);
@@ -41,13 +47,13 @@ export function MainPage(props: MainPageProps) {
 
   // Update the list of projects based on the authentication status
   const updateProjects = async () => {
-    if (!auth.isAuthenticated) return;
-    const fetchedProjects = await getProjectsFromDB();
+    if (!user) return;
+    const fetchedProjects = await getProjectsFromDB(user.uid);
     setProjects(fetchedProjects);
   };
 
   // Update whenever the database or view changes
-  useDatabaseCallback(updateProjects, [auth.isAuthenticated]);
+  useDatabaseCallback(updateProjects, [user]);
   useCustomEventListener(CREATE_PROJECT, updateProjects);
   useCustomEventListener(DELETE_PROJECT, updateProjects);
   useEffect(() => {
@@ -91,7 +97,6 @@ export function MainPage(props: MainPageProps) {
   const transitionClass = classNames(
     "w-full h-full pt-nav flex flex-col items-center",
     "text-white font-nunito",
-    { "bg-slate-950/50": view === "docs" },
     { "pt-nav": view !== "playground" }
   );
 
@@ -109,31 +114,30 @@ export function MainPage(props: MainPageProps) {
   );
 
   // The background appears for projects and demos
-  const showBackground = view === "projects" || view === "demos";
-  const MainBackground = (
+  const MainBackground = view !== "playground" && (
     <img
       src={LandingBackground}
-      className={classNames(
-        showBackground
-          ? "animate-in fade-in opacity-50"
-          : "animate-out fade-out opacity-0",
-        "fixed h-screen landing-background select-none duration-300 -z-10"
-      )}
+      className={
+        "fixed h-screen landing-background select-none opacity-50 -z-10"
+      }
     />
   );
 
   // Render the main page
   return (
-    <div className="w-full h-screen relative overflow-hidden">
+    <div className={"w-full h-screen relative overflow-hidden"}>
       <Navbar view={view} />
       {MainBackground}
       <TourBackground />
       <div className={transitionClass}>
-        {auth.isAtLeastStatus("pro") && (
+        {isAtLeastStatus("maestro") && (
           <ViewWrapper view="projects">{ProjectList()}</ViewWrapper>
         )}
         <ViewWrapper view="demos">{DemoList()}</ViewWrapper>
         <ViewWrapper view="docs">{Docs()}</ViewWrapper>
+        <ViewWrapper view="profile">
+          <UserProfile />
+        </ViewWrapper>
         <ViewWrapper view="playground">
           <Playground />
         </ViewWrapper>

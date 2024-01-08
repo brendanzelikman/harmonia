@@ -12,6 +12,7 @@ export function Playground() {
   useGlobalHotkeys();
   useMidiController();
 
+  // If the playground is not loaded, show the loading screen.
   if (!loadState.isPlaygroundLoaded) {
     return <PlaygroundLoadingScreen loadState={loadState} />;
   }
