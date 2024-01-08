@@ -13,10 +13,11 @@ import {
   SubscriptionStatus,
   WEBSITE_LOCATION,
 } from "./constants";
+import { FirebaseApp } from "firebase";
 
 /* Get the checkout URL for the given subscription status. */
 export const getCheckoutUrl = async (
-  app: firebase.app.App,
+  app: FirebaseApp,
   status: SubscriptionStatus
 ): Promise<string> => {
   const db = getFirestore(app);
@@ -59,7 +60,7 @@ export const getCheckoutUrl = async (
 
 /* Get the portal URL to manage subscriptions with a custom flow based on status. */
 export const getPortalUrl = async (
-  app: firebase.app.App,
+  app: FirebaseApp,
   status?: SubscriptionStatus
 ): Promise<string> => {
   let dataWithUrl: any;

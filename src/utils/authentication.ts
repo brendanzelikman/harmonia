@@ -1,6 +1,11 @@
 import { firebaseAuth } from "firebase";
 import { WEBSITE_LOCATION } from "./constants";
-import { ActionCodeSettings, getAuth } from "firebase/auth";
+import {
+  ActionCodeSettings,
+  getAuth,
+  sendSignInLinkToEmail as sendMagicLink,
+  signInWithEmailLink,
+} from "firebase/auth";
 import isElectron from "is-electron";
 
 /** Send a link to the user's email and flag it in local storage. */
@@ -9,7 +14,7 @@ export const sendSignInLinkToEmail = async (email: string) => {
   const url = `${WEBSITE_LOCATION}/#/magic-${tag}`;
   const actionCodeSettings: ActionCodeSettings = { url, handleCodeInApp: true };
   try {
-    await firebaseAuth.sendSignInLinkToEmail(email, actionCodeSettings);
+    await sendMagicLink(firebaseAuth, email, actionCodeSettings);
     window.localStorage.setItem("emailForSignIn", email);
   } catch (error) {
     console.error(error);
@@ -22,7 +27,7 @@ export const completeSignInWithEmailLink = async (emailLink: string) => {
   if (!email) return false;
 
   try {
-    await firebaseAuth.signInWithEmailLink(email, emailLink);
+    await signInWithEmailLink(firebaseAuth, email, emailLink);
     window.localStorage.removeItem("emailForSignIn");
     return true;
   } catch (error) {
