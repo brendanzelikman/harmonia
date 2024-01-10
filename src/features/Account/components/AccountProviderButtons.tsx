@@ -1,10 +1,10 @@
 import {
   appleProvider,
-  firebaseAuth,
+  firebaseApp,
   googleProvider,
   microsoftProvider,
 } from "firebase";
-import { signInWithRedirect } from "firebase/auth";
+import { getAuth, signInWithRedirect } from "firebase/auth";
 import { BsApple, BsGoogle, BsMicrosoft } from "react-icons/bs";
 
 // Provider types
@@ -38,11 +38,12 @@ export const accountProviders: Record<AccountProviderType, any> = {
 };
 
 export const AccountProviderButton = (provider: AccountProvider) => {
+  const auth = getAuth(firebaseApp);
   return (
     <button
       className="w-80 p-3 px-4 gap-2 flex items-center bg-slate-800/50 hover:bg-slate-600/50 border text-xl rounded-lg border-slate-200/50 text-white cursor-pointer font-light capitalize"
       type="button"
-      onClick={() => signInWithRedirect(firebaseAuth, provider.src)}
+      onClick={() => signInWithRedirect(auth, provider.src)}
     >
       <provider.icon className="mr-4" />
       Continue With {provider.name}

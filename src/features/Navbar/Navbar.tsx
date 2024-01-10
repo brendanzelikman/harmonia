@@ -8,7 +8,6 @@ import { View, views } from "pages";
 import { Link } from "react-router-dom";
 import { useCustomEventListener } from "hooks";
 import classNames from "classnames";
-import { useOnboardingTour } from "features/Tour";
 import { useSubscription } from "providers/subscription";
 import { Tooltip, TooltipProvider, TooltipTrigger } from "components/Tooltip";
 import { TooltipContent } from "@radix-ui/react-tooltip";
@@ -17,7 +16,6 @@ export function Navbar(props: { view: View }) {
   const { view } = props;
   const { isProdigy, isMaestro, isVirtuoso, isAtLeastStatus, isDesktop } =
     useSubscription();
-  const Tour = useOnboardingTour();
 
   // Listen for the playground to load
   const [didPlaygroundLoad, setDidPlaygroundLoad] = useState(false);
@@ -122,7 +120,6 @@ export function Navbar(props: { view: View }) {
         </NavbarGroup>
         <NavbarGroup className="relative ml-auto hidden md:flex">
           <NavbarSettingsMenu />
-          {Tour.Button}
         </NavbarGroup>
       </div>
     );

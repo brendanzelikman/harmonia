@@ -34,10 +34,10 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
   useHotkeys("meta+shift+z", () => dispatch(redoArrangement()));
 
   // Space = Play/Pause Transport
-  useTransportHotkeys("space", () => dispatch(Transport.toggleTransport()));
+  useHotkeys("space", () => dispatch(Transport.toggleTransport()));
 
   // Enter = Stop Transport
-  useTransportHotkeys("enter", () => dispatch(Transport.stopTransport()));
+  useHotkeys("enter", () => dispatch(Transport.stopTransport()));
 
   // Shift + Enter = Reset Scroll Position
   useHotkeys(

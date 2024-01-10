@@ -5,6 +5,8 @@ import Background from "assets/images/landing-background.png";
 import { Landing } from "features/Landing";
 import { useAuthentication } from "providers/authentication";
 import { useSubscription } from "providers/subscription";
+import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
+import { useRef } from "react";
 
 export const landingActions = [
   "idle",
@@ -46,8 +48,28 @@ export function LandingPage(props: LandingPageProps) {
     }
   };
 
+  // Handle landing page scroll
+  const mainRef = useRef<HTMLDivElement>(null);
+  useOverridingHotkeys("down", () => {
+    if (!mainRef.current) return;
+    mainRef.current.scrollTo({
+      top: mainRef.current.scrollTop + window.innerHeight,
+      behavior: "smooth",
+    });
+  });
+  useOverridingHotkeys("up", () => {
+    if (!mainRef.current) return;
+    mainRef.current.scrollTo({
+      top: mainRef.current.scrollTop - window.innerHeight,
+      behavior: "smooth",
+    });
+  });
+
   return (
-    <main className="relative font-nunito animate-in fade-in duration-75 flex flex-col w-full h-screen overflow-scroll">
+    <main
+      ref={mainRef}
+      className="relative font-nunito animate-in fade-in duration-75 flex flex-col w-full h-screen overflow-scroll"
+    >
       <img
         src={Background}
         className="fixed opacity-50 h-screen object-cover landing-background"

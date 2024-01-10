@@ -6,7 +6,7 @@ export function GlobalShortcuts() {
   const { isProdigy } = useSubscription();
   return (
     <ShortcutContent
-      className="text-lg space-y-4"
+      className="text-lg space-y-3"
       shortcuts={[
         <Shortcut shortcut="⌘ + S" description="Save Project" />,
         <Shortcut shortcut="⌘ + O" description="Open Project" />,
@@ -20,6 +20,7 @@ export function GlobalShortcuts() {
         <Shortcut shortcut="⌘ + ⌥ + W" description="Export Project to WAV" />,
         <Shortcut shortcut="Esc" description="Close Editor" />,
         <Shortcut shortcut="⌘ + ⇧ + F" description="Toggle Fullscreen" />,
+        <Shortcut shortcut="⌘ + D" description="Toggle Diary" />,
         <Shortcut shortcut="⌘ + ," description="Toggle Settings" />,
         <Shortcut shortcut="?" description="Toggle Shortcuts" />,
       ]}

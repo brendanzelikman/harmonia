@@ -44,6 +44,8 @@ export type LivePlay = {
 };
 export type PoseMode = "numerical" | "alphabetical";
 
+/** The user can toggle their diary from the timeline. */
+
 /** The `Timeline` contains information about the data grid and manages all tracked objects. */
 export interface Timeline {
   state: TimelineState;
@@ -56,6 +58,7 @@ export interface Timeline {
   mediaClipboard: MediaClipboard;
   mediaDragState: MediaDragState;
   livePlay: LivePlay;
+  showingDiary?: boolean;
 }
 
 // ------------------------------------------------------------

@@ -10,6 +10,7 @@ const editor = Slices.Editor.default;
 const meta = Slices.Metadata.default;
 const timeline = Slices.Timeline.default;
 const transport = Slices.Transport.default;
+const diary = Slices.Diary.default;
 
 const undoableArrangement = undoable(Slices.Arrangement.default, {
   groupBy: groupByActionType,
@@ -49,6 +50,7 @@ const appReducer = combineReducers({
   arrangement: undoableArrangement,
   timeline,
   editor,
+  diary,
 });
 
 /** Inject the reducer with an overwriter */

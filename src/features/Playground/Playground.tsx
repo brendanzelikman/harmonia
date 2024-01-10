@@ -5,6 +5,7 @@ import { useGlobalHotkeys, useMidiController } from "hooks";
 import { Timeline } from "features/Timeline";
 import { Editor } from "features/Editor";
 import { ShortcutsMenu } from "features/Shortcuts/ShortcutsMenu";
+import { Diary } from "features/Diary";
 
 /** The playground contains the DAW */
 export function Playground() {
@@ -20,6 +21,7 @@ export function Playground() {
   // Otherwise, show the playground.
   return (
     <div className="w-full h-full relative animate-in fade-in duration-500">
+      <Diary />
       <div className="relative hidden md:flex flex-col h-full">
         <Timeline />
         <Editor />

@@ -56,5 +56,6 @@ export const getIdleTimeline = (timeline: Timeline): Timeline => {
     ...timeline,
     state: "idle",
     mediaDragState: DEFAULT_MEDIA_DRAG_STATE,
+    showingDiary: false,
   };
 };

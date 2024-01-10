@@ -2,7 +2,11 @@ import { useProjectSelector, useProjectDispatch } from "redux/hooks";
 import { selectEditor } from "redux/selectors";
 import { hideEditor, toggleEditor } from "redux/Editor";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
-import { selectTimeline, updateMediaSelection } from "redux/Timeline";
+import {
+  selectTimeline,
+  toggleDiary,
+  updateMediaSelection,
+} from "redux/Timeline";
 import {
   exportProjectToHAM,
   loadFromLocalProjects,
@@ -50,6 +54,9 @@ export function useGlobalHotkeys() {
     () => dispatch(toggleEditor(timeline.selectedClipType)),
     [timeline.selectedClipType]
   );
+
+  // Meta + D = Toggle Diary
+  useOverridingHotkeys("meta+d", () => dispatch(toggleDiary()), []);
 
   // Escape = Hide Editor or Clear Selection
   useOverridingHotkeys(

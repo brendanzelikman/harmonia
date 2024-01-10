@@ -194,6 +194,10 @@ export const timelineSlice = createSlice({
       state.livePlay.mode =
         state.livePlay.mode === "numerical" ? "alphabetical" : "numerical";
     },
+    /** Toggle the diary. */
+    toggleDiary: (state) => {
+      state.showingDiary = !state.showingDiary;
+    },
   },
 });
 
@@ -213,6 +217,7 @@ export const {
   updateMediaDragState,
   toggleLivePlay,
   toggleLivePlayMode,
+  toggleDiary,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

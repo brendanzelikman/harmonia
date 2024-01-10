@@ -4,8 +4,7 @@ import {
   LandingPriceBox,
   LandingPopupHeader,
 } from "../components";
-import { SubscriptionContext, useSubscription } from "providers/subscription";
-import { useContext } from "react";
+import { useSubscription } from "providers/subscription";
 import { MAESTRO_PROJECT_LIMIT } from "utils/constants";
 
 export const LandingPricingHero = () => {

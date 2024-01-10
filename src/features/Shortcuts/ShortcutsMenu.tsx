@@ -1,5 +1,5 @@
 import { Dialog } from "@headlessui/react";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useCustomEventListener } from "hooks";
 import { GlobalShortcuts } from "./content/GlobalShortcuts";
@@ -12,6 +12,7 @@ import { ScaleEditorShortcuts } from "./content/ScaleEditorShortcuts";
 import { PatternEditorShortcuts } from "./content/PatternEditorShortcuts";
 import { PoseEditorShortcuts } from "./content/PoseEditorShortcuts";
 import { BsX, BsXCircle } from "react-icons/bs";
+import { useProjectSelector } from "redux/hooks";
 
 export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
 
@@ -28,13 +29,19 @@ export const SHORTCUT_TYPES = [
 export type ShortcutType = (typeof SHORTCUT_TYPES)[number];
 
 export function ShortcutsMenu() {
+  const showingDiary = useProjectSelector((_) => _.timeline.showingDiary);
   const [show, setShow] = useState(false);
   const [type, setType] = useState<ShortcutType>("Global");
 
+  // Close the diary if it's open
+  useEffect(() => {
+    if (showingDiary) setShow(false);
+  }, [showingDiary]);
+
   // Listen for shortcut events
-  const toggleShortcuts = () => setShow(!show);
+  const toggleShortcuts = useCallback(() => setShow((show) => !show), []);
   useCustomEventListener(TOGGLE_SHORTCUTS, () => setShow(!show));
-  useHotkeys("shift+?", toggleShortcuts);
+  useHotkeys("shift+slash", toggleShortcuts);
   useHotkeys("esc", () => setShow(false));
 
   // Render a topic header and its entries' links

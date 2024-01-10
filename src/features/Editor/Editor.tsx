@@ -105,7 +105,7 @@ function EditorComponent() {
   );
 
   // The editor uses a custom hotkey scope
-  useHotkeyScope("editor");
+  useHotkeyScope("editor", isVisible);
 
   // The editor passes its props down to all of the typed editors
   const editorProps: EditorProps = {

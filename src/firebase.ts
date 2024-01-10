@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { GoogleAuthProvider, OAuthProvider, getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 import {
   FIREBASE_LIVE_API_KEY,
   FIREBASE_MODE,
@@ -45,11 +44,3 @@ microsoftProvider.addScope("User.Read");
 // Export Firebase App
 export const firebaseApp = initializeApp(firebaseConfig);
 export type FirebaseApp = typeof firebaseApp;
-
-// Export Firebase Auth Types
-export const firebaseAuth = getAuth(firebaseApp);
-export type FirebaseAuth = typeof firebaseAuth;
-
-// Export Firestore Database
-export const firestore = getFirestore(firebaseApp);
-export type Firestore = typeof firestore;

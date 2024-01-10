@@ -10,3 +10,4 @@ export * as Scales from "./Scale/ScaleSlice";
 export * as Timeline from "./Timeline/TimelineSlice";
 export * as Tracks from "./Track/TrackSlice";
 export * as Transport from "./Transport/TransportSlice";
+export * as Diary from "./Diary/DiarySlice";

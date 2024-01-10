@@ -32,29 +32,35 @@ import {
   setTransportVolume,
   toggleTransportMute,
 } from "redux/Transport";
-import { selectCell, setCellWidth } from "redux/Timeline";
+import {
+  selectCell,
+  selectTimeline,
+  setCellWidth,
+  toggleDiary,
+} from "redux/Timeline";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { TOGGLE_SHORTCUTS } from "features/Shortcuts/ShortcutsMenu";
 import { dispatchCustomEvent } from "utils/html";
+import { GiBookCover, GiOpenBook } from "react-icons/gi";
+import { useOnboardingTour } from "features/Tour";
 
 export function NavbarSettingsMenu() {
   const dispatch = useProjectDispatch();
+  const Tour = useOnboardingTour();
+
   const { bpm, timeSignature, volume, mute } =
     useProjectSelector(selectTransport);
-  const cell = useProjectSelector(selectCell);
+  const { cell, showingDiary } = useProjectSelector(selectTimeline);
 
   // Settings visibility toggle
   const [show, setShow] = useState(false);
   const toggleShow = () => setShow((prev) => !prev);
   useOverridingHotkeys("meta+comma", toggleShow);
 
-  /**
-   * The Settings button is rendered as a gear icon.
-   * Clicking the button toggles the visibility of the tooltip menu.
-   */
+  /** Clicking the Settings button toggles the visibility of the tooltip menu. */
   const SettingsButton = () => {
-    const className = `cursor-pointer mr-1 ${
-      show ? "text-slate-500 shadow-xl rounded-full " : ""
+    const className = `cursor-pointer ${
+      show ? "text-slate-500 shadow-xl" : ""
     }`;
     return (
       <NavbarButton className={className} onClick={() => setShow(!show)}>
@@ -137,9 +143,7 @@ export function NavbarSettingsMenu() {
     </NavbarFormGroup>
   );
 
-  /**
-   * The Shortcuts button opens the shortcuts menu.
-   */
+  /** The Shortcuts button opens the shortcuts menu. */
   const ShortcutsButton = () => (
     <NavbarFormGroup className="pt-1">
       <NavbarFormButton
@@ -172,10 +176,7 @@ export function NavbarSettingsMenu() {
 
   const [draggingVolume, setDraggingVolume] = useState(false);
 
-  /**
-   * The transport volume icon dynamically changes based on the volume.
-   * Clicking the icon toggles the transport mute.
-   */
+  /** The transport volume icon dynamically changes based on the volume. */
   const TransportVolumeIcon = () => {
     const VolumeIcon = mute ? (
       <BsVolumeMuteFill />
@@ -203,9 +204,7 @@ export function NavbarSettingsMenu() {
     );
   };
 
-  /**
-   * The transport volume slider is rendered as a range slider.
-   */
+  /** The transport volume slider is rendered as a range slider. */
   const TransportVolumeSlider = () => (
     <input
       className="w-24 accent-white caret-slate-50 mr-3"
@@ -222,9 +221,7 @@ export function NavbarSettingsMenu() {
     />
   );
 
-  /**
-   * The transport volume field consists of the volume icon and slider.
-   */
+  /** The transport volume field consists of the volume icon and slider. */
   const TransportVolumeField = () => (
     <>
       {TransportVolumeIcon()}
@@ -232,16 +229,33 @@ export function NavbarSettingsMenu() {
     </>
   );
 
+  /** The diary button toggles the diary. */
+  const DiaryButton = () => {
+    const className = `cursor-pointer ${
+      showingDiary ? "text-indigo-400" : "text-slate-50"
+    }`;
+    return (
+      <NavbarButton
+        className={className}
+        onClick={() => dispatch(toggleDiary())}
+      >
+        <GiBookCover />
+      </NavbarButton>
+    );
+  };
+
   return (
     <>
       {TransportVolumeField()}
-      <div className="flex items-center">
+      <div className="flex items-center w-full gap-2">
+        <DiaryButton />
         <SettingsButton />
         <NavbarTooltip
-          className="-left-[1rem] w-56 bg-slate-600/70 backdrop-blur"
+          className="left-12 w-56 bg-slate-600/70 backdrop-blur"
           content={SettingsTooltipContent}
           show={show}
         />
+        {Tour.Button}
       </div>
     </>
   );

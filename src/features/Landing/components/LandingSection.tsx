@@ -7,7 +7,7 @@ export const LandingSection = (props: {
   <section
     className={classNames(
       props.className,
-      "relative flex flex-col items-center w-full min-h-screen py-5 shrink-0"
+      "relative flex flex-col items-center w-full h-screen py-5 shrink-0"
     )}
   >
     {props.children ?? null}
