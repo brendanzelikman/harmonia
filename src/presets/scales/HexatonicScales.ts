@@ -2,12 +2,12 @@ import { ScaleObject } from "types/Scale";
 
 export const MajorHexatonicScale: ScaleObject = {
   id: "major-hexatonic",
-  name: "Major Hexatonic",
+  name: "Major Hexatonic Scale",
   notes: [60, 62, 64, 65, 67, 69],
 };
 export const MinorHexatonicScale: ScaleObject = {
   id: "minor-hexatonic",
-  name: "Minor Hexatonic",
+  name: "Minor Hexatonic Scale",
   notes: [60, 62, 63, 65, 67, 70],
 };
 export const MajorScaleNo4th: ScaleObject = {

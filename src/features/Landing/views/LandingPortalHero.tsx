@@ -1,6 +1,7 @@
 import {
   LandingSection,
   LandingHeroImage,
+  LandingHeroProps,
   LandingHeroQuoteContainer,
   LandingHeroQuote,
   LandingImageGroup,
@@ -8,7 +9,7 @@ import {
 } from "../components";
 import PortalImage from "assets/images/timeline3.png";
 
-export const LandingPortalHero = () => (
+export const LandingPortalHero = (props: LandingHeroProps) => (
   <LandingSection className="gap-4">
     <LandingPopupHeader title="Breaking Barriers..." />
     <LandingImageGroup>

@@ -1,6 +1,7 @@
 import {
   LandingSection,
   LandingHeroImage,
+  LandingHeroProps,
   LandingHeroQuoteContainer,
   LandingHeroQuote,
   LandingImageGroup,
@@ -8,7 +9,7 @@ import {
 } from "../components";
 import PatternEditorImage from "assets/images/patternEditor.png";
 
-export const LandingPatternHero = () => (
+export const LandingPatternHero = (props: LandingHeroProps) => (
   <LandingSection className="gap-4">
     <LandingPopupHeader title="Upgrading Patterns..." />
     <LandingImageGroup>

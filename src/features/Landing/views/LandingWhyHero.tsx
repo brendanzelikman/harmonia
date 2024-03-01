@@ -1,9 +1,9 @@
 import { m } from "framer-motion";
 import { Link } from "react-router-dom";
-import { LandingSection } from "../components";
+import { LandingHeroProps, LandingSection } from "../components";
 import Background from "assets/images/landing-background.png";
 
-export const LandingWhyHero = () => (
+export const LandingWhyHero = (props: LandingHeroProps) => (
   <LandingSection className="flex flex-col py-10 px-5 justify-center text-white">
     <m.div
       className="relative p-12 overflow-hidden prose prose-lg prose-invert bg-blue-900/50 rounded-2xl border-4 backdrop-blur border-slate-50/50"

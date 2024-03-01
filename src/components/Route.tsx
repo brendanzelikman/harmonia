@@ -6,7 +6,6 @@ type SecureRouteProps = { private?: boolean; component: JSX.Element };
 
 export function PrivateRoute(props: PrivateRouteProps) {
   const { isAuthenticated, isLoaded } = useAuthentication();
-
   return (
     <>
       {isAuthenticated && props.children}

@@ -1,5 +1,5 @@
 import { promptUserForNumber } from "utils/html";
-import { useScopedHotkeys } from "lib/react-hotkeys-hook";
+import { useOverridingHotkeys, useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { PatternEditorProps } from "../PatternEditor";
 import {
   setEditorNoteDuration,
@@ -207,8 +207,8 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   );
 
   // Meta + "=" = Augment Pattern
-  useHotkeys(
-    "meta+=",
+  useOverridingHotkeys(
+    "meta+equal",
     () => id && dispatch(_.stretchPattern({ id, factor: 2 })),
     { preventDefault: true },
     [id]

@@ -3,6 +3,7 @@ import {
   LandingSection,
   LandingLibraryBadge,
   LandingPopupHeader,
+  LandingHeroProps,
 } from "../components";
 
 import Background from "assets/images/landing-background.png";
@@ -15,7 +16,7 @@ import ElectronImage from "assets/lib/electron.png";
 import FramerImage from "assets/lib/framer.png";
 import ViteSvg from "assets/lib/vite.svg";
 
-export const LandingLibraryHero = () => (
+export const LandingLibraryHero = (props: LandingHeroProps) => (
   <LandingSection className="justify-center text-white">
     <LandingPopupHeader title="Cutting-Edge Technology Discovered!" />
     <m.div

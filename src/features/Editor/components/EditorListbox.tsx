@@ -63,7 +63,7 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
             </span>
           </Listbox.Button>
 
-          <Listbox.Options className="absolute z-50 top-6 peer animate-in fade-in zoom-in-95 duration-150 min-w-[10rem] py-1 mt-1 overflow-auto text-xs bg-slate-800/95 border border-slate-500 rounded-md shadow-lg max-h-60 capitalize focus:outline-none">
+          <Listbox.Options className="absolute z-50 top-6 peer animate-in fade-in zoom-in-95 duration-150 min-w-[10rem] py-1 mt-1 overflow-auto text-xs bg-slate-800 border border-slate-500 rounded-md shadow-lg max-h-60 capitalize focus:outline-none">
             {props.options.map((option, index) => {
               const optionKey = getOptionKey(option, index);
               const optionValue = getOptionValue(option, index);

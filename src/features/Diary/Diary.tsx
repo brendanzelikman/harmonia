@@ -108,6 +108,7 @@ export function Diary() {
           <ul className="flex-1 w-full p-4 overflow-scroll text-blue-600 rounded">
             {diary.map((page, i) => {
               const content = page.length ? page : "Empty Page";
+              const title = content.split("\n")[0];
               return (
                 <div
                   key={`content-${i}}`}
@@ -115,7 +116,7 @@ export function Diary() {
                   onClick={() => flip(i + 1)}
                 >
                   <span className="flex-auto overflow-clip text-ellipsis mr-2">
-                    {content}
+                    {title}
                   </span>
                   <span className="flex-shrink-0 w-4 ml-auto text-end">
                     {i + 1}

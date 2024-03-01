@@ -3,11 +3,12 @@ import {
   LandingSection,
   LandingPriceBox,
   LandingPopupHeader,
+  LandingHeroProps,
 } from "../components";
 import { useSubscription } from "providers/subscription";
 import { MAESTRO_PROJECT_LIMIT } from "utils/constants";
 
-export const LandingPricingHero = () => {
+export const LandingPricingHero = (props: LandingHeroProps) => {
   const { isProdigy, isMaestro, isVirtuoso } = useSubscription();
 
   return (

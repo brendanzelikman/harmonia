@@ -1,6 +1,7 @@
 import {
   LandingSection,
   LandingHeroImage,
+  LandingHeroProps,
   LandingHeroQuoteContainer,
   LandingHeroQuote,
   LandingImageGroup,
@@ -8,7 +9,7 @@ import {
 } from "../components";
 import PosePreviewImage from "assets/images/timeline2.png";
 
-export const LandingPoseHero = () => (
+export const LandingPoseHero = (props: LandingHeroProps) => (
   <LandingSection className="gap-4">
     <LandingPopupHeader title="Redefining Transpositions..." />
     <LandingImageGroup>

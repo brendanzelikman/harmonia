@@ -1,6 +1,7 @@
 import {
   LandingSection,
   LandingHeroImage,
+  LandingHeroProps,
   LandingHeroQuoteContainer,
   LandingHeroQuote,
   LandingPopupHeader,
@@ -8,7 +9,7 @@ import {
 } from "../components";
 import ScaleEditorImage from "assets/images/scaleEditor.png";
 
-export const LandingScaleHero = () => (
+export const LandingScaleHero = (props: LandingHeroProps) => (
   <LandingSection className="gap-4">
     <LandingPopupHeader title="Unlocking Scales..." />
     <LandingImageGroup>

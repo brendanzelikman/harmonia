@@ -65,6 +65,19 @@ export function LandingPage(props: LandingPageProps) {
     });
   });
 
+  const heroes = [
+    Landing.PricingHero,
+    Landing.LibraryHero,
+    Landing.TimelineHero,
+    Landing.ScaleHero,
+    Landing.PatternHero,
+    Landing.PoseHero,
+    Landing.PortalHero,
+    Landing.PianoHero,
+    Landing.WhyHero,
+    Landing.Observatory,
+  ];
+
   return (
     <main
       ref={mainRef}
@@ -84,16 +97,17 @@ export function LandingPage(props: LandingPageProps) {
       {action !== "idle" && <Landing.LoginScreen action={action} />}
       {showBody && (
         <>
-          <Landing.PricingHero />
-          <Landing.LibraryHero />
-          <Landing.TimelineHero />
-          <Landing.ScaleHero />
-          <Landing.PatternHero />
-          <Landing.PoseHero />
-          <Landing.PortalHero />
-          <Landing.PianoHero />
-          <Landing.WhyHero />
-          <Landing.Observatory />
+          {heroes.map((Hero, i) => (
+            <Hero
+              key={i}
+              scrollToView={() =>
+                mainRef.current?.scrollTo?.({
+                  top: window.innerHeight * (i + 1),
+                  behavior: "smooth",
+                })
+              }
+            />
+          ))}
         </>
       )}
       {showStack && <ErrorStack />}

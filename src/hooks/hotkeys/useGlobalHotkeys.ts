@@ -50,13 +50,13 @@ export function useGlobalHotkeys() {
 
   // Meta + E = Toggle Editor
   useOverridingHotkeys(
-    "meta+e",
+    "shift+e",
     () => dispatch(toggleEditor(timeline.selectedClipType)),
     [timeline.selectedClipType]
   );
 
   // Meta + D = Toggle Diary
-  useOverridingHotkeys("meta+d", () => dispatch(toggleDiary()), []);
+  useOverridingHotkeys("shift+d", () => dispatch(toggleDiary()), []);
 
   // Escape = Hide Editor or Clear Selection
   useOverridingHotkeys(

@@ -1,7 +1,7 @@
 import { m } from "framer-motion";
-import { LandingSection } from "../components";
+import { LandingSection, LandingHeroProps } from "../components";
 
-export const LandingObservatory = () => (
+export const LandingObservatory = (props: LandingHeroProps) => (
   <LandingSection className="mt-4 p-8">
     <m.div
       initial={{ opacity: 0, y: 50 }}

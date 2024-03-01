@@ -1,6 +1,7 @@
 import {
   LandingSection,
   LandingHeroImage,
+  LandingHeroProps,
   LandingHeroQuoteContainer,
   LandingHeroQuote,
   LandingPopupHeader,
@@ -8,7 +9,7 @@ import {
 } from "../components";
 import TimelineImage from "assets/images/timeline1.png";
 
-export const LandingTimelineHero = () => (
+export const LandingTimelineHero = (props: LandingHeroProps) => (
   <LandingSection className="gap-4">
     <LandingPopupHeader title="Revolutionizing Workflow..." />
     <LandingImageGroup>

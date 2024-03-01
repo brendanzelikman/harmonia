@@ -1,6 +1,10 @@
 // @ts-ignore
 import { Piano, MidiNumbers } from "react-piano";
-import { LandingSection, LandingPopupHeader } from "../components";
+import {
+  LandingSection,
+  LandingPopupHeader,
+  LandingHeroProps,
+} from "../components";
 import { useEffect, useState } from "react";
 import { context } from "tone";
 import {
@@ -20,7 +24,7 @@ import { Logo } from "components/Logo";
 import { Slider } from "components/Slider";
 import { capitalize } from "lodash";
 
-export const LandingPianoHero = () => {
+export const LandingPianoHero = (props: LandingHeroProps) => {
   const [instance, setInstance] = useState<LiveAudioInstance>();
   const [effects, setEffects] = useState<Record<EffectKey, number>>({
     reverb: 0.3,
