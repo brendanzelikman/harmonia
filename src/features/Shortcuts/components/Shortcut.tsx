@@ -1,4 +1,9 @@
-export const Shortcut = (props: { shortcut: string; description: string }) => {
+import { ReactNode } from "react";
+
+export const Shortcut = (props: {
+  shortcut: ReactNode;
+  description: ReactNode;
+}) => {
   return (
     <li className="px-8 flex gap-8 items-center whitespace-nowrap">
       <span className="font-light w-64 text-slate-200/90">

@@ -12,29 +12,22 @@ import { useAuthentication } from "providers/authentication";
 
 /** Try to load the current project from the database on mount */
 export function useProjectLoader() {
-  const { user } = useAuthentication();
+  const { uid, isAdmin } = useAuthentication();
   const dispatch = useProjectDispatch();
   const [loaded, setLoaded] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) return;
-    const req = indexedDB.open(getUserDatabaseName(user.uid));
+    if (!uid) return;
+    const req = indexedDB.open(getUserDatabaseName(uid));
     req.onsuccess = async () => {
       // Get the current project ID
-      const id = await getCurrentProjectId(user.uid);
+      const id = await getCurrentProjectId(uid);
+      const project = await getProjectFromDB(uid, id);
 
       // If there is no current project, create one
-      if (!id) {
-        await uploadProjectToDB(user.uid, defaultProject);
+      if (!id || !project) {
+        await uploadProjectToDB(uid, defaultProject);
         setLoaded(true);
-        return;
-      }
-
-      // Otherwise, try to load the project
-      const project = await getProjectFromDB(user.uid, id);
-      if (!isProject(project)) {
-        navigate("/");
         return;
       }
 
@@ -43,7 +36,7 @@ export function useProjectLoader() {
 
       setLoaded(true);
     };
-  }, []);
+  }, [isAdmin, uid]);
 
   return loaded;
 }

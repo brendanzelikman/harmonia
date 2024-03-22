@@ -74,7 +74,7 @@ export const NavbarLivePlayButton = () => {
     ".",
     "/",
   ]);
-  const isHolding = Object.values(heldKeys).some((v) => v);
+  const isHolding = Object.values(heldKeys).some((v) => !!v);
 
   // Get the numerical shortcuts.
   const NumericalShortcuts = () => {

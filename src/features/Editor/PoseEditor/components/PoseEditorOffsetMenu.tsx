@@ -88,6 +88,7 @@ export function PoseEditorOffsetMenu(props: PoseEditorOffsetMenuProps) {
 
   const OffsetNumericField = () => {
     if (!offsetOption) return null;
+    const offsetName = getPoseVectorOffsetName(offsetOption.id, trackMap);
     return (
       <Editor.NumericField
         key={offsetOption.id}
@@ -97,7 +98,7 @@ export function PoseEditorOffsetMenu(props: PoseEditorOffsetMenuProps) {
             ? "bg-pose/70"
             : "bg-transparent"
         )}
-        leadingText={`${getPoseVectorOffsetName(offsetOption.id, trackMap)} = `}
+        leadingText={`${offsetName} = `}
         placeholder="0"
         value={Input.getValue(offsetOption.id) || ""}
         onChange={Input.onChange(offsetOption.id)}

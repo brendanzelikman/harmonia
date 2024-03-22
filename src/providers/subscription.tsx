@@ -18,7 +18,7 @@ import {
 } from "react";
 import { MAESTRO_PRICE_ID, VIRTUOSO_PRICE_ID } from "utils/constants";
 import { doesSnapshotMatchStatus } from "utils/database";
-import { useAuthentication } from "./authentication";
+import { getPasswordStatus, useAuthentication } from "./authentication";
 import isElectron from "is-electron";
 
 // Subscription info storing status, price, etc.
@@ -34,6 +34,7 @@ export interface SubscriptionInfo {
   isAtLeastStatus: (status: SubscriptionStatus) => boolean;
   isDesktop?: boolean;
   isWeb?: boolean;
+  isAdmin?: boolean;
   canPlay?: boolean;
 }
 
@@ -43,6 +44,19 @@ const DEFAULT_SUBSCRIPTION_INFO: SubscriptionInfo = {
   isMaestro: false,
   isVirtuoso: false,
   isAtLeastStatus: () => false,
+  isDesktop: isElectron(),
+  isWeb: !isElectron(),
+};
+
+// Admin subscription info
+export const ADMIN_SUBSCRIPTION_INFO: SubscriptionInfo = {
+  ...DEFAULT_SUBSCRIPTION_INFO,
+  isProdigy: true,
+  isMaestro: true,
+  isVirtuoso: true,
+  isAdmin: true,
+  canPlay: true,
+  isAtLeastStatus: () => true,
 };
 
 // Create a context for the subscription info
@@ -55,7 +69,7 @@ export const useSubscription = () => useContext(SubscriptionContext);
 
 // Provide the subscription info to the app
 export const SubscriptionProvider = (props: { children: ReactNode }) => {
-  const { user } = useAuthentication();
+  const { user, isAdmin } = useAuthentication();
   const userId = user?.uid;
   const db = getFirestore(firebaseApp);
 
@@ -114,7 +128,7 @@ export const SubscriptionProvider = (props: { children: ReactNode }) => {
 
   const isProdigy = !hasMaestro && !hasVirtuoso;
   const isMaestro = hasMaestro && !hasVirtuoso;
-  const isVirtuoso = hasVirtuoso;
+  const isVirtuoso = hasVirtuoso || isAdmin;
   const isDesktop = isElectron();
   const isWeb = !isDesktop;
   const canPlay = isWeb || isVirtuoso;
@@ -129,7 +143,9 @@ export const SubscriptionProvider = (props: { children: ReactNode }) => {
     : undefined;
 
   // Collect the subscription info
-  const value: SubscriptionInfo = !userId
+  const value: SubscriptionInfo = isAdmin
+    ? ADMIN_SUBSCRIPTION_INFO
+    : !userId
     ? DEFAULT_SUBSCRIPTION_INFO
     : {
         status,
@@ -159,8 +175,10 @@ export async function getSubscriptionStatus(
   uid?: string
 ): Promise<SubscriptionInfo> {
   const auth = getAuth(firebaseApp);
+  const isAdmin = getPasswordStatus() === "admin";
   const userId = auth.currentUser?.uid || uid;
   const db = getFirestore(firebaseApp);
+  if (isAdmin) return ADMIN_SUBSCRIPTION_INFO;
   if (!userId) return DEFAULT_SUBSCRIPTION_INFO;
 
   // Get the subscription ID
@@ -218,9 +236,9 @@ export async function getSubscriptionStatus(
     isMaestro,
     isVirtuoso,
     isAtLeastStatus: (status: SubscriptionStatus) => {
-      if (status === "prodigy") return isProdigy;
-      if (status === "maestro") return hasMaestro && !hasVirtuoso;
-      if (status === "virtuoso") return hasVirtuoso;
+      if (status === "prodigy") return isProdigy || isMaestro || isVirtuoso;
+      if (status === "maestro") return isMaestro || isVirtuoso;
+      if (status === "virtuoso") return isVirtuoso;
       return false;
     },
   };

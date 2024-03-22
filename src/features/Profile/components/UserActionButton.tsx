@@ -6,11 +6,17 @@ interface ActionButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   icon: IconType;
   text: string;
   children?: React.ReactNode;
+  link?: string;
   disabled?: boolean;
 }
 
 export const UserActionButton = (props: ActionButtonProps) => {
   const { isVirtuoso } = useSubscription();
+  const buttonClass = classNames(
+    `size-full flex flex-col gap-3 text-md ring-2 font-bold total-center rounded-xl`,
+    props.className
+  );
+  const icon = <props.icon className="size-12 flex total-center" />;
   return (
     <div
       className={classNames(
@@ -19,16 +25,25 @@ export const UserActionButton = (props: ActionButtonProps) => {
       )}
     >
       {props.children}
-      <button
-        className={classNames(
-          `size-full flex flex-col gap-3 text-md ring-2 font-bold total-center rounded-xl`,
-          props.className
-        )}
-        onClick={props.disabled ? undefined : props.onClick}
-      >
-        <props.icon className="size-12 flex total-center" />
-        {props.text}
-      </button>
+      {props.link ? (
+        <a
+          href={props.link}
+          target="_blank"
+          rel="noreferrer"
+          className={buttonClass}
+        >
+          {icon}
+          {props.text}
+        </a>
+      ) : (
+        <button
+          className={buttonClass}
+          onClick={props.disabled ? undefined : props.onClick}
+        >
+          {icon}
+          {props.text}
+        </button>
+      )}
     </div>
   );
 };

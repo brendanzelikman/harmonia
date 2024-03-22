@@ -102,7 +102,7 @@ const ALPHABETICAL_ZERO_BINDS = ["y", "h", "n", "`", "0"];
 
 export const useTimelineLiveHotkeys = () => {
   const dispatch = useProjectDispatch();
-  const { isProdigy } = useSubscription();
+  const { isAtLeastStatus } = useSubscription();
 
   // Get the timeline from the store
   const timeline = useProjectSelector(selectTimeline);
@@ -165,7 +165,7 @@ export const useTimelineLiveHotkeys = () => {
     }
 
     // Compute the pose offset record
-    let vector = {} as PoseVector;
+    const vector = {} as PoseVector;
     const dir = negative ? -1 : 1;
     const offset = isHoldingShift(e) ? 12 : 0;
 
@@ -322,7 +322,7 @@ export const useTimelineLiveHotkeys = () => {
    * (This is a workaround for duplicated events with react-hotkeys)
    */
   useEffect(() => {
-    if (!isLive || isProdigy) return;
+    if (!isLive || !isAtLeastStatus("maestro")) return;
     const keydown = isNumerical ? numericalKeydown : alphabeticalKeydown;
     const zeroKeydown = isNumerical
       ? numericalZeroKeydown
@@ -336,7 +336,7 @@ export const useTimelineLiveHotkeys = () => {
       window.removeEventListener("keydown", zeroKeydown);
     };
   }, [
-    isProdigy,
+    isAtLeastStatus,
     isLive,
     isNumerical,
     numericalKeydown,

@@ -1,18 +1,17 @@
+export const IS_PROD = import.meta.env.PROD;
 // ------------------------------------------------------------
 // Project Settings - Product Info
 // ------------------------------------------------------------
-
-export const FIREBASE_MODE = import.meta.env.VITE_FIREBASE_MODE;
-export const IS_LIVE = FIREBASE_MODE === "live";
 export const FIREBASE_LIVE_API_KEY = import.meta.env.VITE_FIREBASE_LIVE_API_KEY;
 export const FIREBASE_TEST_API_KEY = import.meta.env.VITE_FIREBASE_TEST_API_KEY;
 
-// Website Location
-export const WEBSITE_TEST_LOCATION = import.meta.env.VITE_WEBSITE_TEST_LOCATION;
-export const WEBSITE_LIVE_LOCATION = import.meta.env.VITE_WEBSITE_LIVE_LOCATION;
-export const WEBSITE_LOCATION = IS_LIVE
-  ? WEBSITE_LIVE_LOCATION
-  : WEBSITE_TEST_LOCATION;
+// Website URL
+export const WEBSITE_TEST_URL = import.meta.env.VITE_WEBSITE_TEST_URL;
+export const WEBSITE_LIVE_URL = import.meta.env.VITE_WEBSITE_LIVE_URL;
+export const WEBSITE_URL = IS_PROD ? WEBSITE_LIVE_URL : WEBSITE_TEST_URL;
+export const REPO_URL = import.meta.env.VITE_REPOSITORY_URL;
+export const DESKTOP_URL = import.meta.env.VITE_DESKTOP_URL;
+export const PLUGIN_URL = import.meta.env.VITE_PLUGIN_URL;
 
 // ------------------------------------------------------------
 // Project Settings - Subscriptions
@@ -28,7 +27,7 @@ export const VIRTUOSO_PROJECT_LIMIT = Infinity;
 // Maestro Price
 export const MAESTRO_TEST_PRICE_ID = import.meta.env.VITE_MAESTRO_TEST_PRICE_ID;
 export const MAESTRO_LIVE_PRICE_ID = import.meta.env.VITE_MAESTRO_LIVE_PRICE_ID;
-export const MAESTRO_PRICE_ID = IS_LIVE
+export const MAESTRO_PRICE_ID = IS_PROD
   ? MAESTRO_LIVE_PRICE_ID
   : MAESTRO_TEST_PRICE_ID;
 
@@ -37,15 +36,15 @@ export const VIRTUOSO_TEST_PRICE_ID = import.meta.env
   .VITE_VIRTUOSO_TEST_PRICE_ID;
 export const VIRTUOSO_LIVE_PRICE_ID = import.meta.env
   .VITE_VIRTUOSO_LIVE_PRICE_ID;
-export const VIRTUOSO_PRICE_ID = IS_LIVE
+export const VIRTUOSO_PRICE_ID = IS_PROD
   ? VIRTUOSO_LIVE_PRICE_ID
   : VIRTUOSO_TEST_PRICE_ID;
 
 // Subscription Prices
 export const PRICE_RECORD = {
   prodigy: null,
-  maestro: IS_LIVE ? MAESTRO_LIVE_PRICE_ID : MAESTRO_TEST_PRICE_ID,
-  virtuoso: IS_LIVE ? VIRTUOSO_LIVE_PRICE_ID : VIRTUOSO_TEST_PRICE_ID,
+  maestro: IS_PROD ? MAESTRO_LIVE_PRICE_ID : MAESTRO_TEST_PRICE_ID,
+  virtuoso: IS_PROD ? VIRTUOSO_LIVE_PRICE_ID : VIRTUOSO_TEST_PRICE_ID,
 };
 
 // ------------------------------------------------------------
@@ -78,7 +77,7 @@ export const DEFAULT_BEATS_PER_BAR = 4;
 // Volume Settings
 // ------------------------------------------------------------
 
-export const DEFAULT_INSTRUMENT_KEY = "upright-piano-loud";
+export const DEFAULT_INSTRUMENT_KEY = "upright-piano";
 export const DEFAULT_VOLUME = -6;
 export const MIN_VOLUME = -60;
 export const MAX_VOLUME = 6;

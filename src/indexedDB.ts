@@ -58,7 +58,11 @@ export const initializeUserDatabase = async (userId: string) => {
 /** Get a boolean indicating whether a user has reached their maximum projects */
 export const hasReachedProjectLimit = async (uid: string): Promise<boolean> => {
   const db = await getUserDatabase(uid);
-  const { isProdigy, isMaestro, isVirtuoso } = await getSubscriptionStatus(uid);
+  const { isProdigy, isMaestro, isVirtuoso, isAdmin } =
+    await getSubscriptionStatus(uid);
+
+  // Check if the user is an admin
+  if (isAdmin) return false;
 
   // Check if the user has reached their project limit
   const projects = await db.getAll(PROJECT_STORE);
@@ -93,19 +97,19 @@ export const uploadProjectToDB = async (
   const db = await getUserDatabase(userId);
 
   // Check if the user is authenticated
-  const { isAuthenticated } = await getAuthenticationStatus();
-  if (!isAuthenticated) return false;
+  const { isAuthorized } = await getAuthenticationStatus();
+  if (!isAuthorized) return false;
 
-  // Check if the user has reached their project limit
+  // Check if the user has reached their project limit and uploading
   const cappedProjects = await hasReachedProjectLimit(userId);
-  if (cappedProjects) return false;
+  const isUpdating = !!getProjectFromDB(userId, project.meta.id);
+  if (cappedProjects && !isUpdating) return false;
 
   // Add the project to the database
   await db.put(PROJECT_STORE, project);
 
   // Set the current project ID
   await setCurrentProjectId(userId, project.meta.id);
-  console.log("good");
 
   // Return true if successful
   return true;
@@ -116,7 +120,8 @@ export async function getProjectsFromDB(uid: string): Promise<Project[]> {
   const db = await getUserDatabase(uid);
 
   // Check if the user is authenticated
-  const { isProdigy, isMaestro, isVirtuoso } = await getSubscriptionStatus(uid);
+  const { isProdigy, isMaestro, isVirtuoso, isAdmin } =
+    await getSubscriptionStatus(uid);
 
   // Get all of the user's projects
   const projects = await db.getAll(PROJECT_STORE);
@@ -130,6 +135,7 @@ export async function getProjectsFromDB(uid: string): Promise<Project[]> {
   }
 
   // Return the projects based on the user's project limit
+  if (isAdmin) return projects;
   if (isProdigy) return projects.slice(0, 1);
   if (isMaestro) return projects.slice(0, 100);
   if (isVirtuoso) return projects;
@@ -139,13 +145,14 @@ export async function getProjectsFromDB(uid: string): Promise<Project[]> {
 /** Get the project with the given ID as a promise. */
 export async function getProjectFromDB(
   userId: string,
-  projectId: string
+  projectId?: string
 ): Promise<Project | undefined> {
+  if (!projectId) return undefined;
   const db = await getUserDatabase(userId);
 
   // Check if the user is authenticated
-  const { isAuthenticated } = await getAuthenticationStatus();
-  if (!isAuthenticated) return undefined;
+  const { isAuthorized } = await getAuthenticationStatus();
+  if (!isAuthorized) return undefined;
 
   // Return the project if it exists
   return db.get(PROJECT_STORE, projectId);

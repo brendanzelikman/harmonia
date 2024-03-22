@@ -23,8 +23,6 @@ import {
 import { dispatchCustomEvent } from "utils/html";
 import { sample } from "lodash";
 import JSZip from "jszip";
-import isElectron from "is-electron";
-import { store } from "redux/store";
 import { getSubscriptionStatus } from "providers/subscription";
 import { getAuthenticationStatus } from "providers/authentication";
 
@@ -33,13 +31,13 @@ export const DELETE_PROJECT = "deleteProject";
 
 /** Try to create a new project, using the given template if specified. */
 export const createProject = async (template?: Project) => {
-  const { user } = await getAuthenticationStatus();
-  if (!user) return;
+  const { uid } = await getAuthenticationStatus();
+  if (!uid) return;
   const project = initializeProject(template);
   const id = project.meta.id;
   try {
-    await uploadProjectToDB(user.uid, project);
-    await setCurrentProjectId(user.uid, id);
+    await uploadProjectToDB(uid, project);
+    await setCurrentProjectId(uid, id);
   } catch (e) {
     console.log(e);
   } finally {
@@ -49,11 +47,11 @@ export const createProject = async (template?: Project) => {
 
 /** Try to delete the project from the database. */
 export const deleteProject = (id: string) => async () => {
-  const { user } = await getAuthenticationStatus();
-  if (!user) return;
+  const { uid } = await getAuthenticationStatus();
+  if (!uid) return;
 
   try {
-    deleteProjectFromDB(user.uid, id);
+    deleteProjectFromDB(uid, id);
   } catch (e) {
     console.error(e);
   } finally {
@@ -63,14 +61,14 @@ export const deleteProject = (id: string) => async () => {
 
 /** Delete all empty projects. */
 export const deleteEmptyProjects = async () => {
-  const { user } = await getAuthenticationStatus();
-  if (!user) return;
+  const { uid } = await getAuthenticationStatus();
+  if (!uid) return;
 
   try {
-    const projects = await getProjectsFromDB(user.uid);
+    const projects = await getProjectsFromDB(uid);
     const emptyProjects = projects.filter(isProjectEmpty);
     emptyProjects.forEach((project) =>
-      deleteProjectFromDB(user.uid, project.meta.id)
+      deleteProjectFromDB(uid, project.meta.id)
     );
   } catch (e) {
     console.error(e);
@@ -83,8 +81,8 @@ export const deleteEmptyProjects = async () => {
 export const saveProject =
   (project?: Project): Thunk =>
   async (dispatch, getProject) => {
-    const { user } = await getAuthenticationStatus();
-    if (!user) return;
+    const { uid } = await getAuthenticationStatus();
+    if (!uid) return;
 
     // Sanitize the project
     const sanitizedProject = sanitizeProject(project || getProject());
@@ -96,7 +94,7 @@ export const saveProject =
     };
 
     // Update the project in the database.
-    updateProjectInDB(user.uid, updatedProject);
+    updateProjectInDB(uid, updatedProject);
   };
 
 /** Export the project to a Harmonia file, using the given state if specified. */
@@ -129,11 +127,11 @@ export const exportProjectToMIDI =
 
 /** Export all projects to Harmonia files and download them as a zip. */
 export const exportProjectsToZIP = async () => {
-  const { user } = await getAuthenticationStatus();
-  if (!user) return;
+  const { uid } = await getAuthenticationStatus();
+  if (!uid) return;
   try {
     // Convert the projects to blobs
-    const projects = (await getProjectsFromDB(user.uid)).map(sanitizeProject);
+    const projects = (await getProjectsFromDB(uid)).map(sanitizeProject);
     const jsons = projects.map((project) => JSON.stringify(project));
     const blobs = jsons.map((_) => new Blob([_], { type: "application/json" }));
 
@@ -178,13 +176,13 @@ export const loadFromLocalProjects = (): Thunk => (dispatch) => {
 export const loadProject =
   (id: string, callback?: () => void): Thunk<Promise<boolean>> =>
   async (dispatch) => {
-    const { user } = await getAuthenticationStatus();
-    if (!user) return false;
+    const { uid } = await getAuthenticationStatus();
+    if (!uid) return false;
 
     try {
-      const project = await getProjectFromDB(user.uid, id);
+      const project = await getProjectFromDB(uid, id);
       if (!isProject(project)) throw new Error("Invalid project");
-      await setCurrentProjectId(user.uid, id);
+      await setCurrentProjectId(uid, id);
       dispatch({ type: "setProject", payload: project });
     } catch (e) {
       console.error(e);
@@ -213,8 +211,8 @@ export const mergeFromLocalProjects = (): Thunk => (dispatch) => {
 export const mergeProjectByFile =
   (file: File): Thunk =>
   async (dispatch) => {
-    const { user } = await getAuthenticationStatus();
-    if (!user) return;
+    const { uid } = await getAuthenticationStatus();
+    if (!uid) return;
 
     try {
       const reader = new FileReader();
@@ -230,24 +228,21 @@ export const mergeProjectByFile =
         }
 
         // Merge the project with the current project
-        const currentProjectId = await getCurrentProjectId(user.uid);
+        const currentProjectId = await getCurrentProjectId(uid);
         if (!currentProjectId) return;
-        const currentProject = await getProjectFromDB(
-          user.uid,
-          currentProjectId
-        );
+        const currentProject = await getProjectFromDB(uid, currentProjectId);
         if (!currentProject) return;
         const mergedProject = mergeProjects(currentProject, project);
 
         // Upload or save the project depending on whether it already exists
         const existingProject = await getProjectFromDB(
-          user.uid,
+          uid,
           mergedProject.meta.id
         );
         if (!existingProject) {
-          uploadProjectToDB(user.uid, mergedProject);
+          uploadProjectToDB(uid, mergedProject);
         } else {
-          updateProjectInDB(user.uid, mergedProject);
+          updateProjectInDB(uid, mergedProject);
         }
       };
       reader.readAsText(file);
@@ -262,9 +257,9 @@ export const mergeProjectByFile =
 export const loadProjectByFile =
   (file: File): Thunk =>
   async (dispatch) => {
-    const { user, isAuthenticated } = await getAuthenticationStatus();
-    const { isProdigy } = await getSubscriptionStatus();
-    if (!user || !isAuthenticated) return;
+    const { uid, isAuthorized } = await getAuthenticationStatus();
+    const { isAtLeastStatus } = await getSubscriptionStatus();
+    if (!uid || !isAuthorized) return;
 
     try {
       const reader = new FileReader();
@@ -280,27 +275,27 @@ export const loadProjectByFile =
         }
 
         // Try to get the existing project
-        const existingProject = await getProjectFromDB(
-          user.uid,
-          project.meta.id
-        );
+        const existingProject = await getProjectFromDB(uid, project.meta.id);
+        setCurrentProjectId(uid, project.meta.id);
 
         // Replace the current project if the free tier has a project
-        if (isProdigy) {
-          await replaceCurrentProject(user.uid, project);
+        if (!isAtLeastStatus("maestro")) {
+          await replaceCurrentProject(uid, project);
+          return;
         }
 
         // Upload or save the project depending on whether it already exists
         if (!existingProject) {
-          uploadProjectToDB(user.uid, project);
+          uploadProjectToDB(uid, project);
         } else {
-          updateProjectInDB(user.uid, project);
+          updateProjectInDB(uid, project);
         }
       };
       reader.readAsText(file);
     } catch (e) {
       console.log(e);
     } finally {
+      window.location.reload();
     }
   };
 
@@ -309,26 +304,32 @@ export const loadProjectByPath =
   (path: string, callback?: () => void): Thunk =>
   async () => {
     // Check if the user is authenticated
-    const { user, isAuthenticated } = await getAuthenticationStatus();
-    const { isProdigy } = await getSubscriptionStatus();
-    if (!user || !isAuthenticated) return;
+    const { uid, isAuthorized } = await getAuthenticationStatus();
+    const { isAtLeastStatus } = await getSubscriptionStatus();
+    if (!uid || !isAuthorized) return;
+
+    let projectId;
 
     try {
       // Get the project from the path
       const project = await fetch(path).then((res) => res.json());
 
       // Replace the current project if the free tier has a project
-      if (isProdigy) {
-        await replaceCurrentProject(user.uid, project);
+      if (!isAtLeastStatus("maestro")) {
+        await replaceCurrentProject(uid, project);
+        projectId = project.meta.id;
       }
 
       // Upload the project to the database
       else {
-        await uploadProjectToDB(user.uid, {
+        projectId = nanoid();
+        await uploadProjectToDB(uid, {
           ...project,
-          meta: { ...project.meta, id: nanoid() },
+          meta: { ...project.meta, id: projectId },
         });
       }
+
+      setCurrentProjectId(uid, projectId);
     } catch (e) {
       console.error(e);
     } finally {
@@ -340,10 +341,10 @@ export const loadProjectByPath =
 export const loadRandomProject =
   (callback?: () => void): Thunk =>
   async (dispatch) => {
-    const { user } = await getAuthenticationStatus();
-    if (!user) return;
+    const { uid } = await getAuthenticationStatus();
+    if (!uid) return;
     try {
-      const projects = await getProjectsFromDB(user.uid);
+      const projects = await getProjectsFromDB(uid);
       const randomProject = sample(projects);
       if (!randomProject) return;
       await dispatch(loadProject(randomProject.meta.id));

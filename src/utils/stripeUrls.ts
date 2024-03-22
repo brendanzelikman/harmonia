@@ -7,11 +7,7 @@ import {
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getSubscriptionStatus } from "providers/subscription";
-import {
-  PRICE_RECORD,
-  SubscriptionStatus,
-  WEBSITE_LOCATION,
-} from "./constants";
+import { PRICE_RECORD, SubscriptionStatus, WEBSITE_URL } from "./constants";
 import { FirebaseApp } from "firebase";
 
 /* Get the checkout URL for the given subscription status. */
@@ -94,7 +90,7 @@ export const getPortalUrl = async (
     // Make sure the user is routed to the web
     const returnUrl =
       window.location.protocol === "file:"
-        ? WEBSITE_LOCATION
+        ? WEBSITE_URL
         : window.location.origin;
 
     // Call the function

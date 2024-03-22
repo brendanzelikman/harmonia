@@ -4,10 +4,10 @@ import { useEffect } from "react";
 
 /** Use a callback after the database loads */
 export function useDatabaseCallback(callback: () => void, deps?: any[]) {
-  const { user } = useAuthentication();
+  const { uid } = useAuthentication();
   useEffect(() => {
-    if (!user) return;
-    const db = getUserDatabase(user.uid);
+    if (!uid) return;
+    const db = getUserDatabase(uid);
     db.then((db) => !!db && callback());
-  }, [...(deps ?? []), user]);
+  }, [...(deps ?? []), uid]);
 }

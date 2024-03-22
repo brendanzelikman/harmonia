@@ -10,7 +10,7 @@ interface UserData {
 }
 
 export const getUserData = (): UserData => {
-  const { user } = useAuthentication();
+  const { user, isAdmin } = useAuthentication();
   const { isMaestro, isVirtuoso } = useSubscription();
 
   // Helper functions for unpacking fields
@@ -19,14 +19,15 @@ export const getUserData = (): UserData => {
 
   // Get the default name based on the user's subscription
   const defaultName = useMemo(() => {
-    if (!user) return "Prodigal Harmonist";
-    if (isMaestro) return "Maestral Harmonist";
-    if (isVirtuoso) return "Virtuosic Harmonist";
-    return "Prodigal Harmonist";
+    if (!user) return "Anonymous Prodigy";
+    if (isMaestro) return "Anonymous Maestro";
+    if (isVirtuoso) return "Anonymous Virtuoso";
+    return "Anonymous Prodigy";
   }, [user, isMaestro, isVirtuoso]);
 
   // Check and trim fields for the user's name
   const name = useMemo(() => {
+    if (isAdmin) return "Anonymous Administrator";
     if (!user) return defaultName;
     const displayName = trimText(user.displayName);
     if (displayName.length) return displayName;
@@ -37,6 +38,7 @@ export const getUserData = (): UserData => {
 
   // Check and trim fields for the user's name
   const email = useMemo(() => {
+    if (isAdmin) return "What would you like to do today?";
     if (!user) return "No Email Found";
     const displayEmail = trimText(user.email);
     if (displayEmail.length) return displayEmail;

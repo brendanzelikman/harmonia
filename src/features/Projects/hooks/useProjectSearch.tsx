@@ -36,6 +36,9 @@ export function useProjectSearch(props: ProjectSearchProps) {
 
   // Check if projects are capped
   const areProjectsCapped = useMemo(() => {
+    if (subscription.isAdmin) {
+      return false;
+    }
     if (subscription.isProdigy) {
       return projects.length >= PRODIGY_PROJECT_LIMIT;
     }

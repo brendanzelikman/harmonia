@@ -2,8 +2,8 @@ import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 import {
   FIREBASE_LIVE_API_KEY,
-  FIREBASE_MODE,
   FIREBASE_TEST_API_KEY,
+  IS_PROD,
 } from "utils/constants";
 
 const firebaseLiveConfig = {
@@ -25,8 +25,7 @@ const firebaseTestConfig = {
 };
 
 // Set Firebase Config based on mode
-export const firebaseConfig =
-  FIREBASE_MODE === "live" ? firebaseLiveConfig : firebaseTestConfig;
+export const firebaseConfig = IS_PROD ? firebaseLiveConfig : firebaseTestConfig;
 
 // Create a Google Provider
 export const googleProvider = new GoogleAuthProvider();

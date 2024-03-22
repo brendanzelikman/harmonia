@@ -11,7 +11,7 @@ import {
 } from "firebase/auth";
 import { useState } from "react";
 import { BsTrash } from "react-icons/bs";
-import { FaSadCry } from "react-icons/fa";
+import { FaGithub, FaSadCry } from "react-icons/fa";
 import {
   GiRank1,
   GiRank2,
@@ -29,9 +29,11 @@ import { useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
 import { useAuthentication } from "providers/authentication";
 import { signOut } from "utils/authentication";
+import { dispatchCustomEvent } from "utils/html";
+import { DESKTOP_URL, PLUGIN_URL, REPO_URL } from "utils/constants";
 
 export const UserControlPanel = () => {
-  const { user } = useAuthentication();
+  const { user, isAdmin } = useAuthentication();
   const navigate = useNavigate();
   const { isProdigy, isMaestro, isVirtuoso } = useSubscription();
   const defaultRing = "ring-slate-200/50";
@@ -175,21 +177,12 @@ export const UserControlPanel = () => {
   // The desktop button downloads the desktop app
   const DesktopButton = () => {
     if (!isVirtuoso) return null;
-
-    // Download the desktop ZIP file
-    const onClick = () => {
-      // const link = document.createElement("a");
-      // link.href = "src/assets/software/desktop.zip";
-      // link.download = "HarmoniaDesktop.zip";
-      // link.click();
-    };
-
     return (
       <UserActionButton
         className={`bg-cyan-600/80 hover:bg-cyan-600 ${defaultRing}`}
-        onClick={onClick}
         icon={SiElectron}
         text="Get the Desktop App"
+        link={DESKTOP_URL}
       />
     );
   };
@@ -197,21 +190,24 @@ export const UserControlPanel = () => {
   // The plugin button downloads the VST plugin
   const PluginButton = () => {
     if (!isVirtuoso) return null;
-
-    // Download the plugin as a ZIP
-    const onClick = () => {
-      // const link = document.createElement("a");
-      // link.href = `src/assets/software/plugin.zip`;
-      // link.download = "HarmoniaPlugin.zip";
-      // link.click();
-    };
-
     return (
       <UserActionButton
         className={`bg-blue-900/80 hover:bg-blue-900 ${defaultRing}`}
-        onClick={onClick}
         icon={GiPlug}
         text="Get the VST Plugin"
+        link={PLUGIN_URL}
+      />
+    );
+  };
+
+  // The repository button sends the user to the GitHub repository
+  const RepositoryButton = () => {
+    return (
+      <UserActionButton
+        className={`bg-slate-700/90 hover:bg-slate-700 ${defaultRing}`}
+        icon={FaGithub}
+        text="Open Repository"
+        link={REPO_URL}
       />
     );
   };
@@ -221,7 +217,15 @@ export const UserControlPanel = () => {
     return (
       <UserActionButton
         className={`bg-gray-900/80 hover:bg-gray-800 ${defaultRing}`}
-        onClick={() => signOut()}
+        onClick={() => {
+          if (isAdmin) {
+            localStorage.removeItem("harmonia-password");
+            dispatchCustomEvent("harmonia-password", null);
+            navigate("/");
+          } else {
+            signOut();
+          }
+        }}
         icon={GiExitDoor}
         text="Sign Out"
       />
@@ -268,16 +272,27 @@ export const UserControlPanel = () => {
   };
   return (
     <div
-      className={`max-w-5xl items-center justify-center flex flex-wrap saturate-150 opacity-90`}
+      className={`w-full max-w-5xl items-center justify-center flex flex-wrap saturate-150 opacity-90`}
     >
-      <ProdigyButton />
-      <MaestroButton />
-      <VirtuosoButton />
-      <ManageButton />
-      <DesktopButton />
-      <PluginButton />
-      <SignOutButton />
-      <DeleteAccountButton />
+      {isAdmin ? (
+        <>
+          <DesktopButton />
+          <PluginButton />
+          <RepositoryButton />
+          <SignOutButton />
+        </>
+      ) : (
+        <>
+          <ProdigyButton />
+          <MaestroButton />
+          <VirtuosoButton />
+          <ManageButton />
+          <DesktopButton />
+          <PluginButton />
+          <SignOutButton />
+          <DeleteAccountButton />
+        </>
+      )}
     </div>
   );
 };

@@ -13,6 +13,7 @@ import { PatternEditorShortcuts } from "./content/PatternEditorShortcuts";
 import { PoseEditorShortcuts } from "./content/PoseEditorShortcuts";
 import { BsX, BsXCircle } from "react-icons/bs";
 import { useProjectSelector } from "redux/hooks";
+import { TickDurations } from "./content/TickDurations";
 
 export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
 
@@ -25,6 +26,7 @@ export const SHORTCUT_TYPES = [
   "Pattern Editor",
   "Pose Editor",
   "Instrument Editor",
+  "Tick Durations",
 ] as const;
 export type ShortcutType = (typeof SHORTCUT_TYPES)[number];
 
@@ -76,6 +78,7 @@ export function ShortcutsMenu() {
     if (type === "Scale Editor") return <ScaleEditorShortcuts />;
     if (type === "Pattern Editor") return <PatternEditorShortcuts />;
     if (type === "Pose Editor") return <PoseEditorShortcuts />;
+    if (type === "Tick Durations") return <TickDurations />;
     return null;
   }, [type]);
 

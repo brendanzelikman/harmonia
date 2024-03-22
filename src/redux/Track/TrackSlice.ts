@@ -126,7 +126,6 @@ export const tracksSlice = createSlice({
       }
 
       // Otherwise, rearrange the state
-      state.allIds.splice(oldIndex, 1);
       spliceOrPush(state.allIds, id, index);
       state.byId = createMap(allIds.map((_) => byId[_]));
     },

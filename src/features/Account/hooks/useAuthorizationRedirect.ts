@@ -3,11 +3,11 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Redirect the user if authenticated and loaded
-export const useAuthenticatedRedirect = () => {
+export const useAuthorizationRedirect = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthentication();
+  const { isAuthorized } = useAuthentication();
 
   useEffect(() => {
-    if (isAuthenticated) navigate("/");
-  }, [isAuthenticated]);
+    if (isAuthorized) navigate("/");
+  }, [isAuthorized]);
 };

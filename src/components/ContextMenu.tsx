@@ -79,7 +79,9 @@ export function ContextMenu(props: {
               : null
           } ${option.divideEnd ? "mb-1 border-b border-b-slate-500" : ""}`}
           key={
-            typeof option.label === "string" ? option.label : `option-${index}`
+            typeof option.label === "string"
+              ? `${option.label}-${index}`
+              : `option-${index}`
           }
           onClick={option.disabled ? () => null : option.onClick}
         >

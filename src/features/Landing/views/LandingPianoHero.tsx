@@ -49,6 +49,7 @@ export const LandingPianoHero = (props: LandingHeroProps) => {
       ],
     });
     setInstance(instance);
+    return () => instance.dispose();
   }, []);
 
   // Create a wet slider for each effect

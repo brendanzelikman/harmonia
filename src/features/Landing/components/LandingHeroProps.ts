@@ -1,3 +1,1 @@
-export interface LandingHeroProps {
-  scrollToView: () => void;
-}
+export interface LandingHeroProps {}

@@ -29,12 +29,7 @@ export const DiminishedChord: Pattern = {
     "o chord",
   ],
   stream: [
-    [
-      _.createQuarterNote(60),
-      _.createQuarterNote(63),
-      _.createQuarterNote(66),
-      _.createQuarterNote(69),
-    ],
+    [_.createQuarterNote(60), _.createQuarterNote(63), _.createQuarterNote(66)],
   ],
 };
 export const AugmentedChord: Pattern = {

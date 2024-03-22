@@ -15,7 +15,7 @@ import { NavbarGroup } from "./components";
 import { useSubscription } from "providers/subscription";
 
 export function NavbarToolkit() {
-  const { isProdigy } = useSubscription();
+  const { isAtLeastStatus } = useSubscription();
   const timeline = useProjectSelector(selectTimeline);
   const onPatterns = timeline.selectedClipType === "pattern";
 
@@ -50,7 +50,7 @@ export function NavbarToolkit() {
         <NavbarSliceClipButton />
         <NavbarMergeClipsButton />
         <NavbarPortalButton />
-        {!isProdigy && <NavbarLivePlayButton />}
+        {isAtLeastStatus("maestro") && <NavbarLivePlayButton />}
       </NavbarGroup>
     </div>
   );

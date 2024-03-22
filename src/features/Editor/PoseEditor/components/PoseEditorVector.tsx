@@ -105,6 +105,22 @@ export function PoseEditorVector(props: PoseEditorVectorProps) {
   });
   const Body = (
     <div className={bodyClass}>
+      {!isOnDuration && !isOnOffsets && (
+        <div className="space-x-4 p-2 w-full h-full flex total-center group-hover:opacity-100 opacity-0 transition-opacity duration-300">
+          <button
+            className="flex-auto h-full text-center border border-slate-200/50 rounded"
+            onClick={() => toggleEditing({ index, type: "offsets" })}
+          >
+            Edit Offsets
+          </button>
+          <button
+            className="flex-auto h-full text-center border border-slate-200/50 rounded"
+            onClick={() => toggleEditing({ index, type: "duration" })}
+          >
+            Edit Duration
+          </button>
+        </div>
+      )}
       {isOnDuration && <PoseEditorDurationMenu {...props} />}
       {isOnOffsets && (
         <PoseEditorOffsetMenu
@@ -117,7 +133,7 @@ export function PoseEditorVector(props: PoseEditorVectorProps) {
   );
 
   const className = classNames(
-    "animate-in fade-in flex flex-1 items-center duration-300 min-w-fit h-full gap-4 rounded text-xs",
+    "animate-in fade-in flex flex-1 group items-center duration-300 min-w-fit h-full gap-4 rounded text-xs",
     { "opacity-50": isDragging },
     isOnModule ? "z-40" : "z-30"
   );

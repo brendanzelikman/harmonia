@@ -30,7 +30,8 @@ export function useNumericInputs(options: NumericInputOption[]) {
     const symbol = input.initialSymbol ?? "0";
 
     // Extract the last string of numbers using a regex
-    let match = e.target.value.match(/\s\S*?(-?\d+(?:-\w+)?)/)?.[1];
+    // Checks for space, negative sign, and digits
+    let match = e.target.value.match(/\s-?\d+(?=\D*$)/)?.[0];
 
     // Check for negative values and get the sign
     const matchCount = [...e.target.value].filter((_) => _ === "-").length;

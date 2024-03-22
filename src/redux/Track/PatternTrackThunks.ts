@@ -110,7 +110,7 @@ export const movePatternTrack =
     // If this = scale track and other = pattern track, move the scale track if possible
     if (!isThisPattern && isOtherPattern) {
       const index = otherTrackParent?.trackIds.indexOf(otherTrack.id);
-      if (index === undefined || index === -1) return false;
+      if (index === undefined || index < 0) return false;
       dispatch(moveTrack({ id: thisTrack.id, index }));
       return true;
     }

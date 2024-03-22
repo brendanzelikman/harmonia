@@ -17,7 +17,7 @@ interface LandingSplashScreenProps {
 }
 
 export const LandingSplashScreen = (props: LandingSplashScreenProps) => {
-  const { isAuthenticated, isLoaded } = useAuthentication();
+  const { isAuthorized, isLoaded } = useAuthentication();
   const title = props.title || "Harmonia";
   const titleClass =
     props.titleClass ||
@@ -30,7 +30,7 @@ export const LandingSplashScreen = (props: LandingSplashScreenProps) => {
   const button =
     props.button || !isLoaded
       ? "Loading User..."
-      : isAuthenticated
+      : isAuthorized
       ? "Make Music Now"
       : "Start Your Journey!";
   const buttonClass =
@@ -40,14 +40,14 @@ export const LandingSplashScreen = (props: LandingSplashScreenProps) => {
 
   return (
     <LandingSection>
-      <div className="relative w-full flex flex-col pt-16 items-center font-nunito text-slate-50">
+      <div className="relative w-full h-full flex flex-col pt-16 items-center font-nunito text-slate-50">
         <m.div
           initial={{ opacity: 0, scale: 0 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
           className="sm:size-76 size-64"
         >
-          {isAuthenticated ? (
+          {isAuthorized ? (
             <m.img
               initial={{ boxShadow: "0px 0px 50px 50px #01bcfa30" }}
               whileInView={{ boxShadow: "0px 0px 30px 30px #01bcfa50" }}

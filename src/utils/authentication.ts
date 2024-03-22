@@ -1,5 +1,5 @@
 import { firebaseApp } from "firebase";
-import { WEBSITE_LOCATION } from "./constants";
+import { WEBSITE_URL } from "./constants";
 import {
   ActionCodeSettings,
   getAuth,
@@ -12,7 +12,7 @@ import isElectron from "is-electron";
 export const sendSignInLinkToEmail = async (email: string) => {
   const auth = getAuth(firebaseApp);
   const tag = isElectron() ? "electron" : "link";
-  const url = `${WEBSITE_LOCATION}/#/magic-${tag}`;
+  const url = `${WEBSITE_URL}/#/magic-${tag}`;
   const actionCodeSettings: ActionCodeSettings = { url, handleCodeInApp: true };
   try {
     await sendMagicLink(auth, email, actionCodeSettings);

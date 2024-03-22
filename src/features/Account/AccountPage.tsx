@@ -6,7 +6,7 @@ import { AccountProviderButtons } from "./components/AccountProviderButtons";
 import { EmailRegex } from "utils/html";
 import { LandingAction } from "pages";
 import { useMagicLink } from "./hooks/useMagicLink";
-import { useAuthenticatedRedirect } from "./hooks/useAuthenticatedRedirect";
+import { useAuthorizationRedirect } from "./hooks/useAuthorizationRedirect";
 import isElectron from "is-electron";
 import { AccountContinueButton } from "./components/AccountContinueButton";
 import { AccountEmailForm } from "./components/AccountEmailForm";
@@ -19,7 +19,7 @@ interface AccountPageProps {
 export const AccountPage = (props: AccountPageProps) => {
   const { action } = props;
   const navigate = useNavigate();
-  useAuthenticatedRedirect();
+  useAuthorizationRedirect();
   useMagicLink(action);
 
   // Store and verify the email

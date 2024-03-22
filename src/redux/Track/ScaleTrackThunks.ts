@@ -310,10 +310,10 @@ export const moveScaleTrack =
     const otherTrack = selectTrackById(project, hoverId);
     if (!thisTrack || !otherTrack) return false;
 
-    // If the dragged track is a pattern track, move the pattern track
     const isThisPatternTrack = isPatternTrack(thisTrack);
     const isOtherPatternTrack = isPatternTrack(otherTrack);
 
+    // If the dragged track is a pattern track, move the pattern track
     if (isThisPatternTrack && !isOtherPatternTrack) {
       const patternTrackId = thisTrack.id;
       const scaleTrackId = otherTrack.id;
@@ -321,9 +321,9 @@ export const moveScaleTrack =
       return true;
     }
 
-    // If both tracks are scale tracks, migrate the scale
-    if (!isThisPatternTrack && !isOtherPatternTrack) {
-      return true;
+    // If the other track is a pattern track, do nothing
+    if (!isThisPatternTrack && isOtherPatternTrack) {
+      return false;
     }
 
     // Move the scale track

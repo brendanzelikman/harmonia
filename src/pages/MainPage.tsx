@@ -38,7 +38,7 @@ interface MainPageProps {
   view?: View;
 }
 export function MainPage(props: MainPageProps) {
-  const { user } = useAuthentication();
+  const { uid } = useAuthentication();
   const { isAtLeastStatus } = useSubscription();
   const params = useParams<{ view: View }>();
   const view = props.view || params.view || "projects";
@@ -47,13 +47,13 @@ export function MainPage(props: MainPageProps) {
 
   // Update the list of projects based on the authentication status
   const updateProjects = async () => {
-    if (!user) return;
-    const fetchedProjects = await getProjectsFromDB(user.uid);
+    if (!uid) return;
+    const fetchedProjects = await getProjectsFromDB(uid);
     setProjects(fetchedProjects);
   };
 
   // Update whenever the database or view changes
-  useDatabaseCallback(updateProjects, [user]);
+  useDatabaseCallback(updateProjects, [uid]);
   useCustomEventListener(CREATE_PROJECT, updateProjects);
   useCustomEventListener(DELETE_PROJECT, updateProjects);
   useEffect(() => {
@@ -85,9 +85,10 @@ export function MainPage(props: MainPageProps) {
   const title = useMemo(() => {
     if (view === "projects")
       return `Harmonia • Projects (${projectCount} total)`;
-    if (view === "demos") return `Harmonia • Demo Projects`;
+    if (view === "demos") return `Harmonia • Demos`;
+    if (view === "docs") return "Harmonia • Docs";
+    if (view === "profile") return "Harmonia • Profile";
     if (view === "playground") return `Harmonia • ${projectName}`;
-    if (view === "docs") return "Harmonia • Documentation";
     return "Harmonia";
   }, [view, projectName, projectCount, demoCount]);
 

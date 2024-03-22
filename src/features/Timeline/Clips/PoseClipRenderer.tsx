@@ -1,5 +1,10 @@
 import { useMemo } from "react";
-import { selectMediaDragState, selectClipName } from "redux/selectors";
+import {
+  selectMediaDragState,
+  selectClipName,
+  selectPoseById,
+  selectPoseClipPose,
+} from "redux/selectors";
 import { cancelEvent } from "utils/html";
 import { usePoseClipDrag } from "./usePoseClipDrag";
 import {
@@ -19,6 +24,14 @@ import classNames from "classnames";
 import { onMediaDragEnd } from "redux/Media";
 import { PoseClip, PoseClipId } from "types/Clip";
 import { ClipRendererProps } from "./TimelineClips";
+import {
+  getPoseAsString,
+  getPoseBlockAsString,
+  getPoseStreamAsString,
+  getPoseVectorAsString,
+  getPoseVectorModuleAsJSX,
+  isPoseVectorModule,
+} from "types/Pose";
 
 interface PoseClipRendererProps extends ClipRendererProps {
   clip: PoseClip;
@@ -71,6 +84,7 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
 
   /** The pose header sits above a clip and contains the pose label. */
   const name = use((_) => selectClipName(_, clip?.id));
+
   const PoseHeader = useMemo(() => {
     // The icon is a star wand when selected, magic wand otherwise
     const IconType = isSelected ? SlMagicWand : BsMagic;

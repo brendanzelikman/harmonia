@@ -6,7 +6,7 @@ import { Landing } from "features/Landing";
 import { useAuthentication } from "providers/authentication";
 import { useSubscription } from "providers/subscription";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
-import { useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export const landingActions = [
   "idle",
@@ -22,13 +22,13 @@ interface LandingPageProps {
 export function LandingPage(props: LandingPageProps) {
   const { action } = props;
   const navigate = useNavigate();
-  const { isAuthenticated, checkPassword } = useAuthentication();
+  const { isAuthenticated, isAuthorized, checkPassword } = useAuthentication();
   const { isAtLeastStatus } = useSubscription();
   useLandingHotkeys();
 
   // Handle the landing page errors
   const { hasError, errorMessage, ErrorStack } = useLandingError();
-  const showBody = !hasError && !!isAuthenticated && action === "idle";
+  const showBody = !hasError && isAuthorized && action === "idle";
   const showStack = hasError;
 
   // Show the error in the subtitle if there is one
@@ -39,7 +39,13 @@ export function LandingPage(props: LandingPageProps) {
 
   // Redirect the user or prompt them for the password
   const onButtonClick = async (e: React.MouseEvent) => {
-    await checkPassword();
+    const status = await checkPassword(e.altKey);
+
+    // Navigate to projects as an admin
+    const isAdmin = status === "admin";
+    if (isAdmin) return navigate("/projects");
+
+    // Navigate conditionally otherwise
     if (isAuthenticated && !e.altKey) {
       if (e.shiftKey) return navigate("/playground");
       return navigate(isAtLeastStatus("maestro") ? "/projects" : "/demos");
@@ -73,8 +79,8 @@ export function LandingPage(props: LandingPageProps) {
     Landing.PatternHero,
     Landing.PoseHero,
     Landing.PortalHero,
-    Landing.PianoHero,
-    Landing.WhyHero,
+    // Landing.PianoHero,
+    // Landing.WhyHero,
     Landing.Observatory,
   ];
 
@@ -98,15 +104,7 @@ export function LandingPage(props: LandingPageProps) {
       {showBody && (
         <>
           {heroes.map((Hero, i) => (
-            <Hero
-              key={i}
-              scrollToView={() =>
-                mainRef.current?.scrollTo?.({
-                  top: window.innerHeight * (i + 1),
-                  behavior: "smooth",
-                })
-              }
-            />
+            <Hero key={i} />
           ))}
         </>
       )}
