@@ -73,6 +73,7 @@ export const defaultProject: Project = {
   timeline: defaultTimeline,
   editor: defaultEditor,
   transport: defaultTransport,
+  diary: [],
 };
 
 // ------------------------------------------------------------

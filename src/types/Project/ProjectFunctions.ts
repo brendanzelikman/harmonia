@@ -37,6 +37,7 @@ export const mergeProjects = (p1: Project, p2: Project): Project => ({
   timeline: merge(p1.timeline, p2.timeline),
   transport: merge(p1.transport, p2.transport),
   editor: merge(p1.editor, p2.editor),
+  diary: merge(p1.diary, p2.diary),
 });
 
 /** Returns true if a project has not been changed from default settings. */
