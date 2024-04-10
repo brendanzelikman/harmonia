@@ -1,4 +1,3 @@
-import isElectron from "is-electron";
 import { LandingAction } from "pages";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";

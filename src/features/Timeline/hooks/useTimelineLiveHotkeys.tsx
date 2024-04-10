@@ -24,6 +24,7 @@ import { getKeys, hasKeys } from "utils/objects";
 import { isTimelineLive } from "types/Timeline";
 import { toggleLivePlay } from "redux/Timeline";
 import { useSubscription } from "providers/subscription";
+import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 
 type KeyBinds = Record<string, number>;
 

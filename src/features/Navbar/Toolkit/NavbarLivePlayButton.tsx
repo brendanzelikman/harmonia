@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-
 import { BsCalculator, BsKeyboard, BsPower } from "react-icons/bs";
 import { toggleLivePlay, toggleLivePlayMode } from "redux/Timeline";
 import {
@@ -80,23 +79,35 @@ export const NavbarLivePlayButton = () => {
   const NumericalShortcuts = () => {
     return (
       <>
-        <li className="mx-auto mb-2 font-extrabold">Numerical Shortcuts:</li>
-        <li>
-          <b>Hold Q:</b> <span>Chromatic Offset</span>
+        <li className="mx-auto mb-2 font-extrabold">
+          Using Numerical Shortcuts
         </li>
         <li>
-          <b>Hold W:</b> <span>Parent Track #1 Offset</span>
+          <b>
+            <u>Select Scale</u>
+          </b>
         </li>
         <li>
-          <b>Hold S:</b> <span>Parent Track #2 Offset</span>
+          <b>Hold Q:</b> <span>Chromatic Scale</span>
         </li>
         <li>
-          <b>Hold X:</b> <span>Parent Track #3 Offset</span>
+          <b>Hold W:</b> <span>Root Track Scale</span>
         </li>
         <li>
-          <b>Hold E:</b> <span>Chordal Offset</span>
+          <b>Hold S:</b> <span>Child Track Scale</span>
+        </li>
+        <li>
+          <b>Hold X:</b> <span>Grandchild Track Scale</span>
+        </li>
+        <li>
+          <b>Hold E:</b> <span>Intrinsic Scale</span>
         </li>
         <li className="mt-2">
+          <b>
+            <u>Apply Offset</u>
+          </b>
+        </li>
+        <li>
           <b>Hold Shift:</b> <span>Add 12 to Offset</span>
         </li>
         <li>
@@ -109,13 +120,18 @@ export const NavbarLivePlayButton = () => {
           <b>Press 0:</b> <span>Reset Offset</span>
         </li>
         <li className="mt-2">
-          <b>Hold Y:</b> <span>Mute Pattern Track</span>
+          <b>
+            <u>Mix Tracks</u>
+          </b>
         </li>
         <li>
-          <b>Hold U:</b> <span>Solo Pattern Track</span>
+          <b>Hold Y:</b> <span>Mute Target</span>
         </li>
         <li>
-          <b>Press 1-9:</b> <span>Apply to Pattern Track</span>
+          <b>Hold U:</b> <span>Solo Target</span>
+        </li>
+        <li>
+          <b>Press 1-9:</b> <span>Target Pattern Track</span>
         </li>
         <li>
           <b>Press 0:</b> <span>Unmute/Unsolo All Tracks</span>
@@ -128,7 +144,14 @@ export const NavbarLivePlayButton = () => {
   const AlphabeticalShortcuts = () => {
     return (
       <>
-        <li className="mx-auto mb-2 font-extrabold">Alphabetical Shortcuts:</li>
+        <li className="mx-auto mb-2 font-extrabold">
+          Using Alphabetical Shortcuts
+        </li>
+        <li>
+          <b>
+            <u>Chromatic Scale</u>
+          </b>
+        </li>
         <li>
           <b>Press Q-T:</b> <span>N-5 to N-1</span>
         </li>
@@ -139,6 +162,11 @@ export const NavbarLivePlayButton = () => {
           <b>Press U-{"["}:</b> <span>N+1 to N+5</span>
         </li>
         <li className="mt-2">
+          <b>
+            <u>Root Scale</u>
+          </b>
+        </li>
+        <li>
           <b>Press A-G:</b> <span>T-5 to T-1</span>
         </li>
         <li>
@@ -148,6 +176,11 @@ export const NavbarLivePlayButton = () => {
           <b>Press J-{"'"}:</b> <span>N+1 to N+5</span>
         </li>
         <li className="mt-2">
+          <b>
+            <u>Intrinsic Scale</u>
+          </b>
+        </li>
+        <li>
           <b>Press Z-B:</b> <span>t-5 to t-1</span>
         </li>
         <li>
@@ -163,7 +196,7 @@ export const NavbarLivePlayButton = () => {
   // Get the current shortcut menu
   const ShortcutMenu = () => {
     return (
-      <ul className="flex flex-col [&>li>b]:font-extrabold [&>li>span]:float-right absolute inset-0 text-sm w-64 h-fit p-3 -left-16 top-8 bg-fuchsia-500/70 backdrop-blur border-2 border-slate-300 rounded-lg transition-all transform -translate-y-2 pointer-events-none peer-hover:translate-y-0 opacity-0 peer-hover:scale-y-100 peer-hover:opacity-100 duration-300">
+      <ul className="flex flex-col [&>li>b]:font-extrabold [&>li>span]:float-right absolute inset-0 text-sm w-64 h-fit p-3 -left-16 top-8 bg-fuchsia-500/70 backdrop-blur border border-slate-300 rounded-lg transition-all transform -translate-y-2 pointer-events-none peer-hover:translate-y-0 opacity-0 peer-hover:scale-y-100 peer-hover:delay-200 peer-hover:opacity-100 duration-300">
         {isNumerical ? <NumericalShortcuts /> : <AlphabeticalShortcuts />}
       </ul>
     );
@@ -207,28 +240,26 @@ export const NavbarLivePlayButton = () => {
   const TransposeLabel = () => {
     return (
       <div className={`w-full flex items-center justify-center space-x-2`}>
-        <ShortcutIcon />
-        <span>Live Play</span>
         <PowerButton />
+        {isEnabled && <span className="text-md font-thin">Live Play</span>}
+        {isEnabled && <ShortcutIcon />}
       </div>
     );
   };
 
   const onClick = () => (!isEnabled ? dispatch(toggleLivePlay()) : null);
   const buttonClass = classNames(
-    "h-9 text-sm rounded-md mx-1",
-    "flex items-center font-nunito font-light",
-    "px-3 ring-1 ring-slate-300/80 select-none",
+    "relative h-9 text-sm",
+    "flex items-center rounded-2xl font-nunito font-light",
+    "ring-1 select-none",
     "transition-all",
     isEnabled && arePosesSelected
-      ? "animate-in fade-in duration-300"
-      : "duration-300",
-    isEnabled && arePosesSelected
-      ? "opacity-100"
-      : "opacity-0 hover:opacity-100",
+      ? "animate-in fade-in duration-150"
+      : "duration-150",
+    isEnabled ? "ring-fuchsia-200/80 px-3" : "ring-slate-300/80 px-2",
     isEnabled
       ? "bg-gradient-radial from-fuchsia-400/80 to-fuchsia-600/80"
-      : "cursor-pointer bg-gradient-radial from-slate-500/50 to-slate-900 active:ring"
+      : "cursor-pointer bg-gradient-radial from-slate-600/80 to-slate-800 active:ring-4"
   );
 
   return (

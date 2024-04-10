@@ -32,16 +32,11 @@ import {
   setTransportVolume,
   toggleTransportMute,
 } from "redux/Transport";
-import {
-  selectCell,
-  selectTimeline,
-  setCellWidth,
-  toggleDiary,
-} from "redux/Timeline";
+import { selectTimeline, setCellWidth, toggleDiary } from "redux/Timeline";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { TOGGLE_SHORTCUTS } from "features/Shortcuts/ShortcutsMenu";
 import { dispatchCustomEvent } from "utils/html";
-import { GiBookCover, GiOpenBook } from "react-icons/gi";
+import { GiBookCover } from "react-icons/gi";
 import { useOnboardingTour } from "features/Tour";
 
 export function NavbarSettingsMenu() {

@@ -11,7 +11,7 @@ import {
   getPatternClipStream,
 } from "types/Arrangement";
 import { ClipId, PatternClipMidiStream, isPatternClip } from "types/Clip";
-import { InstrumentNotesByTicks } from "types/Instrument";
+import { InstrumentNotesByTicks, LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { Project } from "types/Project";
 import { Tick } from "types/units";
 import {

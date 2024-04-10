@@ -1,13 +1,10 @@
 import { useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { InstrumentEditorProps } from "../InstrumentEditor";
-import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import {
   addInstrumentEffect,
   removeAllInstrumentEffects,
   removeInstrumentEffect,
 } from "redux/Instrument";
-import { redoArrangement, undoArrangement } from "redux/thunks";
-import { useSelector } from "react-redux";
 const useHotkeys = useScopedHotkeys("editor");
 
 interface InstrumentShortcutProps extends InstrumentEditorProps {}

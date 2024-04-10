@@ -8,11 +8,7 @@ import {
 } from "redux/thunks";
 import { addPoseBlock, clearPose } from "redux/Pose";
 import { promptUserForNumber } from "utils/html";
-import {
-  DurationType,
-  getDurationName,
-  getDurationTicks,
-} from "utils/durations";
+import { DurationType, getDurationTicks } from "utils/durations";
 import { useState } from "react";
 
 export function PoseEditorToolbar(props: PoseEditorProps) {
