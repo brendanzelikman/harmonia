@@ -1,5 +1,6 @@
 import { nanoid } from "@reduxjs/toolkit";
 import {
+  Pattern,
   PatternBlock,
   PatternChord,
   PatternId,
@@ -7,7 +8,7 @@ import {
   PatternNote,
   PatternStream,
 } from "types/Pattern";
-import { PoseBlock, PoseId, PoseStream } from "types/Pose";
+import { PoseBlock, PoseId, PoseStream, PoseVector } from "types/Pose";
 import { TrackId } from "types/Track";
 import { ID, Tick } from "types/units";
 import { ClipColor } from "./ClipThemes";
@@ -53,11 +54,22 @@ export type ClipStream = PatternClipStream | PoseClipStream;
 // Pattern Clip Definitions
 // ------------------------------------------------------------
 
-/** A `PatternClip` is a clip that references a pattern. */
-export type PatternClip = ClipInterface & {
+/** A `PatternClip` is a clip that references or stores a pattern. */
+// export interface PatternClipInterface extends ClipInterface {
+//   id: PatternClipId;
+// }
+// export interface PatternClipWithId extends PatternClipInterface {
+//   patternId: PatternId;
+// }
+// export interface PatternClipWithStream extends PatternClipInterface {
+//   stream: PatternStream;
+// }
+// export type PatternClip = PatternClipWithId | PatternClipWithStream;
+export interface PatternClip extends ClipInterface {
   id: PatternClipId;
   patternId: PatternId;
-};
+}
+
 export type PatternClipId = `patternClip-${ID}`;
 export type PatternClipStream = PatternClipBlock[];
 export type PatternClipBlock = {
@@ -77,7 +89,20 @@ export type PatternClipMidiBlock = {
 // ------------------------------------------------------------
 
 /** A `PoseClip` is a clip that references a pose. */
-export type PoseClip = ClipInterface & { id: PoseClipId; poseId: PoseId };
+// export interface PoseClipInterface extends ClipInterface {
+//   id: PoseClipId;
+// }
+// export interface PoseClipWithId extends PoseClipInterface {
+//   poseId: PoseId;
+// }
+// export interface PoseClipWithVector extends PoseClipInterface {
+//   vector: PoseVector;
+// }
+// export type PoseClip = PoseClipWithId | PoseClipWithVector;
+export interface PoseClip extends ClipInterface {
+  id: PoseClipId;
+  poseId: PoseId;
+}
 export type PoseClipId = `poseClip-${ID}`;
 export type PoseClipStream = PoseStream;
 export type PoseClipBlock = PoseBlock;

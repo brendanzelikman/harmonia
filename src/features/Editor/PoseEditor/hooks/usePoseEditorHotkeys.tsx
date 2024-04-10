@@ -48,6 +48,13 @@ export function usePoseEditorHotkeys(props: PoseEditorProps) {
     },
     [id, pose]
   );
+
+  // W = Select Previous Module
+  useHotkeys("w", props.selectPrevModule);
+
+  // S = Select Next Module
+  useHotkeys("s", props.selectNextModule);
+
   useHotkeys("1", () => addVector(WholeNoteTicks), [addVector]);
   useHotkeys("2", () => addVector(HalfNoteTicks), [addVector]);
   useHotkeys("3", () => addVector(QuarterNoteTicks), [addVector]);

@@ -28,7 +28,7 @@ import {
   LIVE_AUDIO_INSTANCES,
   LIVE_RECORDER_INSTANCE,
 } from "types/Instrument";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent, sleep } from "utils/html";
 import { playPatternChord } from "redux/thunks";
 import { PPQ } from "utils/durations";
 import { isPatternTrack } from "types/Track";
@@ -456,7 +456,9 @@ export const downloadTransport = (): Thunk => async (dispatch, getProject) => {
         })
       );
       if (!instance) continue;
-      samplers[trackId] = instance.sampler;
+
+      // Store the sampler and instrument id
+      samplers[patternTrack.instrumentId] = instance.sampler;
       offlineInstrumentIds.push(instance.id);
     }
 
@@ -494,9 +496,9 @@ export const downloadTransport = (): Thunk => async (dispatch, getProject) => {
   }, duration);
 
   // Delete all offline instruments
-  offlineInstrumentIds.forEach((id) => {
-    dispatch(Instrument._removeOfflineInstrument(id));
-  });
+  // offlineInstrumentIds.forEach((id) => {
+  //   dispatch(Instrument._removeOfflineInstrument(id));
+  // });
 
   // Make sure the transport is still downloading
   const currentTransport = selectTransport(getProject());

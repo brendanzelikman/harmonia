@@ -382,7 +382,7 @@ export const instrumentsSlice = createSlice({
       action: PayloadAction<AddOfflineInstrumentPayload>
     ) => {
       const instrument = action.payload;
-      state.allIds = union(state.allIds, [instrument.id]);
+      state.allIds = union(state.allIds, instrument.id);
       state.byId[instrument.id] = instrument;
     },
     /** (PRIVATE) Remove an offline instrument. */

@@ -47,6 +47,10 @@ import {
   useProjectDeepSelector,
 } from "redux/hooks";
 import {
+  clearTrack,
+  deleteTrack,
+  duplicateTrack,
+  insertScaleTrack,
   toggleTrackInstrumentEditor,
   toggleTrackMute,
   toggleTrackSolo,
@@ -55,13 +59,19 @@ import { updateInstrument } from "redux/Instrument";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import classNames from "classnames";
 import { PatternTrack } from "types/Track";
-import { bindTrackToPort, clearTrackPort } from "redux/Track";
+import {
+  bindTrackToPort,
+  clearTrackPort,
+  collapseTracks,
+  expandTracks,
+} from "redux/Track";
 import { promptModal } from "components/PromptModal";
 import isElectron from "is-electron";
 import { selectPluginData } from "redux/Plugin";
 import { sendPluginData } from "types/Plugin";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useSubscription } from "providers/subscription";
+import { setSelectedTrackId } from "redux/Timeline";
 
 interface PatternTrackProps extends TrackFormatterProps {
   track: PatternTrack;
@@ -73,6 +83,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const dispatch = useProjectDispatch();
 
   // Track drag and drop
+  const trackId = track.id;
   const trackRef = useRef<HTMLDivElement>(null);
   const element = trackRef.current;
   const [{}, drop] = useTrackDrop({ ...props, element });
@@ -91,7 +102,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   // Instrument info
   const instrument = use((_) => selectInstrumentById(_, track.instrumentId));
   const instrumentId = instrument?.id ?? "global";
-  const iKey = use((_) => selectTrackInstrumentKey(_, track.id));
+  const iKey = use((_) => selectTrackInstrumentKey(_, trackId));
   const instrumentName = getInstrumentName(iKey);
   const { volume, pan, mute, solo } = getInstrumentChannel(instrument);
   const [draggingVolume, setDraggingVolume] = useState(false);
@@ -103,7 +114,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
 
   // Plugin info
   const pluginData = useProjectDeepSelector((_) =>
-    selectPluginData(_, track.id)
+    selectPluginData(_, trackId)
   );
 
   // Send plugin data when it changes
@@ -127,8 +138,8 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
       <div className="w-full flex flex-col space-y-1">
         <span className="text-xs text-orange-300 font-nunito"></span>
         <TrackName
-          id={track.id}
-          value={track.name}
+          id={trackId}
+          value={track.name ?? ""}
           placeholder={`Pattern Track (${label})`}
           onChange={(e) => props.renameTrack(e.target.value)}
         />
@@ -144,7 +155,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
     const onPortClick = async () => {
       // Clear the port if it is already bound
       if (track.port !== undefined) {
-        dispatch(clearTrackPort(track.id));
+        dispatch(clearTrackPort(trackId));
         return;
       }
 
@@ -158,7 +169,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
 
       // Bind the track to the port
       const port = PLUGIN_STARTING_PORT + value;
-      dispatch(bindTrackToPort({ id: track.id, port }));
+      dispatch(bindTrackToPort({ id: trackId, port }));
     };
 
     return (
@@ -182,24 +193,35 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
           />
         )}
         <TrackDropdownButton
+          content="Insert Parent"
+          icon={<BiCopy />}
+          onClick={() => dispatch(insertScaleTrack(trackId))}
+        />
+        <TrackDropdownButton
           content={`${track.collapsed ? "Expand " : "Collapse"} Track`}
           icon={track.collapsed ? <BsArrowsExpand /> : <BsArrowsCollapse />}
-          onClick={track.collapsed ? props.expandTrack : props.collapseTrack}
+          onClick={() =>
+            dispatch(
+              track.collapsed
+                ? expandTracks([trackId])
+                : collapseTracks([trackId])
+            )
+          }
         />
         <TrackDropdownButton
           content="Duplicate Track"
           icon={<BiCopy />}
-          onClick={props.duplicateTrack}
+          onClick={() => dispatch(duplicateTrack(trackId))}
         />
         <TrackDropdownButton
           content="Clear Track"
           icon={<BsEraser />}
-          onClick={props.clearTrack}
+          onClick={() => dispatch(clearTrack(trackId))}
         />
         <TrackDropdownButton
           content="Delete Track"
           icon={<BsTrash />}
-          onClick={props.deleteTrack}
+          onClick={() => dispatch(deleteTrack(trackId))}
         />
       </TrackDropdownMenu>
     );
@@ -371,7 +393,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
     return (
       <TrackButton
         className={buttonClass}
-        onClick={() => dispatch(toggleTrackInstrumentEditor(track.id))}
+        onClick={() => dispatch(toggleTrackInstrumentEditor(trackId))}
       >
         <BsPencil className="mr-2 flex-shrink-0" />
         <span className="truncate">{instrumentName}</span>
@@ -390,7 +412,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
     return (
       <button
         className={buttonClass}
-        onClick={(e) => dispatch(toggleTrackMute(e, track.id))}
+        onClick={(e) => dispatch(toggleTrackMute(e, trackId))}
         onDoubleClick={cancelEvent}
       >
         M
@@ -409,7 +431,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
     return (
       <button
         className={buttonClass}
-        onClick={(e) => dispatch(toggleTrackSolo(e, track.id))}
+        onClick={(e) => dispatch(toggleTrackSolo(e, trackId))}
         onDoubleClick={cancelEvent}
       >
         S
@@ -473,7 +495,11 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
 
   // Return the pattern track
   return (
-    <div className={trackClass} ref={trackRef} onClick={props.selectTrack}>
+    <div
+      className={trackClass}
+      ref={trackRef}
+      onClick={() => dispatch(setSelectedTrackId(trackId))}
+    >
       {PatternTrackBody()}
     </div>
   );

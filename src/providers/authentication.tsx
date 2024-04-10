@@ -132,8 +132,12 @@ async function checkPassword(forceCheck = false): Promise<PasswordStatus> {
         "Please enter the password to proceed."
       );
 
-      // Check for admin privileges (bypasses authentication)
-      const isAdmin = password === import.meta.env.VITE_ADMIN_PASSWORD;
+      // Match password with secrets (bypasses authentication)
+      const isAdmin =
+        password === import.meta.env.VITE_ADMIN_PASSWORD ||
+        import.meta.env.VITE_SECRET_PASSWORD;
+
+      // Check for admin privileges
       if (isAdmin) {
         localStorage.setItem("harmonia-password", "acceptedAdmin");
         dispatchCustomEvent("harmonia-password", "admin");

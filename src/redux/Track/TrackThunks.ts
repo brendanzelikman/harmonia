@@ -33,12 +33,19 @@ import {
   addTrack,
   collapseTracks,
   expandTracks,
+  migrateTrack,
   removeTrack,
 } from "./TrackSlice";
 import { union } from "lodash";
 import { selectPortalsByTrackIds } from "redux/selectors";
-import { Instrument, initializeInstrument } from "types/Instrument";
+import {
+  Instrument,
+  LIVE_AUDIO_INSTANCES,
+  LiveAudioInstance,
+  initializeInstrument,
+} from "types/Instrument";
 import { initializeClip } from "types/Clip";
+import { createScaleTrack } from "./ScaleTrackThunks";
 
 /** Duplicate a track and all of its media/children in the slice and hierarchy. */
 export const duplicateTrack =
@@ -55,7 +62,7 @@ export const duplicateTrack =
       initializeClip({ ...c, trackId: newTrack.id })
     );
 
-    // Prepare all entities
+    // Prepare the tracks, clips, and instruments
     const allTracks = [newTrack];
     const allClips = [...newClips];
     const allInstruments = [] as Instrument[];
@@ -64,34 +71,38 @@ export const duplicateTrack =
     if (isPatternTrack(newTrack)) {
       const instrument = selectTrackInstrument(project, track.id);
       if (instrument) {
-        const newInstrument = initializeInstrument(instrument);
-        newTrack.instrumentId = newInstrument.id;
+        const newInstrument = initializeInstrument(instrument, false);
         allInstruments.push(newInstrument);
+
+        // Update the new track's instrument ID
+        newTrack.instrumentId = newInstrument.id;
       }
     }
 
-    // Duplicate the track's children
+    // A generic recursive function to add all children of a track
     const addChildren = (ids: TrackId[], parentId: TrackId) => {
       if (!ids.length) return;
 
-      // Select the children and duplicate them
+      // Duplicate every child track
       const children = selectTracksByIds(project, ids);
       children.forEach((child) => {
-        if (!child) return;
-
-        // Add the track
+        // Initialize a new track
         const newParent = initializeTrack({ ...child, parentId, trackIds: [] });
+
+        // Add the track's instrument if it has one
         if (isPatternTrack(newParent)) {
           const instrument = selectTrackInstrument(project, child.id);
           if (instrument) {
-            const newInstrument = initializeInstrument(instrument);
+            const newInstrument = initializeInstrument(instrument, false);
             newParent.instrumentId = newInstrument.id;
             allInstruments.push(newInstrument);
           }
         }
+
+        // Push the track to the list
         allTracks.push(newParent);
 
-        // Update the track's parent
+        // Update the child track IDs of the parent track
         const parentIndex = allTracks.findIndex((t) => t.id === parentId);
         const parent = allTracks[parentIndex];
         if (parent) {
@@ -99,31 +110,42 @@ export const duplicateTrack =
           allTracks[parentIndex] = { ...parent, ...update };
         }
 
-        // Add the track's clips
+        // Add all clips of the track
         const clips = selectClipsByTrackIds(project, [child.id]);
         const newClips = clips.map((c) =>
           initializeClip({ ...c, trackId: newParent.id })
         );
         allClips.push(...newClips);
 
-        // Recursively add the children
+        // Recur on the children
         addChildren(child.trackIds, newParent.id);
       });
     };
 
-    // Add the children
+    // Recursively add all of the descendants of the track
     addChildren(track.trackIds, newTrack.id);
 
-    // Add all tracks
+    // Add every new track to the store
     const callerId = newTrack.id;
     allTracks.forEach((track) => {
       dispatch(addTrack({ track, callerId }));
       if (!isPatternTrack(track)) return;
+
+      // Get the instrument of the track if it exists
       const instrument = allInstruments.find(
         (i) => i.id === track.instrumentId
       );
-      if (instrument) dispatch(addInstrument({ instrument, track }));
+      if (!instrument) return;
+
+      // Add the instrument to the store
+      dispatch(addInstrument({ instrument, track }));
+
+      // Create and store the corresponding instance
+      const instance = new LiveAudioInstance(instrument);
+      LIVE_AUDIO_INSTANCES[instrument.id] = instance;
     });
+
+    // Add every new clip to the store
     dispatch(addClips({ clips: allClips, callerId }));
   };
 
@@ -181,6 +203,28 @@ export const deleteTrack =
       dispatch(setSelectedTrackId(undefined));
       dispatch(hideEditor());
     }
+  };
+
+/** Insert a scale track in the place of a track and nest the original test. */
+export const insertScaleTrack =
+  (trackId: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, trackId);
+    if (!track) return;
+
+    // Create a new scale track and migrate the original track if necessary
+    const newTrackId = dispatch(
+      createScaleTrack({
+        parentId: track.parentId,
+        trackIds: track.parentId ? [] : [track.id],
+      })
+    );
+
+    // Migrate the original track to its new parent
+    dispatch(
+      migrateTrack({ id: track.id, parentId: newTrackId, inserting: true })
+    );
   };
 
 /** Collapse all children of a track in the slice and hierarchy. */

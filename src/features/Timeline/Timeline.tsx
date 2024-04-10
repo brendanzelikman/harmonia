@@ -1,5 +1,9 @@
 import { TrackId } from "types/Track";
-import { createRandomHierarchy, createScaleTrack } from "redux/thunks";
+import {
+  createRandomDrums,
+  createRandomHierarchy,
+  createScaleTrack,
+} from "redux/thunks";
 import { selectCell, selectTrackIds, selectTrackMap } from "redux/selectors";
 import DataGrid, {
   Column,
@@ -41,7 +45,7 @@ export function Timeline() {
   const cell = useProjectSelector(selectCell);
   const trackIds = useProjectDeepSelector(selectTrackIds);
   const trackMap = useProjectDeepSelector(selectTrackMap);
-  const heldKeys = useHeldHotkeys(["alt"]);
+  const heldKeys = useHeldHotkeys(["alt", "meta"]);
   const [timeline, setTimeline] = useState<DataGridHandle>();
   useTimelineHotkeys(timeline);
   useTimelineLiveHotkeys();
@@ -71,11 +75,22 @@ export function Timeline() {
     <div
       className={`rdg-track flex font-nunito w-full h-full justify-center items-center hover:bg-indigo-500/30 text-slate-50/0 hover:text-slate-100 ease-in-out transition-all duration-500 rounded cursor-pointer`}
       onClick={() =>
-        dispatch(heldKeys.alt ? createRandomHierarchy() : createScaleTrack())
+        dispatch(
+          heldKeys.meta
+            ? createRandomHierarchy()
+            : heldKeys.alt
+            ? createRandomDrums()
+            : createScaleTrack()
+        )
       }
     >
       <h4 className="text-lg font-light select-none">
-        Add a {!!heldKeys.alt ? "Random Hierarchy" : "Scale Track"}
+        Add a{" "}
+        {heldKeys.meta
+          ? "Random Hierarchy"
+          : heldKeys.alt
+          ? "Random Drums"
+          : "Scale Track"}
       </h4>
     </div>
   );

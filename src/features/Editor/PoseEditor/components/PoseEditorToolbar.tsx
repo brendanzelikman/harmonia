@@ -6,8 +6,14 @@ import {
   randomizePoseStream,
   repeatPoseStream,
 } from "redux/thunks";
-import { addPoseBlock, clearPose, updatePose } from "redux/Pose";
+import { addPoseBlock, clearPose } from "redux/Pose";
 import { promptUserForNumber } from "utils/html";
+import {
+  DurationType,
+  getDurationName,
+  getDurationTicks,
+} from "utils/durations";
+import { useState } from "react";
 
 export function PoseEditorToolbar(props: PoseEditorProps) {
   const { dispatch, pose, Button, isCustom } = props;
@@ -66,7 +72,8 @@ export function PoseEditorToolbar(props: PoseEditorProps) {
   const VectorButton = () => (
     <Button
       label="Add a Vector"
-      onClick={() => dispatch(addPoseBlock({ id, block: { vector: {} } }))}
+      className={addingVector ? "text-emerald-500" : ""}
+      onClick={() => setAddingVector(!addingVector)}
     >
       Add Vector
     </Button>
@@ -112,26 +119,60 @@ export function PoseEditorToolbar(props: PoseEditorProps) {
     </Button>
   );
 
+  const [addingVector, setAddingVector] = useState(false);
+  const AddVectorButton = (duration: DurationType | "infinite") => {
+    const ticks =
+      duration === "infinite" ? undefined : getDurationTicks(duration);
+    return (
+      <Button
+        label={`Add ${duration} Vector`}
+        className="capitalize active:bg-emerald-600"
+        onClick={() =>
+          dispatch(addPoseBlock({ id, block: { vector: {}, duration: ticks } }))
+        }
+      >
+        {duration} Vector
+      </Button>
+    );
+  };
+
   return (
-    <Editor.Tab show={true} border={true}>
-      <Editor.TabGroup border={isCustom}>
-        <NewButton />
-        <CopyButton />
-        {isCustom && (
-          <>
-            <UndoButton />
-            <RedoButton />
-          </>
-        )}
-      </Editor.TabGroup>
-      {isCustom && (
-        <Editor.TabGroup border={false}>
-          <VectorButton />
-          <RepeatButton />
-          <RandomizeButton />
-          <ClearButton />
+    <>
+      <Editor.Tab show={true} border={true}>
+        <Editor.TabGroup border={isCustom}>
+          <NewButton />
+          <CopyButton />
+          {isCustom && (
+            <>
+              <UndoButton />
+              <RedoButton />
+            </>
+          )}
         </Editor.TabGroup>
+        {isCustom && (
+          <Editor.TabGroup border={false}>
+            <VectorButton />
+            <RepeatButton />
+            <RandomizeButton />
+            <ClearButton />
+          </Editor.TabGroup>
+        )}
+      </Editor.Tab>
+
+      {isCustom && addingVector && (
+        <Editor.Tab show={true} border={true}>
+          <Editor.TabGroup border={false}>
+            {AddVectorButton("infinite")}
+            {AddVectorButton("whole")}
+            {AddVectorButton("half")}
+            {AddVectorButton("quarter")}
+            {AddVectorButton("eighth")}
+            {AddVectorButton("16th")}
+            {AddVectorButton("32nd")}
+            {AddVectorButton("64th")}
+          </Editor.TabGroup>
+        </Editor.Tab>
       )}
-    </Editor.Tab>
+    </>
   );
 }

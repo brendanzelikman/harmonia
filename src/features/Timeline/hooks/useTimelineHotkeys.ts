@@ -11,6 +11,7 @@ import { DataGridHandle } from "react-data-grid";
 import { useTransportTick } from "hooks";
 import { TRACK_WIDTH } from "utils/constants";
 import { useSubscription } from "providers/subscription";
+import { hideEditor } from "redux/Editor";
 
 const useHotkeys = useScopedHotkeys("timeline");
 const useTransportHotkeys = useScopedHotkeys("transport");
@@ -34,10 +35,10 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
   useHotkeys("meta+shift+z", () => dispatch(redoArrangement()));
 
   // Space = Play/Pause Transport
-  useHotkeys("space", () => dispatch(Transport.toggleTransport()));
+  useOverridingHotkeys("space", () => dispatch(Transport.toggleTransport()));
 
   // Enter = Stop Transport
-  useHotkeys("enter", () => dispatch(Transport.stopTransport()));
+  useOverridingHotkeys("enter", () => dispatch(Transport.stopTransport()));
 
   // Shift + Enter = Reset Scroll Position
   useHotkeys(
@@ -115,7 +116,10 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
   useHotkeys("meta+backspace", () => dispatch(Timeline.deleteSelectedTrack()));
 
   // Esc = Deselect Tracks
-  useHotkeys("esc", () => dispatch(Timeline.setSelectedTrackId(undefined)));
+  useOverridingHotkeys("esc", () => {
+    dispatch(Timeline.setSelectedTrackId(undefined));
+    dispatch(hideEditor());
+  });
 
   // C = Toggle Selected Clip Type
   useHotkeys(
@@ -144,7 +148,7 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
   useHotkeys(["meta+minus"], () => dispatch(Timeline.decreaseSubdivision()));
 
   // Meta + "=" = Increase Subdivision
-  useHotkeys(["meta+="], () => dispatch(Timeline.increaseSubdivision()));
+  useHotkeys(["meta+equal"], () => dispatch(Timeline.increaseSubdivision()));
 
   // Left Arrow = Move Media Left or Move Playhead Left
   useHotkeys(

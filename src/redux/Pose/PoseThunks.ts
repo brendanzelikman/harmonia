@@ -15,6 +15,7 @@ import { PoseVector } from "types/Pose";
 import {
   selectPoseById,
   selectPoseMap,
+  selectPoses,
   selectSelectedPoseClips,
 } from "redux/selectors";
 import { addPose, clearPose, updatePose, updatePoses } from "./PoseSlice";
@@ -24,8 +25,17 @@ import { random } from "lodash";
 /** Create a pose. */
 export const createPose =
   (poseNoId: Partial<PoseNoId> = defaultPose): Thunk<PoseId> =>
-  (dispatch) => {
-    const pose = initializePose(poseNoId);
+  (dispatch, getProject) => {
+    const project = getProject();
+    const poses = selectPoses(project);
+    let champ = "New Pose";
+    let champCount = 1;
+    for (let i = 0; i < poses.length; i++) {
+      if (poses[i].name === champ) {
+        champ = `New Pose ${++champCount}`;
+      }
+    }
+    const pose = initializePose({ ...poseNoId, name: champ });
     dispatch(addPose(pose));
     dispatch(setSelectedPose(pose.id));
     return pose.id;

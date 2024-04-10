@@ -36,6 +36,7 @@ import {
   addPattern,
   removePattern,
   selectPatternIds,
+  selectPatterns,
   updatePattern,
 } from "redux/Pattern";
 import { convertTicksToSeconds } from "types/Transport";
@@ -60,15 +61,24 @@ import {
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { downloadBlob } from "utils/html";
 import { getDegreeOfNoteInTrack, setSelectedPattern } from "redux/thunks";
-import { random, range, sample, sampleSize } from "lodash";
+import { range, sample, sampleSize } from "lodash";
 import { PresetScaleList } from "presets/scales";
 import { normalize } from "utils/math";
 
 /** Creates a pattern and adds it to the slice. */
 export const createPattern =
   (pattern: Partial<PatternNoId> = defaultPattern): Thunk<PatternId> =>
-  (dispatch) => {
-    const newPattern = initializePattern(pattern);
+  (dispatch, getProject) => {
+    const project = getProject();
+    const patterns = selectPatterns(project);
+    let champ = "New Pattern";
+    let champCount = 1;
+    for (let i = 0; i < patterns.length; i++) {
+      if (patterns[i].name === champ) {
+        champ = `New Pattern ${++champCount}`;
+      }
+    }
+    const newPattern = initializePattern({ ...pattern, name: champ });
     dispatch(addPattern(newPattern));
     dispatch(setSelectedPattern(newPattern.id));
     return newPattern.id;
@@ -487,10 +497,7 @@ export const playPatternChord = (
   time: Seconds
 ) => {
   // Do nothing if the sampler is not loaded
-  if (!sampler || !sampler.loaded) return;
-
-  // Do nothing if the chord is invalid or empty
-  if (!isPatternMidiChord(chord)) return;
+  if (!sampler) return;
 
   // Get the pitches
   const notes = getPatternMidiChordNotes(chord);
@@ -506,5 +513,6 @@ export const playPatternChord = (
   const scaledVelocity = velocity / MAX_VELOCITY;
 
   // Play the chord with the sampler
+  if (!sampler.loaded) return;
   sampler.triggerAttackRelease(pitches, subdivision, time, scaledVelocity);
 };

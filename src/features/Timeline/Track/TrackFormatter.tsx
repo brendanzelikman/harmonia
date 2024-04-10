@@ -33,14 +33,6 @@ export interface TrackFormatterProps {
 
   renameTrack: (name: string) => void;
   moveTrack: (dragId: TrackId, hoverId: TrackId) => void;
-  selectTrack: () => void;
-  clearTrack: () => void;
-  deleteTrack: () => void;
-  duplicateTrack: () => void;
-  collapseTrack: () => void;
-  expandTrack: () => void;
-  collapseChildren: () => void;
-  expandChildren: () => void;
 }
 
 export function TrackFormatter(props: FormatterProps<Row>) {
@@ -62,15 +54,6 @@ export function TrackFormatter(props: FormatterProps<Row>) {
       dispatch(_.movePatternTrack({ dragId, hoverId }));
   };
 
-  const selectTrack = () => dispatch(setSelectedTrackId(trackId));
-  const clearTrack = () => dispatch(_.clearTrack(trackId));
-  const deleteTrack = () => dispatch(_.deleteTrack(trackId));
-  const duplicateTrack = () => dispatch(_.duplicateTrack(trackId));
-  const collapseTrack = () => dispatch(_.collapseTracks([trackId]));
-  const expandTrack = () => dispatch(_.expandTracks([trackId]));
-  const collapseChildren = () => dispatch(_.collapseTrackChildren(trackId));
-  const expandChildren = () => dispatch(_.expandTrackChildren(trackId));
-
   // A track passes down general props to the scale/pattern tracks
   const trackProps: TrackFormatterProps = {
     track,
@@ -80,14 +63,6 @@ export function TrackFormatter(props: FormatterProps<Row>) {
     label,
     renameTrack,
     moveTrack,
-    selectTrack,
-    clearTrack,
-    deleteTrack,
-    duplicateTrack,
-    collapseTrack,
-    expandTrack,
-    collapseChildren,
-    expandChildren,
   };
 
   if (isScaleTrack(track)) {

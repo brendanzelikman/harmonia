@@ -35,20 +35,21 @@ export const getPoseVectorAsString = (
   stringKeys.push(`t${vector.chordal ?? 0}`);
 
   // Return the joined string
-  return stringKeys.join(" — ");
+  return stringKeys.join(" - ");
 };
 
 /** Get a `PoseVector` as JSX. */
 export const getPoseVectorAsJSX = (
   vector?: _.PoseVector,
-  trackMap?: TrackMap
+  trackMap?: TrackMap,
+  margin = "mx-1"
 ) => {
   if (!vector) return "";
   const keys = getVectorKeys(vector);
   const trackKeys = keys.filter((k) => k !== "chromatic" && k !== "chordal");
 
   // Add the chromatic first
-  const chromatic = <span>N{vector.chromatic ?? 0}</span>;
+  const chromatic = <span className={margin}>N{vector.chromatic ?? 0}</span>;
 
   // Add all track IDs
   const scalars = trackKeys.map((key, i) => {
@@ -58,23 +59,25 @@ export const getPoseVectorAsJSX = (
     if (!value) return null;
     return (
       <span key={`scalar-${i}`}>
-        <span className="mx-1">
+        <span className={margin}>
           T<sub>{label}</sub>({value})
         </span>
-        <span className="mx-1">•</span>
+        <span className={margin}>•</span>
       </span>
     );
   });
 
   // Add the chordal last
-  const chordal = <span>t{vector.chordal ?? 0}</span>;
+  const chordal = <span className={margin}>t{vector.chordal ?? 0}</span>;
 
   // Return the joined string
   return (
-    <>
-      {chromatic} • {scalars}
+    <span className="text-md">
+      {chromatic}
+      <span className={margin}>•</span>
+      {scalars}
       {chordal}
-    </>
+    </span>
   );
 };
 
@@ -156,8 +159,7 @@ export const mapPoseVector = (
 ) => {
   const keys = getKeys(vector);
   return keys.reduce((acc, cur) => {
-    acc[cur] = fn(cur, vector[cur]);
-    return acc;
+    return { ...acc, [cur]: fn(cur, vector[cur]) };
   }, {} as _.PoseVector);
 };
 
@@ -166,10 +168,15 @@ export const sumPoseVectors = (...vectors: _.PoseVector[]): _.PoseVector => {
   const allVectors = [...vectors];
   if (!allVectors.length) return {};
 
-  // Sum the vectors together
-  return allVectors.reduce((acc, cur) =>
-    mapPoseVector(acc, (key, value) => value + (cur[key] || 0))
-  );
+  // Sum across every key in every vector
+  const vector: _.PoseVector = {};
+  for (const vec of allVectors) {
+    const keys = getKeys(vec);
+    for (const key of keys) {
+      vector[key] = (vector[key] || 0) + vec[key];
+    }
+  }
+  return vector;
 };
 
 /** Multiply each value of the vector with the given multiplier. */
@@ -209,6 +216,22 @@ export const getPoseVectorAsScaleVector = (
 // ------------------------------------------------------------
 // Pose Properties
 // ------------------------------------------------------------
+
+/** Returns true if a pose has a stream of one vector. */
+export const isPoseBucket = (pose?: _.Pose) => {
+  if (!pose) return {};
+  const stream = pose.stream;
+  if (stream.length !== 1) return false;
+  return _.isPoseVectorModule(stream[0]);
+};
+
+/** Get the first vector of a Pose if it is a bucket. */
+export const getPoseBucketVector = (pose?: _.Pose) => {
+  if (!pose) return {};
+  const block = pose.stream[0];
+  if (_.isPoseVectorModule(block)) return block.vector;
+  return {};
+};
 
 /** Get the name of a pose. */
 export const getPoseName = (pose?: _.Pose) => {

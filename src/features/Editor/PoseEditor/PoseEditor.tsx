@@ -9,6 +9,7 @@ import { getValueByKey } from "utils/objects";
 import { usePoseEditorHotkeys } from "./hooks/usePoseEditorHotkeys";
 import { isEqual } from "lodash";
 import { useCallback, useState } from "react";
+import { mod } from "utils/math";
 
 export type PoseEditType = "offsets" | "duration";
 export type PoseEditState = { index: number; type: PoseEditType } | undefined;
@@ -24,11 +25,15 @@ export interface PoseEditorProps extends EditorProps {
   onDuration: (index: number) => boolean;
   onOffsets: (index: number) => boolean;
   onModule: (index: number) => boolean;
+  selectNextModule: () => void;
+  selectPrevModule: () => void;
 }
 
 function PoseEditorComponent(props: EditorProps) {
   const { dispatch, pose } = props;
 
+  const stream = pose?.stream;
+  const streamLength = stream?.length;
   const id = pose?.id;
   const isCustom = !getValueByKey(PresetPoseMap, id);
 
@@ -86,6 +91,32 @@ function PoseEditorComponent(props: EditorProps) {
     [onDuration, onOffsets]
   );
 
+  // Select the next module in the stream
+  const selectNextModule = useCallback(() => {
+    if (!streamLength) return;
+    setEditState((state) =>
+      state
+        ? {
+            ...state,
+            index: mod(state.index + 1, streamLength),
+          }
+        : undefined
+    );
+  }, [streamLength]);
+
+  // Select the previous module in the stream
+  const selectPrevModule = useCallback(() => {
+    if (!streamLength) return;
+    setEditState((state) =>
+      state
+        ? {
+            ...state,
+            index: mod(state.index - 1, streamLength),
+          }
+        : undefined
+    );
+  }, [streamLength]);
+
   const poseEditorProps: PoseEditorProps = {
     ...props,
     isCustom,
@@ -98,6 +129,8 @@ function PoseEditorComponent(props: EditorProps) {
     onDuration,
     onOffsets,
     onModule,
+    selectNextModule,
+    selectPrevModule,
   };
   usePoseEditorHotkeys(poseEditorProps);
 

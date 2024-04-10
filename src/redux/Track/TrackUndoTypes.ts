@@ -18,7 +18,9 @@ export const TRACK_UNDO_TYPES: ActionGroup = {
     return `MOVE_TRACK:${action.payload.id},${action.payload.index}`;
   },
   "tracks/migrateTrack": (action: PayloadAction<_.MigrateTrackPayload>) => {
-    return `MIGRATE_TRACK:${action.payload.id},${action.payload.parentId},${action.payload.index}`;
+    const { parentId, id, index, inserting } = action.payload;
+    if (inserting) return `ADD_TRACK:${parentId}`;
+    return `MIGRATE_TRACK:${id},${parentId},${index}`;
   },
   "tracks/collapseTracks": (action: PayloadAction<_.CollapseTracksPayload>) => {
     return `COLLAPSE_TRACKS:${action.payload.join(",")}`;

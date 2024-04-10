@@ -23,7 +23,6 @@ import {
   MAESTRO_PROJECT_LIMIT,
   VIRTUOSO_PROJECT_LIMIT,
 } from "utils/constants";
-import { m } from "framer-motion";
 import { useSubscription } from "providers/subscription";
 
 interface ProjectSearchProps extends ProjectListProps {}
@@ -53,58 +52,64 @@ export function useProjectSearch(props: ProjectSearchProps) {
 
   // Get the filtered projects
   const [query, setQuery] = useState("");
-  const results = projects
-    .filter(({ project }) => {
-      if (!isProject(project)) return false;
-      // Get the list of patterns used
-      const patternMap = selectPatternMap(project);
-      const patternClips = selectPatternClips(project);
-      const allPatternIds = patternClips.map(({ patternId }) => patternId);
-      const patternIds = [...new Set(allPatternIds)];
-      const allPatternNames = patternIds.map((id) => patternMap[id]?.name);
-      const patternNames = [...new Set(allPatternNames)].map(lowerCase);
+  const results = useMemo(
+    () =>
+      projects
+        .filter(({ project }) => {
+          if (!isProject(project)) return false;
+          // Get the list of patterns used
+          const patternMap = selectPatternMap(project);
+          const patternClips = selectPatternClips(project);
+          const allPatternIds = patternClips.map(({ patternId }) => patternId);
+          const patternIds = [...new Set(allPatternIds)];
+          const allPatternNames = patternIds.map((id) => patternMap[id]?.name);
+          const patternNames = [...new Set(allPatternNames)].map(lowerCase);
 
-      // Get the list of scales used
-      const scaleTracks = selectScaleTracks(project);
-      const allScales = scaleTracks.map(({ id }) =>
-        selectTrackMidiScale(project, id)
-      );
-      const allScaleNames = allScales.map((scale) => getScaleName(scale));
-      const scaleNames = [...new Set(allScaleNames)].map(lowerCase);
+          // Get the list of scales used
+          const scaleTracks = selectScaleTracks(project);
+          const allScales = scaleTracks.map(({ id }) =>
+            selectTrackMidiScale(project, id)
+          );
+          const allScaleNames = allScales.map((scale) => getScaleName(scale));
+          const scaleNames = [...new Set(allScaleNames)].map(lowerCase);
 
-      // Get the list of instruments used
-      const instruments = selectInstruments(project);
-      const allInstrumentNames = instruments.map(({ key }) =>
-        getInstrumentName(key)
-      );
-      const instrumentNames = [...new Set(allInstrumentNames)].map(lowerCase);
+          // Get the list of instruments used
+          const instruments = selectInstruments(project);
+          const allInstrumentNames = instruments.map(({ key }) =>
+            getInstrumentName(key)
+          );
+          const instrumentNames = [...new Set(allInstrumentNames)].map(
+            lowerCase
+          );
 
-      // Get the name of the project
-      const name = project.meta.name.toLowerCase();
+          // Get the name of the project
+          const name = project.meta.name.toLowerCase();
 
-      // Get the date of the project
-      const date = new Date(project.meta.dateCreated)
-        .toLocaleString("default", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
+          // Get the date of the project
+          const date = new Date(project.meta.dateCreated)
+            .toLocaleString("default", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+            .toLowerCase();
+
+          // Filter the projects by search term
+          const term = query.toLowerCase().trim();
+          const hasPattern = patternNames.some((_) => _.includes(term));
+          const hasScale = scaleNames.some((_) => _.includes(term));
+          const hasInstrument = instrumentNames.some((_) => _.includes(term));
+          const hasName = name.includes(term);
+          const hasDate = date.includes(term);
+          return hasPattern || hasScale || hasInstrument || hasName || hasDate;
         })
-        .toLowerCase();
-
-      // Filter the projects by search term
-      const term = query.toLowerCase().trim();
-      const hasPattern = patternNames.some((_) => _.includes(term));
-      const hasScale = scaleNames.some((_) => _.includes(term));
-      const hasInstrument = instrumentNames.some((_) => _.includes(term));
-      const hasName = name.includes(term);
-      const hasDate = date.includes(term);
-      return hasPattern || hasScale || hasInstrument || hasName || hasDate;
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.project.meta.lastUpdated);
-      const dateB = new Date(b.project.meta.lastUpdated);
-      return dateB.getTime() - dateA.getTime();
-    });
+        .sort((a, b) => {
+          const dateA = new Date(a.project.meta.lastUpdated);
+          const dateB = new Date(b.project.meta.lastUpdated);
+          return dateB.getTime() - dateA.getTime();
+        }),
+    [projects, query]
+  );
 
   // Display the search bar and new project button
   const SearchBar = () => {
@@ -173,15 +178,10 @@ export function useProjectSearch(props: ProjectSearchProps) {
         : "bg-slate-950/60 ring-sky-500/50"
     );
     return (
-      <m.div
-        initial={{ opacity: 0, y: -5 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ damping: 0.2 }}
-        className={menuClass}
-      >
+      <div className={menuClass}>
         {SearchBar()}
         {!searchingDemos && ControlBar()}
-      </m.div>
+      </div>
     );
   }, [searchingDemos, SearchBar, ControlBar]);
 

@@ -14,15 +14,17 @@ import { TourBackground } from "features/Tour";
 import { useProjectSelector } from "redux/hooks";
 import { selectProjectName } from "redux/Metadata";
 import { useBrowserTitle } from "hooks";
-import LandingBackground from "assets/images/landing-background.png";
-import Nest from "assets/demos/nest.ham";
-import Barry from "assets/demos/barry.ham";
-import Wind from "assets/demos/wind.ham";
-import Marimba from "assets/demos/marimba.ham";
-import Strum from "assets/demos/strum.ham";
 import { UserProfile } from "features/Profile";
 import { useAuthentication } from "providers/authentication";
 import { useSubscription } from "providers/subscription";
+
+import LandingBackground from "assets/images/landing-background.png";
+import Barry from "assets/demos/barry.ham";
+import Wind from "assets/demos/wind.ham";
+import Inversions from "assets/demos/inversions.ham";
+import Marimba from "assets/demos/marimba.ham";
+import Scriabin from "assets/demos/scriabin.ham";
+import Upward from "assets/demos/upward.ham";
 
 export type View = (typeof views)[number];
 export const views = [
@@ -43,7 +45,7 @@ export function MainPage(props: MainPageProps) {
   const params = useParams<{ view: View }>();
   const view = props.view || params.view || "projects";
   const [projects, setProjects] = useState<Project[]>([]);
-  const demoPaths = [Nest, Barry, Wind, Marimba, Strum];
+  const demoPaths = [Barry, Wind, Marimba, Inversions, Scriabin, Upward];
 
   // Update the list of projects based on the authentication status
   const updateProjects = async () => {

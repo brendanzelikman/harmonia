@@ -278,7 +278,7 @@ export const UserControlPanel = () => {
         <>
           <DesktopButton />
           <PluginButton />
-          <RepositoryButton />
+          {/* <RepositoryButton /> */}
           <SignOutButton />
         </>
       ) : (

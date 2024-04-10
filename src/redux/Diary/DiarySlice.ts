@@ -3,8 +3,8 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 // A diary is an array of pages
 export type DiaryPage = string;
 export type Diary = DiaryPage[];
-const pageCount = 100;
-const defaultDiary = new Array(pageCount).fill("") as Diary;
+const PAGE_COUNT = 100;
+export const defaultDiary = new Array(PAGE_COUNT).fill("") as Diary;
 
 export const diarySlice = createSlice({
   name: "diary",

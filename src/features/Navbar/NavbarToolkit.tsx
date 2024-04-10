@@ -13,6 +13,7 @@ import { useProjectSelector } from "redux/hooks";
 import { selectTimeline } from "redux/Timeline";
 import { NavbarGroup } from "./components";
 import { useSubscription } from "providers/subscription";
+import { NavbarAddClipButton } from "./Toolkit/NavbarAddClipButton";
 
 export function NavbarToolkit() {
   const { isAtLeastStatus } = useSubscription();
@@ -26,6 +27,7 @@ export function NavbarToolkit() {
       >
         {onPatterns ? (
           <>
+            <NavbarAddClipButton />
             <NavbarClipTypeButton />
             <NavbarPatternListbox />
             <NavbarPatternEditorButton />
@@ -33,6 +35,7 @@ export function NavbarToolkit() {
           </>
         ) : (
           <>
+            <NavbarAddClipButton />
             <NavbarClipTypeButton />
             <NavbarPoseListbox />
             <NavbarPoseEditorButton />

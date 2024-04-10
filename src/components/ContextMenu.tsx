@@ -9,7 +9,7 @@ import {
 
 export interface ContextMenuOption {
   label: JSX.Element | string;
-  onClick: () => void;
+  onClick: (e: any) => void;
   disabled?: boolean;
   divideEnd?: boolean;
 }

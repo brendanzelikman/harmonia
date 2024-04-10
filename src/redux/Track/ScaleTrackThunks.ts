@@ -40,7 +40,11 @@ import { getClosestPitchClass } from "utils/pitch";
 import { random, range, sample, sampleSize } from "lodash";
 import { PresetScaleList } from "presets/scales";
 import { addTrack, moveTrack } from "./TrackSlice";
-import { setPatternTrackScaleTrack } from "./PatternTrackThunks";
+import {
+  createPatternTrack,
+  setPatternTrackScaleTrack,
+} from "./PatternTrackThunks";
+import { getCategoryInstruments } from "types/Instrument";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
@@ -108,6 +112,36 @@ export const createRandomHierarchy = (): Thunk => (dispatch) => {
     dispatch(addTrack({ track: scaleTrack, callerId: "hierarchy" }));
     scaleTracks.push(scaleTrack);
   }
+};
+
+/** Create a random hierarchy of drum-based Pattern Tracks within a chromatic Scale Track  */
+export const createRandomDrums = (): Thunk => (dispatch) => {
+  // Create a chromatic scale
+  const scale = initializeScaleTrackScale();
+  dispatch(addScale(scale));
+
+  // Create a chromatic scale track
+  const scaleTrackId = dispatch(createScaleTrack({ scaleId: scale.id }));
+
+  // Create a random kick pattern track
+  const kickDrums = getCategoryInstruments("Kick Drums");
+  const kickKey = sample(kickDrums)?.key;
+  dispatch(createPatternTrack({ parentId: scaleTrackId }, kickKey));
+
+  // Create a random snare pattern track
+  const snareDrums = getCategoryInstruments("Snare Drums");
+  const snareKey = sample(snareDrums)?.key;
+  dispatch(createPatternTrack({ parentId: scaleTrackId }, snareKey));
+
+  // Create a random tom pattern track
+  const tomDrums = getCategoryInstruments("Tenor Drums");
+  const tomKey = sample(tomDrums)?.key;
+  dispatch(createPatternTrack({ parentId: scaleTrackId }, tomKey));
+
+  // Create a random hi-hat pattern track
+  const hiHatDrums = getCategoryInstruments("Cymbals");
+  const hiHatKey = sample(hiHatDrums)?.key;
+  dispatch(createPatternTrack({ parentId: scaleTrackId }, hiHatKey));
 };
 
 /** Add a note to a scale track using its parent track's scale. */

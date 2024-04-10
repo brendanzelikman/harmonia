@@ -7,6 +7,7 @@ import {
   deleteSelectedMedia,
   duplicateSelectedMedia,
   pasteSelectedMedia,
+  updateMedia,
 } from "redux/Media";
 import {
   createScaleTrack,
@@ -22,6 +23,7 @@ import {
   selectSelectedTrack,
   selectSelectedPoseClips,
   selectSelectedPose,
+  selectSelectedClips,
 } from "redux/Timeline";
 import {
   useProjectDeepSelector,
@@ -35,6 +37,9 @@ import {
 import { UndoTypes } from "redux/undoTypes";
 import { CLIP_THEMES, CLIP_COLORS, ClipColor } from "types/Clip";
 import { isScaleTrack } from "types/Track";
+import { useState } from "react";
+import { blurOnEnter } from "utils/html";
+import { PPQ } from "utils/durations";
 
 export function TimelineContextMenu() {
   const dispatch = useProjectDispatch();
@@ -42,12 +47,11 @@ export function TimelineContextMenu() {
   // Get the currently selected objects
   const patternClips = useProjectDeepSelector(selectSelectedPatternClips);
   const poseClips = useProjectDeepSelector(selectSelectedPoseClips);
+  const clips = useProjectDeepSelector(selectSelectedClips);
   const pattern = useProjectSelector(selectSelectedPattern);
   const pose = useProjectSelector(selectSelectedPose);
   const track = useProjectSelector(selectSelectedTrack);
   const onScaleTrack = isScaleTrack(track);
-
-  // Get the drafted pose
 
   // Get the clipboard
   const clipboard = useProjectDeepSelector(selectMediaClipboard);
@@ -55,11 +59,12 @@ export function TimelineContextMenu() {
   const arePortalsInBoard = clipboard?.portals?.length > 0;
 
   // Get the selected media
-  const areClipsSelected = patternClips?.length > 0;
+  const arePatternsSelected = patternClips?.length > 0;
   const arePosesSelected = poseClips?.length > 0;
+  const areClipsSelected = arePatternsSelected || arePosesSelected;
   const arePortalsSelected = arePortalsInBoard;
   const isSelectionEmpty =
-    !areClipsSelected && !arePosesSelected && !arePortalsSelected;
+    !arePatternsSelected && !arePosesSelected && !arePortalsSelected;
   const isBoardEmpty = !areClipsInBoard && !arePortalsInBoard;
 
   // Determine which actions are available
@@ -70,8 +75,9 @@ export function TimelineContextMenu() {
   const canPaste = !isBoardEmpty && track && !(areClipsInBoard && onScaleTrack);
   const canDuplicate = !isSelectionEmpty && track;
   const canDelete = !isSelectionEmpty;
-  const canExport = areClipsSelected;
-  const canColor = areClipsSelected;
+  const canExport = arePatternsSelected;
+  const canColor = arePatternsSelected;
+  const canSetDuration = areClipsSelected;
 
   // Undo the last timeline action
   const Undo = {
@@ -159,7 +165,7 @@ export function TimelineContextMenu() {
     label: `Add ${pose?.name ?? "New Pose"}`,
     onClick: () => dispatch(createPoseClipFromMediaDraft()),
     disabled: !track,
-    divideEnd: canColor,
+    divideEnd: areClipsSelected,
   };
 
   // Change the color of the currently selected clips
@@ -189,6 +195,32 @@ export function TimelineContextMenu() {
     ),
     onClick: () => null,
     disabled: !canColor,
+    divideEnd: canColor && canSetDuration,
+  };
+
+  // Set the duration of the currently selected clips
+  const [duration, setDuration] = useState(PPQ);
+  const SetClipDuration = {
+    label: "Set Clip Duration",
+    onClick: () =>
+      dispatch(updateMedia({ clips: clips.map((c) => ({ ...c, duration })) })),
+    disabled: !canSetDuration,
+  };
+  const SetDurationInput = {
+    label: (
+      <>
+        Duration:{" "}
+        <input
+          type="number"
+          value={duration}
+          onChange={(e) => setDuration(parseFloat(e.target.value))}
+          onKeyDown={blurOnEnter}
+          className="ml-1 w-12 h-6 p-1 text-center text-slate-900 bg-slate-50 rounded"
+        />
+      </>
+    ),
+    onClick: (e: MouseEvent) => e.stopPropagation(),
+    disabled: !canSetDuration,
   };
 
   // Assemble all of the menu options
@@ -206,6 +238,8 @@ export function TimelineContextMenu() {
     AddPattern,
     AddPose,
     canColor ? ClipColors : null,
+    canSetDuration ? SetDurationInput : null,
+    canSetDuration ? SetClipDuration : null,
   ];
 
   // Filter out the null options

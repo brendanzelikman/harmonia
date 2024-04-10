@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   selectMediaDragState,
   selectClipName,
-  selectPoseById,
   selectPoseClipPose,
+  selectTrackMap,
+  selectScaleTrackMap,
 } from "redux/selectors";
 import { cancelEvent } from "utils/html";
 import { usePoseClipDrag } from "./usePoseClipDrag";
@@ -17,7 +18,7 @@ import {
   updateMediaDragState,
 } from "redux/Timeline";
 import { useProjectDispatch, useProjectSelector as use } from "redux/hooks";
-import { BsMagic } from "react-icons/bs";
+import { BsMagic, BsThreeDots } from "react-icons/bs";
 import { SlMagicWand } from "react-icons/sl";
 import { POSE_HEIGHT } from "utils/constants";
 import classNames from "classnames";
@@ -25,13 +26,14 @@ import { onMediaDragEnd } from "redux/Media";
 import { PoseClip, PoseClipId } from "types/Clip";
 import { ClipRendererProps } from "./TimelineClips";
 import {
-  getPoseAsString,
-  getPoseBlockAsString,
-  getPoseStreamAsString,
-  getPoseVectorAsString,
-  getPoseVectorModuleAsJSX,
-  isPoseVectorModule,
+  getPoseBucketVector,
+  getPoseVectorAsJSX,
+  isPoseBucket,
 } from "types/Pose";
+import { Menu } from "@headlessui/react";
+import { getKeys, getValues } from "utils/objects";
+import { ScaleTrack, getTrackLabel } from "types/Track";
+import { updatePose } from "redux/Pose";
 
 interface PoseClipRendererProps extends ClipRendererProps {
   clip: PoseClip;
@@ -50,6 +52,16 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
   } = props;
   const { tick } = clip;
   const dispatch = useProjectDispatch();
+  const trackMap = use(selectScaleTrackMap);
+
+  // Close the dropdown when the clip is unselected
+  useEffect(() => {
+    if (!isSelected) setIsDropdownOpen(false);
+  }, [isSelected]);
+
+  /** Each pose has a dropdown for editing offsets. */
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
 
   /** Update the timeline when dragging poses. */
   const onDragStart = () => {
@@ -82,16 +94,21 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
   const width = use((_) => selectClipWidth(_, portaledClip));
   const height = use((_) => selectTimelineObjectHeight(_, clip));
 
-  /** The pose header sits above a clip and contains the pose label. */
+  /** The pose header contains a clip name and vector if it is a bucket. */
+  const pose = use((_) => selectPoseClipPose(_, clip.id));
   const name = use((_) => selectClipName(_, clip?.id));
+  const isBucket = isPoseBucket(pose);
+  const bucketVector = getPoseBucketVector(pose);
 
   const PoseHeader = useMemo(() => {
+    const vectorJSX = getPoseVectorAsJSX(bucketVector, trackMap, "mx-0.5");
+
     // The icon is a star wand when selected, magic wand otherwise
     const IconType = isSelected ? SlMagicWand : BsMagic;
 
     // The label is more visible when selected
     const wrapperClass = classNames(
-      "flex relative items-center whitespace-nowrap pointer-events-none font-nunito",
+      "flex text-sm relative items-center whitespace-nowrap pointer-events-none font-nunito",
       "gap-2 animate-in fade-in duration-75",
       isSelected ? "text-white font-semibold" : "text-white/80 font-light"
     );
@@ -106,11 +123,21 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
         draggable
         onDragStart={cancelEvent}
       >
-        <IconType className="text-md ml-1 h-4" />
+        <IconType
+          className="flex flex-shrink-0 text-md ml-1 w-4 h-4 pointer-events-auto"
+          onClick={(e) => {
+            toggleDropdown();
+            if (isSelected) {
+              cancelEvent(e);
+            }
+          }}
+          onDoubleClick={cancelEvent}
+        />
         {name}
+        {isBucket && <span className="ml-0.5">({vectorJSX})</span>}
       </div>
     );
-  }, [isSelected, name]);
+  }, [isSelected, name, isBucket, bucketVector, isDropdownOpen, trackMap]);
 
   /** The pose body is filled in behind a clip. */
   const PoseBody = useMemo(() => {
@@ -118,6 +145,55 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
       <div className={`w-full animate-in fade-in duration-75 flex-grow`} />
     );
   }, []);
+
+  const PoseDropdown = () => {
+    if (!pose || !isDropdownOpen) return null;
+    const values = [
+      { id: "chromatic", name: "Chromatic" },
+      ...Object.values(trackMap).map((track) => ({
+        id: track.id,
+        name: `Scale Track ${getTrackLabel(track.id, trackMap)}`,
+      })),
+      { id: "chordal", name: "Chordal" },
+    ];
+    return (
+      <div
+        style={{ top: POSE_HEIGHT }}
+        className={`animate-in fade-in duration-300 left-1 absolute flex p-2 px-4 flex-col bg-slate-800/90 ring-4 ring-pose-clip rounded z-50 cursor-auto`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mt-2 space-y-2">
+          {values.map(({ id, name }) => {
+            const offset = bucketVector[id] ?? 0;
+            return (
+              <div key={id} className="flex items-center justify-between">
+                <span className="mr-2 text-md text-white">{name}</span>
+                <input
+                  className="rounded text-white text-xs font-bold bg-indigo-300/50 border-slate-500 focus:border-slate-300/80 focus:ring-slate-300/80"
+                  type="number"
+                  value={offset}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 0;
+                    dispatch(
+                      updatePose({
+                        id: pose.id,
+                        stream: [
+                          {
+                            ...pose.stream[0],
+                            vector: { ...bucketVector, [id]: value },
+                          },
+                        ],
+                      })
+                    );
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   // Assemble the classname
   const className = classNames(
@@ -143,6 +219,7 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
       onClick={(e) => dispatch(onPoseClipClick(e, clip, isEyedropping))}
       onDoubleClick={() => dispatch(onPoseClipDoubleClick(clip))}
     >
+      {PoseDropdown()}
       {PoseHeader}
       {PoseBody}
     </div>

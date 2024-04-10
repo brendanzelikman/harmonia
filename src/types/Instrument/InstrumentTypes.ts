@@ -57,10 +57,24 @@ export interface Instrument {
 // Instrument Initialization
 // ------------------------------------------------------------
 
-/** Create an instrument with a unique ID. */
+/**
+ * Create an instrument with a unique ID.
+ * If `oldEffects` is true, the effects will inherit the old IDs.
+ *  */
 export const initializeInstrument = (
-  instrument: Partial<InstrumentNoId> = defaultInstrument
-): Instrument => ({ ...defaultInstrument, ...instrument, id: nanoid() });
+  instrument: Partial<InstrumentNoId> = defaultInstrument,
+  oldEffects = true
+): Instrument => {
+  const effects = instrument.effects ?? defaultInstrument.effects;
+  return {
+    ...defaultInstrument,
+    ...instrument,
+    effects: oldEffects
+      ? effects
+      : effects.map((_) => ({ ..._, id: nanoid() })),
+    id: nanoid(),
+  };
+};
 
 /** The default instrument is used for initialization. */
 export const defaultInstrument: Instrument = {

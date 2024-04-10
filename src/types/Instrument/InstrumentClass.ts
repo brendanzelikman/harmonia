@@ -65,8 +65,6 @@ export class LiveAudioInstance {
       Tone.getDestination()
     );
 
-    // Dispose the current record
-
     // Add to the record if not already in there
     if (LIVE_AUDIO_INSTANCES[id]) LIVE_AUDIO_INSTANCES[id].dispose();
     LIVE_AUDIO_INSTANCES[id] = this;

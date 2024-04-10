@@ -2,6 +2,11 @@ import { Project } from "types/Project";
 import { useProjectSearch } from "./useProjectSearch";
 import { ProjectFormatter } from "..";
 import { useCallback } from "react";
+import DataGrid, {
+  Column,
+  RowHeightArgs,
+  FormatterProps,
+} from "react-data-grid";
 
 export interface ProjectItem {
   project: Project;

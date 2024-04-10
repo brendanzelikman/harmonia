@@ -21,15 +21,19 @@ import {
 } from "redux/selectors";
 import { addTrack, migrateTrack, moveTrack } from "./TrackSlice";
 import { getValueByKey } from "utils/objects";
+import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 
 /** Create a `PatternTrack` with an optional initial track. */
 export const createPatternTrack =
-  (initialTrack?: Partial<PatternTrack>): Thunk<TrackId> =>
+  (
+    initialTrack?: Partial<PatternTrack>,
+    initialInstrumentKey?: InstrumentKey
+  ): Thunk<TrackId> =>
   (dispatch, getProject) => {
     const project = getProject();
 
     // Initialize a new pattern track and instrument
-    const instrument = initializeInstrument();
+    const instrument = initializeInstrument({ key: initialInstrumentKey });
     const patternTrack = initializePatternTrack({
       ...initialTrack,
       instrumentId: instrument.id,
@@ -42,7 +46,15 @@ export const createPatternTrack =
     const oldInstrument = initialTrack?.instrumentId
       ? selectInstrumentById(project, initialTrack.instrumentId)
       : undefined;
-    dispatch(createInstrument(patternTrack, { oldInstrument }));
+    dispatch(
+      createInstrument(patternTrack, {
+        oldInstrument: {
+          ...oldInstrument,
+          ...instrument,
+          key: initialInstrumentKey ?? DEFAULT_INSTRUMENT_KEY,
+        },
+      })
+    );
 
     // Return ID of the created track
     return patternTrack.id;

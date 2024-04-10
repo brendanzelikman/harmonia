@@ -30,16 +30,14 @@ export const createInstrument =
     // Get the instrument of the track
     const trackInstrument = selectInstrumentById(project, track.instrumentId);
     const oldInstrument = options.oldInstrument ?? trackInstrument;
+    const instrument = initializeInstrument(oldInstrument);
 
     // Dispose the old instrument if it exists (and is not being downloaded)
     if (track.instrumentId && !options.downloading) {
       LIVE_AUDIO_INSTANCES[track.instrumentId]?.dispose();
       delete LIVE_AUDIO_INSTANCES[track.instrumentId];
+      instrument.id = track.instrumentId;
     }
-
-    // Create a new instrument, using the old instrument ID if it exists
-    const instrument = initializeInstrument(oldInstrument);
-    if (track.instrumentId !== undefined) instrument.id = track.instrumentId;
 
     // Create a new instance
     const instance = new LiveAudioInstance(instrument);
@@ -53,6 +51,7 @@ export const createInstrument =
     }
 
     // Return the new instance
+    if (instrument.id) LIVE_AUDIO_INSTANCES[instrument.id] = instance;
     return instance;
   };
 

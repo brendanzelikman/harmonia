@@ -272,33 +272,23 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
     "flex group w-full relative p-4 h-40",
     "rounded-lg border border-slate-400",
     "text-slate-200 text-sm",
+    "transform duration-300 animate-in fade-in ease-out hover:scale-[1.005]",
     isDemo ? "bg-gray-900/90" : "bg-slate-900/90",
     { "ring ring-red-500 cursor-not-allowed": isInvalid },
     { "backdrop-blur shadow-xl": !isInvalid },
     { "cursor-pointer": !isInvalid && canPlay },
     deleting
-      ? "shadow-[0_0_20px_0_rgb(255,0,0)]"
+      ? "shadow-xl shadow-[0_0_20px_0_rgba(255,0,0,0.5)]"
       : isDemo
       ? "shadow-xl hover:shadow-[0_0_15px_0_rgba(0,0,0,0.5)]"
       : "shadow-xl hover:shadow-[0_0_15px_0_rgba(0,0,0,0.5)]"
   );
 
   return (
-    <m.div
-      initial={{ opacity: 0, x: -25 }}
-      animate={{
-        opacity: 1,
-        x: 0,
-        transition: { damping: 10, delay: (index ?? 0) * 0.05 },
-      }}
-      whileHover={{ scale: 1.01, transition: { delay: 0, duration: 0.1 } }}
-      key={id}
-      className={projectClass}
-      onClick={onClick}
-    >
+    <div key={id} className={projectClass} onClick={onClick}>
       <ProjectLogo />
       <ProjectTitle />
       <ProjectBody />
-    </m.div>
+    </div>
   );
 }

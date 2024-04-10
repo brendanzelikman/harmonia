@@ -28,6 +28,7 @@ export type MigrateTrackPayload = {
   id: TrackId;
   parentId: TrackId;
   index?: number;
+  inserting?: boolean;
 };
 
 /** A list of tracks can be collapsed by ID. */

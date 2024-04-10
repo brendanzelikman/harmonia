@@ -27,12 +27,20 @@ import { useTransportTick } from "hooks";
 import { isScaleEditorOpen } from "types/Editor";
 import { TrackFormatterProps } from "./TrackFormatter";
 import {
+  clearTrack,
+  collapseTrackChildren,
   createPatternTrack,
   createScaleTrack,
+  deleteTrack,
+  duplicateTrack,
+  expandTrackChildren,
+  insertScaleTrack,
   toggleTrackScaleEditor,
 } from "redux/thunks";
 import classNames from "classnames";
 import { ScaleTrack } from "types/Track";
+import { setSelectedTrackId } from "redux/Timeline";
+import { collapseTracks, expandTracks } from "redux/Track";
 
 interface ScaleTrackProps extends TrackFormatterProps {
   track: ScaleTrack;
@@ -43,6 +51,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
   const dispatch = useProjectDispatch();
 
   // Track drag and drop
+  const trackId = track.id;
   const ref = useRef<HTMLDivElement>(null);
   const element = ref.current;
   const [{}, drop] = useTrackDrop({ ...props, element });
@@ -55,8 +64,8 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
 
   // Track info
   const tick = useTransportTick();
-  const placeholder = use((_) => selectTrackScaleNameAtTick(_, track.id, tick));
-  const children = useDeep((_) => selectTrackDescendants(_, track.id));
+  const placeholder = use((_) => selectTrackScaleNameAtTick(_, trackId, tick));
+  const children = useDeep((_) => selectTrackDescendants(_, trackId));
 
   /** The Scale Track displays the name of the track or the name of its scale. */
   const ScaleTrackName = useCallback(() => {
@@ -64,12 +73,12 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
       <TrackName
         id={track.id}
         height={cell.height}
-        value={track.name}
+        value={track.name ?? ""}
         placeholder={`Scale Track (${label})`}
         onChange={(e) => props.renameTrack(e.target.value)}
       />
     );
-  }, [track.id, cell.height, track.name, label]);
+  }, [track, cell, label]);
 
   /** The Scale Track dropdown menu allows the user to perform general actions on the track. */
   const ScaleTrackDropdownMenu = () => {
@@ -78,31 +87,46 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
     return (
       <TrackDropdownMenu>
         <TrackDropdownButton
+          content="Insert Parent"
+          icon={<BiCopy />}
+          onClick={() => dispatch(insertScaleTrack(trackId))}
+        />
+        <TrackDropdownButton
           content={`${track.collapsed ? "Expand " : "Collapse"} Track`}
           icon={<BsArrowsCollapse />}
-          onClick={!!track.collapsed ? props.expandTrack : props.collapseTrack}
+          onClick={() =>
+            dispatch(
+              !!track.collapsed
+                ? expandTracks([trackId])
+                : collapseTracks([trackId])
+            )
+          }
         />
         <TrackDropdownButton
           content={`${isChildCollapsed ? "Expand " : "Collapse"} Children`}
           icon={<BsArrowsCollapse />}
-          onClick={
-            !!isChildCollapsed ? props.expandChildren : props.collapseChildren
+          onClick={() =>
+            dispatch(
+              !!isChildCollapsed
+                ? expandTrackChildren(trackId)
+                : collapseTrackChildren(trackId)
+            )
           }
         />
         <TrackDropdownButton
           content="Duplicate Track"
           icon={<BiCopy />}
-          onClick={props.duplicateTrack}
+          onClick={() => dispatch(duplicateTrack(trackId))}
         />
         <TrackDropdownButton
           content="Clear Track"
           icon={<BsEraser />}
-          onClick={props.clearTrack}
+          onClick={() => dispatch(clearTrack(trackId))}
         />
         <TrackDropdownButton
           content="Delete Track"
           icon={<BsTrash />}
-          onClick={props.deleteTrack}
+          onClick={() => dispatch(deleteTrack(trackId))}
         />
       </TrackDropdownMenu>
     );
@@ -134,13 +158,13 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
     return (
       <TrackButton
         className={buttonClass}
-        onClick={() => dispatch(toggleTrackScaleEditor(track.id))}
+        onClick={() => dispatch(toggleTrackScaleEditor(trackId))}
       >
         <BsPencil className="mr-2 flex-shrink-0" />
         <span className="truncate">{placeholder}</span>
       </TrackButton>
     );
-  }, [track.id, placeholder, isSelected, onScaleEditor]);
+  }, [trackId, placeholder, isSelected, onScaleEditor]);
 
   /** The Pattern Track button creates a nested pattern track. */
   const PatternTrackButton = useCallback(() => {
@@ -149,11 +173,11 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
         className={`w-6 h-6 text-2xl flex items-center justify-center border rounded-full border-emerald-500 active:bg-emerald-500 select-none`}
       >
         <BsPlus
-          onClick={() => dispatch(createPatternTrack({ parentId: track.id }))}
+          onClick={() => dispatch(createPatternTrack({ parentId: trackId }))}
         />
       </button>
     );
-  }, [track.id]);
+  }, [trackId]);
 
   /** The Scale Track button creates a nested scale track. */
   const ScaleTrackButton = useCallback(() => {
@@ -162,11 +186,11 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
         className={`w-6 h-6 text-2xl flex items-center justify-center border rounded-full border-indigo-400 active:bg-indigo-500 select-none`}
       >
         <BsPlus
-          onClick={() => dispatch(createScaleTrack({ parentId: track.id }))}
+          onClick={() => dispatch(createScaleTrack({ parentId: trackId }))}
         />
       </button>
     );
-  }, [track.id]);
+  }, [trackId]);
 
   /** The Scale Track buttons include the scale editor button, pattern track button, and scale track button. */
   const ScaleTrackButtons = useCallback(
@@ -199,7 +223,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
     return (
       <div
         className={bodyClass}
-        onDoubleClick={() => dispatch(toggleTrackScaleEditor(track.id))}
+        onDoubleClick={() => dispatch(toggleTrackScaleEditor(trackId))}
       >
         <div className="min-w-0 h-full flex flex-1 flex-col items-start justify-evenly p-2 duration-150">
           {ScaleTrackHeader()}
@@ -207,13 +231,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
         </div>
       </div>
     );
-  }, [
-    track.id,
-    isSelected,
-    onScaleEditor,
-    ScaleTrackHeader,
-    ScaleTrackButtons,
-  ]);
+  }, [trackId, isSelected, onScaleEditor, ScaleTrackHeader, ScaleTrackButtons]);
 
   // Assemble the class name
   const trackClass = classNames(
@@ -224,7 +242,11 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
 
   // Render the Scale Track
   return (
-    <div className={trackClass} ref={ref} onClick={props.selectTrack}>
+    <div
+      className={trackClass}
+      ref={ref}
+      onClick={() => dispatch(setSelectedTrackId(trackId))}
+    >
       {ScaleTrackBody()}
     </div>
   );

@@ -1,5 +1,6 @@
 import { AnyAction, ThunkAction, nanoid } from "@reduxjs/toolkit";
 import { isPlainObject, isString } from "lodash";
+import { defaultDiary } from "redux/Diary";
 import { store } from "redux/store";
 import {
   defaultArrangementHistory,
@@ -73,7 +74,7 @@ export const defaultProject: Project = {
   timeline: defaultTimeline,
   editor: defaultEditor,
   transport: defaultTransport,
-  diary: [],
+  diary: defaultDiary,
 };
 
 // ------------------------------------------------------------

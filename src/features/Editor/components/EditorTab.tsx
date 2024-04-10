@@ -10,7 +10,7 @@ export const EditorTab = (props: {
     <div
       className={classNames(
         props.className,
-        `flex w-full items-center h-10 py-1 text-slate-200 animate-in fade-in duration-150`,
+        `flex flex-shrink-0 w-full items-center h-10 py-1 text-slate-200 animate-in fade-in duration-150`,
         props.border ? "border-b border-b-slate-500" : ""
       )}
     >

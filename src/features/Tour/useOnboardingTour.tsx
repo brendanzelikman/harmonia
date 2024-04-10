@@ -409,8 +409,8 @@ export function useOnboardingTour() {
     const id = "tour-step-saving-work";
     const text = createText({
       title: "Saving Your Work",
-      text: `Lastly, and most importantly, don't forget to save your work!
-      Your project will be automatically saved in your browser, but you can only have one project open at a time.`,
+      text: `Lastly, and most importantly, don't forget to preserve your work!
+      Your projects will be automatically saved in your browser, but you can also download them as HAM files.`,
     });
     return createStep({
       id,

@@ -119,6 +119,7 @@ export const isPoseVector = (obj: unknown): obj is PoseVector => {
 export const isPoseModule = (obj: unknown): obj is PoseModule => {
   const candidate = obj as PoseModule;
   return (
+    isPlainObject(candidate) &&
     isOptionalType(candidate.duration, isNumber) &&
     isOptionalType(candidate.repeat, isNumber) &&
     isOptionalType(candidate.chain, isPoseVector)
