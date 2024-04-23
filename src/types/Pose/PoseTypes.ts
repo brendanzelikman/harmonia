@@ -64,6 +64,9 @@ export type Pose = {
   trackId?: TrackId;
 };
 
+/** A `PresetPose` has its id prefixed */
+export type PresetPose = Pose & { id: `preset-${string}` };
+
 // ------------------------------------------------------------
 // Pose Initialization
 // ------------------------------------------------------------

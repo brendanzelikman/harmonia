@@ -26,10 +26,10 @@ import { BsFiletypeWav, BsMusicPlayerFill } from "react-icons/bs";
 import { toggleEditor } from "redux/Editor";
 import { updateProjectName } from "redux/Metadata";
 import {
-  NavbarButton,
   NavbarFormGroup,
   NavbarFormInput,
   NavbarFormLabel,
+  NavbarTooltipButton,
   NavbarTooltip,
   NavbarTooltipMenu,
 } from "./components";
@@ -54,28 +54,28 @@ export function NavbarFileMenu() {
 
   /** The undo button allows the user to undo the arrangement. */
   const UndoButton = () => (
-    <NavbarButton
-      className={`p-1 rounded-full ${canUndo ? "active:text-sky-600" : ""}`}
+    <NavbarTooltipButton
+      className={`rounded-full ${canUndo ? "active:text-sky-600" : ""}`}
       onClick={() => canUndo && dispatch(undoArrangement())}
       disabled={!canUndo}
       disabledClass="text-white/50 cursor-default"
-      label="undo"
+      label="Undo the Last Timeline Action"
     >
-      <CiUndo className="text-3xl" />
-    </NavbarButton>
+      <CiUndo className="p-[1px] text-3xl" />
+    </NavbarTooltipButton>
   );
 
   /** The redo button allows the user to redo the arrangement. */
   const RedoButton = () => (
-    <NavbarButton
-      className={`p-1 rounded-full ${canRedo ? "active:text-sky-600" : ""}`}
+    <NavbarTooltipButton
+      className={`rounded-full ${canRedo ? "active:text-sky-600" : ""}`}
       onClick={() => canRedo && dispatch(redoArrangement())}
       disabled={!canRedo}
       disabledClass="text-white/50 cursor-default"
-      label="redo"
+      label="Redo the Last Timeline Action"
     >
-      <CiRedo className="text-3xl" />
-    </NavbarButton>
+      <CiRedo className="p-[1px] text-3xl" />
+    </NavbarTooltipButton>
   );
 
   /** The save to HAM button allows the user to save the current state to a Harmonia file. */
@@ -265,7 +265,8 @@ export function NavbarFileMenu() {
 
   /** The file button allows the user to toggle the file editor. */
   const FileButton = () => (
-    <NavbarButton
+    <NavbarTooltipButton
+      label={onFileEditor ? "Close the File Menu" : "Open the File Menu"}
       className="rounded-full p-1.5"
       onClick={() => dispatch(toggleEditor("file"))}
     >
@@ -274,7 +275,7 @@ export function NavbarFileMenu() {
           onFileEditor ? "text-indigo-500" : "text-slate-300"
         }`}
       />
-    </NavbarButton>
+    </NavbarTooltipButton>
   );
 
   /** The file tooltip displays the entire file menu. */
@@ -299,8 +300,8 @@ export function NavbarFileMenu() {
   };
 
   return (
-    <div className="flex items-center">
-      <FileButton />
+    <div className="flex items-center space-x-1">
+      {FileButton()}
       {FileTooltip()}
       <UndoButton />
       <RedoButton />

@@ -3,7 +3,7 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const EighthAndTwoSixteenths: Pattern = {
-  id: "eighth-and-two-sixteenths",
+  id: "preset-eighth-and-two-sixteenths",
   name: "Eighth + Two Sixteenths",
   stream: fill(Array(4), [
     [_.createEighthNote()],
@@ -12,7 +12,7 @@ export const EighthAndTwoSixteenths: Pattern = {
   ]).flat(),
 };
 export const TwoSixteenthsAndEighth: Pattern = {
-  id: "two-sixteenths-and-eighth",
+  id: "preset-two-sixteenths-and-eighth",
   name: "Two Sixteenths + Eighth",
   stream: fill(Array(4), [
     [_.createSixteenthNote()],
@@ -21,7 +21,7 @@ export const TwoSixteenthsAndEighth: Pattern = {
   ]).flat(),
 };
 export const SixteenthEighthSixteenth: Pattern = {
-  id: "sixteenth-eighth-sixteenth",
+  id: "preset-sixteenth-eighth-sixteenth",
   name: "Sixteenth + Eighth + Sixteenth",
   stream: fill(Array(4), [
     [_.createSixteenthNote()],
@@ -30,7 +30,7 @@ export const SixteenthEighthSixteenth: Pattern = {
   ]).flat(),
 };
 export const SixteenthAndDottedEighth: Pattern = {
-  id: "sixteenth-and-dotted",
+  id: "preset-sixteenth-and-dotted",
   name: "Sixteenth + Dotted Eighth",
   stream: fill(Array(4), [
     [_.createSixteenthNote()],
@@ -38,7 +38,7 @@ export const SixteenthAndDottedEighth: Pattern = {
   ]).flat(),
 };
 export const DottedEighthAndSixteenth: Pattern = {
-  id: "dotted-and-sixteenth",
+  id: "preset-dotted-and-sixteenth",
   name: "Dotted Eighth + Sixteenth",
   stream: fill(Array(4), [
     [_.createDottedEighthNote()],

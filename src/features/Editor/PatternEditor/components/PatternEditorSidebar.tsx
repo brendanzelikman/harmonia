@@ -192,7 +192,12 @@ export const PresetPattern = (props: PresetPatternProps) => {
       className="absolute right-0 top-0 h-full w-5 text-slate-500"
       onClick={(e) => {
         e.stopPropagation();
-        dispatch(createPattern({ name: `${presetPattern.name} Copy` }));
+        dispatch(
+          createPattern({
+            ...presetPattern,
+            name: `${presetPattern.name} Copy`,
+          })
+        );
       }}
     />
   );

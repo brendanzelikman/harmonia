@@ -10,7 +10,7 @@ import { PatternEditorChordTab } from "./PatternEditorChordTab";
 import { PatternEditorComposeTab } from "./PatternEditorComposeTab";
 import { PatternEditorToolbar } from "./PatternEditorToolbar";
 import { PatternEditorRecordTab } from "./PatternEditorRecordTab";
-import { PatternEditorSettingsTab } from "./PatternEditorSettingsTab";
+import { PatternEditorBindingsTab } from "./PatternEditorBindingsTab";
 import { PatternEditorTransformTab } from "./PatternEditorTransformTab";
 
 const PatternEditor = {
@@ -24,7 +24,7 @@ const PatternEditor = {
   ChordTab: PatternEditorChordTab,
   ComposeTab: PatternEditorComposeTab,
   RecordTab: PatternEditorRecordTab,
-  SettingsTab: PatternEditorSettingsTab,
+  SettingsTab: PatternEditorBindingsTab,
   TransformTab: PatternEditorTransformTab,
 };
 

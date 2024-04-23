@@ -2,7 +2,7 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const StraightMajorArpeggio: Pattern = {
-  id: "straight-major-arpeggio",
+  id: "preset-straight-major-arpeggio",
   name: "Straight Major Arpeggio",
   aliases: [
     "maj arpeggio",
@@ -20,7 +20,7 @@ export const StraightMajorArpeggio: Pattern = {
   ],
 };
 export const TripletMajorArpeggio: Pattern = {
-  id: "triplet-major-arpeggio",
+  id: "preset-triplet-major-arpeggio",
   name: "Triplet Major Arpeggio",
   aliases: [
     "maj triplet arpeggio",
@@ -38,7 +38,7 @@ export const TripletMajorArpeggio: Pattern = {
 };
 
 export const StraightMinorArpeggio: Pattern = {
-  id: "straight-minor-arpeggio",
+  id: "preset-straight-minor-arpeggio",
   name: "Straight Minor Arpeggio",
   aliases: [
     "min arpeggio",
@@ -56,7 +56,7 @@ export const StraightMinorArpeggio: Pattern = {
   ],
 };
 export const TripletMinorArpeggio: Pattern = {
-  id: "triplet-minor-arpeggio",
+  id: "preset-triplet-minor-arpeggio",
   name: "Triplet Minor Arpeggio",
   aliases: [
     "min triplet arpeggio",
@@ -73,7 +73,7 @@ export const TripletMinorArpeggio: Pattern = {
   ],
 };
 export const StraightDiminishedArpeggio: Pattern = {
-  id: "straight-diminished-arpeggio",
+  id: "preset-straight-diminished-arpeggio",
   name: "Straight Diminished Arpeggio",
   aliases: [
     "dim arpeggio",
@@ -91,7 +91,7 @@ export const StraightDiminishedArpeggio: Pattern = {
   ],
 };
 export const TripletDiminishedArpeggio: Pattern = {
-  id: "triplet-diminished-arpeggio",
+  id: "preset-triplet-diminished-arpeggio",
   name: "Triplet Diminished Arpeggio",
   aliases: [
     "dim triplet arpeggio",
@@ -108,7 +108,7 @@ export const TripletDiminishedArpeggio: Pattern = {
   ],
 };
 export const StraightAugmentedArpeggio: Pattern = {
-  id: "straight-augmented-arpeggio",
+  id: "preset-straight-augmented-arpeggio",
   name: "Straight Augmented Arpeggio",
   aliases: [
     "aug arpeggio",
@@ -126,7 +126,7 @@ export const StraightAugmentedArpeggio: Pattern = {
   ],
 };
 export const TripletAugmentedArpeggio: Pattern = {
-  id: "triplet-augmented-arpeggio",
+  id: "preset-triplet-augmented-arpeggio",
   name: "Triplet Augmented Arpeggio",
   aliases: [
     "aug triplet arpeggio",
@@ -144,7 +144,7 @@ export const TripletAugmentedArpeggio: Pattern = {
 };
 
 export const Major7thArpeggio: Pattern = {
-  id: "major-7th-arpeggio",
+  id: "preset-major-7th-arpeggio",
   name: "Major 7th Arpeggio",
   aliases: [
     "maj7 arpeggio",
@@ -162,7 +162,7 @@ export const Major7thArpeggio: Pattern = {
   ],
 };
 export const Minor7thArpeggio: Pattern = {
-  id: "minor-7th-arpeggio",
+  id: "preset-minor-7th-arpeggio",
   name: "Minor 7th Arpeggio",
   aliases: [
     "min7 arpeggio",
@@ -180,7 +180,7 @@ export const Minor7thArpeggio: Pattern = {
   ],
 };
 export const Dominant7thArpeggio: Pattern = {
-  id: "dominant-7th-arpeggio",
+  id: "preset-dominant-7th-arpeggio",
   name: "Dominant 7th Arpeggio",
   aliases: [
     "dom7 arpeggio",
@@ -199,7 +199,7 @@ export const Dominant7thArpeggio: Pattern = {
 };
 
 export const HalfDiminished7thArpeggio: Pattern = {
-  id: "half-diminished-7th-arpeggio",
+  id: "preset-half-diminished-7th-arpeggio",
   name: "Half Diminished 7th Arpeggio",
   aliases: [
     "min7b5 arpeggio",
@@ -222,7 +222,7 @@ export const HalfDiminished7thArpeggio: Pattern = {
 };
 
 export const Augmented7thArpeggio: Pattern = {
-  id: "augmented-7th-arpeggio",
+  id: "preset-augmented-7th-arpeggio",
   name: "Augmented 7th Arpeggio",
   aliases: [
     "aug7 arpeggio",
@@ -246,7 +246,7 @@ export const Augmented7thArpeggio: Pattern = {
   ],
 };
 export const MinorMajor7thArpeggio: Pattern = {
-  id: "major-minor-7th-arpeggio",
+  id: "preset-major-minor-7th-arpeggio",
   name: "Major Minor 7th Arpeggio",
   aliases: [
     "minmaj7 arpeggio",

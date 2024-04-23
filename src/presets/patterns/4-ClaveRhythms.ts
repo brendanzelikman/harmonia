@@ -2,7 +2,7 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const TwoThreeSonClave: Pattern = {
-  id: "2-3-son-clave",
+  id: "preset-2-3-son-clave",
   name: "2-3 Son Clave",
   stream: [
     _.createEighthRest(),
@@ -16,7 +16,7 @@ export const TwoThreeSonClave: Pattern = {
   ],
 };
 export const ThreeTwoSonClave: Pattern = {
-  id: "3-2-son-clave",
+  id: "preset-3-2-son-clave",
   name: "3-2 Son Clave",
   stream: [
     [_.createDottedEighthNote()],
@@ -30,7 +30,7 @@ export const ThreeTwoSonClave: Pattern = {
   ],
 };
 export const TwoThreeRumbaClave: Pattern = {
-  id: "2-3-rumba-clave",
+  id: "preset-2-3-rumba-clave",
   name: "2-3 Rumba Clave",
   stream: [
     _.createEighthRest(),
@@ -48,7 +48,7 @@ export const TwoThreeRumbaClave: Pattern = {
   ],
 };
 export const ThreeTwoRumbaClave: Pattern = {
-  id: "3-2-rumba-clave",
+  id: "preset-3-2-rumba-clave",
   name: "3-2 Rumba Clave",
   stream: [
     [_.createEighthNote()],
@@ -66,7 +66,7 @@ export const ThreeTwoRumbaClave: Pattern = {
   ],
 };
 export const TwoThreeBossaNovaClave: Pattern = {
-  id: "2-3-bossa-nova-clave",
+  id: "preset-2-3-bossa-nova-clave",
   name: "2-3 Bossa Nova Clave",
   stream: [
     _.createEighthRest(),
@@ -84,7 +84,7 @@ export const TwoThreeBossaNovaClave: Pattern = {
   ],
 };
 export const ThreeTwoBossaNovaClave: Pattern = {
-  id: "3-2-bossa-nova-clave",
+  id: "preset-3-2-bossa-nova-clave",
   name: "3-2 Bossa Nova Clave",
   stream: [
     [_.createEighthNote()],

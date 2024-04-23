@@ -41,6 +41,9 @@ import classNames from "classnames";
 import { ScaleTrack } from "types/Track";
 import { setSelectedTrackId } from "redux/Timeline";
 import { collapseTracks, expandTracks } from "redux/Track";
+import { GiBreakingChain, GiPianoKeys } from "react-icons/gi";
+import { TooltipButton } from "components/TooltipButton";
+import { FaAnchor } from "react-icons/fa";
 
 interface ScaleTrackProps extends TrackFormatterProps {
   track: ScaleTrack;
@@ -88,7 +91,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
       <TrackDropdownMenu>
         <TrackDropdownButton
           content="Insert Parent"
-          icon={<BiCopy />}
+          icon={<FaAnchor />}
           onClick={() => dispatch(insertScaleTrack(trackId))}
         />
         <TrackDropdownButton
@@ -169,26 +172,28 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
   /** The Pattern Track button creates a nested pattern track. */
   const PatternTrackButton = useCallback(() => {
     return (
-      <button
-        className={`w-6 h-6 text-2xl flex items-center justify-center border rounded-full border-emerald-500 active:bg-emerald-500 select-none`}
+      <TooltipButton
+        className={`size-7 text-2xl border rounded-full border-emerald-500 active:bg-emerald-500 select-none`}
+        label="Nest A Pattern Track"
       >
-        <BsPlus
+        <GiPianoKeys
           onClick={() => dispatch(createPatternTrack({ parentId: trackId }))}
         />
-      </button>
+      </TooltipButton>
     );
   }, [trackId]);
 
   /** The Scale Track button creates a nested scale track. */
   const ScaleTrackButton = useCallback(() => {
     return (
-      <button
-        className={`w-6 h-6 text-2xl flex items-center justify-center border rounded-full border-indigo-400 active:bg-indigo-500 select-none`}
+      <TooltipButton
+        className={`size-7 text-2xl flex items-center justify-center border rounded-full border-indigo-400 active:bg-indigo-500 select-none`}
+        label="Nest a Scale Track"
       >
-        <BsPlus
+        <GiBreakingChain
           onClick={() => dispatch(createScaleTrack({ parentId: trackId }))}
         />
-      </button>
+      </TooltipButton>
     );
   }, [trackId]);
 
@@ -221,10 +226,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
       { "border-sky-950": !isSelected }
     );
     return (
-      <div
-        className={bodyClass}
-        onDoubleClick={() => dispatch(toggleTrackScaleEditor(trackId))}
-      >
+      <div className={bodyClass}>
         <div className="min-w-0 h-full flex flex-1 flex-col items-start justify-evenly p-2 duration-150">
           {ScaleTrackHeader()}
           {ScaleTrackButtons()}

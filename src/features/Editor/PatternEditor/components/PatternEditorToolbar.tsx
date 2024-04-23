@@ -8,11 +8,10 @@ import {
 } from "redux/thunks";
 import { Editor } from "features/Editor/components";
 import { PatternEditorTabProps } from "./PatternEditorContent";
-import { useEffect } from "react";
 import { useSubscription } from "providers/subscription";
 
 export function PatternEditorToolbar(props: PatternEditorTabProps) {
-  const { dispatch, pattern, isEmpty, Button, onChord } = props;
+  const { dispatch, pattern, isEmpty, Button, onChord, tabs } = props;
   const subscription = useSubscription();
 
   /** The user can create a new pattern. */
@@ -101,20 +100,8 @@ export function PatternEditorToolbar(props: PatternEditorTabProps) {
     </Button>
   );
 
-  /** The user can select a pattern editor tab. */
-  const tabs = [
-    "compose",
-    onChord ? "edit" : undefined,
-    "transform",
-    "settings",
-  ].filter(Boolean) as string[];
-
-  useEffect(() => {
-    if (props.tab === "edit" && !onChord) props.setTab("compose");
-  }, [onChord, props.tab]);
-
   const PatternEditorTabs = () => (
-    <div className="flex items-center font-light text-xs">
+    <div className="flex items-center font-light">
       {tabs.map((tab) => {
         const onTab = props.tab === tab;
         const color = onTab ? "text-green-400" : "text-slate-500";

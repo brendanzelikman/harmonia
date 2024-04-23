@@ -21,7 +21,8 @@ import {
   toggleTransportRecording,
 } from "redux/Transport";
 import { useTransportTick } from "hooks";
-import { TransportButton } from "./components";
+import { NavbarTooltipButton, TransportButton } from "./components";
+import classNames from "classnames";
 
 export function NavbarTransport() {
   const dispatch = useProjectDispatch();
@@ -78,37 +79,44 @@ export function NavbarTransport() {
     const toggleColor = isStarted ? "bg-emerald-600" : buttonColor;
     const recordColor = isRecording ? "bg-red-700/90" : buttonColor;
     const loopColor = isLooping ? "bg-indigo-700" : buttonColor;
+    const borderClass = "border border-slate-500";
 
     return () => (
-      <div className="flex space-x-1.5 text-xl">
-        <TransportButton
-          label="Stop"
-          className={stopColor}
+      <div className="flex space-x-1.5 bor text-xl">
+        <NavbarTooltipButton
+          label="Stop the Timeline"
+          className={classNames(stopColor, borderClass)}
           onClick={() => dispatch(stopTransport())}
         >
-          <BsStop />
-        </TransportButton>
-        <TransportButton
-          label={isStarted ? "Pause" : "Play"}
-          className={toggleColor}
+          <BsStop className="p-[1px]" />
+        </NavbarTooltipButton>
+        <NavbarTooltipButton
+          label={
+            isStarted
+              ? "Pause the Timeline"
+              : !isStopped
+              ? "Resume the Timeline"
+              : "Start the Timeline"
+          }
+          className={classNames(toggleColor, borderClass)}
           onClick={() => dispatch(toggleTransport())}
         >
-          {isStarted ? <BsPause /> : <BsPlay className="pl-[2px]" />}
-        </TransportButton>
-        <TransportButton
-          label="Record"
-          className={recordColor}
+          {isStarted ? <BsPause /> : <BsPlay className="pl-[3px] p-[1px]" />}
+        </NavbarTooltipButton>
+        <NavbarTooltipButton
+          label={isRecording ? "Stop Recording to WAV" : "Record to WAV"}
+          className={classNames(recordColor, borderClass)}
           onClick={() => dispatch(toggleTransportRecording())}
         >
-          <BsRecord />
-        </TransportButton>
-        <TransportButton
-          label="Loop"
+          <BsRecord className="p-[1px]" />
+        </NavbarTooltipButton>
+        <NavbarTooltipButton
+          label={isLooping ? "Stop Looping the Timeline" : "Loop the Timeline"}
+          className={classNames(loopColor, borderClass)}
           onClick={() => dispatch(toggleTransportLoop())}
-          className={loopColor}
         >
-          <BsArrowRepeat />
-        </TransportButton>
+          <BsArrowRepeat className="p-[2px]" />
+        </NavbarTooltipButton>
       </div>
     );
   }, [isStarted, isStopped, isRecording, isLooping]);

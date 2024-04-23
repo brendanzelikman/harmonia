@@ -22,7 +22,7 @@ export function NavbarButton({
       onClick={disabled ? () => null : onClick}
       className={`${className ?? ""} ${
         disabled ? disabledClass : ""
-      } xl:w-9 xl:h-9 w-8 h-8 xl:text-2xl text-xl flex items-center justify-center active:opacity-80 opacity-100 rounded `}
+      } xl:min-w-9 xl:min-h-9 min-w-8 min-h-8 xl:text-2xl text-xl flex items-center justify-center active:opacity-80 opacity-100`}
       aria-label={label}
     >
       {children}

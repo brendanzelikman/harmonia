@@ -1,5 +1,5 @@
 import { BsScissors } from "react-icons/bs";
-import { NavbarToolkitButton } from "../components/NavbarToolkitButton";
+import { NavbarTooltipButton } from "../../../components/TooltipButton";
 import { NavbarTooltip } from "../components";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectTimeline } from "redux/selectors";
@@ -20,21 +20,21 @@ export const NavbarSliceClipButton = () => {
         : ""
     );
     return (
-      <NavbarToolkitButton
-        label="Slice Clip"
+      <NavbarTooltipButton
+        label={isSlicing ? "Stop Slicing Pattern Clips" : "Slice Pattern Clips"}
         className={buttonClass}
         onClick={() => dispatch(toggleSlicingMedia())}
       >
         <BsScissors />
-      </NavbarToolkitButton>
+      </NavbarTooltipButton>
     );
   };
 
   const SliceTooltip = () => {
-    const tooltipClass = "bg-slate-600/80 px-2 backdrop-blur";
+    const tooltipClass = "left-[-3rem] bg-slate-600/80 px-2 backdrop-blur";
     return (
       <NavbarTooltip
-        content="Slicing Clip"
+        content="Slice a Pattern Clip"
         className={tooltipClass}
         show={!!isSlicing}
       />
@@ -43,7 +43,7 @@ export const NavbarSliceClipButton = () => {
 
   return (
     <div className="relative">
-      <SliceButton />
+      {SliceButton()}
       {SliceTooltip()}
     </div>
   );

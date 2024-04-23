@@ -35,7 +35,11 @@ export const createPose =
         champ = `New Pose ${++champCount}`;
       }
     }
-    const pose = initializePose({ ...poseNoId, name: champ });
+    const givenName = poseNoId.name;
+    const pose = initializePose({
+      ...poseNoId,
+      name: !givenName || givenName === defaultPose.name ? champ : givenName,
+    });
     dispatch(addPose(pose));
     dispatch(setSelectedPose(pose.id));
     return pose.id;

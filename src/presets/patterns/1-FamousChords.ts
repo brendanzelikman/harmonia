@@ -2,14 +2,14 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const VienneseTrichord: Pattern = {
-  id: "viennese-trichord",
+  id: "preset-viennese-trichord",
   name: "Viennese Trichord",
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(66), _.createQuarterNote(67)],
   ],
 };
 export const TristanChord: Pattern = {
-  id: "tristan-chord",
+  id: "preset-tristan-chord",
   name: "Tristan Chord",
   stream: [
     [
@@ -21,7 +21,7 @@ export const TristanChord: Pattern = {
   ],
 };
 export const BridgeChord: Pattern = {
-  id: "bridge-chord",
+  id: "preset-bridge-chord",
   name: "Bridge Chord",
   stream: [
     [
@@ -36,7 +36,7 @@ export const BridgeChord: Pattern = {
   ],
 };
 export const MysticChord: Pattern = {
-  id: "mystic-chord",
+  id: "preset-mystic-chord",
   name: "Mystic Chord",
   stream: [
     [
@@ -50,7 +50,7 @@ export const MysticChord: Pattern = {
   ],
 };
 export const ElektraChord: Pattern = {
-  id: "elektra-chord",
+  id: "preset-elektra-chord",
   name: "Elektra Chord",
   stream: [
     [
@@ -63,7 +63,7 @@ export const ElektraChord: Pattern = {
   ],
 };
 export const FarbenChord: Pattern = {
-  id: "farben-chord",
+  id: "preset-farben-chord",
   name: "Farben Chord",
   stream: [
     [
@@ -76,7 +76,7 @@ export const FarbenChord: Pattern = {
   ],
 };
 export const OdeToNapoleonChord: Pattern = {
-  id: "ode-to-napoleon-chord",
+  id: "preset-ode-to-napoleon-chord",
   name: "Ode to Napoleon Chord",
   stream: [
     [
@@ -91,7 +91,7 @@ export const OdeToNapoleonChord: Pattern = {
 };
 
 export const RiteOfSpringChord: Pattern = {
-  id: "rite-of-spring-chord",
+  id: "preset-rite-of-spring-chord",
   name: "Rite of Spring Chord",
   stream: [
     [
@@ -107,7 +107,7 @@ export const RiteOfSpringChord: Pattern = {
   ],
 };
 export const DreamChord: Pattern = {
-  id: "dream-chord",
+  id: "preset-dream-chord",
   name: "Dream Chord",
   stream: [
     [
@@ -120,7 +120,7 @@ export const DreamChord: Pattern = {
 };
 
 export const HendrixChord: Pattern = {
-  id: "hendrix-chord",
+  id: "preset-hendrix-chord",
   name: "Hendrix Chord",
   stream: [
     [
@@ -134,7 +134,7 @@ export const HendrixChord: Pattern = {
   ],
 };
 export const SoWhatChord: Pattern = {
-  id: "so-what-chord",
+  id: "preset-so-what-chord",
   name: "So What Chord",
   stream: [
     [
@@ -147,7 +147,7 @@ export const SoWhatChord: Pattern = {
   ],
 };
 export const BondChord: Pattern = {
-  id: "james-bond-chord",
+  id: "preset-james-bond-chord",
   name: "James Bond Chord",
   stream: [
     [
@@ -160,7 +160,7 @@ export const BondChord: Pattern = {
   ],
 };
 export const KennyBarronMajorChord: Pattern = {
-  id: "kenny-barron-major-chord",
+  id: "preset-kenny-barron-major-chord",
   name: "Kenny Barron Major Chord",
   stream: [
     [
@@ -174,7 +174,7 @@ export const KennyBarronMajorChord: Pattern = {
   ],
 };
 export const KennyBarronMinorChord: Pattern = {
-  id: "kenny-barron-minor-chord",
+  id: "preset-kenny-barron-minor-chord",
   name: "Kenny Barron Minor Chord",
   stream: [
     [
@@ -188,7 +188,7 @@ export const KennyBarronMinorChord: Pattern = {
   ],
 };
 export const MuMajorChord: Pattern = {
-  id: "mu-major-chord",
+  id: "preset-mu-major-chord",
   name: "Mu Major Chord",
   stream: [
     [

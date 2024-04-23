@@ -2,7 +2,7 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const Major9thChord: Pattern = {
-  id: "major-9th-chord",
+  id: "preset-major-9th-chord",
   name: "Major 9 Chord",
   aliases: [
     "maj9",
@@ -23,7 +23,7 @@ export const Major9thChord: Pattern = {
   ],
 };
 export const Major11thChord: Pattern = {
-  id: "major-11th-chord",
+  id: "preset-major-11th-chord",
   name: "Major 11 Chord",
   aliases: [
     "maj11",
@@ -45,7 +45,7 @@ export const Major11thChord: Pattern = {
   ],
 };
 export const MajorSharp11thChord: Pattern = {
-  id: "major-#11th-chord",
+  id: "preset-major-#11th-chord",
   name: "Major #11 Chord",
   aliases: [
     "maj#11",
@@ -73,7 +73,7 @@ export const MajorSharp11thChord: Pattern = {
   ],
 };
 export const Major13thChord: Pattern = {
-  id: "major-13th-chord",
+  id: "preset-major-13th-chord",
   name: "Major 13 Chord",
   aliases: [
     "maj13#11",
@@ -102,7 +102,7 @@ export const Major13thChord: Pattern = {
   ],
 };
 export const Minor9thChord: Pattern = {
-  id: "minor-9th-chord",
+  id: "preset-minor-9th-chord",
   name: "Minor 9th Chord",
   aliases: [
     "min9",
@@ -124,7 +124,7 @@ export const Minor9thChord: Pattern = {
   ],
 };
 export const Minor11thChord: Pattern = {
-  id: "minor-11th-chord",
+  id: "preset-minor-11th-chord",
   name: "Minor 11th Chord",
   aliases: [
     "min11",
@@ -146,7 +146,7 @@ export const Minor11thChord: Pattern = {
   ],
 };
 export const MinorSharp11thChord: Pattern = {
-  id: "minor-#11th-chord",
+  id: "preset-minor-#11th-chord",
   name: "Minor #11 Chord",
   aliases: [
     "min#11",
@@ -175,7 +175,7 @@ export const MinorSharp11thChord: Pattern = {
 };
 
 export const Minor13thChord: Pattern = {
-  id: "minor-13-chord",
+  id: "preset-minor-13-chord",
   name: "Minor 13 Chord",
   aliases: [
     "min13",
@@ -198,7 +198,7 @@ export const Minor13thChord: Pattern = {
   ],
 };
 export const Dominant9thChord: Pattern = {
-  id: "dominant-9th-chord",
+  id: "preset-dominant-9th-chord",
   name: "Dominant 9 Chord",
   aliases: [
     "dom9",
@@ -221,7 +221,7 @@ export const Dominant9thChord: Pattern = {
   ],
 };
 export const DominantFlat9thChord: Pattern = {
-  id: "dominant-b9-chord",
+  id: "preset-dominant-b9-chord",
   name: "Dominant b9 Chord",
   aliases: [
     "domb9",
@@ -248,7 +248,7 @@ export const DominantFlat9thChord: Pattern = {
   ],
 };
 export const DominantSharp9thChord: Pattern = {
-  id: "dominant-#9-chord",
+  id: "preset-dominant-#9-chord",
   name: "Dominant #9 Chord",
   aliases: [
     "dom#9",
@@ -276,7 +276,7 @@ export const DominantSharp9thChord: Pattern = {
 };
 
 export const Dominant11thChord: Pattern = {
-  id: "dominant-11th-chord",
+  id: "preset-dominant-11th-chord",
   name: "Dominant 11 Chord",
   aliases: [
     "dom11",
@@ -300,7 +300,7 @@ export const Dominant11thChord: Pattern = {
   ],
 };
 export const DominantSharp11thChord: Pattern = {
-  id: "dominant-#11th-chord",
+  id: "preset-dominant-#11th-chord",
   name: "Dominant #11 Chord",
   aliases: [
     "dom#11",
@@ -329,7 +329,7 @@ export const DominantSharp11thChord: Pattern = {
 };
 
 export const Dominant13thChord: Pattern = {
-  id: "dominant-13th-chord",
+  id: "preset-dominant-13th-chord",
   name: "Dominant 13 Chord",
   aliases: [
     "dom13",

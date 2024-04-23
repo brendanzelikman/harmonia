@@ -22,7 +22,7 @@ import {
   NavbarTooltip,
   NavbarFormButton,
   NavbarTooltipMenu,
-  NavbarButton,
+  NavbarTooltipButton,
 } from "./components";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import {
@@ -32,12 +32,18 @@ import {
   setTransportVolume,
   toggleTransportMute,
 } from "redux/Transport";
-import { selectTimeline, setCellWidth, toggleDiary } from "redux/Timeline";
+import {
+  selectTimeline,
+  setCellWidth,
+  toggleDiary,
+  toggleTooltips,
+} from "redux/Timeline";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { TOGGLE_SHORTCUTS } from "features/Shortcuts/ShortcutsMenu";
 import { dispatchCustomEvent } from "utils/html";
 import { GiBookCover } from "react-icons/gi";
 import { useOnboardingTour } from "features/Tour";
+import classNames from "classnames";
 
 export function NavbarSettingsMenu() {
   const dispatch = useProjectDispatch();
@@ -45,7 +51,8 @@ export function NavbarSettingsMenu() {
 
   const { bpm, timeSignature, volume, mute } =
     useProjectSelector(selectTransport);
-  const { cell, showingDiary } = useProjectSelector(selectTimeline);
+  const { cell, showingDiary, showingTooltips } =
+    useProjectSelector(selectTimeline);
 
   // Settings visibility toggle
   const [show, setShow] = useState(false);
@@ -54,13 +61,16 @@ export function NavbarSettingsMenu() {
 
   /** Clicking the Settings button toggles the visibility of the tooltip menu. */
   const SettingsButton = () => {
-    const className = `cursor-pointer ${
-      show ? "text-slate-500 shadow-xl" : ""
-    }`;
     return (
-      <NavbarButton className={className} onClick={() => setShow(!show)}>
+      <NavbarTooltipButton
+        label={show ? "Close Project Settings" : "Open Project Settings"}
+        className={classNames(`border-0 cursor-pointer`, {
+          "text-slate-500 shadow-xl": show,
+        })}
+        onClick={() => setShow(!show)}
+      >
         <BsGearFill />
-      </NavbarButton>
+      </NavbarTooltipButton>
     );
   };
 
@@ -138,6 +148,19 @@ export function NavbarSettingsMenu() {
     </NavbarFormGroup>
   );
 
+  // Tooltip toggle
+  const TooltipToggle = () => (
+    <NavbarFormGroup className="pt-1">
+      <NavbarFormLabel className="font-light">Toggle Tooltips:</NavbarFormLabel>
+      <NavbarFormButton
+        className={`hover:bg-slate-600/50 w-fit px-2`}
+        onClick={() => dispatch(toggleTooltips())}
+      >
+        {showingTooltips ? "Enabled" : "Disabled"}
+      </NavbarFormButton>
+    </NavbarFormGroup>
+  );
+
   /** The Shortcuts button opens the shortcuts menu. */
   const ShortcutsButton = () => (
     <NavbarFormGroup className="pt-1">
@@ -164,6 +187,7 @@ export function NavbarSettingsMenu() {
         {BPMField()}
         {TimeSignatureField()}
         {CellWidthField()}
+        {TooltipToggle()}
         <ShortcutsButton />
       </div>
     </NavbarTooltipMenu>
@@ -183,26 +207,28 @@ export function NavbarSettingsMenu() {
       <BsVolumeOffFill />
     );
     return (
-      <div
-        className="mr-2 cursor-pointer relative xl:text-3xl text-xl"
+      <NavbarTooltipButton
+        className="cursor-pointer relative flex total-center xl:text-3xl text-xl"
+        label={mute ? "Unmute the Website" : "Mute the Website"}
         onClick={() => dispatch(toggleTransportMute())}
+        keepTooltipOnClick
       >
         {VolumeIcon}
         {draggingVolume ? (
           <label
-            className={`mt-1.5 text-xs select-none absolute bg-slate-800/80 backdrop-blur p-1 px-2 rounded border border-slate-500`}
+            className={`mt-16 w-16 text-xs select-none absolute bg-slate-800/80 backdrop-blur p-1 px-2 rounded-lg border border-slate-600`}
           >
             {volume}dB
           </label>
         ) : null}
-      </div>
+      </NavbarTooltipButton>
     );
   };
 
   /** The transport volume slider is rendered as a range slider. */
   const TransportVolumeSlider = () => (
     <input
-      className="w-24 accent-white caret-slate-50 mr-3"
+      className="w-24 cursor-pointer accent-white caret-slate-50 mr-3"
       type="range"
       value={mute ? MIN_TRANSPORT_VOLUME : volume}
       min={MIN_TRANSPORT_VOLUME}
@@ -218,24 +244,26 @@ export function NavbarSettingsMenu() {
 
   /** The transport volume field consists of the volume icon and slider. */
   const TransportVolumeField = () => (
-    <>
+    <div className="relative flex justify-center space-x-2 mr-2">
       {TransportVolumeIcon()}
       {TransportVolumeSlider()}
-    </>
+    </div>
   );
 
   /** The diary button toggles the diary. */
   const DiaryButton = () => {
-    const className = `cursor-pointer ${
-      showingDiary ? "text-indigo-400" : "text-slate-50"
-    }`;
     return (
-      <NavbarButton
-        className={className}
+      <NavbarTooltipButton
+        className={`cursor-pointer ${
+          showingDiary ? "text-indigo-400" : "text-slate-50"
+        }`}
+        label={
+          showingDiary ? "Close the Project Diary" : "Open the Project Diary"
+        }
         onClick={() => dispatch(toggleDiary())}
       >
         <GiBookCover />
-      </NavbarButton>
+      </NavbarTooltipButton>
     );
   };
 
@@ -244,7 +272,7 @@ export function NavbarSettingsMenu() {
       {TransportVolumeField()}
       <div className="flex items-center w-full gap-2">
         <DiaryButton />
-        <SettingsButton />
+        {SettingsButton()}
         <NavbarTooltip
           className="left-12 w-56 bg-slate-600/70 backdrop-blur"
           content={SettingsTooltipContent}

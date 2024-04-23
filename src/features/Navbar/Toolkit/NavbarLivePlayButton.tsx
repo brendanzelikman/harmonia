@@ -1,23 +1,17 @@
 import classNames from "classnames";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { BsCalculator, BsKeyboard, BsPower } from "react-icons/bs";
+import { BsCalculator, BsKeyboard } from "react-icons/bs";
 import { toggleLivePlay, toggleLivePlayMode } from "redux/Timeline";
-import {
-  useProjectDispatch,
-  useProjectSelector,
-  useProjectDeepSelector,
-} from "redux/hooks";
-import {
-  selectSelectedPoseClips,
-  selectLivePlaySettings,
-} from "redux/selectors";
+import { useProjectDispatch, useProjectSelector } from "redux/hooks";
+import { selectLivePlaySettings } from "redux/selectors";
+import { NavbarTooltipButton } from "../components";
+import { GiMagicPalm } from "react-icons/gi";
+import { cancelEvent } from "utils/html";
+import { useSubscription } from "providers/subscription";
 
 export const NavbarLivePlayButton = () => {
   const dispatch = useProjectDispatch();
-
-  // Get the poses
-  const poses = useProjectDeepSelector(selectSelectedPoseClips);
-  const arePosesSelected = !!poses.length;
+  const { isAtLeastStatus } = useSubscription();
 
   // Get the pose mode
   const livePlay = useProjectSelector(selectLivePlaySettings);
@@ -209,8 +203,13 @@ export const NavbarLivePlayButton = () => {
     } ${isEnabled ? "hover:text-rose-200" : ""}`;
     return (
       <div
-        className={`relative ${isEnabled ? "cursor-pointer" : ""}`}
-        onClick={() => dispatch(toggleLivePlayMode())}
+        className={`relative z-[60] text-left ${
+          isEnabled ? "cursor-pointer" : ""
+        }`}
+        onClick={(e) => {
+          cancelEvent(e);
+          dispatch(toggleLivePlayMode());
+        }}
       >
         {isNumerical ? (
           <BsCalculator className={iconClass} />
@@ -222,49 +221,39 @@ export const NavbarLivePlayButton = () => {
     );
   };
 
-  // Get the power button
-  const PowerButton = () => {
-    return (
-      <BsPower
-        className={`cursor-pointer text-xl ${
-          isEnabled
-            ? "text-slate-200 hover:text-pink-300"
-            : "pointer-events-none text-slate-300"
-        }`}
-        onClick={() => dispatch(toggleLivePlay())}
-      />
-    );
-  };
-
   // The transpose label showing the current types of poses available.
-  const TransposeLabel = () => {
+  const LivePlayButton = () => {
     return (
-      <div className={`w-full flex items-center justify-center space-x-2`}>
-        <PowerButton />
-        {isEnabled && <span className="text-md font-thin">Live Play</span>}
+      <NavbarTooltipButton
+        className={`w-full flex items-center justify-center space-x-2 border-0 cursor-pointer text-xl ${
+          isEnabled ? "px-3 text-slate-200" : "px-2 text-slate-300"
+        }`}
+        label={isEnabled ? "Disable Live Play" : "Enable Live Play"}
+        onClick={() => dispatch(toggleLivePlay())}
+      >
+        <GiMagicPalm />
+        {isEnabled && (
+          <div className={classNames("text-sm font-light")}>Live Play</div>
+        )}
         {isEnabled && <ShortcutIcon />}
-      </div>
+      </NavbarTooltipButton>
     );
   };
-
-  const onClick = () => (!isEnabled ? dispatch(toggleLivePlay()) : null);
-  const buttonClass = classNames(
-    "relative h-9 text-sm",
-    "flex items-center rounded-2xl font-nunito font-light",
-    "ring-1 select-none",
-    "transition-all",
-    isEnabled && arePosesSelected
-      ? "animate-in fade-in duration-150"
-      : "duration-150",
-    isEnabled ? "ring-fuchsia-200/80 px-3" : "ring-slate-300/80 px-2",
-    isEnabled
-      ? "bg-gradient-radial from-fuchsia-400/80 to-fuchsia-600/80"
-      : "cursor-pointer bg-gradient-radial from-slate-600/80 to-slate-800 active:ring-4"
-  );
+  if (!isAtLeastStatus("maestro")) return null;
 
   return (
-    <div className={buttonClass} onClick={onClick}>
-      <TransposeLabel />
+    <div
+      className={classNames(
+        "relative min-w-8 w-max h-9",
+        "flex items-center rounded-full font-nunito font-light",
+        "ring-1 select-none transition-all duration-300",
+        isEnabled ? "ring-fuchsia-200/80" : "ring-slate-500/80",
+        isEnabled
+          ? "bg-gradient-radial from-fuchsia-400/80 to-fuchsia-600/80"
+          : "cursor-pointer bg-gradient-radial from-slate-500 to-slate-800 active:ring-4"
+      )}
+    >
+      {LivePlayButton()}
     </div>
   );
 };

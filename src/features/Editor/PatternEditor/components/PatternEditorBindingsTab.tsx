@@ -10,7 +10,7 @@ import {
 import { Editor } from "features/Editor/components";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 
-export function PatternEditorSettingsTab(props: PatternEditorProps) {
+export function PatternEditorBindingsTab(props: PatternEditorProps) {
   const { dispatch, pattern, Tooltip, Button } = props;
   const trackLabels = useProjectDeepSelector(selectTrackLabelMap);
 

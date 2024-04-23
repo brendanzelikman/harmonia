@@ -2,7 +2,7 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const Habanera: Pattern = {
-  id: "habanera",
+  id: "preset-habanera",
   name: "Habanera",
   stream: [
     [_.createEighthNote()],
@@ -18,7 +18,7 @@ export const Habanera: Pattern = {
   ],
 };
 export const Tresillo: Pattern = {
-  id: "tresillo",
+  id: "preset-tresillo",
   name: "Tresillo",
   stream: [
     [_.createDottedEighthNote()],
@@ -30,7 +30,7 @@ export const Tresillo: Pattern = {
   ],
 };
 export const Cinquillo: Pattern = {
-  id: "cinquillo",
+  id: "preset-cinquillo",
   name: "Cinquillo",
   stream: [
     [_.createEighthNote()],
@@ -50,7 +50,7 @@ export const Cinquillo: Pattern = {
   ],
 };
 export const Baqueteo: Pattern = {
-  id: "baqueteo",
+  id: "preset-baqueteo",
   name: "Baqueteo",
   stream: [
     [_.createEighthNote()],
@@ -67,7 +67,7 @@ export const Baqueteo: Pattern = {
   ],
 };
 export const Cascara: Pattern = {
-  id: "cascara",
+  id: "preset-cascara",
   name: "Cascara",
   stream: [
     [_.createEighthNote()],
@@ -86,7 +86,7 @@ export const Cascara: Pattern = {
   ],
 };
 export const Montuno: Pattern = {
-  id: "montuno",
+  id: "preset-montuno",
   name: "Montuno",
   stream: [
     [_.createEighthNote()],

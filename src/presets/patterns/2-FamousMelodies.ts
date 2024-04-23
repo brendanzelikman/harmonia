@@ -2,7 +2,7 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const BachPrelude: Pattern = {
-  id: "bach-prelude",
+  id: "preset-bach-prelude",
   name: "Prelude in C",
   stream: [
     [_.createEighthNote(60)],
@@ -16,7 +16,7 @@ export const BachPrelude: Pattern = {
   ],
 };
 export const AlbertiBass: Pattern = {
-  id: "alberti-bass",
+  id: "preset-alberti-bass",
   name: "Alberti Bass",
   stream: [
     [_.createEighthNote(60)],
@@ -30,7 +30,7 @@ export const AlbertiBass: Pattern = {
   ],
 };
 export const TurkishMarch: Pattern = {
-  id: "turkish-march",
+  id: "preset-turkish-march",
   name: "Turkish March",
   stream: [
     [_.createSixteenthNote(71)],
@@ -41,7 +41,7 @@ export const TurkishMarch: Pattern = {
   ],
 };
 export const FateMotif: Pattern = {
-  id: "fate-motif",
+  id: "preset-fate-motif",
   name: "Fate Motif",
   stream: [
     _.createEighthRest(),
@@ -52,7 +52,7 @@ export const FateMotif: Pattern = {
   ],
 };
 export const RevolutionaryEtude: Pattern = {
-  id: "revolutionary-etude",
+  id: "preset-revolutionary-etude",
   name: "Revolutionary Etude",
   stream: [
     [_.createSixteenthNote(48)],
@@ -66,7 +66,7 @@ export const RevolutionaryEtude: Pattern = {
   ],
 };
 export const ZarahustraFanfare: Pattern = {
-  id: "zarahustra-fanfare",
+  id: "preset-zarahustra-fanfare",
   name: "Zarahustra Fanfare",
   stream: [
     [_.createHalfNote(60)],
@@ -80,7 +80,7 @@ export const ZarahustraFanfare: Pattern = {
   ],
 };
 export const TheLick: Pattern = {
-  id: "the-lick",
+  id: "preset-the-lick",
   name: "The Lick",
   stream: [
     [_.createEighthNote(62)],
@@ -93,7 +93,7 @@ export const TheLick: Pattern = {
   ],
 };
 export const HappyBirthday: Pattern = {
-  id: "happy-birthday",
+  id: "preset-happy-birthday",
   name: "Happy Birthday",
   stream: [
     [_.createEighthNote(67)],

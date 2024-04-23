@@ -8,7 +8,7 @@ import {
 import { BlockedChord, ID, StrummedChord, Tick } from "../units";
 import { InstrumentKey } from "../Instrument";
 import { TrackId } from "types/Track";
-import { isArray, isPlainObject, isString, isUndefined } from "lodash";
+import { isPlainObject, isString } from "lodash";
 import {
   NormalRecord,
   NormalState,
@@ -70,6 +70,9 @@ export interface Pattern {
   instrumentKey?: InstrumentKey;
   patternTrackId?: TrackId;
 }
+
+/** A `PresetPattern` has its id prefixed */
+export type PresetPattern = Pattern & { id: `preset-${string}` };
 
 // ------------------------------------------------------------
 // Pattern Initialization

@@ -15,7 +15,6 @@ import {
 } from "types/Media";
 import { TrackId } from "types/Track";
 import { Subdivision } from "utils/durations";
-import { PortalFragment } from "types/Portal";
 
 // ------------------------------------------------------------
 // Timeline Payload Types
@@ -198,6 +197,10 @@ export const timelineSlice = createSlice({
     toggleDiary: (state) => {
       state.showingDiary = !state.showingDiary;
     },
+    /** Toggle the tooltips. */
+    toggleTooltips: (state) => {
+      state.showingTooltips = !state.showingTooltips;
+    },
   },
 });
 
@@ -218,6 +221,7 @@ export const {
   toggleLivePlay,
   toggleLivePlayMode,
   toggleDiary,
+  toggleTooltips,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

@@ -77,6 +77,9 @@ export type Scale = ScaleObject | ScaleArray;
 /** A `ScaleChain` is an array of `ScaleObjects` */
 export type ScaleChain = ScaleObject[];
 
+/** A `PresetScale` has its id prefixed */
+export type PresetScale = ScaleObject & { id: `preset-${string}` };
+
 // ------------------------------------------------------------
 // Scale Initialization
 // ------------------------------------------------------------

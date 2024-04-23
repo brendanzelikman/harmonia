@@ -1,11 +1,11 @@
-import { NavbarToolkitButton } from "../components/NavbarToolkitButton";
+import { NavbarTooltipButton } from "../../../components/TooltipButton";
 import { NavbarTooltip } from "../components";
 import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import { selectTimeline } from "redux/selectors";
 import { isTimelinePortalingClips } from "types/Timeline";
 import { togglePortalingMedia } from "redux/thunks";
 import { GiPortal } from "react-icons/gi";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import classNames from "classnames";
 import { hasKeys } from "utils/objects";
 import { updateMediaDraft } from "redux/Timeline";
@@ -25,23 +25,30 @@ export const NavbarPortalButton = () => {
   }, [isPortaling, isFragment]);
 
   const PortalButton = () => {
-    const buttonClass = classNames("border-slate-400/50", {
-      "bg-gradient-to-tr from-sky-600 to-orange-600 transition-colors duration-500":
-        !isPortaling && !isFragment,
-      "ring-2 ring-offset-2 ring-offset-black": isPortaling,
+    const buttonClass = classNames("delay-0 border-slate-400/50", {
+      "bg-gradient-to-tr from-sky-600 to-orange-600": !isPortaling,
+      "ring-2 ring-offset-2 ring-offset-black duration-150": isPortaling,
       "bg-sky-600 ring-sky-600/80": isPortaling && !isFragment,
       "bg-orange-500 ring-orange-400/80": isPortaling && isFragment,
     });
     return (
-      <NavbarToolkitButton
-        label="Portal Track Media"
+      <NavbarTooltipButton
+        label={
+          isPortaling ? "Stop Portaling Track Media" : "Portal Track Media"
+        }
         className={buttonClass}
         onClick={() => dispatch(togglePortalingMedia())}
       >
         <GiPortal />
-      </NavbarToolkitButton>
+      </NavbarTooltipButton>
     );
   };
+
+  const [content, setContent] = useState("Place an Entry Portal");
+  useEffect(() => {
+    if (isPortaling && isFragment) setContent("Place an Exit Portal");
+    if (isPortaling && !isFragment) setContent("Place an Entry Portal");
+  });
 
   const PortalTooltip = () => {
     const tooltipClass = classNames(
@@ -51,7 +58,7 @@ export const NavbarPortalButton = () => {
     );
     return (
       <NavbarTooltip
-        content="Portaling Clips"
+        content={content}
         className={tooltipClass}
         show={!!isPortaling}
       />

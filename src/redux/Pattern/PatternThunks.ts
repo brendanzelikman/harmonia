@@ -26,7 +26,6 @@ import {
   isPatternChord,
   isPatternMidiChord,
   isPatternMidiNote,
-  isPatternStrummedChord,
   resolvePatternNoteToMidi,
   resolvePatternStreamToMidi,
   updatePatternChordNotes,
@@ -78,7 +77,11 @@ export const createPattern =
         champ = `New Pattern ${++champCount}`;
       }
     }
-    const newPattern = initializePattern({ ...pattern, name: champ });
+    const givenName = pattern.name;
+    const newPattern = initializePattern({
+      ...pattern,
+      name: !givenName || givenName === defaultPattern.name ? champ : givenName,
+    });
     dispatch(addPattern(newPattern));
     dispatch(setSelectedPattern(newPattern.id));
     return newPattern.id;

@@ -3,25 +3,25 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const DottedWholeNotes: Pattern = {
-  id: "dotted-whole-note",
+  id: "preset-dotted-whole-note",
   name: "Dotted Whole Note",
   aliases: ["dotted whole note", "dotted whole"],
   stream: [[_.createDottedWholeNote()], [_.createDottedWholeNote()]],
 };
 export const DottedHalfNotes: Pattern = {
-  id: "dotted-half-notes",
+  id: "preset-dotted-half-notes",
   name: "Dotted Half Notes",
   aliases: ["dotted half notes", "dotted halfs", "dotted halves"],
   stream: fill(Array(4), [_.createDottedHalfNote()]),
 };
 export const DottedQuarterNotes: Pattern = {
-  id: "dotted-quarter-notes",
+  id: "preset-dotted-quarter-notes",
   name: "Dotted Quarter Notes",
   aliases: ["dotted quarter notes", "dotted quarters"],
   stream: fill(Array(4), [_.createDottedQuarterNote()]),
 };
 export const DottedEighthNotes: Pattern = {
-  id: "dotted-eighth-notes",
+  id: "preset-dotted-eighth-notes",
   name: "Dotted Eighth Notes",
   aliases: [
     "dotted eighth notes",
@@ -32,7 +32,7 @@ export const DottedEighthNotes: Pattern = {
   stream: fill(Array(8), [_.createDottedEighthNote()]),
 };
 export const DottedSixteenthNotes: Pattern = {
-  id: "dotted-sixteenth-notes",
+  id: "preset-dotted-sixteenth-notes",
   name: "Dotted Sixteenth Notes",
   aliases: [
     "dotted sixteenth notes",
@@ -44,7 +44,7 @@ export const DottedSixteenthNotes: Pattern = {
   stream: fill(Array(16), [_.createDottedSixteenthNote()]),
 };
 export const DottedThirtySecondNotes: Pattern = {
-  id: "dotted-thirty-second-notes",
+  id: "preset-dotted-thirty-second-notes",
   name: "Dotted Thirty-Second Notes",
   aliases: [
     "dotted thirty-second notes",
@@ -57,7 +57,7 @@ export const DottedThirtySecondNotes: Pattern = {
   stream: fill(Array(32), [_.createDottedThirtySecondNote()]),
 };
 export const DottedSixtyFourthNotes: Pattern = {
-  id: "dotted-sixty-fourth-notes",
+  id: "preset-dotted-sixty-fourth-notes",
   name: "Dotted Sixty-Fourth Notes",
   aliases: [
     "dotted sixty-fourth notes",

@@ -7,9 +7,10 @@ import { ShepherdTourContext } from "react-shepherd";
 import { hideEditor } from "redux/Editor";
 import { useProjectDispatch } from "redux/hooks";
 import { dispatchCustomEvent } from "utils/html";
-import { NavbarButton } from "features/Navbar/components";
+import { NavbarTooltipButton } from "features/Navbar/components";
 import { END_TOUR, START_TOUR } from "./useOnboardingTour";
 import { useCustomEventListener } from "hooks";
+import classNames from "classnames";
 
 export const TourButton = () => {
   const dispatch = useProjectDispatch();
@@ -62,16 +63,25 @@ export const TourButton = () => {
     }
   };
 
-  const color = isActive ? "text-sky-600" : "text-slate-50";
-  const buttonClass = isActive
-    ? "rounded-full ring-2 ring-sky-600 ring-offset-4 ring-offset-gray-900"
-    : "";
-
   return (
     <>
-      <NavbarButton className={`focus:outline-none ${color}`} onClick={onClick}>
-        <BsQuestionCircleFill className={buttonClass} />
-      </NavbarButton>
+      <NavbarTooltipButton
+        className={classNames(
+          `border-0 focus:outline-none`,
+          isActive ? "text-sky-600" : "text-slate-50"
+        )}
+        label={
+          isActive ? "End the Onboarding Tour" : "Start the Onboarding Tour"
+        }
+        onClick={onClick}
+      >
+        <BsQuestionCircleFill
+          className={classNames({
+            "rounded-full ring-2 ring-sky-600 ring-offset-4 ring-offset-gray-900":
+              isActive,
+          })}
+        />
+      </NavbarTooltipButton>
       {!!confetti &&
         createPortal(<ReactConfetti className="z-[90]" />, document.body)}
     </>

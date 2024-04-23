@@ -1,12 +1,11 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   selectMediaDragState,
   selectClipName,
   selectPoseClipPose,
-  selectTrackMap,
   selectScaleTrackMap,
 } from "redux/selectors";
-import { cancelEvent } from "utils/html";
+import { blurOnEnter, cancelEvent } from "utils/html";
 import { usePoseClipDrag } from "./usePoseClipDrag";
 import {
   onPoseClipClick,
@@ -18,7 +17,7 @@ import {
   updateMediaDragState,
 } from "redux/Timeline";
 import { useProjectDispatch, useProjectSelector as use } from "redux/hooks";
-import { BsMagic, BsThreeDots } from "react-icons/bs";
+import { BsMagic } from "react-icons/bs";
 import { SlMagicWand } from "react-icons/sl";
 import { POSE_HEIGHT } from "utils/constants";
 import classNames from "classnames";
@@ -30,10 +29,10 @@ import {
   getPoseVectorAsJSX,
   isPoseBucket,
 } from "types/Pose";
-import { Menu } from "@headlessui/react";
-import { getKeys, getValues } from "utils/objects";
-import { ScaleTrack, getTrackLabel } from "types/Track";
+import { getTrackLabel } from "types/Track";
 import { updatePose } from "redux/Pose";
+import { isFiniteNumber } from "types/util";
+import { trimStart } from "lodash";
 
 interface PoseClipRendererProps extends ClipRendererProps {
   clip: PoseClip;
@@ -49,6 +48,7 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
     isSlicingClips,
     isPortalingClips,
     heldKeys,
+    cell,
   } = props;
   const { tick } = clip;
   const dispatch = useProjectDispatch();
@@ -98,6 +98,7 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
   const pose = use((_) => selectPoseClipPose(_, clip.id));
   const name = use((_) => selectClipName(_, clip?.id));
   const isBucket = isPoseBucket(pose);
+  const isInfinite = !isFiniteNumber(clip.duration);
   const bucketVector = getPoseBucketVector(pose);
 
   const PoseHeader = useMemo(() => {
@@ -117,12 +118,7 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
     const height = POSE_HEIGHT;
 
     return (
-      <div
-        className={wrapperClass}
-        style={{ height }}
-        draggable
-        onDragStart={cancelEvent}
-      >
+      <div className={wrapperClass} style={{ height }} draggable>
         <IconType
           className="flex flex-shrink-0 text-md ml-1 w-4 h-4 pointer-events-auto"
           onClick={(e) => {
@@ -133,11 +129,23 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
           }}
           onDoubleClick={cancelEvent}
         />
-        {name}
-        {isBucket && <span className="ml-0.5">({vectorJSX})</span>}
+        {!isInfinite && !isDropdownOpen && (
+          <>
+            {name}
+            {isBucket && <span className="ml-0.5">({vectorJSX})</span>}
+          </>
+        )}
       </div>
     );
-  }, [isSelected, name, isBucket, bucketVector, isDropdownOpen, trackMap]);
+  }, [
+    isSelected,
+    isInfinite,
+    name,
+    isBucket,
+    bucketVector,
+    isDropdownOpen,
+    trackMap,
+  ]);
 
   /** The pose body is filled in behind a clip. */
   const PoseBody = useMemo(() => {
@@ -159,9 +167,12 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
     return (
       <div
         style={{ top: POSE_HEIGHT }}
-        className={`animate-in fade-in duration-300 left-1 absolute flex p-2 px-4 flex-col bg-slate-800/90 ring-4 ring-pose-clip rounded z-50 cursor-auto`}
+        className={`animate-in fade-in duration-300 left-1 absolute flex p-2 px-4 flex-col bg-slate-800/95 ring-4 ring-pose-clip rounded z-50 cursor-auto`}
         onClick={(e) => e.stopPropagation()}
       >
+        {(isInfinite || isSelected) && (
+          <div className="text-white font-bold border-b pb-2 mb-2">{name}</div>
+        )}
         <div className="mt-2 space-y-2">
           {values.map(({ id, name }) => {
             const offset = bucketVector[id] ?? 0;
@@ -170,10 +181,21 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
                 <span className="mr-2 text-md text-white">{name}</span>
                 <input
                   className="rounded text-white text-xs font-bold bg-indigo-300/50 border-slate-500 focus:border-slate-300/80 focus:ring-slate-300/80"
-                  type="number"
+                  type="tel"
+                  disabled={pose.id.startsWith("preset")}
                   value={offset}
+                  onKeyDown={blurOnEnter}
                   onChange={(e) => {
-                    const value = parseInt(e.target.value) || 0;
+                    let value = offset;
+
+                    // Set to 0 if the value is empty or read the value
+                    if (e.target.value === "") value = 0;
+                    else value = parseInt(trimStart(e.target.value, "0"));
+
+                    // Flip the sign if the value ends with a dash
+                    if (e.target.value.endsWith("-"))
+                      value = offset === 0 ? -1 : -offset;
+
                     dispatch(
                       updatePose({
                         id: pose.id,
@@ -198,15 +220,20 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
   // Assemble the classname
   const className = classNames(
     "group absolute flex flex-col",
-    "bg-pose-clip border rounded",
-    isSelected ? "overflow-visible" : "overflow-hidden",
+    isInfinite ? "bg-fuchsia-400" : "bg-pose-clip",
+    "border rounded",
+    isSelected && isDropdownOpen ? "overflow-visible" : "overflow-hidden",
     isSelected ? "border-white " : "border-slate-400",
     { "cursor-scissors": isSlicingClips },
     { "cursor-wand": isAddingPoses },
     { "cursor-eyedropper hover:ring hover:ring-slate-300": isEyedropping },
     { "cursor-pointer": !isEyedropping && !isAddingPoses },
     { "hover:animate-pulse hover:ring hover:ring-fuchsia-400": isAddingPoses },
-    isActive || isDraggingOther ? "pointer-events-none" : "pointer-events-all",
+    isActive || isDraggingOther
+      ? "pointer-events-none"
+      : isInfinite && isAddingPoses
+      ? "pointer-events-none"
+      : "pointer-events-all",
     isDragging ? "opacity-50" : isDraggingOther ? "opacity-80" : "opacity-100"
   );
 
@@ -215,7 +242,7 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
     <div
       ref={drag}
       className={className}
-      style={{ top, left, width, height }}
+      style={{ top, left, width: isInfinite ? cell.width : width, height }}
       onClick={(e) => dispatch(onPoseClipClick(e, clip, isEyedropping))}
       onDoubleClick={() => dispatch(onPoseClipDoubleClick(clip))}
     >

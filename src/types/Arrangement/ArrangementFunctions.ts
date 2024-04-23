@@ -2,7 +2,7 @@ import {
   PatternClip,
   PatternClipMidiStream,
   PoseClip,
-  getCurrentPoseClip,
+  getCurrentPoseClipVector,
   getPoseClipsByTrackId,
   getPoseVectorAtTick,
 } from "types/Clip";
@@ -84,14 +84,12 @@ export const getTrackScaleChain = (
       continue;
     }
 
-    // Try to get the pose at the current tick
+    // Try to get the vector at the current tick
     const poseClips = getPoseClipsByTrackId(clips, track.id);
-    const poseClip = getCurrentPoseClip(poseClips, tick, false);
-    const pose = getValueByKey(poses, poseClip?.poseId);
-    const vector = getPoseVectorAtTick(poseClip, pose, tick);
+    const vector = getCurrentPoseClipVector(poseClips, poses, tick, false);
 
-    // If no pose exists, just push the scale
-    if (pose === undefined) {
+    // If no vector exists, just push the scale
+    if (!vector) {
       scaleChain.push(scale);
       continue;
     }
@@ -220,12 +218,10 @@ export const getPatternClipStream = (
 
     // Transpose the pattern stream using the clip's current pose
     const tick = clip.tick + i;
-    const poseClip = getCurrentPoseClip(poseClips, tick, false);
-    const pose = getValueByKey(poses, poseClip?.poseId);
-    const poseClipVector = getPoseVectorAtTick(poseClip, pose, tick);
+    const vector = getCurrentPoseClipVector(poseClips, poses, tick);
 
     // Filter the vector through the tracks and transpose the pattern stream
-    const scaleVector = getPoseVectorAsScaleVector(poseClipVector, tracks);
+    const scaleVector = getPoseVectorAsScaleVector(vector, tracks);
     const posedStream = getTransposedPatternStream(pattern.stream, scaleVector);
 
     // Get the transposed scale chain using the arrangement at the current tick
@@ -233,11 +229,7 @@ export const getPatternClipStream = (
 
     // Get the resolved MIDI stream using the current stream and scale chain.
     // The pose vector is provided to apply chromatic/chordal offsets at the end.
-    const newStream = resolvePatternStreamToMidi(
-      posedStream,
-      chain,
-      poseClipVector
-    );
+    const newStream = resolvePatternStreamToMidi(posedStream, chain, vector);
     const newChord = newStream[blockCount - 1];
     if (!isPatternMidiChord(newChord)) continue;
 

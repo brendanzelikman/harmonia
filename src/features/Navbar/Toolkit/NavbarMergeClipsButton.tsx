@@ -6,7 +6,7 @@ import {
   NavbarFormButton,
   NavbarTooltipMenu,
 } from "../components";
-import { NavbarToolkitButton } from "../components/NavbarToolkitButton";
+import { NavbarTooltipButton } from "../../../components/TooltipButton";
 import {
   useProjectDispatch,
   useProjectSelector,
@@ -63,8 +63,8 @@ export const NavbarMergeClipsButton = () => {
 
   const MergeButton = () => {
     return (
-      <NavbarToolkitButton
-        label="Merge Media"
+      <NavbarTooltipButton
+        label={isMerging ? "Stop Merging Pattern Clips" : "Merge Pattern Clips"}
         onClick={() => dispatch(toggleMergingMedia())}
         className={`border-slate-400/50 bg-gradient-to-t from-teal-500 to-fuchsia-500 ${
           isMerging
@@ -73,7 +73,7 @@ export const NavbarMergeClipsButton = () => {
         }`}
       >
         <GiLinkedRings className="p-0.5" />
-      </NavbarToolkitButton>
+      </NavbarTooltipButton>
     );
   };
 
@@ -85,7 +85,7 @@ export const NavbarMergeClipsButton = () => {
         content={
           <NavbarTooltipMenu>
             <div className="pb-2 mb-2 w-full text-center font-bold border-b">
-              Merging Clips
+              Merging Pattern Clips
             </div>
             <div className="w-full h-full p-2 space-y-2">
               {NewPatternName()}
@@ -99,7 +99,7 @@ export const NavbarMergeClipsButton = () => {
 
   return (
     <div className="flex flex-col relative h-full">
-      <MergeButton />
+      {MergeButton()}
       {MergeTooltip()}
     </div>
   );

@@ -4,8 +4,7 @@ import { PatternEditorToolbar } from "./PatternEditorToolbar";
 import { Editor } from "features/Editor/components";
 import { getPatternCategory } from "types/Pattern";
 import { PatternEditorComposeTab } from "./PatternEditorComposeTab";
-import { PatternEditorRecordTab } from "./PatternEditorRecordTab";
-import { PatternEditorSettingsTab } from "./PatternEditorSettingsTab";
+import { PatternEditorBindingsTab } from "./PatternEditorBindingsTab";
 import { PatternEditorTransformTab } from "./PatternEditorTransformTab";
 import { useState } from "react";
 import { PatternEditorChordTab } from "./PatternEditorChordTab";
@@ -16,11 +15,11 @@ export interface PatternEditorTabProps extends PatternEditorProps {
 }
 
 export function PatternEditorContent(props: PatternEditorProps) {
-  const { dispatch, pattern, isCustom, score } = props;
+  const { dispatch, pattern, onChord, isCustom, score, tabs } = props;
   const category = getPatternCategory(pattern);
 
   /** The pattern editor can have a tab open */
-  const [tab, setTab] = useState("compose");
+  const [tab, setTab] = useState(tabs[0]);
 
   /** The pattern editor tab passes down props to the toolbar. */
   const patternEditorTabProps: PatternEditorTabProps = {
@@ -46,11 +45,12 @@ export function PatternEditorContent(props: PatternEditorProps) {
     <Editor.Content>
       {PatternEditorTitle}
       <PatternEditorToolbar {...patternEditorTabProps} />
-      {tab === "compose" && <PatternEditorComposeTab {...props} />}
-      {tab === "edit" && <PatternEditorChordTab {...props} />}
-      {tab === "record" && <PatternEditorRecordTab {...props} />}
-      {tab === "transform" && <PatternEditorTransformTab {...props} />}
-      {tab === "settings" && <PatternEditorSettingsTab {...props} />}
+      {tab === tabs[0] && <PatternEditorComposeTab {...props} />}
+      {tab === tabs[1] && <PatternEditorBindingsTab {...props} />}
+      {tab === tabs[2] && onChord && <PatternEditorChordTab {...props} />}
+      {(tab === tabs[3] || (tab === tabs[2] && !onChord)) && (
+        <PatternEditorTransformTab {...props} />
+      )}
       <Editor.Score className={`bg-white/90 mt-2`} score={score} />
     </Editor.Content>
   );

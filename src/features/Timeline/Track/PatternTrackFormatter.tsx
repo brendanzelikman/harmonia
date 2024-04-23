@@ -72,6 +72,8 @@ import { sendPluginData } from "types/Plugin";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useSubscription } from "providers/subscription";
 import { setSelectedTrackId } from "redux/Timeline";
+import { FaAnchor } from "react-icons/fa";
+import { TooltipButton } from "components/TooltipButton";
 
 interface PatternTrackProps extends TrackFormatterProps {
   track: PatternTrack;
@@ -194,7 +196,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         )}
         <TrackDropdownButton
           content="Insert Parent"
-          icon={<BiCopy />}
+          icon={<FaAnchor />}
           onClick={() => dispatch(insertScaleTrack(trackId))}
         />
         <TrackDropdownButton
@@ -404,38 +406,38 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   /** The mute button can toggle the track's instrument mute. */
   const MuteButton = () => {
     const buttonClass = classNames(
-      "w-6 h-6 rounded-full text-center border-2 border-rose-400/80",
+      "w-6 h-6 text-sm rounded-full text-center border-2 border-rose-400/80",
       { "bg-rose-400 text-white": mute },
       { "bg-rose-400/30 text-shadow": !mute && isHoldingY },
       { "bg-emerald-600/20": !mute && !isHoldingY }
     );
     return (
-      <button
+      <TooltipButton
+        label={mute ? "Unmute the Pattern Track" : "Mute the Pattern Track"}
         className={buttonClass}
         onClick={(e) => dispatch(toggleTrackMute(e, trackId))}
-        onDoubleClick={cancelEvent}
       >
         M
-      </button>
+      </TooltipButton>
     );
   };
 
   /** The solo button can toggle the track's instrument solo. */
   const SoloButton = () => {
     const buttonClass = classNames(
-      "w-6 h-6 rounded-full text-center border-2 border-yellow-400/80",
+      "w-6 h-6 text-sm rounded-full text-center border-2 border-yellow-400/80",
       { "bg-yellow-400 text-white": solo },
       { "bg-yellow-400/30 text-shadow": !solo && isHoldingU },
       { "bg-emerald-600/20": !solo && !isHoldingU }
     );
     return (
-      <button
+      <TooltipButton
+        label={solo ? "Unsolo the Pattern Track" : "Solo the Pattern Track"}
         className={buttonClass}
         onClick={(e) => dispatch(toggleTrackSolo(e, trackId))}
-        onDoubleClick={cancelEvent}
       >
         S
-      </button>
+      </TooltipButton>
     );
   };
 
@@ -472,10 +474,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
       { "border-emerald-950": !isSelected }
     );
     return (
-      <div
-        className={bodyClass}
-        onDoubleClick={() => dispatch(toggleTrackInstrumentEditor())}
-      >
+      <div className={bodyClass}>
         {PatternTrackSliders()}
         <div className="min-w-0 h-full flex flex-1 flex-col items-start justify-evenly p-2 duration-150">
           {PatternTrackHeader()}

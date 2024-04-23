@@ -2,7 +2,7 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const Major7thChord: Pattern = {
-  id: "major-7th-chord",
+  id: "preset-major-7th-chord",
   name: "Major 7th Chord",
   aliases: [
     "maj7",
@@ -22,7 +22,7 @@ export const Major7thChord: Pattern = {
   ],
 };
 export const Major7thSus2Chord: Pattern = {
-  id: "major-7th-sus2-chord",
+  id: "preset-major-7th-sus2-chord",
   name: "Major 7th (Sus2) Chord",
   aliases: [
     "maj7sus2",
@@ -42,7 +42,7 @@ export const Major7thSus2Chord: Pattern = {
   ],
 };
 export const Major7thSus4Chord: Pattern = {
-  id: "major-7th-sus4-chord",
+  id: "preset-major-7th-sus4-chord",
   name: "Major 7th (Sus4) Chord",
   aliases: [
     "maj7sus4",
@@ -62,7 +62,7 @@ export const Major7thSus4Chord: Pattern = {
   ],
 };
 export const Major7thFlat5Chord: Pattern = {
-  id: "major-7th-b5-chord",
+  id: "preset-major-7th-b5-chord",
   name: "Major 7th (b5) Chord",
   aliases: [
     "maj7b5",
@@ -84,7 +84,7 @@ export const Major7thFlat5Chord: Pattern = {
   ],
 };
 export const Minor7thChord: Pattern = {
-  id: "minor-7th-chord",
+  id: "preset-minor-7th-chord",
   name: "Minor 7th Chord",
   aliases: [
     "min7",
@@ -104,7 +104,7 @@ export const Minor7thChord: Pattern = {
   ],
 };
 export const Minor7thSus2Chord: Pattern = {
-  id: "minor-7th-sus2-chord",
+  id: "preset-minor-7th-sus2-chord",
   name: "Minor 7th (Sus2) Chord",
   aliases: [
     "min7sus2",
@@ -124,7 +124,7 @@ export const Minor7thSus2Chord: Pattern = {
   ],
 };
 export const Minor7thSus4Chord: Pattern = {
-  id: "minor-7th-sus4-chord",
+  id: "preset-minor-7th-sus4-chord",
   name: "Minor 7th (Sus4) Chord",
   aliases: [
     "min7sus4",
@@ -144,7 +144,7 @@ export const Minor7thSus4Chord: Pattern = {
   ],
 };
 export const Dominant7thChord: Pattern = {
-  id: "dominant-7th-chord",
+  id: "preset-dominant-7th-chord",
   name: "Dominant 7th Chord",
   aliases: [
     "dom7",
@@ -165,7 +165,7 @@ export const Dominant7thChord: Pattern = {
 };
 
 export const Dominant7thNo5Chord: Pattern = {
-  id: "dominant-7th-no-5-chord",
+  id: "preset-dominant-7th-no-5-chord",
   name: "Dominant 7th (No 5) Chord",
   aliases: [
     "dom7no5",
@@ -183,7 +183,7 @@ export const Dominant7thNo5Chord: Pattern = {
 };
 
 export const Dominant7thFlat5Chord: Pattern = {
-  id: "dominant-7th-b5-chord",
+  id: "preset-dominant-7th-b5-chord",
   name: "Dominant 7th (b5) Chord",
   aliases: [
     "dom7b5",
@@ -205,7 +205,7 @@ export const Dominant7thFlat5Chord: Pattern = {
   ],
 };
 export const Dominant7thSharp5Chord: Pattern = {
-  id: "dominant-7th-#5-chord",
+  id: "preset-dominant-7th-#5-chord",
   name: "Dominant 7th (#5) Chord",
   aliases: [
     "dom7#5",
@@ -227,7 +227,7 @@ export const Dominant7thSharp5Chord: Pattern = {
   ],
 };
 export const Minor7thFlat5Chord: Pattern = {
-  id: "minor-7th-b5-chord",
+  id: "preset-minor-7th-b5-chord",
   name: "Minor 7th (b5) Chord",
   aliases: [
     "min7b5",
@@ -249,7 +249,7 @@ export const Minor7thFlat5Chord: Pattern = {
   ],
 };
 export const MinorMajor7thChord: Pattern = {
-  id: "minor-major-7th-chord",
+  id: "preset-minor-major-7th-chord",
   name: "Minor Major 7th Chord",
   aliases: [
     "minmaj7",
@@ -269,7 +269,7 @@ export const MinorMajor7thChord: Pattern = {
   ],
 };
 export const Diminished7thChord: Pattern = {
-  id: "diminished-7th-chord",
+  id: "preset-diminished-7th-chord",
   name: "Diminished 7th Chord",
   aliases: [
     "dim7",
@@ -290,7 +290,7 @@ export const Diminished7thChord: Pattern = {
 };
 
 export const Augmented7thChord: Pattern = {
-  id: "augmented-7th-chord",
+  id: "preset-augmented-7th-chord",
   name: "Augmented 7th Chord",
   aliases: [
     "aug7",
@@ -317,7 +317,7 @@ export const Augmented7thChord: Pattern = {
 };
 
 export const SevenSixChord: Pattern = {
-  id: "7-6-chord",
+  id: "preset-7-6-chord",
   name: "7-6 Chord",
   aliases: ["7-6", "7-6 chord"],
   stream: [

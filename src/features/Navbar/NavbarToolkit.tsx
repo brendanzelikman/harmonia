@@ -1,59 +1,37 @@
-import { NavbarPatternClipButton } from "./Toolkit/NavbarPatternClipButton";
+import { NavbarArrangeClipButton } from "./Toolkit/NavbarArrangeClipButton";
 import { NavbarLivePlayButton } from "./Toolkit/NavbarLivePlayButton";
-import { NavbarPatternEditorButton } from "./Toolkit/NavbarPatternEditorButton";
+import { NavbarToggleEditorButton } from "./Toolkit/NavbarToggleEditorButton";
 import { NavbarSliceClipButton } from "./Toolkit/NavbarSliceClipButton";
 import { NavbarMergeClipsButton } from "./Toolkit/NavbarMergeClipsButton";
 import { NavbarPortalButton } from "./Toolkit/NavbarPortalButton";
-import { NavbarPoseEditorButton } from "./Toolkit/NavbarPoseEditorButton";
 import { NavbarPatternListbox } from "./Toolkit/NavbarPatternListbox";
 import { NavbarPoseListbox } from "./Toolkit/NavbarPoseListbox";
-import { NavbarPoseClipButton } from "./Toolkit/NavbarPoseClipButton";
 import { NavbarClipTypeButton } from "./Toolkit/NavbarClipTypeButton";
 import { useProjectSelector } from "redux/hooks";
 import { selectTimeline } from "redux/Timeline";
 import { NavbarGroup } from "./components";
-import { useSubscription } from "providers/subscription";
 import { NavbarAddClipButton } from "./Toolkit/NavbarAddClipButton";
 
 export function NavbarToolkit() {
-  const { isAtLeastStatus } = useSubscription();
   const timeline = useProjectSelector(selectTimeline);
   const onPatterns = timeline.selectedClipType === "pattern";
 
-  const Clipkit = () => {
-    return (
+  return (
+    <div className="flex gap-2 [&>*]:h-full [&>*]:my-auto">
       <div
         className={`gap-2 flex items-center px-2 border-x border-x-slate-500/50`}
       >
-        {onPatterns ? (
-          <>
-            <NavbarAddClipButton />
-            <NavbarClipTypeButton />
-            <NavbarPatternListbox />
-            <NavbarPatternEditorButton />
-            <NavbarPatternClipButton />
-          </>
-        ) : (
-          <>
-            <NavbarAddClipButton />
-            <NavbarClipTypeButton />
-            <NavbarPoseListbox />
-            <NavbarPoseEditorButton />
-            <NavbarPoseClipButton />
-          </>
-        )}
+        <NavbarAddClipButton />
+        <NavbarClipTypeButton />
+        {onPatterns ? <NavbarPatternListbox /> : <NavbarPoseListbox />}
+        <NavbarToggleEditorButton />
+        <NavbarArrangeClipButton />
       </div>
-    );
-  };
-
-  return (
-    <div className="flex gap-2 [&>*]:h-full [&>*]:my-auto">
-      <Clipkit />
       <NavbarGroup className="gap-2 flex justify-center items-center">
         <NavbarSliceClipButton />
         <NavbarMergeClipsButton />
         <NavbarPortalButton />
-        {isAtLeastStatus("maestro") && <NavbarLivePlayButton />}
+        <NavbarLivePlayButton />
       </NavbarGroup>
     </div>
   );

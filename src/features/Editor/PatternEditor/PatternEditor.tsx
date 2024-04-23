@@ -34,6 +34,7 @@ export interface PatternEditorProps extends EditorProps, ScoreProps {
   onChord: boolean;
   block?: PatternBlock;
   notes?: PatternMidiNote[];
+  tabs: string[];
 
   // The pattern editor has specific score callbacks
   onBlockClick: () => void;
@@ -75,6 +76,12 @@ function PatternEditorComponent(props: EditorProps) {
   const chord = block && !onRest ? resolveMidiChord(block, scales) : undefined;
   const onChord = !!chord;
   const notes = chord ? getPatternMidiChordNotes(chord) : [];
+  const tabs = [
+    "1. Compose",
+    "2. Bind",
+    onChord ? "2.5. Edit" : undefined,
+    "3. Transform",
+  ].filter(Boolean) as string[];
 
   /** The handler for when the note button/hotkey is clicked. */
   const onBlockClick = useCallback(() => {
@@ -113,7 +120,7 @@ function PatternEditorComponent(props: EditorProps) {
     if (isInserting && !hidden) {
       dispatch(_.insertPatternBlock({ id, index, block: { duration } }));
     }
-  }, [id, index, hidden, isAdding, isInserting]);
+  }, [id, index, duration, hidden, isAdding, isInserting]);
 
   /** The handler for when the erase button/hotkey is clicked. */
   const onEraseClick = useCallback(() => {
@@ -153,6 +160,7 @@ function PatternEditorComponent(props: EditorProps) {
     onChord,
     block,
     notes,
+    tabs,
     onBlockClick,
     onRestClick,
     onEraseClick,

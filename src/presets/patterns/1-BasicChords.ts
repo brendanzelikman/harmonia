@@ -2,7 +2,7 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const MajorChord: Pattern = {
-  id: "major-chord",
+  id: "preset-major-chord",
   name: "Major Chord",
   aliases: ["maj", "maj chord", "major", "major chord", "M", "M chord"],
   stream: [
@@ -10,7 +10,7 @@ export const MajorChord: Pattern = {
   ],
 };
 export const MinorChord: Pattern = {
-  id: "minor-chord",
+  id: "preset-minor-chord",
   name: "Minor Chord",
   aliases: ["min", "min chord", "minor", "minor chord", "m", "m chord"],
   stream: [
@@ -18,7 +18,7 @@ export const MinorChord: Pattern = {
   ],
 };
 export const DiminishedChord: Pattern = {
-  id: "diminished-chord",
+  id: "preset-diminished-chord",
   name: "Diminished Chord",
   aliases: [
     "dim",
@@ -33,7 +33,7 @@ export const DiminishedChord: Pattern = {
   ],
 };
 export const AugmentedChord: Pattern = {
-  id: "augmented-chord",
+  id: "preset-augmented-chord",
   name: "Augmented Chord",
   aliases: ["aug", "aug chord", "+", "+ chord"],
   stream: [
@@ -41,7 +41,7 @@ export const AugmentedChord: Pattern = {
   ],
 };
 export const Sus2Chord: Pattern = {
-  id: "sus2-chord",
+  id: "preset-sus2-chord",
   name: "Sus2 Chord",
   aliases: ["sus2", "sus2 chord"],
   stream: [
@@ -49,7 +49,7 @@ export const Sus2Chord: Pattern = {
   ],
 };
 export const Sus4Chord: Pattern = {
-  id: "sus4-chord",
+  id: "preset-sus4-chord",
   name: "Sus4 Chord",
   aliases: ["sus4", "sus4 chord"],
   stream: [
@@ -57,7 +57,7 @@ export const Sus4Chord: Pattern = {
   ],
 };
 export const QuartalChord: Pattern = {
-  id: "quartal-chord",
+  id: "preset-quartal-chord",
   name: "Quartal Chord",
   aliases: ["quartal", "quartal chord", "q", "q chord"],
   stream: [
@@ -65,7 +65,7 @@ export const QuartalChord: Pattern = {
   ],
 };
 export const QuintalChord: Pattern = {
-  id: "quintal-chord",
+  id: "preset-quintal-chord",
   name: "Quintal Chord",
   aliases: ["quintal", "quintal chord"],
   stream: [
@@ -74,7 +74,7 @@ export const QuintalChord: Pattern = {
 };
 
 export const PowerChord: Pattern = {
-  id: "power-chord",
+  id: "preset-power-chord",
   name: "Power Chord",
   aliases: ["5", "5 chord"],
   stream: [

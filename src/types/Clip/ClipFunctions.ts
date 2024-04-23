@@ -17,9 +17,11 @@ import {
 } from "./ClipThemes";
 import {
   Pose,
+  PoseId,
   getPoseStreamDuration,
   getPoseVectorAtIndex,
   isPoseStream,
+  sumPoseVectors,
 } from "types/Pose";
 import { getPatternStreamDuration, isPatternStream } from "types/Pattern";
 import { TrackId } from "types/Track";
@@ -149,28 +151,53 @@ export const getPoseVectorAtTick = (
 };
 
 /** Get the current pose occurring at or before the given tick. */
-export const getCurrentPoseClip = (
+export const getCurrentPoseClipVector = (
   poseClips: PoseClip[],
+  poseMap?: Record<PoseId, Pose>,
   tick: Tick = 0,
   sort = true
 ) => {
-  if (!poseClips.length) return undefined;
+  const clipCount = poseClips.length;
+  if (!clipCount || !poseMap) return undefined;
 
-  // Get the matches
-  const matches = poseClips.filter((t) => {
-    const startsBefore = t.tick <= tick;
-    const endsAfter = isFiniteNumber(t.duration)
-      ? t.tick + t.duration > tick
-      : true;
-    return startsBefore && endsAfter;
-  });
+  let offset = {};
+  let champClip: PoseClip | undefined;
+  let champPose: Pose | undefined;
+  let champTick = -Infinity;
 
-  // If no matching poses, return undefined
-  if (!matches.length) return undefined;
+  for (let i = 0; i < clipCount; i++) {
+    // Ignore clips after the tick
+    const clip = poseClips[i];
+    if (clip.tick > tick) continue;
 
-  // If sort is false, return the first matching pose
-  if (!sort) return matches[0];
+    // Ignore clips with no pose
+    const pose = poseMap[clip.poseId];
+    if (!pose) continue;
 
-  // Otherwise, sort the matching poses by tick and return the first one
-  return matches.sort((a, b) => b.tick - a.tick)[0];
+    // If the clip is infinite, add it to the offset
+    const isInfinite = !isFiniteNumber(clip.duration);
+    if (isInfinite) {
+      const poseVector = getPoseVectorAtTick(clip, pose, tick);
+      offset = sumPoseVectors(offset, poseVector);
+      continue;
+    }
+
+    // Otherwise, make sure the clip does not end before the tick
+    const clipEnd = clip.tick + (clip.duration ?? 0);
+    if (clipEnd < tick) continue;
+
+    // Update the champ if the clip is the best match
+    if (clip.tick > champTick) {
+      champClip = clip;
+      champPose = pose;
+      champTick = clip.tick;
+    }
+  }
+
+  // If no champ was found, return the offset
+  if (!champClip || !champPose) return offset;
+
+  // Otherwise, get the pose vector at the tick and sum it with the offset
+  const champVector = getPoseVectorAtTick(champClip, champPose, tick);
+  return sumPoseVectors(offset, champVector);
 };

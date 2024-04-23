@@ -20,7 +20,7 @@ import { isBoolean, isPlainObject, isString } from "lodash";
 // Timeline Definitions
 // ------------------------------------------------------------
 
-/**  The `TimelineState` contains the current action of the user. */
+/**  The `TimelineState` describes any interaction with the arrangement. */
 export const TIMELINE_STATES = [
   "addingPatternClips",
   "addingPoseClips",
@@ -49,15 +49,21 @@ export type PoseMode = "numerical" | "alphabetical";
 /** The `Timeline` contains information about the data grid and manages all tracked objects. */
 export interface Timeline {
   state: TimelineState;
+
   subdivision: Subdivision;
   cell: TimelineCell;
+
   selectedTrackId?: TrackId;
   selectedClipType: SelectedClipType;
+
   mediaSelection: MediaSelection;
   mediaDraft: MediaDraft;
   mediaClipboard: MediaClipboard;
   mediaDragState: MediaDragState;
+
   livePlay: LivePlay;
+
+  showingTooltips?: boolean;
   showingDiary?: boolean;
 }
 
@@ -85,6 +91,8 @@ export const defaultTimeline: Timeline = {
     mode: "numerical",
     enabled: false,
   },
+  showingDiary: false,
+  showingTooltips: true,
 };
 
 // ------------------------------------------------------------

@@ -2,7 +2,7 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const BellPattern1: Pattern = {
-  id: "bell-pattern-1",
+  id: "preset-bell-pattern-1",
   name: "Bell Pattern 1",
   stream: [
     [_.createDottedEighthNote()],
@@ -17,7 +17,7 @@ export const BellPattern1: Pattern = {
   ],
 };
 export const BellPattern2: Pattern = {
-  id: "bell-pattern-2",
+  id: "preset-bell-pattern-2",
   name: "Bell Pattern 2",
   stream: [
     [_.createDottedEighthNote()],
@@ -31,7 +31,7 @@ export const BellPattern2: Pattern = {
   ],
 };
 export const BellPattern3: Pattern = {
-  id: "bell-pattern-3",
+  id: "preset-bell-pattern-3",
   name: "Bell Pattern 3",
   stream: [
     [_.createDottedEighthNote()],
@@ -44,7 +44,7 @@ export const BellPattern3: Pattern = {
   ],
 };
 export const BellPattern4: Pattern = {
-  id: "bell-pattern-4",
+  id: "preset-bell-pattern-4",
   name: "Bell Pattern 4",
   stream: [
     [_.createDottedEighthNote()],
@@ -58,7 +58,7 @@ export const BellPattern4: Pattern = {
   ],
 };
 export const BellPattern5: Pattern = {
-  id: "bell-pattern-5",
+  id: "preset-bell-pattern-5",
   name: "Bell Pattern 5",
   stream: [
     _.createQuarterRest(),
@@ -72,7 +72,7 @@ export const BellPattern5: Pattern = {
   ],
 };
 export const BellPattern6: Pattern = {
-  id: "bell-pattern-6",
+  id: "preset-bell-pattern-6",
   name: "Bell Pattern 6",
   stream: [
     [_.createTripletEighthNote()],
@@ -97,7 +97,7 @@ export const BellPattern6: Pattern = {
   ],
 };
 export const BellPattern7: Pattern = {
-  id: "bell-pattern-7",
+  id: "preset-bell-pattern-7",
   name: "Bell Pattern 7",
   stream: [
     [_.createTripletEighthNote()],
@@ -122,7 +122,7 @@ export const BellPattern7: Pattern = {
   ],
 };
 export const BellPattern8: Pattern = {
-  id: "bell-pattern-8",
+  id: "preset-bell-pattern-8",
   name: "Bell Pattern 8",
   stream: [
     [_.createTripletEighthNote()],
@@ -145,7 +145,7 @@ export const BellPattern8: Pattern = {
   ],
 };
 export const BellPattern9: Pattern = {
-  id: "bell-pattern-9",
+  id: "preset-bell-pattern-9",
   name: "Bell Pattern 9",
   stream: [
     [_.createTripletEighthNote()],

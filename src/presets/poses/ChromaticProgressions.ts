@@ -2,7 +2,7 @@ import { Pose } from "types/Pose";
 import * as _ from "utils/durations";
 
 export const FourSemitonesUp: Pose = {
-  id: "four-semitones-up",
+  id: "preset-four-semitones-up",
   name: "Four Semitones (Up)",
   stream: [
     _.createQuarterVector({ chromatic: 0 }),
@@ -13,7 +13,7 @@ export const FourSemitonesUp: Pose = {
 };
 
 export const FourSemitonesDown: Pose = {
-  id: "four-semitones-down",
+  id: "preset-four-semitones-down",
   name: "Four Semitones (Down)",
   stream: [
     _.createQuarterVector({ chromatic: 0 }),
@@ -24,7 +24,7 @@ export const FourSemitonesDown: Pose = {
 };
 
 export const FourSemitonesUpAndDown: Pose = {
-  id: "four-semitones-up-and-down",
+  id: "preset-four-semitones-up-and-down",
   name: "Four Semitones (Up and Down)",
   stream: [
     _.createQuarterVector({ chromatic: 0 }),
@@ -35,7 +35,7 @@ export const FourSemitonesUpAndDown: Pose = {
 };
 
 export const FourSemitonesDownAndUp: Pose = {
-  id: "four-semitones-down-and-up",
+  id: "preset-four-semitones-down-and-up",
   name: "Four Semitones (Down and Up)",
   stream: [
     _.createQuarterVector({ chromatic: 0 }),
@@ -46,7 +46,7 @@ export const FourSemitonesDownAndUp: Pose = {
 };
 
 export const FourOctavesUp: Pose = {
-  id: "four-octaves-up",
+  id: "preset-four-octaves-up",
   name: "Four Octaves (Up)",
   stream: [
     _.createQuarterVector({ chromatic: 0 }),
@@ -57,7 +57,7 @@ export const FourOctavesUp: Pose = {
 };
 
 export const FourOctavesDown: Pose = {
-  id: "four-octaves-down",
+  id: "preset-four-octaves-down",
   name: "Four Octaves (Down)",
   stream: [
     _.createQuarterVector({ chromatic: 0 }),
@@ -68,7 +68,7 @@ export const FourOctavesDown: Pose = {
 };
 
 export const DiminishedChordUp: Pose = {
-  id: "diminished-chord-up",
+  id: "preset-diminished-chord-up",
   name: "Diminished Chord (Up)",
   stream: [
     _.createQuarterVector({ chromatic: 0 }),
@@ -79,7 +79,7 @@ export const DiminishedChordUp: Pose = {
 };
 
 export const DiminishedChordDown: Pose = {
-  id: "diminished-chord-down",
+  id: "preset-diminished-chord-down",
   name: "Diminished Chord (Down)",
   stream: [
     _.createQuarterVector({ chromatic: 0 }),
@@ -90,7 +90,7 @@ export const DiminishedChordDown: Pose = {
 };
 
 export const AugmentedChordUp: Pose = {
-  id: "augmented-chord-up",
+  id: "preset-augmented-chord-up",
   name: "Augmented Chord (Up)",
   stream: [
     _.createQuarterVector({ chromatic: 0 }),
@@ -101,7 +101,7 @@ export const AugmentedChordUp: Pose = {
 };
 
 export const AugmentedChordDown: Pose = {
-  id: "augmented-chord-down",
+  id: "preset-augmented-chord-down",
   name: "Augmented Chord (Down)",
   stream: [
     _.createQuarterVector({ chromatic: 0 }),
@@ -112,7 +112,7 @@ export const AugmentedChordDown: Pose = {
 };
 
 export const CircleOfFifthsUp: Pose = {
-  id: "circle-of-fifths-up",
+  id: "preset-circle-of-fifths-up",
   name: "Circle of Fifths (Up)",
   stream: [
     {
@@ -125,7 +125,7 @@ export const CircleOfFifthsUp: Pose = {
 };
 
 export const CircleOfFifthsDown: Pose = {
-  id: "circle-of-fifths-down",
+  id: "preset-circle-of-fifths-down",
   name: "Circle of Fifths (Down)",
   stream: [
     {

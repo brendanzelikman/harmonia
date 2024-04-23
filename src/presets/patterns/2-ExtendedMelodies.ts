@@ -2,7 +2,7 @@ import { Pattern } from "types/Pattern";
 import * as _ from "utils/durations";
 
 export const Major9thArpeggio: Pattern = {
-  id: "major-9th-arpeggio",
+  id: "preset-major-9th-arpeggio",
   name: "Major 9th Arpeggio",
   stream: [
     [_.createSixteenthNote(60)],
@@ -17,7 +17,7 @@ export const Major9thArpeggio: Pattern = {
 };
 
 export const Minor9thArpeggio: Pattern = {
-  id: "minor-9th-arpeggio",
+  id: "preset-minor-9th-arpeggio",
   name: "Minor 9th Arpeggio",
   stream: [
     [_.createSixteenthNote(60)],
@@ -32,7 +32,7 @@ export const Minor9thArpeggio: Pattern = {
 };
 
 export const Dominant9thArpeggio: Pattern = {
-  id: "dominant-9th-arpeggio",
+  id: "preset-dominant-9th-arpeggio",
   name: "Dominant 9th Arpeggio",
   stream: [
     [_.createSixteenthNote(60)],
@@ -46,7 +46,7 @@ export const Dominant9thArpeggio: Pattern = {
   ],
 };
 export const Major11thArpeggio: Pattern = {
-  id: "major-11th-arpeggio",
+  id: "preset-major-11th-arpeggio",
   name: "Major 11th Arpeggio",
   stream: [
     [_.createSixteenthNote(60)],
@@ -61,7 +61,7 @@ export const Major11thArpeggio: Pattern = {
 };
 
 export const Minor11thArpeggio: Pattern = {
-  id: "minor-11th-arpeggio",
+  id: "preset-minor-11th-arpeggio",
   name: "Minor 11th Arpeggio",
   stream: [
     [_.createSixteenthNote(60)],
@@ -76,7 +76,7 @@ export const Minor11thArpeggio: Pattern = {
 };
 
 export const Dominant11thArpeggio: Pattern = {
-  id: "dominant-11th-arpeggio",
+  id: "preset-dominant-11th-arpeggio",
   name: "Dominant 11th Arpeggio",
   stream: [
     [_.createSixteenthNote(60)],
@@ -90,7 +90,7 @@ export const Dominant11thArpeggio: Pattern = {
   ],
 };
 export const Major13thArpeggio: Pattern = {
-  id: "major-13th-arpeggio",
+  id: "preset-major-13th-arpeggio",
   name: "Major 13th Arpeggio",
   stream: [
     [_.createSixteenthNote(60)],
@@ -105,7 +105,7 @@ export const Major13thArpeggio: Pattern = {
 };
 
 export const Minor13thArpeggio: Pattern = {
-  id: "minor-13th-arpeggio",
+  id: "preset-minor-13th-arpeggio",
   name: "Minor 13th Arpeggio",
   stream: [
     [_.createSixteenthNote(60)],
@@ -120,7 +120,7 @@ export const Minor13thArpeggio: Pattern = {
 };
 
 export const Dominant13thArpeggio: Pattern = {
-  id: "dominant-13th-arpeggio",
+  id: "preset-dominant-13th-arpeggio",
   name: "Dominant 13th Arpeggio",
   stream: [
     [_.createSixteenthNote(60)],

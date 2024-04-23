@@ -2,7 +2,7 @@ import { Pose } from "types/Pose";
 import * as _ from "utils/durations";
 
 export const ArpeggiateUp: Pose = {
-  id: "arpeggiate-up",
+  id: "preset-arpeggiate-up",
   name: "Arpeggiate Up",
   stream: [
     _.createQuarterVector({ chordal: 0 }),
@@ -13,7 +13,7 @@ export const ArpeggiateUp: Pose = {
 };
 
 export const ArpeggiateUpBelow: Pose = {
-  id: "arpeggiate-up-below",
+  id: "preset-arpeggiate-up-below",
   name: "Arpeggiate Up (-1 Octave)",
   stream: [
     _.createQuarterVector({ chromatic: -12, chordal: 0 }),
@@ -24,7 +24,7 @@ export const ArpeggiateUpBelow: Pose = {
 };
 
 export const ArpeggiateUpAbove: Pose = {
-  id: "arpeggiate-up-above",
+  id: "preset-arpeggiate-up-above",
   name: "Arpeggiate Up (+1 Octave)",
   stream: [
     _.createQuarterVector({ chromatic: 12, chordal: 0 }),
@@ -35,7 +35,7 @@ export const ArpeggiateUpAbove: Pose = {
 };
 
 export const ArpeggiateDown: Pose = {
-  id: "arpeggiate-down",
+  id: "preset-arpeggiate-down",
   name: "Arpeggiate Down",
   stream: [
     _.createQuarterVector({ chordal: 0 }),
@@ -46,7 +46,7 @@ export const ArpeggiateDown: Pose = {
 };
 
 export const ArpeggiateDownBelow: Pose = {
-  id: "arpeggiate-down-below",
+  id: "preset-arpeggiate-down-below",
   name: "Arpeggiate Down (-1 Octave)",
   stream: [
     _.createQuarterVector({ chromatic: -12, chordal: 0 }),
@@ -57,7 +57,7 @@ export const ArpeggiateDownBelow: Pose = {
 };
 
 export const ArpeggiateDownAbove: Pose = {
-  id: "arpeggiate-down-above",
+  id: "preset-arpeggiate-down-above",
   name: "Arpeggiate Down (+1 Octave)",
   stream: [
     _.createQuarterVector({ chromatic: 12, chordal: 0 }),
@@ -68,7 +68,7 @@ export const ArpeggiateDownAbove: Pose = {
 };
 
 export const ArpeggiateUpAndDown: Pose = {
-  id: "arpeggiate-up-and-down",
+  id: "preset-arpeggiate-up-and-down",
   name: "Arpeggiate Up and Down",
   stream: [
     _.createQuarterVector({ chordal: 0 }),
@@ -79,7 +79,7 @@ export const ArpeggiateUpAndDown: Pose = {
 };
 
 export const ArpeggiateUpAndDownBelow: Pose = {
-  id: "arpeggiate-up-and-down-below",
+  id: "preset-arpeggiate-up-and-down-below",
   name: "Arpeggiate Up and Down (-1 Octave)",
   stream: [
     _.createQuarterVector({ chromatic: -12, chordal: 0 }),
@@ -90,7 +90,7 @@ export const ArpeggiateUpAndDownBelow: Pose = {
 };
 
 export const ArpeggiateUpAndDownAbove: Pose = {
-  id: "arpeggiate-up-and-down-above",
+  id: "preset-arpeggiate-up-and-down-above",
   name: "Arpeggiate Up and Down (+1 Octave)",
   stream: [
     _.createQuarterVector({ chromatic: 12, chordal: 0 }),
@@ -101,7 +101,7 @@ export const ArpeggiateUpAndDownAbove: Pose = {
 };
 
 export const ArpeggiateDownAndUp: Pose = {
-  id: "arpeggiate-down-and-up",
+  id: "preset-arpeggiate-down-and-up",
   name: "Arpeggiate Down and Up",
   stream: [
     _.createQuarterVector({ chordal: 0 }),
@@ -112,7 +112,7 @@ export const ArpeggiateDownAndUp: Pose = {
 };
 
 export const ArpeggiateDownAndUpBelow: Pose = {
-  id: "arpeggiate-down-and-up-below",
+  id: "preset-arpeggiate-down-and-up-below",
   name: "Arpeggiate Down And Up (-1 Octave)",
   stream: [
     _.createQuarterVector({ chromatic: -12, chordal: 0 }),
@@ -123,7 +123,7 @@ export const ArpeggiateDownAndUpBelow: Pose = {
 };
 
 export const ArpeggiateDownAndUpAbove: Pose = {
-  id: "arpeggiate-down-and-up-above",
+  id: "preset-arpeggiate-down-and-up-above",
   name: "Arpeggiate Down And Up (+1 Octave)",
   stream: [
     _.createQuarterVector({ chromatic: 12, chordal: 0 }),
