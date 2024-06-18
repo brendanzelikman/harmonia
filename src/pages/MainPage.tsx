@@ -24,6 +24,7 @@ import Wind from "assets/demos/wind.ham";
 import Inversions from "assets/demos/inversions.ham";
 import Marimba from "assets/demos/marimba.ham";
 import Scriabin from "assets/demos/scriabin.ham";
+import Corridors from "assets/demos/corridors.ham";
 import Upward from "assets/demos/upward.ham";
 
 export type View = (typeof views)[number];
@@ -45,7 +46,15 @@ export function MainPage(props: MainPageProps) {
   const params = useParams<{ view: View }>();
   const view = props.view || params.view || "projects";
   const [projects, setProjects] = useState<Project[]>([]);
-  const demoPaths = [Barry, Wind, Marimba, Inversions, Scriabin, Upward];
+  const demoPaths = [
+    Barry,
+    Wind,
+    Marimba,
+    Inversions,
+    Corridors,
+    Scriabin,
+    Upward,
+  ];
 
   // Update the list of projects based on the authentication status
   const updateProjects = async () => {

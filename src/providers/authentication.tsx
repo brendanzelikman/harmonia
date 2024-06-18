@@ -135,7 +135,7 @@ async function checkPassword(forceCheck = false): Promise<PasswordStatus> {
       // Match password with secrets (bypasses authentication)
       const isAdmin =
         password === import.meta.env.VITE_ADMIN_PASSWORD ||
-        import.meta.env.VITE_SECRET_PASSWORD;
+        password === import.meta.env.VITE_SECRET_PASSWORD;
 
       // Check for admin privileges
       if (isAdmin) {
