@@ -12,8 +12,9 @@ export const TrackDropdownButton = (props: {
         <div
           className="flex text-left items-center hover:bg-zinc-500/60 cursor-pointer px-4 py-2"
           onClick={(e) => {
-            props.onClick?.();
+            e.stopPropagation();
             e.currentTarget.blur();
+            props.onClick?.();
           }}
         >
           <div className="text-xl">{props.icon}</div>

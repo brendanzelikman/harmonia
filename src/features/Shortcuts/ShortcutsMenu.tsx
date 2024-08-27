@@ -15,6 +15,7 @@ import { BsXCircle } from "react-icons/bs";
 import { useProjectSelector } from "types/hooks";
 import { TickDurations } from "./content/TickDurations";
 import { selectTimeline } from "types/Timeline/TimelineSelectors";
+import { useDiary } from "types/Diary/DiaryTypes";
 
 export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
 
@@ -32,7 +33,7 @@ export const SHORTCUT_TYPES = [
 export type ShortcutType = (typeof SHORTCUT_TYPES)[number];
 
 export function ShortcutsMenu() {
-  const showingDiary = !!useProjectSelector(selectTimeline).showingDiary;
+  const showingDiary = useDiary().isOpen;
   const [show, setShow] = useState(false);
   const [type, setType] = useState<ShortcutType>("Global");
 

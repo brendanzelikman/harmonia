@@ -7,20 +7,18 @@ import { useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { BsDownload, BsTrash } from "react-icons/bs";
 import { ContentPage } from "./ContentPage";
 import { m } from "framer-motion";
-import { use, useDeep, useProjectDispatch } from "types/hooks";
-import { setDiaryPage, clearDiary } from "types/Project/MetadataSlice";
-import { toggleDiary } from "types/Timeline/TimelineSlice";
-import {
-  selectProjectName,
-  selectProjectDiary,
-} from "types/Project/MetadataSelectors";
-import { selectTimeline } from "types/Timeline/TimelineSelectors";
+import { use, useProjectDispatch } from "types/hooks";
+import { setDiaryPage, clearDiary } from "types/Meta/MetaSlice";
 import { NavbarHoverTooltip } from "features/Navbar/components";
 import classNames from "classnames";
-import { NodeData } from "json-edit-react";
 import { NAV_HEIGHT } from "utils/constants";
 import Background from "assets/images/landing-background.png";
 import { ProjectEditor } from "./ProjectEditor";
+import { useDiary } from "types/Diary/DiaryTypes";
+import {
+  selectProjectDiary,
+  selectProjectName,
+} from "types/Meta/MetaSelectors";
 
 const useHotkeys = useScopedHotkeys("diary");
 
@@ -30,9 +28,12 @@ const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;
 export function Diary() {
   const dispatch = useProjectDispatch();
   const projectName = use(selectProjectName);
-  const diary = use(selectProjectDiary);
-  const showingDiary = use((_) => !!selectTimeline(_).showingDiary);
   const [showingJSON, setShowingJSON] = useState(false);
+
+  const diary = use(selectProjectDiary);
+  const diaryState = useDiary();
+  const showingDiary = diaryState.isOpen;
+
   useEffect(() => {
     if (!showingDiary) setShowingJSON(false);
   }, [showingDiary]);
@@ -56,7 +57,7 @@ export function Diary() {
     () => ref.current?.pageFlip?.().flip(diary.length - 1),
     [diary]
   );
-  useHotkeys("esc", () => dispatch(toggleDiary()), []);
+  useHotkeys("esc", diaryState.close, []);
 
   // A button to export the diary to a text file
   const ExportDiaryButton = useCallback(

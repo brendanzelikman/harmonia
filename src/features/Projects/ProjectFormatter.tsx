@@ -20,7 +20,7 @@ import { selectClipNameMap } from "types/Clip/ClipSelectors";
 import { selectPatternClips } from "types/Clip/ClipSelectors";
 import { selectPoseClips } from "types/Clip/ClipSelectors";
 import { selectInstruments } from "types/Instrument/InstrumentSelectors";
-import { selectMetadata } from "types/Project/MetadataSelectors";
+import { selectMetadata } from "types/Meta/MetaSelectors";
 import { selectScaleTracks } from "types/Track/TrackSelectors";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";

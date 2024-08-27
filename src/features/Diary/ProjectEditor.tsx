@@ -2,10 +2,10 @@ import { JsonEditor, NodeData } from "json-edit-react";
 import { store, SafeBaseProject } from "providers/store";
 import { BsFillXCircleFill } from "react-icons/bs";
 import { FaMinusCircle, FaDownload } from "react-icons/fa";
+import { useDiary } from "types/Diary/DiaryTypes";
 import { useDeep, useProjectDispatch } from "types/hooks";
 import { exportProjectToHAM } from "types/Project/ProjectExporters";
 import { sanitizeBaseProject } from "types/Project/ProjectFunctions";
-import { toggleDiary } from "types/Timeline/TimelineSlice";
 
 const RESTRICTED_KEYWORDS = new Set([
   "id",
@@ -42,6 +42,7 @@ interface ProjectEditorProps {
 
 export const ProjectEditor = (props: ProjectEditorProps) => {
   const dispatch = useProjectDispatch();
+  const diaryState = useDiary();
   const json = useDeep((state) => state.present);
 
   if (!props.show) return null;
@@ -50,7 +51,7 @@ export const ProjectEditor = (props: ProjectEditorProps) => {
       <div className="flex gap-2 shrink-0 items-center w-full p-2 border-b bg-neutral-100">
         <BsFillXCircleFill
           className="fill-red-500 rounded-full bg-red-500 hover:bg-slate-800 cursor-pointer"
-          onClick={() => dispatch(toggleDiary())}
+          onClick={diaryState.toggle}
         />
         <FaMinusCircle
           className="fill-yellow-500 rounded-full bg-yellow-500 hover:bg-slate-800 cursor-pointer"

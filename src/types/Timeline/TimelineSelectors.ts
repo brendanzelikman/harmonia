@@ -20,7 +20,6 @@ import {
   isPoseClip,
   isPoseClipId,
   isScaleClip,
-  PatternClipId,
 } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
 import { Portal } from "types/Portal/PortalTypes";
@@ -39,7 +38,6 @@ import { selectTrackMap, selectTrackChain } from "types/Track/TrackSelectors";
 import {
   defaultMediaClipboard,
   defaultMediaDraft,
-  defaultMediaDragState,
   defaultMediaSelection,
   Media,
 } from "types/Media/MediaTypes";
@@ -215,21 +213,6 @@ export const selectCopiedClips = createDeepSelector(
 export const selectCopiedPortals = createDeepSelector(
   [selectMediaClipboard],
   (clipboard) => clipboard?.portals ?? []
-);
-
-// ------------------------------------------------------------
-// Timeline Media Drag State
-// ------------------------------------------------------------
-
-/** Select the current media drag state. */
-export const selectMediaDragState = createSelector(
-  [selectTimeline],
-  (timeline) => timeline.mediaDragState || defaultMediaDragState
-);
-
-export const selectIsDraggingPatternClip = createSelector(
-  [selectMediaDragState],
-  (state) => state?.draggingPatternClip
 );
 
 // ------------------------------------------------------------
@@ -429,21 +412,6 @@ export const selectNewMotifName = (project: Project, type: ClipType) => {
 export const selectPortalFragment = createSelector(
   [selectTimeline],
   (timeline) => timeline.mediaDraft?.portal
-);
-
-// ------------------------------------------------------------
-// Media Drag State
-// ------------------------------------------------------------
-
-export const selectIsDraggingSomeMedia = createSelector(
-  [selectMediaDragState],
-  (state) =>
-    !!(
-      state?.draggingPatternClip ||
-      state?.draggingPoseClip ||
-      state?.draggingScaleClip ||
-      state?.draggingPortal
-    )
 );
 
 // ------------------------------------------------------------

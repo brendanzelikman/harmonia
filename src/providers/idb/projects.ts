@@ -3,7 +3,7 @@ import { PROJECT_ID } from "utils/constants";
 import { getAuthenticationStatus } from "providers/authentication";
 import { PROJECT_STORE } from "utils/constants";
 import { Project, isProject } from "types/Project/ProjectTypes";
-import { selectProjectId } from "types/Project/MetadataSelectors";
+import { selectProjectId } from "types/Meta/MetaSelectors";
 import { getUserDatabase } from "./database";
 import { hasReachedProjectLimit } from "./util";
 

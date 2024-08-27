@@ -10,8 +10,6 @@ import {
   selectPortaledClipStyle,
 } from "types/Arrangement/ArrangementSelectors";
 import {
-  selectIsDraggingSomeMedia,
-  selectIsLive,
   selectIsTimelineAddingPatternClips,
   selectIsTimelineLive,
   selectSelectedTrackId,
@@ -25,8 +23,9 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { PatternClipScore } from "./PatternClip/PatternClipScore";
 import { PatternClipHeader } from "./PatternClip/PatternClipHeader";
 import { PatternClipStream } from "./PatternClip/PatternClipStream";
-import { useWindowedState } from "hooks/window/useWindowedState";
+import { useToggledState } from "hooks/window/useToggledState";
 import { DivMouseEvent } from "utils/html";
+import { useDragState } from "types/Media/MediaTypes";
 
 export const CLIP_NAME_HEIGHT = 24;
 export const CLIP_STREAM_MARGIN = 8;
@@ -47,11 +46,13 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
 
   // Each pattern clip listens to the closest overlapping pose clip */
   const poseClipId = use((_) => selectClosestPoseClipId(_, pcId));
-  const isPoseClipOpen = useWindowedState(`dropdown_${poseClipId}`).state;
+  const poseClipDropdown = useToggledState(`dropdown_${poseClipId}`);
+  const isPoseClipOpen = poseClipDropdown.isOpen;
 
   // Each pattern clip can be dragged into any cell in a pattern track. */
+  const dragState = useDragState();
   const [{ isDragging }, drag] = useClipDrag({ id: pcId, type: "pattern" });
-  const isDraggingSomeMedia = use(selectIsDraggingSomeMedia);
+  const isDraggingSomeMedia = dragState.any;
 
   // Each pattern clip goes live when its track and pose clip are selected
   const isTimelineLive = use(selectIsTimelineLive);

@@ -7,7 +7,7 @@ import {
 import { setCurrentProjectId } from "providers/idb";
 import { dispatchCustomEvent } from "utils/html";
 import { getAuthenticationStatus } from "providers/authentication";
-import { selectMetadata } from "./MetadataSelectors";
+import { selectMetadata } from "../Meta/MetaSelectors";
 import {
   isProjectEmpty,
   sanitizeProject,

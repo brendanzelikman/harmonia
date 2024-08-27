@@ -11,7 +11,7 @@ import {
 import { sample } from "lodash";
 import { getAuthenticationStatus } from "providers/authentication";
 import { getSubscriptionStatus } from "providers/subscription";
-import { selectMetadata } from "./MetadataSelectors";
+import { selectMetadata } from "../Meta/MetaSelectors";
 import { Thunk, isProject } from "./ProjectTypes";
 import { mergeBaseProjects } from "./ProjectFunctions";
 import { promptUserForNumber } from "utils/html";

@@ -56,7 +56,6 @@ import { selectMotifState } from "types/Motif/MotifSelectors";
 import { doesMediaElementOverlapRange } from "types/Media/MediaFunctions";
 import {
   selectCellWidth,
-  selectIsDraggingSomeMedia,
   selectIsTimelineAddingClips,
   selectSubdivision,
   selectTrackHeightMap,
@@ -480,7 +479,6 @@ export const selectPortaledPatternClipStyleMap = createDeepSelector(
     selectTrackTopMap,
     selectOverlappingPortaledClipIdMap,
     selectIsTimelineAddingClips,
-    selectIsDraggingSomeMedia,
     selectCellWidth,
     selectSubdivision,
   ],
@@ -492,7 +490,6 @@ export const selectPortaledPatternClipStyleMap = createDeepSelector(
     trackTopMap,
     shortMap,
     addingClips,
-    draggingMedia,
     cellWidth,
     subdivision
   ) => {
@@ -513,7 +510,7 @@ export const selectPortaledPatternClipStyleMap = createDeepSelector(
       const trackTop = getValueByKey(trackTopMap, clip?.trackId) ?? 0;
 
       const isShortInMap = !!getValueByKey(shortMap, cId)?.length;
-      const isShort = isShortInMap || !!addingClips || !!draggingMedia;
+      const isShort = isShortInMap || !!addingClips;
       const height = isShort ? trackHeight - POSE_HEIGHT : trackHeight;
 
       const top = trackTop + (isShort ? POSE_HEIGHT : 0);

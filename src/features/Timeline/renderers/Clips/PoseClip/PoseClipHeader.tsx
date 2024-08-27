@@ -5,7 +5,7 @@ import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
 import { isPoseVectorModule, Pose, PoseBlock } from "types/Pose/PoseTypes";
 import { POSE_HEIGHT } from "utils/constants";
 import { cancelEvent, dispatchCustomEvent } from "utils/html";
-import { Dispatch, SetStateAction, useCallback } from "react";
+import { useCallback } from "react";
 import { selectClipName } from "types/Clip/ClipSelectors";
 import { use, useProjectDispatch } from "types/hooks";
 import { selectTrackMap } from "types/Track/TrackSelectors";
@@ -21,7 +21,6 @@ import {
   toggleClipIdInSelection,
 } from "types/Timeline/TimelineThunks";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
-import { NavbarLivePlayButton } from "features/Navbar/sections/Arrangement/NavbarLivePlayButton";
 
 interface PoseClipHeaderProps {
   clip: PoseClip;
@@ -31,7 +30,6 @@ interface PoseClipHeaderProps {
   index: number;
   setIndex: (index: number) => void;
   isDropdownOpen: boolean;
-  setIsDropdownOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export const PoseClipHeader = (props: PoseClipHeaderProps) => {
@@ -96,7 +94,7 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
             );
           }
           if (isTrackSelected && isDropdownOpen) {
-            dispatch(removeClipIdsFromSelection([clip.id]));
+            dispatch(removeClipIdsFromSelection({ data: [clip.id] }));
           }
         } else {
           dispatch(onPoseClipClick(e, clip));

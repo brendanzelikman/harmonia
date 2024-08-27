@@ -2,7 +2,7 @@ import { useProjectSearch } from "./useProjectSearch";
 import { ProjectFormatter } from "..";
 import { useCallback } from "react";
 import { Project } from "types/Project/ProjectTypes";
-import { selectProjectId } from "types/Project/MetadataSelectors";
+import { selectProjectId } from "types/Meta/MetaSelectors";
 
 export interface ProjectItem {
   project: Project;

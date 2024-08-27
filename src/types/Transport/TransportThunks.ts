@@ -29,7 +29,7 @@ import {
   selectLastArrangementTick,
   selectMidiChordsByTicks,
 } from "types/Arrangement/ArrangementSelectors";
-import { selectMetadata } from "types/Project/MetadataSelectors";
+import { selectMetadata } from "types/Meta/MetaSelectors";
 import { selectSubdivisionTicks } from "types/Timeline/TimelineSelectors";
 import {
   selectPatternTracks,

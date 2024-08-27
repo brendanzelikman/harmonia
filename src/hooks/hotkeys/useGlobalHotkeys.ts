@@ -4,10 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useSubscription } from "providers/subscription";
 import { isEditorVisible } from "types/Editor/EditorFunctions";
 import { toggleEditor, hideEditor } from "types/Editor/EditorSlice";
-import {
-  toggleDiary,
-  updateMediaSelection,
-} from "types/Timeline/TimelineSlice";
+import { updateMediaSelection } from "types/Timeline/TimelineSlice";
 import { selectEditor } from "types/Editor/EditorSelectors";
 import {
   selectSelectedMotif,
@@ -18,17 +15,19 @@ import { useHotkeys } from "react-hotkeys-hook";
 import {
   selectCanRedoProject,
   selectCanUndoProject,
-} from "types/Project/MetadataSelectors";
+} from "types/Meta/MetaSelectors";
 import { createProject } from "types/Project/ProjectThunks";
 import { readLocalProjects } from "types/Project/ProjectLoaders";
 import { exportProjectToHAM } from "types/Project/ProjectExporters";
 import { REDO_PROJECT, UNDO_PROJECT } from "providers/store";
+import { useDiary } from "types/Diary/DiaryTypes";
 
 /** Use global hotkeys for the project */
 export function useGlobalHotkeys() {
   const dispatch = useProjectDispatch();
   const { isProdigy, isAtLeastStatus } = useSubscription();
   const navigate = useNavigate();
+  const diary = useDiary();
   const timeline = useProjectSelector(selectTimeline);
   const editor = useProjectSelector(selectEditor);
   const object = useProjectSelector(selectSelectedMotif);
@@ -83,7 +82,7 @@ export function useGlobalHotkeys() {
   );
 
   // Meta + D = Toggle Diary
-  useOverridingHotkeys("shift+d", () => dispatch(toggleDiary()), []);
+  useOverridingHotkeys("shift+d", diary.toggle, [diary]);
 
   // Escape = Hide Editor or Clear Selection
   useOverridingHotkeys(

@@ -1,7 +1,7 @@
 import { selectClipIds } from "types/Clip/ClipSelectors";
 import { exportClipsToMidi } from "types/Clip/ClipThunks";
 import { Project, Thunk } from "./ProjectTypes";
-import { selectProjectName } from "./MetadataSelectors";
+import { selectProjectName } from "../Meta/MetaSelectors";
 import { sanitizeProject } from "./ProjectFunctions";
 import { getProjectsFromDB } from "providers/idb";
 import { getAuthenticationStatus } from "providers/authentication";

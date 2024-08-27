@@ -11,7 +11,7 @@ import {
   defaultProjectMetadata,
   initializeProjectMetadata,
   ProjectMetadata,
-} from "./MetadataTypes";
+} from "../Meta/MetaTypes";
 import { defaultMotifState } from "types/Motif/MotifTypes";
 
 // ------------------------------------------------------------

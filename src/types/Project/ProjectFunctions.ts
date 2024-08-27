@@ -1,5 +1,5 @@
 import { defaultBaseProject, Project, SafeProject } from "./ProjectTypes";
-import { defaultProjectMetadata } from "./MetadataTypes";
+import { defaultProjectMetadata } from "../Meta/MetaTypes";
 import { isEqual, merge } from "lodash";
 import { isInstrument } from "types/Instrument/InstrumentTypes";
 import { isPattern, PatternState } from "types/Pattern/PatternTypes";

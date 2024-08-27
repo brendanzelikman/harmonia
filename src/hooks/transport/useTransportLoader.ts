@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useCustomEventListener } from "../window/useCustomEventListener";
 import { useProjectDispatch, useProjectSelector } from "types/hooks";
-import { selectProjectId } from "types/Project/MetadataSelectors";
+import { selectProjectId } from "types/Meta/MetaSelectors";
 import {
   START_LOADING_TRANSPORT,
   STOP_LOADING_TRANSPORT,

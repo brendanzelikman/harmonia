@@ -6,7 +6,7 @@ import { ClipId, IClipId } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
 import { useProjectDispatch } from "types/hooks";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
-import { updateMediaDragState } from "types/Timeline/TimelineSlice";
+import { useDragState } from "types/Media/MediaTypes";
 
 interface ClipDragProps {
   id: IClipId;
@@ -17,8 +17,9 @@ export function useClipDrag(props: ClipDragProps) {
   const dispatch = useProjectDispatch();
   const { id, type } = props;
   const dragField = useMemo(() => `dragging${capitalize(type)}Clip`, [type]);
-  const startDrag = () => dispatch(updateMediaDragState({ [dragField]: true }));
-  const endDrag = () => dispatch(updateMediaDragState({ [dragField]: false }));
+  const dragState = useDragState();
+  const startDrag = () => dragState.set(dragField, true);
+  const endDrag = () => dragState.set(dragField, false);
   const heldKeys = useHeldHotkeys("`");
   return useDrag({
     type: `${type}Clip`,

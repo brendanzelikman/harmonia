@@ -7,12 +7,12 @@ import { Row } from "features/Timeline/Timeline";
 import { getTransport } from "tone";
 import { BarsBeatsSixteenths } from "types/Transport/TransportFunctions";
 import {
-  selectIsDraggingPatternClip,
   selectPortalFragment,
   selectTimelineState,
 } from "types/Timeline/TimelineSelectors";
 import { selectIsTransportActive } from "types/Transport/TransportSelectors";
 import { onCellClick } from "types/Timeline/TimelineThunks";
+import { useDragState } from "types/Media/MediaTypes";
 
 interface CellFormatterProps extends FormatterProps<Row> {
   tick: number;
@@ -29,7 +29,7 @@ export function CellFormatter(props: CellFormatterProps) {
   const state = use(selectTimelineState);
   const fragment = use(selectPortalFragment);
   const isTransportActive = use(selectIsTransportActive);
-  const isDraggingPatternClip = use(selectIsDraggingPatternClip);
+  const isDraggingPatternClip = useDragState().draggingPatternClip;
   const addingPatternClips = state === "adding-pattern-clips" && onPatternTrack;
   const addingPoseClips = state === "adding-pose-clips" && !!trackId;
   const addingScaleClips = state === "adding-scale-clips" && !!trackId;

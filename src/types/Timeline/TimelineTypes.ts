@@ -7,15 +7,12 @@ import {
   MediaSelection,
   MediaDraft,
   MediaClipboard,
-  MediaDragState,
   defaultMediaSelection,
   defaultMediaDraft,
   defaultMediaClipboard,
-  defaultMediaDragState,
   isMediaSelection,
   isMediaDraft,
   isMediaClipboard,
-  isMediaDragState,
 } from "types/Media/MediaTypes";
 
 // ------------------------------------------------------------
@@ -42,9 +39,6 @@ export type Timeline = Partial<{
   // Render info
   showingTooltips: boolean;
   performanceMode: boolean;
-
-  showingDiary: boolean;
-  mediaDragState: MediaDragState;
 }>;
 
 /**  The `TimelineState` describes any interaction with the arrangement. */
@@ -74,14 +68,12 @@ export const defaultTimeline: Timeline = {
   mediaSelection: defaultMediaSelection,
   mediaDraft: defaultMediaDraft,
   mediaClipboard: defaultMediaClipboard,
-  mediaDragState: defaultMediaDragState,
 
   subdivision: "16n",
   cellWidth: DEFAULT_CELL_WIDTH,
   cellHeight: DEFAULT_CELL_HEIGHT,
 
   showingTooltips: true,
-  showingDiary: false,
   performanceMode: false,
 };
 
@@ -108,7 +100,6 @@ export const isTimeline = (obj: unknown): obj is Timeline => {
     isOptionalType(candidate.cellHeight, isNumber) &&
     isOptionalType(candidate.mediaSelection, isMediaSelection) &&
     isOptionalType(candidate.mediaDraft, isMediaDraft) &&
-    isOptionalType(candidate.mediaClipboard, isMediaClipboard) &&
-    isOptionalType(candidate.mediaDragState, isMediaDragState)
+    isOptionalType(candidate.mediaClipboard, isMediaClipboard)
   );
 };

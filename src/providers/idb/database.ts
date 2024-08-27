@@ -1,5 +1,5 @@
 import { openDB } from "idb";
-import { selectProjectId } from "types/Project/MetadataSelectors";
+import { selectProjectId } from "types/Meta/MetaSelectors";
 import { initializeProject } from "types/Project/ProjectTypes";
 import {
   IDB_NAME,

@@ -1,9 +1,9 @@
 import { createDeepSelector } from "lib/redux";
-import { Project } from "./ProjectTypes";
+import { Project } from "../Project/ProjectTypes";
 import {
-  PROJECT_DIARY_PAGE_COUNT,
   initializeProjectDiary,
-} from "./MetadataTypes";
+  PROJECT_DIARY_PAGE_COUNT,
+} from "../Diary/DiaryTypes";
 import { createSelector } from "reselect";
 
 /** Select the project metadata. */

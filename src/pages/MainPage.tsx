@@ -17,7 +17,7 @@ import { Project } from "types/Project/ProjectTypes";
 import { UserProfile } from "features/Profile/UserProfile";
 import { Playground } from "features/Playground/Playground";
 import { Navbar } from "features/Navbar/Navbar";
-import { selectProjectName } from "types/Project/MetadataSelectors";
+import { selectProjectName } from "types/Meta/MetaSelectors";
 import { CREATE_PROJECT, DELETE_PROJECT } from "types/Project/ProjectThunks";
 
 export type View = (typeof views)[number];

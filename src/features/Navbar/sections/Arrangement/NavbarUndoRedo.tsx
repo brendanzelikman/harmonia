@@ -4,7 +4,7 @@ import { useProjectDispatch, useProjectSelector } from "types/hooks";
 import {
   selectCanRedoProject,
   selectCanUndoProject,
-} from "types/Project/MetadataSelectors";
+} from "types/Meta/MetaSelectors";
 import { UNDO_PROJECT } from "providers/store";
 
 export function NavbarUndoRedo() {

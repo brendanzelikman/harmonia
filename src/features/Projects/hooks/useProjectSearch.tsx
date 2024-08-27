@@ -20,7 +20,7 @@ import {
   selectScaleTracks,
   selectTrackMidiScale,
 } from "types/Track/TrackSelectors";
-import { selectMetadata } from "types/Project/MetadataSelectors";
+import { selectMetadata } from "types/Meta/MetaSelectors";
 import {
   createProject,
   deleteEmptyProjects,

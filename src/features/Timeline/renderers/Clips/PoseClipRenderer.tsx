@@ -11,7 +11,6 @@ import { selectClipWidth } from "types/Arrangement/ArrangementClipSelectors";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import {
   selectCellWidth,
-  selectIsDraggingSomeMedia,
   selectIsLive,
   selectIsTimelineAddingClips,
   selectIsTimelineAddingPoseClips,
@@ -24,9 +23,9 @@ import { onPoseClipClick } from "types/Timeline/TimelineThunks";
 import { useHotkeys } from "react-hotkeys-hook";
 import { PoseClipDropdown } from "./PoseClip/PoseClipDropdown";
 import { PoseClipHeader } from "./PoseClip/PoseClipHeader";
-import { useCustomEventListener } from "hooks";
 import { Portaled } from "types/Portal/PortalTypes";
-import { useWindowedState } from "hooks/window/useWindowedState";
+import { useToggledState } from "hooks/window/useToggledState";
+import { useDragState } from "types/Media/MediaTypes";
 
 export interface PoseClipRendererProps extends ClipComponentProps {
   clip: PoseClip;
@@ -40,14 +39,14 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
   const cellWidth = use(selectCellWidth);
 
   /** Each pose has a dropdown for editing offsets. */
-  const dropdownState = useWindowedState(`dropdown_${clip.id}`);
-  const isDropdownOpen = dropdownState.state;
-  const setIsDropdownOpen = dropdownState.setState;
-  useHotkeys("esc", () => setIsDropdownOpen(false));
+  const dropdownState = useToggledState(`dropdown_${clip.id}`);
+  const isDropdownOpen = dropdownState.isOpen;
+  useHotkeys("esc", dropdownState.close);
 
   /** A custom hook for dragging poses into cells */
+  const dragState = useDragState();
   const [{ isDragging }, drag] = useClipDrag({ id: pcId, type: "pose" });
-  const isDraggingOther = use(selectIsDraggingSomeMedia);
+  const isDraggingOther = dragState.any;
 
   // Timeline info
   const [index, setIndex] = useState(0);
@@ -107,7 +106,6 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
         index={index}
         setIndex={setIndex}
         isDropdownOpen={isDropdownOpen}
-        setIsDropdownOpen={setIsDropdownOpen}
       />
       <PoseClipDropdown
         clip={clip}

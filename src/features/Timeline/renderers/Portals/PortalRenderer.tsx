@@ -3,15 +3,12 @@ import { use, useProjectDispatch } from "types/hooks";
 import { usePortalDrag } from "./usePortalDrag";
 import portalIcon from "assets/images/portal.svg";
 import { Portal } from "types/Portal/PortalTypes";
-import { updateMediaDragState } from "types/Timeline/TimelineSlice";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
-import {
-  selectMediaDragState,
-  selectTimelineTickLeft,
-} from "types/Timeline/TimelineSelectors";
+import { selectTimelineTickLeft } from "types/Timeline/TimelineSelectors";
 import { selectTrackById } from "types/Track/TrackSelectors";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
 import { onPortalClick } from "types/Timeline/TimelineThunks";
+import { useDragState } from "types/Media/MediaTypes";
 
 type PortalFragmentProps = { top: number; left: number };
 type PortalProps = { portal: Portal };
@@ -32,15 +29,16 @@ export function TimelinePortal(props: TimelinePortalProps) {
   const { isSelected, isPortaling, isClipping, isTransposing } = props;
   const isPortal = "portal" in props;
   const portal = isPortal ? props.portal : undefined;
+  const dragState = useDragState();
 
   /** Update the timeline when dragging portals. */
   const onDragStart = () => {
-    dispatch(updateMediaDragState({ draggingPortal: true }));
+    dragState.set("draggingPortal", true);
   };
 
   /** Update the timeline when releasing portals and call the thunk. */
   const onDragEnd = (item: any, monitor: any) => {
-    dispatch(updateMediaDragState({ draggingPortal: false }));
+    dragState.set("draggingPortal", false);
     dispatch(onMediaDragEnd(item, monitor));
   };
 
@@ -57,9 +55,8 @@ export function TimelinePortal(props: TimelinePortalProps) {
     onDragStart,
     onDragEnd,
   });
-  const dragState = use(selectMediaDragState);
-  const draggingPatternClip = !!dragState?.draggingPatternClip;
-  const draggingPoseClip = !!dragState?.draggingPoseClip;
+  const draggingPatternClip = !!dragState.draggingPatternClip;
+  const draggingPoseClip = !!dragState.draggingPoseClip;
   const isDragging = Entry.isDragging || Exit.isDragging;
   const isActive = isPortaling || isClipping || isTransposing;
   const isDraggingOther = draggingPatternClip || draggingPoseClip;

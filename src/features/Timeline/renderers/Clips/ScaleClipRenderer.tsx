@@ -19,7 +19,6 @@ import { selectClipWidth } from "types/Arrangement/ArrangementClipSelectors";
 import {
   selectCellWidth,
   selectTimeline,
-  selectMediaDragState,
   selectTimelineTickLeft,
   selectTrackHeight,
   selectIsTimelineSlicingClips,
@@ -35,6 +34,7 @@ import {
   onScaleClipClick,
   onScaleClipDoubleClick,
 } from "types/Timeline/TimelineThunks";
+import { useDragState } from "types/Media/MediaTypes";
 
 interface ScaleClipRenderer extends ClipComponentProps {
   clip: ScaleClip;
@@ -60,10 +60,10 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
     type: "scale",
   });
 
-  const dragState = use(selectMediaDragState);
-  const draggingPatternClip = !!dragState?.draggingPatternClip;
-  const draggingPoseClip = !!dragState?.draggingPoseClip;
-  const draggingPortal = !!dragState?.draggingPortal;
+  const dragState = useDragState();
+  const draggingPatternClip = dragState.draggingPatternClip;
+  const draggingPoseClip = dragState.draggingPoseClip;
+  const draggingPortal = dragState.draggingPortal;
 
   // Timeline info
   const addingSomeMedia = use(selectIsTimelineAddingClips);

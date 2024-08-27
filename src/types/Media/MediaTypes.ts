@@ -1,3 +1,4 @@
+import { useRecordState } from "hooks/window/useRecordState";
 import { Payload } from "lib/redux";
 import { isBoolean, isObject, isPlainObject, isString } from "lodash";
 import {
@@ -50,6 +51,7 @@ export type MediaDragState = {
   draggingScaleClip?: boolean;
   draggingPortal?: boolean;
 };
+export const useDragState = () => useRecordState(defaultMediaDragState);
 
 /** A `NewMediaPayload` contains IDs of clips and poses. */
 export type NewMediaPayload = Payload<{

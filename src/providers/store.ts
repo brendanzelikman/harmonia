@@ -1,7 +1,7 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { saveProject } from "../types/Project/ProjectThunks";
 import { handleInstrumentMiddleware } from "types/Instrument/InstrumentMiddleware";
-import { metadataSlice } from "types/Project/MetadataSlice";
+import { MetaSlice } from "types/Meta/MetaSlice";
 import { scalesSlice } from "types/Scale/ScaleSlice";
 import { patternTrackSlice, scaleTrackSlice } from "types/Track/TrackSlice";
 import { instrumentsSlice } from "types/Instrument/InstrumentSlice";
@@ -30,7 +30,7 @@ import { Thunk } from "types/Project/ProjectTypes";
 
 /** The Base Project type is the intended shape of the project.  */
 export type BaseProject = {
-  meta: ReturnType<typeof metadataSlice.reducer>;
+  meta: ReturnType<typeof MetaSlice.reducer>;
   patternTracks: ReturnType<typeof patternTrackSlice.reducer>;
   scaleTracks: ReturnType<typeof scaleTrackSlice.reducer>;
   instruments: ReturnType<typeof instrumentsSlice.reducer>;
@@ -53,7 +53,7 @@ export type SafeBaseProject = Safe<BaseProject>;
 
 /** The base project reducer consolidates all slices into a single reducer. */
 const baseProjectReducer = combineReducers({
-  meta: metadataSlice.reducer,
+  meta: MetaSlice.reducer,
   patternTracks: patternTrackSlice.reducer,
   scaleTracks: scaleTrackSlice.reducer,
   instruments: instrumentsSlice.reducer,
@@ -90,7 +90,6 @@ const undoableProjectReducer = undoable(baseProjectReducer, {
   filter: excludeAction([
     ...privateTransportActions,
     "instruments/_addOfflineInstrument",
-    "timeline/updateMediaDragState",
   ]),
   syncFilter: true,
 });

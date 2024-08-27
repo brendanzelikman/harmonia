@@ -18,7 +18,6 @@ import {
   defaultMediaClipboard,
   defaultMediaDraft,
   defaultMediaSelection,
-  defaultMediaDragState,
 } from "types/Media/MediaTypes";
 import { Action, unpackAction } from "lib/redux";
 
@@ -174,36 +173,6 @@ export const timelineSlice = createSlice({
         state.mediaSelection.portalIds = portalIds;
       }
     },
-    /** Update the media drag state. */
-    updateMediaDragState: (
-      state,
-      action: PayloadAction<UpdateMediaDragStatePayload>
-    ) => {
-      if (!state.mediaDragState) state.mediaDragState = defaultMediaDragState;
-      const {
-        draggingPatternClip,
-        draggingPoseClip,
-        draggingScaleClip,
-        draggingPortal,
-      } = action.payload;
-
-      if (draggingPatternClip !== undefined) {
-        state.mediaDragState.draggingPatternClip = draggingPatternClip;
-      }
-      if (draggingPoseClip !== undefined) {
-        state.mediaDragState.draggingPoseClip = draggingPoseClip;
-      }
-      if (draggingScaleClip !== undefined) {
-        state.mediaDragState.draggingScaleClip = draggingScaleClip;
-      }
-      if (draggingPortal !== undefined) {
-        state.mediaDragState.draggingPortal = draggingPortal;
-      }
-    },
-    /** Toggle the diary. */
-    toggleDiary: (state) => {
-      state.showingDiary = !state.showingDiary;
-    },
     /** Toggle the tooltips. */
     toggleTooltips: (state) => {
       state.showingTooltips = !state.showingTooltips;
@@ -228,8 +197,6 @@ export const {
   updateMediaSelection,
   updateMediaClipboard,
   updateMediaDraft,
-  updateMediaDragState,
-  toggleDiary,
   toggleTooltips,
   togglePerformanceMode,
 } = timelineSlice.actions;

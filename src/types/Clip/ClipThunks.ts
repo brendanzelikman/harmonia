@@ -22,7 +22,7 @@ import {
 import { Clip, initializeClip, ClipId, PoseClipId } from "./ClipTypes";
 import { selectPatternClipStreamMap } from "types/Arrangement/ArrangementSelectors";
 import { selectPoseById } from "types/Pose/PoseSelectors";
-import { selectMetadata } from "types/Project/MetadataSelectors";
+import { selectMetadata } from "types/Meta/MetaSelectors";
 import { selectTracks } from "types/Track/TrackSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { Payload, unpackUndoType } from "lib/redux";

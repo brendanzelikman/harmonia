@@ -1,14 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import {
-  initializeProjectDiary,
-  initializeProjectMetadata,
-} from "./MetadataTypes";
+import { initializeProjectMetadata } from "./MetaTypes";
+import { initializeProjectDiary } from "../Diary/DiaryTypes";
 
 // ------------------------------------------------------------
 // Metadata Slice Definition
 // ------------------------------------------------------------
 
-export const metadataSlice = createSlice({
+export const MetaSlice = createSlice({
   name: "meta",
   initialState: initializeProjectMetadata(),
   reducers: {
@@ -49,6 +47,6 @@ export const {
   setDiaryPage,
   clearDiaryPage,
   clearDiary,
-} = metadataSlice.actions;
+} = MetaSlice.actions;
 
-export default metadataSlice.reducer;
+export default MetaSlice.reducer;
