@@ -1,6 +1,7 @@
 import { SecureRoute } from "components/Route";
+import { LandingPage } from "pages/LandingPage";
+import { MainPage } from "pages/MainPage";
 import { createHashRouter } from "react-router-dom";
-import { LandingPage, MainPage } from "pages";
 
 export const AppRouter = createHashRouter([
   {
@@ -36,6 +37,7 @@ export const AppRouter = createHashRouter([
   {
     path: "/playground",
     element: <SecureRoute private component={<MainPage view="playground" />} />,
+    errorElement: <MainPage view="playground" />,
   },
   {
     path: "/docs",

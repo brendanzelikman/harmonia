@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useLandingError } from "features/Landing/hooks/useLandingError";
 import { useLandingHotkeys } from "features/Landing/hooks/useLandingHotkeys";
-import Background from "assets/images/landing-background.png";
 import { Landing } from "features/Landing";
 import { useAuthentication } from "providers/authentication";
 import { useSubscription } from "providers/subscription";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
+import Background from "assets/images/landing-background.png";
 
 export const landingActions = [
   "idle",
@@ -38,21 +38,24 @@ export function LandingPage(props: LandingPageProps) {
     : "font-normal sm:text-4xl text-xl drop-shadow-xl";
 
   // Redirect the user or prompt them for the password
-  const onButtonClick = async (e: React.MouseEvent) => {
-    const status = await checkPassword(e.altKey);
+  const onButtonClick = useCallback(
+    async (e: React.MouseEvent) => {
+      const status = await checkPassword(e.altKey);
 
-    // Navigate to projects as an admin
-    const isAdmin = status === "admin";
-    if (isAdmin) return navigate("/projects");
+      // Navigate to projects as an admin
+      const isAdmin = status === "admin";
+      if (isAdmin) return navigate("/projects");
 
-    // Navigate conditionally otherwise
-    if (isAuthenticated && !e.altKey) {
-      if (e.shiftKey) return navigate("/playground");
-      return navigate(isAtLeastStatus("maestro") ? "/projects" : "/demos");
-    } else {
-      navigate("/login");
-    }
-  };
+      // Navigate conditionally otherwise
+      if (isAuthenticated && !e.altKey) {
+        if (e.shiftKey) return navigate("/playground");
+        return navigate(isAtLeastStatus("maestro") ? "/projects" : "/demos");
+      } else {
+        navigate("/login");
+      }
+    },
+    [checkPassword]
+  );
 
   // Handle landing page scroll
   const mainRef = useRef<HTMLDivElement>(null);
@@ -70,19 +73,6 @@ export function LandingPage(props: LandingPageProps) {
       behavior: "smooth",
     });
   });
-
-  const heroes = [
-    Landing.PricingHero,
-    Landing.LibraryHero,
-    Landing.TimelineHero,
-    Landing.ScaleHero,
-    Landing.PatternHero,
-    Landing.PoseHero,
-    Landing.PortalHero,
-    // Landing.PianoHero,
-    // Landing.WhyHero,
-    Landing.Observatory,
-  ];
 
   return (
     <main
@@ -103,9 +93,16 @@ export function LandingPage(props: LandingPageProps) {
       {action !== "idle" && <Landing.LoginScreen action={action} />}
       {showBody && (
         <>
-          {heroes.map((Hero, i) => (
-            <Hero key={i} />
-          ))}
+          <Landing.PricingHero />
+          <Landing.LibraryHero />
+          <Landing.TimelineHero />
+          <Landing.ScaleHero />
+          <Landing.PatternHero />
+          <Landing.PoseHero />
+          <Landing.PortalHero />
+          {/* <Landing.PianoHero /> */}
+          {/* <Landing.WhyHero /> */}
+          <Landing.Observatory />
         </>
       )}
       {showStack && <ErrorStack />}

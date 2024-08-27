@@ -1,39 +1,32 @@
 import { BsDownload, BsTrash } from "react-icons/bs";
-import { selectInstruments } from "redux/Instrument";
-import { selectScaleTracks } from "redux/Track";
-import { selectTransport } from "redux/Transport";
-import {
-  selectMetadata,
-  selectLastArrangementTick,
-  selectTrackScaleNameAtTick,
-  selectPatternClips,
-  selectPoseClips,
-  selectClipNameMap,
-} from "redux/selectors";
-import {
-  loadProject,
-  deleteProject,
-  exportProjectToHAM,
-  createProject,
-  loadProjectByPath,
-} from "redux/thunks";
-import { getInstrumentName } from "types/Instrument";
-import { convertTicksToSeconds } from "types/Transport";
 import { cancelEvent } from "utils/html";
 import { Logo } from "../../components/Logo";
 import { ReactNode, useMemo, useState } from "react";
-import { useProjectDispatch } from "redux/hooks";
+import { useProjectDispatch } from "types/hooks";
 import { BiCopy } from "react-icons/bi";
 import { Transition } from "@headlessui/react";
-import { isProject } from "types/Project";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 import { uniq } from "lodash";
 import classNames from "classnames";
 import { ProjectItem } from "./hooks/useProjectList";
-import { m } from "framer-motion";
 import { useSubscription } from "providers/subscription";
+import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
+import { isProject } from "types/Project/ProjectTypes";
+import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
+import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
+import { selectClipNameMap } from "types/Clip/ClipSelectors";
+import { selectPatternClips } from "types/Clip/ClipSelectors";
+import { selectPoseClips } from "types/Clip/ClipSelectors";
+import { selectInstruments } from "types/Instrument/InstrumentSelectors";
+import { selectMetadata } from "types/Project/MetadataSelectors";
+import { selectScaleTracks } from "types/Track/TrackSelectors";
+import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
+import { selectTransport } from "types/Transport/TransportSelectors";
+import { createProject, deleteProject } from "types/Project/ProjectThunks";
+import { loadProjectByPath, loadProject } from "types/Project/ProjectLoaders";
+import { exportProjectToHAM } from "types/Project/ProjectExporters";
 
 interface ProjectFormatterProps extends ProjectItem {
   index?: number;
@@ -97,7 +90,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
   /** Display some buttons for copying and deleting */
   const ProjectControl = () => (
     <div
-      className="w-full space-x-2 py-1 px-2 z-50 flex items-center justify-center text-md bg-slate-900 rounded border border-slate-700 cursor-default [&>*]:cursor-pointer [&>*]:rounded"
+      className="w-full space-x-2 py-1 px-2 z-50 flex items-center justify-center bg-slate-900 rounded border border-slate-700 cursor-default [&>*]:cursor-pointer [&>*]:rounded"
       onClick={cancelEvent}
     >
       <BsDownload
@@ -179,7 +172,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
       </h1>
       <h6 className="text-slate-400">Date Created: {dateCreated}</h6>
       <h6 className="text-slate-400">Last Updated: {lastUpdated}</h6>
-      <h2 className="mt-2 text-md">
+      <h2 className="mt-2">
         <p>
           Duration: {seconds} @ {bpm}BPM
         </p>

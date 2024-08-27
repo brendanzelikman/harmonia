@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import { PoseEditorVectorProps } from "./PoseEditorVector";
-import { Editor } from "features/Editor/components";
 import { Listbox } from "@headlessui/react";
 import {
   NumericInputOption,
@@ -8,6 +7,7 @@ import {
 } from "hooks/window/useNumericInputs";
 import { useEffect } from "react";
 import { isUndefined } from "lodash";
+import { EditorNumericField } from "features/Editor/components/EditorField";
 
 interface PoseEditorDurationMenuProps extends PoseEditorVectorProps {}
 
@@ -73,7 +73,7 @@ export function PoseEditorDurationMenu(props: PoseEditorDurationMenuProps) {
 
   return (
     <div className="container-row gap-2 animate-in fade-in ring-1 ring-pink-500/50 rounded">
-      <Editor.NumericField
+      <EditorNumericField
         className={classNames(
           "w-24 h-8 focus:border-pink-100",
           !duration ? "bg-transparent" : "bg-pose/80"
@@ -83,7 +83,7 @@ export function PoseEditorDurationMenu(props: PoseEditorDurationMenuProps) {
         value={durationValue}
         onChange={Input.onChange("duration")}
       />
-      <Editor.NumericField
+      <EditorNumericField
         className={classNames(
           "w-24 h-8 focus:border-pink-100",
           !repeat ? "bg-transparent" : "bg-pose/80"

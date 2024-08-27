@@ -4,20 +4,21 @@ import {
   IOSMDOptions,
   OpenSheetMusicDisplay as OSMD,
 } from "opensheetmusicdisplay";
-import { MidiNote } from "types/Scale";
-import {
-  PatternMidiStream,
-  getPatternMidiChordNotes,
-  isPatternMidiChord,
-} from "types/Pattern";
 import { clamp } from "lodash";
 import { sleep } from "utils/html";
+import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
+import {
+  PatternMidiStream,
+  isPatternMidiChord,
+} from "types/Pattern/PatternTypes";
+import { MidiNote } from "types/Scale/ScaleTypes";
+import { mod } from "utils/math";
 
 // ------------------------------------------------------------
 // OSMD Constants
 // ------------------------------------------------------------
 
-const ZOOM = 1.1;
+const ZOOM = 0.95;
 const MARGIN_X = 3;
 const MARGIN_Y = 2;
 
@@ -31,13 +32,12 @@ export interface BaseProps {
   id?: string;
   className?: string;
   options?: IOSMDOptions;
-  ignoreCursor?: boolean;
   noteClasses?: string[];
   noteColor?: string;
   onNoteClick?: NoteCallback;
 }
-export type StreamProps = BaseProps & { stream: PatternMidiStream };
-export type ArrayProps = BaseProps & { notes: MidiNote[] };
+export type StreamProps = BaseProps & { stream?: PatternMidiStream };
+export type ArrayProps = BaseProps & { notes?: MidiNote[] };
 export type NoteList = PatternMidiStream | MidiNote[];
 export type Props = StreamProps | ArrayProps;
 
@@ -67,25 +67,34 @@ export interface ScoreProps {
 /** Formats the engraving rules of a score. */
 function formatScoreEngravingRules(score?: OSMD) {
   if (!score) return;
-  score.EngravingRules.LastSystemMaxScalingFactor = 2.5;
   score.EngravingRules.PageLeftMargin = MARGIN_X;
   score.EngravingRules.PageRightMargin = MARGIN_X;
   score.EngravingRules.PageTopMargin = MARGIN_Y;
   score.EngravingRules.PageBottomMargin = MARGIN_Y;
+  score.EngravingRules.MeasureLeftMargin = 5;
 }
 
 /** Render an XML string as a score using a list of notes. */
 export function useOSMD(props: Props): ScoreProps {
-  const { id, xml, className, ignoreCursor } = props;
+  const { id, xml, className } = props;
 
   // Score info
   const ref = useRef<HTMLDivElement>(null);
   const [osmd, setOSMD] = useState<OSMD>();
-  const options: IOSMDOptions = { ...defaultOptions, ...props.options };
+  const options: IOSMDOptions = {
+    ...defaultOptions,
+    ...props.options,
+    renderSingleHorizontalStaffline: true,
+  };
 
   // Note info
   const [noteElements, setNoteElements] = useState<NoteProps[]>([]);
-  const notes = "stream" in props ? props.stream : props.notes;
+  const notes =
+    "stream" in props
+      ? props.stream ?? []
+      : "notes" in props
+      ? props.notes ?? []
+      : ([] as MidiNote[]);
   const noteCount = notes.length;
 
   // Cursor info
@@ -96,8 +105,9 @@ export function useOSMD(props: Props): ScoreProps {
     if (!ref.current) return;
 
     // Check if the score and canvas exist
+    const canvas = document.getElementById("osmdCanvasPage1");
+    const doesCanvasExist = !!canvas;
     const doesScoreExist = !!osmd;
-    const doesCanvasExist = !!document.getElementById("osmdCanvasPage1");
 
     // Re-create the score unless the score and canvas exist
     let score: OSMD;
@@ -118,8 +128,9 @@ export function useOSMD(props: Props): ScoreProps {
       })
       .finally(async () => {
         await sleep(10);
+
         // Format and render the cursor if it is visible and not ignored
-        if (!ignoreCursor && !cursor.hidden && !!osmd?.cursor) {
+        if (!cursor.hidden && !!osmd?.cursor) {
           renderCursor({
             userCursor: cursor,
             scoreCursor: osmd?.cursor,
@@ -129,11 +140,13 @@ export function useOSMD(props: Props): ScoreProps {
         }
 
         // Apply a callback to each note and update the note elements
-        const noteElements = getStaveNotes(
+        const noteElements = getStaveNotes({
+          scoreId: id,
           notes,
-          props.noteClasses ?? [],
-          (index) => props.onNoteClick?.(cursor, index)
-        );
+          classNames: props.noteClasses ?? [],
+          callback: (index) => props.onNoteClick?.(cursor, index),
+          useScoreIndex: "notes" in props,
+        });
         setNoteElements(noteElements);
 
         // Apply the color to each note if specified
@@ -149,12 +162,10 @@ export function useOSMD(props: Props): ScoreProps {
         });
       });
   }, [
-    cursor.index,
-    cursor.hidden,
+    cursor,
     id,
     xml,
     noteCount,
-    ignoreCursor,
     props.onNoteClick,
     props.noteClasses,
     props.noteColor,
@@ -168,7 +179,7 @@ export function useOSMD(props: Props): ScoreProps {
       cursor,
       scoreNotes: noteElements,
     }),
-    [id, className, cursor]
+    [id, className, cursor, noteElements]
   );
 }
 
@@ -302,16 +313,27 @@ interface NoteProps {
 /** The note callback accepts a cursor and stream index. */
 export type NoteCallback = (cursor: CursorProps, index: number) => void;
 
+interface StaveNoteProps {
+  scoreId?: string;
+  notes: NoteList;
+  classNames: string[];
+  callback: (index: number) => void;
+  useScoreIndex?: boolean;
+}
+
 /** Get the list of stave notes in the document with the callback. */
-export function getStaveNotes(
-  notes: NoteList,
-  classNames: string[],
-  callback: (index: number) => void
-) {
+export function getStaveNotes({
+  scoreId,
+  notes,
+  classNames,
+  callback,
+  useScoreIndex,
+}: StaveNoteProps) {
   // Get all stave notes in the document
   const noteElements: NoteProps[] = [];
   const streamIndices = getStreamIndices(notes);
-  const staveNotes = [...document.querySelectorAll(`.vf-stavenote`)];
+  const score = scoreId ? document.getElementById(scoreId) : null;
+  const staveNotes = score ? [...score.querySelectorAll(`.vf-stavenote`)] : [];
 
   // Iterate through each note and handle its element
   staveNotes.forEach((staveNote, scoreIndex) => {
@@ -320,7 +342,9 @@ export function getStaveNotes(
 
     // Add a callback to each stave note
     staveNote.classList.add(...["relative", ...classNames]);
-    staveNote.addEventListener("click", () => callback?.(streamIndex));
+    staveNote.addEventListener("click", () =>
+      callback?.(useScoreIndex ? mod(scoreIndex, notes.length) : streamIndex)
+    );
 
     // Add the element and indices to the note elements
     const note = { element: staveNote, scoreIndex, streamIndex };

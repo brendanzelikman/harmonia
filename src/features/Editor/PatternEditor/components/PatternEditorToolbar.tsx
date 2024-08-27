@@ -1,139 +1,66 @@
-import { capitalize } from "lodash";
-import {
-  copyPattern,
-  createPattern,
-  exportPatternToMIDI,
-  exportPatternToXML,
-  playPattern,
-} from "redux/thunks";
-import { Editor } from "features/Editor/components";
-import { PatternEditorTabProps } from "./PatternEditorContent";
 import { useSubscription } from "providers/subscription";
+import { EditorTooltipButton } from "components/TooltipButton";
+import {
+  EditorTab,
+  EditorTabGroup,
+} from "features/Editor/components/EditorTab";
+import { GiArrowDunk, GiStack } from "react-icons/gi";
+import { PatternEditorInstrumentBox } from "./PatternEditorInstrumentBox";
+import { PatternEditorTabs } from "./PatternEditorTabs";
+import { useProjectDispatch } from "types/hooks";
+import { exportPatternToMIDI } from "types/Pattern/PatternExporters";
+import { copyPattern, downloadPatternAsXML } from "types/Pattern/PatternThunks";
+import { PatternEditorProps } from "../PatternEditor";
 
-export function PatternEditorToolbar(props: PatternEditorTabProps) {
-  const { dispatch, pattern, isEmpty, Button, onChord, tabs } = props;
+export function PatternEditorToolbar(props: PatternEditorProps) {
+  const dispatch = useProjectDispatch();
+  const { pattern, id, isCustom } = props;
   const subscription = useSubscription();
-
-  /** The user can create a new pattern. */
-  const NewButton = () => (
-    <Button
-      label="New Pattern"
-      className="active:bg-emerald-600"
-      onClick={() => dispatch(createPattern())}
-    >
-      New
-    </Button>
-  );
 
   /** The user can copy a pattern. */
   const CopyButton = () => (
-    <Button
-      label="Copy Pattern"
-      weakClass="active:bg-teal-600"
+    <EditorTooltipButton
+      label="Duplicate the Pattern"
+      className={`rounded-full text-xl active:bg-teal-600`}
       onClick={() => dispatch(copyPattern(pattern))}
-      disabled={props.isEmpty}
+      keepTooltipOnClick
     >
-      Copy
-    </Button>
+      <GiStack />
+    </EditorTooltipButton>
   );
 
   /** The user can export a pattern to MIDI or MusicXML. */
   const ExportButton = () => {
-    if (subscription.isProdigy) return null;
+    if (!subscription.isAtLeastStatus("maestro")) return null;
     return (
-      <Button
-        label="Export Pattern"
-        disabled={isEmpty}
-        disabledClass="text-slate-500"
-        weakClass="active:bg-slate-600 cursor-pointer"
+      <EditorTooltipButton
+        label="Export The Pattern"
+        className={"text-xl rounded-full active:bg-slate-600 cursor-pointer"}
         options={[
           {
-            onClick: () => dispatch(exportPatternToMIDI(pattern?.id)),
+            onClick: () => dispatch(exportPatternToMIDI(id)),
             label: "Export MIDI",
           },
           {
-            onClick: () => dispatch(exportPatternToXML(pattern)),
+            onClick: () => dispatch(downloadPatternAsXML(id)),
             label: "Export XML",
           },
         ]}
       >
-        Export
-      </Button>
+        <GiArrowDunk />
+      </EditorTooltipButton>
     );
   };
 
-  /** The user can undo the pattern history. */
-  const UndoButton = () => (
-    <Button
-      label="Undo Last Action"
-      weakClass="active:text-slate-400"
-      onClick={props.undo}
-      disabled={!props.canUndo}
-      disabledClass="text-slate-500"
-    >
-      Undo
-    </Button>
-  );
-
-  /** The user can redo the pattern history. */
-  const RedoButton = () => (
-    <Button
-      label="Redo Last Action"
-      weakClass="active:text-slate-400"
-      onClick={props.redo}
-      disabled={!props.canRedo}
-      disabledClass="text-slate-500"
-    >
-      Redo
-    </Button>
-  );
-
-  /** The user can play the pattern. */
-  const PlayButton = () => (
-    <Button
-      label="Play Pattern"
-      weakClass="active:bg-emerald-600"
-      disabled={props.isEmpty}
-      onClick={() => dispatch(playPattern(pattern))}
-    >
-      Play
-    </Button>
-  );
-
-  const PatternEditorTabs = () => (
-    <div className="flex items-center font-light">
-      {tabs.map((tab) => {
-        const onTab = props.tab === tab;
-        const color = onTab ? "text-green-400" : "text-slate-500";
-        return (
-          <Button
-            key={tab}
-            label={`Select ${capitalize(tab)} Tab`}
-            className={`${color} mx-1 capitalize cursor-pointer select-none`}
-            onClick={() => props.setTab(tab)}
-          >
-            {tab}
-          </Button>
-        );
-      })}
-    </div>
-  );
-
   return (
-    <Editor.Tab className="z-20" show={true} border={true}>
-      <Editor.TabGroup border={props.isCustom}>
-        <ExportButton />
-        <NewButton />
-        <CopyButton />
-        <PlayButton />
-      </Editor.TabGroup>
-      {!!props.isCustom && (
-        <Editor.TabGroup border={true}>
-          <UndoButton />
-          <RedoButton />
-        </Editor.TabGroup>
-      )}
-      {!!props.isCustom && <PatternEditorTabs />}
-    </Editor.Tab>
+    <EditorTab show={true} border>
+      <EditorTabGroup border={isCustom}>
+        <span className="font-thin text-emerald-400">Pattern:</span>
+        {ExportButton()}
+        {CopyButton()}
+        <PatternEditorInstrumentBox {...props} />
+      </EditorTabGroup>
+      {!!props.isCustom && <PatternEditorTabs {...props} />}
+    </EditorTab>
   );
 }

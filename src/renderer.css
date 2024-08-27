@@ -124,6 +124,34 @@ input::-webkit-inner-spin-button {
   }
 }
 
+.ReactPiano__Key--natural {
+  --landing-key: rgb(255, 255, 255);
+  background: var(--landing-key);
+  border-color: var(--landing-key);
+  user-select: none;
+}
+
+.ReactPiano__Key--natural.ReactPiano__Key--active {
+  --landing-key: rgb(200, 200, 205);
+  background: var(--landing-key);
+  border-color: var(--landing-key);
+  user-select: none;
+}
+
+.ReactPiano__Key--accidental {
+  --landing-key: rgb(48, 48, 48);
+  background: var(--landing-key);
+  border-color: var(--landing-key);
+  user-select: none;
+}
+
+.ReactPiano__Key--accidental.ReactPiano__Key--active {
+  --landing-key: rgb(201, 200, 205);
+  background: var(--landing-key);
+  border-color: var(--landing-key);
+  user-select: none;
+}
+
 .landing-piano .ReactPiano__Key--active {
   --landing-key: rgb(201, 200, 205);
   background: var(--landing-key);

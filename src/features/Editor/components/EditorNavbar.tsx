@@ -1,17 +1,25 @@
 import { BsGear } from "react-icons/bs";
-import * as _ from "redux/Editor";
-import { useState } from "react";
-import { EditorProps } from "..";
+import { useProjectDispatch, useProjectSelector } from "types/hooks";
+import { EditorProps } from "../Editor";
+import {
+  toggleEditorTracks,
+  toggleEditorPresets,
+  toggleEditorTooltips,
+  hideEditor,
+} from "types/Editor/EditorSlice";
+import { selectHasTracks } from "types/Arrangement/ArrangementSelectors";
 
 export function EditorNavbar(props: EditorProps) {
-  const { dispatch } = props;
-  const [showingSettings, setShowingSettings] = useState(false);
-  const toggleSettings = () => setShowingSettings(!showingSettings);
+  const dispatch = useProjectDispatch();
+  const hasTracks = useProjectSelector(selectHasTracks);
+  const showingSettings = true;
+  // const [showingSettings, setShowingSettings] = useState(false);
+  // const toggleSettings = () => setShowingSettings(!showingSettings);
 
   const SettingsButton = () => (
     <span
-      className="flex font-light capitalize cursor-pointer mr-3 text-md"
-      onClick={toggleSettings}
+      className="flex font-light capitalize cursor-pointer mr-3"
+      // onClick={toggleSettings}
     >
       Editor Settings <BsGear className="ml-2 text-lg my-auto" />
     </span>
@@ -19,21 +27,25 @@ export function EditorNavbar(props: EditorProps) {
 
   const SettingsOptions = !showingSettings ? null : (
     <div className="flex space-x-3 [&>div]:cursor-pointer animate-in fade-in">
-      <div onClick={() => dispatch(_.toggleEditorTracks())}>
-        {props.isShowingTracks ? "Hide" : "Show"} Tracks
-      </div>
-      <span className="w-1">•</span>
-      <div onClick={() => dispatch(_.toggleEditorPresets())}>
+      {hasTracks ? (
+        <>
+          <div onClick={() => dispatch(toggleEditorTracks({ data: null }))}>
+            {props.isShowingTracks ? "Hide" : "Show"} Tracks
+          </div>
+          <span className="w-1">•</span>
+        </>
+      ) : null}
+      <div onClick={() => dispatch(toggleEditorPresets())}>
         {props.isShowingSidebar ? "Hide" : "Show"} Presets
       </div>
       <span className="w-1">•</span>
-      <div onClick={() => dispatch(_.toggleEditorTooltips())}>
+      <div onClick={() => dispatch(toggleEditorTooltips())}>
         {props.isShowingTooltips ? "Hide" : "Show"} Tooltips
       </div>
-      <span className="w-1">•</span>
-      <div onClick={() => dispatch(_.toggleEditorPiano())}>
+      {/* <span className="w-1">•</span>
+      <div onClick={() => dispatch(toggleEditorPiano())}>
         {props.isShowingPiano ? "Hide" : "Show"} Piano
-      </div>
+      </div> */}
     </div>
   );
 
@@ -46,7 +58,7 @@ export function EditorNavbar(props: EditorProps) {
       <span className="w-full ml-auto"></span>
       <span
         className="pr-2 cursor-pointer"
-        onClick={() => dispatch(_.hideEditor())}
+        onClick={() => dispatch(hideEditor({ data: null }))}
       >
         Close Editor
       </span>

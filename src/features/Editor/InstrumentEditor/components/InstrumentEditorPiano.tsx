@@ -1,4 +1,4 @@
-import { Editor } from "features/Editor/components";
+import { EditorPiano } from "features/Editor/components/EditorPiano";
 import { InstrumentEditorProps } from "../InstrumentEditor";
 import { Sampler } from "tone";
 import { getMidiPitch } from "utils/midi";
@@ -23,7 +23,7 @@ export const InstrumentEditorPiano = (props: InstrumentEditorProps) => {
   };
 
   return (
-    <Editor.Piano
+    <EditorPiano
       {...props}
       sampler={instance?.sampler}
       show={isShowingPiano}

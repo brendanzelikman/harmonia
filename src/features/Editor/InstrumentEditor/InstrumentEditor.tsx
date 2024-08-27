@@ -1,9 +1,10 @@
-import { Editor } from "features/Editor/components";
 import { InstrumentEditor } from "./components";
 import useInstrumentEditorHotkeys from "./hooks/useInstrumentEditorHotkeys";
-import { PatternTrack } from "types/Track";
 import { EditorProps } from "../Editor";
 import { useState } from "react";
+import { EditorContainer } from "../components/EditorContainer";
+import { EditorBody } from "../components/EditorBody";
+import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 
 export interface InstrumentEditorProps extends EditorProps {
   patternTrack: PatternTrack;
@@ -32,13 +33,13 @@ function InstrumentEditorComponent(props: EditorProps) {
   useInstrumentEditorHotkeys(instrumentEditorProps);
 
   return (
-    <Editor.Container>
-      <Editor.Body className="relative">
+    <EditorContainer>
+      <EditorBody className="relative">
         <InstrumentEditor.Sidebar {...instrumentEditorProps} />
         <InstrumentEditor.Content {...instrumentEditorProps} />
-      </Editor.Body>
+      </EditorBody>
       <InstrumentEditor.Piano {...instrumentEditorProps} />
-    </Editor.Container>
+    </EditorContainer>
   );
 }
 

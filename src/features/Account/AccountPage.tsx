@@ -4,13 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { AccountProviderButtons } from "./components/AccountProviderButtons";
 import { EmailRegex } from "utils/html";
-import { LandingAction } from "pages";
 import { useMagicLink } from "./hooks/useMagicLink";
 import { useAuthorizationRedirect } from "./hooks/useAuthorizationRedirect";
 import isElectron from "is-electron";
 import { AccountContinueButton } from "./components/AccountContinueButton";
 import { AccountEmailForm } from "./components/AccountEmailForm";
 import classNames from "classnames";
+import { LandingAction } from "pages/LandingPage";
 
 interface AccountPageProps {
   action: LandingAction;

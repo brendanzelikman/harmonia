@@ -1,11 +1,5 @@
 import { useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { PoseEditorProps } from "../PoseEditor";
-import {
-  addPoseBlock,
-  clearPose,
-  removePoseBlock,
-  repeatPoseStream,
-} from "redux/Pose";
 import { promptUserForNumber } from "utils/html";
 import {
   EighthNoteTicks,
@@ -18,19 +12,16 @@ import {
 } from "utils/durations";
 import { Tick } from "types/units";
 import { useCallback } from "react";
+import { addPoseBlock, removePoseBlock, clearPose } from "types/Pose/PoseSlice";
+import { useProjectDispatch } from "types/hooks";
+import { repeatPoseStream } from "types/Pose/PoseThunks";
 
 const useHotkeys = useScopedHotkeys("editor");
 
 export function usePoseEditorHotkeys(props: PoseEditorProps) {
-  const { dispatch, pose, editState, undo, redo } = props;
-  const { canUndo, canRedo } = props;
+  const dispatch = useProjectDispatch();
+  const { pose, editState } = props;
   const id = pose?.id;
-
-  // Meta + Z = Undo Poses
-  useHotkeys("meta+z", canUndo ? undo : undefined, [canUndo]);
-
-  // Meta + Shift + Z = Redo Poses
-  useHotkeys("meta+shift+z", canRedo ? redo : undefined, [canRedo]);
 
   // V = Add Vector
   useHotkeys(
@@ -65,7 +56,7 @@ export function usePoseEditorHotkeys(props: PoseEditorProps) {
 
   // R = Repeat Stream
   useHotkeys(
-    "r",
+    "shift+r",
     promptUserForNumber(
       "Repeat Your Stream",
       "How many times would you like to repeat this stream?",

@@ -1,34 +1,42 @@
-import { nanoid } from "@reduxjs/toolkit";
+import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { isNumber, isPlainObject, isString } from "lodash";
-import { TrackId } from "types/Track";
-import { ID, Stream } from "types/units";
-import { areObjectValuesTyped, isOptionalType, isTypedArray } from "types/util";
+import { ChromaticPitchClass } from "presets/keys";
+import { TrackId } from "types/Track/TrackTypes";
+import { createId, ID, isPitchClass, Stream } from "types/units";
 import {
-  NormalRecord,
-  NormalState,
-  createNormalState,
-} from "utils/normalizedState";
-import { createUndoableHistory } from "utils/undoableHistory";
+  areObjectValuesTyped,
+  isOptionalType,
+  isTypedArray,
+  RequireAtLeastOne,
+} from "types/util";
 
 // ------------------------------------------------------------
 // Pose Generics
 // ------------------------------------------------------------
 
-export type PoseId = ID;
+export type PoseId = ID<"pose">;
 export type PoseNoId = Omit<Pose, "id">;
 export type PosePartial = Partial<Pose>;
 export type PoseUpdate = PosePartial & { id: PoseId };
 export type TrackPoseMap = Record<TrackId, Pose[]>;
-export type PoseMap = NormalRecord<PoseId, Pose>;
-export type PoseState = NormalState<PoseMap>;
+export type PoseMap = Dictionary<Pose>;
+export type PoseState = EntityState<Pose>;
 
 // ------------------------------------------------------------
 // Pose Definitions
 // ------------------------------------------------------------
 
-/** A `PoseVector` contains a list of offsets applied to a note. */
-export type PoseVector = Record<PoseVectorId, number>;
-export type PoseVectorId = TrackId | "chromatic" | "chordal";
+/** A `PoseVector` contains a list of offsets applied by track ID. */
+export type PoseVector = { [key in PoseVectorId]?: number };
+export type PoseVectorId =
+  | TrackId
+  | ChromaticPitchClass
+  | "chromatic"
+  | "chordal"
+  | "octave";
+
+/** A `VoiceLeading` has at least one pitch class offset. */
+export type VoiceLeading = RequireAtLeastOne<PoseVector, ChromaticPitchClass>;
 
 /** A `PoseModule` can be infinite or have a finite, repeatable duration */
 export interface PoseModule {
@@ -77,36 +85,27 @@ export const initializePose = (
 ): Pose => ({
   ...defaultPose,
   ...pose,
-  id: nanoid(),
+  id: createId("pose"),
 });
 
 /** The default pose is used for initialization. */
 export const defaultPose: Pose = {
-  id: "default-pose",
+  id: "pose_default",
   name: "New Pose",
   stream: [{ vector: {} }],
 };
 
 /** The mock pose is used for testing. */
 export const mockPose: Pose = {
-  id: "mock-pose",
-  trackId: "mock-pattern-track",
+  id: "pose_mock",
+  trackId: "pattern-track_1",
   stream: [
     {
-      vector: { chromatic: 1, chordal: 1, mock_track: 1 },
+      vector: { chromatic: 1, chordal: 1, "pattern-track_1": 1 },
       duration: 24,
     },
   ],
 };
-
-/** The default pose state is used for Redux. */
-export const defaultPoseState: PoseState = createNormalState<PoseMap>([
-  defaultPose,
-]);
-
-/** The undoable pose history is used for Redux. */
-export const defaultPoseHistory =
-  createUndoableHistory<PoseState>(defaultPoseState);
 
 // ------------------------------------------------------------
 // Pose Type Guards
@@ -116,6 +115,12 @@ export const defaultPoseHistory =
 export const isPoseVector = (obj: unknown): obj is PoseVector => {
   const candidate = obj as PoseVector;
   return isPlainObject(candidate) && areObjectValuesTyped(candidate, isNumber);
+};
+
+/** Returns true if the vector is a voice leading. */
+export const isVoiceLeading = (obj?: unknown): obj is VoiceLeading => {
+  if (!isPoseVector(obj)) return false;
+  return Object.keys(obj).some((key) => isPitchClass(key) && key in obj);
 };
 
 /** Checks if a given object is of type `PoseModule` */

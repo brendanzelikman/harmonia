@@ -1,20 +1,20 @@
 import classNames from "classnames";
 import { PoseEditorVectorProps } from "./PoseEditorVector";
-import { Editor } from "features/Editor/components";
 import { Listbox } from "@headlessui/react";
 import {
   NumericInputOption,
   useNumericInputs,
 } from "hooks/window/useNumericInputs";
 import { useEffect } from "react";
+import { getValueByKey } from "utils/objects";
+import { useProjectSelector } from "types/hooks";
+import { EditorNumericField } from "features/Editor/components/EditorField";
 import {
-  PoseVectorId,
   getPoseVectorOffsetName,
   mapPoseVector,
-} from "types/Pose";
-import { getValueByKey } from "utils/objects";
-import { useProjectSelector } from "redux/hooks";
-import { selectTrackMap } from "redux/Track";
+} from "types/Pose/PoseFunctions";
+import { PoseVectorId } from "types/Pose/PoseTypes";
+import { selectTrackMap } from "types/Track/TrackSelectors";
 
 interface PoseEditorOffsetMenuProps extends PoseEditorVectorProps {
   vectorId: PoseVectorId;
@@ -43,7 +43,7 @@ export function PoseEditorOffsetMenu(props: PoseEditorOffsetMenuProps) {
   const Input = useNumericInputs([...offsetOptions]);
   useEffect(() => {
     Object.keys(vector).forEach((offsetId) => {
-      const value = vector[offsetId];
+      const value = vector[offsetId as PoseVectorId];
       const valueString = !value ? "0" : value.toString();
       const currentOffset = Input.getValue(offsetId);
       if (currentOffset === "") {
@@ -88,47 +88,51 @@ export function PoseEditorOffsetMenu(props: PoseEditorOffsetMenuProps) {
 
   const OffsetNumericField = () => {
     if (!offsetOption) return null;
-    const offsetName = getPoseVectorOffsetName(offsetOption.id, trackMap);
+    const offsetName = getPoseVectorOffsetName(
+      offsetOption.id as PoseVectorId,
+      trackMap
+    );
     return (
-      <Editor.NumericField
+      <EditorNumericField
         key={offsetOption.id}
         className={classNames(
           "h-8 w-36 focus:bg-pink-400/80 focus:border-pink-100",
-          Input.getValue(offsetOption.id) !== "0"
-            ? "bg-pose/70"
-            : "bg-transparent"
+          offsetOption.id in vector ? "bg-pose/70" : "bg-transparent"
         )}
         leadingText={`${offsetName} = `}
         placeholder="0"
-        value={Input.getValue(offsetOption.id) || ""}
+        value={Input.getValue(offsetOption.id) ?? ""}
         onChange={Input.onChange(offsetOption.id)}
       />
     );
   };
 
   // The clear offset button clears the given offset by ID
-  const ClearOffsetButton = ({ id }: { id?: string }) => (
-    <button
-      className={classNames(
-        `w-16 h-8 text-center border rounded font-extralight transition-all duration-300`,
-        !!getValueByKey(vector, id)
-          ? "bg-pink-500 border-slate-200"
-          : "bg-transparent border-slate-500 opacity-50 cursor-default"
-      )}
-      onClick={() => {
-        const newVector = mapPoseVector(vector, (k, v) => (k === id ? 0 : v));
-        updateBlock({ ...module, vector: newVector });
-      }}
-    >
-      Clear
-    </button>
-  );
+  const id = offsetOption?.id as PoseVectorId;
+  const ClearOffsetButton = () =>
+    !id ? null : (
+      <button
+        className={classNames(
+          `w-16 h-8 text-center border rounded font-extralight transition-all duration-300`,
+          !!(id in vector)
+            ? "bg-pink-500 border-slate-200"
+            : "bg-transparent border-slate-500 opacity-50 cursor-default"
+        )}
+        onClick={() => {
+          const newVector = structuredClone(vector);
+          delete newVector[id];
+          updateBlock({ ...module, vector: newVector });
+        }}
+      >
+        Clear
+      </button>
+    );
 
   return (
     <div className="container-row gap-2 animate-in fade-in ring-1 ring-pink-500/50 rounded">
       {OffsetListbox()}
       {OffsetNumericField()}
-      <ClearOffsetButton id={offsetOption?.id} />
+      {ClearOffsetButton()}
     </div>
   );
 }

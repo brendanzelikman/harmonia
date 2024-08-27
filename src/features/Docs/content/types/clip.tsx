@@ -11,7 +11,7 @@ export function ClipDocsContent() {
               A Clip is a timed event that is placed in a Track to enact a
               musical idea at a specific tick, additionally containing optional
               information like name, duration, color, and offset. Currently,
-              there are two kinds of Clips:
+              there are three kinds of Clips:
             </DocsParagraph>
             <DocsList
               items={[
@@ -24,9 +24,18 @@ export function ClipDocsContent() {
                   ],
                 },
                 {
+                  title: "Scale Clips",
+                  description:
+                    "Changes the Scale of a Track (if the original scale is the same length).",
+                  examples: [
+                    `"C Minor" Scale Clip = {tick: 0, trackId: "c-major-scale-track", scaleId: "c-minor-scale", ... }`,
+                    `"0-1-7" Scale Clip = {tick: 120, duration: 120, trackId: "0-2-5-pattern-track", scaleId: "0-1-7-scale", ... }`,
+                  ],
+                },
+                {
                   title: "Pose Clips",
                   description:
-                    "Applies a Pose to a Scale Track's Scale or a Pattern Clip's Pattern.",
+                    "Shifts the notes of a Scale Track's Scale or a Pattern Track's Pattern.",
                   examples: [
                     `"Octave Drop" Pose Clip = {tick: 500, duration: 200, trackId: "scale-track", poseId: "octave-drop", ... }`,
                     `"Chord Inversion" Pose Clip = {tick: 0, trackId: "pattern-track", poseId: "chord-inversion", ... }`,
@@ -45,28 +54,12 @@ export function ClipDocsContent() {
             Track with a consistent reference to a single idea. This allows for
             easy experimentation and exploration without fear of overwriting or
             losing any data. Arranging Pattern Clips within Pattern Tracks is
-            essential for scheduling audio, whereas the use of Pose Clips is
-            entirely optional and offers additional functionality. Pattern Clips
-            can also be exported to MIDI and MusicXML files or recorded as WAV
-            files for further composition, playback, and analysis.
+            essential for scheduling audio, whereas the use of Scale Clips and
+            Pose Clips is entirely optional and offers additional functionality.
+            Pattern Clips can also be exported to MIDI and MusicXML files or
+            recorded as WAV files for further composition, playback, and
+            analysis.
           </DocsParagraph>
-        }
-      />
-      <DocsSection
-        question="Why are there no Scale Clips?"
-        answer={
-          <>
-            <DocsParagraph>
-              Rather than patching in Scale Clips whenever our harmony changes,
-              it would serve us better to define our scales once and then
-              methodically develop them, separating unrelated scales into
-              distinct structures. With this approach, we can clearly define a
-              musical structure that remains consistent throughout our music and
-              rely on Pose Clips for transformation. This decision may be
-              reconsidered in the future, but for now, we believe that this is
-              the best approach for our users.
-            </DocsParagraph>
-          </>
         }
       />
     </>

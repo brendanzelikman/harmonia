@@ -1,7 +1,7 @@
 import categories from "assets/instruments/categories.json";
 import samples from "assets/instruments/samples.json";
 import { SafeEffect } from "./InstrumentEffectTypes";
-import { nanoid } from "@reduxjs/toolkit";
+import { EntityState, nanoid } from "@reduxjs/toolkit";
 import {
   DEFAULT_INSTRUMENT_KEY,
   DEFAULT_PAN,
@@ -11,11 +11,11 @@ import {
   MIN_PAN,
   MIN_VOLUME,
 } from "utils/constants";
-import { PatternMidiNote } from "types/Pattern";
-import { NormalState, createNormalState } from "utils/normalizedState";
-import { Pan, Tick, Volume } from "types/units";
+import { createId, Pan, Tick, Volume } from "types/units";
 import { isArray, isBoolean, isPlainObject, isString } from "lodash";
 import { isBoundedNumber } from "types/util";
+import { PatternMidiNote } from "types/Pattern/PatternTypes";
+import { TrackId } from "types/Track/TrackTypes";
 export * from "./InstrumentEffectTypes";
 
 // ------------------------------------------------------------
@@ -30,7 +30,7 @@ export type InstrumentKey = keyof typeof samples;
 export type InstrumentCategory = keyof typeof categories;
 export type InstrumentName = (typeof INSTRUMENT_NAMES)[number];
 export type InstrumentMap = Record<InstrumentId, Instrument>;
-export type InstrumentState = NormalState<InstrumentMap>;
+export type InstrumentState = EntityState<Instrument>;
 
 // ------------------------------------------------------------
 // Instrument Definitions
@@ -45,6 +45,7 @@ export type CategorizedInstrument = {
 /** An `Instrument` is a Redux-friendly representation of a Tone.js instrument. */
 export interface Instrument {
   id: InstrumentId;
+  trackId: TrackId;
   key: InstrumentKey;
   volume: Volume;
   pan: Pan;
@@ -79,6 +80,7 @@ export const initializeInstrument = (
 /** The default instrument is used for initialization. */
 export const defaultInstrument: Instrument = {
   id: "default-instrument",
+  trackId: createId("pattern-track"),
   key: DEFAULT_INSTRUMENT_KEY,
   volume: DEFAULT_VOLUME,
   pan: DEFAULT_PAN,
@@ -86,11 +88,6 @@ export const defaultInstrument: Instrument = {
   solo: false,
   effects: [],
 };
-
-/** The default instrument state is used for Redux. */
-export const defaultInstrumentState = createNormalState<InstrumentMap>([
-  defaultInstrument,
-]);
 
 /** The global list of instrument keys (e.g. "grand_piano"). */
 export const INSTRUMENT_KEYS = Object.keys(samples) as InstrumentKey[];
@@ -100,10 +97,39 @@ export const INSTRUMENT_CATEGORIES = Object.keys(
   categories
 ) as InstrumentCategory[];
 
+export const MELODIC_CATEGORIES: InstrumentCategory[] = [
+  "Keyboards",
+  "Guitars",
+  "Strings",
+  "Woodwinds",
+  "Brass",
+  "Mallets",
+  "Death Metal Vocals",
+  "Animal Sounds",
+  "Miscellaneous Sounds",
+];
+
+export const PERCUSSIVE_CATEGORIES: InstrumentCategory[] = [
+  "Kick Drums",
+  "Snare Drums",
+  "Tenor Drums",
+  "Cymbals",
+  "Bells",
+  "Wood Percussion",
+  "Metal Percussion",
+  "Trvth Drumkit",
+  "Amen Breaks",
+];
+
 /** The global list of instrument names (e.g. "Acoustic Grand Piano"). */
 export const INSTRUMENT_NAMES = Object.values(categories).reduce((acc, cur) => {
   return [...acc, ...cur.map((_) => _.name)];
 }, [] as string[]);
+
+export const defaultInstrumentState: InstrumentState = {
+  ids: [],
+  entities: {},
+};
 
 // ------------------------------------------------------------
 // Instrument Type Guards

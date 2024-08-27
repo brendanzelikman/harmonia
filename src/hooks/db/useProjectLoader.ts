@@ -1,14 +1,14 @@
 import {
-  getCurrentProjectId,
   getProjectFromDB,
   getUserDatabaseName,
   uploadProjectToDB,
-} from "indexedDB";
+} from "providers/idb";
+import { getCurrentProjectId } from "providers/idb";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useProjectDispatch } from "redux/hooks";
-import { defaultProject, isProject } from "types/Project";
+import { useProjectDispatch } from "types/hooks";
 import { useAuthentication } from "providers/authentication";
+import { defaultProject } from "types/Project/ProjectTypes";
+import { SET_PROJECT } from "providers/store";
 
 /** Try to load the current project from the database on mount */
 export function useProjectLoader() {
@@ -21,7 +21,7 @@ export function useProjectLoader() {
     const req = indexedDB.open(getUserDatabaseName(uid));
     req.onsuccess = async () => {
       // Get the current project ID
-      const id = await getCurrentProjectId(uid);
+      const id = getCurrentProjectId();
       const project = await getProjectFromDB(uid, id);
 
       // If there is no current project, create one
@@ -32,7 +32,7 @@ export function useProjectLoader() {
       }
 
       // If the project loads, set the state
-      dispatch({ type: "setProject", payload: project });
+      dispatch({ type: SET_PROJECT, payload: project });
 
       setLoaded(true);
     };

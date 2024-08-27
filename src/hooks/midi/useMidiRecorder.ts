@@ -9,8 +9,8 @@ import {
 import { useAnimationFrame } from "../window/useAnimationFrame";
 import { useMetronome } from "./useMetronome";
 import { WebMidi } from "webmidi";
-import { defaultTransport } from "types/Transport";
 import { Tick } from "types/units";
+import { defaultTransport } from "types/Transport/TransportTypes";
 
 interface RecorderProps {
   bpm?: number;

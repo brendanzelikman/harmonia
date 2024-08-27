@@ -1,61 +1,58 @@
-import { isTrack } from "types/Track";
+import { MediaClipboard, Media, MediaElement } from "types/Media/MediaTypes";
 import { Timeline } from "./TimelineTypes";
-import { Tracked } from "types/Track/TrackTypes";
-import { DEFAULT_MEDIA_DRAG_STATE, Media, MediaClipboard } from "types/Media";
+import { union } from "lodash";
+import { isPoseClipId } from "types/Clip/ClipTypes";
 
 /** Checks if the user is adding pattern clips. */
 export const isTimelineAddingPatternClips = (timeline: Timeline) => {
-  return timeline.state === "addingPatternClips";
+  return timeline.state === "adding-pattern-clips";
 };
 
-/** Checks if the user is adding poses. */
+/** Checks if the user is adding pose clips. */
 export const isTimelineAddingPoseClips = (timeline: Timeline) => {
-  return timeline.state === "addingPoseClips";
+  return timeline.state === "adding-pose-clips";
+};
+
+/** Checks if the user is adding scale clips. */
+export const isTimelineAddingScaleClips = (timeline: Timeline) => {
+  return timeline.state === "adding-scale-clips";
+};
+
+/** Checks if the user is adding the selected kind of clips. */
+export const isTimelineAddingSelectedClips = (timeline: Timeline) => {
+  const type = timeline.selectedClipType;
+  if (!type) return false;
+  return timeline.state === `adding-${type}-clips`;
 };
 
 /** Checks if the user is slicing media. */
 export const isTimelineSlicingClips = (timeline: Timeline) => {
-  return timeline.state === "slicingClips";
+  return timeline.state === "slicing-clips";
 };
 
-/** Checks if the user is slicing media. */
+/** Checks if the user is portaling media. */
 export const isTimelinePortalingClips = (timeline: Timeline) => {
-  return timeline.state === "portalingClips";
+  return timeline.state === "portaling-clips";
 };
 
 /** Checks if the user is merging media. */
 export const isTimelineMergingClips = (timeline: Timeline) => {
-  return timeline.state === "mergingClips";
+  return timeline.state === "merging-clips";
 };
 
 /** Checks if the user is idle. */
 export const isTimelineIdle = (timeline: Timeline) => {
-  return timeline.state === "idle";
+  return timeline.state === "idle" || timeline.state === undefined;
 };
 
 /** Checks if the user is live. */
 export const isTimelineLive = (timeline: Timeline) => {
-  const hasPoses = !!timeline.mediaSelection.poseClipIds.length;
-  const isActive = timeline.livePlay.enabled;
-  return hasPoses && isActive;
-};
-
-/** Get the track ID of a `TimelineObject` */
-export const getTimelineObjectTrackId = <T>(object?: Tracked<T>) => {
-  return isTrack(object) ? object.id : object?.trackId;
+  const onTrack = !!timeline.selectedTrackId;
+  const onPoseClip = !!timeline.mediaSelection?.clipIds?.some(isPoseClipId);
+  return onTrack && onPoseClip;
 };
 
 /** Get the media from the `MediaClipboard` */
 export const getClipboardMedia = (clipboard: MediaClipboard): Media => {
-  return [...clipboard.clips, ...clipboard.portals];
-};
-
-/** Get the timeline with the user idled. */
-export const getIdleTimeline = (timeline: Timeline): Timeline => {
-  return {
-    ...timeline,
-    state: "idle",
-    mediaDragState: DEFAULT_MEDIA_DRAG_STATE,
-    showingDiary: false,
-  };
+  return union<MediaElement>(clipboard.clips, clipboard.portals);
 };

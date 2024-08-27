@@ -1,31 +1,24 @@
 import classNames from "classnames";
-import { Docs } from "features/Docs";
+import { Docs } from "features/Docs/Docs";
 import { useProjectList } from "features/Projects";
-import { Playground } from "../features/Playground";
-import { Navbar } from "features/Navbar";
 import { useParams } from "react-router-dom";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useDatabaseCallback, useCustomEventListener } from "hooks";
-import { getProjectsFromDB } from "indexedDB";
-import { CREATE_PROJECT, DELETE_PROJECT } from "redux/thunks";
-import { Project } from "types/Project";
+import { getProjectsFromDB } from "providers/idb";
 import { useProjectFetcher } from "features/Projects/hooks/useProjectFetcher";
 import { TourBackground } from "features/Tour";
-import { useProjectSelector } from "redux/hooks";
-import { selectProjectName } from "redux/Metadata";
+import { useProjectSelector } from "types/hooks";
 import { useBrowserTitle } from "hooks";
-import { UserProfile } from "features/Profile";
 import { useAuthentication } from "providers/authentication";
 import { useSubscription } from "providers/subscription";
 
 import LandingBackground from "assets/images/landing-background.png";
-import Barry from "assets/demos/barry.ham";
-import Wind from "assets/demos/wind.ham";
-import Inversions from "assets/demos/inversions.ham";
-import Marimba from "assets/demos/marimba.ham";
-import Scriabin from "assets/demos/scriabin.ham";
-import Corridors from "assets/demos/corridors.ham";
-import Upward from "assets/demos/upward.ham";
+import { Project } from "types/Project/ProjectTypes";
+import { UserProfile } from "features/Profile/UserProfile";
+import { Playground } from "features/Playground/Playground";
+import { Navbar } from "features/Navbar/Navbar";
+import { selectProjectName } from "types/Project/MetadataSelectors";
+import { CREATE_PROJECT, DELETE_PROJECT } from "types/Project/ProjectThunks";
 
 export type View = (typeof views)[number];
 export const views = [
@@ -46,15 +39,7 @@ export function MainPage(props: MainPageProps) {
   const params = useParams<{ view: View }>();
   const view = props.view || params.view || "projects";
   const [projects, setProjects] = useState<Project[]>([]);
-  const demoPaths = [
-    Barry,
-    Wind,
-    Marimba,
-    Inversions,
-    Corridors,
-    Scriabin,
-    Upward,
-  ];
+  const demoPaths: string[] = [];
 
   // Update the list of projects based on the authentication status
   const updateProjects = async () => {

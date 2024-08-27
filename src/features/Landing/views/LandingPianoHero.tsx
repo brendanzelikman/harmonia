@@ -6,23 +6,23 @@ import {
   LandingHeroProps,
 } from "../components";
 import { useEffect, useState } from "react";
-import { context } from "tone";
-import {
-  EffectKey,
-  LiveAudioInstance,
-  MAX_WET,
-  MIN_WET,
-  defaultChorus,
-  defaultFeedbackDelay,
-  defaultGain,
-  defaultInstrument,
-  defaultReverb,
-  defaultVibrato,
-} from "types/Instrument";
 import { getMidiPitch } from "utils/midi";
 import { Logo } from "components/Logo";
 import { Slider } from "components/Slider";
 import { capitalize } from "lodash";
+import { LiveAudioInstance } from "types/Instrument/InstrumentClass";
+import {
+  EffectKey,
+  defaultReverb,
+  defaultChorus,
+  defaultVibrato,
+  defaultFeedbackDelay,
+  defaultGain,
+  MIN_WET,
+  MAX_WET,
+} from "types/Instrument/InstrumentEffectTypes";
+import { defaultInstrument } from "types/Instrument/InstrumentTypes";
+import { getContext } from "tone";
 
 export const LandingPianoHero = (props: LandingHeroProps) => {
   const [instance, setInstance] = useState<LiveAudioInstance>();
@@ -87,8 +87,8 @@ export const LandingPianoHero = (props: LandingHeroProps) => {
   // Play the piano and start the context if necessary
   const playNote = (midi: number) => {
     if (!instance?.isLoaded()) return;
-    if (!context.state.startsWith("running")) {
-      context.resume();
+    if (!getContext().state.startsWith("running")) {
+      getContext().resume();
     }
     const pitch = getMidiPitch(midi);
     instance.sampler.triggerAttack(pitch);

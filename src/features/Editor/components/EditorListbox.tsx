@@ -1,11 +1,11 @@
 import { Listbox } from "@headlessui/react";
 import classNames from "classnames";
 import { BsCheck, BsMusicNoteBeamed, BsSoundwave } from "react-icons/bs";
+import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import {
   InstrumentKey,
-  getInstrumentName,
   INSTRUMENT_KEYS,
-} from "types/Instrument";
+} from "types/Instrument/InstrumentTypes";
 import { DurationType, DURATION_TYPES, DURATION_NAMES } from "utils/durations";
 
 export interface EditorListboxProps<T> {

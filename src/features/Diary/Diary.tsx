@@ -1,53 +1,68 @@
 import { FlipBook } from "components/FlipBook";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DiaryCoverPage, DiaryPageBinding } from "./DiaryPage";
 import { cancelEvent } from "utils/html";
 import { useHotkeyScope } from "hooks";
 import { useScopedHotkeys } from "lib/react-hotkeys-hook";
-import { useProjectDispatch, useProjectSelector } from "redux/hooks";
-import { clearDiary, setDiaryPage } from "redux/Diary";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "components/Tooltip";
 import { BsDownload, BsTrash } from "react-icons/bs";
-import { toggleDiary } from "redux/Timeline";
 import { ContentPage } from "./ContentPage";
-import { selectProjectName } from "redux/Metadata";
 import { m } from "framer-motion";
+import { use, useDeep, useProjectDispatch } from "types/hooks";
+import { setDiaryPage, clearDiary } from "types/Project/MetadataSlice";
+import { toggleDiary } from "types/Timeline/TimelineSlice";
+import {
+  selectProjectName,
+  selectProjectDiary,
+} from "types/Project/MetadataSelectors";
+import { selectTimeline } from "types/Timeline/TimelineSelectors";
+import { NavbarHoverTooltip } from "features/Navbar/components";
+import classNames from "classnames";
+import { NodeData } from "json-edit-react";
+import { NAV_HEIGHT } from "utils/constants";
+import Background from "assets/images/landing-background.png";
+import { ProjectEditor } from "./ProjectEditor";
 
 const useHotkeys = useScopedHotkeys("diary");
 
+const DIARY_WIDTH = window.innerWidth / 2 - NAV_HEIGHT;
+const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;
+
 export function Diary() {
   const dispatch = useProjectDispatch();
-  const projectName = useProjectSelector(selectProjectName);
-  const diary = useProjectSelector((project) => project.diary);
-  const showingDiary = useProjectSelector((_) => !!_.timeline.showingDiary);
-  const [clearingDiary, setClearingDiary] = useState(false);
-  useHotkeyScope("diary", showingDiary);
+  const projectName = use(selectProjectName);
+  const diary = use(selectProjectDiary);
+  const showingDiary = use((_) => !!selectTimeline(_).showingDiary);
+  const [showingJSON, setShowingJSON] = useState(false);
+  useEffect(() => {
+    if (!showingDiary) setShowingJSON(false);
+  }, [showingDiary]);
+  useHotkeys("j", () => setShowingJSON((prev) => !prev), []);
 
+  // Create a ref to the FlipBook component
   const ref = useRef<any>(null);
+
+  // Set the content of a page in the diary
   const setPageContent = useCallback((page: number, text: string) => {
     dispatch(setDiaryPage({ page, text }));
   }, []);
 
-  const flip = useCallback(
-    (page: number) => ref.current?.pageFlip?.().flip(page),
-    []
-  );
-
+  // Diary hotkeys to flip the pages around
+  useHotkeyScope("diary", showingDiary);
   useHotkeys("left", () => ref.current?.pageFlip?.().flipPrev(), []);
   useHotkeys("right", () => ref.current?.pageFlip?.().flipNext(), []);
-  useHotkeys("shift+left", () => flip(0), [flip]);
-  useHotkeys("shift+right", () => flip(diary.length - 1), [diary, flip]);
+  useHotkeys("shift+left", () => ref.current?.pageFlip?.().flip(0), []);
+  useHotkeys(
+    "shift+right",
+    () => ref.current?.pageFlip?.().flip(diary.length - 1),
+    [diary]
+  );
   useHotkeys("esc", () => dispatch(toggleDiary()), []);
 
+  // A button to export the diary to a text file
   const ExportDiaryButton = useCallback(
     () => (
       <button
-        className="flex text-md h-8 ml-auto mr-3"
+        className="flex h-8 ml-auto mr-3"
         onClick={() => {
           const blob = new Blob([JSON.stringify(diary)], {
             type: "text/plain;charset=utf-8",
@@ -65,43 +80,51 @@ export function Diary() {
     [diary]
   );
 
-  const ClearDiaryButton = useCallback(
-    () => (
-      <TooltipProvider>
-        <Tooltip open={clearingDiary}>
-          <TooltipTrigger
-            className="flex text-md h-8"
-            onClick={() => setClearingDiary(!clearingDiary)}
-          >
-            <BsTrash />
-          </TooltipTrigger>
-          <TooltipContent
-            className="bg-slate-950 border border-slate-500/50 rounded -translate-y-1 cursor-pointer p-2 text-red-400"
+  // A button to clear the diary
+  const ClearDiaryButton = useCallback(() => {
+    const canDelete = diary.find((page) => page.length);
+    return (
+      <div className="relative group">
+        {canDelete ? (
+          <NavbarHoverTooltip
+            className="border-slate-500/50 -mt-6 whitespace-nowrap rounded-lg cursor-pointer text-slate-400 hover:text-red-500 hover:font-bold"
             onClick={() => {
               dispatch(clearDiary());
-              setClearingDiary(false);
             }}
           >
-            Are you sure?
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    ),
-    [clearingDiary]
-  );
+            Click Here to Confirm
+          </NavbarHoverTooltip>
+        ) : null}
+        <div
+          className={classNames(
+            `flex h-8`,
+            canDelete ? "opacity-100" : "opacity-50"
+          )}
+        >
+          <BsTrash />
+        </div>
+      </div>
+    );
+  }, [diary]);
 
-  const CoverPage = useCallback(
-    () => (
-      <DiaryCoverPage>
-        <div className="size-full bg-slate-50/90 backdrop-blur-sm flex flex-col p-4 opacity-100">
-          <div className="flex items-center justify-center">
-            <ExportDiaryButton />
-            {ClearDiaryButton()}
-          </div>
+  const CoverPage = () => (
+    <DiaryCoverPage>
+      <div className="size-full bg-slate-50/90 bflex flex-col p-4 opacity-100 overflow-scroll">
+        <div className="flex items-center justify-center">
+          <button
+            className={`flex h-8 text-sm font-thin`}
+            onClick={() => setShowingJSON((prev) => !prev)}
+          >
+            Open Project Editor
+          </button>
+          <ExportDiaryButton />
+          {ClearDiaryButton()}
+        </div>
+        <>
           <h1 className="pb-2 text-3xl font-bold text-center">
             ~ Project Diary ~
           </h1>
-          <h4 className="pb-4 text-md text-slate-600 font-semibold text-center">
+          <h4 className="pb-4 text-slate-600 font-semibold text-center">
             {projectName}
           </h4>
           <hr className="invert pt-4" />
@@ -112,8 +135,8 @@ export function Diary() {
               return (
                 <div
                   key={`content-${i}}`}
-                  className="cursor-pointer flex text-md font-light h-8 active:text-blue-700 w-full whitespace-nowrap"
-                  onClick={() => flip(i + 1)}
+                  className="cursor-pointer flex font-light h-8 active:text-blue-700 w-full whitespace-nowrap"
+                  onClick={() => ref.current?.pageFlip?.().flip(i + 1)}
                 >
                   <span className="flex-auto overflow-clip text-ellipsis mr-2">
                     {title}
@@ -125,53 +148,50 @@ export function Diary() {
               );
             })}
           </ul>
-        </div>
-      </DiaryCoverPage>
-    ),
-    [
-      clearingDiary,
-      diary,
-      projectName,
-      flip,
-      ExportDiaryButton,
-      ClearDiaryButton,
-    ]
+        </>
+      </div>
+    </DiaryCoverPage>
   );
 
   const onChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>, index: number) => {
-      cancelEvent(e.nativeEvent);
+      cancelEvent(e);
       setPageContent(index, e.currentTarget.value);
     },
     []
   );
 
-  const width = 400;
-  const height = 600;
-
   if (!showingDiary) return null;
   return (
     <div className="absolute inset-0 flex flex-col total-center z-50 bg-slate-950/80 backdrop-blur-lg">
-      <div className="relative -translate-x-1/2">
-        <m.div
-          initial={{ translateY: 100, opacity: 0 }}
-          animate={{ translateY: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          style={{ width, height }}
-        >
-          <DiaryPageBinding />
-          <FlipBook ref={ref} width={width} height={height}>
-            {CoverPage()}
-            {diary.map((page, index) =>
-              ContentPage({
-                page,
-                index,
-                onChange,
-              })
-            )}
-          </FlipBook>
-        </m.div>
-      </div>
+      <img
+        src={Background}
+        className="absolute inset-0 opacity-50 h-screen object-cover landing-background"
+      />
+      {showingJSON ? (
+        <ProjectEditor show={showingJSON} setShow={setShowingJSON} />
+      ) : (
+        <div className="relative -translate-x-1/2">
+          <m.div
+            initial={{ translateY: 100, opacity: 0 }}
+            animate={{ translateY: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            style={{ width: DIARY_WIDTH, height: DIARY_HEIGHT }}
+          >
+            <DiaryPageBinding />
+            <FlipBook ref={ref} width={DIARY_WIDTH} height={DIARY_HEIGHT}>
+              {CoverPage()}
+              {diary.map((page, index) =>
+                ContentPage({
+                  page,
+                  index,
+                  onChange,
+                })
+              )}
+            </FlipBook>
+          </m.div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useDrag, useDrop } from "react-dnd";
-import { movePoseBlock } from "redux/Pose";
-import { useProjectDispatch } from "redux/hooks";
-import { PoseId } from "types/Pose";
+import { useProjectDispatch } from "types/hooks";
+import { movePoseBlock } from "types/Pose/PoseSlice";
+import { PoseId } from "types/Pose/PoseTypes";
 
 interface PoseModuleDragProps {
   id: PoseId;

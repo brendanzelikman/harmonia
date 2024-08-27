@@ -1,72 +1,51 @@
-import { Pattern } from "types/Pattern";
+import { Pattern } from "types/Pattern/PatternTypes";
 
 // Chords
-import BasicIntervals from "./1-BasicIntervals";
-import BasicChords from "./1-BasicChords";
-import SeventhChords from "./1-SeventhChords";
-import ExtendedChords from "./1-ExtendedChords";
-import FamousChords from "./1-FamousChords";
-
-export * as BasicIntervals from "./1-BasicIntervals";
-export * as BasicChords from "./1-BasicChords";
-export * as SeventhChords from "./1-SeventhChords";
-export * as ExtendedChords from "./1-ExtendedChords";
-export * as FamousChords from "./1-FamousChords";
-
-// Melodies
-import BasicMelodies from "./2-BasicMelodies";
-import ExtendedMelodies from "./2-ExtendedMelodies";
-import FamousMelodies from "./2-FamousMelodies";
-
-export * as BasicMelodies from "./2-BasicMelodies";
-export * as ExtendedMelodies from "./2-ExtendedMelodies";
-export * as FamousMelodies from "./2-FamousMelodies";
+import BasicIntervals from "./chords_intervals";
+import BasicChords from "./chords_basic";
+import MajorChords from "./chords_major";
+import MinorChords from "./chords_minor";
+import MajorSeventhChords from "./chords_major_seventh";
+import MinorSeventhChords from "./chords_minor_seventh";
+import DominantChords from "./chords_dominant";
+import SuspendedChords from "./chords_suspended";
+import FamousChords from "./chords_famous";
 
 // Durations
-import StraightDurations from "./3-StraightDurations";
-import DottedDurations from "./3-DottedDurations";
-import TripletDurations from "./3-TripletDurations";
-
-export * as StraightDurations from "./3-StraightDurations";
-export * as DottedDurations from "./3-DottedDurations";
-export * as TripletDurations from "./3-TripletDurations";
+import StraightDurations from "./durations_straight";
+import DottedDurations from "./durations_dotted";
+import TripletDurations from "./durations_triplet";
 
 // Rhythms
-import SimpleRhythms from "./4-SimpleRhythms";
-import LatinRhythms from "./4-LatinRhythms";
-import ClavePatterns from "./4-ClaveRhythms";
-import BellPatterns from "./4-BellRhythms";
-import { createMap } from "utils/objects";
+import SimpleRhythms from "./rhythms_simple";
+import LatinRhythms from "./rhythms_latin";
+import ClavePatterns from "./rhythms_clave";
+import BellPatterns from "./rhythms_bell";
+import { createDictionary } from "utils/objects";
 
-export * as SimpleRhythms from "./4-SimpleRhythms";
-export * as LatinRhythms from "./4-LatinRhythms";
-export * as ClavePatterns from "./4-ClaveRhythms";
-export * as BellPatterns from "./4-BellRhythms";
-
-const Chords = {
+export const Chords = {
   "Basic Intervals": Object.values(BasicIntervals),
   "Basic Chords": Object.values(BasicChords),
-  "Seventh Chords": Object.values(SeventhChords),
-  "Extended Chords": Object.values(ExtendedChords),
+  "Major Chords": Object.values(MajorChords),
+  "Minor Chords": Object.values(MinorChords),
+  "Major Seventh Chords": Object.values(MajorSeventhChords),
+  "Minor Seventh Chords": Object.values(MinorSeventhChords),
+  "Dominant Chords": Object.values(DominantChords),
+  "Suspended Chords": Object.values(SuspendedChords),
   "Famous Chords": Object.values(FamousChords),
 };
-const Melodies = {
-  "Basic Melodies": Object.values(BasicMelodies),
-  "Extended Melodies": Object.values(ExtendedMelodies),
-  "Famous Melodies": Object.values(FamousMelodies),
-};
-const Durations = {
+export const Durations = {
   "Straight Durations": Object.values(StraightDurations),
   "Dotted Durations": Object.values(DottedDurations),
   "Triplet Durations": Object.values(TripletDurations),
 };
-const Rhythms = {
+export const Rhythms = {
   "Simple Rhythms": Object.values(SimpleRhythms),
   "Latin Rhythms": Object.values(LatinRhythms),
   "Clave Patterns": Object.values(ClavePatterns),
   "Bell Patterns": Object.values(BellPatterns),
 };
-const CustomPatterns = {
+export const CustomPatterns = {
   "Custom Patterns": [] as Pattern[],
 };
 
@@ -75,7 +54,6 @@ const CustomPatterns = {
 export const PresetPatternGroupMap = {
   ...CustomPatterns,
   ...Chords,
-  ...Melodies,
   ...Durations,
   ...Rhythms,
 };
@@ -95,4 +73,4 @@ export const PresetPatternList = Object.values(PresetPatternGroupMap).flat();
 
 // Return a map of preset pattern id to preset pattern
 // e.g. {"Major Chord": Major Chord, "Minor Chord": Minor Chord, ...}
-export const PresetPatternMap = createMap<Pattern>(PresetPatternList);
+export const PresetPatternMap = createDictionary<Pattern>(PresetPatternList);

@@ -1,11 +1,15 @@
-import { EFFECT_NAMES_BY_KEY, EFFECT_KEYS, EffectKey } from "types/Instrument";
 import { InstrumentEditorProps } from "../InstrumentEditor";
 import { BsPlusCircle } from "react-icons/bs";
-import { useProjectDispatch } from "redux/hooks";
+import { useProjectDispatch } from "types/hooks";
+import {
+  EffectKey,
+  EFFECT_NAMES_BY_KEY,
+  EFFECT_KEYS,
+} from "types/Instrument/InstrumentEffectTypes";
 import {
   addInstrumentEffect,
   removeAllInstrumentEffects,
-} from "redux/Instrument";
+} from "types/Instrument/InstrumentSlice";
 
 export function InstrumentEditorEffectBar(props: InstrumentEditorProps) {
   const dispatch = useProjectDispatch();
@@ -20,7 +24,9 @@ export function InstrumentEditorEffectBar(props: InstrumentEditorProps) {
       <div
         key={key}
         className="capitalize border border-slate-500 hover:bg-slate-500/20 active:bg-slate-800/50 flex items-center h-8 px-2 mb-2 ml-1 mr-2 rounded text-xs whitespace-nowrap cursor-pointer"
-        onClick={() => id && dispatch(addInstrumentEffect({ id, key }))}
+        onClick={() =>
+          id && dispatch(addInstrumentEffect({ data: { id, key } }))
+        }
       >
         {name} <BsPlusCircle className="ml-2" />
       </div>

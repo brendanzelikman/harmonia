@@ -1,38 +1,37 @@
-import { ScaleObject } from "types/Scale";
+import { ScaleObject } from "types/Scale/ScaleTypes";
 
 export const ChromaticScale: ScaleObject = {
-  id: "preset-preset-chromatic-scale",
+  id: "scale_preset_chromatic-scale",
   name: "Chromatic Scale",
   notes: [60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71],
 };
 export const NoScale: ScaleObject = {
-  id: "preset-preset-no-scale",
+  id: "scale_preset_no-scale",
   name: "No Scale",
   notes: [],
 };
 export const MajorScale: ScaleObject = {
-  id: "preset-preset-major-scale",
+  id: "scale_preset_major-scale",
   name: "Major Scale",
   notes: [60, 62, 64, 65, 67, 69, 71],
 };
 export const MinorScale: ScaleObject = {
-  id: "preset-preset-minor-scale",
+  id: "scale_preset_minor-scale",
   name: "Minor Scale",
   notes: [60, 62, 63, 65, 67, 68, 70],
 };
-
 export const MajorPentatonicScale: ScaleObject = {
-  id: "preset-preset-major-pentatonic-scale",
+  id: "scale_preset_major-pentatonic-scale",
   name: "Major Pentatonic Scale",
   notes: [60, 62, 64, 67, 69],
 };
 export const MinorPentatonicScale: ScaleObject = {
-  id: "preset-preset-minor-pentatonic-scale",
+  id: "scale_preset_minor-pentatonic-scale",
   name: "Minor Pentatonic Scale",
   notes: [60, 63, 65, 67, 70],
 };
 export const BluesScale: ScaleObject = {
-  id: "preset-preset-blues-scale",
+  id: "scale_preset_blues-scale",
   name: "Blues Scale",
   notes: [60, 63, 65, 66, 67, 70],
 };

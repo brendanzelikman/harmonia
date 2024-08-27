@@ -1,8 +1,8 @@
 import { promptModal } from "components/PromptModal";
-import { firebaseApp } from "firebase";
+import { firebaseApp } from "providers/firebase";
 import { User, getAuth } from "firebase/auth";
 import { useCustomEventListener } from "hooks";
-import { initializeUserDatabase } from "indexedDB";
+import { initializeUserDatabase } from "providers/idb";
 import {
   ReactNode,
   createContext,

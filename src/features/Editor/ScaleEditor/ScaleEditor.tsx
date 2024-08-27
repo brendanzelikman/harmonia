@@ -1,69 +1,86 @@
-import { Editor } from "features/Editor/components";
 import { useScaleEditorHotkeys } from "./hooks/useScaleEditorHotkeys";
-import { useProjectSelector } from "redux/hooks";
 import {
-  selectScaleFutureLength,
-  selectScalePastLength,
-  selectTrackScaleNameAtTick,
-} from "redux/selectors";
-import { useScaleEditorScore } from "./hooks";
+  use,
+  useDeep,
+  useProjectDispatch,
+  useProjectSelector,
+} from "types/hooks";
 import { ScoreProps } from "lib/opensheetmusicdisplay";
-import { ScaleEditor } from "./components";
-import { UndoTypes } from "redux/undoTypes";
-import { EditorProps } from "..";
-import { getScaleCategory } from "types/Scale";
+import { EditorBody } from "../components/EditorBody";
+import { EditorContainer } from "../components/EditorContainer";
+import { ScaleEditorContent } from "./components/ScaleEditorContent";
+import { ScaleEditorContextMenu } from "./components/ScaleEditorContextMenu";
+import { ScaleEditorPiano } from "./components/ScaleEditorPiano";
+import { ScaleEditorSidebar } from "./components/ScaleEditorSidebar";
+import { getScaleCategory } from "types/Scale/ScaleFunctions";
+import { useScaleEditorScore } from "./hooks/useScaleEditorScore";
+import { EditorProps } from "../Editor";
+import { selectCustomScales } from "types/Scale/ScaleSelectors";
+import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
+import { selectTrackMidiScale } from "types/Track/TrackSelectors";
+import { selectScaleName } from "types/Arrangement/ArrangementTrackSelectors";
+import { resolveScaleToMidi } from "types/Scale/ScaleResolvers";
+import { MIDI } from "types/units";
 
 export interface ScaleEditorProps extends EditorProps, ScoreProps {
   // The scale editor passes additional information about the scale
+  midiScale: MIDI[];
   scaleName: string;
   scaleCategory: string;
 
-  // The scale editor uses the scale history for undo/redo
-  canUndo: boolean;
-  canRedo: boolean;
-  undo: () => void;
-  redo: () => void;
+  isCustom: boolean;
+  isTracked: boolean;
+  isEmpty: boolean;
 }
 
 function ScaleEditorComponent(props: EditorProps) {
-  const scoreProps = useScaleEditorScore(props);
+  const customScales = useProjectSelector(selectCustomScales);
+  const selectedTrackId = useProjectSelector(selectSelectedTrackId);
 
   // The scale editor passes additional information about the scale
-  const scaleName = useProjectSelector((_) =>
-    selectTrackScaleNameAtTick(_, props.track?.id, 0)
+  const trackId = props.track?.id;
+  const midiScale = useDeep((_) =>
+    trackId ? selectTrackMidiScale(_, trackId) : resolveScaleToMidi(props.scale)
   );
+  const scaleName =
+    use((_) => selectScaleName(_, props.scale?.id)) ?? "Custom Scale";
   const scaleCategory = getScaleCategory(props.scale);
 
-  // The scale editor uses the scale history for undo/redo
-  const canUndo = useProjectSelector((_) => selectScalePastLength(_) > 0);
-  const canRedo = useProjectSelector((_) => selectScaleFutureLength(_) > 0);
-  const undo = () => props.dispatch({ type: UndoTypes.undoScales });
-  const redo = () => props.dispatch({ type: UndoTypes.redoScales });
+  const isCustom = customScales.some((s) => s.id === props.scale?.id);
+  const isTracked = !!selectedTrackId;
+  const isEmpty = !props.scale?.notes?.length;
+
+  const scoreProps = useScaleEditorScore({
+    ...props,
+    midiScale,
+    isCustom,
+    isTracked,
+  });
 
   // The scale editor passes its props down to all of its components
   const scaleEditorProps: ScaleEditorProps = {
     ...props,
     ...scoreProps,
+    midiScale,
     scaleName,
     scaleCategory,
-    canUndo,
-    canRedo,
-    undo,
-    redo,
+    isCustom,
+    isTracked,
+    isEmpty,
   };
 
   // The scale editor has a custom set of hotkeys
   useScaleEditorHotkeys(scaleEditorProps);
 
   return (
-    <Editor.Container id="scale-editor">
-      <Editor.Body className="relative">
-        <ScaleEditor.Sidebar {...scaleEditorProps} />
-        <ScaleEditor.Content {...scaleEditorProps} />
-      </Editor.Body>
-      <ScaleEditor.Piano {...scaleEditorProps} />
-      <ScaleEditor.ContextMenu {...scaleEditorProps} />
-    </Editor.Container>
+    <EditorContainer id="scale-editor">
+      <EditorBody className="relative">
+        <ScaleEditorSidebar {...scaleEditorProps} />
+        <ScaleEditorContent {...scaleEditorProps} />
+      </EditorBody>
+      <ScaleEditorPiano {...scaleEditorProps} />
+      <ScaleEditorContextMenu {...scaleEditorProps} />
+    </EditorContainer>
   );
 }
 

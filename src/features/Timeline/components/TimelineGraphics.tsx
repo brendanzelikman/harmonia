@@ -1,21 +1,23 @@
 import { DataGridHandle } from "react-data-grid";
 import { createPortal } from "react-dom";
 import {
-  selectCellHeight,
-  selectCellWidth,
-  selectSelectedTrack,
-  selectTrackedObjectTop,
-  selectTrackIds,
-  selectTrackById,
-  selectTimelineColumns,
-} from "redux/selectors";
-import {
   COLLAPSED_TRACK_HEIGHT,
   HEADER_HEIGHT,
   TRACK_WIDTH,
 } from "utils/constants";
 import TimelineCursor from "./TimelineCursor";
-import { useProjectSelector as use } from "redux/hooks";
+import { useProjectSelector as use, useDeep } from "types/hooks";
+import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
+import {
+  selectCellWidth,
+  selectCellHeight,
+  selectSelectedTrack,
+  selectTimelineColumns,
+} from "types/Timeline/TimelineSelectors";
+import {
+  selectTrackById,
+  selectOrderedTrackIds,
+} from "types/Track/TrackSelectors";
 
 interface BackgroundProps {
   timeline?: DataGridHandle;
@@ -30,24 +32,25 @@ export const TimelineGraphics = (props: BackgroundProps) => {
   const cellHeight = use(selectCellHeight);
 
   // The track dimensions are derived from the last track
-  const trackIds = use(selectTrackIds);
+  const trackIds = useDeep(selectOrderedTrackIds);
   const trackCount = trackIds.length;
-  const ltId = trackIds.at(-1);
-  const lt = use((_) => selectTrackById(_, ltId));
+  const ltId = trackIds[trackCount - 1];
+  const lt = useDeep((_) => selectTrackById(_, ltId));
   const ltHeight = lt
     ? lt.collapsed
       ? COLLAPSED_TRACK_HEIGHT
       : cellHeight
     : 0;
-  const tracksHeight = ltHeight + use((_) => selectTrackedObjectTop(_, lt));
+  const trackHeight = useDeep((_) => selectTrackTop(_, ltId));
+  const tracksHeight = trackHeight + ltHeight;
 
   // Selected track dimensions
-  const st = use(selectSelectedTrack);
-  const stTop = use((_) => selectTrackedObjectTop(_, st));
+  const st = useDeep(selectSelectedTrack);
+  const stTop = useDeep((_) => selectTrackTop(_, st?.id));
   const stHeight = st?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
 
   // GetBackground dimensions
-  const columns = use(selectTimelineColumns);
+  const columns = useDeep(selectTimelineColumns);
   const width = columns * cellWidth;
   const height = HEADER_HEIGHT + cellHeight * trackCount;
   const element = timeline?.element;

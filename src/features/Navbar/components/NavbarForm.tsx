@@ -44,7 +44,7 @@ export const NavbarFormButton = (
 ) => (
   <button
     {...props}
-    className={`w-full border py-1 rounded-lg appearance-none text-sm ${
+    className={`border py-1 rounded-lg appearance-none text-sm ${
       props.className ?? ""
     } `}
   >

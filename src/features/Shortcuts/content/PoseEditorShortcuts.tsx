@@ -4,7 +4,7 @@ import { ShortcutContent } from "../components/ShortcutContent";
 export function PoseEditorShortcuts() {
   return (
     <ShortcutContent
-      className="text-md space-y-1"
+      className="space-y-1"
       shortcuts={[
         <Shortcut shortcut="A" description="Add New Vector" />,
         <Shortcut

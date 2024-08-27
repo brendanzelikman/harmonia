@@ -1,7 +1,8 @@
-import { EFFECT_KEYS, INSTRUMENT_NAMES } from "types/Instrument";
 import { DocsList } from "../../components/DocsList";
 import { DocsSection } from "../../components/DocsSection";
 import { DocsParagraph } from "../../components";
+import { EFFECT_KEYS } from "types/Instrument/InstrumentEffectTypes";
+import { INSTRUMENT_NAMES } from "types/Instrument/InstrumentTypes";
 
 export function InstrumentDocsContent() {
   return (

@@ -1,37 +1,37 @@
-import { ScaleObject } from "types/Scale";
+import { ScaleObject } from "types/Scale/ScaleTypes";
 
 export const LydianScale: ScaleObject = {
-  id: "preset-preset-lydian-scale",
+  id: "scale_preset_lydian-scale",
   name: "Lydian Scale",
   notes: [60, 62, 64, 66, 67, 69, 71],
 };
 export const IonianScale: ScaleObject = {
-  id: "preset-preset-ionian-scale",
+  id: "scale_preset_ionian-scale",
   name: "Ionian Scale",
   notes: [60, 62, 64, 65, 67, 69, 71],
 };
 export const MixolydianScale: ScaleObject = {
-  id: "preset-preset-mixolydian-scale",
+  id: "scale_preset_mixolydian-scale",
   name: "Mixolydian Scale",
   notes: [60, 62, 64, 65, 67, 69, 70],
 };
 export const DorianScale: ScaleObject = {
-  id: "preset-preset-dorian-scale",
+  id: "scale_preset_dorian-scale",
   name: "Dorian Scale",
   notes: [60, 62, 63, 65, 67, 69, 70],
 };
 export const AeolianScale: ScaleObject = {
-  id: "preset-preset-aeolian-scale",
+  id: "scale_preset_aeolian-scale",
   name: "Aeolian Scale",
   notes: [60, 62, 63, 65, 67, 68, 70],
 };
 export const PhrygianScale: ScaleObject = {
-  id: "preset-preset-phrygian-scale",
+  id: "scale_preset_phrygian-scale",
   name: "Phrygian Scale",
   notes: [60, 61, 63, 65, 67, 68, 70],
 };
 export const LocrianScale: ScaleObject = {
-  id: "preset-preset-locrian-scale",
+  id: "scale_preset_locrian-scale",
   name: "Locrian Scale",
   notes: [60, 61, 63, 65, 66, 68, 70],
 };

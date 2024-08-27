@@ -21,17 +21,16 @@ export function ProjectDocsContent() {
             </DocsParagraph>
             <DocsList
               numerical
-              ie
               items={[
                 {
                   title: "Building Blocks",
-                  description: `Themes, Motifs, and Gestures.`,
-                  examples: ["Scales, Patterns, Poses, and Instruments."],
+                  description: `Scales, Patterns, Poses, and Instruments.`,
+                  examples: ["Motifs, Gestures, Harmonies, etc."],
                 },
                 {
                   title: "Scheduled Arrangement",
-                  description: "Structure, Form, and Orchestration.",
-                  examples: [`Tracks and Media (Clips and Portals).`],
+                  description: "Tracks, Clips, and Portals.",
+                  examples: [`Structure, Form, Orchestration, etc.`],
                 },
               ]}
             />

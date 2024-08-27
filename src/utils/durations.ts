@@ -1,5 +1,5 @@
 import { BPM, Seconds, MIDI, Tick, Timed, Velocity } from "types/units";
-import { getValues, findEntry } from "./objects";
+import { getDictValues, findEntry } from "./objects";
 import sixteenthNote from "assets/noteheads/16th.png";
 import thirtysecondNote from "assets/noteheads/32nd.png";
 import sixtyfourthNote from "assets/noteheads/64th.png";
@@ -7,7 +7,7 @@ import eighthNote from "assets/noteheads/eighth.png";
 import halfNote from "assets/noteheads/half.png";
 import quarterNote from "assets/noteheads/quarter.png";
 import wholeNote from "assets/noteheads/whole.png";
-import { PoseVector } from "types/Pose";
+import { PoseVector } from "types/Pose/PoseTypes";
 
 // ------------------------------------------------------------
 // Global Pulse
@@ -273,13 +273,13 @@ export const TRIPLET_DURATION_TYPES = STRAIGHT_DURATION_TYPES.map(
 
 /** A record of ticks by triplet note duration. */
 export const TRIPLET_DURATION_TICKS: Record<TripletDurationType, Tick> = {
-  "whole-triplet": (PPQ * 4) / 3,
-  "half-triplet": (PPQ * 2) / 3,
-  "quarter-triplet": PPQ / 3,
-  "eighth-triplet": PPQ / 6,
-  "16th-triplet": PPQ / 12,
-  "32nd-triplet": PPQ / 24,
-  "64th-triplet": PPQ / 48,
+  "whole-triplet": (PPQ * 8) / 3,
+  "half-triplet": (PPQ * 4) / 3,
+  "quarter-triplet": (PPQ * 2) / 3,
+  "eighth-triplet": PPQ / 3,
+  "16th-triplet": PPQ / 6,
+  "32nd-triplet": PPQ / 12,
+  "64th-triplet": PPQ / 24,
 } as const;
 
 /** A record of note names by triplet note duration. */
@@ -443,26 +443,26 @@ export const isTripletDuration = (
 
 /** Checks if a given timed note is a straight duration. */
 export const isStraightNote = (note: Timed<MIDI>) => {
-  return getValues(STRAIGHT_DURATION_TICKS).includes(note.duration);
+  return getDictValues(STRAIGHT_DURATION_TICKS).includes(note.duration);
 };
 
 /** Checks if a given timed note is a dotted duration. */
 export const isDottedNote = (note?: Timed<unknown>) => {
   if (note === undefined) return false;
-  return getValues(DOTTED_DURATION_TICKS).includes(note.duration);
+  return getDictValues(DOTTED_DURATION_TICKS).includes(note.duration);
 };
 
 /** Checks if a given timed note is a triplet duration. */
 export const isTripletNote = (note?: Timed<unknown>) => {
   if (note === undefined) return false;
-  return getValues(TRIPLET_DURATION_TICKS).includes(note.duration);
+  return getDictValues(TRIPLET_DURATION_TICKS).includes(note.duration);
 };
 
 /** Checks if a subdivision is straight. */
 export const isStraightSubdivision = (
   sub: Subdivision
 ): sub is StraightSubdivision => {
-  return getValues(STRAIGHT_DURATION_SUBDIVISIONS).includes(
+  return getDictValues(STRAIGHT_DURATION_SUBDIVISIONS).includes(
     sub as StraightSubdivision
   );
 };
@@ -471,7 +471,7 @@ export const isStraightSubdivision = (
 export const isDottedSubdivision = (
   sub: Subdivision
 ): sub is DottedSubdivision => {
-  return getValues(DOTTED_DURATION_SUBDIVISIONS).includes(
+  return getDictValues(DOTTED_DURATION_SUBDIVISIONS).includes(
     sub as DottedSubdivision
   );
 };
@@ -480,7 +480,7 @@ export const isDottedSubdivision = (
 export const isTripletSubdivision = (
   sub: Subdivision
 ): sub is TripletSubdivision => {
-  return getValues(TRIPLET_DURATION_SUBDIVISIONS).includes(
+  return getDictValues(TRIPLET_DURATION_SUBDIVISIONS).includes(
     sub as TripletSubdivision
   );
 };
@@ -556,6 +556,18 @@ export const getDurationName = (duration: DurationType) => {
   return DURATION_NAMES[duration];
 };
 
+/** Get the hotkey of a duration. */
+export const getDurationKey = (duration: DurationType) => {
+  if (getStraightDuration(duration) === "64th") return "7";
+  if (getStraightDuration(duration) === "32nd") return "6";
+  if (getStraightDuration(duration) === "16th") return "5";
+  if (getStraightDuration(duration) === "eighth") return "4";
+  if (getStraightDuration(duration) === "quarter") return "3";
+  if (getStraightDuration(duration) === "half") return "2";
+  if (getStraightDuration(duration) === "whole") return "1";
+  return "0";
+};
+
 /** Get the subdivision of a duration. */
 export const getDurationSubdivision = (duration: DurationType) => {
   return DURATION_SUBDIVISIONS[duration];
@@ -599,6 +611,14 @@ export const getTickColumns = (
 ) => {
   const ticksPerSubdivision = getSubdivisionTicks(subdivision);
   return ticks / ticksPerSubdivision;
+};
+
+export const getColumnTicks = (
+  columns: number = 0,
+  subdivision: Subdivision = "4n"
+) => {
+  const ticksPerSubdivision = getSubdivisionTicks(subdivision);
+  return columns * ticksPerSubdivision;
 };
 
 // ------------------------------------------------------------

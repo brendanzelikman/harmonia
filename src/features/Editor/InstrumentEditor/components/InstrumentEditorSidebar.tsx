@@ -1,15 +1,7 @@
-import {
-  INSTRUMENT_CATEGORIES,
-  InstrumentCategory,
-  CategorizedInstrument,
-  getCategoryInstruments,
-  getInstrumentCategory,
-} from "types/Instrument";
 import { InstrumentEditorProps } from "../InstrumentEditor";
-import { Editor } from "features/Editor/components";
 import { Disclosure, Transition } from "@headlessui/react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
-import { useCallback } from "react";
+import { ComponentProps, useCallback, useMemo, useState } from "react";
 import {
   GiClarinet,
   GiDrum,
@@ -20,6 +12,27 @@ import {
   GiViolin,
   GiXylophone,
 } from "react-icons/gi";
+import {
+  EditorList,
+  EditorListItem,
+} from "features/Editor/components/EditorList";
+import {
+  EditorSidebar,
+  EditorSidebarHeader,
+} from "features/Editor/components/EditorSidebar";
+import {
+  getInstrumentCategory,
+  getCategoryInstruments,
+} from "types/Instrument/InstrumentFunctions";
+import {
+  CategorizedInstrument,
+  InstrumentCategory,
+  INSTRUMENT_CATEGORIES,
+  MELODIC_CATEGORIES,
+  PERCUSSIVE_CATEGORIES,
+} from "types/Instrument/InstrumentTypes";
+import { useHotkeys } from "react-hotkeys-hook";
+import classNames from "classnames";
 
 export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
   const { instrument } = props;
@@ -28,7 +41,7 @@ export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
   /** Render an instrument */
   const renderInstrument = useCallback(
     (i: CategorizedInstrument) => (
-      <Editor.ListItem
+      <EditorListItem
         key={i.key}
         className={`select-none ${
           instrument?.key === i.key
@@ -38,7 +51,7 @@ export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
         onClick={() => props.setInstrument(i.key)}
       >
         {i.name}
-      </Editor.ListItem>
+      </EditorListItem>
     ),
     [props.setInstrument, instrument?.key]
   );
@@ -56,13 +69,63 @@ export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
     return <GiDrum />;
   };
 
+  const FilterButton = (
+    props: ComponentProps<"button"> & { active?: boolean }
+  ) => {
+    return (
+      <button
+        {...props}
+        className={classNames(
+          props.className,
+          props.active ? "border-orange-400" : "border-slate-400",
+          "p-2 py-1 border active:bg-orange-100/10 rounded-lg mb-2"
+        )}
+      />
+    );
+  };
+
+  const [filter, setFilter] = useState<"melodic" | "percussive" | undefined>();
+  const availableCategories = useMemo(
+    () =>
+      INSTRUMENT_CATEGORIES.filter((category) => {
+        if (filter === "melodic") {
+          return MELODIC_CATEGORIES.includes(category);
+        }
+        if (filter === "percussive") {
+          return PERCUSSIVE_CATEGORIES.includes(category);
+        }
+        return true;
+      }),
+    [filter]
+  );
+
   return (
-    <Editor.Sidebar className="ease-in-out duration-300">
-      <Editor.SidebarHeader className="capitalize">
+    <EditorSidebar className="ease-in-out duration-300">
+      <EditorSidebarHeader className="capitalize">
         Preset Instruments
-      </Editor.SidebarHeader>
-      <Editor.List className="p-2">
-        {INSTRUMENT_CATEGORIES.map((category) => (
+      </EditorSidebarHeader>
+      <EditorList className="p-2">
+        <div className="flex total-center *:min-w-12 w-full gap-2">
+          <FilterButton
+            active={filter === undefined}
+            onClick={() => setFilter(undefined)}
+          >
+            All
+          </FilterButton>
+          <FilterButton
+            active={filter === "melodic"}
+            onClick={() => setFilter("melodic")}
+          >
+            Melodic
+          </FilterButton>
+          <FilterButton
+            active={filter === "percussive"}
+            onClick={() => setFilter("percussive")}
+          >
+            Percussive
+          </FilterButton>
+        </div>
+        {availableCategories.map((category) => (
           <Disclosure key={category}>
             {({ open }) => (
               <>
@@ -101,7 +164,7 @@ export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
             )}
           </Disclosure>
         ))}
-      </Editor.List>
-    </Editor.Sidebar>
+      </EditorList>
+    </EditorSidebar>
   );
 }

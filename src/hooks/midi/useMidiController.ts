@@ -1,37 +1,42 @@
-import { UpdateInstrumentPayload, updateInstrument } from "redux/Instrument";
 import { MAX_VOLUME, MIN_VOLUME } from "utils/constants";
 import { throttle } from "lodash";
-import { PoseVector } from "types/Pose";
 import { ControlChangeMessageEvent, MessageEvent, WebMidi } from "webmidi";
 import { useCallback, useEffect } from "react";
-import {
-  selectSelectedTrack,
-  selectSelectedTrackIndex,
-  setSelectedTrackId,
-} from "redux/Timeline";
 import {
   useProjectSelector,
   useProjectDeepSelector,
   useProjectDispatch,
-} from "redux/hooks";
+} from "types/hooks";
 import { normalize, mod } from "utils/math";
-import { updateSelectedPoses } from "redux/Pose";
+
+import { getMidiPitch } from "utils/midi";
+
+import { useSubscription } from "providers/subscription";
+import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
+import {
+  UpdateInstrumentPayload,
+  updateInstrument,
+} from "types/Instrument/InstrumentSlice";
+import { PoseVector } from "types/Pose/PoseTypes";
+import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
+import {
+  selectSelectedTrackIndex,
+  selectSelectedTrack,
+} from "types/Timeline/TimelineSelectors";
+import {
+  selectPatternTrackMap,
+  selectPatternTracks,
+  selectOrderedTrackIds,
+} from "types/Track/TrackSelectors";
+import { selectTransport } from "types/Transport/TransportSelectors";
+import { updateSelectedPoses } from "types/Pose/PoseThunks";
 import {
   stopTransport,
   pauseTransport,
   startTransport,
   setTransportLoop,
-  selectTransport,
-} from "redux/Transport";
-import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
-import { getMidiPitch } from "utils/midi";
-import {
-  selectPatternTrackMap,
-  selectPatternTracks,
-  selectTrackIds,
-} from "redux/selectors";
-import { PatternTrack } from "types/Track";
-import { useSubscription } from "providers/subscription";
+} from "types/Transport/TransportThunks";
+import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 
 const ARTURIA_KEYLAB_TRACK_CC = 60;
 const ARTURIA_KEYLAB_VOLUME_CCS = [73, 75, 79, 72, 80, 81, 82, 83];
@@ -50,7 +55,7 @@ export function useMidiController() {
   const { isProdigy } = useSubscription();
   const transport = useProjectSelector(selectTransport);
   const patternTrackMap = useProjectDeepSelector(selectPatternTrackMap);
-  const orderedTrackIds = useProjectDeepSelector(selectTrackIds);
+  const orderedTrackIds = useProjectDeepSelector(selectOrderedTrackIds);
   const trackIndex = useProjectSelector(selectSelectedTrackIndex);
   const patternTracks = useProjectDeepSelector(selectPatternTracks);
   const selectedTrack = useProjectSelector(selectSelectedTrack);
@@ -63,7 +68,7 @@ export function useMidiController() {
   const handleInstrumentUpdate = useCallback(
     (obj: UpdateInstrumentPayload) => {
       // Create a throttled function if it doesn't exist
-      const func = () => dispatch(updateInstrument(obj));
+      const func = () => dispatch(updateInstrument({ data: obj }));
       const throttledFunc = throttle(func, 50, { trailing: true });
       throttledUpdates[obj.id] = throttledFunc;
 
@@ -143,7 +148,7 @@ export function useMidiController() {
         const newTrackId = orderedTrackIds[newIndex];
         if (!newTrackId) return;
 
-        dispatch(setSelectedTrackId(newTrackId));
+        dispatch(setSelectedTrackId({ data: newTrackId }));
       }
 
       // Handle the volume index if it's a volume CC

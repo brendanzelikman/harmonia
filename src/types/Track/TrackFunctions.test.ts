@@ -1,14 +1,14 @@
 import { test, expect } from "vitest";
 import * as _ from "./TrackFunctions";
-import { initializePatternTrack } from "./TrackTypes";
-import { initializeScaleTrack } from "./TrackTypes";
-import { createMap } from "utils/objects";
+import { initializePatternTrack } from "./PatternTrack/PatternTrackTypes";
+import { initializeScaleTrack } from "./ScaleTrack/ScaleTrackTypes";
+import { createDictionary } from "utils/objects";
 
 test("getScaleTrackChainIds should return the correct chain of tracks", () => {
   const t1 = initializeScaleTrack();
   const t2 = initializeScaleTrack({ parentId: t1.id });
   const t3 = initializePatternTrack({ parentId: t2.id });
-  const trackMap = createMap([t1, t2, t3]);
+  const trackMap = createDictionary([t1, t2, t3]);
 
   const t1TrackChain = _.getScaleTrackChainIds(t1.id, trackMap);
   const t2TrackChain = _.getScaleTrackChainIds(t2.id, trackMap);
@@ -23,7 +23,7 @@ test("getTrackParentIds should return the correct list of IDs", () => {
   const t1 = initializeScaleTrack();
   const t2 = initializeScaleTrack({ parentId: t1.id });
   const t3 = initializePatternTrack({ parentId: t2.id });
-  const trackMap = createMap([t1, t2, t3]);
+  const trackMap = createDictionary([t1, t2, t3]);
 
   const t1ParentIds = _.getTrackAncestorIds(t1.id, trackMap);
   const t2ParentIds = _.getTrackAncestorIds(t2.id, trackMap);

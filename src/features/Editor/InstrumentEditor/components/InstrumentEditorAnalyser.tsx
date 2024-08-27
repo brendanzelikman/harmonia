@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import classNames from "classnames";
 import { normalize } from "utils/math";
 import { getContext } from "tone";
-import { LiveAudioInstance } from "types/Instrument";
+import { LiveAudioInstance } from "types/Instrument/InstrumentClass";
 
 interface InstrumentEditorAnalyserProps {
   type: "fft" | "waveform";

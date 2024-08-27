@@ -1,45 +1,46 @@
 import classNames from "classnames";
 import { ContextMenuOption, ContextMenu } from "components/ContextMenu";
-import { updateClips } from "redux/Clip";
-import {
-  copySelectedMedia,
-  cutSelectedMedia,
-  deleteSelectedMedia,
-  duplicateSelectedMedia,
-  pasteSelectedMedia,
-  updateMedia,
-} from "redux/Media";
-import {
-  createScaleTrack,
-  createPatternTrackFromSelectedTrack,
-} from "redux/Track";
-import {
-  createPatternClipFromMediaDraft,
-  createPoseClipFromMediaDraft,
-  exportSelectedClipsToMIDI,
-  selectMediaClipboard,
-  selectSelectedPatternClips,
-  selectSelectedPattern,
-  selectSelectedTrack,
-  selectSelectedPoseClips,
-  selectSelectedPose,
-  selectSelectedClips,
-} from "redux/Timeline";
 import {
   useProjectDeepSelector,
   useProjectDispatch,
   useProjectSelector,
-} from "redux/hooks";
-import {
-  selectArrangementFutureLength,
-  selectArrangementPastLength,
-} from "redux/selectors";
-import { UndoTypes } from "redux/undoTypes";
-import { CLIP_THEMES, CLIP_COLORS, ClipColor } from "types/Clip";
-import { isScaleTrack } from "types/Track";
+} from "types/hooks";
 import { useState } from "react";
 import { blurOnEnter } from "utils/html";
 import { PPQ } from "utils/durations";
+import { updateClips } from "types/Clip/ClipSlice";
+import {
+  PatternClipColor,
+  PATTERN_CLIP_THEMES,
+  PATTERN_CLIP_COLORS,
+} from "types/Clip/PatternClip/PatternClipThemes";
+import { isScaleTrack } from "types/Track/TrackTypes";
+import {
+  selectSelectedPatternClips,
+  selectSelectedPoseClips,
+  selectSelectedScaleClips,
+  selectSelectedClips,
+  selectSelectedPattern,
+  selectSelectedPose,
+  selectSelectedTrack,
+  selectMediaClipboard,
+} from "types/Timeline/TimelineSelectors";
+import { createPatternTrackFromSelectedTrack } from "types/Track/PatternTrack/PatternTrackThunks";
+import { createScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
+import {
+  cutSelectedMedia,
+  copySelectedMedia,
+  pasteSelectedMedia,
+  duplicateSelectedMedia,
+  deleteSelectedMedia,
+  updateMedia,
+} from "types/Media/MediaThunks";
+import {
+  exportSelectedClipsToMIDI,
+  createPatternClipFromMediaDraft,
+  createPoseClipFromMediaDraft,
+} from "types/Timeline/TimelineThunks";
+import { getTransport } from "tone";
 
 export function TimelineContextMenu() {
   const dispatch = useProjectDispatch();
@@ -47,6 +48,7 @@ export function TimelineContextMenu() {
   // Get the currently selected objects
   const patternClips = useProjectDeepSelector(selectSelectedPatternClips);
   const poseClips = useProjectDeepSelector(selectSelectedPoseClips);
+  const scaleClips = useProjectDeepSelector(selectSelectedScaleClips);
   const clips = useProjectDeepSelector(selectSelectedClips);
   const pattern = useProjectSelector(selectSelectedPattern);
   const pose = useProjectSelector(selectSelectedPose);
@@ -54,45 +56,29 @@ export function TimelineContextMenu() {
   const onScaleTrack = isScaleTrack(track);
 
   // Get the clipboard
-  const clipboard = useProjectDeepSelector(selectMediaClipboard);
-  const areClipsInBoard = clipboard?.clips?.length > 0;
-  const arePortalsInBoard = clipboard?.portals?.length > 0;
+  const clipboard = useProjectDeepSelector(selectMediaClipboard) ?? [];
+  const areClipsInBoard = !!clipboard?.clips?.length;
+  const arePortalsInBoard = !!clipboard?.portals?.length;
 
   // Get the selected media
-  const arePatternsSelected = patternClips?.length > 0;
-  const arePosesSelected = poseClips?.length > 0;
-  const areClipsSelected = arePatternsSelected || arePosesSelected;
+  const arePatternClipsSelected = patternClips?.length > 0;
+  const arePoseClipsSelected = poseClips?.length > 0;
+  const areScaleClipsSelected = scaleClips?.length > 0;
+  const areClipsSelected =
+    arePatternClipsSelected || arePoseClipsSelected || areScaleClipsSelected;
   const arePortalsSelected = arePortalsInBoard;
-  const isSelectionEmpty =
-    !arePatternsSelected && !arePosesSelected && !arePortalsSelected;
+  const isSelectionEmpty = !areClipsSelected && !arePortalsSelected;
   const isBoardEmpty = !areClipsInBoard && !arePortalsInBoard;
 
   // Determine which actions are available
-  const canUndo = useProjectSelector(selectArrangementPastLength);
-  const canRedo = useProjectSelector(selectArrangementFutureLength);
   const canCut = !isSelectionEmpty;
   const canCopy = !isSelectionEmpty;
   const canPaste = !isBoardEmpty && track && !(areClipsInBoard && onScaleTrack);
   const canDuplicate = !isSelectionEmpty && track;
   const canDelete = !isSelectionEmpty;
-  const canExport = arePatternsSelected;
-  const canColor = arePatternsSelected;
+  const canExport = arePatternClipsSelected;
+  const canColor = arePatternClipsSelected;
   const canSetDuration = areClipsSelected;
-
-  // Undo the last timeline action
-  const Undo = {
-    label: "Undo Last Action",
-    onClick: () => dispatch({ type: UndoTypes.undoArrangement }),
-    disabled: !canUndo,
-  };
-
-  // Redo the last timeline action
-  const Redo = {
-    label: "Redo Last Action",
-    onClick: () => dispatch({ type: UndoTypes.redoArrangement }),
-    disabled: !canRedo,
-    divideEnd: true,
-  };
 
   // Cut the currently selected media
   const Cut = {
@@ -150,35 +136,46 @@ export function TimelineContextMenu() {
   const AddPatternTrack = {
     label: "Add Pattern Track",
     onClick: () => dispatch(createPatternTrackFromSelectedTrack()),
-    disabled: !track,
   };
 
   // Add the currently drafted clip to the timeline
-  const AddPattern = {
+  const AddPatternClip = {
     label: `Add ${pattern?.name ?? "New Pattern"}`,
-    onClick: () => dispatch(createPatternClipFromMediaDraft()),
-    disabled: onScaleTrack,
+    onClick: () =>
+      dispatch(
+        createPatternClipFromMediaDraft({
+          data: { trackId: track?.id, tick: getTransport().ticks },
+        })
+      ),
+    disabled: onScaleTrack || !track,
   };
 
   // Add the currently drafted pose to the timeline
-  const AddPose = {
+  const AddPoseClip = {
     label: `Add ${pose?.name ?? "New Pose"}`,
-    onClick: () => dispatch(createPoseClipFromMediaDraft()),
+    onClick: () =>
+      dispatch(
+        createPoseClipFromMediaDraft({
+          data: { trackId: track?.id, tick: getTransport().ticks },
+        })
+      ),
     disabled: !track,
     divideEnd: areClipsSelected,
   };
 
   // Change the color of the currently selected clips
-  const ClipColorCircle: React.FC<{ color: ClipColor }> = ({ color }) => {
+  const ClipColorCircle: React.FC<{ color: PatternClipColor }> = ({
+    color,
+  }) => {
     return (
       <span
         className={classNames(
-          CLIP_THEMES[color].iconColor,
+          PATTERN_CLIP_THEMES[color].iconColor,
           `w-4 h-4 m-1 rounded-full border cursor-pointer`
         )}
         onClick={() => {
           const newClips = patternClips.map((clip) => ({ ...clip, color }));
-          dispatch(updateClips({ clips: newClips }));
+          dispatch(updateClips({ data: newClips }));
         }}
       />
     );
@@ -188,7 +185,7 @@ export function TimelineContextMenu() {
   const ClipColors = {
     label: (
       <div className="w-32 flex flex-wrap">
-        {CLIP_COLORS.map((color) => (
+        {PATTERN_CLIP_COLORS.map((color) => (
           <ClipColorCircle key={color} color={color} />
         ))}
       </div>
@@ -202,8 +199,10 @@ export function TimelineContextMenu() {
   const [duration, setDuration] = useState(PPQ);
   const SetClipDuration = {
     label: "Set Clip Duration",
-    onClick: () =>
-      dispatch(updateMedia({ clips: clips.map((c) => ({ ...c, duration })) })),
+    onClick: () => {
+      const newClips = clips.map((clip) => ({ ...clip, duration }));
+      dispatch(updateMedia({ data: { clips: newClips } }));
+    },
     disabled: !canSetDuration,
   };
   const SetDurationInput = {
@@ -225,8 +224,8 @@ export function TimelineContextMenu() {
 
   // Assemble all of the menu options
   const menuOptions = [
-    Undo,
-    Redo,
+    // Undo,
+    // Redo,
     canCut ? Cut : null,
     canCopy ? Copy : null,
     canPaste ? Paste : null,
@@ -235,8 +234,8 @@ export function TimelineContextMenu() {
     canExport ? Export : null,
     AddScaleTrack,
     AddPatternTrack,
-    AddPattern,
-    AddPose,
+    AddPatternClip,
+    AddPoseClip,
     canColor ? ClipColors : null,
     canSetDuration ? SetDurationInput : null,
     canSetDuration ? SetClipDuration : null,

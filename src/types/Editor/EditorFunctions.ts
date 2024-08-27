@@ -29,14 +29,9 @@ export const isInstrumentEditorOpen = (editor: Editor) => {
   return editor.view === "instrument";
 };
 
-/** Checks if the file editor is open. */
-export const isFileEditorOpen = (editor: Editor) => {
-  return editor.view === "file";
-};
-
 /** Checks if the editor is on a visible view. */
 export const isEditorVisible = (editor: Editor) => {
-  return !!editor.view && editor.view !== "file";
+  return !!editor.view;
 };
 
 /** Get the editor with the user idled. */

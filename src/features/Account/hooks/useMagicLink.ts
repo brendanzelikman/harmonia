@@ -1,21 +1,26 @@
-import { LandingAction } from "pages";
+import { getAuth, signInWithEmailLink } from "firebase/auth";
+import { LandingAction } from "pages/LandingPage";
+import { firebaseApp } from "providers/firebase";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { completeSignInWithEmailLink } from "utils/authentication";
 
 export const useMagicLink = (action: LandingAction) => {
   const navigate = useNavigate();
 
   // Complete sign-in using the magic link
-  const applyMagicLink = (href: string) => {
-    completeSignInWithEmailLink(href)
-      .then(() => {
-        navigate("/");
-        window.location.search = "";
-      })
-      .catch((error) => {
-        console.log("Error signing in with email link", error);
-      });
+  const applyMagicLink = async (href: string) => {
+    const email = window.localStorage.getItem("emailForSignIn");
+    if (!email) return;
+    try {
+      const auth = getAuth(firebaseApp);
+      await signInWithEmailLink(auth, email, href);
+    } catch (error) {
+      console.log("Error signing in with email link", error);
+    } finally {
+      window.localStorage.removeItem("emailForSignIn");
+      navigate("/");
+      window.location.search = "";
+    }
   };
 
   // Redirect the user if the path changes to the magic link

@@ -1,10 +1,11 @@
 import { useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { InstrumentEditorProps } from "../InstrumentEditor";
+import { useProjectDispatch } from "types/hooks";
 import {
   addInstrumentEffect,
-  removeAllInstrumentEffects,
   removeInstrumentEffect,
-} from "redux/Instrument";
+  removeAllInstrumentEffects,
+} from "types/Instrument/InstrumentSlice";
 const useHotkeys = useScopedHotkeys("editor");
 
 interface InstrumentShortcutProps extends InstrumentEditorProps {}
@@ -12,14 +13,17 @@ interface InstrumentShortcutProps extends InstrumentEditorProps {}
 export default function useInstrumentEditorHotkeys(
   props: InstrumentShortcutProps
 ) {
-  const { dispatch, instrument } = props;
+  const dispatch = useProjectDispatch();
+  const { instrument } = props;
 
   // R = Add Reverb Effect
   useHotkeys(
     "r",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "reverb" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "reverb" } })
+      );
     },
     [instrument]
   );
@@ -29,7 +33,9 @@ export default function useInstrumentEditorHotkeys(
     "c",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "chorus" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "chorus" } })
+      );
     },
     [instrument]
   );
@@ -39,7 +45,9 @@ export default function useInstrumentEditorHotkeys(
     "p",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "phaser" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "phaser" } })
+      );
     },
     [instrument]
   );
@@ -49,7 +57,9 @@ export default function useInstrumentEditorHotkeys(
     "t",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "tremolo" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "tremolo" } })
+      );
     },
     [instrument]
   );
@@ -59,7 +69,9 @@ export default function useInstrumentEditorHotkeys(
     "v",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "vibrato" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "vibrato" } })
+      );
     },
     [instrument]
   );
@@ -69,7 +81,9 @@ export default function useInstrumentEditorHotkeys(
     "f",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "filter" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "filter" } })
+      );
     },
     [instrument]
   );
@@ -79,7 +93,9 @@ export default function useInstrumentEditorHotkeys(
     "e",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "equalizer" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "equalizer" } })
+      );
     },
     [instrument]
   );
@@ -89,7 +105,9 @@ export default function useInstrumentEditorHotkeys(
     "d",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "distortion" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "distortion" } })
+      );
     },
     [instrument]
   );
@@ -99,7 +117,9 @@ export default function useInstrumentEditorHotkeys(
     "b",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "bitcrusher" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "bitcrusher" } })
+      );
     },
     [instrument]
   );
@@ -110,7 +130,9 @@ export default function useInstrumentEditorHotkeys(
     () => {
       if (!instrument) return;
       dispatch(
-        addInstrumentEffect({ id: instrument.id, key: "feedbackDelay" })
+        addInstrumentEffect({
+          data: { id: instrument.id, key: "feedbackDelay" },
+        })
       );
     },
     [instrument]
@@ -122,7 +144,9 @@ export default function useInstrumentEditorHotkeys(
     () => {
       if (!instrument) return;
       dispatch(
-        addInstrumentEffect({ id: instrument.id, key: "pingPongDelay" })
+        addInstrumentEffect({
+          data: { id: instrument.id, key: "pingPongDelay" },
+        })
       );
     },
     [instrument]
@@ -133,7 +157,9 @@ export default function useInstrumentEditorHotkeys(
     "shift+c",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "compressor" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "compressor" } })
+      );
     },
     [instrument]
   );
@@ -143,7 +169,9 @@ export default function useInstrumentEditorHotkeys(
     "g",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "gain" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "gain" } })
+      );
     },
     [instrument]
   );
@@ -153,7 +181,9 @@ export default function useInstrumentEditorHotkeys(
     "l",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "limiter" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "limiter" } })
+      );
     },
     [instrument]
   );
@@ -163,7 +193,9 @@ export default function useInstrumentEditorHotkeys(
     "w",
     () => {
       if (!instrument) return;
-      dispatch(addInstrumentEffect({ id: instrument.id, key: "warp" }));
+      dispatch(
+        addInstrumentEffect({ data: { id: instrument.id, key: "warp" } })
+      );
     },
     [instrument]
   );
@@ -177,7 +209,9 @@ export default function useInstrumentEditorHotkeys(
       const lastEffect = props.instrument.effects.at(-1);
       if (!lastEffect) return;
       dispatch(
-        removeInstrumentEffect({ id: instrument.id, effectId: lastEffect.id })
+        removeInstrumentEffect({
+          data: { id: instrument.id, effectId: lastEffect.id },
+        })
       );
     },
     [instrument]

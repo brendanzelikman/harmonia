@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
+import { useCustomEventListener } from "../window/useCustomEventListener";
+import { useProjectDispatch, useProjectSelector } from "types/hooks";
+import { selectProjectId } from "types/Project/MetadataSelectors";
 import {
   START_LOADING_TRANSPORT,
   STOP_LOADING_TRANSPORT,
   loadTransport,
   unloadTransport,
-} from "redux/Transport";
-import { useCustomEventListener } from "../window/useCustomEventListener";
-import { useProjectDispatch, useProjectSelector } from "redux/hooks";
-import { selectProjectId } from "redux/selectors";
+} from "types/Transport/TransportThunks";
 
 /** Load and unload the transport when the app mounts. */
 export function useTransportLoader() {

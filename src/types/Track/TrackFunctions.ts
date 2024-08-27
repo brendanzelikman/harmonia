@@ -1,16 +1,7 @@
 import { getValueByKey } from "utils/objects";
-import { TrackMap, TrackInterface, TrackId } from "./TrackTypes";
-import { isScaleTrack } from "types/Track";
+
 import { numberToLower } from "utils/math";
-
-// ------------------------------------------------------------
-// String Conversion
-// ------------------------------------------------------------
-
-/** Get a `Track` as a string. */
-export const getTrackAsString = (track: TrackInterface) => {
-  return JSON.stringify(track);
-};
+import { isScaleTrack, ITrack, Track, TrackId, TrackMap } from "./TrackTypes";
 
 // ------------------------------------------------------------
 // Track Map Properties
@@ -18,33 +9,39 @@ export const getTrackAsString = (track: TrackInterface) => {
 
 /** Get the list of top level tracks. */
 export const getTopLevelTracks = (trackMap: TrackMap) => {
-  return Object.values(trackMap).filter((t) => !t.parentId);
+  const tracks = Object.values(trackMap);
+  const orphans = tracks.filter((t) => !!t && !t.parentId) as Track[];
+  return orphans.toSorted((a, b) => (a.order ?? 0) - (b.order ?? 0));
 };
 
 /** Get the list of ordered track IDs. */
 export const getOrderedTrackIds = (trackMap: TrackMap) => {
   const topLevelTracks = getTopLevelTracks(trackMap);
-  const trackIds: TrackId[] = [];
+  const orderedTrackIds: TrackId[] = [];
 
-  // Recursively add all children of a track
-  const addChildren = (children: TrackId[]) => {
-    if (!children?.length) return;
-    children.forEach((trackId) => {
-      const node = trackMap[trackId];
-      if (!node) return;
-      trackIds.push(trackId);
-      addChildren(node.trackIds);
-    });
+  const pushTrackAndDescendants = (track?: ITrack) => {
+    if (!track) return;
+    orderedTrackIds.push(track.id);
+    for (const i in track.trackIds) {
+      const childId = track.trackIds[i];
+      const childTrack = trackMap[childId];
+      if (childTrack !== undefined && childTrack.parentId === track.id) {
+        pushTrackAndDescendants(childTrack);
+      }
+    }
   };
 
-  // Add all tracks from the top level
-  topLevelTracks.forEach((track) => {
-    trackIds.push(track.id);
-    addChildren(track.trackIds);
-  });
+  for (const track of topLevelTracks) {
+    pushTrackAndDescendants(track);
+  }
 
-  // Return the track IDs
-  return trackIds;
+  return orderedTrackIds;
+};
+
+/** Get the list of ordered tracks. */
+export const getOrderedTracks = (trackMap: TrackMap) => {
+  const trackIds = getOrderedTrackIds(trackMap);
+  return trackIds.map((id) => trackMap[id]) as Track[];
 };
 
 // ------------------------------------------------------------
@@ -65,19 +62,20 @@ export const getTrackDepth = (id: TrackId, trackMap: TrackMap) => {
 
 /** Get the track index in its parent. */
 export const getTrackIndex = (id: TrackId, trackMap: TrackMap) => {
-  const topLevelTracks = getTopLevelTracks(trackMap);
   const track = trackMap[id];
   if (!track) return -1;
 
-  // If the track is a scale track, try to find it in the top level
-  if (isScaleTrack(track)) {
-    const topLevelIndex = topLevelTracks.findIndex((track) => track.id === id);
-    if (topLevelIndex > -1) return topLevelIndex;
-  }
+  // Try to find the track in the top level
+  const topLevelTracks = getTopLevelTracks(trackMap);
+  const topLevelIndex = topLevelTracks.findIndex((track) => track.id === id);
+  if (topLevelIndex > -1) return topLevelIndex;
 
   // Otherwise, return the index of the track in its parent
   const parent = getValueByKey(trackMap, track.parentId);
-  return parent?.trackIds.indexOf(track.id) ?? -1;
+  const parentIndex = (parent?.trackIds ?? []).indexOf(id);
+  if (parentIndex > -1) return parentIndex;
+
+  return track.order ?? -1;
 };
 
 /** Get the label of a track. */
@@ -170,13 +168,26 @@ export const getTrackAncestorIds = (
   return isScaleTrack(track) ? idChain.slice(0, -1) : idChain;
 };
 
-/** Get the descendant IDs of a track by ID. */
+/** Get the immediate child IDs of a track by ID. */
+export const getTrackChildIds = (id: TrackId, trackMap: TrackMap) => {
+  const trackIds = getOrderedTrackIds(trackMap);
+  const childIds: TrackId[] = [];
+  for (const i in trackIds) {
+    const trackId = trackIds[i];
+    const track = trackMap[trackId];
+    if (track !== undefined && track.parentId === id) {
+      childIds.push(track.id);
+    }
+  }
+  return childIds;
+};
+
+/** Get all descendant IDs of a track by ID. */
 export const getTrackDescendantIds = (id: TrackId, trackMap: TrackMap) => {
-  const tracks = Object.values(trackMap);
+  const tracks = getOrderedTracks(trackMap);
   const descendantIds: TrackId[] = [];
-  const children = tracks.filter((track) => track.parentId === id);
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i];
+  const children = tracks.filter((t) => t.parentId === id);
+  for (const child of children) {
     descendantIds.push(child.id);
     descendantIds.push(...getTrackDescendantIds(child.id, trackMap));
   }

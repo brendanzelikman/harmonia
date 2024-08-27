@@ -1,5 +1,36 @@
 import { test, expect } from "vitest";
 import * as _ from "./PatternTypes";
+import { ScaleNote, isMidiValue, MidiValue } from "types/Scale/ScaleTypes";
+
+/** Create a `PatternNote` from a `ScaleNote`  */
+export const createPatternNoteFromScaleNote = (
+  note: ScaleNote,
+  duration = 96,
+  velocity = 100
+): _.PatternNote => {
+  if (isMidiValue(note)) return { MIDI: note, duration, velocity };
+  return { ...note, duration, velocity };
+};
+
+/** Create a `PatternChord` from a `ScaleNote` */
+export const createScaleStream = (
+  notes: ScaleNote[],
+  duration = 96,
+  velocity = 100
+): _.PatternStream => {
+  return notes.map((n) => [
+    createPatternNoteFromScaleNote(n, duration, velocity),
+  ]);
+};
+
+/** Create a `PatternStream` from an array of `MidiValues` */
+export const createPatternStreamFromMidiValues = (
+  midiValues: MidiValue[],
+  duration = 96,
+  velocity = 100
+): _.PatternStream => {
+  return midiValues.map((midi) => [{ MIDI: midi, duration, velocity }]);
+};
 
 test("initializePattern should create a pattern with a unique ID", () => {
   const oldPattern = _.initializePattern();

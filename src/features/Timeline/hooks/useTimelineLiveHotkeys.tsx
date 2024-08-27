@@ -1,30 +1,33 @@
-import { cancelEvent, isHoldingShift, isInputEvent } from "utils/html";
-import {
-  selectEditor,
-  selectSelectedTrackParents,
-  selectLivePlaySettings,
-  selectTimeline,
-  selectTracks,
-} from "redux/selectors";
+import { isHoldingShift, isInputEvent } from "utils/html";
 import {
   useProjectDeepSelector,
   useProjectDispatch,
   useProjectSelector,
-} from "redux/hooks";
-import { useHotkeys } from "react-hotkeys-hook";
-import { toggleInstrumentMute, toggleInstrumentSolo } from "redux/Instrument";
-
-import { offsetSelectedPoses, updateSelectedPoses } from "redux/Pose";
-import { isPatternTrack } from "types/Track";
-import { PoseVector } from "types/Pose";
+} from "types/hooks";
 import { useCallback, useEffect } from "react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { unmuteTracks, unsoloTracks } from "redux/Track";
-import { getKeys, hasKeys } from "utils/objects";
-import { isTimelineLive } from "types/Timeline";
-import { toggleLivePlay } from "redux/Timeline";
+import { getDictKeys, hasKeys } from "utils/objects";
 import { useSubscription } from "providers/subscription";
-import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
+import {
+  toggleInstrumentMute,
+  toggleInstrumentSolo,
+} from "types/Instrument/InstrumentSlice";
+import { PoseVector } from "types/Pose/PoseTypes";
+import { isTimelineLive } from "types/Timeline/TimelineFunctions";
+import { isPatternTrack } from "types/Track/TrackTypes";
+import { selectEditor } from "types/Editor/EditorSelectors";
+import {
+  selectTimeline,
+  selectSelectedTrackParents,
+} from "types/Timeline/TimelineSelectors";
+import { selectTracks } from "types/Track/TrackSelectors";
+import {
+  offsetSelectedPoses,
+  updateSelectedPoses,
+  updateSelectedPoseStreams,
+} from "types/Pose/PoseThunks";
+import { unmuteTracks, unsoloTracks } from "types/Track/TrackThunks";
+import { mapPoseStreamVectors } from "types/Pose/PoseFunctions";
 
 type KeyBinds = Record<string, number>;
 
@@ -41,8 +44,7 @@ const NUMERICAL_BINDS: KeyBinds = {
   "7": 7,
   "8": 8,
   "9": 9,
-  "-": 10,
-  "=": 11,
+  o: 12,
 };
 const NUMERICAL_ZERO_BINDS = ["z", "0"];
 
@@ -109,28 +111,19 @@ export const useTimelineLiveHotkeys = () => {
   const timeline = useProjectSelector(selectTimeline);
   const isLive = isTimelineLive(timeline);
 
-  // Get the live pose settings
-  const livePlay = useProjectSelector(selectLivePlaySettings);
-  const poseMode = livePlay.mode;
-  const isNumerical = poseMode === "numerical";
-
   // Get additional dependencies from the store
   const editor = useProjectDeepSelector(selectEditor);
   const orderedTracks = useProjectDeepSelector(selectTracks);
   const scaleTracks = useProjectDeepSelector(selectSelectedTrackParents);
 
   // Get the keys for the current pose mode
-  const keys = isNumerical
-    ? getKeys(NUMERICAL_BINDS)
-    : getKeys([CHROMATIC_BINDS, SCALAR_BINDS, CHORDAL_BINDS]);
+  const keys = getDictKeys(NUMERICAL_BINDS);
 
   // Get the list of zero keys based on the pose mode
-  const zeroKeys = isNumerical ? NUMERICAL_ZERO_BINDS : ALPHABETICAL_ZERO_BINDS;
+  const zeroKeys = NUMERICAL_ZERO_BINDS;
 
   // Extra keys required for each mode
-  const extraKeys = isNumerical
-    ? ["`", "q", "w", "s", "x", "e", "y", "u", "o"]
-    : ["`", "]", "\\", "+"];
+  const extraKeys = ["`", "t", "q", "w", "e", "r", "m", "s", "o", "y"];
 
   // Track all of the held keys
   const allKeys = ["shift", "meta", ...keys, ...zeroKeys, ...extraKeys];
@@ -144,11 +137,6 @@ export const useTimelineLiveHotkeys = () => {
 
     // Try to get the number of the key
     const number = parseInt(e.key);
-    if (e.key === "o") {
-      const offset = negative ? -12 : 12;
-      dispatch(offsetSelectedPoses({ chromatic: offset }));
-      return;
-    }
     if (isNaN(number)) return;
 
     // Get the pattern track by number (for mute/solo)
@@ -157,37 +145,43 @@ export const useTimelineLiveHotkeys = () => {
     const instrumentId = patternTrack?.instrumentId;
 
     // Toggle mute if holding y
-    if (heldKeys.y) {
+    if (heldKeys.m) {
       dispatch(toggleInstrumentMute(instrumentId));
     }
     // Toggle solo if holding u
-    if (heldKeys.u) {
+    if (heldKeys.s) {
       dispatch(toggleInstrumentSolo(instrumentId));
     }
 
     // Compute the pose offset record
     const vector = {} as PoseVector;
     const dir = negative ? -1 : 1;
-    const offset = isHoldingShift(e) ? 12 : 0;
+    const octave = e.key === "o";
+    const value = (octave ? 12 : number) * dir;
 
-    // Apply chromatic offset if holding q
-    if (heldKeys.q) {
-      vector.chromatic = (offset + number) * dir;
+    // Apply chordal offset if holding r
+    if (heldKeys.r) {
+      vector.chordal = (vector.chordal ?? 0) + value;
+    }
+
+    // Apply chromatic offset if holding t
+    if (heldKeys.t) {
+      vector.chromatic = (vector.chromatic ?? 0) + value;
+    }
+
+    // Apply octave offset if holding y
+    if (heldKeys.y) {
+      vector.octave = (vector.octave ?? 0) + value;
     }
 
     // Apply scalar offsets if holding w, s, or x
-    const scalarKeys = ["w", "s", "x"];
+    const scalarKeys = ["q", "w", "e"];
     scalarKeys.forEach((key) => {
       const keyIndex = scalarKeys.indexOf(key);
       const heldKey = heldKeys[key];
       const id = scaleTracks[keyIndex]?.id;
-      if (heldKey && id) vector[id] = (offset + number) * dir;
+      if (heldKey && id) vector[id] = (vector[id] ?? 0) + value;
     });
-
-    // Apply chordal offset if holding e
-    if (heldKeys.e) {
-      vector.chordal = (offset + number) * dir;
-    }
 
     if (!hasKeys(vector)) return;
     dispatch(offsetSelectedPoses(vector));
@@ -242,34 +236,73 @@ export const useTimelineLiveHotkeys = () => {
       if (!zeroKeys.includes(key)) return;
       if (isInputEvent(e) || editor.view) return;
 
-      // Unmute all tracks if holding y
-      if (heldKeys.y) {
+      // Unmute all tracks if holding m
+      if (heldKeys.m) {
         dispatch(unmuteTracks());
       }
 
-      // Unsolo all tracks if holding u
-      if (heldKeys.u) {
+      // Unsolo all tracks if holding s
+      if (heldKeys.s) {
         dispatch(unsoloTracks());
       }
 
-      const vector: PoseVector = {};
-      if (heldKeys.q) {
-        vector.chromatic = 0;
-      }
-      const scaleKeys = ["w", "s", "x"];
-      for (const scaleKey of scaleKeys) {
-        if (heldKeys[scaleKey]) {
-          const scaleId = scaleTracks[scaleKeys.indexOf(scaleKey)]?.id;
-          if (scaleId) {
-            vector[scaleId] = 0;
-          }
-        }
-      }
-      if (heldKeys.e) {
-        vector.chordal = 0;
-      }
-      if (!hasKeys(vector)) return;
-      dispatch(updateSelectedPoses(vector));
+      const scaleKeys = ["q", "w", "e"];
+      const isZ = key === "z";
+
+      dispatch(
+        updateSelectedPoseStreams((stream) =>
+          mapPoseStreamVectors(stream, (vec) => {
+            let newVector = { ...vec };
+
+            if (heldKeys[scaleKeys[0]]) {
+              if (isZ) {
+                delete newVector[scaleTracks[0].id];
+              } else {
+                newVector[scaleTracks[0].id] = 0;
+              }
+            }
+            if (heldKeys[scaleKeys[1]]) {
+              if (isZ) {
+                delete newVector[scaleTracks[1].id];
+              } else {
+                newVector[scaleTracks[1].id] = 0;
+              }
+            }
+            if (heldKeys[scaleKeys[2]]) {
+              if (isZ) {
+                delete newVector[scaleTracks[2].id];
+              } else {
+                newVector[scaleTracks[2].id] = 0;
+              }
+            }
+            if (heldKeys.r) {
+              if (isZ) {
+                delete newVector.chordal;
+              } else {
+                newVector.chordal = 0;
+              }
+            }
+            if (heldKeys.t) {
+              if (isZ) {
+                delete newVector.chromatic;
+              } else {
+                newVector.chromatic = 0;
+              }
+            }
+            if (heldKeys.y) {
+              if (isZ) {
+                delete newVector.octave;
+              } else {
+                newVector.octave = 0;
+              }
+            }
+            if (Object.keys(newVector).length === Object.keys(vec).length) {
+              if (isZ) return {};
+            }
+            return newVector;
+          })
+        )
+      );
     },
     [heldKeys, zeroKeys, editor, scaleTracks]
   );
@@ -280,7 +313,6 @@ export const useTimelineLiveHotkeys = () => {
       const key = e.key;
       if (!zeroKeys.includes(key)) return;
       if (isInputEvent(e) || editor.view) return;
-      cancelEvent(e);
 
       // Unmute all tracks if holding -
       if (heldKeys["]"]) {
@@ -324,10 +356,8 @@ export const useTimelineLiveHotkeys = () => {
    */
   useEffect(() => {
     if (!isLive || !isAtLeastStatus("maestro")) return;
-    const keydown = isNumerical ? numericalKeydown : alphabeticalKeydown;
-    const zeroKeydown = isNumerical
-      ? numericalZeroKeydown
-      : alphabeticalZeroKeydown;
+    const keydown = numericalKeydown;
+    const zeroKeydown = numericalZeroKeydown;
 
     window.addEventListener("keydown", keydown);
     window.addEventListener("keydown", zeroKeydown);
@@ -336,15 +366,5 @@ export const useTimelineLiveHotkeys = () => {
       window.removeEventListener("keydown", keydown);
       window.removeEventListener("keydown", zeroKeydown);
     };
-  }, [
-    isAtLeastStatus,
-    isLive,
-    isNumerical,
-    numericalKeydown,
-    alphabeticalKeydown,
-    numericalZeroKeydown,
-    alphabeticalZeroKeydown,
-  ]);
-
-  useHotkeys("shift+t", () => dispatch(toggleLivePlay()));
+  }, [isAtLeastStatus, isLive, numericalKeydown, numericalZeroKeydown]);
 };

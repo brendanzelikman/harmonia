@@ -1,40 +1,63 @@
-import * as _ from "redux/Pattern";
-import { Editor } from "features/Editor/components";
-import { PatternEditor as PatternEditor } from "./components";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ScoreProps } from "lib/opensheetmusicdisplay";
 import { usePatternEditorHotkeys } from "./hooks/usePatternEditorHotkeys";
-import { useProjectDeepSelector, useProjectSelector } from "redux/hooks";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import { PresetPatternMap } from "presets/patterns";
 import { EditorProps } from "features/Editor/Editor";
 import { usePatternEditorScore } from "./hooks/usePatternEditorScore";
-import { UndoTypes } from "redux/undoTypes";
-import {
-  PatternBlock,
-  PatternMidiNote,
-  getPatternBlockAtIndex,
-  getPatternMidiChordNotes,
-  isPatternChord,
-  resolvePatternChordToMidi as resolveMidiChord,
-} from "types/Pattern";
 import { Input } from "webmidi";
 import { getDurationTicks } from "utils/durations";
-import { usePatternEditorDefaultPattern } from "./hooks/usePatternEditorDefaultPattern";
-import { selectTrackScaleChain } from "redux/Track";
 import { getValueByKey } from "utils/objects";
+import { EditorBody } from "../components/EditorBody";
+import { EditorContainer } from "../components/EditorContainer";
+import { PatternEditorContent } from "./components/PatternEditorContent";
+import { PatternEditorContextMenu } from "./components/PatternEditorContextMenu";
+import { PatternEditorPiano } from "./components/PatternEditorPiano";
+import { PatternEditorSidebar } from "./components/PatternEditorSidebar";
+import {
+  getPatternBlockAtIndex,
+  updatePatternBlockDuration,
+} from "types/Pattern/PatternFunctions";
+import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
+import { resolvePatternChordToMidi } from "types/Pattern/PatternResolvers";
+import {
+  PatternId,
+  PatternBlock,
+  PatternChord,
+  PatternMidiNote,
+  isPatternChord,
+} from "types/Pattern/PatternTypes";
+import {
+  addPatternBlock,
+  updatePatternBlock,
+  insertPatternBlock,
+  removePatternBlock,
+} from "types/Pattern/PatternSlice";
+import { selectTrackScaleChain } from "types/Track/TrackSelectors";
+import { TrackId } from "types/Track/TrackTypes";
 
 /** The pattern editor uses the pattern history and a score. */
 export interface PatternEditorProps extends EditorProps, ScoreProps {
+  tabs: string[];
+  tab: string;
+  setTab: (tab: string) => void;
+
   // The pattern editor passes additional information about the pattern
+  id?: PatternId;
+  ptId?: TrackId;
   isCustom: boolean;
   isEmpty: boolean;
+  index?: number;
 
-  // The pattern editor uses the cursor to pass down the current block
-  onRest: boolean;
-  onChord: boolean;
+  // The pattern editor passes down the current block using the cursor index
   block?: PatternBlock;
-  notes?: PatternMidiNote[];
-  tabs: string[];
+  chord?: PatternChord;
+  midiNotes?: PatternMidiNote[];
+
+  // The pattern editor can have a current note with the cursor
+  onRest: boolean;
+  onNotes: boolean;
+  isChord: boolean;
 
   // The pattern editor has specific score callbacks
   onBlockClick: () => void;
@@ -44,16 +67,12 @@ export interface PatternEditorProps extends EditorProps, ScoreProps {
   // The pattern editor can have a MIDI input selected
   midiInput?: Input;
   setMidiInput: (input: Input) => void;
-
-  // The pattern editor uses the pattern history
-  canUndo: boolean;
-  canRedo: boolean;
-  undo: () => void;
-  redo: () => void;
 }
 
 function PatternEditorComponent(props: EditorProps) {
-  const { dispatch, pattern, isAdding, isInserting, isRemoving } = props;
+  const dispatch = useProjectDispatch();
+  const { pattern, isAdding, isInserting, isRemoving } = props;
+  const duration = getDurationTicks(props.settings.note.duration);
 
   // The pattern editor uses a score.
   const scoreProps = usePatternEditorScore(props);
@@ -62,63 +81,94 @@ function PatternEditorComponent(props: EditorProps) {
 
   // The pattern editor passes additional information about the pattern
   const id = pattern?.id;
-  const isCustom = !getValueByKey(PresetPatternMap, id);
-  const isEmpty = !pattern?.stream?.length;
-  const duration = getDurationTicks(props.settings.note.duration);
-
-  // The pattern editor uses the cursor to pass down the current block
   const ptId = pattern?.patternTrackId;
-  const scales = useProjectDeepSelector((_) => selectTrackScaleChain(_, ptId));
-  const block = hidden
-    ? undefined
-    : getPatternBlockAtIndex(pattern?.stream ?? [], index);
-  const onRest = !isPatternChord(block);
-  const chord = block && !onRest ? resolveMidiChord(block, scales) : undefined;
-  const onChord = !!chord;
-  const notes = chord ? getPatternMidiChordNotes(chord) : [];
-  const tabs = [
-    "1. Compose",
-    "2. Bind",
-    onChord ? "2.5. Edit" : undefined,
-    "3. Transform",
-  ].filter(Boolean) as string[];
+  const stream = pattern?.stream ?? [];
+  const isCustom = !getValueByKey(PresetPatternMap, id);
+  const isEmpty = !stream.length;
+
+  // The pattern editor passes down the current block using the cursor index
+  const block = useMemo(
+    () => (hidden ? undefined : getPatternBlockAtIndex(stream, index)),
+    [stream, index, hidden]
+  );
+  const onNotes = isPatternChord(block);
+  const onRest = !onNotes;
+  const chord = useMemo(
+    () => (onNotes ? (block as PatternChord) : undefined),
+    [block, onNotes]
+  );
+
+  // If the block is a chord, resolve the chord to MIDI notes
+  const scales = useDeep((_) => selectTrackScaleChain(_, ptId));
+  const midiChord = useMemo(
+    () => (onNotes ? resolvePatternChordToMidi(block, scales) : []),
+    [block, scales, onNotes]
+  );
+  const midiNotes = useMemo(
+    () => getPatternMidiChordNotes(midiChord),
+    [midiChord]
+  );
+  const isChord = midiNotes.length > 1;
+
+  // There are additional tabs if a chord or note is selected
+  const tabs = useMemo(
+    () =>
+      [
+        "Compose",
+        "Clock",
+        "Bind",
+        "Transform",
+        isChord ? "Chord" : undefined,
+      ].filter(Boolean) as string[],
+    [isChord]
+  );
+  const [tab, setTab] = useState(tabs[0]);
 
   /** The handler for when the note button/hotkey is clicked. */
   const onBlockClick = useCallback(() => {
     if (!id) return;
 
     // Change the current chord's duration if it exists or insert a note
-    const block = notes.length
-      ? notes.map((note) => ({ ...note, duration }))
+    const newBlock = block
+      ? updatePatternBlockDuration(block, duration)
       : [{ MIDI: 60, duration, velocity: 100 }];
 
     // Dispatch the appropriate action
     if (isAdding && hidden) {
-      dispatch(_.addPatternBlock({ id, block }));
+      dispatch(addPatternBlock({ id, block: newBlock }));
     }
     if (isAdding && !hidden) {
-      dispatch(_.updatePatternBlock({ id, index, block }));
+      dispatch(updatePatternBlock({ id, index, block: newBlock }));
     }
     if (isInserting) {
-      dispatch(_.insertPatternBlock({ id, index, block }));
+      dispatch(insertPatternBlock({ id, index, block: newBlock }));
     }
     if (isRemoving) {
-      dispatch(_.removePatternBlock({ id, index }));
+      dispatch(removePatternBlock({ id, index }));
     }
-  }, [id, index, duration, notes, hidden, isAdding, isInserting, isRemoving]);
+  }, [
+    id,
+    index,
+    duration,
+    midiNotes,
+    hidden,
+    isAdding,
+    isInserting,
+    isRemoving,
+  ]);
 
   /** The handler for when the rest button/hotkey is clicked. */
   const onRestClick = useCallback(() => {
     if (!id) return;
     if (isAdding) {
       if (hidden) {
-        dispatch(_.addPatternBlock({ id, block: { duration } }));
+        dispatch(addPatternBlock({ id, block: { duration } }));
       } else {
-        dispatch(_.updatePatternBlock({ id, index, block: { duration } }));
+        dispatch(updatePatternBlock({ id, index, block: { duration } }));
       }
     }
     if (isInserting && !hidden) {
-      dispatch(_.insertPatternBlock({ id, index, block: { duration } }));
+      dispatch(insertPatternBlock({ id, index, block: { duration } }));
     }
   }, [id, index, duration, hidden, isAdding, isInserting]);
 
@@ -131,58 +181,48 @@ function PatternEditorComponent(props: EditorProps) {
     const onLast = cursor.index === pattern.stream.length - 1;
 
     // Remove the block and rewind the cursor if necessary
-    dispatch(_.removePatternBlock({ id: pattern.id, index }));
+    dispatch(removePatternBlock({ id: pattern.id, index }));
     if (onLast) cursor.prev();
   }, [pattern, cursor.index, hidden]);
 
   // The pattern editor can have a MIDI input selected
   const [midiInput, setMidiInput] = useState<Input>();
 
-  // The pattern editor uses the pattern history
-  const canUndo = !!useProjectSelector(_.selectPatternPastLength) && isCustom;
-  const canRedo = !!useProjectSelector(_.selectPatternFutureLength) && isCustom;
-  const undo = useCallback(
-    () => dispatch({ type: UndoTypes.undoPatterns }),
-    []
-  );
-  const redo = useCallback(
-    () => dispatch({ type: UndoTypes.redoPatterns }),
-    []
-  );
-
   // The pattern editor passes its props down to all of its components.
   const patternEditorProps: PatternEditorProps = {
     ...props,
     ...scoreProps,
+    id,
+    ptId,
     isCustom,
     isEmpty,
     onRest,
-    onChord,
+    onNotes,
+    isChord,
     block,
-    notes,
+    chord,
+    midiNotes,
+    index,
     tabs,
+    tab,
+    setTab,
     onBlockClick,
     onRestClick,
     onEraseClick,
     midiInput,
     setMidiInput,
-    canUndo,
-    canRedo,
-    undo,
-    redo,
   };
-  usePatternEditorDefaultPattern(patternEditorProps);
   usePatternEditorHotkeys(patternEditorProps);
 
   return (
-    <Editor.Container id="pattern-editor">
-      <Editor.Body className="relative">
-        <PatternEditor.Sidebar {...patternEditorProps} />
-        <PatternEditor.Content {...patternEditorProps} />
-      </Editor.Body>
-      <PatternEditor.Piano {...patternEditorProps} />
-      <PatternEditor.ContextMenu {...patternEditorProps} />
-    </Editor.Container>
+    <EditorContainer id="pattern-editor">
+      <EditorBody className="relative">
+        <PatternEditorSidebar {...patternEditorProps} />
+        <PatternEditorContent {...patternEditorProps} />
+      </EditorBody>
+      <PatternEditorPiano {...patternEditorProps} />
+      <PatternEditorContextMenu {...patternEditorProps} />
+    </EditorContainer>
   );
 }
 

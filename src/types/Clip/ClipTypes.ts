@@ -1,206 +1,119 @@
-import { nanoid } from "@reduxjs/toolkit";
-import {
-  Pattern,
-  PatternBlock,
-  PatternChord,
-  PatternId,
-  PatternMidiNote,
-  PatternNote,
-  PatternStream,
-} from "types/Pattern";
-import { PoseBlock, PoseId, PoseStream, PoseVector } from "types/Pose";
-import { TrackId } from "types/Track";
-import { ID, Tick } from "types/units";
-import { ClipColor } from "./ClipThemes";
+import { ID, Tick, Update } from "types/units";
+import { PatternClipColor } from "./PatternClip/PatternClipThemes";
 import { isNumber, isPlainObject, isString } from "lodash";
-import {
-  NormalRecord,
-  NormalState,
-  createNormalState,
-} from "utils/normalizedState";
 import { isFiniteNumber, isOptionalType } from "types/util";
+import { PatternClip, PatternClipId } from "./PatternClip/PatternClipTypes";
+import { PoseClip, PoseClipId } from "./PoseClip/PoseClipTypes";
+import { ScaleClip, ScaleClipId } from "./ScaleClip/ScaleClipTypes";
+import { initializePatternClip } from "./PatternClip/PatternClipTypes";
+import { initializePoseClip } from "./PoseClip/PoseClipTypes";
+import { initializeScaleClip } from "./ScaleClip/ScaleClipTypes";
+import { Dictionary, EntityId, EntityState, nanoid } from "@reduxjs/toolkit";
+import { PatternId } from "types/Pattern/PatternTypes";
+import { PoseId } from "types/Pose/PoseTypes";
+import { ScaleId } from "types/Scale/ScaleTypes";
+import { TrackId } from "types/Track/TrackTypes";
+import { Portaled } from "types/Portal/PortalTypes";
+
+export * from "./PatternClip/PatternClipTypes";
+export * from "./PoseClip/PoseClipTypes";
+export * from "./ScaleClip/ScaleClipTypes";
 
 // ------------------------------------------------------------
-// Clip Generics
+// Motif Definitions
 // ------------------------------------------------------------
 
-export type ClipNoId = Omit<Clip, "id">;
-export type ClipPartial = Partial<Clip>;
-export type ClipUpdate = Partial<Clip> & { id: ClipId };
-export type ClipMap = NormalRecord<ClipId, Clip>;
-export type ClipState = NormalState<ClipMap>;
+export const CLIP_TYPES = ["pattern", "scale", "pose"] as const;
+export type ClipType = (typeof CLIP_TYPES)[number];
+
+export type Clip = PatternClip | PoseClip | ScaleClip;
+export type ClipId = PatternClipId | PoseClipId | ScaleClipId;
+
+export type ClipUpdate = Update<Clip>;
+export type ClipMap = Dictionary<Clip>;
+export type ClipState = {
+  pattern: EntityState<PatternClip>;
+  pose: EntityState<PoseClip>;
+  scale: EntityState<ScaleClip>;
+};
+export type PortaledClip = Portaled<Clip>;
 
 // ------------------------------------------------------------
-// Clip Definitions
+// Generic Clip Definitions
 // ------------------------------------------------------------
 
-/** A `ClipInterface` contains any element placed in a track at a specific tick. */
-export type ClipInterface = {
-  id: ClipId;
+/** A `Clip` contains any element placed in a track at a specific tick. */
+export type IClip<T extends ClipType = ClipType> = {
+  id: IClipId<T>;
   trackId: TrackId;
   tick: Tick;
+  type: T;
   offset?: Tick;
   duration?: Tick;
-  color?: ClipColor;
-};
+} & IClipProps<T>;
 
-/** A `Clip` is either a `PatternClip` or a `PoseClip` */
-export type Clip = PatternClip | PoseClip;
-export type ClipId = PatternClipId | PoseClipId;
-export type ClipBlock = PatternClipBlock | PoseClipBlock;
-export type ClipStream = PatternClipStream | PoseClipStream;
+/** A `Clip` can have extra props based on its type. */
+export type IClipProps<T extends ClipType> = T extends "pattern"
+  ? { patternId: PatternId; color?: PatternClipColor }
+  : T extends "pose"
+  ? { poseId: PoseId }
+  : T extends "scale"
+  ? { scaleId: ScaleId }
+  : never;
 
-// ------------------------------------------------------------
-// Pattern Clip Definitions
-// ------------------------------------------------------------
-
-/** A `PatternClip` is a clip that references or stores a pattern. */
-// export interface PatternClipInterface extends ClipInterface {
-//   id: PatternClipId;
-// }
-// export interface PatternClipWithId extends PatternClipInterface {
-//   patternId: PatternId;
-// }
-// export interface PatternClipWithStream extends PatternClipInterface {
-//   stream: PatternStream;
-// }
-// export type PatternClip = PatternClipWithId | PatternClipWithStream;
-export interface PatternClip extends ClipInterface {
-  id: PatternClipId;
-  patternId: PatternId;
-}
-
-export type PatternClipId = `patternClip-${ID}`;
-export type PatternClipStream = PatternClipBlock[];
-export type PatternClipBlock = {
-  notes: PatternNote[];
-  startTick: Tick;
-  strumIndex?: number;
-};
-export type PatternClipMidiStream = PatternClipMidiBlock[];
-export type PatternClipMidiBlock = {
-  notes: PatternMidiNote[];
-  startTick: Tick;
-  strumIndex?: number;
-};
-
-// ------------------------------------------------------------
-// Pose Clip Definitions
-// ------------------------------------------------------------
-
-/** A `PoseClip` is a clip that references a pose. */
-// export interface PoseClipInterface extends ClipInterface {
-//   id: PoseClipId;
-// }
-// export interface PoseClipWithId extends PoseClipInterface {
-//   poseId: PoseId;
-// }
-// export interface PoseClipWithVector extends PoseClipInterface {
-//   vector: PoseVector;
-// }
-// export type PoseClip = PoseClipWithId | PoseClipWithVector;
-export interface PoseClip extends ClipInterface {
-  id: PoseClipId;
-  poseId: PoseId;
-}
-export type PoseClipId = `poseClip-${ID}`;
-export type PoseClipStream = PoseStream;
-export type PoseClipBlock = PoseBlock;
+export type IClipId<T extends ClipType = ClipType> = ID<`${T}-clip`>;
+export type IClipUpdate<T extends ClipType = ClipType> = Update<IClip<T>>;
+export type IClipMap<T extends ClipType = ClipType> = Dictionary<IClip<T>>;
+export type IClipState<T extends ClipType = ClipType> = EntityState<IClip<T>>;
 
 // ------------------------------------------------------------
 // Clip Initialization
 // ------------------------------------------------------------
 
-/** Create a pattern clip with a unique ID. */
-export const initializePatternClip = (
-  clip: Partial<PatternClip> = defaultPatternClip
-): PatternClip => ({
-  ...defaultPatternClip,
-  ...clip,
-  id: `patternClip-${nanoid()}`,
-});
-
-/** Create a pose clip with a unique ID. */
-export const initializePoseClip = (
-  clip: Partial<PoseClip> = defaultPoseClip
-): PoseClip => ({
-  ...defaultPoseClip,
-  ...clip,
-  id: `poseClip-${nanoid()}`,
-});
-
 /** Create a clip with a unique ID. */
-export const initializeClip = (clip: ClipNoId = defaultClip): Clip =>
-  "patternId" in clip
-    ? initializePatternClip(clip as PatternClip)
-    : initializePoseClip(clip as PoseClip);
-
-/** The default clip is used for initialization. */
-export const defaultClip: ClipNoId = {
-  trackId: "default-track",
-  tick: 0,
-  offset: 0,
-};
-
-/** The default pattern clip is used for initialization. */
-export const defaultPatternClip: PatternClip = {
-  ...defaultClip,
-  id: "patternClip-1",
-  patternId: "new-pattern",
-};
-
-/** The default pose clip is used for initialization. */
-export const defaultPoseClip: PoseClip = {
-  ...defaultClip,
-  id: "poseClip-1",
-  poseId: "default-pose",
-};
-
-/** The default clip state is used for Redux. */
-export const defaultClipState: ClipState = createNormalState<ClipMap>();
+export function initializeClip(clip: Partial<Clip>) {
+  if (clip.type === "pattern") return initializePatternClip(clip);
+  if (clip.type === "pose") return initializePoseClip(clip as PoseClip);
+  if (clip.type === "scale") return initializeScaleClip(clip as ScaleClip);
+  return { ...clip, id: nanoid() } as Clip;
+}
 
 // ------------------------------------------------------------
 // Clip Type Guards
 // ------------------------------------------------------------
 
-/** Checks if a given object is of type `Clip`. */
-export const isClipInterface = (obj: unknown): obj is ClipInterface => {
-  const candidate = obj as Clip;
+/** Checks if a given object is a `ClipType` */
+export const isClipType = <T extends ClipType>(obj: unknown): obj is T => {
+  return CLIP_TYPES.includes(obj as T);
+};
+
+export const areClipTypesEqual = (a: ClipType, b: ClipType) => a === b;
+
+/** Checks if a given object is a `ClipId` */
+export const isClipId = <T extends ClipType = ClipType>(
+  obj: unknown,
+  type?: T
+): obj is IClipId<T> => {
+  if (!type) return isString(obj);
+  return isString(obj) && obj.startsWith(`${type}-clip`);
+};
+
+/** Checks if a given object is of type `ClipInterface`. */
+export const isClipInterface = <T extends ClipType>(
+  obj: unknown,
+  type?: T
+): obj is IClip<T> => {
+  const candidate = obj as IClip<T>;
   return (
     isPlainObject(candidate) &&
     isString(candidate.id) &&
     isString(candidate.trackId) &&
     isFiniteNumber(candidate.tick) &&
     isOptionalType(candidate.offset, isFiniteNumber) &&
-    isOptionalType(candidate.duration, isNumber)
+    isOptionalType(candidate.duration, isNumber) &&
+    isClipId(candidate.id, type) &&
+    (type !== undefined
+      ? isClipType(candidate.type) && candidate.type === type
+      : true)
   );
-};
-
-/** Checks if a given object is of type `PatternClipId`. */
-export const isPatternClipId = (obj: unknown): obj is PatternClipId => {
-  const candidate = obj as PatternClipId;
-  return isString(candidate) && candidate.startsWith("patternClip-");
-};
-
-/** Checks if a given object is of type `PatternClip`. */
-export const isPatternClip = (obj: unknown): obj is PatternClip => {
-  const candidate = obj as PatternClip;
-  return isClipInterface(candidate) && isString(candidate.patternId);
-};
-
-/** Checks if a given object is of type `PoseClipId`. */
-export const isPoseClipId = (obj: unknown): obj is PoseClipId => {
-  const candidate = obj as PoseClipId;
-  return isString(candidate) && candidate.startsWith("poseClip-");
-};
-
-/** Checks if a given object is of type `PoseClip`. */
-export const isPoseClip = (obj: unknown): obj is PoseClip => {
-  const candidate = obj as PoseClip;
-  return isClipInterface(candidate) && isString(candidate.poseId);
-};
-
-/** Checks if a given object is of type `Clip`. */
-export const isClip = (obj: unknown): obj is Clip => {
-  return isPatternClip(obj) || isPoseClip(obj);
 };

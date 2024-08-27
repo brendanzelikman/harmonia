@@ -51,7 +51,7 @@ export const EditorHeader: React.FC<HeaderProps> = (props) => {
       {...divProps}
       className={classNames(
         props.className,
-        `flex flex-col h-24 mb-2 justify-center font-semibold`
+        `flex flex-col h-24 mb-2 mt-3 font-semibold`
       )}
     >
       {Title}

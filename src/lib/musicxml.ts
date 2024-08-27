@@ -3,26 +3,22 @@ import { Key, Tick, XML } from "../types/units";
 import * as _ from "utils/midi";
 import {
   DurationType,
-  EighthNoteTicks,
   PPQ,
-  SixteenthNoteTicks,
-  SixtyFourthNoteTicks,
-  ThirtySecondNoteTicks,
   getTickDuration,
   isDottedDuration,
   isDottedNote,
   isTripletDuration,
   isTripletNote,
 } from "utils/durations";
+import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
 import {
-  PatternMidiBlock,
   PatternMidiNote,
   PatternRest,
-  getPatternMidiChordNotes,
-  isPatternMidiChord,
   isPatternMidiNote,
-} from "types/Pattern";
-import { MidiNote } from "types/Scale";
+  PatternMidiBlock,
+  isPatternMidiChord,
+} from "types/Pattern/PatternTypes";
+import { MidiNote } from "types/Scale/ScaleTypes";
 
 // ------------------------------------------------------------
 // MusicXML Constants
@@ -49,6 +45,7 @@ type NoteOptions = Partial<{
   dot: boolean;
   triplet: boolean;
   key?: Key;
+  degree?: number;
 }>;
 
 // ------------------------------------------------------------
@@ -100,9 +97,9 @@ const createKeySignature = () => {
 };
 
 /** Create a MusicXML time signature. */
-const createTimeSignature = () => {
+const createTimeSignature = (beats = 4) => {
   return `<time>
-      <beats>4</beats>
+      <beats>${beats}</beats>
       <beat-type>4</beat-type>
     </time>`;
 };
@@ -137,12 +134,17 @@ const createGrandStaff = () => {
 };
 
 /** Create a MusicXML measure using the notes. */
-const createMeasure = (notes: XML[], number = 1, staves = 2) => {
+interface MeasureOptions {
+  number?: number;
+  staves?: number;
+  quarters?: number;
+}
+const createMeasure = (notes: XML[], options: MeasureOptions = {}) => {
+  const { number = 1, staves = 2, quarters = 4 } = options;
   const listedNotes = notes.join("");
   const keySignature = createKeySignature();
-  const timeSignature = createTimeSignature();
+  const timeSignature = createTimeSignature(quarters);
   const clefs = staves === 1 ? createTrebleClef() : createGrandStaff();
-
   return `<measure number="${number}">
       <attributes>
         <divisions>${PPQ}</divisions>
@@ -161,13 +163,6 @@ const createNote = (
 ) => {
   const isMidi = isPatternMidiNote(note);
   const key = noteOptions?.key;
-
-  /** The backup tag moves the cursor back in time. */
-  const backup = noteOptions?.backup;
-  const backupTag = backup
-    ? `
-  <backup><duration>${backup}</duration></backup>`
-    : "";
 
   /** The chord tag groups together notes. */
   const isChord = !!noteOptions?.isChord;
@@ -212,16 +207,13 @@ const createNote = (
 
   /** The accidental tag displays the accidental. */
   const accidental = isMidi ? _.getMidiAccidental(note.MIDI, key) : "";
-  const accidentalTag =
-    accidental !== "natural" ? `<accidental>${accidental}</accidental>` : "";
+  const accidentalTag = `<accidental>${accidental}</accidental>`;
 
-  /** The triplet tag creates the time modification. */
-  const triplet = noteOptions?.triplet || isTripletDuration(type);
-  const tripletTag = triplet
-    ? `<time-modification>
-<actual-notes>3</actual-notes>
-<normal-notes>2</normal-notes>
-</time-modification>`
+  /** The backup tag moves the cursor back in time. */
+  const backup = noteOptions?.backup;
+  const backupTag = backup
+    ? `
+  <backup><duration>${backup}</duration></backup>`
     : "";
 
   /** The stem tag indicates the stem direction. */
@@ -238,32 +230,42 @@ const createNote = (
 
   /** The beam tag uses a number based on duration. */
   const beam = noteOptions?.beam;
-  const beamTag = !!beam
-    ? `${duration <= EighthNoteTicks ? `<beam number="1">${beam}</beam>` : ``}${
-        duration <= SixteenthNoteTicks ? `<beam number="2">${beam}</beam>` : ``
-      }${
-        duration <= ThirtySecondNoteTicks
-          ? `<beam number="3">${beam}</beam>`
-          : ``
-      }${
-        duration <= SixtyFourthNoteTicks
-          ? `<beam number="4">${beam}</beam>`
-          : ``
-      }`
-    : "";
+  const beamTag =
+    beam !== undefined
+      ? `${type === "eighth" ? `<beam number="1">${beam}</beam>` : ``}${
+          type === "16th" ? `<beam number="1">${beam}</beam>` : ``
+        }${type === "32nd" ? `<beam number="1">${beam}</beam>` : ``}${
+          type === "64th" ? `<beam number="1">${beam}</beam>` : ``
+        }`
+      : "";
+
+  /** The triplet tag creates the time modification. */
+  const triplet = noteOptions?.triplet || isTripletDuration(type);
+  const tripletTag = triplet ? `<notations><tuplet/></notations>` : "";
+
+  /** The degree tag creates a fingering. */
+  const degree = noteOptions?.degree;
+  const degreeTag =
+    degree !== undefined
+      ? `<notations>
+  <technical>
+    <fingering placement="above">${degree + 1}</fingering>
+  </technical>
+</notations>`
+      : "";
 
   return `${backupTag}
-      <note>
-        ${noteTag}
+      <note>${noteTag}
         ${durationTag}
         ${voiceTag}
         ${typeTag}
         ${accidentalTag}
-        ${tripletTag}
         ${stemTag}
         ${staffTag}
         ${dotTag}
         ${beamTag}
+        ${tripletTag}
+        ${degreeTag}
       </note>`;
 };
 

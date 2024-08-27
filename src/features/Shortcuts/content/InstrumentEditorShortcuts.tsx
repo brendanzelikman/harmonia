@@ -4,7 +4,7 @@ import { ShortcutContent } from "../components/ShortcutContent";
 export function InstrumentEditorShortcuts() {
   return (
     <ShortcutContent
-      className="text-md space-y-1"
+      className="space-y-1"
       shortcuts={[
         <Shortcut shortcut="R" description="Add Reverb" />,
         <Shortcut shortcut="C" description="Add Chorus" />,

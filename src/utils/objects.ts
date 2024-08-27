@@ -1,98 +1,85 @@
+import { Dictionary, EntityId } from "@reduxjs/toolkit";
 import { inRange } from "lodash";
-import { ID } from "types/units";
+import { Vector } from "types/units";
 
 /** Create a map connecting IDs to objects from an array of objects. */
-export const createMap = <T extends { id: ID; [key: string]: any }>(
-  values: T[]
-) => {
-  return values.reduce((acc, value) => {
-    acc[value.id] = value;
-    return acc;
-  }, {} as Record<ID, T>);
-};
-
-/** Create a map grouping objects with the field provided. */
-export const createMapByField = <T extends Record<ID, any>>(
-  values: T[],
-  field: keyof T
-): Record<string, T[]> => {
-  return values.reduce((acc, value) => {
-    const key = value[field];
-    acc[key] = [...(acc[key] ?? []), value];
-    return acc;
-  }, {} as Record<string, T[]>);
+export const createDictionary = <T extends { id: EntityId }>(values: T[]) => {
+  const result = {} as Dictionary<T>;
+  for (const value of values) {
+    result[value.id] = value;
+  }
+  return result;
 };
 
 /** Create a map overwriting values with the provided function */
 export const createMapWithFn = <
-  OldValue extends { id: ID; [key: string]: any },
-  OldEntry extends OldValue | OldValue[],
-  NewValue extends unknown
+  OldRecord extends Dictionary<S>,
+  F extends (oldEntry: NonNullable<S>) => ReturnType<F>,
+  S extends any = OldRecord[keyof OldRecord],
+  NewRecord extends Dictionary<ReturnType<F>> = Dictionary<ReturnType<F>>
 >(
-  oldRecord: Record<ID, OldEntry>,
-  fn: (oldEntry: OldEntry) => NewValue
-) => {
-  return Object.keys(oldRecord).reduce((acc, key) => {
-    acc[key] = fn(oldRecord[key]);
-    return acc;
-  }, {} as Record<string, NewValue>);
+  oldRecord: OldRecord,
+  fn: F
+): NewRecord => {
+  const result = {} as Dictionary<ReturnType<F>>;
+  for (const id in oldRecord) {
+    const oldEntry = oldRecord[id];
+    if (oldEntry !== undefined && oldEntry !== null) {
+      const newEntry = fn(oldEntry);
+      result[id as Extract<keyof NewRecord, string>] = newEntry;
+    }
+  }
+  return result as NewRecord;
 };
 
-/** Create a string from an item or array of items. */
-export const toString = <T>(items?: T | T[], _toString?: (t: T) => string) => {
-  const toString = (t: T) => (_toString ? _toString(t) : JSON.stringify(t));
-  return Array.isArray(items)
-    ? items.map(toString).join(",")
-    : items
-    ? toString(items)
-    : "";
+/** Get the keys of a dictionary. */
+export const getDictKeys = <T>(obj: Dictionary<T>): (keyof T)[] => {
+  return Object.keys(obj) as (keyof T)[];
 };
 
-/** Gets the keys of an object or an array of objects. */
-export const getKeys = <T extends Record<string, any>>(
-  obj?: T | T[]
-): string[] => {
-  if (!obj) return [];
-  return Array.isArray(obj)
-    ? obj.flatMap((o) => Object.keys(o))
-    : Object.keys(obj);
+/** Gets the values of a dictionary. */
+export const getDictValues = <T>(obj: Dictionary<T>) => {
+  return Object.values(obj).filter((v) => v !== undefined) as T[];
 };
 
-/** Gets the values of an object or an array of objects. */
-export const getValues = <T extends Record<string, any>>(
-  obj: T | T[]
-): T[keyof T][] => {
-  return Array.isArray(obj)
-    ? obj.flatMap((o) => Object.values(o))
-    : Object.values(obj);
+/** Get the keys of a record. */
+export const getRecordKeys = <T extends Record<any, any>>(
+  obj?: T
+): (keyof T)[] => {
+  if (obj === undefined) return [];
+  return Object.keys(obj) as (keyof T)[];
 };
 
 /** Get an object from a record by key or return undefined. */
 export const getValueByKey = <T, K extends keyof T>(obj?: T, key?: K) => {
-  return key !== undefined ? obj?.[key] : undefined;
+  return key === undefined ? undefined : obj?.[key];
 };
 
-/** Get an array from a record by key or return an empty array. */
-export const getArrayByKey = <T, K extends keyof T>(obj?: T, key?: K) => {
-  return getValueByKey(obj, key) || ([] as T[K]);
+/** Get a properly typed array from a record by key or return an empty array. */
+export const getArrayByKey = <
+  T extends Dictionary<S>,
+  S extends any = NonNullable<T[keyof T]>
+>(
+  obj?: T,
+  key?: keyof T
+) => {
+  if (obj === undefined || obj === null) return [] as NonNullable<S>;
+  if (key === undefined || key === null) return [] as NonNullable<S>;
+  const value = obj?.[key];
+  if (value === undefined || value === null) return [] as NonNullable<S>;
+  return value as NonNullable<S>;
 };
 
 /** Get an array of objects from a record using the given keys. */
-export const getValuesByKeys = <T, K extends keyof T>(
-  obj: T,
-  keys: (K | undefined)[]
-): T[K][] => {
-  return keys.map((key) => getValueByKey(obj, key)).filter(Boolean) as T[K][];
-};
-
-/** Returns the number of keys of an object. */
-export const getKeyCount = (obj: Record<string, any>) => {
-  return Object.keys(obj).length;
+export const getValuesByKeys = <T, K extends keyof T>(obj: T, keys: K[]) => {
+  return keys
+    .map((key) => getValueByKey(obj, key))
+    .filter(Boolean) as NonNullable<T[K]>[];
 };
 
 /** Returns true if an object has any keys. */
-export const hasKeys = (obj: Record<string, any>) => {
-  return Object.keys(obj).length > 0;
+export const hasKeys = (obj?: Record<string, any>) => {
+  return obj !== undefined && Object.keys(obj).length > 0;
 };
 
 /** Find the first entry containing the value within the given record. */
@@ -111,4 +98,20 @@ export const spliceOrPush = <T>(
   } else {
     array.push(value);
   }
+};
+
+/** Sum the numerical values in an array of records. */
+export const sumVectors = <T extends Vector>(
+  ...records: (T | undefined)[]
+): T => {
+  const result = {} as T;
+  for (const record of records) {
+    if (record === undefined) continue;
+    for (const key in record) {
+      const oldValue = result[key] ?? 0;
+      const newValue = record[key] ?? 0;
+      result[key] = (oldValue + newValue) as T[Extract<keyof T, string>];
+    }
+  }
+  return result;
 };

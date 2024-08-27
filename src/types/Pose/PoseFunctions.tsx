@@ -1,82 +1,119 @@
 import * as _ from "./PoseTypes";
-import { TrackId, TrackMap, getTrackLabel, isScaleTrack } from "types/Track";
-import { getKeys } from "utils/objects";
-import { ScaleVector } from "types/Scale";
+import { getRecordKeys } from "utils/objects";
 import { PresetPoseGroupList, PresetPoseGroupMap } from "presets/poses";
 import { WholeNoteTicks } from "utils/durations";
 import pluralize from "pluralize";
+import { ScaleVector } from "types/Scale/ScaleTypes";
+import { getOrderedTrackIds, getTrackLabel } from "types/Track/TrackFunctions";
+import {
+  TrackId,
+  TrackMap,
+  isScaleTrack,
+  isTrackId,
+} from "types/Track/TrackTypes";
+import { isPitchClass } from "types/units";
+import { isVoiceLeading } from "./PoseTypes";
+import { ChromaticKey, ChromaticPitchClass } from "presets/keys";
 
 // ------------------------------------------------------------
 // Pose Serializers
 // ------------------------------------------------------------
 
-/** Get a `PoseVector` as a string. */
-export const getPoseVectorAsString = (
+/** Get a `PoseVector` as JSX. */
+export const getPoseVectorAsJSX = (
   vector?: _.PoseVector,
   trackMap?: TrackMap
 ) => {
   if (!vector) return "";
-  const keys = getKeys(vector);
-  const trackKeys = keys.filter((k) => k !== "chromatic" && k !== "chordal");
-  const stringKeys: string[] = [];
 
-  // Add the chromatic first
-  stringKeys.push(`N${vector.chromatic ?? 0}`);
+  // Return the origin if the vector is empty
+  if (isPoseIdentityVector(vector)) return <span>No Movement</span>;
 
-  // Add all track IDs
-  for (const key of trackKeys) {
-    if (!trackMap) continue;
-    const label = getTrackLabel(key, trackMap);
-    const value = vector[key];
-    stringKeys.push(`T${label}(${value})`);
+  // Otherwise, parse the keys and create a string for each offset
+  const keys = getVectorKeys(vector);
+  const trackIds: TrackId[] = [];
+  if (trackMap) {
+    const orderedTrackIds = getOrderedTrackIds(trackMap);
+    const keyTrackIds = keys.filter(isTrackId) as TrackId[];
+    trackIds.push(
+      ...keyTrackIds.sort((a, b) => {
+        return orderedTrackIds.indexOf(a) - orderedTrackIds.indexOf(b);
+      })
+    );
   }
 
-  // Add the chordal last
-  stringKeys.push(`t${vector.chordal ?? 0}`);
-
-  // Return the joined string
-  return stringKeys.join(" - ");
-};
-
-/** Get a `PoseVector` as JSX. */
-export const getPoseVectorAsJSX = (
-  vector?: _.PoseVector,
-  trackMap?: TrackMap,
-  margin = "mx-1"
-) => {
-  if (!vector) return "";
-  const keys = getVectorKeys(vector);
-  const trackKeys = keys.filter((k) => k !== "chromatic" && k !== "chordal");
-
-  // Add the chromatic first
-  const chromatic = <span className={margin}>N{vector.chromatic ?? 0}</span>;
-
-  // Add all track IDs
-  const scalars = trackKeys.map((key, i) => {
-    if (!trackMap) return null;
-    const label = getTrackLabel(key, trackMap);
-    const value = vector[key];
-    if (!value) return null;
-    return (
-      <span key={`scalar-${i}`}>
-        <span className={margin}>
-          T<sub>{label}</sub>({value})
+  // Create an element for the pitch classes if there is a voice leading
+  const classes = getVectorPitchClasses(vector);
+  const count = classes.length;
+  const hasSeveralClasses = count > 0;
+  const pitchKeys = isVoiceLeading(vector) ? (
+    <span>
+      {hasSeveralClasses ? "(" : ""}
+      {classes.map((pitch, i) => (
+        <span key={`pitch-${i}`}>
+          {pitch}: {vector[pitch]}
+          {i < count - 1 ? ", " : ""}
         </span>
-        <span className={margin}>•</span>
-      </span>
-    );
-  });
+      ))}
+      {hasSeveralClasses ? ")" : ""}
+    </span>
+  ) : null;
 
-  // Add the chordal last
-  const chordal = <span className={margin}>t{vector.chordal ?? 0}</span>;
+  // Create a component for every existing track ID
+  const trackCount = trackIds.length;
+  const hasSeveralTracks = trackCount > 0;
+  const trackKeys =
+    hasSeveralTracks && trackMap ? (
+      <span>
+        {hasSeveralTracks ? "(" : ""}
+        {trackIds.map((id, i) => {
+          const label = getTrackLabel(id, trackMap);
+          const value = vector[id];
+          return (
+            <span key={`scalar-${i}`}>
+              T{label}: {value}
+              {i < trackCount - 1 ? ", " : ""}
+            </span>
+          );
+        })}
+        {hasSeveralTracks ? ")" : ""}
+      </span>
+    ) : null;
+
+  // Create a chromatic component
+  const chromaticValue = vector.chromatic;
+  const hasChromatic = vector.chromatic !== undefined;
+  const chromatic = hasChromatic ? <span>T{chromaticValue}</span> : null;
+
+  // Create a chordal component
+  const chordalValue = vector.chordal;
+  const hasChordal = vector.chordal !== undefined;
+  const chordal = hasChordal ? <span>t{chordalValue}</span> : null;
+
+  // Create an octave component
+  const octaveValue = vector.octave;
+  const hasOctave = vector.octave !== undefined;
+  const octave = hasOctave ? <span>O{octaveValue}</span> : null;
+
+  // Get all existing components
+  const components = [pitchKeys, trackKeys, chordal, chromatic, octave].filter(
+    (t) => t !== null
+  );
+  const componentCount = components.length;
+
+  // Create the vector element and add a comma before the end
+  const vectorElement = components.map((t, i) => {
+    if (componentCount > 1 && i < componentCount - 1) {
+      return <span key={`offset-${i}`}>{t} + </span>;
+    } else {
+      return <span key={`offset-${i}`}>{t}</span>;
+    }
+  });
 
   // Return the joined string
   return (
-    <span className="text-md">
-      {chromatic}
-      <span className={margin}>•</span>
-      {scalars}
-      {chordal}
+    <span className="flex font-light whitespace-nowrap">
+      <span className="font-semibold">{vectorElement}</span>
     </span>
   );
 };
@@ -155,11 +192,11 @@ export const createPoseMap = (poses: _.Pose[]) => {
 /** Map over a vector and reduce its keys into a new vector. */
 export const mapPoseVector = (
   vector: _.PoseVector,
-  fn: (key: string, value: number) => number
+  fn: (key: _.PoseVectorId, value: number) => number
 ) => {
-  const keys = getKeys(vector);
+  const keys = getRecordKeys(vector);
   return keys.reduce((acc, cur) => {
-    return { ...acc, [cur]: fn(cur, vector[cur]) };
+    return { ...acc, [cur]: fn(cur, vector[cur] ?? 0) };
   }, {} as _.PoseVector);
 };
 
@@ -171,9 +208,9 @@ export const sumPoseVectors = (...vectors: _.PoseVector[]): _.PoseVector => {
   // Sum across every key in every vector
   const vector: _.PoseVector = {};
   for (const vec of allVectors) {
-    const keys = getKeys(vec);
+    const keys = getRecordKeys(vec);
     for (const key of keys) {
-      vector[key] = (vector[key] || 0) + vec[key];
+      vector[key] = (vector[key] || 0) + (vec[key] || 0);
     }
   }
   return vector;
@@ -195,7 +232,7 @@ export const multiplyPoseVectors = (
   const allVectors = [...vectors];
   if (!allVectors.length) return {};
   return allVectors.reduce((acc, cur) =>
-    mapPoseVector(acc, (key, value) => value * cur[key])
+    mapPoseVector(acc, (key, value) => value * (cur[key] ?? 1))
   );
 };
 
@@ -205,10 +242,14 @@ export const getPoseVectorAsScaleVector = (
   tracks?: TrackMap
 ) => {
   if (!vector || !tracks) return {};
-  const keys = getKeys(vector);
+  const keys = getRecordKeys(vector);
   return keys.reduce((acc, cur) => {
-    const track = tracks[cur];
-    if (isScaleTrack(track)) acc[track.scaleId] = vector[cur];
+    const track = isTrackId(cur) ? tracks[cur] : undefined;
+    if (isScaleTrack(track)) {
+      acc[track.scaleId] = vector[cur] ?? 0;
+    } else if (isPitchClass(cur)) {
+      acc[cur] = vector[cur] ?? 0;
+    }
     return acc;
   }, {} as ScaleVector);
 };
@@ -219,7 +260,7 @@ export const getPoseVectorAsScaleVector = (
 
 /** Returns true if a pose has a stream of one vector. */
 export const isPoseBucket = (pose?: _.Pose) => {
-  if (!pose) return {};
+  if (!pose) return false;
   const stream = pose.stream;
   if (stream.length !== 1) return false;
   return _.isPoseVectorModule(stream[0]);
@@ -227,7 +268,7 @@ export const isPoseBucket = (pose?: _.Pose) => {
 
 /** Get the first vector of a Pose if it is a bucket. */
 export const getPoseBucketVector = (pose?: _.Pose) => {
-  if (!pose) return {};
+  if (!pose || !pose.stream.length) return {};
   const block = pose.stream[0];
   if (_.isPoseVectorModule(block)) return block.vector;
   return {};
@@ -248,14 +289,19 @@ export const getPoseCategory = (pattern?: _.Pose) => {
   );
 };
 
+/** Returns true if a pose vector has 0s for all keys. */
+export const isPoseIdentityVector = (vector?: _.PoseVector) => {
+  if (!vector) return false;
+  const keys = getRecordKeys(vector);
+  return keys.length === 0;
+};
+
 /** Get the sorted keys from a vector. */
 export const getVectorKeys = (vector?: _.PoseVector, trackMap?: TrackMap) => {
   const keys = [
     ...new Set([
-      ...getKeys(vector),
+      ...getRecordKeys(vector),
       ...(trackMap ? Object.keys(trackMap) : []),
-      "chromatic",
-      "chordal",
     ]),
   ];
   return keys.sort((a, b) => {
@@ -263,8 +309,10 @@ export const getVectorKeys = (vector?: _.PoseVector, trackMap?: TrackMap) => {
     if (b === "chromatic") return 1;
     if (a === "chordal") return -1;
     if (b === "chordal") return 1;
+    if (a === "octave") return -1;
+    if (b === "octave") return 1;
     return a.localeCompare(b);
-  });
+  }) as _.PoseVectorId[];
 };
 
 /** Get the chromatic offset from the vector. */
@@ -277,6 +325,29 @@ export const getVector_N = (vector?: _.PoseVector) => {
 export const getVector_t = (vector?: _.PoseVector) => {
   if (!vector) return 0;
   return vector.chordal || 0;
+};
+
+/** Get the octave offset from the vector. */
+export const getVector_O = (vector?: _.PoseVector) => {
+  if (!vector) return 0;
+  return vector.octave || 0;
+};
+
+/** Get the pitch classes in the keys of a vector. */
+export const getVectorPitchClasses = (
+  vector?: _.PoseVector
+): ChromaticPitchClass[] => {
+  if (!vector) return [];
+  const pitchClasses = Object.keys(vector).filter(
+    (key) =>
+      key !== "chromatic" &&
+      key !== "chordal" &&
+      key !== "octave" &&
+      !isTrackId(key)
+  ) as ChromaticPitchClass[];
+  return pitchClasses.sort(
+    (a, b) => ChromaticKey.indexOf(a) - ChromaticKey.indexOf(b)
+  );
 };
 
 /** Get the pose offset by ID from the vector. */
@@ -303,8 +374,11 @@ export const getPoseVectorOffsetName = (
 ) => {
   if (offsetId === "chromatic") return "Chromatic";
   if (offsetId === "chordal") return "Chordal";
-  if (!trackMap) return "";
-  return `Scale Track (${getTrackLabel(offsetId, trackMap)})`;
+  if (offsetId === "octave") return "Octave";
+  if (isTrackId(offsetId) && trackMap) {
+    return `Track ${getTrackLabel(offsetId, trackMap)}`;
+  }
+  return offsetId;
 };
 
 // ------------------------------------------------------------
@@ -312,7 +386,9 @@ export const getPoseVectorOffsetName = (
 // ------------------------------------------------------------
 
 /** Get the duration of a stream or Infinity if some element's duration is undefined. */
-export const getPoseStreamDuration = (stream: _.PoseStream) => {
+export const getPoseDuration = (pose?: _.Pose) => {
+  const stream = pose?.stream;
+  if (!stream) return 0;
   return stream.reduce((acc, block) => {
     const duration = block.duration || Infinity;
     const repeat = block.repeat || 1;
@@ -322,14 +398,15 @@ export const getPoseStreamDuration = (stream: _.PoseStream) => {
 
 /** Get the vector at the given index within the stream */
 export const getPoseVectorAtIndex = (
-  stream: _.PoseStream,
+  pose: _.Pose,
   index: number,
   lastIndex: number = 0
 ): _.PoseVector => {
+  const stream = pose.stream;
   let currentIndex = 0;
 
   // Compute the last index initially by taking the duration of the stream
-  if (!lastIndex) lastIndex = getPoseStreamDuration(stream);
+  if (!lastIndex) lastIndex = getPoseDuration(pose);
 
   // Keep iterating until the last index is passed
   while (currentIndex < lastIndex) {
@@ -359,7 +436,7 @@ export const getPoseVectorAtIndex = (
 
           // Otherwise, recursively call the function on the stream
           const stream = block.stream;
-          return getPoseVectorAtIndex(stream, blockLocalIndex, blockLastIndex);
+          return getPoseVectorAtIndex(pose, blockLocalIndex, blockLastIndex);
         }
 
         // Increment the local index by the duration of the current block
@@ -406,11 +483,19 @@ export const mapPoseStreamVectors = (
 };
 
 /** Update a pose's stream by directly setting each vector's offset */
-export const updatePoseStreamVectors = (
+export const mergePoseStreamVectors = (
   stream: _.PoseStream,
   vector: _.PoseVector
 ) => {
   return mapPoseStreamVectors(stream, (oldVec) => ({ ...oldVec, ...vector }));
+};
+
+/** Update a pose's stream by directly setting each vector's offset */
+export const updatePoseStreamVectors = (
+  stream: _.PoseStream,
+  vector: _.PoseVector
+) => {
+  return mapPoseStreamVectors(stream, (_) => vector);
 };
 
 /** Update a pose's stream by summing the given vector with each offset */

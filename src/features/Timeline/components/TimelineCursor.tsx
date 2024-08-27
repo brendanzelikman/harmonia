@@ -1,13 +1,13 @@
 import { HEADER_HEIGHT } from "utils/constants";
 import { useTransportTick } from "hooks";
 import { memo } from "react";
-import { useProjectSelector } from "redux/hooks";
+import { useProjectSelector } from "types/hooks";
+import { isTransportStarted } from "types/Transport/TransportFunctions";
 import {
   selectCellWidth,
   selectTimelineTickLeft,
-  selectTransport,
-} from "redux/selectors";
-import { isTransportStarted } from "types/Transport";
+} from "types/Timeline/TimelineSelectors";
+import { selectTransport } from "types/Transport/TransportSelectors";
 
 const TimelineCursor = () => {
   const tick = useTransportTick();

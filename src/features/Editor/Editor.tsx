@@ -1,30 +1,43 @@
-import * as _ from "types/Editor";
-import { useProjectDispatch, useProjectSelector } from "redux/hooks";
-import { selectEditor } from "redux/Editor";
+import { use, useDeep } from "types/hooks";
 import { EditorNavbar } from "./components/EditorNavbar";
 import { useHotkeyScope } from "hooks";
-import { Track } from "types/Track";
-import {
-  selectSelectedPattern,
-  selectSelectedPose,
-  selectSelectedTrack,
-} from "redux/Timeline";
-import { ScaleObject } from "types/Scale";
-import { Pattern } from "types/Pattern";
-import { selectTrackScale } from "redux/Track";
-import { Instrument, InstrumentKey, LiveAudioInstance } from "types/Instrument";
+import { ScaleObject } from "types/Scale/ScaleTypes";
+import { Pattern } from "types/Pattern/PatternTypes";
 import { useEditorInstrument } from "./hooks/useEditorInstrument";
-import { Dispatch } from "types/Project";
-import { Editor } from "./components";
-import { EditorTooltipProps } from "./components/EditorTooltip";
-import { EditorButtonProps } from "./components/EditorButton";
 import { useEditorView } from "./hooks/useEditorView";
 import classNames from "classnames";
-import { Pose } from "types/Pose";
+import { Pose } from "types/Pose/PoseTypes";
+import { LiveAudioInstance } from "types/Instrument/InstrumentClass";
+import { Instrument, InstrumentKey } from "types/Instrument/InstrumentTypes";
+import {
+  isScaleEditorOpen,
+  isPatternEditorOpen,
+  isPoseEditorOpen,
+  isInstrumentEditorOpen,
+  isEditorOpen,
+  isEditorVisible,
+  isEditorIdle,
+  isEditorAddingNotes,
+  isEditorInsertingNotes,
+  isEditorRemovingNotes,
+  isEditorShowingTracks,
+  isEditorShowingTooltips,
+  isEditorShowingPiano,
+  isEditorShowingSidebar,
+} from "types/Editor/EditorFunctions";
+import { Editor } from "types/Editor/EditorTypes";
+import { Track } from "types/Track/TrackTypes";
+import { selectHasTracks } from "types/Arrangement/ArrangementSelectors";
+import { selectEditor } from "types/Editor/EditorSelectors";
+import {
+  selectSelectedTrack,
+  selectSelectedScale,
+  selectSelectedPattern,
+  selectSelectedPose,
+} from "types/Timeline/TimelineSelectors";
+import { selectTrackScale } from "types/Track/TrackSelectors";
 
-export interface EditorProps extends _.Editor {
-  dispatch: Dispatch;
-
+export interface EditorProps extends Editor {
   // The editor uses currently selected objects for various purposes
   track?: Track;
   scale?: ScaleObject;
@@ -55,54 +68,42 @@ export interface EditorProps extends _.Editor {
   isShowingTooltips: boolean;
   isShowingPiano: boolean;
   isShowingSidebar: boolean;
-
-  // The editor passes some components with derived props
-  Tooltip: React.FC<EditorTooltipProps>;
-  Button: React.FC<EditorButtonProps>;
 }
 
 function EditorComponent() {
-  const dispatch = useProjectDispatch();
-  const editor = useProjectSelector(selectEditor);
+  const editor = useDeep(selectEditor);
 
   // The editor uses currently selected objects for various purposes
-  const track = useProjectSelector(selectSelectedTrack);
-  const scale = useProjectSelector((_) => selectTrackScale(_, track?.id));
-  const pattern = useProjectSelector(selectSelectedPattern);
-  const pose = useProjectSelector(selectSelectedPose);
+  const track = useDeep(selectSelectedTrack);
+  const scale = useDeep(
+    (_) => selectTrackScale(_, track?.id) ?? selectSelectedScale(_)
+  );
+  const pattern = useDeep(selectSelectedPattern);
+  const pose = useDeep(selectSelectedPose);
+  const hasTracks = use(selectHasTracks);
 
   // Each view has a corresponding instrument available
   const { instrument, setInstrument, instance } = useEditorInstrument();
 
   // The editor can only be in one view at a time
-  const onScaleEditor = _.isScaleEditorOpen(editor);
-  const onPatternEditor = _.isPatternEditorOpen(editor);
-  const onPoseEditor = _.isPoseEditorOpen(editor);
-  const onInstrumentEditor = _.isInstrumentEditorOpen(editor);
+  const onScaleEditor = isScaleEditorOpen(editor);
+  const onPatternEditor = isPatternEditorOpen(editor);
+  const onPoseEditor = isPoseEditorOpen(editor);
+  const onInstrumentEditor = isInstrumentEditorOpen(editor);
 
   // The editor has various states describing it
-  const isOpen = _.isEditorOpen(editor);
-  const isVisible = _.isEditorVisible(editor);
-  const isActive = !_.isEditorIdle(editor);
-  const isAdding = _.isEditorAddingNotes(editor);
-  const isInserting = _.isEditorInsertingNotes(editor);
-  const isRemoving = _.isEditorRemovingNotes(editor);
+  const isOpen = isEditorOpen(editor);
+  const isVisible = isEditorVisible(editor);
+  const isActive = !isEditorIdle(editor);
+  const isAdding = isEditorAddingNotes(editor);
+  const isInserting = isEditorInsertingNotes(editor);
+  const isRemoving = isEditorRemovingNotes(editor);
 
   // The editor has global settings
-  const isShowingTracks = _.isEditorShowingTracks(editor);
-  const isShowingTooltips = _.isEditorShowingTooltips(editor);
-  const isShowingPiano = _.isEditorShowingPiano(editor);
-  const isShowingSidebar = _.isEditorShowingSidebar(editor);
-
-  // The editor passes some components with derived props
-  const Tooltip = (props: EditorTooltipProps) => (
-    <Editor.Tooltip {...props} show={isShowingTooltips} />
-  );
-  const Button = (props: EditorButtonProps) => (
-    <Tooltip content={props.label ?? ""}>
-      <Editor.Button {...props} />
-    </Tooltip>
-  );
+  const isShowingTracks = !hasTracks ? false : isEditorShowingTracks(editor);
+  const isShowingTooltips = isEditorShowingTooltips(editor);
+  const isShowingPiano = isEditorShowingPiano(editor);
+  const isShowingSidebar = isEditorShowingSidebar(editor);
 
   // The editor uses a custom hotkey scope
   useHotkeyScope("editor", isVisible);
@@ -110,7 +111,6 @@ function EditorComponent() {
   // The editor passes its props down to all of the typed editors
   const editorProps: EditorProps = {
     ...editor,
-    dispatch,
     track,
     scale,
     pattern,
@@ -132,8 +132,6 @@ function EditorComponent() {
     isShowingTooltips,
     isShowingPiano,
     isShowingSidebar,
-    Tooltip,
-    Button,
   };
 
   /** Only render the editor if it is visible. */
@@ -141,8 +139,9 @@ function EditorComponent() {
 
   const editorClass = classNames(
     isShowingTracks ? "w-[calc(100%-300px)]" : "w-full",
-    "top-0 right-0 h-full bg-gradient-to-t from-[#09203f] to-[#33454b]",
-    "font-nunito z-10 transition-all duration-300",
+    "top-0 right-0 h-full",
+    "bg-gradient-to-t from-[#09203f] to-[#33454b]",
+    "font-nunito transition-all",
     { "absolute animate-in fade-in": isVisible },
     { "hidden animate-out fade-out pointer-events-none": !isVisible }
   );

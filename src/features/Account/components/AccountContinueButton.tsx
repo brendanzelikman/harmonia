@@ -1,7 +1,9 @@
 import classNames from "classnames";
+import { ActionCodeSettings, Auth, getAuth } from "firebase/auth";
 import isElectron from "is-electron";
+import { firebaseApp } from "providers/firebase";
 import { useState, useEffect } from "react";
-import { sendSignInLinkToEmail } from "utils/authentication";
+import { WEBSITE_URL } from "utils/constants";
 
 interface AccountContinueButtonProps {
   email: string;
@@ -17,9 +19,21 @@ export const AccountContinueButton = (props: AccountContinueButtonProps) => {
   const changedContinueText = continueText !== defaultContinueText;
 
   // Fire the appropriate function based on the password and login state
-  const onContinueClick = () => {
+  const onContinueClick = async () => {
     if (!email.length) return;
-    sendSignInLinkToEmail(email);
+    const auth = getAuth(firebaseApp);
+    const tag = isElectron() ? "electron" : "link";
+    const url = `${WEBSITE_URL}/#/magic-${tag}`;
+    const actionCodeSettings: ActionCodeSettings = {
+      url,
+      handleCodeInApp: true,
+    };
+    try {
+      sendMagicLink(auth, email, actionCodeSettings);
+      window.localStorage.setItem("emailForSignIn", email);
+    } catch (error) {
+      console.error(error);
+    }
     setContinueText("Sent the Magic Link!");
     const timer = setTimeout(() => setContinueText(defaultContinueText), 1000);
     setLinkTimer(timer);
@@ -57,3 +71,10 @@ export const AccountContinueButton = (props: AccountContinueButtonProps) => {
     </button>
   );
 };
+function sendMagicLink(
+  auth: Auth,
+  email: string,
+  actionCodeSettings: ActionCodeSettings
+) {
+  throw new Error("Function not implemented.");
+}

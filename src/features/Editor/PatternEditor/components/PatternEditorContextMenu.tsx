@@ -1,49 +1,39 @@
 import { ContextMenu, ContextMenuOption } from "components/ContextMenu";
 import { PatternEditorProps } from "../PatternEditor";
-import { isEditorAddingNotes, isEditorInsertingNotes } from "types/Editor";
-import {
-  createPattern,
-  exportPatternToMIDI,
-  exportPatternToXML,
-} from "redux/thunks";
-import { toggleEditorAction } from "redux/Editor";
-import { addPatternBlock, clearPattern } from "redux/Pattern";
 import { getDurationTicks } from "utils/durations";
+import {
+  isEditorAddingNotes,
+  isEditorInsertingNotes,
+} from "types/Editor/EditorFunctions";
+import { toggleEditorAction } from "types/Editor/EditorSlice";
+import { addPatternBlock } from "types/Pattern/PatternSlice";
+import { useProjectDispatch } from "types/hooks";
+import { exportPatternToMIDI } from "types/Pattern/PatternExporters";
+import {
+  clearPattern,
+  createPattern,
+  downloadPatternAsXML,
+} from "types/Pattern/PatternThunks";
 
 export function PatternEditorContextMenu(props: PatternEditorProps) {
-  const { dispatch, undo, redo } = props;
-  const { isCustom, isEmpty, pattern, cursor, canUndo, canRedo } = props;
+  const dispatch = useProjectDispatch();
+  const { isCustom, isEmpty, pattern, cursor } = props;
   const id = pattern?.id;
   const duration = getDurationTicks(props.settings.note.duration);
   const isAdding = isEditorAddingNotes(props);
   const isInserting = isEditorInsertingNotes(props);
 
-  // Undo Last Action
-  const Undo: ContextMenuOption = {
-    label: "Undo Last Action",
-    onClick: undo,
-    disabled: !canUndo,
-  };
-
-  // Redo Last Action
-  const Redo: ContextMenuOption = {
-    label: "Redo Last Action",
-    onClick: redo,
-    disabled: !canRedo,
-    divideEnd: true,
-  };
-
   // Toggle Adding Notes
   const Add: ContextMenuOption = {
     label: `${isAdding ? "Stop" : "Start"} Adding Notes`,
-    onClick: () => dispatch(toggleEditorAction("addingNotes")),
+    onClick: () => dispatch(toggleEditorAction({ data: "addingNotes" })),
     disabled: !isCustom,
   };
 
   // Toggle Inserting Notes
   const Insert: ContextMenuOption = {
     label: `${isInserting ? "Stop" : "Start"} Inserting Notes`,
-    onClick: () => dispatch(toggleEditorAction("insertingNotes")),
+    onClick: () => dispatch(toggleEditorAction({ data: "insertingNotes" })),
     disabled: !isCustom || props.cursor.hidden,
   };
 
@@ -86,7 +76,8 @@ export function PatternEditorContextMenu(props: PatternEditorProps) {
   const DuplicatePattern: ContextMenuOption = {
     label: "Duplicate Pattern",
     onClick: () =>
-      pattern && dispatch(createPattern({ name: `${pattern.name} Copy` })),
+      pattern &&
+      dispatch(createPattern({ data: { name: `${pattern.name} Copy` } })),
   };
 
   // Export Pattern to XML
@@ -98,13 +89,11 @@ export function PatternEditorContextMenu(props: PatternEditorProps) {
   // Export Pattern to MusicXML
   const ExportXML: ContextMenuOption = {
     label: "Export Pattern to XML",
-    onClick: () => dispatch(exportPatternToXML(pattern, true)),
+    onClick: () => id && dispatch(downloadPatternAsXML(id)),
   };
 
   // Compile the menu options
   const menuOptions = [
-    Undo,
-    Redo,
     isCustom ? Add : null,
     isCustom ? Insert : null,
     isCustom ? Cursor : null,

@@ -1,34 +1,31 @@
-import { AnyAction, ThunkAction, nanoid } from "@reduxjs/toolkit";
+import { AnyAction, ThunkAction } from "@reduxjs/toolkit";
 import { isPlainObject, isString } from "lodash";
-import { defaultDiary } from "redux/Diary";
-import { store } from "redux/store";
+import { BaseProject, store } from "providers/store";
+import { defaultArrangement } from "types/Arrangement/ArrangementTypes";
+import { defaultEditor, isEditor } from "types/Editor/EditorTypes";
+import { defaultTimeline, isTimeline } from "types/Timeline/TimelineTypes";
+import { defaultTransport, isTransport } from "types/Transport/TransportTypes";
+import { isOptionalType } from "types/util";
+import { Safe } from "types/units";
 import {
-  defaultArrangementHistory,
-  isLiveArrangement,
-} from "types/Arrangement";
-import { defaultEditor, isEditor } from "types/Editor";
-import { defaultPatternHistory, isPattern } from "types/Pattern";
-import { defaultPoseHistory, isPose } from "types/Pose";
-import { defaultScaleHistory, isScaleObject } from "types/Scale";
-import { defaultTimeline, isTimeline } from "types/Timeline";
-import { defaultTransport, isTransport } from "types/Transport";
-import { isUndoableHistory } from "utils/undoableHistory";
+  defaultProjectMetadata,
+  initializeProjectMetadata,
+  ProjectMetadata,
+} from "./MetadataTypes";
+import { defaultMotifState } from "types/Motif/MotifTypes";
 
 // ------------------------------------------------------------
 // Project Definitions
 // ------------------------------------------------------------
 
-/** The `ProjectMetadata` contains the top-level info of the project. */
-export interface ProjectMetadata {
-  id: string;
-  name: string;
-  dateCreated: string;
-  lastUpdated: string;
-}
-
-/** The Project type is derived from the Redux state. */
+/** The Project type is the undoable history derived from the state. */
 export type Project = ReturnType<typeof store.getState>;
 export type Dispatch = typeof store.dispatch;
+
+/** The UnsafeProject type safely accesses the fields of a project. */
+export type SafeProject = Safe<Project>;
+
+/** The Thunk type creates callbacks for the project. */
 export type Thunk<ReturnType = void> = ThunkAction<
   ReturnType,
   Project,
@@ -36,45 +33,35 @@ export type Thunk<ReturnType = void> = ThunkAction<
   AnyAction
 >;
 
-// There are some partial types defined for Projects as well.
-export type ProjectPatterns = Project["patterns"];
-export type ProjectPoses = Project["poses"];
-export type ProjectScales = Project["scales"];
-export type ProjectArrangement = Project["arrangement"];
-
-// ------------------------------------------------------------
-// Project Initialization
-// ------------------------------------------------------------
-
-/** Create project metadata with a unique ID and the current date. */
-export const initializeProjectMetadata = (): ProjectMetadata => ({
-  id: `harmonia-project-${nanoid()}`,
-  name: "New Project",
-  dateCreated: new Date().toISOString(),
-  lastUpdated: new Date().toISOString(),
-});
-
-/** Create a project with unique metadata. */
-export const initializeProject = (
-  template: Project = defaultProject
-): Project => {
-  const meta = initializeProjectMetadata();
-  if (template.meta.name !== "New Project") {
-    meta.name = `${template.meta.name} Copy`;
-  }
-  return { ...template, meta };
-};
-
-export const defaultProject: Project = {
-  meta: initializeProjectMetadata(),
-  scales: defaultScaleHistory,
-  patterns: defaultPatternHistory,
-  poses: defaultPoseHistory,
-  arrangement: defaultArrangementHistory,
+// The default base project
+export const defaultBaseProject: BaseProject = {
+  meta: defaultProjectMetadata,
+  ...defaultArrangement,
+  motifs: defaultMotifState,
   timeline: defaultTimeline,
   editor: defaultEditor,
   transport: defaultTransport,
-  diary: defaultDiary,
+};
+
+// The default project state.
+export const defaultProject: Project = {
+  past: [],
+  present: defaultBaseProject,
+  future: [],
+};
+defaultProject._latestUnfiltered = defaultProject.present;
+
+/** Create a project with unique metadata. */
+export const initializeProject = (template: Project = defaultProject) => {
+  const meta = initializeProjectMetadata();
+  if (template.present.meta.name !== "New Project") {
+    meta.name = `${template.present.meta.name} Copy`;
+  }
+  const project: Project = {
+    ...template,
+    present: { ...template.present, meta },
+  };
+  return project;
 };
 
 // ------------------------------------------------------------
@@ -87,9 +74,9 @@ export const isProjectMetadata = (obj: unknown): obj is ProjectMetadata => {
   return (
     isPlainObject(candidate) &&
     isString(candidate.id) &&
-    isString(candidate.name) &&
-    isString(candidate.dateCreated) &&
-    isString(candidate.lastUpdated)
+    isOptionalType(candidate.name, isString) &&
+    isOptionalType(candidate.dateCreated, isString) &&
+    isOptionalType(candidate.lastUpdated, isString)
   );
 };
 
@@ -97,15 +84,10 @@ export const isProjectMetadata = (obj: unknown): obj is ProjectMetadata => {
 export const isProject = (obj: unknown): obj is Project => {
   const candidate = obj as Project;
   return (
-    isPlainObject(candidate) &&
-    isProjectMetadata(candidate.meta) &&
-    isUndoableHistory(candidate.scales, isScaleObject) &&
-    isUndoableHistory(candidate.patterns, isPattern) &&
-    isUndoableHistory(candidate.poses, isPose) &&
-    isUndoableHistory(candidate.arrangement) &&
-    isLiveArrangement(candidate.arrangement.present) &&
-    isTimeline(candidate.timeline) &&
-    isEditor(candidate.editor) &&
-    isTransport(candidate.transport)
+    isPlainObject(candidate?.present) &&
+    isProjectMetadata(candidate.present.meta) &&
+    isTimeline(candidate.present.timeline) &&
+    isEditor(candidate.present.editor) &&
+    isTransport(candidate.present.transport)
   );
 };

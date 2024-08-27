@@ -1,12 +1,5 @@
 import { isArray, isPlainObject, isString, range } from "lodash";
-import { nanoid } from "@reduxjs/toolkit";
-import {
-  NormalRecord,
-  NormalState,
-  createNormalState,
-} from "utils/normalizedState";
-import { UndoableHistory, createUndoableHistory } from "utils/undoableHistory";
-import { SCALE_TRACK_SCALE_NAME } from "utils/constants";
+import { TRACK_SCALE_NAME } from "utils/constants";
 import {
   areObjectKeysTyped,
   areObjectValuesTyped,
@@ -15,37 +8,34 @@ import {
   isOptionalType,
   isOptionalTypedArray,
 } from "types/util";
+import { createId, ID, PitchClass } from "types/units";
+import { Dictionary, EntityState } from "@reduxjs/toolkit";
 
 // ------------------------------------------------------------
 // Scale Generics
 // ------------------------------------------------------------
 
-export type ScaleId = string;
-export type ScaleNoId = Omit<ScaleObject, "id">;
-export type ScalePartial = Partial<ScaleObject>;
-export type ScaleUpdate = ScalePartial & { id: ScaleId };
-export type ScaleMap = NormalRecord<ScaleId, ScaleObject>;
-export type ScaleState = NormalState<ScaleMap>;
-export type ScaleHistory = UndoableHistory<ScaleState>;
+export type ScaleId = ID<"scale">;
+export type ScaleMap = Dictionary<ScaleObject>;
+export type ScaleState = EntityState<ScaleObject>;
 
 // ------------------------------------------------------------
 // Scale Definitions
 // ------------------------------------------------------------
 
 /** A scalar offset is contextualized by a scale ID. */
-export type ScaleVectorId = "chromatic" | "octave" | ScaleId;
+export type ScaleVectorId = "chromatic" | "octave" | PitchClass | ScaleId;
 
 /** A scale vector contains all of a scale's offsets. */
-export type ScaleVector = Record<ScaleVectorId, number>;
+export type ScaleVector = { [key in ScaleVectorId]?: number };
 
 /** A `MidiNoteValue` is a number between 0 and 127. */
 export type MidiValue = number;
-
-/** A `MidiNoteObject` contains a `MidiNoteValue`. */
+export type MidiValueScale = MidiValue[];
 export type MidiObject = { MIDI: MidiValue };
-
-/** A `MidiNote` is either a `MidiNoteValue` or a `MidiNoteObject`. */
+export type MidiObjectScale = MidiObject[];
 export type MidiNote = MidiObject | MidiValue;
+export type MidiScale = MidiNote[];
 
 /** A `NestedNote` references a scale by degree. */
 export type NestedNote = {
@@ -64,21 +54,19 @@ export type ScaleNoteObject = MidiObject | NestedNote;
 export type ScaleArray = ScaleNote[];
 
 /** A `ScaleObject` is an object with an ID and array of notes. */
-export interface ScaleObject {
+export type ScaleObject = {
   id: ScaleId;
   notes: ScaleArray;
   name?: string;
   aliases?: string[];
-}
+};
 
 /** A `Scale` is either a `ScaleObject` or a `ScaleArray`. */
 export type Scale = ScaleObject | ScaleArray;
-
-/** A `ScaleChain` is an array of `ScaleObjects` */
 export type ScaleChain = ScaleObject[];
 
 /** A `PresetScale` has its id prefixed */
-export type PresetScale = ScaleObject & { id: `preset-${string}` };
+export type PresetScale = ScaleObject & { id: `scale_preset_${string}` };
 
 // ------------------------------------------------------------
 // Scale Initialization
@@ -87,19 +75,19 @@ export type PresetScale = ScaleObject & { id: `preset-${string}` };
 /** Create a scale with a unique ID. */
 export const initializeScale = (
   scale: Partial<ScaleObject> = chromaticScale
-): ScaleObject => ({ ...chromaticScale, ...scale, id: nanoid() });
+): ScaleObject => ({ ...chromaticScale, ...scale, id: createId("scale") });
 
 /** Create a scale track scale with a unique ID. */
 export const initializeScaleTrackScale = (
   scale: Partial<ScaleObject> = chromaticScale
-): ScaleObject => initializeScale({ ...scale, name: SCALE_TRACK_SCALE_NAME });
+): ScaleObject => initializeScale({ ...scale, name: TRACK_SCALE_NAME });
 
 /** The chromatic notes are a range of MidiValues. */
 export const chromaticNotes: MidiValue[] = range(60, 72);
 
 /** The chromatic scale is a ScaleObject containing MIDIValues.  */
 export const chromaticScale: ScaleObject = {
-  id: "chromatic-scale",
+  id: "scale_chromatic",
   name: "Chromatic Scale",
   notes: chromaticNotes,
 };
@@ -112,7 +100,7 @@ export const nestedChromaticNotes: ScaleArray = range(12).map((i) => ({
 
 /** The nested chromatic scale is a ScaleObject containing NestedNotes. */
 export const nestedChromaticScale: ScaleObject = {
-  id: "nested-chromatic-scale",
+  id: "scale_nested_chromatic",
   name: "Chromatic Scale",
   notes: nestedChromaticNotes,
 };
@@ -120,12 +108,13 @@ export const nestedChromaticScale: ScaleObject = {
 /** The default scale is a ScaleObject with nested notes. */
 export const defaultScale: ScaleObject = {
   ...nestedChromaticScale,
-  id: "default-nested-scale",
+  id: createId("scale"),
+  name: "New Scale",
 };
 
 /** The mock scale is used for testing. */
 export const mockScale: ScaleObject = {
-  id: "mock-nested-scale",
+  id: "scale_nested_mock",
   name: "Mock Scale",
   notes: [0, 2, 4, 5, 7, 9, 11].map((degree) => ({ degree })),
 };
@@ -133,17 +122,9 @@ export const mockScale: ScaleObject = {
 /** The default scale track scale is used in practice. */
 export const defaultScaleTrackScale: ScaleObject = {
   ...defaultScale,
-  name: SCALE_TRACK_SCALE_NAME,
+  id: "scale_track_scale",
+  name: TRACK_SCALE_NAME,
 };
-
-/** The default scale state is used for Redux. */
-export const defaultScaleState: ScaleState = createNormalState<ScaleMap>([
-  defaultScaleTrackScale,
-]);
-
-/** The default scale history is used for Redux. */
-export const defaultScaleHistory: ScaleHistory =
-  createUndoableHistory<ScaleState>(defaultScaleState);
 
 // ------------------------------------------------------------
 // Scale Type Guards
@@ -220,3 +201,23 @@ export const isScale = (obj: unknown): obj is Scale => {
   const candidate = obj as Scale;
   return isScaleArray(candidate) || isScaleObject(candidate);
 };
+
+/** Checks if a given object is of type `MidiValueScale` */
+export const isMidiValueScale = (obj: unknown): obj is MidiValueScale =>
+  isArray(obj) && obj.every(isMidiValue);
+
+/** Checks if a given object is of type `MidiObjectScale`. */
+export const isMidiObjectScale = (obj: unknown): obj is MidiObjectScale => {
+  const candidate = obj as ScaleObject;
+  return isScaleObject(candidate) && candidate.notes.every(isMidiObject);
+};
+
+/** Checks if a given object is of type `MidiScale`. */
+export const isMidiScale = (obj: unknown): obj is MidiScale => {
+  const candidate = obj as MidiScale;
+  return isArray(candidate) && candidate.every(isMidiNote);
+};
+
+// Checks if a given object is of type `ScaleId`.
+export const isScaleId = (obj: unknown): obj is ScaleId =>
+  isString(obj) && obj.startsWith("scale");

@@ -1,35 +1,37 @@
-import { Editor } from "features/Editor/components";
 import { ScaleEditorProps } from "../ScaleEditor";
 import { Sampler } from "tone";
 import { getMidiPitch } from "utils/midi";
-import { addNoteToScaleTrack, removeNoteFromScaleTrack } from "redux/Track";
+import { EditorPiano } from "features/Editor/components/EditorPiano";
+import { useProjectDispatch } from "types/hooks";
+import { addNoteToScale, removeNoteFromScale } from "types/Scale/ScaleThunks";
 
 export function ScaleEditorPiano(props: ScaleEditorProps) {
-  const { instance, track, isAdding, isRemoving, isShowingPiano } = props;
+  const dispatch = useProjectDispatch();
+  const { instance, scale, isAdding, isRemoving, isShowingPiano } = props;
 
   /** Play the note and add/remove it based on the editor action. */
   const playNote = (sampler: Sampler, midiNumber: number) => {
     if (isAdding) {
-      props.dispatch(addNoteToScaleTrack(track?.id, midiNumber));
+      dispatch(addNoteToScale(scale, midiNumber));
     } else if (isRemoving) {
-      props.dispatch(removeNoteFromScaleTrack(track?.id, midiNumber));
+      dispatch(removeNoteFromScale(scale, midiNumber));
     }
     if (!sampler?.loaded || sampler?.disposed) return;
     sampler.triggerAttackRelease(getMidiPitch(midiNumber), "4n");
   };
 
   /** Change the color of the piano border based on the editor action. */
-  const border = `border-t-8 ${
+  const border = `border-t-[6px] ${
     isAdding
-      ? "border-t-emerald-400"
+      ? "border-t-sky-500"
       : isRemoving
       ? "border-t-red-500"
-      : "border-t-zinc-800/90"
+      : "border-t-slate-400"
   }`;
 
   /** Return the piano */
   return (
-    <Editor.Piano
+    <EditorPiano
       show={isShowingPiano}
       className={border}
       sampler={instance?.sampler}

@@ -1,15 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
-import { selectEditor } from "redux/Editor";
-import { createGlobalInstrument, selectInstrumentById } from "redux/Instrument";
-import { selectPatternTrackById, setPatternTrackInstrument } from "redux/Track";
-import { selectSelectedPattern, selectSelectedTrackId } from "redux/Timeline";
-import { useProjectDispatch, useProjectSelector } from "redux/hooks";
 import {
   isInstrumentEditorOpen,
   isPatternEditorOpen,
   isScaleEditorOpen,
-} from "types/Editor";
-import { InstrumentKey, LIVE_AUDIO_INSTANCES } from "types/Instrument";
+} from "types/Editor/EditorFunctions";
+import { selectEditor } from "types/Editor/EditorSelectors";
+import { useProjectDispatch, useProjectSelector } from "types/hooks";
+import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
+import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
+import { createGlobalInstrument } from "types/Instrument/InstrumentThunks";
+import { InstrumentKey } from "types/Instrument/InstrumentTypes";
+import {
+  selectSelectedTrackId,
+  selectSelectedPattern,
+} from "types/Timeline/TimelineSelectors";
+import { setPatternTrackInstrument } from "types/Track/PatternTrack/PatternTrackThunks";
+import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
+import { selectPatternTrackById } from "types/Track/TrackSelectors";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 
 export function useEditorInstrument() {
@@ -22,7 +29,9 @@ export function useEditorInstrument() {
   const onScaleEditor = isScaleEditorOpen(editor);
 
   /** The instrument is the selected pattern track's instrument or the global instrument. */
-  const track = useProjectSelector((_) => selectPatternTrackById(_, trackId));
+  const track = useProjectSelector((_) =>
+    isPatternTrackId(trackId) ? selectPatternTrackById(_, trackId) : undefined
+  );
   const id = track ? track.instrumentId : "global";
   const instrument = useProjectSelector((_) => selectInstrumentById(_, id));
   const [instance, _setInstance] = useState(LIVE_AUDIO_INSTANCES[id]);

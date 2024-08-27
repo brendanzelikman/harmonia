@@ -29,7 +29,6 @@ export const TourBackground = () => {
     "tour-step-navbar-intro",
     "tour-step-pattern-editor-prompt",
     "tour-step-pattern-editor-intro",
-    "tour-step-pattern-editor-conclusion",
     "tour-step-adding-pattern-clips",
     "tour-step-switching-clips",
     "tour-step-working-with-poses",
@@ -48,10 +47,19 @@ export const TourBackground = () => {
     "tour-step-track-intro",
     "tour-step-the-pattern-track",
     "tour-step-the-scale-track",
+    "tour-step-scale-editor-prompt",
+    "tour-step-scale-editor-intro",
+    "tour-step-instrument-editor-prompt",
+    "tour-step-instrument-editor-intro",
     "tour-step-track-conclusion",
   ];
   const onTracks = stepsWithTracks.includes(id);
-  const stepsWithTimeline = ["tour-step-saving-work", "tour-step-confetti"];
+  const stepsWithTimeline = [
+    "tour-step-saving-work",
+    "tour-step-adding-pattern-clips",
+    "tour-step-timeline-intro",
+    "tour-step-confetti",
+  ];
   const onTimeline = stepsWithTimeline.includes(id);
   const BodyBlock = () => {
     const top = onNavbar ? NAV_HEIGHT : 0;

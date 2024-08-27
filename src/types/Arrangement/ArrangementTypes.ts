@@ -1,35 +1,56 @@
-import { isPlainObject } from "lodash";
-import { ClipMap, ClipState, defaultClipState, isClip } from "types/Clip";
 import {
-  InstrumentState,
+  defaultPatternClipState,
+  defaultPoseClipState,
+  defaultScaleClipState,
+} from "types/Clip/ClipSlice";
+import {
+  PatternClipMap,
+  PoseClipMap,
+  ScaleClipMap,
+  PatternClipState,
+  PoseClipState,
+  ScaleClipState,
+} from "types/Clip/ClipTypes";
+import {
   defaultInstrumentState,
-  isInstrument,
-} from "types/Instrument";
-import { PortalState, defaultPortalState, isPortal } from "types/Portal";
-import { isNormalRecord, isNormalState } from "utils/normalizedState";
-import { UndoableHistory, createUndoableHistory } from "utils/undoableHistory";
-import { TrackMap, TrackState, defaultTrackState, isTrack } from "types/Track";
+  InstrumentState,
+} from "types/Instrument/InstrumentTypes";
+import { defaultPortalState } from "types/Portal/PortalSlice";
+import { PortalState } from "types/Portal/PortalTypes";
+import { PatternTrackState } from "types/Track/PatternTrack/PatternTrackTypes";
+import { ScaleTrackState } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import {
+  defaultPatternTrackState,
+  defaultScaleTrackState,
+} from "types/Track/TrackSlice";
+import { TrackMap } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------
-// Arrangement Definitions
+// Arrangement Types
 // ------------------------------------------------------------
 
 /** A track arrangement stores track/clip object maps. */
 export interface TrackArrangement {
   tracks: TrackMap;
-  clips: ClipMap;
+  clips: {
+    pattern: PatternClipMap;
+    pose: PoseClipMap;
+    scale: ScaleClipMap;
+  };
 }
 
 /** A live arrangement stores the full track arrangement with instruments and portals. */
 export interface LiveArrangement {
-  tracks: TrackState;
-  clips: ClipState;
-  portals: PortalState;
+  patternTracks: PatternTrackState;
+  scaleTracks: ScaleTrackState;
+  clips: {
+    pattern: PatternClipState;
+    pose: PoseClipState;
+    scale: ScaleClipState;
+  };
   instruments: InstrumentState;
+  portals: PortalState;
 }
-
-/** An undoable arrangement history is used for Redux. */
-export type ArrangementHistory = UndoableHistory<LiveArrangement>;
 
 // ------------------------------------------------------------
 // Arrangement Initialization
@@ -37,38 +58,13 @@ export type ArrangementHistory = UndoableHistory<LiveArrangement>;
 
 /** The default live arrangement is used for initialization. */
 export const defaultArrangement: LiveArrangement = {
-  tracks: defaultTrackState,
-  clips: defaultClipState,
+  patternTracks: defaultPatternTrackState,
+  scaleTracks: defaultScaleTrackState,
+  clips: {
+    pattern: defaultPatternClipState,
+    pose: defaultPoseClipState,
+    scale: defaultScaleClipState,
+  },
   portals: defaultPortalState,
   instruments: defaultInstrumentState,
-};
-
-/** The undoable arrangement history is used for Redux. */
-export const defaultArrangementHistory: ArrangementHistory =
-  createUndoableHistory(defaultArrangement);
-
-// ------------------------------------------------------------
-// Arrangement Type Guards
-// ------------------------------------------------------------
-
-/** Checks if a given object is of type `Arrangement`. */
-export const isArrangement = (obj: unknown): obj is TrackArrangement => {
-  const candidate = obj as TrackArrangement;
-  return (
-    isPlainObject(candidate) &&
-    isNormalRecord(candidate.tracks, isTrack) &&
-    isNormalRecord(candidate.clips, isClip)
-  );
-};
-
-/** Checks if a given object is of type `NormalLiveArrangement`. */
-export const isLiveArrangement = (obj: unknown): obj is LiveArrangement => {
-  const candidate = obj as LiveArrangement;
-  return (
-    isPlainObject(candidate) &&
-    isNormalState(candidate.tracks, isTrack) &&
-    isNormalState(candidate.clips, isClip) &&
-    isNormalState(candidate.instruments, isInstrument) &&
-    isNormalState(candidate.portals, isPortal)
-  );
 };

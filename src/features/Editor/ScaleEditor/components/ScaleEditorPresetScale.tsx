@@ -1,36 +1,47 @@
-import { Editor } from "features/Editor/components";
-import { updateScale } from "redux/Scale";
-import * as _ from "types/Scale";
 import { ScaleEditorProps } from "../ScaleEditor";
 import classNames from "classnames";
-import { useProjectSelector } from "redux/hooks";
-import { selectTrackScaleChain } from "redux/selectors";
+import { useProjectDispatch, useProjectSelector } from "types/hooks";
+import { EditorListItem } from "features/Editor/components/EditorList";
+import { updateScale } from "types/Scale/ScaleSlice";
+import {
+  getScaleNotes,
+  getScaleName,
+  getScaleNotePitchClass,
+  getParentAsNewScale,
+} from "types/Scale/ScaleFunctions";
+import { resolveScaleToMidi } from "types/Scale/ScaleResolvers";
+import { areScalesEqual, areScalesRelated } from "types/Scale/ScaleUtils";
+import { ScaleObject } from "types/Scale/ScaleTypes";
+import { selectTrackScaleChain } from "types/Track/TrackSelectors";
+import { getPreferredKey } from "presets/keys";
 
 export interface PresetScaleProps extends ScaleEditorProps {
-  presetScale: _.Scale;
+  presetScale: ScaleObject;
 }
 
 export const PresetScale = (props: PresetScaleProps) => {
-  const { dispatch, presetScale, scale, track } = props;
-  const isEqual = _.areScalesEqual(presetScale, scale);
-  const isRelated = _.areScalesRelated(presetScale, scale);
-  const notes = _.getScaleAsArray(presetScale);
-  const midiNotes = _.resolveScaleToMidi(presetScale);
-  const name = _.getScaleName(presetScale, midiNotes);
+  const dispatch = useProjectDispatch();
+  const { presetScale, scale, track, midiScale } = props;
+  const isEqual = areScalesEqual(presetScale, scale);
+  const isRelated = areScalesRelated(presetScale, scale);
+  const notes = getScaleNotes(presetScale);
+  const midiNotes = resolveScaleToMidi(presetScale);
+  const name = getScaleName(presetScale, midiNotes);
   const scales = useProjectSelector((_) => selectTrackScaleChain(_, track?.id));
 
   // A preset scale will display its tonic pitch
-  const trackScaleNotes = _.getScaleAsArray(scale);
+  const trackScaleNotes = getScaleNotes(scale);
   const firstScaleNote = trackScaleNotes[0];
+  const key = getPreferredKey(midiScale[0], presetScale.name);
   const firstPitch = firstScaleNote
-    ? _.getScaleNoteAsPitchClass(firstScaleNote)
+    ? getScaleNotePitchClass(midiScale[0], key)
     : "";
 
   // Clicking on a preset scale will update the current scale
   const onScaleClick = () => {
     if (!scale) return;
-    const newNotes = _.getDegreesFromScaleChain(notes, scales.slice(0, -1));
-    dispatch(updateScale({ id: scale.id, notes: newNotes }));
+    const newNotes = getParentAsNewScale(scales.slice(0, -1), notes);
+    dispatch(updateScale({ data: { id: scale.id, notes: newNotes } }));
   };
 
   // A preset scale will display its name and its first pitch if it can
@@ -52,7 +63,7 @@ export const PresetScale = (props: PresetScaleProps) => {
 
   if (!presetScale || !scale) return null;
   return (
-    <Editor.ListItem
+    <EditorListItem
       className={classNames("group border-l", {
         "text-sky-500 border-l border-l-sky-500": isRelated,
         "text-slate-400 border-l-slate-500/80 hover:border-l-slate-300":
@@ -63,6 +74,6 @@ export const PresetScale = (props: PresetScaleProps) => {
       <div className="flex relative items-center h-6">
         <PresetScaleName />
       </div>
-    </Editor.ListItem>
+    </EditorListItem>
   );
 };

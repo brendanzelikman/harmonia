@@ -4,7 +4,7 @@ import { ShortcutContent } from "../components/ShortcutContent";
 export function PatternEditorShortcuts() {
   return (
     <ShortcutContent
-      className="text-md space-y-[3px]"
+      className="space-y-[3px]"
       shortcuts={[
         <Shortcut shortcut="A" description="Start/Stop Adding Notes" />,
         <Shortcut shortcut="C" description="Show/Hide Cursor" />,

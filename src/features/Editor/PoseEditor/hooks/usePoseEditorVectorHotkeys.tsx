@@ -1,8 +1,9 @@
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
-import { updatePoseBlock } from "redux/Pose";
 import { mod } from "utils/math";
 import { PoseEditorVectorProps } from "../components/PoseEditorVector";
-import { PoseVectorId } from "types/Pose";
+import { useProjectDispatch } from "types/hooks";
+import { updatePoseBlock } from "types/Pose/PoseSlice";
+import { PoseVectorId } from "types/Pose/PoseTypes";
 
 interface PoseEditorVectorHotkeyProps extends PoseEditorVectorProps {
   vectorId: PoseVectorId;
@@ -10,8 +11,8 @@ interface PoseEditorVectorHotkeyProps extends PoseEditorVectorProps {
 }
 
 export function usePoseEditorVectorHotkeys(props: PoseEditorVectorHotkeyProps) {
+  const dispatch = useProjectDispatch();
   const {
-    dispatch,
     editState,
     toggleEditing,
     pose,

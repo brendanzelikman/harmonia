@@ -1,38 +1,23 @@
 import { ScaleEditorProps } from "../ScaleEditor";
 import { ContextMenu } from "components/ContextMenu";
-import { UndoTypes } from "redux/undoTypes";
+import { toggleEditorAction } from "types/Editor/EditorSlice";
+import { useProjectDispatch } from "types/hooks";
 import {
-  clearScale,
-  createScale,
   exportScaleToMIDI,
   exportScaleToXML,
-} from "redux/thunks";
-import { toggleEditorAction } from "redux/Editor";
+} from "types/Scale/ScaleExporters";
+import { createScale, clearScale } from "types/Scale/ScaleThunks";
 
 export function ScaleEditorContextMenu(props: ScaleEditorProps) {
-  const { scale, scaleName, isAdding, isRemoving, canUndo, canRedo } = props;
-
-  // Undo Last Action
-  const Undo = {
-    label: "Undo Last Action",
-    onClick: () => props.dispatch({ type: UndoTypes.undoScales }),
-    disabled: !canUndo,
-  };
-
-  // Redo Last Action
-  const Redo = {
-    label: "Redo Last Action",
-    onClick: () => props.dispatch({ type: UndoTypes.redoScales }),
-    disabled: !canRedo,
-    divideEnd: true,
-  };
+  const dispatch = useProjectDispatch();
+  const { scale, midiScale, scaleName, isAdding, isRemoving } = props;
 
   // Save Scale
   const Save = {
     label: "Save Scale",
     onClick: () => {
       if (!scale) return;
-      props.dispatch(createScale({ ...scale, name: scaleName }));
+      dispatch(createScale({ data: { ...scale, name: scaleName } }));
     },
     disabled: !scale,
   };
@@ -42,7 +27,7 @@ export function ScaleEditorContextMenu(props: ScaleEditorProps) {
     label: "Export Scale to MIDI",
     onClick: () => {
       if (!scale) return;
-      props.dispatch(exportScaleToMIDI({ ...scale, name: scaleName }));
+      dispatch(exportScaleToMIDI(midiScale));
     },
     disabled: !scale,
   };
@@ -52,7 +37,7 @@ export function ScaleEditorContextMenu(props: ScaleEditorProps) {
     label: "Export Scale to XML",
     onClick: () => {
       if (!scale) return;
-      props.dispatch(exportScaleToXML({ ...scale, name: scaleName }, true));
+      exportScaleToXML(midiScale, true);
     },
     disabled: !scale,
     divideEnd: true,
@@ -61,25 +46,25 @@ export function ScaleEditorContextMenu(props: ScaleEditorProps) {
   // Toggle Adding Notes
   const Add = {
     label: `${isAdding ? "Stop" : "Start"} Adding Notes`,
-    onClick: () => props.dispatch(toggleEditorAction("addingNotes")),
+    onClick: () => dispatch(toggleEditorAction({ data: "addingNotes" })),
     disabled: !scale,
   };
 
   // Toggle Removing Notes
   const Remove = {
     label: `${isRemoving ? "Stop" : "Start"} Removing Notes`,
-    onClick: () => props.dispatch(toggleEditorAction("removingNotes")),
+    onClick: () => dispatch(toggleEditorAction({ data: "removingNotes" })),
     disabled: !scale,
   };
 
   // Clear Scale
   const Clear = {
     label: "Clear Scale",
-    onClick: () => clearScale(scale?.id),
+    onClick: () => dispatch(clearScale(scale?.id)),
     disabled: !scale?.id,
   };
 
-  const options = [Undo, Redo, Save, ExportMIDI, ExportXML, Add, Remove, Clear];
+  const options = [Save, ExportMIDI, ExportXML, Add, Remove, Clear];
   return (
     <ContextMenu
       options={options}

@@ -1,7 +1,8 @@
-import { Project } from "types/Project";
 import { useProjectSearch } from "./useProjectSearch";
 import { ProjectFormatter } from "..";
 import { useCallback } from "react";
+import { Project } from "types/Project/ProjectTypes";
+import { selectProjectId } from "types/Project/MetadataSelectors";
 
 export interface ProjectItem {
   project: Project;
@@ -24,7 +25,7 @@ export function useProjectList(props: ProjectListProps) {
           <ProjectFormatter
             {...item}
             index={index}
-            key={item.project.meta.id}
+            key={selectProjectId(item.project)}
           />
         ))}
       </div>

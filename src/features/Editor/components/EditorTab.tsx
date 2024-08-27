@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { ReactNode } from "react";
 
 export const EditorTab = (props: {
   show: boolean;
@@ -10,7 +11,7 @@ export const EditorTab = (props: {
     <div
       className={classNames(
         props.className,
-        `flex flex-shrink-0 w-full items-center h-10 py-1 text-slate-200 animate-in fade-in duration-150`,
+        `flex shrink-0 w-full items-center h-12 text-slate-200 animate-in fade-in duration-150`,
         props.border ? "border-b border-b-slate-500" : ""
       )}
     >
@@ -19,14 +20,16 @@ export const EditorTab = (props: {
   );
 
 export const EditorTabGroup = (props: {
-  children?: any;
+  children?: ReactNode;
   border?: boolean;
   className?: string;
 }) => (
   <div
-    className={classNames(props.className, "flex text-lg px-3 space-x-2", {
-      "border-r border-r-slate-500": !!props.border,
-    })}
+    className={classNames(
+      props.className,
+      "flex items-center text-base px-3 gap-3",
+      { "border-r border-r-slate-500": !!props.border }
+    )}
   >
     {props.children}
   </div>

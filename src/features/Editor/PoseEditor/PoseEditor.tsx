@@ -1,25 +1,20 @@
-import { useProjectSelector } from "redux/hooks";
-import { EditorProps } from "..";
-import { Editor } from "../components";
-import { selectPoseFutureLength, selectPosePastLength } from "redux/selectors";
-import { UndoTypes } from "redux/undoTypes";
-import { PoseEditorContent, PoseEditorSidebar } from "./components";
 import { PresetPoseMap } from "presets/poses";
 import { getValueByKey } from "utils/objects";
 import { usePoseEditorHotkeys } from "./hooks/usePoseEditorHotkeys";
 import { isEqual } from "lodash";
 import { useCallback, useState } from "react";
 import { mod } from "utils/math";
+import { EditorBody } from "../components/EditorBody";
+import { EditorContainer } from "../components/EditorContainer";
+import { PoseEditorContent } from "./components/PoseEditorContent";
+import { PoseEditorSidebar } from "./components/PoseEditorSidebar";
+import { EditorProps } from "../Editor";
 
 export type PoseEditType = "offsets" | "duration";
 export type PoseEditState = { index: number; type: PoseEditType } | undefined;
 
 export interface PoseEditorProps extends EditorProps {
   isCustom: boolean;
-  canUndo: boolean;
-  canRedo: boolean;
-  undo: () => void;
-  redo: () => void;
   editState: PoseEditState;
   toggleEditing: (state: PoseEditState) => void;
   onDuration: (index: number) => boolean;
@@ -30,18 +25,12 @@ export interface PoseEditorProps extends EditorProps {
 }
 
 function PoseEditorComponent(props: EditorProps) {
-  const { dispatch, pose } = props;
+  const { pose } = props;
 
   const stream = pose?.stream;
   const streamLength = stream?.length;
   const id = pose?.id;
   const isCustom = !getValueByKey(PresetPoseMap, id);
-
-  // Pose history undo/redo
-  const canUndo = !!useProjectSelector(selectPosePastLength);
-  const canRedo = !!useProjectSelector(selectPoseFutureLength);
-  const undo = () => dispatch({ type: UndoTypes.undoPoses });
-  const redo = () => dispatch({ type: UndoTypes.redoPoses });
 
   // Pose edit state for specific module
   const [editState, setEditState] = useState<PoseEditState>(undefined);
@@ -120,10 +109,6 @@ function PoseEditorComponent(props: EditorProps) {
   const poseEditorProps: PoseEditorProps = {
     ...props,
     isCustom,
-    canUndo,
-    canRedo,
-    undo,
-    redo,
     editState,
     toggleEditing,
     onDuration,
@@ -135,12 +120,12 @@ function PoseEditorComponent(props: EditorProps) {
   usePoseEditorHotkeys(poseEditorProps);
 
   return (
-    <Editor.Container id="pose-editor">
-      <Editor.Body className="relative">
+    <EditorContainer id="pose-editor">
+      <EditorBody className="relative">
         <PoseEditorSidebar {...poseEditorProps} />
         <PoseEditorContent {...poseEditorProps} />
-      </Editor.Body>
-    </Editor.Container>
+      </EditorBody>
+    </EditorContainer>
   );
 }
 

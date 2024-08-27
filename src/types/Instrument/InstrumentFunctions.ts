@@ -1,18 +1,16 @@
-import {
-  INSTRUMENT_CATEGORIES,
-  InstrumentCategory,
-  Instrument,
-  InstrumentKey,
-  InstrumentName,
-  CategorizedInstrument,
-  defaultInstrument,
-  SafeEffect,
-} from "types/Instrument";
 import samples from "assets/instruments/samples.json";
 import categories from "assets/instruments/categories.json";
-
+import { SafeEffect } from "./InstrumentEffectTypes";
+import {
+  defaultInstrument,
+  InstrumentKey,
+  InstrumentCategory,
+  INSTRUMENT_CATEGORIES,
+  InstrumentName,
+  CategorizedInstrument,
+  Instrument,
+} from "./InstrumentTypes";
 import { SamplerOptions } from "tone";
-import isElectron from "is-electron";
 
 // ------------------------------------------------------------
 // Instrument Serializers
@@ -71,14 +69,15 @@ export const getInstrumentName = (key?: InstrumentKey): InstrumentName => {
 export const getInstrumentSamplesMap = (
   key: InstrumentKey
 ): SamplerOptions["urls"] => {
-  return samples[key] || {};
+  return samples[key] ?? {};
 };
 
 /** Get the base URL of an instrument's samples by key. */
 export const getInstrumentSamplesBaseUrl = (key: InstrumentKey) => {
   const category = getInstrumentCategory(key);
   const name = getInstrumentName(key);
-  return `${import.meta.env.BASE_URL}samples/${category}/${name}/`;
+  const baseUrl = `${import.meta.env.BASE_URL}samples/${category}/${name}/`;
+  return baseUrl;
 };
 
 /** Get a list of instruments corresponding to the given category. */

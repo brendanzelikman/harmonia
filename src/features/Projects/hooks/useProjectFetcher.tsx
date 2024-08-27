@@ -1,6 +1,6 @@
 import { isEqual } from "lodash";
 import { useEffect, useMemo, useState } from "react";
-import { Project } from "types/Project";
+import { Project } from "types/Project/ProjectTypes";
 
 interface ProjectFetcherProps {
   projects?: Project[];

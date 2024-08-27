@@ -1,19 +1,18 @@
 import * as Effects from "types/Instrument/InstrumentEffectTypes";
 import { useRef } from "react";
-import { SafeEffect, EffectId, LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { Slider } from "components/Slider";
 import { InstrumentEditorProps } from "../InstrumentEditor";
 import { useEffectDrop, useEffectDrag } from "../hooks/useInstrumentEditorDnd";
 import { cancelEvent } from "utils/html";
 import { BsArrowClockwise, BsTrashFill } from "react-icons/bs";
-import { Transition } from "@headlessui/react";
-import { useProjectDispatch } from "redux/hooks";
+import { useProjectDispatch } from "types/hooks";
+import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import {
   rearrangeInstrumentEffect,
-  removeInstrumentEffect,
-  resetInstrumentEffect,
   updateInstrumentEffect,
-} from "redux/Instrument";
+  resetInstrumentEffect,
+  removeInstrumentEffect,
+} from "types/Instrument/InstrumentSlice";
 
 interface InstrumentEffectsProps extends InstrumentEditorProps {}
 
@@ -23,14 +22,14 @@ export function InstrumentEditorEffects(props: InstrumentEffectsProps) {
   const effects = instrument?.effects ?? [];
 
   /** Move an effect to a new index when dragging */
-  const moveEffect = (effectId: EffectId, index: number) => {
+  const moveEffect = (effectId: Effects.EffectId, index: number) => {
     if (!props.instrument) return;
     const id = props.instrument.id;
-    dispatch(rearrangeInstrumentEffect({ id, effectId, index }));
+    dispatch(rearrangeInstrumentEffect({ data: { id, effectId, index } }));
   };
 
   /** Create a slider for each effect */
-  const mapEffectToSliders = (effect: SafeEffect, index: number) => (
+  const mapEffectToSliders = (effect: Effects.SafeEffect, index: number) => (
     <InstrumentEffect
       {...props}
       key={effect.id}
@@ -54,10 +53,10 @@ export function InstrumentEditorEffects(props: InstrumentEffectsProps) {
 }
 
 export interface DraggableEffectProps extends InstrumentEditorProps {
-  effect: SafeEffect;
+  effect: Effects.SafeEffect;
   index: number;
   element?: any;
-  moveEffect: (dragId: EffectId, hoverIndex: number) => void;
+  moveEffect: (dragId: Effects.EffectId, hoverIndex: number) => void;
 }
 
 export const InstrumentEffect = (props: DraggableEffectProps) => {
@@ -76,21 +75,21 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
     if (!instrument) return;
     dispatch(
       updateInstrumentEffect({
-        id: instrument.id,
-        effectId: effect.id,
-        update: props,
+        data: { id: instrument.id, effectId: effect.id, update: props },
       })
     );
   };
 
   /** The user can reset the parameters of a track effect. */
-  const ResetEffectButton = (effect: SafeEffect) => (
+  const ResetEffectButton = (effect: Effects.SafeEffect) => (
     <div
       className="capitalize text-sm cursor-pointer"
       onClick={() =>
         instrument?.id &&
         dispatch(
-          resetInstrumentEffect({ id: instrument.id, effectId: effect.id })
+          resetInstrumentEffect({
+            data: { id: instrument.id, effectId: effect.id },
+          })
         )
       }
     >
@@ -99,13 +98,15 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
   );
 
   /** The user can remove an effect from the instrument. */
-  const RemoveEffectButton = (effect: SafeEffect) => (
+  const RemoveEffectButton = (effect: Effects.SafeEffect) => (
     <div className="text-xs mx-2 cursor-pointer hover:text-red-500">
       <BsTrashFill
         onClick={() =>
           instrument?.id &&
           dispatch(
-            removeInstrumentEffect({ id: instrument.id, effectId: effect.id })
+            removeInstrumentEffect({
+              data: { id: instrument.id, effectId: effect.id },
+            })
           )
         }
       />

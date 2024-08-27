@@ -9,7 +9,7 @@ export function EditorDocsContent() {
           <>
             <DocsParagraph>
               The Editor is a dedicated window used for composing and editing
-              the fundamental building blocks of a project, encompassing:
+              the building blocks of a project, encompassing:
             </DocsParagraph>
             <DocsList
               ie
@@ -32,8 +32,7 @@ export function EditorDocsContent() {
                 },
                 {
                   title: "The Scale Editor",
-                  description:
-                    "A score-based interface for editing a Scale Track's Scale.",
+                  description: "A score-based interface for editing a Scale.",
                   examples: [
                     "The central location for designing nested musical structures.",
                   ],
@@ -63,11 +62,11 @@ export function EditorDocsContent() {
           <>
             <DocsParagraph>
               The Editor is designed to be a specialized menu for creating and
-              editing the fundamental building blocks of your project so that
-              you can focus on one objective at a time without cluttering the
-              screen. Using this dedicated approach, the Editor can present as
-              much information as necessary without having to compete against
-              the main interface for screen space and attention. The Editor is
+              editing the building blocks of your project so that you can focus
+              on one objective at a time without cluttering the screen. Using
+              this dedicated approach, the Editor can present as much
+              information as necessary without having to compete against the
+              main interface for screen space and attention. The Editor is
               carefully designed so that you can easily switch between different
               views without losing your place and dynamically preview your
               changes in real time.

@@ -1,29 +1,37 @@
 import { promptUserForNumber } from "utils/html";
 import { useOverridingHotkeys, useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { PatternEditorProps } from "../PatternEditor";
+import { useSubscription } from "providers/subscription";
 import {
   setEditorNoteDuration,
   toggleEditorAction,
   toggleEditorDottedDuration,
   toggleEditorTripletDuration,
-} from "redux/Editor";
-import * as _ from "redux/Pattern";
-import { useSubscription } from "providers/subscription";
+} from "types/Editor/EditorSlice";
+import { useProjectDispatch } from "types/hooks";
+import { transposePatternBlock } from "types/Pattern/PatternSlice";
+import { exportPatternToMIDI } from "types/Pattern/PatternExporters";
+import {
+  repeatPattern,
+  continuePattern,
+  stretchPattern,
+} from "types/Pattern/thunks/PatternDurationThunks";
+import {
+  clearPattern,
+  createPattern,
+  downloadPatternAsXML,
+  playPattern,
+} from "types/Pattern/PatternThunks";
+import { transposePattern } from "types/Pattern/thunks/PatternPitchThunks";
 
 const useHotkeys = useScopedHotkeys("editor");
 
 export function usePatternEditorHotkeys(props: PatternEditorProps) {
-  const { dispatch, undo, redo } = props;
+  const dispatch = useProjectDispatch();
   const { isProdigy } = useSubscription();
-  const { pattern, cursor, canUndo, canRedo } = props;
+  const { pattern, cursor } = props;
   const id = pattern?.id;
   const index = cursor.index;
-
-  // Meta + Z = Undo Patterns
-  useHotkeys("meta+z", canUndo ? undo : undefined, [canUndo]);
-
-  // Meta + Shift + Z = Redo Patterns
-  useHotkeys("meta+shift+z", canRedo ? redo : undefined, [canRedo]);
 
   // N = Note Click
   useHotkeys("n", props.onBlockClick, [props.onBlockClick]);
@@ -31,35 +39,40 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   // 0 = Rest Click
   useHotkeys("0", props.onRestClick, [props.onRestClick]);
 
-  // 1 = Select 64th Note
-  useHotkeys("1", () => dispatch(setEditorNoteDuration("64th")));
+  // 1 = Select Whole Note
+  useHotkeys("1", () => dispatch(setEditorNoteDuration({ data: "whole" })));
 
-  // 2 = Select 32nd Note
-  useHotkeys("2", () => dispatch(setEditorNoteDuration("32nd")));
+  // 2 = Select Half Note
+  useHotkeys("2", () => dispatch(setEditorNoteDuration({ data: "half" })));
 
-  // 3 = Select 16th Note
-  useHotkeys("3", () => dispatch(setEditorNoteDuration("16th")));
+  // 3 = Select Quarter Note
+  useHotkeys("3", () => dispatch(setEditorNoteDuration({ data: "quarter" })));
 
   // 4 = Select Eighth Note
-  useHotkeys("4", () => dispatch(setEditorNoteDuration("eighth")));
+  useHotkeys("4", () => dispatch(setEditorNoteDuration({ data: "eighth" })));
 
-  // 5 = Select Quarter Note
-  useHotkeys("5", () => dispatch(setEditorNoteDuration("quarter")));
+  // 5 = Select 16th Note
+  useHotkeys("5", () => dispatch(setEditorNoteDuration({ data: "16th" })));
 
-  // 6 = Select Half Note
-  useHotkeys("6", () => dispatch(setEditorNoteDuration("half")));
+  // 6 = Select 32nd Note
+  useHotkeys("6", () => dispatch(setEditorNoteDuration({ data: "32nd" })));
 
-  // 7 = Select Whole Note
-  useHotkeys("7", () => dispatch(setEditorNoteDuration("whole")));
+  // 7 = Select 64th Note
+  useHotkeys("7", () => dispatch(setEditorNoteDuration({ data: "64th" })));
 
   // A = Start/Stop Adding Notes
-  useHotkeys("a", () => dispatch(toggleEditorAction("addingNotes")), []);
+  useHotkeys(
+    "a",
+    () =>
+      props.isCustom && dispatch(toggleEditorAction({ data: "addingNotes" })),
+    [props.isCustom]
+  );
 
   // Backspace = Remove Note if Showing Cursor
   useHotkeys("backspace", props.onEraseClick, [props.onEraseClick]);
 
   // Shift + Backspace = Clear Pattern
-  useHotkeys("shift+backspace", () => id && dispatch(_.clearPattern(id)), [id]);
+  useHotkeys("shift+backspace", () => id && dispatch(clearPattern(id)), [id]);
 
   // . = Toggle Dotted Note
   useHotkeys(".", () => dispatch(toggleEditorDottedDuration()), []);
@@ -72,20 +85,25 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
     "meta+d",
     () =>
       pattern &&
-      dispatch(_.createPattern({ ...pattern, name: `${pattern?.name} Copy` })),
+      dispatch(
+        createPattern({ data: { ...pattern, name: `${pattern?.name} Copy` } })
+      ),
     [pattern]
   );
 
   // C = Toggle Cursor
-  useHotkeys("c", pattern?.stream?.length ? cursor.toggle : () => null, [
-    pattern,
-    cursor.toggle,
-  ]);
+  useHotkeys(
+    "c",
+    props.isCustom && pattern?.stream?.length ? cursor.toggle : () => null,
+    [pattern, props.isCustom, cursor.toggle]
+  );
 
   // X = Toggle Anchor
   useHotkeys(
     "x",
-    () => !cursor.hidden && dispatch(toggleEditorAction("insertingNotes")),
+    () =>
+      !cursor.hidden &&
+      dispatch(toggleEditorAction({ data: "insertingNotes" })),
     [cursor.hidden]
   );
 
@@ -101,9 +119,9 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
     () => {
       if (!id) return;
       if (cursor.hidden) {
-        dispatch(_.transposePattern({ id, transpose: 1 }));
+        dispatch(transposePattern({ data: { id, transpose: 1 } }));
       } else {
-        dispatch(_.transposePatternBlock({ id, index, transpose: 1 }));
+        dispatch(transposePatternBlock({ id, index, transpose: 1 }));
       }
     },
     [id, index, cursor.hidden]
@@ -115,9 +133,9 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
     () => {
       if (!id) return;
       if (cursor.hidden) {
-        dispatch(_.transposePattern({ id, transpose: 12 }));
+        dispatch(transposePattern({ data: { id, transpose: 12 } }));
       } else {
-        dispatch(_.transposePatternBlock({ id, index, transpose: 12 }));
+        dispatch(transposePatternBlock({ id, index, transpose: 12 }));
       }
     },
     [id, index, cursor.hidden]
@@ -129,9 +147,9 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
     () => {
       if (!id) return;
       if (cursor.hidden) {
-        dispatch(_.transposePattern({ id, transpose: -1 }));
+        dispatch(transposePattern({ data: { id, transpose: -1 } }));
       } else {
-        dispatch(_.transposePatternBlock({ id, index, transpose: -1 }));
+        dispatch(transposePatternBlock({ id, index, transpose: -1 }));
       }
     },
     [id, index, cursor.hidden]
@@ -143,9 +161,9 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
     () => {
       if (!id) return;
       if (cursor.hidden) {
-        dispatch(_.transposePattern({ id, transpose: -12 }));
+        dispatch(transposePattern({ data: { id, transpose: -12 } }));
       } else {
-        dispatch(_.transposePatternBlock({ id, index, transpose: -12 }));
+        dispatch(transposePatternBlock({ id, index, transpose: -12 }));
       }
     },
     [id, index, cursor.hidden]
@@ -160,48 +178,51 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   // X = Export Pattern to XML
   useHotkeys(
     "shift+x",
-    () =>
-      !isProdigy && pattern && dispatch(_.exportPatternToXML(pattern, true)),
+    () => !isProdigy && pattern && dispatch(downloadPatternAsXML(id)),
     [isProdigy, pattern]
   );
 
   // M = Export Pattern to MIDI
   useHotkeys(
     "shift+m",
-    () => !isProdigy && id && dispatch(_.exportPatternToMIDI(id)),
+    () => !isProdigy && id && dispatch(exportPatternToMIDI(id)),
     [isProdigy, id]
   );
 
   // R = Prompt for repeat
   useHotkeys(
     "r",
-    promptUserForNumber(
-      "Repeat Your Pattern",
-      "How many times would you like to repeat your pattern?",
-      (n) => {
-        if (id) dispatch(_.repeatPattern({ id, repeat: n }));
-      }
-    ),
-    [id]
+    !props.isCustom
+      ? () => null
+      : promptUserForNumber(
+          "Repeat Your Pattern",
+          "How many times would you like to repeat your pattern?",
+          (n) => {
+            if (id) dispatch(repeatPattern({ data: { id, repeat: n } }));
+          }
+        ),
+    [id, props.isCustom]
   );
 
   // , = Continue Pattern
   useHotkeys(
     "comma",
-    promptUserForNumber(
-      "Continue Your Pattern",
-      "How many notes would you like to continue your pattern for?",
-      (n) => {
-        if (id) dispatch(_.continuePattern({ id, length: n }));
-      }
-    ),
-    [id]
+    !props.isCustom
+      ? () => null
+      : promptUserForNumber(
+          "Continue Your Pattern",
+          "How many notes would you like to continue your pattern for?",
+          (n) => {
+            if (id) dispatch(continuePattern({ data: { id, length: n } }));
+          }
+        ),
+    [props.isCustom, id]
   );
 
   // Meta + "-" = Diminish Pattern
   useHotkeys(
     "meta+minus",
-    () => id && dispatch(_.stretchPattern({ id, factor: 0.5 })),
+    () => id && dispatch(stretchPattern({ data: { id, factor: 0.5 } })),
     { preventDefault: true },
     [id]
   );
@@ -209,13 +230,13 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   // Meta + "=" = Augment Pattern
   useOverridingHotkeys(
     "meta+equal",
-    () => id && dispatch(_.stretchPattern({ id, factor: 2 })),
+    () => id && dispatch(stretchPattern({ data: { id, factor: 2 } })),
     { preventDefault: true },
     [id]
   );
 
   // Shift + Space = Play Pattern
-  useHotkeys("shift+space", () => pattern && dispatch(_.playPattern(pattern)), [
+  useHotkeys("shift+space", () => pattern && dispatch(playPattern(pattern)), [
     pattern,
   ]);
 }

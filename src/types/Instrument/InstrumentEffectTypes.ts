@@ -1,14 +1,12 @@
 import { Signal, Param } from "tone";
-import { Hertz } from "tone/build/esm/core/type/Units";
 import { Seconds } from "../units";
 import { nanoid } from "@reduxjs/toolkit";
 import { lowerCase } from "lodash";
+import { Hertz } from "tone/build/esm/core/type/Units";
 
 export type EffectId = string;
 
-/**
- * The effect key to effect node map.
- */
+/** The effect key to effect node map. */
 export const EFFECTS_BY_KEY: Record<string, any> = {
   reverb: "Reverb",
   chorus: "Chorus",
@@ -33,9 +31,7 @@ export const EFFECT_KEYS = Object.keys(EFFECTS_BY_KEY) as EffectKey[];
 export type EffectNode = (typeof EFFECTS_BY_KEY)[EffectKey];
 export const EFFECT_NODES = Object.values(EFFECTS_BY_KEY) as EffectNode[];
 
-/**
- * The effect key to name map.
- */
+/** The effect key to name map. */
 export const EFFECT_NAMES_BY_KEY: Record<EffectKey, string> = {
   reverb: "Reverb",
   chorus: "Chorus",
@@ -54,9 +50,7 @@ export const EFFECT_NAMES_BY_KEY: Record<EffectKey, string> = {
   warp: "Warp",
 };
 
-/**
- * The effect key to property list map.
- */
+/** The effect key to property list map. */
 export const EFFECT_PROPS_BY_KEY: Record<EffectKey, string[]> = {
   reverb: ["wet", "decay", "preDelay"],
   chorus: ["wet", "frequency", "delayTime", "depth"],

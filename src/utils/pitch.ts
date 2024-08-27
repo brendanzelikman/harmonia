@@ -1,8 +1,9 @@
-import { Key, MIDI, Pitch, PitchClass } from "types/units";
+import { Key, MIDI, PitchClass } from "types/units";
 import { getMidiChromaticNumber } from "./midi";
+import { ChromaticKey } from "presets/keys";
 
 /** The list of possible spellings for each note of the chromatic scale. */
-export const CHROMATIC_SPELLINGS = [
+export const CHROMATIC_SPELLINGS: PitchClass[][] = [
   ["C", "B#"],
   ["C#", "Db"],
   ["D"],
@@ -15,23 +16,7 @@ export const CHROMATIC_SPELLINGS = [
   ["A"],
   ["A#", "Bb"],
   ["B", "Cb"],
-];
-
-/** The chromatic key uses a default collection of pitch classes. */
-export const CHROMATIC_KEY: Key = [
-  "C",
-  "C#",
-  "D",
-  "Eb",
-  "E",
-  "F",
-  "F#",
-  "G",
-  "Ab",
-  "A",
-  "Bb",
-  "B",
-];
+] as const;
 
 // ------------------------------------------------------------
 // Pitch Class Helpers
@@ -135,9 +120,9 @@ export const getLoweredPitchClass = (pitchClass: PitchClass) => {
 };
 
 /** Get the pitch of the note that is the closest to the given note in the array. */
-export const getClosestPitchClass = (pitch: Pitch, arr: MIDI[], key?: Key) => {
+export const getClosestPitchClass = (arr: MIDI[], midi: MIDI, key?: Key) => {
+  const note = midi % 12;
   const notes = arr.map((n) => getMidiChromaticNumber(n));
-  const note = getMidiChromaticNumber(pitch);
 
   // Get the closest chromatic number
   const index = notes.reduce((prev, curr) => {
@@ -148,8 +133,8 @@ export const getClosestPitchClass = (pitch: Pitch, arr: MIDI[], key?: Key) => {
     if (!isEqual) return currDiff < prevDiff ? curr : prev;
 
     // If the difference is equal, prefer the note not in the given pitches
-    const currInPitches = key?.includes(CHROMATIC_KEY[curr]);
-    const prevInPitches = key?.includes(CHROMATIC_KEY[prev]);
+    const currInPitches = key?.includes(ChromaticKey[curr]);
+    const prevInPitches = key?.includes(ChromaticKey[prev]);
     if (currInPitches && !prevInPitches) return prev;
     if (!currInPitches && prevInPitches) return curr;
 
@@ -170,7 +155,7 @@ export const getClosestPitchClass = (pitch: Pitch, arr: MIDI[], key?: Key) => {
   }, -1);
 
   // Find the closest pitch class
-  const pitchClass = CHROMATIC_KEY[index];
+  const pitchClass = ChromaticKey[index];
   if (!pitchClass) throw new Error("Pitch class not found");
 
   // Return the pitch class

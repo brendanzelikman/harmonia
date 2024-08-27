@@ -1,4 +1,4 @@
-import { TrackId } from "types/Track";
+import { TrackId } from "types/Track/TrackTypes";
 import { BPM, MIDI, Samples, Velocity } from "types/units";
 
 type NoteOn = 1;

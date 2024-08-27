@@ -1,20 +1,6 @@
-import { nanoid } from "@reduxjs/toolkit";
-import {
-  MidiObject,
-  ScaleNoteObject,
-  isMidiObject,
-  isScaleNoteObject,
-} from "../Scale";
-import { BlockedChord, ID, StrummedChord, Tick } from "../units";
-import { InstrumentKey } from "../Instrument";
-import { TrackId } from "types/Track";
+import { Dictionary, EntityState } from "@reduxjs/toolkit";
+import { BlockedChord, createId, ID, StrummedChord, Tick } from "../units";
 import { isPlainObject, isString } from "lodash";
-import {
-  NormalRecord,
-  NormalState,
-  createNormalState,
-} from "utils/normalizedState";
-import { UndoableHistory, createUndoableHistory } from "utils/undoableHistory";
 import {
   isBoundedNumber,
   isFiniteNumber,
@@ -23,18 +9,25 @@ import {
   isTypedArray,
 } from "types/util";
 import { Timed, Playable, Chord, Stream } from "types/units";
+import { InstrumentKey } from "types/Instrument/InstrumentTypes";
+import {
+  ScaleNoteObject,
+  MidiObject,
+  isScaleNoteObject,
+  isMidiObject,
+} from "types/Scale/ScaleTypes";
+import { TrackId } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------
 // Pattern Generics
 // ------------------------------------------------------------
 
-export type PatternId = ID;
+export type PatternId = ID<"pattern">;
 export type PatternNoId = Omit<Pattern, "id">;
 export type PatternPartial = Partial<Pattern>;
 export type PatternUpdate = Partial<Pattern> & { id: PatternId };
-export type PatternMap = NormalRecord<PatternId, Pattern>;
-export type PatternState = NormalState<PatternMap>;
-export type PatternHistory = UndoableHistory<PatternState>;
+export type PatternMap = Dictionary<Pattern>;
+export type PatternState = EntityState<Pattern>;
 
 // ------------------------------------------------------------
 // Pattern Definitions
@@ -72,7 +65,7 @@ export interface Pattern {
 }
 
 /** A `PresetPattern` has its id prefixed */
-export type PresetPattern = Pattern & { id: `preset-${string}` };
+export type PresetPattern = Pattern & { id: ID<`pattern_preset`> };
 
 // ------------------------------------------------------------
 // Pattern Initialization
@@ -81,23 +74,14 @@ export type PresetPattern = Pattern & { id: `preset-${string}` };
 /** Create a pattern with a unique ID. */
 export const initializePattern = (
   pattern: Partial<PatternNoId> = defaultPattern
-): Pattern => ({ ...defaultPattern, ...pattern, id: nanoid() });
+): Pattern => ({ ...defaultPattern, ...pattern, id: createId("pattern") });
 
 /** The default pattern is used for initialization. */
 export const defaultPattern: Pattern = {
-  id: "new-pattern",
+  id: createId("pattern"),
   name: "New Pattern",
   stream: [],
 };
-
-/** The default pattern state is used for Redux. */
-export const defaultPatternState = createNormalState<PatternMap>([
-  defaultPattern,
-]);
-
-/** The undoable pattern history is used for Redux. */
-export const defaultPatternHistory: PatternHistory =
-  createUndoableHistory<PatternState>(defaultPatternState);
 
 // ------------------------------------------------------------
 // Pattern Type Guards
@@ -123,12 +107,14 @@ export const isPatternRest = (obj: unknown): obj is PatternRest => {
 
 /** Checks if a given object is of type `PatternNote`. */
 export const isPatternNote = (obj: unknown): obj is PatternNote => {
+  if (obj === undefined) return false;
   const candidate = obj as PatternNote;
   return isScaleNoteObject(candidate) && isPlayableNote(candidate);
 };
 
 /** Checks if a given object is of type `PatternMidiNote`. */
 export const isPatternMidiNote = (obj: unknown): obj is PatternMidiNote => {
+  if (obj === undefined) return false;
   const candidate = obj as PatternMidiNote;
   return isMidiObject(candidate) && isFiniteNumber(candidate.duration);
 };
@@ -137,6 +123,7 @@ export const isPatternMidiNote = (obj: unknown): obj is PatternMidiNote => {
 export const isPatternBlockedChord = (
   obj: unknown
 ): obj is PatternBlockedChord => {
+  if (obj === undefined) return false;
   const candidate = obj as PatternBlockedChord;
   return isTypedArray(candidate, isPatternNote);
 };
@@ -145,6 +132,7 @@ export const isPatternBlockedChord = (
 export const isPatternStrummedChord = (
   obj: unknown
 ): obj is PatternStrummedChord => {
+  if (obj === undefined) return false;
   const candidate = obj as PatternStrummedChord;
   return (
     isPlainObject(candidate) &&

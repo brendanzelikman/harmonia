@@ -1,7 +1,6 @@
 import { Disclosure, Transition } from "@headlessui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
-import { Pattern, PatternId, getPatternName } from "types/Pattern";
 import { PatternEditorProps } from "../PatternEditor";
 import { BiCopy } from "react-icons/bi";
 import { cancelEvent } from "utils/html";
@@ -10,21 +9,33 @@ import {
   PresetPatternGroupList,
   PresetPatternGroupMap,
 } from "presets/patterns";
-import { useProjectDeepSelector } from "redux/hooks";
+import { useProjectDeepSelector, useProjectDispatch } from "types/hooks";
 import {
-  createPattern,
-  deletePattern,
-  playPattern,
+  EditorList,
+  EditorListItem,
+} from "features/Editor/components/EditorList";
+import { EditorSearchBox } from "features/Editor/components/EditorSearchBox";
+import {
+  EditorSidebar,
+  EditorSidebarHeader,
+} from "features/Editor/components/EditorSidebar";
+import { getPatternName } from "types/Pattern/PatternFunctions";
+import { setPatternIds, updatePattern } from "types/Pattern/PatternSlice";
+import { Pattern, PatternId } from "types/Pattern/PatternTypes";
+import {
   selectCustomPatterns,
   selectPatternIds,
-  setPatternIds,
-  updatePattern,
-} from "redux/Pattern";
-import { setSelectedPattern } from "redux/Media";
-import { Editor } from "features/Editor/components";
+} from "types/Pattern/PatternSelectors";
+import { setSelectedPattern } from "types/Media/MediaThunks";
+import {
+  createPattern,
+  playPattern,
+  deletePattern,
+} from "types/Pattern/PatternThunks";
 
 export function PatternEditorSidebar(props: PatternEditorProps) {
-  const { dispatch, pattern } = props;
+  const dispatch = useProjectDispatch();
+  const { pattern } = props;
   const customPatterns = useProjectDeepSelector(selectCustomPatterns);
   const patternIds = useProjectDeepSelector(selectPatternIds);
 
@@ -32,6 +43,7 @@ export function PatternEditorSidebar(props: PatternEditorProps) {
   const PatternPresets = {
     ...PresetPatternGroupMap,
     "Custom Patterns": customPatterns,
+    "Preset Patterns": [],
   };
 
   // Store the search query for filtering presets
@@ -73,7 +85,7 @@ export function PatternEditorSidebar(props: PatternEditorProps) {
       if (dragIndex < 0 || hoverIndex < 0) return;
       newPatternIds.splice(dragIndex, 1);
       newPatternIds.splice(hoverIndex, 0, patternIds[dragIndex]);
-      dispatch(setPatternIds(newPatternIds));
+      dispatch(setPatternIds({ data: newPatternIds }));
     },
     [patternIds]
   );
@@ -170,13 +182,13 @@ export function PatternEditorSidebar(props: PatternEditorProps) {
 
   if (!props.isShowingSidebar) return null;
   return (
-    <Editor.Sidebar className={`ease-in-out duration-300`}>
-      <Editor.SidebarHeader className="border-b border-b-slate-500/50 mb-2">
+    <EditorSidebar className={`ease-in-out duration-300`}>
+      <EditorSidebarHeader className="border-b border-b-slate-500/50 mb-2">
         Preset Patterns
-      </Editor.SidebarHeader>
-      <Editor.SearchBox query={searchQuery} setQuery={setSearchQuery} />
-      <Editor.List>{patternCategories.map(renderCategory)}</Editor.List>
-    </Editor.Sidebar>
+      </EditorSidebarHeader>
+      <EditorSearchBox query={searchQuery} setQuery={setSearchQuery} />
+      <EditorList>{patternCategories.map(renderCategory)}</EditorList>
+    </EditorSidebar>
   );
 }
 
@@ -185,7 +197,8 @@ export interface PresetPatternProps extends PatternEditorProps {
 }
 
 export const PresetPattern = (props: PresetPatternProps) => {
-  const { dispatch, pattern, presetPattern } = props;
+  const dispatch = useProjectDispatch();
+  const { pattern, presetPattern } = props;
 
   const CopyButton = () => (
     <BiCopy
@@ -194,8 +207,10 @@ export const PresetPattern = (props: PresetPatternProps) => {
         e.stopPropagation();
         dispatch(
           createPattern({
-            ...presetPattern,
-            name: `${presetPattern.name} Copy`,
+            data: {
+              ...presetPattern,
+              name: `${presetPattern.name} Copy`,
+            },
           })
         );
       }}
@@ -203,14 +218,14 @@ export const PresetPattern = (props: PresetPatternProps) => {
   );
 
   return (
-    <Editor.ListItem
+    <EditorListItem
       className={`${
         pattern?.id === presetPattern.id
           ? "text-emerald-500 font-medium border-l border-l-emerald-500"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       } select-none`}
       onClick={() => {
-        dispatch(setSelectedPattern(presetPattern.id));
+        dispatch(setSelectedPattern({ data: presetPattern.id }));
         dispatch(playPattern(presetPattern));
       }}
     >
@@ -222,7 +237,7 @@ export const PresetPattern = (props: PresetPatternProps) => {
         />
         <CopyButton />
       </div>
-    </Editor.ListItem>
+    </EditorListItem>
   );
 };
 
@@ -234,7 +249,8 @@ export interface CustomPatternProps extends PatternEditorProps {
 }
 
 export const CustomPattern = (props: CustomPatternProps) => {
-  const { dispatch, pattern, customPattern } = props;
+  const dispatch = useProjectDispatch();
+  const { pattern, customPattern } = props;
 
   // Ref information
   const ref = useRef<HTMLDivElement>(null);
@@ -252,8 +268,10 @@ export const CustomPattern = (props: CustomPatternProps) => {
         cancelEvent(e);
         dispatch(
           createPattern({
-            ...customPattern,
-            name: `${customPattern.name} Copy`,
+            data: {
+              ...customPattern,
+              name: `${customPattern.name} Copy`,
+            },
           })
         );
       }}
@@ -275,13 +293,13 @@ export const CustomPattern = (props: CustomPatternProps) => {
   );
 
   return (
-    <Editor.ListItem
+    <EditorListItem
       className={`${isDragging ? "opacity-50" : "opacity-100"} ${
         customPattern.id === pattern?.id
           ? "text-emerald-500 border-l border-l-emerald-500"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       }`}
-      onClick={() => dispatch(setSelectedPattern(customPattern.id))}
+      onClick={() => dispatch(setSelectedPattern({ data: customPattern.id }))}
     >
       <div className="relative flex items-center h-9" ref={ref}>
         <input
@@ -296,8 +314,10 @@ export const CustomPattern = (props: CustomPatternProps) => {
           onChange={(e) =>
             dispatch(
               updatePattern({
-                ...customPattern,
-                name: e.target.value,
+                data: {
+                  ...customPattern,
+                  name: e.target.value,
+                },
               })
             )
           }
@@ -305,6 +325,6 @@ export const CustomPattern = (props: CustomPatternProps) => {
         <CopyButton />
         <DeleteButton />
       </div>
-    </Editor.ListItem>
+    </EditorListItem>
   );
 };

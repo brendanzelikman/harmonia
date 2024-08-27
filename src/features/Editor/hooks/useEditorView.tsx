@@ -1,14 +1,18 @@
 import { useEffect } from "react";
-import { showEditor } from "redux/thunks";
-import { EditorProps } from "..";
-import { InstrumentEditor } from "../InstrumentEditor";
-import { PatternEditor } from "../PatternEditor";
-import { ScaleEditor } from "../ScaleEditor";
-import { isPatternTrack, isScaleTrack } from "types/Track";
-import { PoseEditor } from "../PoseEditor";
+import { useProjectDeepSelector, useProjectDispatch } from "types/hooks";
+import { hideEditor } from "types/Editor/EditorSlice";
+import { isScaleTrack } from "types/Track/TrackTypes";
+import { PatternEditor } from "../PatternEditor/PatternEditor";
+import { PoseEditor } from "../PoseEditor/PoseEditor";
+import { ScaleEditor } from "../ScaleEditor/ScaleEditor";
+import { EditorProps } from "../Editor";
+import { InstrumentEditor } from "../InstrumentEditor/InstrumentEditor";
+import { selectSelectedMotif } from "types/Timeline/TimelineSelectors";
+import { showEditor } from "types/Editor/EditorThunks";
 
 export function useEditorView(props: EditorProps) {
-  const { track } = props;
+  const dispatch = useProjectDispatch();
+  const { track, view } = props;
 
   /** The editor view displays the current view. */
   const EditorView = (
@@ -25,16 +29,23 @@ export function useEditorView(props: EditorProps) {
     </div>
   );
 
+  // Close the editor if the selected object is undefined
+  const selectedObject = useProjectDeepSelector(selectSelectedMotif);
+  useEffect(() => {
+    const hasScale = props.scale || selectedObject;
+    if (view === "instrument" || (view === "scale" && hasScale)) return;
+    if (selectedObject === undefined && !!view) {
+      dispatch(hideEditor({ data: null }));
+    }
+  }, [props, selectedObject, view]);
+
   // Clean up the view if the selected track changes
   useEffect(() => {
     if (!track) return;
     if (isScaleTrack(track) && props.onInstrumentEditor) {
-      props.dispatch(showEditor("scale"));
+      dispatch(showEditor({ data: { view: "scale" } }));
     }
-    if (isPatternTrack(track) && props.onScaleEditor) {
-      props.dispatch(showEditor("instrument"));
-    }
-  }, [track, props.onInstrumentEditor, props.onScaleEditor]);
+  }, [track, props.onInstrumentEditor]);
 
   // Return the editor view
   return { EditorView };

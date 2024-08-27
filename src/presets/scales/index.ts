@@ -1,9 +1,10 @@
-import { ScaleObject } from "types/Scale";
+import { ScaleObject } from "types/Scale/ScaleTypes";
 import BasicScales from "./BasicScales";
 import DiatonicModes from "./DiatonicModes";
 import PentatonicScales from "./PentatonicScales";
 import HexatonicScales from "./HexatonicScales";
 import OctatonicScales from "./OctatonicScales";
+import ChromaticScales from "./ChromaticScales";
 import MelodicMinorModes from "./MelodicMinorModes";
 import HarmonicMinorModes from "./HarmonicMinorModes";
 import HarmonicMajorModes from "./HarmonicMajorModes";
@@ -11,16 +12,18 @@ import DoubleHarmonicModes from "./DoubleHarmonicModes";
 import NeapolitanMinorModes from "./NeapolitanMinorModes";
 import NeapolitanMajorModes from "./NeapolitanMajorModes";
 import MessiaenModes from "./MessiaenModes";
-import { createMap } from "utils/objects";
+import { createDictionary } from "utils/objects";
 
 // Return a map of preset group key to preset group
 // e.g. { "Common Scales": [ ... ], "Common Modes": [ ... ], ... }
 export const PresetScaleGroupMap = {
   "Custom Scales": [] as ScaleObject[],
+  "Track Scales": [] as ScaleObject[],
   "Basic Scales": Object.values(BasicScales),
   "Pentatonic Scales": Object.values(PentatonicScales),
   "Hexatonic Scales": Object.values(HexatonicScales),
   "Octatonic Scales": Object.values(OctatonicScales),
+  "Chromatic Scales": Object.values(ChromaticScales),
   "Diatonic Modes": Object.values(DiatonicModes),
   "Melodic Minor Modes": Object.values(MelodicMinorModes),
   "Harmonic Minor Modes": Object.values(HarmonicMinorModes),
@@ -47,4 +50,4 @@ export const PresetScaleList = Object.values(PresetScaleGroupMap).flat();
 
 // Return a map of preset scale id to preset scale
 // e.g. { "major-scale": Major Scale, "minor-scale": Minor Scale, ... }
-export const PresetScaleMap = createMap<ScaleObject>(PresetScaleList);
+export const PresetScaleMap = createDictionary<ScaleObject>(PresetScaleList);

@@ -1,43 +1,43 @@
-import { ScaleObject } from "types/Scale";
+import { ScaleObject } from "types/Scale/ScaleTypes";
 
 export const HarmonicMinorScale: ScaleObject = {
-  id: "preset-harmonic-minor-scale",
+  id: "scale_preset_harmonic-minor-scale",
   name: "Harmonic Minor Scale",
   notes: [60, 62, 63, 65, 67, 68, 71],
 };
 
 export const LocrianSharp6Scale: ScaleObject = {
-  id: "preset-locrian-sharp-6-scale",
+  id: "scale_preset_locrian-sharp-6-scale",
   name: "Locrian #6 Scale",
   notes: [60, 61, 63, 65, 66, 69, 70],
 };
 
 export const IonianSharp5Scale: ScaleObject = {
-  id: "preset-ionian-sharp-5-scale",
+  id: "scale_preset_ionian-sharp-5-scale",
   name: "Ionian #5 Scale",
   notes: [60, 62, 64, 65, 68, 69, 71],
 };
 
 export const DorianSharp4Scale: ScaleObject = {
-  id: "preset-dorian-sharp-4-scale",
+  id: "scale_preset_dorian-sharp-4-scale",
   name: "Dorian #4 Scale",
   notes: [60, 62, 63, 66, 67, 69, 70],
 };
 
 export const PhrygianDominantScale: ScaleObject = {
-  id: "preset-phrygian-dominant-scale",
+  id: "scale_preset_phrygian-dominant-scale",
   name: "Phrygian Dominant Scale",
   notes: [60, 61, 64, 65, 67, 68, 70],
 };
 
 export const LydianSharp2Scale: ScaleObject = {
-  id: "preset-lydian-sharp-2-scale",
+  id: "scale_preset_lydian-sharp-2-scale",
   name: "Lydian #2 Scale",
   notes: [60, 63, 64, 66, 67, 69, 71],
 };
 
 export const UltraLocrianScale: ScaleObject = {
-  id: "preset-ultra-locrian-scale",
+  id: "scale_preset_ultra-locrian-scale",
   name: "Ultra Locrian Scale",
   notes: [60, 61, 63, 64, 66, 68, 69],
 };

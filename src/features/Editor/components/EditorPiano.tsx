@@ -3,11 +3,11 @@ import { Piano, MidiNumbers } from "react-piano";
 import { useEffect, useMemo } from "react";
 import "react-piano/dist/styles.css";
 import { WebMidi } from "webmidi";
-import { Sampler } from "tone";
-import { LIVE_AUDIO_INSTANCES } from "types/Instrument";
 import { getMidiPitch } from "utils/midi";
 import classNames from "classnames";
 import { useSubscription } from "providers/subscription";
+import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
+import { Sampler } from "tone";
 
 interface PianoProps {
   sampler: Sampler | undefined;
@@ -77,11 +77,11 @@ export const EditorPiano: React.FC<PianoProps> = (props) => {
   return (
     <div
       className={classNames(
-        `h-40 flex-shrink-0 overflow-scroll`,
+        `h-40 flex-shrink-0 overflow-scroll transition-all`,
         props.className
       )}
     >
-      <div className="w-full min-w-[1000px] overflow-scroll h-full bg-zinc-900">
+      <div className="w-full min-w-[1000px] overflow-scroll h-full bg-slate-950">
         <Piano
           noteRange={{
             first: MidiNumbers.fromNote("C1"),

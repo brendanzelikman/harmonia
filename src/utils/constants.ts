@@ -18,6 +18,9 @@ export const PLUGIN_URL = import.meta.env.VITE_PLUGIN_URL;
 // ------------------------------------------------------------
 
 export type SubscriptionStatus = "prodigy" | "maestro" | "virtuoso";
+export const PRODIGY_PRICE = 0;
+export const MAESTRO_PRICE = 10;
+export const VIRTUOSO_PRICE = 20;
 
 // Project Limits
 export const PRODIGY_PROJECT_LIMIT = 1;
@@ -55,12 +58,19 @@ export const PLUGIN_STARTING_PORT = 51200;
 export const PLUGIN_PORT_RANGE = 16;
 
 // ------------------------------------------------------------
+// Local Storage
+// ------------------------------------------------------------
+
+export const PROJECT_ID = import.meta.env.VITE_LS_PROJECT_ID;
+
+// ------------------------------------------------------------
 // Indexed Database
 // ------------------------------------------------------------
 
-export const INDEXED_DATABASE_NAME = import.meta.env.VITE_INDEXED_DATABASE_NAME;
-export const PROJECT_STORE = import.meta.env.VITE_PROJECT_STORE;
-export const CURRENT_ID_STORE = import.meta.env.VITE_CURRENT_ID_STORE;
+export const IDB_NAME = import.meta.env.VITE_IDB_NAME;
+export const PROJECT_STORE = import.meta.env.VITE_IDB_PROJECT_STORE;
+export const PRESET_STORE = import.meta.env.VITE_IDB_PRESET_STORE;
+export const SHORTCUT_STORE = import.meta.env.VITE_IDB_SHORTCUT_STORE;
 
 // ------------------------------------------------------------
 // Tempo and Rhythm
@@ -84,7 +94,7 @@ export const MAX_VOLUME = 6;
 export const VOLUME_STEP = 0.1;
 export const DEFAULT_TRANSPORT_VOLUME = -6;
 export const MIN_TRANSPORT_VOLUME = -60;
-export const MAX_TRANSPORT_VOLUME = 0;
+export const MAX_TRANSPORT_VOLUME = 6;
 
 // ------------------------------------------------------------
 // Pan Settings
@@ -110,10 +120,10 @@ export const MAX_VELOCITY = 127;
 export const HEADER_HEIGHT = 80;
 export const TRACK_WIDTH = 300;
 export const COLLAPSED_TRACK_HEIGHT = 60;
-export const MIN_CELL_WIDTH = 20;
-export const MAX_CELL_WIDTH = 100;
+export const MIN_CELL_WIDTH = 25;
+export const MAX_CELL_WIDTH = 125;
 export const MIN_CELL_HEIGHT = 80;
 export const MAX_CELL_HEIGHT = 120;
 export const POSE_HEIGHT = 20;
 export const NAV_HEIGHT = 60;
-export const SCALE_TRACK_SCALE_NAME = "$$$$$_track_scale_$$$$$";
+export const TRACK_SCALE_NAME = "$$$$$_track_scale_$$$$$";

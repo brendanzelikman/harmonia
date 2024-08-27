@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { blurOnEnter, cancelEvent } from "utils/html";
 
 export interface SliderProps {
   min: number;
@@ -10,23 +11,43 @@ export interface SliderProps {
   label?: string;
   hideValue?: boolean;
   horizontal?: boolean;
+  width?: string;
+  className?: string;
+  disabled?: boolean;
+  onDoubleClick?: () => void;
 }
 
 export function Slider(props: SliderProps) {
   const value = props.value ?? props.defaultValue ?? 0;
   return (
     <div
-      className="w-full flex flex-col items-center justify-center hover:cursor-pointer active:cursor-grab"
+      className={classNames(
+        props.className,
+        "w-full flex flex-col items-center justify-center hover:cursor-pointer active:cursor-grab"
+      )}
       onDoubleClick={() => props.onValueChange(props.defaultValue)}
     >
       <input
         className={classNames(
-          !!props.horizontal ? "w-32" : "w-16 rotate-[270deg]",
+          !!props.horizontal ? props.width ?? "w-32" : "w-16 rotate-[270deg]",
           `mt-4 mb-6 text-center`
         )}
         type="range"
         value={value}
-        onChange={(e) => props.onValueChange(e.target.valueAsNumber)}
+        onKeyDown={blurOnEnter}
+        onChange={(e) => {
+          if (props.disabled) return;
+          cancelEvent(e);
+          props.onValueChange(e.target.valueAsNumber);
+        }}
+        onDoubleClick={(e) => {
+          if (props.disabled) return;
+          cancelEvent(e);
+          if (props.onDoubleClick) props.onDoubleClick();
+          else props.onValueChange(props.defaultValue);
+        }}
+        draggable
+        onDragStart={cancelEvent}
         step={props.step}
         min={props.min}
         max={props.max}

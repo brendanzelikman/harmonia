@@ -1,29 +1,101 @@
-import * as Tone from "tone";
-import { InstrumentKey, Instrument, InstrumentId } from "./InstrumentTypes";
-import * as Instruments from "../Instrument";
+import {
+  InstrumentKey,
+  Instrument,
+  InstrumentId,
+  BitCrusherEffect,
+  ChorusEffect,
+  CompressorEffect,
+  defaultBitCrusher,
+  defaultChorus,
+  defaultCompressor,
+  defaultDistortion,
+  defaultEqualizer,
+  defaultFeedbackDelay,
+  defaultFilter,
+  defaultGain,
+  defaultLimiter,
+  defaultPhaser,
+  defaultPingPongDelay,
+  defaultReverb,
+  defaultTremolo,
+  defaultVibrato,
+  defaultWarp,
+  DistortionEffect,
+  EffectId,
+  EffectKey,
+  EqualizerEffect,
+  FeedbackDelayEffect,
+  FilterEffect,
+  GainEffect,
+  getSafeToneEffect,
+  getToneEffectProps,
+  getTypedEffectNode,
+  initializeToneEffect,
+  LimiterEffect,
+  PhaserEffect,
+  PingPongDelayEffect,
+  ReverbEffect,
+  SafeEffect,
+  ToneEffect,
+  TremoloEffect,
+  VibratoEffect,
+  WarpEffect,
+} from "./InstrumentTypes";
 import { Volume } from "../units";
+import {
+  getInstrumentSamplesBaseUrl,
+  getInstrumentSamplesMap,
+} from "./InstrumentFunctions";
+import {
+  Recorder,
+  Sampler,
+  Channel,
+  FFT,
+  Waveform,
+  InputNode,
+  getDestination,
+  Signal,
+  Param,
+  Reverb,
+  Chorus,
+  FeedbackDelay,
+  PingPongDelay,
+  Phaser,
+  Tremolo,
+  Vibrato,
+  Distortion,
+  BitCrusher,
+  Filter,
+  EQ3,
+  Compressor,
+  Limiter,
+  Gain,
+  PitchShift,
+} from "tone";
+import { TrackId } from "types/Track/TrackTypes";
 
 /** A map of instrument IDs to live audio instances. */
 export type LiveInstrumentMap = Record<InstrumentId, LiveAudioInstance>;
 
-/** The global map of live audio instances. */
+// Live audio instances
 export const LIVE_AUDIO_INSTANCES: LiveInstrumentMap = {};
-
-/** The live recorder instance. */
-export const LIVE_RECORDER_INSTANCE = new Tone.Recorder();
+export const LIVE_RECORDER_INSTANCE = new Recorder();
+export const LIVE_ANALYZER_INSTANCE = new Waveform({ size: 2048 });
 
 /** The live audio instance class stores Tone.js objects and effects. */
 export class LiveAudioInstance {
   id: InstrumentId;
+  trackId: TrackId;
   key: InstrumentKey;
-  sampler: Tone.Sampler;
-  channel: Tone.Channel;
-  effects: Instruments.ToneEffect[] = [];
-  fft: Tone.FFT;
-  waveform: Tone.Waveform;
+  sampler: Sampler;
+  channel: Channel;
+  effects: ToneEffect[] = [];
+  fft: FFT;
+  waveform: Waveform;
 
   constructor({
     id,
+    trackId,
     key,
     volume = -30,
     pan = 0,
@@ -33,15 +105,16 @@ export class LiveAudioInstance {
   }: Instrument) {
     // Store the id and key
     this.id = id;
+    this.trackId = trackId;
     this.key = key;
 
     // Initialize the sampler
-    const urls = Instruments.getInstrumentSamplesMap(key);
-    const baseUrl = Instruments.getInstrumentSamplesBaseUrl(key);
-    this.sampler = new Tone.Sampler({ urls, baseUrl });
+    const urls = getInstrumentSamplesMap(key);
+    const baseUrl = getInstrumentSamplesBaseUrl(key);
+    this.sampler = new Sampler({ urls, baseUrl });
 
     // Initialize the channel
-    this.channel = new Tone.Channel({
+    this.channel = new Channel({
       volume,
       pan,
       mute,
@@ -50,11 +123,11 @@ export class LiveAudioInstance {
 
     // Initialize the effects
     this.effects = LiveAudioInstance.createToneEffects(effects);
-    const nodes = this.effects.map((e) => e.node) as Tone.InputNode[];
+    const nodes = this.effects.map((e) => e.node) as InputNode[];
 
     // Initialize the FFT and waveform
-    this.fft = new Tone.FFT({ size: 2048 });
-    this.waveform = new Tone.Waveform({ size: 2048 });
+    this.fft = new FFT({ size: 2048 });
+    this.waveform = new Waveform({ size: 2048 });
 
     // Chain the sampler, effects, and analyzers to the destination
     this.sampler = this.sampler.chain(
@@ -62,7 +135,7 @@ export class LiveAudioInstance {
       ...nodes,
       this.fft,
       this.waveform,
-      Tone.getDestination()
+      getDestination()
     );
 
     // Add to the record if not already in there
@@ -77,12 +150,13 @@ export class LiveAudioInstance {
   getInitializationProps = () => {
     return {
       id: this.id,
+      trackId: this.trackId,
       key: this.key,
       volume: this.volume,
       pan: this.pan,
       mute: this.mute,
       solo: this.solo,
-      effects: this.effects.map(Instruments.getSafeToneEffect),
+      effects: this.effects.map(getSafeToneEffect),
     };
   };
 
@@ -128,7 +202,7 @@ export class LiveAudioInstance {
    * @param id - The effect ID.
    * @returns The effect.
    */
-  getEffectById = (id: Instruments.EffectId) => {
+  getEffectById = (id: EffectId) => {
     return this.effects.find((e) => e.id === id);
   };
 
@@ -137,8 +211,8 @@ export class LiveAudioInstance {
    * @param key - The effect key.
    * @returns The effect ID.
    */
-  addEffect = (key: Instruments.EffectKey) => {
-    let effect: Instruments.ToneEffect;
+  addEffect = (key: EffectKey) => {
+    let effect: ToneEffect;
     switch (key) {
       case "reverb":
         effect = LiveAudioInstance.createReverb();
@@ -197,26 +271,23 @@ export class LiveAudioInstance {
    * @param index The id of the effect.
    * @param update The partial update.
    */
-  updateEffectById = (
-    id: Instruments.EffectId,
-    update: Partial<Instruments.SafeEffect>
-  ) => {
+  updateEffectById = (id: EffectId, update: Partial<SafeEffect>) => {
     // Get the corresponding effect
     const effect = this.getEffectById(id);
     if (!effect) return;
 
     // Get the typed node of the effect
-    const typedNode = Instruments.getTypedEffectNode(effect);
+    const typedNode = getTypedEffectNode(effect);
     if (!typedNode) return;
 
     // Get the property values of the effect
-    const props = Instruments.getToneEffectProps(effect);
+    const props = getToneEffectProps(effect);
 
     // Update the values
     for (const key in props) {
       if (update[key] !== undefined) {
-        const isSignal = typedNode[key] instanceof Tone.Signal;
-        const isParam = typedNode[key] instanceof Tone.Param;
+        const isSignal = typedNode[key] instanceof Signal;
+        const isParam = typedNode[key] instanceof Param;
         if (isSignal || isParam) {
           typedNode[key].value = update[key];
         } else {
@@ -231,7 +302,7 @@ export class LiveAudioInstance {
    * @param id - The id of the effect.
    * @returns The new list of effects.
    */
-  removeEffectById = (id: Instruments.EffectId) => {
+  removeEffectById = (id: EffectId) => {
     const effect = this.getEffectById(id);
     if (!effect) return;
 
@@ -259,7 +330,7 @@ export class LiveAudioInstance {
   };
 
   // Rearrange an effect by id
-  rearrangeEffectById = (id: Instruments.EffectId, newIndex: number) => {
+  rearrangeEffectById = (id: EffectId, newIndex: number) => {
     const effect = this.getEffectById(id);
     if (!effect) return;
 
@@ -284,42 +355,38 @@ export class LiveAudioInstance {
    * @param effect - The values of the effect to create.
    * @returns The effect.
    */
-  public static createToneEffect = (effect: Instruments.SafeEffect) => {
+  public static createToneEffect = (effect: SafeEffect) => {
     switch (effect.key) {
       case "reverb":
-        return this.createReverb(effect as Instruments.ReverbEffect);
+        return this.createReverb(effect as ReverbEffect);
       case "chorus":
-        return this.createChorus(effect as Instruments.ChorusEffect);
+        return this.createChorus(effect as ChorusEffect);
       case "feedbackDelay":
-        return this.createFeedbackDelay(
-          effect as Instruments.FeedbackDelayEffect
-        );
+        return this.createFeedbackDelay(effect as FeedbackDelayEffect);
       case "pingPongDelay":
-        return this.createPingPongDelay(
-          effect as Instruments.PingPongDelayEffect
-        );
+        return this.createPingPongDelay(effect as PingPongDelayEffect);
       case "phaser":
-        return this.createPhaser(effect as Instruments.PhaserEffect);
+        return this.createPhaser(effect as PhaserEffect);
       case "tremolo":
-        return this.createTremolo(effect as Instruments.TremoloEffect);
+        return this.createTremolo(effect as TremoloEffect);
       case "vibrato":
-        return this.createVibrato(effect as Instruments.VibratoEffect);
+        return this.createVibrato(effect as VibratoEffect);
       case "distortion":
-        return this.createDistortion(effect as Instruments.DistortionEffect);
+        return this.createDistortion(effect as DistortionEffect);
       case "bitcrusher":
-        return this.createBitCrusher(effect as Instruments.BitCrusherEffect);
+        return this.createBitCrusher(effect as BitCrusherEffect);
       case "filter":
-        return this.createFilter(effect as Instruments.FilterEffect);
+        return this.createFilter(effect as FilterEffect);
       case "equalizer":
-        return this.createEqualizer(effect as Instruments.EqualizerEffect);
+        return this.createEqualizer(effect as EqualizerEffect);
       case "compressor":
-        return this.createCompressor(effect as Instruments.CompressorEffect);
+        return this.createCompressor(effect as CompressorEffect);
       case "limiter":
-        return this.createLimiter(effect as Instruments.LimiterEffect);
+        return this.createLimiter(effect as LimiterEffect);
       case "gain":
-        return this.createGain(effect as Instruments.GainEffect);
+        return this.createGain(effect as GainEffect);
       case "warp":
-        return this.createWarp(effect as Instruments.WarpEffect);
+        return this.createWarp(effect as WarpEffect);
       default:
         throw new Error("Invalid effect type");
     }
@@ -330,7 +397,7 @@ export class LiveAudioInstance {
    * @param effects - The values of the effects to create.
    * @returns The effects.
    */
-  public static createToneEffects = (effects: Instruments.SafeEffect[]) => {
+  public static createToneEffects = (effects: SafeEffect[]) => {
     const newEffects = [];
 
     for (const effect of effects) {
@@ -344,7 +411,7 @@ export class LiveAudioInstance {
    * Reset the effect to its default values and rechain all effects.
    * @param effect - The effect to reset.
    */
-  resetEffect = (effect: Instruments.SafeEffect) => {
+  resetEffect = (effect: SafeEffect) => {
     const match = this.getEffectById(effect.id);
     if (!match) return;
     const index = this.effects.indexOf(match);
@@ -362,7 +429,7 @@ export class LiveAudioInstance {
    * temporarily disconnecting it and replacing its previous effects.
    * @param effects - The effects to chain.
    */
-  chainEffects = (effects: Instruments.ToneEffect[]) => {
+  chainEffects = (effects: ToneEffect[]) => {
     // Disconnect the sampler, channel, and effects
     this.sampler.disconnect();
     this.channel.disconnect();
@@ -370,13 +437,13 @@ export class LiveAudioInstance {
 
     // Chain the sampler, effects, and analyzers to the destination
     const newEffects = [...effects];
-    const nodes = newEffects.map((e) => e.node) as Tone.InputNode[];
+    const nodes = newEffects.map((e) => e.node) as InputNode[];
     this.sampler = this.sampler.chain(
       this.channel,
       ...nodes,
       this.fft,
       this.waveform,
-      Tone.getDestination()
+      getDestination()
     );
 
     // Update the effects
@@ -388,11 +455,9 @@ export class LiveAudioInstance {
    * @param reverb - Optional. The parameters for the reverb effect.
    * @returns The reverb effect.
    */
-  public static createReverb = (
-    reverb: Instruments.ReverbEffect = Instruments.defaultReverb
-  ) => {
-    const reverbEffect = new Tone.Reverb(reverb);
-    return Instruments.initializeToneEffect(reverbEffect, reverb.id);
+  public static createReverb = (reverb: ReverbEffect = defaultReverb) => {
+    const reverbEffect = new Reverb(reverb);
+    return initializeToneEffect(reverbEffect, reverb.id);
   };
 
   /**
@@ -400,11 +465,9 @@ export class LiveAudioInstance {
    * @param chorus - Optional. The parameters for the chorus effect.
    * @returns The chorus effect.
    */
-  public static createChorus = (
-    chorus: Instruments.ChorusEffect = Instruments.defaultChorus
-  ) => {
-    const chorusEffect = new Tone.Chorus(chorus).start();
-    return Instruments.initializeToneEffect(chorusEffect, chorus.id);
+  public static createChorus = (chorus: ChorusEffect = defaultChorus) => {
+    const chorusEffect = new Chorus(chorus).start();
+    return initializeToneEffect(chorusEffect, chorus.id);
   };
 
   /**
@@ -413,10 +476,10 @@ export class LiveAudioInstance {
    * @returns The feedback delay effect.
    */
   public static createFeedbackDelay = (
-    delay: Instruments.FeedbackDelayEffect = Instruments.defaultFeedbackDelay
+    delay: FeedbackDelayEffect = defaultFeedbackDelay
   ) => {
-    const delayEffect = new Tone.FeedbackDelay(delay);
-    return Instruments.initializeToneEffect(delayEffect, delay.id);
+    const delayEffect = new FeedbackDelay(delay);
+    return initializeToneEffect(delayEffect, delay.id);
   };
 
   /**
@@ -425,10 +488,10 @@ export class LiveAudioInstance {
    * @returns The ping pong delay effect.
    */
   public static createPingPongDelay = (
-    delay: Instruments.PingPongDelayEffect = Instruments.defaultPingPongDelay
+    delay: PingPongDelayEffect = defaultPingPongDelay
   ) => {
-    const delayEffect = new Tone.PingPongDelay(delay);
-    return Instruments.initializeToneEffect(delayEffect, delay.id);
+    const delayEffect = new PingPongDelay(delay);
+    return initializeToneEffect(delayEffect, delay.id);
   };
 
   /**
@@ -436,11 +499,9 @@ export class LiveAudioInstance {
    * @param phaser - Optional. The parameters for the phaser effect.
    * @returns The phaser effect.
    */
-  public static createPhaser = (
-    phaser: Instruments.PhaserEffect = Instruments.defaultPhaser
-  ) => {
-    const phaserEffect = new Tone.Phaser(phaser);
-    return Instruments.initializeToneEffect(phaserEffect, phaser.id);
+  public static createPhaser = (phaser: PhaserEffect = defaultPhaser) => {
+    const phaserEffect = new Phaser(phaser);
+    return initializeToneEffect(phaserEffect, phaser.id);
   };
 
   /**
@@ -448,11 +509,9 @@ export class LiveAudioInstance {
    * @param tremolo - Optional. The parameters for the tremolo effect.
    * @returns The tremolo effect.
    */
-  public static createTremolo = (
-    tremolo: Instruments.TremoloEffect = Instruments.defaultTremolo
-  ) => {
-    const tremoloEffect = new Tone.Tremolo(tremolo).start();
-    return Instruments.initializeToneEffect(tremoloEffect, tremolo.id);
+  public static createTremolo = (tremolo: TremoloEffect = defaultTremolo) => {
+    const tremoloEffect = new Tremolo(tremolo).start();
+    return initializeToneEffect(tremoloEffect, tremolo.id);
   };
 
   /**
@@ -460,11 +519,9 @@ export class LiveAudioInstance {
    * @param vibrato - Optional. The parameters for the vibrato effect.
    * @returns The vibrato effect.
    */
-  public static createVibrato = (
-    vibrato: Instruments.VibratoEffect = Instruments.defaultVibrato
-  ) => {
-    const vibratoEffect = new Tone.Vibrato(vibrato);
-    return Instruments.initializeToneEffect(vibratoEffect, vibrato.id);
+  public static createVibrato = (vibrato: VibratoEffect = defaultVibrato) => {
+    const vibratoEffect = new Vibrato(vibrato);
+    return initializeToneEffect(vibratoEffect, vibrato.id);
   };
 
   /**
@@ -473,10 +530,10 @@ export class LiveAudioInstance {
    * @returns The distortion effect.
    */
   public static createDistortion = (
-    distortion: Instruments.DistortionEffect = Instruments.defaultDistortion
+    distortion: DistortionEffect = defaultDistortion
   ) => {
-    const distortionEffect = new Tone.Distortion(distortion);
-    return Instruments.initializeToneEffect(distortionEffect, distortion.id);
+    const distortionEffect = new Distortion(distortion);
+    return initializeToneEffect(distortionEffect, distortion.id);
   };
 
   /**
@@ -485,10 +542,10 @@ export class LiveAudioInstance {
    * @returns The bitcrusher effect.
    */
   public static createBitCrusher = (
-    bitcrusher: Instruments.BitCrusherEffect = Instruments.defaultBitCrusher
+    bitcrusher: BitCrusherEffect = defaultBitCrusher
   ) => {
-    const bitcrusherEffect = new Tone.BitCrusher(bitcrusher);
-    return Instruments.initializeToneEffect(bitcrusherEffect, bitcrusher.id);
+    const bitcrusherEffect = new BitCrusher(bitcrusher);
+    return initializeToneEffect(bitcrusherEffect, bitcrusher.id);
   };
 
   /**
@@ -496,11 +553,9 @@ export class LiveAudioInstance {
    * @param filter - Optional. The parameters for the filter effect.
    * @returns The filter effect.
    */
-  public static createFilter = (
-    filter: Instruments.FilterEffect = Instruments.defaultFilter
-  ) => {
-    const filterEffect = new Tone.Filter({ ...filter, type: "bandpass" });
-    return Instruments.initializeToneEffect(filterEffect, filter.id);
+  public static createFilter = (filter: FilterEffect = defaultFilter) => {
+    const filterEffect = new Filter({ ...filter, type: "bandpass" });
+    return initializeToneEffect(filterEffect, filter.id);
   };
 
   /**
@@ -508,11 +563,9 @@ export class LiveAudioInstance {
    * @param eq - Optional. The parameters for the equalizer effect.
    * @returns The equalizer effect.
    */
-  public static createEqualizer = (
-    eq: Instruments.EqualizerEffect = Instruments.defaultEqualizer
-  ) => {
-    const eqEffect = new Tone.EQ3(eq);
-    return Instruments.initializeToneEffect(eqEffect, eq.id);
+  public static createEqualizer = (eq: EqualizerEffect = defaultEqualizer) => {
+    const eqEffect = new EQ3(eq);
+    return initializeToneEffect(eqEffect, eq.id);
   };
 
   /**
@@ -521,10 +574,10 @@ export class LiveAudioInstance {
    * @returns The compressor effect.
    */
   public static createCompressor = (
-    compressor: Instruments.CompressorEffect = Instruments.defaultCompressor
+    compressor: CompressorEffect = defaultCompressor
   ) => {
-    const compressorEffect = new Tone.Compressor(compressor);
-    return Instruments.initializeToneEffect(compressorEffect, compressor.id);
+    const compressorEffect = new Compressor(compressor);
+    return initializeToneEffect(compressorEffect, compressor.id);
   };
 
   /**
@@ -532,11 +585,9 @@ export class LiveAudioInstance {
    * @param limiter - Optional. The parameters for the limiter effect.
    * @returns The limiter effect.
    */
-  public static createLimiter = (
-    limiter: Instruments.LimiterEffect = Instruments.defaultLimiter
-  ) => {
-    const limiterEffect = new Tone.Limiter(limiter);
-    return Instruments.initializeToneEffect(limiterEffect, limiter.id);
+  public static createLimiter = (limiter: LimiterEffect = defaultLimiter) => {
+    const limiterEffect = new Limiter(limiter);
+    return initializeToneEffect(limiterEffect, limiter.id);
   };
 
   /**
@@ -544,11 +595,9 @@ export class LiveAudioInstance {
    * @param gain - Optional. The parameters for the gain effect.
    * @returns The gain effect.
    */
-  public static createGain = (
-    gain: Instruments.GainEffect = Instruments.defaultGain
-  ) => {
-    const gainEffect = new Tone.Gain(gain);
-    return Instruments.initializeToneEffect(gainEffect, gain.id);
+  public static createGain = (gain: GainEffect = defaultGain) => {
+    const gainEffect = new Gain(gain);
+    return initializeToneEffect(gainEffect, gain.id);
   };
 
   /**
@@ -556,48 +605,46 @@ export class LiveAudioInstance {
    * @param warp - Optional. The parameters for the warp effect.
    * @returns The warp effect.
    */
-  public static createWarp = (
-    warp: Instruments.WarpEffect = Instruments.defaultWarp
-  ) => {
-    const pitchShift = new Tone.PitchShift(warp);
-    return Instruments.initializeToneEffect(pitchShift, warp.id);
+  public static createWarp = (warp: WarpEffect = defaultWarp) => {
+    const pitchShift = new PitchShift(warp);
+    return initializeToneEffect(pitchShift, warp.id);
   };
 
   /**
    * Return the default effect for the given key.
    */
-  public static defaultEffect = (key: Instruments.EffectKey) => {
+  public static defaultEffect = (key: EffectKey) => {
     switch (key) {
       case "reverb":
-        return Instruments.defaultReverb;
+        return defaultReverb;
       case "chorus":
-        return Instruments.defaultChorus;
+        return defaultChorus;
       case "feedbackDelay":
-        return Instruments.defaultFeedbackDelay;
+        return defaultFeedbackDelay;
       case "pingPongDelay":
-        return Instruments.defaultPingPongDelay;
+        return defaultPingPongDelay;
       case "phaser":
-        return Instruments.defaultPhaser;
+        return defaultPhaser;
       case "tremolo":
-        return Instruments.defaultTremolo;
+        return defaultTremolo;
       case "vibrato":
-        return Instruments.defaultVibrato;
+        return defaultVibrato;
       case "distortion":
-        return Instruments.defaultDistortion;
+        return defaultDistortion;
       case "bitcrusher":
-        return Instruments.defaultBitCrusher;
+        return defaultBitCrusher;
       case "filter":
-        return Instruments.defaultFilter;
+        return defaultFilter;
       case "equalizer":
-        return Instruments.defaultEqualizer;
+        return defaultEqualizer;
       case "compressor":
-        return Instruments.defaultCompressor;
+        return defaultCompressor;
       case "limiter":
-        return Instruments.defaultLimiter;
+        return defaultLimiter;
       case "gain":
-        return Instruments.defaultGain;
+        return defaultGain;
       case "warp":
-        return Instruments.defaultWarp;
+        return defaultWarp;
       default:
         throw new Error("Invalid effect type");
     }

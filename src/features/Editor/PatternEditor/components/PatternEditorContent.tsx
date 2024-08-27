@@ -1,57 +1,60 @@
-import { updatePattern } from "redux/Pattern";
 import { PatternEditorProps } from "../PatternEditor";
 import { PatternEditorToolbar } from "./PatternEditorToolbar";
-import { Editor } from "features/Editor/components";
-import { getPatternCategory } from "types/Pattern";
-import { PatternEditorComposeTab } from "./PatternEditorComposeTab";
-import { PatternEditorBindingsTab } from "./PatternEditorBindingsTab";
-import { PatternEditorTransformTab } from "./PatternEditorTransformTab";
-import { useState } from "react";
-import { PatternEditorChordTab } from "./PatternEditorChordTab";
-
-export interface PatternEditorTabProps extends PatternEditorProps {
-  tab: string;
-  setTab: (t: string) => void;
-}
+import { useMemo } from "react";
+import { EditorContent } from "features/Editor/components/EditorContent";
+import { EditorScore } from "features/Editor/components/EditorScore";
+import { EditorHeader } from "features/Editor/components/EditorHeader";
+import { PatternEditorActiveTab } from "./PatternEditorActiveTab";
+import { getPatternCategory } from "types/Pattern/PatternFunctions";
+import { updatePattern } from "types/Pattern/PatternSlice";
+import { useProjectDispatch } from "types/hooks";
+import { PatternEditorClock } from "./PatternEditorClock";
+import { PatternEditorBlockTab } from "../tabs/PatternEditorBlockTab";
 
 export function PatternEditorContent(props: PatternEditorProps) {
-  const { dispatch, pattern, onChord, isCustom, score, tabs } = props;
+  const dispatch = useProjectDispatch();
+  const { pattern, isCustom, score, tabs, isAdding, isInserting, isRemoving } =
+    props;
   const category = getPatternCategory(pattern);
 
-  /** The pattern editor can have a tab open */
-  const [tab, setTab] = useState(tabs[0]);
-
-  /** The pattern editor tab passes down props to the toolbar. */
-  const patternEditorTabProps: PatternEditorTabProps = {
-    ...props,
-    tab,
-    setTab,
-  };
-
   /** The pattern editor displays the name of the pattern as its title. */
-  const PatternEditorTitle = (
-    <Editor.Header
-      editable={isCustom}
-      title={pattern?.name ?? "Pattern"}
-      setTitle={(name) =>
-        pattern && dispatch(updatePattern({ ...pattern, name }))
-      }
-      subtitle={category ?? "Category"}
-      color={"bg-gradient-to-tr from-emerald-500 to-emerald-600"}
-    />
+  const PatternEditorTitle = useMemo(
+    () => (
+      <EditorHeader
+        editable={isCustom}
+        title={pattern?.name ?? "Pattern"}
+        setTitle={(name) =>
+          pattern && dispatch(updatePattern({ data: { ...pattern, name } }))
+        }
+        subtitle={category ?? "Category"}
+        color={"bg-gradient-to-tr from-emerald-500 to-emerald-600"}
+      />
+    ),
+    [pattern, isCustom, category]
   );
 
+  const scoreBorder = isAdding
+    ? "ring-emerald-500"
+    : isInserting
+    ? "ring-teal-500"
+    : isRemoving
+    ? "ring-red-500"
+    : "ring-slate-950/0";
+
   return (
-    <Editor.Content>
+    <EditorContent className="mb-12">
       {PatternEditorTitle}
-      <PatternEditorToolbar {...patternEditorTabProps} />
-      {tab === tabs[0] && <PatternEditorComposeTab {...props} />}
-      {tab === tabs[1] && <PatternEditorBindingsTab {...props} />}
-      {tab === tabs[2] && onChord && <PatternEditorChordTab {...props} />}
-      {(tab === tabs[3] || (tab === tabs[2] && !onChord)) && (
-        <PatternEditorTransformTab {...props} />
-      )}
-      <Editor.Score className={`bg-white/90 mt-2`} score={score} />
-    </Editor.Content>
+      <PatternEditorToolbar {...props} />
+      <PatternEditorActiveTab {...props} />
+      <EditorScore
+        score={score}
+        border="border-[6px]"
+        className={`rounded border-slate-950 ring-4 my-4 outline-none ${scoreBorder} ${
+          props.tab !== tabs[1] ? "block" : "hidden"
+        }`}
+      />
+      {props.tab === tabs[1] && <PatternEditorClock {...props} />}
+      <PatternEditorBlockTab {...props} />
+    </EditorContent>
   );
 }

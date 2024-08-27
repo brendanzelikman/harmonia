@@ -1,23 +1,36 @@
-import { TrackId, TrackMap, isPatternTrack } from "types/Track";
 import { Media, MediaElement } from "./MediaTypes";
-import { Clip, isClip, isPatternClip, isPoseClip } from "types/Clip";
 import { Tick } from "types/units";
-import { applyPortalsToClips, isPortal } from "types/Portal";
-import { isUndefined } from "lodash";
+import { inRange, isUndefined } from "lodash";
+import {
+  Clip,
+  isClipInterface,
+  isIPatternClip,
+  isIPoseClip,
+  isIScaleClip,
+} from "types/Clip/ClipTypes";
+import { applyPortalsToClips } from "types/Portal/PortalFunctions";
+import { isPortal } from "types/Portal/PortalTypes";
+import { TrackMap, TrackId, isPatternTrack } from "types/Track/TrackTypes";
+import { isFiniteNumber } from "types/util";
 
 /** Get the clips from the media. */
 export const getClipsFromMedia = (media: Media) => {
-  return media.filter(isClip);
+  return media.filter((item) => isClipInterface(item)) as Clip[];
 };
 
 /** Get the pattern clips from the media. */
 export const getPatternClipsFromMedia = (media: Media) => {
-  return media.filter(isPatternClip);
+  return media.filter(isIPatternClip);
 };
 
-/** Get the poses from the media. */
+/** Get the pose clips from the media. */
 export const getPoseClipsFromMedia = (media: Media) => {
-  return media.filter(isPoseClip);
+  return media.filter(isIPoseClip);
+};
+
+/** Get the scale clips from the media. */
+export const getScaleClipsFromMedia = (media: Media) => {
+  return media.filter(isIScaleClip);
 };
 
 /** Get the portals from the media. */
@@ -41,7 +54,7 @@ export const getValidMedia = (media: Media, trackMap: TrackMap): Media => {
     if (!track) return false;
 
     // Make sure the clip is in a pattern track
-    if (isPatternClip(item) && !isPatternTrack(track)) return false;
+    if (isIPatternClip(item) && !isPatternTrack(track)) return false;
 
     // Return true if all checks pass
     return true;
@@ -78,16 +91,14 @@ export const getMediaEndTick = (media: Media, mediaDurations?: Tick[]) => {
 
   // Apply the clips through the portals first
   const portaledClips = applyPortalsToClips(clips, portals, durations).flat();
-  const processedMedia = media.map((item) =>
-    isClip(item)
-      ? portaledClips.find((clip) => clip.id === item.id) ?? item
-      : item
+  const processedMedia = media.map(
+    (item) => portaledClips.find((clip) => clip.id === item.id) ?? item
   );
 
   // Get the end tick of the processed media
   return processedMedia.reduce((acc, item, index) => {
     const duration = getMediaElementDuration(item, mediaDurations?.[index]);
-    return Math.max(acc, item.tick + duration);
+    return Math.max(acc, item.tick + (isFiniteNumber(duration) ? duration : 1));
   }, -Infinity);
 };
 
@@ -105,6 +116,9 @@ export const getMediaInRange = (
   return media.filter((item, i) => {
     // Get the duration of the media
     const duration = getMediaElementDuration(item, mediaDuration?.[i]);
+    if (!isFiniteNumber(duration)) {
+      return inRange(item.tick, startTick, endTick);
+    }
 
     // Make sure the item is in the range
     const itemStartTick = item.tick;
@@ -126,7 +140,7 @@ export const doesMediaElementOverlapRange = (
   // Make sure the item is in the range
   const itemStartTick = media.tick;
   const itemEndTick = itemStartTick + duration;
-  return itemStartTick < endTick && itemEndTick > startTick;
+  return itemStartTick <= endTick && itemEndTick >= startTick;
 };
 
 /**

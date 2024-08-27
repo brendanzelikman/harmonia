@@ -8,7 +8,7 @@ import {
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getSubscriptionStatus } from "providers/subscription";
 import { PRICE_RECORD, SubscriptionStatus, WEBSITE_URL } from "./constants";
-import { FirebaseApp } from "firebase";
+import { FirebaseApp } from "providers/firebase";
 
 /* Get the checkout URL for the given subscription status. */
 export const getCheckoutUrl = async (

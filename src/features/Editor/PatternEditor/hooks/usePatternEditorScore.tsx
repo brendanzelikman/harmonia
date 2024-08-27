@@ -1,24 +1,22 @@
-import { DemoXML } from "assets/demoXML";
-import { EditorProps } from "features/Editor";
-import { useOSMD, BaseProps, NoteCallback } from "lib/opensheetmusicdisplay";
+import { EditorProps } from "features/Editor/Editor";
+import { useOSMD, NoteCallback } from "lib/opensheetmusicdisplay";
 import { PresetPatternMap } from "presets/patterns";
 import { useCallback, useMemo } from "react";
-import { exportPatternToXML } from "redux/Pattern";
-import { selectTrackScaleChain } from "redux/Track";
-import { useProjectSelector, useProjectDispatch } from "redux/hooks";
-import { resolvePatternToMidi } from "types/Pattern";
+import { selectPatternXML } from "types/Arrangement/ArrangementSelectors";
+import { use, useDeep } from "types/hooks";
+import { resolvePatternToMidi } from "types/Pattern/PatternResolvers";
+import { selectTrackScaleChain } from "types/Track/TrackSelectors";
 
 export function usePatternEditorScore(props: EditorProps) {
-  const dispatch = useProjectDispatch();
-
   // Use the Pattern XML or a default demo to render the score correctly
   const pattern = props.pattern;
+  const id = pattern?.id;
   const isCustom = !PresetPatternMap[pattern?.id ?? ""];
-  const xml = pattern ? dispatch(exportPatternToXML(props.pattern)) : DemoXML;
+  const xml = use((_) => selectPatternXML(_, id));
 
   // Get the pattern stream using its scales, if any
   const trackId = pattern?.patternTrackId;
-  const scales = useProjectSelector((_) => selectTrackScaleChain(_, trackId));
+  const scales = useDeep((_) => selectTrackScaleChain(_, trackId));
   const stream = resolvePatternToMidi(pattern, scales);
 
   // Clicking on a pattern note will update the cursor
@@ -33,7 +31,7 @@ export function usePatternEditorScore(props: EditorProps) {
   return useOSMD({
     id: "pattern-score",
     xml,
-    className: "items-center w-full h-full p-4",
+    className: "size-full",
     stream,
     onNoteClick,
     noteClasses,

@@ -18,8 +18,7 @@
     "samples": "node scripts/generateSamples.js && node scripts/generateCategories.js"
   },
   "dependencies": {
-    "@headlessui/react": "^1.7.9",
-    "@radix-ui/react-tooltip": "^1.0.7",
+    "@headlessui/react": "^1.7.19",
     "@reduxjs/toolkit": "^1.9.2",
     "@tonejs/midi": "^2.0.28",
     "audiobuffer-to-wav": "^1.0.0",
@@ -29,10 +28,11 @@
     "d3-color": "^3.1.0",
     "electron-squirrel-startup": "^1.0.0",
     "esbuild": "^0.17.8",
-    "firebase": "^10.7.1",
+    "firebase": "^10.12.2",
     "framer-motion": "^10.16.16",
     "idb": "^7.1.1",
     "is-electron": "^2.2.2",
+    "json-edit-react": "^1.15.4",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "opensheetmusicdisplay": "^1.7.4",

@@ -1,4 +1,6 @@
 import { Transition } from "@headlessui/react";
+import classNames from "classnames";
+import { omit } from "lodash";
 
 export const NavbarTooltip = (props: any) => (
   <Transition
@@ -17,8 +19,40 @@ export const NavbarTooltip = (props: any) => (
   </Transition>
 );
 
-export const NavbarTooltipMenu = (props: any) => (
-  <div className="flex flex-col py-1 w-full h-full justify-center font-normal">
-    {props.children}
-  </div>
-);
+interface NavbarHoverTooltipProps extends React.HTMLProps<HTMLDivElement> {
+  padding?: string;
+  bgColor?: string;
+  borderColor?: string;
+}
+
+const defaultHoverTooltipProps: NavbarHoverTooltipProps = {
+  padding: "py-2 px-3",
+  bgColor: "bg-slate-900",
+  borderColor: "border-slate-500",
+};
+
+export const NavbarHoverTooltip = (props: NavbarHoverTooltipProps) => {
+  const padding = props.padding ?? defaultHoverTooltipProps.padding;
+  const bgColor = props.bgColor ?? defaultHoverTooltipProps.bgColor;
+  const borderColor = props.borderColor ?? defaultHoverTooltipProps.borderColor;
+  return (
+    <div
+      {...omit(props, ["padding", "bgColor", "borderColor"])}
+      className={classNames(
+        props.className,
+        "absolute font-normal top-8 text-sm hidden group-hover:block animate-in fade-in"
+      )}
+    >
+      <div
+        className={classNames(
+          `size-full relative mt-4 rounded border`,
+          padding,
+          bgColor,
+          borderColor
+        )}
+      >
+        {props.children}
+      </div>
+    </div>
+  );
+};

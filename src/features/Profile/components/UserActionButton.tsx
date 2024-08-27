@@ -13,7 +13,7 @@ interface ActionButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 export const UserActionButton = (props: ActionButtonProps) => {
   const { isVirtuoso } = useSubscription();
   const buttonClass = classNames(
-    `size-full flex flex-col gap-3 text-md ring-2 font-bold total-center rounded-xl`,
+    `size-full flex flex-col gap-3 ring-2 font-bold total-center rounded-xl`,
     props.className
   );
   const icon = <props.icon className="size-12 flex total-center" />;

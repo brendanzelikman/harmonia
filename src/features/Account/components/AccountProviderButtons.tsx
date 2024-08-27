@@ -3,7 +3,7 @@ import {
   firebaseApp,
   googleProvider,
   microsoftProvider,
-} from "firebase";
+} from "providers/firebase";
 import { getAuth, signInWithRedirect } from "firebase/auth";
 import { BsApple, BsGoogle, BsMicrosoft } from "react-icons/bs";
 

@@ -1,4 +1,4 @@
-import { getUserDatabase } from "indexedDB";
+import { getUserDatabase } from "providers/idb";
 import { useAuthentication } from "providers/authentication";
 import { useEffect } from "react";
 

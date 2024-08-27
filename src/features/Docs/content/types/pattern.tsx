@@ -46,11 +46,13 @@ export function PatternDocsContent() {
               ]}
             />
             <DocsParagraph>
-              In many ways, a Pattern is a flexible kind of Scale that can have
-              unique durations and velocities for each note. As with Scales, we
-              can use MIDI notes or scale degrees to define Pattern Notes and we
-              can specify a parent scale by ID. The chromatic scale will be used
-              by default.
+              In many ways, a Pattern is a flexible kind of Scale with
+              additional properties to orchestrate timing and dynamics. As with
+              Scales, we can use MIDI notes or scale degrees to define Pattern
+              Notes, and we can specify a parent scale by ID with the
+              "patternTrackId" field of the Pattern or override that value using
+              the "scaleId" field of a Pattern Note. If no scale is specified,
+              the chromatic scale will be used by default.
             </DocsParagraph>
             <DocsParagraph>
               There are {PresetPatternList.length} preset patterns to choose
@@ -77,12 +79,12 @@ export function PatternDocsContent() {
             <DocsParagraph>
               Once we design a Pattern, we can apply various transformations to
               the pattern (including but not limited to transposition,
-              inversion, repetition, reversal, etc.), and develop the musical
-              idea. We can apply various transformations to the underlying
-              scales as well and transform the terrain of the Pattern, shifting
-              notes from one trail to another. This means that we can design a
-              Pattern once and then use it in any scale without having to
-              re-design the Pattern for each scale.
+              inversion, repetition, reversal, etc.), and substantially develop
+              the musical idea. We can also transform any or all of the
+              underlying scales of the Pattern to substantially transform the
+              tonality . This means that we can design a Pattern once and then
+              use it in any scale without having to re-design the Pattern for
+              each scale.
             </DocsParagraph>
           </>
         }

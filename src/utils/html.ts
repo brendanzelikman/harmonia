@@ -1,5 +1,8 @@
 import { promptModal } from "components/PromptModal";
-import { DragEvent, MouseEvent } from "react";
+import { BaseSyntheticEvent, DragEvent, MouseEvent, ReactNode } from "react";
+
+export type DivMouseEvent = React.MouseEvent<HTMLDivElement>;
+export type ButtonMouseEvent = React.MouseEvent<HTMLButtonElement>;
 
 // ------------------------------------------------------------
 // Custom Events
@@ -17,7 +20,11 @@ export const dispatchCustomEvent = (type: string, detail?: unknown) => {
 
 /** Prompts the user then applies a callback for the numerical result. */
 export const promptUserForString =
-  (title: string, message: string, callback: (input: string) => unknown) =>
+  (
+    title: ReactNode,
+    message: ReactNode,
+    callback: (input: string) => unknown
+  ) =>
   async () => {
     const input = await promptModal(title, message);
     callback(input);
@@ -25,11 +32,15 @@ export const promptUserForString =
 
 /** Prompts the user then applies a callback for the numerical result. */
 export const promptUserForNumber =
-  (title: string, message: string, callback: (input: number) => unknown) =>
+  (
+    title: ReactNode,
+    message: ReactNode,
+    callback: (input: number) => unknown
+  ) =>
   async () => {
     const input = await promptModal(title, message);
     const sanitizedInput = parseInt(input ?? "");
-    if (!isNaN(sanitizedInput)) callback(sanitizedInput);
+    if (!isNaN(sanitizedInput)) await callback(sanitizedInput);
   };
 
 /** Download the given blob using an optional file name. */
@@ -52,7 +63,7 @@ type GenericDragEvent = DragEvent<HTMLElement> | React.DragEvent<HTMLElement>;
 type GenericTouchEvent = TouchEvent | React.TouchEvent<HTMLElement>;
 
 /** A `GenericEvent` includes HTML and React events in addition to the native Event. */
-type GenericEvent =
+export type GenericEvent =
   | Event
   | GenericKeyboardEvent
   | GenericMouseEvent
@@ -71,8 +82,15 @@ export const blurOnEnter = (e: GenericEvent) => {
   }
 };
 
+/* Fire the callback when the user presses Enter. */
+export const onEnter = (e: GenericEvent, callback: () => unknown) => {
+  if ((e as GenericKeyboardEvent).key === "Enter") {
+    callback();
+  }
+};
+
 /** Cancel the event and stop all propagation. */
-export const cancelEvent = (e: GenericEvent) => {
+export const cancelEvent = (e: BaseSyntheticEvent) => {
   e.preventDefault();
   e.stopPropagation();
 };
@@ -115,5 +133,6 @@ export const isPressingLetter = (e: GenericEvent) => {
   return /^[a-zA-Z]$/.test((e as KeyboardEvent).key);
 };
 
+/** A regular expression for validating email addresses. */
 export const EmailRegex =
   /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;

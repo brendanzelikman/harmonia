@@ -120,19 +120,19 @@ export const gMinorKey: Key = [
   "B",
 ];
 
-export const aFlatMinorKey: Key = [
+export const gSharpMinorKey: Key = [
   "C",
-  "Db",
+  "C#",
   "D",
-  "Eb",
-  "Fb",
+  "D#",
+  "E",
   "F",
-  "Gb",
+  "F#",
   "G",
-  "Ab",
+  "G#",
   "A",
-  "Bb",
-  "Cb",
+  "A#",
+  "B",
 ];
 
 export const aMinorKey: Key = [
@@ -189,7 +189,7 @@ export default {
   fMinorKey,
   fSharpMinorKey,
   gMinorKey,
-  aFlatMinorKey,
+  aFlatMinorKey: gSharpMinorKey,
   aMinorKey,
   bFlatMinorKey,
   bMinorKey,

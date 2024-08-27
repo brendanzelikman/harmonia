@@ -1,10 +1,14 @@
 import { FC } from "react";
 import { InstrumentEditorProps } from "../InstrumentEditor";
-import { Editor } from "features/Editor/components";
 import { InstrumentEditorEffectBar } from "./InstrumentEditorEffectBar";
 import { InstrumentEditorAnalyser } from "./InstrumentEditorAnalyser";
 import { InstrumentEditorEffects } from "./InstrumentEditorEffects";
-import { getInstrumentCategory, getInstrumentName } from "types/Instrument";
+import { EditorHeader } from "features/Editor/components/EditorHeader";
+import { EditorContent } from "features/Editor/components/EditorContent";
+import {
+  getInstrumentName,
+  getInstrumentCategory,
+} from "types/Instrument/InstrumentFunctions";
 
 export const InstrumentEditorContent: FC<InstrumentEditorProps> = (props) => {
   const { instrument } = props;
@@ -14,7 +18,7 @@ export const InstrumentEditorContent: FC<InstrumentEditorProps> = (props) => {
   /** The instrument editor displays the name of the instrument as its title. */
   const InstrumentEditorTitle = () => {
     return (
-      <Editor.Header
+      <EditorHeader
         className="capitalize"
         title={name}
         subtitle={category}
@@ -24,7 +28,7 @@ export const InstrumentEditorContent: FC<InstrumentEditorProps> = (props) => {
   };
 
   return (
-    <Editor.Content>
+    <EditorContent>
       <InstrumentEditorTitle />
       <div className="flex flex-col overflow-scroll">
         <InstrumentEditorEffectBar {...props} />
@@ -32,6 +36,6 @@ export const InstrumentEditorContent: FC<InstrumentEditorProps> = (props) => {
         <InstrumentEditorAnalyser {...props} type="fft" />
         <InstrumentEditorEffects {...props} />
       </div>
-    </Editor.Content>
+    </EditorContent>
   );
 };

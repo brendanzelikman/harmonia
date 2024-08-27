@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState } from "react";
 import { Keys, useHotkeys } from "react-hotkeys-hook";
 import {
   HotkeyCallback,
-  Options,
   OptionsOrDependencyArray,
 } from "react-hotkeys-hook/dist/types";
 import { isHoldingShift, isPressingLetter } from "utils/html";

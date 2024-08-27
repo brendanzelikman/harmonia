@@ -2,17 +2,15 @@ import { DurationType, WholeNoteTicks } from "utils/durations";
 import { Tick, Velocity } from "../units";
 import { DEFAULT_VELOCITY } from "utils/constants";
 import { isBoolean, isPlainObject, isString, isUndefined } from "lodash";
-import { TrackId } from "types/Track";
 import { isBoundedNumber } from "types/util";
+import { TrackId } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------
 // Editor Definitions
 // ------------------------------------------------------------
 
 /** The editor view can be dedicated or hidden. */
-export type EditorView = DedicatedEditorView | HiddenEditorView;
-export type DedicatedEditorView = "pattern" | "pose" | "scale" | "instrument";
-export type HiddenEditorView = "file" | null;
+export type EditorView = "pattern" | "pose" | "scale" | "instrument" | null;
 
 /** A list of views currently supported by the editor. */
 export const EDITOR_VIEWS = [
@@ -20,7 +18,6 @@ export const EDITOR_VIEWS = [
   "pose",
   "scale",
   "instrument",
-  "file",
 ] as EditorView[];
 
 /** The editor can have a specific action specified. */
@@ -41,6 +38,13 @@ export interface EditorGlobalSettings {
   showPiano: boolean;
 }
 
+/** The editor has specific settings for the clock */
+export interface EditorClockSettings {
+  clockLength: number;
+  tickDuration: DurationType;
+  swingPercentage: number;
+}
+
 /** The editor has specific settings for inputting notes. */
 export interface EditorNoteSettings {
   duration: DurationType;
@@ -59,6 +63,7 @@ export interface EditorSettings {
   global: EditorGlobalSettings;
   note: EditorNoteSettings;
   recording: EditorRecordingSettings;
+  clock: EditorClockSettings;
 }
 
 /** The `Editor` is a dedicated UI for customization. */
@@ -87,6 +92,13 @@ export const defaultEditorNoteSettings: EditorNoteSettings = {
   scaleTrackId: undefined,
 };
 
+/** The editor starts with 16 sixteenth notes and even swing. */
+export const defaultEditorClockSettings: EditorClockSettings = {
+  clockLength: 16,
+  tickDuration: "16th",
+  swingPercentage: 50,
+};
+
 /** The editor starts by recording a measure of quantized eighth notes. */
 export const defaultEditorRecordingSettings: EditorRecordingSettings = {
   ticks: WholeNoteTicks,
@@ -98,6 +110,7 @@ export const defaultEditorSettings: EditorSettings = {
   global: defaultEditorGlobalSettings,
   note: defaultEditorNoteSettings,
   recording: defaultEditorRecordingSettings,
+  clock: defaultEditorClockSettings,
 };
 
 /** The default editor is used for initialization. */
@@ -124,57 +137,6 @@ export const isEditorAction = (obj: unknown): obj is EditorAction => {
     isUndefined(candidate) || EDITOR_ACTIONS.includes(candidate as EditorAction)
   );
 };
-
-/** Checks if a given object is of type `EditorGlobalSettings` */
-export const isEditorGlobalSettings = (
-  obj: unknown
-): obj is EditorGlobalSettings => {
-  const candidate = obj as EditorGlobalSettings;
-  return (
-    isPlainObject(candidate) &&
-    isBoolean(candidate.showTooltips) &&
-    isBoolean(candidate.showSidebar) &&
-    isBoolean(candidate.showTracks) &&
-    isBoolean(candidate.showPiano)
-  );
-};
-
-/** Checks if a given object is of type `EditorNoteSettings` */
-export const isEditorNoteSettings = (
-  obj: unknown
-): obj is EditorNoteSettings => {
-  const candidate = obj as EditorNoteSettings;
-  return (
-    isPlainObject(candidate) &&
-    isString(candidate.duration) &&
-    isBoundedNumber(candidate.velocity, 0, 127) &&
-    (isUndefined(candidate.scaleTrackId) || isString(candidate.scaleTrackId))
-  );
-};
-
-/** Checks if a given object is of type `EditorRecordingSettings` */
-export const isEditorRecordingSettings = (
-  obj: unknown
-): obj is EditorRecordingSettings => {
-  const candidate = obj as EditorRecordingSettings;
-  return (
-    isPlainObject(candidate) &&
-    isBoundedNumber(candidate.ticks, 0, Infinity) &&
-    isString(candidate.quantization)
-  );
-};
-
-/** Checks if a given object is of type `EditorSettings` */
-export const isEditorSettings = (obj: unknown): obj is EditorSettings => {
-  const candidate = obj as EditorSettings;
-  return (
-    isPlainObject(candidate) &&
-    isEditorGlobalSettings(candidate.global) &&
-    isEditorNoteSettings(candidate.note) &&
-    isEditorRecordingSettings(candidate.recording)
-  );
-};
-
 /* Checks if a given object is of type `Editor`. */
 export const isEditor = (obj: unknown): obj is Editor => {
   const candidate = obj as Editor;
@@ -182,6 +144,6 @@ export const isEditor = (obj: unknown): obj is Editor => {
     isPlainObject(candidate) &&
     isEditorView(candidate.view) &&
     isEditorAction(candidate.action) &&
-    isEditorSettings(candidate.settings)
+    isPlainObject(candidate.settings)
   );
 };

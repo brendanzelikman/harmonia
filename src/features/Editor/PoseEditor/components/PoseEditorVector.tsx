@@ -1,26 +1,26 @@
-import {
-  PoseVectorId,
-  PoseVectorModule,
-  getPoseBlockDurationAsString,
-  getPoseVectorModuleAsJSX,
-} from "types/Pose";
 import { PoseEditorProps } from "../PoseEditor";
 import classNames from "classnames";
 import { useMemo, useRef, useState } from "react";
-import { removePoseBlock } from "redux/Pose";
 import {
   usePoseModuleDrag,
   usePoseModuleDrop,
 } from "../hooks/usePoseModuleDnd";
 import { BsX } from "react-icons/bs";
 import { GiCrystalWand } from "react-icons/gi";
-import { useProjectSelector } from "redux/hooks";
-import { selectTrackMap } from "redux/selectors";
+import { useProjectDispatch, useProjectSelector } from "types/hooks";
 import { usePoseEditorVectorHotkeys } from "../hooks/usePoseEditorVectorHotkeys";
 import { PoseEditorDurationMenu } from "./PoseEditorDurationMenu";
 import { PoseEditorOffsetMenu } from "./PoseEditorOffsetMenu";
+import {
+  getPoseVectorModuleAsJSX,
+  getPoseBlockDurationAsString,
+} from "types/Pose/PoseFunctions";
+import { removePoseBlock } from "types/Pose/PoseSlice";
+import { PoseVectorModule, PoseVectorId, Pose } from "types/Pose/PoseTypes";
+import { selectTrackMap } from "types/Track/TrackSelectors";
 
 export interface PoseEditorVectorProps extends PoseEditorProps {
+  pose: Pose;
   module: PoseVectorModule;
   index: number;
   vectors: PoseVectorModule[];
@@ -30,15 +30,16 @@ export interface PoseEditorVectorProps extends PoseEditorProps {
 
 /** Display a vector module. */
 export function PoseEditorVector(props: PoseEditorVectorProps) {
+  const dispatch = useProjectDispatch();
   const { pose, module, index, isCustom } = props;
-  const { dispatch, toggleEditing, onDuration, onOffsets, onModule } = props;
+  const { toggleEditing, onDuration, onOffsets, onModule } = props;
   const trackMap = useProjectSelector(selectTrackMap);
   const isOnOffsets = onOffsets(index);
   const isOnDuration = onDuration(index);
   const isOnModule = onModule(index);
 
   // Unpack the pose and module
-  const id = pose?.id ?? "";
+  const id = pose.id;
   const [vectorId, setVectorId] = useState<PoseVectorId>("chromatic");
   const moduleJSX = getPoseVectorModuleAsJSX(module, trackMap);
   const durationString = getPoseBlockDurationAsString(module);

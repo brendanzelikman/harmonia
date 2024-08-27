@@ -1,32 +1,44 @@
-import { Editor } from "features/Editor/components";
-import { updatePose, updatePoseBlock } from "redux/Pose";
 import { PoseEditorProps } from "../PoseEditor";
 import { PoseEditorToolbar } from "./PoseEditorToolbar";
-import {
-  PoseVectorModule,
-  getPoseCategory,
-  isPoseVectorModule,
-} from "types/Pose";
 import { PoseEditorVector } from "./PoseEditorVector";
-import { useProjectSelector } from "redux/hooks";
-import { selectScaleTrackIds } from "redux/Track";
+import { useProjectDispatch, useProjectSelector } from "types/hooks";
 import { useCallback } from "react";
+import { EditorContent } from "features/Editor/components/EditorContent";
+import { EditorHeader } from "features/Editor/components/EditorHeader";
+import { getPoseCategory, isPoseBucket } from "types/Pose/PoseFunctions";
+import { updatePose, updatePoseBlock } from "types/Pose/PoseSlice";
+import {
+  isPoseVectorModule,
+  PoseVectorId,
+  PoseVectorModule,
+} from "types/Pose/PoseTypes";
+import { selectScaleTrackIds } from "types/Track/TrackSelectors";
+import { ChromaticKey } from "presets/keys";
 
 export function PoseEditorContent(props: PoseEditorProps) {
-  const { dispatch, pose, isCustom } = props;
+  const dispatch = useProjectDispatch();
+  const { pose, isCustom } = props;
   const id = pose?.id;
   const category = getPoseCategory(pose);
   const stream = pose?.stream ?? [];
   const vectors = stream.filter(isPoseVectorModule);
   const trackIds = useProjectSelector(selectScaleTrackIds);
-  const vectorKeys = ["chromatic", "chordal", ...trackIds];
+  const vectorKeys: PoseVectorId[] = [
+    "chromatic",
+    "chordal",
+    "octave",
+    ...ChromaticKey,
+    ...trackIds,
+  ];
 
   /** The pose editor displays the name of the pose as its title. */
   const PoseEditorTitle = (
-    <Editor.Header
+    <EditorHeader
       editable={isCustom}
       title={pose?.name ?? "Pose"}
-      setTitle={(name) => pose && dispatch(updatePose({ ...pose, name }))}
+      setTitle={(name) =>
+        pose && dispatch(updatePose({ data: { ...pose, name } }))
+      }
       subtitle={category}
       color={"bg-gradient-to-tr from-pink-500 to-pink-600"}
     />
@@ -42,15 +54,18 @@ export function PoseEditorContent(props: PoseEditorProps) {
   );
 
   // Display a vector module.
+  const isBucket = isPoseBucket(pose);
   const renderVectorModule = (module: PoseVectorModule, index: number) => {
+    if (!pose) return null;
     return (
       <div
         className="flex w-full items-center p-2 gap-4"
         key={`module-${index}`}
       >
-        <strong>Vector {index + 1}:</strong>
+        <strong>Vector{isBucket ? "" : ` ${index + 1}`}:</strong>
         <PoseEditorVector
           {...props}
+          pose={pose}
           vectors={vectors}
           vectorKeys={vectorKeys}
           module={module}
@@ -71,10 +86,10 @@ export function PoseEditorContent(props: PoseEditorProps) {
   );
 
   return (
-    <Editor.Content>
+    <EditorContent>
       {PoseEditorTitle}
       <PoseEditorToolbar {...props} />
       {PoseEditorStream()}
-    </Editor.Content>
+    </EditorContent>
   );
 }

@@ -1,16 +1,19 @@
-import { isBoolean, isPlainObject, isString } from "lodash";
+import { Payload } from "lib/redux";
+import { isBoolean, isObject, isPlainObject, isString } from "lodash";
 import {
-  PatternClip,
-  ClipUpdate,
-  isClip,
-  PoseClip,
-  PatternClipId,
-  PoseClipId,
   Clip,
+  PatternClip,
+  PoseClip,
+  ScaleClip,
   ClipId,
-} from "types/Clip";
-import { Portal, PortalId, PortalUpdate, isPortal } from "types/Portal";
-import { isTypedArray } from "types/util";
+  defaultPatternClip,
+  defaultPoseClip,
+  defaultScaleClip,
+  isClipInterface,
+} from "types/Clip/ClipTypes";
+import { Portal, PortalId, isPortal } from "types/Portal/PortalTypes";
+import { Update } from "types/units";
+import { isOptionalType, isOptionalTypedArray } from "types/util";
 
 // ------------------------------------------------------------
 // Media Definitions
@@ -20,75 +23,80 @@ import { isTypedArray } from "types/util";
 export type MediaElement = Clip | Portal;
 export type Media = MediaElement[];
 
-/** A `MediaSelection` contains selected media. */
+/** A `MediaSelection` stores selected media. */
 export type MediaSelection = {
-  patternClipIds: PatternClipId[];
-  poseClipIds: PoseClipId[];
-  portalIds: PortalId[];
-};
-
-/** A `MediaClipboard` contains copied media. */
-export type MediaClipboard = {
-  clips: Clip[];
-  portals: Portal[];
-};
-
-/** A `MediaDraft` contains partially drafted media. */
-export type MediaDraft = {
-  patternClip: Partial<PatternClip>;
-  poseClip: Partial<PoseClip>;
-  portal: Partial<Portal>;
-};
-
-/** A `MediaDragState` contains information about dragged media. */
-export type MediaDragState = {
-  draggingPatternClip: boolean;
-  draggingPoseClip: boolean;
-  draggingPortal: boolean;
-};
-
-/** A `NewMediaPayload` contains IDs of clips and poses. */
-export type NewMediaPayload = {
   clipIds?: ClipId[];
   portalIds?: PortalId[];
 };
 
-/** A `CreateMediaPayload` contains clips and/or portals. */
-export type CreateMediaPayload = {
+/** A `MediaClipboard` stores media for copy/cut/paste. */
+export type MediaClipboard = {
   clips?: Clip[];
   portals?: Portal[];
 };
 
+/** A `MediaDraft` stores new media for arrangement. */
+export type MediaDraft = {
+  patternClip?: Partial<PatternClip>;
+  poseClip?: Partial<PoseClip>;
+  scaleClip?: Partial<ScaleClip>;
+  portal?: Partial<Portal>;
+};
+
+/** A `MediaDragState` stores information about dragged media. */
+export type MediaDragState = {
+  draggingPatternClip?: boolean;
+  draggingPoseClip?: boolean;
+  draggingScaleClip?: boolean;
+  draggingPortal?: boolean;
+};
+
+/** A `NewMediaPayload` contains IDs of clips and poses. */
+export type NewMediaPayload = Payload<{
+  clipIds?: ClipId[];
+  portalIds?: PortalId[];
+}>;
+
+/** A `CreateMediaPayload` contains clips and/or portals. */
+export type CreateMediaPayload = Payload<{
+  clips?: Partial<Clip>[];
+  portals?: Partial<Portal>[];
+}>;
+
 /** A `RemoveMediaPayload` contains IDs of clips and portals. */
-export type RemoveMediaPayload = NewMediaPayload;
+export type RemoveMediaPayload = Payload<{
+  clipIds?: ClipId[];
+  portalIds?: PortalId[];
+}>;
 
 /** An `UpdateMediaPayload` contains updated clips and/or portals. */
-export type UpdateMediaPayload = {
-  clips?: ClipUpdate[];
-  portals?: PortalUpdate[];
-};
+export type UpdateMediaPayload = Payload<{
+  clips?: Update<Clip>[];
+  portals?: Update<Portal>[];
+}>;
 
 // ------------------------------------------------------------
 // Media Defaults
 // ------------------------------------------------------------
 
-export const DEFAULT_MEDIA_SELECTION: MediaSelection = {
-  patternClipIds: [],
-  poseClipIds: [],
+export const defaultMediaSelection: MediaSelection = {
+  clipIds: [],
   portalIds: [],
 };
-export const DEFAULT_MEDIA_CLIPBOARD: MediaClipboard = {
+export const defaultMediaClipboard: MediaClipboard = {
   clips: [],
   portals: [],
 };
-export const DEFAULT_MEDIA_DRAFT: MediaDraft = {
-  patternClip: {},
-  poseClip: {},
+export const defaultMediaDraft: MediaDraft = {
+  patternClip: defaultPatternClip,
+  poseClip: defaultPoseClip,
+  scaleClip: defaultScaleClip,
   portal: {},
 };
-export const DEFAULT_MEDIA_DRAG_STATE: MediaDragState = {
+export const defaultMediaDragState: MediaDragState = {
   draggingPatternClip: false,
   draggingPoseClip: false,
+  draggingScaleClip: false,
   draggingPortal: false,
 };
 
@@ -98,7 +106,7 @@ export const DEFAULT_MEDIA_DRAG_STATE: MediaDragState = {
 
 /** Checks if a given object is of type `Media` */
 export const isMedia = (obj: unknown): obj is Media => {
-  return isClip(obj) || isPortal(obj);
+  return isClipInterface(obj) || isPortal(obj);
 };
 
 /** Checks if a given object is of type `MediaSelection` */
@@ -106,9 +114,8 @@ export const isMediaSelection = (obj: unknown): obj is MediaSelection => {
   const candidate = obj as MediaSelection;
   return (
     isPlainObject(candidate) &&
-    isTypedArray(candidate.patternClipIds, isString) &&
-    isTypedArray(candidate.poseClipIds, isString) &&
-    isTypedArray(candidate.portalIds, isString)
+    isOptionalTypedArray(candidate.clipIds, isString) &&
+    isOptionalTypedArray(candidate.portalIds, isString)
   );
 };
 
@@ -117,8 +124,8 @@ export const isMediaClipboard = (obj: unknown): obj is MediaClipboard => {
   const candidate = obj as MediaClipboard;
   return (
     isPlainObject(candidate) &&
-    isTypedArray(candidate.clips, isClip) &&
-    isTypedArray(candidate.portals, isPortal)
+    isOptionalTypedArray(candidate.clips, isClipInterface) &&
+    isOptionalTypedArray(candidate.portals, isPortal)
   );
 };
 
@@ -127,9 +134,10 @@ export const isMediaDraft = (obj: unknown): obj is MediaDraft => {
   const candidate = obj as MediaDraft;
   return (
     isPlainObject(candidate) &&
-    isPlainObject(candidate.patternClip) &&
-    isPlainObject(candidate.poseClip) &&
-    isPlainObject(candidate.portal)
+    isOptionalType(candidate.patternClip, isObject) &&
+    isOptionalType(candidate.poseClip, isObject) &&
+    isOptionalType(candidate.scaleClip, isObject) &&
+    isOptionalType(candidate.portal, isObject)
   );
 };
 
@@ -138,8 +146,9 @@ export const isMediaDragState = (obj: unknown): obj is MediaDragState => {
   const candidate = obj as MediaDragState;
   return (
     isPlainObject(candidate) &&
-    isBoolean(candidate.draggingPatternClip) &&
-    isBoolean(candidate.draggingPoseClip) &&
-    isBoolean(candidate.draggingPortal)
+    isOptionalType(candidate.draggingPatternClip, isBoolean) &&
+    isOptionalType(candidate.draggingPoseClip, isBoolean) &&
+    isOptionalType(candidate.draggingScaleClip, isBoolean) &&
+    isOptionalType(candidate.draggingPortal, isBoolean)
   );
 };

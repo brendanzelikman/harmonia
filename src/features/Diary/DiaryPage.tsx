@@ -7,14 +7,17 @@ const bookRing = "ring-8 ring-indigo-700 rounded";
 
 export const DiaryPageBinding = () => {
   return (
-    <img
-      src={LandingBackground}
-      className={classNames(
-        bookRing,
-        "absolute inset-0 object-cover size-full"
-      )}
-      draggable={false}
-    />
+    <div className={classNames("absolute inset-0 size-full", bookRing)}>
+      <div className="relative size-full overflow-hidden">
+        <img
+          src={LandingBackground}
+          className={classNames(
+            "absolute inset-0 object-cover size-full animate-[animateLandingBackground_120s_ease-in-out_infinite]"
+          )}
+          draggable={false}
+        />
+      </div>
+    </div>
   );
 };
 

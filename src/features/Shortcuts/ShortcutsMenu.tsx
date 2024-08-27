@@ -11,9 +11,10 @@ import { InstrumentEditorShortcuts } from "./content/InstrumentEditorShortcuts";
 import { ScaleEditorShortcuts } from "./content/ScaleEditorShortcuts";
 import { PatternEditorShortcuts } from "./content/PatternEditorShortcuts";
 import { PoseEditorShortcuts } from "./content/PoseEditorShortcuts";
-import { BsX, BsXCircle } from "react-icons/bs";
-import { useProjectSelector } from "redux/hooks";
+import { BsXCircle } from "react-icons/bs";
+import { useProjectSelector } from "types/hooks";
 import { TickDurations } from "./content/TickDurations";
+import { selectTimeline } from "types/Timeline/TimelineSelectors";
 
 export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
 
@@ -31,7 +32,7 @@ export const SHORTCUT_TYPES = [
 export type ShortcutType = (typeof SHORTCUT_TYPES)[number];
 
 export function ShortcutsMenu() {
-  const showingDiary = useProjectSelector((_) => _.timeline.showingDiary);
+  const showingDiary = !!useProjectSelector(selectTimeline).showingDiary;
   const [show, setShow] = useState(false);
   const [type, setType] = useState<ShortcutType>("Global");
 

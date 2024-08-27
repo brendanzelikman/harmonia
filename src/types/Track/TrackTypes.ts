@@ -1,29 +1,41 @@
-import { ID, Tick } from "types/units";
-import { nanoid } from "@reduxjs/toolkit";
+import { ID, Update } from "types/units";
 import { isPlainObject, isString } from "lodash";
-import { NormalState, createNormalState } from "utils/normalizedState";
 import { isOptionalType, isTypedArray } from "types/util";
-import { ScaleId } from "types/Scale";
-import { InstrumentId } from "types/Instrument";
+import {
+  initializePatternTrack,
+  isIPatternTrack,
+  isPatternTrackId,
+  PatternTrack,
+  PatternTrackId,
+} from "./PatternTrack/PatternTrackTypes";
+import {
+  initializeScaleTrack,
+  isIScaleTrack,
+  isScaleTrackId,
+  ScaleTrack,
+  ScaleTrackId,
+} from "./ScaleTrack/ScaleTrackTypes";
+import { InstrumentId } from "types/Instrument/InstrumentTypes";
+import { ScaleId } from "types/Scale/ScaleTypes";
+import { Dictionary, EntityState, nanoid } from "@reduxjs/toolkit";
 
 // ------------------------------------------------------------
-// Track Generics
+// Typed Track Definitions
 // ------------------------------------------------------------
+
+export const TRACK_TYPES = ["scale", "pattern"] as const;
+export type TrackType = (typeof TRACK_TYPES)[number];
 
 export type Track = ScaleTrack | PatternTrack;
-export type TrackId = ID;
-export type TrackNoId = Omit<Track, "id">;
-export type TrackMap = Record<TrackId, Track>;
-export type TrackState = NormalState<TrackMap>;
+export type TrackId = ScaleTrackId | PatternTrackId;
+
+export type TrackUpdate = Update<Track>;
+export type TrackMap = Dictionary<Track>;
+export type TrackState = EntityState<Track>;
 
 // ------------------------------------------------------------
-// Track Definitions
+// Generic Track Definitions
 // ------------------------------------------------------------
-
-/** A `Tracked` object is either a track or an object placed at a tick in a track. */
-export type Tracked<T> = T extends Track
-  ? T
-  : T & { id: ID; tick: Tick; trackId: TrackId };
 
 /** The `TrackRowData` interface stores essential information needed to render a track. */
 export interface TrackRowData {
@@ -31,130 +43,76 @@ export interface TrackRowData {
   trackIds: TrackId[];
 }
 export type TrackRowMap = Record<TrackId, TrackRowData>;
-export type TrackRowDependencies = NormalState<TrackRowMap>;
+export type TrackRowDependencies = EntityState<TrackRowData>;
 
 /** A `TrackInterface` represents a generic track in the arrangement. */
-export interface TrackInterface extends TrackRowData {
+export type ITrack<T extends TrackType = TrackType> = {
+  id: ITrackId<T>;
+  trackIds: TrackId[];
+  type: T;
   name?: string;
   parentId?: TrackId;
+  order?: number;
   collapsed?: boolean;
   port?: number;
-}
+} & ITrackProps<T>;
 
-// ------------------------------------------------------------
-// Scale Track Definitions
-// ------------------------------------------------------------
+/** A `Track` can have extra props based on its type. */
+export type ITrackProps<T extends TrackType> = T extends "pattern"
+  ? { instrumentId: InstrumentId }
+  : T extends "scale"
+  ? { scaleId: ScaleId }
+  : never;
 
-export type ScaleTrackId = `scaleTrack-${TrackId}`;
-export type ScaleTrackNoId = Omit<ScaleTrack, "id">;
-
-/** A `ScaleTrack` is a `Track` with its own `Scale`. */
-export interface ScaleTrack extends TrackInterface {
-  id: ScaleTrackId;
-  scaleId: ScaleId;
-}
-
-// ------------------------------------------------------------
-// Pattern Track Definitions
-// ------------------------------------------------------------
-
-export type PatternTrackId = `patternTrack-${TrackId}`;
-export type PatternTrackNoId = Omit<PatternTrack, "id">;
-
-/** A `PatternTrack` is a `Track` with its own instrument. */
-export interface PatternTrack extends TrackInterface {
-  id: PatternTrackId;
-  instrumentId: InstrumentId;
-}
+export type ITrackId<T extends TrackType> = ID<`${T}-track`>;
+export type ITrackUpdate<T extends TrackType> = Update<ITrack<T>>;
 
 // ------------------------------------------------------------
 // Track Initialization
 // ------------------------------------------------------------
 
-/** Create a scale track with a unique ID. */
-export const initializeScaleTrack = (
-  scaleTrack: Partial<ScaleTrackNoId> = defaultScaleTrack
-): ScaleTrack => ({
-  ...defaultScaleTrack,
-  trackIds: [],
-  ...scaleTrack,
-  id: `scaleTrack-${nanoid()}`,
-});
-
-/** Create a pattern track with a unique ID. */
-export const initializePatternTrack = (
-  track: Partial<PatternTrackNoId> = defaultPatternTrack
-): PatternTrack => ({
-  ...defaultPatternTrack,
-  ...track,
-  id: `patternTrack-${nanoid()}`,
-});
-
 /** Re-initialize a track with a new ID. */
-export const initializeTrack = (track: TrackNoId): Track => {
-  return isScaleTrack(track)
-    ? initializeScaleTrack(track)
-    : initializePatternTrack(track);
+export const initializeTrack = (track: Partial<Track>): Track => {
+  if (track.type === "scale") return initializeScaleTrack(track);
+  if (track.type === "pattern") return initializePatternTrack(track);
+  return { ...track, id: nanoid() } as Track;
 };
-
-/** The default scale track is used for initialization. */
-export const defaultScaleTrack: ScaleTrack = {
-  id: "scaleTrack-1",
-  scaleId: "default-nested-scale",
-  trackIds: ["patternTrack-1"],
-};
-
-/** The default pattern track is used for initialization. */
-export const defaultPatternTrack: PatternTrack = {
-  id: "patternTrack-1",
-  parentId: "scaleTrack-1",
-  instrumentId: "default-instrument",
-  trackIds: [],
-};
-
-/** The default track state is used for Redux. */
-export const defaultTrackState: TrackState = createNormalState<TrackMap>([
-  defaultScaleTrack,
-  defaultPatternTrack,
-]);
 
 // ------------------------------------------------------------
 // Track Type Guards
 // ------------------------------------------------------------
 
 /** Checks if a given object is of type `TrackInterface` */
-export const isTrackInterface = (obj: unknown): obj is TrackInterface => {
-  const candidate = obj as TrackInterface;
+export const isTrackInterface = (obj: unknown): obj is ITrack => {
+  const candidate = obj as ITrack;
   return (
     isPlainObject(obj) &&
     isString(candidate.id) &&
-    isTypedArray(candidate.trackIds, isString) &&
-    isOptionalType(candidate.name, isString)
-  );
-};
-
-/** Checks if a given object is of type `ScaleTrack`. */
-export const isScaleTrack = (obj: unknown): obj is ScaleTrack => {
-  const candidate = obj as ScaleTrack;
-  return (
-    isTrackInterface(candidate) &&
-    candidate.id.startsWith("scaleTrack-") &&
-    isString(candidate.scaleId)
-  );
-};
-
-/** Checks if a given object is of type `PatternTrack`. */
-export const isPatternTrack = (obj: unknown): obj is PatternTrack => {
-  const candidate = obj as PatternTrack;
-  return (
-    isTrackInterface(candidate) &&
-    candidate.id.startsWith("patternTrack-") &&
-    isString(candidate.instrumentId)
+    isTypedArray(candidate.trackIds, isTrackId) &&
+    isOptionalType(candidate.name, isString) &&
+    isString(candidate.type)
   );
 };
 
 /** Checks if a given object is of type `Track` */
 export const isTrack = (obj: unknown): obj is Track => {
   const candidate = obj as Track;
-  return isScaleTrack(candidate) || isPatternTrack(candidate);
+  return isIScaleTrack(candidate) || isIPatternTrack(candidate);
+};
+
+/** Checks if a given ID is a `TrackId` */
+export const isTrackId = (id: unknown): id is TrackId => {
+  return isScaleTrackId(id) || isPatternTrackId(id);
+};
+
+/** Checks if a given track has a `ScaleTrackId` */
+export const isScaleTrack = (track?: Partial<Track>): track is ScaleTrack => {
+  return isScaleTrackId(track?.id);
+};
+
+/** Checks if a given track has a `PatternTrackId` */
+export const isPatternTrack = (
+  track?: Partial<Track>
+): track is PatternTrack => {
+  return isPatternTrackId(track?.id);
 };

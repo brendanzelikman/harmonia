@@ -2,18 +2,24 @@ import ReactConfetti from "react-confetti";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { useContext, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { BsQuestionCircleFill } from "react-icons/bs";
 import { ShepherdTourContext } from "react-shepherd";
-import { hideEditor } from "redux/Editor";
-import { useProjectDispatch } from "redux/hooks";
+import { useProjectDispatch, useProjectSelector } from "types/hooks";
 import { dispatchCustomEvent } from "utils/html";
 import { NavbarTooltipButton } from "features/Navbar/components";
 import { END_TOUR, START_TOUR } from "./useOnboardingTour";
 import { useCustomEventListener } from "hooks";
 import classNames from "classnames";
+import { GiTeacher } from "react-icons/gi";
+import { hideEditor } from "types/Editor/EditorSlice";
+import {
+  selectHasTracks,
+  selectHasTrackTree,
+} from "types/Arrangement/ArrangementSelectors";
 
 export const TourButton = () => {
   const dispatch = useProjectDispatch();
+  const hasTracks = useProjectSelector(selectHasTracks);
+  const hasTrackTree = useProjectSelector(selectHasTrackTree);
   const tour = useContext(ShepherdTourContext);
   const isActive = !!tour?.isActive();
   const [isStarted, setIsStarted] = useState(false);
@@ -59,7 +65,7 @@ export const TourButton = () => {
     } else {
       tour.start();
       dispatchCustomEvent(START_TOUR);
-      dispatch(hideEditor());
+      dispatch(hideEditor({ data: null }));
     }
   };
 
@@ -68,14 +74,19 @@ export const TourButton = () => {
       <NavbarTooltipButton
         className={classNames(
           `border-0 focus:outline-none`,
-          isActive ? "text-sky-600" : "text-slate-50"
+          !hasTrackTree
+            ? "text-slate-500"
+            : isActive
+            ? "text-sky-600"
+            : "text-slate-50"
         )}
         label={
           isActive ? "End the Onboarding Tour" : "Start the Onboarding Tour"
         }
+        disabled={!hasTrackTree}
         onClick={onClick}
       >
-        <BsQuestionCircleFill
+        <GiTeacher
           className={classNames({
             "rounded-full ring-2 ring-sky-600 ring-offset-4 ring-offset-gray-900":
               isActive,

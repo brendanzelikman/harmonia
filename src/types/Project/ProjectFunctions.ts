@@ -1,105 +1,254 @@
-import { clearUndoableHistory } from "utils/undoableHistory";
+import { defaultBaseProject, Project, SafeProject } from "./ProjectTypes";
+import { defaultProjectMetadata } from "./MetadataTypes";
+import { isEqual, merge } from "lodash";
+import { isInstrument } from "types/Instrument/InstrumentTypes";
+import { isPattern, PatternState } from "types/Pattern/PatternTypes";
+import { isPose, PoseState } from "types/Pose/PoseTypes";
+import { isScaleObject, ScaleState } from "types/Scale/ScaleTypes";
+import { defaultTimeline } from "types/Timeline/TimelineTypes";
+import { defaultTransport } from "types/Transport/TransportTypes";
+import { defaultEditor } from "types/Editor/EditorTypes";
+import { isIdInState, mergeStates } from "types/util";
+import { BaseProject, SafeBaseProject } from "providers/store";
 import {
-  Project,
-  ProjectArrangement,
-  ProjectPatterns,
-  ProjectPoses,
-  ProjectScales,
-} from "./ProjectTypes";
-import { defaultTimeline, getIdleTimeline } from "types/Timeline";
-import { defaultTransport, getIdleTransport } from "types/Transport";
-import { difference, isEqual, merge } from "lodash";
-import { defaultEditor, getIdleEditor } from "types/Editor";
-import { defaultInstrument } from "types/Instrument";
-import { defaultPattern } from "types/Pattern";
-import { defaultPose } from "types/Pose";
-import { defaultPatternTrack, defaultScaleTrack } from "types/Track";
-import { defaultScale, defaultScaleTrackScale } from "types/Scale";
+  ClipState,
+  isIPatternClip,
+  isIPoseClip,
+  isIScaleClip,
+} from "types/Clip/ClipTypes";
+import { isPortal } from "types/Portal/PortalTypes";
+import { selectScaleIds } from "types/Scale/ScaleSelectors";
+import { selectPatternIds } from "types/Pattern/PatternSelectors";
+import { selectPoseIds } from "types/Pose/PoseSelectors";
+import {
+  selectPatternClipIds,
+  selectPoseClipIds,
+  selectScaleClipIds,
+} from "types/Clip/ClipSelectors";
+import { selectPortalIds } from "types/Portal/PortalSelectors";
+import { selectTrackIds } from "types/Track/TrackSelectors";
+import { selectInstrumentIds } from "types/Instrument/InstrumentSelectors";
+import { isIPatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
+import { isIScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { TrackId } from "types/Track/TrackTypes";
+import { MotifState } from "types/Motif/MotifTypes";
 
-/** Sanitize the project, clearing undo history and idling the user. */
-export const sanitizeProject = (project: Project): Project => ({
-  ...project,
-  scales: clearUndoableHistory(project.scales),
-  patterns: clearUndoableHistory(project.patterns),
-  arrangement: clearUndoableHistory(project.arrangement),
-  timeline: getIdleTimeline(project.timeline),
-  transport: getIdleTransport(project.transport),
-  editor: getIdleEditor(project.editor),
+// Sanitize the base project by merging with default values
+export const sanitizeBaseProject = (
+  baseProject: SafeBaseProject
+): BaseProject => {
+  return mergeBaseProjects(baseProject, defaultBaseProject);
+};
+
+// Merge the scales of a project
+export const mergeProjectScales = (
+  project: BaseProject,
+  scales: ScaleState
+): BaseProject => mergeBaseProjects(project, { motifs: { scale: scales } });
+
+// Merge the patterns of a project
+export const mergeProjectPatterns = (
+  project: BaseProject,
+  patterns: PatternState
+): BaseProject => mergeBaseProjects(project, { motifs: { pattern: patterns } });
+
+// Merge the poses of a project
+export const mergeProjectPoses = (
+  project: BaseProject,
+  poses: PoseState
+): BaseProject => mergeBaseProjects(project, { motifs: { pose: poses } });
+
+interface ProjectMergeOptions {
+  mergeMotifs?: boolean;
+  mergeTracks?: boolean;
+  mergeClips?: boolean;
+}
+
+// Merge two safe projects together and create a new base project
+export const mergeBaseProjects = (
+  baseProject: SafeBaseProject,
+  incomingProject: SafeBaseProject,
+  options: ProjectMergeOptions = {
+    mergeMotifs: true,
+    mergeTracks: true,
+    mergeClips: true,
+  }
+): BaseProject => {
+  const p1 = baseProject;
+  const p2 = incomingProject;
+  const m1 = baseProject?.motifs;
+  const m2 = incomingProject?.motifs;
+  const mergeMotifs = options.mergeMotifs;
+  const mergeTracks = options.mergeTracks && mergeMotifs;
+  const mergeClips = options.mergeClips && mergeTracks;
+
+  // Sanitize the scales
+  const scales = mergeStates(
+    m1?.scale,
+    mergeMotifs ? m2?.scale : undefined,
+    isScaleObject
+  );
+
+  // Sanitize the patterns
+  const patterns = mergeStates(
+    m1?.pattern,
+    mergeMotifs ? m2?.pattern : undefined,
+    isPattern
+  );
+
+  // Sanitize the poses
+  const poses = mergeStates(
+    m1?.pose,
+    mergeMotifs ? m2?.pose : undefined,
+    isPose
+  );
+
+  // Group the motifs together
+  const motifs: MotifState = { scale: scales, pattern: patterns, pose: poses };
+
+  // Make sure that scale tracks have scales
+  const scaleTracks = mergeStates(
+    p1?.scaleTracks,
+    mergeTracks ? p2?.scaleTracks : undefined,
+    (obj: unknown) => isIScaleTrack(obj) && isIdInState(scales, obj.scaleId)
+  );
+
+  // Sanitize the pattern tracks
+  const patternTracks = mergeStates(
+    p1?.patternTracks,
+    mergeTracks ? p2?.patternTracks : undefined,
+    isIPatternTrack
+  );
+
+  // Make sure that instruments have pattern tracks
+  const instruments = mergeStates(
+    p1?.instruments,
+    mergeTracks ? p2?.instruments : undefined,
+    (_: unknown) => isInstrument(_) && isIdInState(patternTracks, _.trackId)
+  );
+
+  // Return true if a clip is in the state
+  const isClipInState = (clip: { trackId: TrackId }) => {
+    if (isIPatternClip(clip)) {
+      return isIdInState(patternTracks, clip.trackId);
+    } else {
+      return (
+        isIdInState(patternTracks, clip.trackId) ||
+        isIdInState(scaleTracks, clip.trackId)
+      );
+    }
+  };
+
+  // Make sure that scale clips have valid tracks and scales
+  const scaleClips = mergeStates(
+    p1?.clips?.scale,
+    mergeClips ? p2?.clips?.scale : undefined,
+    (clip: unknown) =>
+      isIScaleClip(clip) &&
+      isClipInState(clip) &&
+      isIdInState(scales, clip.scaleId)
+  );
+
+  // Make sure that pattern clips have valid tracks and patterns
+  const patternClips = mergeStates(
+    p1?.clips?.pattern,
+    mergeClips ? p2?.clips?.pattern : undefined,
+    (clip: unknown) =>
+      isIPatternClip(clip) &&
+      isClipInState(clip) &&
+      isIdInState(patterns, clip.patternId)
+  );
+
+  // Make sure that pose clips have valid tracks and poses
+  const poseClips = mergeStates(
+    p1?.clips?.pose,
+    mergeClips ? p2?.clips?.pose : undefined,
+    (clip: unknown) =>
+      isIPoseClip(clip) &&
+      isClipInState(clip) &&
+      isIdInState(poses, clip.poseId)
+  );
+
+  // Group the clips together
+  const clips: ClipState = {
+    scale: scaleClips,
+    pattern: patternClips,
+    pose: poseClips,
+  };
+
+  // Make sure that portals have valid tracks
+  const portals = mergeStates(
+    p1?.portals,
+    p2?.portals,
+    (clip: unknown) => isPortal(clip) && isClipInState(clip)
+  );
+
+  // Update the metadata with the latest timestamp
+  const meta = merge({}, defaultProjectMetadata, p1?.meta, {
+    lastUpdated: new Date().toISOString(),
+  });
+
+  // Merge the rest of the project
+  const timeline = merge({}, defaultTimeline, p1?.timeline);
+  const transport = merge({}, defaultTransport, p1?.transport);
+  const editor = merge({}, defaultEditor, p1?.editor);
+
+  // Return the new base project
+  return {
+    meta,
+    patternTracks,
+    scaleTracks,
+    motifs,
+    clips,
+    portals,
+    instruments,
+    timeline,
+    transport,
+    editor,
+  };
+};
+
+/** Sanitize the project and clear the undo history. */
+export const sanitizeProject = (project: SafeProject): Project => ({
+  _latestUnfiltered: sanitizeBaseProject(project?._latestUnfiltered),
+  group: project?.group,
+  past: [],
+  present: sanitizeBaseProject(project?.present),
+  future: [],
 });
 
-/** Merge the two Projects */
-export const mergeProjects = (p1: Project, p2: Project): Project => ({
-  meta: merge(p1.meta, p2.meta),
-  scales: merge(p1.scales, p2.scales),
-  patterns: merge(p1.patterns, p2.patterns),
-  poses: merge(p1.poses, p2.poses),
-  arrangement: merge(p1.arrangement, p2.arrangement),
-  timeline: merge(p1.timeline, p2.timeline),
-  transport: merge(p1.transport, p2.transport),
-  editor: merge(p1.editor, p2.editor),
-  diary: merge(p1.diary, p2.diary),
+/** Update the project with a newest timestamp */
+export const timestampProject = (project: Project): Project => ({
+  ...project,
+  present: {
+    ...project.present,
+    meta: {
+      ...project.present.meta,
+      lastUpdated: new Date().toISOString(),
+    },
+  },
 });
 
 /** Returns true if a project has not been changed from default settings. */
 export const isProjectEmpty = (project: Project) => {
-  // Check that the default scale has not changed
-  const scales = project.scales.present;
-  if (!isEqual(scales.byId[defaultScale.id], defaultScaleTrackScale))
-    return false;
+  if (project.past.length !== 0) return false;
+  if (project.future.length !== 0) return false;
 
-  // Check that no scales have been added
-  const uniqueScales = difference(scales.allIds, [defaultScale.id]);
-  if (uniqueScales.length !== 0) return false;
+  // Check that nothing has been added
+  if (selectTrackIds(project).length !== 0) return false;
+  if (selectInstrumentIds(project).length !== 0) return false;
+  if (selectPatternIds(project).length !== 0) return false;
+  if (selectPoseIds(project).length !== 0) return false;
+  if (selectScaleIds(project).length !== 0) return false;
+  if (selectPatternClipIds(project).length !== 0) return false;
+  if (selectPoseClipIds(project).length !== 0) return false;
+  if (selectScaleClipIds(project).length !== 0) return false;
+  if (selectPortalIds(project).length !== 0) return false;
 
-  // Check that the default pattern has not changed
-  const patterns = project.patterns.present;
-  if (!isEqual(patterns.byId[defaultPattern.id], defaultPattern)) return false;
-
-  // Check that no patterns have been added
-  const uniquePatterns = difference(patterns.allIds, [defaultPattern.id]);
-  if (uniquePatterns.length !== 0) return false;
-
-  // Check that the default pose has not changed
-  const poses = project.poses.present;
-  if (!isEqual(poses.byId[defaultPose.id], defaultPose)) return false;
-
-  // Check that no poses have been added
-  const uniquePoses = difference(poses.allIds, [defaultPose.id]);
-  if (uniquePoses.length !== 0) return false;
-
-  // Check that the arrangement history is empty
-  const arrangement = project.arrangement.present;
-
-  // Check that the default tracks have not changed
-  const pt = defaultPatternTrack;
-  const st = defaultScaleTrack;
-  if (!isEqual(arrangement.tracks.byId[pt.id], pt)) return false;
-  if (!isEqual(arrangement.tracks.byId[st.id], st)) return false;
-
-  // Check that no tracks have been added
-  const uniqueTracks = difference(arrangement.tracks.allIds, [pt.id, st.id]);
-  if (uniqueTracks.length !== 0) return false;
-
-  // Check that the default instrument has not changed
-  const i = defaultInstrument;
-  if (!isEqual(arrangement.instruments.byId[i.id], i)) return false;
-
-  // Check that no instruments have been added
-  const uniqueInstruments = difference(arrangement.instruments.allIds, [i.id]);
-  if (uniqueInstruments.length !== 0) return false;
-
-  // Check that no media has been added
-  if (arrangement.clips.allIds.length !== 0) return false;
-  if (arrangement.portals.allIds.length !== 0) return false;
-
-  // Check the timeline
-  if (!isEqual(project.timeline, defaultTimeline)) return false;
-
-  // Check the transport
-  if (!isEqual(project.transport, defaultTransport)) return false;
-
-  // Check the editor
-  if (!isEqual(project.editor, defaultEditor)) return false;
+  // Check default settings
+  if (!isEqual(project.present.timeline, defaultTimeline)) return false;
+  if (!isEqual(project.present.transport, defaultTransport)) return false;
+  if (!isEqual(project.present.editor, defaultEditor)) return false;
 
   return true;
 };

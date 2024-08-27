@@ -2,21 +2,7 @@ import classNames from "classnames";
 import { lowerCase } from "lodash";
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { selectPatternClips } from "redux/Clip";
-import { selectInstruments } from "redux/Instrument";
-import { selectPatternMap } from "redux/Pattern";
-import { useProjectDispatch } from "redux/hooks";
-import { selectScaleTracks, selectTrackMidiScale } from "redux/selectors";
-import {
-  createProject,
-  loadFromLocalProjects,
-  loadRandomProject,
-  deleteEmptyProjects,
-  exportProjectsToZIP,
-} from "redux/thunks";
-import { getInstrumentName } from "types/Instrument";
-import { isProject } from "types/Project";
-import { getScaleName } from "types/Scale";
+import { useProjectDispatch } from "types/hooks";
 import { ProjectListProps } from "./useProjectList";
 import {
   PRODIGY_PROJECT_LIMIT,
@@ -24,6 +10,26 @@ import {
   VIRTUOSO_PROJECT_LIMIT,
 } from "utils/constants";
 import { useSubscription } from "providers/subscription";
+import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
+import { isProject } from "types/Project/ProjectTypes";
+import { getScaleName } from "types/Scale/ScaleFunctions";
+import { selectPatternClips } from "types/Clip/ClipSelectors";
+import { selectInstruments } from "types/Instrument/InstrumentSelectors";
+import { selectPatternMap } from "types/Pattern/PatternSelectors";
+import {
+  selectScaleTracks,
+  selectTrackMidiScale,
+} from "types/Track/TrackSelectors";
+import { selectMetadata } from "types/Project/MetadataSelectors";
+import {
+  createProject,
+  deleteEmptyProjects,
+} from "types/Project/ProjectThunks";
+import {
+  readLocalProjects,
+  loadRandomProject,
+} from "types/Project/ProjectLoaders";
+import { exportProjectsToZIP } from "types/Project/ProjectExporters";
 
 interface ProjectSearchProps extends ProjectListProps {}
 
@@ -83,10 +89,11 @@ export function useProjectSearch(props: ProjectSearchProps) {
           );
 
           // Get the name of the project
-          const name = project.meta.name.toLowerCase();
+          const meta = selectMetadata(project);
+          const name = meta.name.toLowerCase();
 
           // Get the date of the project
-          const date = new Date(project.meta.dateCreated)
+          const date = new Date(meta.dateCreated)
             .toLocaleString("default", {
               year: "numeric",
               month: "long",
@@ -104,8 +111,8 @@ export function useProjectSearch(props: ProjectSearchProps) {
           return hasPattern || hasScale || hasInstrument || hasName || hasDate;
         })
         .sort((a, b) => {
-          const dateA = new Date(a.project.meta.lastUpdated);
-          const dateB = new Date(b.project.meta.lastUpdated);
+          const dateA = new Date(selectMetadata(a.project).lastUpdated);
+          const dateB = new Date(selectMetadata(b.project).lastUpdated);
           return dateB.getTime() - dateA.getTime();
         }),
     [projects, query]
@@ -143,7 +150,7 @@ export function useProjectSearch(props: ProjectSearchProps) {
         </button>
         •
         <button
-          onClick={() => dispatch(loadFromLocalProjects())}
+          onClick={() => dispatch(readLocalProjects())}
           disabled={areProjectsCapped}
         >
           Upload a Project

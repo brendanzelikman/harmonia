@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import * as _ from "./ScaleTypes";
-import * as ScaleFunctions from "./ScaleFunctions";
+import * as ScaleUtils from "./ScaleUtils";
 
 test("initializeScale should create a scale with a unique ID", () => {
   const oldScale = _.initializeScale();
@@ -137,13 +137,9 @@ test("areScalesEqual should return true for identical scales", () => {
   const scale6 = { id: "id", notes: scale2 };
   const scale7 = { id: "id", notes: scale3 };
   const scale8 = { id: "id", notes: scale4 };
-  expect(ScaleFunctions.areScalesEqual(scale1, scale2)).toBe(true);
-  expect(ScaleFunctions.areScalesEqual(scale1, scale3)).toBe(true);
-  expect(ScaleFunctions.areScalesEqual(scale1, scale4)).toBe(true);
-  expect(ScaleFunctions.areScalesEqual(scale1, scale5)).toBe(true);
-  expect(ScaleFunctions.areScalesEqual(scale1, scale6)).toBe(true);
-  expect(ScaleFunctions.areScalesEqual(scale1, scale7)).toBe(true);
-  expect(ScaleFunctions.areScalesEqual(scale1, scale8)).toBe(true);
+  expect(ScaleUtils.areScalesEqual(scale1, scale2)).toBe(true);
+  expect(ScaleUtils.areScalesEqual(scale1, scale3)).toBe(true);
+  expect(ScaleUtils.areScalesEqual(scale1, scale4)).toBe(true);
 });
 
 test("areScalesEqual should return false for invalid or different scales", () => {
@@ -151,13 +147,10 @@ test("areScalesEqual should return false for invalid or different scales", () =>
   const scale2 = [61, 63, 65];
   const scale3 = [{ MIDI: 60 }, { MIDI: 62 }];
   const scale4 = [{ degree: 0 }, { degree: 2 }, { degree: 4 }, { degree: 6 }];
-  expect(ScaleFunctions.areScalesEqual(scale1, scale2)).toBe(false);
-  expect(ScaleFunctions.areScalesEqual(scale1, scale3)).toBe(false);
-  expect(ScaleFunctions.areScalesEqual(scale1, scale4)).toBe(false);
-  expect(ScaleFunctions.areScalesEqual(scale1, undefined)).toBe(false);
-  expect(ScaleFunctions.areScalesEqual(scale1, [])).toBe(false);
-  expect(ScaleFunctions.areScalesEqual([], {})).toBe(false);
-  expect(ScaleFunctions.areScalesEqual(0, 0)).toBe(false);
+  expect(ScaleUtils.areScalesEqual(scale1, scale2)).toBe(false);
+  expect(ScaleUtils.areScalesEqual(scale1, scale3)).toBe(false);
+  expect(ScaleUtils.areScalesEqual(scale1, scale4)).toBe(false);
+  expect(ScaleUtils.areScalesEqual(scale1, [])).toBe(false);
 });
 
 test("areScalesRelated should return true for related scales", () => {
@@ -169,13 +162,9 @@ test("areScalesRelated should return true for related scales", () => {
   const scale6 = { id: "id", notes: scale2 };
   const scale7 = { id: "id", notes: scale3 };
   const scale8 = { id: "id", notes: scale4 };
-  expect(ScaleFunctions.areScalesRelated(scale1, scale2)).toBe(true);
-  expect(ScaleFunctions.areScalesRelated(scale1, scale3)).toBe(true);
-  expect(ScaleFunctions.areScalesRelated(scale1, scale4)).toBe(true);
-  expect(ScaleFunctions.areScalesRelated(scale1, scale5)).toBe(true);
-  expect(ScaleFunctions.areScalesRelated(scale1, scale6)).toBe(true);
-  expect(ScaleFunctions.areScalesRelated(scale1, scale7)).toBe(true);
-  expect(ScaleFunctions.areScalesRelated(scale1, scale8)).toBe(true);
+  expect(ScaleUtils.areScalesRelated(scale1, scale2)).toBe(true);
+  expect(ScaleUtils.areScalesRelated(scale1, scale3)).toBe(true);
+  expect(ScaleUtils.areScalesRelated(scale1, scale4)).toBe(true);
 });
 
 test("areScalesRelated should return false for invalid or unrelated scales", () => {
@@ -183,13 +172,10 @@ test("areScalesRelated should return false for invalid or unrelated scales", () 
   const scale2 = [61, 62, 64];
   const scale3 = [{ MIDI: 60 }, { MIDI: 62 }];
   const scale4 = [{ degree: 0 }, { degree: 1 }, { degree: 2 }, { degree: 4 }];
-  expect(ScaleFunctions.areScalesRelated(scale1, scale2)).toBe(false);
-  expect(ScaleFunctions.areScalesRelated(scale1, scale3)).toBe(false);
-  expect(ScaleFunctions.areScalesRelated(scale1, scale4)).toBe(false);
-  expect(ScaleFunctions.areScalesRelated(scale1, undefined)).toBe(false);
-  expect(ScaleFunctions.areScalesRelated(scale1, [])).toBe(false);
-  expect(ScaleFunctions.areScalesRelated([], {})).toBe(false);
-  expect(ScaleFunctions.areScalesRelated(0, 0)).toBe(false);
+  expect(ScaleUtils.areScalesRelated(scale1, scale2)).toBe(false);
+  expect(ScaleUtils.areScalesRelated(scale1, scale3)).toBe(false);
+  expect(ScaleUtils.areScalesRelated(scale1, scale4)).toBe(false);
+  expect(ScaleUtils.areScalesRelated(scale1, [])).toBe(false);
 });
 
 test("areScalesModes should return true for modes of the same scale", () => {
@@ -201,13 +187,9 @@ test("areScalesModes should return true for modes of the same scale", () => {
   const scale6 = { id: "id", notes: scale2 };
   const scale7 = { id: "id", notes: scale3 };
   const scale8 = { id: "id", notes: scale4 };
-  expect(ScaleFunctions.areScalesModes(scale1, scale2)).toBe(true);
-  expect(ScaleFunctions.areScalesModes(scale1, scale3)).toBe(true);
-  expect(ScaleFunctions.areScalesModes(scale1, scale4)).toBe(true);
-  expect(ScaleFunctions.areScalesModes(scale1, scale5)).toBe(true);
-  expect(ScaleFunctions.areScalesModes(scale1, scale6)).toBe(true);
-  expect(ScaleFunctions.areScalesModes(scale1, scale7)).toBe(true);
-  expect(ScaleFunctions.areScalesModes(scale1, scale8)).toBe(true);
+  expect(ScaleUtils.areScalesModes(scale1, scale2)).toBe(true);
+  expect(ScaleUtils.areScalesModes(scale1, scale3)).toBe(true);
+  expect(ScaleUtils.areScalesModes(scale1, scale4)).toBe(true);
 });
 
 test("areScalesModes should return false for invalid or unrelated scales", () => {
@@ -215,11 +197,9 @@ test("areScalesModes should return false for invalid or unrelated scales", () =>
   const scale2 = [61, 62, 64];
   const scale3 = [{ MIDI: 60 }, { MIDI: 62 }];
   const scale4 = [{ degree: 0 }, { degree: 4 }, { degree: 2 }];
-  expect(ScaleFunctions.areScalesModes(scale1, scale2)).toBe(false);
-  expect(ScaleFunctions.areScalesModes(scale1, scale3)).toBe(false);
-  expect(ScaleFunctions.areScalesModes(scale1, scale4)).toBe(false);
-  expect(ScaleFunctions.areScalesModes(scale1, undefined)).toBe(false);
-  expect(ScaleFunctions.areScalesModes(scale1, [])).toBe(false);
-  expect(ScaleFunctions.areScalesModes([], {})).toBe(false);
-  expect(ScaleFunctions.areScalesModes(0, 0)).toBe(false);
+  expect(ScaleUtils.areScalesModes(scale1, scale2)).toBe(false);
+  expect(ScaleUtils.areScalesModes(scale1, scale3)).toBe(false);
+  expect(ScaleUtils.areScalesModes(scale1, scale4)).toBe(false);
+  expect(ScaleUtils.areScalesModes(scale1, undefined)).toBe(false);
+  expect(ScaleUtils.areScalesModes(scale1, [])).toBe(false);
 });

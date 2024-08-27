@@ -4,27 +4,33 @@ import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
 import { PoseEditorProps } from "../PoseEditor";
 import { BiCopy } from "react-icons/bi";
 import { cancelEvent } from "utils/html";
-import { useProjectDeepSelector } from "redux/hooks";
-import { Editor } from "features/Editor/components";
-import { copyPose, setSelectedPose } from "redux/thunks";
-import { Pose, PoseId, getPoseName } from "types/Pose";
-import {
-  removePose,
-  selectCustomPoses,
-  selectPoseIds,
-  setPoseIds,
-  updatePose,
-} from "redux/Pose";
+import { useProjectDeepSelector, useProjectDispatch } from "types/hooks";
 import {
   PoseGroupKey,
   PresetPoseGroupList,
   PresetPoseGroupMap,
 } from "presets/poses";
 import { usePoseDrag, usePoseDrop } from "../hooks/usePoseEditorDnd";
+import {
+  EditorList,
+  EditorListItem,
+} from "features/Editor/components/EditorList";
+import { EditorSearchBox } from "features/Editor/components/EditorSearchBox";
+import {
+  EditorSidebar,
+  EditorSidebarHeader,
+} from "features/Editor/components/EditorSidebar";
+import { getPoseName } from "types/Pose/PoseFunctions";
+import { setPoseIds, removePose, updatePose } from "types/Pose/PoseSlice";
+import { Pose, PoseId } from "types/Pose/PoseTypes";
+import { selectPoseIds, selectPoses } from "types/Pose/PoseSelectors";
+import { setSelectedPose } from "types/Media/MediaThunks";
+import { copyPose } from "types/Pose/PoseThunks";
 
 export function PoseEditorSidebar(props: PoseEditorProps) {
-  const { dispatch, pose } = props;
-  const customPoses = useProjectDeepSelector(selectCustomPoses);
+  const dispatch = useProjectDispatch();
+  const { pose } = props;
+  const customPoses = useProjectDeepSelector(selectPoses);
   const poseIds = useProjectDeepSelector(selectPoseIds);
 
   // Get all pose presets, including custom poses
@@ -161,13 +167,13 @@ export function PoseEditorSidebar(props: PoseEditorProps) {
 
   if (!props.isShowingSidebar) return null;
   return (
-    <Editor.Sidebar className={`ease-in-out duration-300`}>
-      <Editor.SidebarHeader className="border-b border-b-slate-500/50 mb-2">
+    <EditorSidebar className={`ease-in-out duration-300`}>
+      <EditorSidebarHeader className="border-b border-b-slate-500/50 mb-2">
         Preset Poses
-      </Editor.SidebarHeader>
-      <Editor.SearchBox query={searchQuery} setQuery={setSearchQuery} />
-      <Editor.List>{poseCategories.map(renderCategory)}</Editor.List>
-    </Editor.Sidebar>
+      </EditorSidebarHeader>
+      <EditorSearchBox query={searchQuery} setQuery={setSearchQuery} />
+      <EditorList>{poseCategories.map(renderCategory)}</EditorList>
+    </EditorSidebar>
   );
 }
 
@@ -176,7 +182,8 @@ export interface PresetPoseProps extends PoseEditorProps {
 }
 
 export const PresetPose = (props: PresetPoseProps) => {
-  const { dispatch, pose, presetPose } = props;
+  const dispatch = useProjectDispatch();
+  const { pose, presetPose } = props;
 
   const CopyButton = () => (
     <BiCopy
@@ -189,13 +196,13 @@ export const PresetPose = (props: PresetPoseProps) => {
   );
 
   return (
-    <Editor.ListItem
+    <EditorListItem
       className={`${
         pose?.id === presetPose.id
           ? "text-pink-400 font-medium border-l border-l-pink-400"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       } select-none`}
-      onClick={() => dispatch(setSelectedPose(presetPose.id))}
+      onClick={() => dispatch(setSelectedPose({ data: presetPose.id }))}
     >
       <div className="flex relative items-center">
         <input
@@ -205,7 +212,7 @@ export const PresetPose = (props: PresetPoseProps) => {
         />
         <CopyButton />
       </div>
-    </Editor.ListItem>
+    </EditorListItem>
   );
 };
 
@@ -217,7 +224,8 @@ export interface CustomPoseProps extends PoseEditorProps {
 }
 
 export const CustomPose = (props: CustomPoseProps) => {
-  const { dispatch, pose, customPose } = props;
+  const dispatch = useProjectDispatch();
+  const { pose, customPose } = props;
 
   // Ref information
   const ref = useRef<HTMLDivElement>(null);
@@ -253,13 +261,13 @@ export const CustomPose = (props: CustomPoseProps) => {
   );
 
   return (
-    <Editor.ListItem
+    <EditorListItem
       className={`${isDragging ? "opacity-50" : "opacity-100"} ${
         customPose.id === pose?.id
           ? "text-pink-400 border-l border-l-pink-400"
           : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
       }`}
-      onClick={() => dispatch(setSelectedPose(customPose.id))}
+      onClick={() => dispatch(setSelectedPose({ data: customPose.id }))}
     >
       <div className="relative flex items-center h-9" ref={ref}>
         <input
@@ -278,6 +286,6 @@ export const CustomPose = (props: CustomPoseProps) => {
         <CopyButton />
         <DeleteButton />
       </div>
-    </Editor.ListItem>
+    </EditorListItem>
   );
 };

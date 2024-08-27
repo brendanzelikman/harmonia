@@ -4,9 +4,10 @@ import {
   firebaseApp,
   googleProvider,
   microsoftProvider,
-} from "firebase";
+} from "providers/firebase";
 import {
   browserPopupRedirectResolver,
+  getAuth,
   reauthenticateWithRedirect,
 } from "firebase/auth";
 import { useState } from "react";
@@ -28,7 +29,6 @@ import { useSubscription } from "providers/subscription";
 import { useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
 import { useAuthentication } from "providers/authentication";
-import { signOut } from "utils/authentication";
 import { dispatchCustomEvent } from "utils/html";
 import { DESKTOP_URL, PLUGIN_URL, REPO_URL } from "utils/constants";
 
@@ -223,7 +223,7 @@ export const UserControlPanel = () => {
             dispatchCustomEvent("harmonia-password", null);
             navigate("/");
           } else {
-            signOut();
+            getAuth().signOut();
           }
         }}
         icon={GiExitDoor}

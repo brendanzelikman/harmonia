@@ -1,40 +1,42 @@
 import { ScaleEditorProps } from "../ScaleEditor";
 import { promptUserForNumber } from "utils/html";
 import { useScopedHotkeys } from "lib/react-hotkeys-hook";
-import { useProjectDeepSelector } from "redux/hooks";
+import { useProjectDeepSelector, useProjectDispatch } from "types/hooks";
+import { toggleEditorAction } from "types/Editor/EditorSlice";
+import { selectTrackMidiScale } from "types/Track/TrackSelectors";
 import {
-  clearScale,
   playScale,
-  rotateScale,
+  clearScale,
   transposeScale,
-} from "redux/thunks";
-import { toggleEditorAction } from "redux/Editor";
-import { selectTrackMidiScale } from "redux/Track";
+  rotateScale,
+} from "types/Scale/ScaleThunks";
 
 const useHotkeys = useScopedHotkeys("editor");
 
 export function useScaleEditorHotkeys(props: ScaleEditorProps) {
-  const { dispatch, undo, redo } = props;
-  const { scale, cursor, canUndo, canRedo } = props;
+  const dispatch = useProjectDispatch();
+  const { scale, cursor } = props;
   const notes = useProjectDeepSelector(selectTrackMidiScale);
-
-  // Meta + Z = Undo Patterns
-  useHotkeys("meta+z", canUndo ? undo : undefined, [canUndo]);
-
-  // Meta + Shift + Z = Redo Patterns
-  useHotkeys("meta+shift+z", canRedo ? redo : undefined, [canRedo]);
 
   // Shift + Space = Play Scale
   useHotkeys("shift+space", () => scale && dispatch(playScale(scale)), [scale]);
 
   // A = Toggle Adding Notes
-  useHotkeys("a", () => dispatch(toggleEditorAction("addingNotes")));
+  useHotkeys("a", () => dispatch(toggleEditorAction({ data: "addingNotes" })));
+
+  // C = Toggle Cursor
+  useHotkeys("c", scale?.notes.length ? cursor.toggle : () => null, [
+    scale,
+    cursor,
+  ]);
 
   // Shift + Backspace = Clear Scale
   useHotkeys("shift+backspace", () => dispatch(clearScale(scale?.id)), [scale]);
 
   // Backspace = Toggle Removing Notes or Remove Note
-  useHotkeys("backspace", () => dispatch(toggleEditorAction("removingNotes")));
+  useHotkeys("backspace", () =>
+    dispatch(toggleEditorAction({ data: "removingNotes" }))
+  );
 
   // T = Prompt for Transposition
   useHotkeys(
@@ -42,7 +44,7 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
     promptUserForNumber(
       "Transpose Your Scale",
       "How many semitones would you like to transpose your scale by?",
-      (n) => dispatch(transposeScale(scale?.id, n))
+      (n) => dispatch(transposeScale(scale, n))
     ),
     [scale]
   );
@@ -53,26 +55,22 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
     promptUserForNumber(
       "Rotate Your Scale",
       "How many steps would you like to rotate your scale by?",
-      (n) => dispatch(rotateScale(scale?.id, n))
+      (n) => dispatch(rotateScale(scale, n))
     ),
     [scale]
   );
 
   // Up Arrow = Transpose Up 1 Semitone
-  useHotkeys("up", () => dispatch(transposeScale(scale?.id, 1)), [scale]);
+  useHotkeys("up", () => dispatch(transposeScale(scale, 1)), [scale]);
 
   // Shift + Up Arrow = Transpose Up 12 Semitones
-  useHotkeys("shift+up", () => dispatch(transposeScale(scale?.id, 12)), [
-    scale,
-  ]);
+  useHotkeys("shift+up", () => dispatch(transposeScale(scale, 12)), [scale]);
 
   // Down Arrow = Transpose Down 1 Semitone
-  useHotkeys("down", () => dispatch(transposeScale(scale?.id, -1)), [scale]);
+  useHotkeys("down", () => dispatch(transposeScale(scale, -1)), [scale]);
 
   // Shift + Down Arrow = Transpose Down 12 Semitones
-  useHotkeys("shift+down", () => dispatch(transposeScale(scale?.id, -12)), [
-    scale,
-  ]);
+  useHotkeys("shift+down", () => dispatch(transposeScale(scale, -12)), [scale]);
 
   // Left Arrow = Rotate Down 1 Step or Rewind Cursor
   useHotkeys(
@@ -81,10 +79,10 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
       if (!cursor.hidden && cursor.index > 0) {
         cursor.prev();
       } else {
-        dispatch(rotateScale(scale?.id, -1));
+        dispatch(rotateScale(scale, -1));
       }
     },
-    [cursor, cursor]
+    [cursor, scale]
   );
 
   // Right Arrow = Rotate Up 1 Step or Advance Cursor
@@ -94,7 +92,7 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
       if (!cursor.hidden && cursor.index < notes.length - 1) {
         cursor.next();
       } else {
-        dispatch(rotateScale(scale?.id, 1));
+        dispatch(rotateScale(scale, 1));
       }
     },
     [cursor, scale, notes]

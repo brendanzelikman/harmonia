@@ -5,32 +5,32 @@ import { Key } from "types/units";
 
 export const cMajorKey: Key = [
   "C",
-  "C#",
+  "Db",
   "D",
-  "D#",
+  "Eb",
   "E",
   "F",
   "F#",
   "G",
-  "G#",
+  "Ab",
   "A",
   "Bb",
   "B",
 ];
 
-export const cSharpMajorKey: Key = [
-  "B#",
-  "C#",
+export const dFlatMajorKey: Key = [
+  "C",
+  "Db",
   "D",
-  "D#",
+  "Eb",
   "E",
-  "E#",
-  "F#",
+  "F",
+  "Gb",
   "G",
-  "G#",
+  "Ab",
   "A",
-  "A#",
-  "B",
+  "Bb",
+  "Cb",
 ];
 
 export const dMajorKey: Key = [
@@ -94,7 +94,7 @@ export const fMajorKey: Key = [
 ];
 
 export const fSharpMajorKey: Key = [
-  "C",
+  "B#",
   "C#",
   "D",
   "D#",
@@ -174,7 +174,7 @@ export const bMajorKey: Key = [
   "D",
   "D#",
   "E",
-  "F",
+  "E#",
   "F#",
   "G",
   "G#",
@@ -185,7 +185,7 @@ export const bMajorKey: Key = [
 
 export default {
   cMajorKey,
-  cSharpMajorKey,
+  dFlatMajorKey,
   dMajorKey,
   eFlatMajorKey,
   eMajorKey,
