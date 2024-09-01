@@ -24,6 +24,7 @@ export const phasePattern =
 
     dispatch(updatePattern({ data: { id, stream } }));
   };
+
 /** Reverse the stream of a pattern. */
 export const reversePattern =
   ({ data }: Payload<{ id: PatternId }>): Thunk =>
@@ -32,7 +33,9 @@ export const reversePattern =
     const { id } = data;
     const pattern = selectPatternById(project, id);
     if (!pattern) return;
-    dispatch(updatePattern({ data: { id, stream: reverse(pattern.stream) } }));
+    dispatch(
+      updatePattern({ data: { id, stream: reverse([...pattern.stream]) } })
+    );
   };
 
 /** Shuffle the stream of a pattern. */
@@ -43,5 +46,7 @@ export const shufflePatternStream =
     const project = getProject();
     const pattern = selectPatternById(project, id);
     if (!pattern) return;
-    dispatch(updatePattern({ data: { id, stream: shuffle(pattern.stream) } }));
+    dispatch(
+      updatePattern({ data: { id, stream: shuffle([...pattern.stream]) } })
+    );
   };

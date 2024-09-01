@@ -1,8 +1,8 @@
 import { NavbarGroup } from "../components";
-import { NavbarArrangementSection } from "../sections/Arrangement/NavbarArrangementSection";
-import { NavbarProjectSection } from "../sections/Project/NavbarProjectSection";
-import { NavbarToolkitSection } from "../sections/Toolkit/NavbarToolkitSection";
-import { NavbarTransportSection } from "../sections/Transport/NavbarTransportSection";
+import { NavbarArrangementSection } from "../sections/NavbarArrangementSection";
+import { NavbarProjectSection } from "../sections/NavbarProjectSection";
+import { NavbarToolkitSection } from "../sections/NavbarToolkitSection";
+import { NavbarTransportSection } from "../sections/NavbarTransportSection";
 
 export function NavbarPlaygroundContent() {
   return (

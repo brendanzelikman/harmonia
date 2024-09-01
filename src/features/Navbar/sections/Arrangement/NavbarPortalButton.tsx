@@ -1,26 +1,28 @@
 import { NavbarTooltip, NavbarTooltipButton } from "../../components";
-import { useDeep, useProjectDispatch, useProjectSelector } from "types/hooks";
+import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { GiPortal } from "react-icons/gi";
 import { useEffect, useState } from "react";
 import classNames from "classnames";
-import { hasKeys } from "utils/objects";
-import { isTimelinePortalingClips } from "types/Timeline/TimelineFunctions";
-import { selectTimeline } from "types/Timeline/TimelineSelectors";
+import {
+  selectIsAddingPortals,
+  selectTimeline,
+} from "types/Timeline/TimelineSelectors";
 import { selectClipIds } from "types/Clip/ClipSelectors";
-import { togglePortalingMedia } from "types/Timeline/TimelineThunks";
+import { toggleTimelineState } from "types/Timeline/TimelineThunks";
+import { some } from "lodash";
 
 export const NavbarPortalButton = () => {
   const dispatch = useProjectDispatch();
-  const timeline = useProjectSelector(selectTimeline);
+  const timeline = use(selectTimeline);
   const hasClips = useDeep(selectClipIds).length > 0;
-  const isPortaling = isTimelinePortalingClips(timeline);
-  const fragment = timeline.mediaDraft?.portal;
-  const isFragment = hasKeys(fragment);
+  const isPortaling = use(selectIsAddingPortals);
+  const fragment = timeline.draft?.portal;
+  const isFragment = some(fragment);
 
   const PortalButton = () => {
     const buttonClass = classNames(
-      "delay-0 border-slate-400/50",
-      hasClips ? "cursor-pointer" : "opacity-50",
+      "p-1.5 delay-0 border-slate-400/50",
+      hasClips ? "cursor-portalgunb" : "opacity-50",
       {
         "bg-gradient-to-tr from-sky-600 to-orange-600": !isPortaling,
         "ring-2 ring-offset-2 ring-offset-black duration-150": isPortaling,
@@ -33,7 +35,9 @@ export const NavbarPortalButton = () => {
         label={isPortaling ? "Stop Creating a Portal" : "Create a Portal"}
         disabled={!hasClips}
         className={buttonClass}
-        onClick={() => dispatch(togglePortalingMedia())}
+        onClick={() =>
+          dispatch(toggleTimelineState({ data: "portaling-clips" }))
+        }
       >
         <GiPortal />
       </NavbarTooltipButton>

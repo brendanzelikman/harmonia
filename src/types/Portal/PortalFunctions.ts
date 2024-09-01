@@ -5,7 +5,7 @@ import {
   PortaledClipId,
   initializePortaledClip,
 } from "./PortalTypes";
-import { Tick } from "types/units";
+import { Timed } from "types/units";
 import { isFiniteNumber } from "types/util";
 
 /** Get the original media ID from a portaled media chunk. */
@@ -13,20 +13,15 @@ export const getOriginalIdFromPortaledClip = (clipId: PortaledClipId) =>
   clipId.split("-chunk-")[0] as ClipId;
 
 /** Get a list of each clip's portaled chunks based on the given clips and portals. */
-export function applyPortalsToClips(
-  clips: Clip[],
-  portals: Portal[],
-  durations: Tick[]
-) {
-  return clips.map((clip, i) => {
-    const duration = durations[i];
-    if (!isFiniteNumber(duration)) {
-      return [{ ...clip, duration: duration ?? 0 }];
+export function applyPortalsToClips(clips: Timed<Clip>[], portals: Portal[]) {
+  return clips.map((clip) => {
+    if (!isFiniteNumber(clip.duration)) {
+      return [{ ...clip, duration: clip.duration ?? 0 }];
     }
 
     // Start with the media bounds
     const startTick = clip.tick;
-    const endTick = clip.tick + duration;
+    const endTick = clip.tick + clip.duration;
 
     // Initialize the chunks
     const portaledClips: Portaled<Clip>[] = [];
@@ -85,10 +80,6 @@ export function applyPortalsToClips(
 }
 
 /** Process the clip through the given portals. */
-export const applyPortalsToClip = (
-  clip: Clip,
-  portals: Portal[],
-  duration: Tick
-) => {
-  return applyPortalsToClips([clip], portals, [duration])[0];
+export const applyPortalsToClip = (clip: Timed<Clip>, portals: Portal[]) => {
+  return applyPortalsToClips([clip], portals)[0];
 };

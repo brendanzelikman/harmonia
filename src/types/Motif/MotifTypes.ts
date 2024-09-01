@@ -28,6 +28,14 @@ export interface MotifState {
   scale: ScaleState;
 }
 
+export type IMotifState<T = ClipType> = T extends "pattern"
+  ? PatternState
+  : T extends "pose"
+  ? PoseState
+  : T extends "scale"
+  ? ScaleState
+  : never;
+
 export const defaultMotifState: MotifState = {
   pattern: defaultPatternState,
   pose: defaultPoseState,

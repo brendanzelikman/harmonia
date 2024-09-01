@@ -1,6 +1,6 @@
 import LandingBackground from "assets/images/landing-background.png";
 import classNames from "classnames";
-import { FlipBookPage, FlipBookPageProps } from "components/FlipBook";
+import { FlipBookPageProps, FlipBookPage } from "lib/react-pageflip";
 import { forwardRef } from "react";
 
 const bookRing = "ring-8 ring-indigo-700 rounded";

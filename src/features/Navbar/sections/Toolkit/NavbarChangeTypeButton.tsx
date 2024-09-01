@@ -3,10 +3,10 @@ import { useProjectDispatch } from "types/hooks";
 import { FaPaintBrush } from "react-icons/fa";
 import classNames from "classnames";
 import pluralize from "pluralize";
-import { NavbarToolkitProps } from "./NavbarToolkitSection";
 import { NavbarHoverTooltip } from "features/Navbar/components";
 import { CLIP_TYPES } from "types/Clip/ClipTypes";
-import { setSelectedClipType } from "types/Timeline/TimelineThunks";
+import { setTimelineType } from "types/Timeline/TimelineThunks";
+import { NavbarToolkitProps } from "../NavbarToolkitSection";
 
 export const NavbarChangeTypeButton = ({
   type,
@@ -44,7 +44,7 @@ export const NavbarChangeTypeButton = ({
               background,
               type === t ? selectedClass : ""
             )}
-            onClick={() => dispatch(setSelectedClipType({ data: t }))}
+            onClick={() => dispatch(setTimelineType({ data: t }))}
           >
             {pluralize(t, 2)}
           </li>

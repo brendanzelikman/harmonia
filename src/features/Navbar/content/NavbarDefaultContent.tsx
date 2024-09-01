@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { TooltipButton } from "components/TooltipButton";
 import { View, views } from "pages/MainPage";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
 
@@ -10,8 +10,8 @@ export function NavbarDefaultContent(props: {
   isLoadingPlayground: boolean;
 }) {
   const { view, isLoadingPlayground } = props;
-  const { isProdigy, isMaestro, isVirtuoso, isAtLeastStatus, canPlay } =
-    useSubscription();
+  const { isProdigy, isMaestro, isVirtuoso, isAtLeastRank, canPlay } =
+    useAuth();
 
   // Render the link to the view
   const renderLink = useCallback(
@@ -63,7 +63,7 @@ export function NavbarDefaultContent(props: {
   // Render the links to the views
   const renderLinks = useCallback(() => {
     const visibleViews = views.filter(
-      (v) => isAtLeastStatus("maestro") || v !== "projects"
+      (v) => isAtLeastRank("maestro") || v !== "projects"
     );
     const viewCount = visibleViews.length;
     return visibleViews.map((v, i) => {
@@ -75,7 +75,7 @@ export function NavbarDefaultContent(props: {
         </div>
       );
     });
-  }, [isLoadingPlayground, isAtLeastStatus, renderLink]);
+  }, [isLoadingPlayground, isAtLeastRank, renderLink]);
 
   /** The default navbar group containing projects, docs, etc. */
   return (

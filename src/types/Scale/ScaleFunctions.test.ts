@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import * as _ from "./ScaleFunctions";
 import * as ScaleTransformers from "./ScaleTransformers";
+import * as key from "utils/key";
 import * as ScaleUtils from "./ScaleUtils";
 import * as ScaleMidiFunctions from "./ScaleResolvers";
 import { Scale, ScaleNote, ScaleObject } from "./ScaleTypes";

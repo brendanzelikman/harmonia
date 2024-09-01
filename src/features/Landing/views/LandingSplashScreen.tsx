@@ -2,7 +2,7 @@ import { m } from "framer-motion";
 import { LandingSection } from "../components";
 import Logo from "assets/images/logo.png";
 import { ReactNode } from "react";
-import { useAuthentication } from "providers/authentication";
+import { useAuth } from "providers/auth";
 
 interface LandingSplashScreenProps {
   title?: ReactNode;
@@ -17,7 +17,7 @@ interface LandingSplashScreenProps {
 }
 
 export const LandingSplashScreen = (props: LandingSplashScreenProps) => {
-  const { isAuthorized, isLoaded } = useAuthentication();
+  const { isAuthorized, isLoaded } = useAuth();
   const title = props.title || "Harmonia";
   const titleClass =
     props.titleClass ||

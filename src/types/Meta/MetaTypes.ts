@@ -9,9 +9,11 @@ import { initializeProjectDiary, ProjectDiary } from "../Diary/DiaryTypes";
 export interface ProjectMetadata {
   id: string;
   name: string;
+  diary: ProjectDiary;
   dateCreated: string;
   lastUpdated: string;
-  diary: ProjectDiary;
+  hideTooltips?: boolean;
+  hideTimeline?: boolean;
 }
 
 /** Create project metadata with a unique ID and the current date. */

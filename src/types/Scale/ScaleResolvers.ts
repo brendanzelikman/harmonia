@@ -3,7 +3,8 @@ import {
   transposeNoteThroughScales,
   transposeNoteThroughScale,
 } from "./ScaleTransformers";
-import { ScaleNote, Scale, MidiValue } from "./ScaleTypes";
+import { ScaleNote, Scale } from "./ScaleTypes";
+import { MidiValue } from "types/units";
 
 /** Resolve a `ScaleNote` to a `MidiNoteValue` using the `Scales` provided. */
 export const resolveScaleNoteToMidi = (note: ScaleNote, scales: Scale[]) => {

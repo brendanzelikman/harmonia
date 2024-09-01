@@ -1,7 +1,8 @@
 import { Dictionary, EntityState, nanoid } from "@reduxjs/toolkit";
 import { IClipId, isClipId, IClip } from "../ClipTypes";
 import { isClipInterface } from "../ClipTypes";
-import { createId, Update } from "types/units";
+import { Update } from "types/units";
+import { createId } from "types/util";
 import { Portaled, PortaledClipId } from "types/Portal/PortalTypes";
 
 // ------------------------------------------------------------

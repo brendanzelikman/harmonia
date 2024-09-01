@@ -7,28 +7,22 @@ import { RouterProvider } from "react-router-dom";
 import { store } from "providers/store";
 import { AppRouter } from "routes";
 import { LazyMotion, domAnimation } from "framer-motion";
-import { AuthenticationProvider } from "providers/authentication";
-import { SubscriptionProvider } from "providers/subscription";
-import { PresetProvider } from "providers/presets";
+import { AuthProvider } from "providers/auth";
 
 export function App() {
   return (
     <StrictMode>
-      <AuthenticationProvider>
-        <SubscriptionProvider>
-          <PresetProvider>
-            <HotkeysProvider initiallyActiveScopes={["timeline", "transport"]}>
-              <DndProvider backend={HTML5Backend} key={1}>
-                <ReduxProvider store={store}>
-                  <LazyMotion features={domAnimation}>
-                    <RouterProvider router={AppRouter} />
-                  </LazyMotion>
-                </ReduxProvider>
-              </DndProvider>
-            </HotkeysProvider>
-          </PresetProvider>
-        </SubscriptionProvider>
-      </AuthenticationProvider>
+      <AuthProvider>
+        <HotkeysProvider initiallyActiveScopes={["timeline", "transport"]}>
+          <DndProvider backend={HTML5Backend} key={1}>
+            <ReduxProvider store={store}>
+              <LazyMotion features={domAnimation}>
+                <RouterProvider router={AppRouter} />
+              </LazyMotion>
+            </ReduxProvider>
+          </DndProvider>
+        </HotkeysProvider>
+      </AuthProvider>
     </StrictMode>
   );
 }

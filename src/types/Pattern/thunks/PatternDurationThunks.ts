@@ -20,12 +20,11 @@ export const repeatPattern =
   ({ data }: Payload<{ id: PatternId; repeat: number }>): Thunk =>
   (dispatch, getProject) => {
     const { id, repeat } = data;
-    if (repeat === 0) return; // Avoid unnecessary work
     const project = getProject();
     const pattern = selectPatternById(project, id);
     if (!pattern) return;
 
-    const stream = new Array(repeat).fill(pattern.stream).flat();
+    const stream = new Array(repeat + 1).fill(pattern.stream).flat();
     dispatch(updatePattern({ data: { id, stream } }));
   };
 
@@ -38,9 +37,10 @@ export const continuePattern =
     const pattern = selectPatternById(project, id);
     if (!pattern) return;
 
-    pattern.stream = new Array(length)
+    const stream = new Array(length)
       .fill(0)
       .map((_, i) => pattern.stream[i % pattern.stream.length]);
+    dispatch(updatePattern({ data: { id, stream } }));
   };
 
 /** Stretch a pattern by a scaling factor. */
@@ -102,17 +102,14 @@ export const randomizePatternDurations =
       if (!isPatternChord(block)) return block;
 
       // Create a new chord with random velocities
-      const notes = getPatternChordNotes(block);
       const sampledDuration = sampleDuration();
 
-      const updatedNotes = notes.map((note) => {
-        return {
+      const updatedChord = getPatternChordWithNewNotes(block, (notes) =>
+        notes.map((note) => ({
           ...note,
           duration: sampledDuration ?? note.duration,
-        };
-      });
-
-      const updatedChord = getPatternChordWithNewNotes(block, updatedNotes);
+        }))
+      );
       return updatedChord;
     });
 
@@ -124,15 +121,17 @@ export const setPatternDurations =
   ({ data }: Payload<{ id: PatternId; duration: number }>): Thunk =>
   (dispatch, getProject) => {
     const { id, duration } = data;
+    if (isNaN(duration)) return;
+
     const project = getProject();
     const pattern = selectPatternById(project, id);
     if (!pattern) return;
 
-    const stream = pattern.stream.map((block) => {
+    const stream = [...pattern.stream].map((block) => {
       if (!isPatternChord(block)) return block;
-      const notes = getPatternChordNotes(block);
-      const updatedNotes = notes.map((note) => ({ ...note, duration }));
-      return getPatternChordWithNewNotes(block, updatedNotes);
+      return getPatternChordWithNewNotes(block, (notes) =>
+        notes.map((note) => ({ ...note, duration }))
+      );
     });
 
     dispatch(updatePattern({ data: { id, stream } }));

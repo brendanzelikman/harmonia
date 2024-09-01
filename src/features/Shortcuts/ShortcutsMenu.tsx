@@ -1,7 +1,7 @@
 import { Dialog } from "@headlessui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useCustomEventListener } from "hooks";
+import { useEventListener } from "hooks";
 import { GlobalShortcuts } from "./content/GlobalShortcuts";
 import classNames from "classnames";
 import { TransportShortcuts } from "./content/TransportShortcuts";
@@ -44,7 +44,7 @@ export function ShortcutsMenu() {
 
   // Listen for shortcut events
   const toggleShortcuts = useCallback(() => setShow((show) => !show), []);
-  useCustomEventListener(TOGGLE_SHORTCUTS, () => setShow(!show));
+  useEventListener(TOGGLE_SHORTCUTS, () => setShow(!show));
   useHotkeys("shift+slash", toggleShortcuts);
   useHotkeys("esc", () => setShow(false));
 

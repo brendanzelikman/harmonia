@@ -11,7 +11,7 @@ import {
   PatternMidiStream,
   isPatternMidiChord,
 } from "types/Pattern/PatternTypes";
-import { MidiNote } from "types/Scale/ScaleTypes";
+import { MidiNote } from "types/units";
 import { mod } from "utils/math";
 
 // ------------------------------------------------------------
@@ -85,6 +85,7 @@ export function useOSMD(props: Props): ScoreProps {
     ...defaultOptions,
     ...props.options,
     renderSingleHorizontalStaffline: true,
+    disableCursor: false,
   };
 
   // Note info

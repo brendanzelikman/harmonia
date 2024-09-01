@@ -9,7 +9,7 @@ import {
 } from "react-icons/bs";
 import { PatternEditorProps } from "../PatternEditor";
 import restNote from "assets/noteheads/rest.png";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   STRAIGHT_DURATION_TYPES,
   getDurationFromType,
@@ -31,15 +31,33 @@ import {
 } from "types/Editor/EditorSlice";
 import { useProjectDispatch } from "types/hooks";
 import { clearPattern } from "types/Pattern/PatternThunks";
+import { PatternBlock } from "types/Pattern/PatternTypes";
+import { useHotkeys } from "react-hotkeys-hook";
+import { updatePatternBlock } from "types/Pattern/PatternSlice";
 
 export function PatternEditorComposeTab(props: PatternEditorProps) {
   const dispatch = useProjectDispatch();
   const { pattern, cursor } = props;
   const { isInserting, isCustom, isEmpty } = props;
 
+  const stream = pattern?.stream ?? [];
   const isAdding = props.isAdding && cursor.hidden;
   const isEditing = props.isAdding && !cursor.hidden;
   const isActive = isAdding || isEditing || isInserting;
+  const [block, setBlock] = useState<PatternBlock | undefined>();
+  useHotkeys("meta+c", () => cursor && setBlock(stream[cursor.index]), [
+    pattern,
+    cursor,
+  ]);
+  useHotkeys(
+    "meta+v",
+    () => {
+      const id = pattern?.id;
+      const index = cursor.index;
+      if (id && block) dispatch(updatePatternBlock({ id, index, block }));
+    },
+    [block, cursor]
+  );
 
   /** The user can add notes to the pattern or update a specific block. */
   const AddButton = () => {

@@ -1,5 +1,3 @@
-import { Color } from "types/units";
-
 export const PATTERN_CLIP_COLORS = [
   "red",
   "orange",
@@ -22,10 +20,10 @@ export const DEFAULT_PATTERN_CLIP_COLOR: PatternClipColor = "sky";
 
 /** A curated color palette for a Clip using Tailwind CSS color names. */
 export interface PatternClipTheme {
-  headerColor: Color;
-  bodyColor: Color;
-  noteColor: Color;
-  iconColor: Color;
+  headerColor: string;
+  bodyColor: string;
+  noteColor: string;
+  iconColor: string;
 }
 
 /** A map of clip colors to their respective themes. */
@@ -74,7 +72,7 @@ export const PATTERN_CLIP_THEMES: Record<PatternClipColor, PatternClipTheme> = {
   },
   sky: {
     headerColor: "bg-slate-900/80",
-    bodyColor: "bg-sky-700/70",
+    bodyColor: "bg-sky-700/50",
     noteColor: "bg-sky-950",
     iconColor: "bg-sky-700",
   },

@@ -6,7 +6,7 @@ import { defaultEditor, isEditor } from "types/Editor/EditorTypes";
 import { defaultTimeline, isTimeline } from "types/Timeline/TimelineTypes";
 import { defaultTransport, isTransport } from "types/Transport/TransportTypes";
 import { isOptionalType } from "types/util";
-import { Safe } from "types/units";
+import { Safe } from "types/util";
 import {
   defaultProjectMetadata,
   initializeProjectMetadata,

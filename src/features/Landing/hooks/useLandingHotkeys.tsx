@@ -1,21 +1,21 @@
-import { SubscriptionStatus } from "utils/constants";
-import { useSubscription } from "providers/subscription";
+import { Rank } from "utils/constants";
 import { useCallback } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "providers/auth";
 
 export const useLandingHotkeys = () => {
   const navigate = useNavigate();
-  const { isAtLeastStatus } = useSubscription();
+  const { isAtLeastRank } = useAuth();
 
   // Fire the callback if the user is at least the given status
   const authCallback = useCallback(
-    (callback: () => void, status: SubscriptionStatus = "prodigy") => {
+    (callback: () => void, status: Rank = "prodigy") => {
       return () => {
-        if (isAtLeastStatus(status)) callback();
+        if (isAtLeastRank(status)) callback();
       };
     },
-    [isAtLeastStatus]
+    [isAtLeastRank]
   );
 
   // Redirect the user to their projects

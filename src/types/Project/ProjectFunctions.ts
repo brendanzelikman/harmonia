@@ -231,9 +231,6 @@ export const timestampProject = (project: Project): Project => ({
 
 /** Returns true if a project has not been changed from default settings. */
 export const isProjectEmpty = (project: Project) => {
-  if (project.past.length !== 0) return false;
-  if (project.future.length !== 0) return false;
-
   // Check that nothing has been added
   if (selectTrackIds(project).length !== 0) return false;
   if (selectInstrumentIds(project).length !== 0) return false;
@@ -246,9 +243,5 @@ export const isProjectEmpty = (project: Project) => {
   if (selectPortalIds(project).length !== 0) return false;
 
   // Check default settings
-  if (!isEqual(project.present.timeline, defaultTimeline)) return false;
-  if (!isEqual(project.present.transport, defaultTransport)) return false;
-  if (!isEqual(project.present.editor, defaultEditor)) return false;
-
   return true;
 };

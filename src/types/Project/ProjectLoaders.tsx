@@ -9,9 +9,8 @@ import {
   getCurrentProjectId,
 } from "providers/idb";
 import { sample } from "lodash";
-import { getAuthenticationStatus } from "providers/authentication";
-import { getSubscriptionStatus } from "providers/subscription";
-import { selectMetadata } from "../Meta/MetaSelectors";
+import { fetchUser } from "providers/auth/user";
+import { selectMeta } from "../Meta/MetaSelectors";
 import { Thunk, isProject } from "./ProjectTypes";
 import { mergeBaseProjects } from "./ProjectFunctions";
 import { promptUserForNumber } from "utils/html";
@@ -36,13 +35,10 @@ export const readLocalProjects =
 export const loadProject =
   (id: string, callback?: () => void): Thunk<Promise<boolean>> =>
   async (dispatch) => {
-    const { uid } = await getAuthenticationStatus();
-    if (!uid) return false;
-
     try {
-      const project = await getProjectFromDB(uid, id);
+      const project = await getProjectFromDB(id);
       if (!isProject(project)) throw new Error("Invalid project");
-      await setCurrentProjectId(uid, id);
+      await setCurrentProjectId(id);
       dispatch({ type: "setProject", payload: project });
     } catch (e) {
       console.error(e);
@@ -57,8 +53,7 @@ export const loadProject =
 export const loadProjectByFile =
   (file: File, merging = false): Thunk =>
   async (dispatch) => {
-    const { uid, isAuthorized } = await getAuthenticationStatus();
-    const { isAtLeastStatus } = await getSubscriptionStatus();
+    const { uid, isAuthorized, isAtLeastRank } = await fetchUser();
     if (!uid || !isAuthorized) return;
 
     try {
@@ -77,29 +72,28 @@ export const loadProjectByFile =
         }
 
         // Try to get the existing project
-        const meta = selectMetadata(project);
-        const existingProject = await getProjectFromDB(uid, meta.id);
+        const meta = selectMeta(project);
+        const existingProject = await getProjectFromDB(meta.id);
 
         if (!merging) {
           // Replace the current project if the free tier has a project
-          if (!isAtLeastStatus("maestro")) {
-            await setCurrentProject(uid, project);
+          if (!isAtLeastRank("maestro")) {
+            await setCurrentProject(project);
             return;
           }
 
           // Upload or save the project depending on whether it already exists
           if (!existingProject) {
-            await uploadProjectToDB(uid, project);
+            await uploadProjectToDB(project);
           } else {
-            await updateProjectInDB(uid, project);
+            await updateProjectInDB(project);
           }
 
           // Reload the page
-          window.location.reload();
         } else {
           // Merge the project with the existing project
           const currentProjectId = getCurrentProjectId();
-          const currentProject = await getProjectFromDB(uid, currentProjectId);
+          const currentProject = await getProjectFromDB(currentProjectId);
           if (!currentProject) return;
           await promptUserForNumber(
             `What Would You Like to Import?`,
@@ -120,11 +114,10 @@ export const loadProjectByFile =
                   ? { mergeMotifs: true, mergeTracks: true, mergeClips: true }
                   : undefined
               );
-              await updateProjectInDB(uid, {
+              await updateProjectInDB({
                 ...currentProject,
                 present: mergedBaseProject,
               });
-              window.location.reload();
             }
           )();
         }
@@ -140,8 +133,7 @@ export const loadProjectByPath =
   (path: string, callback?: () => void): Thunk =>
   async () => {
     // Check if the user is authenticated
-    const { uid, isAuthorized } = await getAuthenticationStatus();
-    const { isAtLeastStatus } = await getSubscriptionStatus();
+    const { uid, isAuthorized, isAtLeastRank } = await fetchUser();
     if (!uid || !isAuthorized) return;
 
     let projectId;
@@ -151,21 +143,21 @@ export const loadProjectByPath =
       const project = await fetch(path).then((res) => res.json());
 
       // Replace the current project if the free tier has a project
-      if (!isAtLeastStatus("maestro")) {
-        await setCurrentProject(uid, project);
+      if (!isAtLeastRank("maestro")) {
+        await setCurrentProject(project);
         projectId = project.meta.id;
       }
 
       // Upload the project to the database
       else {
         projectId = nanoid();
-        await uploadProjectToDB(uid, {
+        await uploadProjectToDB({
           ...project,
           meta: { ...project.meta, id: projectId },
         });
       }
 
-      setCurrentProjectId(uid, projectId);
+      setCurrentProjectId(projectId);
     } catch (e) {
       console.error(e);
     } finally {
@@ -177,13 +169,13 @@ export const loadProjectByPath =
 export const loadRandomProject =
   (callback?: () => void): Thunk =>
   async (dispatch) => {
-    const { uid } = await getAuthenticationStatus();
+    const { uid } = await fetchUser();
     if (!uid) return;
     try {
-      const projects = await getProjectsFromDB(uid);
+      const projects = await getProjectsFromDB();
       const randomProject = sample(projects);
       if (!randomProject) return;
-      const meta = selectMetadata(randomProject);
+      const meta = selectMeta(randomProject);
       await dispatch(loadProject(meta.id));
     } catch (e) {
       console.error(e);

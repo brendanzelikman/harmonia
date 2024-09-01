@@ -1,24 +1,18 @@
 import { isHoldingShift, isInputEvent } from "utils/html";
-import {
-  useProjectDeepSelector,
-  useProjectDispatch,
-  useProjectSelector,
-} from "types/hooks";
+import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { useCallback, useEffect } from "react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { getDictKeys, hasKeys } from "utils/objects";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import {
   toggleInstrumentMute,
   toggleInstrumentSolo,
 } from "types/Instrument/InstrumentSlice";
 import { PoseVector } from "types/Pose/PoseTypes";
-import { isTimelineLive } from "types/Timeline/TimelineFunctions";
 import { isPatternTrack } from "types/Track/TrackTypes";
 import { selectEditor } from "types/Editor/EditorSelectors";
 import {
-  selectTimeline,
   selectSelectedTrackParents,
+  selectIsLive,
 } from "types/Timeline/TimelineSelectors";
 import { selectTracks } from "types/Track/TrackSelectors";
 import {
@@ -28,6 +22,7 @@ import {
 } from "types/Pose/PoseThunks";
 import { unmuteTracks, unsoloTracks } from "types/Track/TrackThunks";
 import { mapPoseStreamVectors } from "types/Pose/PoseFunctions";
+import { some } from "lodash";
 
 type KeyBinds = Record<string, number>;
 
@@ -105,19 +100,16 @@ const ALPHABETICAL_ZERO_BINDS = ["y", "h", "n", "`", "0"];
 
 export const useTimelineLiveHotkeys = () => {
   const dispatch = useProjectDispatch();
-  const { isAtLeastStatus } = useSubscription();
-
-  // Get the timeline from the store
-  const timeline = useProjectSelector(selectTimeline);
-  const isLive = isTimelineLive(timeline);
+  const { isAtLeastRank } = useAuth();
+  const isLive = use(selectIsLive);
 
   // Get additional dependencies from the store
-  const editor = useProjectDeepSelector(selectEditor);
-  const orderedTracks = useProjectDeepSelector(selectTracks);
-  const scaleTracks = useProjectDeepSelector(selectSelectedTrackParents);
+  const editor = useDeep(selectEditor);
+  const orderedTracks = useDeep(selectTracks);
+  const scaleTracks = useDeep(selectSelectedTrackParents);
 
   // Get the keys for the current pose mode
-  const keys = getDictKeys(NUMERICAL_BINDS);
+  const keys = Object.keys(NUMERICAL_BINDS);
 
   // Get the list of zero keys based on the pose mode
   const zeroKeys = NUMERICAL_ZERO_BINDS;
@@ -183,7 +175,7 @@ export const useTimelineLiveHotkeys = () => {
       if (heldKey && id) vector[id] = (vector[id] ?? 0) + value;
     });
 
-    if (!hasKeys(vector)) return;
+    if (!some(vector)) return;
     dispatch(offsetSelectedPoses(vector));
   };
 
@@ -225,7 +217,7 @@ export const useTimelineLiveHotkeys = () => {
       vector.chordal = offset + ALPHABETICAL_BINDS.chordal[e.key];
     }
 
-    if (!hasKeys(vector)) return;
+    if (!some(vector)) return;
     dispatch(offsetSelectedPoses(vector));
   };
 
@@ -344,7 +336,7 @@ export const useTimelineLiveHotkeys = () => {
         }
         vector.chordal = 0;
       }
-      if (!hasKeys(vector)) return;
+      if (!Object.keys(vector).length) return;
       dispatch(updateSelectedPoses(vector));
     },
     [heldKeys, zeroKeys, editor, scaleTracks]
@@ -355,7 +347,7 @@ export const useTimelineLiveHotkeys = () => {
    * (This is a workaround for duplicated events with react-hotkeys)
    */
   useEffect(() => {
-    if (!isLive || !isAtLeastStatus("maestro")) return;
+    if (!isLive || !isAtLeastRank("maestro")) return;
     const keydown = numericalKeydown;
     const zeroKeydown = numericalZeroKeydown;
 
@@ -366,5 +358,5 @@ export const useTimelineLiveHotkeys = () => {
       window.removeEventListener("keydown", keydown);
       window.removeEventListener("keydown", zeroKeydown);
     };
-  }, [isAtLeastStatus, isLive, numericalKeydown, numericalZeroKeydown]);
+  }, [isAtLeastRank, isLive, numericalKeydown, numericalZeroKeydown]);
 };

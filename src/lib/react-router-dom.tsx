@@ -1,11 +1,7 @@
 import { isError } from "lodash";
 import { isRouteErrorResponse } from "react-router-dom";
 
-/**
- * Unpacks an unknown error into a message and stack trace.
- * @param error The error to unpack.
- * @returns The unpacked error.
- */
+/** Unpacks an unknown error into a message and stack trace. */
 export const unpackError = (error: unknown) => {
   let message = "Error!";
   let stack = "Unidentified Call Stack";

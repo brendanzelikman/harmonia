@@ -1,10 +1,10 @@
-import { useProjectSelector, useProjectDispatch } from "types/hooks";
+import { useProjectSelector, useProjectDispatch, use } from "types/hooks";
 import { useScopedHotkeys, useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { useEffect, useState } from "react";
 import { DataGridHandle } from "react-data-grid";
 import { useTransportTick } from "hooks";
 import { TRACK_WIDTH } from "utils/constants";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { hideEditor } from "types/Editor/EditorSlice";
 import { isScaleTrack } from "types/Track/TrackTypes";
 import {
@@ -31,17 +31,16 @@ import {
 } from "types/Media/MediaThunks";
 import { exportProjectToMIDI } from "types/Project/ProjectExporters";
 import {
+  toggleTimelineType,
+  createTypedMotif,
+  toggleTimelineState,
+} from "types/Timeline/TimelineThunks";
+import {
   exportSelectedClipsToMIDI,
   deleteSelectedTrack,
-  toggleSelectedClipType,
-  toggleAddingClips,
-  createObject,
-  toggleSlicingMedia,
-  toggleMergingMedia,
-  togglePortalingMedia,
   selectPreviousTrack,
   selectNextTrack,
-} from "types/Timeline/TimelineThunks";
+} from "types/Timeline/thunks/TimelineSelectionThunks";
 import { insertScaleTrack } from "types/Track/TrackThunks";
 import {
   toggleTransport,
@@ -59,11 +58,11 @@ const useTransportHotkeys = useScopedHotkeys("transport");
 
 export function useTimelineHotkeys(timeline?: DataGridHandle) {
   const dispatch = useProjectDispatch();
-  const { isProdigy } = useSubscription();
+  const { isProdigy } = useAuth();
   const tick = useTransportTick();
-  const tickLeft = useProjectSelector((_) => selectTimelineTickLeft(_, tick));
-  const selectedTrack = useProjectSelector(selectSelectedTrack);
-  const selectedMedia = useProjectSelector(selectSelectedMedia);
+  const tickLeft = use((_) => selectTimelineTickLeft(_, tick));
+  const selectedTrack = use(selectSelectedTrack);
+  const selectedMedia = use(selectSelectedMedia);
   const mediaLength = selectedMedia.length;
 
   // Space = Play/Pause Transport
@@ -176,22 +175,32 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
   });
 
   // C = Toggle Selected Clip Type
-  useHotkeys("c", () => dispatch(toggleSelectedClipType()), []);
+  useHotkeys("c", () => dispatch(toggleTimelineType()), []);
 
   // A = Toggle Adding Clip
-  useHotkeys("a", () => dispatch(toggleAddingClips()), []);
+  useHotkeys(
+    "a",
+    () => dispatch(toggleTimelineState({ data: `adding-clips` })),
+    []
+  );
 
   // + = Create New Clip
-  useHotkeys("shift+equal", () => dispatch(createObject()), []);
+  useHotkeys("shift+equal", () => dispatch(createTypedMotif()), []);
 
   // Meta + K = Toggle Slicing Media
-  useHotkeys("meta+k", () => dispatch(toggleSlicingMedia()));
+  useHotkeys("meta+k", () =>
+    dispatch(toggleTimelineState({ data: `slicing-clips` }))
+  );
 
   // Meta + J = Toggle Merging Media
-  useHotkeys("meta+j", () => dispatch(toggleMergingMedia()));
+  useHotkeys("meta+j", () =>
+    dispatch(toggleTimelineState({ data: `merging-clips` }))
+  );
 
   // P = Toggle Adding Portals
-  useHotkeys("p", () => dispatch(togglePortalingMedia()));
+  useHotkeys("p", () =>
+    dispatch(toggleTimelineState({ data: `portaling-clips` }))
+  );
 
   // Meta + "-" = Decrease Subdivision
   useHotkeys(["meta+minus"], () => dispatch(decreaseSubdivision()));

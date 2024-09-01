@@ -1,9 +1,9 @@
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { Shortcut } from "../components/Shortcut";
 import { ShortcutContent } from "../components/ShortcutContent";
 
 export function GlobalShortcuts() {
-  const { isProdigy } = useSubscription();
+  const { isProdigy } = useAuth();
   return (
     <ShortcutContent
       className="text-lg space-y-3"

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useClipDrag } from "./useClipDnd";
+import { useClipDrag } from "../useClipDnd";
 import {
   useProjectDispatch,
   useProjectSelector as use,
@@ -9,45 +9,37 @@ import { BsMagic } from "react-icons/bs";
 import { SlMagicWand } from "react-icons/sl";
 import { POSE_HEIGHT } from "utils/constants";
 import classNames from "classnames";
-import { ClipComponentProps } from "./TimelineClips";
+import { ClipComponentProps } from "../TimelineClips";
 import { isFiniteNumber } from "types/util";
-import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
+import {
+  selectScaleName,
+  selectTrackTop,
+} from "types/Arrangement/ArrangementTrackSelectors";
 import { ScaleClip, ScaleClipId } from "types/Clip/ClipTypes";
-import { isTimelineAddingScaleClips } from "types/Timeline/TimelineFunctions";
-import { selectClipName } from "types/Clip/ClipSelectors";
 import { selectClipWidth } from "types/Arrangement/ArrangementClipSelectors";
 import {
   selectCellWidth,
-  selectTimeline,
   selectTimelineTickLeft,
   selectTrackHeight,
-  selectIsTimelineSlicingClips,
-  selectIsTimelineAddingClips,
+  selectIsAddingClips,
 } from "types/Timeline/TimelineSelectors";
-import {
-  selectScaleTrackMap,
-  selectTrackScale,
-} from "types/Track/TrackSelectors";
+import { selectTrackScale } from "types/Track/TrackSelectors";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
 import { selectScaleById } from "types/Scale/ScaleSelectors";
-import {
-  onScaleClipClick,
-  onScaleClipDoubleClick,
-} from "types/Timeline/TimelineThunks";
+import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { useDragState } from "types/Media/MediaTypes";
+import { Timed } from "types/units";
 
 interface ScaleClipRenderer extends ClipComponentProps {
-  clip: ScaleClip;
+  clip: Timed<ScaleClip>;
 }
 
 export function ScaleClipRenderer(props: ScaleClipRenderer) {
   const { clip, portaledClip, isSelected, isPortaling, holdingI } = props;
+  const { isAdding, isSlicing } = props;
   const { tick } = clip;
   const dispatch = useProjectDispatch();
   const cellWidth = use(selectCellWidth);
-  const trackMap = useDeep(selectScaleTrackMap);
-  const timeline = use(selectTimeline);
-  const isAddingClips = isTimelineAddingScaleClips(timeline);
   const trackScale = useDeep((_) => selectTrackScale(_, clip.trackId));
   const trackSize = getScaleNotes(trackScale).length;
   const clipScale = useDeep((_) => selectScaleById(_, clip.scaleId));
@@ -66,7 +58,7 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
   const draggingPortal = dragState.draggingPortal;
 
   // Timeline info
-  const addingSomeMedia = use(selectIsTimelineAddingClips);
+  const addingSomeMedia = use(selectIsAddingClips);
   const isActive = addingSomeMedia || isDragging;
   const isDraggingOther =
     draggingPatternClip || draggingPoseClip || draggingPortal;
@@ -78,7 +70,7 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
   const height = use((_) => selectTrackHeight(_, clip.trackId));
 
   /** The pose header contains a clip name and vector if it is a bucket. */
-  const name = use((_) => selectClipName(_, clip?.id));
+  const name = use((_) => selectScaleName(_, clip?.scaleId));
   const isInfinite = !isFiniteNumber(clip.duration);
 
   const Header = useCallback(() => {
@@ -101,14 +93,12 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
         <>{name}</>
       </div>
     );
-  }, [isSelected, isInfinite, name, trackMap]);
+  }, [isSelected, name]);
 
   /** The pose body is filled in behind a clip. */
   const Body = () => (
     <div className={`w-full animate-in fade-in duration-75 flex-grow`} />
   );
-
-  const isSlicingClips = use(selectIsTimelineSlicingClips);
 
   // Assemble the classname
   const className = classNames(
@@ -117,13 +107,13 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
     isInfinite ? "bg-blue-400" : "bg-blue-500",
     "border rounded",
     isSelected ? "border-white " : "border-slate-400",
-    { "cursor-scissors": isSlicingClips },
+    { "cursor-scissors": isSlicing },
     { "cursor-eyedropper hover:ring hover:ring-slate-300": holdingI },
-    { "cursor-pointer": !holdingI && !isAddingClips },
-    { "hover:animate-pulse hover:ring hover:ring-blue-400": isAddingClips },
+    { "cursor-pointer": !holdingI && !isAdding },
+    { "hover:animate-pulse hover:ring hover:ring-blue-400": isAdding },
     isActive || isDraggingOther || isPortaling
       ? "pointer-events-none"
-      : isInfinite && isAddingClips
+      : isInfinite && isAdding
       ? "pointer-events-none"
       : "pointer-events-all",
     isDragging || !isEqualSize || isPortaling
@@ -139,8 +129,7 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
       ref={drag}
       className={className}
       style={{ top, left, width: isInfinite ? cellWidth : width, height }}
-      onClick={(e) => dispatch(onScaleClipClick(e, clip, holdingI))}
-      onDoubleClick={() => dispatch(onScaleClipDoubleClick(clip))}
+      onClick={(e) => dispatch(onClipClick(e, clip, { eyedropping: holdingI }))}
     >
       {Header()}
       {Body()}

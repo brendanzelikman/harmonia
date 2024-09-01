@@ -1,18 +1,18 @@
-import { NavbarArrangeClipButton } from "./NavbarArrangeClipButton";
-import { NavbarEditMotifButton } from "./NavbarEditMotifButton";
-import { NavbarMotifListbox } from "./NavbarMotifListbox";
-import { NavbarChangeTypeButton } from "./NavbarChangeTypeButton";
-import { useProjectSelector } from "types/hooks";
-import { NavbarGroup } from "../../components";
-import { NavbarCreateMotifButton } from "./NavbarCreateMotifButton";
-import { NavbarTypeInfoButton } from "./NavbarTypeInfoButton";
 import pluralize from "pluralize";
 import { ClipType } from "types/Clip/ClipTypes";
+import { use } from "types/hooks";
 import { selectTimeline } from "types/Timeline/TimelineSelectors";
+import { NavbarGroup } from "../components";
+import { NavbarArrangeClipButton } from "./Toolkit/NavbarArrangeClipButton";
+import { NavbarChangeTypeButton } from "./Toolkit/NavbarChangeTypeButton";
+import { NavbarCreateMotifButton } from "./Toolkit/NavbarCreateMotifButton";
+import { NavbarEditMotifButton } from "./Toolkit/NavbarEditMotifButton";
+import { NavbarMotifListbox } from "./Toolkit/NavbarMotifListbox";
+import { NavbarTypeInfoButton } from "./Toolkit/NavbarTypeInfoButton";
 
 export function NavbarToolkitSection() {
-  const timeline = useProjectSelector(selectTimeline);
-  const type = timeline.selectedClipType;
+  const timeline = use(selectTimeline);
+  const type = timeline.type;
   if (!type) return null;
 
   const types = pluralize(type, 2);

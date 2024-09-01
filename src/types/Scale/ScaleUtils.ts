@@ -6,13 +6,13 @@ import {
   getMidiNoteValue,
   getScaleNoteOctave,
 } from "./ScaleFunctions";
-import { getRotatedScale } from "./ScaleTransformers";
+import { getRotatedScale } from "types/Scale/ScaleTransformers";
 import { chromaticScale, NestedNote, Scale, ScaleArray } from "./ScaleTypes";
 import { isEqual } from "lodash";
 import { resolveScaleToMidi } from "./ScaleResolvers";
 import { mod } from "utils/math";
 import { MIDI } from "types/units";
-import { getClosestPitchClass } from "utils/pitch";
+import { getClosestPitchClass } from "utils/pitchClass";
 
 // ------------------------------------------------------------
 // Scale Sorters

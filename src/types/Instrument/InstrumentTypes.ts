@@ -11,7 +11,8 @@ import {
   MIN_PAN,
   MIN_VOLUME,
 } from "utils/constants";
-import { createId, Pan, Tick, Volume } from "types/units";
+import { Pan, Tick, Volume } from "types/units";
+import { createId } from "types/util";
 import { isArray, isBoolean, isPlainObject, isString } from "lodash";
 import { isBoundedNumber } from "types/util";
 import { PatternMidiNote } from "types/Pattern/PatternTypes";

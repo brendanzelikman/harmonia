@@ -7,12 +7,10 @@ import { MIDI, XML } from "types/units";
 import { EighthNoteTicks, getDurationTicks } from "utils/durations";
 import { downloadBlob } from "utils/html";
 import { getScaleKey } from "utils/key";
-import {
-  getScaleNotes,
-  getScaleName,
-  getScaleNoteMidiValue,
-} from "./ScaleFunctions";
-import { isScale, MidiValue } from "./ScaleTypes";
+import { getScaleName } from "utils/key";
+import { getScaleNotes, getScaleNoteMidiValue } from "./ScaleFunctions";
+import { isScale } from "./ScaleTypes";
+import { MidiValue } from "types/units";
 import { Midi } from "@tonejs/midi";
 
 /** Export a Scale to XML and return the XML string, downloading if specified. */

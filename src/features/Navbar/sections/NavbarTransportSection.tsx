@@ -1,6 +1,6 @@
-import { NavbarTimer } from "./NavbarTimer";
-import { NavbarTransportControl } from "./NavbarTransportControl";
-import { NavbarVolumeMenu } from "./NavbarVolumeMenu";
+import { NavbarTimer } from "./Transport/NavbarTimer";
+import { NavbarTransportControl } from "./Transport/NavbarTransportControl";
+import { NavbarVolumeMenu } from "./Transport/NavbarVolumeMenu";
 
 export function NavbarTransportSection() {
   return (

@@ -1,7 +1,6 @@
 import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { GiHealthNormal } from "react-icons/gi";
 import classNames from "classnames";
-import { NavbarToolkitProps } from "./NavbarToolkitSection";
 import { NavbarHoverTooltip } from "features/Navbar/components";
 import { useState } from "react";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
@@ -19,6 +18,7 @@ import { createPattern } from "types/Pattern/PatternThunks";
 import { createPose } from "types/Pose/PoseThunks";
 import { createScale } from "types/Scale/ScaleThunks";
 import { blurOnEnter } from "utils/html";
+import { NavbarToolkitProps } from "../NavbarToolkitSection";
 
 export const NavbarCreateMotifButton = ({
   type,

@@ -1,13 +1,7 @@
 import { Media, MediaElement } from "./MediaTypes";
-import { Tick } from "types/units";
-import { inRange, isUndefined } from "lodash";
-import {
-  Clip,
-  isClipInterface,
-  isIPatternClip,
-  isIPoseClip,
-  isIScaleClip,
-} from "types/Clip/ClipTypes";
+import { Tick, Timed } from "types/units";
+import { inRange, isUndefined, minBy } from "lodash";
+import { Clip, isClipInterface, isIPatternClip } from "types/Clip/ClipTypes";
 import { applyPortalsToClips } from "types/Portal/PortalFunctions";
 import { isPortal } from "types/Portal/PortalTypes";
 import { TrackMap, TrackId, isPatternTrack } from "types/Track/TrackTypes";
@@ -15,22 +9,7 @@ import { isFiniteNumber } from "types/util";
 
 /** Get the clips from the media. */
 export const getClipsFromMedia = (media: Media) => {
-  return media.filter((item) => isClipInterface(item)) as Clip[];
-};
-
-/** Get the pattern clips from the media. */
-export const getPatternClipsFromMedia = (media: Media) => {
-  return media.filter(isIPatternClip);
-};
-
-/** Get the pose clips from the media. */
-export const getPoseClipsFromMedia = (media: Media) => {
-  return media.filter(isIPoseClip);
-};
-
-/** Get the scale clips from the media. */
-export const getScaleClipsFromMedia = (media: Media) => {
-  return media.filter(isIScaleClip);
+  return media.filter((item) => isClipInterface(item));
 };
 
 /** Get the portals from the media. */
@@ -68,54 +47,48 @@ export const getMediaElementDuration = (
 ) => {
   if (!isUndefined(value)) return value;
   if (isPortal(element)) return 1;
-  return element?.duration ?? 1;
+  return element?.duration ?? 0;
 };
 
 /** Get the earliest start tick of all media. If there is no media, return Infinity. */
 export const getMediaStartTick = (media: Media) => {
-  return media.reduce((acc, item) => Math.min(acc, item.tick), Infinity);
+  return minBy(media, "tick")?.tick ?? Infinity;
 };
 
 /** Get the latest end tick of all media. If there is no media, return -Infinity. */
-export const getMediaEndTick = (media: Media, mediaDurations?: Tick[]) => {
+export const getMediaEndTick = (media: MediaElement[]) => {
   // Get the portals and their indices
   const portals = getPortalsFromMedia(media);
-  const portalIndices = media
-    .map((item, i) => (isPortal(item) ? i : -1))
-    .filter((i) => i > -1);
 
   // Get all clips and their durations
-  const clips = getClipsFromMedia(media);
-  const durations =
-    mediaDurations?.filter((_, i) => !portalIndices.includes(i)) ?? [];
+  const clips = getClipsFromMedia(media) as Timed<Clip>[];
 
   // Apply the clips through the portals first
-  const portaledClips = applyPortalsToClips(clips, portals, durations).flat();
+  const portaledClips = applyPortalsToClips(clips, portals).flat();
   const processedMedia = media.map(
     (item) => portaledClips.find((clip) => clip.id === item.id) ?? item
   );
 
   // Get the end tick of the processed media
-  return processedMedia.reduce((acc, item, index) => {
-    const duration = getMediaElementDuration(item, mediaDurations?.[index]);
+  return processedMedia.reduce((acc, item) => {
+    const duration = getMediaElementDuration(item);
     return Math.max(acc, item.tick + (isFiniteNumber(duration) ? duration : 1));
   }, -Infinity);
 };
 
 /** Get the duration of all media. If there is no media, return 0. */
-export const getMediaDuration = (media: Media, durations?: Tick[]) => {
-  return getMediaEndTick(media, durations) - getMediaStartTick(media);
+export const getMediaDuration = (media: MediaElement[]) => {
+  return getMediaEndTick(media) - getMediaStartTick(media);
 };
 
 /** Get the media that starts in the given tick range. */
 export const getMediaInRange = (
-  media: Media,
-  mediaDuration: Tick[],
+  media: Timed<MediaElement>[],
   [startTick, endTick]: [number, number]
 ): Media => {
   return media.filter((item, i) => {
     // Get the duration of the media
-    const duration = getMediaElementDuration(item, mediaDuration?.[i]);
+    const duration = getMediaElementDuration(item, media[i].duration);
     if (!isFiniteNumber(duration)) {
       return inRange(item.tick, startTick, endTick);
     }
@@ -125,22 +98,6 @@ export const getMediaInRange = (
     const itemEndTick = itemStartTick + (duration ?? 1);
     return itemStartTick < endTick && itemEndTick > startTick;
   });
-};
-
-/** Return true if the media overlaps with the given tick range. */
-export const doesMediaElementOverlapRange = (
-  media: MediaElement,
-  mediaDuration: Tick,
-  [startTick, endTick]: [number, number]
-) => {
-  // Get the duration of the media
-  const duration = getMediaElementDuration(media, mediaDuration);
-  if (duration === undefined) return false;
-
-  // Make sure the item is in the range
-  const itemStartTick = media.tick;
-  const itemEndTick = itemStartTick + duration;
-  return itemStartTick <= endTick && itemEndTick >= startTick;
 };
 
 /**
@@ -199,7 +156,7 @@ export const getOffsettedMedia = (
   tick: number,
   trackId?: TrackId,
   trackIds?: TrackId[]
-): Media => {
+): Timed<MediaElement>[] => {
   // Get the track offset
   const shouldOffsetTracks = !!trackId && trackIds;
   const trackOffset = shouldOffsetTracks
@@ -208,7 +165,7 @@ export const getOffsettedMedia = (
 
   // Iterate through the media and offset each item
   const offsetedMedia = media.map((item) => {
-    let element = { ...item };
+    let element = { ...item, duration: getMediaElementDuration(item) };
 
     // Offset the tick
     const tickOffset = getMediaTickOffset(media, tick);
@@ -240,7 +197,7 @@ export const getOffsettedMedia = (
 };
 
 /** Get the duplicated media starting at the end of the given media. */
-export const getDuplicatedMedia = (media: Media, durations: Tick[]) => {
-  const endTick = getMediaEndTick(media, durations);
+export const getDuplicatedMedia = (media: Timed<MediaElement>[]) => {
+  const endTick = getMediaEndTick(media);
   return getOffsettedMedia(media, endTick);
 };

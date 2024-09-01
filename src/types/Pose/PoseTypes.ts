@@ -2,19 +2,21 @@ import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { isNumber, isPlainObject, isString } from "lodash";
 import { ChromaticPitchClass } from "presets/keys";
 import { TrackId } from "types/Track/TrackTypes";
-import { createId, ID, isPitchClass, Stream } from "types/units";
+import { Id } from "types/units";
+import { createId } from "types/util";
 import {
   areObjectValuesTyped,
   isOptionalType,
   isTypedArray,
-  RequireAtLeastOne,
+  NonEmpty,
 } from "types/util";
+import { isPitchClass } from "utils/pitchClass";
 
 // ------------------------------------------------------------
 // Pose Generics
 // ------------------------------------------------------------
 
-export type PoseId = ID<"pose">;
+export type PoseId = Id<"pose">;
 export type PoseNoId = Omit<Pose, "id">;
 export type PosePartial = Partial<Pose>;
 export type PoseUpdate = PosePartial & { id: PoseId };
@@ -36,7 +38,7 @@ export type PoseVectorId =
   | "octave";
 
 /** A `VoiceLeading` has at least one pitch class offset. */
-export type VoiceLeading = RequireAtLeastOne<PoseVector, ChromaticPitchClass>;
+export type VoiceLeading = NonEmpty<PoseVector, ChromaticPitchClass>;
 
 /** A `PoseModule` can be infinite or have a finite, repeatable duration */
 export interface PoseModule {
@@ -59,7 +61,7 @@ export interface PoseStreamModule extends PoseModule {
 export type PoseBlock = PoseVectorModule | PoseStreamModule;
 
 /** A `PoseStream` is a sequence of recursive modules. */
-export type PoseStream = Stream<PoseBlock>;
+export type PoseStream = Array<PoseBlock>;
 
 /**
  * A `Pose` (or Transposition) contains a sequential list of vectors that are applied to a `Track`

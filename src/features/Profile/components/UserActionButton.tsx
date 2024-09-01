@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { IconType } from "react-icons";
 
 interface ActionButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
@@ -11,7 +11,7 @@ interface ActionButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 }
 
 export const UserActionButton = (props: ActionButtonProps) => {
-  const { isVirtuoso } = useSubscription();
+  const { isVirtuoso } = useAuth();
   const buttonClass = classNames(
     `size-full flex flex-col gap-3 ring-2 font-bold total-center rounded-xl`,
     props.className

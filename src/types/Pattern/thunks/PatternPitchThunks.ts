@@ -135,12 +135,13 @@ export const setPatternPitches =
     if (!pattern) return;
 
     const MIDI = Frequency(pitch).toMidi();
+    if (isNaN(MIDI)) return;
 
     const stream = pattern.stream.map((block) => {
       if (!isPatternChord(block)) return block;
-      const notes = getPatternChordNotes(block);
-      const updatedNotes = notes.map((note) => ({ ...note, MIDI }));
-      return getPatternChordWithNewNotes(block, updatedNotes);
+      return getPatternChordWithNewNotes(block, (notes) =>
+        notes.map((note) => ({ ...note, MIDI }))
+      );
     });
 
     dispatch(updatePattern({ data: { id, stream } }));

@@ -1,7 +1,6 @@
 import { promptUserForNumber } from "utils/html";
 import { useOverridingHotkeys, useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { PatternEditorProps } from "../PatternEditor";
-import { useSubscription } from "providers/subscription";
 import {
   setEditorNoteDuration,
   toggleEditorAction,
@@ -23,12 +22,13 @@ import {
   playPattern,
 } from "types/Pattern/PatternThunks";
 import { transposePattern } from "types/Pattern/thunks/PatternPitchThunks";
+import { useAuth } from "providers/auth";
 
 const useHotkeys = useScopedHotkeys("editor");
 
 export function usePatternEditorHotkeys(props: PatternEditorProps) {
   const dispatch = useProjectDispatch();
-  const { isProdigy } = useSubscription();
+  const { isProdigy } = useAuth();
   const { pattern, cursor } = props;
   const id = pattern?.id;
   const index = cursor.index;

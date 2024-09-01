@@ -4,13 +4,15 @@ import { selectPatternById } from "../PatternSelectors";
 import {
   isPatternChord,
   isPatternMidiNote,
-  isPatternRest,
   PatternBlock,
   PatternId,
   PatternRest,
   PatternStream,
 } from "../PatternTypes";
-import { getPatternChordNotes } from "../PatternUtils";
+import {
+  getPatternChordNotes,
+  getPatternChordWithNewNotes,
+} from "../PatternUtils";
 import { createUndoType, Payload } from "lib/redux";
 import { getPatternBlockDuration } from "../PatternFunctions";
 import { resolvePatternToMidi } from "../PatternResolvers";
@@ -18,9 +20,10 @@ import {
   selectTrackById,
   selectTrackScaleChain,
 } from "types/Track/TrackSelectors";
-import { uniqBy } from "lodash";
+import { inRange, uniqBy } from "lodash";
 import { isNestedNote } from "types/Scale/ScaleTypes";
 import { createPattern } from "../PatternThunks";
+import { getStraightDuration, getTickDuration } from "utils/durations";
 
 export const extractChordsFromPattern =
   ({ data }: Payload<{ id: PatternId; indices: number[] }>): Thunk =>
@@ -31,9 +34,12 @@ export const extractChordsFromPattern =
     const pattern = selectPatternById(project, id);
     if (!pattern) return;
 
+    // Make sure all indices are valid
+    const streamLength = pattern.stream.length;
+    if (indices.some((_) => isNaN(_) || !inRange(_, 0, streamLength))) return;
+
     const pattern1Stream: PatternStream = [];
     const pattern2Stream: PatternStream = [];
-    const streamLength = pattern.stream.length;
 
     // Move chords at the indices to a new pattern
     for (let i = 0; i < streamLength; i++) {
@@ -85,12 +91,16 @@ export const subdividePattern =
         continue;
       }
 
-      const notes = getPatternChordNotes(block);
-      const newChord = notes.map((note) => {
-        const duration = note.duration / 2;
-        return { ...note, duration };
-      });
+      const duration = getPatternBlockDuration(block);
+      const durationType = getTickDuration(duration);
+      if (getStraightDuration(durationType) === "64th") {
+        stream.push(block);
+        continue;
+      }
 
+      const newChord = getPatternChordWithNewNotes(block, (notes) =>
+        notes.map((_) => ({ ..._, duration: duration / 2 }))
+      );
       stream.push(newChord);
       stream.push(newChord);
     }
@@ -110,12 +120,8 @@ export const interpolatePattern =
     const { id, fillCount } = data;
     const project = getProject();
     const pattern = selectPatternById(project, id);
-    if (!pattern) return;
     const ptId = pattern.patternTrackId;
-    if (!ptId) return;
     const track = selectTrackById(project, ptId);
-    if (!track) return;
-
     const chain = selectTrackScaleChain(project, track?.id);
     const midiStream = resolvePatternToMidi(pattern, chain);
     const streamLength = pattern.stream.length;
@@ -124,7 +130,7 @@ export const interpolatePattern =
     for (let i = 0; i < streamLength; i++) {
       const block = midiStream[i];
 
-      if (isPatternRest(block)) {
+      if (!isPatternChord(block)) {
         newStream.push(block);
         continue;
       }
@@ -134,7 +140,7 @@ export const interpolatePattern =
       if (i === streamLength - 1) continue;
 
       const nextBlock = midiStream[i + 1];
-      if (isPatternRest(nextBlock)) continue;
+      if (!isPatternChord(nextBlock)) continue;
 
       const blockNotes = getPatternChordNotes(block);
       const blockRoot = blockNotes.find(isPatternMidiNote);

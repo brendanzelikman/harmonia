@@ -5,7 +5,7 @@ import InfinitelyLoweredIntervals from "./intervals_lowered";
 import InfinitelyLoweredInversions from "./inversions_lowered";
 import InfinitelyRaisedOctaves from "./octaves_raised";
 import InfinitelyLoweredOctaves from "./octaves_lowered";
-import { createDictionary } from "utils/objects";
+import { keyBy } from "lodash";
 
 export const PresetPoseGroupMap = {
   "Custom Poses": [] as Pose[],
@@ -26,4 +26,4 @@ export const PresetPoseGroupList = Object.keys(
 ) as PoseGroupList;
 
 export const PresetPoseList = Object.values(PresetPoseGroupMap).flat();
-export const PresetPoseMap = createDictionary<Pose>(PresetPoseList);
+export const PresetPoseMap = keyBy(PresetPoseList, "id");

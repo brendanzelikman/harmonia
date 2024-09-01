@@ -25,7 +25,6 @@ import { isNestedNote } from "types/Scale/ScaleTypes";
 import { mod } from "utils/math";
 import { createUndoType } from "lib/redux";
 import { nanoid } from "@reduxjs/toolkit";
-import { create } from "lodash";
 
 type PatternPianoMode = "midi" | "autobind" | "filter" | "remap";
 
@@ -62,7 +61,6 @@ export function PatternEditorPiano(props: PatternEditorProps) {
       velocity: 100,
     };
 
-    // If there is no scale, input the note chromatically
     if (chainIds.length) {
       // Get the scale degree relative to middle C if remapping
       if (mode === "remap") {
@@ -127,12 +125,7 @@ export function PatternEditorPiano(props: PatternEditorProps) {
 
     // Dispatch the appropriate action
     if (isAdding && cursor.hidden) {
-      dispatch(
-        addPatternNote({
-          data: { id, note, asChord },
-          undoType: createUndoType("addPatternNote", nanoid()),
-        })
-      );
+      dispatch(addPatternNote({ data: { id, note, asChord }, undoType }));
     } else if (isAdding && !cursor.hidden) {
       dispatch(
         updatePatternNote({ data: { id, index, note, asChord }, undoType })

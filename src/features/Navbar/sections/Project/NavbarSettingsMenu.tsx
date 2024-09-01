@@ -14,33 +14,31 @@ import {
   NavbarFormButton,
   NavbarHoverTooltip,
 } from "../../components";
-import { useProjectDispatch, useProjectSelector } from "types/hooks";
+import { use, useProjectDispatch, useProjectSelector } from "types/hooks";
 import { TOGGLE_SHORTCUTS } from "features/Shortcuts/ShortcutsMenu";
 import { dispatchCustomEvent, onEnter } from "utils/html";
 import classNames from "classnames";
 import { GiSettingsKnobs } from "react-icons/gi";
 import { percent } from "utils/math";
-import {
-  setCellWidth,
-  togglePerformanceMode,
-  toggleTooltips,
-} from "types/Timeline/TimelineSlice";
+import { setCellWidth } from "types/Timeline/TimelineSlice";
 import { DEFAULT_CELL_WIDTH } from "types/Timeline/TimelineTypes";
-import {
-  selectTimeline,
-  selectCellWidth,
-} from "types/Timeline/TimelineSelectors";
+import { selectCellWidth } from "types/Timeline/TimelineSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import {
   setTransportBPM,
   setTransportTimeSignature,
 } from "types/Transport/TransportThunks";
+import {
+  selectHideTimeline,
+  selectHideTooltips,
+} from "types/Meta/MetaSelectors";
+import { toggleTimeline, toggleTooltips } from "types/Meta/MetaSlice";
 
 export function NavbarSettingsMenu() {
   const dispatch = useProjectDispatch();
   const { bpm, timeSignature } = useProjectSelector(selectTransport);
-  const { showingTooltips, performanceMode } =
-    useProjectSelector(selectTimeline);
+  const hideTooltips = use(selectHideTooltips);
+  const hideTimeline = use(selectHideTimeline);
   const cellWidth = useProjectSelector(selectCellWidth);
 
   // The BPM field changes the tempo of the transport
@@ -130,11 +128,11 @@ export function NavbarSettingsMenu() {
       <NavbarFormButton
         className={classNames(
           `hover:opacity-95 active:opacity-100 w-24`,
-          performanceMode ? "bg-red-500/30" : "bg-emerald-500/30"
+          hideTimeline ? "bg-red-500/30" : "bg-emerald-500/30"
         )}
-        onClick={() => dispatch(togglePerformanceMode())}
+        onClick={() => dispatch(toggleTimeline())}
       >
-        {performanceMode ? "Hidden" : "Visible"}
+        {hideTimeline ? "Hidden" : "Visible"}
       </NavbarFormButton>
     </NavbarFormGroup>
   );
@@ -146,11 +144,11 @@ export function NavbarSettingsMenu() {
       <NavbarFormButton
         className={classNames(
           `hover:opacity-95 active:opacity-100 w-24`,
-          showingTooltips ? "bg-emerald-500/30" : "bg-red-500/30"
+          hideTooltips ? "bg-red-500/30" : "bg-emerald-500/30"
         )}
         onClick={() => dispatch(toggleTooltips())}
       >
-        {showingTooltips ? "Enabled" : "Disabled"}
+        {hideTooltips ? "Disabled" : "Enabled"}
       </NavbarFormButton>
     </NavbarFormGroup>
   );

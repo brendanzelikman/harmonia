@@ -1,10 +1,9 @@
-import { useProjectDispatch, useProjectSelector } from "types/hooks";
+import { use, useProjectDispatch } from "types/hooks";
 import classNames from "classnames";
 import { GiDoubleQuaver, GiDramaMasks, GiTeleport } from "react-icons/gi";
 import { isFiniteNumber } from "types/util";
 import pluralize from "pluralize";
 import { NavbarHoverTooltip } from "features/Navbar/components";
-import { NavbarToolkitProps } from "./NavbarToolkitSection";
 import { PPQ } from "utils/durations";
 import { PatternClip, PoseClip, ScaleClip } from "types/Clip/ClipTypes";
 import { getPatternDuration } from "types/Pattern/PatternFunctions";
@@ -13,17 +12,14 @@ import { selectHasTracks } from "types/Arrangement/ArrangementSelectors";
 import {
   selectSelectedPattern,
   selectSelectedPose,
-  selectIsTimelineAddingSelectedClip,
   selectSelectedMotif,
   selectDraftedClip,
+  selectIsAddingClips,
 } from "types/Timeline/TimelineSelectors";
 import { selectSelectedMotifName } from "types/Arrangement/ArrangementScaleSelectors";
 import { getPoseDuration } from "types/Pose/PoseFunctions";
-import {
-  toggleAddingPatternClips,
-  toggleAddingPoseClips,
-  toggleAddingScaleClips,
-} from "types/Timeline/TimelineThunks";
+import { toggleTimelineState } from "types/Timeline/TimelineThunks";
+import { NavbarToolkitProps } from "../NavbarToolkitSection";
 
 export const NavbarArrangeClipButton = ({
   type,
@@ -32,15 +28,13 @@ export const NavbarArrangeClipButton = ({
   clipBackground,
 }: NavbarToolkitProps) => {
   const dispatch = useProjectDispatch();
-  const selectedPattern = useProjectSelector(selectSelectedPattern);
-  const selectedPose = useProjectSelector(selectSelectedPose);
-
-  const active = useProjectSelector(selectIsTimelineAddingSelectedClip);
-  const hasTracks = useProjectSelector(selectHasTracks);
-  const disabled =
-    useProjectSelector(selectSelectedMotif) === undefined || !hasTracks;
-  const name = useProjectSelector(selectSelectedMotifName);
-  const draft = useProjectSelector(selectDraftedClip);
+  const selectedPattern = use(selectSelectedPattern);
+  const selectedPose = use(selectSelectedPose);
+  const active = use(selectIsAddingClips);
+  const hasTracks = use(selectHasTracks);
+  const disabled = use(selectSelectedMotif) === undefined || !hasTracks;
+  const name = use(selectSelectedMotifName);
+  const draft = use(selectDraftedClip);
   const formatDecimal = (value: number) => parseFloat(value.toFixed(6));
 
   const updateDraft = {
@@ -102,11 +96,8 @@ export const NavbarArrangeClipButton = ({
     scale: GiTeleport,
   }[type];
 
-  const callback = {
-    pattern: () => dispatch(toggleAddingPatternClips()),
-    pose: () => dispatch(toggleAddingPoseClips()),
-    scale: () => dispatch(toggleAddingScaleClips()),
-  }[type];
+  const callback = () =>
+    dispatch(toggleTimelineState({ data: `adding-clips` }));
 
   const Button = () => {
     const buttonClass = classNames(

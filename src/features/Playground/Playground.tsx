@@ -7,16 +7,16 @@ import { TimelinePlaceholder } from "features/Timeline/components/TimelinePlaceh
 import { TimelineStart } from "features/Timeline/components/TimelineStart";
 import { ShortcutsMenu } from "features/Shortcuts/ShortcutsMenu";
 import { Diary } from "features/Diary";
-import { useProjectSelector } from "types/hooks";
+import { use } from "types/hooks";
 import { Editor } from "features/Editor/Editor";
 import { selectHasTracks } from "types/Arrangement/ArrangementSelectors";
-import { selectTimeline } from "types/Timeline/TimelineSelectors";
+import { selectHideTimeline } from "types/Meta/MetaSelectors";
 
 /** The playground contains the DAW */
 export function Playground() {
   const loadState = usePlaygroundLoader();
-  const { performanceMode } = useProjectSelector(selectTimeline);
-  const hasTracks = useProjectSelector(selectHasTracks);
+  const hideTimeline = use(selectHideTimeline);
+  const hasTracks = use(selectHasTracks);
   useGlobalHotkeys();
   useMidiController();
 
@@ -30,7 +30,7 @@ export function Playground() {
     <div className="size-full animate-in fade-in duration-150">
       <Diary />
       <div className="relative hidden md:flex flex-col h-full">
-        {!!performanceMode ? (
+        {hideTimeline ? (
           <TimelinePlaceholder />
         ) : hasTracks ? (
           <Timeline />

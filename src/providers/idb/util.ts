@@ -1,26 +1,27 @@
-import { getSubscriptionStatus } from "providers/subscription";
 import {
   PROJECT_STORE,
   PRODIGY_PROJECT_LIMIT,
   MAESTRO_PROJECT_LIMIT,
   VIRTUOSO_PROJECT_LIMIT,
 } from "utils/constants";
-import { getUserDatabase } from "./database";
+import { getDatabase } from "./database";
+import { fetchUser } from "providers/auth";
 
 // ------------------------------------------------------------
 // Database Projects
 // ------------------------------------------------------------
-/** Get a boolean indicating whether a user has reached their maximum projects */
 
-export const hasReachedProjectLimit = async (uid: string): Promise<boolean> => {
-  const subscription = await getSubscriptionStatus(uid);
-  const { isProdigy, isMaestro, isVirtuoso, isAdmin } = subscription;
+/** Get a boolean indicating whether a user has reached their maximum projects */
+export const hasReachedProjectLimit = async (): Promise<boolean> => {
+  const { isProdigy, isMaestro, isVirtuoso, isAdmin } = await fetchUser();
 
   // Bypass admins
   if (isAdmin) return false;
 
   // Otherwise, get the user's projects
-  const db = await getUserDatabase(uid);
+  const db = getDatabase();
+  if (!db) return true;
+
   const projects = await db.getAll(PROJECT_STORE);
   const projectCount = projects.length;
 

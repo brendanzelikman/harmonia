@@ -22,20 +22,18 @@ import {
   GiExitDoor,
 } from "react-icons/gi";
 import { SiElectron } from "react-icons/si";
-import { getPortalUrl, getCheckoutUrl } from "utils/stripeUrls";
+import { getPortalUrl, getCheckoutUrl } from "providers/stripe";
 import { UserActionButton } from "./UserActionButton";
 import isElectron from "is-electron";
-import { useSubscription } from "providers/subscription";
+import { CLEARANCE, UPDATE_CLEARANCE, useAuth } from "providers/auth";
 import { useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
-import { useAuthentication } from "providers/authentication";
 import { dispatchCustomEvent } from "utils/html";
 import { DESKTOP_URL, PLUGIN_URL, REPO_URL } from "utils/constants";
 
 export const UserControlPanel = () => {
-  const { user, isAdmin } = useAuthentication();
+  const { user, isAdmin, isProdigy, isMaestro, isVirtuoso } = useAuth();
   const navigate = useNavigate();
-  const { isProdigy, isMaestro, isVirtuoso } = useSubscription();
   const defaultRing = "ring-slate-200/50";
 
   // Open the link based on the environment
@@ -219,8 +217,8 @@ export const UserControlPanel = () => {
         className={`bg-gray-900/80 hover:bg-gray-800 ${defaultRing}`}
         onClick={() => {
           if (isAdmin) {
-            localStorage.removeItem("harmonia-password");
-            dispatchCustomEvent("harmonia-password", null);
+            localStorage.removeItem(CLEARANCE);
+            dispatchCustomEvent(UPDATE_CLEARANCE, null);
             navigate("/");
           } else {
             getAuth().signOut();

@@ -17,7 +17,7 @@ const PromptModal = (props: PromptModalProps) => {
   const [input, setInput] = useState("");
 
   return (
-    <Dialog className="relative z-[80]" open={isOpen} onClose={onCancel}>
+    <Dialog className="relative z-[999]" open={isOpen} onClose={onCancel}>
       <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4 text-center font-nunito">

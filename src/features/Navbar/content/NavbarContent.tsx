@@ -1,4 +1,4 @@
-import { useCustomEventListener } from "hooks";
+import { useEventListener } from "hooks";
 import { useState, useEffect } from "react";
 import { NavbarPlaygroundContent } from "./NavbarPlaygroundContent";
 import { NavbarDefaultContent } from "./NavbarDefaultContent";
@@ -9,7 +9,7 @@ export function NavbarContent(props: NavbarProps) {
 
   // Listen for the playground to load
   const [didLoad, setDidLoad] = useState(false);
-  useCustomEventListener("playground-loaded", (e) => setDidLoad(e.detail));
+  useEventListener("playground-loaded", (e) => setDidLoad(e.detail));
 
   // Unload the playground if the view changes
   useEffect(() => {

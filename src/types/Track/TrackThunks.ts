@@ -30,9 +30,9 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { addScale, removeScale } from "types/Scale/ScaleSlice";
 import {
   ScaleObject,
-  initializeScaleTrackScale,
   isNestedNote,
   NestedNote,
+  initializeScale,
 } from "types/Scale/ScaleTypes";
 import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
@@ -352,7 +352,10 @@ export const duplicateTrack =
     if (isScaleTrack(newTrack)) {
       const scale = selectTrackScale(project, track.id);
       if (scale) {
-        const newScale = initializeScaleTrackScale(scale);
+        const newScale = initializeScale({
+          ...scale,
+          scaleTrackId: newTrack.id,
+        });
         allScales.push(newScale);
 
         // Update the new track's scale ID
@@ -387,7 +390,10 @@ export const duplicateTrack =
         if (isScaleTrack(newParent)) {
           const scale = selectTrackScale(project, child.id);
           if (scale) {
-            const newScale = initializeScaleTrackScale(scale);
+            const newScale = initializeScale({
+              ...scale,
+              scaleTrackId: newParent.id,
+            });
             allScales.push(newScale);
 
             // Update the new track's scale ID

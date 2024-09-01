@@ -12,19 +12,16 @@ export interface LoopDragProps {
 }
 
 export function useLoopDrag(props: LoopDragProps) {
-  return useDrag(
-    () => ({
-      type: "loop",
-      item: { tick: props.tick - 1, hoverIndex: props.tick },
-      collect(monitor) {
-        return { isDragging: monitor.isDragging() };
-      },
-      end(item: any) {
-        props.onEnd(item);
-      },
-    }),
-    [props.tick]
-  );
+  return useDrag(() => ({
+    type: "loop",
+    item: { tick: props.tick - 1, hoverIndex: props.tick },
+    collect(monitor) {
+      return { isDragging: monitor.isDragging() };
+    },
+    end(item: any) {
+      props.onEnd(item);
+    },
+  }));
 }
 
 export interface LoopDropProps {
@@ -34,18 +31,15 @@ export interface LoopDropProps {
 }
 
 export function useLoopDrop(props: LoopDropProps) {
-  return useDrop(
-    () => ({
-      accept: "loop",
-      collect: (monitor: any) => ({
-        loopStart: props.loopStart,
-        loopEnd: props.loopEnd,
-        isOver: monitor.isOver(),
-      }),
-      hover: (item: LoopPoint) => {
-        item.hoverIndex = props.columnIndex;
-      },
+  return useDrop(() => ({
+    accept: "loop",
+    collect: (monitor: any) => ({
+      loopStart: props.loopStart,
+      loopEnd: props.loopEnd,
+      isOver: monitor.isOver(),
     }),
-    [props.loopStart, props.loopEnd]
-  );
+    hover: (item: LoopPoint) => {
+      item.hoverIndex = props.columnIndex;
+    },
+  }));
 }

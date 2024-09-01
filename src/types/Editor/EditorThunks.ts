@@ -19,7 +19,7 @@ import {
 import { EditorView } from "./EditorTypes";
 import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
 import {
-  selectSelectedClipType,
+  selectTimelineType,
   selectSelectedPattern,
   selectSelectedScale,
   selectSelectedTrackId,

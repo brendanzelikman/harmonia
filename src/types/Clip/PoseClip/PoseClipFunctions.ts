@@ -2,7 +2,7 @@ import { sortClipsByProximity } from "../ClipUtils";
 import { createMapFromClipRange } from "../ClipUtils";
 import { PoseClipMap } from "../ClipTypes";
 import { PoseClip } from "./PoseClipTypes";
-import { isPitchClass, Tick } from "types/units";
+import { Tick } from "types/units";
 import { getValueByKey, getDictValues } from "utils/objects";
 import {
   getPoseVectorAtIndex,
@@ -24,18 +24,11 @@ import {
 } from "types/Pattern/PatternUtils";
 import { mod } from "utils/math";
 import { areScalesRelated } from "types/Scale/ScaleUtils";
-import {
-  getRotatedScale,
-  getScaleWithNewNotes,
-} from "types/Scale/ScaleTransformers";
-import {
-  isMidiObjectScale,
-  isMidiScale,
-  MidiObject,
-  MidiScale,
-  MidiValue,
-} from "types/Scale/ScaleTypes";
+import { getScaleWithNewNotes } from "types/Scale/ScaleTransformers";
+import { getRotatedScale } from "types/Scale/ScaleTransformers";
+import { MidiScale } from "types/units";
 import { getMidiNoteValue } from "types/Scale/ScaleFunctions";
+import { isPitchClass } from "utils/pitchClass";
 
 /** Get the `PoseClips` of a given track from a list of clips. */
 export const getPoseClipsByTrackId = (

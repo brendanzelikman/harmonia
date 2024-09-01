@@ -1,14 +1,9 @@
-import { isEqual } from "lodash";
+import { mapValues } from "lodash";
 import { createSelector } from "reselect";
 import { selectMotifState } from "types/Motif/MotifSelectors";
 import { Project } from "types/Project/ProjectTypes";
-import { getScaleName, getScaleNotes } from "types/Scale/ScaleFunctions";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
-import {
-  selectCustomScales,
-  selectScaleMap,
-  selectScaleIds,
-} from "types/Scale/ScaleSelectors";
+import { selectScaleMap, selectScaleIds } from "types/Scale/ScaleSelectors";
 import { chromaticScale, ScaleId } from "types/Scale/ScaleTypes";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { getTrackLabel } from "types/Track/TrackFunctions";
@@ -22,15 +17,12 @@ import {
 } from "types/Track/TrackSelectors";
 import { Track, TrackId } from "types/Track/TrackTypes";
 import { Tick } from "types/units";
-import {
-  HEADER_HEIGHT,
-  COLLAPSED_TRACK_HEIGHT,
-  TRACK_SCALE_NAME,
-} from "utils/constants";
-import { createMapWithFn, getArrayByKey, getValueByKey } from "utils/objects";
+import { HEADER_HEIGHT, COLLAPSED_TRACK_HEIGHT } from "utils/constants";
+import { getArrayByKey } from "utils/objects";
 import { getTrackScaleChain } from "./ArrangementFunctions";
 import { selectTrackArrangement } from "./ArrangementSelectors";
-import { createDeepSelector } from "lib/redux";
+import { createDeepSelector, createValueSelector } from "lib/redux";
+import { getScaleName } from "utils/key";
 
 /** Select the top offset of the track ID in pixels based on the given track ID. */
 export const selectTrackTopMap = createDeepSelector(
@@ -46,9 +38,10 @@ export const selectTrackTopMap = createDeepSelector(
       .filter((t) => t !== undefined && t.parentId === undefined) as Track[];
 
     // Create a map for each track
-    return createMapWithFn(trackMap, (t) => {
+    return mapValues(trackMap, (t) => {
       let found = false;
       let top = HEADER_HEIGHT;
+      if (!t) return HEADER_HEIGHT;
 
       // Recursively get the top offset with the children
       const getChildrenTop = (tracks: Track[], trackId: TrackId): number => {
@@ -124,68 +117,34 @@ export const selectTrackScaleNameAtTick = (
 ) => {
   const scaleChain = selectTrackScaleChainAtTick(project, trackId, tick);
   const midiScale = resolveScaleChainToMidi(scaleChain);
-  const scale = scaleChain.at(-1) || midiScale;
-  const name = getScaleName(midiScale, midiScale);
-
-  // If the scale is not a custom scale, return the name
-  if (name !== "Custom Scale") return name;
-
-  // Try to find a custom scale with the same notes
-  const customScales = selectCustomScales(project);
-  const customScale = customScales.find((s) =>
-    isEqual(s.notes, getScaleNotes(scale))
-  );
-  return customScale?.name ?? "Custom Scale";
+  const name = getScaleName(midiScale);
+  return name;
 };
 
 /** Select the record of all scales to their names. */
 export const selectScaleNameMap = createSelector(
   [
     selectScaleMap,
-    selectCustomScales,
     selectScaleIds,
     selectScaleTrackMap,
     selectScaleTracks,
     selectTrackMidiScaleMap,
   ],
-  (
-    scaleMap,
-    customScales,
-    scaleIds,
-    scaleTrackMap,
-    scaleTracks,
-    midiScaleMap
-  ) => {
+  (scaleMap, scaleIds, scaleTrackMap, scaleTracks, midiScaleMap) => {
     const scaleNameMap: Record<ScaleId, string | undefined> = {};
 
     // Iterate over each scale
     scaleIds.forEach((id) => {
       const scale = scaleMap[id];
-      const scaleTrack = scaleTracks.find((track) => track.scaleId === id);
       if (!scale) return;
 
       // If the scale belongs to a scale track, display the track label.
-      if (scale.name === TRACK_SCALE_NAME && scaleTrack) {
-        const trackLabel = getTrackLabel(scaleTrack.id, scaleTrackMap);
-        const midiScale = midiScaleMap[scaleTrack.id];
-        let name: string;
-
-        name = getScaleName(midiScale);
-
-        // If no match is found, try to find a custom scale with the same ID.
-        if (name === "Custom Scale") {
-          const customScale = customScales.find((s) =>
-            isEqual(s.notes, scale.notes)
-          );
-          if (customScale) name = customScale.name ?? "Custom Scale";
-        }
-
-        // Display the scale name with the track label.
+      if (scale.scaleTrackId) {
+        const trackLabel = getTrackLabel(scale.scaleTrackId, scaleTrackMap);
+        const midiScale = getArrayByKey(midiScaleMap, scale.scaleTrackId);
+        const name = getScaleName(midiScale);
         scaleNameMap[id] = `(Track ${trackLabel}) ${name}`;
-      }
-
-      // Otherwise, just display the scale name.
-      else {
+      } else {
         scaleNameMap[id] = scale.name;
       }
     });
@@ -195,7 +154,7 @@ export const selectScaleNameMap = createSelector(
 );
 
 /** Select the name of a scale. */
-export const selectScaleName = (project: Project, id?: ScaleId) => {
-  const scaleNameMap = selectScaleNameMap(project);
-  return getValueByKey(scaleNameMap, id);
-};
+export const selectScaleName = createValueSelector(
+  selectScaleNameMap,
+  "Custom Scale"
+);

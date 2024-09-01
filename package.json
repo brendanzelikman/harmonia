@@ -35,6 +35,7 @@
     "json-edit-react": "^1.15.4",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
+    "moment": "^2.30.1",
     "opensheetmusicdisplay": "^1.7.4",
     "pluralize": "^8.0.0",
     "react": "^18.2.0",

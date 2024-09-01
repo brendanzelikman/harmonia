@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCustomEventListener } from "../window/useCustomEventListener";
+import { useEventListener } from "../window/useCustomEventListener";
 import {
   UPDATE_OFFLINE_TICK,
   UPDATE_TICK,
@@ -13,7 +13,7 @@ export function useTransportTick(options?: { offline: boolean }) {
   const event = options?.offline ? UPDATE_OFFLINE_TICK : UPDATE_TICK;
 
   // Set the tick on the custom event
-  useCustomEventListener(event, (e) => setTick(e.detail));
+  useEventListener(event, (e) => setTick(e.detail));
 
   // Return the tick
   return tick;

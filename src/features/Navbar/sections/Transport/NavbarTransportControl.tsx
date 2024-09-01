@@ -32,7 +32,7 @@ export function NavbarTransportControl() {
     <NavbarTooltipButton
       label="Stop the Timeline"
       className={classNames(
-        "transition-all",
+        "p-1.5 transition-all",
         !isStopped ? "bg-rose-700" : buttonColor,
         isStopped ? "opacity-50 select-none" : "",
         borderClass
@@ -55,7 +55,7 @@ export function NavbarTransportControl() {
           : "Start the Timeline"
       }
       className={classNames(
-        "transition-all",
+        "p-1.5 transition-all",
         isStarted ? "bg-emerald-600" : buttonColor,
         borderClass
       )}
@@ -70,7 +70,7 @@ export function NavbarTransportControl() {
     <NavbarTooltipButton
       label={isRecording ? "Stop Recording to WAV" : "Record to WAV"}
       className={classNames(
-        "transition-all",
+        "p-1.5 transition-all",
         isRecording ? "bg-red-700/90" : buttonColor,
         borderClass
       )}
@@ -85,7 +85,7 @@ export function NavbarTransportControl() {
     <NavbarTooltipButton
       label={isLooping ? "Stop Looping the Timeline" : "Loop the Timeline"}
       className={classNames(
-        "transition-all",
+        "p-1.5 transition-all",
         isLooping ? "bg-indigo-700 text-slate-20" : buttonColor,
         borderClass
       )}

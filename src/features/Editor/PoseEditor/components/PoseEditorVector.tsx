@@ -101,7 +101,7 @@ export function PoseEditorVector(props: PoseEditorVectorProps) {
   }, [index, moduleJSX, durationString, isCustom]);
 
   // The body displays the pop up menus
-  const bodyClass = classNames("container-row rounded-lg", {
+  const bodyClass = classNames("size-full flex total-center rounded-lg", {
     "animate-in fade-in bg-slate-900/50": isOnModule,
   });
   const Body = (

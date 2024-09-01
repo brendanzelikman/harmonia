@@ -1,7 +1,6 @@
 import { mod } from "utils/math";
 import { getMidiNoteValue, getScaleNotes } from "./ScaleFunctions";
 import {
-  MidiNote,
   isMidiObject,
   ScaleNote,
   isNestedNote,
@@ -13,6 +12,7 @@ import {
   isMidiNote,
   isScaleObject,
 } from "./ScaleTypes";
+import { MidiNote } from "types/units";
 import { sumVectors } from "utils/objects";
 
 // ------------------------------------------------------------

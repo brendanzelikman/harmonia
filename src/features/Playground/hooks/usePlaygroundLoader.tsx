@@ -1,6 +1,6 @@
 import { useProjectLoader } from "hooks/db/useProjectLoader";
 import { useTransportLoader } from "hooks/transport/useTransportLoader";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { dispatchCustomEvent } from "utils/html";
@@ -13,7 +13,7 @@ export interface PlaygroundLoadState {
 
 export const usePlaygroundLoader = (): PlaygroundLoadState => {
   const navigate = useNavigate();
-  const { canPlay } = useSubscription();
+  const { canPlay } = useAuth();
 
   // Load the project and transport
   const isProjectLoaded = useProjectLoader();

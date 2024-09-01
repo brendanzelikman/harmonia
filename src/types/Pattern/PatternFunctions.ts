@@ -1,4 +1,4 @@
-import { StrummedChord, Tick } from "types/units";
+import { Tick } from "types/units";
 import {
   PatternChord,
   PatternStream,
@@ -6,11 +6,11 @@ import {
   PatternMidiChord,
   PatternBlock,
   isPatternRest,
-  PatternMidiNote,
   isPatternNote,
   isPatternStrummedChord,
   PatternStrummedChord,
   PatternBlockedChord,
+  PatternStrummedMidiChord,
 } from "./PatternTypes";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { mod } from "utils/math";
@@ -157,7 +157,7 @@ export const getPatternStrummedChordNotes = (
   const notes = getPatternChordNotes(chord);
   const noteCount = notes.length;
 
-  const strummedChord = chord as StrummedChord<PatternMidiNote>;
+  const strummedChord = chord as PatternStrummedMidiChord;
   const strumDirection = strummedChord.strumDirection ?? "up";
   const strumRange = chord.strumRange ?? [0, 0];
   const start = strumRange[0];

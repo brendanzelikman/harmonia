@@ -72,7 +72,7 @@ export function PoseEditorDurationMenu(props: PoseEditorDurationMenuProps) {
   }, [duration, repeat]);
 
   return (
-    <div className="container-row gap-2 animate-in fade-in ring-1 ring-pink-500/50 rounded">
+    <div className="size-full flex total-center gap-2 animate-in fade-in ring-1 ring-pink-500/50 rounded">
       <EditorNumericField
         className={classNames(
           "w-24 h-8 focus:border-pink-100",

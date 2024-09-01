@@ -31,6 +31,20 @@ export const MinorSeventhFifthShell: Pattern = {
   ],
 };
 
+export const MinorSeventhAddThirteen: Pattern = {
+  id: "pattern_preset_minor-7th-add-13",
+  name: "Minor 7th (Add 13)",
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(63),
+      _.createQuarterNote(67),
+      _.createQuarterNote(68),
+      _.createQuarterNote(70),
+    ],
+  ],
+};
+
 export const MinorNinthChord: Pattern = {
   id: "pattern_preset_minor-9th-chord",
   name: "Minor 9th Chord",
@@ -150,5 +164,6 @@ export default {
   MinorEleventhChord,
   MinorEleventhFlatNinthChord,
   MinorThirteenthChord,
+  MinorSeventhAddThirteen,
   MinorThirteenthPhrygianChord,
 };

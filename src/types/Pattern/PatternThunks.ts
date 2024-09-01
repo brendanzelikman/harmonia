@@ -1,5 +1,9 @@
-import { getTickSubdivision } from "utils/durations";
-import { Seconds } from "types/units";
+import {
+  DURATION_TICKS,
+  getTickSubdivision,
+  STRAIGHT_DURATION_TICKS,
+} from "utils/durations";
+import { Seconds, Tick } from "types/units";
 import { Sampler } from "tone";
 import { getMidiOctaveDistance, getMidiPitch } from "utils/midi";
 import { EighthNoteTicks } from "utils/durations";
@@ -126,6 +130,50 @@ export const clearPattern =
   (id: PatternId): Thunk =>
   (dispatch) => {
     dispatch(updatePattern({ id, stream: [] }));
+  };
+
+/** Randomize a pattern and give all notes a random pitch, duration, and velocity */
+export const randomizePattern =
+  (id: PatternId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const pattern = selectPatternById(project, id);
+    if (!pattern) return;
+
+    // Get a random scale from the pattern track if possible
+    const { patternTrackId } = pattern;
+    const track = isPatternTrackId(patternTrackId)
+      ? selectPatternTrackById(project, patternTrackId)
+      : undefined;
+    const scaleChain = selectTrackScaleChain(project, patternTrackId);
+    const scales = track ? scaleChain : Object.values(PresetScaleList);
+    const scale = sample(scales);
+
+    // Initialize the pattern stream
+    const stream = pattern.stream.map((block) => {
+      if (!isPatternChord(block)) return block;
+      const scaleNotes = getScaleNotes(scale);
+      const chordNotes = getPatternChordNotes(block);
+      const noteCount = chordNotes.length;
+
+      const randomDegrees = sampleSize(range(0, scaleNotes.length), noteCount);
+      const newNotes = chordNotes.map((_, i) => {
+        const degree = randomDegrees[i];
+        const newNote = {
+          duration: sample(Object.values(STRAIGHT_DURATION_TICKS)) as Tick,
+          velocity: Math.round(Math.random() * MAX_VELOCITY),
+          degree,
+          scaleId: scale?.id,
+        };
+        return newNote;
+      });
+
+      const newChord = getPatternChordWithNewNotes(block, newNotes);
+      return newChord;
+    });
+
+    // Update the pattern
+    dispatch(updatePattern({ data: { id, stream } }));
   };
 
 /** Randomize a pattern using a random scale or the pattern's track chain */

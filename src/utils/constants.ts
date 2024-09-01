@@ -17,7 +17,7 @@ export const PLUGIN_URL = import.meta.env.VITE_PLUGIN_URL;
 // Project Settings - Subscriptions
 // ------------------------------------------------------------
 
-export type SubscriptionStatus = "prodigy" | "maestro" | "virtuoso";
+export type Rank = "prodigy" | "maestro" | "virtuoso";
 export const PRODIGY_PRICE = 0;
 export const MAESTRO_PRICE = 10;
 export const VIRTUOSO_PRICE = 20;
@@ -126,4 +126,3 @@ export const MIN_CELL_HEIGHT = 80;
 export const MAX_CELL_HEIGHT = 120;
 export const POSE_HEIGHT = 20;
 export const NAV_HEIGHT = 60;
-export const TRACK_SCALE_NAME = "$$$$$_track_scale_$$$$$";

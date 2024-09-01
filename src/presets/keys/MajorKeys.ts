@@ -183,7 +183,7 @@ export const bMajorKey: Key = [
   "B",
 ];
 
-export default {
+export const MajorKeys: Record<string, Key> = {
   cMajorKey,
   dFlatMajorKey,
   dMajorKey,
@@ -197,3 +197,18 @@ export default {
   bFlatMajorKey,
   bMajorKey,
 };
+
+export const majorKeys: Key[] = [
+  cMajorKey,
+  dFlatMajorKey,
+  dMajorKey,
+  eFlatMajorKey,
+  eMajorKey,
+  fMajorKey,
+  fSharpMajorKey,
+  gMajorKey,
+  aFlatMajorKey,
+  aMajorKey,
+  bFlatMajorKey,
+  bMajorKey,
+];

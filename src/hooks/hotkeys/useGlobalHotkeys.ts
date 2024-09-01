@@ -1,7 +1,7 @@
 import { useProjectSelector, useProjectDispatch, use } from "types/hooks";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { isEditorVisible } from "types/Editor/EditorFunctions";
 import { toggleEditor, hideEditor } from "types/Editor/EditorSlice";
 import { updateMediaSelection } from "types/Timeline/TimelineSlice";
@@ -15,7 +15,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import {
   selectCanRedoProject,
   selectCanUndoProject,
-} from "types/Meta/MetaSelectors";
+} from "types/Project/ProjectSelectors";
 import { createProject } from "types/Project/ProjectThunks";
 import { readLocalProjects } from "types/Project/ProjectLoaders";
 import { exportProjectToHAM } from "types/Project/ProjectExporters";
@@ -25,7 +25,7 @@ import { useDiary } from "types/Diary/DiaryTypes";
 /** Use global hotkeys for the project */
 export function useGlobalHotkeys() {
   const dispatch = useProjectDispatch();
-  const { isProdigy, isAtLeastStatus } = useSubscription();
+  const { isProdigy, isAtLeastRank } = useAuth();
   const navigate = useNavigate();
   const diary = useDiary();
   const timeline = useProjectSelector(selectTimeline);
@@ -66,8 +66,8 @@ export function useGlobalHotkeys() {
   // Meta + P = View Projects
   useOverridingHotkeys(
     "meta+shift+p",
-    () => navigate(isAtLeastStatus("maestro") ? "/projects" : "/demos"),
-    [isAtLeastStatus("maestro")]
+    () => navigate(isAtLeastRank("maestro") ? "/projects" : "/demos"),
+    [isAtLeastRank("maestro")]
   );
 
   // Meta + E = Toggle Editor
@@ -75,10 +75,10 @@ export function useGlobalHotkeys() {
     "meta+e",
     () => {
       if (object !== undefined) {
-        dispatch(toggleEditor({ data: timeline.selectedClipType }));
+        dispatch(toggleEditor({ data: timeline.type }));
       }
     },
-    [object, timeline.selectedClipType]
+    [object, timeline.type]
   );
 
   // Meta + D = Toggle Diary

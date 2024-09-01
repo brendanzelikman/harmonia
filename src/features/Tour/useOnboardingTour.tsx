@@ -5,10 +5,9 @@ import "lib/react-shepherd.css";
 import { dispatchCustomEvent } from "utils/html";
 import LogoImage from "assets/images/logo.png";
 import { TourButton } from "./TourButton";
-import { useCustomEventListener } from "hooks";
+import { useEventListener } from "hooks";
 import { isClipType } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
-import { isTimelineIdle } from "types/Timeline/TimelineFunctions";
 import { TimelineState } from "types/Timeline/TimelineTypes";
 import { hideEditor } from "types/Editor/EditorSlice";
 import { EditorView } from "types/Editor/EditorTypes";
@@ -16,7 +15,7 @@ import { setTimelineState } from "types/Timeline/TimelineSlice";
 import { selectEditor } from "types/Editor/EditorSelectors";
 import { selectTimeline } from "types/Timeline/TimelineSelectors";
 import { showEditor } from "types/Editor/EditorThunks";
-import { setSelectedClipType } from "types/Timeline/TimelineThunks";
+import { setTimelineType } from "types/Timeline/TimelineThunks";
 
 // Custom events
 export const SET_TOUR_ID = "SET_TOUR_ID";
@@ -27,7 +26,7 @@ export const ADVANCE_TOUR = "ADVANCE_TOUR";
 // Custom hook
 export const useTourId = () => {
   const [id, setId] = useState<string | null>(null);
-  useCustomEventListener(SET_TOUR_ID, (e: CustomEvent) => setId(e.detail));
+  useEventListener(SET_TOUR_ID, (e: CustomEvent) => setId(e.detail));
   return id;
 };
 
@@ -120,8 +119,8 @@ export function useOnboardingTour() {
     (id: string, view: EditorView) => {
       return () =>
         new Promise((resolve) => {
-          if (isClipType(view)) dispatch(setSelectedClipType({ data: view }));
-          if (!isTimelineIdle(timeline)) dispatch(setTimelineState("idle"));
+          if (isClipType(view)) dispatch(setTimelineType({ data: view }));
+          if (timeline.state !== "idle") dispatch(setTimelineState("idle"));
           if (editor.view === view) return resolve(true);
           if (view === null) {
             dispatch(hideEditor({ data: null }));
@@ -151,7 +150,7 @@ export function useOnboardingTour() {
   const ensureClipType = useCallback((id: string, type: ClipType) => {
     return () =>
       new Promise((resolve) => {
-        dispatch(setSelectedClipType({ data: type }));
+        dispatch(setTimelineType({ data: type }));
         resolve(true);
       });
   }, []);
@@ -471,7 +470,7 @@ export function useOnboardingTour() {
     return createStep({
       id,
       text,
-      beforeShowPromise: ensureTimelineState(id, "adding-pattern-clips"),
+      beforeShowPromise: ensureTimelineState(id, "adding-clips"),
     });
   }, []);
 

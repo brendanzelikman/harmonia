@@ -9,10 +9,9 @@ import {
   MAESTRO_PROJECT_LIMIT,
   VIRTUOSO_PROJECT_LIMIT,
 } from "utils/constants";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { isProject } from "types/Project/ProjectTypes";
-import { getScaleName } from "types/Scale/ScaleFunctions";
 import { selectPatternClips } from "types/Clip/ClipSelectors";
 import { selectInstruments } from "types/Instrument/InstrumentSelectors";
 import { selectPatternMap } from "types/Pattern/PatternSelectors";
@@ -20,7 +19,7 @@ import {
   selectScaleTracks,
   selectTrackMidiScale,
 } from "types/Track/TrackSelectors";
-import { selectMetadata } from "types/Meta/MetaSelectors";
+import { selectMeta } from "types/Meta/MetaSelectors";
 import {
   createProject,
   deleteEmptyProjects,
@@ -30,31 +29,32 @@ import {
   loadRandomProject,
 } from "types/Project/ProjectLoaders";
 import { exportProjectsToZIP } from "types/Project/ProjectExporters";
+import { getScaleName } from "utils/key";
 
 interface ProjectSearchProps extends ProjectListProps {}
 
 export function useProjectSearch(props: ProjectSearchProps) {
   const { projects, searchingDemos } = props;
-  const subscription = useSubscription();
+  const { isAdmin, isProdigy, isMaestro, isVirtuoso } = useAuth();
   const dispatch = useProjectDispatch();
   const navigate = useNavigate();
 
   // Check if projects are capped
   const areProjectsCapped = useMemo(() => {
-    if (subscription.isAdmin) {
+    if (isAdmin) {
       return false;
     }
-    if (subscription.isProdigy) {
+    if (isProdigy) {
       return projects.length >= PRODIGY_PROJECT_LIMIT;
     }
-    if (subscription.isMaestro) {
+    if (isMaestro) {
       return projects.length >= MAESTRO_PROJECT_LIMIT;
     }
-    if (subscription.isVirtuoso) {
+    if (isVirtuoso) {
       return projects.length >= VIRTUOSO_PROJECT_LIMIT;
     }
     return true;
-  }, [subscription, projects]);
+  }, [projects, isAdmin, isProdigy, isMaestro, isVirtuoso]);
 
   // Get the filtered projects
   const [query, setQuery] = useState("");
@@ -89,7 +89,7 @@ export function useProjectSearch(props: ProjectSearchProps) {
           );
 
           // Get the name of the project
-          const meta = selectMetadata(project);
+          const meta = selectMeta(project);
           const name = meta.name.toLowerCase();
 
           // Get the date of the project
@@ -111,8 +111,8 @@ export function useProjectSearch(props: ProjectSearchProps) {
           return hasPattern || hasScale || hasInstrument || hasName || hasDate;
         })
         .sort((a, b) => {
-          const dateA = new Date(selectMetadata(a.project).lastUpdated);
-          const dateB = new Date(selectMetadata(b.project).lastUpdated);
+          const dateA = new Date(selectMeta(a.project).lastUpdated);
+          const dateB = new Date(selectMeta(b.project).lastUpdated);
           return dateB.getTime() - dateA.getTime();
         }),
     [projects, query]
@@ -177,7 +177,7 @@ export function useProjectSearch(props: ProjectSearchProps) {
 
   const SearchMenu = useCallback(() => {
     const menuClass = classNames(
-      "w-full my-6 p-4 rounded-lg",
+      "w-full my-6 animate-in slide-in-from-bottom mt-auto p-4 rounded-lg",
       "flex flex-col items-center gap-4",
       "ring-2 shadow-xl backdrop-blur",
       searchingDemos

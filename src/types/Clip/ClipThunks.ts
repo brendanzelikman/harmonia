@@ -1,9 +1,7 @@
 import { Midi } from "@tonejs/midi";
-import { updateMediaSelection } from "types/Timeline/TimelineSlice";
-import { isUndefined, without } from "lodash";
-import { hasKeys } from "utils/objects";
+import { isUndefined, some } from "lodash";
 import { Tick } from "types/units";
-import { selectClipById, selectPoseClipById } from "./ClipSelectors";
+import { selectPoseClipById, selectTimedClipById } from "./ClipSelectors";
 import {
   isPoseBucket,
   getPoseBucketVector,
@@ -14,21 +12,21 @@ import { isPoseVectorModule } from "types/Pose/PoseTypes";
 import { Thunk } from "types/Project/ProjectTypes";
 import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
 import {
-  selectClipDuration,
   selectClips,
   selectClipsByTrackIds,
   selectClipStartTime,
 } from "./ClipSelectors";
-import { Clip, initializeClip, ClipId, PoseClipId } from "./ClipTypes";
+import { initializeClip, ClipId, PoseClipId } from "./ClipTypes";
 import { selectPatternClipStreamMap } from "types/Arrangement/ArrangementSelectors";
 import { selectPoseById } from "types/Pose/PoseSelectors";
-import { selectMetadata } from "types/Meta/MetaSelectors";
+import { selectMeta } from "types/Meta/MetaSelectors";
 import { selectTracks } from "types/Track/TrackSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { Payload, unpackUndoType } from "lib/redux";
 import { addClips, removeClip } from "./ClipSlice";
 import { selectMediaSelection } from "types/Timeline/TimelineSelectors";
 import { deleteMedia } from "types/Media/MediaThunks";
+import { removeClipIdsFromSelection } from "types/Timeline/thunks/TimelineSelectionThunks";
 
 /** Slice a clip and make sure the old ID is no longer selected. */
 export const sliceClip =
@@ -38,33 +36,27 @@ export const sliceClip =
     if (!id) return;
 
     const project = getProject();
-    const clip = selectClipById(project, id);
+    const clip = selectTimedClipById(project, id);
     if (!clip) return;
 
     const mediaSelection = selectMediaSelection(project);
-    const clipDuration = selectClipDuration(project, clip.id);
     const undoType = unpackUndoType(payload, "sliceClip");
 
     // Find the tick to split the clip at
     const splitTick = tick - clip.tick;
-    if (tick === clip.tick || splitTick === clipDuration) return;
-    if (splitTick < 0 || splitTick > clip.tick + clipDuration) return;
+    if (tick === clip.tick || splitTick === clip.duration) return;
+    if (splitTick < 0 || splitTick > clip.tick + clip.duration) return;
 
     // Get the two new clips
     const firstClip = initializeClip({ ...clip, duration: splitTick });
     const offset = (clip.offset || 0) + splitTick;
-    const duration = clipDuration - splitTick;
+    const duration = clip.duration - splitTick;
     const secondClip = initializeClip({ ...clip, tick, offset, duration });
 
     // Filter the old clip out of the media selection
     const { clipIds } = mediaSelection;
     if (clipIds?.length) {
-      dispatch(
-        updateMediaSelection({
-          data: { clipIds: without(clipIds, clip.id) },
-          undoType,
-        })
-      );
+      dispatch(removeClipIdsFromSelection({ data: [id] }));
     }
     // Slice the clip
     dispatch(removeClip({ data: clip.id, undoType }));
@@ -110,14 +102,14 @@ export const exportClipsToMidi =
   (ids: ClipId[]): Thunk =>
   async (_dispatch, getProject) => {
     const project = getProject();
-    const meta = selectMetadata(project);
+    const meta = selectMeta(project);
     const transport = selectTransport(project);
     const clips = selectClips(project).filter(({ id }) => ids.includes(id));
     const tracks = selectTracks(project).filter((track) =>
       clips.some((clip) => clip.trackId === track.id)
     );
     const clipStreamMap = selectPatternClipStreamMap(project);
-    if (!hasKeys(clipStreamMap)) return;
+    if (!some(clipStreamMap)) return;
 
     // Prepare a new MIDI file
     const midi = new Midi();

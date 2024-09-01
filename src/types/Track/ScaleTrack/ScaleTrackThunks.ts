@@ -9,8 +9,8 @@ import {
   ScaleObject,
   nestedChromaticNotes,
   ScaleArray,
-  initializeScaleTrackScale,
   chromaticScale,
+  initializeScale,
 } from "types/Scale/ScaleTypes";
 import { TrackId, isPatternTrack } from "../TrackTypes";
 import {
@@ -25,7 +25,7 @@ import {
   selectTopLevelTracks,
   selectTrackById,
 } from "../TrackSelectors";
-import { UndoType } from "types/undoTypes";
+import { UndoType } from "types/units";
 import { createUndoType } from "lib/redux";
 import { nanoid } from "@reduxjs/toolkit";
 import {
@@ -59,7 +59,7 @@ export const createScaleTrack =
     const notes: ScaleArray = scaleNotes
       ? getScaleNotes(scaleNotes)
       : parentNotes.map((_, i) => ({ degree: i }));
-    const scale = initializeScaleTrackScale({ notes });
+    const scale = initializeScale({ notes });
 
     // Create and add the scale track and scale
     const scaleTrack = initializeScaleTrack({
@@ -69,7 +69,9 @@ export const createScaleTrack =
     });
     const undoType =
       _undoType ?? createUndoType("createScaleTrack", scaleTrack.id);
-    dispatch(addScale({ data: scale, undoType }));
+    dispatch(
+      addScale({ data: { ...scale, scaleTrackId: scaleTrack.id }, undoType })
+    );
     dispatch(addTrack({ data: scaleTrack, undoType }));
 
     // Return the ID of the scale track
@@ -88,7 +90,7 @@ export const createRandomHierarchy = (): Thunk => (dispatch) => {
   const baseScale = sample(PresetScaleList) || chromaticScale;
   const baseNotes = sampleSize(baseScale.notes, random(8, 12));
   const sortedNotes = sortScaleNotesByDegree(baseNotes);
-  const scale = initializeScaleTrackScale({ notes: sortedNotes });
+  const scale = initializeScale({ notes: sortedNotes });
   scales.push(scale);
 
   // Create a randomized scale for each level of the hierarchy
@@ -98,7 +100,7 @@ export const createRandomHierarchy = (): Thunk => (dispatch) => {
     const scaleSize = Math.max(2, random(maxLength / 2, maxLength - 1));
     const notes = sampleSize(degrees, scaleSize);
     const sortedNotes = sortScaleNotesByDegree(notes);
-    const scale = initializeScaleTrackScale({ notes: sortedNotes });
+    const scale = initializeScale({ notes: sortedNotes });
     scales.push(scale);
     if (notes.length === 2) {
       size = i;
@@ -111,8 +113,9 @@ export const createRandomHierarchy = (): Thunk => (dispatch) => {
     const scale = scales[i];
     const parentId = i > 0 ? scaleTracks[i - 1].id : undefined;
     const scaleTrack = initializeScaleTrack({ parentId, scaleId: scale.id });
-    dispatch(addScale({ data: scale, undoType }));
+    const scaleTrackId = scaleTrack.id;
     dispatch(addTrack({ data: scaleTrack, undoType }));
+    dispatch(addScale({ data: { ...scale, scaleTrackId }, undoType }));
     scaleTracks.push(scaleTrack);
   }
 };

@@ -1,13 +1,10 @@
-import { getUserDatabase } from "providers/idb";
-import { useAuthentication } from "providers/authentication";
+import { getDatabase } from "providers/idb";
 import { useEffect } from "react";
 
 /** Use a callback after the database loads */
-export function useDatabaseCallback(callback: () => void, deps?: any[]) {
-  const { uid } = useAuthentication();
+export async function useDatabaseCallback(callback: () => void, deps?: any[]) {
   useEffect(() => {
-    if (!uid) return;
-    const db = getUserDatabase(uid);
-    db.then((db) => !!db && callback());
-  }, [...(deps ?? []), uid]);
+    const db = getDatabase();
+    if (db) callback();
+  }, [...(deps ?? [])]);
 }

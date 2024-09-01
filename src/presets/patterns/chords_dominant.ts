@@ -237,5 +237,5 @@ export default {
   Diminished7thChord,
   Augmented7thChord,
   SevenSixChord,
-  MinorSevenAddSixChord: MinorSevenSixChord,
+  MinorSevenSixChord,
 };

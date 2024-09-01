@@ -1,19 +1,20 @@
-import { getSubscriptionStatus } from "providers/subscription";
 import { PROJECT_ID } from "utils/constants";
-import { getAuthenticationStatus } from "providers/authentication";
+import { fetchUser } from "providers/auth/user";
 import { PROJECT_STORE } from "utils/constants";
 import { Project, isProject } from "types/Project/ProjectTypes";
 import { selectProjectId } from "types/Meta/MetaSelectors";
-import { getUserDatabase } from "./database";
+import { getDatabase } from "./database";
 import { hasReachedProjectLimit } from "./util";
+import { dispatchCustomEvent } from "utils/html";
+import { UPDATE_PROJECTS } from "types/Project/ProjectThunks";
 
 /** Get the list of all projects as a promise. */
-export async function getProjectsFromDB(uid: string): Promise<Project[]> {
-  const db = await getUserDatabase(uid);
+export async function getProjectsFromDB(): Promise<Project[]> {
+  const db = getDatabase();
+  if (!db) return [];
 
   // Check if the user is authenticated
-  const { isProdigy, isMaestro, isVirtuoso, isAdmin } =
-    await getSubscriptionStatus(uid);
+  const { isProdigy, isMaestro, isVirtuoso, isAdmin } = await fetchUser();
 
   // Get all of the user's projects
   const projects = await db.getAll(PROJECT_STORE);
@@ -22,7 +23,7 @@ export async function getProjectsFromDB(uid: string): Promise<Project[]> {
   for (const project of projects) {
     if (!isProject(project)) {
       projects.splice(projects.indexOf(project), 1);
-      await deleteProjectFromDB(uid, project.meta.id);
+      await deleteProjectFromDB(project.meta.id);
     }
   }
 
@@ -36,14 +37,15 @@ export async function getProjectsFromDB(uid: string): Promise<Project[]> {
 
 /** Get the project with the given ID as a promise. */
 export async function getProjectFromDB(
-  userId: string,
   projectId?: string
 ): Promise<Project | undefined> {
   if (!projectId) return undefined;
-  const db = await getUserDatabase(userId);
+
+  const db = getDatabase();
+  if (!db) return undefined;
 
   // Check if the user is authenticated
-  const { isAuthorized } = await getAuthenticationStatus();
+  const { isAuthorized } = await fetchUser();
   if (!isAuthorized) return undefined;
 
   // Return the project if it exists
@@ -51,38 +53,35 @@ export async function getProjectFromDB(
 }
 
 /** Upload a project, resolving to true if successful. */
-export async function uploadProjectToDB(
-  uid: string,
-  project: Project
-): Promise<boolean> {
+export async function uploadProjectToDB(project: Project): Promise<boolean> {
   // Check if the project is valid
   if (!isProject(project)) throw new Error("Invalid project.");
-  const db = await getUserDatabase(uid);
+  const db = getDatabase();
+  if (!db) return false;
 
-  // Check if the user is authenticated
-  const { isAuthorized } = await getAuthenticationStatus();
+  // Check if the user is authorized
+  const { isAuthorized } = await fetchUser();
   if (!isAuthorized) return false;
 
   // Check if the user has reached their project limit and is uploading
-  const cappedProjects = await hasReachedProjectLimit(uid);
+  const cappedProjects = await hasReachedProjectLimit();
   const projectId = selectProjectId(project);
-  const isUpdating = !!getProjectFromDB(uid, projectId);
+  const isUpdating = !!getProjectFromDB(projectId);
   if (cappedProjects && !isUpdating) return false;
 
   // Add the project to the database and update the current project ID
+  dispatchCustomEvent(UPDATE_PROJECTS, projectId);
   await db.put(PROJECT_STORE, project);
-  await setCurrentProjectId(uid, projectId);
+  await setCurrentProjectId(projectId);
   return true;
 }
 
 /** Update the project, resolving to true if successful. */
-export async function updateProjectInDB(
-  userId: string,
-  project: Project
-): Promise<boolean> {
+export async function updateProjectInDB(project: Project): Promise<boolean> {
   // Check if the project is valid
   if (!isProject(project)) throw new Error("Invalid project.");
-  const db = await getUserDatabase(userId);
+  const db = getDatabase();
+  if (!db) return false;
 
   // Check if the project exists
   const existingProject = await db.get(PROJECT_STORE, selectProjectId(project));
@@ -94,11 +93,9 @@ export async function updateProjectInDB(
 }
 
 /** Delete a project by ID, resolving to true if successful. */
-export async function deleteProjectFromDB(
-  userId: string,
-  projectId: string
-): Promise<boolean> {
-  const db = await getUserDatabase(userId);
+export async function deleteProjectFromDB(projectId: string): Promise<boolean> {
+  const db = getDatabase();
+  if (!db) return false;
 
   // Clear the current project ID if it matches the deleted project
   const currentId = getCurrentProjectId();
@@ -110,7 +107,7 @@ export async function deleteProjectFromDB(
 }
 
 // ------------------------------------------------------------
-// Database Project ID
+// Database Current Project ID
 // ------------------------------------------------------------
 
 /** Get the current project ID. */
@@ -124,11 +121,9 @@ export function clearCurrentProjectId() {
 }
 
 /** Set the ID of the project that should be currently loaded. */
-export async function setCurrentProjectId(
-  userId: string,
-  projectId: string
-): Promise<boolean> {
-  const db = await getUserDatabase(userId);
+export async function setCurrentProjectId(projectId: string): Promise<boolean> {
+  const db = getDatabase();
+  if (!db) return false;
 
   // Make sure the ID exists in the database
   const projects = await db.getAll(PROJECT_STORE);
@@ -141,14 +136,13 @@ export async function setCurrentProjectId(
 
 /** Replace the current project with a new project, resolving to the new ID if successful. */
 export async function setCurrentProject(
-  userId: string,
   project: Project
 ): Promise<string | undefined> {
   // If the current project exists, delete it
   const currentId = getCurrentProjectId();
-  if (currentId) await deleteProjectFromDB(userId, currentId);
+  if (currentId) await deleteProjectFromDB(currentId);
 
   // Upload the new project and return the new project ID
-  await uploadProjectToDB(userId, project);
+  await uploadProjectToDB(project);
   return selectProjectId(project);
 }

@@ -1,33 +1,38 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { dispatchCustomEvent } from "utils/html";
-import { useCustomEventListeners } from "./useCustomEventListener";
+import { useEventListeners } from "./useCustomEventListener";
 import { Dictionary } from "@reduxjs/toolkit";
 
-export const useRecordState = <T extends Dictionary<any>>(record?: T) => {
-  const [state, setState] = useState<T>(record ?? ({} as T));
+export const useRecordState = <T extends Dictionary<any>>(record: T) => {
+  const [state, setState] = useState<T>(record);
   const keys = Object.keys(state);
 
   // Create an event type for each key
-  const UPDATE_KEY = (key: string) => `update_${key}`;
+  const EVENT_KEY = (key: keyof T) => `update_${String(key)}`;
 
   // Send an event to update a key
-  const set = (key: string, value: any) => {
-    dispatchCustomEvent(UPDATE_KEY(key), { detail: value });
+  const set = (key: keyof T, value: any) => {
+    dispatchCustomEvent(EVENT_KEY(key), value);
+  };
+
+  // Send an event to clear all keys
+  const clear = () => {
+    keys.forEach((key) => dispatchCustomEvent(EVENT_KEY(key), null));
   };
 
   // Listen for events to update the state
   const listeners = keys.map((key) => ({
-    type: UPDATE_KEY(key),
+    type: EVENT_KEY(key),
     onEvent: (event: CustomEvent) => {
       setState((state) => ({ ...state, [key]: event.detail }));
     },
   }));
-  useCustomEventListeners(listeners);
+  useEventListeners(listeners);
 
   // Check if any or all keys are truthy/falsy
   const any = keys.some((key) => !!state[key]);
   const all = keys.every((key) => !!state[key]);
 
   // Return state and functions
-  return { ...state, set, any, all };
+  return { ...state, set, clear, any, all };
 };

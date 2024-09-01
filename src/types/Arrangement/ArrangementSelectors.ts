@@ -14,12 +14,14 @@ import {
   PatternClip,
   isPoseClipId,
   PortaledPatternClipId,
+  PortaledPatternClip,
 } from "types/Clip/ClipTypes";
 import { getClipMapsByType } from "types/Clip/ClipUtils";
 import { InstrumentNotesByTicks } from "types/Instrument/InstrumentTypes";
 import {
   isPatternMidiChord,
   PatternId,
+  PatternMidiChord,
   PatternMidiStream,
 } from "types/Pattern/PatternTypes";
 import {
@@ -29,8 +31,8 @@ import {
 import { PortaledClipId, PortaledClipMap } from "types/Portal/PortalTypes";
 import { Project } from "types/Project/ProjectTypes";
 import { TrackId, isPatternTrack } from "types/Track/TrackTypes";
-import { Color, Tick } from "types/units";
-import { createMapWithFn, getValueByKey, getDictValues } from "utils/objects";
+import { Tick } from "types/units";
+import { getValueByKey, getDictValues } from "utils/objects";
 import {
   getPatternClipMidiStream,
   getMidiStreamAtTickInTrack,
@@ -53,10 +55,10 @@ import {
   selectTrackScaleChain,
 } from "types/Track/TrackSelectors";
 import { selectMotifState } from "types/Motif/MotifSelectors";
-import { doesMediaElementOverlapRange } from "types/Media/MediaFunctions";
+import { getMediaElementDuration } from "types/Media/MediaFunctions";
 import {
   selectCellWidth,
-  selectIsTimelineAddingClips,
+  selectIsAddingClips,
   selectSubdivision,
   selectTrackHeightMap,
 } from "types/Timeline/TimelineSelectors";
@@ -96,13 +98,16 @@ import {
   getVector_O,
   getVector_t,
 } from "types/Pose/PoseFunctions";
-import { getPatternBlockAtIndex } from "types/Pattern/PatternFunctions";
+import {
+  getPatternBlockAtIndex,
+  getPatternBlockDuration,
+} from "types/Pattern/PatternFunctions";
 import {
   isPatternTrackId,
   PatternTrackId,
 } from "types/Track/PatternTrack/PatternTrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
-import { clamp } from "lodash";
+import { clamp, inRange, mapValues } from "lodash";
 import { getPatternClipTheme } from "types/Clip/PatternClip/PatternClipFunctions";
 
 /** Select the arrangement as a basic collection of dependencies (entities). */
@@ -134,10 +139,9 @@ export const selectHasTrackTree = createDeepSelector(
 
 /** Select the portaled clip map. */
 export const selectPortaledClipMap = createDeepSelector(
-  [selectClips, selectClipDurationMap, selectPortals],
-  (clips, durationMap, portals) => {
-    const durations = clips.map((c) => getValueByKey(durationMap, c.id) ?? 0);
-    const portaledClips = applyPortalsToClips(clips, portals, durations);
+  [selectClips, selectPortals],
+  (clips, portals) => {
+    const portaledClips = applyPortalsToClips(clips, portals);
     const result = {} as PortaledClipMap;
     for (const clip of portaledClips.flat()) {
       result[clip.id] = clip;
@@ -169,6 +173,7 @@ export const selectProcessedArrangement = createDeepSelector(
 export const selectLastArrangementTick = createSelector(
   [selectPatternClips, selectClipDurationMap, selectTransport],
   (clips, durationMap, transport) => {
+    if (!clips.length) return 0;
     if (transport.loop) return transport.loopEnd;
     const lastTick = clips.reduce((last, clip) => {
       const endTick = clip.tick + (durationMap[clip.id] ?? 0);
@@ -306,7 +311,9 @@ export const selectOverlappingPortaledClipIdMap = createDeepSelector(
   [selectPortaledClipMap],
   (clipMap) => {
     const clips = Object.values(clipMap);
-    const allPatternClips = clips.filter(isPatternClip);
+    const allPatternClips = clips.filter(
+      isPatternClip
+    ) as PortaledPatternClip[];
     const allOtherClips = clips.filter((clip) => !isPatternClip(clip));
     const result = {} as Record<PortaledPatternClipId, PortaledClipId[]>;
     if (!allPatternClips.length || !allOtherClips.length) return result;
@@ -322,7 +329,7 @@ export const selectOverlappingPortaledClipIdMap = createDeepSelector(
         const startTick = clip.tick;
         const endTick = startTick + (clip.duration ?? Infinity);
         if (
-          doesMediaElementOverlapRange(pc, pc.duration, [startTick, endTick])
+          inRange(getMediaElementDuration(pc, pc.duration), startTick, endTick)
         ) {
           result[pc.id] = (result[pc.id] ?? []).concat(clip.id);
           break;
@@ -375,11 +382,16 @@ export const selectPatternClipMidiStreamMap = createDeepSelector(
         });
 
         // 4. Obtain the MIDI notes at the current tick
-        const midiChord = getPatternBlockAtIndex(midiStream, index);
-        if (!isPatternMidiChord(midiChord)) return;
+        const midiChord = getPatternBlockAtIndex(
+          midiStream,
+          index
+        ) as PatternMidiChord;
 
         // If the block is not strummed, just push the chord to the stream
-        const newNotes = getPatternMidiChordNotes(midiChord);
+        const chordNotes = getPatternMidiChordNotes(midiChord);
+        const newNotes = chordNotes.length
+          ? chordNotes
+          : { duration: getPatternBlockDuration(midiChord) };
         stream.push(newNotes);
       });
 
@@ -433,7 +445,7 @@ export const selectPatternClipXML = (project: Project, clip?: PatternClip) => {
 export const selectPortaledClipDurationMap = createDeepSelector(
   [selectPortaledClipMap, selectPatternClipStreamMap],
   (clipMap, streamMap) =>
-    createMapWithFn(clipMap, (clip) => {
+    mapValues(clipMap, (clip) => {
       const stream = streamMap[clip.id];
       return getClipDuration({
         ...clip,
@@ -445,116 +457,4 @@ export const selectPortaledClipDurationMap = createDeepSelector(
 export const selectPortaledClipDuration = createValueSelector(
   selectPortaledClipDurationMap,
   0
-);
-
-export interface ClipStyle {
-  id: ClipId;
-  duration: number;
-  startTick: number;
-  endTick: number;
-  top: number;
-  left: number;
-  width: number;
-  height: number;
-  noteHeight: number;
-  fontSize: number;
-  streamHeight: number;
-  streamMin: number;
-  streamMax: number;
-  streamRange: number;
-  streamLength: number;
-  cellWidth: number;
-  subdivision: Subdivision;
-  noteColor: Color;
-  bodyColor: Color;
-  headerColor: Color;
-}
-
-export const selectPortaledPatternClipStyleMap = createDeepSelector(
-  [
-    selectPortaledClipMap,
-    selectPortaledClipDurationMap,
-    selectPatternClipMidiStreamMap,
-    selectTrackHeightMap,
-    selectTrackTopMap,
-    selectOverlappingPortaledClipIdMap,
-    selectIsTimelineAddingClips,
-    selectCellWidth,
-    selectSubdivision,
-  ],
-  (
-    clipMap,
-    durationMap,
-    midiStreamMap,
-    trackHeightMap,
-    trackTopMap,
-    shortMap,
-    addingClips,
-    cellWidth,
-    subdivision
-  ) => {
-    const result = {} as Record<PortaledPatternClipId, ClipStyle>;
-
-    for (const [id, duration] of Object.entries(durationMap)) {
-      const cId = id as PortaledPatternClipId;
-      const clip = getValueByKey(clipMap, cId);
-      if (!isPatternClip(clip)) continue;
-
-      const startTick = clip.tick;
-      const endTick = clip.tick + (duration ?? 0);
-
-      const theme = getPatternClipTheme(clip);
-      const { noteColor, bodyColor, headerColor } = theme;
-
-      const trackHeight = getValueByKey(trackHeightMap, clip?.trackId) ?? 0;
-      const trackTop = getValueByKey(trackTopMap, clip?.trackId) ?? 0;
-
-      const isShortInMap = !!getValueByKey(shortMap, cId)?.length;
-      const isShort = isShortInMap || !!addingClips;
-      const height = isShort ? trackHeight - POSE_HEIGHT : trackHeight;
-
-      const top = trackTop + (isShort ? POSE_HEIGHT : 0);
-      const width = (getTickColumns(duration, subdivision) || 1) * cellWidth;
-      const columns = getTickColumns(clip?.tick, subdivision);
-      const left = TRACK_WIDTH + Math.round(columns * cellWidth);
-
-      const stream = getValueByKey(midiStreamMap, cId);
-      const streamHeight = height - CLIP_NAME_HEIGHT - CLIP_STREAM_MARGIN;
-      const { min: streamMin, max: streamMax } = getMidiStreamMinMax(stream);
-      const streamRange = Math.max(streamMax - streamMin, 1);
-      const streamLength = stream?.length ?? 0;
-
-      const noteHeight = clamp(streamHeight / streamRange, 4, 20);
-      const fontSize = Math.min(12, noteHeight) - 4;
-
-      result[cId] = {
-        startTick,
-        endTick,
-        duration,
-        top,
-        left,
-        width,
-        height,
-        streamHeight,
-        streamMin,
-        streamMax,
-        streamRange,
-        streamLength,
-        noteHeight,
-        fontSize,
-        cellWidth,
-        subdivision,
-        noteColor,
-        bodyColor,
-        headerColor,
-      } as ClipStyle;
-    }
-
-    return result;
-  }
-);
-
-export const selectPortaledClipStyle = createValueSelector(
-  selectPortaledPatternClipStyleMap,
-  {} as ClipStyle
 );

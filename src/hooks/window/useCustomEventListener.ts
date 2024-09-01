@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export function useCustomEventListener(
+export function useEventListener(
   type: string,
   onEvent: (event: CustomEvent) => void
 ) {
@@ -11,7 +11,7 @@ export function useCustomEventListener(
   }, [type, onEvent]);
 }
 
-export function useCustomEventListeners(
+export function useEventListeners(
   listeners: { type: string; onEvent: (event: CustomEvent) => void }[]
 ) {
   useEffect(() => {
@@ -25,5 +25,5 @@ export function useCustomEventListeners(
         window.removeEventListener(type, listener);
       });
     };
-  }, [listeners]);
+  }, [...listeners]);
 }

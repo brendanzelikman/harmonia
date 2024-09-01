@@ -2,6 +2,7 @@ import forms from "@tailwindcss/forms";
 import aspectRatio from "@tailwindcss/aspect-ratio";
 import animate from "tailwindcss-animate";
 import typography from "@tailwindcss/typography";
+import plugin from "tailwindcss/plugin";
 
 const nav = 60;
 
@@ -9,9 +10,41 @@ const nav = 60;
 module.exports = {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx,cur}"],
   mode: "jit",
+  plugins: [
+    typography,
+    forms,
+    aspectRatio,
+    animate,
+    plugin(({ addUtilities }) => {
+      addUtilities({
+        ".total-center": {
+          display: "flex",
+          "justify-content": "center",
+          "align-items": "center",
+        },
+        "background-pulse": {
+          "background-size": "400% 400%",
+          animation: "animate-gradient 5s ease-in-out infinite",
+        },
+        ".text-shadow": {
+          "text-shadow": "0 0 8px rgba(0, 0, 0, 0.8)",
+        },
+        ".text-shadow-sm": {
+          "text-shadow": "0 0 5px rgba(0, 0, 0, 0.5)",
+        },
+        ".text-shadow-lg": {
+          "text-shadow": "0 0 10px rgba(0, 0, 0)",
+        },
+        ".landing-background": {
+          animation: "animateLandingBackground 30s ease-in-out infinite",
+        },
+      });
+    }),
+  ],
   theme: {
     extend: {
       animation: {
+        "spin-slow": "spin 2s linear infinite",
         "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       colors: {
@@ -48,14 +81,11 @@ module.exports = {
         gethsemane: "url(/cursors/wand2.cur), pointer",
         saber: "url(/cursors/lightsaber.cur), pointer",
         eyedropper: "url(/cursors/eyedropper.cur), pointer",
+        neonpurple: "url(/cursors/neonpurple.cur), pointer",
       },
       height: { nav },
       margin: { nav },
       padding: { nav },
-      spacing: {
-        18: "4.5rem",
-        76: "19rem",
-      },
       transformOrigin: { 0: "0%" },
       transitionDuration: {
         10000: "10s",
@@ -72,8 +102,4 @@ module.exports = {
       borderWidth: { 0.5: "0.5px" },
     },
   },
-  corePlugins: {
-    aspectRatio: false,
-  },
-  plugins: [typography, forms, aspectRatio, animate],
 };

@@ -1,41 +1,6 @@
-import { Dictionary, EntityId } from "@reduxjs/toolkit";
+import { Dictionary } from "@reduxjs/toolkit";
 import { inRange } from "lodash";
 import { Vector } from "types/units";
-
-/** Create a map connecting IDs to objects from an array of objects. */
-export const createDictionary = <T extends { id: EntityId }>(values: T[]) => {
-  const result = {} as Dictionary<T>;
-  for (const value of values) {
-    result[value.id] = value;
-  }
-  return result;
-};
-
-/** Create a map overwriting values with the provided function */
-export const createMapWithFn = <
-  OldRecord extends Dictionary<S>,
-  F extends (oldEntry: NonNullable<S>) => ReturnType<F>,
-  S extends any = OldRecord[keyof OldRecord],
-  NewRecord extends Dictionary<ReturnType<F>> = Dictionary<ReturnType<F>>
->(
-  oldRecord: OldRecord,
-  fn: F
-): NewRecord => {
-  const result = {} as Dictionary<ReturnType<F>>;
-  for (const id in oldRecord) {
-    const oldEntry = oldRecord[id];
-    if (oldEntry !== undefined && oldEntry !== null) {
-      const newEntry = fn(oldEntry);
-      result[id as Extract<keyof NewRecord, string>] = newEntry;
-    }
-  }
-  return result as NewRecord;
-};
-
-/** Get the keys of a dictionary. */
-export const getDictKeys = <T>(obj: Dictionary<T>): (keyof T)[] => {
-  return Object.keys(obj) as (keyof T)[];
-};
 
 /** Gets the values of a dictionary. */
 export const getDictValues = <T>(obj: Dictionary<T>) => {
@@ -43,9 +8,7 @@ export const getDictValues = <T>(obj: Dictionary<T>) => {
 };
 
 /** Get the keys of a record. */
-export const getRecordKeys = <T extends Record<any, any>>(
-  obj?: T
-): (keyof T)[] => {
+export const getKeys = <T extends Record<any, any>>(obj?: T): (keyof T)[] => {
   if (obj === undefined) return [];
   return Object.keys(obj) as (keyof T)[];
 };
@@ -75,11 +38,6 @@ export const getValuesByKeys = <T, K extends keyof T>(obj: T, keys: K[]) => {
   return keys
     .map((key) => getValueByKey(obj, key))
     .filter(Boolean) as NonNullable<T[K]>[];
-};
-
-/** Returns true if an object has any keys. */
-export const hasKeys = (obj?: Record<string, any>) => {
-  return obj !== undefined && Object.keys(obj).length > 0;
 };
 
 /** Find the first entry containing the value within the given record. */

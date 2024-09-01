@@ -1,9 +1,6 @@
 import { promptModal } from "components/PromptModal";
 import { BaseSyntheticEvent, DragEvent, MouseEvent, ReactNode } from "react";
 
-export type DivMouseEvent = React.MouseEvent<HTMLDivElement>;
-export type ButtonMouseEvent = React.MouseEvent<HTMLButtonElement>;
-
 // ------------------------------------------------------------
 // Custom Events
 // ------------------------------------------------------------
@@ -61,6 +58,9 @@ type GenericKeyboardEvent = KeyboardEvent | React.KeyboardEvent<HTMLElement>;
 type GenericMouseEvent = MouseEvent | React.MouseEvent<HTMLElement, MouseEvent>;
 type GenericDragEvent = DragEvent<HTMLElement> | React.DragEvent<HTMLElement>;
 type GenericTouchEvent = TouchEvent | React.TouchEvent<HTMLElement>;
+
+export type DivMouseEvent = React.MouseEvent<HTMLDivElement>;
+export type ButtonMouseEvent = React.MouseEvent<HTMLButtonElement>;
 
 /** A `GenericEvent` includes HTML and React events in addition to the native Event. */
 export type GenericEvent =

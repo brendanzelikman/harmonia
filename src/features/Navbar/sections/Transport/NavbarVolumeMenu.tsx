@@ -24,7 +24,7 @@ export function NavbarVolumeMenu() {
   // The volume icon dynamically changes based on the volume.
   const VolumeButton = (
     <NavbarTooltipButton
-      className="bg-slate-800 border border-slate-500 hover:ring-1 hover:ring-slate-200 transition-all cursor-pointer relative flex total-center xl:text-3xl text-xl"
+      className="p-0.5 bg-slate-800 border border-slate-500 hover:ring-1 hover:ring-slate-200 transition-all cursor-pointer relative flex total-center xl:text-3xl text-xl"
       onClick={() => dispatch(toggleTransportMute())}
       keepTooltipOnClick
       marginLeft={50}
@@ -54,7 +54,17 @@ export function NavbarVolumeMenu() {
   // /** The transport volume slider is rendered as a range slider. */
   const VolumeTooltip = (
     <div className="animate-in fade-in absolute hidden group-hover:block -left-8 p-4 top-8 w-32 h-48">
-      <div className="bg-slate-800 flex flex-col rounded size-full relative border-2 border-indigo-500">
+      <div
+        className={classNames(
+          // volume > -20
+          //   ? "bg-emerald-500/50"
+          //   : volume > -40
+          //   ? "bg-sky-500/50"
+          //   : "bg--emerald-300/50",
+          "bg-slate-900",
+          "backdrop-blur flex flex-col rounded size-full transition-all duration-300 relative border-2 border-indigo-500"
+        )}
+      >
         <input
           className="-rotate-90 w-24 -ml-4 mt-12 cursor-pointer accent-white caret-slate-50"
           type="range"

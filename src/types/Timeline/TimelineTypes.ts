@@ -1,5 +1,5 @@
 import { Subdivision } from "utils/durations";
-import { isNull, isNumber, isPlainObject, isString } from "lodash";
+import { isNumber, isPlainObject, isString } from "lodash";
 import { ClipType } from "types/Clip/ClipTypes";
 import { isOptionalType } from "types/util";
 import { TrackId } from "types/Track/TrackTypes";
@@ -21,37 +21,28 @@ import {
 
 /** The `Timeline` contains information about the data grid and manages all tracked objects. */
 export type Timeline = Partial<{
-  // Action info
   state: TimelineState;
-  selectedTrackId: TrackId;
-  selectedClipType: ClipType;
+  type: ClipType;
 
-  // Media info
-  mediaSelection: MediaSelection;
-  mediaDraft: MediaDraft;
-  mediaClipboard: MediaClipboard;
+  draft: MediaDraft;
+  clipboard: MediaClipboard;
+  selection: TimelineSelection;
 
-  // Grid info
   subdivision: Subdivision;
   cellWidth: number;
   cellHeight: number;
-
-  // Render info
-  showingTooltips: boolean;
-  performanceMode: boolean;
 }>;
 
-/**  The `TimelineState` describes any interaction with the arrangement. */
+/**  The `TimelineState` describes any interaction that changes the appearance of the timeline. */
 export const TIMELINE_STATES = [
-  "adding-pattern-clips",
-  "adding-pose-clips",
-  "adding-scale-clips",
+  "adding-clips",
   "slicing-clips",
   "portaling-clips",
   "merging-clips",
   "idle",
 ] as const;
 export type TimelineState = (typeof TIMELINE_STATES)[number];
+export type TimelineSelection = MediaSelection & { trackId?: TrackId };
 
 // ------------------------------------------------------------
 // Timeline Defaults
@@ -60,21 +51,22 @@ export type TimelineState = (typeof TIMELINE_STATES)[number];
 export const DEFAULT_CELL_WIDTH = 25;
 export const DEFAULT_CELL_HEIGHT = 120;
 
+export const defaultTimelineSelection: TimelineSelection = {
+  clipIds: [],
+  portalIds: [],
+  trackId: undefined,
+};
+
 /** The default timeline is used for initialization. */
-export const defaultTimeline: Timeline = {
+export const defaultTimeline: Required<Timeline> = {
   state: "idle",
-  selectedClipType: "pattern",
-
-  mediaSelection: defaultMediaSelection,
-  mediaDraft: defaultMediaDraft,
-  mediaClipboard: defaultMediaClipboard,
-
+  type: "pattern",
+  draft: defaultMediaDraft,
+  clipboard: defaultMediaClipboard,
+  selection: defaultTimelineSelection,
   subdivision: "16n",
   cellWidth: DEFAULT_CELL_WIDTH,
   cellHeight: DEFAULT_CELL_HEIGHT,
-
-  showingTooltips: true,
-  performanceMode: false,
 };
 
 // ------------------------------------------------------------
@@ -87,19 +79,27 @@ export const isTimelineState = (obj: unknown): obj is TimelineState => {
   return isString(candidate) && TIMELINE_STATES.includes(candidate);
 };
 
+/** Checks if a given object is of type `TimelineSelection` */
+export const isTimelineSelection = (obj: unknown): obj is TimelineSelection => {
+  const candidate = obj as TimelineSelection;
+  return (
+    isPlainObject(candidate) &&
+    isOptionalType(candidate.trackId, isString) &&
+    isMediaSelection(candidate)
+  );
+};
+
 /** Checks if a given object is of type `Timeline` */
 export const isTimeline = (obj: unknown): obj is Timeline => {
   const candidate = obj as Timeline;
   return (
     isPlainObject(candidate) &&
     isOptionalType(candidate.state, isTimelineState) &&
-    (isOptionalType(candidate.selectedTrackId, isString) ||
-      isOptionalType(candidate.selectedTrackId, isNull)) &&
-    isOptionalType(candidate.selectedClipType, isString) &&
+    isOptionalType(candidate.type, isString) &&
     isOptionalType(candidate.cellWidth, isNumber) &&
     isOptionalType(candidate.cellHeight, isNumber) &&
-    isOptionalType(candidate.mediaSelection, isMediaSelection) &&
-    isOptionalType(candidate.mediaDraft, isMediaDraft) &&
-    isOptionalType(candidate.mediaClipboard, isMediaClipboard)
+    isOptionalType(candidate.selection, isTimelineSelection) &&
+    isOptionalType(candidate.draft, isMediaDraft) &&
+    isOptionalType(candidate.clipboard, isMediaClipboard)
   );
 };

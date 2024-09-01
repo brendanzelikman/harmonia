@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { NavbarHoverTooltip } from "features/Navbar/components";
-import { NavbarToolkitProps } from "./NavbarToolkitSection";
 import { GiBookCover } from "react-icons/gi";
+import { NavbarToolkitProps } from "../NavbarToolkitSection";
 
 export const NavbarTypeInfoButton = ({
   type,
@@ -41,7 +41,10 @@ export const NavbarTypeInfoButton = ({
   );
 
   const Tooltip = () => (
-    <NavbarHoverTooltip className="w-76 -left-18" borderColor={motifBorder}>
+    <NavbarHoverTooltip
+      className="w-[300px] -left-18"
+      borderColor={motifBorder}
+    >
       <p className="text-sm capitalize font-light border-b border-b-slate-500/50 pb-2 mb-1 transition-all">
         <span className={motifText}>{types}</span> and{" "}
         <span className={clipText}>{type} Clips</span> Explained

@@ -5,20 +5,22 @@ import "react-piano/dist/styles.css";
 import { WebMidi } from "webmidi";
 import { getMidiPitch } from "utils/midi";
 import classNames from "classnames";
-import { useSubscription } from "providers/subscription";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { Sampler } from "tone";
+import { useAuth } from "providers/auth";
+import { cancelEvent } from "utils/html";
 
 interface PianoProps {
-  sampler: Sampler | undefined;
+  sampler?: Sampler;
   className?: string;
   playNote?: (sampler: Sampler, midiNumber: number) => void;
   stopNote?: (sampler: Sampler, midiNumber: number) => void;
   show: boolean;
+  noteRange?: [string, string];
 }
 
 export const EditorPiano: React.FC<PianoProps> = (props) => {
-  const { isProdigy } = useSubscription();
+  const { isProdigy } = useAuth();
   const sampler = props.sampler ?? LIVE_AUDIO_INSTANCES.global?.sampler;
   const hasPlay = props.playNote !== undefined;
   const hasStop = props.stopNote !== undefined;
@@ -80,12 +82,14 @@ export const EditorPiano: React.FC<PianoProps> = (props) => {
         `h-40 flex-shrink-0 overflow-scroll transition-all`,
         props.className
       )}
+      draggable
+      onDragStart={cancelEvent}
     >
       <div className="w-full min-w-[1000px] overflow-scroll h-full bg-slate-950">
         <Piano
           noteRange={{
-            first: MidiNumbers.fromNote("C1"),
-            last: MidiNumbers.fromNote("C8"),
+            first: MidiNumbers.fromNote(props.noteRange?.[0] ?? "C1"),
+            last: MidiNumbers.fromNote(props.noteRange?.[1] ?? "C8"),
           }}
           playNote={(midi: number) => playNote(sampler, midi)}
           stopNote={(midi: number) => stopNote(sampler, midi)}

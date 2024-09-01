@@ -1,4 +1,3 @@
-import { FlipBook } from "components/FlipBook";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DiaryCoverPage, DiaryPageBinding } from "./DiaryPage";
 import { cancelEvent } from "utils/html";
@@ -19,6 +18,7 @@ import {
   selectProjectDiary,
   selectProjectName,
 } from "types/Meta/MetaSelectors";
+import { FlipBook } from "lib/react-pageflip";
 
 const useHotkeys = useScopedHotkeys("diary");
 

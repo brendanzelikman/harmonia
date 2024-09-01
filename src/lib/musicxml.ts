@@ -18,7 +18,7 @@ import {
   PatternMidiBlock,
   isPatternMidiChord,
 } from "types/Pattern/PatternTypes";
-import { MidiNote } from "types/Scale/ScaleTypes";
+import { MidiNote } from "types/units";
 
 // ------------------------------------------------------------
 // MusicXML Constants
@@ -172,7 +172,7 @@ const createNote = (
 <chord/>`;
 
   /** The offset tag is the note's accidental offset */
-  const offset = isMidi ? _.getMidiAccidentalOffset(note.MIDI, key) : "";
+  const offset = isMidi ? _.getMidiAccidentalNumber(note.MIDI, key) : "";
   const offsetTag =
     offset === 0
       ? ``
@@ -180,7 +180,7 @@ const createNote = (
 <alter>${offset}</alter>`;
 
   /** The pitch tag uses the note letter, accidental offset, and octave number. */
-  const letter = isMidi ? _.getMidiNoteLetter(note.MIDI, key) : "";
+  const letter = isMidi ? _.getMidiPitchLetter(note.MIDI, key) : "";
   const octave = isMidi ? _.getMidiOctaveNumber(note.MIDI, key) : "";
   const pitchTag = `<pitch>
     <step>${letter}</step>${offsetTag}

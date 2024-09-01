@@ -9,6 +9,7 @@ import MajorSeventhChords from "./chords_major_seventh";
 import MinorSeventhChords from "./chords_minor_seventh";
 import DominantChords from "./chords_dominant";
 import SuspendedChords from "./chords_suspended";
+import ClusterChords from "./chords_clusters";
 import FamousChords from "./chords_famous";
 
 // Durations
@@ -21,17 +22,18 @@ import SimpleRhythms from "./rhythms_simple";
 import LatinRhythms from "./rhythms_latin";
 import ClavePatterns from "./rhythms_clave";
 import BellPatterns from "./rhythms_bell";
-import { createDictionary } from "utils/objects";
+import { keyBy } from "lodash";
 
 export const Chords = {
   "Basic Intervals": Object.values(BasicIntervals),
   "Basic Chords": Object.values(BasicChords),
   "Major Chords": Object.values(MajorChords),
   "Minor Chords": Object.values(MinorChords),
-  "Major Seventh Chords": Object.values(MajorSeventhChords),
-  "Minor Seventh Chords": Object.values(MinorSeventhChords),
+  "Major Extensions": Object.values(MajorSeventhChords),
+  "Minor Extensions": Object.values(MinorSeventhChords),
   "Dominant Chords": Object.values(DominantChords),
   "Suspended Chords": Object.values(SuspendedChords),
+  "Cluster Chords": Object.values(ClusterChords),
   "Famous Chords": Object.values(FamousChords),
 };
 export const Durations = {
@@ -73,4 +75,4 @@ export const PresetPatternList = Object.values(PresetPatternGroupMap).flat();
 
 // Return a map of preset pattern id to preset pattern
 // e.g. {"Major Chord": Major Chord, "Minor Chord": Minor Chord, ...}
-export const PresetPatternMap = createDictionary<Pattern>(PresetPatternList);
+export const PresetPatternMap = keyBy(PresetPatternList, "id");

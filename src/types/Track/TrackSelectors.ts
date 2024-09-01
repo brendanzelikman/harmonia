@@ -1,9 +1,4 @@
-import {
-  getValuesByKeys,
-  getValueByKey,
-  createMapWithFn,
-  getArrayByKey,
-} from "utils/objects";
+import { getValuesByKeys, getValueByKey, getArrayByKey } from "utils/objects";
 import { selectScaleMap } from "../../types/Scale/ScaleSelectors";
 import {
   createValueSelector,
@@ -19,12 +14,8 @@ import {
   resolveScaleChainToMidi,
   resolveScaleToMidi,
 } from "types/Scale/ScaleResolvers";
-import {
-  isNestedNote,
-  MidiValue,
-  ScaleId,
-  ScaleObject,
-} from "types/Scale/ScaleTypes";
+import { isNestedNote, ScaleId, ScaleObject } from "types/Scale/ScaleTypes";
+import { MidiValue } from "types/units";
 import {
   getOrderedTrackIds,
   getScaleTrackChainIds,
@@ -45,7 +36,7 @@ import {
   patternTrackAdapter,
   scaleTrackAdapter,
 } from "./TrackSlice";
-import { merge } from "lodash";
+import { mapValues, merge } from "lodash";
 import {
   PatternTrackState,
   PatternTrackMap,
@@ -168,8 +159,8 @@ export const selectTopLevelTracks = createDeepSelector(
 export const selectTrackAncestorIdsMap = createDeepSelector(
   [selectTrackMap],
   (trackMap) =>
-    createMapWithFn(trackMap, (track) =>
-      getTrackAncestorIds(track.id, trackMap)
+    mapValues(trackMap, (track) =>
+      track ? getTrackAncestorIds(track.id, trackMap) : []
     )
 );
 
@@ -186,7 +177,7 @@ export const selectTrackAncestorIds = createArraySelector(
 export const selectTrackChainIdsMap = createDeepSelector(
   [selectTrackMap],
   (trackMap) =>
-    createMapWithFn(trackMap, (t) => getScaleTrackChainIds(t.id, trackMap))
+    mapValues(trackMap, (t) => (t ? getScaleTrackChainIds(t.id, trackMap) : []))
 );
 
 /** Select the IDs of a track's scale track chain. */
@@ -211,8 +202,8 @@ export const selectTrackChain = (project: Project, id?: TrackId) => {
 export const selectTrackDescendantIdMap = createDeepSelector(
   [selectTrackMap],
   (trackMap): Dictionary<TrackId[]> =>
-    createMapWithFn(trackMap, (track) => {
-      return getTrackDescendantIds(track.id, trackMap);
+    mapValues(trackMap, (track) => {
+      return track ? getTrackDescendantIds(track.id, trackMap) : [];
     })
 );
 
@@ -220,8 +211,8 @@ export const selectTrackDescendantIdMap = createDeepSelector(
 export const selectTrackDescendantMap = createDeepSelector(
   [selectTrackDescendantIdMap, selectTrackMap],
   (descendantIdMap, trackMap) =>
-    createMapWithFn(trackMap, (track) => {
-      const descendantIds = descendantIdMap[track.id] ?? [];
+    mapValues(trackMap, (track) => {
+      const descendantIds = getArrayByKey(descendantIdMap, track?.id);
       return descendantIds.map((descendantId) => trackMap[descendantId]);
     })
 );
@@ -243,15 +234,17 @@ export const selectTrackDescendants = (project: Project, id?: TrackId) => {
 export const selectTrackChildIdMap = createDeepSelector(
   [selectTrackMap],
   (trackMap) =>
-    createMapWithFn(trackMap, (track) => getTrackChildIds(track.id, trackMap))
+    mapValues(trackMap, (track) =>
+      track ? getTrackChildIds(track.id, trackMap) : []
+    )
 );
 
 /** Select the map of all tracks to their children */
 export const selectTrackChildMap = createDeepSelector(
   [selectTrackChildIdMap, selectTrackMap],
   (childIdMap, trackMap): Dictionary<Track[]> =>
-    createMapWithFn(trackMap, (track) => {
-      const childIds = childIdMap[track.id] ?? [];
+    mapValues(trackMap, (track) => {
+      const childIds = getArrayByKey(childIdMap, track?.id);
       return getValuesByKeys(trackMap, childIds);
     })
 );
@@ -271,19 +264,22 @@ export const selectTrackChildren = (project: Project, id?: TrackId) => {
 /** Select the record of all tracks and their depths. */
 export const selectTrackDepthMap = createDeepSelector(
   [selectTrackMap],
-  (trackMap) => createMapWithFn(trackMap, (t) => getTrackDepth(t.id, trackMap))
+  (trackMap) =>
+    mapValues(trackMap, (t) => (t ? getTrackDepth(t.id, trackMap) : 0))
 );
 
 /** Select the record of all tracks and their labels. */
 export const selectTrackLabelMap = createDeepSelector(
   [selectTrackMap],
-  (trackMap) => createMapWithFn(trackMap, (t) => getTrackLabel(t.id, trackMap))
+  (trackMap) =>
+    mapValues(trackMap, (t) => (t ? getTrackLabel(t.id, trackMap) : "*"))
 );
 
 /** Select the record of all tracks and their indices. */
 export const selectTrackIndexMap = createDeepSelector(
   [selectTrackMap],
-  (trackMap) => createMapWithFn(trackMap, (t) => getTrackIndex(t.id, trackMap))
+  (trackMap) =>
+    mapValues(trackMap, (t) => (t ? getTrackIndex(t.id, trackMap) : -1))
 );
 
 /** Select the depth of a track by ID. */
@@ -309,17 +305,17 @@ export const selectTrackIndexById = createValueSelector(
 export const selectTrackInstrumentMap = createDeepSelector(
   [selectPatternTrackMap, selectInstrumentMap],
   (trackMap, instrumentMap) =>
-    createMapWithFn(trackMap, (t) => instrumentMap[t.instrumentId])
+    mapValues(trackMap, (t) => getValueByKey(instrumentMap, t?.instrumentId))
 );
 
 /** Select the record of all tracks to their audio instances. */
 export const selectTrackAudioInstanceMap = createDeepSelector(
   [selectTrackMap],
   (trackMap) =>
-    createMapWithFn(trackMap, (t) =>
+    mapValues(trackMap, (t) =>
       getValueByKey(
         LIVE_AUDIO_INSTANCES,
-        (t as PatternTrack).instrumentId ?? "global"
+        (t as PatternTrack)?.instrumentId ?? "global"
       )
     )
 );
@@ -328,8 +324,8 @@ export const selectTrackAudioInstanceMap = createDeepSelector(
 export const selectInstrumentTrackMap = createDeepSelector(
   [selectPatternTracks, selectInstrumentMap],
   (tracks, instrumentMap) =>
-    createMapWithFn(instrumentMap, (i) =>
-      tracks.find((t) => t.instrumentId === i.id)
+    mapValues(instrumentMap, (i) =>
+      i ? tracks.find((t) => t.instrumentId === i.id) : undefined
     )
 );
 
@@ -359,7 +355,8 @@ export const selectTrackInstrumentName = (project: Project, id?: TrackId) => {
 export const selectTrackScaleChainMap = createDeepSelector(
   [selectTrackMap, selectScaleMap],
   (trackMap, scaleMap) =>
-    createMapWithFn(trackMap, (t) => {
+    mapValues(trackMap, (t) => {
+      if (!t) return [];
       const chainIds = getScaleTrackChainIds(t.id, trackMap);
       const chain = getValuesByKeys(trackMap, chainIds).filter(isScaleTrack);
       const scales = chain.map((track) => scaleMap[track.scaleId]);
@@ -370,15 +367,16 @@ export const selectTrackScaleChainMap = createDeepSelector(
 /** Select the map of all tracks to their scales. */
 export const selectTrackScaleMap = createDeepSelector(
   [selectScaleTrackMap, selectScaleMap],
-  (trackMap, scaleMap) => createMapWithFn(trackMap, (t) => scaleMap[t.scaleId])
+  (trackMap, scaleMap) =>
+    mapValues(trackMap, (t) => getValueByKey(scaleMap, t?.scaleId))
 );
 
 /** Select the map of all tracks to their MIDI scales. */
 export const selectTrackMidiScaleMap = createDeepSelector(
   [selectTrackMap, selectTrackScaleChainMap],
   (trackMap, scaleChainMap) =>
-    createMapWithFn(trackMap, (t) => {
-      const scales = getArrayByKey(scaleChainMap, t.id);
+    mapValues(trackMap, (t) => {
+      const scales = getArrayByKey(scaleChainMap, t?.id);
       return resolveScaleChainToMidi(scales);
     })
 );
@@ -387,7 +385,8 @@ export const selectTrackMidiScaleMap = createDeepSelector(
 export const selectMidiScaleMap = createDeepSelector(
   [selectScaleMap, selectScaleTracks, selectTrackMidiScaleMap],
   (scaleMap, scaleTracks, midiMap) =>
-    createMapWithFn(scaleMap, (scale) => {
+    mapValues(scaleMap, (scale) => {
+      if (!scale) return [];
       const track = scaleTracks.find((track) => track.scaleId === scale.id);
       return getValueByKey(midiMap, track?.id) ?? resolveScaleToMidi(scale);
     })
@@ -397,7 +396,8 @@ export const selectMidiScaleMap = createDeepSelector(
 export const selectTrackParentMidiScaleMap = createDeepSelector(
   [selectTrackMap, selectTrackScaleChainMap],
   (trackMap, scaleChainMap) =>
-    createMapWithFn(trackMap, (t) => {
+    mapValues(trackMap, (t) => {
+      if (!t) return [];
       const scales = getArrayByKey(scaleChainMap, t.parentId);
       return resolveScaleChainToMidi(scales);
     })

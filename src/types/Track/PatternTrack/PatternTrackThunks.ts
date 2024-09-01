@@ -22,13 +22,13 @@ import { TrackId, isPatternTrack, isScaleTrack } from "../TrackTypes";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import { selectSelectedTrack } from "types/Timeline/TimelineSelectors";
 import { createUndoType } from "lib/redux";
-import { UndoType } from "types/undoTypes";
+import { UndoType } from "types/units";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
 import { migrateTrack, moveTrack } from "../TrackThunks";
 import { addTrack } from "../TrackThunks";
 import { createPattern } from "types/Pattern/PatternThunks";
 import { getTrackLabel } from "../TrackFunctions";
-import { setSelectedClipType } from "types/Timeline/TimelineThunks";
+import { setTimelineType } from "types/Timeline/TimelineThunks";
 import { createMedia } from "types/Media/MediaThunks";
 import {
   initializePatternClip,
@@ -88,17 +88,17 @@ export const createPatternTrack =
     );
     const patternClip = initializePatternClip({ patternId, trackId: id });
     dispatch(createMedia({ data: { clips: [patternClip] }, undoType }));
-    dispatch(setSelectedClipType({ data: "pattern", undoType }));
+    dispatch(setTimelineType({ data: "pattern", undoType }));
 
     // Create a courtesy pose and pose clip for the track
-    const poseId = dispatch(
-      createPose({
-        data: { trackId: id, name: `Pose (Track ${depth})` },
-        undoType,
-      })
-    );
-    const poseClip = initializePoseClip({ poseId, trackId: id });
-    dispatch(createMedia({ data: { clips: [poseClip] }, undoType }));
+    // const poseId = dispatch(
+    //   createPose({
+    //     data: { trackId: id, name: `Pose (Track ${depth})` },
+    //     undoType,
+    //   })
+    // );
+    // const poseClip = initializePoseClip({ poseId, trackId: id });
+    // dispatch(createMedia({ data: { clips: [poseClip] }, undoType }));
 
     // Return ID of the created track
     return track.id;

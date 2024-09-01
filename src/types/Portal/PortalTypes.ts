@@ -2,13 +2,14 @@ import { EntityState } from "@reduxjs/toolkit";
 import { isPlainObject, isString } from "lodash";
 import { Clip, ClipId, IClipId } from "types/Clip/ClipTypes";
 import { TrackId } from "types/Track/TrackTypes";
-import { createId, ID } from "types/units";
+import { Id } from "types/units";
+import { createId } from "types/util";
 import { isFiniteNumber } from "types/util";
 
 // ------------------------------------------------------------
 // Portal Generics
 // ------------------------------------------------------------
-export type PortalId = ID<"portal">;
+export type PortalId = Id<"portal">;
 export type PortalState = EntityState<Portal>;
 export type PortalUpdate = Partial<Portal> & { id: PortalId };
 
@@ -33,8 +34,7 @@ export type Portaled<T extends Clip = Clip> = T & {
 export type PortaledClipMap = Record<ClipId, Portaled<Clip>>;
 
 /** A portaled clip has a chunk appended to the ID */
-export type PortaledClipId<T extends IClipId = ClipId> =
-  `${IClipId}-chunk-${number}`;
+export type PortaledClipId<T extends IClipId = ClipId> = `${T}-chunk-${number}`;
 
 /** A portal fragment stores a track ID and tick. */
 export type PortalFragment = { trackId: TrackId; tick: number };

@@ -16,14 +16,15 @@ import {
 } from "types/Timeline/TimelineSelectors";
 import { Portaled } from "types/Portal/PortalTypes";
 import {
-  onPoseClipClick,
   removeClipIdsFromSelection,
   toggleClipIdInSelection,
-} from "types/Timeline/TimelineThunks";
+} from "types/Timeline/thunks/TimelineSelectionThunks";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
+import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
+import { Timed } from "types/units";
 
 interface PoseClipHeaderProps {
-  clip: PoseClip;
+  clip: Timed<PoseClip>;
   portaledClip: Portaled<PoseClip>;
   pose?: Pose;
   isSelected: boolean;
@@ -97,7 +98,7 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
             dispatch(removeClipIdsFromSelection({ data: [clip.id] }));
           }
         } else {
-          dispatch(onPoseClipClick(e, clip));
+          dispatch(onClipClick(e, clip));
         }
       }}
     >

@@ -1,42 +1,38 @@
-import { BsDownload, BsTrash } from "react-icons/bs";
 import { cancelEvent } from "utils/html";
-import { Logo } from "../../components/Logo";
-import { ReactNode, useMemo, useState } from "react";
+import { useState } from "react";
 import { useProjectDispatch } from "types/hooks";
-import { BiCopy } from "react-icons/bi";
-import { Transition } from "@headlessui/react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
-import { uniq } from "lodash";
 import classNames from "classnames";
 import { ProjectItem } from "./hooks/useProjectList";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { isProject } from "types/Project/ProjectTypes";
 import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
-import { selectClipNameMap } from "types/Clip/ClipSelectors";
-import { selectPatternClips } from "types/Clip/ClipSelectors";
-import { selectPoseClips } from "types/Clip/ClipSelectors";
 import { selectInstruments } from "types/Instrument/InstrumentSelectors";
-import { selectMetadata } from "types/Meta/MetaSelectors";
+import { selectMeta } from "types/Meta/MetaSelectors";
 import { selectScaleTracks } from "types/Track/TrackSelectors";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { createProject, deleteProject } from "types/Project/ProjectThunks";
 import { loadProjectByPath, loadProject } from "types/Project/ProjectLoaders";
 import { exportProjectToHAM } from "types/Project/ProjectExporters";
+import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
+import { selectPoses } from "types/Pose/PoseSelectors";
+import { GiCompactDisc } from "react-icons/gi";
+import moment from "moment";
 
 interface ProjectFormatterProps extends ProjectItem {
   index?: number;
 }
 
 export function ProjectFormatter(props: ProjectFormatterProps) {
-  const { canPlay } = useSubscription();
+  const { canPlay } = useAuth();
   const dispatch = useProjectDispatch();
   const navigate = useNavigate();
-  const { index, project } = props;
+  const { project } = props;
   const heldKeys = useHeldHotkeys(["alt"]);
   const isInvalid = !isProject(project);
   const isDemo = !!props.filePath;
@@ -46,13 +42,16 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
   useHotkeys("esc", () => setDeleting(false));
 
   // Get general info about the project
-  const meta = selectMetadata(project);
+  const meta = selectMeta(project);
   const { id, name } = meta;
-  const dateCreated = new Date(meta.dateCreated).toLocaleString();
-  const lastUpdated = new Date(meta.lastUpdated).toLocaleString();
+  const dateCreated = moment(
+    new Date(meta.dateCreated).toLocaleString()
+  ).calendar();
+  const lastUpdated = moment(
+    new Date(meta.lastUpdated).toLocaleString()
+  ).fromNow();
   const transport = selectTransport(project);
-  const { bpm, timeSignature } = transport;
-  const clipNameMap = selectClipNameMap(project);
+  const { bpm } = transport;
 
   // Get the duration of the project
   const lastTick = selectLastArrangementTick(project);
@@ -60,18 +59,14 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
   const seconds = `${duration.toFixed(1)}s`;
 
   // Get the list of patterns used
-  const patternClips = selectPatternClips(project);
-  const patternNames = useMemo(() => {
-    const allPatternNames = patternClips.map((clip) => clipNameMap[clip.id]);
-    return uniq(allPatternNames.filter(Boolean) as string[]);
-  }, [patternClips, clipNameMap]);
+  const patternNames = selectCustomPatterns(project)
+    .map((p) => p.name)
+    .filter(Boolean) as string[];
 
   // Get the list of poses used
-  const poseClips = selectPoseClips(project);
-  const poseNames = useMemo(() => {
-    const allPoseNames = poseClips.map((clip) => clipNameMap[clip.id]);
-    return uniq(allPoseNames.filter(Boolean) as string[]);
-  }, [poseClips, clipNameMap]);
+  const poseNames = selectPoses(project)
+    .map((pose) => pose.name)
+    .filter(Boolean) as string[];
 
   // Get the list of scales used
   const scaleTracks = selectScaleTracks(project);
@@ -87,161 +82,22 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
   );
   const instrumentNames = [...new Set(allInstrumentNames)];
 
-  /** Display some buttons for copying and deleting */
-  const ProjectControl = () => (
-    <div
-      className="w-full space-x-2 py-1 px-2 z-50 flex items-center justify-center bg-slate-900 rounded border border-slate-700 cursor-default [&>*]:cursor-pointer [&>*]:rounded"
-      onClick={cancelEvent}
-    >
-      <BsDownload
-        className="px-1 hover:bg-slate-800 rounded"
-        onClick={() => dispatch(exportProjectToHAM(project))}
-      />
-      <BiCopy
-        className="px-1 hover:bg-slate-800 rounded"
-        onClick={() => createProject(project)}
-      />
-      <div className="flex relative h-full">
-        <BsTrash
-          className="px-1 hover:bg-slate-800 rounded"
-          onClick={toggleDeleting}
-        />
-        <Transition
-          show={deleting}
-          appear
-          enter="transition-all duration-300 ease-in-out"
-          enterFrom="opacity-0 scale-75"
-          enterTo="opacity-100 scale-100"
-          leave="transition-all duration-300 ease-in-out"
-          leaveFrom="opacity-100 scale-100"
-          leaveTo="opacity-0 scale-75"
-          className="absolute p-1 w-32 bg-slate-900 shadow-xl left-9 rounded border-2 border-slate-600/80 text-xs text-slate-200 whitespace-nowrap"
-        >
-          <div
-            className="flex px-2 flex-col items-center"
-            onClick={toggleDeleting}
-          >
-            <p className="pb-1 mb-1 text-center border-b border-b-slate-500 w-full">
-              Are you sure?
-            </p>
-            <div className="flex w-full items-center justify-center">
-              <button
-                className="px-4 hover:bg-slate-700 hover:text-red-500 rounded"
-                onClick={(e) => {
-                  cancelEvent(e);
-                  dispatch(deleteProject(id));
-                }}
-              >
-                Yes
-              </button>
-              <button className="px-4 hover:bg-slate-700 hover:text-sky-200 rounded">
-                No
-              </button>
-            </div>
-          </div>
-        </Transition>
-      </div>
-    </div>
-  );
-
-  /** Display the logo and file number */
-  const ProjectLogo = () => {
-    const logoClass = classNames(
-      "w-24 my-auto flex flex-col items-center",
-      "text-xl font-bold",
-      isDemo ? "text-slate-400" : "text-sky-400"
-    );
-    return (
-      <div className={logoClass}>
-        <Logo className={`h-16 ${isDemo ? "mix-blend-luminosity" : ""}`} />
-        {index !== undefined && (
-          <h1 className="my-1">
-            {isDemo ? "HAM" : "HAM"} #{index + 1}
-          </h1>
-        )}
-        {!!props.project && <ProjectControl />}
-      </div>
-    );
-  };
-
   /** Display the title and general info */
   const ProjectTitle = () => (
-    <div className="ml-5 mr-3 h-full flex-1 flex flex-col justify-center truncate [&>*]:truncate">
-      <h1 className="text-3xl text-white font-bold">
+    <div className="w-full select-none text-sm font-thin bg-slate-900/50 border border-indigo-300/50 text-slate-50 p-3 rounded">
+      <h1 className="text-2xl text-indigo-50 font-bold">
         {heldKeys.alt ? id : name}
       </h1>
-      <h6 className="text-slate-400">Date Created: {dateCreated}</h6>
-      <h6 className="text-slate-400">Last Updated: {lastUpdated}</h6>
-      <h2 className="mt-2">
-        <p>
-          Duration: {seconds} @ {bpm}BPM
-        </p>
-        <p>
-          Time Signature: {timeSignature[0]}/{timeSignature[1]}
-        </p>
-      </h2>
-    </div>
-  );
-
-  /** Format the list of items */
-  const renderTypeList = (items: string[]) => {
-    if (!items.length) return <li>None Used</li>;
-    return items.map((name) => (
-      <li key={name} className="w-full">
-        {name}
-      </li>
-    ));
-  };
-
-  /** A padded container for a list of types */
-  const TypeContainer = (props: {
-    className?: string;
-    children: ReactNode;
-  }) => (
-    <div
-      className={`lg:w-36 xl:w-48 h-full px-2 lg:px-4 py-1 ring-2 ring-slate-500 rounded-lg flex flex-col items-center flex-shrink-0 overflow-scroll text-ellipsis shadow-xl ${
-        props.className ?? ""
-      }`}
-    >
-      {props.children}
-    </div>
-  );
-
-  /** The header of a list of types */
-  const TypeHeader = (props: { children: ReactNode; className?: string }) => (
-    <h2
-      className={`flex w-full mb-2 items-center text-emerald-500 border-b text-lg ${
-        props.className ?? ""
-      }`}
-    >
-      {props.children}
-    </h2>
-  );
-
-  /** The list of types */
-  const TypeList = (props: { children: ReactNode }) => (
-    <ul className="flex-1 w-full space-y-1 [&>*]:truncate">{props.children}</ul>
-  );
-
-  /** Display some types and a dropdown menu */
-  const ProjectBody = () => (
-    <div className="hidden lg:flex flex-shrink-0 justify-end xl:space-x-8 lg:space-x-4 space-x-2">
-      <TypeContainer className="group-hover:shadow-[0px_0px_20px_-5px_rgb(16,155,129)]">
-        <TypeHeader className="text-emerald-500">Patterns</TypeHeader>
-        <TypeList>{renderTypeList(patternNames)}</TypeList>
-      </TypeContainer>
-      <TypeContainer className="group-hover:shadow-[0px_0px_20px_-5px_rgb(14,165,233)]">
-        <TypeHeader className="text-sky-400">Scales</TypeHeader>
-        <TypeList>{renderTypeList(scaleNames)}</TypeList>
-      </TypeContainer>
-      <TypeContainer className="group-hover:shadow-[0px_0px_20px_-5px_rgb(160,80,150)]">
-        <TypeHeader className="text-fuchsia-400">Poses</TypeHeader>
-        <TypeList>{renderTypeList(poseNames)}</TypeList>
-      </TypeContainer>
-      <TypeContainer className="group-hover:shadow-[0px_0px_20px_-5px_rgb(255,138,76)]">
-        <TypeHeader className="text-orange-400">Instruments</TypeHeader>
-        <TypeList>{renderTypeList(instrumentNames)}</TypeList>
-      </TypeContainer>
+      <h6>
+        <span className="text-indigo-300">Duration:</span> {seconds} @ {bpm}
+        BPM
+      </h6>
+      <h6>
+        <span className="text-indigo-300">Date Created:</span> {dateCreated}
+      </h6>
+      <h6>
+        <span className="text-indigo-300">Last Updated:</span> {lastUpdated}
+      </h6>
     </div>
   );
 
@@ -261,27 +117,87 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
     }
   };
 
-  const projectClass = classNames(
-    "flex group w-full relative p-4 h-40",
-    "rounded-lg border border-slate-400",
-    "text-slate-200 text-sm",
-    "transform duration-300 animate-in fade-in ease-out hover:scale-[1.005]",
-    isDemo ? "bg-gray-900/90" : "bg-slate-900/90",
-    { "ring ring-red-500 cursor-not-allowed": isInvalid },
-    { "backdrop-blur shadow-xl": !isInvalid },
-    { "cursor-pointer": !isInvalid && canPlay },
-    deleting
-      ? "shadow-xl shadow-[0_0_20px_0_rgba(255,0,0,0.5)]"
-      : isDemo
-      ? "shadow-xl hover:shadow-[0_0_15px_0_rgba(0,0,0,0.5)]"
-      : "shadow-xl hover:shadow-[0_0_15px_0_rgba(0,0,0,0.5)]"
-  );
-
   return (
-    <div key={id} className={projectClass} onClick={onClick}>
-      <ProjectLogo />
-      <ProjectTitle />
-      <ProjectBody />
+    <div
+      key={id}
+      className={classNames(
+        "flex flex-col gap-4 p-4 bg-sky-500/10 rounded-lg",
+        "text-slate-200 border-2 border-indigo-300/50 text-sm snap-center",
+        "animate-in fade-in duration-500 ease-out",
+        { "ring ring-red-500 cursor-not-allowed": isInvalid }
+      )}
+    >
+      <div className="peer select-none gap-2 p-2 flex order-2 justify-evenly text-md font-thin bg-slate-900/80 ease-in-out transition-all duration-500 px-5 mx-auto border-2 rounded border-indigo-400 cursor-pointer">
+        <button
+          className="px-3 py-1 rounded border border-slate-500 hover:bg-slate-950"
+          onClick={onClick}
+        >
+          Load
+        </button>
+        <button
+          className="px-3 py-1 rounded border border-slate-500 hover:bg-slate-950"
+          onClick={() => createProject(project)}
+        >
+          Copy
+        </button>
+        <button
+          className="px-3 py-1 rounded border border-slate-500 hover:bg-slate-950"
+          onClick={() => dispatch(exportProjectToHAM(project))}
+        >
+          Export
+        </button>
+        <button
+          className="px-3 py-1 z-50 rounded relative border border-slate-500 hover:bg-slate-950"
+          onClick={toggleDeleting}
+        >
+          Delete
+          {deleting && (
+            <div className="absolute p-1 w-32 bg-slate-950 shadow-xl left-16 top-4 rounded border-2 border-slate-600/80 text-xs text-slate-200 whitespace-nowrap">
+              <p className="pb-1 mb-1 text-center border-b border-b-slate-500 w-full">
+                Are you sure?
+              </p>
+              <div className="flex w-full items-center justify-center">
+                <button
+                  className="px-4 hover:bg-slate-700 hover:text-red-500 rounded"
+                  onClick={(e) => {
+                    cancelEvent(e);
+                    dispatch(deleteProject(id));
+                  }}
+                >
+                  Yes
+                </button>
+                <button className="px-4 hover:bg-slate-700 hover:text-sky-200 rounded">
+                  No
+                </button>
+              </div>
+            </div>
+          )}
+        </button>
+      </div>
+      <div
+        className={classNames(
+          "size-full w-full mx-auto order-1",
+          isDemo ? "text-slate-400" : "text-indigo-200/70"
+        )}
+      >
+        <div className="flex flex-col gap-4 ">
+          <ProjectTitle />
+          <div className="p-4">
+            <GiCompactDisc
+              onClick={onClick}
+              className={classNames(
+                "w-full p-2 h-fit rounded-full",
+                "border-2 border-indigo-400/50 ring-indigo-600/25 ring-offset-8 ring-offset-indigo-500/25",
+                "bg-gradient-radial shadow-[0px_0px_20px_rgb(100,100,200)]",
+                deleting
+                  ? "from-red-500 to-red-700"
+                  : "from-indigo-700 to-sky-500",
+                "cursor-pointer transition-all duration-500 hover:opacity-75 active:opacity-100 active:text-indigo-200 active:animate-spin-slow hover:duration-150"
+              )}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

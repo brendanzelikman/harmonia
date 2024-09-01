@@ -1,5 +1,5 @@
 import * as _ from "./PoseTypes";
-import { getRecordKeys } from "utils/objects";
+import { getKeys } from "utils/objects";
 import { PresetPoseGroupList, PresetPoseGroupMap } from "presets/poses";
 import { WholeNoteTicks } from "utils/durations";
 import pluralize from "pluralize";
@@ -11,9 +11,9 @@ import {
   isScaleTrack,
   isTrackId,
 } from "types/Track/TrackTypes";
-import { isPitchClass } from "types/units";
 import { isVoiceLeading } from "./PoseTypes";
 import { ChromaticKey, ChromaticPitchClass } from "presets/keys";
+import { isPitchClass } from "utils/pitchClass";
 
 // ------------------------------------------------------------
 // Pose Serializers
@@ -194,7 +194,7 @@ export const mapPoseVector = (
   vector: _.PoseVector,
   fn: (key: _.PoseVectorId, value: number) => number
 ) => {
-  const keys = getRecordKeys(vector);
+  const keys = getKeys(vector);
   return keys.reduce((acc, cur) => {
     return { ...acc, [cur]: fn(cur, vector[cur] ?? 0) };
   }, {} as _.PoseVector);
@@ -208,7 +208,7 @@ export const sumPoseVectors = (...vectors: _.PoseVector[]): _.PoseVector => {
   // Sum across every key in every vector
   const vector: _.PoseVector = {};
   for (const vec of allVectors) {
-    const keys = getRecordKeys(vec);
+    const keys = getKeys(vec);
     for (const key of keys) {
       vector[key] = (vector[key] || 0) + (vec[key] || 0);
     }
@@ -242,7 +242,7 @@ export const getPoseVectorAsScaleVector = (
   tracks?: TrackMap
 ) => {
   if (!vector || !tracks) return {};
-  const keys = getRecordKeys(vector);
+  const keys = getKeys(vector);
   return keys.reduce((acc, cur) => {
     const track = isTrackId(cur) ? tracks[cur] : undefined;
     if (isScaleTrack(track)) {
@@ -292,7 +292,7 @@ export const getPoseCategory = (pattern?: _.Pose) => {
 /** Returns true if a pose vector has 0s for all keys. */
 export const isPoseIdentityVector = (vector?: _.PoseVector) => {
   if (!vector) return false;
-  const keys = getRecordKeys(vector);
+  const keys = getKeys(vector);
   return keys.length === 0;
 };
 
@@ -300,7 +300,7 @@ export const isPoseIdentityVector = (vector?: _.PoseVector) => {
 export const getVectorKeys = (vector?: _.PoseVector, trackMap?: TrackMap) => {
   const keys = [
     ...new Set([
-      ...getRecordKeys(vector),
+      ...getKeys(vector),
       ...(trackMap ? Object.keys(trackMap) : []),
     ]),
   ];

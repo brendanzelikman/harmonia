@@ -5,11 +5,11 @@ import {
   LandingPopupHeader,
   LandingHeroProps,
 } from "../components";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { MAESTRO_PROJECT_LIMIT } from "utils/constants";
 
 export const LandingPricingHero = (props: LandingHeroProps) => {
-  const { isProdigy, isMaestro, isVirtuoso } = useSubscription();
+  const { isProdigy, isMaestro, isVirtuoso } = useAuth();
 
   return (
     <LandingSection className="py-10 px-5 justify-center text-white">

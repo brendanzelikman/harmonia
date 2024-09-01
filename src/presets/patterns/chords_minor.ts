@@ -49,7 +49,7 @@ export const MinorPentachord: Pattern = {
 };
 
 export const MinorHexachord: Pattern = {
-  id: "pattern_preset_minor-hexachord",
+  id: "pattern_preset_minor_hexachord",
   name: "Minor Hexachord",
   aliases: ["minor-hexachord"],
   stream: [
@@ -60,6 +60,23 @@ export const MinorHexachord: Pattern = {
       _.createQuarterNote(65),
       _.createQuarterNote(67),
       _.createQuarterNote(68),
+    ],
+  ],
+};
+
+export const MinorHeptachord: Pattern = {
+  id: "pattern_preset_minor_heptachord",
+  name: "Minor Heptachord",
+  aliases: ["minor-heptachord"],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(62),
+      _.createQuarterNote(63),
+      _.createQuarterNote(65),
+      _.createQuarterNote(67),
+      _.createQuarterNote(68),
+      _.createQuarterNote(70),
     ],
   ],
 };
@@ -160,4 +177,5 @@ export default {
   MinorTetrachord,
   MinorPentachord,
   MinorHexachord,
+  MinorHeptachord,
 };

@@ -9,7 +9,11 @@ import {
 import { Subdivision } from "utils/durations";
 import { ClipType } from "types/Clip/ClipTypes";
 import { TrackId } from "types/Track/TrackTypes";
-import { TimelineState, defaultTimeline } from "./TimelineTypes";
+import {
+  TimelineState,
+  defaultTimeline,
+  defaultTimelineSelection,
+} from "./TimelineTypes";
 import {
   MediaSelection,
   MediaClipboard,
@@ -44,7 +48,7 @@ export type ClearTimelineStatePayload = void;
 export type UpdateMediaSelectionPayload = Partial<MediaSelection>;
 
 /** The media clipboard can be updated with partial values. */
-export type UpdateMediaClipboardPayload = Partial<MediaClipboard>;
+export type UpdateClipboardPayload = Partial<MediaClipboard>;
 
 /** The media draft can be updated with partial values. */
 export type UpdateMediaDraftPayload = Partial<MediaDraft>;
@@ -60,6 +64,19 @@ export const timelineSlice = createSlice({
   name: "timeline",
   initialState: defaultTimeline,
   reducers: {
+    /** Set the timeline state. */
+    setTimelineState: (state, action: Action<SetTimelineStatePayload>) => {
+      const timelineState = unpackAction(action);
+      state.state = timelineState;
+    },
+    /** Clear the timeline state. */
+    clearTimelineState: (state, _: Action<null>) => {
+      state.state = "idle";
+    },
+    /** Set the timeline type. */
+    _setTimelineType: (state, action: Action<ClipType>) => {
+      state.type = unpackAction(action);
+    },
     /** Set the width of a timeline cell. */
     setCellWidth(state, action: PayloadAction<SetCellWidthPayload>) {
       state.cellWidth = clamp(action.payload, MIN_CELL_WIDTH, MAX_CELL_WIDTH);
@@ -77,7 +94,7 @@ export const timelineSlice = createSlice({
       state.subdivision = action.payload;
     },
     /** Increase the subdivision of the timeline. */
-    increaseSubdivision(state) {
+    increaseSubdivision(state, _: Action<null>) {
       if (!state.subdivision) {
         state.subdivision = defaultTimeline.subdivision;
         return;
@@ -91,7 +108,7 @@ export const timelineSlice = createSlice({
       state.subdivision = newSubdivision as Subdivision;
     },
     /** Decrease the subdivision of the timeline. */
-    decreaseSubdivision(state) {
+    decreaseSubdivision(state, _: Action<null>) {
       if (!state.subdivision) {
         state.subdivision = defaultTimeline.subdivision;
         return;
@@ -105,58 +122,42 @@ export const timelineSlice = createSlice({
       const newSubdivision = state.subdivision.replace(/\d+/, `${newValue}`);
       state.subdivision = newSubdivision as Subdivision;
     },
-    /** Set the timeline state. */
-    setTimelineState: (state, action: Action<SetTimelineStatePayload>) => {
-      const timelineState = unpackAction(action);
-      state.state = timelineState;
-    },
-    /** Clear the timeline state. */
-    clearTimelineState: (state, action: Action<null>) => {
-      state.state = "idle";
-    },
     /** Set the selected track ID. */
     setSelectedTrackId: (state, action: Action<TrackId | null | undefined>) => {
+      if (!state.selection) state.selection = defaultTimelineSelection;
       const data = unpackAction(action);
-      if (isString(data)) state.selectedTrackId = data;
-      else if (!data) state.selectedTrackId = undefined;
-    },
-    /** Set the selected clip type. */
-    _setSelectedClipType: (state, action: Action<ClipType>) => {
-      const type = unpackAction(action);
-      state.selectedClipType = type;
+      if (isString(data)) state.selection.trackId = data;
+      else if (!data) state.selection.trackId = undefined;
     },
     /** Update the media clipboard. */
-    updateMediaClipboard: (
-      state,
-      action: PayloadAction<UpdateMediaClipboardPayload>
-    ) => {
-      if (!state.mediaClipboard) state.mediaClipboard = defaultMediaClipboard;
+    updateClipboard: (state, action: PayloadAction<UpdateClipboardPayload>) => {
+      if (!state.clipboard) state.clipboard = defaultMediaClipboard;
       const { clips, portals } = action.payload;
       if (clips) {
-        state.mediaClipboard.clips = clips;
+        state.clipboard.clips = clips;
       }
       if (portals) {
-        state.mediaClipboard.portals = portals;
+        state.clipboard.portals = portals;
       }
     },
     /** Update the media draft. */
     updateMediaDraft: (state, action: Action<UpdateMediaDraftPayload>) => {
-      if (state.mediaDraft === undefined) state.mediaDraft = defaultMediaDraft;
+      if (state.draft === undefined) state.draft = defaultMediaDraft;
       const { patternClip, poseClip, scaleClip, portal } = unpackAction(action);
       if (patternClip) {
-        const existingClip = state.mediaDraft.patternClip;
-        state.mediaDraft.patternClip = { ...existingClip, ...patternClip };
+        const existingClip = state.draft.patternClip;
+        state.draft.patternClip = { ...existingClip, ...patternClip };
       }
       if (poseClip) {
-        const existingClip = state.mediaDraft.poseClip;
-        state.mediaDraft.poseClip = { ...existingClip, ...poseClip };
+        const existingClip = state.draft.poseClip;
+        state.draft.poseClip = { ...existingClip, ...poseClip };
       }
       if (scaleClip) {
-        const existingClip = state.mediaDraft.scaleClip;
-        state.mediaDraft.scaleClip = { ...existingClip, ...scaleClip };
+        const existingClip = state.draft.scaleClip;
+        state.draft.scaleClip = { ...existingClip, ...scaleClip };
       }
       if (portal) {
-        state.mediaDraft.portal = portal;
+        state.draft.portal = portal;
       }
     },
     /** Update the media selection. */
@@ -164,22 +165,14 @@ export const timelineSlice = createSlice({
       state,
       action: Action<UpdateMediaSelectionPayload>
     ) => {
-      if (!state.mediaSelection) state.mediaSelection = defaultMediaSelection;
+      if (!state.selection) state.selection = defaultMediaSelection;
       const { clipIds, portalIds } = unpackAction(action);
       if (clipIds) {
-        state.mediaSelection.clipIds = clipIds;
+        state.selection.clipIds = clipIds;
       }
       if (portalIds) {
-        state.mediaSelection.portalIds = portalIds;
+        state.selection.portalIds = portalIds;
       }
-    },
-    /** Toggle the tooltips. */
-    toggleTooltips: (state) => {
-      state.showingTooltips = !state.showingTooltips;
-    },
-    /** Toggle the performance mode.*/
-    togglePerformanceMode: (state) => {
-      state.performanceMode = !state.performanceMode;
     },
   },
 });
@@ -187,18 +180,16 @@ export const timelineSlice = createSlice({
 export const {
   setTimelineState,
   clearTimelineState,
+  _setTimelineType,
   setCellWidth,
   setCellHeight,
   setSubdivision,
   increaseSubdivision,
   decreaseSubdivision,
   setSelectedTrackId,
-  _setSelectedClipType,
   updateMediaSelection,
-  updateMediaClipboard,
+  updateClipboard,
   updateMediaDraft,
-  toggleTooltips,
-  togglePerformanceMode,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

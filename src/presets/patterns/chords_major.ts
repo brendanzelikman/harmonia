@@ -65,7 +65,7 @@ export const MajorHexachord: Pattern = {
 };
 
 export const MajorHeptachord: Pattern = {
-  id: "pattern_preset_major-heptachord",
+  id: "pattern_preset_major_heptachord",
   name: "Major Heptachord",
   aliases: ["major-heptachord"],
   stream: [

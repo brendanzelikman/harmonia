@@ -2,12 +2,12 @@ import classNames from "classnames";
 import { useDeep, useProjectSelector } from "types/hooks";
 import { NavbarTooltipButton } from "../../components";
 import { GiHand } from "react-icons/gi";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { selectIsLive } from "types/Timeline/TimelineSelectors";
 import { selectClipIds } from "types/Clip/ClipSelectors";
 
 export const NavbarLivePlayButton = () => {
-  const { isAtLeastStatus } = useSubscription();
+  const { isAtLeastRank } = useAuth();
   const hasClips = useDeep(selectClipIds).length > 0;
   const isLive = useProjectSelector(selectIsLive);
 
@@ -169,18 +169,18 @@ export const NavbarLivePlayButton = () => {
       keepTooltipOnClick
       notClickable
       borderColor="border-fuchsia-500"
-      className={`${hasClips ? `cursor-wand` : "opacity-50"}`}
+      className={`${hasClips ? `cursor-pointer` : "opacity-50"} p-1.5`}
       label={
         isLive
           ? NumericalShortcuts()
-          : "Select a Pose Clip and Track to Go Live"
+          : "Select a Pose Clip and Its Track to Go Live"
       }
     >
-      <GiHand />
+      <GiHand className="select-none pointer-events-none" />
     </NavbarTooltipButton>
   );
 
-  const isDisabled = !isAtLeastStatus("maestro");
+  const isDisabled = !isAtLeastRank("maestro");
   if (isDisabled) return null;
 
   return (
@@ -188,7 +188,7 @@ export const NavbarLivePlayButton = () => {
       className={classNames(
         "relative min-w-8 w-max h-9",
         "flex items-center rounded-full font-nunito font-light",
-        "ring-1 select-none transition-all duration-300",
+        "ring-1 select-none transition-all duration-300 cursor-",
         isLive
           ? "bg-gradient-radial ring-fuchsia-300/80 from-fuchsia-400/80 to-fuchsia-600/80"
           : "ring-fuchsia-500/50 bg-gradient-radial from-fuchsia-500/50 to-slate-950"

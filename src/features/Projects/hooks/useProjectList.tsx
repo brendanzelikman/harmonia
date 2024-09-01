@@ -1,6 +1,6 @@
 import { useProjectSearch } from "./useProjectSearch";
 import { ProjectFormatter } from "..";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Project } from "types/Project/ProjectTypes";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 
@@ -20,7 +20,7 @@ export function useProjectList(props: ProjectListProps) {
   // Display the list of projects
   const ProjectComponentList = useCallback(
     () => (
-      <div className="w-full space-y-6">
+      <div className="size-full relative flex p-4 bg-slate-950/70 overflow-scroll gap-6 snap-x snap-mandatory">
         {results.map((item, index) => (
           <ProjectFormatter
             {...item}
@@ -35,7 +35,7 @@ export function useProjectList(props: ProjectListProps) {
 
   const List = useCallback(
     () => (
-      <div className="w-full h-full flex flex-col px-8 pb-8 overflow-scroll">
+      <div className="size-full flex z-40 flex-col p-6 bg-indigo-900/50">
         {SearchMenu()}
         {ProjectComponentList()}
       </div>

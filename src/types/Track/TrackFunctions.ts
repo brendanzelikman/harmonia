@@ -2,6 +2,7 @@ import { getValueByKey } from "utils/objects";
 
 import { numberToLower } from "utils/math";
 import { isScaleTrack, ITrack, Track, TrackId, TrackMap } from "./TrackTypes";
+import { isScaleTrackId } from "./ScaleTrack/ScaleTrackTypes";
 
 // ------------------------------------------------------------
 // Track Map Properties
@@ -11,7 +12,11 @@ import { isScaleTrack, ITrack, Track, TrackId, TrackMap } from "./TrackTypes";
 export const getTopLevelTracks = (trackMap: TrackMap) => {
   const tracks = Object.values(trackMap);
   const orphans = tracks.filter((t) => !!t && !t.parentId) as Track[];
-  return orphans.toSorted((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  return orphans.toSorted(
+    (a, b) =>
+      (a.order ?? isScaleTrackId(a.id) ? 1 : 0) -
+      (b.order ?? isScaleTrackId(b.id) ? 1 : 0)
+  );
 };
 
 /** Get the list of ordered track IDs. */

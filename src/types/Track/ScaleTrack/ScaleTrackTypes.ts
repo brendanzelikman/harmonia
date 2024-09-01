@@ -1,7 +1,7 @@
 import { isTrackInterface, ITrack, ITrackId } from "../TrackTypes";
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { isString } from "lodash";
-import { createId } from "types/units";
+import { createId } from "types/util";
 
 export type ScaleTrack = ITrack<"scale">;
 export type ScaleTrackId = ITrackId<"scale">;

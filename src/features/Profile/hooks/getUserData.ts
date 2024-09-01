@@ -1,6 +1,5 @@
 import { trim } from "lodash";
-import { useAuthentication } from "providers/authentication";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { useMemo } from "react";
 
 interface UserData {
@@ -10,8 +9,7 @@ interface UserData {
 }
 
 export const getUserData = (): UserData => {
-  const { user, isAdmin } = useAuthentication();
-  const { isMaestro, isVirtuoso } = useSubscription();
+  const { user, isAdmin, isMaestro, isVirtuoso } = useAuth();
 
   // Helper functions for unpacking fields
   const trimText = (text: string | null) => trim(text ?? "");

@@ -13,7 +13,10 @@ import {
   getScaleNotes,
   getScaleNoteMidiValue,
 } from "./ScaleFunctions";
-import { getTransposedScale, getRotatedScale } from "./ScaleTransformers";
+import {
+  getTransposedScale,
+  getRotatedScale,
+} from "types/Scale/ScaleTransformers";
 import { resolveScaleToMidi, resolveScaleNoteToMidi } from "./ScaleResolvers";
 import {
   ScaleObject,

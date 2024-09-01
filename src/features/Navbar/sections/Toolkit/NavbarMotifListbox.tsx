@@ -6,17 +6,12 @@ import {
   PresetPatternGroupMap,
 } from "presets/patterns";
 import { blurEvent } from "utils/html";
-import {
-  useProjectDispatch,
-  useProjectSelector,
-  useProjectDeepSelector,
-} from "types/hooks";
+import { useProjectDispatch, use, useDeep } from "types/hooks";
 import classNames from "classnames";
 import { PresetPoseGroupList, PresetPoseGroupMap } from "presets/poses";
 import { PresetScaleGroupList, PresetScaleGroupMap } from "presets/scales";
 import { ScaleId, ScaleObject } from "types/Scale/ScaleTypes";
 import { Pose, PoseId } from "types/Pose/PoseTypes";
-import { NavbarToolkitProps } from "./NavbarToolkitSection";
 import { selectIsSelectedEditorOpen } from "types/Editor/EditorSelectors";
 import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
 import { selectPoses } from "types/Pose/PoseSelectors";
@@ -26,7 +21,7 @@ import {
 } from "types/Scale/ScaleSelectors";
 import {
   selectSelectedMotif,
-  selectIsTimelineAddingSelectedClip,
+  selectIsAddingClips,
 } from "types/Timeline/TimelineSelectors";
 import { selectSelectedMotifName } from "types/Arrangement/ArrangementScaleSelectors";
 import { selectScaleNameMap } from "types/Arrangement/ArrangementTrackSelectors";
@@ -36,6 +31,7 @@ import {
   setSelectedPose,
   setSelectedScale,
 } from "types/Media/MediaThunks";
+import { NavbarToolkitProps } from "../NavbarToolkitSection";
 
 export function NavbarMotifListbox({
   type,
@@ -44,17 +40,17 @@ export function NavbarMotifListbox({
 }: NavbarToolkitProps) {
   const dispatch = useProjectDispatch();
 
-  const onEditor = useProjectSelector(selectIsSelectedEditorOpen);
+  const onEditor = use(selectIsSelectedEditorOpen);
 
-  const customPatterns = useProjectDeepSelector(selectCustomPatterns);
-  const customPoses = useProjectDeepSelector(selectPoses);
-  const trackScales = useProjectDeepSelector(selectTrackScales);
-  const customScales = useProjectDeepSelector(selectCustomScales);
+  const customPatterns = useDeep(selectCustomPatterns);
+  const customPoses = useDeep(selectPoses);
+  const trackScales = useDeep(selectTrackScales);
+  const customScales = useDeep(selectCustomScales);
 
-  const motif = useProjectSelector(selectSelectedMotif);
-  const motifName = useProjectSelector(selectSelectedMotifName);
-  const scaleNameMap = useProjectSelector(selectScaleNameMap);
-  const addingClips = useProjectSelector(selectIsTimelineAddingSelectedClip);
+  const motif = use(selectSelectedMotif);
+  const motifName = use(selectSelectedMotifName);
+  const scaleNameMap = use(selectScaleNameMap);
+  const addingClips = use(selectIsAddingClips);
 
   if (!type) return null;
 
@@ -258,7 +254,7 @@ export function NavbarMotifListbox({
   }[type];
 
   const className = classNames(
-    "xl:w-40 w-32 z-[80] relative flex flex-col rounded-md select-none border rounded-b-md",
+    "xl:w-40 w-32 relative flex flex-col rounded-md select-none border rounded-b-md",
     { [editorClass]: onEditor },
     { [clipClass]: addingClips },
     { "border-slate-400/80": !onEditor && !addingClips }

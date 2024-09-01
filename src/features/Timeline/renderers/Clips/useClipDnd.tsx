@@ -6,7 +6,7 @@ import { ClipId, IClipId } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
 import { useProjectDispatch } from "types/hooks";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
-import { useDragState } from "types/Media/MediaTypes";
+import { MediaDragState, useDragState } from "types/Media/MediaTypes";
 
 interface ClipDragProps {
   id: IClipId;
@@ -16,24 +16,23 @@ interface ClipDragProps {
 export function useClipDrag(props: ClipDragProps) {
   const dispatch = useProjectDispatch();
   const { id, type } = props;
-  const dragField = useMemo(() => `dragging${capitalize(type)}Clip`, [type]);
+  const dragField = useMemo(
+    () => `dragging${capitalize(type)}Clip` as keyof MediaDragState,
+    [type]
+  );
   const dragState = useDragState();
-  const startDrag = () => dragState.set(dragField, true);
-  const endDrag = () => dragState.set(dragField, false);
-  const heldKeys = useHeldHotkeys("`");
   return useDrag({
     type: `${type}Clip`,
     item: () => {
-      // Update the drag after a delay to respond to UI changes
-      setTimeout(startDrag, 50);
+      dragState.set(dragField, true);
       return { id };
     },
     collect(monitor) {
       return { id, isDragging: monitor.isDragging() };
     },
     end: (item: any, monitor: any) => {
-      endDrag();
-      dispatch(onMediaDragEnd(item, monitor, heldKeys));
+      dragState.set(dragField, false);
+      dispatch(onMediaDragEnd(item, monitor));
     },
   });
 }

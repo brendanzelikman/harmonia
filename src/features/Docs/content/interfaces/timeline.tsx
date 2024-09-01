@@ -26,18 +26,16 @@ export function TimelineDocsContent() {
                 {
                   title: "Mouse Events",
                   description:
-                    "Details about objects that are currently being selected or dragged.",
+                    "Details about objects that are currently being selected.",
                   examples: [
-                    `{ ... selectedTrackId: "pattern-track", mediaSelection: {...}, mediaDragState: { ... } }`,
+                    `{ ... selection: { trackId: "scale_track_1", clipIds: [] } }`,
                   ],
                 },
                 {
                   title: "Media Creation",
                   description:
                     "Details about objects that are currently being drafted or copied.",
-                  examples: [
-                    `{ ... mediaDraft: {...}, mediaClipboard: {...} }`,
-                  ],
+                  examples: [`{ ... draft: {...}, clipboard: {...} }`],
                 },
               ]}
             />

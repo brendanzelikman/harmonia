@@ -2,9 +2,9 @@ import { createDeepSelector, createArraySelector } from "lib/redux";
 import { Project } from "types/Project/ProjectTypes";
 import { resolveScaleToMidi } from "types/Scale/ScaleResolvers";
 import { selectScaleIds, selectScaleMap } from "types/Scale/ScaleSelectors";
-import { MidiValue } from "types/Scale/ScaleTypes";
+import { MidiValue } from "types/units";
 import {
-  selectSelectedClipType,
+  selectTimelineType,
   selectSelectedPattern,
   selectSelectedPose,
   selectSelectedScale,
@@ -15,7 +15,7 @@ import {
 } from "types/Track/TrackSelectors";
 import { Key } from "types/units";
 import { getMidiPitchClass } from "utils/midi";
-import { getSortedPitchClasses } from "utils/pitch";
+import { getSortedPitchClasses } from "utils/pitchClass";
 import { selectScaleName } from "./ArrangementTrackSelectors";
 import { Dictionary } from "@reduxjs/toolkit";
 import { getDictValues } from "utils/objects";
@@ -86,7 +86,7 @@ export const selectScaleKey = createArraySelector(selectScaleKeyMap);
 
 /** Select the name of the currently selected motif. */
 export const selectSelectedMotifName = (project: Project) => {
-  const type = selectSelectedClipType(project);
+  const type = selectTimelineType(project);
   if (!type) return "No Object";
   const pattern = selectSelectedPattern(project);
   const pose = selectSelectedPose(project);

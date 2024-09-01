@@ -1,13 +1,13 @@
 import { BsPencil } from "react-icons/bs";
 import { useProjectDispatch, useProjectSelector } from "types/hooks";
 import classNames from "classnames";
-import { NavbarToolkitProps } from "./NavbarToolkitSection";
 import { NavbarHoverTooltip } from "features/Navbar/components";
 import { hideEditor } from "types/Editor/EditorSlice";
 import { selectIsSelectedEditorOpen } from "types/Editor/EditorSelectors";
 import { selectSelectedMotif } from "types/Timeline/TimelineSelectors";
 import { selectSelectedMotifName } from "types/Arrangement/ArrangementScaleSelectors";
 import { showEditor } from "types/Editor/EditorThunks";
+import { NavbarToolkitProps } from "../NavbarToolkitSection";
 
 export const NavbarEditMotifButton = ({
   type,

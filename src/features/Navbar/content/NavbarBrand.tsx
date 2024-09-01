@@ -1,11 +1,11 @@
 import LogoImage from "assets/images/logo.png";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { Link, useLocation } from "react-router-dom";
 
 export function NavbarBrand() {
   const { pathname } = useLocation();
-  const { isAtLeastStatus } = useSubscription();
-  const projectPath = isAtLeastStatus("maestro") ? "/projects" : "/demos";
+  const { isAtLeastRank } = useAuth();
+  const projectPath = isAtLeastRank("maestro") ? "/projects" : "/demos";
   const onProjects = pathname === projectPath;
   const to = onProjects ? "/" : projectPath;
   const notOnPlayground = pathname !== "/playground";

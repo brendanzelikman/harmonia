@@ -12,12 +12,12 @@ import {
 } from "../../components";
 import { useTransportTick } from "hooks";
 import { percent } from "utils/math";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { GiSecretBook } from "react-icons/gi";
 import classNames from "classnames";
 import { useProjectDispatch, useProjectSelector } from "types/hooks";
 import { setProjectName } from "types/Meta/MetaSlice";
-import { selectMetadata } from "types/Meta/MetaSelectors";
+import { selectMeta } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { createProject, clearProject } from "types/Project/ProjectThunks";
@@ -31,11 +31,11 @@ import {
 
 export function NavbarFileMenu() {
   const dispatch = useProjectDispatch();
-  const { isAtLeastStatus } = useSubscription();
+  const { isAtLeastRank } = useAuth();
   const { downloading } = useProjectSelector(selectTransport);
   const offlineTick = useTransportTick({ offline: true });
   const endTick = useProjectSelector(selectLastArrangementTick);
-  const meta = useProjectSelector(selectMetadata);
+  const meta = useProjectSelector(selectMeta);
 
   /** The project name field allows the user to change the project name. */
   const ProjectNameField = (
@@ -254,12 +254,12 @@ export function NavbarFileMenu() {
       <NavbarHoverTooltip bgColor="bg-slate-800">
         <div className="size-full py-1 space-y-1.5">
           {ProjectNameField}
-          {isAtLeastStatus("maestro") && <NewProjectButton />}
+          {isAtLeastRank("maestro") && <NewProjectButton />}
           <SaveToHAMButton />
           <LoadFromHAMButton />
           <MergeFromHAMButton />
           <ExportToWAVButton />
-          {isAtLeastStatus("maestro") && <ExportToMIDIButton />}
+          {isAtLeastRank("maestro") && <ExportToMIDIButton />}
           <ClearProjectButton />
         </div>
       </NavbarHoverTooltip>

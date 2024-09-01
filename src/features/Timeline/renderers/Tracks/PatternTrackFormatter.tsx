@@ -40,7 +40,7 @@ import classNames from "classnames";
 import { promptModal } from "components/PromptModal";
 import isElectron from "is-electron";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { FaAnchor } from "react-icons/fa";
 import { TooltipButton } from "components/TooltipButton";
 import { useTourId } from "features/Tour";
@@ -84,7 +84,7 @@ interface PatternTrackProps extends TrackFormatterProps {
 
 export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const { track, label, isSelected } = props;
-  const { isVirtuoso } = useSubscription();
+  const { isVirtuoso } = useAuth();
   const dispatch = useProjectDispatch();
   const depth = use((_) => selectTrackDepthById(_, track.id));
   const isLive = use(selectIsLive);

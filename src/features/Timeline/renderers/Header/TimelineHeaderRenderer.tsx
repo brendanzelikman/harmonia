@@ -1,10 +1,10 @@
 import { useLoopDrag, useLoopDrop } from "./useLoopDragAndDrop";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { useProjectDispatch, useProjectSelector } from "types/hooks";
+import { useProjectDispatch, use, useDeep } from "types/hooks";
 import { inRange } from "lodash";
 import { HeaderRendererProps } from "react-data-grid";
 import classNames from "classnames";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Row } from "features/Timeline/Timeline";
 import { convertTicksToFormattedTime } from "types/Transport/TransportFunctions";
 import {
@@ -26,11 +26,11 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
 
   // Header tick properties
   const columnIndex = Number(props.column.key);
-  const tickLength = useProjectSelector(selectSubdivisionTicks);
-  const tick = useProjectSelector((_) => selectColumnTicks(_, columnIndex - 1));
+  const tick = use((_) => selectColumnTicks(_, columnIndex - 1));
 
   // Loop properties derived from the transport
-  const transport = useProjectSelector(selectTransport);
+  const transport = useDeep(selectTransport);
+  const tickLength = use(selectSubdivisionTicks);
   const { bpm, timeSignature, loop, loopStart, loopEnd } = transport;
   const inLoopRange = inRange(tick, loopStart, loopEnd);
   const onLoopStart = loopStart === tick;
@@ -96,12 +96,13 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
     );
   };
 
+  const formattedTime = useMemo(
+    () => convertTicksToFormattedTime(tick, { bpm, timeSignature }),
+    [tick, bpm, timeSignature]
+  );
+
   /** The measure number is rendered if the cell is a measure. */
   const Measure = useCallback(() => {
-    const formattedTime = convertTicksToFormattedTime(tick, {
-      bpm,
-      timeSignature,
-    });
     const { bars, beats, sixteenths } = formattedTime;
     const isMeasure = beats === 0 && sixteenths === 0;
 
@@ -114,7 +115,7 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
       { "text-[9px]": bars > 99 }
     );
     return <>{!!isMeasure && <div className={className}>{bars}</div>}</>;
-  }, [tick, bpm, timeSignature, loop, onLoopStart, onLoopEnd]);
+  }, [formattedTime, loop, onLoopStart, onLoopEnd]);
 
   // Assemble the class names for the header cell
   const className = classNames(
@@ -125,7 +126,7 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
   );
 
   /** Seek the transport or update the loop points if holding S/E. */
-  const onClick = () => {
+  const onClick = useCallback(() => {
     if (!loop) {
       dispatch(seekTransport({ data: tick }));
       return;
@@ -135,7 +136,7 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
     } else if (heldKeys.e) {
       setLoopEnd(columnIndex);
     }
-  };
+  }, [loop, tick, columnIndex, heldKeys]);
 
   // Render the time cell
   return (

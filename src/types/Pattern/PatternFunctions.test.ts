@@ -19,7 +19,7 @@ import {
   getTransposedPatternStream,
 } from "./PatternTransformers";
 import { createScaleStream } from "./PatternTypes.test";
-import { createId } from "types/units";
+import { createId } from "types/util";
 
 const si1 = createId("scale");
 const si2 = createId("scale");

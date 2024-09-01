@@ -1,7 +1,8 @@
 import { Menu } from "@headlessui/react";
 import classNames from "classnames";
 import { ReactNode, useEffect, useState } from "react";
-import { useProjectSelector } from "types/hooks";
+import { use, useProjectSelector } from "types/hooks";
+import { selectHideTooltips } from "types/Meta/MetaSelectors";
 import { selectTimeline } from "types/Timeline/TimelineSelectors";
 import { cancelEvent } from "utils/html";
 
@@ -60,7 +61,7 @@ export const NavbarTooltipButton = (props: TooltipButtonProps) => (
     {...props}
     className={classNames(
       props.className,
-      `rounded-full xl:min-w-9 xl:min-h-9 min-w-8 min-h-8 transition-all`
+      `rounded-full min-w-8 min-h-8 transition-all`
     )}
     direction="vertical"
   />
@@ -86,15 +87,15 @@ export const TooltipButton = ({
   options,
   notClickable,
 }: TooltipButtonProps) => {
-  const { showingTooltips } = useProjectSelector(selectTimeline);
-  const canShowTooltip = !!showingTooltips && !!label && !disabled;
+  const hideTooltips = use(selectHideTooltips);
+  const canShowTooltip = !hideTooltips && !!label && !disabled;
 
   const [shouldShowTooltip, setShouldShowTooltip] = useState(canShowTooltip);
   const showTooltip = () => setShouldShowTooltip(canShowTooltip);
   const hideTooltip = () => setShouldShowTooltip(false);
   useEffect(() => {
-    if (!showingTooltips || disabled) hideTooltip();
-  }, [showingTooltips, disabled]);
+    if (hideTooltips || disabled) hideTooltip();
+  }, [hideTooltips, disabled]);
 
   // Store positioning to properly align tooltip
   const [overshootsLeft, setOvershootsLeft] = useState(false);
@@ -146,7 +147,9 @@ export const TooltipButton = ({
         if (!disabled) onClick?.(e);
       }}
     >
-      <div className={`capitalize w-full flex total-center opacity-100`}>
+      <div
+        className={`capitalize w-full flex total-center opacity-100 pointer-events-none`}
+      >
         {children}
       </div>
     </div>

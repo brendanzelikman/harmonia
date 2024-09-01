@@ -1,21 +1,22 @@
-import { openDB } from "idb";
-import { selectProjectId } from "types/Meta/MetaSelectors";
-import { initializeProject } from "types/Project/ProjectTypes";
+import { IDBPDatabase, openDB } from "idb";
+import { UPDATE_PROJECTS } from "types/Project/ProjectThunks";
 import {
   IDB_NAME,
   PROJECT_STORE,
   PRESET_STORE,
   SHORTCUT_STORE,
 } from "utils/constants";
-import { setCurrentProjectId } from "./projects";
+import { dispatchCustomEvent } from "utils/html";
 
-/** Get the name of the user's database */
-export const getUserDatabaseName = (userId: string) => `${IDB_NAME}-${userId}`;
+export let DATABASE: IDBPDatabase | null = null;
+export const getDatabase = () => DATABASE;
+export const getDatabaseName = (userId: string) => `${IDB_NAME}-${userId}`;
 
 /** Create a connection to the database and upgrade it if necessary. */
-export const getUserDatabase = (userId: string) => {
-  const databaseName = getUserDatabaseName(userId);
-  return openDB(databaseName, import.meta.env.VITE_IDB_VERSION, {
+export const initializeDatabase = async (userId: string | null) => {
+  if (!userId) return;
+  const databaseName = getDatabaseName(userId);
+  const db = await openDB(databaseName, import.meta.env.VITE_IDB_VERSION, {
     upgrade(db) {
       // Create a store for the list of projects
       if (!db.objectStoreNames.contains(PROJECT_STORE)) {
@@ -33,20 +34,7 @@ export const getUserDatabase = (userId: string) => {
       }
     },
   });
-};
-
-/** Initialize the user's database with a default project. */
-export const initializeUserDatabase = async (userId: string) => {
-  const db = await getUserDatabase(userId);
-
-  // Try to get the current list of projects
-  const projects = await db.getAll(PROJECT_STORE);
-
-  // If no projects exist, add a new project and select it
-  if (!projects || projects.length === 0) {
-    const newProject = initializeProject();
-    const newProjectId = selectProjectId(newProject);
-    await db.add(PROJECT_STORE, newProject);
-    await setCurrentProjectId(userId, newProjectId);
-  }
+  // Dispatch an event to update the projects
+  dispatchCustomEvent(UPDATE_PROJECTS);
+  DATABASE = db;
 };

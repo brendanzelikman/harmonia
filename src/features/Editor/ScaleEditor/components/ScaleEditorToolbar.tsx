@@ -12,7 +12,7 @@ import { GiArrowDunk, GiStack } from "react-icons/gi";
 import { EditorTooltipButton } from "components/TooltipButton";
 import { FaPlayCircle } from "react-icons/fa";
 import { use, useProjectDispatch, useProjectSelector } from "types/hooks";
-import { getScaleName, getScaleNotes } from "types/Scale/ScaleFunctions";
+import { getScaleNotes } from "types/Scale/ScaleFunctions";
 import {
   selectScaleTrackById,
   selectTrackMidiScaleMap,
@@ -26,6 +26,7 @@ import { createScale, playScale } from "types/Scale/ScaleThunks";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import classNames from "classnames";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { getScaleName } from "utils/key";
 
 export function ScaleEditorToolbar(props: ScaleEditorProps) {
   const dispatch = useProjectDispatch();

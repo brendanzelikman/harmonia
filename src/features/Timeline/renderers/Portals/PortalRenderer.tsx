@@ -4,14 +4,18 @@ import { usePortalDrag } from "./usePortalDrag";
 import portalIcon from "assets/images/portal.svg";
 import { Portal } from "types/Portal/PortalTypes";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
-import { selectTimelineTickLeft } from "types/Timeline/TimelineSelectors";
+import {
+  selectIsAddingClips,
+  selectTimelineTickLeft,
+} from "types/Timeline/TimelineSelectors";
 import { selectTrackById } from "types/Track/TrackSelectors";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
-import { onPortalClick } from "types/Timeline/TimelineThunks";
+import { onPortalClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { useDragState } from "types/Media/MediaTypes";
+import { Timed } from "types/units";
 
 type PortalFragmentProps = { top: number; left: number };
-type PortalProps = { portal: Portal };
+type PortalProps = { portal: Timed<Portal> };
 
 /** A timeline portal can be either a fragment or a real portal. */
 type TimelinePortalProps = (PortalFragmentProps | PortalProps) & {
@@ -19,14 +23,12 @@ type TimelinePortalProps = (PortalFragmentProps | PortalProps) & {
   height: number;
   isSelected?: boolean;
   isPortaling?: boolean;
-  isClipping?: boolean;
-  isTransposing?: boolean;
 };
 
 export function TimelinePortal(props: TimelinePortalProps) {
   const dispatch = useProjectDispatch();
   const { width, height } = props;
-  const { isSelected, isPortaling, isClipping, isTransposing } = props;
+  const { isSelected, isPortaling } = props;
   const isPortal = "portal" in props;
   const portal = isPortal ? props.portal : undefined;
   const dragState = useDragState();
@@ -55,10 +57,11 @@ export function TimelinePortal(props: TimelinePortalProps) {
     onDragStart,
     onDragEnd,
   });
+  const addingClips = use(selectIsAddingClips);
   const draggingPatternClip = !!dragState.draggingPatternClip;
   const draggingPoseClip = !!dragState.draggingPoseClip;
   const isDragging = Entry.isDragging || Exit.isDragging;
-  const isActive = isPortaling || isClipping || isTransposing;
+  const isActive = isPortaling || addingClips;
   const isDraggingOther = draggingPatternClip || draggingPoseClip;
 
   // Get the entry portal info

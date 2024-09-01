@@ -4,7 +4,7 @@ import { Project, Thunk } from "./ProjectTypes";
 import { selectProjectName } from "../Meta/MetaSelectors";
 import { sanitizeProject } from "./ProjectFunctions";
 import { getProjectsFromDB } from "providers/idb";
-import { getAuthenticationStatus } from "providers/authentication";
+import { fetchUser } from "providers/auth/user";
 import JSZip from "jszip";
 
 /** Export the project to a Harmonia file, using the given state if specified. */
@@ -37,11 +37,9 @@ export const exportProjectToMIDI =
 
 /** Export all projects to Harmonia files and download them as a zip. */
 export const exportProjectsToZIP = async () => {
-  const { uid } = await getAuthenticationStatus();
-  if (!uid) return;
   try {
     // Convert the projects to blobs
-    const projects = (await getProjectsFromDB(uid)).map(sanitizeProject);
+    const projects = (await getProjectsFromDB()).map(sanitizeProject);
     const jsons = projects.map((project) => JSON.stringify(project));
     const blobs = jsons.map((_) => new Blob([_], { type: "application/json" }));
 

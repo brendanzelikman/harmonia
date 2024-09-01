@@ -1,28 +1,24 @@
 import { cancelEvent } from "utils/html";
 import { PatternClipBlock } from "./PatternClipBlock";
 import { useCallback } from "react";
-import { use, useDeep } from "types/hooks";
-import {
-  selectPatternClipStream,
-  selectPortaledClipDuration,
-  selectPortaledClipStyle,
-} from "types/Arrangement/ArrangementSelectors";
+import { useDeep } from "types/hooks";
+import { selectPatternClipStream } from "types/Arrangement/ArrangementSelectors";
 import {
   CLIP_NAME_HEIGHT,
   PatternClipRendererProps,
-} from "../PatternClipRenderer";
-import { PatternClipMidiStream } from "types/Clip/ClipTypes";
+} from "./usePatternClipRenderer";
+import { ClipStyle } from "./usePatternClipStyle";
+import classNames from "classnames";
 
-interface PatternClipStreamProps extends PatternClipRendererProps {}
+interface PatternClipStreamProps extends PatternClipRendererProps {
+  style: ClipStyle;
+  showScore: boolean;
+}
 
 export const PatternClipStream = (props: PatternClipStreamProps) => {
-  const { clip, portaledClip, isSlicing, isSelected } = props;
+  const { clip, portaledClip, isSlicing, isSelected, style, showScore } = props;
   const pcId = portaledClip.id;
   const stream = useDeep((_) => selectPatternClipStream(_, pcId));
-
-  // Each pattern clip has its style computed outside of the component
-  const style = useDeep((_) => selectPortaledClipStyle(_, portaledClip.id));
-  const { bodyColor } = style;
 
   // Memoized pattern clip stream
   const PatternClipBlocks = useCallback(() => {
@@ -35,7 +31,7 @@ export const PatternClipStream = (props: PatternClipStreamProps) => {
             block={block}
             blockIndex={i}
             isSlicing={isSlicing}
-            {...style}
+            style={style}
           />
         ))}
       </div>
@@ -44,9 +40,12 @@ export const PatternClipStream = (props: PatternClipStreamProps) => {
 
   return (
     <div
-      className={`${bodyColor} pt-0.5 rounded-b-md overflow-hidden flex flex-col ${
-        isSelected ? "border-white" : "border-teal-500"
-      }`}
+      className={classNames(
+        style.bodyColor,
+        `w-full pt-0.5 overflow-hidden flex flex-col`,
+        isSelected ? "border-white" : "border-teal-500",
+        showScore ? "border-2 border-b-0" : "border-0"
+      )}
       onDoubleClick={cancelEvent}
       style={{ minHeight: style.height - CLIP_NAME_HEIGHT - 4 }}
     >

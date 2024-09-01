@@ -4,14 +4,15 @@ import {
   TRACK_WIDTH,
 } from "utils/constants";
 import { getSubdivisionTicks, getTickColumns } from "utils/durations";
-import { Tick } from "types/units";
-import { createMapWithFn, getValueByKey, getValuesByKeys } from "utils/objects";
-import { selectClipMap } from "../Clip/ClipSelectors";
+import { Tick, Timed } from "types/units";
+import { getValueByKey, getValuesByKeys } from "utils/objects";
+import { selectClipDurationMap, selectClipMap } from "../Clip/ClipSelectors";
 import { selectPoseMap } from "../Pose/PoseSelectors";
 import { createSelector } from "reselect";
-import { capitalize } from "lodash";
+import { capitalize, mapValues, some } from "lodash";
 import { createDeepSelector, createValueSelector } from "lib/redux";
 import {
+  Clip,
   ClipId,
   defaultPatternClip,
   defaultPoseClip,
@@ -20,6 +21,9 @@ import {
   isPoseClip,
   isPoseClipId,
   isScaleClip,
+  PatternClip,
+  PoseClip,
+  ScaleClip,
 } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
 import { Portal } from "types/Portal/PortalTypes";
@@ -64,7 +68,7 @@ export const selectTimelineState = createSelector(
 /** Select the currently selected track ID. */
 export const selectSelectedTrackId = createSelector(
   [selectTimeline],
-  (timeline) => timeline.selectedTrackId
+  (timeline) => timeline.selection?.trackId
 );
 
 /** Select the currently selected track. */
@@ -103,9 +107,9 @@ export const selectSelectedTrackParents = (project: Project) => {
 // ------------------------------------------------------------
 
 /** Select the current clip type. */
-export const selectSelectedClipType = createSelector(
+export const selectTimelineType = createSelector(
   [selectTimeline],
-  (timeline) => timeline.selectedClipType
+  (timeline) => timeline.type
 );
 
 // ------------------------------------------------------------
@@ -115,7 +119,7 @@ export const selectSelectedClipType = createSelector(
 /** Select the current media selection. */
 export const selectMediaSelection = createDeepSelector(
   [selectTimeline],
-  (timeline) => timeline.mediaSelection || defaultMediaSelection
+  (timeline) => timeline.selection || defaultMediaSelection
 );
 
 /** Select the currently selected clip IDs. */
@@ -142,33 +146,41 @@ export const selectSelectedPortalIds = createDeepSelector(
 
 /** Select all selected clips. */
 export const selectSelectedClips = createDeepSelector(
-  [selectSelectedClipIds, selectClipMap],
-  (clipIds, clipMap) => getValuesByKeys(clipMap, clipIds)
+  [selectSelectedClipIds, selectClipMap, selectClipDurationMap],
+  (clipIds, clipMap, durationMap) =>
+    getValuesByKeys(clipMap, clipIds)
+      .filter(Boolean)
+      .map((clip) => ({
+        ...clip,
+        duration: durationMap[clip.id] ?? clip.duration,
+      })) as Timed<Clip>[]
 );
 
 /** Select the currently selected pattern clips. */
 export const selectSelectedPatternClips = createDeepSelector(
   [selectSelectedClips],
-  (clips) => clips.filter(isPatternClip)
+  (clips) => clips.filter(isPatternClip) as Timed<PatternClip>[]
 );
 
 /** Select the currently selected pose clips. */
 export const selectSelectedPoseClips = createDeepSelector(
   [selectSelectedClips],
-  (clips) => clips.filter(isPoseClip)
+  (clips) => clips.filter(isPoseClip) as Timed<PoseClip>[]
 );
 
 /** Select the currently selected scale clips. */
 export const selectSelectedScaleClips = createDeepSelector(
   [selectSelectedClips],
-  (clips) => clips.filter(isScaleClip)
+  (clips) => clips.filter(isScaleClip) as Timed<ScaleClip>[]
 );
 
 /** Select the currently selected portals. */
 export const selectSelectedPortals = createDeepSelector(
   [selectPortalMap, selectSelectedPortalIds],
   (portalMap, portalIds) =>
-    getValuesByKeys(portalMap, portalIds).filter(Boolean) as Portal[]
+    getValuesByKeys(portalMap, portalIds)
+      .filter(Boolean)
+      .map((portal) => ({ ...portal, duration: 1 })) as Timed<Portal>[]
 );
 
 /** Select all selected media. */
@@ -187,31 +199,37 @@ export const selectIsLive = createSelector(
 // Timeline Media Draft
 // ------------------------------------------------------------
 
-/** Select the current media draft. */
-export const selectMediaDraft = createDeepSelector(
+/** Select the current draft. */
+export const selectDraft = createDeepSelector(
   [selectTimeline],
-  (timeline) => timeline.mediaDraft || defaultMediaDraft
+  (timeline) => timeline.draft || defaultMediaDraft
+);
+
+/** Select the drafted portal  */
+export const selectPortalDraft = createSelector(
+  [selectDraft],
+  (draft) => draft.portal
 );
 
 // ------------------------------------------------------------
 // Timeline Media Clipboard
 // ------------------------------------------------------------
 
-/** Select the current media clipboard.*/
-export const selectMediaClipboard = createDeepSelector(
+/** Select the current clipboard.*/
+export const selectClipboard = createDeepSelector(
   [selectTimeline],
-  (timeline) => timeline.mediaClipboard || defaultMediaClipboard
+  (timeline) => timeline.clipboard || defaultMediaClipboard
 );
 
 /** Select the currently copied clips. */
 export const selectCopiedClips = createDeepSelector(
-  [selectMediaClipboard],
+  [selectClipboard],
   (clipboard) => clipboard?.clips ?? []
 );
 
 /** Select the currently copied portals. */
 export const selectCopiedPortals = createDeepSelector(
-  [selectMediaClipboard],
+  [selectClipboard],
   (clipboard) => clipboard?.portals ?? []
 );
 
@@ -278,54 +296,39 @@ export const selectTimelineBackgroundWidth = createSelector(
 // ------------------------------------------------------------
 
 /** Select if the timeline is adding some kind of clips */
-export const selectIsTimelineAddingClips = createSelector(
-  [selectTimelineState],
-  (state) => state?.startsWith("adding")
+export const selectIsAddingClips = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.state === "adding-clips"
 );
 
 /** Select if the timeline is adding pattern clips. */
-export const selectIsTimelineAddingPatternClips = createSelector(
-  [selectTimelineState],
-  (state) => state === "adding-pattern-clips"
+export const selectIsAddingPatternClips = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.state === "adding-clips" && timeline.type === "pattern"
 );
 
 /** Select if the timeline is adding pose clips. */
-export const selectIsTimelineAddingPoseClips = createSelector(
-  [selectTimelineState],
-  (state) => state === "adding-pose-clips"
+export const selectIsAddingPoseClips = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.state === "adding-clips" && timeline.type === "pose"
 );
 
 /** Select if the timeline is adding scale clips. */
-export const selectIsTimelineAddingScaleClips = createSelector(
-  [selectTimelineState],
-  (state) => state === "adding-scale-clips"
+export const selectIsAddingScaleClips = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.state === "adding-clips" && timeline.type === "scale"
 );
 
 /** Select if the timeline is portaling clips. */
-export const selectIsTimelinePortalingClips = createSelector(
-  [selectTimelineState],
-  (state) => state === "portaling-clips"
+export const selectIsAddingPortals = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.state === "portaling-clips"
 );
 
-/** Select if the timeline is slicing scale clips. */
-export const selectIsTimelineSlicingClips = createSelector(
-  [selectTimelineState],
-  (state) => state === "slicing-clips"
-);
-
-/** Select if the timeline is adding the selected clip. */
-export const selectIsTimelineAddingSelectedClip = createSelector(
-  [selectTimelineState, selectSelectedClipType],
-  (state, type) => state === `adding-${type}-clips`
-);
-
-export const selectIsTimelineLive = createSelector(
-  [selectSelectedTrackId, selectSelectedClipIds],
-  (trackId, clipIds) => {
-    const onTrack = !!trackId;
-    const onPoseClip = !!clipIds.some(isPoseClipId);
-    return onTrack && onPoseClip;
-  }
+/** Select if the timeline is slicing clips. */
+export const selectIsSlicingClips = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.state === "slicing-clips"
 );
 
 // ------------------------------------------------------------
@@ -335,24 +338,24 @@ export const selectIsTimelineLive = createSelector(
 /** Select the currently drafted pattern clip. */
 export const selectDraftedPatternClip = createSelector(
   [selectTimeline],
-  (timeline) => timeline.mediaDraft?.patternClip ?? defaultPatternClip
+  (timeline) => timeline.draft?.patternClip ?? defaultPatternClip
 );
 
 /** Select the currently drafted pose clip. */
 export const selectDraftedPoseClip = createSelector(
   [selectTimeline],
-  (timeline) => timeline.mediaDraft?.poseClip ?? defaultPoseClip
+  (timeline) => timeline.draft?.poseClip ?? defaultPoseClip
 );
 
 /** Select the currently drafted scale clip. */
 export const selectDraftedScaleClip = createSelector(
   [selectTimeline],
-  (timeline) => timeline.mediaDraft?.scaleClip ?? defaultScaleClip
+  (timeline) => timeline.draft?.scaleClip ?? defaultScaleClip
 );
 
 /** Select the currently drafted clip */
 export const selectDraftedClip = (project: Project) => {
-  const type = selectSelectedClipType(project);
+  const type = selectTimelineType(project);
   if (!type) return undefined;
   return {
     pattern: selectDraftedPatternClip(project),
@@ -380,15 +383,17 @@ export const selectSelectedScale = createDeepSelector(
 );
 
 /** Select the currently selected motif. */
-export const selectSelectedMotif = (project: Project, type?: ClipType) => {
+export const selectSelectedMotif = (
+  project: Project,
+  type: ClipType | undefined = selectTimelineType(project)
+) => {
   const timeline = selectTimeline(project);
-  const motifType = type ?? timeline.selectedClipType;
-  if (!motifType) return undefined;
+  if (!type) return undefined;
   return {
     pattern: selectSelectedPattern,
     pose: selectSelectedPose,
     scale: selectSelectedScale,
-  }[motifType](project);
+  }[type](project);
 };
 
 /** Select the name of a potential new motif. */
@@ -411,7 +416,12 @@ export const selectNewMotifName = (project: Project, type: ClipType) => {
 
 export const selectPortalFragment = createSelector(
   [selectTimeline],
-  (timeline) => timeline.mediaDraft?.portal
+  (timeline) => timeline.draft?.portal
+);
+
+export const selectHasPortalFragment = createSelector(
+  [selectPortalFragment],
+  (portal) => some(portal)
 );
 
 // ------------------------------------------------------------
@@ -421,7 +431,7 @@ export const selectPortalFragment = createSelector(
 export const selectTrackHeightMap = createDeepSelector(
   [selectTrackMap, selectCellHeight],
   (trackMap, cellHeight) =>
-    createMapWithFn(trackMap, (track) =>
+    mapValues(trackMap, (track) =>
       track?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight
     )
 );

@@ -1,4 +1,4 @@
-import { ID, Update } from "types/units";
+import { Id, Update } from "types/units";
 import { isPlainObject, isString } from "lodash";
 import { isOptionalType, isTypedArray } from "types/util";
 import {
@@ -64,7 +64,7 @@ export type ITrackProps<T extends TrackType> = T extends "pattern"
   ? { scaleId: ScaleId }
   : never;
 
-export type ITrackId<T extends TrackType> = ID<`${T}-track`>;
+export type ITrackId<T extends TrackType> = Id<`${T}-track`>;
 export type ITrackUpdate<T extends TrackType> = Update<ITrack<T>>;
 
 // ------------------------------------------------------------

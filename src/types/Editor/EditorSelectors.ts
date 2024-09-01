@@ -1,6 +1,6 @@
 import { createSelector } from "reselect";
 import { SafeProject } from "types/Project/ProjectTypes";
-import { selectSelectedClipType } from "types/Timeline/TimelineSelectors";
+import { selectTimelineType } from "types/Timeline/TimelineSelectors";
 import { defaultEditor, Editor } from "./EditorTypes";
 
 /** Create a safe selector for the editor. */
@@ -27,6 +27,6 @@ export const selectEditorSettings = createSelector(
 
 /** Select if the editor is open on the timeline. */
 export const selectIsSelectedEditorOpen = createSelector(
-  [selectEditorView, selectSelectedClipType],
+  [selectEditorView, selectTimelineType],
   (view, type) => view === type
 );

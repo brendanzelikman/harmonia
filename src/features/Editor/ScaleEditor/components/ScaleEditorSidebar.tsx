@@ -117,11 +117,6 @@ export function ScaleEditorSidebar(props: ScaleEditorProps) {
     />
   );
 
-  // Render a preset scale
-  const renderPresetScale = (scale: ScaleObject) => (
-    <PresetScale {...props} key={JSON.stringify(scale)} presetScale={scale} />
-  );
-
   // Render a category of scales
   const renderCategory = useCallback(
     (category: any) => {
@@ -183,7 +178,16 @@ export function ScaleEditorSidebar(props: ScaleEditorProps) {
                   <div className="animate-in fade-in zoom-in-95 duration-75">
                     <Disclosure.Panel static={isOpen}>
                       {scales.map(
-                        isCustomCategory ? renderCustomScale : renderPresetScale
+                        isCustomCategory
+                          ? renderCustomScale
+                          : (scale) => (
+                              <PresetScale
+                                {...props}
+                                key={JSON.stringify(scale)}
+                                presetScale={scale}
+                                category={typedCategory}
+                              />
+                            )
                       )}
                     </Disclosure.Panel>
                   </div>
@@ -194,14 +198,7 @@ export function ScaleEditorSidebar(props: ScaleEditorProps) {
         </Disclosure>
       );
     },
-    [
-      renderCustomScale,
-      renderPresetScale,
-      scale,
-      doesMatchScale,
-      openCategories,
-      searchQuery,
-    ]
+    [renderCustomScale, scale, doesMatchScale, openCategories, searchQuery]
   );
 
   if (!props.isShowingSidebar) return null;

@@ -1,16 +1,10 @@
-import { use, useProjectDeepSelector } from "types/hooks";
+import { use, useDeep } from "types/hooks";
 import { selectPortals } from "types/Portal/PortalSelectors";
 import { TimelinePortal } from "./PortalRenderer";
 import { createPortal } from "react-dom";
 
-import { hasKeys } from "utils/objects";
 import { TimelinePortalElement } from "features/Timeline/Timeline";
 import { Portal } from "types/Portal/PortalTypes";
-import {
-  isTimelineAddingPatternClips,
-  isTimelineAddingPoseClips,
-  isTimelinePortalingClips,
-} from "types/Timeline/TimelineFunctions";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
   selectSelectedPortalIds,
@@ -18,21 +12,22 @@ import {
   selectCellWidth,
   selectCellHeight,
   selectTimelineTickLeft,
+  selectIsAddingPortals,
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackById } from "types/Track/TrackSelectors";
+import { Timed } from "types/units";
+import { some } from "lodash";
 
 export function TimelinePortals(props: TimelinePortalElement) {
-  const portals = useProjectDeepSelector(selectPortals);
+  const portals = useDeep(selectPortals);
   const selectedIds = use(selectSelectedPortalIds);
   const timeline = use(selectTimeline);
-  const isClipping = isTimelineAddingPatternClips(timeline);
-  const isTransposing = isTimelineAddingPoseClips(timeline);
-  const isPortaling = isTimelinePortalingClips(timeline);
+  const isPortaling = use(selectIsAddingPortals);
   const cellWidth = use(selectCellWidth);
   const cellHeight = use(selectCellHeight);
 
   // Get the fragment info
-  const fragment = timeline.mediaDraft?.portal;
+  const fragment = timeline.draft?.portal;
   const fragmentTrack = use((_) =>
     fragment?.trackId ? selectTrackById(_, fragment?.trackId) : undefined
   );
@@ -48,13 +43,11 @@ export function TimelinePortals(props: TimelinePortalElement) {
     return (
       <TimelinePortal
         key={portal.id}
-        portal={portal}
+        portal={{ ...portal, duration: 1 } as Timed<Portal>}
         width={cellWidth}
         height={cellHeight}
         isSelected={isSelected}
         isPortaling={isPortaling}
-        isClipping={isClipping}
-        isTransposing={isTransposing}
       />
     );
   };
@@ -75,7 +68,7 @@ export function TimelinePortals(props: TimelinePortalElement) {
   return (
     <>
       {createPortal(portals.map(renderPortal), element)}
-      {isPortaling && hasKeys(fragment) && createPortal(<Fragment />, element)}
+      {isPortaling && some(fragment) && createPortal(<Fragment />, element)}
     </>
   );
 }

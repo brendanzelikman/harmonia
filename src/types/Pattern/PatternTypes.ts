@@ -1,5 +1,6 @@
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
-import { BlockedChord, createId, ID, StrummedChord, Tick } from "../units";
+import { Id, Plural, Tick } from "../units";
+import { createId } from "types/util";
 import { isPlainObject, isString } from "lodash";
 import {
   isBoundedNumber,
@@ -8,21 +9,21 @@ import {
   isOptionalTypedArray,
   isTypedArray,
 } from "types/util";
-import { Timed, Playable, Chord, Stream } from "types/units";
+import { Timed, Playable } from "types/units";
 import { InstrumentKey } from "types/Instrument/InstrumentTypes";
 import {
   ScaleNoteObject,
-  MidiObject,
   isScaleNoteObject,
   isMidiObject,
 } from "types/Scale/ScaleTypes";
+import { MidiObject } from "types/units";
 import { TrackId } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------
 // Pattern Generics
 // ------------------------------------------------------------
 
-export type PatternId = ID<"pattern">;
+export type PatternId = Id<"pattern">;
 export type PatternNoId = Omit<Pattern, "id">;
 export type PatternPartial = Partial<Pattern>;
 export type PatternUpdate = Partial<Pattern> & { id: PatternId };
@@ -33,6 +34,12 @@ export type PatternState = EntityState<Pattern>;
 // Pattern Definitions
 // ------------------------------------------------------------
 
+export type StrummedChord<T> = {
+  chord: T[];
+  strumRange: [Tick, Tick];
+  strumDirection: "up" | "down";
+};
+
 /** A `PatternRest` is a non-playable note with a duration. */
 export type PatternRest = { duration: Tick };
 
@@ -41,18 +48,22 @@ export type PatternNote = Playable<ScaleNoteObject>;
 export type PatternMidiNote = Playable<MidiObject>;
 
 /** A `PatternChord` is a group of `PatternNotes` */
-export type PatternBlockedChord = BlockedChord<PatternNote>;
+export type PatternBlockedChord = Plural<PatternNote>;
+export type PatternBlockedMidiChord = Plural<PatternMidiNote>;
 export type PatternStrummedChord = StrummedChord<PatternNote>;
-export type PatternChord = Chord<PatternNote>;
-export type PatternMidiChord = Chord<PatternMidiNote>;
+export type PatternStrummedMidiChord = StrummedChord<PatternMidiNote>;
+export type PatternChord = PatternBlockedChord | PatternStrummedChord;
+export type PatternMidiChord =
+  | PatternBlockedMidiChord
+  | PatternStrummedMidiChord;
 
 /** A `PatternBlock` is a `PatternChord` or a `PatternRest` */
 export type PatternBlock = PatternChord | PatternRest;
 export type PatternMidiBlock = PatternMidiChord | PatternRest;
 
 /** A `PatternStream` is a sequence of `PatternBlocks`. */
-export type PatternStream = Stream<PatternBlock>;
-export type PatternMidiStream = Stream<PatternMidiBlock>;
+export type PatternStream = Array<PatternBlock>;
+export type PatternMidiStream = Array<PatternMidiBlock>;
 
 /** A `Pattern` contains a sequential list of chords. */
 export interface Pattern {
@@ -65,7 +76,7 @@ export interface Pattern {
 }
 
 /** A `PresetPattern` has its id prefixed */
-export type PresetPattern = Pattern & { id: ID<`pattern_preset`> };
+export type PresetPattern = Pattern & { id: Id<`pattern_preset`> };
 
 // ------------------------------------------------------------
 // Pattern Initialization

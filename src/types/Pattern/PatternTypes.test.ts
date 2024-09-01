@@ -1,6 +1,7 @@
 import { test, expect } from "vitest";
 import * as _ from "./PatternTypes";
-import { ScaleNote, isMidiValue, MidiValue } from "types/Scale/ScaleTypes";
+import { ScaleNote, isMidiValue } from "types/Scale/ScaleTypes";
+import { MidiValue } from "types/units";
 
 /** Create a `PatternNote` from a `ScaleNote`  */
 export const createPatternNoteFromScaleNote = (

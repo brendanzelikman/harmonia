@@ -1,5 +1,9 @@
 import classNames from "classnames";
-import { ActionCodeSettings, Auth, getAuth } from "firebase/auth";
+import {
+  ActionCodeSettings,
+  getAuth,
+  sendSignInLinkToEmail,
+} from "firebase/auth";
 import isElectron from "is-electron";
 import { firebaseApp } from "providers/firebase";
 import { useState, useEffect } from "react";
@@ -29,7 +33,7 @@ export const AccountContinueButton = (props: AccountContinueButtonProps) => {
       handleCodeInApp: true,
     };
     try {
-      sendMagicLink(auth, email, actionCodeSettings);
+      sendSignInLinkToEmail(auth, email, actionCodeSettings);
       window.localStorage.setItem("emailForSignIn", email);
     } catch (error) {
       console.error(error);
@@ -71,10 +75,3 @@ export const AccountContinueButton = (props: AccountContinueButtonProps) => {
     </button>
   );
 };
-function sendMagicLink(
-  auth: Auth,
-  email: string,
-  actionCodeSettings: ActionCodeSettings
-) {
-  throw new Error("Function not implemented.");
-}

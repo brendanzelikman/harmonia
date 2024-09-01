@@ -180,7 +180,7 @@ export const bMinorKey: Key = [
   "B",
 ];
 
-export default {
+export const MinorKeys: Record<string, Key> = {
   cMinorKey,
   cSharpMinorKey,
   dMinorKey,
@@ -189,8 +189,23 @@ export default {
   fMinorKey,
   fSharpMinorKey,
   gMinorKey,
-  aFlatMinorKey: gSharpMinorKey,
+  gSharpMinorKey,
   aMinorKey,
   bFlatMinorKey,
   bMinorKey,
 };
+
+export const minorKeys: Key[] = [
+  cMinorKey,
+  cSharpMinorKey,
+  dMinorKey,
+  eFlatMinorKey,
+  eMinorKey,
+  fMinorKey,
+  fSharpMinorKey,
+  gMinorKey,
+  gSharpMinorKey,
+  aMinorKey,
+  bFlatMinorKey,
+  bMinorKey,
+];

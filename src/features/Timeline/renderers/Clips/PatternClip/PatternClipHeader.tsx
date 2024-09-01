@@ -6,11 +6,10 @@ import classNames from "classnames";
 import {
   CLIP_NAME_HEIGHT,
   PatternClipRendererProps,
-} from "../PatternClipRenderer";
+} from "./usePatternClipRenderer";
 import { useMemo } from "react";
 
 interface PatternClipHeaderProps extends PatternClipRendererProps {
-  isLive: boolean;
   showScore: boolean;
 }
 

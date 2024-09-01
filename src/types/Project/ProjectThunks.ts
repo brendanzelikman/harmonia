@@ -6,8 +6,8 @@ import {
 } from "providers/idb";
 import { setCurrentProjectId } from "providers/idb";
 import { dispatchCustomEvent } from "utils/html";
-import { getAuthenticationStatus } from "providers/authentication";
-import { selectMetadata } from "../Meta/MetaSelectors";
+import { fetchUser } from "providers/auth/user";
+import { selectMeta } from "../Meta/MetaSelectors";
 import {
   isProjectEmpty,
   sanitizeProject,
@@ -20,23 +20,20 @@ import {
   defaultProject,
 } from "./ProjectTypes";
 
-export const CREATE_PROJECT = "createProject";
-export const DELETE_PROJECT = "deleteProject";
+export const UPDATE_PROJECTS = "updateProjects";
 
 /** Try to create a new project, using the given template if specified. */
 export const createProject = async (template?: Project) => {
-  const { uid } = await getAuthenticationStatus();
+  const { uid } = await fetchUser();
   if (!uid) return;
   const project = initializeProject(template);
-  const meta = selectMetadata(project);
+  const meta = selectMeta(project);
   const id = meta.id;
   try {
-    await uploadProjectToDB(uid, project);
-    await setCurrentProjectId(uid, id);
+    await uploadProjectToDB(project);
+    await setCurrentProjectId(id);
   } catch (e) {
     console.log(e);
-  } finally {
-    dispatchCustomEvent(CREATE_PROJECT, id);
   }
 };
 
@@ -44,7 +41,7 @@ export const createProject = async (template?: Project) => {
 export const saveProject =
   (project?: Project): Thunk =>
   async (dispatch, getProject) => {
-    const { uid } = await getAuthenticationStatus();
+    const { uid } = await fetchUser();
     if (!uid) return;
 
     // Sanitize the project
@@ -52,13 +49,13 @@ export const saveProject =
     const updatedProject = timestampProject(sanitizedProject);
 
     // Update the project in the database.
-    updateProjectInDB(uid, updatedProject);
+    updateProjectInDB(updatedProject);
   };
 
 /** Reset the project's state to the default. */
 export const clearProject = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
-  const meta = selectMetadata(project);
+  const meta = selectMeta(project);
   dispatch({
     type: "setProject",
     payload: sanitizeProject({
@@ -71,33 +68,30 @@ export const clearProject = (): Thunk => (dispatch, getProject) => {
 
 /** Try to delete the project from the database. */
 export const deleteProject = (id: string) => async () => {
-  const { uid } = await getAuthenticationStatus();
+  const { uid } = await fetchUser();
   if (!uid) return;
 
   try {
-    deleteProjectFromDB(uid, id);
+    deleteProjectFromDB(id);
   } catch (e) {
     console.error(e);
   } finally {
-    dispatchCustomEvent(DELETE_PROJECT, id);
+    dispatchCustomEvent(UPDATE_PROJECTS, id);
   }
 };
 
 /** Delete all empty projects. */
 export const deleteEmptyProjects = async () => {
-  const { uid } = await getAuthenticationStatus();
-  if (!uid) return;
-
   try {
-    const projects = await getProjectsFromDB(uid);
+    const projects = await getProjectsFromDB();
     const emptyProjects = projects.filter(isProjectEmpty);
     emptyProjects.forEach((project) => {
-      const meta = selectMetadata(project);
-      deleteProjectFromDB(uid, meta.id);
+      const meta = selectMeta(project);
+      deleteProjectFromDB(meta.id);
     });
   } catch (e) {
     console.error(e);
   } finally {
-    dispatchCustomEvent(DELETE_PROJECT, "all");
+    dispatchCustomEvent(UPDATE_PROJECTS, "all");
   }
 };

@@ -79,7 +79,7 @@ export const addClip =
 export const addClips =
   (payload: Payload<Clip[]>): Thunk =>
   (dispatch) => {
-    const clips = asArray(payload.data);
+    const clips = payload.data;
     const { pattern, pose, scale } = getClipsByType(clips);
     dispatch(PatternClips.addMany({ ...payload, data: pattern }));
     dispatch(PoseClips.addMany({ ...payload, data: pose }));

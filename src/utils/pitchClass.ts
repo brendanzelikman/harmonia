@@ -3,7 +3,7 @@ import { getMidiChromaticNumber } from "./midi";
 import { ChromaticKey } from "presets/keys";
 
 /** The list of possible spellings for each note of the chromatic scale. */
-export const CHROMATIC_SPELLINGS: PitchClass[][] = [
+export const PITCH_CLASSES: PitchClass[][] = [
   ["C", "B#"],
   ["C#", "Db"],
   ["D"],
@@ -17,6 +17,12 @@ export const CHROMATIC_SPELLINGS: PitchClass[][] = [
   ["A#", "Bb"],
   ["B", "Cb"],
 ] as const;
+export const pitchClassSet = new Set(PITCH_CLASSES.flat());
+
+/** Returns true if an object is a pitch class. */
+export const isPitchClass = (value: any): value is PitchClass => {
+  return pitchClassSet.has(value);
+};
 
 // ------------------------------------------------------------
 // Pitch Class Helpers
@@ -29,8 +35,50 @@ export const getSortedPitchClasses = (pitches: PitchClass[]) => {
   );
 };
 
+/** Get the pitch class of the note that is the closest to the given note in the array. */
+export const getClosestPitchClass = (arr: MIDI[], midi: MIDI, key?: Key) => {
+  const note = midi % 12;
+  const notes = arr.map((n) => getMidiChromaticNumber(n));
+
+  // Get the closest chromatic number
+  const index = notes.reduce((prev, curr) => {
+    // Check the distance to the note
+    const currDiff = Math.abs(curr - note);
+    const prevDiff = Math.abs(prev - note);
+    if (currDiff !== prevDiff) return currDiff < prevDiff ? curr : prev;
+
+    // If the difference is equal, prefer the note not in the given pitches
+    const currInPitches = key?.includes(ChromaticKey[curr]);
+    const prevInPitches = key?.includes(ChromaticKey[prev]);
+    if (currInPitches && !prevInPitches) return prev;
+    if (!currInPitches && prevInPitches) return curr;
+
+    // If both are in the pitches, prefer the note that is closer to the pitches
+    const currDiffToPitches = key?.reduce((pre, currPitch) => {
+      const currDiff = Math.abs(curr - getMidiChromaticNumber(currPitch));
+      return currDiff < pre ? currDiff : pre;
+    }, Infinity);
+    const prevDiffToPitches = key?.reduce((pre, currPitch) => {
+      const currDiff = Math.abs(prev - getMidiChromaticNumber(currPitch));
+      return currDiff < pre ? currDiff : pre;
+    }, Infinity);
+    if (currDiffToPitches && !prevDiffToPitches) return prev;
+    if (!currDiffToPitches && prevDiffToPitches) return curr;
+
+    // If both are the same distance to the pitches, choose a random note
+    return Math.random() < 0.5 ? curr : prev;
+  }, -1);
+
+  // Find the closest pitch class
+  const pitchClass = ChromaticKey[index];
+  if (!pitchClass) throw new Error("Pitch class not found");
+
+  // Return the pitch class
+  return pitchClass;
+};
+
 /** Raise a pitch class by sharpening it.  */
-export const getRaisedPitchClass = (pitchClass: PitchClass) => {
+export const getPitchClassUpperNeighbor = (pitchClass: PitchClass) => {
   if (pitchClass === "C") return "C#";
   if (pitchClass === "D") return "D#";
   if (pitchClass === "E") return "E#";
@@ -41,7 +89,7 @@ export const getRaisedPitchClass = (pitchClass: PitchClass) => {
 
   if (pitchClass === "C#") return "C##";
   if (pitchClass === "D#") return "D##";
-  if (pitchClass === "E#") return "E";
+  if (pitchClass === "E#") return "E##";
   if (pitchClass === "F#") return "F##";
   if (pitchClass === "G#") return "G##";
   if (pitchClass === "A#") return "A##";
@@ -75,7 +123,7 @@ export const getRaisedPitchClass = (pitchClass: PitchClass) => {
 };
 
 /** Lower a pitch class by flattening it. */
-export const getLoweredPitchClass = (pitchClass: PitchClass) => {
+export const getPitchClassLowerNeighbor = (pitchClass: PitchClass) => {
   if (pitchClass === "C") return "Cb";
   if (pitchClass === "D") return "Db";
   if (pitchClass === "E") return "Eb";
@@ -117,47 +165,4 @@ export const getLoweredPitchClass = (pitchClass: PitchClass) => {
   if (pitchClass === "Bbb") return "Bb";
 
   throw new Error(`Invalid pitch class: ${pitchClass}`);
-};
-
-/** Get the pitch of the note that is the closest to the given note in the array. */
-export const getClosestPitchClass = (arr: MIDI[], midi: MIDI, key?: Key) => {
-  const note = midi % 12;
-  const notes = arr.map((n) => getMidiChromaticNumber(n));
-
-  // Get the closest chromatic number
-  const index = notes.reduce((prev, curr) => {
-    // Check the distance to the note
-    const currDiff = Math.abs(curr - note);
-    const prevDiff = Math.abs(prev - note);
-    const isEqual = currDiff === prevDiff;
-    if (!isEqual) return currDiff < prevDiff ? curr : prev;
-
-    // If the difference is equal, prefer the note not in the given pitches
-    const currInPitches = key?.includes(ChromaticKey[curr]);
-    const prevInPitches = key?.includes(ChromaticKey[prev]);
-    if (currInPitches && !prevInPitches) return prev;
-    if (!currInPitches && prevInPitches) return curr;
-
-    // If both are in the pitches, prefer the note that is closer to the pitches
-    const currDiffToPitches = key?.reduce((prev, currPitch) => {
-      const currDiff = Math.abs(curr - getMidiChromaticNumber(currPitch));
-      return currDiff < prev ? currDiff : prev;
-    }, Infinity);
-    const prevDiffToPitches = key?.reduce((prev, currPitch) => {
-      const currDiff = Math.abs(prev - getMidiChromaticNumber(currPitch));
-      return currDiff < prev ? currDiff : prev;
-    }, Infinity);
-    if (currDiffToPitches && !prevDiffToPitches) return prev;
-    if (!currDiffToPitches && prevDiffToPitches) return curr;
-
-    // If both are the same distance to the pitches, choose a random note
-    return Math.random() < 0.5 ? curr : prev;
-  }, -1);
-
-  // Find the closest pitch class
-  const pitchClass = ChromaticKey[index];
-  if (!pitchClass) throw new Error("Pitch class not found");
-
-  // Return the pitch class
-  return pitchClass;
 };

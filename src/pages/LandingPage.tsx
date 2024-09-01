@@ -2,8 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useLandingError } from "features/Landing/hooks/useLandingError";
 import { useLandingHotkeys } from "features/Landing/hooks/useLandingHotkeys";
 import { Landing } from "features/Landing";
-import { useAuthentication } from "providers/authentication";
-import { useSubscription } from "providers/subscription";
+import { adminClearance, useAuth } from "providers/auth";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { useCallback, useMemo, useRef } from "react";
 import Background from "assets/images/landing-background.png";
@@ -22,8 +21,7 @@ interface LandingPageProps {
 export function LandingPage(props: LandingPageProps) {
   const { action } = props;
   const navigate = useNavigate();
-  const { isAuthenticated, isAuthorized, checkPassword } = useAuthentication();
-  const { isAtLeastStatus } = useSubscription();
+  const { isAuthenticated, isAuthorized, authorize, isAtLeastRank } = useAuth();
   useLandingHotkeys();
 
   // Handle the landing page errors
@@ -40,21 +38,22 @@ export function LandingPage(props: LandingPageProps) {
   // Redirect the user or prompt them for the password
   const onButtonClick = useCallback(
     async (e: React.MouseEvent) => {
-      const status = await checkPassword(e.altKey);
+      const clearance = await authorize(e.altKey);
+      if (clearance === null) return;
 
       // Navigate to projects as an admin
-      const isAdmin = status === "admin";
+      const isAdmin = clearance === adminClearance;
       if (isAdmin) return navigate("/projects");
 
       // Navigate conditionally otherwise
       if (isAuthenticated && !e.altKey) {
         if (e.shiftKey) return navigate("/playground");
-        return navigate(isAtLeastStatus("maestro") ? "/projects" : "/demos");
+        return navigate(isAtLeastRank("maestro") ? "/projects" : "/demos");
       } else {
         navigate("/login");
       }
     },
-    [checkPassword]
+    [authorize, isAuthenticated]
   );
 
   // Handle landing page scroll

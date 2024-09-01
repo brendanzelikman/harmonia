@@ -40,12 +40,12 @@ export const AppRouter = createHashRouter([
     errorElement: <MainPage view="playground" />,
   },
   {
-    path: "/docs",
-    element: <SecureRoute private component={<MainPage view="docs" />} />,
-  },
-  {
     path: "/profile",
     element: <SecureRoute private component={<MainPage view="profile" />} />,
+  },
+  {
+    path: "/docs",
+    element: <SecureRoute private component={<MainPage view="docs" />} />,
   },
   {
     path: "/docs/types/:topic",

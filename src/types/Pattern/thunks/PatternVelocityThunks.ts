@@ -8,6 +8,7 @@ import {
   getPatternChordWithNewNotes,
 } from "../PatternUtils";
 import { Payload } from "lib/redux";
+import { isBoundedNumber } from "types/util";
 
 /** Set the velocities of the notes in a pattern. */
 export const setPatternVelocities =
@@ -19,9 +20,9 @@ export const setPatternVelocities =
     if (!pattern) return;
     const stream = pattern.stream.map((block) => {
       if (!isPatternChord(block)) return block;
-      const notes = getPatternChordNotes(block);
-      const updatedNotes = notes.map((note) => ({ ...note, velocity }));
-      return getPatternChordWithNewNotes(block, updatedNotes);
+      return getPatternChordWithNewNotes(block, (notes) =>
+        notes.map((note) => ({ ...note, velocity }))
+      );
     });
     dispatch(updatePattern({ data: { id, stream } }));
   };
@@ -42,6 +43,12 @@ export const graduatePatternVelocities =
     const project = getProject();
     const pattern = selectPatternById(project, id);
     if (!pattern) return;
+    const streamLength = pattern.stream.length;
+
+    if (!isBoundedNumber(startIndex, 0, streamLength - 1)) return;
+    if (!isBoundedNumber(endIndex, 0, streamLength - 1)) return;
+    if (!isBoundedNumber(startVelocity, 0, 127)) return;
+    if (!isBoundedNumber(endVelocity, 0, 127)) return;
 
     const velocityRange = endVelocity - startVelocity;
     const stepCount = endIndex - startIndex + 1;
@@ -52,9 +59,9 @@ export const graduatePatternVelocities =
       if (!isPatternChord(block)) return block;
       const offset = i - startIndex;
       const velocity = startVelocity + Math.round(offset * stepSize);
-      const notes = getPatternChordNotes(block);
-      const updatedNotes = notes.map((note) => ({ ...note, velocity }));
-      return getPatternChordWithNewNotes(block, updatedNotes);
+      return getPatternChordWithNewNotes(block, (notes) =>
+        notes.map((note) => ({ ...note, velocity }))
+      );
     });
     dispatch(updatePattern({ data: { id, stream } }));
   };
@@ -84,18 +91,18 @@ export const shufflePatternVelocities =
         continue;
       }
 
-      // Sample the notes by popping them off the array
-      const notes = getPatternChordNotes(block);
-      const sampledNotes = notes
-        .map((note) => {
-          const shuffledNote = shuffledNotes.pop();
-          if (!shuffledNote) return undefined;
-          return { ...note, velocity: shuffledNote.velocity };
-        })
-        .filter(Boolean) as PatternNote[];
-
       // Return the updated chord
-      const updatedChord = getPatternChordWithNewNotes(block, sampledNotes);
+      const updatedChord = getPatternChordWithNewNotes(
+        block,
+        (notes) =>
+          notes
+            .map((note) => {
+              const shuffledNote = shuffledNotes.pop();
+              if (!shuffledNote) return undefined;
+              return { ...note, velocity: shuffledNote.velocity };
+            })
+            .filter(Boolean) as PatternNote[]
+      );
       shuffledStream.push(updatedChord);
     }
 

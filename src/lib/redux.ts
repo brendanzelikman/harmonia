@@ -21,10 +21,12 @@ export type Payload<
   T = null,
   isEmpty = T extends null ? true : false
 > = isEmpty extends true
-  ? { data?: T; undoType?: string }
+  ? { data?: T; undoType?: string } | undefined
   : { data: T; undoType?: string };
 
-export type Action<T> = PayloadAction<T | Payload<T>>;
+export type Action<T, isEmpty = T extends null ? true : false> = PayloadAction<
+  T | Payload<T, isEmpty>
+>;
 
 export const unpackAction = <T>(action: Action<T>) => {
   return (
@@ -45,7 +47,7 @@ export const createUndoType = (prefix?: string, ...payload: any) =>
   `${prefix}(${JSON.stringify(payload)})`;
 
 export const unpackUndoType = <T>(payload: Payload<T>, prefix?: string) => {
-  return payload.undoType ?? createUndoType(prefix, payload.data, nanoid());
+  return payload?.undoType ?? createUndoType(prefix, payload?.data, nanoid());
 };
 
 /** A deep equal selector for nested objects and arrays. */

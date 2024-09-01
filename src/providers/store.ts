@@ -1,4 +1,8 @@
-import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import {
+  combineReducers,
+  configureStore,
+  PayloadAction,
+} from "@reduxjs/toolkit";
 import { saveProject } from "../types/Project/ProjectThunks";
 import { handleInstrumentMiddleware } from "types/Instrument/InstrumentMiddleware";
 import { MetaSlice } from "types/Meta/MetaSlice";
@@ -20,9 +24,10 @@ import {
   transportSlice,
 } from "types/Transport/TransportSlice";
 import undoable, { excludeAction } from "redux-undo";
-import { groupByActionType } from "types/undoTypes";
-import { Safe } from "types/units";
+import { Safe } from "types/util";
 import { Thunk } from "types/Project/ProjectTypes";
+import { Payload } from "lib/redux";
+import { UndoType } from "types/units";
 
 // ------------------------------------------------------------
 // Base Project Type
@@ -86,7 +91,11 @@ const undoableProjectReducer = undoable(baseProjectReducer, {
   undoType: UNDO_PROJECT,
   redoType: REDO_PROJECT,
   limit: PROJECT_HISTORY_LIMIT,
-  groupBy: groupByActionType,
+  groupBy: (action: PayloadAction<Payload>): UndoType => {
+    const { type, payload } = action;
+    if (payload?.undoType !== undefined) return payload.undoType;
+    return `${type}:${JSON.stringify(payload?.data)}`;
+  },
   filter: excludeAction([
     ...privateTransportActions,
     "instruments/_addOfflineInstrument",

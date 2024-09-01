@@ -38,6 +38,9 @@ import {
   selectCellHeight,
   selectSubdivision,
   selectSelectedTrackId,
+  selectTimelineState,
+  selectTimelineType,
+  selectHasPortalFragment,
 } from "types/Timeline/TimelineSelectors";
 import {
   selectOrderedTrackIds,
@@ -55,14 +58,18 @@ import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { getSubdivisionTicks } from "utils/durations";
 import { convertTicksToFormattedTime } from "types/Transport/TransportFunctions";
 import {
+  selectIsTransportActive,
   selectTransportBPM,
   selectTransportTimeSignature,
 } from "types/Transport/TransportSelectors";
+import { onCellClick } from "types/Timeline/thunks/TimelineClickThunks";
+import { useDragState } from "types/Media/MediaTypes";
+import { dispatchCustomEvent } from "utils/html";
 
 export type Row = {
   index: number;
   id?: TrackId;
-  onTrack?: boolean;
+  onTrack: boolean;
   onPatternTrack?: boolean;
   trackButton?: boolean;
 };
@@ -70,6 +77,8 @@ export type TimelinePortalElement = { timeline?: DataGridHandle };
 
 export function Timeline() {
   const dispatch = useProjectDispatch();
+  const state = use(selectTimelineState);
+  const type = use(selectTimelineType);
   const cellWidth = use(selectCellWidth);
   const cellHeight = use(selectCellHeight);
   const subdivision = use(selectSubdivision);
@@ -77,9 +86,14 @@ export function Timeline() {
   const trackMap = useDeep(selectTrackMap);
   const selectedTrackId = use(selectSelectedTrackId);
   const heldKeys = useHeldHotkeys(["alt", "meta", "d"]);
+  const hasFragment = use(selectHasPortalFragment);
+  const isTransportActive = use(selectIsTransportActive);
   const [timeline, setTimeline] = useState<DataGridHandle>();
   const bpm = use(selectTransportBPM);
-  const timeSignature = use(selectTransportTimeSignature);
+  const timeSignature = useDeep(selectTransportTimeSignature);
+  const dragState = useDragState();
+  const isDraggingPatternClip = !!dragState.draggingPatternClip;
+
   useTimelineHotkeys(timeline);
   useTimelineLiveHotkeys();
 
@@ -106,7 +120,7 @@ export function Timeline() {
         onPatternTrack: !!isPatternTrackId(id),
       }))
     );
-    rows.push({ trackButton: true, index: rows.length });
+    rows.push({ trackButton: true, index: rows.length, onTrack: false });
     return rows;
   }, [trackIds, selectedTrackId]);
 
@@ -222,15 +236,69 @@ export function Timeline() {
       width: cellWidth,
       minWidth: 1,
       formatter: (props) => {
+        const key = parseInt(props.column.key);
+        if (!props.row.id) {
+          const onClick = () => dispatch(onCellClick(key, props.row.id));
+          return <div className="size-full bg-transparent" onClick={onClick} />;
+        }
         const subdivisionTicks = getSubdivisionTicks(subdivision);
         const tick = subdivisionTicks * (parseInt(props.column.key) - 1);
         const time = convertTicksToFormattedTime(tick, { bpm, timeSignature });
-        return <CellFormatter {...props} tick={tick} time={time} />;
+        const isPortaling = state === "portaling-clips" && !!props.row.id;
+        const isAdding = state === "adding-clips" && !!props.row.id;
+        const isAddingPatternClips = isAdding && type === "pattern";
+        const isAddingPoseClips = isAdding && type === "pose";
+        const isAddingScaleClips = isAdding && type === "scale";
+        const idle = !isAdding && !isTransportActive;
+        const onPT = !!props.row.onPatternTrack;
+        const { beats, sixteenths } = time;
+        const isMeasure = beats === 0 && sixteenths === 0;
+        return (
+          <CellFormatter
+            {...props}
+            tick={tick}
+            time={time}
+            idle={idle}
+            className={classNames(
+              "size-full border-t border-t-white/20 animate-in fade-in duration-200",
+              { "border-l-2 border-l-white/20": isMeasure && key > 1 },
+              { "border-l-0.5 border-l-slate-700/50": !isMeasure || key <= 1 },
+              { "cursor-paintbrush": isAddingPatternClips && onPT },
+              { "cursor-portalgunb": isPortaling && !hasFragment },
+              { "cursor-portalguno": isPortaling && hasFragment },
+              { "cursor-wand": isAddingPoseClips },
+              { "cursor-gethsemane": isAddingScaleClips },
+              isAddingPatternClips && onPT
+                ? "hover:bg-teal-500/50"
+                : isAddingPoseClips
+                ? "hover:bg-fuchsia-500/50"
+                : isAddingScaleClips
+                ? "hover:bg-blue-500/50"
+                : isPortaling
+                ? !hasFragment
+                  ? "hover:bg-sky-400/50"
+                  : "hover:bg-orange-400/50"
+                : props.row.onPatternTrack || !isDraggingPatternClip
+                ? "hover:bg-sky-950/10"
+                : "bg-transparent"
+            )}
+          />
+        );
       },
       headerRenderer: TimelineHeaderRenderer,
       cellClass: `bg-transparent rdg-cell-${key}`,
     }),
-    [rows, cellWidth, subdivision, bpm, timeSignature]
+    [
+      rows,
+      cellWidth,
+      subdivision,
+      bpm,
+      state,
+      timeSignature,
+      isDraggingPatternClip,
+      isTransportActive,
+      hasFragment,
+    ]
   );
 
   /** The columns are memoized so that they are not recreated on every render. */
@@ -283,6 +351,7 @@ export function Timeline() {
         headerRowHeight={HEADER_HEIGHT}
         enableVirtualization={true}
         rowClass={() => "rdg-cell-row"}
+        onScroll={() => dispatchCustomEvent("timeline-scroll")}
       />
     );
   }, [trackedColumns, rows, rowHeight, timeline, subdivision]);

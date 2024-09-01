@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useCustomEventListener } from "../window/useCustomEventListener";
+import { useEventListener } from "../window/useCustomEventListener";
 import { useProjectDispatch, useProjectSelector } from "types/hooks";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import {
@@ -15,8 +15,8 @@ export function useTransportLoader() {
   const projectId = useProjectSelector(selectProjectId);
   const [loaded, setLoaded] = useState(false);
 
-  useCustomEventListener(START_LOADING_TRANSPORT, () => setLoaded(false));
-  useCustomEventListener(STOP_LOADING_TRANSPORT, () => setLoaded(true));
+  useEventListener(START_LOADING_TRANSPORT, () => setLoaded(false));
+  useEventListener(STOP_LOADING_TRANSPORT, () => setLoaded(true));
 
   useEffect(() => {
     dispatch(loadTransport());

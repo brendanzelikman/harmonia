@@ -30,49 +30,6 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
-@layer utilities {
-  .text-shadow,
-  .text-shadow-md {
-    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
-  }
-  .text-shadow-sm {
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-  }
-  .text-shadow-lg {
-    text-shadow: 0 0 10px rgba(0, 0, 0);
-  }
-  .rounded-full {
-    border-radius: 9999px;
-  }
-  .background-pulse {
-    background-size: 400% 400%;
-    animation: animate-gradient 5s ease-in-out infinite;
-  }
-  .total-center {
-    justify-content: center;
-    align-items: center;
-  }
-  .container-row {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
-  .container-col {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  .landing-background {
-    animation: animateLandingBackground 30s ease-in-out infinite;
-  }
-}
-
 @keyframes animate-gradient {
   0% {
     background-position: 0% 50%;

@@ -11,7 +11,7 @@ import { normalize, mod } from "utils/math";
 
 import { getMidiPitch } from "utils/midi";
 
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import {
   UpdateInstrumentPayload,
@@ -52,7 +52,7 @@ const ARTURIA_KEYLAB_MOD_BYTE = 176;
 // CC support for my MIDI controller :)
 export function useMidiController() {
   const dispatch = useProjectDispatch();
-  const { isProdigy } = useSubscription();
+  const { isProdigy } = useAuth();
   const transport = useProjectSelector(selectTransport);
   const patternTrackMap = useProjectDeepSelector(selectPatternTrackMap);
   const orderedTrackIds = useProjectDeepSelector(selectOrderedTrackIds);

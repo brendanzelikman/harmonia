@@ -1,4 +1,3 @@
-import { useSubscription } from "providers/subscription";
 import { EditorTooltipButton } from "components/TooltipButton";
 import {
   EditorTab,
@@ -11,18 +10,19 @@ import { useProjectDispatch } from "types/hooks";
 import { exportPatternToMIDI } from "types/Pattern/PatternExporters";
 import { copyPattern, downloadPatternAsXML } from "types/Pattern/PatternThunks";
 import { PatternEditorProps } from "../PatternEditor";
+import { useAuth } from "providers/auth";
 
 export function PatternEditorToolbar(props: PatternEditorProps) {
   const dispatch = useProjectDispatch();
   const { pattern, id, isCustom } = props;
-  const subscription = useSubscription();
+  const subscription = useAuth();
 
   /** The user can copy a pattern. */
   const CopyButton = () => (
     <EditorTooltipButton
       label="Duplicate the Pattern"
       className={`rounded-full text-xl active:bg-teal-600`}
-      onClick={() => dispatch(copyPattern(pattern))}
+      onClick={() => dispatch(copyPattern({ data: pattern }))}
       keepTooltipOnClick
     >
       <GiStack />
@@ -31,7 +31,7 @@ export function PatternEditorToolbar(props: PatternEditorProps) {
 
   /** The user can export a pattern to MIDI or MusicXML. */
   const ExportButton = () => {
-    if (!subscription.isAtLeastStatus("maestro")) return null;
+    if (!subscription.isAtLeastRank("maestro")) return null;
     return (
       <EditorTooltipButton
         label="Export The Pattern"

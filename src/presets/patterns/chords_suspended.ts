@@ -3,7 +3,7 @@ import * as _ from "utils/durations";
 
 export const Sus2Chord: Pattern = {
   id: "pattern_preset_sus2-chord",
-  name: "Sus2 Chord",
+  name: "Sus2",
   aliases: ["sus2", "sus2 chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(62), _.createQuarterNote(67)],
@@ -11,7 +11,7 @@ export const Sus2Chord: Pattern = {
 };
 export const Major7thSus2Chord: Pattern = {
   id: "pattern_preset_major-7th-sus2-chord",
-  name: "Major 7th (Sus2) Chord",
+  name: "Major 7th (Sus2)",
   aliases: [
     "maj7sus2",
     "maj7sus2 chord",
@@ -31,7 +31,7 @@ export const Major7thSus2Chord: Pattern = {
 };
 export const Minor7thSus2Chord: Pattern = {
   id: "pattern_preset_minor-7th-sus2-chord",
-  name: "Minor 7th (Sus2) Chord",
+  name: "Minor 7th (Sus2)",
   aliases: [
     "min7sus2",
     "min7sus2 chord",
@@ -51,7 +51,7 @@ export const Minor7thSus2Chord: Pattern = {
 };
 export const Major6thSus2Chord: Pattern = {
   id: "pattern_preset_major-6th-sus2-chord",
-  name: "Major 6th (Sus2) Chord",
+  name: "Major 6th (Sus2)",
   aliases: [
     "maj6sus2",
     "maj6sus2 chord",
@@ -71,7 +71,7 @@ export const Major6thSus2Chord: Pattern = {
 };
 export const Minor6thSus2Chord: Pattern = {
   id: "pattern_preset_minor-6th-sus2-chord",
-  name: "Minor 6th (Sus2) Chord",
+  name: "Minor 6th (Sus2)",
   aliases: [
     "min6sus2",
     "min6sus2 chord",
@@ -99,7 +99,7 @@ export const Sus4Chord: Pattern = {
 };
 export const Major7thSus4Chord: Pattern = {
   id: "pattern_preset_major-7th-sus4-chord",
-  name: "Major 7th (Sus4) Chord",
+  name: "Major 7th (Sus4)",
   aliases: [
     "maj7sus4",
     "maj7sus4 chord",
@@ -119,7 +119,7 @@ export const Major7thSus4Chord: Pattern = {
 };
 export const Minor7thSus4Chord: Pattern = {
   id: "pattern_preset_minor-7th-sus4-chord",
-  name: "Minor 7th (Sus4) Chord",
+  name: "Minor 7th (Sus4)",
   aliases: [
     "min7sus4",
     "min7sus4 chord",
@@ -139,7 +139,7 @@ export const Minor7thSus4Chord: Pattern = {
 };
 export const Major6thSus4Chord: Pattern = {
   id: "pattern_preset_major-6th-sus4-chord",
-  name: "Major 6th (Sus4) Chord",
+  name: "Major 6th (Sus4)",
   aliases: [
     "maj6sus4",
     "maj6sus4 chord",
@@ -159,7 +159,7 @@ export const Major6thSus4Chord: Pattern = {
 };
 export const Minor6thSus4Chord: Pattern = {
   id: "pattern_preset_minor-6th-sus4-chord",
-  name: "Minor 6th (Sus4) Chord",
+  name: "Minor 6th (Sus4)",
   aliases: [
     "min6sus4",
     "min6sus4 chord",

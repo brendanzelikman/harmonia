@@ -23,11 +23,10 @@ import {
 } from "types/Portal/PortalTypes";
 import { Thunk } from "types/Project/ProjectTypes";
 import { ScaleId } from "types/Scale/ScaleTypes";
-import { getClipboardMedia } from "types/Timeline/TimelineFunctions";
 import { isPatternTrack } from "types/Track/TrackTypes";
 import {
   updateMediaSelection,
-  updateMediaClipboard,
+  updateClipboard,
   updateMediaDraft,
 } from "types/Timeline/TimelineSlice";
 import {
@@ -69,7 +68,7 @@ import {
   selectSelectedPortals,
   selectSelectedPortalIds,
   selectSelectedTrackId,
-  selectMediaClipboard,
+  selectClipboard,
   selectSubdivisionTicks,
   selectSelectedClipIds,
   selectSelectedPatternClips,
@@ -105,6 +104,7 @@ import { copyPattern, createPattern } from "types/Pattern/PatternThunks";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import { copyPose } from "types/Pose/PoseThunks";
 import { copyScale } from "types/Scale/ScaleThunks";
+import { isHotkeyPressed } from "react-hotkeys-hook";
 
 /** Create a list of media and add it to the slice and hierarchy. */
 export const createMedia =
@@ -165,7 +165,7 @@ export const copySelectedMedia = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const clips = selectSelectedClips(project);
   const portals = selectSelectedPortals(project);
-  dispatch(updateMediaClipboard({ clips, portals }));
+  dispatch(updateClipboard({ clips, portals }));
 };
 
 /** Cut all selected media into the clipboard, deleting them. */
@@ -175,7 +175,7 @@ export const cutSelectedMedia = (): Thunk => (dispatch, getProject) => {
   // Copy the media to the clipboard
   const clips = selectSelectedClips(project);
   const portals = selectSelectedPortals(project);
-  dispatch(updateMediaClipboard({ clips, portals }));
+  dispatch(updateClipboard({ clips, portals }));
 
   // Delete the media
   const clipIds = selectSelectedClipIds(project);
@@ -200,8 +200,8 @@ export const pasteSelectedMedia = (): Thunk => (dispatch, getProject) => {
   if (!selectedTrackId) return noMedia;
 
   // Get the media from the clipboard
-  const clipboard = selectMediaClipboard(project);
-  const media = getClipboardMedia(clipboard);
+  const clipboard = selectClipboard(project);
+  const media = union<MediaElement>(clipboard.clips, clipboard.portals);
   if (!media?.length) return noMedia;
 
   // Get the offseted media
@@ -232,20 +232,12 @@ export const duplicateSelectedMedia =
   (): Thunk => async (dispatch, getProject) => {
     const undoType = createUndoType("duplicateSelectedMedia");
     const project = getProject();
-    const clipIds = selectSelectedClipIds(project);
     const clips = selectSelectedClips(project);
-    const clipDurations = selectClipDurations(project, clipIds);
-
-    // Get the selected portals
     const portals = selectSelectedPortals(project);
-    const portalDurations = portals.map((_) => 1);
 
     // Duplicate the media
     const media = [...clips, ...portals];
-    const duplicatedMedia = getDuplicatedMedia(media, [
-      ...clipDurations,
-      ...portalDurations,
-    ]);
+    const duplicatedMedia = getDuplicatedMedia(media);
 
     // Create and select the new media
     const newClips = getClipsFromMedia(duplicatedMedia);
@@ -490,8 +482,9 @@ export const mergeSelectedMedia =
 
 /** The handler for when a media clip is dragged. */
 export const onMediaDragEnd =
-  (item: any, monitor: any, heldKeys?: Record<string, boolean>): Thunk =>
+  (item: any, monitor: any): Thunk =>
   (dispatch, getProject) => {
+    const undoType = createUndoType("onMediaDragEnd", item);
     const project = getProject();
     const clipMap = selectClipMap(project);
     const orderedTrackIds = selectOrderedTrackIds(project);
@@ -500,7 +493,6 @@ export const onMediaDragEnd =
     const selectedPortals = selectSelectedPortals(project);
     const isPortal = item.portalEntry || item.portalExit;
     const itemId = isPortal ? item.id : getOriginalIdFromPortaledClip(item.id);
-    const undoType = createUndoType("onMediaDragEnd", itemId);
 
     // Get the value from the item
     const element: MediaElement = isPortal
@@ -616,7 +608,7 @@ export const onMediaDragEnd =
 
     // If copying, create the new media
     if (copying) {
-      const cloning = !(heldKeys ?? {})["`"];
+      const cloning = !isHotkeyPressed("tilde");
       const copiedClips = cloning
         ? newClips
         : (newClips.map((clip) => {

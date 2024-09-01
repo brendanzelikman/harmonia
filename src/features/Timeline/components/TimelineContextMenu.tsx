@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { ContextMenuOption, ContextMenu } from "components/ContextMenu";
 import {
+  use,
   useProjectDeepSelector,
   useProjectDispatch,
   useProjectSelector,
@@ -23,7 +24,9 @@ import {
   selectSelectedPattern,
   selectSelectedPose,
   selectSelectedTrack,
-  selectMediaClipboard,
+  selectClipboard,
+  selectSelectedMotif,
+  selectTimelineType,
 } from "types/Timeline/TimelineSelectors";
 import { createPatternTrackFromSelectedTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import { createScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
@@ -35,11 +38,8 @@ import {
   deleteSelectedMedia,
   updateMedia,
 } from "types/Media/MediaThunks";
-import {
-  exportSelectedClipsToMIDI,
-  createPatternClipFromMediaDraft,
-  createPoseClipFromMediaDraft,
-} from "types/Timeline/TimelineThunks";
+import { createClipFromMediaDraft } from "types/Timeline/thunks/TimelineDraftThunks";
+import { exportSelectedClipsToMIDI } from "types/Timeline/thunks/TimelineSelectionThunks";
 import { getTransport } from "tone";
 
 export function TimelineContextMenu() {
@@ -56,7 +56,7 @@ export function TimelineContextMenu() {
   const onScaleTrack = isScaleTrack(track);
 
   // Get the clipboard
-  const clipboard = useProjectDeepSelector(selectMediaClipboard) ?? [];
+  const clipboard = useProjectDeepSelector(selectClipboard) ?? [];
   const areClipsInBoard = !!clipboard?.clips?.length;
   const arePortalsInBoard = !!clipboard?.portals?.length;
 
@@ -136,32 +136,30 @@ export function TimelineContextMenu() {
   const AddPatternTrack = {
     label: "Add Pattern Track",
     onClick: () => dispatch(createPatternTrackFromSelectedTrack()),
+    divideEnd: true,
   };
 
-  // Add the currently drafted clip to the timeline
-  const AddPatternClip = {
-    label: `Add ${pattern?.name ?? "New Pattern"}`,
-    onClick: () =>
-      dispatch(
-        createPatternClipFromMediaDraft({
-          data: { trackId: track?.id, tick: getTransport().ticks },
-        })
-      ),
-    disabled: onScaleTrack || !track,
-  };
-
-  // Add the currently drafted pose to the timeline
-  const AddPoseClip = {
-    label: `Add ${pose?.name ?? "New Pose"}`,
-    onClick: () =>
-      dispatch(
-        createPoseClipFromMediaDraft({
-          data: { trackId: track?.id, tick: getTransport().ticks },
-        })
-      ),
-    disabled: !track,
-    divideEnd: areClipsSelected,
-  };
+  // Add the currently drafted motif to the timeline
+  const type = use(selectTimelineType);
+  const motif = use(selectSelectedMotif);
+  const AddClip = motif
+    ? {
+        label: `Add ${motif?.name ?? "Motif"} Clip`,
+        onClick: () =>
+          dispatch(
+            createClipFromMediaDraft({
+              data: {
+                type,
+                [`${type}Id`]: motif.id,
+                trackId: track?.id,
+                tick: getTransport().ticks,
+              },
+            })
+          ),
+        disabled: (type === "pattern" && onScaleTrack) || !track,
+        divideEnd: areClipsSelected,
+      }
+    : null;
 
   // Change the color of the currently selected clips
   const ClipColorCircle: React.FC<{ color: PatternClipColor }> = ({
@@ -234,8 +232,7 @@ export function TimelineContextMenu() {
     canExport ? Export : null,
     AddScaleTrack,
     AddPatternTrack,
-    AddPatternClip,
-    AddPoseClip,
+    AddClip,
     canColor ? ClipColors : null,
     canSetDuration ? SetDurationInput : null,
     canSetDuration ? SetClipDuration : null,

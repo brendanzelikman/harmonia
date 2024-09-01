@@ -38,6 +38,16 @@ export const MetaSlice = createSlice({
     clearDiary: (state) => {
       state.diary = initializeProjectDiary();
     },
+    /** Toggle the tooltips. */
+    toggleTooltips: (state) => {
+      if (state.hideTooltips) delete state.hideTooltips;
+      else state.hideTooltips = true;
+    },
+    /** Toggle the timeline. */
+    toggleTimeline: (state) => {
+      if (state.hideTimeline) delete state.hideTimeline;
+      else state.hideTimeline = true;
+    },
   },
 });
 
@@ -47,6 +57,8 @@ export const {
   setDiaryPage,
   clearDiaryPage,
   clearDiary,
+  toggleTooltips,
+  toggleTimeline,
 } = MetaSlice.actions;
 
 export default MetaSlice.reducer;

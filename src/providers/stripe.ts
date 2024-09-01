@@ -4,16 +4,17 @@ import {
   collection,
   getFirestore,
   onSnapshot,
+  query,
+  where,
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { getSubscriptionStatus } from "providers/subscription";
-import { PRICE_RECORD, SubscriptionStatus, WEBSITE_URL } from "./constants";
-import { FirebaseApp } from "providers/firebase";
+import { PRICE_RECORD, Rank, WEBSITE_URL } from "../utils/constants";
+import { firebaseApp, FirebaseApp } from "providers/firebase";
 
 /* Get the checkout URL for the given subscription status. */
 export const getCheckoutUrl = async (
   app: FirebaseApp,
-  status: SubscriptionStatus
+  status: Rank
 ): Promise<string> => {
   const db = getFirestore(app);
   const auth = getAuth(app);
@@ -56,11 +57,30 @@ export const getCheckoutUrl = async (
 /* Get the portal URL to manage subscriptions with a custom flow based on status. */
 export const getPortalUrl = async (
   app: FirebaseApp,
-  status?: SubscriptionStatus
+  status?: Rank
 ): Promise<string> => {
   let dataWithUrl: any;
   try {
-    const { subscriptionId, itemId } = await getSubscriptionStatus();
+    const auth = getAuth(app);
+    const userId = auth.currentUser?.uid;
+    if (!userId) throw new Error("User is not authenticated.");
+
+    const db = getFirestore(firebaseApp);
+    const ref = collection(db, "customers", userId, "subscriptions");
+    const q = query(ref, where("status", "==", "active"));
+
+    // Query the firestore and find the most expensive item if it exists
+    const { itemId, subscriptionId } = await new Promise<
+      Record<string, string>
+    >((resolve) => {
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const subscriptions = snapshot.docs.map((doc) => doc.data());
+        const items = subscriptions.flatMap((s) => s.items);
+        const item = items.sort((a, b) => b.plan.amount - a.plan.amount)[0];
+        resolve({ itemId: item?.id, subscriptionId: item?.subscription });
+        unsubscribe();
+      });
+    });
 
     // Prepare the cloudless function
     const functions = getFunctions(app, "us-east1");

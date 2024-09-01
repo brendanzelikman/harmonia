@@ -20,6 +20,7 @@ import {
   isPatternChord,
   PatternStream,
   PatternMidiStream,
+  PatternBlock,
 } from "types/Pattern/PatternTypes";
 import {
   getVectorKeys,
@@ -27,10 +28,12 @@ import {
   getPoseVectorAsScaleVector,
 } from "types/Pose/PoseFunctions";
 import {
-  getTransposedScale,
-  getRotatedScale,
   getScaleWithNewNotes,
   getTransposedScaleNote,
+} from "types/Scale/ScaleTransformers";
+import {
+  getTransposedScale,
+  getRotatedScale,
 } from "types/Scale/ScaleTransformers";
 import { chromaticScale, ScaleObject } from "types/Scale/ScaleTypes";
 import { getScaleTrackChain } from "types/Track/TrackFunctions";
@@ -124,7 +127,7 @@ export const getPatternClipMidiStream = (
 export const loopOverClipStream = (
   clip: PatternClip,
   pattern: Pattern,
-  callback: (chord: PatternChord, tick: number, streamIndex: number) => void
+  callback: (block: PatternBlock, tick: number, streamIndex: number) => void
 ) => {
   const { stream } = pattern;
   let blockCount = getPatternClipStartingBlock(clip, pattern);
@@ -148,9 +151,6 @@ export const loopOverClipStream = (
     // Increment the total duration when the block is reached
     if (streamDuration === i) streamDuration += blockDuration;
     blockCount += 1;
-
-    // Skip the block if it is a rest or invalid
-    if (!isPatternChord(block)) continue;
 
     // Fire the callback with the block and index
     callback(block, clip.tick + i, blockCount - 1);

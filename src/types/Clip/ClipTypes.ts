@@ -1,4 +1,4 @@
-import { ID, Tick, Update } from "types/units";
+import { Id, Tick, Update } from "types/units";
 import { PatternClipColor } from "./PatternClip/PatternClipThemes";
 import { isNumber, isPlainObject, isString } from "lodash";
 import { isFiniteNumber, isOptionalType } from "types/util";
@@ -61,7 +61,7 @@ export type IClipProps<T extends ClipType> = T extends "pattern"
   ? { scaleId: ScaleId }
   : never;
 
-export type IClipId<T extends ClipType = ClipType> = ID<`${T}-clip`>;
+export type IClipId<T extends ClipType = ClipType> = Id<`${T}-clip`>;
 export type IClipUpdate<T extends ClipType = ClipType> = Update<IClip<T>>;
 export type IClipMap<T extends ClipType = ClipType> = Dictionary<IClip<T>>;
 export type IClipState<T extends ClipType = ClipType> = EntityState<IClip<T>>;
@@ -71,11 +71,16 @@ export type IClipState<T extends ClipType = ClipType> = EntityState<IClip<T>>;
 // ------------------------------------------------------------
 
 /** Create a clip with a unique ID. */
-export function initializeClip(clip: Partial<Clip>) {
-  if (clip.type === "pattern") return initializePatternClip(clip);
-  if (clip.type === "pose") return initializePoseClip(clip as PoseClip);
-  if (clip.type === "scale") return initializeScaleClip(clip as ScaleClip);
-  return { ...clip, id: nanoid() } as Clip;
+export function initializeClip<T extends ClipType>(
+  clip: Partial<IClip<T>>
+): Clip {
+  if (clip.type === "pattern")
+    return initializePatternClip(clip as Partial<PatternClip>);
+  else if (clip.type === "pose")
+    return initializePoseClip(clip as Partial<PoseClip>);
+  else if (clip.type === "scale")
+    return initializeScaleClip(clip as Partial<ScaleClip>);
+  else throw new Error(`Invalid clip type: ${clip.type}`);
 }
 
 // ------------------------------------------------------------

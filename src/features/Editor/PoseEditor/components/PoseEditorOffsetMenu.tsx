@@ -129,7 +129,7 @@ export function PoseEditorOffsetMenu(props: PoseEditorOffsetMenuProps) {
     );
 
   return (
-    <div className="container-row gap-2 animate-in fade-in ring-1 ring-pink-500/50 rounded">
+    <div className="size-full flex total-center gap-2 animate-in fade-in ring-1 ring-pink-500/50 rounded">
       {OffsetListbox()}
       {OffsetNumericField()}
       {ClearOffsetButton()}

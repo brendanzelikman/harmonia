@@ -1,7 +1,6 @@
-import { Key, MIDI } from "types/units";
-import MajorKeys from "./MajorKeys";
-import MinorKeys from "./MinorKeys";
-import { mod } from "utils/math";
+import { Key } from "types/units";
+import { MajorKeys } from "./MajorKeys";
+import { MinorKeys } from "./MinorKeys";
 
 export type ChromaticPitchClass =
   | "C"
@@ -61,29 +60,6 @@ const FlatKey: Key = [
   "B",
 ] as const;
 export { ChromaticKey, SharpKey, FlatKey, MajorKeys, MinorKeys };
-
-export const getPreferredKey = (midi: MIDI, name?: string): Key => {
-  if (!name) return ChromaticKey;
-  const key = name.toLowerCase();
-  const majorNames = ["major", "lydian", "mixolydian"];
-  const minorNames = ["minor", "dorian", "phrygian", "aeolian", "locrian"];
-  const isMajor = majorNames.some((n) => key.includes(n));
-  const isMinor = minorNames.some((n) => key.includes(n));
-
-  // Handle C# minor and Db major
-  if (mod(midi, 12) === 1) {
-    if (isMinor) return SharpKey;
-    if (isMajor) return FlatKey;
-  }
-
-  // Handle G# minor and Ab major
-  if (mod(midi, 12) === 8) {
-    if (isMinor) return SharpKey;
-    if (isMajor) return FlatKey;
-  }
-
-  return ChromaticKey;
-};
 
 // Return a map of preset group key to preset group
 // e.g. { "Major Keys": [ ... ], "Minor Keys": [ ... ], ... }

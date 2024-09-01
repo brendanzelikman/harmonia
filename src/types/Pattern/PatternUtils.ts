@@ -1,5 +1,5 @@
 import { range } from "lodash";
-import { MidiScale, MidiValue } from "types/Scale/ScaleTypes";
+import { MidiScale, MidiValue } from "types/units";
 import { mod } from "utils/math";
 import {
   PatternChord,
@@ -36,8 +36,11 @@ export const getPatternMidiChordNotes = (chord: PatternMidiChord) => {
 /** Update the notes of a `PatternChord` */
 export const getPatternChordWithNewNotes = (
   chord: PatternChord,
-  notes: PatternNote[]
+  _notes: PatternNote[] | ((_note: PatternNote[]) => PatternNote[])
 ): PatternChord => {
+  const notes = Array.isArray(_notes)
+    ? _notes
+    : _notes(getPatternChordNotes(chord));
   if (!isPatternChord(chord)) return chord;
   if (isPatternStrummedChord(chord)) return { ...chord, chord: notes };
   if (Array.isArray(chord)) return notes;

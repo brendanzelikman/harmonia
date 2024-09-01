@@ -186,13 +186,12 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
       <TooltipButton
         className={`size-7 text-2xl border rounded-full border-emerald-500 active:bg-emerald-500 select-none`}
         label="Nest A Pattern Track"
+        onClick={(e) => {
+          cancelEvent(e);
+          dispatch(createPatternTrack({ parentId: trackId }));
+        }}
       >
-        <GiMusicalKeyboard
-          onClick={(e) => {
-            cancelEvent(e);
-            dispatch(createPatternTrack({ parentId: trackId }));
-          }}
-        />
+        <GiMusicalKeyboard />
       </TooltipButton>
     );
   }, [trackId]);
@@ -203,13 +202,12 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
       <TooltipButton
         className={`size-7 text-2xl flex items-center justify-center border rounded-full border-indigo-400 active:bg-indigo-500 select-none`}
         label="Nest a Scale Track"
+        onClick={(e) => {
+          cancelEvent(e);
+          dispatch(createScaleTrack({ parentId: trackId }));
+        }}
       >
-        <GiBreakingChain
-          onClick={(e) => {
-            cancelEvent(e);
-            dispatch(createScaleTrack({ parentId: trackId }));
-          }}
-        />
+        <GiBreakingChain />
       </TooltipButton>
     );
   }, [trackId]);

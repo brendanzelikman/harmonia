@@ -58,9 +58,10 @@ export type BarsBeatsSixteenths = {
 
 export const convertTicksToFormattedTime = (
   tick: Tick,
-  deps: { bpm: BPM; timeSignature: [number, number] }
+  deps: { bpm: BPM; timeSignature?: [number, number] }
 ): BarsBeatsSixteenths => {
-  const { bpm, timeSignature } = deps;
+  const { bpm } = deps;
+  const timeSignature = deps.timeSignature ?? [16, 16];
   if (!bpm || !timeSignature) return { bars: 0, beats: 0, sixteenths: 0 };
 
   // Get the number of sixteenths and ticks per bar

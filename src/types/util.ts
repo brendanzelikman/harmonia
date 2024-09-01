@@ -1,16 +1,36 @@
-import { EntityState } from "@reduxjs/toolkit";
+import { EntityId, EntityState, nanoid } from "@reduxjs/toolkit";
 import { isArray, isPlainObject, merge, union } from "lodash";
-import { Safe } from "./units";
+import { Id } from "./units";
+
+// ------------------------------------------------------------
+// Basic Helpers
+// ------------------------------------------------------------
+
+export const createId = <T extends EntityId>(prefix: T): Id<T> => {
+  return `${prefix}_${nanoid()}`;
+};
 
 // Require at least one key from a type (src: u/KPD on SO)
-export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
-  T,
-  Exclude<keyof T, Keys>
-> &
-  {
-    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
-  }[Keys];
+type Choose<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+type Free<T, K extends keyof T> = { [P in K]-?: Assert<T, K, P> };
+type Assert<T, K extends keyof T, P> = Picked<T, K> & Maybe<T, Exclude<K, P>>;
+type Picked<T, K extends keyof T> = Required<Pick<T, K>>;
+type Maybe<T, K extends keyof T> = Partial<Pick<T, K>>;
+export type NonEmpty<T, K extends keyof T> = Choose<T, K> & Free<T, K>[K];
 
+// Recursively allow properties to be optional
+export type RecursivePartial<T> = {
+  [P in keyof T]?: RecursivePartial<T[P]>;
+};
+
+// Safely access an unsanitized object
+export type Safe<T> = RecursivePartial<T> | undefined;
+
+// ------------------------------------------------------------
+// Entity State Helpers
+// ------------------------------------------------------------
+
+/** Returns true if an object is an entity state. */
 export const isEntityState = (obj: unknown): obj is EntityState<any> => {
   const candidate = obj as EntityState<any>;
   return (
@@ -56,10 +76,9 @@ export const mergeStates = <T extends EntityState<any> = EntityState<any>>(
   return sanitizedState;
 };
 
-/* Return an item or an array as a guaranteed array */
-export const asArray = <T>(item: T | T[]): T[] => {
-  return Array.isArray(item) ? item : [item];
-};
+// ------------------------------------------------------------
+// Type Guards
+// ------------------------------------------------------------
 
 /** Returns true if an object is a finite number */
 export const isFiniteNumber = (n: unknown): n is number => {

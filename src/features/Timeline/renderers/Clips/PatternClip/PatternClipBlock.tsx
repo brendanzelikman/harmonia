@@ -6,32 +6,43 @@ import { getPatternBlockDuration } from "types/Pattern/PatternFunctions";
 import { cancelEvent } from "utils/html";
 import { sliceClip } from "types/Clip/ClipThunks";
 import { PatternClipNote } from "./PatternClipNote";
-import { ClipStyle } from "types/Arrangement/ArrangementSelectors";
 import { getTickColumns } from "utils/durations";
+import { ClipStyle } from "./usePatternClipStyle";
 
-export interface PatternClipBlockProps extends ClipStyle {
+export interface PatternClipBlockProps {
   block: PatternClipMidiBlock;
   blockIndex: number;
   clip: PatternClip;
-  endTick: number;
   isSlicing: boolean;
+  style: ClipStyle;
 }
 
 export const PatternClipBlock = (props: PatternClipBlockProps) => {
   const dispatch = useProjectDispatch();
-  const { id, block, blockIndex, isSlicing } = props;
-  const { streamHeight, streamLength, streamRange, streamMin } = props;
-  const { cellWidth, subdivision } = props;
+  const { clip, block, blockIndex, isSlicing, style } = props;
+  const {
+    streamHeight,
+    streamLength,
+    streamRange,
+    streamMin,
+    cellWidth,
+    subdivision,
+    startTick,
+    noteHeight,
+    noteColor,
+    endTick,
+  } = style;
+
   const { notes, strumIndex } = block;
 
   // Get the width of the block based on the duration of its notes
-  const tickCount = props.endTick - block.startTick;
+  const tickCount = endTick - block.startTick;
   const blockDuration = getPatternBlockDuration(block.notes);
   const duration = clamp(blockDuration, 0, tickCount);
-  const width = duration * cellWidth;
+  // const width = duration * cellWidth;
 
   // Get the left of the block based on its starting tick
-  const index = block.startTick - props.startTick;
+  const index = block.startTick - startTick;
   const blockLeft = getTickColumns(index, subdivision) * cellWidth;
   const blockEndTick = block.startTick + duration;
   const beforeLast = blockIndex < streamLength - 1;
@@ -40,7 +51,7 @@ export const PatternClipBlock = (props: PatternClipBlockProps) => {
   const onClick = (e: React.MouseEvent) => {
     if (!isSlicing) return;
     cancelEvent(e);
-    dispatch(sliceClip({ data: { id, tick: blockEndTick } }));
+    dispatch(sliceClip({ data: { id: clip.id, tick: blockEndTick } }));
   };
 
   // Compile the classname
@@ -53,10 +64,10 @@ export const PatternClipBlock = (props: PatternClipBlockProps) => {
 
   return (
     <div
-      key={`${id}-chord-${blockIndex}`}
+      key={`${clip.id}-chord-${blockIndex}`}
       className={className}
-      style={{ width }}
       onClick={onClick}
+      // style={{ width }}
     >
       {notes.map((note, j) => (
         <PatternClipNote
@@ -69,8 +80,8 @@ export const PatternClipBlock = (props: PatternClipBlockProps) => {
           streamRange={streamRange}
           streamMin={streamMin}
           cellWidth={cellWidth}
-          noteHeight={props.noteHeight}
-          noteColor={props.noteColor}
+          noteHeight={noteHeight}
+          noteColor={noteColor}
           subdivision={subdivision}
         />
       ))}

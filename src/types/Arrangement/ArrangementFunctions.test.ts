@@ -1,12 +1,12 @@
 import { test, expect } from "vitest";
 import { getTrackScaleChain } from "./ArrangementFunctions";
-import { createDictionary } from "utils/objects";
 import { initializePoseClip, PoseClip } from "types/Clip/ClipTypes";
 import { initializePose } from "types/Pose/PoseTypes";
-import { getScaleName } from "types/Scale/ScaleFunctions";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import { initializeScale } from "types/Scale/ScaleTypes";
 import { initializeScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { getScaleName } from "utils/key";
+import { keyBy } from "lodash";
 
 // ------------------------------------------------------------
 // Test Definitions
@@ -79,8 +79,8 @@ const pc3 = initializePoseClip({ poseId: p3.id, trackId: st3.id });
 const pc4 = initializePoseClip({ poseId: p4.id, trackId: st4.id });
 
 // Create the dependencies
-const scales = createDictionary([scale1, scale2, scale3, scale4]);
-const poses = createDictionary([p1, p2, p3, p4]);
+const scales = keyBy([scale1, scale2, scale3, scale4]);
+const poses = keyBy([p1, p2, p3, p4]);
 
 // Get the chain using the given pose clip and tick
 const getChainAtTick = (clip: PoseClip, tick: number) => {
@@ -109,7 +109,7 @@ const getScaleNames = (clip: PoseClip, tick: number) => {
   const midiScales = scales.map((_, i) =>
     resolveScaleChainToMidi(scales.slice(0, i + 1))
   );
-  return midiScales.map((s) => getScaleName(s, s));
+  return midiScales.map((s) => getScaleName(s));
 };
 
 // ------------------------------------------------------------

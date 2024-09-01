@@ -7,32 +7,34 @@ import {
 import { createSelector } from "reselect";
 
 /** Select the project metadata. */
-export const selectMetadata = (project: Project) => project.present.meta;
+export const selectMeta = (project: Project) => project.present.meta;
 
 /** Select the project ID. */
-export const selectProjectId = createSelector(
-  [selectMetadata],
-  (meta) => meta.id
-);
+export const selectProjectId = createSelector([selectMeta], (meta) => meta.id);
 
 /** Select the project name. */
 export const selectProjectName = createSelector(
-  [selectMetadata],
+  [selectMeta],
   (meta) => meta.name
 );
 
 /** Select the project diary and constrain it to the page. */
 export const selectProjectDiary = createDeepSelector(
-  [selectMetadata],
+  [selectMeta],
   (meta) =>
     Array.from({ length: PROJECT_DIARY_PAGE_COUNT }).map(
       (_, i) => meta.diary?.[i] ?? ""
     ) ?? initializeProjectDiary()
 );
 
-export const selectCanUndoProject = (project: Project) => {
-  return project.past.length > 0;
-};
+/** Select whether the user has hidden their tooltips. */
+export const selectHideTooltips = createSelector(
+  [selectMeta],
+  (m) => !!m.hideTooltips
+);
 
-export const selectCanRedoProject = (project: Project) =>
-  project.future.length > 0;
+/** Select whether the user has hidden their timeline. */
+export const selectHideTimeline = createSelector(
+  [selectMeta],
+  (m) => !!m.hideTimeline
+);

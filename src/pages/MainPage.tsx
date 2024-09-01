@@ -3,14 +3,13 @@ import { Docs } from "features/Docs/Docs";
 import { useProjectList } from "features/Projects";
 import { useParams } from "react-router-dom";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { useDatabaseCallback, useCustomEventListener } from "hooks";
+import { useDatabaseCallback, useEventListener } from "hooks";
 import { getProjectsFromDB } from "providers/idb";
 import { useProjectFetcher } from "features/Projects/hooks/useProjectFetcher";
 import { TourBackground } from "features/Tour";
 import { useProjectSelector } from "types/hooks";
 import { useBrowserTitle } from "hooks";
-import { useAuthentication } from "providers/authentication";
-import { useSubscription } from "providers/subscription";
+import { useAuth } from "providers/auth";
 
 import LandingBackground from "assets/images/landing-background.png";
 import { Project } from "types/Project/ProjectTypes";
@@ -18,7 +17,7 @@ import { UserProfile } from "features/Profile/UserProfile";
 import { Playground } from "features/Playground/Playground";
 import { Navbar } from "features/Navbar/Navbar";
 import { selectProjectName } from "types/Meta/MetaSelectors";
-import { CREATE_PROJECT, DELETE_PROJECT } from "types/Project/ProjectThunks";
+import { UPDATE_PROJECTS } from "types/Project/ProjectThunks";
 
 export type View = (typeof views)[number];
 export const views = [
@@ -34,8 +33,8 @@ interface MainPageProps {
   view?: View;
 }
 export function MainPage(props: MainPageProps) {
-  const { uid } = useAuthentication();
-  const { isAtLeastStatus } = useSubscription();
+  const { uid } = useAuth();
+  const { isAtLeastRank } = useAuth();
   const params = useParams<{ view: View }>();
   const view = props.view || params.view || "projects";
   const [projects, setProjects] = useState<Project[]>([]);
@@ -43,15 +42,13 @@ export function MainPage(props: MainPageProps) {
 
   // Update the list of projects based on the authentication status
   const updateProjects = async () => {
-    if (!uid) return;
-    const fetchedProjects = await getProjectsFromDB(uid);
+    const fetchedProjects = await getProjectsFromDB();
     setProjects(fetchedProjects);
   };
 
   // Update whenever the database or view changes
   useDatabaseCallback(updateProjects, [uid]);
-  useCustomEventListener(CREATE_PROJECT, updateProjects);
-  useCustomEventListener(DELETE_PROJECT, updateProjects);
+  useEventListener(UPDATE_PROJECTS, updateProjects);
   useEffect(() => {
     updateProjects();
   }, [view]);
@@ -127,7 +124,7 @@ export function MainPage(props: MainPageProps) {
       {MainBackground}
       <TourBackground />
       <div className={transitionClass}>
-        {isAtLeastStatus("maestro") && (
+        {isAtLeastRank("maestro") && (
           <ViewWrapper view="projects">{ProjectList()}</ViewWrapper>
         )}
         <ViewWrapper view="demos">{DemoList()}</ViewWrapper>

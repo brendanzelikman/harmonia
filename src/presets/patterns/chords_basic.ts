@@ -1,24 +1,32 @@
 import { Pattern } from "types/Pattern/PatternTypes";
 import * as _ from "utils/durations";
 
-export const MajorChord: Pattern = {
-  id: "pattern_preset_major-chord",
-  name: "Major Chord",
+export const MajorTriad: Pattern = {
+  id: "pattern_preset_major_triad",
+  name: "Major Triad",
   aliases: ["maj", "maj chord", "major", "major chord", "M", "M chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(64), _.createQuarterNote(67)],
   ],
 };
-export const MinorChord: Pattern = {
-  id: "pattern_preset_minor-chord",
-  name: "Minor Chord",
+export const MinorTriad: Pattern = {
+  id: "pattern_preset_minor_triad",
+  name: "Minor Triad",
   aliases: ["min", "min chord", "minor", "minor chord", "m", "m chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(63), _.createQuarterNote(67)],
   ],
 };
+export const LydianTriad: Pattern = {
+  id: "pattern_preset_lydian_triad",
+  name: "Lydian Triad",
+  aliases: ["lydian", "lydian chord"],
+  stream: [
+    [_.createQuarterNote(60), _.createQuarterNote(64), _.createQuarterNote(66)],
+  ],
+};
 export const DiminishedChord: Pattern = {
-  id: "pattern_preset_diminished-chord",
+  id: "pattern_preset_diminished_chord",
   name: "Diminished Chord",
   aliases: [
     "dim",
@@ -33,7 +41,7 @@ export const DiminishedChord: Pattern = {
   ],
 };
 export const AugmentedChord: Pattern = {
-  id: "pattern_preset_augmented-chord",
+  id: "pattern_preset_augmented_chord",
   name: "Augmented Chord",
   aliases: ["aug", "aug chord", "+", "+ chord"],
   stream: [
@@ -41,7 +49,7 @@ export const AugmentedChord: Pattern = {
   ],
 };
 export const QuartalChord: Pattern = {
-  id: "pattern_preset_quartal-chord",
+  id: "pattern_preset_quartal_chord",
   name: "Quartal Chord",
   aliases: ["quartal", "quartal chord", "q", "q chord"],
   stream: [
@@ -49,7 +57,7 @@ export const QuartalChord: Pattern = {
   ],
 };
 export const QuintalChord: Pattern = {
-  id: "pattern_preset_quintal-chord",
+  id: "pattern_preset_quintal_chord",
   name: "Quintal Chord",
   aliases: ["quintal", "quintal chord"],
   stream: [
@@ -58,7 +66,7 @@ export const QuintalChord: Pattern = {
 };
 
 export const PowerChord: Pattern = {
-  id: "pattern_preset_power-chord",
+  id: "pattern_preset_power_chord",
   name: "Power Chord",
   aliases: ["5", "5 chord"],
   stream: [
@@ -67,8 +75,9 @@ export const PowerChord: Pattern = {
 };
 
 export default {
-  MajorChord,
-  MinorChord,
+  MajorTriad,
+  MinorTriad,
+  LydianTriad,
   DiminishedChord,
   AugmentedChord,
   QuartalChord,

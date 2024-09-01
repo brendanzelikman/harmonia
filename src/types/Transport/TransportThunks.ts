@@ -29,7 +29,7 @@ import {
   selectLastArrangementTick,
   selectMidiChordsByTicks,
 } from "types/Arrangement/ArrangementSelectors";
-import { selectMetadata } from "types/Meta/MetaSelectors";
+import { selectMeta } from "types/Meta/MetaSelectors";
 import { selectSubdivisionTicks } from "types/Timeline/TimelineSelectors";
 import {
   selectPatternTracks,
@@ -406,7 +406,7 @@ export const stopRecordingTransport = (): Thunk => (dispatch, getProject) => {
 
     // Download the file
     const project = getProject();
-    const { name } = selectMetadata(project);
+    const { name } = selectMeta(project);
     const a = document.createElement("a");
     a.href = url;
     a.download = `${name ?? "Project"} Recording.wav`;
@@ -552,7 +552,7 @@ export const downloadTransport = (): Thunk => async (dispatch, getProject) => {
   const url = URL.createObjectURL(blob);
 
   // Download the file
-  const { name } = selectMetadata(oldProject);
+  const { name } = selectMeta(oldProject);
   const a = document.createElement("a");
   a.href = url;
   a.download = `${name ?? "project"}.wav`;
