@@ -1,42 +1,53 @@
 import { m } from "framer-motion";
 import { LandingSection } from "../components";
 import Logo from "assets/images/logo.png";
-import { ReactNode } from "react";
-import { useAuth } from "providers/auth";
+import { ReactNode, useCallback } from "react";
+import { adminClearance, authorize, useAuth } from "providers/auth";
+import { useNavigate } from "react-router-dom";
+import { useLandingError } from "../hooks/useLandingError";
 
-interface LandingSplashScreenProps {
-  title?: ReactNode;
-  titleClass?: string;
+export const LandingSplashScreen = () => {
+  const navigate = useNavigate();
+  const { isAuthorized, isAuthenticated, isAtLeastRank, isLoaded } = useAuth();
+  const { hasError, errorMessage } = useLandingError();
 
-  subtitle?: ReactNode;
-  subtitleClass?: string;
+  const onClick = useCallback(
+    async (e: React.MouseEvent) => {
+      const clearance = await authorize(e.altKey);
+      if (clearance === null) return;
 
-  button?: ReactNode;
-  buttonClass?: string;
-  onButtonClick?: (e: React.MouseEvent) => void;
-}
+      // Navigate to projects as an admin
+      const isAdmin = clearance === adminClearance;
+      if (isAdmin) return navigate("/projects");
 
-export const LandingSplashScreen = (props: LandingSplashScreenProps) => {
-  const { isAuthorized, isLoaded } = useAuth();
-  const title = props.title || "Harmonia";
+      // Navigate conditionally otherwise
+      if (isAuthenticated && !e.altKey) {
+        if (e.shiftKey) return navigate("/playground");
+        return navigate(isAtLeastRank("maestro") ? "/projects" : "/demos");
+      } else {
+        navigate("/login");
+      }
+    },
+    [authorize, isAuthenticated]
+  );
+
+  const title = "Harmonia";
   const titleClass =
-    props.titleClass ||
     "sm:my-2 mt-8 font-bold sm:text-9xl text-6xl drop-shadow-xl";
 
-  const subtitle = props.subtitle || "Illuminate the Geometry of Music";
-  const subtitleClass =
-    props.subtitleClass || "font-normal sm:text-4xl text-xl drop-shadow-xl";
-
-  const button =
-    props.button || !isLoaded
-      ? "Loading User..."
-      : isAuthorized
-      ? "Make Music Now"
-      : "Start Your Journey!";
+  const subtitle = hasError ? errorMessage : "Illuminate the Geometry of Music";
+  const subtitleClass = hasError
+    ? "font-light sm:text-2xl text-lg text-red-500"
+    : "font-normal sm:text-4xl text-xl drop-shadow-xl";
+  const button = hasError
+    ? "Proceed to Website"
+    : !isLoaded
+    ? "Loading User..."
+    : isAuthorized
+    ? "Make Music Now"
+    : "Start Your Journey!";
   const buttonClass =
-    props.buttonClass ||
     "mt-16 py-6 px-9 text-slate-100 hover:animate-pulse-slow bg-[#00aaff]/70 active:bg-blue-950/90 hover:shadow-[0px_0px_10px_10px_rgb(15,150,200)] ring-2 ring-slate-900/20 hover:ring-slate-100/20 rounded-2xl backdrop-blur-xl shadow-2xl drop-shadow-2xl sm:text-4xl text-2xl font-light";
-  const onClick = props.onButtonClick || (() => {});
 
   return (
     <LandingSection>

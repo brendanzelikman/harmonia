@@ -1,10 +1,7 @@
 import classNames from "classnames";
 import { PoseEditorVectorProps } from "./PoseEditorVector";
 import { Listbox } from "@headlessui/react";
-import {
-  NumericInputOption,
-  useNumericInputs,
-} from "hooks/window/useNumericInputs";
+import { NumericInputOption, useNumericInputs } from "hooks/useNumericInputs";
 import { useEffect } from "react";
 import { isUndefined } from "lodash";
 import { EditorNumericField } from "features/Editor/components/EditorField";

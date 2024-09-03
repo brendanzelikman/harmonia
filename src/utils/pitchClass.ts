@@ -1,6 +1,6 @@
 import { Key, MIDI, PitchClass } from "types/units";
 import { getMidiChromaticNumber } from "./midi";
-import { ChromaticKey } from "presets/keys";
+import { ChromaticKey } from "assets/keys";
 
 /** The list of possible spellings for each note of the chromatic scale. */
 export const PITCH_CLASSES: PitchClass[][] = [

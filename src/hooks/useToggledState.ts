@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useEventListener } from "./useCustomEventListener";
+import { useCustomEventListener } from "./useCustomEventListener";
 import { dispatchCustomEvent } from "utils/html";
 
 export const useToggledState = (key: string, defaultValue?: boolean) => {
@@ -10,8 +10,8 @@ export const useToggledState = (key: string, defaultValue?: boolean) => {
   const CLOSE = `close_${key}`;
 
   // Listen for open and close events
-  useEventListener(OPEN, () => setState(true));
-  useEventListener(CLOSE, () => setState(false));
+  useCustomEventListener(OPEN, () => setState(true));
+  useCustomEventListener(CLOSE, () => setState(false));
 
   // Return state and functions
   return {

@@ -13,7 +13,7 @@ import {
   PoseVectorModule,
 } from "types/Pose/PoseTypes";
 import { selectScaleTrackIds } from "types/Track/TrackSelectors";
-import { ChromaticKey } from "presets/keys";
+import { ChromaticKey } from "assets/keys";
 
 export function PoseEditorContent(props: PoseEditorProps) {
   const dispatch = useProjectDispatch();

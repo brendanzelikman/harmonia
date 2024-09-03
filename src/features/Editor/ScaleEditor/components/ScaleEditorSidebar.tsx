@@ -2,7 +2,7 @@ import { Disclosure } from "@headlessui/react";
 import { useCallback, useMemo, useState } from "react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { ScaleEditorProps } from "../ScaleEditor";
-import { PresetScaleGroupMap, PresetScaleGroupList } from "presets/scales";
+import { PresetScaleGroupMap, PresetScaleGroupList } from "assets/scales";
 import { useProjectDeepSelector, useProjectDispatch } from "types/hooks";
 import classNames from "classnames";
 import { PresetScale } from "./ScaleEditorPresetScale";

@@ -1,10 +1,11 @@
-import { Rank } from "utils/constants";
+import { Rank } from "utils/rank";
 import { useCallback } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "providers/auth";
+import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 
-export const useLandingHotkeys = () => {
+export const useLandingHotkeys = (ref: React.RefObject<HTMLElement>) => {
   const navigate = useNavigate();
   const { isAtLeastRank } = useAuth();
 
@@ -45,4 +46,22 @@ export const useLandingHotkeys = () => {
     authCallback(() => navigate("/playground")),
     [authCallback]
   );
+
+  // Scroll the page up
+  useOverridingHotkeys("up", () => {
+    if (!ref.current) return;
+    ref.current.scrollTo({
+      top: ref.current.scrollTop - window.innerHeight,
+      behavior: "smooth",
+    });
+  });
+
+  // Scroll the page down
+  useOverridingHotkeys("down", () => {
+    if (!ref.current) return;
+    ref.current.scrollTo({
+      top: ref.current.scrollTop + window.innerHeight,
+      behavior: "smooth",
+    });
+  });
 };

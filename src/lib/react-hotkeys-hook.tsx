@@ -1,6 +1,6 @@
 import { isArray } from "lodash";
-import { useCallback, useMemo, useState } from "react";
-import { Keys, useHotkeys } from "react-hotkeys-hook";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Keys, useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
 import {
   HotkeyCallback,
   OptionsOrDependencyArray,
@@ -135,3 +135,23 @@ export const useHeldHotkeys = (
   // Return the held keys
   return heldKeys;
 };
+
+/** Use a current hotkey scope and disable the timeline */
+export function useHotkeyScope(scope: string, condition: boolean) {
+  const hotkeys = useHotkeysContext();
+
+  // Update the hotkey scope
+  useEffect(() => {
+    if (!condition) return;
+
+    // Remove the timeline scope when the condition is met
+    hotkeys.enableScope(scope);
+    hotkeys.disableScope("timeline");
+
+    // Enable the timeline scope on cleanup
+    return () => {
+      hotkeys.disableScope(scope);
+      hotkeys.enableScope("timeline");
+    };
+  }, [condition]);
+}

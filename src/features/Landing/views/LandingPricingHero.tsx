@@ -6,7 +6,12 @@ import {
   LandingHeroProps,
 } from "../components";
 import { useAuth } from "providers/auth";
-import { MAESTRO_PROJECT_LIMIT } from "utils/constants";
+import {
+  MAESTRO_PRICE,
+  MAESTRO_PROJECT_LIMIT,
+  PRODIGY_PRICE,
+  VIRTUOSO_PRICE,
+} from "utils/rank";
 
 export const LandingPricingHero = (props: LandingHeroProps) => {
   const { isProdigy, isMaestro, isVirtuoso } = useAuth();
@@ -23,7 +28,7 @@ export const LandingPricingHero = (props: LandingHeroProps) => {
           <LandingPriceBox
             name="prodigy"
             isEnabled={isProdigy}
-            price={"$0 / month"}
+            price={`$${PRODIGY_PRICE} / month`}
             description="Get started with the basics."
             features={[
               "Access to Website",
@@ -44,7 +49,7 @@ export const LandingPricingHero = (props: LandingHeroProps) => {
           <LandingPriceBox
             name="maestro"
             isEnabled={isMaestro}
-            price={"$10 / month"}
+            price={`$${MAESTRO_PRICE} / month`}
             description="Unleash the Playground."
             features={[
               "Live Mixing and Posing",
@@ -65,7 +70,7 @@ export const LandingPricingHero = (props: LandingHeroProps) => {
           <LandingPriceBox
             name="virtuoso"
             isEnabled={isVirtuoso}
-            price={"$20 / month"}
+            price={`$${VIRTUOSO_PRICE} / month`}
             description="Go even further beyond."
             features={[
               "Desktop Application",

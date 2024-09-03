@@ -1,8 +1,8 @@
-import { useProjectSelector, useProjectDispatch, use } from "types/hooks";
+import { useProjectDispatch, use } from "types/hooks";
 import { useScopedHotkeys, useOverridingHotkeys } from "lib/react-hotkeys-hook";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { DataGridHandle } from "react-data-grid";
-import { useTransportTick } from "hooks";
+import { useTransportTick } from "hooks/useTransportTick";
 import { TRACK_WIDTH } from "utils/constants";
 import { useAuth } from "providers/auth";
 import { hideEditor } from "types/Editor/EditorSlice";

@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { ScoreProps } from "lib/opensheetmusicdisplay";
 import { usePatternEditorHotkeys } from "./hooks/usePatternEditorHotkeys";
 import { useDeep, useProjectDispatch } from "types/hooks";
-import { PresetPatternMap } from "presets/patterns";
+import { PresetPatternMap } from "assets/patterns";
 import { EditorProps } from "features/Editor/Editor";
 import { usePatternEditorScore } from "./hooks/usePatternEditorScore";
 import { Input } from "webmidi";

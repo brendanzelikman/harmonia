@@ -1,6 +1,6 @@
 import { EditorProps } from "features/Editor/Editor";
 import { useOSMD, NoteCallback } from "lib/opensheetmusicdisplay";
-import { PresetPatternMap } from "presets/patterns";
+import { PresetPatternMap } from "assets/patterns";
 import { useCallback, useMemo } from "react";
 import { selectPatternXML } from "types/Arrangement/ArrangementSelectors";
 import { use, useDeep } from "types/hooks";

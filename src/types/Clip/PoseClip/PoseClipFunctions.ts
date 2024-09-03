@@ -17,7 +17,7 @@ import {
   isPatternMidiStream,
   PatternMidiStream,
 } from "types/Pattern/PatternTypes";
-import { ChromaticKey, ChromaticPitchClass } from "presets/keys";
+import { ChromaticKey, ChromaticPitchClass } from "assets/keys";
 import {
   getMidiStreamScale,
   getPatternMidiChordNotes,

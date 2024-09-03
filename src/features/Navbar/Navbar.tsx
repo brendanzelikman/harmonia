@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { NavbarBrand } from "./content/NavbarBrand";
 import { NavbarContent } from "./content/NavbarContent";
-import { View } from "pages/MainPage";
+import { View } from "pages/main";
 
 export interface NavbarProps {
   view: View;

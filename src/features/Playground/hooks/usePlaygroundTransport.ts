@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useEventListener } from "../window/useCustomEventListener";
+import { useCustomEventListener } from "../../../hooks/useCustomEventListener";
 import { useProjectDispatch, useProjectSelector } from "types/hooks";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import {
@@ -10,13 +10,13 @@ import {
 } from "types/Transport/TransportThunks";
 
 /** Load and unload the transport when the app mounts. */
-export function useTransportLoader() {
+export function usePlaygroundTransport() {
   const dispatch = useProjectDispatch();
   const projectId = useProjectSelector(selectProjectId);
   const [loaded, setLoaded] = useState(false);
 
-  useEventListener(START_LOADING_TRANSPORT, () => setLoaded(false));
-  useEventListener(STOP_LOADING_TRANSPORT, () => setLoaded(true));
+  useCustomEventListener(START_LOADING_TRANSPORT, () => setLoaded(false));
+  useCustomEventListener(STOP_LOADING_TRANSPORT, () => setLoaded(true));
 
   useEffect(() => {
     dispatch(loadTransport());

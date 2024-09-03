@@ -2,11 +2,7 @@ import { MAX_VOLUME, MIN_VOLUME } from "utils/constants";
 import { throttle } from "lodash";
 import { ControlChangeMessageEvent, MessageEvent, WebMidi } from "webmidi";
 import { useCallback, useEffect } from "react";
-import {
-  useProjectSelector,
-  useProjectDeepSelector,
-  useProjectDispatch,
-} from "types/hooks";
+import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { normalize, mod } from "utils/math";
 
 import { getMidiPitch } from "utils/midi";
@@ -50,15 +46,15 @@ const ARTURIA_KEYLAB_PITCH_BYTE = 224;
 const ARTURIA_KEYLAB_MOD_BYTE = 176;
 
 // CC support for my MIDI controller :)
-export function useMidiController() {
+export function usePlaygroundController() {
   const dispatch = useProjectDispatch();
   const { isProdigy } = useAuth();
-  const transport = useProjectSelector(selectTransport);
-  const patternTrackMap = useProjectDeepSelector(selectPatternTrackMap);
-  const orderedTrackIds = useProjectDeepSelector(selectOrderedTrackIds);
-  const trackIndex = useProjectSelector(selectSelectedTrackIndex);
-  const patternTracks = useProjectDeepSelector(selectPatternTracks);
-  const selectedTrack = useProjectSelector(selectSelectedTrack);
+  const transport = use(selectTransport);
+  const patternTrackMap = useDeep(selectPatternTrackMap);
+  const orderedTrackIds = useDeep(selectOrderedTrackIds);
+  const trackIndex = use(selectSelectedTrackIndex);
+  const patternTracks = useDeep(selectPatternTracks);
+  const selectedTrack = use(selectSelectedTrack);
   const selectedAudioInstance = selectedTrack
     ? LIVE_AUDIO_INSTANCES[(selectedTrack as PatternTrack).instrumentId]
     : undefined;

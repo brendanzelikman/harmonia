@@ -11,7 +11,7 @@ import { defaultProject } from "types/Project/ProjectTypes";
 import { SET_PROJECT } from "providers/store";
 
 /** Try to load the current project from the database on mount */
-export function useProjectLoader() {
+export function usePlaygroundProject() {
   const { uid } = useAuth();
   const dispatch = useProjectDispatch();
   const [loaded, setLoaded] = useState(false);

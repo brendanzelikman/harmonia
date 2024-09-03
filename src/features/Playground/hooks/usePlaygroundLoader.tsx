@@ -1,9 +1,9 @@
-import { useProjectLoader } from "hooks/db/useProjectLoader";
-import { useTransportLoader } from "hooks/transport/useTransportLoader";
 import { useAuth } from "providers/auth";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { dispatchCustomEvent } from "utils/html";
+import { usePlaygroundProject } from "./usePlaygroundProject";
+import { usePlaygroundTransport } from "./usePlaygroundTransport";
 
 export interface PlaygroundLoadState {
   isPlaygroundLoaded: boolean;
@@ -16,8 +16,8 @@ export const usePlaygroundLoader = (): PlaygroundLoadState => {
   const { canPlay } = useAuth();
 
   // Load the project and transport
-  const isProjectLoaded = useProjectLoader();
-  const isTransportLoaded = useTransportLoader();
+  const isProjectLoaded = usePlaygroundProject();
+  const isTransportLoaded = usePlaygroundTransport();
   const isPlaygroundLoaded = !!(isProjectLoaded && isTransportLoaded);
 
   // Dispatch an event when the playground is loaded

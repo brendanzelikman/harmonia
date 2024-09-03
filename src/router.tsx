@@ -1,6 +1,6 @@
 import { SecureRoute } from "components/Route";
-import { LandingPage } from "pages/LandingPage";
-import { MainPage } from "pages/MainPage";
+import { LandingPage } from "pages/landing";
+import { MainPage } from "pages/main";
 import { createHashRouter } from "react-router-dom";
 
 export const AppRouter = createHashRouter([

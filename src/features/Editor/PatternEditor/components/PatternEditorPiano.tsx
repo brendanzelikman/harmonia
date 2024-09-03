@@ -1,5 +1,5 @@
 import { Sampler } from "tone";
-import { getMidiPitch } from "utils/midi";
+import { getMidiOctaveDistance, getMidiPitch } from "utils/midi";
 import { PatternEditorProps } from "../PatternEditor";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { getDurationSubdivision, getDurationTicks } from "utils/durations";
@@ -14,17 +14,20 @@ import {
   selectTrackChainIds,
   selectTrackMidiScaleMap,
   selectScaleTrackMap,
-  getTrackIdsWithPossibleScales,
 } from "types/Track/TrackSelectors";
-import { getValueByKey } from "utils/objects";
+import { getArrayByKey, getValueByKey } from "utils/objects";
 import { PatternNote } from "types/Pattern/PatternTypes";
-import { getDegreeOfNoteInTrack } from "types/Track/TrackThunks";
+import {
+  autoBindNoteToTrack,
+  getDegreeOfNoteInTrack,
+} from "types/Track/TrackThunks";
 import { useState } from "react";
 import classNames from "classnames";
-import { isNestedNote } from "types/Scale/ScaleTypes";
+import { chromaticNotes, isNestedNote } from "types/Scale/ScaleTypes";
 import { mod } from "utils/math";
 import { createUndoType } from "lib/redux";
 import { nanoid } from "@reduxjs/toolkit";
+import { TrackId } from "types/Track/TrackTypes";
 
 type PatternPianoMode = "midi" | "autobind" | "filter" | "remap";
 
@@ -152,38 +155,10 @@ export function PatternEditorPiano(props: PatternEditorProps) {
       velocity: 100,
     };
 
-    // Get the list of possible track ids based on the pattern
-    if (mode === "autobind" && chainIds.length) {
-      const ids = getTrackIdsWithPossibleScales(
-        note,
-        chainIds,
-        trackScaleMap,
-        scaleTrackMap
-      );
-
-      // Try to use the deepest possible midi scale
-      for (let i = ids.length - 1; i >= 0; i--) {
-        const trackId = ids[i];
-        const scaleId = getValueByKey(scaleTrackMap, trackId)?.scaleId;
-        const scaleNote = !!ids?.length ? { ...note, scaleId } : note;
-        const midiScale = trackId ? trackScaleMap[trackId] : undefined;
-
-        // Try to finding a corresponding scale
-        const degree = dispatch(getDegreeOfNoteInTrack(trackId, scaleNote));
-
-        if (degree > -1) {
-          note = {
-            degree,
-            offset: midiScale
-              ? { octave: Math.floor((midiNumber - midiScale[degree]) / 12) }
-              : undefined,
-            scaleId,
-            duration: durationTicks,
-            velocity: 100,
-          };
-          break;
-        }
-      }
+    // If autobinding, iterate over all tracks to find the best note
+    if (mode === "autobind" && ptId) {
+      const bestNote = dispatch(autoBindNoteToTrack(ptId, note));
+      if (bestNote) note = bestNote;
     }
 
     // Dispatch the appropriate action

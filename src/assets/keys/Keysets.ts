@@ -1,4 +1,4 @@
-import { PresetScaleMap } from "presets/scales";
+import { PresetScaleMap } from "assets/scales";
 import { getTransposedScale } from "types/Scale/ScaleTransformers";
 import { ScaleId, ScaleObject } from "types/Scale/ScaleTypes";
 import { Key } from "types/units";

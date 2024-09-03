@@ -11,7 +11,6 @@ import {
   ScaleClip,
 } from "./ClipTypes";
 import { createNormalSlice } from "lib/redux";
-import { asArray } from "types/util";
 import {
   getClipIdsByType,
   getClipsByType,

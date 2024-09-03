@@ -1,6 +1,6 @@
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { isNumber, isPlainObject, isString } from "lodash";
-import { ChromaticPitchClass } from "presets/keys";
+import { ChromaticPitchClass } from "assets/keys";
 import { TrackId } from "types/Track/TrackTypes";
 import { Id } from "types/units";
 import { createId } from "types/util";

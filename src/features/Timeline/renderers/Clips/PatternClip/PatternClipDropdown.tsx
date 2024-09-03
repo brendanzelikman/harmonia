@@ -56,16 +56,8 @@ import { EighthNoteTicks } from "utils/durations";
 import { DEFAULT_VELOCITY } from "utils/constants";
 import { Sampler } from "tone";
 import { showEditor } from "types/Editor/EditorThunks";
-import {
-  selectScaleTrackById,
-  selectTrackById,
-  selectTrackMidiScale,
-} from "types/Track/TrackSelectors";
-import { getDegreeOfNoteInTrack } from "types/Track/TrackThunks";
-import {
-  isScaleTrackId,
-  ScaleTrackId,
-} from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { autoBindNoteToTrack } from "types/Track/TrackThunks";
+import { PatternNote } from "types/Pattern/PatternTypes";
 
 export interface PatternClipDropdownProps extends PatternClipRendererProps {
   poseClipId?: PoseClipId;
@@ -83,7 +75,6 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const stream = useDeep((_) =>
     selectPatternClipMidiStream(_, portaledClip?.id)
   );
-  const track = useDeep((_) => selectTrackById(_, trackId));
   const xml = use((_) => selectPatternClipXML(_, portaledClip));
   const [editState, setEditState] = useState(0);
   const isAdding = editState === 1;
@@ -100,42 +91,18 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     },
     [isRemoving]
   );
-  const scale = useDeep((_) => selectTrackMidiScale(_, trackId));
-  const scaleId = use(
-    (_) =>
-      selectScaleTrackById(
-        _,
-        isScaleTrackId(trackId) ? trackId : (track?.parentId as ScaleTrackId)
-      )?.scaleId
-  );
+
   const playNote = useCallback(
     (_: Sampler, MIDI: number) => {
       if (isAdding) {
-        const note = {
+        let note: PatternNote = {
           duration: EighthNoteTicks,
           MIDI,
           velocity: DEFAULT_VELOCITY,
         };
-        const degree = dispatch(getDegreeOfNoteInTrack(trackId, note));
-        if (degree < 0) {
-          dispatch(addPatternNote({ data: { id: pattern.id, note } }));
-        } else {
-          const octave = Math.floor(MIDI - scale[degree]) / 12;
-          dispatch(
-            addPatternNote({
-              data: {
-                id: pattern.id,
-                note: {
-                  degree,
-                  offset: { octave },
-                  scaleId,
-                  duration: EighthNoteTicks,
-                  velocity: DEFAULT_VELOCITY,
-                },
-              },
-            })
-          );
-        }
+        const bestNote = dispatch(autoBindNoteToTrack(trackId, note));
+        if (bestNote) note = bestNote;
+        dispatch(addPatternNote({ data: { id: pattern.id, note } }));
       }
     },
     [isAdding]

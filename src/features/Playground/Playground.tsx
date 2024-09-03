@@ -1,7 +1,6 @@
 import { PlaygroundMobileSplash } from "./components/PlaygroundMobileSplash";
 import { PlaygroundLoadingScreen } from "./components/PlaygroundLoadingScreen";
 import { usePlaygroundLoader } from "./hooks/usePlaygroundLoader";
-import { useGlobalHotkeys, useMidiController } from "hooks";
 import { Timeline } from "features/Timeline/Timeline";
 import { TimelinePlaceholder } from "features/Timeline/components/TimelinePlaceholder";
 import { TimelineStart } from "features/Timeline/components/TimelineStart";
@@ -11,6 +10,8 @@ import { use } from "types/hooks";
 import { Editor } from "features/Editor/Editor";
 import { selectHasTracks } from "types/Arrangement/ArrangementSelectors";
 import { selectHideTimeline } from "types/Meta/MetaSelectors";
+import { usePlaygroundController } from "./hooks/usePlaygroundController";
+import { useGlobalHotkeys } from "./hooks/usePlaygroundHotkeys";
 
 /** The playground contains the DAW */
 export function Playground() {
@@ -18,7 +19,7 @@ export function Playground() {
   const hideTimeline = use(selectHideTimeline);
   const hasTracks = use(selectHasTracks);
   useGlobalHotkeys();
-  useMidiController();
+  usePlaygroundController();
 
   // If the playground is not loaded, show the loading screen.
   if (!loadState.isPlaygroundLoaded) {

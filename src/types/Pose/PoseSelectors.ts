@@ -1,5 +1,5 @@
 import { getValueByKey, getValuesByKeys } from "utils/objects";
-import { PresetPoseMap } from "presets/poses";
+import { PresetPoseMap } from "assets/poses";
 import { createDeepSelector } from "lib/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { PoseMap, PoseId, Pose, PoseState } from "./PoseTypes";

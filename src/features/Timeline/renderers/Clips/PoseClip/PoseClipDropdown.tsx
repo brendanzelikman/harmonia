@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { Slider } from "components/Slider";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { omit } from "lodash";
-import { ChromaticKey } from "presets/keys";
+import { ChromaticKey } from "assets/keys";
 import { useCallback, useMemo } from "react";
 import { PoseClip } from "types/Clip/ClipTypes";
 import { use, useDeep, useProjectDispatch } from "types/hooks";

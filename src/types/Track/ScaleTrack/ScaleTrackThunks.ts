@@ -1,7 +1,7 @@
 import { getValueByKey } from "utils/objects";
 import { addScale } from "types/Scale/ScaleSlice";
 import { random, range, sample, sampleSize } from "lodash";
-import { PresetScaleList } from "presets/scales";
+import { PresetScaleList } from "assets/scales";
 import { Thunk } from "types/Project/ProjectTypes";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
 import { sortScaleNotesByDegree } from "types/Scale/ScaleUtils";

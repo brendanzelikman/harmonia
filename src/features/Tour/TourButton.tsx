@@ -7,9 +7,8 @@ import { useProjectDispatch, useProjectSelector } from "types/hooks";
 import { dispatchCustomEvent } from "utils/html";
 import { NavbarTooltipButton } from "features/Navbar/components";
 import { END_TOUR, START_TOUR } from "./useOnboardingTour";
-import { useEventListener } from "hooks";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 import classNames from "classnames";
-import { GrHelp } from "react-icons/gr";
 import { hideEditor } from "types/Editor/EditorSlice";
 import { selectHasTrackTree } from "types/Arrangement/ArrangementSelectors";
 import { BsPersonRaisedHand } from "react-icons/bs";
@@ -23,7 +22,7 @@ export const TourButton = () => {
   const cancelTour = () => tour?.cancel();
 
   const [confetti, setConfetti] = useState(false);
-  useEventListener("confetti", (e) => setConfetti(e.detail));
+  useCustomEventListener("confetti", (e) => setConfetti(e.detail));
 
   const callback = () => {
     dispatchCustomEvent("confetti", false);

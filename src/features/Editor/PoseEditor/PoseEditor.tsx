@@ -1,4 +1,4 @@
-import { PresetPoseMap } from "presets/poses";
+import { PresetPoseMap } from "assets/poses";
 import { getValueByKey } from "utils/objects";
 import { usePoseEditorHotkeys } from "./hooks/usePoseEditorHotkeys";
 import { isEqual } from "lodash";

@@ -5,7 +5,7 @@ import "lib/react-shepherd.css";
 import { dispatchCustomEvent } from "utils/html";
 import LogoImage from "assets/images/logo.png";
 import { TourButton } from "./TourButton";
-import { useEventListener } from "hooks";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { isClipType } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
 import { TimelineState } from "types/Timeline/TimelineTypes";
@@ -26,7 +26,7 @@ export const ADVANCE_TOUR = "ADVANCE_TOUR";
 // Custom hook
 export const useTourId = () => {
   const [id, setId] = useState<string | null>(null);
-  useEventListener(SET_TOUR_ID, (e: CustomEvent) => setId(e.detail));
+  useCustomEventListener(SET_TOUR_ID, (e: CustomEvent) => setId(e.detail));
   return id;
 };
 

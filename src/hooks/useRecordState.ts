@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { dispatchCustomEvent } from "utils/html";
-import { useEventListeners } from "./useCustomEventListener";
+import { useCustomEventListeners } from "./useCustomEventListener";
 import { Dictionary } from "@reduxjs/toolkit";
 
 export const useRecordState = <T extends Dictionary<any>>(record: T) => {
@@ -27,7 +27,7 @@ export const useRecordState = <T extends Dictionary<any>>(record: T) => {
       setState((state) => ({ ...state, [key]: event.detail }));
     },
   }));
-  useEventListeners(listeners);
+  useCustomEventListeners(listeners);
 
   // Check if any or all keys are truthy/falsy
   const any = keys.some((key) => !!state[key]);

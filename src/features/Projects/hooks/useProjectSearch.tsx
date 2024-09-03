@@ -8,7 +8,7 @@ import {
   PRODIGY_PROJECT_LIMIT,
   MAESTRO_PROJECT_LIMIT,
   VIRTUOSO_PROJECT_LIMIT,
-} from "utils/constants";
+} from "utils/rank";
 import { useAuth } from "providers/auth";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { isProject } from "types/Project/ProjectTypes";

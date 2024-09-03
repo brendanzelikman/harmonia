@@ -1,4 +1,4 @@
-import { ChromaticKey } from "presets/keys";
+import { ChromaticKey } from "assets/keys";
 import { mod } from "./math";
 import { Key, MIDI } from "types/units";
 import {
@@ -18,15 +18,15 @@ import {
   getRotatedScale,
   getTransposedScale,
 } from "types/Scale/ScaleTransformers";
-import { Chords } from "presets/patterns";
+import { Chords } from "assets/patterns";
 import {
   isPatternMidiChord,
   PatternMidiNote,
 } from "types/Pattern/PatternTypes";
-import { SCALE_KEYSETS } from "presets/keys/Keysets";
+import { SCALE_KEYSETS } from "assets/keys/Keysets";
 import { getMidiChromaticNumber } from "./midi";
-import { majorKeys } from "presets/keys/MajorKeys";
-import { minorKeys } from "presets/keys/MinorKeys";
+import { majorKeys } from "assets/keys/MajorKeys";
+import { minorKeys } from "assets/keys/MinorKeys";
 
 // ------------------------------------------------------------
 // Key Helpers

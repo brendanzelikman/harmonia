@@ -1,4 +1,4 @@
-import { useAnimationFrame } from "hooks";
+import { useAnimationFrame } from "hooks/useAnimationFrame";
 import { clamp } from "lodash";
 import { useEffect, useState } from "react";
 import classNames from "classnames";

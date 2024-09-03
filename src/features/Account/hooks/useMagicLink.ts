@@ -1,5 +1,5 @@
 import { getAuth, signInWithEmailLink } from "firebase/auth";
-import { LandingAction } from "pages/LandingPage";
+import { LandingAction } from "pages/landing";
 import { firebaseApp } from "providers/firebase";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";

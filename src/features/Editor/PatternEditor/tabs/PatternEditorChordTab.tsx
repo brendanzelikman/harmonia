@@ -1,4 +1,3 @@
-import { useNumericInputs } from "hooks";
 import { useEffect } from "react";
 import { PatternEditorProps } from "../PatternEditor";
 import { EditorListbox } from "features/Editor/components/EditorListbox";
@@ -17,6 +16,7 @@ import {
   isPatternStrummedChord,
   isPatternBlockedChord,
 } from "types/Pattern/PatternTypes";
+import { useNumericInputs } from "hooks/useNumericInputs";
 
 export function PatternEditorChordTab(props: PatternEditorProps) {
   const dispatch = useProjectDispatch();

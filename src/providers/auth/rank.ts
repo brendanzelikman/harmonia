@@ -10,7 +10,8 @@ import {
 import { getAuth } from "firebase/auth";
 import { firebaseApp } from "providers/firebase";
 import { getClearance, adminClearance } from "providers/auth/password";
-import { Rank, MAESTRO_PRICE_ID, VIRTUOSO_PRICE_ID } from "utils/constants";
+import { getRankPriceId } from "utils/rank";
+import { Rank } from "utils/rank";
 
 // Await and return the subscription status of the current user from Firestore
 export async function fetchRank(uid: string | null): Promise<Rank> {
@@ -39,13 +40,13 @@ export async function fetchRank(uid: string | null): Promise<Rank> {
   });
 }
 
-// Return whether the snapshot matches the given status.
+// Return whether the snapshot matches the given rank.
 export const doesSnapshotMatchRank = (
   snapshot: QuerySnapshot<DocumentData, DocumentData>,
-  status: Rank
+  rank: Rank
 ) => {
-  if (status === "prodigy") return !snapshot.empty;
-  const priceId = status === "maestro" ? MAESTRO_PRICE_ID : VIRTUOSO_PRICE_ID;
+  if (rank === "prodigy") return !snapshot.empty;
+  const priceId = getRankPriceId(rank);
   const hasPriceId = (doc: DocumentData) => {
     const data = doc.data();
     const hasPrice = (i: any) => i.price.id === priceId;

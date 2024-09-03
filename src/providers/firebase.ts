@@ -1,17 +1,13 @@
 import { initializeApp } from "firebase/app";
 import { GoogleAuthProvider, OAuthProvider } from "firebase/auth";
-import {
-  FIREBASE_LIVE_API_KEY,
-  FIREBASE_TEST_API_KEY,
-  IS_PROD,
-} from "utils/constants";
+import { IS_PROD } from "utils/constants";
 
 // ------------------------------------------------------------
 // Firebase Initialization
 // ------------------------------------------------------------
 
 const firebaseLiveConfig = {
-  apiKey: FIREBASE_LIVE_API_KEY,
+  apiKey: "AIzaSyB5pJkggKaGHsORB8WPdYqLFDr6X4QRizA",
   authDomain: "harmonia-408805.firebaseapp.com",
   projectId: "harmonia-408805",
   storageBucket: "harmonia-408805.appspot.com",
@@ -20,7 +16,7 @@ const firebaseLiveConfig = {
   measurementId: "G-SVZDMC9CQZ",
 };
 const firebaseTestConfig = {
-  apiKey: FIREBASE_TEST_API_KEY,
+  apiKey: "AIzaSyDK8znzt-KwZmSdtCtUaVje5Ox9lND3e6U",
   authDomain: "harmonia-test-e236b.firebaseapp.com",
   projectId: "harmonia-test-e236b",
   storageBucket: "harmonia-test-e236b.appspot.com",

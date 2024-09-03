@@ -1,15 +1,18 @@
 import classNames from "classnames";
-import { useEventListener, useTransportTick } from "hooks";
 import { useEffect, useMemo, useState } from "react";
 import { use } from "types/hooks";
 import { getTransport } from "tone";
 import { getTransportState } from "types/Transport/TransportFunctions";
 import { selectTransport } from "types/Transport/TransportSelectors";
+import { useTransportTick } from "hooks/useTransportTick";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 
 export function NavbarTimer() {
   const tick = useTransportTick();
   const [scrolling, setScrolling] = useState<number>(0);
-  useEventListener("timeline-scroll", (e) => setScrolling((prev) => prev + 1));
+  useCustomEventListener("timeline-scroll", (e) =>
+    setScrolling((prev) => prev + 1)
+  );
   useEffect(() => {
     if (!scrolling) return;
     const timeout = setTimeout(() => {

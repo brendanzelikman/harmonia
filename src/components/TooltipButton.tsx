@@ -1,9 +1,8 @@
 import { Menu } from "@headlessui/react";
 import classNames from "classnames";
 import { ReactNode, useEffect, useState } from "react";
-import { use, useProjectSelector } from "types/hooks";
+import { use } from "types/hooks";
 import { selectHideTooltips } from "types/Meta/MetaSelectors";
-import { selectTimeline } from "types/Timeline/TimelineSelectors";
 import { cancelEvent } from "utils/html";
 
 interface TooltipButtonProps {

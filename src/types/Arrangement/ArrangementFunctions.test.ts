@@ -44,6 +44,12 @@ const st2 = initializeScaleTrack({ scaleId: scale2.id });
 const st3 = initializeScaleTrack({ scaleId: scale3.id });
 const st4 = initializeScaleTrack({ scaleId: scale4.id });
 
+// Update the scales
+scale1.scaleTrackId = st1.id;
+scale2.scaleTrackId = st2.id;
+scale3.scaleTrackId = st3.id;
+scale4.scaleTrackId = st4.id;
+
 // Update the track dependencies
 st1.trackIds = [st2.id];
 st2.trackIds = [st3.id];
@@ -79,8 +85,8 @@ const pc3 = initializePoseClip({ poseId: p3.id, trackId: st3.id });
 const pc4 = initializePoseClip({ poseId: p4.id, trackId: st4.id });
 
 // Create the dependencies
-const scales = keyBy([scale1, scale2, scale3, scale4]);
-const poses = keyBy([p1, p2, p3, p4]);
+const scales = keyBy([scale1, scale2, scale3, scale4], "id");
+const poses = keyBy([p1, p2, p3, p4], "id");
 
 // Get the chain using the given pose clip and tick
 const getChainAtTick = (clip: PoseClip, tick: number) => {
@@ -109,7 +115,7 @@ const getScaleNames = (clip: PoseClip, tick: number) => {
   const midiScales = scales.map((_, i) =>
     resolveScaleChainToMidi(scales.slice(0, i + 1))
   );
-  return midiScales.map((s) => getScaleName(s));
+  return midiScales.map(getScaleName);
 };
 
 // ------------------------------------------------------------
@@ -118,25 +124,25 @@ const getScaleNames = (clip: PoseClip, tick: number) => {
 
 test("getTrackScaleChain should return the correct scales with a pose applied to track 1", () => {
   expect(getScaleNames(pc1, 0)).toEqual([
-    "Chromatic Scale",
+    "Db Chromatic Scale",
     "Db Major Scale",
     "Db Major Scale",
     "Db Major 7th Chord",
   ]);
   expect(getScaleNames(pc1, 1)).toEqual([
-    "Chromatic Scale",
+    "B Chromatic Scale",
     "B Major Scale",
     "B Major Scale",
     "B Major 7th Chord",
   ]);
   expect(getScaleNames(pc1, 2)).toEqual([
-    "Chromatic Scale",
+    "Db Chromatic Scale",
     "Db Major Scale",
     "Db Major Scale",
     "Db Major 7th Chord",
   ]);
   expect(getScaleNames(pc1, 3)).toEqual([
-    "Chromatic Scale",
+    "B Chromatic Scale",
     "B Major Scale",
     "B Major Scale",
     "B Major 7th Chord",
@@ -292,7 +298,7 @@ test("getTrackScaleChain should return the correct scales with a pose applied to
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
-    "C Major 7th Chord (t3)",
+    "E Minor b6 Chord (t2)",
   ]);
   expect(getScaleNames(pc4, 4)).toEqual([
     "Chromatic Scale",

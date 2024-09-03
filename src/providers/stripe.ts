@@ -8,7 +8,9 @@ import {
   where,
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { PRICE_RECORD, Rank, WEBSITE_URL } from "../utils/constants";
+import { WEBSITE_URL } from "../utils/constants";
+import { getRankPriceId } from "utils/rank";
+import { Rank } from "utils/rank";
 import { firebaseApp, FirebaseApp } from "providers/firebase";
 
 /* Get the checkout URL for the given subscription status. */
@@ -24,7 +26,7 @@ export const getCheckoutUrl = async (
   if (!userId) throw new Error("User is not authenticated.");
 
   // Get the corresponding price
-  const price = PRICE_RECORD[status];
+  const price = getRankPriceId(status);
   if (!price) throw new Error("Invalid subscription status.");
 
   // Add a new checkout session
@@ -57,7 +59,7 @@ export const getCheckoutUrl = async (
 /* Get the portal URL to manage subscriptions with a custom flow based on status. */
 export const getPortalUrl = async (
   app: FirebaseApp,
-  status?: Rank
+  rank?: Rank
 ): Promise<string> => {
   let dataWithUrl: any;
   try {
@@ -90,9 +92,9 @@ export const getPortalUrl = async (
     );
 
     // Create the corresponding flow data
-    const flow_data = !status
+    const flow_data = !rank
       ? undefined
-      : status === "prodigy"
+      : rank === "prodigy"
       ? {
           type: "subscription_cancel",
           subscription_cancel: {
@@ -103,7 +105,7 @@ export const getPortalUrl = async (
           type: "subscription_update_confirm",
           subscription_update_confirm: {
             subscription: subscriptionId,
-            items: [{ id: itemId, price: PRICE_RECORD[status], quantity: 1 }],
+            items: [{ id: itemId, price: getRankPriceId(rank), quantity: 1 }],
           },
         };
 

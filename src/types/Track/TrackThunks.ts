@@ -31,13 +31,13 @@ import { addScale, removeScale } from "types/Scale/ScaleSlice";
 import {
   ScaleObject,
   isNestedNote,
-  NestedNote,
   initializeScale,
+  chromaticNotes,
 } from "types/Scale/ScaleTypes";
 import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import { isHoldingOption } from "utils/html";
-import { spliceOrPush, getValueByKey } from "utils/objects";
+import { getArrayByKey, getValueByKey, spliceOrPush } from "utils/objects";
 import { createPatternTrack } from "./PatternTrack/PatternTrackThunks";
 import { PatternTrackId } from "./PatternTrack/PatternTrackTypes";
 import { createScaleTrack } from "./ScaleTrack/ScaleTrackThunks";
@@ -53,6 +53,9 @@ import {
   selectScaleTrackByScaleId,
   selectPatternTrackById,
   selectScaleTrackMap,
+  selectTrackScaleChain,
+  selectTrackMidiScaleMap,
+  selectTrackChainIds,
 } from "./TrackSelectors";
 import { scaleTrackSlice, patternTrackSlice } from "./TrackSlice";
 import {
@@ -63,6 +66,10 @@ import {
   Track,
   TrackUpdate,
 } from "./TrackTypes";
+import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
+import { mod } from "utils/math";
+import { getMidiOctaveDistance } from "utils/midi";
+import { resolvePatternNoteToMidi } from "types/Pattern/PatternResolvers";
 
 /** Add an array of tracks to the store. */
 export const addTracks =
@@ -611,16 +618,109 @@ export const getDegreeOfNoteInTrack =
     let MIDI: number;
     if (!isNested) MIDI = patternNote.MIDI;
     else {
-      const note = patternNote as NestedNote;
-      const track = selectScaleTrackByScaleId(project, note?.scaleId);
-      const midiScale = selectTrackMidiScale(project, track?.id);
-      const midi = getValueByKey(midiScale, note?.degree);
-      MIDI = midi ?? -1;
+      // Chain the note through its scales
+      const track = selectScaleTrackByScaleId(project, patternNote?.scaleId);
+      const chain = selectTrackScaleChain(project, track?.id);
+      MIDI = resolveScaleNoteToMidi(patternNote, chain);
     }
 
     // Index the MIDI scale and return the degree
     if (MIDI < 0) return -1;
     return trackMidiScale.findIndex((s) => s % 12 === MIDI % 12);
+  };
+
+/**
+ * Get the best matching note based on the given track. */
+export const autoBindNoteToTrack =
+  (trackId: TrackId, note: PatternNote): Thunk<PatternNote | undefined> =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const midi = resolvePatternNoteToMidi(note);
+    const scaleTrackMap = selectScaleTrackMap(project);
+    const trackScaleMap = selectTrackMidiScaleMap(project);
+    const chainIds = selectTrackChainIds(project, trackId);
+    const idCount = chainIds.length;
+
+    // Get the current track and scale
+    for (let i = idCount - 1; i >= 0; i--) {
+      const trackId = chainIds[i];
+      const track = getValueByKey(scaleTrackMap, trackId);
+      const scaleId = track?.scaleId;
+      const scale = getArrayByKey(trackScaleMap, trackId);
+      const scaleNote: PatternNote = { ...note, scaleId };
+
+      // Check for an exact match with the current scale
+      const degree = dispatch(getDegreeOfNoteInTrack(trackId, note));
+      if (degree > -1) {
+        const octave = getMidiOctaveDistance(scale[degree], midi);
+        note = { ...scaleNote, degree, offset: { octave } };
+        if ("MIDI" in note) delete note.MIDI;
+        break;
+      }
+
+      // Otherwise, check parent scales for neighbors, preferring deep matches first
+      const parentIds = chainIds.slice(0, i).toReversed();
+      const trackIds: (TrackId | "T")[] = [...parentIds, "T"];
+      let found = false;
+
+      // Iterate over all scale offsets
+      for (let i = 0; i < trackIds.length; i++) {
+        const id = trackIds[i];
+        const parentTrack = getValueByKey(scaleTrackMap, id);
+        const parentScaleId = id === "T" ? "chromatic" : parentTrack?.scaleId;
+        if (!parentScaleId) continue;
+
+        // Check the parent scale (or chromatic scale at the end)
+        const parentScale = id === "T" ? chromaticNotes : trackScaleMap[id];
+        const parentSize = parentScale.length;
+        const degree =
+          id === "T"
+            ? chromaticNotes.findIndex((n) => n % 12 === midi % 12)
+            : dispatch(getDegreeOfNoteInTrack(id, scaleNote));
+        if (degree === -1) continue;
+
+        // Check if the note can be lowered to fit in the scale
+        const lower = mod(degree - 1, parentSize);
+        const lowerOctave = Math.floor((degree - 1) / parentSize);
+        const lowerMIDI = parentScale?.[lower] ?? 0;
+        const lowerNote = { ...scaleNote, MIDI: lowerMIDI };
+        const lowerDegree = dispatch(
+          getDegreeOfNoteInTrack(trackId, lowerNote)
+        );
+
+        // If the lowered note exists in the current scale, add the note as an upper neighbor
+        if (lowerDegree > -1) {
+          const octave = getMidiOctaveDistance(lowerMIDI, midi) + lowerOctave;
+          const offset = { [parentScaleId]: 1, octave };
+          note = { ...scaleNote, degree: lowerDegree, offset };
+          if ("MIDI" in note) delete note.MIDI;
+          found = true;
+          break;
+        }
+
+        // Check if the note can be raised to fit in the scale
+        const upper = mod(degree + 1, parentSize);
+        const upperMIDI = parentScale?.[upper] ?? 0;
+        const upperNote = { ...scaleNote, MIDI: upperMIDI };
+        const upperOctave = Math.floor((degree + 1) / parentSize);
+        const upperDegree = dispatch(
+          getDegreeOfNoteInTrack(trackId, upperNote)
+        );
+
+        // If the raised note exists in the current scale, add the note as a lower neighbor
+        if (upperDegree > -1) {
+          const octave = getMidiOctaveDistance(upperMIDI, midi) + upperOctave;
+          const offset = { [parentScaleId]: -1, octave };
+          note = { ...scaleNote, degree: upperDegree, offset };
+          if ("MIDI" in note) delete note.MIDI;
+          found = true;
+          break;
+        }
+      }
+
+      if (found) break;
+    }
+    return note;
   };
 
 /** Mute all tracks. */

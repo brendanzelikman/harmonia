@@ -10,7 +10,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { PoseClipDropdown } from "./PoseClipDropdown";
 import { PoseClipHeader } from "./PoseClipHeader";
 import { Portaled } from "types/Portal/PortalTypes";
-import { useToggledState } from "hooks/window/useToggledState";
+import { useToggledState } from "hooks/useToggledState";
 import { useDragState } from "types/Media/MediaTypes";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { Timed } from "types/units";

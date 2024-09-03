@@ -19,7 +19,6 @@ import {
 import { getClipMapsByType } from "types/Clip/ClipUtils";
 import { InstrumentNotesByTicks } from "types/Instrument/InstrumentTypes";
 import {
-  isPatternMidiChord,
   PatternId,
   PatternMidiChord,
   PatternMidiStream,
@@ -32,7 +31,7 @@ import { PortaledClipId, PortaledClipMap } from "types/Portal/PortalTypes";
 import { Project } from "types/Project/ProjectTypes";
 import { TrackId, isPatternTrack } from "types/Track/TrackTypes";
 import { Tick } from "types/units";
-import { getValueByKey, getDictValues } from "utils/objects";
+import { getDictValues } from "utils/objects";
 import {
   getPatternClipMidiStream,
   getMidiStreamAtTickInTrack,
@@ -56,32 +55,14 @@ import {
 } from "types/Track/TrackSelectors";
 import { selectMotifState } from "types/Motif/MotifSelectors";
 import { getMediaElementDuration } from "types/Media/MediaFunctions";
-import {
-  selectCellWidth,
-  selectIsAddingClips,
-  selectSubdivision,
-  selectTrackHeightMap,
-} from "types/Timeline/TimelineSelectors";
-import { getTickColumns, Subdivision } from "utils/durations";
 import { getClipDuration } from "types/Clip/ClipFunctions";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import {
   exportPatternStreamToXML,
   exportPatternToXML,
 } from "types/Pattern/PatternExporters";
-import {
-  CLIP_NAME_HEIGHT,
-  CLIP_STREAM_MARGIN,
-} from "features/Timeline/renderers/Clips/PatternClipRenderer";
-import { POSE_HEIGHT, TRACK_WIDTH } from "utils/constants";
-import {
-  getMidiStreamMinMax,
-  getPatternMidiChordNotes,
-} from "types/Pattern/PatternUtils";
-import {
-  selectTrackScaleChainAtTick,
-  selectTrackTopMap,
-} from "./ArrangementTrackSelectors";
+import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
+import { selectTrackScaleChainAtTick } from "./ArrangementTrackSelectors";
 import { DemoXML } from "assets/demoXML";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import {
@@ -107,8 +88,7 @@ import {
   PatternTrackId,
 } from "types/Track/PatternTrack/PatternTrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
-import { clamp, inRange, mapValues } from "lodash";
-import { getPatternClipTheme } from "types/Clip/PatternClip/PatternClipFunctions";
+import { inRange, mapValues } from "lodash";
 
 /** Select the arrangement as a basic collection of dependencies (entities). */
 export const selectTrackArrangement = createDeepSelector(

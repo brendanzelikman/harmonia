@@ -1,5 +1,5 @@
 import { HEADER_HEIGHT } from "utils/constants";
-import { useTransportTick } from "hooks";
+import { useTransportTick } from "hooks/useTransportTick";
 import { memo } from "react";
 import { useProjectSelector } from "types/hooks";
 import { isTransportStarted } from "types/Transport/TransportFunctions";

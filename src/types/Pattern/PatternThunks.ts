@@ -9,7 +9,7 @@ import { getMidiOctaveDistance, getMidiPitch } from "utils/midi";
 import { EighthNoteTicks } from "utils/durations";
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { range, sample, sampleSize } from "lodash";
-import { PresetScaleList } from "presets/scales";
+import { PresetScaleList } from "assets/scales";
 import { normalize } from "utils/math";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { Thunk } from "types/Project/ProjectTypes";

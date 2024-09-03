@@ -2,7 +2,7 @@ import Background from "assets/images/landing-background.png";
 import classNames from "classnames";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { sample } from "lodash";
-import { PresetScaleList } from "presets/scales";
+import { PresetScaleList } from "assets/scales";
 import React from "react";
 import {
   GiBreakingChain,

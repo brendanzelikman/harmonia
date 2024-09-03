@@ -12,7 +12,7 @@ import {
   useProjectDeepSelector as useDeep,
   useProjectDispatch,
 } from "types/hooks";
-import { useTransportTick } from "hooks";
+import { useTransportTick } from "hooks/useTransportTick";
 import { TrackFormatterProps } from "./TrackFormatter";
 import classNames from "classnames";
 import { GiBreakingChain, GiMusicalKeyboard } from "react-icons/gi";

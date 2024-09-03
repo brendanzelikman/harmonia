@@ -9,7 +9,7 @@ import { areScalesEqual } from "types/Scale/ScaleUtils";
 import { ScaleObject } from "types/Scale/ScaleTypes";
 import { selectTrackScaleChain } from "types/Track/TrackSelectors";
 import { getScaleName } from "utils/key";
-import { PresetScaleGroupMap } from "presets/scales";
+import { PresetScaleGroupMap } from "assets/scales";
 import { useMemo } from "react";
 
 export interface PresetScaleProps extends ScaleEditorProps {

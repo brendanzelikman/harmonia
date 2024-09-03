@@ -16,8 +16,6 @@ import {
   Pattern,
   isPatternMidiChord,
   isPatternStrummedChord,
-  PatternChord,
-  isPatternChord,
   PatternStream,
   PatternMidiStream,
   PatternBlock,

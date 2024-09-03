@@ -1,6 +1,5 @@
 import { use, useDeep } from "types/hooks";
 import { EditorNavbar } from "./components/EditorNavbar";
-import { useHotkeyScope } from "hooks";
 import { ScaleObject } from "types/Scale/ScaleTypes";
 import { Pattern } from "types/Pattern/PatternTypes";
 import { useEditorInstrument } from "./hooks/useEditorInstrument";
@@ -36,6 +35,7 @@ import {
   selectSelectedPose,
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackScale } from "types/Track/TrackSelectors";
+import { useHotkeyScope } from "lib/react-hotkeys-hook";
 
 export interface EditorProps extends Editor {
   // The editor uses currently selected objects for various purposes

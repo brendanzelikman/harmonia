@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export function useEventListener(
+export function useCustomEventListener(
   type: string,
   onEvent: (event: CustomEvent) => void
 ) {
@@ -11,7 +11,7 @@ export function useEventListener(
   }, [type, onEvent]);
 }
 
-export function useEventListeners(
+export function useCustomEventListeners(
   listeners: { type: string; onEvent: (event: CustomEvent) => void }[]
 ) {
   useEffect(() => {

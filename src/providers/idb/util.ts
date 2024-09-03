@@ -1,9 +1,9 @@
+import { PROJECT_STORE } from "utils/constants";
 import {
-  PROJECT_STORE,
   PRODIGY_PROJECT_LIMIT,
   MAESTRO_PROJECT_LIMIT,
   VIRTUOSO_PROJECT_LIMIT,
-} from "utils/constants";
+} from "utils/rank";
 import { getDatabase } from "./database";
 import { fetchUser } from "providers/auth";
 

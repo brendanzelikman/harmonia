@@ -1,7 +1,7 @@
 import { Key, MIDI, PitchClass } from "types/units";
 import { PITCH_CLASSES } from "./pitchClass";
 import { mod } from "./math";
-import { ChromaticKey } from "presets/keys";
+import { ChromaticKey } from "assets/keys";
 import { isNumber } from "lodash";
 
 // ------------------------------------------------------------

@@ -1,4 +1,4 @@
-import { useToggledState } from "hooks/window/useToggledState";
+import { useToggledState } from "hooks/useToggledState";
 
 export const PROJECT_DIARY_PAGE_COUNT = 10;
 

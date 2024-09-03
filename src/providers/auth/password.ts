@@ -1,5 +1,5 @@
 import { promptModal } from "components/PromptModal";
-import { useEventListener } from "hooks/window/useCustomEventListener";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { useState } from "react";
 import { dispatchCustomEvent } from "utils/html";
 
@@ -57,7 +57,7 @@ export const updateClearance = (clearance: Clearance) => {
 // Store the clearance in state and listen for changes
 export const useClearance = () => {
   const [clearance, setClearance] = useState(getClearance());
-  useEventListener(UPDATE_CLEARANCE, (e) => setClearance(e.detail));
+  useCustomEventListener(UPDATE_CLEARANCE, (e) => setClearance(e.detail));
   return {
     clearance,
     isAdmin: clearance === adminClearance,

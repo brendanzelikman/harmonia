@@ -1,6 +1,6 @@
 import { createSelector } from "reselect";
 import { getValuesByKeys } from "utils/objects";
-import { PresetScaleMap } from "presets/scales";
+import { PresetScaleMap } from "assets/scales";
 import { createDeepSelector } from "lib/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { defaultScaleState, scaleAdapter } from "./ScaleSlice";

@@ -1,4 +1,4 @@
-import { useRecordState } from "hooks/window/useRecordState";
+import { useRecordState } from "hooks/useRecordState";
 import { Payload } from "lib/redux";
 import { isBoolean, isObject, isPlainObject, isString } from "lodash";
 import {

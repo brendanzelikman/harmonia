@@ -1,54 +1,15 @@
 export const IS_PROD = import.meta.env.PROD;
-// ------------------------------------------------------------
-// Project Settings - Product Info
-// ------------------------------------------------------------
-export const FIREBASE_LIVE_API_KEY = import.meta.env.VITE_FIREBASE_LIVE_API_KEY;
-export const FIREBASE_TEST_API_KEY = import.meta.env.VITE_FIREBASE_TEST_API_KEY;
 
-// Website URL
+// ------------------------------------------------------------
+// Project URLs
+// ------------------------------------------------------------
+
 export const WEBSITE_TEST_URL = import.meta.env.VITE_WEBSITE_TEST_URL;
 export const WEBSITE_LIVE_URL = import.meta.env.VITE_WEBSITE_LIVE_URL;
 export const WEBSITE_URL = IS_PROD ? WEBSITE_LIVE_URL : WEBSITE_TEST_URL;
 export const REPO_URL = import.meta.env.VITE_REPOSITORY_URL;
 export const DESKTOP_URL = import.meta.env.VITE_DESKTOP_URL;
 export const PLUGIN_URL = import.meta.env.VITE_PLUGIN_URL;
-
-// ------------------------------------------------------------
-// Project Settings - Subscriptions
-// ------------------------------------------------------------
-
-export type Rank = "prodigy" | "maestro" | "virtuoso";
-export const PRODIGY_PRICE = 0;
-export const MAESTRO_PRICE = 10;
-export const VIRTUOSO_PRICE = 20;
-
-// Project Limits
-export const PRODIGY_PROJECT_LIMIT = 1;
-export const MAESTRO_PROJECT_LIMIT = 50;
-export const VIRTUOSO_PROJECT_LIMIT = Infinity;
-
-// Maestro Price
-export const MAESTRO_TEST_PRICE_ID = import.meta.env.VITE_MAESTRO_TEST_PRICE_ID;
-export const MAESTRO_LIVE_PRICE_ID = import.meta.env.VITE_MAESTRO_LIVE_PRICE_ID;
-export const MAESTRO_PRICE_ID = IS_PROD
-  ? MAESTRO_LIVE_PRICE_ID
-  : MAESTRO_TEST_PRICE_ID;
-
-// Virtuoso Price
-export const VIRTUOSO_TEST_PRICE_ID = import.meta.env
-  .VITE_VIRTUOSO_TEST_PRICE_ID;
-export const VIRTUOSO_LIVE_PRICE_ID = import.meta.env
-  .VITE_VIRTUOSO_LIVE_PRICE_ID;
-export const VIRTUOSO_PRICE_ID = IS_PROD
-  ? VIRTUOSO_LIVE_PRICE_ID
-  : VIRTUOSO_TEST_PRICE_ID;
-
-// Subscription Prices
-export const PRICE_RECORD = {
-  prodigy: null,
-  maestro: IS_PROD ? MAESTRO_LIVE_PRICE_ID : MAESTRO_TEST_PRICE_ID,
-  virtuoso: IS_PROD ? VIRTUOSO_LIVE_PRICE_ID : VIRTUOSO_TEST_PRICE_ID,
-};
 
 // ------------------------------------------------------------
 // Plugin Settings
@@ -58,19 +19,12 @@ export const PLUGIN_STARTING_PORT = 51200;
 export const PLUGIN_PORT_RANGE = 16;
 
 // ------------------------------------------------------------
-// Local Storage
-// ------------------------------------------------------------
-
-export const PROJECT_ID = import.meta.env.VITE_LS_PROJECT_ID;
-
-// ------------------------------------------------------------
-// Indexed Database
+// Local Storage + Indexed Database
 // ------------------------------------------------------------
 
 export const IDB_NAME = import.meta.env.VITE_IDB_NAME;
 export const PROJECT_STORE = import.meta.env.VITE_IDB_PROJECT_STORE;
-export const PRESET_STORE = import.meta.env.VITE_IDB_PRESET_STORE;
-export const SHORTCUT_STORE = import.meta.env.VITE_IDB_SHORTCUT_STORE;
+export const PROJECT_ID = import.meta.env.VITE_LS_PROJECT_ID;
 
 // ------------------------------------------------------------
 // Tempo and Rhythm

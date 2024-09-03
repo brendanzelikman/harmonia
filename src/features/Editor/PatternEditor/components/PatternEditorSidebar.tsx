@@ -5,10 +5,7 @@ import { PatternEditorProps } from "../PatternEditor";
 import { BiCopy } from "react-icons/bi";
 import { cancelEvent } from "utils/html";
 import { usePatternDrop, usePatternDrag } from "../hooks/usePatternEditorDnd";
-import {
-  PresetPatternGroupList,
-  PresetPatternGroupMap,
-} from "presets/patterns";
+import { PresetPatternGroupList, PresetPatternGroupMap } from "assets/patterns";
 import { useProjectDeepSelector, useProjectDispatch } from "types/hooks";
 import {
   EditorList,

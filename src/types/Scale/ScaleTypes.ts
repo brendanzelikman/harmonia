@@ -152,7 +152,7 @@ export const isNestedNote = (obj: unknown): obj is NestedNote => {
   return (
     isPlainObject(candidate) &&
     isFiniteNumber(candidate.degree) &&
-    isOptionalType(candidate.scaleId, isString) &&
+    isOptionalType(candidate.scaleId, isScaleId) &&
     isOptionalType(candidate.offset, isScaleVector)
   );
 };

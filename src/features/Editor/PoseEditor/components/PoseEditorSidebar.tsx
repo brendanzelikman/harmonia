@@ -9,7 +9,7 @@ import {
   PoseGroupKey,
   PresetPoseGroupList,
   PresetPoseGroupMap,
-} from "presets/poses";
+} from "assets/poses";
 import { usePoseDrag, usePoseDrop } from "../hooks/usePoseEditorDnd";
 import {
   EditorList,

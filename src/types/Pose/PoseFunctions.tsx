@@ -1,6 +1,6 @@
 import * as _ from "./PoseTypes";
 import { getKeys } from "utils/objects";
-import { PresetPoseGroupList, PresetPoseGroupMap } from "presets/poses";
+import { PresetPoseGroupList, PresetPoseGroupMap } from "assets/poses";
 import { WholeNoteTicks } from "utils/durations";
 import pluralize from "pluralize";
 import { ScaleVector } from "types/Scale/ScaleTypes";
@@ -12,7 +12,7 @@ import {
   isTrackId,
 } from "types/Track/TrackTypes";
 import { isVoiceLeading } from "./PoseTypes";
-import { ChromaticKey, ChromaticPitchClass } from "presets/keys";
+import { ChromaticKey, ChromaticPitchClass } from "assets/keys";
 import { isPitchClass } from "utils/pitchClass";
 
 // ------------------------------------------------------------

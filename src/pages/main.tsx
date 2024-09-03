@@ -3,12 +3,12 @@ import { Docs } from "features/Docs/Docs";
 import { useProjectList } from "features/Projects";
 import { useParams } from "react-router-dom";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { useDatabaseCallback, useEventListener } from "hooks";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { getProjectsFromDB } from "providers/idb";
 import { useProjectFetcher } from "features/Projects/hooks/useProjectFetcher";
 import { TourBackground } from "features/Tour";
 import { useProjectSelector } from "types/hooks";
-import { useBrowserTitle } from "hooks";
+import { useBrowserTitle } from "hooks/useBrowserTitle";
 import { useAuth } from "providers/auth";
 
 import LandingBackground from "assets/images/landing-background.png";
@@ -47,11 +47,10 @@ export function MainPage(props: MainPageProps) {
   };
 
   // Update whenever the database or view changes
-  useDatabaseCallback(updateProjects, [uid]);
-  useEventListener(UPDATE_PROJECTS, updateProjects);
+  useCustomEventListener(UPDATE_PROJECTS, updateProjects);
   useEffect(() => {
     updateProjects();
-  }, [view]);
+  }, [view, uid]);
 
   // Get the list of projects
   const fetchedProjects = useProjectFetcher({ projects });

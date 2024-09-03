@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { TooltipButton } from "components/TooltipButton";
-import { View, views } from "pages/MainPage";
+import { View, views } from "pages/main";
 import { useAuth } from "providers/auth";
 import { useCallback } from "react";
 import { Link } from "react-router-dom";

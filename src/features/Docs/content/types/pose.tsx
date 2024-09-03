@@ -1,5 +1,5 @@
 import { PPQ } from "utils/durations";
-import { PresetPoseList } from "presets/poses";
+import { PresetPoseList } from "assets/poses";
 import { DocsList, DocsParagraph, DocsSection } from "../../components";
 
 export function PoseDocsContent() {

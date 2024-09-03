@@ -2,7 +2,7 @@ import {
   PresetPatternGroupList,
   PresetPatternGroupMap,
   PresetPatternMap,
-} from "presets/patterns";
+} from "assets/patterns";
 import { createDeepSelector } from "lib/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { defaultPatternState, patternAdapter } from "./PatternSlice";

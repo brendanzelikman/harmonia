@@ -1,7 +1,7 @@
 import { PPQ } from "utils/durations";
 import { DocsList, DocsParagraph, DocsSection } from "../../components";
 import { DEFAULT_VELOCITY } from "utils/constants";
-import { PresetPatternList } from "presets/patterns";
+import { PresetPatternList } from "assets/patterns";
 
 export function PatternDocsContent() {
   return (

@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DiaryCoverPage, DiaryPageBinding } from "./DiaryPage";
 import { cancelEvent } from "utils/html";
-import { useHotkeyScope } from "hooks";
-import { useScopedHotkeys } from "lib/react-hotkeys-hook";
+import { useHotkeyScope, useScopedHotkeys } from "lib/react-hotkeys-hook";
 import { BsDownload, BsTrash } from "react-icons/bs";
 import { ContentPage } from "./ContentPage";
 import { m } from "framer-motion";

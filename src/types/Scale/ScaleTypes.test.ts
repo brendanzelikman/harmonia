@@ -45,14 +45,20 @@ test("isMidiNote should only return true for valid values and objects", () => {
 
 test("isNestedNote should only return true for valid nested notes", () => {
   expect(_.isNestedNote({ degree: 1 })).toBe(true);
-  expect(_.isNestedNote({ degree: 1, scaleId: "s1" })).toBe(true);
-  expect(_.isNestedNote({ degree: 1, scaleId: "s1", offset: {} })).toBe(true);
+  expect(_.isNestedNote({ degree: 1, scaleId: _.initializeScale().id })).toBe(
+    true
+  );
+  expect(
+    _.isNestedNote({ degree: 1, scaleId: _.initializeScale().id, offset: {} })
+  ).toBe(true);
   expect(_.isNestedNote({ degree: 1, offset: { id: 1 } })).toBe(true);
 
   expect(_.isNestedNote(undefined)).toBe(false);
   expect(_.isNestedNote({})).toBe(false);
   expect(_.isNestedNote({ degree: 1, scaleId: 1 })).toBe(false);
-  expect(_.isNestedNote({ degree: 1, scaleId: "s1", offset: 1 })).toBe(false);
+  expect(
+    _.isNestedNote({ degree: 1, scaleId: _.initializeScale().id, offset: 1 })
+  ).toBe(false);
   expect(_.isNestedNote({ degree: 1, offset: { octave: "1" } })).toBe(false);
 });
 

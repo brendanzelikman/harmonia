@@ -14,10 +14,7 @@ import {
 } from "./PatternTypes";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { mod } from "utils/math";
-import {
-  PresetPatternGroupList,
-  PresetPatternGroupMap,
-} from "presets/patterns";
+import { PresetPatternGroupList, PresetPatternGroupMap } from "assets/patterns";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
 import { isArray } from "lodash";
 import { getTickDuration, isTripletDuration } from "utils/durations";

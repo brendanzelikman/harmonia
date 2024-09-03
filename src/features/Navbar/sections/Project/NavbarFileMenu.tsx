@@ -10,7 +10,7 @@ import {
   NavbarFormLabel,
   NavbarHoverTooltip,
 } from "../../components";
-import { useTransportTick } from "hooks";
+import { useTransportTick } from "hooks/useTransportTick";
 import { percent } from "utils/math";
 import { useAuth } from "providers/auth";
 import { GiSecretBook } from "react-icons/gi";

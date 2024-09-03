@@ -29,7 +29,7 @@ import { transposeNoteThroughScales } from "types/Scale/ScaleTransformers";
 /** Resolve a `PatternNote` to a `MidiValue` using the `Scales` provided. */
 export const resolvePatternNoteToMidi = (
   note: PatternNote,
-  scales: ScaleChain
+  scales: ScaleChain = []
 ) => {
   const chainedNote = transposeNoteThroughScales(note, scales);
   return getScaleNoteMidiValue(chainedNote);

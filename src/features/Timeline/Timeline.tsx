@@ -25,7 +25,7 @@ import {
   GiMusicalKeyboard,
 } from "react-icons/gi";
 import classNames from "classnames";
-import { PresetScaleList } from "presets/scales";
+import { PresetScaleList } from "assets/scales";
 import { sample } from "lodash";
 import { INSTRUMENT_KEYS } from "types/Instrument/InstrumentTypes";
 import { TrackId } from "types/Track/TrackTypes";

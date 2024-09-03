@@ -1,5 +1,5 @@
 import { Key, PitchClass } from "types/units";
-import { PresetScaleGroupList, PresetScaleGroupMap } from "presets/scales";
+import { PresetScaleGroupList, PresetScaleGroupMap } from "assets/scales";
 import { getMidiOctaveDistance, getMidiPitchClass } from "utils/midi";
 import { areScalesRelated } from "./ScaleUtils";
 import {
@@ -16,7 +16,7 @@ import {
 } from "./ScaleTypes";
 import { MidiNote, MidiValue } from "types/units";
 import { resolveScaleToMidi, resolveScaleChainToMidi } from "./ScaleResolvers";
-import { ChromaticKey } from "presets/keys";
+import { ChromaticKey } from "assets/keys";
 
 // ------------------------------------------------------------
 // Scale Aggregate Functions

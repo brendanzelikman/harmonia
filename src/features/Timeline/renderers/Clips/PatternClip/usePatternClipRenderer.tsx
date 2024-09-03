@@ -6,7 +6,6 @@ import { use, useProjectDispatch } from "types/hooks";
 import { PatternClip } from "types/Clip/ClipTypes";
 import { Portaled } from "types/Portal/PortalTypes";
 import { selectClosestPoseClipId } from "types/Arrangement/ArrangementSelectors";
-import { selectIsAddingPatternClips } from "types/Timeline/TimelineSelectors";
 import {
   removeClipIdsFromSelection,
   toggleClipIdInSelection,
@@ -15,7 +14,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { PatternClipDropdown } from "./PatternClipDropdown";
 import { PatternClipHeader } from "./PatternClipHeader";
 import { PatternClipStream } from "./PatternClipStream";
-import { useToggledState } from "hooks/window/useToggledState";
+import { useToggledState } from "hooks/useToggledState";
 import { DivMouseEvent } from "utils/html";
 import { useDragState } from "types/Media/MediaTypes";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";

@@ -10,13 +10,9 @@ import isElectron from "is-electron";
 import { AccountContinueButton } from "./components/AccountContinueButton";
 import { AccountEmailForm } from "./components/AccountEmailForm";
 import classNames from "classnames";
-import { LandingAction } from "pages/LandingPage";
+import { LandingAction } from "pages/landing";
 
-interface AccountPageProps {
-  action: LandingAction;
-}
-
-export const AccountPage = (props: AccountPageProps) => {
+export const AccountPage = (props: { action: LandingAction }) => {
   const { action } = props;
   const navigate = useNavigate();
   useAuthorizationRedirect();

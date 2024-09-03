@@ -7,7 +7,7 @@ import {
   userClearance,
 } from "./password";
 import { firebaseApp } from "providers/firebase";
-import { Rank } from "utils/constants";
+import { Rank } from "utils/rank";
 import isElectron from "is-electron";
 import { fetchRank } from "./rank";
 

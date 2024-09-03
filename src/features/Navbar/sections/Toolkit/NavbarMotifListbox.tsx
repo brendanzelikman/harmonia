@@ -1,15 +1,12 @@
 import { Listbox as HeadlessListbox, Transition } from "@headlessui/react";
 import { Pattern, PatternId } from "types/Pattern/PatternTypes";
 import { BsCheck } from "react-icons/bs";
-import {
-  PresetPatternGroupList,
-  PresetPatternGroupMap,
-} from "presets/patterns";
+import { PresetPatternGroupList, PresetPatternGroupMap } from "assets/patterns";
 import { blurEvent } from "utils/html";
 import { useProjectDispatch, use, useDeep } from "types/hooks";
 import classNames from "classnames";
-import { PresetPoseGroupList, PresetPoseGroupMap } from "presets/poses";
-import { PresetScaleGroupList, PresetScaleGroupMap } from "presets/scales";
+import { PresetPoseGroupList, PresetPoseGroupMap } from "assets/poses";
+import { PresetScaleGroupList, PresetScaleGroupMap } from "assets/scales";
 import { ScaleId, ScaleObject } from "types/Scale/ScaleTypes";
 import { Pose, PoseId } from "types/Pose/PoseTypes";
 import { selectIsSelectedEditorOpen } from "types/Editor/EditorSelectors";

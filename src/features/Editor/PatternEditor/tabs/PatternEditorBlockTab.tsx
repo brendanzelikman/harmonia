@@ -1,4 +1,3 @@
-import { NumericInputOption, useNumericInputs } from "hooks";
 import { useEffect, useState } from "react";
 import {
   getMidiChromaticNumber,
@@ -46,6 +45,7 @@ import {
 } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
 import { getDegreeOfNoteInTrack } from "types/Track/TrackThunks";
+import { useNumericInputs, NumericInputOption } from "hooks/useNumericInputs";
 
 export function PatternEditorBlockTab(props: PatternEditorProps) {
   const dispatch = useProjectDispatch();
@@ -168,7 +168,10 @@ export function PatternEditorBlockTab(props: PatternEditorProps) {
         const chromaticNumber = getMidiChromaticNumber(midiNote?.MIDI);
         return `${chromaticNumber + 1} (Chromatic)`;
       }
-      const degree = dispatch(getDegreeOfNoteInTrack(trackId, note));
+      let degree = dispatch(getDegreeOfNoteInTrack(trackId, note));
+      if (degree === -1 && isNestedNote(note)) {
+        degree = note.degree;
+      }
       const trackLabel = trackLabelMap[trackId];
       if (disabled) return "No Scales Available";
       if (!midiNote) return "No Scale";

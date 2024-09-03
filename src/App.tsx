@@ -5,7 +5,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { HotkeysProvider } from "react-hotkeys-hook";
 import { RouterProvider } from "react-router-dom";
 import { store } from "providers/store";
-import { AppRouter } from "routes";
+import { AppRouter } from "router";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { AuthProvider } from "providers/auth";
 

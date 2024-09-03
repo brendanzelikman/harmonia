@@ -1,6 +1,6 @@
 import { NAV_HEIGHT, TRACK_WIDTH } from "utils/constants";
 import { useState } from "react";
-import { useEventListener } from "hooks";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { START_TOUR, END_TOUR, SET_TOUR_ID } from "./useOnboardingTour";
 
 // Onboarding tour background
@@ -8,9 +8,9 @@ export const TourBackground = () => {
   const [show, setShow] = useState(false);
   const [id, setId] = useState("tour-step-welcome-to-harmonia");
 
-  useEventListener(START_TOUR, () => setShow(true));
-  useEventListener(END_TOUR, () => setShow(false));
-  useEventListener(SET_TOUR_ID, (e: CustomEvent) => setId(e.detail));
+  useCustomEventListener(START_TOUR, () => setShow(true));
+  useCustomEventListener(END_TOUR, () => setShow(false));
+  useCustomEventListener(SET_TOUR_ID, (e: CustomEvent) => setId(e.detail));
 
   const Block = ({
     className,

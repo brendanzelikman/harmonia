@@ -1,4 +1,4 @@
-import { clamp, isString } from "lodash";
+import { clamp } from "lodash";
 import { useState } from "react";
 
 type NumericInputMap = Record<string, string>;

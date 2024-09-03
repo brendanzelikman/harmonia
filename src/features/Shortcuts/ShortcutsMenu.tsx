@@ -1,7 +1,7 @@
 import { Dialog } from "@headlessui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useEventListener } from "hooks";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { GlobalShortcuts } from "./content/GlobalShortcuts";
 import classNames from "classnames";
 import { TransportShortcuts } from "./content/TransportShortcuts";
@@ -12,9 +12,7 @@ import { ScaleEditorShortcuts } from "./content/ScaleEditorShortcuts";
 import { PatternEditorShortcuts } from "./content/PatternEditorShortcuts";
 import { PoseEditorShortcuts } from "./content/PoseEditorShortcuts";
 import { BsXCircle } from "react-icons/bs";
-import { useProjectSelector } from "types/hooks";
 import { TickDurations } from "./content/TickDurations";
-import { selectTimeline } from "types/Timeline/TimelineSelectors";
 import { useDiary } from "types/Diary/DiaryTypes";
 
 export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
@@ -44,7 +42,7 @@ export function ShortcutsMenu() {
 
   // Listen for shortcut events
   const toggleShortcuts = useCallback(() => setShow((show) => !show), []);
-  useEventListener(TOGGLE_SHORTCUTS, () => setShow(!show));
+  useCustomEventListener(TOGGLE_SHORTCUTS, () => setShow(!show));
   useHotkeys("shift+slash", toggleShortcuts);
   useHotkeys("esc", () => setShow(false));
 

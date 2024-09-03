@@ -1,4 +1,4 @@
-import { PresetScaleList } from "presets/scales";
+import { PresetScaleList } from "assets/scales";
 import {
   DocsList,
   DocsParagraph,
