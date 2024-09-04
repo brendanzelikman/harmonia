@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DiaryCoverPage, DiaryPageBinding } from "./DiaryPage";
 import { cancelEvent } from "utils/html";
-import { useHotkeyScope, useScopedHotkeys } from "lib/react-hotkeys-hook";
+import {
+  replaceTimelineScope,
+  useHotkeysInDiary,
+} from "lib/react-hotkeys-hook";
 import { BsDownload, BsTrash } from "react-icons/bs";
 import { ContentPage } from "./ContentPage";
 import { m } from "framer-motion";
@@ -19,8 +22,6 @@ import {
 } from "types/Meta/MetaSelectors";
 import { FlipBook } from "lib/react-pageflip";
 
-const useHotkeys = useScopedHotkeys("diary");
-
 const DIARY_WIDTH = window.innerWidth / 2 - NAV_HEIGHT;
 const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;
 
@@ -36,7 +37,6 @@ export function Diary() {
   useEffect(() => {
     if (!showingDiary) setShowingJSON(false);
   }, [showingDiary]);
-  useHotkeys("j", () => setShowingJSON((prev) => !prev), []);
 
   // Create a ref to the FlipBook component
   const ref = useRef<any>(null);
@@ -47,16 +47,16 @@ export function Diary() {
   }, []);
 
   // Diary hotkeys to flip the pages around
-  useHotkeyScope("diary", showingDiary);
-  useHotkeys("left", () => ref.current?.pageFlip?.().flipPrev(), []);
-  useHotkeys("right", () => ref.current?.pageFlip?.().flipNext(), []);
-  useHotkeys("shift+left", () => ref.current?.pageFlip?.().flip(0), []);
-  useHotkeys(
+  replaceTimelineScope("diary", showingDiary);
+  useHotkeysInDiary("j", () => setShowingJSON((prev) => !prev), []);
+  useHotkeysInDiary("left", () => ref.current?.pageFlip?.().flipPrev(), []);
+  useHotkeysInDiary("right", () => ref.current?.pageFlip?.().flipNext(), []);
+  useHotkeysInDiary("shift+left", () => ref.current?.pageFlip?.().flip(0), []);
+  useHotkeysInDiary(
     "shift+right",
     () => ref.current?.pageFlip?.().flip(diary.length - 1),
     [diary]
   );
-  useHotkeys("esc", diaryState.close, []);
 
   // A button to export the diary to a text file
   const ExportDiaryButton = useCallback(

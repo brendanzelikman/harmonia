@@ -27,9 +27,7 @@ export const usePlaygroundLoader = (): PlaygroundLoadState => {
 
   // Sign out if the user is on Electron and not Virtuoso
   useEffect(() => {
-    if (!canPlay) {
-      navigate("/");
-    }
+    if (!canPlay) navigate("/");
   }, [canPlay]);
 
   return {

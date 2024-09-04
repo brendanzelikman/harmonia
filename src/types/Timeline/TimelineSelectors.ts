@@ -387,7 +387,6 @@ export const selectSelectedMotif = (
   project: Project,
   type: ClipType | undefined = selectTimelineType(project)
 ) => {
-  const timeline = selectTimeline(project);
   if (!type) return undefined;
   return {
     pattern: selectSelectedPattern,

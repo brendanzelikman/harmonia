@@ -1,5 +1,5 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { Action, Payload, createUndoType, unpackUndoType } from "lib/redux";
+import { Payload, createUndoType, unpackUndoType } from "lib/redux";
 import { union, difference } from "lodash";
 import { selectClipsByTrackIds } from "types/Clip/ClipSelectors";
 import { addClips, removeClips } from "types/Clip/ClipSlice";
@@ -70,6 +70,13 @@ import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
 import { mod } from "utils/math";
 import { getMidiOctaveDistance } from "utils/midi";
 import { resolvePatternNoteToMidi } from "types/Pattern/PatternResolvers";
+import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
+import { selectPoses } from "types/Pose/PoseSelectors";
+import { removePose } from "types/Pose/PoseSlice";
+import { removePattern } from "types/Pattern/PatternSlice";
+import { isVectorEmpty } from "utils/vector";
+import { isPoseBucket } from "types/Pose/PoseFunctions";
+import { PoseVector, PoseVectorModule } from "types/Pose/PoseTypes";
 
 /** Add an array of tracks to the store. */
 export const addTracks =
@@ -498,6 +505,8 @@ export const deleteTrack =
     const track = selectTrackById(project, trackId);
     if (!track) return;
 
+    const patterns = selectCustomPatterns(project);
+    const poses = selectPoses(project);
     const affectedTracks = selectTrackDescendants(project, trackId);
     const affectedTrackIds = affectedTracks.map((t) => t.id);
 
@@ -522,7 +531,6 @@ export const deleteTrack =
       }
 
       const track = selectTrackById(project, id);
-      if (!track) continue;
 
       // Remove the instrument or scale
       if (isPatternTrack(track)) {
@@ -538,6 +546,24 @@ export const deleteTrack =
 
       // Remove the track
       dispatch(removeTrack({ data: id, undoType }));
+
+      // Remove all empty patterns referencing the track
+      for (const pattern of patterns) {
+        if (pattern.trackId === id && !pattern.stream.length) {
+          dispatch(removePattern({ data: pattern.id, undoType }));
+        }
+      }
+
+      // Remove all empty poses referencing the track
+      for (const pose of poses) {
+        const vector = (pose.stream[0] as PoseVectorModule)?.vector;
+        if (
+          pose.trackId === id &&
+          (!pose.stream.length || !Object.values(vector).some((v) => v))
+        ) {
+          dispatch(removePose({ data: pose.id, undoType }));
+        }
+      }
     }
   };
 

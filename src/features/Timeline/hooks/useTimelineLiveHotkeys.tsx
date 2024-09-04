@@ -1,4 +1,4 @@
-import { isHoldingShift, isInputEvent } from "utils/html";
+import { isInputEvent } from "utils/html";
 import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { useCallback, useEffect } from "react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
@@ -17,7 +17,6 @@ import {
 import { selectTracks } from "types/Track/TrackSelectors";
 import {
   offsetSelectedPoses,
-  updateSelectedPoses,
   updateSelectedPoseStreams,
 } from "types/Pose/PoseThunks";
 import { unmuteTracks, unsoloTracks } from "types/Track/TrackThunks";
@@ -43,61 +42,6 @@ const NUMERICAL_BINDS: KeyBinds = {
 };
 const NUMERICAL_ZERO_BINDS = ["z", "0"];
 
-/**
- * The chromatic binds use the top key row.
- */
-const CHROMATIC_BINDS = {
-  q: -5,
-  w: -4,
-  e: -3,
-  r: -2,
-  t: -1,
-  u: 1,
-  i: 2,
-  o: 3,
-  p: 4,
-  "[": 5,
-};
-
-/**
- * The scalar binds use the middle key row.
- */
-const SCALAR_BINDS = {
-  a: -5,
-  s: -4,
-  d: -3,
-  f: -2,
-  g: -1,
-  j: 1,
-  k: 2,
-  l: 3,
-  ";": 4,
-  "'": 5,
-};
-
-/**
- * The chordal binds use the bottom key row.
- * (Note that there is no room for t5).
- */
-const CHORDAL_BINDS = {
-  z: -5,
-  x: -4,
-  c: -3,
-  v: -2,
-  b: -1,
-  m: 1,
-  ",": 2,
-  ".": 3,
-  "/": 4,
-};
-
-const ALPHABETICAL_BINDS: Record<string, KeyBinds> = {
-  chromatic: CHROMATIC_BINDS,
-  scalar: SCALAR_BINDS,
-  chordal: CHORDAL_BINDS,
-};
-const ALPHABETICAL_ZERO_BINDS = ["y", "h", "n", "`", "0"];
-
 export const useTimelineLiveHotkeys = () => {
   const dispatch = useProjectDispatch();
   const { isAtLeastRank } = useAuth();
@@ -115,7 +59,7 @@ export const useTimelineLiveHotkeys = () => {
   const zeroKeys = NUMERICAL_ZERO_BINDS;
 
   // Extra keys required for each mode
-  const extraKeys = ["`", "t", "q", "w", "e", "r", "m", "s", "o", "y"];
+  const extraKeys = ["minus", "t", "q", "w", "e", "r", "m", "s", "o", "y"];
 
   // Track all of the held keys
   const allKeys = ["shift", "meta", ...keys, ...zeroKeys, ...extraKeys];
@@ -124,8 +68,6 @@ export const useTimelineLiveHotkeys = () => {
   // The callback for the numerical keydown event
   const numericalKeydown = (e: KeyboardEvent) => {
     if (isInputEvent(e) || editor.view) return;
-
-    const negative = heldKeys["`"];
 
     // Try to get the number of the key
     const number = parseInt(e.key);
@@ -147,6 +89,7 @@ export const useTimelineLiveHotkeys = () => {
 
     // Compute the pose offset record
     const vector = {} as PoseVector;
+    const negative = heldKeys["-"];
     const dir = negative ? -1 : 1;
     const octave = e.key === "o";
     const value = (octave ? 12 : number) * dir;
@@ -174,48 +117,6 @@ export const useTimelineLiveHotkeys = () => {
       const id = scaleTracks[keyIndex]?.id;
       if (heldKey && id) vector[id] = (vector[id] ?? 0) + value;
     });
-
-    if (!some(vector)) return;
-    dispatch(offsetSelectedPoses(vector));
-  };
-
-  // The callback for the keyrow keydown event
-  const alphabeticalKeydown = (e: KeyboardEvent) => {
-    // Get the number of the key
-    const number = parseInt(e.key);
-
-    // Get the pattern track by number (for mute/solo)
-    if (!isNaN(number)) {
-      const patternTracks = orderedTracks.filter(isPatternTrack);
-      const patternTrack = patternTracks[number - 1];
-      const instrumentId = patternTrack?.instrumentId;
-
-      // Toggle mute if holding -
-      if (heldKeys["]"]) {
-        dispatch(toggleInstrumentMute(instrumentId));
-      }
-      // Toggle solo if holding =
-      if (heldKeys[`\\`]) {
-        dispatch(toggleInstrumentSolo(instrumentId));
-      }
-    }
-
-    // Compute the initial offset based on up/down/shift
-    let vector = {} as PoseVector;
-    let offset = isHoldingShift(e) ? 5 : 0;
-
-    if (e.key in ALPHABETICAL_BINDS.chromatic && !heldKeys.meta) {
-      vector.chromatic = offset + ALPHABETICAL_BINDS.chromatic[e.key];
-    }
-    if (e.key in ALPHABETICAL_BINDS.scalar && !heldKeys.meta) {
-      const scaleId = scaleTracks?.[0]?.id;
-      if (scaleId) {
-        vector[scaleId] = offset + ALPHABETICAL_BINDS.scalar[e.key];
-      }
-    }
-    if (e.key in ALPHABETICAL_BINDS.chordal && !heldKeys.meta) {
-      vector.chordal = offset + ALPHABETICAL_BINDS.chordal[e.key];
-    }
 
     if (!some(vector)) return;
     dispatch(offsetSelectedPoses(vector));
@@ -295,49 +196,6 @@ export const useTimelineLiveHotkeys = () => {
           })
         )
       );
-    },
-    [heldKeys, zeroKeys, editor, scaleTracks]
-  );
-
-  // The callback for the alphabetical zero keydown event
-  const alphabeticalZeroKeydown = useCallback(
-    (e: KeyboardEvent) => {
-      const key = e.key;
-      if (!zeroKeys.includes(key)) return;
-      if (isInputEvent(e) || editor.view) return;
-
-      // Unmute all tracks if holding -
-      if (heldKeys["]"]) {
-        dispatch(unmuteTracks());
-      }
-      // Unsolo all tracks if holding =
-      if (heldKeys["\\"]) {
-        dispatch(unsoloTracks());
-      }
-
-      const vector: PoseVector = {};
-      if (key === "y") {
-        vector.chromatic = 0;
-      }
-      if (key === "h") {
-        const scaleId = scaleTracks?.[0]?.id;
-        if (scaleId) {
-          vector[scaleId] = 0;
-        }
-      }
-      if (key === "n") {
-        vector.chordal = 0;
-      }
-      if (key === "`") {
-        vector.chromatic = 0;
-        const scaleId = scaleTracks?.[0]?.id;
-        if (scaleId) {
-          vector[scaleId] = 0;
-        }
-        vector.chordal = 0;
-      }
-      if (!Object.keys(vector).length) return;
-      dispatch(updateSelectedPoses(vector));
     },
     [heldKeys, zeroKeys, editor, scaleTracks]
   );

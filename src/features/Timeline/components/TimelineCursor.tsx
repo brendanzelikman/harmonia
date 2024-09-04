@@ -25,7 +25,7 @@ export function TimelineCursor() {
   const bgColor = onPatternTrack ? "bg-emerald-500" : "bg-sky-500";
 
   // Show the cursor if the transport is started and not downloading
-  if (isTransportActive) return null;
+  if (isTransportActive || !track) return null;
   return (
     <div
       className={classNames(bgColor, "absolute pointer-events-none")}

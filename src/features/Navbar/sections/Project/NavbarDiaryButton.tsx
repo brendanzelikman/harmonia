@@ -8,7 +8,7 @@ export function NavbarDiaryButton() {
   return (
     <NavbarTooltipButton
       className={classNames(
-        "cursor-pointer",
+        "cursor-pointer p-1.5",
         isOpen ? "text-indigo-400" : "text-slate-50"
       )}
       label={isOpen ? "Close Project Diary" : "Open Project Diary"}

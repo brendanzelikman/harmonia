@@ -70,36 +70,6 @@ export const createPatternTrack =
     const options = { oldInstrument: { ...oldInstrument, ...instrument, key } };
     dispatch(createInstrument({ data: { track: track, options }, undoType }));
 
-    // Get the depth of the new track
-    const newMap = { ...trackMap, [id]: track };
-    const parentId = initialTrack?.parentId;
-    const parent = getValueByKey(trackMap, parentId);
-    if (parentId !== undefined && parent !== undefined) {
-      newMap[parentId] = { ...parent, trackIds: [...parent.trackIds, id] };
-    }
-    const depth = getTrackLabel(id, newMap);
-
-    // Create a courtesy pattern and pattern clip for the track
-    const patternId = dispatch(
-      createPattern({
-        data: { patternTrackId: id, name: `Pattern (Track ${depth})` },
-        undoType,
-      })
-    );
-    const patternClip = initializePatternClip({ patternId, trackId: id });
-    dispatch(createMedia({ data: { clips: [patternClip] }, undoType }));
-    dispatch(setTimelineType({ data: "pattern", undoType }));
-
-    // Create a courtesy pose and pose clip for the track
-    // const poseId = dispatch(
-    //   createPose({
-    //     data: { trackId: id, name: `Pose (Track ${depth})` },
-    //     undoType,
-    //   })
-    // );
-    // const poseClip = initializePoseClip({ poseId, trackId: id });
-    // dispatch(createMedia({ data: { clips: [poseClip] }, undoType }));
-
     // Return ID of the created track
     return track.id;
   };

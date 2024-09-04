@@ -35,7 +35,7 @@ import {
   selectSelectedPose,
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackScale } from "types/Track/TrackSelectors";
-import { useHotkeyScope } from "lib/react-hotkeys-hook";
+import { replaceTimelineScope } from "lib/react-hotkeys-hook";
 
 export interface EditorProps extends Editor {
   // The editor uses currently selected objects for various purposes
@@ -106,7 +106,7 @@ function EditorComponent() {
   const isShowingSidebar = isEditorShowingSidebar(editor);
 
   // The editor uses a custom hotkey scope
-  useHotkeyScope("editor", isVisible);
+  replaceTimelineScope("editor", isVisible);
 
   // The editor passes its props down to all of the typed editors
   const editorProps: EditorProps = {

@@ -2,16 +2,21 @@ import { useState } from "react";
 import { useCustomEventListener } from "./useCustomEventListener";
 import { dispatchCustomEvent } from "utils/html";
 
-export const useToggledState = (key: string, defaultValue?: boolean) => {
+export const useToggledState = (
+  key: string = "default",
+  defaultValue?: boolean
+) => {
   const [state, setState] = useState(defaultValue ?? false);
 
   // Create open and close keys
   const OPEN = `open_${key}`;
   const CLOSE = `close_${key}`;
+  const TOGGLE = `toggle_${key}`;
 
   // Listen for open and close events
   useCustomEventListener(OPEN, () => setState(true));
   useCustomEventListener(CLOSE, () => setState(false));
+  useCustomEventListener(TOGGLE, () => setState((prev) => !prev));
 
   // Return state and functions
   return {

@@ -1,4 +1,4 @@
-import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
+import { useHotkeysInEditor } from "lib/react-hotkeys-hook";
 import { PoseEditorVectorProps } from "../components/PoseEditorVector";
 import { useProjectDispatch } from "types/hooks";
 import { updatePoseBlock } from "types/Pose/PoseSlice";
@@ -28,7 +28,7 @@ export function usePoseEditorVectorHotkeys(props: PoseEditorVectorHotkeyProps) {
   const vector = vectors[index].vector;
 
   // Shift = Switch between edit state
-  useOverridingHotkeys(
+  useHotkeysInEditor(
     "comma",
     () => {
       if (!id || !editState || index !== editState.index) return;
@@ -39,7 +39,7 @@ export function usePoseEditorVectorHotkeys(props: PoseEditorVectorHotkeyProps) {
   );
 
   // Up = Increase offset of vector
-  useOverridingHotkeys(
+  useHotkeysInEditor(
     "up",
     () => {
       if (!id || !editState || index !== editState.index) return;
@@ -51,7 +51,7 @@ export function usePoseEditorVectorHotkeys(props: PoseEditorVectorHotkeyProps) {
   );
 
   // Down = Decrease offset of vector
-  useOverridingHotkeys(
+  useHotkeysInEditor(
     "down",
     () => {
       if (!id || !editState || index !== editState.index) return;
@@ -63,7 +63,7 @@ export function usePoseEditorVectorHotkeys(props: PoseEditorVectorHotkeyProps) {
   );
 
   // Left = Select previous offset
-  useOverridingHotkeys(
+  useHotkeysInEditor(
     "left",
     () => {
       if (!editState || index !== editState.index) return;
@@ -73,7 +73,7 @@ export function usePoseEditorVectorHotkeys(props: PoseEditorVectorHotkeyProps) {
   );
 
   // Right = Select next offset
-  useOverridingHotkeys(
+  useHotkeysInEditor(
     "right",
     () => {
       if (!editState || index !== editState.index) return;
@@ -83,7 +83,7 @@ export function usePoseEditorVectorHotkeys(props: PoseEditorVectorHotkeyProps) {
   );
 
   // 0 = Clear offset
-  useOverridingHotkeys(
+  useHotkeysInEditor(
     "0",
     () => {
       if (!id || !editState || index !== editState.index) return;

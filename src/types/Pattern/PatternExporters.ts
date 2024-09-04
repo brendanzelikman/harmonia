@@ -157,7 +157,7 @@ export const exportPatternToMIDI =
     if (!streamLength) return;
 
     // Get the scales needed for the pattern based on its track
-    const scales = selectTrackScaleChain(project, pattern?.patternTrackId);
+    const scales = selectTrackScaleChain(project, pattern?.trackId);
 
     // Prepare a new MIDI file
     const midi = new Midi();

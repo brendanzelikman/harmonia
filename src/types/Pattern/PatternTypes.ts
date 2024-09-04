@@ -72,7 +72,7 @@ export interface Pattern {
   name?: string;
   aliases?: string[];
   instrumentKey?: InstrumentKey;
-  patternTrackId?: TrackId;
+  trackId?: TrackId;
 }
 
 /** A `PresetPattern` has its id prefixed */

@@ -97,9 +97,10 @@ export const copyPattern =
 
 /** Removes a list of patterns from the store. */
 export const deletePattern =
-  (id: PatternId): Thunk =>
+  (payload: Payload<PatternId>): Thunk =>
   (dispatch, getProject) => {
-    const undoType = createUndoType("deletePattern", nanoid());
+    const id = payload.data;
+    const undoType = unpackUndoType(payload, "deletePattern");
     const project = getProject();
     const patternId = selectDraftedPatternClip(project).patternId;
     const patternIds = selectPatternIds(project);
@@ -141,11 +142,11 @@ export const randomizePattern =
     if (!pattern) return;
 
     // Get a random scale from the pattern track if possible
-    const { patternTrackId } = pattern;
-    const track = isPatternTrackId(patternTrackId)
-      ? selectPatternTrackById(project, patternTrackId)
+    const { trackId } = pattern;
+    const track = isPatternTrackId(trackId)
+      ? selectPatternTrackById(project, trackId)
       : undefined;
-    const scaleChain = selectTrackScaleChain(project, patternTrackId);
+    const scaleChain = selectTrackScaleChain(project, trackId);
     const scales = track ? scaleChain : Object.values(PresetScaleList);
     const scale = sample(scales);
 
@@ -185,11 +186,11 @@ export const randomizePatternPitches =
     if (!pattern) return;
 
     // Get a random scale from the pattern track if possible
-    const { patternTrackId } = pattern;
-    const track = isPatternTrackId(patternTrackId)
-      ? selectPatternTrackById(project, patternTrackId)
+    const { trackId } = pattern;
+    const track = isPatternTrackId(trackId)
+      ? selectPatternTrackById(project, trackId)
       : undefined;
-    const scaleChain = selectTrackScaleChain(project, patternTrackId);
+    const scaleChain = selectTrackScaleChain(project, trackId);
     const scales = track ? scaleChain : Object.values(PresetScaleList);
     const scale = sample(scales);
 
@@ -227,12 +228,12 @@ export const autoBindPattern =
     if (!id) return;
     const project = getProject();
     const pattern = selectPatternById(project, id);
-    if (!pattern || !pattern.patternTrackId) return;
+    if (!pattern || !pattern.trackId) return;
 
     // Get all of the pattern's scales
     const scaleTrackMap = selectTrackMidiScaleMap(project);
-    const trackChain = [...selectTrackChain(project, pattern.patternTrackId)];
-    const scaleChain = selectTrackScaleChain(project, pattern.patternTrackId);
+    const trackChain = [...selectTrackChain(project, pattern.trackId)];
+    const scaleChain = selectTrackScaleChain(project, pattern.trackId);
 
     // Order the pattern's MIDI scales from highest to lowest
     trackChain.reverse();
@@ -300,7 +301,7 @@ export const clearPatternBindings =
     if (!pattern) return;
 
     // Get the MIDI stream
-    const scaleChain = selectTrackScaleChain(project, pattern.patternTrackId);
+    const scaleChain = selectTrackScaleChain(project, pattern.trackId);
     const midiStream = resolvePatternStreamToMidi(pattern.stream, scaleChain);
     const newStream = pattern.stream.map((block, i) => {
       if (!isPatternChord(block)) return block;
@@ -316,7 +317,7 @@ export const clearPatternBindings =
         data: {
           id,
           stream: newStream,
-          patternTrackId: clearTrack ? undefined : pattern.patternTrackId,
+          trackId: clearTrack ? undefined : pattern.trackId,
         },
       })
     );
@@ -335,7 +336,7 @@ export const playPattern =
     if (!instance.isLoaded()) return;
 
     // Get the realized pattern notes
-    const scaleChain = selectTrackScaleChain(project, pattern.patternTrackId);
+    const scaleChain = selectTrackScaleChain(project, pattern.trackId);
     const stream = resolvePatternStreamToMidi(pattern.stream, scaleChain);
     if (!stream.length) return;
 

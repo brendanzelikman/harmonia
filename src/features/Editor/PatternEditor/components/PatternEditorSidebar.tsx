@@ -281,7 +281,7 @@ export const CustomPattern = (props: CustomPatternProps) => {
     <div
       className={`flex justify-center items-center px-1 h-full rounded-r text-center font-thin border border-l-0 border-slate-50/50`}
       onClick={(e) => {
-        dispatch(deletePattern(customPattern.id));
+        dispatch(deletePattern({ data: customPattern.id }));
         cancelEvent(e);
       }}
     >

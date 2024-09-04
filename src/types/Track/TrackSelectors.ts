@@ -411,7 +411,7 @@ export const selectTrackScaleChain = createArraySelector(
 export const selectPatternScales = (project: Project, id: PatternId) => {
   const pattern = selectPatternById(project, id);
   const map = selectTrackScaleChainMap(project);
-  return getArrayByKey(map, pattern?.patternTrackId);
+  return getArrayByKey(map, pattern?.trackId);
 };
 
 /** Select the MIDI scale of a scale by ID. */

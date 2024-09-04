@@ -49,6 +49,7 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
       if (!isPoseVectorModule(block)) return null;
       return (
         <span
+          key={`pose-block-${clip.id}-${i}`}
           className={classNames(
             index === i ? "bg-fuchsia-600" : "bg-fuchsia-400",
             i < streamLength - 1 ? "border-r" : "",

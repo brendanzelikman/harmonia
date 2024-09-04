@@ -61,7 +61,7 @@ export const NavbarCreateMotifButton = ({
         createPattern({
           data: {
             name: names.pattern,
-            patternTrackId: track?.id,
+            trackId: track?.id,
             instrumentKey,
           },
         })

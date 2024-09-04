@@ -67,7 +67,6 @@ module.exports = {
         base: ["Open Sans", "sans-serif"],
         nunito: ["Nunito", "sans-serif"],
         inter: ["Inter", "sans-serif"],
-        atari: ["Atari", "sans-serif"],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

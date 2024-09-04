@@ -1,7 +1,7 @@
+import { NavbarLivePlayButton } from "./Project/NavbarLivePlayButton";
 import { NavbarDiaryButton } from "./Project/NavbarDiaryButton";
 import { NavbarFileMenu } from "./Project/NavbarFileMenu";
 import { NavbarSettingsMenu } from "./Project/NavbarSettingsMenu";
-import { NavbarTourButton } from "./Project/NavbarTourButton";
 import { NavbarUndoRedo } from "./Project/NavbarUndoRedo";
 
 export function NavbarProjectSection() {
@@ -10,7 +10,7 @@ export function NavbarProjectSection() {
       <NavbarFileMenu />
       <NavbarSettingsMenu />
       <NavbarDiaryButton />
-      <NavbarTourButton />
+      <NavbarLivePlayButton />
       <NavbarUndoRedo />
     </div>
   );

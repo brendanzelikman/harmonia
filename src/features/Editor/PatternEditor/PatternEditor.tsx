@@ -81,7 +81,7 @@ function PatternEditorComponent(props: EditorProps) {
 
   // The pattern editor passes additional information about the pattern
   const id = pattern?.id;
-  const ptId = pattern?.patternTrackId;
+  const ptId = pattern?.trackId;
   const stream = pattern?.stream ?? [];
   const isCustom = !getValueByKey(PresetPatternMap, id);
   const isEmpty = !stream.length;

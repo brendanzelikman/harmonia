@@ -1,6 +1,6 @@
 import { defaultBaseProject, Project, SafeProject } from "./ProjectTypes";
 import { defaultProjectMetadata } from "../Meta/MetaTypes";
-import { isEqual, merge } from "lodash";
+import { merge } from "lodash";
 import { isInstrument } from "types/Instrument/InstrumentTypes";
 import { isPattern, PatternState } from "types/Pattern/PatternTypes";
 import { isPose, PoseState } from "types/Pose/PoseTypes";
@@ -32,6 +32,7 @@ import { isIPatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { isIScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import { MotifState } from "types/Motif/MotifTypes";
+import moment from "moment";
 
 // Sanitize the base project by merging with default values
 export const sanitizeBaseProject = (
@@ -185,7 +186,7 @@ export const mergeBaseProjects = (
 
   // Update the metadata with the latest timestamp
   const meta = merge({}, defaultProjectMetadata, p1?.meta, {
-    lastUpdated: new Date().toISOString(),
+    lastUpdated: moment().format(),
   });
 
   // Merge the rest of the project
@@ -224,7 +225,7 @@ export const timestampProject = (project: Project): Project => ({
     ...project.present,
     meta: {
       ...project.present.meta,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: moment().format(),
     },
   },
 });

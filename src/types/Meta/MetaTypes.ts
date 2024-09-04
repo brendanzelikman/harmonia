@@ -1,5 +1,6 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { initializeProjectDiary, ProjectDiary } from "../Diary/DiaryTypes";
+import moment from "moment";
 
 // ------------------------------------------------------------
 // Metadata Types
@@ -20,8 +21,8 @@ export interface ProjectMetadata {
 export const initializeProjectMetadata = (): ProjectMetadata => ({
   id: `project-${nanoid()}`,
   name: "New Project",
-  dateCreated: new Date().toISOString(),
-  lastUpdated: new Date().toISOString(),
+  dateCreated: moment().format(),
+  lastUpdated: moment().format(),
   diary: initializeProjectDiary(),
 });
 

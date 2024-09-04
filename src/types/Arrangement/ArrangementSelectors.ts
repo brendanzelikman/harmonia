@@ -390,14 +390,14 @@ export const selectPatternClipMidiStream = createArraySelector(
 export const selectPatternXML = (project: Project, id?: PatternId) => {
   if (!id) return DemoXML;
   const pattern = selectPatternById(project, id);
-  const scaleChain = selectTrackScaleChain(project, pattern?.patternTrackId);
+  const scaleChain = selectTrackScaleChain(project, pattern?.trackId);
   return exportPatternToXML(pattern, scaleChain);
 };
 
 export const selectPatternClipXML = (project: Project, clip?: PatternClip) => {
   if (!clip) return DemoXML;
   const pattern = selectPatternById(project, clip?.patternId);
-  const trackId = pattern?.patternTrackId;
+  const trackId = pattern?.trackId;
 
   // Get the current scale chain
   const stream = selectPatternClipMidiStream(project, clip.id);

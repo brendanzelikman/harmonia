@@ -59,5 +59,5 @@ export const isPoseClip = (clip: Partial<IClip>): clip is IClip<"pose"> => {
 
 /** Checks if a given string is a `PoseClipId`. */
 export const isPoseClipId = (id: unknown): id is PoseClipId => {
-  return isClipId<"pose">(id, "pose");
+  return isClipId(id, "pose");
 };

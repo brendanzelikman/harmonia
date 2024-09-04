@@ -15,7 +15,7 @@ export function usePatternEditorScore(props: EditorProps) {
   const xml = use((_) => selectPatternXML(_, id));
 
   // Get the pattern stream using its scales, if any
-  const trackId = pattern?.patternTrackId;
+  const trackId = pattern?.trackId;
   const scales = useDeep((_) => selectTrackScaleChain(_, trackId));
   const stream = resolvePatternToMidi(pattern, scales);
 

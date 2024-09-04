@@ -28,7 +28,7 @@ export function PatternEditorBindingsTab(props: PatternEditorProps) {
 
   // Get the pattern track for this pattern.
   const ptIds = use(selectOrderedTrackIds).filter(isPatternTrackId);
-  const ptId = pattern?.patternTrackId;
+  const ptId = pattern?.trackId;
   const hasPtId = ptId !== undefined;
   const hasNotes = (props.pattern?.stream ?? []).length > 0;
   const patternTrackOptions: (TrackId | "no-track")[] = ["no-track", ...ptIds];
@@ -54,9 +54,7 @@ export function PatternEditorBindingsTab(props: PatternEditorProps) {
           if (value === "no-track") {
             dispatch(clearPatternBindings(pattern?.id, true));
           } else {
-            dispatch(
-              updatePattern({ data: { ...pattern, patternTrackId: value } })
-            );
+            dispatch(updatePattern({ data: { ...pattern, trackId: value } }));
           }
         }}
       />

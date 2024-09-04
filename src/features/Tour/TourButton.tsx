@@ -1,5 +1,5 @@
 import ReactConfetti from "react-confetti";
-import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
+import { useHotkeysGlobally } from "lib/react-hotkeys-hook";
 import { useContext, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { ShepherdTourContext } from "react-shepherd";
@@ -27,8 +27,7 @@ export const TourButton = () => {
   const callback = () => {
     dispatchCustomEvent("confetti", false);
     setIsStarted(false);
-    const event = new CustomEvent(END_TOUR);
-    window.dispatchEvent(event);
+    dispatchCustomEvent(END_TOUR);
   };
 
   useEffect(() => {
@@ -48,7 +47,7 @@ export const TourButton = () => {
     return cancelTour;
   }, []);
 
-  useOverridingHotkeys("escape", () => isStarted && callback(), [isStarted]);
+  useHotkeysGlobally("escape", () => isStarted && callback(), [isStarted]);
 
   if (!tour) return null;
 

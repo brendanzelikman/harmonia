@@ -1,7 +1,6 @@
 import { NavbarGroup } from "features/Navbar/components";
 import { NavbarPortalButton } from "./Arrangement/NavbarPortalButton";
 import { NavbarSliceClipButton } from "./Arrangement/NavbarSliceClipButton";
-import { NavbarLivePlayButton } from "./Arrangement/NavbarLivePlayButton";
 import { NavbarMergeClipsButton } from "./Arrangement/NavbarMergeClipsButton";
 
 export function NavbarArrangementSection() {
@@ -10,7 +9,6 @@ export function NavbarArrangementSection() {
       <NavbarSliceClipButton />
       <NavbarMergeClipsButton />
       <NavbarPortalButton />
-      <NavbarLivePlayButton />
     </NavbarGroup>
   );
 }

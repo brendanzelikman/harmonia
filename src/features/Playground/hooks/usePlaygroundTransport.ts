@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useCustomEventListener } from "../../../hooks/useCustomEventListener";
-import { useProjectDispatch, useProjectSelector } from "types/hooks";
+import { use, useProjectDispatch } from "types/hooks";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import {
   START_LOADING_TRANSPORT,
@@ -12,7 +12,8 @@ import {
 /** Load and unload the transport when the app mounts. */
 export function usePlaygroundTransport() {
   const dispatch = useProjectDispatch();
-  const projectId = useProjectSelector(selectProjectId);
+
+  const projectId = use(selectProjectId);
   const [loaded, setLoaded] = useState(false);
 
   useCustomEventListener(START_LOADING_TRANSPORT, () => setLoaded(false));

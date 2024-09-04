@@ -44,12 +44,8 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
   // Get general info about the project
   const meta = selectMeta(project);
   const { id, name } = meta;
-  const dateCreated = moment(
-    new Date(meta.dateCreated).toLocaleString()
-  ).calendar();
-  const lastUpdated = moment(
-    new Date(meta.lastUpdated).toLocaleString()
-  ).fromNow();
+  const dateCreated = moment(meta.dateCreated).calendar();
+  const lastUpdated = moment(meta.lastUpdated).fromNow();
   const transport = selectTransport(project);
   const { bpm } = transport;
 
@@ -146,7 +142,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
         >
           Export
         </button>
-        <button
+        <div
           className="px-3 py-1 z-50 rounded relative border border-slate-500 hover:bg-slate-950"
           onClick={toggleDeleting}
         >
@@ -172,7 +168,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
               </div>
             </div>
           )}
-        </button>
+        </div>
       </div>
       <div
         className={classNames(

@@ -3,7 +3,6 @@ import { useCallback } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "providers/auth";
-import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 
 export const useLandingHotkeys = (ref: React.RefObject<HTMLElement>) => {
   const navigate = useNavigate();
@@ -48,7 +47,7 @@ export const useLandingHotkeys = (ref: React.RefObject<HTMLElement>) => {
   );
 
   // Scroll the page up
-  useOverridingHotkeys("up", () => {
+  useHotkeys("up", () => {
     if (!ref.current) return;
     ref.current.scrollTo({
       top: ref.current.scrollTop - window.innerHeight,
@@ -57,7 +56,7 @@ export const useLandingHotkeys = (ref: React.RefObject<HTMLElement>) => {
   });
 
   // Scroll the page down
-  useOverridingHotkeys("down", () => {
+  useHotkeys("down", () => {
     if (!ref.current) return;
     ref.current.scrollTo({
       top: ref.current.scrollTop + window.innerHeight,

@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initializeProjectMetadata } from "./MetaTypes";
 import { initializeProjectDiary } from "../Diary/DiaryTypes";
+import moment from "moment";
 
 // ------------------------------------------------------------
 // Metadata Slice Definition
@@ -16,7 +17,7 @@ export const MetaSlice = createSlice({
     },
     /** Update the project's timestamp. */
     updateProjectTimestamp: (state) => {
-      state.lastUpdated = new Date().toISOString();
+      state.lastUpdated = moment().format();
     },
     /** Set the diary text for the given page. */
     setDiaryPage: (
