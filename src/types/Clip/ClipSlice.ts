@@ -62,7 +62,7 @@ const ScaleClips = scaleClipSlice.actions;
 
 /** Add a clip to the store. */
 export const addClip =
-  (payload: Payload<Clip>): Thunk =>
+  (payload: Payload<Clip>): Thunk<ClipId> =>
   (dispatch) => {
     const clip = payload.data;
     if (isPatternClip(clip)) {
@@ -72,6 +72,7 @@ export const addClip =
     } else if (isScaleClip(clip)) {
       dispatch(ScaleClips.addOne({ ...payload, data: clip }));
     }
+    return clip.id;
   };
 
 /** Add clips to the store. */

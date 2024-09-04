@@ -13,7 +13,27 @@ export const selectTransportBPM = (project: Project) =>
 export const selectTransportTimeSignature = (project: Project) =>
   project.present.transport.timeSignature;
 
+/** Select true if the transport is active. */
 export const selectIsTransportActive = createSelector(
   selectTransport,
   (transport) => isTransportStarted(transport) || transport.recording
+);
+
+/** Select true if the playhead should show. */
+export const selectIsPlayheadVisible = createSelector(
+  selectTransport,
+  (transport) => transport.state === "started" && !!transport.downloading
+);
+
+/** Select a group of properties based on the transport state. */
+export const selectTransportState = createSelector(
+  selectTransport,
+  (transport) => ({
+    isStarted: transport.state === "started",
+    isStopped: transport.state === "stopped",
+    isPaused: transport.state === "paused",
+    isIdle: transport.state === "stopped" && !transport.recording,
+    isRecording: !!transport.recording,
+    isLooping: !!transport.loop,
+  })
 );

@@ -7,9 +7,8 @@ import {
   BsRecord,
   BsArrowRepeat,
 } from "react-icons/bs";
-import { useProjectDispatch, useProjectSelector } from "types/hooks";
-import { getTransportState } from "types/Transport/TransportFunctions";
-import { selectTransport } from "types/Transport/TransportSelectors";
+import { use, useProjectDispatch } from "types/hooks";
+import { selectTransportState } from "types/Transport/TransportSelectors";
 import {
   stopTransport,
   toggleTransport,
@@ -21,8 +20,7 @@ export function NavbarTransportControl() {
   const dispatch = useProjectDispatch();
 
   // Analyze the transport
-  const transport = useProjectSelector(selectTransport);
-  const transportState = getTransportState(transport);
+  const transportState = use(selectTransportState);
   const { isStarted, isStopped, isRecording, isLooping } = transportState;
   const buttonColor = "bg-slate-800";
   const borderClass = "border border-slate-500";

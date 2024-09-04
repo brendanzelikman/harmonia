@@ -7,7 +7,6 @@ import { getValueByKey, getDictValues } from "utils/objects";
 import {
   getPoseVectorAtIndex,
   getVectorPitchClasses,
-  sumPoseVectors,
 } from "types/Pose/PoseFunctions";
 import { isVoiceLeading, VoiceLeading } from "types/Pose/PoseTypes";
 import { Pose, PoseId, PoseMap, PoseVector } from "types/Pose/PoseTypes";
@@ -26,9 +25,10 @@ import { mod } from "utils/math";
 import { areScalesRelated } from "types/Scale/ScaleUtils";
 import { getScaleWithNewNotes } from "types/Scale/ScaleTransformers";
 import { getRotatedScale } from "types/Scale/ScaleTransformers";
-import { MidiScale } from "types/units";
-import { getMidiNoteValue } from "types/Scale/ScaleFunctions";
+import { MidiScale } from "utils/midi";
+import { getMidiNoteValue } from "utils/midi";
 import { isPitchClass } from "utils/pitchClass";
+import { sumVectors } from "utils/vector";
 
 /** Get the `PoseClips` of a given track from a list of clips. */
 export const getPoseClipsByTrackId = (
@@ -77,7 +77,7 @@ export const getPoseVectorAtTick = (
   const map = (clip: PoseClip, tick: number) => {
     const pose = poseMap[clip.poseId];
     const vector = getPoseVectorAtIndexByTick(clip, pose, tick);
-    offset = sumPoseVectors(offset, vector);
+    offset = sumVectors(offset, vector);
   };
 
   // Imperatively sum all relevant vectors to the offset
@@ -168,7 +168,7 @@ export const applyVoiceLeadingsToMidiStream = <
           const midi = getMidiNoteValue(n);
           const idx = mod(midi - offset, 12);
           const pitchClass = ChromaticKey[idx];
-          return { MIDI: midi + (vector[pitchClass] ?? 0) };
+          return midi + (vector[pitchClass] ?? 0);
         })
       ) as T;
     }

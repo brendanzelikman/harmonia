@@ -1,14 +1,39 @@
 import classNames from "classnames";
-import { useDeep, useProjectSelector } from "types/hooks";
+import { useDeep, useProjectDispatch, useProjectSelector } from "types/hooks";
 import { NavbarTooltipButton } from "../../components";
 import { GiHand } from "react-icons/gi";
 import { useAuth } from "providers/auth";
 import { selectIsLive } from "types/Timeline/TimelineSelectors";
-import { selectClipIds } from "types/Clip/ClipSelectors";
+import { selectPatternTrackIds } from "types/Track/TrackSelectors";
+import { createTrackTree } from "types/Track/TrackThunks";
+import { selectClosestPoseClipId } from "types/Arrangement/ArrangementSelectors";
+import {
+  initializePatternClip,
+  initializePoseClip,
+  PortaledPatternClipId,
+} from "types/Clip/ClipTypes";
+import { addClip } from "types/Clip/ClipSlice";
+import { createPose } from "types/Pose/PoseThunks";
+import { createPattern } from "types/Pattern/PatternThunks";
+import { addClipIdsToSelection } from "types/Timeline/thunks/TimelineSelectionThunks";
+import { selectPatternClipIds } from "types/Clip/ClipSelectors";
+import { dispatchCustomEvent } from "utils/html";
+import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 
 export const NavbarLivePlayButton = () => {
+  const dispatch = useProjectDispatch();
   const { isAtLeastRank } = useAuth();
-  const hasClips = useDeep(selectClipIds).length > 0;
+  const trackIds = useDeep(selectPatternTrackIds);
+  const hasTracks = trackIds.length > 0;
+
+  const clipIds = useDeep(selectPatternClipIds);
+  const patternClipId = clipIds.at(0);
+  const poseClipId = useDeep((_) =>
+    patternClipId
+      ? selectClosestPoseClipId(_, `${patternClipId}-chunk-1`)
+      : undefined
+  );
+
   const isLive = useProjectSelector(selectIsLive);
 
   // Get the numerical shortcuts.
@@ -163,13 +188,48 @@ export const NavbarLivePlayButton = () => {
   };
 
   // The transpose label showing the current types of poses available.
-  const LivePlayButton = (
+  const LivePlayButton = () => (
     <NavbarTooltipButton
-      disabled={!hasClips}
       keepTooltipOnClick
-      notClickable
       borderColor="border-fuchsia-500"
-      className={`${hasClips ? `cursor-pointer` : "opacity-50"} p-1.5`}
+      className={`cursor-pointer p-1.5`}
+      onClick={() => {
+        const undoType = "prepareLive";
+        if (!hasTracks) {
+          dispatch(createTrackTree({ undoType }));
+        }
+        const trackId = trackIds[0];
+
+        const pcId =
+          patternClipId === undefined
+            ? dispatch(
+                addClip({
+                  data: initializePatternClip({
+                    trackId,
+                    patternId: dispatch(createPattern({ data: {}, undoType })),
+                  }),
+                })
+              )
+            : patternClipId;
+
+        const psId =
+          poseClipId === undefined
+            ? dispatch(
+                addClip({
+                  data: initializePoseClip({
+                    trackId,
+                    poseId: dispatch(createPose({ data: {}, undoType })),
+                  }),
+                })
+              )
+            : poseClipId;
+
+        dispatch(setSelectedTrackId({ data: trackId, undoType }));
+        dispatch(addClipIdsToSelection({ data: [pcId, psId], undoType }));
+
+        setTimeout(() => dispatchCustomEvent(`open_score_${pcId}-chunk-1`), 25);
+        setTimeout(() => dispatchCustomEvent(`open_dropdown_${psId}`), 50);
+      }}
       label={
         isLive
           ? NumericalShortcuts()
@@ -194,7 +254,7 @@ export const NavbarLivePlayButton = () => {
           : "ring-fuchsia-500/50 bg-gradient-radial from-fuchsia-500/50 to-slate-950"
       )}
     >
-      {LivePlayButton}
+      {LivePlayButton()}
     </div>
   );
 };

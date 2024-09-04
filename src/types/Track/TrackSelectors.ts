@@ -15,7 +15,7 @@ import {
   resolveScaleToMidi,
 } from "types/Scale/ScaleResolvers";
 import { isNestedNote, ScaleId, ScaleObject } from "types/Scale/ScaleTypes";
-import { MidiValue } from "types/units";
+import { MidiNote, MidiScale } from "utils/midi";
 import {
   getOrderedTrackIds,
   getScaleTrackChainIds,
@@ -454,7 +454,7 @@ export const selectTrackIdsWithPossibleScales = (
 export const getTrackIdsWithPossibleScales = (
   note?: PatternNote,
   trackIds?: TrackId[],
-  midiScaleMap?: Dictionary<MidiValue[]>,
+  midiScaleMap?: Dictionary<MidiScale>,
   trackMap?: Dictionary<ScaleTrack>
 ) => {
   if (!note || !trackIds || !midiScaleMap || !trackMap) return [];

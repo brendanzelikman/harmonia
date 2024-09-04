@@ -1,5 +1,5 @@
 import { addScale, removeScale, updateScale } from "./ScaleSlice";
-import { MIDI } from "types/units";
+import { getMidiDegree, getMidiScaleDegree, MidiValue } from "utils/midi";
 import { EighthNoteTicks, getTickSubdivision } from "utils/durations";
 import { getMidiPitch, getMidiPitchClass } from "utils/midi";
 import { range } from "lodash";
@@ -8,11 +8,7 @@ import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { Thunk } from "types/Project/ProjectTypes";
 import { TrackId, isScaleTrack } from "types/Track/TrackTypes";
 import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
-import {
-  getMidiNoteValue,
-  getScaleNotes,
-  getScaleNoteMidiValue,
-} from "./ScaleFunctions";
+import { getScaleNotes, getScaleNoteMidiValue } from "./ScaleFunctions";
 import {
   getTransposedScale,
   getRotatedScale,
@@ -98,7 +94,7 @@ export const deleteScale =
 
 /** Add a note to a scale using a MIDI value and its parent scale track. */
 export const addNoteToScale =
-  (scale?: ScaleObject, note: MIDI = 60): Thunk =>
+  (scale?: ScaleObject, note: MidiValue = 60): Thunk =>
   (dispatch, getProject) => {
     if (!scale) return;
     const project = getProject();
@@ -143,11 +139,11 @@ export const addNoteToScale =
 
 /** Remove a note from a scale track. */
 export const removeNoteFromScale =
-  (scale?: ScaleObject, note: MIDI = 60): Thunk =>
+  (scale?: ScaleObject, midi: MidiValue = 60): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const midi = selectMidiScale(project, scale?.id);
-    const index = midi.findIndex((n) => mod(n, 12) === mod(note, 12));
+    const midiScale = selectMidiScale(project, scale?.id);
+    const index = getMidiScaleDegree(midi, midiScale);
     dispatch(removeNoteFromScaleByIndex(scale, index));
   };
 
@@ -181,7 +177,7 @@ export const removeNoteFromScaleByIndex =
       // Find the index where the MIDI or degree occurs
       const index = notes.findIndex((n) => {
         if (isMidiNote(n)) {
-          return mod(getMidiNoteValue(n), 12) === mod(midi, 12);
+          return getMidiDegree(n) === getMidiDegree(midi);
         }
         return n.degree === degree;
       });

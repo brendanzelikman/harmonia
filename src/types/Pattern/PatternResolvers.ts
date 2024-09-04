@@ -1,8 +1,4 @@
-import {
-  getVector_N,
-  getVector_O,
-  getVector_t,
-} from "types/Pose/PoseFunctions";
+import { getVector_T, getVector_O, getVector_t } from "utils/vector";
 import { PoseVector } from "types/Pose/PoseTypes";
 import { getScaleNoteMidiValue } from "types/Scale/ScaleFunctions";
 import { ScaleChain, isNestedNote } from "types/Scale/ScaleTypes";
@@ -101,7 +97,7 @@ export const resolvePatternStreamToMidi = (
   if (!vector) return midiStream;
 
   // Apply the chromatic offset
-  const N = getVector_N(vector);
+  const N = getVector_T(vector);
   midiStream = getTransposedMidiStream(midiStream, N);
 
   // Apply the chordal offset

@@ -6,10 +6,8 @@ import { useEffect } from "react";
 import { getValueByKey } from "utils/objects";
 import { useProjectSelector } from "types/hooks";
 import { EditorNumericField } from "features/Editor/components/EditorField";
-import {
-  getPoseVectorOffsetName,
-  mapPoseVector,
-} from "types/Pose/PoseFunctions";
+import { getPoseVectorOffsetName } from "types/Pose/PoseFunctions";
+import { mapVector } from "utils/vector";
 import { PoseVectorId } from "types/Pose/PoseTypes";
 import { selectTrackMap } from "types/Track/TrackSelectors";
 

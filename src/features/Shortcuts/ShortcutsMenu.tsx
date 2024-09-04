@@ -89,7 +89,7 @@ export function ShortcutsMenu() {
       className="relative font-nunito"
       onClose={toggleShortcuts}
     >
-      <div className="fixed flex justify-center inset-0 p-2 z-50 bg-slate-800/80 text-slate-200 backdrop-blur animate-in fade-in overflow-scroll">
+      <div className="fixed flex justify-center inset-0 p-2 z-[100] bg-slate-800/80 text-slate-200 backdrop-blur animate-in fade-in overflow-scroll">
         <div className="w-full h-full flex justify-center flex-1 gap-8">
           <div className="flex flex-col w-[28rem] p-8 gap-2 whitespace-nowrap overflow-scroll">
             <span className="font-bold text-3xl border-b border-b-slate-400/50 p-4 mt-8 mb-4">

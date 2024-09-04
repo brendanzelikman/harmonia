@@ -10,7 +10,7 @@ import { isFiniteNumber } from "types/util";
 
 /** Get the original media ID from a portaled media chunk. */
 export const getOriginalIdFromPortaledClip = (clipId: PortaledClipId) =>
-  clipId.split("-chunk-")[0] as ClipId;
+  (clipId.includes("-chunk-") ? clipId.split("-chunk-")[0] : clipId) as ClipId;
 
 /** Get a list of each clip's portaled chunks based on the given clips and portals. */
 export function applyPortalsToClips(clips: Timed<Clip>[], portals: Portal[]) {

@@ -1,14 +1,13 @@
-import { useProjectSelector, useProjectDispatch, use } from "types/hooks";
+import { useProjectDispatch, use, useDeep } from "types/hooks";
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "providers/auth";
-import { isEditorVisible } from "types/Editor/EditorFunctions";
 import { toggleEditor, hideEditor } from "types/Editor/EditorSlice";
 import { updateMediaSelection } from "types/Timeline/TimelineSlice";
-import { selectEditor } from "types/Editor/EditorSelectors";
+import { selectEditorView } from "types/Editor/EditorSelectors";
 import {
   selectSelectedMotif,
-  selectTimeline,
+  selectTimelineType,
 } from "types/Timeline/TimelineSelectors";
 import { defaultMediaSelection } from "types/Media/MediaTypes";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -18,7 +17,6 @@ import {
 } from "types/Project/ProjectSelectors";
 import { createProject } from "types/Project/ProjectThunks";
 import { readLocalProjects } from "types/Project/ProjectLoaders";
-import { exportProjectToHAM } from "types/Project/ProjectExporters";
 import { REDO_PROJECT, UNDO_PROJECT } from "providers/store";
 import { useDiary } from "types/Diary/DiaryTypes";
 
@@ -28,13 +26,12 @@ export function useGlobalHotkeys() {
   const { isProdigy, isAtLeastRank } = useAuth();
   const navigate = useNavigate();
   const diary = useDiary();
-  const timeline = useProjectSelector(selectTimeline);
-  const editor = useProjectSelector(selectEditor);
-  const object = useProjectSelector(selectSelectedMotif);
-  const isVisible = isEditorVisible(editor);
+  const type = use(selectTimelineType);
+  const motif = useDeep(selectSelectedMotif);
+  const isVisible = use(selectEditorView);
 
   // Meta + S = Save Project
-  useOverridingHotkeys("meta+s", () => dispatch(exportProjectToHAM()));
+  useOverridingHotkeys("meta+s");
 
   // Meta + O = Open Project
   useOverridingHotkeys("meta+o", () => dispatch(readLocalProjects()));
@@ -74,11 +71,11 @@ export function useGlobalHotkeys() {
   useOverridingHotkeys(
     "meta+e",
     () => {
-      if (object !== undefined) {
-        dispatch(toggleEditor({ data: timeline.type }));
+      if (motif !== undefined) {
+        dispatch(toggleEditor({ data: type }));
       }
     },
-    [object, timeline.type]
+    [motif, type]
   );
 
   // Meta + D = Toggle Diary

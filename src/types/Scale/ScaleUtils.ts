@@ -3,15 +3,20 @@ import {
   getScalePitchClasses,
   getScaleNoteMidiValue,
   getScaleNoteDegree,
-  getMidiNoteValue,
   getScaleNoteOctave,
 } from "./ScaleFunctions";
+import {
+  getMidiNoteValue,
+  isMidiInScale,
+  MidiScale,
+  MidiValue,
+} from "utils/midi";
 import { getRotatedScale } from "types/Scale/ScaleTransformers";
 import { chromaticScale, NestedNote, Scale, ScaleArray } from "./ScaleTypes";
 import { isEqual } from "lodash";
 import { resolveScaleToMidi } from "./ScaleResolvers";
 import { mod } from "utils/math";
-import { MIDI } from "types/units";
+import { MidiNote } from "utils/midi";
 import { getClosestPitchClass } from "utils/pitchClass";
 
 // ------------------------------------------------------------
@@ -28,8 +33,8 @@ export const sortScaleNotesByDegree = (notes: ScaleArray) => {
 // ------------------------------------------------------------
 
 /** Get the closest scale degree based on a given MIDI number */
-export const getClosestScaleDegree = (scale: MIDI[], note: MIDI) => {
-  if (!scale.some((n) => mod(n, 12) === mod(note, 12))) return -1;
+export const getClosestScaleDegree = (scale: MidiScale, note: MidiValue) => {
+  if (!isMidiInScale(note, scale)) return -1;
   const parentKey = getScalePitchClasses(scale);
   const closestPitch = getClosestPitchClass(scale, note);
   const degree = parentKey.findIndex((pitch) => pitch === closestPitch);
@@ -38,9 +43,9 @@ export const getClosestScaleDegree = (scale: MIDI[], note: MIDI) => {
 
 /** Get the closest nested note for the given scale based on the parent. */
 export const getClosestNestedNote = (
-  scale: MIDI[],
-  note: MIDI,
-  parent: MIDI[]
+  scale: MidiScale,
+  note: MidiValue,
+  parent: MidiScale
 ): NestedNote => {
   const degree = getClosestScaleDegree(parent, note);
   let octave = Math.floor((note - parent[degree]) / 12);
@@ -82,13 +87,6 @@ export const getClosestNestedNote = (
 // ------------------------------------------------------------
 // Equality Checks
 // ------------------------------------------------------------
-
-/** Returns true if a scale includes a note. */
-export const doesScaleIncludeNote = (scale?: Scale, note?: number) => {
-  if (!scale || !note) return false;
-  const notes = resolveScaleToMidi(scale);
-  return notes.some((n) => mod(getMidiNoteValue(n), 12) === mod(note, 12));
-};
 
 /** Returns true if a scale is chromatic. */
 export const isChromaticScale = (scale?: Scale) => {

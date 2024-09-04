@@ -1,6 +1,5 @@
 import { range } from "lodash";
-import { MidiScale, MidiValue } from "types/units";
-import { mod } from "utils/math";
+import { MidiScale, getMidiDegree } from "utils/midi";
 import {
   PatternChord,
   PatternMidiChord,
@@ -11,7 +10,6 @@ import {
   isPatternMidiStream,
   isPatternStrummedChord,
 } from "./PatternTypes";
-import { getMidiNoteValue } from "types/Scale/ScaleFunctions";
 
 // ------------------------------------------------------------
 // Pattern Chord Helpers
@@ -60,18 +58,18 @@ export const flattenMidiStreamNotes = (stream: PatternMidiStream) => {
 /** Get a `PatternMidiStream` flattened into an array of `MIDIValues` */
 export const flattenMidiStreamValues = (
   stream: PatternMidiStream
-): MidiValue[] => {
+): MidiScale => {
   return flattenMidiStreamNotes(stream).map((n) => n.MIDI);
 };
 
 /** Get the intrinsic scale of a `PatternMidiStream` */
 export const getMidiStreamScale = (
   stream: MidiScale | PatternMidiStream
-): MidiValue[] => {
+): MidiScale => {
   const flatValues = isPatternMidiStream(stream)
     ? flattenMidiStreamNotes(stream)
     : stream;
-  const basicValues = flatValues.map((n) => mod(getMidiNoteValue(n), 12));
+  const basicValues = flatValues.map(getMidiDegree);
   return [...new Set(basicValues)].sort((a, b) => a - b);
 };
 

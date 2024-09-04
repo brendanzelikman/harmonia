@@ -1,47 +1,40 @@
 import { expect, test } from "vitest";
 import * as _ from "./PoseFunctions";
-import { defaultPose, Pose, PoseStream, PoseStreamModule } from "./PoseTypes";
+import * as vector from "utils/vector";
+import { getVectorValue } from "utils/vector";
+import { Vector } from "utils/vector";
 
 test("getChromaticOffset should return the correct chromatic value if it exists", () => {
-  const chromaticOffset = _.getVector_N({ chromatic: 5 });
+  const chromaticOffset = vector.getVector_T({ chromatic: 5 });
   expect(chromaticOffset).toEqual(5);
 });
 
 test("getChromaticOffset should return 0 if the chromatic value does not exist", () => {
-  expect(_.getVector_N(undefined)).toEqual(0);
-  expect(_.getVector_N({})).toEqual(0);
-  expect(_.getVector_N({ chordal: 1 })).toEqual(0);
+  expect(vector.getVector_T(undefined)).toEqual(0);
+  expect(vector.getVector_T({})).toEqual(0);
+  expect(vector.getVector_T({ chordal: 1 })).toEqual(0);
 });
 
 test("getChordalOffset should return the correct chordal value if it exists", () => {
-  const chordalOffset = _.getVector_t({ chordal: 5 });
+  const chordalOffset = vector.getVector_t({ chordal: 5 });
   expect(chordalOffset).toEqual(5);
 });
 
 test("getChordalOffset should return 0 if the chordal value does not exist", () => {
-  expect(_.getVector_t(undefined)).toEqual(0);
-  expect(_.getVector_t({})).toEqual(0);
-  expect(_.getVector_t({ chromatic: 1 })).toEqual(0);
+  expect(vector.getVector_t(undefined)).toEqual(0);
+  expect(vector.getVector_t({})).toEqual(0);
+  expect(vector.getVector_t({ chromatic: 1 })).toEqual(0);
 });
 
 test("getPoseOffsetById should return the correct value if it exists", () => {
-  const offset = _.getVectorOffsetById(
-    { "pattern-track_1": 5 },
-    "pattern-track_1"
-  );
+  const offset = getVectorValue({ "pattern-track_1": 5 }, "pattern-track_1");
   expect(offset).toEqual(5);
 });
 
 test("getPoseOffsetById should return 0 if the value does not exist", () => {
-  expect(_.getVectorOffsetById(undefined, "pattern-track_1")).toEqual(0);
-  expect(_.getVectorOffsetById({}, "pattern-track_1")).toEqual(0);
-  expect(_.getVectorOffsetById({ chromatic: 1 }, "pattern-track_1")).toEqual(0);
-});
-
-test("getPoseOffsetsById should return the correct values if they exist", () => {
-  const offsets = _.getVectorOffsetsById(
-    { "pattern-track_1": 3, chromatic: 1, chordal: 2 },
-    ["chromatic", "chordal", "pattern-track_1"]
+  expect(getVectorValue(undefined, "pattern-track_1")).toEqual(0);
+  expect(getVectorValue({} as Vector, "pattern-track_1")).toEqual(0);
+  expect(getVectorValue({ chromatic: 1 } as Vector, "pattern-track_1")).toEqual(
+    0
   );
-  expect(offsets).toEqual([1, 2, 3]);
 });

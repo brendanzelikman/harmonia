@@ -5,6 +5,7 @@ import {
   updateMediaDraft,
 } from "./TimelineSlice";
 import { mod } from "utils/math";
+import { next } from "utils/array";
 import { isClipType, CLIP_TYPES } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -52,8 +53,7 @@ export const toggleTimelineType = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const timeline = selectTimeline(project);
   const index = timeline.type ? CLIP_TYPES.indexOf(timeline.type) : -1;
-  const newIndex = mod(index + 1, CLIP_TYPES.length);
-  dispatch(setTimelineType({ data: CLIP_TYPES[newIndex] }));
+  dispatch(setTimelineType({ data: next(CLIP_TYPES, index) }));
 };
 
 /** Toggles the timeline state based on the type provided */

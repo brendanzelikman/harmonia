@@ -12,24 +12,6 @@ import { getTransport } from "tone";
 export const isTransportStarted = (transport: Transport | TransportClass) =>
   transport.state === "started";
 
-/** Checks if the transport is stopped or not. */
-export const isTransportStopped = (transport: Transport | TransportClass) =>
-  transport.state === "stopped";
-
-/** Checks if the transport is paused or not. */
-export const isTransportPaused = (transport: Transport | TransportClass) =>
-  transport.state === "paused";
-
-/** Return properties about the state of a transport */
-export const getTransportState = (transport: Transport) => ({
-  isStarted: transport.state === "started",
-  isStopped: transport.state === "stopped",
-  isPaused: transport.state === "paused",
-  isRecording: !!transport.recording,
-  isIdle: transport.state === "stopped" && !transport.recording,
-  isLooping: !!transport.loop,
-});
-
 /** Get the next tick in the transport, looping back if necessary. */
 export const getNextTransportTick = (transport: Transport): Tick => {
   const ticks = getTransport().ticks;

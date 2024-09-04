@@ -2,8 +2,6 @@ import { useProjectDispatch, use } from "types/hooks";
 import { useScopedHotkeys, useOverridingHotkeys } from "lib/react-hotkeys-hook";
 import { useEffect } from "react";
 import { DataGridHandle } from "react-data-grid";
-import { useTransportTick } from "hooks/useTransportTick";
-import { TRACK_WIDTH } from "utils/constants";
 import { useAuth } from "providers/auth";
 import { hideEditor } from "types/Editor/EditorSlice";
 import { isScaleTrack } from "types/Track/TrackTypes";
@@ -13,7 +11,6 @@ import {
   increaseSubdivision,
 } from "types/Timeline/TimelineSlice";
 import {
-  selectTimelineTickLeft,
   selectSelectedTrack,
   selectSelectedMedia,
 } from "types/Timeline/TimelineSelectors";
@@ -59,8 +56,6 @@ const useTransportHotkeys = useScopedHotkeys("transport");
 export function useTimelineHotkeys(timeline?: DataGridHandle) {
   const dispatch = useProjectDispatch();
   const { isProdigy } = useAuth();
-  const tick = useTransportTick();
-  const tickLeft = use((_) => selectTimelineTickLeft(_, tick));
   const selectedTrack = use(selectSelectedTrack);
   const selectedMedia = use(selectSelectedMedia);
   const mediaLength = selectedMedia.length;
@@ -79,19 +74,6 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
       timeline.element.scroll({ left: 0, behavior: "smooth" });
     },
     [timeline]
-  );
-
-  // Shift + T = Scroll to Tick
-  useHotkeys(
-    "shift+t",
-    () => {
-      if (!timeline?.element) return;
-      timeline.element.scroll({
-        left: tickLeft - TRACK_WIDTH,
-        behavior: "smooth",
-      });
-    },
-    [timeline, tickLeft]
   );
 
   // Stop the transport on unmount

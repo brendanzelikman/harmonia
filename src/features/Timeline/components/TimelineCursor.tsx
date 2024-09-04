@@ -1,37 +1,35 @@
-import { HEADER_HEIGHT } from "utils/constants";
 import { useTransportTick } from "hooks/useTransportTick";
-import { memo } from "react";
-import { useProjectSelector } from "types/hooks";
-import { isTransportStarted } from "types/Transport/TransportFunctions";
+import { use } from "types/hooks";
 import {
-  selectCellWidth,
+  selectCellHeight,
+  selectSelectedTrack,
   selectTimelineTickLeft,
 } from "types/Timeline/TimelineSelectors";
-import { selectTransport } from "types/Transport/TransportSelectors";
+import { selectIsTransportActive } from "types/Transport/TransportSelectors";
+import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
+import classNames from "classnames";
 
-const TimelineCursor = () => {
+export function TimelineCursor() {
   const tick = useTransportTick();
-  const transport = useProjectSelector(selectTransport);
-  const cellWidth = useProjectSelector(selectCellWidth);
+  const cellHeight = use(selectCellHeight);
+  const isTransportActive = use(selectIsTransportActive);
 
-  // Cursor properties
-  const width = cellWidth - 4;
-  const height = HEADER_HEIGHT;
-  const marginTop = -HEADER_HEIGHT;
-  const left = useProjectSelector((_) => selectTimelineTickLeft(_, tick));
-  const show = isTransportStarted(transport) && !transport.downloading;
-  const style = { height, marginTop, width, left };
+  const track = use(selectSelectedTrack);
+  const onPatternTrack = track?.type === "pattern";
+
+  const top = use((_) => selectTrackTop(_, track?.id));
+  const left = use((_) => selectTimelineTickLeft(_, tick)) - 2;
+  const width = 2;
+  const height = cellHeight;
+  const style = { height, top, width, left };
+  const bgColor = onPatternTrack ? "bg-emerald-500" : "bg-sky-500";
 
   // Show the cursor if the transport is started and not downloading
-  if (!show) return null;
+  if (isTransportActive) return null;
   return (
     <div
-      className="sticky w-full inset-0 z-50 pointer-events-none"
-      style={{ height }}
-    >
-      <div className="relative bg-green-500" style={style} />
-    </div>
+      className={classNames(bgColor, "absolute pointer-events-none")}
+      style={style}
+    />
   );
-};
-
-export default memo(TimelineCursor);
+}

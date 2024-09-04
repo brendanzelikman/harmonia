@@ -4,10 +4,10 @@ import { useCallback, useMemo } from "react";
 import { useProjectDispatch } from "types/hooks";
 import { exportScaleToXML } from "types/Scale/ScaleExporters";
 import { removeNoteFromScaleByIndex } from "types/Scale/ScaleThunks";
-import { MIDI } from "types/units";
+import { MidiScale } from "utils/midi";
 
 interface ScaleEditorScoreProps extends EditorProps {
-  midiScale: MIDI[];
+  midiScale: MidiScale;
   isCustom: boolean;
   isTracked: boolean;
 }

@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  getMidiChromaticNumber,
-  getMidiOctaveDistance,
-  getMidiPitch,
-} from "utils/midi";
+import { getMidiDegree, getMidiOctaveDistance, getMidiPitch } from "utils/midi";
 import { getArrayByKey, getValueByKey } from "utils/objects";
 import { useDeep, useProjectDispatch } from "types/hooks";
 import { PatternEditorProps } from "../PatternEditor";
@@ -165,7 +161,7 @@ export function PatternEditorBlockTab(props: PatternEditorProps) {
     // Get the option's name using the track label and would-be degree
     const getOptionName = (trackId: TrackId | "no-scale") => {
       if (trackId === "no-scale") {
-        const chromaticNumber = getMidiChromaticNumber(midiNote?.MIDI);
+        const chromaticNumber = getMidiDegree(midiNote?.MIDI);
         return `${chromaticNumber + 1} (Chromatic)`;
       }
       let degree = dispatch(getDegreeOfNoteInTrack(trackId, note));

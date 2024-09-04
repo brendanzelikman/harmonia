@@ -6,6 +6,7 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { selectOrderedTrackIds } from "types/Track/TrackSelectors";
 import { deleteTrack } from "types/Track/TrackThunks";
 import { mod } from "utils/math";
+import { next, prev } from "utils/array";
 import {
   selectSelectedTrackId,
   selectSelectedClipIds,
@@ -22,7 +23,7 @@ export const selectPreviousTrack = (): Thunk => (dispatch, getProject) => {
   const selectedTrackId = selectSelectedTrackId(project);
   const trackIds = selectOrderedTrackIds(project);
   const index = selectedTrackId ? trackIds.indexOf(selectedTrackId) : 1;
-  const previousTrackId = trackIds[mod(index - 1, trackIds.length)];
+  const previousTrackId = prev(trackIds, index);
   dispatch(setSelectedTrackId({ data: previousTrackId }));
 };
 
@@ -32,7 +33,7 @@ export const selectNextTrack = (): Thunk => (dispatch, getProject) => {
   const selectedTrackId = selectSelectedTrackId(project);
   const trackIds = selectOrderedTrackIds(project);
   const index = selectedTrackId ? trackIds.indexOf(selectedTrackId) : -1;
-  const nextTrackId = trackIds[mod(index + 1, trackIds.length)];
+  const nextTrackId = next(trackIds, index);
   dispatch(setSelectedTrackId({ data: nextTrackId }));
 };
 

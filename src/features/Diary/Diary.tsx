@@ -163,7 +163,7 @@ export function Diary() {
 
   if (!showingDiary) return null;
   return (
-    <div className="absolute inset-0 flex flex-col total-center z-50 bg-slate-950/80 backdrop-blur-lg">
+    <div className="absolute inset-0 flex flex-col total-center z-[100] bg-slate-950/80 backdrop-blur-lg">
       <img
         src={Background}
         className="absolute inset-0 opacity-50 h-screen object-cover landing-background"

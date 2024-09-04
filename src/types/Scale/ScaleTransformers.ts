@@ -1,5 +1,6 @@
 import { mod } from "utils/math";
-import { getMidiNoteValue, getScaleNotes } from "./ScaleFunctions";
+import { getScaleNotes } from "./ScaleFunctions";
+import { getMidiNoteValue } from "utils/midi";
 import {
   isMidiObject,
   ScaleNote,
@@ -12,8 +13,8 @@ import {
   isMidiNote,
   isScaleObject,
 } from "./ScaleTypes";
-import { MidiNote } from "types/units";
-import { sumVectors } from "utils/objects";
+import { MidiNote } from "utils/midi";
+import { sumVectors } from "utils/vector";
 
 // ------------------------------------------------------------
 // Get Transformed Scale Notes

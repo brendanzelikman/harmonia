@@ -1,35 +1,73 @@
-import { Key, MIDI, PitchClass } from "types/units";
+import { Key, PitchClass } from "types/units";
 import { PITCH_CLASSES } from "./pitchClass";
 import { mod } from "./math";
 import { ChromaticKey } from "assets/keys";
 import { isNumber } from "lodash";
+import { chromaticNotes } from "types/Scale/ScaleTypes";
+
+// ------------------------------------------------------------
+// MIDI Units
+// ------------------------------------------------------------
+
+export type MidiValue = number;
+export type MidiScale = MidiValue[];
+export type MidiObject = { MIDI: MidiValue };
+export type MidiNote = MidiObject | MidiValue;
+
+/** Get a `MidiNote` as a number. */
+export const getMidiNoteValue = (note?: MidiNote) => {
+  return isNumber(note) ? note : note?.MIDI ?? 0;
+};
+
+/** Get the chromatic degree of a MIDI note or pitch (e.g. 60/C4 = 0). */
+export const getMidiDegree = (note?: MidiNote) => {
+  const midi = getMidiNoteValue(note);
+  return mod(midi, 12);
+};
+
+/** Return the index of a MIDI note within a scale. */
+export const getMidiScaleDegree = (midi: MidiNote, scale: MidiScale) => {
+  const degree = getMidiDegree(midi);
+  return scale.findIndex((note) => getMidiDegree(note) === degree);
+};
+
+/** Returns true if a MIDI falls within a scale. */
+export const isMidiInScale = (midi: MidiNote, scale: MidiScale) => {
+  return getMidiScaleDegree(midi, scale) !== -1;
+};
+
+/** Get a degree number as a chromatic note. */
+export const getMidiChromaticNote = (note?: MidiNote) => {
+  const degree = getMidiDegree(note);
+  return chromaticNotes[degree];
+};
 
 // ------------------------------------------------------------
 // Pitches
 // ------------------------------------------------------------
 
 /** Get the pitch class of a MIDI number using a key (e.g. 60 = C). */
-export const getMidiPitchClass = (note: MIDI, key: Key = ChromaticKey) => {
-  return key[mod(note, 12)];
+export const getMidiPitchClass = (note: MidiNote, key: Key = ChromaticKey) => {
+  const degree = getMidiDegree(note);
+  return key[degree];
 };
 
 /** Get the pitch letter of a MIDI number (used for MusicXML, e.g. 61 = C). */
-export const getMidiPitchLetter = (note: MIDI, key: Key = ChromaticKey) => {
+export const getMidiPitchLetter = (note: MidiNote, key: Key = ChromaticKey) => {
   const pitchClass = getMidiPitchClass(note, key);
   if (!pitchClass) return "C";
   return pitchClass.replace(/b|#|-/g, "");
 };
 
 /** Get the pitch of a MIDI number using a key (e.g. 60 = C4) */
-export const getMidiPitch = (note: MIDI, key: Key = ChromaticKey) => {
+export const getMidiPitch = (note: MidiNote, key: Key = ChromaticKey) => {
   return `${getMidiPitchClass(note, key)}${getMidiOctaveNumber(note)}`;
 };
 
 /** Get the chromatic number of a MIDI note or pitch (e.g. 60/C4 = 0). */
-export const getMidiChromaticNumber = (note?: MIDI | PitchClass) => {
-  if (!note) return 0;
-  if (isNumber(note)) note = getMidiPitchClass(note as MIDI);
-  return PITCH_CLASSES.findIndex((x) => x.includes(note as PitchClass));
+export const getPitchClassNumber = (note?: PitchClass) => {
+  if (note === undefined) return 0;
+  return PITCH_CLASSES.findIndex((x) => x.includes(note));
 };
 
 // ------------------------------------------------------------
@@ -37,9 +75,13 @@ export const getMidiChromaticNumber = (note?: MIDI | PitchClass) => {
 // ------------------------------------------------------------
 
 /** Get the octave of a MIDI note (e.g. 60 = 4) */
-export const getMidiOctaveNumber = (note: MIDI, key: Key = ChromaticKey) => {
-  const octave = Math.floor((note - 12) / 12);
-  const number = getMidiChromaticNumber(note);
+export const getMidiOctaveNumber = (note: MidiNote, key?: Key) => {
+  const midi = getMidiNoteValue(note);
+  const octave = Math.floor((midi - 12) / 12);
+  if (!key) return octave;
+
+  // If there is a key, check for edge cases
+  const number = getMidiDegree(note);
 
   // Handle lower edge cases
   if (number === 0 && key[0] === "B#") return octave - 1;
@@ -54,7 +96,7 @@ export const getMidiOctaveNumber = (note: MIDI, key: Key = ChromaticKey) => {
 };
 
 /** Get the octave distance of two MIDI notes. */
-export const getMidiOctaveDistance = (note1: MIDI, note2: MIDI) => {
+export const getMidiOctaveDistance = (note1: MidiNote, note2: MidiNote) => {
   return getMidiOctaveNumber(note2) - getMidiOctaveNumber(note1);
 };
 
@@ -64,7 +106,7 @@ export const getMidiOctaveDistance = (note1: MIDI, note2: MIDI) => {
 
 /** Get the accidental offset of the note using the key (e.g. 61 = C#). */
 export const getMidiAccidentalNumber = (
-  note: MIDI,
+  note: MidiNote,
   key: Key = ChromaticKey
 ): number => {
   const pitch = getMidiPitch(note, key);
@@ -81,7 +123,7 @@ export const getMidiAccidentalNumber = (
 
 /** Get the accidental of a MIDI note (used for MusicXML, e.g. 61 = "sharp")/ */
 export const getMidiAccidental = (
-  note: MIDI,
+  note: MidiNote,
   key: Key = ChromaticKey
 ): string => {
   const offset = getMidiAccidentalNumber(note, key);

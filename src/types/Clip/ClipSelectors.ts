@@ -20,6 +20,9 @@ import {
   PatternClipState,
   PoseClipState,
   ScaleClipState,
+  PatternClipId,
+  PoseClipId,
+  ScaleClipId,
 } from "./ClipTypes";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { getPoseDuration } from "types/Pose/PoseFunctions";
@@ -51,7 +54,9 @@ const patternClipSelectors = patternClipAdapter.getSelectors<Project>(
 );
 
 export const selectPatternClipMap = patternClipSelectors.selectEntities;
-export const selectPatternClipIds = patternClipSelectors.selectIds;
+export const selectPatternClipIds = patternClipSelectors.selectIds as (
+  project: Project
+) => PatternClipId[];
 export const selectPatternClipTotal = patternClipSelectors.selectTotal;
 export const selectPatternClipById = patternClipSelectors.selectById;
 export const selectPatternClips = patternClipSelectors.selectAll;
@@ -69,7 +74,9 @@ const poseClipSelectors =
   poseClipAdapter.getSelectors<Project>(selectPoseClipState);
 
 export const selectPoseClipMap = poseClipSelectors.selectEntities;
-export const selectPoseClipIds = poseClipSelectors.selectIds;
+export const selectPoseClipIds = poseClipSelectors.selectIds as (
+  project: Project
+) => PoseClipId[];
 export const selectPoseClipTotal = poseClipSelectors.selectTotal;
 export const selectPoseClipById = poseClipSelectors.selectById;
 export const selectPoseClips = poseClipSelectors.selectAll;
@@ -87,7 +94,9 @@ const scaleClipSelectors =
   scaleClipAdapter.getSelectors<Project>(selectScaleClipState);
 
 export const selectScaleClipMap = scaleClipSelectors.selectEntities;
-export const selectScaleClipIds = scaleClipSelectors.selectIds;
+export const selectScaleClipIds = scaleClipSelectors.selectIds as (
+  project: Project
+) => ScaleClipId[];
 export const selectScaleClipTotal = scaleClipSelectors.selectTotal;
 export const selectScaleClipById = scaleClipSelectors.selectById;
 export const selectScaleClips = scaleClipSelectors.selectAll;

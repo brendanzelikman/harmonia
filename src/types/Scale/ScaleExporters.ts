@@ -3,18 +3,18 @@ import { MusicXML } from "lib/musicxml";
 import { Thunk } from "types/Project/ProjectTypes";
 import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
 import { selectTransport } from "types/Transport/TransportSelectors";
-import { MIDI, XML } from "types/units";
+import { XML } from "types/units";
+import { MidiNote, MidiScale } from "utils/midi";
 import { EighthNoteTicks, getDurationTicks } from "utils/durations";
 import { downloadBlob } from "utils/html";
 import { getScaleKey } from "utils/key";
 import { getScaleName } from "utils/key";
 import { getScaleNotes, getScaleNoteMidiValue } from "./ScaleFunctions";
 import { isScale } from "./ScaleTypes";
-import { MidiValue } from "types/units";
 import { Midi } from "@tonejs/midi";
 
 /** Export a Scale to XML and return the XML string, downloading if specified. */
-export const exportScaleToXML = (scale?: MIDI[], download = false): XML => {
+export const exportScaleToXML = (scale?: MidiNote[], download = false): XML => {
   if (!isScale(scale)) return DemoXML;
 
   // Unpack the scale
@@ -63,7 +63,7 @@ export const exportScaleToXML = (scale?: MIDI[], download = false): XML => {
 
 /** Export a scale to MIDI and download it as a file. */
 export const exportScaleToMIDI =
-  (scale?: MidiValue[]): Thunk =>
+  (scale?: MidiScale): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const transport = selectTransport(project);

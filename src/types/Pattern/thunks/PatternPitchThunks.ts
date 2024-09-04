@@ -1,6 +1,6 @@
 import { clamp, shuffle } from "lodash";
 import { Thunk } from "types/Project/ProjectTypes";
-import { sumVectors } from "utils/objects";
+import { sumVectors } from "utils/vector";
 import { selectPatternById } from "../PatternSelectors";
 import { updatePattern } from "../PatternSlice";
 import {

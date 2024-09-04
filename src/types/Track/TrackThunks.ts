@@ -1,5 +1,5 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { Payload, createUndoType, unpackUndoType } from "lib/redux";
+import { Action, Payload, createUndoType, unpackUndoType } from "lib/redux";
 import { union, difference } from "lodash";
 import { selectClipsByTrackIds } from "types/Clip/ClipSelectors";
 import { addClips, removeClips } from "types/Clip/ClipSlice";
@@ -315,11 +315,13 @@ export const bindTrackToPort =
   };
 
 /** Create a new Scale Track and Pattern Track. */
-export const createTrackTree = (): Thunk => (dispatch) => {
-  const undoType = createUndoType("createTrackTree", nanoid());
-  const parentId = dispatch(createScaleTrack({}, undefined, undoType));
-  dispatch(createPatternTrack({ parentId }, undefined, undoType));
-};
+export const createTrackTree =
+  (action?: Payload<{}, true>): Thunk<PatternTrackId> =>
+  (dispatch) => {
+    const undoType = createUndoType("createTrackTree", nanoid());
+    const parentId = dispatch(createScaleTrack({}, undefined, undoType));
+    return dispatch(createPatternTrack({ parentId }, undefined, undoType));
+  };
 
 /** Duplicate a track and all of its media/children in the slice and hierarchy. */
 export const duplicateTrack =
@@ -629,8 +631,7 @@ export const getDegreeOfNoteInTrack =
     return trackMidiScale.findIndex((s) => s % 12 === MIDI % 12);
   };
 
-/**
- * Get the best matching note based on the given track. */
+/** Get the best matching note based on the given track. */
 export const autoBindNoteToTrack =
   (trackId: TrackId, note: PatternNote): Thunk<PatternNote | undefined> =>
   (dispatch, getProject) => {

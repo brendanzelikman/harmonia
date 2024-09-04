@@ -1,4 +1,5 @@
-import { BPM, Seconds, MIDI, Tick, Timed, Velocity } from "types/units";
+import { BPM, Seconds, Tick, Timed, Velocity } from "types/units";
+import { MidiNote, MidiValue } from "./midi";
 import { getDictValues, findEntry } from "./objects";
 import sixteenthNote from "assets/noteheads/16th.png";
 import thirtysecondNote from "assets/noteheads/32nd.png";
@@ -32,7 +33,7 @@ export const secondsToTicks = (seconds: Seconds, bpm: BPM): Tick => {
 
 /** Create a MIDI note using the name of a note duration. */
 export const createNoteFromDuration = (
-  MIDI: MIDI = 60,
+  MIDI: MidiValue = 60,
   velocity: Velocity = 100,
   duration: DurationType = "quarter"
 ) => {
@@ -41,7 +42,7 @@ export const createNoteFromDuration = (
 
 /** Create a MIDI note factory for a specific note duration. */
 export const createNoteFactory = (duration: DurationType) => {
-  return (MIDI: number = 60, velocity: Velocity = 100) => {
+  return (MIDI: MidiValue = 60, velocity: Velocity = 100) => {
     return createNoteFromDuration(MIDI, velocity, duration);
   };
 };
@@ -442,7 +443,7 @@ export const isTripletDuration = (
 };
 
 /** Checks if a given timed note is a straight duration. */
-export const isStraightNote = (note: Timed<MIDI>) => {
+export const isStraightNote = (note: Timed<MidiNote>) => {
   return getDictValues(STRAIGHT_DURATION_TICKS).includes(note.duration);
 };
 

@@ -1,10 +1,5 @@
 import { useScaleEditorHotkeys } from "./hooks/useScaleEditorHotkeys";
-import {
-  use,
-  useDeep,
-  useProjectDispatch,
-  useProjectSelector,
-} from "types/hooks";
+import { use, useDeep, useProjectSelector } from "types/hooks";
 import { ScoreProps } from "lib/opensheetmusicdisplay";
 import { EditorBody } from "../components/EditorBody";
 import { EditorContainer } from "../components/EditorContainer";
@@ -12,7 +7,7 @@ import { ScaleEditorContent } from "./components/ScaleEditorContent";
 import { ScaleEditorContextMenu } from "./components/ScaleEditorContextMenu";
 import { ScaleEditorPiano } from "./components/ScaleEditorPiano";
 import { ScaleEditorSidebar } from "./components/ScaleEditorSidebar";
-import { getScaleCategory } from "types/Scale/ScaleFunctions";
+import { getScaleCategory } from "utils/key";
 import { useScaleEditorScore } from "./hooks/useScaleEditorScore";
 import { EditorProps } from "../Editor";
 import { selectCustomScales } from "types/Scale/ScaleSelectors";
@@ -20,11 +15,11 @@ import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
 import { selectTrackMidiScale } from "types/Track/TrackSelectors";
 import { selectScaleName } from "types/Arrangement/ArrangementTrackSelectors";
 import { resolveScaleToMidi } from "types/Scale/ScaleResolvers";
-import { MIDI } from "types/units";
+import { MidiScale } from "utils/midi";
 
 export interface ScaleEditorProps extends EditorProps, ScoreProps {
   // The scale editor passes additional information about the scale
-  midiScale: MIDI[];
+  midiScale: MidiScale;
   scaleName: string;
   scaleCategory: string;
 

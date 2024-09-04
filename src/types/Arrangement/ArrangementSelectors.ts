@@ -74,11 +74,7 @@ import {
   getRotatedScale,
   getTransposedScale,
 } from "types/Scale/ScaleTransformers";
-import {
-  getVector_N,
-  getVector_O,
-  getVector_t,
-} from "types/Pose/PoseFunctions";
+import { getVector_T, getVector_O, getVector_t } from "utils/vector";
 import {
   getPatternBlockAtIndex,
   getPatternBlockDuration,
@@ -89,6 +85,7 @@ import {
 } from "types/Track/PatternTrack/PatternTrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { inRange, mapValues } from "lodash";
+import { isFiniteNumber } from "types/util";
 
 /** Select the arrangement as a basic collection of dependencies (entities). */
 export const selectTrackArrangement = createDeepSelector(
@@ -298,8 +295,8 @@ export const selectOverlappingPortaledClipIdMap = createDeepSelector(
     const result = {} as Record<PortaledPatternClipId, PortaledClipId[]>;
     if (!allPatternClips.length || !allOtherClips.length) return result;
 
+    // Iterate over other clips and return true if any overlap
     for (const pc of allPatternClips) {
-      // Iterate over other clips and return true if any overlap
       const otherClips = allOtherClips
         .filter((oc) => oc.trackId === pc.trackId)
         .sort(
@@ -309,7 +306,12 @@ export const selectOverlappingPortaledClipIdMap = createDeepSelector(
         const startTick = clip.tick;
         const endTick = startTick + (clip.duration ?? Infinity);
         if (
-          inRange(getMediaElementDuration(pc, pc.duration), startTick, endTick)
+          inRange(
+            getMediaElementDuration(pc, pc.duration),
+            startTick,
+            endTick
+          ) ||
+          !isFiniteNumber(clip.duration)
         ) {
           result[pc.id] = (result[pc.id] ?? []).concat(clip.id);
           break;
@@ -409,7 +411,7 @@ export const selectPatternClipXML = (project: Project, clip?: PatternClip) => {
   const scale = resolveScaleChainToMidi(
     scaleChain.map((scale, i) => {
       if (i === scaleChain.length - 1) {
-        const scale1 = getTransposedScale(scale, getVector_N(vector));
+        const scale1 = getTransposedScale(scale, getVector_T(vector));
         const scale2 = getRotatedScale(scale1, getVector_t(vector));
         const scale3 = getTransposedScale(scale2, 12 * getVector_O(vector));
         return scale3;

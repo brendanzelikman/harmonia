@@ -31,20 +31,20 @@ import {
   selectSelectedTrackId,
   selectTimelineType,
 } from "types/Timeline/TimelineSelectors";
-import { DataGridHandle } from "react-data-grid";
 import classNames from "classnames";
 import { Timed } from "types/units";
 import { TrackId } from "types/Track/TrackTypes";
 
 export interface TimelineClipsProps {
-  timeline?: DataGridHandle;
+  element?: HTMLDivElement;
 }
 
 export function TimelineClips(props: TimelineClipsProps) {
-  const element = props.timeline?.element;
+  const element = props.element;
   const portaledClips = useDeep(selectPortaledClips);
   const selectedIdMap = useDeep(selectSelectedClipIdMap);
-  const { i: holdingI } = useHeldHotkeys(["i"]);
+  const heldKeys = useHeldHotkeys("i");
+  const holdingI = heldKeys.i;
   const isLive = use(selectIsLive);
   const isSlicing = use(selectIsSlicingClips);
   const isPortaling = use(selectIsAddingPortals);
@@ -74,7 +74,7 @@ export function TimelineClips(props: TimelineClipsProps) {
         }
       ),
     };
-  }, [isLive, isSlicing, isPortaling, holdingI, selectedTrackId]);
+  }, [isLive, isSlicing, holdingI, isPortaling, selectedTrackId]);
 
   // Memoized render function for portaled clips
   const renderPortaledClip = useCallback(
@@ -93,6 +93,7 @@ export function TimelineClips(props: TimelineClipsProps) {
             portaledClip={portaledClip as PortaledPatternClip}
             isSelected={isSelected}
             isAdding={isAdding && type === clip.type}
+            isAddingAny={isAdding}
           />
         );
       }
@@ -107,6 +108,7 @@ export function TimelineClips(props: TimelineClipsProps) {
             portaledClip={portaledClip as PortaledPoseClip}
             isSelected={isSelected}
             isAdding={isAdding && type === clip.type}
+            isAddingAny={isAdding}
           />
         );
       }
@@ -121,6 +123,7 @@ export function TimelineClips(props: TimelineClipsProps) {
             portaledClip={portaledClip as PortaledScaleClip}
             isSelected={isSelected}
             isAdding={isAdding && type === clip.type}
+            isAddingAny={isAdding}
           />
         );
       }
@@ -140,6 +143,7 @@ export interface ClipComponentProps {
   isLive: boolean;
   isSelected: boolean;
   isAdding: boolean;
+  isAddingAny: boolean;
   isSlicing: boolean;
   isPortaling: boolean;
   holdingI: boolean;

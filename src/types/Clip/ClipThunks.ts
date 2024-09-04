@@ -2,11 +2,7 @@ import { Midi } from "@tonejs/midi";
 import { isUndefined, some } from "lodash";
 import { Tick } from "types/units";
 import { selectPoseClipById, selectTimedClipById } from "./ClipSelectors";
-import {
-  isPoseBucket,
-  getPoseBucketVector,
-  sumPoseVectors,
-} from "types/Pose/PoseFunctions";
+import { isPoseBucket, getPoseBucketVector } from "types/Pose/PoseFunctions";
 import { updatePose } from "types/Pose/PoseSlice";
 import { isPoseVectorModule } from "types/Pose/PoseTypes";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -27,6 +23,7 @@ import { addClips, removeClip } from "./ClipSlice";
 import { selectMediaSelection } from "types/Timeline/TimelineSelectors";
 import { deleteMedia } from "types/Media/MediaThunks";
 import { removeClipIdsFromSelection } from "types/Timeline/thunks/TimelineSelectionThunks";
+import { sumVectors } from "utils/vector";
 
 /** Slice a clip and make sure the old ID is no longer selected. */
 export const sliceClip =
@@ -87,7 +84,7 @@ export const mergePoseClips =
     // Sum the source vector to each block in the sink pose
     const stream = sinkPose.stream.map((block) => {
       if (!isPoseVectorModule(block)) return block;
-      return { ...block, vector: sumPoseVectors(block.vector, sourceVector) };
+      return { ...block, vector: sumVectors(block.vector, sourceVector) };
     });
 
     // Update the sink pose with the new stream

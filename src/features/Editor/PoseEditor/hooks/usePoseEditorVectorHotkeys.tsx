@@ -1,9 +1,9 @@
 import { useOverridingHotkeys } from "lib/react-hotkeys-hook";
-import { mod } from "utils/math";
 import { PoseEditorVectorProps } from "../components/PoseEditorVector";
 import { useProjectDispatch } from "types/hooks";
 import { updatePoseBlock } from "types/Pose/PoseSlice";
 import { PoseVectorId } from "types/Pose/PoseTypes";
+import { next, prev } from "utils/array";
 
 interface PoseEditorVectorHotkeyProps extends PoseEditorVectorProps {
   vectorId: PoseVectorId;
@@ -67,9 +67,7 @@ export function usePoseEditorVectorHotkeys(props: PoseEditorVectorHotkeyProps) {
     "left",
     () => {
       if (!editState || index !== editState.index) return;
-      const prevIndex = mod(vectorIndex - 1, vectorKeys.length);
-      const prevId = vectorKeys[prevIndex];
-      setVectorId(prevId);
+      setVectorId(prev(vectorKeys, vectorIndex));
     },
     [editState, vectorIndex, vectorKeys]
   );
@@ -79,9 +77,7 @@ export function usePoseEditorVectorHotkeys(props: PoseEditorVectorHotkeyProps) {
     "right",
     () => {
       if (!editState || index !== editState.index) return;
-      const nextIndex = mod(vectorIndex + 1, vectorKeys.length);
-      const nextId = vectorKeys[nextIndex];
-      setVectorId(nextId);
+      setVectorId(next(vectorKeys, vectorIndex));
     },
     [editState, vectorIndex, index, vectorKeys]
   );

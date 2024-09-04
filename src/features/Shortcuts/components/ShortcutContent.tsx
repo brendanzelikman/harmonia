@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 interface ShortcutContentProps {
   className?: string;
-  shortcuts: (ReactNode | null)[];
+  shortcuts: ReactNode[];
 }
 
 export const ShortcutContent = ({

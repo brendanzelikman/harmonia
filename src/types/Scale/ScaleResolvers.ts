@@ -4,7 +4,7 @@ import {
   transposeNoteThroughScale,
 } from "./ScaleTransformers";
 import { ScaleNote, Scale } from "./ScaleTypes";
-import { MidiValue } from "types/units";
+import { MidiScale } from "utils/midi";
 
 /** Resolve a `ScaleNote` to a `MidiNoteValue` using the `Scales` provided. */
 export const resolveScaleNoteToMidi = (note: ScaleNote, scales: Scale[]) => {
@@ -13,7 +13,7 @@ export const resolveScaleNoteToMidi = (note: ScaleNote, scales: Scale[]) => {
 };
 
 /** Resolve a `Scale` to an array of `MidiNoteValues`. */
-export const resolveScaleToMidi = (scale?: Scale): MidiValue[] => {
+export const resolveScaleToMidi = (scale?: Scale): MidiScale => {
   if (!scale) return [];
   const notes = getScaleNotes(scale);
   if (!notes?.length) return [];
@@ -21,7 +21,7 @@ export const resolveScaleToMidi = (scale?: Scale): MidiValue[] => {
 };
 
 /** Resolve a list of `Scales` to an array of `MidiNoteValues`, starting from the end. */
-export const resolveScaleChainToMidi = (scales: Scale[]): MidiValue[] => {
+export const resolveScaleChainToMidi = (scales: Scale[]): MidiScale => {
   const allScales = [...scales];
   const scaleCount = allScales.length;
   if (scaleCount < 2) return resolveScaleToMidi(allScales[0]);

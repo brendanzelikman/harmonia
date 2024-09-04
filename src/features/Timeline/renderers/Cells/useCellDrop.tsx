@@ -1,29 +1,18 @@
 import { useDrop } from "react-dnd";
-import { Row } from "features/Timeline/Timeline";
-import { TrackId } from "types/Track/TrackTypes";
+import { CellFormatterProps } from "./CellFormatter";
 
-interface CellDropProps {
-  trackId?: TrackId;
-  columnIndex: number;
-  row: Row;
-}
-
-export function useCellDrop(props: CellDropProps) {
-  const { trackId, columnIndex, row } = props;
-  return useDrop(
-    () => ({
-      accept: ["patternClip", "poseClip", "scaleClip", "portal"],
-      collect: (monitor) => ({
-        canDrop: monitor.canDrop(),
-        isOver: monitor.isOver(),
-      }),
-      hover(item: any) {
-        item.trackId = trackId;
-        item.canDrop = true;
-        item.hoveringColumn = columnIndex;
-        item.hoveringRow = row.index;
-      },
+export function useCellDrop(props: CellFormatterProps) {
+  return useDrop({
+    accept: ["patternClip", "poseClip", "scaleClip", "portal"],
+    collect: (monitor) => ({
+      canDrop: monitor.canDrop(),
+      isOver: monitor.isOver(),
     }),
-    [trackId, columnIndex, row]
-  );
+    hover(item: any) {
+      item.trackId = props.row.id;
+      item.canDrop = true;
+      item.hoveringColumn = props.col;
+      item.hoveringRow = props.row.index;
+    },
+  });
 }

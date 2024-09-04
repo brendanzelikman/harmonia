@@ -37,8 +37,9 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
   const dispatch = useProjectDispatch();
 
   // Each pattern clip has a dropdown to show its score */
-  const [showScore, setShowScore] = useState(false);
-  useHotkeys("esc", () => setShowScore(false));
+  const score = useToggledState(`score_${pcId}`);
+  const showScore = score.isOpen;
+  useHotkeys("esc", score.close);
 
   // Each pattern clip listens to the closest overlapping pose clip */
   const poseClipId = use((_) => selectClosestPoseClipId(_, pcId));
@@ -60,16 +61,17 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
       if (e.altKey) {
         dispatch(toggleClipIdInSelection(clip.id));
       } else if (e.metaKey) {
-        setShowScore((prev) => !prev);
+        score.toggle();
       } else if (isSelected) {
-        if (showScore)
+        if (score.isOpen) {
           dispatch(removeClipIdsFromSelection({ data: [clip.id] }));
-        setShowScore((prev) => !prev);
+        }
+        score.toggle();
       } else {
         dispatch(onClipClick(e, clip, { eyedropping: holdingI }));
       }
     },
-    [clip, isSelected, showScore, holdingI]
+    [clip, isSelected, score, holdingI]
   );
 
   // Each portaled clip has a different style

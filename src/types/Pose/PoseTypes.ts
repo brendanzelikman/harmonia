@@ -11,6 +11,7 @@ import {
   NonEmpty,
 } from "types/util";
 import { isPitchClass } from "utils/pitchClass";
+import { Vector } from "utils/vector";
 
 // ------------------------------------------------------------
 // Pose Generics
@@ -29,7 +30,7 @@ export type PoseState = EntityState<Pose>;
 // ------------------------------------------------------------
 
 /** A `PoseVector` contains a list of offsets applied by track ID. */
-export type PoseVector = { [key in PoseVectorId]?: number };
+export type PoseVector = Vector<PoseVectorId>;
 export type PoseVectorId =
   | TrackId
   | ChromaticPitchClass

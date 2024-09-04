@@ -157,7 +157,8 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     return (
       <ScoreButton
         label={editing ? "Close" : "Sketch"}
-        buttonClass={editing ? "bg-emerald-500/80 border-emerald-200/50" : ""}
+        backgroundColor={editing ? "bg-emerald-500/80" : undefined}
+        borderColor={editing ? "border-emerald-200/50" : undefined}
         onClick={onClick}
         icon={editing ? <BsXCircle /> : <BsPencil />}
       />
@@ -198,9 +199,8 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     return (
       <ScoreButton
         label={transforming ? "Close" : "Transform"}
-        buttonClass={
-          transforming ? "bg-emerald-500/80 border-emerald-200/50" : ""
-        }
+        backgroundColor={transforming ? "bg-emerald-500/80" : undefined}
+        borderColor={transforming ? "border-emerald-200/50" : undefined}
         onClick={onClick}
         icon={transforming ? <BsXCircle /> : <GiPencilBrush />}
       />
@@ -242,7 +242,9 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     return (
       <ScoreButton
         label={label}
-        buttonClass={isLive ? "bg-fuchsia-400/80 border-fuchsia-200/80" : ""}
+        buttonClass={
+          isLive ? "bg-fuchsia-400/80 border-fuchsia-200/80" : undefined
+        }
         onClick={onClick}
         icon={<Icon />}
       />
@@ -259,7 +261,9 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const AddButton = () => (
     <ScoreButton
       label={isAdding ? "Adding" : "Add"}
-      buttonClass={isAdding ? "bg-emerald-500/80 border-emerald-200/80" : ""}
+      buttonClass={
+        isAdding ? "bg-emerald-500/80 border-emerald-200/80" : undefined
+      }
       onClick={toggleAdding}
       icon={<GiMusicalKeyboard />}
     />
@@ -268,7 +272,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const RemoveButton = () => (
     <ScoreButton
       label={isRemoving ? "Removing" : "Remove"}
-      buttonClass={isRemoving ? "bg-red-400/80 border-red-200/80" : ""}
+      buttonClass={isRemoving ? "bg-red-400/80 border-red-200/80" : undefined}
       onClick={toggleRemoving}
       icon={<GiArrowCursor />}
     />
@@ -359,6 +363,8 @@ const ScoreButton = (props: {
   labelClass?: string;
   onClick?: (e: ButtonMouseEvent) => void;
   buttonClass?: string;
+  borderColor?: string;
+  backgroundColor?: string;
   dropdown?: React.ReactNode;
   icon?: React.ReactNode;
   show?: boolean;
@@ -382,7 +388,9 @@ const ScoreButton = (props: {
         <button
           className={classNames(
             props.buttonClass,
-            "p-1 px-3 border border-teal-300 bg-teal-800/80 text-sm rounded-lg text-white"
+            props.borderColor ?? "border-teal-300",
+            props.backgroundColor ?? "bg-teal-800/80",
+            "p-1 px-3 border text-sm rounded-lg text-white"
           )}
           onClick={(e) => {
             cancelEvent(e);

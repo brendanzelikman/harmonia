@@ -20,11 +20,7 @@ import {
   PatternMidiStream,
   PatternBlock,
 } from "types/Pattern/PatternTypes";
-import {
-  getVectorKeys,
-  getVectorOffsetById,
-  getPoseVectorAsScaleVector,
-} from "types/Pose/PoseFunctions";
+import { getPoseVectorAsScaleVector } from "types/Pose/PoseFunctions";
 import {
   getScaleWithNewNotes,
   getTransposedScaleNote,
@@ -51,6 +47,7 @@ import {
 } from "types/Clip/ScaleClip/ScaleClipFunctions";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
+import { getVectorValue, mergeVectorKeys } from "utils/vector";
 
 // ------------------------------------------------------------
 // Arrangement Overview
@@ -221,12 +218,12 @@ export const getTrackScaleChain = (
     }
 
     // Otherwise, transpose the scale with every offset in the pose
-    const vectorKeys = getVectorKeys(vector, tracks);
+    const vectorKeys = mergeVectorKeys(vector, tracks);
 
     // Apply track offsets to the scale
     let newScale = currentScale;
     for (const id of vectorKeys) {
-      const offset = getVectorOffsetById(vector, id);
+      const offset = getVectorValue(vector, id);
       if (id === "chromatic") {
         newScale = getTransposedScale(newScale, offset);
       } else if (id === "chordal") {

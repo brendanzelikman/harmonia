@@ -18,7 +18,7 @@ import {
   PatternMidiBlock,
   isPatternMidiChord,
 } from "types/Pattern/PatternTypes";
-import { MidiNote } from "types/units";
+import { MidiNote } from "utils/midi";
 
 // ------------------------------------------------------------
 // MusicXML Constants

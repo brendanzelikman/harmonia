@@ -46,7 +46,7 @@ export const getSliceActions = (slice: Slice) => {
 export const createUndoType = (prefix?: string, ...payload: any) =>
   `${prefix}(${JSON.stringify(payload)})`;
 
-export const unpackUndoType = <T>(payload: Payload<T>, prefix?: string) => {
+export const unpackUndoType = <T>(payload?: Payload<T>, prefix?: string) => {
   return payload?.undoType ?? createUndoType(prefix, payload?.data, nanoid());
 };
 

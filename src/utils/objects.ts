@@ -1,15 +1,21 @@
 import { Dictionary } from "@reduxjs/toolkit";
 import { inRange } from "lodash";
-import { Vector } from "types/units";
+
+export type Dict<T = any> = Dictionary<T>;
 
 /** Gets the values of a dictionary. */
 export const getDictValues = <T>(obj: Dictionary<T>) => {
   return Object.values(obj).filter((v) => v !== undefined) as T[];
 };
 
-/** Get the keys of a record. */
-export const getKeys = <T extends Record<any, any>>(obj?: T): (keyof T)[] => {
-  if (obj === undefined) return [];
+/** Gets the keys of a dictionary. */
+export const getObjectKeys = <T extends PropertyKey, V = any>(
+  obj: Record<T, V>
+) => {
+  return Object.keys(obj) as T[];
+};
+
+export const getDictKeys = <T extends Dictionary<any>>(obj: T) => {
   return Object.keys(obj) as (keyof T)[];
 };
 
@@ -56,20 +62,4 @@ export const spliceOrPush = <T>(
   } else {
     array.push(value);
   }
-};
-
-/** Sum the numerical values in an array of records. */
-export const sumVectors = <T extends Vector>(
-  ...records: (T | undefined)[]
-): T => {
-  const result = {} as T;
-  for (const record of records) {
-    if (record === undefined) continue;
-    for (const key in record) {
-      const oldValue = result[key] ?? 0;
-      const newValue = record[key] ?? 0;
-      result[key] = (oldValue + newValue) as T[Extract<keyof T, string>];
-    }
-  }
-  return result;
 };

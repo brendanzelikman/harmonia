@@ -3,7 +3,7 @@ import { selectPortals } from "types/Portal/PortalSelectors";
 import { TimelinePortal } from "./PortalRenderer";
 import { createPortal } from "react-dom";
 
-import { TimelinePortalElement } from "features/Timeline/Timeline";
+import { TimelineElement } from "features/Timeline/Timeline";
 import { Portal } from "types/Portal/PortalTypes";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
@@ -18,7 +18,7 @@ import { selectTrackById } from "types/Track/TrackSelectors";
 import { Timed } from "types/units";
 import { some } from "lodash";
 
-export function TimelinePortals(props: TimelinePortalElement) {
+export function TimelinePortals(props: TimelineElement) {
   const portals = useDeep(selectPortals);
   const selectedIds = use(selectSelectedPortalIds);
   const timeline = use(selectTimeline);
@@ -33,9 +33,6 @@ export function TimelinePortals(props: TimelinePortalElement) {
   );
   const fragmentTop = use((_) => selectTrackTop(_, fragmentTrack?.id));
   const fragmentLeft = use((_) => selectTimelineTickLeft(_, fragment?.tick));
-
-  const element = props.timeline?.element;
-  if (!element) return null;
 
   // Render the portal with the given id
   const renderPortal = (portal: Portal) => {
@@ -65,10 +62,13 @@ export function TimelinePortals(props: TimelinePortalElement) {
     );
   };
 
+  if (!props.element) return null;
   return (
     <>
-      {createPortal(portals.map(renderPortal), element)}
-      {isPortaling && some(fragment) && createPortal(<Fragment />, element)}
+      {createPortal(portals.map(renderPortal), props.element)}
+      {isPortaling &&
+        some(fragment) &&
+        createPortal(<Fragment />, props.element)}
     </>
   );
 }

@@ -5,13 +5,13 @@ import { Timeline } from "features/Timeline/Timeline";
 import { TimelinePlaceholder } from "features/Timeline/components/TimelinePlaceholder";
 import { TimelineStart } from "features/Timeline/components/TimelineStart";
 import { ShortcutsMenu } from "features/Shortcuts/ShortcutsMenu";
-import { Diary } from "features/Diary";
 import { use } from "types/hooks";
-import { Editor } from "features/Editor/Editor";
 import { selectHasTracks } from "types/Arrangement/ArrangementSelectors";
 import { selectHideTimeline } from "types/Meta/MetaSelectors";
 import { usePlaygroundController } from "./hooks/usePlaygroundController";
 import { useGlobalHotkeys } from "./hooks/usePlaygroundHotkeys";
+import { Diary } from "features/Diary/Diary";
+import { Editor } from "features/Editor/Editor";
 
 /** The playground contains the DAW */
 export function Playground() {

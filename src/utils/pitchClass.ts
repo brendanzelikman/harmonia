@@ -1,5 +1,6 @@
-import { Key, MIDI, PitchClass } from "types/units";
-import { getMidiChromaticNumber } from "./midi";
+import { Key, PitchClass } from "types/units";
+import { getPitchClassNumber, MidiNote } from "./midi";
+import { getMidiDegree } from "./midi";
 import { ChromaticKey } from "assets/keys";
 
 /** The list of possible spellings for each note of the chromatic scale. */
@@ -31,14 +32,18 @@ export const isPitchClass = (value: any): value is PitchClass => {
 /** Sort the list of pitch classes by chromatic number. */
 export const getSortedPitchClasses = (pitches: PitchClass[]) => {
   return [...new Set(pitches)].sort(
-    (a, b) => getMidiChromaticNumber(a) - getMidiChromaticNumber(b)
+    (a, b) => getPitchClassNumber(a) - getPitchClassNumber(b)
   );
 };
 
 /** Get the pitch class of the note that is the closest to the given note in the array. */
-export const getClosestPitchClass = (arr: MIDI[], midi: MIDI, key?: Key) => {
-  const note = midi % 12;
-  const notes = arr.map((n) => getMidiChromaticNumber(n));
+export const getClosestPitchClass = (
+  arr: MidiNote[],
+  midi: MidiNote,
+  key?: Key
+) => {
+  const note = getMidiDegree(midi);
+  const notes = arr.map((n) => getMidiDegree(n));
 
   // Get the closest chromatic number
   const index = notes.reduce((prev, curr) => {
@@ -55,11 +60,11 @@ export const getClosestPitchClass = (arr: MIDI[], midi: MIDI, key?: Key) => {
 
     // If both are in the pitches, prefer the note that is closer to the pitches
     const currDiffToPitches = key?.reduce((pre, currPitch) => {
-      const currDiff = Math.abs(curr - getMidiChromaticNumber(currPitch));
+      const currDiff = Math.abs(curr - getPitchClassNumber(currPitch));
       return currDiff < pre ? currDiff : pre;
     }, Infinity);
     const prevDiffToPitches = key?.reduce((pre, currPitch) => {
-      const currDiff = Math.abs(prev - getMidiChromaticNumber(currPitch));
+      const currDiff = Math.abs(prev - getPitchClassNumber(currPitch));
       return currDiff < pre ? currDiff : pre;
     }, Infinity);
     if (currDiffToPitches && !prevDiffToPitches) return prev;

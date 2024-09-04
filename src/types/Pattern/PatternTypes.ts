@@ -16,7 +16,7 @@ import {
   isScaleNoteObject,
   isMidiObject,
 } from "types/Scale/ScaleTypes";
-import { MidiObject } from "types/units";
+import { MidiObject } from "utils/midi";
 import { TrackId } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------

@@ -2,7 +2,7 @@ import { createDeepSelector, createArraySelector } from "lib/redux";
 import { Project } from "types/Project/ProjectTypes";
 import { resolveScaleToMidi } from "types/Scale/ScaleResolvers";
 import { selectScaleIds, selectScaleMap } from "types/Scale/ScaleSelectors";
-import { MidiValue } from "types/units";
+import { MidiScale } from "utils/midi";
 import {
   selectTimelineType,
   selectSelectedPattern,
@@ -30,7 +30,7 @@ export const selectMidiScaleMap = createDeepSelector(
   ],
   (trackMidiScaleMap, scaleTrackMap, scales, scaleIds) => {
     const scaleTracks = getDictValues(scaleTrackMap);
-    const result = {} as Dictionary<MidiValue[]>;
+    const result = {} as Dictionary<MidiScale>;
     for (const scaleId of scaleIds) {
       const scale = scales[scaleId];
 

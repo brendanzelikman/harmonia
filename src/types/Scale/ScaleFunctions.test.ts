@@ -1,11 +1,10 @@
 import { expect, test } from "vitest";
 import * as _ from "./ScaleFunctions";
+import * as midi from "utils/midi";
 import * as ScaleTransformers from "./ScaleTransformers";
-import * as key from "utils/key";
-import * as ScaleUtils from "./ScaleUtils";
 import * as ScaleMidiFunctions from "./ScaleResolvers";
 import { Scale, ScaleNote, ScaleObject } from "./ScaleTypes";
-import { sumVectors } from "utils/objects";
+import { sumVectors } from "utils/vector";
 
 test("getTransposedMidiNote should correctly add all offsets to the note", () => {
   const note = { MIDI: 5 };
@@ -39,9 +38,9 @@ test("getMidiNoteAsValue should correctly extract the MidiValue from a MidiNote"
   const note1 = { MIDI: 5 };
   const note2 = 12;
   const note3 = { MIDI: 10 };
-  expect(_.getMidiNoteValue(note1)).toBe(5);
-  expect(_.getMidiNoteValue(note2)).toBe(12);
-  expect(_.getMidiNoteValue(note3)).toBe(10);
+  expect(midi.getMidiNoteValue(note1)).toBe(5);
+  expect(midi.getMidiNoteValue(note2)).toBe(12);
+  expect(midi.getMidiNoteValue(note3)).toBe(10);
 });
 
 test("getScaleNoteAsMidiValue should correctly convert a ScaleNote to a MidiValue", () => {

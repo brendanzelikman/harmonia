@@ -19,15 +19,7 @@ import {
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import "lib/react-data-grid.css";
 import "react-data-grid/lib/styles.css";
-import {
-  GiBreakingChain,
-  GiFamilyTree,
-  GiMusicalKeyboard,
-} from "react-icons/gi";
 import classNames from "classnames";
-import { PresetScaleList } from "assets/scales";
-import { sample } from "lodash";
-import { INSTRUMENT_KEYS } from "types/Instrument/InstrumentTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import { CellFormatter } from "./renderers/Cells/CellFormatter";
 import { TimelineClips } from "./renderers/Clips/TimelineClips";
@@ -46,13 +38,6 @@ import {
   selectOrderedTrackIds,
   selectTrackMap,
 } from "types/Track/TrackSelectors";
-import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
-import {
-  createScaleTrack,
-  createRandomHierarchy,
-  createDrumTracks,
-} from "types/Track/ScaleTrack/ScaleTrackThunks";
-import { createTrackTree } from "types/Track/TrackThunks";
 import { TrackFormatter } from "./renderers/Tracks/TrackFormatter";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { getSubdivisionTicks } from "utils/durations";
@@ -65,6 +50,7 @@ import {
 import { onCellClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { useDragState } from "types/Media/MediaTypes";
 import { dispatchCustomEvent } from "utils/html";
+import { TimelineTrackButton } from "./components/TimelineTrackButton";
 
 export type Row = {
   index: number;
@@ -74,6 +60,7 @@ export type Row = {
   trackButton?: boolean;
 };
 export type TimelinePortalElement = { timeline?: DataGridHandle };
+export type TimelineElement = { element?: HTMLDivElement };
 
 export function Timeline() {
   const dispatch = useProjectDispatch();
@@ -85,10 +72,10 @@ export function Timeline() {
   const trackIds = useDeep(selectOrderedTrackIds);
   const trackMap = useDeep(selectTrackMap);
   const selectedTrackId = use(selectSelectedTrackId);
-  const heldKeys = useHeldHotkeys(["alt", "meta", "d"]);
   const hasFragment = use(selectHasPortalFragment);
   const isTransportActive = use(selectIsTransportActive);
   const [timeline, setTimeline] = useState<DataGridHandle>();
+
   const bpm = use(selectTransportBPM);
   const timeSignature = useDeep(selectTransportTimeSignature);
   const dragState = useDragState();
@@ -124,93 +111,6 @@ export function Timeline() {
     return rows;
   }, [trackIds, selectedTrackId]);
 
-  /** The Add Track button is located directly under the last track, appearing on hover. */
-  const shouldRandomize = heldKeys.alt;
-  const shouldCreateDrums = heldKeys.d;
-
-  const AddTrackButton = useMemo(
-    () => (
-      <div
-        className={classNames(
-          "rdg-track group size-full flex total-center text-xs",
-          "hover:bg-indigo-500/30",
-          "transition-all rounded cursor-pointer"
-        )}
-      >
-        <div className="hidden group-hover:flex group-hover:animate-in group-hover:fade-in group-hover:duration-300 gap-6 *:rounded-full text-slate-100">
-          <div
-            className="flex flex-col gap-2 pt-1 items-center"
-            onClick={() =>
-              dispatch(
-                createScaleTrack(
-                  {},
-                  shouldRandomize ? sample(PresetScaleList) : undefined
-                )
-              )
-            }
-          >
-            <div
-              className={`size-14 flex total-center rounded-full border-2 border-sky-400 ${
-                shouldRandomize
-                  ? "hover:border-fuchsia-400"
-                  : "hover:border-white"
-              }`}
-            >
-              <GiBreakingChain className="text-4xl" />
-            </div>
-            Scale Track
-          </div>
-          <div
-            className="flex flex-col gap-2 pt-1 items-center"
-            onClick={() =>
-              dispatch(
-                createPatternTrack(
-                  {},
-                  shouldRandomize ? sample(INSTRUMENT_KEYS) : undefined
-                )
-              )
-            }
-          >
-            <div
-              className={`size-14 flex total-center rounded-full border-2 border-emerald-400 ${
-                shouldRandomize
-                  ? "hover:border-fuchsia-400"
-                  : "hover:border-white"
-              }`}
-            >
-              <GiMusicalKeyboard className="text-4xl" />
-            </div>
-            Pattern Track
-          </div>
-          <div
-            className="flex flex-col gap-2 pt-1 items-center"
-            onClick={() =>
-              dispatch(
-                shouldCreateDrums
-                  ? createDrumTracks()
-                  : shouldRandomize
-                  ? createRandomHierarchy()
-                  : createTrackTree()
-              )
-            }
-          >
-            <div
-              className={`size-14 flex total-center rounded-full border-2 border-purple-400 ${
-                shouldRandomize
-                  ? "hover:border-fuchsia-400"
-                  : "hover:border-white"
-              }`}
-            >
-              <GiFamilyTree className="text-4xl rotate-180" />
-            </div>
-            Track Tree
-          </div>
-        </div>
-      </div>
-    ),
-    [shouldRandomize, shouldCreateDrums]
-  );
-
   /** The track column contains all tracks and the add track button. */
   const trackColumn = useMemo(
     (): Column<Row> => ({
@@ -219,13 +119,13 @@ export function Timeline() {
       width: TRACK_WIDTH,
       frozen: true,
       formatter: (formatterProps: FormatterProps<Row>) => {
-        if (formatterProps.row.trackButton) return AddTrackButton;
+        if (formatterProps.row.trackButton) return <TimelineTrackButton />;
         if (!formatterProps.row.id) return null;
         return <TrackFormatter {...formatterProps} />;
       },
       cellClass: "bg-transparent",
     }),
-    [heldKeys.alt, AddTrackButton]
+    []
   );
 
   /** The column is memoized so that it is not recreated on every render. */
@@ -249,16 +149,14 @@ export function Timeline() {
         const isAddingPatternClips = isAdding && type === "pattern";
         const isAddingPoseClips = isAdding && type === "pose";
         const isAddingScaleClips = isAdding && type === "scale";
-        const idle = !isAdding && !isTransportActive;
         const onPT = !!props.row.onPatternTrack;
         const { beats, sixteenths } = time;
         const isMeasure = beats === 0 && sixteenths === 0;
         return (
           <CellFormatter
             {...props}
-            tick={tick}
-            time={time}
-            idle={idle}
+            col={key}
+            onClick={() => dispatch(onCellClick(key, props.row.id))}
             className={classNames(
               "size-full border-t border-t-white/20 animate-in fade-in duration-200",
               { "border-l-2 border-l-white/20": isMeasure && key > 1 },
@@ -328,16 +226,17 @@ export function Timeline() {
   );
 
   /** The timeline elements are portaled into the timeline. */
-  const TimelineElements = useMemo(() => {
-    if (!timeline?.element) return null;
+  const element = timeline?.element;
+  const TimelineElements = useCallback(() => {
+    if (!element) return null;
     return (
       <>
-        <TimelineGraphics timeline={timeline} />
-        <TimelineClips timeline={timeline} />
-        <TimelinePortals timeline={timeline} />
+        <TimelineGraphics element={element} />
+        <TimelineClips element={element} />
+        <TimelinePortals element={element} />
       </>
     );
-  }, [timeline]);
+  }, [element]);
 
   /** The timeline grid is built with react-data-grid. */
   const TimelineGrid = useMemo(() => {
@@ -351,7 +250,6 @@ export function Timeline() {
         headerRowHeight={HEADER_HEIGHT}
         enableVirtualization={true}
         rowClass={() => "rdg-cell-row"}
-        onScroll={() => dispatchCustomEvent("timeline-scroll")}
       />
     );
   }, [trackedColumns, rows, rowHeight, timeline, subdivision]);
@@ -360,7 +258,7 @@ export function Timeline() {
     <div id="timeline" className="flex flex-col relative size-full">
       <TimelineContextMenu />
       {TimelineGrid}
-      {TimelineElements}
+      <TimelineElements />
     </div>
   );
 }

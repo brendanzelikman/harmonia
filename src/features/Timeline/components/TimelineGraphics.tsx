@@ -1,11 +1,10 @@
-import { DataGridHandle } from "react-data-grid";
 import { createPortal } from "react-dom";
 import {
   COLLAPSED_TRACK_HEIGHT,
   HEADER_HEIGHT,
   TRACK_WIDTH,
 } from "utils/constants";
-import TimelineCursor from "./TimelineCursor";
+import { TimelinePlayhead } from "./TimelinePlayhead";
 import { useProjectSelector as use, useDeep } from "types/hooks";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
@@ -18,15 +17,14 @@ import {
   selectTrackById,
   selectOrderedTrackIds,
 } from "types/Track/TrackSelectors";
+import { TimelineCursor } from "./TimelineCursor";
 
 interface BackgroundProps {
-  timeline?: DataGridHandle;
+  element?: HTMLDivElement;
 }
 
 // Timeline background so that the tracks can be scrolled
 export const TimelineGraphics = (props: BackgroundProps) => {
-  const { timeline } = props;
-
   // Cell dimensions
   const cellWidth = use(selectCellWidth);
   const cellHeight = use(selectCellHeight);
@@ -53,7 +51,6 @@ export const TimelineGraphics = (props: BackgroundProps) => {
   const columns = useDeep(selectTimelineColumns);
   const width = columns * cellWidth;
   const height = HEADER_HEIGHT + cellHeight * trackCount;
-  const element = timeline?.element;
 
   /** The timeline header background.  */
   const TimelineHeaderBackground = () => (
@@ -113,12 +110,13 @@ export const TimelineGraphics = (props: BackgroundProps) => {
         <TimelineHeaderBackground />
         {!!st && <SelectedTrackBackground />}
         <TimelineCursor />
+        <TimelinePlayhead />
         <TimelineTracksBackground />
       </div>
     </div>
   );
 
   // Render the graphical elements into the timeline element
-  if (!element) return null;
-  return createPortal(TimelineGraphicalElements, element);
+  if (!props.element) return null;
+  return createPortal(TimelineGraphicalElements, props.element);
 };

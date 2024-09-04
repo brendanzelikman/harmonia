@@ -11,7 +11,7 @@ import {
   PatternMidiStream,
   isPatternMidiChord,
 } from "types/Pattern/PatternTypes";
-import { MidiNote } from "types/units";
+import { MidiNote } from "utils/midi";
 import { mod } from "utils/math";
 
 // ------------------------------------------------------------

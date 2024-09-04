@@ -27,7 +27,7 @@ interface PatternClipStyleProps extends PatternClipRendererProps {
 export const usePatternClipStyle = (
   props: PatternClipStyleProps
 ): ClipStyle => {
-  const { clip, portaledClip, isAdding, isDragging } = props;
+  const { clip, portaledClip, isAddingAny, isDragging } = props;
   const pcId = portaledClip?.id;
   const stream = useDeep((_) => selectPatternClipMidiStream(_, pcId));
 
@@ -44,8 +44,8 @@ export const usePatternClipStyle = (
   const trackHeight = use((_) => selectTrackHeight(_, clip?.trackId));
   const trackTop = use((_) => selectTrackTop(_, clip?.trackId));
 
-  const clipIds = useDeep((_) => selectOverlappingPortaledClipIds(_, pcId));
-  const isShort = clipIds.length || isAdding || isDragging;
+  const clipIds = use((_) => selectOverlappingPortaledClipIds(_, pcId));
+  const isShort = !!clipIds.length || isAddingAny || isDragging;
 
   const height = isShort ? trackHeight - POSE_HEIGHT : trackHeight;
   const top = trackTop + (isShort ? POSE_HEIGHT : 0);

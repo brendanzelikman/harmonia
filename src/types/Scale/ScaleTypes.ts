@@ -7,17 +7,12 @@ import {
   isOptionalType,
   isOptionalTypedArray,
 } from "types/util";
-import {
-  Id,
-  MidiNote,
-  MidiObject,
-  MidiScale,
-  MidiValue,
-  PitchClass,
-} from "types/units";
+import { Id, PitchClass } from "types/units";
+import { MidiNote, MidiObject, MidiScale, MidiValue } from "utils/midi";
 import { createId } from "types/util";
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { ScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { Vector } from "utils/vector";
 
 // ------------------------------------------------------------
 // Scale Generics
@@ -31,11 +26,9 @@ export type ScaleState = EntityState<ScaleObject>;
 // Scale Definitions
 // ------------------------------------------------------------
 
-/** A scalar offset is contextualized by a scale ID. */
+/** A scalar vector can contain a transposition or voice leading. */
+export type ScaleVector = Vector<ScaleVectorId>;
 export type ScaleVectorId = "chromatic" | "octave" | PitchClass | ScaleId;
-
-/** A scale vector contains all of a scale's offsets. */
-export type ScaleVector = { [key in ScaleVectorId]?: number };
 
 /** A `NestedNote` references a scale by degree. */
 export type NestedNote = {
@@ -79,7 +72,7 @@ export const initializeScale = (
 ): ScaleObject => ({ ...chromaticScale, ...scale, id: createId("scale") });
 
 /** The chromatic notes are a range of MidiValues. */
-export const chromaticNotes: MidiValue[] = range(60, 72);
+export const chromaticNotes: MidiScale = range(60, 72);
 
 /** The chromatic scale is a ScaleObject containing MIDIValues.  */
 export const chromaticScale: ScaleObject = {
@@ -131,7 +124,7 @@ export const isScaleVector = (obj: unknown): obj is ScaleVector => {
 
 /** Checks if a given object is of type `MidiValue`. */
 export const isMidiValue = (obj: unknown): obj is MidiValue => {
-  const candidate = obj as MidiValue;
+  const candidate = obj as MidiNote;
   return isBoundedNumber(candidate, 0, 127);
 };
 

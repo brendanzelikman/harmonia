@@ -7,7 +7,6 @@ import { EntityId } from "@reduxjs/toolkit";
 export type Id<T extends EntityId> = `${T}_${string}`;
 export type Update<T> = { id: EntityId } & Partial<T>;
 export type Plural<T> = T | T[];
-export type Vector<T = number> = { [key in string]?: T };
 export type Timed<T> = T & { duration: Tick };
 export type Playable<T> = Timed<T> & { velocity: Velocity };
 
@@ -20,16 +19,6 @@ export type BPM = number;
 export type PPQ = number;
 export type Seconds = number;
 export type Samples = number;
-
-// ------------------------------------------------------------
-// MIDI Units
-// ------------------------------------------------------------
-
-export type MIDI = number;
-export type MidiValue = number;
-export type MidiObject = { MIDI: MidiValue };
-export type MidiNote = MidiObject | MidiValue;
-export type MidiScale = MidiNote[];
 
 // ------------------------------------------------------------
 // Audio Units

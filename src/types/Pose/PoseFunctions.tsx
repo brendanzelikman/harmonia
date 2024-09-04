@@ -1,5 +1,4 @@
 import * as _ from "./PoseTypes";
-import { getKeys } from "utils/objects";
 import { PresetPoseGroupList, PresetPoseGroupMap } from "assets/poses";
 import { WholeNoteTicks } from "utils/durations";
 import pluralize from "pluralize";
@@ -14,6 +13,12 @@ import {
 import { isVoiceLeading } from "./PoseTypes";
 import { ChromaticKey, ChromaticPitchClass } from "assets/keys";
 import { isPitchClass } from "utils/pitchClass";
+import {
+  getVectorKeys,
+  isVectorEmpty,
+  multiplyVector,
+  sumVectors,
+} from "utils/vector";
 
 // ------------------------------------------------------------
 // Pose Serializers
@@ -27,7 +32,7 @@ export const getPoseVectorAsJSX = (
   if (!vector) return "";
 
   // Return the origin if the vector is empty
-  if (isPoseIdentityVector(vector)) return <span>No Movement</span>;
+  if (isVectorEmpty(vector)) return <span>No Movement</span>;
 
   // Otherwise, parse the keys and create a string for each offset
   const keys = getVectorKeys(vector);
@@ -135,31 +140,6 @@ export const getPoseVectorModuleAsJSX = (
   );
 };
 
-/** Get a `PoseStream` as a string. */
-export const getPoseStreamAsString = (stream: _.PoseStream) => {
-  return JSON.stringify(stream);
-};
-
-/** Get a `Pose` as a string. */
-export const getPoseAsString = (pose: _.Pose) => {
-  const { id, stream, name, trackId } = pose;
-  const streamString = getPoseStreamAsString(stream);
-  return `${id},${trackId},${name},${streamString}`;
-};
-
-/** Get a `PoseUpdate` as a string. */
-export const getPoseUpdateAsString = (update: _.PoseUpdate) => {
-  return JSON.stringify(update);
-};
-
-/** Get a `PoseBlock` as a string */
-export const getPoseBlockAsString = (block: _.PoseBlock) => {
-  if (_.isPoseVectorModule(block)) {
-    return getPoseVectorModuleAsJSX(block);
-  }
-  return getPoseStreamAsString(block.stream);
-};
-
 /** Get the duration of a `PoseBlock` as a string. */
 export const getPoseBlockDurationAsString = (block: _.PoseBlock) => {
   const duration = block.duration ?? Infinity;
@@ -181,68 +161,13 @@ export const getPoseBlockDurationAsString = (block: _.PoseBlock) => {
 // Pose Helpers
 // ------------------------------------------------------------
 
-/** Creates a PoseMap from an array of Poses. */
-export const createPoseMap = (poses: _.Pose[]) => {
-  return poses.reduce((acc, pose) => {
-    acc[pose.id] = pose;
-    return acc;
-  }, {} as _.PoseMap);
-};
-
-/** Map over a vector and reduce its keys into a new vector. */
-export const mapPoseVector = (
-  vector: _.PoseVector,
-  fn: (key: _.PoseVectorId, value: number) => number
-) => {
-  const keys = getKeys(vector);
-  return keys.reduce((acc, cur) => {
-    return { ...acc, [cur]: fn(cur, vector[cur] ?? 0) };
-  }, {} as _.PoseVector);
-};
-
-/** Sum the given vectors together into a new vector. */
-export const sumPoseVectors = (...vectors: _.PoseVector[]): _.PoseVector => {
-  const allVectors = [...vectors];
-  if (!allVectors.length) return {};
-
-  // Sum across every key in every vector
-  const vector: _.PoseVector = {};
-  for (const vec of allVectors) {
-    const keys = getKeys(vec);
-    for (const key of keys) {
-      vector[key] = (vector[key] || 0) + (vec[key] || 0);
-    }
-  }
-  return vector;
-};
-
-/** Multiply each value of the vector with the given multiplier. */
-export const multiplyPoseVector = (
-  vector?: _.PoseVector,
-  multiplier = 1
-): _.PoseVector => {
-  if (!vector) return {};
-  return mapPoseVector(vector, (_, value) => value * multiplier);
-};
-
-/** Multiply the given vectors together into a new vector. */
-export const multiplyPoseVectors = (
-  ...vectors: _.PoseVector[]
-): _.PoseVector => {
-  const allVectors = [...vectors];
-  if (!allVectors.length) return {};
-  return allVectors.reduce((acc, cur) =>
-    mapPoseVector(acc, (key, value) => value * (cur[key] ?? 1))
-  );
-};
-
 /** Get a pose vector as a scale vector. */
 export const getPoseVectorAsScaleVector = (
   vector?: _.PoseVector,
   tracks?: TrackMap
 ) => {
   if (!vector || !tracks) return {};
-  const keys = getKeys(vector);
+  const keys = getVectorKeys(vector);
   return keys.reduce((acc, cur) => {
     const track = isTrackId(cur) ? tracks[cur] : undefined;
     if (isScaleTrack(track)) {
@@ -289,50 +214,6 @@ export const getPoseCategory = (pattern?: _.Pose) => {
   );
 };
 
-/** Returns true if a pose vector has 0s for all keys. */
-export const isPoseIdentityVector = (vector?: _.PoseVector) => {
-  if (!vector) return false;
-  const keys = getKeys(vector);
-  return keys.length === 0;
-};
-
-/** Get the sorted keys from a vector. */
-export const getVectorKeys = (vector?: _.PoseVector, trackMap?: TrackMap) => {
-  const keys = [
-    ...new Set([
-      ...getKeys(vector),
-      ...(trackMap ? Object.keys(trackMap) : []),
-    ]),
-  ];
-  return keys.sort((a, b) => {
-    if (a === "chromatic") return -1;
-    if (b === "chromatic") return 1;
-    if (a === "chordal") return -1;
-    if (b === "chordal") return 1;
-    if (a === "octave") return -1;
-    if (b === "octave") return 1;
-    return a.localeCompare(b);
-  }) as _.PoseVectorId[];
-};
-
-/** Get the chromatic offset from the vector. */
-export const getVector_N = (vector?: _.PoseVector) => {
-  if (!vector) return 0;
-  return vector.chromatic || 0;
-};
-
-/** Get the chordal offset from the vector. */
-export const getVector_t = (vector?: _.PoseVector) => {
-  if (!vector) return 0;
-  return vector.chordal || 0;
-};
-
-/** Get the octave offset from the vector. */
-export const getVector_O = (vector?: _.PoseVector) => {
-  if (!vector) return 0;
-  return vector.octave || 0;
-};
-
 /** Get the pitch classes in the keys of a vector. */
 export const getVectorPitchClasses = (
   vector?: _.PoseVector
@@ -348,24 +229,6 @@ export const getVectorPitchClasses = (
   return pitchClasses.sort(
     (a, b) => ChromaticKey.indexOf(a) - ChromaticKey.indexOf(b)
   );
-};
-
-/** Get the pose offset by ID from the vector. */
-export const getVectorOffsetById = (
-  vector?: _.PoseVector,
-  id?: _.PoseVectorId
-) => {
-  if (!vector || !id) return 0;
-  return vector[id] || 0;
-};
-
-/** Get the pose offsets by ID from the vector. */
-export const getVectorOffsetsById = (
-  vector?: _.PoseVector,
-  ids?: _.PoseVectorId[]
-) => {
-  if (!vector || !ids) return [];
-  return ids.map((id) => vector[id] || 0);
 };
 
 export const getPoseVectorOffsetName = (
@@ -430,12 +293,11 @@ export const getPoseVectorAtIndex = (
           // Return the vector if possible
           if (_.isPoseVectorModule(block)) {
             if (!block.chain) return block.vector;
-            const chainedVector = multiplyPoseVector(block.chain, i);
-            return sumPoseVectors(block.vector, chainedVector);
+            const chainedVector = multiplyVector(block.chain, i);
+            return sumVectors(block.vector, chainedVector);
           }
 
           // Otherwise, recursively call the function on the stream
-          const stream = block.stream;
           return getPoseVectorAtIndex(pose, blockLocalIndex, blockLastIndex);
         }
 
@@ -490,20 +352,12 @@ export const mergePoseStreamVectors = (
   return mapPoseStreamVectors(stream, (oldVec) => ({ ...oldVec, ...vector }));
 };
 
-/** Update a pose's stream by directly setting each vector's offset */
-export const updatePoseStreamVectors = (
-  stream: _.PoseStream,
-  vector: _.PoseVector
-) => {
-  return mapPoseStreamVectors(stream, (_) => vector);
-};
-
 /** Update a pose's stream by summing the given vector with each offset */
 export const offsetPoseStreamVectors = (
   pose: _.PoseStream,
   vector: _.PoseVector
 ) => {
-  return mapPoseStreamVectors(pose, (oldVec) => sumPoseVectors(oldVec, vector));
+  return mapPoseStreamVectors(pose, (oldVec) => sumVectors(oldVec, vector));
 };
 
 /** Update a pose's stream by resetting each vector. */

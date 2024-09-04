@@ -1,19 +1,17 @@
 import { ChromaticKey } from "assets/keys";
 import { mod } from "./math";
-import { Key, MIDI } from "types/units";
+import { Key } from "types/units";
+import { MidiNote, MidiScale } from "./midi";
 import {
   chromaticNotes,
   isMidiNote,
+  isScale,
   isScaleObject,
   Scale,
   ScaleNote,
 } from "types/Scale/ScaleTypes";
-import { MidiValue } from "types/units";
-import {
-  getMidiNoteValue,
-  getScaleNotes,
-  getTonicPitchClass,
-} from "types/Scale/ScaleFunctions";
+import { getScaleNotes, getTonicPitchClass } from "types/Scale/ScaleFunctions";
+import { getMidiNoteValue } from "./midi";
 import {
   getRotatedScale,
   getTransposedScale,
@@ -24,9 +22,11 @@ import {
   PatternMidiNote,
 } from "types/Pattern/PatternTypes";
 import { SCALE_KEYSETS } from "assets/keys/Keysets";
-import { getMidiChromaticNumber } from "./midi";
+import { getMidiDegree } from "./midi";
 import { majorKeys } from "assets/keys/MajorKeys";
 import { minorKeys } from "assets/keys/MinorKeys";
+import { PresetScaleGroupList, PresetScaleGroupMap } from "assets/scales";
+import { areScalesRelated } from "types/Scale/ScaleUtils";
 
 // ------------------------------------------------------------
 // Key Helpers
@@ -35,7 +35,7 @@ import { minorKeys } from "assets/keys/MinorKeys";
 /** Get a modded version of a scale. */
 export const getBaseScale = (notes: ScaleNote[]) => {
   return notes.map((n) =>
-    isMidiNote(n) ? getMidiChromaticNumber(getMidiNoteValue(n)) : n
+    isMidiNote(n) ? getMidiDegree(getMidiNoteValue(n)) : n
   );
 };
 
@@ -45,9 +45,9 @@ export const getCanonicalScale = (notes: ScaleNote[]) => {
 };
 
 /** Get the preferred key based on the tonic note and scale name */
-export const getPreferredKey = (midi: MIDI, name?: string): Key => {
+export const getPreferredKey = (note: MidiNote, name?: string): Key => {
   if (!name) return ChromaticKey;
-  const n = mod(midi, 12);
+  const n = getMidiDegree(note);
   const key = name.toLowerCase();
 
   // Check for major keys
@@ -101,7 +101,7 @@ for (const [scales, keys] of SCALE_KEYSETS) {
 for (const chord of Object.values(Chords).flat()) {
   const flatStream = chord.stream.flat();
   const chords = flatStream.filter(isPatternMidiChord) as PatternMidiNote[];
-  const midi = chords.map((n) => mod(getMidiNoteValue(n), 12));
+  const midi = chords.map(getMidiDegree);
   const size = midi.length;
 
   // Iterate over all transpositions
@@ -138,7 +138,7 @@ const KEY_MAP = new Map<string, KeyMapEntry>([
 
 /** Get the name of a scale by looking it up in the key map. */
 export const getScaleName = (scale?: Scale) => {
-  const notes = getScaleNotes(scale) as MidiValue[];
+  const notes = getScaleNotes(scale) as MidiScale;
   if (!notes.length) return "Empty Scale";
 
   // Return the scale name if it exists and the scale is not in a track
@@ -157,4 +157,22 @@ export const getScaleKey = (scale?: Scale): Key => {
   const notes = getScaleNotes(scale);
   const canon = getCanonicalScale(notes);
   return KEY_MAP.get(canon)?.key || ChromaticKey;
+};
+
+/** Get the category of a scale based on the presets. */
+export const getScaleCategory = (scale?: Scale) => {
+  if (!isScale(scale)) return "No Category";
+
+  // Try to find a matching preset scale in each group
+  for (const group of PresetScaleGroupList) {
+    const scales = PresetScaleGroupMap[group];
+
+    // Return the group if the scale is related to any of the scales
+    if (scales.some((m) => areScalesRelated(m, scale))) {
+      return group;
+    }
+  }
+
+  // Return "Custom Scales" if no matches are found
+  return "Custom Scales";
 };

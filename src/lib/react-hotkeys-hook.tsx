@@ -1,3 +1,4 @@
+import { useRecordState } from "hooks/useRecordState";
 import { isArray } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Keys, useHotkeys, useHotkeysContext } from "react-hotkeys-hook";
@@ -6,6 +7,17 @@ import {
   OptionsOrDependencyArray,
 } from "react-hotkeys-hook/dist/types";
 import { isHoldingShift, isPressingLetter } from "utils/html";
+import { getValueByKey } from "utils/objects";
+
+export const SCOPES = ["timeline", "transport", "editor", "diary"] as const;
+export type HotkeyScope = (typeof SCOPES)[number];
+
+export const hotkeyScopes: Record<HotkeyScope, boolean> = {
+  timeline: true,
+  transport: true,
+  editor: false,
+  diary: false,
+};
 
 /** Personally keep track of shifted key transformations.  */
 export const SHIFTED_KEY_MAP: Record<string, string> = {
@@ -44,25 +56,28 @@ export const useOverridingHotkeys = (
     : isArray(dependencies)
     ? dependencies
     : [];
-
   return useHotkeys(keys, hotkeyCallback, hotkeyOptions, hotkeyDependencies);
 };
 
 /** A custom hook that uses a specific scope and overrides the default hotkey behavior. */
 export const useScopedHotkeys =
-  (scopes: string) =>
+  (scope: HotkeyScope) =>
   (
     keys: Keys,
     callback?: HotkeyCallback,
     options?: OptionsOrDependencyArray,
     dependencies?: OptionsOrDependencyArray
   ) => {
-    const hotkeyCallback = callback === undefined ? () => null : callback;
+    const scopes = useRecordState({ ...hotkeyScopes });
+    const inScope = !!scopes[scope];
+
+    const hotkeyCallback =
+      !inScope || callback === undefined ? () => null : callback;
     const hotkeyOptions = isArray(options)
-      ? { preventDefault: true, scopes }
+      ? { preventDefault: true }
       : isArray(dependencies)
-      ? { ...options, preventDefault: true, scopes }
-      : { preventDefault: true, scopes };
+      ? { ...options, preventDefault: true }
+      : { preventDefault: true };
     const hotkeyDependencies = isArray(options)
       ? options
       : isArray(dependencies)
@@ -76,13 +91,14 @@ export const useScopedHotkeys =
     );
   };
 
+type KeyMap = Record<string, boolean>;
+
 /** A custom hook that returns a record of keys that are currently being held down. */
 export const useHeldHotkeys = (
   keys: Keys,
   options?: OptionsOrDependencyArray,
   dependencies?: OptionsOrDependencyArray
 ) => {
-  type KeyMap = Record<string, boolean>;
   const [heldKeys, setHeldKeys] = useState<KeyMap>({});
 
   // Set the key to true when it is pressed down
@@ -129,7 +145,7 @@ export const useHeldHotkeys = (
       splitKey: "&",
       combinationKey: "*",
     },
-    [dependencies, allKeys, callback]
+    [dependencies, ...allKeys, callback]
   );
 
   // Return the held keys

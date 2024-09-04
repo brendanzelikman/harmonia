@@ -1,7 +1,6 @@
 import { random } from "lodash";
 import { Thunk } from "types/Project/ProjectTypes";
 import {
-  getVectorKeys,
   mergePoseStreamVectors,
   offsetPoseStreamVectors,
   resetPoseStreamVectors,
@@ -24,6 +23,7 @@ import {
 import { setSelectedPose } from "types/Media/MediaThunks";
 import { Payload, unpackUndoType } from "lib/redux";
 import { createAction } from "@reduxjs/toolkit";
+import { getVectorKeys } from "utils/vector";
 
 /** Create a pose. */
 export const createPose =
