@@ -24,6 +24,7 @@ export const PLUGIN_PORT_RANGE = 16;
 
 export const IDB_NAME = import.meta.env.VITE_IDB_NAME;
 export const PROJECT_STORE = import.meta.env.VITE_IDB_PROJECT_STORE;
+export const SAMPLE_STORE = import.meta.env.VITE_IDB_SAMPLE_STORE;
 export const PROJECT_ID = import.meta.env.VITE_LS_PROJECT_ID;
 
 // ------------------------------------------------------------

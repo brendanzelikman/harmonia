@@ -8,13 +8,17 @@ import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import {
   initializeInstrument,
   Instrument,
+  INSTRUMENT_KEYS,
   InstrumentKey,
 } from "./InstrumentTypes";
 import { Payload } from "lib/redux";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
+import { SamplerOptions } from "tone";
+import { getSampleFromIDB } from "providers/idb/samples";
 
 interface InstrumentOptions {
   offline?: boolean;
+  urls?: SamplerOptions["urls"];
   oldInstrument?: Instrument;
   downloading?: boolean;
 }
@@ -48,7 +52,10 @@ export const createInstrument =
     }
 
     // Create a new instance
-    const instance = new LiveAudioInstance(instrument);
+    const instance = new LiveAudioInstance({
+      ...instrument,
+      urls: options.urls,
+    });
     if (options.downloading) return instance;
 
     // Add the instrument to the store and update the instance
@@ -89,12 +96,25 @@ export const createGlobalInstrument = (
 
 /** Build all instruments for all pattern tracks. */
 export const buildInstruments =
-  (tracks: PatternTrack[]): Thunk =>
-  (dispatch) => {
-    tracks.forEach((track) => {
-      const options = { offline: true };
-      dispatch(createInstrument({ data: { track, options } }));
-    });
+  (tracks: PatternTrack[]): Thunk<Promise<LiveAudioInstance[]>> =>
+  async (dispatch, getProject) => {
+    const project = getProject();
+    return Promise.all(
+      tracks.map(async (track) => {
+        const oldInstrument = selectInstrumentById(project, track.instrumentId);
+        const isLocal = oldInstrument
+          ? !INSTRUMENT_KEYS.includes(oldInstrument?.key)
+          : false;
+        let urls = undefined;
+        if (oldInstrument && isLocal) {
+          urls = {
+            C3: await getSampleFromIDB(oldInstrument?.key),
+          } as SamplerOptions["urls"];
+        }
+        const options = { offline: true, urls };
+        return dispatch(createInstrument({ data: { track, options } }));
+      })
+    );
   };
 
 /** Destroy all live audio instances. */

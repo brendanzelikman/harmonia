@@ -71,6 +71,7 @@ import {
   Limiter,
   Gain,
   PitchShift,
+  SamplerOptions,
 } from "tone";
 import { TrackId } from "types/Track/TrackTypes";
 
@@ -84,6 +85,7 @@ export const LIVE_RECORDER_INSTANCE = new Recorder();
 /** The live audio instance class stores Tone.js objects and effects. */
 export class LiveAudioInstance {
   id: InstrumentId;
+  urls?: SamplerOptions["urls"];
   trackId: TrackId;
   key: InstrumentKey;
   sampler: Sampler;
@@ -101,16 +103,22 @@ export class LiveAudioInstance {
     mute = false,
     solo = false,
     effects = [],
-  }: Instrument) {
+    urls = undefined,
+  }: Instrument & { urls?: SamplerOptions["urls"] }) {
     // Store the id and key
     this.id = id;
     this.trackId = trackId;
     this.key = key;
 
     // Initialize the sampler
-    const urls = getInstrumentSamplesMap(key);
+    const isLocal = !!urls;
+    const samples = urls ?? getInstrumentSamplesMap(key);
+    this.urls = samples;
     const baseUrl = getInstrumentSamplesBaseUrl(key);
-    this.sampler = new Sampler({ urls, baseUrl });
+    this.sampler = new Sampler({
+      urls: samples,
+      baseUrl: isLocal ? undefined : baseUrl,
+    });
 
     // Initialize the channel
     this.channel = new Channel({
@@ -156,6 +164,7 @@ export class LiveAudioInstance {
       mute: this.mute,
       solo: this.solo,
       effects: this.effects.map(getSafeToneEffect),
+      urls: this.urls,
     };
   };
 

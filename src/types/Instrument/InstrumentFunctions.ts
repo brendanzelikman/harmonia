@@ -11,6 +11,9 @@ import {
   Instrument,
 } from "./InstrumentTypes";
 import { SamplerOptions } from "tone";
+import { getDatabase } from "providers/idb";
+import { SAMPLE_STORE } from "utils/constants";
+import { getSampleFromIDB } from "providers/idb/samples";
 
 // ------------------------------------------------------------
 // Instrument Serializers
@@ -54,15 +57,17 @@ export const getInstrumentCategory = (
   const category = INSTRUMENT_CATEGORIES.find((category) =>
     categories[category].some((instrument) => instrument.key === key)
   );
-  return category || "Keyboards";
+
+  return category ?? "Samples";
 };
 
 /** Get the name of an instrument by key. */
 export const getInstrumentName = (key?: InstrumentKey): InstrumentName => {
   const category = getInstrumentCategory(key);
-  if (!category) return "Unknown Instrument";
   const match = categories[category].find((name) => name.key === key);
-  return match?.name ?? "Unknown Instrument";
+  if (match) return match.name;
+  if (key?.startsWith("sample-")) return key.slice(7);
+  return key ?? "Silence";
 };
 
 /** Get the sample map of an instrument by key. */

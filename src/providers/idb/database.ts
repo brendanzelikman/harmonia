@@ -1,6 +1,6 @@
 import { IDBPDatabase, openDB } from "idb";
 import { UPDATE_PROJECTS } from "types/Project/ProjectThunks";
-import { IDB_NAME, PROJECT_STORE } from "utils/constants";
+import { IDB_NAME, PROJECT_STORE, SAMPLE_STORE } from "utils/constants";
 import { dispatchCustomEvent } from "utils/html";
 
 export let DATABASE: IDBPDatabase | null = null;
@@ -16,6 +16,10 @@ export const initializeDatabase = async (userId: string | null) => {
       // Create a store for the list of projects
       if (!db.objectStoreNames.contains(PROJECT_STORE)) {
         db.createObjectStore(PROJECT_STORE, { keyPath: "present.meta.id" });
+      }
+      // Create a store for the list of samples
+      if (!db.objectStoreNames.contains(SAMPLE_STORE)) {
+        db.createObjectStore(SAMPLE_STORE, { keyPath: "id" });
       }
     },
   });

@@ -350,7 +350,7 @@ export const loadTransport = (): Thunk => async (dispatch, getProject) => {
     Tone.getDestination().connect(LIVE_RECORDER_INSTANCE);
 
     // Build the instruments from the pattern tracks
-    dispatch(buildInstruments(patternTracks));
+    await dispatch(buildInstruments(patternTracks));
   } catch (e) {
     // If there is an error, log it
     console.error(e);

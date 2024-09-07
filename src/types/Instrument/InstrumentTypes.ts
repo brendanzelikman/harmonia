@@ -27,8 +27,8 @@ export type InstrumentId = string;
 export type InstrumentNoId = Omit<Instrument, "id">;
 export type InstrumentNoteRecord = Record<InstrumentId, PatternMidiNote[]>;
 export type InstrumentNotesByTicks = Record<Tick, InstrumentNoteRecord>;
-export type InstrumentKey = keyof typeof samples;
-export type InstrumentCategory = keyof typeof categories;
+export type InstrumentKey = keyof typeof samples & (string & {});
+export type InstrumentCategory = keyof typeof categories | "Samples";
 export type InstrumentName = (typeof INSTRUMENT_NAMES)[number];
 export type InstrumentMap = Record<InstrumentId, Instrument>;
 export type InstrumentState = EntityState<Instrument>;
@@ -94,8 +94,9 @@ export const defaultInstrument: Instrument = {
 export const INSTRUMENT_KEYS = Object.keys(samples) as InstrumentKey[];
 
 /** The global list of instrument categories (e.g. "keyboards"). */
-export const INSTRUMENT_CATEGORIES = Object.keys(
-  categories
+export const INSTRUMENT_CATEGORIES = Object.keys(categories).slice(
+  0,
+  -1
 ) as InstrumentCategory[];
 
 export const MELODIC_CATEGORIES: InstrumentCategory[] = [

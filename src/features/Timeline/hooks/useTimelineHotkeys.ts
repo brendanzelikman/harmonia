@@ -2,7 +2,7 @@ import { useProjectDispatch } from "types/hooks";
 import { Hotkey, useHotkeysInTimeline } from "lib/react-hotkeys-hook";
 import { DataGridHandle } from "react-data-grid";
 import { useAuth } from "providers/auth";
-import { isScaleTrack } from "types/Track/TrackTypes";
+import { isPatternTrack, isScaleTrack } from "types/Track/TrackTypes";
 import {
   setSelectedTrackId,
   decreaseSubdivision,
@@ -12,7 +12,6 @@ import {
 import {
   selectSelectedTrack,
   selectSelectedMedia,
-  selectSelectedTrackId,
 } from "types/Timeline/TimelineSelectors";
 import { createPatternTrackFromSelectedTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import { createScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
@@ -50,11 +49,11 @@ import {
   movePlayheadRight,
 } from "types/Transport/TransportThunks";
 import { Thunk } from "types/Project/ProjectTypes";
-import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import {
   selectTrackChain,
   selectTrackChildren,
 } from "types/Track/TrackSelectors";
+import { setupFileInput } from "providers/idb/samples";
 
 export function useTimelineHotkeys(timeline?: DataGridHandle) {
   const dispatch = useProjectDispatch();
@@ -70,6 +69,7 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
   useHotkeysInTimeline(dispatch(CREATE_SCALE_TRACK_HOTKEY));
   useHotkeysInTimeline(dispatch(CREATE_PATTERN_TRACK_HOTKEY));
   useHotkeysInTimeline(dispatch(INSERT_PARENT_TRACK_HOTKEY));
+  useHotkeysInTimeline(dispatch(LOAD_SAMPLES_HOTKEY));
   useHotkeysInTimeline(dispatch(SELECT_PREVIOUS_TRACK_HOTKEY));
   useHotkeysInTimeline(dispatch(SELECT_NEXT_TRACK_HOTKEY));
   useHotkeysInTimeline(dispatch(DESELECT_TRACK_HOTKEY));
@@ -182,6 +182,18 @@ export const INSERT_PARENT_TRACK_HOTKEY: Thunk<Hotkey> = (
   callback: () => {
     const selectedTrack = selectSelectedTrack(getProject());
     dispatch(insertScaleTrack(selectedTrack?.id));
+  },
+});
+
+export const LOAD_SAMPLES_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Load Samples",
+  description: "Load a sample into the selected Pattern Track",
+  shortcut: "l",
+  callback: () => {
+    const project = getProject();
+    const track = selectSelectedTrack(project);
+    if (!isPatternTrack(track)) return;
+    dispatch(setupFileInput(track));
   },
 });
 
