@@ -1,108 +1,216 @@
 import { ScaleEditorProps } from "../ScaleEditor";
 import { promptUserForNumber } from "utils/html";
-import { useScopedHotkeys } from "lib/react-hotkeys-hook";
-import { useProjectDeepSelector, useProjectDispatch } from "types/hooks";
+import { Hotkey, useHotkeysInEditor } from "lib/react-hotkeys-hook";
+import { useProjectDispatch } from "types/hooks";
 import { toggleEditorAction } from "types/Editor/EditorSlice";
-import { selectTrackMidiScale } from "types/Track/TrackSelectors";
 import {
   playScale,
   clearScale,
   transposeScale,
   rotateScale,
 } from "types/Scale/ScaleThunks";
-
-const useHotkeys = useScopedHotkeys("editor");
+import { Thunk } from "types/Project/ProjectTypes";
+import { ScaleObject } from "types/Scale/ScaleTypes";
+import { CursorProps } from "lib/opensheetmusicdisplay";
 
 export function useScaleEditorHotkeys(props: ScaleEditorProps) {
   const dispatch = useProjectDispatch();
   const { scale, cursor } = props;
-  const notes = useProjectDeepSelector(selectTrackMidiScale);
 
-  // Shift + Space = Play Scale
-  useHotkeys("shift+space", () => scale && dispatch(playScale(scale)), [scale]);
+  // Scale Hotkeys
+  useHotkeysInEditor(dispatch(PLAY_SCALE_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(CLEAR_SCALE_HOTKEY(scale)));
 
-  // A = Toggle Adding Notes
-  useHotkeys("a", () => dispatch(toggleEditorAction({ data: "addingNotes" })));
+  // Action Hotkeys
+  useHotkeysInEditor(dispatch(TOGGLE_ADDING_HOTKEY()));
+  useHotkeysInEditor(dispatch(TOGGLE_REMOVING_HOTKEY()));
+  useHotkeysInEditor(dispatch(TOGGLE_CURSOR_HOTKEY(scale, cursor)));
+  useHotkeysInEditor(dispatch(SKIP_LEFT_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(SKIP_RIGHT_HOTKEY(cursor)));
 
-  // C = Toggle Cursor
-  useHotkeys("c", scale?.notes.length ? cursor.toggle : () => null, [
-    scale,
-    cursor,
-  ]);
+  // Transpose Hotkeys
+  useHotkeysInEditor(dispatch(TRANSPOSE_SCALE_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_UP_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_DOWN_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(OCTAVE_UP_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(OCTAVE_DOWN_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(ROTATE_SCALE_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(ROTATE_UP_HOTKEY(scale, cursor)));
+  useHotkeysInEditor(dispatch(ROTATE_DOWN_HOTKEY(scale, cursor)));
+}
 
-  // Shift + Backspace = Clear Scale
-  useHotkeys("shift+backspace", () => dispatch(clearScale(scale?.id)), [scale]);
+// ------------------------------------------------------------
+// Scale Hotkeys
+// ------------------------------------------------------------
 
-  // Backspace = Toggle Removing Notes or Remove Note
-  useHotkeys("backspace", () =>
-    dispatch(toggleEditorAction({ data: "removingNotes" }))
-  );
+export const PLAY_SCALE_HOTKEY =
+  (scale?: ScaleObject): Thunk<Hotkey> =>
+  (dispatch, getProject) => ({
+    name: "Play Scale",
+    description: "Play the current scale.",
+    shortcut: "shift+space",
+    callback: () => scale && dispatch(playScale(scale)),
+  });
 
-  // T = Prompt for Transposition
-  useHotkeys(
-    "shift+t",
-    promptUserForNumber(
+export const CLEAR_SCALE_HOTKEY =
+  (scale?: ScaleObject): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Clear Scale",
+    description: "Clear the current scale.",
+    shortcut: "shift+backspace",
+    callback: () => scale && dispatch(clearScale(scale.id)),
+  });
+
+// ------------------------------------------------------------
+// Action Hotkeys
+// ------------------------------------------------------------
+
+export const TOGGLE_ADDING_HOTKEY = (): Thunk<Hotkey> => (dispatch) => ({
+  name: "Toggle Adding Notes",
+  description: "Toggle adding notes to the scale.",
+  shortcut: "a",
+  callback: () => dispatch(toggleEditorAction({ data: "addingNotes" })),
+});
+
+export const TOGGLE_REMOVING_HOTKEY = (): Thunk<Hotkey> => (dispatch) => ({
+  name: "Toggle Removing Notes",
+  description: "Toggle removing notes from the scale.",
+  shortcut: "backspace",
+  callback: () => dispatch(toggleEditorAction({ data: "removingNotes" })),
+});
+
+export const TOGGLE_CURSOR_HOTKEY =
+  (scale?: ScaleObject, cursor?: CursorProps): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Toggle Cursor",
+    description: "Toggle the cursor on the scale.",
+    shortcut: "c",
+    callback: () => (scale?.notes.length ? cursor?.toggle() : null),
+  });
+
+export const SKIP_LEFT_HOTKEY =
+  (cursor?: CursorProps): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Skip Left",
+    description: "Skip the cursor to the left.",
+    shortcut: "shift+left",
+    callback: () =>
+      cursor !== undefined && !cursor.hidden && cursor.skipStart(),
+  });
+
+export const SKIP_RIGHT_HOTKEY =
+  (cursor?: CursorProps): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Skip Right",
+    description: "Skip the cursor to the right.",
+    shortcut: "shift+right",
+    callback: () => cursor !== undefined && !cursor.hidden && cursor.skipEnd(),
+  });
+
+// ------------------------------------------------------------
+// Transpose Hotkeys
+// ------------------------------------------------------------
+
+export const TRANSPOSE_SCALE_HOTKEY =
+  (scale?: ScaleObject): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Transpose Scale",
+    description: "Prompt for transposing the scale.",
+    shortcut: "t",
+    callback: promptUserForNumber(
       "Transpose Your Scale",
       "How many semitones would you like to transpose your scale by?",
       (n) => dispatch(transposeScale(scale, n))
     ),
-    [scale]
-  );
+  });
 
-  // R = Prompt for Rotation
-  useHotkeys(
-    "shift+r",
-    promptUserForNumber(
+export const TRANSPOSE_UP_HOTKEY =
+  (scale?: ScaleObject): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Transpose Up",
+    description: "Transpose the scale up 1 semitone.",
+    shortcut: "up",
+    callback: () => dispatch(transposeScale(scale, 1)),
+  });
+
+export const TRANSPOSE_DOWN_HOTKEY =
+  (scale?: ScaleObject): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Transpose Down",
+    description: "Transpose the scale down 1 semitone.",
+    shortcut: "down",
+    callback: () => dispatch(transposeScale(scale, -1)),
+  });
+
+export const OCTAVE_UP_HOTKEY =
+  (scale?: ScaleObject): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Octave Up",
+    description: "Transpose the scale up 12 semitones.",
+    shortcut: "shift+up",
+    callback: () => dispatch(transposeScale(scale, 12)),
+  });
+
+export const OCTAVE_DOWN_HOTKEY =
+  (scale?: ScaleObject): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Octave Down",
+    description: "Transpose the scale down 12 semitones.",
+    shortcut: "shift+down",
+    callback: () => dispatch(transposeScale(scale, -12)),
+  });
+
+export const ROTATE_SCALE_HOTKEY =
+  (scale?: ScaleObject): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Rotate Scale",
+    description: "Prompt for rotating the scale.",
+    shortcut: "r",
+    callback: promptUserForNumber(
       "Rotate Your Scale",
       "How many steps would you like to rotate your scale by?",
       (n) => dispatch(rotateScale(scale, n))
     ),
-    [scale]
-  );
+  });
 
-  // Up Arrow = Transpose Up 1 Semitone
-  useHotkeys("up", () => dispatch(transposeScale(scale, 1)), [scale]);
+export const ROTATE_UP_HOTKEY =
+  (scale?: ScaleObject, cursor?: CursorProps): Thunk<Hotkey> =>
+  (dispatch) => {
+    const showCursor = cursor !== undefined && !cursor.hidden;
+    if (showCursor) {
+      return {
+        name: "Move Right",
+        description: "Move the cursor to the next note.",
+        shortcut: "right",
+        callback: () => cursor.next(),
+      };
+    } else {
+      return {
+        name: "Rotate Up",
+        description: "Rotate the scale up 1 step.",
+        shortcut: "right",
+        callback: () => dispatch(rotateScale(scale, 1)),
+      };
+    }
+  };
 
-  // Shift + Up Arrow = Transpose Up 12 Semitones
-  useHotkeys("shift+up", () => dispatch(transposeScale(scale, 12)), [scale]);
-
-  // Down Arrow = Transpose Down 1 Semitone
-  useHotkeys("down", () => dispatch(transposeScale(scale, -1)), [scale]);
-
-  // Shift + Down Arrow = Transpose Down 12 Semitones
-  useHotkeys("shift+down", () => dispatch(transposeScale(scale, -12)), [scale]);
-
-  // Left Arrow = Rotate Down 1 Step or Rewind Cursor
-  useHotkeys(
-    "left",
-    () => {
-      if (!cursor.hidden && cursor.index > 0) {
-        cursor.prev();
-      } else {
-        dispatch(rotateScale(scale, -1));
-      }
-    },
-    [cursor, scale]
-  );
-
-  // Right Arrow = Rotate Up 1 Step or Advance Cursor
-  useHotkeys(
-    "right",
-    () => {
-      if (!cursor.hidden && cursor.index < notes.length - 1) {
-        cursor.next();
-      } else {
-        dispatch(rotateScale(scale, 1));
-      }
-    },
-    [cursor, scale, notes]
-  );
-
-  // Shift + Left Arrow = Skip Cursor Left
-  useHotkeys("shift+left", () => !cursor.hidden && cursor.skipStart(), [
-    cursor,
-  ]);
-
-  // Shift + Right Arrow = Skip Cursor Right
-  useHotkeys("shift+right", () => !cursor.hidden && cursor.skipEnd(), [cursor]);
-}
+export const ROTATE_DOWN_HOTKEY =
+  (scale?: ScaleObject, cursor?: CursorProps): Thunk<Hotkey> =>
+  (dispatch) => {
+    const showCursor = cursor !== undefined && !cursor.hidden;
+    if (showCursor) {
+      return {
+        name: "Move Left",
+        description: "Move the cursor to the previous note.",
+        shortcut: "left",
+        callback: () => cursor.prev(),
+      };
+    } else {
+      return {
+        name: "Rotate Down",
+        description: "Rotate the scale down 1 step.",
+        shortcut: "left",
+        callback: () => dispatch(rotateScale(scale, -1)),
+      };
+    }
+  };

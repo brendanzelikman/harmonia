@@ -13,7 +13,6 @@ import { selectTransport } from "./TransportSelectors";
 import { dispatchCustomEvent } from "utils/html";
 import { PPQ, ticksToSeconds } from "utils/durations";
 import {
-  LIVE_ANALYZER_INSTANCE,
   LIVE_AUDIO_INSTANCES,
   LIVE_RECORDER_INSTANCE,
 } from "types/Instrument/InstrumentClass";
@@ -347,10 +346,8 @@ export const loadTransport = (): Thunk => async (dispatch, getProject) => {
     // Create the global instrument
     createGlobalInstrument();
 
-    // Connect the recorder and analyzer
-    Tone.getDestination()
-      .connect(LIVE_RECORDER_INSTANCE)
-      .connect(LIVE_ANALYZER_INSTANCE);
+    // Connect the recorder
+    Tone.getDestination().connect(LIVE_RECORDER_INSTANCE);
 
     // Build the instruments from the pattern tracks
     dispatch(buildInstruments(patternTracks));

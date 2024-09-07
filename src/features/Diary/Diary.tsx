@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DiaryCoverPage, DiaryPageBinding } from "./DiaryPage";
 import { cancelEvent } from "utils/html";
-import {
-  replaceTimelineScope,
-  useHotkeysInDiary,
-} from "lib/react-hotkeys-hook";
+import { useHotkeysInDiary } from "lib/react-hotkeys-hook";
 import { BsDownload, BsTrash } from "react-icons/bs";
 import { ContentPage } from "./ContentPage";
 import { m } from "framer-motion";
@@ -47,7 +44,6 @@ export function Diary() {
   }, []);
 
   // Diary hotkeys to flip the pages around
-  replaceTimelineScope("diary", showingDiary);
   useHotkeysInDiary("j", () => setShowingJSON((prev) => !prev), []);
   useHotkeysInDiary("left", () => ref.current?.pageFlip?.().flipPrev(), []);
   useHotkeysInDiary("right", () => ref.current?.pageFlip?.().flipNext(), []);
@@ -163,7 +159,7 @@ export function Diary() {
 
   if (!showingDiary) return null;
   return (
-    <div className="absolute inset-0 flex flex-col total-center z-[100] bg-slate-950/80 backdrop-blur-lg">
+    <div className="absolute inset-0 animate-in fade-in flex flex-col total-center z-[100] bg-slate-950/80 backdrop-blur-lg">
       <img
         src={Background}
         className="absolute inset-0 opacity-50 h-screen object-cover landing-background"

@@ -1,4 +1,4 @@
-import { useScopedHotkeys } from "lib/react-hotkeys-hook";
+import { Hotkey, useHotkeysInEditor } from "lib/react-hotkeys-hook";
 import { InstrumentEditorProps } from "../InstrumentEditor";
 import { useProjectDispatch } from "types/hooks";
 import {
@@ -6,7 +6,9 @@ import {
   removeInstrumentEffect,
   removeAllInstrumentEffects,
 } from "types/Instrument/InstrumentSlice";
-const useHotkeys = useScopedHotkeys("editor");
+import { Thunk } from "types/Project/ProjectTypes";
+import { InstrumentId } from "types/Instrument/InstrumentTypes";
+import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 
 interface InstrumentShortcutProps extends InstrumentEditorProps {}
 
@@ -15,215 +17,206 @@ export default function useInstrumentEditorHotkeys(
 ) {
   const dispatch = useProjectDispatch();
   const { instrument } = props;
+  const id = instrument?.id;
 
-  // R = Add Reverb Effect
-  useHotkeys(
-    "r",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "reverb" } })
-      );
-    },
-    [instrument]
-  );
+  // Add effect hotkeys
+  useHotkeysInEditor(dispatch(ADD_REVERB_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_CHORUS_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_PHASER_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_TREMOLO_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_VIBRATO_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_FILTER_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_EQUALIZER_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_DISTORTION_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_BITCRUSHER_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_FEEDBACK_DELAY_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_PING_PONG_DELAY_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_COMPRESSOR_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_GAIN_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_LIMITER_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(ADD_WARP_HOTKEY(id)));
 
-  // C = Add Chorus Effect
-  useHotkeys(
-    "c",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "chorus" } })
-      );
-    },
-    [instrument]
-  );
+  // Remove effect hotkeys
+  useHotkeysInEditor(dispatch(REMOVE_LAST_EFFECT_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(REMOVE_ALL_EFFECTS_HOTKEY(id)));
+}
 
-  // P = Add Phaser Effect
-  useHotkeys(
-    "p",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "phaser" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_REVERB_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Reverb",
+    description: "Add a reverb effect to the instrument",
+    shortcut: "r",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "reverb" } })),
+  });
 
-  // T = Add Tremolo Effect
-  useHotkeys(
-    "t",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "tremolo" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_CHORUS_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Chorus",
+    description: "Add a chorus effect to the instrument",
+    shortcut: "c",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "chorus" } })),
+  });
 
-  // V = Add Vibrato Effect
-  useHotkeys(
-    "v",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "vibrato" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_PHASER_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Phaser",
+    description: "Add a phaser effect to the instrument",
+    shortcut: "p",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "phaser" } })),
+  });
 
-  // F = Add Filter Effect
-  useHotkeys(
-    "f",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "filter" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_TREMOLO_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Tremolo",
+    description: "Add a tremolo effect to the instrument",
+    shortcut: "t",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "tremolo" } })),
+  });
 
-  // E = Add Equalizer Effect
-  useHotkeys(
-    "e",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "equalizer" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_VIBRATO_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Vibrato",
+    description: "Add a vibrato effect to the instrument",
+    shortcut: "v",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "vibrato" } })),
+  });
 
-  // D = Add Distortion Effect
-  useHotkeys(
-    "d",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "distortion" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_FILTER_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Filter",
+    description: "Add a filter effect to the instrument",
+    shortcut: "f",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "filter" } })),
+  });
 
-  // B = Add Bitcrusher Effect
-  useHotkeys(
-    "b",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "bitcrusher" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_EQUALIZER_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Equalizer",
+    description: "Add an equalizer effect to the instrument",
+    shortcut: "e",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "equalizer" } })),
+  });
 
-  // Shift + D = Add Feedback Delay Effect
-  useHotkeys(
-    "shift+d",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({
-          data: { id: instrument.id, key: "feedbackDelay" },
-        })
-      );
-    },
-    [instrument]
-  );
+export const ADD_DISTORTION_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Distortion",
+    description: "Add a distortion effect to the instrument",
+    shortcut: "d",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "distortion" } })),
+  });
 
-  // Shift + P = Add Ping Pong Delay Effect
-  useHotkeys(
-    "shift+p",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({
-          data: { id: instrument.id, key: "pingPongDelay" },
-        })
-      );
-    },
-    [instrument]
-  );
+export const ADD_BITCRUSHER_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Bitcrusher",
+    description: "Add a bitcrusher effect to the instrument",
+    shortcut: "b",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "bitcrusher" } })),
+  });
 
-  // Shift + C = Add Compressor Effect
-  useHotkeys(
-    "shift+c",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "compressor" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_FEEDBACK_DELAY_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Feedback Delay",
+    description: "Add a feedback delay effect to the instrument",
+    shortcut: "shift+d",
+    callback: () =>
+      id &&
+      dispatch(addInstrumentEffect({ data: { id, key: "feedbackDelay" } })),
+  });
 
-  // Shift + G = Add Gain Effect
-  useHotkeys(
-    "g",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "gain" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_PING_PONG_DELAY_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Ping Pong Delay",
+    description: "Add a ping pong delay effect to the instrument",
+    shortcut: "shift+p",
+    callback: () =>
+      id &&
+      dispatch(addInstrumentEffect({ data: { id, key: "pingPongDelay" } })),
+  });
 
-  // Shift + L = Add Limiter Effect
-  useHotkeys(
-    "l",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "limiter" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_COMPRESSOR_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Compressor",
+    description: "Add a compressor effect to the instrument",
+    shortcut: "shift+c",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "compressor" } })),
+  });
 
-  // Shift + W = Add Warp Effect
-  useHotkeys(
-    "w",
-    () => {
-      if (!instrument) return;
-      dispatch(
-        addInstrumentEffect({ data: { id: instrument.id, key: "warp" } })
-      );
-    },
-    [instrument]
-  );
+export const ADD_GAIN_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Gain",
+    description: "Add a gain effect to the instrument",
+    shortcut: "g",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "gain" } })),
+  });
 
-  // Backspace = Remove Last Effect
-  useHotkeys(
-    "backspace",
-    () => {
+export const ADD_LIMITER_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Limiter",
+    description: "Add a limiter effect to the instrument",
+    shortcut: "l",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "limiter" } })),
+  });
+
+export const ADD_WARP_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Warp",
+    description: "Add a warp effect to the instrument",
+    shortcut: "w",
+    callback: () =>
+      id && dispatch(addInstrumentEffect({ data: { id, key: "warp" } })),
+  });
+
+export const REMOVE_LAST_EFFECT_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch, getProject) => ({
+    name: "Remove Last Effect",
+    description: "Remove the last effect from the instrument",
+    shortcut: "backspace",
+    callback: () => {
+      if (!id) return;
+      const project = getProject();
+      const instrument = selectInstrumentById(project, id);
       if (!instrument) return;
-      if (!props.instrument) return;
-      const lastEffect = props.instrument.effects.at(-1);
+      const lastEffect = instrument.effects.at(-1);
       if (!lastEffect) return;
       dispatch(
-        removeInstrumentEffect({
-          data: { id: instrument.id, effectId: lastEffect.id },
-        })
+        removeInstrumentEffect({ data: { id, effectId: lastEffect.id } })
       );
     },
-    [instrument]
-  );
+  });
 
-  // Shift + Backspace = Remove All Effects
-  useHotkeys(
-    "shift+backspace",
-    () => {
-      if (!instrument) return;
-      dispatch(removeAllInstrumentEffects(instrument.id));
-    },
-    [instrument]
-  );
-}
+export const REMOVE_ALL_EFFECTS_HOTKEY =
+  (id?: InstrumentId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Remove All Effects",
+    description: "Remove all effects from the instrument",
+    shortcut: "shift+backspace",
+    callback: () => id && dispatch(removeAllInstrumentEffects(id)),
+  });

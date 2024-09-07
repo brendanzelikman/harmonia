@@ -59,7 +59,6 @@ export const NavbarMergeClipsButton = () => {
   const MergeButton = () => {
     return (
       <NavbarTooltipButton
-        onClick={() => dispatch(toggleTimelineState({ data: "merging-clips" }))}
         className={`p-1.5 border-slate-400/50 bg-gradient-to-t from-teal-500/80 to-fuchsia-600/70 ${
           isMergingClips
             ? "group-hover:ring-2 group-hover:ring-offset-2 group-hover:ring-fuchsia-500/50 group-hover:ring-offset-black"

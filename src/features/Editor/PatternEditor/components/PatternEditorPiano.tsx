@@ -1,10 +1,10 @@
 import { Sampler } from "tone";
-import { getMidiOctaveDistance, getMidiPitch } from "utils/midi";
+import { getMidiPitch } from "utils/midi";
 import { PatternEditorProps } from "../PatternEditor";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { getDurationSubdivision, getDurationTicks } from "utils/durations";
 import { EditorPiano } from "features/Editor/components/EditorPiano";
-import { use, useDeep, useProjectDispatch } from "types/hooks";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import {
   addPatternNote,
   updatePatternNote,
@@ -15,7 +15,7 @@ import {
   selectTrackMidiScaleMap,
   selectScaleTrackMap,
 } from "types/Track/TrackSelectors";
-import { getArrayByKey, getValueByKey } from "utils/objects";
+import { getValueByKey } from "utils/objects";
 import { PatternNote } from "types/Pattern/PatternTypes";
 import {
   autoBindNoteToTrack,
@@ -23,11 +23,10 @@ import {
 } from "types/Track/TrackThunks";
 import { useState } from "react";
 import classNames from "classnames";
-import { chromaticNotes, isNestedNote } from "types/Scale/ScaleTypes";
+import { isNestedNote } from "types/Scale/ScaleTypes";
 import { mod } from "utils/math";
 import { createUndoType } from "lib/redux";
 import { nanoid } from "@reduxjs/toolkit";
-import { TrackId } from "types/Track/TrackTypes";
 
 type PatternPianoMode = "midi" | "autobind" | "filter" | "remap";
 
@@ -48,7 +47,7 @@ export function PatternEditorPiano(props: PatternEditorProps) {
   const index = cursor.index;
   const asChord = useHeldHotkeys(["shift"]).shift;
   const { duration } = props.settings.note;
-  const chainIds = use((_) => selectTrackChainIds(_, ptId));
+  const chainIds = useDeep((_) => selectTrackChainIds(_, ptId));
   const trackScaleMap = useDeep(selectTrackMidiScaleMap);
   const scaleTrackMap = useDeep(selectScaleTrackMap);
   const durationTicks = getDurationTicks(duration);

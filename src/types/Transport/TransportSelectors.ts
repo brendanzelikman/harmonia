@@ -22,7 +22,7 @@ export const selectIsTransportActive = createSelector(
 /** Select true if the playhead should show. */
 export const selectIsPlayheadVisible = createSelector(
   selectTransport,
-  (transport) => transport.state === "started" && !!transport.downloading
+  (transport) => transport.state === "started" && !transport.downloading
 );
 
 /** Select a group of properties based on the transport state. */

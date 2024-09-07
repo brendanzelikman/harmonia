@@ -33,9 +33,7 @@ import { createScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import { toggleTrackScaleEditor } from "types/Editor/EditorThunks";
 import {
   insertScaleTrack,
-  expandTracks,
   collapseTracks,
-  expandTrackChildren,
   collapseTrackChildren,
   duplicateTrack,
   clearTrack,
@@ -80,12 +78,13 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
       <TrackName
         id={track.id}
         height={cellHeight}
-        value={track.name ?? ""}
+        value={track.collapsed ? scaleName : track.name ?? ""}
+        disabled={track.collapsed}
         placeholder={`Track ${label} (Scale)`}
         onChange={(e) => props.renameTrack(e.target.value)}
       />
     );
-  }, [track, cellHeight, label]);
+  }, [track, scaleName, cellHeight, label]);
 
   /** The Scale Track dropdown menu allows the user to perform general actions on the track. */
   const ScaleTrackDropdownMenu = () => {
@@ -102,22 +101,14 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
           content={`${track.collapsed ? "Expand " : "Collapse"} Track`}
           icon={<BsArrowsCollapse />}
           onClick={() =>
-            dispatch(
-              !!track.collapsed
-                ? expandTracks({ data: [trackId] })
-                : collapseTracks({ data: [trackId] })
-            )
+            dispatch(collapseTracks({ data: [trackId] }, !track.collapsed))
           }
         />
         <TrackDropdownButton
           content={`${isChildCollapsed ? "Expand " : "Collapse"} Children`}
           icon={<BsArrowsCollapse />}
           onClick={() =>
-            dispatch(
-              !!isChildCollapsed
-                ? expandTrackChildren(trackId)
-                : collapseTrackChildren(trackId)
-            )
+            dispatch(collapseTrackChildren(trackId, !isChildCollapsed))
           }
         />
         <TrackDropdownButton
@@ -143,7 +134,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
   const ScaleTrackHeader = useCallback(
     () => (
       <div
-        className="w-full flex relative justify-end"
+        className="w-full flex items-center relative justify-end"
         draggable
         onDragStart={cancelEvent}
       >
@@ -265,7 +256,12 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
           { "border-sky-950": !isSelected }
         )}
       >
-        <div className="min-w-0 h-full flex flex-1 flex-col items-start justify-evenly p-2 duration-150">
+        <div
+          className={classNames(
+            track.collapsed ? "px-1" : "p-2",
+            "min-w-0 h-full flex flex-1 flex-col items-start justify-evenly duration-300"
+          )}
+        >
           {ScaleTrackHeader()}
           {ScaleTrackButtons()}
         </div>

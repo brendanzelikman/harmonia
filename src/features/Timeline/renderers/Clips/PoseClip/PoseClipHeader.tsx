@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { BsMagic } from "react-icons/bs";
-import { GiDramaMasks, GiHand } from "react-icons/gi";
+import { GiDramaMasks, GiHand, GiOrbWand } from "react-icons/gi";
 import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
 import { isPoseVectorModule, Pose, PoseBlock } from "types/Pose/PoseTypes";
 import { POSE_HEIGHT } from "utils/constants";
@@ -22,6 +22,10 @@ import {
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { Timed } from "types/units";
+import { showEditor } from "types/Editor/EditorThunks";
+import { setSelectedPose } from "types/Media/MediaThunks";
+import { createUndoType } from "lib/redux";
+import { LiveAudioInstance } from "types/Instrument/InstrumentClass";
 
 interface PoseClipHeaderProps {
   clip: Timed<PoseClip>;
@@ -34,7 +38,8 @@ interface PoseClipHeaderProps {
 }
 
 export const PoseClipHeader = (props: PoseClipHeaderProps) => {
-  const { clip, pose, isSelected, index, isDropdownOpen } = props;
+  const { clip, portaledClip, pose, isSelected, index, isDropdownOpen } = props;
+  const pcId = portaledClip.id;
   const dispatch = useProjectDispatch();
   const trackMap = use(selectTrackMap);
   const selectedTrack = use(selectSelectedTrackId);
@@ -86,13 +91,13 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
           dispatch(toggleClipIdInSelection(clip.id));
         } else if (e.metaKey) {
           dispatchCustomEvent(
-            `${isDropdownOpen ? "close" : "open"}_dropdown_${clip.id}`
+            `${isDropdownOpen ? "close" : "open"}_dropdown_${pcId}`
           );
         } else if (isSelected) {
           if (!isTrackSelected) dispatch(setSelectedTrackId(clip.trackId));
           else {
             dispatchCustomEvent(
-              `${isDropdownOpen ? "close" : "open"}_dropdown_${clip.id}`
+              `${isDropdownOpen ? "close" : "open"}_dropdown_${pcId}`
             );
           }
           if (isTrackSelected && isDropdownOpen) {
@@ -108,6 +113,18 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
       {isDropdownOpen ? (
         <>
           <span className="bg-fuchsia-500 px-3">{name}</span>
+          <span
+            className="pointer-events-auto bg-fuchsia-500 hover:bg-fuchsia-400/50 border-l border-l-slate-200/30 size-full flex items-center ml-1 p-2"
+            onClick={(e) => {
+              cancelEvent(e);
+              if (!pose?.id) return;
+              const undoType = createUndoType("editPose");
+              dispatch(setSelectedPose({ data: pose?.id, undoType }));
+              dispatch(showEditor({ data: { view: "pose" }, undoType }));
+            }}
+          >
+            <GiOrbWand className="pointer-events-none" />
+          </span>
           {(pose?.stream ?? []).map(renderPoseBlock)}
         </>
       ) : (

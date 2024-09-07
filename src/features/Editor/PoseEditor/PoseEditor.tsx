@@ -33,7 +33,12 @@ function PoseEditorComponent(props: EditorProps) {
   const isCustom = !getValueByKey(PresetPoseMap, id);
 
   // Pose edit state for specific module
-  const [editState, setEditState] = useState<PoseEditState>(undefined);
+  const [editState, _setEditState] = useState<PoseEditState>(undefined);
+  const setEditState = useCallback((state: PoseEditState) => {
+    _setEditState(state);
+    if (state?.index !== undefined) setLastIndex(state?.index);
+  }, []);
+  const [lastIndex, setLastIndex] = useState<number>(0);
 
   // Check if the pose editor is editing a specific module
   const onState = useCallback(
@@ -44,22 +49,27 @@ function PoseEditorComponent(props: EditorProps) {
   // Start editing a specific module
   const startEditing = useCallback(
     (state: PoseEditState) => setEditState(state),
-    []
+    [setEditState]
   );
 
   // Stop editing modules
-  const stopEditing = useCallback(() => setEditState(undefined), []);
+  const stopEditing = useCallback(
+    () => setEditState(undefined),
+    [setEditState]
+  );
 
   // Toggle between a module and no module
   const toggleEditing = useCallback(
     (state: PoseEditState) => {
-      if (onState(state)) {
+      if (state === undefined) {
+        startEditing({ index: lastIndex, type: "offsets" });
+      } else if (onState(state)) {
         stopEditing();
       } else {
         startEditing(state);
       }
     },
-    [onState]
+    [onState, lastIndex, startEditing, stopEditing]
   );
 
   // Check if the module's duration is being edited
@@ -83,28 +93,20 @@ function PoseEditorComponent(props: EditorProps) {
   // Select the next module in the stream
   const selectNextModule = useCallback(() => {
     if (!streamLength) return;
-    setEditState((state) =>
-      state
-        ? {
-            ...state,
-            index: mod(state.index + 1, streamLength),
-          }
-        : undefined
-    );
-  }, [streamLength]);
+    setEditState({
+      ...(editState ?? { type: "offsets" }),
+      index: mod((lastIndex ?? -1) + 1, streamLength),
+    });
+  }, [editState, lastIndex, streamLength, setEditState]);
 
   // Select the previous module in the stream
   const selectPrevModule = useCallback(() => {
     if (!streamLength) return;
-    setEditState((state) =>
-      state
-        ? {
-            ...state,
-            index: mod(state.index - 1, streamLength),
-          }
-        : undefined
-    );
-  }, [streamLength]);
+    setEditState({
+      ...(editState ?? { type: "offsets" }),
+      index: mod((lastIndex ?? 1) - 1, streamLength),
+    });
+  }, [editState, lastIndex, streamLength, setEditState]);
 
   const poseEditorProps: PoseEditorProps = {
     ...props,

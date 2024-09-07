@@ -113,9 +113,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
     </div>
   );
 
-  const trackEffect = instance
-    ? LIVE_AUDIO_INSTANCES[instance.id].getEffectById(effect.id)
-    : undefined;
+  const trackEffect = instance ? instance.getEffectById(effect.id) : undefined;
   const name = Effects.EFFECT_NAMES_BY_KEY[effect.key] ?? "Effect";
   const wasDisposed = !trackEffect || trackEffect?.node?.disposed;
 

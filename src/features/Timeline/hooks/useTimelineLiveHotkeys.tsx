@@ -9,7 +9,7 @@ import {
 } from "types/Instrument/InstrumentSlice";
 import { PoseVector } from "types/Pose/PoseTypes";
 import { isPatternTrack } from "types/Track/TrackTypes";
-import { selectEditor } from "types/Editor/EditorSelectors";
+import { selectEditorView } from "types/Editor/EditorSelectors";
 import {
   selectSelectedTrackParents,
   selectIsLive,
@@ -25,9 +25,7 @@ import { some } from "lodash";
 
 type KeyBinds = Record<string, number>;
 
-/**
- * The numerical binds use the top number row.
- */
+/** The numerical binds use the top number row. */
 const NUMERICAL_BINDS: KeyBinds = {
   "1": 1,
   "2": 2,
@@ -41,6 +39,7 @@ const NUMERICAL_BINDS: KeyBinds = {
   o: 12,
 };
 const NUMERICAL_ZERO_BINDS = ["z", "0"];
+const extraKeys = ["minus", "t", "q", "w", "e", "r", "m", "s", "o", "y"];
 
 export const useTimelineLiveHotkeys = () => {
   const dispatch = useProjectDispatch();
@@ -48,7 +47,7 @@ export const useTimelineLiveHotkeys = () => {
   const isLive = use(selectIsLive);
 
   // Get additional dependencies from the store
-  const editor = useDeep(selectEditor);
+  const view = use(selectEditorView);
   const orderedTracks = useDeep(selectTracks);
   const scaleTracks = useDeep(selectSelectedTrackParents);
 
@@ -58,16 +57,13 @@ export const useTimelineLiveHotkeys = () => {
   // Get the list of zero keys based on the pose mode
   const zeroKeys = NUMERICAL_ZERO_BINDS;
 
-  // Extra keys required for each mode
-  const extraKeys = ["minus", "t", "q", "w", "e", "r", "m", "s", "o", "y"];
-
   // Track all of the held keys
   const allKeys = ["shift", "meta", ...keys, ...zeroKeys, ...extraKeys];
   const heldKeys = useHeldHotkeys(allKeys, [allKeys]);
 
   // The callback for the numerical keydown event
   const numericalKeydown = (e: KeyboardEvent) => {
-    if (isInputEvent(e) || editor.view) return;
+    if (isInputEvent(e) || view) return;
 
     // Try to get the number of the key
     const number = parseInt(e.key);
@@ -127,7 +123,7 @@ export const useTimelineLiveHotkeys = () => {
     (e: KeyboardEvent) => {
       const key = e.key;
       if (!zeroKeys.includes(key)) return;
-      if (isInputEvent(e) || editor.view) return;
+      if (isInputEvent(e) || view) return;
 
       // Unmute all tracks if holding m
       if (heldKeys.m) {
@@ -197,7 +193,7 @@ export const useTimelineLiveHotkeys = () => {
         )
       );
     },
-    [heldKeys, zeroKeys, editor, scaleTracks]
+    [heldKeys, zeroKeys, view, scaleTracks]
   );
 
   /**

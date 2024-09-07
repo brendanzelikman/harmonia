@@ -34,6 +34,11 @@ import {
 } from "../PatternTrack/PatternTrackThunks";
 import { moveTrack } from "../TrackThunks";
 import { addTrack } from "../TrackThunks";
+import { createSixteenthNote, createSixteenthRest } from "utils/durations";
+import { createPattern } from "types/Pattern/PatternThunks";
+import { addClip } from "types/Clip/ClipSlice";
+import { initializePatternClip } from "types/Clip/ClipTypes";
+import { PatternStream } from "types/Pattern/PatternTypes";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
@@ -123,25 +128,71 @@ export const createRandomHierarchy = (): Thunk => (dispatch) => {
 /** Create a hierarchy of drum-based Pattern Tracks within a chromatic Scale Track  */
 export const createDrumTracks = (): Thunk => (dispatch) => {
   const undoType = createUndoType("createDrumTracks", nanoid());
-  const scaleTrackId = dispatch(
-    createScaleTrack(undefined, undefined, undoType)
+  const parentId = dispatch(createScaleTrack(undefined, undefined, undoType));
+
+  const createStream = (restChance = 0.2): PatternStream =>
+    new Array(16)
+      .fill(0)
+      .map(() =>
+        Math.random() < restChance
+          ? createSixteenthRest()
+          : createSixteenthNote()
+      );
+
+  // Create a kick track and pattern clip
+  const kickTrack = dispatch(
+    createPatternTrack({ parentId }, "bass-drum-trvth", undoType)
   );
-  dispatch(
-    createPatternTrack({ parentId: scaleTrackId }, "bass-drum-trvth", undoType)
+  const kickId = dispatch(
+    createPattern({
+      data: { stream: createStream(0.8), trackId: kickTrack },
+      undoType,
+    })
   );
-  dispatch(
-    createPatternTrack({ parentId: scaleTrackId }, "snare-drum-trvth", undoType)
+  const kick = initializePatternClip({ patternId: kickId, trackId: kickTrack });
+  dispatch(addClip({ data: kick, undoType }));
+
+  // Create a snare track and pattern clip
+  const snareTrack = dispatch(
+    createPatternTrack({ parentId }, "snare-drum-trvth", undoType)
   );
-  dispatch(
-    createPatternTrack({ parentId: scaleTrackId }, "floor-tom-trvth", undoType)
+  const snareId = dispatch(
+    createPattern({
+      data: { stream: createStream(0.5), trackId: snareTrack },
+      undoType,
+    })
   );
-  dispatch(
-    createPatternTrack(
-      { parentId: scaleTrackId },
-      "open-hi-hat-trvth",
-      undoType
-    )
+  const snare = initializePatternClip({
+    patternId: snareId,
+    trackId: snareTrack,
+  });
+  dispatch(addClip({ data: snare, undoType }));
+
+  // Create a tom track and pattern clip
+  const tomTrack = dispatch(
+    createPatternTrack({ parentId }, "floor-tom-trvth", undoType)
   );
+  const tomId = dispatch(
+    createPattern({
+      data: { stream: createStream(0.6), trackId: tomTrack },
+      undoType,
+    })
+  );
+  const tom = initializePatternClip({ patternId: tomId, trackId: tomTrack });
+  dispatch(addClip({ data: tom, undoType }));
+
+  // Create a hat track and pattern clip
+  const hatTrack = dispatch(
+    createPatternTrack({ parentId }, "ride-cymbal-trvth", undoType)
+  );
+  const hatId = dispatch(
+    createPattern({
+      data: { stream: createStream(0.3), trackId: hatTrack },
+      undoType,
+    })
+  );
+  const hat = initializePatternClip({ patternId: hatId, trackId: hatTrack });
+  dispatch(addClip({ data: hat, undoType }));
 };
 
 /** Move the scale track to the index of the given track ID. */

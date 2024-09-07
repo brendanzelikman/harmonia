@@ -80,7 +80,6 @@ export type LiveInstrumentMap = Record<InstrumentId, LiveAudioInstance>;
 // Live audio instances
 export const LIVE_AUDIO_INSTANCES: LiveInstrumentMap = {};
 export const LIVE_RECORDER_INSTANCE = new Recorder();
-export const LIVE_ANALYZER_INSTANCE = new Waveform({ size: 2048 });
 
 /** The live audio instance class stores Tone.js objects and effects. */
 export class LiveAudioInstance {
@@ -202,7 +201,8 @@ export class LiveAudioInstance {
    * @param id - The effect ID.
    * @returns The effect.
    */
-  getEffectById = (id: EffectId) => {
+  getEffectById = (id?: EffectId) => {
+    if (!id) return;
     return this.effects.find((e) => e.id === id);
   };
 

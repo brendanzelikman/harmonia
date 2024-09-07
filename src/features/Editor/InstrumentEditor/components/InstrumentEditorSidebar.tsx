@@ -31,7 +31,6 @@ import {
   MELODIC_CATEGORIES,
   PERCUSSIVE_CATEGORIES,
 } from "types/Instrument/InstrumentTypes";
-import { useHotkeys } from "react-hotkeys-hook";
 import classNames from "classnames";
 
 export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
@@ -72,12 +71,13 @@ export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
   const FilterButton = (
     props: ComponentProps<"button"> & { active?: boolean }
   ) => {
+    const { active, className, ...rest } = props;
     return (
       <button
-        {...props}
+        {...rest}
         className={classNames(
           props.className,
-          props.active ? "border-orange-400" : "border-slate-400",
+          active ? "border-orange-400" : "border-slate-400",
           "p-2 py-1 border active:bg-orange-100/10 rounded-lg mb-2"
         )}
       />

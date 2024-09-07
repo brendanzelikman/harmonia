@@ -74,9 +74,7 @@ import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
 import { selectPoses } from "types/Pose/PoseSelectors";
 import { removePose } from "types/Pose/PoseSlice";
 import { removePattern } from "types/Pattern/PatternSlice";
-import { isVectorEmpty } from "utils/vector";
-import { isPoseBucket } from "types/Pose/PoseFunctions";
-import { PoseVector, PoseVectorModule } from "types/Pose/PoseTypes";
+import { PoseVectorModule } from "types/Pose/PoseTypes";
 
 /** Add an array of tracks to the store. */
 export const addTracks =
@@ -184,28 +182,10 @@ export const removeTrack =
 
 /** Collapse tracks in the store. */
 export const collapseTracks =
-  (payload: Payload<TrackId[]>): Thunk =>
+  (payload: Payload<TrackId[]>, collapsed = true): Thunk =>
   (dispatch) => {
     const trackIds = payload.data;
-    dispatch(
-      updateTracks({
-        ...payload,
-        data: trackIds.map((id) => ({ id, collapsed: true })),
-      })
-    );
-  };
-
-/** Expand tracks in the store. */
-export const expandTracks =
-  (payload: Payload<TrackId[]>): Thunk =>
-  (dispatch) => {
-    const trackIds = payload.data;
-    dispatch(
-      updateTracks({
-        ...payload,
-        data: trackIds.map((id) => ({ id, collapsed: false })),
-      })
-    );
+    dispatch(updateTracks({ data: trackIds.map((id) => ({ id, collapsed })) }));
   };
 
 /** Move a track to a new index in its parent track. */
@@ -323,9 +303,9 @@ export const bindTrackToPort =
 
 /** Create a new Scale Track and Pattern Track. */
 export const createTrackTree =
-  (action?: Payload<{}, true>): Thunk<PatternTrackId> =>
+  (payload?: Payload<null, true>): Thunk<PatternTrackId> =>
   (dispatch) => {
-    const undoType = createUndoType("createTrackTree", nanoid());
+    const undoType = unpackUndoType(payload, "createTrackTree");
     const parentId = dispatch(createScaleTrack({}, undefined, undoType));
     return dispatch(createPatternTrack({ parentId }, undefined, undoType));
   };
@@ -611,26 +591,22 @@ export const insertScaleTrack =
     );
   };
 
-/** Collapse all children of a track in the slice and hierarchy. */
+/** Collapse all children of a track. */
 export const collapseTrackChildren =
-  (trackId: TrackId): Thunk =>
+  (trackId: TrackId, collapsed = true): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const track = selectTrackById(project, trackId);
-    if (!track || isPatternTrack(track)) return;
-    const children = selectTrackDescendants(project, track.id);
-    dispatch(collapseTracks({ data: children.map((c) => c.id) }));
+    const children = selectTrackDescendants(project, trackId);
+    dispatch(collapseTracks({ data: children.map((c) => c.id) }, collapsed));
   };
 
-/** Expand all children of a track in the slice and hierarchy. */
-export const expandTrackChildren =
-  (trackId: TrackId): Thunk =>
+/** Collapse all parents of a track. */
+export const collapseTrackParents =
+  (trackId: TrackId, collapsed = true): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const track = selectTrackById(project, trackId);
-    if (!track || isPatternTrack(track)) return;
-    const children = selectTrackDescendants(project, track.id);
-    dispatch(expandTracks({ data: children.map((c) => c.id) }));
+    const parentIds = selectTrackChainIds(project, trackId);
+    dispatch(collapseTracks({ data: parentIds }, collapsed));
   };
 
 /** Get the degree of the pattern note in the given track's scale.  */

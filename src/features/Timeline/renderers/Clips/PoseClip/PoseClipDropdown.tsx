@@ -22,6 +22,7 @@ import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getTrackDepth, getTrackLabel } from "types/Track/TrackFunctions";
 import {
   selectScaleTracks,
+  selectTrackChain,
   selectTrackDepthById,
   selectTrackMap,
   selectTrackMidiScaleMap,
@@ -44,6 +45,7 @@ export const PoseClipDropdown = (props: PoseClipDropdownProps) => {
   const trackMap = useDeep(selectTrackMap);
   const trackScaleMap = useDeep(selectTrackMidiScaleMap);
   const scaleTracks = useDeep(selectScaleTracks);
+  const trackChain = useDeep((_) => selectTrackChain(_, clip.trackId));
   const clipLabel = `Track ${getTrackLabel(clip.trackId, trackMap)}`;
   const cellHeight = use(selectCellHeight);
   const isLive = use(selectIsLive);
@@ -162,7 +164,7 @@ export const PoseClipDropdown = (props: PoseClipDropdownProps) => {
 
     // Otherwise, return the default fields for transposition
     return [
-      ...scaleTracks.map((track) => ({
+      ...trackChain.map((track) => ({
         id: track.id,
         name: `Track ${getTrackLabel(track.id, trackMap)}`,
         scaleName: getScaleName(trackScaleMap[track.id]),
@@ -172,7 +174,7 @@ export const PoseClipDropdown = (props: PoseClipDropdownProps) => {
       { id: "chromatic", scaleName: "Chromatic Scale", name: clipLabel },
       { id: "octave", scaleName: "Adjust Octave", name: clipLabel },
     ];
-  }, [heldKeys.v, scaleTracks, trackMap, trackScaleMap, clipLabel]);
+  }, [heldKeys.v, trackChain, trackMap, trackScaleMap, clipLabel]);
 
   if (!pose || !isOpen) return null;
   return (

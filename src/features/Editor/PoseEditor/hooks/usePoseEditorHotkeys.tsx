@@ -1,4 +1,4 @@
-import { useScopedHotkeys } from "lib/react-hotkeys-hook";
+import { Hotkey, useHotkeysInEditor } from "lib/react-hotkeys-hook";
 import { PoseEditorProps } from "../PoseEditor";
 import { promptUserForNumber } from "utils/html";
 import {
@@ -10,72 +10,143 @@ import {
   ThirtySecondNoteTicks,
   WholeNoteTicks,
 } from "utils/durations";
-import { Tick } from "types/units";
-import { useCallback } from "react";
-import { addPoseBlock, removePoseBlock, clearPose } from "types/Pose/PoseSlice";
+import {
+  addPoseBlock,
+  removePoseBlock,
+  clearPose,
+  updatePoseBlock,
+} from "types/Pose/PoseSlice";
 import { useProjectDispatch } from "types/hooks";
 import { repeatPoseStream } from "types/Pose/PoseThunks";
-
-const useHotkeys = useScopedHotkeys("editor");
+import { Thunk } from "types/Project/ProjectTypes";
+import { Pose, PoseId } from "types/Pose/PoseTypes";
 
 export function usePoseEditorHotkeys(props: PoseEditorProps) {
   const dispatch = useProjectDispatch();
-  const { pose, editState } = props;
+  const { pose, editState, selectPrevModule, selectNextModule, toggleEditing } =
+    props;
   const id = pose?.id;
+  const size = pose?.stream?.length ?? 0;
+  const index = editState?.index;
 
-  // V = Add Vector
-  useHotkeys(
-    "a",
-    () => id && dispatch(addPoseBlock({ id, block: { vector: {} } })),
-    [id]
-  );
+  useHotkeysInEditor(dispatch(ADD_VECTOR_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(REMOVE_VECTOR_HOTKEY(id, index ?? size - 1)));
+  useHotkeysInEditor(dispatch(CLEAR_STREAM_HOTKEY(id)));
+  useHotkeysInEditor(dispatch(REPEAT_STREAM_HOTKEY(id)));
 
-  // 1-7 = Add Vectors with Durations
-  const addVector = useCallback(
-    (duration: Tick) => {
-      if (!id) return;
-      const block = { vector: {}, duration, index: pose.stream.length - 1 };
-      dispatch(addPoseBlock({ id, block }));
-    },
-    [id, pose]
-  );
+  useHotkeysInEditor(dispatch(SELECT_PREV_VECTOR_HOTKEY(selectPrevModule)));
+  useHotkeysInEditor(dispatch(SELECT_NEXT_VECTOR_HOTKEY(selectNextModule)));
+  useHotkeysInEditor(dispatch(TOGGLE_HOTKEY(() => toggleEditing(editState))));
 
-  // W = Select Previous Module
-  useHotkeys("w", props.selectPrevModule);
+  useHotkeysInEditor(dispatch(ADD_DURATION_VECTOR_HOTKEY(pose, "1", index)));
+  useHotkeysInEditor(dispatch(ADD_DURATION_VECTOR_HOTKEY(pose, "2", index)));
+  useHotkeysInEditor(dispatch(ADD_DURATION_VECTOR_HOTKEY(pose, "3", index)));
+  useHotkeysInEditor(dispatch(ADD_DURATION_VECTOR_HOTKEY(pose, "4", index)));
+  useHotkeysInEditor(dispatch(ADD_DURATION_VECTOR_HOTKEY(pose, "5", index)));
+  useHotkeysInEditor(dispatch(ADD_DURATION_VECTOR_HOTKEY(pose, "6", index)));
+  useHotkeysInEditor(dispatch(ADD_DURATION_VECTOR_HOTKEY(pose, "7", index)));
+}
 
-  // S = Select Next Module
-  useHotkeys("s", props.selectNextModule);
+const ADD_VECTOR_HOTKEY =
+  (id?: PoseId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Add Vector",
+    description: "Add a new vector to the pose.",
+    shortcut: "a",
+    callback: () => id && dispatch(addPoseBlock({ id, block: { vector: {} } })),
+  });
 
-  useHotkeys("1", () => addVector(WholeNoteTicks), [addVector]);
-  useHotkeys("2", () => addVector(HalfNoteTicks), [addVector]);
-  useHotkeys("3", () => addVector(QuarterNoteTicks), [addVector]);
-  useHotkeys("4", () => addVector(EighthNoteTicks), [addVector]);
-  useHotkeys("5", () => addVector(SixteenthNoteTicks), [addVector]);
-  useHotkeys("6", () => addVector(ThirtySecondNoteTicks), [addVector]);
-  useHotkeys("7", () => addVector(SixtyFourthNoteTicks), [addVector]);
+const REMOVE_VECTOR_HOTKEY =
+  (id?: PoseId, index?: number): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Remove Vector",
+    description: "Remove the selected vector from the pose.",
+    shortcut: "backspace",
+    callback: () =>
+      id && index !== undefined && dispatch(removePoseBlock({ id, index })),
+  });
 
-  // R = Repeat Stream
-  useHotkeys(
-    "shift+r",
-    promptUserForNumber(
+const CLEAR_STREAM_HOTKEY =
+  (id?: PoseId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Clear Stream",
+    description: "Remove all vectors from the pose.",
+    shortcut: "shift+backspace",
+    callback: () => id && dispatch(clearPose(id)),
+  });
+
+const REPEAT_STREAM_HOTKEY =
+  (id?: PoseId): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Repeat Stream",
+    description: "Repeat the current stream.",
+    shortcut: "shift+r",
+    callback: promptUserForNumber(
       "Repeat Your Stream",
       "How many times would you like to repeat this stream?",
       (value) => id && dispatch(repeatPoseStream(id, value))
     ),
-    [id]
-  );
+  });
 
-  // Delete = Remove Selected or Last Vector
-  useHotkeys(
-    "backspace",
-    () => {
-      if (!pose?.stream.length) return;
-      const index = editState?.index ?? pose.stream.length - 1;
-      dispatch(removePoseBlock({ id: pose.id, index }));
-    },
-    [pose, editState]
-  );
+const ADD_DURATION_VECTOR_HOTKEY =
+  (pose?: Pose, shortcut?: string, index?: number): Thunk<Hotkey> =>
+  (dispatch) => {
+    const duration =
+      shortcut === "1"
+        ? WholeNoteTicks
+        : shortcut === "2"
+        ? HalfNoteTicks
+        : shortcut === "3"
+        ? QuarterNoteTicks
+        : shortcut === "4"
+        ? EighthNoteTicks
+        : shortcut === "5"
+        ? SixteenthNoteTicks
+        : shortcut === "6"
+        ? ThirtySecondNoteTicks
+        : SixtyFourthNoteTicks;
+    return {
+      name: "Add Vector",
+      description: `Add a new vector to the pose with a specific duration.`,
+      shortcut: shortcut ?? "7",
+      callback: () => {
+        if (!pose?.id) return;
+        const { id } = pose;
+        if (index === undefined) {
+          dispatch(addPoseBlock({ id, block: { vector: {}, duration } }));
+        } else {
+          const block = pose.stream[index];
+          dispatch(
+            updatePoseBlock({ id, index, block: { ...block, duration } })
+          );
+        }
+      },
+    };
+  };
 
-  // Shift + Delete = Clear Stream
-  useHotkeys("shift+backspace", () => id && dispatch(clearPose(id)), [id]);
-}
+const SELECT_PREV_VECTOR_HOTKEY =
+  (callback: () => void): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Select Previous Module",
+    description: "Select the previous module in the pose.",
+    shortcut: "w",
+    callback,
+  });
+
+const SELECT_NEXT_VECTOR_HOTKEY =
+  (callback: () => void): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Select Next Module",
+    description: "Select the next module in the pose.",
+    shortcut: "s",
+    callback,
+  });
+
+const TOGGLE_HOTKEY =
+  (callback: () => void): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Toggle Editing",
+    description: "Start or stop editing a vector.",
+    shortcut: "c",
+    callback,
+  });

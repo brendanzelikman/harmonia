@@ -1,19 +1,23 @@
 import { Thunk } from "types/Project/ProjectTypes";
 import { selectPatternById } from "../PatternSelectors";
 import {
+  createSixteenthRest,
   getDurationTicks,
+  SixteenthNoteTicks,
   SixtyFourthNoteTicks,
   StraightDurationType,
 } from "utils/durations";
-import { isPatternChord, PatternId } from "../PatternTypes";
+import { isPatternChord, PatternId, PatternNote } from "../PatternTypes";
 import {
   getPatternChordNotes,
   getPatternChordWithNewNotes,
 } from "../PatternUtils";
 import { updatePattern } from "../PatternSlice";
 import { Payload } from "lib/redux";
-import { clamp } from "lodash";
+import { clamp, sample, shuffle, uniq, uniqBy } from "lodash";
 import { getPatternBlockDuration } from "../PatternFunctions";
+import { isMidiNote } from "types/Scale/ScaleTypes";
+import { getMidiNoteValue } from "utils/midi";
 
 /** Repeat a pattern a certain number of times. */
 export const repeatPattern =
@@ -65,6 +69,36 @@ export const stretchPattern =
     });
 
     dispatch(updatePattern({ data: { id, stream } }));
+  };
+
+/** Create a random beat out of the unique notes of a pattern. */
+export const beatifyPattern =
+  ({ data }: Payload<PatternId>): Thunk =>
+  (dispatch, getProject) => {
+    const id = data;
+    const project = getProject();
+    const pattern = selectPatternById(project, id);
+    if (!pattern) return;
+
+    const flatStream = pattern.stream
+      .flatMap((block) => {
+        if (isPatternChord(block)) return getPatternChordNotes(block);
+        return undefined;
+      })
+      .filter(Boolean) as PatternNote[];
+    const flatSet = uniqBy(flatStream, (note) =>
+      isMidiNote(note) ? getMidiNoteValue(note) : JSON.stringify(note)
+    );
+    const flatPicks = shuffle(flatSet);
+    const restChance = 0.2;
+    const halfBeat = new Array(8).fill(0).map(() => {
+      const note = flatPicks.pop() ?? sample(flatSet);
+      if (!note || Math.random() < restChance) return createSixteenthRest();
+      return { ...note, duration: SixteenthNoteTicks };
+    });
+    const beat = [...halfBeat, ...halfBeat];
+
+    return dispatch(updatePattern({ data: { id, stream: beat } }));
   };
 
 /** Randomize the durations of each note */

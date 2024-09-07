@@ -83,7 +83,7 @@ export const instrumentsSlice = createSlice({
     /** Add an instrument to the slice. */
     addInstrument: (state, action: Action<AddInstrumentPayload>) => {
       const { instrument } = unpackAction(action);
-      state.ids = union(state.ids, [instrument.id]);
+      state.ids = union(state.ids, instrument.id);
       state.entities[instrument.id] = instrument;
     },
     /** Update an instrument. */

@@ -20,6 +20,7 @@ interface TooltipButtonProps {
   direction?: "vertical" | "horizontal";
   marginTop?: number;
   marginLeft?: number;
+  width?: number;
   keepTooltipOnClick?: boolean;
   hideRing?: boolean;
   options?: { onClick: () => void; label: string }[];
@@ -60,7 +61,7 @@ export const NavbarTooltipButton = (props: TooltipButtonProps) => (
     {...props}
     className={classNames(
       props.className,
-      `rounded-full min-w-8 min-h-8 transition-all`
+      `rounded-full min-w-8 min-h-8 shrink-0 transition-all`
     )}
     direction="vertical"
   />
@@ -82,6 +83,7 @@ export const TooltipButton = ({
   direction,
   marginTop,
   marginLeft,
+  width,
   hideRing,
   options,
   notClickable,
@@ -128,7 +130,7 @@ export const TooltipButton = ({
   const Button = (
     <div
       className={classNames(
-        "flex total-center",
+        "flex shrink-0 total-center",
         cursorClass ??
           (disabled
             ? `${disabledClass} cursor-default`
@@ -157,12 +159,12 @@ export const TooltipButton = ({
   // The label displays the tooltip below the button
   const Label = (
     <div
-      style={{ marginTop, marginLeft }}
+      style={{ marginTop, marginLeft, width }}
       className={classNames(
         alignment,
         "select-none pointer-events-none",
         "transition-opacity opacity-0 group-hover:opacity-100 duration-200",
-        "absolute p-3 py-1 w-max max-w-80 rounded-lg",
+        "absolute p-3 py-1 w-max max-w-80 shrink-0 rounded-lg",
         direction === "vertical" ? "top-12" : "ml-10",
         borderColor ?? "border-indigo-500/70",
         backgroundColor ?? "bg-zinc-900",

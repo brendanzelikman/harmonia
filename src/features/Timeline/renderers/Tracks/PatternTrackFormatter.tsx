@@ -34,7 +34,12 @@ import {
 import { DEFAULT_VOLUME, DEFAULT_PAN } from "utils/constants";
 import { VOLUME_STEP, PAN_STEP } from "utils/constants";
 import { TrackFormatterProps } from "./TrackFormatter";
-import { useProjectDispatch, use, useProjectDeepSelector } from "types/hooks";
+import {
+  useProjectDispatch,
+  use,
+  useProjectDeepSelector,
+  useDeep,
+} from "types/hooks";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import classNames from "classnames";
 import { promptModal } from "components/PromptModal";
@@ -60,6 +65,7 @@ import {
   selectCellHeight,
 } from "types/Timeline/TimelineSelectors";
 import {
+  selectTrackChain,
   selectTrackDepthById,
   selectTrackInstrumentKey,
 } from "types/Track/TrackSelectors";
@@ -67,13 +73,13 @@ import { toggleTrackInstrumentEditor } from "types/Editor/EditorThunks";
 import {
   bindTrackToPort,
   insertScaleTrack,
-  expandTracks,
   collapseTracks,
   duplicateTrack,
   clearTrack,
   deleteTrack,
   toggleTrackMute,
   toggleTrackSolo,
+  collapseTrackParents,
 } from "types/Track/TrackThunks";
 import { updateTrack } from "types/Track/TrackThunks";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
@@ -88,6 +94,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const dispatch = useProjectDispatch();
   const depth = use((_) => selectTrackDepthById(_, track.id));
   const isLive = use(selectIsLive);
+  const chain = useDeep((_) => selectTrackChain(_, track.id));
 
   const trackId = track.id;
   const tourId = useTourId();
@@ -159,6 +166,8 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
 
   /** The Pattern Track dropdown menu allows the user to perform general actions on the track. */
   const PatternTrackDropdownMenu = () => {
+    const isParentCollapsed =
+      chain.length && chain.some((track) => track?.collapsed);
     const showPortFeatures = isVirtuoso && !!isElectron();
     const channel = track.port ? track.port - PLUGIN_STARTING_PORT : 0;
 
@@ -211,11 +220,14 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
           content={`${track.collapsed ? "Expand " : "Collapse"} Track`}
           icon={track.collapsed ? <BsArrowsExpand /> : <BsArrowsCollapse />}
           onClick={() =>
-            dispatch(
-              track.collapsed
-                ? expandTracks({ data: [trackId] })
-                : collapseTracks({ data: [trackId] })
-            )
+            dispatch(collapseTracks({ data: [trackId] }, !track.collapsed))
+          }
+        />
+        <TrackDropdownButton
+          content={`${isParentCollapsed ? "Expand " : "Collapse"} Parents`}
+          icon={<BsArrowsCollapse />}
+          onClick={() =>
+            dispatch(collapseTrackParents(trackId, !isParentCollapsed))
           }
         />
         <TrackDropdownButton

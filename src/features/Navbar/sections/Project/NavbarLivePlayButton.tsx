@@ -14,6 +14,8 @@ import {
   initializePoseClip,
   isPatternClipId,
   isPoseClipId,
+  PortaledPatternClipId,
+  PortaledPoseClipId,
 } from "types/Clip/ClipTypes";
 import { createPose } from "types/Pose/PoseThunks";
 import { createPattern } from "types/Pattern/PatternThunks";
@@ -23,14 +25,20 @@ import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import {
   selectPatternTrackIds,
   selectTrackChainIds,
+  selectTrackScaleChain,
 } from "types/Track/TrackSelectors";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useHeldHotkeys, useHotkeysInTimeline } from "lib/react-hotkeys-hook";
+import { useCallback, useRef } from "react";
 import { some } from "lodash";
 import { createMedia } from "types/Media/MediaThunks";
-import { selectPatternClipIds } from "types/Clip/ClipSelectors";
-import { selectOverlappingPortaledClipIds } from "types/Arrangement/ArrangementSelectors";
+import {
+  selectOverlappingPortaledClipIds,
+  selectPortaledClipMap,
+} from "types/Arrangement/ArrangementSelectors";
 import { useToggledState } from "hooks/useToggledState";
+import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
+import { selectScaleNameMap } from "types/Arrangement/ArrangementTrackSelectors";
+import { getValueByKey } from "utils/objects";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"];
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -39,22 +47,25 @@ const miscKeys = ["v", "z", "m", "s", "minus"];
 export const NavbarLivePlayButton = () => {
   const dispatch = useProjectDispatch();
   const { isAtLeastRank } = useAuth();
-  const selectedTrack = use(selectSelectedTrack);
+  const selectedTrack = useDeep(selectSelectedTrack);
   const patternTrackId = useDeep(selectPatternTrackIds)[0];
-  const patternClipId = useDeep(selectPatternClipIds)[0];
-  const poseClipId = use((_) =>
-    selectOverlappingPortaledClipIds(_, `${patternClipId}-chunk-1`)
+  const patternClipId = Object.keys(useDeep(selectPortaledClipMap))[0];
+  const poseClipId = useDeep((_) =>
+    selectOverlappingPortaledClipIds(_, patternClipId)
   )[0];
-
-  const scoreRef = useRef<string>(`score_${patternClipId}-chunk-1`);
+  const scaleNameMap = useDeep(selectScaleNameMap);
+  const scoreRef = useRef<string>(`score_${patternClipId}`);
   const dropdownRef = useRef<string>(`dropdown_${poseClipId}`);
   const score = useToggledState(scoreRef.current, false);
   const dropdown = useToggledState(dropdownRef.current, false);
 
   const isLive = use(selectIsLive) && score.isOpen && dropdown.isOpen;
 
-  const clipIds = [patternClipId, poseClipId].filter(Boolean);
+  const clipIds = [patternClipId, poseClipId].filter(Boolean) as ClipId[];
   const trackChain = useDeep((_) => selectTrackChainIds(_, selectedTrack?.id));
+  const scaleChain = useDeep((_) =>
+    selectTrackScaleChain(_, selectedTrack?.id)
+  );
   const depth = trackChain.length - 1;
   const heldKeys = useHeldHotkeys([
     ...qwertyKeys,
@@ -137,15 +148,33 @@ export const NavbarLivePlayButton = () => {
           <div className="p-1">
             <p className={depth < 0 ? "opacity-50" : ""}>
               <Span keycode="q" label="Hold Q:" />{" "}
-              <Scale keycode="q" label="First Track Scale" />
+              <Scale
+                keycode="q"
+                label={String(
+                  getValueByKey(scaleNameMap, scaleChain[0]?.id) ??
+                    "First Track Scale"
+                )}
+              />
             </p>
             <p className={depth < 1 ? "opacity-50" : ""}>
               <Span keycode="w" label="Hold W:" />{" "}
-              <Scale keycode="w" label="Second Track Scale" />
+              <Scale
+                keycode="w"
+                label={String(
+                  getValueByKey(scaleNameMap, scaleChain[1]?.id) ??
+                    "Second Track Scale"
+                )}
+              />
             </p>
             <p className={depth < 2 ? "opacity-50" : ""}>
               <Span keycode="e" label="Hold E:" />{" "}
-              <Scale keycode="e" label="Third Track Scale" />
+              <Scale
+                keycode="e"
+                label={String(
+                  getValueByKey(scaleNameMap, scaleChain[2]?.id) ??
+                    "Third Track Scale"
+                )}
+              />
             </p>
             <p>
               <Span keycode="r" label="Hold R:" />{" "}
@@ -215,7 +244,7 @@ export const NavbarLivePlayButton = () => {
               <Span keycode="z" label="Press Z:" />{" "}
               <Scale
                 keycode="z"
-                label="Remove Offset"
+                label="Remove Offsets"
                 defaultClass="text-fuchsia-300"
                 activeClass="text-fuchsia-200"
               />
@@ -277,69 +306,88 @@ export const NavbarLivePlayButton = () => {
     );
   };
 
+  const onClick = () => {
+    const undoType = "prepareLive";
+    const trackId = patternTrackId ?? dispatch(createTrackTree({ undoType }));
+
+    dispatch(setSelectedTrackId({ data: trackId, undoType }));
+
+    // Create a courtesy pattern and pattern clip for the track
+    const ids: ClipId[] = clipIds;
+    const data = { trackId };
+
+    // Create a courtesy pose and pose clip for the track
+    if (ids.length < 2) {
+      if (!ids.some(isPoseClipId)) {
+        const poseId = dispatch(createPose({ data, undoType }));
+        const clips = [initializePoseClip({ poseId, trackId })];
+        const result = dispatch(createMedia({ data: { clips }, undoType }));
+        const newPoseId = result.data.clipIds?.[0];
+        if (newPoseId) ids.push(newPoseId);
+      }
+      if (!ids.some(isPatternClipId)) {
+        const patternId = dispatch(createPattern({ data, undoType }));
+        const clips = [initializePatternClip({ patternId, trackId })];
+        const result = dispatch(createMedia({ data: { clips }, undoType }));
+        const newPatternId = result.data.clipIds?.[0];
+        if (newPatternId) ids.push(`${newPatternId}-chunk-1`);
+      }
+    }
+
+    const pcId = ids.find(isPatternClipId) as PortaledPatternClipId | undefined;
+    const psId = ids.find(isPoseClipId) as PortaledPoseClipId | undefined;
+
+    if (pcId && psId) {
+      dispatch(
+        addClipIdsToSelection({
+          data: [
+            getOriginalIdFromPortaledClip(pcId),
+            getOriginalIdFromPortaledClip(psId),
+          ],
+          undoType,
+        })
+      );
+      const tag = isLive ? "close" : "open";
+      const score = `score_${pcId}`;
+      const dropdown = `dropdown_${psId}`;
+      scoreRef.current = score;
+      dropdownRef.current = dropdown;
+      setTimeout(() => dispatchCustomEvent(`${tag}_${score}`), 100);
+      setTimeout(() => dispatchCustomEvent(`${tag}_${dropdown}`), 200);
+    }
+  };
+
   // The transpose label showing the current types of poses available.
   const LivePlayButton = () => (
     <NavbarTooltipButton
       keepTooltipOnClick
+      marginLeft={isLive ? -180 : undefined}
+      width={isLive ? 290 : undefined}
       borderColor="border-fuchsia-500"
       backgroundColor="bg-slate-950"
-      className={`cursor-pointer p-1.5 duration-150`}
+      className={`cursor-pointer duration-150`}
       notClickable={isLive}
-      onClick={() => {
-        if (isLive) return;
-        const undoType = "prepareLive";
-        const trackId =
-          patternTrackId ?? dispatch(createTrackTree({ undoType }));
-
-        dispatch(setSelectedTrackId({ data: trackId, undoType }));
-
-        // Create a courtesy pattern and pattern clip for the track
-        const ids: ClipId[] = clipIds;
-        const data = { trackId };
-
-        // Create a courtesy pose and pose clip for the track
-        if (ids.length < 2) {
-          if (!ids.some(isPoseClipId)) {
-            const poseId = dispatch(createPose({ data, undoType }));
-            const clips = [initializePoseClip({ poseId, trackId })];
-            const result = dispatch(createMedia({ data: { clips }, undoType }));
-            const newPoseId = result.data.clipIds?.[0];
-            if (newPoseId) ids.push(newPoseId);
-          }
-          if (!ids.some(isPatternClipId)) {
-            const patternId = dispatch(createPattern({ data, undoType }));
-            const clips = [initializePatternClip({ patternId, trackId })];
-            const result = dispatch(createMedia({ data: { clips }, undoType }));
-            const newPatternId = result.data.clipIds?.[0];
-            if (newPatternId) ids.push(newPatternId);
-          }
-        }
-
-        const pcId = ids.find(isPatternClipId);
-        const psId = ids.find(isPoseClipId);
-        if (pcId && psId) {
-          dispatch(addClipIdsToSelection({ data: [pcId, psId], undoType }));
-          const openScore = `score_${pcId}-chunk-1`;
-          const openDropdown = `dropdown_${psId}`;
-          scoreRef.current = openScore;
-          dropdownRef.current = openDropdown;
-          setTimeout(() => dispatchCustomEvent(`open_${openScore}`), 50);
-          setTimeout(() => dispatchCustomEvent(`open_${openDropdown}`), 100);
-        }
-      }}
+      onClick={onClick}
       label={isLive ? NumericalShortcuts() : "Quickstart Live Play"}
     >
       <GiHand className="select-none pointer-events-none" />
     </NavbarTooltipButton>
   );
 
+  useHotkeysInTimeline({
+    name: "Quickstart Live Play",
+    description: "Open the Live Play interface",
+    shortcut: "`",
+    callback: onClick,
+  });
+
   if (!isAtLeastRank("maestro")) return null;
   return (
     <div
       className={classNames(
-        "relative min-w-8 w-max h-9 select-none",
-        "flex items-center rounded-full transition-all font-nunito font-light",
-        isLive ? "bg-fuchsia-500/40" : "bg-transparent"
+        "relative min-w-9 w-max h-9 select-none",
+        "flex total-center rounded-full transition-all font-nunito font-light",
+        isLive ? "bg-fuchsia-500/50" : "bg-transparent"
       )}
     >
       {LivePlayButton()}

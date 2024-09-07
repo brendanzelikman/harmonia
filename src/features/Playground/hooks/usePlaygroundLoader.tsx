@@ -30,9 +30,5 @@ export const usePlaygroundLoader = (): PlaygroundLoadState => {
     if (!canPlay) navigate("/");
   }, [canPlay]);
 
-  return {
-    isPlaygroundLoaded,
-    isProjectLoaded,
-    isTransportLoaded,
-  };
+  return { isPlaygroundLoaded, isProjectLoaded, isTransportLoaded };
 };

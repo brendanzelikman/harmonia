@@ -22,6 +22,7 @@ import {
   subdividePattern,
 } from "types/Pattern/thunks/PatternChordThunks";
 import {
+  beatifyPattern,
   continuePattern,
   randomizePatternDurations,
   repeatPattern,
@@ -169,10 +170,10 @@ export const streamTransformations = (id: PatternId): Transformation[] => {
       ),
     },
     {
-      id: "continue pattern",
+      id: "extend pattern",
       label: "Extend",
       onClick: promptUserForNumber(
-        "Continue Your Pattern",
+        "Extend Your Pattern",
         "How many notes would you like to extend your stream to?",
         (n) => id && dispatch(continuePattern({ data: { id, length: n } }))
       ),
@@ -245,6 +246,11 @@ export const durationTransformations = (id: PatternId): Transformation[] => {
       id: "flatten chords",
       label: "Arpeggiate",
       onClick: () => id && dispatch(flattenPattern({ data: id })),
+    },
+    {
+      id: "beatify pattern",
+      label: "Beatify",
+      onClick: () => id && dispatch(beatifyPattern({ data: id })),
     },
     {
       id: "set durations",

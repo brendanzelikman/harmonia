@@ -189,7 +189,7 @@ export function useOSMD(props: Props): ScoreProps {
 // ------------------------------------------------------------
 
 /** The cursor contains various methods for score navigation. */
-interface CursorProps {
+export interface CursorProps {
   index: number;
   setIndex: (index: number) => void;
   hidden: boolean;

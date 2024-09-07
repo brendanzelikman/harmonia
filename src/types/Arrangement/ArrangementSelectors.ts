@@ -15,6 +15,7 @@ import {
   isPoseClipId,
   PortaledPatternClipId,
   PortaledPatternClip,
+  PortaledPoseClipId,
 } from "types/Clip/ClipTypes";
 import { getClipMapsByType } from "types/Clip/ClipUtils";
 import { InstrumentNotesByTicks } from "types/Instrument/InstrumentTypes";
@@ -330,15 +331,24 @@ export const selectOverlappingPortaledClipIds = createArraySelector(
   selectOverlappingPortaledClipIdMap
 );
 
+/** Select a pattern clip's overlapping portaled clips. */
+export const selectOverlappingPortaledClips = (
+  project: Project,
+  id: PortaledClipId
+) => {
+  const ids = selectOverlappingPortaledClipIds(project, id);
+  const clipMap = selectPortaledClipMap(project);
+  return ids.map((id) => clipMap[id]);
+};
+
 /** Select a pattern clip's overlapping pose clip IDs */
 export const selectClosestPoseClipId = (
   project: Project,
   id: PortaledClipId
 ) => {
   const ids = selectOverlappingPortaledClipIds(project, id);
-  const originalIds = ids.map(getOriginalIdFromPortaledClip);
-  const poseClipIds = originalIds.filter(isPoseClipId);
-  return poseClipIds.at(0);
+  const poseClipIds = ids.filter(isPoseClipId);
+  return poseClipIds.at(0) as PortaledPoseClipId | undefined;
 };
 
 export const selectPatternClipMidiStreamMap = createDeepSelector(

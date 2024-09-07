@@ -29,7 +29,7 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
   const dispatch = useProjectDispatch();
 
   /** Each pose has a dropdown for editing offsets. */
-  const dropdownState = useToggledState(`dropdown_${clip.id}`);
+  const dropdownState = useToggledState(`dropdown_${pcId}`);
   const isDropdownOpen = dropdownState.isOpen;
   useHotkeys("esc", dropdownState.close);
 

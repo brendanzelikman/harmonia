@@ -26,15 +26,6 @@ import { UndoType } from "types/units";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
 import { migrateTrack, moveTrack } from "../TrackThunks";
 import { addTrack } from "../TrackThunks";
-import { createPattern } from "types/Pattern/PatternThunks";
-import { getTrackLabel } from "../TrackFunctions";
-import { setTimelineType } from "types/Timeline/TimelineThunks";
-import { createMedia } from "types/Media/MediaThunks";
-import {
-  initializePatternClip,
-  initializePoseClip,
-} from "types/Clip/ClipTypes";
-import { createPose } from "types/Pose/PoseThunks";
 import { ScaleTrackId } from "../ScaleTrack/ScaleTrackTypes";
 
 /** Create a `PatternTrack` with an optional initial track. */
@@ -46,7 +37,6 @@ export const createPatternTrack =
   ): Thunk<PatternTrackId> =>
   (dispatch, getProject) => {
     const project = getProject();
-    const trackMap = selectTrackMap(project);
     const topLevelTracks = selectTopLevelTracks(project);
 
     // Initialize a new pattern track and instrument
@@ -56,7 +46,6 @@ export const createPatternTrack =
       instrumentId: instrument.id,
       order: initialTrack?.parentId ? undefined : topLevelTracks.length,
     });
-    const id = track.id;
 
     const undoType = _undoType ?? createUndoType("createPatternTrack", track);
 
@@ -68,7 +57,7 @@ export const createPatternTrack =
     const oldInstrument = iid ? selectInstrumentById(project, iid) : undefined;
     const key = initialInstrumentKey ?? DEFAULT_INSTRUMENT_KEY;
     const options = { oldInstrument: { ...oldInstrument, ...instrument, key } };
-    dispatch(createInstrument({ data: { track: track, options }, undoType }));
+    dispatch(createInstrument({ data: { track, options }, undoType }));
 
     // Return ID of the created track
     return track.id;

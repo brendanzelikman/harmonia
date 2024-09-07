@@ -5,7 +5,7 @@ import {
   selectPatternClipXML,
 } from "types/Arrangement/ArrangementSelectors";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { initializePoseClip, PoseClipId } from "types/Clip/ClipTypes";
+import { initializePoseClip, PortaledPoseClipId } from "types/Clip/ClipTypes";
 import {
   blurOnEnter,
   ButtonMouseEvent,
@@ -60,7 +60,7 @@ import { autoBindNoteToTrack } from "types/Track/TrackThunks";
 import { PatternNote } from "types/Pattern/PatternTypes";
 
 export interface PatternClipDropdownProps extends PatternClipRendererProps {
-  poseClipId?: PoseClipId;
+  poseClipId?: PortaledPoseClipId;
 }
 
 export function PatternClipDropdown(props: PatternClipDropdownProps) {
@@ -108,7 +108,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     [isAdding]
   );
   const { score } = useOSMD({
-    id: `pattern_clip_${id}_score`,
+    id: `${id}_score`,
     xml,
     className: "size-full",
     stream,
@@ -242,9 +242,8 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     return (
       <ScoreButton
         label={label}
-        buttonClass={
-          isLive ? "bg-fuchsia-400/80 border-fuchsia-200/80" : undefined
-        }
+        backgroundColor={isLive ? "bg-fuchsia-400/80" : undefined}
+        borderColor={isLive ? "border-fuchsia-200/80" : undefined}
         onClick={onClick}
         icon={<Icon />}
       />

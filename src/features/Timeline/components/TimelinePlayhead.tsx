@@ -20,7 +20,7 @@ export function TimelinePlayhead() {
   const style = { height, marginTop, width, left };
 
   // Show the cursor if the transport is started and not downloading
-  if (isVisible) return null;
+  if (!isVisible) return null;
   return (
     <div
       className="sticky w-full inset-0 z-50 pointer-events-none"

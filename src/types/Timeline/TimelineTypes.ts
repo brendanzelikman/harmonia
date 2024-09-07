@@ -38,7 +38,6 @@ export const TIMELINE_STATES = [
   "adding-clips",
   "slicing-clips",
   "portaling-clips",
-  "merging-clips",
   "idle",
 ] as const;
 export type TimelineState = (typeof TIMELINE_STATES)[number];

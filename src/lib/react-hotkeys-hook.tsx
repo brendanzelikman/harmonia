@@ -1,10 +1,13 @@
-import { isArray, isObject, isPlainObject, isString, noop } from "lodash";
+import { isArray, isObject, noop } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Keys, useHotkeys } from "react-hotkeys-hook";
 import {
   HotkeyCallback,
   OptionsOrDependencyArray,
 } from "react-hotkeys-hook/dist/types";
+import { useDiary } from "types/Diary/DiaryTypes";
+import { selectEditorView } from "types/Editor/EditorSelectors";
+import { use } from "types/hooks";
 import { isHoldingShift, isPressingLetter } from "utils/html";
 
 // ------------------------------------------------------------
@@ -15,53 +18,7 @@ export const SCOPES = ["playground", "timeline", "editor", "diary"] as const;
 export type Scope = (typeof SCOPES)[number];
 export type ScopeMap = Record<Scope, boolean>;
 
-// The timeline and transport scopes are true by default.
-export const defaultScopes: ScopeMap = {
-  playground: true,
-  timeline: true,
-  editor: false,
-  diary: false,
-};
-
-/** Get the hotkey scopes from local storage. */
-export const getScopes = () => {
-  const scopeString = window.localStorage.getItem("harmonia-hotkey-scope");
-  if (scopeString === null) {
-    window.localStorage.setItem(
-      "harmonia-hotkey-scope",
-      JSON.stringify(defaultScopes)
-    );
-  }
-  const scopes = JSON.parse(scopeString || "{}");
-  return { ...defaultScopes, ...scopes };
-};
-
-// Get the value of the scope from local storage
-export const getScope = (scope: Scope) =>
-  scope === "playground" || getScopes()[scope];
-
-// Toggle or set the value of the scope in local storage
-export const toggleScope = (scope: Scope, value?: boolean) => {
-  const scopes = getScopes();
-  scopes[scope] = value === undefined ? !scopes[scope] : value;
-  window.localStorage.setItem("harmonia-hotkey-scope", JSON.stringify(scopes));
-};
-
-export const enableScope = (scope: Scope) => toggleScope(scope, true);
-export const disableScope = (scope: Scope) => toggleScope(scope, false);
-
-/** Use a current hotkey scope and disable the timeline */
-export function replaceTimelineScope(scope: Scope, condition: boolean) {
-  useEffect(() => {
-    toggleScope(scope, condition);
-    toggleScope("timeline", !condition);
-    return () => {
-      toggleScope(scope, false);
-      toggleScope("timeline", true);
-    };
-  }, [condition]);
-}
-
+// A hotkey can be accompanied by a name and description for documentation
 export type Hotkey = {
   shortcut: string;
   callback: HotkeyCallback;
@@ -69,23 +26,34 @@ export type Hotkey = {
   description?: string;
 };
 
+export type HotkeyFunction = (
+  keys: Keys | Hotkey,
+  callback?: HotkeyCallback,
+  options?: OptionsOrDependencyArray,
+  dependencies?: OptionsOrDependencyArray
+) => void;
+
 /** A custom hook that uses a specific scope and overrides the default hotkey behavior. */
 export const useScopedHotkeys =
-  (scope: Scope) =>
-  (
-    keys: Keys | Hotkey,
-    callback?: HotkeyCallback,
-    options?: OptionsOrDependencyArray,
-    dependencies?: OptionsOrDependencyArray
-  ) => {
+  (scope: Scope): HotkeyFunction =>
+  (keys, callback, options, dependencies) => {
+    const diary = useDiary();
+    const editorView = use(selectEditorView);
+
+    const inScope = () => {
+      if (scope === "playground") return true;
+      if (scope === "editor") return !!editorView;
+      if (scope === "diary") return diary.isOpen;
+      return !editorView && !diary.isOpen;
+    };
+
     // Use the callback if in scope, otherwise use a no-op
-    const inScope = getScope(scope);
     const isHotkey = isObject(keys) && "callback" in keys;
     const shortcut = isHotkey ? keys.shortcut : keys;
 
     const hasCallback = callback !== undefined || isHotkey;
     const hotkeyCallback =
-      !inScope || !hasCallback
+      !inScope() || !hasCallback
         ? noop
         : callback ?? (isHotkey ? keys.callback : noop);
 

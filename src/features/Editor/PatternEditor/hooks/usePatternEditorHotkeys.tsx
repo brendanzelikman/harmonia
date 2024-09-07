@@ -1,5 +1,5 @@
 import { promptUserForNumber } from "utils/html";
-import { useHotkeysInEditor, useScopedHotkeys } from "lib/react-hotkeys-hook";
+import { Hotkey, useHotkeysInEditor } from "lib/react-hotkeys-hook";
 import { PatternEditorProps } from "../PatternEditor";
 import {
   setEditorNoteDuration,
@@ -23,238 +23,335 @@ import {
 } from "types/Pattern/PatternThunks";
 import { transposePattern } from "types/Pattern/thunks/PatternPitchThunks";
 import { useAuth } from "providers/auth";
+import { Thunk } from "types/Project/ProjectTypes";
+import { capitalize } from "lodash";
+import { Pattern } from "types/Pattern/PatternTypes";
+import { CursorProps } from "lib/opensheetmusicdisplay";
 
 export function usePatternEditorHotkeys(props: PatternEditorProps) {
   const dispatch = useProjectDispatch();
-  const { isProdigy } = useAuth();
-  const { pattern, cursor } = props;
-  const id = pattern?.id;
-  const index = cursor.index;
+  const { pattern, cursor, onBlockClick, onRestClick } = props;
 
-  // N = Note Click
-  useHotkeysInEditor("n", props.onBlockClick, [props.onBlockClick]);
+  // Pattern Hotkeys
+  useHotkeysInEditor(dispatch(PLAY_PATTERN_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(DUPLICATE_PATTERN_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(CLEAR_PATTERN_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(EXPORT_MIDI_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(EXPORT_XML_HOTKEY(pattern)));
 
-  // 0 = Rest Click
-  useHotkeysInEditor("0", props.onRestClick, [props.onRestClick]);
+  // Action Hotkeys
+  useHotkeysInEditor(dispatch(TOGGLE_ADDING_HOTKEY(props.isCustom)));
+  useHotkeysInEditor(dispatch(REMOVE_NOTE_HOTKEY(props.onEraseClick)));
+  useHotkeysInEditor(dispatch(TOGGLE_ANCHOR_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(NOTE_CLICK_HOTKEY(onBlockClick)));
+  useHotkeysInEditor(dispatch(REST_CLICK_HOTKEY(onRestClick)));
 
-  // 1 = Select Whole Note
-  useHotkeysInEditor("1", () =>
-    dispatch(setEditorNoteDuration({ data: "whole" }))
-  );
+  // Duration Hotkeys
+  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("1")));
+  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("2")));
+  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("3")));
+  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("4")));
+  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("5")));
+  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("6")));
+  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("7")));
+  useHotkeysInEditor(dispatch(TOGGLE_DOTTED_HOTKEY()));
+  useHotkeysInEditor(dispatch(TOGGLE_TRIPLET_HOTKEY()));
 
-  // 2 = Select Half Note
-  useHotkeysInEditor("2", () =>
-    dispatch(setEditorNoteDuration({ data: "half" }))
-  );
+  // Cursor Hotkeys
+  const showCursor = !!props.isCustom && !!pattern?.stream?.length;
+  useHotkeysInEditor(dispatch(TOGGLE_CURSOR_HOTKEY(cursor, showCursor)));
+  useHotkeysInEditor(dispatch(MOVE_LEFT_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(MOVE_RIGHT_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(SKIP_LEFT_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(SKIP_RIGHT_HOTKEY(cursor)));
 
-  // 3 = Select Quarter Note
-  useHotkeysInEditor("3", () =>
-    dispatch(setEditorNoteDuration({ data: "quarter" }))
-  );
+  // Transform Hotkeys
+  useHotkeysInEditor(dispatch(TRANSPOSE_HOTKEY(pattern, cursor, 1)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_HOTKEY(pattern, cursor, -1)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_HOTKEY(pattern, cursor, 12)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_HOTKEY(pattern, cursor, -12)));
+  useHotkeysInEditor(dispatch(REPEAT_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(EXTEND_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(DIMINISH_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(AUGMENT_HOTKEY(pattern)));
+}
 
-  // 4 = Select Eighth Note
-  useHotkeysInEditor("4", () =>
-    dispatch(setEditorNoteDuration({ data: "eighth" }))
-  );
+// ------------------------------------------------------------
+// Pattern Hotkeys
+// ------------------------------------------------------------
 
-  // 5 = Select 16th Note
-  useHotkeysInEditor("5", () =>
-    dispatch(setEditorNoteDuration({ data: "16th" }))
-  );
+const PLAY_PATTERN_HOTKEY =
+  (pattern?: Pattern): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Play Pattern",
+    description: "Hear a preview of the pattern.",
+    shortcut: "shift+space",
+    callback: () => pattern && dispatch(playPattern(pattern)),
+  });
 
-  // 6 = Select 32nd Note
-  useHotkeysInEditor("6", () =>
-    dispatch(setEditorNoteDuration({ data: "32nd" }))
-  );
-
-  // 7 = Select 64th Note
-  useHotkeysInEditor("7", () =>
-    dispatch(setEditorNoteDuration({ data: "64th" }))
-  );
-
-  // A = Start/Stop Adding Notes
-  useHotkeysInEditor(
-    "a",
-    () =>
-      props.isCustom && dispatch(toggleEditorAction({ data: "addingNotes" })),
-    [props.isCustom]
-  );
-
-  // Backspace = Remove Note if Showing Cursor
-  useHotkeysInEditor("backspace", props.onEraseClick, [props.onEraseClick]);
-
-  // Shift + Backspace = Clear Pattern
-  useHotkeysInEditor(
-    "shift+backspace",
-    () => id && dispatch(clearPattern(id)),
-    [id]
-  );
-
-  // . = Toggle Dotted Note
-  useHotkeysInEditor(".", () => dispatch(toggleEditorDottedDuration()), []);
-
-  // t = Toggle Triplet Note
-  useHotkeysInEditor("t", () => dispatch(toggleEditorTripletDuration()), []);
-
-  // Meta + D = Duplicate Pattern
-  useHotkeysInEditor(
-    "meta+d",
-    () =>
+const DUPLICATE_PATTERN_HOTKEY =
+  (pattern?: Pattern): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Duplicate Pattern",
+    description: "Create a copy of the pattern.",
+    shortcut: "meta+d",
+    callback: () =>
       pattern &&
       dispatch(
         createPattern({ data: { ...pattern, name: `${pattern?.name} Copy` } })
       ),
-    [pattern]
-  );
+  });
 
-  // C = Toggle Cursor
-  useHotkeysInEditor(
-    "c",
-    props.isCustom && pattern?.stream?.length ? cursor.toggle : () => null,
-    [pattern, props.isCustom, cursor.toggle]
-  );
+const CLEAR_PATTERN_HOTKEY =
+  (pattern?: Pattern): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Clear Pattern",
+    description: "Remove all notes from the pattern.",
+    shortcut: "shift+backspace",
+    callback: () => pattern && dispatch(clearPattern(pattern.id)),
+  });
 
-  // X = Toggle Anchor
-  useHotkeysInEditor(
-    "x",
-    () =>
+const EXPORT_MIDI_HOTKEY =
+  (pattern?: Pattern): Thunk<Hotkey> =>
+  (dispatch) => {
+    const { isProdigy } = useAuth();
+    return {
+      name: "Export Pattern to MIDI",
+      description: "Export the pattern to a MIDI file.",
+      shortcut: "shift+m",
+      callback: () => !isProdigy && dispatch(exportPatternToMIDI(pattern?.id)),
+    };
+  };
+
+const EXPORT_XML_HOTKEY =
+  (pattern?: Pattern): Thunk<Hotkey> =>
+  (dispatch) => {
+    const { isProdigy } = useAuth();
+    return {
+      name: "Export Pattern to XML",
+      description: "Export the pattern to an XML file.",
+      shortcut: "shift+x",
+      callback: () => !isProdigy && dispatch(downloadPatternAsXML(pattern?.id)),
+    };
+  };
+
+// ------------------------------------------------------------
+// Action Hotkeys
+// ------------------------------------------------------------
+
+const TOGGLE_ADDING_HOTKEY =
+  (isCustom = false): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Toggle Adding Notes",
+    description: "Start or stop adding notes to the pattern.",
+    shortcut: "a",
+    callback: () =>
+      isCustom && dispatch(toggleEditorAction({ data: "addingNotes" })),
+  });
+
+const REMOVE_NOTE_HOTKEY =
+  (onEraseClick: () => void): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Remove Note",
+    description: "Remove the last note or the note at the cursor.",
+    shortcut: "backspace",
+    callback: onEraseClick,
+  });
+
+const TOGGLE_ANCHOR_HOTKEY =
+  (cursor: CursorProps): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Toggle Anchor",
+    description: "Toggle the anchor for inserting notes.",
+    shortcut: "x",
+    callback: () =>
       !cursor.hidden &&
       dispatch(toggleEditorAction({ data: "insertingNotes" })),
-    [cursor.hidden]
-  );
+  });
 
-  // Shift + Left Arrow = Skip Cursor Left
-  useHotkeysInEditor("shift+left", () => cursor.skipStart, [cursor]);
+const NOTE_CLICK_HOTKEY =
+  (onBlockClick: () => void): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Note Click",
+    description: "Input a note with the selected duration.",
+    shortcut: "n",
+    callback: onBlockClick,
+  });
 
-  // Shift + Right Arrow = Skip Cursor Right
-  useHotkeysInEditor("shift+right", () => cursor.skipEnd, [cursor]);
+const REST_CLICK_HOTKEY =
+  (onRestClick: () => void): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Rest Click",
+    description: "Input a rest with the selected duration.",
+    shortcut: "0",
+    callback: onRestClick,
+  });
 
-  // Up Arrow = Transpose Up 1 Step
-  useHotkeysInEditor(
-    "up",
-    () => {
-      if (!id) return;
-      if (cursor.hidden) {
-        dispatch(transposePattern({ data: { id, transpose: 1 } }));
-      } else {
-        dispatch(transposePatternBlock({ id, index, transpose: 1 }));
-      }
-    },
-    [id, index, cursor.hidden]
-  );
+// ------------------------------------------------------------
+// Cursor Hotkeys
+// ------------------------------------------------------------
 
-  // Shift + Up Arrow = Transpose Up 1 Octave
-  useHotkeysInEditor(
-    "shift+up",
-    () => {
-      if (!id) return;
-      if (cursor.hidden) {
-        dispatch(transposePattern({ data: { id, transpose: 12 } }));
-      } else {
-        dispatch(transposePatternBlock({ id, index, transpose: 12 }));
-      }
-    },
-    [id, index, cursor.hidden]
-  );
+const TOGGLE_CURSOR_HOTKEY =
+  (cursor: CursorProps, isCustom = false): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Toggle Cursor",
+    description: "Show or hide the cursor.",
+    shortcut: "c",
+    callback: () => (isCustom ? cursor.toggle() : cursor.hide()),
+  });
 
-  // Down Arrow = Transpose Down 1 Step
-  useHotkeysInEditor(
-    "down",
-    () => {
-      if (!id) return;
-      if (cursor.hidden) {
-        dispatch(transposePattern({ data: { id, transpose: -1 } }));
-      } else {
-        dispatch(transposePatternBlock({ id, index, transpose: -1 }));
-      }
-    },
-    [id, index, cursor.hidden]
-  );
+const MOVE_LEFT_HOTKEY =
+  (cursor: CursorProps): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Move Left",
+    description: "Move the cursor to the previous note.",
+    shortcut: "left",
+    callback: () => cursor.prev(),
+  });
 
-  // Shift + Down Arrow = Transpose Down 1 Octave
-  useHotkeysInEditor(
-    "shift+down",
-    () => {
-      if (!id) return;
-      if (cursor.hidden) {
-        dispatch(transposePattern({ data: { id, transpose: -12 } }));
-      } else {
-        dispatch(transposePatternBlock({ id, index, transpose: -12 }));
-      }
-    },
-    [id, index, cursor.hidden]
-  );
+const MOVE_RIGHT_HOTKEY =
+  (cursor: CursorProps): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Move Right",
+    description: "Move the cursor to the next note.",
+    shortcut: "right",
+    callback: () => cursor.next(),
+  });
 
-  // Left Arrow = Move Cursor Left
-  useHotkeysInEditor("left", cursor.prev, [cursor]);
+const SKIP_LEFT_HOTKEY =
+  (cursor: CursorProps): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Skip to Start",
+    description: "Move the cursor to the start of the pattern.",
+    shortcut: "shift+left",
+    callback: () => cursor.skipStart(),
+  });
 
-  // Right Arrow = Move Cursor Right
-  useHotkeysInEditor("right", cursor.next, [cursor]);
+const SKIP_RIGHT_HOTKEY =
+  (cursor: CursorProps): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Skip to End",
+    description: "Move the cursor to the end of the pattern.",
+    shortcut: "shift+right",
+    callback: () => cursor.skipEnd(),
+  });
 
-  // X = Export Pattern to XML
-  useHotkeysInEditor(
-    "shift+x",
-    () => !isProdigy && pattern && dispatch(downloadPatternAsXML(id)),
-    [isProdigy, pattern]
-  );
+// ------------------------------------------------------------
+// Duration Hotkeys
+// ------------------------------------------------------------
 
-  // M = Export Pattern to MIDI
-  useHotkeysInEditor(
-    "shift+m",
-    () => !isProdigy && id && dispatch(exportPatternToMIDI(id)),
-    [isProdigy, id]
-  );
+const SELECT_DURATION_HOTKEY =
+  (key: string): Thunk<Hotkey> =>
+  (dispatch) => {
+    const data =
+      key === "1"
+        ? "whole"
+        : key === "2"
+        ? "half"
+        : key === "3"
+        ? "quarter"
+        : key === "4"
+        ? "eighth"
+        : key === "5"
+        ? "16th"
+        : key === "6"
+        ? "32nd"
+        : "64th";
+    return {
+      name: `Select ${capitalize(data)} Note`,
+      description: "Select a whole note duration.",
+      shortcut: "1",
+      callback: () => dispatch(setEditorNoteDuration({ data })),
+    };
+  };
 
-  // R = Prompt for repeat
-  useHotkeysInEditor(
-    "r",
-    !props.isCustom
-      ? () => null
-      : promptUserForNumber(
-          "Repeat Your Pattern",
-          "How many times would you like to repeat your pattern?",
-          (n) => {
-            if (id) dispatch(repeatPattern({ data: { id, repeat: n } }));
-          }
-        ),
-    [id, props.isCustom]
-  );
+const TOGGLE_DOTTED_HOTKEY = (): Thunk<Hotkey> => (dispatch) => ({
+  name: "Toggle Dotted Note",
+  description: "Switch between a dotted and regular note.",
+  shortcut: ".",
+  callback: () => dispatch(toggleEditorDottedDuration()),
+});
 
-  // , = Continue Pattern
-  useHotkeysInEditor(
-    "comma",
-    !props.isCustom
-      ? () => null
-      : promptUserForNumber(
-          "Continue Your Pattern",
-          "How many notes would you like to continue your pattern for?",
-          (n) => {
-            if (id) dispatch(continuePattern({ data: { id, length: n } }));
-          }
-        ),
-    [props.isCustom, id]
-  );
+const TOGGLE_TRIPLET_HOTKEY = (): Thunk<Hotkey> => (dispatch) => ({
+  name: "Toggle Triplet Note",
+  description: "Switch between a triplet and regular note.",
+  shortcut: "t",
+  callback: () => dispatch(toggleEditorTripletDuration()),
+});
 
-  // Meta + "-" = Diminish Pattern
-  useHotkeysInEditor(
-    "meta+minus",
-    () => id && dispatch(stretchPattern({ data: { id, factor: 0.5 } })),
-    { preventDefault: true },
-    [id]
-  );
+// ------------------------------------------------------------
+// Transform Hotkeys
+// ------------------------------------------------------------
 
-  // Meta + "=" = Augment Pattern
-  useHotkeysInEditor(
-    "meta+equal",
-    () => id && dispatch(stretchPattern({ data: { id, factor: 2 } })),
-    { preventDefault: true },
-    [id]
-  );
+const TRANSPOSE_HOTKEY =
+  (pattern?: Pattern, cursor?: CursorProps, steps = 1): Thunk<Hotkey> =>
+  (dispatch) => {
+    const shortcut = steps > 0 ? "up" : "down";
+    return {
+      name: `Transpose ${capitalize(shortcut)}`,
+      description: `Transpose ${shortcut} 1 semitone.`,
+      shortcut: Math.abs(steps) === 1 ? shortcut : `shift+${shortcut}`,
+      callback: () => {
+        if (!pattern || !cursor) return;
+        const { id } = pattern;
+        const { index } = cursor;
+        if (!cursor.hidden) {
+          dispatch(transposePatternBlock({ id, index, transpose: 1 }));
+        } else {
+          dispatch(transposePattern({ data: { id, transpose: 1 } }));
+        }
+      },
+    };
+  };
 
-  // Shift + Space = Play Pattern
-  useHotkeysInEditor(
-    "shift+space",
-    () => pattern && dispatch(playPattern(pattern)),
-    [pattern]
-  );
-}
+const REPEAT_HOTKEY =
+  (pattern?: Pattern): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Repeat Pattern",
+    description: "Prompt for repeating the pattern.",
+    shortcut: "r",
+    callback: promptUserForNumber(
+      "Repeat Your Pattern",
+      "How many times would you like to repeat your pattern?",
+      (n) =>
+        pattern &&
+        dispatch(repeatPattern({ data: { id: pattern.id, repeat: n } }))
+    ),
+  });
+
+const EXTEND_HOTKEY =
+  (pattern?: Pattern): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Extend Pattern",
+    description: "Extend the duration of the pattern to a certain length.",
+    shortcut: ",",
+    callback: promptUserForNumber(
+      "Extend Your Pattern",
+      "How many notes would you like to extend your stream to?",
+      (n) =>
+        pattern &&
+        dispatch(continuePattern({ data: { id: pattern.id, length: n } }))
+    ),
+  });
+
+const DIMINISH_HOTKEY =
+  (pattern?: Pattern): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Diminish Pattern",
+    description: "Halve the duration of the pattern.",
+    shortcut: "meta+-",
+    callback: () =>
+      pattern &&
+      dispatch(stretchPattern({ data: { id: pattern.id, factor: 0.5 } })),
+  });
+
+const AUGMENT_HOTKEY =
+  (pattern?: Pattern): Thunk<Hotkey> =>
+  (dispatch) => ({
+    name: "Augment Pattern",
+    description: "Double the duration of the pattern.",
+    shortcut: "meta+=",
+    callback: () =>
+      pattern &&
+      dispatch(stretchPattern({ data: { id: pattern.id, factor: 2 } })),
+  });

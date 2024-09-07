@@ -44,7 +44,7 @@ export const usePatternClipStyle = (
   const trackHeight = use((_) => selectTrackHeight(_, clip?.trackId));
   const trackTop = use((_) => selectTrackTop(_, clip?.trackId));
 
-  const clipIds = use((_) => selectOverlappingPortaledClipIds(_, pcId));
+  const clipIds = useDeep((_) => selectOverlappingPortaledClipIds(_, pcId));
   const isShort = !!clipIds.length || isAddingAny || isDragging;
 
   const height = isShort ? trackHeight - POSE_HEIGHT : trackHeight;

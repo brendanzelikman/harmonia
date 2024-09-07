@@ -1,8 +1,7 @@
 import { DurationType, WholeNoteTicks } from "utils/durations";
 import { Tick, Velocity } from "../units";
 import { DEFAULT_VELOCITY } from "utils/constants";
-import { isBoolean, isPlainObject, isString, isUndefined } from "lodash";
-import { isBoundedNumber } from "types/util";
+import { isPlainObject, isUndefined } from "lodash";
 import { TrackId } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------

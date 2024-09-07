@@ -12,7 +12,6 @@ import {
 /** Load and unload the transport when the app mounts. */
 export function usePlaygroundTransport() {
   const dispatch = useProjectDispatch();
-
   const projectId = use(selectProjectId);
   const [loaded, setLoaded] = useState(false);
 
