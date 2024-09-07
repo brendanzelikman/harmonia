@@ -83,7 +83,16 @@ export const instrumentsSlice = createSlice({
     /** Add an instrument to the slice. */
     addInstrument: (state, action: Action<AddInstrumentPayload>) => {
       const { instrument } = unpackAction(action);
-      state.ids = union(state.ids, instrument.id);
+      state.ids = union(state.ids, [instrument.id]);
+      state.entities[instrument.id] = instrument;
+    },
+    /** (PRIVATE) Add an offline instrument. */
+    addInstrumentOffline: (
+      state,
+      action: Action<AddOfflineInstrumentPayload>
+    ) => {
+      const { instrument } = unpackAction(action);
+      state.ids = union(state.ids, [instrument.id]);
       state.entities[instrument.id] = instrument;
     },
     /** Update an instrument. */
@@ -365,15 +374,7 @@ export const instrumentsSlice = createSlice({
         if (instance) instance.solo = false;
       });
     },
-    /** (PRIVATE) Add an offline instrument. */
-    _addOfflineInstrument: (
-      state,
-      action: Action<AddOfflineInstrumentPayload>
-    ) => {
-      const { instrument } = unpackAction(action);
-      state.ids = union(state.ids, instrument.id);
-      state.entities[instrument.id] = instrument;
-    },
+
     /** (PRIVATE) Remove an offline instrument. */
     _removeOfflineInstrument: (state, action: Action<InstrumentId>) => {
       const instrumentId = unpackAction(action);
@@ -411,12 +412,12 @@ export const {
   unmuteInstruments,
   soloInstruments,
   unsoloInstruments,
-  _addOfflineInstrument,
+  addInstrumentOffline,
   _removeOfflineInstrument,
 } = instrumentsSlice.actions;
 
 export const PRIVATE_INSTRUMENT_ACTIONS = [
-  "_addOfflineInstrument",
+  "addInstrumentOffline",
   "_removeOfflineInstrument",
 ];
 

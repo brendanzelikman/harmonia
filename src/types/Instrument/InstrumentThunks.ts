@@ -3,7 +3,7 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { LiveAudioInstance, LIVE_AUDIO_INSTANCES } from "./InstrumentClass";
 import { defaultReverb } from "./InstrumentEffectTypes";
 import { selectInstrumentById } from "./InstrumentSelectors";
-import { addInstrument, _addOfflineInstrument } from "./InstrumentSlice";
+import { addInstrument, addInstrumentOffline } from "./InstrumentSlice";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import {
   initializeInstrument,
@@ -54,7 +54,7 @@ export const createInstrument =
     // Add the instrument to the store and update the instance
     const undoType = payload?.undoType;
     if (!!options.offline) {
-      dispatch(_addOfflineInstrument({ data: { instrument }, undoType }));
+      dispatch(addInstrumentOffline({ data: { instrument }, undoType }));
     } else {
       dispatch(addInstrument({ data: { instrument }, undoType }));
     }
@@ -91,11 +91,10 @@ export const createGlobalInstrument = (
 export const buildInstruments =
   (tracks: PatternTrack[]): Thunk =>
   (dispatch) => {
-    tracks.forEach((track) =>
-      dispatch(
-        createInstrument({ data: { track, options: { offline: true } } })
-      )
-    );
+    tracks.forEach((track) => {
+      const options = { offline: true };
+      dispatch(createInstrument({ data: { track, options } }));
+    });
   };
 
 /** Destroy all live audio instances. */

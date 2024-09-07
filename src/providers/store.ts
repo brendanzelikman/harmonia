@@ -98,7 +98,7 @@ const undoableProjectReducer = undoable(baseProjectReducer, {
   },
   filter: excludeAction([
     ...privateTransportActions,
-    "instruments/_addOfflineInstrument",
+    "instruments/addInstrumentOffline",
   ]),
   syncFilter: true,
 });
