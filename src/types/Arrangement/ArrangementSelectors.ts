@@ -32,7 +32,7 @@ import { PortaledClipId, PortaledClipMap } from "types/Portal/PortalTypes";
 import { Project } from "types/Project/ProjectTypes";
 import { TrackId, isPatternTrack } from "types/Track/TrackTypes";
 import { Tick } from "types/units";
-import { getDictValues } from "utils/objects";
+import { getDictValues, getValueByKey } from "utils/objects";
 import {
   getPatternClipMidiStream,
   getMidiStreamAtTickInTrack,
@@ -126,6 +126,11 @@ export const selectPortaledClipMap = createDeepSelector(
     }
     return result;
   }
+);
+
+export const selectFirstPortaledPatternClipId = createDeepSelector(
+  [selectPortaledClipMap],
+  (clipMap) => Object.keys(clipMap)[0] as PortaledPatternClipId | undefined
 );
 
 /** Select all portaled clips. */
@@ -340,6 +345,13 @@ export const selectOverlappingPortaledClips = (
   const clipMap = selectPortaledClipMap(project);
   return ids.map((id) => clipMap[id]);
 };
+
+export const selectFirstPortaledPoseClipId = createDeepSelector(
+  [selectFirstPortaledPatternClipId, selectOverlappingPortaledClipIdMap],
+  (patternClipId, overlapMap) => {
+    return getValueByKey(overlapMap, patternClipId)?.at(0);
+  }
+);
 
 /** Select a pattern clip's overlapping pose clip IDs */
 export const selectClosestPoseClipId = (

@@ -29,7 +29,7 @@ import { ClipType } from "types/Clip/ClipTypes";
 import { Portal } from "types/Portal/PortalTypes";
 import { Project } from "types/Project/ProjectTypes";
 import { getTrackIndex } from "types/Track/TrackFunctions";
-import { isPatternTrack, isScaleTrack } from "types/Track/TrackTypes";
+import { isPatternTrack, isScaleTrack, Track } from "types/Track/TrackTypes";
 import {
   defaultTimeline,
   DEFAULT_CELL_WIDTH,
@@ -38,7 +38,10 @@ import {
 import { selectPatternMap } from "types/Pattern/PatternSelectors";
 import { selectPortalMap } from "types/Portal/PortalSelectors";
 import { selectScaleMap } from "types/Scale/ScaleSelectors";
-import { selectTrackMap, selectTrackChain } from "types/Track/TrackSelectors";
+import {
+  selectTrackMap,
+  selectTrackChainIdsMap,
+} from "types/Track/TrackSelectors";
 import {
   defaultMediaClipboard,
   defaultMediaDraft,
@@ -96,11 +99,14 @@ export const selectSelectedTrackIndex = createSelector(
 );
 
 /** Select the parents of the currently selected track. */
-export const selectSelectedTrackParents = (project: Project) => {
-  const selectedTrack = selectSelectedTrack(project);
-  if (!selectedTrack) return [];
-  return selectTrackChain(project, selectedTrack.id);
-};
+export const selectSelectedTrackParents = createDeepSelector(
+  [selectSelectedTrack, selectTrackChainIdsMap, selectTrackMap],
+  (track, chainIds, trackMap) => {
+    if (!track) return [];
+    const parents = chainIds[track.id] || [];
+    return parents.map((id) => trackMap[id]).filter(Boolean) as Track[];
+  }
+);
 
 // ------------------------------------------------------------
 // Timeline Selected Type

@@ -1,17 +1,17 @@
 import { SAMPLE_STORE } from "utils/constants";
-import { getDatabase } from "./database";
 import { getContext } from "tone";
 import { Thunk } from "types/Project/ProjectTypes";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import { Instrument, InstrumentKey } from "types/Instrument/InstrumentTypes";
+import { fetchUser } from "providers/auth";
 
 // Function to handle file input
 export const handleFileInput =
   (track: PatternTrack, file: File): Thunk =>
   async (dispatch, getProject) => {
-    const db = getDatabase();
+    const { db } = await fetchUser();
     if (!db) return;
 
     const audioBuffer = await fileToAudioBuffer(file);
@@ -77,7 +77,7 @@ const objectToAudioBuffer = async (obj: any): Promise<AudioBuffer> => {
 export const getSampleFromIDB = async (
   id: string
 ): Promise<AudioBuffer | undefined> => {
-  const db = getDatabase();
+  const { db } = await fetchUser();
   if (!db) return;
   const sample = await db.get(SAMPLE_STORE, id);
   if (!sample) return;
@@ -87,7 +87,7 @@ export const getSampleFromIDB = async (
 // Attach file input handling to an HTML element
 export const setupFileInput =
   (track: PatternTrack): Thunk =>
-  (dispatch, getProject) => {
+  (dispatch) => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "audio/*";

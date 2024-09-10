@@ -3,21 +3,17 @@ import { fetchUser } from "providers/auth/user";
 import { PROJECT_STORE } from "utils/constants";
 import { Project, isProject } from "types/Project/ProjectTypes";
 import { selectProjectId } from "types/Meta/MetaSelectors";
-import { getDatabase } from "./database";
 import { hasReachedProjectLimit } from "./util";
 import { dispatchCustomEvent } from "utils/html";
 import { UPDATE_PROJECTS } from "types/Project/ProjectThunks";
 
 /** Get the list of all projects as a promise. */
 export async function getProjectsFromDB(): Promise<Project[]> {
-  const db = getDatabase();
-  if (!db) return [];
-
-  // Check if the user is authenticated
-  const { isProdigy, isMaestro, isVirtuoso, isAdmin } = await fetchUser();
+  const user = await fetchUser();
+  if (!user.db) return [];
 
   // Get all of the user's projects
-  const projects = await db.getAll(PROJECT_STORE);
+  const projects = await user.db.getAll(PROJECT_STORE);
 
   // Delete any invalid projects from the database
   for (const project of projects) {
@@ -28,10 +24,10 @@ export async function getProjectsFromDB(): Promise<Project[]> {
   }
 
   // Return the projects based on the user's project limit
-  if (isAdmin) return projects;
-  if (isProdigy) return projects.slice(0, 1);
-  if (isMaestro) return projects.slice(0, 100);
-  if (isVirtuoso) return projects;
+  if (user.isAdmin) return projects;
+  if (user.isProdigy) return projects.slice(0, 1);
+  if (user.isMaestro) return projects.slice(0, 100);
+  if (user.isVirtuoso) return projects;
   return [];
 }
 
@@ -41,12 +37,9 @@ export async function getProjectFromDB(
 ): Promise<Project | undefined> {
   if (!projectId) return undefined;
 
-  const db = getDatabase();
-  if (!db) return undefined;
-
   // Check if the user is authenticated
-  const { isAuthorized } = await fetchUser();
-  if (!isAuthorized) return undefined;
+  const { db, isAuthorized } = await fetchUser();
+  if (!db || !isAuthorized) return undefined;
 
   // Return the project if it exists
   return db.get(PROJECT_STORE, projectId);
@@ -56,12 +49,10 @@ export async function getProjectFromDB(
 export async function uploadProjectToDB(project: Project): Promise<boolean> {
   // Check if the project is valid
   if (!isProject(project)) throw new Error("Invalid project.");
-  const db = getDatabase();
-  if (!db) return false;
 
   // Check if the user is authorized
-  const { isAuthorized } = await fetchUser();
-  if (!isAuthorized) return false;
+  const { db, isAuthorized } = await fetchUser();
+  if (!db || !isAuthorized) return false;
 
   // Check if the user has reached their project limit and is uploading
   const cappedProjects = await hasReachedProjectLimit();
@@ -70,9 +61,9 @@ export async function uploadProjectToDB(project: Project): Promise<boolean> {
   if (cappedProjects && !isUpdating) return false;
 
   // Add the project to the database and update the current project ID
-  dispatchCustomEvent(UPDATE_PROJECTS, projectId);
   await db.put(PROJECT_STORE, project);
   await setCurrentProjectId(projectId);
+  dispatchCustomEvent(UPDATE_PROJECTS, projectId);
   return true;
 }
 
@@ -80,7 +71,8 @@ export async function uploadProjectToDB(project: Project): Promise<boolean> {
 export async function updateProjectInDB(project: Project): Promise<boolean> {
   // Check if the project is valid
   if (!isProject(project)) throw new Error("Invalid project.");
-  const db = getDatabase();
+
+  const { db } = await fetchUser();
   if (!db) return false;
 
   // Check if the project exists
@@ -94,7 +86,7 @@ export async function updateProjectInDB(project: Project): Promise<boolean> {
 
 /** Delete a project by ID, resolving to true if successful. */
 export async function deleteProjectFromDB(projectId: string): Promise<boolean> {
-  const db = getDatabase();
+  const { db } = await fetchUser();
   if (!db) return false;
 
   // Clear the current project ID if it matches the deleted project
@@ -122,7 +114,7 @@ export function clearCurrentProjectId() {
 
 /** Set the ID of the project that should be currently loaded. */
 export async function setCurrentProjectId(projectId: string): Promise<boolean> {
-  const db = getDatabase();
+  const { db } = await fetchUser();
   if (!db) return false;
 
   // Make sure the ID exists in the database

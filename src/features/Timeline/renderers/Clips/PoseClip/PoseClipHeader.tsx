@@ -25,7 +25,6 @@ import { Timed } from "types/units";
 import { showEditor } from "types/Editor/EditorThunks";
 import { setSelectedPose } from "types/Media/MediaThunks";
 import { createUndoType } from "lib/redux";
-import { LiveAudioInstance } from "types/Instrument/InstrumentClass";
 
 interface PoseClipHeaderProps {
   clip: Timed<PoseClip>;

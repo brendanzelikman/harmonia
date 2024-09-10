@@ -4,7 +4,6 @@ import {
   MAESTRO_PROJECT_LIMIT,
   VIRTUOSO_PROJECT_LIMIT,
 } from "utils/rank";
-import { getDatabase } from "./database";
 import { fetchUser } from "providers/auth";
 
 // ------------------------------------------------------------
@@ -13,21 +12,19 @@ import { fetchUser } from "providers/auth";
 
 /** Get a boolean indicating whether a user has reached their maximum projects */
 export const hasReachedProjectLimit = async (): Promise<boolean> => {
-  const { isProdigy, isMaestro, isVirtuoso, isAdmin } = await fetchUser();
+  const user = await fetchUser();
 
   // Bypass admins
-  if (isAdmin) return false;
+  if (user.isAdmin) return false;
 
   // Otherwise, get the user's projects
-  const db = getDatabase();
-  if (!db) return true;
-
-  const projects = await db.getAll(PROJECT_STORE);
+  if (!user.db) return true;
+  const projects = await user.db.getAll(PROJECT_STORE);
   const projectCount = projects.length;
 
   // Check the different tiers
-  if (isProdigy && projectCount >= PRODIGY_PROJECT_LIMIT) return true;
-  if (isMaestro && projectCount >= MAESTRO_PROJECT_LIMIT) return true;
-  if (isVirtuoso && projectCount >= VIRTUOSO_PROJECT_LIMIT) return true;
+  if (user.isProdigy && projectCount >= PRODIGY_PROJECT_LIMIT) return true;
+  if (user.isMaestro && projectCount >= MAESTRO_PROJECT_LIMIT) return true;
+  if (user.isVirtuoso && projectCount >= VIRTUOSO_PROJECT_LIMIT) return true;
   return false;
 };

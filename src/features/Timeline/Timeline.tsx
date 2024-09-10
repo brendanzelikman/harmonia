@@ -8,15 +8,12 @@ import { useState, useCallback, useMemo } from "react";
 import { useProjectDispatch, useDeep, use } from "types/hooks";
 import { TimelineContextMenu } from "./components/TimelineContextMenu";
 import { TimelineGraphics } from "./components/TimelineGraphics";
-import { useTimelineHotkeys } from "./hooks/useTimelineHotkeys";
-import { useTimelineLiveHotkeys } from "./hooks/useTimelineLiveHotkeys";
 import {
   COLLAPSED_TRACK_HEIGHT,
   HEADER_HEIGHT,
   MEASURE_COUNT,
   TRACK_WIDTH,
 } from "utils/constants";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import "lib/react-data-grid.css";
 import "react-data-grid/lib/styles.css";
 import classNames from "classnames";
@@ -49,7 +46,6 @@ import {
 } from "types/Transport/TransportSelectors";
 import { onCellClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { useDragState } from "types/Media/MediaTypes";
-import { dispatchCustomEvent } from "utils/html";
 import { TimelineTrackButton } from "./components/TimelineTrackButton";
 
 export type Row = {
@@ -75,14 +71,10 @@ export function Timeline() {
   const hasFragment = use(selectHasPortalFragment);
   const isTransportActive = use(selectIsTransportActive);
   const [timeline, setTimeline] = useState<DataGridHandle>();
-
   const bpm = use(selectTransportBPM);
   const timeSignature = useDeep(selectTransportTimeSignature);
   const dragState = useDragState();
   const isDraggingPatternClip = !!dragState.draggingPatternClip;
-
-  useTimelineHotkeys(timeline);
-  useTimelineLiveHotkeys();
 
   /** The grid ref stores the react-data-grid element. */
   const gridRef = useCallback<(node: DataGridHandle) => void>(
@@ -176,8 +168,6 @@ export function Timeline() {
                 ? !hasFragment
                   ? "hover:bg-sky-400/50"
                   : "hover:bg-orange-400/50"
-                : props.row.onPatternTrack || !isDraggingPatternClip
-                ? "hover:bg-sky-950/10"
                 : "bg-transparent"
             )}
           />

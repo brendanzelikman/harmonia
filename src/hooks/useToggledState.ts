@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useCustomEventListener } from "./useCustomEventListener";
 import { dispatchCustomEvent } from "utils/html";
 
@@ -13,16 +13,19 @@ export const useToggledState = (
   const CLOSE = `close_${key}`;
   const TOGGLE = `toggle_${key}`;
 
+  const open = useCallback(() => dispatchCustomEvent(OPEN), []);
+  const close = useCallback(() => dispatchCustomEvent(CLOSE), []);
+  const toggle = useCallback(() => dispatchCustomEvent(TOGGLE), []);
+
   // Listen for open and close events
   useCustomEventListener(OPEN, () => setState(true));
   useCustomEventListener(CLOSE, () => setState(false));
   useCustomEventListener(TOGGLE, () => setState((prev) => !prev));
 
-  // Return state and functions
   return {
-    open: () => dispatchCustomEvent(OPEN),
-    close: () => dispatchCustomEvent(CLOSE),
-    toggle: () => dispatchCustomEvent(state ? CLOSE : OPEN),
+    open,
+    close,
+    toggle,
     isOpen: state,
     isClosed: !state,
   };

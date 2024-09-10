@@ -1,13 +1,13 @@
-import { isArray, isObject, noop } from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { isArray, isObject, noop, omit } from "lodash";
+import { useCallback, useMemo, useState } from "react";
 import { Keys, useHotkeys } from "react-hotkeys-hook";
 import {
   HotkeyCallback,
   OptionsOrDependencyArray,
 } from "react-hotkeys-hook/dist/types";
 import { useDiary } from "types/Diary/DiaryTypes";
-import { selectEditorView } from "types/Editor/EditorSelectors";
-import { use } from "types/hooks";
+import { selectIsEditorOpen } from "types/Editor/EditorSelectors";
+import { use, useDeep } from "types/hooks";
 import { isHoldingShift, isPressingLetter } from "utils/html";
 
 // ------------------------------------------------------------
@@ -38,41 +38,46 @@ export const useScopedHotkeys =
   (scope: Scope): HotkeyFunction =>
   (keys, callback, options, dependencies) => {
     const diary = useDiary();
-    const editorView = use(selectEditorView);
-
-    const inScope = () => {
-      if (scope === "playground") return true;
-      if (scope === "editor") return !!editorView;
-      if (scope === "diary") return diary.isOpen;
-      return !editorView && !diary.isOpen;
-    };
+    const isHotkey = !!(isObject(keys) && "callback" in keys);
+    const isEditorOpen = use(selectIsEditorOpen);
+    const isDiaryOpen = diary.isOpen;
 
     // Use the callback if in scope, otherwise use a no-op
-    const isHotkey = isObject(keys) && "callback" in keys;
-    const shortcut = isHotkey ? keys.shortcut : keys;
+    const hotkeyShortcut = !!isHotkey ? keys.shortcut : keys;
 
-    const hasCallback = callback !== undefined || isHotkey;
-    const hotkeyCallback =
-      !inScope() || !hasCallback
-        ? noop
-        : callback ?? (isHotkey ? keys.callback : noop);
+    // Check if the current scope is in the correct state
+    const isInScope = () => {
+      if (scope === "editor") return isEditorOpen;
+      if (scope === "diary") return isDiaryOpen;
+      if (scope === "timeline") return !isEditorOpen && !isDiaryOpen;
+      return true;
+    };
 
-    // Prevent default behavior for all hotkeys
-    const hasOptions = isObject(options) && !("length" in options);
-    const parsedOptions = hasOptions ? options : {};
-    const hotkeyOptions = { ...parsedOptions, preventDefault: true };
+    // Create a callback that only fires when the scope is correct
+    const hotkeyCallback = () => {
+      if (!isInScope) return;
+      const cb = callback ?? (isHotkey ? keys.callback : noop);
+      cb();
+    };
+
+    // Prevent the default behavior for all hotkeys
+    const hotkeyOptions = {
+      ...(isObject(options) && !("length" in options) ? options : {}),
+      preventDefault: true,
+    };
 
     // Use the dependencies if they are provided, otherwise use the options
-    const parsedDependencies = isArray(options)
-      ? options
-      : isArray(dependencies)
-      ? dependencies
-      : [];
-    const hotkeyDependencies = [...parsedDependencies, inScope];
-
+    const hotkeyDependencies = [
+      ...(isArray(options)
+        ? options
+        : isArray(dependencies)
+        ? dependencies
+        : []),
+      hotkeyCallback,
+    ];
     // Use the original hook
     return useHotkeys(
-      shortcut,
+      hotkeyShortcut,
       hotkeyCallback,
       hotkeyOptions,
       hotkeyDependencies
@@ -129,7 +134,7 @@ export const useHeldHotkeys = (
   const keyup = (e: KeyboardEvent) => {
     const lower = e.key.toLowerCase();
     const upper = upperCase(e.key);
-    setHeldKeys((prev) => ({ ...prev, [upper]: false, [lower]: false }));
+    setHeldKeys((prev) => omit(prev, upper, lower));
   };
 
   // Call the appropriate callback based on the event type
@@ -147,19 +152,26 @@ export const useHeldHotkeys = (
     }, [] as Keys);
   }, [keys]);
 
-  // Use the original hook
-  useHotkeys(
-    allKeys,
-    callback,
-    {
+  // Compile the options
+  const hotkeyOptions = useMemo(
+    () => ({
       ...options,
       keydown: true,
       keyup: true,
       splitKey: "&",
       combinationKey: "*",
-    },
-    [dependencies, ...allKeys, callback]
+    }),
+    [options]
   );
+
+  // Compile the dependencies
+  const hotkeyDependencies = useMemo(
+    () => [dependencies, ...allKeys, callback],
+    [dependencies, allKeys, callback]
+  );
+
+  // Use the original hook
+  useHotkeys(allKeys, callback, hotkeyOptions, hotkeyDependencies);
 
   // Return the held keys
   return heldKeys;

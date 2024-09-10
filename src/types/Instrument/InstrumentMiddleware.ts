@@ -17,6 +17,7 @@ export const handleInstrumentMiddleware: Middleware =
 
     // Let the action pass through
     const result = next(action) as Project;
+    if (!action.type.includes("undo")) return result;
 
     // Get the new state
     const nextState = store.getState() as Project;

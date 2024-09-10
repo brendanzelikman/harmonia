@@ -1,9 +1,30 @@
 import { Project } from "types/Project/ProjectTypes";
 import { isTransportStarted } from "./TransportFunctions";
 import { createSelector } from "reselect";
+import { percent } from "utils/math";
+import { MAX_TRANSPORT_VOLUME, MIN_TRANSPORT_VOLUME } from "utils/constants";
 
 /** Select the transport state */
 export const selectTransport = (project: Project) => project.present.transport;
+
+/** Select the transport volume. */
+export const selectTransportVolume = (project: Project) =>
+  project.present.transport.volume;
+
+/** Select the transport mute state. */
+export const selectTransportMute = (project: Project) =>
+  project.present.transport.mute;
+
+/** Select the transport volume percent. */
+export const selectTransportVolumePercent = createSelector(
+  [selectTransportVolume, selectTransportMute],
+  (volume, mute) =>
+    percent(
+      mute ? MIN_TRANSPORT_VOLUME : volume,
+      MIN_TRANSPORT_VOLUME,
+      MAX_TRANSPORT_VOLUME
+    )
+);
 
 /** Select the transport BPM. */
 export const selectTransportBPM = (project: Project) =>

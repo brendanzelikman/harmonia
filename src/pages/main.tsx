@@ -3,7 +3,6 @@ import { Docs } from "features/Docs/Docs";
 import { useProjectList } from "features/Projects";
 import { useParams } from "react-router-dom";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { getProjectsFromDB } from "providers/idb";
 import { useProjectFetcher } from "features/Projects/hooks/useProjectFetcher";
 import { TourBackground } from "features/Tour";
@@ -17,6 +16,7 @@ import { UserProfile } from "features/Profile/UserProfile";
 import { Playground } from "features/Playground/Playground";
 import { Navbar } from "features/Navbar/Navbar";
 import { selectProjectName } from "types/Meta/MetaSelectors";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { UPDATE_PROJECTS } from "types/Project/ProjectThunks";
 
 export type View = (typeof views)[number];
@@ -33,8 +33,7 @@ interface MainPageProps {
   view?: View;
 }
 export function MainPage(props: MainPageProps) {
-  const { uid } = useAuth();
-  const { isAtLeastRank } = useAuth();
+  const { uid, isAtLeastRank } = useAuth();
   const params = useParams<{ view: View }>();
   const view = props.view || params.view || "projects";
   const [projects, setProjects] = useState<Project[]>([]);
@@ -86,13 +85,6 @@ export function MainPage(props: MainPageProps) {
 
   useBrowserTitle(title);
 
-  // Add a transition class based on the view
-  const transitionClass = classNames(
-    "w-full h-full pt-nav flex flex-col items-center",
-    "text-white font-nunito",
-    { "pt-nav": view !== "playground" }
-  );
-
   // A view wrapper that fades in different views
   const ViewWrapper = useCallback(
     (props: { view: View; children: ReactNode }) => {
@@ -122,7 +114,13 @@ export function MainPage(props: MainPageProps) {
       <Navbar view={view} />
       {MainBackground}
       <TourBackground />
-      <div className={transitionClass}>
+      <div
+        className={classNames(
+          "w-full h-full pt-nav flex flex-col items-center",
+          "text-white font-nunito",
+          { "pt-nav": view !== "playground" }
+        )}
+      >
         {isAtLeastRank("maestro") && (
           <ViewWrapper view="projects">{ProjectList()}</ViewWrapper>
         )}

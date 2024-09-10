@@ -3,37 +3,10 @@ import { store, SafeBaseProject } from "providers/store";
 import { BsFillXCircleFill } from "react-icons/bs";
 import { FaMinusCircle, FaDownload } from "react-icons/fa";
 import { useDiary } from "types/Diary/DiaryTypes";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { use, useDeep, useProjectDispatch } from "types/hooks";
+import { selectProjectName } from "types/Meta/MetaSelectors";
 import { exportProjectToHAM } from "types/Project/ProjectExporters";
 import { sanitizeBaseProject } from "types/Project/ProjectFunctions";
-
-const RESTRICTED_KEYWORDS = new Set([
-  "id",
-  "ids",
-  "entities",
-  "meta",
-  "patternTracks",
-  "scaleTracks",
-  "instruments",
-  "motifs",
-  "clips",
-  "scale",
-  "pattern",
-  "pose",
-  "portals",
-  "timeline",
-  "transport",
-  "editor",
-  "dateCreated",
-  "lastUpdated",
-  "project",
-  "diary",
-]);
-const isRestricted = (input: string) => RESTRICTED_KEYWORDS.has(input);
-
-// Prevent editing any id field in the JSON editor
-const restrictInput = (input: NodeData) =>
-  input.level === 0 || isRestricted(String(input.key));
 
 interface ProjectEditorProps {
   show: boolean;
@@ -42,6 +15,7 @@ interface ProjectEditorProps {
 
 export const ProjectEditor = (props: ProjectEditorProps) => {
   const dispatch = useProjectDispatch();
+  const name = use(selectProjectName);
   const diaryState = useDiary();
   const json = useDeep((state) => state.present);
 
@@ -61,7 +35,9 @@ export const ProjectEditor = (props: ProjectEditorProps) => {
           className="text-slate-800 hover:opacity-75 cursor-pointer"
           onClick={() => dispatch(exportProjectToHAM())}
         />
-        <span className="font-mono text-slate-900">Project Editor</span>
+        <span className="font-mono text-slate-900">
+          Project Editor ({name}.ham)
+        </span>
       </div>
       <JsonEditor
         data={json}
@@ -107,3 +83,26 @@ export const ProjectEditor = (props: ProjectEditorProps) => {
     </div>
   );
 };
+
+const RESTRICTED_KEYWORDS = new Set([
+  "id",
+  "ids",
+  "entities",
+  "meta",
+  "patternTracks",
+  "scaleTracks",
+  "instruments",
+  "motifs",
+  "clips",
+  "scale",
+  "pattern",
+  "pose",
+  "portals",
+  "dateCreated",
+  "lastUpdated",
+  "project",
+  "diary",
+]);
+
+const restrictInput = (input: NodeData) =>
+  input.level === 0 || RESTRICTED_KEYWORDS.has(String(input.key));

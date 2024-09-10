@@ -1,17 +1,14 @@
-import { IDBPDatabase, openDB } from "idb";
-import { UPDATE_PROJECTS } from "types/Project/ProjectThunks";
+import { openDB } from "idb";
 import { IDB_NAME, PROJECT_STORE, SAMPLE_STORE } from "utils/constants";
-import { dispatchCustomEvent } from "utils/html";
 
-export let DATABASE: IDBPDatabase | null = null;
-export const getDatabase = () => DATABASE;
-export const getDatabaseName = (userId: string) => `${IDB_NAME}-${userId}`;
+export const getDatabaseName = (userId: string | null) =>
+  `${IDB_NAME}-${userId}`;
 
 /** Create a connection to the database and upgrade it if necessary. */
-export const initializeDatabase = async (userId: string | null) => {
-  if (!userId) return;
-  const databaseName = getDatabaseName(userId);
-  const db = await openDB(databaseName, import.meta.env.VITE_IDB_VERSION, {
+export const getDatabase = async (userId: string | null) => {
+  if (!userId) return null;
+  const name = getDatabaseName(userId);
+  return await openDB(name, import.meta.env.VITE_IDB_VERSION, {
     upgrade(db) {
       // Create a store for the list of projects
       if (!db.objectStoreNames.contains(PROJECT_STORE)) {
@@ -23,7 +20,4 @@ export const initializeDatabase = async (userId: string | null) => {
       }
     },
   });
-  // Dispatch an event to update the projects
-  dispatchCustomEvent(UPDATE_PROJECTS);
-  DATABASE = db;
 };

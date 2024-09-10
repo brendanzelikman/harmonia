@@ -7,123 +7,123 @@ import {
   toggleInstrumentMute,
   toggleInstrumentSolo,
 } from "types/Instrument/InstrumentSlice";
-import { PoseVector } from "types/Pose/PoseTypes";
-import { isPatternTrack } from "types/Track/TrackTypes";
-import { selectEditorView } from "types/Editor/EditorSelectors";
+import { PoseStream, PoseVector } from "types/Pose/PoseTypes";
+import { selectIsEditorOpen } from "types/Editor/EditorSelectors";
 import {
   selectSelectedTrackParents,
   selectIsLive,
 } from "types/Timeline/TimelineSelectors";
-import { selectTracks } from "types/Track/TrackSelectors";
+import { selectOrderedPatternTracks } from "types/Track/TrackSelectors";
 import {
   offsetSelectedPoses,
+  updateSelectedPoses,
   updateSelectedPoseStreams,
 } from "types/Pose/PoseThunks";
 import { unmuteTracks, unsoloTracks } from "types/Track/TrackThunks";
 import { mapPoseStreamVectors } from "types/Pose/PoseFunctions";
-import { some } from "lodash";
+import { range, size, some } from "lodash";
 
-type KeyBinds = Record<string, number>;
-
-/** The numerical binds use the top number row. */
-const NUMERICAL_BINDS: KeyBinds = {
-  "1": 1,
-  "2": 2,
-  "3": 3,
-  "4": 4,
-  "5": 5,
-  "6": 6,
-  "7": 7,
-  "8": 8,
-  "9": 9,
-  o: 12,
-};
-const NUMERICAL_ZERO_BINDS = ["z", "0"];
-const extraKeys = ["minus", "t", "q", "w", "e", "r", "m", "s", "o", "y"];
+const numberKeys = range(1, 10).map((n) => n.toString());
+const scaleKeys = ["q", "w", "e", "r", "t", "y"];
+const zeroKeys = ["z", "0"];
+const extraKeys = ["z", "m", "s", "minus", "equal", "shift", "meta"];
+const ALL_KEYS = [...numberKeys, ...zeroKeys, ...scaleKeys, ...extraKeys];
 
 export const useTimelineLiveHotkeys = () => {
   const dispatch = useProjectDispatch();
   const { isAtLeastRank } = useAuth();
   const isLive = use(selectIsLive);
-
-  // Get additional dependencies from the store
-  const view = use(selectEditorView);
-  const orderedTracks = useDeep(selectTracks);
+  const isEditorOpen = use(selectIsEditorOpen);
+  const patternTracks = useDeep(selectOrderedPatternTracks);
   const scaleTracks = useDeep(selectSelectedTrackParents);
-
-  // Get the keys for the current pose mode
-  const keys = Object.keys(NUMERICAL_BINDS);
-
-  // Get the list of zero keys based on the pose mode
-  const zeroKeys = NUMERICAL_ZERO_BINDS;
-
-  // Track all of the held keys
-  const allKeys = ["shift", "meta", ...keys, ...zeroKeys, ...extraKeys];
-  const heldKeys = useHeldHotkeys(allKeys, [allKeys]);
+  const firstTrackId = scaleTracks[0]?.id;
+  const secondTrackId = scaleTracks[1]?.id;
+  const thirdTrackId = scaleTracks[2]?.id;
+  const heldKeys = useHeldHotkeys(ALL_KEYS);
 
   // The callback for the numerical keydown event
-  const numericalKeydown = (e: KeyboardEvent) => {
-    if (isInputEvent(e) || view) return;
+  const keydown = useCallback(
+    (e: KeyboardEvent) => {
+      if (isInputEvent(e) || isEditorOpen) return;
 
-    // Try to get the number of the key
-    const number = parseInt(e.key);
-    if (isNaN(number)) return;
+      // Try to get the number of the key
+      const number = parseInt(e.key);
+      if (isNaN(number)) return;
 
-    // Get the pattern track by number (for mute/solo)
-    const patternTracks = orderedTracks.filter(isPatternTrack);
-    const patternTrack = patternTracks[number - 1];
-    const instrumentId = patternTrack?.instrumentId;
+      // Get the pattern track by number (for mute/solo)
+      const patternTrack = patternTracks[number - 1];
+      const instrumentId = patternTrack?.instrumentId;
 
-    // Toggle mute if holding y
-    if (heldKeys.m) {
-      dispatch(toggleInstrumentMute(instrumentId));
-    }
-    // Toggle solo if holding u
-    if (heldKeys.s) {
-      dispatch(toggleInstrumentSolo(instrumentId));
-    }
+      // Toggle mute if holding y
+      if (heldKeys.m) {
+        dispatch(toggleInstrumentMute(instrumentId));
+      }
+      // Toggle solo if holding u
+      if (heldKeys.s) {
+        dispatch(toggleInstrumentSolo(instrumentId));
+      }
 
-    // Compute the pose offset record
-    const vector = {} as PoseVector;
-    const negative = heldKeys["-"];
-    const dir = negative ? -1 : 1;
-    const octave = e.key === "o";
-    const value = (octave ? 12 : number) * dir;
+      const isNegative = heldKeys["-"];
+      const isExact = heldKeys["="];
 
-    // Apply chordal offset if holding r
-    if (heldKeys.r) {
-      vector.chordal = (vector.chordal ?? 0) + value;
-    }
+      // Compute the pose offset record
+      const vector = {} as PoseVector;
+      const dir = isNegative ? -1 : 1;
+      const value = number * dir;
 
-    // Apply chromatic offset if holding t
-    if (heldKeys.t) {
-      vector.chromatic = (vector.chromatic ?? 0) + value;
-    }
+      // Apply chordal offset if holding r
+      if (heldKeys.r) {
+        if (isExact) vector.chordal = value;
+        else vector.chordal = (vector.chordal ?? 0) + value;
+      }
 
-    // Apply octave offset if holding y
-    if (heldKeys.y) {
-      vector.octave = (vector.octave ?? 0) + value;
-    }
+      // Apply chromatic offset if holding t
+      if (heldKeys.t) {
+        if (isExact) vector.chromatic = value;
+        else vector.chromatic = (vector.chromatic ?? 0) + value;
+      }
 
-    // Apply scalar offsets if holding w, s, or x
-    const scalarKeys = ["q", "w", "e"];
-    scalarKeys.forEach((key) => {
-      const keyIndex = scalarKeys.indexOf(key);
-      const heldKey = heldKeys[key];
-      const id = scaleTracks[keyIndex]?.id;
-      if (heldKey && id) vector[id] = (vector[id] ?? 0) + value;
-    });
+      // Apply octave offset if holding y
+      if (heldKeys.y) {
+        if (isExact) vector.octave = value;
+        else vector.octave = (vector.octave ?? 0) + value;
+      }
 
-    if (!some(vector)) return;
-    dispatch(offsetSelectedPoses(vector));
-  };
+      // Apply scalar offsets if holding w, s, or x
+      const scalarKeys = ["q", "w", "e"];
+      scalarKeys.forEach((key, i) => {
+        const heldKey = heldKeys[key];
+        const id =
+          i === 0 ? firstTrackId : i === 1 ? secondTrackId : thirdTrackId;
+        if (heldKey && id) {
+          if (isExact) vector[id] = value;
+          else vector[id] = (vector[id] ?? 0) + value;
+        }
+      });
+
+      if (!some(vector)) return;
+      if (isExact) {
+        dispatch(updateSelectedPoses(vector));
+      } else {
+        dispatch(offsetSelectedPoses(vector));
+      }
+    },
+    [
+      heldKeys,
+      isEditorOpen,
+      patternTracks,
+      firstTrackId,
+      secondTrackId,
+      thirdTrackId,
+    ]
+  );
 
   // The callback for the numerical zero keydown event
-  const numericalZeroKeydown = useCallback(
+  const zeroKeydown = useCallback(
     (e: KeyboardEvent) => {
       const key = e.key;
       if (!zeroKeys.includes(key)) return;
-      if (isInputEvent(e) || view) return;
+      if (isInputEvent(e) || isEditorOpen) return;
 
       // Unmute all tracks if holding m
       if (heldKeys.m) {
@@ -143,25 +143,25 @@ export const useTimelineLiveHotkeys = () => {
           mapPoseStreamVectors(stream, (vec) => {
             let newVector = { ...vec };
 
-            if (heldKeys[scaleKeys[0]]) {
+            if (heldKeys[scaleKeys[0]] && firstTrackId) {
               if (isZ) {
-                delete newVector[scaleTracks[0].id];
+                delete newVector[firstTrackId];
               } else {
-                newVector[scaleTracks[0].id] = 0;
+                newVector[firstTrackId] = 0;
               }
             }
-            if (heldKeys[scaleKeys[1]]) {
+            if (heldKeys[scaleKeys[1]] && secondTrackId) {
               if (isZ) {
-                delete newVector[scaleTracks[1].id];
+                delete newVector[secondTrackId];
               } else {
-                newVector[scaleTracks[1].id] = 0;
+                newVector[secondTrackId] = 0;
               }
             }
-            if (heldKeys[scaleKeys[2]]) {
+            if (heldKeys[scaleKeys[2]] && thirdTrackId) {
               if (isZ) {
-                delete newVector[scaleTracks[2].id];
+                delete newVector[thirdTrackId];
               } else {
-                newVector[scaleTracks[2].id] = 0;
+                newVector[thirdTrackId] = 0;
               }
             }
             if (heldKeys.r) {
@@ -185,7 +185,7 @@ export const useTimelineLiveHotkeys = () => {
                 newVector.octave = 0;
               }
             }
-            if (Object.keys(newVector).length === Object.keys(vec).length) {
+            if (size(newVector) === size(vec)) {
               if (isZ) return {};
             }
             return newVector;
@@ -193,7 +193,7 @@ export const useTimelineLiveHotkeys = () => {
         )
       );
     },
-    [heldKeys, zeroKeys, view, scaleTracks]
+    [heldKeys, isEditorOpen, firstTrackId, secondTrackId, thirdTrackId]
   );
 
   /**
@@ -202,15 +202,11 @@ export const useTimelineLiveHotkeys = () => {
    */
   useEffect(() => {
     if (!isLive || !isAtLeastRank("maestro")) return;
-    const keydown = numericalKeydown;
-    const zeroKeydown = numericalZeroKeydown;
-
     window.addEventListener("keydown", keydown);
     window.addEventListener("keydown", zeroKeydown);
-
     return () => {
       window.removeEventListener("keydown", keydown);
       window.removeEventListener("keydown", zeroKeydown);
     };
-  }, [isAtLeastRank, isLive, numericalKeydown, numericalZeroKeydown]);
+  }, [isAtLeastRank, isLive, keydown, zeroKeydown]);
 };

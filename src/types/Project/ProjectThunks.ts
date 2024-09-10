@@ -70,7 +70,6 @@ export const clearProject = (): Thunk => (dispatch, getProject) => {
 export const deleteProject = (id: string) => async () => {
   const { uid } = await fetchUser();
   if (!uid) return;
-
   try {
     deleteProjectFromDB(id);
   } catch (e) {

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import classNames from "classnames";
 import { ClipComponentProps } from "../TimelineClips";
 import { useClipDrag } from "../useClipDnd";
@@ -10,7 +10,6 @@ import {
   removeClipIdsFromSelection,
   toggleClipIdInSelection,
 } from "types/Timeline/thunks/TimelineSelectionThunks";
-import { useHotkeys } from "react-hotkeys-hook";
 import { PatternClipDropdown } from "./PatternClipDropdown";
 import { PatternClipHeader } from "./PatternClipHeader";
 import { PatternClipStream } from "./PatternClipStream";
@@ -39,7 +38,6 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
   // Each pattern clip has a dropdown to show its score */
   const score = useToggledState(`score_${pcId}`);
   const showScore = score.isOpen;
-  useHotkeys("esc", score.close);
 
   // Each pattern clip listens to the closest overlapping pose clip */
   const poseClipId = use((_) => selectClosestPoseClipId(_, pcId));

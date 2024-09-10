@@ -133,8 +133,14 @@ export const selectClipIds = createDeepSelector(
     [...patternIds, ...poseIds, ...scaleIds] as ClipId[]
 );
 
-/** Select the map of clips to their references. */
-export const selectClipReferenceMap = createDeepSelector(
+/** Select true if the user has any clips. */
+export const selectHasClips = createSelector(
+  [selectClipIds],
+  (clipIds) => clipIds.length > 0
+);
+
+/** Select the map of clips to their motifs. */
+export const selectClipMotifMap = createDeepSelector(
   [selectClipMap, selectMotifState],
   (clips, motifState) => {
     return mapValues(clips, (clip) => {
@@ -147,9 +153,12 @@ export const selectClipReferenceMap = createDeepSelector(
   }
 );
 
+/** Select a clip's motif */
+export const selectClipMotif = createValueSelector(selectClipMotifMap);
+
 /** Select the durations of all clips. */
 export const selectClipDurationMap = createDeepSelector(
-  [selectClipMap, selectClipReferenceMap],
+  [selectClipMap, selectClipMotifMap],
   (clipMap, referenceMap) =>
     mapValues(clipMap, (clip) => {
       const reference = getValueByKey(referenceMap, clip?.id);
@@ -190,7 +199,7 @@ export const selectClipsByTrackIds = (
 
 /** Select the map of clips to their names. */
 export const selectClipNameMap = createSelector(
-  [selectClipMap, selectClipReferenceMap],
+  [selectClipMap, selectClipMotifMap],
   (clipMap, referenceMap) =>
     mapValues(clipMap, (clip) => {
       const reference = getValueByKey(referenceMap, clip?.id);

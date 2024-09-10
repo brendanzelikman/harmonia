@@ -1,7 +1,11 @@
 import { Midi } from "@tonejs/midi";
 import { isUndefined, some } from "lodash";
 import { Tick } from "types/units";
-import { selectPoseClipById, selectTimedClipById } from "./ClipSelectors";
+import {
+  selectClipMotif,
+  selectPoseClipById,
+  selectTimedClipById,
+} from "./ClipSelectors";
 import { isPoseBucket, getPoseBucketVector } from "types/Pose/PoseFunctions";
 import { updatePose } from "types/Pose/PoseSlice";
 import { isPoseVectorModule } from "types/Pose/PoseTypes";
@@ -12,18 +16,40 @@ import {
   selectClipsByTrackIds,
   selectClipStartTime,
 } from "./ClipSelectors";
-import { initializeClip, ClipId, PoseClipId } from "./ClipTypes";
-import { selectPatternClipStreamMap } from "types/Arrangement/ArrangementSelectors";
+import {
+  initializeClip,
+  ClipId,
+  PoseClipId,
+  Clip,
+  initializePoseClip,
+  PortaledPatternClip,
+} from "./ClipTypes";
+import {
+  selectClosestPoseClipId,
+  selectPatternClipStreamMap,
+} from "types/Arrangement/ArrangementSelectors";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import { selectMeta } from "types/Meta/MetaSelectors";
 import { selectTracks } from "types/Track/TrackSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { Payload, unpackUndoType } from "lib/redux";
-import { addClips, removeClip } from "./ClipSlice";
-import { selectMediaSelection } from "types/Timeline/TimelineSelectors";
+import { addClip, addClips, removeClip, updateClip } from "./ClipSlice";
+import {
+  selectIsLive,
+  selectMediaSelection,
+} from "types/Timeline/TimelineSelectors";
 import { deleteMedia } from "types/Media/MediaThunks";
-import { removeClipIdsFromSelection } from "types/Timeline/thunks/TimelineSelectionThunks";
+import {
+  addClipIdsToSelection,
+  removeClipIdsFromSelection,
+} from "types/Timeline/thunks/TimelineSelectionThunks";
 import { sumVectors } from "utils/vector";
+import { copyMotif } from "types/Motif/MotifFunctions";
+import { addMotif } from "types/Motif/MotifThunks";
+import { use } from "types/hooks";
+import { createPose } from "types/Pose/PoseThunks";
+import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
+import { dispatchCustomEvent } from "utils/html";
 
 /** Slice a clip and make sure the old ID is no longer selected. */
 export const sliceClip =
@@ -58,6 +84,55 @@ export const sliceClip =
     // Slice the clip
     dispatch(removeClip({ data: clip.id, undoType }));
     dispatch(addClips({ data: [firstClip, secondClip], undoType }));
+  };
+
+/** Migrate a clip's motif to a new copy. */
+export const migrateClip =
+  (payload: Payload<Clip>): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const undoType = unpackUndoType(payload, `migrateClip`);
+    const clip = payload.data;
+    const type = clip.type;
+    const motif = selectClipMotif(project, clip.id);
+    if (!motif) return;
+    const newMotif = copyMotif(motif);
+    const field = `${type}Id`;
+    const fieldId = newMotif.id;
+    dispatch(addMotif({ data: newMotif, undoType }));
+    dispatch(updateClip({ data: { id: clip.id, [field]: fieldId }, undoType }));
+  };
+
+/** Prepare a pattern clip for live play. */
+export const preparePatternClip =
+  (payload: Payload<PortaledPatternClip>): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const undoType = unpackUndoType(payload, "preparePatternClip");
+    const { id, trackId, tick } = payload.data;
+    const poseClipId = selectClosestPoseClipId(project, id);
+    const isLive = selectIsLive(project);
+    const isPosed = !!poseClipId;
+
+    if (isLive && poseClipId) {
+      dispatch(setSelectedTrackId({ data: null, undoType }));
+      dispatch(removeClipIdsFromSelection({ data: [poseClipId], undoType }));
+      dispatchCustomEvent(`close_dropdown_${poseClipId}`, {});
+      return;
+    }
+
+    // If the clip is posed, select the pose clip and open the dropdown
+    if (isPosed && poseClipId) {
+      dispatch(addClipIdsToSelection({ data: [poseClipId], undoType }));
+      dispatch(setSelectedTrackId({ data: trackId, undoType }));
+      dispatchCustomEvent(`open_dropdown_${poseClipId}`, {});
+      return;
+    }
+
+    // Otherwise, create a pose clip for the pattern clip
+    const poseId = dispatch(createPose());
+    const poseClip = initializePoseClip({ trackId, tick, poseId });
+    dispatch(addClip({ data: poseClip }));
   };
 
 /** Merge the vector of a pose clip into another */

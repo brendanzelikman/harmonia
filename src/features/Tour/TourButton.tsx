@@ -5,13 +5,13 @@ import { createPortal } from "react-dom";
 import { ShepherdTourContext } from "react-shepherd";
 import { useProjectDispatch, useProjectSelector } from "types/hooks";
 import { dispatchCustomEvent } from "utils/html";
-import { NavbarTooltipButton } from "features/Navbar/components";
 import { END_TOUR, START_TOUR } from "./useOnboardingTour";
 import { useCustomEventListener } from "hooks/useCustomEventListener";
 import classNames from "classnames";
 import { hideEditor } from "types/Editor/EditorSlice";
 import { selectHasTrackTree } from "types/Arrangement/ArrangementSelectors";
 import { BsPersonRaisedHand } from "react-icons/bs";
+import { NavbarTooltipButton } from "components/TooltipButton";
 
 export const TourButton = () => {
   const dispatch = useProjectDispatch();

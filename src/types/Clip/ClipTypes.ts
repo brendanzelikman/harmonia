@@ -88,7 +88,9 @@ export function initializeClip<T extends ClipType>(
 // ------------------------------------------------------------
 
 /** Checks if a given object is a `ClipType` */
-export const isClipType = <T extends ClipType>(obj: unknown): obj is T => {
+export const isClipType = <T extends ClipType = ClipType>(
+  obj: unknown
+): obj is T => {
   return CLIP_TYPES.includes(obj as T);
 };
 

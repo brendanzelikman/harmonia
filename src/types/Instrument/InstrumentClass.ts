@@ -94,39 +94,25 @@ export class LiveAudioInstance {
   fft: FFT;
   waveform: Waveform;
 
-  constructor({
-    id,
-    trackId,
-    key,
-    volume = -30,
-    pan = 0,
-    mute = false,
-    solo = false,
-    effects = [],
-    urls = undefined,
-  }: Instrument & { urls?: SamplerOptions["urls"] }) {
+  constructor(props: Instrument & { urls?: SamplerOptions["urls"] }) {
     // Store the id and key
+    const { id, trackId, key } = props;
     this.id = id;
     this.trackId = trackId;
     this.key = key;
+    this.urls = props.urls;
 
     // Initialize the sampler
-    const isLocal = !!urls;
-    const samples = urls ?? getInstrumentSamplesMap(key);
-    this.urls = samples;
-    const baseUrl = getInstrumentSamplesBaseUrl(key);
-    this.sampler = new Sampler({
-      urls: samples,
-      baseUrl: isLocal ? undefined : baseUrl,
-    });
+    const isLocal = !!props.urls;
+    const urls = props.urls || getInstrumentSamplesMap(props.key);
+    const baseUrl = getInstrumentSamplesBaseUrl(props.key);
+    const samplerOptions = isLocal ? urls : { urls, baseUrl };
+    this.sampler = new Sampler(samplerOptions);
 
     // Initialize the channel
-    this.channel = new Channel({
-      volume,
-      pan,
-      mute,
-      solo,
-    });
+    const { volume, pan, mute, solo, effects } = props;
+    const channelOptions = { volume, pan, mute, solo };
+    this.channel = new Channel(channelOptions);
 
     // Initialize the effects
     this.effects = LiveAudioInstance.createToneEffects(effects);

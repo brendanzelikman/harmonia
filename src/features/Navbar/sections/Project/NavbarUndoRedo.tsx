@@ -1,55 +1,50 @@
 import { CiUndo, CiRedo } from "react-icons/ci";
-import { NavbarTooltipButton } from "../../components";
-import { useProjectDispatch, useProjectSelector } from "types/hooks";
+import { use, useProjectDispatch } from "types/hooks";
 import {
   selectCanRedoProject,
   selectCanUndoProject,
 } from "types/Project/ProjectSelectors";
-import { UNDO_PROJECT } from "providers/store";
+import { REDO_PROJECT, UNDO_PROJECT } from "providers/store";
+import classNames from "classnames";
+import { NavbarTooltipButton } from "components/TooltipButton";
 
-export function NavbarUndoRedo() {
+export function NavbarUndo() {
   const dispatch = useProjectDispatch();
-  const canUndo = useProjectSelector(selectCanUndoProject);
-  const canRedo = useProjectSelector(selectCanRedoProject);
-
-  /** The undo button allows the user to undo the arrangement. */
-  const UndoButton = () => (
+  const canUndo = use(selectCanUndoProject);
+  return (
     <NavbarTooltipButton
-      className={`rounded-full border ${
-        canUndo
-          ? "bg-zinc-950/50 active:text-indigo-200 border-indigo-800/80"
-          : "bg-zinc-900/50 border-indigo-800/50"
-      }`}
+      className={buttonClass(canUndo)}
       onClick={() => canUndo && dispatch({ type: UNDO_PROJECT })}
       disabled={!canUndo}
-      disabledClass="text-white/50 cursor-default"
-      label="Undo Last Project Change"
+      disabledClass={disabledClass}
+      label="Undo Last Action"
     >
-      <CiUndo className="text-2xl" />
+      <CiUndo />
     </NavbarTooltipButton>
-  );
-
-  /** The redo button allows the user to redo the arrangement. */
-  const RedoButton = () => (
-    <NavbarTooltipButton
-      className={`rounded-full border ${
-        canRedo
-          ? "bg-zinc-950/50 active:text-indigo-200 border-indigo-800/80"
-          : "bg-zinc-900/50 border-indigo-800/50"
-      }`}
-      onClick={() => canRedo && dispatch({ type: "project/redo" })}
-      disabled={!canRedo}
-      disabledClass="text-white/50 cursor-default"
-      label="Redo Last Project Change"
-    >
-      <CiRedo className="text-xl" />
-    </NavbarTooltipButton>
-  );
-
-  return (
-    <div className="flex gap-2 px-1">
-      <UndoButton />
-      <RedoButton />
-    </div>
   );
 }
+
+export function NavbarRedo() {
+  const dispatch = useProjectDispatch();
+  const canRedo = use(selectCanRedoProject);
+  return (
+    <NavbarTooltipButton
+      className={buttonClass(canRedo)}
+      onClick={() => canRedo && dispatch({ type: REDO_PROJECT })}
+      disabled={!canRedo}
+      disabledClass={disabledClass}
+      label="Redo Last Action"
+    >
+      <CiRedo />
+    </NavbarTooltipButton>
+  );
+}
+const disabledClass = "text-white/50 cursor-default";
+
+const buttonClass = (active: boolean) =>
+  classNames(
+    "rounded-full border text-2xl",
+    active
+      ? "bg-zinc-950/50 active:text-indigo-200 border-indigo-800/80"
+      : "bg-zinc-900/50 border-indigo-800/50"
+  );

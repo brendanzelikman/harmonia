@@ -15,7 +15,7 @@ import {
   resolveScaleToMidi,
 } from "types/Scale/ScaleResolvers";
 import { isNestedNote, ScaleId, ScaleObject } from "types/Scale/ScaleTypes";
-import { MidiNote, MidiScale } from "utils/midi";
+import { MidiScale } from "utils/midi";
 import {
   getOrderedTrackIds,
   getScaleTrackChainIds,
@@ -29,7 +29,7 @@ import {
 import { isScaleTrack, Track, TrackId, TrackMap } from "./TrackTypes";
 import { selectInstrumentMap } from "types/Instrument/InstrumentSelectors";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { createSelector, Dictionary } from "@reduxjs/toolkit";
+import { Dictionary } from "@reduxjs/toolkit";
 import {
   defaultPatternTrackState,
   defaultScaleTrackState,
@@ -42,6 +42,7 @@ import {
   PatternTrackMap,
   PatternTrackId,
   PatternTrack,
+  isPatternTrackId,
 } from "./PatternTrack/PatternTrackTypes";
 import {
   ScaleTrackState,
@@ -108,24 +109,24 @@ export const selectScaleTracksByIds =
 // Combined Track Selectors
 // ------------------------------------------------------------
 
-export const selectTrackMap = createSelector(
+export const selectTrackMap = createDeepSelector(
   [selectPatternTrackMap, selectScaleTrackMap],
   (patternTrackMap, scaleTrackMap) =>
     merge({}, patternTrackMap, scaleTrackMap) as TrackMap
 );
 
-export const selectTrackIds = createSelector(
+export const selectTrackIds = createDeepSelector(
   [selectPatternTrackIds, selectScaleTrackIds],
   (patternTrackIds, scaleTrackIds) =>
     [...patternTrackIds, ...scaleTrackIds] as TrackId[]
 );
 
-export const selectOrderedTrackIds = createSelector(
+export const selectOrderedTrackIds = createDeepSelector(
   [selectTrackMap],
   (trackMap) => getOrderedTrackIds(trackMap)
 );
 
-export const selectTracks = createSelector(
+export const selectTracks = createDeepSelector(
   [selectScaleTracks, selectPatternTracks],
   (scaleTracks, patternTracks) => [...scaleTracks, ...patternTracks] as Track[]
 );
@@ -168,6 +169,12 @@ export const selectTrackAncestorIdsMap = createDeepSelector(
 export const selectTrackAncestorIds = createArraySelector(
   selectTrackAncestorIdsMap
 );
+
+/** Select the ancestors of a track. */
+export const selectTrackAncestors = (project: Project, id?: TrackId) => {
+  const ancestorIds = selectTrackAncestorIds(project, id);
+  return ancestorIds.map((id) => selectTrackById(project, id));
+};
 
 // ------------------------------------------------------------
 // Scale Track Chain
@@ -300,6 +307,15 @@ export const selectTrackIndexById = createValueSelector(
 // ------------------------------------------------------------
 // Track Instrument Selectors
 // ------------------------------------------------------------
+
+export const selectOrderedPatternTracks = createDeepSelector(
+  [selectOrderedTrackIds, selectPatternTrackMap],
+  (trackIds, trackMap) =>
+    trackIds
+      .filter(isPatternTrackId)
+      .map((id) => trackMap[id])
+      .filter(Boolean) as PatternTrack[]
+);
 
 /** Select the record of all pattern tracks to their instruments. */
 export const selectTrackInstrumentMap = createDeepSelector(

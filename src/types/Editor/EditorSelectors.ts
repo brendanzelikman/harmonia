@@ -13,6 +13,11 @@ export const selectEditorView = createSelector(
   (editor) => editor.view
 );
 
+export const selectIsEditorOpen = createSelector(
+  selectEditorView,
+  (view) => !!view
+);
+
 /** Select the editor action. */
 export const selectEditorAction = createSelector(
   selectEditor,

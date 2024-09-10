@@ -8,17 +8,24 @@ import {
   selectSelectedPattern,
   selectSelectedPose,
   selectSelectedScale,
+  selectSelectedTrackId,
 } from "types/Timeline/TimelineSelectors";
 import {
   selectTrackMidiScaleMap,
   selectScaleTrackMap,
+  selectTrackScaleChainMap,
 } from "types/Track/TrackSelectors";
 import { Key } from "types/units";
 import { getMidiPitchClass } from "utils/midi";
 import { getSortedPitchClasses } from "utils/pitchClass";
-import { selectScaleName } from "./ArrangementTrackSelectors";
-import { Dictionary } from "@reduxjs/toolkit";
-import { getDictValues } from "utils/objects";
+import {
+  selectScaleName,
+  selectScaleNameMap,
+} from "./ArrangementTrackSelectors";
+import { createSelector, Dictionary } from "@reduxjs/toolkit";
+import { getArrayByKey, getDictValues } from "utils/objects";
+import { getPatternDuration } from "types/Pattern/PatternFunctions";
+import { getPoseDuration } from "types/Pose/PoseFunctions";
 
 /** Select the map of scales to their MIDI notes. */
 export const selectMidiScaleMap = createDeepSelector(
@@ -85,8 +92,10 @@ export const selectScaleKeyMap = createDeepSelector(
 export const selectScaleKey = createArraySelector(selectScaleKeyMap);
 
 /** Select the name of the currently selected motif. */
-export const selectSelectedMotifName = (project: Project) => {
-  const type = selectTimelineType(project);
+export const selectSelectedMotifName = (
+  project: Project,
+  type = selectTimelineType(project)
+) => {
   if (!type) return "No Object";
   const pattern = selectSelectedPattern(project);
   const pose = selectSelectedPose(project);
@@ -97,3 +106,26 @@ export const selectSelectedMotifName = (project: Project) => {
     scale: selectScaleName(project, scale?.id) ?? scale?.name ?? "No Scale",
   }[type];
 };
+
+/** Select the duration of the currently selected motif */
+export const selectSelectedMotifDuration = (
+  project: Project,
+  type = selectTimelineType(project)
+) => {
+  const pattern = selectSelectedPattern(project);
+  const pose = selectSelectedPose(project);
+  return {
+    pattern: getPatternDuration(pattern),
+    pose: getPoseDuration(pose),
+    scale: 0,
+  }[type];
+};
+/** Select the scale names of the currently selected track. */
+
+export const selectSelectedTrackScaleNames = createSelector(
+  [selectSelectedTrackId, selectTrackScaleChainMap, selectScaleNameMap],
+  (id, chainMap, nameMap) => {
+    const chain = getArrayByKey(chainMap, id);
+    return chain.map((scale) => nameMap[scale.id]);
+  }
+);

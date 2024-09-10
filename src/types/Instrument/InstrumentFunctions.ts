@@ -11,9 +11,6 @@ import {
   Instrument,
 } from "./InstrumentTypes";
 import { SamplerOptions } from "tone";
-import { getDatabase } from "providers/idb";
-import { SAMPLE_STORE } from "utils/constants";
-import { getSampleFromIDB } from "providers/idb/samples";
 
 // ------------------------------------------------------------
 // Instrument Serializers

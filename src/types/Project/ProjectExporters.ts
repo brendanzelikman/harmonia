@@ -4,7 +4,6 @@ import { Project, Thunk } from "./ProjectTypes";
 import { selectProjectName } from "../Meta/MetaSelectors";
 import { sanitizeProject } from "./ProjectFunctions";
 import { getProjectsFromDB } from "providers/idb";
-import { fetchUser } from "providers/auth/user";
 import JSZip from "jszip";
 
 /** Export the project to a Harmonia file, using the given state if specified. */

@@ -9,42 +9,42 @@ import {
 } from "react";
 import {
   HarmoniaUser,
-  ADMIN,
-  defaultHarmoniaUser,
+  defaultAdmin,
+  defaultUser,
   fetchUser,
   ADMIN_UID,
 } from "./user";
 import { adminClearance, useClearance } from "./password";
-import { initializeDatabase } from "providers/idb";
+import { getDatabase } from "providers/idb/database";
 
-export const AuthContext = createContext<HarmoniaUser>(defaultHarmoniaUser);
+export const AuthContext = createContext<HarmoniaUser>(defaultUser);
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider(props: { children: ReactNode }) {
   const auth = getAuth(firebaseApp);
   const { clearance, isAdmin } = useClearance();
-  const [user, setUser] = useState(isAdmin ? ADMIN : defaultHarmoniaUser);
+  const [user, setUser] = useState(isAdmin ? defaultAdmin : defaultUser);
 
   useEffect(() => {
     // If the user is an admin, initialize the user and skip firebase
+    const fetchDatabase = async () => {
+      const db = await getDatabase(ADMIN_UID);
+      setUser({ ...defaultAdmin, db });
+    };
     if (clearance === adminClearance) {
-      setUser(ADMIN);
-      initializeDatabase(ADMIN_UID);
+      fetchDatabase();
       return;
     }
 
     // Otherwise, listen for changes through firebase
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (_) => {
       setUser(await fetchUser(clearance));
-      if (user?.uid) initializeDatabase(user?.uid);
     });
     return unsubscribe;
   }, [auth, clearance]);
 
   // Return the authentication status
   return (
-    <AuthContext.Provider value={{ ...user }}>
-      {props.children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={user}>{props.children}</AuthContext.Provider>
   );
 }

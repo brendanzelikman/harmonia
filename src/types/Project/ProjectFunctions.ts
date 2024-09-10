@@ -148,7 +148,7 @@ export const mergeBaseProjects = (
       isIScaleClip(clip) &&
       isClipInState(clip) &&
       (clip.scaleId.startsWith("scale_preset_") ||
-        isIdInState(patterns, clip.scaleId))
+        isIdInState(scales, clip.scaleId))
   );
 
   // Make sure that pattern clips have valid tracks and patterns
@@ -170,7 +170,7 @@ export const mergeBaseProjects = (
       isIPoseClip(clip) &&
       isClipInState(clip) &&
       (clip.poseId.startsWith("pose_preset_") ||
-        isIdInState(patterns, clip.poseId))
+        isIdInState(poses, clip.poseId))
   );
 
   // Group the clips together

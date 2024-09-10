@@ -1,8 +1,9 @@
 import { DurationType, WholeNoteTicks } from "utils/durations";
 import { Tick, Velocity } from "../units";
 import { DEFAULT_VELOCITY } from "utils/constants";
-import { isPlainObject, isUndefined } from "lodash";
+import { isPlainObject } from "lodash";
 import { TrackId } from "types/Track/TrackTypes";
+import { isOptionalType } from "types/util";
 
 // ------------------------------------------------------------
 // Editor Definitions
@@ -124,25 +125,21 @@ export const defaultEditor: Editor = {
 /** Checks if a given object is of type `EditorView` */
 export const isEditorView = (obj: unknown): obj is EditorView => {
   const candidate = obj as EditorView;
-  return (
-    isUndefined(candidate) || EDITOR_VIEWS.includes(candidate as EditorView)
-  );
+  return EDITOR_VIEWS.includes(candidate as EditorView);
 };
 
 /** Checks if a given object is of type `EditorAction` */
 export const isEditorAction = (obj: unknown): obj is EditorAction => {
   const candidate = obj as EditorAction;
-  return (
-    isUndefined(candidate) || EDITOR_ACTIONS.includes(candidate as EditorAction)
-  );
+  return EDITOR_ACTIONS.includes(candidate as EditorAction);
 };
 /* Checks if a given object is of type `Editor`. */
 export const isEditor = (obj: unknown): obj is Editor => {
   const candidate = obj as Editor;
   return (
     isPlainObject(candidate) &&
-    isEditorView(candidate.view) &&
-    isEditorAction(candidate.action) &&
+    isOptionalType(candidate.view, isEditorView) &&
+    isOptionalType(candidate.action, isEditorAction) &&
     isPlainObject(candidate.settings)
   );
 };

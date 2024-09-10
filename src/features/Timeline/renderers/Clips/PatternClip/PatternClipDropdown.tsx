@@ -1,37 +1,13 @@
-import { use, useDeep, useProjectDispatch } from "types/hooks";
-import { NoteCallback, useOSMD } from "lib/opensheetmusicdisplay";
-import {
-  selectPatternClipMidiStream,
-  selectPatternClipXML,
-} from "types/Arrangement/ArrangementSelectors";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { initializePoseClip, PortaledPoseClipId } from "types/Clip/ClipTypes";
+import { PortaledPoseClipId } from "types/Clip/ClipTypes";
+import { blurOnEnter, ButtonMouseEvent, cancelEvent } from "utils/html";
+import { updatePattern } from "types/Pattern/PatternSlice";
+import { BsPencil, BsXCircle } from "react-icons/bs";
 import {
-  blurOnEnter,
-  ButtonMouseEvent,
-  cancelEvent,
-  dispatchCustomEvent,
-} from "utils/html";
-import {
-  addPatternNote,
-  removePatternBlock,
-  updatePattern,
-} from "types/Pattern/PatternSlice";
-import { addClip, updateClip } from "types/Clip/ClipSlice";
-import { clearPattern, copyPattern } from "types/Pattern/PatternThunks";
-import { BsEraser, BsPencil, BsRainbow, BsXCircle } from "react-icons/bs";
-import { createPose } from "types/Pose/PoseThunks";
-import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
-import {
-  addClipIdsToSelection,
-  removeClipIdsFromSelection,
-} from "types/Timeline/thunks/TimelineSelectionThunks";
-import {
-  GiArrowCursor,
   GiCrystalWand,
   GiDramaMasks,
   GiHand,
-  GiMusicalKeyboard,
   GiMusicalNotes,
   GiMusicSpell,
   GiPencilBrush,
@@ -40,24 +16,19 @@ import {
 } from "react-icons/gi";
 import classNames from "classnames";
 import { PatternClipRendererProps } from "./usePatternClipRenderer";
-import { createUndoType } from "lib/redux";
-import { nanoid } from "@reduxjs/toolkit";
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import {
   streamTransformations,
   durationTransformations,
-  Transformation,
+  DropdownOption,
   pitchTransformations,
   velocityTransformations,
 } from "features/Editor/PatternEditor/tabs/PatternEditorTransformTab";
 import { FaRuler } from "react-icons/fa";
-import { EditorPiano } from "features/Editor/components/EditorPiano";
-import { EighthNoteTicks } from "utils/durations";
-import { DEFAULT_VELOCITY } from "utils/constants";
-import { Sampler } from "tone";
-import { showEditor } from "types/Editor/EditorThunks";
-import { autoBindNoteToTrack } from "types/Track/TrackThunks";
-import { PatternNote } from "types/Pattern/PatternTypes";
+import { migrateClip, preparePatternClip } from "types/Clip/ClipThunks";
+import { PatternClipScore } from "./PatternClipScore";
+import { PatternClipPiano } from "./PatternClipPiano";
+import { BiEraser, BiPencil } from "react-icons/bi";
 
 export interface PatternClipDropdownProps extends PatternClipRendererProps {
   poseClipId?: PortaledPoseClipId;
@@ -65,190 +36,15 @@ export interface PatternClipDropdownProps extends PatternClipRendererProps {
 
 export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const { clip, portaledClip, isSelected, isLive, poseClipId } = props;
-  const { id, trackId, tick } = clip;
   const dispatch = useProjectDispatch();
   const isPosed = !!poseClipId;
-  const [transform, setTransform] = useState(0);
-
-  // Get the pattern, stream, and score
   const pattern = useDeep((_) => selectPatternById(_, clip.patternId));
-  const stream = useDeep((_) =>
-    selectPatternClipMidiStream(_, portaledClip?.id)
-  );
-  const xml = use((_) => selectPatternClipXML(_, portaledClip));
-  const [editState, setEditState] = useState(0);
-  const isAdding = editState === 1;
-  const isRemoving = editState === 2;
-  const noteClasses = useMemo(() => ["cursor-pointer"], []);
+  const isEmpty = !pattern.stream.length;
 
-  const toggleAdding = () => setEditState((prev) => (prev !== 1 ? 1 : 0));
-  const toggleRemoving = () => setEditState((prev) => (prev !== 2 ? 2 : 0));
-  const onNoteClick = useCallback<NoteCallback>(
-    (_, index) => {
-      if (isRemoving) {
-        dispatch(removePatternBlock({ id: pattern.id, index }));
-      }
-    },
-    [isRemoving]
-  );
-
-  const playNote = useCallback(
-    (_: Sampler, MIDI: number) => {
-      if (isAdding) {
-        let note: PatternNote = {
-          duration: EighthNoteTicks,
-          MIDI,
-          velocity: DEFAULT_VELOCITY,
-        };
-        const bestNote = dispatch(autoBindNoteToTrack(trackId, note));
-        if (bestNote) note = bestNote;
-        dispatch(addPatternNote({ data: { id: pattern.id, note } }));
-      }
-    },
-    [isAdding]
-  );
-  const { score } = useOSMD({
-    id: `${id}_score`,
-    xml,
-    className: "size-full",
-    stream,
-    noteClasses,
-    noteColor: isRemoving ? "fill-red-500" : "fill-black",
-    onNoteClick,
-  });
-
-  // Each pattern clip can have its pattern name edited
-  const PatternName = (
-    <>
-      <div>Pattern Name:</div>
-      <input
-        className="bg-teal-700/25 px-2 placeholder:text-slate-400 border border-teal-300 focus:border-sky-300 focus:ring-sky-300 rounded-lg p-0 text-base text-center"
-        value={pattern?.name ?? ""}
-        placeholder={"Pattern Name"}
-        onChange={(e) => {
-          if (!pattern) return;
-          const data = { id: pattern?.id, name: e.target.value };
-          dispatch(updatePattern({ data }));
-        }}
-        onClick={cancelEvent}
-        onDoubleClick={cancelEvent}
-        onKeyDown={blurOnEnter}
-      />
-    </>
-  );
-
-  // Each pattern clip can be copied into a new pattern
-  const CopyButton = () => {
-    const onClick = () => {
-      const undoType = createUndoType(`copy_pattern_clip${id}`, nanoid());
-      const patternId = dispatch(copyPattern({ data: pattern, undoType }));
-      dispatch(updateClip({ data: { id, patternId }, undoType }));
-    };
-    return <ScoreButton label="Copy" onClick={onClick} icon={<GiSprout />} />;
-  };
-
-  // Each pattern clip can have its editor opened
-  const [editing, setEditing] = useState(false);
-  const EditButton = () => {
-    const onClick = () => {
-      if (editing) setEditState(0);
-      setEditing(!editing);
-    };
-    return (
-      <ScoreButton
-        label={editing ? "Close" : "Sketch"}
-        backgroundColor={editing ? "bg-emerald-500/80" : undefined}
-        borderColor={editing ? "border-emerald-200/50" : undefined}
-        onClick={onClick}
-        icon={editing ? <BsXCircle /> : <BsPencil />}
-      />
-    );
-  };
-
-  const EditorButton = () => {
-    const onClick = () => dispatch(showEditor({ data: { view: "pattern" } }));
-    return (
-      <ScoreButton
-        label="Edit"
-        buttonClass="active:bg-emerald-400/50 active:border-emerald-300"
-        onClick={onClick}
-        icon={<BsRainbow />}
-      />
-    );
-  };
-
-  const ClearButton = () => {
-    const onClick = () => dispatch(clearPattern(pattern.id));
-    return (
-      <ScoreButton
-        label="Clear"
-        buttonClass="active:bg-slate-400/50 active:border-slate-300"
-        onClick={onClick}
-        icon={<BsEraser />}
-      />
-    );
-  };
-
-  // Each pattern clip can be transformed through a dropdown button
-  const [transforming, setTransforming] = useState(false);
-  const TransformButton = () => {
-    const onClick = () => {
-      if (transforming) setTransform(0);
-      setTransforming(!transforming);
-    };
-    return (
-      <ScoreButton
-        label={transforming ? "Close" : "Transform"}
-        backgroundColor={transforming ? "bg-emerald-500/80" : undefined}
-        borderColor={transforming ? "border-emerald-200/50" : undefined}
-        onClick={onClick}
-        icon={transforming ? <BsXCircle /> : <GiPencilBrush />}
-      />
-    );
-  };
-
-  // Each pattern clip can be prepared for live posing
-  const PoseButton = () => {
-    if (!pattern) return null;
-
-    const onClick = () => {
-      const undoType = createUndoType(`pose_pattern_clip_${id}`, nanoid());
-
-      // If the clip is live, deselect everything and close the pose dropdown
-      if (isLive && poseClipId) {
-        dispatch(setSelectedTrackId({ data: null, undoType }));
-        dispatch(removeClipIdsFromSelection({ data: [poseClipId], undoType }));
-        dispatchCustomEvent(`close_dropdown_${poseClipId}`, {});
-        return;
-      }
-
-      // If the clip is posed, select the pose clip and open the dropdown
-      if (isPosed && poseClipId) {
-        dispatch(addClipIdsToSelection({ data: [poseClipId], undoType }));
-        dispatch(setSelectedTrackId({ data: clip.trackId, undoType }));
-        dispatchCustomEvent(`open_dropdown_${poseClipId}`, {});
-        return;
-      }
-
-      // Otherwise, create a pose clip for the pattern clip
-      const poseName = `${pattern.name ?? "Pattern"} Pose`;
-      const poseId = dispatch(createPose({ data: { name: poseName } }));
-      const poseClip = initializePoseClip({ trackId, tick, poseId });
-      dispatch(addClip({ data: poseClip }));
-    };
-
-    const label = isLive ? "Posing" : isPosed ? "Pose" : "Stage";
-    const Icon = isLive ? GiCrystalWand : isPosed ? GiHand : GiDramaMasks;
-    return (
-      <ScoreButton
-        label={label}
-        backgroundColor={isLive ? "bg-fuchsia-400/80" : undefined}
-        borderColor={isLive ? "border-fuchsia-200/80" : undefined}
-        onClick={onClick}
-        icon={<Icon />}
-      />
-    );
-  };
+  const [isAdding, setIsAdding] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [isTransforming, setIsTransforming] = useState(false);
+  const [transform, setTransform] = useState(0);
 
   // Compile the classname
   const className = classNames(
@@ -257,102 +53,112 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     isSelected ? "border-slate-100" : "border-teal-500"
   );
 
-  const AddButton = () => (
-    <ScoreButton
-      label={isAdding ? "Adding" : "Add"}
-      buttonClass={
-        isAdding ? "bg-emerald-500/80 border-emerald-200/80" : undefined
-      }
-      onClick={toggleAdding}
-      icon={<GiMusicalKeyboard />}
-    />
-  );
-
-  const RemoveButton = () => (
-    <ScoreButton
-      label={isRemoving ? "Removing" : "Remove"}
-      buttonClass={isRemoving ? "bg-red-400/80 border-red-200/80" : undefined}
-      onClick={toggleRemoving}
-      icon={<GiArrowCursor />}
-    />
-  );
-
   // Render the score dropdown
   return (
     <div className={className} onClick={cancelEvent}>
       <div className="flex gap-16 text-xs text-white">
-        <div className="relative flex flex-col gap-2">{PatternName}</div>
+        <div className="relative flex flex-col gap-2">
+          <div>Pattern Name:</div>
+          <input
+            className="bg-teal-700/25 px-2 placeholder:text-slate-400 border border-teal-300 focus:border-sky-300 focus:ring-sky-300 rounded-lg p-0 text-base text-center"
+            value={pattern?.name ?? ""}
+            placeholder={"Pattern Name"}
+            onChange={(e) => {
+              const data = { id: pattern?.id, name: e.target.value };
+              dispatch(updatePattern({ data }));
+            }}
+            onClick={cancelEvent}
+            onDoubleClick={cancelEvent}
+            onKeyDown={blurOnEnter}
+          />
+        </div>
         <div className="flex gap-3 px-3">
           <>
-            {!transforming ? (
+            {!isTransforming ? (
               <>
-                {EditButton()}
-                {!editing ? (
-                  <>
-                    {CopyButton()}
-                    {EditorButton()}
-                    {PoseButton()}
-                  </>
-                ) : (
-                  <>
-                    {AddButton()}
-                    {RemoveButton()}
-                    {ClearButton()}
-                  </>
-                )}
+                <ScoreButton
+                  label={isAdding ? "Play a Note" : "Write"}
+                  backgroundColor={isAdding ? "bg-emerald-400/80" : undefined}
+                  borderColor={isAdding ? "border-emerald-200/80" : undefined}
+                  onClick={() => setIsAdding((prev) => !prev)}
+                  icon={<BiPencil />}
+                />
+                <ScoreButton
+                  label={isRemoving ? "Click a Note" : "Erase"}
+                  buttonClass={isEmpty ? "cursor-default opacity-50" : ""}
+                  backgroundColor={isRemoving ? "bg-red-400/80" : undefined}
+                  borderColor={isRemoving ? "border-red-200/80" : undefined}
+                  onClick={() => !isEmpty && setIsRemoving((prev) => !prev)}
+                  icon={<BiEraser />}
+                />
+
+                <ScoreButton
+                  label={isLive ? "Posing" : isPosed ? "Pose" : "Stage"}
+                  backgroundColor={isLive ? "bg-fuchsia-400/80" : undefined}
+                  borderColor={isLive ? "border-fuchsia-200/80" : undefined}
+                  onClick={() =>
+                    dispatch(preparePatternClip({ data: portaledClip }))
+                  }
+                  icon={isPosed ? <GiCrystalWand /> : <GiHand />}
+                />
+                <ScoreButton
+                  label="Copy"
+                  backgroundColor={"bg-teal-800/80 active:bg-teal-400/80"}
+                  onClick={() => dispatch(migrateClip({ data: clip }))}
+                  icon={<GiSprout />}
+                />
               </>
             ) : (
               <>
-                <Transformations
+                <DropdownButton
                   label="Stream"
                   icon={<GiMusicalNotes />}
-                  transformations={streamTransformations(pattern?.id)}
+                  options={streamTransformations(pattern?.id)}
                   show={transform === 2}
                   toggle={() => setTransform((prev) => (prev !== 2 ? 2 : 0))}
                 />
-                <Transformations
+                <DropdownButton
                   label="Pitch"
                   icon={<GiMusicSpell />}
-                  transformations={pitchTransformations(pattern?.id)}
+                  options={pitchTransformations(pattern?.id)}
                   show={transform === 3}
                   toggle={() => setTransform((prev) => (prev !== 3 ? 3 : 0))}
                 />
-                <Transformations
+                <DropdownButton
                   label="Velocity"
                   icon={<GiThorHammer />}
-                  transformations={velocityTransformations(pattern?.id)}
+                  options={velocityTransformations(pattern?.id)}
                   show={transform === 4}
                   toggle={() => setTransform((prev) => (prev !== 4 ? 4 : 0))}
                 />
-                <Transformations
+                <DropdownButton
                   label="Duration"
                   icon={<FaRuler />}
-                  transformations={durationTransformations(pattern?.id)}
+                  options={durationTransformations(pattern?.id)}
                   show={transform === 5}
                   toggle={() => setTransform((prev) => (prev !== 5 ? 5 : 0))}
                 />
               </>
             )}
-            {TransformButton()}
+            <ScoreButton
+              label={isTransforming ? "Close" : "Transform"}
+              backgroundColor={isTransforming ? "bg-emerald-500/80" : undefined}
+              borderColor={isTransforming ? "border-emerald-200/50" : undefined}
+              onClick={() => {
+                if (isTransforming) setTransform(0);
+                setIsTransforming(!isTransforming);
+              }}
+              icon={isTransforming ? <BsXCircle /> : <GiPencilBrush />}
+            />
           </>
         </div>
       </div>
-      <div className="bg-white overflow-scroll min-h-[100px] max-h-full rounded-lg border-2 border-teal-200">
-        {score}
-      </div>
-      {editing && (
-        <div className="animate-in fade-in slide-in-from-top-10 slide-in-from-left-12">
-          <EditorPiano
-            show
-            noteRange={["C2", "C8"]}
-            playNote={playNote}
-            className={classNames(
-              "border-t-8",
-              isAdding ? "border-t-emerald-500" : "border-t-emerald-500/0"
-            )}
-          />
-        </div>
-      )}
+      <PatternClipScore
+        {...props}
+        isRemoving={isRemoving}
+        stopRemoving={() => setIsRemoving(false)}
+      />
+      {isAdding && <PatternClipPiano {...props} isAdding={isAdding} />}
     </div>
   );
 }
@@ -369,7 +175,7 @@ const ScoreButton = (props: {
   show?: boolean;
 }) => {
   return (
-    <div className="flex flex-col min-w-[55px] gap-2 total-center relative">
+    <div className="flex flex-col w-14 gap-2 total-center relative">
       {props.show && props.dropdown ? (
         <div className="absolute animate-in fade-in top-14 z-10 bg-teal-900/90 backdrop-blur border border-teal-500 rounded-lg gap-2">
           {props.dropdown}
@@ -403,8 +209,8 @@ const ScoreButton = (props: {
   );
 };
 
-const Transformations = (props: {
-  transformations: Transformation[];
+const DropdownButton = (props: {
+  options: DropdownOption[];
   icon?: React.ReactNode;
   label: string;
   show: boolean;
@@ -419,7 +225,7 @@ const Transformations = (props: {
       show={props.show}
       dropdown={
         <div className="flex flex-col p-2 min-w-20 total-center gap-1">
-          {props.transformations.map((props) => (
+          {props.options.map((props) => (
             <ScoreButton
               {...props}
               key={props.id}

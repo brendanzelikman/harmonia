@@ -1,6 +1,5 @@
 import { useProjectDispatch } from "types/hooks";
 import { Hotkey, useHotkeysInTimeline } from "lib/react-hotkeys-hook";
-import { DataGridHandle } from "react-data-grid";
 import { useAuth } from "providers/auth";
 import { isPatternTrack, isScaleTrack } from "types/Track/TrackTypes";
 import {
@@ -12,6 +11,7 @@ import {
 import {
   selectSelectedTrack,
   selectSelectedMedia,
+  selectIsLive,
 } from "types/Timeline/TimelineSelectors";
 import { createPatternTrackFromSelectedTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import { createScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
@@ -50,18 +50,19 @@ import {
 } from "types/Transport/TransportThunks";
 import { Thunk } from "types/Project/ProjectTypes";
 import {
-  selectTrackChain,
+  selectTrackAncestors,
   selectTrackChildren,
 } from "types/Track/TrackSelectors";
 import { setupFileInput } from "providers/idb/samples";
+import { selectHasClips } from "types/Clip/ClipSelectors";
 
-export function useTimelineHotkeys(timeline?: DataGridHandle) {
+export function useTimelineHotkeys() {
   const dispatch = useProjectDispatch();
 
   // Timeline Hotkeys
   useHotkeysInTimeline(dispatch(DECREASE_SUBDIVISION_HOTKEY));
   useHotkeysInTimeline(dispatch(INCREASE_SUBDIVISION_HOTKEY));
-  useHotkeysInTimeline(dispatch(RESET_SCROLL_HOTKEY(timeline?.element)));
+  // useHotkeysInTimeline(dispatch(RESET_SCROLL_HOTKEY(element)));
   useHotkeysInTimeline(dispatch(EXPORT_MIDI_HOTKEY));
   useHotkeysInTimeline(dispatch(EXPORT_AUDIO_HOTKEY));
 
@@ -74,7 +75,8 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
   useHotkeysInTimeline(dispatch(SELECT_NEXT_TRACK_HOTKEY));
   useHotkeysInTimeline(dispatch(DESELECT_TRACK_HOTKEY));
   useHotkeysInTimeline(dispatch(COLLAPSE_TRACK_HOTKEY));
-  useHotkeysInTimeline(dispatch(COLLAPSE_TRACK_FAMILY_HOTKEY));
+  useHotkeysInTimeline(dispatch(COLLAPSE_TRACK_PARENTS_HOTKEY));
+  useHotkeysInTimeline(dispatch(COLLAPSE_TRACK_CHILDREN_HOTKEY));
   useHotkeysInTimeline(dispatch(DELETE_TRACK_HOTKEY));
 
   // Motif Hotkeys
@@ -105,21 +107,21 @@ export function useTimelineHotkeys(timeline?: DataGridHandle) {
 // Timeline Hotkeys
 // -----------------------------------------------
 
-export const DECREASE_SUBDIVISION_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const DECREASE_SUBDIVISION_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Decrease Subdivision",
   description: "Decrease the subdivision of the timeline",
   shortcut: "meta+minus",
   callback: () => dispatch(decreaseSubdivision()),
 });
 
-export const INCREASE_SUBDIVISION_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const INCREASE_SUBDIVISION_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Increase Subdivision",
   description: "Increase the subdivision of the timeline",
   shortcut: "meta+equal",
   callback: () => dispatch(increaseSubdivision()),
 });
 
-export const RESET_SCROLL_HOTKEY =
+const RESET_SCROLL_HOTKEY =
   (element?: HTMLDivElement | null): Thunk<Hotkey> =>
   () => ({
     name: "Reset Scroll Position",
@@ -128,7 +130,7 @@ export const RESET_SCROLL_HOTKEY =
     callback: () => element && element.scroll({ left: 0, behavior: "smooth" }),
   });
 
-export const EXPORT_MIDI_HOTKEY: Thunk<Hotkey> = (dispatch) => {
+const EXPORT_MIDI_HOTKEY: Thunk<Hotkey> = (dispatch) => {
   const { isProdigy } = useAuth();
   return {
     name: "Export to MIDI",
@@ -138,7 +140,7 @@ export const EXPORT_MIDI_HOTKEY: Thunk<Hotkey> = (dispatch) => {
   };
 };
 
-export const EXPORT_AUDIO_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const EXPORT_AUDIO_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Export to WAV",
   description: "Export the timeline to a WAV file",
   shortcut: "meta+alt+w",
@@ -149,10 +151,7 @@ export const EXPORT_AUDIO_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
 // Track Hotkeys
 // -----------------------------------------------
 
-export const CREATE_SCALE_TRACK_HOTKEY: Thunk<Hotkey> = (
-  dispatch,
-  getProject
-) => ({
+const CREATE_SCALE_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Create Scale Track",
   description: "Create a Scale Track",
   shortcut: "shift+s",
@@ -165,17 +164,14 @@ export const CREATE_SCALE_TRACK_HOTKEY: Thunk<Hotkey> = (
   },
 });
 
-export const CREATE_PATTERN_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const CREATE_PATTERN_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Create Pattern Track",
   description: "Create a Pattern Track",
   shortcut: "shift+p",
   callback: () => dispatch(createPatternTrackFromSelectedTrack()),
 });
 
-export const INSERT_PARENT_TRACK_HOTKEY: Thunk<Hotkey> = (
-  dispatch,
-  getProject
-) => ({
+const INSERT_PARENT_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Insert Parent Scale Track",
   description: "Create a parent for the selected track",
   shortcut: "meta+shift+s",
@@ -185,7 +181,7 @@ export const INSERT_PARENT_TRACK_HOTKEY: Thunk<Hotkey> = (
   },
 });
 
-export const LOAD_SAMPLES_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+const LOAD_SAMPLES_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Load Samples",
   description: "Load a sample into the selected Pattern Track",
   shortcut: "l",
@@ -197,76 +193,78 @@ export const LOAD_SAMPLES_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   },
 });
 
-export const SELECT_PREVIOUS_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const SELECT_PREVIOUS_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Select Previous Track",
   description: "Select the previous track",
   shortcut: "up",
   callback: () => dispatch(selectPreviousTrack()),
 });
 
-export const SELECT_NEXT_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const SELECT_NEXT_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Select Next Track",
   description: "Select the next track",
   shortcut: "down",
   callback: () => dispatch(selectNextTrack()),
 });
 
-export const DESELECT_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const DESELECT_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Clear Track Selection",
   description: "Deselect the selected track",
   shortcut: "esc",
   callback: () => dispatch(setSelectedTrackId({ data: null })),
 });
 
-export const COLLAPSE_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+const COLLAPSE_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Collapse Selected Track",
   description: "Collapse the selected track",
-  shortcut: "m",
+  shortcut: "comma",
   callback: () => {
-    const selectedTrack = selectSelectedTrack(getProject());
-    if (!selectedTrack) return;
+    const project = getProject();
+    const isLive = selectIsLive(project);
+    const selectedTrack = selectSelectedTrack(project);
+    if (!selectedTrack || isLive) return;
     const collapsed = !selectedTrack?.collapsed;
     dispatch(updateTrack({ data: { ...selectedTrack, collapsed } }));
   },
 });
 
-export const COLLAPSE_TRACK_FAMILY_HOTKEY: Thunk<Hotkey> = (
+const COLLAPSE_TRACK_PARENTS_HOTKEY: Thunk<Hotkey> = (
   dispatch,
   getProject
-) => {
-  const project = getProject();
-  const track = selectSelectedTrack(project);
-  const isPatternTrack = track?.type === "pattern";
-  if (isPatternTrack) {
-    const isParentCollapsed = selectTrackChain(project, track?.id).some(
-      (track) => track?.collapsed
-    );
-    return {
-      name: "Collapse Parent Tracks",
-      description: "Collapse the parent tracks of the selected track",
-      shortcut: "shift+m",
-      callback: () => {
-        if (!track) return;
-        dispatch(collapseTrackParents(track.id, !isParentCollapsed));
-      },
-    };
-  } else {
-    const isChildCollapsed = selectTrackChildren(project, track?.id).some(
-      (track) => track?.collapsed
-    );
-    return {
-      name: "Collapse Track Family",
-      description: "Collapse the selected track and its children",
-      shortcut: "shift+m",
-      callback: () => {
-        if (!track) return;
-        dispatch(collapseTrackChildren(track.id, !isChildCollapsed));
-      },
-    };
-  }
-};
+) => ({
+  name: "Collapse Parent Tracks",
+  description: "Collapse the parent tracks of the selected track",
+  shortcut: "meta+comma",
+  callback: () => {
+    const project = getProject();
+    const track = selectSelectedTrack(project);
+    const isLive = selectIsLive(project);
+    if (!track || isLive) return;
+    const parents = selectTrackAncestors(project, track.id);
+    const isParentCollapsed = parents.some((track) => track?.collapsed);
+    dispatch(collapseTrackParents(track.id, !isParentCollapsed));
+  },
+});
 
-export const DELETE_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const COLLAPSE_TRACK_CHILDREN_HOTKEY: Thunk<Hotkey> = (
+  dispatch,
+  getProject
+) => ({
+  name: "Collapse Child Tracks",
+  description: "Collapse the child tracks of the selected track",
+  shortcut: "meta+shift+comma",
+  callback: () => {
+    const project = getProject();
+    const track = selectSelectedTrack(project);
+    const isLive = selectIsLive(project);
+    if (!track || isLive) return;
+    const chain = selectTrackChildren(project, track.id);
+    const isChildCollapsed = chain.some((track) => track?.collapsed);
+    dispatch(collapseTrackChildren(track.id, !isChildCollapsed));
+  },
+});
+
+const DELETE_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Delete Selected Track",
   description: "Delete the selected track",
   shortcut: "meta+backspace",
@@ -277,53 +275,64 @@ export const DELETE_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
 // Motif Hotkeys
 // -----------------------------------------------
 
-export const CREATE_NEW_MOTIF_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const CREATE_NEW_MOTIF_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Create New Motif",
   description: "Create a new motif",
   shortcut: "shift+equal",
   callback: () => dispatch(createTypedMotif()),
 });
 
-export const TOGGLE_MOTIF_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const TOGGLE_MOTIF_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Toggle Timeline Type",
   description: "Toggle the currently selected motif",
   shortcut: "c",
   callback: () => dispatch(toggleTimelineType()),
 });
 
-export const TOGGLE_ADDING_CLIP_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const TOGGLE_ADDING_CLIP_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Toggle Adding Clip",
   description: "Toggle the adding of clips",
   shortcut: "a",
   callback: () => dispatch(toggleTimelineState({ data: "adding-clips" })),
 });
 
-export const TOGGLE_SLICING_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const TOGGLE_SLICING_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Toggle Slicing Media",
   description: "Toggle the slicing of media",
   shortcut: "k",
-  callback: () => dispatch(toggleTimelineState({ data: "slicing-clips" })),
+  callback: () => {
+    const project = getProject();
+    if (selectIsLive(project) || !selectHasClips(project)) return;
+    dispatch(toggleTimelineState({ data: "slicing-clips" }));
+  },
 });
 
-export const TOGGLE_PORTALING_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const TOGGLE_PORTALING_MEDIA_HOTKEY: Thunk<Hotkey> = (
+  dispatch,
+  getProject
+) => ({
   name: "Toggle Portaling Media",
   description: "Toggle the portaling of media",
   shortcut: "p",
-  callback: () => dispatch(toggleTimelineState({ data: "portaling-clips" })),
+  callback: () => {
+    const project = getProject();
+    if (selectIsLive(project) || !selectHasClips(project)) return;
+    dispatch(toggleTimelineState({ data: "portaling-clips" }));
+  },
 });
 
 // -----------------------------------------------
 // Media Hotkeys
 // -----------------------------------------------
 
-export const SELECT_ALL_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const SELECT_ALL_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Select All Media",
   description: "Select all media",
   shortcut: "meta+a",
   callback: () => dispatch(addAllMediaToSelection()),
 });
 
-export const DESELECT_ALL_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const DESELECT_ALL_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Clear Media Selection",
   description: "Deselect all media",
   shortcut: "esc",
@@ -331,14 +340,14 @@ export const DESELECT_ALL_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
     dispatch(updateMediaSelection({ data: { clipIds: [], portalIds: [] } })),
 });
 
-export const DELETE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const DELETE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Delete Selected Media",
   description: "Delete the selected media",
   shortcut: "backspace",
   callback: () => dispatch(deleteSelectedMedia()),
 });
 
-export const MOVE_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+const MOVE_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Move Selected Media Left",
   description: "Move the selected media left",
   shortcut: "left",
@@ -352,7 +361,7 @@ export const MOVE_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   },
 });
 
-export const MOVE_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+const MOVE_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Move Selected Media Right",
   description: "Move the selected media right",
   shortcut: "right",
@@ -366,7 +375,7 @@ export const MOVE_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   },
 });
 
-export const SCRUB_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+const SCRUB_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Scrub Selected Media Left",
   description: "Scrub the selected media left",
   shortcut: "shift+left",
@@ -380,7 +389,7 @@ export const SCRUB_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   },
 });
 
-export const SCRUB_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+const SCRUB_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Scrub Selected Media Right",
   description: "Scrub the selected media right",
   shortcut: "shift+right",
@@ -398,35 +407,35 @@ export const SCRUB_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
 // Clipboard Hotkeys
 // -----------------------------------------------
 
-export const COPY_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const COPY_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Copy Selected Media",
   description: "Copy the selected media",
   shortcut: "meta+c",
   callback: () => dispatch(copySelectedMedia()),
 });
 
-export const PASTE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const PASTE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Paste Selected Media",
   description: "Paste the copied media",
   shortcut: "meta+v",
   callback: () => dispatch(pasteSelectedMedia()),
 });
 
-export const CUT_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const CUT_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Cut Selected Media",
   description: "Cut the selected media",
   shortcut: "meta+x",
   callback: () => dispatch(cutSelectedMedia()),
 });
 
-export const DUPLICATE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const DUPLICATE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Duplicate Selected Media",
   description: "Duplicate the selected media",
   shortcut: "meta+d",
   callback: () => dispatch(duplicateSelectedMedia()),
 });
 
-export const EXPORT_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+const EXPORT_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Export Selection to MIDI",
   description: "Export the selected clips to a MIDI file",
   shortcut: "meta+shift+m",

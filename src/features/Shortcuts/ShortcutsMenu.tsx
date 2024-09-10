@@ -5,8 +5,8 @@ import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { GlobalShortcuts } from "./content/GlobalShortcuts";
 import classNames from "classnames";
 import { TransportShortcuts } from "./content/TransportShortcuts";
-import { ArrangementShortcuts } from "./content/ArrangementShortcuts";
-import { TimelineShortcuts } from "./content/TimelineShortcuts";
+import { MediaShortcuts } from "./content/MediaShortcuts";
+import { TrackShortcuts } from "./content/TrackShortcuts";
 import { InstrumentEditorShortcuts } from "./content/InstrumentEditorShortcuts";
 import { ScaleEditorShortcuts } from "./content/ScaleEditorShortcuts";
 import { PatternEditorShortcuts } from "./content/PatternEditorShortcuts";
@@ -20,8 +20,8 @@ export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
 export const SHORTCUT_TYPES = [
   "Global",
   "Transport",
-  "Timeline",
-  "Arrangement",
+  "Tracks",
+  "Media",
   "Scale Editor",
   "Pattern Editor",
   "Pose Editor",
@@ -72,8 +72,8 @@ export function ShortcutsMenu() {
   const ShortcutContent = useMemo(() => {
     if (type === "Global") return <GlobalShortcuts />;
     if (type === "Transport") return <TransportShortcuts />;
-    if (type === "Timeline") return <TimelineShortcuts />;
-    if (type === "Arrangement") return <ArrangementShortcuts />;
+    if (type === "Tracks") return <TrackShortcuts />;
+    if (type === "Media") return <MediaShortcuts />;
     if (type === "Instrument Editor") return <InstrumentEditorShortcuts />;
     if (type === "Scale Editor") return <ScaleEditorShortcuts />;
     if (type === "Pattern Editor") return <PatternEditorShortcuts />;

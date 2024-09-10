@@ -7,13 +7,6 @@ import {
 } from "utils/constants";
 import { useEffect, useState } from "react";
 import { clamp } from "lodash";
-import {
-  NavbarFormGroup,
-  NavbarFormLabel,
-  NavbarFormInput,
-  NavbarFormButton,
-  NavbarHoverTooltip,
-} from "../../components";
 import { use, useProjectDispatch, useProjectSelector } from "types/hooks";
 import { TOGGLE_SHORTCUTS } from "features/Shortcuts/ShortcutsMenu";
 import { dispatchCustomEvent, onEnter } from "utils/html";
@@ -33,6 +26,13 @@ import {
   selectHideTooltips,
 } from "types/Meta/MetaSelectors";
 import { toggleTimeline, toggleTooltips } from "types/Meta/MetaSlice";
+import {
+  NavbarFormGroup,
+  NavbarFormInput,
+  NavbarFormButton,
+  NavbarFormLabel,
+} from "features/Navbar/components/NavbarForm";
+import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 
 export function NavbarSettingsMenu() {
   const dispatch = useProjectDispatch();
@@ -176,7 +176,7 @@ export function NavbarSettingsMenu() {
         <GiSettingsKnobs />
       </div>
       {/* Tooltip */}
-      <NavbarHoverTooltip bgColor="bg-slate-800">
+      <NavbarHoverTooltip bgColor="bg-slate-800/90 backdrop-blur">
         <div className="size-full py-1 space-y-3">
           {BPMField}
           {MeterField}

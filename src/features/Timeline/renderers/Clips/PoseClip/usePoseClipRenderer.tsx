@@ -6,7 +6,6 @@ import classNames from "classnames";
 import { ClipComponentProps } from "../TimelineClips";
 import { PortaledPoseClip, PoseClip } from "types/Clip/ClipTypes";
 import { selectPoseById } from "types/Pose/PoseSelectors";
-import { useHotkeys } from "react-hotkeys-hook";
 import { PoseClipDropdown } from "./PoseClipDropdown";
 import { PoseClipHeader } from "./PoseClipHeader";
 import { Portaled } from "types/Portal/PortalTypes";
@@ -31,7 +30,6 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
   /** Each pose has a dropdown for editing offsets. */
   const dropdownState = useToggledState(`dropdown_${pcId}`);
   const isDropdownOpen = dropdownState.isOpen;
-  useHotkeys("esc", dropdownState.close);
 
   /** A custom hook for dragging poses into cells */
   const dragState = useDragState();

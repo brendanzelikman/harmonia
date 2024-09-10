@@ -18,6 +18,7 @@ import {
   selectOrderedTrackIds,
 } from "types/Track/TrackSelectors";
 import { TimelineCursor } from "./TimelineCursor";
+import { TimelineTopLeftCorner } from "./TimelineTopLeftCorner";
 
 interface BackgroundProps {
   element?: HTMLDivElement;
@@ -25,7 +26,6 @@ interface BackgroundProps {
 
 // Timeline background so that the tracks can be scrolled
 export const TimelineGraphics = (props: BackgroundProps) => {
-  // Cell dimensions
   const cellWidth = use(selectCellWidth);
   const cellHeight = use(selectCellHeight);
 
@@ -81,14 +81,6 @@ export const TimelineGraphics = (props: BackgroundProps) => {
     <div
       className="-z-10 absolute inset-0 bg-slate-300/25 flex flex-col pointer-events-none"
       style={{ width, height: stHeight, top: stTop }}
-    />
-  );
-
-  /** The top left corner of the timeline. */
-  const TimelineTopLeftCorner = () => (
-    <div
-      className="sticky inset-0 -mb-20 z-[90] bg-gradient-to-r from-gray-800 to-gray-900"
-      style={{ width: TRACK_WIDTH, height: HEADER_HEIGHT }}
     />
   );
 

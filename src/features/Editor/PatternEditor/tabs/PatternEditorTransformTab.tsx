@@ -151,13 +151,13 @@ export function PatternEditorTransformTab(props: PatternEditorProps) {
   );
 }
 
-export type Transformation = {
+export type DropdownOption = {
   id: string;
   label: string;
   onClick: () => void;
 };
 
-export const streamTransformations = (id: PatternId): Transformation[] => {
+export const streamTransformations = (id: PatternId): DropdownOption[] => {
   const dispatch = useProjectDispatch();
   return [
     {
@@ -217,7 +217,7 @@ export const streamTransformations = (id: PatternId): Transformation[] => {
   ];
 };
 
-export const durationTransformations = (id: PatternId): Transformation[] => {
+export const durationTransformations = (id: PatternId): DropdownOption[] => {
   const dispatch = useProjectDispatch();
   return [
     {
@@ -275,7 +275,7 @@ export const durationTransformations = (id: PatternId): Transformation[] => {
   ];
 };
 
-export const pitchTransformations = (id: PatternId): Transformation[] => {
+export const pitchTransformations = (id: PatternId): DropdownOption[] => {
   const dispatch = useProjectDispatch();
   return [
     {
@@ -328,7 +328,7 @@ export const pitchTransformations = (id: PatternId): Transformation[] => {
   ];
 };
 
-export const velocityTransformations = (id: PatternId): Transformation[] => {
+export const velocityTransformations = (id: PatternId): DropdownOption[] => {
   const dispatch = useProjectDispatch();
   return [
     {

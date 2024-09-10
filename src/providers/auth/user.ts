@@ -10,6 +10,8 @@ import { firebaseApp } from "providers/firebase";
 import { Rank } from "utils/rank";
 import isElectron from "is-electron";
 import { fetchRank } from "./rank";
+import { IDBPDatabase } from "idb";
+import { getDatabase } from "providers/idb/database";
 
 // ----------------------------------------
 // User Auth
@@ -20,14 +22,17 @@ export const ADMIN_UID = "admin";
 export interface UserAuth {
   user: User | null;
   uid: string | null;
+  db: IDBPDatabase<unknown> | null;
   isAuthorized: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
   authorize: (forceCheck?: boolean) => Promise<Clearance>;
 }
+
 export const defaultUserAuth: UserAuth = {
   user: null,
   uid: null,
+  db: null,
   isAdmin: getClearance() === adminClearance,
   isAuthorized: getClearance() === userClearance,
   isAuthenticated: false,
@@ -37,6 +42,7 @@ export const defaultUserAuth: UserAuth = {
 export const defaultAdminAuth: UserAuth = {
   user: null,
   uid: ADMIN_UID,
+  db: null,
   isAuthorized: true,
   isAuthenticated: true,
   isAdmin: true,
@@ -103,14 +109,14 @@ export const defaultAdminEnvironment: UserEnvironment = {
 export type HarmoniaUser = UserAuth & UserRank & UserEnvironment;
 
 // Regular users start with no privileges
-export const defaultHarmoniaUser: HarmoniaUser = {
+export const defaultUser: HarmoniaUser = {
   ...defaultUserAuth,
   ...defaultUserRank,
   ...defaultUserEnvironment,
 };
 
 // The admin user has all privileges
-export const ADMIN: HarmoniaUser = {
+export const defaultAdmin: HarmoniaUser = {
   ...defaultAdminAuth,
   ...defaultAdminRank,
   ...defaultAdminEnvironment,
@@ -124,8 +130,14 @@ export const ADMIN: HarmoniaUser = {
 export async function fetchUser(
   clearance = getClearance()
 ): Promise<HarmoniaUser> {
-  if (clearance === adminClearance) return ADMIN;
-  if (clearance === null) return { ...defaultHarmoniaUser, isLoaded: true };
+  if (clearance === null) {
+    return { ...defaultUser, isLoaded: true };
+  }
+
+  // If the user is an admin, return the admin user
+  if (clearance === adminClearance) {
+    return { ...defaultAdmin, db: await getDatabase(ADMIN_UID) };
+  }
 
   // Otherwise, go through Firebase
   const auth = getAuth(firebaseApp);
@@ -135,6 +147,7 @@ export async function fetchUser(
   const userAuth: UserAuth = {
     user: auth.currentUser,
     uid: userId,
+    db: await getDatabase(userId),
     isAuthenticated: !!auth.currentUser,
     isAuthorized: !!auth.currentUser,
     isAdmin: false,

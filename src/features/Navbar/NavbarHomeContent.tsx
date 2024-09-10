@@ -5,13 +5,13 @@ import { useAuth } from "providers/auth";
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
 
-export function NavbarDefaultContent(props: {
+export function NavbarHomeContent(props: {
   view: View;
   isLoadingPlayground: boolean;
 }) {
   const { view, isLoadingPlayground } = props;
-  const { isProdigy, isMaestro, isVirtuoso, isAtLeastRank, canPlay } =
-    useAuth();
+  const { isProdigy, isMaestro, isVirtuoso, isAtLeastRank } = useAuth();
+  const { canPlay } = useAuth();
 
   // Render the link to the view
   const renderLink = useCallback(

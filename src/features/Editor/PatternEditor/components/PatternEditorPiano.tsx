@@ -172,7 +172,7 @@ export function PatternEditorPiano(props: PatternEditorProps) {
     }
   };
 
-  const [mode, setMode] = useState<PatternPianoMode>("midi");
+  const [mode, setMode] = useState<PatternPianoMode>("autobind");
   const isChromatic = mode === "midi" || mode === "autobind";
 
   const playNote =
@@ -197,15 +197,6 @@ export function PatternEditorPiano(props: PatternEditorProps) {
             </div>
             <button
               className={classNames(
-                mode === "midi" ? "bg-emerald-800" : "bg-slate-800/50",
-                `whitespace-nowrap min-w-48 px-3 py-0.5 rounded-lg border my-auto`
-              )}
-              onClick={() => setMode("midi")}
-            >
-              Chromatic Notes (MIDI)
-            </button>
-            <button
-              className={classNames(
                 mode === "autobind" ? "bg-emerald-800" : "bg-slate-800/50",
                 `whitespace-nowrap min-w-48 px-3 py-0.5 rounded-lg border my-auto`
               )}
@@ -213,6 +204,16 @@ export function PatternEditorPiano(props: PatternEditorProps) {
             >
               Chromatic Notes (Autobind)
             </button>
+            <button
+              className={classNames(
+                mode === "midi" ? "bg-emerald-800" : "bg-slate-800/50",
+                `whitespace-nowrap min-w-48 px-3 py-0.5 rounded-lg border my-auto`
+              )}
+              onClick={() => setMode("midi")}
+            >
+              Chromatic Notes (MIDI)
+            </button>
+
             <button
               className={classNames(
                 mode === "filter" ? "bg-emerald-800" : "bg-slate-800/50",

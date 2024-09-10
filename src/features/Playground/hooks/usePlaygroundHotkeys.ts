@@ -25,6 +25,10 @@ import {
 import { exportProjectToHAM } from "types/Project/ProjectExporters";
 import { Thunk } from "types/Project/ProjectTypes";
 import { dispatchCustomEvent } from "utils/html";
+import {
+  selectFirstPortaledPatternClipId,
+  selectFirstPortaledPoseClipId,
+} from "types/Arrangement/ArrangementSelectors";
 
 export function usePlaygroundHotkeys() {
   const dispatch = useProjectDispatch();
@@ -74,7 +78,7 @@ export const NEW_PROJECT_HOTKEY: Thunk<Hotkey> = () => ({
   name: "New Project",
   description: "Create a new project from scratch.",
   shortcut: "meta+alt+n",
-  callback: () => createProject().then(() => location.reload()),
+  callback: () => createProject(),
 });
 
 export const OPEN_PROJECT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
@@ -135,6 +139,10 @@ export const CLOSE_EDITOR_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
     if (isVisible) {
       dispatch(hideEditor());
     }
+    const firstPatternId = selectFirstPortaledPatternClipId(project);
+    const firstPoseId = selectFirstPortaledPoseClipId(project);
+    dispatchCustomEvent(`close_score_${firstPatternId}`);
+    dispatchCustomEvent(`close_dropdown_${firstPoseId}`);
   },
 });
 

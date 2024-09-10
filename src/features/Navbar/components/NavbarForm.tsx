@@ -1,7 +1,13 @@
-import { ButtonHTMLAttributes, InputHTMLAttributes } from "react";
+import {
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  PropsWithChildren,
+} from "react";
 import { blurOnEnter } from "utils/html";
 
-export const NavbarFormGroup = (props: any) => (
+export const NavbarFormGroup = (
+  props: PropsWithChildren<React.HTMLProps<HTMLDivElement>>
+) => (
   <div
     className={`w-full flex justify-between items-center group px-2 relative rounded ${
       props.className ?? ""
@@ -12,7 +18,9 @@ export const NavbarFormGroup = (props: any) => (
   </div>
 );
 
-export const NavbarFormLabel = (props: any) => (
+export const NavbarFormLabel = (
+  props: PropsWithChildren<React.HTMLProps<HTMLLabelElement>>
+) => (
   <label
     className={`text-sm group-focus-within:text-shadow pointer-events-none ${
       props.className ?? ""

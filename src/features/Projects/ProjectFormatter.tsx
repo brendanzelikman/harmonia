@@ -7,22 +7,28 @@ import { useHotkeys } from "react-hotkeys-hook";
 import classNames from "classnames";
 import { ProjectItem } from "./hooks/useProjectList";
 import { useAuth } from "providers/auth";
-import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { isProject } from "types/Project/ProjectTypes";
 import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
-import { selectInstruments } from "types/Instrument/InstrumentSelectors";
 import { selectMeta } from "types/Meta/MetaSelectors";
-import { selectScaleTracks } from "types/Track/TrackSelectors";
-import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { createProject, deleteProject } from "types/Project/ProjectThunks";
 import { loadProjectByPath, loadProject } from "types/Project/ProjectLoaders";
 import { exportProjectToHAM } from "types/Project/ProjectExporters";
-import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
-import { selectPoses } from "types/Pose/PoseSelectors";
 import { GiCompactDisc } from "react-icons/gi";
 import moment from "moment";
+import {
+  selectPatternTrackIds,
+  selectPatternTracks,
+  selectScaleTrackIds,
+} from "types/Track/TrackSelectors";
+import { selectScaleNameMap } from "types/Arrangement/ArrangementTrackSelectors";
+import { getDictValues } from "utils/objects";
+import { selectPatternMap } from "types/Pattern/PatternSelectors";
+import { selectPatternClips } from "types/Clip/ClipSelectors";
+import { uniq } from "lodash";
+import { selectInstrumentMap } from "types/Instrument/InstrumentSelectors";
+import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 
 interface ProjectFormatterProps extends ProjectItem {
   index?: number;
@@ -54,57 +60,65 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
   const duration = convertTicksToSeconds(transport, lastTick);
   const seconds = `${duration.toFixed(1)}s`;
 
-  // Get the list of patterns used
-  const patternNames = selectCustomPatterns(project)
-    .map((p) => p.name)
-    .filter(Boolean) as string[];
+  // Get scale names from the project
+  const scaleNameMap = selectScaleNameMap(project);
+  const scales = uniq(
+    getDictValues(scaleNameMap).map((n) => n.split(") ")[1])
+  ).join(", ");
 
-  // Get the list of poses used
-  const poseNames = selectPoses(project)
-    .map((pose) => pose.name)
-    .filter(Boolean) as string[];
+  // Get actively used pattern names from the project
+  const patternMap = selectPatternMap(project);
+  const patternClips = selectPatternClips(project);
+  const patterns = uniq(
+    patternClips.map((c) => patternMap[c.patternId]?.name).filter(Boolean)
+  ).join(", ");
 
-  // Get the list of scales used
-  const scaleTracks = selectScaleTracks(project);
-  const allScaleNames = scaleTracks.map((track) =>
-    selectTrackScaleNameAtTick(project, track.id, 0)
-  );
-  const scaleNames = [...new Set(allScaleNames)];
-
-  // Get the list of instruments used
-  const instruments = selectInstruments(project);
-  const allInstrumentNames = instruments.map(({ key }) =>
-    getInstrumentName(key)
-  );
-  const instrumentNames = [...new Set(allInstrumentNames)];
+  // Get instrument names from the project
+  const instrumentMap = selectInstrumentMap(project);
+  const instruments = uniq(
+    getDictValues(instrumentMap).map((i) => getInstrumentName(i.key))
+  ).join(", ");
 
   /** Display the title and general info */
   const ProjectTitle = () => (
     <div className="w-full select-none text-sm font-thin bg-slate-900/50 border border-indigo-300/50 text-slate-50 p-3 rounded">
-      <h1 className="text-2xl text-indigo-50 font-bold">
-        {heldKeys.alt ? id : name}
+      <h1 className="text-2xl text-indigo-50 font-bold truncate max-w-64">
+        {name}
       </h1>
-      <h6>
-        <span className="text-indigo-300">Duration:</span> {seconds} @ {bpm}
-        BPM
-      </h6>
-      <h6>
-        <span className="text-indigo-300">Date Created:</span> {dateCreated}
-      </h6>
-      <h6>
-        <span className="text-indigo-300">Last Updated:</span> {lastUpdated}
-      </h6>
+      {heldKeys.alt ? (
+        <div className="*:whitespace-nowrap max-w-64 overflow-scroll">
+          <h6>
+            <span className="text-sky-300">Scales:</span> {scales}
+          </h6>
+          <h6>
+            <span className="text-emerald-300">Patterns:</span> {patterns}
+          </h6>
+          <h6>
+            <span className="text-orange-300">Instruments:</span> {instruments}
+          </h6>
+        </div>
+      ) : (
+        <>
+          <h6>
+            <span className="text-indigo-300">Duration:</span> {seconds} @ {bpm}
+            BPM
+          </h6>
+          <h6>
+            <span className="text-indigo-300">Date Created:</span> {dateCreated}
+          </h6>
+          <h6>
+            <span className="text-indigo-300">Last Updated:</span> {lastUpdated}
+          </h6>
+        </>
+      )}
     </div>
   );
 
   // Navigate to the playground if conditions are met
-  const callback = () => {
-    if (isInvalid || !canPlay) return;
-    navigate("/playground");
-  };
 
   // Load the project by path or database if necessary
   const onClick = () => {
+    const callback = () => !isInvalid && canPlay && navigate("/playground");
     if (isInvalid || !canPlay) return;
     if (props.filePath) {
       dispatch(loadProjectByPath(props.filePath, callback));

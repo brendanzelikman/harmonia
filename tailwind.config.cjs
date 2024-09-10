@@ -72,7 +72,7 @@ module.exports = {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
       },
       cursor: {
-        paintbrush: "url(/cursors/wand3.cur), pointer",
+        paintbrush: "url(/cursors/paintbrush.cur), pointer",
         scissors: "url(/cursors/scissors.cur), pointer",
         wand: "url(/cursors/wand.cur), pointer",
         portalguno: "url(/cursors/portalguno.cur), pointer",

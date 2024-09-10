@@ -241,26 +241,26 @@ const SKIP_RIGHT_HOTKEY =
 // ------------------------------------------------------------
 
 const SELECT_DURATION_HOTKEY =
-  (key: string): Thunk<Hotkey> =>
+  (shortcut: string): Thunk<Hotkey> =>
   (dispatch) => {
     const data =
-      key === "1"
+      shortcut === "1"
         ? "whole"
-        : key === "2"
+        : shortcut === "2"
         ? "half"
-        : key === "3"
+        : shortcut === "3"
         ? "quarter"
-        : key === "4"
+        : shortcut === "4"
         ? "eighth"
-        : key === "5"
+        : shortcut === "5"
         ? "16th"
-        : key === "6"
+        : shortcut === "6"
         ? "32nd"
         : "64th";
     return {
       name: `Select ${capitalize(data)} Note`,
-      description: "Select a whole note duration.",
-      shortcut: "1",
+      description: `Select a ${data} note duration.`,
+      shortcut,
       callback: () => dispatch(setEditorNoteDuration({ data })),
     };
   };
@@ -296,9 +296,9 @@ const TRANSPOSE_HOTKEY =
         const { id } = pattern;
         const { index } = cursor;
         if (!cursor.hidden) {
-          dispatch(transposePatternBlock({ id, index, transpose: 1 }));
+          dispatch(transposePatternBlock({ id, index, transpose: steps }));
         } else {
-          dispatch(transposePattern({ data: { id, transpose: 1 } }));
+          dispatch(transposePattern({ data: { id, transpose: steps } }));
         }
       },
     };

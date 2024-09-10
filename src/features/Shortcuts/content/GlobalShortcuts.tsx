@@ -6,7 +6,7 @@ export function GlobalShortcuts() {
   const { isProdigy } = useAuth();
   return (
     <ShortcutContent
-      className="text-lg space-y-3"
+      className="text-lg space-y-5"
       shortcuts={[
         <Shortcut shortcut="⌘ + S" description="Save Project" />,
         <Shortcut shortcut="⌘ + O" description="Open Project" />,
@@ -18,11 +18,10 @@ export function GlobalShortcuts() {
           <Shortcut shortcut="⌘ + ⌥ + M" description="Export Project to MIDI" />
         ) : null,
         <Shortcut shortcut="⌘ + ⌥ + W" description="Export Project to WAV" />,
-        <Shortcut shortcut="Esc" description="Close Editor" />,
-        <Shortcut shortcut="⌘ + ⇧ + F" description="Toggle Fullscreen" />,
-        <Shortcut shortcut="⌘ + D" description="Toggle Diary" />,
-        <Shortcut shortcut="⌘ + ," description="Toggle Settings" />,
+        <Shortcut shortcut="⇧ + D" description="Toggle Diary" />,
         <Shortcut shortcut="?" description="Toggle Shortcuts" />,
+        <Shortcut shortcut="⌘ + Plus" description="Increase Subdivision" />,
+        <Shortcut shortcut="⌘ + Minus" description="Decrease Subdivision" />,
       ]}
     />
   );

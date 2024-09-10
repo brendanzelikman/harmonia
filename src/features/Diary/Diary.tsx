@@ -7,7 +7,6 @@ import { ContentPage } from "./ContentPage";
 import { m } from "framer-motion";
 import { use, useProjectDispatch } from "types/hooks";
 import { setDiaryPage, clearDiary } from "types/Meta/MetaSlice";
-import { NavbarHoverTooltip } from "features/Navbar/components";
 import classNames from "classnames";
 import { NAV_HEIGHT } from "utils/constants";
 import Background from "assets/images/landing-background.png";
@@ -18,6 +17,7 @@ import {
   selectProjectName,
 } from "types/Meta/MetaSelectors";
 import { FlipBook } from "lib/react-pageflip";
+import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 
 const DIARY_WIDTH = window.innerWidth / 2 - NAV_HEIGHT;
 const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;

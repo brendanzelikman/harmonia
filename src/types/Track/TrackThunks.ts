@@ -1,6 +1,6 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { Payload, createUndoType, unpackUndoType } from "lib/redux";
-import { union, difference } from "lodash";
+import { union, difference, range } from "lodash";
 import { selectClipsByTrackIds } from "types/Clip/ClipSelectors";
 import { addClips, removeClips } from "types/Clip/ClipSlice";
 import { initializeClip } from "types/Clip/ClipTypes";
@@ -32,7 +32,6 @@ import {
   ScaleObject,
   isNestedNote,
   initializeScale,
-  chromaticNotes,
 } from "types/Scale/ScaleTypes";
 import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
@@ -56,6 +55,7 @@ import {
   selectTrackScaleChain,
   selectTrackMidiScaleMap,
   selectTrackChainIds,
+  selectTrackAncestorIds,
 } from "./TrackSelectors";
 import { scaleTrackSlice, patternTrackSlice } from "./TrackSlice";
 import {
@@ -605,7 +605,7 @@ export const collapseTrackParents =
   (trackId: TrackId, collapsed = true): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const parentIds = selectTrackChainIds(project, trackId);
+    const parentIds = selectTrackAncestorIds(project, trackId);
     dispatch(collapseTracks({ data: parentIds }, collapsed));
   };
 
@@ -644,6 +644,9 @@ export const autoBindNoteToTrack =
     const chainIds = selectTrackChainIds(project, trackId);
     const idCount = chainIds.length;
 
+    const tonicScale = selectTrackMidiScale(project, trackId);
+    const chromaticScale = range(tonicScale[0], tonicScale[0] + 12);
+
     // Get the current track and scale
     for (let i = idCount - 1; i >= 0; i--) {
       const trackId = chainIds[i];
@@ -674,17 +677,17 @@ export const autoBindNoteToTrack =
         if (!parentScaleId) continue;
 
         // Check the parent scale (or chromatic scale at the end)
-        const parentScale = id === "T" ? chromaticNotes : trackScaleMap[id];
+        const parentScale = id === "T" ? chromaticScale : trackScaleMap[id];
         const parentSize = parentScale.length;
         const degree =
           id === "T"
-            ? chromaticNotes.findIndex((n) => n % 12 === midi % 12)
+            ? chromaticScale.findIndex((n) => n % 12 === midi % 12)
             : dispatch(getDegreeOfNoteInTrack(id, scaleNote));
         if (degree === -1) continue;
 
         // Check if the note can be lowered to fit in the scale
         const lower = mod(degree - 1, parentSize);
-        const lowerOctave = Math.floor((degree - 1) / parentSize);
+        const lowerWrap = Math.floor((degree - 1) / parentSize);
         const lowerMIDI = parentScale?.[lower] ?? 0;
         const lowerNote = { ...scaleNote, MIDI: lowerMIDI };
         const lowerDegree = dispatch(
@@ -693,7 +696,7 @@ export const autoBindNoteToTrack =
 
         // If the lowered note exists in the current scale, add the note as an upper neighbor
         if (lowerDegree > -1) {
-          const octave = getMidiOctaveDistance(lowerMIDI, midi) + lowerOctave;
+          const octave = getMidiOctaveDistance(lowerMIDI, midi) + lowerWrap;
           const offset = { [parentScaleId]: 1, octave };
           note = { ...scaleNote, degree: lowerDegree, offset };
           if ("MIDI" in note) delete note.MIDI;
@@ -705,14 +708,14 @@ export const autoBindNoteToTrack =
         const upper = mod(degree + 1, parentSize);
         const upperMIDI = parentScale?.[upper] ?? 0;
         const upperNote = { ...scaleNote, MIDI: upperMIDI };
-        const upperOctave = Math.floor((degree + 1) / parentSize);
+        const upperWrap = Math.floor((degree + 1) / parentSize);
         const upperDegree = dispatch(
           getDegreeOfNoteInTrack(trackId, upperNote)
         );
 
         // If the raised note exists in the current scale, add the note as a lower neighbor
         if (upperDegree > -1) {
-          const octave = getMidiOctaveDistance(upperMIDI, midi) + upperOctave;
+          const octave = getMidiOctaveDistance(upperMIDI, midi) + upperWrap;
           const offset = { [parentScaleId]: -1, octave };
           note = { ...scaleNote, degree: upperDegree, offset };
           if ("MIDI" in note) delete note.MIDI;

@@ -1,4 +1,4 @@
-import { getObjectDuration } from "types/Motif/MotifFunctions";
+import { getMotifDuration } from "types/Motif/MotifFunctions";
 import { isClipInterface, Clip } from "./ClipTypes";
 import { Motif } from "types/Motif/MotifTypes";
 
@@ -11,7 +11,7 @@ export const getClipDuration = (clip?: Clip, object?: Motif) => {
 
   // Otherwise, return the stream duration - clip offset
   if (!object) return 0;
-  const streamDuration = getObjectDuration(object);
+  const streamDuration = getMotifDuration(object);
   const streamOffset = clip.offset ?? 0;
   return Math.max(streamDuration - streamOffset, 0);
 };

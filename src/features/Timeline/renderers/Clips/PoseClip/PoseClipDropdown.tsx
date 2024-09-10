@@ -21,7 +21,6 @@ import {
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getTrackDepth, getTrackLabel } from "types/Track/TrackFunctions";
 import {
-  selectScaleTracks,
   selectTrackChain,
   selectTrackDepthById,
   selectTrackMap,
@@ -44,7 +43,6 @@ export const PoseClipDropdown = (props: PoseClipDropdownProps) => {
   const dispatch = useProjectDispatch();
   const trackMap = useDeep(selectTrackMap);
   const trackScaleMap = useDeep(selectTrackMidiScaleMap);
-  const scaleTracks = useDeep(selectScaleTracks);
   const trackChain = useDeep((_) => selectTrackChain(_, clip.trackId));
   const clipLabel = `Track ${getTrackLabel(clip.trackId, trackMap)}`;
   const cellHeight = use(selectCellHeight);
@@ -114,17 +112,17 @@ export const PoseClipDropdown = (props: PoseClipDropdownProps) => {
               )}
             >
               {depth === 1
-                ? "Hold Q + Press Key"
+                ? "Hold Q + Press Number"
                 : depth === 2
-                ? "Hold W + Press Key"
+                ? "Hold W + Press Number"
                 : depth === 3
-                ? "Hold E + Press Key"
+                ? "Hold E + Press Number"
                 : id === "chordal"
-                ? "Hold R + Press Key"
+                ? "Hold R + Press Number"
                 : id === "chromatic"
-                ? "Hold T + Press Key"
+                ? "Hold T + Press Number"
                 : id === "octave"
-                ? "Hold Y + Press Key"
+                ? "Hold Y + Press Number"
                 : ""}
             </div>
           )}

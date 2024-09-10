@@ -56,6 +56,7 @@ export const PatternClipBlock = (props: PatternClipBlockProps) => {
 
   // Compile the classname
   const className = classNames(
+    "w-full",
     { "bg-slate-500/50 group-hover:bg-slate-600/50": isSlicing },
     { "cursor-scissors overflow-hidden": isSlicing },
     { "border-slate-50/10": !isSlicing },

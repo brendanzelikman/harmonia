@@ -39,7 +39,7 @@ export interface BaseProps {
 export type StreamProps = BaseProps & { stream?: PatternMidiStream };
 export type ArrayProps = BaseProps & { notes?: MidiNote[] };
 export type NoteList = PatternMidiStream | MidiNote[];
-export type Props = StreamProps | ArrayProps;
+export type OSMDProps = StreamProps | ArrayProps;
 
 /** The default score options hide all non-note information. */
 const defaultOptions: IOSMDOptions = {
@@ -75,7 +75,7 @@ function formatScoreEngravingRules(score?: OSMD) {
 }
 
 /** Render an XML string as a score using a list of notes. */
-export function useOSMD(props: Props): ScoreProps {
+export function useOSMD(props: OSMDProps): ScoreProps {
   const { id, xml, className } = props;
 
   // Score info

@@ -1,16 +1,12 @@
+import { NavbarTooltipButton } from "components/TooltipButton";
 import { GiNotebook } from "react-icons/gi";
-import { NavbarTooltipButton } from "../../components";
-import classNames from "classnames";
 import { useDiary } from "types/Diary/DiaryTypes";
 
 export function NavbarDiaryButton() {
   const { isOpen, toggle } = useDiary();
   return (
     <NavbarTooltipButton
-      className={classNames(
-        "cursor-pointer p-1.5",
-        isOpen ? "text-indigo-400" : "text-slate-50"
-      )}
+      className="cursor-pointer text-slate-50"
       label={isOpen ? "Close Project Diary" : "Open Project Diary"}
       onClick={toggle}
     >

@@ -13,11 +13,17 @@ import { fetchUser } from "providers/auth/user";
 import { selectMeta } from "../Meta/MetaSelectors";
 import { Thunk, isProject } from "./ProjectTypes";
 import { mergeBaseProjects } from "./ProjectFunctions";
-import { promptUserForNumber } from "utils/html";
+import { dispatchCustomEvent, promptUserForNumber } from "utils/html";
+import { UPDATE_PROJECTS } from "./ProjectThunks";
+
+interface ProjectFileOptions {
+  merging?: boolean;
+  reload?: boolean;
+}
 
 /** Open the user's file system and read local projects. */
 export const readLocalProjects =
-  (options?: { merging: boolean }): Thunk =>
+  (options?: ProjectFileOptions): Thunk =>
   (dispatch) => {
     const input = document.createElement("input");
     input.type = "file";
@@ -25,10 +31,11 @@ export const readLocalProjects =
     input.addEventListener("change", (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        dispatch(loadProjectByFile(file, !!options?.merging));
+        dispatch(loadProjectByFile(file, options));
       }
     });
     input.click();
+    input.remove();
   };
 
 /** Try to load the project by ID from the database. */
@@ -51,81 +58,80 @@ export const loadProject =
 
 /** Try to upload a new project or update the current project by file. */
 export const loadProjectByFile =
-  (file: File, merging = false): Thunk =>
+  (file: File, options?: ProjectFileOptions): Thunk =>
   async (dispatch) => {
     const { uid, isAuthorized, isAtLeastRank } = await fetchUser();
     if (!uid || !isAuthorized) return;
 
-    try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        if (!e.target?.result) {
-          return window.location.reload();
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      if (!e.target?.result) {
+        return window.location.reload();
+      }
+
+      // Parse the project from the file
+      const projectString = e.target.result as string;
+      const project = JSON.parse(projectString);
+
+      if (!isProject(project)) {
+        throw new Error("Invalid project.");
+      }
+
+      // Try to get the existing project
+      const meta = selectMeta(project);
+      const existingProject = await getProjectFromDB(meta.id);
+
+      if (!options?.merging) {
+        // Replace the current project if the free tier has a project
+        if (!isAtLeastRank("maestro")) {
+          await setCurrentProject(project);
+          return;
         }
 
-        // Parse the project from the file
-        const projectString = e.target.result as string;
-        const project = JSON.parse(projectString);
-
-        if (!isProject(project)) {
-          throw new Error("Invalid project.");
-        }
-
-        // Try to get the existing project
-        const meta = selectMeta(project);
-        const existingProject = await getProjectFromDB(meta.id);
-
-        if (!merging) {
-          // Replace the current project if the free tier has a project
-          if (!isAtLeastRank("maestro")) {
-            await setCurrentProject(project);
-            return;
-          }
-
-          // Upload or save the project depending on whether it already exists
-          if (!existingProject) {
-            await uploadProjectToDB(project);
-          } else {
-            await updateProjectInDB(project);
-          }
-
-          // Reload the page
+        // Upload or save the project depending on whether it already exists
+        if (!existingProject) {
+          await uploadProjectToDB(project);
         } else {
-          // Merge the project with the existing project
-          const currentProjectId = getCurrentProjectId();
-          const currentProject = await getProjectFromDB(currentProjectId);
-          if (!currentProject) return;
-          await promptUserForNumber(
-            `What Would You Like to Import?`,
-            <>
-              <p>Type 1 to Import Motifs</p>
-              <p>Type 2 to Import Motifs and Tracks</p>
-              <p>Type 3 to Import Motifs, Tracks, and Clips</p>
-            </>,
-            async (option) => {
-              const mergedBaseProject = mergeBaseProjects(
-                currentProject.present,
-                project.present,
-                option === 1
-                  ? { mergeMotifs: true, mergeTracks: false, mergeClips: false }
-                  : option === 2
-                  ? { mergeMotifs: true, mergeTracks: true, mergeClips: false }
-                  : option === 3
-                  ? { mergeMotifs: true, mergeTracks: true, mergeClips: true }
-                  : undefined
-              );
-              await updateProjectInDB({
-                ...currentProject,
-                present: mergedBaseProject,
-              });
-            }
-          )();
+          await updateProjectInDB(project);
+          await setCurrentProjectId(meta.id);
         }
-      };
-      reader.readAsText(file);
-    } catch (e) {
-      console.log(e);
-    }
+
+        // Reload the page
+      } else {
+        // Merge the project with the existing project
+        const currentProjectId = getCurrentProjectId();
+        const currentProject = await getProjectFromDB(currentProjectId);
+        if (!currentProject) return;
+        await promptUserForNumber(
+          `What Would You Like to Import?`,
+          <>
+            <p>Type 1 to Import Motifs</p>
+            <p>Type 2 to Import Motifs and Tracks</p>
+            <p>Type 3 to Import Motifs, Tracks, and Clips</p>
+          </>,
+          async (option) => {
+            const mergedBaseProject = mergeBaseProjects(
+              currentProject.present,
+              project.present,
+              option === 1
+                ? { mergeMotifs: true, mergeTracks: false, mergeClips: false }
+                : option === 2
+                ? { mergeMotifs: true, mergeTracks: true, mergeClips: false }
+                : option === 3
+                ? { mergeMotifs: true, mergeTracks: true, mergeClips: true }
+                : undefined
+            );
+            await updateProjectInDB({
+              ...currentProject,
+              present: mergedBaseProject,
+            });
+          }
+        )();
+      }
+      dispatchCustomEvent(UPDATE_PROJECTS);
+      if (options?.reload) window.location.reload();
+    };
+    reader.readAsText(file);
   };
 
 /** Try to load the project from the given path (used for demos). */

@@ -139,7 +139,7 @@ export function TimelineStart() {
         The Timeline will be available once you have some tracks.
       </h2>
       <h2 className="text-2xl text-slate-300">
-        To get started, create a {ScaleTrack} and/or a {PatternTrack}.
+        To get started, choose an option below or press "G" to go live.
       </h2>
       <div className="mt-4 *:text-2xl flex *:gap-8">
         <div className="flex *:peer *:py-8 *:font-light *:rounded-lg">

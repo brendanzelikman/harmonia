@@ -20,6 +20,7 @@ import {
   selectSelectedPatternTrack,
   selectTimeline,
   selectTimelineState,
+  selectIsAddingClips,
 } from "./TimelineSelectors";
 import { Payload, unpackUndoType } from "lib/redux";
 import { createPattern } from "types/Pattern/PatternThunks";
@@ -88,12 +89,34 @@ export const toggleTimelineState =
     dispatch(setTimelineState({ data: incomingState, undoType }));
   };
 
+export const toggleAddingState =
+  (payload: Payload<ClipType>): Thunk =>
+  (dispatch, getProject) => {
+    const type = payload.data;
+    const undoType = unpackUndoType(payload, "toggleAddingState");
+    const project = getProject();
+    const timelineType = selectTimelineType(project);
+    const isAdding = selectIsAddingClips(project);
+
+    if (timelineType === type) {
+      dispatch(toggleTimelineState({ data: `adding-clips`, undoType }));
+    } else if (timelineType !== type) {
+      dispatch(setTimelineType({ data: type, undoType }));
+      if (!isAdding) {
+        dispatch(toggleTimelineState({ data: `adding-clips`, undoType }));
+      }
+    }
+  };
+
 /** Create a new object based on the selected type. */
 export const createTypedMotif =
   <T extends ClipType>(obj?: Partial<Motif<T>>): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const type = selectTimelineType(project);
+    const type =
+      obj && "type" in obj && isClipType(obj)
+        ? (obj.type as ClipType)
+        : selectTimelineType(project);
     if (!type) return;
 
     // Use the given name or generate a new one

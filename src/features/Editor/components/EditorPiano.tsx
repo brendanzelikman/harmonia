@@ -16,7 +16,7 @@ interface PianoProps {
   playNote?: (sampler: Sampler, midiNumber: number) => void;
   stopNote?: (sampler: Sampler, midiNumber: number) => void;
   show: boolean;
-  noteRange?: [string, string];
+  noteRange?: readonly [string, string];
 }
 
 export const EditorPiano: React.FC<PianoProps> = (props) => {

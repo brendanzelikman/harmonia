@@ -9,6 +9,9 @@ export const mod = (n: number, m: number) => ((n % m) + m) % m;
 /** Normalize a number in a range (i.e. 0 - 1). */
 export const normalize = (x: number, m: number, n: number) => (x - m) / (n - m);
 
+/** Format a number to a certain number of decimal places. */
+export const format = (x: number, d = 2) => parseFloat(x.toFixed(d));
+
 /** Get the percentage of a number x in a range (m, n) (i.e. 0 - 100). */
 export const percent = (x = 0, m = 0, n = 0) =>
   clamp(Math.round(100 * normalize(x, m, n)), 0, 100);
