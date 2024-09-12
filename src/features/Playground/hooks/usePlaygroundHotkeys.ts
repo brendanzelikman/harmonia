@@ -233,12 +233,11 @@ export const MUTE_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
 });
 
 export const EXPORT_MIDI_HOTKEY: Thunk<Hotkey> = (dispatch) => {
-  const { isProdigy } = useAuth();
   return {
     name: "Export to MIDI",
     description: "Export the timeline to a MIDI file",
     shortcut: "meta+shift+m",
-    callback: () => !isProdigy && dispatch(exportProjectToMIDI()),
+    callback: () => dispatch(exportProjectToMIDI()),
   };
 };
 

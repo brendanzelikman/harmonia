@@ -41,6 +41,7 @@ import { selectScaleMap } from "types/Scale/ScaleSelectors";
 import {
   selectTrackMap,
   selectTrackChainIdsMap,
+  selectTracks,
 } from "types/Track/TrackSelectors";
 import {
   defaultMediaClipboard,
@@ -193,6 +194,13 @@ export const selectSelectedPortals = createDeepSelector(
 export const selectSelectedMedia = createDeepSelector(
   [selectSelectedClips, selectSelectedPortals],
   (clips, portals): Media => [...clips, ...portals]
+);
+
+/** Select all tracks with selected media. */
+export const selectTracksOfSelectedMedia = createSelector(
+  [selectTracks, selectSelectedMedia],
+  (tracks, media) =>
+    tracks.filter((track) => media.some((clip) => clip.trackId === track.id))
 );
 
 /** Select if the timeline is live */

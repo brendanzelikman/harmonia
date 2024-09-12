@@ -11,11 +11,7 @@ import { updatePose } from "types/Pose/PoseSlice";
 import { isPoseVectorModule } from "types/Pose/PoseTypes";
 import { Thunk } from "types/Project/ProjectTypes";
 import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
-import {
-  selectClips,
-  selectClipsByTrackIds,
-  selectClipStartTime,
-} from "./ClipSelectors";
+import { selectClipStartTime } from "./ClipSelectors";
 import {
   initializeClip,
   ClipId,
@@ -23,15 +19,19 @@ import {
   Clip,
   initializePoseClip,
   PortaledPatternClip,
+  PortaledPatternClipId,
 } from "./ClipTypes";
 import {
   selectClosestPoseClipId,
   selectPatternClipStreamMap,
+  selectPortaledClipMap,
 } from "types/Arrangement/ArrangementSelectors";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import { selectMeta } from "types/Meta/MetaSelectors";
-import { selectTracks } from "types/Track/TrackSelectors";
-import { selectTransport } from "types/Transport/TransportSelectors";
+import {
+  selectTransport,
+  selectTransportBPM,
+} from "types/Transport/TransportSelectors";
 import { Payload, unpackUndoType } from "lib/redux";
 import { addClip, addClips, removeClip, updateClip } from "./ClipSlice";
 import {
@@ -46,10 +46,11 @@ import {
 import { sumVectors } from "utils/vector";
 import { copyMotif } from "types/Motif/MotifFunctions";
 import { addMotif } from "types/Motif/MotifThunks";
-import { use } from "types/hooks";
 import { createPose } from "types/Pose/PoseThunks";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import { dispatchCustomEvent } from "utils/html";
+import { getValueByKey } from "utils/objects";
+import { selectTrackLabelById, selectTracks } from "types/Track/TrackSelectors";
 
 /** Slice a clip and make sure the old ID is no longer selected. */
 export const sliceClip =
@@ -171,35 +172,40 @@ export const mergePoseClips =
 
 /** Export a list of clips to MIDI by ID and download them as a file. */
 export const exportClipsToMidi =
-  (ids: ClipId[]): Thunk =>
+  (ids: ClipId[], options?: { filename: string }): Thunk =>
   async (_dispatch, getProject) => {
     if (!ids.length) return;
     const project = getProject();
     const meta = selectMeta(project);
     const transport = selectTransport(project);
-    const clips = selectClips(project).filter(({ id }) => ids.includes(id));
-    const tracks = selectTracks(project).filter((track) =>
-      clips.some((clip) => clip.trackId === track.id)
-    );
+    const tracks = selectTracks(project);
+    const clipMap = selectPortaledClipMap(project);
     const clipStreamMap = selectPatternClipStreamMap(project);
+    const clipIds = Object.keys(clipStreamMap) as PortaledPatternClipId[];
     if (!some(clipStreamMap)) return;
 
     // Prepare a new MIDI file
     const midi = new Midi();
+    const bpm = selectTransportBPM(project);
+    midi.header.setTempo(bpm);
 
     // Iterate through each track
     tracks.forEach((track) => {
-      const clips = selectClipsByTrackIds(project, [track.id]).filter((clip) =>
-        ids.includes(clip.id)
-      );
+      const clips = clipIds
+        .filter((id) => ids.some((clipId) => id.includes(clipId)))
+        .map((id) => clipMap[id])
+        .filter((clip) => clip?.trackId === track.id) as PortaledPatternClip[];
       if (!clips.length) return;
 
-      // Create a MIDI track and add each clip
+      // Create a MIDI track
       const midiTrack = midi.addTrack();
+      midiTrack.name = `Track ${selectTrackLabelById(project, track.id)}`;
+
+      // Add each clip to the MIDI track
       clips.forEach((clip) => {
         // Get the stream of the clip
         const startTime = selectClipStartTime(project, clip.id);
-        const stream = clipStreamMap[clip.id];
+        const stream = getValueByKey(clipStreamMap, clip.id);
         if (isUndefined(startTime) || isUndefined(stream)) return;
 
         // Iterate through each block
@@ -229,7 +235,7 @@ export const exportClipsToMidi =
     // Download the MIDI file
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${meta.name || "file"}.mid`;
+    a.download = `${options?.filename || meta.name || "file"}.mid`;
     a.click();
     URL.revokeObjectURL(url);
   };

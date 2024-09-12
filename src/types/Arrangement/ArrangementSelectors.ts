@@ -8,7 +8,6 @@ import {
   ClipId,
   PatternClipMidiStream,
   ClipMap,
-  PatternClipId,
   isPatternClipId,
   isPatternClip,
   PatternClip,
@@ -24,15 +23,12 @@ import {
   PatternMidiChord,
   PatternMidiStream,
 } from "types/Pattern/PatternTypes";
-import {
-  applyPortalsToClips,
-  getOriginalIdFromPortaledClip,
-} from "types/Portal/PortalFunctions";
+import { applyPortalsToClips } from "types/Portal/PortalFunctions";
 import { PortaledClipId, PortaledClipMap } from "types/Portal/PortalTypes";
 import { Project } from "types/Project/ProjectTypes";
 import { TrackId, isPatternTrack } from "types/Track/TrackTypes";
 import { Tick } from "types/units";
-import { getDictValues, getValueByKey } from "utils/objects";
+import { getArrayByKey, getDictValues, getValueByKey } from "utils/objects";
 import {
   getPatternClipMidiStream,
   getMidiStreamAtTickInTrack,
@@ -170,8 +166,10 @@ export const selectLastArrangementTick = createSelector(
 export const selectPatternClipStreamMap = createDeepSelector(
   [selectProcessedArrangement, selectMotifState],
   (arrangement, motifs) => {
-    const map = {} as Record<ClipId, PatternClipMidiStream>;
-    const patternClips = getDictValues(arrangement.clips?.pattern);
+    const map = {} as Record<PortaledPatternClipId, PatternClipMidiStream>;
+    const patternClips = getDictValues(
+      arrangement.clips?.pattern
+    ) as PortaledPatternClip[];
 
     // Iterate through each clip and get the stream
     for (const clip of patternClips) {
@@ -200,7 +198,7 @@ export const selectTrackPatternClipStreamMap = createSelector(
       ...arrangement.clips.scale,
     };
     const { tracks } = arrangement;
-    const clipIds = Object.keys(streamMap) as ClipId[];
+    const clipIds = Object.keys(streamMap) as PortaledPatternClipId[];
 
     const result = {} as Record<TrackId, PatternClipMidiStream[]>;
 
@@ -234,17 +232,12 @@ export const selectTrackPatternClipStreamMap = createSelector(
   }
 );
 
-/** Select the fully portaled clip streams of a track. */
-export const selectTrackPatternClipStreams = createArraySelector(
-  selectTrackPatternClipStreamMap
-);
-
 /** Select all pattern chords to be played by each track at every tick. */
 export const selectMidiChordsByTicks = createSelector(
   [selectProcessedArrangement, selectPatternClipStreamMap, selectTrackMap],
   (arrangement, streamMap, trackMap) => {
     const result = {} as InstrumentNotesByTicks;
-    const clipIds = Object.keys(streamMap) as PatternClipId[];
+    const clipIds = Object.keys(streamMap) as PortaledPatternClipId[];
     const clips = arrangement.clips.pattern;
 
     // Iterate through each clip stream
@@ -450,7 +443,7 @@ export const selectPortaledClipDurationMap = createDeepSelector(
   [selectPortaledClipMap, selectPatternClipStreamMap],
   (clipMap, streamMap) =>
     mapValues(clipMap, (clip) => {
-      const stream = streamMap[clip.id];
+      const stream = getArrayByKey(streamMap, clip.id as PortaledPatternClipId);
       return getClipDuration({
         ...clip,
         duration: clip.duration ?? stream.length,

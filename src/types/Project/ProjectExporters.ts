@@ -1,4 +1,4 @@
-import { selectClipIds } from "types/Clip/ClipSelectors";
+import { selectPatternClipIds } from "types/Clip/ClipSelectors";
 import { exportClipsToMidi } from "types/Clip/ClipThunks";
 import { Project, Thunk } from "./ProjectTypes";
 import { selectProjectName } from "../Meta/MetaSelectors";
@@ -30,7 +30,7 @@ export const exportProjectToMIDI =
   (project?: Project): Thunk =>
   (dispatch, getProject) => {
     const savedProject = project || getProject();
-    const clipIds = selectClipIds(savedProject);
+    const clipIds = selectPatternClipIds(savedProject);
     dispatch(exportClipsToMidi(clipIds));
   };
 

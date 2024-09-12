@@ -12,6 +12,7 @@ import {
   selectSelectedClipIds,
 } from "../TimelineSelectors";
 import { setSelectedTrackId, updateMediaSelection } from "../TimelineSlice";
+import { selectProjectName } from "types/Meta/MetaSelectors";
 
 // ------------------------------------------------------------
 // Selected Track
@@ -102,6 +103,7 @@ export const toggleClipIdInSelection =
 export const exportSelectedClipsToMIDI =
   (): Thunk => (dispatch, getProject) => {
     const project = getProject();
+    const name = selectProjectName(project);
     const selectedClipIds = selectSelectedClipIds(project);
-    dispatch(exportClipsToMidi(selectedClipIds));
+    dispatch(exportClipsToMidi(selectedClipIds, { filename: `${name} Clips` }));
   };
