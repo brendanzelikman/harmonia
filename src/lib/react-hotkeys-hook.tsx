@@ -46,35 +46,42 @@ export const useScopedHotkeys =
     const hotkeyShortcut = !!isHotkey ? keys.shortcut : keys;
 
     // Check if the current scope is in the correct state
-    const isInScope = () => {
+    const isInScope = useMemo(() => {
       if (scope === "editor") return isEditorOpen;
       if (scope === "diary") return isDiaryOpen;
       if (scope === "timeline") return !isEditorOpen && !isDiaryOpen;
       return true;
-    };
+    }, [isEditorOpen, isDiaryOpen]);
 
     // Create a callback that only fires when the scope is correct
-    const hotkeyCallback = () => {
+    const hotkeyCallback = useCallback(() => {
       if (!isInScope) return;
       const cb = callback ?? (isHotkey ? keys.callback : noop);
       cb();
-    };
+    }, [isInScope, callback, keys]);
 
     // Prevent the default behavior for all hotkeys
-    const hotkeyOptions = {
-      ...(isObject(options) && !("length" in options) ? options : {}),
-      preventDefault: true,
-    };
+    const hotkeyOptions = useMemo(
+      () => ({
+        ...(isObject(options) && !("length" in options) ? options : {}),
+        preventDefault: true,
+      }),
+      [options]
+    );
 
     // Use the dependencies if they are provided, otherwise use the options
-    const hotkeyDependencies = [
-      ...(isArray(options)
-        ? options
-        : isArray(dependencies)
-        ? dependencies
-        : []),
-      hotkeyCallback,
-    ];
+    const hotkeyDependencies = useMemo(
+      () => [
+        ...(isArray(options)
+          ? options
+          : isArray(dependencies)
+          ? dependencies
+          : []),
+        hotkeyCallback,
+      ],
+      [options, dependencies, hotkeyCallback]
+    );
+
     // Use the original hook
     return useHotkeys(
       hotkeyShortcut,
