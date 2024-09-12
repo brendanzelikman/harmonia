@@ -16,19 +16,24 @@ import { createProject } from "types/Project/ProjectThunks";
 import { readLocalProjects } from "types/Project/ProjectLoaders";
 import { REDO_PROJECT, UNDO_PROJECT } from "providers/store";
 import {
+  downloadTransport,
   stopTransport,
   toggleTransport,
   toggleTransportLoop,
   toggleTransportMute,
   toggleTransportRecording,
 } from "types/Transport/TransportThunks";
-import { exportProjectToHAM } from "types/Project/ProjectExporters";
+import {
+  exportProjectToHAM,
+  exportProjectToMIDI,
+} from "types/Project/ProjectExporters";
 import { Thunk } from "types/Project/ProjectTypes";
 import { dispatchCustomEvent } from "utils/html";
 import {
   selectFirstPortaledPatternClipId,
   selectFirstPortaledPoseClipId,
 } from "types/Arrangement/ArrangementSelectors";
+import { CLOSE_STATE, TOGGLE_STATE } from "hooks/useToggledState";
 
 export function usePlaygroundHotkeys() {
   const dispatch = useProjectDispatch();
@@ -49,12 +54,18 @@ export function usePlaygroundHotkeys() {
   useHotkeysGlobally(dispatch(TOGGLE_EDITOR_HOTKEY));
   useHotkeysGlobally(dispatch(CLOSE_EDITOR_HOTKEY));
 
+  // Shortcut Hotkeys
+  useHotkeysGlobally(dispatch(TOGGLE_SHORTCUTS_HOTKEY));
+  useHotkeysGlobally(dispatch(CLOSE_SHORTCUTS_HOTKEY));
+
   // Transport Hotkeys
   useHotkeysGlobally(dispatch(TOGGLE_TRANSPORT_HOTKEY));
   useHotkeysGlobally(dispatch(STOP_TRANSPORT_HOTKEY));
   useHotkeysGlobally(dispatch(RECORD_TRANSPORT_HOTKEY));
   useHotkeysGlobally(dispatch(LOOP_TRANSPORT_HOTKEY));
   useHotkeysGlobally(dispatch(MUTE_TRANSPORT_HOTKEY));
+  useHotkeysGlobally(dispatch(EXPORT_MIDI_HOTKEY));
+  useHotkeysGlobally(dispatch(EXPORT_AUDIO_HOTKEY));
 }
 
 // -----------------------------------------------
@@ -154,14 +165,32 @@ export const TOGGLE_DIARY_HOTKEY: Thunk<Hotkey> = () => ({
   name: "Toggle Diary",
   description: "Toggle the project diary.",
   shortcut: "shift+d",
-  callback: () => dispatchCustomEvent("toggle_diary"),
+  callback: () => dispatchCustomEvent(TOGGLE_STATE("diary")),
 });
 
 export const CLOSE_DIARY_HOTKEY: Thunk<Hotkey> = () => ({
   name: "Close Diary",
   description: "Close the project diary.",
   shortcut: "esc",
-  callback: () => dispatchCustomEvent("close_diary"),
+  callback: () => dispatchCustomEvent(CLOSE_STATE("diary")),
+});
+
+// -----------------------------------------------
+// Shortcut Hotkeys
+// -----------------------------------------------
+
+export const TOGGLE_SHORTCUTS_HOTKEY: Thunk<Hotkey> = () => ({
+  name: "Toggle Shortcuts",
+  description: "Toggle the shortcuts menu.",
+  shortcut: "shift + slash",
+  callback: () => dispatchCustomEvent(TOGGLE_STATE("shortcuts")),
+});
+
+export const CLOSE_SHORTCUTS_HOTKEY: Thunk<Hotkey> = () => ({
+  name: "Close Shortcuts",
+  description: "Close the shortcuts menu.",
+  shortcut: "esc",
+  callback: () => dispatchCustomEvent(CLOSE_STATE("shortcuts")),
 });
 
 // -----------------------------------------------
@@ -169,7 +198,7 @@ export const CLOSE_DIARY_HOTKEY: Thunk<Hotkey> = () => ({
 // -----------------------------------------------
 
 export const TOGGLE_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Toggle Transport",
+  name: "Play/Pause Transport",
   description: `Start or pause the transport playback`,
   shortcut: "space",
   callback: () => dispatch(toggleTransport()),
@@ -202,3 +231,41 @@ export const MUTE_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   shortcut: "alt+shift+m",
   callback: () => dispatch(toggleTransportMute()),
 });
+
+export const EXPORT_MIDI_HOTKEY: Thunk<Hotkey> = (dispatch) => {
+  const { isProdigy } = useAuth();
+  return {
+    name: "Export to MIDI",
+    description: "Export the timeline to a MIDI file",
+    shortcut: "meta+shift+m",
+    callback: () => !isProdigy && dispatch(exportProjectToMIDI()),
+  };
+};
+
+export const EXPORT_AUDIO_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Export to WAV",
+  description: "Export the timeline to a WAV file",
+  shortcut: "meta+shift+w",
+  callback: () => dispatch(downloadTransport()),
+});
+
+export const PLAYGROUND_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [
+  dispatch(SAVE_PROJECT_HOTKEY),
+  dispatch(OPEN_PROJECT_HOTKEY),
+  dispatch(NEW_PROJECT_HOTKEY),
+  dispatch(VIEW_PROJECTS_HOTKEY),
+  dispatch(UNDO_PROJECT_HOTKEY),
+  dispatch(REDO_PROJECT_HOTKEY),
+  dispatch(TOGGLE_DIARY_HOTKEY),
+  dispatch(TOGGLE_SHORTCUTS_HOTKEY),
+  dispatch(EXPORT_MIDI_HOTKEY),
+  dispatch(EXPORT_AUDIO_HOTKEY),
+];
+
+export const TRANSPORT_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [
+  dispatch(TOGGLE_TRANSPORT_HOTKEY),
+  dispatch(STOP_TRANSPORT_HOTKEY),
+  dispatch(MUTE_TRANSPORT_HOTKEY),
+  dispatch(RECORD_TRANSPORT_HOTKEY),
+  dispatch(LOOP_TRANSPORT_HOTKEY),
+];

@@ -220,3 +220,23 @@ export const REMOVE_ALL_EFFECTS_HOTKEY =
     shortcut: "shift+backspace",
     callback: () => id && dispatch(removeAllInstrumentEffects(id)),
   });
+
+export const INSTRUMENT_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [
+  dispatch(ADD_REVERB_HOTKEY()),
+  dispatch(ADD_CHORUS_HOTKEY()),
+  dispatch(ADD_PHASER_HOTKEY()),
+  dispatch(ADD_TREMOLO_HOTKEY()),
+  dispatch(ADD_VIBRATO_HOTKEY()),
+  dispatch(ADD_FILTER_HOTKEY()),
+  dispatch(ADD_EQUALIZER_HOTKEY()),
+  dispatch(ADD_DISTORTION_HOTKEY()),
+  dispatch(ADD_BITCRUSHER_HOTKEY()),
+  dispatch(ADD_FEEDBACK_DELAY_HOTKEY()),
+  dispatch(ADD_PING_PONG_DELAY_HOTKEY()),
+  dispatch(ADD_COMPRESSOR_HOTKEY()),
+  dispatch(ADD_GAIN_HOTKEY()),
+  dispatch(ADD_LIMITER_HOTKEY()),
+  dispatch(ADD_WARP_HOTKEY()),
+  dispatch(REMOVE_LAST_EFFECT_HOTKEY()),
+  dispatch(REMOVE_ALL_EFFECTS_HOTKEY()),
+];

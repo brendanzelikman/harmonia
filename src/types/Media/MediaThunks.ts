@@ -278,6 +278,7 @@ export const moveSelectedMedia =
 
     // Then, move the media elements through any portal that they go through
     const selectedClips = selectSelectedClips(project);
+    if (!selectedClips.length) return;
     const mediaClips = selectedClips.map((media) => {
       for (let i = 0; i < magnitude; i++) {
         // If the media is moving right, check if it goes through a portal

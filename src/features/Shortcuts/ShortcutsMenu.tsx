@@ -1,7 +1,5 @@
 import { Dialog } from "@headlessui/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
-import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { useEffect, useMemo, useState } from "react";
 import { GlobalShortcuts } from "./content/GlobalShortcuts";
 import classNames from "classnames";
 import { TransportShortcuts } from "./content/TransportShortcuts";
@@ -14,6 +12,7 @@ import { PoseEditorShortcuts } from "./content/PoseEditorShortcuts";
 import { BsXCircle } from "react-icons/bs";
 import { TickDurations } from "./content/TickDurations";
 import { useDiary } from "types/Diary/DiaryTypes";
+import { useToggledState } from "hooks/useToggledState";
 
 export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
 
@@ -31,20 +30,16 @@ export const SHORTCUT_TYPES = [
 export type ShortcutType = (typeof SHORTCUT_TYPES)[number];
 
 export function ShortcutsMenu() {
-  const showingDiary = useDiary().isOpen;
-  const [show, setShow] = useState(false);
+  const diary = useDiary();
+  const showingDiary = diary.isOpen;
+
+  const shortcuts = useToggledState("shortcuts");
   const [type, setType] = useState<ShortcutType>("Global");
 
   // Close the diary if it's open
   useEffect(() => {
-    if (showingDiary) setShow(false);
+    if (showingDiary) shortcuts.close();
   }, [showingDiary]);
-
-  // Listen for shortcut events
-  const toggleShortcuts = useCallback(() => setShow((show) => !show), []);
-  useCustomEventListener(TOGGLE_SHORTCUTS, () => setShow(!show));
-  useHotkeys("shift+slash", toggleShortcuts);
-  useHotkeys("esc", () => setShow(false));
 
   // Render a topic header and its entries' links
   const renderShortcutTypeButton = (shortcutType: ShortcutType) => {
@@ -84,10 +79,10 @@ export function ShortcutsMenu() {
 
   return (
     <Dialog
-      open={show}
+      open={shortcuts.isOpen}
       as="div"
       className="relative font-nunito"
-      onClose={toggleShortcuts}
+      onClose={shortcuts.close}
     >
       <div className="fixed flex justify-center inset-0 p-2 z-[100] bg-slate-800/80 text-slate-200 backdrop-blur animate-in fade-in overflow-scroll">
         <div className="w-full h-full flex justify-center flex-1 gap-8">
@@ -101,7 +96,7 @@ export function ShortcutsMenu() {
         </div>
         <button
           className="ml-auto mb-auto mt-2 mr-2 text-3xl flex items-center gap-2 hover:text-slate-200/50 outline-none focus:outline-none transition-all duration-200"
-          onClick={toggleShortcuts}
+          onClick={shortcuts.toggle}
         >
           <BsXCircle />
         </button>

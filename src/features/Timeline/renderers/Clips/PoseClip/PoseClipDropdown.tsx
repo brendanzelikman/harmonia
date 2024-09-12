@@ -59,7 +59,7 @@ export const PoseClipDropdown = (props: PoseClipDropdownProps) => {
     (props: VectorField) => {
       const { id, name, scaleName, depth } = props;
       const offset = selectedVector[id as PoseVectorId] ?? 0;
-      if (!pose) return null;
+      if (!pose || (depth || 0) >= clipDepth) return null;
 
       // Omit the value from the vector on double click
       const onDoubleClick = () => {

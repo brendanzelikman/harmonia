@@ -6,7 +6,6 @@ import { updatePattern } from "types/Pattern/PatternSlice";
 import { BsPencil, BsXCircle } from "react-icons/bs";
 import {
   GiCrystalWand,
-  GiDramaMasks,
   GiHand,
   GiMusicalNotes,
   GiMusicSpell,

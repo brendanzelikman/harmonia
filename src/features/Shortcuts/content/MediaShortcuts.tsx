@@ -1,30 +1,39 @@
+import { useProjectDispatch } from "types/hooks";
 import { Shortcut } from "../components/Shortcut";
 import { ShortcutContent } from "../components/ShortcutContent";
+import {
+  ARRANGE_CLIPS_HOTKEY,
+  ARRANGE_PORTALS_HOTKEY,
+  COPY_MEDIA_HOTKEY,
+  CUT_MEDIA_HOTKEY,
+  DELETE_MEDIA_HOTKEY,
+  DESELECT_ALL_MEDIA_HOTKEY,
+  DUPLICATE_MEDIA_HOTKEY,
+  MOVE_MEDIA_LEFT_HOTKEY,
+  MOVE_MEDIA_RIGHT_HOTKEY,
+  PASTE_MEDIA_HOTKEY,
+  SELECT_ALL_MEDIA_HOTKEY,
+  SLICE_CLIPS_HOTKEY,
+} from "features/Timeline/hooks/useTimelineHotkeys";
 
 export function MediaShortcuts() {
+  const dispatch = useProjectDispatch();
   return (
     <ShortcutContent
-      className="text-lg space-y-3"
+      className="text-lg space-y-4"
       shortcuts={[
-        <Shortcut shortcut="A" description="Start/Stop Arranging Clips" />,
-        <Shortcut shortcut="P" description="Start/Stop Arranging Portals" />,
-        <Shortcut shortcut="K" description="Start/Stop Slicing Clips" />,
-        <Shortcut shortcut="I + Click" description="Eyedrop a Clip" />,
-        <Shortcut shortcut="⌘ + A" description="Select All Media" />,
-        <Shortcut shortcut="Esc" description="Clear Media Selection" />,
-        <Shortcut
-          shortcut="Left Arrow"
-          description="Move Selected Media Left"
-        />,
-        <Shortcut
-          shortcut="Right Arrow"
-          description="Move Selected Media Right"
-        />,
-        <Shortcut shortcut="⌘ + C" description="Copy Selected Media" />,
-        <Shortcut shortcut="⌘ + X" description="Cut Selected Media" />,
-        <Shortcut shortcut="⌘ + V" description="Paste Selected Media" />,
-        <Shortcut shortcut="⌘ + D" description="Duplicate Selected Media" />,
-        <Shortcut shortcut="Delete" description="Delete Selected Media" />,
+        <Shortcut hotkey={dispatch(ARRANGE_CLIPS_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(ARRANGE_PORTALS_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(SLICE_CLIPS_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(SELECT_ALL_MEDIA_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(DESELECT_ALL_MEDIA_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(MOVE_MEDIA_LEFT_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(MOVE_MEDIA_RIGHT_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(COPY_MEDIA_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(CUT_MEDIA_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(PASTE_MEDIA_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(DUPLICATE_MEDIA_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(DELETE_MEDIA_HOTKEY)} />,
       ]}
     />
   );

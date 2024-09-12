@@ -28,7 +28,7 @@ export function TickDurations() {
           description="Pulses Per Quarter Note (PPQ)"
         />,
         <Shortcut
-          shortcut={_.secondsToTicks(1, bpm)}
+          shortcut={String(_.secondsToTicks(1, bpm))}
           description={`1 Second (${bpm} BPM)`}
         />,
         ...durationShortcuts,

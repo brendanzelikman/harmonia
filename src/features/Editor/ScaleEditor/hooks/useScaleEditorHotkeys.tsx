@@ -22,21 +22,21 @@ export function useScaleEditorHotkeys(props: ScaleEditorProps) {
   useHotkeysInEditor(dispatch(CLEAR_SCALE_HOTKEY(scale)));
 
   // Action Hotkeys
-  useHotkeysInEditor(dispatch(TOGGLE_ADDING_HOTKEY()));
-  useHotkeysInEditor(dispatch(TOGGLE_REMOVING_HOTKEY()));
-  useHotkeysInEditor(dispatch(TOGGLE_CURSOR_HOTKEY(scale, cursor)));
-  useHotkeysInEditor(dispatch(SKIP_LEFT_HOTKEY(cursor)));
-  useHotkeysInEditor(dispatch(SKIP_RIGHT_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(TOGGLE_SCALE_ADD_HOTKEY()));
+  useHotkeysInEditor(dispatch(TOGGLE_SCALE_REMOVE_HOTKEY()));
+  useHotkeysInEditor(dispatch(TOGGLE_SCALE_CURSOR_HOTKEY(scale, cursor)));
+  useHotkeysInEditor(dispatch(SKIP_SCALE_LEFT_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(SKIP_SCALE_RIGHT_HOTKEY(cursor)));
 
   // Transpose Hotkeys
   useHotkeysInEditor(dispatch(TRANSPOSE_SCALE_HOTKEY(scale)));
-  useHotkeysInEditor(dispatch(TRANSPOSE_UP_HOTKEY(scale)));
-  useHotkeysInEditor(dispatch(TRANSPOSE_DOWN_HOTKEY(scale)));
-  useHotkeysInEditor(dispatch(OCTAVE_UP_HOTKEY(scale)));
-  useHotkeysInEditor(dispatch(OCTAVE_DOWN_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_SCALE_UP_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_SCALE_DOWN_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(OCTAVE_SCALE_UP_HOTKEY(scale)));
+  useHotkeysInEditor(dispatch(OCTAVE_SCALE_DOWN_HOTKEY(scale)));
   useHotkeysInEditor(dispatch(ROTATE_SCALE_HOTKEY(scale)));
-  useHotkeysInEditor(dispatch(ROTATE_UP_HOTKEY(scale, cursor)));
-  useHotkeysInEditor(dispatch(ROTATE_DOWN_HOTKEY(scale, cursor)));
+  useHotkeysInEditor(dispatch(ROTATE_SCALE_UP_HOTKEY(scale, cursor)));
+  useHotkeysInEditor(dispatch(ROTATE_SCALE_DOWN_HOTKEY(scale, cursor)));
 }
 
 // ------------------------------------------------------------
@@ -65,21 +65,21 @@ export const CLEAR_SCALE_HOTKEY =
 // Action Hotkeys
 // ------------------------------------------------------------
 
-export const TOGGLE_ADDING_HOTKEY = (): Thunk<Hotkey> => (dispatch) => ({
-  name: "Toggle Adding Notes",
+export const TOGGLE_SCALE_ADD_HOTKEY = (): Thunk<Hotkey> => (dispatch) => ({
+  name: "Start/Stop Adding Notes",
   description: "Toggle adding notes to the scale.",
   shortcut: "a",
   callback: () => dispatch(toggleEditorAction({ data: "addingNotes" })),
 });
 
-export const TOGGLE_REMOVING_HOTKEY = (): Thunk<Hotkey> => (dispatch) => ({
-  name: "Toggle Removing Notes",
+export const TOGGLE_SCALE_REMOVE_HOTKEY = (): Thunk<Hotkey> => (dispatch) => ({
+  name: "Start/Stop Removing Notes",
   description: "Toggle removing notes from the scale.",
   shortcut: "backspace",
   callback: () => dispatch(toggleEditorAction({ data: "removingNotes" })),
 });
 
-export const TOGGLE_CURSOR_HOTKEY =
+export const TOGGLE_SCALE_CURSOR_HOTKEY =
   (scale?: ScaleObject, cursor?: CursorProps): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Toggle Cursor",
@@ -88,7 +88,7 @@ export const TOGGLE_CURSOR_HOTKEY =
     callback: () => (scale?.notes.length ? cursor?.toggle() : null),
   });
 
-export const SKIP_LEFT_HOTKEY =
+export const SKIP_SCALE_LEFT_HOTKEY =
   (cursor?: CursorProps): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Skip Left",
@@ -98,7 +98,7 @@ export const SKIP_LEFT_HOTKEY =
       cursor !== undefined && !cursor.hidden && cursor.skipStart(),
   });
 
-export const SKIP_RIGHT_HOTKEY =
+export const SKIP_SCALE_RIGHT_HOTKEY =
   (cursor?: CursorProps): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Skip Right",
@@ -124,7 +124,7 @@ export const TRANSPOSE_SCALE_HOTKEY =
     ),
   });
 
-export const TRANSPOSE_UP_HOTKEY =
+export const TRANSPOSE_SCALE_UP_HOTKEY =
   (scale?: ScaleObject): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Transpose Up",
@@ -133,7 +133,7 @@ export const TRANSPOSE_UP_HOTKEY =
     callback: () => dispatch(transposeScale(scale, 1)),
   });
 
-export const TRANSPOSE_DOWN_HOTKEY =
+export const TRANSPOSE_SCALE_DOWN_HOTKEY =
   (scale?: ScaleObject): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Transpose Down",
@@ -142,7 +142,7 @@ export const TRANSPOSE_DOWN_HOTKEY =
     callback: () => dispatch(transposeScale(scale, -1)),
   });
 
-export const OCTAVE_UP_HOTKEY =
+export const OCTAVE_SCALE_UP_HOTKEY =
   (scale?: ScaleObject): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Octave Up",
@@ -151,7 +151,7 @@ export const OCTAVE_UP_HOTKEY =
     callback: () => dispatch(transposeScale(scale, 12)),
   });
 
-export const OCTAVE_DOWN_HOTKEY =
+export const OCTAVE_SCALE_DOWN_HOTKEY =
   (scale?: ScaleObject): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Octave Down",
@@ -173,7 +173,7 @@ export const ROTATE_SCALE_HOTKEY =
     ),
   });
 
-export const ROTATE_UP_HOTKEY =
+export const ROTATE_SCALE_UP_HOTKEY =
   (scale?: ScaleObject, cursor?: CursorProps): Thunk<Hotkey> =>
   (dispatch) => {
     const showCursor = cursor !== undefined && !cursor.hidden;
@@ -194,7 +194,7 @@ export const ROTATE_UP_HOTKEY =
     }
   };
 
-export const ROTATE_DOWN_HOTKEY =
+export const ROTATE_SCALE_DOWN_HOTKEY =
   (scale?: ScaleObject, cursor?: CursorProps): Thunk<Hotkey> =>
   (dispatch) => {
     const showCursor = cursor !== undefined && !cursor.hidden;
@@ -214,3 +214,18 @@ export const ROTATE_DOWN_HOTKEY =
       };
     }
   };
+
+export const SCALE_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [
+  dispatch(TOGGLE_SCALE_ADD_HOTKEY()),
+  dispatch(TOGGLE_SCALE_REMOVE_HOTKEY()),
+  dispatch(CLEAR_SCALE_HOTKEY()),
+  dispatch(PLAY_SCALE_HOTKEY()),
+  dispatch(TRANSPOSE_SCALE_HOTKEY()),
+  dispatch(ROTATE_SCALE_HOTKEY()),
+  dispatch(TRANSPOSE_SCALE_UP_HOTKEY()),
+  dispatch(TRANSPOSE_SCALE_DOWN_HOTKEY()),
+  dispatch(OCTAVE_SCALE_UP_HOTKEY()),
+  dispatch(OCTAVE_SCALE_DOWN_HOTKEY()),
+  dispatch(ROTATE_SCALE_UP_HOTKEY()),
+  dispatch(ROTATE_SCALE_DOWN_HOTKEY()),
+];

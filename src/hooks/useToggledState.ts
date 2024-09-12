@@ -9,18 +9,14 @@ export const useToggledState = (
   const [state, setState] = useState(defaultValue ?? false);
 
   // Create open and close keys
-  const OPEN = `open_${key}`;
-  const CLOSE = `close_${key}`;
-  const TOGGLE = `toggle_${key}`;
-
-  const open = useCallback(() => dispatchCustomEvent(OPEN), []);
-  const close = useCallback(() => dispatchCustomEvent(CLOSE), []);
-  const toggle = useCallback(() => dispatchCustomEvent(TOGGLE), []);
+  const open = useCallback(() => dispatchCustomEvent(OPEN_STATE(key)), []);
+  const close = useCallback(() => dispatchCustomEvent(CLOSE_STATE(key)), []);
+  const toggle = useCallback(() => dispatchCustomEvent(TOGGLE_STATE(key)), []);
 
   // Listen for open and close events
-  useCustomEventListener(OPEN, () => setState(true));
-  useCustomEventListener(CLOSE, () => setState(false));
-  useCustomEventListener(TOGGLE, () => setState((prev) => !prev));
+  useCustomEventListener(OPEN_STATE(key), () => setState(true));
+  useCustomEventListener(CLOSE_STATE(key), () => setState(false));
+  useCustomEventListener(TOGGLE_STATE(key), () => setState((prev) => !prev));
 
   return {
     open,
@@ -30,3 +26,7 @@ export const useToggledState = (
     isClosed: !state,
   };
 };
+
+export const OPEN_STATE = (key: string) => `open_${key}`;
+export const CLOSE_STATE = (key: string) => `close_${key}`;
+export const TOGGLE_STATE = (key: string) => `toggle_${key}`;

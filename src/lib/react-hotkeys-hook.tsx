@@ -1,4 +1,4 @@
-import { isArray, isObject, noop, omit } from "lodash";
+import { capitalize, isArray, isObject, noop, omit, toUpper } from "lodash";
 import { useCallback, useMemo, useState } from "react";
 import { Keys, useHotkeys } from "react-hotkeys-hook";
 import {
@@ -7,16 +7,8 @@ import {
 } from "react-hotkeys-hook/dist/types";
 import { useDiary } from "types/Diary/DiaryTypes";
 import { selectIsEditorOpen } from "types/Editor/EditorSelectors";
-import { use, useDeep } from "types/hooks";
+import { use } from "types/hooks";
 import { isHoldingShift, isPressingLetter } from "utils/html";
-
-// ------------------------------------------------------------
-// Hotkey Scopes
-// ------------------------------------------------------------
-
-export const SCOPES = ["playground", "timeline", "editor", "diary"] as const;
-export type Scope = (typeof SCOPES)[number];
-export type ScopeMap = Record<Scope, boolean>;
 
 // A hotkey can be accompanied by a name and description for documentation
 export type Hotkey = {
@@ -25,6 +17,37 @@ export type Hotkey = {
   name?: string;
   description?: string;
 };
+
+// Format a shortcut
+export const formatShortcut = (shortcut: string) => {
+  let result = shortcut;
+  result = result.replace("shift", "⇧");
+  result = result.replace("alt", "⌥");
+  result = result.replace("ctrl", "⌃");
+  result = result.replace("meta", "⌘");
+  result = result.replace("slash", "/");
+  result = result.replace("comma", ",");
+  result = result.replace("period", ".");
+  result = result.replace("backspace", "⌫");
+  result = result.replace("space", "␣");
+  result = result.replace("equal", "=");
+  result = result.replace("left", "←");
+  result = result.replace("right", "→");
+  result = result.replace("up", "↑");
+  result = result.replace("down", "↓");
+  result = capitalize(result);
+  result = result.replace(/\b[a-zA-Z]\b/g, (match) => match.toUpperCase());
+  result = result.replace(/\s*\+\s*/g, " + ");
+  return result;
+};
+
+// ------------------------------------------------------------
+// Scoped Hotkeys
+// ------------------------------------------------------------
+
+export const SCOPES = ["playground", "timeline", "editor", "diary"] as const;
+export type Scope = (typeof SCOPES)[number];
+export type ScopeMap = Record<Scope, boolean>;
 
 export type HotkeyFunction = (
   keys: Keys | Hotkey,
@@ -97,7 +120,7 @@ export const useHotkeysInDiary = useScopedHotkeys("diary");
 export const useHotkeysGlobally = useScopedHotkeys("playground");
 
 // ------------------------------------------------------------
-// Held Keys
+// Held Hotkeys
 // ------------------------------------------------------------
 
 /** Personally keep track of shifted key transformations.  */
@@ -126,26 +149,26 @@ export const useHeldHotkeys = (
 ) => {
   const [heldKeys, setHeldKeys] = useState<Record<string, boolean>>({});
 
-  // Set the key to true when it is pressed down
-  const keydown = (e: KeyboardEvent) => {
-    const isLetter = isPressingLetter(e);
-    const key = isLetter
-      ? isHoldingShift(e)
-        ? upperCase(e.key)
-        : e.key.toLowerCase()
-      : e.key.toLowerCase();
-    setHeldKeys((prev) => ({ ...prev, [key]: true }));
-  };
-
-  // Set the key (and its shift variant) to false when it is released
-  const keyup = (e: KeyboardEvent) => {
-    const lower = e.key.toLowerCase();
-    const upper = upperCase(e.key);
-    setHeldKeys((prev) => omit(prev, upper, lower));
-  };
-
   // Call the appropriate callback based on the event type
   const callback = useCallback((e: KeyboardEvent) => {
+    // Set the key to true when it is pressed down
+    const keydown = (e: KeyboardEvent) => {
+      const isLetter = isPressingLetter(e);
+      const key = isLetter
+        ? isHoldingShift(e)
+          ? upperCase(e.key)
+          : e.key.toLowerCase()
+        : e.key.toLowerCase();
+      setHeldKeys((prev) => ({ ...prev, [key]: true }));
+    };
+
+    // Set the key (and its shift variant) to false when it is released
+    const keyup = (e: KeyboardEvent) => {
+      const lower = e.key.toLowerCase();
+      const upper = upperCase(e.key);
+      setHeldKeys((prev) => omit(prev, upper, lower));
+    };
+
     e.type === "keydown" ? keydown(e) : keyup(e);
   }, []);
 

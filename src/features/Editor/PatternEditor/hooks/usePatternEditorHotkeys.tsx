@@ -24,7 +24,7 @@ import {
 import { transposePattern } from "types/Pattern/thunks/PatternPitchThunks";
 import { useAuth } from "providers/auth";
 import { Thunk } from "types/Project/ProjectTypes";
-import { capitalize } from "lodash";
+import { capitalize, noop } from "lodash";
 import { Pattern } from "types/Pattern/PatternTypes";
 import { CursorProps } from "lib/opensheetmusicdisplay";
 
@@ -36,51 +36,53 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   useHotkeysInEditor(dispatch(PLAY_PATTERN_HOTKEY(pattern)));
   useHotkeysInEditor(dispatch(DUPLICATE_PATTERN_HOTKEY(pattern)));
   useHotkeysInEditor(dispatch(CLEAR_PATTERN_HOTKEY(pattern)));
-  useHotkeysInEditor(dispatch(EXPORT_MIDI_HOTKEY(pattern)));
-  useHotkeysInEditor(dispatch(EXPORT_XML_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(EXPORT_PATTERN_MIDI_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(EXPORT_PATTERN_XML_HOTKEY(pattern)));
 
   // Action Hotkeys
-  useHotkeysInEditor(dispatch(TOGGLE_ADDING_HOTKEY(props.isCustom)));
-  useHotkeysInEditor(dispatch(REMOVE_NOTE_HOTKEY(props.onEraseClick)));
-  useHotkeysInEditor(dispatch(TOGGLE_ANCHOR_HOTKEY(cursor)));
-  useHotkeysInEditor(dispatch(NOTE_CLICK_HOTKEY(onBlockClick)));
-  useHotkeysInEditor(dispatch(REST_CLICK_HOTKEY(onRestClick)));
+  useHotkeysInEditor(dispatch(TOGGLE_PATTERN_ADD_HOTKEY(props.isCustom)));
+  useHotkeysInEditor(dispatch(REMOVE_PATTERN_NOTE_HOTKEY(props.onEraseClick)));
+  useHotkeysInEditor(dispatch(TOGGLE_PATTERN_ANCHOR_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(PATTERN_NOTE_CLICK_HOTKEY(onBlockClick)));
+  useHotkeysInEditor(dispatch(PATTERN_REST_CLICK_HOTKEY(onRestClick)));
 
   // Duration Hotkeys
-  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("1")));
-  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("2")));
-  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("3")));
-  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("4")));
-  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("5")));
-  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("6")));
-  useHotkeysInEditor(dispatch(SELECT_DURATION_HOTKEY("7")));
-  useHotkeysInEditor(dispatch(TOGGLE_DOTTED_HOTKEY()));
-  useHotkeysInEditor(dispatch(TOGGLE_TRIPLET_HOTKEY()));
+  useHotkeysInEditor(dispatch(SELECT_PATTERN_DURATION_HOTKEY("1")));
+  useHotkeysInEditor(dispatch(SELECT_PATTERN_DURATION_HOTKEY("2")));
+  useHotkeysInEditor(dispatch(SELECT_PATTERN_DURATION_HOTKEY("3")));
+  useHotkeysInEditor(dispatch(SELECT_PATTERN_DURATION_HOTKEY("4")));
+  useHotkeysInEditor(dispatch(SELECT_PATTERN_DURATION_HOTKEY("5")));
+  useHotkeysInEditor(dispatch(SELECT_PATTERN_DURATION_HOTKEY("6")));
+  useHotkeysInEditor(dispatch(SELECT_PATTERN_DURATION_HOTKEY("7")));
+  useHotkeysInEditor(dispatch(TOGGLE_PATTERN_DOTTED_HOTKEY()));
+  useHotkeysInEditor(dispatch(TOGGLE_PATTERN_TRIPLET_HOTKEY()));
 
   // Cursor Hotkeys
   const showCursor = !!props.isCustom && !!pattern?.stream?.length;
-  useHotkeysInEditor(dispatch(TOGGLE_CURSOR_HOTKEY(cursor, showCursor)));
-  useHotkeysInEditor(dispatch(MOVE_LEFT_HOTKEY(cursor)));
-  useHotkeysInEditor(dispatch(MOVE_RIGHT_HOTKEY(cursor)));
-  useHotkeysInEditor(dispatch(SKIP_LEFT_HOTKEY(cursor)));
-  useHotkeysInEditor(dispatch(SKIP_RIGHT_HOTKEY(cursor)));
+  useHotkeysInEditor(
+    dispatch(TOGGLE_PATTERN_CURSOR_HOTKEY(cursor, showCursor))
+  );
+  useHotkeysInEditor(dispatch(MOVE_PATTERN_CURSOR_LEFT_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(MOVE_PATTERN_CURSOR_RIGHT_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(SKIP_PATTERN_LEFT_HOTKEY(cursor)));
+  useHotkeysInEditor(dispatch(SKIP_PATTERN_RIGHT_HOTKEY(cursor)));
 
   // Transform Hotkeys
-  useHotkeysInEditor(dispatch(TRANSPOSE_HOTKEY(pattern, cursor, 1)));
-  useHotkeysInEditor(dispatch(TRANSPOSE_HOTKEY(pattern, cursor, -1)));
-  useHotkeysInEditor(dispatch(TRANSPOSE_HOTKEY(pattern, cursor, 12)));
-  useHotkeysInEditor(dispatch(TRANSPOSE_HOTKEY(pattern, cursor, -12)));
-  useHotkeysInEditor(dispatch(REPEAT_HOTKEY(pattern)));
-  useHotkeysInEditor(dispatch(EXTEND_HOTKEY(pattern)));
-  useHotkeysInEditor(dispatch(DIMINISH_HOTKEY(pattern)));
-  useHotkeysInEditor(dispatch(AUGMENT_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, 1)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, -1)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, 12)));
+  useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, -12)));
+  useHotkeysInEditor(dispatch(REPEAT_PATTERN_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(EXTEND_PATTERN_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(DIMINISH_PATTERN_HOTKEY(pattern)));
+  useHotkeysInEditor(dispatch(AUGMENT_PATTERN_HOTKEY(pattern)));
 }
 
 // ------------------------------------------------------------
 // Pattern Hotkeys
 // ------------------------------------------------------------
 
-const PLAY_PATTERN_HOTKEY =
+export const PLAY_PATTERN_HOTKEY =
   (pattern?: Pattern): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Play Pattern",
@@ -89,7 +91,7 @@ const PLAY_PATTERN_HOTKEY =
     callback: () => pattern && dispatch(playPattern(pattern)),
   });
 
-const DUPLICATE_PATTERN_HOTKEY =
+export const DUPLICATE_PATTERN_HOTKEY =
   (pattern?: Pattern): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Duplicate Pattern",
@@ -102,7 +104,7 @@ const DUPLICATE_PATTERN_HOTKEY =
       ),
   });
 
-const CLEAR_PATTERN_HOTKEY =
+export const CLEAR_PATTERN_HOTKEY =
   (pattern?: Pattern): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Clear Pattern",
@@ -111,7 +113,7 @@ const CLEAR_PATTERN_HOTKEY =
     callback: () => pattern && dispatch(clearPattern(pattern.id)),
   });
 
-const EXPORT_MIDI_HOTKEY =
+export const EXPORT_PATTERN_MIDI_HOTKEY =
   (pattern?: Pattern): Thunk<Hotkey> =>
   (dispatch) => {
     const { isProdigy } = useAuth();
@@ -123,7 +125,7 @@ const EXPORT_MIDI_HOTKEY =
     };
   };
 
-const EXPORT_XML_HOTKEY =
+export const EXPORT_PATTERN_XML_HOTKEY =
   (pattern?: Pattern): Thunk<Hotkey> =>
   (dispatch) => {
     const { isProdigy } = useAuth();
@@ -139,7 +141,7 @@ const EXPORT_XML_HOTKEY =
 // Action Hotkeys
 // ------------------------------------------------------------
 
-const TOGGLE_ADDING_HOTKEY =
+export const TOGGLE_PATTERN_ADD_HOTKEY =
   (isCustom = false): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Toggle Adding Notes",
@@ -149,39 +151,39 @@ const TOGGLE_ADDING_HOTKEY =
       isCustom && dispatch(toggleEditorAction({ data: "addingNotes" })),
   });
 
-const REMOVE_NOTE_HOTKEY =
-  (onEraseClick: () => void): Thunk<Hotkey> =>
+export const REMOVE_PATTERN_NOTE_HOTKEY =
+  (onEraseClick: () => void = noop): Thunk<Hotkey> =>
   (dispatch) => ({
-    name: "Remove Note",
+    name: "Remove Last/Selected Note",
     description: "Remove the last note or the note at the cursor.",
     shortcut: "backspace",
     callback: onEraseClick,
   });
 
-const TOGGLE_ANCHOR_HOTKEY =
-  (cursor: CursorProps): Thunk<Hotkey> =>
+export const TOGGLE_PATTERN_ANCHOR_HOTKEY =
+  (cursor?: CursorProps): Thunk<Hotkey> =>
   (dispatch) => ({
-    name: "Toggle Anchor",
+    name: "Anchor Selected Note",
     description: "Toggle the anchor for inserting notes.",
     shortcut: "x",
     callback: () =>
-      !cursor.hidden &&
+      !cursor?.hidden &&
       dispatch(toggleEditorAction({ data: "insertingNotes" })),
   });
 
-const NOTE_CLICK_HOTKEY =
-  (onBlockClick: () => void): Thunk<Hotkey> =>
+export const PATTERN_NOTE_CLICK_HOTKEY =
+  (onBlockClick: () => void = noop): Thunk<Hotkey> =>
   (dispatch) => ({
-    name: "Note Click",
+    name: "Input Pattern Note",
     description: "Input a note with the selected duration.",
     shortcut: "n",
     callback: onBlockClick,
   });
 
-const REST_CLICK_HOTKEY =
-  (onRestClick: () => void): Thunk<Hotkey> =>
+export const PATTERN_REST_CLICK_HOTKEY =
+  (onRestClick: () => void = noop): Thunk<Hotkey> =>
   (dispatch) => ({
-    name: "Rest Click",
+    name: "Input Pattern Rest",
     description: "Input a rest with the selected duration.",
     shortcut: "0",
     callback: onRestClick,
@@ -191,57 +193,57 @@ const REST_CLICK_HOTKEY =
 // Cursor Hotkeys
 // ------------------------------------------------------------
 
-const TOGGLE_CURSOR_HOTKEY =
-  (cursor: CursorProps, isCustom = false): Thunk<Hotkey> =>
+export const TOGGLE_PATTERN_CURSOR_HOTKEY =
+  (cursor?: CursorProps, isCustom = false): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Toggle Cursor",
     description: "Show or hide the cursor.",
     shortcut: "c",
-    callback: () => (isCustom ? cursor.toggle() : cursor.hide()),
+    callback: () => (isCustom ? cursor?.toggle() : cursor?.hide()),
   });
 
-const MOVE_LEFT_HOTKEY =
-  (cursor: CursorProps): Thunk<Hotkey> =>
+export const MOVE_PATTERN_CURSOR_LEFT_HOTKEY =
+  (cursor?: CursorProps): Thunk<Hotkey> =>
   (dispatch) => ({
-    name: "Move Left",
+    name: "Move Cursor Left",
     description: "Move the cursor to the previous note.",
     shortcut: "left",
-    callback: () => cursor.prev(),
+    callback: () => cursor?.prev(),
   });
 
-const MOVE_RIGHT_HOTKEY =
-  (cursor: CursorProps): Thunk<Hotkey> =>
+export const MOVE_PATTERN_CURSOR_RIGHT_HOTKEY =
+  (cursor?: CursorProps): Thunk<Hotkey> =>
   (dispatch) => ({
-    name: "Move Right",
+    name: "Move Cursor Right",
     description: "Move the cursor to the next note.",
     shortcut: "right",
-    callback: () => cursor.next(),
+    callback: () => cursor?.next(),
   });
 
-const SKIP_LEFT_HOTKEY =
-  (cursor: CursorProps): Thunk<Hotkey> =>
+export const SKIP_PATTERN_LEFT_HOTKEY =
+  (cursor?: CursorProps): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Skip to Start",
     description: "Move the cursor to the start of the pattern.",
     shortcut: "shift+left",
-    callback: () => cursor.skipStart(),
+    callback: () => cursor?.skipStart(),
   });
 
-const SKIP_RIGHT_HOTKEY =
-  (cursor: CursorProps): Thunk<Hotkey> =>
+export const SKIP_PATTERN_RIGHT_HOTKEY =
+  (cursor?: CursorProps): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Skip to End",
     description: "Move the cursor to the end of the pattern.",
     shortcut: "shift+right",
-    callback: () => cursor.skipEnd(),
+    callback: () => cursor?.skipEnd(),
   });
 
 // ------------------------------------------------------------
 // Duration Hotkeys
 // ------------------------------------------------------------
 
-const SELECT_DURATION_HOTKEY =
-  (shortcut: string): Thunk<Hotkey> =>
+export const SELECT_PATTERN_DURATION_HOTKEY =
+  (shortcut?: string): Thunk<Hotkey> =>
   (dispatch) => {
     const data =
       shortcut === "1"
@@ -256,34 +258,41 @@ const SELECT_DURATION_HOTKEY =
         ? "16th"
         : shortcut === "6"
         ? "32nd"
-        : "64th";
+        : shortcut === "7"
+        ? "64th"
+        : "1 to 7";
+    const noData = data === "1 to 7";
     return {
-      name: `Select ${capitalize(data)} Note`,
+      name: shortcut
+        ? `Select ${capitalize(data)} Note`
+        : "Select Note Duration",
       description: `Select a ${data} note duration.`,
-      shortcut,
-      callback: () => dispatch(setEditorNoteDuration({ data })),
+      shortcut: shortcut || "1 to 7",
+      callback: () => !noData && dispatch(setEditorNoteDuration({ data })),
     };
   };
 
-const TOGGLE_DOTTED_HOTKEY = (): Thunk<Hotkey> => (dispatch) => ({
-  name: "Toggle Dotted Note",
-  description: "Switch between a dotted and regular note.",
-  shortcut: ".",
-  callback: () => dispatch(toggleEditorDottedDuration()),
-});
+export const TOGGLE_PATTERN_DOTTED_HOTKEY =
+  (): Thunk<Hotkey> => (dispatch) => ({
+    name: "Toggle Dotted Note",
+    description: "Switch between a dotted and regular note.",
+    shortcut: ".",
+    callback: () => dispatch(toggleEditorDottedDuration()),
+  });
 
-const TOGGLE_TRIPLET_HOTKEY = (): Thunk<Hotkey> => (dispatch) => ({
-  name: "Toggle Triplet Note",
-  description: "Switch between a triplet and regular note.",
-  shortcut: "t",
-  callback: () => dispatch(toggleEditorTripletDuration()),
-});
+export const TOGGLE_PATTERN_TRIPLET_HOTKEY =
+  (): Thunk<Hotkey> => (dispatch) => ({
+    name: "Toggle Triplet Note",
+    description: "Switch between a triplet and regular note.",
+    shortcut: "t",
+    callback: () => dispatch(toggleEditorTripletDuration()),
+  });
 
 // ------------------------------------------------------------
 // Transform Hotkeys
 // ------------------------------------------------------------
 
-const TRANSPOSE_HOTKEY =
+export const TRANSPOSE_PATTERN_HOTKEY =
   (pattern?: Pattern, cursor?: CursorProps, steps = 1): Thunk<Hotkey> =>
   (dispatch) => {
     const shortcut = steps > 0 ? "up" : "down";
@@ -304,7 +313,7 @@ const TRANSPOSE_HOTKEY =
     };
   };
 
-const REPEAT_HOTKEY =
+export const REPEAT_PATTERN_HOTKEY =
   (pattern?: Pattern): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Repeat Pattern",
@@ -319,7 +328,7 @@ const REPEAT_HOTKEY =
     ),
   });
 
-const EXTEND_HOTKEY =
+export const EXTEND_PATTERN_HOTKEY =
   (pattern?: Pattern): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Extend Pattern",
@@ -334,7 +343,7 @@ const EXTEND_HOTKEY =
     ),
   });
 
-const DIMINISH_HOTKEY =
+export const DIMINISH_PATTERN_HOTKEY =
   (pattern?: Pattern): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Diminish Pattern",
@@ -345,7 +354,7 @@ const DIMINISH_HOTKEY =
       dispatch(stretchPattern({ data: { id: pattern.id, factor: 0.5 } })),
   });
 
-const AUGMENT_HOTKEY =
+export const AUGMENT_PATTERN_HOTKEY =
   (pattern?: Pattern): Thunk<Hotkey> =>
   (dispatch) => ({
     name: "Augment Pattern",
@@ -355,3 +364,23 @@ const AUGMENT_HOTKEY =
       pattern &&
       dispatch(stretchPattern({ data: { id: pattern.id, factor: 2 } })),
   });
+
+export const PATTERN_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [
+  dispatch(TOGGLE_PATTERN_ADD_HOTKEY()),
+  dispatch(TOGGLE_PATTERN_CURSOR_HOTKEY()),
+  dispatch(MOVE_PATTERN_CURSOR_LEFT_HOTKEY()),
+  dispatch(MOVE_PATTERN_CURSOR_RIGHT_HOTKEY()),
+  dispatch(TOGGLE_PATTERN_ANCHOR_HOTKEY()),
+  dispatch(REMOVE_PATTERN_NOTE_HOTKEY()),
+  dispatch(CLEAR_PATTERN_HOTKEY()),
+  dispatch(PLAY_PATTERN_HOTKEY()),
+  dispatch(SELECT_PATTERN_DURATION_HOTKEY()),
+  dispatch(PATTERN_REST_CLICK_HOTKEY()),
+  dispatch(PATTERN_NOTE_CLICK_HOTKEY()),
+  dispatch(TOGGLE_PATTERN_TRIPLET_HOTKEY()),
+  dispatch(TOGGLE_PATTERN_DOTTED_HOTKEY()),
+  dispatch(REPEAT_PATTERN_HOTKEY()),
+  dispatch(EXTEND_PATTERN_HOTKEY()),
+  dispatch(DIMINISH_PATTERN_HOTKEY()),
+  dispatch(AUGMENT_PATTERN_HOTKEY()),
+];

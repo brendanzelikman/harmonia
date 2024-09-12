@@ -1,22 +1,16 @@
+import { useProjectDispatch } from "types/hooks";
 import { Shortcut } from "../components/Shortcut";
 import { ShortcutContent } from "../components/ShortcutContent";
+import { SCALE_HOTKEYS } from "features/Editor/ScaleEditor/hooks/useScaleEditorHotkeys";
 
 export function ScaleEditorShortcuts() {
+  const dispatch = useProjectDispatch();
   return (
     <ShortcutContent
-      className="text-lg space-y-6"
-      shortcuts={[
-        <Shortcut shortcut="A" description="Start/Stop Adding Notes" />,
-        <Shortcut shortcut="Delete" description="Start/Stop Removing Notes" />,
-        <Shortcut shortcut="⇧ + Delete" description="Clear All Notes" />,
-        <Shortcut shortcut="⇧ + Space" description="Play Scale" />,
-        <Shortcut shortcut="⇧ + T" description="Transpose Scale" />,
-        <Shortcut shortcut="⇧ + R" description="Rotate Scale" />,
-        <Shortcut shortcut="Up Arrow" description="Transpose 1 Step Up" />,
-        <Shortcut shortcut="Down Arrow" description="Transpose 1 Step Down" />,
-        <Shortcut shortcut="Left Arrow" description="Rotate 1 Step Down" />,
-        <Shortcut shortcut="Right Arrow" description="Rotate 1 Step Up" />,
-      ]}
+      className="text-lg space-y-4"
+      shortcuts={dispatch(SCALE_HOTKEYS).map((hotkey) => (
+        <Shortcut hotkey={hotkey} />
+      ))}
     />
   );
 }

@@ -26,7 +26,7 @@ import {
   selectTrackChainIds,
 } from "types/Track/TrackSelectors";
 import { useHeldHotkeys, useHotkeysInTimeline } from "lib/react-hotkeys-hook";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { some } from "lodash";
 import { createMedia } from "types/Media/MediaThunks";
 import {
@@ -77,7 +77,7 @@ export const NavbarLivePlayButton = () => {
   useTimelineLiveHotkeys();
 
   // The button is in charge of synchronizing the score and dropdown
-  const onClick = () => {
+  const onClick = useCallback(() => {
     const undoType = "prepareLive";
     const trackId = patternTrackId ?? dispatch(createTrackTree({ undoType }));
 
@@ -120,7 +120,7 @@ export const NavbarLivePlayButton = () => {
       setTimeout(() => dispatchCustomEvent(`${tag}_${score}`), 5);
       setTimeout(() => dispatchCustomEvent(`${tag}_${dropdown}`), 10);
     }
-  };
+  }, [patternTrackId, patternClipId, poseClipId]);
 
   useHotkeysInTimeline({
     name: "Quickstart Live Play",

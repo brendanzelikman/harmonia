@@ -173,6 +173,7 @@ export const mergePoseClips =
 export const exportClipsToMidi =
   (ids: ClipId[]): Thunk =>
   async (_dispatch, getProject) => {
+    if (!ids.length) return;
     const project = getProject();
     const meta = selectMeta(project);
     const transport = selectTransport(project);

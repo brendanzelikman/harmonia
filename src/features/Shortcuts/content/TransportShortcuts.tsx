@@ -1,34 +1,35 @@
+import { useProjectDispatch } from "types/hooks";
 import { Shortcut } from "../components/Shortcut";
 import { ShortcutContent } from "../components/ShortcutContent";
+import {
+  LOOP_TRANSPORT_HOTKEY,
+  MUTE_TRANSPORT_HOTKEY,
+  RECORD_TRANSPORT_HOTKEY,
+  STOP_TRANSPORT_HOTKEY,
+  TOGGLE_TRANSPORT_HOTKEY,
+} from "features/Playground/hooks/usePlaygroundHotkeys";
+import {
+  MOVE_LEFT_HOTKEY,
+  MOVE_RIGHT_HOTKEY,
+  SCRUB_LEFT_HOTKEY,
+  SCRUB_RIGHT_HOTKEY,
+} from "features/Timeline/hooks/useTimelineHotkeys";
 
 export function TransportShortcuts() {
+  const dispatch = useProjectDispatch();
   return (
     <ShortcutContent
-      className="text-lg space-y-5"
+      className="text-lg space-y-7"
       shortcuts={[
-        <Shortcut shortcut="Space" description="Play/Pause Transport" />,
-        <Shortcut shortcut="Enter" description="Stop Transport" />,
-        <Shortcut
-          shortcut="Left Arrow"
-          description="Seek to Previous Subdivision"
-        />,
-        <Shortcut
-          shortcut="Right Arrow"
-          description="Seek to Next Subdivision"
-        />,
-        <Shortcut
-          shortcut="⇧ + Left Arrow"
-          description="Scrub to Previous Tick"
-        />,
-        <Shortcut
-          shortcut="⇧ + Right Arrow"
-          description="Scrub to Next Tick"
-        />,
-        <Shortcut shortcut="⌘ + ⇧ + M" description="Toggle Mute" />,
-        <Shortcut shortcut="⌥ + ⇧ + R" description="Toggle Recording" />,
-        <Shortcut shortcut="⌥ + ⇧ + L" description="Toggle Loop" />,
-        <Shortcut shortcut="S + Click" description="Set Loop Start" />,
-        <Shortcut shortcut="E + Click" description="Set Loop End" />,
+        <Shortcut hotkey={dispatch(TOGGLE_TRANSPORT_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(STOP_TRANSPORT_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(MOVE_LEFT_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(MOVE_RIGHT_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(SCRUB_LEFT_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(SCRUB_RIGHT_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(MUTE_TRANSPORT_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(RECORD_TRANSPORT_HOTKEY)} />,
+        <Shortcut hotkey={dispatch(LOOP_TRANSPORT_HOTKEY)} />,
       ]}
     />
   );
