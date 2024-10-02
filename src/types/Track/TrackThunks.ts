@@ -32,6 +32,7 @@ import {
   ScaleObject,
   isNestedNote,
   initializeScale,
+  NestedNote,
 } from "types/Scale/ScaleTypes";
 import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
@@ -68,7 +69,7 @@ import {
 } from "./TrackTypes";
 import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
 import { mod } from "utils/math";
-import { getMidiOctaveDistance } from "utils/midi";
+import { getMidiOctaveDistance, MidiValue } from "utils/midi";
 import { resolvePatternNoteToMidi } from "types/Pattern/PatternResolvers";
 import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
 import { selectPoses } from "types/Pose/PoseSelectors";
@@ -609,6 +610,16 @@ export const collapseTrackParents =
     dispatch(collapseTracks({ data: parentIds }, collapsed));
   };
 
+/** Convert a midi into a nested note */
+export const convertMidiToNestedNote =
+  (midi: MidiValue, parentId?: TrackId): Thunk<NestedNote> =>
+  (dispatch, getProject) => {
+    const parentScale = selectTrackMidiScale(getProject(), parentId);
+    const degree = parentScale.findIndex((s) => s % 12 === midi % 12);
+    const octave = getMidiOctaveDistance(parentScale[degree], midi);
+    return { degree, offset: { octave } };
+  };
+
 /** Get the degree of the pattern note in the given track's scale.  */
 export const getDegreeOfNoteInTrack =
   (trackId?: TrackId, patternNote?: PatternNote): Thunk<number> =>
@@ -635,7 +646,7 @@ export const getDegreeOfNoteInTrack =
 
 /** Get the best matching note based on the given track. */
 export const autoBindNoteToTrack =
-  (trackId: TrackId, note: PatternNote): Thunk<PatternNote | undefined> =>
+  (trackId: TrackId, note: PatternNote): Thunk<PatternNote> =>
   (dispatch, getProject) => {
     const project = getProject();
     const midi = resolvePatternNoteToMidi(note);

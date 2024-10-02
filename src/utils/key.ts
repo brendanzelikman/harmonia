@@ -1,5 +1,4 @@
 import { ChromaticKey } from "assets/keys";
-import { mod } from "./math";
 import { Key } from "types/units";
 import { MidiNote, MidiScale } from "./midi";
 import {
@@ -16,7 +15,6 @@ import {
   getRotatedScale,
   getTransposedScale,
 } from "types/Scale/ScaleTransformers";
-import { Chords } from "assets/patterns";
 import {
   isPatternMidiChord,
   PatternMidiNote,
@@ -27,6 +25,7 @@ import { majorKeys } from "assets/keys/MajorKeys";
 import { minorKeys } from "assets/keys/MinorKeys";
 import { PresetScaleGroupList, PresetScaleGroupMap } from "assets/scales";
 import { areScalesRelated } from "types/Scale/ScaleUtils";
+import { PatternChords } from "types/Pattern/PatternUtils";
 
 // ------------------------------------------------------------
 // Key Helpers
@@ -98,7 +97,7 @@ for (const [scales, keys] of SCALE_KEYSETS) {
 }
 
 /** Add all preset pattern chords to the key map */
-for (const chord of Object.values(Chords).flat()) {
+for (const chord of PatternChords) {
   const flatStream = chord.stream.flat();
   const chords = flatStream.filter(isPatternMidiChord) as PatternMidiNote[];
   const midi = chords.map(getMidiDegree);

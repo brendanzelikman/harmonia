@@ -14,7 +14,12 @@ import {
   resolveScaleChainToMidi,
   resolveScaleToMidi,
 } from "types/Scale/ScaleResolvers";
-import { isNestedNote, ScaleId, ScaleObject } from "types/Scale/ScaleTypes";
+import {
+  chromaticNotes,
+  isNestedNote,
+  ScaleId,
+  ScaleObject,
+} from "types/Scale/ScaleTypes";
 import { MidiScale } from "utils/midi";
 import {
   getOrderedTrackIds,
@@ -451,8 +456,9 @@ export const selectTrackParentMidiScale = createArraySelector(
 );
 
 /** Select the scale of a track as an array of `MidiValues`. */
-export const selectTrackMidiScale = createArraySelector(
-  selectTrackMidiScaleMap
+export const selectTrackMidiScale = createValueSelector(
+  selectTrackMidiScaleMap,
+  chromaticNotes
 );
 
 /** Select the tracks from the given IDs whose scales could contain the given chord.  */
@@ -467,6 +473,7 @@ export const selectTrackIdsWithPossibleScales = (
   return getTrackIdsWithPossibleScales(note, ids, midiScaleMap, scaleTrackMap);
 };
 
+/** Select the tracks from the given IDs whose scales could contain the given chord.  */
 export const getTrackIdsWithPossibleScales = (
   note?: PatternNote,
   trackIds?: TrackId[],

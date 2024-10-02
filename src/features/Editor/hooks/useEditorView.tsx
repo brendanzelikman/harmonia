@@ -48,5 +48,5 @@ export function useEditorView(props: EditorProps) {
   }, [track, props.onInstrumentEditor]);
 
   // Return the editor view
-  return { EditorView };
+  return EditorView;
 }

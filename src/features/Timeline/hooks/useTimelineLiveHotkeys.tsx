@@ -1,4 +1,4 @@
-import { isInputEvent } from "utils/html";
+import { dispatchCustomEvent, isInputEvent } from "utils/html";
 import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { useCallback, useEffect } from "react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
@@ -21,12 +21,13 @@ import {
 } from "types/Pose/PoseThunks";
 import { unmuteTracks, unsoloTracks } from "types/Track/TrackThunks";
 import { mapPoseStreamVectors } from "types/Pose/PoseFunctions";
-import { range, size, some } from "lodash";
+import { pick, range, size, some } from "lodash";
+import { getDictKeys } from "utils/objects";
 
 const numberKeys = range(1, 10).map((n) => n.toString());
 const scaleKeys = ["q", "w", "e", "r", "t", "y"];
 const zeroKeys = ["z", "0"];
-const extraKeys = ["z", "m", "s", "minus", "equal", "shift", "meta"];
+const extraKeys = ["z", "m", "s", "minus", "`", "equal", "shift", "meta"];
 const ALL_KEYS = [...numberKeys, ...zeroKeys, ...scaleKeys, ...extraKeys];
 
 export const useTimelineLiveHotkeys = () => {
@@ -40,6 +41,11 @@ export const useTimelineLiveHotkeys = () => {
   const secondTrackId = scaleTracks[1]?.id;
   const thirdTrackId = scaleTracks[2]?.id;
   const heldKeys = useHeldHotkeys(ALL_KEYS);
+  useEffect(() => {
+    if (!getDictKeys(heldKeys).some((key) => heldKeys[key])) {
+      dispatchCustomEvent("add-shortcut", {});
+    }
+  }, [heldKeys]);
 
   // The callback for the numerical keydown event
   const keydown = useCallback(
@@ -63,7 +69,7 @@ export const useTimelineLiveHotkeys = () => {
         dispatch(toggleInstrumentSolo(instrumentId));
       }
 
-      const isNegative = heldKeys["-"];
+      const isNegative = heldKeys["-"] || heldKeys["`"];
       const isExact = heldKeys["="];
 
       // Compute the pose offset record
@@ -102,6 +108,7 @@ export const useTimelineLiveHotkeys = () => {
       });
 
       if (!some(vector)) return;
+      dispatchCustomEvent("add-shortcut", vector);
       if (isExact) {
         dispatch(updateSelectedPoses(vector));
       } else {
@@ -142,8 +149,10 @@ export const useTimelineLiveHotkeys = () => {
         updateSelectedPoseStreams((stream) =>
           mapPoseStreamVectors(stream, (vec) => {
             let newVector = { ...vec };
+            const broadcastedKeys = [];
 
             if (heldKeys[scaleKeys[0]] && firstTrackId) {
+              broadcastedKeys.push(firstTrackId);
               if (isZ) {
                 delete newVector[firstTrackId];
               } else {
@@ -151,6 +160,7 @@ export const useTimelineLiveHotkeys = () => {
               }
             }
             if (heldKeys[scaleKeys[1]] && secondTrackId) {
+              broadcastedKeys.push(secondTrackId);
               if (isZ) {
                 delete newVector[secondTrackId];
               } else {
@@ -158,6 +168,7 @@ export const useTimelineLiveHotkeys = () => {
               }
             }
             if (heldKeys[scaleKeys[2]] && thirdTrackId) {
+              broadcastedKeys.push(thirdTrackId);
               if (isZ) {
                 delete newVector[thirdTrackId];
               } else {
@@ -165,6 +176,7 @@ export const useTimelineLiveHotkeys = () => {
               }
             }
             if (heldKeys.r) {
+              broadcastedKeys.push("chordal");
               if (isZ) {
                 delete newVector.chordal;
               } else {
@@ -172,6 +184,7 @@ export const useTimelineLiveHotkeys = () => {
               }
             }
             if (heldKeys.t) {
+              broadcastedKeys.push("chromatic");
               if (isZ) {
                 delete newVector.chromatic;
               } else {
@@ -179,15 +192,21 @@ export const useTimelineLiveHotkeys = () => {
               }
             }
             if (heldKeys.y) {
+              broadcastedKeys.push("octave");
               if (isZ) {
                 delete newVector.octave;
               } else {
                 newVector.octave = 0;
               }
             }
-            if (size(newVector) === size(vec)) {
-              if (isZ) return {};
+            if (isZ && size(newVector) === size(vec)) {
+              dispatchCustomEvent("add-shortcut", {});
+              return {};
             }
+            dispatchCustomEvent(
+              "add-shortcut",
+              pick(newVector, broadcastedKeys)
+            );
             return newVector;
           })
         )

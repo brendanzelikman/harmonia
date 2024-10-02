@@ -22,8 +22,11 @@ import { addClipIdsToSelection } from "types/Timeline/thunks/TimelineSelectionTh
 import { dispatchCustomEvent } from "utils/html";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import {
-  selectPatternTrackIds,
+  selectOrderedPatternTracks,
+  selectScaleTracks,
   selectTrackChainIds,
+  selectTrackDepthById,
+  selectTrackLabelById,
 } from "types/Track/TrackSelectors";
 import { useHeldHotkeys, useHotkeysInTimeline } from "lib/react-hotkeys-hook";
 import { useCallback, useRef } from "react";
@@ -38,16 +41,32 @@ import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { useTimelineLiveHotkeys } from "features/Timeline/hooks/useTimelineLiveHotkeys";
 import { NavbarTooltipButton } from "components/TooltipButton";
+import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
+import { sanitize } from "utils/math";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"];
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
-const miscKeys = ["u", "i", "o", "p", "v", "z", "m", "s", "minus", "equal"];
-const hotkeys = [...qwertyKeys, ...numericalKeys, ...miscKeys];
+const trackKeys = ["x", "m", "s"];
+const miscKeys = ["u", "i", "o", "p", "v", "z", "minus", "equal"];
+const hotkeys = [...qwertyKeys, ...numericalKeys, ...trackKeys, ...miscKeys];
 
 export const NavbarLivePlayButton = () => {
   const dispatch = useProjectDispatch();
   const { isAtLeastRank } = useAuth();
-  const patternTrackId = useDeep(selectPatternTrackIds)[0];
+  const scaleTracks = useDeep(selectScaleTracks);
+  const scaleTrackId = (
+    scaleTracks.findLast((track) => !!track.parentId) ?? scaleTracks.at(-1)
+  )?.id;
+
+  // Keep track of held keys and shortcuts
+  const heldKeys = useHeldHotkeys(hotkeys);
+  const holdingScale = qwertyKeys.some((key) => !!heldKeys[key]);
+  const heldNumber = numericalKeys.find((key) => !!heldKeys[key]);
+  const patternTrackId = useDeep(selectOrderedPatternTracks)[
+    heldNumber === undefined ? 0 : sanitize(parseInt(heldNumber) - 1)
+  ]?.id;
+  const ptLabel = use((_) => selectTrackLabelById(_, patternTrackId));
+  useTimelineLiveHotkeys();
 
   // Get the selected track and its scale names
   const selectedTrack = useDeep(selectSelectedTrack);
@@ -71,15 +90,14 @@ export const NavbarLivePlayButton = () => {
   const isTimelineLive = use(selectIsLive);
   const isLive = score.isOpen && dropdown.isOpen && isTimelineLive;
 
-  // Keep track of held keys and shortcuts
-  const heldKeys = useHeldHotkeys(hotkeys);
-  const holdingScale = qwertyKeys.some((key) => !!heldKeys[key]);
-  useTimelineLiveHotkeys();
-
   // The button is in charge of synchronizing the score and dropdown
   const onClick = useCallback(() => {
     const undoType = "prepareLive";
-    const trackId = patternTrackId ?? dispatch(createTrackTree({ undoType }));
+    const trackId =
+      patternTrackId ??
+      (scaleTrackId
+        ? dispatch(createPatternTrack({ parentId: scaleTrackId }))
+        : dispatch(createTrackTree({ undoType })));
 
     dispatch(setSelectedTrackId({ data: trackId, undoType }));
 
@@ -120,12 +138,12 @@ export const NavbarLivePlayButton = () => {
       setTimeout(() => dispatchCustomEvent(`${tag}_${score}`), 5);
       setTimeout(() => dispatchCustomEvent(`${tag}_${dropdown}`), 10);
     }
-  }, [patternTrackId, patternClipId, poseClipId]);
+  }, [isLive, scaleTrackId, patternTrackId, patternClipId, poseClipId]);
 
   useHotkeysInTimeline({
-    name: "Quickstart Live Play",
+    name: "Start Live Play",
     description: "Open the Live Play interface",
-    shortcut: "g",
+    shortcut: "l",
     callback: onClick,
   });
 
@@ -133,8 +151,15 @@ export const NavbarLivePlayButton = () => {
   const NumericalShortcuts = () => {
     return (
       <div className="py-2 text-white animate-in fade-in duration-300">
-        <p className="font-extrabold">Live Play Shortcuts</p>
-        <p className="pb-2 mb-2 font-thin text-xs">As Easy As 1-2-3</p>
+        <p>
+          <span className="font-extrabold">Live Play: </span>
+          <span className="font-light text-fuchsia-300">
+            Enabled for Pattern Track {ptLabel}
+          </span>
+        </p>
+        <p className="pb-2 mb-2 font-thin text-xs">
+          Keyboard-Based Shortcuts for Improvisation
+        </p>
         <div className="flex flex-col gap-2">
           <div className="px-2 py-1 bg-gradient-to-r from-sky-500/40 to-sky-500/20 rounded">
             1. Pick a Scale
@@ -282,6 +307,15 @@ export const NavbarLivePlayButton = () => {
           </div>
           <div className="p-1">
             <p>
+              <Instruction active={heldKeys["x"]} label="Press X:" />{" "}
+              <Description
+                active={heldKeys["x"]}
+                label={`Restart Loop`}
+                activeClass="text-emerald-200"
+                defaultClass="text-emerald-300"
+              />
+            </p>
+            <p>
               <Instruction active={heldKeys["m"]} label="Hold M:" />{" "}
               <Description
                 active={heldKeys["m"]}
@@ -299,9 +333,11 @@ export const NavbarLivePlayButton = () => {
                 defaultClass="text-emerald-300"
               />
             </p>
-            <p>
+            <p className={heldKeys["m"] || heldKeys["s"] ? "" : "opacity-50"}>
               <Description
-                active={(key) => heldKeys[key]}
+                active={(key) =>
+                  heldKeys[key] && (heldKeys["m"] || heldKeys["s"])
+                }
                 keycodes={["1", "2", "3", "4", "5", "6", "7", "8", "9"]}
                 required={["s", "m"]}
                 label="Press 1-9:"
@@ -309,17 +345,21 @@ export const NavbarLivePlayButton = () => {
                 defaultClass="text-slate-400"
               />{" "}
               <Description
-                active={(key) => heldKeys[key]}
+                active={(key) =>
+                  heldKeys[key] && (heldKeys["m"] || heldKeys["s"])
+                }
                 keycodes={["1", "2", "3", "4", "5", "6", "7", "8", "9"]}
                 required={["s", "m"]}
-                label="Target Pattern Track 1-9"
+                label="Target Pattern Track #1-9"
                 activeClass="text-emerald-200"
                 defaultClass="text-emerald-300"
               />
             </p>
-            <p>
+            <p className={heldKeys["m"] || heldKeys["s"] ? "" : "opacity-50"}>
               <Description
-                active={(key) => heldKeys[key]}
+                active={(key) =>
+                  heldKeys[key] && (heldKeys["m"] || heldKeys["s"])
+                }
                 keycodes={["0"]}
                 required={["s", "m"]}
                 label="Press 0:"
@@ -327,7 +367,9 @@ export const NavbarLivePlayButton = () => {
                 defaultClass="text-slate-400"
               />{" "}
               <Description
-                active={(key) => heldKeys[key]}
+                active={(key) =>
+                  heldKeys[key] && (heldKeys["m"] || heldKeys["s"])
+                }
                 keycodes={["0"]}
                 required={["s", "m"]}
                 label="Unmute/Unsolo All Tracks"
@@ -348,15 +390,13 @@ export const NavbarLivePlayButton = () => {
       marginLeft={isLive ? -190 : undefined}
       width={isLive ? 290 : undefined}
       borderColor="border-fuchsia-500"
-      backgroundColor="bg-slate-950"
       className={classNames(
         "relative select-none cursor-pointer",
         "flex total-center rounded-full transition-all duration-300 font-nunito font-light",
         isLive ? "bg-fuchsia-500/70" : "bg-transparent"
       )}
-      notClickable={isLive}
       onClick={onClick}
-      label={isLive ? NumericalShortcuts() : "Quickstart Live Play"}
+      label={isLive ? NumericalShortcuts() : "Start Live Play"}
     >
       <GiHand className="select-none pointer-events-none" />
     </NavbarTooltipButton>

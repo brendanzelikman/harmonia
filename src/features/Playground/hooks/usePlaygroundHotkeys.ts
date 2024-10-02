@@ -34,6 +34,7 @@ import {
   selectFirstPortaledPoseClipId,
 } from "types/Arrangement/ArrangementSelectors";
 import { CLOSE_STATE, TOGGLE_STATE } from "hooks/useToggledState";
+import { createNestedTracks } from "types/Track/ScaleTrack/ScaleTrackThunks";
 
 export function usePlaygroundHotkeys() {
   const dispatch = useProjectDispatch();
@@ -66,6 +67,9 @@ export function usePlaygroundHotkeys() {
   useHotkeysGlobally(dispatch(MUTE_TRANSPORT_HOTKEY));
   useHotkeysGlobally(dispatch(EXPORT_MIDI_HOTKEY));
   useHotkeysGlobally(dispatch(EXPORT_AUDIO_HOTKEY));
+
+  // Generative Hotkeys
+  useHotkeysGlobally(dispatch(GENERATE_TRACKS_HOTKEY));
 }
 
 // -----------------------------------------------
@@ -246,6 +250,13 @@ export const EXPORT_AUDIO_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   description: "Export the timeline to a WAV file",
   shortcut: "meta+shift+w",
   callback: () => dispatch(downloadTransport()),
+});
+
+export const GENERATE_TRACKS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Create Nested Tracks",
+  description: "Create a chain of nested tracks based on the given input",
+  shortcut: "g",
+  callback: () => dispatch(createNestedTracks),
 });
 
 export const PLAYGROUND_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [

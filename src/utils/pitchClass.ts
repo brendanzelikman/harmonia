@@ -2,6 +2,10 @@ import { Key, PitchClass } from "types/units";
 import { getPitchClassNumber, MidiNote } from "./midi";
 import { getMidiDegree } from "./midi";
 import { ChromaticKey } from "assets/keys";
+import { capitalize, lowerCase } from "lodash";
+
+/** A regex matching an initial pitch class and a following string. */
+export const PITCH_CLASS_REGEX = /^([a-gA-G][#b]?)(.*)$/;
 
 /** The list of possible spellings for each note of the chromatic scale. */
 export const PITCH_CLASSES: PitchClass[][] = [
@@ -28,6 +32,17 @@ export const isPitchClass = (value: any): value is PitchClass => {
 // ------------------------------------------------------------
 // Pitch Class Helpers
 // ------------------------------------------------------------
+
+/** Unpack the pitch class and scale name from a scale. */
+export const unpackScaleName = (name: string) => {
+  const match = name.match(PITCH_CLASS_REGEX);
+  if (!match) return undefined;
+  const [_, _pitchClass, _scaleName] = match;
+  const pitchClass = capitalize(_pitchClass);
+  const scaleName = lowerCase(_scaleName);
+  if (!isPitchClass(pitchClass) || !scaleName) return undefined;
+  return { pitchClass, scaleName };
+};
 
 /** Sort the list of pitch classes by chromatic number. */
 export const getSortedPitchClasses = (pitches: PitchClass[]) => {

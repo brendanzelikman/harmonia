@@ -44,6 +44,8 @@ import {
 import {
   movePlayheadLeft,
   movePlayheadRight,
+  seekTransport,
+  startTransport,
 } from "types/Transport/TransportThunks";
 import { Thunk } from "types/Project/ProjectTypes";
 import {
@@ -52,6 +54,11 @@ import {
 } from "types/Track/TrackSelectors";
 import { setupFileInput } from "providers/idb/samples";
 import { selectHasClips } from "types/Clip/ClipSelectors";
+import { inputPoseStream } from "types/Pose/PoseThunks";
+import {
+  selectTransport,
+  selectTransportLoopStart,
+} from "types/Transport/TransportSelectors";
 
 export function useTimelineHotkeys() {
   const dispatch = useProjectDispatch();
@@ -59,6 +66,7 @@ export function useTimelineHotkeys() {
   // Timeline Hotkeys
   useHotkeysInTimeline(dispatch(DECREASE_SUBDIVISION_HOTKEY));
   useHotkeysInTimeline(dispatch(INCREASE_SUBDIVISION_HOTKEY));
+  useHotkeysInTimeline(dispatch(RESET_TRANSPORT_HOTKEY));
   // useHotkeysInTimeline(dispatch(RESET_SCROLL_HOTKEY(element)));
 
   // Track Hotkeys
@@ -100,6 +108,7 @@ export function useTimelineHotkeys() {
   useHotkeysInTimeline(dispatch(MOVE_MEDIA_RIGHT_HOTKEY));
   useHotkeysInTimeline(dispatch(SCRUB_MEDIA_LEFT_HOTKEY));
   useHotkeysInTimeline(dispatch(SCRUB_MEDIA_RIGHT_HOTKEY));
+  useHotkeysInTimeline(dispatch(INPUT_POSE_VECTOR_HOTKEY));
 }
 
 // -----------------------------------------------
@@ -128,6 +137,17 @@ export const RESET_SCROLL_HOTKEY =
     shortcut: "shift+enter",
     callback: () => element && element.scroll({ left: 0, behavior: "smooth" }),
   });
+
+export const RESET_TRANSPORT_HOTKEY: Thunk<Hotkey> = (
+  dispatch,
+  getProject
+) => ({
+  name: "Reset Transport",
+  description: "Reset the transport to the beginning",
+  shortcut: "x",
+  callback: () =>
+    dispatch(seekTransport({ data: selectTransportLoopStart(getProject()) })),
+});
 
 // -----------------------------------------------
 // Track Hotkeys
@@ -172,7 +192,7 @@ export const INSERT_PARENT_TRACK_HOTKEY: Thunk<Hotkey> = (
 export const LOAD_SAMPLES_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Load Samples",
   description: "Load a sample into the selected Pattern Track",
-  shortcut: "l",
+  shortcut: "meta+alt+p",
   callback: () => {
     const project = getProject();
     const track = selectSelectedTrack(project);
@@ -444,4 +464,11 @@ export const EXPORT_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   description: "Export the selected clips to a MIDI file",
   shortcut: "meta+alt+m",
   callback: () => dispatch(exportSelectedClipsToMIDI()),
+});
+
+export const INPUT_POSE_VECTOR_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Generate a Pose Vector",
+  description: "Update all selected poses with the inputted vector.",
+  shortcut: "meta+alt+v",
+  callback: () => dispatch(inputPoseStream()),
 });

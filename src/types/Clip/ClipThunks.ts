@@ -3,6 +3,7 @@ import { isUndefined, some } from "lodash";
 import { Tick } from "types/units";
 import {
   selectClipMotif,
+  selectPatternClips,
   selectPoseClipById,
   selectTimedClipById,
 } from "./ClipSelectors";
@@ -37,6 +38,7 @@ import { addClip, addClips, removeClip, updateClip } from "./ClipSlice";
 import {
   selectIsLive,
   selectMediaSelection,
+  selectSelectedPatternClips,
 } from "types/Timeline/TimelineSelectors";
 import { deleteMedia } from "types/Media/MediaThunks";
 import {
@@ -48,9 +50,15 @@ import { copyMotif } from "types/Motif/MotifFunctions";
 import { addMotif } from "types/Motif/MotifThunks";
 import { createPose } from "types/Pose/PoseThunks";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent, promptUserForString } from "utils/html";
 import { getValueByKey } from "utils/objects";
 import { selectTrackLabelById, selectTracks } from "types/Track/TrackSelectors";
+import { createEighthNote, createEighthRest } from "utils/durations";
+import { autoBindNoteToTrack } from "types/Track/TrackThunks";
+import { PatternId, PatternStream } from "types/Pattern/PatternTypes";
+import { updatePattern } from "types/Pattern/PatternSlice";
+import { selectPatternById } from "types/Pattern/PatternSelectors";
+import { getMidiFromPitch, getMidiPitch } from "utils/midi";
 
 /** Slice a clip and make sure the old ID is no longer selected. */
 export const sliceClip =
@@ -239,3 +247,41 @@ export const exportClipsToMidi =
     a.click();
     URL.revokeObjectURL(url);
   };
+
+export const inputPatternStream =
+  (id?: PatternId): Thunk =>
+  (dispatch, getProject) =>
+    promptUserForString(
+      "Update the Selected Pattern",
+      `Please input a list of notes separated by spaces to update the selected pattern, e.g. "60 64 67".`,
+      (input) => {
+        const project = getProject();
+        const patternClips = selectPatternClips(project);
+        const selectedClips = selectSelectedPatternClips(project);
+        const clip = id
+          ? patternClips.find((clip) => clip.patternId === id)
+          : selectedClips[0];
+        if (!clip) return;
+
+        const notes: PatternStream = [];
+        const regex = /(\d+|[A-G]#?\d?)/g;
+        let match: RegExpExecArray | null;
+
+        while ((match = regex.exec(input)) !== null) {
+          const token = match[1];
+          const isNumber = /^\d+$/.test(token);
+          const midi = isNumber ? parseInt(token, 10) : getMidiFromPitch(token);
+          const isRest = midi <= 0;
+          if (isRest) {
+            notes.push(createEighthRest());
+          } else {
+            const note = createEighthNote(midi);
+            notes.push(dispatch(autoBindNoteToTrack(clip?.trackId, note)));
+          }
+        }
+
+        const pattern = selectPatternById(project, clip.patternId);
+        const stream = [...pattern.stream, ...notes];
+        dispatch(updatePattern({ id: pattern.id, stream }));
+      }
+    )();

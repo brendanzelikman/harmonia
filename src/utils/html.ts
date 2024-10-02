@@ -19,7 +19,7 @@ export const dispatchCustomEvent = (type: string, detail?: unknown) => {
 export const promptUserForString =
   (
     title: ReactNode,
-    message: ReactNode,
+    message: ReactNode | ReactNode[],
     callback: (input: string) => unknown
   ) =>
   async () => {

@@ -74,16 +74,15 @@ export const seekTransport =
       dispatch(setTransportLoop(false));
     }
 
-    Tone.Transport.position = Tone.Time(tick, "i").toSeconds();
-
     // Clear the schedule
     if (scheduleId !== undefined) Tone.Transport.clear(scheduleId);
 
     // Restart the transport if it is started
-    if (isTransportStarted(Tone.getTransport())) {
+    if (isTransportStarted(Tone.Transport)) {
       dispatch(stopTransport());
       dispatch(startTransport(tick));
     }
+    Tone.Transport.position = Tone.Time(tick, "i").toSeconds();
 
     // Dispatch a tick update event
     dispatchCustomEvent(UPDATE_TICK, tick);

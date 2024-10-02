@@ -12,7 +12,10 @@ import {
   getPatternDuration,
   getPatternBlockAtIndex,
 } from "./PatternFunctions";
-import { getMidiStreamScale, flattenMidiStreamValues } from "./PatternUtils";
+import {
+  getMidiStreamIntrinsicScale,
+  flattenMidiStreamValues,
+} from "./PatternUtils";
 import {
   getTransposedMidiStream,
   getRotatedMidiStream,
@@ -80,7 +83,7 @@ test("getMidiStreamScale should return the intrinsic scale of a stream", () => {
   const notes = [72, 73, 60];
   const stream = createScaleStream(notes);
   const midiStream = PatternResolvers.resolvePatternStreamToMidi(stream);
-  expect(getMidiStreamScale(midiStream)).toEqual([0, 1]);
+  expect(getMidiStreamIntrinsicScale(midiStream)).toEqual([0, 1]);
 });
 
 test("getTransposedMidiStream should correctly transpose a MIDI stream", () => {

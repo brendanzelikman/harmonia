@@ -131,7 +131,7 @@ function EditorComponent() {
   };
 
   /** Only render the editor if it is visible. */
-  const { EditorView } = useEditorView(editorProps);
+  const EditorView = useEditorView(editorProps);
 
   const editorClass = classNames(
     isShowingTracks ? "w-[calc(100%-300px)]" : "w-full",

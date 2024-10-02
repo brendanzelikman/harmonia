@@ -32,7 +32,7 @@ export const getPoseVectorAsJSX = (
   if (!vector) return "";
 
   // Return the origin if the vector is empty
-  if (isVectorEmpty(vector)) return <span>No Movement</span>;
+  if (isVectorEmpty(vector)) return <span>Origin</span>;
 
   // Otherwise, parse the keys and create a string for each offset
   const keys = getVectorKeys(vector);
@@ -57,7 +57,7 @@ export const getPoseVectorAsJSX = (
       {classes.map((pitch, i) => (
         <span key={`pitch-${i}`}>
           {pitch}: {vector[pitch]}
-          {i < count - 1 ? ", " : ""}
+          {i < count - 1 ? " + " : ""}
         </span>
       ))}
       {hasSeveralClasses ? ")" : ""}
@@ -76,8 +76,8 @@ export const getPoseVectorAsJSX = (
           const value = vector[id];
           return (
             <span key={`scalar-${i}`}>
-              T{label}: {value}
-              {i < trackCount - 1 ? ", " : ""}
+              S{label}: {value}
+              {i < trackCount - 1 ? " + " : ""}
             </span>
           );
         })}

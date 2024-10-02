@@ -8,7 +8,6 @@ import {
 import { useEffect, useState } from "react";
 import { clamp } from "lodash";
 import { use, useProjectDispatch, useProjectSelector } from "types/hooks";
-import { TOGGLE_SHORTCUTS } from "features/Shortcuts/ShortcutsMenu";
 import { dispatchCustomEvent, onEnter } from "utils/html";
 import classNames from "classnames";
 import { GiSettingsKnobs } from "react-icons/gi";
@@ -33,6 +32,7 @@ import {
   NavbarFormLabel,
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
+import { TOGGLE_STATE } from "hooks/useToggledState";
 
 export function NavbarSettingsMenu() {
   const dispatch = useProjectDispatch();
@@ -158,7 +158,7 @@ export function NavbarSettingsMenu() {
     <NavbarFormGroup>
       <NavbarFormButton
         className={`w-full hover:bg-slate-600/50 active:bg-slate-800/50`}
-        onClick={() => dispatchCustomEvent(TOGGLE_SHORTCUTS)}
+        onClick={() => dispatchCustomEvent(TOGGLE_STATE("shortcuts"))}
       >
         Open Shortcut Menu
       </NavbarFormButton>

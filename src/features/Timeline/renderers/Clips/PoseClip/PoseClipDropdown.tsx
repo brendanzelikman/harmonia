@@ -17,6 +17,7 @@ import {
 import {
   selectCellHeight,
   selectIsLive,
+  selectSelectedClipIds,
 } from "types/Timeline/TimelineSelectors";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getTrackDepth, getTrackLabel } from "types/Track/TrackFunctions";
@@ -47,6 +48,7 @@ export const PoseClipDropdown = (props: PoseClipDropdownProps) => {
   const clipLabel = `Track ${getTrackLabel(clip.trackId, trackMap)}`;
   const cellHeight = use(selectCellHeight);
   const isLive = use(selectIsLive);
+  const isSelected = use((_) => selectSelectedClipIds(_).includes(clip.id));
   const heldKeys = useHeldHotkeys(["v", "q", "w", "e", "r", "t", "y"]);
 
   // Get the current vector selected from the stream
@@ -104,7 +106,7 @@ export const PoseClipDropdown = (props: PoseClipDropdownProps) => {
               {scaleName}
             </span>
           </div>
-          {isLive && (
+          {isLive && isSelected && (
             <div
               className={classNames(
                 "text-fuchsia-300",
@@ -146,7 +148,7 @@ export const PoseClipDropdown = (props: PoseClipDropdownProps) => {
         </div>
       );
     },
-    [selectedVector, isLive, pose, index, heldKeys, clipDepth]
+    [selectedVector, isLive, isSelected, pose, index, heldKeys, clipDepth]
   );
 
   // Create editable fields for each vector component

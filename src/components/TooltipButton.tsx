@@ -166,7 +166,7 @@ export const TooltipButton = ({
         "transition-opacity opacity-0 group-hover:opacity-100 duration-200",
         "absolute p-3 py-1 w-max max-w-80 shrink-0 rounded-lg",
         direction === "vertical" ? "top-12" : "ml-10",
-        borderColor ?? "border-indigo-500/70",
+        borderColor ?? "border-indigo-400/90",
         backgroundColor ?? "bg-zinc-900",
         "border rounded text-sm z-[999] capitalize"
       )}

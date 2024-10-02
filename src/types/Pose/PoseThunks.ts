@@ -15,6 +15,7 @@ import {
   isPoseVectorModule,
   PoseVector,
   PoseStream,
+  PoseVectorId,
 } from "./PoseTypes";
 import {
   selectNewMotifName,
@@ -24,6 +25,12 @@ import { setSelectedPose } from "types/Media/MediaThunks";
 import { Payload, unpackUndoType } from "lib/redux";
 import { createAction } from "@reduxjs/toolkit";
 import { getVectorKeys } from "utils/vector";
+import { ChromaticPitchClass } from "assets/keys";
+import { promptUserForString } from "utils/html";
+import { selectTrackLabelMap } from "types/Track/TrackSelectors";
+import { TrackId } from "types/Track/TrackTypes";
+import { PoseClipId } from "types/Clip/ClipTypes";
+import { selectPoseClipById } from "types/Clip/ClipSelectors";
 
 /** Create a pose. */
 export const createPose =
@@ -118,6 +125,72 @@ export const updateSelectedPoseStreams =
     }));
     dispatch(updatePoses({ data: newPoses }));
   };
+
+export const inputPoseStream =
+  (id?: PoseClipId): Thunk =>
+  (dispatch, getProject) =>
+    promptUserForString(
+      "Update the Selected Vector",
+      `Please input a list of offsets separated by plus signs to update the selected poses, e.g. "T5 + t12".`,
+      (input) => {
+        const trackMap = selectTrackLabelMap(getProject());
+        const labelEntries = Object.entries(trackMap) as [TrackId, string][];
+        const vector: PoseVector = {};
+
+        const chromaticRegex = /T([-+]?\d+)/g;
+        const chordalRegex = /t([-+]?\d+)/g;
+        const octaveRegex = /O([-+]?\d+)/g;
+        const trackIdRegex = /S([1-9][a-z]*):\s*([-+]?\d*)/g;
+        const pitchClassRegex = /([A-G]#?):\s*([-+]?\d+)/g;
+
+        const addToVector = (key: PoseVectorId, value: number) => {
+          if (vector[key] !== undefined) {
+            vector[key]! += value;
+          } else {
+            vector[key] = value;
+          }
+        };
+
+        let match: RegExpExecArray | null;
+
+        // Chromatic
+        while ((match = chromaticRegex.exec(input)) !== null) {
+          addToVector("chromatic", parseInt(match[1], 10));
+        }
+
+        // Chordal
+        while ((match = chordalRegex.exec(input)) !== null) {
+          addToVector("chordal", parseInt(match[1], 10));
+        }
+
+        // Octave
+        while ((match = octaveRegex.exec(input)) !== null) {
+          addToVector("octave", parseInt(match[1], 10));
+        }
+
+        // TrackId
+        while ((match = trackIdRegex.exec(input)) !== null) {
+          const trackId = labelEntries.find(
+            (entry) => entry[1] === match![1]
+          )?.[0];
+          if (!trackId) continue;
+          const value = match[2] ? parseInt(match[2], 10) : 0;
+          addToVector(trackId, value);
+        }
+
+        // Pitch Classes
+        while ((match = pitchClassRegex.exec(input)) !== null) {
+          addToVector(match[1] as ChromaticPitchClass, parseInt(match[2], 10));
+        }
+
+        if (!id) return dispatch(offsetSelectedPoses(vector));
+        const poseId = selectPoseClipById(getProject(), id)?.poseId;
+        const pose = selectPoseById(getProject(), poseId);
+        if (!poseId || !pose) return;
+        const stream = mergePoseStreamVectors(pose.stream, vector);
+        dispatch(updatePose({ data: { id: poseId, stream } }));
+      }
+    )();
 
 /** Update the selected poses with the given vector. */
 export const updateSelectedPoses =

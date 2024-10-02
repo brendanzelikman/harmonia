@@ -47,6 +47,7 @@ import {
 import { onCellClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { useDragState } from "types/Media/MediaTypes";
 import { TimelineTrackButton } from "./components/TimelineTrackButton";
+import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 
 export type Row = {
   index: number;

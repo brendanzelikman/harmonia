@@ -2,14 +2,14 @@ import { ScaleVector, isNestedNote } from "types/Scale/ScaleTypes";
 import { mod } from "utils/math";
 import { sumVectors } from "utils/vector";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
-import { getMidiStreamScale } from "./PatternUtils";
+import { getMidiStreamIntrinsicScale } from "./PatternUtils";
 import {
   PatternStream,
   isPatternChord,
   PatternMidiStream,
   isPatternMidiChord,
 } from "./PatternTypes";
-import { getMidiScaleDegree } from "utils/midi";
+import { getMidiDegree, getMidiScaleDegree } from "utils/midi";
 
 /** Transpose a `PatternStream` by applying each offset from the given `ScaleVector`. */
 export const getTransposedPatternStream = (
@@ -45,7 +45,7 @@ export const getRotatedMidiStream = (
   midiStream: PatternMidiStream,
   offset: number
 ): PatternMidiStream => {
-  const streamScale = getMidiStreamScale(midiStream);
+  const streamScale = getMidiStreamIntrinsicScale(midiStream);
   const length = streamScale.length;
   const step = Math.sign(offset);
   for (let i = 0; i < Math.abs(offset); i++) {

@@ -1,7 +1,12 @@
 import { useDeep, useProjectDispatch } from "types/hooks";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { PortaledPoseClipId } from "types/Clip/ClipTypes";
-import { blurOnEnter, ButtonMouseEvent, cancelEvent } from "utils/html";
+import {
+  blurOnEnter,
+  ButtonMouseEvent,
+  cancelEvent,
+  isHoldingShift,
+} from "utils/html";
 import { updatePattern } from "types/Pattern/PatternSlice";
 import { BsPencil, BsXCircle } from "react-icons/bs";
 import {
@@ -24,10 +29,15 @@ import {
   velocityTransformations,
 } from "features/Editor/PatternEditor/tabs/PatternEditorTransformTab";
 import { FaRuler } from "react-icons/fa";
-import { migrateClip, preparePatternClip } from "types/Clip/ClipThunks";
+import {
+  inputPatternStream,
+  migrateClip,
+  preparePatternClip,
+} from "types/Clip/ClipThunks";
 import { PatternClipScore } from "./PatternClipScore";
 import { PatternClipPiano } from "./PatternClipPiano";
 import { BiEraser, BiPencil } from "react-icons/bi";
+import { clearPattern } from "types/Pattern/PatternThunks";
 
 export interface PatternClipDropdownProps extends PatternClipRendererProps {
   poseClipId?: PortaledPoseClipId;
@@ -79,7 +89,11 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                   label={isAdding ? "Play a Note" : "Write"}
                   backgroundColor={isAdding ? "bg-emerald-400/80" : undefined}
                   borderColor={isAdding ? "border-emerald-200/80" : undefined}
-                  onClick={() => setIsAdding((prev) => !prev)}
+                  onClick={(e) =>
+                    isHoldingShift(e)
+                      ? dispatch(inputPatternStream(pattern.id))
+                      : setIsAdding((prev) => !prev)
+                  }
                   icon={<BiPencil />}
                 />
                 <ScoreButton
@@ -87,7 +101,12 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                   buttonClass={isEmpty ? "cursor-default opacity-50" : ""}
                   backgroundColor={isRemoving ? "bg-red-400/80" : undefined}
                   borderColor={isRemoving ? "border-red-200/80" : undefined}
-                  onClick={() => !isEmpty && setIsRemoving((prev) => !prev)}
+                  onClick={(e) =>
+                    !isEmpty &&
+                    (isHoldingShift(e)
+                      ? dispatch(clearPattern(pattern.id))
+                      : setIsRemoving((prev) => !prev))
+                  }
                   icon={<BiEraser />}
                 />
 

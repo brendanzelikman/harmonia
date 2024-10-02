@@ -4,6 +4,7 @@ import { mod } from "./math";
 import { ChromaticKey } from "assets/keys";
 import { isNumber } from "lodash";
 import { chromaticNotes } from "types/Scale/ScaleTypes";
+import { Pitch } from "opensheetmusicdisplay";
 
 // ------------------------------------------------------------
 // MIDI Units
@@ -68,6 +69,19 @@ export const getMidiPitch = (note: MidiNote, key: Key = ChromaticKey) => {
 export const getPitchClassNumber = (note?: PitchClass) => {
   if (note === undefined) return 0;
   return PITCH_CLASSES.findIndex((x) => x.includes(note));
+};
+
+/** Get the MIDI number of a pitch class. */
+export const getMidiFromPitch = (note: string) => {
+  const pitchRegex = /([A-G]#?\d?)/g;
+  const match = pitchRegex.exec(note);
+  if (!match) return 0;
+  const pitch = match[1];
+  const hasNumber = pitch.match(/\d/);
+  const octave = hasNumber ? parseInt(pitch.replace(/[^0-9]/g, "")) : 4;
+  const pitchClass = pitch.replace(/[0-9]/g, "") as PitchClass;
+  const degree = getPitchClassNumber(pitchClass);
+  return (octave + 1) * 12 + degree;
 };
 
 // ------------------------------------------------------------

@@ -1,5 +1,4 @@
 import { getPatternBlockDuration } from "types/Pattern/PatternFunctions";
-import { isClipInterface } from "../ClipTypes";
 import {
   PatternClipTheme,
   DEFAULT_PATTERN_CLIP_THEME,

@@ -7,7 +7,7 @@ import Logo from "assets/images/logo.png";
 interface PromptModalProps {
   isOpen: boolean;
   title: ReactNode;
-  description: ReactNode;
+  description: ReactNode | ReactNode[];
   onSubmit: (input: string) => void;
   onCancel: () => void;
 }
@@ -15,6 +15,16 @@ interface PromptModalProps {
 const PromptModal = (props: PromptModalProps) => {
   const { isOpen, title, description, onSubmit, onCancel } = props;
   const [input, setInput] = useState("");
+
+  const descriptionNodes = Array.isArray(description) ? (
+    description.map((node, index) => (
+      <p key={index} className="mt-2 text-sm text-slate-300">
+        {node}
+      </p>
+    ))
+  ) : (
+    <p className="mt-2 text-sm text-slate-300">{description}</p>
+  );
 
   return (
     <Dialog className="relative z-[999]" open={isOpen} onClose={onCancel}>
@@ -29,7 +39,7 @@ const PromptModal = (props: PromptModalProps) => {
               <img src={Logo} className="h-12" />
               {title}
             </Dialog.Title>
-            <p className="mt-2 text-sm text-slate-300">{description}</p>
+            {descriptionNodes}
             <div className="mt-6 flex gap-3 items-center">
               <input
                 type="text"
@@ -60,7 +70,7 @@ const PromptModal = (props: PromptModalProps) => {
 
 export const promptModal = (
   title: ReactNode,
-  description: ReactNode
+  description: ReactNode | ReactNode[]
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     const root = document.createElement("div");

@@ -1,7 +1,7 @@
 import { getValueByKey } from "utils/objects";
 import { addScale } from "types/Scale/ScaleSlice";
 import { random, range, sample, sampleSize } from "lodash";
-import { PresetScaleList } from "assets/scales";
+import { PresetScaleList, PresetScaleNotes } from "assets/scales";
 import { Thunk } from "types/Project/ProjectTypes";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
 import { sortScaleNotesByDegree } from "types/Scale/ScaleUtils";
@@ -11,6 +11,7 @@ import {
   ScaleArray,
   chromaticScale,
   initializeScale,
+  ScaleNote,
 } from "types/Scale/ScaleTypes";
 import { TrackId, isPatternTrack } from "../TrackTypes";
 import {
@@ -32,13 +33,24 @@ import {
   createPatternTrack,
   setPatternTrackScaleTrack,
 } from "../PatternTrack/PatternTrackThunks";
-import { moveTrack } from "../TrackThunks";
+import { convertMidiToNestedNote, moveTrack } from "../TrackThunks";
 import { addTrack } from "../TrackThunks";
 import { createSixteenthNote, createSixteenthRest } from "utils/durations";
 import { createPattern } from "types/Pattern/PatternThunks";
 import { addClip } from "types/Clip/ClipSlice";
 import { initializePatternClip } from "types/Clip/ClipTypes";
 import { PatternStream } from "types/Pattern/PatternTypes";
+import { PatternScales } from "types/Pattern/PatternUtils";
+import { getTransposedScale } from "types/Scale/ScaleTransformers";
+import { promptUserForString } from "utils/html";
+import { getScaleName } from "utils/key";
+import { getPitchClassNumber, MidiScale } from "utils/midi";
+import { unpackScaleName } from "utils/pitchClass";
+import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
+import {
+  INSTRUMENT_KEYS,
+  InstrumentKey,
+} from "types/Instrument/InstrumentTypes";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
@@ -229,3 +241,71 @@ export const moveScaleTrack =
     );
     return true;
   };
+
+/** Create a list of tracks based on an inputted regex string */
+export const createNestedTracks: Thunk = (dispatch) =>
+  promptUserForString(
+    "Create Nested Tracks",
+    [
+      "Please input a list of scale names and instrument names separated by '=>' to create a chain of nested tracks.",
+      "For example, 'g major scale => c major chord => upright piano'.",
+    ],
+    (input) => {
+      const undoType = createUndoType("generateTracks", nanoid());
+      const names = input.split("=>").map((s) => s.trim());
+
+      // Convert the names into scales
+      const scales = names.map((name) => {
+        const unpacked = unpackScaleName(name);
+        if (!unpacked) return undefined;
+        const { pitchClass, scaleName } = unpacked;
+
+        // Find some scale name that includes the given scale name
+        const preset = [...PresetScaleNotes, ...PatternScales].find((scale) =>
+          getScaleName(scale).toLowerCase().includes(scaleName.toLowerCase())
+        ) as MidiScale | undefined;
+        if (!preset) return undefined;
+
+        // Transpose the scale by the given amount
+        const number = getPitchClassNumber(pitchClass);
+        const scale = getTransposedScale(preset, number);
+        return scale;
+      });
+
+      // Check if the last track is an instrument
+      let instrumentKey: InstrumentKey | null = null;
+      const last = scales.pop();
+      if (last === undefined) {
+        const instrument = names[names.length - 1];
+        const potentialKey = INSTRUMENT_KEYS.find((key) =>
+          getInstrumentName(key)
+            .toLowerCase()
+            .includes(instrument.toLowerCase())
+        );
+        if (potentialKey) {
+          instrumentKey = potentialKey;
+        }
+      }
+
+      // Create a scale track for each scale
+      const scaleTrackIds: ScaleTrackId[] = [];
+      for (const scale of scales) {
+        if (!scale) break;
+        const parentId = scaleTrackIds.at(-1);
+        const notes: ScaleNote[] = scale
+          .map((midi) => dispatch(convertMidiToNestedNote(midi, parentId)))
+          .filter((note) => note.degree > -1);
+        scaleTrackIds.push(
+          dispatch(
+            createScaleTrack({ parentId }, initializeScale({ notes }), undoType)
+          )
+        );
+      }
+
+      // Create a pattern track if there is an instrument
+      if (instrumentKey) {
+        const parentId = scaleTrackIds.at(-1);
+        dispatch(createPatternTrack({ parentId }, instrumentKey, undoType));
+      }
+    }
+  )();

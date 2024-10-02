@@ -18,14 +18,14 @@ import {
 } from "types/Pattern/PatternTypes";
 import { ChromaticKey, ChromaticPitchClass } from "assets/keys";
 import {
-  getMidiStreamScale,
+  getMidiStreamIntrinsicScale,
   getPatternMidiChordNotes,
 } from "types/Pattern/PatternUtils";
 import { mod } from "utils/math";
 import { areScalesRelated } from "types/Scale/ScaleUtils";
 import { getScaleWithNewNotes } from "types/Scale/ScaleTransformers";
 import { getRotatedScale } from "types/Scale/ScaleTransformers";
-import { MidiScale } from "utils/midi";
+import { getMidiDegree, MidiScale } from "utils/midi";
 import { getMidiNoteValue } from "utils/midi";
 import { isPitchClass } from "utils/pitchClass";
 import { sumVectors } from "utils/vector";
@@ -128,14 +128,14 @@ export const applyVoiceLeadingsToMidiStream = <
 
   // Iterate through the voice leadings
   for (const vector of voiceLeadings) {
-    let offset = -1;
+    let offset = undefined;
 
     // Get the pitch classes of the voice leading
     const pitchClasses = getVectorPitchClasses(vector) as ChromaticPitchClass[];
     if (pitchClasses.some((c) => !ChromaticKey.includes(c))) continue;
 
     // Get the modes of the stream scale
-    const streamScale = getMidiStreamScale(stream);
+    const streamScale = getMidiStreamIntrinsicScale(stream);
     const streamScaleSize = streamScale.length;
 
     // Find the mode of the stream that relates to the voice leading
@@ -147,7 +147,7 @@ export const applyVoiceLeadingsToMidiStream = <
         break;
       }
     }
-    if (offset < 0) break;
+    if (offset === undefined) break;
 
     // Apply the voice leading to all MIDI chords in the stream
     // and check the transposed note against the voice leading

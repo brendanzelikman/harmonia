@@ -15,6 +15,7 @@ import { NavbarTime } from "./sections/Transport/NavbarTime";
 import { NavbarTransportControl } from "./sections/Transport/NavbarTransportControl";
 import { NavbarVolume } from "./sections/Transport/NavbarVolume";
 import { NavbarRedo, NavbarUndo } from "./sections/Project/NavbarUndoRedo";
+import { NavbarGenerator } from "./sections/Toolkit/NavbarGenerator";
 
 export function NavbarPlaygroundContent() {
   return (
@@ -23,14 +24,15 @@ export function NavbarPlaygroundContent() {
         <NavbarFileMenu />
         <NavbarSettingsMenu />
         <NavbarDiaryButton />
+        <NavbarGenerator />
         <NavbarLivePlayButton />
-        <NavbarUndo />
-        <NavbarRedo />
       </NavbarGroup>
       <NavbarGroup className="bg-slate-950/80 border-l border-l-slate-500/50">
         <NavbarVolume />
         <NavbarTime />
         <NavbarTransportControl />
+        <NavbarUndo />
+        <NavbarRedo />
       </NavbarGroup>
       <NavbarGroup useTypeBackground className="border-x border-x-slate-500/50">
         <NavbarTypeBox />

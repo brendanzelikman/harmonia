@@ -62,22 +62,25 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
 
   // Get scale names from the project
   const scaleNameMap = selectScaleNameMap(project);
-  const scales = uniq(
+  const _scales = uniq(
     getDictValues(scaleNameMap).map((n) => n.split(") ")[1])
   ).join(", ");
+  const scales = _scales.length > 0 ? _scales : "None";
 
   // Get actively used pattern names from the project
   const patternMap = selectPatternMap(project);
   const patternClips = selectPatternClips(project);
-  const patterns = uniq(
+  const _patterns = uniq(
     patternClips.map((c) => patternMap[c.patternId]?.name).filter(Boolean)
   ).join(", ");
+  const patterns = _patterns.length > 0 ? _patterns : "None";
 
   // Get instrument names from the project
   const instrumentMap = selectInstrumentMap(project);
-  const instruments = uniq(
+  const _instruments = uniq(
     getDictValues(instrumentMap).map((i) => getInstrumentName(i.key))
   ).join(", ");
+  const instruments = _instruments.length > 0 ? _instruments : "None";
 
   /** Display the title and general info */
   const ProjectTitle = () => (

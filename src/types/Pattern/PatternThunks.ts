@@ -1,8 +1,4 @@
-import {
-  DURATION_TICKS,
-  getTickSubdivision,
-  STRAIGHT_DURATION_TICKS,
-} from "utils/durations";
+import { getTickSubdivision, STRAIGHT_DURATION_TICKS } from "utils/durations";
 import { Seconds, Tick } from "types/units";
 import { Sampler } from "tone";
 import { getMidiOctaveDistance, getMidiPitch } from "utils/midi";
@@ -45,13 +41,7 @@ import {
 } from "types/Track/TrackSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { exportPatternToXML } from "./PatternExporters";
-import {
-  Action,
-  createUndoType,
-  Payload,
-  unpackAction,
-  unpackUndoType,
-} from "lib/redux";
+import { createUndoType, Payload, unpackUndoType } from "lib/redux";
 import { nanoid } from "@reduxjs/toolkit";
 import { getDegreeOfNoteInTrack } from "types/Track/TrackThunks";
 import { setSelectedPattern } from "types/Media/MediaThunks";

@@ -249,8 +249,9 @@ export const clearScale =
     dispatch(updateScale({ data: { id, notes: [] } }));
 
     // Clear the scale of all matching scale tracks and their descendants
-    const scaleTracks = selectScaleTracks(project);
-    for (const scaleTrack of scaleTracks) {
+    const scaleTrack = selectScaleTrackByScaleId(project);
+    const descendants = getArrayByKey(descendantMap, scaleTrack?.id);
+    for (const scaleTrack of descendants) {
       const descendants = getArrayByKey(descendantMap, scaleTrack?.id);
       for (const track of descendants) {
         if (!isScaleTrack(track)) continue;

@@ -58,3 +58,11 @@ export const selectTransportState = createSelector(
     isLooping: !!transport.loop,
   })
 );
+
+/** Select the loop start of the transport. */
+export const selectTransportLoopStart = (project: Project) =>
+  project.present.transport.loopStart;
+
+/** Select the loop end of the transport. */
+export const selectTransportLoopEnd = (project: Project) =>
+  project.present.transport.loopEnd;

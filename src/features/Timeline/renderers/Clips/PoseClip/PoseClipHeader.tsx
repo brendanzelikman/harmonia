@@ -1,6 +1,11 @@
 import classNames from "classnames";
-import { BsMagic } from "react-icons/bs";
-import { GiDramaMasks, GiHand, GiOrbWand } from "react-icons/gi";
+import { BsMagic, BsPencil } from "react-icons/bs";
+import {
+  GiClothespin,
+  GiDramaMasks,
+  GiFireSpellCast,
+  GiHand,
+} from "react-icons/gi";
 import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
 import { isPoseVectorModule, Pose, PoseBlock } from "types/Pose/PoseTypes";
 import { POSE_HEIGHT } from "utils/constants";
@@ -25,6 +30,8 @@ import { Timed } from "types/units";
 import { showEditor } from "types/Editor/EditorThunks";
 import { setSelectedPose } from "types/Media/MediaThunks";
 import { createUndoType } from "lib/redux";
+import { inputPoseStream } from "types/Pose/PoseThunks";
+import { setTimelineType } from "types/Timeline/TimelineThunks";
 
 interface PoseClipHeaderProps {
   clip: Timed<PoseClip>;
@@ -71,7 +78,14 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
     [index, streamLength, trackMap]
   );
 
-  const IconType = isLive ? GiHand : isDropdownOpen ? GiDramaMasks : BsMagic;
+  const IconType =
+    isLive && isDropdownOpen
+      ? GiClothespin
+      : isLive
+      ? GiHand
+      : isDropdownOpen
+      ? GiDramaMasks
+      : BsMagic;
 
   const headerClass = classNames(
     "flex text-sm items-center whitespace-nowrap pointer-events-none font-nunito",
@@ -107,25 +121,42 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
         }
       }}
     >
-      <IconType className="flex flex-shrink-0 mx-1 w-4 h-4 pointer-events-auto" />
+      <span
+        className={classNames(
+          "pointer-events-auto h-4 flex shrink-0 total-center",
+          isDropdownOpen ? "w-6 mx-1 hover:opacity-75" : "w-4 mx-1"
+        )}
+      >
+        <IconType className="pointer-events-none" />
+      </span>
 
       {isDropdownOpen ? (
-        <>
-          <span className="bg-fuchsia-500 px-3">{name}</span>
+        <div className="flex total-center *:border-slate-200/30">
           <span
-            className="pointer-events-auto bg-fuchsia-500 hover:bg-fuchsia-400/50 border-l border-l-slate-200/30 size-full flex items-center ml-1 p-2"
+            className="pointer-events-auto hover:opacity-75 border-l size-full flex items-center px-2"
             onClick={(e) => {
               cancelEvent(e);
               if (!pose?.id) return;
               const undoType = createUndoType("editPose");
+              dispatch(setTimelineType({ data: "pose", undoType }));
               dispatch(setSelectedPose({ data: pose?.id, undoType }));
               dispatch(showEditor({ data: { view: "pose" }, undoType }));
             }}
           >
-            <GiOrbWand className="pointer-events-none" />
+            <BsPencil className="pointer-events-none" />
           </span>
+          <span
+            className="pointer-events-auto hover:opacity-75 border-l size-full flex items-center px-2"
+            onClick={(e) => {
+              cancelEvent(e);
+              dispatch(inputPoseStream(clip.id));
+            }}
+          >
+            <GiFireSpellCast className="pointer-events-none" />
+          </span>
+          <span className="bg-fuchsia-600 border-r px-3">{name}</span>
           {(pose?.stream ?? []).map(renderPoseBlock)}
-        </>
+        </div>
       ) : (
         name
       )}

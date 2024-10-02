@@ -47,6 +47,7 @@ export const PresetScaleGroupList = Object.keys(
 // Return a list of all preset scales
 // e.g. [ Major Scale, Minor Scale, ... ]
 export const PresetScaleList = Object.values(PresetScaleGroupMap).flat();
+export const PresetScaleNotes = PresetScaleList.map((scale) => scale.notes);
 
 // Return a map of preset scale id to preset scale
 // e.g. { "major-scale": Major Scale, "minor-scale": Minor Scale, ... }

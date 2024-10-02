@@ -14,8 +14,6 @@ import { TickDurations } from "./content/TickDurations";
 import { useDiary } from "types/Diary/DiaryTypes";
 import { useToggledState } from "hooks/useToggledState";
 
-export const TOGGLE_SHORTCUTS = "TOGGLE_SHORTCUTS";
-
 export const SHORTCUT_TYPES = [
   "Global",
   "Transport",
