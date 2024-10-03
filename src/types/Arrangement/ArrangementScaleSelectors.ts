@@ -120,8 +120,8 @@ export const selectSelectedMotifDuration = (
     scale: 0,
   }[type];
 };
-/** Select the scale names of the currently selected track. */
 
+/** Select the scale names of the currently selected track. */
 export const selectSelectedTrackScaleNames = createSelector(
   [selectSelectedTrackId, selectTrackScaleChainMap, selectScaleNameMap],
   (id, chainMap, nameMap) => {

@@ -35,7 +35,7 @@ export const TrackDropdownMenu = (props: {
             leaveFrom="transform opacity-100 scale-100"
             leaveTo="transform opacity-0 scale-95"
           >
-            <Menu.Items className="absolute top-0 -right-[13.5rem] w-48 bg-zinc-900/80 backdrop-blur rounded py-2 select-none focus:outline-none">
+            <Menu.Items className="absolute top-0 -right-[13.5rem] w-48 bg-zinc-900/95 border border-slate-600 backdrop-blur rounded py-2 select-none focus:outline-none">
               {props.children}
             </Menu.Items>
           </Transition>

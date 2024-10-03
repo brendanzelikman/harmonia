@@ -18,6 +18,7 @@ import {
 import { InstrumentId } from "types/Instrument/InstrumentTypes";
 import { ScaleId } from "types/Scale/ScaleTypes";
 import { Dictionary, EntityState, nanoid } from "@reduxjs/toolkit";
+import { PoseVector } from "types/Pose/PoseTypes";
 
 // ------------------------------------------------------------
 // Typed Track Definitions
@@ -55,6 +56,7 @@ export type ITrack<T extends TrackType = TrackType> = {
   order?: number;
   collapsed?: boolean;
   port?: number;
+  vector?: PoseVector;
 } & ITrackProps<T>;
 
 /** A `Track` can have extra props based on its type. */

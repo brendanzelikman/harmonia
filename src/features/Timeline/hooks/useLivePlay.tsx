@@ -12,6 +12,8 @@ import { selectIsEditorOpen } from "types/Editor/EditorSelectors";
 import {
   selectSelectedTrackParents,
   selectIsLive,
+  selectSelectedPoseClips,
+  selectSelectedTrack,
 } from "types/Timeline/TimelineSelectors";
 import { selectOrderedPatternTracks } from "types/Track/TrackSelectors";
 import {
@@ -19,10 +21,18 @@ import {
   updateSelectedPoses,
   updateSelectedPoseStreams,
 } from "types/Pose/PoseThunks";
-import { unmuteTracks, unsoloTracks } from "types/Track/TrackThunks";
-import { mapPoseStreamVectors } from "types/Pose/PoseFunctions";
+import {
+  unmuteTracks,
+  unsoloTracks,
+  updateTrack,
+} from "types/Track/TrackThunks";
+import {
+  mapPoseStreamVectors,
+  mergePoseStreamVectors,
+} from "types/Pose/PoseFunctions";
 import { pick, range, size, some } from "lodash";
 import { getDictKeys } from "utils/objects";
+import { sumVectors } from "utils/vector";
 
 const numberKeys = range(1, 10).map((n) => n.toString());
 const scaleKeys = ["q", "w", "e", "r", "t", "y"];
@@ -30,13 +40,16 @@ const zeroKeys = ["z", "0"];
 const extraKeys = ["z", "m", "s", "minus", "`", "equal", "shift", "meta"];
 const ALL_KEYS = [...numberKeys, ...zeroKeys, ...scaleKeys, ...extraKeys];
 
-export const useTimelineLiveHotkeys = () => {
+export const useLivePlay = () => {
   const dispatch = useProjectDispatch();
   const { isAtLeastRank } = useAuth();
   const isLive = use(selectIsLive);
+  const selectedTrack = useDeep(selectSelectedTrack);
   const isEditorOpen = use(selectIsEditorOpen);
   const patternTracks = useDeep(selectOrderedPatternTracks);
   const scaleTracks = useDeep(selectSelectedTrackParents);
+  const clips = useDeep(selectSelectedPoseClips);
+  const hasClips = clips.length > 0;
   const firstTrackId = scaleTracks[0]?.id;
   const secondTrackId = scaleTracks[1]?.id;
   const thirdTrackId = scaleTracks[2]?.id;
@@ -109,6 +122,19 @@ export const useTimelineLiveHotkeys = () => {
 
       if (!some(vector)) return;
       dispatchCustomEvent("add-shortcut", vector);
+
+      // Update the track if there are no clips
+      if (!hasClips && selectedTrack) {
+        const newVector = isExact
+          ? { ...selectedTrack.vector, vector }
+          : sumVectors(selectedTrack.vector, vector);
+        dispatch(
+          updateTrack({ data: { id: selectedTrack.id, vector: newVector } })
+        );
+        return;
+      }
+
+      // Otherwise, update the selected poses
       if (isExact) {
         dispatch(updateSelectedPoses(vector));
       } else {
@@ -122,6 +148,8 @@ export const useTimelineLiveHotkeys = () => {
       firstTrackId,
       secondTrackId,
       thirdTrackId,
+      selectedTrack,
+      hasClips,
     ]
   );
 
@@ -145,74 +173,90 @@ export const useTimelineLiveHotkeys = () => {
       const scaleKeys = ["q", "w", "e"];
       const isZ = key === "z";
 
+      const getNewVector = (vector: PoseVector) => {
+        let newVector = { ...vector };
+        const broadcastedKeys = [];
+
+        if (heldKeys[scaleKeys[0]] && firstTrackId) {
+          broadcastedKeys.push(firstTrackId);
+          if (isZ) {
+            delete newVector[firstTrackId];
+          } else {
+            newVector[firstTrackId] = 0;
+          }
+        }
+        if (heldKeys[scaleKeys[1]] && secondTrackId) {
+          broadcastedKeys.push(secondTrackId);
+          if (isZ) {
+            delete newVector[secondTrackId];
+          } else {
+            newVector[secondTrackId] = 0;
+          }
+        }
+        if (heldKeys[scaleKeys[2]] && thirdTrackId) {
+          broadcastedKeys.push(thirdTrackId);
+          if (isZ) {
+            delete newVector[thirdTrackId];
+          } else {
+            newVector[thirdTrackId] = 0;
+          }
+        }
+        if (heldKeys.r) {
+          broadcastedKeys.push("chordal");
+          if (isZ) {
+            delete newVector.chordal;
+          } else {
+            newVector.chordal = 0;
+          }
+        }
+        if (heldKeys.t) {
+          broadcastedKeys.push("chromatic");
+          if (isZ) {
+            delete newVector.chromatic;
+          } else {
+            newVector.chromatic = 0;
+          }
+        }
+        if (heldKeys.y) {
+          broadcastedKeys.push("octave");
+          if (isZ) {
+            delete newVector.octave;
+          } else {
+            newVector.octave = 0;
+          }
+        }
+        if (isZ && size(newVector) === size(vector)) {
+          dispatchCustomEvent("add-shortcut", {});
+          return {};
+        }
+        dispatchCustomEvent("add-shortcut", pick(newVector, broadcastedKeys));
+        return newVector;
+      };
+
+      // Update the track's vector if there are no clips
+      if (!hasClips && selectedTrack) {
+        const newVector = getNewVector(selectedTrack.vector ?? {});
+        dispatch(
+          updateTrack({ data: { id: selectedTrack.id, vector: newVector } })
+        );
+      }
+
+      // Otherwise, update the selected poses
       dispatch(
         updateSelectedPoseStreams((stream) =>
-          mapPoseStreamVectors(stream, (vec) => {
-            let newVector = { ...vec };
-            const broadcastedKeys = [];
-
-            if (heldKeys[scaleKeys[0]] && firstTrackId) {
-              broadcastedKeys.push(firstTrackId);
-              if (isZ) {
-                delete newVector[firstTrackId];
-              } else {
-                newVector[firstTrackId] = 0;
-              }
-            }
-            if (heldKeys[scaleKeys[1]] && secondTrackId) {
-              broadcastedKeys.push(secondTrackId);
-              if (isZ) {
-                delete newVector[secondTrackId];
-              } else {
-                newVector[secondTrackId] = 0;
-              }
-            }
-            if (heldKeys[scaleKeys[2]] && thirdTrackId) {
-              broadcastedKeys.push(thirdTrackId);
-              if (isZ) {
-                delete newVector[thirdTrackId];
-              } else {
-                newVector[thirdTrackId] = 0;
-              }
-            }
-            if (heldKeys.r) {
-              broadcastedKeys.push("chordal");
-              if (isZ) {
-                delete newVector.chordal;
-              } else {
-                newVector.chordal = 0;
-              }
-            }
-            if (heldKeys.t) {
-              broadcastedKeys.push("chromatic");
-              if (isZ) {
-                delete newVector.chromatic;
-              } else {
-                newVector.chromatic = 0;
-              }
-            }
-            if (heldKeys.y) {
-              broadcastedKeys.push("octave");
-              if (isZ) {
-                delete newVector.octave;
-              } else {
-                newVector.octave = 0;
-              }
-            }
-            if (isZ && size(newVector) === size(vec)) {
-              dispatchCustomEvent("add-shortcut", {});
-              return {};
-            }
-            dispatchCustomEvent(
-              "add-shortcut",
-              pick(newVector, broadcastedKeys)
-            );
-            return newVector;
-          })
+          mapPoseStreamVectors(stream, getNewVector)
         )
       );
     },
-    [heldKeys, isEditorOpen, firstTrackId, secondTrackId, thirdTrackId]
+    [
+      heldKeys,
+      isEditorOpen,
+      firstTrackId,
+      secondTrackId,
+      thirdTrackId,
+      hasClips,
+      selectedTrack,
+    ]
   );
 
   /**

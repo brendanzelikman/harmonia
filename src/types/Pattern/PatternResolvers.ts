@@ -1,5 +1,5 @@
 import { getVector_T, getVector_O, getVector_t } from "utils/vector";
-import { PoseVector } from "types/Pose/PoseTypes";
+import { PoseVector, VoiceLeading } from "types/Pose/PoseTypes";
 import { getScaleNoteMidiValue } from "types/Scale/ScaleFunctions";
 import { ScaleChain, isNestedNote } from "types/Scale/ScaleTypes";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
@@ -21,6 +21,7 @@ import {
   PatternNote,
 } from "./PatternTypes";
 import { transposeNoteThroughScales } from "types/Scale/ScaleTransformers";
+import { applyVoiceLeadingsToMidiStream } from "types/Clip/PoseClip/PoseClipFunctions";
 
 /** Resolve a `PatternNote` to a `MidiValue` using the `Scales` provided. */
 export const resolvePatternNoteToMidi = (
@@ -86,7 +87,8 @@ export const resolvePatternBlockToMidi = (
 export const resolvePatternStreamToMidi = (
   stream: PatternStream,
   scales?: ScaleChain,
-  vector?: PoseVector
+  vector?: PoseVector,
+  voiceLeadings?: VoiceLeading[]
 ): PatternMidiStream => {
   if (!stream) return [];
 
@@ -108,7 +110,9 @@ export const resolvePatternStreamToMidi = (
   const O = getVector_O(vector);
   midiStream = getTransposedMidiStream(midiStream, 12 * O);
 
-  // Return the stream
+  // Apply voice leadings to the stream;
+  midiStream = applyVoiceLeadingsToMidiStream(midiStream, voiceLeadings ?? []);
+
   return midiStream;
 };
 

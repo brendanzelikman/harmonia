@@ -25,7 +25,6 @@ import {
   selectOrderedPatternTracks,
   selectScaleTracks,
   selectTrackChainIds,
-  selectTrackDepthById,
   selectTrackLabelById,
 } from "types/Track/TrackSelectors";
 import { useHeldHotkeys, useHotkeysInTimeline } from "lib/react-hotkeys-hook";
@@ -39,7 +38,7 @@ import {
 import { useToggledState } from "hooks/useToggledState";
 import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
-import { useTimelineLiveHotkeys } from "features/Timeline/hooks/useTimelineLiveHotkeys";
+import { useLivePlay } from "features/Timeline/hooks/useLivePlay";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import { sanitize } from "utils/math";
@@ -66,7 +65,7 @@ export const NavbarLivePlayButton = () => {
     heldNumber === undefined ? 0 : sanitize(parseInt(heldNumber) - 1)
   ]?.id;
   const ptLabel = use((_) => selectTrackLabelById(_, patternTrackId));
-  useTimelineLiveHotkeys();
+  useLivePlay();
 
   // Get the selected track and its scale names
   const selectedTrack = useDeep(selectSelectedTrack);
@@ -79,16 +78,14 @@ export const NavbarLivePlayButton = () => {
   // The first pattern clip and its score
   const patternClipId = use(selectFirstPortaledPatternClipId);
   const scoreRef = useRef<string>(`score_${patternClipId}`);
-  const score = useToggledState(scoreRef.current, false);
 
   // The first pose clip and its dropdown
   const poseClipId = use(selectFirstPortaledPoseClipId);
   const dropdownRef = useRef<string>(`dropdown_${poseClipId}`);
-  const dropdown = useToggledState(dropdownRef.current, false);
 
   // The interface is fully live when the score and dropdown are open
   const isTimelineLive = use(selectIsLive);
-  const isLive = score.isOpen && dropdown.isOpen && isTimelineLive;
+  const isLive = isTimelineLive;
 
   // The button is in charge of synchronizing the score and dropdown
   const onClick = useCallback(() => {

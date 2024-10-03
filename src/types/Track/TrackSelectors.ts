@@ -56,6 +56,7 @@ import {
   ScaleTrack,
   isScaleTrackId,
 } from "./ScaleTrack/ScaleTrackTypes";
+import { getTransposedScale } from "types/Scale/ScaleTransformers";
 
 // ------------------------------------------------------------
 // Pattern Track Selectors

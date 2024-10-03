@@ -26,6 +26,7 @@ import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import {
   selectTrackDepthById,
   selectTrackDescendants,
+  selectTrackMap,
 } from "types/Track/TrackSelectors";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
@@ -40,6 +41,8 @@ import {
   deleteTrack,
 } from "types/Track/TrackThunks";
 import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 interface ScaleTrackProps extends TrackFormatterProps {
   track: ScaleTrack;
@@ -49,6 +52,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
   const { track, label, isSelected } = props;
   const dispatch = useProjectDispatch();
   const cellHeight = use(selectCellHeight);
+  const trackMap = useDeep(selectTrackMap);
 
   const trackId = track.id;
   const tourId = useTourId();
@@ -71,10 +75,15 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
     selectTrackScaleNameAtTick(_, trackId, tick)
   );
   const children = useDeep((_) => selectTrackDescendants(_, trackId));
+  const heldKeys = useHeldHotkeys("v");
 
   /** The Scale Track displays the name of the track or the name of its scale. */
   const ScaleTrackName = useCallback(() => {
-    return (
+    return isSelected && heldKeys.v ? (
+      <div className="flex size-full bg-zinc-800 p-1 max-w-[214px] overflow-scroll rounded-md text-fuchsia-300">
+        {getPoseVectorAsJSX(track.vector ?? {}, trackMap)}
+      </div>
+    ) : (
       <TrackName
         id={track.id}
         height={cellHeight}
@@ -84,7 +93,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
         onChange={(e) => props.renameTrack(e.target.value)}
       />
     );
-  }, [track, scaleName, cellHeight, label]);
+  }, [track, scaleName, cellHeight, label, isSelected, heldKeys]);
 
   /** The Scale Track dropdown menu allows the user to perform general actions on the track. */
   const ScaleTrackDropdownMenu = () => {

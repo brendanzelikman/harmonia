@@ -68,6 +68,7 @@ import {
   selectTrackChain,
   selectTrackDepthById,
   selectTrackInstrumentKey,
+  selectTrackMap,
 } from "types/Track/TrackSelectors";
 import { toggleTrackInstrumentEditor } from "types/Editor/EditorThunks";
 import {
@@ -83,10 +84,13 @@ import {
 } from "types/Track/TrackThunks";
 import { updateTrack } from "types/Track/TrackThunks";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
+import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
 
 interface PatternTrackProps extends TrackFormatterProps {
   track: PatternTrack;
 }
+
+const HELD_KEYS = ["m", "s", "v"];
 
 export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const { track, label, isSelected } = props;
@@ -95,6 +99,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const depth = use((_) => selectTrackDepthById(_, track.id));
   const isLive = use(selectIsLive);
   const chain = useDeep((_) => selectTrackChain(_, track.id));
+  const trackMap = useDeep(selectTrackMap);
 
   const trackId = track.id;
   const tourId = useTourId();
@@ -111,7 +116,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const onInstrumentEditor = isInstrumentEditorOpen(editor);
 
   // Hotkey info
-  const heldKeys = useHeldHotkeys(["m", "s"]);
+  const heldKeys = useHeldHotkeys(HELD_KEYS);
   const isHoldingM = heldKeys.m;
   const isHoldingS = heldKeys.s;
 
@@ -154,12 +159,18 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
     return (
       <div className="w-full flex flex-col space-y-1">
         <span className="text-xs text-orange-300 font-nunito"></span>
-        <TrackName
-          id={trackId}
-          value={track.name ?? ""}
-          placeholder={`Track ${label} (Pattern)`}
-          onChange={(e) => props.renameTrack(e.target.value)}
-        />
+        {isSelected && heldKeys.v ? (
+          <div className="flex size-full bg-zinc-800 p-1 max-w-[160px] overflow-scroll rounded-md text-fuchsia-300">
+            {getPoseVectorAsJSX(track.vector ?? {}, trackMap)}
+          </div>
+        ) : (
+          <TrackName
+            id={trackId}
+            value={track.name ?? ""}
+            placeholder={`Track ${label} (Pattern)`}
+            onChange={(e) => props.renameTrack(e.target.value)}
+          />
+        )}
       </div>
     );
   };

@@ -205,8 +205,8 @@ export const selectTracksOfSelectedMedia = createSelector(
 
 /** Select if the timeline is live */
 export const selectIsLive = createSelector(
-  [selectSelectedTrackId, selectSelectedClipIds],
-  (trackId, clipIds) => trackId !== undefined && clipIds?.some(isPoseClipId)
+  [selectSelectedTrackId],
+  (trackId) => trackId !== undefined
 );
 
 // ------------------------------------------------------------

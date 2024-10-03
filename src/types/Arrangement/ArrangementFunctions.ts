@@ -47,7 +47,12 @@ import {
 } from "types/Clip/ScaleClip/ScaleClipFunctions";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
-import { getVectorValue, mergeVectorKeys } from "utils/vector";
+import {
+  getVectorKeys,
+  getVectorValue,
+  mergeVectorKeys,
+  sumVectors,
+} from "utils/vector";
 
 // ------------------------------------------------------------
 // Arrangement Overview
@@ -209,10 +214,12 @@ export const getTrackScaleChain = (
 
     // Try to get the vector at the current tick
     const poseClips = getPoseClipsByTrackId(arrangement?.clips?.pose, track.id);
-    const vector = getPoseVectorAtTick(poseClips, poseMap, tick);
+    const accumulatedVector = getPoseVectorAtTick(poseClips, poseMap, tick);
+    const baseVector = track.vector ?? {};
+    const vector = sumVectors(baseVector, accumulatedVector);
 
     // If no vector exists, just push the scale
-    if (!vector) {
+    if (!getVectorKeys(vector).length) {
       scaleChain.push(currentScale);
       continue;
     }
@@ -275,17 +282,28 @@ export const getMidiStreamAtTickInTrack = (
   // Get the pose vector summed from all relevant clips up to the given tick,
   // then apply its transpositions to all scale notes in the pattern stream
   const trackClips = getPoseClipsByTrackId(clips?.pose, trackId);
-  const poseVector = getPoseVectorAtTick(trackClips, poseMap, tick);
+  const accumulatedVector = getPoseVectorAtTick(trackClips, poseMap, tick);
+
+  // Get the base vector from the track
+  const track = tracks[trackId];
+  const baseVector = track?.vector ?? {};
+
+  // Convert the summed vector to a scale vector, then transpose the pattern stream
+  const poseVector = sumVectors(baseVector, accumulatedVector);
+  console.log(poseVector);
   const scaleVector = getPoseVectorAsScaleVector(poseVector, tracks);
   const posedStream = getTransposedPatternStream(stream, scaleVector);
 
   // Get the scale chain of the clip's track at the current tick,
-  // then use the pose vector to transpose the pattern stream and resolve to MIDI
   const chain = getTrackScaleChain(trackId, deps);
-  const midiStream = resolvePatternStreamToMidi(posedStream, chain, poseVector);
 
   // Get an array of voice leadings and apply them to matching chords
-  // in the stream, then return the final MIDI stream
+  // in the stream, then resolve the stream to MIDI
   const voiceLeadings = getCurrentVoiceLeadings(trackClips, poseMap, tick);
-  return applyVoiceLeadingsToMidiStream(midiStream, voiceLeadings);
+  return resolvePatternStreamToMidi(
+    posedStream,
+    chain,
+    poseVector,
+    voiceLeadings
+  );
 };
