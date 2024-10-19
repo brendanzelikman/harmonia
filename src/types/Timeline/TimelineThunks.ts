@@ -4,7 +4,6 @@ import {
   setTimelineState,
   updateMediaDraft,
 } from "./TimelineSlice";
-import { mod } from "utils/math";
 import { next } from "utils/array";
 import { isClipType, CLIP_TYPES } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";

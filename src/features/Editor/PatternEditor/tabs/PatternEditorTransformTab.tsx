@@ -5,7 +5,6 @@ import {
   GiHorizontalFlip,
   GiMusicalNotes,
   GiStack,
-  GiStrikingArrows,
 } from "react-icons/gi";
 import { DurationType, getDurationTicks } from "utils/durations";
 import { EditorListbox } from "features/Editor/components/EditorListbox";
@@ -13,7 +12,7 @@ import {
   EditorTab,
   EditorTabGroup,
 } from "features/Editor/components/EditorTab";
-import { useProjectDispatch } from "types/hooks";
+import { use, useProjectDispatch } from "types/hooks";
 import {
   extractChordsFromPattern,
   flattenPattern,
@@ -23,17 +22,9 @@ import {
 } from "types/Pattern/thunks/PatternChordThunks";
 import {
   beatifyPattern,
-  continuePattern,
   randomizePatternDurations,
-  repeatPattern,
   setPatternDurations,
-  stretchPattern,
 } from "types/Pattern/thunks/PatternDurationThunks";
-import {
-  phasePattern,
-  reversePattern,
-  shufflePatternStream,
-} from "types/Pattern/thunks/PatternOrderThunks";
 import {
   harmonizePattern,
   setPatternPitches,
@@ -50,12 +41,23 @@ import {
   shufflePatternVelocities,
   randomizePatternVelocities,
 } from "types/Pattern/thunks/PatternVelocityThunks";
-import { PatternId } from "types/Pattern/PatternTypes";
+import { PatternId, PatternStream } from "types/Pattern/PatternTypes";
+import { updatePattern } from "types/Pattern/PatternSlice";
+import {
+  extendStream,
+  phaseStream,
+  repeatStream,
+  reverseStream,
+  shuffleStream,
+  stretchStream,
+} from "types/Pattern/PatternTransformers";
+import { selectPatternById } from "types/Pattern/PatternSelectors";
 
 export function PatternEditorTransformTab(props: PatternEditorProps) {
   const { pattern } = props;
-  const id = pattern?.id;
-  if (!id) return null;
+  if (!pattern) return null;
+
+  const { id } = pattern;
 
   const ChordOpsDropdownButton = () => {
     const defaultOption = { id: "select", name: "Chord" };
@@ -159,79 +161,93 @@ export type DropdownOption = {
 
 export const streamTransformations = (id: PatternId): DropdownOption[] => {
   const dispatch = useProjectDispatch();
+  const pattern = use((_) => selectPatternById(_, id));
+  if (!pattern) return [];
+
+  const { stream } = pattern;
+  const updateStream = (stream: PatternStream) => {
+    dispatch(updatePattern({ data: { id, stream } }));
+  };
+
   return [
-    {
-      id: "repeat pattern",
-      label: "Repeat",
-      onClick: promptUserForNumber(
-        "Repeat Your Pattern",
-        "How many times would you like to repeat your pattern?",
-        (n) => id && dispatch(repeatPattern({ data: { id, repeat: n } }))
-      ),
-    },
-    {
-      id: "extend pattern",
-      label: "Extend",
-      onClick: promptUserForNumber(
-        "Extend Your Pattern",
-        "How many notes would you like to extend your stream to?",
-        (n) => id && dispatch(continuePattern({ data: { id, length: n } }))
-      ),
-    },
-    {
-      id: "extract chords",
-      label: "Split",
-      onClick: promptUserForString(
-        "Extract Chords at Indices",
-        "Which indices would you like to migrate? (e.g. 0, 2)",
-        (string) => {
-          const indices = string.split(",").map((_) => parseInt(_));
-          dispatch(extractChordsFromPattern({ data: { id, indices } }));
-        }
-      ),
-    },
-    {
-      id: "phase pattern",
-      label: "Phase",
-      onClick: promptUserForNumber(
-        "Phase Your Pattern",
-        "How many notes would you like to phase your pattern by?",
-        (n) => id && dispatch(phasePattern({ data: { id, phase: n } }))
-      ),
-    },
-    {
-      id: "reverse pattern",
-      label: "Reverse",
-      onClick: () => id && dispatch(reversePattern({ data: { id } })),
-    },
-    {
-      id: "shuffle pattern",
-      label: "Shuffle",
-      onClick: () => id && dispatch(shufflePatternStream({ data: { id } })),
-    },
-    {
-      id: "randomize pattern",
-      label: "Randomize",
-      onClick: () => id && dispatch(randomizePattern(id)),
-    },
+    // {
+    //   id: "repeat pattern",
+    //   label: "Repeat",
+    //   onClick: promptUserForNumber(
+    //     "Repeat Your Pattern",
+    //     "How many times would you like to repeat your pattern?",
+    //     (n) => updateStream(repeatStream(stream, n))
+    //   ),
+    // },
+    // {
+    //   id: "extend pattern",
+    //   label: "Extend",
+    //   onClick: promptUserForNumber(
+    //     "Extend Your Pattern",
+    //     "How many notes would you like to extend your stream to?",
+    //     (n) => updateStream(extendStream(stream, n))
+    //   ),
+    // },
+    // {
+    //   id: "extract chords",
+    //   label: "Split",
+    //   onClick: promptUserForString(
+    //     "Extract Chords at Indices",
+    //     "Which indices would you like to migrate? (e.g. 0, 2)",
+    //     (string) => {
+    //       const indices = string.split(",").map((_) => parseInt(_));
+    //       dispatch(extractChordsFromPattern({ data: { id, indices } }));
+    //     }
+    //   ),
+    // },
+    // {
+    //   id: "phase pattern",
+    //   label: "Phase",
+    //   onClick: promptUserForNumber(
+    //     "Phase Your Pattern",
+    //     "How many notes would you like to phase your pattern by?",
+    //     (n) => updateStream(phaseStream(stream, n))
+    //   ),
+    // },
+    // {
+    //   id: "reverse pattern",
+    //   label: "Reverse",
+    //   onClick: () => updateStream(reverseStream(stream)),
+    // },
+    // {
+    //   id: "shuffle pattern",
+    //   label: "Shuffle",
+    //   onClick: () => updateStream(shuffleStream(stream)),
+    // },
+    // {
+    //   id: "randomize pattern",
+    //   label: "Randomize",
+    //   onClick: () => dispatch(randomizePattern(id)),
+    // },
   ];
 };
 
 export const durationTransformations = (id: PatternId): DropdownOption[] => {
   const dispatch = useProjectDispatch();
+  const pattern = use((_) => selectPatternById(_, id));
+  if (!pattern) return [];
+
+  const { stream } = pattern;
+  const updateStream = (stream: PatternStream) => {
+    dispatch(updatePattern({ data: { id, stream } }));
+  };
+
   return [
-    {
-      id: "compress pattern",
-      label: "Diminish",
-      onClick: () =>
-        id && dispatch(stretchPattern({ data: { id, factor: 0.5 } })),
-    },
-    {
-      id: "stretch pattern",
-      label: "Augment",
-      onClick: () =>
-        id && dispatch(stretchPattern({ data: { id, factor: 2 } })),
-    },
+    // {
+    //   id: "compress pattern",
+    //   label: "Diminish",
+    //   onClick: () => updateStream(stretchStream(stream, 0.5)),
+    // },
+    // {
+    //   id: "stretch pattern",
+    //   label: "Augment",
+    //   onClick: () => updateStream(stretchStream(stream, 2)),
+    // },
     {
       id: "subdivide notes",
       label: "Subdivide",

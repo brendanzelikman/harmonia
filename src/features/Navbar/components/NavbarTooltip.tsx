@@ -21,11 +21,15 @@ export const NavbarTooltip = (props: any) => (
 
 interface NavbarHoverTooltipProps extends React.HTMLProps<HTMLDivElement> {
   padding?: string;
+  top?: string;
   bgColor?: string;
   borderColor?: string;
+  group?: string;
 }
 
 const defaultHoverTooltipProps: NavbarHoverTooltipProps = {
+  group: "group-hover/tooltip:block",
+  top: "top-8",
   padding: "py-2 px-3",
   bgColor: "bg-slate-900",
   borderColor: "border-slate-500",
@@ -35,12 +39,16 @@ export const NavbarHoverTooltip = (props: NavbarHoverTooltipProps) => {
   const padding = props.padding ?? defaultHoverTooltipProps.padding;
   const bgColor = props.bgColor ?? defaultHoverTooltipProps.bgColor;
   const borderColor = props.borderColor ?? defaultHoverTooltipProps.borderColor;
+  const group = props.group ?? defaultHoverTooltipProps.group;
+  const top = props.top ?? defaultHoverTooltipProps.top;
   return (
     <div
       {...omit(props, ["padding", "bgColor", "borderColor"])}
       className={classNames(
         props.className,
-        "absolute font-normal top-8 text-sm hidden group-hover:block animate-in fade-in"
+        group,
+        top,
+        "absolute font-normal text-sm hidden animate-in fade-in"
       )}
     >
       <div

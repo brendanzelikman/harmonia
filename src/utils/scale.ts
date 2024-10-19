@@ -28,24 +28,22 @@ import { areScalesRelated } from "types/Scale/ScaleUtils";
 import { PatternChords } from "types/Pattern/PatternUtils";
 
 // ------------------------------------------------------------
-// Key Helpers
+// Scale Helpers
 // ------------------------------------------------------------
 
-/** Get a modded version of a scale. */
+/** Get the base values of a scale from 0 to 11. */
 export const getBaseScale = (notes: ScaleNote[]) => {
-  return notes.map((n) =>
-    isMidiNote(n) ? getMidiDegree(getMidiNoteValue(n)) : n
-  );
+  return notes.map((n) => (isMidiNote(n) ? getMidiDegree(n) : n));
 };
 
 /** Convert a scale to its canonical form */
 export const getCanonicalScale = (notes: ScaleNote[]) => {
-  return JSON.stringify(getBaseScale(notes));
+  return getBaseScale(notes).join(",");
 };
 
-/** Get the preferred key based on the tonic note and scale name */
+/** Get the preferred key for a note based on the given scale name */
 export const getPreferredKey = (note: MidiNote, name?: string): Key => {
-  if (!name) return ChromaticKey;
+  if (name === undefined) return ChromaticKey;
   const n = getMidiDegree(note);
   const key = name.toLowerCase();
 
@@ -126,14 +124,15 @@ for (const chord of PatternChords) {
   }
 }
 
-// ------------------------------------------------------------
-// Scale Name and Key
-// ------------------------------------------------------------
-
+// Merge the scales and patterns into a single key map
 const KEY_MAP = new Map<string, KeyMapEntry>([
   ...PATTERN_KEY_MAP.entries(),
   ...SCALE_KEY_MAP.entries(),
 ]);
+
+// ------------------------------------------------------------
+// Scale Properties
+// ------------------------------------------------------------
 
 /** Get the name of a scale by looking it up in the key map. */
 export const getScaleName = (scale?: Scale) => {

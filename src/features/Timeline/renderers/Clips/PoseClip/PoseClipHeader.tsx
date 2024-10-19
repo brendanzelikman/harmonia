@@ -1,165 +1,162 @@
 import classNames from "classnames";
-import { BsMagic, BsPencil } from "react-icons/bs";
-import {
-  GiClothespin,
-  GiDramaMasks,
-  GiFireSpellCast,
-  GiHand,
-} from "react-icons/gi";
-import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
-import { isPoseVectorModule, Pose, PoseBlock } from "types/Pose/PoseTypes";
+import { BsMagic } from "react-icons/bs";
+import { GiClothespin, GiDramaMasks, GiHand } from "react-icons/gi";
+import { isPoseStreamModule, PoseBlock } from "types/Pose/PoseTypes";
 import { POSE_HEIGHT } from "utils/constants";
-import { cancelEvent, dispatchCustomEvent } from "utils/html";
-import { useCallback } from "react";
+import { cancelEvent } from "utils/html";
 import { selectClipName } from "types/Clip/ClipSelectors";
 import { use, useProjectDispatch } from "types/hooks";
-import { selectTrackMap } from "types/Track/TrackSelectors";
-import { PoseClip } from "types/Clip/ClipTypes";
-import {
-  selectIsLive,
-  selectSelectedTrackId,
-} from "types/Timeline/TimelineSelectors";
-import { Portaled } from "types/Portal/PortalTypes";
 import {
   removeClipIdsFromSelection,
   toggleClipIdInSelection,
 } from "types/Timeline/thunks/TimelineSelectionThunks";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
-import { Timed } from "types/units";
-import { showEditor } from "types/Editor/EditorThunks";
-import { setSelectedPose } from "types/Media/MediaThunks";
-import { createUndoType } from "lib/redux";
-import { inputPoseStream } from "types/Pose/PoseThunks";
-import { setTimelineType } from "types/Timeline/TimelineThunks";
+import { numberToLower } from "utils/math";
+import { PoseClipComponentProps } from "./usePoseClipRenderer";
+import { useCallback } from "react";
+import { selectPoseById } from "types/Pose/PoseSelectors";
+import { toggleClipDropdown } from "types/Clip/ClipThunks";
 
-interface PoseClipHeaderProps {
-  clip: Timed<PoseClip>;
-  portaledClip: Portaled<PoseClip>;
-  pose?: Pose;
-  isSelected: boolean;
-  index: number;
-  setIndex: (index: number) => void;
-  isDropdownOpen: boolean;
-}
-
-export const PoseClipHeader = (props: PoseClipHeaderProps) => {
-  const { clip, portaledClip, pose, isSelected, index, isDropdownOpen } = props;
-  const pcId = portaledClip.id;
+export const PoseClipHeader = (props: PoseClipComponentProps) => {
   const dispatch = useProjectDispatch();
-  const trackMap = use(selectTrackMap);
-  const selectedTrack = use(selectSelectedTrackId);
-  const isTrackSelected = selectedTrack === clip.trackId;
-  const name = use((_) => selectClipName(_, clip?.id));
-  const streamLength = pose?.stream.length ?? 0;
-  const isLive = use(selectIsLive) && isSelected;
+  const { clip, block, portaledClip } = props;
+  const { selectedTrackId, isSelected, isLive } = props;
+  const { index, depths, setIndex, setDepths } = props;
+  const pcId = portaledClip.id;
+  const isDropdownOpen = !!clip.isOpen;
+  const isTrackSelected = selectedTrackId === clip.trackId;
+  const name = use((_) => selectClipName(_, clip.id));
+  const pose = use((_) => selectPoseById(_, clip.poseId));
+  const stream = pose?.stream ?? [];
+  const streamLength = stream.length ?? 0;
+
+  // Each block is labeled to show its index and depth
+  const label = useCallback(
+    (i: number) => {
+      if (!depths.length || depths[0] !== i) return `${i + 1}`;
+      const root = depths[0] + 1;
+      const letters = depths.slice(1).map(numberToLower).join("");
+      const topLetter = block ? numberToLower(index) : "";
+      return `${root}${letters}${topLetter}`;
+    },
+    [depths, index, block]
+  );
 
   // Render JSX for each pose vector in the stream
   const renderPoseBlock = useCallback(
     (block: PoseBlock, i: number) => {
-      if (!isPoseVectorModule(block)) return null;
+      if (!block) return null;
+      const onBlock = i === (depths.length ? depths[0] : index);
+      const showLabel = streamLength > 1 || !!depths.length;
+      const type = isPoseStreamModule(block) ? "Stream" : "Vector";
       return (
         <span
+          data-onblock={onBlock}
+          data-notlast={i < streamLength - 1}
           key={`pose-block-${clip.id}-${i}`}
-          className={classNames(
-            index === i ? "bg-fuchsia-600" : "bg-fuchsia-400",
-            i < streamLength - 1 ? "border-r" : "",
-            "px-3 pointer-events-auto"
-          )}
+          className="px-3 pointer-events-auto data-[onblock=true]:bg-fuchsia-600 bg-fuchsia-600/20 data-[notlast=true]:border-r"
           onClick={(e) => {
             cancelEvent(e);
-            props.setIndex(i);
+            setIndex(i);
+            setDepths([]);
           }}
         >
-          {getPoseVectorAsJSX(block.vector, trackMap)}
+          {showLabel && `(${label(i)}) `}
+          {type}
         </span>
       );
     },
-    [index, streamLength, trackMap]
+    [clip, depths, index, label, streamLength]
   );
 
-  const IconType =
-    isLive && isDropdownOpen
-      ? GiClothespin
-      : isLive
-      ? GiHand
-      : isDropdownOpen
-      ? GiDramaMasks
-      : BsMagic;
+  // Each pose has a click handler that depends on its state
+  const onClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      cancelEvent(e);
 
-  const headerClass = classNames(
-    "flex text-sm items-center whitespace-nowrap pointer-events-none font-nunito",
-    isSelected ? "text-white font-semibold" : "text-white/80 font-light",
-    isDropdownOpen ? "w-min z-20" : "overflow-hidden"
+      // If the alt key is held, toggle the clip in the selection
+      if (e.altKey) {
+        dispatch(toggleClipIdInSelection(clip.id));
+        return;
+      }
+
+      // If the meta key is held, toggle the dropdown
+      if (e.metaKey) {
+        dispatch(toggleClipDropdown({ data: { id: clip.id } }));
+        return;
+      }
+
+      // If the clip is selected, select the track or close/deselect the clip
+      if (isSelected) {
+        if (!isTrackSelected) dispatch(setSelectedTrackId(clip.trackId));
+        else dispatch(toggleClipDropdown({ data: { id: clip.id } }));
+        if (isTrackSelected && isDropdownOpen) {
+          dispatch(removeClipIdsFromSelection({ data: [clip.id] }));
+        }
+        return;
+      }
+      dispatch(onClipClick(e, clip));
+    },
+    [clip, isSelected, isDropdownOpen, pcId]
   );
+
+  // The icon changes based on if the pose is open or live
+  const PoseIcon = useCallback(() => {
+    const Icon =
+      isLive && isDropdownOpen
+        ? GiClothespin
+        : isLive
+        ? GiHand
+        : isDropdownOpen
+        ? GiDramaMasks
+        : BsMagic;
+    return (
+      <div
+        data-open={isDropdownOpen}
+        className="pointer-events-auto h-4 w-4 data-[open=true]:w-6 hover:opacity-75 mx-1 flex shrink-0 total-center"
+      >
+        <Icon className="pointer-events-none" />
+      </div>
+    );
+  }, [isDropdownOpen, isLive]);
+
+  // The name is visible on hover or when the dropdown is open
+  const PoseName = useCallback(() => {
+    return (
+      <div
+        data-open={isDropdownOpen}
+        className="px-2 data-[open=false]:opacity-75 data-[open=true]:px-3 data-[open=true]:bg-fuchsia-600 data-[open=true]:border-r"
+      >
+        {name}
+      </div>
+    );
+  }, [isDropdownOpen, name]);
+
+  // The stream allows for selecting different pose vectors
+  const PoseStream = useCallback(() => {
+    if (!isDropdownOpen) return null;
+    return (
+      <div className="flex gap-1 pointer-events-auto">
+        {stream.map(renderPoseBlock)}
+      </div>
+    );
+  }, [stream, isDropdownOpen, renderPoseBlock]);
 
   return (
     <div
-      className={headerClass}
+      className={classNames(
+        "flex text-sm items-center whitespace-nowrap pointer-events-none font-nunito",
+        isSelected ? "text-white font-semibold" : "text-white/80 font-light",
+        isDropdownOpen ? "w-min z-20" : "overflow-hidden hover:overflow-visible"
+      )}
       style={{ height: POSE_HEIGHT }}
       draggable
-      onClick={(e) => {
-        cancelEvent(e);
-        if (e.altKey) {
-          dispatch(toggleClipIdInSelection(clip.id));
-        } else if (e.metaKey) {
-          dispatchCustomEvent(
-            `${isDropdownOpen ? "close" : "open"}_dropdown_${pcId}`
-          );
-        } else if (isSelected) {
-          if (!isTrackSelected) dispatch(setSelectedTrackId(clip.trackId));
-          else {
-            dispatchCustomEvent(
-              `${isDropdownOpen ? "close" : "open"}_dropdown_${pcId}`
-            );
-          }
-          if (isTrackSelected && isDropdownOpen) {
-            dispatch(removeClipIdsFromSelection({ data: [clip.id] }));
-          }
-        } else {
-          dispatch(onClipClick(e, clip));
-        }
-      }}
+      onClick={onClick}
     >
-      <span
-        className={classNames(
-          "pointer-events-auto h-4 flex shrink-0 total-center",
-          isDropdownOpen ? "w-6 mx-1 hover:opacity-75" : "w-4 mx-1"
-        )}
-      >
-        <IconType className="pointer-events-none" />
-      </span>
-
-      {isDropdownOpen ? (
-        <div className="flex total-center *:border-slate-200/30">
-          <span
-            className="pointer-events-auto hover:opacity-75 border-l size-full flex items-center px-2"
-            onClick={(e) => {
-              cancelEvent(e);
-              if (!pose?.id) return;
-              const undoType = createUndoType("editPose");
-              dispatch(setTimelineType({ data: "pose", undoType }));
-              dispatch(setSelectedPose({ data: pose?.id, undoType }));
-              dispatch(showEditor({ data: { view: "pose" }, undoType }));
-            }}
-          >
-            <BsPencil className="pointer-events-none" />
-          </span>
-          <span
-            className="pointer-events-auto hover:opacity-75 border-l size-full flex items-center px-2"
-            onClick={(e) => {
-              cancelEvent(e);
-              dispatch(inputPoseStream(clip.id));
-            }}
-          >
-            <GiFireSpellCast className="pointer-events-none" />
-          </span>
-          <span className="bg-fuchsia-600 border-r px-3">{name}</span>
-          {(pose?.stream ?? []).map(renderPoseBlock)}
-        </div>
-      ) : (
-        name
-      )}
+      <PoseIcon />
+      <PoseName />
+      <PoseStream />
     </div>
   );
 };

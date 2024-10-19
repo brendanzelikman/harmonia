@@ -16,16 +16,16 @@ import {
   getPoseBlockDurationAsString,
 } from "types/Pose/PoseFunctions";
 import { removePoseBlock } from "types/Pose/PoseSlice";
-import { PoseVectorModule, PoseVectorId, Pose } from "types/Pose/PoseTypes";
+import { PoseOperation, PoseVectorId, Pose } from "types/Pose/PoseTypes";
 import { selectTrackMap } from "types/Track/TrackSelectors";
 
 export interface PoseEditorVectorProps extends PoseEditorProps {
   pose: Pose;
-  module: PoseVectorModule;
+  module: PoseOperation;
   index: number;
-  vectors: PoseVectorModule[];
+  vectors: PoseOperation[];
   vectorKeys: PoseVectorId[];
-  updateBlock: (block: PoseVectorModule) => void;
+  updateBlock: (block: PoseOperation) => void;
 }
 
 /** Display a vector module. */

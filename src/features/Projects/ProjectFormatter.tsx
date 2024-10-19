@@ -39,7 +39,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
   const dispatch = useProjectDispatch();
   const navigate = useNavigate();
   const { project } = props;
-  const heldKeys = useHeldHotkeys(["alt"]);
+  const holding = useHeldHotkeys(["alt"]);
   const isInvalid = !isProject(project);
   const isDemo = !!props.filePath;
 
@@ -88,7 +88,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
       <h1 className="text-2xl text-indigo-50 font-bold truncate max-w-64">
         {name}
       </h1>
-      {heldKeys.alt ? (
+      {holding.alt ? (
         <div className="*:whitespace-nowrap max-w-64 overflow-scroll">
           <h6>
             <span className="text-sky-300">Scales:</span> {scales}

@@ -5,7 +5,7 @@ import { initializePose } from "types/Pose/PoseTypes";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import { initializeScale } from "types/Scale/ScaleTypes";
 import { initializeScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
-import { getScaleName } from "utils/key";
+import { getScaleName } from "utils/scale";
 import { keyBy } from "lodash";
 
 // ------------------------------------------------------------

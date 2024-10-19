@@ -22,7 +22,7 @@ import { getArrayByKey } from "utils/objects";
 import { getTrackScaleChain } from "./ArrangementFunctions";
 import { selectTrackArrangement } from "./ArrangementSelectors";
 import { createDeepSelector, createValueSelector } from "lib/redux";
-import { getScaleName } from "utils/key";
+import { getScaleName } from "utils/scale";
 
 /** Select the top offset of the track ID in pixels based on the given track ID. */
 export const selectTrackTopMap = createDeepSelector(
@@ -103,10 +103,21 @@ export const selectTrackScaleChainAtTick = (
   trackId?: TrackId,
   tick: Tick = 0
 ) => {
-  if (!trackId) return [chromaticScale];
+  if (!trackId) return [];
   const arrangement = selectTrackArrangement(project);
   const motifs = selectMotifState(project);
   return getTrackScaleChain(trackId, { ...arrangement, motifs, tick });
+};
+
+/** Select the name of a track at a given tick. */
+export const selectTrackMidiScaleAtTick = (
+  project: Project,
+  trackId?: TrackId,
+  tick: Tick = 0
+) => {
+  const scaleChain = selectTrackScaleChainAtTick(project, trackId, tick);
+  const midiScale = resolveScaleChainToMidi(scaleChain);
+  return midiScale;
 };
 
 /** Select the name of a track at a given tick. */
@@ -115,10 +126,8 @@ export const selectTrackScaleNameAtTick = (
   trackId?: TrackId,
   tick: Tick = 0
 ) => {
-  const scaleChain = selectTrackScaleChainAtTick(project, trackId, tick);
-  const midiScale = resolveScaleChainToMidi(scaleChain);
-  const name = getScaleName(midiScale);
-  return name;
+  const midiScale = selectTrackMidiScaleAtTick(project, trackId, tick);
+  return getScaleName(midiScale);
 };
 
 /** Select the record of all scales to their names. */
@@ -127,10 +136,9 @@ export const selectScaleNameMap = createSelector(
     selectScaleMap,
     selectScaleIds,
     selectScaleTrackMap,
-    selectScaleTracks,
     selectTrackMidiScaleMap,
   ],
-  (scaleMap, scaleIds, scaleTrackMap, scaleTracks, midiScaleMap) => {
+  (scaleMap, scaleIds, scaleTrackMap, midiScaleMap) => {
     const scaleNameMap: Record<ScaleId, string | undefined> = {};
 
     // Iterate over each scale
@@ -154,7 +162,10 @@ export const selectScaleNameMap = createSelector(
 );
 
 /** Select the name of a scale. */
-export const selectScaleName = createValueSelector(
-  selectScaleNameMap,
-  "Custom Scale"
-);
+export const selectScaleName = (project: Project, scaleId?: ScaleId) => {
+  if (!scaleId) return "Custom Scale";
+  const scaleNameMap = selectScaleNameMap(project);
+  if (scaleId in scaleNameMap) return scaleNameMap[scaleId];
+  const scaleMap = selectScaleMap(project);
+  return scaleMap[scaleId]?.name ?? "Custom Scale";
+};

@@ -609,7 +609,7 @@ export const onMediaDragEnd =
 
     // If copying, create the new media
     if (copying) {
-      const cloning = !isHotkeyPressed("tilde");
+      const cloning = !isHotkeyPressed("comma");
       const copiedClips = cloning
         ? newClips
         : (newClips.map((clip) => {

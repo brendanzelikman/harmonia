@@ -7,41 +7,19 @@ import {
   selectSelectedTrack,
 } from "types/Timeline/TimelineSelectors";
 import { createTrackTree } from "types/Track/TrackThunks";
-import {
-  ClipId,
-  initializePatternClip,
-  initializePoseClip,
-  isPatternClipId,
-  isPoseClipId,
-  PortaledPatternClipId,
-  PortaledPoseClipId,
-} from "types/Clip/ClipTypes";
-import { createPose } from "types/Pose/PoseThunks";
-import { createPattern } from "types/Pattern/PatternThunks";
-import { addClipIdsToSelection } from "types/Timeline/thunks/TimelineSelectionThunks";
-import { dispatchCustomEvent } from "utils/html";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import {
   selectOrderedPatternTracks,
-  selectScaleTracks,
-  selectTrackChainIds,
+  selectTrackAncestorIds,
   selectTrackLabelById,
 } from "types/Track/TrackSelectors";
-import { useHeldHotkeys, useHotkeysInTimeline } from "lib/react-hotkeys-hook";
-import { useCallback, useRef } from "react";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { useCallback, useState } from "react";
 import { some } from "lodash";
-import { createMedia } from "types/Media/MediaThunks";
-import {
-  selectFirstPortaledPatternClipId,
-  selectFirstPortaledPoseClipId,
-} from "types/Arrangement/ArrangementSelectors";
-import { useToggledState } from "hooks/useToggledState";
-import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { useLivePlay } from "features/Timeline/hooks/useLivePlay";
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
-import { sanitize } from "utils/math";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"];
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -52,165 +30,116 @@ const hotkeys = [...qwertyKeys, ...numericalKeys, ...trackKeys, ...miscKeys];
 export const NavbarLivePlayButton = () => {
   const dispatch = useProjectDispatch();
   const { isAtLeastRank } = useAuth();
-  const scaleTracks = useDeep(selectScaleTracks);
-  const scaleTrackId = (
-    scaleTracks.findLast((track) => !!track.parentId) ?? scaleTracks.at(-1)
-  )?.id;
 
   // Keep track of held keys and shortcuts
-  const heldKeys = useHeldHotkeys(hotkeys);
-  const holdingScale = qwertyKeys.some((key) => !!heldKeys[key]);
-  const heldNumber = numericalKeys.find((key) => !!heldKeys[key]);
-  const patternTrackId = useDeep(selectOrderedPatternTracks)[
-    heldNumber === undefined ? 0 : sanitize(parseInt(heldNumber) - 1)
-  ]?.id;
-  const ptLabel = use((_) => selectTrackLabelById(_, patternTrackId));
+  const holding = useHeldHotkeys(hotkeys);
+  const holdingScale = qwertyKeys.some((key) => !!holding[key]);
   useLivePlay();
 
   // Get the selected track and its scale names
+  const patternTrackIds = useDeep(selectOrderedPatternTracks);
   const selectedTrack = useDeep(selectSelectedTrack);
-  const chainIds = useDeep((_) => selectTrackChainIds(_, selectedTrack?.id));
-  const scaleName1 = use((_) => selectTrackScaleNameAtTick(_, chainIds[0]));
-  const scaleName2 = use((_) => selectTrackScaleNameAtTick(_, chainIds[1]));
-  const scaleName3 = use((_) => selectTrackScaleNameAtTick(_, chainIds[2]));
+  const chainIds = useDeep((_) => selectTrackAncestorIds(_, selectedTrack?.id));
+
+  const label1 = use((_) => selectTrackLabelById(_, chainIds[0]));
+  const scale1 = use((_) => selectTrackScaleNameAtTick(_, chainIds[0]));
+  const scaleName1 = label1 ? `(${label1}) ${scale1}` : `No Track`;
+
+  const label2 = use((_) => selectTrackLabelById(_, chainIds[1]));
+  const scale2 = use((_) => selectTrackScaleNameAtTick(_, chainIds[1]));
+  const scaleName2 = label2 ? `(${label2}) ${scale2}` : `No Track`;
+
+  const label3 = use((_) => selectTrackLabelById(_, chainIds[2]));
+  const scale3 = use((_) => selectTrackScaleNameAtTick(_, chainIds[2]));
+  const scaleName3 = label3 ? `(${label3}) ${scale3}` : `No Track`;
+
   const depth = chainIds.length - 1;
 
-  // The first pattern clip and its score
-  const patternClipId = use(selectFirstPortaledPatternClipId);
-  const scoreRef = useRef<string>(`score_${patternClipId}`);
-
-  // The first pose clip and its dropdown
-  const poseClipId = use(selectFirstPortaledPoseClipId);
-  const dropdownRef = useRef<string>(`dropdown_${poseClipId}`);
+  const ptLabel = use((_) => selectTrackLabelById(_, selectedTrack?.id));
 
   // The interface is fully live when the score and dropdown are open
-  const isTimelineLive = use(selectIsLive);
-  const isLive = isTimelineLive;
+  const isLive = use(selectIsLive);
 
   // The button is in charge of synchronizing the score and dropdown
   const onClick = useCallback(() => {
-    const undoType = "prepareLive";
-    const trackId =
-      patternTrackId ??
-      (scaleTrackId
-        ? dispatch(createPatternTrack({ parentId: scaleTrackId }))
-        : dispatch(createTrackTree({ undoType })));
-
+    let trackId = selectedTrack?.id;
+    const undoType = "goLive";
+    if (!selectedTrack) {
+      if (!patternTrackIds.length) {
+        trackId = dispatch(createTrackTree({ undoType }))?.id;
+      } else {
+        trackId = patternTrackIds[0].id;
+      }
+    }
     dispatch(setSelectedTrackId({ data: trackId, undoType }));
-
-    // Create a courtesy pattern and pattern clip for the track
-    const ids = [patternClipId, poseClipId].filter(Boolean) as ClipId[];
-    const data = { trackId };
-
-    // Create a courtesy pose and pose clip for the track
-    if (ids.length < 2) {
-      if (!ids.some(isPoseClipId)) {
-        const poseId = dispatch(createPose({ data, undoType }));
-        const clips = [initializePoseClip({ poseId, trackId })];
-        const result = dispatch(createMedia({ data: { clips }, undoType }));
-        const newPoseId = result.data.clipIds?.[0];
-        if (newPoseId) ids.push(newPoseId);
-      }
-      if (!ids.some(isPatternClipId)) {
-        const patternId = dispatch(createPattern({ data, undoType }));
-        const clips = [initializePatternClip({ patternId, trackId })];
-        const result = dispatch(createMedia({ data: { clips }, undoType }));
-        const newPatternId = result.data.clipIds?.[0];
-        if (newPatternId) ids.push(`${newPatternId}-chunk-1`);
-      }
-    }
-
-    const pcId = ids.find(isPatternClipId) as PortaledPatternClipId | undefined;
-    const psId = ids.find(isPoseClipId) as PortaledPoseClipId | undefined;
-
-    if (pcId && psId) {
-      const ogPcId = getOriginalIdFromPortaledClip(pcId);
-      const ogPsId = getOriginalIdFromPortaledClip(psId);
-      dispatch(addClipIdsToSelection({ data: [ogPcId, ogPsId], undoType }));
-      const tag = isLive ? "close" : "open";
-      const score = `score_${pcId}`;
-      const dropdown = `dropdown_${psId}`;
-      scoreRef.current = score;
-      dropdownRef.current = dropdown;
-      setTimeout(() => dispatchCustomEvent(`${tag}_${score}`), 5);
-      setTimeout(() => dispatchCustomEvent(`${tag}_${dropdown}`), 10);
-    }
-  }, [isLive, scaleTrackId, patternTrackId, patternClipId, poseClipId]);
-
-  useHotkeysInTimeline({
-    name: "Start Live Play",
-    description: "Open the Live Play interface",
-    shortcut: "l",
-    callback: onClick,
-  });
+  }, [selectedTrack, patternTrackIds]);
 
   // Get the numerical shortcuts.
   const NumericalShortcuts = () => {
     return (
-      <div className="py-2 text-white animate-in fade-in duration-300">
+      <div className="pt-1 text-white animate-in fade-in duration-300">
         <p>
-          <span className="font-extrabold">Live Play: </span>
           <span className="font-light text-fuchsia-300">
-            Enabled for Pattern Track {ptLabel}
+            Plugged Keyboard into Track {ptLabel}
           </span>
         </p>
-        <p className="pb-2 mb-2 font-thin text-xs">
-          Keyboard-Based Shortcuts for Improvisation
+        <p className="pb-1 mb-1 font-thin text-xs">
+          Unlocked Shortcuts for Live Play!
         </p>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 mt-1.5">
           <div className="px-2 py-1 bg-gradient-to-r from-sky-500/40 to-sky-500/20 rounded">
             1. Pick a Scale
           </div>
           <div className="p-1">
             <p className={depth < 0 ? "opacity-50" : ""}>
-              <Instruction active={heldKeys["q"]} label="Hold Q:" />{" "}
+              <Instruction active={holding["q"]} label="Hold Q:" />{" "}
               <Description
-                active={heldKeys["q"]}
+                active={holding["q"]}
                 label={scaleName1 ?? "First Track Scale"}
                 defaultClass="text-sky-400"
                 activeClass="text-sky-300"
               />
             </p>
             <p className={depth < 1 ? "opacity-50" : ""}>
-              <Instruction active={heldKeys["w"]} label="Hold W:" />{" "}
+              <Instruction active={holding["w"]} label="Hold W:" />{" "}
               <Description
-                active={heldKeys["w"]}
+                active={holding["w"]}
                 label={scaleName2 ?? "Second Track Scale"}
                 defaultClass="text-sky-400"
                 activeClass="text-sky-300"
               />
             </p>
             <p className={depth < 2 ? "opacity-50" : ""}>
-              <Instruction active={heldKeys["e"]} label="Hold E:" />{" "}
+              <Instruction active={holding["e"]} label="Hold E:" />{" "}
               <Description
-                active={heldKeys["e"]}
+                active={holding["e"]}
                 label={scaleName3 ?? "Third Track Scale"}
                 defaultClass="text-sky-400"
                 activeClass="text-sky-300"
               />
             </p>
             <p>
-              <Instruction active={heldKeys["r"]} label="Hold R:" />{" "}
+              <Instruction active={holding["r"]} label="Hold R:" />{" "}
               <Description
-                active={heldKeys["r"]}
+                active={holding["r"]}
                 label="Intrinsic Scale"
                 defaultClass="text-sky-400"
                 activeClass="text-sky-300"
               />
             </p>
             <p>
-              <Instruction active={heldKeys["t"]} label="Hold T:" />{" "}
+              <Instruction active={holding["t"]} label="Hold T:" />{" "}
               <Description
-                active={heldKeys["t"]}
+                active={holding["t"]}
                 label="Chromatic Scale"
                 defaultClass="text-sky-400"
                 activeClass="text-sky-300"
               />
             </p>
             <p>
-              <Instruction active={heldKeys["y"]} label="Hold Y:" />{" "}
+              <Instruction active={holding["y"]} label="Hold Y:" />{" "}
               <Description
-                active={heldKeys["y"]}
+                active={holding["y"]}
                 label="Octave Scale"
                 defaultClass="text-sky-400"
                 activeClass="text-sky-300"
@@ -226,43 +155,54 @@ export const NavbarLivePlayButton = () => {
             <div className="p-1">
               <p>
                 <Description
-                  active={(key) => heldKeys[key]}
+                  active={(key) => holding[key]}
                   keycodes={["1", "2", "3", "4", "5", "6", "7", "8", "9"]}
                   required={["q", "w", "e", "r", "t", "y"]}
-                  label="Press Number:"
+                  label="Press 1-9:"
                   activeClass="text-white"
                   defaultClass="text-slate-400"
                 />{" "}
                 <Description
-                  active={(key) => heldKeys[key]}
+                  active={(key) => holding[key]}
                   keycodes={["1", "2", "3", "4", "5", "6", "7", "8", "9"]}
                   required={["q", "w", "e", "r", "t", "y"]}
-                  label="Move Up 1-9 Steps"
+                  label={`Move ${
+                    holding["-"] || holding["`"]
+                      ? holding["="]
+                        ? "to Step -1 to -9"
+                        : "Down 1 to 9 Steps"
+                      : holding["="]
+                      ? "to Step 1 to 9"
+                      : "Up 1 to 9 Steps"
+                  }`}
                   activeClass="text-fuchsia-200"
                   defaultClass="text-fuchsia-300"
                 />
               </p>
               <p>
-                <Instruction active={heldKeys["-"]} label="Hold Minus:" />{" "}
+                <Instruction
+                  active={holding["-"] || holding["`"]}
+                  label="Hold Minus:"
+                />{" "}
                 <Description
-                  active={heldKeys["-"]}
-                  label="Move Down 1-9 Steps"
+                  active={holding["-"]}
+                  label="Move Down"
                   defaultClass="text-fuchsia-300"
                   activeClass="text-fuchsia-200"
                 />
               </p>
               <p>
-                <Instruction active={heldKeys["="]} label="Hold Equal:" />{" "}
+                <Instruction active={holding["="]} label="Hold Equal:" />{" "}
                 <Description
-                  active={heldKeys["="]}
-                  label="Move to Exact Step"
+                  active={holding["="]}
+                  label="Move Exactly"
                   defaultClass="text-fuchsia-300"
                   activeClass="text-fuchsia-200"
                 />
               </p>
               <p>
                 <Description
-                  active={(key) => heldKeys[key]}
+                  active={(key) => holding[key]}
                   keycodes={["0"]}
                   required={["q", "w", "e", "r", "t", "y"]}
                   label="Press 0:"
@@ -270,28 +210,28 @@ export const NavbarLivePlayButton = () => {
                   defaultClass="text-slate-400"
                 />{" "}
                 <Description
-                  active={(key) => heldKeys[key]}
+                  active={(key) => holding[key]}
                   keycodes={["0"]}
                   required={["q", "w", "e", "r", "t", "y"]}
-                  label="Move to Root"
+                  label="Move to Root Step"
                   defaultClass="text-fuchsia-300"
                   activeClass="text-fuchsia-200"
                 />
               </p>
 
               <p>
-                <Instruction active={heldKeys["z"]} label="Press Z:" />{" "}
+                <Instruction active={holding["z"]} label="Press Z:" />{" "}
                 <Description
-                  active={heldKeys["z"]}
+                  active={holding["z"]}
                   label={`Remove ${holdingScale ? "Selected" : "All"} Values`}
                   defaultClass="text-fuchsia-300"
                   activeClass="text-fuchsia-200"
                 />
               </p>
               <p>
-                <Instruction active={heldKeys["v"]} label="Hold V:" />{" "}
+                <Instruction active={holding["v"]} label="Hold V:" />{" "}
                 <Description
-                  active={heldKeys["v"]}
+                  active={holding["v"]}
                   label="Create a Voice Leading"
                   defaultClass="text-fuchsia-300"
                   activeClass="text-fuchsia-200"
@@ -304,37 +244,35 @@ export const NavbarLivePlayButton = () => {
           </div>
           <div className="p-1">
             <p>
-              <Instruction active={heldKeys["x"]} label="Press X:" />{" "}
+              <Instruction active={holding["x"]} label="Press X:" />{" "}
               <Description
-                active={heldKeys["x"]}
+                active={holding["x"]}
                 label={`Restart Loop`}
                 activeClass="text-emerald-200"
                 defaultClass="text-emerald-300"
               />
             </p>
             <p>
-              <Instruction active={heldKeys["m"]} label="Hold M:" />{" "}
+              <Instruction active={holding["m"]} label="Hold M:" />{" "}
               <Description
-                active={heldKeys["m"]}
+                active={holding["m"]}
                 label="Prepare to Mute"
                 activeClass="text-emerald-200"
                 defaultClass="text-emerald-300"
               />
             </p>
             <p>
-              <Instruction active={heldKeys["s"]} label="Hold S:" />{" "}
+              <Instruction active={holding["s"]} label="Hold S:" />{" "}
               <Description
-                active={heldKeys["s"]}
+                active={holding["s"]}
                 label="Prepare to Solo"
                 activeClass="text-emerald-200"
                 defaultClass="text-emerald-300"
               />
             </p>
-            <p className={heldKeys["m"] || heldKeys["s"] ? "" : "opacity-50"}>
+            <p className={holding["m"] || holding["s"] ? "" : "opacity-50"}>
               <Description
-                active={(key) =>
-                  heldKeys[key] && (heldKeys["m"] || heldKeys["s"])
-                }
+                active={(key) => holding[key] && (holding["m"] || holding["s"])}
                 keycodes={["1", "2", "3", "4", "5", "6", "7", "8", "9"]}
                 required={["s", "m"]}
                 label="Press 1-9:"
@@ -342,9 +280,7 @@ export const NavbarLivePlayButton = () => {
                 defaultClass="text-slate-400"
               />{" "}
               <Description
-                active={(key) =>
-                  heldKeys[key] && (heldKeys["m"] || heldKeys["s"])
-                }
+                active={(key) => holding[key] && (holding["m"] || holding["s"])}
                 keycodes={["1", "2", "3", "4", "5", "6", "7", "8", "9"]}
                 required={["s", "m"]}
                 label="Target Pattern Track #1-9"
@@ -352,11 +288,9 @@ export const NavbarLivePlayButton = () => {
                 defaultClass="text-emerald-300"
               />
             </p>
-            <p className={heldKeys["m"] || heldKeys["s"] ? "" : "opacity-50"}>
+            <p className={holding["m"] || holding["s"] ? "" : "opacity-50"}>
               <Description
-                active={(key) =>
-                  heldKeys[key] && (heldKeys["m"] || heldKeys["s"])
-                }
+                active={(key) => holding[key] && (holding["m"] || holding["s"])}
                 keycodes={["0"]}
                 required={["s", "m"]}
                 label="Press 0:"
@@ -364,9 +298,7 @@ export const NavbarLivePlayButton = () => {
                 defaultClass="text-slate-400"
               />{" "}
               <Description
-                active={(key) =>
-                  heldKeys[key] && (heldKeys["m"] || heldKeys["s"])
-                }
+                active={(key) => holding[key] && (holding["m"] || holding["s"])}
                 keycodes={["0"]}
                 required={["s", "m"]}
                 label="Unmute/Unsolo All Tracks"
@@ -380,20 +312,33 @@ export const NavbarLivePlayButton = () => {
     );
   };
 
+  const [active, setActive] = useState(false);
+  useCustomEventListener("live-shortcuts", (e) => setActive(e.detail));
   if (!isAtLeastRank("maestro")) return null;
   return (
     <NavbarTooltipButton
       keepTooltipOnClick
-      marginLeft={isLive ? -190 : undefined}
+      marginLeft={isLive ? -20 : undefined}
       width={isLive ? 290 : undefined}
       borderColor="border-fuchsia-500"
       className={classNames(
-        "relative select-none cursor-pointer",
+        "bg-gradient-radial to-fuchsia-500/70",
+        "relative border border-white/20 size-9 select-none cursor-pointer",
         "flex total-center rounded-full transition-all duration-300 font-nunito font-light",
-        isLive ? "bg-fuchsia-500/70" : "bg-transparent"
+        isLive ? "from-fuchsia-500/50 opacity-100" : "from-fuchsia-500/5"
       )}
+      active={active}
       onClick={onClick}
-      label={isLive ? NumericalShortcuts() : "Start Live Play"}
+      label={
+        isLive ? (
+          NumericalShortcuts()
+        ) : (
+          <>
+            Equip Keyboard{" "}
+            <span className="font-light text-slate-400">(Live Play)</span>
+          </>
+        )
+      }
     >
       <GiHand className="select-none pointer-events-none" />
     </NavbarTooltipButton>

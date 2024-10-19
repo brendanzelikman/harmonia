@@ -4,8 +4,8 @@ import { TrackDropdownMenu } from "./components/TrackDropdownMenu";
 import { TrackDropdownButton } from "./components/TrackDropdownButton";
 import { BiCopy } from "react-icons/bi";
 import { BsArrowsCollapse, BsEraser, BsPencil, BsTrash } from "react-icons/bs";
-import { cancelEvent } from "utils/html";
-import { useCallback, useRef } from "react";
+import { cancelEvent, dispatchCustomEvent } from "utils/html";
+import { useCallback, useRef, useState } from "react";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDnd";
 import {
   useProjectSelector as use,
@@ -15,22 +15,35 @@ import {
 import { useTransportTick } from "hooks/useTransportTick";
 import { TrackFormatterProps } from "./TrackFormatter";
 import classNames from "classnames";
-import { GiBreakingChain, GiMusicalKeyboard } from "react-icons/gi";
+import {
+  Gi3DStairs,
+  GiDominoMask,
+  GiHand,
+  GiMusicalKeyboard,
+  GiRadioTower,
+} from "react-icons/gi";
 import { TooltipButton } from "components/TooltipButton";
 import { FaAnchor } from "react-icons/fa";
 import { useTourId } from "features/Tour";
-import { isScaleEditorOpen } from "types/Editor/EditorFunctions";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
-import { selectEditor } from "types/Editor/EditorSelectors";
-import { selectCellHeight } from "types/Timeline/TimelineSelectors";
+import {
+  selectCellHeight,
+  selectIsLive,
+} from "types/Timeline/TimelineSelectors";
 import {
   selectTrackDepthById,
   selectTrackDescendants,
   selectTrackMap,
 } from "types/Track/TrackSelectors";
-import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
+import {
+  selectTrackMidiScaleAtTick,
+  selectTrackScaleNameAtTick,
+} from "types/Arrangement/ArrangementTrackSelectors";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
-import { createScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
+import {
+  createScaleTrack,
+  updateTrackByString,
+} from "types/Track/ScaleTrack/ScaleTrackThunks";
 import { toggleTrackScaleEditor } from "types/Editor/EditorThunks";
 import {
   insertScaleTrack,
@@ -43,17 +56,24 @@ import {
 import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { mod } from "utils/math";
+import { getMidiPitchClass } from "utils/midi";
+import { getScaleKey } from "utils/scale";
 
 interface ScaleTrackProps extends TrackFormatterProps {
   track: ScaleTrack;
 }
 
+const qwertyKeys = ["q", "w", "e", "r", "t", "y"];
+const HELD_KEYS = ["m", "s", "v", ...qwertyKeys];
+
 export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
-  const { track, label, isSelected } = props;
+  const { track, label, isSelected, isAncestorSelected } = props;
   const dispatch = useProjectDispatch();
   const cellHeight = use(selectCellHeight);
   const trackMap = useDeep(selectTrackMap);
-
+  const isLive = use(selectIsLive);
+  const midiScale = use((_) => selectTrackMidiScaleAtTick(_, track.id, 0));
   const trackId = track.id;
   const tourId = useTourId();
 
@@ -64,10 +84,6 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
   const [{ isDragging }, drag] = useTrackDrag({ ...props, element });
   drag(drop(ref));
 
-  // Editor info
-  const editor = use(selectEditor);
-  const onScaleEditor = isScaleEditorOpen(editor);
-
   // Track info
   const depth = use((_) => selectTrackDepthById(_, trackId));
   const tick = useTransportTick();
@@ -75,28 +91,25 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
     selectTrackScaleNameAtTick(_, trackId, tick)
   );
   const children = useDeep((_) => selectTrackDescendants(_, trackId));
-  const heldKeys = useHeldHotkeys("v");
+  const holding = useHeldHotkeys(HELD_KEYS);
+  const isHoldingQwerty = qwertyKeys.some((key) => holding[key]);
 
   /** The Scale Track displays the name of the track or the name of its scale. */
   const ScaleTrackName = useCallback(() => {
-    return isSelected && heldKeys.v ? (
-      <div className="flex size-full bg-zinc-800 p-1 max-w-[214px] overflow-scroll rounded-md text-fuchsia-300">
-        {getPoseVectorAsJSX(track.vector ?? {}, trackMap)}
-      </div>
-    ) : (
+    return (
       <TrackName
         id={track.id}
         height={cellHeight}
         value={track.collapsed ? scaleName : track.name ?? ""}
         disabled={track.collapsed}
-        placeholder={`Track ${label} (Scale)`}
+        placeholder={`(${label}): Scale Track`}
         onChange={(e) => props.renameTrack(e.target.value)}
       />
     );
-  }, [track, scaleName, cellHeight, label, isSelected, heldKeys]);
+  }, [track, scaleName, cellHeight, label, isSelected, holding]);
 
   /** The Scale Track dropdown menu allows the user to perform general actions on the track. */
-  const ScaleTrackDropdownMenu = () => {
+  const ScaleTrackDropdownMenu = useCallback(() => {
     const isChildCollapsed =
       children.length && children.some((track) => track?.collapsed);
     return (
@@ -137,7 +150,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
         />
       </TrackDropdownMenu>
     );
-  };
+  }, [trackId, children, track, dispatch]);
 
   /** The Scale Track header displays the name and dropdown menu. */
   const ScaleTrackHeader = useCallback(
@@ -160,11 +173,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
   const ScaleEditorButton = useCallback(() => {
     const buttonClass = classNames(
       "scale-track-scale-button",
-      "relative px-2 border-sky-400",
-      {
-        "bg-gradient-to-r from-sky-600 to-sky-600/50 background-pulse":
-          isSelected && onScaleEditor,
-      }
+      "relative px-2 border-sky-400"
     );
     return (
       <TrackButton
@@ -178,58 +187,88 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
         <span className="truncate">{scaleName}</span>
       </TrackButton>
     );
-  }, [trackId, isSelected, onScaleEditor, scaleName]);
+  }, [trackId, isSelected, scaleName]);
 
-  /** The Pattern Track button creates a nested pattern track. */
-  const PatternTrackButton = useCallback(() => {
-    return (
-      <TooltipButton
-        className={`size-7 text-2xl border rounded-full border-emerald-500 active:bg-emerald-500 select-none`}
-        label="Nest A Pattern Track"
-        onClick={(e) => {
-          cancelEvent(e);
-          dispatch(createPatternTrack({ parentId: trackId }));
-        }}
-      >
-        <GiMusicalKeyboard />
-      </TooltipButton>
-    );
-  }, [trackId]);
-
-  /** The Scale Track button creates a nested scale track. */
-  const ScaleTrackButton = useCallback(() => {
-    return (
-      <TooltipButton
-        className={`size-7 text-2xl flex items-center justify-center border rounded-full border-indigo-400 active:bg-indigo-500 select-none`}
-        label="Nest a Scale Track"
-        onClick={(e) => {
-          cancelEvent(e);
-          dispatch(createScaleTrack({ parentId: trackId }));
-        }}
-      >
-        <GiBreakingChain />
-      </TooltipButton>
-    );
-  }, [trackId]);
+  const scaleTypes = ["name", "class", "midi"] as const;
+  const [scaleTypeIndex, setScaleTypeIndex] = useState(0);
+  const scaleType = scaleTypes[scaleTypeIndex];
+  const cycleType = () => setScaleTypeIndex((prev) => mod(prev + 1, 3));
+  const key = getScaleKey(midiScale);
+  const name =
+    scaleType === "name"
+      ? scaleName
+      : scaleType === "midi"
+      ? midiScale.join(", ")
+      : midiScale.map((n) => getMidiPitchClass(n, key)).join(", ");
 
   /** The Scale Track buttons include the scale editor button, pattern track button, and scale track button. */
   const ScaleTrackButtons = useCallback(
     () =>
       !track.collapsed && (
         <div
-          className={`w-full flex items-center mt-2`}
+          className={`flex w-full flex-1 gap-2 items-center mt-2`}
           draggable
           onDragStart={cancelEvent}
           onDoubleClick={cancelEvent}
         >
-          <div className="w-full flex items-center space-x-1 justify-self-end">
-            {ScaleEditorButton()}
-            <ScaleTrackButton />
-            <PatternTrackButton />
+          <div className="min-w-0 grow flex flex-col text-sm">
+            <div
+              className="flex text-sky-300 cursor-pointer"
+              onClick={(e) => {
+                cancelEvent(e);
+                cycleType();
+              }}
+            >
+              <GiDominoMask className="mr-1 my-auto inline shrink-0" />
+              <div className="overflow-scroll">{name}</div>
+            </div>
+            <div className="flex hover:saturate-150 cursor-pointer items-center gap-1 text-fuchsia-300">
+              <GiHand
+                onMouseEnter={() =>
+                  isLive && dispatchCustomEvent("live-shortcuts", true)
+                }
+                onMouseLeave={() =>
+                  dispatchCustomEvent("live-shortcuts", false)
+                }
+              />
+              {getPoseVectorAsJSX(track.vector ?? {}, trackMap)}
+            </div>
+          </div>
+          <div className="shrink-0 flex gap-1 self-end">
+            <TooltipButton
+              className={`text-xl size-6 border rounded-full border-sky-500 active:bg-sky-500 select-none`}
+              label="Update Scale"
+              onClick={(e) => {
+                cancelEvent(e);
+                dispatch(updateTrackByString(track.id));
+              }}
+            >
+              <GiRadioTower />
+            </TooltipButton>
+            <TooltipButton
+              className={`text-xl size-6 flex items-center justify-center border rounded-full border-indigo-400 active:bg-indigo-500 select-none`}
+              label="Nest a Scale Track"
+              onClick={(e) => {
+                cancelEvent(e);
+                dispatch(createScaleTrack({ parentId: track.id }));
+              }}
+            >
+              <Gi3DStairs />
+            </TooltipButton>
+            <TooltipButton
+              className={`text-xl size-6 border rounded-full border-emerald-500 active:bg-emerald-500 select-none`}
+              label="Nest a Pattern Track"
+              onClick={(e) => {
+                cancelEvent(e);
+                dispatch(createPatternTrack({ parentId: track.id }));
+              }}
+            >
+              <GiMusicalKeyboard />
+            </TooltipButton>
           </div>
         </div>
       ),
-    [track.collapsed, ScaleEditorButton, PatternTrackButton, ScaleTrackButton]
+    [track, name, trackMap, ScaleEditorButton]
   );
 
   // Render the Scale Track
@@ -244,7 +283,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
       )}
       ref={ref}
       style={{
-        paddingLeft: depth * 8,
+        paddingLeft: depth * 4,
         filter: `hue-rotate(${(depth - 1) * 8}deg)${
           [
             "tour-step-the-pattern-track",
@@ -259,16 +298,17 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
     >
       <div
         className={classNames(
-          "w-full h-full flex items-center bg-gradient-to-r from-sky-900 to-indigo-800 border-2 rounded transition-all duration-300",
-          { "border-sky-500": isSelected && onScaleEditor },
-          { "border-blue-400": isSelected && !onScaleEditor },
-          { "border-sky-950": !isSelected }
+          "size-full flex items-center bg-gradient-to-r from-sky-900 to-indigo-800 border-2 rounded transition-all",
+          { "border-fuchsia-400": isSelected && isHoldingQwerty },
+          { "border-blue-400": isSelected },
+          { "border-slate-50/20": !isSelected && isAncestorSelected },
+          { "border-sky-950": !isAncestorSelected && !isSelected }
         )}
       >
         <div
           className={classNames(
             track.collapsed ? "px-1" : "p-2",
-            "min-w-0 h-full flex flex-1 flex-col items-start justify-evenly duration-300"
+            "size-full flex flex-1 flex-col items-start justify-evenly duration-300"
           )}
         >
           {ScaleTrackHeader()}

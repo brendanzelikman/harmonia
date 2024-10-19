@@ -30,7 +30,7 @@ export const createInstrument =
       track: PatternTrack;
       options?: InstrumentOptions;
     }>
-  ): Thunk<LiveAudioInstance> =>
+  ): Thunk<{ instrument: Instrument; instance: LiveAudioInstance }> =>
   (dispatch, getProject) => {
     const { track } = payload.data;
     const options = payload.data.options ?? {};
@@ -56,7 +56,7 @@ export const createInstrument =
       ...instrument,
       urls: options.urls,
     });
-    if (options.downloading) return instance;
+    if (options.downloading) return { instrument, instance };
 
     // Add the instrument to the store and update the instance
     const undoType = payload?.undoType;
@@ -68,7 +68,7 @@ export const createInstrument =
 
     // Return the new instance
     if (instrument.id) LIVE_AUDIO_INSTANCES[instrument.id] = instance;
-    return instance;
+    return { instrument, instance };
   };
 
 /** Create the global instrument using the given instrument key. */
@@ -96,7 +96,11 @@ export const createGlobalInstrument = (
 
 /** Build all instruments for all pattern tracks. */
 export const buildInstruments =
-  (tracks: PatternTrack[]): Thunk<Promise<LiveAudioInstance[]>> =>
+  (
+    tracks: PatternTrack[]
+  ): Thunk<
+    Promise<{ instrument: Instrument; instance: LiveAudioInstance }[]>
+  > =>
   async (dispatch, getProject) => {
     const project = getProject();
     return Promise.all(

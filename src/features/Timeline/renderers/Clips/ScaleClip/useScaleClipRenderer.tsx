@@ -25,7 +25,10 @@ import {
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackScale } from "types/Track/TrackSelectors";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
-import { selectScaleById } from "types/Scale/ScaleSelectors";
+import {
+  selectCustomScaleById,
+  selectScaleById,
+} from "types/Scale/ScaleSelectors";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { useDragState } from "types/Media/MediaTypes";
 import { Timed } from "types/units";
@@ -42,7 +45,7 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
   const cellWidth = use(selectCellWidth);
   const trackScale = useDeep((_) => selectTrackScale(_, clip.trackId));
   const trackSize = getScaleNotes(trackScale).length;
-  const clipScale = useDeep((_) => selectScaleById(_, clip.scaleId));
+  const clipScale = useDeep((_) => selectCustomScaleById(_, clip.scaleId));
   const clipSize = getScaleNotes(clipScale).length;
   const isEqualSize = trackSize === clipSize;
 
@@ -79,7 +82,7 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
 
     // The label is more visible when selected
     const wrapperClass = classNames(
-      "flex text-sm relative items-center whitespace-nowrap pointer-events-none font-nunito",
+      "flex text-sm group relative items-center whitespace-nowrap pointer-events-none font-nunito",
       "gap-2 animate-in fade-in duration-75",
       isSelected ? "text-white font-semibold" : "text-white/80 font-light"
     );
@@ -90,7 +93,7 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
     return (
       <div className={wrapperClass} style={{ height }} draggable>
         <IconType className="flex flex-shrink-0 ml-1 w-4 h-4 select-none" />
-        <>{name}</>
+        <div className="group-hover:block hidden">{name}</div>
       </div>
     );
   }, [isSelected, name]);

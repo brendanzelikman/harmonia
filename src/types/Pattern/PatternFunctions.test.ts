@@ -16,11 +16,8 @@ import {
   getMidiStreamIntrinsicScale,
   flattenMidiStreamValues,
 } from "./PatternUtils";
-import {
-  getTransposedMidiStream,
-  getRotatedMidiStream,
-  getTransposedPatternStream,
-} from "./PatternTransformers";
+import { transposeStream, rotateStream } from "./PatternTransformers";
+import { getTransposedPatternStream } from "./PatternFunctions";
 import { createScaleStream } from "./PatternTypes.test";
 import { createId } from "types/util";
 
@@ -90,9 +87,9 @@ test("getTransposedMidiStream should correctly transpose a MIDI stream", () => {
   const chords = createScaleStream([60, 71]);
   const midiStream = chords as PatternMidiStream;
 
-  const transposedNone = getTransposedMidiStream(midiStream, 0);
-  const transposedUp = getTransposedMidiStream(midiStream, 1);
-  const transposedDown = getTransposedMidiStream(midiStream, -1);
+  const transposedNone = transposeStream(midiStream, 0);
+  const transposedUp = transposeStream(midiStream, 1);
+  const transposedDown = transposeStream(midiStream, -1);
 
   expect(flattenMidiStreamValues(transposedNone)).toEqual([60, 71]);
   expect(flattenMidiStreamValues(transposedUp)).toEqual([61, 72]);
@@ -103,9 +100,9 @@ test("getRotatedMidiStream should correctly rotate a MIDI stream", () => {
   const chords = createScaleStream([60, 71]);
   const midiStream = chords as PatternMidiStream;
 
-  const rotatedNone = getRotatedMidiStream(midiStream, 0);
-  const rotatedUp = getRotatedMidiStream(midiStream, 1);
-  const rotatedDown = getRotatedMidiStream(midiStream, -1);
+  const rotatedNone = rotateStream(midiStream, 0);
+  const rotatedUp = rotateStream(midiStream, 1);
+  const rotatedDown = rotateStream(midiStream, -1);
 
   expect(flattenMidiStreamValues(rotatedNone)).toEqual([60, 71]);
   expect(flattenMidiStreamValues(rotatedUp)).toEqual([71, 72]);

@@ -40,14 +40,11 @@ import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { getSubdivisionTicks } from "utils/durations";
 import { convertTicksToFormattedTime } from "types/Transport/TransportFunctions";
 import {
-  selectIsTransportActive,
   selectTransportBPM,
   selectTransportTimeSignature,
 } from "types/Transport/TransportSelectors";
 import { onCellClick } from "types/Timeline/thunks/TimelineClickThunks";
-import { useDragState } from "types/Media/MediaTypes";
 import { TimelineTrackButton } from "./components/TimelineTrackButton";
-import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 
 export type Row = {
   index: number;
@@ -61,6 +58,7 @@ export type TimelineElement = { element?: HTMLDivElement };
 
 export function Timeline() {
   const dispatch = useProjectDispatch();
+  const [timeline, setTimeline] = useState<DataGridHandle>();
   const state = use(selectTimelineState);
   const type = use(selectTimelineType);
   const cellWidth = use(selectCellWidth);
@@ -70,12 +68,8 @@ export function Timeline() {
   const trackMap = useDeep(selectTrackMap);
   const selectedTrackId = use(selectSelectedTrackId);
   const hasFragment = use(selectHasPortalFragment);
-  const isTransportActive = use(selectIsTransportActive);
-  const [timeline, setTimeline] = useState<DataGridHandle>();
   const bpm = use(selectTransportBPM);
   const timeSignature = useDeep(selectTransportTimeSignature);
-  const dragState = useDragState();
-  const isDraggingPatternClip = !!dragState.draggingPatternClip;
 
   /** The grid ref stores the react-data-grid element. */
   const gridRef = useCallback<(node: DataGridHandle) => void>(
@@ -121,6 +115,57 @@ export function Timeline() {
     []
   );
 
+  /** The column formatter handles each cell based on its row and column */
+  const columnFormatter = useCallback(
+    (props: FormatterProps<Row, unknown>) => {
+      const key = parseInt(props.column.key);
+      if (!props.row.id) {
+        const onClick = () => dispatch(onCellClick(key, props.row.id));
+        return <div className="size-full bg-transparent" onClick={onClick} />;
+      }
+      const subdivisionTicks = getSubdivisionTicks(subdivision);
+      const tick = subdivisionTicks * (parseInt(props.column.key) - 1);
+      const time = convertTicksToFormattedTime(tick, { bpm, timeSignature });
+      const isPortaling = state === "portaling-clips" && !!props.row.id;
+      const isAdding = state === "adding-clips" && !!props.row.id;
+      const isAddingPatternClips = isAdding && type === "pattern";
+      const isAddingPoseClips = isAdding && type === "pose";
+      const isAddingScaleClips = isAdding && type === "scale";
+      const onPT = !!props.row.onPatternTrack;
+      const { beats, sixteenths } = time;
+      const isMeasure = beats === 0 && sixteenths === 0;
+      return (
+        <CellFormatter
+          {...props}
+          col={key}
+          onClick={() => dispatch(onCellClick(key, props.row.id))}
+          className={classNames(
+            "size-full border-t border-t-white/20",
+            { "border-l-2 border-l-white/20": isMeasure && key > 1 },
+            { "border-l-0.5 border-l-slate-700/50": !isMeasure || key <= 1 },
+            { "cursor-paintbrush": isAddingPatternClips && onPT },
+            { "cursor-portalgunb": isPortaling && !hasFragment },
+            { "cursor-portalguno": isPortaling && hasFragment },
+            { "cursor-wand": isAddingPoseClips },
+            { "cursor-gethsemane": isAddingScaleClips },
+            isAddingPatternClips && onPT
+              ? "hover:bg-teal-500/50"
+              : isAddingPoseClips
+              ? "hover:bg-fuchsia-500/50"
+              : isAddingScaleClips
+              ? "hover:bg-blue-500/50"
+              : isPortaling
+              ? !hasFragment
+                ? "hover:bg-sky-400/50"
+                : "hover:bg-orange-400/50"
+              : "bg-transparent"
+          )}
+        />
+      );
+    },
+    [subdivision, bpm, timeSignature, state, type, hasFragment]
+  );
+
   /** The column is memoized so that it is not recreated on every render. */
   const column = useCallback(
     (key: string): Column<Row> => ({
@@ -128,66 +173,11 @@ export function Timeline() {
       name: key,
       width: cellWidth,
       minWidth: 1,
-      formatter: (props) => {
-        const key = parseInt(props.column.key);
-        if (!props.row.id) {
-          const onClick = () => dispatch(onCellClick(key, props.row.id));
-          return <div className="size-full bg-transparent" onClick={onClick} />;
-        }
-        const subdivisionTicks = getSubdivisionTicks(subdivision);
-        const tick = subdivisionTicks * (parseInt(props.column.key) - 1);
-        const time = convertTicksToFormattedTime(tick, { bpm, timeSignature });
-        const isPortaling = state === "portaling-clips" && !!props.row.id;
-        const isAdding = state === "adding-clips" && !!props.row.id;
-        const isAddingPatternClips = isAdding && type === "pattern";
-        const isAddingPoseClips = isAdding && type === "pose";
-        const isAddingScaleClips = isAdding && type === "scale";
-        const onPT = !!props.row.onPatternTrack;
-        const { beats, sixteenths } = time;
-        const isMeasure = beats === 0 && sixteenths === 0;
-        return (
-          <CellFormatter
-            {...props}
-            col={key}
-            onClick={() => dispatch(onCellClick(key, props.row.id))}
-            className={classNames(
-              "size-full border-t border-t-white/20 animate-in fade-in duration-200",
-              { "border-l-2 border-l-white/20": isMeasure && key > 1 },
-              { "border-l-0.5 border-l-slate-700/50": !isMeasure || key <= 1 },
-              { "cursor-paintbrush": isAddingPatternClips && onPT },
-              { "cursor-portalgunb": isPortaling && !hasFragment },
-              { "cursor-portalguno": isPortaling && hasFragment },
-              { "cursor-wand": isAddingPoseClips },
-              { "cursor-gethsemane": isAddingScaleClips },
-              isAddingPatternClips && onPT
-                ? "hover:bg-teal-500/50"
-                : isAddingPoseClips
-                ? "hover:bg-fuchsia-500/50"
-                : isAddingScaleClips
-                ? "hover:bg-blue-500/50"
-                : isPortaling
-                ? !hasFragment
-                  ? "hover:bg-sky-400/50"
-                  : "hover:bg-orange-400/50"
-                : "bg-transparent"
-            )}
-          />
-        );
-      },
+      formatter: columnFormatter,
       headerRenderer: TimelineHeaderRenderer,
       cellClass: `bg-transparent rdg-cell-${key}`,
     }),
-    [
-      rows,
-      cellWidth,
-      subdivision,
-      bpm,
-      state,
-      timeSignature,
-      isDraggingPatternClip,
-      isTransportActive,
-      hasFragment,
-    ]
+    [cellWidth, columnFormatter]
   );
 
   /** The columns are memoized so that they are not recreated on every render. */

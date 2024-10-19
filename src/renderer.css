@@ -115,3 +115,7 @@ input::-webkit-inner-spin-button {
   border-color: var(--landing-key);
   user-select: none;
 }
+
+.ReactPiano__NoteLabelContainer {
+  height: 20px;
+}

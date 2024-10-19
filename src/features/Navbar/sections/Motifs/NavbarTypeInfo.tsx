@@ -17,7 +17,7 @@ export const NavbarTypeInfoButton = () => {
   const clipColor = toolkitClipText[type];
 
   return (
-    <div className="group relative">
+    <div className="group/tooltip relative">
       <GiBookCover
         className={classNames(
           "flex total-center size-8 xl:size-9 p-1.5 border rounded-full",

@@ -2,6 +2,7 @@ import { Midi } from "@tonejs/midi";
 import { isUndefined, some } from "lodash";
 import { Tick } from "types/units";
 import {
+  selectClipById,
   selectClipMotif,
   selectPatternClips,
   selectPoseClipById,
@@ -9,7 +10,7 @@ import {
 } from "./ClipSelectors";
 import { isPoseBucket, getPoseBucketVector } from "types/Pose/PoseFunctions";
 import { updatePose } from "types/Pose/PoseSlice";
-import { isPoseVectorModule } from "types/Pose/PoseTypes";
+import { isPoseOperation } from "types/Pose/PoseTypes";
 import { Thunk } from "types/Project/ProjectTypes";
 import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
 import { selectClipStartTime } from "./ClipSelectors";
@@ -25,6 +26,7 @@ import {
 import {
   selectClosestPoseClipId,
   selectPatternClipStreamMap,
+  selectPortaledClipById,
   selectPortaledClipMap,
 } from "types/Arrangement/ArrangementSelectors";
 import { selectPoseById } from "types/Pose/PoseSelectors";
@@ -58,7 +60,19 @@ import { autoBindNoteToTrack } from "types/Track/TrackThunks";
 import { PatternId, PatternStream } from "types/Pattern/PatternTypes";
 import { updatePattern } from "types/Pattern/PatternSlice";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { getMidiFromPitch, getMidiPitch } from "utils/midi";
+import { getMidiFromPitch } from "utils/midi";
+
+/** Open or close the dropdown of a clip */
+export const toggleClipDropdown =
+  (payload: Payload<{ id: ClipId; value?: boolean }>): Thunk =>
+  (dispatch, getProject) => {
+    const { id, value } = payload.data;
+    const project = getProject();
+    const clip = selectClipById(project, id);
+    if (!clip) return;
+    const newValue = value === undefined ? !clip.isOpen : value;
+    dispatch(updateClip({ data: { id, isOpen: newValue } }));
+  };
 
 /** Slice a clip and make sure the old ID is no longer selected. */
 export const sliceClip =
@@ -120,28 +134,38 @@ export const preparePatternClip =
     const undoType = unpackUndoType(payload, "preparePatternClip");
     const { id, trackId, tick } = payload.data;
     const poseClipId = selectClosestPoseClipId(project, id);
+    const portaledPoseCip = poseClipId
+      ? selectPortaledClipById(project, poseClipId)
+      : undefined;
     const isLive = selectIsLive(project);
-    const isPosed = !!poseClipId;
+    const isPosed = !!portaledPoseCip?.isOpen;
 
-    if (isLive && poseClipId) {
+    if (isLive && poseClipId && isPosed) {
       dispatch(setSelectedTrackId({ data: null, undoType }));
       dispatch(removeClipIdsFromSelection({ data: [poseClipId], undoType }));
-      dispatchCustomEvent(`close_dropdown_${poseClipId}`, {});
+      dispatch(toggleClipDropdown({ data: { id: poseClipId, value: false } }));
       return;
     }
 
     // If the clip is posed, select the pose clip and open the dropdown
-    if (isPosed && poseClipId) {
+    if (isLive && poseClipId && !isPosed) {
       dispatch(addClipIdsToSelection({ data: [poseClipId], undoType }));
       dispatch(setSelectedTrackId({ data: trackId, undoType }));
-      dispatchCustomEvent(`open_dropdown_${poseClipId}`, {});
+      dispatch(toggleClipDropdown({ data: { id: poseClipId, value: true } }));
       return;
     }
 
     // Otherwise, create a pose clip for the pattern clip
     const poseId = dispatch(createPose());
-    const poseClip = initializePoseClip({ trackId, tick, poseId });
-    dispatch(addClip({ data: poseClip }));
+    const poseClip = initializePoseClip({
+      trackId,
+      tick,
+      poseId,
+      isOpen: true,
+    });
+    const clipId = dispatch(addClip({ data: poseClip }));
+    dispatch(addClipIdsToSelection({ data: [clipId], undoType }));
+    dispatch(setSelectedTrackId({ data: trackId, undoType }));
   };
 
 /** Merge the vector of a pose clip into another */
@@ -167,7 +191,7 @@ export const mergePoseClips =
 
     // Sum the source vector to each block in the sink pose
     const stream = sinkPose.stream.map((block) => {
-      if (!isPoseVectorModule(block)) return block;
+      if (!isPoseOperation(block)) return block;
       return { ...block, vector: sumVectors(block.vector, sourceVector) };
     });
 

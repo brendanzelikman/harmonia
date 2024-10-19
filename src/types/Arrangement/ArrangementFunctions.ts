@@ -10,7 +10,7 @@ import {
   getPatternBlockDuration,
 } from "types/Pattern/PatternFunctions";
 import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
-import { getTransposedPatternStream } from "types/Pattern/PatternTransformers";
+import { getTransposedPatternStream } from "types/Pattern/PatternFunctions";
 import { resolvePatternStreamToMidi } from "types/Pattern/PatternResolvers";
 import {
   Pattern,
@@ -22,23 +22,25 @@ import {
 } from "types/Pattern/PatternTypes";
 import { getPoseVectorAsScaleVector } from "types/Pose/PoseFunctions";
 import {
-  getScaleWithNewNotes,
+  getNewScale,
   getTransposedScaleNote,
 } from "types/Scale/ScaleTransformers";
 import {
   getTransposedScale,
   getRotatedScale,
 } from "types/Scale/ScaleTransformers";
-import { chromaticScale, ScaleObject } from "types/Scale/ScaleTypes";
-import { getScaleTrackChain } from "types/Track/TrackFunctions";
+import { ScaleObject } from "types/Scale/ScaleTypes";
+import {
+  getScaleTrackChain,
+  getTrackAncestorIds,
+} from "types/Track/TrackFunctions";
 import { isTrackId, TrackId } from "types/Track/TrackTypes";
 import { getValueByKey } from "utils/objects";
 import { MotifState } from "types/Motif/MotifTypes";
 import { getPatternClipStartingBlock } from "types/Clip/PatternClip/PatternClipFunctions";
 import {
   getPoseClipsByTrackId,
-  getPoseVectorAtTick,
-  getCurrentVoiceLeadings,
+  getPoseOperationsAtTick,
   applyVoiceLeadingsToMidiStream,
 } from "types/Clip/PoseClip/PoseClipFunctions";
 import {
@@ -53,6 +55,8 @@ import {
   mergeVectorKeys,
   sumVectors,
 } from "utils/vector";
+import { isVoiceLeading } from "types/Pose/PoseTypes";
+import { isNumber } from "lodash";
 
 // ------------------------------------------------------------
 // Arrangement Overview
@@ -113,6 +117,9 @@ export const getPatternClipMidiStream = (
       const notes = getPatternStrummedChordNotes(block, tick, midiChord);
       stream.push(...notes);
     }
+
+    // Return the duration of the midi chord to reflect transformations
+    return getPatternBlockDuration(midiChord);
   });
 
   // Return the stream of the clip
@@ -127,7 +134,11 @@ export const getPatternClipMidiStream = (
 export const loopOverClipStream = (
   clip: PatternClip,
   pattern: Pattern,
-  callback: (block: PatternBlock, tick: number, streamIndex: number) => void
+  callback: (
+    block: PatternBlock,
+    tick: number,
+    streamIndex: number
+  ) => void | number
 ) => {
   const { stream } = pattern;
   let blockCount = getPatternClipStartingBlock(clip, pattern);
@@ -145,15 +156,16 @@ export const loopOverClipStream = (
     // Break if the clip has a duration and the tick exceeds it
     if (clip.duration !== undefined && i >= clip.duration) break;
 
-    const block = getPatternBlockAtIndex(stream, blockCount);
-    const blockDuration = getPatternBlockDuration(block);
+    // Get the block and its duration
+    const block = getPatternBlockAtIndex(stream, blockCount++);
+    let blockDuration = getPatternBlockDuration(block);
+
+    // Fire the callback and try to update the block duration
+    const res = callback(block, clip.tick + i, blockCount - 1);
+    if (isNumber(res)) blockDuration = res;
 
     // Increment the total duration when the block is reached
     if (streamDuration === i) streamDuration += blockDuration;
-    blockCount += 1;
-
-    // Fire the callback with the block and index
-    callback(block, clip.tick + i, blockCount - 1);
   }
 };
 
@@ -174,7 +186,7 @@ export const getTrackScaleChain = (
   const { motifs, tick, ...arrangement } = deps;
   const poseMap = motifs?.pose?.entities;
   const scaleMap = motifs?.scale?.entities;
-  const defaultChain = [chromaticScale];
+  const defaultChain: ScaleObject[] = [];
   const noTick = tick === undefined;
   if (!arrangement) return defaultChain;
 
@@ -192,7 +204,8 @@ export const getTrackScaleChain = (
   const scaleChain: ScaleObject[] = [];
   for (let i = 0; i < chainLength; i++) {
     const track = trackChain[i];
-    const scale = scaleMap?.[track.scaleId] ?? chromaticScale;
+    const scale = scaleMap?.[track.scaleId];
+    if (!scale) return defaultChain;
 
     // If no tick is specified, just push the track's scale
     if (noTick) {
@@ -214,9 +227,8 @@ export const getTrackScaleChain = (
 
     // Try to get the vector at the current tick
     const poseClips = getPoseClipsByTrackId(arrangement?.clips?.pose, track.id);
-    const accumulatedVector = getPoseVectorAtTick(poseClips, poseMap, tick);
-    const baseVector = track.vector ?? {};
-    const vector = sumVectors(baseVector, accumulatedVector);
+    const operations = getPoseOperationsAtTick(poseClips, poseMap, tick);
+    const vector = sumVectors(track.vector, ...operations.map((_) => _.vector));
 
     // If no vector exists, just push the scale
     if (!getVectorKeys(vector).length) {
@@ -244,16 +256,22 @@ export const getTrackScaleChain = (
       }
     }
 
-    // Apply voice leadings to the scale and push to the chain
-    const midiScale = resolveScaleChainToMidi([...scaleChain, newScale]);
-    const voiceLeadings = getCurrentVoiceLeadings(poseClips, poseMap, tick);
-    const ledScale = applyVoiceLeadingsToMidiStream(midiScale, voiceLeadings);
+    if (isVoiceLeading(vector)) {
+      // Apply voice leadings to the scale and push to the chain
+      const midiScale = resolveScaleChainToMidi([...scaleChain, newScale]);
+      const ledScale = applyVoiceLeadingsToMidiStream(
+        midiScale,
+        operations.map((_) => _.vector).filter(isVoiceLeading)
+      );
 
-    // Push the transposed scale to the chain
-    const newNotes = getScaleNotes(newScale).map((note, i) =>
-      getTransposedScaleNote(note, ledScale[i] - midiScale[i])
-    );
-    newScale = getScaleWithNewNotes(newScale, newNotes);
+      // Update the scale with its corresponding offset
+      const notes = getScaleNotes(newScale);
+      const newNotes = notes.map((_, i) =>
+        getTransposedScaleNote(_, ledScale[i] - midiScale[i])
+      );
+      newScale = getNewScale(newScale, newNotes);
+    }
+
     scaleChain.push(newScale);
   }
 
@@ -275,35 +293,26 @@ export const getMidiStreamAtTickInTrack = (
   deps?: PatternMidiStreamDependencies
 ): PatternMidiStream => {
   if (!stream || !deps) return [];
-  const { clips, motifs, tick, tracks } = deps;
+  const { tick } = deps;
   const { trackId } = deps.clip;
-  const poseMap = motifs?.pose?.entities;
+  const trackMap = deps.tracks;
+  const clipMap = deps.clips?.pose;
+  const poseMap = deps.motifs?.pose?.entities;
 
-  // Get the pose vector summed from all relevant clips up to the given tick,
-  // then apply its transpositions to all scale notes in the pattern stream
-  const trackClips = getPoseClipsByTrackId(clips?.pose, trackId);
-  const accumulatedVector = getPoseVectorAtTick(trackClips, poseMap, tick);
+  // Get the accumulated operations summed from all track and ancestor clips
+  const track = trackMap[trackId];
+  const trackIds = [...getTrackAncestorIds(trackId, trackMap), trackId];
+  const clips = trackIds.flatMap((id) => getPoseClipsByTrackId(clipMap, id));
+  const operations = getPoseOperationsAtTick(clips, poseMap, tick);
 
-  // Get the base vector from the track
-  const track = tracks[trackId];
+  // Compute the current vector, then transpose the pattern stream
   const baseVector = track?.vector ?? {};
-
-  // Convert the summed vector to a scale vector, then transpose the pattern stream
-  const poseVector = sumVectors(baseVector, accumulatedVector);
-  console.log(poseVector);
-  const scaleVector = getPoseVectorAsScaleVector(poseVector, tracks);
+  const poseVector = sumVectors(baseVector, ...operations.map((_) => _.vector));
+  const scaleVector = getPoseVectorAsScaleVector(poseVector, trackMap);
   const posedStream = getTransposedPatternStream(stream, scaleVector);
 
-  // Get the scale chain of the clip's track at the current tick,
-  const chain = getTrackScaleChain(trackId, deps);
-
-  // Get an array of voice leadings and apply them to matching chords
-  // in the stream, then resolve the stream to MIDI
-  const voiceLeadings = getCurrentVoiceLeadings(trackClips, poseMap, tick);
-  return resolvePatternStreamToMidi(
-    posedStream,
-    chain,
-    poseVector,
-    voiceLeadings
-  );
+  // Resolve the pattern stream to MIDI using the scale chain and apply transformations
+  const scales = getTrackScaleChain(trackId, deps);
+  const transformations = [{ vector: baseVector }, ...operations];
+  return resolvePatternStreamToMidi(posedStream, scales, transformations);
 };

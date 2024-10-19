@@ -7,7 +7,7 @@ import { ScaleEditorContent } from "./components/ScaleEditorContent";
 import { ScaleEditorContextMenu } from "./components/ScaleEditorContextMenu";
 import { ScaleEditorPiano } from "./components/ScaleEditorPiano";
 import { ScaleEditorSidebar } from "./components/ScaleEditorSidebar";
-import { getScaleCategory } from "utils/key";
+import { getScaleCategory } from "utils/scale";
 import { useScaleEditorScore } from "./hooks/useScaleEditorScore";
 import { EditorProps } from "../Editor";
 import { selectCustomScales } from "types/Scale/ScaleSelectors";

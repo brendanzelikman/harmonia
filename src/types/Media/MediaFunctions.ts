@@ -45,9 +45,9 @@ export const getMediaElementDuration = (
   element: MediaElement,
   value?: Tick
 ) => {
-  if (!isUndefined(value)) return value;
+  if (!isUndefined(value)) return value || 1;
   if (isPortal(element)) return 1;
-  return element?.duration ?? 0;
+  return element?.duration ?? 1;
 };
 
 /** Get the earliest start tick of all media. If there is no media, return Infinity. */

@@ -2,11 +2,7 @@ import { PresetScaleList } from "assets/scales";
 import classNames from "classnames";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { sample } from "lodash";
-import {
-  GiBreakingChain,
-  GiMusicalKeyboard,
-  GiFamilyTree,
-} from "react-icons/gi";
+import { GiMusicalKeyboard, GiFamilyTree, Gi3DStairs } from "react-icons/gi";
 import { useProjectDispatch } from "types/hooks";
 import { INSTRUMENT_KEYS } from "types/Instrument/InstrumentTypes";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
@@ -19,9 +15,9 @@ import { createTrackTree } from "types/Track/TrackThunks";
 
 export function TimelineTrackButton() {
   const dispatch = useProjectDispatch();
-  const heldKeys = useHeldHotkeys(["alt", "d"]);
-  const shouldRandomize = heldKeys.alt;
-  const shouldCreateDrums = heldKeys.d;
+  const holding = useHeldHotkeys(["alt", "d"]);
+  const shouldRandomize = holding.alt;
+  const shouldCreateDrums = holding.d;
   return (
     <div
       className={classNames(
@@ -49,7 +45,7 @@ export function TimelineTrackButton() {
                 : "hover:border-white"
             }`}
           >
-            <GiBreakingChain className="text-4xl" />
+            <Gi3DStairs className="text-4xl" />
           </div>
           Scale Track
         </div>

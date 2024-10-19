@@ -1,7 +1,7 @@
 import { FormatterProps } from "react-data-grid";
 import { PatternTrackFormatter } from "./PatternTrackFormatter";
 import { ScaleTrackFormatter } from "./ScaleTrackFormatter";
-import { useProjectDispatch, useProjectSelector } from "types/hooks";
+import { use, useProjectDispatch } from "types/hooks";
 import { Row } from "features/Timeline/Timeline";
 import {
   TrackId,
@@ -14,6 +14,7 @@ import {
   selectTrackById,
   selectTrackLabelById,
   selectTrackIndexById,
+  selectTrackAncestors,
 } from "types/Track/TrackSelectors";
 import { movePatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import { moveScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
@@ -26,6 +27,7 @@ export interface TrackFormatterProps {
   label?: string;
   index: number;
   isSelected: boolean;
+  isAncestorSelected: boolean;
 
   renameTrack: (name: string) => void;
   moveTrack: (dragId: TrackId, hoverId: TrackId) => void;
@@ -34,12 +36,14 @@ export interface TrackFormatterProps {
 export function TrackFormatter(props: FormatterProps<Row>) {
   const dispatch = useProjectDispatch();
   const trackId = props.row.id;
-  const isSelected = trackId === useProjectSelector(selectSelectedTrackId);
-  const track = useProjectSelector((_) =>
-    trackId ? selectTrackById(_, trackId) : undefined
+  const selectedTrackId = use(selectSelectedTrackId);
+  const isSelected = trackId === selectedTrackId;
+  const track = use((_) => (trackId ? selectTrackById(_, trackId) : undefined));
+  const isAncestorSelected = use((_) =>
+    selectTrackAncestors(_, trackId).some((t) => t?.id === selectedTrackId)
   );
-  const label = useProjectSelector((_) => selectTrackLabelById(_, track?.id));
-  const index = useProjectSelector((_) => selectTrackIndexById(_, track?.id));
+  const label = use((_) => selectTrackLabelById(_, track?.id));
+  const index = use((_) => selectTrackIndexById(_, track?.id));
   if (!trackId || !track) return null;
 
   const _renameTrack = (name: string) =>
@@ -55,6 +59,7 @@ export function TrackFormatter(props: FormatterProps<Row>) {
   const trackProps: TrackFormatterProps = {
     track,
     isSelected,
+    isAncestorSelected,
     index,
     label,
     renameTrack: _renameTrack,

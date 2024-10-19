@@ -49,7 +49,7 @@ export const PatternEditorClock = (props: PatternEditorProps) => {
   );
 
   const [currentState, setCurrentState] = useState<PatternStream | undefined>();
-  const heldKeys = useHeldHotkeys(["shift"]);
+  const holding = useHeldHotkeys(["shift"]);
   useEffect(() => {
     if (!pattern) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -77,7 +77,7 @@ export const PatternEditorClock = (props: PatternEditorProps) => {
     };
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
-    if (heldKeys.shift) {
+    if (holding.shift) {
       setCurrentState(pattern?.stream);
     } else if (currentState !== undefined) {
       dispatch(
@@ -89,7 +89,7 @@ export const PatternEditorClock = (props: PatternEditorProps) => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [heldKeys.shift]);
+  }, [holding.shift]);
 
   // Find if there is a note in the stream that fires exactly at this tick
   // If there is, replace it with a rest

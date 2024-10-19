@@ -63,9 +63,9 @@ export const getClipUpdatesByType = (
   const scale: ScaleClipUpdate[] = [];
 
   for (const clip of clips) {
-    if (isPatternClip(clip)) pattern.push(clip);
-    else if (isPoseClip(clip)) pose.push(clip);
-    else if (isScaleClip(clip)) scale.push(clip);
+    if (clip.id.startsWith("pattern")) pattern.push(clip as PatternClipUpdate);
+    else if (clip.id.startsWith("pose")) pose.push(clip as PoseClipUpdate);
+    else if (clip.id.startsWith("scale")) scale.push(clip as ScaleClipUpdate);
   }
 
   return { pattern, pose, scale };
@@ -150,8 +150,8 @@ export const createMapFromClipRange = <
     if (clipStart > end) continue;
 
     // Ignore clips ending before the start tick
-    const duration = clip.duration ?? Infinity;
-    const clipEnd = clip.tick + (duration ?? Infinity);
+    const duration = clip.duration || Infinity;
+    const clipEnd = clip.tick + (duration || Infinity);
     if (clipEnd < start) continue;
 
     // Ignore clips that do not meet the stipulation

@@ -7,7 +7,7 @@ import {
   toggleInstrumentMute,
   toggleInstrumentSolo,
 } from "types/Instrument/InstrumentSlice";
-import { PoseStream, PoseVector } from "types/Pose/PoseTypes";
+import { PoseVector } from "types/Pose/PoseTypes";
 import { selectIsEditorOpen } from "types/Editor/EditorSelectors";
 import {
   selectSelectedTrackParents,
@@ -26,12 +26,8 @@ import {
   unsoloTracks,
   updateTrack,
 } from "types/Track/TrackThunks";
-import {
-  mapPoseStreamVectors,
-  mergePoseStreamVectors,
-} from "types/Pose/PoseFunctions";
+import { mapPoseStreamVectors } from "types/Pose/PoseFunctions";
 import { pick, range, size, some } from "lodash";
-import { getDictKeys } from "utils/objects";
 import { sumVectors } from "utils/vector";
 
 const numberKeys = range(1, 10).map((n) => n.toString());
@@ -53,12 +49,12 @@ export const useLivePlay = () => {
   const firstTrackId = scaleTracks[0]?.id;
   const secondTrackId = scaleTracks[1]?.id;
   const thirdTrackId = scaleTracks[2]?.id;
-  const heldKeys = useHeldHotkeys(ALL_KEYS);
+  const holding = useHeldHotkeys(ALL_KEYS);
   useEffect(() => {
-    if (!getDictKeys(heldKeys).some((key) => heldKeys[key])) {
+    if (!Object.keys(holding).some((key) => holding[key])) {
       dispatchCustomEvent("add-shortcut", {});
     }
-  }, [heldKeys]);
+  }, [holding]);
 
   // The callback for the numerical keydown event
   const keydown = useCallback(
@@ -74,16 +70,16 @@ export const useLivePlay = () => {
       const instrumentId = patternTrack?.instrumentId;
 
       // Toggle mute if holding y
-      if (heldKeys.m) {
+      if (holding.m) {
         dispatch(toggleInstrumentMute(instrumentId));
       }
       // Toggle solo if holding u
-      if (heldKeys.s) {
+      if (holding.s) {
         dispatch(toggleInstrumentSolo(instrumentId));
       }
 
-      const isNegative = heldKeys["-"] || heldKeys["`"];
-      const isExact = heldKeys["="];
+      const isNegative = holding["-"] || holding["`"];
+      const isExact = holding["="];
 
       // Compute the pose offset record
       const vector = {} as PoseVector;
@@ -91,19 +87,19 @@ export const useLivePlay = () => {
       const value = number * dir;
 
       // Apply chordal offset if holding r
-      if (heldKeys.r) {
+      if (holding.r) {
         if (isExact) vector.chordal = value;
         else vector.chordal = (vector.chordal ?? 0) + value;
       }
 
       // Apply chromatic offset if holding t
-      if (heldKeys.t) {
+      if (holding.t) {
         if (isExact) vector.chromatic = value;
         else vector.chromatic = (vector.chromatic ?? 0) + value;
       }
 
       // Apply octave offset if holding y
-      if (heldKeys.y) {
+      if (holding.y) {
         if (isExact) vector.octave = value;
         else vector.octave = (vector.octave ?? 0) + value;
       }
@@ -111,7 +107,7 @@ export const useLivePlay = () => {
       // Apply scalar offsets if holding w, s, or x
       const scalarKeys = ["q", "w", "e"];
       scalarKeys.forEach((key, i) => {
-        const heldKey = heldKeys[key];
+        const heldKey = holding[key];
         const id =
           i === 0 ? firstTrackId : i === 1 ? secondTrackId : thirdTrackId;
         if (heldKey && id) {
@@ -126,7 +122,7 @@ export const useLivePlay = () => {
       // Update the track if there are no clips
       if (!hasClips && selectedTrack) {
         const newVector = isExact
-          ? { ...selectedTrack.vector, vector }
+          ? { ...selectedTrack.vector, ...vector }
           : sumVectors(selectedTrack.vector, vector);
         dispatch(
           updateTrack({ data: { id: selectedTrack.id, vector: newVector } })
@@ -142,7 +138,7 @@ export const useLivePlay = () => {
       }
     },
     [
-      heldKeys,
+      holding,
       isEditorOpen,
       patternTracks,
       firstTrackId,
@@ -161,23 +157,25 @@ export const useLivePlay = () => {
       if (isInputEvent(e) || isEditorOpen) return;
 
       // Unmute all tracks if holding m
-      if (heldKeys.m) {
+      if (holding.m) {
         dispatch(unmuteTracks());
       }
 
       // Unsolo all tracks if holding s
-      if (heldKeys.s) {
+      if (holding.s) {
         dispatch(unsoloTracks());
       }
 
       const scaleKeys = ["q", "w", "e"];
       const isZ = key === "z";
 
+      let broadcast = false;
+
       const getNewVector = (vector: PoseVector) => {
         let newVector = { ...vector };
         const broadcastedKeys = [];
 
-        if (heldKeys[scaleKeys[0]] && firstTrackId) {
+        if (holding[scaleKeys[0]] && firstTrackId) {
           broadcastedKeys.push(firstTrackId);
           if (isZ) {
             delete newVector[firstTrackId];
@@ -185,7 +183,7 @@ export const useLivePlay = () => {
             newVector[firstTrackId] = 0;
           }
         }
-        if (heldKeys[scaleKeys[1]] && secondTrackId) {
+        if (holding[scaleKeys[1]] && secondTrackId) {
           broadcastedKeys.push(secondTrackId);
           if (isZ) {
             delete newVector[secondTrackId];
@@ -193,7 +191,7 @@ export const useLivePlay = () => {
             newVector[secondTrackId] = 0;
           }
         }
-        if (heldKeys[scaleKeys[2]] && thirdTrackId) {
+        if (holding[scaleKeys[2]] && thirdTrackId) {
           broadcastedKeys.push(thirdTrackId);
           if (isZ) {
             delete newVector[thirdTrackId];
@@ -201,7 +199,7 @@ export const useLivePlay = () => {
             newVector[thirdTrackId] = 0;
           }
         }
-        if (heldKeys.r) {
+        if (holding.r) {
           broadcastedKeys.push("chordal");
           if (isZ) {
             delete newVector.chordal;
@@ -209,7 +207,7 @@ export const useLivePlay = () => {
             newVector.chordal = 0;
           }
         }
-        if (heldKeys.t) {
+        if (holding.t) {
           broadcastedKeys.push("chromatic");
           if (isZ) {
             delete newVector.chromatic;
@@ -217,7 +215,7 @@ export const useLivePlay = () => {
             newVector.chromatic = 0;
           }
         }
-        if (heldKeys.y) {
+        if (holding.y) {
           broadcastedKeys.push("octave");
           if (isZ) {
             delete newVector.octave;
@@ -226,10 +224,13 @@ export const useLivePlay = () => {
           }
         }
         if (isZ && size(newVector) === size(vector)) {
-          dispatchCustomEvent("add-shortcut", {});
+          if (!broadcast) dispatchCustomEvent("add-shortcut", {});
+          broadcast = true;
           return {};
         }
-        dispatchCustomEvent("add-shortcut", pick(newVector, broadcastedKeys));
+        if (!broadcast)
+          dispatchCustomEvent("add-shortcut", pick(newVector, broadcastedKeys));
+        broadcast = true;
         return newVector;
       };
 
@@ -239,6 +240,7 @@ export const useLivePlay = () => {
         dispatch(
           updateTrack({ data: { id: selectedTrack.id, vector: newVector } })
         );
+        return;
       }
 
       // Otherwise, update the selected poses
@@ -249,7 +251,7 @@ export const useLivePlay = () => {
       );
     },
     [
-      heldKeys,
+      holding,
       isEditorOpen,
       firstTrackId,
       secondTrackId,

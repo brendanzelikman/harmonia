@@ -21,7 +21,7 @@ import {
 } from "types/Clip/ClipTypes";
 import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 import { Portaled } from "types/Portal/PortalTypes";
-import { selectPortaledClips } from "types/Arrangement/ArrangementSelectors";
+
 import {
   selectIsAddingClips,
   selectIsAddingPortals,
@@ -34,6 +34,8 @@ import {
 import classNames from "classnames";
 import { Timed } from "types/units";
 import { TrackId } from "types/Track/TrackTypes";
+import { useDragState } from "types/Media/MediaTypes";
+import { selectPortaledClips } from "types/Arrangement/ArrangementSelectors";
 
 export interface TimelineClipsProps {
   element?: HTMLDivElement;
@@ -43,14 +45,15 @@ export function TimelineClips(props: TimelineClipsProps) {
   const element = props.element;
   const portaledClips = useDeep(selectPortaledClips);
   const selectedIdMap = useDeep(selectSelectedClipIdMap);
-  const heldKeys = useHeldHotkeys("i");
-  const holdingI = heldKeys.i;
+  const holding = useHeldHotkeys("i");
+  const holdingI = holding.i;
   const isLive = use(selectIsLive);
   const isSlicing = use(selectIsSlicingClips);
   const isPortaling = use(selectIsAddingPortals);
   const selectedTrackId = use(selectSelectedTrackId);
   const isAdding = use(selectIsAddingClips);
   const type = use(selectTimelineType);
+  const dragState = useDragState();
 
   // Return if a clip is selected or not
   const isClipSelected = useCallback(
@@ -58,9 +61,19 @@ export function TimelineClips(props: TimelineClipsProps) {
     [selectedIdMap]
   );
 
+  // Return if a clip is live or not
+  const isClipLive = useCallback(
+    (clip: Clip) => {
+      const isSelected = isClipSelected(clip);
+      const onTrack = selectedTrackId === clip.trackId;
+      return isLive && isSelected && onTrack;
+    },
+    [isLive, selectedTrackId, isClipSelected]
+  );
+
   // Construct the base props for each clip
-  const baseProps = useMemo(() => {
-    return {
+  const baseProps = useMemo(
+    () => ({
       isLive,
       isSlicing,
       isPortaling,
@@ -73,8 +86,9 @@ export function TimelineClips(props: TimelineClipsProps) {
             holdingI,
         }
       ),
-    };
-  }, [isLive, isSlicing, holdingI, isPortaling, selectedTrackId]);
+    }),
+    [isLive, isSlicing, holdingI, isPortaling, selectedTrackId]
+  );
 
   // Memoized render function for portaled clips
   const renderPortaledClip = useCallback(
@@ -82,6 +96,7 @@ export function TimelineClips(props: TimelineClipsProps) {
       const id = getOriginalIdFromPortaledClip(portaledClip.id);
       const clip = { ...portaledClip, id };
       const isSelected = isClipSelected(clip);
+      const isLive = isClipLive(clip);
 
       // Render pattern clips
       if (isPatternClip(clip)) {
@@ -91,9 +106,12 @@ export function TimelineClips(props: TimelineClipsProps) {
             key={portaledClip.id}
             clip={clip as Timed<PatternClip>}
             portaledClip={portaledClip as PortaledPatternClip}
+            isOpen={!!clip.isOpen}
             isSelected={isSelected}
             isAdding={isAdding && type === clip.type}
             isAddingAny={isAdding}
+            isDragging={!!dragState.draggingPatternClip}
+            isDraggingAny={!!dragState.any}
           />
         );
       }
@@ -106,9 +124,13 @@ export function TimelineClips(props: TimelineClipsProps) {
             key={portaledClip.id}
             clip={clip as Timed<PoseClip>}
             portaledClip={portaledClip as PortaledPoseClip}
+            isOpen={!!clip.isOpen}
             isSelected={isSelected}
             isAdding={isAdding && type === clip.type}
             isAddingAny={isAdding}
+            isDragging={!!dragState.draggingPoseClip}
+            isDraggingAny={!!dragState.any}
+            isLive={isLive}
           />
         );
       }
@@ -121,15 +143,18 @@ export function TimelineClips(props: TimelineClipsProps) {
             key={portaledClip.id}
             clip={clip as Timed<ScaleClip>}
             portaledClip={portaledClip as PortaledScaleClip}
+            isOpen={!!clip.isOpen}
             isSelected={isSelected}
             isAdding={isAdding && type === clip.type}
             isAddingAny={isAdding}
+            isDragging={!!dragState.draggingScaleClip}
+            isDraggingAny={!!dragState.any}
           />
         );
       }
       return null;
     },
-    [baseProps, isClipSelected, isAdding, type]
+    [baseProps, isClipSelected, isClipLive, isAdding, dragState, type]
   );
 
   // Portal the clips into the timeline element
@@ -140,10 +165,13 @@ export function TimelineClips(props: TimelineClipsProps) {
 // The props passed down to each clip component
 export interface ClipComponentProps {
   portaledClip: PortaledClip;
+  isOpen: boolean;
   isLive: boolean;
   isSelected: boolean;
   isAdding: boolean;
   isAddingAny: boolean;
+  isDragging: boolean;
+  isDraggingAny: boolean;
   isSlicing: boolean;
   isPortaling: boolean;
   holdingI: boolean;

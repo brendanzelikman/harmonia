@@ -11,7 +11,13 @@ import {
 } from "utils/constants";
 import { selectTransport } from "./TransportSelectors";
 import { dispatchCustomEvent } from "utils/html";
-import { PPQ, ticksToSeconds } from "utils/durations";
+import {
+  DURATION_TYPES,
+  getDurationTicks,
+  PPQ,
+  secondsToTicks,
+  ticksToSeconds,
+} from "utils/durations";
 import {
   LIVE_AUDIO_INSTANCES,
   LIVE_RECORDER_INSTANCE,
@@ -43,6 +49,7 @@ import {
   createInstrument,
 } from "types/Instrument/InstrumentThunks";
 import { playPatternChord } from "types/Pattern/PatternThunks";
+import { format, sanitize } from "utils/math";
 
 let scheduleId: number;
 
@@ -481,7 +488,7 @@ export const downloadTransport = (): Thunk => async (dispatch, getProject) => {
     for (const trackId in oldSamplers) {
       const patternTrack = trackMap[trackId as TrackId];
       if (!isPatternTrack(patternTrack)) continue;
-      const instance = dispatch(
+      const { instance } = dispatch(
         createInstrument({
           data: {
             track: patternTrack,
@@ -558,3 +565,48 @@ export const downloadTransport = (): Thunk => async (dispatch, getProject) => {
   // Stop the download
   dispatch(stopDownloadingTransport());
 };
+
+export const convertStringToTicks =
+  (string: string): Thunk<Tick | undefined> =>
+  (_, getState) => {
+    if (!string.length) return Infinity;
+
+    // If the string matches exactly a number, return the value in ticks
+    if (/^\d+\s?$/.test(string)) {
+      return sanitize(parseInt(string));
+    }
+
+    // Try to match with `n ticks`
+    const ticksMatch = string.match(/^(\d+) ticks?$/);
+    if (ticksMatch) {
+      return sanitize(parseInt(ticksMatch[1]));
+    }
+
+    // Try to match with `n bars`
+    const barsMatch = string.match(/^(\d+) bars?$/);
+    if (barsMatch) {
+      const bars = parseInt(barsMatch[1]);
+      const { timeSignature } = selectTransport(getState());
+      return bars * (timeSignature[0] / 4) * PPQ;
+    }
+
+    // Try to match with `n durations` or `n duration notes`
+    for (const duration of DURATION_TYPES) {
+      let durationMatch = string.match(new RegExp(`^(\\d+) ${duration}s?$`));
+      if (durationMatch) {
+        const value = sanitize(parseInt(durationMatch[1]));
+        const ticks = value * getDurationTicks(duration);
+        return ticks;
+      }
+    }
+
+    // Try to match with `n seconds`
+    const secondsMatch = string.match(/^(\d+) seconds?$/);
+    if (secondsMatch) {
+      const seconds = parseInt(secondsMatch[1]);
+      return secondsToTicks(seconds, selectTransport(getState()).bpm);
+    }
+
+    // Return undefined if no match
+    return undefined;
+  };

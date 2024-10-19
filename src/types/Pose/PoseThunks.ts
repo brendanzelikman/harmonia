@@ -12,7 +12,7 @@ import {
   PoseId,
   initializePose,
   Pose,
-  isPoseVectorModule,
+  isPoseOperation,
   PoseVector,
   PoseStream,
   PoseVectorId,
@@ -92,7 +92,7 @@ export const randomizePoseStream =
     const pose = selectPoseById(project, id);
     if (!pose) return;
     const stream = pose.stream.map((v) => {
-      if (isPoseVectorModule(v)) {
+      if (isPoseOperation(v)) {
         const keys = getVectorKeys(v.vector);
         const vector = keys.reduce(
           (acc, key) => ({ ...acc, [key]: random(-3, 3) }),
@@ -126,7 +126,7 @@ export const updateSelectedPoseStreams =
     dispatch(updatePoses({ data: newPoses }));
   };
 
-export const inputPoseStream =
+export const inputPoseVector =
   (id?: PoseClipId): Thunk =>
   (dispatch, getProject) =>
     promptUserForString(

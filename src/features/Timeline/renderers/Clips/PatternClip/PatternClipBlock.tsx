@@ -68,7 +68,6 @@ export const PatternClipBlock = (props: PatternClipBlockProps) => {
       key={`${clip.id}-chord-${blockIndex}`}
       className={className}
       onClick={onClick}
-      // style={{ width }}
     >
       {notes.map((note, j) => (
         <PatternClipNote

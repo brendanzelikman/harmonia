@@ -79,18 +79,25 @@ export const EditorPiano: React.FC<PianoProps> = (props) => {
   return (
     <div
       className={classNames(
-        `h-40 flex-shrink-0 overflow-scroll transition-all`,
+        "min-w-2xl overflow-scroll shrink-0 h-40 bg-slate-950",
         props.className
       )}
       draggable
       onDragStart={cancelEvent}
     >
-      <div className="w-full min-w-[1000px] overflow-scroll h-full bg-slate-950">
+      <div className="w-full min-w-[1000px] shrink-0 h-full bg-zinc-900">
         <Piano
           noteRange={{
             first: MidiNumbers.fromNote(props.noteRange?.[0] ?? "C1"),
             last: MidiNumbers.fromNote(props.noteRange?.[1] ?? "C8"),
           }}
+          renderNoteLabel={({ midiNumber }: any) =>
+            midiNumber % 12 === 0 ? (
+              <div className="flex size-full shrink-0 total-center mb-0.5">
+                {MidiNumbers.getAttributes(midiNumber).note}
+              </div>
+            ) : undefined
+          }
           playNote={(midi: number) => playNote(sampler, midi)}
           stopNote={(midi: number) => stopNote(sampler, midi)}
         />

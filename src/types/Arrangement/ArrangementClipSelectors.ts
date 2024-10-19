@@ -17,12 +17,12 @@ export const selectClipWidth = (project: Project, clip?: Clip) => {
   const duration = getClipDuration(clip);
 
   // Return one cell width for all infinite non-pattern clips
-  if (!isIPatternClip(clip) && !isFiniteNumber(duration)) {
+  if (!isIPatternClip(clip) && (!duration || !isFiniteNumber(duration))) {
     return cellWidth;
   }
 
   // Otherwise, compute the width based on the timeline
   const columns = getTickColumns(duration, subdivision);
-  const width = Math.max(cellWidth * columns, 1);
+  const width = Math.max(cellWidth * columns, cellWidth);
   return width;
 };

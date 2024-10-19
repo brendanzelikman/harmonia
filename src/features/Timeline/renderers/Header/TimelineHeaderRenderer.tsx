@@ -20,9 +20,11 @@ import {
 
 interface HeaderProps extends HeaderRendererProps<Row> {}
 
+const HELD_KEYS = ["s", "e"];
+
 export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
   const dispatch = useProjectDispatch();
-  const heldKeys = useHeldHotkeys(["s", "e"]);
+  const holding = useHeldHotkeys(HELD_KEYS);
 
   // Header tick properties
   const columnIndex = Number(props.column.key);
@@ -37,16 +39,22 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
   const onLoopEnd = loopEnd === tick + (tickLength - 1);
 
   /** Set the loop start */
-  const setLoopStart = (column: number) => {
-    const ticks = tickLength * (column - 1);
-    dispatch(setTransportLoopStart(ticks));
-  };
+  const setLoopStart = useCallback(
+    (column: number) => {
+      const ticks = tickLength * (column - 1);
+      dispatch(setTransportLoopStart(ticks));
+    },
+    [tickLength]
+  );
 
   /** Set the loop end */
-  const setLoopEnd = (column: number) => {
-    const ticks = tickLength * column;
-    dispatch(setTransportLoopEnd(ticks - 1));
-  };
+  const setLoopEnd = useCallback(
+    (column: number) => {
+      const ticks = tickLength * column;
+      dispatch(setTransportLoopEnd(ticks - 1));
+    },
+    [tickLength]
+  );
 
   /** Custom hook for dragging the loop start point. */
   const [LoopStart, startDrag] = useLoopDrag({
@@ -64,7 +72,7 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
   const [{ isOver }, drop] = useLoopDrop({ columnIndex, loopStart, loopEnd });
 
   /** The loop points are rendered only if the loop is active. */
-  const LoopPoints = () => {
+  const LoopPoints = useCallback(() => {
     if (!loop) return null;
 
     // The loop start point is rendered if the header is on the loop start tick.
@@ -94,7 +102,7 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
         {!!onLoopEnd && <LoopEndPoint />}
       </>
     );
-  };
+  }, [loop, loopStart, loopEnd, onLoopStart, onLoopEnd]);
 
   const formattedTime = useMemo(
     () => convertTicksToFormattedTime(tick, { bpm, timeSignature }),
@@ -117,30 +125,31 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
     return <>{!!isMeasure && <div className={className}>{bars}</div>}</>;
   }, [formattedTime, loop, onLoopStart, onLoopEnd]);
 
-  // Assemble the class names for the header cell
-  const className = classNames(
-    "rdg-header relative w-full h-full text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
-    { "bg-indigo-800": isOver, "bg-black": !isOver },
-    { "border-b-8 border-b-indigo-700": loop && inLoopRange },
-    { "border-slate-50/20": !loop || !inLoopRange }
-  );
-
   /** Seek the transport or update the loop points if holding S/E. */
   const onClick = useCallback(() => {
     if (!loop) {
       dispatch(seekTransport({ data: tick }));
       return;
     }
-    if (heldKeys.s) {
+    if (holding.s) {
       setLoopStart(columnIndex);
-    } else if (heldKeys.e) {
+    } else if (holding.e) {
       setLoopEnd(columnIndex);
     }
-  }, [loop, tick, columnIndex, heldKeys]);
+  }, [loop, tick, columnIndex, holding]);
 
   // Render the time cell
   return (
-    <div ref={drop} className={className} onClick={onClick}>
+    <div
+      data-over={isOver}
+      ref={drop}
+      className={classNames(
+        "rdg-header bg-black data-[over=true]:bg-indigo-800 relative w-full h-full text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
+        { "border-b-8 border-b-indigo-700": loop && inLoopRange },
+        { "border-slate-50/20": !loop || !inLoopRange }
+      )}
+      onClick={onClick}
+    >
       <LoopPoints />
       <Measure />
     </div>

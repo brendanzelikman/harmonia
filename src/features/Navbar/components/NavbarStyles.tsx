@@ -1,9 +1,9 @@
 import { GiPaintBrush, GiCrystalWand, GiDominoMask } from "react-icons/gi";
 
 export const toolkitBackground = {
-  pattern: "bg-emerald-800/10",
-  pose: "bg-pink-500/10",
-  scale: "bg-sky-800/10",
+  pattern: "bg-gradient-radial from-emerald-500/20 to-emerald-500/5",
+  pose: "bg-gradient-radial from-fuchsia-500/20 to-fuchsia-500/5",
+  scale: "bg-gradient-radial from-sky-500/20 to-sky-500/5",
 };
 
 export const toolkitMotifBorder = {
@@ -13,9 +13,9 @@ export const toolkitMotifBorder = {
 };
 
 export const toolkitMotifBackground = {
-  pattern: "bg-emerald-600",
-  pose: "bg-pink-500",
-  scale: "bg-sky-600",
+  pattern: "bg-emerald-600/80",
+  pose: "bg-pink-500/80",
+  scale: "bg-sky-600/80",
 };
 
 export const toolkitMotifText = {
@@ -31,9 +31,9 @@ export const toolkitClipBorder = {
 };
 
 export const toolkitClipBackground = {
-  pattern: "bg-pattern-clip/80",
-  pose: "bg-pose-clip/80",
-  scale: "bg-cyan-500/80",
+  pattern: "bg-gradient-radial from-pattern-clip/40 to-pattern-clip/90",
+  pose: "bg-gradient-radial from-pose-clip/40 to-pose-clip/90",
+  scale: "bg-gradient-radial from-cyan-500/40 to-cyan-500/90",
 };
 
 export const toolkitClipText = {
@@ -49,7 +49,7 @@ export const toolkitToolName = {
 };
 
 export const toolkitToolIcon = {
-  pattern: <GiPaintBrush className="rotate-90" />,
-  pose: <GiCrystalWand className="-rotate-90" />,
+  pattern: <GiPaintBrush />,
+  pose: <GiCrystalWand />,
   scale: <GiDominoMask />,
 };

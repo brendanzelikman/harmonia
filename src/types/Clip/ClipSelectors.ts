@@ -23,6 +23,7 @@ import {
   PatternClipId,
   PoseClipId,
   ScaleClipId,
+  PoseClip,
 } from "./ClipTypes";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { getPoseDuration } from "types/Pose/PoseFunctions";
@@ -36,7 +37,7 @@ import {
 } from "./ClipSlice";
 import { Timed } from "types/units";
 import { selectMotifState } from "types/Motif/MotifSelectors";
-import { getScaleName } from "utils/key";
+import { getScaleName } from "utils/scale";
 import { mapValues } from "lodash";
 
 // ------------------------------------------------------------
@@ -78,7 +79,10 @@ export const selectPoseClipIds = poseClipSelectors.selectIds as (
   project: Project
 ) => PoseClipId[];
 export const selectPoseClipTotal = poseClipSelectors.selectTotal;
-export const selectPoseClipById = poseClipSelectors.selectById;
+export const selectPoseClipById = poseClipSelectors.selectById as (
+  project: Project,
+  id: PoseClipId
+) => PoseClip;
 export const selectPoseClips = poseClipSelectors.selectAll;
 
 // ------------------------------------------------------------

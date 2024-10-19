@@ -4,7 +4,6 @@ import { mod } from "./math";
 import { ChromaticKey } from "assets/keys";
 import { isNumber } from "lodash";
 import { chromaticNotes } from "types/Scale/ScaleTypes";
-import { Pitch } from "opensheetmusicdisplay";
 
 // ------------------------------------------------------------
 // MIDI Units

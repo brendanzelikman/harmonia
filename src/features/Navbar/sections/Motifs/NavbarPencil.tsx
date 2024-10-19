@@ -25,7 +25,7 @@ export const NavbarPencil = () => {
   const disabled = motif === undefined;
 
   return (
-    <div className="relative group" id={`${type}-editor-button`}>
+    <div className="relative group/tooltip" id={`${type}-editor-button`}>
       <div
         className={classNames(
           toolkitMotifBackground[type],

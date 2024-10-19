@@ -6,10 +6,14 @@ import {
 } from "./InstrumentSelectors";
 import { Project } from "types/Project/ProjectTypes";
 import { LIVE_AUDIO_INSTANCES, LiveAudioInstance } from "./InstrumentClass";
+import { dispatchCustomEvent } from "utils/html";
 
 /** A custom middleware to recreate all audio instances when undoing/redoing. */
 export const handleInstrumentMiddleware: Middleware =
   (store) => (next) => (action) => {
+    // Dispatch the undo type
+    dispatchCustomEvent("action", action.type);
+
     // Get the old state
     const oldState = store.getState() as Project;
     const oldInstrumentIds = selectInstrumentIds(oldState);

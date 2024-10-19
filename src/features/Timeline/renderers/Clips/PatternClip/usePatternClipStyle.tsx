@@ -13,23 +13,24 @@ import {
   selectSubdivision,
   selectTrackHeight,
 } from "types/Timeline/TimelineSelectors";
-import { use, useDeep } from "types/hooks";
+import { use } from "types/hooks";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
-import {
-  selectOverlappingPortaledClipIds,
-  selectPatternClipMidiStream,
-} from "types/Arrangement/ArrangementSelectors";
+import classNames from "classnames";
+import { PatternMidiStream } from "types/Pattern/PatternTypes";
 
 interface PatternClipStyleProps extends PatternClipRendererProps {
   isDragging: boolean;
+  isDraggingOtherMedia: boolean;
+  stream: PatternMidiStream;
+  doesOverlap: boolean;
 }
 
 export const usePatternClipStyle = (
   props: PatternClipStyleProps
 ): ClipStyle => {
-  const { clip, portaledClip, isAddingAny, isDragging } = props;
-  const pcId = portaledClip?.id;
-  const stream = useDeep((_) => selectPatternClipMidiStream(_, pcId));
+  const { clip, doesOverlap, isAddingAny, isPortaling } = props;
+  const { isSelected, holdingI, isAdding } = props;
+  const { stream, isDragging, isDraggingOtherMedia } = props;
 
   const subdivision = use(selectSubdivision);
   const cellWidth = use(selectCellWidth);
@@ -44,8 +45,8 @@ export const usePatternClipStyle = (
   const trackHeight = use((_) => selectTrackHeight(_, clip?.trackId));
   const trackTop = use((_) => selectTrackTop(_, clip?.trackId));
 
-  const clipIds = useDeep((_) => selectOverlappingPortaledClipIds(_, pcId));
-  const isShort = !!clipIds.length || isAddingAny || isDragging;
+  const isShort =
+    doesOverlap || isAddingAny || isDragging || isDraggingOtherMedia;
 
   const height = isShort ? trackHeight - POSE_HEIGHT : trackHeight;
   const top = trackTop + (isShort ? POSE_HEIGHT : 0);
@@ -61,6 +62,24 @@ export const usePatternClipStyle = (
 
   const columns = getTickColumns(clip?.tick, subdivision);
   const left = TRACK_WIDTH + Math.round(columns * cellWidth);
+
+  const fullDim = isDragging || isPortaling;
+  const lightDim = isDraggingOtherMedia && isSelected;
+
+  const className = classNames(
+    props.className,
+    "flex flex-col rounded-lg rounded-b-none",
+    clip.isOpen ? "min-w-min z-[25]" : "border-2",
+    { "backdrop-blur border-white/0": clip.isOpen },
+    { "border-slate-100": isSelected && !clip.isOpen },
+    { "border-teal-500/50": !isSelected && !clip.isOpen },
+    { "opacity-50 pointer-events-none": fullDim },
+    { "opacity-80 pointer-events-none": lightDim && !fullDim },
+    { "opacity-100 pointer-events-all": !fullDim && !lightDim },
+    { "cursor-paintbrush hover:ring hover:ring-teal-500": isAdding },
+    { "cursor-eyedropper hover:ring hover:ring-slate-300": holdingI },
+    { "cursor-pointer": !isAdding && !holdingI }
+  );
 
   return {
     duration,
@@ -82,6 +101,7 @@ export const usePatternClipStyle = (
     noteColor,
     bodyColor,
     headerColor,
+    className,
   };
 };
 
@@ -105,4 +125,5 @@ export interface ClipStyle {
   noteColor: string;
   bodyColor: string;
   headerColor: string;
+  className: string;
 }

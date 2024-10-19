@@ -1,4 +1,4 @@
-import { getValueByKey, getValuesByKeys } from "utils/objects";
+import { getValueByKey } from "utils/objects";
 import { PresetPoseMap } from "assets/poses";
 import { createDeepSelector } from "lib/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";

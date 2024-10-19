@@ -12,6 +12,10 @@ import {
 } from "types/util";
 import { isPitchClass } from "utils/pitchClass";
 import { Vector } from "utils/vector";
+import {
+  TRANSFORMATIONS,
+  Transformation,
+} from "types/Pattern/PatternTransformers";
 
 // ------------------------------------------------------------
 // Pose Generics
@@ -43,23 +47,31 @@ export type VoiceLeading = NonEmpty<PoseVector, ChromaticPitchClass>;
 
 /** A `PoseModule` can be infinite or have a finite, repeatable duration */
 export interface PoseModule {
+  vector?: PoseVector;
   duration?: number;
+  customDuration?: string;
   repeat?: number;
   chain?: PoseVector;
 }
 
-/** A `PoseVectorModule` is a `PoseModule` with an extractable `PoseVector` */
-export interface PoseVectorModule extends PoseModule {
-  vector: PoseVector;
-}
+/** A `PoseOperation` has a vector and possible set of musical operations. */
+export type PoseOperation = PoseModule & {
+  operations?: Array<PoseTransformation>;
+};
+
+/** A `PoseTransformation` is a musical operation with arguments. */
+export type PoseTransformation<T extends Transformation = Transformation> = {
+  id: T;
+  args: (typeof TRANSFORMATIONS)[T]["args"];
+};
 
 /** A `PoseStreamModule` is a `PoseModule` containing a nested `PoseStream` */
-export interface PoseStreamModule extends PoseModule {
+export interface PoseNestedStream extends PoseModule {
   stream: PoseStream;
 }
 
 /** A `PoseBlock` is either a `PoseVectorModule` or a `PoseStreamModule` */
-export type PoseBlock = PoseVectorModule | PoseStreamModule;
+export type PoseBlock = PoseOperation | PoseNestedStream;
 
 /** A `PoseStream` is a sequence of recursive modules. */
 export type PoseStream = Array<PoseBlock>;
@@ -116,6 +128,7 @@ export const mockPose: Pose = {
 
 /** Checks if a given object is of type `PoseVector` */
 export const isPoseVector = (obj: unknown): obj is PoseVector => {
+  if (obj === undefined) return false;
   const candidate = obj as PoseVector;
   return isPlainObject(candidate) && areObjectValuesTyped(candidate, isNumber);
 };
@@ -128,6 +141,7 @@ export const isVoiceLeading = (obj?: unknown): obj is VoiceLeading => {
 
 /** Checks if a given object is of type `PoseModule` */
 export const isPoseModule = (obj: unknown): obj is PoseModule => {
+  if (obj === undefined) return false;
   const candidate = obj as PoseModule;
   return (
     isPlainObject(candidate) &&
@@ -138,21 +152,24 @@ export const isPoseModule = (obj: unknown): obj is PoseModule => {
 };
 
 /** Checks if a given object is of type `PoseVectorModule` */
-export const isPoseVectorModule = (obj: unknown): obj is PoseVectorModule => {
-  const candidate = obj as PoseVectorModule;
-  return isPoseModule(candidate) && isPoseVector(candidate.vector);
+export const isPoseOperation = (obj: unknown): obj is PoseOperation => {
+  if (obj === undefined) return false;
+  const candidate = obj as PoseOperation;
+  return isPoseModule(candidate);
 };
 
 /** Checks if a given object is of type `PoseStreamModule` */
-export const isPoseStreamModule = (obj: unknown): obj is PoseStreamModule => {
-  const candidate = obj as PoseStreamModule;
+export const isPoseStreamModule = (obj: unknown): obj is PoseNestedStream => {
+  if (obj === undefined) return false;
+  const candidate = obj as PoseNestedStream;
   return isPoseModule(candidate) && isPoseStream(candidate.stream);
 };
 
 /** Checks if a given object is of type `PoseBlock` */
 export const isPoseBlock = (obj: unknown): obj is PoseBlock => {
+  if (obj === undefined) return false;
   const candidate = obj as PoseBlock;
-  return isPoseVectorModule(candidate) || isPoseStreamModule(candidate);
+  return isPoseOperation(candidate) || isPoseStreamModule(candidate);
 };
 
 /** Checks if a given object is of type `PoseStream` */

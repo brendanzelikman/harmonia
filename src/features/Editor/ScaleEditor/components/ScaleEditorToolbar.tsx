@@ -26,7 +26,7 @@ import { createScale, playScale } from "types/Scale/ScaleThunks";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import classNames from "classnames";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
-import { getScaleName } from "utils/key";
+import { getScaleName } from "utils/scale";
 
 export function ScaleEditorToolbar(props: ScaleEditorProps) {
   const dispatch = useProjectDispatch();

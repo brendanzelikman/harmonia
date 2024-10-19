@@ -1,8 +1,12 @@
 import { Key, PitchClass } from "types/units";
-import { getPitchClassNumber, MidiNote } from "./midi";
+import { getPitchClassNumber, MidiNote, MidiScale } from "./midi";
 import { getMidiDegree } from "./midi";
 import { ChromaticKey } from "assets/keys";
-import { capitalize, lowerCase } from "lodash";
+import { capitalize, isArray, lowerCase } from "lodash";
+import { PresetScaleNotes } from "assets/scales";
+import { PatternScales } from "types/Pattern/PatternUtils";
+import { getTransposedScale } from "types/Scale/ScaleTransformers";
+import { getScaleName } from "./scale";
 
 /** A regex matching an initial pitch class and a following string. */
 export const PITCH_CLASS_REGEX = /^([a-gA-G][#b]?)(.*)$/;
@@ -33,10 +37,12 @@ export const isPitchClass = (value: any): value is PitchClass => {
 // Pitch Class Helpers
 // ------------------------------------------------------------
 
-/** Unpack the pitch class and scale name from a scale. */
-export const unpackScaleName = (name: string) => {
+/** Unpack the pitch class and scale name from a string. */
+export const unpackScaleName = (
+  name: string
+): { scaleName: string; pitchClass: PitchClass } | undefined => {
   const match = name.match(PITCH_CLASS_REGEX);
-  if (!match) return undefined;
+  if (!match) return { scaleName: lowerCase(name), pitchClass: "C" };
   const [_, _pitchClass, _scaleName] = match;
   const pitchClass = capitalize(_pitchClass);
   const scaleName = lowerCase(_scaleName);

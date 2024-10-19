@@ -5,10 +5,15 @@ import { PoseClip } from "./PoseClipTypes";
 import { Tick } from "types/units";
 import { getValueByKey, getDictValues } from "utils/objects";
 import {
-  getPoseVectorAtIndex,
+  getPoseOperationAtIndex,
   getVectorPitchClasses,
 } from "types/Pose/PoseFunctions";
-import { isVoiceLeading, VoiceLeading } from "types/Pose/PoseTypes";
+import {
+  isVoiceLeading,
+  PoseOperation,
+  PoseStream,
+  VoiceLeading,
+} from "types/Pose/PoseTypes";
 import { Pose, PoseId, PoseMap, PoseVector } from "types/Pose/PoseTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import {
@@ -23,12 +28,11 @@ import {
 } from "types/Pattern/PatternUtils";
 import { mod } from "utils/math";
 import { areScalesRelated } from "types/Scale/ScaleUtils";
-import { getScaleWithNewNotes } from "types/Scale/ScaleTransformers";
+import { getNewScale } from "types/Scale/ScaleTransformers";
 import { getRotatedScale } from "types/Scale/ScaleTransformers";
-import { getMidiDegree, MidiScale } from "utils/midi";
+import { MidiScale } from "utils/midi";
 import { getMidiNoteValue } from "utils/midi";
 import { isPitchClass } from "utils/pitchClass";
-import { sumVectors } from "utils/vector";
 
 /** Get the `PoseClips` of a given track from a list of clips. */
 export const getPoseClipsByTrackId = (
@@ -48,26 +52,24 @@ export const getPoseVectorsWithVoiceLeadings = (vectors: PoseVector[]) => {
 };
 
 /** Get the current pose vector occurring at the given tick. */
-export const getPoseVectorAtIndexByTick = (
+export const getPoseOperationAtIndexByTick = (
   clip?: PoseClip,
-  pose?: Pose,
+  stream?: PoseStream,
   tick?: number
-) => {
-  if (!clip || !pose || tick === undefined) return {};
-  return getPoseVectorAtIndex(pose, tick - clip.tick, clip.duration);
+): PoseOperation => {
+  if (!clip || !stream || tick === undefined) return {};
+  return getPoseOperationAtIndex(stream ?? [], tick - clip.tick, clip.duration);
 };
 
 /** Get the current pose occurring at or before the given tick. */
-export const getPoseVectorAtTick = (
+export const getPoseOperationsAtTick = (
   clips: PoseClip[],
   poseMap?: PoseMap,
   tick: Tick = 0
 ) => {
-  let offset = {} as PoseVector;
-
-  // Make sure there R
+  const operation = [] as PoseOperation[];
   const clipCount = clips.length;
-  if (!clipCount || !poseMap) return offset;
+  if (!clipCount || !poseMap) return operation;
 
   // Make sure the clip has an existing pose
   const guard = (clip: PoseClip) =>
@@ -76,15 +78,20 @@ export const getPoseVectorAtTick = (
   // Map a pose clip to the current pose vector and sum it with the offset
   const map = (clip: PoseClip, tick: number) => {
     const pose = poseMap[clip.poseId];
-    const vector = getPoseVectorAtIndexByTick(clip, pose, tick);
-    offset = sumVectors(offset, vector);
+    if (!pose) return {};
+    const poseOperation = getPoseOperationAtIndexByTick(
+      clip,
+      pose.stream,
+      tick
+    );
+    operation.push(poseOperation);
   };
 
   // Imperatively sum all relevant vectors to the offset
   sortClipsByProximity(clips, tick, guard, map);
 
   // Return the offset
-  return offset;
+  return operation;
 };
 
 /** Get the current pose occurring at or before the given tick. */
@@ -94,8 +101,6 @@ export const getCurrentVoiceLeadings = (
   tick: Tick = 0
 ) => {
   let offsets: VoiceLeading[] = [];
-
-  // Make sure there R
   const clipCount = clips.length;
   if (!clipCount || !poseMap) return offsets;
 
@@ -106,7 +111,8 @@ export const getCurrentVoiceLeadings = (
   // Map a pose clip to the current pose vector and sum it with the offset
   const map = (clip: PoseClip, tick: number) => {
     const pose = poseMap[clip.poseId];
-    const vector = getPoseVectorAtIndexByTick(clip, pose, tick);
+    if (!pose) return {};
+    const vector = getPoseOperationAtIndexByTick(clip, pose.stream, tick);
     if (isVoiceLeading(vector)) offsets.push(vector);
   };
 
@@ -162,7 +168,7 @@ export const applyVoiceLeadingsToMidiStream = <
         });
       }) as T;
     } else {
-      stream = getScaleWithNewNotes(
+      stream = getNewScale(
         stream,
         stream.map((n) => {
           const midi = getMidiNoteValue(n);
@@ -178,7 +184,7 @@ export const applyVoiceLeadingsToMidiStream = <
 };
 
 /** Get a map of ticks to pose vectors based on the pose clips and tick range. */
-export const getPoseVectorMapFromTickRange = (
+export const getPoseOperationMapFromTickRange = (
   clips: PoseClip[],
   poseMap: Record<PoseId, Pose>,
   tickRange: [number, number]
@@ -190,12 +196,13 @@ export const getPoseVectorMapFromTickRange = (
   // Map a pose clip to the current pose vector
   const map = (clip: PoseClip, tick: number) => {
     const pose = poseMap[clip.poseId];
-    const vector = getPoseVectorAtIndexByTick(clip, pose, tick);
-    return vector;
+    if (!pose) return {};
+    const operation = getPoseOperationAtIndexByTick(clip, pose.stream, tick);
+    return operation;
   };
 
   // Create and return the map
-  return createMapFromClipRange<"pose", PoseVector>(
+  return createMapFromClipRange<"pose", PoseOperation>(
     clips,
     tickRange,
     guard,

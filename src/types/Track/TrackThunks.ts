@@ -39,7 +39,7 @@ import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import { isHoldingOption } from "utils/html";
 import { getArrayByKey, getValueByKey, spliceOrPush } from "utils/objects";
 import { createPatternTrack } from "./PatternTrack/PatternTrackThunks";
-import { PatternTrackId } from "./PatternTrack/PatternTrackTypes";
+import { PatternTrack, PatternTrackId } from "./PatternTrack/PatternTrackTypes";
 import { createScaleTrack } from "./ScaleTrack/ScaleTrackThunks";
 import { isScaleTrackId } from "./ScaleTrack/ScaleTrackTypes";
 import {
@@ -75,7 +75,7 @@ import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
 import { selectPoses } from "types/Pose/PoseSelectors";
 import { removePose } from "types/Pose/PoseSlice";
 import { removePattern } from "types/Pattern/PatternSlice";
-import { PoseVectorModule } from "types/Pose/PoseTypes";
+import { PoseOperation } from "types/Pose/PoseTypes";
 
 /** Add an array of tracks to the store. */
 export const addTracks =
@@ -304,11 +304,14 @@ export const bindTrackToPort =
 
 /** Create a new Scale Track and Pattern Track. */
 export const createTrackTree =
-  (payload?: Payload<null, true>): Thunk<PatternTrackId> =>
+  (payload?: Payload<null, true>): Thunk<PatternTrack> =>
   (dispatch) => {
     const undoType = unpackUndoType(payload, "createTrackTree");
     const parentId = dispatch(createScaleTrack({}, undefined, undoType));
-    return dispatch(createPatternTrack({ parentId }, undefined, undoType));
+    const { track } = dispatch(
+      createPatternTrack({ parentId }, undefined, undoType)
+    );
+    return track;
   };
 
 /** Duplicate a track and all of its media/children in the slice and hierarchy. */
@@ -537,7 +540,7 @@ export const deleteTrack =
 
       // Remove all empty poses referencing the track
       for (const pose of poses) {
-        const vector = (pose.stream[0] as PoseVectorModule)?.vector;
+        const vector = (pose.stream[0] as PoseOperation)?.vector ?? {};
         if (
           pose.trackId === id &&
           (!pose.stream.length || !Object.values(vector).some((v) => v))
@@ -627,7 +630,7 @@ export const getDegreeOfNoteInTrack =
     if (!trackId || !patternNote) return -1;
     const project = getProject();
     const trackMidiScale = selectTrackMidiScale(project, trackId);
-    const isNested = isNestedNote(patternNote);
+    const isNested = !("MIDI" in patternNote);
 
     // Get the MIDI of the note, realizing if necessary
     let MIDI: number;
@@ -707,9 +710,23 @@ export const autoBindNoteToTrack =
 
         // If the lowered note exists in the current scale, add the note as an upper neighbor
         if (lowerDegree > -1) {
-          const octave = getMidiOctaveDistance(lowerMIDI, midi) + lowerWrap;
+          const octave =
+            getMidiOctaveDistance(parentScale[degree], midi) + lowerWrap;
+
           const offset = { [parentScaleId]: 1, octave };
           note = { ...scaleNote, degree: lowerDegree, offset };
+          console.log(
+            degree,
+            lowerDegree,
+            lowerMIDI,
+            lowerWrap,
+            midi,
+            note,
+            scaleId,
+            scale,
+            parentScale,
+            id
+          );
           if ("MIDI" in note) delete note.MIDI;
           found = true;
           break;
@@ -726,7 +743,8 @@ export const autoBindNoteToTrack =
 
         // If the raised note exists in the current scale, add the note as a lower neighbor
         if (upperDegree > -1) {
-          const octave = getMidiOctaveDistance(upperMIDI, midi) + upperWrap;
+          const octave =
+            getMidiOctaveDistance(parentScale[degree], midi) + upperWrap;
           const offset = { [parentScaleId]: -1, octave };
           note = { ...scaleNote, degree: upperDegree, offset };
           if ("MIDI" in note) delete note.MIDI;

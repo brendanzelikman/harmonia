@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TrackButton } from "./components/TrackButton";
 import {
   TrackName,
@@ -20,7 +20,7 @@ import {
   BsWifi,
 } from "react-icons/bs";
 import { BiCopy } from "react-icons/bi";
-import { cancelEvent } from "utils/html";
+import { cancelEvent, dispatchCustomEvent } from "utils/html";
 import { percent } from "utils/math";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDnd";
 import {
@@ -61,8 +61,8 @@ import { selectEditor } from "types/Editor/EditorSelectors";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import { selectPluginData } from "types/Plugin/PluginSelectors";
 import {
-  selectIsLive,
   selectCellHeight,
+  selectIsLive,
 } from "types/Timeline/TimelineSelectors";
 import {
   selectTrackChain,
@@ -85,22 +85,29 @@ import {
 import { updateTrack } from "types/Track/TrackThunks";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
+import {
+  GiDoubleQuaver,
+  GiHand,
+  GiMusicSpell,
+  GiPianoKeys,
+  GiSoundWaves,
+} from "react-icons/gi";
 
 interface PatternTrackProps extends TrackFormatterProps {
   track: PatternTrack;
 }
 
-const HELD_KEYS = ["m", "s", "v"];
+const qwertyKeys = ["q", "w", "e", "r", "t", "y"];
+const HELD_KEYS = ["m", "s", "v", ...qwertyKeys];
 
 export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
-  const { track, label, isSelected } = props;
+  const { track, label, isSelected, isAncestorSelected } = props;
   const { isVirtuoso } = useAuth();
   const dispatch = useProjectDispatch();
   const depth = use((_) => selectTrackDepthById(_, track.id));
-  const isLive = use(selectIsLive);
   const chain = useDeep((_) => selectTrackChain(_, track.id));
   const trackMap = useDeep(selectTrackMap);
-
+  const isLive = use(selectIsLive);
   const trackId = track.id;
   const tourId = useTourId();
 
@@ -116,9 +123,10 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const onInstrumentEditor = isInstrumentEditorOpen(editor);
 
   // Hotkey info
-  const heldKeys = useHeldHotkeys(HELD_KEYS);
-  const isHoldingM = heldKeys.m;
-  const isHoldingS = heldKeys.s;
+  const holding = useHeldHotkeys(HELD_KEYS);
+  const isHoldingM = holding.m;
+  const isHoldingS = holding.s;
+  const isHoldingQwerty = qwertyKeys.some((key) => holding[key]);
 
   // Instrument info
   const instrument = use((_) => selectInstrumentById(_, track.instrumentId));
@@ -145,6 +153,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
     sendPluginData(pluginData);
   }, [pluginData]);
 
+  // Flush the plugin data
   useHotkeys(
     "f",
     () => {
@@ -155,28 +164,22 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   );
 
   /** A Pattern Track will display its name or the name of its instrument. */
-  const PatternTrackName = () => {
+  const PatternTrackName = useCallback(() => {
     return (
-      <div className="w-full flex flex-col space-y-1">
+      <div className="w-full flex flex-col">
         <span className="text-xs text-orange-300 font-nunito"></span>
-        {isSelected && heldKeys.v ? (
-          <div className="flex size-full bg-zinc-800 p-1 max-w-[160px] overflow-scroll rounded-md text-fuchsia-300">
-            {getPoseVectorAsJSX(track.vector ?? {}, trackMap)}
-          </div>
-        ) : (
-          <TrackName
-            id={trackId}
-            value={track.name ?? ""}
-            placeholder={`Track ${label} (Pattern)`}
-            onChange={(e) => props.renameTrack(e.target.value)}
-          />
-        )}
+        <TrackName
+          id={trackId}
+          value={track.name ?? ""}
+          placeholder={`(${label}): Pattern Track`}
+          onChange={(e) => props.renameTrack(e.target.value)}
+        />
       </div>
     );
-  };
+  }, [track, label, isSelected]);
 
   /** The Pattern Track dropdown menu allows the user to perform general actions on the track. */
-  const PatternTrackDropdownMenu = () => {
+  const PatternTrackDropdownMenu = useCallback(() => {
     const isParentCollapsed =
       chain.length && chain.some((track) => track?.collapsed);
     const showPortFeatures = isVirtuoso && !!isElectron();
@@ -258,10 +261,10 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         />
       </TrackDropdownMenu>
     );
-  };
+  }, [track, chain, pluginData]);
 
   /** The audio buttons will be condensed into text when the track is collapsed. */
-  const CollapsedMuteAndSoloButtons = () => {
+  const CollapsedMuteAndSoloButtons = useCallback(() => {
     if (!track.collapsed) return null;
     const muteButton = classNames(
       { "text-shadow-lg": isHoldingM },
@@ -282,10 +285,10 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         <span className={soloButton}>S</span>
       </div>
     );
-  };
+  }, [track, mute, solo, isHoldingM, isHoldingS]);
 
   /** The Pattern Track header displays the name, dropdown menu, and mute/solo buttons when collapsed. */
-  const PatternTrackHeader = () => {
+  const PatternTrackHeader = useCallback(() => {
     return (
       <div
         className={classNames(
@@ -302,10 +305,10 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         </div>
       </div>
     );
-  };
+  }, [PatternTrackName, PatternTrackDropdownMenu, CollapsedMuteAndSoloButtons]);
 
   /** The Pattern Track volume slider controls the volume of the track's instrument. */
-  const PatternTrackVolumeSlider = () => {
+  const PatternTrackVolumeSlider = useCallback(() => {
     const volumePercent = percent(volume, MIN_VOLUME, MAX_VOLUME);
     const sliderTop = -sliderHeight * (volumePercent / 100) + sliderHeight + 15;
 
@@ -337,7 +340,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
     };
 
     return (
-      <div className="w-6 h-full z-[90] relative">
+      <div className="w-5 h-full z-[90] relative">
         <TrackSlider
           className={`h-5 accent-emerald-500`}
           value={volume}
@@ -357,10 +360,10 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         />
       </div>
     );
-  };
+  }, [volume, draggingVolume, cellHeight]);
 
   /** The Pattern Track pan slider controls the pan of the track's instrument. */
-  const PatternTrackPanSlider = () => {
+  const PatternTrackPanSlider = useCallback(() => {
     const leftPercent = percent(pan, MAX_PAN, MIN_PAN);
     const rightPercent = percent(pan, MIN_PAN, MAX_PAN);
     const sliderTop = -sliderHeight * (rightPercent / 100) + sliderHeight + 15;
@@ -385,7 +388,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
     };
 
     return (
-      <div className="w-6 h-full z-[89] relative">
+      <div className="w-5 h-full z-[89] relative">
         <TrackSlider
           className={`h-5 accent-teal-400`}
           height={cellHeight}
@@ -405,23 +408,23 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         />
       </div>
     );
-  };
+  }, [pan, draggingPan, cellHeight]);
 
   /** The Pattern Track volume and pan sliders are only visible when the track is expanded. */
-  const PatternTrackSliders = () => {
+  const PatternTrackSliders = useCallback(() => {
     if (track.collapsed) return null;
     return (
-      <div className="flex-shrink-0 z-50">
-        <div className="flex ml-0.5 mr-1" draggable onDragStart={cancelEvent}>
+      <div className="flex-shrink-0 mr-1 z-50">
+        <div className="flex" draggable onDragStart={cancelEvent}>
           {PatternTrackVolumeSlider()}
           {PatternTrackPanSlider()}
         </div>
       </div>
     );
-  };
+  }, [track, PatternTrackVolumeSlider, PatternTrackPanSlider]);
 
   /** The instrument editor button toggles the instrument editor. */
-  const InstrumentEditorButton = () => {
+  const InstrumentEditorButton = useCallback(() => {
     return (
       <TrackButton
         className={classNames(
@@ -440,46 +443,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         <span className="truncate">{instrumentName}</span>
       </TrackButton>
     );
-  };
-
-  /** The mute button can toggle the track's instrument mute. */
-  const MuteButton = () => {
-    return (
-      <TooltipButton
-        label={mute ? "Unmute the Pattern Track" : "Mute the Pattern Track"}
-        className={classNames(
-          "w-6 h-6 text-sm rounded-full text-center border-2 border-rose-400/80",
-          { "bg-rose-400 text-white": mute },
-          { "bg-rose-400/30 text-shadow": !mute && isHoldingM },
-          { "bg-emerald-600/20": !mute && !isHoldingM }
-        )}
-        onClick={(e) => dispatch(toggleTrackMute(e.nativeEvent, trackId))}
-      >
-        M
-      </TooltipButton>
-    );
-  };
-
-  /** The solo button can toggle the track's instrument solo. */
-  const SoloButton = () => {
-    return (
-      <TooltipButton
-        label={solo ? "Unsolo the Pattern Track" : "Solo the Pattern Track"}
-        className={classNames(
-          "w-6 h-6 text-sm rounded-full text-center border-2 border-yellow-400/80",
-          { "bg-yellow-400 text-white": solo },
-          { "bg-yellow-400/30 text-shadow": !solo && isHoldingS },
-          { "bg-emerald-600/20": !solo && !isHoldingS }
-        )}
-        onClick={(e) => {
-          cancelEvent(e);
-          dispatch(toggleTrackSolo(e.nativeEvent, trackId));
-        }}
-      >
-        S
-      </TooltipButton>
-    );
-  };
+  }, [trackId, isSelected, onInstrumentEditor, instrumentName]);
 
   /**
    * The Pattern Track has three main buttons.
@@ -487,7 +451,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
    * * The second button toggles the mute of the track's instrument.
    * * The third button toggles the solo of the track's instrument.
    */
-  const PatternTrackButtons = () => {
+  const PatternTrackButtons = useCallback(() => {
     return (
       <div
         className="w-full flex items-center"
@@ -495,14 +459,76 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         onDragStart={cancelEvent}
         onDoubleClick={cancelEvent}
       >
-        {InstrumentEditorButton()}
-        <div className="flex ml-2 space-x-1 justify-self-end">
-          <SoloButton />
-          <MuteButton />
+        <div className="min-w-0 grow flex flex-col text-sm mr-2">
+          <div className="flex text-orange-300 cursor-pointer">
+            <GiPianoKeys className="mr-1 my-auto inline shrink-0" />
+            <div className="overflow-scroll">{instrumentName}</div>
+          </div>
+          <div className="flex hover:saturate-150 items-center gap-1 text-fuchsia-300 cursor-pointer">
+            <GiHand
+              onMouseEnter={() =>
+                isLive && dispatchCustomEvent("live-shortcuts", true)
+              }
+              onMouseLeave={() => dispatchCustomEvent("live-shortcuts", false)}
+            />
+            {getPoseVectorAsJSX(track.vector ?? {}, trackMap)}
+          </div>
+        </div>
+        <div className="flex *:size-6 gap-1 justify-self-end items-end h-full">
+          <TooltipButton
+            className={classNames(
+              onInstrumentEditor ? "bg-orange-400" : "",
+              `text-lg size-full border rounded-full border-orange-400 active:bg-orange-400 select-none`
+            )}
+            label={onInstrumentEditor ? "Close" : "Edit Instrument"}
+            onClick={(e) => {
+              cancelEvent(e);
+              dispatch(toggleTrackInstrumentEditor(trackId));
+            }}
+          >
+            <GiSoundWaves />
+          </TooltipButton>
+          <TooltipButton
+            label={solo ? "Unsolo Track" : "Solo Track"}
+            className={classNames(
+              "text-sm rounded-full text-center border-2 border-yellow-400/80",
+              { "bg-yellow-400 text-white": solo },
+              { "bg-yellow-400/30 text-shadow": !solo && isHoldingS },
+              { "bg-emerald-600/20": !solo && !isHoldingS }
+            )}
+            onClick={(e) => {
+              cancelEvent(e);
+              dispatch(toggleTrackSolo(e.nativeEvent, track.id));
+            }}
+          >
+            S
+          </TooltipButton>
+          <TooltipButton
+            label={mute ? "Unmute Track" : "Mute Track"}
+            className={classNames(
+              "text-sm rounded-full text-center border-2 border-rose-400/80",
+              { "bg-rose-400 text-white": mute },
+              { "bg-rose-400/30 text-shadow": !mute && isHoldingM },
+              { "bg-emerald-600/20": !mute && !isHoldingM }
+            )}
+            onClick={(e) => dispatch(toggleTrackMute(e.nativeEvent, track.id))}
+          >
+            M
+          </TooltipButton>
         </div>
       </div>
     );
-  };
+  }, [
+    InstrumentEditorButton,
+    instrumentName,
+    trackMap,
+    track,
+    isLive,
+    mute,
+    solo,
+    isHoldingM,
+    isHoldingS,
+  ]);
 
   // Return the pattern track
   return (
@@ -517,7 +543,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         { "text-xs": isSmall, "text-sm": !isSmall }
       )}
       style={{
-        paddingLeft: depth * 8,
+        paddingLeft: depth * 4,
         filter: `hue-rotate(${(depth - 2) * 4}deg)${
           [
             "tour-step-the-scale-track",
@@ -532,11 +558,12 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
       <div
         className={classNames(
           "bg-gradient-to-r from-sky-700/80 to-emerald-700/50",
-          "w-full h-full items-center flex border-2 rounded transition-all duration-300",
-          { "border-fuchsia-400": isSelected && isLive },
+          "w-full h-full items-center flex border-2 rounded transition-all",
+          { "border-fuchsia-400": isSelected && isHoldingQwerty },
           { "border-orange-400": isSelected && onInstrumentEditor },
           { "border-blue-400": isSelected },
-          { "border-emerald-950": !isSelected }
+          { "border-slate-50/20": isAncestorSelected && !isSelected },
+          { "border-emerald-950": !isSelected && !isAncestorSelected }
         )}
       >
         {PatternTrackSliders()}

@@ -117,17 +117,6 @@ export const isHoldingOption = (e: GenericEvent) => {
   return keyboardEvent.altKey;
 };
 
-/** Check if the user is holding meta during an event. */
-export const isHoldingMeta = (e: GenericEvent) => {
-  const keyboardEvent = e as KeyboardEvent;
-  return keyboardEvent.metaKey || keyboardEvent.ctrlKey;
-};
-
-/** Check if the user is holding any modifier during an event. */
-export const isHoldingModifier = (e: GenericEvent) => {
-  return isHoldingShift(e) || isHoldingOption(e) || isHoldingMeta(e);
-};
-
 /** Check if the user is pressing a letter key during a keyboard event. */
 export const isPressingLetter = (e: GenericEvent) => {
   return /^[a-zA-Z]$/.test((e as KeyboardEvent).key);

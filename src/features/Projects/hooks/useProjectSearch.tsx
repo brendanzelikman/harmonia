@@ -29,7 +29,7 @@ import {
   loadRandomProject,
 } from "types/Project/ProjectLoaders";
 import { exportProjectsToZIP } from "types/Project/ProjectExporters";
-import { getScaleName } from "utils/key";
+import { getScaleName } from "utils/scale";
 
 interface ProjectSearchProps extends ProjectListProps {}
 

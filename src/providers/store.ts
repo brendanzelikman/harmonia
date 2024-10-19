@@ -28,6 +28,7 @@ import { Safe } from "types/util";
 import { Thunk } from "types/Project/ProjectTypes";
 import { Payload } from "lib/redux";
 import { UndoType } from "types/units";
+import { dispatchCustomEvent } from "utils/html";
 
 // ------------------------------------------------------------
 // Base Project Type
@@ -94,7 +95,8 @@ const undoableProjectReducer = undoable(baseProjectReducer, {
   groupBy: (action: PayloadAction<Payload>): UndoType => {
     const { type, payload } = action;
     if (payload?.undoType !== undefined) return payload.undoType;
-    return `${type}:${JSON.stringify(payload?.data)}`;
+    const dataString = JSON.stringify(payload?.data);
+    return `${type}:${dataString}`;
   },
   filter: excludeAction([
     ...privateTransportActions,

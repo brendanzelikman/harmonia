@@ -299,10 +299,7 @@ export const selectTrackIndexMap = createDeepSelector(
 export const selectTrackDepthById = createValueSelector(selectTrackDepthMap, 0);
 
 /** Select the label of a track by ID. */
-export const selectTrackLabelById = createValueSelector(
-  selectTrackLabelMap,
-  "*"
-);
+export const selectTrackLabelById = createValueSelector(selectTrackLabelMap);
 
 /** Select the index of a track by ID. */
 export const selectTrackIndexById = createValueSelector(

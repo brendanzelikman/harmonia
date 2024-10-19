@@ -103,7 +103,9 @@ export const selectSelectedMotifName = (
   return {
     pattern: pattern?.name ?? "No Pattern",
     pose: pose?.name ?? "No Pose",
-    scale: selectScaleName(project, scale?.id) ?? scale?.name ?? "No Scale",
+    scale: scale?.id?.startsWith("scale_preset")
+      ? scale?.name
+      : selectScaleName(project, scale?.id) ?? scale?.name ?? "No Scale",
   }[type];
 };
 

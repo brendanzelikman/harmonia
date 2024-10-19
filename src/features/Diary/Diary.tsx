@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { DiaryCoverPage, DiaryPageBinding } from "./DiaryPage";
 import { cancelEvent } from "utils/html";
 import { useHotkeysInDiary } from "lib/react-hotkeys-hook";
@@ -10,7 +10,6 @@ import { setDiaryPage, clearDiary } from "types/Meta/MetaSlice";
 import classNames from "classnames";
 import { NAV_HEIGHT } from "utils/constants";
 import Background from "assets/images/landing-background.png";
-import { ProjectEditor } from "./ProjectEditor";
 import { useDiary } from "types/Diary/DiaryTypes";
 import {
   selectProjectDiary,
@@ -25,15 +24,10 @@ const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;
 export function Diary() {
   const dispatch = useProjectDispatch();
   const projectName = use(selectProjectName);
-  const [showingJSON, setShowingJSON] = useState(false);
 
   const diary = use(selectProjectDiary);
   const diaryState = useDiary();
   const showingDiary = diaryState.isOpen;
-
-  useEffect(() => {
-    if (!showingDiary) setShowingJSON(false);
-  }, [showingDiary]);
 
   // Create a ref to the FlipBook component
   const ref = useRef<any>(null);
@@ -44,7 +38,7 @@ export function Diary() {
   }, []);
 
   // Diary hotkeys to flip the pages around
-  useHotkeysInDiary("j", () => setShowingJSON((prev) => !prev), []);
+
   useHotkeysInDiary("left", () => ref.current?.pageFlip?.().flipPrev(), []);
   useHotkeysInDiary("right", () => ref.current?.pageFlip?.().flipNext(), []);
   useHotkeysInDiary("shift+left", () => ref.current?.pageFlip?.().flip(0), []);
@@ -80,7 +74,7 @@ export function Diary() {
   const ClearDiaryButton = useCallback(() => {
     const canDelete = diary.find((page) => page.length);
     return (
-      <div className="relative group">
+      <div className="relative group/tooltip">
         {canDelete ? (
           <NavbarHoverTooltip
             className="border-slate-500/50 -mt-6 whitespace-nowrap rounded-lg cursor-pointer text-slate-400 hover:text-red-500 hover:font-bold"
@@ -107,12 +101,6 @@ export function Diary() {
     <DiaryCoverPage>
       <div className="size-full bg-slate-50/90 bflex flex-col p-4 opacity-100 overflow-scroll">
         <div className="flex items-center justify-center">
-          <button
-            className={`flex h-8 text-sm font-thin`}
-            onClick={() => setShowingJSON((prev) => !prev)}
-          >
-            Open Project Editor
-          </button>
           <ExportDiaryButton />
           {ClearDiaryButton()}
         </div>
@@ -164,30 +152,27 @@ export function Diary() {
         src={Background}
         className="absolute inset-0 opacity-50 h-screen object-cover landing-background"
       />
-      {showingJSON ? (
-        <ProjectEditor show={showingJSON} setShow={setShowingJSON} />
-      ) : (
-        <div className="relative -translate-x-1/2">
-          <m.div
-            initial={{ translateY: 100, opacity: 0 }}
-            animate={{ translateY: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            style={{ width: DIARY_WIDTH, height: DIARY_HEIGHT }}
-          >
-            <DiaryPageBinding />
-            <FlipBook ref={ref} width={DIARY_WIDTH} height={DIARY_HEIGHT}>
-              {CoverPage()}
-              {diary.map((page, index) =>
-                ContentPage({
-                  page,
-                  index,
-                  onChange,
-                })
-              )}
-            </FlipBook>
-          </m.div>
-        </div>
-      )}
+
+      <div className="relative -translate-x-1/2">
+        <m.div
+          initial={{ translateY: 100, opacity: 0 }}
+          animate={{ translateY: 0, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          style={{ width: DIARY_WIDTH, height: DIARY_HEIGHT }}
+        >
+          <DiaryPageBinding />
+          <FlipBook ref={ref} width={DIARY_WIDTH} height={DIARY_HEIGHT}>
+            {CoverPage()}
+            {diary.map((page, index) =>
+              ContentPage({
+                page,
+                index,
+                onChange,
+              })
+            )}
+          </FlipBook>
+        </m.div>
+      </div>
     </div>
   );
 }

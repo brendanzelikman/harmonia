@@ -1,6 +1,6 @@
 import { useProjectDispatch } from "types/hooks";
 import { Hotkey, useHotkeysInTimeline } from "lib/react-hotkeys-hook";
-import { isPatternTrack, isScaleTrack } from "types/Track/TrackTypes";
+import { isScaleTrack } from "types/Track/TrackTypes";
 import {
   setSelectedTrackId,
   decreaseSubdivision,
@@ -11,6 +11,7 @@ import {
   selectSelectedTrack,
   selectSelectedMedia,
   selectIsLive,
+  selectSelectedPatternTrack,
 } from "types/Timeline/TimelineSelectors";
 import { createPatternTrackFromSelectedTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import { createScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
@@ -28,6 +29,7 @@ import {
   toggleTimelineType,
   createTypedMotif,
   toggleTimelineState,
+  toggleAddingState,
 } from "types/Timeline/TimelineThunks";
 import {
   exportSelectedClipsToMIDI,
@@ -45,7 +47,6 @@ import {
   movePlayheadLeft,
   movePlayheadRight,
   seekTransport,
-  startTransport,
 } from "types/Transport/TransportThunks";
 import { Thunk } from "types/Project/ProjectTypes";
 import {
@@ -54,11 +55,8 @@ import {
 } from "types/Track/TrackSelectors";
 import { setupFileInput } from "providers/idb/samples";
 import { selectHasClips } from "types/Clip/ClipSelectors";
-import { inputPoseStream } from "types/Pose/PoseThunks";
-import {
-  selectTransport,
-  selectTransportLoopStart,
-} from "types/Transport/TransportSelectors";
+import { inputPoseVector } from "types/Pose/PoseThunks";
+import { selectTransportLoopStart } from "types/Transport/TransportSelectors";
 
 export function useTimelineHotkeys() {
   const dispatch = useProjectDispatch();
@@ -86,6 +84,9 @@ export function useTimelineHotkeys() {
   useHotkeysInTimeline(dispatch(CREATE_NEW_MOTIF_HOTKEY));
   useHotkeysInTimeline(dispatch(TOGGLE_MOTIF_HOTKEY));
   useHotkeysInTimeline(dispatch(ARRANGE_CLIPS_HOTKEY));
+  useHotkeysInTimeline(dispatch(ARRANGE_PATTERN_CLIPS_HOTKEY));
+  useHotkeysInTimeline(dispatch(ARRANGE_POSE_CLIPS_HOTKEY));
+  useHotkeysInTimeline(dispatch(ARRANGE_SCALE_CLIPS_HOTKEY));
   useHotkeysInTimeline(dispatch(SLICE_CLIPS_HOTKEY));
   useHotkeysInTimeline(dispatch(ARRANGE_PORTALS_HOTKEY));
 
@@ -195,8 +196,7 @@ export const LOAD_SAMPLES_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   shortcut: "meta+alt+p",
   callback: () => {
     const project = getProject();
-    const track = selectSelectedTrack(project);
-    if (!isPatternTrack(track)) return;
+    const track = selectSelectedPatternTrack(project);
     dispatch(setupFileInput(track));
   },
 });
@@ -304,13 +304,34 @@ export const ARRANGE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   callback: () => dispatch(toggleTimelineState({ data: "adding-clips" })),
 });
 
+export const ARRANGE_PATTERN_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Start/Stop Arranging Pattern Clips",
+  description: "Toggle the adding of pattern clips",
+  shortcut: "v",
+  callback: () => dispatch(toggleAddingState({ data: "pattern" })),
+});
+
+export const ARRANGE_SCALE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Start/Stop Arranging Scale Clips",
+  description: "Toggle the adding of scale clips",
+  shortcut: "b",
+  callback: () => dispatch(toggleAddingState({ data: "scale" })),
+});
+
+export const ARRANGE_POSE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Start/Stop Arranging Pose Clips",
+  description: "Toggle the adding of pose clips",
+  shortcut: "n",
+  callback: () => dispatch(toggleAddingState({ data: "pose" })),
+});
+
 export const ARRANGE_PORTALS_HOTKEY: Thunk<Hotkey> = (
   dispatch,
   getProject
 ) => ({
   name: "Start/Stop Arranging Portals",
   description: "Toggle the portaling of media",
-  shortcut: "p",
+  shortcut: "j",
   callback: () => {
     const project = getProject();
     if (selectIsLive(project) || !selectHasClips(project)) return;
@@ -470,5 +491,5 @@ export const INPUT_POSE_VECTOR_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Generate a Pose Vector",
   description: "Update all selected poses with the inputted vector.",
   shortcut: "meta+alt+v",
-  callback: () => dispatch(inputPoseStream()),
+  callback: () => dispatch(inputPoseVector()),
 });

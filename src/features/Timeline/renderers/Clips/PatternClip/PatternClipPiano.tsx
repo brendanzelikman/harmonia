@@ -1,47 +1,61 @@
 import { useDeep, useProjectDispatch } from "types/hooks";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { addPatternNote } from "types/Pattern/PatternSlice";
-import classNames from "classnames";
+import { addPatternNote, updatePatternNote } from "types/Pattern/PatternSlice";
 import { PatternClipRendererProps } from "./usePatternClipRenderer";
 import { useCallback } from "react";
 import { EditorPiano } from "features/Editor/components/EditorPiano";
-import { EighthNoteTicks } from "utils/durations";
 import { DEFAULT_VELOCITY } from "utils/constants";
 import { Sampler } from "tone";
 import { autoBindNoteToTrack } from "types/Track/TrackThunks";
 import { PatternNote } from "types/Pattern/PatternTypes";
+import { CursorProps } from "lib/opensheetmusicdisplay";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
 export interface PatternClipPianoProps extends PatternClipRendererProps {
+  cursor: CursorProps;
+  duration: number;
   isAdding: boolean;
 }
 
-const noteRange = ["C2", "C8"] as const;
-
 export function PatternClipPiano(props: PatternClipPianoProps) {
-  const { clip, isAdding } = props;
+  const { clip, isAdding, duration, cursor } = props;
   const dispatch = useProjectDispatch();
   const pattern = useDeep((_) => selectPatternById(_, clip.patternId));
+  const holding = useHeldHotkeys("shift");
+  const asChord = holding.shift;
 
   // Add the MIDI note and try to autobind it to the best scale
   const playNote = useCallback(
     (_: Sampler, MIDI: number) => {
       if (isAdding) {
         let note: PatternNote = {
-          duration: EighthNoteTicks,
+          duration,
           MIDI,
           velocity: DEFAULT_VELOCITY,
         };
         const bestNote = dispatch(autoBindNoteToTrack(clip.trackId, note));
         if (bestNote) note = bestNote;
-        dispatch(addPatternNote({ data: { id: pattern.id, note } }));
+        if (cursor.hidden) {
+          dispatch(
+            addPatternNote({
+              data: { id: pattern.id, note, asChord },
+            })
+          );
+        } else {
+          dispatch(
+            updatePatternNote({
+              data: { id: pattern.id, note, asChord, index: cursor.index },
+            })
+          );
+        }
       }
     },
-    [isAdding, clip]
+    [isAdding, cursor, clip, duration, asChord]
   );
 
   // Render the piano
   return (
-    <div className="animate-in fade-in slide-in-from-top-10 slide-in-from-left-12">
+    <div className="animate-in fade-in slide-in-from-top-10 slide-in-from-left-4 w-full max-w-2xl">
       <EditorPiano
         show
         noteRange={noteRange}
@@ -53,3 +67,5 @@ export function PatternClipPiano(props: PatternClipPianoProps) {
     </div>
   );
 }
+
+const noteRange = ["C1", "C8"] as const;

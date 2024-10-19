@@ -46,7 +46,13 @@ const PromptModal = (props: PromptModalProps) => {
                 className="rounded bg-transparent mr-3 text-white"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={blurOnEnter}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    onSubmit(input);
+                  } else {
+                    blurOnEnter(e);
+                  }
+                }}
               />
               <button
                 onClick={() => onSubmit(input)}

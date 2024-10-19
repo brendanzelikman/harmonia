@@ -7,6 +7,7 @@ import {
 } from "./PatternTrackTypes";
 import { updateInstrument } from "types/Instrument/InstrumentSlice";
 import {
+  Instrument,
   InstrumentKey,
   initializeInstrument,
 } from "types/Instrument/InstrumentTypes";
@@ -34,7 +35,7 @@ export const createPatternTrack =
     initialTrack?: Partial<PatternTrack>,
     initialInstrumentKey?: InstrumentKey,
     _undoType?: UndoType
-  ): Thunk<PatternTrackId> =>
+  ): Thunk<{ track: PatternTrack; instrument: Instrument }> =>
   (dispatch, getProject) => {
     const project = getProject();
     const topLevelTracks = selectTopLevelTracks(project);
@@ -60,16 +61,17 @@ export const createPatternTrack =
     dispatch(createInstrument({ data: { track, options }, undoType }));
 
     // Return ID of the created track
-    return track.id;
+    return { track, instrument };
   };
 
 /** Create a `PatternTrack` using the selected track as a parent. */
 export const createPatternTrackFromSelectedTrack =
-  (): Thunk<TrackId | undefined> => (dispatch, getProject) => {
+  (): Thunk<PatternTrack | undefined> => (dispatch, getProject) => {
     const project = getProject();
     const parent = selectSelectedTrack(project);
     const parentId = isScaleTrack(parent) ? parent.id : parent?.parentId;
-    return dispatch(createPatternTrack({ parentId }));
+    const { track } = dispatch(createPatternTrack({ parentId }));
+    return track;
   };
 
 /** Set the `ScaleTrack` of a `PatternTrack` with an optional index. */

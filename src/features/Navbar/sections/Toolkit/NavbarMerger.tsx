@@ -19,11 +19,11 @@ export const NavbarMergeClipsButton = () => {
   const disabled = !selectedClips.length;
 
   return (
-    <div className="flex flex-col relative group">
+    <div className="flex flex-col relative group/tooltip">
       <NavbarTooltipButton
         className={`p-1.5 border-slate-400/50 bg-gradient-to-t from-teal-500/80 to-fuchsia-600/70 ${
           !disabled
-            ? "group-hover:ring-2 group-hover:ring-offset-2 group-hover:ring-fuchsia-500/50 group-hover:ring-offset-black"
+            ? "group-hover/tooltip:ring-2 group-hover:ring-offset-2 group-hover/tooltip:ring-fuchsia-500/50 group-hover/tooltip:ring-offset-black"
             : ""
         }`}
       >
@@ -32,7 +32,7 @@ export const NavbarMergeClipsButton = () => {
       <NavbarHoverTooltip
         bgColor="bg-cyan-900/80 backdrop-blur"
         borderColor="border-cyan-500"
-        className="group-hover:block hidden left-[-6rem] whitespace-nowrap"
+        className="group-hover/tooltip:block hidden left-[-6rem] whitespace-nowrap"
       >
         {disabled ? (
           <div className="flex flex-col h-full justify-center font-normal">

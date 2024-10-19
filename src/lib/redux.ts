@@ -62,6 +62,12 @@ export function createValueSelector<T>(
   defaultValue: T
 ): (project: Project, id?: string) => T;
 
+// Overload #1: Default value is provided as a callback
+export function createValueSelector<T>(
+  mapSelector: (project: Project) => Dictionary<T>,
+  defaultValue: (id: string) => T
+): (project: Project, id?: string) => T;
+
 // Overload #2: Default value is not provided
 export function createValueSelector<T>(
   mapSelector: (project: Project) => Dictionary<T>
@@ -74,7 +80,11 @@ export function createValueSelector<T>(
 ) {
   return (project: Project, id?: string) => {
     const value = getValueByKey(mapSelector(project), id);
-    if (value === undefined && defaultValue !== undefined) return defaultValue;
+    if (value === undefined && defaultValue !== undefined) {
+      return typeof defaultValue === "function"
+        ? defaultValue(id)
+        : defaultValue;
+    }
     return value;
   };
 }

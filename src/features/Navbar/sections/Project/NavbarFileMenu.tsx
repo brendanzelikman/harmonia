@@ -46,10 +46,10 @@ export function NavbarFileMenu() {
   const hasDownloaded = downloadProgress >= 100;
 
   return (
-    <div className="group relative shrink-0">
+    <div className="group/tooltip relative shrink-0">
       {/* Button */}
       <div className="rounded-full p-1.5">
-        <GiWoodenSign className="size-full select-none cursor-pointer group-hover:text-indigo-300" />
+        <GiWoodenSign className="size-full select-none cursor-pointer group-hover/tooltip:text-indigo-300" />
       </div>
 
       {/* Tooltip */}

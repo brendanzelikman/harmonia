@@ -8,9 +8,9 @@ import { EditorHeader } from "features/Editor/components/EditorHeader";
 import { getPoseCategory, isPoseBucket } from "types/Pose/PoseFunctions";
 import { updatePose, updatePoseBlock } from "types/Pose/PoseSlice";
 import {
-  isPoseVectorModule,
+  isPoseOperation,
   PoseVectorId,
-  PoseVectorModule,
+  PoseOperation,
 } from "types/Pose/PoseTypes";
 import { selectScaleTrackIds } from "types/Track/TrackSelectors";
 import { ChromaticKey } from "assets/keys";
@@ -21,7 +21,7 @@ export function PoseEditorContent(props: PoseEditorProps) {
   const id = pose?.id;
   const category = getPoseCategory(pose);
   const stream = pose?.stream ?? [];
-  const vectors = stream.filter(isPoseVectorModule);
+  const vectors = stream.filter(isPoseOperation);
   const trackIds = useProjectSelector(selectScaleTrackIds);
   const vectorKeys: PoseVectorId[] = [
     "chromatic",
@@ -46,7 +46,7 @@ export function PoseEditorContent(props: PoseEditorProps) {
 
   // Create an update function for a vector module.
   const updateBlock = useCallback(
-    (index: number) => (block: PoseVectorModule) => {
+    (index: number) => (block: PoseOperation) => {
       if (!id) return;
       dispatch(updatePoseBlock({ id, index, block }));
     },
@@ -55,7 +55,7 @@ export function PoseEditorContent(props: PoseEditorProps) {
 
   // Display a vector module.
   const isBucket = isPoseBucket(pose);
-  const renderVectorModule = (module: PoseVectorModule, index: number) => {
+  const renderVectorModule = (module: PoseOperation, index: number) => {
     if (!pose) return null;
     return (
       <div

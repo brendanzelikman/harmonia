@@ -6,11 +6,14 @@ import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import { Instrument, InstrumentKey } from "types/Instrument/InstrumentTypes";
 import { fetchUser } from "providers/auth";
+import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
+import { createUndoType } from "lib/redux";
 
 // Function to handle file input
 export const handleFileInput =
-  (track: PatternTrack, file: File): Thunk =>
+  (file: File, _track?: PatternTrack): Thunk =>
   async (dispatch, getProject) => {
+    const undoType = createUndoType("handleFileInput", file);
     const { db } = await fetchUser();
     if (!db) return;
 
@@ -21,14 +24,22 @@ export const handleFileInput =
     const id = `sample-${file.name}`;
     await db.put(SAMPLE_STORE, { id, buffer });
 
+    const project = getProject();
+    const { track, instrument } = _track
+      ? {
+          track: _track,
+          instrument: selectInstrumentById(project, _track.instrumentId),
+        }
+      : dispatch(createPatternTrack(undefined, undefined, undoType));
     const urls = { C3: audioBuffer };
-    const instrument = selectInstrumentById(getProject(), track.instrumentId);
     const oldInstrument: Instrument | undefined = instrument
       ? { ...instrument, key: id as InstrumentKey }
       : undefined;
+
     dispatch(
       createInstrument({
         data: { track, options: { oldInstrument, urls } },
+        undoType,
       })
     );
   };
@@ -86,7 +97,7 @@ export const getSampleFromIDB = async (
 
 // Attach file input handling to an HTML element
 export const setupFileInput =
-  (track: PatternTrack): Thunk =>
+  (track?: PatternTrack): Thunk =>
   (dispatch) => {
     const input = document.createElement("input");
     input.type = "file";
@@ -95,7 +106,7 @@ export const setupFileInput =
       const target = e.target as HTMLInputElement;
       if (target.files && target.files.length > 0) {
         const file = target.files[0];
-        dispatch(handleFileInput(track, file)); // Store in IDB
+        dispatch(handleFileInput(file, track)); // Store in IDB
       }
     };
     document.body.appendChild(input);

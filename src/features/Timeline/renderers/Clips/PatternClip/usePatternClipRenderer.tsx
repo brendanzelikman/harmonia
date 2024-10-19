@@ -1,11 +1,15 @@
 import { useCallback } from "react";
-import classNames from "classnames";
 import { ClipComponentProps } from "../TimelineClips";
 import { useClipDrag } from "../useClipDnd";
-import { use, useProjectDispatch } from "types/hooks";
+import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { PatternClip } from "types/Clip/ClipTypes";
 import { Portaled } from "types/Portal/PortalTypes";
-import { selectClosestPoseClipId } from "types/Arrangement/ArrangementSelectors";
+import {
+  selectClosestPoseClipId,
+  selectOverlappingPortaledClipIds,
+  selectPatternClipMidiStream,
+  selectPortaledClipById,
+} from "types/Arrangement/ArrangementSelectors";
 import {
   removeClipIdsFromSelection,
   toggleClipIdInSelection,
@@ -13,13 +17,13 @@ import {
 import { PatternClipDropdown } from "./PatternClipDropdown";
 import { PatternClipHeader } from "./PatternClipHeader";
 import { PatternClipStream } from "./PatternClipStream";
-import { useToggledState } from "hooks/useToggledState";
 import { DivMouseEvent } from "utils/html";
 import { useDragState } from "types/Media/MediaTypes";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { Timed } from "types/units";
 import { usePatternClipStyle } from "./usePatternClipStyle";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { toggleClipDropdown } from "types/Clip/ClipThunks";
 
 export const CLIP_NAME_HEIGHT = 24;
 export const CLIP_STREAM_MARGIN = 8;
@@ -31,18 +35,18 @@ export interface PatternClipRendererProps extends ClipComponentProps {
 
 export function PatternClipRenderer(props: PatternClipRendererProps) {
   const { clip, portaledClip, holdingI, selectedTrackId } = props;
-  const { isAdding, isLive, isSelected, isPortaling } = props;
+  const { isLive, isSelected, isOpen } = props;
   const pcId = portaledClip.id;
   const dispatch = useProjectDispatch();
 
-  // Each pattern clip has a dropdown to show its score */
-  const score = useToggledState(`score_${pcId}`);
-  const showScore = score.isOpen;
-
   // Each pattern clip listens to the closest overlapping pose clip */
+  const stream = useDeep((_) => selectPatternClipMidiStream(_, pcId));
   const poseClipId = use((_) => selectClosestPoseClipId(_, pcId));
-  const poseClipDropdown = useToggledState(`dropdown_${poseClipId}`);
-  const isPoseClipOpen = poseClipDropdown.isOpen;
+  const poseClip = useDeep((_) =>
+    poseClipId ? selectPortaledClipById(_, poseClipId) : undefined
+  );
+  const overlaps = useDeep((_) => selectOverlappingPortaledClipIds(_, pcId));
+  const doesOverlap = !!overlaps.length;
 
   // Each pattern clip can be dragged into any cell in a pattern track. */
   const dragState = useDragState();
@@ -51,7 +55,7 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
 
   // Each pattern clip goes live when its track and pose clip are selected
   const onTrack = selectedTrackId === clip.trackId;
-  const isClipLive = isLive && onTrack && !!poseClipId && isPoseClipOpen;
+  const isClipLive = isLive && onTrack && !!poseClipId && !!isOpen;
 
   // Each pattern clip checks for regular, meta, and alt clicks
   const onClick = useCallback(
@@ -59,45 +63,30 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
       if (e.altKey) {
         dispatch(toggleClipIdInSelection(clip.id));
       } else if (e.metaKey) {
-        score.toggle();
+        dispatch(toggleClipDropdown({ data: { id: clip.id } }));
       } else if (isSelected) {
-        if (score.isOpen) {
+        if (isOpen) {
           dispatch(removeClipIdsFromSelection({ data: [clip.id] }));
         }
-        score.toggle();
+        dispatch(toggleClipDropdown({ data: { id: clip.id } }));
       } else {
         dispatch(onClipClick(e, clip, { eyedropping: holdingI }));
       }
     },
-    [clip, isSelected, score, holdingI]
+    [clip, isSelected, isOpen, holdingI]
   );
 
   // Each portaled clip has a different style
   const style = usePatternClipStyle({
     ...props,
-    isDragging: isDraggingOtherMedia,
+    isDragging,
+    isDraggingOtherMedia,
+    stream,
+    doesOverlap,
   });
   const { top, left, width, height, fontSize } = style;
-
-  // Compile the classname
-  const fullDim = isDragging || isPortaling;
-  const lightDim = isDraggingOtherMedia && isSelected;
-  const className = classNames(
-    props.className,
-    "flex flex-col rounded-lg rounded-b-none",
-    showScore ? "min-w-min z-[25]" : "border-2",
-    { "border-white/0": showScore },
-    { "border-slate-100": isSelected && !showScore },
-    { "border-teal-500/50": !isSelected && !showScore },
-    { "opacity-50 pointer-events-none": fullDim },
-    { "opacity-80 pointer-events-none": lightDim && !fullDim },
-    { "opacity-100 pointer-events-all": !fullDim && !lightDim },
-    { "cursor-paintbrush hover:ring hover:ring-teal-500": isAdding },
-    { "cursor-eyedropper hover:ring hover:ring-slate-300": holdingI },
-    { "cursor-pointer": !isAdding && !holdingI }
-  );
-
   if (isScaleTrackId(clip.trackId)) return null;
+
   // Render the pattern clip with a stream or score
   return (
     <div
@@ -105,17 +94,18 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
       ref={drag}
       style={{ top, left, width, height, fontSize }}
       onClick={onClick}
-      className={className}
+      onDragStart={() =>
+        dispatch(toggleClipDropdown({ data: { id: clip.id, value: false } }))
+      }
+      className={style.className}
     >
-      <PatternClipHeader {...props} isLive={isClipLive} showScore={showScore} />
-      <PatternClipStream {...props} style={style} showScore={showScore} />
-      {showScore ? (
-        <PatternClipDropdown
-          {...props}
-          isLive={isClipLive}
-          poseClipId={poseClipId}
-        />
-      ) : null}
+      <PatternClipHeader {...props} isLive={isClipLive} />
+      {!isOpen && <PatternClipStream {...props} style={style} />}
+      <PatternClipDropdown
+        {...props}
+        isLive={isClipLive}
+        isPosed={!!poseClip?.isOpen}
+      />
     </div>
   );
 }

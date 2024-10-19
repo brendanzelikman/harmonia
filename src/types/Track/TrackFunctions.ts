@@ -1,6 +1,6 @@
 import { getValueByKey } from "utils/objects";
 
-import { numberToLower } from "utils/math";
+import { numberToLower, numberToUpper } from "utils/math";
 import { isScaleTrack, ITrack, Track, TrackId, TrackMap } from "./TrackTypes";
 import { isScaleTrackId } from "./ScaleTrack/ScaleTrackTypes";
 
@@ -88,28 +88,17 @@ export const getTrackLabel = (id: TrackId, trackMap: TrackMap) => {
   const track = trackMap[id];
   if (!track) return "";
 
-  // Return just the index if the track is in the top level
-  const trackIndex = getTrackIndex(id, trackMap) + 1;
-  if (!track?.parentId || trackIndex === 0) return `${trackIndex}`;
-
   // Otherwise, use all track parents to get the label
-  const topLevelTracks = getTopLevelTracks(trackMap);
+  // const topLevelTracks = getTopLevelTracks(trackMap);
   const ancestorIds = getTrackAncestorIds(id, trackMap);
   const trackIds = [...ancestorIds, id];
 
-  // Get the index of the root track
-  const rootId = trackIds[0];
-  const rootIndex = topLevelTracks.findIndex((t) => rootId === t.id) + 1;
-
-  // Get the letters of the rest of the tracks
-  const rest = trackIds.slice(1);
-  const restLetters = rest.map((track) => {
-    const index = getTrackIndex(track, trackMap);
-    return numberToLower(index);
-  });
-
-  // Return the label
-  return `${rootIndex}${restLetters.join("")}`;
+  return trackIds
+    .map((track) => {
+      const index = getTrackIndex(track, trackMap);
+      return numberToUpper(index);
+    })
+    .join("");
 };
 
 /** Get the Scale Track or parent Scale Track of a Pattern Track. */

@@ -23,10 +23,11 @@ import {
 } from "features/Navbar/components/NavbarStyles";
 import { useStates } from "hooks/useStates";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
+import { ClipType } from "types/Clip/ClipTypes";
 
-export const NavbarCreator = () => {
+export const NavbarCreator = (props: { type?: ClipType }) => {
   const dispatch = useProjectDispatch();
-  const type = use(selectTimelineType);
+  const type = use((_) => props.type ?? selectTimelineType(_));
   const names = useStates({ pattern: "", pose: "", scale: "" });
   const newName = use((_) => selectNewMotifName(_, type));
 
@@ -52,10 +53,10 @@ export const NavbarCreator = () => {
   }[type];
 
   return (
-    <div className="relative group">
+    <div className="relative">
       <div
         className={classNames(
-          "peer size-8 xl:size-9 text-lg flex border border-slate-400/50 rounded-full total-center cursor-pointer transition-all",
+          "peer w-min px-2 z-[50] capitalize text-sm flex border border-slate-400/50 text-slate-200 rounded total-center cursor-pointer transition-all",
           `hover:ring-2 hover:ring-slate-300 active:ring-2 active:ring-offset-2 active:ring-offset-black`,
           toolkitMotifBackground[type],
           activeRing[type]
@@ -65,17 +66,16 @@ export const NavbarCreator = () => {
           names.clear(type);
         }}
       >
-        <GiHealthNormal />
+        Create Motif
       </div>
       <NavbarHoverTooltip
+        group="peer-hover:block hover/tooltip:block"
+        top="top-4"
         className={`-left-16 capitalize whitespace-nowrap transition-all ${activeText[type]}`}
         padding="py-2 px-3"
         borderColor={toolkitMotifBorder[type]}
       >
         <div className="min-w-56 flex flex-col gap-2">
-          <p className={classNames("border-b border-b-slate-500 pb-2")}>
-            Create New {type}
-          </p>
           <div className="flex w-full gap-3 py-2">
             <p className="flex-1 text-slate-50">Name:</p>
             <input
@@ -120,13 +120,13 @@ export const NavbarCreator = () => {
   );
 };
 
-const activeRing = {
+export const activeRing = {
   pattern: "active:ring-emerald-500",
   pose: "active:ring-fuchsia-500",
   scale: "active:ring-sky-500",
 };
 
-const activeText = {
+export const activeText = {
   pattern: "peer-active:text-emerald-500",
   pose: "peer-active:text-pink-500",
   scale: "peer-active:text-sky-500",

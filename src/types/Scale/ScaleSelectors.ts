@@ -1,7 +1,7 @@
 import { createSelector } from "reselect";
-import { getValuesByKeys } from "utils/objects";
+import { getArrayByKey, getValueByKey, getValuesByKeys } from "utils/objects";
 import { PresetScaleMap } from "assets/scales";
-import { createDeepSelector } from "lib/redux";
+import { createArraySelector, createDeepSelector } from "lib/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { defaultScaleState, scaleAdapter } from "./ScaleSlice";
 import { ScaleId, ScaleMap, ScaleState } from "./ScaleTypes";
@@ -22,6 +22,9 @@ export const selectScaleMap = createDeepSelector(
   [_selectScaleMap],
   (scaleMap): ScaleMap => ({ ...scaleMap, ...PresetScaleMap })
 );
+
+/** Select a potentially custom scale by ID. */
+export const selectCustomScaleById = createArraySelector(selectScaleMap);
 
 /** Select only custom scales (excluding track scales). */
 export const selectCustomScales = createSelector(

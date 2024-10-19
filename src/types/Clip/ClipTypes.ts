@@ -8,7 +8,7 @@ import { ScaleClip, ScaleClipId } from "./ScaleClip/ScaleClipTypes";
 import { initializePatternClip } from "./PatternClip/PatternClipTypes";
 import { initializePoseClip } from "./PoseClip/PoseClipTypes";
 import { initializeScaleClip } from "./ScaleClip/ScaleClipTypes";
-import { Dictionary, EntityId, EntityState, nanoid } from "@reduxjs/toolkit";
+import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { PatternId } from "types/Pattern/PatternTypes";
 import { PoseId } from "types/Pose/PoseTypes";
 import { ScaleId } from "types/Scale/ScaleTypes";
@@ -23,7 +23,7 @@ export * from "./ScaleClip/ScaleClipTypes";
 // Motif Definitions
 // ------------------------------------------------------------
 
-export const CLIP_TYPES = ["pattern", "scale", "pose"] as const;
+export const CLIP_TYPES = ["scale", "pattern", "pose"] as const;
 export type ClipType = (typeof CLIP_TYPES)[number];
 
 export type Clip = PatternClip | PoseClip | ScaleClip;
@@ -50,6 +50,7 @@ export type IClip<T extends ClipType = ClipType> = {
   type: T;
   offset?: Tick;
   duration?: Tick;
+  isOpen?: boolean;
 } & IClipProps<T>;
 
 /** A `Clip` can have extra props based on its type. */

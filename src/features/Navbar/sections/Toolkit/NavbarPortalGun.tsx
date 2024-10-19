@@ -19,13 +19,19 @@ export const NavbarPortalGun = () => {
   return (
     <div className="relative">
       <NavbarTooltipButton
-        label={isPortaling ? "Hide Portal Gun" : "Equip Portal Gun"}
+        label={
+          <>
+            {isPortaling ? "Equipped" : "Equip"} Portal Gun{" "}
+            <span className="font-light text-slate-400">(Warp Media)</span>
+          </>
+        }
         disabled={!hasClips}
+        borderColor="border-blue-500"
         className={classNames(
           "p-1.5 border-slate-400/50",
           !hasClips ? "opacity-50" : "",
           {
-            "bg-gradient-to-tr from-sky-600 to-orange-500": !isPortaling,
+            "bg-gradient-to-br from-blue-600 to-orange-500": !isPortaling,
             "ring-2 ring-offset-2 ring-offset-black duration-150": isPortaling,
             "bg-sky-600 ring-sky-600/80": isPortaling && !hasFragment,
             "bg-orange-500 ring-orange-400/80": isPortaling && hasFragment,

@@ -13,7 +13,7 @@ import {
   isTripletNote,
 } from "utils/durations";
 import { downloadBlob } from "utils/html";
-import { getScaleKey } from "utils/key";
+import { getScaleKey } from "utils/scale";
 import { getPatternBlockDuration } from "./PatternFunctions";
 import {
   resolvePatternNoteToMidi,

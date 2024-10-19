@@ -6,9 +6,10 @@ import { Id } from "./units";
 // Basic Helpers
 // ------------------------------------------------------------
 
-export const createId = <T extends EntityId>(prefix: T): Id<T> => {
-  return `${prefix}_${nanoid()}`;
-};
+// Create an id with the given prefix (e.g. "id_001")
+export const createId = <T extends EntityId = string>(
+  prefix: T = "id" as T
+): Id<T> => `${prefix}_${nanoid()}`;
 
 // Require at least one key from a type (src: u/KPD on SO)
 type Choose<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;

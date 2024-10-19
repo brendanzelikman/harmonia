@@ -29,10 +29,6 @@ import {
 } from "types/Project/ProjectExporters";
 import { Thunk } from "types/Project/ProjectTypes";
 import { dispatchCustomEvent } from "utils/html";
-import {
-  selectFirstPortaledPatternClipId,
-  selectFirstPortaledPoseClipId,
-} from "types/Arrangement/ArrangementSelectors";
 import { CLOSE_STATE, TOGGLE_STATE } from "hooks/useToggledState";
 import { createNestedTracks } from "types/Track/ScaleTrack/ScaleTrackThunks";
 
@@ -49,7 +45,7 @@ export function usePlaygroundHotkeys() {
 
   // Diary Hotkeys
   useHotkeysGlobally(dispatch(TOGGLE_DIARY_HOTKEY));
-  useHotkeysGlobally(dispatch(CLOSE_DIARY_HOTKEY));
+  useHotkeysGlobally(dispatch(CLOSE_MODALS_HOTKEY));
 
   // Editor Hotkeys
   useHotkeysGlobally(dispatch(TOGGLE_EDITOR_HOTKEY));
@@ -154,10 +150,6 @@ export const CLOSE_EDITOR_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
     if (isVisible) {
       dispatch(hideEditor());
     }
-    const firstPatternId = selectFirstPortaledPatternClipId(project);
-    const firstPoseId = selectFirstPortaledPoseClipId(project);
-    dispatchCustomEvent(`close_score_${firstPatternId}`);
-    dispatchCustomEvent(`close_dropdown_${firstPoseId}`);
   },
 });
 
@@ -172,11 +164,14 @@ export const TOGGLE_DIARY_HOTKEY: Thunk<Hotkey> = () => ({
   callback: () => dispatchCustomEvent(TOGGLE_STATE("diary")),
 });
 
-export const CLOSE_DIARY_HOTKEY: Thunk<Hotkey> = () => ({
-  name: "Close Diary",
-  description: "Close the project diary.",
+export const CLOSE_MODALS_HOTKEY: Thunk<Hotkey> = () => ({
+  name: "Close Terminal/Diary",
+  description: "Close the project terminal and diary.",
   shortcut: "esc",
-  callback: () => dispatchCustomEvent(CLOSE_STATE("diary")),
+  callback: () => {
+    dispatchCustomEvent(CLOSE_STATE("diary"));
+    dispatchCustomEvent(CLOSE_STATE("terminal"));
+  },
 });
 
 // -----------------------------------------------

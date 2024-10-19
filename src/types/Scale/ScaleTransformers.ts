@@ -63,7 +63,7 @@ export const getTransposedScaleNote = (
 // ------------------------------------------------------------
 
 /** Update a `Scale` with new notes. */
-export const getScaleWithNewNotes = <T extends Scale>(
+export const getNewScale = <T extends Scale>(
   scale: T,
   notes: ScaleArray
 ): T => {
@@ -80,7 +80,7 @@ export const getTransposedScale = <T extends Scale>(
   if (steps === 0) return scale;
   const notes = getScaleNotes(scale);
   const newNotes = notes.map((n) => getTransposedScaleNote(n, steps, id));
-  return getScaleWithNewNotes(scale, newNotes);
+  return getNewScale(scale, newNotes);
 };
 
 /** Get a `Scale` rotated by a given number of steps along itself. */
@@ -106,7 +106,7 @@ export const getRotatedScale = <T extends Scale>(scale: T, steps = 0) => {
   }
 
   // Return the updated scale
-  return getScaleWithNewNotes(scale, newNotes);
+  return getNewScale(scale, newNotes);
 };
 
 // ------------------------------------------------------------

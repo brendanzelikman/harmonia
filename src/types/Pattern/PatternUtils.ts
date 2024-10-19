@@ -1,13 +1,17 @@
 import { range } from "lodash";
 import { MidiScale, getMidiDegree, getMidiNoteValue } from "utils/midi";
 import {
+  PatternBlock,
   PatternChord,
   PatternMidiChord,
+  PatternMidiNote,
   PatternMidiStream,
   PatternNote,
+  PatternRest,
   isPatternChord,
   isPatternMidiChord,
   isPatternMidiStream,
+  isPatternRest,
   isPatternStrummedChord,
 } from "./PatternTypes";
 import { Chords } from "assets/patterns";
@@ -44,6 +48,41 @@ export const getPatternChordWithNewNotes = (
   if (isPatternStrummedChord(chord)) return { ...chord, chord: notes };
   if (Array.isArray(chord)) return notes;
   return [notes[0]];
+};
+
+export const getPatternMidiChordWithNewNotes = (
+  chord: PatternMidiChord,
+  _notes: PatternMidiNote[] | ((_note: PatternMidiNote[]) => PatternMidiNote[])
+): PatternMidiChord => {
+  const notes = Array.isArray(_notes)
+    ? _notes
+    : _notes(getPatternMidiChordNotes(chord));
+  if (!isPatternMidiChord(chord)) return chord;
+  if (isPatternStrummedChord(chord)) return { ...chord, chord: notes };
+  if (Array.isArray(chord)) return notes;
+  return [notes[0]];
+};
+
+export const getPatternMidiStreamWithNewNotes = (
+  stream: PatternMidiStream,
+  _notes: PatternMidiNote[] | ((_note: PatternMidiNote[]) => PatternMidiNote[])
+): PatternMidiStream => {
+  return stream.map((block) => {
+    if (isPatternRest(block)) return block;
+    return getPatternMidiChordWithNewNotes(block, _notes);
+  });
+};
+
+export const getPatternBlockWithNewNotes = (
+  block: PatternBlock,
+  _notes?: PatternNote[] | ((_note: PatternNote[]) => PatternNote[]),
+  restHandler?: (block: PatternRest) => PatternRest
+): PatternBlock => {
+  if (restHandler && isPatternRest(block)) {
+    return restHandler?.(block) ?? block;
+  }
+  if (_notes === undefined || !isPatternChord(block)) return block;
+  return getPatternChordWithNewNotes(block, _notes);
 };
 
 // ------------------------------------------------------------

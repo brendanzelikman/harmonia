@@ -18,13 +18,7 @@ export const useToggledState = (
   useCustomEventListener(CLOSE_STATE(key), () => setState(false));
   useCustomEventListener(TOGGLE_STATE(key), () => setState((prev) => !prev));
 
-  return {
-    open,
-    close,
-    toggle,
-    isOpen: state,
-    isClosed: !state,
-  };
+  return { open, close, toggle, isOpen: state, isClosed: !state };
 };
 
 export const OPEN_STATE = (key: string) => `open_${key}`;

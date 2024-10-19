@@ -2,7 +2,7 @@ import { EditorTabGroup } from "features/Editor/components/EditorTab";
 import { ScaleEditorProps } from "../ScaleEditor";
 import { getMidiPitchClass } from "utils/midi";
 import { isNestedNote } from "types/Scale/ScaleTypes";
-import { getScaleKey } from "utils/key";
+import { getScaleKey } from "utils/scale";
 
 export const ScaleEditorNotebox = (props: ScaleEditorProps) => {
   const { scale, midiScale, cursor } = props;

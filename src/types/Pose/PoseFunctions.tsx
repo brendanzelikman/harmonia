@@ -19,6 +19,7 @@ import {
   multiplyVector,
   sumVectors,
 } from "utils/vector";
+import { isFiniteNumber } from "types/util";
 
 // ------------------------------------------------------------
 // Pose Serializers
@@ -70,18 +71,17 @@ export const getPoseVectorAsJSX = (
   const trackKeys =
     hasSeveralTracks && trackMap ? (
       <span>
-        {hasSeveralTracks ? "(" : ""}
         {trackIds.map((id, i) => {
           const label = getTrackLabel(id, trackMap);
           const value = vector[id];
           return (
             <span key={`scalar-${i}`}>
-              S{label}: {value}
+              {label}
+              {value}
               {i < trackCount - 1 ? " + " : ""}
             </span>
           );
         })}
-        {hasSeveralTracks ? ")" : ""}
       </span>
     ) : null;
 
@@ -125,7 +125,7 @@ export const getPoseVectorAsJSX = (
 
 /** Get a `PoseVectorModule` as JSX. */
 export const getPoseVectorModuleAsJSX = (
-  module: _.PoseVectorModule,
+  module: _.PoseOperation,
   trackMap?: TrackMap
 ) => {
   const { vector, chain } = module;
@@ -140,11 +140,16 @@ export const getPoseVectorModuleAsJSX = (
   );
 };
 
+export const getPoseBlockDuration = (block: _.PoseBlock) => {
+  const duration = block.duration ?? Infinity;
+  const repeat = block.repeat ?? 1;
+  return duration * repeat;
+};
+
 /** Get the duration of a `PoseBlock` as a string. */
 export const getPoseBlockDurationAsString = (block: _.PoseBlock) => {
   const duration = block.duration ?? Infinity;
-  const repeat = block.repeat ?? 1;
-  const totalDuration = duration * repeat;
+  const totalDuration = getPoseBlockDuration(block);
 
   // If the duration is infinite, just return the symbol
   const isInfinite = duration === Infinity;
@@ -160,6 +165,32 @@ export const getPoseBlockDurationAsString = (block: _.PoseBlock) => {
 // ------------------------------------------------------------
 // Pose Helpers
 // ------------------------------------------------------------
+
+/** Get a pose block from the stream using the list of indices. */
+export const getPoseBlockFromStream = (
+  stream: _.PoseStream = [],
+  indices: number[] = []
+): _.PoseBlock | undefined => {
+  if (!stream.length || !indices.length) return undefined;
+
+  // Get the last index and the rest of the indices
+  const depths = indices;
+  const index = indices.splice(-1, 1)[0];
+
+  // If there is no depth, return the block at the index
+  let block = stream;
+  if (!depths.length) return block.at(index);
+
+  // Iterate through the depths until a stream cannot be found
+  for (const depth of depths) {
+    const nextBlock = block[depth];
+    if (!nextBlock || !("stream" in nextBlock)) return undefined;
+    block = nextBlock.stream;
+  }
+
+  // Return the block at the index
+  return stream.at(index);
+};
 
 /** Get a pose vector as a scale vector. */
 export const getPoseVectorAsScaleVector = (
@@ -188,14 +219,14 @@ export const isPoseBucket = (pose?: _.Pose) => {
   if (!pose) return false;
   const stream = pose.stream;
   if (stream.length !== 1) return false;
-  return _.isPoseVectorModule(stream[0]);
+  return _.isPoseOperation(stream[0]);
 };
 
 /** Get the first vector of a Pose if it is a bucket. */
 export const getPoseBucketVector = (pose?: _.Pose) => {
   if (!pose || !pose.stream.length) return {};
   const block = pose.stream[0];
-  if (_.isPoseVectorModule(block)) return block.vector;
+  if (_.isPoseOperation(block)) return block.vector;
   return {};
 };
 
@@ -249,27 +280,34 @@ export const getPoseVectorOffsetName = (
 // ------------------------------------------------------------
 
 /** Get the duration of a stream or Infinity if some element's duration is undefined. */
-export const getPoseDuration = (pose?: _.Pose) => {
-  const stream = pose?.stream;
-  if (!stream) return 0;
+export const getPoseStreamDuration = (stream?: _.PoseStream) => {
+  if (!stream) return 1;
   return stream.reduce((acc, block) => {
-    const duration = block.duration || Infinity;
+    const duration = block.duration ?? Infinity;
     const repeat = block.repeat || 1;
     return acc + duration * repeat;
   }, 0);
 };
 
+/** Get the duration of a pose. */
+export const getPoseDuration = (pose?: _.Pose) => {
+  return getPoseStreamDuration(pose?.stream);
+};
+
 /** Get the vector at the given index within the stream */
-export const getPoseVectorAtIndex = (
-  pose: _.Pose,
+export const getPoseOperationAtIndex = (
+  stream: _.PoseStream,
   index: number,
   lastIndex: number = 0
-): _.PoseVector => {
-  const stream = pose.stream;
+): _.PoseOperation => {
   let currentIndex = 0;
+  let operation: _.PoseOperation = {
+    vector: {},
+    operations: [],
+  };
 
   // Compute the last index initially by taking the duration of the stream
-  if (!lastIndex) lastIndex = getPoseDuration(pose);
+  if (!lastIndex) lastIndex = getPoseStreamDuration(stream);
 
   // Keep iterating until the last index is passed
   while (currentIndex < lastIndex) {
@@ -279,7 +317,7 @@ export const getPoseVectorAtIndex = (
     for (const block of stream) {
       // Find the end time of the current block or fill in the remaining duration
       const duration = block.duration ?? lastIndex - localIndex;
-      const repeatCount = block.repeat ?? 1;
+      const repeatCount = block.repeat || 1;
       const blockEndTime = localIndex + duration * repeatCount;
 
       // Iterate while the block is still active and the parent is not over
@@ -291,18 +329,53 @@ export const getPoseVectorAtIndex = (
         // Check if the offset is within the bounds of the current block
         if (index < blockLastIndex) {
           // Return the vector if possible
-          if (_.isPoseVectorModule(block)) {
-            if (!block.chain) return block.vector;
+          if (!_.isPoseStreamModule(block)) {
+            if (!block.chain)
+              return {
+                ...operation,
+                ...block,
+                operations: [
+                  ...(operation.operations ?? []),
+                  ...(block.operations ?? []),
+                ],
+                vector: sumVectors(operation.vector, block.vector),
+              };
             const chainedVector = multiplyVector(block.chain, i);
-            return sumVectors(block.vector, chainedVector);
+            return {
+              ...operation,
+              ...block,
+              operations: [
+                ...(operation.operations ?? []),
+                ...(block.operations ?? []),
+              ],
+              vector: sumVectors(operation.vector, block.vector, chainedVector),
+            };
           }
 
           // Otherwise, recursively call the function on the stream
-          return getPoseVectorAtIndex(pose, blockLocalIndex, blockLastIndex);
+          const newOp = getPoseOperationAtIndex(
+            block.stream,
+            blockLocalIndex,
+            blockLastIndex
+          );
+          return {
+            ...operation,
+            ...newOp,
+            operations: [
+              ...(operation.operations ?? []),
+              ...(newOp.operations ?? []),
+            ],
+            vector: sumVectors(
+              operation.vector,
+              "vector" in block ? block.vector : {},
+              newOp.vector
+            ),
+          };
         }
 
         // Increment the local index by the duration of the current block
-        localIndex += duration;
+        const increment = !isFiniteNumber(duration) || !duration ? 1 : duration;
+        localIndex += increment;
 
         // Break if the local index is beyond the end of the current block
         if (localIndex >= blockEndTime) break;
@@ -312,12 +385,15 @@ export const getPoseVectorAtIndex = (
       if (localIndex >= lastIndex) break;
     }
 
+    // Make sure that the local index is incremented
+    if (localIndex === currentIndex) break;
+
     // Increment the current index by the duration of the parent stream
     currentIndex = localIndex;
   }
 
   // Return an empty vector if the offset is beyond all elements
-  return {};
+  return { vector: {} };
 };
 
 /** Map a function onto a pose block */
@@ -325,8 +401,8 @@ export const mapPoseBlock = (
   block: _.PoseBlock,
   fn: (oldVec: _.PoseVector) => _.PoseVector
 ): _.PoseBlock => {
-  if (_.isPoseVectorModule(block)) {
-    return { ...block, vector: fn(block.vector) };
+  if (_.isPoseOperation(block)) {
+    return { ...block, vector: fn(block.vector ?? {}) };
   }
   return { ...block, stream: mapPoseStreamVectors(block.stream, fn) };
 };
@@ -337,8 +413,8 @@ export const mapPoseStreamVectors = (
   fn: (oldVec: _.PoseVector) => _.PoseVector
 ): _.PoseStream => {
   return stream.map((block) => {
-    if (_.isPoseVectorModule(block)) {
-      return { ...block, vector: fn(block.vector) };
+    if (_.isPoseOperation(block)) {
+      return { ...block, vector: fn(block.vector ?? {}) };
     }
     return { ...block, stream: mapPoseStreamVectors(block.stream, fn) };
   });

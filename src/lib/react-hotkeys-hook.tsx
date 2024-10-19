@@ -147,7 +147,7 @@ export const useHeldHotkeys = (
   options?: OptionsOrDependencyArray,
   dependencies?: OptionsOrDependencyArray
 ) => {
-  const [heldKeys, setHeldKeys] = useState<Record<string, boolean>>({});
+  const [holding, setHeldKeys] = useState<Record<string, boolean>>({});
 
   // Call the appropriate callback based on the event type
   const callback = useCallback((e: KeyboardEvent) => {
@@ -204,5 +204,5 @@ export const useHeldHotkeys = (
   useHotkeys(allKeys, callback, hotkeyOptions, hotkeyDependencies);
 
   // Return the held keys
-  return heldKeys;
+  return holding;
 };

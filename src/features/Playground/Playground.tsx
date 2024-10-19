@@ -11,6 +11,7 @@ import { selectHideTimeline } from "types/Meta/MetaSelectors";
 import { usePlaygroundController } from "./hooks/usePlaygroundController";
 import { Diary } from "features/Diary/Diary";
 import { Editor } from "features/Editor/Editor";
+import { Terminal } from "features/Diary/Terminal";
 
 /** The playground contains the DAW */
 export function Playground() {
@@ -28,6 +29,7 @@ export function Playground() {
   return (
     <div className="size-full animate-in fade-in duration-150">
       <Diary />
+      <Terminal />
       <div className="relative hidden md:flex flex-col h-full">
         {hideTimeline ? (
           <TimelinePlaceholder />

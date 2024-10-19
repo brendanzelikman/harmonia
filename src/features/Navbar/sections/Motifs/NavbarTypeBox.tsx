@@ -15,7 +15,7 @@ export const NavbarTypeBox = () => {
   const borderColor = toolkitMotifBorder[type];
 
   return (
-    <div className="group relative font-light text-sm capitalize">
+    <div className="group/tooltip relative font-light text-sm capitalize">
       <TooltipButton
         className={`${borderColor} xl:min-h-9 min-h-8 min-w-24 px-2 border rounded-lg transition-all`}
       >

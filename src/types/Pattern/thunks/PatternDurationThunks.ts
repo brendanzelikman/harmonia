@@ -14,38 +14,10 @@ import {
 } from "../PatternUtils";
 import { updatePattern } from "../PatternSlice";
 import { Payload } from "lib/redux";
-import { clamp, sample, shuffle, uniq, uniqBy } from "lodash";
+import { clamp, sample, shuffle, uniqBy } from "lodash";
 import { getPatternBlockDuration } from "../PatternFunctions";
 import { isMidiNote } from "types/Scale/ScaleTypes";
 import { getMidiNoteValue } from "utils/midi";
-
-/** Repeat a pattern a certain number of times. */
-export const repeatPattern =
-  ({ data }: Payload<{ id: PatternId; repeat: number }>): Thunk =>
-  (dispatch, getProject) => {
-    const { id, repeat } = data;
-    const project = getProject();
-    const pattern = selectPatternById(project, id);
-    if (!pattern) return;
-
-    const stream = new Array(repeat + 1).fill(pattern.stream).flat();
-    dispatch(updatePattern({ data: { id, stream } }));
-  };
-
-/** Continue a pattern for a certain number of notes. */
-export const continuePattern =
-  ({ data }: Payload<{ id: PatternId; length: number }>): Thunk =>
-  (dispatch, getProject) => {
-    const { id, length } = data;
-    const project = getProject();
-    const pattern = selectPatternById(project, id);
-    if (!pattern) return;
-
-    const stream = new Array(length)
-      .fill(0)
-      .map((_, i) => pattern.stream[i % pattern.stream.length]);
-    dispatch(updatePattern({ data: { id, stream } }));
-  };
 
 /** Stretch a pattern by a scaling factor. */
 export const stretchPattern =

@@ -166,11 +166,11 @@ export function NavbarSettingsMenu() {
   );
 
   return (
-    <div className="group relative">
+    <div className="group/tooltip relative">
       {/* Button */}
       <div
         className={classNames(
-          "rounded-full p-1.5 border-0 select-none cursor-pointer group-hover:text-slate-400 hover:shadow-xl"
+          "rounded-full p-1.5 border-0 select-none cursor-pointer group-hover/tooltip:text-slate-400 hover:shadow-xl"
         )}
       >
         <GiSettingsKnobs />

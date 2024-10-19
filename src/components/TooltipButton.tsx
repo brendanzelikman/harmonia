@@ -14,6 +14,7 @@ interface TooltipButtonProps {
   onClick?: (e: React.MouseEvent<Element, MouseEvent>) => void;
   onMouseEnter?: (e: React.MouseEvent<Element, MouseEvent>) => void;
   onMouseLeave?: (e: React.MouseEvent<Element, MouseEvent>) => void;
+  active?: boolean;
   label?: ReactNode;
   disabled?: boolean;
   disabledClass?: string;
@@ -76,6 +77,7 @@ export const TooltipButton = ({
   onClick,
   onMouseEnter: _onMouseEnter,
   onMouseLeave: _onMouseLeave,
+  active,
   label,
   disabled,
   disabledClass,
@@ -96,6 +98,7 @@ export const TooltipButton = ({
   const hideTooltip = () => setShouldShowTooltip(false);
   useEffect(() => {
     if (hideTooltips || disabled) hideTooltip();
+    else if (!disabled) showTooltip();
   }, [hideTooltips, disabled]);
 
   // Store positioning to properly align tooltip
@@ -138,6 +141,7 @@ export const TooltipButton = ({
             ? ""
             : "cursor-pointer active:opacity-60"),
         className,
+        active ? "ring-2 ring-slate-50/80" : "",
         {
           "duration-200 transition-all group-hover:ring-2 hover:ring-slate-50/80":
             shouldShowTooltip && !hideRing,
@@ -163,7 +167,8 @@ export const TooltipButton = ({
       className={classNames(
         alignment,
         "select-none pointer-events-none",
-        "transition-opacity opacity-0 group-hover:opacity-100 duration-200",
+        active ? "opacity-100" : "opacity-0",
+        "transition-opacity group-hover:opacity-100 duration-200",
         "absolute p-3 py-1 w-max max-w-80 shrink-0 rounded-lg",
         direction === "vertical" ? "top-12" : "ml-10",
         borderColor ?? "border-indigo-400/90",

@@ -34,19 +34,21 @@ import {
   toolkitMotifText,
 } from "features/Navbar/components/NavbarStyles";
 import { useCallback } from "react";
+import { ClipType } from "types/Clip/ClipTypes";
+import { MotifId } from "types/Motif/MotifTypes";
 
-export function NavbarMotifbox() {
+export function NavbarMotifbox(props: { type?: ClipType }) {
   const dispatch = useProjectDispatch();
-  const type = use(selectTimelineType);
+  const type = use((_) => props.type ?? selectTimelineType(_));
   const onEditor = use(selectIsSelectedEditorOpen);
   const customPatterns = useDeep(selectCustomPatterns);
   const customPoses = useDeep(selectPoses);
   const trackScales = useDeep(selectTrackScales);
   const customScales = useDeep(selectCustomScales);
-  const motif = use(selectSelectedMotif);
-  const motifName = use(selectSelectedMotifName);
+  const motif = useDeep((_) => selectSelectedMotif(_, type));
+  const motifName = use((_) => selectSelectedMotifName(_, type));
   const scaleNameMap = useDeep(selectScaleNameMap);
-  const addingClips = use(selectIsAddingClips);
+  const addingClips = use((_) => selectIsAddingClips(_, type));
   if (!type) return null;
 
   // Compile groups with custom motifs
@@ -66,6 +68,13 @@ export function NavbarMotifbox() {
       "Custom Scales": customScales,
     } as Record<string, ScaleObject[]>,
   }[type];
+
+  /** The Motif Listbox is a dropdown menu that allows the user to select a motif. */
+  const callback = {
+    pattern: (id: PatternId) => dispatch(setSelectedPattern({ data: id })),
+    pose: (id: PoseId) => dispatch(setSelectedPose({ data: id })),
+    scale: (id: ScaleId) => dispatch(setSelectedScale({ data: id })),
+  }[type] as (id: MotifId) => void;
 
   /** Render a motif in the listbox. */
   const renderMotif = useCallback(
@@ -90,6 +99,7 @@ export function NavbarMotifbox() {
             } text-white cursor-default select-none font-light relative py-1.5 pl-4 pr-8`
           }
           value={obj.id}
+          onClick={() => callback(obj.id)}
         >
           {({ active }) => (
             <div className={color(active)}>
@@ -106,7 +116,7 @@ export function NavbarMotifbox() {
         </HeadlessListbox.Option>
       );
     },
-    [motif, scaleNameMap, type]
+    [motif, scaleNameMap, callback, type]
   );
 
   /** Render a motif category in the listbox. */
@@ -123,15 +133,15 @@ export function NavbarMotifbox() {
           key={category}
           className={`${
             isPadded ? "pt-0.5" : "pt-0"
-          } group relative h-full bg-slate-300/50 whitespace-nowrap`}
+          } group/category relative h-full min-h-fit min-w-fit bg-slate-300/50 whitespace-nowrap`}
         >
           <div
-            className={`px-3 py-1.5 text-sm font-light backdrop-blur bg-slate-800 ${labelColor} ${hoverColor[type]} group-hover:text-white`}
+            className={`peer px-3 py-1.5 text-sm font-light backdrop-blur bg-slate-800 ${labelColor} ${hoverColor[type]} hover:text-white`}
           >
             {category}
           </div>
           <div
-            className={`font-nunito bg-slate-800 border border-white/50 rounded top-0 right-0 translate-x-[100%] absolute hidden group-hover:block`}
+            className={`font-nunito bg-slate-800 border border-white/50 rounded top-0 right-0 translate-x-[100%] absolute hidden peer-hover:block group-hover/category:block`}
           >
             <div className="h-full flex flex-col">
               {Group[category].map((obj) => renderMotif(obj))}
@@ -169,16 +179,9 @@ export function NavbarMotifbox() {
     </Transition>
   );
 
-  /** The Motif Listbox is a dropdown menu that allows the user to select a motif. */
-  const callback = {
-    pattern: (id: PatternId) => dispatch(setSelectedPattern({ data: id })),
-    pose: (id: PoseId) => dispatch(setSelectedPose({ data: id })),
-    scale: (id: ScaleId) => dispatch(setSelectedScale({ data: id })),
-  }[type];
-
   const Listbox = () => {
     return (
-      <HeadlessListbox value={motif?.id ?? ""} onChange={callback}>
+      <HeadlessListbox value={[motif?.id ?? ""]} multiple>
         {({ open }) => (
           <div className="relative">
             <HeadlessListbox.Button
@@ -239,9 +242,9 @@ const GroupList = {
 };
 
 const hoverColor = {
-  pattern: "group-hover:bg-emerald-600",
-  pose: "group-hover:bg-pink-600",
-  scale: "group-hover:bg-blue-600",
+  pattern: "hover:bg-emerald-600",
+  pose: "hover:bg-pink-600",
+  scale: "hover:bg-blue-600",
 };
 
 const editorClass = {

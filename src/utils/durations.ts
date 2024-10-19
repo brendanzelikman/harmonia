@@ -47,6 +47,20 @@ export const createNoteFactory = (duration: DurationType) => {
   };
 };
 
+/** Create a rest note using the name of a note duration. */
+export const createRestFromDuration = (duration: DurationType) => ({
+  duration: DURATION_TICKS[duration],
+});
+
+/** Create a rest note factory for a specific note duration. */
+export const createRestFactory = (duration: DurationType) => {
+  return () => createRestFromDuration(duration);
+};
+
+// ------------------------------------------------------------
+// Vector Factories
+// ------------------------------------------------------------
+
 /** Create a pose vector module using the name of a note duration. */
 export const createVectorModuleFromDuration = (
   vector: PoseVector = {},
@@ -60,16 +74,6 @@ export const createVectorModuleFactory = (duration: DurationType) => {
   return (vector: PoseVector = {}) => {
     return createVectorModuleFromDuration(vector, duration);
   };
-};
-
-/** Create a rest note using the name of a note duration. */
-export const createRestFromDuration = (duration: DurationType) => ({
-  duration: DURATION_TICKS[duration],
-});
-
-/** Create a rest note factory for a specific note duration. */
-export const createRestFactory = (duration: DurationType) => {
-  return () => createRestFromDuration(duration);
 };
 
 // ------------------------------------------------------------

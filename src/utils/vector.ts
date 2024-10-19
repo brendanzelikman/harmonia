@@ -1,5 +1,5 @@
 import { union } from "lodash";
-import { Dict, getDictKeys, getValueByKey } from "./objects";
+import { Dict, getValueByKey } from "./objects";
 
 export type VectorKey<T extends Vector> = keyof T;
 export type Scalar = number;
@@ -26,7 +26,7 @@ export const mergeVectorKeys = <
   vector: V,
   dict: D
 ) => {
-  return union<keyof V>(getVectorKeys(vector), getDictKeys(dict));
+  return union<keyof V>(getVectorKeys(vector), Object.keys(dict));
 };
 
 /** Read the numerical value of a vector key. */

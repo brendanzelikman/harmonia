@@ -15,7 +15,7 @@ import { PatternEditorProps } from "../PatternEditor";
 
 export function PatternEditorClockTab(props: PatternEditorProps) {
   const dispatch = useProjectDispatch();
-  const heldKeys = useHeldHotkeys("shift");
+  const holding = useHeldHotkeys("shift");
   return (
     <EditorTab show={props.isCustom} border={false}>
       <EditorTabGroup border>
@@ -43,7 +43,7 @@ export function PatternEditorClockTab(props: PatternEditorProps) {
         />
       </EditorTabGroup>
       <EditorTabGroup>
-        <span className={heldKeys.shift ? "text-emerald-400" : ""}>
+        <span className={holding.shift ? "text-emerald-400" : ""}>
           Hold Shift to Preview
         </span>
       </EditorTabGroup>

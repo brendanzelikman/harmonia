@@ -49,7 +49,7 @@ export function PatternEditorBlockTab(props: PatternEditorProps) {
   const isValid = !!id && index !== undefined;
   const isChordValid = isValid && !!chord;
   const { chordIndex, setChordIndex } = usePatternEditorChordIndex(props);
-  const heldKeys = useHeldHotkeys("alt");
+  const holding = useHeldHotkeys("alt");
 
   // Track info
   const trackScaleMap = useDeep(selectTrackScaleMap);
@@ -99,7 +99,7 @@ export function PatternEditorBlockTab(props: PatternEditorProps) {
     return (
       <div className="h-5 flex text-xs items-center">
         <EditorListbox
-          borderColor={heldKeys.alt ? "border-red-500" : undefined}
+          borderColor={holding.alt ? "border-red-500" : undefined}
           value={midiNote}
           options={options}
           getOptionKey={(option, i) => `note-${i}-${option.MIDI}`}
@@ -107,7 +107,7 @@ export function PatternEditorBlockTab(props: PatternEditorProps) {
             `${getMidiPitch(option.MIDI)} / MIDI = ${option.MIDI}`
           }
           setValue={(value) => setChordIndex(options.indexOf(value))}
-          onClick={heldKeys.alt ? onClick : undefined}
+          onClick={holding.alt ? onClick : undefined}
         />
       </div>
     );
@@ -331,7 +331,7 @@ export function PatternEditorBlockTab(props: PatternEditorProps) {
             Transpose:
           </span>
           <EditorListbox
-            borderColor={heldKeys.alt ? "border-red-500" : undefined}
+            borderColor={holding.alt ? "border-red-500" : undefined}
             options={["chromatic", ...noteTracks] as ScaleVectorId[]}
             getOptionKey={(option, i) =>
               isString(option) ? "chromatic-key" : `track-${i}-${option.id}`

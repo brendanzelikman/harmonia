@@ -16,7 +16,7 @@ export const getOriginalIdFromPortaledClip = (clipId: PortaledClipId) =>
 export function applyPortalsToClips(clips: Timed<Clip>[], portals: Portal[]) {
   return clips.map((clip) => {
     if (!isFiniteNumber(clip.duration)) {
-      return [{ ...clip, duration: clip.duration ?? 0 }];
+      return [{ ...clip, duration: clip.duration || 0 }];
     }
 
     // Start with the media bounds

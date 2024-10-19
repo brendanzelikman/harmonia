@@ -1,7 +1,7 @@
 import { use, useProjectDispatch } from "types/hooks";
 import classNames from "classnames";
 import { isFiniteNumber } from "types/util";
-import pluralize from "pluralize";
+import pluralize, { plural } from "pluralize";
 import { PPQ } from "utils/durations";
 import {
   ClipType,
@@ -12,38 +12,39 @@ import {
 import { updateMediaDraft } from "types/Timeline/TimelineSlice";
 import { selectHasTracks } from "types/Arrangement/ArrangementSelectors";
 import {
-  selectSelectedMotif,
   selectDraftedClip,
   selectIsAddingClips,
   selectTimelineType,
 } from "types/Timeline/TimelineSelectors";
-import {
-  selectSelectedMotifDuration,
-  selectSelectedMotifName,
-} from "types/Arrangement/ArrangementScaleSelectors";
+import { selectSelectedMotifDuration } from "types/Arrangement/ArrangementScaleSelectors";
 import { toggleAddingState } from "types/Timeline/TimelineThunks";
 import {
   toolkitClipBackground,
   toolkitClipBorder,
   toolkitClipText,
+  toolkitMotifBackground,
+  toolkitMotifBorder,
   toolkitToolIcon,
   toolkitToolName,
 } from "features/Navbar/components/NavbarStyles";
 import { useMemo } from "react";
 import { format } from "utils/math";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
+import { NavbarMotifbox } from "../Motifs/NavbarMotifbox";
+import { activeRing, NavbarCreator } from "../Motifs/NavbarCreator";
+import { cancelEvent } from "utils/html";
+
+const SHOW_OFFSET = false;
 
 export const NavbarArranger = ({ type }: { type: ClipType }) => {
   const dispatch = useProjectDispatch();
   const timelineType = use(selectTimelineType);
   const isAdding = use(selectIsAddingClips);
   const hasTracks = use(selectHasTracks);
-  const draft = use(selectDraftedClip);
-  const motif = use((_) => selectSelectedMotif(_, type));
-  const motifName = use((_) => selectSelectedMotifName(_, type));
+  const draft = use((_) => selectDraftedClip(_, type));
   const motifDuration = use((_) => selectSelectedMotifDuration(_, type));
-  const disabled = motif === undefined || !hasTracks;
-  const active = isAdding && timelineType === type && !disabled;
+  const disabled = !hasTracks;
+  const active = isAdding && timelineType === type;
 
   const draftDuration = draft?.duration;
   const draftOffset = draft?.offset;
@@ -51,7 +52,7 @@ export const NavbarArranger = ({ type }: { type: ClipType }) => {
   const isFiniteOffset = isFiniteNumber(draftOffset);
   const draftBars = format((draftDuration ?? NaN) / (4 * PPQ), 6);
   const draftBarString = isNaN(draftBars) ? "" : draftBars;
-  const canHaveOffset = type !== "scale" && isFiniteDuration;
+  const canHaveOffset = type !== "scale" && isFiniteDuration && SHOW_OFFSET;
 
   // The duration is formatted to display the number of bars and ticks
   const durationString = useMemo(() => {
@@ -81,15 +82,19 @@ export const NavbarArranger = ({ type }: { type: ClipType }) => {
   }[type];
 
   return (
-    <div className="flex group relative" id={`add-${type}-button`}>
+    <div className="flex group/tooltip relative" id={`add-${type}-button`}>
       <div
         className={classNames(
+          timelineType === type ? "ring-1 ring-slate-300/80" : "",
           toolkitClipBackground[type],
-          "border-slate-400/50 transition-all size-8 xl:size-9 flex total-center rounded-full",
+          "border-slate-400/50 transition-all size-9 flex total-center rounded-full",
           { "cursor-default opacity-75": disabled },
           { "cursor-pointer opacity-100": !disabled },
           { "hover:ring-2 hover:ring-slate-300": !disabled },
-          { [`ring-2 ring-offset-2 ring-offset-black ${ringColor}`]: active }
+          {
+            [`ring-2 ring-offset-2 ring-offset-black ${ringColor[type]}`]:
+              active,
+          }
         )}
         onClick={() => !disabled && dispatch(toggleAddingState({ data: type }))}
       >
@@ -107,51 +112,98 @@ export const NavbarArranger = ({ type }: { type: ClipType }) => {
                 active ? toolkitClipText[type] : "text-slate-50"
               )}
             >
-              {active ? "Hide" : "Equip"}
+              {active ? "Equipped" : "Equip"}
               {` ${toolkitToolName[type]} `}
-              <span className="font-bold">({motifName})</span>
+              <span className="font-light text-slate-400">
+                ({subtext[type]})
+              </span>
             </p>
-            <p>
-              Duration:{" "}
-              <span className="text-slate-50 font-bold">{durationString} </span>
-            </p>
-            <input
-              type="number"
-              value={draftBarString}
-              className="w-full h-6 border rounded px-2 py-1 text-sm bg-slate-800 text-white"
-              placeholder="Duration (bars)"
-              onChange={(e) =>
-                updateDraft({
-                  duration: isFiniteNumber(e.currentTarget.valueAsNumber)
-                    ? e.currentTarget.valueAsNumber * 4 * PPQ
-                    : undefined,
-                })
-              }
-            />
-            {canHaveOffset && (
-              <>
-                <p>
-                  Offset:{" "}
-                  <span className="font-bold text-slate-50">
-                    {isFiniteOffset ? draftOffset : "0"}{" "}
-                    {pluralize("tick", draftOffset)}
-                  </span>
-                </p>
-                <input
-                  type="number"
-                  value={draftOffset === 0 ? "" : draftOffset}
-                  className="w-full h-6 border px-2 py-1 text-sm bg-slate-800 text-white rounded"
-                  placeholder="Offset (ticks)"
-                  onChange={(e) =>
-                    updateDraft({
-                      offset: isFiniteNumber(e.currentTarget.valueAsNumber)
-                        ? e.currentTarget.valueAsNumber
-                        : 0,
-                    })
-                  }
-                />
-              </>
-            )}
+            <div className="group/motif z-[50] py-1">
+              <NavbarMotifbox type={type} />
+            </div>
+            <div className="w-full flex gap-4 text-slate-400">
+              <NavbarCreator type={type} />
+              <div
+                onClick={(e) => {
+                  cancelEvent(e);
+                  dispatch(toggleAddingState({ data: type }));
+                }}
+                className={classNames(
+                  "peer w-min z-[40] px-2 capitalize text-sm flex border border-slate-400/50 text-slate-200 rounded total-center cursor-pointer transition-all",
+                  `hover:ring-2 hover:ring-slate-300 active:ring-2 active:ring-offset-2 active:ring-offset-black`,
+                  toolkitMotifBackground[type],
+                  activeRing[type]
+                )}
+              >
+                Arrange Clip
+              </div>
+              <NavbarHoverTooltip
+                group="peer-hover:block hover/tooltip:block"
+                top="top-[7.5rem]"
+                className={`left-12 capitalize whitespace-nowrap`}
+                padding="py-2 px-3"
+                borderColor={toolkitMotifBorder[type]}
+              >
+                <div className="min-w-56 flex flex-col gap-2">
+                  {type === "scale" && (
+                    <div className="block normal-case text-wrap py-1 text-slate-400 text-xs">
+                      <span className="text-slate-300">Note</span>: The length
+                      of the scale must match the length of the track's own
+                      scale.
+                    </div>
+                  )}
+                  <div className="flex flex-col w-full gap-2 py-1">
+                    <p>
+                      Duration:{" "}
+                      <span className="text-slate-50 font-bold">
+                        {durationString}{" "}
+                      </span>
+                    </p>
+                    <input
+                      type="number"
+                      value={draftBarString}
+                      className="w-full h-6 border rounded px-2 py-1 text-sm bg-slate-800 text-white"
+                      placeholder="Duration (bars)"
+                      onChange={(e) =>
+                        updateDraft({
+                          duration: isFiniteNumber(
+                            e.currentTarget.valueAsNumber
+                          )
+                            ? e.currentTarget.valueAsNumber * 4 * PPQ
+                            : undefined,
+                        })
+                      }
+                    />
+                  </div>
+                  {canHaveOffset && (
+                    <div className="flex flex-col w-full gap-2 py-1">
+                      <p>
+                        Offset:{" "}
+                        <span className="font-bold text-slate-50">
+                          {isFiniteOffset ? draftOffset : "0"}{" "}
+                          {pluralize("tick", draftOffset)}
+                        </span>
+                      </p>
+                      <input
+                        type="number"
+                        value={draftOffset === 0 ? "" : draftOffset}
+                        className="w-full h-6 border px-2 py-1 text-sm bg-slate-800 text-white rounded"
+                        placeholder="Offset (ticks)"
+                        onChange={(e) =>
+                          updateDraft({
+                            offset: isFiniteNumber(
+                              e.currentTarget.valueAsNumber
+                            )
+                              ? e.currentTarget.valueAsNumber
+                              : 0,
+                          })
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              </NavbarHoverTooltip>
+            </div>
           </div>
         </NavbarHoverTooltip>
       )}
@@ -163,6 +215,12 @@ const ringColor = {
   pattern: "ring-pattern-clip/80",
   pose: "ring-pose-clip/80",
   scale: "ring-blue-400/80",
+};
+
+const subtext = {
+  pattern: "Make Patterns",
+  scale: "Make Scales",
+  pose: "Make Poses",
 };
 
 const barString = (duration: number) => {

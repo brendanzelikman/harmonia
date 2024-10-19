@@ -13,6 +13,7 @@ import {
   ProjectMetadata,
 } from "../Meta/MetaTypes";
 import { defaultMotifState } from "types/Motif/MotifTypes";
+import { useToggledState } from "hooks/useToggledState";
 
 // ------------------------------------------------------------
 // Project Definitions
@@ -63,6 +64,9 @@ export const initializeProject = (template: Project = defaultProject) => {
   };
   return project;
 };
+
+// The project can be directly edited with a custom window
+export const useTerminal = () => useToggledState("terminal");
 
 // ------------------------------------------------------------
 // Project Type Guards

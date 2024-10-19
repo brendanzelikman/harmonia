@@ -8,17 +8,6 @@ export const getDictValues = <T>(obj: Dictionary<T>) => {
   return Object.values(obj).filter((v) => v !== undefined) as T[];
 };
 
-/** Gets the keys of a dictionary. */
-export const getObjectKeys = <T extends PropertyKey, V = any>(
-  obj: Record<T, V>
-) => {
-  return Object.keys(obj) as T[];
-};
-
-export const getDictKeys = <T extends Dictionary<any>>(obj: T) => {
-  return Object.keys(obj) as (keyof T)[];
-};
-
 /** Get an object from a record by key or return undefined. */
 export const getValueByKey = <T, K extends keyof T>(obj?: T, key?: K) => {
   return key === undefined ? undefined : obj?.[key];

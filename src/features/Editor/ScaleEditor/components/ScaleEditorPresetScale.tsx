@@ -8,7 +8,7 @@ import { resolveScaleToMidi } from "types/Scale/ScaleResolvers";
 import { areScalesEqual } from "types/Scale/ScaleUtils";
 import { ScaleObject } from "types/Scale/ScaleTypes";
 import { selectTrackScaleChain } from "types/Track/TrackSelectors";
-import { getScaleName } from "utils/key";
+import { getScaleName } from "utils/scale";
 import { PresetScaleGroupMap } from "assets/scales";
 import { useMemo } from "react";
 

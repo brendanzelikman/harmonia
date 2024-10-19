@@ -1,12 +1,13 @@
 import { getVector_T, getVector_O, getVector_t } from "utils/vector";
-import { PoseVector, VoiceLeading } from "types/Pose/PoseTypes";
+import { isVoiceLeading, PoseOperation } from "types/Pose/PoseTypes";
 import { getScaleNoteMidiValue } from "types/Scale/ScaleFunctions";
 import { ScaleChain, isNestedNote } from "types/Scale/ScaleTypes";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
 import { getPatternChordWithNewNotes } from "./PatternUtils";
 import {
-  getTransposedMidiStream,
-  getRotatedMidiStream,
+  transposeStream,
+  rotateStream,
+  TRANSFORMATIONS,
 } from "./PatternTransformers";
 import {
   PatternChord,
@@ -86,32 +87,44 @@ export const resolvePatternBlockToMidi = (
 /** Resolve a `PatternStream` to MIDI using a `ScaleChain` and `PoseVector` */
 export const resolvePatternStreamToMidi = (
   stream: PatternStream,
-  scales?: ScaleChain,
-  vector?: PoseVector,
-  voiceLeadings?: VoiceLeading[]
+  scales: ScaleChain = [],
+  transformations: PoseOperation[] = []
 ): PatternMidiStream => {
   if (!stream) return [];
 
   // Get the stream with or without the scales
   let midiStream = stream.map((b) => resolvePatternBlockToMidi(b, scales));
 
-  // Return the stream if no pose is specified
-  if (!vector) return midiStream;
+  // Apply all of the pattern transformations
+  if (transformations) {
+    for (const transformation of transformations) {
+      // Apply the chromatic offset
+      const N = getVector_T(transformation.vector);
+      midiStream = transposeStream(midiStream, N);
 
-  // Apply the chromatic offset
-  const N = getVector_T(vector);
-  midiStream = getTransposedMidiStream(midiStream, N);
+      // Apply the chordal offset
+      const t = getVector_t(transformation.vector);
+      midiStream = rotateStream(midiStream, t);
 
-  // Apply the chordal offset
-  const t = getVector_t(vector);
-  midiStream = getRotatedMidiStream(midiStream, t);
+      // Apply the octave offset
+      const O = getVector_O(transformation.vector);
+      midiStream = transposeStream(midiStream, 12 * O);
 
-  // Apply the octave offset
-  const O = getVector_O(vector);
-  midiStream = getTransposedMidiStream(midiStream, 12 * O);
+      // Apply any voice leadings
+      const v = transformation.vector;
+      const isVL = isVoiceLeading(v);
+      if (isVL) {
+        midiStream = applyVoiceLeadingsToMidiStream(midiStream, [v]);
+      }
 
-  // Apply voice leadings to the stream;
-  midiStream = applyVoiceLeadingsToMidiStream(midiStream, voiceLeadings ?? []);
+      // Apply the transformations in order
+      for (const operation of transformation.operations ?? []) {
+        const callback = TRANSFORMATIONS[operation.id]?.["callback"];
+        if (!callback) continue;
+        midiStream = callback(midiStream, operation.args);
+      }
+    }
+  }
 
   return midiStream;
 };

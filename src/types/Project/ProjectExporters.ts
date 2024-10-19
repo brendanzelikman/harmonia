@@ -1,6 +1,6 @@
 import { selectPatternClipIds } from "types/Clip/ClipSelectors";
 import { exportClipsToMidi } from "types/Clip/ClipThunks";
-import { Project, Thunk } from "./ProjectTypes";
+import { initializeProject, Project, Thunk } from "./ProjectTypes";
 import { selectProjectName } from "../Meta/MetaSelectors";
 import { sanitizeProject } from "./ProjectFunctions";
 import { getProjectsFromDB } from "providers/idb";
@@ -10,15 +10,19 @@ import JSZip from "jszip";
 export const exportProjectToHAM =
   (project?: Project): Thunk =>
   (dispatch, getProject) => {
-    // Serialize the project
-    const sanitizedProject = sanitizeProject(project || getProject());
+    const name = selectProjectName(getProject());
+
+    // Serialize the project with a new ID
+    const sanitizedProject = initializeProject(
+      sanitizeProject(project || getProject())
+    );
+    sanitizedProject.present.meta.name = name;
     const projectJSON = JSON.stringify(sanitizedProject);
 
     // Create a blob and download it
     const blob = new Blob([projectJSON], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    const name = selectProjectName(sanitizedProject);
     link.download = `${name ?? "project"}.ham`;
     link.href = url;
     link.click();

@@ -6,7 +6,11 @@ import {
 import { getSubdivisionTicks, getTickColumns } from "utils/durations";
 import { Tick, Timed } from "types/units";
 import { getValueByKey, getValuesByKeys } from "utils/objects";
-import { selectClipDurationMap, selectClipMap } from "../Clip/ClipSelectors";
+import {
+  selectClipById,
+  selectClipDurationMap,
+  selectClipMap,
+} from "../Clip/ClipSelectors";
 import { selectPoseMap } from "../Pose/PoseSelectors";
 import { createSelector } from "reselect";
 import { capitalize, mapValues, some } from "lodash";
@@ -209,6 +213,12 @@ export const selectIsLive = createSelector(
   (trackId) => trackId !== undefined
 );
 
+export const selectIsClipLive = (project: Project, id: ClipId) => {
+  const trackId = selectSelectedTrackId(project);
+  const clip = selectClipById(project, id);
+  return trackId !== undefined && trackId === clip?.trackId;
+};
+
 // ------------------------------------------------------------
 // Timeline Media Draft
 // ------------------------------------------------------------
@@ -310,10 +320,13 @@ export const selectTimelineBackgroundWidth = createSelector(
 // ------------------------------------------------------------
 
 /** Select if the timeline is adding some kind of clips */
-export const selectIsAddingClips = createSelector(
-  [selectTimeline],
-  (timeline) => timeline.state === "adding-clips"
-);
+export const selectIsAddingClips = (project: Project, type?: ClipType) => {
+  const timeline = selectTimeline(project);
+  return (
+    timeline.state === "adding-clips" &&
+    (type === undefined || timeline.type === type)
+  );
+};
 
 /** Select if the timeline is adding pattern clips. */
 export const selectIsAddingPatternClips = createSelector(
@@ -368,8 +381,10 @@ export const selectDraftedScaleClip = createSelector(
 );
 
 /** Select the currently drafted clip */
-export const selectDraftedClip = (project: Project) => {
-  const type = selectTimelineType(project);
+export const selectDraftedClip = (
+  project: Project,
+  type: ClipType = selectTimelineType(project)
+) => {
   if (!type) return undefined;
   return {
     pattern: selectDraftedPatternClip(project),

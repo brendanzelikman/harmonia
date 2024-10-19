@@ -15,6 +15,10 @@ import {
   PortaledPatternClipId,
   PortaledPatternClip,
   PortaledPoseClipId,
+  ClipType,
+  IClipId,
+  PortaledClip,
+  Clip,
 } from "types/Clip/ClipTypes";
 import { getClipMapsByType } from "types/Clip/ClipUtils";
 import { InstrumentNotesByTicks } from "types/Instrument/InstrumentTypes";
@@ -24,11 +28,15 @@ import {
   PatternMidiStream,
 } from "types/Pattern/PatternTypes";
 import { applyPortalsToClips } from "types/Portal/PortalFunctions";
-import { PortaledClipId, PortaledClipMap } from "types/Portal/PortalTypes";
+import {
+  Portaled,
+  PortaledClipId,
+  PortaledClipMap,
+} from "types/Portal/PortalTypes";
 import { Project } from "types/Project/ProjectTypes";
 import { TrackId, isPatternTrack } from "types/Track/TrackTypes";
 import { Tick } from "types/units";
-import { getArrayByKey, getDictValues, getValueByKey } from "utils/objects";
+import { getArrayByKey, getDictValues } from "utils/objects";
 import {
   getPatternClipMidiStream,
   getMidiStreamAtTickInTrack,
@@ -63,16 +71,6 @@ import { selectTrackScaleChainAtTick } from "./ArrangementTrackSelectors";
 import { DemoXML } from "assets/demoXML";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import {
-  getPoseVectorAtTick,
-  getPoseClipsByTrackId,
-} from "types/Clip/PoseClip/PoseClipFunctions";
-import { selectPoseMap } from "types/Pose/PoseSelectors";
-import {
-  getRotatedScale,
-  getTransposedScale,
-} from "types/Scale/ScaleTransformers";
-import { getVector_T, getVector_O, getVector_t } from "utils/vector";
-import {
   getPatternBlockAtIndex,
   getPatternBlockDuration,
 } from "types/Pattern/PatternFunctions";
@@ -81,7 +79,7 @@ import {
   PatternTrackId,
 } from "types/Track/PatternTrack/PatternTrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
-import { inRange, mapValues } from "lodash";
+import { mapValues } from "lodash";
 import { isFiniteNumber } from "types/util";
 
 /** Select the arrangement as a basic collection of dependencies (entities). */
@@ -129,7 +127,7 @@ export const selectFirstPortaledPatternClipId = createDeepSelector(
   (clipMap) => Object.keys(clipMap)[0] as PortaledPatternClipId | undefined
 );
 
-/** Select all portaled clips. */
+/** Select all portaled clip IDs. */
 export const selectPortaledClips = createDeepSelector(
   [selectPortaledClipMap],
   (clipMap) =>
@@ -137,8 +135,16 @@ export const selectPortaledClips = createDeepSelector(
       if (isPatternClipId(a.id)) return 1;
       if (isPatternClipId(b.id)) return -1;
       return 0;
-    })
+    }) as Portaled<Clip>[]
 );
+
+export const selectPortaledClipById = <T extends ClipType = ClipType>(
+  project: Project,
+  id: PortaledClipId<IClipId<T>>
+) => {
+  const clipMap = selectPortaledClipMap(project);
+  return clipMap[id];
+};
 
 /** Select the track arrangement after portals have been applied.  */
 export const selectProcessedArrangement = createDeepSelector(
@@ -233,7 +239,7 @@ export const selectTrackPatternClipStreamMap = createSelector(
 );
 
 /** Select all pattern chords to be played by each track at every tick. */
-export const selectMidiChordsByTicks = createSelector(
+export const selectMidiChordsByTicks = createDeepSelector(
   [selectProcessedArrangement, selectPatternClipStreamMap, selectTrackMap],
   (arrangement, streamMap, trackMap) => {
     const result = {} as InstrumentNotesByTicks;
@@ -296,20 +302,23 @@ export const selectOverlappingPortaledClipIdMap = createDeepSelector(
 
     // Iterate over other clips and return true if any overlap
     for (const pc of allPatternClips) {
+      // Find the closest overlapping clip
       const otherClips = allOtherClips
         .filter((oc) => oc.trackId === pc.trackId)
         .sort(
           (a, b) => Math.abs(a.tick - pc.tick) - Math.abs(b.tick - pc.tick)
         );
+
+      const pcDuration = getMediaElementDuration(pc, pc.duration);
+      const pcEndTick = pc.tick + pcDuration;
+
+      // Check if the clip is in range
       for (const clip of otherClips) {
         const startTick = clip.tick;
-        const endTick = startTick + (clip.duration ?? Infinity);
+        const clipDuration = getMediaElementDuration(clip, clip.duration);
+        const endTick = startTick + (clipDuration ?? Infinity);
         if (
-          inRange(
-            getMediaElementDuration(pc, pc.duration),
-            startTick,
-            endTick
-          ) ||
+          (pc.tick < endTick && startTick < pcEndTick) ||
           !isFiniteNumber(clip.duration)
         ) {
           result[pc.id] = (result[pc.id] ?? []).concat(clip.id);
@@ -338,13 +347,6 @@ export const selectOverlappingPortaledClips = (
   const clipMap = selectPortaledClipMap(project);
   return ids.map((id) => clipMap[id]);
 };
-
-export const selectFirstPortaledPoseClipId = createDeepSelector(
-  [selectFirstPortaledPatternClipId, selectOverlappingPortaledClipIdMap],
-  (patternClipId, overlapMap) => {
-    return getValueByKey(overlapMap, patternClipId)?.at(0);
-  }
-);
 
 /** Select a pattern clip's overlapping pose clip IDs */
 export const selectClosestPoseClipId = (
@@ -390,6 +392,11 @@ export const selectPatternClipMidiStreamMap = createDeepSelector(
           ? chordNotes
           : { duration: getPatternBlockDuration(midiChord) };
         stream.push(newNotes);
+
+        // If the clip has no duration but the pattern has more notes,
+        // return true to override and continue the loop
+        // if (isUndefined(clip.duration) && tick - clip.tick < midiDuration)
+        //   return true;
       });
 
       map[clip.id] = stream;
@@ -419,22 +426,7 @@ export const selectPatternClipXML = (project: Project, clip?: PatternClip) => {
   const scaleChain = selectTrackScaleChainAtTick(project, trackId, clip?.tick);
 
   // Apply the track's current chromatic/chordal/octave offsets to the scale
-  const poseMap = selectPoseMap(project);
-  const poseClipMap = selectPoseClipMap(project);
-  const poseClips = getPoseClipsByTrackId(poseClipMap, trackId);
-  const vector = getPoseVectorAtTick(poseClips, poseMap, clip.tick);
-  const scale = resolveScaleChainToMidi(
-    scaleChain.map((scale, i) => {
-      if (i === scaleChain.length - 1) {
-        const scale1 = getTransposedScale(scale, getVector_T(vector));
-        const scale2 = getRotatedScale(scale1, getVector_t(vector));
-        const scale3 = getTransposedScale(scale2, 12 * getVector_O(vector));
-        return scale3;
-      }
-      return scale;
-    })
-  );
-
+  const scale = resolveScaleChainToMidi(scaleChain);
   return exportPatternStreamToXML(stream, scale);
 };
 

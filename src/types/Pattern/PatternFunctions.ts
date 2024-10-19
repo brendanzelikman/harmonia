@@ -11,6 +11,7 @@ import {
   PatternStrummedChord,
   PatternBlockedChord,
   PatternStrummedMidiChord,
+  isPatternChord,
 } from "./PatternTypes";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { mod } from "utils/math";
@@ -18,6 +19,8 @@ import { PresetPatternGroupList, PresetPatternGroupMap } from "assets/patterns";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
 import { isArray } from "lodash";
 import { getTickDuration, isTripletDuration } from "utils/durations";
+import { ScaleVector, isNestedNote } from "types/Scale/ScaleTypes";
+import { sumVectors } from "utils/vector";
 
 // ------------------------------------------------------------
 // Pattern Functions
@@ -46,7 +49,10 @@ export const getPatternInstrumentKey = (pattern?: Pattern) => {
 /** Get the total duration of a `PatternStream` in ticks. */
 export const getPatternDuration = (pattern?: Pattern): Tick => {
   const stream = pattern?.stream;
-  if (!stream) return 0;
+  return stream ? getPatternStreamDuration(stream) : 0;
+};
+
+export const getPatternStreamDuration = (stream: PatternStream): Tick => {
   return stream.reduce((pre, cur) => pre + getPatternBlockDuration(cur), 0);
 };
 
@@ -194,4 +200,20 @@ export const getPatternStrummedChordNotes = (
   }
 
   return stream;
+};
+/** Transpose a `PatternStream` by applying each offset from the given `ScaleVector`. */
+
+export const getTransposedPatternStream = (
+  stream: PatternStream,
+  vector: ScaleVector
+): PatternStream => {
+  return stream.map((block) => {
+    if (!isPatternChord(block)) return block;
+    const notes = getPatternChordNotes(block);
+    return notes.map((note) => {
+      if (!isNestedNote(note)) return note;
+      const offset = sumVectors(note.offset, vector);
+      return { ...note, MIDI: undefined, offset };
+    });
+  });
 };

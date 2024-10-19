@@ -1,4 +1,3 @@
-import { promptUserForNumber } from "utils/html";
 import { Hotkey, useHotkeysInEditor } from "lib/react-hotkeys-hook";
 import { PatternEditorProps } from "../PatternEditor";
 import {
@@ -10,11 +9,6 @@ import {
 import { useProjectDispatch } from "types/hooks";
 import { transposePatternBlock } from "types/Pattern/PatternSlice";
 import { exportPatternToMIDI } from "types/Pattern/PatternExporters";
-import {
-  repeatPattern,
-  continuePattern,
-  stretchPattern,
-} from "types/Pattern/thunks/PatternDurationThunks";
 import {
   clearPattern,
   createPattern,
@@ -72,10 +66,6 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, -1)));
   useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, 12)));
   useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, -12)));
-  useHotkeysInEditor(dispatch(REPEAT_PATTERN_HOTKEY(pattern)));
-  useHotkeysInEditor(dispatch(EXTEND_PATTERN_HOTKEY(pattern)));
-  useHotkeysInEditor(dispatch(DIMINISH_PATTERN_HOTKEY(pattern)));
-  useHotkeysInEditor(dispatch(AUGMENT_PATTERN_HOTKEY(pattern)));
 }
 
 // ------------------------------------------------------------
@@ -313,58 +303,6 @@ export const TRANSPOSE_PATTERN_HOTKEY =
     };
   };
 
-export const REPEAT_PATTERN_HOTKEY =
-  (pattern?: Pattern): Thunk<Hotkey> =>
-  (dispatch) => ({
-    name: "Repeat Pattern",
-    description: "Prompt for repeating the pattern.",
-    shortcut: "r",
-    callback: promptUserForNumber(
-      "Repeat Your Pattern",
-      "How many times would you like to repeat your pattern?",
-      (n) =>
-        pattern &&
-        dispatch(repeatPattern({ data: { id: pattern.id, repeat: n } }))
-    ),
-  });
-
-export const EXTEND_PATTERN_HOTKEY =
-  (pattern?: Pattern): Thunk<Hotkey> =>
-  (dispatch) => ({
-    name: "Extend Pattern",
-    description: "Extend the duration of the pattern to a certain length.",
-    shortcut: ",",
-    callback: promptUserForNumber(
-      "Extend Your Pattern",
-      "How many notes would you like to extend your stream to?",
-      (n) =>
-        pattern &&
-        dispatch(continuePattern({ data: { id: pattern.id, length: n } }))
-    ),
-  });
-
-export const DIMINISH_PATTERN_HOTKEY =
-  (pattern?: Pattern): Thunk<Hotkey> =>
-  (dispatch) => ({
-    name: "Diminish Pattern",
-    description: "Halve the duration of the pattern.",
-    shortcut: "meta+-",
-    callback: () =>
-      pattern &&
-      dispatch(stretchPattern({ data: { id: pattern.id, factor: 0.5 } })),
-  });
-
-export const AUGMENT_PATTERN_HOTKEY =
-  (pattern?: Pattern): Thunk<Hotkey> =>
-  (dispatch) => ({
-    name: "Augment Pattern",
-    description: "Double the duration of the pattern.",
-    shortcut: "meta+=",
-    callback: () =>
-      pattern &&
-      dispatch(stretchPattern({ data: { id: pattern.id, factor: 2 } })),
-  });
-
 export const PATTERN_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [
   dispatch(TOGGLE_PATTERN_ADD_HOTKEY()),
   dispatch(TOGGLE_PATTERN_CURSOR_HOTKEY()),
@@ -379,8 +317,4 @@ export const PATTERN_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [
   dispatch(PATTERN_NOTE_CLICK_HOTKEY()),
   dispatch(TOGGLE_PATTERN_TRIPLET_HOTKEY()),
   dispatch(TOGGLE_PATTERN_DOTTED_HOTKEY()),
-  dispatch(REPEAT_PATTERN_HOTKEY()),
-  dispatch(EXTEND_PATTERN_HOTKEY()),
-  dispatch(DIMINISH_PATTERN_HOTKEY()),
-  dispatch(AUGMENT_PATTERN_HOTKEY()),
 ];

@@ -1,201 +1,128 @@
-import classNames from "classnames";
-import { Slider } from "components/Slider";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { omit } from "lodash";
-import { ChromaticKey } from "assets/keys";
-import { useCallback, useMemo } from "react";
 import { PoseClip } from "types/Clip/ClipTypes";
-import { use, useDeep, useProjectDispatch } from "types/hooks";
-import { updatePose } from "types/Pose/PoseSlice";
-import {
-  isPoseVectorModule,
-  Pose,
-  PoseBlock,
-  PoseVector,
-  PoseVectorId,
-} from "types/Pose/PoseTypes";
-import {
-  selectCellHeight,
-  selectIsLive,
-  selectSelectedClipIds,
-} from "types/Timeline/TimelineSelectors";
-import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
-import { getTrackDepth, getTrackLabel } from "types/Track/TrackFunctions";
-import {
-  selectTrackChain,
-  selectTrackDepthById,
-  selectTrackMap,
-  selectTrackMidiScaleMap,
-} from "types/Track/TrackSelectors";
+import { use, useProjectDispatch } from "types/hooks";
+import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { POSE_HEIGHT } from "utils/constants";
 import { cancelEvent } from "utils/html";
-import { getScaleName } from "utils/key";
+import { PoseClipVector } from "./PoseClipVector";
+import classNames from "classnames";
+import { PoseClipStream } from "./PoseClipStream";
+import { updatePoseBlock } from "types/Pose/PoseSlice";
+import { useEffect } from "react";
+import { PoseClipComponentProps } from "./usePoseClipRenderer";
 
-interface PoseClipDropdownProps {
+export interface PoseClipDropdownEffectProps {
   clip: PoseClip;
-  pose?: Pose;
   index: number;
-  isOpen: boolean;
 }
 
-export const PoseClipDropdown = (props: PoseClipDropdownProps) => {
-  const { clip, pose, index, isOpen } = props;
-  const clipDepth = use((_) => selectTrackDepthById(_, clip.trackId));
+export const PoseClipDropdown = (props: PoseClipComponentProps) => {
   const dispatch = useProjectDispatch();
-  const trackMap = useDeep(selectTrackMap);
-  const trackScaleMap = useDeep(selectTrackMidiScaleMap);
-  const trackChain = useDeep((_) => selectTrackChain(_, clip.trackId));
-  const clipLabel = `Track ${getTrackLabel(clip.trackId, trackMap)}`;
+  const { clip, block, index, setIndex } = props;
+  const { depths, setDepths, field, setField, isSelected, isLive } = props;
   const cellHeight = use(selectCellHeight);
-  const isLive = use(selectIsLive);
-  const isSelected = use((_) => selectSelectedClipIds(_).includes(clip.id));
-  const heldKeys = useHeldHotkeys(["v", "q", "w", "e", "r", "t", "y"]);
 
-  // Get the current vector selected from the stream
-  const selectedVector = isPoseVectorModule(pose?.stream[index])
-    ? pose?.stream[index].vector
-    : {};
+  const hasVector = block !== undefined && "vector" in block;
+  useEffect(() => {
+    if (!hasVector) setField("stream");
+  }, [hasVector, setField]);
 
-  // Render the vector field
-  const renderVectorField = useCallback(
-    (props: VectorField) => {
-      const { id, name, scaleName, depth } = props;
-      const offset = selectedVector[id as PoseVectorId] ?? 0;
-      if (!pose || (depth || 0) >= clipDepth) return null;
+  const effectProps: PoseClipDropdownEffectProps = {
+    clip,
+    index,
+  };
 
-      // Omit the value from the vector on double click
-      const onDoubleClick = () => {
-        const vector: PoseVector = omit(selectedVector, id);
-        const block: PoseBlock = { ...(pose.stream[index] ?? []), vector };
-        const stream = pose.stream.map((_, i) => (index === i ? block : _));
-        dispatch(updatePose({ id: pose.id, stream }));
-      };
-
-      // Update the value in the vector on value change
-      const onValueChange = (value: number) => {
-        const vector: PoseVector = { ...selectedVector, [id]: value };
-        const block: PoseBlock = { ...(pose.stream[index] ?? []), vector };
-        const stream = pose.stream.map((_, i) => (index === i ? block : _));
-        dispatch(updatePose({ id: pose.id, stream }));
-      };
-      const holdingKey =
-        (depth === 1 && heldKeys.q) ||
-        (depth === 2 && heldKeys.w) ||
-        (depth === 3 && heldKeys.e) ||
-        (id === "chordal" && heldKeys.r) ||
-        (id === "chromatic" && heldKeys.t) ||
-        (id === "octave" && heldKeys.y);
-
-      // Render the vector field
-      return (
-        <div
-          key={id}
-          className={classNames(
-            depth && depth >= clipDepth ? "opacity-50" : "",
-            "flex flex-col total-center p-1 min-w-28 max-h-20 overflow-scroll whitespace-nowrap border border-slate-500 text-slate-200 text-center text-xs rounded"
-          )}
-        >
-          <div
-            className={classNames(
-              "px-1",
-              isScaleTrackId(id) ? "text-sky-300" : "text-emerald-300"
-            )}
-          >
-            {name}:{" "}
-            <span className="text-slate-300 font-bold whitespace-nowrap">
-              {scaleName}
-            </span>
-          </div>
-          {isLive && isSelected && (
-            <div
-              className={classNames(
-                "text-fuchsia-300",
-                holdingKey ? "font-bold" : "font-light"
-              )}
-            >
-              {depth === 1
-                ? "Hold Q + Press Number"
-                : depth === 2
-                ? "Hold W + Press Number"
-                : depth === 3
-                ? "Hold E + Press Number"
-                : id === "chordal"
-                ? "Hold R + Press Number"
-                : id === "chromatic"
-                ? "Hold T + Press Number"
-                : id === "octave"
-                ? "Hold Y + Press Number"
-                : ""}
-            </div>
-          )}
-          <Slider
-            hideValue
-            horizontal
-            className="h-7 pt-4"
-            width={"w-full"}
-            disabled={pose.id.startsWith("preset")}
-            value={offset}
-            min={-24}
-            max={24}
-            step={1}
-            defaultValue={0}
-            onDoubleClick={onDoubleClick}
-            onValueChange={onValueChange}
-          />
-          <div className="text-slate-200">
-            {id in selectedVector ? `Value = ${offset}` : `Value Not Set`}
-          </div>
-        </div>
-      );
-    },
-    [selectedVector, isLive, isSelected, pose, index, heldKeys, clipDepth]
-  );
-
-  // Create editable fields for each vector component
-  const fields = useMemo(() => {
-    // If the V key is held, show voice leadings for each pitch class
-    if (heldKeys.v) {
-      return ChromaticKey.map((key) => ({
-        id: key,
-        name: "Pitch Class",
-        scaleName: key,
-      }));
-    }
-
-    // Otherwise, return the default fields for transposition
-    return [
-      ...trackChain.map((track) => ({
-        id: track.id,
-        name: `Track ${getTrackLabel(track.id, trackMap)}`,
-        scaleName: getScaleName(trackScaleMap[track.id]),
-        depth: getTrackDepth(track.id, trackMap),
-      })),
-      { id: "chordal", scaleName: "Intrinsic Scale", name: clipLabel },
-      { id: "chromatic", scaleName: "Chromatic Scale", name: clipLabel },
-      { id: "octave", scaleName: "Adjust Octave", name: clipLabel },
-    ];
-  }, [heldKeys.v, trackChain, trackMap, trackScaleMap, clipLabel]);
-
-  if (!pose || !isOpen) return null;
+  if (!clip.isOpen) return null;
   return (
     <div
       style={{ top: POSE_HEIGHT, height: cellHeight - POSE_HEIGHT + 1 }}
-      className={`z-20 animate-in fade-in ease-in p-1 rounded flex flex-col bg-slate-800 border-4 border-fuchsia-500 cursor-auto`}
+      className={`z-20 animate-in fade-in ease-in p-1 rounded flex gap-1 bg-slate-800 border-4 border-fuchsia-500 cursor-auto`}
       onClick={cancelEvent}
       draggable
       onDragStart={cancelEvent}
     >
-      <div className="flex size-full gap-2">
-        {fields.map(renderVectorField)}
+      <div className="flex flex-col total-center *:total-center *:size-full *:flex-1 px-2 py-1 *:min-w-fit min-w-max *:px-1 *:bg-slate-800 *:border *:rounded gap-1">
+        <div
+          data-field={field}
+          data-disabled={!block && !depths.length}
+          className="data-[disabled=true]:opacity-50 data-[field=vector]:data-[disabled=false]:border-fuchsia-400 border-slate-600 data-[disabled=false]:cursor-pointer text-slate-200 text-center font-bold active:opacity-75"
+          onClick={() => {
+            if (!hasVector) {
+              dispatch(
+                updatePoseBlock({
+                  id: props.clip.poseId,
+                  index,
+                  depths: props.depths,
+                  block: { ...block, vector: {} },
+                })
+              );
+            }
+            setField("vector");
+          }}
+        >
+          Vector
+        </div>
+        <div
+          data-field={field}
+          className="data-[field=stream]:border-fuchsia-400 border-slate-600 cursor-pointer text-slate-200 relative flex total-center text-center font-bold"
+          onClick={() => setField("stream")}
+        >
+          Stream
+        </div>
       </div>
+      {field === "vector" && (
+        <PoseClipVector
+          index={index}
+          clip={clip}
+          block={block}
+          isActive={isLive && isSelected}
+          depths={depths}
+        />
+      )}
+      {field === "stream" && (
+        <PoseClipStream
+          {...effectProps}
+          block={block}
+          index={index}
+          setIndex={setIndex}
+          depths={depths}
+          setDepths={setDepths}
+          field={field}
+          setField={setField}
+        />
+      )}
     </div>
   );
 };
 
-// The field for each vector component in the dropdown
-interface VectorField {
-  id: string;
-  name?: string;
-  scaleName: string;
-  depth?: number;
-}
+export const PoseClipDropdownContainer = (
+  props: React.HTMLAttributes<HTMLDivElement>
+) => {
+  return (
+    <div
+      {...props}
+      className="flex flex-col capitalize gap-0.5 relative size-full whitespace-nowrap"
+    />
+  );
+};
+
+export const PoseClipDropdownItem = (
+  props: React.HTMLAttributes<HTMLDivElement> & {
+    active?: boolean;
+    disabled?: boolean;
+    background?: string;
+  }
+) => {
+  const { active, disabled, background, className, ...rest } = props;
+  return (
+    <div
+      {...rest}
+      className={classNames(
+        className,
+        active ? "text-fuchsia-400" : "text-slate-200",
+        background ? background : "bg-slate-700/50",
+        disabled ? "cursor-default" : "cursor-pointer",
+        "rounded text-center font-bold"
+      )}
+    />
+  );
+};
