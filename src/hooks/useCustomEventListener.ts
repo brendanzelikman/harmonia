@@ -7,7 +7,7 @@ export function useCustomEventListener(
   useEffect(() => {
     const listener = onEvent as EventListener;
     window.addEventListener(type, listener);
-    return () => window.removeEventListener(type, listener);
+    return () => window.removeEventListener(type, listener, false);
   }, [type, onEvent]);
 }
 
@@ -22,7 +22,7 @@ export function useCustomEventListeners(
     return () => {
       listeners.forEach(({ type, onEvent }) => {
         const listener = onEvent as EventListener;
-        window.removeEventListener(type, listener);
+        window.removeEventListener(type, listener, false);
       });
     };
   }, [...listeners]);

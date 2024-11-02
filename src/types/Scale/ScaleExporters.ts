@@ -63,7 +63,7 @@ export const exportScaleToXML = (scale?: MidiNote[], download = false): XML => {
 
 /** Export a scale to MIDI and download it as a file. */
 export const exportScaleToMIDI =
-  (scale?: MidiScale): Thunk =>
+  (scale: MidiScale): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const transport = selectTransport(project);

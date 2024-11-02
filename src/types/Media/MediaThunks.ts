@@ -46,11 +46,11 @@ import {
 } from "types/Clip/ClipTypes";
 import { getTransport } from "tone";
 import {
-  selectClipDurations,
   selectClipDuration,
   selectClipById,
   selectClipIds,
   selectClipMap,
+  selectMotifClipMap,
 } from "types/Clip/ClipSelectors";
 import {
   selectCustomPatterns,
@@ -73,6 +73,7 @@ import {
   selectSelectedClipIds,
   selectSelectedPatternClips,
   selectTimeline,
+  selectDraft,
 } from "types/Timeline/TimelineSelectors";
 import {
   selectTrackMap,
@@ -105,6 +106,10 @@ import { selectPoseById } from "types/Pose/PoseSelectors";
 import { copyPose } from "types/Pose/PoseThunks";
 import { copyScale } from "types/Scale/ScaleThunks";
 import { isHotkeyPressed } from "react-hotkeys-hook";
+import { selectMotifState } from "types/Motif/MotifSelectors";
+import { getClipMotifField, getClipMotifId } from "types/Clip/ClipFunctions";
+import { removeMotif } from "types/Motif/MotifThunks";
+import { prev } from "utils/array";
 
 /** Create a list of media and add it to the slice and hierarchy. */
 export const createMedia =
@@ -144,8 +149,40 @@ export const deleteMedia =
     const { data } = payload;
     const project = getProject();
     const selection = selectMediaSelection(project);
+    const draft = selectDraft(project);
     const oldClipIds = without(selection?.clipIds, ...(data.clipIds ?? []));
     dispatch(updateMediaSelection({ data: { clipIds: oldClipIds } }));
+
+    // Delete the motifs if they are the last of their kind
+    const clipMap = selectClipMap(project);
+    const motifState = selectMotifState(project);
+    const motifClipMap = selectMotifClipMap(project);
+
+    const clipIds = data.clipIds ?? [];
+    for (const clipId of clipIds) {
+      const clip = clipMap[clipId];
+      if (!clip) continue;
+      const motifId = getClipMotifId(clip);
+      if (!motifId) continue;
+      const motifClipIds = motifClipMap[clip.type]?.[motifId];
+      if (!motifClipIds || motifClipIds.length > 1) continue;
+
+      // Select a different motif if the current one is selected
+      const clipField = `${clip.type}Clip` as const;
+      const draftedClip = draft[clipField];
+      const draftedMotifId = getClipMotifId(draftedClip);
+      if (draftedMotifId === motifId) {
+        const field = getClipMotifField(clip);
+        if (!field) continue;
+        const motifIds = motifState[clip.type].ids;
+        const motifIndex = motifIds.indexOf(motifId);
+        const newMotifId = prev(motifIds, motifIndex);
+        const newClip = { ...draftedClip, [field]: newMotifId };
+        dispatch(updateMediaDraft({ data: { [clipField]: newClip } }));
+      }
+
+      dispatch(removeMotif({ data: motifId }));
+    }
 
     // Delete the media from the slices and hierarchy
     dispatch(removeClips({ ...payload, data: data.clipIds ?? [] }));

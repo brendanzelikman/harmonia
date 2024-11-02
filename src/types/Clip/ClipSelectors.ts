@@ -11,7 +11,6 @@ import { isPose } from "types/Pose/PoseTypes";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { isScaleObject } from "types/Scale/ScaleTypes";
 import { TrackId } from "types/Track/TrackTypes";
-import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
 import {
   ClipMap,
   ClipId,
@@ -25,7 +24,6 @@ import {
   ScaleClipId,
   PoseClip,
 } from "./ClipTypes";
-import { selectTransport } from "types/Transport/TransportSelectors";
 import { getPoseDuration } from "types/Pose/PoseFunctions";
 import {
   defaultPatternClipState,
@@ -36,9 +34,13 @@ import {
   scaleClipAdapter,
 } from "./ClipSlice";
 import { Timed } from "types/units";
-import { selectMotifState } from "types/Motif/MotifSelectors";
+import {
+  selectCustomMotifState,
+  selectMotifState,
+} from "types/Motif/MotifSelectors";
 import { getScaleName } from "utils/scale";
 import { mapValues } from "lodash";
+import { getClipMotifId } from "./ClipFunctions";
 
 // ------------------------------------------------------------
 // Pattern Clip Selectors
@@ -149,10 +151,10 @@ export const selectClipMotifMap = createDeepSelector(
   (clips, motifState) => {
     return mapValues(clips, (clip) => {
       if (clip === undefined) return;
-      const refField = `${clip.type}Id` as keyof typeof clip;
-      const refId = clip[refField];
       const motifMap = motifState[clip.type].entities;
-      return motifMap[refId as string];
+      const motifId = getClipMotifId(clip);
+      if (!motifId) return;
+      return motifMap[motifId];
     });
   }
 );
@@ -184,13 +186,32 @@ export const selectClips = createDeepSelector(
     })) as Timed<Clip>[]
 );
 
+/** Select the map of motifs to their clips. */
+export const selectMotifClipMap = createDeepSelector(
+  [selectClips, selectCustomMotifState],
+  (clips, motifs) => {
+    return mapValues(motifs, (state) => {
+      return state.ids.reduce((acc, id) => {
+        return {
+          ...acc,
+          [id]: clips.filter((clip) => getClipMotifId(clip) === id),
+        };
+      }, {} as Record<string, Timed<Clip>[]>);
+    });
+  }
+);
+
+const selectClipId = (_: Project, id: ClipId) => id;
+
 /** Select a specific clip from the store. */
-export const selectClipById = (project: Project, id?: ClipId) => {
-  if (!id) return undefined;
-  const clipMap = selectClipMap(project);
-  const durationMap = selectClipDurationMap(project);
-  return { ...clipMap[id], duration: durationMap[id] } as Timed<Clip>;
-};
+export const selectClipById = createSelector(
+  [selectClipMap, selectClipDurationMap, selectClipId],
+  (clipMap, durationMap, id) => {
+    const clip = clipMap[id];
+    if (!clip) return undefined;
+    return { ...clip, duration: durationMap[id] } as Timed<Clip>;
+  }
+);
 
 /** Select a list of clips by their track IDs. */
 export const selectClipsByTrackIds = (
@@ -198,7 +219,7 @@ export const selectClipsByTrackIds = (
   trackIds: TrackId[]
 ) => {
   const clips = selectClips(project);
-  return clips.filter((clip) => trackIds.includes(clip.trackId));
+  return trackIds.flatMap((id) => clips.filter((clip) => clip.trackId === id));
 };
 
 /** Select the map of clips to their names. */
@@ -232,12 +253,4 @@ export const selectTimedClipById = (project: Project, id: ClipId) => {
   if (!clip) return undefined;
   const duration = selectClipDuration(project, id) ?? Infinity;
   return { ...clip, duration } as Timed<Clip>;
-};
-
-/** Select the start time of a clip in seconds. */
-export const selectClipStartTime = (project: Project, id?: ClipId) => {
-  const clip = selectClipById(project, id);
-  const transport = selectTransport(project);
-  if (!clip) return undefined;
-  return convertTicksToSeconds(transport, clip.tick);
 };

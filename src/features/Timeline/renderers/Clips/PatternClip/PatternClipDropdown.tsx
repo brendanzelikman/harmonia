@@ -1,6 +1,5 @@
 import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { PortaledPoseClip, PortaledPoseClipId } from "types/Clip/ClipTypes";
 import {
   blurOnEnter,
   cancelEvent,
@@ -18,13 +17,7 @@ import { GiCrystalWand, GiHand, GiSprout } from "react-icons/gi";
 import classNames from "classnames";
 import { PatternClipRendererProps } from "./usePatternClipRenderer";
 import { useCallback, useEffect, useState } from "react";
-import {
-  streamTransformations,
-  durationTransformations,
-  DropdownOption,
-  pitchTransformations,
-  velocityTransformations,
-} from "features/Editor/PatternEditor/tabs/PatternEditorTransformTab";
+import { DropdownOption } from "features/Editor/PatternEditor/tabs/PatternEditorTransformTab";
 import {
   inputPatternStream,
   migrateClip,
@@ -48,15 +41,25 @@ import {
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
 import { SiBuddy } from "react-icons/si";
+import {
+  selectIsClipLive,
+  selectIsClipSelected,
+} from "types/Timeline/TimelineSelectors";
+import { PatternClip, PortaledPatternClip } from "types/Clip/ClipTypes";
 
 export interface PatternClipDropdownProps extends PatternClipRendererProps {
+  clip: PatternClip;
+  portaledClip: PortaledPatternClip;
   isPosed: boolean;
 }
 
 export function PatternClipDropdown(props: PatternClipDropdownProps) {
-  const { clip, portaledClip, isSelected, isLive, isOpen, isPosed } = props;
-  const pcId = portaledClip.id;
+  const { clip, id, pcId, portaledClip, isPosed } = props;
   const dispatch = useProjectDispatch();
+  const stream = useDeep((_) => selectPatternClipMidiStream(_, id));
+
+  const isSelected = use((_) => selectIsClipSelected(_, id));
+  const isLive = use((_) => selectIsClipLive(_, id));
   const pattern = useDeep((_) => selectPatternById(_, clip.patternId));
   const isEmpty = !pattern.stream.length;
 
@@ -65,12 +68,9 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   useEffect(() => {
     if (isEmpty) setIsRemoving(false);
   }, [isEmpty]);
-  const [isTransforming, setIsTransforming] = useState(false);
-  const [transform, setTransform] = useState(0);
 
   // Create the score
   const xml = use((_) => selectPatternClipXML(_, portaledClip));
-  const stream = useDeep((_) => selectPatternClipMidiStream(_, pcId));
   const streamLength = stream.length;
 
   const onNoteClick = useCallback<NoteCallback>(
@@ -97,11 +97,6 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   });
 
   const holding = useHeldHotkeys("shift");
-  const streamEffects = streamTransformations(pattern?.id);
-  const pitchEffects = pitchTransformations(pattern?.id);
-  const velocityEffects = velocityTransformations(pattern?.id);
-  const durationEffects = durationTransformations(pattern?.id);
-
   const [duration, setDuration] = useState(getDurationTicks("16th"));
 
   // Render the score dropdown
@@ -111,7 +106,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
         "cursor-default z-20 font-thin backdrop-blur whitespace-nowrap",
         "w-full bg-gradient-to-t from-sky-950/95 to-sky-900 border-2 animate-in fade-in slide-in-from-left-8 slide-in-from-top-8 duration-150 p-4 gap-6 flex-col h-max rounded-b-lg",
         isSelected ? "border-slate-100" : "border-teal-500",
-        isOpen ? "flex" : "hidden"
+        clip.isOpen ? "flex" : "hidden"
       )}
       onClick={cancelEvent}
     >
@@ -132,7 +127,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
           />
         </div>
         <div className="flex gap-4 px-3">
-          <div className={isTransforming ? "hidden" : "flex gap-4"}>
+          <div className={"flex gap-4"}>
             <ScoreButton
               label={
                 isAdding
@@ -290,7 +285,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                     ? "bg-fuchsia-400/80"
                     : isLive
                     ? "bg-fuchsia-400/40"
-                    : undefined
+                    : "bg-fuchsia-400/30"
                 }
                 borderColor={isLive ? "border-fuchsia-200/80" : undefined}
                 onClick={() =>
@@ -300,46 +295,6 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
               />
             )}
           </div>
-          {/* <div className={!isTransforming ? "hidden" : "flex gap-3"}>
-            <DropdownButton
-              label="Stream"
-              icon={<GiMusicalNotes />}
-              options={streamEffects}
-              show={transform === 2}
-              toggle={() => setTransform((prev) => (prev !== 2 ? 2 : 0))}
-            />
-            <DropdownButton
-              label="Pitch"
-              icon={<GiMusicSpell />}
-              options={pitchEffects}
-              show={transform === 3}
-              toggle={() => setTransform((prev) => (prev !== 3 ? 3 : 0))}
-            />
-            <DropdownButton
-              label="Velocity"
-              icon={<GiThorHammer />}
-              options={velocityEffects}
-              show={transform === 4}
-              toggle={() => setTransform((prev) => (prev !== 4 ? 4 : 0))}
-            />
-            <DropdownButton
-              label="Duration"
-              icon={<FaRuler />}
-              options={durationEffects}
-              show={transform === 5}
-              toggle={() => setTransform((prev) => (prev !== 5 ? 5 : 0))}
-            />
-          </div>
-          <ScoreButton
-            label={isTransforming ? "Close" : "Transform"}
-            backgroundColor={isTransforming ? "bg-emerald-500/80" : undefined}
-            borderColor={isTransforming ? "border-emerald-200/50" : undefined}
-            onClick={() => {
-              if (isTransforming) setTransform(0);
-              setIsTransforming(!isTransforming);
-            }}
-            icon={isTransforming ? <BsXCircle /> : <GiPencilBrush />}
-          /> */}
         </div>
       </div>
       <div className="bg-white overflow-scroll min-h-[200px] max-h-[200px] shrink rounded-lg border-2 border-teal-200">

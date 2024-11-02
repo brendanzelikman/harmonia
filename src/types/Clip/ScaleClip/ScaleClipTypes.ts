@@ -58,3 +58,9 @@ export const isScaleClip = (clip: Partial<IClip>): clip is IClip<"scale"> => {
 export const isScaleClipId = (id: unknown): id is ScaleClipId => {
   return isClipId<"scale">(id, "scale");
 };
+
+export const isPortaledScaleClipId = (
+  id: unknown
+): id is PortaledScaleClipId => {
+  return isScaleClipId(id);
+};

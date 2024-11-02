@@ -10,7 +10,7 @@ export function NavbarTerminalButton() {
       borderColor="border-slate-400"
       label={
         <>
-          {isOpen ? "Close" : "Open"} Terminal{" "}
+          {isOpen ? "Close" : "Equip"} Terminal{" "}
           <span className="font-light text-slate-400">(Edit File)</span>
         </>
       }

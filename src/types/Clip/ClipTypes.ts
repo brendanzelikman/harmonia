@@ -13,7 +13,7 @@ import { PatternId } from "types/Pattern/PatternTypes";
 import { PoseId } from "types/Pose/PoseTypes";
 import { ScaleId } from "types/Scale/ScaleTypes";
 import { TrackId } from "types/Track/TrackTypes";
-import { Portaled } from "types/Portal/PortalTypes";
+import { IPortaled, Portaled } from "types/Portal/PortalTypes";
 
 export * from "./PatternClip/PatternClipTypes";
 export * from "./PoseClip/PoseClipTypes";
@@ -37,6 +37,7 @@ export type ClipState = {
   scale: EntityState<ScaleClip>;
 };
 export type PortaledClip = Portaled<Clip>;
+export type PortaledClipId = PortaledClip["id"];
 
 // ------------------------------------------------------------
 // Generic Clip Definitions
@@ -66,6 +67,9 @@ export type IClipId<T extends ClipType = ClipType> = Id<`${T}-clip`>;
 export type IClipUpdate<T extends ClipType = ClipType> = Update<IClip<T>>;
 export type IClipMap<T extends ClipType = ClipType> = Dictionary<IClip<T>>;
 export type IClipState<T extends ClipType = ClipType> = EntityState<IClip<T>>;
+export type IPortaledClip<T extends ClipType = ClipType> = IPortaled<T>;
+export type IPortaledClipId<T extends ClipType = ClipType> =
+  IPortaledClip<T>["id"];
 
 // ------------------------------------------------------------
 // Clip Initialization

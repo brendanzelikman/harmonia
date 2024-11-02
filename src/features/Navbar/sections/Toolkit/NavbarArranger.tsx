@@ -62,6 +62,12 @@ export const NavbarArranger = ({ type }: { type: ClipType }) => {
     if (type === "scale") {
       return "Infinite";
     }
+    if (type === "pattern" && motifDuration === 0) {
+      return "Pattern Length";
+    }
+    if (type === "pose" && motifDuration === 0) {
+      return "Infinite";
+    }
     if (draftDuration === undefined && isFiniteNumber(motifDuration)) {
       return `${barString(motifDuration)} / ${tickString(motifDuration)}`;
     }
@@ -135,7 +141,7 @@ export const NavbarArranger = ({ type }: { type: ClipType }) => {
                   activeRing[type]
                 )}
               >
-                Arrange Clip
+                New Clip
               </div>
               <NavbarHoverTooltip
                 group="peer-hover:block hover/tooltip:block"
@@ -218,9 +224,9 @@ const ringColor = {
 };
 
 const subtext = {
-  pattern: "Make Patterns",
-  scale: "Make Scales",
-  pose: "Make Poses",
+  pattern: "Create Patterns",
+  scale: "Create Scales",
+  pose: "Create Poses",
 };
 
 const barString = (duration: number) => {

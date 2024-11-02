@@ -1,20 +1,23 @@
 import classNames from "classnames";
 import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { useState, useRef, useCallback } from "react";
+import { ClipId } from "types/Clip/ClipTypes";
 import { use } from "types/hooks";
 import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
 import { PoseVector } from "types/Pose/PoseTypes";
+import { selectIsClipLive } from "types/Timeline/TimelineSelectors";
 import { selectTrackMap } from "types/Track/TrackSelectors";
 import { getVectorKeys } from "utils/vector";
 
 interface PoseClipCombosProps {
-  isLive: boolean;
+  id: ClipId;
 }
 
 const DELAY = 3000;
 
 export function PoseClipCombos(props: PoseClipCombosProps) {
   const comboTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isLive = use((_) => selectIsClipLive(_, props.id));
 
   // The pose stores a list of vectors to display the last combo
   const [vectors, setVectors] = useState<PoseVector[]>([]);
@@ -64,7 +67,7 @@ export function PoseClipCombos(props: PoseClipCombosProps) {
     [vectorCount, getJSX]
   );
 
-  if (!props.isLive) return null;
+  if (!isLive) return null;
   return (
     <div
       data-empty={!vectorCount}

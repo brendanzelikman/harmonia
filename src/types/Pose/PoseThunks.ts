@@ -28,9 +28,10 @@ import { getVectorKeys } from "utils/vector";
 import { ChromaticPitchClass } from "assets/keys";
 import { promptUserForString } from "utils/html";
 import { selectTrackLabelMap } from "types/Track/TrackSelectors";
-import { TrackId } from "types/Track/TrackTypes";
+import { isTrackId, TrackId } from "types/Track/TrackTypes";
 import { PoseClipId } from "types/Clip/ClipTypes";
 import { selectPoseClipById } from "types/Clip/ClipSelectors";
+import { updateTrack } from "types/Track/TrackThunks";
 
 /** Create a pose. */
 export const createPose =
@@ -127,11 +128,17 @@ export const updateSelectedPoseStreams =
   };
 
 export const inputPoseVector =
-  (id?: PoseClipId): Thunk =>
-  (dispatch, getProject) =>
+  (id?: PoseClipId | TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const isTrack = isTrackId(id);
     promptUserForString(
       "Update the Selected Vector",
-      `Please input a list of offsets separated by plus signs to update the selected poses, e.g. "T5 + t12".`,
+      [
+        `Please input a list of offsets separated by plus signs to update the selected ${
+          isTrack ? "track" : "pose"
+        }, e.g. "T5 + t12".`,
+        "An empty input will reset the vector.",
+      ],
       (input) => {
         const trackMap = selectTrackLabelMap(getProject());
         const labelEntries = Object.entries(trackMap) as [TrackId, string][];
@@ -184,6 +191,14 @@ export const inputPoseVector =
         }
 
         if (!id) return dispatch(offsetSelectedPoses(vector));
+
+        // Update the track if it is a track
+        if (isTrack) {
+          dispatch(updateTrack({ data: { id, vector } }));
+          return;
+        }
+
+        // Otherwise, update the pose
         const poseId = selectPoseClipById(getProject(), id)?.poseId;
         const pose = selectPoseById(getProject(), poseId);
         if (!poseId || !pose) return;
@@ -191,6 +206,7 @@ export const inputPoseVector =
         dispatch(updatePose({ data: { id: poseId, stream } }));
       }
     )();
+  };
 
 /** Update the selected poses with the given vector. */
 export const updateSelectedPoses =

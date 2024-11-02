@@ -12,41 +12,38 @@ import {
   ScaleArray,
   isMidiNote,
   chromaticNotes,
-  isScaleArray,
   ScaleChain,
   Scale,
+  ScaleNoteObject,
 } from "./ScaleTypes";
 import { resolveScaleToMidi, resolveScaleChainToMidi } from "./ScaleResolvers";
 import { ChromaticKey } from "assets/keys";
 import { getVectorMidi } from "utils/vector";
+import { isArray, isNumber } from "lodash";
 
 // ------------------------------------------------------------
 // Scale Notes
 // ------------------------------------------------------------
 
 /** Get a `Scale` as an array of notes. */
-export const getScaleNotes = (scale?: Scale): ScaleArray => {
-  if (!scale) return [];
-  return isScaleArray(scale) ? scale : scale.notes ?? [];
+export const getScaleNotes = (scale: Scale): ScaleArray => {
+  return isArray(scale) ? scale : scale.notes ?? [];
 };
 
 /** Get the degree of a `ScaleNote` or chromatic number */
-export const getScaleNoteDegree = (note?: ScaleNote) => {
-  if (note === undefined) return -1;
-  if (isNestedNote(note)) return note.degree;
+export const getScaleNoteDegree = (note: ScaleNote) => {
+  if (!isNumber(note) && "degree" in note) return note.degree;
   return getMidiNoteValue(note) % 12;
 };
 
 /** Get the octave offset of a `ScaleNote` relative to MIDI = 60. */
-export const getScaleNoteOctave = (note?: ScaleNote) => {
-  if (note === undefined) return 0;
-  if (isNestedNote(note)) return note.offset?.octave ?? 0;
+export const getScaleNoteOctave = (note: ScaleNote) => {
+  if (!isNumber(note) && "degree" in note) return note.offset?.octave ?? 0;
   return Math.floor((getMidiNoteValue(note) - 60) / 12);
 };
 
 /** Get a `ScaleNote` as a `MidiValue`, assuming the chromatic scale as a parent. */
-export const getScaleNoteMidiValue = (note?: ScaleNote): MidiValue => {
-  if (note === undefined) return 0;
+export const getScaleNoteMidiValue = (note: ScaleNote): MidiValue => {
   if (isMidiNote(note)) return getMidiNoteValue(note);
   const base = getMidiChromaticNote(note.degree);
   const offset = getVectorMidi(note.offset);

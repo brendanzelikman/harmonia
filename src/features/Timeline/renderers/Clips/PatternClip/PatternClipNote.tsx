@@ -1,13 +1,13 @@
 import { MIN_VELOCITY, MAX_VELOCITY } from "utils/constants";
-import { getTickColumns, Subdivision } from "utils/durations";
 import { normalize } from "utils/math";
-import { getMidiPitch } from "utils/midi";
 import { PatternMidiNote } from "types/Pattern/PatternTypes";
+import { selectTickColumns } from "types/Timeline/TimelineSelectors";
+import { use } from "types/hooks";
+import { useMemo } from "react";
 
 export interface ClipNoteProps {
   note: PatternMidiNote;
-  clipIndex: number;
-  chordIndex: number;
+  keyString: string;
   blockLeft: number;
   cellWidth: number;
   streamHeight: number;
@@ -15,40 +15,30 @@ export interface ClipNoteProps {
   streamMin: number;
   noteHeight: number;
   noteColor: string;
-  subdivision: Subdivision;
 }
 
 export const PatternClipNote = (props: ClipNoteProps) => {
-  const { note, clipIndex, chordIndex, subdivision, cellWidth } = props;
+  const { note, cellWidth } = props;
   const { streamHeight, streamRange, streamMin, noteColor } = props;
-  const { MIDI, duration, velocity } = note;
-  const height = props.noteHeight;
+  const columns = use((_) => selectTickColumns(_, note.duration));
   const left = props.blockLeft;
+  const height = props.noteHeight;
 
-  // Get the width of the note from its duration
-  const columns = getTickColumns(duration, subdivision);
-  const width = columns * cellWidth - 4;
-
-  // Get the top of the note based on its pitch relative to the stream
-  const offset = normalize(MIDI, streamMin + streamRange, streamMin);
-  const isSingle = streamRange === 1;
-  const top = Math.round((streamHeight - height) * (isSingle ? 0.5 : offset));
-
-  // Get the opacity of the note from its velocity
-  const opacity = normalize(velocity, MIN_VELOCITY, MAX_VELOCITY);
-
-  // Show the pitch if the note is large enough
-  const pitch = getMidiPitch(MIDI);
-  const shouldShowPitch = width > 20 && height > 5;
+  const { width, top, opacity } = useMemo(() => {
+    const isSingle = streamRange === 1;
+    const width = columns * cellWidth - 4;
+    const offset = normalize(note.MIDI, streamMin + streamRange, streamMin);
+    const top = Math.round((streamHeight - height) * (isSingle ? 0.5 : offset));
+    const opacity = normalize(note.velocity, MIN_VELOCITY, MAX_VELOCITY);
+    return { width, top, opacity };
+  }, [columns, cellWidth, streamHeight, streamMin, streamRange, note, height]);
 
   // Return the note
   return (
-    <li
-      key={`${note}-${clipIndex}-${chordIndex}`}
+    <div
+      key={props.keyString}
       style={{ top, left, width, height, opacity }}
-      className={`${noteColor} absolute flex total-center shrink-0 border border-slate-950/80 rounded transition-all duration-200`}
-    >
-      {shouldShowPitch ? pitch : null}
-    </li>
+      className={`${noteColor} absolute border border-slate-950/80 rounded`}
+    />
   );
 };

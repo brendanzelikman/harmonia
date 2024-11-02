@@ -6,7 +6,6 @@ import { useEffectDrop, useEffectDrag } from "../hooks/useInstrumentEditorDnd";
 import { cancelEvent } from "utils/html";
 import { BsArrowClockwise, BsTrashFill } from "react-icons/bs";
 import { useProjectDispatch } from "types/hooks";
-import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import {
   rearrangeInstrumentEffect,
   updateInstrumentEffect,

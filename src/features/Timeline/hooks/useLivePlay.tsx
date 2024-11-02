@@ -17,6 +17,7 @@ import {
 } from "types/Timeline/TimelineSelectors";
 import { selectOrderedPatternTracks } from "types/Track/TrackSelectors";
 import {
+  createPose,
   offsetSelectedPoses,
   updateSelectedPoses,
   updateSelectedPoseStreams,
@@ -28,7 +29,10 @@ import {
 } from "types/Track/TrackThunks";
 import { mapPoseStreamVectors } from "types/Pose/PoseFunctions";
 import { pick, range, size, some } from "lodash";
-import { sumVectors } from "utils/vector";
+import { initializePoseClip } from "types/Clip/ClipTypes";
+import { addClip } from "types/Clip/ClipSlice";
+import { getTransport } from "tone";
+import { createUndoType } from "lib/redux";
 
 const numberKeys = range(1, 10).map((n) => n.toString());
 const scaleKeys = ["q", "w", "e", "r", "t", "y"];
@@ -108,9 +112,10 @@ export const useLivePlay = () => {
       const scalarKeys = ["q", "w", "e"];
       scalarKeys.forEach((key, i) => {
         const heldKey = holding[key];
+        if (!heldKey) return;
         const id =
           i === 0 ? firstTrackId : i === 1 ? secondTrackId : thirdTrackId;
-        if (heldKey && id) {
+        if (id) {
           if (isExact) vector[id] = value;
           else vector[id] = (vector[id] ?? 0) + value;
         }
@@ -121,12 +126,24 @@ export const useLivePlay = () => {
 
       // Update the track if there are no clips
       if (!hasClips && selectedTrack) {
-        const newVector = isExact
-          ? { ...selectedTrack.vector, ...vector }
-          : sumVectors(selectedTrack.vector, vector);
-        dispatch(
-          updateTrack({ data: { id: selectedTrack.id, vector: newVector } })
+        // Create a new pose with the given vector
+        const undoType = createUndoType("schedule-pose");
+        const poseId = dispatch(
+          createPose({ data: { stream: [{ vector }] }, undoType })
         );
+        const clip = initializePoseClip({
+          poseId,
+          trackId: selectedTrack.id,
+          tick: getTransport().ticks,
+        });
+        dispatch(addClip({ data: clip, undoType }));
+
+        // const newVector = isExact
+        //   ? { ...selectedTrack.vector, ...vector }
+        //   : sumVectors(selectedTrack.vector, vector);
+        // dispatch(
+        //   updateTrack({ data: { id: selectedTrack.id, vector: newVector } })
+        // );
         return;
       }
 
@@ -246,7 +263,9 @@ export const useLivePlay = () => {
       // Otherwise, update the selected poses
       dispatch(
         updateSelectedPoseStreams((stream) =>
-          mapPoseStreamVectors(stream, getNewVector)
+          stream.length > 1
+            ? stream
+            : mapPoseStreamVectors(stream, getNewVector)
         )
       );
     },

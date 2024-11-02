@@ -18,7 +18,7 @@ import {
 import { FlipBook } from "lib/react-pageflip";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 
-const DIARY_WIDTH = window.innerWidth / 2 - NAV_HEIGHT;
+const DIARY_WIDTH = window.innerWidth / 2 - NAV_HEIGHT - 100;
 const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;
 
 export function Diary() {
@@ -147,13 +147,13 @@ export function Diary() {
 
   if (!showingDiary) return null;
   return (
-    <div className="absolute inset-0 animate-in fade-in flex flex-col total-center z-[100] bg-slate-950/80 backdrop-blur-lg">
-      <img
+    <div className="absolute inset-0 animate-in fade-in flex flex-col total-center">
+      {/* <img
         src={Background}
         className="absolute inset-0 opacity-50 h-screen object-cover landing-background"
-      />
+      /> */}
 
-      <div className="relative -translate-x-1/2">
+      <div className="relative translate-y-[65px] z-[50] -translate-x-[calc(50%-150px)]">
         <m.div
           initial={{ translateY: 100, opacity: 0 }}
           animate={{ translateY: 0, opacity: 1 }}

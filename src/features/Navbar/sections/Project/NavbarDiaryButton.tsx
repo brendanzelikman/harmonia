@@ -10,8 +10,8 @@ export function NavbarDiaryButton() {
       borderColor="border-indigo-500"
       label={
         <>
-          {isOpen ? "Close" : "Open"} Diary{" "}
-          <span className="font-light text-slate-400">(Take Notes)</span>
+          {isOpen ? "Close" : "Equip"} Diary{" "}
+          <span className="font-light text-slate-400">(Write Notes)</span>
         </>
       }
       onClick={toggle}

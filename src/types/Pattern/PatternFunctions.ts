@@ -12,6 +12,7 @@ import {
   PatternBlockedChord,
   PatternStrummedMidiChord,
   isPatternChord,
+  PatternMidiStream,
 } from "./PatternTypes";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { mod } from "utils/math";
@@ -68,6 +69,15 @@ export const getPatternBlockAtIndex = (
   return stream[mod(index, stream.length)] ?? [];
 };
 
+export const getPatternMidiChordAtIndex = (
+  stream: PatternMidiStream,
+  index: number
+) => {
+  const block = stream[mod(index, stream.length)];
+  if (isPatternRest(block)) return [];
+  return block;
+};
+
 /** Get the `PatternBlock` occurring exactly at the given tick within a `PatternStream` */
 export const getPatternBlockAtTick = (
   stream: PatternStream,
@@ -88,7 +98,7 @@ export const getPatternBlockAtTick = (
 /** Get the total duration of a `PatternBlock` in ticks. */
 export const getPatternBlockDuration = (block: PatternBlock): Tick => {
   // Return the duration of a note or rest
-  if (isPatternNote(block) || isPatternRest(block)) return block.duration;
+  if ("duration" in block) return block.duration;
 
   // Get the notes of the chord
   const notes = getPatternChordNotes(block);
@@ -99,8 +109,9 @@ export const getPatternBlockDuration = (block: PatternBlock): Tick => {
   const maxDuration = Math.max(...noteDurations);
 
   // Add the strum range to the duration if the chord is strummed
-  if (!isPatternStrummedChord(block)) return maxDuration;
-  return maxDuration + block.strumRange[0] + block.strumRange[1];
+  const start = (block as PatternStrummedChord)?.strumRange?.[0] ?? 0;
+  const end = (block as PatternStrummedChord)?.strumRange?.[1] ?? 0;
+  return maxDuration + start + end;
 };
 
 /** Get whether a pattern block is a triplet or not. */
@@ -201,17 +212,17 @@ export const getPatternStrummedChordNotes = (
 
   return stream;
 };
-/** Transpose a `PatternStream` by applying each offset from the given `ScaleVector`. */
 
+/** Transpose a `PatternStream` by applying each offset from the given `ScaleVector`. */
 export const getTransposedPatternStream = (
   stream: PatternStream,
   vector: ScaleVector
 ): PatternStream => {
   return stream.map((block) => {
-    if (!isPatternChord(block)) return block;
+    if (isPatternRest(block)) return block;
     const notes = getPatternChordNotes(block);
     return notes.map((note) => {
-      if (!isNestedNote(note)) return note;
+      if (!("degree" in note)) return note;
       const offset = sumVectors(note.offset, vector);
       return { ...note, MIDI: undefined, offset };
     });

@@ -33,6 +33,7 @@ import { getRotatedScale } from "types/Scale/ScaleTransformers";
 import { MidiScale } from "utils/midi";
 import { getMidiNoteValue } from "utils/midi";
 import { isPitchClass } from "utils/pitchClass";
+import { size } from "lodash";
 
 /** Get the `PoseClips` of a given track from a list of clips. */
 export const getPoseClipsByTrackId = (
@@ -53,11 +54,10 @@ export const getPoseVectorsWithVoiceLeadings = (vectors: PoseVector[]) => {
 
 /** Get the current pose vector occurring at the given tick. */
 export const getPoseOperationAtIndexByTick = (
-  clip?: PoseClip,
-  stream?: PoseStream,
-  tick?: number
+  clip: PoseClip,
+  stream: PoseStream = [],
+  tick = 0
 ): PoseOperation => {
-  if (!clip || !stream || tick === undefined) return {};
   return getPoseOperationAtIndex(stream ?? [], tick - clip.tick, clip.duration);
 };
 
@@ -72,8 +72,7 @@ export const getPoseOperationsAtTick = (
   if (!clipCount || !poseMap) return operation;
 
   // Make sure the clip has an existing pose
-  const guard = (clip: PoseClip) =>
-    getValueByKey(poseMap, clip.poseId) !== undefined;
+  const guard = (clip: PoseClip) => !!poseMap[clip.poseId];
 
   // Map a pose clip to the current pose vector and sum it with the offset
   const map = (clip: PoseClip, tick: number) => {

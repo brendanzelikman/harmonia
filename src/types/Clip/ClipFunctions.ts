@@ -15,3 +15,21 @@ export const getClipDuration = (clip?: Clip, object?: Motif) => {
   const streamOffset = clip.offset ?? 0;
   return Math.max(streamDuration - streamOffset, 0);
 };
+
+/** Get the underlying motif ID of a clip. */
+export const getClipMotifId = (clip?: Partial<Clip>) => {
+  if (!clip) return undefined;
+  if (clip.type === "pattern") return clip.patternId;
+  if (clip.type === "pose") return clip.poseId;
+  if (clip.type === "scale") return clip.scaleId;
+  return undefined;
+};
+
+/** Get the name of the motif field of a clip. */
+export const getClipMotifField = (clip?: Partial<Clip>) => {
+  if (!clip) return undefined;
+  if (clip.type === "pattern") return "patternId";
+  if (clip.type === "pose") return "poseId";
+  if (clip.type === "scale") return "scaleId";
+  return undefined;
+};

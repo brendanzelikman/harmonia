@@ -28,6 +28,10 @@ import { createInstrument } from "types/Instrument/InstrumentThunks";
 import { migrateTrack, moveTrack } from "../TrackThunks";
 import { addTrack } from "../TrackThunks";
 import { ScaleTrackId } from "../ScaleTrack/ScaleTrackTypes";
+import { createPattern } from "types/Pattern/PatternThunks";
+import { addClip } from "types/Clip/ClipSlice";
+import { initializePatternClip } from "types/Clip/ClipTypes";
+import { getTransport } from "tone";
 
 /** Create a `PatternTrack` with an optional initial track. */
 export const createPatternTrack =
@@ -59,6 +63,16 @@ export const createPatternTrack =
     const key = initialInstrumentKey ?? DEFAULT_INSTRUMENT_KEY;
     const options = { oldInstrument: { ...oldInstrument, ...instrument, key } };
     dispatch(createInstrument({ data: { track, options }, undoType }));
+
+    // Create a courtesy pattern clip
+    const trackId = track.id;
+    const patternId = dispatch(createPattern({ data: { trackId }, undoType }));
+    const patternClip = initializePatternClip({
+      patternId,
+      tick: getTransport().ticks,
+      trackId,
+    });
+    dispatch(addClip({ data: patternClip, undoType }));
 
     // Return ID of the created track
     return { track, instrument };

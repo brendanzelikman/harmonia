@@ -33,6 +33,8 @@ import {
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 import { TOGGLE_STATE } from "hooks/useToggledState";
+import { useTerminal } from "types/Project/ProjectTypes";
+import { useDiary } from "types/Diary/DiaryTypes";
 
 export function NavbarSettingsMenu() {
   const dispatch = useProjectDispatch();
@@ -153,17 +155,8 @@ export function NavbarSettingsMenu() {
     </NavbarFormGroup>
   );
 
-  // The shortcuts button opens the shortcuts menu
-  const ShortcutsButton = (
-    <NavbarFormGroup>
-      <NavbarFormButton
-        className={`w-full hover:bg-slate-600/50 active:bg-slate-800/50`}
-        onClick={() => dispatchCustomEvent(TOGGLE_STATE("shortcuts"))}
-      >
-        Open Shortcut Menu
-      </NavbarFormButton>
-    </NavbarFormGroup>
-  );
+  const Terminal = useTerminal();
+  const Diary = useDiary();
 
   return (
     <div className="group/tooltip relative">
@@ -176,14 +169,52 @@ export function NavbarSettingsMenu() {
         <GiSettingsKnobs />
       </div>
       {/* Tooltip */}
-      <NavbarHoverTooltip bgColor="bg-slate-800/90 backdrop-blur">
+      <NavbarHoverTooltip
+        className="min-w-64"
+        bgColor="bg-slate-800/90 backdrop-blur"
+      >
         <div className="size-full py-1 space-y-3">
           {BPMField}
           {MeterField}
           {ZoomField}
           {PerformanceToggle}
-          {TooltipToggle}
-          {ShortcutsButton}
+          {/* {TooltipToggle} */}
+          <div className="flex">
+            <NavbarFormGroup>
+              <NavbarFormButton
+                className={`w-full px-2 min-w-16 bg-indigo-600/50 cursor-default`}
+                onClick={() => dispatchCustomEvent(TOGGLE_STATE("shortcuts"))}
+              >
+                Timeline
+              </NavbarFormButton>
+            </NavbarFormGroup>
+            <NavbarFormGroup>
+              <NavbarFormButton
+                className={`w-full px-2 min-w-16 hover:bg-slate-600/50 active:bg-slate-800/50`}
+                onClick={() => dispatchCustomEvent(TOGGLE_STATE("shortcuts"))}
+              >
+                Shortcuts
+              </NavbarFormButton>
+            </NavbarFormGroup>
+          </div>
+          <div className="flex">
+            <NavbarFormGroup>
+              <NavbarFormButton
+                className={`w-full px-2 min-w-16 hover:bg-slate-600/50 active:bg-slate-800/50`}
+                onClick={Diary.toggle}
+              >
+                Diary
+              </NavbarFormButton>
+            </NavbarFormGroup>
+            <NavbarFormGroup>
+              <NavbarFormButton
+                className={`w-full px-2 min-w-16 hover:bg-slate-600/50 active:bg-slate-800/50`}
+                onClick={Terminal.toggle}
+              >
+                Terminal
+              </NavbarFormButton>
+            </NavbarFormGroup>
+          </div>
         </div>
       </NavbarHoverTooltip>
     </div>

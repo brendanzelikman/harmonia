@@ -1,6 +1,6 @@
 import { EntityState } from "@reduxjs/toolkit";
 import { isPlainObject, isString } from "lodash";
-import { Clip, ClipId, IClipId } from "types/Clip/ClipTypes";
+import { Clip, ClipId, ClipType, IClip, IClipId } from "types/Clip/ClipTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import { Id } from "types/units";
 import { createId } from "types/util";
@@ -29,6 +29,10 @@ export interface Portal {
 /** A portaled clip has a chunked ID and a definite duration. */
 export type Portaled<T extends Clip = Clip> = T & {
   id: PortaledClipId<T["id"]>;
+  duration: number;
+};
+export type IPortaled<T extends ClipType = ClipType> = IClip<T> & {
+  id: PortaledClipId<IClipId<T>>;
   duration: number;
 };
 export type PortaledClipMap = Record<ClipId, Portaled<Clip>>;

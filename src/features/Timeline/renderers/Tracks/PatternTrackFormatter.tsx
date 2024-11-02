@@ -1,52 +1,24 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { TrackButton } from "./components/TrackButton";
+import { TrackName, TrackSlider, TrackDropdownMenu } from "./components";
 import {
-  TrackName,
-  TrackSlider,
-  TrackDropdownMenu,
-  TrackDropdownButton,
-} from "./components";
-import {
-  BsArrowsCollapse,
-  BsArrowsExpand,
-  BsEraser,
   BsHeadphones,
   BsPencil,
-  BsPlugin,
-  BsTrash,
   BsVolumeDownFill,
   BsVolumeOffFill,
   BsVolumeUpFill,
-  BsWifi,
 } from "react-icons/bs";
-import { BiCopy } from "react-icons/bi";
 import { cancelEvent, dispatchCustomEvent } from "utils/html";
 import { percent } from "utils/math";
 import { useTrackDrag, useTrackDrop } from "./hooks/useTrackDnd";
-import {
-  MIN_VOLUME,
-  MAX_VOLUME,
-  MIN_PAN,
-  MAX_PAN,
-  PLUGIN_PORT_RANGE,
-  PLUGIN_STARTING_PORT,
-} from "utils/constants";
+import { MIN_VOLUME, MAX_VOLUME, MIN_PAN, MAX_PAN } from "utils/constants";
 import { DEFAULT_VOLUME, DEFAULT_PAN } from "utils/constants";
 import { VOLUME_STEP, PAN_STEP } from "utils/constants";
 import { TrackFormatterProps } from "./TrackFormatter";
-import {
-  useProjectDispatch,
-  use,
-  useProjectDeepSelector,
-  useDeep,
-} from "types/hooks";
+import { useProjectDispatch, use, useDeep } from "types/hooks";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import classNames from "classnames";
-import { promptModal } from "components/PromptModal";
-import isElectron from "is-electron";
-import { useHotkeys } from "react-hotkeys-hook";
 import { useAuth } from "providers/auth";
-import { FaAnchor } from "react-icons/fa";
 import { TooltipButton } from "components/TooltipButton";
 import { useTourId } from "features/Tour";
 import { isInstrumentEditorOpen } from "types/Editor/EditorFunctions";
@@ -55,11 +27,9 @@ import {
   getInstrumentChannel,
 } from "types/Instrument/InstrumentFunctions";
 import { updateInstrument } from "types/Instrument/InstrumentSlice";
-import { sendPluginData } from "types/Plugin/PluginFunctions";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import { selectEditor } from "types/Editor/EditorSelectors";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
-import { selectPluginData } from "types/Plugin/PluginSelectors";
 import {
   selectCellHeight,
   selectIsLive,
@@ -68,30 +38,12 @@ import {
   selectTrackChain,
   selectTrackDepthById,
   selectTrackInstrumentKey,
-  selectTrackMap,
 } from "types/Track/TrackSelectors";
 import { toggleTrackInstrumentEditor } from "types/Editor/EditorThunks";
-import {
-  bindTrackToPort,
-  insertScaleTrack,
-  collapseTracks,
-  duplicateTrack,
-  clearTrack,
-  deleteTrack,
-  toggleTrackMute,
-  toggleTrackSolo,
-  collapseTrackParents,
-} from "types/Track/TrackThunks";
-import { updateTrack } from "types/Track/TrackThunks";
+import { toggleTrackMute, toggleTrackSolo } from "types/Track/TrackThunks";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
-import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
-import {
-  GiDoubleQuaver,
-  GiHand,
-  GiMusicSpell,
-  GiPianoKeys,
-  GiSoundWaves,
-} from "react-icons/gi";
+import { GiHand, GiPianoKeys, GiSoundWaves } from "react-icons/gi";
+import { selectTrackVectorJSX } from "types/Arrangement/ArrangementTrackSelectors";
 
 interface PatternTrackProps extends TrackFormatterProps {
   track: PatternTrack;
@@ -106,7 +58,6 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const dispatch = useProjectDispatch();
   const depth = use((_) => selectTrackDepthById(_, track.id));
   const chain = useDeep((_) => selectTrackChain(_, track.id));
-  const trackMap = useDeep(selectTrackMap);
   const isLive = use(selectIsLive);
   const trackId = track.id;
   const tourId = useTourId();
@@ -142,126 +93,21 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const isSmall = cellHeight < 100;
   const sliderHeight = cellHeight - 55;
 
-  // Plugin info
-  const pluginData = useProjectDeepSelector((_) =>
-    selectPluginData(_, trackId)
-  );
-
-  // Send plugin data when it changes
-  useEffect(() => {
-    if (!pluginData) return;
-    sendPluginData(pluginData);
-  }, [pluginData]);
-
-  // Flush the plugin data
-  useHotkeys(
-    "f",
-    () => {
-      if (!pluginData || !isSelected) return;
-      sendPluginData(pluginData);
-    },
-    [pluginData, isSelected]
-  );
-
   /** A Pattern Track will display its name or the name of its instrument. */
   const PatternTrackName = useCallback(() => {
     return (
       <div className="w-full flex flex-col">
         <span className="text-xs text-orange-300 font-nunito"></span>
         <TrackName
-          id={trackId}
+          id={track.id}
+          height={cellHeight}
           value={track.name ?? ""}
           placeholder={`(${label}): Pattern Track`}
           onChange={(e) => props.renameTrack(e.target.value)}
         />
       </div>
     );
-  }, [track, label, isSelected]);
-
-  /** The Pattern Track dropdown menu allows the user to perform general actions on the track. */
-  const PatternTrackDropdownMenu = useCallback(() => {
-    const isParentCollapsed =
-      chain.length && chain.some((track) => track?.collapsed);
-    const showPortFeatures = isVirtuoso && !!isElectron();
-    const channel = track.port ? track.port - PLUGIN_STARTING_PORT : 0;
-
-    const onPortClick = async () => {
-      // Clear the port if it is already bound
-      if (track.port !== undefined) {
-        dispatch(updateTrack({ data: { id: trackId, port: undefined } }));
-        return;
-      }
-
-      // Prompt the user for a channel
-      const result = await promptModal(
-        "Bind Your Track",
-        `Please input a channel between 1 and ${PLUGIN_PORT_RANGE}.`
-      );
-      const value = parseInt(result);
-      if (isNaN(value) || value < 1 || value > PLUGIN_PORT_RANGE) return;
-
-      // Bind the track to the port
-      const port = PLUGIN_STARTING_PORT + value;
-      dispatch(bindTrackToPort({ data: { id: trackId, port } }));
-    };
-
-    return (
-      <TrackDropdownMenu>
-        {showPortFeatures && (
-          <TrackDropdownButton
-            content={
-              track.port === undefined
-                ? "Connect to Plugin"
-                : `Serving Channel ${channel}`
-            }
-            icon={<BsWifi />}
-            onClick={onPortClick}
-          />
-        )}
-        {!!pluginData && (
-          <TrackDropdownButton
-            content={`Flush To Plugin`}
-            icon={<BsPlugin />}
-            onClick={() => sendPluginData(pluginData)}
-          />
-        )}
-        <TrackDropdownButton
-          content="Insert Parent"
-          icon={<FaAnchor />}
-          onClick={() => dispatch(insertScaleTrack(trackId))}
-        />
-        <TrackDropdownButton
-          content={`${track.collapsed ? "Expand " : "Collapse"} Track`}
-          icon={track.collapsed ? <BsArrowsExpand /> : <BsArrowsCollapse />}
-          onClick={() =>
-            dispatch(collapseTracks({ data: [trackId] }, !track.collapsed))
-          }
-        />
-        <TrackDropdownButton
-          content={`${isParentCollapsed ? "Expand " : "Collapse"} Parents`}
-          icon={<BsArrowsCollapse />}
-          onClick={() =>
-            dispatch(collapseTrackParents(trackId, !isParentCollapsed))
-          }
-        />
-        <TrackDropdownButton
-          content="Duplicate Track"
-          icon={<BiCopy />}
-          onClick={() => dispatch(duplicateTrack(trackId))}
-        />
-        <TrackDropdownButton
-          content="Clear Track"
-          icon={<BsEraser />}
-          onClick={() => dispatch(clearTrack(trackId))}
-        />
-        <TrackDropdownButton
-          content="Delete Track"
-          icon={<BsTrash />}
-          onClick={() => dispatch(deleteTrack({ data: trackId }))}
-        />
-      </TrackDropdownMenu>
-    );
-  }, [track, chain, pluginData]);
+  }, [track.name, label, isSelected, cellHeight]);
 
   /** The audio buttons will be condensed into text when the track is collapsed. */
   const CollapsedMuteAndSoloButtons = useCallback(() => {
@@ -300,12 +146,12 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
       >
         {PatternTrackName()}
         <div className="flex flex-col w-12 mr-1 items-end">
-          {PatternTrackDropdownMenu()}
+          <TrackDropdownMenu track={track} />
           {CollapsedMuteAndSoloButtons()}
         </div>
       </div>
     );
-  }, [PatternTrackName, PatternTrackDropdownMenu, CollapsedMuteAndSoloButtons]);
+  }, [PatternTrackName, CollapsedMuteAndSoloButtons]);
 
   /** The Pattern Track volume slider controls the volume of the track's instrument. */
   const PatternTrackVolumeSlider = useCallback(() => {
@@ -322,7 +168,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
 
     // Fade to emerald when dragging
     const iconClass = classNames(
-      "transition-colors duration-200",
+      "transition-colors",
       { "text-emerald-400": draggingVolume },
       { "text-white": !draggingVolume }
     );
@@ -370,7 +216,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
 
     // Fade to teal when dragging
     const iconClass = classNames(
-      "transition-colors duration-200",
+      "transition-colors",
       { "text-teal-400": draggingPan },
       { "text-white": !draggingPan }
     );
@@ -445,6 +291,8 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
     );
   }, [trackId, isSelected, onInstrumentEditor, instrumentName]);
 
+  const jsx = use((_) => selectTrackVectorJSX(_, trackId));
+
   /**
    * The Pattern Track has three main buttons.
    * * The first button toggles the instrument editor.
@@ -454,30 +302,32 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const PatternTrackButtons = useCallback(() => {
     return (
       <div
-        className="w-full flex items-center"
+        className="w-full flex gap-2 items-center"
         draggable
         onDragStart={cancelEvent}
         onDoubleClick={cancelEvent}
       >
-        <div className="min-w-0 grow flex flex-col text-sm mr-2">
+        <div className="min-w-0 w-full overflow-scroll flex flex-col text-sm mr-auto pr-2">
           <div className="flex text-orange-300 cursor-pointer">
             <GiPianoKeys className="mr-1 my-auto inline shrink-0" />
             <div className="overflow-scroll">{instrumentName}</div>
           </div>
-          <div className="flex hover:saturate-150 items-center gap-1 text-fuchsia-300 cursor-pointer">
-            <GiHand
-              onMouseEnter={() =>
-                isLive && dispatchCustomEvent("live-shortcuts", true)
-              }
-              onMouseLeave={() => dispatchCustomEvent("live-shortcuts", false)}
-            />
-            {getPoseVectorAsJSX(track.vector ?? {}, trackMap)}
+          <div
+            className="flex min-w-min hover:saturate-150 items-center gap-1 text-fuchsia-300 cursor-pointer"
+            onMouseEnter={() =>
+              isLive && dispatchCustomEvent("live-shortcuts", true)
+            }
+            onMouseLeave={() => dispatchCustomEvent("live-shortcuts", false)}
+          >
+            <GiHand />
+
+            {jsx}
           </div>
         </div>
-        <div className="flex *:size-6 gap-1 justify-self-end items-end h-full">
+        <div className="flex min-w-0 shrink-0 *:size-6 gap-1 justify-self-end items-end h-full">
           <TooltipButton
             className={classNames(
-              onInstrumentEditor ? "bg-orange-400" : "",
+              isSelected && onInstrumentEditor ? "bg-orange-400" : "",
               `text-lg size-full border rounded-full border-orange-400 active:bg-orange-400 select-none`
             )}
             label={onInstrumentEditor ? "Close" : "Edit Instrument"}
@@ -521,9 +371,9 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   }, [
     InstrumentEditorButton,
     instrumentName,
-    trackMap,
     track,
     isLive,
+    jsx,
     mute,
     solo,
     isHoldingM,
@@ -567,7 +417,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         )}
       >
         {PatternTrackSliders()}
-        <div className="min-w-0 h-full flex flex-1 flex-col items-start justify-evenly p-2 duration-75">
+        <div className="min-w-0 h-full flex flex-1 flex-col items-start justify-evenly p-2">
           {PatternTrackHeader()}
           {!track.collapsed && PatternTrackButtons()}
         </div>

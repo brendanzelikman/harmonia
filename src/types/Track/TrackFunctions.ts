@@ -1,8 +1,12 @@
 import { getValueByKey } from "utils/objects";
 
-import { numberToLower, numberToUpper } from "utils/math";
+import { numberToUpper } from "utils/math";
 import { isScaleTrack, ITrack, Track, TrackId, TrackMap } from "./TrackTypes";
-import { isScaleTrackId } from "./ScaleTrack/ScaleTrackTypes";
+import {
+  isScaleTrackId,
+  ScaleTrack,
+  ScaleTrackId,
+} from "./ScaleTrack/ScaleTrackTypes";
 
 // ------------------------------------------------------------
 // Track Map Properties
@@ -119,24 +123,24 @@ export const getScaleTrack = (id: TrackId, trackMap: TrackMap) => {
 export const getScaleTrackChainIds = (
   id: TrackId,
   trackMap: TrackMap
-): TrackId[] => {
+): ScaleTrackId[] => {
   const track = trackMap[id];
   if (!track) return [];
 
   // Start with the parent scale track
-  let trackIds: TrackId[] = [];
+  let trackIds: ScaleTrackId[] = [];
   let parentId = track.parentId;
 
   // Keep going up parents while there is a parent scale track
   while (parentId) {
-    const parent = trackMap[parentId];
-    if (!isScaleTrack(parent) || !parent) break;
+    const parent = trackMap[parentId] as ScaleTrack | undefined;
+    if (!parent?.scaleId) break;
     trackIds = [parent.id, ...trackIds];
     parentId = parent.parentId;
   }
 
   // If the track is a scale track, then add it to the chain
-  if (isScaleTrack(track)) trackIds.push(id);
+  if (isScaleTrackId(id)) trackIds.push(id);
 
   // Return the id chain
   return trackIds;

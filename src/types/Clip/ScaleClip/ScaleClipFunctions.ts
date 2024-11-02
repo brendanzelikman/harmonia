@@ -41,6 +41,7 @@ export const getMostRecentScaleFromClips = (
   // Scales must be the same length as the initial scale
   const guard = (clip: ScaleClip) => {
     const scale = scaleMap[clip.scaleId];
+    if (!scale) return false;
     const scaleArray = getScaleNotes(scale);
     return scaleArray.length === initialSize;
   };

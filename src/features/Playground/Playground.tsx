@@ -8,7 +8,6 @@ import { ShortcutsMenu } from "features/Shortcuts/ShortcutsMenu";
 import { use } from "types/hooks";
 import { selectHasTracks } from "types/Arrangement/ArrangementSelectors";
 import { selectHideTimeline } from "types/Meta/MetaSelectors";
-import { usePlaygroundController } from "./hooks/usePlaygroundController";
 import { Diary } from "features/Diary/Diary";
 import { Editor } from "features/Editor/Editor";
 import { Terminal } from "features/Diary/Terminal";
@@ -18,7 +17,6 @@ export function Playground() {
   const loadState = usePlaygroundLoader();
   const hideTimeline = use(selectHideTimeline);
   const hasTracks = use(selectHasTracks);
-  usePlaygroundController();
 
   // If the playground is not loaded, show the loading screen.
   if (!loadState.isPlaygroundLoaded) {

@@ -1,4 +1,4 @@
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { ReactNode, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { blurOnEnter } from "utils/html";
@@ -31,14 +31,14 @@ const PromptModal = (props: PromptModalProps) => {
       <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4 text-center font-nunito">
-          <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-slate-900/90 border border-slate-500 p-6 text-left align-middle shadow-xl transition-all animate-in fade-in duration-300">
-            <Dialog.Title
+          <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-slate-900/90 border border-slate-500 p-6 text-left align-middle shadow-xl transition-all animate-in fade-in duration-300">
+            <DialogTitle
               as="h3"
               className="flex gap-2 items-center text-xl font-bold text-slate-100"
             >
               <img src={Logo} className="h-12" />
               {title}
-            </Dialog.Title>
+            </DialogTitle>
             {descriptionNodes}
             <div className="mt-6 flex gap-3 items-center">
               <input
@@ -67,7 +67,7 @@ const PromptModal = (props: PromptModalProps) => {
                 Cancel
               </button>
             </div>
-          </Dialog.Panel>
+          </DialogPanel>
         </div>
       </div>
     </Dialog>

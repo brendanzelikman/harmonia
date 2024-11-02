@@ -13,20 +13,36 @@ import {
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { numberToLower } from "utils/math";
-import { PoseClipComponentProps } from "./usePoseClipRenderer";
+import {
+  PoseClipComponentProps,
+  PoseClipRendererProps,
+} from "./usePoseClipRenderer";
 import { useCallback } from "react";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import { toggleClipDropdown } from "types/Clip/ClipThunks";
+import {
+  selectIsClipLive,
+  selectIsClipSelected,
+  selectSelectedTrackId,
+} from "types/Timeline/TimelineSelectors";
+import { PortaledPoseClip } from "types/Clip/ClipTypes";
 
-export const PoseClipHeader = (props: PoseClipComponentProps) => {
+interface PoseClipHeaderProps
+  extends PoseClipComponentProps,
+    PoseClipRendererProps {
+  clip: PortaledPoseClip;
+}
+
+export const PoseClipHeader = (props: PoseClipHeaderProps) => {
   const dispatch = useProjectDispatch();
-  const { clip, block, portaledClip } = props;
-  const { selectedTrackId, isSelected, isLive } = props;
+  const { id, clip, block, pcId } = props;
   const { index, depths, setIndex, setDepths } = props;
-  const pcId = portaledClip.id;
+  const isSelected = use((_) => selectIsClipSelected(_, id));
+  const isLive = use((_) => selectIsClipLive(_, id));
   const isDropdownOpen = !!clip.isOpen;
+  const selectedTrackId = use(selectSelectedTrackId);
   const isTrackSelected = selectedTrackId === clip.trackId;
-  const name = use((_) => selectClipName(_, clip.id));
+  const name = use((_) => selectClipName(_, id));
   const pose = use((_) => selectPoseById(_, clip.poseId));
   const stream = pose?.stream ?? [];
   const streamLength = stream.length ?? 0;
@@ -54,7 +70,7 @@ export const PoseClipHeader = (props: PoseClipComponentProps) => {
         <span
           data-onblock={onBlock}
           data-notlast={i < streamLength - 1}
-          key={`pose-block-${clip.id}-${i}`}
+          key={`pose-block-${id}-${i}`}
           className="px-3 pointer-events-auto data-[onblock=true]:bg-fuchsia-600 bg-fuchsia-600/20 data-[notlast=true]:border-r"
           onClick={(e) => {
             cancelEvent(e);
@@ -67,7 +83,7 @@ export const PoseClipHeader = (props: PoseClipComponentProps) => {
         </span>
       );
     },
-    [clip, depths, index, label, streamLength]
+    [depths, block, index, label, streamLength]
   );
 
   // Each pose has a click handler that depends on its state
@@ -77,28 +93,30 @@ export const PoseClipHeader = (props: PoseClipComponentProps) => {
 
       // If the alt key is held, toggle the clip in the selection
       if (e.altKey) {
-        dispatch(toggleClipIdInSelection(clip.id));
+        dispatch(toggleClipIdInSelection(id));
         return;
       }
 
       // If the meta key is held, toggle the dropdown
       if (e.metaKey) {
-        dispatch(toggleClipDropdown({ data: { id: clip.id } }));
+        dispatch(toggleClipDropdown({ data: { id } }));
         return;
       }
 
       // If the clip is selected, select the track or close/deselect the clip
       if (isSelected) {
         if (!isTrackSelected) dispatch(setSelectedTrackId(clip.trackId));
-        else dispatch(toggleClipDropdown({ data: { id: clip.id } }));
+        else dispatch(toggleClipDropdown({ data: { id } }));
         if (isTrackSelected && isDropdownOpen) {
-          dispatch(removeClipIdsFromSelection({ data: [clip.id] }));
+          dispatch(removeClipIdsFromSelection({ data: [id] }));
         }
         return;
       }
-      dispatch(onClipClick(e, clip));
+      dispatch(
+        onClipClick(e, { ...clip, id }, { eyedropping: props.holdingI })
+      );
     },
-    [clip, isSelected, isDropdownOpen, pcId]
+    [clip, isSelected, isTrackSelected, isDropdownOpen, props.holdingI]
   );
 
   // The icon changes based on if the pose is open or live
@@ -114,7 +132,7 @@ export const PoseClipHeader = (props: PoseClipComponentProps) => {
     return (
       <div
         data-open={isDropdownOpen}
-        className="pointer-events-auto h-4 w-4 data-[open=true]:w-6 hover:opacity-75 mx-1 flex shrink-0 total-center"
+        className="h-4 w-4 data-[open=true]:w-6 hover:opacity-75 mx-1 flex shrink-0 total-center"
       >
         <Icon className="pointer-events-none" />
       </div>
@@ -123,6 +141,7 @@ export const PoseClipHeader = (props: PoseClipComponentProps) => {
 
   // The name is visible on hover or when the dropdown is open
   const PoseName = useCallback(() => {
+    if (!isSelected && !isDropdownOpen) return null;
     return (
       <div
         data-open={isDropdownOpen}
@@ -131,7 +150,7 @@ export const PoseClipHeader = (props: PoseClipComponentProps) => {
         {name}
       </div>
     );
-  }, [isDropdownOpen, name]);
+  }, [isDropdownOpen, name, isSelected]);
 
   // The stream allows for selecting different pose vectors
   const PoseStream = useCallback(() => {
@@ -146,7 +165,7 @@ export const PoseClipHeader = (props: PoseClipComponentProps) => {
   return (
     <div
       className={classNames(
-        "flex text-sm items-center whitespace-nowrap pointer-events-none font-nunito",
+        "flex text-sm items-center whitespace-nowrap font-nunito",
         isSelected ? "text-white font-semibold" : "text-white/80 font-light",
         isDropdownOpen ? "w-min z-20" : "overflow-hidden hover:overflow-visible"
       )}

@@ -8,12 +8,16 @@ import {
   selectPoseClipById,
   selectTimedClipById,
 } from "./ClipSelectors";
-import { isPoseBucket, getPoseBucketVector } from "types/Pose/PoseFunctions";
+import {
+  isPoseBucket,
+  getPoseBucketVector,
+  getPoseBlockFromStream,
+} from "types/Pose/PoseFunctions";
 import { updatePose } from "types/Pose/PoseSlice";
 import { isPoseOperation } from "types/Pose/PoseTypes";
 import { Thunk } from "types/Project/ProjectTypes";
 import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
-import { selectClipStartTime } from "./ClipSelectors";
+import { selectClipStartTime } from "types/Arrangement/ArrangementClipSelectors";
 import {
   initializeClip,
   ClipId,
@@ -21,13 +25,13 @@ import {
   Clip,
   initializePoseClip,
   PortaledPatternClip,
-  PortaledPatternClipId,
 } from "./ClipTypes";
 import {
   selectClosestPoseClipId,
   selectPatternClipStreamMap,
   selectPortaledClipById,
-  selectPortaledClipMap,
+  selectTrackClipIds,
+  selectTrackPortaledClipIdsMap,
 } from "types/Arrangement/ArrangementSelectors";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import { selectMeta } from "types/Meta/MetaSelectors";
@@ -52,15 +56,23 @@ import { copyMotif } from "types/Motif/MotifFunctions";
 import { addMotif } from "types/Motif/MotifThunks";
 import { createPose } from "types/Pose/PoseThunks";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
-import { dispatchCustomEvent, promptUserForString } from "utils/html";
+import { promptUserForString } from "utils/html";
 import { getValueByKey } from "utils/objects";
-import { selectTrackLabelById, selectTracks } from "types/Track/TrackSelectors";
+import {
+  selectOrderedTracks,
+  selectTrackById,
+  selectTrackDescendantIds,
+  selectTrackLabelById,
+} from "types/Track/TrackSelectors";
 import { createEighthNote, createEighthRest } from "utils/durations";
 import { autoBindNoteToTrack } from "types/Track/TrackThunks";
 import { PatternId, PatternStream } from "types/Pattern/PatternTypes";
 import { updatePattern } from "types/Pattern/PatternSlice";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { getMidiFromPitch } from "utils/midi";
+import { TrackId } from "types/Track/TrackTypes";
+import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 
 /** Open or close the dropdown of a clip */
 export const toggleClipDropdown =
@@ -210,10 +222,15 @@ export const exportClipsToMidi =
     const project = getProject();
     const meta = selectMeta(project);
     const transport = selectTransport(project);
-    const tracks = selectTracks(project);
-    const clipMap = selectPortaledClipMap(project);
+
+    const clips = ids
+      .map((id) => selectClipById(project, id))
+      .filter((clip) => !!clip && clip.type === "pattern");
+    const tracks = selectOrderedTracks(project).filter((track) =>
+      clips.some((clip) => clip?.trackId === track.id)
+    );
+    const trackClipIdMap = selectTrackPortaledClipIdsMap(project);
     const clipStreamMap = selectPatternClipStreamMap(project);
-    const clipIds = Object.keys(clipStreamMap) as PortaledPatternClipId[];
     if (!some(clipStreamMap)) return;
 
     // Prepare a new MIDI file
@@ -223,10 +240,7 @@ export const exportClipsToMidi =
 
     // Iterate through each track
     tracks.forEach((track) => {
-      const clips = clipIds
-        .filter((id) => ids.some((clipId) => id.includes(clipId)))
-        .map((id) => clipMap[id])
-        .filter((clip) => clip?.trackId === track.id) as PortaledPatternClip[];
+      const clipIds = trackClipIdMap[track.id];
       if (!clips.length) return;
 
       // Create a MIDI track
@@ -234,11 +248,11 @@ export const exportClipsToMidi =
       midiTrack.name = `Track ${selectTrackLabelById(project, track.id)}`;
 
       // Add each clip to the MIDI track
-      clips.forEach((clip) => {
+      clipIds.forEach((clipId) => {
         // Get the stream of the clip
-        const startTime = selectClipStartTime(project, clip.id);
-        const stream = getValueByKey(clipStreamMap, clip.id);
-        if (isUndefined(startTime) || isUndefined(stream)) return;
+        const startTime = selectClipStartTime(project, clipId);
+        const stream = clipStreamMap[clipId];
+        if (isUndefined(startTime)) return;
 
         // Iterate through each block
         for (let i = 0; i < stream.length; i++) {
@@ -267,9 +281,28 @@ export const exportClipsToMidi =
     // Download the MIDI file
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${options?.filename || meta.name || "file"}.mid`;
+    a.download = `${options?.filename ?? meta.name ?? "file"}.mid`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+/** Export the project to a MIDI file based on its clips, using the given project if specified. */
+export const exportTrackToMIDI =
+  (trackId: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const clipIds: ClipId[] = [];
+    const track = selectTrackById(project, trackId);
+    if (!track) return;
+
+    if (isScaleTrackId(trackId)) {
+      const ids = [trackId, ...selectTrackDescendantIds(project, trackId)];
+      clipIds.push(...ids.flatMap((id) => selectTrackClipIds(project, id)));
+    } else {
+      clipIds.push(...selectTrackClipIds(project, track.id));
+    }
+
+    dispatch(exportClipsToMidi(clipIds));
   };
 
 export const inputPatternStream =

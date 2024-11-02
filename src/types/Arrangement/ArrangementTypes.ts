@@ -10,7 +10,11 @@ import {
   PatternClipState,
   PoseClipState,
   ScaleClipState,
+  PatternClipId,
+  PoseClipId,
+  ScaleClipId,
 } from "types/Clip/ClipTypes";
+import { ClipsByTrack } from "types/Clip/ClipUtils";
 import {
   defaultInstrumentState,
   InstrumentState,
@@ -18,12 +22,15 @@ import {
 import { defaultPortalState } from "types/Portal/PortalSlice";
 import { PortalState } from "types/Portal/PortalTypes";
 import { PatternTrackState } from "types/Track/PatternTrack/PatternTrackTypes";
-import { ScaleTrackState } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import {
+  ScaleTrackId,
+  ScaleTrackState,
+} from "types/Track/ScaleTrack/ScaleTrackTypes";
 import {
   defaultPatternTrackState,
   defaultScaleTrackState,
 } from "types/Track/TrackSlice";
-import { TrackMap } from "types/Track/TrackTypes";
+import { TrackId, TrackMap } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------
 // Arrangement Types
@@ -32,11 +39,14 @@ import { TrackMap } from "types/Track/TrackTypes";
 /** A track arrangement stores track/clip object maps. */
 export interface TrackArrangement {
   tracks: TrackMap;
+  trackAncestorIdMap: Record<TrackId, TrackId[]>;
   clips: {
     pattern: PatternClipMap;
     pose: PoseClipMap;
     scale: ScaleClipMap;
   };
+  clipsByTrack: ClipsByTrack;
+  chainIdsByTrack: Record<TrackId, ScaleTrackId[]>;
 }
 
 /** A live arrangement stores the full track arrangement with instruments and portals. */

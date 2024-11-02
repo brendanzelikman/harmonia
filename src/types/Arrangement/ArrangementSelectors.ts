@@ -8,8 +8,6 @@ import {
   ClipId,
   PatternClipMidiStream,
   ClipMap,
-  isPatternClipId,
-  isPatternClip,
   PatternClip,
   isPoseClipId,
   PortaledPatternClipId,
@@ -18,25 +16,20 @@ import {
   ClipType,
   IClipId,
   PortaledClip,
-  Clip,
+  isPortaledPatternClipId,
+  IClip,
+  PortaledScaleClip,
+  PortaledPoseClip,
 } from "types/Clip/ClipTypes";
-import { getClipMapsByType } from "types/Clip/ClipUtils";
+import { ClipMapsByType, ClipsByTrack } from "types/Clip/ClipUtils";
 import { InstrumentNotesByTicks } from "types/Instrument/InstrumentTypes";
-import {
-  PatternId,
-  PatternMidiChord,
-  PatternMidiStream,
-} from "types/Pattern/PatternTypes";
+import { PatternId, PatternMidiStream } from "types/Pattern/PatternTypes";
 import { applyPortalsToClips } from "types/Portal/PortalFunctions";
-import {
-  Portaled,
-  PortaledClipId,
-  PortaledClipMap,
-} from "types/Portal/PortalTypes";
+import { PortaledClipId, PortaledClipMap } from "types/Portal/PortalTypes";
 import { Project } from "types/Project/ProjectTypes";
 import { TrackId, isPatternTrack } from "types/Track/TrackTypes";
 import { Tick } from "types/units";
-import { getArrayByKey, getDictValues } from "utils/objects";
+import { getArrayByKey } from "utils/objects";
 import {
   getPatternClipMidiStream,
   getMidiStreamAtTickInTrack,
@@ -54,6 +47,8 @@ import { selectPortals } from "types/Portal/PortalSelectors";
 import { selectPatternClips } from "types/Clip/ClipSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import {
+  selectTrackAncestorIdsMap,
+  selectTrackChainIdsMap,
   selectTrackIds,
   selectTrackMap,
   selectTrackScaleChain,
@@ -66,13 +61,15 @@ import {
   exportPatternStreamToXML,
   exportPatternToXML,
 } from "types/Pattern/PatternExporters";
-import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
-import { selectTrackScaleChainAtTick } from "./ArrangementTrackSelectors";
-import { DemoXML } from "assets/demoXML";
-import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import {
-  getPatternBlockAtIndex,
+  getMidiStreamMinMax,
+  getPatternMidiChordNotes,
+} from "types/Pattern/PatternUtils";
+import { selectTrackMidiScaleAtTick } from "./ArrangementTrackSelectors";
+import { DemoXML } from "assets/demoXML";
+import {
   getPatternBlockDuration,
+  getPatternMidiChordAtIndex,
 } from "types/Pattern/PatternFunctions";
 import {
   isPatternTrackId,
@@ -87,11 +84,7 @@ export const selectTrackArrangement = createDeepSelector(
   [selectTrackMap, selectPatternClipMap, selectPoseClipMap, selectScaleClipMap],
   (tracks, pattern, pose, scale) => ({
     tracks,
-    clips: {
-      pattern,
-      pose,
-      scale,
-    },
+    clips: { pattern, pose, scale },
   })
 );
 
@@ -127,30 +120,123 @@ export const selectFirstPortaledPatternClipId = createDeepSelector(
   (clipMap) => Object.keys(clipMap)[0] as PortaledPatternClipId | undefined
 );
 
-/** Select all portaled clip IDs. */
+/** Select all portaled clips. */
 export const selectPortaledClips = createDeepSelector(
   [selectPortaledClipMap],
-  (clipMap) =>
-    Object.values(clipMap).sort((a, b) => {
-      if (isPatternClipId(a.id)) return 1;
-      if (isPatternClipId(b.id)) return -1;
-      return 0;
-    }) as Portaled<Clip>[]
+  (clipMap) => Object.values(clipMap)
 );
 
-export const selectPortaledClipById = <T extends ClipType = ClipType>(
-  project: Project,
-  id: PortaledClipId<IClipId<T>>
-) => {
-  const clipMap = selectPortaledClipMap(project);
-  return clipMap[id];
+/** Select all portaled clip IDs. */
+export const selectPortaledClipIds = createDeepSelector(
+  [selectPortaledClips],
+  (clips) => clips.map((clip) => clip.id)
+);
+
+/** Select the map of tracks to their clip IDs. */
+export const selectTrackClipIdsMap = createDeepSelector(
+  [selectClips],
+  (clips) =>
+    clips.reduce((acc, clip) => {
+      const trackId = clip.trackId;
+      if (!acc[trackId]) acc[trackId] = [];
+      acc[trackId].push(clip.id);
+      return acc;
+    }, {} as Record<TrackId, ClipId[]>)
+);
+
+/** Select the map of tracks to their portaled clip IDs. */
+export const selectTrackPortaledClipIdsMap = createDeepSelector(
+  [selectPortaledClips],
+  (clips) =>
+    clips.reduce((acc, clip) => {
+      const trackId = clip.trackId;
+      if (!acc[trackId]) acc[trackId] = [];
+      acc[trackId].push(clip.id);
+      return acc;
+    }, {} as Record<TrackId, PortaledClipId[]>)
+);
+
+export const selectTrackClipIds = (project: Project, id: TrackId) => {
+  const map = selectTrackClipIdsMap(project);
+  return map[id] ?? [];
 };
+
+export const selectPortaledPatternClipIds = createSelector(
+  [selectPortaledClipIds],
+  (ids) => ids.filter(isPortaledPatternClipId)
+);
+
+export const selectPortaledClipIdTickMap = createDeepSelector(
+  [selectPortaledClipMap],
+  (clipMap) =>
+    mapValues(clipMap, (clip) => ({
+      tick: clip.tick,
+      duration: clip.duration,
+    }))
+);
+
+const selectPortaledClipId = <T extends ClipType = ClipType>(
+  _: Project,
+  id: PortaledClipId<IClipId<T>>
+) => id;
+
+export const selectPortaledClipById = createDeepSelector(
+  [selectPortaledClipMap, selectPortaledClipId],
+  (clipMap, id) => clipMap[id]
+);
+
+export const createSelectedPortaledClipById = <T extends ClipType = ClipType>(
+  id: PortaledClipId<IClipId<T>>
+) => createDeepSelector([selectPortaledClipMap], (clipMap) => clipMap[id]);
 
 /** Select the track arrangement after portals have been applied.  */
 export const selectProcessedArrangement = createDeepSelector(
-  [selectTrackArrangement, selectPortaledClipMap],
-  (arrangement, clipMap): TrackArrangement => {
-    return { ...arrangement, clips: getClipMapsByType(clipMap) };
+  [
+    selectTrackArrangement,
+    selectTrackAncestorIdsMap,
+    selectTrackChainIdsMap,
+    selectPortaledClipMap,
+  ],
+  (
+    arrangement,
+    trackAncestorIdMap,
+    chainIdsByTrack,
+    clipMap
+  ): TrackArrangement => {
+    const clips = Object.values(clipMap);
+    const clipsByTrack: ClipsByTrack = {};
+    const clipMaps: ClipMapsByType = { pattern: {}, pose: {}, scale: {} };
+    for (const clip of clips) {
+      // Add the clip by type
+      if (clip.type === "pattern") {
+        clipMaps.pattern[clip.id] = clip;
+      } else if (clip.type === "pose") {
+        clipMaps.pose[clip.id] = clip;
+      } else if (clip.type === "scale") {
+        clipMaps.scale[clip.id] = clip;
+      }
+
+      // Add the clip by track
+      if (!clipsByTrack[clip.trackId]) {
+        clipsByTrack[clip.trackId] = {
+          pattern: [] as PortaledPatternClip[],
+          pose: [] as PortaledPoseClip[],
+          scale: [] as PortaledScaleClip[],
+        };
+      }
+
+      const region = clipsByTrack[clip.trackId];
+      const area = region[clip.type] as IClip<typeof clip.type>[];
+      area.push(clip);
+    }
+
+    return {
+      ...arrangement,
+      clips: clipMaps,
+      clipsByTrack,
+      trackAncestorIdMap,
+      chainIdsByTrack,
+    };
   }
 );
 
@@ -171,28 +257,17 @@ export const selectLastArrangementTick = createSelector(
 /** Select the fully transposed streams of all clips (after portaling). */
 export const selectPatternClipStreamMap = createDeepSelector(
   [selectProcessedArrangement, selectMotifState],
-  (arrangement, motifs) => {
-    const map = {} as Record<PortaledPatternClipId, PatternClipMidiStream>;
-    const patternClips = getDictValues(
-      arrangement.clips?.pattern
-    ) as PortaledPatternClip[];
-
-    // Iterate through each clip and get the stream
-    for (const clip of patternClips) {
-      map[clip.id] = getPatternClipMidiStream({
-        ...arrangement,
-        clip,
-        motifs,
-      });
-    }
-    return map;
-  }
+  (arrangement, motifs) =>
+    mapValues(arrangement.clips.pattern, (clip) =>
+      !!clip ? getPatternClipMidiStream({ ...arrangement, clip, motifs }) : []
+    )
 );
 
 /** Select the fully transposed stream of a portaled clip. */
-export const selectPatternClipStream = createArraySelector(
-  selectPatternClipStreamMap
-);
+export const selectPatternClipStream = (project: Project, id: ClipId) => {
+  const streamMap = selectPatternClipStreamMap(project);
+  return streamMap[id];
+};
 
 /** Select the map of tracks to their fully portaled pattern clips */
 export const selectTrackPatternClipStreamMap = createSelector(
@@ -240,32 +315,33 @@ export const selectTrackPatternClipStreamMap = createSelector(
 
 /** Select all pattern chords to be played by each track at every tick. */
 export const selectMidiChordsByTicks = createDeepSelector(
-  [selectProcessedArrangement, selectPatternClipStreamMap, selectTrackMap],
-  (arrangement, streamMap, trackMap) => {
+  [
+    selectProcessedArrangement,
+    selectPatternClipStreamMap,
+    selectPortaledClipIds,
+  ],
+  (arrangement, streamMap, clipIds) => {
     const result = {} as InstrumentNotesByTicks;
-    const clipIds = Object.keys(streamMap) as PortaledPatternClipId[];
     const clips = arrangement.clips.pattern;
 
     // Iterate through each clip stream
     for (const key of clipIds) {
-      const clip = isPatternClipId(key) ? clips[key] : undefined;
+      const clip = clips[key];
       const stream = streamMap[key];
-      const streamLength = stream.length;
+      const streamLength = stream?.length;
       if (!clip || !streamLength) continue;
 
       // Get the pattern track
-      const patternTrack = trackMap[clip.trackId];
+      const patternTrack = arrangement.tracks[clip.trackId];
       if (!isPatternTrack(patternTrack)) continue;
 
       // Get the instrument ID
       const instrumentStateId = patternTrack.instrumentId;
-      if (!instrumentStateId) continue;
 
       // Iterate through each chord in the stream
       for (let j = 0; j < streamLength; j++) {
         // Get the current chord
         const { notes, startTick } = stream[j];
-        if (!notes.length) continue;
 
         // Add the chord to the map if it does not exist
         if (result[startTick] === undefined) {
@@ -290,13 +366,15 @@ export const selectChordsAtTick = (project: Project, tick: Tick) => {
 
 /** Select the map of pattern clips to overlapping pose clips. */
 export const selectOverlappingPortaledClipIdMap = createDeepSelector(
-  [selectPortaledClipMap],
-  (clipMap) => {
-    const clips = Object.values(clipMap);
-    const allPatternClips = clips.filter(
-      isPatternClip
-    ) as PortaledPatternClip[];
-    const allOtherClips = clips.filter((clip) => !isPatternClip(clip));
+  [selectPortaledClips],
+  (clips) => {
+    const allPatternClips: PortaledPatternClip[] = [];
+    const allOtherClips: PortaledClip[] = [];
+    for (const clip of clips) {
+      if (isPortaledPatternClipId(clip.id))
+        allPatternClips.push(clip as PortaledPatternClip);
+      else allOtherClips.push(clip);
+    }
     const result = {} as Record<PortaledPatternClipId, PortaledClipId[]>;
     if (!allPatternClips.length || !allOtherClips.length) return result;
 
@@ -358,17 +436,13 @@ export const selectClosestPoseClipId = (
   return poseClipIds.at(0) as PortaledPoseClipId | undefined;
 };
 
-export const selectPatternClipMidiStreamMap = createDeepSelector(
+export const selectPatternClipMidiStreamMap = createSelector(
   [selectProcessedArrangement, selectMotifState],
-  (arrangement, motifs) => {
-    const map = {} as Record<ClipId, PatternMidiStream>;
-    const patternClips = getDictValues(arrangement.clips.pattern);
-
-    // Iterate through each clip and get the stream
-    for (const clip of patternClips) {
-      const pattern = motifs?.pattern?.entities[clip.patternId];
-      if (!pattern) continue;
-
+  (arrangement, motifs) =>
+    mapValues(arrangement.clips.pattern, (clip) => {
+      if (!clip) return [];
+      const pattern = motifs?.pattern?.entities?.[clip.patternId];
+      if (!pattern) return [];
       // 1. Iterate over each tick of the pattern clip:
       const stream: PatternMidiStream = [];
       loopOverClipStream(clip, pattern, (_, tick, index) => {
@@ -381,10 +455,8 @@ export const selectPatternClipMidiStreamMap = createDeepSelector(
         });
 
         // 4. Obtain the MIDI notes at the current tick
-        const midiChord = getPatternBlockAtIndex(
-          midiStream,
-          index
-        ) as PatternMidiChord;
+        const midiChord = getPatternMidiChordAtIndex(midiStream, index);
+        if (!midiChord) return;
 
         // If the block is not strummed, just push the chord to the stream
         const chordNotes = getPatternMidiChordNotes(midiChord);
@@ -392,22 +464,45 @@ export const selectPatternClipMidiStreamMap = createDeepSelector(
           ? chordNotes
           : { duration: getPatternBlockDuration(midiChord) };
         stream.push(newNotes);
-
-        // If the clip has no duration but the pattern has more notes,
-        // return true to override and continue the loop
-        // if (isUndefined(clip.duration) && tick - clip.tick < midiDuration)
-        //   return true;
       });
-
-      map[clip.id] = stream;
-    }
-    return map;
-  }
+      return stream;
+    })
 );
 
 export const selectPatternClipMidiStream = createArraySelector(
   selectPatternClipMidiStreamMap
 );
+
+export const selectPatternClipStreamLengthMap = createDeepSelector(
+  [selectPatternClipMidiStreamMap],
+  (streamMap) => mapValues(streamMap, (stream) => stream.length)
+);
+
+export const selectPatternClipStreamLength = createValueSelector(
+  selectPatternClipStreamLengthMap,
+  0
+);
+
+export const selectPatternClipStreamRangeMap = createSelector(
+  [selectPatternClipMidiStreamMap],
+  (streamMap) => mapValues(streamMap, getMidiStreamMinMax)
+);
+
+export const selectPatternClipMidiStreamMin = (
+  project: Project,
+  id: ClipId
+) => {
+  const rangeMap = selectPatternClipStreamRangeMap(project);
+  return rangeMap[id]?.min;
+};
+
+export const selectPatternClipMidiStreamMax = (
+  project: Project,
+  id: ClipId
+) => {
+  const rangeMap = selectPatternClipStreamRangeMap(project);
+  return rangeMap[id]?.max;
+};
 
 export const selectPatternXML = (project: Project, id?: PatternId) => {
   if (!id) return DemoXML;
@@ -423,10 +518,7 @@ export const selectPatternClipXML = (project: Project, clip?: PatternClip) => {
 
   // Get the current scale chain
   const stream = selectPatternClipMidiStream(project, clip.id);
-  const scaleChain = selectTrackScaleChainAtTick(project, trackId, clip?.tick);
-
-  // Apply the track's current chromatic/chordal/octave offsets to the scale
-  const scale = resolveScaleChainToMidi(scaleChain);
+  const scale = selectTrackMidiScaleAtTick(project, trackId, clip?.tick);
   return exportPatternStreamToXML(stream, scale);
 };
 

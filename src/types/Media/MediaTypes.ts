@@ -52,6 +52,7 @@ export type MediaDragState = {
   draggingPortal?: boolean;
 };
 export const useDragState = () => useRecordState(defaultMediaDragState);
+export type setDragState = ReturnType<typeof useDragState>["set"];
 
 /** A `NewMediaPayload` contains IDs of clips and poses. */
 export type NewMediaPayload = Payload<{

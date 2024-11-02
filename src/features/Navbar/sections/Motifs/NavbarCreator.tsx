@@ -66,7 +66,7 @@ export const NavbarCreator = (props: { type?: ClipType }) => {
           names.clear(type);
         }}
       >
-        Create Motif
+        New {type}
       </div>
       <NavbarHoverTooltip
         group="peer-hover:block hover/tooltip:block"

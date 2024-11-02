@@ -1,37 +1,29 @@
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { capitalize } from "lodash";
-import { useMemo } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { ClipId, IClipId } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
 import { useProjectDispatch } from "types/hooks";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
-import { MediaDragState, useDragState } from "types/Media/MediaTypes";
 
 interface ClipDragProps {
   id: IClipId;
   type: ClipType;
+  startDrag: () => void;
+  endDrag: () => void;
 }
 
 export function useClipDrag(props: ClipDragProps) {
   const dispatch = useProjectDispatch();
-  const { id, type } = props;
-  const dragField = useMemo(
-    () => `dragging${capitalize(type)}Clip` as keyof MediaDragState,
-    [type]
-  );
-  const dragState = useDragState();
   return useDrag({
-    type: `${type}Clip`,
+    type: `${props.type}Clip`,
     item: () => {
-      dragState.set(dragField, true);
-      return { id };
+      props.startDrag();
+      return { id: props.id };
     },
-    collect(monitor) {
-      return { id, isDragging: monitor.isDragging() };
-    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
     end: (item: any, monitor: any) => {
-      dragState.set(dragField, false);
+      props.endDrag();
       dispatch(onMediaDragEnd(item, monitor));
     },
   });

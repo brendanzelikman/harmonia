@@ -5,13 +5,15 @@ import { selectTimelineType } from "types/Timeline/TimelineSelectors";
 import classNames from "classnames";
 
 interface NavbarGroupProps extends React.HTMLProps<HTMLDivElement> {
+  hide?: boolean;
   useTypeBackground?: boolean;
 }
 
 export function NavbarGroup(props: PropsWithChildren<NavbarGroupProps>) {
-  const { useTypeBackground, ...rest } = props;
+  const { hide, useTypeBackground, ...rest } = props;
   const type = use(selectTimelineType);
   const bgColor = useTypeBackground ? toolkitBackground[type] : undefined;
+  if (hide) return null;
   return (
     <div
       {...rest}

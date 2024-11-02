@@ -14,6 +14,11 @@ export const getOriginalIdFromPortaledClip = (clipId: PortaledClipId) =>
 
 /** Get a list of each clip's portaled chunks based on the given clips and portals. */
 export function applyPortalsToClips(clips: Timed<Clip>[], portals: Portal[]) {
+  if (!portals.length) {
+    return clips.map((clip) =>
+      initializePortaledClip({ ...clip, duration: clip.duration || 0 }, 1)
+    );
+  }
   return clips.map((clip) => {
     if (!isFiniteNumber(clip.duration)) {
       return [{ ...clip, duration: clip.duration || 0 }];

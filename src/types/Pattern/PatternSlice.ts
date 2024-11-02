@@ -9,6 +9,7 @@ import {
   isPatternChord,
   PatternChord,
   Pattern,
+  defaultPattern,
 } from "./PatternTypes";
 import { sumVectors } from "utils/vector";
 import { Action, createNormalSlice, unpackAction } from "lib/redux";

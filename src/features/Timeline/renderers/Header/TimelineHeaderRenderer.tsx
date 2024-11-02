@@ -1,6 +1,6 @@
 import { useLoopDrag, useLoopDrop } from "./useLoopDragAndDrop";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { useProjectDispatch, use, useDeep } from "types/hooks";
+import { useProjectDispatch, use } from "types/hooks";
 import { inRange } from "lodash";
 import { HeaderRendererProps } from "react-data-grid";
 import classNames from "classnames";
@@ -8,8 +8,8 @@ import { useCallback, useMemo } from "react";
 import { Row } from "features/Timeline/Timeline";
 import { convertTicksToFormattedTime } from "types/Transport/TransportFunctions";
 import {
-  selectSubdivisionTicks,
   selectColumnTicks,
+  selectSubdivisionTicks,
 } from "types/Timeline/TimelineSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import {
@@ -18,22 +18,25 @@ import {
   seekTransport,
 } from "types/Transport/TransportThunks";
 
-interface HeaderProps extends HeaderRendererProps<Row> {}
-
 const HELD_KEYS = ["s", "e"];
 
-export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
+interface TimelineHeaderRendererProps extends HeaderRendererProps<Row> {
+  holdingS: boolean;
+  holdingE: boolean;
+}
+
+export const TimelineHeaderRenderer: React.FC<TimelineHeaderRendererProps> = (
+  props
+) => {
   const dispatch = useProjectDispatch();
-  const holding = useHeldHotkeys(HELD_KEYS);
 
   // Header tick properties
   const columnIndex = Number(props.column.key);
   const tick = use((_) => selectColumnTicks(_, columnIndex - 1));
 
   // Loop properties derived from the transport
-  const transport = useDeep(selectTransport);
   const tickLength = use(selectSubdivisionTicks);
-  const { bpm, timeSignature, loop, loopStart, loopEnd } = transport;
+  const { bpm, timeSignature, loop, loopStart, loopEnd } = use(selectTransport);
   const inLoopRange = inRange(tick, loopStart, loopEnd);
   const onLoopStart = loopStart === tick;
   const onLoopEnd = loopEnd === tick + (tickLength - 1);
@@ -115,28 +118,37 @@ export const TimelineHeaderRenderer: React.FC<HeaderProps> = (props) => {
     const isMeasure = beats === 0 && sixteenths === 0;
 
     // The font size is reduced for triple digit measures.
-    const className = classNames(
-      "select-none",
-      { "pl-3": loop && onLoopStart },
-      { "pr-3": loop && onLoopEnd },
-      { "pl-1": !loop || (!onLoopStart && !onLoopEnd) },
-      { "text-[9px]": bars > 99 }
+    return (
+      <>
+        {!!isMeasure && (
+          <div
+            className={classNames(
+              "select-none",
+              { "pl-3": loop && onLoopStart },
+              { "pr-3": loop && onLoopEnd },
+              { "pl-1": !loop || (!onLoopStart && !onLoopEnd) },
+              { "text-[9px]": bars > 99 }
+            )}
+          >
+            {bars}
+          </div>
+        )}
+      </>
     );
-    return <>{!!isMeasure && <div className={className}>{bars}</div>}</>;
   }, [formattedTime, loop, onLoopStart, onLoopEnd]);
 
   /** Seek the transport or update the loop points if holding S/E. */
-  const onClick = useCallback(() => {
+  const onClick = () => {
     if (!loop) {
       dispatch(seekTransport({ data: tick }));
       return;
     }
-    if (holding.s) {
+    if (props.holdingS) {
       setLoopStart(columnIndex);
-    } else if (holding.e) {
+    } else if (props.holdingE) {
       setLoopEnd(columnIndex);
     }
-  }, [loop, tick, columnIndex, holding]);
+  };
 
   // Render the time cell
   return (

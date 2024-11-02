@@ -49,7 +49,7 @@ import {
   createInstrument,
 } from "types/Instrument/InstrumentThunks";
 import { playPatternChord } from "types/Pattern/PatternThunks";
-import { format, sanitize } from "utils/math";
+import { sanitize } from "utils/math";
 
 let scheduleId: number;
 
@@ -117,7 +117,7 @@ export const startTransport =
 
     // Update the loop or turn it off if the tick is greater than the loop start
     if (Tone.Transport.seconds > loopStartInSeconds) {
-      dispatch(setTransportLoop(false));
+      // dispatch(setTransportLoop(false));
     } else {
       Tone.Transport.loop = loop;
       Tone.Transport.loopStart = loopStartInSeconds;
@@ -573,19 +573,19 @@ export const convertStringToTicks =
 
     // If the string matches exactly a number, return the value in ticks
     if (/^\d+\s?$/.test(string)) {
-      return sanitize(parseInt(string));
+      return sanitize(parseFloat(string));
     }
 
     // Try to match with `n ticks`
     const ticksMatch = string.match(/^(\d+) ticks?$/);
     if (ticksMatch) {
-      return sanitize(parseInt(ticksMatch[1]));
+      return sanitize(parseFloat(ticksMatch[1]));
     }
 
-    // Try to match with `n bars`
-    const barsMatch = string.match(/^(\d+) bars?$/);
+    // Try to match with `n bars` including decimals
+    const barsMatch = string.match(/^(\d+(\.\d+)?) bars?$/);
     if (barsMatch) {
-      const bars = parseInt(barsMatch[1]);
+      const bars = parseFloat(barsMatch[1]);
       const { timeSignature } = selectTransport(getState());
       return bars * (timeSignature[0] / 4) * PPQ;
     }
@@ -594,14 +594,14 @@ export const convertStringToTicks =
     for (const duration of DURATION_TYPES) {
       let durationMatch = string.match(new RegExp(`^(\\d+) ${duration}s?$`));
       if (durationMatch) {
-        const value = sanitize(parseInt(durationMatch[1]));
+        const value = sanitize(parseFloat(durationMatch[1]));
         const ticks = value * getDurationTicks(duration);
         return ticks;
       }
     }
 
-    // Try to match with `n seconds`
-    const secondsMatch = string.match(/^(\d+) seconds?$/);
+    // Try to match with `n seconds` including decimals
+    const secondsMatch = string.match(/^(\d+(\.\d+)?) seconds?$/);
     if (secondsMatch) {
       const seconds = parseInt(secondsMatch[1]);
       return secondsToTicks(seconds, selectTransport(getState()).bpm);

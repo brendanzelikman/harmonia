@@ -30,10 +30,8 @@ export const getPoseVectorAsJSX = (
   vector?: _.PoseVector,
   trackMap?: TrackMap
 ) => {
-  if (!vector) return "";
-
   // Return the origin if the vector is empty
-  if (isVectorEmpty(vector)) return <span>Origin</span>;
+  if (!vector || isVectorEmpty(vector)) return <span>Origin</span>;
 
   // Otherwise, parse the keys and create a string for each offset
   const keys = getVectorKeys(vector);
@@ -72,7 +70,7 @@ export const getPoseVectorAsJSX = (
     hasSeveralTracks && trackMap ? (
       <span>
         {trackIds.map((id, i) => {
-          const label = getTrackLabel(id, trackMap);
+          const label = getTrackLabel(id, trackMap ?? {});
           const value = vector[id];
           return (
             <span key={`scalar-${i}`}>
@@ -281,7 +279,7 @@ export const getPoseVectorOffsetName = (
 
 /** Get the duration of a stream or Infinity if some element's duration is undefined. */
 export const getPoseStreamDuration = (stream?: _.PoseStream) => {
-  if (!stream) return 1;
+  if (!stream) return 0;
   return stream.reduce((acc, block) => {
     const duration = block.duration ?? Infinity;
     const repeat = block.repeat || 1;

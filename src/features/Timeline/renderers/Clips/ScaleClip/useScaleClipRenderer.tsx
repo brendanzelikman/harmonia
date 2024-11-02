@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useClipDrag } from "../useClipDnd";
 import {
   useProjectDispatch,
@@ -15,44 +15,55 @@ import {
   selectScaleName,
   selectTrackTop,
 } from "types/Arrangement/ArrangementTrackSelectors";
-import { ScaleClip, ScaleClipId } from "types/Clip/ClipTypes";
+import {
+  PortaledScaleClip,
+  PortaledScaleClipId,
+  ScaleClipId,
+} from "types/Clip/ClipTypes";
 import { selectClipWidth } from "types/Arrangement/ArrangementClipSelectors";
 import {
   selectCellWidth,
   selectTimelineTickLeft,
   selectTrackHeight,
   selectIsAddingClips,
+  selectIsClipSelected,
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackScale } from "types/Track/TrackSelectors";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
-import {
-  selectCustomScaleById,
-  selectScaleById,
-} from "types/Scale/ScaleSelectors";
+import { selectCustomScaleById } from "types/Scale/ScaleSelectors";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { useDragState } from "types/Media/MediaTypes";
-import { Timed } from "types/units";
+import { createSelectedPortaledClipById } from "types/Arrangement/ArrangementSelectors";
 
 interface ScaleClipRenderer extends ClipComponentProps {
-  clip: Timed<ScaleClip>;
+  id: ScaleClipId;
+  pcId: PortaledScaleClipId;
 }
 
 export function ScaleClipRenderer(props: ScaleClipRenderer) {
-  const { clip, portaledClip, isSelected, isPortaling, holdingI } = props;
+  const { id, pcId, isPortaling, holdingI } = props;
   const { isAdding, isSlicing } = props;
+  const selectClip = useMemo(
+    () => createSelectedPortaledClipById(pcId),
+    [pcId]
+  );
+  const clip = useDeep(selectClip) as PortaledScaleClip;
   const { tick } = clip;
+  const isSelected = use((_) => selectIsClipSelected(_, id));
   const dispatch = useProjectDispatch();
   const cellWidth = use(selectCellWidth);
-  const trackScale = useDeep((_) => selectTrackScale(_, clip.trackId));
+  const trackScale = useDeep((_) => selectTrackScale(_, clip.trackId) ?? []);
   const trackSize = getScaleNotes(trackScale).length;
   const clipScale = useDeep((_) => selectCustomScaleById(_, clip.scaleId));
   const clipSize = getScaleNotes(clipScale).length;
   const isEqualSize = trackSize === clipSize;
 
   /** A custom hook for dragging poses into cells */
-  const [{ isDragging }, drag] = useClipDrag({
-    id: portaledClip.id as ScaleClipId,
+  const [_, drag] = useClipDrag({
+    id: pcId as ScaleClipId,
     type: "scale",
+    startDrag: props.startDrag,
+    endDrag: props.endDrag,
   });
 
   const dragState = useDragState();
@@ -62,14 +73,14 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
 
   // Timeline info
   const addingSomeMedia = use(selectIsAddingClips);
-  const isActive = addingSomeMedia || isDragging;
+  const isActive = addingSomeMedia;
   const isDraggingOther =
     draggingPatternClip || draggingPoseClip || draggingPortal;
 
   // Pose dimensions
   const top = use((_) => selectTrackTop(_, clip.trackId));
   const left = use((_) => selectTimelineTickLeft(_, tick));
-  const width = use((_) => selectClipWidth(_, portaledClip));
+  const width = use((_) => selectClipWidth(_, clip));
   const height = use((_) => selectTrackHeight(_, clip.trackId));
 
   /** The pose header contains a clip name and vector if it is a bucket. */
@@ -119,7 +130,7 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
       : isInfinite && isAdding
       ? "pointer-events-none"
       : "pointer-events-all",
-    isDragging || !isEqualSize || isPortaling
+    !isEqualSize || isPortaling
       ? "opacity-50"
       : isDraggingOther
       ? "opacity-80"
@@ -132,7 +143,9 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
       ref={drag}
       className={className}
       style={{ top, left, width: isInfinite ? cellWidth : width, height }}
-      onClick={(e) => dispatch(onClipClick(e, clip, { eyedropping: holdingI }))}
+      onClick={(e) =>
+        dispatch(onClipClick(e, { ...clip, id }, { eyedropping: holdingI }))
+      }
     >
       {Header()}
       {Body()}

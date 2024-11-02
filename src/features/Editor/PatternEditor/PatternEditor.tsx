@@ -19,13 +19,13 @@ import {
   updatePatternBlockDuration,
 } from "types/Pattern/PatternFunctions";
 import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
-import { resolvePatternChordToMidi } from "types/Pattern/PatternResolvers";
 import {
   PatternId,
   PatternBlock,
   PatternChord,
   PatternMidiNote,
   isPatternChord,
+  PatternMidiChord,
 } from "types/Pattern/PatternTypes";
 import {
   addPatternBlock,
@@ -35,6 +35,7 @@ import {
 } from "types/Pattern/PatternSlice";
 import { selectTrackScaleChain } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
+import { resolvePatternBlockToMidi } from "types/Pattern/PatternResolvers";
 
 /** The pattern editor uses the pattern history and a score. */
 export interface PatternEditorProps extends EditorProps, ScoreProps {
@@ -101,11 +102,11 @@ function PatternEditorComponent(props: EditorProps) {
   // If the block is a chord, resolve the chord to MIDI notes
   const scales = useDeep((_) => selectTrackScaleChain(_, ptId));
   const midiChord = useMemo(
-    () => (onNotes ? resolvePatternChordToMidi(block, scales) : []),
+    () => (onNotes ? resolvePatternBlockToMidi(block, scales) : []),
     [block, scales, onNotes]
   );
   const midiNotes = useMemo(
-    () => getPatternMidiChordNotes(midiChord),
+    () => getPatternMidiChordNotes(midiChord as PatternMidiChord),
     [midiChord]
   );
   const isChord = midiNotes.length > 1;

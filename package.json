@@ -18,7 +18,7 @@
     "samples": "node scripts/generateSamples.js && node scripts/generateCategories.js"
   },
   "dependencies": {
-    "@headlessui/react": "^1.7.19",
+    "@headlessui/react": "^2.2.0",
     "@reduxjs/toolkit": "^1.9.2",
     "@tonejs/midi": "^2.0.28",
     "audiobuffer-to-wav": "^1.0.0",

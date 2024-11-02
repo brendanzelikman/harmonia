@@ -10,15 +10,17 @@ import { autoBindNoteToTrack } from "types/Track/TrackThunks";
 import { PatternNote } from "types/Pattern/PatternTypes";
 import { CursorProps } from "lib/opensheetmusicdisplay";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { PatternClip } from "types/Clip/ClipTypes";
 
 export interface PatternClipPianoProps extends PatternClipRendererProps {
   cursor: CursorProps;
+  clip: PatternClip;
   duration: number;
   isAdding: boolean;
 }
 
 export function PatternClipPiano(props: PatternClipPianoProps) {
-  const { clip, isAdding, duration, cursor } = props;
+  const { isAdding, duration, cursor, clip } = props;
   const dispatch = useProjectDispatch();
   const pattern = useDeep((_) => selectPatternById(_, clip.patternId));
   const holding = useHeldHotkeys("shift");

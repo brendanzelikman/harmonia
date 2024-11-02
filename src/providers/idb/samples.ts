@@ -2,16 +2,21 @@ import { SAMPLE_STORE } from "utils/constants";
 import { getContext } from "tone";
 import { Thunk } from "types/Project/ProjectTypes";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
-import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
+import {
+  isPatternTrackId,
+  PatternTrack,
+} from "types/Track/PatternTrack/PatternTrackTypes";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import { Instrument, InstrumentKey } from "types/Instrument/InstrumentTypes";
 import { fetchUser } from "providers/auth";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import { createUndoType } from "lib/redux";
+import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
+import { isPatternTrack, Track } from "types/Track/TrackTypes";
 
 // Function to handle file input
 export const handleFileInput =
-  (file: File, _track?: PatternTrack): Thunk =>
+  (file: File, _track?: Track): Thunk =>
   async (dispatch, getProject) => {
     const undoType = createUndoType("handleFileInput", file);
     const { db } = await fetchUser();
@@ -25,12 +30,15 @@ export const handleFileInput =
     await db.put(SAMPLE_STORE, { id, buffer });
 
     const project = getProject();
-    const { track, instrument } = _track
+    const selectedTrackId = selectSelectedTrackId(project);
+    const { track, instrument } = isPatternTrack(_track)
       ? {
           track: _track,
           instrument: selectInstrumentById(project, _track.instrumentId),
         }
-      : dispatch(createPatternTrack(undefined, undefined, undoType));
+      : dispatch(
+          createPatternTrack({ parentId: selectedTrackId }, undefined, undoType)
+        );
     const urls = { C3: audioBuffer };
     const oldInstrument: Instrument | undefined = instrument
       ? { ...instrument, key: id as InstrumentKey }
@@ -97,7 +105,7 @@ export const getSampleFromIDB = async (
 
 // Attach file input handling to an HTML element
 export const setupFileInput =
-  (track?: PatternTrack): Thunk =>
+  (track?: Track): Thunk =>
   (dispatch) => {
     const input = document.createElement("input");
     input.type = "file";

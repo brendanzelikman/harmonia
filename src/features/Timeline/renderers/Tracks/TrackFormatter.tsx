@@ -1,7 +1,7 @@
 import { FormatterProps } from "react-data-grid";
 import { PatternTrackFormatter } from "./PatternTrackFormatter";
 import { ScaleTrackFormatter } from "./ScaleTrackFormatter";
-import { use, useProjectDispatch } from "types/hooks";
+import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { Row } from "features/Timeline/Timeline";
 import {
   TrackId,
@@ -21,6 +21,7 @@ import { moveScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import { updateTrack } from "types/Track/TrackThunks";
 import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
+import { useCallback } from "react";
 
 export interface TrackFormatterProps {
   track?: Track;
@@ -38,22 +39,28 @@ export function TrackFormatter(props: FormatterProps<Row>) {
   const trackId = props.row.id;
   const selectedTrackId = use(selectSelectedTrackId);
   const isSelected = trackId === selectedTrackId;
-  const track = use((_) => (trackId ? selectTrackById(_, trackId) : undefined));
+  const track = useDeep((_) =>
+    trackId ? selectTrackById(_, trackId) : undefined
+  );
   const isAncestorSelected = use((_) =>
     selectTrackAncestors(_, trackId).some((t) => t?.id === selectedTrackId)
   );
   const label = use((_) => selectTrackLabelById(_, track?.id));
   const index = use((_) => selectTrackIndexById(_, track?.id));
-  if (!trackId || !track) return null;
 
-  const _renameTrack = (name: string) =>
-    dispatch(updateTrack({ data: { id: trackId, name } }));
+  const _renameTrack = useCallback(
+    (name: string) =>
+      trackId && dispatch(updateTrack({ data: { id: trackId, name } })),
+    []
+  );
 
-  const moveTrack = (dragId: TrackId, hoverId: TrackId) => {
+  const moveTrack = useCallback((dragId: TrackId, hoverId: TrackId) => {
     if (isScaleTrack(track)) dispatch(moveScaleTrack({ dragId, hoverId }));
     else if (isPatternTrack(track))
       dispatch(movePatternTrack({ dragId, hoverId }));
-  };
+  }, []);
+
+  if (!trackId || !track) return null;
 
   // A track passes down general props to the scale/pattern tracks
   const trackProps: TrackFormatterProps = {

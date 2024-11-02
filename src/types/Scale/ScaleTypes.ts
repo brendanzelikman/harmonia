@@ -69,7 +69,12 @@ export type PresetScale = ScaleObject & { id: `scale_preset_${string}` };
 /** Create a scale with a unique ID. */
 export const initializeScale = (
   scale: Partial<ScaleObject> = chromaticScale
-): ScaleObject => ({ ...chromaticScale, ...scale, id: createId("scale") });
+): ScaleObject => ({
+  ...chromaticScale,
+  name: undefined,
+  ...scale,
+  id: createId("scale"),
+});
 
 /** The chromatic notes are a range of MidiValues. */
 export const chromaticNotes: MidiScale = range(60, 72);
@@ -115,11 +120,7 @@ export const mockScale: ScaleObject = {
 /** Checks if a given object is of type `ScaleVector`. */
 export const isScaleVector = (obj: unknown): obj is ScaleVector => {
   const candidate = obj as ScaleVector;
-  return (
-    isPlainObject(candidate) &&
-    areObjectKeysTyped(candidate, isString) &&
-    areObjectValuesTyped(candidate, isFiniteNumber)
-  );
+  return isPlainObject(candidate);
 };
 
 /** Checks if a given object is of type `MidiValue`. */
@@ -131,7 +132,7 @@ export const isMidiValue = (obj: unknown): obj is MidiValue => {
 /** Checks if a given object is of type `MidiObject`. */
 export const isMidiObject = (obj: unknown): obj is MidiObject => {
   const candidate = obj as MidiObject;
-  return isPlainObject(candidate) && isMidiValue(candidate.MIDI);
+  return isMidiValue(candidate?.MIDI);
 };
 
 /** Checks if a given object is of type `MidiNote`. */
@@ -142,12 +143,7 @@ export const isMidiNote = (obj: unknown): obj is MidiNote => {
 /** Checks if a given object is of type `NestedNote`. */
 export const isNestedNote = (obj: unknown): obj is NestedNote => {
   const candidate = obj as NestedNote;
-  return (
-    isPlainObject(candidate) &&
-    isFiniteNumber(candidate.degree) &&
-    isOptionalType(candidate.scaleId, isScaleId) &&
-    isOptionalType(candidate.offset, isScaleVector)
-  );
+  return isPlainObject(candidate) && isFiniteNumber(candidate.degree);
 };
 
 /** Checks if a given object is of type `ScaleNote`. */

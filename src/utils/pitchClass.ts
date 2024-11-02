@@ -1,12 +1,8 @@
 import { Key, PitchClass } from "types/units";
-import { getPitchClassNumber, MidiNote, MidiScale } from "./midi";
+import { getPitchClassNumber, MidiNote } from "./midi";
 import { getMidiDegree } from "./midi";
 import { ChromaticKey } from "assets/keys";
-import { capitalize, isArray, lowerCase } from "lodash";
-import { PresetScaleNotes } from "assets/scales";
-import { PatternScales } from "types/Pattern/PatternUtils";
-import { getTransposedScale } from "types/Scale/ScaleTransformers";
-import { getScaleName } from "./scale";
+import { capitalize, lowerCase } from "lodash";
 
 /** A regex matching an initial pitch class and a following string. */
 export const PITCH_CLASS_REGEX = /^([a-gA-G][#b]?)(.*)$/;

@@ -27,6 +27,7 @@ import {
   selectIsAddingClips,
   selectIsAddingPortals,
   selectPortalDraft,
+  selectSelectedClipIdMap,
 } from "../TimelineSelectors";
 import {
   updateMediaSelection,
@@ -133,6 +134,7 @@ export const onClipClick =
     const project = getProject();
     const isAddingClips = selectIsAddingClips(project);
     const selectedClipIds = selectSelectedClipIds(project);
+    const selectedClipIdMap = selectSelectedClipIdMap(project);
     const draftField = `${clip.type}Clip` as keyof MediaDraft;
     const motifField = `${clip.type}Id` as keyof Clip;
     const motifId = clip[motifField];
@@ -157,7 +159,7 @@ export const onClipClick =
     }
 
     // Deselect the clip if it is selected
-    const isClipSelected = selectedClipIds.includes(clip.id);
+    const isClipSelected = selectedClipIdMap[clip.id];
     if (isClipSelected) {
       dispatch(removeClipIdsFromSelection({ data: [clip.id], undoType }));
       return;

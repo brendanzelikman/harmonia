@@ -1,4 +1,4 @@
-import { range } from "lodash";
+import { isArray, isNumber, range } from "lodash";
 import { MidiScale, getMidiDegree, getMidiNoteValue } from "utils/midi";
 import {
   PatternBlock,
@@ -22,17 +22,15 @@ import { Chords } from "assets/patterns";
 
 /** Get a `PatternChord` as an array of notes. */
 export const getPatternChordNotes = (chord: PatternChord) => {
-  if (!isPatternChord(chord)) return [];
-  if (isPatternStrummedChord(chord)) return chord.chord;
   if (Array.isArray(chord)) return chord;
+  if (isPatternStrummedChord(chord)) return chord.chord;
   return [chord];
 };
 
 /** Get a `PatternMidiChord` as an array of notes. */
 export const getPatternMidiChordNotes = (chord: PatternMidiChord) => {
-  if (!isPatternMidiChord(chord)) return [];
-  if (isPatternStrummedChord(chord)) return chord.chord;
   if (Array.isArray(chord)) return chord;
+  if (isPatternStrummedChord(chord)) return chord.chord;
   return [chord];
 };
 
@@ -44,9 +42,8 @@ export const getPatternChordWithNewNotes = (
   const notes = Array.isArray(_notes)
     ? _notes
     : _notes(getPatternChordNotes(chord));
-  if (!isPatternChord(chord)) return chord;
-  if (isPatternStrummedChord(chord)) return { ...chord, chord: notes };
   if (Array.isArray(chord)) return notes;
+  if (isPatternStrummedChord(chord)) return { ...chord, chord: notes };
   return [notes[0]];
 };
 
@@ -57,9 +54,8 @@ export const getPatternMidiChordWithNewNotes = (
   const notes = Array.isArray(_notes)
     ? _notes
     : _notes(getPatternMidiChordNotes(chord));
-  if (!isPatternMidiChord(chord)) return chord;
-  if (isPatternStrummedChord(chord)) return { ...chord, chord: notes };
   if (Array.isArray(chord)) return notes;
+  if (isPatternStrummedChord(chord)) return { ...chord, chord: notes };
   return [notes[0]];
 };
 
@@ -92,14 +88,16 @@ export const getPatternBlockWithNewNotes = (
 /** Get a `PatternMidiStream` flattened into an array of `PatternMidiNotes` */
 export const flattenMidiStreamNotes = (stream: PatternMidiStream) => {
   const chords = stream.filter(isPatternMidiChord);
-  return chords.map((c) => (isPatternStrummedChord(c) ? c.chord : c)).flat();
+  return chords.flatMap((c) => (isPatternStrummedChord(c) ? c.chord : c));
 };
 
 /** Get a `PatternMidiStream` flattened into an array of `MIDIValues` */
 export const flattenMidiStreamValues = (
   stream: PatternMidiStream
 ): MidiScale => {
-  return flattenMidiStreamNotes(stream).map((n) => n.MIDI);
+  return flattenMidiStreamNotes(stream)
+    .map((n) => n?.MIDI ?? undefined)
+    .filter(isNumber);
 };
 
 /** Get the intrinsic scale of a `PatternMidiStream` */
@@ -130,7 +128,7 @@ export const getMidiStreamIntrinsicScale = (
   return [...new Set(basicValues)].sort((a, b) => a - b);
 };
 
-export const getMidiStreamMinMax = (stream?: PatternMidiStream) => {
+export const getMidiStreamMinMax = (stream: PatternMidiStream) => {
   if (!stream) return { min: 0, max: 0 };
   const values = flattenMidiStreamValues(stream);
   return { min: Math.min(...values), max: Math.max(...values) };

@@ -27,12 +27,15 @@ import {
   IClipMap,
 } from "./ClipTypes";
 import { ClipType } from "./ClipTypes";
+import { TrackId } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------
 // Clip Type Helpers
 // ------------------------------------------------------------
 
 export type ClipsByType = { [T in ClipType]: IClip<T>[] };
+
+export type ClipsByTrack = Record<TrackId, ClipsByType>;
 
 /** Convert an array of clips to a record of clips by type */
 export const getClipsByType = (clips: Clip[]): ClipsByType => {

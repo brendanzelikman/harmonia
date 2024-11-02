@@ -31,10 +31,11 @@ import { CiUndo } from "react-icons/ci";
 import { BsTrash } from "react-icons/bs";
 import { blurOnEnter } from "utils/html";
 import { PoseClipEffects } from "./PoseClipEffects";
+import { PoseClipComponentProps } from "./usePoseClipRenderer";
 
 export type PoseClipVectorView = "scales" | "notes" | "effects";
 
-interface PoseClipVectorProps {
+interface PoseClipVectorProps extends PoseClipComponentProps {
   block: PoseBlock | undefined;
   index: number;
   clip: PoseClip;
@@ -60,7 +61,7 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
     // If the L key is held, show voice leadings for each pitch class
     if (view === "notes") {
       return ChromaticKey.map((key) => ({
-        id: key,
+        fieldId: key,
         name: "Pitch Class",
         scaleName: key,
       }));
@@ -70,14 +71,14 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
     const defaultName = `Track ${clipLabel}`;
     return [
       ...clipTracks.map((track) => ({
-        id: track.id,
+        fieldId: track.id,
         name: `Track ${getTrackLabel(track.id, trackMap)}`,
         scaleName: getScaleName(trackScaleMap[track.id]),
         depth: getTrackDepth(track.id, trackMap),
       })),
-      { id: "chordal", scaleName: "Intrinsic Scale", name: defaultName },
-      { id: "chromatic", scaleName: "Chromatic Scale", name: defaultName },
-      { id: "octave", scaleName: "Adjust Octave", name: defaultName },
+      { fieldId: "chordal", scaleName: "Intrinsic Scale", name: defaultName },
+      { fieldId: "chromatic", scaleName: "Chromatic Scale", name: defaultName },
+      { fieldId: "octave", scaleName: "Adjust Octave", name: defaultName },
     ].filter((f) => !(("depth" in f ? f.depth || 0 : 0) >= clipDepth));
   }, [view, clipTracks, trackMap, trackScaleMap, clipLabel]);
 
@@ -128,8 +129,8 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
             <PoseClipVectorField
               {...props}
               {...field}
-              key={`${field.id}-${
-                props.block?.vector?.[field.id as ScaleTrackId]
+              key={`${field.fieldId}-${
+                props.block?.vector?.[field.fieldId as ScaleTrackId]
               }`}
             />
           ))
@@ -141,7 +142,7 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
 
 // The field for each vector component in the dropdown
 interface PoseClipVectorFieldProps extends PoseClipVectorProps {
-  id: string;
+  fieldId: string;
   name?: string;
   scaleName: string;
   depth?: number;
@@ -149,10 +150,10 @@ interface PoseClipVectorFieldProps extends PoseClipVectorProps {
 
 export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
   const { block, index, isActive } = props;
-  const { clip, id, name, scaleName, depth, depths } = props;
+  const { clip, fieldId, name, scaleName, depth, depths } = props;
   const dispatch = useProjectDispatch();
   const offset =
-    block && "vector" in block ? block.vector?.[id as PoseVectorId] : 0;
+    block && "vector" in block ? block.vector?.[fieldId as PoseVectorId] : 0;
   const [displayedValue, setDisplayedValue] = useState(String(offset));
 
   useEffect(() => {
@@ -177,18 +178,18 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
     if (depth === 1) return "q";
     if (depth === 2) return "w";
     if (depth === 3) return "e";
-    if (id === "chordal") return "r";
-    if (id === "chromatic") return "t";
-    if (id === "octave") return "y";
+    if (fieldId === "chordal") return "r";
+    if (fieldId === "chromatic") return "t";
+    if (fieldId === "octave") return "y";
     return "";
-  }, [depth, id]);
+  }, [depth, fieldId]);
 
   const holdingKey = useHeldHotkeys(key)[key];
 
   // Omit the value from the vector on double click
   const onDoubleClick = () => {
     if (!block || !("vector" in block)) return;
-    const newVector = omit(block.vector, id);
+    const newVector = omit(block.vector, fieldId);
     const newBlock = { ...block, vector: newVector };
     dispatch(
       updatePoseBlock({ id: clip.poseId, index, depths, block: newBlock })
@@ -199,7 +200,7 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
   const onValueChange = (_value: number) => {
     if (!block || !("vector" in block)) return;
     const value = sanitize(_value);
-    const vector = { ...block.vector, [id]: value };
+    const vector = { ...block.vector, [fieldId]: value };
     const newBlock = { ...block, vector };
     dispatch(
       updatePoseBlock({ id: clip.poseId, index, depths, block: newBlock })
@@ -212,7 +213,7 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
       <div
         className={classNames(
           "px-1",
-          isScaleTrackId(id) ? "text-sky-300" : "text-emerald-300"
+          isScaleTrackId(fieldId) ? "text-sky-300" : "text-emerald-300"
         )}
       >
         {name}:{" "}
@@ -233,11 +234,11 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
             ? "Hold W + Press Number"
             : depth === 3
             ? "Hold E + Press Number"
-            : id === "chordal"
+            : fieldId === "chordal"
             ? "Hold R + Press Number"
-            : id === "chromatic"
+            : fieldId === "chromatic"
             ? "Hold T + Press Number"
-            : id === "octave"
+            : fieldId === "octave"
             ? "Hold Y + Press Number"
             : ""}
         </div>

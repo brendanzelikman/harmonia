@@ -139,6 +139,7 @@ export const randomizePattern =
     const scaleChain = selectTrackScaleChain(project, trackId);
     const scales = track ? scaleChain : Object.values(PresetScaleList);
     const scale = sample(scales);
+    if (!scale) return;
 
     // Initialize the pattern stream
     const stream = pattern.stream.map((block) => {
@@ -183,6 +184,7 @@ export const randomizePatternPitches =
     const scaleChain = selectTrackScaleChain(project, trackId);
     const scales = track ? scaleChain : Object.values(PresetScaleList);
     const scale = sample(scales);
+    if (!scale) return;
 
     // Initialize the pattern stream
     const stream = pattern.stream.map((block) => {

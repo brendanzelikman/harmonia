@@ -8,11 +8,11 @@ import { Portal } from "types/Portal/PortalTypes";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
   selectSelectedPortalIds,
-  selectTimeline,
   selectCellWidth,
   selectCellHeight,
   selectTimelineTickLeft,
   selectIsAddingPortals,
+  selectPortalFragment,
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackById } from "types/Track/TrackSelectors";
 import { Timed } from "types/units";
@@ -20,15 +20,14 @@ import { some } from "lodash";
 
 export function TimelinePortals(props: TimelineElement) {
   const portals = useDeep(selectPortals);
-  const selectedIds = use(selectSelectedPortalIds);
-  const timeline = use(selectTimeline);
+  const selectedIds = useDeep(selectSelectedPortalIds);
   const isPortaling = use(selectIsAddingPortals);
   const cellWidth = use(selectCellWidth);
   const cellHeight = use(selectCellHeight);
 
   // Get the fragment info
-  const fragment = timeline.draft?.portal;
-  const fragmentTrack = use((_) =>
+  const fragment = useDeep(selectPortalFragment);
+  const fragmentTrack = useDeep((_) =>
     fragment?.trackId ? selectTrackById(_, fragment?.trackId) : undefined
   );
   const fragmentTop = use((_) => selectTrackTop(_, fragmentTrack?.id));

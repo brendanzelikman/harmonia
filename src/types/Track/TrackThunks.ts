@@ -3,7 +3,7 @@ import { Payload, createUndoType, unpackUndoType } from "lib/redux";
 import { union, difference, range } from "lodash";
 import { selectClipsByTrackIds } from "types/Clip/ClipSelectors";
 import { addClips, removeClips } from "types/Clip/ClipSlice";
-import { initializeClip } from "types/Clip/ClipTypes";
+import { ClipType, initializeClip } from "types/Clip/ClipTypes";
 import { hideEditor } from "types/Editor/EditorSlice";
 import {
   LiveAudioInstance,
@@ -23,7 +23,7 @@ import {
   initializeInstrument,
   Instrument,
 } from "types/Instrument/InstrumentTypes";
-import { PatternNote } from "types/Pattern/PatternTypes";
+import { isPatternRest, PatternNote } from "types/Pattern/PatternTypes";
 import { selectPortalsByTrackIds } from "types/Portal/PortalSelectors";
 import { removePortals } from "types/Portal/PortalSlice";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -41,7 +41,11 @@ import { getArrayByKey, getValueByKey, spliceOrPush } from "utils/objects";
 import { createPatternTrack } from "./PatternTrack/PatternTrackThunks";
 import { PatternTrack, PatternTrackId } from "./PatternTrack/PatternTrackTypes";
 import { createScaleTrack } from "./ScaleTrack/ScaleTrackThunks";
-import { isScaleTrackId } from "./ScaleTrack/ScaleTrackTypes";
+import {
+  isScaleTrackId,
+  ScaleTrack,
+  ScaleTrackId,
+} from "./ScaleTrack/ScaleTrackTypes";
 import {
   selectTracks,
   selectTrackMap,
@@ -57,6 +61,7 @@ import {
   selectTrackMidiScaleMap,
   selectTrackChainIds,
   selectTrackAncestorIds,
+  selectScaleTrackById,
 } from "./TrackSelectors";
 import { scaleTrackSlice, patternTrackSlice } from "./TrackSlice";
 import {
@@ -69,13 +74,22 @@ import {
 } from "./TrackTypes";
 import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
 import { mod } from "utils/math";
-import { getMidiOctaveDistance, MidiValue } from "utils/midi";
+import { getMidiOctaveDistance, MidiNote, MidiValue } from "utils/midi";
 import { resolvePatternNoteToMidi } from "types/Pattern/PatternResolvers";
 import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
 import { selectPoses } from "types/Pose/PoseSelectors";
 import { removePose } from "types/Pose/PoseSlice";
-import { removePattern } from "types/Pattern/PatternSlice";
+import {
+  removePattern,
+  updatePattern,
+  updatePatterns,
+} from "types/Pattern/PatternSlice";
 import { PoseOperation } from "types/Pose/PoseTypes";
+import {
+  getTransposedMidiNote,
+  transposeNoteThroughScale,
+} from "types/Scale/ScaleTransformers";
+import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
 
 /** Add an array of tracks to the store. */
 export const addTracks =
@@ -307,7 +321,7 @@ export const createTrackTree =
   (payload?: Payload<null, true>): Thunk<PatternTrack> =>
   (dispatch) => {
     const undoType = unpackUndoType(payload, "createTrackTree");
-    const parentId = dispatch(createScaleTrack({}, undefined, undoType));
+    const parentId = dispatch(createScaleTrack({}, undefined, undoType)).id;
     const { track } = dispatch(
       createPatternTrack({ parentId }, undefined, undoType)
     );
@@ -461,22 +475,28 @@ export const duplicateTrack =
 
 /** Clear a track of all media. */
 export const clearTrack =
-  (trackId: TrackId): Thunk =>
+  (trackId: TrackId, type?: ClipType): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const track = selectTrackById(project, trackId);
     if (!track) return;
     const undoType = createUndoType("clearTrack", trackId);
 
-    // Get all media IDs
+    // Get all clip IDs matching the type if specified
     const clips = selectClipsByTrackIds(project, [track.id]);
-    const clipIds = clips.map((c) => c.id);
-    const portals = selectPortalsByTrackIds(project, [track.id]);
-    const portalIds = portals.map((p) => p.id);
+    const clipIds = clips
+      .filter((c) => !type || c.type === type)
+      .map((c) => c.id);
 
-    // Remove all media
+    // Remove all clips
     dispatch(removeClips({ data: clipIds, undoType }));
-    dispatch(removePortals({ data: portalIds, undoType }));
+
+    // Remove all portals if no type is specified
+    if (!type) {
+      const portals = selectPortalsByTrackIds(project, [track.id]);
+      const portalIds = portals.map((p) => p.id);
+      dispatch(removePortals({ data: portalIds, undoType }));
+    }
   };
 
 /** Delete a track. */
@@ -551,18 +571,17 @@ export const deleteTrack =
     }
   };
 
-/** Insert a scale track in the place of a track and nest the original test. */
+/** Insert a scale track in the place of a track and nest the original track. */
 export const insertScaleTrack =
-  (trackId?: TrackId): Thunk =>
+  (trackId: TrackId): Thunk =>
   (dispatch, getProject) => {
-    if (!trackId) return;
     const project = getProject();
     const track = selectTrackById(project, trackId);
     if (!track) return;
 
     // Create a new scale track and migrate the original track if necessary
     const undoType = createUndoType("insertScaleTrack", nanoid());
-    const newTrackId = dispatch(
+    const newTrack = dispatch(
       createScaleTrack(
         { parentId: track.parentId, trackIds: [trackId] },
         undefined,
@@ -572,11 +591,14 @@ export const insertScaleTrack =
 
     // If the track has a parent, update its children
     if (track.parentId) {
-      const parent = selectTrackById(project, track.parentId);
+      const parent = selectScaleTrackById(
+        project,
+        track.parentId as ScaleTrackId
+      );
       if (!parent) return;
       const index = parent.trackIds.indexOf(trackId);
       const newTrackIds = parent.trackIds.map((_, i) =>
-        i === index ? newTrackId : _
+        i === index ? newTrack.id : _
       );
       dispatch(
         updateTrack({
@@ -584,15 +606,36 @@ export const insertScaleTrack =
           undoType,
         })
       );
-    }
 
-    // Update the original track's parent
-    dispatch(
-      updateTrack({
-        data: { id: trackId, parentId: newTrackId },
-        undoType,
-      })
-    );
+      // Update the original track's parent
+      dispatch(
+        updateTrack({
+          data: { id: trackId, parentId: newTrack.id },
+          undoType,
+        })
+      );
+
+      // Update all patterns with notes using the parent's scale ID
+      let customPatterns = selectCustomPatterns(project);
+      for (const p in customPatterns) {
+        let customPattern = customPatterns[p];
+        const stream = customPattern.stream;
+        for (let i = 0; i < stream.length; i++) {
+          customPatterns[p].stream[i] = getPatternBlockWithNewNotes(
+            stream[i],
+            (notes) =>
+              notes.map((note) => {
+                if (isNestedNote(note) && note.scaleId === parent.scaleId) {
+                  return { ...note, scaleId: newTrack.scaleId };
+                } else {
+                  return note;
+                }
+              })
+          );
+        }
+      }
+      dispatch(updatePatterns({ data: customPatterns, undoType }));
+    }
   };
 
 /** Collapse all children of a track. */

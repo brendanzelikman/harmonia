@@ -34,7 +34,7 @@ import {
 import { isScaleTrack, Track, TrackId, TrackMap } from "./TrackTypes";
 import { selectInstrumentMap } from "types/Instrument/InstrumentSelectors";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { Dictionary } from "@reduxjs/toolkit";
+import { createSelector, Dictionary } from "@reduxjs/toolkit";
 import {
   defaultPatternTrackState,
   defaultScaleTrackState,
@@ -132,12 +132,26 @@ export const selectOrderedTrackIds = createDeepSelector(
   (trackMap) => getOrderedTrackIds(trackMap)
 );
 
+export const selectOrderedTracks = createDeepSelector(
+  [selectOrderedTrackIds, selectTrackMap],
+  (trackIds, trackMap) => trackIds.map((id) => trackMap[id]) as Track[]
+);
+
 export const selectTracks = createDeepSelector(
   [selectScaleTracks, selectPatternTracks],
   (scaleTracks, patternTracks) => [...scaleTracks, ...patternTracks] as Track[]
 );
 
 export const selectTrackById = createValueSelector(selectTrackMap);
+
+export const selectLastTrack = createSelector(selectTracks, (tracks) =>
+  tracks.at(-1)
+);
+
+export const selectCollapsedTrackMap = createDeepSelector(
+  selectTrackMap,
+  (trackMap) => mapValues(trackMap, (track) => !!track?.collapsed)
+);
 
 // ------------------------------------------------------------
 // Scale Tracks
@@ -243,6 +257,11 @@ export const selectTrackDescendants = (project: Project, id?: TrackId) => {
     .filter(Boolean) as Track[];
 };
 
+export const selectTrackParentIdMap = createDeepSelector(
+  [selectTrackMap],
+  (trackMap) => mapValues(trackMap, (track) => track?.parentId)
+);
+
 /** Select the map of all tracks to their children IDs */
 export const selectTrackChildIdMap = createDeepSelector(
   [selectTrackMap],
@@ -260,6 +279,11 @@ export const selectTrackChildMap = createDeepSelector(
       const childIds = getArrayByKey(childIdMap, track?.id);
       return getValuesByKeys(trackMap, childIds);
     })
+);
+
+export const selectTrackCollapsedMap = createDeepSelector(
+  [selectTrackMap],
+  (trackMap) => mapValues(trackMap, (track) => !!track?.collapsed)
 );
 
 /** Select the children of a track. */

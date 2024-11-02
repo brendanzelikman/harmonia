@@ -16,10 +16,12 @@ export const NavbarRadio = () => {
       label={
         <span>
           Equip Radio{" "}
-          <span className="font-light text-slate-400">(Design Tracks)</span>
+          <span className="font-light text-slate-400">
+            (Create Scale Tracks)
+          </span>
         </span>
       }
-      className="bg-gradient-radial from-emerald-600/20 via-sky-600/40 to-sky-600/80 size-9 p-2"
+      className="bg-gradient-radial from-emerald-500/20 via-sky-600/50 to-sky-500/90 size-9 p-2"
       borderColor="border-sky-400"
       onClick={() => {
         if (isScaleTrackId(selectedTrackId)) {

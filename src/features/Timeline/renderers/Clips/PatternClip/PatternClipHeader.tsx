@@ -8,11 +8,21 @@ import {
   PatternClipRendererProps,
 } from "./usePatternClipRenderer";
 import { useMemo } from "react";
+import {
+  selectIsClipLive,
+  selectIsClipSelected,
+} from "types/Timeline/TimelineSelectors";
+import { PatternClip } from "types/Clip/ClipTypes";
 
-interface PatternClipHeaderProps extends PatternClipRendererProps {}
+interface PatternClipHeaderProps extends PatternClipRendererProps {
+  clip: PatternClip;
+}
 
 export const PatternClipHeader = (props: PatternClipHeaderProps) => {
-  const { clip, isSelected, isLive, isOpen } = props;
+  const { id, clip } = props;
+  const isOpen = clip.isOpen;
+  const isLive = use((_) => selectIsClipLive(_, id));
+  const isSelected = use((_) => selectIsClipSelected(_, id));
   const headerColor = getPatternClipHeaderColor(clip);
 
   // Each pattern clip shows the name of its pattern
@@ -26,18 +36,18 @@ export const PatternClipHeader = (props: PatternClipHeaderProps) => {
     return <GiDoubleQuaver className={iconClass} />;
   }, [isLive, isOpen]);
 
-  // Compile the classname
-  const className = classNames(
-    `${headerColor} backdrop-blur rounded-t-md rounded-b-none`,
-    "flex pl-1 gap-2 shrink-0 items-center overflow-hidden",
-    "text-sm font-light text-white/80 whitespace-nowrap",
-    isOpen ? "border-2 border-b-0" : "",
-    isSelected ? "border-slate-100" : "border-teal-500"
-  );
-
   // Render the header with a constant height
   return (
-    <div className={className} style={{ height: CLIP_NAME_HEIGHT }}>
+    <div
+      className={classNames(
+        `${headerColor} backdrop-blur rounded-t-md rounded-b-none`,
+        "flex pl-1 gap-2 shrink-0 items-center overflow-hidden",
+        "text-sm font-light text-white/80 whitespace-nowrap",
+        isOpen ? "border-2 border-b-0" : "",
+        isSelected ? "border-slate-100" : "border-teal-500"
+      )}
+      style={{ height: CLIP_NAME_HEIGHT }}
+    >
       {Icon}
       <span>{name}</span>
     </div>

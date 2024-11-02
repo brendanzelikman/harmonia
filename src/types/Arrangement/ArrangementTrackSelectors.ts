@@ -1,83 +1,107 @@
-import { mapValues } from "lodash";
 import { createSelector } from "reselect";
 import { selectMotifState } from "types/Motif/MotifSelectors";
 import { Project } from "types/Project/ProjectTypes";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import { selectScaleMap, selectScaleIds } from "types/Scale/ScaleSelectors";
-import { chromaticScale, ScaleId } from "types/Scale/ScaleTypes";
+import { ScaleId } from "types/Scale/ScaleTypes";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { getTrackLabel } from "types/Track/TrackFunctions";
 import {
   selectOrderedTrackIds,
   selectScaleTrackMap,
-  selectScaleTracks,
-  selectTrackChildMap,
+  selectTrackChildIdMap,
+  selectTrackCollapsedMap,
   selectTrackMap,
   selectTrackMidiScaleMap,
+  selectTrackParentIdMap,
 } from "types/Track/TrackSelectors";
-import { Track, TrackId } from "types/Track/TrackTypes";
+import { TrackId } from "types/Track/TrackTypes";
 import { Tick } from "types/units";
 import { HEADER_HEIGHT, COLLAPSED_TRACK_HEIGHT } from "utils/constants";
-import { getArrayByKey } from "utils/objects";
+import { getArrayByKey, getValueByKey } from "utils/objects";
 import { getTrackScaleChain } from "./ArrangementFunctions";
-import { selectTrackArrangement } from "./ArrangementSelectors";
-import { createDeepSelector, createValueSelector } from "lib/redux";
+import { selectProcessedArrangement } from "./ArrangementSelectors";
+import { createDeepSelector } from "lib/redux";
 import { getScaleName } from "utils/scale";
+import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
+
+export const selectTrackVectorJSX = createSelector(
+  [selectTrackMap, (_: Project, id: TrackId) => id],
+  (trackMap, trackId) => {
+    return getPoseVectorAsJSX(trackMap[trackId]?.vector, trackMap);
+  }
+);
+
+const createMap = <K extends string, V>(keys: K[], value: (key: K) => V) => {
+  return keys.reduce((acc, key) => {
+    acc[key] = value(key);
+    return acc;
+  }, {} as Record<K, V>);
+};
 
 /** Select the top offset of the track ID in pixels based on the given track ID. */
 export const selectTrackTopMap = createDeepSelector(
   [
-    selectTrackMap,
     selectOrderedTrackIds,
-    selectTrackChildMap,
+    selectTrackParentIdMap,
+    selectTrackChildIdMap,
+    selectTrackCollapsedMap,
     selectCellHeight,
   ],
-  (trackMap, orderedTrackIds, trackChildMap, cellHeight) => {
-    const topLevelTracks = orderedTrackIds
-      .map((id) => trackMap[id])
-      .filter((t) => t !== undefined && t.parentId === undefined) as Track[];
+  (
+    orderedTrackIds,
+    trackParentIdMap,
+    trackChildIdMap,
+    collapsedMap,
+    cellHeight
+  ) => {
+    const topLevelTrackIds = orderedTrackIds.filter(
+      (id) => !trackParentIdMap[id]
+    );
 
     // Create a map for each track
-    return mapValues(trackMap, (t) => {
+    return createMap(orderedTrackIds, (id) => {
       let found = false;
       let top = HEADER_HEIGHT;
-      if (!t) return HEADER_HEIGHT;
+      if (!id) return HEADER_HEIGHT;
 
       // Recursively get the top offset with the children
-      const getChildrenTop = (tracks: Track[], trackId: TrackId): number => {
+      const getChildrenTop = (
+        trackIds: TrackId[],
+        trackId: TrackId
+      ): number => {
         let acc = 0;
 
         // Iterate through each child
-        for (let i = 0; i < tracks.length; i++) {
+        for (let i = 0; i < trackIds.length; i++) {
           if (found) return acc;
 
           // Get the child
-          const child = tracks[i];
-          if (!child) continue;
+          const childId = trackIds[i];
 
           // If the child is the object, return the top offset
-          if (child.id === trackId) {
+          if (childId === trackId) {
             found = true;
             return acc;
           }
           // Otherwise, add the height of the child and its children
-          const children = getArrayByKey(trackChildMap, child.id);
-          acc += child.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
+          const children = getArrayByKey(trackChildIdMap, childId);
+          acc += collapsedMap[childId] ? COLLAPSED_TRACK_HEIGHT : cellHeight;
           acc += getChildrenTop(children, trackId);
         }
         return acc;
       };
 
       // Iterate through each top-level track
-      for (const topLevelTrack of topLevelTracks) {
+      for (const tId of topLevelTrackIds) {
         // If the object is found, return the top offset
         if (found) return top;
-        if (topLevelTrack.id === t.id) break;
+        if (tId === id) break;
 
         // Add the height of the node and its children
-        top += !!topLevelTrack.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
-        const children = getArrayByKey(trackChildMap, topLevelTrack.id);
-        top += getChildrenTop(children, t.id);
+        top += !!collapsedMap[tId] ? COLLAPSED_TRACK_HEIGHT : cellHeight;
+        const children = getArrayByKey(trackChildIdMap, tId);
+        top += getChildrenTop(children, id);
       }
 
       // Return the top offset
@@ -88,9 +112,8 @@ export const selectTrackTopMap = createDeepSelector(
 
 /** Select the top offset of the track ID in pixels */
 export const selectTrackTop = (project: Project, trackId?: TrackId) => {
-  if (!trackId) return 0;
   const trackIdTopMap = selectTrackTopMap(project);
-  return trackIdTopMap[trackId] ?? 0;
+  return getValueByKey(trackIdTopMap, trackId) ?? 0;
 };
 
 // ------------------------------------------------------------
@@ -104,7 +127,7 @@ export const selectTrackScaleChainAtTick = (
   tick: Tick = 0
 ) => {
   if (!trackId) return [];
-  const arrangement = selectTrackArrangement(project);
+  const arrangement = selectProcessedArrangement(project);
   const motifs = selectMotifState(project);
   return getTrackScaleChain(trackId, { ...arrangement, motifs, tick });
 };

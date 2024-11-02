@@ -1,9 +1,5 @@
 import { createPortal } from "react-dom";
-import {
-  COLLAPSED_TRACK_HEIGHT,
-  HEADER_HEIGHT,
-  TRACK_WIDTH,
-} from "utils/constants";
+import { COLLAPSED_TRACK_HEIGHT, HEADER_HEIGHT } from "utils/constants";
 import { TimelinePlayhead } from "./TimelinePlayhead";
 import { useProjectSelector as use, useDeep } from "types/hooks";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
@@ -14,11 +10,12 @@ import {
   selectTimelineColumns,
 } from "types/Timeline/TimelineSelectors";
 import {
-  selectTrackById,
   selectOrderedTrackIds,
+  selectCollapsedTrackMap,
 } from "types/Track/TrackSelectors";
 import { TimelineCursor } from "./TimelineCursor";
 import { TimelineTopLeftCorner } from "./TimelineTopLeftCorner";
+import { useCallback, useMemo } from "react";
 
 interface BackgroundProps {
   element?: HTMLDivElement;
@@ -30,17 +27,8 @@ export const TimelineGraphics = (props: BackgroundProps) => {
   const cellHeight = use(selectCellHeight);
 
   // The track dimensions are derived from the last track
-  const trackIds = useDeep(selectOrderedTrackIds);
-  const trackCount = trackIds.length;
-  const ltId = trackIds[trackCount - 1];
-  const lt = useDeep((_) => selectTrackById(_, ltId));
-  const ltHeight = lt
-    ? lt.collapsed
-      ? COLLAPSED_TRACK_HEIGHT
-      : cellHeight
-    : 0;
-  const trackHeight = useDeep((_) => selectTrackTop(_, ltId));
-  const tracksHeight = trackHeight + ltHeight;
+  const collapsedMap = useDeep(selectCollapsedTrackMap);
+  const trackIds = use(selectOrderedTrackIds);
 
   // Selected track dimensions
   const st = useDeep(selectSelectedTrack);
@@ -50,65 +38,60 @@ export const TimelineGraphics = (props: BackgroundProps) => {
   // GetBackground dimensions
   const columns = useDeep(selectTimelineColumns);
   const width = columns * cellWidth;
-  const height = HEADER_HEIGHT + cellHeight * trackCount;
-
-  /** The timeline header background.  */
-  const TimelineHeaderBackground = () => (
-    <div
-      className="sticky inset-0 z-20 bg-black pointer-events-none"
-      style={{ width, height: HEADER_HEIGHT }}
-    ></div>
+  const height = trackIds.reduce(
+    (acc, id) =>
+      collapsedMap[id] ? acc + COLLAPSED_TRACK_HEIGHT : acc + cellHeight,
+    0
   );
 
-  /** The timeline tracks background.  */
-  const TimelineTracksBackground = () => {
-    return (
-      <div className="-z-20 absolute inset-0 flex" style={{ width, height }}>
-        <div
-          className="bg-transparent"
-          style={{ width: TRACK_WIDTH, height: tracksHeight }}
-        ></div>
-        <div
-          className="flex-1 bg-slate-400/25 shadow-xl"
-          style={{ height: tracksHeight }}
-        />
-      </div>
-    );
-  };
+  /** The timeline header background.  */
+  const TimelineHeaderBackground = useCallback(
+    () => (
+      <div
+        className="sticky inset-0 z-20 bg-black pointer-events-none"
+        style={{ width, height: HEADER_HEIGHT }}
+      ></div>
+    ),
+    [width]
+  );
 
   /** The selected track has a lighter background than other tracks. */
-  const SelectedTrackBackground = () => (
-    <div
-      className="-z-10 absolute inset-0 bg-slate-300/25 flex flex-col pointer-events-none"
-      style={{ width, height: stHeight, top: stTop }}
-    />
+  const SelectedTrackBackground = useCallback(
+    () => (
+      <div
+        className="-z-10 absolute inset-0 bg-slate-300/25 flex flex-col pointer-events-none"
+        style={{ width, height: stHeight, top: stTop }}
+      />
+    ),
+    [width, height, stHeight, stTop]
+  );
+
+  const children = useMemo(
+    () => (
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ height, width }}
+      >
+        <div className="relative w-full h-full">
+          {TimelineTopLeftCorner}
+          <TimelineHeaderBackground />
+          {!!st && <SelectedTrackBackground />}
+          <TimelineCursor />
+          <TimelinePlayhead />
+        </div>
+      </div>
+    ),
+    [st, width, height]
   );
 
   /**
-   * The graphical elements of the timeline that depend on scrolling include:
+   * Render the graphical elements of the timeline that depend on scrolling, including:
    * * The top left corner.
    * * The header background.
    * * The selected track background.
    * * The tracks background.
    * * The cursor.
    */
-  const TimelineGraphicalElements = (
-    <div
-      className="absolute inset-0 pointer-events-none"
-      style={{ height, width }}
-    >
-      <div className="relative w-full h-full">
-        <TimelineTopLeftCorner />
-        <TimelineHeaderBackground />
-        {!!st && <SelectedTrackBackground />}
-        <TimelineCursor />
-        <TimelinePlayhead />
-        <TimelineTracksBackground />
-      </div>
-    </div>
-  );
-
-  // Render the graphical elements into the timeline element
   if (!props.element) return null;
-  return createPortal(TimelineGraphicalElements, props.element);
+  return createPortal(children, props.element);
 };

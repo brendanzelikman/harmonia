@@ -1,6 +1,9 @@
 import Background from "assets/images/landing-background.png";
 import classNames from "classnames";
-import React, { ReactNode } from "react";
+import { m } from "framer-motion";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
+import React, { ReactNode, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
   GiFamilyTree,
   GiDominoMask,
@@ -9,14 +12,25 @@ import {
   GiPaintBrush,
   GiCrystalWand,
   GiPianoKeys,
-  GiDatabase,
   GiHand,
+  Gi3DStairs,
 } from "react-icons/gi";
+import { use } from "types/hooks";
+import { selectTransportState } from "types/Transport/TransportSelectors";
+import { dispatchCustomEvent } from "utils/html";
 
 // The timeline starting screen
 export function TimelineStart() {
+  const [isReady, setIsReady] = useState();
+  const transportState = use(selectTransportState);
+  useCustomEventListener("timelineReady", (e) => setIsReady(e.detail));
+  useHotkeys(
+    "enter",
+    () => transportState && dispatchCustomEvent("timelineReady", true),
+    [transportState]
+  );
   return (
-    <div className="flex flex-col gap-4 relative size-full bg-slate-900/50 total-center transition-all">
+    <div className="flex flex-col items-center pt-24 gap-4 relative size-full bg-slate-900/50 transition-all">
       <img
         className="absolute size-full inset-0 opacity-50 -z-10"
         src={Background}
@@ -26,85 +40,99 @@ export function TimelineStart() {
         Welcome to the Playground!
       </h1>
       <h2 className="text-2xl text-slate-300">
-        The Timeline will be available once you have some tracks.
+        The Timeline will be available when you have some tracks.
       </h2>
       <h2 className="text-2xl text-slate-300">
         Here's what you need to know to get started:
       </h2>
       <div className="mt-4 *:text-2xl flex *:gap-8">
         <div className="flex *:font-light *:rounded-lg">
-          <Button title="Musical Ideas">
+          <Button
+            title="Basic Ideas of Harmonia"
+            background="bg-gradient-radial from-emerald-900/20 to-sky-800/40"
+          >
             <div className="flex flex-col gap-4 p-4 text-lg items-center">
               <Component
                 background="bg-indigo-600"
                 border="border-indigo-600/60"
                 Icon={GiDominoMask}
-                title="Idea 1: Scale"
-                description="A group of pitch classes that can organize collections of music and specify harmony."
+                title="Idea 1: Scales can be structured"
+                description="A Scale is a static collection of pitch classes that can be organized within a hierarchy of notes."
               />
               <Component
                 background="bg-emerald-600"
                 border="border-emerald-600/60"
                 Icon={GiPaintBrush}
-                title="Idea 2: Pattern"
-                description="A sequence of pitches that can be bound to a Scale and specify rhythm and dynamics."
+                title="Idea 2: Patterns can be scalar"
+                description="A Pattern is a rhythmic sequence of pitches that can be defined using any Scales as reference."
               />
               <Component
                 background="bg-fuchsia-600/60"
                 border="border-fuchsia-600/60"
                 Icon={GiCrystalWand}
-                title="Idea 3: Pose"
-                description="A transformation that can be applied to a Scale or Pattern when placed in a track."
+                title="Idea 3: Poses can be styled"
+                description="A Pose is a dynamic set of transformations that can be applied to the notes of a Pattern or Scale."
               />
             </div>
           </Button>
-          <Button title="Recursive Tracks">
+          <Button
+            title="Unique Features of Harmonia"
+            background="bg-gradient-radial from-emerald-900/20 to-teal-800/40"
+          >
             <div className="flex flex-col gap-4 p-4 text-lg items-center">
               <Component
                 background="bg-indigo-600"
                 border="border-indigo-600/60"
-                Icon={GiDatabase}
-                title="Scale Track"
-                description="Contains a unique Scale and can create nested tracks inheriting its properties."
+                Icon={Gi3DStairs}
+                title="Scale Tracks are Parents"
+                description="A Scale Track contains a unique Scale that can be modified and passed along to its descendants."
               />
               <Component
                 background="bg-emerald-700"
                 border="border-emerald-600/60"
                 Icon={GiPianoKeys}
-                title="Pattern Track"
-                description="Contains a unique Instrument that can play audio and migrate to other tracks."
+                title="Pattern Tracks are Children"
+                description="A Pattern Track contains a virtual Instrument that can play Patterns built with its parent Scales."
               />
               <Component
                 background="bg-fuchsia-600/60"
                 border="border-fuchsia-600/60"
                 Icon={() => <GiFamilyTree className="rotate-180" />}
-                title="Track Tree"
-                description="Contains a family of nested tracks that can have Clips scheduled for playback."
+                title="All Tracks are Formulated"
+                description="Clips of any basic type (Scales, Patterns, Poses) can be scheduled in a Track with cascading effects."
               />
             </div>
           </Button>
-          <Button title="Starting Points">
+          <Button
+            buttonClassName={
+              isReady
+                ? "bg-gradient-radial animate-in fade-in-80 duration-500 from-fuchsia-500/80 to-sky-950/80"
+                : "bg-gradient-radial from-fuchsia-500/50 to-sky-950/50"
+            }
+            title={isReady ? "New Items Unlocked!" : "Ready to Start?"}
+            onClick={() => dispatchCustomEvent("timelineReady", !isReady)}
+          >
             <div className="flex flex-col gap-4 p-4 text-lg items-center">
               <Component
                 background="bg-indigo-600"
                 border="border-indigo-600/60"
                 Icon={GiPocketRadio}
                 title="Unlocked Radio!"
-                description="Use the Radio to design a new family of nested tracks or edit a Scale Track."
+                description="Use the Radio to create a family of Scale Tracks by inputting a list of Scales by name or note."
               />
               <Component
                 background="bg-emerald-600/60"
                 border="border-emerald-600/60"
                 Icon={GiAudioCassette}
                 title="Unlocked Cassette!"
-                description="Use the Cassette to create or edit a Pattern Track with a new virtual instrument."
+                description="Use the Cassette to create a Pattern Track by selecting an Instrument from presets or files."
               />
               <Component
                 background="bg-fuchsia-600/60"
                 border="border-fuchsia-600/60"
                 Icon={GiHand}
                 title="Unlocked Keyboard!"
-                description="Use the Keyboard to enable shortcuts for easily transposing Tracks and Clips."
+                description="Use the Keyboard to quickstart a project and enable track shortcuts for live improvisation."
               />
             </div>
           </Button>
@@ -116,34 +144,59 @@ export function TimelineStart() {
 
 const Button = (props: {
   className?: string;
+  buttonClassName?: string;
+  background?: string;
   title?: string;
   children: ReactNode;
-}) => (
-  <div
-    className={classNames(
-      props.className,
-      "w-80 flex flex-col mt-4 backdrop-blur bg-slate-950/50 overflow-hidden group border border-slate-600 transition-all text-white"
-    )}
-  >
-    <div className="p-2 h-12 total-center font-light text-slate-200 bg-slate-950/50 border-b border-b-white/20">
-      {props.title}
+  onClick?: () => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div
+      className={classNames(
+        props.className,
+        "bg-gradient-radial from-indigo-950/50 to-slate-950/50",
+        "max-w-[23rem] max-h-max flex flex-col mt-4 backdrop-blur overflow-hidden group border border-slate-600 transition-all duration-1000 text-white"
+      )}
+    >
+      <button
+        type="button"
+        className={classNames(
+          props.buttonClassName,
+          props.background ?? "bg-slate-950/50",
+          "p-2 cursor-pointer h-12 total-center font-light text-slate-200 border-b border-b-white/20"
+        )}
+        onClick={() => {
+          props.onClick?.();
+          setIsOpen((prev) => !prev);
+        }}
+      >
+        {props.title}
+      </button>
+      <m.div
+        initial={{ height: 0 }}
+        animate={{ height: isOpen ? "auto" : 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {props.children}
+      </m.div>
     </div>
-    {props.children}
-  </div>
-);
+  );
+};
 
 const Component = (props: {
   background: string;
   border: string;
   Icon: React.FC;
-
+  className?: string;
   title: ReactNode;
   description: ReactNode;
 }) => (
   <div
     className={classNames(
+      props.className,
       props.border,
-      "bg-slate-500/5 backdrop-blur size-full flex flex-col gap-1 border p-2  rounded"
+      "bg-slate-900/50 backdrop-blur-lg size-full flex flex-col gap-1 border p-2 rounded"
     )}
   >
     <div className="font-bold flex gap-2 border-b border-b-white/5">

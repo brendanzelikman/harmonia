@@ -135,7 +135,7 @@ const KEY_MAP = new Map<string, KeyMapEntry>([
 // ------------------------------------------------------------
 
 /** Get the name of a scale by looking it up in the key map. */
-export const getScaleName = (scale?: Scale) => {
+export const getScaleName = (scale: Scale) => {
   const notes = getScaleNotes(scale) as MidiScale;
   if (!notes.length) return "Empty Scale";
 
@@ -151,7 +151,7 @@ export const getScaleName = (scale?: Scale) => {
 };
 
 /** Get the key of a scale by looking it up in the key map. */
-export const getScaleKey = (scale?: Scale): Key => {
+export const getScaleKey = (scale: Scale): Key => {
   const notes = getScaleNotes(scale);
   const canon = getCanonicalScale(notes);
   return KEY_MAP.get(canon)?.key || ChromaticKey;

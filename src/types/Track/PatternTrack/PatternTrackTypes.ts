@@ -33,7 +33,7 @@ export const defaultPatternTrack: PatternTrack = {
 /** Checks if a given object is of type `PatternTrackId`. */
 export const isPatternTrackId = (obj: unknown): obj is PatternTrackId => {
   const candidate = obj as PatternTrackId;
-  return isString(candidate) && candidate.startsWith("pattern-track");
+  return isString(candidate) && candidate[0] === `p`;
 };
 
 /** Checks if a given object is of type `PatternTrack`. */

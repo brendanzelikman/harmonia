@@ -22,6 +22,12 @@ module.exports = {
           "justify-content": "center",
           "align-items": "center",
         },
+        ".total-center-col": {
+          display: "flex",
+          "flex-direction": "column",
+          "justify-content": "center",
+          "align-items": "center",
+        },
         "background-pulse": {
           "background-size": "400% 400%",
           animation: "animate-gradient 5s ease-in-out infinite",
@@ -43,9 +49,19 @@ module.exports = {
   ],
   theme: {
     extend: {
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: 0 },
+          "100%": { opacity: 1 },
+        },
+      },
       animation: {
+        "animate-pulse-slow": "animatePulseSlow 5s ease-in-out infinite",
         "spin-slow": "spin 2s linear infinite",
         "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "fade-in-delay-1": "fadeIn 0.5s ease-in-out 0.3s forwards",
+        "fade-in-delay-2": "fadeIn 0.5s ease-in-out 0.6s forwards",
+        "fade-in-delay-3": "fadeIn 0.5s ease-in-out 0.9s forwards",
       },
       colors: {
         prodigy: "#818cf8", // indigo-400

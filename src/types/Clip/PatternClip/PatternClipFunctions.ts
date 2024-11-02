@@ -4,9 +4,11 @@ import {
   DEFAULT_PATTERN_CLIP_THEME,
   DEFAULT_PATTERN_CLIP_COLOR,
   PATTERN_CLIP_THEMES,
+  PatternClipColor,
 } from "./PatternClipThemes";
 import { PatternClip } from "./PatternClipTypes";
 import { Pattern } from "types/Pattern/PatternTypes";
+import { getValueByKey } from "utils/objects";
 
 // Get the starting block of a pattern clip using its offset and reference pattern
 export const getPatternClipStartingBlock = (
@@ -46,6 +48,11 @@ export const getPatternClipTheme = (clip?: PatternClip): PatternClipTheme => {
     DEFAULT_PATTERN_CLIP_THEME
   );
 };
+
+export const getPatternClipThemeFromColor = (
+  color?: PatternClipColor
+): PatternClipTheme =>
+  getValueByKey(PATTERN_CLIP_THEMES, color) ?? DEFAULT_PATTERN_CLIP_THEME;
 
 /** Get the headerColor of a `Clip`. */
 export const getPatternClipHeaderColor = (clip?: PatternClip) => {

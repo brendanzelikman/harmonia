@@ -2,24 +2,29 @@ import { selectClipWidth } from "types/Arrangement/ArrangementClipSelectors";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import { use } from "types/hooks";
 import {
+  selectIsClipLive,
+  selectIsClipSelected,
   selectTimelineTickLeft,
   selectTrackHeight,
 } from "types/Timeline/TimelineSelectors";
 import classNames from "classnames";
-import { PoseClipRendererProps } from "./usePoseClipRenderer";
+import {
+  PoseClipComponentProps,
+  PoseClipRendererProps,
+} from "./usePoseClipRenderer";
+import { PortaledPoseClip } from "types/Clip/ClipTypes";
 
-interface PoseClipStyleProps extends PoseClipRendererProps {
-  isDragging: boolean;
-  isDraggingOther: boolean;
+interface PoseClipStyleProps extends PoseClipComponentProps {
+  clip: PortaledPoseClip;
 }
 
 export const usePoseClipStyle = (props: PoseClipStyleProps) => {
-  const { clip, isSelected, isLive } = props;
-  const { isAdding, isAddingAny, isPortaling, isSlicing } = props;
-  const { isDragging, isDraggingOther, holdingI } = props;
-  const isFullyDim = isDragging || isPortaling;
-  const isLightlyDim = isDraggingOther && isSelected;
-  const isActive = isDragging || isDraggingOther || isPortaling || isAddingAny;
+  const { id, isAdding, isAddingAny, isPortaling, isSlicing } = props;
+  const { clip, holdingI, isDraggingAny } = props;
+  const isFullyDim = isPortaling;
+  const isSelected = use((_) => selectIsClipSelected(_, id));
+  const isLive = use((_) => selectIsClipLive(_, id));
+  const isActive = isPortaling || isAddingAny || isDraggingAny;
 
   // The position and dimensions are based on the clip
   const top = use((_) => selectTrackTop(_, clip.trackId));
@@ -40,8 +45,7 @@ export const usePoseClipStyle = (props: PoseClipStyleProps) => {
     { "cursor-pointer": !holdingI },
     { "hover:ring hover:ring-fuchsia-400": isAdding },
     { "opacity-50": isFullyDim },
-    { "opacity-80": isLightlyDim && !isFullyDim },
-    { "opacity-100": !isFullyDim && !isLightlyDim }
+    { "opacity-100": !isFullyDim }
   );
 
   return { top, left, width, height, className };

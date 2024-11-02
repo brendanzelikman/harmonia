@@ -9,6 +9,7 @@ import halfNote from "assets/noteheads/half.png";
 import quarterNote from "assets/noteheads/quarter.png";
 import wholeNote from "assets/noteheads/whole.png";
 import { PoseVector } from "types/Pose/PoseTypes";
+import { invert } from "lodash";
 
 // ------------------------------------------------------------
 // Global Pulse
@@ -133,6 +134,11 @@ export const STRAIGHT_DURATION_SUBDIVISIONS = {
   "32nd": "32n",
   "64th": "64n",
 } as const;
+
+export const STRAIGHT_SUBDIVISION_DURATIONS = invert(
+  STRAIGHT_DURATION_SUBDIVISIONS
+);
+
 export type StraightSubdivision =
   (typeof STRAIGHT_DURATION_SUBDIVISIONS)[StraightDurationType];
 
@@ -217,6 +223,11 @@ export const DOTTED_DURATION_SUBDIVISIONS: Record<DottedDurationType, string> =
     "32nd-dotted": "32n.",
     "64th-dotted": "64n.",
   } as const;
+
+export const DOTTED_SUBDIVISION_DURATIONS = invert(
+  DOTTED_DURATION_SUBDIVISIONS
+);
+
 export type DottedSubdivision =
   (typeof DOTTED_DURATION_SUBDIVISIONS)[DottedDurationType];
 
@@ -311,6 +322,11 @@ export const TRIPLET_DURATION_SUBDIVISIONS: Record<
   "32nd-triplet": "32t",
   "64th-triplet": "64t",
 } as const;
+
+export const TRIPLET_SUBDIVISION_DURATIONS = invert(
+  TRIPLET_DURATION_SUBDIVISIONS
+);
+
 export type TripletSubdivision =
   (typeof TRIPLET_DURATION_SUBDIVISIONS)[TripletDurationType];
 
@@ -384,6 +400,11 @@ export const DURATION_TICKS: Record<DurationType, Tick> = {
   ...TRIPLET_DURATION_TICKS,
 } as const;
 
+export const TICK_DURATIONS = invert(DURATION_TICKS) as Record<
+  Tick,
+  DurationType
+>;
+
 /** A record of note names by note duration. */
 export const DURATION_NAMES: Record<DurationType, string> = {
   ...STRAIGHT_DURATION_NAMES,
@@ -411,6 +432,11 @@ export const DURATION_SUBDIVISIONS: Record<DurationType, Subdivision> = {
   ...DOTTED_DURATION_SUBDIVISIONS,
   ...TRIPLET_DURATION_SUBDIVISIONS,
 } as const;
+
+export const SUBDIVISION_DURATIONS = invert(DURATION_SUBDIVISIONS) as Record<
+  Subdivision,
+  DurationType
+>;
 
 // ------------------------------------------------------------
 // Duration Type Guards
@@ -591,22 +617,34 @@ export const getDurationImage = (duration: DurationType) => {
 };
 
 // ------------------------------------------------------------
+// Subdivision Property Getters
+// ------------------------------------------------------------
+
+/** Get the duration name corresponding to a subdivision. */
+export const getSubdivisionName = (subdivision: Subdivision = "4n") => {
+  const duration = SUBDIVISION_DURATIONS[subdivision];
+  return DURATION_NAMES[duration];
+};
+
+/** Get the ticks corresponding to a subdivision. */
+export const getSubdivisionTicks = (subdivision: Subdivision = "4n"): Tick => {
+  const duration = SUBDIVISION_DURATIONS[subdivision];
+  return DURATION_TICKS[duration];
+};
+
+// ------------------------------------------------------------
 // Tick Property Getters
 // ------------------------------------------------------------
 
 /** Get the duration of a tick. */
 export const getTickDuration = (ticks: Tick) => {
-  if (ticks > WholeNoteTicks) return "whole";
-  if (ticks < TripletSixtyFourthNoteTicks) return "64th";
-  return findEntry(ticks, DURATION_TICKS)?.[0] as DurationType;
+  return TICK_DURATIONS[ticks];
 };
 
 /** Get the subdivision of a tick. */
 export const getTickSubdivision = (tick: Tick): Subdivision => {
-  const entry = findEntry(tick, DURATION_TICKS);
-  const subdivision = entry?.[0] as DurationType;
-  if (!entry || !subdivision) return "4n";
-  return DURATION_SUBDIVISIONS[subdivision];
+  const duration = getTickDuration(tick);
+  return SUBDIVISION_DURATIONS[duration] ?? "4n";
 };
 
 /** Get the columns leading up to a tick based on the subdivision. */
@@ -624,24 +662,4 @@ export const getColumnTicks = (
 ) => {
   const ticksPerSubdivision = getSubdivisionTicks(subdivision);
   return columns * ticksPerSubdivision;
-};
-
-// ------------------------------------------------------------
-// Subdivision Property Getters
-// ------------------------------------------------------------
-
-/** Get the duration name corresponding to a subdivision. */
-export const getSubdivisionName = (subdivision: Subdivision = "4n") => {
-  const entry = findEntry(subdivision, DURATION_SUBDIVISIONS);
-  const duration = entry?.[0] as DurationType;
-  if (!entry || !duration) return "";
-  return DURATION_NAMES[duration];
-};
-
-/** Get the ticks corresponding to a subdivision. */
-export const getSubdivisionTicks = (subdivision: Subdivision = "4n"): Tick => {
-  const entry = findEntry(subdivision, DURATION_SUBDIVISIONS);
-  const duration = entry?.[0] as DurationType;
-  if (!entry || !duration) return 0;
-  return DURATION_TICKS[duration];
 };

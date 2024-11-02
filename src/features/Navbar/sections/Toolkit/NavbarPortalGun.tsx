@@ -22,7 +22,7 @@ export const NavbarPortalGun = () => {
         label={
           <>
             {isPortaling ? "Equipped" : "Equip"} Portal Gun{" "}
-            <span className="font-light text-slate-400">(Warp Media)</span>
+            <span className="font-light text-slate-400">(Teleport Clips)</span>
           </>
         }
         disabled={!hasClips}

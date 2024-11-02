@@ -31,7 +31,7 @@ import { getScaleName } from "utils/scale";
 export function ScaleEditorToolbar(props: ScaleEditorProps) {
   const dispatch = useProjectDispatch();
   const { midiScale, scale, scaleName } = props;
-  const notes = getScaleNotes(scale);
+  const notes = scale ? getScaleNotes(scale) : [];
   const trackScaleMap = use(selectTrackMidiScaleMap);
   const nestedScaleTracks = props.track?.trackIds.filter(isScaleTrackId) ?? [];
 

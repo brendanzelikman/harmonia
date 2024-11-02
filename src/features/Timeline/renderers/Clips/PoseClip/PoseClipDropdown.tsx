@@ -1,6 +1,10 @@
 import { PoseClip } from "types/Clip/ClipTypes";
 import { use, useProjectDispatch } from "types/hooks";
-import { selectCellHeight } from "types/Timeline/TimelineSelectors";
+import {
+  selectCellHeight,
+  selectIsClipLive,
+  selectIsClipSelected,
+} from "types/Timeline/TimelineSelectors";
 import { POSE_HEIGHT } from "utils/constants";
 import { cancelEvent } from "utils/html";
 import { PoseClipVector } from "./PoseClipVector";
@@ -10,26 +14,23 @@ import { updatePoseBlock } from "types/Pose/PoseSlice";
 import { useEffect } from "react";
 import { PoseClipComponentProps } from "./usePoseClipRenderer";
 
-export interface PoseClipDropdownEffectProps {
+export interface PoseClipDropdownEffectProps extends PoseClipComponentProps {
   clip: PoseClip;
   index: number;
 }
 
-export const PoseClipDropdown = (props: PoseClipComponentProps) => {
+export const PoseClipDropdown = (props: PoseClipDropdownEffectProps) => {
   const dispatch = useProjectDispatch();
   const { clip, block, index, setIndex } = props;
-  const { depths, setDepths, field, setField, isSelected, isLive } = props;
+  const { depths, setDepths, field, setField } = props;
   const cellHeight = use(selectCellHeight);
+  const isSelected = use((_) => selectIsClipSelected(_, clip.id));
+  const isLive = use((_) => selectIsClipLive(_, clip.id));
 
   const hasVector = block !== undefined && "vector" in block;
   useEffect(() => {
     if (!hasVector) setField("stream");
   }, [hasVector, setField]);
-
-  const effectProps: PoseClipDropdownEffectProps = {
-    clip,
-    index,
-  };
 
   if (!clip.isOpen) return null;
   return (
@@ -71,6 +72,7 @@ export const PoseClipDropdown = (props: PoseClipComponentProps) => {
       </div>
       {field === "vector" && (
         <PoseClipVector
+          {...props}
           index={index}
           clip={clip}
           block={block}
@@ -80,7 +82,7 @@ export const PoseClipDropdown = (props: PoseClipComponentProps) => {
       )}
       {field === "stream" && (
         <PoseClipStream
-          {...effectProps}
+          {...props}
           block={block}
           index={index}
           setIndex={setIndex}

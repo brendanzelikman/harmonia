@@ -74,3 +74,15 @@ export const isPatternClip = (clip?: Partial<IClip>): clip is PatternClip => {
 export const isPatternClipId = (id: unknown): id is PatternClipId => {
   return isClipId(id, "pattern");
 };
+
+export const isPortaledPatternClip = (
+  clip: unknown
+): clip is PortaledPatternClip => {
+  return isIPatternClip(clip) && isPortaledPatternClipId(clip.id);
+};
+
+export const isPortaledPatternClipId = (
+  id: unknown
+): id is PortaledPatternClipId => {
+  return isPatternClipId(id);
+};

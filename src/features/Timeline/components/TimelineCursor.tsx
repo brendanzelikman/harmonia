@@ -8,6 +8,7 @@ import {
 import { selectIsTransportActive } from "types/Transport/TransportSelectors";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import classNames from "classnames";
+import { COLLAPSED_TRACK_HEIGHT } from "utils/constants";
 
 export function TimelineCursor() {
   const tick = useTransportTick();
@@ -20,7 +21,7 @@ export function TimelineCursor() {
   const top = use((_) => selectTrackTop(_, track?.id));
   const left = use((_) => selectTimelineTickLeft(_, tick)) - 2;
   const width = 2;
-  const height = cellHeight;
+  const height = track?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
   const style = { height, top, width, left };
   const bgColor = onPatternTrack ? "bg-emerald-500" : "bg-sky-500";
 

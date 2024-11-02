@@ -11,7 +11,9 @@ import { defaultEditor } from "types/Editor/EditorTypes";
 import { isIdInState, mergeStates } from "types/util";
 import { BaseProject, SafeBaseProject } from "providers/store";
 import {
+  CLIP_TYPES,
   ClipState,
+  ClipType,
   isIPatternClip,
   isIPoseClip,
   isIScaleClip,
@@ -179,6 +181,13 @@ export const mergeBaseProjects = (
     pattern: patternClips,
     pose: poseClips,
   };
+  for (const type of CLIP_TYPES) {
+    for (const id of clips[type].ids) {
+      if (clips[type].entities[id]) {
+        clips[type].entities[id].isOpen = false;
+      }
+    }
+  }
 
   // Make sure that portals have valid tracks
   const portals = mergeStates(

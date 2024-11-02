@@ -1,7 +1,7 @@
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { Id, Plural, Tick } from "../units";
 import { createId } from "types/util";
-import { isPlainObject, isString } from "lodash";
+import { isArray, isPlainObject, isString } from "lodash";
 import {
   isBoundedNumber,
   isFiniteNumber,
@@ -143,14 +143,8 @@ export const isPatternBlockedChord = (
 export const isPatternStrummedChord = (
   obj: unknown
 ): obj is PatternStrummedChord => {
-  if (obj === undefined) return false;
   const candidate = obj as PatternStrummedChord;
-  return (
-    isPlainObject(candidate) &&
-    isPatternBlockedChord(candidate.chord) &&
-    isTypedArray(candidate.strumRange, isFiniteNumber) &&
-    isString(candidate.strumDirection)
-  );
+  return isString(candidate?.strumDirection);
 };
 
 /** Checks if a given object is of type `PatternChord`. */
@@ -168,7 +162,7 @@ export const isPatternMidiChord = (obj: unknown): obj is PatternMidiChord => {
   const candidate = obj as PatternMidiChord;
   return (
     isPatternMidiNote(candidate) ||
-    isPatternBlockedChord(candidate) ||
+    isArray(candidate) ||
     isPatternStrummedChord(candidate)
   );
 };
@@ -183,6 +177,14 @@ export const isPatternBlock = (obj: unknown): obj is PatternBlock => {
 export const isPatternMidiBlock = (obj: unknown): obj is PatternMidiBlock => {
   const candidate = obj as PatternMidiBlock;
   return isPatternMidiChord(candidate) || isPatternRest(candidate);
+};
+
+/** Checks if a given object is of type `PatternStrummedMidiChord`. */
+export const isPatternStrummedMidiChord = (
+  obj: unknown
+): obj is PatternStrummedMidiChord => {
+  const candidate = obj as PatternStrummedMidiChord;
+  return isString(candidate?.strumDirection);
 };
 
 /** Checks if a given object is of type `PatternStream`. */
@@ -208,4 +210,10 @@ export const isPattern = (obj: unknown): obj is Pattern => {
     isOptionalType(candidate.instrumentKey, isString) &&
     isOptionalTypedArray(candidate.aliases, isString)
   );
+};
+
+/** Checks if a given object is of type `PatternId`. */
+export const isPatternId = (obj: unknown): obj is PatternId => {
+  const candidate = obj as PatternId;
+  return isString(candidate) && candidate.startsWith("pattern");
 };

@@ -61,3 +61,7 @@ export const isPoseClip = (clip: Partial<IClip>): clip is IClip<"pose"> => {
 export const isPoseClipId = (id: unknown): id is PoseClipId => {
   return isClipId(id, "pose");
 };
+
+export const isPortaledPoseClipId = (id: unknown): id is PortaledPoseClipId => {
+  return isPoseClipId(id);
+};

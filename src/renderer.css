@@ -42,6 +42,22 @@ input::-webkit-inner-spin-button {
   }
 }
 
+@keyframes animate-pulse-slow {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: animate-pulse-slow 2s infinite;
+}
+
 @keyframes rotate {
   100% {
     transform: rotate(-360deg);

@@ -1,54 +1,57 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useClipDrag } from "../useClipDnd";
 
-import { useProjectDispatch, use } from "types/hooks";
+import { useProjectDispatch, use, useDeep } from "types/hooks";
 import { ClipComponentProps } from "../TimelineClips";
-import { PortaledPoseClip, PoseClip } from "types/Clip/ClipTypes";
+import {
+  PortaledPoseClip,
+  PortaledPoseClipId,
+  PoseClipId,
+} from "types/Clip/ClipTypes";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import { PoseClipDropdown } from "./PoseClipDropdown";
 import { PoseClipHeader } from "./PoseClipHeader";
-import { useDragState } from "types/Media/MediaTypes";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
-import { Timed } from "types/units";
 import { usePoseClipStyle } from "./usePoseClipStyle";
 import { getPoseBlockFromStream } from "types/Pose/PoseFunctions";
 import { PoseClipCombos } from "./PoseClipCombos";
 import { PoseBlock } from "types/Pose/PoseTypes";
 import { toggleClipDropdown } from "types/Clip/ClipThunks";
+import { createSelectedPortaledClipById } from "types/Arrangement/ArrangementSelectors";
 
 export interface PoseClipRendererProps extends ClipComponentProps {
-  clip: Timed<PoseClip>;
-  portaledClip: PortaledPoseClip;
+  id: PoseClipId;
+  pcId: PortaledPoseClipId;
 }
 
 export type PoseClipView = "vector" | "stream";
 
 export function PoseClipRenderer(props: PoseClipRendererProps) {
-  const { clip, portaledClip, holdingI, isLive } = props;
+  const { holdingI, id, pcId } = props;
+  const selectClip = useMemo(
+    () => createSelectedPortaledClipById(pcId),
+    [pcId]
+  );
+  const clip = useDeep(selectClip) as PortaledPoseClip;
   const pose = use((_) => selectPoseById(_, clip.poseId));
   const stream = pose?.stream ?? [];
-  const pcId = portaledClip.id;
   const dispatch = useProjectDispatch();
 
   // Each pose has a dropdown to reveal its editor
   const [field, setField] = useState<PoseClipView>("vector");
 
   // Each pose can be dragged into another cell
-  const dragState = useDragState();
-  const [{ isDragging }, drag] = useClipDrag({ id: pcId, type: "pose" });
-  const isDraggingOther = dragState.any;
+  const [_, drag] = useClipDrag({
+    id: pcId,
+    type: "pose",
+    startDrag: props.startDrag,
+    endDrag: props.endDrag,
+  });
 
   // Any block can be selected by index, with depths for nested streams
   const [index, setIndex] = useState(0);
   const [depths, setDepths] = useState<number[]>([]);
   const block = getPoseBlockFromStream(stream, [...depths, index]);
-
-  // Each pose has a style that depends on its state
-  const { className, ...style } = usePoseClipStyle({
-    ...props,
-    isDragging,
-    isDraggingOther,
-  });
 
   const clipProps = {
     block,
@@ -60,19 +63,28 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
     setField,
   };
 
+  // Each pose has a style that depends on its state
+  const { className, ...style } = usePoseClipStyle({
+    ...props,
+    ...clipProps,
+    clip,
+  });
+
   return (
     <div
       ref={drag}
       className={className}
       style={style}
-      onClick={(e) => dispatch(onClipClick(e, clip, { eyedropping: holdingI }))}
+      onClick={(e) =>
+        dispatch(onClipClick(e, { ...clip, id }, { eyedropping: holdingI }))
+      }
       onDragStart={() =>
         dispatch(toggleClipDropdown({ data: { id: pcId, value: false } }))
       }
     >
-      <PoseClipCombos isLive={isLive} />
-      <PoseClipHeader {...props} {...clipProps} />
-      <PoseClipDropdown {...props} {...clipProps} />
+      <PoseClipCombos id={clip.id} />
+      <PoseClipHeader {...props} {...clipProps} clip={clip} />
+      <PoseClipDropdown {...props} {...clipProps} clip={clip} />
     </div>
   );
 }

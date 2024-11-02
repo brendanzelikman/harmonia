@@ -1,7 +1,6 @@
-import { getVector_T, getVector_O, getVector_t } from "utils/vector";
 import { isVoiceLeading, PoseOperation } from "types/Pose/PoseTypes";
 import { getScaleNoteMidiValue } from "types/Scale/ScaleFunctions";
-import { ScaleChain, isNestedNote } from "types/Scale/ScaleTypes";
+import { ScaleChain, ScaleId, isMidiNote } from "types/Scale/ScaleTypes";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
 import { getPatternChordWithNewNotes } from "./PatternUtils";
 import {
@@ -10,16 +9,14 @@ import {
   TRANSFORMATIONS,
 } from "./PatternTransformers";
 import {
-  PatternChord,
-  PatternMidiNote,
   PatternMidiChord,
   PatternBlock,
   PatternMidiBlock,
-  isPatternChord,
   PatternStream,
   PatternMidiStream,
   Pattern,
   PatternNote,
+  isPatternRest,
 } from "./PatternTypes";
 import { transposeNoteThroughScales } from "types/Scale/ScaleTransformers";
 import { applyVoiceLeadingsToMidiStream } from "types/Clip/PoseClip/PoseClipFunctions";
@@ -33,19 +30,20 @@ export const resolvePatternNoteToMidi = (
   return getScaleNoteMidiValue(chainedNote);
 };
 
-/** Resolve a `PatternChord` to `MIDI` using the `Scales` provided. */
-export const resolvePatternChordToMidi = (
-  chord?: PatternChord,
-  scales?: ScaleChain
-): PatternMidiNote[] => {
-  if (!chord) return [];
-  const notes = getPatternChordNotes(chord);
-  const chordLength = notes.length;
-  if (!chordLength) return [];
+/** Resolve a `PatternBlock` to `MIDI` using the `Scales` provided. */
+export const resolvePatternBlockToMidi = <T extends PatternBlock>(
+  block: T,
+  scales: ScaleChain = []
+): PatternMidiBlock => {
+  if (isPatternRest(block)) return block;
+  const notes = getPatternChordNotes(block);
+  const indexMap = (scales ?? []).reduce((acc, cur, i) => {
+    return { ...acc, [cur.id]: i };
+  }, {} as Record<ScaleId, number>);
 
-  const newChord = notes.map((note) => {
+  return notes.map((note) => {
     // If the note is a MIDI note, return it as is
-    if (!isNestedNote(note)) return note;
+    if (isMidiNote(note)) return note;
 
     // If the note doesn't have a scale, realize it within the chromatic scale
     const defaultNote = {
@@ -53,45 +51,28 @@ export const resolvePatternChordToMidi = (
       velocity: note.velocity,
       MIDI: getScaleNoteMidiValue(note),
     };
-    if (!scales || !note.scaleId) return defaultNote;
+    if (!note.scaleId) return defaultNote;
 
     // Try to find the note's scale in the scale chain
-    const scaleIndex = scales.findIndex((s) => s.id === note.scaleId);
-    if (scaleIndex < 0) return defaultNote;
+    const scaleIndex = indexMap[note.scaleId];
 
     // Resolve the note to MIDI using the scales preceding it
     const parentScales = scales.slice(0, scaleIndex + 1);
-    return {
-      duration: note.duration,
-      velocity: note.velocity,
-      MIDI: resolvePatternNoteToMidi(note, parentScales),
-    };
+    const MIDI = resolvePatternNoteToMidi(note, parentScales);
+    return { ...defaultNote, MIDI };
   });
 
-  const midiChord = getPatternChordWithNewNotes(
-    chord,
-    newChord
-  ) as PatternMidiChord;
-  return getPatternMidiChordNotes(midiChord);
-};
-
-/** Resolve a `PatternBlock` to `MIDI` using the `Scales` provided. */
-export const resolvePatternBlockToMidi = (
-  block: PatternBlock,
-  scales?: ScaleChain
-): PatternMidiBlock => {
-  if (!isPatternChord(block)) return block;
-  return resolvePatternChordToMidi(block, scales);
+  // const chord = getPatternChordWithNewNotes(block, newChord);
+  // const midiChord = chord as PatternMidiChord;
+  // return getPatternMidiChordNotes(midiChord);
 };
 
 /** Resolve a `PatternStream` to MIDI using a `ScaleChain` and `PoseVector` */
 export const resolvePatternStreamToMidi = (
   stream: PatternStream,
-  scales: ScaleChain = [],
-  transformations: PoseOperation[] = []
+  scales?: ScaleChain,
+  transformations?: PoseOperation[]
 ): PatternMidiStream => {
-  if (!stream) return [];
-
   // Get the stream with or without the scales
   let midiStream = stream.map((b) => resolvePatternBlockToMidi(b, scales));
 
@@ -99,16 +80,22 @@ export const resolvePatternStreamToMidi = (
   if (transformations) {
     for (const transformation of transformations) {
       // Apply the chromatic offset
-      const N = getVector_T(transformation.vector);
-      midiStream = transposeStream(midiStream, N);
+      const N = transformation.vector?.chromatic;
+      if (N) {
+        midiStream = transposeStream(midiStream, N);
+      }
 
       // Apply the chordal offset
-      const t = getVector_t(transformation.vector);
-      midiStream = rotateStream(midiStream, t);
+      const t = transformation.vector?.chordal;
+      if (t) {
+        midiStream = rotateStream(midiStream, t);
+      }
 
       // Apply the octave offset
-      const O = getVector_O(transformation.vector);
-      midiStream = transposeStream(midiStream, 12 * O);
+      const O = transformation.vector?.octave;
+      if (O) {
+        midiStream = transposeStream(midiStream, 12 * O);
+      }
 
       // Apply any voice leadings
       const v = transformation.vector;

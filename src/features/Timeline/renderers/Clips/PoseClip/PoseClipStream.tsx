@@ -39,7 +39,7 @@ export interface PoseClipStreamProps extends PoseClipDropdownEffectProps {
 }
 
 export const PoseClipStream = (props: PoseClipStreamProps) => {
-  const { block, depths, setDepths, field, setField } = props;
+  const { block, depths, setDepths, setField } = props;
   const dispatch = useProjectDispatch();
   const pose = use((_) => selectPoseById(_, props.clip.poseId));
   const stream = pose?.stream ?? [];
@@ -61,15 +61,18 @@ export const PoseClipStream = (props: PoseClipStreamProps) => {
     depths.forEach((index) => {
       if (!isFiniteNumber(index)) return;
       const newBlock = result[index];
-      if (!("stream" in newBlock)) return;
+      if (!newBlock || !("stream" in newBlock)) return;
       result = newBlock.stream;
     }, stream);
 
     return result;
-  }, [depths, stream]);
+  }, [depths, stream, block]);
 
   const activeLength = !!activeStream.length;
-  const onStream = activeLength && "stream" in activeStream[props.index];
+  const onStream =
+    activeLength &&
+    activeStream[props.index] &&
+    "stream" in activeStream[props.index];
 
   return (
     <div className="flex gap-2 total-center">
@@ -88,7 +91,8 @@ export const PoseClipStream = (props: PoseClipStreamProps) => {
                 addPoseBlock({
                   id: props.clip.poseId,
                   block: { vector: {} },
-                  depths,
+                  index: props.index,
+                  depths: props.depths,
                 })
               )
             }
@@ -121,7 +125,7 @@ export const PoseClipStream = (props: PoseClipStreamProps) => {
           >
             <div
               onClick={() => {
-                if (depthCount) {
+                if (depthCount && props.depths.length) {
                   setDepths((prev) => prev.slice(0, -1));
                 }
               }}
@@ -131,8 +135,8 @@ export const PoseClipStream = (props: PoseClipStreamProps) => {
           </PoseClipDropdownItem>
         </PoseClipDropdownContainer>
       </PoseClipBaseEffect>
-      {activeLength ? (
-        activeStream.map((block, i) => (
+      {activeStream.map((block, i) =>
+        !!activeLength ? (
           <PoseClipBlock
             key={i}
             {...props}
@@ -146,11 +150,11 @@ export const PoseClipStream = (props: PoseClipStreamProps) => {
             addDepth={(n) => setDepths((prev) => [...prev, n])}
             removeDepth={() => setDepths((prev) => prev.slice(0, -1))}
           />
-        ))
-      ) : (
-        <PoseClipBaseEffect className="bg-slate-900 opacity-80 min-h-16 total-center">
-          Empty Stream
-        </PoseClipBaseEffect>
+        ) : (
+          <PoseClipBaseEffect className="bg-slate-900 opacity-80 min-h-16 total-center">
+            Empty Stream
+          </PoseClipBaseEffect>
+        )
       )}
     </div>
   );
@@ -204,7 +208,6 @@ export const PoseClipBlock = (props: PoseClipBlockProps) => {
         )}
         value={duration}
         placeholder="Infinite"
-        onClick={cancelEvent}
         onKeyDown={blurOnEnter}
         onChange={(e) => {
           const string = e.currentTarget.value;
@@ -244,7 +247,7 @@ export const PoseClipBlock = (props: PoseClipBlockProps) => {
                     dispatch(
                       updatePoseBlock({
                         id: props.clip.poseId,
-                        index: props.index,
+                        index: props.streamIndex,
                         depths: props.depths,
                         block: {
                           ...block,
@@ -278,8 +281,8 @@ export const PoseClipBlock = (props: PoseClipBlockProps) => {
                 dispatch(
                   swapPoseBlock({
                     id: props.clip.poseId,
-                    index: props.index,
-                    newIndex: props.index - 1,
+                    index: props.streamIndex,
+                    newIndex: props.streamIndex - 1,
                     depths: props.depths,
                   })
                 );
@@ -296,8 +299,8 @@ export const PoseClipBlock = (props: PoseClipBlockProps) => {
                 dispatch(
                   swapPoseBlock({
                     id: props.clip.poseId,
-                    index: props.index,
-                    newIndex: props.index + 1,
+                    index: props.streamIndex,
+                    newIndex: props.streamIndex + 1,
                     depths: props.depths,
                   })
                 );

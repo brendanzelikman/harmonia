@@ -3,7 +3,14 @@ import {
   MEASURE_COUNT,
   TRACK_WIDTH,
 } from "utils/constants";
-import { getSubdivisionTicks, getTickColumns } from "utils/durations";
+import {
+  DURATION_TICKS,
+  DurationType,
+  getSubdivisionTicks,
+  getTickColumns,
+  STRAIGHT_DURATION_TICKS,
+  StraightDurationType,
+} from "utils/durations";
 import { Tick, Timed } from "types/units";
 import { getValueByKey, getValuesByKeys } from "utils/objects";
 import {
@@ -301,6 +308,25 @@ export const selectColumnTicks = (project: Project, column: number) => {
   return ticks * column;
 };
 
+/** Cache to avoid repetitive division */
+export const selectCachedTickColumns = createSelector(
+  [selectSubdivisionTicks],
+  (subdivision) => {
+    return Object.fromEntries(
+      Object.entries(DURATION_TICKS).map(([_, tick]) => [
+        tick,
+        tick / subdivision,
+      ])
+    ) as Record<number, number>;
+  }
+);
+
+/* Try to find a cached value and then manually divide for other durations */
+export const selectTickColumns = (project: Project, ticks: number) => {
+  const cachedColumns = selectCachedTickColumns(project);
+  return cachedColumns[ticks] ?? selectSubdivisionTicks(project) / ticks;
+};
+
 /** Select the left offset of the timeline tick in pixels. */
 export const selectTimelineTickLeft = (project: Project, tick: Tick = 0) => {
   const timeline = selectTimeline(project);
@@ -451,6 +477,11 @@ export const selectHasPortalFragment = createSelector(
   [selectPortalFragment],
   (portal) => some(portal)
 );
+
+export const selectIsClipSelected = (project: Project, id: ClipId) => {
+  const selection = selectSelectedClipIdMap(project);
+  return !!selection[id];
+};
 
 // ------------------------------------------------------------
 // Timeline Tracks

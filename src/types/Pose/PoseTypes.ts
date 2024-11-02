@@ -1,5 +1,5 @@
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
-import { isNumber, isPlainObject, isString } from "lodash";
+import { isNumber, isObject, isPlainObject, isString } from "lodash";
 import { ChromaticPitchClass } from "assets/keys";
 import { TrackId } from "types/Track/TrackTypes";
 import { Id } from "types/units";
@@ -134,9 +134,10 @@ export const isPoseVector = (obj: unknown): obj is PoseVector => {
 };
 
 /** Returns true if the vector is a voice leading. */
-export const isVoiceLeading = (obj?: unknown): obj is VoiceLeading => {
-  if (!isPoseVector(obj)) return false;
-  return Object.keys(obj).some((key) => isPitchClass(key) && key in obj);
+export const isVoiceLeading = (
+  obj: Record<any, any> = {}
+): obj is VoiceLeading => {
+  return Object.keys(obj).some((key) => isPitchClass(key));
 };
 
 /** Checks if a given object is of type `PoseModule` */
@@ -193,4 +194,9 @@ export const isPose = (obj: unknown): obj is Pose => {
 export const isPoseMap = (obj: unknown): obj is PoseMap => {
   const candidate = obj as PoseMap;
   return isPlainObject(candidate) && Object.values(candidate).every(isPose);
+};
+
+/** Checks if a given object is of type `PoseId`. */
+export const isPoseId = (obj: unknown): obj is PoseId => {
+  return isString(obj) && obj.startsWith("pose");
 };

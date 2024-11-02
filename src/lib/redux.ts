@@ -109,15 +109,17 @@ export const createNormalSlice = <
 >({
   name,
   adapter,
+  initialState,
   reducers = {} as ValidateSliceCaseReducers<EntityState<T>, R>,
 }: {
   name: string;
   adapter: EntityAdapter<T>;
+  initialState?: EntityState<T>;
   reducers?: ValidateSliceCaseReducers<EntityState<T>, R>;
 }) =>
   createSlice({
     name,
-    initialState: adapter.getInitialState(),
+    initialState: initialState ?? adapter.getInitialState(),
     reducers: {
       ...reducers,
       addOne: (state: EntityState<T>, action: Action<T>) => {

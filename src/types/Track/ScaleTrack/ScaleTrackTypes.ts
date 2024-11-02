@@ -29,7 +29,7 @@ export const initializeScaleTrack = (
 /** Checks if a given object is of type `ScaleTrack`. */
 export const isScaleTrackId = (obj: unknown): obj is ScaleTrackId => {
   const candidate = obj as ScaleTrackId;
-  return isString(candidate) && candidate.startsWith("scale-track");
+  return isString(candidate) && candidate[0] === "s";
 };
 
 /** Checks if a given object is of type `ScaleTrack`. */

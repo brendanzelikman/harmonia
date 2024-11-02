@@ -24,7 +24,7 @@ export const NavbarScissors = () => {
         }
         onClick={() => dispatch(toggleTimelineState({ data: "slicing-clips" }))}
         className={classNames(
-          `p-1.5 bg-gradient-radial from-purple-400/20 to-purple-600/80 border-slate-400/50`,
+          `p-1.5 bg-gradient-to-tr from-purple-800/20 to-purple-400/80 border-slate-400/50`,
           !hasClips ? "opacity-50" : "",
           isSlicing
             ? "ring-2 ring-offset-2 ring-slate-600/80 ring-offset-slate-900"
