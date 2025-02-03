@@ -7,7 +7,7 @@ import { IS_PROD } from "utils/constants";
 // ------------------------------------------------------------
 
 const firebaseLiveConfig = {
-  apiKey: "AIzaSyB5pJkggKaGHsORB8WPdYqLFDr6X4QRizA",
+  apiKey: import.meta.env.VITE_LIVE_API_KEY,
   authDomain: "harmonia-408805.firebaseapp.com",
   projectId: "harmonia-408805",
   storageBucket: "harmonia-408805.appspot.com",
@@ -16,7 +16,7 @@ const firebaseLiveConfig = {
   measurementId: "G-SVZDMC9CQZ",
 };
 const firebaseTestConfig = {
-  apiKey: "AIzaSyDK8znzt-KwZmSdtCtUaVje5Ox9lND3e6U",
+  apiKey: import.meta.env.VITE_TEST_API_KEY,
   authDomain: "harmonia-test-e236b.firebaseapp.com",
   projectId: "harmonia-test-e236b",
   storageBucket: "harmonia-test-e236b.appspot.com",

@@ -17,7 +17,10 @@ export type Clearance = typeof adminClearance | (string & {}) | null;
 
 // Handle the password through a modal
 export const promptPassword = () =>
-  promptModal("Welcome to Harmonia!", "Please enter the password.");
+  promptModal({
+    title: "Welcome to Harmonia!",
+    description: "Please enter the password.",
+  });
 
 // Check the password status through local storage
 export async function authorize(forceCheck = false): Promise<Clearance> {
