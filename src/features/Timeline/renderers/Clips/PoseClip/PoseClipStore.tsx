@@ -5,7 +5,8 @@ import {
   Transformation,
   TransformationArgs,
 } from "types/Pattern/PatternTransformers";
-import { addPoseBlockTransformation } from "types/Pose/PoseSlice";
+import { selectPoseById } from "types/Pose/PoseSelectors";
+import { addPoseBlockTransformation, updatePose } from "types/Pose/PoseSlice";
 import { Thunk } from "types/Project/ProjectTypes";
 
 export const PoseClipBaseEffect = (
@@ -29,12 +30,13 @@ export type BasePoseClipEffectProps<T extends Transformation> = {
   index: number;
   id: T;
   depths?: number[];
+  updateBase?: boolean;
   givenArgs: TransformationArgs<T>;
 };
 
 export const addTransformation =
   <T extends Transformation>(props: BasePoseClipEffectProps<T>): Thunk =>
-  (dispatch) => {
+  (dispatch, getProject) => {
     const { id, clip, givenArgs: args, index } = props;
     const transformation = { id, args };
     const payload = {
@@ -43,5 +45,20 @@ export const addTransformation =
       depths: props.depths,
       transformation,
     };
-    dispatch(addPoseBlockTransformation(payload));
+    if (!props.updateBase) {
+      dispatch(addPoseBlockTransformation(payload));
+    } else {
+      const project = getProject();
+      const pose = selectPoseById(project, clip.poseId);
+      if (!pose) return;
+      dispatch(
+        updatePose({
+          ...payload,
+          data: {
+            id: pose.id,
+            operations: [...(pose.operations ?? []), transformation],
+          },
+        })
+      );
+    }
   };

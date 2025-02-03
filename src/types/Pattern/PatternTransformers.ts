@@ -149,7 +149,7 @@ export const invertStream: Transformer<string | number> = (stream, axis) => {
   return getPatternMidiStreamWithNewNotes(stream, (notes) =>
     notes.map((note) => {
       const distance = note.MIDI - axisMIDI;
-      return { ...note, MIDI: clamp(axisMIDI - distance, 0, 127) };
+      return { ...note, MIDI: axisMIDI - distance };
     })
   );
 };

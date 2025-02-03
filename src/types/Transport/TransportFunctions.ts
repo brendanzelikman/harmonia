@@ -38,13 +38,23 @@ export type BarsBeatsSixteenths = {
   sixteenths: number;
 };
 
+export const getTicksPerBar = (bpm: BPM, timeSignature: [number, number]) => {
+  const sixteenthsPerBar = timeSignature[0];
+  const ticksPerBar = sixteenthsPerBar * SixteenthNoteTicks;
+
+  const totalSeconds = ticksToSeconds(1, bpm);
+  const secondsPerBar = ticksToSeconds(ticksPerBar, bpm);
+
+  return secondsPerBar / totalSeconds;
+};
+
 export const convertTicksToFormattedTime = (
   tick: Tick,
   deps: { bpm: BPM; timeSignature?: [number, number] }
 ): BarsBeatsSixteenths => {
   const { bpm } = deps;
   const timeSignature = deps.timeSignature ?? [16, 16];
-  if (!bpm || !timeSignature) return { bars: 0, beats: 0, sixteenths: 0 };
+  if (!bpm) return { bars: 0, beats: 0, sixteenths: 0 };
 
   // Get the number of sixteenths and ticks per bar
   const sixteenthsPerBar = timeSignature?.[0] ?? 16;

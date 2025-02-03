@@ -78,7 +78,7 @@ export const addClip =
 /** Add clips to the store. */
 export const addClips =
   (payload: Payload<Clip[]>): Thunk =>
-  (dispatch) => {
+  (dispatch, getProject) => {
     const clips = payload.data;
     const { pattern, pose, scale } = getClipsByType(clips);
     dispatch(PatternClips.addMany({ ...payload, data: pattern }));

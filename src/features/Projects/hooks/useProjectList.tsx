@@ -19,17 +19,20 @@ export function useProjectList(props: ProjectListProps) {
 
   // Display the list of projects
   const ProjectComponentList = useCallback(
-    () => (
-      <div className="size-full relative flex p-4 bg-slate-950/70 overflow-scroll gap-6 snap-x snap-mandatory">
-        {results.map((item, index) => (
-          <ProjectFormatter
-            {...item}
-            index={index}
-            key={selectProjectId(item.project)}
-          />
-        ))}
-      </div>
-    ),
+    () =>
+      !!results.length ? (
+        <div className="size-full relative flex p-4 bg-slate-950/70 overflow-scroll gap-6 snap-x snap-mandatory">
+          {results.map((item, index) => (
+            <ProjectFormatter
+              {...item}
+              index={index}
+              key={selectProjectId(item.project)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="size-full" />
+      ),
     [results]
   );
 

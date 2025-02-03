@@ -17,10 +17,11 @@ import { invert } from "lodash";
 
 /** Pulses Per Quarter Note */
 export const PPQ = 96;
+const RATE = 60 / PPQ;
 
 /** Convert ticks to seconds using the PPQ and BPM. */
 export const ticksToSeconds = (ticks: Tick, bpm: BPM): Seconds => {
-  return (60 / bpm) * (ticks / PPQ);
+  return RATE * (ticks / bpm);
 };
 
 /** Convert seconds to ticks using the PPQ and BPM. */
@@ -460,7 +461,7 @@ export const isStraightDuration = (
 export const isDottedDuration = (
   duration?: DurationType
 ): duration is DottedDurationType => {
-  if (duration === undefined) return false;
+  if (!duration) return false;
   return duration.endsWith("-dotted");
 };
 
@@ -468,7 +469,7 @@ export const isDottedDuration = (
 export const isTripletDuration = (
   duration?: DurationType
 ): duration is TripletDurationType => {
-  if (duration === undefined) return false;
+  if (!duration) return false;
   return duration.endsWith("-triplet");
 };
 

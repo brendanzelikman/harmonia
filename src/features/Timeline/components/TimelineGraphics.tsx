@@ -28,7 +28,7 @@ export const TimelineGraphics = (props: BackgroundProps) => {
 
   // The track dimensions are derived from the last track
   const collapsedMap = useDeep(selectCollapsedTrackMap);
-  const trackIds = use(selectOrderedTrackIds);
+  const trackIds = useDeep(selectOrderedTrackIds);
 
   // Selected track dimensions
   const st = useDeep(selectSelectedTrack);

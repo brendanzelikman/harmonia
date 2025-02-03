@@ -1,8 +1,8 @@
 import DataGrid, {
   Column,
   DataGridHandle,
-  RowHeightArgs,
-  FormatterProps,
+  RenderCellProps,
+  renderHeaderCell,
 } from "react-data-grid";
 import { useState, useCallback, useMemo } from "react";
 import { useProjectDispatch, useDeep, use } from "types/hooks";
@@ -47,6 +47,7 @@ import { TimelineTrackButton } from "./components/TimelineTrackButton";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { dispatchCustomEvent } from "utils/html";
 import { debounce } from "lodash";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
 
 export type Row = {
   index: number;
@@ -69,8 +70,8 @@ export function Timeline() {
   const collapsedMap = useDeep(selectCollapsedTrackMap);
   const hasFragment = use(selectHasPortalFragment);
   const bpm = use(selectTransportBPM);
-  const timeSignature = use(selectTransportTimeSignature);
-  const holding = useHeldHotkeys("s, e");
+  const timeSignature = useDeep(selectTransportTimeSignature);
+  const holding = useHeldHotkeys(["s", "e"]);
 
   /** The grid ref stores the react-data-grid element. */
   const gridRef = useCallback<(node: DataGridHandle) => void>(
@@ -84,23 +85,17 @@ export function Timeline() {
     [timeline]
   );
 
-  /** The rows are built from the ordered list of track IDs. */
-  const rows = useMemo(() => {
-    const rows: Row[] = [];
-    rows.push(
-      ...trackIds.map((id, i) => ({
-        index: i,
-        id,
-        onPatternTrack: !!isPatternTrackId(id),
-      }))
-    );
-    rows.push({ trackButton: true, index: rows.length });
-    return rows;
-  }, [trackIds]);
+  /** Reset the timeline to the origin when playback is stopped. */
+  const resetTimelineScroll = useCallback(() => {
+    const grid = timeline?.element;
+    if (grid) grid.scroll({ left: 0 });
+  }, [timeline]);
+
+  useCustomEventListener("resetTimelineScroll", resetTimelineScroll);
 
   /** The column formatter handles each cell based on its row and column */
-  const columnFormatter = useCallback(
-    (props: FormatterProps<Row, unknown>) => {
+  const renderCell = useCallback(
+    (props: RenderCellProps<Row, unknown>) => {
       const key = parseInt(props.column.key);
       if (!props.row.id) {
         const onClick = () => dispatch(onCellClick(key, props.row.id));
@@ -123,7 +118,7 @@ export function Timeline() {
           col={key}
           onClick={() => dispatch(onCellClick(key, props.row.id))}
           className={classNames(
-            "size-full animate-in fade-in duration-150 bg-white/10 border-t border-t-white/20",
+            "size-full animate-in fade-in duration-150 border-t border-t-white/20",
             { "border-l-2 border-l-white/20": isMeasure && key > 1 },
             { "border-l-0.5 border-l-slate-700/50": !isMeasure || key <= 1 },
             { "cursor-paintbrush": isAddingPatternClips && onPT },
@@ -131,6 +126,7 @@ export function Timeline() {
             { "cursor-portalguno": isPortaling && hasFragment },
             { "cursor-wand": isAddingPoseClips },
             { "cursor-gethsemane": isAddingScaleClips },
+            onPT ? "bg-white/10" : "bg-sky-600/10",
             isAddingPatternClips && onPT
               ? "hover:bg-teal-500/50"
               : isAddingPoseClips
@@ -156,53 +152,63 @@ export function Timeline() {
       name: key,
       width: cellWidth,
       minWidth: 1,
-      formatter: columnFormatter,
-      headerRenderer: (props) => (
+      renderCell,
+      renderHeaderCell: (props) => (
         <TimelineHeaderRenderer
           {...props}
-          holdingS={holding.s}
-          holdingE={holding.e}
+          holdingS={!!holding.s}
+          holdingE={!!holding.e}
+          columnIndex={parseInt(props.column.key)}
         />
       ),
       cellClass: `bg-transparent rdg-cell-${key}`,
     }),
-    [cellWidth, holding, columnFormatter]
+    [cellWidth, holding, renderCell, renderHeaderCell]
   );
 
   // Columns with the track column prepended
   const columns = useMemo((): Column<Row>[] => {
     const columns: Column<Row>[] = [];
     const beatCount = MEASURE_COUNT * 128;
+    columns.push({
+      key: "tracks",
+      name: "Tracks",
+      width: TRACK_WIDTH,
+      frozen: true,
+      renderCell: (row: RenderCellProps<Row, unknown>) => {
+        if (row.row.trackButton) return <TimelineTrackButton />;
+        if (!row.row.id) return null;
+        return <TrackFormatter {...row} />;
+      },
+      cellClass: "bg-transparent",
+    });
     for (let i = 1; i <= beatCount; i++) {
       columns.push(column(i.toString()));
     }
-    return [
-      {
-        key: "tracks",
-        name: "Tracks",
-        width: TRACK_WIDTH,
-        frozen: true,
-        formatter: (formatterProps: FormatterProps<Row>) => {
-          if (formatterProps.row.trackButton) return <TimelineTrackButton />;
-          if (!formatterProps.row.id) return null;
-          return <TrackFormatter {...formatterProps} />;
-        },
-        cellClass: "bg-transparent",
-      },
-      ...columns,
-    ];
+    return columns;
   }, [column]);
 
   /** The row height should always equal the cell height unless the track is collapsed. */
   const rowHeight = useCallback(
-    (row: RowHeightArgs<Row>) => {
-      if (row.type !== "ROW") return cellHeight;
-      if (row.row.id === undefined) return cellHeight;
-      if (!collapsedMap[row.row.id]) return cellHeight;
+    (row: NoInfer<Row>) => {
+      if (row.id === undefined) return cellHeight;
+      if (!collapsedMap[row.id]) return cellHeight;
       return COLLAPSED_TRACK_HEIGHT;
     },
     [cellHeight, collapsedMap]
   );
+
+  /** The rows are built from the ordered list of track IDs. */
+  const rows: readonly Row[] = useMemo(() => {
+    return [
+      ...trackIds.map((id, i) => ({
+        index: i,
+        id,
+        onPatternTrack: !!isPatternTrackId(id),
+      })),
+      { trackButton: true, index: trackIds.length },
+    ];
+  }, [trackIds]);
 
   /** The timeline elements are portaled into the timeline. */
   const element = timeline?.element;
@@ -238,7 +244,7 @@ export function Timeline() {
   const TimelineGrid = useMemo(() => {
     return (
       <DataGrid
-        className="data-grid w-full h-full bg-transparent focus:outline-none"
+        className="w-full h-full bg-transparent focus:outline-none"
         ref={gridRef}
         columns={columns}
         rows={rows}
@@ -252,7 +258,10 @@ export function Timeline() {
   }, [columns, rows, rowHeight, timeline]);
 
   return (
-    <div id="timeline" className="flex flex-col relative size-full">
+    <div
+      id="timeline"
+      className="flex flex-col relative total-center size-full"
+    >
       <TimelineContextMenu />
       {TimelineGrid}
       <TimelineElements />

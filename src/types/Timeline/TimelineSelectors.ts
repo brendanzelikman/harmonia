@@ -5,11 +5,8 @@ import {
 } from "utils/constants";
 import {
   DURATION_TICKS,
-  DurationType,
   getSubdivisionTicks,
   getTickColumns,
-  STRAIGHT_DURATION_TICKS,
-  StraightDurationType,
 } from "utils/durations";
 import { Tick, Timed } from "types/units";
 import { getValueByKey, getValuesByKeys } from "utils/objects";
@@ -30,7 +27,6 @@ import {
   defaultScaleClip,
   isPatternClip,
   isPoseClip,
-  isPoseClipId,
   isScaleClip,
   PatternClip,
   PoseClip,

@@ -27,10 +27,11 @@ export const readLocalProjects =
   (dispatch) => {
     const input = document.createElement("input");
     input.type = "file";
+    input.multiple = true;
     input.accept = ".ham";
     input.addEventListener("change", (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
+      const files = (e.target as HTMLInputElement).files ?? [];
+      for (const file of files) {
         dispatch(loadProjectByFile(file, options));
       }
     });
@@ -175,8 +176,6 @@ export const loadProjectByPath =
 export const loadRandomProject =
   (callback?: () => void): Thunk =>
   async (dispatch) => {
-    const { uid } = await fetchUser();
-    if (!uid) return;
     try {
       const projects = await getProjectsFromDB();
       const randomProject = sample(projects);

@@ -1,20 +1,12 @@
-import { random } from "lodash";
 import { Thunk } from "types/Project/ProjectTypes";
-import {
-  mergePoseStreamVectors,
-  offsetPoseStreamVectors,
-  resetPoseStreamVectors,
-} from "./PoseFunctions";
 import { selectPoseById, selectPoseMap } from "./PoseSelectors";
-import { addPose, clearPose, updatePose, updatePoses } from "./PoseSlice";
+import { addPose, updatePose, updatePoses } from "./PoseSlice";
 import {
   defaultPose,
   PoseId,
   initializePose,
   Pose,
-  isPoseOperation,
   PoseVector,
-  PoseStream,
   PoseVectorId,
 } from "./PoseTypes";
 import {
@@ -22,9 +14,7 @@ import {
   selectSelectedPoseClips,
 } from "types/Timeline/TimelineSelectors";
 import { setSelectedPose } from "types/Media/MediaThunks";
-import { Payload, unpackUndoType } from "lib/redux";
-import { createAction } from "@reduxjs/toolkit";
-import { getVectorKeys } from "utils/vector";
+import { createUndoType, Payload, unpackUndoType } from "lib/redux";
 import { ChromaticPitchClass } from "assets/keys";
 import { promptUserForString } from "utils/html";
 import { selectTrackLabelMap } from "types/Track/TrackSelectors";
@@ -32,6 +22,8 @@ import { isTrackId, TrackId } from "types/Track/TrackTypes";
 import { PoseClipId } from "types/Clip/ClipTypes";
 import { selectPoseClipById } from "types/Clip/ClipSelectors";
 import { updateTrack } from "types/Track/TrackThunks";
+import { sumVectors } from "utils/vector";
+import { trim } from "lodash";
 
 /** Create a pose. */
 export const createPose =
@@ -67,49 +59,9 @@ export const copyPose =
     );
   };
 
-/** Repeat the stream of a pose. */
-export const repeatPoseStream =
-  (id: PoseId, value: number): Thunk =>
-  (dispatch, getProject) => {
-    if (value < 0) return;
-    if (value === 0) {
-      dispatch(clearPose(id));
-      return;
-    }
-    const project = getProject();
-    const pose = selectPoseById(project, id);
-    if (!pose) return;
-    const stream = new Array(pose.stream.length * value)
-      .fill(pose.stream)
-      .flat();
-    dispatch(updatePose({ data: { id, stream } }));
-  };
-
-/** Randomize the stream of a pose. */
-export const randomizePoseStream =
-  (id: PoseId): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const pose = selectPoseById(project, id);
-    if (!pose) return;
-    const stream = pose.stream.map((v) => {
-      if (isPoseOperation(v)) {
-        const keys = getVectorKeys(v.vector);
-        const vector = keys.reduce(
-          (acc, key) => ({ ...acc, [key]: random(-3, 3) }),
-          {}
-        );
-        return { ...v, vector };
-      } else {
-        return v;
-      }
-    });
-    dispatch(updatePose({ data: { id, stream } }));
-  };
-
 /** Update the selected poses with the given vector. */
-export const updateSelectedPoseStreams =
-  (callback: (oldStream: PoseStream) => PoseStream): Thunk =>
+export const updateSelectedPoseVectors =
+  (callback: (oldVector: PoseVector) => PoseVector): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const poseMap = selectPoseMap(project);
@@ -122,24 +74,35 @@ export const updateSelectedPoseStreams =
     // Update the streams of the corresponding poses
     const newPoses: Pose[] = poses.map((pose) => ({
       ...pose,
-      stream: callback(pose.stream),
+      vector: callback(pose.vector || {}),
     }));
-    dispatch(updatePoses({ data: newPoses }));
+    const undoType = createUndoType("updatePoseVectors", newPoses);
+    dispatch(updatePoses({ data: newPoses, undoType }));
   };
 
+/** Update the selected poses or track vector with the given vector. */
 export const inputPoseVector =
   (id?: PoseClipId | TrackId): Thunk =>
   (dispatch, getProject) => {
     const isTrack = isTrackId(id);
-    promptUserForString(
-      "Update the Selected Vector",
-      [
+    const objects = !id
+      ? "Selected Poses"
+      : isTrack
+      ? "Selected Track"
+      : "Selected Pose";
+    promptUserForString({
+      title: `Update the ${objects}`,
+      description: [
         `Please input a list of offsets separated by plus signs to update the selected ${
           isTrack ? "track" : "pose"
         }, e.g. "T5 + t12".`,
-        "An empty input will reset the vector.",
+        "An empty input will reset the pose.",
       ],
-      (input) => {
+      callback: (input) => {
+        if (isTrack && input === "") {
+          dispatch(updateTrack({ data: { id, vector: {} } }));
+          return;
+        }
         const trackMap = selectTrackLabelMap(getProject());
         const labelEntries = Object.entries(trackMap) as [TrackId, string][];
         const vector: PoseVector = {};
@@ -147,8 +110,8 @@ export const inputPoseVector =
         const chromaticRegex = /T([-+]?\d+)/g;
         const chordalRegex = /t([-+]?\d+)/g;
         const octaveRegex = /O([-+]?\d+)/g;
-        const trackIdRegex = /S([1-9][a-z]*):\s*([-+]?\d*)/g;
-        const pitchClassRegex = /([A-G]#?):\s*([-+]?\d+)/g;
+        const trackIdRegex = /\$([A-G]*)\s*([-+]?\d*)/g;
+        const pitchClassRegex = /\*([A-G]#?):\s*([-+]?\d+)/g;
 
         const addToVector = (key: PoseVectorId, value: number) => {
           if (vector[key] !== undefined) {
@@ -159,7 +122,6 @@ export const inputPoseVector =
         };
 
         let match: RegExpExecArray | null;
-
         // Chromatic
         while ((match = chromaticRegex.exec(input)) !== null) {
           addToVector("chromatic", parseInt(match[1], 10));
@@ -202,10 +164,13 @@ export const inputPoseVector =
         const poseId = selectPoseClipById(getProject(), id)?.poseId;
         const pose = selectPoseById(getProject(), poseId);
         if (!poseId || !pose) return;
-        const stream = mergePoseStreamVectors(pose.stream, vector);
-        dispatch(updatePose({ data: { id: poseId, stream } }));
-      }
-    )();
+        dispatch(
+          updatePose({
+            data: { id: poseId, vector: { ...pose.vector, ...vector } },
+          })
+        );
+      },
+    })();
   };
 
 /** Update the selected poses with the given vector. */
@@ -221,11 +186,12 @@ export const updateSelectedPoses =
     const poses = poseIds.map((id) => poseMap[id]).filter(Boolean) as Pose[];
 
     // Update the streams of the corresponding poses
-    const newPoses: Pose[] = poses.map((pose) => ({
-      ...pose,
-      stream: mergePoseStreamVectors(pose.stream, vector),
+    const newPoses = poses.map((p) => ({
+      ...p,
+      vector: { ...p.vector, ...vector },
     }));
-    dispatch(updatePoses({ data: newPoses }));
+    const undoType = createUndoType("updateSelectedPoses", newPoses);
+    dispatch(updatePoses({ data: newPoses, undoType }));
   };
 
 /** Offset the selected poses by the given vector. */
@@ -243,36 +209,11 @@ export const offsetSelectedPoses =
     // Update the streams of the corresponding poses
     const newPoses = poses.map((pose) => ({
       ...pose,
-      stream: offsetPoseStreamVectors(pose.stream, vector),
+      vector: sumVectors(pose.vector, vector),
     }));
-    dispatch(updatePoses({ data: newPoses }));
-  };
-
-/** Reset the vector of the selected poses. */
-export const resetSelectedPoses = (): Thunk => (dispatch, getProject) => {
-  const project = getProject();
-  const poseMap = selectPoseMap(project);
-
-  // Get the unique poses that are currently selected
-  const poseClips = selectSelectedPoseClips(project);
-  const poseIds = [...new Set(poseClips.map((t) => t.poseId))];
-  const poses = poseIds.map((id) => poseMap[id]).filter(Boolean) as Pose[];
-
-  // Update the streams of the corresponding poses
-  const newPoses = poses.map((pose) => ({
-    ...pose,
-    stream: resetPoseStreamVectors(pose.stream),
-  }));
-  dispatch(updatePoses({ data: newPoses }));
-};
-
-const examplePoseAction = createAction("poses/action", (payload: Pose) => ({
-  payload,
-  meta: "poses/action",
-}));
-
-const walk =
-  (pose: Pose): Thunk =>
-  (dispatch, getProject) => {
-    dispatch(examplePoseAction(pose));
+    const undoType = createUndoType(
+      "offsetSelectedPoses",
+      newPoses.map((p) => p.vector)
+    );
+    dispatch(updatePoses({ data: newPoses, undoType }));
   };

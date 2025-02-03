@@ -1,4 +1,4 @@
-import { Listbox } from "@headlessui/react";
+import { Listbox, ListboxButton } from "@headlessui/react";
 import classNames from "classnames";
 import { BsCheck, BsMusicNoteBeamed, BsSoundwave } from "react-icons/bs";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
@@ -46,7 +46,7 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
           }`}
           onClick={props.onClick}
         >
-          <Listbox.Button
+          <ListboxButton
             className={`text-xs flex text-ellipsis whitespace-nowrap rounded border px-2 p-1 ${
               props.disabled
                 ? "text-slate-400 cursor-default"
@@ -61,7 +61,7 @@ export const EditorListbox = <T extends any>(props: EditorListboxProps<T>) => {
               {props.icon}
               {name || props.placeholder || "Change Value"}
             </span>
-          </Listbox.Button>
+          </ListboxButton>
 
           <Listbox.Options className="absolute z-50 top-6 peer animate-in fade-in zoom-in-95 duration-150 min-w-[10rem] py-1 mt-1 overflow-auto text-xs bg-slate-800 border border-slate-500 rounded-md shadow-lg max-h-60 capitalize focus:outline-none">
             {props.options.map((option, index) => {

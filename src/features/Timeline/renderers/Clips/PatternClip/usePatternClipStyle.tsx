@@ -71,8 +71,8 @@ export const usePatternClipStyle = (
   const isOpen = !!clip?.isOpen;
   const className = classNames(
     props.className,
-    "flex flex-col rounded-lg rounded-b-none animate-in fade-in transition-opacity duration-300",
-    isOpen ? "min-w-min z-[25]" : "border-2",
+    "flex flex-col rounded-lg rounded-b-none animate-in fade-in",
+    isOpen ? "min-w-min max-w-lg z-[25]" : "border-2",
     { "backdrop-blur border-white/0": isOpen },
     { "border-slate-100": isSelected && !isOpen },
     { "border-teal-500/50": !isSelected && !isOpen },

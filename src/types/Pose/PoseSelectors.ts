@@ -1,8 +1,7 @@
 import { getValueByKey } from "utils/objects";
-import { PresetPoseMap } from "assets/poses";
 import { createDeepSelector } from "lib/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
-import { PoseMap, PoseId, Pose, PoseState } from "./PoseTypes";
+import { PoseId, Pose, PoseState } from "./PoseTypes";
 import { defaultPoseState, poseAdapter } from "./PoseSlice";
 
 // Create a safe selector for the pose state.
@@ -18,11 +17,7 @@ export const selectPoseIds = poseSelectors.selectIds as (
 ) => PoseId[];
 
 // Select the pose map.
-export const _selectPoseMap = poseSelectors.selectEntities;
-export const selectPoseMap = createDeepSelector(
-  [_selectPoseMap],
-  (poseMap): PoseMap => ({ ...poseMap, ...PresetPoseMap })
-);
+export const selectPoseMap = poseSelectors.selectEntities;
 
 // Select all poses.
 export const selectPoses = createDeepSelector(

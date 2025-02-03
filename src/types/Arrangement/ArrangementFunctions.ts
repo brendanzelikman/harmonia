@@ -31,7 +31,7 @@ import {
 } from "types/Scale/ScaleTransformers";
 import { ScaleObject } from "types/Scale/ScaleTypes";
 import { isTrackId, TrackId } from "types/Track/TrackTypes";
-import { getValueByKey } from "utils/objects";
+import { getArrayByKey, getValueByKey } from "utils/objects";
 import { MotifState } from "types/Motif/MotifTypes";
 import { getPatternClipStartingBlock } from "types/Clip/PatternClip/PatternClipFunctions";
 import {
@@ -43,7 +43,7 @@ import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
 import { mergeVectorKeys, sumVectors } from "utils/vector";
 import { isVoiceLeading } from "types/Pose/PoseTypes";
-import { isNumber } from "lodash";
+import { isNumber, some } from "lodash";
 import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
 
@@ -176,29 +176,21 @@ export const getTrackScaleChain = (
   id: TrackId,
   deps: TrackScaleChainDependencies
 ) => {
-  const { motifs, tick, ...arrangement } = deps;
-  const poseMap = motifs?.pose?.entities;
+  const { motifs, tick, tracks } = deps;
   const scaleMap = motifs?.scale?.entities;
-  const trackMap = arrangement.tracks;
-  const defaultChain: ScaleObject[] = [];
+  const poseMap = motifs?.pose?.entities;
   const noTick = tick === undefined;
-
-  // Try to get the track from the arrangement
-  const tracks = arrangement.tracks;
 
   // Try to get the chain of scale tracks
   const chainIds = deps.chainIdsByTrack[id] ?? [];
   const chainLength = chainIds.length;
-  if (!chainLength) return defaultChain;
 
   // Iterate through the tracks and create the scale chain
   const scaleChain: ScaleObject[] = [];
   for (let i = 0; i < chainLength; i++) {
-    const track = trackMap[chainIds[i]] as ScaleTrack | undefined;
-    if (!track) return defaultChain;
-
-    const scale = scaleMap[track.scaleId];
-    if (!scale) return defaultChain;
+    const track = tracks[chainIds[i]] as ScaleTrack | undefined;
+    const scale = getArrayByKey(scaleMap, track?.scaleId);
+    if (!track || !scale) return [];
 
     // If no tick is specified, just push the track's scale
     if (noTick) {
@@ -227,7 +219,7 @@ export const getTrackScaleChain = (
       vector = sumVectors(vector, ...operations.map((_) => _.vector));
     }
     // If no vector exists, just push the scale
-    if (!vector) {
+    if (!vector || !some(vector)) {
       scaleChain.push(currentScale);
       continue;
     }
@@ -248,7 +240,7 @@ export const getTrackScaleChain = (
       } else if (isTrackId(id)) {
         const chainId = chainIds.find((i) => i === id);
         if (!chainId) continue;
-        const scaleId = (trackMap[chainId] as ScaleTrack)?.scaleId;
+        const scaleId = (tracks[chainId] as ScaleTrack)?.scaleId;
         if (!scaleId) continue;
         newScale = getTransposedScale(newScale, offset, scaleId);
       }
@@ -293,22 +285,20 @@ export const getMidiStreamAtTickInTrack = (
 ): PatternMidiStream => {
   const { tick, clip, clipsByTrack } = deps;
   const { trackId } = clip;
-  const trackMap = deps.tracks;
   const poseMap = deps.motifs?.pose?.entities;
 
-  // Get the accumulated operations summed from all track and ancestor clips
-  const track = trackMap[trackId];
+  // Get the accumulated operations at the current tick of the clip's track
+  const track = deps.tracks[trackId];
   const poseClips = clipsByTrack[trackId]?.pose ?? [];
-  const operations = getPoseOperationsAtTick(poseClips, poseMap, tick);
+  const clipOperations = getPoseOperationsAtTick(poseClips, poseMap, tick);
+  const operations = [{ vector: track?.vector }, ...clipOperations];
 
-  // Compute the current vector, then transpose the pattern stream
-  const baseVector = track?.vector ?? {};
-  const poseVector = sumVectors(baseVector, ...operations.map((_) => _.vector));
-  const scaleVector = getPoseVectorAsScaleVector(poseVector, trackMap);
+  // Transpose any scale notes that are targeted by the operations
+  const poseVector = sumVectors(...operations.map((_) => _.vector));
+  const scaleVector = getPoseVectorAsScaleVector(poseVector, deps.tracks);
   const posedStream = getTransposedPatternStream(stream, scaleVector);
 
-  // Resolve the pattern stream to MIDI using the scale chain and apply transformations
+  // Resolve the pattern stream to MIDI using the current scales of the track
   const scales = getTrackScaleChain(trackId, deps);
-  const transformations = [{ vector: baseVector }, ...operations];
-  return resolvePatternStreamToMidi(posedStream, scales, transformations);
+  return resolvePatternStreamToMidi(posedStream, scales, operations);
 };

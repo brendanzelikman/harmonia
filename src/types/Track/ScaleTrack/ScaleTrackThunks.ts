@@ -1,6 +1,6 @@
 import { getArrayByKey } from "utils/objects";
 import { addScale, updateScale } from "types/Scale/ScaleSlice";
-import { capitalize, isArray, random, range, sample, sampleSize } from "lodash";
+import { capitalize, random, range, sample, sampleSize, trim } from "lodash";
 import { PresetScaleList, PresetScaleNotes } from "assets/scales";
 import { Thunk } from "types/Project/ProjectTypes";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
@@ -11,7 +11,6 @@ import {
   ScaleArray,
   chromaticScale,
   initializeScale,
-  ScaleNote,
 } from "types/Scale/ScaleTypes";
 import { TrackId, isPatternTrack } from "../TrackTypes";
 import {
@@ -44,7 +43,7 @@ import { PatternStream } from "types/Pattern/PatternTypes";
 import { PatternScales } from "types/Pattern/PatternUtils";
 import { getTransposedScale } from "types/Scale/ScaleTransformers";
 import { promptUserForString } from "utils/html";
-import { getScaleName } from "utils/scale";
+import { getScaleAliases, getScaleName } from "utils/scale";
 import {
   getMidiOctaveNumber,
   getMidiPitchClass,
@@ -52,11 +51,8 @@ import {
   MidiScale,
 } from "utils/midi";
 import { isPitchClass, unpackScaleName } from "utils/pitchClass";
-import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
-import {
-  INSTRUMENT_KEYS,
-  InstrumentKey,
-} from "types/Instrument/InstrumentTypes";
+import { MajorScale, MinorScale } from "assets/scales/BasicScales";
+import { mod } from "utils/math";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
@@ -93,7 +89,7 @@ export const createScaleTrack =
     const undoType =
       _undoType ?? createUndoType("createScaleTrack", scaleTrack.id);
     dispatch(
-      addScale({ data: { ...scale, scaleTrackId: scaleTrack.id }, undoType })
+      addScale({ data: { ...scale, trackId: scaleTrack.id }, undoType })
     );
     dispatch(addTrack({ data: scaleTrack, undoType }));
 
@@ -136,9 +132,9 @@ export const createRandomHierarchy = (): Thunk => (dispatch) => {
     const scale = scales[i];
     const parentId = i > 0 ? scaleTracks[i - 1].id : undefined;
     const scaleTrack = initializeScaleTrack({ parentId, scaleId: scale.id });
-    const scaleTrackId = scaleTrack.id;
+    const trackId = scaleTrack.id;
     dispatch(addTrack({ data: scaleTrack, undoType }));
-    dispatch(addScale({ data: { ...scale, scaleTrackId }, undoType }));
+    dispatch(addScale({ data: { ...scale, trackId }, undoType }));
     scaleTracks.push(scaleTrack);
   }
 };
@@ -253,12 +249,30 @@ export const moveScaleTrack =
     return true;
   };
 
-const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
-  const pcMatch = name.match(/\[?([a-gA-G][#b]?(?:, ?[a-gA-G][#b]?)+)\]?/);
-  const midiMatch = name.match(/\[?(\d+(?:, ?\d+)+)\]?/);
-  const getScale = () => {
-    if (pcMatch && midiMatch) return undefined;
+export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
+  // Interpret exact pitch classes as major
+  if (isPitchClass(name)) {
+    const number = getPitchClassNumber(name);
+    return getTransposedScale(MajorScale.notes as MidiScale, number);
+  }
 
+  // Interpret lower case pitch classes as minor
+  const upper = name.toUpperCase();
+  if (isPitchClass(upper)) {
+    const number = getPitchClassNumber(upper);
+    return getTransposedScale(MinorScale.notes as MidiScale, number);
+  }
+
+  // Otherwise, try to parse the scale name
+  const pcMatch = name.match(/^\[?([a-gA-G][#b]?(?:, ?[a-gA-G][#b]?)+)\]?$/);
+
+  // Numbers are equal to degrees
+  const degreeMatch = name.match(/^\[?(\d+(?:, ?\d+)+)\]?$/);
+
+  // M[n] are equal to midi numbers
+  const midiMatch = name.match(/^\[?(M\d+(?:, ?M\d+)+)\]?$/);
+
+  const getScale = () => {
     // Parse the pitch classes
     if (pcMatch) {
       const pitchClasses = pcMatch[1].split(", ").map(capitalize);
@@ -266,45 +280,60 @@ const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
       for (const pitchClass of pitchClasses) {
         if (!isPitchClass(pitchClass)) return undefined;
         const number = getPitchClassNumber(pitchClass);
-        scale.push(
-          number +
-            12 *
-              getMidiOctaveNumber(
-                12 +
-                  (parent?.find((c) => getMidiPitchClass(c) === pitchClass) ??
-                    48)
-              )
-        );
+        const match = parent?.find((c) => getMidiPitchClass(c) === pitchClass);
+        scale.push(number + 12 * getMidiOctaveNumber(12 + (match ?? 48)));
       }
       return scale;
     }
 
-    // Parse the MIDI values
+    // Parse the degrees as relative
+    if (degreeMatch && parent) {
+      const degreeValues = degreeMatch[1].split(",");
+      const degrees = degreeValues.map((d) => parseInt(trim(d)));
+      return degrees.map((d) => parent[d]);
+    }
+
+    // Parse the MIDI values as absolute
     if (midiMatch) {
-      const midiValues = midiMatch[1].split(", ");
-      const scale: MidiScale = midiValues.map((value) => parseInt(value));
-      return scale;
+      const midiValues = midiMatch[1].split(",");
+      const midi = midiValues.map((value) => parseInt(trim(value).slice(1)));
+      return midi;
     }
 
     // Unpack the scale name
     const scale = unpackScaleName(name);
     if (!scale) return undefined;
     const { scaleName, pitchClass } = scale;
+    const s1 = trim(scaleName.toLowerCase());
 
     // Find a preset that matches the scale name
-    const preset = [...PresetScaleNotes, ...PatternScales].find((scale) =>
-      getScaleName(scale).toLowerCase().includes(scaleName.toLowerCase())
-    ) as MidiScale | undefined;
+    const preset = [...PresetScaleNotes, ...PatternScales].find((scale) => {
+      const s2 = getScaleName(scale).trim().toLowerCase();
+      const aliases = getScaleAliases(scale);
+      return s2.includes(s1) || aliases.some((a) => a === s1);
+    }) as MidiScale;
     if (!preset) return;
 
+    // Make sure the preset is sanitized
+    const sanitizedPreset = preset
+      .map((midi) => mod(midi, 12))
+      .sort((a, b) => a - b);
+
     // Transpose the scale based on the pitch class
-    const number = getPitchClassNumber(pitchClass);
-    return getTransposedScale(preset, number);
+    const number = getPitchClassNumber(
+      pitchClass || getMidiPitchClass(parent?.[0] ?? 60)
+    );
+    return getTransposedScale(sanitizedPreset, number);
   };
+
+  // Try to get the scale
   const initialScale = getScale();
   if (!initialScale) return;
+
   const newScale = [];
   const size = initialScale.length;
+
+  // Make sure each note is higher than the previous note
   for (let i = 0; i < size; i++) {
     const note = initialScale[i];
     const prevNote = initialScale[i - 1];
@@ -318,6 +347,8 @@ const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
       newScale.push(note);
     }
   }
+
+  // Return the new scale
   return newScale;
 };
 
@@ -325,9 +356,9 @@ const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
 export const updateTrackByString =
   (trackId: ScaleTrackId): Thunk =>
   (dispatch, getProject) =>
-    promptUserForString(
-      "Equipped Radio!",
-      [
+    promptUserForString({
+      title: "Equipped Radio!",
+      description: [
         "You receive a message from the broadcaster:",
         new Array(3).fill(`.`).join(""),
         `"Please input a Scale so that we can update this track!"`,
@@ -335,7 +366,7 @@ export const updateTrackByString =
         `.....You can use pitch classes like 'C, D, E, G, A, B'`,
         `.....You can use MIDI notes like '60, 62, 64, 67, 71'`,
       ],
-      (input) => {
+      callback: (input) => {
         const undoType = createUndoType("updateTrackByString", nanoid());
         const project = getProject();
         const track = selectScaleTrackById(project, trackId);
@@ -368,71 +399,5 @@ export const updateTrackByString =
             undoType,
           })
         );
-      }
-    )();
-
-/** Create a list of tracks based on an inputted regex string */
-export const createNestedTracks: Thunk = (dispatch) =>
-  promptUserForString(
-    "Equipped Radio!",
-    [
-      "You receive a message from the broadcaster:",
-      new Array(3).fill(`.`).join(""),
-      `"Please input a list of Scales (and optionally an Instrument) separated by '=>' so that we can bring your idea to life!"`,
-      `.....You can use scale names like 'C major => D minor chord'`,
-      `.....You can use pitch classes like 'C, D, E, G, A, B => guitar'`,
-      `.....You can use MIDI notes like '60, 62, 64, 67, 71 => bass'`,
-    ],
-    (input) => {
-      const undoType = createUndoType("generateTracks", nanoid());
-      const names = input.split("=>").map((s) => s.trim());
-
-      // Convert the names into scales
-      const initialScales: (MidiScale | undefined)[] = [];
-      for (const name of names) {
-        const scale = readMidiScaleFromString(name, initialScales.at(-1));
-        initialScales.push(scale);
-      }
-
-      // Check if the last track is an instrument
-      let instrumentKey: InstrumentKey | null = null;
-      const last = initialScales.pop();
-      if (last === undefined) {
-        const instrument = names[names.length - 1];
-        const potentialKey = INSTRUMENT_KEYS.find((key) =>
-          getInstrumentName(key)
-            .toLowerCase()
-            .includes(instrument.toLowerCase())
-        );
-        if (potentialKey) {
-          instrumentKey = potentialKey;
-        }
-      } else {
-        initialScales.push(last);
-      }
-
-      // Make sure each scale is valid
-      const scales = initialScales.filter(isArray) as MidiScale[];
-      if (scales.length !== initialScales.length) return;
-
-      // Create a scale track for each scale
-      const scaleTrackIds: ScaleTrackId[] = [];
-      for (const scale of scales) {
-        const parentId = scaleTrackIds.at(-1);
-        const notes: ScaleNote[] = scale
-          .map((midi) => dispatch(convertMidiToNestedNote(midi, parentId)))
-          .filter((note) => note.degree > -1);
-        scaleTrackIds.push(
-          dispatch(
-            createScaleTrack({ parentId }, initializeScale({ notes }), undoType)
-          ).id
-        );
-      }
-
-      // Create a pattern track if there is an instrument
-      if (instrumentKey) {
-        const parentId = scaleTrackIds.at(-1);
-        dispatch(createPatternTrack({ parentId }, instrumentKey, undoType));
-      }
-    }
-  )();
+      },
+    })();

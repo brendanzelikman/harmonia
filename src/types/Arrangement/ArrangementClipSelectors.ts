@@ -1,10 +1,15 @@
 import { getClipDuration } from "types/Clip/ClipFunctions";
-import { selectClipById } from "types/Clip/ClipSelectors";
+import {
+  selectClipById,
+  selectPoseClipMap,
+  selectPoseClips,
+} from "types/Clip/ClipSelectors";
 import {
   Clip,
   ClipId,
   isIPatternClip,
   PortaledClipId,
+  PoseClipId,
 } from "types/Clip/ClipTypes";
 import { Project } from "types/Project/ProjectTypes";
 import {
@@ -16,6 +21,12 @@ import { selectTransport } from "types/Transport/TransportSelectors";
 import { isFiniteNumber } from "types/util";
 import { getTickColumns } from "utils/durations";
 import { selectPortaledClipById } from "./ArrangementSelectors";
+import { selectTrackMap } from "types/Track/TrackSelectors";
+import { selectPoseMap } from "types/Pose/PoseSelectors";
+import { mapValues } from "lodash";
+import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
+import { createDeepSelector } from "lib/redux";
+import { getValueByKey } from "utils/objects";
 
 /** Select the width of a clip in pixels. Always at least 1 pixel. */
 export const selectClipWidth = (project: Project, clip?: Clip) => {
@@ -44,4 +55,20 @@ export const selectClipStartTime = (project: Project, id: ClipId) => {
   const transport = selectTransport(project);
   if (!clip) return undefined;
   return convertTicksToSeconds(transport, clip.tick);
+};
+
+export const selectClipVectorJSXMap = createDeepSelector(
+  [selectPoseClipMap, selectPoseMap, selectTrackMap],
+  (poseClips, poseMap, trackMap) => {
+    return mapValues(poseClips, (clip) => {
+      if (!clip) return null;
+      const pose = poseMap[clip.poseId];
+      return getPoseVectorAsJSX(pose?.vector, trackMap);
+    });
+  }
+);
+
+export const selectClipVectorJSX = (project: Project, id: PoseClipId) => {
+  const map = selectClipVectorJSXMap(project);
+  return getValueByKey(map, id) || null;
 };

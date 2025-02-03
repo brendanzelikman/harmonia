@@ -9,8 +9,12 @@ import { getTrackLabel } from "types/Track/TrackFunctions";
 import {
   selectOrderedTrackIds,
   selectScaleTrackMap,
+  selectTopLevelTrackIds,
+  selectTrackById,
   selectTrackChildIdMap,
   selectTrackCollapsedMap,
+  selectTrackInstrumentMap,
+  selectTrackLabelMap,
   selectTrackMap,
   selectTrackMidiScaleMap,
   selectTrackParentIdMap,
@@ -23,7 +27,14 @@ import { getTrackScaleChain } from "./ArrangementFunctions";
 import { selectProcessedArrangement } from "./ArrangementSelectors";
 import { createDeepSelector } from "lib/redux";
 import { getScaleName } from "utils/scale";
-import { getPoseVectorAsJSX } from "types/Pose/PoseFunctions";
+import {
+  getPoseVectorAsJSX,
+  getPoseVectorAsString,
+} from "types/Pose/PoseFunctions";
+import { getPoseOperationsAtTick } from "types/Clip/PoseClip/PoseClipFunctions";
+import { selectPoseMap } from "types/Pose/PoseSelectors";
+import { sumVectors } from "utils/vector";
+import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 
 export const selectTrackVectorJSX = createSelector(
   [selectTrackMap, (_: Project, id: TrackId) => id],
@@ -170,9 +181,9 @@ export const selectScaleNameMap = createSelector(
       if (!scale) return;
 
       // If the scale belongs to a scale track, display the track label.
-      if (scale.scaleTrackId) {
-        const trackLabel = getTrackLabel(scale.scaleTrackId, scaleTrackMap);
-        const midiScale = getArrayByKey(midiScaleMap, scale.scaleTrackId);
+      if (scale.trackId) {
+        const trackLabel = getTrackLabel(scale.trackId, scaleTrackMap);
+        const midiScale = getArrayByKey(midiScaleMap, scale.trackId);
         const name = getScaleName(midiScale);
         scaleNameMap[id] = `(Track ${trackLabel}) ${name}`;
       } else {
@@ -192,3 +203,72 @@ export const selectScaleName = (project: Project, scaleId?: ScaleId) => {
   const scaleMap = selectScaleMap(project);
   return scaleMap[scaleId]?.name ?? "Custom Scale";
 };
+
+export const selectTrackJSXAtTick = (
+  project: Project,
+  trackId: TrackId,
+  tick: Tick = 0
+) => {
+  const arrangement = selectProcessedArrangement(project);
+  const poseClips = arrangement.clipsByTrack?.[trackId]?.pose;
+  const poseMap = selectPoseMap(project);
+  const operations = getPoseOperationsAtTick(poseClips, poseMap, tick);
+  const track = selectTrackById(project, trackId);
+  const vector = sumVectors(track?.vector, ...operations.map((v) => v.vector));
+  return getPoseVectorAsJSX(vector, arrangement.tracks);
+};
+
+export const selectTrackJsonAtTick = createSelector(
+  [
+    selectTopLevelTrackIds,
+    selectTrackLabelMap,
+    selectTrackMap,
+    selectTrackInstrumentMap,
+    selectPoseMap,
+    selectProcessedArrangement,
+    selectMotifState,
+    (project, tick: Tick) => tick,
+  ],
+  (
+    topLevelTracks,
+    labelMap,
+    trackMap,
+    iMap,
+    poseMap,
+    arrangement,
+    motifs,
+    tick
+  ) => {
+    const createTrack = (trackId: TrackId): any => {
+      const track = trackMap[trackId];
+      if (!track) return { name: trackId };
+      const meta = { trackId };
+      const name = `Track ${labelMap[trackId]}`;
+      const isPT = track.type === "pattern";
+      const Instrument = getInstrumentName(iMap[trackId]?.key);
+      const poseClips = arrangement.clipsByTrack?.[trackId]?.pose;
+      const vector = sumVectors(
+        track.vector,
+        ...getPoseOperationsAtTick(poseClips, poseMap, tick).map(
+          (v) => v.vector
+        )
+      );
+      const Pose = getPoseVectorAsString(vector, trackMap);
+      if (isPT) return { name, attributes: { Instrument, Pose, meta } };
+
+      const scaleChain = getTrackScaleChain(trackId, {
+        ...arrangement,
+        motifs,
+        tick,
+      });
+      const scale = resolveScaleChainToMidi(scaleChain);
+      const attributes = { Scale: getScaleName(scale), Pose, meta };
+      return { name, attributes, children: track.trackIds.map(createTrack) };
+    };
+    return {
+      name: "Tracks",
+      id: "f",
+      children: topLevelTracks.map(createTrack),
+    };
+  }
+);

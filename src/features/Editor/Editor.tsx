@@ -11,7 +11,6 @@ import { Instrument, InstrumentKey } from "types/Instrument/InstrumentTypes";
 import {
   isScaleEditorOpen,
   isPatternEditorOpen,
-  isPoseEditorOpen,
   isInstrumentEditorOpen,
   isEditorOpen,
   isEditorVisible,
@@ -51,7 +50,6 @@ export interface EditorProps extends Editor {
   // The editor can only be in one view at a time
   onScaleEditor: boolean;
   onPatternEditor: boolean;
-  onPoseEditor: boolean;
   onInstrumentEditor: boolean;
 
   // The editor has various states describing it
@@ -87,7 +85,6 @@ function EditorComponent() {
   // The editor can only be in one view at a time
   const onScaleEditor = isScaleEditorOpen(editor);
   const onPatternEditor = isPatternEditorOpen(editor);
-  const onPoseEditor = isPoseEditorOpen(editor);
   const onInstrumentEditor = isInstrumentEditorOpen(editor);
 
   // The editor has various states describing it
@@ -116,7 +113,6 @@ function EditorComponent() {
     instance,
     onScaleEditor,
     onPatternEditor,
-    onPoseEditor,
     onInstrumentEditor,
     isOpen,
     isVisible,

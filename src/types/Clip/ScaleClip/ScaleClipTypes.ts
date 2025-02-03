@@ -28,7 +28,7 @@ export const defaultScaleClip: ScaleClip = {
   trackId: "scale-track_1",
   tick: 0,
   offset: 0,
-  scaleId: "scale_default-nested",
+  scaleId: createId("scale"),
 };
 
 /** Create a scale clip with a unique ID. */

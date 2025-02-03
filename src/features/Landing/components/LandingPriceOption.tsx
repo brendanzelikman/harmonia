@@ -30,14 +30,8 @@ export function LandingPriceBox(props: LandingPriceBoxProps) {
       <div className="flex flex-col w-full justify-center">
         <h2 className="flex items-center text-4xl font-bold mb-4 border-b border-b-slate-500/50 capitalize pb-4">
           {name}
-          {isEnabled && (
-            <span className={`ml-auto text-slate-200`}>
-              <BsCheckCircleFill />
-            </span>
-          )}
         </h2>
         <p className="text-xl text-slate-100 font-light">{description}</p>
-        <p className="text-lg text-slate-400 font-light">{price}</p>
       </div>
       <div className="flex flex-col w-full items-start mt-8 gap-2">
         {features.map((feature) => (

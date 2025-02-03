@@ -1,6 +1,7 @@
 import {
   _setTimelineType,
   clearTimelineState,
+  setSelectedTrackId,
   setTimelineState,
   updateMediaDraft,
 } from "./TimelineSlice";
@@ -10,49 +11,46 @@ import { ClipType } from "types/Clip/ClipTypes";
 import { Thunk } from "types/Project/ProjectTypes";
 import { _setEditorView, hideEditor } from "types/Editor/EditorSlice";
 import { selectEditor, selectEditorView } from "types/Editor/EditorSelectors";
-import { selectTrackInstrumentKey } from "types/Track/TrackSelectors";
+import {
+  selectPatternTrackIds,
+  selectScaleTrackIds,
+  selectTrackDescendantIds,
+  selectTrackInstrumentKey,
+} from "types/Track/TrackSelectors";
 import { Motif } from "types/Motif/MotifTypes";
 import {
   selectNewMotifName,
   selectTimelineType,
-  selectSelectedMotif,
   selectSelectedPatternTrack,
   selectTimeline,
-  selectTimelineState,
   selectIsAddingClips,
+  selectSelectedTrackId,
 } from "./TimelineSelectors";
 import { Payload, unpackUndoType } from "lib/redux";
 import { createPattern } from "types/Pattern/PatternThunks";
 import { createPose } from "types/Pose/PoseThunks";
 import { createScale } from "types/Scale/ScaleThunks";
 import { TimelineState } from "./TimelineTypes";
+import { createTrackTree } from "types/Track/TrackThunks";
+import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 
 /** Set the selected clip type. */
 export const setTimelineType =
   (payload: Payload<ClipType>): Thunk =>
   (dispatch, getProject) => {
-    const type = payload.data;
-    const undoType = unpackUndoType(payload, "setTimelineType");
     const project = getProject();
-    const state = selectTimelineState(project);
     const view = selectEditorView(project);
-    const motif = selectSelectedMotif(project, type);
 
     // Update the timeline type and editor view if it is open
     dispatch(_setTimelineType(payload));
     if (isClipType(view)) dispatch(_setEditorView(payload));
-
-    // Idle the user if they are adding clips without a motif
-    if (state === "adding-clips" && !motif) {
-      dispatch(clearTimelineState({ undoType }));
-    }
   };
 
 /** Toggles the timeline type according to the order of the constant. */
 export const toggleTimelineType = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
-  const timeline = selectTimeline(project);
-  const index = timeline.type ? CLIP_TYPES.indexOf(timeline.type) : -1;
+  const type = selectTimelineType(project);
+  const index = CLIP_TYPES.indexOf(type);
   dispatch(setTimelineType({ data: next(CLIP_TYPES, index) }));
 };
 
@@ -65,7 +63,6 @@ export const toggleTimelineState =
     const project = getProject();
     const editor = selectEditor(project);
     const timeline = selectTimeline(project);
-    const motif = selectSelectedMotif(project);
 
     // Hide the editor if it is visible
     if (editor.view) dispatch(hideEditor({ data: null, undoType }));
@@ -81,9 +78,6 @@ export const toggleTimelineState =
       dispatch(updateMediaDraft({ data: { portal: {} }, undoType }));
     }
 
-    // Make sure the user has a motif if adding clips
-    if (incomingState === "adding-clips" && !motif) return;
-
     // Update the timeline state
     dispatch(setTimelineState({ data: incomingState, undoType }));
   };
@@ -97,13 +91,18 @@ export const toggleAddingState =
     const timelineType = selectTimelineType(project);
     const isAdding = selectIsAddingClips(project);
 
-    if (timelineType === type) {
+    // Create a new ID for the type
+    dispatch(
+      updateMediaDraft({
+        data: { [`${type}Clip`]: { [`${type}Id`]: undefined } },
+        undoType,
+      })
+    );
+
+    dispatch(setTimelineType({ data: type, undoType }));
+
+    if (!isAdding || (isAdding && timelineType === type)) {
       dispatch(toggleTimelineState({ data: `adding-clips`, undoType }));
-    } else if (timelineType !== type) {
-      dispatch(setTimelineType({ data: type, undoType }));
-      if (!isAdding) {
-        dispatch(toggleTimelineState({ data: `adding-clips`, undoType }));
-      }
     }
   };
 
@@ -136,3 +135,43 @@ export const createTypedMotif =
       dispatch(createScale({ data: scale }));
     }
   };
+
+export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const patternTrackIds = selectPatternTrackIds(project);
+  let trackId = selectSelectedTrackId(project);
+  const undoType = "goLive";
+
+  // If no track is selected, try to find one
+  if (!trackId) {
+    // If there is a pattern track, select the first one
+    if (patternTrackIds.length) {
+      trackId = patternTrackIds[0];
+    }
+
+    // Otherwise, create new tracks
+    else {
+      const scaleTrackIds = selectScaleTrackIds(project);
+      const hierarchy = selectTrackDescendantIds(project, scaleTrackIds[0]);
+
+      // If there are scale tracks, add a pattern track as a child
+      if (hierarchy.length) {
+        trackId = dispatch(
+          createPatternTrack(
+            { parentId: hierarchy.at(-1)! },
+            undefined,
+            undoType
+          )
+        ).track.id;
+      }
+
+      // Otherwise, create a new track tree
+      else {
+        trackId = dispatch(createTrackTree({ undoType }))?.id;
+      }
+    }
+  }
+
+  // Select the new track
+  dispatch(setSelectedTrackId({ data: trackId, undoType }));
+};

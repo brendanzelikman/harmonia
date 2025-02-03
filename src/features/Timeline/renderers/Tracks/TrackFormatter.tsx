@@ -1,4 +1,3 @@
-import { FormatterProps } from "react-data-grid";
 import { PatternTrackFormatter } from "./PatternTrackFormatter";
 import { ScaleTrackFormatter } from "./ScaleTrackFormatter";
 import { use, useDeep, useProjectDispatch } from "types/hooks";
@@ -22,6 +21,7 @@ import { updateTrack } from "types/Track/TrackThunks";
 import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { useCallback } from "react";
+import { RenderCellProps } from "react-data-grid";
 
 export interface TrackFormatterProps {
   track?: Track;
@@ -34,7 +34,7 @@ export interface TrackFormatterProps {
   moveTrack: (dragId: TrackId, hoverId: TrackId) => void;
 }
 
-export function TrackFormatter(props: FormatterProps<Row>) {
+export function TrackFormatter(props: RenderCellProps<Row>) {
   const dispatch = useProjectDispatch();
   const trackId = props.row.id;
   const selectedTrackId = use(selectSelectedTrackId);

@@ -12,7 +12,6 @@ import {
   GiDominoMask,
   GiHand,
   GiMusicalKeyboard,
-  GiRadioTower,
 } from "react-icons/gi";
 import { TooltipButton } from "components/TooltipButton";
 import { useTourId } from "features/Tour";
@@ -26,8 +25,8 @@ import {
   selectTrackMidiScale,
 } from "types/Track/TrackSelectors";
 import {
+  selectTrackJSXAtTick,
   selectTrackScaleNameAtTick,
-  selectTrackVectorJSX,
 } from "types/Arrangement/ArrangementTrackSelectors";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import {
@@ -71,7 +70,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
   const scaleTypes = ["name", "class", "midi"] as const;
   const [scaleTypeIndex, setScaleTypeIndex] = useState(0);
   const scaleType = scaleTypes[scaleTypeIndex];
-  const { component, name } = ScaleTrackName({
+  const { component, name, jsx } = ScaleTrackName({
     track,
     label,
     midiScale,
@@ -80,8 +79,6 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
     renameTrack: (name) => props.renameTrack(name),
   });
   const cycleType = () => setScaleTypeIndex((prev) => mod(prev + 1, 3));
-
-  const jsx = useDeep((_) => selectTrackVectorJSX(_, trackId));
 
   /** The Scale Track header displays the name and dropdown menu. */
   const ScaleTrackHeader = useCallback(
@@ -135,13 +132,13 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
         <div className="shrink-0 flex gap-1 self-end">
           <TooltipButton
             className={`text-xl size-6 border rounded-full border-sky-500 active:bg-sky-500 select-none`}
-            label="Update Scale"
+            label="Change Scale"
             onClick={(e) => {
               cancelEvent(e);
               dispatch(updateTrackByString(track.id));
             }}
           >
-            <GiRadioTower />
+            <GiDominoMask />
           </TooltipButton>
           <TooltipButton
             className={`text-xl size-6 flex items-center justify-center border rounded-full border-indigo-400 active:bg-indigo-500 select-none`}
@@ -180,7 +177,7 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
       )}
       ref={ref}
       style={{
-        paddingLeft: depth * 4,
+        paddingLeft: depth * 8,
         filter: `hue-rotate(${(depth - 1) * 8}deg)${
           [
             "tour-step-the-pattern-track",
@@ -225,8 +222,9 @@ const ScaleTrackName = (props: {
   renameTrack: (name: string) => void;
 }) => {
   const { track, label, scaleType, cellHeight, midiScale } = props;
-  const tick = useTransportTick();
+  const { tick } = useTransportTick();
   const scaleName = use((_) => selectTrackScaleNameAtTick(_, track.id, tick));
+  const jsx = useDeep((_) => selectTrackJSXAtTick(_, track.id, tick));
   const key = getScaleKey(midiScale);
 
   const name = useMemo(
@@ -250,5 +248,5 @@ const ScaleTrackName = (props: {
     />
   );
 
-  return { component, name };
+  return { component, name, jsx };
 };

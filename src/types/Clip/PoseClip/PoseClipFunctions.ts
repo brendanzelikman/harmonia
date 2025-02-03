@@ -1,4 +1,4 @@
-import { sortClipsByProximity } from "../ClipUtils";
+import { mapClipsWithGuard as mapClipsAtTickWithGuard } from "../ClipUtils";
 import { createMapFromClipRange } from "../ClipUtils";
 import { PoseClipMap } from "../ClipTypes";
 import { PoseClip } from "./PoseClipTypes";
@@ -33,7 +33,6 @@ import { getRotatedScale } from "types/Scale/ScaleTransformers";
 import { MidiScale } from "utils/midi";
 import { getMidiNoteValue } from "utils/midi";
 import { isPitchClass } from "utils/pitchClass";
-import { size } from "lodash";
 
 /** Get the `PoseClips` of a given track from a list of clips. */
 export const getPoseClipsByTrackId = (
@@ -63,8 +62,8 @@ export const getPoseOperationAtIndexByTick = (
 
 /** Get the current pose occurring at or before the given tick. */
 export const getPoseOperationsAtTick = (
-  clips: PoseClip[],
-  poseMap?: PoseMap,
+  clips: PoseClip[] = [],
+  poseMap: PoseMap = {},
   tick: Tick = 0
 ) => {
   const operation = [] as PoseOperation[];
@@ -78,16 +77,26 @@ export const getPoseOperationsAtTick = (
   const map = (clip: PoseClip, tick: number) => {
     const pose = poseMap[clip.poseId];
     if (!pose) return {};
-    const poseOperation = getPoseOperationAtIndexByTick(
-      clip,
-      pose.stream,
-      tick
-    );
-    operation.push(poseOperation);
+    if ("vector" in pose) {
+      operation.push({ vector: pose.vector });
+    }
+    if ("operations" in pose) {
+      for (const op of pose.operations ?? []) {
+        operation.push({ operations: [op] });
+      }
+    }
+    if ("stream" in pose) {
+      const poseOperation = getPoseOperationAtIndexByTick(
+        clip,
+        pose.stream,
+        tick
+      );
+      operation.push(poseOperation);
+    }
   };
 
   // Imperatively sum all relevant vectors to the offset
-  sortClipsByProximity(clips, tick, guard, map);
+  mapClipsAtTickWithGuard(clips, tick, guard, map);
 
   // Return the offset
   return operation;
@@ -116,7 +125,7 @@ export const getCurrentVoiceLeadings = (
   };
 
   // Imperatively sum all relevant vectors to the offset
-  sortClipsByProximity(clips, tick, guard, map);
+  mapClipsAtTickWithGuard(clips, tick, guard, map);
 
   // Return the offset
   return offsets;

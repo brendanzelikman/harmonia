@@ -75,9 +75,9 @@ export const createScale =
 
 /** Deletes a scale from the store by ID and any scale tracks that are connected to it. */
 export const deleteScale =
-  (id: ScaleId): Thunk =>
+  (id: ScaleId, undo?: string): Thunk =>
   async (dispatch, getProject) => {
-    const undoType = createUndoType("deleteScale", id);
+    const undoType = undo ?? createUndoType("deleteScale", id);
     const project = getProject();
 
     // Remove all scale tracks that are connected to the scale

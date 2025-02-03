@@ -8,7 +8,7 @@ import {
 import { selectIsPlayheadVisible } from "types/Transport/TransportSelectors";
 
 export function TimelinePlayhead() {
-  const tick = useTransportTick();
+  const { tick } = useTransportTick();
   const isVisible = use(selectIsPlayheadVisible);
   const cellWidth = use(selectCellWidth);
 

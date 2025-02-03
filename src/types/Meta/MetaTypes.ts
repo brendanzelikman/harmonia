@@ -2,6 +2,8 @@ import { nanoid } from "@reduxjs/toolkit";
 import { initializeProjectDiary, ProjectDiary } from "../Diary/DiaryTypes";
 import moment from "moment";
 
+export const NEW_PROJECT_NAME = "Harmonia Project";
+
 // ------------------------------------------------------------
 // Metadata Types
 // ------------------------------------------------------------
@@ -20,7 +22,7 @@ export interface ProjectMetadata {
 /** Create project metadata with a unique ID and the current date. */
 export const initializeProjectMetadata = (): ProjectMetadata => ({
   id: `project-${nanoid()}`,
-  name: "New Project",
+  name: NEW_PROJECT_NAME,
   dateCreated: moment().format(),
   lastUpdated: moment().format(),
   diary: initializeProjectDiary(),

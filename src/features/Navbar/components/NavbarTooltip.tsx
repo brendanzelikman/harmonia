@@ -4,6 +4,7 @@ import { omit } from "lodash";
 
 export const NavbarTooltip = (props: any) => (
   <Transition
+    as="div"
     show={!!props.show}
     className={`absolute top-[3rem] p-1 px-3 font-bold font-nunito text-sm rounded border border-slate-50/50 whitespace-nowrap backdrop-blur-lg ${
       props.className ?? ""

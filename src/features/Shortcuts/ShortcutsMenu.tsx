@@ -8,7 +8,6 @@ import { TrackShortcuts } from "./content/TrackShortcuts";
 import { InstrumentEditorShortcuts } from "./content/InstrumentEditorShortcuts";
 import { ScaleEditorShortcuts } from "./content/ScaleEditorShortcuts";
 import { PatternEditorShortcuts } from "./content/PatternEditorShortcuts";
-import { PoseEditorShortcuts } from "./content/PoseEditorShortcuts";
 import { BsXCircle } from "react-icons/bs";
 import { TickDurations } from "./content/TickDurations";
 import { useDiary } from "types/Diary/DiaryTypes";
@@ -21,7 +20,6 @@ export const SHORTCUT_TYPES = [
   "Media",
   "Scale Editor",
   "Pattern Editor",
-  "Pose Editor",
   "Instrument Editor",
   "Tick Durations",
 ] as const;
@@ -70,7 +68,6 @@ export function ShortcutsMenu() {
     if (type === "Instrument Editor") return <InstrumentEditorShortcuts />;
     if (type === "Scale Editor") return <ScaleEditorShortcuts />;
     if (type === "Pattern Editor") return <PatternEditorShortcuts />;
-    if (type === "Pose Editor") return <PoseEditorShortcuts />;
     if (type === "Tick Durations") return <TickDurations />;
     return null;
   }, [type]);

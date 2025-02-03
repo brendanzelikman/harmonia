@@ -2,14 +2,15 @@ import { AnyAction, ThunkAction } from "@reduxjs/toolkit";
 import { isPlainObject, isString } from "lodash";
 import { BaseProject, store } from "providers/store";
 import { defaultArrangement } from "types/Arrangement/ArrangementTypes";
-import { defaultEditor, isEditor } from "types/Editor/EditorTypes";
-import { defaultTimeline, isTimeline } from "types/Timeline/TimelineTypes";
-import { defaultTransport, isTransport } from "types/Transport/TransportTypes";
+import { defaultEditor } from "types/Editor/EditorTypes";
+import { defaultTimeline } from "types/Timeline/TimelineTypes";
+import { defaultTransport } from "types/Transport/TransportTypes";
 import { isOptionalType } from "types/util";
 import { Safe } from "types/util";
 import {
   defaultProjectMetadata,
   initializeProjectMetadata,
+  NEW_PROJECT_NAME,
   ProjectMetadata,
 } from "../Meta/MetaTypes";
 import { defaultMotifState } from "types/Motif/MotifTypes";
@@ -55,7 +56,7 @@ defaultProject._latestUnfiltered = defaultProject.present;
 /** Create a project with unique metadata. */
 export const initializeProject = (template: Project = defaultProject) => {
   const meta = initializeProjectMetadata();
-  if (template.present.meta.name !== "New Project") {
+  if (template.present.meta.name !== NEW_PROJECT_NAME) {
     meta.name = `${template.present.meta.name} Copy`;
   }
   const project: Project = {
@@ -76,11 +77,10 @@ export const useTerminal = () => useToggledState("terminal");
 export const isProjectMetadata = (obj: unknown): obj is ProjectMetadata => {
   const candidate = obj as ProjectMetadata;
   return (
-    isPlainObject(candidate) &&
-    isString(candidate.id) &&
-    isOptionalType(candidate.name, isString) &&
-    isOptionalType(candidate.dateCreated, isString) &&
-    isOptionalType(candidate.lastUpdated, isString)
+    isPlainObject(candidate) && isString(candidate.id)
+    // isOptionalType(candidate.name, isString) &&
+    // isOptionalType(candidate.dateCreated, isString) &&
+    // isOptionalType(candidate.lastUpdated, isString)
   );
 };
 
@@ -89,9 +89,6 @@ export const isProject = (obj: unknown): obj is Project => {
   const candidate = obj as Project;
   return (
     isPlainObject(candidate?.present) &&
-    isProjectMetadata(candidate.present.meta) &&
-    isTimeline(candidate.present.timeline) &&
-    isEditor(candidate.present.editor) &&
-    isTransport(candidate.present.transport)
+    isProjectMetadata(candidate.present.meta)
   );
 };

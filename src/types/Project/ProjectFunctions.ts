@@ -2,22 +2,20 @@ import { defaultBaseProject, Project, SafeProject } from "./ProjectTypes";
 import { defaultProjectMetadata } from "../Meta/MetaTypes";
 import { merge } from "lodash";
 import { isInstrument } from "types/Instrument/InstrumentTypes";
-import { isPattern, PatternState } from "types/Pattern/PatternTypes";
-import { isPose, PoseState } from "types/Pose/PoseTypes";
-import { isScaleObject, ScaleState } from "types/Scale/ScaleTypes";
+import { PatternState } from "types/Pattern/PatternTypes";
+import { PoseState } from "types/Pose/PoseTypes";
+import { ScaleState } from "types/Scale/ScaleTypes";
 import { defaultTimeline } from "types/Timeline/TimelineTypes";
 import { defaultTransport } from "types/Transport/TransportTypes";
 import { defaultEditor } from "types/Editor/EditorTypes";
-import { isIdInState, mergeStates } from "types/util";
-import { BaseProject, SafeBaseProject } from "providers/store";
 import {
-  CLIP_TYPES,
-  ClipState,
-  ClipType,
-  isIPatternClip,
-  isIPoseClip,
-  isIScaleClip,
-} from "types/Clip/ClipTypes";
+  filterEntityState,
+  isEntityInState,
+  isIdInState,
+  mergeStates,
+} from "types/util";
+import { BaseProject, SafeBaseProject } from "providers/store";
+import { CLIP_TYPES, ClipState } from "types/Clip/ClipTypes";
 import { isPortal } from "types/Portal/PortalTypes";
 import { selectScaleIds } from "types/Scale/ScaleSelectors";
 import { selectPatternIds } from "types/Pattern/PatternSelectors";
@@ -32,7 +30,6 @@ import { selectTrackIds } from "types/Track/TrackSelectors";
 import { selectInstrumentIds } from "types/Instrument/InstrumentSelectors";
 import { isIPatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { isIScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
-import { TrackId } from "types/Track/TrackTypes";
 import { MotifState } from "types/Motif/MotifTypes";
 import moment from "moment";
 
@@ -81,99 +78,119 @@ export const mergeBaseProjects = (
   const p2 = incomingProject;
   const m1 = baseProject?.motifs;
   const m2 = incomingProject?.motifs;
-  const mergeMotifs = options.mergeMotifs;
-  const mergeTracks = options.mergeTracks && mergeMotifs;
-  const mergeClips = options.mergeClips && mergeTracks;
+  const c1 = baseProject?.clips;
+  const c2 = incomingProject?.clips;
+  const mm = options.mergeMotifs;
+  const mt = options.mergeTracks && mm;
+  const mc = options.mergeClips && mt;
 
   // Sanitize the scales
-  const scales = mergeStates(
-    m1?.scale,
-    mergeMotifs ? m2?.scale : undefined,
-    isScaleObject
-  );
+  let scales = mergeStates(m1?.scale, mm ? m2?.scale : undefined);
 
   // Sanitize the patterns
-  const patterns = mergeStates(
-    m1?.pattern,
-    mergeMotifs ? m2?.pattern : undefined,
-    isPattern
-  );
+  let patterns = mergeStates(m1?.pattern, mm ? m2?.pattern : undefined);
 
   // Sanitize the poses
-  const poses = mergeStates(
-    m1?.pose,
-    mergeMotifs ? m2?.pose : undefined,
-    isPose
-  );
-
-  // Group the motifs together
-  const motifs: MotifState = { scale: scales, pattern: patterns, pose: poses };
+  let poses = mergeStates(m1?.pose, mm ? m2?.pose : undefined);
 
   // Make sure that scale tracks have scales
-  const scaleTracks = mergeStates(
+  let scaleTracks = mergeStates(
     p1?.scaleTracks,
-    mergeTracks ? p2?.scaleTracks : undefined,
-    (obj: unknown) => isIScaleTrack(obj) && isIdInState(scales, obj.scaleId)
+    mt ? p2?.scaleTracks : undefined,
+    isIScaleTrack
   );
 
   // Sanitize the pattern tracks
-  const patternTracks = mergeStates(
+  let patternTracks = mergeStates(
     p1?.patternTracks,
-    mergeTracks ? p2?.patternTracks : undefined,
+    mt ? p2?.patternTracks : undefined,
     isIPatternTrack
   );
 
   // Make sure that instruments have pattern tracks
-  const instruments = mergeStates(
+  let instruments = mergeStates(
     p1?.instruments,
-    mergeTracks ? p2?.instruments : undefined,
-    (_: unknown) => isInstrument(_) && isIdInState(patternTracks, _.trackId)
+    mt ? p2?.instruments : undefined,
+    isInstrument
   );
-
-  // Return true if a clip is in the state
-  const isClipInState = (clip: { trackId: TrackId }) => {
-    if (isIPatternClip(clip)) {
-      return isIdInState(patternTracks, clip.trackId);
-    } else {
-      return (
-        isIdInState(patternTracks, clip.trackId) ||
-        isIdInState(scaleTracks, clip.trackId)
-      );
-    }
-  };
 
   // Make sure that scale clips have valid tracks and scales
-  const scaleClips = mergeStates(
-    p1?.clips?.scale,
-    mergeClips ? p2?.clips?.scale : undefined,
-    (clip: unknown) =>
-      isIScaleClip(clip) &&
-      isClipInState(clip) &&
-      (clip.scaleId.startsWith("scale_preset_") ||
-        isIdInState(scales, clip.scaleId))
-  );
+  let scaleClips = mergeStates(c1?.scale, mc ? c2?.scale : undefined);
 
   // Make sure that pattern clips have valid tracks and patterns
-  const patternClips = mergeStates(
-    p1?.clips?.pattern,
-    mergeClips ? p2?.clips?.pattern : undefined,
-    (clip: unknown) =>
-      isIPatternClip(clip) &&
-      isClipInState(clip) &&
-      (clip.patternId.startsWith("pattern_preset_") ||
-        isIdInState(patterns, clip.patternId))
-  );
+  let patternClips = mergeStates(c1?.pattern, mc ? c2?.pattern : undefined);
 
   // Make sure that pose clips have valid tracks and poses
-  const poseClips = mergeStates(
-    p1?.clips?.pose,
-    mergeClips ? p2?.clips?.pose : undefined,
-    (clip: unknown) =>
-      isIPoseClip(clip) &&
-      isClipInState(clip) &&
-      (clip.poseId.startsWith("pose_preset_") ||
-        isIdInState(poses, clip.poseId))
-  );
+  let poseClips = mergeStates(c1?.pose, mc ? c2?.pose : undefined);
+
+  // Remove all scale tracks with no scales
+  scaleTracks = filterEntityState(scaleTracks, (t) => {
+    const hasScale = isIdInState(scales, t.scaleId);
+    const hasParent = !t.parentId || isIdInState(scaleTracks, t.parentId);
+    return hasScale && hasParent;
+  });
+
+  // Remove all pattern tracks with no instruments
+  patternTracks = filterEntityState(patternTracks, (t) => {
+    const hasInstrument = isIdInState(instruments, t.instrumentId);
+    const hasParent = !t.parentId || isIdInState(scaleTracks, t.parentId);
+    return hasInstrument && hasParent;
+  });
+
+  // Remove all instruments that don't have a track
+  instruments = filterEntityState(instruments, (i) => {
+    const hasPatternTrack = isIdInState(patternTracks, i.trackId);
+    return hasPatternTrack;
+  });
+
+  // Remove all scales that don't have a valid track or clip
+  scales = filterEntityState(scales, (s) => {
+    const hasClips = isEntityInState(scaleClips, (c) => c.scaleId === s.id);
+    const hasTrack = !s.trackId || isIdInState(scaleTracks, s.trackId);
+    return hasTrack || hasClips;
+  });
+
+  // Remove all scale clips that don't have a valid scale or track
+  scaleClips = filterEntityState(scaleClips, (c) => {
+    const hasScale = isIdInState(scales, c.scaleId);
+    const hasTrack =
+      isIdInState(scaleTracks, c.trackId) ||
+      isIdInState(patternTracks, c.trackId);
+    return hasScale && hasTrack;
+  });
+
+  // Remove all patterns that don't have a valid track or clip
+  patterns = filterEntityState(patterns, (p) => {
+    const hasClips = isEntityInState(patternClips, (c) => c.patternId === p.id);
+    const hasTrack = !p.trackId || isIdInState(patternTracks, p.trackId);
+    return hasClips && hasTrack;
+  });
+
+  // Remove all pattern clips that don't have a pattern or track
+  patternClips = filterEntityState(patternClips, (c) => {
+    const hasPattern = isIdInState(patterns, c.patternId);
+    const hasTrack = isIdInState(patternTracks, c.trackId);
+    return hasPattern && hasTrack;
+  });
+
+  // Remove all poses that don't have any clips
+  poses = filterEntityState(poses, (p) => {
+    const hasClips = isEntityInState(poseClips, (c) => c.poseId === p.id);
+    const hasTrack =
+      !p.trackId ||
+      isIdInState(patternTracks, p.trackId) ||
+      isIdInState(scaleTracks, p.trackId);
+    return hasClips && hasTrack;
+  });
+
+  // Remove all pose clips that don't have a pose or track
+  poseClips = filterEntityState(poseClips, (c) => {
+    const hasPose = isIdInState(poses, c.poseId);
+    const hasTrack =
+      isIdInState(patternTracks, c.trackId) ||
+      isIdInState(scaleTracks, c.trackId);
+    return hasPose && hasTrack;
+  });
 
   // Group the clips together
   const clips: ClipState = {
@@ -181,20 +198,21 @@ export const mergeBaseProjects = (
     pattern: patternClips,
     pose: poseClips,
   };
+
+  // Close all clips
   for (const type of CLIP_TYPES) {
     for (const id of clips[type].ids) {
-      if (clips[type].entities[id]) {
+      if (clips[type].entities[id]?.isOpen) {
         clips[type].entities[id].isOpen = false;
       }
     }
   }
 
+  // Group the motifs together
+  const motifs: MotifState = { scale: scales, pattern: patterns, pose: poses };
+
   // Make sure that portals have valid tracks
-  const portals = mergeStates(
-    p1?.portals,
-    p2?.portals,
-    (clip: unknown) => isPortal(clip) && isClipInState(clip)
-  );
+  const portals = mergeStates(p1?.portals, p2?.portals, isPortal);
 
   // Update the metadata with the latest timestamp
   const meta = merge({}, defaultProjectMetadata, p1?.meta, {

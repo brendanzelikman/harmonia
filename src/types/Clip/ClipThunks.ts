@@ -3,16 +3,14 @@ import { isUndefined, some } from "lodash";
 import { Tick } from "types/units";
 import {
   selectClipById,
+  selectClipIds,
+  selectClipMap,
   selectClipMotif,
+  selectClips,
   selectPatternClips,
   selectPoseClipById,
   selectTimedClipById,
 } from "./ClipSelectors";
-import {
-  isPoseBucket,
-  getPoseBucketVector,
-  getPoseBlockFromStream,
-} from "types/Pose/PoseFunctions";
 import { updatePose } from "types/Pose/PoseSlice";
 import { isPoseOperation } from "types/Pose/PoseTypes";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -40,7 +38,13 @@ import {
   selectTransportBPM,
 } from "types/Transport/TransportSelectors";
 import { Payload, unpackUndoType } from "lib/redux";
-import { addClip, addClips, removeClip, updateClip } from "./ClipSlice";
+import {
+  addClip,
+  addClips,
+  removeClip,
+  updateClip,
+  updateClips,
+} from "./ClipSlice";
 import {
   selectIsLive,
   selectMediaSelection,
@@ -57,7 +61,6 @@ import { addMotif } from "types/Motif/MotifThunks";
 import { createPose } from "types/Pose/PoseThunks";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import { promptUserForString } from "utils/html";
-import { getValueByKey } from "utils/objects";
 import {
   selectOrderedTracks,
   selectTrackById,
@@ -72,7 +75,6 @@ import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { getMidiFromPitch } from "utils/midi";
 import { TrackId } from "types/Track/TrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
-import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 
 /** Open or close the dropdown of a clip */
 export const toggleClipDropdown =
@@ -80,9 +82,18 @@ export const toggleClipDropdown =
   (dispatch, getProject) => {
     const { id, value } = payload.data;
     const project = getProject();
+    const clipIds = selectClipIds(project);
+    const clipMap = selectClipMap(project);
     const clip = selectClipById(project, id);
     if (!clip) return;
     const newValue = value === undefined ? !clip.isOpen : value;
+    if (newValue) {
+      for (const clipId of clipIds) {
+        if (clipMap[clipId]?.isOpen) {
+          dispatch(updateClip({ data: { ...clipMap[clipId], isOpen: false } }));
+        }
+      }
+    }
     dispatch(updateClip({ data: { id, isOpen: newValue } }));
   };
 
@@ -198,8 +209,9 @@ export const mergePoseClips =
     if (!sinkPose || !sourcePose) return;
 
     // Get the source pose's bucket vector
-    if (!isPoseBucket(sourcePose)) return;
-    const sourceVector = getPoseBucketVector(sourcePose);
+    if (!sinkPose.stream) return;
+    if (!sourcePose.vector) return;
+    const sourceVector = sourcePose.vector;
 
     // Sum the source vector to each block in the sink pose
     const stream = sinkPose.stream.map((block) => {
@@ -216,9 +228,11 @@ export const mergePoseClips =
 
 /** Export a list of clips to MIDI by ID and download them as a file. */
 export const exportClipsToMidi =
-  (ids: ClipId[], options?: { filename: string }): Thunk =>
-  async (_dispatch, getProject) => {
-    if (!ids.length) return;
+  (
+    ids: ClipId[],
+    options: { filename?: string; download?: boolean } = { download: true }
+  ): Thunk<Blob> =>
+  (_dispatch, getProject) => {
     const project = getProject();
     const meta = selectMeta(project);
     const transport = selectTransport(project);
@@ -231,7 +245,6 @@ export const exportClipsToMidi =
     );
     const trackClipIdMap = selectTrackPortaledClipIdsMap(project);
     const clipStreamMap = selectPatternClipStreamMap(project);
-    if (!some(clipStreamMap)) return;
 
     // Prepare a new MIDI file
     const midi = new Midi();
@@ -239,20 +252,21 @@ export const exportClipsToMidi =
     midi.header.setTempo(bpm);
 
     // Iterate through each track
-    tracks.forEach((track) => {
+    tracks.forEach((track, i) => {
       const clipIds = trackClipIdMap[track.id];
-      if (!clips.length) return;
+      if (!clipIds.length) return;
 
       // Create a MIDI track
       const midiTrack = midi.addTrack();
       midiTrack.name = `Track ${selectTrackLabelById(project, track.id)}`;
+      midiTrack.channel = i;
 
       // Add each clip to the MIDI track
       clipIds.forEach((clipId) => {
         // Get the stream of the clip
         const startTime = selectClipStartTime(project, clipId);
         const stream = clipStreamMap[clipId];
-        if (isUndefined(startTime)) return;
+        if (!stream || isUndefined(startTime)) return;
 
         // Iterate through each block
         for (let i = 0; i < stream.length; i++) {
@@ -282,8 +296,9 @@ export const exportClipsToMidi =
     const a = document.createElement("a");
     a.href = url;
     a.download = `${options?.filename ?? meta.name ?? "file"}.mid`;
-    a.click();
+    if (options?.download) a.click();
     URL.revokeObjectURL(url);
+    return blob;
   };
 
 /** Export the project to a MIDI file based on its clips, using the given project if specified. */
@@ -308,10 +323,10 @@ export const exportTrackToMIDI =
 export const inputPatternStream =
   (id?: PatternId): Thunk =>
   (dispatch, getProject) =>
-    promptUserForString(
-      "Update the Selected Pattern",
-      `Please input a list of notes separated by spaces to update the selected pattern, e.g. "60 64 67".`,
-      (input) => {
+    promptUserForString({
+      title: "Update the Selected Pattern",
+      description: `Please input a list of notes separated by spaces to update the selected pattern, e.g. "60 64 67".`,
+      callback: (input) => {
         const project = getProject();
         const patternClips = selectPatternClips(project);
         const selectedClips = selectSelectedPatternClips(project);
@@ -340,5 +355,5 @@ export const inputPatternStream =
         const pattern = selectPatternById(project, clip.patternId);
         const stream = [...pattern.stream, ...notes];
         dispatch(updatePattern({ id: pattern.id, stream }));
-      }
-    )();
+      },
+    })();

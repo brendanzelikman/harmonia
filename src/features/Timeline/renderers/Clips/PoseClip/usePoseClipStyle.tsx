@@ -8,10 +8,7 @@ import {
   selectTrackHeight,
 } from "types/Timeline/TimelineSelectors";
 import classNames from "classnames";
-import {
-  PoseClipComponentProps,
-  PoseClipRendererProps,
-} from "./usePoseClipRenderer";
+import { PoseClipComponentProps } from "./usePoseClipRenderer";
 import { PortaledPoseClip } from "types/Clip/ClipTypes";
 
 interface PoseClipStyleProps extends PoseClipComponentProps {
@@ -48,5 +45,12 @@ export const usePoseClipStyle = (props: PoseClipStyleProps) => {
     { "opacity-100": !isFullyDim }
   );
 
-  return { top, left, width, height, className };
+  return {
+    top,
+    left,
+    width,
+    minHeight: height,
+    height: clip.isOpen ? undefined : height,
+    className,
+  };
 };

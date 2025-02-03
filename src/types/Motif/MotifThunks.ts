@@ -28,10 +28,10 @@ export const removeMotif =
   (dispatch) => {
     const id = payload.data;
     if (isScaleId(id)) {
-      dispatch(removeScale(id));
+      dispatch(removeScale(payload));
     } else if (isPatternId(id)) {
-      dispatch(removePattern(id));
+      dispatch(removePattern(payload));
     } else if (isPoseId(id)) {
-      dispatch(removePose(id));
+      dispatch(removePose(payload));
     }
   };

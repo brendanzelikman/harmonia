@@ -143,12 +143,6 @@ export const isInstrument = (obj: unknown): obj is Instrument => {
   return (
     isPlainObject(candidate) &&
     isString(candidate.id) &&
-    isString(candidate.key) &&
-    isBoundedNumber(candidate.volume, MIN_VOLUME, MAX_VOLUME) &&
-    isBoundedNumber(candidate.pan, MIN_PAN, MAX_PAN) &&
-    isBoolean(candidate.mute) &&
-    isBoolean(candidate.solo) &&
-    isArray(candidate.effects) &&
-    candidate.effects.every(isPlainObject)
+    isString(candidate.key)
   );
 };

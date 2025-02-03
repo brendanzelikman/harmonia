@@ -20,14 +20,13 @@ import {
   createPose,
   offsetSelectedPoses,
   updateSelectedPoses,
-  updateSelectedPoseStreams,
+  updateSelectedPoseVectors,
 } from "types/Pose/PoseThunks";
 import {
   unmuteTracks,
   unsoloTracks,
   updateTrack,
 } from "types/Track/TrackThunks";
-import { mapPoseStreamVectors } from "types/Pose/PoseFunctions";
 import { pick, range, size, some } from "lodash";
 import { initializePoseClip } from "types/Clip/ClipTypes";
 import { addClip } from "types/Clip/ClipSlice";
@@ -36,8 +35,8 @@ import { createUndoType } from "lib/redux";
 
 const numberKeys = range(1, 10).map((n) => n.toString());
 const scaleKeys = ["q", "w", "e", "r", "t", "y"];
-const zeroKeys = ["z", "0"];
-const extraKeys = ["z", "m", "s", "minus", "`", "equal", "shift", "meta"];
+const zeroKeys = ["0"];
+const extraKeys = ["m", "s", "p", "minus", "`", "equal", "shift", "meta"];
 const ALL_KEYS = [...numberKeys, ...zeroKeys, ...scaleKeys, ...extraKeys];
 
 export const useLivePlay = () => {
@@ -67,28 +66,27 @@ export const useLivePlay = () => {
 
       // Try to get the number of the key
       const number = parseInt(e.key);
-      if (isNaN(number)) return;
+      if (e.key !== "p" && isNaN(number)) return;
 
       // Get the pattern track by number (for mute/solo)
       const patternTrack = patternTracks[number - 1];
       const instrumentId = patternTrack?.instrumentId;
 
-      // Toggle mute if holding y
-      if (holding.m) {
-        dispatch(toggleInstrumentMute(instrumentId));
-      }
-      // Toggle solo if holding u
-      if (holding.s) {
-        dispatch(toggleInstrumentSolo(instrumentId));
-      }
+      // Toggle mute/solo if holding the right keys
+      if (holding.m) dispatch(toggleInstrumentMute(instrumentId));
+      if (holding.s) dispatch(toggleInstrumentSolo(instrumentId));
+
+      // Return early if mixing
+      if (holding.m || holding.s) return;
 
       const isNegative = holding["-"] || holding["`"];
       const isExact = holding["="];
+      const isRandom = holding.p;
 
       // Compute the pose offset record
       const vector = {} as PoseVector;
       const dir = isNegative ? -1 : 1;
-      const value = number * dir;
+      const value = isRandom ? Math.ceil(Math.random() * 10) - 5 : number * dir;
 
       // Apply chordal offset if holding r
       if (holding.r) {
@@ -127,23 +125,18 @@ export const useLivePlay = () => {
       // Update the track if there are no clips
       if (!hasClips && selectedTrack) {
         // Create a new pose with the given vector
-        const undoType = createUndoType("schedule-pose");
-        const poseId = dispatch(
-          createPose({ data: { stream: [{ vector }] }, undoType })
+        const undoType = createUndoType(
+          "schedule-pose",
+          vector,
+          getTransport().ticks
         );
+        const poseId = dispatch(createPose({ data: { vector }, undoType }));
         const clip = initializePoseClip({
           poseId,
           trackId: selectedTrack.id,
           tick: getTransport().ticks,
         });
         dispatch(addClip({ data: clip, undoType }));
-
-        // const newVector = isExact
-        //   ? { ...selectedTrack.vector, ...vector }
-        //   : sumVectors(selectedTrack.vector, vector);
-        // dispatch(
-        //   updateTrack({ data: { id: selectedTrack.id, vector: newVector } })
-        // );
         return;
       }
 
@@ -184,7 +177,8 @@ export const useLivePlay = () => {
       }
 
       const scaleKeys = ["q", "w", "e"];
-      const isZ = key === "z";
+      // const isZ = key === "z" && !e.metaKey;
+      const isZ = key === "0" || !e.metaKey; // all zeros will remove the key
 
       let broadcast = false;
 
@@ -261,13 +255,7 @@ export const useLivePlay = () => {
       }
 
       // Otherwise, update the selected poses
-      dispatch(
-        updateSelectedPoseStreams((stream) =>
-          stream.length > 1
-            ? stream
-            : mapPoseStreamVectors(stream, getNewVector)
-        )
-      );
+      dispatch(updateSelectedPoseVectors(getNewVector));
     },
     [
       holding,

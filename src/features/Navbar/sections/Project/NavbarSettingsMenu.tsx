@@ -123,18 +123,18 @@ export function NavbarSettingsMenu() {
     </NavbarFormGroup>
   );
 
-  // The performance toggle changes the visibility of the timeline
+  // The performance toggle changes the mode of the timeline
   const PerformanceToggle = (
     <NavbarFormGroup>
       <NavbarSettingsLabel>Timeline</NavbarSettingsLabel>
       <NavbarFormButton
         className={classNames(
           `hover:opacity-95 active:opacity-100 w-24`,
-          hideTimeline ? "bg-red-500/30" : "bg-emerald-500/30"
+          hideTimeline ? "bg-emerald-500/30" : "bg-indigo-500/30"
         )}
         onClick={() => dispatch(toggleTimeline())}
       >
-        {hideTimeline ? "Hidden" : "Visible"}
+        {hideTimeline ? "Tree" : "Grid"}
       </NavbarFormButton>
     </NavbarFormGroup>
   );

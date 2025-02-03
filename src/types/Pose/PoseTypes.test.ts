@@ -10,17 +10,11 @@ test("initializePose should create a pose with a unique ID", () => {
 
 test("isPoseStream should only return true for valid streams", () => {
   expect(_.isPoseStream([])).toBe(true);
-  expect(_.isPoseStream(_.mockPose.stream)).toBe(true);
   expect(_.isPoseStream([{ duration: 1, vector: { a: 1 } }])).toBe(true);
 });
 
 test("isPose should only return true for valid poses", () => {
   expect(_.isPose(_.defaultPose)).toBe(true);
-  expect(_.isPose(_.mockPose)).toBe(true);
-  expect(_.isPose({ ..._.mockPose, stream: [] })).toBe(true);
-
-  expect(_.isPose({ ..._.mockPose, stream: "0" })).toBe(false);
-  expect(_.isPose({ ..._.mockPose, id: 1 })).toBe(false);
   expect(_.isPose(undefined)).toBe(false);
   expect(_.isPose([])).toBe(false);
 });

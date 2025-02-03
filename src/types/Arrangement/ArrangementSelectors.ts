@@ -191,18 +191,8 @@ export const createSelectedPortaledClipById = <T extends ClipType = ClipType>(
 
 /** Select the track arrangement after portals have been applied.  */
 export const selectProcessedArrangement = createDeepSelector(
-  [
-    selectTrackArrangement,
-    selectTrackAncestorIdsMap,
-    selectTrackChainIdsMap,
-    selectPortaledClipMap,
-  ],
-  (
-    arrangement,
-    trackAncestorIdMap,
-    chainIdsByTrack,
-    clipMap
-  ): TrackArrangement => {
+  [selectTrackArrangement, selectTrackChainIdsMap, selectPortaledClipMap],
+  (arrangement, chainIdsByTrack, clipMap): TrackArrangement => {
     const clips = Object.values(clipMap);
     const clipsByTrack: ClipsByTrack = {};
     const clipMaps: ClipMapsByType = { pattern: {}, pose: {}, scale: {} };
@@ -234,7 +224,6 @@ export const selectProcessedArrangement = createDeepSelector(
       ...arrangement,
       clips: clipMaps,
       clipsByTrack,
-      trackAncestorIdMap,
       chainIdsByTrack,
     };
   }

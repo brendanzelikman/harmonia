@@ -1,4 +1,8 @@
-import { Disclosure } from "@headlessui/react";
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+} from "@headlessui/react";
 import { useCallback, useMemo, useState } from "react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { ScaleEditorProps } from "../ScaleEditor";
@@ -19,7 +23,7 @@ import {
   resolveScaleChainToMidi,
 } from "types/Scale/ScaleResolvers";
 import { areScalesRelated } from "types/Scale/ScaleUtils";
-import { ScaleObject, ScaleId, Scale } from "types/Scale/ScaleTypes";
+import { ScaleObject, ScaleId } from "types/Scale/ScaleTypes";
 import {
   selectCustomScales,
   selectTrackScales,
@@ -168,15 +172,15 @@ export function ScaleEditorSidebar(props: ScaleEditorProps) {
             );
             return (
               <>
-                <Disclosure.Button>
+                <DisclosureButton>
                   <div className="flex items-center justify-center text-slate-50">
                     <CategoryLabel />
                     <CategoryIcon />
                   </div>
-                </Disclosure.Button>
+                </DisclosureButton>
                 {!isOpen ? null : (
                   <div className="animate-in fade-in zoom-in-95 duration-75">
-                    <Disclosure.Panel static={isOpen}>
+                    <DisclosurePanel static={isOpen}>
                       {scales.map(
                         isCustomCategory
                           ? renderCustomScale
@@ -189,7 +193,7 @@ export function ScaleEditorSidebar(props: ScaleEditorProps) {
                               />
                             )
                       )}
-                    </Disclosure.Panel>
+                    </DisclosurePanel>
                   </div>
                 )}
               </>

@@ -1,20 +1,49 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { blurOnEnter } from "utils/html";
+import { blurOnEnter, dispatchCustomEvent, onEnter } from "utils/html";
 import Logo from "assets/images/logo.png";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
+import classNames from "classnames";
 
-interface PromptModalProps {
-  isOpen: boolean;
+export interface PromptModalProps {
+  isOpen?: boolean;
   title: ReactNode;
   description: ReactNode | ReactNode[];
-  onSubmit: (input: string) => void;
-  onCancel: () => void;
+  onSubmit?: (input: string) => void;
+  onCancel?: () => void;
+  autoselect?: boolean;
+  backgroundColor?: string;
+  padding?: string;
+  large?: boolean;
 }
 
 const PromptModal = (props: PromptModalProps) => {
-  const { isOpen, title, description, onSubmit, onCancel } = props;
+  const { isOpen, title, description } = props;
+  const onSubmit = props.onSubmit ?? (() => null);
+  const onCancel = props.onCancel ?? (() => null);
   const [input, setInput] = useState("");
+
+  // Close the modal if another is opened
+  useCustomEventListener("promptModal", onCancel);
+
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (props.autoselect) {
+      ref.current?.focus();
+    }
+  }, []);
+
+  // Listen for escape to close the modal
+  useEffect(() => {
+    const listener = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", listener);
+    return () => {
+      window.removeEventListener("keydown", listener);
+    };
+  }, []);
 
   const descriptionNodes = Array.isArray(description) ? (
     description.map((node, index) => (
@@ -30,8 +59,15 @@ const PromptModal = (props: PromptModalProps) => {
     <Dialog className="relative z-[999]" open={isOpen} onClose={onCancel}>
       <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
       <div className="fixed inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4 text-center font-nunito">
-          <DialogPanel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-slate-900/90 border border-slate-500 p-6 text-left align-middle shadow-xl transition-all animate-in fade-in duration-300">
+        <div className="flex min-h-full w-full items-center justify-center p-4 text-center font-nunito">
+          <DialogPanel
+            className={classNames(
+              props.backgroundColor ?? "bg-slate-900/90",
+              props.padding,
+              props.large ? "max-w-xl" : "max-w-md",
+              "w-full transform overflow-hidden rounded-2xl border border-slate-500 p-6 text-left align-middle shadow-xl transition-all animate-in fade-in duration-150 zoom-in-50"
+            )}
+          >
             <DialogTitle
               as="h3"
               className="flex gap-2 items-center text-xl font-bold text-slate-100"
@@ -42,8 +78,9 @@ const PromptModal = (props: PromptModalProps) => {
             {descriptionNodes}
             <div className="mt-6 flex gap-3 items-center">
               <input
+                ref={ref}
                 type="text"
-                className="rounded bg-transparent mr-3 text-white"
+                className="w-full rounded bg-transparent mr-3 text-white"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -57,12 +94,14 @@ const PromptModal = (props: PromptModalProps) => {
               <button
                 onClick={() => onSubmit(input)}
                 className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 text-slate-950 px-4 py-2 text-sm font-medium hover:bg-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                onKeyDown={(e) => onEnter(e, () => onSubmit(input))}
               >
                 Submit
               </button>
               <button
                 className="inline-flex justify-center rounded-md border border-transparent bg-slate-400 text-slate-950 px-4 py-2 text-sm font-medium hover:bg-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 onClick={onCancel}
+                onKeyDown={(e) => onEnter(e, onCancel)}
               >
                 Cancel
               </button>
@@ -74,11 +113,9 @@ const PromptModal = (props: PromptModalProps) => {
   );
 };
 
-export const promptModal = (
-  title: ReactNode,
-  description: ReactNode | ReactNode[]
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
+export const promptModal = (props: PromptModalProps): Promise<string> => {
+  dispatchCustomEvent("promptModal");
+  return new Promise((resolve) => {
     const root = document.createElement("div");
     document.body.appendChild(root);
     const modalRoot = createRoot(root);
@@ -95,14 +132,13 @@ export const promptModal = (
 
     const onCancel = () => {
       cleanup();
-      reject();
+      resolve("");
     };
 
     modalRoot.render(
       <PromptModal
+        {...props}
         isOpen={true}
-        title={title}
-        description={description}
         onSubmit={onSubmit}
         onCancel={onCancel}
       />

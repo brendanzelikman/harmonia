@@ -4,7 +4,7 @@ import * as _ from "utils/durations";
 export const MinorSeventhChord: Pattern = {
   id: "pattern_preset_minor-7th-chord",
   name: "Minor 7th Chord",
-  aliases: ["min7", "min 7", "min7th", "min 7th", "minor 7", "minor 7th"],
+  aliases: ["m7", "min7", "min 7", "min7th", "min 7th", "minor 7", "minor 7th"],
   stream: [
     [
       _.createQuarterNote(60),
@@ -48,7 +48,7 @@ export const MinorSeventhAddThirteen: Pattern = {
 export const MinorNinthChord: Pattern = {
   id: "pattern_preset_minor-9th-chord",
   name: "Minor 9th Chord",
-  aliases: ["min9", "min 9", "min9th", "min 9th", "minor 9", "minor 9th"],
+  aliases: ["m9", "min9", "min 9", "min9th", "min 9th", "minor 9", "minor 9th"],
   stream: [
     [
       _.createQuarterNote(60),
@@ -63,7 +63,15 @@ export const MinorNinthChord: Pattern = {
 export const MinorFlatNinthChord: Pattern = {
   id: "pattern_preset_minor-b9th-chord",
   name: "Minor b9th Chord",
-  aliases: ["minb9", "min b9", "minb9th", "min b9th", "minor b9", "minor b9th"],
+  aliases: [
+    "mb9",
+    "minb9",
+    "min b9",
+    "minb9th",
+    "min b9th",
+    "minor b9",
+    "minor b9th",
+  ],
   stream: [
     [
       _.createQuarterNote(60),
@@ -78,7 +86,15 @@ export const MinorFlatNinthChord: Pattern = {
 export const MinorEleventhChord: Pattern = {
   id: "pattern_preset_minor-11th-chord",
   name: "Minor 11th Chord",
-  aliases: ["min11", "min 11", "min11th", "min 11th", "minor 11", "minor 11th"],
+  aliases: [
+    "m11",
+    "min11",
+    "min 11",
+    "min11th",
+    "min 11th",
+    "minor 11",
+    "minor 11th",
+  ],
   stream: [
     [
       _.createQuarterNote(60),
@@ -117,7 +133,15 @@ export const MinorEleventhFlatNinthChord: Pattern = {
 export const MinorThirteenthChord: Pattern = {
   id: "pattern_preset_minor-13th-chord",
   name: "Minor 13th Chord",
-  aliases: ["min13", "min 13", "min13th", "min 13th", "minor 13", "minor 13th"],
+  aliases: [
+    "m13",
+    "min13",
+    "min 13",
+    "min13th",
+    "min 13th",
+    "minor 13",
+    "minor 13th",
+  ],
   stream: [
     [
       _.createQuarterNote(60),
@@ -135,6 +159,8 @@ export const MinorThirteenthPhrygianChord: Pattern = {
   id: "pattern_preset_minor-13th-phrygian-chord",
   name: "Minor b13th (b9) Chord",
   aliases: [
+    "m13b9",
+    "m13b9th",
     "min13phryg",
     "min 13 phryg",
     "min13thphrygian",

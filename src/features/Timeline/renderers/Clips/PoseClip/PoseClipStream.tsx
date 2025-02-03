@@ -20,7 +20,7 @@ import classNames from "classnames";
 import { blurOnEnter, cancelEvent } from "utils/html";
 import { numberToLower, sanitize } from "utils/math";
 import { BsArrowLeft, BsArrowRight, BsTrash } from "react-icons/bs";
-import { Menu } from "@headlessui/react";
+import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import { useMemo, useState } from "react";
 import { isFiniteNumber } from "types/util";
 import { convertStringToTicks } from "types/Transport/TransportThunks";
@@ -234,10 +234,10 @@ export const PoseClipBlock = (props: PoseClipBlockProps) => {
         <Menu>
           {({ close }) => (
             <>
-              <Menu.Button className="mr-auto rounded-full size-5 text-fuchsia-300 total-center flex border border-white/10 ring-0 outline-none">
+              <MenuButton className="mr-auto rounded-full size-5 text-fuchsia-300 total-center flex border border-white/10 ring-0 outline-none">
                 {block.repeat || 1}
-              </Menu.Button>
-              <Menu.Items className="absolute top-28 border border-slate-300 bg-slate-800 rounded flex total-center gap-2 p-2">
+              </MenuButton>
+              <MenuItems className="absolute top-28 border border-slate-300 bg-slate-800 rounded flex total-center gap-2 p-2">
                 Repeat:{" "}
                 <input
                   type="number"
@@ -264,7 +264,7 @@ export const PoseClipBlock = (props: PoseClipBlockProps) => {
                     }
                   }}
                 />
-              </Menu.Items>
+              </MenuItems>
             </>
           )}
         </Menu>

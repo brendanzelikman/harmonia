@@ -30,8 +30,12 @@ import { addTrack } from "../TrackThunks";
 import { ScaleTrackId } from "../ScaleTrack/ScaleTrackTypes";
 import { createPattern } from "types/Pattern/PatternThunks";
 import { addClip } from "types/Clip/ClipSlice";
-import { initializePatternClip } from "types/Clip/ClipTypes";
+import {
+  initializePatternClip,
+  initializePoseClip,
+} from "types/Clip/ClipTypes";
 import { getTransport } from "tone";
+import { createMedia } from "types/Media/MediaThunks";
 
 /** Create a `PatternTrack` with an optional initial track. */
 export const createPatternTrack =
@@ -49,7 +53,7 @@ export const createPatternTrack =
     const track = initializePatternTrack({
       ...initialTrack,
       instrumentId: instrument.id,
-      order: initialTrack?.parentId ? undefined : topLevelTracks.length,
+      order: !!initialTrack?.parentId ? undefined : topLevelTracks.length + 1,
     });
 
     const undoType = _undoType ?? createUndoType("createPatternTrack", track);
@@ -65,14 +69,20 @@ export const createPatternTrack =
     dispatch(createInstrument({ data: { track, options }, undoType }));
 
     // Create a courtesy pattern clip
-    const trackId = track.id;
-    const patternId = dispatch(createPattern({ data: { trackId }, undoType }));
     const patternClip = initializePatternClip({
-      patternId,
       tick: getTransport().ticks,
-      trackId,
+      trackId: track.id,
     });
-    dispatch(addClip({ data: patternClip, undoType }));
+
+    // Create a courtesy pose clip
+    const poseClip = initializePoseClip({
+      trackId: track.id,
+      tick: getTransport().ticks,
+    });
+
+    dispatch(
+      createMedia({ data: { clips: [patternClip, poseClip] }, undoType })
+    );
 
     // Return ID of the created track
     return { track, instrument };

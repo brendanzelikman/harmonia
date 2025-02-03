@@ -27,10 +27,10 @@ export function NavbarTransportControl() {
       <NavbarTooltipButton
         label="Stop the Timeline"
         className={classNames(
-          !isStopped ? "bg-rose-700" : `opacity-50 select-none ${buttonColor}`,
+          isStopped ? "opacity-80" : "opacity-100",
+          !isStopped ? "bg-rose-700" : buttonColor,
           borderClass
         )}
-        disabled={isStopped}
         onClick={() => dispatch(stopTransport())}
       >
         <BsStop className="p-[1px]" />

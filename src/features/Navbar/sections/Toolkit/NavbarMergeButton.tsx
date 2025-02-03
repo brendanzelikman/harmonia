@@ -20,29 +20,29 @@ export const NavbarMergeClipsButton = () => {
   return (
     <div className="flex flex-col relative group/tooltip">
       <NavbarTooltipButton
+        disabled={disabled}
         className={`p-1.5 border-slate-400/50 hover:ring-[2px] duration-200 hover:ring-slate-300 bg-gradient-to-tr from-pink-500/20 to-pink-400/60 ${
           !disabled
-            ? "group-hover/tooltip:ring-2 group-hover:ring-offset-2 group-hover/tooltip:ring-fuchsia-500/50 group-hover/tooltip:ring-offset-black"
+            ? "group-hover/tooltip:ring-2 group-hover:ring-offset-2 group-hover/tooltip:ring-pink-500/50 group-hover/tooltip:ring-offset-black"
             : ""
         }`}
       >
         <FaTape className="p-0.5" />
       </NavbarTooltipButton>
       <NavbarHoverTooltip
+        bgColor="bg-slate-900"
         borderColor="border-pink-400"
-        padding="px-2 py-1 rounded"
-        className="group-hover/tooltip:block hidden left-[-6rem] whitespace-nowrap"
+        padding="px-2 py-1 rounded-lg"
+        className="group-hover/tooltip:block hidden left-[-4rem] whitespace-nowrap"
       >
         {disabled ? (
           <div className="total-center h-full whitespace-nowrap text-slate-200">
-            Select Clips to Use Tape{" "}
-            <span className="ml-1 text-slate-400">(Merge Clips)</span>
+            Select Clips to Merge
           </div>
         ) : (
           <div className="flex flex-col py-1 w-full h-full justify-center">
             <div className="pb-2 mb-2 w-full text-center border-b">
-              Equipped Tape{" "}
-              <span className="text-slate-400">(Merging Clips)</span>
+              Equipped Tape
             </div>
             <div className="w-full h-full p-2 space-y-2">
               <NavbarFormGroup>
@@ -57,10 +57,10 @@ export const NavbarMergeClipsButton = () => {
               </NavbarFormGroup>
               <NavbarFormGroup className="pt-2">
                 <NavbarFormButton
-                  className={`px-3 ${
+                  className={`px-3 bg-white/5 ${
                     disabled
                       ? "opacity-50 cursor-default"
-                      : "opacity-100 cursor-pointer bg-pink-500/20 active:opacity-80"
+                      : "opacity-100 cursor-pointer active:opacity-80"
                   }`}
                   disabled={disabled}
                   onClick={() =>

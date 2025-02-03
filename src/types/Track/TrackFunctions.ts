@@ -18,8 +18,8 @@ export const getTopLevelTracks = (trackMap: TrackMap) => {
   const orphans = tracks.filter((t) => !!t && !t.parentId) as Track[];
   return orphans.toSorted(
     (a, b) =>
-      (a.order ?? isScaleTrackId(a.id) ? 1 : 0) -
-      (b.order ?? isScaleTrackId(b.id) ? 1 : 0)
+      (a.order ?? (isScaleTrackId(a.id) ? 1 : 0)) -
+      (b.order ?? (isScaleTrackId(b.id) ? 1 : 0))
   );
 };
 

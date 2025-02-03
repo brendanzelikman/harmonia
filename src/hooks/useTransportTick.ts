@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useMemo, useState } from "react";
 import { useCustomEventListener } from "./useCustomEventListener";
 import {
   UPDATE_OFFLINE_TICK,
@@ -8,14 +8,14 @@ import {
 /** Get the current tick using a custom event listener */
 export function useTransportTick(options?: { offline: boolean }) {
   const [tick, setTick] = useState(0);
-  const updateTick = useCallback((e: CustomEvent) => setTick(e.detail), []);
+  const [string, setString] = useState("0:0:0");
 
-  // Get the corresponding event
-  const event = options?.offline ? UPDATE_OFFLINE_TICK : UPDATE_TICK;
+  // Update the tick
+  const tickEvent = options?.offline ? UPDATE_OFFLINE_TICK : UPDATE_TICK;
+  useCustomEventListener(tickEvent, (e: CustomEvent) => setTick(e.detail));
 
-  // Set the tick on the custom event
-  useCustomEventListener(event, updateTick);
+  // Update the string
+  useCustomEventListener("printTick", (e: CustomEvent) => setString(e.detail));
 
-  // Return the tick
-  return tick;
+  return useMemo(() => ({ tick, string }), [tick, string]);
 }

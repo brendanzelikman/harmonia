@@ -1,15 +1,10 @@
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
-import { isNumber, isObject, isPlainObject, isString } from "lodash";
+import { isNumber, isPlainObject, isString } from "lodash";
 import { ChromaticPitchClass } from "assets/keys";
 import { TrackId } from "types/Track/TrackTypes";
 import { Id } from "types/units";
 import { createId } from "types/util";
-import {
-  areObjectValuesTyped,
-  isOptionalType,
-  isTypedArray,
-  NonEmpty,
-} from "types/util";
+import { areObjectValuesTyped, isTypedArray, NonEmpty } from "types/util";
 import { isPitchClass } from "utils/pitchClass";
 import { Vector } from "utils/vector";
 import {
@@ -77,12 +72,14 @@ export type PoseBlock = PoseOperation | PoseNestedStream;
 export type PoseStream = Array<PoseBlock>;
 
 /**
- * A `Pose` (or Transposition) contains a sequential list of vectors that are applied to a `Track`
+ * A `Pose` (or Transposition) contains a vector or list of vectors that are applied to a `Track`
  * at a specified tick for a given duration or continuously (if duration = Infinity or undefined).
  */
 export type Pose = {
   id: PoseId;
-  stream: PoseStream;
+  vector?: PoseVector;
+  operations?: Array<PoseTransformation>;
+  stream?: PoseStream;
   name?: string;
   trackId?: TrackId;
 };
@@ -105,21 +102,8 @@ export const initializePose = (
 
 /** The default pose is used for initialization. */
 export const defaultPose: Pose = {
-  id: "pose_default",
+  id: createId("pose"),
   name: "New Pose",
-  stream: [{ vector: {} }],
-};
-
-/** The mock pose is used for testing. */
-export const mockPose: Pose = {
-  id: "pose_mock",
-  trackId: "pattern-track_1",
-  stream: [
-    {
-      vector: { chromatic: 1, chordal: 1, "pattern-track_1": 1 },
-      duration: 24,
-    },
-  ],
 };
 
 // ------------------------------------------------------------
@@ -144,12 +128,7 @@ export const isVoiceLeading = (
 export const isPoseModule = (obj: unknown): obj is PoseModule => {
   if (obj === undefined) return false;
   const candidate = obj as PoseModule;
-  return (
-    isPlainObject(candidate) &&
-    isOptionalType(candidate.duration, isNumber) &&
-    isOptionalType(candidate.repeat, isNumber) &&
-    isOptionalType(candidate.chain, isPoseVector)
-  );
+  return isPlainObject(candidate);
 };
 
 /** Checks if a given object is of type `PoseVectorModule` */
@@ -163,7 +142,7 @@ export const isPoseOperation = (obj: unknown): obj is PoseOperation => {
 export const isPoseStreamModule = (obj: unknown): obj is PoseNestedStream => {
   if (obj === undefined) return false;
   const candidate = obj as PoseNestedStream;
-  return isPoseModule(candidate) && isPoseStream(candidate.stream);
+  return isPoseModule(candidate) && "stream" in candidate;
 };
 
 /** Checks if a given object is of type `PoseBlock` */
@@ -182,12 +161,7 @@ export const isPoseStream = (obj: unknown): obj is PoseStream => {
 /** Checks if a given object is of type `Pose`. */
 export const isPose = (obj: unknown): obj is Pose => {
   const candidate = obj as Pose;
-  return (
-    isPlainObject(candidate) &&
-    isString(candidate.id) &&
-    isPoseStream(candidate.stream) &&
-    isOptionalType(candidate.name, isString)
-  );
+  return isPlainObject(candidate) && isPoseId(candidate.id);
 };
 
 /** Checks if a given object is of type `PoseMap`. */

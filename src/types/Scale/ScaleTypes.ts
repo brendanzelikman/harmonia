@@ -1,7 +1,5 @@
-import { isArray, isPlainObject, isString, range } from "lodash";
+import { isArray, isNumber, isPlainObject, isString, range } from "lodash";
 import {
-  areObjectKeysTyped,
-  areObjectValuesTyped,
   isBoundedNumber,
   isFiniteNumber,
   isOptionalType,
@@ -52,7 +50,7 @@ export type ScaleObject = {
   notes: ScaleArray;
   name?: string;
   aliases?: string[];
-  scaleTrackId?: ScaleTrackId;
+  trackId?: ScaleTrackId;
 };
 
 /** A `Scale` is either a `ScaleObject` or a `ScaleArray`. */
@@ -67,14 +65,13 @@ export type PresetScale = ScaleObject & { id: `scale_preset_${string}` };
 // ------------------------------------------------------------
 
 /** Create a scale with a unique ID. */
-export const initializeScale = (
-  scale: Partial<ScaleObject> = chromaticScale
-): ScaleObject => ({
-  ...chromaticScale,
-  name: undefined,
+export const initializeScale = (scale?: Partial<ScaleObject>): ScaleObject => ({
+  ...emptyScale,
   ...scale,
   id: createId("scale"),
 });
+
+export const emptyScale: ScaleObject = { id: "scale_empty", notes: [] };
 
 /** The chromatic notes are a range of MidiValues. */
 export const chromaticNotes: MidiScale = range(60, 72);
@@ -126,7 +123,8 @@ export const isScaleVector = (obj: unknown): obj is ScaleVector => {
 /** Checks if a given object is of type `MidiValue`. */
 export const isMidiValue = (obj: unknown): obj is MidiValue => {
   const candidate = obj as MidiNote;
-  return isBoundedNumber(candidate, 0, 127);
+  return isNumber(candidate);
+  // return isBoundedNumber(candidate, 0, 127);
 };
 
 /** Checks if a given object is of type `MidiObject`. */

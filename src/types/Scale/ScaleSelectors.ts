@@ -1,10 +1,9 @@
 import { createSelector } from "reselect";
-import { getArrayByKey, getValueByKey, getValuesByKeys } from "utils/objects";
-import { PresetScaleMap } from "assets/scales";
-import { createArraySelector, createDeepSelector } from "lib/redux";
+import { getValuesByKeys } from "utils/objects";
+import { createArraySelector } from "lib/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { defaultScaleState, scaleAdapter } from "./ScaleSlice";
-import { ScaleId, ScaleMap, ScaleState } from "./ScaleTypes";
+import { ScaleId, ScaleState } from "./ScaleTypes";
 
 export const selectScaleState = (state: SafeProject) =>
   (state?.present?.motifs?.scale ?? defaultScaleState) as ScaleState;
@@ -15,13 +14,7 @@ export const selectScaleById = scaleSelectors.selectById;
 export const selectScaleIds = scaleSelectors.selectIds as (
   project: Project
 ) => ScaleId[];
-export const _selectScaleMap = scaleSelectors.selectEntities;
-
-/** Select the scale map (including all preset scales). */
-export const selectScaleMap = createDeepSelector(
-  [_selectScaleMap],
-  (scaleMap): ScaleMap => ({ ...scaleMap, ...PresetScaleMap })
-);
+export const selectScaleMap = scaleSelectors.selectEntities;
 
 /** Select a potentially custom scale by ID. */
 export const selectCustomScaleById = createArraySelector(selectScaleMap);
@@ -31,7 +24,7 @@ export const selectCustomScales = createSelector(
   [selectScaleMap, selectScaleIds],
   (scaleMap, ids) => {
     const scales = getValuesByKeys(scaleMap, ids);
-    return scales.filter((scale) => scale.scaleTrackId === undefined);
+    return scales.filter((scale) => scale.trackId === undefined);
   }
 );
 
@@ -40,6 +33,6 @@ export const selectTrackScales = createSelector(
   [selectScaleMap, selectScaleIds],
   (scaleMap, ids) => {
     const scales = getValuesByKeys(scaleMap, ids);
-    return scales.filter((scale) => scale.scaleTrackId !== undefined);
+    return scales.filter((scale) => scale.trackId !== undefined);
   }
 );

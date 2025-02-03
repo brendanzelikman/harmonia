@@ -1,7 +1,6 @@
 import { isArray, union, without } from "lodash";
 import { getSubdivisionTicks, getTickColumns } from "utils/durations";
 import { Tick, Update } from "types/units";
-import { setEditorAction } from "types/Editor/EditorSlice";
 import {
   getPatternName,
   getPatternBlockDuration,
@@ -51,17 +50,16 @@ import {
   selectClipIds,
   selectClipMap,
   selectMotifClipMap,
+  selectPatternClipsByPatternId,
+  selectScaleClipsByScaleId,
+  selectPoseClipsByPoseId,
 } from "types/Clip/ClipSelectors";
 import {
-  selectCustomPatterns,
   selectPatternById,
   selectPatternMap,
 } from "types/Pattern/PatternSelectors";
 import { selectPortalIds, selectPortals } from "types/Portal/PortalSelectors";
-import {
-  selectCustomScales,
-  selectScaleById,
-} from "types/Scale/ScaleSelectors";
+import { selectScaleById, selectScaleMap } from "types/Scale/ScaleSelectors";
 import {
   selectMediaSelection,
   selectSelectedClips,
@@ -74,11 +72,15 @@ import {
   selectSelectedPatternClips,
   selectTimeline,
   selectDraft,
+  selectDraftedPatternClip,
+  selectDraftedScaleClip,
+  selectDraftedPoseClip,
 } from "types/Timeline/TimelineSelectors";
 import {
   selectTrackMap,
   selectTrackById,
   selectOrderedTrackIds,
+  selectScaleTrackByScaleId,
 } from "types/Track/TrackSelectors";
 import {
   getOffsettedMedia,
@@ -101,25 +103,80 @@ import {
   updatePortals,
 } from "types/Portal/PortalSlice";
 import { PoseId } from "types/Pose/PoseTypes";
-import { copyPattern, createPattern } from "types/Pattern/PatternThunks";
-import { selectPoseById } from "types/Pose/PoseSelectors";
-import { copyPose } from "types/Pose/PoseThunks";
-import { copyScale } from "types/Scale/ScaleThunks";
+import {
+  copyPattern,
+  createPattern,
+  deletePattern,
+} from "types/Pattern/PatternThunks";
+import { selectPoseById, selectPoseMap } from "types/Pose/PoseSelectors";
+import { copyPose, createPose } from "types/Pose/PoseThunks";
+import { copyScale, createScale, deleteScale } from "types/Scale/ScaleThunks";
 import { isHotkeyPressed } from "react-hotkeys-hook";
 import { selectMotifState } from "types/Motif/MotifSelectors";
 import { getClipMotifField, getClipMotifId } from "types/Clip/ClipFunctions";
 import { removeMotif } from "types/Motif/MotifThunks";
 import { prev } from "utils/array";
+import { createId } from "types/util";
+import { PresetPatternMap } from "assets/patterns";
+import { PresetScaleMap } from "assets/scales";
+import { removePose } from "types/Pose/PoseSlice";
 
 /** Create a list of media and add it to the slice and hierarchy. */
 export const createMedia =
   (payload: CreateMediaPayload): Thunk<NewMediaPayload> =>
-  (dispatch) => {
+  (dispatch, getProject) => {
+    const project = getProject();
     const undoType = unpackUndoType(payload, "createMedia");
     const { data } = payload;
+
     // Initialize the media
-    const clips = (data.clips || []).map(initializeClip);
     const portals = (data.portals || []).map(initializePortal);
+    let clips = (data.clips || []).map(initializeClip);
+
+    // Create the motifs if they are not already created
+    clips.forEach((clip, i) => {
+      const patternMap = selectPatternMap(project);
+      const poseMap = selectPoseMap(project);
+      const scaleMap = selectScaleMap(project);
+      if (clip.type === "pattern" && !(clip.patternId in patternMap)) {
+        clips[i] = {
+          ...clip,
+          patternId: dispatch(
+            createPattern({ data: { trackId: clip.trackId }, undoType })
+          ),
+        };
+        dispatch(
+          updateMediaDraft({
+            data: { patternClip: { patternId: createId("pattern") } },
+            undoType,
+          })
+        );
+      } else if (clip.type === "pose" && !(clip.poseId in poseMap)) {
+        clips[i] = {
+          ...clip,
+          poseId: dispatch(
+            createPose({ data: { trackId: clip.trackId }, undoType })
+          ),
+        };
+        dispatch(
+          updateMediaDraft({
+            data: { poseClip: { poseId: createId("pose") } },
+            undoType,
+          })
+        );
+      } else if (clip.type === "scale" && !(clip.scaleId in scaleMap)) {
+        clips[i] = {
+          ...clip,
+          scaleId: dispatch(createScale({ data: {}, undoType })),
+        };
+        dispatch(
+          updateMediaDraft({
+            data: { scaleClip: { scaleId: createId("scale") } },
+            undoType,
+          })
+        );
+      }
+    });
 
     // Add the media to the respective slices and track hierarchy
     dispatch(addClips({ data: clips, undoType }));
@@ -148,10 +205,11 @@ export const deleteMedia =
   (dispatch, getProject) => {
     const { data } = payload;
     const project = getProject();
+    const undoType = unpackUndoType(payload, "deleteMedia");
     const selection = selectMediaSelection(project);
     const draft = selectDraft(project);
     const oldClipIds = without(selection?.clipIds, ...(data.clipIds ?? []));
-    dispatch(updateMediaSelection({ data: { clipIds: oldClipIds } }));
+    dispatch(updateMediaSelection({ data: { clipIds: oldClipIds }, undoType }));
 
     // Delete the motifs if they are the last of their kind
     const clipMap = selectClipMap(project);
@@ -178,15 +236,19 @@ export const deleteMedia =
         const motifIndex = motifIds.indexOf(motifId);
         const newMotifId = prev(motifIds, motifIndex);
         const newClip = { ...draftedClip, [field]: newMotifId };
-        dispatch(updateMediaDraft({ data: { [clipField]: newClip } }));
+        dispatch(
+          updateMediaDraft({ data: { [clipField]: newClip }, undoType })
+        );
       }
 
-      dispatch(removeMotif({ data: motifId }));
+      dispatch(removeMotif({ data: motifId, undoType }));
     }
 
     // Delete the media from the slices and hierarchy
-    dispatch(removeClips({ ...payload, data: data.clipIds ?? [] }));
-    dispatch(removePortals({ ...payload, data: data.portalIds ?? [] }));
+    dispatch(removeClips({ ...payload, data: data.clipIds ?? [], undoType }));
+    dispatch(
+      removePortals({ ...payload, data: data.portalIds ?? [], undoType })
+    );
   };
 
 /** Add all media to the selection. */
@@ -387,19 +449,26 @@ export const deleteSelectedMedia = (): Thunk => (dispatch, getProject) => {
 export const setSelectedPattern =
   (payload: Payload<PatternId>): Thunk =>
   (dispatch, getProject) => {
-    const undoType = unpackUndoType(payload, "setSelectedPattern");
-    const patternId = payload.data;
-    // Idle the editor if selecting a preset pattern
     const project = getProject();
-    const customPatterns = selectCustomPatterns(project);
-    const isCustom = customPatterns.some((p) => p.id === patternId);
-    if (!isCustom) {
-      dispatch(setEditorAction({ data: undefined, undoType }));
-    } else {
-      dispatch(setEditorAction({ data: "addingNotes", undoType }));
+    const undoType = unpackUndoType(payload, "setSelectedPattern");
+
+    // Delete the old pattern if no clips with it exist
+    const patternClip = selectDraftedPatternClip(project);
+    const draftedId = patternClip?.patternId;
+    if (draftedId) {
+      const clips = selectPatternClipsByPatternId(project, draftedId);
+      if (!clips.length) dispatch(deletePattern({ data: draftedId, undoType }));
     }
 
-    // Update the media draft
+    // Try to find a preset pattern if the existing pattern doesn't exist
+    let patternId = payload.data;
+    if (patternId in PresetPatternMap) {
+      patternId = dispatch(
+        createPattern({ data: PresetPatternMap[patternId], undoType })
+      );
+    }
+
+    // Update the media draft with the new pattern
     dispatch(
       updateMediaDraft({ data: { patternClip: { patternId } }, undoType })
     );
@@ -408,27 +477,51 @@ export const setSelectedPattern =
 /** Set the selected pose by updating the media draft. */
 export const setSelectedPose =
   (payload: Payload<PoseId>): Thunk =>
-  (dispatch) => {
-    const data = { poseClip: { poseId: payload.data } };
+  (dispatch, getProject) => {
+    const project = getProject();
     const undoType = unpackUndoType(payload, "setSelectedPose");
-    dispatch(updateMediaDraft({ data, undoType }));
+
+    // Delete the old pose if no clips with it exist
+    const poseClip = selectDraftedPoseClip(project);
+    const draftedId = poseClip?.poseId;
+    if (draftedId && payload.data !== draftedId) {
+      const clips = selectPoseClipsByPoseId(project, draftedId);
+      if (!clips.length) dispatch(removePose({ data: draftedId, undoType }));
+    }
+
+    // Update the media draft with the new pose
+    dispatch(
+      updateMediaDraft({
+        data: { poseClip: { poseId: payload.data } },
+        undoType,
+      })
+    );
   };
 
 /** Set the selected scale by updating the media draft. */
 export const setSelectedScale =
   (payload: Payload<ScaleId>): Thunk =>
   (dispatch, getProject) => {
-    const scaleId = payload.data;
+    const project = getProject();
     const undoType = unpackUndoType(payload, "setSelectedScale");
 
-    // Idle the editor if selecting a preset pattern
-    const project = getProject();
-    const customScales = selectCustomScales(project);
-    const isCustom = customScales.some((s) => s.id === scaleId);
-    if (!isCustom) {
-      dispatch(setEditorAction({ data: undefined, undoType }));
-    } else {
-      dispatch(setEditorAction({ data: "addingNotes", undoType }));
+    // Delete the old scale if no clips or tracks with it exist
+    const scaleClip = selectDraftedScaleClip(project);
+    const draftedId = scaleClip?.scaleId;
+    if (draftedId) {
+      const clips = selectScaleClipsByScaleId(project, draftedId);
+      const track = selectScaleTrackByScaleId(project, draftedId);
+      if (!clips.length && !track) {
+        dispatch(deleteScale(draftedId, undoType));
+      }
+    }
+
+    // Try to find a preset scale if the existing scale doesn't exist
+    let scaleId = payload.data;
+    if (scaleId in PresetScaleMap) {
+      scaleId = dispatch(
+        createScale({ data: PresetScaleMap[scaleId], undoType })
+      );
     }
 
     // Update the media draft

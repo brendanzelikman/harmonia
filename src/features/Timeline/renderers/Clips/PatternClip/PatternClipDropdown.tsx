@@ -1,19 +1,18 @@
 import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import {
-  blurOnEnter,
   cancelEvent,
   DivMouseEvent,
+  GenericEvent,
   isHoldingShift,
 } from "utils/html";
 import {
   addPatternBlock,
   removePatternBlock,
-  updatePattern,
   updatePatternBlock,
 } from "types/Pattern/PatternSlice";
-import { BsCursor, BsPencil } from "react-icons/bs";
-import { GiCrystalWand, GiHand, GiSprout } from "react-icons/gi";
+import { BsPencil } from "react-icons/bs";
+import { GiCrystalWand, GiHand } from "react-icons/gi";
 import classNames from "classnames";
 import { PatternClipRendererProps } from "./usePatternClipRenderer";
 import { useCallback, useEffect, useState } from "react";
@@ -24,28 +23,32 @@ import {
   preparePatternClip,
 } from "types/Clip/ClipThunks";
 import { PatternClipPiano } from "./PatternClipPiano";
-import { BiEraser, BiTrash } from "react-icons/bi";
 import { clearPattern } from "types/Pattern/PatternThunks";
 import { NoteCallback, useOSMD } from "lib/opensheetmusicdisplay";
 import {
   selectPatternClipMidiStream,
   selectPatternClipXML,
 } from "types/Arrangement/ArrangementSelectors";
-import { Menu } from "@headlessui/react";
 import {
   getDurationImage,
   getDurationTicks,
+  getStraightDuration,
   getTickDuration,
+  STRAIGHT_DURATION_TICKS,
   STRAIGHT_DURATION_TYPES,
 } from "utils/durations";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
-import { SiBuddy } from "react-icons/si";
 import {
   selectIsClipLive,
   selectIsClipSelected,
 } from "types/Timeline/TimelineSelectors";
 import { PatternClip, PortaledPatternClip } from "types/Clip/ClipTypes";
+import { showEditor } from "types/Editor/EditorThunks";
+import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
+import { selectTransport } from "types/Transport/TransportSelectors";
+import { format } from "utils/math";
+import { inRange } from "lodash";
 
 export interface PatternClipDropdownProps extends PatternClipRendererProps {
   clip: PatternClip;
@@ -56,6 +59,7 @@ export interface PatternClipDropdownProps extends PatternClipRendererProps {
 export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const { clip, id, pcId, portaledClip, isPosed } = props;
   const dispatch = useProjectDispatch();
+  const transport = use(selectTransport);
   const stream = useDeep((_) => selectPatternClipMidiStream(_, id));
 
   const isSelected = use((_) => selectIsClipSelected(_, id));
@@ -63,7 +67,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const pattern = useDeep((_) => selectPatternById(_, clip.patternId));
   const isEmpty = !pattern.stream.length;
 
-  const [isAdding, setIsAdding] = useState(false);
+  const [isAdding, setIsAdding] = useState(true);
   const [isRemoving, setIsRemoving] = useState(false);
   useEffect(() => {
     if (isEmpty) setIsRemoving(false);
@@ -89,197 +93,206 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const { score, cursor } = useOSMD({
     id: `${pcId}_score`,
     xml,
-    className: "size-full max-w-lg",
+    className: "size-full",
     stream,
     noteClasses,
     noteColor: isRemoving ? "fill-red-500" : "fill-black",
     onNoteClick,
   });
 
-  const holding = useHeldHotkeys("shift");
+  const holding = useHeldHotkeys(["shift", "t", "."]);
   const [duration, setDuration] = useState(getDurationTicks("16th"));
+  const onRestClick = () => {
+    if (cursor.hidden) {
+      dispatch(
+        addPatternBlock({
+          id: pattern.id,
+          block: { duration },
+        })
+      );
+    } else {
+      dispatch(
+        updatePatternBlock({
+          id: pattern.id,
+          index: cursor.index,
+          block: getPatternBlockWithNewNotes(
+            pattern.stream[cursor.index],
+            undefined,
+            () => ({ duration })
+          ),
+        })
+      );
+    }
+  };
+  useEffect(() => {
+    const listener = (e: KeyboardEvent) => {
+      const key = parseInt(e.key);
+      if (isNaN(key)) return;
+      if (key === 0) {
+        return onRestClick();
+      }
+      if (!inRange(key - 1, 0, STRAIGHT_DURATION_TYPES.length)) return;
+      setDuration(Object.values(STRAIGHT_DURATION_TICKS)[key - 1]);
+    };
+    window.addEventListener("keydown", listener);
+    return () => {
+      window.removeEventListener("keydown", listener);
+    };
+  }, []);
+  const ticks = format(
+    holding.t
+      ? (duration * 2) / 3
+      : holding["."]
+      ? (duration * 3) / 2
+      : duration
+  );
+  const durationType = getTickDuration(ticks);
 
   // Render the score dropdown
   return (
     <div
       className={classNames(
         "cursor-default z-20 font-thin backdrop-blur whitespace-nowrap",
-        "w-full bg-gradient-to-t from-sky-950/95 to-sky-900 border-2 animate-in fade-in slide-in-from-left-8 slide-in-from-top-8 duration-150 p-4 gap-6 flex-col h-max rounded-b-lg",
+        "w-full bg-gradient-to-t from-sky-950/95 to-sky-900 border-2 animate-in fade-in slide-in-from-left-8 slide-in-from-top-8 duration-150 p-4 gap-2 flex-col h-max rounded-b-lg",
         isSelected ? "border-slate-100" : "border-teal-500",
         clip.isOpen ? "flex" : "hidden"
       )}
       onClick={cancelEvent}
     >
-      <div className="flex shrink gap-16 text-xs text-white">
-        <div className="relative flex flex-col gap-2">
-          <div>Pattern Name:</div>
-          <input
-            className="bg-teal-700/25 px-2 placeholder:text-slate-400 border border-teal-300 focus:border-sky-300 focus:ring-sky-300 rounded-lg p-0 text-base text-center"
-            value={pattern?.name ?? ""}
-            placeholder={"Pattern Name"}
-            onChange={(e) => {
-              const data = { id: pattern?.id, name: e.target.value };
-              dispatch(updatePattern({ data }));
-            }}
-            onClick={cancelEvent}
-            onDoubleClick={cancelEvent}
-            onKeyDown={blurOnEnter}
-          />
-        </div>
+      <div
+        className="bg-white overflow-scroll min-h-[200px] max-h-[200px] shrink rounded-lg border-2 border-teal-200 cursor-pointer"
+        onClick={() => {
+          dispatch(showEditor({ data: { view: "pattern", clipId: clip.id } }));
+        }}
+      >
+        {score}
+      </div>
+      <div className="flex shrink gap-16 mb-6 text-xs text-white">
         <div className="flex gap-4 px-3">
-          <div className={"flex gap-4"}>
+          <div className={"flex gap-4 relative"}>
+            <div className="w-full flex absolute top-12 text-slate-300">
+              <span>
+                Hold Shift for Chord - Hold T for Triplet - Hold Dot for Dotted
+              </span>
+              <span className="ml-auto pr-2 capitalize">
+                Duration:{" "}
+                {holding.t ? "Triplet" : holding["."] ? "Dotted" : "Straight"}{" "}
+                {getStraightDuration(durationType)} (
+                {format(convertTicksToSeconds(transport, ticks), 4)}
+                s)
+              </span>
+            </div>
             <ScoreButton
-              label={
-                isAdding
-                  ? `Play to ${
-                      cursor.hidden ? (holding.shift ? "Stack" : `Add`) : `Edit`
-                    }`
-                  : "Write"
-              }
+              width="w-36"
+              padding="w-36 py-2 px-3"
               backgroundColor={
-                isAdding ? "bg-emerald-600/80" : "bg-emerald-500/20"
+                isAdding ? "bg-emerald-600/80" : "bg-emerald-500/50"
               }
               borderColor={isAdding ? "border-emerald-200/80" : undefined}
               onClick={(e) =>
                 isHoldingShift(e)
                   ? dispatch(inputPatternStream(pattern.id))
-                  : setIsAdding((prev) => !prev)
+                  : // : setIsAdding((prev) => !prev)
+                    setIsAdding(true)
               }
-              icon={<BsPencil />}
+              icon={
+                <div className="capitalize">
+                  {`Play to Add ${holding.shift ? "Chord" : "Note"}`}
+                </div>
+              }
             />
+
             {isAdding && (
               <>
                 <ScoreButton
-                  label={
-                    holding.shift
-                      ? "Clear"
-                      : isRemoving
-                      ? "Click to Erase"
-                      : "Erase"
-                  }
+                  width="w-36"
+                  padding="w-36 py-2"
+                  backgroundColor={"bg-emerald-400/40"}
+                  onClick={onRestClick}
+                  icon={<div className="capitalize">{`Click to Add Rest`}</div>}
+                />
+                <ScoreButton
+                  width="w-16"
+                  padding="w-16 py-2"
                   disabled={isEmpty}
                   backgroundColor={
-                    holding.shift || isRemoving
-                      ? "bg-red-500/80"
-                      : "bg-red-500/50"
+                    isRemoving ? "bg-red-500/80" : "bg-red-500/50"
                   }
                   borderColor={"border-red-200/50"}
-                  onClick={(e) =>
-                    !isEmpty &&
-                    (isHoldingShift(e)
-                      ? dispatch(clearPattern(pattern.id))
-                      : setIsRemoving((prev) => !prev))
-                  }
-                  icon={holding.shift ? <BiTrash /> : <BiEraser />}
+                  onClick={() => !isEmpty && dispatch(clearPattern(pattern.id))}
+                  icon={<div>Clear</div>}
                 />
-
-                <ScoreButton
-                  label={cursor.hidden ? `Cursor` : `Block ${cursor.index + 1}`}
-                  disabled={isEmpty}
-                  backgroundColor={
-                    !cursor.hidden ? "bg-emerald-400/50" : undefined
-                  }
-                  onClick={() => !isEmpty && cursor.toggle()}
-                  icon={<BsCursor />}
-                />
-                <ScoreButton
-                  label={cursor.hidden ? `Rest` : `Set to Rest`}
-                  backgroundColor={
-                    !cursor.hidden ? "bg-emerald-400/50" : undefined
-                  }
-                  onClick={() => {
-                    if (cursor.hidden) {
-                      dispatch(
-                        addPatternBlock({
-                          id: pattern.id,
-                          block: { duration },
-                        })
-                      );
-                    } else {
-                      dispatch(
-                        updatePatternBlock({
-                          id: pattern.id,
-                          index: cursor.index,
-                          block: getPatternBlockWithNewNotes(
-                            pattern.stream[cursor.index],
-                            undefined,
-                            () => ({ duration })
-                          ),
-                        })
-                      );
-                    }
-                  }}
-                  icon={<SiBuddy />}
-                />
-                <ScoreButton
-                  backgroundColor="bg-gradient-radial from-zinc-900/5 to-zinc-900/80"
-                  borderColor="border-slate-400"
-                  label={isAdding ? "Duration" : ""}
-                  icon={
-                    <Menu>
-                      <Menu.Button
-                        as="div"
-                        className="invert size-fulltotal-center"
-                      >
-                        <img
-                          className="object-contain size-5"
-                          src={getDurationImage(getTickDuration(duration))}
-                        />
-                      </Menu.Button>
-                      <Menu.Items
-                        as="div"
-                        className="absolute last:border-b-0 outline-none min-h-max top-16 z-[90] bg-zinc-900/80 backdrop-blur rounded overflow-hidden border border-slate-400"
-                      >
-                        {STRAIGHT_DURATION_TYPES.map((d) => (
-                          <Menu.Item key={d}>
-                            <div
-                              className={classNames(
-                                "px-2 py-1 capitalize text-sm cursor-pointer bg-sky-950/50 border-b border-b-slate-300/50 hover:opacity-75"
-                              )}
-                              onClick={() => {
-                                setDuration(getDurationTicks(d));
-                                if (!cursor.hidden) {
-                                  dispatch(
-                                    updatePatternBlock({
-                                      id: pattern.id,
-                                      index: cursor.index,
-                                      block: getPatternBlockWithNewNotes(
-                                        pattern.stream[cursor.index],
-                                        (notes) =>
-                                          notes.map((n) => ({
-                                            ...n,
-                                            duration: getDurationTicks(d),
-                                          })),
-                                        () => ({
-                                          duration: getDurationTicks(d),
-                                        })
-                                      ),
-                                    })
-                                  );
-                                }
-                              }}
-                            >
-                              {d}
-                            </div>
-                          </Menu.Item>
-                        ))}
-                      </Menu.Items>
-                    </Menu>
-                  }
-                />
+                <div className="flex gap-1 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
+                  {STRAIGHT_DURATION_TYPES.map((d) => {
+                    return (
+                      <ScoreButton
+                        backgroundColor="bg-slate-50 border-2 rounded-full"
+                        borderColor={
+                          duration === getDurationTicks(d)
+                            ? "border-teal-500"
+                            : "border-slate-800"
+                        }
+                        width="w-8"
+                        padding="w-8 p-1"
+                        icon={
+                          <img
+                            className="object-contain size-5"
+                            src={getDurationImage(d)}
+                          />
+                        }
+                        onClick={() => {
+                          setDuration(getDurationTicks(d));
+                          if (!cursor.hidden) {
+                            dispatch(
+                              updatePatternBlock({
+                                id: pattern.id,
+                                index: cursor.index,
+                                block: getPatternBlockWithNewNotes(
+                                  pattern.stream[cursor.index],
+                                  (notes) =>
+                                    notes.map((n) => ({
+                                      ...n,
+                                      duration: getDurationTicks(d),
+                                    })),
+                                  () => ({
+                                    duration: getDurationTicks(d),
+                                  })
+                                ),
+                              })
+                            );
+                          }
+                        }}
+                      />
+                    );
+                  })}
+                </div>
               </>
             )}
+            {/* <ScoreButton
+              width="w-36"
+              padding="w-36 py-2"
+              backgroundColor={!cursor.hidden ? "bg-emerald-400/50" : undefined}
+              onClick={() => {
+                dispatch(updateMediaDraft);
+                dispatch(
+                  showEditor({ data: { view: "pattern", clipId: clip.id } })
+                );
+              }}
+              icon={<div>Open Editor</div>}
+            /> */}
             {!isAdding && (
               <ScoreButton
-                label="Copy"
-                backgroundColor={"bg-teal-800/80 active:bg-teal-400/80"}
+                width="w-36"
+                padding="w-36 py-2"
+                backgroundColor={"bg-teal-600/40 active:bg-teal-400/80"}
                 onClick={() => dispatch(migrateClip({ data: clip }))}
-                icon={<GiSprout />}
+                icon={<div>Copy Pattern</div>}
               />
             )}
             {!isAdding && (
               <ScoreButton
-                label={isLive && isPosed ? "Live" : isLive ? "Stage" : "Play"}
+                width="w-36"
+                padding="w-36 py-2"
                 backgroundColor={
                   isLive && isPosed
                     ? "bg-fuchsia-400/80"
@@ -291,15 +304,22 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                 onClick={() =>
                   dispatch(preparePatternClip({ data: portaledClip }))
                 }
-                icon={isPosed ? <GiCrystalWand /> : <GiHand />}
+                icon={
+                  <div className="flex gap-2 items-center">
+                    {isLive && isPosed
+                      ? "Live"
+                      : isLive
+                      ? "Create Pose"
+                      : "Play"}
+                    {isPosed ? <GiCrystalWand /> : <GiHand />}
+                  </div>
+                }
               />
             )}
           </div>
         </div>
       </div>
-      <div className="bg-white overflow-scroll min-h-[200px] max-h-[200px] shrink rounded-lg border-2 border-teal-200">
-        {score}
-      </div>
+
       {isAdding && (
         <PatternClipPiano
           {...props}
@@ -326,9 +346,14 @@ const ScoreButton = (props: {
   icon?: React.ReactNode;
   show?: boolean;
   disabled?: boolean;
+  width?: string;
 }) => {
   return (
-    <div className="flex flex-col gap-2 w-16 total-center relative">
+    <div
+      className={`flex flex-col gap-2 ${
+        props.width ?? "w-16"
+      } total-center relative`}
+    >
       {props.show && props.dropdown ? (
         <div className="absolute animate-in fade-in top-14 z-10 bg-teal-900/90 backdrop-blur border border-teal-500 rounded-lg gap-2">
           {props.dropdown}
@@ -351,8 +376,8 @@ const ScoreButton = (props: {
             props.padding ?? "h-8 w-12 text-xl",
             props.disabled
               ? "cursor-default opacity-50"
-              : "cursor-pointer active:opacity-75",
-            "total-center border text-sm rounded-lg text-white"
+              : "cursor-pointer active:opacity-85",
+            "total-center border text-xs rounded-lg text-white"
           )}
           onClick={(e) => {
             cancelEvent(e);

@@ -3,6 +3,7 @@ import { isTransportStarted } from "./TransportFunctions";
 import { createSelector } from "reselect";
 import { percent } from "utils/math";
 import { MAX_TRANSPORT_VOLUME, MIN_TRANSPORT_VOLUME } from "utils/constants";
+import { createDeepSelector } from "lib/redux";
 
 /** Select the transport state */
 export const selectTransport = (project: Project) => project.present.transport;
@@ -47,7 +48,7 @@ export const selectIsPlayheadVisible = createSelector(
 );
 
 /** Select a group of properties based on the transport state. */
-export const selectTransportState = createSelector(
+export const selectTransportState = createDeepSelector(
   selectTransport,
   (transport) => ({
     isStarted: transport.state === "started",

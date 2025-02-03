@@ -13,10 +13,6 @@ import {
   selectClosestPoseClipId,
   selectPortaledClipById,
 } from "types/Arrangement/ArrangementSelectors";
-import {
-  removeClipIdsFromSelection,
-  toggleClipIdInSelection,
-} from "types/Timeline/thunks/TimelineSelectionThunks";
 import { PatternClipDropdown } from "./PatternClipDropdown";
 import { PatternClipHeader } from "./PatternClipHeader";
 import { PatternClipStream } from "./PatternClipStream";
@@ -27,7 +23,6 @@ import { usePatternClipStyle } from "./usePatternClipStyle";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { toggleClipDropdown } from "types/Clip/ClipThunks";
 import { Subdivision } from "utils/durations";
-import { selectIsClipSelected } from "types/Timeline/TimelineSelectors";
 import { Thunk } from "types/Project/ProjectTypes";
 
 export const CLIP_NAME_HEIGHT = 24;
@@ -41,7 +36,9 @@ export interface PatternClipRendererProps extends ClipComponentProps {
   cellWidth: number;
 }
 
-export function PatternClipRenderer(props: PatternClipRendererProps) {
+export const PatternClipRenderer = memo(_PatternClipRenderer);
+
+export function _PatternClipRenderer(props: PatternClipRendererProps) {
   const { pcId, id } = props;
   const { holdingI, doesOverlap } = props;
   const dispatch = useProjectDispatch();
@@ -87,7 +84,7 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
     );
   }, [props.isSlicing, !!clip.isOpen, ...style]);
 
-  if (isScaleTrackId(!!clip?.trackId)) return null;
+  if (isScaleTrackId(clip.trackId)) return null;
 
   // Render the pattern clip with a stream or score
   return (
@@ -101,7 +98,7 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
       }
       className={style.className}
     >
-      <PatternClipHeader {...props} id={id} clip={clip} />
+      <PatternClipHeader {...props} id={id} />
       {Stream}
       {!!clip.isOpen && (
         <PatternClipDropdown
@@ -117,22 +114,7 @@ export function PatternClipRenderer(props: PatternClipRendererProps) {
 
 const onClick =
   (e: DivMouseEvent, clip?: Timed<Clip>, holdingI = false): Thunk =>
-  (dispatch, getProject) => {
+  (dispatch) => {
     if (!clip) return;
-    const id = clip.id;
-    const project = getProject();
-    const isSelected = selectIsClipSelected(project, id);
-    if (!clip) return;
-    if (e.altKey) {
-      dispatch(toggleClipIdInSelection(id));
-    } else if (e.metaKey) {
-      dispatch(toggleClipDropdown({ data: { id } }));
-    } else if (isSelected) {
-      if (clip.isOpen) {
-        dispatch(removeClipIdsFromSelection({ data: [id] }));
-      }
-      dispatch(toggleClipDropdown({ data: { id } }));
-    } else {
-      dispatch(onClipClick(e, clip, { eyedropping: holdingI }));
-    }
+    dispatch(onClipClick(e, clip, { eyedropping: holdingI }));
   };

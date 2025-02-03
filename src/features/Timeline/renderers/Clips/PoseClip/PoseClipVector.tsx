@@ -1,12 +1,9 @@
 import classNames from "classnames";
 import { Slider } from "components/Slider";
 import { clamp, omit } from "lodash";
-import { updatePoseBlock } from "types/Pose/PoseSlice";
+import { updatePose, updatePoseBlock } from "types/Pose/PoseSlice";
 import { PoseVectorId, PoseBlock } from "types/Pose/PoseTypes";
-import {
-  isScaleTrackId,
-  ScaleTrackId,
-} from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { useEffect, useMemo, useState } from "react";
 import { use, useDeep, useProjectDispatch } from "types/hooks";
@@ -83,7 +80,7 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
   }, [view, clipTracks, trackMap, trackScaleMap, clipLabel]);
 
   return (
-    <div className="flex gap-2 total-center">
+    <div className="flex gap-2">
       <PoseClipBaseEffect border="border-fuchsia-400">
         <PoseClipDropdownContainer>
           <PoseClipDropdownItem
@@ -107,21 +104,28 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
           <PoseClipDropdownItem
             className="active:opacity-75"
             onClick={() =>
-              dispatch(
-                updatePoseBlock({
-                  id: props.clip.poseId,
-                  index: props.index,
-                  depths: props.depths,
-                  block: omit(props.block, "vector", "operations"),
-                })
-              )
+              props.block
+                ? dispatch(
+                    updatePoseBlock({
+                      id: props.clip.poseId,
+                      index: props.index,
+                      depths: props.depths,
+                      block: omit(props.block, "vector", "operations"),
+                    })
+                  )
+                : dispatch(updatePose({ id: props.clip.poseId, vector: {} }))
             }
           >
             Clear Vector
           </PoseClipDropdownItem>
         </PoseClipDropdownContainer>
       </PoseClipBaseEffect>
-      <div className="max-w-4xl overflow-scroll flex pr-2 gap-2">
+      <div
+        className={classNames(
+          view === "notes" ? "h-full min-w-[896px] flex-col flex-wrap" : "",
+          "max-w-4xl w-full overflow-scroll flex pr-2 gap-1"
+        )}
+      >
         {view === "effects" ? (
           <PoseClipEffects {...props} />
         ) : (
@@ -129,9 +133,7 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
             <PoseClipVectorField
               {...props}
               {...field}
-              key={`${field.fieldId}-${
-                props.block?.vector?.[field.fieldId as ScaleTrackId]
-              }`}
+              key={`${field.fieldId}`}
             />
           ))
         )}
@@ -149,28 +151,34 @@ interface PoseClipVectorFieldProps extends PoseClipVectorProps {
 }
 
 export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
-  const { block, index, isActive } = props;
+  const { vector, block, index, isActive } = props;
   const { clip, fieldId, name, scaleName, depth, depths } = props;
   const dispatch = useProjectDispatch();
-  const offset =
-    block && "vector" in block ? block.vector?.[fieldId as PoseVectorId] : 0;
+  const offset = useMemo(() => {
+    if (block) {
+      return block.vector?.[fieldId as PoseVectorId];
+    } else {
+      return vector?.[fieldId as PoseVectorId];
+    }
+  }, [block, vector, fieldId]);
   const [displayedValue, setDisplayedValue] = useState(String(offset));
-
   useEffect(() => {
+    if (displayedValue === "" && offset === 0) return;
     setDisplayedValue(String(offset));
-  }, [offset, block, index]);
+  }, [offset]);
 
   // Create a vector for the block if none exists
   useEffect(() => {
-    if (!block || "vector" in block) return;
-    dispatch(
-      updatePoseBlock({
-        id: clip.poseId,
-        index,
-        block: { ...block, vector: {} },
-        depths,
-      })
-    );
+    if (block && !("vector" in block)) {
+      dispatch(
+        updatePoseBlock({
+          id: clip.poseId,
+          index,
+          block: { ...block, vector: {} },
+          depths,
+        })
+      );
+    }
   }, [block, index, clip, depths]);
 
   // Get the specific hotkey for the vector field
@@ -188,39 +196,51 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
 
   // Omit the value from the vector on double click
   const onDoubleClick = () => {
-    if (!block || !("vector" in block)) return;
-    const newVector = omit(block.vector, fieldId);
+    const newVector = omit(block?.vector ?? vector, fieldId);
     const newBlock = { ...block, vector: newVector };
-    dispatch(
-      updatePoseBlock({ id: clip.poseId, index, depths, block: newBlock })
-    );
+    if (block) {
+      dispatch(
+        updatePoseBlock({ id: clip.poseId, index, depths, block: newBlock })
+      );
+    } else {
+      dispatch(updatePose({ id: clip.poseId, vector: newVector }));
+    }
   };
 
   // Update the value in the vector on value change
   const onValueChange = (_value: number) => {
-    if (!block || !("vector" in block)) return;
     const value = sanitize(_value);
-    const vector = { ...block.vector, [fieldId]: value };
-    const newBlock = { ...block, vector };
-    dispatch(
-      updatePoseBlock({ id: clip.poseId, index, depths, block: newBlock })
-    );
+    const newVector = { ...(block?.vector ?? vector), [fieldId]: value };
+    if (block) {
+      const newBlock = { ...block, newVector };
+      dispatch(
+        updatePoseBlock({ id: clip.poseId, index, depths, block: newBlock })
+      );
+    } else {
+      dispatch(updatePose({ id: clip.poseId, vector: newVector }));
+    }
   };
+
+  const isPitchClass = name === "Pitch Class";
 
   // Render the vector field
   return (
-    <PoseClipBaseEffect className={"total-center"}>
-      <div
-        className={classNames(
-          "px-1",
-          isScaleTrackId(fieldId) ? "text-sky-300" : "text-emerald-300"
-        )}
-      >
-        {name}:{" "}
-        <span className="text-slate-300 font-bold whitespace-nowrap">
-          {scaleName}
-        </span>
-      </div>
+    <PoseClipBaseEffect
+      className={`total-center ${isPitchClass ? "py-0" : ""}`}
+    >
+      {!isPitchClass && (
+        <div
+          className={classNames(
+            "px-1",
+            isScaleTrackId(fieldId) ? "text-sky-300" : "text-emerald-300"
+          )}
+        >
+          {name}:{" "}
+          <span className="text-slate-300 font-bold whitespace-nowrap">
+            {scaleName}
+          </span>
+        </div>
+      )}
       {isActive && (
         <div
           className={classNames(
@@ -243,7 +263,7 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
             : ""}
         </div>
       )}
-      {name !== "Pitch Class" && (
+      {!isPitchClass && (
         <Slider
           hideValue
           horizontal
@@ -261,20 +281,23 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
       )}
       <div
         className={classNames(
-          name === "Pitch Class" ? "mt-2" : "-mt-1.5 px-2",
-          "w-full mb-1 items-center flex gap-2 total-center"
+          isPitchClass
+            ? "py-1 total-center"
+            : "-mt-1.5 mb-1 px-2 items-center flex",
+          "size-full gap-2"
         )}
       >
-        Steps:{" "}
+        {isPitchClass ? `${fieldId} Notes` : "Steps"}:{" "}
         <div className="flex border border-slate-500 rounded overflow-hidden">
           <input
             className="w-12 h-5 p-0 text-center bg-transparent border-0 rounded-l text-slate-200 focus:bg-white/5"
             type="number"
-            value={displayedValue.replace(/^0(?=\d)/, "")}
+            value={displayedValue}
             min={-24}
             max={24}
             onChange={(e) => {
               setDisplayedValue(e.target.value);
+              if (e.target.value === "") return onValueChange(0);
               if (isNaN(parseInt(e.target.value))) return;
               onValueChange(clamp(sanitize(e.target.valueAsNumber), -12, 12));
             }}

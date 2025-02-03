@@ -16,15 +16,10 @@ export const NavbarScissors = () => {
     <div className="relative">
       <NavbarTooltipButton
         disabled={!hasClips}
-        label={
-          <>
-            {isSlicing ? "Equipped" : "Equip"} Scissors{" "}
-            <span className="font-light text-slate-400">(Slice Clips)</span>
-          </>
-        }
+        label={<>{isSlicing ? "Hide Scissors" : "Equip Scissors"} </>}
         onClick={() => dispatch(toggleTimelineState({ data: "slicing-clips" }))}
         className={classNames(
-          `p-1.5 bg-gradient-to-tr from-purple-800/20 to-purple-400/80 border-slate-400/50`,
+          `p-1.5 bg-gradient-radial from-teal-200/40 to-teal-200/10`,
           !hasClips ? "opacity-50" : "",
           isSlicing
             ? "ring-2 ring-offset-2 ring-slate-600/80 ring-offset-slate-900"
@@ -35,8 +30,8 @@ export const NavbarScissors = () => {
       </NavbarTooltipButton>
       <NavbarTooltip
         show={!!isSlicing}
-        content="Click A Clip To Slice"
-        className={"left-[-3rem] bg-purple-500/40 px-2 backdrop-blur"}
+        content="Click Within a Clip to Slice"
+        className={"left-[-5rem] bg-slate-500/50 px-2 backdrop-blur"}
       />
     </div>
   );

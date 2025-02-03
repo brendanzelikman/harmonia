@@ -1,16 +1,23 @@
-import { Menu } from "@headlessui/react";
+import { MenuItem } from "@headlessui/react";
+import classNames from "classnames";
 
 export const TrackDropdownButton = (props: {
   className?: string;
   onClick?: () => void;
   content: string;
   icon: JSX.Element;
+  divideStart?: boolean;
+  divideEnd?: boolean;
 }) => {
   return (
-    <Menu.Item>
-      {({ active }) => (
+    <MenuItem>
+      {() => (
         <div
-          className="flex text-left items-center hover:bg-zinc-500/60 cursor-pointer px-4 py-2"
+          className={classNames(
+            props.divideStart ? "border-t border-t-slate-500" : "",
+            props.divideEnd ? "border-b border-b-slate-500" : "",
+            "flex text-left items-center hover:bg-zinc-500/60 cursor-pointer px-4 py-2"
+          )}
           onClick={(e) => {
             e.stopPropagation();
             e.currentTarget.blur();
@@ -27,6 +34,6 @@ export const TrackDropdownButton = (props: {
           </button>
         </div>
       )}
-    </Menu.Item>
+    </MenuItem>
   );
 };

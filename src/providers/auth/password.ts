@@ -8,6 +8,7 @@ export const UPDATE_CLEARANCE = "update-password-clearance";
 export const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
 export const SECRET_PASSWORD = import.meta.env.VITE_SECRET_PASSWORD;
 export const USER_PASSWORD = import.meta.env.VITE_PASSWORD;
+export const ASK_FOR_PASSWORD = false;
 
 // The clearance type is only specific for the admin
 export const adminClearance = "super-secret-administrator" as const;
@@ -22,6 +23,13 @@ export const promptPassword = () =>
 export async function authorize(forceCheck = false): Promise<Clearance> {
   const clearance = localStorage.getItem(CLEARANCE);
 
+  // If the password is not required, skip the check
+  if (!ASK_FOR_PASSWORD) {
+    updateClearance(adminClearance);
+    return new Promise((resolve) => resolve(adminClearance));
+  }
+
+  // Otherwise, prompt the user for the password
   return new Promise(async (resolve) => {
     if (clearance !== null && !forceCheck) return resolve(clearance);
     const password = await promptPassword();
@@ -42,7 +50,9 @@ export async function authorize(forceCheck = false): Promise<Clearance> {
 
 // Get the password clearance from local storage
 export const getClearance = (): Clearance =>
-  localStorage.getItem(CLEARANCE) as Clearance;
+  ASK_FOR_PASSWORD
+    ? (localStorage.getItem(CLEARANCE) as Clearance)
+    : adminClearance;
 
 // Update the password clearance in local storage and dispatch an event
 export const updateClearance = (clearance: Clearance) => {

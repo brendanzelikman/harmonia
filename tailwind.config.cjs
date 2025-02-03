@@ -41,6 +41,10 @@ module.exports = {
         ".text-shadow-lg": {
           "text-shadow": "0 0 10px rgba(0, 0, 0)",
         },
+
+        ".rotate-disc": {
+          transform: "rotateX(75deg)",
+        },
         ".landing-background": {
           animation: "animateLandingBackground 30s ease-in-out infinite",
         },

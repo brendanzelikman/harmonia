@@ -1,4 +1,9 @@
-import { Disclosure, Transition } from "@headlessui/react";
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+  Transition,
+} from "@headlessui/react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { BsChevronDown, BsChevronUp, BsTrash } from "react-icons/bs";
 import { PatternEditorProps } from "../PatternEditor";
@@ -132,7 +137,7 @@ export function PatternEditorSidebar(props: PatternEditorProps) {
             const isOpen = isCategoryOpen || open;
             return (
               <>
-                <Disclosure.Button>
+                <DisclosureButton>
                   <div
                     className={`flex items-center justify-center ${
                       isCategorySelected ? "text-green-200" : "text-slate-50"
@@ -149,7 +154,7 @@ export function PatternEditorSidebar(props: PatternEditorProps) {
                       {isOpen ? <BsChevronDown /> : <BsChevronUp />}
                     </span>
                   </div>
-                </Disclosure.Button>
+                </DisclosureButton>
                 <Transition
                   show={isOpen}
                   appear
@@ -160,13 +165,13 @@ export function PatternEditorSidebar(props: PatternEditorProps) {
                   leaveFrom="opacity-100 transform scale-100"
                   leaveTo="opacity-0 transform scale-95"
                 >
-                  <Disclosure.Panel static={isOpen}>
+                  <DisclosurePanel static={isOpen}>
                     {patterns.map(
                       isCustomCategory
                         ? renderCustomPattern
                         : renderPresetPattern
                     )}
-                  </Disclosure.Panel>
+                  </DisclosurePanel>
                 </Transition>
               </>
             );

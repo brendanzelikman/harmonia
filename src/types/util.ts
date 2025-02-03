@@ -1,5 +1,5 @@
 import { EntityId, EntityState, nanoid } from "@reduxjs/toolkit";
-import { isArray, isPlainObject, merge, union } from "lodash";
+import { difference, isArray, isPlainObject, merge, omit, union } from "lodash";
 import { Id } from "./units";
 
 // ------------------------------------------------------------
@@ -32,49 +32,109 @@ export type Safe<T> = RecursivePartial<T> | undefined;
 // ------------------------------------------------------------
 
 /** Returns true if an object is an entity state. */
-export const isEntityState = (obj: unknown): obj is EntityState<any> => {
-  const candidate = obj as EntityState<any>;
-  return (
-    isPlainObject(candidate) &&
-    isArray(candidate.ids) &&
-    isPlainObject(candidate.entities)
+export const isEntityState = <T>(
+  obj: Safe<EntityState<T>>
+): obj is EntityState<T> => {
+  return !!obj?.entities && !!obj?.ids;
+};
+
+/** Returns true if an entity is in a state based on a guard. */
+export const isEntityInState = <T>(
+  state: Safe<EntityState<T>>,
+  guard: (entity: T) => boolean
+) => {
+  if (!isEntityState(state)) return false;
+  return state.ids.some(
+    (id) => state.entities[id] && guard(state.entities[id])
   );
 };
 
-// Returns true if an entity state contains an id anywhere
-export const isIdInState = <T>(state?: Safe<EntityState<T>>, id = "") => {
-  if (!state?.entities || !state.ids) return false;
-  return id in state.entities || state.ids.includes(id);
+/* Returns true if an entity state contains an id properly */
+export const isIdInState = <T>(
+  state: Safe<EntityState<T>>,
+  id: EntityId = ""
+) => {
+  if (!isEntityState(state)) return false;
+  return id in state.entities && state.ids.includes(id);
+};
+
+/* Add an entity to a state, returning the new state */
+export const addEntityToState = <T extends { id: EntityId }>(
+  state: EntityState<T>,
+  entity: T
+): EntityState<T> => {
+  return {
+    entities: { ...state.entities, [entity.id]: entity },
+    ids: union(state.ids, [entity.id]),
+  };
+};
+
+/** Add a list of entities to a state. */
+export const addEntitiesToState = <T extends { id: EntityId }>(
+  state: EntityState<T>,
+  entities: T[]
+): EntityState<T> => {
+  return {
+    entities: merge(
+      {},
+      state.entities,
+      ...entities.map((e) => ({ [e.id]: e }))
+    ),
+    ids: union(
+      state.ids,
+      entities.map((e) => e.id)
+    ),
+  };
+};
+
+/** Remove an entity from a state, returning the new state */
+export const removeEntityFromState = <T extends { id: EntityId }>(
+  state: EntityState<T>,
+  id: EntityId
+): EntityState<T> => {
+  if (!isIdInState(state, id)) return state;
+  const { [id]: _, ...entities } = state.entities;
+  return {
+    entities,
+    ids: difference(state.ids, [id]),
+  };
+};
+
+/** Remove a list of entities from a state. */
+export const removeEntitiesFromState = <T extends { id: EntityId }>(
+  state: EntityState<T>,
+  ids: EntityId[]
+): EntityState<T> => {
+  return {
+    entities: omit(state.entities, ids),
+    ids: difference(state.ids, ids),
+  };
+};
+
+/** Remove entities from a state that don't match a predicate. */
+export const filterEntityState = <T extends { id: EntityId }>(
+  state: EntityState<T>,
+  guard?: (entity: T) => boolean
+): EntityState<T> => {
+  const ids = state.ids.filter(
+    (id) => !state.entities[id] || (guard && !guard(state.entities[id]))
+  );
+  return removeEntitiesFromState(state, ids);
 };
 
 /** Sanitize a normalized state with entities and IDs. */
-export const mergeStates = <T extends EntityState<any> = EntityState<any>>(
-  state: Safe<T>,
-  defaultState: Safe<T>,
-  guard?: (item: unknown) => boolean
-): T => {
+export const mergeStates = <T extends { id: EntityId }>(
+  state: Safe<EntityState<T>>,
+  defaultState: Safe<EntityState<T>>,
+  guard?: (item: T) => boolean
+): EntityState<T> => {
   const sanitizedState = {
     ids: union(defaultState?.ids ?? [], state?.ids ?? []),
     entities: merge({}, defaultState?.entities ?? {}, state?.entities ?? {}),
-  } as T;
+  } as EntityState<T>;
 
-  // Iterate over the IDs to remove any that are not in the entities
-  for (const id of sanitizedState.ids) {
-    if (!(id in sanitizedState.entities)) {
-      sanitizedState.ids = sanitizedState.ids.filter((i) => i !== id);
-    }
-  }
-
-  // Iterate over the entities to remove any that are not in the IDs
-  for (const id in sanitizedState.entities) {
-    const entity = sanitizedState.entities[id];
-    if (!guard?.(entity) || !sanitizedState.ids.includes(id)) {
-      delete sanitizedState.entities[id];
-      sanitizedState.ids = sanitizedState.ids.filter((i) => i !== id);
-    }
-  }
-
-  return sanitizedState;
+  // Filter the entities based on the guard
+  return filterEntityState(sanitizedState, guard);
 };
 
 // ------------------------------------------------------------

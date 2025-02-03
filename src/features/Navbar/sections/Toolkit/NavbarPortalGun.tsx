@@ -19,12 +19,7 @@ export const NavbarPortalGun = () => {
   return (
     <div className="relative">
       <NavbarTooltipButton
-        label={
-          <>
-            {isPortaling ? "Equipped" : "Equip"} Portal Gun{" "}
-            <span className="font-light text-slate-400">(Teleport Clips)</span>
-          </>
-        }
+        label={<>{isPortaling ? "Equipped" : "Equip"} Portal Gun </>}
         disabled={!hasClips}
         borderColor="border-blue-500"
         className={classNames(

@@ -29,7 +29,7 @@ export function NavbarVolume() {
   return (
     <div className="relative group">
       <NavbarTooltipButton
-        className="p-0.5 bg-slate-800 border border-slate-500 hover:ring-1 hover:ring-slate-200 transition-all cursor-pointer relative flex total-center xl:text-3xl text-xl"
+        className="p-0.5 border border-white/20 hover:ring-1 hover:ring-slate-200 transition-all cursor-pointer relative flex total-center xl:text-3xl text-xl"
         onClick={() => dispatch(toggleTransportMute())}
         keepTooltipOnClick
         marginLeft={50}
@@ -49,7 +49,7 @@ export function NavbarVolume() {
       <div className="animate-in fade-in absolute hidden group-hover:block -left-8 p-4 top-8 w-32 h-48">
         <div
           className={classNames(
-            "bg-slate-900 backdrop-blur flex flex-col rounded size-full transition-all duration-300 relative border-2 border-indigo-500"
+            "bg-slate-900 backdrop-blur flex flex-col rounded size-full transition-all duration-300 relative border-2 border-emerald-500/80"
           )}
         >
           <input

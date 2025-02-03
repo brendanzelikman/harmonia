@@ -6,7 +6,7 @@ import {
   createValueListSelector,
 } from "lib/redux";
 import { getPatternDuration } from "types/Pattern/PatternFunctions";
-import { isPattern } from "types/Pattern/PatternTypes";
+import { isPattern, PatternId } from "types/Pattern/PatternTypes";
 import { isPose } from "types/Pose/PoseTypes";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { isScaleObject } from "types/Scale/ScaleTypes";
@@ -34,10 +34,7 @@ import {
   scaleClipAdapter,
 } from "./ClipSlice";
 import { Timed } from "types/units";
-import {
-  selectCustomMotifState,
-  selectMotifState,
-} from "types/Motif/MotifSelectors";
+import { selectMotifState } from "types/Motif/MotifSelectors";
 import { getScaleName } from "utils/scale";
 import { mapValues } from "lodash";
 import { getClipMotifId } from "./ClipFunctions";
@@ -64,6 +61,14 @@ export const selectPatternClipTotal = patternClipSelectors.selectTotal;
 export const selectPatternClipById = patternClipSelectors.selectById;
 export const selectPatternClips = patternClipSelectors.selectAll;
 
+export const selectPatternClipsByPatternId = (
+  project: Project,
+  patternId: PatternId
+) => {
+  const clips = selectPatternClips(project);
+  return clips.filter((clip) => clip.patternId === patternId);
+};
+
 // ------------------------------------------------------------
 // Pose Clip Selectors
 // ------------------------------------------------------------
@@ -87,6 +92,11 @@ export const selectPoseClipById = poseClipSelectors.selectById as (
 ) => PoseClip;
 export const selectPoseClips = poseClipSelectors.selectAll;
 
+export const selectPoseClipsByPoseId = (project: Project, poseId: string) => {
+  const clips = selectPoseClips(project);
+  return clips.filter((clip) => clip.poseId === poseId);
+};
+
 // ------------------------------------------------------------
 // Scale Clip Selectors
 // ------------------------------------------------------------
@@ -106,6 +116,14 @@ export const selectScaleClipIds = scaleClipSelectors.selectIds as (
 export const selectScaleClipTotal = scaleClipSelectors.selectTotal;
 export const selectScaleClipById = scaleClipSelectors.selectById;
 export const selectScaleClips = scaleClipSelectors.selectAll;
+
+export const selectScaleClipsByScaleId = (
+  project: Project,
+  scaleId: string
+) => {
+  const clips = selectScaleClips(project);
+  return clips.filter((clip) => clip.scaleId === scaleId);
+};
 
 // ------------------------------------------------------------
 // Combined Clip Selectors
@@ -169,7 +187,7 @@ export const selectClipDurationMap = createDeepSelector(
     mapValues(clipMap, (clip) => {
       const reference = getValueByKey(referenceMap, clip?.id);
       if (!clip || !reference) return Infinity;
-      if (clip.duration !== undefined) return clip.duration;
+      if (clip.duration) return clip.duration;
       if (isPose(reference)) return getPoseDuration(reference);
       if (isPattern(reference)) return getPatternDuration(reference);
       return Infinity;
@@ -188,7 +206,7 @@ export const selectClips = createDeepSelector(
 
 /** Select the map of motifs to their clips. */
 export const selectMotifClipMap = createDeepSelector(
-  [selectClips, selectCustomMotifState],
+  [selectClips, selectMotifState],
   (clips, motifs) => {
     return mapValues(motifs, (state) => {
       return state.ids.reduce((acc, id) => {

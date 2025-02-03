@@ -2,6 +2,7 @@ import { Thunk } from "types/Project/ProjectTypes";
 import {
   clearTimelineState,
   setSelectedTrackId,
+  updateMediaDraft,
 } from "types/Timeline/TimelineSlice";
 import { TrackId } from "types/Track/TrackTypes";
 import {
@@ -19,7 +20,6 @@ import {
 import { EditorView } from "./EditorTypes";
 import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
 import {
-  selectTimelineType,
   selectSelectedPattern,
   selectSelectedScale,
   selectSelectedTrackId,
@@ -28,21 +28,34 @@ import { selectEditor } from "./EditorSelectors";
 import { Payload } from "lib/redux";
 import { setSelectedPattern } from "types/Media/MediaThunks";
 import { PatternId } from "types/Pattern/PatternTypes";
+import { ClipId, ClipType, initializePatternClip } from "types/Clip/ClipTypes";
+import { selectClipById } from "types/Clip/ClipSelectors";
 
 /** Show the editor with the given ID and track if provided. */
 export const showEditor =
   ({
     data,
     undoType,
-  }: Payload<{ view?: EditorView; trackId?: TrackId }>): Thunk =>
+  }: Payload<{
+    view?: EditorView;
+    trackId?: TrackId;
+    clipId?: ClipId;
+  }>): Thunk =>
   (dispatch, getProject) => {
-    const { view, trackId } = data;
+    const { view, trackId, clipId } = data;
     if (!view) return;
     const project = getProject();
     const editor = selectEditor(project);
     const customPatterns = selectCustomPatterns(project);
     const pattern = selectSelectedPattern(project);
     const scale = selectSelectedScale(project);
+
+    // Update the media draft if a clip ID is given
+    if (clipId) {
+      const clip = selectClipById(project, clipId);
+      if (!clip) return;
+      dispatch(updateMediaDraft({ data: { [`${clip.type}Clip`]: clip } }));
+    }
 
     // Start adding notes if opening a custom pattern
     const onPatterns = view === "pattern";

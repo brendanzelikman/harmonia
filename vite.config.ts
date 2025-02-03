@@ -9,6 +9,14 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 5000,
     outDir: "build",
+    rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
+          return;
+        }
+        warn(warning);
+      },
+    },
   },
   assetsInclude: ["**/*.ham", ""],
   plugins: [react(), tsconfigPaths()],

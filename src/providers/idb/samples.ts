@@ -12,44 +12,56 @@ import { fetchUser } from "providers/auth";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import { createUndoType } from "lib/redux";
 import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
-import { isPatternTrack, Track } from "types/Track/TrackTypes";
+import { isPatternTrack, Track, TrackId } from "types/Track/TrackTypes";
 
 // Function to handle file input
 export const handleFileInput =
-  (file: File, _track?: Track): Thunk =>
-  async (dispatch, getProject) => {
-    const undoType = createUndoType("handleFileInput", file);
-    const { db } = await fetchUser();
-    if (!db) return;
+  (
+    file: File,
+    _track?: Track,
+    parentId?: TrackId,
+    undo?: string
+  ): Thunk<Promise<void>> =>
+  (dispatch, getProject) => {
+    return new Promise(async (resolve, reject) => {
+      const undoType = undo ?? createUndoType("handleFileInput", file);
+      const { db } = await fetchUser();
+      if (!db) return reject();
 
-    const audioBuffer = await fileToAudioBuffer(file);
-    const buffer = audioBufferToObject(audioBuffer);
+      const audioBuffer = await fileToAudioBuffer(file);
+      const buffer = audioBufferToObject(audioBuffer);
 
-    // Save the audio buffer in IndexedDB
-    const id = `sample-${file.name}`;
-    await db.put(SAMPLE_STORE, { id, buffer });
+      // Save the audio buffer in IndexedDB
+      const id = `sample-${file.name}`;
+      await db.put(SAMPLE_STORE, { id, buffer });
 
-    const project = getProject();
-    const selectedTrackId = selectSelectedTrackId(project);
-    const { track, instrument } = isPatternTrack(_track)
-      ? {
-          track: _track,
-          instrument: selectInstrumentById(project, _track.instrumentId),
-        }
-      : dispatch(
-          createPatternTrack({ parentId: selectedTrackId }, undefined, undoType)
-        );
-    const urls = { C3: audioBuffer };
-    const oldInstrument: Instrument | undefined = instrument
-      ? { ...instrument, key: id as InstrumentKey }
-      : undefined;
+      const project = getProject();
+      const selectedTrackId = selectSelectedTrackId(project);
+      const { track, instrument } = isPatternTrack(_track)
+        ? {
+            track: _track,
+            instrument: selectInstrumentById(project, _track.instrumentId),
+          }
+        : dispatch(
+            createPatternTrack(
+              { parentId: parentId ?? selectedTrackId },
+              undefined,
+              undoType
+            )
+          );
+      const urls = { C3: audioBuffer };
+      const oldInstrument: Instrument | undefined = instrument
+        ? { ...instrument, key: id as InstrumentKey }
+        : undefined;
 
-    dispatch(
-      createInstrument({
-        data: { track, options: { oldInstrument, urls } },
-        undoType,
-      })
-    );
+      dispatch(
+        createInstrument({
+          data: { track, options: { oldInstrument, urls } },
+          undoType,
+        })
+      );
+      return resolve();
+    });
   };
 
 // Convert file to AudioBuffer using Tone.js
@@ -105,19 +117,25 @@ export const getSampleFromIDB = async (
 
 // Attach file input handling to an HTML element
 export const setupFileInput =
-  (track?: Track): Thunk =>
+  (track?: Track, parentId?: TrackId, undo?: string): Thunk<Promise<void>> =>
   (dispatch) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "audio/*";
-    input.onchange = (e) => {
-      const target = e.target as HTMLInputElement;
-      if (target.files && target.files.length > 0) {
-        const file = target.files[0];
-        dispatch(handleFileInput(file, track)); // Store in IDB
-      }
-    };
-    document.body.appendChild(input);
-    input.click();
-    input.remove();
+    return new Promise((resolve) => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "audio/*";
+      input.onchange = async (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.files && target.files.length > 0) {
+          const file = target.files[0];
+          await dispatch(handleFileInput(file, track, parentId, undo)); // Store in IDB
+          resolve();
+        }
+      };
+      input.onblur = () => {
+        resolve();
+      };
+      document.body.appendChild(input);
+      input.click();
+      input.remove();
+    });
   };

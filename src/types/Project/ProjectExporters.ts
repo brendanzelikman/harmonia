@@ -5,6 +5,10 @@ import { selectProjectName } from "../Meta/MetaSelectors";
 import { sanitizeProject } from "./ProjectFunctions";
 import { getProjectsFromDB } from "providers/idb";
 import JSZip from "jszip";
+import { downloadTransport } from "types/Transport/TransportThunks";
+import { now } from "lodash";
+import pluralize, { plural } from "pluralize";
+import moment from "moment";
 
 /** Export the project to a Harmonia file, using the given state if specified. */
 export const exportProjectToHAM =
@@ -31,28 +35,62 @@ export const exportProjectToHAM =
 
 /** Export the project to a MIDI file based on its clips, using the given project if specified. */
 export const exportProjectToMIDI =
-  (project?: Project): Thunk =>
+  (project?: Project, download = true): Thunk<Blob> =>
   (dispatch, getProject) => {
     const savedProject = project || getProject();
     const clipIds = selectPatternClipIds(savedProject);
-    dispatch(exportClipsToMidi(clipIds));
+    return dispatch(exportClipsToMidi(clipIds, { download }));
+  };
+
+export const exportProjectToWAV =
+  (project?: Project, download = true): Thunk<Promise<Blob>> =>
+  async (dispatch, getProject) => {
+    const savedProject = project || getProject();
+    return await dispatch(downloadTransport(savedProject, { download }));
   };
 
 /** Export all projects to Harmonia files and download them as a zip. */
-export const exportProjectsToZIP = async () => {
-  try {
-    // Convert the projects to blobs
+type FileType = "ham" | "midi" | "wav";
+export const exportProjectsToZIP =
+  (type: FileType = "ham"): Thunk =>
+  async (dispatch) => {
     const projects = (await getProjectsFromDB()).map(sanitizeProject);
-    const jsons = projects.map((project) => JSON.stringify(project));
-    const blobs = jsons.map((_) => new Blob([_], { type: "application/json" }));
+    const jsons = projects
+      .map((project) => JSON.stringify(project))
+      .map((_) => new Blob([_], { type: "application/json" }));
+
+    const midis = projects.map((project) =>
+      dispatch(exportProjectToMIDI(project, false))
+    );
+
+    const wavs = projects.map((project) =>
+      dispatch(exportProjectToWAV(project, false))
+    );
+
+    const blobs =
+      type === "ham"
+        ? jsons
+        : type === "midi"
+        ? midis
+        : await Promise.all(wavs);
+
+    // Keep track of overlapping project names
+    const projectNames: Record<string, number> = {};
+    const fileType = type === "midi" ? "mid" : type;
 
     // Add each blob to a new zip
     const zip = new JSZip();
     blobs.forEach((blob, i) => {
-      const projectName = selectProjectName(projects[i]);
-      const fileName = `${projectName ?? "project"}.ham`;
+      const projectName = selectProjectName(projects[i]) ?? "project";
+      projectNames[projectName] = (projectNames[projectName] || 0) + 1;
+      let fileName = `${projectName}`;
+      if (projectNames[projectName] > 1) {
+        fileName = `${projectName} (${projectNames[projectName]})`;
+      }
+      fileName += `.${fileType}`;
       zip.file(fileName, blob);
     });
+    const blobCount = blobs.length;
 
     // Finalize the archive
     const content = await zip.generateAsync({ type: "blob" });
@@ -60,11 +98,12 @@ export const exportProjectsToZIP = async () => {
     const link = document.createElement("a");
 
     // Download the zip
-    link.download = "harmonia_projects.zip";
+    let downloadName = `${blobCount} Harmonia `;
+    if (blobCount === 1) downloadName = "Harmonia ";
+    downloadName += pluralize("Project", blobCount);
+    downloadName += `(${moment().format("YYYY-MM-DD HH-mm-ss")}).zip`;
+    link.download = downloadName;
     link.href = url;
     link.click();
     URL.revokeObjectURL(url);
-  } catch (e) {
-    console.error(e);
-  }
-};
+  };

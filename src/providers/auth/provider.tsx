@@ -14,10 +14,12 @@ import {
   fetchUser,
   ADMIN_UID,
 } from "./user";
-import { adminClearance, useClearance } from "./password";
+import { adminClearance, ASK_FOR_PASSWORD, useClearance } from "./password";
 import { getDatabase } from "providers/idb/database";
 
-export const AuthContext = createContext<HarmoniaUser>(defaultUser);
+export const AuthContext = createContext<HarmoniaUser>(
+  ASK_FOR_PASSWORD ? defaultUser : defaultAdmin
+);
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider(props: { children: ReactNode }) {

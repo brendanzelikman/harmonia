@@ -11,7 +11,7 @@ import classNames from "classnames";
 import { COLLAPSED_TRACK_HEIGHT } from "utils/constants";
 
 export function TimelineCursor() {
-  const tick = useTransportTick();
+  const { tick } = useTransportTick();
   const cellHeight = use(selectCellHeight);
   const isTransportActive = use(selectIsTransportActive);
 

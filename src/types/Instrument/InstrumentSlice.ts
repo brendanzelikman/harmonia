@@ -383,6 +383,7 @@ export const instrumentsSlice = createSlice({
       // Remove the live instrument
       const instance = LIVE_AUDIO_INSTANCES[instrumentId];
       if (!instance) return;
+      instance?.sampler?.dispose();
       instance?.dispose();
       delete LIVE_AUDIO_INSTANCES[instrumentId];
 

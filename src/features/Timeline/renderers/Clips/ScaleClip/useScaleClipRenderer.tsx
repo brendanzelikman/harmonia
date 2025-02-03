@@ -28,12 +28,24 @@ import {
   selectIsAddingClips,
   selectIsClipSelected,
 } from "types/Timeline/TimelineSelectors";
-import { selectTrackScale } from "types/Track/TrackSelectors";
+import {
+  selectTrackById,
+  selectTrackMidiScale,
+  selectTrackScale,
+  selectTrackScaleChain,
+} from "types/Track/TrackSelectors";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
 import { selectCustomScaleById } from "types/Scale/ScaleSelectors";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { useDragState } from "types/Media/MediaTypes";
 import { createSelectedPortaledClipById } from "types/Arrangement/ArrangementSelectors";
+import { cancelEvent, promptUserForString } from "utils/html";
+import { readMidiScaleFromString } from "types/Track/ScaleTrack/ScaleTrackThunks";
+import { updateScale } from "types/Scale/ScaleSlice";
+import { getScaleKey, getScaleName } from "utils/scale";
+import { getMidiPitchClass } from "utils/midi";
+import { convertMidiToNestedNote } from "types/Track/TrackThunks";
+import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 
 interface ScaleClipRenderer extends ClipComponentProps {
   id: ScaleClipId;
@@ -52,7 +64,8 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
   const isSelected = use((_) => selectIsClipSelected(_, id));
   const dispatch = useProjectDispatch();
   const cellWidth = use(selectCellWidth);
-  const trackScale = useDeep((_) => selectTrackScale(_, clip.trackId) ?? []);
+  const clipTrack = useDeep((_) => selectTrackById(_, clip.trackId));
+  const trackScale = useDeep((_) => selectTrackMidiScale(_, clip.trackId));
   const trackSize = getScaleNotes(trackScale).length;
   const clipScale = useDeep((_) => selectCustomScaleById(_, clip.scaleId));
   const clipSize = getScaleNotes(clipScale).length;
@@ -93,7 +106,7 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
 
     // The label is more visible when selected
     const wrapperClass = classNames(
-      "flex text-sm group relative items-center whitespace-nowrap pointer-events-none font-nunito",
+      "flex text-sm group shrink-0 relative items-center whitespace-nowrap pointer-events-none font-nunito",
       "gap-2 animate-in fade-in duration-75",
       isSelected ? "text-white font-semibold" : "text-white/80 font-light"
     );
@@ -103,7 +116,7 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
 
     return (
       <div className={wrapperClass} style={{ height }} draggable>
-        <IconType className="flex flex-shrink-0 ml-1 w-4 h-4 select-none" />
+        <IconType className="flex shrink-0 ml-1 w-4 h-4 select-none" />
         <div className="group-hover:block hidden">{name}</div>
       </div>
     );
@@ -111,15 +124,19 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
 
   /** The pose body is filled in behind a clip. */
   const Body = () => (
-    <div className={`w-full animate-in fade-in duration-75 flex-grow`} />
+    <div
+      className={`w-full flex flex-col overflow-scroll items-center animate-in fade-in text-[9px] flex-nowrap text-white duration-75 flex-grow`}
+    >
+      {pitchClasses.map((pc) => (
+        <div key={pc}>{pc}</div>
+      ))}
+    </div>
   );
 
   // Assemble the classname
   const className = classNames(
     props.className,
-    "flex flex-col",
-    isInfinite ? "bg-blue-400" : "bg-blue-500",
-    "border rounded",
+    "flex flex-col border bg-blue-500 rounded overflow-hidden",
     isSelected ? "border-white " : "border-slate-400",
     { "cursor-scissors": isSlicing },
     { "cursor-eyedropper hover:ring hover:ring-slate-300": holdingI },
@@ -137,6 +154,13 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
       : "opacity-100"
   );
 
+  const scaleNotes = clipScale.notes;
+  const scales = useDeep((_) => selectTrackScaleChain(_, clip.trackId));
+  const scale = resolveScaleChainToMidi([...scales.slice(0, -1), scaleNotes]);
+  const scaleName = getScaleName(scale);
+  const pitchClasses = scale.map((MIDI) =>
+    getMidiPitchClass(MIDI, getScaleKey(scale))
+  );
   // Render the pose clip
   return (
     <div
@@ -146,6 +170,32 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
       onClick={(e) =>
         dispatch(onClipClick(e, { ...clip, id }, { eyedropping: holdingI }))
       }
+      onDoubleClick={(e) => {
+        cancelEvent(e);
+        promptUserForString({
+          title: "Update Scale Clip",
+          description: [
+            `The current scale of this clip is ${scaleName}`,
+            `= (${scale.join(", ")})`,
+            `= (${pitchClasses.join(", ")})`,
+            `It is currently ${
+              isEqualSize
+                ? "active because the scales are the same size."
+                : "inactive because the scales are not the same size."
+            }`,
+          ],
+          callback: (value) => {
+            const input = readMidiScaleFromString(value);
+            if (!input) return;
+            const notes = clipTrack?.parentId
+              ? input.map((MIDI) =>
+                  dispatch(convertMidiToNestedNote(MIDI, clipTrack.parentId))
+                )
+              : input;
+            dispatch(updateScale({ id: clip.scaleId, notes }));
+          },
+        })();
+      }}
     >
       {Header()}
       {Body()}

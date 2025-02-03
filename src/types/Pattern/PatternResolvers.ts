@@ -104,7 +104,7 @@ export const resolvePatternStreamToMidi = (
         midiStream = applyVoiceLeadingsToMidiStream(midiStream, [v]);
       }
 
-      // Apply the transformations in order
+      // Apply any other operations in order
       for (const operation of transformation.operations ?? []) {
         const callback = TRANSFORMATIONS[operation.id]?.["callback"];
         if (!callback) continue;

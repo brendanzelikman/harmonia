@@ -1,5 +1,5 @@
 import { createEntityAdapter, PayloadAction } from "@reduxjs/toolkit";
-import { isNestedNote } from "types/Scale/ScaleTypes";
+import { isNestedNote, ScaleId } from "types/Scale/ScaleTypes";
 import { getPatternChordNotes } from "./PatternUtils";
 import { getPatternChordWithNewNotes } from "./PatternUtils";
 import {
@@ -55,6 +55,7 @@ export type TransposePatternBlockPayload = {
   id: PatternId;
   index: number;
   transpose: number;
+  scaleId?: ScaleId;
 };
 
 /** A `PatternBlock` can be removed by index. */
@@ -152,7 +153,7 @@ export const patternsSlice = createNormalSlice({
       state,
       action: PayloadAction<TransposePatternBlockPayload>
     ) => {
-      const { id, index, transpose } = action.payload;
+      const { id, index, transpose, scaleId } = action.payload;
       const pattern = state.entities[id];
       if (!pattern || index < 0 || index > pattern.stream.length) return;
       const block = pattern.stream[index];
@@ -162,7 +163,9 @@ export const patternsSlice = createNormalSlice({
         if (!isNestedNote(note)) {
           return { ...note, MIDI: note.MIDI + transpose };
         }
-        const offset = sumVectors(note.offset, { chromatic: transpose });
+        const offset = sumVectors(note.offset, {
+          [scaleId ?? "chromatic"]: transpose,
+        });
         return { ...note, offset };
       });
     },

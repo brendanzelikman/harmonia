@@ -14,7 +14,7 @@ import {
   getPatternChordWithNewNotes,
 } from "../PatternUtils";
 import { Payload } from "lib/redux";
-import { isNestedNote } from "types/Scale/ScaleTypes";
+import { isNestedNote, ScaleId } from "types/Scale/ScaleTypes";
 import { Frequency } from "tone";
 
 /** Transpose a pattern by a number of steps. */
@@ -24,9 +24,10 @@ export const transposePattern =
   }: Payload<{
     id: PatternId;
     transpose: number;
+    scaleId?: ScaleId;
   }>): Thunk =>
   (dispatch, getProject) => {
-    const { id, transpose } = data;
+    const { id, transpose, scaleId } = data;
     const project = getProject();
     const pattern = selectPatternById(project, id);
     if (!pattern) return;
@@ -36,11 +37,13 @@ export const transposePattern =
       const notes = getPatternChordNotes(block);
       return notes.map((note) => {
         if (isPatternMidiNote(note)) {
-          return { ...note, MIDI: clamp(note.MIDI + transpose, 0, 127) };
+          return { ...note, MIDI: note.MIDI + transpose };
         }
         return {
           ...note,
-          offset: sumVectors(note.offset, { chromatic: transpose }),
+          offset: sumVectors(note.offset, {
+            [scaleId ?? "chromatic"]: transpose,
+          }),
         };
       });
     });
@@ -69,7 +72,7 @@ export const harmonizePattern =
               offset: sumVectors(note.offset, { chromatic: interval }),
             };
           } else {
-            return { ...note, MIDI: clamp(note.MIDI + interval, 0, 127) };
+            return { ...note, MIDI: note.MIDI + interval };
           }
         }),
       ];

@@ -6,6 +6,7 @@ import { selectProjectId } from "types/Meta/MetaSelectors";
 import { hasReachedProjectLimit } from "./util";
 import { dispatchCustomEvent } from "utils/html";
 import { UPDATE_PROJECTS } from "types/Project/ProjectThunks";
+import { MAESTRO_PROJECT_LIMIT, PRODIGY_PROJECT_LIMIT } from "utils/rank";
 
 /** Get the list of all projects as a promise. */
 export async function getProjectsFromDB(): Promise<Project[]> {
@@ -25,8 +26,8 @@ export async function getProjectsFromDB(): Promise<Project[]> {
 
   // Return the projects based on the user's project limit
   if (user.isAdmin) return projects;
-  if (user.isProdigy) return projects.slice(0, 1);
-  if (user.isMaestro) return projects.slice(0, 100);
+  if (user.isProdigy) return projects.slice(0, PRODIGY_PROJECT_LIMIT);
+  if (user.isMaestro) return projects.slice(0, MAESTRO_PROJECT_LIMIT);
   if (user.isVirtuoso) return projects;
   return [];
 }

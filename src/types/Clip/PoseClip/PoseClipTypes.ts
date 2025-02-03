@@ -31,7 +31,7 @@ export const defaultPoseClip: PoseClip = {
   trackId: "pattern-track_1",
   tick: 0,
   offset: 0,
-  poseId: "pose_default",
+  poseId: createId("pose"),
 };
 
 /** Create a pose clip with a unique ID. */

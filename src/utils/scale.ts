@@ -67,6 +67,7 @@ export const getPreferredKey = (note: MidiNote, name?: string): Key => {
 type KeyMapEntry = {
   key: Key;
   name?: string;
+  aliases?: string[];
   inversion?: number;
 };
 const SCALE_KEY_MAP = new Map<string, KeyMapEntry>();
@@ -85,10 +86,11 @@ for (const [scales, keys] of SCALE_KEYSETS) {
       const tonic = getTonicPitchClass(notes, keys[i]);
       const inversion = t > 0 ? ` (t${t})` : "";
       const name = `${tonic} ${scales[i].name}${inversion}`;
+      const aliases = scales[i].aliases;
 
       // Add the scale (or mode if there is no scale yet)
       if (t === 0 || !SCALE_KEY_MAP.has(canon)) {
-        SCALE_KEY_MAP.set(canon, { key: keys[i], name, inversion: t });
+        SCALE_KEY_MAP.set(canon, { key: keys[i], name, aliases, inversion: t });
       }
     }
   }
@@ -113,12 +115,13 @@ for (const chord of PatternChords) {
       const tonic = getTonicPitchClass(transposition, key);
       const inversion = t > 0 ? ` (t${t})` : "";
       const name = `${tonic} ${chord.name}${inversion}`;
+      const aliases = chord.aliases;
 
       // Add the pattern if there are no entries yet
       const isScale = SCALE_KEY_MAP.has(canon);
       const isPattern = PATTERN_KEY_MAP.has(canon);
       if (!isScale && (t === 0 || !isPattern)) {
-        PATTERN_KEY_MAP.set(canon, { key, name, inversion: t });
+        PATTERN_KEY_MAP.set(canon, { key, name, aliases, inversion: t });
       }
     }
   }
@@ -140,7 +143,7 @@ export const getScaleName = (scale: Scale) => {
   if (!notes.length) return "Empty Scale";
 
   // Return the scale name if it exists and the scale is not in a track
-  if (isScaleObject(scale) && scale.name && scale.scaleTrackId) {
+  if (isScaleObject(scale) && scale.name && scale.trackId) {
     return scale.name;
   }
 
@@ -148,6 +151,13 @@ export const getScaleName = (scale: Scale) => {
   const canon = getCanonicalScale(notes);
   if (canon === getCanonicalScale(chromaticNotes)) return "Chromatic Scale";
   return KEY_MAP.get(canon)?.name || getCanonicalScale(notes);
+};
+
+/** Get the aliases of a scale by looking it up in the key map. */
+export const getScaleAliases = (scale: Scale) => {
+  const notes = getScaleNotes(scale) as MidiScale;
+  const canon = getCanonicalScale(notes);
+  return KEY_MAP.get(canon)?.aliases || [];
 };
 
 /** Get the key of a scale by looking it up in the key map. */

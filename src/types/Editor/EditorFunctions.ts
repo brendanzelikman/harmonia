@@ -14,11 +14,6 @@ export const isPatternEditorOpen = (editor: Editor) => {
   return editor.view === "pattern";
 };
 
-/** Checks if the pose editor is open. */
-export const isPoseEditorOpen = (editor: Editor) => {
-  return editor.view === "pose";
-};
-
 /** Checks if the scale editor is open. */
 export const isScaleEditorOpen = (editor: Editor) => {
   return editor.view === "scale";

@@ -1,5 +1,10 @@
 import { InstrumentEditorProps } from "../InstrumentEditor";
-import { Disclosure, Transition } from "@headlessui/react";
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+  Transition,
+} from "@headlessui/react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { ComponentProps, useCallback, useMemo, useState } from "react";
 import {
@@ -129,7 +134,7 @@ export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
           <Disclosure key={category}>
             {({ open }) => (
               <>
-                <Disclosure.Button className="outline-none">
+                <DisclosureButton className="outline-none">
                   <div className="flex items-center justify-center">
                     <label
                       className={`capitalize py-2.5 px-2 ${
@@ -145,7 +150,7 @@ export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
                       {open ? <BsChevronDown /> : <BsChevronUp />}
                     </span>
                   </div>
-                </Disclosure.Button>
+                </DisclosureButton>
                 <Transition
                   show={open}
                   appear
@@ -156,9 +161,9 @@ export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
                   leaveFrom="opacity-100 transform scale-100"
                   leaveTo="opacity-0 transform scale-95"
                 >
-                  <Disclosure.Panel>
+                  <DisclosurePanel>
                     {getCategoryInstruments(category).map(renderInstrument)}
-                  </Disclosure.Panel>
+                  </DisclosurePanel>
                 </Transition>
               </>
             )}

@@ -83,6 +83,16 @@ export const getRotatedScale = <T extends Scale>(scale: T, steps = 0) => {
   const modulus = notes.length;
   const newNotes: ScaleArray = [];
 
+  // return getNewScale(
+  //   scale,
+  //   notes.map((n, i) => {
+  //     const summedIndex = i + steps;
+  //     const moddedIndex = mod(summedIndex, modulus);
+  //     const wrap = Math.floor(summedIndex / modulus);
+  //     return getTransposedScaleNote(notes[moddedIndex], wrap * 12);
+  //   })
+  // );
+
   // Iterate through each note
   for (let i = 0; i < notes.length; i++) {
     // Compute the new index and wrap around the modulus
@@ -94,7 +104,7 @@ export const getRotatedScale = <T extends Scale>(scale: T, steps = 0) => {
     const wrap = Math.floor(summedIndex / modulus);
 
     // Push the new note to the array
-    const note = getTransposedScaleNote(newNote, wrap * 12, "chromatic");
+    const note = getTransposedScaleNote(newNote, wrap * 12);
     newNotes.push(note);
   }
 

@@ -8,7 +8,7 @@ export const LandingObservatory = (props: LandingHeroProps) => (
       whileInView={{ opacity: 1, y: 0 }}
       className="mt-auto text-blue-200/50 text-center select-none"
     >
-      It's nice to take a breath of fresh air sometimes.
+      Music is enough for a lifetime, but a lifetime is not enough for music.
       <br />
       Background Credit:{" "}
       <a

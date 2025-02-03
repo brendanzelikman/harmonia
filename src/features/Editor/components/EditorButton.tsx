@@ -1,4 +1,4 @@
-import { Menu } from "@headlessui/react";
+import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import classNames from "classnames";
 import { cancelEvent, promptUserForNumber } from "utils/html";
 
@@ -71,14 +71,14 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
     <Menu as="div" className="relative z-50">
       {({ open }) => (
         <>
-          <Menu.Button
+          <MenuButton
             as="div"
             className="flex justify-center"
             onClick={disabled ? cancelEvent : undefined}
           >
             <Button open={open} />
-          </Menu.Button>
-          <Menu.Items className="absolute flex flex-col top-8 px-2 whitespace-nowrap -mr-5 py-2 bg-slate-900/90 backdrop-blur border border-slate-400 text-sm rounded animate-in fade-in zoom-in-50 duration-100">
+          </MenuButton>
+          <MenuItems className="absolute flex flex-col top-8 px-2 whitespace-nowrap -mr-5 py-2 bg-slate-900/90 backdrop-blur border border-slate-400 text-sm rounded animate-in fade-in zoom-in-50 duration-100">
             {options.map((option, i) => (
               <div
                 key={i}
@@ -88,7 +88,7 @@ export const EditorButton: React.FC<EditorButtonProps> = (props) => {
                 {option.label}
               </div>
             ))}
-          </Menu.Items>
+          </MenuItems>
         </>
       )}
     </Menu>

@@ -7,7 +7,6 @@ import {
   MediaSelection,
   MediaDraft,
   MediaClipboard,
-  defaultMediaSelection,
   defaultMediaDraft,
   defaultMediaClipboard,
   isMediaSelection,

@@ -5,9 +5,9 @@ export function useCustomEventListener(
   onEvent: (event: CustomEvent) => void
 ) {
   useEffect(() => {
-    const listener = onEvent as EventListener;
-    window.addEventListener(type, listener);
-    return () => window.removeEventListener(type, listener, false);
+    window.addEventListener(type, onEvent as EventListener);
+    return () =>
+      window.removeEventListener(type, onEvent as EventListener, false);
   }, [type, onEvent]);
 }
 

@@ -79,7 +79,7 @@ export function createValueSelector<T>(
   defaultValue?: T
 ) {
   return (project: Project, id?: string) => {
-    const value = getValueByKey(mapSelector(project), id);
+    const value = id ? mapSelector(project)[id] : undefined;
     if (value === undefined && defaultValue !== undefined) {
       return typeof defaultValue === "function"
         ? defaultValue(id)

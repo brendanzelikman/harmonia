@@ -37,7 +37,7 @@ function ScaleEditorComponent(props: EditorProps) {
   const midiScale = useDeep((_) =>
     trackId ? selectTrackMidiScale(_, trackId) : resolveScaleToMidi(props.scale)
   );
-  const scaleName = use((_) => selectScaleName(_, props.scale?.id));
+  const scaleName = use((_) => selectScaleName(_, props.scale?.id) ?? "");
   const scaleCategory = getScaleCategory(props.scale);
 
   const isCustom = customScales.some((s) => s.id === props.scale?.id);

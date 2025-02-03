@@ -1,7 +1,7 @@
 import { blurOnEnter } from "utils/html";
 import { BiTrash } from "react-icons/bi";
 import { SiAudiomack, SiMidi } from "react-icons/si";
-import { Menu } from "@headlessui/react";
+import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import { ComponentProps } from "react";
 import { useTransportTick } from "hooks/useTransportTick";
 import { format, percent } from "utils/math";
@@ -14,7 +14,7 @@ import {
   GiWoodenSign,
 } from "react-icons/gi";
 import classNames from "classnames";
-import { use, useProjectDispatch } from "types/hooks";
+import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { setProjectName } from "types/Meta/MetaSlice";
 import { selectMeta } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
@@ -33,15 +33,16 @@ import {
   NavbarFormLabel,
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
+import { NEW_PROJECT_NAME } from "types/Meta/MetaTypes";
 
 export function NavbarFileMenu() {
   const dispatch = useProjectDispatch();
   const { isAtLeastRank } = useAuth();
-  const meta = use(selectMeta);
-  const { downloading } = use(selectTransport);
+  const meta = useDeep(selectMeta);
+  const { downloading } = useDeep(selectTransport);
   const endTick = use(selectLastArrangementTick);
-  const offlineTick = useTransportTick({ offline: true });
-  const downloadProgress = downloading ? percent(offlineTick, 0, endTick) : 0;
+  const { tick } = useTransportTick({ offline: true });
+  const downloadProgress = downloading ? percent(tick, 0, endTick) : 0;
   const downloadPercent = format(downloadProgress, 0);
   const hasDownloaded = downloadProgress >= 100;
 
@@ -61,7 +62,7 @@ export function NavbarFileMenu() {
               id="projectName"
               className="w-full focus:bg-indigo-900/50 py-2 mb-2"
               type="text"
-              placeholder="New Project"
+              placeholder={NEW_PROJECT_NAME}
               value={meta.name}
               onChange={(e) => dispatch(setProjectName(e.target.value))}
               onKeyDown={blurOnEnter}
@@ -84,7 +85,7 @@ export function NavbarFileMenu() {
 
           {/* Load Project */}
           <NavbarFileGroup onClick={() => dispatch(readLocalProjects())}>
-            <NavbarFileLabel>Load from File</NavbarFileLabel>
+            <NavbarFileLabel>Open Local Project</NavbarFileLabel>
             <GiSave className="ml-auto text-2xl" />
           </NavbarFileGroup>
 
@@ -169,12 +170,12 @@ export function NavbarFileMenu() {
             <Menu as="div" className="w-full relative">
               {({ open, close }) => (
                 <>
-                  <Menu.Button className="w-full inline-flex justify-between items-center">
+                  <MenuButton className="w-full inline-flex justify-between items-center">
                     <NavbarFormLabel>Clear Project</NavbarFormLabel>
                     <BiTrash className="text-2xl" />
-                  </Menu.Button>
+                  </MenuButton>
                   {open && (
-                    <Menu.Items className="animate-in fade-in zoom-in-95 absolute flex flex-col items-center -top-8 -right-52 -mr-5 p-2 bg-slate-800 border border-slate-400 text-xs rounded">
+                    <MenuItems className="animate-in fade-in zoom-in-95 absolute flex flex-col items-center -top-8 -right-52 -mr-5 p-2 bg-slate-800 border border-slate-400 text-xs rounded">
                       <div className="w-full text-center pb-1 mb-1 font-bold border-b border-b-slate-500/50">
                         Clear Project?
                       </div>
@@ -195,7 +196,7 @@ export function NavbarFileMenu() {
                           No
                         </button>
                       </div>
-                    </Menu.Items>
+                    </MenuItems>
                   )}
                 </>
               )}

@@ -1,8 +1,8 @@
-import { FormatterProps } from "react-data-grid";
 import { Row } from "features/Timeline/Timeline";
+import { RenderCellProps } from "react-data-grid";
 import { useDrop } from "react-dnd";
 
-export interface CellFormatterProps extends FormatterProps<Row> {
+export interface CellFormatterProps extends RenderCellProps<Row> {
   col: number;
   className?: string;
   onClick?: () => void;

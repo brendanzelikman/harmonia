@@ -15,6 +15,8 @@ import {
   BsCopy,
   BsEraser,
   BsEraserFill,
+  BsMagnet,
+  BsMagnetFill,
   BsThreeDots,
   BsTrash,
 } from "react-icons/bs";
@@ -25,25 +27,22 @@ import {
   GiCrystalWand,
   GiTronArrow,
   Gi3DStairs,
+  GiAudioCassette,
+  GiDominoMask,
+  GiMagnet,
+  GiFamilyTree,
 } from "react-icons/gi";
 import { SiMidi } from "react-icons/si";
 import { getTransport } from "tone";
-import { addClip } from "types/Clip/ClipSlice";
 import { exportTrackToMIDI } from "types/Clip/ClipThunks";
-import {
-  initializePatternClip,
-  initializePoseClip,
-} from "types/Clip/ClipTypes";
-import { createPattern } from "types/Pattern/PatternThunks";
-import { createPose, inputPoseVector } from "types/Pose/PoseThunks";
+import { inputPoseVector } from "types/Pose/PoseThunks";
 import {
   insertScaleTrack,
   collapseTracks,
-  collapseTrackParents,
   duplicateTrack,
   deleteTrack,
   clearTrack,
-  collapseTrackChildren,
+  quantizeTrackClips,
 } from "types/Track/TrackThunks";
 import { TrackDropdownButton } from "./TrackDropdownButton";
 import { Track } from "types/Track/TrackTypes";
@@ -52,6 +51,8 @@ import {
   selectTrackChain,
   selectTrackDescendants,
 } from "types/Track/TrackSelectors";
+import { setupFileInput } from "providers/idb";
+import { createMedia } from "types/Media/MediaThunks";
 
 export const TrackDropdownMenu = (props: {
   track: Track;
@@ -120,6 +121,13 @@ export const TrackDropdownMenu = (props: {
                 </TabList>
                 <TabPanels>
                   <TabPanel>
+                    {isPT && (
+                      <TrackDropdownButton
+                        content="Load Sample"
+                        icon={<GiAudioCassette />}
+                        onClick={() => dispatch(setupFileInput(track))}
+                      />
+                    )}
                     <TrackDropdownButton
                       content="Update Vector"
                       icon={<GiTronArrow className="-rotate-90" />}
@@ -154,33 +162,22 @@ export const TrackDropdownMenu = (props: {
                     />
                   </TabPanel>
                   <TabPanel>
-                    {/* <TrackDropdownButton
-                      content={`${isOtherCollapsed ? "Enlarge " : "Minify"} ${
-                        track.type === "scale" ? "Children" : "Parents"
-                      }`}
-                      icon={<BsArrowsCollapse />}
-                      onClick={() =>
-                        dispatch(
-                          track.type === "scale"
-                            ? collapseTrackChildren(trackId, !isOtherCollapsed)
-                            : collapseTrackParents(trackId, !isOtherCollapsed)
-                        )
-                      }
-                    /> */}
                     {isPT && (
                       <TrackDropdownButton
                         content="Create Pattern Clip"
-                        icon={<GiPaintBrush className="-rotate-90" />}
+                        icon={<GiPaintBrush />}
                         onClick={() =>
                           dispatch(
-                            addClip({
-                              data: initializePatternClip({
-                                trackId,
-                                patternId: dispatch(
-                                  createPattern({ data: { trackId } })
-                                ),
-                                tick: getTransport().ticks,
-                              }),
+                            createMedia({
+                              data: {
+                                clips: [
+                                  {
+                                    type: "pattern",
+                                    trackId,
+                                    tick: getTransport().ticks,
+                                  },
+                                ],
+                              },
                             })
                           )
                         }
@@ -191,17 +188,44 @@ export const TrackDropdownMenu = (props: {
                       icon={<GiCrystalWand />}
                       onClick={() =>
                         dispatch(
-                          addClip({
-                            data: initializePoseClip({
-                              trackId,
-                              poseId: dispatch(
-                                createPose({ data: { trackId } })
-                              ),
-                              tick: getTransport().ticks,
-                            }),
+                          createMedia({
+                            data: {
+                              clips: [
+                                {
+                                  type: "pose",
+                                  trackId,
+                                  tick: getTransport().ticks,
+                                },
+                              ],
+                            },
                           })
                         )
                       }
+                    />
+                    <TrackDropdownButton
+                      content="Create Scale Clip"
+                      icon={<GiDominoMask />}
+                      onClick={() =>
+                        dispatch(
+                          createMedia({
+                            data: {
+                              clips: [
+                                {
+                                  type: "scale",
+                                  trackId,
+                                  tick: getTransport().ticks,
+                                },
+                              ],
+                            },
+                          })
+                        )
+                      }
+                    />
+                    <TrackDropdownButton
+                      divideEnd
+                      content="Quantize Clips"
+                      icon={<BsMagnetFill />}
+                      onClick={() => dispatch(quantizeTrackClips(trackId))}
                     />
                     {isPT && (
                       <TrackDropdownButton
@@ -216,10 +240,48 @@ export const TrackDropdownMenu = (props: {
                       onClick={() => dispatch(clearTrack(trackId, "pose"))}
                     />
                     <TrackDropdownButton
-                      content="Erase All Media"
+                      content="Erase Scale Clips"
+                      icon={<BsEraser />}
+                      onClick={() => dispatch(clearTrack(trackId, "scale"))}
+                    />
+                    <TrackDropdownButton
+                      content="Erase Track Clips"
                       icon={<BsEraserFill />}
                       onClick={() => dispatch(clearTrack(trackId))}
                     />
+                    {!isPT && (
+                      <>
+                        <TrackDropdownButton
+                          divideStart
+                          content="Clear Pattern Clips"
+                          icon={<GiFamilyTree />}
+                          onClick={() =>
+                            dispatch(clearTrack(trackId, "pattern", true))
+                          }
+                        />
+                        <TrackDropdownButton
+                          content="Clear Pose Clips"
+                          icon={<GiFamilyTree />}
+                          onClick={() =>
+                            dispatch(clearTrack(trackId, "pose", true))
+                          }
+                        />
+                        <TrackDropdownButton
+                          content="Clear Scale Clips"
+                          icon={<GiFamilyTree />}
+                          onClick={() =>
+                            dispatch(clearTrack(trackId, "scale", true))
+                          }
+                        />
+                        <TrackDropdownButton
+                          content="Clear All Clips"
+                          icon={<BsEraserFill />}
+                          onClick={() =>
+                            dispatch(clearTrack(trackId, undefined, true))
+                          }
+                        />
+                      </>
+                    )}
                   </TabPanel>
                 </TabPanels>
               </TabGroup>

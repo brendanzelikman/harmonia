@@ -2,8 +2,8 @@ import { nanoid } from "@reduxjs/toolkit";
 import { Payload, createUndoType, unpackUndoType } from "lib/redux";
 import { union, difference, range } from "lodash";
 import { selectClipsByTrackIds } from "types/Clip/ClipSelectors";
-import { addClips, removeClips } from "types/Clip/ClipSlice";
-import { ClipType, initializeClip } from "types/Clip/ClipTypes";
+import { addClips, removeClips, updateClips } from "types/Clip/ClipSlice";
+import { Clip, ClipType, initializeClip } from "types/Clip/ClipTypes";
 import { hideEditor } from "types/Editor/EditorSlice";
 import {
   LiveAudioInstance,
@@ -23,7 +23,7 @@ import {
   initializeInstrument,
   Instrument,
 } from "types/Instrument/InstrumentTypes";
-import { isPatternRest, PatternNote } from "types/Pattern/PatternTypes";
+import { PatternNote } from "types/Pattern/PatternTypes";
 import { selectPortalsByTrackIds } from "types/Portal/PortalSelectors";
 import { removePortals } from "types/Portal/PortalSlice";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -34,18 +34,17 @@ import {
   initializeScale,
   NestedNote,
 } from "types/Scale/ScaleTypes";
-import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
+import {
+  selectSelectedTrackId,
+  selectSubdivisionTicks,
+} from "types/Timeline/TimelineSelectors";
 import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
 import { isHoldingOption } from "utils/html";
 import { getArrayByKey, getValueByKey, spliceOrPush } from "utils/objects";
 import { createPatternTrack } from "./PatternTrack/PatternTrackThunks";
 import { PatternTrack, PatternTrackId } from "./PatternTrack/PatternTrackTypes";
 import { createScaleTrack } from "./ScaleTrack/ScaleTrackThunks";
-import {
-  isScaleTrackId,
-  ScaleTrack,
-  ScaleTrackId,
-} from "./ScaleTrack/ScaleTrackTypes";
+import { isScaleTrackId } from "./ScaleTrack/ScaleTrackTypes";
 import {
   selectTracks,
   selectTrackMap,
@@ -61,7 +60,7 @@ import {
   selectTrackMidiScaleMap,
   selectTrackChainIds,
   selectTrackAncestorIds,
-  selectScaleTrackById,
+  selectTrackDescendantIds,
 } from "./TrackSelectors";
 import { scaleTrackSlice, patternTrackSlice } from "./TrackSlice";
 import {
@@ -74,22 +73,15 @@ import {
 } from "./TrackTypes";
 import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
 import { mod } from "utils/math";
-import { getMidiOctaveDistance, MidiNote, MidiValue } from "utils/midi";
+import { getMidiOctaveDistance, MidiValue } from "utils/midi";
 import { resolvePatternNoteToMidi } from "types/Pattern/PatternResolvers";
 import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
 import { selectPoses } from "types/Pose/PoseSelectors";
 import { removePose } from "types/Pose/PoseSlice";
-import {
-  removePattern,
-  updatePattern,
-  updatePatterns,
-} from "types/Pattern/PatternSlice";
-import { PoseOperation } from "types/Pose/PoseTypes";
-import {
-  getTransposedMidiNote,
-  transposeNoteThroughScale,
-} from "types/Scale/ScaleTransformers";
+import { removePattern, updatePatterns } from "types/Pattern/PatternSlice";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
+import { createMedia } from "types/Media/MediaThunks";
+import { getTransport } from "tone";
 
 /** Add an array of tracks to the store. */
 export const addTracks =
@@ -368,7 +360,7 @@ export const duplicateTrack =
       if (scale) {
         const newScale = initializeScale({
           ...scale,
-          scaleTrackId: newTrack.id,
+          trackId: newTrack.id,
         });
         allScales.push(newScale);
 
@@ -406,7 +398,7 @@ export const duplicateTrack =
           if (scale) {
             const newScale = initializeScale({
               ...scale,
-              scaleTrackId: newParent.id,
+              trackId: newParent.id,
             });
             allScales.push(newScale);
 
@@ -473,9 +465,9 @@ export const duplicateTrack =
     dispatch(addClips({ data: allClips, undoType }));
   };
 
-/** Clear a track of all media. */
+/** Clear a track of all media and its children. */
 export const clearTrack =
-  (trackId: TrackId, type?: ClipType): Thunk =>
+  (trackId: TrackId, type?: ClipType, clearChildren = false): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const track = selectTrackById(project, trackId);
@@ -484,6 +476,10 @@ export const clearTrack =
 
     // Get all clip IDs matching the type if specified
     const clips = selectClipsByTrackIds(project, [track.id]);
+    if (clearChildren) {
+      const children = selectTrackDescendantIds(project, trackId);
+      clips.push(...selectClipsByTrackIds(project, children));
+    }
     const clipIds = clips
       .filter((c) => !type || c.type === type)
       .map((c) => c.id);
@@ -560,21 +556,34 @@ export const deleteTrack =
 
       // Remove all empty poses referencing the track
       for (const pose of poses) {
-        const vector = (pose.stream[0] as PoseOperation)?.vector ?? {};
-        if (
-          pose.trackId === id &&
-          (!pose.stream.length || !Object.values(vector).some((v) => v))
-        ) {
+        const vector = pose.vector ?? {};
+        if (pose.trackId === id && !Object.values(vector).some((v) => v)) {
           dispatch(removePose({ data: pose.id, undoType }));
         }
       }
     }
   };
 
-/** Insert a scale track in the place of a track and nest the original track. */
-export const insertScaleTrack =
+/** Quantize the clips of a track to the nearest ticks based on the current subdivision */
+export const quantizeTrackClips =
   (trackId: TrackId): Thunk =>
   (dispatch, getProject) => {
+    const project = getProject();
+    const clips = selectClipsByTrackIds(project, [trackId]);
+    const ticks = selectSubdivisionTicks(project);
+    const undoType = createUndoType("quantizeTrackClips", trackId);
+    const updatedClips = clips.map((clip) => {
+      const tick = Math.round(clip.tick / ticks) * ticks;
+      return { ...clip, tick };
+    });
+    dispatch(updateClips({ data: updatedClips, undoType }));
+  };
+
+/** Insert a scale track in the place of a track and nest the original track. */
+export const insertScaleTrack =
+  (trackId?: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    if (!trackId) return;
     const project = getProject();
     const track = selectTrackById(project, trackId);
     if (!track) return;
@@ -588,13 +597,11 @@ export const insertScaleTrack =
         undoType
       )
     );
+    console.log(track, newTrack);
 
     // If the track has a parent, update its children
     if (track.parentId) {
-      const parent = selectScaleTrackById(
-        project,
-        track.parentId as ScaleTrackId
-      );
+      const parent = selectTrackById(project, track.parentId);
       if (!parent) return;
       const index = parent.trackIds.indexOf(trackId);
       const newTrackIds = parent.trackIds.map((_, i) =>
@@ -616,6 +623,7 @@ export const insertScaleTrack =
       );
 
       // Update all patterns with notes using the parent's scale ID
+      if (!isScaleTrack(parent)) return;
       let customPatterns = selectCustomPatterns(project);
       for (const p in customPatterns) {
         let customPattern = customPatterns[p];
@@ -635,6 +643,11 @@ export const insertScaleTrack =
         }
       }
       dispatch(updatePatterns({ data: customPatterns, undoType }));
+    } else {
+      // Otherwise, move the track to the new track
+      dispatch(
+        migrateTrack({ data: { id: trackId, parentId: newTrack.id }, undoType })
+      );
     }
   };
 
@@ -700,7 +713,9 @@ export const autoBindNoteToTrack =
     const trackScaleMap = selectTrackMidiScaleMap(project);
     const chainIds = selectTrackChainIds(project, trackId);
     const idCount = chainIds.length;
+    if (!idCount) return note;
 
+    const trackScaleId = scaleTrackMap[chainIds[0]]?.scaleId;
     const tonicScale = selectTrackMidiScale(project, trackId);
     const chromaticScale = range(tonicScale[0], tonicScale[0] + 12);
 
@@ -718,13 +733,12 @@ export const autoBindNoteToTrack =
         const octave = getMidiOctaveDistance(scale[degree], midi);
         note = { ...scaleNote, degree, offset: { octave } };
         if ("MIDI" in note) delete note.MIDI;
-        break;
+        return note;
       }
 
       // Otherwise, check parent scales for neighbors, preferring deep matches first
       const parentIds = chainIds.slice(0, i).toReversed();
       const trackIds: (TrackId | "T")[] = [...parentIds, "T"];
-      let found = false;
 
       // Iterate over all scale offsets
       for (let i = 0; i < trackIds.length; i++) {
@@ -758,21 +772,8 @@ export const autoBindNoteToTrack =
 
           const offset = { [parentScaleId]: 1, octave };
           note = { ...scaleNote, degree: lowerDegree, offset };
-          console.log(
-            degree,
-            lowerDegree,
-            lowerMIDI,
-            lowerWrap,
-            midi,
-            note,
-            scaleId,
-            scale,
-            parentScale,
-            id
-          );
           if ("MIDI" in note) delete note.MIDI;
-          found = true;
-          break;
+          return note;
         }
 
         // Check if the note can be raised to fit in the scale
@@ -791,14 +792,21 @@ export const autoBindNoteToTrack =
           const offset = { [parentScaleId]: -1, octave };
           note = { ...scaleNote, degree: upperDegree, offset };
           if ("MIDI" in note) delete note.MIDI;
-          found = true;
-          break;
+          return note;
         }
       }
-
-      if (found) break;
     }
-    return note;
+
+    // If no match has been found, manually set the note as a neighbor of the tonic
+    const offset = { chromatic: midi - tonicScale[0] };
+    const updatedNote: PatternNote = {
+      ...note,
+      degree: 0,
+      offset,
+      scaleId: trackScaleId,
+    };
+    if ("MIDI" in updatedNote) delete updatedNote.MIDI;
+    return updatedNote;
   };
 
 /** Mute all tracks. */

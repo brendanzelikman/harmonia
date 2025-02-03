@@ -19,12 +19,12 @@ import { selectProjectName } from "types/Meta/MetaSelectors";
 import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { UPDATE_PROJECTS } from "types/Project/ProjectThunks";
 
-export type View = (typeof views)[number];
+export type View = "projects" | "demos" | "docs" | "profile" | "playground";
 export const views = [
   "projects",
-  "demos",
-  "docs",
-  "profile",
+  // "demos",
+  // "docs",
+  // "profile",
   "playground",
 ] as const;
 

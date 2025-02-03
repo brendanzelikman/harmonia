@@ -5,7 +5,6 @@ import {
   LandingPopupHeader,
   LandingHeroProps,
 } from "../components";
-import { useAuth } from "providers/auth";
 import {
   MAESTRO_PRICE,
   MAESTRO_PROJECT_LIMIT,
@@ -14,11 +13,9 @@ import {
 } from "utils/rank";
 
 export const LandingPricingHero = (props: LandingHeroProps) => {
-  const { isProdigy, isMaestro, isVirtuoso } = useAuth();
-
   return (
     <LandingSection className="py-10 px-5 justify-center text-white">
-      <LandingPopupHeader title="It's dangerous to go alone! Take this." />
+      <LandingPopupHeader title="What is Harmonia?" />
       <div className="w-full flex flex-wrap justify-center gap-16">
         <m.div
           initial={{ opacity: 0, y: 50 }}
@@ -26,18 +23,16 @@ export const LandingPricingHero = (props: LandingHeroProps) => {
           transition={{ delay: 0.1 }}
         >
           <LandingPriceBox
-            name="prodigy"
-            isEnabled={isProdigy}
+            name="Workstation"
+            isEnabled
             price={`$${PRODIGY_PRICE} / month`}
-            description="Get started with the basics."
+            description="Web-Based Musical Sandbox"
             features={[
-              "Access to Website",
-              "Read/Write a Project",
-              "Basic Demos and Presets",
-              "Export to HAM + WAV",
-              "Documentation + Tutorial",
-              "Developer Support",
-              "No Strings Attached!",
+              "Create and Edit Projects",
+              "Autosaves to the Browser",
+              "Harmonia Markup (HAM) Files",
+              "Full Documentation Online",
+              "Desktop Application Available",
             ]}
           />
         </m.div>
@@ -47,18 +42,16 @@ export const LandingPricingHero = (props: LandingHeroProps) => {
           transition={{ delay: 0.2 }}
         >
           <LandingPriceBox
-            name="maestro"
-            isEnabled={isMaestro}
+            name="Instrument"
+            isEnabled
             price={`$${MAESTRO_PRICE} / month`}
-            description="Unleash the Playground."
+            description="Live Musical Playground"
             features={[
-              "Live Mixing and Posing",
-              `Store Up to ${MAESTRO_PROJECT_LIMIT} Projects`,
-              "Extensive Demos and Presets",
-              "Export to MIDI + MusicXML",
-              "Plug and Play with MIDI",
-              "Developer Gratitude",
-              "Email Support",
+              "Real-Time Audio Playback",
+              "Diverse Library of Instruments",
+              "Customizable Sound Effects",
+              "Plug-and-Play MIDI Devices",
+              "Export to MIDI and WAV",
             ]}
           />
         </m.div>
@@ -68,18 +61,16 @@ export const LandingPricingHero = (props: LandingHeroProps) => {
           transition={{ delay: 0.3 }}
         >
           <LandingPriceBox
-            name="virtuoso"
-            isEnabled={isVirtuoso}
+            name="Companion"
+            isEnabled
             price={`$${VIRTUOSO_PRICE} / month`}
-            description="Go even further beyond."
+            description="Integrated VST Plugin"
             features={[
-              "Desktop Application",
-              "Sync With VST Plugin",
-              "Every Feature Unlocked",
-              "Store Unlimited Projects",
-              "Access to Beta Features",
-              "Developer Love",
-              "Priority Support",
+              "Desktop-Only Feature",
+              "Connects to another DAW",
+              "Synchronize Each Track",
+              "Schedule MIDI Notes",
+              "Play Both Simultaneously",
             ]}
           />
         </m.div>

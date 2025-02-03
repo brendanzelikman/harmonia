@@ -1,34 +1,34 @@
 import Background from "assets/images/landing-background.png";
 import classNames from "classnames";
+import {
+  navbarLiveBackground,
+  NavbarLivePlayIcon,
+} from "features/Navbar/sections/Toolkit/NavbarLivePlayButton";
+import {
+  navbarClipBackground,
+  NavbarClipIcon,
+} from "features/Navbar/sections/Toolkit/NavbarClipButton";
+import {
+  navbarTrackBackground,
+  NavbarTrackIcon,
+} from "features/Navbar/sections/Toolkit/NavbarTrackButton";
 import { m } from "framer-motion";
-import { useCustomEventListener } from "hooks/useCustomEventListener";
 import React, { ReactNode, useState } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
 import {
   GiFamilyTree,
   GiDominoMask,
-  GiAudioCassette,
   GiPocketRadio,
   GiPaintBrush,
   GiCrystalWand,
   GiPianoKeys,
   GiHand,
   Gi3DStairs,
+  GiPalette,
 } from "react-icons/gi";
-import { use } from "types/hooks";
-import { selectTransportState } from "types/Transport/TransportSelectors";
-import { dispatchCustomEvent } from "utils/html";
 
 // The timeline starting screen
 export function TimelineStart() {
-  const [isReady, setIsReady] = useState();
-  const transportState = use(selectTransportState);
-  useCustomEventListener("timelineReady", (e) => setIsReady(e.detail));
-  useHotkeys(
-    "enter",
-    () => transportState && dispatchCustomEvent("timelineReady", true),
-    [transportState]
-  );
+  const [isReady, setIsReady] = useState(false);
   return (
     <div className="flex flex-col items-center pt-24 gap-4 relative size-full bg-slate-900/50 transition-all">
       <img
@@ -56,22 +56,22 @@ export function TimelineStart() {
                 background="bg-indigo-600"
                 border="border-indigo-600/60"
                 Icon={GiDominoMask}
-                title="Idea 1: Scales can be structured"
-                description="A Scale is a static collection of pitch classes that can be organized within a hierarchy of notes."
+                title="Idea 1: Scales are Structured"
+                description="A Scale is a structured collection of notes that can be organized within a hierarchy of pitch classes."
               />
               <Component
                 background="bg-emerald-600"
                 border="border-emerald-600/60"
                 Icon={GiPaintBrush}
-                title="Idea 2: Patterns can be scalar"
+                title="Idea 2: Patterns are Rhythmic"
                 description="A Pattern is a rhythmic sequence of pitches that can be defined using any Scales as reference."
               />
               <Component
                 background="bg-fuchsia-600/60"
                 border="border-fuchsia-600/60"
                 Icon={GiCrystalWand}
-                title="Idea 3: Poses can be styled"
-                description="A Pose is a dynamic set of transformations that can be applied to the notes of a Pattern or Scale."
+                title="Idea 3: Poses are Expressive"
+                description="A Pose refers to any musical effect that can be applied to the notes of a Pattern or Scale."
               />
             </div>
           </Button>
@@ -84,22 +84,22 @@ export function TimelineStart() {
                 background="bg-indigo-600"
                 border="border-indigo-600/60"
                 Icon={Gi3DStairs}
-                title="Scale Tracks are Parents"
-                description="A Scale Track contains a unique Scale that can be modified and passed along to its descendants."
+                title="Item 1: Scale Tracks are Recursive"
+                description="A Scale Track contains a transformable scale that becomes a parent for all of the track's descendants."
               />
               <Component
                 background="bg-emerald-700"
                 border="border-emerald-600/60"
                 Icon={GiPianoKeys}
-                title="Pattern Tracks are Children"
-                description="A Pattern Track contains a virtual Instrument that can play Patterns built with its parent Scales."
+                title="Item 2: Pattern Tracks are Nestable"
+                description="A Pattern Track can play patterns that bind to its inherited scales and adapt to changes in harmony."
               />
               <Component
                 background="bg-fuchsia-600/60"
                 border="border-fuchsia-600/60"
                 Icon={() => <GiFamilyTree className="rotate-180" />}
-                title="All Tracks are Formulated"
-                description="Clips of any basic type (Scales, Patterns, Poses) can be scheduled in a Track with cascading effects."
+                title="Item 3: Track Families are Hierarchical"
+                description="Clips (Scale, Pattern, or Pose) can be scheduled in a track with cascading effects down the hierarchy."
               />
             </div>
           </Button>
@@ -109,30 +109,30 @@ export function TimelineStart() {
                 ? "bg-gradient-radial animate-in fade-in-80 duration-500 from-fuchsia-500/80 to-sky-950/80"
                 : "bg-gradient-radial from-fuchsia-500/50 to-sky-950/50"
             }
-            title={isReady ? "New Items Unlocked!" : "Ready to Start?"}
-            onClick={() => dispatchCustomEvent("timelineReady", !isReady)}
+            title={isReady ? "Your Journey Awaits!" : "Ready to Start?"}
+            onClick={() => setIsReady(true)}
           >
             <div className="flex flex-col gap-4 p-4 text-lg items-center">
               <Component
-                background="bg-indigo-600"
+                background={navbarTrackBackground}
                 border="border-indigo-600/60"
-                Icon={GiPocketRadio}
-                title="Unlocked Radio!"
-                description="Use the Radio to create a family of Scale Tracks by inputting a list of Scales by name or note."
+                Icon={NavbarTrackIcon}
+                title="Step 1: Design your Architecture"
+                description={`Use this button or press 'N' to create new Tracks in the Timeline by specifying your request in TreeJS.`}
               />
               <Component
-                background="bg-emerald-600/60"
+                background={navbarClipBackground}
                 border="border-emerald-600/60"
-                Icon={GiAudioCassette}
-                title="Unlocked Cassette!"
-                description="Use the Cassette to create a Pattern Track by selecting an Instrument from presets or files."
+                Icon={NavbarClipIcon}
+                title="Step 2: Arrange your Composition"
+                description="Use this button or press 'A' once you have some Tracks to arrange new Clips in the Timeline."
               />
               <Component
-                background="bg-fuchsia-600/60"
+                background={navbarLiveBackground}
                 border="border-fuchsia-600/60"
-                Icon={GiHand}
-                title="Unlocked Keyboard!"
-                description="Use the Keyboard to quickstart a project and enable track shortcuts for live improvisation."
+                Icon={NavbarLivePlayIcon}
+                title="Step 3: Explore your Possibilities"
+                description="Use this button or press 'P' to quickstart a project and equip keyboard shortcuts for Live Play."
               />
             </div>
           </Button>
@@ -156,7 +156,7 @@ const Button = (props: {
       className={classNames(
         props.className,
         "bg-gradient-radial from-indigo-950/50 to-slate-950/50",
-        "max-w-[23rem] max-h-max flex flex-col mt-4 backdrop-blur overflow-hidden group border border-slate-600 transition-all duration-1000 text-white"
+        "max-w-[23.5rem] max-h-max flex flex-col mt-4 backdrop-blur overflow-hidden group border border-slate-600 transition-all duration-1000 text-white"
       )}
     >
       <button
@@ -199,7 +199,7 @@ const Component = (props: {
       "bg-slate-900/50 backdrop-blur-lg size-full flex flex-col gap-1 border p-2 rounded"
     )}
   >
-    <div className="font-bold flex gap-2 border-b border-b-white/5">
+    <div className="font-bold flex gap-2 text-base border-b border-b-white/5">
       <div
         className={classNames(
           props.background,

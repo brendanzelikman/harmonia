@@ -44,7 +44,7 @@ export const defaultPatternClip: PatternClip = {
   trackId: "pattern-track_1",
   tick: 0,
   offset: 0,
-  patternId: "pattern_default",
+  patternId: createId("pattern"),
 };
 
 /** Create a pattern clip with a unique ID. */

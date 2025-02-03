@@ -10,9 +10,6 @@ import {
   PatternClipState,
   PoseClipState,
   ScaleClipState,
-  PatternClipId,
-  PoseClipId,
-  ScaleClipId,
 } from "types/Clip/ClipTypes";
 import { ClipsByTrack } from "types/Clip/ClipUtils";
 import {
@@ -36,17 +33,18 @@ import { TrackId, TrackMap } from "types/Track/TrackTypes";
 // Arrangement Types
 // ------------------------------------------------------------
 
+export type ChainIdsByTrack = Record<TrackId, ScaleTrackId[]>;
+
 /** A track arrangement stores track/clip object maps. */
 export interface TrackArrangement {
   tracks: TrackMap;
-  trackAncestorIdMap: Record<TrackId, TrackId[]>;
   clips: {
     pattern: PatternClipMap;
     pose: PoseClipMap;
     scale: ScaleClipMap;
   };
   clipsByTrack: ClipsByTrack;
-  chainIdsByTrack: Record<TrackId, ScaleTrackId[]>;
+  chainIdsByTrack: ChainIdsByTrack;
 }
 
 /** A live arrangement stores the full track arrangement with instruments and portals. */

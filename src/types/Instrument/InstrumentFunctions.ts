@@ -9,8 +9,10 @@ import {
   InstrumentName,
   CategorizedInstrument,
   Instrument,
+  INSTRUMENT_KEYS,
 } from "./InstrumentTypes";
 import { SamplerOptions } from "tone";
+import { sample } from "lodash";
 
 // ------------------------------------------------------------
 // Instrument Serializers
@@ -85,3 +87,25 @@ export const getInstrumentSamplesBaseUrl = (key: InstrumentKey) => {
 /** Get a list of instruments corresponding to the given category. */
 export const getCategoryInstruments = (category: InstrumentCategory) =>
   categories[category] as CategorizedInstrument[];
+
+/** Get an instrument key matching the one in the string. */
+export const matchInstrumentKey = (string: string) => {
+  const text = string.toLowerCase();
+  return INSTRUMENT_KEYS.find((key) => {
+    const name = getInstrumentName(key).toLowerCase();
+    return name === text || name.split(" ").some((word) => word === text);
+  });
+};
+
+/** Sample an instrument by matching the category provided. */
+export const sampleInstrumentByCategory = (
+  string: string
+): InstrumentKey | undefined => {
+  const text = string.toLowerCase();
+  const category = INSTRUMENT_CATEGORIES.find(
+    (category) => category.toLowerCase() === text
+  );
+  if (!category) return;
+  const instruments = getCategoryInstruments(category);
+  return sample(instruments)?.key;
+};

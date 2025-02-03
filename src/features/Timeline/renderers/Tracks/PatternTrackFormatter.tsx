@@ -43,7 +43,8 @@ import { toggleTrackInstrumentEditor } from "types/Editor/EditorThunks";
 import { toggleTrackMute, toggleTrackSolo } from "types/Track/TrackThunks";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { GiHand, GiPianoKeys, GiSoundWaves } from "react-icons/gi";
-import { selectTrackVectorJSX } from "types/Arrangement/ArrangementTrackSelectors";
+import { useTransportTick } from "hooks/useTransportTick";
+import { selectTrackJSXAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 
 interface PatternTrackProps extends TrackFormatterProps {
   track: PatternTrack;
@@ -291,7 +292,8 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
     );
   }, [trackId, isSelected, onInstrumentEditor, instrumentName]);
 
-  const jsx = use((_) => selectTrackVectorJSX(_, trackId));
+  const { tick } = useTransportTick();
+  const jsx = useDeep((_) => selectTrackJSXAtTick(_, trackId, tick));
 
   /**
    * The Pattern Track has three main buttons.
@@ -393,7 +395,7 @@ export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
         { "text-xs": isSmall, "text-sm": !isSmall }
       )}
       style={{
-        paddingLeft: depth * 4,
+        paddingLeft: depth * 8,
         filter: `hue-rotate(${(depth - 2) * 4}deg)${
           [
             "tour-step-the-scale-track",

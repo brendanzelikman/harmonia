@@ -1,5 +1,4 @@
 import * as _ from "./PoseTypes";
-import { PresetPoseGroupList, PresetPoseGroupMap } from "assets/poses";
 import { WholeNoteTicks } from "utils/durations";
 import pluralize from "pluralize";
 import { ScaleVector } from "types/Scale/ScaleTypes";
@@ -22,16 +21,62 @@ import {
 import { isFiniteNumber } from "types/util";
 
 // ------------------------------------------------------------
+// Pose Properties
+// ------------------------------------------------------------
+
+/** Get the name of a pose. */
+export const getPoseName = (pose?: _.Pose) => {
+  return pose?.name ?? "";
+};
+
+/** Get the duration of a pose. */
+export const getPoseDuration = (pose?: _.Pose) => {
+  if (!pose) return 0;
+  if ("stream" in pose) return getPoseStreamDuration(pose?.stream);
+  return Infinity;
+};
+
+// ------------------------------------------------------------
 // Pose Serializers
 // ------------------------------------------------------------
+
+/** Get a `PoseVector` as a string. */
+export const getPoseVectorAsString = (
+  vector: _.PoseVector,
+  trackMap?: TrackMap
+) => {
+  const keys = getVectorKeys(vector);
+  return keys
+    .map((key) => {
+      if (isTrackId(key) && trackMap) {
+        return `${getTrackLabel(key, trackMap)}${vector[key]}`;
+      }
+      if (key === "chromatic") {
+        return `T${vector[key]}`;
+      }
+      if (key === "chordal") {
+        return `t${vector[key]}`;
+      }
+      if (key === "octave") {
+        return `O${vector[key]}`;
+      }
+      if (isPitchClass(key)) {
+        return `*${key}${vector[key]}`;
+      }
+    })
+    .join(" + ");
+};
 
 /** Get a `PoseVector` as JSX. */
 export const getPoseVectorAsJSX = (
   vector?: _.PoseVector,
-  trackMap?: TrackMap
+  trackMap?: TrackMap,
+  oneLine = true
 ) => {
   // Return the origin if the vector is empty
-  if (!vector || isVectorEmpty(vector)) return <span>Origin</span>;
+  if (!vector || isVectorEmpty(vector)) {
+    return <span>{oneLine ? "Origin" : ""}</span>;
+  }
 
   // Otherwise, parse the keys and create a string for each offset
   const keys = getVectorKeys(vector);
@@ -46,20 +91,33 @@ export const getPoseVectorAsJSX = (
     );
   }
 
+  if (!oneLine) {
+    const map = { chordal: "t", chromatic: "T", octave: "O" };
+    return keys.map((key, i) => (
+      <span key={`offset-${i}`}>
+        {isTrackId(key)
+          ? getTrackLabel(key, trackMap ?? {})
+          : isPitchClass(key)
+          ? `*${key}`
+          : map[key]}
+        {vector[key]}
+      </span>
+    ));
+  }
+
   // Create an element for the pitch classes if there is a voice leading
   const classes = getVectorPitchClasses(vector);
   const count = classes.length;
   const hasSeveralClasses = count > 0;
   const pitchKeys = isVoiceLeading(vector) ? (
     <span>
-      {hasSeveralClasses ? "(" : ""}
       {classes.map((pitch, i) => (
         <span key={`pitch-${i}`}>
-          {pitch}: {vector[pitch]}
+          *{pitch}
+          {vector[pitch]}
           {i < count - 1 ? " + " : ""}
         </span>
       ))}
-      {hasSeveralClasses ? ")" : ""}
     </span>
   ) : null;
 
@@ -138,12 +196,6 @@ export const getPoseVectorModuleAsJSX = (
   );
 };
 
-export const getPoseBlockDuration = (block: _.PoseBlock) => {
-  const duration = block.duration ?? Infinity;
-  const repeat = block.repeat ?? 1;
-  return duration * repeat;
-};
-
 /** Get the duration of a `PoseBlock` as a string. */
 export const getPoseBlockDurationAsString = (block: _.PoseBlock) => {
   const duration = block.duration ?? Infinity;
@@ -192,55 +244,17 @@ export const getPoseBlockFromStream = (
 
 /** Get a pose vector as a scale vector. */
 export const getPoseVectorAsScaleVector = (
-  vector?: _.PoseVector,
-  tracks?: TrackMap
+  vector: _.PoseVector,
+  tracks: TrackMap
 ) => {
-  if (!vector || !tracks) return {};
   const keys = getVectorKeys(vector);
   return keys.reduce((acc, cur) => {
     const track = isTrackId(cur) ? tracks[cur] : undefined;
     if (isScaleTrack(track)) {
       acc[track.scaleId] = vector[cur] ?? 0;
-    } else if (isPitchClass(cur)) {
-      acc[cur] = vector[cur] ?? 0;
     }
     return acc;
   }, {} as ScaleVector);
-};
-
-// ------------------------------------------------------------
-// Pose Properties
-// ------------------------------------------------------------
-
-/** Returns true if a pose has a stream of one vector. */
-export const isPoseBucket = (pose?: _.Pose) => {
-  if (!pose) return false;
-  const stream = pose.stream;
-  if (stream.length !== 1) return false;
-  return _.isPoseOperation(stream[0]);
-};
-
-/** Get the first vector of a Pose if it is a bucket. */
-export const getPoseBucketVector = (pose?: _.Pose) => {
-  if (!pose || !pose.stream.length) return {};
-  const block = pose.stream[0];
-  if (_.isPoseOperation(block)) return block.vector;
-  return {};
-};
-
-/** Get the name of a pose. */
-export const getPoseName = (pose?: _.Pose) => {
-  return pose?.name ?? "";
-};
-
-/** Get the category of a pose. */
-export const getPoseCategory = (pattern?: _.Pose) => {
-  if (!pattern) return "No Category";
-  return (
-    PresetPoseGroupList.find((c) => {
-      return PresetPoseGroupMap[c].some((m) => m.id === pattern.id);
-    }) ?? "Custom Poses"
-  );
 };
 
 /** Get the pitch classes in the keys of a vector. */
@@ -249,11 +263,7 @@ export const getVectorPitchClasses = (
 ): ChromaticPitchClass[] => {
   if (!vector) return [];
   const pitchClasses = Object.keys(vector).filter(
-    (key) =>
-      key !== "chromatic" &&
-      key !== "chordal" &&
-      key !== "octave" &&
-      !isTrackId(key)
+    isPitchClass
   ) as ChromaticPitchClass[];
   return pitchClasses.sort(
     (a, b) => ChromaticKey.indexOf(a) - ChromaticKey.indexOf(b)
@@ -277,6 +287,12 @@ export const getPoseVectorOffsetName = (
 // Pose Stream Functions
 // ------------------------------------------------------------
 
+export const getPoseBlockDuration = (block: _.PoseBlock) => {
+  const duration = block.duration ?? Infinity;
+  const repeat = block.repeat ?? 1;
+  return duration * repeat;
+};
+
 /** Get the duration of a stream or Infinity if some element's duration is undefined. */
 export const getPoseStreamDuration = (stream?: _.PoseStream) => {
   if (!stream) return 0;
@@ -285,11 +301,6 @@ export const getPoseStreamDuration = (stream?: _.PoseStream) => {
     const repeat = block.repeat || 1;
     return acc + duration * repeat;
   }, 0);
-};
-
-/** Get the duration of a pose. */
-export const getPoseDuration = (pose?: _.Pose) => {
-  return getPoseStreamDuration(pose?.stream);
 };
 
 /** Get the vector at the given index within the stream */
@@ -392,49 +403,4 @@ export const getPoseOperationAtIndex = (
 
   // Return an empty vector if the offset is beyond all elements
   return { vector: {} };
-};
-
-/** Map a function onto a pose block */
-export const mapPoseBlock = (
-  block: _.PoseBlock,
-  fn: (oldVec: _.PoseVector) => _.PoseVector
-): _.PoseBlock => {
-  if (_.isPoseOperation(block)) {
-    return { ...block, vector: fn(block.vector ?? {}) };
-  }
-  return { ...block, stream: mapPoseStreamVectors(block.stream, fn) };
-};
-
-/** Map a function onto each vector offset of a pose's stream */
-export const mapPoseStreamVectors = (
-  stream: _.PoseStream,
-  fn: (oldVec: _.PoseVector) => _.PoseVector
-): _.PoseStream => {
-  return stream.map((block) => {
-    if (_.isPoseOperation(block)) {
-      return { ...block, vector: fn(block.vector ?? {}) };
-    }
-    return { ...block, stream: mapPoseStreamVectors(block.stream, fn) };
-  });
-};
-
-/** Update a pose's stream by directly setting each vector's offset */
-export const mergePoseStreamVectors = (
-  stream: _.PoseStream,
-  vector: _.PoseVector
-) => {
-  return mapPoseStreamVectors(stream, (oldVec) => ({ ...oldVec, ...vector }));
-};
-
-/** Update a pose's stream by summing the given vector with each offset */
-export const offsetPoseStreamVectors = (
-  pose: _.PoseStream,
-  vector: _.PoseVector
-) => {
-  return mapPoseStreamVectors(pose, (oldVec) => sumVectors(oldVec, vector));
-};
-
-/** Update a pose's stream by resetting each vector. */
-export const resetPoseStreamVectors = (stream: _.PoseStream) => {
-  return mapPoseStreamVectors(stream, () => ({}));
 };

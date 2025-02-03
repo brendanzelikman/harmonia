@@ -21,6 +21,8 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { capitalize, noop } from "lodash";
 import { Pattern } from "types/Pattern/PatternTypes";
 import { CursorProps } from "lib/opensheetmusicdisplay";
+import { selectTrackScaleChain } from "types/Track/TrackSelectors";
+import { ScaleId } from "types/Scale/ScaleTypes";
 
 export function usePatternEditorHotkeys(props: PatternEditorProps) {
   const dispatch = useProjectDispatch();
@@ -64,6 +66,24 @@ export function usePatternEditorHotkeys(props: PatternEditorProps) {
   // Transform Hotkeys
   useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, 1)));
   useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, -1)));
+  useHotkeysInEditor(
+    dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, 1, "q"))
+  );
+  useHotkeysInEditor(
+    dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, -1, "q"))
+  );
+  useHotkeysInEditor(
+    dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, 1, "w"))
+  );
+  useHotkeysInEditor(
+    dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, -1, "w"))
+  );
+  useHotkeysInEditor(
+    dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, 1, "e"))
+  );
+  useHotkeysInEditor(
+    dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, -1, "e"))
+  );
   useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, 12)));
   useHotkeysInEditor(dispatch(TRANSPOSE_PATTERN_HOTKEY(pattern, cursor, -12)));
 }
@@ -283,21 +303,48 @@ export const TOGGLE_PATTERN_TRIPLET_HOTKEY =
 // ------------------------------------------------------------
 
 export const TRANSPOSE_PATTERN_HOTKEY =
-  (pattern?: Pattern, cursor?: CursorProps, steps = 1): Thunk<Hotkey> =>
-  (dispatch) => {
+  (
+    pattern?: Pattern,
+    cursor?: CursorProps,
+    steps = 1,
+    key?: "q" | "w" | "e"
+  ): Thunk<Hotkey> =>
+  (dispatch, getProject) => {
     const shortcut = steps > 0 ? "up" : "down";
     return {
       name: `Transpose ${capitalize(shortcut)}`,
-      description: `Transpose ${shortcut} 1 semitone.`,
-      shortcut: Math.abs(steps) === 1 ? shortcut : `shift+${shortcut}`,
+      description: `Transpose ${shortcut} 1 ${key ? "scale " : "semi"}tone.`,
+      shortcut: key
+        ? `${key}+${shortcut}`
+        : Math.abs(steps) === 1
+        ? `t+${shortcut}`
+        : `shift+${shortcut}`,
       callback: () => {
         if (!pattern || !cursor) return;
         const { id } = pattern;
         const { index } = cursor;
+        let scaleId: ScaleId | undefined = undefined;
+        if (key) {
+          const project = getProject();
+          const chain = selectTrackScaleChain(project, pattern.trackId);
+          const scale =
+            key === "q"
+              ? chain[0]
+              : key === "w"
+              ? chain[1]
+              : key === "e"
+              ? chain[2]
+              : undefined;
+          if (scale) scaleId = scale.id;
+        }
         if (!cursor.hidden) {
-          dispatch(transposePatternBlock({ id, index, transpose: steps }));
+          dispatch(
+            transposePatternBlock({ id, index, transpose: steps, scaleId })
+          );
         } else {
-          dispatch(transposePattern({ data: { id, transpose: steps } }));
+          dispatch(
+            transposePattern({ data: { id, transpose: steps, scaleId } })
+          );
         }
       },
     };

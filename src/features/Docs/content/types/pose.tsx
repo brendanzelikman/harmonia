@@ -1,5 +1,4 @@
 import { PPQ } from "utils/durations";
-import { PresetPoseList } from "assets/poses";
 import { DocsList, DocsParagraph, DocsSection } from "../../components";
 
 export function PoseDocsContent() {
@@ -44,12 +43,6 @@ export function PoseDocsContent() {
               duration and any stream will be repeated as necessary to match the
               duration of its parent. In general, the duration of a module will
               override the duration of any nested modules.
-            </DocsParagraph>
-            <DocsParagraph>
-              <DocsParagraph>
-                There are {PresetPoseList.length} preset poses to choose from,
-                but you can always create your own!
-              </DocsParagraph>
             </DocsParagraph>
           </>
         }

@@ -40,7 +40,7 @@ export function PlaygroundLoadingScreen(props: PlaygroundLoadingScreenProps) {
   );
 
   return (
-    <div className="size-full flex flex-col total-center animate-in zoom-in -mt-5 shrink-0 cursor-pointer duration-75">
+    <div className="size-full flex flex-col total-center animate-in fade-in zoom-in-90 -mt-5 shrink-0 cursor-pointer duration-300">
       {Splash}
       <LoadingText />
     </div>

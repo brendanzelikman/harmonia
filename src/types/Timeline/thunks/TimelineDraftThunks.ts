@@ -28,7 +28,11 @@ export const createClipFromMediaDraft =
     const undoType = unpackUndoType(payload, "createClipFromMediaDraft");
     const project = getProject();
     const selectedTrackId = selectSelectedTrackId(project);
-    const draft = { ...selectDraftedClip(project), ...(payload?.data ?? {}) };
+    const draftedClip = selectDraftedClip(project);
+    const draft = {
+      ...draftedClip,
+      ...(payload?.data ?? {}),
+    };
     const clip = initializeClip({
       ...draft,
       trackId: draft.trackId ?? selectedTrackId,

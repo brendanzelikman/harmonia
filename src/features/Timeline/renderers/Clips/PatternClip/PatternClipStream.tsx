@@ -24,7 +24,7 @@ export const PatternClipStream = (props: PatternClipStreamProps) => {
     <div
       className={classNames(
         bodyColor,
-        `w-full relative flex flex-col`,
+        `w-full relative flex flex-col overflow-hidden`,
         isSelected ? "border-white" : "border-teal-500",
         !!clip?.isOpen ? "border-2 border-b-0" : "border-0"
       )}

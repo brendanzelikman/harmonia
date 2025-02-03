@@ -4,7 +4,7 @@ import * as _ from "utils/durations";
 export const MinorChord: Pattern = {
   id: "pattern_preset_minor-chord",
   name: "Minor Chord",
-  aliases: ["min", "min chord", "minor", "minor chord", "M", "M chord"],
+  aliases: ["min", "min chord", "minor", "minor chord", "m", "m chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(63), _.createQuarterNote(67)],
   ],

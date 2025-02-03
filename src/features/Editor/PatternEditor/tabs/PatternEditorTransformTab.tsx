@@ -271,17 +271,17 @@ export const durationTransformations = (id: PatternId): DropdownOption[] => {
     {
       id: "set durations",
       label: "Overwrite",
-      onClick: promptUserForString(
-        "Set Each Note's Duration",
-        `What duration would you like to set each note? (e.g. "quarter")`,
-        (n) =>
+      onClick: promptUserForString({
+        title: "Set Each Note's Duration",
+        description: `What duration would you like to set each note? (e.g. "quarter")`,
+        callback: (n) =>
           id &&
           dispatch(
             setPatternDurations({
               data: { id, duration: getDurationTicks(n as DurationType) },
             })
-          )
-      ),
+          ),
+      }),
     },
     {
       id: "randomize durations",
@@ -325,11 +325,12 @@ export const pitchTransformations = (id: PatternId): DropdownOption[] => {
     {
       id: "set pitches",
       label: "Overwrite",
-      onClick: promptUserForString(
-        "Set Each Note's Pitch",
-        "What pitch would you like to set each note to?",
-        (n) => id && dispatch(setPatternPitches({ data: { id, pitch: n } }))
-      ),
+      onClick: promptUserForString({
+        title: "Set Each Note's Pitch",
+        description: "What pitch would you like to set each note to?",
+        callback: (n) =>
+          id && dispatch(setPatternPitches({ data: { id, pitch: n } })),
+      }),
     },
     {
       id: "shuffle pitches",
@@ -350,10 +351,10 @@ export const velocityTransformations = (id: PatternId): DropdownOption[] => {
     {
       id: "graduate velocities",
       label: "Graduate",
-      onClick: promptUserForString(
-        "Graduate A Range of Notes",
-        `Please enter the start index, end index, start velocity, and end velocity, separated by commas (e.g. 0,4,50,100).`,
-        (string) => {
+      onClick: promptUserForString({
+        title: "Graduate A Range of Notes",
+        description: `Please enter the start index, end index, start velocity, and end velocity, separated by commas (e.g. 0,4,50,100).`,
+        callback: (string) => {
           if (!id) return;
 
           const values = string.split(",").map((_) => parseInt(_));
@@ -363,8 +364,8 @@ export const velocityTransformations = (id: PatternId): DropdownOption[] => {
               data: { id, startIndex, endIndex, startVelocity, endVelocity },
             })
           );
-        }
-      ),
+        },
+      }),
     },
     {
       id: "set velocities",

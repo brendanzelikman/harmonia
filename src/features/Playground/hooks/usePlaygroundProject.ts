@@ -4,7 +4,7 @@ import {
   uploadProjectToDB,
 } from "providers/idb";
 import { getCurrentProjectId } from "providers/idb";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useProjectDispatch } from "types/hooks";
 import { useAuth } from "providers/auth";
 import { defaultProject } from "types/Project/ProjectTypes";

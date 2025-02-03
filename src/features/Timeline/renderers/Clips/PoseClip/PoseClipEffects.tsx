@@ -22,6 +22,7 @@ import { useState } from "react";
 import {
   removePoseBlockTransformation,
   swapPoseBlockTransformation,
+  updatePose,
   updatePoseBlock,
   updatePoseBlockTransformation,
 } from "types/Pose/PoseSlice";
@@ -34,7 +35,7 @@ import {
 import classNames from "classnames";
 import { sanitize } from "utils/math";
 import { blurOnEnter } from "utils/html";
-import { PoseBlock } from "types/Pose/PoseTypes";
+import { PoseBlock, PoseTransformation } from "types/Pose/PoseTypes";
 import {
   PoseClipDropdownContainer,
   PoseClipDropdownEffectProps,
@@ -47,12 +48,13 @@ export interface PoseClipEffectsProps extends PoseClipDropdownEffectProps {
 }
 export const PoseClipEffects = (props: PoseClipEffectsProps) => {
   const dispatch = useProjectDispatch();
-  const { block, ...effectProps } = props;
-  const operations =
-    block && "operations" in block ? block.operations ?? [] : [];
-  const operationCount = operations.length;
+  const { block, vector, ...effectProps } = props;
   const [view, setView] = useState<"effects" | "store">("effects");
   const [category, setCategory] = useState<TransformationCategory>("order");
+  const operations =
+    (block && "operations" in block ? block?.operations : props.operations) ??
+    [];
+  const operationCount = operations.length;
 
   return (
     <div className="flex gap-2 total-center">
@@ -82,6 +84,7 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
                   id: randomEffect,
                   depths: props.depths,
                   givenArgs: TRANSFORMATIONS[randomEffect].defaultValue,
+                  updateBase: !block,
                 })
               );
               setView("effects");
@@ -91,14 +94,21 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
             onClick={() =>
-              dispatch(
-                updatePoseBlock({
-                  id: props.clip.poseId,
-                  index: props.index,
-                  block: { ...props.block, operations: [] },
-                  depths: props.depths,
-                })
-              )
+              block
+                ? dispatch(
+                    updatePoseBlock({
+                      id: props.clip.poseId,
+                      index: props.index,
+                      block: { ...props.block, operations: [] },
+                      depths: props.depths,
+                    })
+                  )
+                : dispatch(
+                    updatePose({
+                      id: props.clip.poseId,
+                      operations: undefined,
+                    })
+                  )
             }
           >
             Clear Effects
@@ -111,12 +121,15 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
             operations.map((operation, field) => (
               <PoseClipEffect
                 {...effectProps}
+                index={field}
                 id={operation.id}
                 transformation={TRANSFORMATIONS[operation.id]}
                 field={field}
                 givenArgs={operation.args}
                 operationCount={operationCount}
                 setView={setView}
+                operations={operations}
+                onBase={block === undefined}
               />
             ))
           ) : (
@@ -153,6 +166,8 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
               transformation={transformation}
               givenArgs={transformation.defaultValue}
               addButton
+              operations={operations}
+              onBase={block === undefined}
               operationCount={operationCount}
               setView={setView}
             />
@@ -165,6 +180,8 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
 
 export type PoseClipEffectProps<T extends Transformation> =
   React.HTMLAttributes<HTMLDivElement> & {
+    onBase?: boolean;
+    operations?: PoseTransformation[];
     operationCount: number;
     transformation: (typeof TRANSFORMATIONS)[T];
     setView: (view: "effects" | "store") => void;
@@ -183,6 +200,8 @@ export const PoseClipEffect = <T extends Transformation>({
   clip,
   index,
   operationCount,
+  onBase,
+  operations,
   ...rest
 }: PoseClipEffectProps<T>) => {
   const dispatch = useProjectDispatch();
@@ -195,7 +214,7 @@ export const PoseClipEffect = <T extends Transformation>({
 
   const updateTransformation = (args: TransformationArgs<T>) => {
     if (inStore) setInternalArgs(args);
-    else if (hasIndex) {
+    else if (!onBase && hasIndex) {
       const { field: transformationIndex } = rest;
       dispatch(
         updatePoseBlockTransformation({
@@ -204,6 +223,15 @@ export const PoseClipEffect = <T extends Transformation>({
           transformationIndex,
           depths: rest.depths,
           transformation: { args },
+        })
+      );
+    } else {
+      dispatch(
+        updatePose({
+          id: clip.poseId,
+          operations: (operations ?? []).map((operation, field) =>
+            field === index ? { id, args } : operation
+          ),
         })
       );
     }
@@ -249,10 +277,10 @@ export const PoseClipEffect = <T extends Transformation>({
           />
         </Switch>
       ) : null}
-      {hasIndex && (
+      {!inStore && hasIndex && (
         <div className="flex size-full px-1 gap-4 items-center">
           <span className="mr-auto rounded-full size-5 text-fuchsia-300 total-center flex border border-white/10">
-            {rest.field + 1}
+            {isString(rest.field) ? "S" : rest.field + 1}
           </span>
           {operationCount > 1 && (
             <>
@@ -270,6 +298,7 @@ export const PoseClipEffect = <T extends Transformation>({
                       transformationIndex: rest.field,
                       newIndex: rest.field - 1,
                       depths: rest.depths,
+                      updateBase: onBase,
                     })
                   );
                 }}
@@ -288,6 +317,7 @@ export const PoseClipEffect = <T extends Transformation>({
                       transformationIndex: rest.field,
                       newIndex: rest.field + 1,
                       depths: rest.depths,
+                      updateBase: onBase,
                     })
                   );
                 }}
@@ -303,6 +333,7 @@ export const PoseClipEffect = <T extends Transformation>({
                   index,
                   transformationIndex: rest.field,
                   depths: rest.depths,
+                  updateBase: onBase,
                 })
               );
             }}
@@ -319,6 +350,7 @@ export const PoseClipEffect = <T extends Transformation>({
                 index,
                 depths: rest.depths,
                 givenArgs: displayedArgs,
+                updateBase: onBase,
               })
             );
             rest.setView("effects");

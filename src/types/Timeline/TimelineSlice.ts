@@ -169,6 +169,9 @@ export const timelineSlice = createSlice({
       const { clipIds, portalIds } = unpackAction(action);
       if (clipIds) {
         state.selection.clipIds = clipIds;
+        if (!state.selection.clipIds.length) {
+          state.draft[`${state.type}Clip`] = undefined;
+        }
       }
       if (portalIds) {
         state.selection.portalIds = portalIds;

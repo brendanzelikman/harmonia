@@ -143,7 +143,7 @@ test("getMediaStartTick should return the correct start tick", () => {
 test("getMediaEndTick should return the correct end tick without durations", () => {
   const patternClip = initializePatternClip({ tick: 1 });
   const poseClip = initializePoseClip({ tick: 2 });
-  expect(getMediaEndTick([patternClip, poseClip])).toEqual(2);
+  expect(getMediaEndTick([patternClip, poseClip])).toEqual(3);
 });
 
 test("getMediaEndTick should return the correct end tick with durations", () => {
@@ -161,7 +161,7 @@ test("getMediaEndTick should return the correct end tick with durations", () => 
 test("getMediaDuration should return the correct duration without durations", () => {
   const patternClip = initializePatternClip({ tick: 1 });
   const poseClip = initializePoseClip({ tick: 2 });
-  expect(getMediaDuration([patternClip, poseClip])).toEqual(1);
+  expect(getMediaDuration([patternClip, poseClip])).toEqual(2);
 });
 
 test("getMediaDuration should return the correct duration with durations", () => {

@@ -176,6 +176,12 @@ export const selectTopLevelTracks = createDeepSelector(
   (tracks) => tracks.filter((track) => !track.parentId)
 );
 
+/** Select all top level track IDs. */
+export const selectTopLevelTrackIds = createDeepSelector(
+  [selectTopLevelTracks],
+  (tracks) => tracks.map((track) => track.id)
+);
+
 /** Select the map of all tracks to their ancestor ids. */
 export const selectTrackAncestorIdsMap = createDeepSelector(
   [selectTrackMap],
@@ -411,7 +417,7 @@ export const selectTrackScaleChainMap = createDeepSelector(
 export const selectTrackScaleMap = createDeepSelector(
   [selectScaleTrackMap, selectScaleMap],
   (trackMap, scaleMap) =>
-    mapValues(trackMap, (t) => getValueByKey(scaleMap, t?.scaleId))
+    mapValues(trackMap, (t) => getArrayByKey(scaleMap, t?.scaleId))
 );
 
 /** Select the map of all tracks to their MIDI scales. */

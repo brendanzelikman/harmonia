@@ -36,12 +36,11 @@ export const isPitchClass = (value: any): value is PitchClass => {
 /** Unpack the pitch class and scale name from a string. */
 export const unpackScaleName = (
   name: string
-): { scaleName: string; pitchClass: PitchClass } | undefined => {
+): { scaleName: string; pitchClass: PitchClass | undefined } | undefined => {
   const match = name.match(PITCH_CLASS_REGEX);
-  if (!match) return { scaleName: lowerCase(name), pitchClass: "C" };
-  const [_, _pitchClass, _scaleName] = match;
+  if (!match) return { scaleName: name, pitchClass: undefined };
+  const [_, _pitchClass, scaleName] = match;
   const pitchClass = capitalize(_pitchClass);
-  const scaleName = lowerCase(_scaleName);
   if (!isPitchClass(pitchClass) || !scaleName) return undefined;
   return { pitchClass, scaleName };
 };

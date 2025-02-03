@@ -34,6 +34,8 @@ export const createProject = async (template?: Project) => {
     await setCurrentProjectId(id);
   } catch (e) {
     console.log(e);
+  } finally {
+    dispatchCustomEvent(UPDATE_PROJECTS, id);
   }
 };
 
@@ -79,12 +81,38 @@ export const deleteProject = (id: string) => async () => {
   }
 };
 
+/** Get the number of empty projects. */
+export const countEmptyProjects = async () => {
+  try {
+    const projects = await getProjectsFromDB();
+    return projects.filter(isProjectEmpty).length;
+  } catch (e) {
+    console.error(e);
+  }
+  return 0;
+};
+
 /** Delete all empty projects. */
 export const deleteEmptyProjects = async () => {
   try {
     const projects = await getProjectsFromDB();
     const emptyProjects = projects.filter(isProjectEmpty);
     emptyProjects.forEach((project) => {
+      const meta = selectMeta(project);
+      deleteProjectFromDB(meta.id);
+    });
+  } catch (e) {
+    console.error(e);
+  } finally {
+    dispatchCustomEvent(UPDATE_PROJECTS, "all");
+  }
+};
+
+/** Delete all projects */
+export const deleteAllProjects = async () => {
+  try {
+    const projects = await getProjectsFromDB();
+    projects.forEach((project) => {
       const meta = selectMeta(project);
       deleteProjectFromDB(meta.id);
     });

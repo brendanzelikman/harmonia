@@ -1,32 +1,38 @@
 import { GiDoubleQuaver, GiMusicalScore, GiMusicSpell } from "react-icons/gi";
 import { selectPatternName } from "types/Pattern/PatternSelectors";
-import { use } from "types/hooks";
+import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { getPatternClipHeaderColor } from "types/Clip/PatternClip/PatternClipFunctions";
 import classNames from "classnames";
 import {
   CLIP_NAME_HEIGHT,
   PatternClipRendererProps,
 } from "./usePatternClipRenderer";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import {
   selectIsClipLive,
   selectIsClipSelected,
 } from "types/Timeline/TimelineSelectors";
-import { PatternClip } from "types/Clip/ClipTypes";
+import { selectPatternClipById } from "types/Clip/ClipSelectors";
+import { toggleClipDropdown } from "types/Clip/ClipThunks";
+import { cancelEvent } from "utils/html";
+import { toggleClipIdInSelection } from "types/Timeline/thunks/TimelineSelectionThunks";
 
-interface PatternClipHeaderProps extends PatternClipRendererProps {
-  clip: PatternClip;
-}
+interface PatternClipHeaderProps extends PatternClipRendererProps {}
 
-export const PatternClipHeader = (props: PatternClipHeaderProps) => {
-  const { id, clip } = props;
-  const isOpen = clip.isOpen;
+export const PatternClipHeader = memo(_PatternClipHeader, (prev, next) => {
+  return prev.id === next.id;
+});
+
+export function _PatternClipHeader(props: PatternClipHeaderProps) {
+  const { id } = props;
+  const dispatch = useProjectDispatch();
+  const clip = useDeep((_) => selectPatternClipById(_, id));
+  const isOpen = !!clip?.isOpen;
   const isLive = use((_) => selectIsClipLive(_, id));
   const isSelected = use((_) => selectIsClipSelected(_, id));
-  const headerColor = getPatternClipHeaderColor(clip);
 
   // Each pattern clip shows the name of its pattern
-  const name = use((_) => selectPatternName(_, clip.patternId));
+  const name = use((_) => selectPatternName(_, clip?.patternId));
 
   // Each pattern clip has an icon that shows its state
   const Icon = useMemo(() => {
@@ -37,6 +43,8 @@ export const PatternClipHeader = (props: PatternClipHeaderProps) => {
   }, [isLive, isOpen]);
 
   // Render the header with a constant height
+  if (!clip) return null;
+  const headerColor = getPatternClipHeaderColor(clip);
   return (
     <div
       className={classNames(
@@ -47,9 +55,19 @@ export const PatternClipHeader = (props: PatternClipHeaderProps) => {
         isSelected ? "border-slate-100" : "border-teal-500"
       )}
       style={{ height: CLIP_NAME_HEIGHT }}
+      onClick={(e) => {
+        cancelEvent(e);
+        if (!e.altKey) {
+          dispatch(toggleClipDropdown({ data: { id } }));
+          if (!isSelected && !clip.isOpen)
+            dispatch(toggleClipIdInSelection(id));
+        } else {
+          dispatch(toggleClipIdInSelection(id));
+        }
+      }}
     >
       {Icon}
       <span>{name}</span>
     </div>
   );
-};
+}

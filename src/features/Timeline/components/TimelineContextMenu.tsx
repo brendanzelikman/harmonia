@@ -2,18 +2,18 @@ import classNames from "classnames";
 import { ContextMenuOption, ContextMenu } from "components/ContextMenu";
 import {
   use,
-  useProjectDeepSelector,
+  useDeep,
   useProjectDispatch,
   useProjectSelector,
 } from "types/hooks";
 import { useState } from "react";
-import { blurOnEnter } from "utils/html";
-import { PPQ } from "utils/durations";
+import { blurOnEnter, cancelEvent } from "utils/html";
 import { updateClips } from "types/Clip/ClipSlice";
 import {
   PatternClipColor,
   PATTERN_CLIP_THEMES,
   PATTERN_CLIP_COLORS,
+  DEFAULT_PATTERN_CLIP_COLOR,
 } from "types/Clip/PatternClip/PatternClipThemes";
 import { isScaleTrack } from "types/Track/TrackTypes";
 import {
@@ -21,15 +21,9 @@ import {
   selectSelectedPoseClips,
   selectSelectedScaleClips,
   selectSelectedClips,
-  selectSelectedPattern,
-  selectSelectedPose,
   selectSelectedTrack,
   selectClipboard,
-  selectSelectedMotif,
-  selectTimelineType,
 } from "types/Timeline/TimelineSelectors";
-import { createPatternTrackFromSelectedTrack } from "types/Track/PatternTrack/PatternTrackThunks";
-import { createScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import {
   cutSelectedMedia,
   copySelectedMedia,
@@ -38,25 +32,30 @@ import {
   deleteSelectedMedia,
   updateMedia,
 } from "types/Media/MediaThunks";
-import { createClipFromMediaDraft } from "types/Timeline/thunks/TimelineDraftThunks";
 import { exportSelectedClipsToMIDI } from "types/Timeline/thunks/TimelineSelectionThunks";
-import { getTransport } from "tone";
+import { getTicksPerBar } from "types/Transport/TransportFunctions";
+import {
+  selectTransportBPM,
+  selectTransportTimeSignature,
+} from "types/Transport/TransportSelectors";
+import { sanitize } from "utils/math";
+import { inputPoseVector } from "types/Pose/PoseThunks";
 
 export function TimelineContextMenu() {
   const dispatch = useProjectDispatch();
+  const bpm = use(selectTransportBPM);
+  const timeSignature = use(selectTransportTimeSignature);
 
   // Get the currently selected objects
-  const patternClips = useProjectDeepSelector(selectSelectedPatternClips);
-  const poseClips = useProjectDeepSelector(selectSelectedPoseClips);
-  const scaleClips = useProjectDeepSelector(selectSelectedScaleClips);
-  const clips = useProjectDeepSelector(selectSelectedClips);
-  const pattern = useProjectSelector(selectSelectedPattern);
-  const pose = useProjectSelector(selectSelectedPose);
+  const patternClips = useDeep(selectSelectedPatternClips);
+  const poseClips = useDeep(selectSelectedPoseClips);
+  const scaleClips = useDeep(selectSelectedScaleClips);
+  const clips = useDeep(selectSelectedClips);
   const track = useProjectSelector(selectSelectedTrack);
   const onScaleTrack = isScaleTrack(track);
 
   // Get the clipboard
-  const clipboard = useProjectDeepSelector(selectClipboard) ?? [];
+  const clipboard = useDeep(selectClipboard) ?? [];
   const areClipsInBoard = !!clipboard?.clips?.length;
   const arePortalsInBoard = !!clipboard?.portals?.length;
 
@@ -79,6 +78,7 @@ export function TimelineContextMenu() {
   const canExport = arePatternClipsSelected;
   const canColor = arePatternClipsSelected;
   const canSetDuration = areClipsSelected;
+  const canUpdatePoses = arePoseClipsSelected;
 
   // Cut the currently selected media
   const Cut = {
@@ -99,7 +99,6 @@ export function TimelineContextMenu() {
     label: `Paste From Clipboard`,
     onClick: () => dispatch(pasteSelectedMedia()),
     disabled: !canPaste,
-    divideEnd: !canDuplicate && !canDelete && !canExport,
   };
 
   // Duplicate the currently selected media
@@ -107,7 +106,6 @@ export function TimelineContextMenu() {
     label: "Duplicate Selection",
     onClick: () => dispatch(duplicateSelectedMedia()),
     disabled: !canDuplicate,
-    divideEnd: !canDelete && !canExport,
   };
 
   // Delete the currently selected media
@@ -115,7 +113,6 @@ export function TimelineContextMenu() {
     label: `Delete Selection`,
     onClick: () => dispatch(deleteSelectedMedia()),
     disabled: !canDelete,
-    divideEnd: !canExport,
   };
 
   // Export the currently selected clips to MIDI
@@ -123,64 +120,37 @@ export function TimelineContextMenu() {
     label: "Export to MIDI",
     onClick: () => dispatch(exportSelectedClipsToMIDI()),
     disabled: !canExport,
-    divideEnd: true,
   };
-
-  // Add a scale track to the timeline
-  const AddScaleTrack = {
-    label: "Add Scale Track",
-    onClick: () => dispatch(createScaleTrack()),
-  };
-
-  // Create a pattern track from the selected track
-  const AddPatternTrack = {
-    label: "Add Pattern Track",
-    onClick: () => dispatch(createPatternTrackFromSelectedTrack()),
-    divideEnd: true,
-  };
-
-  // Add the currently drafted motif to the timeline
-  const type = use(selectTimelineType);
-  const motif = use(selectSelectedMotif);
-  const AddClip = motif
-    ? {
-        label: `Add ${motif?.name ?? "Motif"} Clip`,
-        onClick: () =>
-          dispatch(
-            createClipFromMediaDraft({
-              data: {
-                type,
-                [`${type}Id`]: motif.id,
-                trackId: track?.id,
-                tick: getTransport().ticks,
-              },
-            })
-          ),
-        disabled: (type === "pattern" && onScaleTrack) || !track,
-        divideEnd: areClipsSelected,
-      }
-    : null;
 
   // Change the color of the currently selected clips
-  const ClipColorCircle: React.FC<{ color: PatternClipColor }> = ({
-    color,
-  }) => {
+  const [color, setColor] = useState(DEFAULT_PATTERN_CLIP_COLOR);
+  const ClipColorCircle: React.FC<{ color: PatternClipColor }> = (props) => {
     return (
       <span
         className={classNames(
-          PATTERN_CLIP_THEMES[color].iconColor,
-          `w-4 h-4 m-1 rounded-full border cursor-pointer`
+          PATTERN_CLIP_THEMES[props.color].iconColor,
+          color === props.color ? "ring" : "",
+          `size-4 m-1 rounded-full border cursor-pointer`
         )}
-        onClick={() => {
-          const newClips = patternClips.map((clip) => ({ ...clip, color }));
-          dispatch(updateClips({ data: newClips }));
+        onClick={(e) => {
+          cancelEvent(e);
+          setColor(props.color);
         }}
       />
     );
   };
 
   // Show the color options for the currently selected clips
-  const ClipColors = {
+  const SetColor = {
+    label: "Set Clip Color",
+    onClick: () => {
+      const newClips = patternClips.map((clip) => ({ ...clip, color }));
+      dispatch(updateClips({ data: newClips }));
+    },
+    disabled: !canColor,
+  };
+
+  const InputColor = {
     label: (
       <div className="w-32 flex flex-wrap">
         {PATTERN_CLIP_COLORS.map((color) => (
@@ -190,29 +160,37 @@ export function TimelineContextMenu() {
     ),
     onClick: () => null,
     disabled: !canColor,
-    divideEnd: canColor && canSetDuration,
   };
 
   // Set the duration of the currently selected clips
-  const [duration, setDuration] = useState(PPQ);
-  const SetClipDuration = {
+  const [duration, setDuration] = useState("");
+  const SetDuration = {
     label: "Set Clip Duration",
     onClick: () => {
-      const newClips = clips.map((clip) => ({ ...clip, duration }));
+      const value = sanitize(parseInt(duration));
+      const newClips = clips.map((clip) => ({
+        ...clip,
+        duration: value ? getTicksPerBar(bpm, timeSignature) * value : Infinity,
+      }));
       dispatch(updateMedia({ data: { clips: newClips } }));
     },
     disabled: !canSetDuration,
   };
-  const SetDurationInput = {
+  const InputDuration = {
     label: (
       <>
-        Duration:{" "}
+        Bar Count:{" "}
         <input
-          type="number"
+          type="text"
+          placeholder="∞"
           value={duration}
-          onChange={(e) => setDuration(parseFloat(e.target.value))}
+          onChange={(e) => {
+            const number = sanitize(parseInt(e.target.value));
+            if (!number) setDuration("");
+            else setDuration(e.target.value);
+          }}
           onKeyDown={blurOnEnter}
-          className="ml-1 w-12 h-6 p-1 text-center text-slate-900 bg-slate-50 rounded"
+          className="ml-1 mb-0.5 w-12 h-6 p-1 text-center bg-transparent text-slate-200 bg-slate-50 rounded"
         />
       </>
     ),
@@ -220,26 +198,30 @@ export function TimelineContextMenu() {
     disabled: !canSetDuration,
   };
 
+  const SetPoses = {
+    label: "Set Pose Vectors",
+    onClick: () => dispatch(inputPoseVector()),
+    disabled: !canUpdatePoses,
+  };
+
   // Assemble all of the menu options
-  const menuOptions = [
-    // Undo,
-    // Redo,
-    canCut ? Cut : null,
-    canCopy ? Copy : null,
-    canPaste ? Paste : null,
-    canDuplicate ? Duplicate : null,
-    canDelete ? Delete : null,
-    canExport ? Export : null,
-    AddScaleTrack,
-    AddPatternTrack,
-    AddClip,
-    canColor ? ClipColors : null,
-    canSetDuration ? SetDurationInput : null,
-    canSetDuration ? SetClipDuration : null,
+  const menuOptions: ContextMenuOption[][] = [
+    [Cut, Copy, Paste, Duplicate, Delete, Export],
+    [InputColor, SetColor],
+    [InputDuration, SetDuration],
+    [SetPoses],
   ];
 
   // Filter out the null options
-  const options = menuOptions.filter(Boolean) as ContextMenuOption[];
+  const options = menuOptions.flatMap((options) => {
+    const validOptions = options.filter((option) => !option.disabled);
+    const count = validOptions.length;
+    if (count < 2) return validOptions;
+    const firstOptions = validOptions.slice(0, count - 1);
+    const lastOption = validOptions[count - 1];
+    return [...firstOptions, { ...lastOption, divideEnd: true }];
+  });
+  if (options.length) options[options.length - 1].divideEnd = false;
 
   // Render the context menu
   return <ContextMenu targetId="timeline" options={options} />;

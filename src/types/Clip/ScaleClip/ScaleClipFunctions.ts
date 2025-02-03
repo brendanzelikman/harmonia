@@ -1,5 +1,5 @@
 import { Tick } from "types/units";
-import { sortClipsByProximity } from "../ClipUtils";
+import { mapClipsWithGuard } from "../ClipUtils";
 import { Clip, ScaleClipMap, isIScaleClip } from "../ClipTypes";
 import { ScaleClip } from "./ScaleClipTypes";
 import { getValueByKey, getDictValues } from "utils/objects";
@@ -51,6 +51,6 @@ export const getMostRecentScaleFromClips = (
     getValueByKey(scaleMap, clip.scaleId) ?? initialScale;
 
   // Find the most recent scale
-  const recentScales = sortClipsByProximity(scaleClips, tick, guard, map);
+  const recentScales = mapClipsWithGuard(scaleClips, tick, guard, map);
   return recentScales[0] ?? initialScale;
 };

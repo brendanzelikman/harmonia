@@ -7,7 +7,7 @@ import { getScaleKey } from "utils/scale";
 export const ScaleEditorNotebox = (props: ScaleEditorProps) => {
   const { scale, midiScale, cursor } = props;
 
-  const key = getScaleKey(scale);
+  const key = getScaleKey(scale ?? []);
   const midi = midiScale[cursor.index];
   const pitchClass = getMidiPitchClass(midi, key);
   const selectedNote = scale?.notes[cursor.index];

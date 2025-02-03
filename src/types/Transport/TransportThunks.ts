@@ -10,7 +10,7 @@ import {
   MIN_TRANSPORT_VOLUME,
 } from "utils/constants";
 import { selectTransport } from "./TransportSelectors";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent, sleep } from "utils/html";
 import {
   DURATION_TYPES,
   getDurationTicks,
@@ -23,7 +23,7 @@ import {
   LIVE_RECORDER_INSTANCE,
 } from "types/Instrument/InstrumentClass";
 import { InstrumentId } from "types/Instrument/InstrumentTypes";
-import { Thunk } from "types/Project/ProjectTypes";
+import { Project, Thunk } from "types/Project/ProjectTypes";
 import { isPatternTrack, TrackId } from "types/Track/TrackTypes";
 import {
   isTransportStarted,
@@ -34,7 +34,7 @@ import {
   selectLastArrangementTick,
   selectMidiChordsByTicks,
 } from "types/Arrangement/ArrangementSelectors";
-import { selectMeta } from "types/Meta/MetaSelectors";
+import { selectMeta, selectProjectName } from "types/Meta/MetaSelectors";
 import { selectSubdivisionTicks } from "types/Timeline/TimelineSelectors";
 import {
   selectPatternTracks,
@@ -50,6 +50,7 @@ import {
 } from "types/Instrument/InstrumentThunks";
 import { playPatternChord } from "types/Pattern/PatternThunks";
 import { sanitize } from "utils/math";
+import { _removeOfflineInstrument } from "types/Instrument/InstrumentSlice";
 
 let scheduleId: number;
 
@@ -63,8 +64,10 @@ export const dispatchTickUpdate = (
   tick: Tick,
   options?: { offline: boolean }
 ) => {
-  const event = options?.offline ? UPDATE_OFFLINE_TICK : UPDATE_TICK;
+  const isOffline = !!options?.offline;
+  const event = isOffline ? UPDATE_OFFLINE_TICK : UPDATE_TICK;
   dispatchCustomEvent(event, tick);
+  if (!isOffline) dispatchCustomEvent("printTick", Tone.Transport.position);
 };
 
 /** Seek the transport to the given tick. */
@@ -92,7 +95,7 @@ export const seekTransport =
     Tone.Transport.position = Tone.Time(tick, "i").toSeconds();
 
     // Dispatch a tick update event
-    dispatchCustomEvent(UPDATE_TICK, tick);
+    dispatchTickUpdate(tick);
   };
 
 /** Start the transport, using `Tone.scheduleRepeat` to schedule all samplers. */
@@ -190,6 +193,7 @@ export const stopTransport = (): Thunk => (dispatch) => {
   Tone.Transport.position = 0;
 
   // Dispatch a tick update event
+  dispatchCustomEvent("resetTimelineScroll");
   dispatchTickUpdate(Tone.Transport.ticks);
 };
 
@@ -246,6 +250,7 @@ export const setTransportLoop =
 export const toggleTransportLoop = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const transport = selectTransport(project);
+  dispatch(stopTransport());
   dispatch(setTransportLoop(!transport.loop));
 };
 
@@ -457,114 +462,108 @@ export const toggleTransportDownloading =
  * Download the transport into a WAV file.
  * Uses the `Tone.Offline` transport to schedule the samplers and `encodeWAV` to encode the buffer into a WAV file.
  */
-export const downloadTransport = (): Thunk => async (dispatch, getProject) => {
-  const oldProject = getProject();
+export const downloadTransport =
+  (
+    _project?: Project,
+    options: { download?: boolean } = { download: true }
+  ): Thunk<Promise<Blob>> =>
+  async (dispatch, getProject) => {
+    const project = _project || getProject();
 
-  // Make sure the transport is started
-  const oldTransport = selectTransport(oldProject);
-  if (oldTransport.state === "started") return;
+    const transport = selectTransport(project);
+    const ticks = selectLastArrangementTick(project);
+    // if (ticks <= 0) throw new Error("The recording is empty!");
 
-  // Make sure the recording will be longer than 0 seconds
-  const ticks = selectLastArrangementTick(oldProject);
-  if (ticks <= 0) return;
+    // Get the samplers
+    const trackMap = selectTrackMap(project);
+    const samplers = selectTrackAudioInstanceMap(project);
 
-  // Get the samplers
-  const trackMap = selectTrackMap(oldProject);
-  const oldSamplers = selectTrackAudioInstanceMap(oldProject);
+    // Calculate the duration and pulse
+    const duration = convertTicksToSeconds(transport, ticks);
+    const tail = 1;
+    const pulse = convertTicksToSeconds(transport, 1);
 
-  // Calculate the duration and pulse
-  const duration = convertTicksToSeconds(oldTransport, ticks);
-  const pulse = convertTicksToSeconds(oldTransport, 1);
+    // Start downloading
+    dispatch(startDownloadingTransport());
 
-  // Start downloading
-  dispatch(startDownloadingTransport());
+    // Start the offline transport
+    const offlineInstrumentIds: InstrumentId[] = [];
+    const offlineSamplers: Record<string, Tone.Sampler> = {};
+    const offlineBuffer = await Tone.Offline(async (offlineContext) => {
+      // Create new samplers for the offline transport
+      for (const trackId in samplers) {
+        const patternTrack = trackMap[trackId as TrackId];
+        if (!isPatternTrack(patternTrack)) continue;
+        const { instance } = dispatch(
+          createInstrument({
+            data: {
+              track: patternTrack,
+              options: { offline: true, downloading: true },
+            },
+          })
+        );
+        if (!instance) continue;
 
-  const offlineInstrumentIds: InstrumentId[] = [];
-
-  // Start the offline transport
-  const offlineBuffer = await Tone.Offline(async (offlineContext) => {
-    // Create new samplers for the offline transport
-    const samplers: Record<string, Tone.Sampler> = {};
-    for (const trackId in oldSamplers) {
-      const patternTrack = trackMap[trackId as TrackId];
-      if (!isPatternTrack(patternTrack)) continue;
-      const { instance } = dispatch(
-        createInstrument({
-          data: {
-            track: patternTrack,
-            options: { offline: true, downloading: true },
-          },
-        })
-      );
-      if (!instance) continue;
-
-      // Store the sampler and instrument id
-      samplers[patternTrack.instrumentId] = instance.sampler;
-      offlineInstrumentIds.push(instance.id);
-    }
-
-    // Schedule the offline transport
-    offlineContext.transport.PPQ = PPQ;
-    offlineContext.transport.scheduleRepeat((time) => {
-      const project = getProject();
-      const transport = selectTransport(project);
-
-      // Dispatch the tick update
-      dispatchTickUpdate(offlineContext.transport.ticks, { offline: true });
-
-      // Cancel the operation if downloading ever stops
-      if (!transport.downloading) {
-        offlineContext.transport.stop();
-        offlineContext.transport.cancel();
-        return;
+        // Store the sampler and instrument id
+        offlineSamplers[patternTrack.instrumentId] = instance.sampler;
+        offlineInstrumentIds.push(instance.id);
       }
 
-      // Get the chord record at the current tick
+      // Wait for the samplers to load!
+      await Tone.loaded();
+
+      // Schedule the offline transport
+      offlineContext.transport.bpm.value = transport.bpm;
+      offlineContext.transport.PPQ = PPQ;
       const chordsByTick = selectMidiChordsByTicks(project);
-      const chords = chordsByTick[offlineContext.transport.ticks] ?? {};
-      const instrumentIds = Object.keys(chords);
 
-      // Iterate over the instruments that are to be played at the current tick
-      for (const instrumentId of instrumentIds) {
-        const chord = chords[instrumentId];
-        const sampler = samplers[instrumentId];
-        playPatternChord(sampler, chord, time);
-      }
-    }, pulse);
+      offlineContext.transport.scheduleRepeat((time) => {
+        const tick = offlineContext.transport.ticks - 1; // Starts from 1
+        // Dispatch the tick update
+        dispatchTickUpdate(tick, { offline: true });
 
-    // Start the transport
-    offlineContext.transport.start();
-  }, duration);
+        // Get the chord record at the current tick
+        const chords = chordsByTick[tick] ?? {};
+        const instrumentIds = Object.keys(chords);
 
-  // Delete all offline instruments
-  // offlineInstrumentIds.forEach((id) => {
-  //   dispatch(_removeOfflineInstrument(id));
-  // });
+        // Iterate over the instruments that are to be played at the current tick
+        for (const instrumentId of instrumentIds) {
+          const chord = chords[instrumentId];
+          const sampler = offlineSamplers[instrumentId];
+          playPatternChord(sampler, chord, time);
+        }
+      }, pulse);
 
-  // Make sure the transport is still downloading
-  const currentTransport = selectTransport(getProject());
-  if (!currentTransport.downloading) return;
+      // Start the transport
+      offlineContext.transport.start();
+    }, duration + tail);
 
-  // Get the data from the buffer
-  const buffer = offlineBuffer.get();
-  if (!buffer) return;
+    // Delete all offline instruments
+    offlineInstrumentIds.forEach((id) => {
+      dispatch(_removeOfflineInstrument(id));
+    });
 
-  // Encode the buffer into a WAV file
-  const wav = encodeWAV(buffer);
-  const blob = new Blob([wav], { type: "audio/wav" });
-  const url = URL.createObjectURL(blob);
+    // Get the data from the buffer
+    const buffer = offlineBuffer.get();
+    if (!buffer) throw new Error("The buffer is empty!");
 
-  // Download the file
-  const { name } = selectMeta(oldProject);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${name ?? "project"}.wav`;
-  a.click();
-  URL.revokeObjectURL(url);
+    // Encode the buffer into a WAV file
+    const wav = encodeWAV(buffer);
+    const blob = new Blob([wav], { type: "audio/wav" });
+    const url = URL.createObjectURL(blob);
 
-  // Stop the download
-  dispatch(stopDownloadingTransport());
-};
+    // Download the file
+    const name = selectProjectName(project);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${name ?? "project"}.wav`;
+    if (options?.download) a.click();
+    URL.revokeObjectURL(url);
+
+    // Stop the download
+    dispatch(stopDownloadingTransport());
+    return blob;
+  };
 
 export const convertStringToTicks =
   (string: string): Thunk<Tick | undefined> =>

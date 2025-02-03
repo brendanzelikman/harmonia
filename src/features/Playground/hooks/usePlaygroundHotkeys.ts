@@ -2,11 +2,14 @@ import { useProjectDispatch } from "types/hooks";
 import { Hotkey, useHotkeysGlobally } from "lib/react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "providers/auth";
-import { toggleEditor, hideEditor } from "types/Editor/EditorSlice";
-import { selectEditorView } from "types/Editor/EditorSelectors";
+import { hideEditor } from "types/Editor/EditorSlice";
 import {
-  selectSelectedMotif,
-  selectTimelineType,
+  selectEditorView,
+  selectIsEditorOpen,
+} from "types/Editor/EditorSelectors";
+import {
+  selectSelectedClips,
+  selectSelectedScaleTrack,
 } from "types/Timeline/TimelineSelectors";
 import {
   selectCanRedoProject,
@@ -30,7 +33,8 @@ import {
 import { Thunk } from "types/Project/ProjectTypes";
 import { dispatchCustomEvent } from "utils/html";
 import { CLOSE_STATE, TOGGLE_STATE } from "hooks/useToggledState";
-import { createNestedTracks } from "types/Track/ScaleTrack/ScaleTrackThunks";
+import { createNewTracks } from "types/Track/TrackUtils";
+import { showEditor } from "types/Editor/EditorThunks";
 
 export function usePlaygroundHotkeys() {
   const dispatch = useProjectDispatch();
@@ -86,7 +90,7 @@ export const VIEW_PROJECTS_HOTKEY: Thunk<Hotkey> = () => {
 };
 
 export const NEW_PROJECT_HOTKEY: Thunk<Hotkey> = () => ({
-  name: "New Project",
+  name: "Create New Project",
   description: "Create a new project from scratch.",
   shortcut: "meta+alt+n",
   callback: () => createProject(),
@@ -132,11 +136,16 @@ export const TOGGLE_EDITOR_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   shortcut: "meta+e",
   callback: () => {
     const project = getProject();
-    const motif = selectSelectedMotif(project);
-    const type = selectTimelineType(project);
-    if (motif !== undefined) {
-      dispatch(toggleEditor({ data: type }));
+    const isOpen = selectIsEditorOpen(project);
+    if (isOpen) {
+      return dispatch(hideEditor());
     }
+    const track = selectSelectedScaleTrack(project);
+    const clip = selectSelectedClips(project)[0];
+    const type = clip ? clip.type : track ? track.type : undefined;
+    dispatch(
+      showEditor({ data: { view: type, trackId: track?.id, clipId: clip?.id } })
+    );
   },
 });
 
@@ -251,7 +260,7 @@ export const GENERATE_TRACKS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Create Nested Tracks",
   description: "Create a chain of nested tracks based on the given input",
   shortcut: "g",
-  callback: () => dispatch(createNestedTracks),
+  callback: () => dispatch(createNewTracks),
 });
 
 export const PLAYGROUND_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [

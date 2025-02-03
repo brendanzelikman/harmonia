@@ -13,11 +13,19 @@ import { PoseClipDropdown } from "./PoseClipDropdown";
 import { PoseClipHeader } from "./PoseClipHeader";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { usePoseClipStyle } from "./usePoseClipStyle";
-import { getPoseBlockFromStream } from "types/Pose/PoseFunctions";
+import {
+  getPoseBlockFromStream,
+  getPoseVectorAsJSX,
+} from "types/Pose/PoseFunctions";
 import { PoseClipCombos } from "./PoseClipCombos";
-import { PoseBlock } from "types/Pose/PoseTypes";
+import {
+  PoseBlock,
+  PoseTransformation,
+  PoseVector,
+} from "types/Pose/PoseTypes";
 import { toggleClipDropdown } from "types/Clip/ClipThunks";
 import { createSelectedPortaledClipById } from "types/Arrangement/ArrangementSelectors";
+import { selectTrackMap } from "types/Track/TrackSelectors";
 
 export interface PoseClipRendererProps extends ClipComponentProps {
   id: PoseClipId;
@@ -51,9 +59,15 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
   // Any block can be selected by index, with depths for nested streams
   const [index, setIndex] = useState(0);
   const [depths, setDepths] = useState<number[]>([]);
-  const block = getPoseBlockFromStream(stream, [...depths, index]);
+  const vector = pose?.vector;
+  const operations = pose?.operations;
+  const block = pose?.stream
+    ? getPoseBlockFromStream(stream, [...depths, index])
+    : undefined;
 
   const clipProps = {
+    vector,
+    operations,
     block,
     index,
     setIndex,
@@ -70,6 +84,13 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
     clip,
   });
 
+  const trackMap = useDeep(selectTrackMap);
+  const jsx = getPoseVectorAsJSX(
+    pose?.vector ?? block?.vector,
+    trackMap,
+    false
+  );
+
   return (
     <div
       ref={drag}
@@ -85,11 +106,16 @@ export function PoseClipRenderer(props: PoseClipRendererProps) {
       <PoseClipCombos id={clip.id} />
       <PoseClipHeader {...props} {...clipProps} clip={clip} />
       <PoseClipDropdown {...props} {...clipProps} clip={clip} />
+      <div className="flex-1 text-[10px] flex flex-col overflow-scroll pl-1 text-white opacity-80 select-none">
+        {!clip.isOpen ? jsx : null}
+      </div>
     </div>
   );
 }
 
 export interface PoseClipComponentProps extends PoseClipRendererProps {
+  vector?: PoseVector;
+  operations?: PoseTransformation[];
   block?: PoseBlock;
   index: number;
   setIndex: (index: number) => void;

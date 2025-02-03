@@ -4,7 +4,7 @@ import * as _ from "utils/durations";
 export const MajorSeventhChord: Pattern = {
   id: "pattern_preset_major_7th",
   name: "Major 7th Chord",
-  aliases: ["maj7", "maj 7", "maj7th", "maj 7th", "major 7", "major 7th"],
+  aliases: ["M7", "maj7", "maj 7", "maj7th", "maj 7th", "major 7", "major 7th"],
   stream: [
     [
       _.createQuarterNote(60),
@@ -57,7 +57,7 @@ export const MajorSeventhAddThirteenChord: Pattern = {
 export const MajorNinthChord: Pattern = {
   id: "pattern_preset_major_9th_chord",
   name: "Major 9th Chord",
-  aliases: ["maj9", "maj 9", "maj9th", "maj 9th", "major 9", "major 9th"],
+  aliases: ["M9", "maj9", "maj 9", "maj9th", "maj 9th", "major 9", "major 9th"],
   stream: [
     [
       _.createQuarterNote(60),
@@ -72,7 +72,15 @@ export const MajorNinthChord: Pattern = {
 export const MajorEleventhChord: Pattern = {
   id: "pattern_preset_major_11th_chord",
   name: "Major 11th Chord",
-  aliases: ["maj11", "maj 11", "maj11th", "maj 11th", "major 11", "major 11th"],
+  aliases: [
+    "M11",
+    "maj11",
+    "maj 11",
+    "maj11th",
+    "maj 11th",
+    "major 11",
+    "major 11th",
+  ],
   stream: [
     [
       _.createQuarterNote(60),
@@ -89,6 +97,7 @@ export const MajorSharpEleventhChord: Pattern = {
   id: "pattern_preset_major_#11th_chord",
   name: "Major #11th Chord",
   aliases: [
+    "M#11",
     "maj#11",
     "maj #11",
     "maj#11th",
@@ -111,7 +120,15 @@ export const MajorSharpEleventhChord: Pattern = {
 export const MajorThirteenthChord: Pattern = {
   id: "pattern_preset_major_13th_chord",
   name: "Major 13th Chord",
-  aliases: ["maj13", "maj 13", "maj13th", "maj 13th", "major 13", "major 13th"],
+  aliases: [
+    "M13",
+    "maj13",
+    "maj 13",
+    "maj13th",
+    "maj 13th",
+    "major 13",
+    "major 13th",
+  ],
   stream: [
     [
       _.createQuarterNote(60),
@@ -129,6 +146,7 @@ export const MajorThirteenthSharpEleventhChord: Pattern = {
   id: "pattern_preset_major_13th_#11th_chord",
   name: "Major 13th (#11) Chord",
   aliases: [
+    "M13#11",
     "maj13#11",
     "maj 13#11",
     "maj13#11th",

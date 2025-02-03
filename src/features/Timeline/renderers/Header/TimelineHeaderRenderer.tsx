@@ -1,8 +1,7 @@
 import { useLoopDrag, useLoopDrop } from "./useLoopDragAndDrop";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { useProjectDispatch, use } from "types/hooks";
 import { inRange } from "lodash";
-import { HeaderRendererProps } from "react-data-grid";
+import { RenderHeaderCellProps } from "react-data-grid";
 import classNames from "classnames";
 import { useCallback, useMemo } from "react";
 import { Row } from "features/Timeline/Timeline";
@@ -18,9 +17,8 @@ import {
   seekTransport,
 } from "types/Transport/TransportThunks";
 
-const HELD_KEYS = ["s", "e"];
-
-interface TimelineHeaderRendererProps extends HeaderRendererProps<Row> {
+interface TimelineHeaderRendererProps {
+  columnIndex: number;
   holdingS: boolean;
   holdingE: boolean;
 }
@@ -30,8 +28,7 @@ export const TimelineHeaderRenderer: React.FC<TimelineHeaderRendererProps> = (
 ) => {
   const dispatch = useProjectDispatch();
 
-  // Header tick properties
-  const columnIndex = Number(props.column.key);
+  const { columnIndex } = props;
   const tick = use((_) => selectColumnTicks(_, columnIndex - 1));
 
   // Loop properties derived from the transport
@@ -156,7 +153,7 @@ export const TimelineHeaderRenderer: React.FC<TimelineHeaderRendererProps> = (
       data-over={isOver}
       ref={drop}
       className={classNames(
-        "rdg-header bg-black data-[over=true]:bg-indigo-800 relative w-full h-full text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
+        "rdg-header bg-black data-[over=true]:bg-indigo-800 relative w-full h-full total-center text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
         { "border-b-8 border-b-indigo-700": loop && inLoopRange },
         { "border-slate-50/20": !loop || !inLoopRange }
       )}

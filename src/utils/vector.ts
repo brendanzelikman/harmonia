@@ -1,4 +1,4 @@
-import { union } from "lodash";
+import { size, union } from "lodash";
 import { Dict, getValueByKey } from "./objects";
 
 export type VectorKey<T extends Vector> = keyof T;
@@ -10,7 +10,11 @@ export type Vector<T extends PropertyKey = PropertyKey> = {
 
 /** Returns true if a vector has no keys. */
 export const isVectorEmpty = (vector?: Vector) => {
-  return vector === undefined || !getVectorKeys(vector).length;
+  return (
+    vector === undefined ||
+    !size(vector) ||
+    getVectorKeys(vector).every((key) => !vector[key])
+  );
 };
 
 /** Get the keys of a vector. */
@@ -77,7 +81,6 @@ export const sumVectors = <T extends Vector>(
 ): T => {
   const result = {} as T;
   for (const vector of vectors) {
-    if (vector === undefined) continue;
     for (const key in vector) {
       const oldValue = result[key] ?? 0;
       const newValue = vector[key] ?? 0;

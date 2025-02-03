@@ -2,7 +2,7 @@ import { createEntityAdapter, PayloadAction } from "@reduxjs/toolkit";
 import { PoseId, Pose, PoseBlock, PoseTransformation } from "./PoseTypes";
 import { createNormalSlice } from "lib/redux";
 import { TransformationArgs } from "types/Pattern/PatternTransformers";
-import { inRange } from "lodash";
+import { inRange, update } from "lodash";
 
 // ------------------------------------------------------------
 // Pose Slice Definition
@@ -27,7 +27,7 @@ export const posesSlice = createNormalSlice({
     ) => {
       const { id, block, index, depths } = action.payload;
       const pose = state.entities[id];
-      if (!pose) return;
+      if (!pose?.stream) return;
       const { stream } = pose;
       let target = stream;
       if (depths !== undefined) {
@@ -56,7 +56,7 @@ export const posesSlice = createNormalSlice({
     ) => {
       const { id, transformation, index, depths } = action.payload;
       const pose = state.entities[id];
-      if (!pose) return;
+      if (!pose?.stream) return;
       let target = pose.stream;
       if (depths !== undefined) {
         depths.forEach((depth) => {
@@ -86,7 +86,7 @@ export const posesSlice = createNormalSlice({
     ) => {
       const { id, block, index, depths } = action.payload;
       const pose = state.entities[id];
-      if (!pose) return;
+      if (!pose?.stream) return;
       let target = pose.stream;
       if (depths !== undefined) {
         for (const depth of depths) {
@@ -113,7 +113,7 @@ export const posesSlice = createNormalSlice({
       const { id, index, transformationIndex, transformation, depths } =
         action.payload;
       const pose = state.entities[id];
-      if (!pose) return;
+      if (!pose?.stream) return;
       let target = pose.stream;
       if (depths !== undefined) {
         depths.forEach((depth) => {
@@ -145,7 +145,7 @@ export const posesSlice = createNormalSlice({
     ) => {
       const { id, index, newIndex, depths } = action.payload;
       const pose = state.entities[id];
-      if (!pose) return;
+      if (!pose?.stream) return;
       const { stream } = pose;
       let target = stream;
       if (depths !== undefined) {
@@ -168,12 +168,21 @@ export const posesSlice = createNormalSlice({
         transformationIndex: number;
         newIndex: number;
         depths?: number[];
+        updateBase?: boolean;
       }>
     ) => {
-      const { id, index, transformationIndex, newIndex, depths } =
+      const { id, index, transformationIndex, newIndex, depths, updateBase } =
         action.payload;
       const pose = state.entities[id];
-      if (!pose) return;
+      if (updateBase) {
+        let target = pose?.operations;
+        if (!target) return;
+        if (newIndex < 0 || newIndex >= target.length) return;
+        target.splice(transformationIndex, 1);
+        target.splice(newIndex, 0, target[transformationIndex]);
+        return;
+      }
+      if (!pose?.stream) return;
       let target = pose.stream;
       if (depths !== undefined) {
         depths.forEach((depth) => {
@@ -203,7 +212,7 @@ export const posesSlice = createNormalSlice({
     ) => {
       const { id, index, depths } = action.payload;
       const pose = state.entities[id];
-      if (!pose) return;
+      if (!pose?.stream) return;
       let target = pose.stream;
       if (depths !== undefined) {
         depths.forEach((depth) => {
@@ -223,11 +232,19 @@ export const posesSlice = createNormalSlice({
         index: number;
         transformationIndex: number;
         depths?: number[];
+        updateBase?: boolean;
       }>
     ) => {
-      const { id, index, transformationIndex, depths } = action.payload;
+      const { id, index, transformationIndex, depths, updateBase } =
+        action.payload;
       const pose = state.entities[id];
-      if (!pose) return;
+      if (updateBase) {
+        const target = pose?.operations;
+        if (!target) return;
+        target.splice(transformationIndex, 1);
+        return;
+      }
+      if (!pose?.stream) return;
       let target = pose.stream;
       if (depths !== undefined) {
         depths.forEach((depth) => {
@@ -254,7 +271,7 @@ export const posesSlice = createNormalSlice({
     ) => {
       const { id, oldIndex, newIndex } = action.payload;
       const pose = state.entities[id];
-      if (!pose) return;
+      if (!pose?.stream) return;
       const { stream } = pose;
       const block = stream.splice(oldIndex, 1)[0];
       pose.stream.splice(newIndex, 0, block);
@@ -264,7 +281,8 @@ export const posesSlice = createNormalSlice({
       const id = action.payload;
       const pose = state.entities[id];
       if (!pose) return;
-      pose.stream = [];
+      delete pose.stream;
+      delete pose.vector;
     },
   },
 });

@@ -6,7 +6,7 @@ import {
 import { createDeepSelector } from "lib/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { defaultPatternState, patternAdapter } from "./PatternSlice";
-import { Pattern, PatternId, PatternMap, PatternState } from "./PatternTypes";
+import { Pattern, PatternId, PatternState } from "./PatternTypes";
 
 // Create a safe selector for the pattern state.
 export const selectPatternState = (project: SafeProject) =>
@@ -19,11 +19,7 @@ const patternSelectors =
 export const selectPatternIds = patternSelectors.selectIds as (
   project: Project
 ) => PatternId[];
-export const _selectPatternMap = patternSelectors.selectEntities;
-export const selectPatternMap = createDeepSelector(
-  [_selectPatternMap],
-  (patternMap): PatternMap => ({ ...patternMap, ...PresetPatternMap })
-);
+export const selectPatternMap = patternSelectors.selectEntities;
 
 // Select all patterns.
 export const selectPatterns = createDeepSelector(
@@ -52,7 +48,8 @@ export const selectPresetPatterns = createDeepSelector(
     patterns.filter(({ id }) => id && PresetPatternMap[id] !== undefined)
 );
 
-export const selectPatternName = (_: Project, id: string) => {
+export const selectPatternName = (_: Project, id?: string) => {
+  if (!id) return "Unknown Pattern";
   return selectPatternById(_, id)?.name ?? "Unknown Pattern";
 };
 

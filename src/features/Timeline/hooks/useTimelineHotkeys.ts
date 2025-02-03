@@ -30,6 +30,7 @@ import {
   createTypedMotif,
   toggleTimelineState,
   toggleAddingState,
+  toggleLivePlay,
 } from "types/Timeline/TimelineThunks";
 import {
   exportSelectedClipsToMIDI,
@@ -57,6 +58,7 @@ import { setupFileInput } from "providers/idb/samples";
 import { selectHasClips } from "types/Clip/ClipSelectors";
 import { inputPoseVector } from "types/Pose/PoseThunks";
 import { selectTransportLoopStart } from "types/Transport/TransportSelectors";
+import { createNewTracks } from "types/Track/TrackUtils";
 
 export function useTimelineHotkeys() {
   const dispatch = useProjectDispatch();
@@ -81,6 +83,7 @@ export function useTimelineHotkeys() {
   useHotkeysInTimeline(dispatch(DELETE_TRACK_HOTKEY));
 
   // Motif Hotkeys
+  useHotkeysInTimeline(dispatch(CREATE_NEW_TRACKS_HOTKEY));
   useHotkeysInTimeline(dispatch(CREATE_NEW_MOTIF_HOTKEY));
   useHotkeysInTimeline(dispatch(TOGGLE_MOTIF_HOTKEY));
   useHotkeysInTimeline(dispatch(ARRANGE_CLIPS_HOTKEY));
@@ -97,6 +100,7 @@ export function useTimelineHotkeys() {
   useHotkeysInTimeline(dispatch(MOVE_RIGHT_HOTKEY));
   useHotkeysInTimeline(dispatch(SCRUB_LEFT_HOTKEY));
   useHotkeysInTimeline(dispatch(SCRUB_RIGHT_HOTKEY));
+  useHotkeysInTimeline(dispatch(TOGGLE_LIVE_PLAY_HOTKEY));
 
   // Clipboard Hotkeys
   useHotkeysInTimeline(dispatch(COPY_MEDIA_HOTKEY));
@@ -153,6 +157,13 @@ export const RESET_TRANSPORT_HOTKEY: Thunk<Hotkey> = (
 // -----------------------------------------------
 // Track Hotkeys
 // -----------------------------------------------
+
+export const CREATE_NEW_TRACKS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Create New Tracks",
+  description: "Create New Tracks",
+  shortcut: "n",
+  callback: () => dispatch(createNewTracks),
+});
 
 export const CREATE_SCALE_TRACK_HOTKEY: Thunk<Hotkey> = (
   dispatch,
@@ -446,6 +457,13 @@ export const SCRUB_MEDIA_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   callback: () => {
     dispatch(moveSelectedMediaRight(1));
   },
+});
+
+export const TOGGLE_LIVE_PLAY_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Toggle Live Play",
+  description: "Activate live play and quickstart a project",
+  shortcut: "p",
+  callback: () => dispatch(toggleLivePlay()),
 });
 
 // -----------------------------------------------

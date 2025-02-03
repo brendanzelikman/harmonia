@@ -20,10 +20,15 @@ export interface PatternClipPianoProps extends PatternClipRendererProps {
 }
 
 export function PatternClipPiano(props: PatternClipPianoProps) {
-  const { isAdding, duration, cursor, clip } = props;
+  const { isAdding, cursor, clip } = props;
   const dispatch = useProjectDispatch();
   const pattern = useDeep((_) => selectPatternById(_, clip.patternId));
-  const holding = useHeldHotkeys("shift");
+  const holding = useHeldHotkeys(["shift", "t", "."]);
+  const duration = holding.t
+    ? (props.duration * 2) / 3
+    : holding["."]
+    ? (props.duration * 3) / 2
+    : props.duration;
   const asChord = holding.shift;
 
   // Add the MIDI note and try to autobind it to the best scale

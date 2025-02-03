@@ -1,11 +1,15 @@
-import { Listbox as HeadlessListbox, Transition } from "@headlessui/react";
+import {
+  Listbox as HeadlessListbox,
+  ListboxButton,
+  ListboxOptions,
+  Transition,
+} from "@headlessui/react";
 import { Pattern, PatternId } from "types/Pattern/PatternTypes";
 import { BsCheck } from "react-icons/bs";
 import { PresetPatternGroupList, PresetPatternGroupMap } from "assets/patterns";
 import { blurEvent } from "utils/html";
 import { useProjectDispatch, use, useDeep } from "types/hooks";
 import classNames from "classnames";
-import { PresetPoseGroupList, PresetPoseGroupMap } from "assets/poses";
 import { PresetScaleGroupList, PresetScaleGroupMap } from "assets/scales";
 import { ScaleId, ScaleObject } from "types/Scale/ScaleTypes";
 import { Pose, PoseId } from "types/Pose/PoseTypes";
@@ -59,7 +63,6 @@ export function NavbarMotifbox(props: { type?: ClipType }) {
       "Preset Patterns": [],
     } as Record<string, Pattern[]>,
     pose: {
-      ...PresetPoseGroupMap,
       "Custom Poses": customPoses,
     } as Record<string, Pose[]>,
     scale: {
@@ -173,9 +176,9 @@ export function NavbarMotifbox(props: { type?: ClipType }) {
       leaveFrom="transform opacity-100 scale-100"
       leaveTo="transform opacity-0 scale-90"
     >
-      <HeadlessListbox.Options className="font-nunito absolute min-w-full max-w-fit py-1 bg-slate-800 border border-white/50 text-sm rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+      <ListboxOptions className="font-nunito absolute min-w-full max-w-fit py-1 bg-slate-800 border border-white/50 text-sm rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
         {GroupList[type].map(renderCategory)}
-      </HeadlessListbox.Options>
+      </ListboxOptions>
     </Transition>
   );
 
@@ -184,7 +187,7 @@ export function NavbarMotifbox(props: { type?: ClipType }) {
       <HeadlessListbox value={[motif?.id ?? ""]} multiple>
         {({ open }) => (
           <div className="relative">
-            <HeadlessListbox.Button
+            <ListboxButton
               className={classNames(
                 `select-none relative w-full h-10 items-center flex cursor-pointer rounded-md bg-gray-900 text-white text-left shadow-md focus:outline-none`,
                 { "ring-1 ring-slate-200": open }
@@ -198,7 +201,7 @@ export function NavbarMotifbox(props: { type?: ClipType }) {
               >
                 {motifName}
               </span>
-            </HeadlessListbox.Button>
+            </ListboxButton>
             {DropdownMenu({ open })}
           </div>
         )}
@@ -237,7 +240,7 @@ export function NavbarMotifbox(props: { type?: ClipType }) {
 
 const GroupList = {
   pattern: PresetPatternGroupList,
-  pose: PresetPoseGroupList,
+  pose: ["Custom Poses"],
   scale: PresetScaleGroupList,
 };
 

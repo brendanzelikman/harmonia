@@ -175,7 +175,7 @@ export const createMapFromClipRange = <
 
 /** Get the list of clips based on the tick and optional stipulation,
  * sorted by proximity to the given tick. */
-export const sortClipsByProximity = <T extends Clip, R = T>(
+export const mapClipsWithGuard = <T extends Clip, R = T>(
   clips: T[],
   tick: number,
   guard: (clip: T) => boolean = () => true,

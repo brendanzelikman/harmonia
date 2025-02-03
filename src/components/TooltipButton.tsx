@@ -1,4 +1,4 @@
-import { Menu } from "@headlessui/react";
+import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import classNames from "classnames";
 import { ReactNode, useEffect, useState } from "react";
 import { use } from "types/hooks";
@@ -27,6 +27,7 @@ interface TooltipButtonProps {
   options?: { onClick: () => void; label: string }[];
   notRounded?: boolean;
   notClickable?: boolean;
+  normalCase?: boolean;
 }
 
 export const EditorTooltipButton = (props: TooltipButtonProps) => (
@@ -89,6 +90,7 @@ export const TooltipButton = ({
   hideRing,
   options,
   notClickable,
+  normalCase,
 }: TooltipButtonProps) => {
   const hideTooltips = use(selectHideTooltips);
   const canShowTooltip = !hideTooltips && !!label && !disabled;
@@ -153,7 +155,7 @@ export const TooltipButton = ({
       }}
     >
       <div
-        className={`capitalize w-full flex total-center opacity-100 pointer-events-none`}
+        className={`w-full flex total-center opacity-100 pointer-events-none`}
       >
         {children}
       </div>
@@ -169,11 +171,11 @@ export const TooltipButton = ({
         "select-none pointer-events-none",
         active ? "opacity-100" : "opacity-0",
         "transition-opacity group-hover:opacity-100 duration-200",
-        "absolute p-3 py-1 w-max max-w-80 shrink-0 rounded-lg",
+        "absolute p-3 py-1 w-max max-w-96 shrink-0 rounded-lg",
         direction === "vertical" ? "top-12" : "ml-10",
         borderColor ?? "border-indigo-400/90",
         backgroundColor ?? "bg-zinc-900",
-        "border rounded text-sm z-[999] capitalize"
+        "border rounded text-sm z-[999]"
       )}
     >
       {label}
@@ -182,7 +184,7 @@ export const TooltipButton = ({
 
   const Tooltip = (
     <div
-      className="relative group"
+      className={`relative group ${normalCase ? "normal-case" : "capitalize"}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
@@ -198,14 +200,14 @@ export const TooltipButton = ({
     <Menu as="div" className="relative z-50">
       {({ close }) => (
         <>
-          <Menu.Button
+          <MenuButton
             as="div"
             className="flex justify-center"
             onClick={disabled ? cancelEvent : undefined}
           >
             {Tooltip}
-          </Menu.Button>
-          <Menu.Items className="absolute flex flex-col top-8 px-2 whitespace-nowrap -mr-5 py-2 bg-slate-900/90 backdrop-blur border border-slate-400 text-sm rounded animate-in fade-in zoom-in-50 duration-100">
+          </MenuButton>
+          <MenuItems className="absolute flex flex-col top-8 px-2 whitespace-nowrap -mr-5 py-2 bg-slate-900/90 backdrop-blur border border-slate-400 text-sm rounded animate-in fade-in zoom-in-50 duration-100">
             {options.map((option, i) => (
               <div
                 key={i}
@@ -218,7 +220,7 @@ export const TooltipButton = ({
                 {option.label}
               </div>
             ))}
-          </Menu.Items>
+          </MenuItems>
         </>
       )}
     </Menu>

@@ -1,5 +1,7 @@
 import { openDB } from "idb";
+import { initializeProject } from "types/Project/ProjectTypes";
 import { IDB_NAME, PROJECT_STORE, SAMPLE_STORE } from "utils/constants";
+import { uploadProjectToDB } from "./projects";
 
 export const getDatabaseName = (userId: string | null) =>
   `${IDB_NAME}-${userId}`;
@@ -13,6 +15,7 @@ export const getDatabase = async (userId: string | null) => {
       // Create a store for the list of projects
       if (!db.objectStoreNames.contains(PROJECT_STORE)) {
         db.createObjectStore(PROJECT_STORE, { keyPath: "present.meta.id" });
+        uploadProjectToDB(initializeProject());
       }
       // Create a store for the list of samples
       if (!db.objectStoreNames.contains(SAMPLE_STORE)) {

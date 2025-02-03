@@ -26,6 +26,7 @@ import {
   selectSelectedTrackId,
 } from "types/Timeline/TimelineSelectors";
 import { PortaledPoseClip } from "types/Clip/ClipTypes";
+import { selectClipVectorJSX } from "types/Arrangement/ArrangementClipSelectors";
 
 interface PoseClipHeaderProps
   extends PoseClipComponentProps,
@@ -35,7 +36,7 @@ interface PoseClipHeaderProps
 
 export const PoseClipHeader = (props: PoseClipHeaderProps) => {
   const dispatch = useProjectDispatch();
-  const { id, clip, block, pcId } = props;
+  const { id, clip, block } = props;
   const { index, depths, setIndex, setDepths } = props;
   const isSelected = use((_) => selectIsClipSelected(_, id));
   const isLive = use((_) => selectIsClipLive(_, id));
@@ -105,7 +106,8 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
 
       // If the clip is selected, select the track or close/deselect the clip
       if (isSelected) {
-        if (!isTrackSelected) dispatch(setSelectedTrackId(clip.trackId));
+        if (isDropdownOpen && !isTrackSelected)
+          dispatch(setSelectedTrackId(clip.trackId));
         else dispatch(toggleClipDropdown({ data: { id } }));
         if (isTrackSelected && isDropdownOpen) {
           dispatch(removeClipIdsFromSelection({ data: [id] }));
@@ -132,16 +134,26 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
     return (
       <div
         data-open={isDropdownOpen}
-        className="h-4 w-4 data-[open=true]:w-6 hover:opacity-75 mx-1 flex shrink-0 total-center"
+        className="h-4 w-4 data-[open=true]:w-6 hover:opacity-85 mx-1 flex shrink-0 total-center"
+        onClick={(e) => {
+          cancelEvent(e);
+          if (!e.altKey) {
+            dispatch(toggleClipDropdown({ data: { id } }));
+            if (!isSelected && !clip.isOpen)
+              dispatch(toggleClipIdInSelection(id));
+          } else {
+            dispatch(toggleClipIdInSelection(id));
+          }
+        }}
       >
-        <Icon className="pointer-events-none" />
+        <Icon className="pointer-events-none select-none" />
       </div>
     );
-  }, [isDropdownOpen, isLive]);
+  }, [isDropdownOpen, isLive, isSelected, clip]);
 
   // The name is visible on hover or when the dropdown is open
   const PoseName = useCallback(() => {
-    if (!isSelected && !isDropdownOpen) return null;
+    if (!isDropdownOpen) return null;
     return (
       <div
         data-open={isDropdownOpen}
@@ -152,11 +164,14 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
     );
   }, [isDropdownOpen, name, isSelected]);
 
+  const jsx = use((_) => selectClipVectorJSX(_, id));
+
   // The stream allows for selecting different pose vectors
   const PoseStream = useCallback(() => {
     if (!isDropdownOpen) return null;
     return (
-      <div className="flex gap-1 pointer-events-auto">
+      <div className="flex gap-1 px-2 pointer-events-auto">
+        {jsx}
         {stream.map(renderPoseBlock)}
       </div>
     );
@@ -167,7 +182,7 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
       className={classNames(
         "flex text-sm items-center whitespace-nowrap font-nunito",
         isSelected ? "text-white font-semibold" : "text-white/80 font-light",
-        isDropdownOpen ? "w-min z-20" : "overflow-hidden hover:overflow-visible"
+        isDropdownOpen ? "w-min z-20" : "overflow-hidden"
       )}
       style={{ height: POSE_HEIGHT }}
       draggable

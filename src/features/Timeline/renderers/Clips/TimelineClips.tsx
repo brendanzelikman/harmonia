@@ -36,6 +36,7 @@ import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { getTickColumns } from "utils/durations";
 import { TRACK_WIDTH } from "utils/constants";
 import { useDragState } from "types/Media/MediaTypes";
+import { PortaledClipId } from "types/Portal/PortalTypes";
 
 export interface TimelineClipsProps {
   element?: HTMLDivElement;
@@ -72,9 +73,8 @@ export function TimelineClips(props: TimelineClipsProps) {
   useCustomEventListener("scrollLeft", onScrollLeft);
   useCustomEventListener("scrollRight", onScrollRight);
 
-  // Memoized render function for portaled clips
-  const renderPortaledClip = useCallback(
-    (pcId: IPortaledClipId) => {
+  const renderPortaledClipId = useCallback(
+    (pcId: PortaledClipId) => {
       const baseProps = {
         isSlicing,
         isPortaling,
@@ -85,14 +85,15 @@ export function TimelineClips(props: TimelineClipsProps) {
         }),
       };
 
+      const id = getOriginalIdFromPortaledClip(pcId);
+      const doesOverlap = isPortaledPatternClipId(id);
+
       const tick = clipTickMap[pcId]?.tick;
       const duration = clipTickMap[pcId]?.duration;
       const left = TRACK_WIDTH + getTickColumns(tick, subdivision) * cellWidth;
       const width = (getTickColumns(duration, subdivision) || 1) * cellWidth;
       if (scrollLeft > left + width) return null;
       if (scrollRight < left) return null;
-      const id = getOriginalIdFromPortaledClip(pcId);
-      const doesOverlap = isPortaledPatternClipId(id);
 
       // Render pattern clips
       if (isPortaledPatternClipId(pcId)) {
@@ -153,24 +154,22 @@ export function TimelineClips(props: TimelineClipsProps) {
       return null;
     },
     [
-      subdivision,
       cellWidth,
       isAdding,
       type,
       isSlicing,
       isPortaling,
       holdingI,
-      clipTickMap,
+      dragState,
       scrollLeft,
       scrollRight,
-      dragState.any,
-      dragState.set,
+      clipTickMap,
     ]
   );
 
   const children = useMemo(
-    () => portaledClipIds.map(renderPortaledClip),
-    [portaledClipIds, renderPortaledClip]
+    () => portaledClipIds.map((pcId) => renderPortaledClipId(pcId)),
+    [portaledClipIds, renderPortaledClipId]
   );
 
   // Portal the clips into the timeline element
