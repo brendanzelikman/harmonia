@@ -27,7 +27,7 @@ import { PatternNote } from "types/Pattern/PatternTypes";
 import { selectPortalsByTrackIds } from "types/Portal/PortalSelectors";
 import { removePortals } from "types/Portal/PortalSlice";
 import { Thunk } from "types/Project/ProjectTypes";
-import { addScale, removeScale } from "types/Scale/ScaleSlice";
+import { addScale, removeScale, updateScale } from "types/Scale/ScaleSlice";
 import {
   ScaleObject,
   isNestedNote,
@@ -578,6 +578,25 @@ export const quantizeTrackClips =
       return { ...clip, tick };
     });
     dispatch(updateClips({ data: updatedClips, undoType }));
+  };
+
+/** Migrate a track, changing its scale to MIDI if necessary */
+export const popTrack =
+  (id: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectTrackById(project, id);
+    if (!track) return;
+    const undoType = createUndoType("popTrack", id);
+
+    // If the track is a Scale Track, change it to MIDI
+    if (isScaleTrack(track)) {
+      const midi = selectTrackMidiScale(project, id);
+      dispatch(updateScale({ id: track.scaleId, notes: midi, undoType }));
+    }
+
+    // Remove the track's parent
+    dispatch(updateTrack({ data: { id, parentId: undefined }, undoType }));
   };
 
 /** Insert a scale track in the place of a track and nest the original track. */

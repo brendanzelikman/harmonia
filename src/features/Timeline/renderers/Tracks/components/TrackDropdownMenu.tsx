@@ -31,6 +31,9 @@ import {
   GiDominoMask,
   GiMagnet,
   GiFamilyTree,
+  GiPopcorn,
+  GiExitDoor,
+  GiUpgrade,
 } from "react-icons/gi";
 import { SiMidi } from "react-icons/si";
 import { getTransport } from "tone";
@@ -43,6 +46,7 @@ import {
   deleteTrack,
   clearTrack,
   quantizeTrackClips,
+  popTrack,
 } from "types/Track/TrackThunks";
 import { TrackDropdownButton } from "./TrackDropdownButton";
 import { Track } from "types/Track/TrackTypes";
@@ -53,6 +57,7 @@ import {
 } from "types/Track/TrackSelectors";
 import { setupFileInput } from "providers/idb";
 import { createMedia } from "types/Media/MediaThunks";
+import { BiLeftArrow } from "react-icons/bi";
 
 export const TrackDropdownMenu = (props: {
   track: Track;
@@ -138,6 +143,13 @@ export const TrackDropdownMenu = (props: {
                       icon={<Gi3DStairs />}
                       onClick={() => dispatch(insertScaleTrack(trackId))}
                     />
+                    {track.parentId && (
+                      <TrackDropdownButton
+                        content="Leave Parent"
+                        icon={<GiExitDoor />}
+                        onClick={() => dispatch(popTrack(trackId))}
+                      />
+                    )}
                     <TrackDropdownButton
                       content={`${mini ? "Enlarge" : "Minify"} Track`}
                       icon={mini ? <BsArrowsExpand /> : <BsArrowsCollapse />}

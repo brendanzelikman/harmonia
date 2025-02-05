@@ -12,7 +12,7 @@ export const MajorTriad: Pattern = {
 export const MinorTriad: Pattern = {
   id: "pattern_preset_minor_triad",
   name: "Minor Triad",
-  aliases: ["min", "min chord", "minor", "minor chord", "m", "m chord"],
+  aliases: ["min", "min chord", "minor chord", "m", "m chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(63), _.createQuarterNote(67)],
   ],

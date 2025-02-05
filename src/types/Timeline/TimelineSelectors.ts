@@ -443,7 +443,7 @@ export const selectSelectedMotif = (
     pattern: selectSelectedPattern,
     pose: selectSelectedPose,
     scale: selectSelectedScale,
-  }[type](project);
+  }[type];
 };
 
 /** Select the name of a potential new motif. */
