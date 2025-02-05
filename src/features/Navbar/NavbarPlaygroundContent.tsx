@@ -11,15 +11,9 @@ import { NavbarRedo, NavbarUndo } from "./sections/Project/NavbarUndoRedo";
 import { NavbarTrackButton } from "./sections/Toolkit/NavbarTrackButton";
 import { use, useProjectDispatch } from "types/hooks";
 import { selectHasTracks } from "types/Arrangement/ArrangementSelectors";
-import { selectHasClips } from "types/Clip/ClipSelectors";
 import { NavbarMergeClipsButton } from "./sections/Toolkit/NavbarMergeButton";
 import { NavbarTooltipButton } from "components/TooltipButton";
-import {
-  GiDominoMask,
-  GiDramaMasks,
-  GiMusicalNotes,
-  GiMusicSpell,
-} from "react-icons/gi";
+import { GiDominoMask, GiDramaMasks, GiMusicalNotes } from "react-icons/gi";
 import { toggleAddingState } from "types/Timeline/TimelineThunks";
 import {
   selectTimelineState,
@@ -27,6 +21,11 @@ import {
 } from "types/Timeline/TimelineSelectors";
 import classNames from "classnames";
 import { NavbarClipButton } from "./sections/Toolkit/NavbarClipButton";
+import {
+  ARRANGE_PATTERN_CLIPS_HOTKEY,
+  ARRANGE_POSE_CLIPS_HOTKEY,
+  ARRANGE_SCALE_CLIPS_HOTKEY,
+} from "features/Timeline/hooks/useTimelineHotkeys";
 
 export function NavbarPlaygroundContent() {
   const dispatch = useProjectDispatch();
@@ -36,8 +35,14 @@ export function NavbarPlaygroundContent() {
   const addingScales = state === "adding-clips" && type === "scale";
   const addingPatterns = state === "adding-clips" && type === "pattern";
   const addingPoses = state === "adding-clips" && type === "pose";
+  const fadeIn = "animate-in fade-in slide-in-from-top-4";
   return (
-    <div className="size-full flex text-slate-50 *:border-r first:border-r-0 last:border-r-0 *:border-r-slate-500/50">
+    <div
+      className={classNames(
+        "size-full flex text-slate-50 *:border-r first:border-r-0 last:border-r-0 *:border-r-slate-500/50",
+        fadeIn
+      )}
+    >
       <NavbarGroup>
         <NavbarFileMenu />
         <NavbarSettingsMenu />
@@ -64,21 +69,6 @@ export function NavbarPlaygroundContent() {
         <NavbarTooltipButton
           keepTooltipOnClick
           className={classNames(
-            addingScales
-              ? "ring-2 ring-offset-2 ring-offset-black ring-sky-400"
-              : "",
-            "size-9 bg-gradient-radial from-sky-500 to-sky-800 transition-all animate-in fade-in"
-          )}
-          label={`${
-            addingScales ? "Creating Scale Clip" : "Create Scale Clip"
-          }`}
-          onClick={() => dispatch(toggleAddingState({ data: "scale" }))}
-        >
-          <GiDominoMask />
-        </NavbarTooltipButton>
-        <NavbarTooltipButton
-          keepTooltipOnClick
-          className={classNames(
             addingPatterns
               ? "ring-2 ring-offset-2 ring-offset-black ring-emerald-400"
               : "",
@@ -86,11 +76,27 @@ export function NavbarPlaygroundContent() {
           )}
           label={`${
             addingPatterns ? "Creating Pattern Clip" : "Create Pattern Clip"
-          }`}
+          } (${dispatch(ARRANGE_PATTERN_CLIPS_HOTKEY).shortcut})`}
           onClick={() => dispatch(toggleAddingState({ data: "pattern" }))}
         >
           <GiMusicalNotes />
         </NavbarTooltipButton>
+        <NavbarTooltipButton
+          keepTooltipOnClick
+          className={classNames(
+            addingScales
+              ? "ring-2 ring-offset-2 ring-offset-black ring-sky-400"
+              : "",
+            "size-9 bg-gradient-radial from-sky-500 to-sky-800"
+          )}
+          label={`${
+            addingScales ? "Creating Scale Clip" : "Create Scale Clip"
+          } (${dispatch(ARRANGE_SCALE_CLIPS_HOTKEY).shortcut})`}
+          onClick={() => dispatch(toggleAddingState({ data: "scale" }))}
+        >
+          <GiDominoMask />
+        </NavbarTooltipButton>
+
         <NavbarTooltipButton
           keepTooltipOnClick
           className={classNames(
@@ -99,7 +105,9 @@ export function NavbarPlaygroundContent() {
               : "",
             "size-9 bg-gradient-radial from-fuchsia-500 to-fuchsia-800"
           )}
-          label={`${addingPoses ? "Creating Pose Clip" : "Create Pose Clip"}`}
+          label={`${addingPoses ? "Creating Pose Clip" : "Create Pose Clip"} (${
+            dispatch(ARRANGE_POSE_CLIPS_HOTKEY).shortcut
+          })`}
           onClick={() => dispatch(toggleAddingState({ data: "pose" }))}
         >
           <GiDramaMasks />

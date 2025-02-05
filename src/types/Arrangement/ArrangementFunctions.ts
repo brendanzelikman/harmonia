@@ -202,12 +202,10 @@ export const getTrackScaleChain = (
     let currentScale = scale;
     const scaleClips = deps.clipsByTrack?.[track.id]?.scale ?? [];
     if (scaleClips.length) {
-      currentScale = getMostRecentScaleFromClips(
-        scale,
-        scaleClips,
-        scaleMap,
-        tick
-      );
+      currentScale = {
+        ...getMostRecentScaleFromClips(scale, scaleClips, scaleMap, tick),
+        id: scale.id,
+      };
     }
 
     // Try to get the vector at the current tick

@@ -1,5 +1,5 @@
 import { Dictionary } from "@reduxjs/toolkit";
-import { inRange } from "lodash";
+import { inRange, isNumber } from "lodash";
 
 export type Dict<T = any> = Dictionary<T>;
 
@@ -51,4 +51,24 @@ export const spliceOrPush = <T>(
   } else {
     array.push(value);
   }
+};
+
+/** Pick a key from an object using a record of weights */
+export const pickKeyByWeight = <T extends Record<string, number>>(
+  weights: T
+): keyof T => {
+  const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+  let random = Math.random() * totalWeight;
+  for (const key in weights) {
+    random -= weights[key];
+    if (random <= 0) return key;
+  }
+  return Object.keys(weights)[0];
+};
+
+/** Fold an array into an object indicating true for all members */
+export const foldArrayToObject = <T extends string | number>(
+  array: T[]
+): Dict<boolean> => {
+  return array.reduce((acc, key) => ({ ...acc, [key]: true }), {});
 };

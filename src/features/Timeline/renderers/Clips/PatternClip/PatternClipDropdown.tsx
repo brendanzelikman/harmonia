@@ -226,6 +226,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                   {STRAIGHT_DURATION_TYPES.map((d) => {
                     return (
                       <ScoreButton
+                        key={d}
                         backgroundColor="bg-slate-50 border-2 rounded-full"
                         borderColor={
                           duration === getDurationTicks(d)

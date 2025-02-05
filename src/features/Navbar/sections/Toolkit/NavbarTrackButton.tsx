@@ -1,13 +1,16 @@
 import classNames from "classnames";
-import { NavbarTooltipButton } from "components/TooltipButton";
+import { NavbarTooltipButton, TooltipButton } from "components/TooltipButton";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
+import { CREATE_NEW_TRACKS_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
 import {
   Gi3DStairs,
+  GiDiceEightFacesEight,
   GiFamilyTree,
   GiPianoKeys,
   GiWireframeGlobe,
 } from "react-icons/gi";
 import { useProjectDispatch } from "types/hooks";
+import { createRandomHierarchy } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import {
   createNewTracks,
   createTracksFromString,
@@ -41,22 +44,35 @@ export const NavbarTrackButton = () => {
         padding="py-2 px-3"
       >
         <div className="text-wrap flex flex-col pb-2 [&>div>div>ul>li>span]:text-slate-400">
-          <div className="text-xl font-light">Create New Tracks (N)</div>
+          <div className="text-xl font-light capitalize">
+            Create New Tracks ({dispatch(CREATE_NEW_TRACKS_HOTKEY).shortcut})
+          </div>
           <div className="text-base mb-1 text-indigo-400/80">
             Design a Musical Structure
           </div>
-          <input
-            placeholder="Enter Request In TreeJS"
-            className="bg-transparent my-2 rounded w-full placeholder:text-sm"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                cancelEvent(e);
-                dispatch(createTracksFromString(e.currentTarget.value));
-                e.currentTarget.value = "";
-                e.currentTarget.blur();
-              }
-            }}
-          />
+          <div className="relative">
+            <input
+              placeholder="Enter Request In TreeJS"
+              className="bg-transparent my-2 rounded w-full placeholder:text-sm"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  cancelEvent(e);
+                  dispatch(createTracksFromString(e.currentTarget.value));
+                  e.currentTarget.value = "";
+                  e.currentTarget.blur();
+                }
+              }}
+            />
+            <TooltipButton
+              className="absolute bg-slate-800 active:bg-slate-900 border rounded -top-28 right-0 text-3xl cursor-pointer"
+              label="Randomize Tracks"
+              marginLeft={310}
+              marginTop={-70}
+              onClick={() => dispatch(createRandomHierarchy())}
+            >
+              <GiDiceEightFacesEight />
+            </TooltipButton>
+          </div>
           <div className="text-slate-500 mb-4">
             {`Example: "C major => Cmaj7 => (piano + bass)"`}
           </div>

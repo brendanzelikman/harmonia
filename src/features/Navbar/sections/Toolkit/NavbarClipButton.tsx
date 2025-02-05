@@ -19,7 +19,7 @@ import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 import { selectHasTracks } from "types/Arrangement/ArrangementSelectors";
 import { GiMusicSpell } from "react-icons/gi";
 import { useEffect } from "react";
-import { phase } from "utils/array";
+import { ARRANGE_CLIPS_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
 
 export const NavbarClipIcon = GiMusicSpell;
 export const navbarClipBackground =
@@ -45,11 +45,8 @@ export const NavbarClipButton = () => {
   return (
     <div className="relative group/tooltip">
       <NavbarTooltipButton
-        disabled
         disabledClass="cursor-pointer select-none"
-        onClick={() =>
-          isAdding && dispatch(toggleAddingState({ data: timelineType }))
-        }
+        onClick={() => dispatch(toggleTimelineState({ data: "adding-clips" }))}
         className={classNames(
           navbarClipBackground,
           "size-9 border border-white/20 hover:ring-2 hover:ring-slate-300",
@@ -69,7 +66,9 @@ export const NavbarClipButton = () => {
         className={`-left-44 capitalize whitespace-nowrap transition-all`}
         padding="py-2 px-3"
       >
-        <div className="text-xl font-light">Create New Clips (A)</div>
+        <div className="text-xl font-light">
+          Create New Clips ({dispatch(ARRANGE_CLIPS_HOTKEY).shortcut})
+        </div>
         <div className="text-base mb-3 text-teal-400/80">
           {isAdding
             ? `Scheduling a ${timelineType} Clip`

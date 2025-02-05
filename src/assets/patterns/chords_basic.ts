@@ -4,7 +4,7 @@ import * as _ from "utils/durations";
 export const MajorTriad: Pattern = {
   id: "pattern_preset_major_triad",
   name: "Major Triad",
-  aliases: ["maj", "maj chord", "major", "major chord", "M", "M chord"],
+  aliases: ["maj", "maj chord", "major chord", "M", "M chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(64), _.createQuarterNote(67)],
   ],

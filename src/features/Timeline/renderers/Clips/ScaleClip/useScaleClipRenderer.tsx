@@ -34,7 +34,7 @@ import {
   selectTrackScale,
   selectTrackScaleChain,
 } from "types/Track/TrackSelectors";
-import { getScaleNotes } from "types/Scale/ScaleFunctions";
+import { getScaleNoteDegree, getScaleNotes } from "types/Scale/ScaleFunctions";
 import { selectCustomScaleById } from "types/Scale/ScaleSelectors";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { useDragState } from "types/Media/MediaTypes";
@@ -46,6 +46,7 @@ import { getScaleKey, getScaleName } from "utils/scale";
 import { getMidiPitchClass } from "utils/midi";
 import { convertMidiToNestedNote } from "types/Track/TrackThunks";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
+import { ScaleArray } from "types/Scale/ScaleTypes";
 
 interface ScaleClipRenderer extends ClipComponentProps {
   id: ScaleClipId;
@@ -125,10 +126,10 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
   /** The pose body is filled in behind a clip. */
   const Body = () => (
     <div
-      className={`w-full flex flex-col overflow-scroll items-center animate-in fade-in text-[9px] flex-nowrap text-white duration-75 flex-grow`}
+      className={`w-full p-1 bg-sky-700 flex flex-col overflow-scroll items-center animate-in fade-in text-[9px] flex-nowrap text-white duration-75 flex-grow`}
     >
-      {pitchClasses.map((pc) => (
-        <div key={pc}>{pc}</div>
+      {pitchClasses.map((pc, i) => (
+        <div key={`${pc}${i}`}>{pc}</div>
       ))}
     </div>
   );
@@ -147,20 +148,21 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
       : isInfinite && isAdding
       ? "pointer-events-none"
       : "pointer-events-all",
-    !isEqualSize || isPortaling
-      ? "opacity-50"
-      : isDraggingOther
-      ? "opacity-80"
+    !isEqualSize
+      ? "opacity-85"
+      : isPortaling || isDraggingOther
+      ? "opacity-75"
       : "opacity-100"
   );
 
   const scaleNotes = clipScale.notes;
   const scales = useDeep((_) => selectTrackScaleChain(_, clip.trackId));
-  const scale = resolveScaleChainToMidi([...scales.slice(0, -1), scaleNotes]);
-  const scaleName = getScaleName(scale);
-  const pitchClasses = scale.map((MIDI) =>
-    getMidiPitchClass(MIDI, getScaleKey(scale))
+  const midi = resolveScaleChainToMidi([...scales.slice(0, -1), scaleNotes]);
+  const scaleName = getScaleName(midi);
+  const pitchClasses = midi.map((MIDI) =>
+    getMidiPitchClass(MIDI, getScaleKey(midi))
   );
+  const isEmpty = !midi.length;
   // Render the pose clip
   return (
     <div
@@ -174,24 +176,33 @@ export function ScaleClipRenderer(props: ScaleClipRenderer) {
         cancelEvent(e);
         promptUserForString({
           title: "Update Scale Clip",
-          description: [
-            `The current scale of this clip is ${scaleName}`,
-            `= (${scale.join(", ")})`,
-            `= (${pitchClasses.join(", ")})`,
-            `It is currently ${
-              isEqualSize
-                ? "active because the scales are the same size."
-                : "inactive because the scales are not the same size."
-            }`,
-          ],
+          description: isEmpty
+            ? [
+                `This scale clip is empty.`,
+                `Please input a scale by name, note, or number.`,
+              ]
+            : [
+                `The current scale of this clip is ${scaleName}`,
+                `= (${midi.join(", ")})`,
+                `= (${pitchClasses.join(", ")})`,
+                `It is currently ${
+                  isEqualSize
+                    ? "active because the scales are the same size."
+                    : "inactive because the scales are not the same size."
+                }`,
+              ],
           callback: (value) => {
-            const input = readMidiScaleFromString(value);
-            if (!input) return;
-            const notes = clipTrack?.parentId
-              ? input.map((MIDI) =>
-                  dispatch(convertMidiToNestedNote(MIDI, clipTrack.parentId))
-                )
-              : input;
+            const input = readMidiScaleFromString(value, midi);
+            if (!input?.length) return;
+            let notes: ScaleArray = input;
+            if (clipTrack?.parentId) {
+              notes = input.map((MIDI) =>
+                dispatch(convertMidiToNestedNote(MIDI, clipTrack.parentId))
+              );
+              if (notes.some((note) => getScaleNoteDegree(note) === -1)) {
+                notes = input;
+              }
+            }
             dispatch(updateScale({ id: clip.scaleId, notes }));
           },
         })();

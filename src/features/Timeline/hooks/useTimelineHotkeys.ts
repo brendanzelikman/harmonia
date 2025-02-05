@@ -14,7 +14,10 @@ import {
   selectSelectedPatternTrack,
 } from "types/Timeline/TimelineSelectors";
 import { createPatternTrackFromSelectedTrack } from "types/Track/PatternTrack/PatternTrackThunks";
-import { createScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
+import {
+  createRandomHierarchy,
+  createScaleTrack,
+} from "types/Track/ScaleTrack/ScaleTrackThunks";
 import {
   addAllMediaToSelection,
   copySelectedMedia,
@@ -84,6 +87,7 @@ export function useTimelineHotkeys() {
 
   // Motif Hotkeys
   useHotkeysInTimeline(dispatch(CREATE_NEW_TRACKS_HOTKEY));
+  useHotkeysInTimeline(dispatch(CREATE_RANDOM_TRACKS_HOTKEY));
   useHotkeysInTimeline(dispatch(CREATE_NEW_MOTIF_HOTKEY));
   useHotkeysInTimeline(dispatch(TOGGLE_MOTIF_HOTKEY));
   useHotkeysInTimeline(dispatch(ARRANGE_CLIPS_HOTKEY));
@@ -163,6 +167,13 @@ export const CREATE_NEW_TRACKS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   description: "Create New Tracks",
   shortcut: "n",
   callback: () => dispatch(createNewTracks),
+});
+
+export const CREATE_RANDOM_TRACKS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Create Random Tracks",
+  description: "Create Random Tracks",
+  shortcut: "shift+n",
+  callback: () => dispatch(createRandomHierarchy()),
 });
 
 export const CREATE_SCALE_TRACK_HOTKEY: Thunk<Hotkey> = (
@@ -318,21 +329,21 @@ export const ARRANGE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
 export const ARRANGE_PATTERN_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Start/Stop Arranging Pattern Clips",
   description: "Toggle the adding of pattern clips",
-  shortcut: "v",
+  shortcut: "u",
   callback: () => dispatch(toggleAddingState({ data: "pattern" })),
 });
 
 export const ARRANGE_SCALE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Start/Stop Arranging Scale Clips",
   description: "Toggle the adding of scale clips",
-  shortcut: "b",
+  shortcut: "i",
   callback: () => dispatch(toggleAddingState({ data: "scale" })),
 });
 
 export const ARRANGE_POSE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Start/Stop Arranging Pose Clips",
   description: "Toggle the adding of pose clips",
-  shortcut: "n",
+  shortcut: "o",
   callback: () => dispatch(toggleAddingState({ data: "pose" })),
 });
 
@@ -345,7 +356,7 @@ export const ARRANGE_PORTALS_HOTKEY: Thunk<Hotkey> = (
   shortcut: "j",
   callback: () => {
     const project = getProject();
-    if (selectIsLive(project) || !selectHasClips(project)) return;
+    if (!selectHasClips(project)) return;
     dispatch(toggleTimelineState({ data: "portaling-clips" }));
   },
 });
@@ -356,7 +367,7 @@ export const SLICE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   shortcut: "k",
   callback: () => {
     const project = getProject();
-    if (selectIsLive(project) || !selectHasClips(project)) return;
+    if (!selectHasClips(project)) return;
     dispatch(toggleTimelineState({ data: "slicing-clips" }));
   },
 });

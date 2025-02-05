@@ -6,6 +6,7 @@ import { selectHasClips } from "types/Clip/ClipSelectors";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { NavbarTooltip } from "features/Navbar/components/NavbarTooltip";
+import { SLICE_CLIPS_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
 
 export const NavbarScissors = () => {
   const dispatch = useProjectDispatch();
@@ -16,7 +17,12 @@ export const NavbarScissors = () => {
     <div className="relative">
       <NavbarTooltipButton
         disabled={!hasClips}
-        label={<>{isSlicing ? "Hide Scissors" : "Equip Scissors"} </>}
+        label={
+          <>
+            {isSlicing ? "Hide Scissors" : "Equip Scissors"} (
+            {dispatch(SLICE_CLIPS_HOTKEY).shortcut})
+          </>
+        }
         onClick={() => dispatch(toggleTimelineState({ data: "slicing-clips" }))}
         className={classNames(
           `p-1.5 bg-gradient-radial from-teal-200/40 to-teal-200/10`,

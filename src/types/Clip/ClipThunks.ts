@@ -1,12 +1,9 @@
 import { Midi } from "@tonejs/midi";
-import { isUndefined, some } from "lodash";
+import { isUndefined } from "lodash";
 import { Tick } from "types/units";
 import {
   selectClipById,
-  selectClipIds,
-  selectClipMap,
   selectClipMotif,
-  selectClips,
   selectPatternClips,
   selectPoseClipById,
   selectTimedClipById,
@@ -38,13 +35,7 @@ import {
   selectTransportBPM,
 } from "types/Transport/TransportSelectors";
 import { Payload, unpackUndoType } from "lib/redux";
-import {
-  addClip,
-  addClips,
-  removeClip,
-  updateClip,
-  updateClips,
-} from "./ClipSlice";
+import { addClip, addClips, removeClip, updateClip } from "./ClipSlice";
 import {
   selectIsLive,
   selectMediaSelection,
@@ -82,18 +73,9 @@ export const toggleClipDropdown =
   (dispatch, getProject) => {
     const { id, value } = payload.data;
     const project = getProject();
-    const clipIds = selectClipIds(project);
-    const clipMap = selectClipMap(project);
     const clip = selectClipById(project, id);
     if (!clip) return;
     const newValue = value === undefined ? !clip.isOpen : value;
-    if (newValue) {
-      for (const clipId of clipIds) {
-        if (clipMap[clipId]?.isOpen) {
-          dispatch(updateClip({ data: { ...clipMap[clipId], isOpen: false } }));
-        }
-      }
-    }
     dispatch(updateClip({ data: { id, isOpen: newValue } }));
   };
 

@@ -9,6 +9,7 @@ import { selectHasClips } from "types/Clip/ClipSelectors";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { NavbarTooltip } from "features/Navbar/components/NavbarTooltip";
+import { ARRANGE_PORTALS_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
 
 export const NavbarPortalGun = () => {
   const dispatch = useProjectDispatch();
@@ -19,7 +20,12 @@ export const NavbarPortalGun = () => {
   return (
     <div className="relative">
       <NavbarTooltipButton
-        label={<>{isPortaling ? "Equipped" : "Equip"} Portal Gun </>}
+        label={
+          <>
+            {isPortaling ? "Equipped" : "Equip"} Portal Gun (
+            {dispatch(ARRANGE_PORTALS_HOTKEY).shortcut}){" "}
+          </>
+        }
         disabled={!hasClips}
         borderColor="border-blue-500"
         className={classNames(

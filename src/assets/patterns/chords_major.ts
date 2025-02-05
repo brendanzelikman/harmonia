@@ -4,7 +4,7 @@ import * as _ from "utils/durations";
 export const MajorChord: Pattern = {
   id: "pattern_preset_major-chord",
   name: "Major Chord",
-  aliases: ["maj", "maj chord", "major", "major chord", "M", "M chord"],
+  aliases: ["maj", "maj chord", "major chord", "M", "M chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(64), _.createQuarterNote(67)],
   ],

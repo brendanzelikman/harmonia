@@ -15,6 +15,7 @@ import {
   isPatternStrummedChord,
 } from "./PatternTypes";
 import { Chords } from "assets/patterns";
+import { initializeScale } from "types/Scale/ScaleTypes";
 
 // ------------------------------------------------------------
 // Pattern Chord Helpers
@@ -107,15 +108,34 @@ export const getMidiStreamScale = (
   const flatValues = isPatternMidiStream(stream)
     ? flattenMidiStreamNotes(stream)
     : stream;
-  const basicValues = flatValues.map(getMidiNoteValue);
-  return [...new Set(basicValues)].sort((a, b) => a - b);
+  const scale = flatValues.map(getMidiNoteValue).sort((a, b) => a - b);
+  let notes = [scale[0]];
+  for (let i = 1; i < scale.length; i++) {
+    const root = notes[0];
+    let note = scale[i];
+    if (root % 12 === note % 12) {
+      continue;
+    }
+    while (note - root > 12) {
+      note -= 12;
+    }
+    notes.push(note);
+  }
+  return notes.sort((a, b) => a - b);
 };
 
 export const PatternChords = Object.values(Chords).flat();
 export const ChordStreams = PatternChords.map(
   (p) => p.stream
 ) as PatternMidiStream[];
-export const PatternScales = ChordStreams.map(getMidiStreamScale);
+export const PatternScales = PatternChords.map((p) =>
+  initializeScale({
+    name: p.name,
+    aliases: p.aliases,
+    notes: getMidiStreamScale(p.stream as PatternMidiStream),
+  })
+);
+export const PatternScaleNotes = ChordStreams.map(getMidiStreamScale);
 
 /** Get the intrinsic scale of a `PatternMidiStream` */
 export const getMidiStreamIntrinsicScale = (

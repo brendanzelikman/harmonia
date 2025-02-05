@@ -14,7 +14,10 @@ import {
 import { selectPortalsByTrackIds } from "types/Portal/PortalSelectors";
 import { initializePortal, Portal } from "types/Portal/PortalTypes";
 import { Thunk } from "types/Project/ProjectTypes";
-import { selectOrderedTrackIds } from "types/Track/TrackSelectors";
+import {
+  selectOrderedTrackIds,
+  selectTrackScale,
+} from "types/Track/TrackSelectors";
 import { DivMouseEvent, isHoldingShift, isHoldingOption } from "utils/html";
 import {
   selectTimeline,
@@ -49,6 +52,7 @@ import { seekTransport } from "types/Transport/TransportThunks";
 import { toggleTimelineState } from "../TimelineThunks";
 import { createClipFromMediaDraft } from "./TimelineDraftThunks";
 import { Timed } from "types/units";
+import { createScale } from "types/Scale/ScaleThunks";
 
 // ------------------------------------------------------------
 // Cell Functins
@@ -76,7 +80,20 @@ export const onCellClick =
 
     // Add clips (unless pattern clips are outside of pattern tracks)
     if (isAddingClips && !(type === "pattern" && !onPatternTrack)) {
-      dispatch(createClipFromMediaDraft({ data: { trackId, tick }, undoType }));
+      if (type === "scale") {
+        const scale = selectTrackScale(project, trackId);
+        const scaleId = dispatch(createScale({ data: scale ?? {}, undoType }));
+        dispatch(
+          createClipFromMediaDraft({
+            data: { trackId, tick, scaleId, type: "scale" },
+            undoType,
+          })
+        );
+      } else {
+        dispatch(
+          createClipFromMediaDraft({ data: { trackId, tick }, undoType })
+        );
+      }
       return;
     }
 

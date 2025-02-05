@@ -21,7 +21,7 @@ import {
   PortaledClipId,
 } from "types/Portal/PortalTypes";
 import { Thunk } from "types/Project/ProjectTypes";
-import { ScaleId } from "types/Scale/ScaleTypes";
+import { isScaleId, ScaleId } from "types/Scale/ScaleTypes";
 import { isPatternTrack } from "types/Track/TrackTypes";
 import {
   updateMediaSelection,
@@ -222,8 +222,14 @@ export const deleteMedia =
       if (!clip) continue;
       const motifId = getClipMotifId(clip);
       if (!motifId) continue;
+
+      // Check for clip ids with the motif
       const motifClipIds = motifClipMap[clip.type]?.[motifId];
       if (!motifClipIds || motifClipIds.length > 1) continue;
+
+      // Check for scale tracks with the scale id
+      if (isScaleId(motifId) && selectScaleTrackByScaleId(project, motifId))
+        continue;
 
       // Select a different motif if the current one is selected
       const clipField = `${clip.type}Clip` as const;

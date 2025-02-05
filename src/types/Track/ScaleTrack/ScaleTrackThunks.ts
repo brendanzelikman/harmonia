@@ -1,16 +1,17 @@
-import { getArrayByKey } from "utils/objects";
+import { getArrayByKey, pickKeyByWeight } from "utils/objects";
 import { addScale, updateScale } from "types/Scale/ScaleSlice";
-import { capitalize, random, range, sample, sampleSize, trim } from "lodash";
+import { capitalize, isEqual, sample, trim } from "lodash";
 import { PresetScaleList, PresetScaleNotes } from "assets/scales";
 import { Thunk } from "types/Project/ProjectTypes";
 import { getScaleNotes } from "types/Scale/ScaleFunctions";
-import { sortScaleNotesByDegree } from "types/Scale/ScaleUtils";
 import {
   ScaleObject,
   nestedChromaticNotes,
   ScaleArray,
-  chromaticScale,
   initializeScale,
+  emptyScale,
+  ScaleNote,
+  Scale,
 } from "types/Scale/ScaleTypes";
 import { TrackId, isPatternTrack } from "../TrackTypes";
 import {
@@ -40,7 +41,7 @@ import { createPattern } from "types/Pattern/PatternThunks";
 import { addClip } from "types/Clip/ClipSlice";
 import { initializePatternClip } from "types/Clip/ClipTypes";
 import { PatternStream } from "types/Pattern/PatternTypes";
-import { PatternScales } from "types/Pattern/PatternUtils";
+import { PatternScaleNotes, PatternScales } from "types/Pattern/PatternUtils";
 import { getTransposedScale } from "types/Scale/ScaleTransformers";
 import { promptUserForString } from "utils/html";
 import { getScaleAliases, getScaleName } from "utils/scale";
@@ -53,6 +54,7 @@ import {
 import { isPitchClass, unpackScaleName } from "utils/pitchClass";
 import { MajorScale, MinorScale } from "assets/scales/BasicScales";
 import { mod } from "utils/math";
+import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
@@ -99,42 +101,80 @@ export const createScaleTrack =
 
 /** Create a random hierarchy of `ScaleTracks` */
 export const createRandomHierarchy = (): Thunk => (dispatch) => {
-  // Get a random size for the hierarchy
-  let size = random(2, 5);
-  const scales: ScaleObject[] = [];
-  const scaleTracks: ScaleTrack[] = [];
+  const size = 3;
   const undoType = createUndoType("createRandomHierarchy", nanoid());
 
-  // Create a root scale by grabbing a preset
-  const baseScale = sample(PresetScaleList) || chromaticScale;
-  const baseNotes = sampleSize(baseScale.notes, random(8, 12));
-  const sortedNotes = sortScaleNotesByDegree(baseNotes);
-  const scale = initializeScale({ notes: sortedNotes });
-  scales.push(scale);
+  // The root scale is 7-12 notes
+  const map1: Record<string, number> = {
+    7: 0.3,
+    8: 0.2,
+    9: 0.1,
+    10: 0.1,
+    11: 0.1,
+    12: 0.2,
+  };
 
-  // Create a randomized scale for each level of the hierarchy
-  for (let i = 2; i <= size; i++) {
-    const maxLength = scales[i - 2].notes.length;
-    const degrees = range(0, maxLength).map((degree) => ({ degree }));
-    const scaleSize = Math.max(2, random(maxLength / 2, maxLength - 1));
-    const notes = sampleSize(degrees, scaleSize);
-    const sortedNotes = sortScaleNotesByDegree(notes);
-    const scale = initializeScale({ notes: sortedNotes });
-    scales.push(scale);
-    if (notes.length === 2) {
-      size = i;
-      break;
+  // The second scale is 4-7 notes
+  const map2: Record<string, number> = {
+    4: 0.2,
+    5: 0.3,
+    6: 0.2,
+    7: 0.3,
+  };
+
+  // The third scale is 3-4 notes
+  const map3: Record<string, number> = {
+    3: 0.65,
+    4: 0.35,
+  };
+
+  const scales: ScaleObject[] = [];
+
+  // Pick a random scale by using the weights and sampling from all presets,
+  // restricting the scales to the parent notes
+  const getScale = (weights: Record<string, number>) => {
+    const map = weights;
+    const parent = resolveScaleChainToMidi(scales);
+    while (Object.keys(map).length) {
+      const size = parseInt(pickKeyByWeight(map));
+      const filter = (s: ScaleObject) =>
+        s.notes.length === size &&
+        (!scales.length ||
+          (s.notes as number[]).every((n) =>
+            parent.some((p) => p % 12 === n % 12)
+          ));
+      const scaleMatches = PresetScaleList.filter(filter);
+      const patternMatches = PatternScales.filter(filter);
+      const matches = [...scaleMatches, ...patternMatches];
+      const scale = sample(matches);
+      if (!scales.length) return initializeScale(scale);
+      if (!scale || !scale.notes.length || isEqual(scale.notes, parent)) {
+        delete map[size];
+        continue;
+      }
+      return initializeScale({
+        ...scale,
+        notes: (scale.notes as number[]).map((n) => ({
+          degree: parent.findIndex((p) => p % 12 === n % 12),
+          scaleId: scale.id,
+        })),
+      });
     }
-  }
+    return emptyScale;
+  };
 
-  // Create a scale track for each scale and chain the parents
+  const maps = [map1, map2, map3];
+  const scaleTracks: ScaleTrack[] = [];
+
+  // Add each scale and scale track
   for (let i = 0; i < size; i++) {
-    const scale = scales[i];
+    const scale = getScale(maps[i]);
+    scales.push(scale);
+    if (!scale.notes.length) return;
     const parentId = i > 0 ? scaleTracks[i - 1].id : undefined;
-    const scaleTrack = initializeScaleTrack({ parentId, scaleId: scale.id });
-    const trackId = scaleTrack.id;
-    dispatch(addTrack({ data: scaleTrack, undoType }));
-    dispatch(addScale({ data: { ...scale, trackId }, undoType }));
+    const scaleTrack = dispatch(
+      createScaleTrack({ parentId }, scale, undoType)
+    );
     scaleTracks.push(scaleTrack);
   }
 };
@@ -250,6 +290,7 @@ export const moveScaleTrack =
   };
 
 export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
+  if (name === "") return;
   // Interpret exact pitch classes as major
   if (isPitchClass(name)) {
     const number = getPitchClassNumber(name);
@@ -307,23 +348,26 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
     const s1 = trim(scaleName.toLowerCase());
 
     // Find a preset that matches the scale name
-    const preset = [...PresetScaleNotes, ...PatternScales].find((scale) => {
+    let preset = [...PresetScaleNotes, ...PatternScaleNotes].find((scale) => {
       const s2 = getScaleName(scale).trim().toLowerCase();
       const aliases = getScaleAliases(scale);
-      return s2.includes(s1) || aliases.some((a) => a === s1);
+      return s2 === s1 || aliases.some((a) => a === s1);
     }) as MidiScale;
-    if (!preset) return;
 
-    // Make sure the preset is sanitized
-    const sanitizedPreset = preset
-      .map((midi) => mod(midi, 12))
-      .sort((a, b) => a - b);
+    // Find a preset that includes the scale name
+    if (!preset) {
+      preset = [...PresetScaleNotes, ...PatternScaleNotes].find((scale) => {
+        const s2 = getScaleName(scale).trim().toLowerCase();
+        return s2.includes(s1);
+      }) as MidiScale;
+    }
+    if (!preset) return;
 
     // Transpose the scale based on the pitch class
     const number = getPitchClassNumber(
       pitchClass || getMidiPitchClass(parent?.[0] ?? 60)
     );
-    return getTransposedScale(sanitizedPreset, number);
+    return getTransposedScale(preset, number);
   };
 
   // Try to get the scale
@@ -379,8 +423,11 @@ export const updateTrackByString =
 
           const { scaleName, pitchClass } = scale;
 
-          const preset = [...PresetScaleNotes, ...PatternScales].find((scale) =>
-            getScaleName(scale).toLowerCase().includes(scaleName.toLowerCase())
+          const preset = [...PresetScaleNotes, ...PatternScaleNotes].find(
+            (scale) =>
+              getScaleName(scale)
+                .toLowerCase()
+                .includes(scaleName.toLowerCase())
           ) as MidiScale | undefined;
           if (!preset) return;
 

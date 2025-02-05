@@ -1,6 +1,6 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { Payload, createUndoType, unpackUndoType } from "lib/redux";
-import { union, difference, range } from "lodash";
+import { union, difference, range, isString } from "lodash";
 import { selectClipsByTrackIds } from "types/Clip/ClipSelectors";
 import { addClips, removeClips, updateClips } from "types/Clip/ClipSlice";
 import { Clip, ClipType, initializeClip } from "types/Clip/ClipTypes";
@@ -33,6 +33,7 @@ import {
   isNestedNote,
   initializeScale,
   NestedNote,
+  chromaticNotes,
 } from "types/Scale/ScaleTypes";
 import {
   selectSelectedTrackId,
@@ -73,7 +74,7 @@ import {
 } from "./TrackTypes";
 import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
 import { mod } from "utils/math";
-import { getMidiOctaveDistance, MidiValue } from "utils/midi";
+import { getMidiOctaveDistance, MidiScale, MidiValue } from "utils/midi";
 import { resolvePatternNoteToMidi } from "types/Pattern/PatternResolvers";
 import { selectCustomPatterns } from "types/Pattern/PatternSelectors";
 import { selectPoses } from "types/Pose/PoseSelectors";
@@ -671,10 +672,12 @@ export const collapseTrackParents =
 
 /** Convert a midi into a nested note */
 export const convertMidiToNestedNote =
-  (midi: MidiValue, parentId?: TrackId): Thunk<NestedNote> =>
+  (midi: MidiValue, parent?: TrackId | MidiScale): Thunk<NestedNote> =>
   (dispatch, getProject) => {
-    const parentScale = selectTrackMidiScale(getProject(), parentId);
-    const degree = parentScale.findIndex((s) => s % 12 === midi % 12);
+    const parentScale = isString(parent)
+      ? selectTrackMidiScale(getProject(), parent)
+      : parent ?? chromaticNotes;
+    let degree = parentScale.findIndex((s) => s % 12 === midi % 12);
     const octave = getMidiOctaveDistance(parentScale[degree], midi);
     return { degree, offset: { octave } };
   };

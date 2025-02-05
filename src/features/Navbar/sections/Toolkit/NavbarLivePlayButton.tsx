@@ -14,7 +14,7 @@ import {
   selectTrackLabelById,
 } from "types/Track/TrackSelectors";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { some } from "lodash";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { useLivePlay } from "features/Timeline/hooks/useLivePlay";
@@ -23,6 +23,8 @@ import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 import pluralize from "pluralize";
 import { selectInstrumentMap } from "types/Instrument/InstrumentSelectors";
+import { dispatchCustomEvent } from "utils/html";
+import { TOGGLE_LIVE_PLAY_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -141,9 +143,19 @@ export const NavbarLivePlayButton = () => {
   const isLive = use(selectIsLive);
 
   // The button is in charge of synchronizing the score and dropdown
-
   const [active, setActive] = useState(false);
   useCustomEventListener("live-shortcuts", (e) => setActive(e.detail));
+  useEffect(() => {
+    const setTrue = () => dispatchCustomEvent("live-shortcuts", true);
+    const setFalse = () => dispatchCustomEvent("live-shortcuts", false);
+    window.addEventListener("keydown", (e) => e.key === "p" && setTrue());
+    window.addEventListener("keyup", (e) => e.key === "p" && setFalse());
+    return () => {
+      window.removeEventListener("keydown", setTrue);
+      window.removeEventListener("keyup", setFalse);
+    };
+  }, []);
+
   if (!isAtLeastRank("maestro")) return null;
   return (
     <NavbarTooltipButton
@@ -163,10 +175,12 @@ export const NavbarLivePlayButton = () => {
       onMouseEnter={() => setActive(true)}
       onMouseLeave={() => setActive(false)}
       label={
-        !isLive || !active ? (
+        !isLive ? (
           <>
             Quickstart Live Play{" "}
-            <span className="font-light text-slate-400">(P)</span>
+            <span className="font-light text-slate-400">
+              ({dispatch(TOGGLE_LIVE_PLAY_HOTKEY).shortcut})
+            </span>
           </>
         ) : (
           <div className="pt-1 text-white animate-in fade-in duration-300">
@@ -317,6 +331,7 @@ export const NavbarLivePlayButton = () => {
                   {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map(
                     (keycode) => (
                       <p
+                        key={keycode}
                         className={`${
                           !holdingScale && !mixingTrack
                             ? "opacity-50"

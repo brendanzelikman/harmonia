@@ -101,6 +101,7 @@ export const toggleAddingState =
 
     dispatch(setTimelineType({ data: type, undoType }));
 
+    // Toggle the state if it is not already adding
     if (!isAdding || (isAdding && timelineType === type)) {
       dispatch(toggleTimelineState({ data: `adding-clips`, undoType }));
     }
