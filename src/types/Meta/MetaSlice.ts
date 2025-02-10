@@ -25,7 +25,6 @@ export const MetaSlice = createSlice({
       action: PayloadAction<{ page: number; text: string }>
     ) => {
       if (!state.diary) state.diary = initializeProjectDiary();
-
       const { page, text } = action.payload;
       state.diary[page] = text;
     },

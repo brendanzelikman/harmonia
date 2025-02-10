@@ -229,7 +229,7 @@ export const RECORD_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
 export const LOOP_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Loop Transport",
   description: "Toggle whether the transport is looping.",
-  shortcut: "alt+shift+l",
+  shortcut: "l",
   callback: () => dispatch(toggleTransportLoop()),
 });
 

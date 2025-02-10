@@ -1,8 +1,8 @@
-import { blurOnEnter } from "utils/html";
+import { blurOnEnter, onEnter } from "utils/html";
 import { BiTrash } from "react-icons/bi";
 import { SiAudiomack, SiMidi } from "react-icons/si";
 import { Menu, MenuButton, MenuItems } from "@headlessui/react";
-import { ComponentProps } from "react";
+import { ComponentProps, useEffect, useState } from "react";
 import { useTransportTick } from "hooks/useTransportTick";
 import { format, percent } from "utils/math";
 import { useAuth } from "providers/auth";
@@ -16,7 +16,7 @@ import {
 import classNames from "classnames";
 import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { setProjectName } from "types/Meta/MetaSlice";
-import { selectMeta } from "types/Meta/MetaSelectors";
+import { selectMeta, selectProjectName } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { createProject, clearProject } from "types/Project/ProjectThunks";
@@ -38,13 +38,16 @@ import { NEW_PROJECT_NAME } from "types/Meta/MetaTypes";
 export function NavbarFileMenu() {
   const dispatch = useProjectDispatch();
   const { isAtLeastRank } = useAuth();
-  const meta = useDeep(selectMeta);
   const { downloading } = useDeep(selectTransport);
   const endTick = use(selectLastArrangementTick);
   const { tick } = useTransportTick({ offline: true });
   const downloadProgress = downloading ? percent(tick, 0, endTick) : 0;
   const downloadPercent = format(downloadProgress, 0);
   const hasDownloaded = downloadProgress >= 100;
+  const projectName = use(selectProjectName);
+  const [name, setName] = useState("");
+  const updateName = () => dispatch(setProjectName(name.trim()));
+  useEffect(() => setName(projectName), [projectName]);
 
   return (
     <div className="group/tooltip relative shrink-0">
@@ -63,9 +66,15 @@ export function NavbarFileMenu() {
               className="w-full focus:bg-indigo-900/50 py-2 mb-2"
               type="text"
               placeholder={NEW_PROJECT_NAME}
-              value={meta.name}
-              onChange={(e) => dispatch(setProjectName(e.target.value))}
-              onKeyDown={blurOnEnter}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) =>
+                onEnter(e, () => {
+                  updateName();
+                  blurOnEnter(e);
+                })
+              }
+              onBlur={updateName}
             />
             <label
               htmlFor="projectName"

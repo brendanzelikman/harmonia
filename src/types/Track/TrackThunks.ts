@@ -62,6 +62,7 @@ import {
   selectTrackChainIds,
   selectTrackAncestorIds,
   selectTrackDescendantIds,
+  selectTopLevelTracks,
 } from "./TrackSelectors";
 import { scaleTrackSlice, patternTrackSlice } from "./TrackSlice";
 import {
@@ -595,8 +596,14 @@ export const popTrack =
       dispatch(updateScale({ id: track.scaleId, notes: midi, undoType }));
     }
 
-    // Remove the track's parent
-    dispatch(updateTrack({ data: { id, parentId: undefined }, undoType }));
+    // Remove the track's parent and update the order
+    const tracks = selectTopLevelTracks(project);
+    dispatch(
+      updateTrack({
+        data: { id, parentId: undefined, order: tracks.length },
+        undoType,
+      })
+    );
   };
 
 /** Insert a scale track in the place of a track and nest the original track. */

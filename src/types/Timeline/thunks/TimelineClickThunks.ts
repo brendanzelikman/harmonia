@@ -53,6 +53,7 @@ import { toggleTimelineState } from "../TimelineThunks";
 import { createClipFromMediaDraft } from "./TimelineDraftThunks";
 import { Timed } from "types/units";
 import { createScale } from "types/Scale/ScaleThunks";
+import { toggleClipDropdown } from "types/Clip/ClipThunks";
 
 // ------------------------------------------------------------
 // Cell Functins
@@ -155,6 +156,14 @@ export const onClipClick =
     const draftField = `${clip.type}Clip` as keyof MediaDraft;
     const motifField = `${clip.type}Id` as keyof Clip;
     const motifId = clip[motifField];
+
+    // Toggle open if double click
+    if (e.detail === 2) {
+      dispatch(
+        toggleClipDropdown({ data: { id: clip.id, value: false }, undoType })
+      );
+      return;
+    }
 
     // Select the motif if eyedropping
     if (options.eyedropping) {

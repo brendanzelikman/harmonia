@@ -135,16 +135,6 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
       <div
         data-open={isDropdownOpen}
         className="h-4 w-4 data-[open=true]:w-6 hover:opacity-85 mx-1 flex shrink-0 total-center"
-        onClick={(e) => {
-          cancelEvent(e);
-          if (!e.altKey) {
-            dispatch(toggleClipDropdown({ data: { id } }));
-            if (!isSelected && !clip.isOpen)
-              dispatch(toggleClipIdInSelection(id));
-          } else {
-            dispatch(toggleClipIdInSelection(id));
-          }
-        }}
       >
         <Icon className="pointer-events-none select-none" />
       </div>

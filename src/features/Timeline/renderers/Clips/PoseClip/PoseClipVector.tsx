@@ -99,7 +99,7 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
             active={view === "effects"}
             onClick={() => setView("effects")}
           >
-            Transformations
+            MIDI Effects
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
             className="active:opacity-75"
@@ -301,7 +301,7 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
               if (isNaN(parseInt(e.target.value))) return;
               onValueChange(clamp(sanitize(e.target.valueAsNumber), -12, 12));
             }}
-            placeholder="N/A"
+            placeholder="0"
             onKeyDown={(e) => {
               if (e.key === "Backspace" && offset === 0) onDoubleClick();
               blurOnEnter(e);

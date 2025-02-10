@@ -440,9 +440,9 @@ export const selectSelectedMotif = (
 ) => {
   if (!type) return undefined;
   return {
-    pattern: selectSelectedPattern,
-    pose: selectSelectedPose,
-    scale: selectSelectedScale,
+    pattern: selectSelectedPattern(project),
+    pose: selectSelectedPose(project),
+    scale: selectSelectedScale(project),
   }[type];
 };
 

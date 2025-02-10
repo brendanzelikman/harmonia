@@ -189,13 +189,6 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
               {instruments}
             </span>
           </h6>
-
-          {/* <h6>
-            <span className="text-indigo-300">Date Created:</span> {dateCreated}
-          </h6>
-          <h6>
-            <span className="text-indigo-300">Last Opened:</span> {lastUpdated}
-          </h6> */}
         </>
       )}
     </div>

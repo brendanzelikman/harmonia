@@ -62,6 +62,7 @@ import { selectHasClips } from "types/Clip/ClipSelectors";
 import { inputPoseVector } from "types/Pose/PoseThunks";
 import { selectTransportLoopStart } from "types/Transport/TransportSelectors";
 import { createNewTracks } from "types/Track/TrackUtils";
+import { updateClips } from "types/Clip/ClipSlice";
 
 export function useTimelineHotkeys() {
   const dispatch = useProjectDispatch();
@@ -387,8 +388,9 @@ export const DESELECT_ALL_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Clear Media Selection",
   description: "Deselect all media",
   shortcut: "esc",
-  callback: () =>
-    dispatch(updateMediaSelection({ data: { clipIds: [], portalIds: [] } })),
+  callback: () => {
+    dispatch(updateMediaSelection({ data: { clipIds: [], portalIds: [] } }));
+  },
 });
 
 export const DELETE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
