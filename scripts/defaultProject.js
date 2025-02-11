@@ -1,0 +1,63 @@
+export const defaultProject = {
+  meta: {
+    id: "project-" + Math.random().toString(36).substring(2, 16),
+    name: "Harmonia Project",
+    dateCreated: new Date().toISOString(),
+    lastUpdated: new Date().toISOString(),
+    diary: Array(10).fill(""),
+  },
+  patternTracks: { entities: {}, ids: [] },
+  scaleTracks: { entities: {}, ids: [] },
+  motifs: {
+    scale: { entities: {}, ids: [] },
+    pattern: { entities: {}, ids: [] },
+    pose: { entities: {}, ids: [] },
+  },
+  clips: {
+    scale: { entities: {}, ids: [] },
+    pattern: { entities: {}, ids: [] },
+    pose: { entities: {}, ids: [] },
+  },
+  portals: { entities: {}, ids: [] },
+  instruments: { entities: {}, ids: [] },
+  timeline: {
+    state: "idle",
+    type: "pattern",
+    draft: {
+      patternClip: {},
+      poseClip: {},
+      scaleClip: {},
+      portal: {},
+    },
+    clipboard: { clips: [], portals: [] },
+    selection: { clipIds: [], portalIds: [] },
+    subdivision: "16n",
+    cellWidth: 25,
+    cellHeight: 120,
+  },
+  transport: {
+    state: "stopped",
+    bpm: 120,
+    loop: false,
+    loopStart: 0,
+    loopEnd: 383,
+    volume: -6,
+    mute: false,
+    timeSignature: [16, 16],
+    recording: false,
+    downloading: false,
+  },
+  editor: {
+    settings: {
+      global: {
+        showSidebar: true,
+        showTooltips: false,
+        showTracks: true,
+        showPiano: true,
+      },
+      note: { duration: "quarter", velocity: 100 },
+      recording: { ticks: 384, quantization: "eighth" },
+      clock: { clockLength: 16, tickDuration: "16th", swingPercentage: 50 },
+    },
+  },
+};

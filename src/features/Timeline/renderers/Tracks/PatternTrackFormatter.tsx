@@ -55,10 +55,8 @@ const HELD_KEYS = ["m", "s", "v", ...qwertyKeys];
 
 export const PatternTrackFormatter: React.FC<PatternTrackProps> = (props) => {
   const { track, label, isSelected, isAncestorSelected } = props;
-  const { isVirtuoso } = useAuth();
   const dispatch = useProjectDispatch();
   const depth = use((_) => selectTrackDepthById(_, track.id));
-  const chain = useDeep((_) => selectTrackChain(_, track.id));
   const isLive = use(selectIsLive);
   const trackId = track.id;
   const tourId = useTourId();

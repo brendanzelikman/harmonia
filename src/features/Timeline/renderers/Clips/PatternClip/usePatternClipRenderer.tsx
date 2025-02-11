@@ -20,7 +20,6 @@ import { DivMouseEvent } from "utils/html";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { Timed } from "types/units";
 import { usePatternClipStyle } from "./usePatternClipStyle";
-import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { toggleClipDropdown } from "types/Clip/ClipThunks";
 import { Subdivision } from "utils/durations";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -83,8 +82,6 @@ export function _PatternClipRenderer(props: PatternClipRendererProps) {
       />
     );
   }, [props.isSlicing, !!clip.isOpen, ...style]);
-
-  if (isScaleTrackId(clip.trackId)) return null;
 
   // Render the pattern clip with a stream or score
   return (

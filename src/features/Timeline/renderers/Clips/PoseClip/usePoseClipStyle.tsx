@@ -16,12 +16,12 @@ interface PoseClipStyleProps extends PoseClipComponentProps {
 }
 
 export const usePoseClipStyle = (props: PoseClipStyleProps) => {
-  const { id, isAdding, isAddingAny, isPortaling, isSlicing } = props;
+  const { id, isAdding, isPortaling, isSlicing } = props;
   const { clip, holdingI, isDraggingAny } = props;
   const isFullyDim = isPortaling;
   const isSelected = use((_) => selectIsClipSelected(_, id));
   const isLive = use((_) => selectIsClipLive(_, id));
-  const isActive = isPortaling || isAddingAny || isDraggingAny;
+  const isActive = isPortaling || isDraggingAny;
 
   // The position and dimensions are based on the clip
   const top = use((_) => selectTrackTop(_, clip.trackId));

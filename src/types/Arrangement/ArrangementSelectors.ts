@@ -22,7 +22,10 @@ import {
   PortaledPoseClip,
 } from "types/Clip/ClipTypes";
 import { ClipMapsByType, ClipsByTrack } from "types/Clip/ClipUtils";
-import { InstrumentNotesByTicks } from "types/Instrument/InstrumentTypes";
+import {
+  InstrumentId,
+  InstrumentNotesByTicks,
+} from "types/Instrument/InstrumentTypes";
 import { PatternId, PatternMidiStream } from "types/Pattern/PatternTypes";
 import { applyPortalsToClips } from "types/Portal/PortalFunctions";
 import { PortaledClipId, PortaledClipMap } from "types/Portal/PortalTypes";
@@ -47,8 +50,8 @@ import { selectPortals } from "types/Portal/PortalSelectors";
 import { selectPatternClips } from "types/Clip/ClipSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import {
-  selectTrackAncestorIdsMap,
   selectTrackChainIdsMap,
+  selectTrackDescendantPatternTrackMap,
   selectTrackIds,
   selectTrackMap,
   selectTrackScaleChain,
@@ -71,10 +74,7 @@ import {
   getPatternBlockDuration,
   getPatternMidiChordAtIndex,
 } from "types/Pattern/PatternFunctions";
-import {
-  isPatternTrackId,
-  PatternTrackId,
-} from "types/Track/PatternTrack/PatternTrackTypes";
+import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { mapValues } from "lodash";
 import { isFiniteNumber } from "types/util";
@@ -191,8 +191,13 @@ export const createSelectedPortaledClipById = <T extends ClipType = ClipType>(
 
 /** Select the track arrangement after portals have been applied.  */
 export const selectProcessedArrangement = createDeepSelector(
-  [selectTrackArrangement, selectTrackChainIdsMap, selectPortaledClipMap],
-  (arrangement, chainIdsByTrack, clipMap): TrackArrangement => {
+  [
+    selectTrackArrangement,
+    selectTrackChainIdsMap,
+    selectTrackDescendantPatternTrackMap,
+    selectPortaledClipMap,
+  ],
+  (arrangement, chainIdsByTrack, ptsByTrack, clipMap): TrackArrangement => {
     const clips = Object.values(clipMap);
     const clipsByTrack: ClipsByTrack = {};
     const clipMaps: ClipMapsByType = { pattern: {}, pose: {}, scale: {} };
@@ -200,6 +205,14 @@ export const selectProcessedArrangement = createDeepSelector(
       // Add the clip by type
       if (clip.type === "pattern") {
         clipMaps.pattern[clip.id] = clip;
+        if (isScaleTrackId(clip.trackId)) {
+          const newClips = ptsByTrack[clip.trackId].map((pt) => {
+            return { ...clip, trackId: pt.id, id: clip.id + "-" + pt.id };
+          });
+          for (const newClip of newClips) {
+            clipMaps.pattern[newClip.id] = newClip as PatternClip;
+          }
+        }
       } else if (clip.type === "pose") {
         clipMaps.pose[clip.id] = clip;
       } else if (clip.type === "scale") {
@@ -225,6 +238,7 @@ export const selectProcessedArrangement = createDeepSelector(
       clips: clipMaps,
       clipsByTrack,
       chainIdsByTrack,
+      ptsByTrack,
     };
   }
 );
@@ -285,15 +299,15 @@ export const selectTrackPatternClipStreamMap = createSelector(
       if (!clip) continue;
 
       // Get the pattern track
-      const patternTrack = tracks[clip.trackId as PatternTrackId];
-      if (!isPatternTrack(patternTrack)) continue;
+      const track = tracks[clip.trackId];
+      if (!track) continue;
 
       // Get the stream
       const stream = streamMap[clipId];
       if (!stream) continue;
 
       // Add the stream to the result
-      const trackId = patternTrack.id;
+      const trackId = track.id;
       result[trackId].push(stream);
     }
 
@@ -314,18 +328,16 @@ export const selectMidiChordsByTicks = createDeepSelector(
     const clips = arrangement.clips.pattern;
 
     // Iterate through each clip stream
-    for (const key of clipIds) {
-      const clip = clips[key];
-      const stream = streamMap[key];
+    for (const clip of Object.values(clips)) {
+      if (!clip) continue;
+      const stream = streamMap[clip.id];
       const streamLength = stream?.length;
       if (!clip || !streamLength) continue;
 
       // Get the pattern track
-      const patternTrack = arrangement.tracks[clip.trackId];
-      if (!isPatternTrack(patternTrack)) continue;
-
-      // Get the instrument ID
-      const instrumentStateId = patternTrack.instrumentId;
+      const track = arrangement.tracks[clip.trackId];
+      if (track?.type !== "pattern") continue;
+      const instrumentStateId = track.instrumentId;
 
       // Iterate through each chord in the stream
       for (let j = 0; j < streamLength; j++) {

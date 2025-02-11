@@ -27,7 +27,6 @@ import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { DragSourceMonitor, useDrag, useDragLayer } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { useToggledState } from "hooks/useToggledState";
-import { useCustomEventListener } from "hooks/useCustomEventListener";
 
 interface ProjectFormatterProps extends ProjectItem {
   index?: number;

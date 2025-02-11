@@ -2,10 +2,6 @@ import { SAMPLE_STORE } from "utils/constants";
 import { getContext } from "tone";
 import { Thunk } from "types/Project/ProjectTypes";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
-import {
-  isPatternTrackId,
-  PatternTrack,
-} from "types/Track/PatternTrack/PatternTrackTypes";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import { Instrument, InstrumentKey } from "types/Instrument/InstrumentTypes";
 import { fetchUser } from "providers/auth";

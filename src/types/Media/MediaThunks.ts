@@ -677,9 +677,9 @@ export const onMediaDragEnd =
       const trackIndex = orderedTrackIds.indexOf(clip.trackId);
       const newIndex = trackIndex + rowOffset;
       const trackId = orderedTrackIds[newIndex];
-      const newTrack = selectTrackById(project, trackId);
-      if (trackIndex < 0) return;
-      if (isPatternClip(clip) && !isPatternTrack(newTrack)) return;
+      if (trackIndex < 0 || !trackId) return;
+      // const newTrack = selectTrackById(project, trackId);
+      // if (isPatternClip(clip) && !isPatternTrack(newTrack)) return;
 
       // Push the new clip
       newClips.push({ ...originalClip, trackId, tick: clip.tick + tickOffset });

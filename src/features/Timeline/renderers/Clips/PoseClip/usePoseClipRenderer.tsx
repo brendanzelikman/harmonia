@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { useClipDrag } from "../useClipDnd";
 
 import { useProjectDispatch, use, useDeep } from "types/hooks";
@@ -34,7 +34,9 @@ export interface PoseClipRendererProps extends ClipComponentProps {
 
 export type PoseClipView = "vector" | "stream";
 
-export function PoseClipRenderer(props: PoseClipRendererProps) {
+export const PoseClipRenderer = memo(_PoseClipRenderer);
+
+export function _PoseClipRenderer(props: PoseClipRendererProps) {
   const { holdingI, id, pcId } = props;
   const selectClip = useMemo(
     () => createSelectedPortaledClipById(pcId),

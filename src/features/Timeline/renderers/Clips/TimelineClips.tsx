@@ -72,6 +72,22 @@ export function TimelineClips(props: TimelineClipsProps) {
   );
   useCustomEventListener("scrollLeft", onScrollLeft);
   useCustomEventListener("scrollRight", onScrollRight);
+  const startDraggingPatternClip = useCallback(
+    () => dragState.set("draggingPatternClip", true),
+    []
+  );
+  const endDraggingPatternClip = useCallback(
+    () => dragState.set("draggingPatternClip", false),
+    []
+  );
+  const startDraggingPoseClip = useCallback(
+    () => dragState.set("draggingPoseClip", true),
+    []
+  );
+  const endDraggingPoseClip = useCallback(
+    () => dragState.set("draggingPoseClip", false),
+    []
+  );
 
   const renderPortaledClipId = useCallback(
     (pcId: PortaledClipId) => {
@@ -107,11 +123,10 @@ export function TimelineClips(props: TimelineClipsProps) {
             subdivision={subdivision}
             cellWidth={cellWidth}
             isAdding={isAdding && type === "pattern"}
-            isAddingAny={isAdding}
             isDraggingAny={dragState.any}
             isDraggingOther={dragState.any && !dragState.draggingPatternClip}
-            startDrag={() => dragState.set("draggingPatternClip", true)}
-            endDrag={() => dragState.set("draggingPatternClip", false)}
+            startDrag={startDraggingPatternClip}
+            endDrag={endDraggingPatternClip}
           />
         );
       }
@@ -124,12 +139,11 @@ export function TimelineClips(props: TimelineClipsProps) {
             key={pcId}
             id={id as PoseClipId}
             isAdding={isAdding && type === "pose"}
-            isAddingAny={isAdding}
             pcId={pcId as PortaledPoseClipId}
             isDraggingAny={dragState.any}
             isDraggingOther={dragState.any && !dragState.draggingPoseClip}
-            startDrag={() => dragState.set("draggingPoseClip", true)}
-            endDrag={() => dragState.set("draggingPoseClip", false)}
+            startDrag={startDraggingPoseClip}
+            endDrag={endDraggingPoseClip}
           />
         );
       }
@@ -142,7 +156,6 @@ export function TimelineClips(props: TimelineClipsProps) {
             key={pcId}
             id={id as ScaleClipId}
             isAdding={isAdding && type === "scale"}
-            isAddingAny={isAdding}
             pcId={pcId as PortaledScaleClipId}
             isDraggingAny={dragState.any}
             isDraggingOther={dragState.any && !dragState.draggingScaleClip}
@@ -180,7 +193,6 @@ export function TimelineClips(props: TimelineClipsProps) {
 // The props passed down to each clip component
 export interface ClipComponentProps {
   isAdding: boolean;
-  isAddingAny: boolean;
   isDraggingAny: boolean;
   isDraggingOther: boolean;
   startDrag: () => void;

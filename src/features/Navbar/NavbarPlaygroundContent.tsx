@@ -75,7 +75,7 @@ export function NavbarPlaygroundContent() {
             "size-9 bg-gradient-radial from-emerald-500 to-emerald-800"
           )}
           label={`${
-            addingPatterns ? "Creating Pattern Clip" : "Create Pattern Clip"
+            addingPatterns ? "Creating Pattern Clip" : "Create Pattern"
           } (${dispatch(ARRANGE_PATTERN_CLIPS_HOTKEY).shortcut})`}
           onClick={() => dispatch(toggleAddingState({ data: "pattern" }))}
         >

@@ -70,13 +70,17 @@ export const ScaleTrackFormatter: React.FC<ScaleTrackProps> = (props) => {
   const scaleTypes = ["name", "class", "midi"] as const;
   const [scaleTypeIndex, setScaleTypeIndex] = useState(0);
   const scaleType = scaleTypes[scaleTypeIndex];
+  const renameTrack = useCallback(
+    (name: string) => props.renameTrack(name),
+    [trackId]
+  );
   const { component, name, jsx } = ScaleTrackName({
     track,
     label,
     midiScale,
     scaleType,
     cellHeight,
-    renameTrack: (name) => props.renameTrack(name),
+    renameTrack,
   });
   const cycleType = () => setScaleTypeIndex((prev) => mod(prev + 1, 3));
 
@@ -237,6 +241,12 @@ const ScaleTrackName = (props: {
     [scaleType, scaleName, midiScale, key]
   );
 
+  const onChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      props.renameTrack(e.target.value),
+    [props.renameTrack]
+  );
+
   const component = (
     <TrackName
       id={track.id}
@@ -244,7 +254,7 @@ const ScaleTrackName = (props: {
       value={track.collapsed ? scaleName : track.name ?? ""}
       disabled={track.collapsed}
       placeholder={`(${label}): Scale Track`}
-      onChange={(e) => props.renameTrack(e.target.value)}
+      onChange={onChange}
     />
   );
 

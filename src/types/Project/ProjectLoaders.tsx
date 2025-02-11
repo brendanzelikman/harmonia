@@ -10,9 +10,9 @@ import {
 } from "providers/idb";
 import { sample } from "lodash";
 import { fetchUser } from "providers/auth/user";
-import { selectMeta } from "../Meta/MetaSelectors";
+import { selectMeta, selectProjectId } from "../Meta/MetaSelectors";
 import { Thunk, isProject } from "./ProjectTypes";
-import { mergeBaseProjects } from "./ProjectFunctions";
+import { mergeBaseProjects, sanitizeProject } from "./ProjectFunctions";
 import { dispatchCustomEvent, promptUserForNumber } from "utils/html";
 import { UPDATE_PROJECTS } from "./ProjectThunks";
 
@@ -72,7 +72,8 @@ export const loadProjectByFile =
 
       // Parse the project from the file
       const projectString = e.target.result as string;
-      const project = JSON.parse(projectString);
+      const baseProject = JSON.parse(projectString);
+      const project = sanitizeProject({ present: baseProject });
 
       if (!isProject(project)) {
         throw new Error("Invalid project.");
@@ -147,21 +148,20 @@ export const loadProjectByPath =
 
     try {
       // Get the project from the path
-      const project = await fetch(path).then((res) => res.json());
+      const baseProject = await fetch(path).then((res) => res.json());
+      const project = sanitizeProject({ present: baseProject });
 
       // Replace the current project if the free tier has a project
       if (!isAtLeastRank("maestro")) {
         await setCurrentProject(project);
-        projectId = project.meta.id;
+        projectId = selectProjectId(project);
       }
 
       // Upload the project to the database
       else {
         projectId = nanoid();
-        await uploadProjectToDB({
-          ...project,
-          meta: { ...project.meta, id: projectId },
-        });
+        project.present.meta.id = projectId;
+        await uploadProjectToDB(project);
       }
 
       setCurrentProjectId(projectId);

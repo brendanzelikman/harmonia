@@ -169,7 +169,9 @@ export const mergeBaseProjects = (
   // Remove all pattern clips that don't have a pattern or track
   patternClips = filterEntityState(patternClips, (c) => {
     const hasPattern = isIdInState(patterns, c.patternId);
-    const hasTrack = isIdInState(patternTracks, c.trackId);
+    const hasTrack =
+      isIdInState(patternTracks, c.trackId) ||
+      isIdInState(scaleTracks, c.trackId);
     return hasPattern && hasTrack;
   });
 

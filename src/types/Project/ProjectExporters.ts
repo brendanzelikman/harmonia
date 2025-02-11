@@ -6,8 +6,7 @@ import { sanitizeProject } from "./ProjectFunctions";
 import { getProjectsFromDB } from "providers/idb";
 import JSZip from "jszip";
 import { downloadTransport } from "types/Transport/TransportThunks";
-import { now } from "lodash";
-import pluralize, { plural } from "pluralize";
+import pluralize from "pluralize";
 import moment from "moment";
 
 /** Export the project to a Harmonia file, using the given state if specified. */
@@ -21,7 +20,8 @@ export const exportProjectToHAM =
       sanitizeProject(project || getProject())
     );
     sanitizedProject.present.meta.name = name;
-    const projectJSON = JSON.stringify(sanitizedProject);
+
+    const projectJSON = JSON.stringify(sanitizedProject.present);
 
     // Create a blob and download it
     const blob = new Blob([projectJSON], { type: "application/json" });
@@ -56,7 +56,7 @@ export const exportProjectsToZIP =
   async (dispatch) => {
     const projects = (await getProjectsFromDB()).map(sanitizeProject);
     const jsons = projects
-      .map((project) => JSON.stringify(project))
+      .map((project) => JSON.stringify(project.present))
       .map((_) => new Blob([_], { type: "application/json" }));
 
     const midis = projects.map((project) =>

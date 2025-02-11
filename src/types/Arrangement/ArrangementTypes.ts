@@ -18,7 +18,10 @@ import {
 } from "types/Instrument/InstrumentTypes";
 import { defaultPortalState } from "types/Portal/PortalSlice";
 import { PortalState } from "types/Portal/PortalTypes";
-import { PatternTrackState } from "types/Track/PatternTrack/PatternTrackTypes";
+import {
+  PatternTrack,
+  PatternTrackState,
+} from "types/Track/PatternTrack/PatternTrackTypes";
 import {
   ScaleTrackId,
   ScaleTrackState,
@@ -34,6 +37,7 @@ import { TrackId, TrackMap } from "types/Track/TrackTypes";
 // ------------------------------------------------------------
 
 export type ChainIdsByTrack = Record<TrackId, ScaleTrackId[]>;
+export type PatternTracksByTrack = Record<TrackId, PatternTrack[]>;
 
 /** A track arrangement stores track/clip object maps. */
 export interface TrackArrangement {
@@ -45,6 +49,7 @@ export interface TrackArrangement {
   };
   clipsByTrack: ClipsByTrack;
   chainIdsByTrack: ChainIdsByTrack;
+  ptsByTrack: PatternTracksByTrack;
 }
 
 /** A live arrangement stores the full track arrangement with instruments and portals. */

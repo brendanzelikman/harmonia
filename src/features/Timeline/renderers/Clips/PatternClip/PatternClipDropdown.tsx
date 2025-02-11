@@ -18,6 +18,7 @@ import { PatternClipRendererProps } from "./usePatternClipRenderer";
 import { useCallback, useEffect, useState } from "react";
 import { DropdownOption } from "features/Editor/PatternEditor/tabs/PatternEditorTransformTab";
 import {
+  importPatternFromMIDI,
   inputPatternStream,
   migrateClip,
   preparePatternClip,
@@ -182,6 +183,13 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                 s)
               </span>
             </div>
+            {/* <ScoreButton
+              width="w-16"
+              padding="w-16 py-2"
+              backgroundColor={"bg-emerald-400/40"}
+              onClick={() => dispatch(importPatternFromMIDI(clip.id))}
+              icon={"Import"}
+            /> */}
             <ScoreButton
               width="w-36"
               padding="w-36 py-2 px-3"

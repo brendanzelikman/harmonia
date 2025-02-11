@@ -1,9 +1,10 @@
 import { Midi } from "@tonejs/midi";
-import { isUndefined } from "lodash";
+import { clamp, isUndefined } from "lodash";
 import { Tick } from "types/units";
 import {
   selectClipById,
   selectClipMotif,
+  selectPatternClipById,
   selectPatternClips,
   selectPoseClipById,
   selectTimedClipById,
@@ -11,7 +12,10 @@ import {
 import { updatePose } from "types/Pose/PoseSlice";
 import { isPoseOperation } from "types/Pose/PoseTypes";
 import { Thunk } from "types/Project/ProjectTypes";
-import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
+import {
+  convertSecondsToTicks,
+  convertTicksToSeconds,
+} from "types/Transport/TransportFunctions";
 import { selectClipStartTime } from "types/Arrangement/ArrangementClipSelectors";
 import {
   initializeClip,
@@ -20,6 +24,7 @@ import {
   Clip,
   initializePoseClip,
   PortaledPatternClip,
+  PatternClipId,
 } from "./ClipTypes";
 import {
   selectClosestPoseClipId,
@@ -58,14 +63,26 @@ import {
   selectTrackDescendantIds,
   selectTrackLabelById,
 } from "types/Track/TrackSelectors";
-import { createEighthNote, createEighthRest } from "utils/durations";
+import {
+  createEighthNote,
+  createEighthRest,
+  DURATION_TICKS,
+  getTickDuration,
+  SixteenthNoteTicks,
+} from "utils/durations";
 import { autoBindNoteToTrack } from "types/Track/TrackThunks";
-import { PatternId, PatternStream } from "types/Pattern/PatternTypes";
+import {
+  PatternId,
+  PatternMidiChord,
+  PatternMidiNote,
+  PatternStream,
+} from "types/Pattern/PatternTypes";
 import { updatePattern } from "types/Pattern/PatternSlice";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { getMidiFromPitch } from "utils/midi";
 import { TrackId } from "types/Track/TrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { getPatternChordWithNewNotes } from "types/Pattern/PatternUtils";
 
 /** Open or close the dropdown of a clip */
 export const toggleClipDropdown =
@@ -300,6 +317,79 @@ export const exportTrackToMIDI =
     }
 
     dispatch(exportClipsToMidi(clipIds));
+  };
+
+export const importPatternFromMIDI =
+  (id: PatternClipId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const transport = selectTransport(project);
+    const clip = selectPatternClipById(project, id);
+    if (!clip) return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".mid";
+    input.addEventListener("change", async (e) => {
+      const files = (e.target as HTMLInputElement).files ?? [];
+      const file = files[0];
+      if (!file) return;
+      const buffer = await file.arrayBuffer();
+      const midi = new Midi(buffer);
+      if (midi.tracks.length === 0) return;
+
+      // Assume MIDI notes are sorted by time (they should be)
+      // Group notes into chords by time
+      const chords = midi.tracks[0].notes
+        .map((note) => ({
+          MIDI: note.midi,
+          duration: note.duration,
+          velocity: Math.round(note.velocity * 127),
+          time: note.time,
+        }))
+        .reduce((acc, note) => {
+          const last = acc[acc.length - 1];
+          if (last && last.time === note.time) {
+            last.notes.push(note);
+          } else {
+            acc.push({ time: note.time, notes: [note] });
+          }
+          return acc;
+        }, [] as { time: number; notes: PatternMidiNote[] }[]);
+
+      // Cut off durations if times overlap
+      const boundChords = chords.map(({ time, notes }, i) => {
+        const nextChord = chords[i + 1];
+        return notes.map((note) => {
+          const duration = nextChord
+            ? clamp(note.duration, 0, nextChord.time - time)
+            : note.duration;
+          const rawTicks = convertSecondsToTicks(transport, duration);
+          const durationType = getTickDuration(rawTicks);
+          if (durationType) return { ...note, duration: rawTicks };
+          const bestMatch =
+            Object.values(DURATION_TICKS).find(
+              (d) => Math.abs(rawTicks - d) <= 3
+            ) ?? SixteenthNoteTicks;
+          return { ...note, duration: bestMatch };
+        });
+      });
+
+      // Autobind each chord to the clip's track
+      const stream = boundChords.map((chord) =>
+        chord.length > 1
+          ? getPatternChordWithNewNotes(chord, (notes) =>
+              notes.map((note) =>
+                dispatch(autoBindNoteToTrack(clip.trackId, note))
+              )
+            )
+          : dispatch(autoBindNoteToTrack(clip.trackId, chord[0]))
+      );
+
+      // Update the pattern with the new stream
+      dispatch(updatePattern({ data: { id: clip.patternId, stream } }));
+    });
+    input.click();
+    input.remove();
   };
 
 export const inputPatternStream =

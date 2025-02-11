@@ -8,14 +8,13 @@ import {
   PatternClipRendererProps,
 } from "./usePatternClipRenderer";
 import classNames from "classnames";
-import { use, useDeep } from "types/hooks";
+import { use } from "types/hooks";
 import {
   selectIsClipSelected,
   selectTrackHeight,
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
-  selectOverlappingPortaledClipIdMap,
   selectPatternClipMidiStreamMax,
   selectPatternClipMidiStreamMin,
   selectPatternClipStreamLength,
@@ -31,15 +30,11 @@ interface PatternClipStyleProps extends PatternClipRendererProps {
 export const usePatternClipStyle = (
   props: PatternClipStyleProps
 ): ClipStyle => {
-  const { clip, isAddingAny, isPortaling, id, pcId } = props;
+  const { clip, isPortaling, id, pcId } = props;
   const { holdingI, isAdding, subdivision, cellWidth } = props;
   const trackHeight = use((_) => selectTrackHeight(_, clip?.trackId));
   const trackTop = use((_) => selectTrackTop(_, clip?.trackId));
   const isSelected = use((_) => selectIsClipSelected(_, id));
-
-  const doesOverlap = useDeep(
-    (_) => !!selectOverlappingPortaledClipIdMap(_)[pcId]?.length
-  );
   const duration = clip?.duration ?? 0;
   const startTick = clip?.tick ?? 0;
   const endTick = startTick + (duration ?? 0);
@@ -47,7 +42,8 @@ export const usePatternClipStyle = (
   const theme = getPatternClipTheme(clip);
   const { noteColor, bodyColor, headerColor } = theme;
 
-  const isShort = doesOverlap || isAddingAny || props.isDraggingOther;
+  // const isShort = doesOverlap || isAddingAny || props.isDraggingOther;
+  const isShort = true;
 
   const height = isShort ? trackHeight - POSE_HEIGHT : trackHeight;
   const top = trackTop + (isShort ? POSE_HEIGHT : 0);

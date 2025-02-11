@@ -31,7 +31,13 @@ import {
   getTrackIndex,
   getTrackLabel,
 } from "./TrackFunctions";
-import { isScaleTrack, Track, TrackId, TrackMap } from "./TrackTypes";
+import {
+  isPatternTrack,
+  isScaleTrack,
+  Track,
+  TrackId,
+  TrackMap,
+} from "./TrackTypes";
 import { selectInstrumentMap } from "types/Instrument/InstrumentSelectors";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { createSelector, Dictionary } from "@reduxjs/toolkit";
@@ -56,7 +62,6 @@ import {
   ScaleTrack,
   isScaleTrackId,
 } from "./ScaleTrack/ScaleTrackTypes";
-import { getTransposedScale } from "types/Scale/ScaleTransformers";
 
 // ------------------------------------------------------------
 // Pattern Track Selectors
@@ -262,6 +267,15 @@ export const selectTrackDescendants = (project: Project, id?: TrackId) => {
     .map((id) => selectTrackById(project, id))
     .filter(Boolean) as Track[];
 };
+
+/** Select the map of tracks to their descending instrument ids */
+export const selectTrackDescendantPatternTrackMap = createDeepSelector(
+  [selectTrackDescendantMap],
+  (descendantMap) =>
+    mapValues(descendantMap, (descendants) =>
+      descendants.filter(isPatternTrack)
+    )
+);
 
 export const selectTrackParentIdMap = createDeepSelector(
   [selectTrackMap],

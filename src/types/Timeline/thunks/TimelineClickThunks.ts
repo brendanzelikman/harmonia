@@ -46,7 +46,6 @@ import {
   replaceClipIdsInSelection,
 } from "./TimelineSelectionThunks";
 import { addPortal } from "types/Portal/PortalSlice";
-import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import { seekTransport } from "types/Transport/TransportThunks";
 import { toggleTimelineState } from "../TimelineThunks";
@@ -77,10 +76,9 @@ export const onCellClick =
     const portalDraft = selectPortalDraft(project);
     const type = selectTimelineType(project);
     const isAddingClips = selectIsAddingClips(project);
-    const onPatternTrack = isPatternTrackId(trackId);
 
-    // Add clips (unless pattern clips are outside of pattern tracks)
-    if (isAddingClips && !(type === "pattern" && !onPatternTrack)) {
+    // Add clips
+    if (isAddingClips) {
       if (type === "scale") {
         const scale = selectTrackScale(project, trackId);
         const scaleId = dispatch(createScale({ data: scale ?? {}, undoType }));

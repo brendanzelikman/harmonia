@@ -48,7 +48,7 @@ export function TimelineStart() {
       <div className="mt-4 *:text-2xl flex *:gap-8">
         <div className="flex *:font-light *:rounded-lg">
           <Button
-            title="Basic Ideas of Harmonia"
+            title="Basic Musical Model"
             background="bg-gradient-radial from-emerald-900/20 to-sky-800/40"
           >
             <div className="flex flex-col gap-4 p-4 text-lg items-center">
@@ -56,27 +56,27 @@ export function TimelineStart() {
                 background="bg-indigo-600"
                 border="border-indigo-600/60"
                 Icon={GiDominoMask}
-                title="Idea 1: Scales are Structured"
-                description="A Scale is a structured collection of notes that can be organized within a hierarchy of pitch classes."
+                title="Idea 1: Scales are Axes of Motion"
+                description="A Scale is a collection of notes that can live inside another Scale and define an axis of musical motion."
               />
               <Component
                 background="bg-emerald-600"
                 border="border-emerald-600/60"
                 Icon={GiPaintBrush}
-                title="Idea 2: Patterns are Rhythmic"
-                description="A Pattern is a rhythmic sequence of pitches that can be defined using any Scales as reference."
+                title="Idea 2: Patterns are Paths in Space"
+                description="A Pattern is a sequence of pitches that can each be connected to a Scale and shifted along its axes."
               />
               <Component
                 background="bg-fuchsia-600/60"
                 border="border-fuchsia-600/60"
                 Icon={GiCrystalWand}
-                title="Idea 3: Poses are Expressive"
-                description="A Pose refers to any musical effect that can be applied to the notes of a Pattern or Scale."
+                title="Idea 3: Poses change Axes and Paths"
+                description="A Pose is a musical formula that can transform the notes of a Scale or a Pattern along multiple axes."
               />
             </div>
           </Button>
           <Button
-            title="Unique Features of Harmonia"
+            title="Digital Audio Workflow"
             background="bg-gradient-radial from-emerald-900/20 to-teal-800/40"
           >
             <div className="flex flex-col gap-4 p-4 text-lg items-center">
@@ -84,22 +84,22 @@ export function TimelineStart() {
                 background="bg-indigo-600"
                 border="border-indigo-600/60"
                 Icon={Gi3DStairs}
-                title="Item 1: Scale Tracks are Recursive"
-                description="A Scale Track contains a transformable scale that becomes a parent for all of the track's descendants."
+                title="Item 1: Scale Tracks are Nestable"
+                description="A Scale Track contains a transformable scale that can become the parent of another Scale Track."
               />
               <Component
                 background="bg-emerald-700"
                 border="border-emerald-600/60"
                 Icon={GiPianoKeys}
-                title="Item 2: Pattern Tracks are Nestable"
-                description="A Pattern Track can play patterns that bind to its inherited scales and adapt to changes in harmony."
+                title="Item 2: Pattern Tracks are Nested"
+                description="A Pattern Track contains a transformable instrument that can play patterns nested within a Scale Track."
               />
               <Component
                 background="bg-fuchsia-600/60"
                 border="border-fuchsia-600/60"
                 Icon={() => <GiFamilyTree className="rotate-180" />}
-                title="Item 3: Track Families are Hierarchical"
-                description="Clips (Scale, Pattern, or Pose) can be scheduled in a track with cascading effects down the hierarchy."
+                title="Item 3: Trees are Families of Tracks"
+                description="Clips (Scale, Pattern, or Pose) can be scheduled in a track with cascading effects down the tree."
               />
             </div>
           </Button>
@@ -117,7 +117,7 @@ export function TimelineStart() {
                 background={navbarTrackBackground}
                 border="border-indigo-600/60"
                 Icon={NavbarTrackIcon}
-                title="Step 1: Design your Architecture"
+                title="Step 1: Design your Geometry"
                 description={`Use this button or press 'N' to create new Tracks in the Timeline by specifying your request in TreeJS.`}
               />
               <Component

@@ -16,7 +16,7 @@ import {
 import classNames from "classnames";
 import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { setProjectName } from "types/Meta/MetaSlice";
-import { selectMeta, selectProjectName } from "types/Meta/MetaSelectors";
+import { selectProjectName } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
 import { createProject, clearProject } from "types/Project/ProjectThunks";
