@@ -5,18 +5,11 @@ import {
   getScaleNoteDegree,
   getScaleNoteOctave,
 } from "./ScaleFunctions";
-import {
-  getMidiNoteValue,
-  isMidiInScale,
-  MidiScale,
-  MidiValue,
-} from "utils/midi";
+import { isMidiInScale, MidiScale, MidiValue } from "utils/midi";
 import { getRotatedScale } from "types/Scale/ScaleTransformers";
 import { chromaticScale, NestedNote, Scale, ScaleArray } from "./ScaleTypes";
 import { isEqual } from "lodash";
-import { resolveScaleToMidi } from "./ScaleResolvers";
 import { mod } from "utils/math";
-import { MidiNote } from "utils/midi";
 import { getClosestPitchClass } from "utils/pitchClass";
 
 // ------------------------------------------------------------

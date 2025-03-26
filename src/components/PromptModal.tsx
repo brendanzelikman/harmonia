@@ -10,6 +10,8 @@ export interface PromptModalProps {
   isOpen?: boolean;
   title: ReactNode;
   description: ReactNode | ReactNode[];
+  onFocus?: () => void;
+  onBlur?: () => void;
   onSubmit?: (input: string) => void;
   onCancel?: () => void;
   autoselect?: boolean;
@@ -18,6 +20,8 @@ export interface PromptModalProps {
   large?: boolean;
 }
 
+export const promptLineBreak = new Array(64).fill(`-`).join("");
+
 const PromptModal = (props: PromptModalProps) => {
   const { isOpen, title, description } = props;
   const onSubmit = props.onSubmit ?? (() => null);
@@ -25,24 +29,13 @@ const PromptModal = (props: PromptModalProps) => {
   const [input, setInput] = useState("");
 
   // Close the modal if another is opened
-  useCustomEventListener("promptModal", onCancel);
+  useCustomEventListener("cleanupModal", onCancel);
 
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (props.autoselect) {
       ref.current?.focus();
     }
-  }, []);
-
-  // Listen for escape to close the modal
-  useEffect(() => {
-    const listener = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCancel();
-    };
-    window.addEventListener("keydown", listener);
-    return () => {
-      window.removeEventListener("keydown", listener);
-    };
   }, []);
 
   const descriptionNodes = Array.isArray(description) ? (
@@ -59,10 +52,10 @@ const PromptModal = (props: PromptModalProps) => {
     <Dialog className="relative z-[999]" open={isOpen} onClose={onCancel}>
       <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
       <div className="fixed inset-0 overflow-y-auto">
-        <div className="flex min-h-full w-full items-center justify-center p-4 text-center font-nunito">
+        <div className="flex min-h-full w-full items-center justify-center p-4 text-lg text-center font-nunito">
           <DialogPanel
             className={classNames(
-              props.backgroundColor ?? "bg-slate-900/90",
+              props.backgroundColor ?? "bg-[#0b0f1a]",
               props.padding,
               props.large ? "max-w-xl" : "max-w-md",
               "w-full transform overflow-hidden rounded-2xl border border-slate-500 p-6 text-left align-middle shadow-xl transition-all animate-in fade-in duration-150 zoom-in-50"
@@ -114,7 +107,7 @@ const PromptModal = (props: PromptModalProps) => {
 };
 
 export const promptModal = (props: PromptModalProps): Promise<string> => {
-  dispatchCustomEvent("promptModal");
+  dispatchCustomEvent("cleanupModal");
   return new Promise((resolve) => {
     const root = document.createElement("div");
     document.body.appendChild(root);
@@ -131,9 +124,12 @@ export const promptModal = (props: PromptModalProps): Promise<string> => {
     };
 
     const onCancel = () => {
+      props.onCancel?.();
       cleanup();
       resolve("");
     };
+
+    props.onFocus?.();
 
     modalRoot.render(
       <PromptModal

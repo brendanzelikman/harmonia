@@ -1,46 +1,33 @@
-import { InstrumentEditor } from "./components";
-import useInstrumentEditorHotkeys from "./hooks/useInstrumentEditorHotkeys";
-import { EditorProps } from "../Editor";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { EditorContainer } from "../components/EditorContainer";
 import { EditorBody } from "../components/EditorBody";
-import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
+import { useDeep } from "types/hooks";
+import { selectSelectedPatternTrack } from "types/Timeline/TimelineSelectors";
+import { InstrumentEditorPiano } from "./components/InstrumentEditorPiano";
+import { InstrumentEditorContent } from "./components/InstrumentEditorContent";
+import { InstrumentEditorSidebar } from "./components/InstrumentEditorSidebar";
 
-export interface InstrumentEditorProps extends EditorProps {
-  patternTrack: PatternTrack;
-  isPlaying: boolean;
-  startPlaying: () => void;
-  stopPlaying: () => void;
-}
+export function InstrumentEditor() {
+  const track = useDeep(selectSelectedPatternTrack);
 
-function InstrumentEditorComponent(props: EditorProps) {
-  const { track } = props;
-  const patternTrack = track as PatternTrack;
+  /** Play state is controlled by piano and used for animation */
   const [isPlaying, setIsPlaying] = useState(false);
-  const startPlaying = () => setIsPlaying(true);
-  const stopPlaying = () => setIsPlaying(false);
+  const startPlaying = useCallback(() => setIsPlaying(true), []);
+  const stopPlaying = useCallback(() => setIsPlaying(false), []);
 
-  // The instrument editor passes props down to all of its components
-  const instrumentEditorProps: InstrumentEditorProps = {
-    ...props,
-    patternTrack,
-    isPlaying,
-    startPlaying,
-    stopPlaying,
-  };
-
-  // The instrument editor uses a custom set of hotkeys
-  useInstrumentEditorHotkeys(instrumentEditorProps);
-
+  if (!track) return null;
+  const id = track?.instrumentId;
   return (
     <EditorContainer>
-      <EditorBody className="relative">
-        <InstrumentEditor.Sidebar {...instrumentEditorProps} />
-        <InstrumentEditor.Content {...instrumentEditorProps} />
+      <EditorBody>
+        <InstrumentEditorSidebar id={id} />
+        <InstrumentEditorContent id={id} isPlaying={isPlaying} />
       </EditorBody>
-      <InstrumentEditor.Piano {...instrumentEditorProps} />
+      <InstrumentEditorPiano
+        id={id}
+        startPlaying={startPlaying}
+        stopPlaying={stopPlaying}
+      />
     </EditorContainer>
   );
 }
-
-export { InstrumentEditorComponent as InstrumentEditor };

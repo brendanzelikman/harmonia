@@ -3,20 +3,20 @@ import { exportClipsToMidi } from "types/Clip/ClipThunks";
 import { initializeProject, Project, Thunk } from "./ProjectTypes";
 import { selectProjectName } from "../Meta/MetaSelectors";
 import { sanitizeProject } from "./ProjectFunctions";
-import { getProjectsFromDB } from "providers/idb";
 import JSZip from "jszip";
 import { downloadTransport } from "types/Transport/TransportThunks";
 import pluralize from "pluralize";
 import moment from "moment";
+import { getProjectsFromDB } from "providers/idb/projects";
 
 /** Export the project to a Harmonia file, using the given state if specified. */
 export const exportProjectToHAM =
   (project?: Project): Thunk =>
   (dispatch, getProject) => {
-    const name = selectProjectName(getProject());
+    const name = selectProjectName(project ?? getProject());
 
     // Serialize the project with a new ID
-    const sanitizedProject = initializeProject(
+    let sanitizedProject = initializeProject(
       sanitizeProject(project || getProject())
     );
     sanitizedProject.present.meta.name = name;

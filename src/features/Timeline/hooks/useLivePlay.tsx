@@ -1,57 +1,75 @@
 import { dispatchCustomEvent, isInputEvent } from "utils/html";
-import { use, useDeep, useProjectDispatch } from "types/hooks";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import { useCallback, useEffect } from "react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
-import { useAuth } from "providers/auth";
 import {
   toggleInstrumentMute,
   toggleInstrumentSolo,
 } from "types/Instrument/InstrumentSlice";
-import { PoseVector } from "types/Pose/PoseTypes";
-import { selectIsEditorOpen } from "types/Editor/EditorSelectors";
+import { PoseVector, PoseVectorId } from "types/Pose/PoseTypes";
 import {
-  selectSelectedTrackParents,
-  selectIsLive,
   selectSelectedPoseClips,
-  selectSelectedTrack,
+  selectSelectedPatternClips,
+  selectSelectedPoses,
+  selectSelectedTrackId,
 } from "types/Timeline/TimelineSelectors";
-import { selectOrderedPatternTracks } from "types/Track/TrackSelectors";
 import {
-  createPose,
-  offsetSelectedPoses,
-  updateSelectedPoses,
-  updateSelectedPoseVectors,
-} from "types/Pose/PoseThunks";
+  selectPatternTracks,
+  selectScaleTrackIds,
+  selectTrackAncestorIdsMap,
+} from "types/Track/TrackSelectors";
 import {
   unmuteTracks,
   unsoloTracks,
-  updateTrack,
-} from "types/Track/TrackThunks";
-import { pick, range, size, some } from "lodash";
-import { initializePoseClip } from "types/Clip/ClipTypes";
-import { addClip } from "types/Clip/ClipSlice";
-import { getTransport } from "tone";
+} from "types/Track/PatternTrack/PatternTrackThunks";
+import { range } from "lodash";
 import { createUndoType } from "lib/redux";
+import { walkSelectedPatternClips } from "types/Arrangement/ArrangementThunks";
+import { updatePose } from "types/Pose/PoseSlice";
+import { selectPoseMap } from "types/Pose/PoseSelectors";
+import { sumVectors } from "utils/vector";
+import { selectPoseClips } from "types/Clip/ClipSelectors";
+import { nanoid } from "@reduxjs/toolkit";
+import { TrackId } from "types/Track/TrackTypes";
+import {
+  createCourtesyPoseClip,
+  createPatternTrack,
+} from "types/Track/PatternTrack/PatternTrackThunks";
+import { useTransportTick } from "hooks/useTransportTick";
+import { wrapTransportTick } from "types/Transport/TransportThunks";
 
 const numberKeys = range(1, 10).map((n) => n.toString());
 const scaleKeys = ["q", "w", "e", "r", "t", "y"];
 const zeroKeys = ["0"];
-const extraKeys = ["m", "s", "p", "minus", "`", "equal", "shift", "meta"];
+const extraKeys = [
+  "m",
+  "s",
+  "p",
+  "v",
+  "c",
+  "d",
+  "minus",
+  "`",
+  "equal",
+  "shift",
+  "meta",
+];
 const ALL_KEYS = [...numberKeys, ...zeroKeys, ...scaleKeys, ...extraKeys];
 
 export const useLivePlay = () => {
   const dispatch = useProjectDispatch();
-  const { isAtLeastRank } = useAuth();
-  const isLive = use(selectIsLive);
-  const selectedTrack = useDeep(selectSelectedTrack);
-  const isEditorOpen = use(selectIsEditorOpen);
-  const patternTracks = useDeep(selectOrderedPatternTracks);
-  const scaleTracks = useDeep(selectSelectedTrackParents);
+  const scaleTrackIds = useDeep(selectScaleTrackIds);
+  const patternTracks = useDeep(selectPatternTracks);
+  const selectedTrackId = useDeep(selectSelectedTrackId);
+  const trackAncestorMap = useDeep(selectTrackAncestorIdsMap);
+  const patternClips = useDeep(selectSelectedPatternClips);
+  const poseMap = useDeep(selectPoseMap);
+  const poseClips = useDeep(selectPoseClips);
+  const selectedPoses = useDeep(selectSelectedPoses);
   const clips = useDeep(selectSelectedPoseClips);
   const hasClips = clips.length > 0;
-  const firstTrackId = scaleTracks[0]?.id;
-  const secondTrackId = scaleTracks[1]?.id;
-  const thirdTrackId = scaleTracks[2]?.id;
+  const { tick } = useTransportTick();
+  const currentTick = dispatch(wrapTransportTick(tick));
   const holding = useHeldHotkeys(ALL_KEYS);
   useEffect(() => {
     if (!Object.keys(holding).some((key) => holding[key])) {
@@ -62,11 +80,11 @@ export const useLivePlay = () => {
   // The callback for the numerical keydown event
   const keydown = useCallback(
     (e: KeyboardEvent) => {
-      if (isInputEvent(e) || isEditorOpen) return;
+      if (isInputEvent(e)) return;
 
       // Try to get the number of the key
       const number = parseInt(e.key);
-      if (e.key !== "p" && isNaN(number)) return;
+      if (isNaN(number)) return;
 
       // Get the pattern track by number (for mute/solo)
       const patternTrack = patternTracks[number - 1];
@@ -80,82 +98,177 @@ export const useLivePlay = () => {
       if (holding.m || holding.s) return;
 
       const isNegative = holding["-"] || holding["`"];
+
+      const keymap: Record<string, string> = {
+        ["scale-track_1"]: "q",
+        ["scale-track_2"]: "w",
+        ["scale-track_3"]: "e",
+        chordal: "r",
+        chromatic: "t",
+        octave: "y",
+      };
+      const allKeys = Object.keys(keymap) as PoseVectorId[];
+      const vectorKeys = allKeys.filter((key) => holding[keymap[key]]);
+
+      // Walk the clips along the scale (held keys)
+      if (holding.c) {
+        if (!vectorKeys.length) return;
+        return dispatch(
+          walkSelectedPatternClips({
+            data: {
+              options: {
+                select: number - 1,
+                direction: isNegative ? "down" : "up",
+                vectorKeys,
+                spread: Math.max(3, number),
+              },
+            },
+          })
+        );
+      }
+
+      // Walk the clips along the scale (diatonically)
+      if (holding.d) {
+        if (!vectorKeys.length) return;
+        return dispatch(
+          walkSelectedPatternClips({
+            data: {
+              options: {
+                step: isNegative ? -number + 1 : number - 1,
+                vectorKeys,
+                spread: Math.max(3, number),
+                direction: isNegative ? "down" : undefined,
+              },
+            },
+          })
+        );
+      }
+
+      if (!vectorKeys.length) return;
       const isExact = holding["="];
-      const isRandom = holding.p;
 
       // Compute the pose offset record
-      const vector = {} as PoseVector;
       const dir = isNegative ? -1 : 1;
-      const value = isRandom ? Math.ceil(Math.random() * 10) - 5 : number * dir;
+      const value = number * dir;
 
-      // Apply chordal offset if holding r
-      if (holding.r) {
-        if (isExact) vector.chordal = value;
-        else vector.chordal = (vector.chordal ?? 0) + value;
-      }
-
-      // Apply chromatic offset if holding t
-      if (holding.t) {
-        if (isExact) vector.chromatic = value;
-        else vector.chromatic = (vector.chromatic ?? 0) + value;
-      }
-
-      // Apply octave offset if holding y
-      if (holding.y) {
-        if (isExact) vector.octave = value;
-        else vector.octave = (vector.octave ?? 0) + value;
-      }
-
-      // Apply scalar offsets if holding w, s, or x
-      const scalarKeys = ["q", "w", "e"];
-      scalarKeys.forEach((key, i) => {
-        const heldKey = holding[key];
-        if (!heldKey) return;
-        const id =
-          i === 0 ? firstTrackId : i === 1 ? secondTrackId : thirdTrackId;
-        if (id) {
-          if (isExact) vector[id] = value;
-          else vector[id] = (vector[id] ?? 0) + value;
+      const sumVector = (trackId?: TrackId, initialVector: PoseVector = {}) => {
+        const vector = { ...initialVector };
+        if (!trackId) return vector;
+        const [q, w, e] = trackAncestorMap[trackId];
+        if (q && holding.q) {
+          if (isExact) vector[q] = value;
+          else vector[q] = (vector[q] ?? 0) + value;
         }
-      });
+        if (w && holding.w) {
+          if (isExact) vector[w] = value;
+          else vector[w] = (vector[w] ?? 0) + value;
+        }
+        if (e && holding.e) {
+          if (isExact) vector[e] = value;
+          else vector[e] = (vector[e] ?? 0) + value;
+        }
+        if (holding.r) {
+          if (isExact) vector.chordal = value;
+          else vector.chordal = (vector.chordal ?? 0) + value;
+        }
+        if (holding.t) {
+          if (isExact) vector.chromatic = value;
+          else vector.chromatic = (vector.chromatic ?? 0) + value;
+        }
+        if (holding.y) {
+          if (isExact) vector.octave = value;
+          else vector.octave = (vector.octave ?? 0) + value;
+        }
+        return vector;
+      };
 
-      if (!some(vector)) return;
-      dispatchCustomEvent("add-shortcut", vector);
-
-      // Update the track if there are no clips
-      if (!hasClips && selectedTrack) {
-        // Create a new pose with the given vector
-        const undoType = createUndoType(
-          "schedule-pose",
-          vector,
-          getTransport().ticks
-        );
-        const poseId = dispatch(createPose({ data: { vector }, undoType }));
-        const clip = initializePoseClip({
-          poseId,
-          trackId: selectedTrack.id,
-          tick: getTransport().ticks,
-        });
-        dispatch(addClip({ data: clip, undoType }));
-        return;
+      const undoType = createUndoType(`livePlay-${e.key}/${nanoid()}`);
+      for (const pose of selectedPoses) {
+        const vector = sumVector(pose.trackId, pose.vector);
+        dispatch(updatePose({ data: { ...pose, vector }, undoType }));
       }
 
-      // Otherwise, update the selected poses
-      if (isExact) {
-        dispatch(updateSelectedPoses(vector));
+      // Return early if no vector
+      if (selectedPoses.length) return;
+
+      for (const { tick, trackId } of patternClips) {
+        const vector = sumVector(trackId);
+        const match = poseClips.find(
+          (clip) => clip.tick === tick && clip.trackId === trackId
+        );
+        if (match) {
+          const pose = poseMap[match.poseId];
+          if (!pose) continue;
+          dispatch(
+            updatePose({
+              data: {
+                id: pose.id,
+                vector: sumVectors(pose.vector, vector),
+              },
+              undoType,
+            })
+          );
+          continue;
+        }
+        // Create a new pose with the given vector
+        dispatch(
+          createCourtesyPoseClip({
+            data: { pose: { vector, trackId }, clip: { tick, trackId } },
+            undoType,
+          })
+        );
+      }
+      if (patternClips.length) return;
+
+      const trackId =
+        selectedTrackId ??
+        patternTracks.at(0)?.id ??
+        dispatch(
+          createPatternTrack({
+            data: { track: { parentId: scaleTrackIds.at(-1) } },
+          })
+        ).track.id;
+
+      const vector = sumVector(trackId);
+      const match = poseClips.find(
+        (clip) => clip.tick === currentTick && clip.trackId === trackId
+      );
+      if (match) {
+        const pose = poseMap[match.poseId];
+        if (pose) {
+          dispatch(
+            updatePose({
+              data: {
+                id: pose.id,
+                vector: sumVectors(pose.vector, vector),
+              },
+              undoType,
+            })
+          );
+        }
       } else {
-        dispatch(offsetSelectedPoses(vector));
+        dispatch(
+          createCourtesyPoseClip({
+            data: {
+              clip: { tick: currentTick, trackId },
+              pose: { vector, trackId },
+            },
+            undoType,
+          })
+        );
       }
     },
     [
       holding,
-      isEditorOpen,
       patternTracks,
-      firstTrackId,
-      secondTrackId,
-      thirdTrackId,
-      selectedTrack,
-      hasClips,
+      selectedPoses,
+      selectedTrackId,
+      trackAncestorMap,
+      patternClips,
+      poseClips,
+      poseMap,
+      currentTick,
+      scaleTrackIds,
     ]
   );
 
@@ -164,7 +277,7 @@ export const useLivePlay = () => {
     (e: KeyboardEvent) => {
       const key = e.key;
       if (!zeroKeys.includes(key)) return;
-      if (isInputEvent(e) || isEditorOpen) return;
+      if (isInputEvent(e)) return;
 
       // Unmute all tracks if holding m
       if (holding.m) {
@@ -176,96 +289,52 @@ export const useLivePlay = () => {
         dispatch(unsoloTracks());
       }
 
-      const scaleKeys = ["q", "w", "e"];
-      // const isZ = key === "z" && !e.metaKey;
-      const isZ = key === "0" || !e.metaKey; // all zeros will remove the key
+      const undoType = createUndoType(`livePlay-zero/${nanoid()}`);
 
-      let broadcast = false;
-
-      const getNewVector = (vector: PoseVector) => {
-        let newVector = { ...vector };
-        const broadcastedKeys = [];
-
-        if (holding[scaleKeys[0]] && firstTrackId) {
-          broadcastedKeys.push(firstTrackId);
-          if (isZ) {
-            delete newVector[firstTrackId];
-          } else {
-            newVector[firstTrackId] = 0;
-          }
+      for (const pose of selectedPoses) {
+        const trackId = pose.trackId;
+        if (!trackId) continue;
+        let vector = { ...(pose.vector ?? {}) };
+        const [q, w, e] = trackAncestorMap[trackId];
+        if (q && holding.q) delete vector[q];
+        if (w && holding.w) delete vector[w];
+        if (e && holding.e) delete vector[e];
+        if (holding.r) delete vector.chordal;
+        if (holding.t) delete vector.chromatic;
+        if (holding.y) delete vector.octave;
+        if (["q", "w", "e", "r", "t", "y"].every((key) => !holding[key])) {
+          vector = {};
         }
-        if (holding[scaleKeys[1]] && secondTrackId) {
-          broadcastedKeys.push(secondTrackId);
-          if (isZ) {
-            delete newVector[secondTrackId];
-          } else {
-            newVector[secondTrackId] = 0;
-          }
-        }
-        if (holding[scaleKeys[2]] && thirdTrackId) {
-          broadcastedKeys.push(thirdTrackId);
-          if (isZ) {
-            delete newVector[thirdTrackId];
-          } else {
-            newVector[thirdTrackId] = 0;
-          }
-        }
-        if (holding.r) {
-          broadcastedKeys.push("chordal");
-          if (isZ) {
-            delete newVector.chordal;
-          } else {
-            newVector.chordal = 0;
-          }
-        }
-        if (holding.t) {
-          broadcastedKeys.push("chromatic");
-          if (isZ) {
-            delete newVector.chromatic;
-          } else {
-            newVector.chromatic = 0;
-          }
-        }
-        if (holding.y) {
-          broadcastedKeys.push("octave");
-          if (isZ) {
-            delete newVector.octave;
-          } else {
-            newVector.octave = 0;
-          }
-        }
-        if (isZ && size(newVector) === size(vector)) {
-          if (!broadcast) dispatchCustomEvent("add-shortcut", {});
-          broadcast = true;
-          return {};
-        }
-        if (!broadcast)
-          dispatchCustomEvent("add-shortcut", pick(newVector, broadcastedKeys));
-        broadcast = true;
-        return newVector;
-      };
-
-      // Update the track's vector if there are no clips
-      if (!hasClips && selectedTrack) {
-        const newVector = getNewVector(selectedTrack.vector ?? {});
-        dispatch(
-          updateTrack({ data: { id: selectedTrack.id, vector: newVector } })
-        );
-        return;
+        dispatch(updatePose({ data: { ...pose, vector }, undoType }));
       }
+      if (selectedPoses.length) return;
 
-      // Otherwise, update the selected poses
-      dispatch(updateSelectedPoseVectors(getNewVector));
+      for (const { tick, trackId } of patternClips) {
+        const match = poseClips.find(
+          (clip) => clip.tick === tick && clip.trackId === trackId
+        );
+        if (match) {
+          const pose = poseMap[match.poseId];
+          if (!pose) continue;
+          const vector = { ...(pose.vector ?? {}) };
+          const trackId = pose.trackId;
+          if (!trackId) continue;
+          const [q, w, e] = trackAncestorMap[trackId];
+          if (q && holding.q) delete vector[q];
+          if (w && holding.w) delete vector[w];
+          if (e && holding.e) delete vector[e];
+          if (holding.r) delete vector.chordal;
+          if (holding.t) delete vector.chromatic;
+          if (holding.y) delete vector.octave;
+          if (["q", "w", "e", "r", "t", "y"].every((key) => !holding[key])) {
+            dispatch(updatePose({ data: { ...pose, vector: {} }, undoType }));
+            return;
+          }
+          dispatch(updatePose({ data: { ...pose, vector }, undoType }));
+        }
+      }
     },
-    [
-      holding,
-      isEditorOpen,
-      firstTrackId,
-      secondTrackId,
-      thirdTrackId,
-      hasClips,
-      selectedTrack,
-    ]
+    [holding, hasClips]
   );
 
   /**
@@ -273,12 +342,11 @@ export const useLivePlay = () => {
    * (This is a workaround for duplicated events with react-hotkeys)
    */
   useEffect(() => {
-    if (!isLive || !isAtLeastRank("maestro")) return;
     window.addEventListener("keydown", keydown);
     window.addEventListener("keydown", zeroKeydown);
     return () => {
       window.removeEventListener("keydown", keydown);
       window.removeEventListener("keydown", zeroKeydown);
     };
-  }, [isAtLeastRank, isLive, keydown, zeroKeydown]);
+  }, [keydown, zeroKeydown]);
 };

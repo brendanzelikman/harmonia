@@ -1,3 +1,4 @@
+import { inRange } from "lodash";
 import { mod } from "./math";
 
 /** Get the previous item in an array. */
@@ -25,6 +26,30 @@ export const phase = <T>(array: T[], steps: number): T[] => {
   return newArray;
 };
 
-/** Convert an item or array into a definite array */
-export const toArray = <T>(item: T | T[]): T[] =>
-  Array.isArray(item) ? item : [item];
+/** Insert an item by pushing or splicing at a given index */
+export const insert = <T>(array: T[], value: T, index: number | undefined) => {
+  const copy = [...array];
+  if (copy.includes(value)) return;
+  if (index !== undefined && inRange(index, 0, copy.length)) {
+    copy.splice(index, 0, value);
+  } else {
+    copy.push(value);
+  }
+  return copy;
+};
+
+/** Move an item from one index to another. */
+export const move = <T>(array: T[], from: number, to?: number) => {
+  const copy = [...array];
+  const value = copy.splice(from, 1)[0];
+  return insert(copy, value, to);
+};
+
+/** Get the error between two arrays of numbers. */
+export const dist = (a: number[], b: number[]): number => {
+  let error = 0;
+  for (let i = 0; i < a.length; i++) {
+    error += Math.abs(a[i] - b[i]);
+  }
+  return error;
+};

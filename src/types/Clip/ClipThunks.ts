@@ -1,64 +1,34 @@
 import { Midi } from "@tonejs/midi";
-import { clamp, isUndefined } from "lodash";
+import { clamp } from "lodash";
 import { Tick } from "types/units";
 import {
   selectClipById,
-  selectClipMotif,
   selectPatternClipById,
   selectPatternClips,
-  selectPoseClipById,
   selectTimedClipById,
 } from "./ClipSelectors";
-import { updatePose } from "types/Pose/PoseSlice";
-import { isPoseOperation } from "types/Pose/PoseTypes";
 import { Thunk } from "types/Project/ProjectTypes";
+import { initializeClip, ClipId, PatternClipId } from "./ClipTypes";
+import { selectPortaledPatternClipStreamMap } from "types/Arrangement/ArrangementSelectors";
 import {
-  convertSecondsToTicks,
-  convertTicksToSeconds,
-} from "types/Transport/TransportFunctions";
-import { selectClipStartTime } from "types/Arrangement/ArrangementClipSelectors";
-import {
-  initializeClip,
-  ClipId,
-  PoseClipId,
-  Clip,
-  initializePoseClip,
-  PortaledPatternClip,
-  PatternClipId,
-} from "./ClipTypes";
-import {
-  selectClosestPoseClipId,
-  selectPatternClipStreamMap,
-  selectPortaledClipById,
   selectTrackClipIds,
   selectTrackPortaledClipIdsMap,
-} from "types/Arrangement/ArrangementSelectors";
-import { selectPoseById } from "types/Pose/PoseSelectors";
+} from "types/Arrangement/ArrangementTrackSelectors";
 import { selectMeta } from "types/Meta/MetaSelectors";
 import {
   selectTransport,
   selectTransportBPM,
 } from "types/Transport/TransportSelectors";
 import { Payload, unpackUndoType } from "lib/redux";
-import { addClip, addClips, removeClip, updateClip } from "./ClipSlice";
+import { addClips, removeClip, updateClip } from "./ClipSlice";
 import {
-  selectIsLive,
   selectMediaSelection,
   selectSelectedPatternClips,
 } from "types/Timeline/TimelineSelectors";
-import { deleteMedia } from "types/Media/MediaThunks";
-import {
-  addClipIdsToSelection,
-  removeClipIdsFromSelection,
-} from "types/Timeline/thunks/TimelineSelectionThunks";
-import { sumVectors } from "utils/vector";
-import { copyMotif } from "types/Motif/MotifFunctions";
-import { addMotif } from "types/Motif/MotifThunks";
-import { createPose } from "types/Pose/PoseThunks";
-import { setSelectedTrackId } from "types/Timeline/TimelineSlice";
+import { removeClipIdsFromSelection } from "types/Timeline/thunks/TimelineSelectionThunks";
 import { promptUserForString } from "utils/html";
 import {
-  selectOrderedTracks,
+  selectTracks,
   selectTrackById,
   selectTrackDescendantIds,
   selectTrackLabelById,
@@ -68,12 +38,13 @@ import {
   createEighthRest,
   DURATION_TICKS,
   getTickDuration,
+  secondsToTicks,
   SixteenthNoteTicks,
+  ticksToSeconds,
 } from "utils/durations";
-import { autoBindNoteToTrack } from "types/Track/TrackThunks";
+import { autoBindNoteToTrack } from "types/Track/TrackUtils";
 import {
   PatternId,
-  PatternMidiChord,
   PatternMidiNote,
   PatternStream,
 } from "types/Pattern/PatternTypes";
@@ -83,6 +54,7 @@ import { getMidiFromPitch } from "utils/midi";
 import { TrackId } from "types/Track/TrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getPatternChordWithNewNotes } from "types/Pattern/PatternUtils";
+import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 
 /** Open or close the dropdown of a clip */
 export const toggleClipDropdown =
@@ -90,17 +62,19 @@ export const toggleClipDropdown =
   (dispatch, getProject) => {
     const { id, value } = payload.data;
     const project = getProject();
+    const undoType = unpackUndoType(payload, "toggleClipDropdown");
     const clip = selectClipById(project, id);
     if (!clip) return;
     const newValue = value === undefined ? !clip.isOpen : value;
-    dispatch(updateClip({ data: { id, isOpen: newValue } }));
+    dispatch(updateClip({ data: { id, isOpen: newValue }, undoType }));
   };
 
 /** Slice a clip and make sure the old ID is no longer selected. */
 export const sliceClip =
   (payload: Payload<{ id: ClipId; tick: Tick }>): Thunk =>
   (dispatch, getProject) => {
-    const { id, tick } = payload.data;
+    const { tick } = payload.data;
+    const id = getOriginalIdFromPortaledClip(payload.data.id);
     if (!id) return;
 
     const project = getProject();
@@ -131,100 +105,6 @@ export const sliceClip =
     dispatch(addClips({ data: [firstClip, secondClip], undoType }));
   };
 
-/** Migrate a clip's motif to a new copy. */
-export const migrateClip =
-  (payload: Payload<Clip>): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const undoType = unpackUndoType(payload, `migrateClip`);
-    const clip = payload.data;
-    const type = clip.type;
-    const motif = selectClipMotif(project, clip.id);
-    if (!motif) return;
-    const newMotif = copyMotif(motif);
-    const field = `${type}Id`;
-    const fieldId = newMotif.id;
-    dispatch(addMotif({ data: newMotif, undoType }));
-    dispatch(updateClip({ data: { id: clip.id, [field]: fieldId }, undoType }));
-  };
-
-/** Prepare a pattern clip for live play. */
-export const preparePatternClip =
-  (payload: Payload<PortaledPatternClip>): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const undoType = unpackUndoType(payload, "preparePatternClip");
-    const { id, trackId, tick } = payload.data;
-    const poseClipId = selectClosestPoseClipId(project, id);
-    const portaledPoseCip = poseClipId
-      ? selectPortaledClipById(project, poseClipId)
-      : undefined;
-    const isLive = selectIsLive(project);
-    const isPosed = !!portaledPoseCip?.isOpen;
-
-    if (isLive && poseClipId && isPosed) {
-      dispatch(setSelectedTrackId({ data: null, undoType }));
-      dispatch(removeClipIdsFromSelection({ data: [poseClipId], undoType }));
-      dispatch(toggleClipDropdown({ data: { id: poseClipId, value: false } }));
-      return;
-    }
-
-    // If the clip is posed, select the pose clip and open the dropdown
-    if (isLive && poseClipId && !isPosed) {
-      dispatch(addClipIdsToSelection({ data: [poseClipId], undoType }));
-      dispatch(setSelectedTrackId({ data: trackId, undoType }));
-      dispatch(toggleClipDropdown({ data: { id: poseClipId, value: true } }));
-      return;
-    }
-
-    // Otherwise, create a pose clip for the pattern clip
-    const poseId = dispatch(createPose());
-    const poseClip = initializePoseClip({
-      trackId,
-      tick,
-      poseId,
-      isOpen: true,
-    });
-    const clipId = dispatch(addClip({ data: poseClip }));
-    dispatch(addClipIdsToSelection({ data: [clipId], undoType }));
-    dispatch(setSelectedTrackId({ data: trackId, undoType }));
-  };
-
-/** Merge the vector of a pose clip into another */
-export const mergePoseClips =
-  (sinkId: PoseClipId, sourceId: PoseClipId): Thunk =>
-  async (dispatch, getProject) => {
-    if (sinkId === sourceId) return;
-    const project = getProject();
-
-    // Get the sink and source clips
-    const sinkPoseClip = selectPoseClipById(project, sinkId);
-    const sourcePoseClip = selectPoseClipById(project, sourceId);
-    if (!sinkPoseClip || !sourcePoseClip) return;
-
-    // Get the sink and source poses
-    const sinkPose = selectPoseById(project, sinkPoseClip.poseId);
-    const sourcePose = selectPoseById(project, sourcePoseClip.poseId);
-    if (!sinkPose || !sourcePose) return;
-
-    // Get the source pose's bucket vector
-    if (!sinkPose.stream) return;
-    if (!sourcePose.vector) return;
-    const sourceVector = sourcePose.vector;
-
-    // Sum the source vector to each block in the sink pose
-    const stream = sinkPose.stream.map((block) => {
-      if (!isPoseOperation(block)) return block;
-      return { ...block, vector: sumVectors(block.vector, sourceVector) };
-    });
-
-    // Update the sink pose with the new stream
-    dispatch(updatePose({ id: sinkPose.id, stream }));
-
-    // Delete the source pose clip
-    dispatch(deleteMedia({ data: { clipIds: [sourceId] } }));
-  };
-
 /** Export a list of clips to MIDI by ID and download them as a file. */
 export const exportClipsToMidi =
   (
@@ -234,16 +114,15 @@ export const exportClipsToMidi =
   (_dispatch, getProject) => {
     const project = getProject();
     const meta = selectMeta(project);
-    const transport = selectTransport(project);
 
     const clips = ids
       .map((id) => selectClipById(project, id))
       .filter((clip) => !!clip && clip.type === "pattern");
-    const tracks = selectOrderedTracks(project).filter((track) =>
+    const tracks = selectTracks(project).filter((track) =>
       clips.some((clip) => clip?.trackId === track.id)
     );
     const trackClipIdMap = selectTrackPortaledClipIdsMap(project);
-    const clipStreamMap = selectPatternClipStreamMap(project);
+    const clipStreamMap = selectPortaledPatternClipStreamMap(project);
 
     // Prepare a new MIDI file
     const midi = new Midi();
@@ -263,22 +142,22 @@ export const exportClipsToMidi =
       // Add each clip to the MIDI track
       clipIds.forEach((clipId) => {
         // Get the stream of the clip
-        const startTime = selectClipStartTime(project, clipId);
         const stream = clipStreamMap[clipId];
-        if (!stream || isUndefined(startTime)) return;
+        const streamLength = stream?.length ?? 0;
+        if (!streamLength) return;
 
         // Iterate through each block
-        for (let i = 0; i < stream.length; i++) {
+        for (let i = 0; i < streamLength; i++) {
           const { notes, startTick } = stream[i];
           if (!notes.length) continue;
 
           // Get the current time of the block
-          const time = convertTicksToSeconds(transport, startTick);
+          const time = ticksToSeconds(startTick, bpm);
 
           // Add each note to the MIDI track
           for (const note of notes) {
             const { MIDI, velocity } = note;
-            const duration = convertTicksToSeconds(transport, note.duration);
+            const duration = ticksToSeconds(note.duration, bpm);
             midiTrack.addNote({ midi: MIDI, duration, time, velocity });
           }
         }
@@ -363,7 +242,7 @@ export const importPatternFromMIDI =
           const duration = nextChord
             ? clamp(note.duration, 0, nextChord.time - time)
             : note.duration;
-          const rawTicks = convertSecondsToTicks(transport, duration);
+          const rawTicks = secondsToTicks(duration, transport.bpm);
           const durationType = getTickDuration(rawTicks);
           if (durationType) return { ...note, duration: rawTicks };
           const bestMatch =

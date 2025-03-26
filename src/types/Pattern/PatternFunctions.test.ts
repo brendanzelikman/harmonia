@@ -18,8 +18,20 @@ import {
 } from "./PatternUtils";
 import { transposeStream, rotateStream } from "./PatternTransformers";
 import { getTransposedPatternStream } from "./PatternFunctions";
-import { createScaleStream } from "./PatternTypes.test";
 import { createId } from "types/util";
+import { isNumber } from "lodash";
+
+const createScaleStream = (
+  notes: ScaleNote[],
+  duration = 96,
+  velocity = 100
+): PatternStream => {
+  return notes.map((n) => [
+    isNumber(n)
+      ? { MIDI: n, duration, velocity }
+      : { ...n, duration, velocity },
+  ]);
+};
 
 const si1 = createId("scale");
 const si2 = createId("scale");

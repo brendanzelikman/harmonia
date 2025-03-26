@@ -1,10 +1,10 @@
 import { Media, MediaElement } from "./MediaTypes";
 import { Tick, Timed } from "types/units";
 import { inRange, isUndefined, minBy } from "lodash";
-import { Clip, isClipInterface, isIPatternClip } from "types/Clip/ClipTypes";
+import { Clip, isClipInterface } from "types/Clip/ClipTypes";
 import { applyPortalsToClips } from "types/Portal/PortalFunctions";
 import { isPortal } from "types/Portal/PortalTypes";
-import { TrackMap, TrackId, isPatternTrack } from "types/Track/TrackTypes";
+import { TrackMap, TrackId } from "types/Track/TrackTypes";
 import { isFiniteNumber } from "types/util";
 
 /** Get the clips from the media. */
@@ -24,20 +24,9 @@ export const sortMediaByTick = (media: Media) => {
 
 /** Get the valid media clips based on valid ticks and tracks. */
 export const getValidMedia = (media: Media, trackMap: TrackMap): Media => {
-  return media.filter((item) => {
-    // Make sure the tick is valid
-    if (item.tick < 0) return false;
-
-    // Make sure the track is valid
-    const track = trackMap[item.trackId];
-    if (!track) return false;
-
-    // Make sure the clip is in a pattern track
-    if (isIPatternClip(item) && !isPatternTrack(track)) return false;
-
-    // Return true if all checks pass
-    return true;
-  });
+  return media.filter(
+    (item) => item.tick >= 0 && trackMap[item.trackId] !== undefined
+  );
 };
 
 /** Get the duration of a media element and try to use the provided value. */
@@ -64,7 +53,7 @@ export const getMediaEndTick = (media: MediaElement[]) => {
   const clips = getClipsFromMedia(media) as Timed<Clip>[];
 
   // Apply the clips through the portals first
-  const portaledClips = applyPortalsToClips(clips, portals).flat();
+  const portaledClips = applyPortalsToClips(clips, portals);
   const processedMedia = media.map(
     (item) => portaledClips.find((clip) => clip.id === item.id) ?? item
   );

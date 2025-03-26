@@ -3,7 +3,6 @@ import { BsCheckCircleFill } from "react-icons/bs";
 
 interface LandingPriceBoxProps {
   name: string;
-  price: string;
   description: string;
   features: string[];
   isEnabled?: boolean;
@@ -11,7 +10,7 @@ interface LandingPriceBoxProps {
 }
 
 export function LandingPriceBox(props: LandingPriceBoxProps) {
-  const { name, price, description, features, isEnabled } = props;
+  const { name, description, features, isEnabled } = props;
 
   return (
     <div
@@ -20,9 +19,6 @@ export function LandingPriceBox(props: LandingPriceBoxProps) {
         "flex flex-col w-96 items-center p-12 py-10 rounded-xl",
         "bg-slate-950/80 backdrop-blur",
         props.onClick ? "cursor-pointer" : "cursor-default",
-        { "ring-prodigy": name === "prodigy" },
-        { "ring-pro": name === "maestro" },
-        { "ring-virtuoso": name === "virtuoso" },
         { "ring-4 ring-opacity-75": isEnabled },
         { "ring ring-opacity-50": !isEnabled }
       )}

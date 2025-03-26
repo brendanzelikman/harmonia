@@ -42,46 +42,9 @@ input::-webkit-inner-spin-button {
   }
 }
 
-@keyframes animate-pulse-slow {
-  0% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.5;
-  }
-}
-
-.animate-pulse-slow {
-  animation: animate-pulse-slow 2s infinite;
-}
-
 @keyframes rotate {
   100% {
     transform: rotate(-360deg);
-  }
-}
-
-@keyframes card-flip {
-  0% {
-    transform: rotateY(0deg);
-  }
-  20% {
-    transform: rotateY(1440deg);
-  }
-  40% {
-    transform: rotateX(180deg) rotateY(2880deg);
-  }
-  60% {
-    transform: rotateX(180deg) rotateY(4320deg);
-  }
-  80% {
-    transform: rotateX(360deg) rotateY(5760deg);
-  }
-  100% {
-    transform: rotateX(360deg) rotateY(7200deg);
   }
 }
 
@@ -95,43 +58,4 @@ input::-webkit-inner-spin-button {
   100% {
     scale: 1;
   }
-}
-
-.ReactPiano__Key--natural {
-  --landing-key: rgb(255, 255, 255);
-  background: var(--landing-key);
-  border-color: var(--landing-key);
-  user-select: none;
-}
-
-.ReactPiano__Key--natural.ReactPiano__Key--active {
-  --landing-key: rgb(200, 200, 205);
-  background: var(--landing-key);
-  border-color: var(--landing-key);
-  user-select: none;
-}
-
-.ReactPiano__Key--accidental {
-  --landing-key: rgb(48, 48, 48);
-  background: var(--landing-key);
-  border-color: var(--landing-key);
-  user-select: none;
-}
-
-.ReactPiano__Key--accidental.ReactPiano__Key--active {
-  --landing-key: rgb(201, 200, 205);
-  background: var(--landing-key);
-  border-color: var(--landing-key);
-  user-select: none;
-}
-
-.landing-piano .ReactPiano__Key--active {
-  --landing-key: rgb(201, 200, 205);
-  background: var(--landing-key);
-  border-color: var(--landing-key);
-  user-select: none;
-}
-
-.ReactPiano__NoteLabelContainer {
-  height: 20px;
 }

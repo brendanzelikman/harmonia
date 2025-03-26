@@ -11,7 +11,7 @@ export function parseTrackHierarchy(input: string): (string | Hierarchy)[] {
   const text = input.trim();
 
   // Space out the input string for easier tokenization
-  const spaced = text.replace(/((=>)|[+]|[(]|[)])/g, "_$1_");
+  const spaced = text.replace(/((=>|->)|[+]|[(]|[)])/g, "_$1_");
   const tokens = spaced
     .split(/\_/)
     .filter(Boolean)
@@ -26,7 +26,7 @@ export function parseTrackHierarchy(input: string): (string | Hierarchy)[] {
       const token = tokens[index++];
 
       // If nesting a group, try to merge the nodes
-      if (token === "=>") {
+      if (token === "=>" || token === "->") {
         const parent = children.pop();
         if (!parent) break;
         const [child, newIndex] = parseExpression(index);

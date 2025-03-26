@@ -16,8 +16,8 @@ export const useRecordState = <T extends Dictionary<any>>(record: T) => {
   };
 
   // Send an event to clear all keys
-  const clear = () => {
-    keys.forEach((key) => dispatchCustomEvent(EVENT_KEY(key), null));
+  const clear = (value: T[any] = null) => {
+    keys.forEach((key) => set(key, value));
   };
 
   // Listen for events to update the state

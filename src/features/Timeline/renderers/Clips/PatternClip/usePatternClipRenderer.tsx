@@ -1,28 +1,27 @@
-import { memo, useMemo } from "react";
-import { ClipComponentProps } from "../TimelineClips";
+import { memo, useCallback } from "react";
 import { useClipDrag } from "../useClipDnd";
-import { use, useDeep, useProjectDispatch } from "types/hooks";
-import {
-  Clip,
-  PatternClipId,
-  PortaledPatternClip,
-  PortaledPatternClipId,
-} from "types/Clip/ClipTypes";
-import {
-  createSelectedPortaledClipById,
-  selectClosestPoseClipId,
-  selectPortaledClipById,
-} from "types/Arrangement/ArrangementSelectors";
+import { useDeep, useProjectDispatch } from "types/hooks";
+import { PatternClipId, PortaledPatternClipId } from "types/Clip/ClipTypes";
+import { selectPortaledPatternClip } from "types/Arrangement/ArrangementClipSelectors";
 import { PatternClipDropdown } from "./PatternClipDropdown";
 import { PatternClipHeader } from "./PatternClipHeader";
 import { PatternClipStream } from "./PatternClipStream";
-import { DivMouseEvent } from "utils/html";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
-import { Timed } from "types/units";
-import { usePatternClipStyle } from "./usePatternClipStyle";
 import { toggleClipDropdown } from "types/Clip/ClipThunks";
-import { Subdivision } from "utils/durations";
-import { Thunk } from "types/Project/ProjectTypes";
+import { ClipComponentProps } from "../TimelineClips";
+import {
+  selectClipLeft,
+  selectClipWidth,
+} from "types/Arrangement/ArrangementClipSelectors";
+import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
+import {
+  selectIsAddingPatternClips,
+  selectIsAddingPortals,
+  selectIsClipSelected,
+  selectTrackHeight,
+} from "types/Timeline/TimelineSelectors";
+import { POSE_HEIGHT } from "utils/constants";
+import { selectTrackById } from "types/Track/TrackSelectors";
 
 export const CLIP_NAME_HEIGHT = 24;
 export const CLIP_STREAM_MARGIN = 8;
@@ -30,88 +29,48 @@ export const CLIP_STREAM_MARGIN = 8;
 export interface PatternClipRendererProps extends ClipComponentProps {
   id: PatternClipId;
   pcId: PortaledPatternClipId;
-  doesOverlap: boolean;
-  subdivision: Subdivision;
-  cellWidth: number;
 }
 
-export const PatternClipRenderer = memo(_PatternClipRenderer);
-
-export function _PatternClipRenderer(props: PatternClipRendererProps) {
-  const { pcId, id } = props;
-  const { holdingI, doesOverlap } = props;
+export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
+  const { pcId, id, isDragging, className } = props;
   const dispatch = useProjectDispatch();
-  const selectClip = useMemo(
-    () => createSelectedPortaledClipById(pcId),
-    [pcId]
-  );
-  const portaledClip = useDeep(selectClip) as PortaledPatternClip;
-  const clip = { ...portaledClip, id };
+  const clip = useDeep((_) => selectPortaledPatternClip(_, pcId));
+  const { trackId, type, isOpen } = clip;
+  const isSelected = useDeep((_) => selectIsClipSelected(_, id));
 
-  // Each pattern clip listens to the closest overlapping pose clip */
-  const poseClipId = use((_) => selectClosestPoseClipId(_, pcId));
-  const poseClip = useDeep((_) =>
-    poseClipId ? selectPortaledClipById(_, poseClipId) : undefined
-  );
+  const track = useDeep((_) => selectTrackById(_, trackId));
+  const isAdding = useDeep(selectIsAddingPatternClips);
+  const isPortaling = useDeep(selectIsAddingPortals);
+  const isBlurred = isAdding || isPortaling || isDragging;
+  const [_, drag] = useClipDrag(pcId);
+  const onDragStart = useCallback(() => {
+    dispatch(toggleClipDropdown({ data: { id, value: false } }));
+  }, []);
 
-  // Each pattern clip can be dragged into any cell in a pattern track. */
-  const [{ isDragging }, drag] = useClipDrag({
-    id: pcId,
-    type: "pattern",
-    startDrag: props.startDrag,
-    endDrag: props.endDrag,
-  });
+  const top = useDeep((_) => selectTrackTop(_, trackId)) + POSE_HEIGHT;
+  const left = useDeep((_) => selectClipLeft(_, pcId));
+  const width = useDeep((_) => selectClipWidth(_, pcId));
+  const height = useDeep((_) => selectTrackHeight(_, trackId)) - POSE_HEIGHT;
 
-  // Each portaled clip has a different style
-  const style = usePatternClipStyle({
-    ...props,
-    clip: portaledClip,
-    doesOverlap,
-    isDragging,
-  });
-  const { top, left, width, height, fontSize } = style;
-
-  const Stream = useMemo(() => {
-    if (!!clip.isOpen) return null;
-    return (
-      <PatternClipStream
-        {...style}
-        id={id}
-        pcId={pcId}
-        isSlicing={props.isSlicing}
-      />
-    );
-  }, [props.isSlicing, !!clip.isOpen, ...style]);
-
-  // Render the pattern clip with a stream or score
+  if (!clip || !track) return null;
   return (
     <div
-      id={`${pcId}-clip`}
       ref={drag}
-      style={{ top, left, width, height, fontSize }}
-      onClick={(e) => dispatch(onClick(e, clip, holdingI))}
-      onDragStart={() =>
-        dispatch(toggleClipDropdown({ data: { id, value: false } }))
-      }
-      className={style.className}
+      data-type={type}
+      data-open={!!isOpen}
+      data-selected={isSelected}
+      data-blur={isBlurred}
+      style={{ top, left, width, height }}
+      className={className}
+      onClick={(e) => dispatch(onClipClick(e, { ...clip, id }))}
+      onDragStart={onDragStart}
     >
-      <PatternClipHeader {...props} id={id} />
-      {Stream}
-      {!!clip.isOpen && (
-        <PatternClipDropdown
-          {...props}
-          clip={clip}
-          portaledClip={portaledClip}
-          isPosed={!!poseClip?.isOpen}
-        />
+      <PatternClipHeader id={id} isSelected={isSelected} isOpen={!!isOpen} />
+      {!!isOpen ? (
+        <PatternClipDropdown {...props} clip={clip} id={id} />
+      ) : (
+        <PatternClipStream clip={clip} />
       )}
     </div>
   );
-}
-
-const onClick =
-  (e: DivMouseEvent, clip?: Timed<Clip>, holdingI = false): Thunk =>
-  (dispatch) => {
-    if (!clip) return;
-    dispatch(onClipClick(e, clip, { eyedropping: holdingI }));
-  };
+});

@@ -1,12 +1,4 @@
-import {
-  uploadProjectToDB,
-  updateProjectInDB,
-  deleteProjectFromDB,
-  getProjectsFromDB,
-} from "providers/idb";
-import { setCurrentProjectId } from "providers/idb";
 import { dispatchCustomEvent } from "utils/html";
-import { fetchUser } from "providers/auth/user";
 import { selectMeta } from "../Meta/MetaSelectors";
 import {
   isProjectEmpty,
@@ -19,13 +11,18 @@ import {
   Thunk,
   defaultProject,
 } from "./ProjectTypes";
+import {
+  uploadProjectToDB,
+  setCurrentProjectId,
+  updateProjectInDB,
+  deleteProjectFromDB,
+  getProjectsFromDB,
+} from "providers/idb/projects";
 
 export const UPDATE_PROJECTS = "updateProjects";
 
 /** Try to create a new project, using the given template if specified. */
 export const createProject = async (template?: Project) => {
-  const { uid } = await fetchUser();
-  if (!uid) return;
   const project = initializeProject(template);
   const meta = selectMeta(project);
   const id = meta.id;
@@ -43,9 +40,6 @@ export const createProject = async (template?: Project) => {
 export const saveProject =
   (project?: Project): Thunk =>
   async (dispatch, getProject) => {
-    const { uid } = await fetchUser();
-    if (!uid) return;
-
     // Sanitize the project
     const sanitizedProject = sanitizeProject(project || getProject());
     const updatedProject = timestampProject(sanitizedProject);
@@ -70,8 +64,6 @@ export const clearProject = (): Thunk => (dispatch, getProject) => {
 
 /** Try to delete the project from the database. */
 export const deleteProject = (id: string) => async () => {
-  const { uid } = await fetchUser();
-  if (!uid) return;
   try {
     deleteProjectFromDB(id);
   } catch (e) {

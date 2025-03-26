@@ -1,5 +1,5 @@
-import { Dictionary, EntityState, nanoid } from "@reduxjs/toolkit";
-import { IClip, IClipId, isClipId } from "../ClipTypes";
+import { Dictionary, EntityState } from "@reduxjs/toolkit";
+import { IClip, IClipId } from "../ClipTypes";
 import { isClipInterface } from "../ClipTypes";
 import { PoseStream, PoseBlock } from "types/Pose/PoseTypes";
 import { Update } from "types/units";
@@ -19,6 +19,7 @@ export type PoseClipMap = Dictionary<PoseClip>;
 export type PoseClipState = EntityState<PoseClip>;
 export type PortaledPoseClip = Portaled<PoseClip>;
 export type PortaledPoseClipId = PortaledClipId<PoseClipId>;
+export type PortaledPoseClipMap = Record<PortaledPoseClipId, PortaledPoseClip>;
 
 // ------------------------------------------------------------
 // Pose Clip Initialization
@@ -59,7 +60,13 @@ export const isPoseClip = (clip: Partial<IClip>): clip is IClip<"pose"> => {
 
 /** Checks if a given string is a `PoseClipId`. */
 export const isPoseClipId = (id: unknown): id is PoseClipId => {
-  return isClipId(id, "pose");
+  return (id as string).startsWith("po");
+};
+
+export const isPortaledPoseClip = (
+  clip: Partial<IClip>
+): clip is PortaledPoseClip => {
+  return isPoseClip(clip);
 };
 
 export const isPortaledPoseClipId = (id: unknown): id is PortaledPoseClipId => {

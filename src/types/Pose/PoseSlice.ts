@@ -2,7 +2,7 @@ import { createEntityAdapter, PayloadAction } from "@reduxjs/toolkit";
 import { PoseId, Pose, PoseBlock, PoseTransformation } from "./PoseTypes";
 import { createNormalSlice } from "lib/redux";
 import { TransformationArgs } from "types/Pattern/PatternTransformers";
-import { inRange, update } from "lodash";
+import { inRange } from "lodash";
 
 // ------------------------------------------------------------
 // Pose Slice Definition

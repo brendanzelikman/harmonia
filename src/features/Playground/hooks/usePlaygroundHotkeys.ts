@@ -1,16 +1,4 @@
-import { useProjectDispatch } from "types/hooks";
-import { Hotkey, useHotkeysGlobally } from "lib/react-hotkeys-hook";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "providers/auth";
-import { hideEditor } from "types/Editor/EditorSlice";
-import {
-  selectEditorView,
-  selectIsEditorOpen,
-} from "types/Editor/EditorSelectors";
-import {
-  selectSelectedClips,
-  selectSelectedScaleTrack,
-} from "types/Timeline/TimelineSelectors";
+import { Hotkey, useDispatchedHotkey } from "lib/react-hotkeys-hook";
 import {
   selectCanRedoProject,
   selectCanUndoProject,
@@ -33,61 +21,35 @@ import {
 import { Thunk } from "types/Project/ProjectTypes";
 import { dispatchCustomEvent } from "utils/html";
 import { CLOSE_STATE, TOGGLE_STATE } from "hooks/useToggledState";
-import { createNewTracks } from "types/Track/TrackUtils";
-import { showEditor } from "types/Editor/EditorThunks";
 
 export function usePlaygroundHotkeys() {
-  const dispatch = useProjectDispatch();
-
   // Project Hotkeys
-  useHotkeysGlobally(dispatch(VIEW_PROJECTS_HOTKEY));
-  useHotkeysGlobally(dispatch(NEW_PROJECT_HOTKEY));
-  useHotkeysGlobally(dispatch(OPEN_PROJECT_HOTKEY));
-  useHotkeysGlobally(dispatch(SAVE_PROJECT_HOTKEY));
-  useHotkeysGlobally(dispatch(UNDO_PROJECT_HOTKEY));
-  useHotkeysGlobally(dispatch(REDO_PROJECT_HOTKEY));
+  useDispatchedHotkey(NEW_PROJECT_HOTKEY);
+  useDispatchedHotkey(OPEN_PROJECT_HOTKEY);
+  useDispatchedHotkey(SAVE_PROJECT_HOTKEY);
+  useDispatchedHotkey(UNDO_PROJECT_HOTKEY);
+  useDispatchedHotkey(REDO_PROJECT_HOTKEY);
 
-  // Diary Hotkeys
-  useHotkeysGlobally(dispatch(TOGGLE_DIARY_HOTKEY));
-  useHotkeysGlobally(dispatch(CLOSE_MODALS_HOTKEY));
-
-  // Editor Hotkeys
-  useHotkeysGlobally(dispatch(TOGGLE_EDITOR_HOTKEY));
-  useHotkeysGlobally(dispatch(CLOSE_EDITOR_HOTKEY));
+  // Modal Hotkeys
+  useDispatchedHotkey(TOGGLE_DIARY_HOTKEY);
+  useDispatchedHotkey(CLOSE_MODALS_HOTKEY);
 
   // Shortcut Hotkeys
-  useHotkeysGlobally(dispatch(TOGGLE_SHORTCUTS_HOTKEY));
-  useHotkeysGlobally(dispatch(CLOSE_SHORTCUTS_HOTKEY));
+  useDispatchedHotkey(TOGGLE_SHORTCUTS_HOTKEY);
 
   // Transport Hotkeys
-  useHotkeysGlobally(dispatch(TOGGLE_TRANSPORT_HOTKEY));
-  useHotkeysGlobally(dispatch(STOP_TRANSPORT_HOTKEY));
-  useHotkeysGlobally(dispatch(RECORD_TRANSPORT_HOTKEY));
-  useHotkeysGlobally(dispatch(LOOP_TRANSPORT_HOTKEY));
-  useHotkeysGlobally(dispatch(MUTE_TRANSPORT_HOTKEY));
-  useHotkeysGlobally(dispatch(EXPORT_MIDI_HOTKEY));
-  useHotkeysGlobally(dispatch(EXPORT_AUDIO_HOTKEY));
-
-  // Generative Hotkeys
-  useHotkeysGlobally(dispatch(GENERATE_TRACKS_HOTKEY));
+  useDispatchedHotkey(TOGGLE_TRANSPORT_HOTKEY);
+  useDispatchedHotkey(STOP_TRANSPORT_HOTKEY);
+  useDispatchedHotkey(RECORD_TRANSPORT_HOTKEY);
+  useDispatchedHotkey(LOOP_TRANSPORT_HOTKEY);
+  useDispatchedHotkey(MUTE_TRANSPORT_HOTKEY);
+  useDispatchedHotkey(EXPORT_MIDI_HOTKEY);
+  useDispatchedHotkey(EXPORT_AUDIO_HOTKEY);
 }
 
 // -----------------------------------------------
 // Project Hotkeys
 // -----------------------------------------------
-
-export const VIEW_PROJECTS_HOTKEY: Thunk<Hotkey> = () => {
-  const navigate = useNavigate();
-  const { isAtLeastRank } = useAuth();
-  return {
-    name: "View Projects",
-    description: "View the list of projects.",
-    shortcut: "meta+shift+p",
-    callback: () => {
-      navigate(isAtLeastRank("maestro") ? "/projects" : "/demos");
-    },
-  };
-};
 
 export const NEW_PROJECT_HOTKEY: Thunk<Hotkey> = () => ({
   name: "Create New Project",
@@ -130,38 +92,6 @@ export const REDO_PROJECT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
 // Editor Hotkeys
 // -----------------------------------------------
 
-export const TOGGLE_EDITOR_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Toggle Editor",
-  description: "Toggle the editor if a valid motif is selected.",
-  shortcut: "meta+e",
-  callback: () => {
-    const project = getProject();
-    const isOpen = selectIsEditorOpen(project);
-    if (isOpen) {
-      return dispatch(hideEditor());
-    }
-    const track = selectSelectedScaleTrack(project);
-    const clip = selectSelectedClips(project)[0];
-    const type = clip ? clip.type : track ? track.type : undefined;
-    dispatch(
-      showEditor({ data: { view: type, trackId: track?.id, clipId: clip?.id } })
-    );
-  },
-});
-
-export const CLOSE_EDITOR_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Close Editor",
-  description: "Close the editor if it is open.",
-  shortcut: "esc",
-  callback: () => {
-    const project = getProject();
-    const isVisible = selectEditorView(project);
-    if (isVisible) {
-      dispatch(hideEditor());
-    }
-  },
-});
-
 // -----------------------------------------------
 // Diary Hotkeys
 // -----------------------------------------------
@@ -173,13 +103,15 @@ export const TOGGLE_DIARY_HOTKEY: Thunk<Hotkey> = () => ({
   callback: () => dispatchCustomEvent(TOGGLE_STATE("diary")),
 });
 
-export const CLOSE_MODALS_HOTKEY: Thunk<Hotkey> = () => ({
+export const CLOSE_MODALS_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   name: "Close Terminal/Diary",
-  description: "Close the project terminal and diary.",
+  description: "Close the project terminal, editor, and diary.",
   shortcut: "esc",
   callback: () => {
     dispatchCustomEvent(CLOSE_STATE("diary"));
     dispatchCustomEvent(CLOSE_STATE("terminal"));
+    dispatchCustomEvent(CLOSE_STATE("shortcuts"));
+    dispatchCustomEvent(CLOSE_STATE("editor"));
   },
 });
 
@@ -192,13 +124,6 @@ export const TOGGLE_SHORTCUTS_HOTKEY: Thunk<Hotkey> = () => ({
   description: "Toggle the shortcuts menu.",
   shortcut: "shift + slash",
   callback: () => dispatchCustomEvent(TOGGLE_STATE("shortcuts")),
-});
-
-export const CLOSE_SHORTCUTS_HOTKEY: Thunk<Hotkey> = () => ({
-  name: "Close Shortcuts",
-  description: "Close the shortcuts menu.",
-  shortcut: "esc",
-  callback: () => dispatchCustomEvent(CLOSE_STATE("shortcuts")),
 });
 
 // -----------------------------------------------
@@ -216,7 +141,7 @@ export const STOP_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Stop Transport",
   description: "Stop the transport playback.",
   shortcut: "enter",
-  callback: () => dispatch(stopTransport()),
+  callback: () => stopTransport(),
 });
 
 export const RECORD_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
@@ -256,18 +181,9 @@ export const EXPORT_AUDIO_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   callback: () => dispatch(downloadTransport()),
 });
 
-export const GENERATE_TRACKS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Create Nested Tracks",
-  description: "Create a chain of nested tracks based on the given input",
-  shortcut: "g",
-  callback: () => dispatch(createNewTracks),
-});
-
 export const PLAYGROUND_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [
   dispatch(SAVE_PROJECT_HOTKEY),
   dispatch(OPEN_PROJECT_HOTKEY),
-  dispatch(NEW_PROJECT_HOTKEY),
-  dispatch(VIEW_PROJECTS_HOTKEY),
   dispatch(UNDO_PROJECT_HOTKEY),
   dispatch(REDO_PROJECT_HOTKEY),
   dispatch(TOGGLE_DIARY_HOTKEY),

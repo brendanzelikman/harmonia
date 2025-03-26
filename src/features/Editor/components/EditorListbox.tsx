@@ -145,7 +145,7 @@ export const InstrumentListbox = (props: {
       getOptionName={getInstrumentName}
       icon={<BsSoundwave className="mr-2" />}
       options={INSTRUMENT_KEYS}
-      placeholder="Change Instrument"
+      placeholder="Change Sampler"
     />
   );
 };

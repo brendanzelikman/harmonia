@@ -325,10 +325,10 @@ test("getTransposedScale should correctly transpose a scale using a parent", () 
     62, 65, 72, 71,
   ]);
 
-  // Test scale2 not transposed along scale2
+  // Test scale2  transposed along scale2
   const p2 = ScaleTransformers.getTransposedScale(scale2, 1, "scale_2");
   expect(ScaleMidiFunctions.resolveScaleChainToMidi([scale1, p2])).toEqual([
-    60, 64, 71, 69,
+    64, 71, 69, 72,
   ]);
 });
 

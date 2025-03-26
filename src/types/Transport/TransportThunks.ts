@@ -9,8 +9,8 @@ import {
   MIN_BPM,
   MIN_TRANSPORT_VOLUME,
 } from "utils/constants";
-import { selectTransport } from "./TransportSelectors";
-import { dispatchCustomEvent, sleep } from "utils/html";
+import { selectTransport, selectTransportBPM } from "./TransportSelectors";
+import { dispatchCustomEvent } from "utils/html";
 import {
   DURATION_TYPES,
   getDurationTicks,
@@ -25,12 +25,8 @@ import {
 import { InstrumentId } from "types/Instrument/InstrumentTypes";
 import { Project, Thunk } from "types/Project/ProjectTypes";
 import { isPatternTrack, TrackId } from "types/Track/TrackTypes";
+import { getBarsBeatsSixteenths } from "./TransportFunctions";
 import {
-  isTransportStarted,
-  convertTicksToSeconds,
-} from "./TransportFunctions";
-import {
-  selectChordsAtTick,
   selectLastArrangementTick,
   selectMidiChordsByTicks,
 } from "types/Arrangement/ArrangementSelectors";
@@ -51,13 +47,16 @@ import {
 import { playPatternChord } from "types/Pattern/PatternThunks";
 import { sanitize } from "utils/math";
 import { _removeOfflineInstrument } from "types/Instrument/InstrumentSlice";
-
-let scheduleId: number;
+import {
+  emitPauseTransport,
+  emitStartTransport,
+  emitStopTransport,
+} from "hooks/useTransportState";
+import { CLOSE_STATE, OPEN_STATE } from "hooks/useToggledState";
 
 export const UPDATE_TICK = "updateTick";
 export const UPDATE_OFFLINE_TICK = "updateOfflineTick";
-export const START_LOADING_TRANSPORT = "startLoadingTransport";
-export const STOP_LOADING_TRANSPORT = "stopLoadingTransport";
+let scheduleId: number | undefined;
 
 /** Dispatch a tick update event. */
 export const dispatchTickUpdate = (
@@ -67,7 +66,16 @@ export const dispatchTickUpdate = (
   const isOffline = !!options?.offline;
   const event = isOffline ? UPDATE_OFFLINE_TICK : UPDATE_TICK;
   dispatchCustomEvent(event, tick);
-  if (!isOffline) dispatchCustomEvent("printTick", Tone.Transport.position);
+  if (!isOffline) {
+    const ts = Tone.getTransport().timeSignature as number;
+    dispatchCustomEvent(
+      "printTick",
+      getBarsBeatsSixteenths(tick, {
+        bpm: Tone.getTransport().bpm.value,
+        timeSignature: [ts * 4, ts * 4],
+      }).string
+    );
+  }
 };
 
 /** Seek the transport to the given tick. */
@@ -76,133 +84,95 @@ export const seekTransport =
   (dispatch) => {
     const tick = data;
     if (tick < 0) return;
-
-    // Turn off loop if the tick is greater than the loop end
-    const tickInSeconds = ticksToSeconds(tick, Tone.Transport.bpm.value);
-    const loopStart = Tone.Time(Tone.Transport.loopStart).toSeconds();
-    if (tickInSeconds > loopStart) {
-      dispatch(setTransportLoop(false));
-    }
-
-    // Clear the schedule
-    if (scheduleId !== undefined) Tone.Transport.clear(scheduleId);
-
-    // Restart the transport if it is started
-    if (isTransportStarted(Tone.Transport)) {
-      dispatch(stopTransport());
-      dispatch(startTransport(tick));
-    }
-    Tone.Transport.position = Tone.Time(tick, "i").toSeconds();
-
-    // Dispatch a tick update event
+    const started = Tone.getTransport().state === "started";
+    Tone.getTransport().pause();
+    Tone.getTransport().cancel();
+    Tone.getTransport().ticks = tick;
     dispatchTickUpdate(tick);
+    if (started) dispatch(startTransport());
+  };
+
+export const wrapTransportTick =
+  (tick: number): Thunk<number> =>
+  (_, getProject) => {
+    const project = getProject();
+    const { loop, loopStart, loopEnd } = selectTransport(project);
+    if (!loop) return tick;
+    return ((tick - loopStart) % (loopEnd - loopStart)) + loopStart;
   };
 
 /** Start the transport, using `Tone.scheduleRepeat` to schedule all samplers. */
-export const startTransport =
-  (tick?: Tick): Thunk =>
-  (dispatch, getProject) => {
-    if (Tone.getContext().state !== "running") return;
+export const startTransport = (): Thunk => (_, getProject) => {
+  if (Tone.getContext().state !== "running") return;
+  emitStartTransport();
 
-    // Read the old transport
-    const oldProject = getProject();
-    const transport = selectTransport(oldProject);
-    const { loop, loopStart, loopEnd, bpm } = transport;
-    const pulse = convertTicksToSeconds(transport, 1);
-    const loopStartInSeconds = convertTicksToSeconds(transport, loopStart);
-    const loopEndInSeconds = convertTicksToSeconds(transport, loopEnd);
+  const startTime = Tone.getTransport().now();
+  const startSeconds = Tone.getTransport().seconds;
+  const bpm = selectTransportBPM(getProject());
+  const pulse = ticksToSeconds(1, bpm);
+  const conversionRatio = (bpm * PPQ) / 60;
 
-    // Set the current Transport time if specified
-    const offset = tick ? convertTicksToSeconds(transport, tick) : 0;
-    if (tick !== undefined) {
-      Tone.Transport.position = Tone.Time(offset).toBarsBeatsSixteenths();
+  if (scheduleId !== undefined) {
+    Tone.getTransport().clear(scheduleId);
+    scheduleId = undefined;
+  }
+
+  /** The Transport schedules the handler with precise timing */
+  scheduleId = Tone.getTransport().scheduleRepeat((time) => {
+    const seconds = time - startTime + startSeconds;
+    const { loop, loopStart, loopEnd } = selectTransport(getProject());
+    let newTick = Math.round(seconds * conversionRatio);
+    if (loop) {
+      newTick = ((newTick - loopStart) % (loopEnd - loopStart)) + loopStart;
     }
 
-    // Update the loop or turn it off if the tick is greater than the loop start
-    if (Tone.Transport.seconds > loopStartInSeconds) {
-      // dispatch(setTransportLoop(false));
-    } else {
-      Tone.Transport.loop = loop;
-      Tone.Transport.loopStart = loopStartInSeconds;
-      Tone.Transport.loopEnd = loopEndInSeconds;
-    }
+    // Dispatch a tick update event
+    dispatchTickUpdate(newTick);
 
-    // Get the current start time
-    const startTime = Tone.Transport.now();
-    const startSeconds = Tone.Transport.seconds;
-    const conversionRatio = (bpm * PPQ) / 60;
+    const project = getProject();
+    const chordRecord = selectMidiChordsByTicks(project)[newTick];
 
-    // Schedule the transport
-    if (scheduleId !== undefined) {
-      Tone.Transport.clear(scheduleId);
-      Tone.Transport.cancel();
-    }
+    // Iterate over the instruments that are to be played at the current tick
+    if (chordRecord) {
+      for (const instrumentId in chordRecord) {
+        // Get the chord to be played
+        const chord = chordRecord[instrumentId];
+        if (!chord) continue;
 
-    scheduleId = Tone.Transport.scheduleRepeat((time) => {
-      // Get the current time
-      const currentTime = time + offset - startTime + startSeconds;
+        // Get the live audio instance
+        const instance = LIVE_AUDIO_INSTANCES[instrumentId];
+        if (!instance?.isLoaded()) continue;
 
-      // Convert the time into the tick and adjust for loop
-      let newTick = Math.round(currentTime * conversionRatio);
-      if (loop && currentTime >= loopStartInSeconds) {
-        newTick =
-          (newTick % (loopEnd - loopStart)) + Math.min(loopStart, newTick);
+        // Play the realized pattern chord using the sampler
+        playPatternChord(instance.sampler, chord, time);
       }
+    }
+  }, pulse);
 
-      // Dispatch a tick update event
-      dispatchTickUpdate(Tone.Transport.ticks);
-
-      // Get the chord record at the current tick
-      const project = getProject();
-      const chordRecord = selectChordsAtTick(project, newTick);
-
-      // Iterate over the instruments that are to be played at the current tick
-      if (chordRecord) {
-        for (const instrumentId in chordRecord) {
-          // Get the chord to be played
-          const chord = chordRecord[instrumentId];
-          if (!chord) continue;
-
-          // Get the live audio instance
-          const instance = LIVE_AUDIO_INSTANCES[instrumentId];
-          if (!instance?.isLoaded()) continue;
-
-          // Play the realized pattern chord using the sampler
-          playPatternChord(instance.sampler, chord, time);
-        }
-      }
-    }, pulse);
-
-    // Start the transport
-    Tone.Transport.start();
-    dispatch(TransportSlice._startTransport());
-  };
-
-/** Pause the transport. */
-export const pauseTransport = (): Thunk => (dispatch) => {
-  Tone.Transport.pause();
-  dispatch(TransportSlice._pauseTransport());
+  // Start the transport
+  Tone.getTransport().start();
 };
 
 /** Stop the transport, canceling all scheduled events. */
-export const stopTransport = (): Thunk => (dispatch) => {
-  // Stop the transport
-  dispatch(TransportSlice._stopTransport());
-  Tone.Transport.stop();
-  Tone.Transport.cancel();
-  Tone.Transport.position = 0;
+export const stopTransport = () => {
+  Tone.getTransport().stop();
+  Tone.getTransport().cancel(0);
+  emitStopTransport();
+  dispatchTickUpdate(0);
+};
 
-  // Dispatch a tick update event
-  dispatchCustomEvent("resetTimelineScroll");
-  dispatchTickUpdate(Tone.Transport.ticks);
+export const pauseTransport = () => {
+  Tone.getTransport().pause();
+  Tone.getTransport().cancel();
+  emitPauseTransport();
 };
 
 /** Toggle the transport between playing and paused/stopped. */
-export const toggleTransport = (): Thunk => (dispatch, getProject) => {
-  const project = getProject();
-  const transport = selectTransport(project);
-  if (isTransportStarted(transport)) {
-    dispatch(pauseTransport());
+export const toggleTransport = (): Thunk => (dispatch) => {
+  if (Tone.getTransport().state === "started") {
+    pauseTransport();
+  } else if (Tone.getTransport().state === "paused") {
+    dispatch(startTransport());
   } else {
     dispatch(startTransport());
   }
@@ -214,7 +184,9 @@ export const movePlayheadLeft =
   (dispatch, getProject) => {
     const project = getProject();
     const ticks = selectSubdivisionTicks(project);
-    dispatch(seekTransport({ data: Tone.Transport.ticks - (amount ?? ticks) }));
+    dispatch(
+      seekTransport({ data: Tone.getTransport().ticks - (amount ?? ticks) })
+    );
   };
 
 /** Move the playhead of the transport one tick right. */
@@ -223,66 +195,40 @@ export const movePlayheadRight =
   (dispatch, getProject) => {
     const project = getProject();
     const ticks = selectSubdivisionTicks(project);
-    dispatch(seekTransport({ data: Tone.Transport.ticks + (amount ?? ticks) }));
-  };
-
-/** Set the transport loop state to the given boolean. */
-export const setTransportLoop =
-  (loop: boolean): Thunk =>
-  (dispatch, getProject) => {
-    // Get the transport
-    const project = getProject();
-    const transport = selectTransport(project);
-
-    // Set the loop state
-    dispatch(TransportSlice._loopTransport(loop));
-    Tone.Transport.loop = loop;
-
-    // Update the loop start and end
-    if (loop) {
-      const { loopStart, loopEnd } = transport;
-      Tone.Transport.loopStart = convertTicksToSeconds(transport, loopStart);
-      Tone.Transport.loopEnd = convertTicksToSeconds(transport, loopEnd);
-    }
+    dispatch(
+      seekTransport({ data: Tone.getTransport().ticks + (amount ?? ticks) })
+    );
   };
 
 /** Toggle the transport loop state. */
 export const toggleTransportLoop = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const transport = selectTransport(project);
-  dispatch(stopTransport());
-  dispatch(setTransportLoop(!transport.loop));
+  dispatch(TransportSlice._loopTransport(!transport.loop));
+  if (Tone.getTransport().state === "started") {
+    dispatch(startTransport());
+  }
 };
 
 /** Set the transport loop start to the given tick. */
 export const setTransportLoopStart =
-  (tick: Tick): Thunk =>
+  (payload: Payload<Tick>): Thunk =>
   (dispatch, getProject) => {
-    // Get the transport
+    const tick = payload.data;
     const project = getProject();
     const transport = selectTransport(project);
-
-    // Make sure the loop start is less than the loop end
     if (tick >= transport.loopEnd) return;
-
-    // Set the loop start
-    Tone.Transport.loopStart = convertTicksToSeconds(transport, tick);
     dispatch(TransportSlice._setLoopStart(tick));
   };
 
 /** Set the transport loop end to the given tick. */
 export const setTransportLoopEnd =
-  (tick: Tick): Thunk =>
+  (payload: Payload<Tick>): Thunk =>
   (dispatch, getProject) => {
-    // Get the transport
+    const tick = payload.data;
     const project = getProject();
     const transport = selectTransport(project);
-
-    // Make sure the loop end is greater than the loop start
     if (tick <= transport.loopStart) return;
-
-    // Set the loop end
-    Tone.Transport.loopEnd = convertTicksToSeconds(transport, tick);
     dispatch(TransportSlice._setLoopEnd(tick));
   };
 
@@ -331,6 +277,10 @@ export const toggleTransportMute = (): Thunk => (dispatch, getProject) => {
   dispatch(setTransportMute(!transport.mute));
 };
 
+export const LOAD_TRANSPORT_STATE = "load_transport";
+export const LOAD_TRANSPORT = OPEN_STATE(LOAD_TRANSPORT_STATE);
+export const UNLOAD_TRANSPORT = CLOSE_STATE(LOAD_TRANSPORT_STATE);
+
 /** Load the transport on mount. */
 export const loadTransport = (): Thunk => async (dispatch, getProject) => {
   // Build the instruments
@@ -342,15 +292,12 @@ export const loadTransport = (): Thunk => async (dispatch, getProject) => {
   try {
     // Wait for the Tone context to start
     await Tone.start();
-    dispatchCustomEvent(START_LOADING_TRANSPORT);
+    dispatchCustomEvent(LOAD_TRANSPORT);
 
     // Copy the transport state into the Tone transport
-    const { loop, loopStart, loopEnd, bpm, volume, mute } = transport;
-    Tone.Transport.PPQ = PPQ;
-    Tone.Transport.loop = loop;
-    Tone.Transport.loopStart = convertTicksToSeconds(transport, loopStart);
-    Tone.Transport.loopEnd = convertTicksToSeconds(transport, loopEnd);
-    Tone.Transport.bpm.value = bpm;
+    const { bpm, volume, mute } = transport;
+    Tone.getTransport().PPQ = PPQ;
+    Tone.getTransport().bpm.value = bpm;
     Tone.getDestination().volume.value = volume;
     Tone.getDestination().mute = mute;
 
@@ -367,13 +314,13 @@ export const loadTransport = (): Thunk => async (dispatch, getProject) => {
     console.error(e);
   } finally {
     // Set the transport as loaded
-    dispatchCustomEvent(STOP_LOADING_TRANSPORT);
+    dispatchCustomEvent(UNLOAD_TRANSPORT);
   }
 };
 
 /** Unload the transport when unmounting, destroying all instruments. */
 export const unloadTransport = (): Thunk => (dispatch) => {
-  dispatch(stopTransport());
+  stopTransport();
   destroyInstruments();
 };
 
@@ -392,7 +339,7 @@ export const stopRecordingTransport = (): Thunk => (dispatch, getProject) => {
   if (LIVE_RECORDER_INSTANCE.state !== "started") return;
 
   // Stop the transport
-  dispatch(stopTransport());
+  stopTransport();
 
   // Stop the recorder and get the blob
   LIVE_RECORDER_INSTANCE.stop().then(async (toneBlob) => {
@@ -470,7 +417,7 @@ export const downloadTransport =
   async (dispatch, getProject) => {
     const project = _project || getProject();
 
-    const transport = selectTransport(project);
+    const bpm = selectTransportBPM(project);
     const ticks = selectLastArrangementTick(project);
     // if (ticks <= 0) throw new Error("The recording is empty!");
 
@@ -479,9 +426,9 @@ export const downloadTransport =
     const samplers = selectTrackAudioInstanceMap(project);
 
     // Calculate the duration and pulse
-    const duration = convertTicksToSeconds(transport, ticks);
+    const duration = ticksToSeconds(ticks, bpm);
     const tail = 1;
-    const pulse = convertTicksToSeconds(transport, 1);
+    const pulse = ticksToSeconds(1, bpm);
 
     // Start downloading
     dispatch(startDownloadingTransport());
@@ -513,7 +460,7 @@ export const downloadTransport =
       await Tone.loaded();
 
       // Schedule the offline transport
-      offlineContext.transport.bpm.value = transport.bpm;
+      offlineContext.transport.bpm.value = bpm;
       offlineContext.transport.PPQ = PPQ;
       const chordsByTick = selectMidiChordsByTicks(project);
 

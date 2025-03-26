@@ -1,8 +1,8 @@
-import { JsonEditor, NodeData } from "json-edit-react";
+import { githubDarkTheme, JsonEditor, NodeData } from "json-edit-react";
 import { store, SafeBaseProject } from "providers/store";
 import { BsFillXCircleFill } from "react-icons/bs";
 import { FaMinusCircle, FaDownload } from "react-icons/fa";
-import { use, useDeep, useProjectDispatch } from "types/hooks";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 import { exportProjectToHAM } from "types/Project/ProjectExporters";
 import { sanitizeBaseProject } from "types/Project/ProjectFunctions";
@@ -11,7 +11,7 @@ import { useTerminal } from "types/Project/ProjectTypes";
 
 export const Terminal = () => {
   const dispatch = useProjectDispatch();
-  const name = use(selectProjectName);
+  const name = useDeep(selectProjectName);
   const { isOpen, close, toggle } = useTerminal();
   const json = useDeep((state) => state.present);
 
@@ -20,7 +20,7 @@ export const Terminal = () => {
     <div className="absolute inset-0 animate-in fade-in flex flex-col total-center z-[100] bg-slate-950/80 backdrop-blur-lg">
       <img
         src={Background}
-        className="absolute inset-0 opacity-50 h-screen object-cover landing-background"
+        className="absolute inset-0 opacity-50 h-screen object-cover animate-landing-background"
       />
       <div className="animate-in fade-in relative h-full min-w-max w-full max-w-3xl border my-8 rounded flex flex-col bg-zinc-950 overflow-scroll">
         <div className="flex gap-2 shrink-0 items-center w-full p-2 border-b bg-neutral-100">
@@ -63,7 +63,7 @@ export const Terminal = () => {
           indent={4}
           className="size-full min-w-fit"
           theme={[
-            "githubDark",
+            githubDarkTheme,
             {
               container: {
                 backgroundColor: "rgba(0,0,0,0)",
@@ -91,11 +91,10 @@ const RESTRICTED_KEYWORDS = new Set([
   "ids",
   "entities",
   "meta",
-  "patternTracks",
-  "scaleTracks",
+  "tracks",
   "instruments",
-  "motifs",
-  "clips",
+  "patternClips",
+  "poseClips",
   "scale",
   "pattern",
   "pose",

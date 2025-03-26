@@ -7,18 +7,16 @@ import { saveProject } from "../types/Project/ProjectThunks";
 import { handleInstrumentMiddleware } from "types/Instrument/InstrumentMiddleware";
 import { MetaSlice } from "types/Meta/MetaSlice";
 import { scalesSlice } from "types/Scale/ScaleSlice";
-import { patternTrackSlice, scaleTrackSlice } from "types/Track/TrackSlice";
+import { trackSlice } from "types/Track/TrackSlice";
 import { instrumentsSlice } from "types/Instrument/InstrumentSlice";
-import {
-  patternClipSlice,
-  poseClipSlice,
-  scaleClipSlice,
-} from "types/Clip/ClipSlice";
+import { patternClipSlice, poseClipSlice } from "types/Clip/ClipSlice";
 import { portalSlice } from "types/Portal/PortalSlice";
 import { posesSlice } from "types/Pose/PoseSlice";
 import { patternsSlice } from "types/Pattern/PatternSlice";
-import { timelineSlice } from "types/Timeline/TimelineSlice";
-import { editorSlice } from "types/Editor/EditorSlice";
+import {
+  privateTimelineActions,
+  timelineSlice,
+} from "types/Timeline/TimelineSlice";
 import {
   privateTransportActions,
   transportSlice,
@@ -28,7 +26,6 @@ import { Safe } from "types/util";
 import { Thunk } from "types/Project/ProjectTypes";
 import { Payload } from "lib/redux";
 import { UndoType } from "types/units";
-import { dispatchCustomEvent } from "utils/html";
 
 // ------------------------------------------------------------
 // Base Project Type
@@ -37,46 +34,32 @@ import { dispatchCustomEvent } from "utils/html";
 /** The Base Project type is the intended shape of the project.  */
 export type BaseProject = {
   meta: ReturnType<typeof MetaSlice.reducer>;
-  patternTracks: ReturnType<typeof patternTrackSlice.reducer>;
-  scaleTracks: ReturnType<typeof scaleTrackSlice.reducer>;
+  tracks: ReturnType<typeof trackSlice.reducer>;
   instruments: ReturnType<typeof instrumentsSlice.reducer>;
-  motifs: {
-    scale: ReturnType<typeof scalesSlice.reducer>;
-    pattern: ReturnType<typeof patternsSlice.reducer>;
-    pose: ReturnType<typeof posesSlice.reducer>;
-  };
-  clips: {
-    scale: ReturnType<typeof scaleClipSlice.reducer>;
-    pattern: ReturnType<typeof patternClipSlice.reducer>;
-    pose: ReturnType<typeof poseClipSlice.reducer>;
-  };
+  scales: ReturnType<typeof scalesSlice.reducer>;
+  patterns: ReturnType<typeof patternsSlice.reducer>;
+  poses: ReturnType<typeof posesSlice.reducer>;
+  patternClips: ReturnType<typeof patternClipSlice.reducer>;
+  poseClips: ReturnType<typeof poseClipSlice.reducer>;
   portals: ReturnType<typeof portalSlice.reducer>;
   timeline: ReturnType<typeof timelineSlice.reducer>;
   transport: ReturnType<typeof transportSlice.reducer>;
-  editor: ReturnType<typeof editorSlice.reducer>;
 };
 export type SafeBaseProject = Safe<BaseProject>;
 
 /** The base project reducer consolidates all slices into a single reducer. */
 const baseProjectReducer = combineReducers({
   meta: MetaSlice.reducer,
-  patternTracks: patternTrackSlice.reducer,
-  scaleTracks: scaleTrackSlice.reducer,
+  tracks: trackSlice.reducer,
   instruments: instrumentsSlice.reducer,
-  motifs: combineReducers({
-    scale: scalesSlice.reducer,
-    pattern: patternsSlice.reducer,
-    pose: posesSlice.reducer,
-  }),
-  clips: combineReducers({
-    scale: scaleClipSlice.reducer,
-    pattern: patternClipSlice.reducer,
-    pose: poseClipSlice.reducer,
-  }),
+  scales: scalesSlice.reducer,
+  patterns: patternsSlice.reducer,
+  poses: posesSlice.reducer,
+  patternClips: patternClipSlice.reducer,
+  poseClips: poseClipSlice.reducer,
   portals: portalSlice.reducer,
   timeline: timelineSlice.reducer,
   transport: transportSlice.reducer,
-  editor: editorSlice.reducer,
 });
 
 // ------------------------------------------------------------
@@ -100,6 +83,7 @@ const undoableProjectReducer = undoable(baseProjectReducer, {
   },
   filter: excludeAction([
     ...privateTransportActions,
+    ...privateTimelineActions,
     "instruments/addInstrumentOffline",
   ]),
   syncFilter: true,

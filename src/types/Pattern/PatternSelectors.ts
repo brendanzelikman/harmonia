@@ -1,8 +1,4 @@
-import {
-  PresetPatternGroupList,
-  PresetPatternGroupMap,
-  PresetPatternMap,
-} from "assets/patterns";
+import { PresetPatternMap } from "assets/patterns";
 import { createDeepSelector } from "lib/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { defaultPatternState, patternAdapter } from "./PatternSlice";
@@ -10,7 +6,7 @@ import { Pattern, PatternId, PatternState } from "./PatternTypes";
 
 // Create a safe selector for the pattern state.
 export const selectPatternState = (project: SafeProject) =>
-  (project?.present?.motifs?.pattern ?? defaultPatternState) as PatternState;
+  (project?.present?.patterns ?? defaultPatternState) as PatternState;
 
 // Use the memoized selectors from the entity adapter.
 const patternSelectors =
@@ -40,24 +36,3 @@ export const selectCustomPatterns = createDeepSelector(
   (patterns) =>
     patterns.filter(({ id }) => id && PresetPatternMap[id] === undefined)
 );
-
-/** Select all preset patterns */
-export const selectPresetPatterns = createDeepSelector(
-  [selectPatterns],
-  (patterns) =>
-    patterns.filter(({ id }) => id && PresetPatternMap[id] !== undefined)
-);
-
-export const selectPatternName = (_: Project, id?: string) => {
-  if (!id) return "Unknown Pattern";
-  return selectPatternById(_, id)?.name ?? "Unknown Pattern";
-};
-
-/** Select the category of a pattern by ID. */
-export const selectPatternCategory = (_: Project, id?: string) => {
-  return (
-    PresetPatternGroupList.find((c) =>
-      PresetPatternGroupMap[c].some((m) => m.id === id)
-    ) ?? "Custom Patterns"
-  );
-};

@@ -1,36 +1,30 @@
 import {
   defaultPatternClipState,
   defaultPoseClipState,
-  defaultScaleClipState,
 } from "types/Clip/ClipSlice";
 import {
   PatternClipMap,
   PoseClipMap,
-  ScaleClipMap,
   PatternClipState,
   PoseClipState,
-  ScaleClipState,
 } from "types/Clip/ClipTypes";
 import { ClipsByTrack } from "types/Clip/ClipUtils";
 import {
   defaultInstrumentState,
   InstrumentState,
 } from "types/Instrument/InstrumentTypes";
+import { defaultPatternState } from "types/Pattern/PatternSlice";
+import { Pattern, PatternState } from "types/Pattern/PatternTypes";
 import { defaultPortalState } from "types/Portal/PortalSlice";
 import { PortalState } from "types/Portal/PortalTypes";
-import {
-  PatternTrack,
-  PatternTrackState,
-} from "types/Track/PatternTrack/PatternTrackTypes";
-import {
-  ScaleTrackId,
-  ScaleTrackState,
-} from "types/Track/ScaleTrack/ScaleTrackTypes";
-import {
-  defaultPatternTrackState,
-  defaultScaleTrackState,
-} from "types/Track/TrackSlice";
-import { TrackId, TrackMap } from "types/Track/TrackTypes";
+import { defaultPoseState } from "types/Pose/PoseSlice";
+import { Pose, PoseState } from "types/Pose/PoseTypes";
+import { defaultScaleState } from "types/Scale/ScaleSlice";
+import { ScaleState } from "types/Scale/ScaleTypes";
+import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
+import { ScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { defaultTrackState } from "types/Track/TrackSlice";
+import { TrackId, TrackMap, TrackState } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------
 // Arrangement Types
@@ -38,29 +32,28 @@ import { TrackId, TrackMap } from "types/Track/TrackTypes";
 
 export type ChainIdsByTrack = Record<TrackId, ScaleTrackId[]>;
 export type PatternTracksByTrack = Record<TrackId, PatternTrack[]>;
+export type Motif = Pattern | Pose;
 
 /** A track arrangement stores track/clip object maps. */
 export interface TrackArrangement {
   tracks: TrackMap;
-  clips: {
-    pattern: PatternClipMap;
-    pose: PoseClipMap;
-    scale: ScaleClipMap;
-  };
+  scales: ScaleState;
+  patterns: PatternState;
+  poses: PoseState;
+  patternClips: PatternClipMap;
+  poseClips: PoseClipMap;
   clipsByTrack: ClipsByTrack;
   chainIdsByTrack: ChainIdsByTrack;
-  ptsByTrack: PatternTracksByTrack;
 }
 
 /** A live arrangement stores the full track arrangement with instruments and portals. */
 export interface LiveArrangement {
-  patternTracks: PatternTrackState;
-  scaleTracks: ScaleTrackState;
-  clips: {
-    pattern: PatternClipState;
-    pose: PoseClipState;
-    scale: ScaleClipState;
-  };
+  tracks: TrackState;
+  patternClips: PatternClipState;
+  poseClips: PoseClipState;
+  scales: ScaleState;
+  patterns: PatternState;
+  poses: PoseState;
   instruments: InstrumentState;
   portals: PortalState;
 }
@@ -71,13 +64,12 @@ export interface LiveArrangement {
 
 /** The default live arrangement is used for initialization. */
 export const defaultArrangement: LiveArrangement = {
-  patternTracks: defaultPatternTrackState,
-  scaleTracks: defaultScaleTrackState,
-  clips: {
-    pattern: defaultPatternClipState,
-    pose: defaultPoseClipState,
-    scale: defaultScaleClipState,
-  },
+  tracks: defaultTrackState,
+  patternClips: defaultPatternClipState,
+  poseClips: defaultPoseClipState,
+  scales: defaultScaleState,
+  patterns: defaultPatternState,
+  poses: defaultPoseState,
   portals: defaultPortalState,
   instruments: defaultInstrumentState,
 };

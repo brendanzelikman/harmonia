@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { use, useProjectDispatch } from "types/hooks";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import { usePortalDrag } from "./usePortalDrag";
 import portalIcon from "assets/images/portal.svg";
 import { Portal } from "types/Portal/PortalTypes";
@@ -13,6 +13,7 @@ import { onMediaDragEnd } from "types/Media/MediaThunks";
 import { onPortalClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { useDragState } from "types/Media/MediaTypes";
 import { Timed } from "types/units";
+import { useCallback } from "react";
 
 type PortalFragmentProps = { top: number; left: number };
 type PortalProps = { portal: Timed<Portal> };
@@ -34,15 +35,15 @@ export function TimelinePortal(props: TimelinePortalProps) {
   const dragState = useDragState();
 
   /** Update the timeline when dragging portals. */
-  const onDragStart = () => {
+  const onDragStart = useCallback(() => {
     dragState.set("draggingPortal", true);
-  };
+  }, []);
 
   /** Update the timeline when releasing portals and call the thunk. */
-  const onDragEnd = (item: any, monitor: any) => {
+  const onDragEnd = useCallback((item: any, monitor: any) => {
     dragState.set("draggingPortal", false);
     dispatch(onMediaDragEnd(item, monitor));
-  };
+  }, []);
 
   /** A custom hook for dragging portals into cells. */
   const [Entry, entryDrag] = usePortalDrag({
@@ -57,7 +58,7 @@ export function TimelinePortal(props: TimelinePortalProps) {
     onDragStart,
     onDragEnd,
   });
-  const addingClips = use(selectIsAddingClips);
+  const addingClips = useDeep(selectIsAddingClips);
   const draggingPatternClip = !!dragState.draggingPatternClip;
   const draggingPoseClip = !!dragState.draggingPoseClip;
   const isDragging = Entry.isDragging || Exit.isDragging;
@@ -66,18 +67,20 @@ export function TimelinePortal(props: TimelinePortalProps) {
 
   // Get the entry portal info
   const tId = portal?.trackId;
-  const entryTrack = use((_) =>
+  const entryTrack = useDeep((_) =>
     tId ? selectTrackById(_, portal?.trackId) : undefined
   );
-  const entryTop = use((_) => selectTrackTop(_, entryTrack?.id));
-  const entryLeft = use((_) => selectTimelineTickLeft(_, portal?.tick));
+  const entryTop = useDeep((_) => selectTrackTop(_, entryTrack?.id));
+  const entryLeft = useDeep((_) => selectTimelineTickLeft(_, portal?.tick));
 
   // Get the exit portal info
-  const exitTrack = use((_) =>
+  const exitTrack = useDeep((_) =>
     tId ? selectTrackById(_, portal?.portaledTrackId) : undefined
   );
-  const exitTop = use((_) => selectTrackTop(_, exitTrack?.id));
-  const exitLeft = use((_) => selectTimelineTickLeft(_, portal?.portaledTick));
+  const exitTop = useDeep((_) => selectTrackTop(_, exitTrack?.id));
+  const exitLeft = useDeep((_) =>
+    selectTimelineTickLeft(_, portal?.portaledTick)
+  );
 
   // Prepare the icon
   const PortalIcon = () => (

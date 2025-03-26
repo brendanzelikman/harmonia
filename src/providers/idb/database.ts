@@ -3,13 +3,11 @@ import { initializeProject } from "types/Project/ProjectTypes";
 import { IDB_NAME, PROJECT_STORE, SAMPLE_STORE } from "utils/constants";
 import { uploadProjectToDB } from "./projects";
 
-export const getDatabaseName = (userId: string | null) =>
-  `${IDB_NAME}-${userId}`;
+export const getDatabaseName = () => `${IDB_NAME}`;
 
 /** Create a connection to the database and upgrade it if necessary. */
-export const getDatabase = async (userId: string | null) => {
-  if (!userId) return null;
-  const name = getDatabaseName(userId);
+export const getDatabase = async () => {
+  const name = getDatabaseName();
   return await openDB(name, import.meta.env.VITE_IDB_VERSION, {
     upgrade(db) {
       // Create a store for the list of projects

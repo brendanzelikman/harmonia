@@ -7,7 +7,7 @@ import {
   BsVolumeDownFill,
   BsVolumeOffFill,
 } from "react-icons/bs";
-import { use, useProjectDispatch } from "types/hooks";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import {
   selectTransportMute,
   selectTransportVolume,
@@ -22,9 +22,9 @@ import { MIN_TRANSPORT_VOLUME, MAX_TRANSPORT_VOLUME } from "utils/constants";
 export function NavbarVolume() {
   const dispatch = useProjectDispatch();
   const [hovering, setHovering] = useState(false);
-  const volume = use(selectTransportVolume);
-  const mute = use(selectTransportMute);
-  const volumePercent = use(selectTransportVolumePercent);
+  const volume = useDeep(selectTransportVolume);
+  const mute = useDeep(selectTransportMute);
+  const volumePercent = useDeep(selectTransportVolumePercent);
 
   return (
     <div className="relative group">

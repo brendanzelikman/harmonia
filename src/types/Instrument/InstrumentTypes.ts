@@ -6,17 +6,16 @@ import {
   DEFAULT_INSTRUMENT_KEY,
   DEFAULT_PAN,
   DEFAULT_VOLUME,
-  MAX_PAN,
-  MAX_VOLUME,
-  MIN_PAN,
-  MIN_VOLUME,
 } from "utils/constants";
 import { Pan, Tick, Volume } from "types/units";
 import { createId } from "types/util";
-import { isArray, isBoolean, isPlainObject, isString } from "lodash";
-import { isBoundedNumber } from "types/util";
+import { isPlainObject, isString } from "lodash";
 import { PatternMidiNote } from "types/Pattern/PatternTypes";
 import { TrackId } from "types/Track/TrackTypes";
+import {
+  getInstrumentCategory,
+  getInstrumentName,
+} from "./InstrumentFunctions";
 export * from "./InstrumentEffectTypes";
 
 // ------------------------------------------------------------
@@ -127,6 +126,18 @@ export const PERCUSSIVE_CATEGORIES: InstrumentCategory[] = [
 export const INSTRUMENT_NAMES = Object.values(categories).reduce((acc, cur) => {
   return [...acc, ...cur.map((_) => _.name)];
 }, [] as string[]);
+
+/** The global record of instrument keys to names */
+export const INSTRUMENT_NAMES_BY_KEY = INSTRUMENT_KEYS.reduce(
+  (acc, cur) => ({ ...acc, [cur]: getInstrumentName(cur) }),
+  {} as Record<InstrumentKey, InstrumentName>
+);
+
+/** The global record of instrument keys to categories */
+export const INSTRUMENT_CATEGORIES_BY_KEY = INSTRUMENT_KEYS.reduce(
+  (acc, cur) => ({ ...acc, [cur]: getInstrumentCategory(cur) }),
+  {} as Record<InstrumentKey, InstrumentCategory>
+);
 
 export const defaultInstrumentState: InstrumentState = {
   ids: [],

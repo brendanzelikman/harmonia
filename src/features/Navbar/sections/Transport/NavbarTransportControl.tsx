@@ -1,5 +1,8 @@
+import { nanoid } from "@reduxjs/toolkit";
 import classNames from "classnames";
 import { NavbarTooltipButton } from "components/TooltipButton";
+import { useTransportState } from "hooks/useTransportState";
+import { createUndoType } from "lib/redux";
 import {
   BsStop,
   BsPause,
@@ -7,19 +10,30 @@ import {
   BsRecord,
   BsArrowRepeat,
 } from "react-icons/bs";
-import { use, useProjectDispatch } from "types/hooks";
-import { selectTransportState } from "types/Transport/TransportSelectors";
+import { useDeep, useProjectDispatch } from "types/hooks";
+import {
+  selectTransportLoop,
+  selectTransportRecording,
+} from "types/Transport/TransportSelectors";
 import {
   stopTransport,
   toggleTransport,
   toggleTransportRecording,
   toggleTransportLoop,
+  setTransportLoopStart,
+  setTransportLoopEnd,
+  convertStringToTicks,
 } from "types/Transport/TransportThunks";
+import { promptUserForString } from "utils/html";
+import { sanitize } from "utils/math";
 
 export function NavbarTransportControl() {
   const dispatch = useProjectDispatch();
-  const transportState = use(selectTransportState);
-  const { isStarted, isStopped, isRecording, isLooping } = transportState;
+  const state = useTransportState();
+  const isRecording = useDeep(selectTransportRecording);
+  const isLooping = useDeep(selectTransportLoop);
+  const isStarted = state === "started";
+  const isStopped = state === "stopped";
   const action = isStarted ? "Pause" : isStopped ? "Start" : "Resume";
 
   return (
@@ -27,11 +41,10 @@ export function NavbarTransportControl() {
       <NavbarTooltipButton
         label="Stop the Timeline"
         className={classNames(
-          isStopped ? "opacity-80" : "opacity-100",
           !isStopped ? "bg-rose-700" : buttonColor,
           borderClass
         )}
-        onClick={() => dispatch(stopTransport())}
+        onClick={() => stopTransport()}
       >
         <BsStop className="p-[1px]" />
       </NavbarTooltipButton>
@@ -61,7 +74,27 @@ export function NavbarTransportControl() {
           isLooping ? "bg-indigo-700 text-slate-20" : buttonColor,
           borderClass
         )}
-        onClick={() => dispatch(toggleTransportLoop())}
+        onClick={(e) => {
+          if (!e.shiftKey) {
+            dispatch(toggleTransportLoop());
+          } else {
+            promptUserForString({
+              title: "Set the Loop Start and End",
+              description: "Please enter the Start,End",
+              callback: (value) => {
+                const [_start, _end] = value.split(",");
+                const startTicks = dispatch(convertStringToTicks(_start));
+                const endTicks = dispatch(convertStringToTicks(_end));
+                if (startTicks === undefined || endTicks === undefined) return;
+                const start = sanitize(startTicks);
+                const end = sanitize(endTicks);
+                const undoType = createUndoType("loop", nanoid());
+                dispatch(setTransportLoopStart({ data: start, undoType }));
+                dispatch(setTransportLoopEnd({ data: end, undoType }));
+              },
+            })();
+          }
+        }}
       >
         <BsArrowRepeat className="p-[2px]" />
       </NavbarTooltipButton>

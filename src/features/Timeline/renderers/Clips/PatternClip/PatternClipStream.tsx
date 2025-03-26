@@ -1,58 +1,64 @@
 import { cancelEvent } from "utils/html";
-import { CLIP_NAME_HEIGHT } from "./usePatternClipRenderer";
-import { ClipStyle } from "./usePatternClipStyle";
-import classNames from "classnames";
-import { PatternClipBlock } from "./PatternClipBlock";
-import { use, useDeep } from "types/hooks";
-import { selectIsClipSelected } from "types/Timeline/TimelineSelectors";
-import { selectPatternClipStream } from "types/Arrangement/ArrangementSelectors";
-import { PatternClipId, PortaledPatternClipId } from "types/Clip/ClipTypes";
-import { selectPatternClipById } from "types/Clip/ClipSelectors";
+import { useDeep, useProjectDispatch } from "types/hooks";
+import { selectIsSlicingClips } from "types/Timeline/TimelineSelectors";
+import { selectPortaledPatternClipStream } from "types/Arrangement/ArrangementSelectors";
+import {
+  PatternClipMidiBlock,
+  PortaledPatternClip,
+} from "types/Clip/ClipTypes";
+import { memo, useCallback } from "react";
+import { sliceClip } from "types/Clip/ClipThunks";
+import { getPatternBlockDuration } from "types/Pattern/PatternFunctions";
+import { PatternMidiNote } from "types/Pattern/PatternTypes";
+import { usePatternClipStreamStyle } from "./usePatternClipStyle";
+import { CLIP_STREAM_MARGIN } from "./usePatternClipRenderer";
 
-interface PatternClipStreamProps extends ClipStyle {
-  id: PatternClipId;
-  pcId: PortaledPatternClipId;
-  isSlicing: boolean;
+interface PatternClipStreamProps {
+  clip: PortaledPatternClip;
 }
 
-export const PatternClipStream = (props: PatternClipStreamProps) => {
-  const { id, width, height, bodyColor } = props;
-  const isSelected = use((_) => selectIsClipSelected(_, props.id));
-  const clipStream = useDeep((_) => selectPatternClipStream(_, props.pcId));
-  const clip = useDeep((_) => selectPatternClipById(_, props.pcId));
-  return (
-    <div
-      className={classNames(
-        bodyColor,
-        `w-full relative flex flex-col overflow-hidden`,
-        isSelected ? "border-white" : "border-teal-500",
-        !!clip?.isOpen ? "border-2 border-b-0" : "border-0"
-      )}
-      onDoubleClick={cancelEvent}
-      style={{ minHeight: height - CLIP_NAME_HEIGHT - 4 }}
-    >
-      {!!clip?.isOpen && (
-        <div className="size-full absolute" style={{ paddingLeft: width }}>
-          <div className="size-full relative border-l-2 border-l-slate-300/50">
-            <div className="size-full relative flex-1 bg-teal-950/5"></div>
-          </div>
-        </div>
-      )}
-
-      <div className="group w-full py-1 relative flex flex-1 font-extralight text-slate-50/80">
-        {clipStream.map((block, i) => {
-          return (
-            <PatternClipBlock
-              key={`${props.pcId}-block-${i}`}
-              id={id}
-              block={block}
-              blockIndex={i}
-              isSlicing={props.isSlicing}
-              style={props}
-            />
-          );
-        })}
-      </div>
-    </div>
+export const PatternClipStream = memo((props: PatternClipStreamProps) => {
+  const dispatch = useProjectDispatch();
+  const clipStream = useDeep((_) =>
+    selectPortaledPatternClipStream(_, props.clip.id)
   );
-};
+  const isSlicing = useDeep(selectIsSlicingClips);
+  const style = usePatternClipStreamStyle(props);
+
+  /** Notes must calculate style before rendering */
+  const renderNote = useCallback(
+    (note: PatternMidiNote, j: number, noteTick: number) => {
+      const key = `${note.MIDI}-${note.duration}-${note.velocity}-${j}`;
+      const width = note.duration * style.noteWidth - 4;
+      const height = style.noteHeight;
+      const offset = note.MIDI - style.min;
+      const bottom = style.noteHeight * offset + CLIP_STREAM_MARGIN / 2;
+      const left = style.noteWidth * (noteTick - style.tick);
+      const dims = { width, height, bottom, left };
+      return <div key={key} style={dims} className={style.noteClass} />;
+    },
+    [style]
+  );
+
+  /** Blocks are containers of notes */
+  const renderBlock = useCallback(
+    (block: PatternClipMidiBlock, i: number) => (
+      <div
+        key={`${block.startTick}-${i}`}
+        data-slicing={isSlicing}
+        className="size-full border-slate-50/10 data-[slicing=true]:bg-slate-500/50 group-hover:data-[slicing=true]:bg-slate-600/50 data-[slicing=true]:cursor-scissors hover:data-[slicing=true]:border-r-4 hover:data-[slicing=true]:border-slate-50/50"
+        onClick={(e) => {
+          if (!isSlicing) return;
+          cancelEvent(e);
+          const tick = block.startTick + getPatternBlockDuration(block.notes);
+          dispatch(sliceClip({ data: { id: props.clip.id, tick } }));
+        }}
+      >
+        {block.notes.map((note, j) => renderNote(note, j, block.startTick))}
+      </div>
+    ),
+    [renderNote, isSlicing]
+  );
+
+  return <div className={style.streamClass}>{clipStream.map(renderBlock)}</div>;
+});

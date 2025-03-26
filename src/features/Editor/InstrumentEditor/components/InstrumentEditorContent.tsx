@@ -1,38 +1,38 @@
-import { FC } from "react";
-import { InstrumentEditorProps } from "../InstrumentEditor";
 import { InstrumentEditorEffectBar } from "./InstrumentEditorEffectBar";
 import { InstrumentEditorAnalyser } from "./InstrumentEditorAnalyser";
 import { InstrumentEditorEffects } from "./InstrumentEditorEffects";
 import { EditorHeader } from "features/Editor/components/EditorHeader";
 import { EditorContent } from "features/Editor/components/EditorContent";
 import {
-  getInstrumentName,
-  getInstrumentCategory,
-} from "types/Instrument/InstrumentFunctions";
+  INSTRUMENT_CATEGORIES_BY_KEY,
+  INSTRUMENT_NAMES_BY_KEY,
+  InstrumentId,
+} from "types/Instrument/InstrumentTypes";
+import { useDeep } from "types/hooks";
+import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 
-export const InstrumentEditorContent: FC<InstrumentEditorProps> = (props) => {
-  const { instrument } = props;
-  const name = getInstrumentName(instrument?.key);
-  const category = getInstrumentCategory(instrument?.key);
+interface InstrumentEditorContentProps {
+  id: InstrumentId;
+  isPlaying: boolean;
+}
 
-  /** The instrument editor displays the name of the instrument as its title. */
-  const InstrumentEditorTitle = () => {
-    return (
-      <EditorHeader
-        className="capitalize"
-        title={name}
-        subtitle={category}
-        color="bg-gradient-to-tr from-orange-400 to-orange-500"
-      />
-    );
-  };
-
+export const InstrumentEditorContent = (
+  props: InstrumentEditorContentProps
+) => {
+  const instrument = useDeep((_) => selectInstrumentById(_, props.id));
+  const key = instrument?.key;
+  if (!key) return null;
   return (
     <EditorContent>
-      <InstrumentEditorTitle />
+      <EditorHeader
+        className="capitalize"
+        title={INSTRUMENT_NAMES_BY_KEY[key]}
+        subtitle={INSTRUMENT_CATEGORIES_BY_KEY[key]}
+        color="bg-gradient-to-tr from-orange-400 to-orange-500"
+      />
       <div className="flex flex-col overflow-scroll">
         <InstrumentEditorEffectBar {...props} />
-        <InstrumentEditorAnalyser {...props} type="waveform" />
+        {/* <InstrumentEditorAnalyser {...props} type="waveform" /> */}
         <InstrumentEditorAnalyser {...props} type="fft" />
         <InstrumentEditorEffects {...props} />
       </div>

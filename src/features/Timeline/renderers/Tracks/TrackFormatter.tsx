@@ -1,89 +1,51 @@
-import { PatternTrackFormatter } from "./PatternTrackFormatter";
 import { ScaleTrackFormatter } from "./ScaleTrackFormatter";
-import { use, useDeep, useProjectDispatch } from "types/hooks";
-import { Row } from "features/Timeline/Timeline";
+import { useDeep, useProjectDispatch } from "types/hooks";
+import { TrackRow } from "features/Timeline/components/TimelineGrid";
+import { selectTrackById } from "types/Track/TrackSelectors";
 import {
-  TrackId,
-  Track,
-  isScaleTrack,
-  isPatternTrack,
-} from "types/Track/TrackTypes";
-import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
-import {
-  selectTrackById,
-  selectTrackLabelById,
-  selectTrackIndexById,
-  selectTrackAncestors,
-} from "types/Track/TrackSelectors";
-import { movePatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
-import { moveScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
-import { updateTrack } from "types/Track/TrackThunks";
-import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
+  isScaleTrackId,
+  ScaleTrack,
+} from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
-import { useCallback } from "react";
 import { RenderCellProps } from "react-data-grid";
+import { memo, useRef } from "react";
+import { useTrackDragAndDrop } from "./hooks/useTrackDnd";
+import { useTrackStyle } from "./hooks/useTrackStyle";
+import { TrackDots } from "./components/TrackDots";
+import { isPatternTrack } from "types/Track/TrackTypes";
+import { PatternTrackFormatter } from "./PatternTrackFormatter";
+import { toggleTimelineTrackId } from "types/Timeline/TimelineThunks";
 
-export interface TrackFormatterProps {
-  track?: Track;
-  label?: string;
-  index: number;
-  isSelected: boolean;
-  isAncestorSelected: boolean;
-
-  renameTrack: (name: string) => void;
-  moveTrack: (dragId: TrackId, hoverId: TrackId) => void;
-}
-
-export function TrackFormatter(props: RenderCellProps<Row>) {
+export const TrackFormatter = memo((props: RenderCellProps<TrackRow>) => {
   const dispatch = useProjectDispatch();
   const trackId = props.row.id;
-  const selectedTrackId = use(selectSelectedTrackId);
-  const isSelected = trackId === selectedTrackId;
-  const track = useDeep((_) =>
-    trackId ? selectTrackById(_, trackId) : undefined
-  );
-  const isAncestorSelected = use((_) =>
-    selectTrackAncestors(_, trackId).some((t) => t?.id === selectedTrackId)
-  );
-  const label = use((_) => selectTrackLabelById(_, track?.id));
-  const index = use((_) => selectTrackIndexById(_, track?.id));
+  const track = useDeep((_) => selectTrackById(_, trackId))!;
+  const isPT = isPatternTrack(track);
+  const isST = !isPT && isScaleTrackId(trackId);
 
-  const _renameTrack = useCallback(
-    (name: string) =>
-      trackId && dispatch(updateTrack({ data: { id: trackId, name } })),
-    []
-  );
+  // Drag and drop logic
+  const ref = useRef<HTMLDivElement>(null);
+  const { isDragging, drag, drop } = useTrackDragAndDrop(trackId);
+  const { className, borderClass, ...style } = useTrackStyle({
+    trackId,
+    isDragging,
+  });
+  drag(drop(ref));
 
-  const moveTrack = useCallback((dragId: TrackId, hoverId: TrackId) => {
-    if (isScaleTrack(track)) dispatch(moveScaleTrack({ dragId, hoverId }));
-    else if (isPatternTrack(track))
-      dispatch(movePatternTrack({ dragId, hoverId }));
-  }, []);
-
-  if (!trackId || !track) return null;
-
-  // A track passes down general props to the scale/pattern tracks
-  const trackProps: TrackFormatterProps = {
-    track,
-    isSelected,
-    isAncestorSelected,
-    index,
-    label,
-    renameTrack: _renameTrack,
-    moveTrack,
-  };
-
-  if (isScaleTrack(track)) {
-    const typedTrack = track as ScaleTrack;
-    return <ScaleTrackFormatter {...trackProps} track={typedTrack} />;
-  }
-  if (isPatternTrack(track)) {
-    const typedTrack = track as PatternTrack;
-    return <PatternTrackFormatter {...trackProps} track={typedTrack} />;
-  }
   return (
-    <div className="rdg-track size-full p-2 relative bg-slate-900/50 text-slate-50">
-      Error Track: {track}
+    <div
+      ref={ref}
+      className={className}
+      style={style}
+      onClick={() => {
+        dispatch(toggleTimelineTrackId({ data: trackId }));
+      }}
+    >
+      <TrackDots trackId={trackId} />
+      <div className={borderClass}>
+        {isST && <ScaleTrackFormatter track={track as ScaleTrack} />}
+        {isPT && <PatternTrackFormatter track={track as PatternTrack} />}
+      </div>
     </div>
   );
-}
+});

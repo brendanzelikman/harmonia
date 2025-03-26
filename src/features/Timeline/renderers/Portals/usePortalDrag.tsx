@@ -1,5 +1,6 @@
 import { useDrag } from "react-dnd";
 import { Portal } from "types/Portal/PortalTypes";
+import { dispatchCustomEvent } from "utils/html";
 
 interface PortalDragProps {
   portal?: Portal;
@@ -14,6 +15,7 @@ export function usePortalDrag(props: PortalDragProps) {
     type: "portal",
     item: () => {
       props.onDragStart();
+      dispatchCustomEvent("dragClip", true);
       if (!portal) return {};
       if (isEntry) {
         const { id, trackId, tick } = portal;
@@ -30,6 +32,7 @@ export function usePortalDrag(props: PortalDragProps) {
     },
     end: (item: any, monitor: any) => {
       if (!item.canDrop) return;
+      dispatchCustomEvent("dragClip", false);
       props.onDragEnd(item, monitor);
     },
   });

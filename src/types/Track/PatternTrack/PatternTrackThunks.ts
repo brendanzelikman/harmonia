@@ -1,180 +1,217 @@
-import { getValueByKey } from "utils/objects";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import {
   PatternTrack,
   PatternTrackId,
   initializePatternTrack,
 } from "./PatternTrackTypes";
-import { updateInstrument } from "types/Instrument/InstrumentSlice";
 import {
   Instrument,
-  InstrumentKey,
   initializeInstrument,
 } from "types/Instrument/InstrumentTypes";
 import { Thunk } from "types/Project/ProjectTypes";
 import {
   selectPatternTrackById,
-  selectTrackInstrument,
-  selectTrackMap,
-  selectTrackById,
   selectTopLevelTracks,
+  selectTrackById,
 } from "../TrackSelectors";
-import { TrackId, isPatternTrack, isScaleTrack } from "../TrackTypes";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
-import { selectSelectedTrack } from "types/Timeline/TimelineSelectors";
-import { createUndoType } from "lib/redux";
-import { UndoType } from "types/units";
+import { Payload, unpackUndoType } from "lib/redux";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
-import { migrateTrack, moveTrack } from "../TrackThunks";
 import { addTrack } from "../TrackThunks";
-import { ScaleTrackId } from "../ScaleTrack/ScaleTrackTypes";
 import { createPattern } from "types/Pattern/PatternThunks";
-import { addClip } from "types/Clip/ClipSlice";
 import {
   initializePatternClip,
   initializePoseClip,
+  PatternClip,
+  PatternClipId,
+  PoseClip,
 } from "types/Clip/ClipTypes";
 import { getTransport } from "tone";
 import { createMedia } from "types/Media/MediaThunks";
+import { createPose } from "types/Pose/PoseThunks";
+import { Pattern, PatternId } from "types/Pattern/PatternTypes";
+import { Pose, PoseId } from "types/Pose/PoseTypes";
+import {
+  muteInstruments,
+  unmuteInstruments,
+  soloInstruments,
+  unsoloInstruments,
+  updateInstrument,
+} from "types/Instrument/InstrumentSlice";
+import { isHoldingOption } from "utils/html";
+import { selectPatternById } from "types/Pattern/PatternSelectors";
 
 /** Create a `PatternTrack` with an optional initial track. */
 export const createPatternTrack =
   (
-    initialTrack?: Partial<PatternTrack>,
-    initialInstrumentKey?: InstrumentKey,
-    _undoType?: UndoType
-  ): Thunk<{ track: PatternTrack; instrument: Instrument }> =>
+    payload: Payload<{
+      track?: Partial<PatternTrack>;
+      instrument?: Partial<Instrument>;
+    }>
+  ): Thunk<{
+    track: PatternTrack;
+    instrument: Instrument;
+  }> =>
   (dispatch, getProject) => {
     const project = getProject();
     const topLevelTracks = selectTopLevelTracks(project);
+    const initialTrack = payload.data?.track;
+    const initialInstrument = payload.data?.instrument;
+    const initialInstrumentKey = payload.data?.instrument?.key;
 
     // Initialize a new pattern track and instrument
     const instrument = initializeInstrument({ key: initialInstrumentKey });
     const track = initializePatternTrack({
       ...initialTrack,
       instrumentId: instrument.id,
-      order: !!initialTrack?.parentId ? undefined : topLevelTracks.length + 1,
+      order: !!initialTrack?.parentId
+        ? selectTrackById(project, initialTrack.parentId)?.trackIds?.length ?? 0
+        : topLevelTracks.length,
     });
 
-    const undoType = _undoType ?? createUndoType("createPatternTrack", track);
+    const undoType = unpackUndoType(payload, "createPatternTrack");
 
     // Create the pattern track
     dispatch(addTrack({ data: track, undoType }));
 
     // Create an instrument for the track or use the old one
-    const iid = initialTrack?.instrumentId;
+    const iid = initialInstrument?.id ?? initialTrack?.instrumentId;
     const oldInstrument = iid ? selectInstrumentById(project, iid) : undefined;
     const key = initialInstrumentKey ?? DEFAULT_INSTRUMENT_KEY;
-    const options = { oldInstrument: { ...oldInstrument, ...instrument, key } };
+    const options = {
+      oldInstrument: {
+        ...instrument,
+        ...oldInstrument,
+        ...initialInstrument,
+        id: instrument.id,
+        key,
+      },
+    };
     dispatch(createInstrument({ data: { track, options }, undoType }));
-
-    // Create a courtesy pattern clip
-    const patternClip = initializePatternClip({
-      tick: getTransport().ticks,
-      trackId: track.id,
-    });
-
-    // Create a courtesy pose clip
-    const poseClip = initializePoseClip({
-      trackId: track.id,
-      tick: getTransport().ticks,
-    });
-
-    dispatch(
-      createMedia({ data: { clips: [patternClip, poseClip] }, undoType })
-    );
 
     // Return ID of the created track
     return { track, instrument };
   };
 
-/** Create a `PatternTrack` using the selected track as a parent. */
-export const createPatternTrackFromSelectedTrack =
-  (): Thunk<PatternTrack | undefined> => (dispatch, getProject) => {
-    const project = getProject();
-    const parent = selectSelectedTrack(project);
-    const parentId = isScaleTrack(parent) ? parent.id : parent?.parentId;
-    const { track } = dispatch(createPatternTrack({ parentId }));
-    return track;
-  };
-
-/** Set the `ScaleTrack` of a `PatternTrack` with an optional index. */
-export const setPatternTrackScaleTrack =
+export const createCourtesyPatternClip =
   (
-    patternTrackId: PatternTrackId,
-    parentId: ScaleTrackId,
-    index?: number
-  ): Thunk =>
+    payload: Payload<
+      Partial<{ pattern: Partial<Pattern>; clip: Partial<PatternClip> }>
+    >
+  ): Thunk<{ patternId: PatternId; clipId: PatternClipId }> =>
   (dispatch, getProject) => {
-    const project = getProject();
-
-    // Get the pattern track
-    const patternTrack = selectPatternTrackById(project, patternTrackId);
-    if (!patternTrack) return;
-
-    // Migrate the pattern track to the new parent
-    dispatch(migrateTrack({ data: { id: patternTrackId, parentId, index } }));
+    const { clip } = payload.data;
+    const undoType = unpackUndoType(payload, "createCourtesyPatternClip");
+    const patternId = payload.data?.pattern?.id;
+    const initialPattern = patternId
+      ? selectPatternById(getProject(), patternId)
+      : {};
+    const pattern = dispatch(
+      createPattern({
+        data: {
+          ...initialPattern,
+          ...payload.data.pattern,
+          trackId: clip?.trackId,
+        },
+        undoType,
+      })
+    );
+    const patternClip = initializePatternClip({
+      ...clip,
+      patternId: pattern.id,
+      tick: clip?.tick ?? getTransport().ticks,
+    });
+    const [clipId] = dispatch(
+      createMedia({ data: { clips: [patternClip] }, undoType })
+    ).data.clipIds!;
+    return { patternId: pattern.id, clipId: clipId as PatternClipId };
   };
 
-/** Set the instrument of a `PatternTrack`. */
-export const setPatternTrackInstrument =
-  (id?: TrackId, key?: InstrumentKey): Thunk =>
-  (dispatch, getProject) => {
-    if (!id || !key) return;
-    const project = getProject();
+export const createCourtesyPoseClip =
+  (
+    payload: Payload<Partial<{ pose: Partial<Pose>; clip: Partial<PoseClip> }>>
+  ): Thunk<PoseId> =>
+  (dispatch) => {
+    const { clip } = payload.data;
+    const undoType = unpackUndoType(payload, "createCourtesyPoseClip");
+    const pose = dispatch(
+      createPose({
+        data: { ...payload.data.pose, trackId: clip?.trackId },
+        undoType,
+      })
+    );
+    const poseClip = initializePoseClip({
+      ...clip,
+      poseId: pose.id,
+      tick: clip?.tick ?? getTransport().ticks,
+    });
+    dispatch(createMedia({ data: { clips: [poseClip] }, undoType })).data;
+    return pose.id;
+  }; /** Mute all tracks. */
 
-    // Get the instrument
-    const instrument = selectTrackInstrument(project, id);
+export const muteTracks = (): Thunk => (dispatch) => {
+  dispatch(muteInstruments());
+};
+/** Unmute all tracks. */
+
+export const unmuteTracks = (): Thunk => (dispatch) => {
+  dispatch(unmuteInstruments());
+};
+/** Solo all tracks. */
+
+export const soloTracks = (): Thunk => (dispatch) => {
+  dispatch(soloInstruments());
+};
+/** Unsolo all tracks. */
+
+export const unsoloTracks = (): Thunk => (dispatch) => {
+  dispatch(unsoloInstruments());
+};
+/** Toggle the mute state of a track. */
+
+export const toggleTrackMute =
+  (e: MouseEvent, id: PatternTrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const track = selectPatternTrackById(project, id);
+    if (!track) return;
+
+    // Get the track's instrument
+    const { instrumentId } = track;
+    const instrument = selectInstrumentById(project, instrumentId);
     if (!instrument) return;
 
-    // Update the instrument with the new instrument
-    dispatch(
-      updateInstrument({ data: { id: instrument.id, update: { key } } })
-    );
+    // If not holding option, toggle the track mute
+    if (!e || !isHoldingOption(e)) {
+      const update = { mute: !instrument.mute };
+      dispatch(updateInstrument({ data: { id: instrumentId, update } }));
+      return;
+    }
+
+    // Otherwise, toggle all tracks
+    dispatch(instrument.mute ? unmuteTracks() : muteTracks());
   };
+/** Toggle the solo state of a track. */
 
-/**
- * Move a pattern track to the index of the given track ID.
- * @param props The drag and hover IDs.
- */
-export const movePatternTrack =
-  (props: { dragId: TrackId; hoverId: TrackId }): Thunk<boolean> =>
+export const toggleTrackSolo =
+  (e: MouseEvent, id: PatternTrackId): Thunk =>
   (dispatch, getProject) => {
-    const { dragId, hoverId } = props;
     const project = getProject();
-    const trackMap = selectTrackMap(project);
+    const track = selectPatternTrackById(project, id);
+    if (!track) return;
 
-    // Get the corresponding pattern tracks
-    const thisTrack = selectTrackById(project, dragId);
-    const otherTrack = selectTrackById(project, hoverId);
-    if (!thisTrack || !otherTrack) return false;
+    // Get the track's instrument
+    const { instrumentId } = track;
+    const instrument = selectInstrumentById(project, instrumentId);
+    if (!instrument) return;
 
-    const otherTrackParent = getValueByKey(trackMap, otherTrack?.parentId);
-    const isThisPattern = isPatternTrack(thisTrack);
-    const isOtherPattern = isPatternTrack(otherTrack);
-
-    // If this = scale track and other = pattern track, move the scale track if possible
-    if (!isThisPattern && isOtherPattern) {
-      const index = otherTrackParent?.trackIds.indexOf(otherTrack.id);
-      if (index === undefined || index < 0) return false;
-      dispatch(moveTrack({ data: { id: thisTrack.id, index } }));
-      return true;
+    // If not holding option, toggle the track solo
+    if (!e || !isHoldingOption(e)) {
+      const update = { solo: !instrument.solo };
+      dispatch(updateInstrument({ data: { id: instrumentId, update } }));
+      return;
     }
 
-    // Get the corresponding scale tracks
-    if (!thisTrack.parentId || !otherTrack.parentId) return false;
-    const thisParent = selectTrackById(project, thisTrack.parentId);
-    const otherParent = selectTrackById(project, otherTrack.parentId);
-    if (!thisParent || !otherParent) return false;
-
-    // If the pattern tracks are in the same scale track, move the pattern track
-    if (thisParent.id === otherParent.id) {
-      const thisParentTrack = trackMap[thisParent.id] as PatternTrack;
-      if (!thisParentTrack) return false;
-      const index = thisParentTrack.trackIds.indexOf(otherTrack.id);
-      dispatch(moveTrack({ data: { id: thisTrack.id, index } }));
-    }
-
-    // If the pattern tracks are in different scale tracks, do nothing
-    return false;
+    // Otherwise, toggle all tracks
+    dispatch(instrument.solo ? unsoloTracks() : soloTracks());
   };

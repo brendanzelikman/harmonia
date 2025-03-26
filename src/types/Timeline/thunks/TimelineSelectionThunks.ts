@@ -1,18 +1,19 @@
 import { Payload, unpackUndoType } from "lib/redux";
-import { union, difference, without } from "lodash";
+import { union, difference, without, pick } from "lodash";
 import { exportClipsToMidi } from "types/Clip/ClipThunks";
 import { ClipId } from "types/Clip/ClipTypes";
 import { Thunk } from "types/Project/ProjectTypes";
-import { selectOrderedTrackIds } from "types/Track/TrackSelectors";
+import { selectTrackIds } from "types/Track/TrackSelectors";
 import { deleteTrack } from "types/Track/TrackThunks";
-import { mod } from "utils/math";
 import { next, prev } from "utils/array";
 import {
   selectSelectedTrackId,
   selectSelectedClipIds,
+  selectIsClipSelected,
 } from "../TimelineSelectors";
 import { setSelectedTrackId, updateMediaSelection } from "../TimelineSlice";
 import { selectProjectName } from "types/Meta/MetaSelectors";
+import { exportProjectToWAV } from "types/Project/ProjectExporters";
 
 // ------------------------------------------------------------
 // Selected Track
@@ -22,7 +23,7 @@ import { selectProjectName } from "types/Meta/MetaSelectors";
 export const selectPreviousTrack = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const selectedTrackId = selectSelectedTrackId(project);
-  const trackIds = selectOrderedTrackIds(project);
+  const trackIds = selectTrackIds(project);
   const index = selectedTrackId ? trackIds.indexOf(selectedTrackId) : 1;
   const previousTrackId = prev(trackIds, index);
   dispatch(setSelectedTrackId({ data: previousTrackId }));
@@ -32,7 +33,7 @@ export const selectPreviousTrack = (): Thunk => (dispatch, getProject) => {
 export const selectNextTrack = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const selectedTrackId = selectSelectedTrackId(project);
-  const trackIds = selectOrderedTrackIds(project);
+  const trackIds = selectTrackIds(project);
   const index = selectedTrackId ? trackIds.indexOf(selectedTrackId) : -1;
   const nextTrackId = next(trackIds, index);
   dispatch(setSelectedTrackId({ data: nextTrackId }));
@@ -44,10 +45,6 @@ export const deleteSelectedTrack = (): Thunk => (dispatch, getProject) => {
   const trackId = selectSelectedTrackId(project);
   if (trackId) dispatch(deleteTrack({ data: trackId }));
 };
-
-// ------------------------------------------------------------
-// Selected Clips
-// ------------------------------------------------------------
 
 /** Add a list of clip IDs to the current selection. */
 export const addClipIdsToSelection =
@@ -89,14 +86,16 @@ export const clearClipIdsFromSelection =
 
 /** Toggle the selection of a clip ID. */
 export const toggleClipIdInSelection =
-  (clipId: ClipId): Thunk =>
+  (payload: Payload<ClipId>): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
+    const clipId = payload.data;
+    const undoType = unpackUndoType(payload, "toggleClipIdInSelection");
     const selectedClipIds = selectSelectedClipIds(project);
     const newIds = selectedClipIds.includes(clipId)
       ? without(selectedClipIds, clipId)
       : union(selectedClipIds, [clipId]);
-    dispatch(updateMediaSelection({ data: { clipIds: newIds } }));
+    dispatch(updateMediaSelection({ data: { clipIds: newIds }, undoType }));
   };
 
 /** Export all selected clips to a MIDI file. */
@@ -105,5 +104,40 @@ export const exportSelectedClipsToMIDI =
     const project = getProject();
     const name = selectProjectName(project);
     const selectedClipIds = selectSelectedClipIds(project);
-    dispatch(exportClipsToMidi(selectedClipIds, { filename: `${name} Clips` }));
+    dispatch(
+      exportClipsToMidi(selectedClipIds, {
+        filename: `${name} Clips`,
+        download: true,
+      })
+    );
   };
+
+/** Export all selected clips to a WAV file. */
+export const exportSelectedClipsToWAV = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const patternClipIds = project.present.patternClips.ids.filter((id) =>
+    selectIsClipSelected(project, id as ClipId)
+  );
+  const patternClipMap = pick(
+    project.present.patternClips.entities,
+    patternClipIds
+  );
+  const poseClipIds = project.present.poseClips.ids.filter((id) =>
+    selectIsClipSelected(project, id as ClipId)
+  );
+  const poseClipMap = pick(project.present.poseClips.entities, poseClipIds);
+
+  dispatch(
+    exportProjectToWAV(
+      {
+        ...project,
+        present: {
+          ...project.present,
+          patternClips: { ids: patternClipIds, entities: patternClipMap },
+          poseClips: { ids: poseClipIds, entities: poseClipMap },
+        },
+      },
+      true
+    )
+  );
+};

@@ -10,6 +10,16 @@ export const MinorPentatonicScale: ScaleObject = {
   name: "Minor Pentatonic Scale",
   notes: [60, 63, 65, 67, 70],
 };
+export const MixolydianPentatonicScale: ScaleObject = {
+  id: "scale_preset_mixolydian_pentatonic",
+  name: "Mixolydian Pentatonic Scale",
+  notes: [60, 64, 65, 67, 70],
+};
+export const RyukyuScale: ScaleObject = {
+  id: "scale_preset_ryukyu",
+  name: "Ryukyu Scale",
+  notes: [60, 64, 65, 67, 71],
+};
 export const InScale: ScaleObject = {
   id: "scale_preset_in",
   name: "In Scale",
@@ -39,6 +49,8 @@ export const IwatoScale: ScaleObject = {
 export default {
   MajorPentatonicScale,
   MinorPentatonicScale,
+  MixolydianPentatonicScale,
+  RyukyuScale,
   InScale,
   YoScale,
   InsenScale,

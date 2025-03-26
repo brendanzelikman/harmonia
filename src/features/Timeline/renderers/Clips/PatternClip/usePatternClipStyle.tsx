@@ -1,136 +1,35 @@
-import { clamp } from "lodash";
 import { getPatternClipTheme } from "types/Clip/PatternClip/PatternClipFunctions";
-import { POSE_HEIGHT, TRACK_WIDTH } from "utils/constants";
-import { getTickColumns, Subdivision } from "utils/durations";
+import { POSE_HEIGHT } from "utils/constants";
+import { CLIP_NAME_HEIGHT, CLIP_STREAM_MARGIN } from "./usePatternClipRenderer";
+import { useDeep } from "types/hooks";
 import {
-  CLIP_NAME_HEIGHT,
-  CLIP_STREAM_MARGIN,
-  PatternClipRendererProps,
-} from "./usePatternClipRenderer";
-import classNames from "classnames";
-import { use } from "types/hooks";
-import {
-  selectIsClipSelected,
+  selectCellsPerTick,
   selectTrackHeight,
 } from "types/Timeline/TimelineSelectors";
-import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
-import {
-  selectPatternClipMidiStreamMax,
-  selectPatternClipMidiStreamMin,
-  selectPatternClipStreamLength,
-} from "types/Arrangement/ArrangementSelectors";
-import { PatternClip } from "types/Clip/ClipTypes";
-import { Timed } from "types/units";
+import { selectPortaledPatternClipRange } from "types/Arrangement/ArrangementClipSelectors";
+import { PortaledPatternClip } from "types/Clip/ClipTypes";
 
-interface PatternClipStyleProps extends PatternClipRendererProps {
-  clip?: Timed<PatternClip>;
-  isDragging: boolean;
+interface ClipStyleProps {
+  clip: PortaledPatternClip;
 }
 
-export const usePatternClipStyle = (
-  props: PatternClipStyleProps
-): ClipStyle => {
-  const { clip, isPortaling, id, pcId } = props;
-  const { holdingI, isAdding, subdivision, cellWidth } = props;
-  const trackHeight = use((_) => selectTrackHeight(_, clip?.trackId));
-  const trackTop = use((_) => selectTrackTop(_, clip?.trackId));
-  const isSelected = use((_) => selectIsClipSelected(_, id));
-  const duration = clip?.duration ?? 0;
-  const startTick = clip?.tick ?? 0;
-  const endTick = startTick + (duration ?? 0);
+export const usePatternClipStreamStyle = (props: ClipStyleProps) => {
+  const { clip } = props;
+  const { id, trackId, duration, tick } = clip;
+  const { noteColor, bodyColor } = getPatternClipTheme(clip);
 
-  const theme = getPatternClipTheme(clip);
-  const { noteColor, bodyColor, headerColor } = theme;
+  const streamClass = `group size-full relative flex overflow-hidden ${bodyColor}`;
+  const noteClass = `absolute border border-slate-950/80 opacity-80 rounded ${noteColor}`;
 
-  // const isShort = doesOverlap || isAddingAny || props.isDraggingOther;
-  const isShort = true;
+  let { min, max } = useDeep((_) => selectPortaledPatternClipRange(_, id));
+  const streamRange = Math.max(max - min) + 1;
+  const isNote = max === min;
 
-  const height = isShort ? trackHeight - POSE_HEIGHT : trackHeight;
-  const top = trackTop + (isShort ? POSE_HEIGHT : 0);
-  const width = (getTickColumns(duration, subdivision) || 1) * cellWidth;
+  const height = useDeep((_) => selectTrackHeight(_, trackId)) - POSE_HEIGHT;
   const streamHeight = height - CLIP_NAME_HEIGHT - CLIP_STREAM_MARGIN;
+  const noteWidth = useDeep(selectCellsPerTick);
+  const noteHeight = ((isNote ? 0.4 : 1) * streamHeight) / streamRange;
+  if (isNote) min = min - 0.75;
 
-  const streamMin = use((_) => selectPatternClipMidiStreamMin(_, pcId));
-  const streamMax = use((_) => selectPatternClipMidiStreamMax(_, pcId));
-  const streamRange = Math.max(streamMax - streamMin, 1);
-  const streamLength = use((_) => selectPatternClipStreamLength(_, pcId));
-
-  const noteHeight = clamp(streamHeight / streamRange, 4, 20);
-  const fontSize = Math.min(12, noteHeight) - 4;
-
-  const columns = getTickColumns(clip?.tick, subdivision);
-  const left = TRACK_WIDTH + Math.round(columns * cellWidth);
-
-  const fullDim = isPortaling;
-  const isDraggingOtherMedia = false;
-  const lightDim = isDraggingOtherMedia && isSelected;
-  const isOpen = !!clip?.isOpen;
-  const className = classNames(
-    props.className,
-    "flex flex-col rounded-lg rounded-b-none animate-in fade-in",
-    isOpen ? "min-w-min max-w-lg z-[25]" : "border-2",
-    { "backdrop-blur border-white/0": isOpen },
-    { "border-slate-100": isSelected && !isOpen },
-    { "border-teal-500/50": !isSelected && !isOpen },
-    { "pointer-events-none": props.isDraggingAny },
-    { "opacity-50 pointer-events-none": fullDim },
-    { "opacity-80 pointer-events-none": lightDim && !fullDim },
-    { "opacity-100 pointer-events-all": !fullDim && !lightDim },
-    { "cursor-paintbrush hover:ring hover:ring-teal-500": isAdding },
-    { "cursor-eyedropper hover:ring hover:ring-slate-300": holdingI },
-    { "cursor-pointer": !isAdding && !holdingI }
-  );
-
-  return {
-    duration,
-    startTick,
-    endTick,
-    top,
-    left,
-    width,
-    height,
-    noteHeight,
-    fontSize,
-    streamHeight,
-    streamMin,
-    streamMax,
-    streamRange,
-    streamLength,
-    cellWidth,
-    subdivision,
-    noteColor,
-    bodyColor,
-    headerColor,
-    className,
-    [Symbol.iterator]: function* () {
-      let properties = Object.keys(this) as (keyof ClipStyle)[];
-      for (let i of properties) {
-        yield this[i];
-      }
-    },
-  };
+  return { streamClass, noteClass, duration, tick, min, noteWidth, noteHeight };
 };
-
-export interface ClipStyle {
-  duration: number;
-  startTick: number;
-  endTick: number;
-  top: number;
-  left: number;
-  width: number;
-  height: number;
-  noteHeight: number;
-  fontSize: number;
-  streamHeight: number;
-  streamMin: number;
-  streamMax: number;
-  streamRange: number;
-  streamLength: number;
-  cellWidth: number;
-  subdivision: Subdivision;
-  noteColor: string;
-  bodyColor: string;
-  headerColor: string;
-  className: string;
-  [Symbol.iterator]: () => Generator<any>;
-}

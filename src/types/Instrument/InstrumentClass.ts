@@ -82,6 +82,16 @@ export type LiveInstrumentMap = Record<InstrumentId, LiveAudioInstance>;
 export const LIVE_AUDIO_INSTANCES: LiveInstrumentMap = {};
 export const LIVE_RECORDER_INSTANCE = new Recorder();
 
+export const initializeSampler = (obj: LiveAudioInstance) => {
+  return obj.sampler.chain(
+    obj.channel,
+    ...LiveAudioInstance.createToneEffects(obj.effects).map((e) => e.node),
+    obj.fft,
+    obj.waveform,
+    getDestination()
+  );
+};
+
 /** The live audio instance class stores Tone.js objects and effects. */
 export class LiveAudioInstance {
   id: InstrumentId;

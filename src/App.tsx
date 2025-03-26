@@ -6,20 +6,17 @@ import { RouterProvider } from "react-router-dom";
 import { store } from "providers/store";
 import { AppRouter } from "router";
 import { LazyMotion, domAnimation } from "framer-motion";
-import { AuthProvider } from "providers/auth";
 
 export function App() {
   return (
     <StrictMode>
-      <AuthProvider>
-        <DndProvider backend={HTML5Backend} key={1}>
-          <ReduxProvider store={store}>
-            <LazyMotion features={domAnimation}>
-              <RouterProvider router={AppRouter} />
-            </LazyMotion>
-          </ReduxProvider>
-        </DndProvider>
-      </AuthProvider>
+      <DndProvider backend={HTML5Backend} key={1}>
+        <ReduxProvider store={store}>
+          <LazyMotion features={domAnimation}>
+            <RouterProvider router={AppRouter} />
+          </LazyMotion>
+        </ReduxProvider>
+      </DndProvider>
     </StrictMode>
   );
 }

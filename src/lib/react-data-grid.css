@@ -5,7 +5,7 @@
   overflow: visible;
 }
 .rdg-cell:has(.rdg-header) {
-  z-index: 30 !important;
+  z-index: 40 !important;
 }
 .rdg-cell:has(.rdg-track) {
   z-index: 90 !important;

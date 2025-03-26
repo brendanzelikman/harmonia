@@ -11,6 +11,7 @@ import {
   TRANSFORMATIONS,
   Transformation,
 } from "types/Pattern/PatternTransformers";
+import { ScaleNote } from "types/Scale/ScaleTypes";
 
 // ------------------------------------------------------------
 // Pose Generics
@@ -43,6 +44,7 @@ export type VoiceLeading = NonEmpty<PoseVector, ChromaticPitchClass>;
 /** A `PoseModule` can be infinite or have a finite, repeatable duration */
 export interface PoseModule {
   vector?: PoseVector;
+  scale?: ScaleNote[];
   duration?: number;
   customDuration?: string;
   repeat?: number;
@@ -78,6 +80,7 @@ export type PoseStream = Array<PoseBlock>;
 export type Pose = {
   id: PoseId;
   vector?: PoseVector;
+  scale?: ScaleNote[];
   operations?: Array<PoseTransformation>;
   stream?: PoseStream;
   name?: string;

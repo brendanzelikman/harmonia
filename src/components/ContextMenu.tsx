@@ -1,5 +1,6 @@
 import { useHotkeys } from "react-hotkeys-hook";
 import {
+  ReactNode,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -8,16 +9,16 @@ import {
 } from "react";
 
 export interface ContextMenuOption {
-  label: JSX.Element | string;
+  label: ReactNode;
   onClick: (e: any) => void;
   disabled?: boolean;
   divideEnd?: boolean;
 }
 
 export function ContextMenu(props: {
+  options: ContextMenuOption[];
   targetId: string;
   className?: string;
-  options: ContextMenuOption[];
 }) {
   const { targetId } = props;
   const [visible, setVisible] = useState(false);
@@ -52,7 +53,7 @@ export function ContextMenu(props: {
     };
   }, [targetId]);
 
-  useHotkeys("escape", () => setVisible(false));
+  useHotkeys("esc", () => setVisible(false), { enableOnFormTags: true });
 
   useLayoutEffect(() => {
     const node = contextRef.current;

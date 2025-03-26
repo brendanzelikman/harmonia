@@ -1,16 +1,16 @@
 import { DemoXML } from "assets/demoXML";
-import { MusicXML } from "lib/musicxml";
+import { MusicXML, STAFF_PIVOT } from "lib/musicxml";
 import { Thunk } from "types/Project/ProjectTypes";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import { selectTrackScaleChain } from "types/Track/TrackSelectors";
-import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
-import { selectTransport } from "types/Transport/TransportSelectors";
+import { selectTransportBPM } from "types/Transport/TransportSelectors";
 import { XML } from "types/units";
 import {
   WholeNoteTicks,
   getStraightDuration,
   getTickDuration,
   isTripletNote,
+  ticksToSeconds,
 } from "utils/durations";
 import { downloadBlob } from "utils/html";
 import { getScaleKey } from "utils/scale";
@@ -28,7 +28,11 @@ import {
   Pattern,
   PatternMidiStream,
 } from "./PatternTypes";
-import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
+import {
+  flattenMidiStreamValues,
+  getPatternChordNotes,
+  getPatternMidiChordNotes,
+} from "./PatternUtils";
 import { Midi } from "@tonejs/midi";
 import {
   chromaticNotes,
@@ -42,6 +46,10 @@ export const exportPatternStreamToXML = (
   download = false
 ) => {
   const key = getScaleKey(scale);
+  const streamValues = flattenMidiStreamValues(stream);
+  const hasBass = streamValues.some((n) => n < STAFF_PIVOT);
+  const hasTreble = streamValues.some((n) => n >= STAFF_PIVOT);
+  const staves = hasBass && hasTreble ? "grand" : hasBass ? "bass" : "treble";
 
   // Initialize loop variables
   const measures: string[] = [];
@@ -54,7 +62,7 @@ export const exportPatternStreamToXML = (
     // If the duration is greater than a whole note, create a new measure.
     if (duration >= WholeNoteTicks) {
       const number = measures.length + 1;
-      const measure = MusicXML.createMeasure(measureNotes, { number });
+      const measure = MusicXML.createMeasure(measureNotes, { number, staves });
       measures.push(measure);
       measureNotes.clear();
       duration = 0;
@@ -75,6 +83,7 @@ export const exportPatternStreamToXML = (
       type: blockType,
       beam: isTriplet ? tripletBeam : undefined,
       key,
+      staves,
     });
 
     // Update the triplet beam
@@ -97,14 +106,14 @@ export const exportPatternStreamToXML = (
   if (measureNotes.length) {
     const measure = MusicXML.createMeasure(measureNotes, {
       number: measures.length + 1,
+      staves,
     });
     measures.push(measure);
   }
 
-  // If there are no measures, push 3 default
+  // If there are no measures, push default
   else if (!measures.length) {
-    measures.push(MusicXML.createMeasure([], { number: 1 }));
-    measures.push(MusicXML.createMeasure([], { number: 2 }));
+    measures.push(MusicXML.createMeasure([], { number: 1, staves: "treble" }));
   }
 
   // Create the score part
@@ -147,7 +156,7 @@ export const exportPatternToMIDI =
 
     // Get the pattern
     const project = getProject();
-    const transport = selectTransport(project);
+    const bpm = selectTransportBPM(project);
     const pattern = selectPatternById(project, id);
     if (!pattern) return;
 
@@ -171,11 +180,11 @@ export const exportPatternToMIDI =
 
       // Get the duration of the chord and update time
       const blockDuration = getPatternBlockDuration(block);
-      const duration = convertTicksToSeconds(transport, blockDuration);
+      const duration = ticksToSeconds(blockDuration, bpm);
       time += duration;
 
       // Add the notes to the track
-      const noteTime = convertTicksToSeconds(transport, time);
+      const noteTime = ticksToSeconds(time, bpm);
       const notes = getPatternChordNotes(block);
       for (const note of notes) {
         if (isPatternMidiNote(note)) {

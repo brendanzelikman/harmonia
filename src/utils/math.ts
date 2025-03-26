@@ -16,10 +16,10 @@ export const format = (x: number, d = 2) => parseFloat(x.toFixed(d));
 export const percent = (x = 0, m = 0, n = 0) =>
   clamp(Math.round(100 * normalize(x, m, n)), 0, 100);
 
-/** Convert a number into a lowercase letter (e.g. 1 = a, 2 = b). */
+/** Convert a number into a lowercase letter (e.g. 0 = a, 1 = b). */
 export const numberToLower = (number: number) =>
-  String.fromCharCode(number.toString().charCodeAt(0) + 49);
+  String.fromCharCode(97 + number);
 
-/** Convert a number into an uppercase letter (e.g. 1 = A, 2 = B). */
+/** Convert a number into an uppercase letter (e.g. 0 = A, 1 = B). */
 export const numberToUpper = (number: number) =>
-  String.fromCharCode(number.toString().charCodeAt(0) + 17);
+  String.fromCharCode(65 + number);

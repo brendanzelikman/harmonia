@@ -82,7 +82,7 @@ export const shuffleStream: Transformer<boolean> = (stream, value) => {
 export const transposeStream: Transformer<number> = (stream, offset) => {
   if (!offset) return stream;
   return getPatternMidiStreamWithNewNotes(stream, (notes) =>
-    notes.map((note) => ({ ...note, MIDI: clamp(note.MIDI + offset, 0, 127) }))
+    notes.map((note) => ({ ...note, MIDI: note.MIDI + offset }))
   );
 };
 

@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
@@ -9,9 +10,10 @@ export const NavbarFormGroup = (
   props: PropsWithChildren<React.HTMLProps<HTMLDivElement>>
 ) => (
   <div
-    className={`w-full flex justify-between items-center group px-2 relative rounded ${
-      props.className ?? ""
-    }`}
+    className={classNames(
+      `w-full flex justify-between items-center group px-2 relative rounded`,
+      props.className
+    )}
     onClick={props.onClick}
   >
     {props.children}

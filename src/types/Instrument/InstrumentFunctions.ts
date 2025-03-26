@@ -56,7 +56,6 @@ export const getInstrumentCategory = (
   const category = INSTRUMENT_CATEGORIES.find((category) =>
     categories[category].some((instrument) => instrument.key === key)
   );
-
   return category ?? "Samples";
 };
 

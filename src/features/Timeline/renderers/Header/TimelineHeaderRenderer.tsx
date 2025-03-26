@@ -1,11 +1,11 @@
 import { useLoopDrag, useLoopDrop } from "./useLoopDragAndDrop";
-import { useProjectDispatch, use } from "types/hooks";
+import { useProjectDispatch, useDeep } from "types/hooks";
 import { inRange } from "lodash";
 import { RenderHeaderCellProps } from "react-data-grid";
 import classNames from "classnames";
 import { useCallback, useMemo } from "react";
-import { Row } from "features/Timeline/Timeline";
-import { convertTicksToFormattedTime } from "types/Transport/TransportFunctions";
+import { Row } from "features/Timeline/components/TimelineGrid";
+import { getBarsBeatsSixteenths } from "types/Transport/TransportFunctions";
 import {
   selectColumnTicks,
   selectSubdivisionTicks,
@@ -16,24 +16,19 @@ import {
   setTransportLoopEnd,
   seekTransport,
 } from "types/Transport/TransportThunks";
+import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 
-interface TimelineHeaderRendererProps {
-  columnIndex: number;
-  holdingS: boolean;
-  holdingE: boolean;
-}
-
-export const TimelineHeaderRenderer: React.FC<TimelineHeaderRendererProps> = (
-  props
-) => {
+export const TimelineHeaderRenderer = (props: RenderHeaderCellProps<Row>) => {
   const dispatch = useProjectDispatch();
-
-  const { columnIndex } = props;
-  const tick = use((_) => selectColumnTicks(_, columnIndex - 1));
+  const columnIndex = parseInt(props.column.key);
+  const tick = useDeep((_) => selectColumnTicks(_, columnIndex - 1));
+  const { s, d } = useHeldHotkeys(["s", "d"]);
 
   // Loop properties derived from the transport
-  const tickLength = use(selectSubdivisionTicks);
-  const { bpm, timeSignature, loop, loopStart, loopEnd } = use(selectTransport);
+  const tickLength = useDeep(selectSubdivisionTicks);
+  const { bpm, timeSignature, loop, loopStart, loopEnd } =
+    useDeep(selectTransport);
+
   const inLoopRange = inRange(tick, loopStart, loopEnd);
   const onLoopStart = loopStart === tick;
   const onLoopEnd = loopEnd === tick + (tickLength - 1);
@@ -42,7 +37,7 @@ export const TimelineHeaderRenderer: React.FC<TimelineHeaderRendererProps> = (
   const setLoopStart = useCallback(
     (column: number) => {
       const ticks = tickLength * (column - 1);
-      dispatch(setTransportLoopStart(ticks));
+      dispatch(setTransportLoopStart({ data: ticks }));
     },
     [tickLength]
   );
@@ -51,7 +46,7 @@ export const TimelineHeaderRenderer: React.FC<TimelineHeaderRendererProps> = (
   const setLoopEnd = useCallback(
     (column: number) => {
       const ticks = tickLength * column;
-      dispatch(setTransportLoopEnd(ticks - 1));
+      dispatch(setTransportLoopEnd({ data: ticks - 1 }));
     },
     [tickLength]
   );
@@ -105,7 +100,7 @@ export const TimelineHeaderRenderer: React.FC<TimelineHeaderRendererProps> = (
   }, [loop, loopStart, loopEnd, onLoopStart, onLoopEnd]);
 
   const formattedTime = useMemo(
-    () => convertTicksToFormattedTime(tick, { bpm, timeSignature }),
+    () => getBarsBeatsSixteenths(tick, { bpm, timeSignature }),
     [tick, bpm, timeSignature]
   );
 
@@ -135,17 +130,17 @@ export const TimelineHeaderRenderer: React.FC<TimelineHeaderRendererProps> = (
   }, [formattedTime, loop, onLoopStart, onLoopEnd]);
 
   /** Seek the transport or update the loop points if holding S/E. */
-  const onClick = () => {
+  const onClick = useCallback(() => {
     if (!loop) {
       dispatch(seekTransport({ data: tick }));
       return;
     }
-    if (props.holdingS) {
+    if (s) {
       setLoopStart(columnIndex);
-    } else if (props.holdingE) {
+    } else if (d) {
       setLoopEnd(columnIndex);
     }
-  };
+  }, [loop, tick, columnIndex, s, d]);
 
   // Render the time cell
   return (
@@ -153,7 +148,7 @@ export const TimelineHeaderRenderer: React.FC<TimelineHeaderRendererProps> = (
       data-over={isOver}
       ref={drop}
       className={classNames(
-        "rdg-header bg-black data-[over=true]:bg-indigo-800 relative w-full h-full total-center text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
+        "rdg-header bg-black data-[over=true]:bg-indigo-800 relative size-full total-center text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
         { "border-b-8 border-b-indigo-700": loop && inLoopRange },
         { "border-slate-50/20": !loop || !inLoopRange }
       )}

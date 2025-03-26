@@ -10,15 +10,19 @@ import { addPoseBlockTransformation, updatePose } from "types/Pose/PoseSlice";
 import { Thunk } from "types/Project/ProjectTypes";
 
 export const PoseClipBaseEffect = (
-  props: React.HTMLAttributes<HTMLDivElement> & { border?: string }
+  props: React.HTMLAttributes<HTMLDivElement> & {
+    border?: string;
+    minWidth?: string;
+  }
 ) => {
-  const { border, ...rest } = props;
+  const { border, minWidth, ...rest } = props;
   return (
     <div
       {...rest}
       className={classNames(
-        border ? border : "border-slate-500",
-        "flex flex-col shrink-0 items-center p-1 min-w-28 max-h-20 overflow-scroll whitespace-nowrap border text-slate-200 text-center text-xs rounded",
+        border ? border : "border border-slate-500",
+        minWidth ?? "min-w-28",
+        "flex items-center p-1 max-h-20 whitespace-nowrap text-slate-200 text-center text-xs rounded",
         rest.className
       )}
     />

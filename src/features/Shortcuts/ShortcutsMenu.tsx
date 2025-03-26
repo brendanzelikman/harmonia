@@ -1,16 +1,12 @@
 import { Dialog } from "@headlessui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { GlobalShortcuts } from "./content/GlobalShortcuts";
 import classNames from "classnames";
 import { TransportShortcuts } from "./content/TransportShortcuts";
 import { MediaShortcuts } from "./content/MediaShortcuts";
 import { TrackShortcuts } from "./content/TrackShortcuts";
-import { InstrumentEditorShortcuts } from "./content/InstrumentEditorShortcuts";
-import { ScaleEditorShortcuts } from "./content/ScaleEditorShortcuts";
-import { PatternEditorShortcuts } from "./content/PatternEditorShortcuts";
 import { BsXCircle } from "react-icons/bs";
 import { TickDurations } from "./content/TickDurations";
-import { useDiary } from "types/Diary/DiaryTypes";
 import { useToggledState } from "hooks/useToggledState";
 
 export const SHORTCUT_TYPES = [
@@ -18,15 +14,12 @@ export const SHORTCUT_TYPES = [
   "Transport",
   "Tracks",
   "Media",
-  "Scale Editor",
-  "Pattern Editor",
-  "Instrument Editor",
   "Tick Durations",
 ] as const;
 export type ShortcutType = (typeof SHORTCUT_TYPES)[number];
 
 export function ShortcutsMenu() {
-  const diary = useDiary();
+  const diary = useToggledState("diary");
   const showingDiary = diary.isOpen;
 
   const shortcuts = useToggledState("shortcuts");
@@ -38,7 +31,7 @@ export function ShortcutsMenu() {
   }, [showingDiary]);
 
   // Render a topic header and its entries' links
-  const renderShortcutTypeButton = (shortcutType: ShortcutType) => {
+  const renderShortcutTypeButton = useCallback((shortcutType: ShortcutType) => {
     const isOpen = type === shortcutType;
     return (
       <button
@@ -57,7 +50,7 @@ export function ShortcutsMenu() {
         {shortcutType}
       </button>
     );
-  };
+  }, []);
 
   // Get the corresponding content
   const ShortcutContent = useMemo(() => {
@@ -65,9 +58,6 @@ export function ShortcutsMenu() {
     if (type === "Transport") return <TransportShortcuts />;
     if (type === "Tracks") return <TrackShortcuts />;
     if (type === "Media") return <MediaShortcuts />;
-    if (type === "Instrument Editor") return <InstrumentEditorShortcuts />;
-    if (type === "Scale Editor") return <ScaleEditorShortcuts />;
-    if (type === "Pattern Editor") return <PatternEditorShortcuts />;
     if (type === "Tick Durations") return <TickDurations />;
     return null;
   }, [type]);

@@ -18,43 +18,10 @@ import {
   MediaSelection,
   MediaClipboard,
   MediaDraft,
-  MediaDragState,
   defaultMediaClipboard,
-  defaultMediaDraft,
   defaultMediaSelection,
 } from "types/Media/MediaTypes";
 import { Action, unpackAction } from "lib/redux";
-
-// ------------------------------------------------------------
-// Timeline Payload Types
-// ------------------------------------------------------------
-
-/** The width of a cell can be set. */
-export type SetCellWidthPayload = number;
-
-/** The height of a cell can be set. */
-export type SetCellHeightPayload = number;
-
-/** The subdivision of the timeline can be set. */
-export type SetSubdivisionPayload = Subdivision;
-
-/** The state of the timeline can be set. */
-export type SetTimelineStatePayload = TimelineState;
-
-/** The state of the timeline can be cleared. */
-export type ClearTimelineStatePayload = void;
-
-/** The media selection can be updated with partial values. */
-export type UpdateMediaSelectionPayload = Partial<MediaSelection>;
-
-/** The media clipboard can be updated with partial values. */
-export type UpdateClipboardPayload = Partial<MediaClipboard>;
-
-/** The media draft can be updated with partial values. */
-export type UpdateMediaDraftPayload = Partial<MediaDraft>;
-
-/** The media drag state can be updated with partial values. */
-export type UpdateMediaDragStatePayload = Partial<MediaDragState>;
 
 // ------------------------------------------------------------
 // Timeline Slice Definition
@@ -65,7 +32,7 @@ export const timelineSlice = createSlice({
   initialState: defaultTimeline,
   reducers: {
     /** Set the timeline state. */
-    setTimelineState: (state, action: Action<SetTimelineStatePayload>) => {
+    setTimelineState: (state, action: Action<TimelineState>) => {
       const timelineState = unpackAction(action);
       state.state = timelineState;
     },
@@ -74,15 +41,15 @@ export const timelineSlice = createSlice({
       state.state = "idle";
     },
     /** Set the timeline type. */
-    _setTimelineType: (state, action: Action<ClipType>) => {
+    setTimelineType: (state, action: Action<ClipType>) => {
       state.type = unpackAction(action);
     },
     /** Set the width of a timeline cell. */
-    setCellWidth(state, action: PayloadAction<SetCellWidthPayload>) {
+    setCellWidth(state, action: PayloadAction<number>) {
       state.cellWidth = clamp(action.payload, MIN_CELL_WIDTH, MAX_CELL_WIDTH);
     },
     /** Set the height of a timeline cell. */
-    setCellHeight(state, action: PayloadAction<SetCellHeightPayload>) {
+    setCellHeight(state, action: PayloadAction<number>) {
       state.cellHeight = clamp(
         action.payload,
         MIN_CELL_HEIGHT,
@@ -90,7 +57,7 @@ export const timelineSlice = createSlice({
       );
     },
     /** Set the subdivision of the timeline. */
-    setSubdivision(state, action: PayloadAction<SetSubdivisionPayload>) {
+    setSubdivision(state, action: PayloadAction<Subdivision>) {
       state.subdivision = action.payload;
     },
     /** Increase the subdivision of the timeline. */
@@ -130,7 +97,10 @@ export const timelineSlice = createSlice({
       else if (!data) state.selection.trackId = undefined;
     },
     /** Update the media clipboard. */
-    updateClipboard: (state, action: PayloadAction<UpdateClipboardPayload>) => {
+    updateClipboard: (
+      state,
+      action: PayloadAction<Partial<MediaClipboard>>
+    ) => {
       if (!state.clipboard) state.clipboard = defaultMediaClipboard;
       const { clips, portals } = action.payload;
       if (clips) {
@@ -141,37 +111,18 @@ export const timelineSlice = createSlice({
       }
     },
     /** Update the media draft. */
-    updateMediaDraft: (state, action: Action<UpdateMediaDraftPayload>) => {
-      if (state.draft === undefined) state.draft = defaultMediaDraft;
-      const { patternClip, poseClip, scaleClip, portal } = unpackAction(action);
-      if (patternClip) {
-        const existingClip = state.draft.patternClip;
-        state.draft.patternClip = { ...existingClip, ...patternClip };
-      }
-      if (poseClip) {
-        const existingClip = state.draft.poseClip;
-        state.draft.poseClip = { ...existingClip, ...poseClip };
-      }
-      if (scaleClip) {
-        const existingClip = state.draft.scaleClip;
-        state.draft.scaleClip = { ...existingClip, ...scaleClip };
-      }
-      if (portal) {
-        state.draft.portal = portal;
+    updateFragment: (state, action: Action<Partial<MediaDraft>>) => {
+      const { portal } = unpackAction(action);
+      if (portal !== undefined) {
+        state.fragment = portal;
       }
     },
     /** Update the media selection. */
-    updateMediaSelection: (
-      state,
-      action: Action<UpdateMediaSelectionPayload>
-    ) => {
+    updateMediaSelection: (state, action: Action<Partial<MediaSelection>>) => {
       if (!state.selection) state.selection = defaultMediaSelection;
       const { clipIds, portalIds } = unpackAction(action);
       if (clipIds) {
         state.selection.clipIds = clipIds;
-        if (!state.selection.clipIds.length) {
-          state.draft[`${state.type}Clip`] = undefined;
-        }
       }
       if (portalIds) {
         state.selection.portalIds = portalIds;
@@ -180,10 +131,24 @@ export const timelineSlice = createSlice({
   },
 });
 
+export const privateTimelineActions = [
+  "timeline/clearTimelineState",
+  "timeline/setTimelineType",
+  "timeline/setCellWidth",
+  "timeline/setCellHeight",
+  "timeline/setSubdivision",
+  "timeline/increaseSubdivision",
+  "timeline/decreaseSubdivision",
+  "timeline/setSelectedTrackId",
+  "timeline/updateMediaSelection",
+  "timeline/updateClipboard",
+  "timeline/updateFragment",
+];
+
 export const {
   setTimelineState,
   clearTimelineState,
-  _setTimelineType,
+  setTimelineType,
   setCellWidth,
   setCellHeight,
   setSubdivision,
@@ -192,7 +157,7 @@ export const {
   setSelectedTrackId,
   updateMediaSelection,
   updateClipboard,
-  updateMediaDraft,
+  updateFragment,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

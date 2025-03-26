@@ -6,7 +6,7 @@ import { defaultPoseState, poseAdapter } from "./PoseSlice";
 
 // Create a safe selector for the pose state.
 export const selectPoseState = (project: SafeProject) =>
-  (project?.present?.motifs?.pose ?? defaultPoseState) as PoseState;
+  (project?.present?.poses ?? defaultPoseState) as PoseState;
 
 // Use the memoized selectors from the entity adapter.
 const poseSelectors = poseAdapter.getSelectors<Project>(selectPoseState);

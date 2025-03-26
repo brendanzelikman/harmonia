@@ -1,37 +1,48 @@
-import { InstrumentEditorProps } from "../InstrumentEditor";
+import { useCallback } from "react";
 import { BsPlusCircle } from "react-icons/bs";
-import { useProjectDispatch } from "types/hooks";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import {
   EffectKey,
   EFFECT_NAMES_BY_KEY,
   EFFECT_KEYS,
 } from "types/Instrument/InstrumentEffectTypes";
+import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import {
   addInstrumentEffect,
   removeAllInstrumentEffects,
 } from "types/Instrument/InstrumentSlice";
+import { InstrumentId } from "types/Instrument/InstrumentTypes";
 
-export function InstrumentEditorEffectBar(props: InstrumentEditorProps) {
+interface InstrumentEditorEffectBarProps {
+  id: InstrumentId;
+}
+
+export function InstrumentEditorEffectBar(
+  props: InstrumentEditorEffectBarProps
+) {
   const dispatch = useProjectDispatch();
-  const { instrument } = props;
-  const id = instrument?.id;
+  const id = props.id;
+  const instrument = useDeep((_) => selectInstrumentById(_, props.id));
   const effects = instrument?.effects ?? [];
 
   /** The user can add an effect by key. */
-  const AddEffectButton = (key: EffectKey) => {
-    const name = EFFECT_NAMES_BY_KEY[key];
-    return (
-      <div
-        key={key}
-        className="capitalize border border-slate-500 hover:bg-slate-500/20 active:bg-slate-800/50 flex items-center h-8 px-2 mb-2 ml-1 mr-2 rounded text-xs whitespace-nowrap cursor-pointer"
-        onClick={() =>
-          id && dispatch(addInstrumentEffect({ data: { id, key } }))
-        }
-      >
-        {name} <BsPlusCircle className="ml-2" />
-      </div>
-    );
-  };
+  const AddEffectButton = useCallback(
+    (key: EffectKey) => {
+      const name = EFFECT_NAMES_BY_KEY[key];
+      return (
+        <div
+          key={key}
+          className="capitalize border border-slate-500 hover:bg-slate-500/20 active:bg-slate-800/50 flex items-center h-8 px-2 mb-2 ml-1 mr-2 rounded text-xs whitespace-nowrap cursor-pointer"
+          onClick={() =>
+            id && dispatch(addInstrumentEffect({ data: { id, key } }))
+          }
+        >
+          {name} <BsPlusCircle className="ml-2" />
+        </div>
+      );
+    },
+    [id]
+  );
 
   /** The user can clear all effects. */
   const ClearEffectsButton = () => (

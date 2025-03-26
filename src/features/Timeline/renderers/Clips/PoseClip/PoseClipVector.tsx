@@ -1,20 +1,19 @@
 import classNames from "classnames";
-import { Slider } from "components/Slider";
 import { clamp, omit } from "lodash";
-import { updatePose, updatePoseBlock } from "types/Pose/PoseSlice";
-import { PoseVectorId, PoseBlock } from "types/Pose/PoseTypes";
-import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { updatePose } from "types/Pose/PoseSlice";
+import { PoseVectorId, PoseBlock, isVoiceLeading } from "types/Pose/PoseTypes";
 import { useEffect, useMemo, useState } from "react";
-import { use, useDeep, useProjectDispatch } from "types/hooks";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import { ChromaticKey } from "assets/keys";
 import { getTrackLabel, getTrackDepth } from "types/Track/TrackFunctions";
 import {
   selectTrackMap,
   selectTrackMidiScaleMap,
-  selectTrackChain,
+  selectScaleTrackChain,
   selectTrackDepthById,
   selectTrackLabelById,
+  selectTrackMidiScale,
+  selectTrackById,
 } from "types/Track/TrackSelectors";
 import { getScaleName } from "utils/scale";
 import { PoseClip } from "types/Clip/ClipTypes";
@@ -24,34 +23,36 @@ import {
   PoseClipDropdownItem,
 } from "./PoseClipDropdown";
 import { sanitize } from "utils/math";
-import { CiUndo } from "react-icons/ci";
 import { BsTrash } from "react-icons/bs";
-import { blurOnEnter } from "utils/html";
+import { blurEvent, blurOnEnter, promptUserForString } from "utils/html";
 import { PoseClipEffects } from "./PoseClipEffects";
 import { PoseClipComponentProps } from "./usePoseClipRenderer";
+import { BiDownArrow, BiUpArrow } from "react-icons/bi";
+import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
+import { readMidiScaleFromString } from "types/Track/ScaleTrack/ScaleTrackThunks";
+import { promptLineBreak } from "components/PromptModal";
+import { CHORDAL_KEY, CHROMATIC_KEY, OCTAVE_KEY } from "utils/vector";
 
-export type PoseClipVectorView = "scales" | "notes" | "effects";
+export type PoseClipVectorView = "scales" | "notes" | "effects" | "scale";
 
 interface PoseClipVectorProps extends PoseClipComponentProps {
   block: PoseBlock | undefined;
-  index: number;
   clip: PoseClip;
-  isActive: boolean;
-  depths: number[];
 }
 
 export const PoseClipVector = (props: PoseClipVectorProps) => {
-  const dispatch = useProjectDispatch();
-
   const trackId = props.clip.trackId;
+  const isPT = isPatternTrackId(trackId);
   const trackMap = useDeep(selectTrackMap);
   const trackScaleMap = useDeep(selectTrackMidiScaleMap);
 
-  const clipLabel = use((_) => selectTrackLabelById(_, trackId));
-  const clipDepth = use((_) => selectTrackDepthById(_, trackId));
-  const clipTracks = useDeep((_) => selectTrackChain(_, trackId));
+  const clipLabel = useDeep((_) => selectTrackLabelById(_, trackId));
+  const clipDepth = useDeep((_) => selectTrackDepthById(_, trackId));
+  const clipTracks = useDeep((_) => selectScaleTrackChain(_, trackId));
 
-  const [view, setView] = useState<PoseClipVectorView>("scales");
+  const [view, setView] = useState<PoseClipVectorView>(
+    isVoiceLeading(props.vector) ? "notes" : "scales"
+  );
 
   // Create editable fields for each vector component
   const fields = useMemo(() => {
@@ -65,69 +66,79 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
     }
 
     // Otherwise, return the default fields for transposition
-    const defaultName = `Track ${clipLabel}`;
+    const defaultName = `${isPT ? "Sampler" : "Scale"} ${clipLabel}`;
     return [
       ...clipTracks.map((track) => ({
         fieldId: track.id,
-        name: `Track ${getTrackLabel(track.id, trackMap)}`,
-        scaleName: getScaleName(trackScaleMap[track.id]),
+        scaleName: `${getScaleName(trackScaleMap[track.id])} (${getTrackLabel(
+          track.id,
+          trackMap
+        )})`,
         depth: getTrackDepth(track.id, trackMap),
       })),
-      { fieldId: "chordal", scaleName: "Intrinsic Scale", name: defaultName },
-      { fieldId: "chromatic", scaleName: "Chromatic Scale", name: defaultName },
-      { fieldId: "octave", scaleName: "Adjust Octave", name: defaultName },
+      {
+        fieldId: "chordal",
+        scaleName: `Intrinsic Scale (${CHORDAL_KEY})`,
+        name: defaultName,
+      },
+      {
+        fieldId: "chromatic",
+        scaleName: `Chromatic Scale (${CHROMATIC_KEY})`,
+        name: defaultName,
+      },
+      {
+        fieldId: "octave",
+        scaleName: `Octave Scale (${OCTAVE_KEY})`,
+        name: defaultName,
+      },
     ].filter((f) => !(("depth" in f ? f.depth || 0 : 0) >= clipDepth));
   }, [view, clipTracks, trackMap, trackScaleMap, clipLabel]);
 
   return (
     <div className="flex gap-2">
-      <PoseClipBaseEffect border="border-fuchsia-400">
+      <PoseClipBaseEffect
+        className="flex-col"
+        border="border border-fuchsia-400"
+      >
         <PoseClipDropdownContainer>
+          <PoseClipDropdownItem
+            active={view === "scale"}
+            onClick={() => setView("scale")}
+          >
+            Modulations
+          </PoseClipDropdownItem>
           <PoseClipDropdownItem
             active={view === "scales"}
             onClick={() => setView("scales")}
           >
             Transpositions
           </PoseClipDropdownItem>
+
           <PoseClipDropdownItem
             active={view === "notes"}
             onClick={() => setView("notes")}
           >
             Voice Leadings
           </PoseClipDropdownItem>
+
           <PoseClipDropdownItem
             active={view === "effects"}
             onClick={() => setView("effects")}
           >
-            MIDI Effects
-          </PoseClipDropdownItem>
-          <PoseClipDropdownItem
-            className="active:opacity-75"
-            onClick={() =>
-              props.block
-                ? dispatch(
-                    updatePoseBlock({
-                      id: props.clip.poseId,
-                      index: props.index,
-                      depths: props.depths,
-                      block: omit(props.block, "vector", "operations"),
-                    })
-                  )
-                : dispatch(updatePose({ id: props.clip.poseId, vector: {} }))
-            }
-          >
-            Clear Vector
+            Pattern Effects
           </PoseClipDropdownItem>
         </PoseClipDropdownContainer>
       </PoseClipBaseEffect>
       <div
         className={classNames(
-          view === "notes" ? "h-full min-w-[896px] flex-col flex-wrap" : "",
-          "max-w-4xl w-full overflow-scroll flex pr-2 gap-1"
+          view === "notes" ? "h-min gap-0" : "gap-2",
+          "max-w-4xl w-full overflow-scroll flex pr-2"
         )}
       >
         {view === "effects" ? (
           <PoseClipEffects {...props} />
+        ) : view === "scale" ? (
+          <PoseClipScale {...props} />
         ) : (
           fields.map((field) => (
             <PoseClipVectorField
@@ -142,6 +153,77 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
   );
 };
 
+const PoseClipScale = (props: PoseClipVectorProps) => {
+  const dispatch = useProjectDispatch();
+  const scale = props.scale;
+  const track = useDeep((_) => selectTrackById(_, props.clip.trackId));
+  const trackScale = useDeep((_) => selectTrackMidiScale(_, track?.id));
+  const parentScale = useDeep((_) => selectTrackMidiScale(_, track?.parentId));
+  const hasScale = scale !== undefined;
+  const name = getScaleName(scale ?? trackScale);
+  return (
+    <PoseClipBaseEffect
+      className="flex-col w-auto px-4 pt-1.5 border"
+      border={hasScale ? "border-sky-400" : "border-sky-400/50"}
+    >
+      <div className="flex flex-col">
+        <div>{hasScale ? "Modulating to" : "Currently on"}</div>
+        <div className="text-sky-400">{name}</div>
+      </div>
+      <div className="flex gap-2 mt-auto items-center mb-1">
+        <button
+          onFocus={blurEvent}
+          onClick={promptUserForString({
+            title: "Input Scale",
+            description: [
+              promptLineBreak,
+              <span>
+                Rule #1: <span className="text-sky-400">Scales</span> can be
+                specified by name or symbol
+              </span>,
+              <span>Example: "C" or "Db lydian" or "Fmin7" or "G7#9"</span>,
+              promptLineBreak,
+              <span>
+                Rule #2: <span className="text-sky-400">Scales</span> can be
+                specified by pitch class
+              </span>,
+              <span>Example: "acoustic scale" or "C, D, E, F#, G, A, Bb"</span>,
+              promptLineBreak,
+              <span>
+                Rule #3: <span className="text-sky-400">Scales</span> can be
+                specified by scale degree
+              </span>,
+              <span>Example: "C major" or "0, 2, 4, 5, 7, 9, 11"</span>,
+              promptLineBreak,
+              <span className="underline">Please input your scale:</span>,
+            ],
+            callback: (string) => {
+              const scale = readMidiScaleFromString(string, parentScale);
+              if (scale) {
+                dispatch(updatePose({ id: props.clip.poseId, scale }));
+              }
+            },
+            autoselect: true,
+          })}
+          className="cursor-pointer bg-sky-800 border border-slate-400/50 hover:border-slate-300/50 p-0.5 px-2 rounded text-xs"
+        >
+          Modulate
+        </button>
+        <button
+          disabled={!hasScale}
+          onFocus={blurEvent}
+          className="bg-slate-700 border border-slate-400/50 hover:border-slate-300/50 total-center p-1 rounded disabled:cursor-default"
+          onClick={() =>
+            dispatch(updatePose({ id: props.clip.poseId, scale: undefined }))
+          }
+        >
+          <BsTrash />
+        </button>
+      </div>
+    </PoseClipBaseEffect>
+  );
+};
+
 // The field for each vector component in the dropdown
 interface PoseClipVectorFieldProps extends PoseClipVectorProps {
   fieldId: string;
@@ -151,8 +233,8 @@ interface PoseClipVectorFieldProps extends PoseClipVectorProps {
 }
 
 export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
-  const { vector, block, index, isActive } = props;
-  const { clip, fieldId, name, scaleName, depth, depths } = props;
+  const { vector, block } = props;
+  const { clip, fieldId, name, scaleName } = props;
   const dispatch = useProjectDispatch();
   const offset = useMemo(() => {
     if (block) {
@@ -167,58 +249,17 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
     setDisplayedValue(String(offset));
   }, [offset]);
 
-  // Create a vector for the block if none exists
-  useEffect(() => {
-    if (block && !("vector" in block)) {
-      dispatch(
-        updatePoseBlock({
-          id: clip.poseId,
-          index,
-          block: { ...block, vector: {} },
-          depths,
-        })
-      );
-    }
-  }, [block, index, clip, depths]);
-
-  // Get the specific hotkey for the vector field
-  const key = useMemo(() => {
-    if (depth === 1) return "q";
-    if (depth === 2) return "w";
-    if (depth === 3) return "e";
-    if (fieldId === "chordal") return "r";
-    if (fieldId === "chromatic") return "t";
-    if (fieldId === "octave") return "y";
-    return "";
-  }, [depth, fieldId]);
-
-  const holdingKey = useHeldHotkeys(key)[key];
-
   // Omit the value from the vector on double click
   const onDoubleClick = () => {
     const newVector = omit(block?.vector ?? vector, fieldId);
-    const newBlock = { ...block, vector: newVector };
-    if (block) {
-      dispatch(
-        updatePoseBlock({ id: clip.poseId, index, depths, block: newBlock })
-      );
-    } else {
-      dispatch(updatePose({ id: clip.poseId, vector: newVector }));
-    }
+    dispatch(updatePose({ id: clip.poseId, vector: newVector }));
   };
 
   // Update the value in the vector on value change
   const onValueChange = (_value: number) => {
     const value = sanitize(_value);
     const newVector = { ...(block?.vector ?? vector), [fieldId]: value };
-    if (block) {
-      const newBlock = { ...block, newVector };
-      dispatch(
-        updatePoseBlock({ id: clip.poseId, index, depths, block: newBlock })
-      );
-    } else {
-      dispatch(updatePose({ id: clip.poseId, vector: newVector }));
-    }
+    dispatch(updatePose({ id: clip.poseId, vector: newVector }));
   };
 
   const isPitchClass = name === "Pitch Class";
@@ -226,96 +267,94 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
   // Render the vector field
   return (
     <PoseClipBaseEffect
-      className={`total-center ${isPitchClass ? "py-0" : ""}`}
+      border={
+        isPitchClass
+          ? "border-none"
+          : !!offset
+          ? "border border-sky-400"
+          : "border border-sky-400/50"
+      }
+      minWidth={isPitchClass ? "w-12" : "w-auto px-2"}
+      className={isPitchClass ? "*:border" : "transition-all"}
     >
-      {!isPitchClass && (
-        <div
-          className={classNames(
-            "px-1",
-            isScaleTrackId(fieldId) ? "text-sky-300" : "text-emerald-300"
-          )}
-        >
-          {name}:{" "}
-          <span className="text-slate-300 font-bold whitespace-nowrap">
-            {scaleName}
-          </span>
-        </div>
-      )}
-      {isActive && (
-        <div
-          className={classNames(
-            "text-fuchsia-300 text-[11px]",
-            holdingKey ? "font-bold" : "font-light"
-          )}
-        >
-          {depth === 1
-            ? "Hold Q + Press Number"
-            : depth === 2
-            ? "Hold W + Press Number"
-            : depth === 3
-            ? "Hold E + Press Number"
-            : fieldId === "chordal"
-            ? "Hold R + Press Number"
-            : fieldId === "chromatic"
-            ? "Hold T + Press Number"
-            : fieldId === "octave"
-            ? "Hold Y + Press Number"
-            : ""}
-        </div>
-      )}
-      {!isPitchClass && (
-        <Slider
-          hideValue
-          horizontal
-          className="h-7 pt-2"
-          width={"w-full"}
-          disabled={clip.poseId.startsWith("preset")}
-          value={offset ?? 0}
-          min={-12}
-          max={12}
-          step={1}
-          defaultValue={0}
-          onDoubleClick={onDoubleClick}
-          onValueChange={onValueChange}
-        />
-      )}
       <div
-        className={classNames(
-          isPitchClass
-            ? "py-1 total-center"
-            : "-mt-1.5 mb-1 px-2 items-center flex",
-          "size-full gap-2"
-        )}
+        data-empty={!offset}
+        className="total-center-col transition-all data-[empty=false]:border-fuchsia-400 data-[empty=true]:border-fuchsia-400/50 mx-auto rounded overflow-hidden"
       >
-        {isPitchClass ? `${fieldId} Notes` : "Steps"}:{" "}
-        <div className="flex border border-slate-500 rounded overflow-hidden">
-          <input
-            className="w-12 h-5 p-0 text-center bg-transparent border-0 rounded-l text-slate-200 focus:bg-white/5"
-            type="number"
-            value={displayedValue}
-            min={-24}
-            max={24}
-            onChange={(e) => {
-              setDisplayedValue(e.target.value);
-              if (e.target.value === "") return onValueChange(0);
-              if (isNaN(parseInt(e.target.value))) return;
-              onValueChange(clamp(sanitize(e.target.valueAsNumber), -12, 12));
-            }}
-            placeholder="0"
-            onKeyDown={(e) => {
-              if (e.key === "Backspace" && offset === 0) onDoubleClick();
-              blurOnEnter(e);
-            }}
-          />
-          <button
-            className="p-1 bg-slate-50/10 border-x border-slate-500"
-            onClick={() => onValueChange(0)}
+        {isPitchClass ? (
+          <div className="bg-fuchsia-500/50 rounded-t-sm text-base size-full">
+            {fieldId}
+          </div>
+        ) : (
+          <div className="p-2 pt-0 text-xs total-center-col size-full">
+            <div>Transpose along</div>
+            <div className="text-sky-400 whitespace-nowrap">{scaleName}</div>
+          </div>
+        )}{" "}
+        <div
+          data-pc={isPitchClass}
+          className="data-[pc=false]:flex data-[pc=false]:items-center size-full"
+        >
+          <div
+            data-pc={isPitchClass}
+            className="flex size-full grow shrink-0 data-[pc=false]:w-24 data-[pc=true]:flex-col data-[pc=false]:border data-[pc=false]:border-slate-500 rounded min-h-min"
           >
-            <CiUndo />
+            <input
+              data-empty={offset === undefined}
+              data-pc={isPitchClass}
+              className="h-6 px-0 data-[empty=false]:bg-slate-600/20 text-sm p-data-[pc=true]:h-6 data-[pc=false]:w-full text-center bg-transparent data-[pc=false]:rounded border-0 focus:ring-0 text-slate-200 focus:bg-white/5"
+              type="number"
+              value={displayedValue}
+              min={-100}
+              max={100}
+              onChange={(e) => {
+                setDisplayedValue(e.target.value);
+                if (e.target.value === "") {
+                  setDisplayedValue("");
+                  return onDoubleClick();
+                }
+                if (isNaN(parseInt(e.target.value))) return;
+                const value = clamp(
+                  sanitize(e.target.valueAsNumber),
+                  -100,
+                  100
+                );
+                onValueChange(value);
+              }}
+              placeholder="#"
+              onKeyDown={(e) => {
+                if (e.key === "Backspace" && offset === 0) onDoubleClick();
+                blurOnEnter(e);
+              }}
+            />
+
+            {!isPitchClass && (
+              <>
+                <button
+                  className="p-1 bg-slate-50/10 border-r border-r-slate-500"
+                  onClick={() => onValueChange((offset ?? 0) + 1)}
+                >
+                  <BiUpArrow />
+                </button>
+                <button
+                  className="p-1 bg-slate-50/10"
+                  onClick={() => onValueChange((offset ?? 0) - 1)}
+                >
+                  <BiDownArrow />
+                </button>
+              </>
+            )}
+          </div>
+          <button
+            disabled={offset === undefined}
+            data-pc={isPitchClass}
+            className="disabled:bg-slate-700/50 data-[pc=false]:ml-2 p-1 bg-slate-700 data-[pc=true]:w-full data-[pc=false]:border data-[pc=true]:border-t border-slate-400/50 hover:border-slate-300/50 total-center data-[pc=false]:size-6 data-[pc=false]:rounded disabled:cursor-default enabled:cursor-pointer"
+            onClick={onDoubleClick}
+            onFocus={blurEvent}
+          >
+            <BsTrash className="mx-auto select-none pointer-events-none" />
           </button>
-          <button className="p-1 bg-slate-300/10" onClick={onDoubleClick}>
-            <BsTrash />
-          </button>
+          <div />
         </div>
       </div>
     </PoseClipBaseEffect>

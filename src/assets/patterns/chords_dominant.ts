@@ -3,7 +3,7 @@ import * as _ from "utils/durations";
 
 export const Major7thFlat5Chord: Pattern = {
   id: "pattern_preset_major-7th-b5-chord",
-  name: "Major 7th (b5) Chord",
+  name: "Major 7b5 Chord",
   aliases: [
     "maj7b5",
     "maj7b5 chord",
@@ -64,7 +64,7 @@ export const Dominant7thNo5Chord: Pattern = {
 
 export const Dominant7thFlat5Chord: Pattern = {
   id: "pattern_preset_dominant-7th-b5-chord",
-  name: "Dominant 7th (b5) Chord",
+  name: "Dominant 7b5 Chord",
   aliases: [
     "dom7b5",
     "dom7b5 chord",
@@ -86,7 +86,7 @@ export const Dominant7thFlat5Chord: Pattern = {
 };
 export const Dominant7thSharp5Chord: Pattern = {
   id: "pattern_preset_dominant-7th-#5-chord",
-  name: "Dominant 7th (#5) Chord",
+  name: "Dominant 7#5 Chord",
   aliases: [
     "dom7#5",
     "dom7#5 chord",
@@ -106,9 +106,169 @@ export const Dominant7thSharp5Chord: Pattern = {
     ],
   ],
 };
+export const Dominant9thChord: Pattern = {
+  id: "pattern_preset_dominant-9th-chord",
+  name: "Dominant 9th Chord",
+  aliases: [
+    "dom9",
+    "dom9 chord",
+    "9",
+    "9 chord",
+    "dominant 9th",
+    "dominant 9th chord",
+  ],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
+      _.createQuarterNote(74),
+    ],
+  ],
+};
+export const Dominant11thChord: Pattern = {
+  id: "pattern_preset_dominant-11th-chord",
+  name: "Dominant 11th Chord",
+  aliases: [
+    "dom11",
+    "dom11 chord",
+    "11",
+    "11 chord",
+    "dominant 11th",
+    "dominant 11th chord",
+  ],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
+      _.createQuarterNote(74),
+      _.createQuarterNote(77),
+    ],
+  ],
+};
+export const Dominant7thFlat9Chord: Pattern = {
+  id: "pattern_preset_dominant-7th-b9-chord",
+  name: "Dominant 7b9 Chord",
+  aliases: [
+    "dom7b9",
+    "dom7b9 chord",
+    "7b9",
+    "7b9 chord",
+    "dominant 7th flat 9",
+    "dominant 7th flat 9 chord",
+    "dominant 7th b9",
+    "dominant 7th b9 chord",
+  ],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(63),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
+      _.createQuarterNote(72),
+    ],
+  ],
+};
+export const Dominant7thSharp9Chord: Pattern = {
+  id: "pattern_preset_dominant-7th-#9-chord",
+  name: "Dominant 7#9 Chord",
+  aliases: [
+    "dom7#9",
+    "dom7#9 chord",
+    "7#9",
+    "7#9 chord",
+    "dominant 7th sharp 9",
+    "dominant 7th sharp 9 chord",
+    "dominant 7th #9",
+    "dominant 7th #9 chord",
+  ],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
+      _.createQuarterNote(74),
+    ],
+  ],
+};
+export const Dominant7thFlat13Chord: Pattern = {
+  id: "pattern_preset_dominant-7th-b13-chord",
+  name: "Dominant 7b13 Chord",
+  aliases: [
+    "dom7b13",
+    "dom7b13 chord",
+    "7b13",
+    "7b13 chord",
+    "dominant 7th flat 13",
+    "dominant 7th flat 13 chord",
+    "dominant 7th b13",
+    "dominant 7th b13 chord",
+  ],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
+      _.createQuarterNote(73),
+    ],
+  ],
+};
+export const Dominant7thSharp11Chord: Pattern = {
+  id: "pattern_preset_dominant-7th-sharp11-chord",
+  name: "Dominant 7#11 Chord",
+  aliases: [
+    "dom7#11",
+    "dom7#11 chord",
+    "7#11",
+    "7#11 chord",
+    "dominant 7th sharp 11",
+    "dominant 7th sharp 11 chord",
+    "dominant 7th #11",
+    "dominant 7th #11 chord",
+  ],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
+      _.createQuarterNote(74),
+      _.createQuarterNote(78),
+    ],
+  ],
+};
+export const Dominant13thChord: Pattern = {
+  id: "pattern_preset_dominant-13th-chord",
+  name: "Dominant 13th Chord",
+  aliases: [
+    "dom13",
+    "dom13 chord",
+    "13",
+    "13 chord",
+    "dominant 13th",
+    "dominant 13th chord",
+  ],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(64),
+      _.createQuarterNote(67),
+      _.createQuarterNote(70),
+      _.createQuarterNote(74),
+      _.createQuarterNote(77),
+      _.createQuarterNote(81),
+    ],
+  ],
+};
+
 export const Minor7thFlat5Chord: Pattern = {
   id: "pattern_preset_minor-7th-b5-chord",
-  name: "Minor 7th (b5) Chord",
+  name: "Half Diminished Chord",
   aliases: [
     "min7b5",
     "min7b5 chord",
@@ -145,6 +305,27 @@ export const MinorMajor7thChord: Pattern = {
       _.createQuarterNote(63),
       _.createQuarterNote(67),
       _.createQuarterNote(71),
+    ],
+  ],
+};
+export const MinorMajor9thChord: Pattern = {
+  id: "pattern_preset_minor-major-9th-chord",
+  name: "Minor Major 9th Chord",
+  aliases: [
+    "minmaj9",
+    "minmaj9 chord",
+    "mM9",
+    "mM9 chord",
+    "minor major 9th",
+    "minor major 9th chord",
+  ],
+  stream: [
+    [
+      _.createQuarterNote(60),
+      _.createQuarterNote(63),
+      _.createQuarterNote(67),
+      _.createQuarterNote(71),
+      _.createQuarterNote(74),
     ],
   ],
 };
@@ -230,10 +411,18 @@ export default {
   Major7thFlat5Chord,
   Minor7thFlat5Chord,
   MinorMajor7thChord,
+  MinorMajor9thChord,
   Dominant7thChord,
   Dominant7thNo5Chord,
   Dominant7thFlat5Chord,
   Dominant7thSharp5Chord,
+  Dominant7thFlat9Chord,
+  Dominant7thSharp9Chord,
+  Dominant7thFlat13Chord,
+  Dominant7thSharp11Chord,
+  Dominant9thChord,
+  Dominant11thChord,
+  Dominant13thChord,
   Diminished7thChord,
   Augmented7thChord,
   SevenSixChord,

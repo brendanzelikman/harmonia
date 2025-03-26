@@ -1,13 +1,11 @@
 import { Id, Tick, Update } from "types/units";
 import { PatternClipColor } from "./PatternClip/PatternClipThemes";
-import { isNumber, isPlainObject, isString } from "lodash";
-import { isFiniteNumber, isOptionalType } from "types/util";
+import { isPlainObject, isString } from "lodash";
+import { isFiniteNumber } from "types/util";
 import { PatternClip, PatternClipId } from "./PatternClip/PatternClipTypes";
 import { PoseClip, PoseClipId } from "./PoseClip/PoseClipTypes";
-import { ScaleClip, ScaleClipId } from "./ScaleClip/ScaleClipTypes";
 import { initializePatternClip } from "./PatternClip/PatternClipTypes";
 import { initializePoseClip } from "./PoseClip/PoseClipTypes";
-import { initializeScaleClip } from "./ScaleClip/ScaleClipTypes";
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { PatternId } from "types/Pattern/PatternTypes";
 import { PoseId } from "types/Pose/PoseTypes";
@@ -17,24 +15,22 @@ import { IPortaled, Portaled } from "types/Portal/PortalTypes";
 
 export * from "./PatternClip/PatternClipTypes";
 export * from "./PoseClip/PoseClipTypes";
-export * from "./ScaleClip/ScaleClipTypes";
 
 // ------------------------------------------------------------
 // Motif Definitions
 // ------------------------------------------------------------
 
-export const CLIP_TYPES = ["scale", "pattern", "pose"] as const;
+export const CLIP_TYPES = ["pattern", "pose"] as const;
 export type ClipType = (typeof CLIP_TYPES)[number];
 
-export type Clip = PatternClip | PoseClip | ScaleClip;
-export type ClipId = PatternClipId | PoseClipId | ScaleClipId;
+export type Clip = PatternClip | PoseClip;
+export type ClipId = PatternClipId | PoseClipId;
 
 export type ClipUpdate = Update<Clip>;
 export type ClipMap = Dictionary<Clip>;
 export type ClipState = {
   pattern: EntityState<PatternClip>;
   pose: EntityState<PoseClip>;
-  scale: EntityState<ScaleClip>;
 };
 export type PortaledClip = Portaled<Clip>;
 export type PortaledClipId = PortaledClip["id"];
@@ -83,8 +79,6 @@ export function initializeClip<T extends ClipType>(
     return initializePatternClip(clip as Partial<PatternClip>);
   else if (clip.type === "pose")
     return initializePoseClip(clip as Partial<PoseClip>);
-  else if (clip.type === "scale")
-    return initializeScaleClip(clip as Partial<ScaleClip>);
   else throw new Error(`Invalid clip type: ${clip.type}`);
 }
 
@@ -121,8 +115,6 @@ export const isClipInterface = <T extends ClipType>(
     isString(candidate.id) &&
     isString(candidate.trackId) &&
     isFiniteNumber(candidate.tick) &&
-    isOptionalType(candidate.offset, isFiniteNumber) &&
-    isOptionalType(candidate.duration, isNumber) &&
     isClipId(candidate.id, type) &&
     (type !== undefined
       ? isClipType(candidate.type) && candidate.type === type

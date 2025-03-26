@@ -4,29 +4,21 @@ import { Tick, Update } from "types/units";
 import {
   getPatternName,
   getPatternBlockDuration,
+  getPatternStreamDuration,
 } from "types/Pattern/PatternFunctions";
 import { getPatternChordNotes } from "types/Pattern/PatternUtils";
 import { getPatternChordWithNewNotes } from "types/Pattern/PatternUtils";
 import {
-  PatternId,
   isPatternRest,
   isPatternMidiChord,
   PatternStream,
 } from "types/Pattern/PatternTypes";
 import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
-import {
-  initializePortal,
-  PortalId,
-  Portal,
-  PortaledClipId,
-} from "types/Portal/PortalTypes";
+import { initializePortal, PortalId, Portal } from "types/Portal/PortalTypes";
 import { Thunk } from "types/Project/ProjectTypes";
-import { isScaleId, ScaleId } from "types/Scale/ScaleTypes";
-import { isPatternTrack } from "types/Track/TrackTypes";
 import {
   updateMediaSelection,
   updateClipboard,
-  updateMediaDraft,
 } from "types/Timeline/TimelineSlice";
 import {
   addClips,
@@ -41,25 +33,21 @@ import {
   ClipId,
   isPatternClip,
   isPoseClip,
-  isScaleClip,
+  ClipType,
+  isClipId,
 } from "types/Clip/ClipTypes";
 import { getTransport } from "tone";
 import {
   selectClipDuration,
-  selectClipById,
   selectClipIds,
   selectClipMap,
   selectMotifClipMap,
-  selectPatternClipsByPatternId,
-  selectScaleClipsByScaleId,
-  selectPoseClipsByPoseId,
 } from "types/Clip/ClipSelectors";
 import {
   selectPatternById,
   selectPatternMap,
 } from "types/Pattern/PatternSelectors";
 import { selectPortalIds, selectPortals } from "types/Portal/PortalSelectors";
-import { selectScaleById, selectScaleMap } from "types/Scale/ScaleSelectors";
 import {
   selectMediaSelection,
   selectSelectedClips,
@@ -71,17 +59,8 @@ import {
   selectSelectedClipIds,
   selectSelectedPatternClips,
   selectTimeline,
-  selectDraft,
-  selectDraftedPatternClip,
-  selectDraftedScaleClip,
-  selectDraftedPoseClip,
 } from "types/Timeline/TimelineSelectors";
-import {
-  selectTrackMap,
-  selectTrackById,
-  selectOrderedTrackIds,
-  selectScaleTrackByScaleId,
-} from "types/Track/TrackSelectors";
+import { selectTrackMap, selectTrackIds } from "types/Track/TrackSelectors";
 import {
   getOffsettedMedia,
   getValidMedia,
@@ -96,30 +75,20 @@ import {
   MediaElement,
   CreateMediaPayload,
 } from "./MediaTypes";
-import { createUndoType, Payload, unpackUndoType } from "lib/redux";
+import { createUndoType, unpackUndoType } from "lib/redux";
 import {
   addPortals,
   removePortals,
   updatePortals,
 } from "types/Portal/PortalSlice";
-import { PoseId } from "types/Pose/PoseTypes";
-import {
-  copyPattern,
-  createPattern,
-  deletePattern,
-} from "types/Pattern/PatternThunks";
+import { copyPattern, createPattern } from "types/Pattern/PatternThunks";
 import { selectPoseById, selectPoseMap } from "types/Pose/PoseSelectors";
 import { copyPose, createPose } from "types/Pose/PoseThunks";
-import { copyScale, createScale, deleteScale } from "types/Scale/ScaleThunks";
-import { isHotkeyPressed } from "react-hotkeys-hook";
-import { selectMotifState } from "types/Motif/MotifSelectors";
-import { getClipMotifField, getClipMotifId } from "types/Clip/ClipFunctions";
-import { removeMotif } from "types/Motif/MotifThunks";
-import { prev } from "utils/array";
-import { createId } from "types/util";
-import { PresetPatternMap } from "assets/patterns";
-import { PresetScaleMap } from "assets/scales";
+import { getClipMotifId } from "types/Clip/ClipFunctions";
+import { isBoundedNumber } from "types/util";
 import { removePose } from "types/Pose/PoseSlice";
+import { nanoid } from "@reduxjs/toolkit";
+import { removePattern } from "types/Pattern/PatternSlice";
 
 /** Create a list of media and add it to the slice and hierarchy. */
 export const createMedia =
@@ -137,44 +106,20 @@ export const createMedia =
     clips.forEach((clip, i) => {
       const patternMap = selectPatternMap(project);
       const poseMap = selectPoseMap(project);
-      const scaleMap = selectScaleMap(project);
       if (clip.type === "pattern" && !(clip.patternId in patternMap)) {
         clips[i] = {
           ...clip,
           patternId: dispatch(
             createPattern({ data: { trackId: clip.trackId }, undoType })
-          ),
+          ).id,
         };
-        dispatch(
-          updateMediaDraft({
-            data: { patternClip: { patternId: createId("pattern") } },
-            undoType,
-          })
-        );
       } else if (clip.type === "pose" && !(clip.poseId in poseMap)) {
         clips[i] = {
           ...clip,
           poseId: dispatch(
             createPose({ data: { trackId: clip.trackId }, undoType })
-          ),
+          ).id,
         };
-        dispatch(
-          updateMediaDraft({
-            data: { poseClip: { poseId: createId("pose") } },
-            undoType,
-          })
-        );
-      } else if (clip.type === "scale" && !(clip.scaleId in scaleMap)) {
-        clips[i] = {
-          ...clip,
-          scaleId: dispatch(createScale({ data: {}, undoType })),
-        };
-        dispatch(
-          updateMediaDraft({
-            data: { scaleClip: { scaleId: createId("scale") } },
-            undoType,
-          })
-        );
       }
     });
 
@@ -207,13 +152,11 @@ export const deleteMedia =
     const project = getProject();
     const undoType = unpackUndoType(payload, "deleteMedia");
     const selection = selectMediaSelection(project);
-    const draft = selectDraft(project);
     const oldClipIds = without(selection?.clipIds, ...(data.clipIds ?? []));
     dispatch(updateMediaSelection({ data: { clipIds: oldClipIds }, undoType }));
 
     // Delete the motifs if they are the last of their kind
     const clipMap = selectClipMap(project);
-    const motifState = selectMotifState(project);
     const motifClipMap = selectMotifClipMap(project);
 
     const clipIds = data.clipIds ?? [];
@@ -224,30 +167,16 @@ export const deleteMedia =
       if (!motifId) continue;
 
       // Check for clip ids with the motif
-      const motifClipIds = motifClipMap[clip.type]?.[motifId];
-      if (!motifClipIds || motifClipIds.length > 1) continue;
+      const motifClipIds = motifClipMap[clip.type]?.[motifId].filter(
+        (n) => !(data.clipIds ?? [])?.includes(n.id)
+      );
+      if (!motifClipIds || motifClipIds.length > 0) continue;
 
-      // Check for scale tracks with the scale id
-      if (isScaleId(motifId) && selectScaleTrackByScaleId(project, motifId))
-        continue;
-
-      // Select a different motif if the current one is selected
-      const clipField = `${clip.type}Clip` as const;
-      const draftedClip = draft[clipField];
-      const draftedMotifId = getClipMotifId(draftedClip);
-      if (draftedMotifId === motifId) {
-        const field = getClipMotifField(clip);
-        if (!field) continue;
-        const motifIds = motifState[clip.type].ids;
-        const motifIndex = motifIds.indexOf(motifId);
-        const newMotifId = prev(motifIds, motifIndex);
-        const newClip = { ...draftedClip, [field]: newMotifId };
-        dispatch(
-          updateMediaDraft({ data: { [clipField]: newClip }, undoType })
-        );
+      if (clip.type === "pattern") {
+        dispatch(removePattern({ data: motifId, undoType }));
+      } else if (clip.type === "pose") {
+        dispatch(removePose({ data: motifId, undoType }));
       }
-
-      dispatch(removeMotif({ data: motifId, undoType }));
     }
 
     // Delete the media from the slices and hierarchy
@@ -264,6 +193,24 @@ export const addAllMediaToSelection = (): Thunk => (dispatch, getProject) => {
   const portalIds = selectPortalIds(project);
   dispatch(updateMediaSelection({ data: { clipIds, portalIds } }));
 };
+
+/** Filter the selection based on the given type. */
+export const filterSelectionByType =
+  <T extends ClipType>(type?: T): Thunk =>
+  (dispatch, getProject) => {
+    if (!type) return;
+    const project = getProject();
+    const selection = selectMediaSelection(project);
+    dispatch(
+      updateMediaSelection({
+        data: {
+          clipIds: (selection.clipIds ?? []).filter((id) =>
+            isClipId<T>(id, type)
+          ),
+        },
+      })
+    );
+  };
 
 /** Copy all selected media to the clipboard. */
 export const copySelectedMedia = (): Thunk => (dispatch, getProject) => {
@@ -294,10 +241,10 @@ export const cutSelectedMedia = (): Thunk => (dispatch, getProject) => {
  */
 export const pasteSelectedMedia = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
-  const noMedia = { clipIds: [], poseIds: [], portalIds: [] };
+  const noMedia = { clipIds: [], portalIds: [] };
 
   // Do nothing if there are no tracks
-  const trackIds = selectOrderedTrackIds(project);
+  const trackIds = selectTrackIds(project);
   if (!trackIds?.length) return noMedia;
 
   // Do nothing if no track is selected
@@ -327,8 +274,11 @@ export const pasteSelectedMedia = (): Thunk => (dispatch, getProject) => {
   const portals = getPortalsFromMedia(validMedia);
 
   // Create the new media
-  const newMedia = dispatch(createMedia({ data: { clips, portals } }));
-  dispatch(updateMediaSelection(newMedia));
+  const undoType = createUndoType("pasteSelectedMedia", nanoid());
+  const newMedia = dispatch(
+    createMedia({ data: { clips, portals }, undoType })
+  );
+  dispatch(updateMediaSelection({ data: newMedia.data, undoType }));
   return newMedia;
 };
 
@@ -350,6 +300,16 @@ export const duplicateSelectedMedia =
     const { data } = dispatch(
       createMedia({ data: { clips: newClips, portals: newPortals }, undoType })
     );
+
+    // Close any open clips
+    dispatch(
+      updateClips({
+        data: clips.map((c) => ({ ...c, isOpen: false })),
+        undoType,
+      })
+    );
+
+    // Select the new clips
     dispatch(
       updateMediaSelection({
         data: { clipIds: data.clipIds, portalIds: data.portalIds },
@@ -451,89 +411,6 @@ export const deleteSelectedMedia = (): Thunk => (dispatch, getProject) => {
   dispatch(deleteMedia({ data: { clipIds, portalIds } }));
 };
 
-/** Set the selected pattern by updating the media draft. */
-export const setSelectedPattern =
-  (payload: Payload<PatternId>): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const undoType = unpackUndoType(payload, "setSelectedPattern");
-
-    // Delete the old pattern if no clips with it exist
-    const patternClip = selectDraftedPatternClip(project);
-    const draftedId = patternClip?.patternId;
-    if (draftedId) {
-      const clips = selectPatternClipsByPatternId(project, draftedId);
-      if (!clips.length) dispatch(deletePattern({ data: draftedId, undoType }));
-    }
-
-    // Try to find a preset pattern if the existing pattern doesn't exist
-    let patternId = payload.data;
-    if (patternId in PresetPatternMap) {
-      patternId = dispatch(
-        createPattern({ data: PresetPatternMap[patternId], undoType })
-      );
-    }
-
-    // Update the media draft with the new pattern
-    dispatch(
-      updateMediaDraft({ data: { patternClip: { patternId } }, undoType })
-    );
-  };
-
-/** Set the selected pose by updating the media draft. */
-export const setSelectedPose =
-  (payload: Payload<PoseId>): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const undoType = unpackUndoType(payload, "setSelectedPose");
-
-    // Delete the old pose if no clips with it exist
-    const poseClip = selectDraftedPoseClip(project);
-    const draftedId = poseClip?.poseId;
-    if (draftedId && payload.data !== draftedId) {
-      const clips = selectPoseClipsByPoseId(project, draftedId);
-      if (!clips.length) dispatch(removePose({ data: draftedId, undoType }));
-    }
-
-    // Update the media draft with the new pose
-    dispatch(
-      updateMediaDraft({
-        data: { poseClip: { poseId: payload.data } },
-        undoType,
-      })
-    );
-  };
-
-/** Set the selected scale by updating the media draft. */
-export const setSelectedScale =
-  (payload: Payload<ScaleId>): Thunk =>
-  (dispatch, getProject) => {
-    const project = getProject();
-    const undoType = unpackUndoType(payload, "setSelectedScale");
-
-    // Delete the old scale if no clips or tracks with it exist
-    const scaleClip = selectDraftedScaleClip(project);
-    const draftedId = scaleClip?.scaleId;
-    if (draftedId) {
-      const clips = selectScaleClipsByScaleId(project, draftedId);
-      const track = selectScaleTrackByScaleId(project, draftedId);
-      if (!clips.length && !track) {
-        dispatch(deleteScale(draftedId, undoType));
-      }
-    }
-
-    // Try to find a preset scale if the existing scale doesn't exist
-    let scaleId = payload.data;
-    if (scaleId in PresetScaleMap) {
-      scaleId = dispatch(
-        createScale({ data: PresetScaleMap[scaleId], undoType })
-      );
-    }
-
-    // Update the media draft
-    dispatch(updateMediaDraft({ data: { scaleClip: { scaleId } }, undoType }));
-  };
-
 /** Merge the selected media. */
 export const mergeSelectedMedia =
   (options: { name?: string } = {}): Thunk =>
@@ -552,40 +429,50 @@ export const mergeSelectedMedia =
       patternNames.push(getPatternName(pattern));
 
       // Get the clip stream
+      const streamDuration = getPatternStreamDuration(pattern.stream);
       const duration = selectClipDuration(project, clip.id);
       let totalDuration = 0;
 
       // Make sure the duration of the new stream is the same as the clip duration
-      const stream = [...pattern.stream].reduce((streamAcc, block) => {
-        if (isPatternRest(block)) {
-          totalDuration += block.duration;
-          return [...streamAcc, block];
-        }
-        const notes = getPatternChordNotes(block);
-        if (totalDuration > duration) return streamAcc;
-        const blockDuration = getPatternBlockDuration(notes);
+      const stream = new Array(
+        Math.floor(
+          ((isBoundedNumber(duration, 1) ? duration : streamDuration) /
+            streamDuration) *
+            pattern.stream.length
+        )
+      )
+        .fill(0)
+        .map((_, i) => pattern.stream[i % pattern.stream.length])
+        .reduce((streamAcc, block) => {
+          if (isPatternRest(block)) {
+            totalDuration += block.duration;
+            return [...streamAcc, block];
+          }
+          const notes = getPatternChordNotes(block);
+          if (totalDuration > duration) return streamAcc;
+          const blockDuration = getPatternBlockDuration(notes);
 
-        // If the block duration is longer than the clip duration, shorten it
-        if (totalDuration + blockDuration > duration) {
-          // If the block is a rest, just add it to the stream
-          const newDuration = duration - totalDuration;
-          totalDuration += newDuration;
-          if (!isPatternMidiChord(block))
-            return [...streamAcc, { duration: newDuration }];
+          // If the block duration is longer than the clip duration, shorten it
+          if (totalDuration + blockDuration > duration) {
+            // If the block is a rest, just add it to the stream
+            const newDuration = duration - totalDuration;
+            totalDuration += newDuration;
+            if (!isPatternMidiChord(block))
+              return [...streamAcc, { duration: newDuration }];
 
-          // Otherwise, shorten all notes and add the chord to the stream
-          const chord = notes.map((n) => ({
-            ...n,
-            duration: newDuration,
-          }));
-          const newChord = getPatternChordWithNewNotes(block, chord);
-          return [...streamAcc, newChord];
-        }
+            // Otherwise, shorten all notes and add the chord to the stream
+            const chord = notes.map((n) => ({
+              ...n,
+              duration: newDuration,
+            }));
+            const newChord = getPatternChordWithNewNotes(block, chord);
+            return [...streamAcc, newChord];
+          }
 
-        // Otherwise, sum the duration and add the block to the stream
-        totalDuration += blockDuration;
-        return [...streamAcc, notes];
-      }, [] as PatternStream);
+          // Otherwise, sum the duration and add the block to the stream
+          totalDuration += blockDuration;
+          return [...streamAcc, notes];
+        }, [] as PatternStream);
 
       // If the stream is empty, add a rest
       if (!stream.length) {
@@ -599,12 +486,9 @@ export const mergeSelectedMedia =
     // Create and select a new pattern
     const name = options?.name || patternNames.join(" + ");
     const stream = totalStream.filter((b) => isArray(b) && !!b.length);
-    const pattern = { stream, name };
-    const patternId = dispatch(createPattern({ data: pattern }));
+    const pattern = { stream, name, trackId: sortedClips[0].trackId };
+    const patternId = dispatch(createPattern({ data: pattern })).id;
     const undoType = createUndoType("mergeSelectedMedia", patternId);
-    dispatch(
-      updateMediaDraft({ data: { patternClip: { patternId } }, undoType })
-    );
 
     // Create a new clip
     const { trackId, tick } = sortedClips[0];
@@ -624,7 +508,7 @@ export const onMediaDragEnd =
     const undoType = createUndoType("onMediaDragEnd", item);
     const project = getProject();
     const clipMap = selectClipMap(project);
-    const orderedTrackIds = selectOrderedTrackIds(project);
+    const orderedTrackIds = selectTrackIds(project);
     const { subdivision } = selectTimeline(project);
     const selectedClipIds = selectSelectedClipIds(project);
     const selectedPortals = selectSelectedPortals(project);
@@ -651,7 +535,7 @@ export const onMediaDragEnd =
     // Get the list of clips by merging the chunk with the selection
     const clipIds = (
       item.id ? union([itemId, ...selectedClipIds]) : selectedClipIds
-    ) as PortaledClipId[];
+    ) as ClipId[];
 
     // Get the list of portals as is
     const portals = selectedPortals;
@@ -664,25 +548,16 @@ export const onMediaDragEnd =
     for (const id of clipIds) {
       const clip = clipMap[id];
       if (clip === undefined) continue;
-      let originalClip = clip as Clip;
       // If the clip is a chunk, get the original one
-      if (id.includes("-chunk-")) {
-        const originalId = getOriginalIdFromPortaledClip(id);
-        const realClip = selectClipById(project, originalId);
-        if (!realClip) continue;
-        originalClip = realClip;
-      }
 
       // Get the new track and make sure the clip is going into a pattern track
       const trackIndex = orderedTrackIds.indexOf(clip.trackId);
       const newIndex = trackIndex + rowOffset;
       const trackId = orderedTrackIds[newIndex];
       if (trackIndex < 0 || !trackId) return;
-      // const newTrack = selectTrackById(project, trackId);
-      // if (isPatternClip(clip) && !isPatternTrack(newTrack)) return;
 
       // Push the new clip
-      newClips.push({ ...originalClip, trackId, tick: clip.tick + tickOffset });
+      newClips.push({ ...clip, trackId, tick: clip.tick + tickOffset });
     }
 
     // Move the portal entry fragment, if any
@@ -745,29 +620,37 @@ export const onMediaDragEnd =
 
     // If copying, create the new media
     if (copying) {
-      const cloning = !isHotkeyPressed("comma");
-      const copiedClips = cloning
-        ? newClips
-        : (newClips.map((clip) => {
-            if (isPatternClip(clip)) {
-              const pattern = selectPatternById(project, clip.patternId);
-              const newPatternId = dispatch(copyPattern({ data: pattern }));
-              return { ...clip, patternId: newPatternId };
-            } else if (isPoseClip(clip)) {
-              const pose = selectPoseById(project, clip.poseId);
-              const newPoseId = dispatch(copyPose(pose));
-              return { ...clip, poseId: newPoseId };
-            } else if (isScaleClip(clip)) {
-              const scale = selectScaleById(project, clip.scaleId);
-              const newScaleId = dispatch(copyScale(scale));
-              return { ...clip, scaleId: newScaleId };
-            } else {
-              return clip;
-            }
-          }) as Clip[]);
+      newClips.forEach((clip) => {
+        if (isPatternClip(clip)) {
+          const pattern = selectPatternById(project, clip.patternId);
+          const newPatternId = dispatch(
+            copyPattern({
+              data: { ...pattern, trackId: clip.trackId },
+              undoType,
+            })
+          ).id;
+          dispatch(
+            addClip({
+              data: initializeClip({ ...clip, patternId: newPatternId }),
+              undoType,
+            })
+          );
+        } else if (isPoseClip(clip)) {
+          const pose = selectPoseById(project, clip.poseId);
+          const newPoseId = dispatch(
+            copyPose({ data: { ...pose, trackId: clip.trackId }, undoType })
+          ).id;
+          dispatch(
+            addClip({
+              data: initializeClip({ ...clip, poseId: newPoseId }),
+              undoType,
+            })
+          );
+        }
+      });
       const mediaIds = dispatch(
         createMedia({
-          data: { clips: copiedClips, portals: newPortals },
+          data: { portals: newPortals },
           undoType,
         })
       );

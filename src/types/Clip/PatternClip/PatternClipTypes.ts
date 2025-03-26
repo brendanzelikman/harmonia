@@ -1,5 +1,5 @@
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
-import { IClip, IClipId, isClipId } from "../ClipTypes";
+import { IClip, IClipId } from "../ClipTypes";
 import { Tick, Update } from "types/units";
 import { createId } from "types/util";
 import { isClipInterface } from "../ClipTypes";
@@ -32,6 +32,10 @@ export type PatternClipState = EntityState<PatternClip>;
 
 export type PortaledPatternClip = Portaled<PatternClip>;
 export type PortaledPatternClipId = PortaledClipId<PatternClipId>;
+export type PortaledPatternClipMap = Record<
+  PortaledPatternClipId,
+  PortaledPatternClip
+>;
 
 // ------------------------------------------------------------
 // Pattern Clip Initialization
@@ -72,7 +76,7 @@ export const isPatternClip = (clip?: Partial<IClip>): clip is PatternClip => {
 
 /** Checks if a given string is a `PatternClipId`. */
 export const isPatternClipId = (id: unknown): id is PatternClipId => {
-  return isClipId(id, "pattern");
+  return (id as string).startsWith("pa");
 };
 
 export const isPortaledPatternClip = (

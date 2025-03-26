@@ -137,42 +137,12 @@ export const MinorAddSharp4Chord: Pattern = {
   ],
 };
 
-export const MinorSixthChord: Pattern = {
-  id: "pattern_preset_minor-6th-chord",
-  name: "Minor 6th Chord",
-  aliases: ["min6", "min 6", "min6th", "min 6th", "minor 6", "minor 6th"],
-  stream: [
-    [
-      _.createQuarterNote(60),
-      _.createQuarterNote(63),
-      _.createQuarterNote(67),
-      _.createQuarterNote(69),
-    ],
-  ],
-};
-
-export const MinorFlatSixthChord: Pattern = {
-  id: "pattern_preset_minor-b6-chord",
-  name: "Minor b6 Chord",
-  aliases: ["minb6", "min b6", "minor b6"],
-  stream: [
-    [
-      _.createQuarterNote(60),
-      _.createQuarterNote(63),
-      _.createQuarterNote(67),
-      _.createQuarterNote(68),
-    ],
-  ],
-};
-
 export default {
   MinorChord,
   MinorAddFlat2Chord,
   MinorAdd2Chord,
   MinorAdd4Chord,
   MinorAddSharp4Chord,
-  MinorFlatSixthChord,
-  MinorSixthChord,
   MinorTrichord,
   MinorTetrachord,
   MinorPentachord,

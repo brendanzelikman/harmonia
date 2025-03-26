@@ -3,15 +3,15 @@ import * as _ from "utils/durations";
 
 export const MajorTriad: Pattern = {
   id: "pattern_preset_major_triad",
-  name: "Major Triad",
-  aliases: ["maj", "maj chord", "major chord", "M", "M chord"],
+  name: "Major Chord",
+  aliases: ["triad", "maj", "maj chord", "major chord", "M", "M chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(64), _.createQuarterNote(67)],
   ],
 };
 export const MinorTriad: Pattern = {
   id: "pattern_preset_minor_triad",
-  name: "Minor Triad",
+  name: "Minor Chord",
   aliases: ["min", "min chord", "minor chord", "m", "m chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(63), _.createQuarterNote(67)],
@@ -20,7 +20,7 @@ export const MinorTriad: Pattern = {
 export const LydianTriad: Pattern = {
   id: "pattern_preset_lydian_triad",
   name: "Lydian Triad",
-  aliases: ["lydian", "lydian chord"],
+  aliases: ["lydian chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(64), _.createQuarterNote(66)],
   ],
@@ -43,7 +43,7 @@ export const DiminishedChord: Pattern = {
 export const AugmentedChord: Pattern = {
   id: "pattern_preset_augmented_chord",
   name: "Augmented Chord",
-  aliases: ["aug", "aug chord", "+", "+ chord"],
+  aliases: ["aug chord", "+", "+ chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(64), _.createQuarterNote(68)],
   ],

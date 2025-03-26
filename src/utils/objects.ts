@@ -1,5 +1,4 @@
 import { Dictionary } from "@reduxjs/toolkit";
-import { inRange, isNumber } from "lodash";
 
 export type Dict<T = any> = Dictionary<T>;
 
@@ -35,24 +34,6 @@ export const getValuesByKeys = <T, K extends keyof T>(obj: T, keys: K[]) => {
     .filter(Boolean) as NonNullable<T[K]>[];
 };
 
-/** Find the first entry containing the value within the given record. */
-export const findEntry = (value: unknown, object: Record<any, unknown>) => {
-  return Object.entries(object).find(([, v]) => v === value);
-};
-
-/** Splice or push to an array */
-export const spliceOrPush = <T>(
-  array: T[],
-  value: T,
-  index: number | undefined
-) => {
-  if (index !== undefined && inRange(index, 0, array.length)) {
-    array.splice(index, 0, value);
-  } else {
-    array.push(value);
-  }
-};
-
 /** Pick a key from an object using a record of weights */
 export const pickKeyByWeight = <T extends Record<string, number>>(
   weights: T
@@ -64,11 +45,4 @@ export const pickKeyByWeight = <T extends Record<string, number>>(
     if (random <= 0) return key;
   }
   return Object.keys(weights)[0];
-};
-
-/** Fold an array into an object indicating true for all members */
-export const foldArrayToObject = <T extends string | number>(
-  array: T[]
-): Dict<boolean> => {
-  return array.reduce((acc, key) => ({ ...acc, [key]: true }), {});
 };

@@ -1,9 +1,9 @@
-import { use, useDeep } from "types/hooks";
+import { useDeep } from "types/hooks";
 import { selectPortals } from "types/Portal/PortalSelectors";
 import { TimelinePortal } from "./PortalRenderer";
 import { createPortal } from "react-dom";
 
-import { TimelineElement } from "features/Timeline/Timeline";
+import { TimelineElement } from "features/Timeline/components/TimelineGrid";
 import { Portal } from "types/Portal/PortalTypes";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
@@ -21,21 +21,25 @@ import { some } from "lodash";
 export function TimelinePortals(props: TimelineElement) {
   const portals = useDeep(selectPortals);
   const selectedIds = useDeep(selectSelectedPortalIds);
-  const isPortaling = use(selectIsAddingPortals);
-  const cellWidth = use(selectCellWidth);
-  const cellHeight = use(selectCellHeight);
+  const isPortaling = useDeep(selectIsAddingPortals);
+  const cellWidth = useDeep(selectCellWidth);
+  const cellHeight = useDeep(selectCellHeight);
 
   // Get the fragment info
   const fragment = useDeep(selectPortalFragment);
   const fragmentTrack = useDeep((_) =>
     fragment?.trackId ? selectTrackById(_, fragment?.trackId) : undefined
   );
-  const fragmentTop = use((_) => selectTrackTop(_, fragmentTrack?.id));
-  const fragmentLeft = use((_) => selectTimelineTickLeft(_, fragment?.tick));
+
+  const fragmentTop = useDeep((_) => selectTrackTop(_, fragmentTrack?.id));
+  const fragmentLeft = useDeep((_) =>
+    selectTimelineTickLeft(_, fragment?.tick)
+  );
 
   // Render the portal with the given id
   const renderPortal = (portal: Portal) => {
     const isSelected = selectedIds.includes(portal.id);
+    if (!portal.trackId || !portal.portaledTrackId) return null;
     return (
       <TimelinePortal
         key={portal.id}

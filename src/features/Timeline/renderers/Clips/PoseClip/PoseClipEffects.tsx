@@ -44,7 +44,6 @@ import {
 
 export interface PoseClipEffectsProps extends PoseClipDropdownEffectProps {
   block: PoseBlock | undefined;
-  depths: number[];
 }
 export const PoseClipEffects = (props: PoseClipEffectsProps) => {
   const dispatch = useProjectDispatch();
@@ -58,7 +57,7 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
 
   return (
     <div className="flex gap-2 total-center">
-      <PoseClipBaseEffect border="border-fuchsia-400">
+      <PoseClipBaseEffect border="border border-fuchsia-400">
         <PoseClipDropdownContainer>
           <PoseClipDropdownItem
             active={view === "effects"}
@@ -73,6 +72,7 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
             Add Effect
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
+            className="active:text-fuchsia-400"
             onClick={() => {
               const randomEffect = sample(
                 Object.keys(TRANSFORMATIONS)
@@ -82,7 +82,7 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
                 addTransformation({
                   ...effectProps,
                   id: randomEffect,
-                  depths: props.depths,
+                  index: 0,
                   givenArgs: TRANSFORMATIONS[randomEffect].defaultValue,
                   updateBase: !block,
                 })
@@ -90,17 +90,17 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
               setView("effects");
             }}
           >
-            Sample Effect
+            Add Random
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
+            className="active:text-fuchsia-400"
             onClick={() =>
               block
                 ? dispatch(
                     updatePoseBlock({
                       id: props.clip.poseId,
-                      index: props.index,
+                      index: 0,
                       block: { ...props.block, operations: [] },
-                      depths: props.depths,
                     })
                   )
                 : dispatch(
@@ -111,7 +111,7 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
                   )
             }
           >
-            Clear Effects
+            Clear All
           </PoseClipDropdownItem>
         </PoseClipDropdownContainer>
       </PoseClipBaseEffect>
@@ -137,7 +137,7 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
               className="h-full opacity-50 total-center bg-slate-900"
               border="border-fuchsia-400"
             >
-              No Transformations
+              No Effects
             </PoseClipBaseEffect>
           )}
         </>
@@ -145,7 +145,7 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
 
       {view === "store" && (
         <div className="flex gap-2 items-center">
-          <PoseClipBaseEffect border="border-fuchsia-400">
+          <PoseClipBaseEffect border="border border-fuchsia-400">
             <PoseClipDropdownContainer>
               {TRANSFORMATION_CATEGORIES.map((c) => (
                 <PoseClipDropdownItem
@@ -163,6 +163,7 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
               {...effectProps}
               key={`${category}-${transformation.id}`}
               id={transformation.id}
+              index={0}
               transformation={transformation}
               givenArgs={transformation.defaultValue}
               addButton
@@ -243,7 +244,7 @@ export const PoseClipEffect = <T extends Transformation>({
   return (
     <PoseClipBaseEffect
       {...omit(rest, "transformationIndex", "addButton")}
-      className={"gap-1 justify-evenly"}
+      className={"flex-col gap-1 justify-evenly"}
     >
       <div className="capitalize">{startCase(id)}</div>
       {isArgsNumber || isArgsString ? (

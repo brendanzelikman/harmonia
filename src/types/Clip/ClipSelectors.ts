@@ -6,10 +6,9 @@ import {
   createValueListSelector,
 } from "lib/redux";
 import { getPatternDuration } from "types/Pattern/PatternFunctions";
-import { isPattern, PatternId } from "types/Pattern/PatternTypes";
+import { isPattern, Pattern, PatternId } from "types/Pattern/PatternTypes";
 import { isPose } from "types/Pose/PoseTypes";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
-import { isScaleObject } from "types/Scale/ScaleTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import {
   ClipMap,
@@ -18,26 +17,27 @@ import {
   ClipState,
   PatternClipState,
   PoseClipState,
-  ScaleClipState,
   PatternClipId,
   PoseClipId,
-  ScaleClipId,
   PoseClip,
 } from "./ClipTypes";
 import { getPoseDuration } from "types/Pose/PoseFunctions";
 import {
   defaultPatternClipState,
   defaultPoseClipState,
-  defaultScaleClipState,
   patternClipAdapter,
   poseClipAdapter,
-  scaleClipAdapter,
 } from "./ClipSlice";
 import { Timed } from "types/units";
-import { selectMotifState } from "types/Motif/MotifSelectors";
-import { getScaleName } from "utils/scale";
-import { mapValues } from "lodash";
+import { mapValues, uniqBy } from "lodash";
 import { getClipMotifId } from "./ClipFunctions";
+import {
+  selectPatternById,
+  selectPatternMap,
+  selectPatternState,
+} from "types/Pattern/PatternSelectors";
+import { getPatternClipHeaderColor } from "./PatternClip/PatternClipFunctions";
+import { selectPoseMap, selectPoseState } from "types/Pose/PoseSelectors";
 
 // ------------------------------------------------------------
 // Pattern Clip Selectors
@@ -45,7 +45,7 @@ import { getClipMotifId } from "./ClipFunctions";
 
 // Create a safe selector for the pattern clip state.
 const selectPatternClipState = (project: SafeProject) =>
-  (project?.present?.clips?.pattern ??
+  (project?.present?.patternClips ??
     defaultPatternClipState) as PatternClipState;
 
 // Use the memoized selectors from the entity adapter.
@@ -69,13 +69,36 @@ export const selectPatternClipsByPatternId = (
   return clips.filter((clip) => clip.patternId === patternId);
 };
 
+export const selectPatternClipsByTrackId = (
+  project: Project,
+  trackId: TrackId
+) => {
+  const clips = selectPatternClips(project);
+  return clips.filter((clip) => clip.trackId === trackId);
+};
+
+export const selectPatternsByTrackId = (project: Project, trackId: TrackId) => {
+  const clips = selectPatternClipsByTrackId(project, trackId);
+  const patternIds = uniqBy(clips, "patternId").map((clip) => clip.patternId);
+  return patternIds
+    .map((id) => selectPatternById(project, id))
+    .filter(Boolean) as Pattern[];
+};
+export const selectTrackHasPatternNotes = (
+  project: Project,
+  trackId: TrackId
+) => {
+  return selectPatternsByTrackId(project, trackId).some(
+    (pattern) => pattern.stream.length > 0
+  );
+};
 // ------------------------------------------------------------
 // Pose Clip Selectors
 // ------------------------------------------------------------
 
 // Create a safe selector for the pose clip state.
 const selectPoseClipState = (project: SafeProject) =>
-  (project?.present?.clips?.pose ?? defaultPoseClipState) as PoseClipState;
+  (project?.present?.poseClips ?? defaultPoseClipState) as PoseClipState;
 
 // Use the memoized selectors from the entity adapter.
 const poseClipSelectors =
@@ -98,63 +121,28 @@ export const selectPoseClipsByPoseId = (project: Project, poseId: string) => {
 };
 
 // ------------------------------------------------------------
-// Scale Clip Selectors
-// ------------------------------------------------------------
-
-// Create a safe selector for the scale clip state.
-const selectScaleClipState = (project: SafeProject) =>
-  (project?.present?.clips?.scale ?? defaultScaleClipState) as ScaleClipState;
-
-// Use the memoized selectors from the entity adapter.
-const scaleClipSelectors =
-  scaleClipAdapter.getSelectors<Project>(selectScaleClipState);
-
-export const selectScaleClipMap = scaleClipSelectors.selectEntities;
-export const selectScaleClipIds = scaleClipSelectors.selectIds as (
-  project: Project
-) => ScaleClipId[];
-export const selectScaleClipTotal = scaleClipSelectors.selectTotal;
-export const selectScaleClipById = scaleClipSelectors.selectById;
-export const selectScaleClips = scaleClipSelectors.selectAll;
-
-export const selectScaleClipsByScaleId = (
-  project: Project,
-  scaleId: string
-) => {
-  const clips = selectScaleClips(project);
-  return clips.filter((clip) => clip.scaleId === scaleId);
-};
-
-// ------------------------------------------------------------
 // Combined Clip Selectors
 // ------------------------------------------------------------
 
 export const defaultClipState: ClipState = {
   pattern: defaultPatternClipState,
   pose: defaultPoseClipState,
-  scale: defaultScaleClipState,
 };
-
-// Create a safe selector for the clip state.
-export const selectClipState = (project: SafeProject) =>
-  (project?.present?.clips ?? defaultClipState) as ClipState;
 
 /** Select the clip map from the store. */
 export const selectClipMap = createDeepSelector(
-  [selectPatternClipMap, selectPoseClipMap, selectScaleClipMap],
-  (pattern, pose, scale) =>
+  [selectPatternClipMap, selectPoseClipMap],
+  (pattern, pose) =>
     ({
       ...pattern,
       ...pose,
-      ...scale,
     } as ClipMap)
 );
 
 /** Select all clip IDs from the store. */
 export const selectClipIds = createDeepSelector(
-  [selectPatternClipIds, selectPoseClipIds, selectScaleClipIds],
-  (patternIds, poseIds, scaleIds) =>
-    [...patternIds, ...poseIds, ...scaleIds] as ClipId[]
+  [selectPatternClipIds, selectPoseClipIds],
+  (patternIds, poseIds) => [...patternIds, ...poseIds] as ClipId[]
 );
 
 /** Select true if the user has any clips. */
@@ -165,11 +153,11 @@ export const selectHasClips = createSelector(
 
 /** Select the map of clips to their motifs. */
 export const selectClipMotifMap = createDeepSelector(
-  [selectClipMap, selectMotifState],
-  (clips, motifState) => {
+  [selectClipMap, selectPatternMap, selectPoseMap],
+  (clips, patterns, poses) => {
     return mapValues(clips, (clip) => {
       if (clip === undefined) return;
-      const motifMap = motifState[clip.type].entities;
+      const motifMap = clip.type === "pattern" ? patterns : poses;
       const motifId = getClipMotifId(clip);
       if (!motifId) return;
       return motifMap[motifId];
@@ -206,10 +194,11 @@ export const selectClips = createDeepSelector(
 
 /** Select the map of motifs to their clips. */
 export const selectMotifClipMap = createDeepSelector(
-  [selectClips, selectMotifState],
-  (clips, motifs) => {
+  [selectClips, selectPatternState, selectPoseState],
+  (clips, patternState, poseState) => {
+    const motifs = { ...patternState.entities, ...poseState.entities };
     return mapValues(motifs, (state) => {
-      return state.ids.reduce((acc, id) => {
+      return Object.keys(motifs).reduce((acc, id) => {
         return {
           ...acc,
           [id]: clips.filter((clip) => getClipMotifId(clip) === id),
@@ -246,16 +235,17 @@ export const selectClipNameMap = createSelector(
   (clipMap, referenceMap) =>
     mapValues(clipMap, (clip) => {
       const reference = getValueByKey(referenceMap, clip?.id);
-      if (isScaleObject(reference)) {
-        return getScaleName(reference);
-      } else {
-        return reference?.name;
-      }
+      return reference?.name;
     })
 );
 
 /** Select the name of a clip by using the name of its reference. */
 export const selectClipName = createValueSelector(selectClipNameMap, "Clip");
+
+export const selectClipHeaderColor = (project: Project, id: PatternClipId) => {
+  const clip = selectPatternClipById(project, id);
+  return getPatternClipHeaderColor(clip);
+};
 
 /** Select the durations of a list of clips. */
 export const selectClipDurations = createValueListSelector(
@@ -272,3 +262,8 @@ export const selectTimedClipById = (project: Project, id: ClipId) => {
   const duration = selectClipDuration(project, id) ?? Infinity;
   return { ...clip, duration } as Timed<Clip>;
 };
+
+/** Select the clips that are opened. */
+export const selectOpenedClips = createSelector([selectClips], (clips) =>
+  clips.filter((clip) => clip.isOpen)
+);

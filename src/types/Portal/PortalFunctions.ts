@@ -6,22 +6,30 @@ import {
   initializePortaledClip,
 } from "./PortalTypes";
 import { Timed } from "types/units";
-import { isFiniteNumber } from "types/util";
 
 /** Get the original media ID from a portaled media chunk. */
-export const getOriginalIdFromPortaledClip = (clipId: PortaledClipId) =>
+export const getOriginalIdFromPortaledClip = (
+  clipId: PortaledClipId | ClipId
+) =>
   (clipId.includes("-chunk-") ? clipId.split("-chunk-")[0] : clipId) as ClipId;
 
 /** Get a list of each clip's portaled chunks based on the given clips and portals. */
 export function applyPortalsToClips(clips: Timed<Clip>[], portals: Portal[]) {
   if (!portals.length) {
-    return clips.map((clip) => [
-      initializePortaledClip({ ...clip, duration: clip.duration || 0 }, 1),
-    ]);
+    return clips.map((clip) =>
+      initializePortaledClip({ ...clip, duration: clip.duration || 0 }, 1)
+    );
   }
-  return clips.map((clip) => {
-    if (!isFiniteNumber(clip.duration)) {
-      return { ...clip, duration: clip.duration || 0 };
+  const processedClips: Portaled<Clip>[] = [];
+
+  clips.forEach((clip) => {
+    if (clip.duration === Infinity || clip.duration === undefined) {
+      processedClips.push({
+        ...clip,
+        id: clip.id,
+        duration: clip.duration || 0,
+      } as Portaled<Clip>);
+      return;
     }
 
     // Start with the media bounds
@@ -80,11 +88,15 @@ export function applyPortalsToClips(clips: Timed<Clip>[], portals: Portal[]) {
     portaledClips.push(finalChunk);
 
     // Return the chunks
-    return portaledClips;
-  }) as Portaled<Clip>[][];
+    processedClips.push(...portaledClips);
+  });
+
+  return processedClips;
 }
 
 /** Process the clip through the given portals. */
 export const applyPortalsToClip = (clip: Timed<Clip>, portals: Portal[]) => {
-  return applyPortalsToClips([clip], portals)[0];
+  return applyPortalsToClips([clip], portals).filter((c) =>
+    c.id.startsWith(clip.id)
+  );
 };

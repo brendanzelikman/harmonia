@@ -1,31 +1,31 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useState } from "react";
 import { useClipDrag } from "../useClipDnd";
 
-import { useProjectDispatch, use, useDeep } from "types/hooks";
+import { useProjectDispatch, useDeep } from "types/hooks";
 import { ClipComponentProps } from "../TimelineClips";
-import {
-  PortaledPoseClip,
-  PortaledPoseClipId,
-  PoseClipId,
-} from "types/Clip/ClipTypes";
+import { PortaledPoseClipId, PoseClipId } from "types/Clip/ClipTypes";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import { PoseClipDropdown } from "./PoseClipDropdown";
 import { PoseClipHeader } from "./PoseClipHeader";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
-import { usePoseClipStyle } from "./usePoseClipStyle";
-import {
-  getPoseBlockFromStream,
-  getPoseVectorAsJSX,
-} from "types/Pose/PoseFunctions";
-import { PoseClipCombos } from "./PoseClipCombos";
+
 import {
   PoseBlock,
   PoseTransformation,
   PoseVector,
 } from "types/Pose/PoseTypes";
 import { toggleClipDropdown } from "types/Clip/ClipThunks";
-import { createSelectedPortaledClipById } from "types/Arrangement/ArrangementSelectors";
-import { selectTrackMap } from "types/Track/TrackSelectors";
+import { selectPortaledPoseClip } from "types/Arrangement/ArrangementClipSelectors";
+import { selectClipWidth } from "types/Arrangement/ArrangementClipSelectors";
+import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
+import {
+  selectIsAddingPortals,
+  selectIsAddingPoseClips,
+  selectIsClipSelected,
+  selectTimelineTickLeft,
+  selectTrackHeight,
+} from "types/Timeline/TimelineSelectors";
+import { ScaleNote } from "types/Scale/ScaleTypes";
 
 export interface PoseClipRendererProps extends ClipComponentProps {
   id: PoseClipId;
@@ -34,95 +34,72 @@ export interface PoseClipRendererProps extends ClipComponentProps {
 
 export type PoseClipView = "vector" | "stream";
 
-export const PoseClipRenderer = memo(_PoseClipRenderer);
+export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
+  const { id, pcId, className, isDragging } = props;
 
-export function _PoseClipRenderer(props: PoseClipRendererProps) {
-  const { holdingI, id, pcId } = props;
-  const selectClip = useMemo(
-    () => createSelectedPortaledClipById(pcId),
-    [pcId]
-  );
-  const clip = useDeep(selectClip) as PortaledPoseClip;
-  const pose = use((_) => selectPoseById(_, clip.poseId));
+  const clip = useDeep((_) => selectPortaledPoseClip(_, pcId));
+  const { trackId, tick, type, isOpen } = clip;
+  const isSelected = useDeep((_) => selectIsClipSelected(_, id));
+
+  const pose = useDeep((_) => selectPoseById(_, clip.poseId));
   const stream = pose?.stream ?? [];
   const dispatch = useProjectDispatch();
+  const isAdding = useDeep(selectIsAddingPoseClips);
+  const isPortaling = useDeep(selectIsAddingPortals);
+  const isBlurred = isAdding || isPortaling || isDragging;
 
   // Each pose has a dropdown to reveal its editor
   const [field, setField] = useState<PoseClipView>("vector");
 
   // Each pose can be dragged into another cell
-  const [_, drag] = useClipDrag({
-    id: pcId,
-    type: "pose",
-    startDrag: props.startDrag,
-    endDrag: props.endDrag,
-  });
+  const [_, drag] = useClipDrag(pcId);
 
   // Any block can be selected by index, with depths for nested streams
-  const [index, setIndex] = useState(0);
-  const [depths, setDepths] = useState<number[]>([]);
   const vector = pose?.vector;
+  const scale = pose?.scale;
   const operations = pose?.operations;
-  const block = pose?.stream
-    ? getPoseBlockFromStream(stream, [...depths, index])
-    : undefined;
+  const block = pose?.stream ? stream[0] : undefined;
 
   const clipProps = {
     vector,
+    scale,
     operations,
     block,
-    index,
-    setIndex,
-    depths,
-    setDepths,
     field,
     setField,
   };
 
   // Each pose has a style that depends on its state
-  const { className, ...style } = usePoseClipStyle({
-    ...props,
-    ...clipProps,
-    clip,
-  });
-
-  const trackMap = useDeep(selectTrackMap);
-  const jsx = getPoseVectorAsJSX(
-    pose?.vector ?? block?.vector,
-    trackMap,
-    false
-  );
-
+  const top = useDeep((_) => selectTrackTop(_, trackId));
+  const left = useDeep((_) => selectTimelineTickLeft(_, tick));
+  const width = useDeep((_) => selectClipWidth(_, pcId));
+  const height = useDeep((_) => selectTrackHeight(_, trackId));
+  if (!clip) return null;
   return (
     <div
       ref={drag}
+      data-type={type}
+      data-open={isOpen}
+      data-selected={isSelected}
+      data-blur={isBlurred}
       className={className}
-      style={style}
-      onClick={(e) =>
-        dispatch(onClipClick(e, { ...clip, id }, { eyedropping: holdingI }))
-      }
+      style={{ top, left, width, height }}
+      onClick={(e) => dispatch(onClipClick(e, { ...clip, id }))}
       onDragStart={() =>
         dispatch(toggleClipDropdown({ data: { id: pcId, value: false } }))
       }
     >
-      <PoseClipCombos id={clip.id} />
-      <PoseClipHeader {...props} {...clipProps} clip={clip} />
-      <PoseClipDropdown {...props} {...clipProps} clip={clip} />
-      <div className="flex-1 text-[10px] flex flex-col overflow-scroll pl-1 text-white opacity-80 select-none">
-        {!clip.isOpen ? jsx : null}
-      </div>
+      <PoseClipHeader id={id} isOpen={!!isOpen} />
+      {isOpen && <PoseClipDropdown {...props} {...clipProps} clip={clip} />}
     </div>
   );
-}
+});
 
 export interface PoseClipComponentProps extends PoseClipRendererProps {
   vector?: PoseVector;
+  scale?: ScaleNote[];
   operations?: PoseTransformation[];
   block?: PoseBlock;
-  index: number;
-  setIndex: (index: number) => void;
-  depths: number[];
-  setDepths: React.Dispatch<React.SetStateAction<number[]>>;
   field: PoseClipView;
   setField: (field: PoseClipView) => void;
 }

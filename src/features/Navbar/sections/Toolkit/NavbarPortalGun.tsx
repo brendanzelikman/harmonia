@@ -1,36 +1,48 @@
-import { use, useProjectDispatch } from "types/hooks";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import { GiPortal } from "react-icons/gi";
 import classNames from "classnames";
 import {
   selectHasPortalFragment,
   selectIsAddingPortals,
 } from "types/Timeline/TimelineSelectors";
-import { selectHasClips } from "types/Clip/ClipSelectors";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { NavbarTooltip } from "features/Navbar/components/NavbarTooltip";
 import { ARRANGE_PORTALS_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
 
 export const NavbarPortalGun = () => {
   const dispatch = useProjectDispatch();
-  const hasClips = use(selectHasClips);
-  const isPortaling = use(selectIsAddingPortals);
-  const hasFragment = use(selectHasPortalFragment);
-
+  const isPortaling = useDeep(selectIsAddingPortals);
+  const hasFragment = useDeep(selectHasPortalFragment);
   return (
     <div className="relative">
       <NavbarTooltipButton
+        keepTooltipOnClick
         label={
-          <>
-            {isPortaling ? "Equipped" : "Equip"} Portal Gun (
-            {dispatch(ARRANGE_PORTALS_HOTKEY).shortcut}){" "}
-          </>
+          <span>
+            {isPortaling
+              ? hasFragment
+                ? "Place Exit Portal"
+                : "Place Entry Portal"
+              : "Create Portal"}
+            {!isPortaling ? (
+              <span className="text-slate-400 font-light">
+                {" "}
+                ({dispatch(ARRANGE_PORTALS_HOTKEY).shortcut})
+              </span>
+            ) : (
+              ""
+            )}
+          </span>
         }
-        disabled={!hasClips}
-        borderColor="border-blue-500"
+        borderColor={
+          isPortaling
+            ? hasFragment
+              ? "border-orange-500"
+              : "border-blue-500"
+            : "border-indigo-400"
+        }
         className={classNames(
-          "p-1.5 border-slate-400/50",
-          !hasClips ? "opacity-50" : "",
+          "p-1.5 transition-all text-2xl border-slate-400/50",
           {
             "bg-gradient-to-br from-blue-600 to-orange-500": !isPortaling,
             "ring-2 ring-offset-2 ring-offset-black duration-150": isPortaling,
@@ -44,15 +56,6 @@ export const NavbarPortalGun = () => {
       >
         <GiPortal />
       </NavbarTooltipButton>
-      <NavbarTooltip
-        show={isPortaling}
-        content={hasFragment ? "Place an Exit Portal" : "Place an Entry Portal"}
-        className={classNames(
-          "left-[-3.2rem] px-2 backdrop-blur",
-          { "bg-sky-600/80": isPortaling && !hasFragment },
-          { "bg-orange-500/80": isPortaling && hasFragment }
-        )}
-      />
     </div>
   );
 };

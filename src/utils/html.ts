@@ -1,5 +1,11 @@
 import { promptModal, PromptModalProps } from "components/PromptModal";
-import { BaseSyntheticEvent, DragEvent, MouseEvent, ReactNode } from "react";
+import {
+  BaseSyntheticEvent,
+  DragEvent,
+  MouseEvent,
+  ReactNode,
+  useEffect,
+} from "react";
 
 // ------------------------------------------------------------
 // Custom Events
@@ -13,6 +19,13 @@ export const sleep = (ms: number) =>
 export const dispatchCustomEvent = (type: string, detail?: unknown) => {
   const customEvent = new CustomEvent(type, { detail });
   window.dispatchEvent(customEvent);
+};
+
+/** Dispatch the custom event when the condition changes  */
+export const dispatchEventOnChange = (type: string, condition = false) => {
+  useEffect(() => {
+    dispatchCustomEvent(type, condition);
+  }, [type, condition]);
 };
 
 /** Prompts the user then applies a callback for the numerical result. */
@@ -72,7 +85,7 @@ export type GenericEvent =
   | GenericTouchEvent;
 
 /** Blur the targeted element of the event. */
-export const blurEvent = (e: GenericEvent) => {
+export const blurEvent = (e: BaseSyntheticEvent) => {
   (e.currentTarget as HTMLElement).blur();
 };
 

@@ -1,9 +1,10 @@
+import { isNumber } from "lodash";
 import { getScaleNoteMidiValue, getScaleNotes } from "./ScaleFunctions";
 import {
   transposeNoteThroughScales,
   transposeNoteThroughScale,
 } from "./ScaleTransformers";
-import { ScaleNote, Scale } from "./ScaleTypes";
+import { ScaleNote, Scale, NestedNote, ScaleVector } from "./ScaleTypes";
 import { MidiScale } from "utils/midi";
 
 /** Resolve a `ScaleNote` to a `MidiNoteValue` using the `Scales` provided. */
@@ -16,7 +17,6 @@ export const resolveScaleNoteToMidi = (note: ScaleNote, scales: Scale[]) => {
 export const resolveScaleToMidi = (scale?: Scale): MidiScale => {
   if (!scale) return [];
   const notes = getScaleNotes(scale);
-  if (!notes?.length) return [];
   return notes.map(getScaleNoteMidiValue);
 };
 
@@ -24,11 +24,25 @@ export const resolveScaleToMidi = (scale?: Scale): MidiScale => {
 export const resolveScaleChainToMidi = (scales: Scale[]): MidiScale => {
   const allScales = [...scales];
   const scaleCount = allScales.length;
-  if (scaleCount < 2) return resolveScaleToMidi(allScales[0]);
+  if (scaleCount === 1) return resolveScaleToMidi(allScales[0]);
 
   // Get the last scale in the array
   let cur = allScales.pop();
   if (!cur) return [];
+
+  // Transpose the scale through itself to apply its own offsets
+  const id = "id" in cur ? cur.id : undefined;
+  if (id) {
+    cur = getScaleNotes(cur)
+      .map((_, i): NestedNote => {
+        const offset: ScaleVector = {};
+        if (!isNumber(_) && "offset" in _) {
+          offset[id] = _.offset?.[id];
+        }
+        return { degree: i, offset };
+      })
+      .map((note) => transposeNoteThroughScale(note, cur));
+  }
 
   // While there are parents, unpack the scale and apply offsets
   while (allScales.length) {

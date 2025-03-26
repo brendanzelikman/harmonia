@@ -1,32 +1,32 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { DiaryCoverPage, DiaryPageBinding } from "./DiaryPage";
 import { cancelEvent } from "utils/html";
-import { useHotkeysInDiary } from "lib/react-hotkeys-hook";
 import { BsDownload, BsTrash } from "react-icons/bs";
 import { ContentPage } from "./ContentPage";
-import { m } from "framer-motion";
-import { use, useProjectDispatch } from "types/hooks";
+import { use, useDeep, useProjectDispatch } from "types/hooks";
 import { setDiaryPage, clearDiary } from "types/Meta/MetaSlice";
 import classNames from "classnames";
 import { NAV_HEIGHT } from "utils/constants";
-import Background from "assets/images/landing-background.png";
-import { useDiary } from "types/Diary/DiaryTypes";
 import {
   selectProjectDiary,
   selectProjectName,
 } from "types/Meta/MetaSelectors";
 import { FlipBook } from "lib/react-pageflip";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
+import { useDrag, useDrop } from "react-dnd";
+import { useHotkeys } from "react-hotkeys-hook";
+import { useToggledState } from "hooks/useToggledState";
 
 const DIARY_WIDTH = window.innerWidth / 2 - NAV_HEIGHT - 100;
 const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;
+const options = { preventDefault: true };
 
 export function Diary() {
   const dispatch = useProjectDispatch();
   const projectName = use(selectProjectName);
 
-  const diary = use(selectProjectDiary);
-  const diaryState = useDiary();
+  const diary = useDeep(selectProjectDiary);
+  const diaryState = useToggledState("diary");
   const showingDiary = diaryState.isOpen;
 
   // Create a ref to the FlipBook component
@@ -38,15 +38,17 @@ export function Diary() {
   }, []);
 
   // Diary hotkeys to flip the pages around
-
-  useHotkeysInDiary("left", () => ref.current?.pageFlip?.().flipPrev(), []);
-  useHotkeysInDiary("right", () => ref.current?.pageFlip?.().flipNext(), []);
-  useHotkeysInDiary("shift+left", () => ref.current?.pageFlip?.().flip(0), []);
-  useHotkeysInDiary(
-    "shift+right",
+  const flipLeft = useCallback(() => ref.current?.pageFlip?.().flipPrev(), []);
+  const flipRight = useCallback(() => ref.current?.pageFlip?.().flipNext(), []);
+  const flipFirst = useCallback(() => ref.current?.pageFlip?.().flip(0), []);
+  const flipLast = useCallback(
     () => ref.current?.pageFlip?.().flip(diary.length - 1),
-    [diary]
+    []
   );
+  useHotkeys("left", flipLeft, [], options);
+  useHotkeys("right", flipRight, [], options);
+  useHotkeys("shift+left", flipFirst, [], options);
+  useHotkeys("shift+right", flipLast, [], options);
 
   // A button to export the diary to a text file
   const ExportDiaryButton = useCallback(
@@ -145,20 +147,49 @@ export function Diary() {
     []
   );
 
-  if (!showingDiary) return null;
-  return (
-    <div className="absolute inset-0 animate-in fade-in flex flex-col total-center">
-      {/* <img
-        src={Background}
-        className="absolute inset-0 opacity-50 h-screen object-cover landing-background"
-      /> */}
+  const [position, setPosition] = useState({
+    left: -window.innerWidth / 2,
+    top: -window.innerHeight / 2 + 40,
+  });
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: "diary",
+    item: { left: position.left, top: position.top },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  }));
+  const [, drop] = useDrop(() => ({
+    accept: "diary",
+    drop: (item, monitor) => {
+      const delta = monitor.getDifferenceFromInitialOffset();
+      if (!delta) return;
+      setPosition((prev) => ({
+        left: prev.left + delta.x,
+        top: prev.top + delta.y,
+      }));
+    },
+  }));
 
-      <div className="relative translate-y-[65px] z-[50] -translate-x-[calc(50%-150px)]">
-        <m.div
-          initial={{ translateY: 100, opacity: 0 }}
-          animate={{ translateY: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          style={{ width: DIARY_WIDTH, height: DIARY_HEIGHT }}
+  return (
+    <div
+      ref={drop}
+      className={classNames(
+        "absolute z-50 select-none inset-0 total-center-col",
+        showingDiary
+          ? "visible animate-in zoom-in-50 fade-in duration-200"
+          : "invisible animate-out zoom-out-95 fade-out duration-150"
+      )}
+    >
+      <div className="relative translate-y-[65px] -translate-x-[calc(50%-150px)]">
+        <div
+          ref={drag}
+          className="absolute cursor-grab"
+          style={{
+            width: DIARY_WIDTH,
+            height: DIARY_HEIGHT,
+            left: position.left,
+            top: position.top,
+          }}
         >
           <DiaryPageBinding />
           <FlipBook ref={ref} width={DIARY_WIDTH} height={DIARY_HEIGHT}>
@@ -171,7 +202,7 @@ export function Diary() {
               })
             )}
           </FlipBook>
-        </m.div>
+        </div>
       </div>
     </div>
   );

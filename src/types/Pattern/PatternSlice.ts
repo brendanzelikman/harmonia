@@ -9,7 +9,7 @@ import {
   isPatternChord,
   PatternChord,
   Pattern,
-  defaultPattern,
+  isPatternRest,
 } from "./PatternTypes";
 import { sumVectors } from "utils/vector";
 import { Action, createNormalSlice, unpackAction } from "lib/redux";
@@ -112,7 +112,7 @@ export const patternsSlice = createNormalSlice({
       if (!pattern) return;
       if (index < 0 || index > pattern.stream.length) return;
       if (!asChord) {
-        pattern.stream[index] = [note];
+        pattern.stream[index] = note;
       } else {
         const block = pattern.stream[index];
         if (isPatternChord(block)) {
@@ -122,7 +122,7 @@ export const patternsSlice = createNormalSlice({
             note,
           ]);
         } else {
-          pattern.stream[index] = [note];
+          pattern.stream[index] = note;
         }
       }
     },
@@ -148,6 +148,23 @@ export const patternsSlice = createNormalSlice({
       if (!pattern || index < 0 || index > pattern.stream.length) return;
       pattern.stream[index] = block;
     },
+    /** Update the duration of a block in a pattern. */
+    updatePatternBlockDuration: (
+      state,
+      action: Action<{ id: PatternId; index: number; duration: number }>
+    ) => {
+      const { id, index, duration } = unpackAction(action);
+      const pattern = state.entities[id];
+      if (!pattern || index < 0 || index > pattern.stream.length) return;
+      const block = pattern.stream[index];
+      if (isPatternRest(block)) {
+        pattern.stream[index] = { duration };
+      } else {
+        pattern.stream[index] = getPatternChordWithNewNotes(block, (notes) =>
+          notes.map((note) => ({ ...note, duration }))
+        );
+      }
+    },
     /** Transpose a block in a pattern chromatically if it is not a rest. */
     transposePatternBlock: (
       state,
@@ -170,15 +187,16 @@ export const patternsSlice = createNormalSlice({
       });
     },
     /** Remove a block from a pattern. */
-    removePatternBlock: (
-      state,
-      action: PayloadAction<RemovePatternBlockPayload>
-    ) => {
-      const { id, index } = action.payload;
+    removePatternBlock: (state, action: Action<RemovePatternBlockPayload>) => {
+      const { id, index } = unpackAction(action);
       const pattern = state.entities[id];
       if (!pattern) return;
-      if (index < 0 || index > pattern.stream.length) return;
-      pattern.stream.splice(index, 1);
+      if (index > pattern.stream.length) return;
+      let spliceIndex = index;
+      if (index < 0 && index > -pattern.stream.length) {
+        spliceIndex = pattern.stream.length + index;
+      }
+      pattern.stream.splice(spliceIndex, 1);
     },
   },
 });
@@ -203,6 +221,7 @@ export const {
   addPatternBlock,
   insertPatternBlock,
   updatePatternBlock,
+  updatePatternBlockDuration,
   removePatternBlock,
   transposePatternBlock,
 } = patternsSlice.actions;

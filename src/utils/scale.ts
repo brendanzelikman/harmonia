@@ -10,7 +10,6 @@ import {
   ScaleNote,
 } from "types/Scale/ScaleTypes";
 import { getScaleNotes, getTonicPitchClass } from "types/Scale/ScaleFunctions";
-import { getMidiNoteValue } from "./midi";
 import {
   getRotatedScale,
   getTransposedScale,
@@ -26,6 +25,7 @@ import { minorKeys } from "assets/keys/MinorKeys";
 import { PresetScaleGroupList, PresetScaleGroupMap } from "assets/scales";
 import { areScalesRelated } from "types/Scale/ScaleUtils";
 import { PatternChords } from "types/Pattern/PatternUtils";
+import { CHORDAL_KEY } from "./vector";
 
 // ------------------------------------------------------------
 // Scale Helpers
@@ -48,7 +48,7 @@ export const getPreferredKey = (note: MidiNote, name?: string): Key => {
   const key = name.toLowerCase();
 
   // Check for major keys
-  const majorNames = ["ionian", "major", "lydian", "mixolydian"];
+  const majorNames = ["ionian", "major", "lydian", "mixolydian", "dominant"];
   if (majorNames.some((n) => key.includes(n))) return majorKeys[n];
 
   // Check for minor keys
@@ -84,7 +84,7 @@ for (const [scales, keys] of SCALE_KEYSETS) {
       const mode = getRotatedScale(notes, t);
       const canon = `${getCanonicalScale(mode)}`;
       const tonic = getTonicPitchClass(notes, keys[i]);
-      const inversion = t > 0 ? ` (t${t})` : "";
+      const inversion = t > 0 ? ` (${CHORDAL_KEY}${t})` : "";
       const name = `${tonic} ${scales[i].name}${inversion}`;
       const aliases = scales[i].aliases;
 
@@ -100,7 +100,7 @@ for (const [scales, keys] of SCALE_KEYSETS) {
 for (const chord of PatternChords) {
   const flatStream = chord.stream.flat();
   const chords = flatStream.filter(isPatternMidiChord) as PatternMidiNote[];
-  const midi = chords.map(getMidiDegree);
+  const midi = chords.map(getMidiDegree).sort((a, b) => a - b);
   const size = midi.length;
 
   // Iterate over all transpositions
@@ -113,7 +113,7 @@ for (const chord of PatternChords) {
       const canon = getCanonicalScale(mode);
       const key = getPreferredKey(transposition[0], chord.name);
       const tonic = getTonicPitchClass(transposition, key);
-      const inversion = t > 0 ? ` (t${t})` : "";
+      const inversion = t > 0 ? ` (${CHORDAL_KEY}${t})` : "";
       const name = `${tonic} ${chord.name}${inversion}`;
       const aliases = chord.aliases;
 
@@ -122,6 +122,18 @@ for (const chord of PatternChords) {
       const isPattern = PATTERN_KEY_MAP.has(canon);
       if (!isScale && (t === 0 || !isPattern)) {
         PATTERN_KEY_MAP.set(canon, { key, name, aliases, inversion: t });
+      } else {
+        // Try sorting the scale
+        const sortedMode = mode.map((n) => n % 12).sort((a, b) => a - b);
+        const sortedCanon = getCanonicalScale(sortedMode);
+        if (!isScale && !isPattern && canon !== sortedCanon) {
+          PATTERN_KEY_MAP.set(sortedCanon, {
+            key,
+            name,
+            aliases,
+            inversion: t,
+          });
+        }
       }
     }
   }
@@ -155,6 +167,7 @@ export const getScaleName = (scale: Scale) => {
 
 /** Get the aliases of a scale by looking it up in the key map. */
 export const getScaleAliases = (scale: Scale) => {
+  if ("aliases" in scale && scale.aliases) return scale.aliases;
   const notes = getScaleNotes(scale) as MidiScale;
   const canon = getCanonicalScale(notes);
   return KEY_MAP.get(canon)?.aliases || [];

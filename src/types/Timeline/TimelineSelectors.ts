@@ -5,38 +5,35 @@ import {
 } from "utils/constants";
 import {
   DURATION_TICKS,
+  getCellsPerTick,
   getSubdivisionTicks,
   getTickColumns,
 } from "utils/durations";
 import { Tick, Timed } from "types/units";
 import { getValueByKey, getValuesByKeys } from "utils/objects";
-import {
-  selectClipById,
-  selectClipDurationMap,
-  selectClipMap,
-} from "../Clip/ClipSelectors";
+import { selectClipDurationMap, selectClipMap } from "../Clip/ClipSelectors";
 import { selectPoseMap } from "../Pose/PoseSelectors";
 import { createSelector } from "reselect";
-import { capitalize, mapValues, some } from "lodash";
-import { createDeepSelector, createValueSelector } from "lib/redux";
+import { capitalize, some, uniq } from "lodash";
+import { createDeepSelector } from "lib/redux";
 import {
   Clip,
   ClipId,
-  defaultPatternClip,
-  defaultPoseClip,
-  defaultScaleClip,
   isPatternClip,
   isPoseClip,
-  isScaleClip,
   PatternClip,
   PoseClip,
-  ScaleClip,
 } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
 import { Portal } from "types/Portal/PortalTypes";
 import { Project } from "types/Project/ProjectTypes";
 import { getTrackIndex } from "types/Track/TrackFunctions";
-import { isPatternTrack, isScaleTrack, Track } from "types/Track/TrackTypes";
+import {
+  isPatternTrack,
+  isScaleTrack,
+  Track,
+  TrackId,
+} from "types/Track/TrackTypes";
 import {
   defaultTimeline,
   DEFAULT_CELL_WIDTH,
@@ -44,27 +41,20 @@ import {
 } from "./TimelineTypes";
 import { selectPatternMap } from "types/Pattern/PatternSelectors";
 import { selectPortalMap } from "types/Portal/PortalSelectors";
-import { selectScaleMap } from "types/Scale/ScaleSelectors";
 import {
   selectTrackMap,
-  selectTrackChainIdsMap,
-  selectTracks,
+  selectScaleTrackChainIdsMap,
+  selectTrackById,
 } from "types/Track/TrackSelectors";
 import {
   defaultMediaClipboard,
-  defaultMediaDraft,
   defaultMediaSelection,
   Media,
 } from "types/Media/MediaTypes";
-import { selectMotifState } from "types/Motif/MotifSelectors";
-import { Motif } from "types/Motif/MotifTypes";
+import { Pose } from "types/Pose/PoseTypes";
 
 /** Select the timeline from the store. */
 export const selectTimeline = (project: Project) => project.present.timeline;
-
-// ------------------------------------------------------------
-// Timeline State
-// ------------------------------------------------------------
 
 /** Select the action state of the timeline. */
 export const selectTimelineState = createSelector(
@@ -81,6 +71,11 @@ export const selectSelectedTrackId = createSelector(
   [selectTimeline],
   (timeline) => timeline.selection?.trackId
 );
+
+export const selectIsTrackSelected = (project: Project, id: TrackId) => {
+  const selectedId = selectSelectedTrackId(project);
+  return selectedId === id;
+};
 
 /** Select the currently selected track. */
 export const selectSelectedTrack = createSelector(
@@ -108,7 +103,7 @@ export const selectSelectedTrackIndex = createSelector(
 
 /** Select the parents of the currently selected track. */
 export const selectSelectedTrackParents = createDeepSelector(
-  [selectSelectedTrack, selectTrackChainIdsMap, selectTrackMap],
+  [selectSelectedTrack, selectScaleTrackChainIdsMap, selectTrackMap],
   (track, chainIds, trackMap) => {
     if (!track) return [];
     const parents = chainIds[track.id] || [];
@@ -182,10 +177,14 @@ export const selectSelectedPoseClips = createDeepSelector(
   (clips) => clips.filter(isPoseClip) as Timed<PoseClip>[]
 );
 
-/** Select the currently selected scale clips. */
-export const selectSelectedScaleClips = createDeepSelector(
-  [selectSelectedClips],
-  (clips) => clips.filter(isScaleClip) as Timed<ScaleClip>[]
+export const selectSelectedPoses = createDeepSelector(
+  [selectPoseMap, selectSelectedPoseClips],
+  (poseMap, clips) =>
+    uniq(
+      clips
+        .map((clip) => getValueByKey(poseMap, clip.poseId))
+        .filter(Boolean) as Pose[]
+    )
 );
 
 /** Select the currently selected portals. */
@@ -203,39 +202,16 @@ export const selectSelectedMedia = createDeepSelector(
   (clips, portals): Media => [...clips, ...portals]
 );
 
-/** Select all tracks with selected media. */
-export const selectTracksOfSelectedMedia = createSelector(
-  [selectTracks, selectSelectedMedia],
-  (tracks, media) =>
-    tracks.filter((track) => media.some((clip) => clip.trackId === track.id))
+/** Select the currently selected pattern clips. */
+export const selectIsSelectingPatternClips = createSelector(
+  [selectSelectedPatternClips],
+  (clips) => clips.length > 0
 );
 
-/** Select if the timeline is live */
-export const selectIsLive = createSelector(
-  [selectSelectedTrackId],
-  (trackId) => trackId !== undefined
-);
-
-export const selectIsClipLive = (project: Project, id: ClipId) => {
-  const trackId = selectSelectedTrackId(project);
-  const clip = selectClipById(project, id);
-  return trackId !== undefined && trackId === clip?.trackId;
-};
-
-// ------------------------------------------------------------
-// Timeline Media Draft
-// ------------------------------------------------------------
-
-/** Select the current draft. */
-export const selectDraft = createDeepSelector(
-  [selectTimeline],
-  (timeline) => timeline.draft || defaultMediaDraft
-);
-
-/** Select the drafted portal  */
-export const selectPortalDraft = createSelector(
-  [selectDraft],
-  (draft) => draft.portal
+/** Select the currently selected pose clips. */
+export const selectIsSelectingPoseClips = createSelector(
+  [selectSelectedPoseClips],
+  (clips) => clips.length > 0
 );
 
 // ------------------------------------------------------------
@@ -265,21 +241,27 @@ export const selectCopiedPortals = createDeepSelector(
 // ------------------------------------------------------------
 
 /** Select the subdivision of the timeline. */
-export const selectSubdivision = createSelector(
+export const selectSubdivision = createDeepSelector(
   [selectTimeline],
   (timeline) => timeline.subdivision || defaultTimeline.subdivision
 );
 
 /** Select the width of a timeline cell. */
-export const selectCellWidth = createSelector(
+export const selectCellWidth = createDeepSelector(
   [selectTimeline],
   (timeline) => timeline.cellWidth || DEFAULT_CELL_WIDTH
 );
 
 /** Select the height of a timeline cell. */
-export const selectCellHeight = createSelector(
+export const selectCellHeight = createDeepSelector(
   [selectTimeline],
   (timeline) => timeline.cellHeight || DEFAULT_CELL_HEIGHT
+);
+
+/** Select the cells per tick. */
+export const selectCellsPerTick = createDeepSelector(
+  [selectSubdivision, selectCellWidth],
+  getCellsPerTick
 );
 
 // ------------------------------------------------------------
@@ -287,13 +269,13 @@ export const selectCellHeight = createSelector(
 // ------------------------------------------------------------
 
 /** Select the number of ticks in a timeline subdivision. */
-export const selectSubdivisionTicks = createSelector(
+export const selectSubdivisionTicks = createDeepSelector(
   [selectSubdivision],
   (subdivision) => getSubdivisionTicks(subdivision)
 );
 
 /** Select the timeline column count. */
-export const selectTimelineColumns = createSelector(
+export const selectTimelineColumns = createDeepSelector(
   [selectSubdivisionTicks],
   (ticks) => ticks * MEASURE_COUNT * 64
 );
@@ -305,7 +287,7 @@ export const selectColumnTicks = (project: Project, column: number) => {
 };
 
 /** Cache to avoid repetitive division */
-export const selectCachedTickColumns = createSelector(
+export const selectCachedTickColumns = createDeepSelector(
   [selectSubdivisionTicks],
   (subdivision) => {
     return Object.fromEntries(
@@ -320,7 +302,7 @@ export const selectCachedTickColumns = createSelector(
 /* Try to find a cached value and then manually divide for other durations */
 export const selectTickColumns = (project: Project, ticks: number) => {
   const cachedColumns = selectCachedTickColumns(project);
-  return cachedColumns[ticks] ?? selectSubdivisionTicks(project) / ticks;
+  return cachedColumns[ticks] ?? ticks / selectSubdivisionTicks(project);
 };
 
 /** Select the left offset of the timeline tick in pixels. */
@@ -342,13 +324,10 @@ export const selectTimelineBackgroundWidth = createSelector(
 // ------------------------------------------------------------
 
 /** Select if the timeline is adding some kind of clips */
-export const selectIsAddingClips = (project: Project, type?: ClipType) => {
-  const timeline = selectTimeline(project);
-  return (
-    timeline.state === "adding-clips" &&
-    (type === undefined || timeline.type === type)
-  );
-};
+export const selectIsAddingClips = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.state === "adding-clips"
+);
 
 /** Select if the timeline is adding pattern clips. */
 export const selectIsAddingPatternClips = createSelector(
@@ -360,12 +339,6 @@ export const selectIsAddingPatternClips = createSelector(
 export const selectIsAddingPoseClips = createSelector(
   [selectTimeline],
   (timeline) => timeline.state === "adding-clips" && timeline.type === "pose"
-);
-
-/** Select if the timeline is adding scale clips. */
-export const selectIsAddingScaleClips = createSelector(
-  [selectTimeline],
-  (timeline) => timeline.state === "adding-clips" && timeline.type === "scale"
 );
 
 /** Select if the timeline is portaling clips. */
@@ -380,79 +353,31 @@ export const selectIsSlicingClips = createSelector(
   (timeline) => timeline.state === "slicing-clips"
 );
 
+/** Select if the timeline is editing tracks. */
+export const selectIsEditingTracks = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.state === "editing-tracks"
+);
+
+/** Select if the timeline is editing a specific track. */
+export const selectIsEditingTrack = (project: Project, id: TrackId) => {
+  const isEditing = selectIsEditingTracks(project);
+  const selectedId = selectSelectedTrackId(project);
+  return isEditing && selectedId === id;
+};
+
 // ------------------------------------------------------------
 // Media Draft
 // ------------------------------------------------------------
 
-/** Select the currently drafted pattern clip. */
-export const selectDraftedPatternClip = createSelector(
-  [selectTimeline],
-  (timeline) => timeline.draft?.patternClip ?? defaultPatternClip
-);
-
-/** Select the currently drafted pose clip. */
-export const selectDraftedPoseClip = createSelector(
-  [selectTimeline],
-  (timeline) => timeline.draft?.poseClip ?? defaultPoseClip
-);
-
-/** Select the currently drafted scale clip. */
-export const selectDraftedScaleClip = createSelector(
-  [selectTimeline],
-  (timeline) => timeline.draft?.scaleClip ?? defaultScaleClip
-);
-
-/** Select the currently drafted clip */
-export const selectDraftedClip = (
-  project: Project,
-  type: ClipType = selectTimelineType(project)
-) => {
-  if (!type) return undefined;
-  return {
-    pattern: selectDraftedPatternClip(project),
-    pose: selectDraftedPoseClip(project),
-    scale: selectDraftedScaleClip(project),
-  }[type];
-};
-
-/** Select the currently selected pattern. */
-export const selectSelectedPattern = createDeepSelector(
-  [selectPatternMap, selectDraftedPatternClip],
-  (patternMap, { patternId }) => getValueByKey(patternMap, patternId)
-);
-
-/** Select the currently selected pose. */
-export const selectSelectedPose = createDeepSelector(
-  [selectPoseMap, selectDraftedPoseClip],
-  (poseMap, { poseId }) => getValueByKey(poseMap, poseId)
-);
-
-/** Select the currently selected scale. */
-export const selectSelectedScale = createDeepSelector(
-  [selectScaleMap, selectDraftedScaleClip],
-  (scaleMap, { scaleId }) => getValueByKey(scaleMap, scaleId)
-);
-
-/** Select the currently selected motif. */
-export const selectSelectedMotif = (
-  project: Project,
-  type: ClipType | undefined = selectTimelineType(project)
-) => {
-  if (!type) return undefined;
-  return {
-    pattern: selectSelectedPattern(project),
-    pose: selectSelectedPose(project),
-    scale: selectSelectedScale(project),
-  }[type];
-};
-
 /** Select the name of a potential new motif. */
 export const selectNewMotifName = (project: Project, type: ClipType) => {
-  const motifs = selectMotifState(project);
   const Type = capitalize(type);
   if (!type) return `New ${Type}`;
 
-  const refs: Motif[] = Object.values(motifs[type].entities);
+  const refs: { name: string }[] = Object.values(
+    type === "pattern" ? selectPatternMap(project) : selectPoseMap(project)
+  );
 
   let champ = `New ${Type}`;
   let champCount = 1;
@@ -466,9 +391,10 @@ export const selectNewMotifName = (project: Project, type: ClipType) => {
 
 export const selectPortalFragment = createSelector(
   [selectTimeline],
-  (timeline) => timeline.draft?.portal
+  (timeline) => timeline.fragment
 );
 
+/** Select true if the user has a portal fragment */
 export const selectHasPortalFragment = createSelector(
   [selectPortalFragment],
   (portal) => some(portal)
@@ -483,13 +409,9 @@ export const selectIsClipSelected = (project: Project, id: ClipId) => {
 // Timeline Tracks
 // ------------------------------------------------------------
 
-export const selectTrackHeightMap = createDeepSelector(
-  [selectTrackMap, selectCellHeight],
-  (trackMap, cellHeight) =>
-    mapValues(trackMap, (track) =>
-      track?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight
-    )
-);
-
 /** Select the height of a track based on whether it is collapsed. */
-export const selectTrackHeight = createValueSelector(selectTrackHeightMap, 0);
+export const selectTrackHeight = (project: Project, id: TrackId) => {
+  return selectTrackById(project, id)?.collapsed
+    ? COLLAPSED_TRACK_HEIGHT
+    : selectCellHeight(project);
+};

@@ -1,4 +1,4 @@
-import { isArray, isNumber, range } from "lodash";
+import { isNumber, range } from "lodash";
 import { MidiScale, getMidiDegree, getMidiNoteValue } from "utils/midi";
 import {
   PatternBlock,
@@ -8,6 +8,7 @@ import {
   PatternMidiStream,
   PatternNote,
   PatternRest,
+  PatternStream,
   isPatternChord,
   isPatternMidiChord,
   isPatternMidiStream,
@@ -16,6 +17,7 @@ import {
 } from "./PatternTypes";
 import { Chords } from "assets/patterns";
 import { initializeScale } from "types/Scale/ScaleTypes";
+import { STAFF_PIVOT } from "lib/musicxml";
 
 // ------------------------------------------------------------
 // Pattern Chord Helpers
@@ -33,6 +35,17 @@ export const getPatternMidiChordNotes = (chord: PatternMidiChord) => {
   if (Array.isArray(chord)) return chord;
   if (isPatternStrummedChord(chord)) return chord.chord;
   return [chord];
+};
+
+/** Get a `PatternBlock` as an array of notes. */
+export const getPatternBlockNotes = (block: PatternBlock) => {
+  if (isPatternRest(block)) return [];
+  return getPatternChordNotes(block);
+};
+
+/** Get a `PatternStream` as an array of notes. */
+export const getPatternStreamNotes = (stream: PatternStream) => {
+  return stream.flatMap(getPatternBlockNotes);
 };
 
 /** Update the notes of a `PatternChord` */
@@ -101,6 +114,13 @@ export const flattenMidiStreamValues = (
     .filter(isNumber);
 };
 
+export const getMidiStreamStaves = (stream: PatternMidiStream) => {
+  const values = flattenMidiStreamValues(stream);
+  const hasTreble = values.some((v) => v >= STAFF_PIVOT);
+  const hasBass = values.some((v) => v < STAFF_PIVOT);
+  return hasTreble && hasBass ? "grand" : hasBass ? "bass" : "treble";
+};
+
 /** Get the intrinsic scale of a `PatternMidiStream` */
 export const getMidiStreamScale = (
   stream: MidiScale | PatternMidiStream
@@ -109,9 +129,9 @@ export const getMidiStreamScale = (
     ? flattenMidiStreamNotes(stream)
     : stream;
   const scale = flatValues.map(getMidiNoteValue).sort((a, b) => a - b);
-  let notes = [scale[0]];
+  const notes = [scale[0]];
+  const root = notes[0];
   for (let i = 1; i < scale.length; i++) {
-    const root = notes[0];
     let note = scale[i];
     if (root % 12 === note % 12) {
       continue;

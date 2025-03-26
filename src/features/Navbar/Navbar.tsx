@@ -1,36 +1,21 @@
-import classNames from "classnames";
 import { NavbarBrand } from "./components/NavbarBrand";
-import { View } from "pages/main";
-import { usePlaygroundHotkeys } from "features/Playground/hooks/usePlaygroundHotkeys";
-import { useTimelineHotkeys } from "features/Timeline/hooks/useTimelineHotkeys";
 import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { useState, useEffect } from "react";
 import { NavbarHomeContent } from "./NavbarHomeContent";
 import { NavbarPlaygroundContent } from "./NavbarPlaygroundContent";
+import { useRouterPath } from "router";
 
-export type NavbarProps = { view: View };
-
-export function Navbar(props: NavbarProps) {
+export function Navbar() {
   return (
-    <div
-      id="navbar"
-      className={classNames(
-        "absolute inset-0 h-nav px-3 z-[100]",
-        "flex flex-nowrap shrink-0 items-center",
-        "bg-slate-900 border-b-0.5 border-b-slate-700 shadow-xl",
-        "transition-all animate-in fade-in font-nunito text-2xl"
-      )}
-    >
+    <div className="absolute flex flex-nowrap shrink-0 items-center inset-0 bg-slate-900 border-b-0.5 border-b-slate-700 shadow-xl h-nav px-3 z-[100] transition-all animate-in fade-in font-nunito text-2xl">
       <NavbarBrand />
-      <NavbarContent {...props} />
+      <NavbarContent />
     </div>
   );
 }
 
-function NavbarContent(props: NavbarProps) {
-  const { view } = props;
-  usePlaygroundHotkeys();
-  useTimelineHotkeys();
+function NavbarContent() {
+  const view = useRouterPath();
 
   // Listen for the playground to load
   const [didLoad, setDidLoad] = useState(false);
@@ -48,7 +33,5 @@ function NavbarContent(props: NavbarProps) {
   if (shouldLoadPlayground) return <NavbarPlaygroundContent />;
 
   // Otherwise, render the default content
-  return (
-    <NavbarHomeContent view={view} isLoadingPlayground={isLoadingPlayground} />
-  );
+  return <NavbarHomeContent isLoadingPlayground={isLoadingPlayground} />;
 }

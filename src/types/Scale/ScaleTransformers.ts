@@ -4,17 +4,15 @@ import { getMidiNoteValue } from "utils/midi";
 import {
   isMidiObject,
   ScaleNote,
-  isNestedNote,
   Scale,
   ScaleArray,
   ScaleVectorId,
-  ScaleVector,
-  isScaleArray,
   isMidiNote,
+  isNestedNote,
 } from "./ScaleTypes";
 import { MidiNote } from "utils/midi";
 import { sumVectors } from "utils/vector";
-import { isArray, isNumber, isObject } from "lodash";
+import { isArray, isNumber } from "lodash";
 
 // ------------------------------------------------------------
 // Get Transformed Scale Notes
@@ -27,12 +25,11 @@ export const getTransposedMidiNote = (
 ): MidiNote => {
   if (!offsets.length) return note;
   const sum = offsets
-    .flat()
     .filter((n) => n !== undefined)
     .reduce((acc, cur) => acc + cur, 0);
   const value = getMidiNoteValue(note);
-  const midi = value + sum;
-  return isMidiObject(note) ? { ...note, MIDI: midi } : midi;
+  const MIDI = value + sum;
+  return isMidiObject(note) ? { ...note, MIDI } : MIDI;
 };
 
 /** If the `ScaleNote` is a `MidiNote`, sum the note with the steps.
@@ -42,13 +39,8 @@ export const getTransposedScaleNote = (
   steps = 0,
   id = "chromatic"
 ): ScaleNote => {
-  if (steps === 0) return note;
-  if (!isObject(note) || !("degree" in note)) {
-    return getTransposedMidiNote(note, steps);
-  }
-  const vector: ScaleVector = { [id]: steps };
-  const offset = sumVectors(note.offset, vector);
-  return { ...note, offset };
+  if (isMidiNote(note)) return getTransposedMidiNote(note, steps);
+  return { ...note, offset: sumVectors(note.offset, { [id]: steps }) };
 };
 
 // ------------------------------------------------------------
@@ -60,7 +52,7 @@ export const getNewScale = <T extends Scale>(
   scale: T,
   notes: ScaleArray
 ): T => {
-  if (isScaleArray(scale)) return notes as T;
+  if (isArray(scale)) return [...notes] as T;
   return { ...scale, notes };
 };
 
@@ -82,16 +74,6 @@ export const getRotatedScale = <T extends Scale>(scale: T, steps = 0) => {
   const notes = getScaleNotes(scale);
   const modulus = notes.length;
   const newNotes: ScaleArray = [];
-
-  // return getNewScale(
-  //   scale,
-  //   notes.map((n, i) => {
-  //     const summedIndex = i + steps;
-  //     const moddedIndex = mod(summedIndex, modulus);
-  //     const wrap = Math.floor(summedIndex / modulus);
-  //     return getTransposedScaleNote(notes[moddedIndex], wrap * 12);
-  //   })
-  // );
 
   // Iterate through each note
   for (let i = 0; i < notes.length; i++) {
@@ -141,16 +123,17 @@ export const transposeNoteThroughScale = (
   const newOctave = Math.floor(newDegree / modulus);
 
   // If the parent note is a MIDI note, add all displacements and return
-  if (isNumber(parentNote) || !("degree" in parentNote)) {
+  if (isNumber(parentNote) || !isNestedNote(parentNote)) {
     const T = offset?.chromatic ?? 0;
     const O = offset?.octave ?? 0;
     return getTransposedMidiNote(parentNote, T, O * 12, newOctave * 12);
   }
 
   // If the parent note is a NestedNote, sum the parent + child + octave offsets
-  const childOffset = note.offset;
-  const parentOffset = parentNote.offset;
-  const octaveOffset = newOctave ? { octave: newOctave } : undefined;
+  const childOffset = { ...(offset ?? {}) };
+  if (shouldOffset && degreeOffset) delete childOffset[scale.id];
+  const parentOffset = parentNote.offset ?? {};
+  const octaveOffset = newOctave ? { octave: newOctave } : {};
   const newOffset = sumVectors(childOffset, parentOffset, octaveOffset);
   return { ...parentNote, offset: newOffset };
 };
@@ -161,11 +144,9 @@ export const transposeNoteThroughScales = (
   scales: Scale[]
 ): ScaleNote => {
   const scaleCount = scales.length;
-  if (!scaleCount) return note;
   let chainedNote = note;
   for (let i = scaleCount - 1; i >= 0; i--) {
-    const scale = scales[i];
-    chainedNote = transposeNoteThroughScale(chainedNote, scale);
+    chainedNote = transposeNoteThroughScale(chainedNote, scales[i]);
   }
   return chainedNote;
 };

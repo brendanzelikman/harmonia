@@ -1,66 +1,15 @@
-import { SecureRoute } from "components/Route";
 import { LandingPage } from "pages/landing";
 import { MainPage } from "pages/main";
-import { createHashRouter } from "react-router-dom";
+import { createHashRouter, useLocation } from "react-router-dom";
 
 export const AppRouter = createHashRouter([
-  {
-    path: "/",
-    element: <SecureRoute component={<LandingPage action="idle" />} />,
-    errorElement: <LandingPage action="idle" />,
-  },
-  {
-    path: "/login",
-    element: <SecureRoute component={<LandingPage action="login" />} />,
-    errorElement: <LandingPage action="idle" />,
-  },
-  {
-    path: "/magic-link",
-    element: <SecureRoute component={<LandingPage action="magic-link" />} />,
-    errorElement: <LandingPage action="idle" />,
-  },
-  {
-    path: "/magic-electron",
-    element: (
-      <SecureRoute component={<LandingPage action="magic-electron" />} />
-    ),
-    errorElement: <LandingPage action="idle" />,
-  },
-  {
-    path: "/projects",
-    element: <SecureRoute private component={<MainPage view="projects" />} />,
-  },
-  {
-    path: "/demos",
-    element: <SecureRoute private component={<MainPage view="demos" />} />,
-  },
-  {
-    path: "/playground",
-    element: <SecureRoute private component={<MainPage view="playground" />} />,
-    errorElement: <MainPage view="playground" />,
-  },
-  {
-    path: "/profile",
-    element: <SecureRoute private component={<MainPage view="profile" />} />,
-  },
-  {
-    path: "/docs",
-    element: <SecureRoute private component={<MainPage view="docs" />} />,
-  },
-  {
-    path: "/docs/types/:topic",
-    element: <SecureRoute private component={<MainPage view="docs" />} />,
-  },
-  {
-    path: "/docs/interfaces/:topic",
-    element: <SecureRoute private component={<MainPage view="docs" />} />,
-  },
-  {
-    path: "/docs/workflow/:topic",
-    element: <SecureRoute private component={<MainPage view="docs" />} />,
-  },
-  {
-    path: "/docs/techniques/:topic",
-    element: <SecureRoute private component={<MainPage view="docs" />} />,
-  },
+  { path: "/", element: <LandingPage /> },
+  { path: "/projects", element: <MainPage /> },
+  { path: "/demos", element: <MainPage /> },
+  { path: "/playground", element: <MainPage /> },
 ]);
+
+export const useRouterPath = () => {
+  const location = useLocation();
+  return location.pathname.slice(1);
+};

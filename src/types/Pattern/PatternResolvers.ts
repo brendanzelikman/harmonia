@@ -1,15 +1,13 @@
 import { isVoiceLeading, PoseOperation } from "types/Pose/PoseTypes";
 import { getScaleNoteMidiValue } from "types/Scale/ScaleFunctions";
 import { ScaleChain, ScaleId, isMidiNote } from "types/Scale/ScaleTypes";
-import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
-import { getPatternChordWithNewNotes } from "./PatternUtils";
+import { getPatternChordNotes } from "./PatternUtils";
 import {
   transposeStream,
   rotateStream,
   TRANSFORMATIONS,
 } from "./PatternTransformers";
 import {
-  PatternMidiChord,
   PatternBlock,
   PatternMidiBlock,
   PatternStream,
@@ -37,6 +35,8 @@ export const resolvePatternBlockToMidi = <T extends PatternBlock>(
 ): PatternMidiBlock => {
   if (isPatternRest(block)) return block;
   const notes = getPatternChordNotes(block);
+
+  // Pre-compute the index of each scale in the chain
   const indexMap = (scales ?? []).reduce((acc, cur, i) => {
     return { ...acc, [cur.id]: i };
   }, {} as Record<ScaleId, number>);
@@ -61,10 +61,6 @@ export const resolvePatternBlockToMidi = <T extends PatternBlock>(
     const MIDI = resolvePatternNoteToMidi(note, parentScales);
     return { ...defaultNote, MIDI };
   });
-
-  // const chord = getPatternChordWithNewNotes(block, newChord);
-  // const midiChord = chord as PatternMidiChord;
-  // return getPatternMidiChordNotes(midiChord);
 };
 
 /** Resolve a `PatternStream` to MIDI using a `ScaleChain` and `PoseVector` */
@@ -80,21 +76,21 @@ export const resolvePatternStreamToMidi = (
   if (transformations) {
     for (const transformation of transformations) {
       // Apply the chromatic offset
-      const N = transformation.vector?.chromatic;
-      if (N) {
-        midiStream = transposeStream(midiStream, N);
+      const chromatic = transformation.vector?.chromatic;
+      if (chromatic) {
+        midiStream = transposeStream(midiStream, chromatic);
       }
 
       // Apply the chordal offset
-      const t = transformation.vector?.chordal;
-      if (t) {
-        midiStream = rotateStream(midiStream, t);
+      const chordal = transformation.vector?.chordal;
+      if (chordal) {
+        midiStream = rotateStream(midiStream, chordal);
       }
 
       // Apply the octave offset
-      const O = transformation.vector?.octave;
-      if (O) {
-        midiStream = transposeStream(midiStream, 12 * O);
+      const octave = transformation.vector?.octave;
+      if (octave) {
+        midiStream = transposeStream(midiStream, 12 * octave);
       }
 
       // Apply any voice leadings

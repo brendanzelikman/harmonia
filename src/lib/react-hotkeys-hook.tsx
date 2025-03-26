@@ -1,19 +1,15 @@
-import { capitalize, isArray, isObject, noop, omit, toUpper } from "lodash";
+import { capitalize, omit } from "lodash";
 import { useCallback, useMemo, useState } from "react";
 import { Keys, useHotkeys } from "react-hotkeys-hook";
-import {
-  HotkeyCallback,
-  OptionsOrDependencyArray,
-} from "react-hotkeys-hook/dist/types";
-import { useDiary } from "types/Diary/DiaryTypes";
-import { selectIsEditorOpen } from "types/Editor/EditorSelectors";
-import { use } from "types/hooks";
+import { OptionsOrDependencyArray } from "react-hotkeys-hook/dist/types";
+import { useProjectDispatch } from "types/hooks";
+import { Thunk } from "types/Project/ProjectTypes";
 import { isHoldingShift, isPressingLetter } from "utils/html";
 
 // A hotkey can be accompanied by a name and description for documentation
 export type Hotkey = {
   shortcut: string;
-  callback: HotkeyCallback;
+  callback: () => void;
   name?: string;
   description?: string;
 };
@@ -45,79 +41,16 @@ export const formatShortcut = (shortcut: string) => {
 // Scoped Hotkeys
 // ------------------------------------------------------------
 
-export const SCOPES = ["playground", "timeline", "editor", "diary"] as const;
+export const SCOPES = ["playground", "timeline", "diary"] as const;
 export type Scope = (typeof SCOPES)[number];
 export type ScopeMap = Record<Scope, boolean>;
 
-export type HotkeyFunction = (
-  keys: Keys | Hotkey,
-  callback?: HotkeyCallback,
-  options?: OptionsOrDependencyArray,
-  dependencies?: OptionsOrDependencyArray
-) => void;
-
-/** A custom hook that uses a specific scope and overrides the default hotkey behavior. */
-export const useScopedHotkeys =
-  (scope: Scope): HotkeyFunction =>
-  (keys, callback, options, dependencies) => {
-    const diary = useDiary();
-    const isHotkey = !!(isObject(keys) && "callback" in keys);
-    const isEditorOpen = use(selectIsEditorOpen);
-    const isDiaryOpen = diary.isOpen;
-
-    // Use the callback if in scope, otherwise use a no-op
-    const hotkeyShortcut = !!isHotkey ? keys.shortcut : keys;
-
-    // Check if the current scope is in the correct state
-    const isInScope = useMemo(() => {
-      if (scope === "editor") return isEditorOpen;
-      if (scope === "diary") return isDiaryOpen;
-      if (scope === "timeline") return !isEditorOpen && !isDiaryOpen;
-      return true;
-    }, [isEditorOpen, isDiaryOpen]);
-
-    // Create a callback that only fires when the scope is correct
-    const hotkeyCallback = useCallback(() => {
-      if (!isInScope) return;
-      const cb = callback ?? (isHotkey ? keys.callback : noop);
-      cb();
-    }, [isInScope, callback, keys]);
-
-    // Prevent the default behavior for all hotkeys
-    const hotkeyOptions = useMemo(
-      () => ({
-        ...(isObject(options) && !("length" in options) ? options : {}),
-        preventDefault: true,
-      }),
-      [options]
-    );
-
-    // Use the dependencies if they are provided, otherwise use the options
-    const hotkeyDependencies = useMemo(
-      () => [
-        ...(isArray(options)
-          ? options
-          : isArray(dependencies)
-          ? dependencies
-          : []),
-        hotkeyCallback,
-      ],
-      [options, dependencies, hotkeyCallback]
-    );
-
-    // Use the original hook
-    return useHotkeys(
-      hotkeyShortcut,
-      hotkeyCallback,
-      hotkeyOptions,
-      hotkeyDependencies
-    );
-  };
-
-export const useHotkeysInEditor = useScopedHotkeys("editor");
-export const useHotkeysInTimeline = useScopedHotkeys("timeline");
-export const useHotkeysInDiary = useScopedHotkeys("diary");
-export const useHotkeysGlobally = useScopedHotkeys("playground");
+export const useDispatchedHotkey = (keys: Thunk<Hotkey>) => {
+  const dispatch = useProjectDispatch();
+  const hotkey = useMemo(() => dispatch(keys), []);
+  const callback = useCallback(hotkey.callback, [hotkey]);
+  useHotkeys(hotkey.shortcut, callback, [callback], { preventDefault: true });
+};
 
 // ------------------------------------------------------------
 // Held Hotkeys

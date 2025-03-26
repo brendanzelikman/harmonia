@@ -1,6 +1,7 @@
 import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import classNames from "classnames";
-import { ReactNode, useEffect, useState } from "react";
+import { Hotkey } from "lib/react-hotkeys-hook";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { use } from "types/hooks";
 import { selectHideTooltips } from "types/Meta/MetaSelectors";
 import { cancelEvent } from "utils/html";
@@ -8,6 +9,7 @@ import { cancelEvent } from "utils/html";
 interface TooltipButtonProps {
   className?: string;
   cursorClass?: string;
+  borderWidth?: string;
   borderColor?: string;
   backgroundColor?: string;
   children: any;
@@ -15,15 +17,21 @@ interface TooltipButtonProps {
   onMouseEnter?: (e: React.MouseEvent<Element, MouseEvent>) => void;
   onMouseLeave?: (e: React.MouseEvent<Element, MouseEvent>) => void;
   active?: boolean;
+  activeLabel?: ReactNode;
+  freezeInside?: boolean;
   label?: ReactNode;
+  hotkey?: Hotkey;
   disabled?: boolean;
   disabledClass?: string;
   direction?: "vertical" | "horizontal";
   marginTop?: number;
   marginLeft?: number;
   width?: number;
+  passiveWidth?: number;
   keepTooltipOnClick?: boolean;
   hideRing?: boolean;
+  hideTooltip?: boolean;
+  rounding?: string;
   options?: { onClick: () => void; label: string }[];
   notRounded?: boolean;
   notClickable?: boolean;
@@ -73,13 +81,17 @@ export const TooltipButton = ({
   className,
   children,
   cursorClass,
+  borderWidth,
   borderColor,
   backgroundColor,
   onClick,
   onMouseEnter: _onMouseEnter,
   onMouseLeave: _onMouseLeave,
   active,
+  activeLabel,
+  freezeInside,
   label,
+  hotkey,
   disabled,
   disabledClass,
   keepTooltipOnClick,
@@ -87,24 +99,28 @@ export const TooltipButton = ({
   marginTop,
   marginLeft,
   width,
+  passiveWidth,
+  rounding,
   hideRing,
   options,
   notClickable,
   normalCase,
+  hideTooltip: _hideTooltip,
 }: TooltipButtonProps) => {
   const hideTooltips = use(selectHideTooltips);
-  const canShowTooltip = !hideTooltips && !!label && !disabled;
+  const canShowTooltip = !hideTooltips && (label || hotkey) && !disabled;
 
   const [shouldShowTooltip, setShouldShowTooltip] = useState(canShowTooltip);
   const showTooltip = () => setShouldShowTooltip(canShowTooltip);
   const hideTooltip = () => setShouldShowTooltip(false);
   useEffect(() => {
-    if (hideTooltips || disabled) hideTooltip();
-    else if (!disabled) showTooltip();
-  }, [hideTooltips, disabled]);
+    if (hideTooltips || disabled || _hideTooltip) hideTooltip();
+    else if (!disabled && !_hideTooltip) showTooltip();
+  }, [hideTooltips, disabled, _hideTooltip]);
 
   // Store positioning to properly align tooltip
-  const [overshootsLeft, setOvershootsLeft] = useState(false);
+  const [isIn, setIsIn] = useState(false);
+  const [overshootsLeft, setOvershootsLeft] = useState(true);
   const [overshootsRight, setOvershootsRight] = useState(false);
   const [shouldLeftAlign, setShouldLeftAlign] = useState(false);
 
@@ -119,14 +135,17 @@ export const TooltipButton = ({
 
   // Update positioning when moused over
   const onMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
-    setOvershootsLeft(event.clientX - 320 < 0);
-    setOvershootsRight(event.clientX + 320 > window.innerWidth);
-    setShouldLeftAlign(event.clientX < window.innerWidth - 320);
+    const padding = 300;
+    setIsIn(true);
+    setOvershootsLeft(event.clientX - padding < 0);
+    setOvershootsRight(event.clientX + padding > window.innerWidth);
+    setShouldLeftAlign(event.clientX < window.innerWidth - padding);
     _onMouseEnter?.(event);
   };
 
   // Determine if the tooltip should be displayed
   const onMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
+    setIsIn(false);
     showTooltip();
     _onMouseLeave?.(event);
   };
@@ -143,7 +162,7 @@ export const TooltipButton = ({
             ? ""
             : "cursor-pointer active:opacity-60"),
         className,
-        active ? "ring-2 ring-slate-50/80" : "",
+        active && !hideRing ? "ring-2 ring-slate-50/80" : "",
         {
           "duration-200 transition-all group-hover:ring-2 hover:ring-slate-50/80":
             shouldShowTooltip && !hideRing,
@@ -162,23 +181,61 @@ export const TooltipButton = ({
     </div>
   );
 
-  // The label displays the tooltip below the button
+  const [shown, setShown] = useState(activeLabel);
+  const timerRef = useRef<NodeJS.Timeout>();
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (freezeInside) {
+      setShown(!isIn ? activeLabel : null);
+      return;
+    }
+    if (active) {
+      setShown(activeLabel);
+    } else {
+      if (isIn) {
+        setShown(null);
+        return;
+      } else {
+        timerRef.current = setTimeout(() => {
+          setShown(null);
+        }, 300);
+      }
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [active, activeLabel, freezeInside, isIn]);
+
   const Label = (
     <div
-      style={{ marginTop, marginLeft, width }}
+      style={{
+        marginTop,
+        marginLeft,
+        width: isIn ? width : passiveWidth ?? width,
+      }}
       className={classNames(
         alignment,
         "select-none pointer-events-none",
         active ? "opacity-100" : "opacity-0",
-        "transition-opacity group-hover:opacity-100 duration-200",
-        "absolute p-3 py-1 w-max max-w-96 shrink-0 rounded-lg",
-        direction === "vertical" ? "top-12" : "ml-10",
+        isIn ? "transition-opacity" : "transition-all",
+        "group-hover:opacity-100 duration-200",
+        rounding ?? "rounded-lg",
+        "absolute p-3 py-1 w-max shrink-0",
+        direction === "vertical" ? "top-12" : "-ml-12 -top-9",
+        borderWidth ?? "border",
         borderColor ?? "border-indigo-400/90",
         backgroundColor ?? "bg-zinc-900",
-        "border rounded text-sm z-[999]"
+        "text-sm z-[999]"
       )}
     >
-      {label}
+      {shown ?? label ?? (
+        <>
+          {hotkey?.name}{" "}
+          <span className="font-light text-slate-400">
+            ({hotkey?.shortcut})
+          </span>
+        </>
+      )}
     </div>
   );
 

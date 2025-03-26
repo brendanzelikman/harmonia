@@ -13,18 +13,6 @@ export const transportSlice = createSlice({
   name: "transport",
   initialState: defaultTransport,
   reducers: {
-    /** (PRIVATE) Set the transport state to started. */
-    _startTransport: (state) => {
-      state.state = "started";
-    },
-    /** (PRIVATE) Set the transport state to stopped. */
-    _stopTransport: (state) => {
-      state.state = "stopped";
-    },
-    /** (PRIVATE) Set the transport state to paused. */
-    _pauseTransport: (state) => {
-      state.state = "paused";
-    },
     /** (PRIVATE) Set the transport loop to the given boolean. */
     _loopTransport: (state, action: PayloadAction<boolean>) => {
       state.loop = action.payload;
@@ -67,9 +55,6 @@ export const transportSlice = createSlice({
 });
 
 export const {
-  _startTransport,
-  _stopTransport,
-  _pauseTransport,
   _loopTransport,
   _setLoopStart,
   _setLoopEnd,
@@ -82,9 +67,6 @@ export const {
 } = transportSlice.actions;
 
 export const privateTransportActions = [
-  "transport/_startTransport",
-  "transport/_stopTransport",
-  "transport/_pauseTransport",
   "transport/_loopTransport",
   "transport/_setLoopStart",
   "transport/_setLoopEnd",

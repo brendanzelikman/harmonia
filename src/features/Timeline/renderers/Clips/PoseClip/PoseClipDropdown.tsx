@@ -1,30 +1,19 @@
 import { PoseClip } from "types/Clip/ClipTypes";
-import { use, useProjectDispatch } from "types/hooks";
-import {
-  selectCellHeight,
-  selectIsClipLive,
-  selectIsClipSelected,
-} from "types/Timeline/TimelineSelectors";
+import { useDeep } from "types/hooks";
+import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { POSE_HEIGHT } from "utils/constants";
 import { cancelEvent } from "utils/html";
 import { PoseClipVector } from "./PoseClipVector";
 import classNames from "classnames";
-import { PoseClipStream } from "./PoseClipStream";
 import { PoseClipComponentProps } from "./usePoseClipRenderer";
 
 export interface PoseClipDropdownEffectProps extends PoseClipComponentProps {
   clip: PoseClip;
-  index: number;
 }
 
 export const PoseClipDropdown = (props: PoseClipDropdownEffectProps) => {
-  const { clip, block, index, setIndex } = props;
-  const { depths, setDepths, field, setField } = props;
-  const cellHeight = use(selectCellHeight);
-  const isSelected = use((_) => selectIsClipSelected(_, clip.id));
-  const isLive = use((_) => selectIsClipLive(_, clip.id));
-
-  if (!clip.isOpen) return null;
+  const { clip, block } = props;
+  const cellHeight = useDeep(selectCellHeight);
   return (
     <div
       style={{ top: POSE_HEIGHT, height: cellHeight - POSE_HEIGHT + 1 }}
@@ -33,61 +22,7 @@ export const PoseClipDropdown = (props: PoseClipDropdownEffectProps) => {
       draggable
       onDragStart={cancelEvent}
     >
-      {/* <div className="flex flex-col total-center *:total-center *:size-full *:flex-1 px-2 py-1 *:min-w-fit min-w-max *:px-1 *:bg-slate-800 *:border *:rounded gap-1">
-        <div
-          data-field={field}
-          data-disabled={!block && !depths.length}
-          className="data-[disabled=true]:opacity-50 data-[field=vector]:data-[disabled=false]:border-fuchsia-400 border-slate-600 data-[disabled=false]:cursor-pointer text-slate-200 text-center font-bold active:opacity-75"
-          onClick={() => {
-            if ("stream" in block && !block.vector) {
-              dispatch(
-                updatePoseBlock({
-                  id: props.clip.poseId,
-                  index,
-                  depths: props.depths,
-                  block: { ...block, vector: {} },
-                })
-              );
-            } else if (!block.vector) {
-              dispatch(
-                updatePose({ data: { id: props.clip.poseId, vector: {} } })
-              );
-            }
-            setField("vector");
-          }}
-        >
-          Vector
-        </div>
-        <div
-          data-field={field}
-          className="data-[field=stream]:border-fuchsia-400 border-slate-600 cursor-pointer text-slate-200 relative flex total-center text-center font-bold"
-          onClick={() => setField("stream")}
-        >
-          Stream
-        </div>
-      </div> */}
-      {field === "vector" && (
-        <PoseClipVector
-          {...props}
-          index={index}
-          clip={clip}
-          block={block}
-          isActive={isLive && isSelected}
-          depths={depths}
-        />
-      )}
-      {field === "stream" && (
-        <PoseClipStream
-          {...props}
-          block={block}
-          index={index}
-          setIndex={setIndex}
-          depths={depths}
-          setDepths={setDepths}
-          field={field}
-          setField={setField}
-        />
-      )}
+      <PoseClipVector {...props} clip={clip} block={block} />
     </div>
   );
 };

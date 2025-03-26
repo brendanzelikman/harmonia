@@ -1,24 +1,5 @@
-import { Transition } from "@headlessui/react";
 import classNames from "classnames";
 import { omit } from "lodash";
-
-export const NavbarTooltip = (props: any) => (
-  <Transition
-    as="div"
-    show={!!props.show}
-    className={`absolute top-[3rem] p-1 px-3 font-bold font-nunito text-sm rounded border border-slate-50/50 whitespace-nowrap backdrop-blur-lg ${
-      props.className ?? ""
-    }`}
-    enter="transition-all ease-out duration-75"
-    enterFrom="transform opacity-0 scale-50"
-    enterTo="transform opacity-100 scale-100"
-    leave="transition-all ease-in duration-75"
-    leaveFrom="transform opacity-100 scale-100"
-    leaveTo="transform opacity-0 scale-75"
-  >
-    {props.content}
-  </Transition>
-);
 
 interface NavbarHoverTooltipProps extends React.HTMLProps<HTMLDivElement> {
   padding?: string;
@@ -26,6 +7,7 @@ interface NavbarHoverTooltipProps extends React.HTMLProps<HTMLDivElement> {
   bgColor?: string;
   borderColor?: string;
   group?: string;
+  rounded?: string;
 }
 
 const defaultHoverTooltipProps: NavbarHoverTooltipProps = {
@@ -34,9 +16,11 @@ const defaultHoverTooltipProps: NavbarHoverTooltipProps = {
   padding: "py-2 px-3",
   bgColor: "bg-slate-900",
   borderColor: "border-slate-500",
+  rounded: "rounded",
 };
 
 export const NavbarHoverTooltip = (props: NavbarHoverTooltipProps) => {
+  const rounded = props.rounded ?? defaultHoverTooltipProps.rounded;
   const padding = props.padding ?? defaultHoverTooltipProps.padding;
   const bgColor = props.bgColor ?? defaultHoverTooltipProps.bgColor;
   const borderColor = props.borderColor ?? defaultHoverTooltipProps.borderColor;
@@ -49,12 +33,13 @@ export const NavbarHoverTooltip = (props: NavbarHoverTooltipProps) => {
         props.className,
         group,
         top,
-        "absolute font-normal text-sm hidden animate-in fade-in"
+        "absolute font-normal text-sm hidden animate-in fade-in select-none"
       )}
     >
       <div
         className={classNames(
-          `size-full relative mt-4 rounded border`,
+          `size-full relative mt-4 border`,
+          rounded,
           padding,
           bgColor,
           borderColor

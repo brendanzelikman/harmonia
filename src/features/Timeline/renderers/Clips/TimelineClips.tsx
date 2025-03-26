@@ -1,42 +1,22 @@
 import { createPortal } from "react-dom";
 
-import { use, useDeep } from "types/hooks";
+import { useDeep } from "types/hooks";
 import { PatternClipRenderer } from "./PatternClip/usePatternClipRenderer";
 import { useCallback, useMemo, useState } from "react";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import {
-  IPortaledClipId,
-  PatternClipId,
-  PortaledPoseClipId,
-  PortaledScaleClipId,
-  PoseClipId,
-  ScaleClipId,
+  isPatternClipId,
   isPortaledPatternClipId,
   isPortaledPoseClipId,
-  isPortaledScaleClipId,
+  isPoseClipId,
 } from "types/Clip/ClipTypes";
 import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 
-import {
-  selectCellWidth,
-  selectIsAddingClips,
-  selectIsAddingPortals,
-  selectIsSlicingClips,
-  selectSubdivision,
-  selectTimelineType,
-} from "types/Timeline/TimelineSelectors";
-import classNames from "classnames";
-import {
-  selectPortaledClipIds,
-  selectPortaledClipIdTickMap,
-} from "types/Arrangement/ArrangementSelectors";
-import { ScaleClipRenderer } from "./ScaleClip/useScaleClipRenderer";
+import { selectPortaledClipIds } from "types/Arrangement/ArrangementSelectors";
+import { selectPortaledClipBoundMap } from "types/Arrangement/ArrangementClipSelectors";
 import { PoseClipRenderer } from "./PoseClip/usePoseClipRenderer";
 import { useCustomEventListener } from "hooks/useCustomEventListener";
-import { getTickColumns } from "utils/durations";
-import { TRACK_WIDTH } from "utils/constants";
-import { useDragState } from "types/Media/MediaTypes";
 import { PortaledClipId } from "types/Portal/PortalTypes";
+import classNames from "classnames";
 
 export interface TimelineClipsProps {
   element?: HTMLDivElement;
@@ -44,161 +24,68 @@ export interface TimelineClipsProps {
 
 export function TimelineClips(props: TimelineClipsProps) {
   const element = props.element;
-  const _portaledClipIds = useDeep(selectPortaledClipIds);
-  const portaledClipIds = useMemo(
-    () => _portaledClipIds.sort((a) => (a.startsWith("pattern") ? 1 : -1)),
-    [_portaledClipIds]
-  );
-  const clipTickMap = useDeep(selectPortaledClipIdTickMap);
-  const holding = useHeldHotkeys("i");
-  const holdingI = holding.i;
-  const isSlicing = use(selectIsSlicingClips);
-  const isPortaling = use(selectIsAddingPortals);
-  const isAdding = use(selectIsAddingClips);
-  const type = use(selectTimelineType);
-  const subdivision = use(selectSubdivision);
-  const cellWidth = use(selectCellWidth);
-  const dragState = useDragState();
+  const portaledClipIds = useDeep(selectPortaledClipIds);
+  const boundaries = useDeep(selectPortaledClipBoundMap);
 
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [scrollRight, setScrollRight] = useState(window.innerWidth);
-  const onScrollLeft = useCallback(
-    (e: CustomEvent<any>) => setScrollLeft(e.detail),
-    []
-  );
-  const onScrollRight = useCallback(
-    (e: CustomEvent<any>) => setScrollRight(e.detail),
-    []
-  );
-  useCustomEventListener("scrollLeft", onScrollLeft);
-  useCustomEventListener("scrollRight", onScrollRight);
-  const startDraggingPatternClip = useCallback(
-    () => dragState.set("draggingPatternClip", true),
-    []
-  );
-  const endDraggingPatternClip = useCallback(
-    () => dragState.set("draggingPatternClip", false),
-    []
-  );
-  const startDraggingPoseClip = useCallback(
-    () => dragState.set("draggingPoseClip", true),
-    []
-  );
-  const endDraggingPoseClip = useCallback(
-    () => dragState.set("draggingPoseClip", false),
-    []
-  );
+  // Virtualize clips using scroll position
+  const [{ scrollLeft, scrollRight }, setBounds] = useState({
+    scrollLeft: element?.scrollLeft ?? 0,
+    scrollRight: (element?.scrollLeft ?? 0) + window.innerWidth,
+  });
+  useCustomEventListener("scroll", (e) => setBounds(e.detail));
+
+  // Blur clips if they are dragged
+  const [isDragging, setIsDragging] = useState(false);
+  useCustomEventListener("dragClip", (e) => setIsDragging(e.detail));
 
   const renderPortaledClipId = useCallback(
     (pcId: PortaledClipId) => {
-      const baseProps = {
-        isSlicing,
-        isPortaling,
-        holdingI,
-        className: classNames("group absolute", {
-          "cursor-eyedropper hover:ring hover:ring-orange-300/25 active:opacity-80":
-            holdingI,
-        }),
-      };
+      // Check that the clip is within scroll bounds
+      const { left, right } = boundaries[pcId];
+      const padding = 500;
+      if (scrollLeft > right + padding) return null;
+      if (scrollRight < left - padding) return null;
 
+      // Get the base props for all clips
       const id = getOriginalIdFromPortaledClip(pcId);
-      const doesOverlap = isPortaledPatternClipId(id);
 
-      const tick = clipTickMap[pcId]?.tick;
-      const duration = clipTickMap[pcId]?.duration;
-      const left = TRACK_WIDTH + getTickColumns(tick, subdivision) * cellWidth;
-      const width = (getTickColumns(duration, subdivision) || 1) * cellWidth;
-      if (scrollLeft > left + width) return null;
-      if (scrollRight < left) return null;
+      const className = classNames(
+        "group absolute flex flex-col border-2 border-b-0 rounded-lg rounded-b-none",
+        "data-[blur=true]:opacity-50 data-[blur=true]:pointer-events-none",
+        "data-[open=true]:min-w-min data-[open=true]:max-w-lg data-[open=false]:data-[type=pattern]:z-[30] data-[open=true]:data-[type=pattern]:z-40",
+        "data-[open=true]:data-[type=pose]:z-[39] data-[open=false]:data-[type=pose]:z-[29] data-[type=pose]:bg-fuchsia-500 data-[type=scale]:bg-blue-500",
+        "data-[selected=true]:border-slate-100 data-[selected=false]:data-[type=pattern]:border-teal-500/50 data-[selected=false]:data-[type=pose]:border-fuchsia-300/50 data-[selected=false]:data-[type=scale]:border-blue-500"
+      );
+      const props = { isDragging, className };
 
       // Render pattern clips
-      if (isPortaledPatternClipId(pcId)) {
+      if (isPatternClipId(id) && isPortaledPatternClipId(pcId)) {
         return (
-          <PatternClipRenderer
-            {...baseProps}
-            key={pcId}
-            id={id as PatternClipId}
-            pcId={pcId}
-            doesOverlap={doesOverlap}
-            subdivision={subdivision}
-            cellWidth={cellWidth}
-            isAdding={isAdding && type === "pattern"}
-            isDraggingAny={dragState.any}
-            isDraggingOther={dragState.any && !dragState.draggingPatternClip}
-            startDrag={startDraggingPatternClip}
-            endDrag={endDraggingPatternClip}
-          />
+          <PatternClipRenderer {...props} key={pcId} pcId={pcId} id={id} />
         );
       }
 
       // Render pose clips
-      if (isPortaledPoseClipId(pcId)) {
-        return (
-          <PoseClipRenderer
-            {...baseProps}
-            key={pcId}
-            id={id as PoseClipId}
-            isAdding={isAdding && type === "pose"}
-            pcId={pcId as PortaledPoseClipId}
-            isDraggingAny={dragState.any}
-            isDraggingOther={dragState.any && !dragState.draggingPoseClip}
-            startDrag={startDraggingPoseClip}
-            endDrag={endDraggingPoseClip}
-          />
-        );
+      if (isPoseClipId(id) && isPortaledPoseClipId(pcId)) {
+        return <PoseClipRenderer {...props} key={pcId} pcId={pcId} id={id} />;
       }
 
-      // Render scale clips
-      if (isPortaledScaleClipId(pcId)) {
-        return (
-          <ScaleClipRenderer
-            {...baseProps}
-            key={pcId}
-            id={id as ScaleClipId}
-            isAdding={isAdding && type === "scale"}
-            pcId={pcId as PortaledScaleClipId}
-            isDraggingAny={dragState.any}
-            isDraggingOther={dragState.any && !dragState.draggingScaleClip}
-            startDrag={() => dragState.set("draggingScaleClip", true)}
-            endDrag={() => dragState.set("draggingScaleClip", false)}
-          />
-        );
-      }
       return null;
     },
-    [
-      cellWidth,
-      isAdding,
-      type,
-      isSlicing,
-      isPortaling,
-      holdingI,
-      dragState,
-      scrollLeft,
-      scrollRight,
-      clipTickMap,
-    ]
+    [scrollLeft, scrollRight, isDragging, boundaries]
   );
 
+  // Portal the clips into the timeline element
   const children = useMemo(
     () => portaledClipIds.map((pcId) => renderPortaledClipId(pcId)),
     [portaledClipIds, renderPortaledClipId]
   );
-
-  // Portal the clips into the timeline element
   if (!element) return null;
   return createPortal(children, element);
 }
 
 // The props passed down to each clip component
 export interface ClipComponentProps {
-  isAdding: boolean;
-  isDraggingAny: boolean;
-  isDraggingOther: boolean;
-  startDrag: () => void;
-  endDrag: () => void;
-  isSlicing: boolean;
-  isPortaling: boolean;
-  holdingI: boolean;
   className: string;
+  isDragging: boolean;
 }

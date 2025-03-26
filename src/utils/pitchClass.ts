@@ -2,7 +2,7 @@ import { Key, PitchClass } from "types/units";
 import { getPitchClassNumber, MidiNote } from "./midi";
 import { getMidiDegree } from "./midi";
 import { ChromaticKey } from "assets/keys";
-import { capitalize, lowerCase } from "lodash";
+import { capitalize } from "lodash";
 
 /** A regex matching an initial pitch class and a following string. */
 export const PITCH_CLASS_REGEX = /^([a-gA-G][#b]?)(.*)$/;

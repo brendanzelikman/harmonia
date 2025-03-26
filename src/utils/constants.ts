@@ -45,11 +45,11 @@ export const DEFAULT_BEATS_PER_BAR = 4;
 export const DEFAULT_INSTRUMENT_KEY = "upright-piano";
 export const DEFAULT_VOLUME = -6;
 export const MIN_VOLUME = -60;
-export const MAX_VOLUME = 6;
+export const MAX_VOLUME = 12;
 export const VOLUME_STEP = 0.1;
-export const DEFAULT_TRANSPORT_VOLUME = -6;
+export const DEFAULT_TRANSPORT_VOLUME = 6;
 export const MIN_TRANSPORT_VOLUME = -60;
-export const MAX_TRANSPORT_VOLUME = 6;
+export const MAX_TRANSPORT_VOLUME = 12;
 
 // ------------------------------------------------------------
 // Pan Settings

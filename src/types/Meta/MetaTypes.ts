@@ -2,7 +2,7 @@ import { nanoid } from "@reduxjs/toolkit";
 import { initializeProjectDiary, ProjectDiary } from "../Diary/DiaryTypes";
 import moment from "moment";
 
-export const NEW_PROJECT_NAME = "Harmonia Project";
+export const NEW_PROJECT_NAME = "New Project";
 
 // ------------------------------------------------------------
 // Metadata Types

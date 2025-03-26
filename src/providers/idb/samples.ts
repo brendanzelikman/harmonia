@@ -4,11 +4,11 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import { Instrument, InstrumentKey } from "types/Instrument/InstrumentTypes";
-import { fetchUser } from "providers/auth";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import { createUndoType } from "lib/redux";
 import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
 import { isPatternTrack, Track, TrackId } from "types/Track/TrackTypes";
+import { getDatabase } from "./database";
 
 // Function to handle file input
 export const handleFileInput =
@@ -21,7 +21,7 @@ export const handleFileInput =
   (dispatch, getProject) => {
     return new Promise(async (resolve, reject) => {
       const undoType = undo ?? createUndoType("handleFileInput", file);
-      const { db } = await fetchUser();
+      const db = await getDatabase();
       if (!db) return reject();
 
       const audioBuffer = await fileToAudioBuffer(file);
@@ -39,11 +39,10 @@ export const handleFileInput =
             instrument: selectInstrumentById(project, _track.instrumentId),
           }
         : dispatch(
-            createPatternTrack(
-              { parentId: parentId ?? selectedTrackId },
-              undefined,
-              undoType
-            )
+            createPatternTrack({
+              data: { track: { parentId: parentId ?? selectedTrackId } },
+              undoType,
+            })
           );
       const urls = { C3: audioBuffer };
       const oldInstrument: Instrument | undefined = instrument
@@ -104,7 +103,7 @@ const objectToAudioBuffer = async (obj: any): Promise<AudioBuffer> => {
 export const getSampleFromIDB = async (
   id: string
 ): Promise<AudioBuffer | undefined> => {
-  const { db } = await fetchUser();
+  const db = await getDatabase();
   if (!db) return;
   const sample = await db.get(SAMPLE_STORE, id);
   if (!sample) return;

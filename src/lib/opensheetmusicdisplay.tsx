@@ -19,8 +19,8 @@ import { mod } from "utils/math";
 // ------------------------------------------------------------
 
 const ZOOM = 0.95;
-const MARGIN_X = 3;
-const MARGIN_Y = 2;
+const MARGIN_X = 2;
+const MARGIN_Y = 1;
 
 // ------------------------------------------------------------
 // OSMD Interfaces
@@ -32,6 +32,7 @@ export interface BaseProps {
   id?: string;
   className?: string;
   options?: IOSMDOptions;
+  zoom?: number;
   noteClasses?: string[];
   noteColor?: string;
   onNoteClick?: NoteCallback;
@@ -77,6 +78,7 @@ function formatScoreEngravingRules(score?: OSMD) {
 /** Render an XML string as a score using a list of notes. */
 export function useOSMD(props: OSMDProps): ScoreProps {
   const { id, xml, className } = props;
+  const zoom = props.zoom ?? ZOOM;
 
   // Score info
   const ref = useRef<HTMLDivElement>(null);
@@ -124,7 +126,7 @@ export function useOSMD(props: OSMDProps): ScoreProps {
     score
       .load(xml)
       .then(() => {
-        score.zoom = ZOOM;
+        score.zoom = zoom;
         score.render();
       })
       .finally(async () => {
@@ -167,6 +169,7 @@ export function useOSMD(props: OSMDProps): ScoreProps {
     id,
     xml,
     noteCount,
+    zoom,
     props.onNoteClick,
     props.noteClasses,
     props.noteColor,
@@ -212,7 +215,7 @@ function renderCursor(props: {
   const { userCursor, scoreCursor, noteCount, index } = props;
   if (!userCursor || !scoreCursor) return;
 
-  const height = Math.round(120 * ZOOM);
+  const height = 40;
   scoreCursor.cursorElement.style.height = `${height}px`;
   scoreCursor.cursorElement.style.backgroundColor = "turquoise";
   scoreCursor.cursorElement.style.opacity = "0.5";

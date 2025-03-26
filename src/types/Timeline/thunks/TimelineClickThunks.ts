@@ -1,8 +1,7 @@
 import { createUndoType, Payload, unpackUndoType } from "lib/redux";
 import { without, union, some } from "lodash";
 import { updateClip } from "types/Clip/ClipSlice";
-import { Clip } from "types/Clip/ClipTypes";
-import { showEditor } from "types/Editor/EditorThunks";
+import { Clip, initializeClip } from "types/Clip/ClipTypes";
 import {
   getMediaStartTick,
   getMediaEndTick,
@@ -14,10 +13,7 @@ import {
 import { selectPortalsByTrackIds } from "types/Portal/PortalSelectors";
 import { initializePortal, Portal } from "types/Portal/PortalTypes";
 import { Thunk } from "types/Project/ProjectTypes";
-import {
-  selectOrderedTrackIds,
-  selectTrackScale,
-} from "types/Track/TrackSelectors";
+import { selectTrackIds } from "types/Track/TrackSelectors";
 import { DivMouseEvent, isHoldingShift, isHoldingOption } from "utils/html";
 import {
   selectTimeline,
@@ -26,33 +22,32 @@ import {
   selectSelectedPortals,
   selectSelectedClips,
   selectColumnTicks,
-  selectTimelineType,
   selectIsAddingClips,
   selectIsAddingPortals,
-  selectPortalDraft,
   selectSelectedClipIdMap,
+  selectTimelineType,
+  selectPortalFragment,
 } from "../TimelineSelectors";
 import {
   updateMediaSelection,
-  updateMediaDraft,
+  updateFragment,
   setSelectedTrackId,
 } from "../TimelineSlice";
 import { selectClipsByTrackIds } from "types/Clip/ClipSelectors";
-import { MediaDraft, MediaElement } from "types/Media/MediaTypes";
+import { MediaElement } from "types/Media/MediaTypes";
 import {
   addClipIdsToSelection,
   clearClipIdsFromSelection,
   removeClipIdsFromSelection,
   replaceClipIdsInSelection,
+  toggleClipIdInSelection,
 } from "./TimelineSelectionThunks";
 import { addPortal } from "types/Portal/PortalSlice";
 import { TrackId } from "types/Track/TrackTypes";
 import { seekTransport } from "types/Transport/TransportThunks";
 import { toggleTimelineState } from "../TimelineThunks";
-import { createClipFromMediaDraft } from "./TimelineDraftThunks";
 import { Timed } from "types/units";
-import { createScale } from "types/Scale/ScaleThunks";
-import { toggleClipDropdown } from "types/Clip/ClipThunks";
+import { createMedia } from "types/Media/MediaThunks";
 
 // ------------------------------------------------------------
 // Cell Functins
@@ -73,26 +68,19 @@ export const onCellClick =
       return;
     }
 
-    const portalDraft = selectPortalDraft(project);
-    const type = selectTimelineType(project);
+    const portalDraft = selectPortalFragment(project);
     const isAddingClips = selectIsAddingClips(project);
+    const type = selectTimelineType(project);
 
     // Add clips
     if (isAddingClips) {
-      if (type === "scale") {
-        const scale = selectTrackScale(project, trackId);
-        const scaleId = dispatch(createScale({ data: scale ?? {}, undoType }));
-        dispatch(
-          createClipFromMediaDraft({
-            data: { trackId, tick, scaleId, type: "scale" },
-            undoType,
-          })
-        );
-      } else {
-        dispatch(
-          createClipFromMediaDraft({ data: { trackId, tick }, undoType })
-        );
-      }
+      dispatch(
+        createMedia({
+          data: { clips: [initializeClip({ trackId, tick, type })] },
+          undoType,
+        })
+      );
+      dispatch(toggleTimelineState({ data: "adding-clips", undoType }));
       return;
     }
 
@@ -100,7 +88,7 @@ export const onCellClick =
     const isPortaling = selectIsAddingPortals(project);
     if (isPortaling && !some(portalDraft)) {
       const portal = { tick, trackId };
-      dispatch(updateMediaDraft({ data: { portal }, undoType }));
+      dispatch(updateFragment({ data: { portal }, undoType }));
       return;
     }
 
@@ -151,22 +139,14 @@ export const onClipClick =
     const isAddingClips = selectIsAddingClips(project);
     const selectedClipIds = selectSelectedClipIds(project);
     const selectedClipIdMap = selectSelectedClipIdMap(project);
-    const draftField = `${clip.type}Clip` as keyof MediaDraft;
     const motifField = `${clip.type}Id` as keyof Clip;
     const motifId = clip[motifField];
+    const id = clip.id;
+    const isClipSelected = selectedClipIdMap[id];
 
-    // Toggle open if double click
-    if (e.detail === 2) {
-      dispatch(
-        toggleClipDropdown({ data: { id: clip.id, value: false }, undoType })
-      );
-      return;
-    }
-
-    // Select the motif if eyedropping
-    if (options.eyedropping) {
-      const data = { [draftField]: { [motifField]: motifId } };
-      dispatch(updateMediaDraft({ data, undoType }));
+    // If the alt key is held, toggle the clip in the selection
+    if (holdingOption) {
+      dispatch(toggleClipIdInSelection({ data: id, undoType }));
       return;
     }
 
@@ -178,14 +158,13 @@ export const onClipClick =
 
     // Just select the clip if there are no other selected clips
     if (!selectedClipIds.length) {
-      dispatch(replaceClipIdsInSelection({ data: [clip.id], undoType }));
+      dispatch(replaceClipIdsInSelection({ data: [id], undoType }));
       return;
     }
 
     // Deselect the clip if it is selected
-    const isClipSelected = selectedClipIdMap[clip.id];
     if (isClipSelected) {
-      dispatch(removeClipIdsFromSelection({ data: [clip.id], undoType }));
+      dispatch(removeClipIdsFromSelection({ data: [id], undoType }));
       return;
     }
 
@@ -197,24 +176,12 @@ export const onClipClick =
 
     // Add the clip to the selection if the user is holding option
     if (holdingOption) {
-      dispatch(addClipIdsToSelection({ data: [clip.id], undoType }));
+      dispatch(addClipIdsToSelection({ data: [id], undoType }));
       return;
     }
 
     // Otherwise, replace the selection with the clip
-    dispatch(replaceClipIdsInSelection({ data: [clip.id], undoType }));
-  };
-
-/** Select the motif and editor of a clip when it is double clicked */
-export const onClipDoubleClick =
-  (clip: Clip): Thunk =>
-  (dispatch) => {
-    const undoType = createUndoType("onClipDoubleClick", { clip });
-    const ref = `${clip.type}Id` as keyof Clip;
-    const draftField = `${clip.type}Clip` as keyof MediaDraft;
-    const data = { [draftField]: { [ref]: clip[ref] } };
-    dispatch(updateMediaDraft({ data, undoType }));
-    dispatch(showEditor({ data: { view: clip.type }, undoType }));
+    dispatch(replaceClipIdsInSelection({ data: [id], undoType }));
   };
 
 /** Select a range of clips based on the tick and track clicked. */
@@ -234,7 +201,7 @@ export const selectRangeOfClips =
     const range = [startTick, endTick] as [number, number];
 
     // Get all clips that are in the track range
-    const trackIds = selectOrderedTrackIds(project);
+    const trackIds = selectTrackIds(project);
     const rangeTracks = getMediaTrackIds(selection, trackIds, clip.trackId);
     const clipsInTracks = selectClipsByTrackIds(project, rangeTracks);
 
@@ -311,7 +278,7 @@ export const onPortalClick =
     const endTick = getMediaEndTick(selectedMedia);
 
     // Get all portals that are in the track range
-    const orderedIds = selectOrderedTrackIds(project);
+    const orderedIds = selectTrackIds(project);
     const trackIds = getMediaTrackIds(
       selectedPortals,
       orderedIds,

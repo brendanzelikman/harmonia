@@ -6,21 +6,19 @@ import {
   PatternMidiChord,
   PatternBlock,
   isPatternRest,
-  isPatternNote,
   isPatternStrummedChord,
   PatternStrummedChord,
   PatternBlockedChord,
   PatternStrummedMidiChord,
-  isPatternChord,
   PatternMidiStream,
 } from "./PatternTypes";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { mod } from "utils/math";
 import { PresetPatternGroupList, PresetPatternGroupMap } from "assets/patterns";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
-import { isArray } from "lodash";
+import { isArray, maxBy } from "lodash";
 import { getTickDuration, isTripletDuration } from "utils/durations";
-import { ScaleVector, isNestedNote } from "types/Scale/ScaleTypes";
+import { ScaleVector } from "types/Scale/ScaleTypes";
 import { sumVectors } from "utils/vector";
 
 // ------------------------------------------------------------
@@ -74,8 +72,7 @@ export const getPatternMidiChordAtIndex = (
   index: number
 ) => {
   const block = stream[mod(index, stream.length)];
-  if (isPatternRest(block)) return [];
-  return block;
+  return isPatternRest(block) ? [] : block;
 };
 
 /** Get the `PatternBlock` occurring exactly at the given tick within a `PatternStream` */
@@ -97,21 +94,17 @@ export const getPatternBlockAtTick = (
 
 /** Get the total duration of a `PatternBlock` in ticks. */
 export const getPatternBlockDuration = (block: PatternBlock): Tick => {
-  // Return the duration of a note or rest
+  if (!block) return 0;
   if ("duration" in block) return block.duration;
-
-  // Get the notes of the chord
-  const notes = getPatternChordNotes(block);
-  if (!notes.length) return 0;
-
-  // Get the max duration of the notes in the chord
-  const noteDurations = notes.map((note) => note.duration);
-  const maxDuration = Math.max(...noteDurations);
+  const isStrummed = "chord" in block;
+  const chord = isStrummed ? block.chord : block;
+  const duration = maxBy(chord, (c) => c.duration)?.duration ?? 0;
+  if (!isStrummed) return duration;
 
   // Add the strum range to the duration if the chord is strummed
-  const start = (block as PatternStrummedChord)?.strumRange?.[0] ?? 0;
-  const end = (block as PatternStrummedChord)?.strumRange?.[1] ?? 0;
-  return maxDuration + start + end;
+  const start = block?.strumRange?.[0] ?? 0;
+  const end = block?.strumRange?.[1] ?? 0;
+  return duration + start + end;
 };
 
 /** Get whether a pattern block is a triplet or not. */
@@ -119,20 +112,6 @@ export const isPatternBlockTriplet = (block: PatternBlock) => {
   const duration = getPatternBlockDuration(block);
   const type = getTickDuration(duration);
   return isTripletDuration(type);
-};
-
-/** Update the duration of all the notes of a `PatternBlock` */
-export const updatePatternBlockDuration = (
-  block: PatternBlock,
-  duration: Tick
-): PatternBlock => {
-  if (isPatternNote(block)) return { ...block, duration };
-  if (isPatternRest(block)) return { ...block, duration };
-  const notes = getPatternChordNotes(block).map((note) => ({
-    ...note,
-    duration,
-  }));
-  return notes;
 };
 
 // ------------------------------------------------------------

@@ -1,9 +1,7 @@
-import { mapClipsWithGuard as mapClipsAtTickWithGuard } from "../ClipUtils";
-import { createMapFromClipRange } from "../ClipUtils";
 import { PoseClipMap } from "../ClipTypes";
 import { PoseClip } from "./PoseClipTypes";
 import { Tick } from "types/units";
-import { getValueByKey, getDictValues } from "utils/objects";
+import { getDictValues } from "utils/objects";
 import {
   getPoseOperationAtIndex,
   getVectorPitchClasses,
@@ -14,14 +12,14 @@ import {
   PoseStream,
   VoiceLeading,
 } from "types/Pose/PoseTypes";
-import { Pose, PoseId, PoseMap, PoseVector } from "types/Pose/PoseTypes";
+import { PoseMap, PoseVector } from "types/Pose/PoseTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import {
   isPatternMidiChord,
   isPatternMidiStream,
   PatternMidiStream,
 } from "types/Pattern/PatternTypes";
-import { ChromaticKey, ChromaticPitchClass } from "assets/keys";
+import { ChromaticKey } from "assets/keys";
 import {
   getMidiStreamIntrinsicScale,
   getPatternMidiChordNotes,
@@ -63,42 +61,40 @@ export const getPoseOperationAtIndexByTick = (
 /** Get the current pose occurring at or before the given tick. */
 export const getPoseOperationsAtTick = (
   clips: PoseClip[] = [],
-  poseMap: PoseMap = {},
-  tick: Tick = 0
+  deps: { poseMap: PoseMap; tick: Tick } = { poseMap: {}, tick: 0 }
 ) => {
   const operation = [] as PoseOperation[];
   const clipCount = clips.length;
-  if (!clipCount || !poseMap) return operation;
+  if (!clipCount) return operation;
 
-  // Make sure the clip has an existing pose
-  const guard = (clip: PoseClip) => !!poseMap[clip.poseId];
-
-  // Map a pose clip to the current pose vector and sum it with the offset
-  const map = (clip: PoseClip, tick: number) => {
-    const pose = poseMap[clip.poseId];
-    if (!pose) return {};
-    if ("vector" in pose) {
-      operation.push({ vector: pose.vector });
-    }
-    if ("operations" in pose) {
-      for (const op of pose.operations ?? []) {
-        operation.push({ operations: [op] });
+  for (const clip of clips) {
+    const startTick = clip.tick;
+    const endTick = startTick + (clip.duration ?? Infinity);
+    if (deps.tick >= startTick && deps.tick < endTick) {
+      const pose = deps.poseMap[clip.poseId];
+      if (!pose) continue;
+      if ("scale" in pose) {
+        operation.push({ scale: pose.scale });
+      }
+      if ("vector" in pose) {
+        operation.push({ vector: pose.vector });
+      }
+      if ("operations" in pose) {
+        for (const op of pose.operations ?? []) {
+          operation.push({ operations: [op] });
+        }
+      }
+      if ("stream" in pose) {
+        const poseOperation = getPoseOperationAtIndexByTick(
+          clip,
+          pose.stream,
+          deps.tick
+        );
+        operation.push(poseOperation);
       }
     }
-    if ("stream" in pose) {
-      const poseOperation = getPoseOperationAtIndexByTick(
-        clip,
-        pose.stream,
-        tick
-      );
-      operation.push(poseOperation);
-    }
-  };
+  }
 
-  // Imperatively sum all relevant vectors to the offset
-  mapClipsAtTickWithGuard(clips, tick, guard, map);
-
-  // Return the offset
   return operation;
 };
 
@@ -112,20 +108,17 @@ export const getCurrentVoiceLeadings = (
   const clipCount = clips.length;
   if (!clipCount || !poseMap) return offsets;
 
-  // Make sure the clip has an existing pose
-  const guard = (clip: PoseClip) =>
-    getValueByKey(poseMap, clip.poseId) !== undefined;
-
-  // Map a pose clip to the current pose vector and sum it with the offset
-  const map = (clip: PoseClip, tick: number) => {
-    const pose = poseMap[clip.poseId];
-    if (!pose) return {};
-    const vector = getPoseOperationAtIndexByTick(clip, pose.stream, tick);
-    if (isVoiceLeading(vector)) offsets.push(vector);
-  };
-
   // Imperatively sum all relevant vectors to the offset
-  mapClipsAtTickWithGuard(clips, tick, guard, map);
+  for (const clip of clips) {
+    const startTick = clip.tick;
+    const endTick = startTick + (clip.duration ?? Infinity);
+    if (tick >= startTick && tick < endTick) {
+      const pose = poseMap[clip.poseId];
+      if (!pose) continue;
+      const vector = getPoseOperationAtIndexByTick(clip, pose.stream, tick);
+      if (isVoiceLeading(vector)) offsets.push(vector);
+    }
+  }
 
   // Return the offset
   return offsets;
@@ -145,17 +138,17 @@ export const applyVoiceLeadingsToMidiStream = <
     let offset = undefined;
 
     // Get the pitch classes of the voice leading
-    const pitchClasses = getVectorPitchClasses(vector) as ChromaticPitchClass[];
-    if (pitchClasses.some((c) => !ChromaticKey.includes(c))) continue;
+    const pitchClasses = getVectorPitchClasses(vector);
 
     // Get the modes of the stream scale
+    const scale = pitchClasses.map((c) => ChromaticKey.indexOf(c));
     const streamScale = getMidiStreamIntrinsicScale(stream);
-    const streamScaleSize = streamScale.length;
+    const abridgedScale = streamScale.filter((n) => scale.includes(n % 12));
+    const abridgedSize = abridgedScale.length;
 
     // Find the mode of the stream that relates to the voice leading
-    const scale = pitchClasses.map((c) => ChromaticKey.indexOf(c));
-    for (let j = 0; j < streamScaleSize; j++) {
-      const mode = getRotatedScale(streamScale, j);
+    for (let j = 0; j < abridgedSize; j++) {
+      const mode = getRotatedScale(abridgedScale, j);
       if (areScalesRelated(scale, mode)) {
         offset = mode[0] - scale[0];
         break;
@@ -189,31 +182,4 @@ export const applyVoiceLeadingsToMidiStream = <
   }
 
   return stream;
-};
-
-/** Get a map of ticks to pose vectors based on the pose clips and tick range. */
-export const getPoseOperationMapFromTickRange = (
-  clips: PoseClip[],
-  poseMap: Record<PoseId, Pose>,
-  tickRange: [number, number]
-) => {
-  // Make sure the clip has an existing pose
-  const guard = (clip: PoseClip) =>
-    getValueByKey(poseMap, clip.poseId) !== undefined;
-
-  // Map a pose clip to the current pose vector
-  const map = (clip: PoseClip, tick: number) => {
-    const pose = poseMap[clip.poseId];
-    if (!pose) return {};
-    const operation = getPoseOperationAtIndexByTick(clip, pose.stream, tick);
-    return operation;
-  };
-
-  // Create and return the map
-  return createMapFromClipRange<"pose", PoseOperation>(
-    clips,
-    tickRange,
-    guard,
-    map
-  );
 };

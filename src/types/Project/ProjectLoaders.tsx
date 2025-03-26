@@ -1,20 +1,18 @@
 import { nanoid } from "@reduxjs/toolkit";
-import {
-  getProjectFromDB,
-  uploadProjectToDB,
-  updateProjectInDB,
-  getProjectsFromDB,
-  setCurrentProject,
-  setCurrentProjectId,
-  getCurrentProjectId,
-} from "providers/idb";
 import { sample } from "lodash";
-import { fetchUser } from "providers/auth/user";
-import { selectMeta, selectProjectId } from "../Meta/MetaSelectors";
+import { selectMeta } from "../Meta/MetaSelectors";
 import { Thunk, isProject } from "./ProjectTypes";
 import { mergeBaseProjects, sanitizeProject } from "./ProjectFunctions";
 import { dispatchCustomEvent, promptUserForNumber } from "utils/html";
 import { UPDATE_PROJECTS } from "./ProjectThunks";
+import {
+  getProjectFromDB,
+  setCurrentProjectId,
+  uploadProjectToDB,
+  updateProjectInDB,
+  getCurrentProjectId,
+  getProjectsFromDB,
+} from "providers/idb/projects";
 
 interface ProjectFileOptions {
   merging?: boolean;
@@ -61,9 +59,6 @@ export const loadProject =
 export const loadProjectByFile =
   (file: File, options?: ProjectFileOptions): Thunk =>
   async (dispatch) => {
-    const { uid, isAuthorized, isAtLeastRank } = await fetchUser();
-    if (!uid || !isAuthorized) return;
-
     const reader = new FileReader();
     reader.onload = async (e) => {
       if (!e.target?.result) {
@@ -84,12 +79,6 @@ export const loadProjectByFile =
       const existingProject = await getProjectFromDB(meta.id);
 
       if (!options?.merging) {
-        // Replace the current project if the free tier has a project
-        if (!isAtLeastRank("maestro")) {
-          await setCurrentProject(project);
-          return;
-        }
-
         // Upload or save the project depending on whether it already exists
         if (!existingProject) {
           await uploadProjectToDB(project);
@@ -140,10 +129,6 @@ export const loadProjectByFile =
 export const loadProjectByPath =
   (path: string, callback?: () => void): Thunk =>
   async () => {
-    // Check if the user is authenticated
-    const { uid, isAuthorized, isAtLeastRank } = await fetchUser();
-    if (!uid || !isAuthorized) return;
-
     let projectId;
 
     try {
@@ -151,19 +136,10 @@ export const loadProjectByPath =
       const baseProject = await fetch(path).then((res) => res.json());
       const project = sanitizeProject({ present: baseProject });
 
-      // Replace the current project if the free tier has a project
-      if (!isAtLeastRank("maestro")) {
-        await setCurrentProject(project);
-        projectId = selectProjectId(project);
-      }
-
       // Upload the project to the database
-      else {
-        projectId = nanoid();
-        project.present.meta.id = projectId;
-        await uploadProjectToDB(project);
-      }
-
+      projectId = nanoid();
+      project.present.meta.id = projectId;
+      await uploadProjectToDB(project);
       setCurrentProjectId(projectId);
     } catch (e) {
       console.error(e);

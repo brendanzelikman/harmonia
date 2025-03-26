@@ -2,7 +2,8 @@ import { PresetScaleList } from "assets/scales";
 import classNames from "classnames";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { sample } from "lodash";
-import { GiMusicalKeyboard, GiFamilyTree, Gi3DStairs } from "react-icons/gi";
+import { CiRuler } from "react-icons/ci";
+import { GiMusicalKeyboard, GiFamilyTree } from "react-icons/gi";
 import { useProjectDispatch } from "types/hooks";
 import { INSTRUMENT_KEYS } from "types/Instrument/InstrumentTypes";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
@@ -11,7 +12,7 @@ import {
   createDrumTracks,
   createRandomHierarchy,
 } from "types/Track/ScaleTrack/ScaleTrackThunks";
-import { createTrackTree } from "types/Track/TrackThunks";
+import { createTreeFromString } from "utils/tree";
 
 export function TimelineTrackButton() {
   const dispatch = useProjectDispatch();
@@ -31,10 +32,11 @@ export function TimelineTrackButton() {
           className="flex flex-col gap-2 pt-1 items-center"
           onClick={() =>
             dispatch(
-              createScaleTrack(
-                {},
-                shouldRandomize ? sample(PresetScaleList) : undefined
-              )
+              createScaleTrack({
+                data: {
+                  scale: shouldRandomize ? sample(PresetScaleList) : undefined,
+                },
+              })
             )
           }
         >
@@ -45,23 +47,26 @@ export function TimelineTrackButton() {
                 : "hover:border-white"
             }`}
           >
-            <Gi3DStairs className="text-4xl" />
+            <CiRuler className="text-5xl" />
           </div>
-          Scale Track
+          Scale
         </div>
         <div
           className="flex flex-col gap-2 pt-1 items-center"
           onClick={() =>
             dispatch(
-              createPatternTrack(
-                {},
-                shouldRandomize ? sample(INSTRUMENT_KEYS) : undefined
-              )
+              createPatternTrack({
+                data: {
+                  instrument: {
+                    key: shouldRandomize ? sample(INSTRUMENT_KEYS) : undefined,
+                  },
+                },
+              })
             )
           }
         >
           <div
-            className={`size-14 flex total-center rounded-full border-2 border-emerald-400 ${
+            className={`size-14 flex total-center rotate-90 rounded-full border-2 border-emerald-400 ${
               shouldRandomize
                 ? "hover:border-fuchsia-400"
                 : "hover:border-white"
@@ -69,7 +74,7 @@ export function TimelineTrackButton() {
           >
             <GiMusicalKeyboard className="text-4xl" />
           </div>
-          Pattern Track
+          Sampler
         </div>
         <div
           className="flex flex-col gap-2 pt-1 items-center"
@@ -79,20 +84,18 @@ export function TimelineTrackButton() {
                 ? createDrumTracks()
                 : shouldRandomize
                 ? createRandomHierarchy()
-                : createTrackTree()
+                : createTreeFromString({ data: "major => piano" })
             )
           }
         >
           <div
-            className={`size-14 flex total-center rounded-full border-2 border-purple-400 ${
-              shouldRandomize
-                ? "hover:border-fuchsia-400"
-                : "hover:border-white"
+            className={`size-14 flex total-center rounded-full border-2 border-teal-500 ${
+              shouldRandomize ? "hover:border-teal-400" : "hover:border-white"
             }`}
           >
             <GiFamilyTree className="text-4xl rotate-180" />
           </div>
-          Track Tree
+          Tree
         </div>
       </div>
     </div>

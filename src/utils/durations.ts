@@ -1,6 +1,6 @@
 import { BPM, Seconds, Tick, Timed, Velocity } from "types/units";
 import { MidiNote, MidiValue } from "./midi";
-import { getDictValues, findEntry } from "./objects";
+import { getDictValues } from "./objects";
 import sixteenthNote from "assets/noteheads/16th.png";
 import thirtysecondNote from "assets/noteheads/32nd.png";
 import sixtyfourthNote from "assets/noteheads/64th.png";
@@ -653,14 +653,21 @@ export const getTickColumns = (
   ticks: Tick = 0,
   subdivision: Subdivision = "4n"
 ) => {
-  const ticksPerSubdivision = getSubdivisionTicks(subdivision);
-  return ticks / ticksPerSubdivision;
+  return ticks / getSubdivisionTicks(subdivision);
 };
 
+/** Get the cells per tick. */
+export const getCellsPerTick = (
+  subdivision: Subdivision = "4n",
+  cellWidth: number = 0
+) => {
+  return cellWidth / getSubdivisionTicks(subdivision);
+};
+
+/** Get the ticks leading up to a column based on the subdivision. */
 export const getColumnTicks = (
   columns: number = 0,
   subdivision: Subdivision = "4n"
 ) => {
-  const ticksPerSubdivision = getSubdivisionTicks(subdivision);
-  return columns * ticksPerSubdivision;
+  return columns * getSubdivisionTicks(subdivision);
 };

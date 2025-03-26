@@ -36,7 +36,11 @@ export function useProjectFetcher(props: ProjectFetcherProps): Project[] {
     if (!fetching) return;
     const fetchProjects = async () => {
       Promise.all(incomingPaths!.map((p) => fetch(p).then((res) => res.json())))
-        .then(setProjects)
+        .then((projects) => {
+          setProjects(
+            projects.map((p) => ({ past: [], future: [], present: p }))
+          );
+        })
         .then(() => {
           setFetching(false);
           setLoaded(true);

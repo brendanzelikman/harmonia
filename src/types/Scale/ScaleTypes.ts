@@ -1,16 +1,17 @@
-import { isArray, isNumber, isPlainObject, isString, range } from "lodash";
 import {
-  isBoundedNumber,
-  isFiniteNumber,
-  isOptionalType,
-  isOptionalTypedArray,
-} from "types/util";
+  isArray,
+  isNumber,
+  isObject,
+  isPlainObject,
+  isString,
+  range,
+} from "lodash";
 import { Id, PitchClass } from "types/units";
 import { MidiNote, MidiObject, MidiScale, MidiValue } from "utils/midi";
 import { createId } from "types/util";
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
-import { ScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { Vector } from "utils/vector";
+import { TrackId } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------
 // Scale Generics
@@ -50,7 +51,7 @@ export type ScaleObject = {
   notes: ScaleArray;
   name?: string;
   aliases?: string[];
-  trackId?: ScaleTrackId;
+  trackId?: TrackId;
 };
 
 /** A `Scale` is either a `ScaleObject` or a `ScaleArray`. */
@@ -72,9 +73,13 @@ export const initializeScale = (scale?: Partial<ScaleObject>): ScaleObject => ({
 });
 
 export const emptyScale: ScaleObject = { id: "scale_empty", notes: [] };
-
-/** The chromatic notes are a range of MidiValues. */
 export const chromaticNotes: MidiScale = range(60, 72);
+export const majorNotes: MidiScale = [60, 62, 64, 65, 67, 69, 71];
+export const minorNotes: MidiScale = [60, 62, 63, 65, 67, 68, 70];
+export const createMajorNotes = (root: MidiValue): MidiScale =>
+  range(7).map((i) => root + [0, 2, 4, 5, 7, 9, 11][i]);
+export const createMinorNotes = (root: MidiValue): MidiScale =>
+  range(7).map((i) => root + [0, 2, 3, 5, 7, 8, 10][i]);
 
 /** The chromatic scale is a ScaleObject containing MIDIValues.  */
 export const chromaticScale: ScaleObject = {
@@ -124,7 +129,6 @@ export const isScaleVector = (obj: unknown): obj is ScaleVector => {
 export const isMidiValue = (obj: unknown): obj is MidiValue => {
   const candidate = obj as MidiNote;
   return isNumber(candidate);
-  // return isBoundedNumber(candidate, 0, 127);
 };
 
 /** Checks if a given object is of type `MidiObject`. */
@@ -135,13 +139,13 @@ export const isMidiObject = (obj: unknown): obj is MidiObject => {
 
 /** Checks if a given object is of type `MidiNote`. */
 export const isMidiNote = (obj: unknown): obj is MidiNote => {
-  return isMidiObject(obj) || isMidiValue(obj);
+  return isNumber(obj) || isNumber((obj as MidiObject)?.MIDI);
 };
 
 /** Checks if a given object is of type `NestedNote`. */
 export const isNestedNote = (obj: unknown): obj is NestedNote => {
   const candidate = obj as NestedNote;
-  return isPlainObject(candidate) && isFiniteNumber(candidate.degree);
+  return isObject(candidate) && "degree" in candidate;
 };
 
 /** Checks if a given object is of type `ScaleNote`. */
@@ -166,9 +170,7 @@ export const isScaleObject = (obj: unknown): obj is ScaleObject => {
   return (
     isPlainObject(candidate) &&
     isString(candidate.id) &&
-    isScaleArray(candidate.notes) &&
-    isOptionalType(candidate.name, isString) &&
-    isOptionalTypedArray(candidate.aliases, isString)
+    isScaleArray(candidate.notes)
   );
 };
 

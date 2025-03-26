@@ -13,12 +13,19 @@ import { isVoiceLeading } from "./PoseTypes";
 import { ChromaticKey, ChromaticPitchClass } from "assets/keys";
 import { isPitchClass } from "utils/pitchClass";
 import {
+  CHORDAL_KEY,
+  CHROMATIC_KEY,
   getVectorKeys,
   isVectorEmpty,
   multiplyVector,
+  OCTAVE_KEY,
+  PITCH_KEY,
   sumVectors,
+  VECTOR_BASE,
+  VECTOR_SEPARATOR,
 } from "utils/vector";
 import { isFiniteNumber } from "types/util";
+import { size } from "lodash";
 
 // ------------------------------------------------------------
 // Pose Properties
@@ -45,37 +52,58 @@ export const getPoseVectorAsString = (
   vector: _.PoseVector,
   trackMap?: TrackMap
 ) => {
-  const keys = getVectorKeys(vector);
-  return keys
-    .map((key) => {
-      if (isTrackId(key) && trackMap) {
-        return `${getTrackLabel(key, trackMap)}${vector[key]}`;
-      }
-      if (key === "chromatic") {
-        return `T${vector[key]}`;
-      }
-      if (key === "chordal") {
-        return `t${vector[key]}`;
-      }
-      if (key === "octave") {
-        return `O${vector[key]}`;
-      }
-      if (isPitchClass(key)) {
-        return `*${key}${vector[key]}`;
-      }
-    })
-    .join(" + ");
+  const keys = getVectorKeys(vector).filter((k) => !isPitchClass(k));
+  if (!size(vector) || !keys.length) return VECTOR_BASE;
+  const offsets = keys.map((key) => {
+    if (isTrackId(key) && trackMap) {
+      const label = getTrackLabel(key, trackMap);
+      return `${label}${vector[key]}`;
+    }
+    if (key === "chordal") {
+      return `${CHORDAL_KEY}${vector[key]}`;
+    }
+    if (key === "chromatic") {
+      return `${CHROMATIC_KEY}${vector[key]}`;
+    }
+    if (key === "octave") {
+      return `${OCTAVE_KEY}${vector[key]}`;
+    }
+    if (isPitchClass(key)) {
+      return `${PITCH_KEY}${key}${vector[key]}`;
+    }
+  });
+
+  return [...offsets].join(VECTOR_SEPARATOR);
+};
+type JsxOptions = {
+  oneLine?: boolean;
+  isSelected?: boolean;
+};
+
+const defaultJsxOptions: JsxOptions = {
+  oneLine: true,
+  isSelected: false,
 };
 
 /** Get a `PoseVector` as JSX. */
 export const getPoseVectorAsJSX = (
   vector?: _.PoseVector,
   trackMap?: TrackMap,
-  oneLine = true
+  _options: Partial<JsxOptions> = defaultJsxOptions
 ) => {
-  // Return the origin if the vector is empty
+  const options = { ...defaultJsxOptions, ..._options };
+
+  // Return the base value if the vector is empty
   if (!vector || isVectorEmpty(vector)) {
-    return <span>{oneLine ? "Origin" : ""}</span>;
+    return (
+      <span>
+        {options.oneLine
+          ? options.isSelected
+            ? "Posing..."
+            : VECTOR_BASE
+          : ""}
+      </span>
+    );
   }
 
   // Otherwise, parse the keys and create a string for each offset
@@ -91,14 +119,18 @@ export const getPoseVectorAsJSX = (
     );
   }
 
-  if (!oneLine) {
-    const map = { chordal: "t", chromatic: "T", octave: "O" };
+  if (!options.oneLine) {
+    const map = {
+      chordal: CHORDAL_KEY,
+      chromatic: CHROMATIC_KEY,
+      octave: OCTAVE_KEY,
+    };
     return keys.map((key, i) => (
       <span key={`offset-${i}`}>
         {isTrackId(key)
           ? getTrackLabel(key, trackMap ?? {})
           : isPitchClass(key)
-          ? `*${key}`
+          ? `${PITCH_KEY}${key}`
           : map[key]}
         {vector[key]}
       </span>
@@ -108,64 +140,86 @@ export const getPoseVectorAsJSX = (
   // Create an element for the pitch classes if there is a voice leading
   const classes = getVectorPitchClasses(vector);
   const count = classes.length;
-  const hasSeveralClasses = count > 0;
   const pitchKeys = isVoiceLeading(vector) ? (
     <span>
       {classes.map((pitch, i) => (
         <span key={`pitch-${i}`}>
-          *{pitch}
+          {PITCH_KEY}
+          {pitch}
           {vector[pitch]}
-          {i < count - 1 ? " + " : ""}
+          {i < count - 1 ? VECTOR_SEPARATOR : ""}
         </span>
       ))}
     </span>
   ) : null;
 
   // Create a component for every existing track ID
-  const trackCount = trackIds.length;
-  const hasSeveralTracks = trackCount > 0;
+  const hasSeveralTracks = trackIds.some((id) => vector[id]);
   const trackKeys =
-    hasSeveralTracks && trackMap ? (
-      <span>
-        {trackIds.map((id, i) => {
-          const label = getTrackLabel(id, trackMap ?? {});
-          const value = vector[id];
-          return (
-            <span key={`scalar-${i}`}>
-              {label}
-              {value}
-              {i < trackCount - 1 ? " + " : ""}
-            </span>
-          );
-        })}
-      </span>
-    ) : null;
+    hasSeveralTracks && trackMap
+      ? trackIds
+          .filter((id) => vector[id])
+          .map((id, i) => {
+            const label = getTrackLabel(id, trackMap ?? {});
+            const value = vector[id];
+            return (
+              <span key={`scalar-${i}`}>
+                {label}
+                {value}
+              </span>
+            );
+          })
+      : null;
 
   // Create a chromatic component
   const chromaticValue = vector.chromatic;
   const hasChromatic = vector.chromatic !== undefined;
-  const chromatic = hasChromatic ? <span>T{chromaticValue}</span> : null;
+  const chromatic = hasChromatic ? (
+    <span>
+      {CHROMATIC_KEY}
+      {chromaticValue}
+    </span>
+  ) : null;
 
   // Create a chordal component
   const chordalValue = vector.chordal;
   const hasChordal = vector.chordal !== undefined;
-  const chordal = hasChordal ? <span>t{chordalValue}</span> : null;
+  const chordal = hasChordal ? (
+    <span>
+      {CHORDAL_KEY}
+      {chordalValue}
+    </span>
+  ) : null;
 
   // Create an octave component
   const octaveValue = vector.octave;
   const hasOctave = vector.octave !== undefined;
-  const octave = hasOctave ? <span>O{octaveValue}</span> : null;
+  const octave = hasOctave ? (
+    <span>
+      {OCTAVE_KEY}
+      {octaveValue}
+    </span>
+  ) : null;
 
   // Get all existing components
-  const components = [pitchKeys, trackKeys, chordal, chromatic, octave].filter(
-    (t) => t !== null
-  );
+  const components = [
+    pitchKeys,
+    ...(trackKeys ?? []),
+    chordal,
+    chromatic,
+    octave,
+  ].filter((t) => t !== null);
   const componentCount = components.length;
 
   // Create the vector element and add a comma before the end
   const vectorElement = components.map((t, i) => {
     if (componentCount > 1 && i < componentCount - 1) {
-      return <span key={`offset-${i}`}>{t} + </span>;
+      return (
+        <span key={`offset-${i}`}>
+          {t}
+          {VECTOR_SEPARATOR}
+        </span>
+      );
     } else {
       return <span key={`offset-${i}`}>{t}</span>;
     }
@@ -173,7 +227,7 @@ export const getPoseVectorAsJSX = (
 
   // Return the joined string
   return (
-    <span className="flex font-light whitespace-nowrap">
+    <span className="font-light whitespace-nowrap">
       <span className="font-semibold">{vectorElement}</span>
     </span>
   );
@@ -262,12 +316,7 @@ export const getVectorPitchClasses = (
   vector?: _.PoseVector
 ): ChromaticPitchClass[] => {
   if (!vector) return [];
-  const pitchClasses = Object.keys(vector).filter(
-    isPitchClass
-  ) as ChromaticPitchClass[];
-  return pitchClasses.sort(
-    (a, b) => ChromaticKey.indexOf(a) - ChromaticKey.indexOf(b)
-  );
+  return ChromaticKey.filter((c) => vector[c] !== undefined);
 };
 
 export const getPoseVectorOffsetName = (
@@ -278,7 +327,8 @@ export const getPoseVectorOffsetName = (
   if (offsetId === "chordal") return "Chordal";
   if (offsetId === "octave") return "Octave";
   if (isTrackId(offsetId) && trackMap) {
-    return `Track ${getTrackLabel(offsetId, trackMap)}`;
+    const label = getTrackLabel(offsetId, trackMap);
+    return `Track ${label}`;
   }
   return offsetId;
 };

@@ -1,29 +1,23 @@
-import { useEffect, useState } from "react";
-import { useCustomEventListener } from "../../../hooks/useCustomEventListener";
-import { use, useProjectDispatch } from "types/hooks";
+import { useToggledState } from "hooks/useToggledState";
+import { useEffect } from "react";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import {
-  START_LOADING_TRANSPORT,
-  STOP_LOADING_TRANSPORT,
+  LOAD_TRANSPORT_STATE,
   loadTransport,
   unloadTransport,
 } from "types/Transport/TransportThunks";
 
-/** Load and unload the transport when the app mounts. */
 export function usePlaygroundTransport() {
   const dispatch = useProjectDispatch();
-  const projectId = use(selectProjectId);
-  const [loaded, setLoaded] = useState(false);
 
-  useCustomEventListener(START_LOADING_TRANSPORT, () => setLoaded(false));
-  useCustomEventListener(STOP_LOADING_TRANSPORT, () => setLoaded(true));
-
+  // Reload the transport when the project changes
+  const projectId = useDeep(selectProjectId);
   useEffect(() => {
     dispatch(loadTransport());
-    return () => {
-      dispatch(unloadTransport());
-    };
+    return () => dispatch(unloadTransport());
   }, [projectId]);
 
-  return loaded;
+  const transport = useToggledState(LOAD_TRANSPORT_STATE);
+  return transport.isClosed;
 }

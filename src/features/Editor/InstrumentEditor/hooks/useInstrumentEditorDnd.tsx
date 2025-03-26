@@ -4,24 +4,16 @@ import { DraggableEffectProps } from "../components/InstrumentEditorEffects";
 export const useEffectDrag = (props: DraggableEffectProps) => {
   return useDrag({
     type: "effect",
-    item: () => {
-      return { id: props.effect.id, index: props.index };
-    },
-    collect: (monitor: any) => ({
-      isDragging: monitor.isDragging(),
-    }),
+    item: () => ({ id: props.effect.id, index: props.index }),
+    collect: (monitor: any) => ({ isDragging: monitor.isDragging() }),
   });
 };
 
 export const useEffectDrop = (props: DraggableEffectProps) => {
   return useDrop({
     accept: "effect",
-    collect(monitor) {
-      return {
-        id: props.effect.id,
-        index: props.index,
-        handlerId: monitor.getHandlerId(),
-      };
+    collect() {
+      return { id: props.effect.id, index: props.index };
     },
     drop(item: any) {
       if (!props.element) return;

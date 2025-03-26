@@ -12,7 +12,7 @@ import {
   SliceCaseReducers,
   ValidateSliceCaseReducers,
 } from "@reduxjs/toolkit";
-import { getArrayByKey, getValueByKey, getValuesByKeys } from "utils/objects";
+import { getArrayByKey, getValuesByKeys } from "utils/objects";
 import { Project } from "types/Project/ProjectTypes";
 import { Update } from "types/units";
 
@@ -27,6 +27,9 @@ export type Payload<
 export type Action<T, isEmpty = T extends null ? true : false> = PayloadAction<
   T | Payload<T, isEmpty>
 >;
+
+export const unpackData = <T>(payload: Payload<T>) =>
+  payload?.data ?? (payload as T);
 
 export const unpackAction = <T>(action: Action<T>) => {
   return (
@@ -46,8 +49,14 @@ export const getSliceActions = (slice: Slice) => {
 export const createUndoType = (prefix?: string, ...payload: any) =>
   `${prefix}(${JSON.stringify(payload)})`;
 
-export const unpackUndoType = <T>(payload?: Payload<T>, prefix?: string) => {
-  return payload?.undoType ?? createUndoType(prefix, payload?.data, nanoid());
+export const unpackUndoType = <T>(
+  _payload?: Payload<T, true>,
+  prefix?: string
+) => {
+  const payload = _payload ?? {};
+  const undoType = "undoType" in payload ? payload.undoType : undefined;
+  const data = "data" in payload ? payload.data : undefined;
+  return undoType ?? createUndoType(prefix, data, nanoid());
 };
 
 /** A deep equal selector for nested objects and arrays. */
@@ -60,7 +69,7 @@ export const createDeepSelector = createSelectorCreator(
 export function createValueSelector<T>(
   mapSelector: (project: Project) => Dictionary<T>,
   defaultValue: T
-): (project: Project, id?: string) => T;
+): (project: Project, id?: T extends string ? T : string) => T;
 
 // Overload #1: Default value is provided as a callback
 export function createValueSelector<T>(

@@ -1,5 +1,5 @@
-import { size, union } from "lodash";
-import { Dict, getValueByKey } from "./objects";
+import { size } from "lodash";
+import { getValueByKey } from "./objects";
 
 export type VectorKey<T extends Vector> = keyof T;
 export type Scalar = number;
@@ -7,6 +7,13 @@ export type Scalar = number;
 export type Vector<T extends PropertyKey = PropertyKey> = {
   [key in T]?: Scalar;
 };
+
+export const CHORDAL_KEY = "r";
+export const CHROMATIC_KEY = "t";
+export const OCTAVE_KEY = "y";
+export const PITCH_KEY = "*";
+export const VECTOR_SEPARATOR = " + ";
+export const VECTOR_BASE = "Origin";
 
 /** Returns true if a vector has no keys. */
 export const isVectorEmpty = (vector?: Vector) => {
@@ -22,15 +29,15 @@ export const getVectorKeys = <T extends Vector>(vector?: T): VectorKey<T>[] => {
   return vector ? Object.keys(vector) : [];
 };
 
-/** Get the keys of a vector merged with the keys of a dictionary. */
-export const mergeVectorKeys = <
-  V extends Vector = Vector,
-  D extends Dict = Dict
->(
-  vector: V,
-  dict: D
-) => {
-  return union<keyof V>(getVectorKeys(vector), Object.keys(dict));
+/** Replace the keys of a vector. */
+export const replaceVectorKeys = <T extends Vector>(
+  vector: T,
+  idMap: Record<string, string>
+): T => {
+  return Object.keys(vector).reduce((acc, key) => {
+    const newKey = idMap[key] ?? key;
+    return { ...acc, [newKey]: vector[key] };
+  }, {} as T);
 };
 
 /** Read the numerical value of a vector key. */
@@ -88,4 +95,27 @@ export const sumVectors = <T extends Vector>(
     }
   }
   return result;
+};
+
+/** Sanitize a vector by deleting all zeroed values. */
+export const sanitizeVector = <T extends Vector>(vector: T = {} as T) => {
+  const keys = getVectorKeys(vector);
+  return keys.reduce((acc, cur) => {
+    return vector[cur] ? { ...acc, [cur]: vector[cur] } : acc;
+  }, {} as T);
+};
+
+/** Get the complexity of a vector by counting its nonzero values. */
+export const getVectorComplexity = (vector?: Vector) => {
+  return Object.values(vector ?? {}).filter((value) => !!value).length;
+};
+
+/** Get the magnitude of a vector. */
+export const getVectorMagnitude = (vector?: Vector) => {
+  return Math.sqrt(
+    Object.values(vector ?? {}).reduce(
+      (acc: number, cur) => (acc ?? 0) + (cur ?? 0) * (cur ?? 0),
+      0
+    )
+  );
 };

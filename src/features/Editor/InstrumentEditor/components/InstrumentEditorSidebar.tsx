@@ -1,13 +1,12 @@
-import { InstrumentEditorProps } from "../InstrumentEditor";
 import {
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
-  Transition,
 } from "@headlessui/react";
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
-import { ComponentProps, useCallback, useMemo, useState } from "react";
+import { ReactNode, useCallback, useMemo, useState } from "react";
 import {
+  GiCat,
   GiClarinet,
   GiDrum,
   GiGuitar,
@@ -17,91 +16,81 @@ import {
   GiViolin,
   GiXylophone,
 } from "react-icons/gi";
-import {
-  EditorList,
-  EditorListItem,
-} from "features/Editor/components/EditorList";
+import { EditorList } from "features/Editor/components/EditorList";
 import {
   EditorSidebar,
   EditorSidebarHeader,
 } from "features/Editor/components/EditorSidebar";
+import { getCategoryInstruments } from "types/Instrument/InstrumentFunctions";
 import {
-  getInstrumentCategory,
-  getCategoryInstruments,
-} from "types/Instrument/InstrumentFunctions";
-import {
-  CategorizedInstrument,
-  InstrumentCategory,
   INSTRUMENT_CATEGORIES,
   MELODIC_CATEGORIES,
   PERCUSSIVE_CATEGORIES,
+  InstrumentId,
+  INSTRUMENT_CATEGORIES_BY_KEY,
+  InstrumentCategory,
+  CategorizedInstrument,
 } from "types/Instrument/InstrumentTypes";
-import classNames from "classnames";
+import { useDeep, useProjectDispatch } from "types/hooks";
+import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
+import { selectInstrumentKey } from "types/Instrument/InstrumentSelectors";
+import { updateInstrument } from "types/Instrument/InstrumentSlice";
 
-export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
-  const { instrument } = props;
-  const instrumentCategory = getInstrumentCategory(instrument?.key);
+type InstrumentEditorSidebarProps = { id: InstrumentId };
 
-  /** Render an instrument */
+export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
+  const { id } = props;
+  const dispatch = useProjectDispatch();
+  const trackId = useDeep(selectSelectedTrackId);
+  const key = useDeep((_) => selectInstrumentKey(_, props.id));
+  const category = key ? INSTRUMENT_CATEGORIES_BY_KEY[key] : undefined;
+
+  // The categories can be filtered
+  const [filter, setFilter] = useState<"melodic" | "percussive" | undefined>();
+  const categories = useMemo(() => {
+    if (!filter) return INSTRUMENT_CATEGORIES;
+    return filter === "melodic" ? MELODIC_CATEGORIES : PERCUSSIVE_CATEGORIES;
+  }, [filter]);
+
   const renderInstrument = useCallback(
     (i: CategorizedInstrument) => (
-      <EditorListItem
+      <div
         key={i.key}
-        className={`select-none ${
-          instrument?.key === i.key
-            ? "font-semibold text-orange-500 border-l border-l-orange-500"
-            : "text-slate-400 border-l border-l-slate-500/80 hover:border-l-slate-300"
-        }`}
-        onClick={() => props.setInstrument(i.key)}
+        data-selected={key === i.key}
+        className="select-none border-l border-l-slate-500/80 text-slate-400 hover:border-l-slate300 data-[selected=true]:border-l-orange-500 data-[selected=true]:text-orange-500 data-[selected=true]:font-semibold mx-2 p-2 font-light cursor-pointer"
+        onClick={() =>
+          dispatch(updateInstrument({ data: { id, update: { key: i.key } } }))
+        }
       >
         {i.name}
-      </EditorListItem>
+      </div>
     ),
-    [props.setInstrument, instrument?.key]
+    [key, trackId]
   );
 
-  /** Each instrument has a corresponding icon for its category */
-  const Icon = (props: { category: InstrumentCategory }) => {
-    const { category } = props;
-    if (category === "Keyboards") return <GiPianoKeys />;
-    if (category === "Guitars") return <GiGuitar />;
-    if (category === "Strings") return <GiViolin />;
-    if (category === "Woodwinds") return <GiClarinet />;
-    if (category === "Brass") return <GiTrumpet />;
-    if (category === "Mallets") return <GiXylophone />;
-    if (category === "Death Metal Vocals") return <GiSing />;
-    return <GiDrum />;
-  };
-
-  const FilterButton = (
-    props: ComponentProps<"button"> & { active?: boolean }
-  ) => {
-    const { active, className, ...rest } = props;
-    return (
-      <button
-        {...rest}
-        className={classNames(
-          props.className,
-          active ? "border-orange-400" : "border-slate-400",
-          "p-2 py-1 border active:bg-orange-100/10 rounded-lg mb-2"
+  const renderCategory = useCallback(
+    (c: InstrumentCategory) => (
+      <Disclosure key={c}>
+        {({ open }) => (
+          <>
+            <DisclosureButton className="total-center outline-none last:*:ml-auto">
+              <div
+                data-selected={category === c}
+                className="capitalize px-2 py-2.5 gap-4 flex items-center select-none text-slate-50 data-[selected=true]:text-orange-400"
+              >
+                {IconMap[c] ?? <GiDrum />}
+                {c}
+              </div>
+              {open ? <BsChevronDown /> : <BsChevronUp />}
+            </DisclosureButton>
+            <DisclosurePanel className="animate-in fade-in">
+              {getCategoryInstruments(c).map(renderInstrument)}
+            </DisclosurePanel>
+          </>
         )}
-      />
-    );
-  };
-
-  const [filter, setFilter] = useState<"melodic" | "percussive" | undefined>();
-  const availableCategories = useMemo(
-    () =>
-      INSTRUMENT_CATEGORIES.filter((category) => {
-        if (filter === "melodic") {
-          return MELODIC_CATEGORIES.includes(category);
-        }
-        if (filter === "percussive") {
-          return PERCUSSIVE_CATEGORIES.includes(category);
-        }
-        return true;
-      }),
-    [filter]
+      </Disclosure>
+    ),
+    [category, renderInstrument]
   );
 
   return (
@@ -111,65 +100,41 @@ export function InstrumentEditorSidebar(props: InstrumentEditorProps) {
       </EditorSidebarHeader>
       <EditorList className="p-2">
         <div className="flex total-center *:min-w-12 w-full gap-2">
-          <FilterButton
-            active={filter === undefined}
+          <button
+            data-active={filter === undefined}
+            className="p-2 py-1 border active:bg-orange-100/10 rounded-lg mb-2 border-slate-400 data-[active=true]:border-orange-400"
             onClick={() => setFilter(undefined)}
           >
             All
-          </FilterButton>
-          <FilterButton
-            active={filter === "melodic"}
+          </button>
+          <button
+            data-active={filter === "melodic"}
+            className="p-2 py-1 border active:bg-orange-100/10 rounded-lg mb-2 border-slate-400 data-[active=true]:border-orange-400"
             onClick={() => setFilter("melodic")}
           >
             Melodic
-          </FilterButton>
-          <FilterButton
-            active={filter === "percussive"}
+          </button>
+          <button
+            data-active={filter === "percussive"}
+            className="p-2 py-1 border active:bg-orange-100/10 rounded-lg mb-2 border-slate-400 data-[active=true]:border-orange-400"
             onClick={() => setFilter("percussive")}
           >
             Percussive
-          </FilterButton>
+          </button>
         </div>
-        {availableCategories.map((category) => (
-          <Disclosure key={category}>
-            {({ open }) => (
-              <>
-                <DisclosureButton className="outline-none">
-                  <div className="flex items-center justify-center">
-                    <label
-                      className={`capitalize py-2.5 px-2 ${
-                        category === instrumentCategory
-                          ? "text-orange-400"
-                          : "text-slate-50"
-                      } flex items-center select-none`}
-                    >
-                      <Icon category={category} />
-                      <span className={`ml-3`}>{category}</span>
-                    </label>
-                    <span className="ml-auto mr-2">
-                      {open ? <BsChevronDown /> : <BsChevronUp />}
-                    </span>
-                  </div>
-                </DisclosureButton>
-                <Transition
-                  show={open}
-                  appear
-                  enter="transition-all ease-in-out duration-150"
-                  enterFrom="opacity-0 transform scale-95"
-                  enterTo="opacity-100 transform scale-100"
-                  leave="transition-all ease-in-out duration-150"
-                  leaveFrom="opacity-100 transform scale-100"
-                  leaveTo="opacity-0 transform scale-95"
-                >
-                  <DisclosurePanel>
-                    {getCategoryInstruments(category).map(renderInstrument)}
-                  </DisclosurePanel>
-                </Transition>
-              </>
-            )}
-          </Disclosure>
-        ))}
+        {categories.map(renderCategory)}
       </EditorList>
     </EditorSidebar>
   );
 }
+
+const IconMap: Record<string, ReactNode> = {
+  Keyboards: <GiPianoKeys />,
+  Guitars: <GiGuitar />,
+  Strings: <GiViolin />,
+  Woodwinds: <GiClarinet />,
+  Brass: <GiTrumpet />,
+  Mallets: <GiXylophone />,
+  "Death Metal Vocals": <GiSing />,
+  "Animal Sounds": <GiCat />,
+};

@@ -1,35 +1,12 @@
 import { m } from "framer-motion";
 import { LandingSection } from "../components";
 import Logo from "assets/images/logo.png";
-import { ReactNode, useCallback } from "react";
-import { adminClearance, authorize, useAuth } from "providers/auth";
 import { useNavigate } from "react-router-dom";
 import { useLandingError } from "../hooks/useLandingError";
 
 export const LandingSplashScreen = () => {
   const navigate = useNavigate();
-  const { isAuthorized, isAuthenticated, isAtLeastRank, isLoaded } = useAuth();
   const { hasError, errorMessage } = useLandingError();
-
-  const onClick = useCallback(
-    async (e: React.MouseEvent) => {
-      const clearance = await authorize(e.altKey);
-      if (clearance === null) return;
-
-      // Navigate to projects as an admin
-      const isAdmin = clearance === adminClearance;
-      if (isAdmin) return navigate("/projects");
-
-      // Navigate conditionally otherwise
-      if (isAuthenticated && !e.altKey) {
-        if (e.shiftKey) return navigate("/playground");
-        return navigate(isAtLeastRank("maestro") ? "/projects" : "/demos");
-      } else {
-        navigate("/login");
-      }
-    },
-    [authorize, isAuthenticated]
-  );
 
   const title = "Harmonia";
   const titleClass =
@@ -39,13 +16,8 @@ export const LandingSplashScreen = () => {
   const subtitleClass = hasError
     ? "font-light sm:text-2xl text-lg text-red-500"
     : "font-normal sm:text-4xl text-xl drop-shadow-xl";
-  const button = hasError
-    ? "Proceed to Website"
-    : !isLoaded
-    ? "Loading User..."
-    : isAuthorized
-    ? "Make Music Now"
-    : "Start Your Journey!";
+  const button = hasError ? "Proceed to Website" : "Make Music Now";
+
   const buttonClass =
     "mt-16 py-6 px-9 text-slate-100 hover:animate-pulse-slow bg-[#00aaff]/70 active:bg-blue-950/90 hover:shadow-[0px_0px_10px_10px_rgb(15,150,200)] ring-2 ring-slate-900/20 hover:ring-slate-100/20 rounded-2xl backdrop-blur-xl shadow-2xl drop-shadow-2xl sm:text-4xl text-2xl font-light";
 
@@ -58,7 +30,7 @@ export const LandingSplashScreen = () => {
           transition={{ duration: 0.3 }}
           className="sm:size-76 size-64"
         >
-          {isAuthorized ? (
+          {
             <m.img
               initial={{ boxShadow: "0px 0px 50px 50px #01bcfa30" }}
               whileInView={{ boxShadow: "0px 0px 30px 30px #01bcfa50" }}
@@ -71,9 +43,7 @@ export const LandingSplashScreen = () => {
               src={Logo}
               className="w-full h-full rounded-full"
             />
-          ) : (
-            <img src={Logo} className="w-full h-full rounded-full" />
-          )}
+          }
         </m.div>
         <m.h1
           initial={{ opacity: 0, translateY: 50, scale: 1.5 }}
@@ -101,8 +71,9 @@ export const LandingSplashScreen = () => {
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.3, scale: 1.1 }}
           type="button"
-          onClick={onClick}
-          disabled={!isLoaded}
+          onClick={(e) =>
+            e.shiftKey ? navigate("/playground") : navigate("/projects")
+          }
           className={buttonClass}
         >
           {button}

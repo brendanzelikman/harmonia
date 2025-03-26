@@ -4,13 +4,11 @@ import {
   initializePoseClip,
   isIPatternClip,
   isIPoseClip,
-  isIScaleClip,
   PatternClip,
   PoseClip,
 } from "types/Clip/ClipTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import { initializePatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
-import { initializeScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { Media } from "./MediaTypes";
 import {
   sortMediaByTick,
@@ -40,11 +38,6 @@ export const getPatternClipsFromMedia = (media: Media) => {
 /** Get the pose clips from the media. */
 export const getPoseClipsFromMedia = (media: Media) => {
   return media.filter(isIPoseClip);
-};
-
-/** Get the scale clips from the media. */
-export const getScaleClipsFromMedia = (media: Media) => {
-  return media.filter(isIScaleClip);
 };
 
 test("getMediaClips should only include clips", () => {
@@ -86,14 +79,6 @@ test("getValidMedia should filter out media with invalid ticks", () => {
     tick: -1,
   });
   const poseClip = initializePoseClip({ trackId: patternTrack.id, tick: 0 });
-  expect(getValidMedia([patternClip, poseClip], trackMap)).toEqual([poseClip]);
-});
-
-test("getValidMedia should filter out clips inside scale tracks", () => {
-  const scaleTrack = initializeScaleTrack();
-  const trackMap = keyBy([scaleTrack], "id");
-  const patternClip = initializePatternClip({ trackId: scaleTrack.id });
-  const poseClip = initializePoseClip({ trackId: scaleTrack.id });
   expect(getValidMedia([patternClip, poseClip], trackMap)).toEqual([poseClip]);
 });
 

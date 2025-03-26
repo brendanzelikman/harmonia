@@ -102,6 +102,14 @@ const minor_pentatonic: Keyset = [
   createScalesInAllKeys("scale_preset_minor_pentatonic"),
   minorKeys,
 ];
+const mixolydian_pentatonic: Keyset = [
+  createScalesInAllKeys("scale_preset_mixolydian_pentatonic"),
+  majorKeys,
+];
+const ryukyu: Keyset = [
+  createScalesInAllKeys("scale_preset_ryukyu"),
+  majorKeys,
+];
 const _in: Keyset = [
   createScalesInAllKeys("scale_preset_in"),
   lowerKeys(minorKeys, 1, 8),
@@ -595,6 +603,8 @@ export const SCALE_KEYSETS: Keyset[] = [
   // Pentatonic Scales
   major_pentatonic,
   minor_pentatonic,
+  mixolydian_pentatonic,
+  ryukyu,
   _in,
   yo,
   insen,

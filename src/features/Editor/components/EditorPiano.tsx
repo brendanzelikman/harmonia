@@ -2,13 +2,14 @@
 import { Piano, MidiNumbers } from "react-piano";
 import { useEffect, useMemo } from "react";
 import "react-piano/dist/styles.css";
+import "lib/react-piano.css";
 import { WebMidi } from "webmidi";
-import { getMidiPitch } from "utils/midi";
+import { getMidiPitch, MidiScale } from "utils/midi";
 import classNames from "classnames";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { Sampler } from "tone";
-import { useAuth } from "providers/auth";
 import { cancelEvent } from "utils/html";
+import { ScaleObject } from "types/Scale/ScaleTypes";
 
 interface PianoProps {
   sampler?: Sampler;
@@ -17,10 +18,13 @@ interface PianoProps {
   stopNote?: (sampler: Sampler, midiNumber: number) => void;
   show: boolean;
   noteRange?: readonly [string, string];
+  midiScale?: MidiScale;
+  scale?: ScaleObject;
+  width?: number;
+  keyWidthToHeight?: number;
 }
 
 export const EditorPiano: React.FC<PianoProps> = (props) => {
-  const { isProdigy } = useAuth();
   const sampler = props.sampler ?? LIVE_AUDIO_INSTANCES.global?.sampler;
   const hasPlay = props.playNote !== undefined;
   const hasStop = props.stopNote !== undefined;
@@ -46,16 +50,15 @@ export const EditorPiano: React.FC<PianoProps> = (props) => {
   const playNote = useMemo(() => {
     if (hasStop) return props.playNote ?? attackSamplerNote;
     return props.playNote ?? playSamplerNote;
-  }, [props.playNote, props.stopNote]);
+  }, [props.playNote, hasStop]);
 
   const stopNote = useMemo(() => {
     if (hasPlay) return props.stopNote ?? releaseSamplerNote;
     return () => null;
-  }, [props.playNote, props.stopNote]);
+  }, [props.stopNote, hasStop]);
 
   // Synchronize with MIDI controller via WebMidi
   useEffect(() => {
-    if (isProdigy) return;
     // Attach a listener to each MIDI input
     const onEnabled = () => {
       WebMidi.inputs.forEach((input) => {
@@ -73,31 +76,29 @@ export const EditorPiano: React.FC<PianoProps> = (props) => {
         input.removeListener();
       });
     };
-  }, [isProdigy, sampler, playNote, stopNote]);
+  }, [sampler, playNote, stopNote]);
 
   if (!props.show) return null;
   return (
-    <div
-      className={classNames(
-        "min-w-2xl overflow-scroll shrink-0 h-40 bg-slate-950",
-        props.className
-      )}
-      draggable
-      onDragStart={cancelEvent}
-    >
-      <div className="w-full min-w-[1000px] shrink-0 h-full bg-zinc-900">
+    <div className={props.className} draggable onDragStart={cancelEvent}>
+      <div className="w-full shrink-0 h-full bg-zinc-900">
         <Piano
+          width={props.width}
+          keyWidthToHeight={props.keyWidthToHeight}
           noteRange={{
-            first: MidiNumbers.fromNote(props.noteRange?.[0] ?? "C1"),
+            first: MidiNumbers.fromNote(props.noteRange?.[0] ?? "A0"),
             last: MidiNumbers.fromNote(props.noteRange?.[1] ?? "C8"),
           }}
-          renderNoteLabel={({ midiNumber }: any) =>
-            midiNumber % 12 === 0 ? (
-              <div className="flex size-full shrink-0 total-center mb-0.5">
-                {MidiNumbers.getAttributes(midiNumber).note}
+          renderNoteLabel={({ midiNumber }: any) => {
+            const className = classNames(
+              "flex flex-col text-xs size-full justify-end items-center text-black"
+            );
+            return midiNumber % 12 === 0 ? (
+              <div className={className}>
+                <span>{MidiNumbers.getAttributes(midiNumber).note}</span>
               </div>
-            ) : undefined
-          }
+            ) : undefined;
+          }}
           playNote={(midi: number) => playNote(sampler, midi)}
           stopNote={(midi: number) => stopNote(sampler, midi)}
         />

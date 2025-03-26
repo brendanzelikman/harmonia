@@ -8,13 +8,12 @@ import {
 } from "utils/midi";
 import {
   ScaleNote,
-  isNestedNote,
   ScaleArray,
   isMidiNote,
   chromaticNotes,
   ScaleChain,
   Scale,
-  ScaleNoteObject,
+  ScaleObject,
 } from "./ScaleTypes";
 import { resolveScaleToMidi, resolveScaleChainToMidi } from "./ScaleResolvers";
 import { ChromaticKey } from "assets/keys";
@@ -78,7 +77,7 @@ export const getTonicPitchClass = (
 };
 
 /** Convert the notes of a scale to degrees of a scale chain. */
-export const getParentAsNewScale = (chain: ScaleChain, scale?: Scale) => {
+export const getParentAsNewScale = (chain: ScaleChain, scale?: ScaleObject) => {
   const midiChain = resolveScaleChainToMidi(chain);
   if (!scale) return midiChain ?? chromaticNotes;
 
@@ -99,7 +98,7 @@ export const getParentAsNewScale = (chain: ScaleChain, scale?: Scale) => {
       const degree = parent.findIndex((n) => n === midi);
       if (degree === -1) return undefined;
       const octave = getMidiOctaveDistance(parent[degree], midi);
-      return { degree, offset: { octave } };
+      return { degree, offset: { octave }, scaleId: scale.id };
     })
     .filter(Boolean) as ScaleArray;
 };

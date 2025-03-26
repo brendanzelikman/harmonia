@@ -151,34 +151,6 @@ export const MajorAddSharp4Chord: Pattern = {
   ],
 };
 
-export const MajorSixthChord: Pattern = {
-  id: "pattern_preset_major-6th-chord",
-  name: "Major 6th Chord",
-  aliases: ["maj6", "maj 6", "maj6th", "maj 6th", "major 6", "major 6th"],
-  stream: [
-    [
-      _.createQuarterNote(60),
-      _.createQuarterNote(64),
-      _.createQuarterNote(67),
-      _.createQuarterNote(69),
-    ],
-  ],
-};
-
-export const MajorFlatSixthChord: Pattern = {
-  id: "pattern_preset_major-b6-chord",
-  name: "Major b6th Chord",
-  aliases: ["majb6", "maj b6", "major b6"],
-  stream: [
-    [
-      _.createQuarterNote(60),
-      _.createQuarterNote(64),
-      _.createQuarterNote(67),
-      _.createQuarterNote(68),
-    ],
-  ],
-};
-
 export default {
   MajorChord,
   MajorAddFlat2Chord,
@@ -186,8 +158,6 @@ export default {
   MajorAddFlat3Chord,
   MajorAdd4Chord,
   MajorAddSharp4Chord,
-  MajorFlatSixthChord,
-  MajorSixthChord,
   MajorTrichord,
   MajorTetrachord,
   MajorPentachord,

@@ -1,31 +1,36 @@
 import * as Effects from "types/Instrument/InstrumentEffectTypes";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { Slider } from "components/Slider";
-import { InstrumentEditorProps } from "../InstrumentEditor";
 import { useEffectDrop, useEffectDrag } from "../hooks/useInstrumentEditorDnd";
 import { cancelEvent } from "utils/html";
 import { BsArrowClockwise, BsTrashFill } from "react-icons/bs";
-import { useProjectDispatch } from "types/hooks";
+import { useDeep, useProjectDispatch } from "types/hooks";
 import {
   rearrangeInstrumentEffect,
   updateInstrumentEffect,
   resetInstrumentEffect,
   removeInstrumentEffect,
 } from "types/Instrument/InstrumentSlice";
+import { InstrumentId } from "types/Instrument/InstrumentTypes";
+import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
+import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 
-interface InstrumentEffectsProps extends InstrumentEditorProps {}
+type InstrumentEffectsProps = { id: InstrumentId };
 
 export function InstrumentEditorEffects(props: InstrumentEffectsProps) {
   const dispatch = useProjectDispatch();
-  const { instrument } = props;
+  const id = props.id;
+  const instrument = useDeep((_) => selectInstrumentById(_, id));
   const effects = instrument?.effects ?? [];
 
   /** Move an effect to a new index when dragging */
-  const moveEffect = (effectId: Effects.EffectId, index: number) => {
-    if (!props.instrument) return;
-    const id = props.instrument.id;
-    dispatch(rearrangeInstrumentEffect({ data: { id, effectId, index } }));
-  };
+  const moveEffect = useCallback(
+    (effectId: Effects.EffectId, index: number) => {
+      if (!instrument) return;
+      dispatch(rearrangeInstrumentEffect({ data: { id, effectId, index } }));
+    },
+    []
+  );
 
   /** Create a slider for each effect */
   const mapEffectToSliders = (effect: Effects.SafeEffect, index: number) => (
@@ -51,7 +56,8 @@ export function InstrumentEditorEffects(props: InstrumentEffectsProps) {
   );
 }
 
-export interface DraggableEffectProps extends InstrumentEditorProps {
+export interface DraggableEffectProps {
+  id: InstrumentId;
   effect: Effects.SafeEffect;
   index: number;
   element?: any;
@@ -60,7 +66,8 @@ export interface DraggableEffectProps extends InstrumentEditorProps {
 
 export const InstrumentEffect = (props: DraggableEffectProps) => {
   const dispatch = useProjectDispatch();
-  const { effect, instrument, instance } = props;
+  const { id, effect } = props;
+  const instance = LIVE_AUDIO_INSTANCES[id];
   const ref = useRef<HTMLDivElement>(null);
   const [{}, drop] = useEffectDrop({ ...props, element: ref.current });
   const [{ isDragging }, drag] = useEffectDrag({
@@ -71,10 +78,9 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
 
   /** Update the effect of a track */
   const setTrackEffect = (props: Partial<Effects.EffectProps>) => {
-    if (!instrument) return;
     dispatch(
       updateInstrumentEffect({
-        data: { id: instrument.id, effectId: effect.id, update: props },
+        data: { id, effectId: effect.id, update: props },
       })
     );
   };
@@ -84,10 +90,9 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
     <div
       className="capitalize text-sm cursor-pointer"
       onClick={() =>
-        instrument?.id &&
         dispatch(
           resetInstrumentEffect({
-            data: { id: instrument.id, effectId: effect.id },
+            data: { id, effectId: effect.id },
           })
         )
       }
@@ -101,10 +106,9 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
     <div className="text-xs mx-2 cursor-pointer hover:text-red-500">
       <BsTrashFill
         onClick={() =>
-          instrument?.id &&
           dispatch(
             removeInstrumentEffect({
-              data: { id: instrument.id, effectId: effect.id },
+              data: { id, effectId: effect.id },
             })
           )
         }

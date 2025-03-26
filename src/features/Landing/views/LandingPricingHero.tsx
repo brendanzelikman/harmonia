@@ -5,12 +5,6 @@ import {
   LandingPopupHeader,
   LandingHeroProps,
 } from "../components";
-import {
-  MAESTRO_PRICE,
-  MAESTRO_PROJECT_LIMIT,
-  PRODIGY_PRICE,
-  VIRTUOSO_PRICE,
-} from "utils/rank";
 
 export const LandingPricingHero = (props: LandingHeroProps) => {
   return (
@@ -25,7 +19,6 @@ export const LandingPricingHero = (props: LandingHeroProps) => {
           <LandingPriceBox
             name="Workstation"
             isEnabled
-            price={`$${PRODIGY_PRICE} / month`}
             description="Web-Based Musical Sandbox"
             features={[
               "Create and Edit Projects",
@@ -44,7 +37,6 @@ export const LandingPricingHero = (props: LandingHeroProps) => {
           <LandingPriceBox
             name="Instrument"
             isEnabled
-            price={`$${MAESTRO_PRICE} / month`}
             description="Live Musical Playground"
             features={[
               "Real-Time Audio Playback",
@@ -63,7 +55,6 @@ export const LandingPricingHero = (props: LandingHeroProps) => {
           <LandingPriceBox
             name="Companion"
             isEnabled
-            price={`$${VIRTUOSO_PRICE} / month`}
             description="Integrated VST Plugin"
             features={[
               "Desktop-Only Feature",

@@ -46,6 +46,7 @@ type NoteOptions = Partial<{
   triplet: boolean;
   key?: Key;
   degree?: number;
+  staves?: "treble" | "bass" | "grand";
 }>;
 
 // ------------------------------------------------------------
@@ -115,8 +116,8 @@ const createTrebleClef = () => {
 /** Create a MusicXML bass clef. */
 const createBassClef = () => {
   return `<clef>
-      <sign>G</sign>
-      <line>2</line>
+      <sign>F</sign>
+      <line>4</line>
     </clef>`;
 };
 
@@ -136,15 +137,20 @@ const createGrandStaff = () => {
 /** Create a MusicXML measure using the notes. */
 interface MeasureOptions {
   number?: number;
-  staves?: number;
+  staves?: "treble" | "bass" | "grand";
   quarters?: number;
 }
 const createMeasure = (notes: XML[], options: MeasureOptions = {}) => {
-  const { number = 1, staves = 2, quarters = 4 } = options;
+  const { number = 1, staves = "treble", quarters = 4 } = options;
   const listedNotes = notes.join("");
   const keySignature = createKeySignature();
   const timeSignature = createTimeSignature(quarters);
-  const clefs = staves === 1 ? createTrebleClef() : createGrandStaff();
+  const clefs =
+    staves === "treble"
+      ? createTrebleClef()
+      : staves === "bass"
+      ? createBassClef()
+      : createGrandStaff();
   return `<measure number="${number}">
       <attributes>
         <divisions>${PPQ}</divisions>
@@ -162,6 +168,7 @@ const createNote = (
   noteOptions: NoteOptions = {}
 ) => {
   const isMidi = isPatternMidiNote(note);
+  const midi = isMidi ? _.getMidiNoteValue(note) : undefined;
   const key = noteOptions?.key;
 
   /** The chord tag groups together notes. */
@@ -217,7 +224,7 @@ const createNote = (
     : "";
 
   /** The stem tag indicates the stem direction. */
-  const stem = noteOptions?.stem || "up";
+  const stem = noteOptions?.stem || (midi && midi > STEM_PIVOT ? "down" : "up");
   const stemTag = `<stem>${stem}</stem>`;
 
   /** The staff tag places the note in a staff. */
@@ -241,7 +248,7 @@ const createNote = (
 
   /** The triplet tag creates the time modification. */
   const triplet = noteOptions?.triplet || isTripletDuration(type);
-  const tripletTag = triplet ? `<notations><tuplet/></notations>` : "";
+  const tripletTag = triplet ? `<notations><tuplet /></notations>` : "";
 
   /** The degree tag creates a fingering. */
   const degree = noteOptions?.degree;
@@ -269,12 +276,14 @@ const createNote = (
       </note>`;
 };
 
+export const STAFF_PIVOT = 58;
+export const STEM_PIVOT = 84;
+
 /** Create a MusicXML chord using the pattern MIDI chord. */
 const createBlock = (block: PatternMidiBlock, noteOptions?: NoteOptions) => {
   const duration = noteOptions?.duration || 1;
   const beam = noteOptions?.beam;
   const type = noteOptions?.type || getTickDuration(duration);
-  const stem = noteOptions?.stem || "up";
   const dot = noteOptions?.dot || isDottedNote({ duration });
   const triplet = noteOptions?.triplet || isTripletNote({ duration });
   const key = noteOptions?.key;
@@ -287,26 +296,30 @@ const createBlock = (block: PatternMidiBlock, noteOptions?: NoteOptions) => {
       beam,
       key,
     };
-    const rests = [
+    if (noteOptions?.staves === "treble") {
+      return createNote(block, { ...restOptions, staff: 1 });
+    }
+    if (noteOptions?.staves === "bass") {
+      return createNote(block, { ...restOptions, staff: 2 });
+    }
+    return [
       createNote(block, { ...restOptions, staff: 1 }),
       createNote(block, {
         ...restOptions,
         staff: 2,
         backup: duration,
       }),
-    ];
-    return rests.join("");
+    ].join("");
   }
 
   const notes = getPatternMidiChordNotes(block);
-  const pivotNote = 58;
   const allNoteOptions = notes.map((note, i, arr) => {
     const notFirstInStaff1 =
-      i > 0 && !!arr.slice(0, i).find((n) => n.MIDI >= pivotNote);
+      i > 0 && !!arr.slice(0, i).find((n) => n.MIDI >= STAFF_PIVOT);
     const notFirstInStaff2 =
-      i > 0 && !!arr.slice(0, i).find((n) => n.MIDI < pivotNote);
+      i > 0 && !!arr.slice(0, i).find((n) => n.MIDI < STAFF_PIVOT);
 
-    const staff = note.MIDI >= pivotNote ? 1 : 2;
+    const staff = note.MIDI >= STAFF_PIVOT ? 1 : 2;
 
     const isFirstVoice1 = staff === 1 && !notFirstInStaff1;
     const isFirstVoice2 = staff === 2 && !notFirstInStaff2;
@@ -315,10 +328,10 @@ const createBlock = (block: PatternMidiBlock, noteOptions?: NoteOptions) => {
       (isFirstVoice1 && notFirstInStaff2) ||
       (isFirstVoice2 && notFirstInStaff1);
 
-    const noteOptions: NoteOptions = {
+    const options: NoteOptions = {
+      ...noteOptions,
       beam,
       type,
-      stem,
       duration,
       staff,
       isChord:
@@ -327,16 +340,18 @@ const createBlock = (block: PatternMidiBlock, noteOptions?: NoteOptions) => {
       dot,
       triplet,
       key,
+      staves: noteOptions?.staves,
     };
 
-    return noteOptions;
+    return options;
   });
 
   const xmlNotes = allNoteOptions.map((noteOptions, i) =>
     createNote(notes[i], noteOptions)
   );
+  if (noteOptions?.staves !== "grand") return xmlNotes.join("");
 
-  // Create a rest for each staff that is missing a note
+  // Create a rest for each staff that is missing a note (if staves > 1)
   const staffs = allNoteOptions.map((note) => note.staff);
   const missingStaffs = [1, 2].filter((staff) => !staffs.includes(staff));
   const staffRests = missingStaffs.map((staff) =>

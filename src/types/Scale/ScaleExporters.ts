@@ -1,11 +1,14 @@
 import { DemoXML } from "assets/demoXML";
 import { MusicXML } from "lib/musicxml";
 import { Thunk } from "types/Project/ProjectTypes";
-import { convertTicksToSeconds } from "types/Transport/TransportFunctions";
-import { selectTransport } from "types/Transport/TransportSelectors";
+import { selectTransportBPM } from "types/Transport/TransportSelectors";
 import { XML } from "types/units";
 import { MidiNote, MidiScale } from "utils/midi";
-import { EighthNoteTicks, getDurationTicks } from "utils/durations";
+import {
+  EighthNoteTicks,
+  getDurationTicks,
+  ticksToSeconds,
+} from "utils/durations";
 import { downloadBlob } from "utils/html";
 import { getScaleKey } from "utils/scale";
 import { getScaleName } from "utils/scale";
@@ -66,7 +69,7 @@ export const exportScaleToMIDI =
   (scale: MidiScale): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const transport = selectTransport(project);
+    const bpm = selectTransportBPM(project);
 
     // Create a new MIDI file with a single track
     const midi = new Midi();
@@ -80,7 +83,7 @@ export const exportScaleToMIDI =
     notes.forEach((note, i) => {
       track.addNote({
         midi: getScaleNoteMidiValue(note),
-        time: convertTicksToSeconds(transport, i * EighthNoteTicks),
+        time: ticksToSeconds(i * EighthNoteTicks, bpm),
       });
     });
 

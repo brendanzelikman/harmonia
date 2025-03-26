@@ -1,239 +1,166 @@
-// ------------------------------------------------------------
-// Clip Type Helpers
-// ------------------------------------------------------------
-
-import {
-  isPatternTrack,
-  isScaleTrack,
-  ITrack,
-  ITrackId,
-  ITrackUpdate,
-  Track,
-  TrackId,
-  TrackType,
-  TrackUpdate,
-} from "types/Track/TrackTypes";
-import { Update } from "types/units";
-import {
-  PatternTrack,
-  PatternTrackId,
-  isPatternTrackId,
-} from "./PatternTrack/PatternTrackTypes";
-import {
-  ScaleTrack,
-  ScaleTrackId,
-  isScaleTrackId,
-} from "./ScaleTrack/ScaleTrackTypes";
-import { nanoid } from "@reduxjs/toolkit";
-import { Payload, createUndoType } from "lib/redux";
-import { isString } from "lodash";
-import { setupFileInput } from "providers/idb";
-import {
-  matchInstrumentKey,
-  sampleInstrumentByCategory,
-} from "types/Instrument/InstrumentFunctions";
+import { range } from "lodash";
+import { resolvePatternNoteToMidi } from "types/Pattern/PatternResolvers";
+import { PatternNote } from "types/Pattern/PatternTypes";
 import { Thunk } from "types/Project/ProjectTypes";
-import { initializeScale, Scale, ScaleObject } from "types/Scale/ScaleTypes";
-import { toArray } from "utils/array";
-import { promptUserForString } from "utils/html";
-import { parseTrackHierarchy, Hierarchy } from "utils/track";
-import { createPatternTrack } from "./PatternTrack/PatternTrackThunks";
+import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
+import { NestedNote } from "types/Scale/ScaleTypes";
+import { mod } from "utils/math";
+import { MidiValue, getMidiOctaveDistance } from "utils/midi";
+import { getArrayByKey } from "utils/objects";
 import {
-  readMidiScaleFromString,
-  createScaleTrack,
-} from "./ScaleTrack/ScaleTrackThunks";
-import { selectTrackMidiScale } from "./TrackSelectors";
-import { convertMidiToNestedNote } from "./TrackThunks";
+  selectTrackScale,
+  selectTrackMidiScale,
+  selectScaleTrackByScaleId,
+  selectTrackScaleChain,
+  selectTrackMidiScaleMap,
+  selectScaleTrackChainIds,
+  selectScaleTrackById,
+  selectTrackById,
+} from "./TrackSelectors";
+import { isScaleTrack, TrackId } from "./TrackTypes";
 
-export type TracksByType = { [T in TrackType]: ITrack<T>[] };
-
-/** Convert an array of tracks to a record of tracks by type */
-export const getTracksByType = (tracks: Track[]): TracksByType => {
-  const pattern: PatternTrack[] = [];
-  const scale: ScaleTrack[] = [];
-
-  for (const track of tracks) {
-    if (isPatternTrack(track)) pattern.push(track);
-    else if (isScaleTrack(track)) scale.push(track);
-  }
-
-  return { pattern, scale };
-};
-
-// ------------------------------------------------------------
-// Track Update Type Helpers
-// ------------------------------------------------------------
-
-export type TrackUpdatesByType = { [T in TrackType]: ITrackUpdate<T>[] };
-
-/** Convert an array of tracks to a record of tracks by type */
-export const getTrackUpdatesByType = (
-  tracks: TrackUpdate[]
-): TrackUpdatesByType => {
-  const pattern: Update<PatternTrack>[] = [];
-  const scale: Update<ScaleTrack>[] = [];
-
-  for (const track of tracks) {
-    if (isPatternTrack(track)) pattern.push(track);
-    else if (isScaleTrack(track)) scale.push(track);
-  }
-
-  return { pattern, scale };
-};
-
-// ------------------------------------------------------------
-// Track Id Type Helpers
-// ------------------------------------------------------------
-
-export type TrackIdsByType = { [T in TrackType]: ITrackId<T>[] };
-
-/** Convert an array of ids to a record of ids by type */
-export const getTrackIdsByType = (ids: TrackId[]): TrackIdsByType => {
-  const pattern: PatternTrackId[] = [];
-  const scale: ScaleTrackId[] = [];
-
-  for (const id of ids) {
-    if (isPatternTrackId(id)) pattern.push(id);
-    else if (isScaleTrackId(id)) scale.push(id);
-  }
-
-  return { pattern, scale };
-};
-
-type TrackStringPayload = Payload<{ input: string; parentId?: TrackId }>;
-
-/** Read a string and create a new scale (optionally nested within a parent) */
-export const createNestedScaleFromString =
-  (payload: TrackStringPayload): Thunk<ScaleObject | undefined> =>
+/** Convert a midi into a nested note */
+export const convertMidiToNestedNote =
+  (midi: MidiValue, parent?: TrackId): Thunk<NestedNote> =>
   (dispatch, getProject) => {
-    const { input } = payload.data;
-    const id = payload.data.parentId;
-    const text = input.trim();
-
-    // Try to read a midi scale
-    const parentScale = selectTrackMidiScale(getProject(), id);
-    const midi = readMidiScaleFromString(text, parentScale);
-    if (!midi) return undefined;
-
-    // Convert the midi scale to nested notes
-    const notes = midi.map((m) => dispatch(convertMidiToNestedNote(m, id)));
-    return initializeScale({ notes });
+    const parentScale = selectTrackScale(getProject(), parent);
+    const parentMidi = selectTrackMidiScale(getProject(), parent);
+    const degree = parentMidi.findIndex((s) => s % 12 === midi % 12);
+    const octave = getMidiOctaveDistance(parentMidi[degree], midi);
+    const note: NestedNote = { degree, offset: { octave } };
+    if (parentScale) return { ...note, scaleId: parentScale.id };
+    return note;
   };
 
-export const createScaleTrackFromString =
-  (payload: TrackStringPayload): Thunk<ScaleTrack | undefined> =>
-  (dispatch) => {
-    const { parentId } = payload.data;
-    const scale = dispatch(createNestedScaleFromString(payload));
-    if (scale) {
-      return dispatch(createScaleTrack({ parentId }, scale, payload.undoType));
+/** Get the degree of the pattern note in the given track's scale.  */
+export const getDegreeOfNoteInTrack =
+  (trackId?: TrackId, patternNote?: PatternNote): Thunk<number> =>
+  (dispatch, getProject) => {
+    if (!trackId || !patternNote) return -1;
+    const project = getProject();
+    const trackMidiScale = selectTrackMidiScale(project, trackId);
+    const isNested = !("MIDI" in patternNote);
+
+    // Get the MIDI of the note, realizing if necessary
+    let MIDI: number;
+    if (!isNested) MIDI = patternNote.MIDI;
+    else {
+      // Chain the note through its scales
+      const track = selectScaleTrackByScaleId(project, patternNote?.scaleId);
+      const chain = selectTrackScaleChain(project, track?.id);
+      MIDI = resolveScaleNoteToMidi(patternNote, chain);
     }
+
+    // Index the MIDI scale and return the degree
+    if (MIDI < 0) return -1;
+    return trackMidiScale.findIndex((s) => s % 12 === MIDI % 12);
   };
 
-export const createPatternTrackFromString =
-  (payload: TrackStringPayload): Thunk<PatternTrack | undefined> =>
-  (dispatch) => {
-    const { input, parentId } = payload.data;
-    const text = input.trim();
-    if (text === "sample") {
-      dispatch(setupFileInput(undefined, parentId, payload.undoType));
-    } else {
-      let key = matchInstrumentKey(text) ?? sampleInstrumentByCategory(text);
-      if (!key) return;
-      const { track } = dispatch(
-        createPatternTrack({ parentId }, key, payload.undoType)
-      );
-      return track;
-    }
-  };
+/** Get the best matching note based on the given track. */
+export const autoBindNoteToTrack =
+  (trackId?: TrackId, note?: PatternNote): Thunk<PatternNote> =>
+  (dispatch, getProject) => {
+    if (!note) throw new Error("Note is required for autoBindNoteToTrack");
+    if (!trackId) return note;
+    const project = getProject();
+    const trackScaleMap = selectTrackMidiScaleMap(project);
+    const chainIds = selectScaleTrackChainIds(project, trackId);
+    const scales = selectTrackScaleChain(project, trackId);
+    const midi = resolvePatternNoteToMidi(note, scales);
+    const idCount = chainIds.length;
+    if (!idCount) return note;
 
-/** Create a family of tracks based on an input string. */
-export const createTracksFromString =
-  (input: string): Thunk<string> =>
-  (dispatch) => {
-    const undoType = createUndoType("generateTracks", nanoid());
+    const track = selectScaleTrackById(project, chainIds[0]);
+    const trackScaleId = track?.scaleId;
+    const tonicScale = selectTrackMidiScale(project, trackId);
+    const chromaticScale = range(tonicScale[0], tonicScale[0] + 12);
 
-    // Get the list of objects based on the input track hierarchy
-    const objects = parseTrackHierarchy(input);
+    // Get the current track and scale
+    for (let i = idCount - 1; i >= 0; i--) {
+      const trackId = chainIds[i];
+      const track = selectScaleTrackById(project, trackId);
+      const scaleId = track?.scaleId;
+      const scale = getArrayByKey(trackScaleMap, trackId);
+      const scaleNote: PatternNote = { ...note, scaleId };
 
-    // Create a list of thunks for each object
-    const addObject = (
-      object: string | Hierarchy,
-      parentId?: ScaleTrackId
-    ): Thunk[] => {
-      if (isString(object)) {
-        const input = object.trim();
-        if (!input) return [];
-        return [
-          (_) => {
-            // Create a scale track if a scale delimiter is found
-            if (input.startsWith("$")) {
-              const data = { input: input.slice(1), parentId };
-              _(createScaleTrackFromString({ data, undoType }));
-            }
-
-            // Create a pattern track if an instrument delimiter is found
-            else if (input.startsWith("~")) {
-              const data = { input: input.slice(1), parentId };
-              _(createPatternTrackFromString({ data, undoType }));
-            }
-
-            // Otherwise, try scale track then pattern track
-            else {
-              const payload = { data: { input, parentId }, undoType };
-              const scaleTrack = _(createScaleTrackFromString(payload));
-              if (!scaleTrack) _(createPatternTrackFromString(payload));
-            }
-          },
-        ];
-      } else {
-        const name = Object.keys(object).at(0);
-        if (!name) return [];
-        const text = name?.trim();
-        if (!text) return [];
-        return [
-          (_, getProject) => {
-            const scaleName = text.slice(text.startsWith("$") ? 1 : 0).trim();
-            const parentScale = selectTrackMidiScale(getProject(), parentId);
-            const scale = readMidiScaleFromString(scaleName, parentScale);
-            if (!scale) return [];
-            const notes = scale.map((midi) =>
-              _(convertMidiToNestedNote(midi, parentId))
-            );
-            const ref = initializeScale({ notes });
-            const parent = _(createScaleTrack({ parentId }, ref, undoType));
-            const children = toArray(object[name]);
-            children.forEach((child) => addObject(child, parent.id).map(_));
-          },
-        ];
+      // Check for an exact match with the current scale
+      const degree = dispatch(getDegreeOfNoteInTrack(trackId, note));
+      if (degree > -1) {
+        const octave = getMidiOctaveDistance(scale[degree], midi);
+        note = { ...scaleNote, degree, offset: { octave } };
+        if ("MIDI" in note) delete note.MIDI;
+        return note;
       }
+
+      // Otherwise, check parent scales for neighbors, preferring deep matches first
+      const parentIds = chainIds.slice(0, i).toReversed();
+      const trackIds: (TrackId | "T")[] = [...parentIds, "T"];
+
+      // Iterate over all scale offsets
+      for (let i = 0; i < trackIds.length; i++) {
+        const id = trackIds[i];
+        const parentTrack = selectTrackById(project, id);
+        if (!isScaleTrack(parentTrack)) continue;
+        const parentScaleId = id === "T" ? "chromatic" : parentTrack?.scaleId;
+
+        // Check the parent scale (or chromatic scale at the end)
+        const parentScale = id === "T" ? chromaticScale : trackScaleMap[id];
+        const parentSize = parentScale.length;
+        const degree =
+          id === "T"
+            ? chromaticScale.findIndex((n) => n % 12 === midi % 12)
+            : dispatch(getDegreeOfNoteInTrack(id, scaleNote));
+        if (degree === -1) continue;
+
+        // Check if the note can be lowered to fit in the scale
+        const lower = mod(degree - 1, parentSize);
+        const lowerWrap = Math.floor((degree - 1) / parentSize);
+        const lowerMIDI = parentScale?.[lower] ?? 0;
+        const lowerNote = { ...scaleNote, MIDI: lowerMIDI };
+        const lowerDegree = dispatch(
+          getDegreeOfNoteInTrack(trackId, lowerNote)
+        );
+
+        // If the lowered note exists in the current scale, add the note as an upper neighbor
+        if (lowerDegree > -1) {
+          const octave =
+            getMidiOctaveDistance(parentScale[degree], midi) + lowerWrap;
+
+          const offset = { [parentScaleId]: 1, octave };
+          note = { ...scaleNote, degree: lowerDegree, offset };
+          if ("MIDI" in note) delete note.MIDI;
+          return note;
+        }
+
+        // Check if the note can be raised to fit in the scale
+        const upper = mod(degree + 1, parentSize);
+        const upperMIDI = parentScale?.[upper] ?? 0;
+        const upperNote = { ...scaleNote, MIDI: upperMIDI };
+        const upperWrap = Math.floor((degree + 1) / parentSize);
+        const upperDegree = dispatch(
+          getDegreeOfNoteInTrack(trackId, upperNote)
+        );
+
+        // If the raised note exists in the current scale, add the note as a lower neighbor
+        if (upperDegree > -1) {
+          const octave =
+            getMidiOctaveDistance(parentScale[degree], midi) + upperWrap;
+          const offset = { [parentScaleId]: -1, octave };
+          note = { ...scaleNote, degree: upperDegree, offset };
+          if ("MIDI" in note) delete note.MIDI;
+          return note;
+        }
+      }
+    }
+
+    // If no match has been found, manually set the note as a neighbor of the tonic
+    const offset = { chromatic: midi - tonicScale[0] };
+    const updatedNote: PatternNote = {
+      ...note,
+      degree: 0,
+      offset,
+      scaleId: trackScaleId,
     };
-
-    // Add the objects to the project and return
-    return String(objects.forEach((object) => addObject(object).map(dispatch)));
+    if ("MIDI" in updatedNote) delete updatedNote.MIDI;
+    return updatedNote;
   };
-
-/** Create a list of tracks based on an inputted regex string */
-export const createNewTracks: Thunk = (dispatch) =>
-  promptUserForString({
-    title: "Create New Tracks",
-    description: [
-      "Welcome to the TreeJS Terminal!",
-      new Array(64).fill(`-`).join(""),
-      `Rule 1: A => (B + C) means A is the parent of B and C`,
-      `Rule 2: Scale Tracks are given by name, note, or degree`,
-      `Rule 3: Pattern Tracks are given by name, category, or "sample"`,
-      new Array(64).fill(`-`).join(""),
-      `Example 1: "C major => Cmaj7 + Dmin7"`,
-      `Example 2: "kick + snare + tom + cymbal"`,
-      `Example 3: "F blues => piano"`,
-      new Array(64).fill(`-`).join(""),
-      "Please enter your prompt in TreeJS:",
-    ],
-    callback: (input) => {
-      dispatch(createTracksFromString(input));
-    },
-    autoselect: true,
-    backgroundColor: "bg-zinc-950",
-    large: true,
-  })();

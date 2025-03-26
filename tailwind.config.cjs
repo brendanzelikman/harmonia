@@ -28,10 +28,6 @@ module.exports = {
           "justify-content": "center",
           "align-items": "center",
         },
-        "background-pulse": {
-          "background-size": "400% 400%",
-          animation: "animate-gradient 5s ease-in-out infinite",
-        },
         ".text-shadow": {
           "text-shadow": "0 0 8px rgba(0, 0, 0, 0.8)",
         },
@@ -41,12 +37,8 @@ module.exports = {
         ".text-shadow-lg": {
           "text-shadow": "0 0 10px rgba(0, 0, 0)",
         },
-
         ".rotate-disc": {
           transform: "rotateX(75deg)",
-        },
-        ".landing-background": {
-          animation: "animateLandingBackground 30s ease-in-out infinite",
         },
       });
     }),
@@ -54,26 +46,20 @@ module.exports = {
   theme: {
     extend: {
       keyframes: {
-        fadeIn: {
-          "0%": { opacity: 0 },
-          "100%": { opacity: 1 },
+        pulseSlow: {
+          "0%, 100%": { opacity: 1 },
+          "50%": { opacity: 0.5 },
+        },
+        scaleSlow: {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(10)" },
         },
       },
       animation: {
-        "animate-pulse-slow": "animatePulseSlow 5s ease-in-out infinite",
-        "spin-slow": "spin 2s linear infinite",
-        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "fade-in-delay-1": "fadeIn 0.5s ease-in-out 0.3s forwards",
-        "fade-in-delay-2": "fadeIn 0.5s ease-in-out 0.6s forwards",
-        "fade-in-delay-3": "fadeIn 0.5s ease-in-out 0.9s forwards",
+        "landing-background": "scaleSlow 30s ease-in-out infinite",
+        "pulse-slow": "pulseSlow 4s ease-in-out infinite",
       },
       colors: {
-        prodigy: "#818cf8", // indigo-400
-        maestro: "#c084fc", // fuchsia-400
-        virtuoso: "#38bdf8", // sky-400
-        "prodigy-dark": "#3730a3", // indigo-800
-        "maestro-dark": "#c026d3", // fuchsia-600
-        "virtuoso-dark": "#0284c7", // sky-600
         scale: "#0ea5e9", // sky-500
         pattern: "#34d399", // emerald-400
         pose: "#f472b6", // pink-400

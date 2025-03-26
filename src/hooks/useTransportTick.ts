@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useCustomEventListener } from "./useCustomEventListener";
 import {
   UPDATE_OFFLINE_TICK,
@@ -17,5 +17,5 @@ export function useTransportTick(options?: { offline: boolean }) {
   // Update the string
   useCustomEventListener("printTick", (e: CustomEvent) => setString(e.detail));
 
-  return useMemo(() => ({ tick, string }), [tick, string]);
+  return { tick, string };
 }

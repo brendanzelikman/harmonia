@@ -39,6 +39,7 @@ export type PortaledClipMap = Record<ClipId, Portaled<Clip>>;
 
 /** A portaled clip has a chunk appended to the ID */
 export type PortaledClipId<T extends IClipId = ClipId> = `${T}-chunk-${number}`;
+export type IPortaledClipId<T extends ClipType> = PortaledClipId<IClipId<T>>;
 
 /** A portal fragment stores a track ID and tick. */
 export type PortalFragment = { trackId: TrackId; tick: number };

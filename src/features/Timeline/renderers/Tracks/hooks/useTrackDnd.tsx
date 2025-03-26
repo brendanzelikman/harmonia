@@ -1,37 +1,36 @@
 import { useDrag, useDrop } from "react-dnd";
-import { Track, TrackId } from "types/Track/TrackTypes";
+import { useProjectDispatch } from "types/hooks";
+import { dragTrack } from "types/Track/TrackThunks";
+import { TrackId } from "types/Track/TrackTypes";
 
-export interface DraggableTrackProps {
-  track: Track;
-  index: number;
-  element?: any;
-  moveTrack: (dragId: TrackId, hoverId: TrackId) => void;
-}
-
-export const useTrackDrag = (props: DraggableTrackProps) => {
+export const useTrackDrag = (id: TrackId) => {
   return useDrag({
     type: "track",
-    item: () => {
-      return { id: props.track.id };
-    },
+    item: () => ({ id }),
     collect: (monitor: any) => ({
       isDragging: monitor.isDragging(),
     }),
   });
 };
 
-export const useTrackDrop = (props: DraggableTrackProps) => {
+export const useTrackDrop = (id: TrackId) => {
+  const dispatch = useProjectDispatch();
   return useDrop({
     accept: "track",
     collect(monitor) {
-      return { id: props.track.id, handlerId: monitor.getHandlerId() };
+      return { id, handlerId: monitor.getHandlerId() };
     },
     drop(item: any) {
-      if (!props.element) return;
       const dragId = item.id;
-      const hoverId = props.track.id;
+      const hoverId = id;
       if (dragId === hoverId) return;
-      props.moveTrack(dragId, hoverId);
+      dispatch(dragTrack(dragId, hoverId));
     },
   });
+};
+
+export const useTrackDragAndDrop = (id: TrackId) => {
+  const [{ isDragging }, drag] = useTrackDrag(id);
+  const [_, drop] = useTrackDrop(id);
+  return { isDragging, drag, drop };
 };

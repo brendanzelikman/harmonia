@@ -1,26 +1,15 @@
 // ------------------------------------------------------------
-// Pattern Track Slice
+// Track Slice
 // ------------------------------------------------------------
 
 import { createEntityAdapter } from "@reduxjs/toolkit";
 import { createNormalSlice } from "lib/redux";
-import { PatternTrack } from "./PatternTrack/PatternTrackTypes";
-import { ScaleTrack } from "./ScaleTrack/ScaleTrackTypes";
+import { Track } from "./TrackTypes";
 
-export const patternTrackAdapter = createEntityAdapter<PatternTrack>();
-export const patternTrackSlice = createNormalSlice<PatternTrack>({
-  name: "patternTracks",
-  adapter: patternTrackAdapter,
+export const trackAdapter = createEntityAdapter<Track>();
+export const trackSlice = createNormalSlice<Track>({
+  name: "tracks",
+  adapter: trackAdapter,
 });
-export const defaultPatternTrackState = patternTrackAdapter.getInitialState();
-
-// ------------------------------------------------------------
-// Scale Track Slice
-// ------------------------------------------------------------
-
-export const scaleTrackAdapter = createEntityAdapter<ScaleTrack>();
-export const scaleTrackSlice = createNormalSlice<ScaleTrack>({
-  name: "scaleTracks",
-  adapter: scaleTrackAdapter,
-});
-export const defaultScaleTrackState = scaleTrackAdapter.getInitialState();
+export const trackActions = trackSlice.actions;
+export const defaultTrackState = trackAdapter.getInitialState();
