@@ -21,13 +21,13 @@ export function TimelineStart() {
     };
   }, []);
   return (
-    <div className="size-full flex flex-col items-center pt-24 gap-6 relative bg-slate-900/50 transition-all">
+    <div className="size-full flex flex-col items-center pt-20 gap-10 relative bg-slate-900/50 transition-all">
       <img
         className="absolute size-full inset-0 opacity-50 -z-10"
         src={Background}
         alt="Background"
       />
-      <div className="bg-indigo-900/20 px-12 py-6 border-2 border-indigo-400/50 backdrop-blur rounded-lg">
+      <div className="bg-indigo-950/30 text-center px-12 py-6 border-2 border-indigo-400/50 backdrop-blur rounded-lg">
         <h1 className="mb-4 text-4xl text-slate-50 font-bold drop-shadow-sm">
           Welcome to the Playground!
         </h1>
@@ -53,11 +53,13 @@ export function TimelineStart() {
               <GiPineTree className="text-8xl shrink-0" />
               <div className="flex flex-col p-2 gap-4 w-64">
                 <div>
-                  <b>Trees</b> are families of Tracks with layers of Scales and
-                  Samplers.
+                  <b>Trees</b> are families of Tracks with a hierarchy of Scales
+                  and Samplers.
                 </div>
                 <div>
-                  <div>Example Trees:</div>
+                  <div>
+                    <b>Example Trees</b>:
+                  </div>
                   1. <span className="text-sky-400">Major</span>
                   {" => "}
                   <span className="text-sky-400">Chord</span>
@@ -71,6 +73,10 @@ export function TimelineStart() {
                   <span className="text-sky-400">Dm</span>
                   {" => "}
                   <span className="text-emerald-400">Guitar</span>
+                </div>
+                <div>
+                  Trees are used to organize your notes into multiple layers of
+                  information.
                 </div>
               </div>
             </div>
@@ -93,19 +99,18 @@ export function TimelineStart() {
               <GiPaintBrush className="text-8xl p-3 shrink-0" />
               <div className="flex flex-col p-2 gap-4 w-64">
                 <div>
-                  <b>Patterns</b> are scheduled in Samplers to play notes
-                  related to Scales.
+                  <b>Patterns</b> are sequences of Notes that can be related to
+                  the Scales of a Tree.
                 </div>
                 <div>
-                  Example Notes:
+                  <b>Example Note</b>:
                   <br />
-                  <span className="text-emerald-400">A</span> ={" "}
-                  <span className="text-sky-400">3rd step of Chord</span>,{" "}
-                  <span className="text-fuchsia-400">+1 Major step</span>
-                  <br />
-                  <span className="text-emerald-400">F#</span> ={" "}
-                  <span className="text-sky-400">5th step of Major</span>,{" "}
-                  <span className="text-fuchsia-400">-1 Chromatic</span>
+                  <span className="text-emerald-400">{`{B3 + A1}`}</span> = The
+                  third note of Scale B, moved up one step along Scale A.
+                </div>
+                <div>
+                  Patterns are used to actualize your melodies, harmonies, and
+                  rhythms.
                 </div>
               </div>
             </div>
@@ -128,11 +133,11 @@ export function TimelineStart() {
               <GiCrystalWand className="text-8xl p-3 shrink-0" />
               <div className="flex flex-col p-2 gap-4 w-64">
                 <div>
-                  <b>Poses</b> are scheduled in Tracks to transform Scales and
-                  Patterns.
+                  <b>Poses</b> are effects that can transform the notes of a
+                  Scale or a Pattern.
                 </div>
                 <div>
-                  Example Poses:
+                  <b>Example Poses</b>:
                   <br />
                   <span className="text-fuchsia-400">T1</span> ={" "}
                   <span className="text-emerald-400">Pattern </span>moves 1 step
@@ -141,6 +146,10 @@ export function TimelineStart() {
                   <span className="text-fuchsia-400">r-2</span> ={" "}
                   <span className="text-sky-400">Scale </span>moves 2 rotations
                   down
+                </div>
+                <div>
+                  <b>Poses</b> are used to develop your notes based on the
+                  geometry of your music.
                 </div>
               </div>
             </div>

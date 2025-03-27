@@ -42,7 +42,8 @@ import { nanoid } from "@reduxjs/toolkit";
 import { getTransport } from "tone";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { maxBy } from "lodash";
-import { selectClipDuration } from "types/Clip/ClipSelectors";
+import { selectClipDuration, selectClips } from "types/Clip/ClipSelectors";
+import { deleteMedia } from "types/Media/MediaThunks";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -51,12 +52,12 @@ export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   dispatch(setCellWidth(onBase ? DEFAULT_CELL_WIDTH * 2 : DEFAULT_CELL_WIDTH));
 };
 
-export const toggleTimelineTrackId =
+export const toggleSelectedTrackId =
   (payload: Payload<TrackId>): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const trackId = payload.data;
-    const undoType = unpackUndoType(payload, "toggleTimelineTrackId");
+    const undoType = unpackUndoType(payload, "toggleSelectedTrackId");
     const selectedTrackId = selectSelectedTrackId(project);
     if (selectedTrackId === trackId) {
       dispatch(setSelectedTrackId({ data: null, undoType }));
@@ -175,6 +176,17 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
   // If no clip is selected, create a new clip and pose.
   if (!patternClip) {
     const tick = getTransport().ticks;
+
+    // Delete any patterns at the current tick in the track
+    if (trackId) {
+      const clips = selectClips(getProject());
+      for (const clip of clips) {
+        if (clip.trackId === trackId && clip.tick === tick) {
+          dispatch(deleteMedia({ data: { clipIds: [clip.id] }, undoType }));
+        }
+      }
+    }
+
     const { patternId } = dispatch(
       createCourtesyPatternClip({
         data: { pattern: { trackId }, clip: { trackId, tick } },
@@ -194,17 +206,17 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
   // If a clip is selected, duplicate it and pose the copy
   const duration = selectClipDuration(project, patternClip.id);
   const tick = patternClip.tick + duration;
+  const clips = selectClips(getProject());
+  for (const clip of clips) {
+    if (clip.trackId === trackId && clip.tick === tick) {
+      dispatch(deleteMedia({ data: { clipIds: [clip.id] }, undoType }));
+    }
+  }
+
   const originalPattern = selectPatternById(project, patternClip.patternId);
-  const { patternId, clipId } = dispatch(
+  const { clipId } = dispatch(
     createCourtesyPatternClip({
       data: { pattern: originalPattern, clip: { trackId, tick } },
-      undoType,
-    })
-  );
-  dispatch(randomizePattern({ data: { id: patternId }, undoType }));
-  dispatch(
-    createCourtesyPoseClip({
-      data: { pose: { trackId }, clip: { trackId, tick } },
       undoType,
     })
   );

@@ -39,7 +39,7 @@ import {
   quantizeTrackClips,
   popTrack,
   selectTrackClips,
-  collapseTrackChildren,
+  collapseTrackDescendants,
 } from "types/Track/TrackThunks";
 import { TrackDropdownButton } from "./TrackDropdownButton";
 import { Track } from "types/Track/TrackTypes";
@@ -162,7 +162,7 @@ export const TrackDropdownMenu = (props: {
                       content={`${hasMini ? "Enlarge" : "Minify"} Tree`}
                       icon={hasMini ? <BsArrowsExpand /> : <BsArrowsCollapse />}
                       onClick={() =>
-                        dispatch(collapseTrackChildren(trackId, !hasMini))
+                        dispatch(collapseTrackDescendants(trackId, !hasMini))
                       }
                     />
                   )}

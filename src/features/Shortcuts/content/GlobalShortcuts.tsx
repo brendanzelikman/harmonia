@@ -7,7 +7,7 @@ export function GlobalShortcuts() {
   const dispatch = useProjectDispatch();
   return (
     <ShortcutContent
-      className="text-lg space-y-5"
+      className="text-lg space-y-6"
       shortcuts={dispatch(PLAYGROUND_HOTKEYS).map((hotkey) => (
         <Shortcut hotkey={hotkey} />
       ))}

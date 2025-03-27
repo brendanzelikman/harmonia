@@ -1,4 +1,4 @@
-import { clamp, isString } from "lodash";
+import { clamp } from "lodash";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   MAX_CELL_HEIGHT,
@@ -22,6 +22,8 @@ import {
   defaultMediaSelection,
 } from "types/Media/MediaTypes";
 import { Action, unpackAction } from "lib/redux";
+import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 
 // ------------------------------------------------------------
 // Timeline Slice Definition
@@ -93,8 +95,11 @@ export const timelineSlice = createSlice({
     setSelectedTrackId: (state, action: Action<TrackId | null | undefined>) => {
       if (!state.selection) state.selection = defaultTimelineSelection;
       const data = unpackAction(action);
-      if (isString(data)) state.selection.trackId = data;
-      else if (!data) state.selection.trackId = undefined;
+      const isPT = isPatternTrackId(data);
+      const isST = isScaleTrackId(data);
+      if (isPT || (isST && state.state !== "editing-tracks")) {
+        state.selection.trackId = data;
+      } else if (!data) state.selection.trackId = undefined;
     },
     /** Update the media clipboard. */
     updateClipboard: (

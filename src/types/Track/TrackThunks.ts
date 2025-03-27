@@ -38,7 +38,6 @@ import {
   selectTrackAncestorIds,
   selectTrackDescendantIds,
   selectTopLevelTracks,
-  selectTrackChildIds,
   selectTrackMap,
 } from "./TrackSelectors";
 import {
@@ -208,17 +207,17 @@ export const collapseTracks =
     dispatch(updateTracks({ data, undoType }));
   };
 
-/** Collapse a track and all of its children */
-export const collapseTrackChildren =
+/** Collapse all descendants of a track */
+export const collapseTrackDescendants =
   (trackId: TrackId, collapsed = true): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const trackIds = selectTrackChildIds(project, trackId);
+    const trackIds = selectTrackDescendantIds(project, trackId);
     dispatch(collapseTracks({ data: { trackIds, value: collapsed } }));
   };
 
-/** Collapse all parents of a track. */
-export const collapseTrackParents =
+/** Collapse all ancestors of a track. */
+export const collapseTrackAncestors =
   (trackId: TrackId, collapsed = true): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();

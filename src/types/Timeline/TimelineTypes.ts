@@ -4,7 +4,6 @@ import { TrackId } from "types/Track/TrackTypes";
 import {
   MediaSelection,
   MediaClipboard,
-  defaultMediaDraft,
   defaultMediaClipboard,
 } from "types/Media/MediaTypes";
 import { Portal } from "types/Portal/PortalTypes";

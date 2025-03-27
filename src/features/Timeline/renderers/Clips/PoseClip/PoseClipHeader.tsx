@@ -39,7 +39,7 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
       }}
     >
       <Icon
-        className={`size-4 flex total-center shrink-0 ${isOpen ? "pl-1" : ""}`}
+        className={`size-4 flex total-center shrink-0 ${isOpen ? "ml-1" : ""}`}
       />
       {isOpen && (
         <div className="px-2 ml-2 rounded h-full items-center flex bg-fuchsia-600">

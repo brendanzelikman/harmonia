@@ -16,7 +16,7 @@ export const NavbarScissors = () => {
       <NavbarTooltipButton
         keepTooltipOnClick
         notClickable={!hasClips}
-        borderColor="border-cyan-500"
+        borderColor="border-teal-500"
         activeLabel="Equipped Scissors"
         label={hasClips ? undefined : "No Patterns to Slice"}
         hotkey={dispatch(SLICE_CLIPS_HOTKEY)}

@@ -4,9 +4,15 @@ import {
   GiArchiveResearch,
   GiConsoleController,
   GiCrystalWand,
+  GiFocusedLightning,
   GiJackPlug,
+  GiLightningFrequency,
   GiMisdirection,
+  GiMoebiusTriangle,
+  GiMorphBall,
+  GiPowerLightning,
   GiRetroController,
+  GiThunderBlade,
 } from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
@@ -486,7 +492,7 @@ export const NavbarLivePlay = () => {
         ) : isVoiceLeadingClosest ? (
           <div className="h-[4.5rem] total-center-col">
             <div className="text-base font-light">
-              Posing Pattern by Closeness
+              Closest Pose Along Scales
             </div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {C} + {Number})
@@ -494,21 +500,21 @@ export const NavbarLivePlay = () => {
           </div>
         ) : isVoiceLeadingDegree ? (
           <div className="h-[4.5rem] total-center-col">
-            <div className="text-base font-light">Posing Pattern by Degree</div>
+            <div className="text-base font-light">Closest Pose At Degree </div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {D} + {Number})
             </div>
           </div>
         ) : isSelectingPoseClip ? (
           <div className="h-[4.5rem] total-center-col">
-            <div className="text-base font-light">Update Poses</div>
+            <div className="text-base font-light">Updating Poses</div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {Number})
             </div>
           </div>
         ) : holdingPoses ? (
           <div className="h-[4.5rem] total-center-col">
-            <div className="text-base font-light">Creating Poses by Offset</div>
+            <div className="text-base font-light">Creating Poses</div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {Number})
             </div>
@@ -523,40 +529,40 @@ export const NavbarLivePlay = () => {
       borderColor="border-fuchsia-500"
       rounding="rounded-sm"
       className={classNames(
-        "min-w-8 min-h-8 shrink-0 relative size-9 rounded-full select-none cursor-pointer",
-        "flex total-center transition-all font-nunito font-light",
+        "min-w-8 min-h-8 -ml-1 shrink-0 relative size-9 rounded-full select-none cursor-pointer",
+        "flex total-center hover:text-fuchsia-300 transition-all font-nunito font-light",
         working ? "text-fuchsia-400" : ""
       )}
       label={
         <div className="text-white animate-in fade-in duration-300">
           <div
             data-indent={hasTracks}
-            className="text-xl data-[indent=true]:pt-1 font-light"
+            className="text-xl data-[indent=true]:pt-2 font-light"
           >
             {" "}
             {isMixing
               ? "Mix Samplers"
               : isVoiceLeadingClosest
-              ? "Calculate by Closeness"
+              ? "Closest Pose Along Scales"
               : isVoiceLeadingDegree
-              ? "Calculate by Degree"
+              ? "Closest Pose At Degree"
               : isSelectingPoseClip
               ? "Update Poses"
               : holdingPoses
-              ? "Create Poses"
+              ? "Creating Poses By Offset"
               : hasTracks
-              ? "Keyboard Shortcuts"
+              ? "Shortcuts Unlocked!"
               : ""}
           </div>
           <div
             data-active={isActive}
-            className="text-base data-[active=false]:text-sm data-[active=true]:mb-3 text-fuchsia-300/80"
+            className="text-base data-[active=false]:text-sm data-[active=true]:mb-4 text-fuchsia-300/80"
           >
             {!isActive
               ? hasTracks
                 ? "Select Track, Pattern, or Pose"
                 : "Create Tree to Unlock Keyboard Shortcuts"
-              : "Develop Your Project"}
+              : "Develop Your Tree"}
           </div>
           {isActive && (
             <div className="flex flex-col w-full gap-2 mt-1.5">
@@ -575,7 +581,7 @@ export const NavbarLivePlay = () => {
       ) : isPosing ? (
         <GiCrystalWand className="text-2xl" />
       ) : hasTracks ? (
-        <GiConsoleController className="text-3xl" />
+        <GiMoebiusTriangle className="text-2xl" />
       ) : (
         <GiArchiveResearch className="text-2xl" />
       )}

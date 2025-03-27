@@ -100,12 +100,12 @@ export function NavbarProjectMenu() {
           </NavbarFileGroup>
 
           {/* Merge Project */}
-          <NavbarFileGroup
+          {/* <NavbarFileGroup
             onClick={() => dispatch(readLocalProjects({ merging: true }))}
           >
             <NavbarFileLabel>Merge With File</NavbarFileLabel>
             <GiTransfuse className="ml-auto text-2xl" />
-          </NavbarFileGroup>
+          </NavbarFileGroup> */}
 
           {/* Save Project */}
           <NavbarFileGroup onClick={() => dispatch(exportProjectToHAM())}>

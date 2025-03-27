@@ -21,6 +21,8 @@ import {
 import { Thunk } from "types/Project/ProjectTypes";
 import { dispatchCustomEvent } from "utils/html";
 import { CLOSE_STATE, TOGGLE_STATE } from "hooks/useToggledState";
+import { noop } from "lodash";
+import { TOGGLE_FOREST_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
 
 export function usePlaygroundHotkeys() {
   // Project Hotkeys
@@ -59,21 +61,21 @@ export const NEW_PROJECT_HOTKEY: Thunk<Hotkey> = () => ({
 });
 
 export const OPEN_PROJECT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Open Project",
+  name: "Open Project from File",
   description: "Open a project from a HAM file.",
   shortcut: "meta+o",
   callback: () => dispatch(readLocalProjects()),
 });
 
 export const SAVE_PROJECT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Save Project",
+  name: "Save Project to File",
   description: "Save the current project as a HAM file.",
   shortcut: "meta+s",
   callback: () => dispatch(exportProjectToHAM()),
 });
 
 export const UNDO_PROJECT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Undo Arrangement",
+  name: "Undo Last Change",
   description: "Undo the last change to the project.",
   shortcut: "meta+z",
   callback: () =>
@@ -81,7 +83,7 @@ export const UNDO_PROJECT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
 });
 
 export const REDO_PROJECT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Redo Arrangement",
+  name: "Redo Last Change",
   description: "Redo the last change to the project.",
   shortcut: "meta+shift+z",
   callback: () =>
@@ -104,7 +106,7 @@ export const TOGGLE_DIARY_HOTKEY: Thunk<Hotkey> = () => ({
 });
 
 export const CLOSE_MODALS_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Close Terminal/Diary",
+  name: "Close Modals",
   description: "Close the project terminal, editor, and diary.",
   shortcut: "esc",
   callback: () => {
@@ -131,43 +133,50 @@ export const TOGGLE_SHORTCUTS_HOTKEY: Thunk<Hotkey> = () => ({
 // -----------------------------------------------
 
 export const TOGGLE_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Play/Pause Transport",
+  name: "Toggle Playback",
   description: `Start or pause the transport playback`,
   shortcut: "space",
   callback: () => dispatch(toggleTransport()),
 });
 
 export const STOP_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Stop Transport",
+  name: "Stop Playback",
   description: "Stop the transport playback.",
   shortcut: "enter",
   callback: () => stopTransport(),
 });
 
 export const RECORD_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Record Transport",
+  name: "Record Playback",
   description: "Toggle whether the transport is recording.",
-  shortcut: "alt+shift+r",
+  shortcut: "shift+r",
   callback: () => dispatch(toggleTransportRecording()),
 });
 
 export const LOOP_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Loop Transport",
+  name: "Loop Playback",
   description: "Toggle whether the transport is looping.",
-  shortcut: "l",
+  shortcut: "shift+l",
   callback: () => dispatch(toggleTransportLoop()),
 });
 
+export const DEBUG_TRANSPORT_HOTKEY: Thunk<Hotkey> = () => ({
+  name: "Debug Transport",
+  description: "Troubleshoot sound issues.",
+  shortcut: "Refresh",
+  callback: noop,
+});
+
 export const MUTE_TRANSPORT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Mute Transport",
+  name: "Mute Playback",
   description: "Toggle whether the transport is muted.",
-  shortcut: "alt+shift+m",
+  shortcut: "shift+m",
   callback: () => dispatch(toggleTransportMute()),
 });
 
 export const EXPORT_MIDI_HOTKEY: Thunk<Hotkey> = (dispatch) => {
   return {
-    name: "Export to MIDI",
+    name: "Export Project to MIDI",
     description: "Export the timeline to a MIDI file",
     shortcut: "meta+shift+m",
     callback: () => dispatch(exportProjectToMIDI()),
@@ -175,7 +184,7 @@ export const EXPORT_MIDI_HOTKEY: Thunk<Hotkey> = (dispatch) => {
 };
 
 export const EXPORT_AUDIO_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Export to WAV",
+  name: "Export Project to WAV",
   description: "Export the timeline to a WAV file",
   shortcut: "meta+shift+w",
   callback: () => dispatch(downloadTransport()),
@@ -187,15 +196,9 @@ export const PLAYGROUND_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [
   dispatch(UNDO_PROJECT_HOTKEY),
   dispatch(REDO_PROJECT_HOTKEY),
   dispatch(TOGGLE_DIARY_HOTKEY),
+  dispatch(TOGGLE_FOREST_HOTKEY),
   dispatch(TOGGLE_SHORTCUTS_HOTKEY),
+  dispatch(CLOSE_MODALS_HOTKEY),
   dispatch(EXPORT_MIDI_HOTKEY),
   dispatch(EXPORT_AUDIO_HOTKEY),
-];
-
-export const TRANSPORT_HOTKEYS: Thunk<Hotkey[]> = (dispatch) => [
-  dispatch(TOGGLE_TRANSPORT_HOTKEY),
-  dispatch(STOP_TRANSPORT_HOTKEY),
-  dispatch(MUTE_TRANSPORT_HOTKEY),
-  dispatch(RECORD_TRANSPORT_HOTKEY),
-  dispatch(LOOP_TRANSPORT_HOTKEY),
 ];

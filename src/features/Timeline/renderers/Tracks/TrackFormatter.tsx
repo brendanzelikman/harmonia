@@ -14,7 +14,7 @@ import { useTrackStyle } from "./hooks/useTrackStyle";
 import { TrackDots } from "./components/TrackDots";
 import { isPatternTrack } from "types/Track/TrackTypes";
 import { PatternTrackFormatter } from "./PatternTrackFormatter";
-import { toggleTimelineTrackId } from "types/Timeline/TimelineThunks";
+import { toggleSelectedTrackId } from "types/Timeline/TimelineThunks";
 
 export const TrackFormatter = memo((props: RenderCellProps<TrackRow>) => {
   const dispatch = useProjectDispatch();
@@ -38,7 +38,7 @@ export const TrackFormatter = memo((props: RenderCellProps<TrackRow>) => {
       className={className}
       style={style}
       onClick={() => {
-        dispatch(toggleTimelineTrackId({ data: trackId }));
+        dispatch(toggleSelectedTrackId({ data: trackId }));
       }}
     >
       <TrackDots trackId={trackId} />

@@ -15,7 +15,7 @@ export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {
       <div className="px-1 size-full flex flex-col">
         <div
           data-collapsed={isCollapsed}
-          className="w-full total-center gap-1 relative data-[collapsed=false]:pt-2 data-[collapsed=false]:pr-1 data-[collapsed=true]:p-1"
+          className="w-full total-center gap-1 relative data-[collapsed=false]:pt-2 data-[collapsed=false]:pr-1"
         >
           <TrackName track={track} />
           <div

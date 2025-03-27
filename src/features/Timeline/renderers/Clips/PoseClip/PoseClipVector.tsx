@@ -105,22 +105,20 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
             active={view === "scale"}
             onClick={() => setView("scale")}
           >
-            Modulations
+            Modulation
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
             active={view === "scales"}
             onClick={() => setView("scales")}
           >
-            Transpositions
+            Transposition
           </PoseClipDropdownItem>
-
           <PoseClipDropdownItem
             active={view === "notes"}
             onClick={() => setView("notes")}
           >
-            Voice Leadings
+            Pitch Classes
           </PoseClipDropdownItem>
-
           <PoseClipDropdownItem
             active={view === "effects"}
             onClick={() => setView("effects")}

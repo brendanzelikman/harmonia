@@ -197,14 +197,12 @@ export const selectMotifClipMap = createDeepSelector(
   [selectClips, selectPatternState, selectPoseState],
   (clips, patternState, poseState) => {
     const motifs = { ...patternState.entities, ...poseState.entities };
-    return mapValues(motifs, (state) => {
-      return Object.keys(motifs).reduce((acc, id) => {
-        return {
-          ...acc,
-          [id]: clips.filter((clip) => getClipMotifId(clip) === id),
-        };
-      }, {} as Record<string, Timed<Clip>[]>);
-    });
+    return Object.keys(motifs).reduce((acc, id) => {
+      return {
+        ...acc,
+        [id]: clips.filter((clip) => getClipMotifId(clip) === id),
+      };
+    }, {} as Record<string, Timed<Clip>[]>);
   }
 );
 

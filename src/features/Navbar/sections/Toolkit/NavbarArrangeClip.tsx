@@ -1,8 +1,8 @@
 import classNames from "classnames";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import {
-  ARRANGE_PATTERN_CLIPS_HOTKEY,
-  ARRANGE_POSE_CLIPS_HOTKEY,
+  ARRANGE_PATTERNS_HOTKEY,
+  ARRANGE_POSES_HOTKEY,
 } from "features/Timeline/hooks/useTimelineHotkeys";
 import { GiCrystalWand, GiPaintBrush } from "react-icons/gi";
 import { selectHasTracks } from "types/Track/TrackSelectors";
@@ -50,8 +50,8 @@ export const NavbarArrangeClip = (props: { type: ClipType }) => {
 };
 
 const hotkeys = {
-  pattern: ARRANGE_PATTERN_CLIPS_HOTKEY,
-  pose: ARRANGE_POSE_CLIPS_HOTKEY,
+  pattern: ARRANGE_PATTERNS_HOTKEY,
+  pose: ARRANGE_POSES_HOTKEY,
 };
 
 const icons = {

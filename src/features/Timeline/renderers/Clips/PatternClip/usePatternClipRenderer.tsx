@@ -42,6 +42,7 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   const isAdding = useDeep(selectIsAddingPatternClips);
   const isPortaling = useDeep(selectIsAddingPortals);
   const isBlurred = isAdding || isPortaling || isDragging;
+  const isCollapsed = !!track?.collapsed;
   const [_, drag] = useClipDrag(pcId);
   const onDragStart = useCallback(() => {
     dispatch(toggleClipDropdown({ data: { id, value: false } }));
@@ -68,9 +69,9 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
       <PatternClipHeader id={id} isSelected={isSelected} isOpen={!!isOpen} />
       {!!isOpen ? (
         <PatternClipDropdown {...props} clip={clip} id={id} />
-      ) : (
+      ) : !isCollapsed ? (
         <PatternClipStream clip={clip} />
-      )}
+      ) : null}
     </div>
   );
 });

@@ -173,7 +173,6 @@ export const createNewTree: Thunk = (dispatch) =>
   promptUserForString({
     title: "Create New Tree",
     description: [
-      "Here's how to input a request in TreeJS:",
       promptLineBreak,
       <span>
         Rule 1: <span className="text-sky-500">Scales</span> are created by

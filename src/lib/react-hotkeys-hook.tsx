@@ -25,7 +25,6 @@ export const formatShortcut = (shortcut: string) => {
   result = result.replace("comma", ",");
   result = result.replace("period", ".");
   result = result.replace("backspace", "⌫");
-  result = result.replace("space", "␣");
   result = result.replace("equal", "=");
   result = result.replace("left", "←");
   result = result.replace("right", "→");
@@ -33,6 +32,7 @@ export const formatShortcut = (shortcut: string) => {
   result = result.replace("down", "↓");
   result = capitalize(result);
   result = result.replace(/\b[a-zA-Z]\b/g, (match) => match.toUpperCase());
+  result = result.replace("esc", "Escape");
   result = result.replace(/\s*\+\s*/g, " + ");
   return result;
 };

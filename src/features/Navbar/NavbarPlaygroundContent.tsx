@@ -17,7 +17,7 @@ import { NavbarArrangeClip } from "./sections/Toolkit/NavbarArrangeClip";
 export function NavbarPlaygroundContent() {
   const hasTracks = useDeep(selectHasTracks);
   return (
-    <div className="size-full flex animate-in fade-in slide-in-from-top-4 text-slate-50 *:border-r first:border-r-0 last:border-r-0 *:border-r-slate-500/50">
+    <div className="size-full select-none flex animate-in fade-in slide-in-from-top-4 text-slate-50 *:border-r first:border-r-0 last:border-r-0 *:border-r-slate-500/50">
       <NavbarGroup>
         <NavbarProjectMenu />
         <NavbarSettings />
@@ -30,8 +30,8 @@ export function NavbarPlaygroundContent() {
         <NavbarTime />
         <NavbarTransportControl />
       </NavbarGroup>
-      <NavbarGroup className="bg-gradient-radial from-sky-500/15 to-fuchsia-500/15">
-        Trees:
+      <NavbarGroup className="bg-gradient-radial from-sky-500/15 to-teal-500/15">
+        Motifs:
         <NavbarDesignTree />
         <NavbarArrangeClip type="pattern" />
         <NavbarArrangeClip type="pose" />
@@ -43,7 +43,6 @@ export function NavbarPlaygroundContent() {
         Tools:
         <NavbarWaterTree />
         <NavbarScissors />
-        {/* <NavbarTape /> */}
         <NavbarPortalGun />
       </NavbarGroup>
     </div>

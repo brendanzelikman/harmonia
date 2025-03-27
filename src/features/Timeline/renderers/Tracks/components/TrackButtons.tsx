@@ -91,7 +91,7 @@ export const PatternTrackButtons = memo(
     if (!!props.collapsed) {
       return (
         !!track.collapsed && (
-          <div className="text-xs -mt-1 space-x-1 -mr-0.5">
+          <div className="text-xs flex gap-1 -mt-1 -mr-0.5">
             <span className={mute ? "text-rose-400" : "text-slate-200"}>M</span>
             <span>•</span>
             <span className={solo ? "text-yellow-400" : "text-slate-200"}>

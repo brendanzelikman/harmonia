@@ -58,7 +58,7 @@ export const createPattern =
     // Get the name of the new pattern
     const newName = selectNewMotifName(project, "pattern");
     const givenName = pattern.name;
-    const noName = !givenName || givenName === defaultPattern.name;
+    const noName = !givenName;
     const name = noName ? newName : givenName;
 
     // Initialize a new pattern

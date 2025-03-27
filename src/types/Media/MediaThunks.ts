@@ -167,7 +167,7 @@ export const deleteMedia =
       if (!motifId) continue;
 
       // Check for clip ids with the motif
-      const motifClipIds = motifClipMap[clip.type]?.[motifId].filter(
+      const motifClipIds = motifClipMap[motifId].filter(
         (n) => !(data.clipIds ?? [])?.includes(n.id)
       );
       if (!motifClipIds || motifClipIds.length > 0) continue;

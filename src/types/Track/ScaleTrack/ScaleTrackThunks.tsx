@@ -421,6 +421,7 @@ export const inputNewScale =
   (id: ScaleTrackId): Thunk =>
   (dispatch, getProject) =>
     promptUserForString({
+      autoselect: true,
       title: "Change Scale",
       description: [
         promptLineBreak,

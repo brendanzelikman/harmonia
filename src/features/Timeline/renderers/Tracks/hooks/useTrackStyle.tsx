@@ -9,6 +9,7 @@ import {
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import {
   selectTrackAncestorIds,
+  selectTrackById,
   selectTrackDepthById,
 } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
@@ -19,13 +20,16 @@ export const useTrackStyle = (props: {
 }) => {
   const trackId = props.trackId;
   const isPT = isPatternTrackId(trackId);
+  const track = useDeep((_) => selectTrackById(_, trackId));
+  const isCollapsed = !!track?.collapsed;
   const depth = useDeep((_) => selectTrackDepthById(_, trackId));
   const paddingLeft = depth * 8;
   const filter = `hue-rotate(${(depth - 1) * 8}deg)`;
   const opacity = props.isDragging ? 0.5 : 1;
   const className = classNames(
-    "animate-in fade-in slide-in-from-top-8 transition-all rdg-track size-full relative p-1 bg-gradient-radial text-white",
+    "animate-in fade-in slide-in-from-top-8 transition-all rdg-track size-full relative bg-gradient-radial text-white",
     { "from-teal-600 to-emerald-600": isPT },
+    isCollapsed ? "p-0.5 pt-0" : "p-1",
     { "from-indigo-800/80 to-indigo-700": !isPT }
   );
   const ancestors = useDeep(selectTrackAncestorIds);

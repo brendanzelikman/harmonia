@@ -49,6 +49,7 @@ export function NavbarTransportControl() {
         <BsStop className="p-[1px]" />
       </NavbarTooltipButton>
       <NavbarTooltipButton
+        keepTooltipOnClick
         label={`${action} the Timeline`}
         className={classNames(
           isStarted ? "bg-emerald-600" : buttonColor,
@@ -59,6 +60,7 @@ export function NavbarTransportControl() {
         {isStarted ? <BsPause /> : <BsPlay className="pl-[3px] p-[1px]" />}
       </NavbarTooltipButton>
       <NavbarTooltipButton
+        keepTooltipOnClick
         label={isRecording ? "Stop Recording to WAV" : "Record to WAV"}
         className={classNames(
           isRecording ? "bg-red-700/90" : buttonColor,
@@ -69,6 +71,7 @@ export function NavbarTransportControl() {
         <BsRecord className="p-[1px]" />
       </NavbarTooltipButton>
       <NavbarTooltipButton
+        keepTooltipOnClick
         label={isLooping ? "Stop Looping the Timeline" : "Loop the Timeline"}
         className={classNames(
           isLooping ? "bg-indigo-700 text-slate-20" : buttonColor,

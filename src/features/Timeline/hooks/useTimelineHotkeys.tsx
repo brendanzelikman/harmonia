@@ -7,15 +7,17 @@ import {
 } from "types/Timeline/TimelineSlice";
 import {
   selectSelectedMedia,
-  selectSelectedPatternTrack,
   selectSelectedPoseClips,
   selectSelectedTrackId,
   selectSelectedPatternClips,
   selectSelectedClipIds,
+  selectSelectedClips,
+  selectSelectedTrack,
 } from "types/Timeline/TimelineSelectors";
 import {
   createDrumTracks,
   createRandomHierarchy,
+  inputNewScale,
 } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import {
   addAllMediaToSelection,
@@ -32,6 +34,7 @@ import {
   toggleTimelineState,
   toggleAddingState,
   toggleLivePlay,
+  toggleSelectedTrackId,
 } from "types/Timeline/TimelineThunks";
 import {
   exportSelectedClipsToMIDI,
@@ -40,8 +43,8 @@ import {
   selectNextTrack,
 } from "types/Timeline/thunks/TimelineSelectionThunks";
 import {
-  collapseTrackChildren,
-  collapseTrackParents,
+  collapseTrackDescendants,
+  collapseTrackAncestors,
   collapseTracks,
 } from "types/Track/TrackThunks";
 import {
@@ -51,11 +54,13 @@ import {
 import { Thunk } from "types/Project/ProjectTypes";
 import {
   selectTrackAncestors,
-  selectTrackChildren,
+  selectTrackDescendants,
+  selectTrackIds,
   selectTrackParentIdMap,
 } from "types/Track/TrackSelectors";
 import { setupFileInput } from "providers/idb/samples";
 import {
+  selectClipDuration,
   selectHasClips,
   selectOpenedClips,
   selectPatternClips,
@@ -67,7 +72,7 @@ import { updatePoses } from "types/Pose/PoseSlice";
 import { selectPoseMap } from "types/Pose/PoseSelectors";
 import { Pose } from "types/Pose/PoseTypes";
 import { mapVector } from "utils/vector";
-import { toggleClipDropdown } from "types/Clip/ClipThunks";
+import { sliceClip, toggleClipDropdown } from "types/Clip/ClipThunks";
 import { toggleTimeline } from "types/Meta/MetaSlice";
 import { promptUserForString } from "utils/html";
 import { inputRomanNumerals } from "utils/roman";
@@ -89,6 +94,10 @@ import {
 import { selectTrackClipIds } from "types/Arrangement/ArrangementTrackSelectors";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
+import { noop } from "lodash";
+import { updateClips } from "types/Clip/ClipSlice";
+import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { isPatternTrack } from "types/Track/TrackTypes";
 
 export function useTimelineHotkeys() {
   // Timeline Hotkeys
@@ -96,29 +105,40 @@ export function useTimelineHotkeys() {
   useDispatchedHotkey(INCREASE_SUBDIVISION_HOTKEY);
 
   // Track Hotkeys
-  useDispatchedHotkey(LOAD_SAMPLES_HOTKEY);
+  useDispatchedHotkey(TOGGLE_EDITOR_HOTKEY);
+  useDispatchedHotkey(INPUT_SCALES_HOTKEY);
+  useDispatchedHotkey(INPUT_SAMPLES_HOTKEY);
   useDispatchedHotkey(SELECT_PREVIOUS_TRACK_HOTKEY);
   useDispatchedHotkey(SELECT_NEXT_TRACK_HOTKEY);
   useDispatchedHotkey(COLLAPSE_TRACK_HOTKEY);
   useDispatchedHotkey(COLLAPSE_TRACK_PARENTS_HOTKEY);
   useDispatchedHotkey(COLLAPSE_TRACK_CHILDREN_HOTKEY);
   useDispatchedHotkey(DELETE_TRACK_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_1_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_2_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_3_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_4_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_5_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_6_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_7_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_8_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_9_HOTKEY);
 
   // Motif Hotkeys
   useDispatchedHotkey(CREATE_NEW_TREE_HOTKEY);
   useDispatchedHotkey(CREATE_RANDOM_TRACKS_HOTKEY);
   useDispatchedHotkey(CREATE_DRUM_TRACKS_HOTKEY);
-  useDispatchedHotkey(ARRANGE_CLIPS_HOTKEY);
-  useDispatchedHotkey(ARRANGE_PATTERN_CLIPS_HOTKEY);
-  useDispatchedHotkey(ARRANGE_POSE_CLIPS_HOTKEY);
+  useDispatchedHotkey(ARRANGE_PATTERNS_HOTKEY);
+  useDispatchedHotkey(ARRANGE_POSES_HOTKEY);
   useDispatchedHotkey(ARRANGE_PORTALS_HOTKEY);
-  useDispatchedHotkey(SELECT_PATTERN_CLIPS_HOTKEY);
-  useDispatchedHotkey(SELECT_POSE_CLIPS_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_PATTERNS_HOTKEY);
+  useDispatchedHotkey(SELECT_TRACK_POSES_HOTKEY);
   useDispatchedHotkey(SELECT_PORTALS_HOTKEY);
   useDispatchedHotkey(SLICE_CLIPS_HOTKEY);
+  useDispatchedHotkey(SLICE_CLIPS_IN_HALF_HOTKEY);
   useDispatchedHotkey(MERGE_MEDIA_HOTKEY);
   useDispatchedHotkey(INVERT_POSE_CLIPS_HOTKEY);
-  useDispatchedHotkey(FOREST_HOTKEY);
+  useDispatchedHotkey(TOGGLE_FOREST_HOTKEY);
 
   // Media Hotkeys
   useDispatchedHotkey(SELECT_ALL_MEDIA_HOTKEY);
@@ -129,6 +149,8 @@ export function useTimelineHotkeys() {
   useDispatchedHotkey(SCRUB_RIGHT_HOTKEY);
   useDispatchedHotkey(TOGGLE_LIVE_PLAY_HOTKEY);
   useDispatchedHotkey(DESELECT_TRACK_HOTKEY);
+  useDispatchedHotkey(MOVE_CLIPS_UP_HOTKEY);
+  useDispatchedHotkey(MOVE_CLIPS_DOWN_HOTKEY);
 
   // Clipboard Hotkeys
   useDispatchedHotkey(COPY_MEDIA_HOTKEY);
@@ -137,8 +159,8 @@ export function useTimelineHotkeys() {
   useDispatchedHotkey(DUPLICATE_MEDIA_HOTKEY);
   useDispatchedHotkey(DELETE_MEDIA_HOTKEY);
   useDispatchedHotkey(EXPORT_MEDIA_HOTKEY);
-  useDispatchedHotkey(MOVE_MEDIA_LEFT_HOTKEY);
-  useDispatchedHotkey(MOVE_MEDIA_RIGHT_HOTKEY);
+  useDispatchedHotkey(MOVE_CLIPS_LEFT_HOTKEY);
+  useDispatchedHotkey(MOVE_CLIPS_RIGHT_HOTKEY);
   useDispatchedHotkey(SCRUB_MEDIA_LEFT_HOTKEY);
   useDispatchedHotkey(SCRUB_MEDIA_RIGHT_HOTKEY);
   useDispatchedHotkey(INPUT_POSE_VECTOR_HOTKEY);
@@ -197,35 +219,51 @@ export const CREATE_RANDOM_TRACKS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   callback: () => dispatch(createRandomHierarchy()),
 });
 
-export const LOAD_SAMPLES_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Load Samples",
-  description: "Load a sample into the selected Pattern Track",
-  shortcut: "meta+alt+p",
+export const TOGGLE_EDITOR_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Change Track Instrument",
+  description: "Toggle the editor",
+  shortcut: "shift+i",
+  callback: () => dispatch(toggleTimelineState({ data: "editing-tracks" })),
+});
+
+export const INPUT_SCALES_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Change Track Scale",
+  description: "Prompt the user to type in a new scale",
+  shortcut: "shift+s",
   callback: () => {
-    const project = getProject();
-    const track = selectSelectedPatternTrack(project);
-    dispatch(setupFileInput(track));
+    const trackId = selectSelectedTrackId(getProject());
+    if (isScaleTrackId(trackId)) dispatch(inputNewScale(trackId));
+  },
+});
+
+export const INPUT_SAMPLES_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Upload Sample to Track",
+  description: "Load a sample into the selected Sampler",
+  shortcut: "meta+shift+i",
+  callback: () => {
+    const track = selectSelectedTrack(getProject());
+    if (isPatternTrack(track)) dispatch(setupFileInput(track));
   },
 });
 
 export const SELECT_PREVIOUS_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Select Previous Track",
   description: "Select the previous track",
-  shortcut: "up",
+  shortcut: "shift+up",
   callback: () => dispatch(selectPreviousTrack()),
 });
 
 export const SELECT_NEXT_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Select Next Track",
   description: "Select the next track",
-  shortcut: "down",
+  shortcut: "shift+down",
   callback: () => dispatch(selectNextTrack()),
 });
 
 export const COLLAPSE_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Collapse/Expand Track",
+  name: "Collapse / Expand Track",
   description: "Collapse/expand the selected track",
-  shortcut: "comma",
+  shortcut: "shift+c",
   callback: () => {
     const project = getProject();
     const trackId = selectSelectedTrackId(project);
@@ -238,16 +276,16 @@ export const COLLAPSE_TRACK_PARENTS_HOTKEY: Thunk<Hotkey> = (
   dispatch,
   getProject
 ) => ({
-  name: "Collapse/Expand Parent Tracks",
+  name: "Minify/Enlarge Parent Tracks",
   description: "Collapse/expand the parent tracks of the selected track",
-  shortcut: "meta+comma",
+  shortcut: "meta+shift+comma",
   callback: () => {
     const project = getProject();
     const trackId = selectSelectedTrackId(project);
     if (!trackId) return;
     const parents = selectTrackAncestors(project, trackId);
     const isParentCollapsed = parents.some((track) => track?.collapsed);
-    dispatch(collapseTrackParents(trackId, !isParentCollapsed));
+    dispatch(collapseTrackAncestors(trackId, !isParentCollapsed));
   },
 });
 
@@ -255,23 +293,23 @@ export const COLLAPSE_TRACK_CHILDREN_HOTKEY: Thunk<Hotkey> = (
   dispatch,
   getProject
 ) => ({
-  name: "Collapse/Expand Child Tracks",
+  name: "Minify/Enlarge Child Tracks",
   description: "Collapse/expand the child tracks of the selected track",
-  shortcut: "meta+shift+comma",
+  shortcut: "alt+meta+shift+comma",
   callback: () => {
     const project = getProject();
     const trackId = selectSelectedTrackId(project);
     if (!trackId) return;
-    const chain = selectTrackChildren(project, trackId);
+    const chain = selectTrackDescendants(project, trackId);
     const isChildCollapsed = chain.some((track) => track?.collapsed);
-    dispatch(collapseTrackChildren(trackId, !isChildCollapsed));
+    dispatch(collapseTrackDescendants(trackId, !isChildCollapsed));
   },
 });
 
 export const DELETE_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Delete Selected Track",
   description: "Delete the selected track",
-  shortcut: "meta+backspace",
+  shortcut: "shift+backspace",
   callback: () => dispatch(deleteSelectedTrack()),
 });
 
@@ -279,26 +317,25 @@ export const DELETE_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
 // Motif Hotkeys
 // -----------------------------------------------
 
-export const ARRANGE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Start/Stop Arranging Clips",
-  description: "Toggle the adding of clips",
-  shortcut: "a",
-  // callback: () => dispatch(toggleTimelineState({ data: "adding-clips" })),
-  callback: () => null,
-});
-
-export const ARRANGE_PATTERN_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Create Pattern",
+export const ARRANGE_PATTERNS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Equip Brush",
   description: "Toggle the adding of pattern clips",
   shortcut: "o",
   callback: () => dispatch(toggleAddingState({ data: "pattern" })),
 });
 
-export const SELECT_PATTERN_CLIPS_HOTKEY: Thunk<Hotkey> = (
+export const ARRANGE_POSES_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Equip Wand",
+  description: "Toggle the adding of pose clips",
+  shortcut: "p",
+  callback: () => dispatch(toggleAddingState({ data: "pose" })),
+});
+
+export const SELECT_TRACK_PATTERNS_HOTKEY: Thunk<Hotkey> = (
   dispatch,
   getProject
 ) => ({
-  name: "Select Pattern Clips",
+  name: "Filter Pattern Clips",
   description: "Add all pattern clips to the selection",
   shortcut: "shift+o",
   callback: () => {
@@ -322,18 +359,11 @@ export const SELECT_PATTERN_CLIPS_HOTKEY: Thunk<Hotkey> = (
   },
 });
 
-export const ARRANGE_POSE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Create Pose",
-  description: "Toggle the adding of pose clips",
-  shortcut: "p",
-  callback: () => dispatch(toggleAddingState({ data: "pose" })),
-});
-
-export const SELECT_POSE_CLIPS_HOTKEY: Thunk<Hotkey> = (
+export const SELECT_TRACK_POSES_HOTKEY: Thunk<Hotkey> = (
   dispatch,
   getProject
 ) => ({
-  name: "Select Pose Clips",
+  name: "Filter Pose Clips",
   description: "Add all pose clips to the selection",
   shortcut: "shift+p",
   callback: () => {
@@ -361,7 +391,7 @@ export const ARRANGE_PORTALS_HOTKEY: Thunk<Hotkey> = (
   dispatch,
   getProject
 ) => ({
-  name: "Start/Stop Arranging Portals",
+  name: "Equip Portal Gun",
   description: "Toggle the portaling of media",
   shortcut: "j",
   callback: () => {
@@ -372,7 +402,7 @@ export const ARRANGE_PORTALS_HOTKEY: Thunk<Hotkey> = (
 });
 
 export const SELECT_PORTALS_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Select Portals",
+  name: "Filter Portals",
   description: "Add all portals to the selection",
   shortcut: "shift+u",
   callback: () => {
@@ -387,10 +417,10 @@ export const SELECT_PORTALS_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   },
 });
 
-export const FOREST_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Toggle Forest Mode",
+export const TOGGLE_FOREST_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Toggle Forest",
   description: "Toggle the forest mode",
-  shortcut: "f",
+  shortcut: "shift+f",
   callback: () => dispatch(toggleTimeline()),
 });
 
@@ -423,7 +453,7 @@ export const INVERT_POSE_CLIPS_HOTKEY: Thunk<Hotkey> = (
 });
 
 export const SLICE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Slice Patterns",
+  name: "Equip Scissors",
   description: "Toggle the slicing of media",
   shortcut: "k",
   callback: () => {
@@ -433,10 +463,32 @@ export const SLICE_CLIPS_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   },
 });
 
+export const SLICE_CLIPS_IN_HALF_HOTKEY: Thunk<Hotkey> = (
+  dispatch,
+  getProject
+) => ({
+  name: "Slice Selected Clips",
+  description: "Slice all selected clips in half",
+  shortcut: "shift+k",
+  callback: () => {
+    const project = getProject();
+    if (!selectHasClips(project)) return;
+    const selectedClips = selectSelectedPatternClips(project);
+    const undoType = createUndoType("slice", selectedClips);
+    for (const clip of selectedClips) {
+      const duration = selectClipDuration(project, clip.id);
+      if (clip.duration === 0) continue;
+      const tick = Math.round(clip.tick + duration / 2);
+      if (tick === clip.tick || tick === clip.tick + duration) continue;
+      dispatch(sliceClip({ data: { id: clip.id, tick }, undoType }));
+    }
+  },
+});
+
 export const MERGE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Tape Patterns",
+  name: "Merge Selected Patterns",
   description: "Merge the selected pattern clips",
-  shortcut: "alt+m",
+  shortcut: "shift+j",
   callback: () => dispatch(mergeSelectedMedia()),
 });
 
@@ -445,10 +497,98 @@ export const MERGE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
 // -----------------------------------------------
 
 export const SELECT_ALL_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Select All Media",
+  name: "Select All Clips",
   description: "Select all media",
   shortcut: "meta+a",
   callback: () => dispatch(addAllMediaToSelection()),
+});
+
+export const SELECT_TRACK_HOTKEY: Thunk<Hotkey> = () => ({
+  name: "Select Track",
+  description: "Select the selected track",
+  shortcut: "shift+[1-9]",
+  callback: noop,
+});
+
+export const SELECT_TRACK_1_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Select Track 1",
+  description: "Select the first track",
+  shortcut: "shift+1",
+  callback: () => {
+    dispatch(toggleSelectedTrackId({ data: selectTrackIds(getProject())[0] }));
+  },
+});
+
+export const SELECT_TRACK_2_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Select Track 2",
+  description: "Select the second track",
+  shortcut: "shift+2",
+  callback: () => {
+    dispatch(toggleSelectedTrackId({ data: selectTrackIds(getProject())[1] }));
+  },
+});
+
+export const SELECT_TRACK_3_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Select Track 3",
+  description: "Select the third track",
+  shortcut: "shift+3",
+  callback: () => {
+    dispatch(toggleSelectedTrackId({ data: selectTrackIds(getProject())[2] }));
+  },
+});
+
+export const SELECT_TRACK_4_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Select Track 4",
+  description: "Select the fourth track",
+  shortcut: "shift+4",
+  callback: () => {
+    dispatch(toggleSelectedTrackId({ data: selectTrackIds(getProject())[3] }));
+  },
+});
+
+export const SELECT_TRACK_5_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Select Track 5",
+  description: "Select the fifth track",
+  shortcut: "shift+5",
+  callback: () => {
+    dispatch(toggleSelectedTrackId({ data: selectTrackIds(getProject())[4] }));
+  },
+});
+
+export const SELECT_TRACK_6_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Select Track 6",
+  description: "Select the sixth track",
+  shortcut: "shift+6",
+  callback: () => {
+    dispatch(toggleSelectedTrackId({ data: selectTrackIds(getProject())[5] }));
+  },
+});
+
+export const SELECT_TRACK_7_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Select Track 7",
+  description: "Select the seventh track",
+  shortcut: "shift+7",
+  callback: () => {
+    dispatch(toggleSelectedTrackId({ data: selectTrackIds(getProject())[6] }));
+  },
+});
+
+export const SELECT_TRACK_8_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Select Track 8",
+  description: "Select the eighth track",
+  shortcut: "shift+8",
+  callback: () => {
+    dispatch(toggleSelectedTrackId({ data: selectTrackIds(getProject())[7] }));
+  },
+});
+
+export const SELECT_TRACK_9_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Select Track 9",
+  description: "Select the ninth track",
+  shortcut: "shift+9",
+  callback: () => {
+    dispatch(toggleSelectedTrackId({ data: selectTrackIds(getProject())[8] }));
+  },
 });
 
 export const DESELECT_TRACK_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
@@ -462,7 +602,7 @@ export const CLOSE_ALL_CLIPS_HOTKEY: Thunk<Hotkey> = (
   dispatch,
   getProject
 ) => ({
-  name: "Close / Deselect Clips",
+  name: "Deselect All Clips",
   description: "Close any open clips, or deselect all media",
   shortcut: "esc",
   callback: () => {
@@ -480,8 +620,8 @@ export const CLOSE_ALL_CLIPS_HOTKEY: Thunk<Hotkey> = (
 });
 
 export const DELETE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Delete Selected Media",
-  description: "Delete the selected media",
+  name: "Delete Selected Clips",
+  description: "Delete the selected clips",
   shortcut: "backspace",
   callback: () => dispatch(deleteSelectedMedia()),
 });
@@ -506,8 +646,47 @@ export const MOVE_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   },
 });
 
+export const MOVE_CLIPS_UP_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
+  name: "Move Selected Clips Up",
+  description: "Move the selected media up",
+  shortcut: "up",
+  callback: () => {
+    const clips = selectSelectedClips(getProject());
+    const trackIds = selectTrackIds(getProject());
+    const undoType = createUndoType("moveClipsUp", nanoid());
+    for (const clip of clips) {
+      const newTrackId = trackIds[trackIds.indexOf(clip.trackId) - 1];
+      if (newTrackId) {
+        const data = [{ id: clip.id, trackId: newTrackId }];
+        dispatch(updateClips({ data, undoType }));
+      }
+    }
+  },
+});
+
+export const MOVE_CLIPS_DOWN_HOTKEY: Thunk<Hotkey> = (
+  dispatch,
+  getProject
+) => ({
+  name: "Move Selected Clips Down",
+  description: "Move the selected media down",
+  shortcut: "down",
+  callback: () => {
+    const clips = selectSelectedClips(getProject());
+    const trackIds = selectTrackIds(getProject());
+    const undoType = createUndoType("moveClipsDown", nanoid());
+    for (const clip of clips) {
+      const newTrackId = trackIds[trackIds.indexOf(clip.trackId) + 1];
+      if (newTrackId) {
+        const data = [{ id: clip.id, trackId: newTrackId }];
+        dispatch(updateClips({ data, undoType }));
+      }
+    }
+  },
+});
+
 export const SCRUB_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Scrub to Previous Subdivision",
+  name: "Scrub to Previous Tick",
   description: "Scrub backward in the timeline",
   shortcut: "shift+left",
   callback: () => {
@@ -517,7 +696,7 @@ export const SCRUB_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
 });
 
 export const SCRUB_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
-  name: "Scrub to Next Subdivision",
+  name: "Scrub to Next Tick",
   description: "Scrub forward in the timeline",
   shortcut: "shift+right",
   callback: () => {
@@ -526,22 +705,22 @@ export const SCRUB_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   },
 });
 
-export const MOVE_MEDIA_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Move Selected Media Left",
+export const MOVE_CLIPS_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Move Selected Clips Left",
   description: "Move the selected media left",
   shortcut: "left",
   callback: () => dispatch(moveSelectedMediaLeft()),
 });
 
-export const MOVE_MEDIA_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Move Selected Media Right",
+export const MOVE_CLIPS_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
+  name: "Move Selected Clips Right",
   description: "Move the selected media right",
   shortcut: "right",
   callback: () => dispatch(moveSelectedMediaRight()),
 });
 
 export const SCRUB_MEDIA_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Scrub Selected Media Left",
+  name: "Scrub Selected Clips Left",
   description: "Scrub the selected media left",
   shortcut: "shift+left",
   callback: () => {
@@ -550,7 +729,7 @@ export const SCRUB_MEDIA_LEFT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
 });
 
 export const SCRUB_MEDIA_RIGHT_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Scrub Selected Media Right",
+  name: "Scrub Selected Clips Right",
   description: "Scrub the selected media right",
   shortcut: "shift+right",
   callback: () => {
@@ -570,28 +749,28 @@ export const TOGGLE_LIVE_PLAY_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
 // -----------------------------------------------
 
 export const COPY_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Copy Selected Media",
+  name: "Copy Selected Clips",
   description: "Copy the selected media",
   shortcut: "meta+c",
   callback: () => dispatch(copySelectedMedia()),
 });
 
 export const PASTE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Paste Selected Media",
+  name: "Paste From Clipboard",
   description: "Paste the copied media",
   shortcut: "meta+v",
   callback: () => dispatch(pasteSelectedMedia()),
 });
 
 export const CUT_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Cut Selected Media",
+  name: "Cut Selected Clips",
   description: "Cut the selected media",
   shortcut: "meta+x",
   callback: () => dispatch(cutSelectedMedia()),
 });
 
 export const DUPLICATE_MEDIA_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
-  name: "Duplicate Selected Media",
+  name: "Duplicate Selected Clips",
   description: "Duplicate the selected media",
   shortcut: "meta+d",
   callback: () => dispatch(duplicateSelectedMedia()),

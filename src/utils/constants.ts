@@ -74,7 +74,7 @@ export const MAX_VELOCITY = 127;
 
 export const HEADER_HEIGHT = 80;
 export const TRACK_WIDTH = 300;
-export const COLLAPSED_TRACK_HEIGHT = 60;
+export const COLLAPSED_TRACK_HEIGHT = 45;
 export const MIN_CELL_WIDTH = 25;
 export const MAX_CELL_WIDTH = 125;
 export const MIN_CELL_HEIGHT = 80;
