@@ -48,6 +48,7 @@ export type IClip<T extends ClipType = ClipType> = {
   offset?: Tick;
   duration?: Tick;
   isOpen?: boolean;
+  name?: string;
 } & IClipProps<T>;
 
 /** A `Clip` can have extra props based on its type. */

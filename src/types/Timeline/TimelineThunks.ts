@@ -18,12 +18,12 @@ import {
 } from "types/Track/TrackSelectors";
 import {
   selectTimelineType,
-  selectTimeline,
   selectIsAddingClips,
   selectSelectedTrackId,
   selectCellWidth,
   selectSelectedPatternClips,
   selectIsTrackSelected,
+  selectTimelineState,
 } from "./TimelineSelectors";
 import { createUndoType, Payload, unpackData, unpackUndoType } from "lib/redux";
 import { randomizePattern } from "types/Pattern/PatternThunks";
@@ -81,17 +81,17 @@ export const toggleTimelineState =
     const incomingState = payload.data;
     const undoType = unpackUndoType(payload, "toggleTimelineState");
     const project = getProject();
-    const timeline = selectTimeline(project);
-
-    // Idle the user if the state matches
-    if (timeline.state === incomingState) {
-      dispatch(clearTimelineState({ undoType }));
-      return;
-    }
+    const oldState = selectTimelineState(project);
 
     // Clear the media draft if starting to portal clips
     if (incomingState === "portaling-clips") {
-      dispatch(updateFragment({ data: { portal: {} }, undoType }));
+      dispatch(updateFragment({ data: {}, undoType }));
+    }
+
+    // Idle the user if the state matches
+    if (oldState === incomingState) {
+      dispatch(clearTimelineState({ undoType }));
+      return;
     }
 
     // Update the timeline state
@@ -239,6 +239,15 @@ export const toggleTrackEditor =
     const undoType = unpackUndoType(payload, "toggleTrackEditor");
     const project = getProject();
     const isSelected = selectIsTrackSelected(project, id);
-    if (!isSelected) dispatch(setSelectedTrackId({ data: id, undoType }));
-    dispatch(toggleTimelineState({ data: "editing-tracks", undoType }));
+
+    // Idle the editor of editing
+    const state = selectTimelineState(project);
+    if (state === "editing-tracks" && isSelected) {
+      dispatch(clearTimelineState({ undoType }));
+    } else if (state === "editing-tracks") {
+      dispatch(setSelectedTrackId({ data: id, undoType }));
+    } else {
+      dispatch(setTimelineState({ data: "editing-tracks", undoType }));
+      dispatch(setSelectedTrackId({ data: id, undoType }));
+    }
   };

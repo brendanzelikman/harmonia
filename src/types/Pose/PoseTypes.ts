@@ -81,6 +81,7 @@ export type Pose = {
   id: PoseId;
   vector?: PoseVector;
   scale?: ScaleNote[];
+  reset?: boolean;
   operations?: Array<PoseTransformation>;
   stream?: PoseStream;
   name?: string;

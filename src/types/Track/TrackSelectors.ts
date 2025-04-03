@@ -307,6 +307,19 @@ export const selectTrackInstrumentName = (project: Project, id?: TrackId) => {
   return getInstrumentName(instrument?.key);
 };
 
+/** Select all tracks that use an instrument key. */
+export const selectTracksByInstrumentKey = (
+  project: Project,
+  key: string
+): Track[] => {
+  const trackMap = selectTrackMap(project);
+  const instrumentMap = selectTrackInstrumentMap(project);
+  const tracks = Object.values(trackMap).filter(
+    (track) => track && instrumentMap[track.id]?.key === key
+  );
+  return tracks as Track[];
+};
+
 // ------------------------------------------------------------
 // Track - Scales and Chains
 // ------------------------------------------------------------

@@ -1,106 +1,114 @@
 import { SAMPLE_STORE } from "utils/constants";
-import { getContext } from "tone";
-import { Thunk } from "types/Project/ProjectTypes";
-import { createInstrument } from "types/Instrument/InstrumentThunks";
-import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
-import { Instrument, InstrumentKey } from "types/Instrument/InstrumentTypes";
-import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
-import { createUndoType } from "lib/redux";
-import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
-import { isPatternTrack, Track, TrackId } from "types/Track/TrackTypes";
+import { InstrumentKey } from "types/Instrument/InstrumentTypes";
 import { getDatabase } from "./database";
+import { getProjectsFromDB } from "./projects";
+import { selectProjectName } from "types/Meta/MetaSelectors";
+import { selectTracksByInstrumentKey } from "types/Track/TrackSelectors";
+import {
+  audioBufferToObject,
+  fileToAudioBuffer,
+  objectToAudioBuffer,
+  SafeBuffer,
+} from "utils/samples";
+import audioBufferToWav from "audiobuffer-to-wav";
+import { dispatchCustomEvent } from "utils/html";
 
-// Function to handle file input
-export const handleFileInput =
-  (
-    file: File,
-    _track?: Track,
-    parentId?: TrackId,
-    undo?: string
-  ): Thunk<Promise<void>> =>
-  (dispatch, getProject) => {
-    return new Promise(async (resolve, reject) => {
-      const undoType = undo ?? createUndoType("handleFileInput", file);
-      const db = await getDatabase();
-      if (!db) return reject();
+export const UPDATE_SAMPLES = "UPDATE_SAMPLES";
 
-      const audioBuffer = await fileToAudioBuffer(file);
-      const buffer = audioBufferToObject(audioBuffer);
+export type IDBSample = {
+  id: string;
+  buffer: SafeBuffer;
+};
 
-      // Save the audio buffer in IndexedDB
-      const id = `sample-${file.name}`;
-      await db.put(SAMPLE_STORE, { id, buffer });
+export type SampleData = {
+  key: InstrumentKey;
+  buffer: AudioBuffer;
+  projectNames: string[];
+  samplerCounts: number;
+};
 
-      const project = getProject();
-      const selectedTrackId = selectSelectedTrackId(project);
-      const { track, instrument } = isPatternTrack(_track)
-        ? {
-            track: _track,
-            instrument: selectInstrumentById(project, _track.instrumentId),
-          }
-        : dispatch(
-            createPatternTrack({
-              data: { track: { parentId: parentId ?? selectedTrackId } },
-              undoType,
-            })
-          );
-      const urls = { C3: audioBuffer };
-      const oldInstrument: Instrument | undefined = instrument
-        ? { ...instrument, key: id as InstrumentKey }
-        : undefined;
+/** Append the data to the name of the file */
+const getSampleKey = (file: File): string => {
+  const name = file.name;
+  return `sample-${name}`;
+};
 
-      dispatch(
-        createInstrument({
-          data: { track, options: { oldInstrument, urls } },
-          undoType,
-        })
-      );
-      return resolve();
-    });
-  };
+/** Get the list of all sample keys */
+export const getSampleKeys = async (): Promise<InstrumentKey[]> => {
+  const db = await getDatabase();
+  if (!db) return [];
+  const keys = (await db.getAllKeys(SAMPLE_STORE)) as InstrumentKey[];
+  return keys;
+};
 
-// Convert file to AudioBuffer using Tone.js
-const fileToAudioBuffer = async (file: File): Promise<AudioBuffer> => {
-  const arrayBuffer = await file.arrayBuffer();
-  const audioBuffer = await getContext().rawContext.decodeAudioData(
-    arrayBuffer
+/** Upload a sample file to the database. */
+export const uploadSampleToIDB = async (file: File): Promise<void> => {
+  const db = await getDatabase();
+  if (!db) return;
+  const audioBuffer = await fileToAudioBuffer(file);
+  const buffer = audioBufferToObject(audioBuffer);
+  const id = getSampleKey(file);
+  const data: IDBSample = { id, buffer };
+  await db.put(SAMPLE_STORE, data);
+  dispatchCustomEvent(UPDATE_SAMPLES);
+};
+
+/** Remove a sample file from the database. */
+export const deleteSampleFromIDB = async (key: string): Promise<void> => {
+  const db = await getDatabase();
+  if (!db) return;
+  await db.delete(SAMPLE_STORE, key);
+  dispatchCustomEvent(UPDATE_SAMPLES);
+};
+
+/** Download a sample file from the database. */
+export const downloadSampleFromIDB = async (key: string): Promise<void> => {
+  const db = await getDatabase();
+  if (!db) return;
+  const sample = await db.get(SAMPLE_STORE, key);
+  if (!sample) return;
+  const audioBuffer = objectToAudioBuffer(sample.buffer);
+  const blob = await new Promise<Blob>((resolve) => {
+    const wav = audioBufferToWav(audioBuffer);
+    const blob = new Blob([wav], { type: "audio/wav" });
+    resolve(blob);
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = key;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+/* Fetch all samples from the database */
+export const getSampleDataFromIDB = async (): Promise<SampleData[]> => {
+  const db = await getDatabase();
+  if (!db) return [];
+  const keys = (await db.getAllKeys(SAMPLE_STORE)) as InstrumentKey[];
+  const allProjects = await getProjectsFromDB();
+  return Promise.all(
+    keys.map(async (key) => {
+      const sample = await db.get(SAMPLE_STORE, key);
+      const buffer = objectToAudioBuffer(sample.buffer);
+      let samplerCounts = 0;
+
+      // Get all projects that use this sample
+      const projects = allProjects.filter((p) => {
+        const tracks = selectTracksByInstrumentKey(p, key);
+        samplerCounts += tracks.length;
+        return tracks.length > 0;
+      });
+      const projectNames = projects.map(selectProjectName);
+
+      // Return the sample data
+      return { key, buffer, samplerCounts, projectNames };
+    })
   );
-  return audioBuffer;
 };
 
-const audioBufferToObject = (audioBuffer: AudioBuffer) => {
-  const channels = [];
-  for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
-    channels.push(audioBuffer.getChannelData(i));
-  }
-  return {
-    sampleRate: audioBuffer.sampleRate,
-    length: audioBuffer.length,
-    duration: audioBuffer.duration,
-    numberOfChannels: audioBuffer.numberOfChannels,
-    channels,
-  };
-};
-
-// Deserialize object to AudioBuffer
-const objectToAudioBuffer = async (obj: any): Promise<AudioBuffer> => {
-  const audioContext = getContext().rawContext;
-  const audioBuffer = audioContext.createBuffer(
-    obj.numberOfChannels,
-    obj.length,
-    obj.sampleRate
-  );
-
-  // Rebuild the audio buffer channel by channel
-  for (let i = 0; i < obj.numberOfChannels; i++) {
-    audioBuffer.getChannelData(i).set(obj.channels[i]);
-  }
-
-  return audioBuffer;
-};
-
-// Fetch audio from IndexedDB
-export const getSampleFromIDB = async (
+/* Fetch a sample buffer from the database */
+export const getSampleBufferFromIDB = async (
   id: string
 ): Promise<AudioBuffer | undefined> => {
   const db = await getDatabase();
@@ -109,28 +117,3 @@ export const getSampleFromIDB = async (
   if (!sample) return;
   return objectToAudioBuffer(sample.buffer);
 };
-
-// Attach file input handling to an HTML element
-export const setupFileInput =
-  (track?: Track, parentId?: TrackId, undo?: string): Thunk<Promise<void>> =>
-  (dispatch) => {
-    return new Promise((resolve) => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "audio/*";
-      input.onchange = async (e) => {
-        const target = e.target as HTMLInputElement;
-        if (target.files && target.files.length > 0) {
-          const file = target.files[0];
-          await dispatch(handleFileInput(file, track, parentId, undo)); // Store in IDB
-          resolve();
-        }
-      };
-      input.onblur = () => {
-        resolve();
-      };
-      document.body.appendChild(input);
-      input.click();
-      input.remove();
-    });
-  };

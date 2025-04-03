@@ -27,7 +27,7 @@ import {
 import { selectTrackMidiScale } from "../types/Track/TrackSelectors";
 import { convertMidiToNestedNote } from "types/Track/TrackUtils";
 import { promptLineBreak } from "components/PromptModal";
-import { setupFileInput } from "providers/idb/samples";
+import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackThunks";
 import { CLOSE_STATE, OPEN_STATE } from "hooks/useToggledState";
 
 type TrackStringPayload = Payload<{ input: string; parentId?: TrackId }>;
@@ -71,7 +71,7 @@ export const createPatternTrackFromString =
     const undoType = unpackUndoType(payload, `createPatternTrack-${nanoid()}`);
     const text = input.trim();
     if (text === "file") {
-      dispatch(setupFileInput(undefined, parentId, payload.undoType));
+      dispatch(promptUserForSample({ data: { parentId }, undoType }));
     } else {
       let key = matchInstrumentKey(text) ?? sampleInstrumentByCategory(text);
       if (!key) return;

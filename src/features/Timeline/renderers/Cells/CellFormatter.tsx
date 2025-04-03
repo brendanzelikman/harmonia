@@ -6,6 +6,7 @@ import { useDeep, useProjectDispatch } from "types/hooks";
 import { onCellClick } from "types/Timeline/thunks/TimelineClickThunks";
 import {
   selectHasPortalFragment,
+  selectPortalFragment,
   selectSubdivisionTicks,
   selectTimelineState,
   selectTimelineType,
@@ -21,6 +22,7 @@ export function CellFormatter(props: RenderCellProps<Row, unknown>) {
   const state = useDeep(selectTimelineState);
   const type = useDeep(selectTimelineType);
   const hasFragment = useDeep(selectHasPortalFragment);
+  const fragment = useDeep(selectPortalFragment);
   const trackId = props.row.id;
   const index = props.row.index;
 
@@ -39,6 +41,7 @@ export function CellFormatter(props: RenderCellProps<Row, unknown>) {
   const isAdding = state === "adding-clips";
   const isAddingPatterns = isAdding && type === "pattern";
   const isAddingPoses = isAdding && type === "pose";
+  const disablePortals = !!hasFragment && !fragment.trackId;
 
   const [_, drop] = useDrop(() => ({
     accept: ["clip", "portal"],
@@ -58,8 +61,14 @@ export function CellFormatter(props: RenderCellProps<Row, unknown>) {
       data-border={hasBorder}
       className={classNames(
         "size-full animate-in fade-in duration-150 border-b border-b-white/20 border-l-0.5 border-l-slate-700/50 data-[border=true]:border-l-2 data-[border=true]:border-l-white/20",
-        { "cursor-portalgunb hover:bg-sky-400/50": isPortalingEntry },
-        { "cursor-portalguno hover:bg-orange-400/50": isPortalingExit },
+        {
+          "cursor-portalgunb hover:bg-sky-400/50":
+            isPortalingEntry && !disablePortals,
+        },
+        {
+          "cursor-portalguno hover:bg-orange-400/50":
+            isPortalingExit && !disablePortals,
+        },
         { "cursor-paintbrush hover:bg-teal-500/50": isAddingPatterns },
         { "cursor-wand hover:bg-fuchsia-500/50": isAddingPoses }
       )}

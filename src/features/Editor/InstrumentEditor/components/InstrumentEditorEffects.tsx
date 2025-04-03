@@ -1,7 +1,6 @@
 import * as Effects from "types/Instrument/InstrumentEffectTypes";
 import { useCallback, useRef } from "react";
 import { Slider } from "components/Slider";
-import { useEffectDrop, useEffectDrag } from "../hooks/useInstrumentEditorDnd";
 import { cancelEvent } from "utils/html";
 import { BsArrowClockwise, BsTrashFill } from "react-icons/bs";
 import { useDeep, useProjectDispatch } from "types/hooks";
@@ -14,6 +13,7 @@ import {
 import { InstrumentId } from "types/Instrument/InstrumentTypes";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
+import { useDrag, useDrop } from "react-dnd";
 
 type InstrumentEffectsProps = { id: InstrumentId };
 
@@ -66,13 +66,27 @@ export interface DraggableEffectProps {
 
 export const InstrumentEffect = (props: DraggableEffectProps) => {
   const dispatch = useProjectDispatch();
-  const { id, effect } = props;
+  const { id, index, effect, moveEffect } = props;
   const instance = LIVE_AUDIO_INSTANCES[id];
   const ref = useRef<HTMLDivElement>(null);
-  const [{}, drop] = useEffectDrop({ ...props, element: ref.current });
-  const [{ isDragging }, drag] = useEffectDrag({
-    ...props,
-    element: ref.current,
+  const element = ref.current;
+  const [{}, drop] = useDrop({
+    accept: "effect",
+    collect() {
+      return { id: effect.id, index };
+    },
+    drop(item: any) {
+      if (!element) return;
+      const { index: dragIndex, id: dragId } = item;
+      const hoverIndex = index;
+      if (dragIndex === hoverIndex) return;
+      moveEffect(dragId, hoverIndex);
+    },
+  });
+  const [{ isDragging }, drag] = useDrag({
+    type: "effect",
+    item: () => ({ id: effect.id, index }),
+    collect: (monitor: any) => ({ isDragging: monitor.isDragging() }),
   });
   drag(drop(ref));
 

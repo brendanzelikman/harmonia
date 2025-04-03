@@ -14,7 +14,7 @@ import { getValueByKey, getValuesByKeys } from "utils/objects";
 import { selectClipDurationMap, selectClipMap } from "../Clip/ClipSelectors";
 import { selectPoseMap } from "../Pose/PoseSelectors";
 import { createSelector } from "reselect";
-import { capitalize, some, uniq } from "lodash";
+import { capitalize, uniq } from "lodash";
 import { createDeepSelector } from "lib/redux";
 import {
   Clip,
@@ -397,7 +397,7 @@ export const selectPortalFragment = createSelector(
 /** Select true if the user has a portal fragment */
 export const selectHasPortalFragment = createSelector(
   [selectPortalFragment],
-  (portal) => some(portal)
+  (fragment) => fragment.tick !== undefined || fragment.trackId !== undefined
 );
 
 export const selectIsClipSelected = (project: Project, id: ClipId) => {

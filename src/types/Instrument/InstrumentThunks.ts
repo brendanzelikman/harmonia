@@ -14,7 +14,8 @@ import {
 import { Payload } from "lib/redux";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { SamplerOptions } from "tone";
-import { getSampleFromIDB } from "providers/idb/samples";
+import { getSampleBufferFromIDB } from "providers/idb/samples";
+import { getInstrumentSamplesMap } from "./InstrumentFunctions";
 
 interface InstrumentOptions {
   offline?: boolean;
@@ -110,12 +111,20 @@ export const buildInstruments =
           ? !INSTRUMENT_KEYS.includes(oldInstrument?.key)
           : false;
         let urls = undefined;
-        if (oldInstrument && isLocal) {
-          urls = {
-            C3: await getSampleFromIDB(oldInstrument?.key),
-          } as SamplerOptions["urls"];
+        const useSample = oldInstrument && isLocal;
+        const options: InstrumentOptions = { offline: true, urls };
+        if (useSample) {
+          const sample = await getSampleBufferFromIDB(oldInstrument?.key);
+          if (sample) {
+            options.urls = { C3: sample };
+          } else {
+            options.urls = getInstrumentSamplesMap(DEFAULT_INSTRUMENT_KEY);
+            options.oldInstrument = {
+              ...oldInstrument,
+              key: DEFAULT_INSTRUMENT_KEY,
+            };
+          }
         }
-        const options = { offline: true, urls };
         return dispatch(createInstrument({ data: { track, options } }));
       })
     );

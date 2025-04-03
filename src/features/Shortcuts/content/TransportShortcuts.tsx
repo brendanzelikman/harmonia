@@ -8,7 +8,7 @@ import {
   RECORD_TRANSPORT_HOTKEY,
   STOP_TRANSPORT_HOTKEY,
   TOGGLE_TRANSPORT_HOTKEY,
-} from "features/Playground/hooks/usePlaygroundHotkeys";
+} from "pages/Playground/hooks/usePlaygroundHotkeys";
 import {
   MOVE_LEFT_HOTKEY,
   MOVE_RIGHT_HOTKEY,

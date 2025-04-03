@@ -17,13 +17,13 @@ import {
 import {
   MediaSelection,
   MediaClipboard,
-  MediaDraft,
   defaultMediaClipboard,
   defaultMediaSelection,
 } from "types/Media/MediaTypes";
 import { Action, unpackAction } from "lib/redux";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
+import { Portal } from "types/Portal/PortalTypes";
 
 // ------------------------------------------------------------
 // Timeline Slice Definition
@@ -116,11 +116,9 @@ export const timelineSlice = createSlice({
       }
     },
     /** Update the media draft. */
-    updateFragment: (state, action: Action<Partial<MediaDraft>>) => {
-      const { portal } = unpackAction(action);
-      if (portal !== undefined) {
-        state.fragment = portal;
-      }
+    updateFragment: (state, action: Action<Partial<Portal>>) => {
+      const portal = unpackAction(action);
+      state.fragment = portal;
     },
     /** Update the media selection. */
     updateMediaSelection: (state, action: Action<Partial<MediaSelection>>) => {

@@ -102,6 +102,9 @@ export function TimelinePortal(props: TimelinePortalProps) {
     isActive || isDraggingOther ? "pointer-events-none" : "pointer-events-all"
   );
 
+  const track = useDeep((_) => (tId ? selectTrackById(_, tId) : undefined));
+
+  if (!tId || !track) return null;
   /** Return an entry portal for the fragment. */
   if (!isPortal)
     return (

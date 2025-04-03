@@ -119,6 +119,7 @@ export const promptModal = (props: PromptModalProps): Promise<string> => {
     };
 
     const onSubmit = (input: string) => {
+      props.onCancel?.();
       cleanup();
       resolve(input);
     };

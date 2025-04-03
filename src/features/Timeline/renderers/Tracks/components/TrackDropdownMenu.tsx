@@ -52,7 +52,7 @@ import {
 import { some } from "lodash";
 import { INSTRUMENT_KEYS } from "types/Instrument/InstrumentTypes";
 import { CiRuler } from "react-icons/ci";
-import { setupFileInput } from "providers/idb/samples";
+import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackThunks";
 
 export const TrackDropdownMenu = (props: {
   track: Track;
@@ -127,7 +127,9 @@ export const TrackDropdownMenu = (props: {
                           className={isSampled ? "fill-emerald-300" : ""}
                         />
                       }
-                      onClick={() => dispatch(setupFileInput(track))}
+                      onClick={() =>
+                        dispatch(promptUserForSample({ data: { track } }))
+                      }
                     />
                   )}
                   <TrackDropdownButton

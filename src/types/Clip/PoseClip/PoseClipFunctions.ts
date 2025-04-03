@@ -73,6 +73,9 @@ export const getPoseOperationsAtTick = (
     if (deps.tick >= startTick && deps.tick < endTick) {
       const pose = deps.poseMap[clip.poseId];
       if (!pose) continue;
+      if (pose.reset) {
+        operation.clear();
+      }
       if ("scale" in pose) {
         operation.push({ scale: pose.scale });
       }
@@ -143,7 +146,10 @@ export const applyVoiceLeadingsToMidiStream = <
     // Get the modes of the stream scale
     const scale = pitchClasses.map((c) => ChromaticKey.indexOf(c));
     const streamScale = getMidiStreamIntrinsicScale(stream);
-    const abridgedScale = streamScale.filter((n) => scale.includes(n % 12));
+    const abridgedScale =
+      scale.length !== streamScale.length
+        ? streamScale.filter((n) => scale.includes(n % 12))
+        : streamScale;
     const abridgedSize = abridgedScale.length;
 
     // Find the mode of the stream that relates to the voice leading

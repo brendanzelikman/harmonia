@@ -1,4 +1,4 @@
-import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
+import { DEFAULT_INSTRUMENT_KEY, SAMPLE_STORE } from "utils/constants";
 import {
   PatternTrack,
   PatternTrackId,
@@ -6,6 +6,7 @@ import {
 } from "./PatternTrackTypes";
 import {
   Instrument,
+  InstrumentKey,
   initializeInstrument,
 } from "types/Instrument/InstrumentTypes";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -15,7 +16,7 @@ import {
   selectTrackById,
 } from "../TrackSelectors";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
-import { Payload, unpackUndoType } from "lib/redux";
+import { Payload, unpackData, unpackUndoType } from "lib/redux";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
 import { addTrack } from "../TrackThunks";
 import { createPattern } from "types/Pattern/PatternThunks";
@@ -38,8 +39,12 @@ import {
   unsoloInstruments,
   updateInstrument,
 } from "types/Instrument/InstrumentSlice";
-import { isHoldingOption } from "utils/html";
+import { isHoldingOption, promptUserForAudioFile } from "utils/html";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
+import { getDatabase } from "providers/idb/database";
+import { fileToAudioBuffer, audioBufferToObject } from "utils/samples";
+import { Track, TrackId, isPatternTrack } from "../TrackTypes";
+import { uploadSampleToIDB } from "providers/idb/samples";
 
 /** Create a `PatternTrack` with an optional initial track. */
 export const createPatternTrack =
@@ -147,28 +152,29 @@ export const createCourtesyPoseClip =
     });
     dispatch(createMedia({ data: { clips: [poseClip] }, undoType })).data;
     return pose.id;
-  }; /** Mute all tracks. */
+  };
 
+/** Mute all tracks. */
 export const muteTracks = (): Thunk => (dispatch) => {
   dispatch(muteInstruments());
 };
-/** Unmute all tracks. */
 
+/** Unmute all tracks. */
 export const unmuteTracks = (): Thunk => (dispatch) => {
   dispatch(unmuteInstruments());
 };
-/** Solo all tracks. */
 
+/** Solo all tracks. */
 export const soloTracks = (): Thunk => (dispatch) => {
   dispatch(soloInstruments());
 };
-/** Unsolo all tracks. */
 
+/** Unsolo all tracks. */
 export const unsoloTracks = (): Thunk => (dispatch) => {
   dispatch(unsoloInstruments());
 };
-/** Toggle the mute state of a track. */
 
+/** Toggle the mute state of a track. */
 export const toggleTrackMute =
   (e: MouseEvent, id: PatternTrackId): Thunk =>
   (dispatch, getProject) => {
@@ -191,8 +197,8 @@ export const toggleTrackMute =
     // Otherwise, toggle all tracks
     dispatch(instrument.mute ? unmuteTracks() : muteTracks());
   };
-/** Toggle the solo state of a track. */
 
+/** Toggle the solo state of a track. */
 export const toggleTrackSolo =
   (e: MouseEvent, id: PatternTrackId): Thunk =>
   (dispatch, getProject) => {
@@ -214,4 +220,68 @@ export const toggleTrackSolo =
 
     // Otherwise, toggle all tracks
     dispatch(instrument.solo ? unsoloTracks() : soloTracks());
+  };
+
+/** Prompt the user for an audio file and upload / create a track. */
+export const promptUserForSample =
+  (payload: Payload<{ track?: Track; parentId?: TrackId }, true>): Thunk =>
+  (dispatch) => {
+    const { track, parentId } = unpackData(payload);
+    const undoType = unpackUndoType(payload, "promptUserForSample");
+    promptUserForAudioFile((e) => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (!file) return;
+
+      // If no track data is provided, just upload the sample
+      if (!track && !parentId) {
+        uploadSampleToIDB(file);
+        return;
+      }
+
+      // Otherwise, use the data to create/update a track
+      const data = { track, parentId, file };
+      dispatch(uploadSampleToTrack({ data, undoType }));
+    });
+  };
+
+/** Use a file to create a custom instrument for a track. */
+export const uploadSampleToTrack =
+  (
+    payload: Payload<{ file: File; track?: Track; parentId?: TrackId }>
+  ): Thunk =>
+  async (dispatch, getProject) => {
+    const data = unpackData(payload);
+    const undoType = unpackUndoType(payload, "uploadSampleToTrack");
+    const project = getProject();
+    const db = await getDatabase();
+    if (!db) return;
+
+    // Convert the file to a safe buffer and save to IDB
+    const { file, parentId } = data;
+    const audioBuffer = await fileToAudioBuffer(file);
+    const buffer = audioBufferToObject(audioBuffer);
+    const id = `sample-${file.name}`;
+    await db.put(SAMPLE_STORE, { id, buffer });
+
+    // Use the provided track or create a new one from the parent
+    let track: PatternTrack;
+    let instrument: Instrument | undefined;
+    if (isPatternTrack(data.track)) {
+      track = data.track;
+      instrument = selectInstrumentById(project, data.track.instrumentId);
+    } else {
+      const data = { track: { parentId } };
+      const newPT = dispatch(createPatternTrack({ data, undoType }));
+      track = newPT.track;
+      instrument = newPT.instrument;
+    }
+
+    // Create a new instrument with the sample
+    const urls = { C3: audioBuffer };
+    let oldInstrument: Instrument | undefined = undefined;
+    if (instrument) oldInstrument = { ...instrument, key: id as InstrumentKey };
+
+    const options = { oldInstrument, urls };
+    dispatch(createInstrument({ data: { track, options }, undoType }));
   };

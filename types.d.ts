@@ -13,7 +13,7 @@ declare module "*.xml" {
   export = value;
 }
 
-declare module "*.ham" {
+declare module "*.json" {
   const value: any;
   export = value;
 }

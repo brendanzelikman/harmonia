@@ -57,6 +57,8 @@ export type ITrack<T extends TrackType = TrackType> = {
   collapsed?: boolean;
   port?: number;
   vector?: PoseVector;
+  instrumentId?: InstrumentId;
+  scaleId?: ScaleId;
 } & ITrackProps<T>;
 
 /** A `Track` can have extra props based on its type. */

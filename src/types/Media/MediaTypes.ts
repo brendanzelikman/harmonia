@@ -26,11 +26,6 @@ export type MediaClipboard = {
   portals?: Portal[];
 };
 
-/** A `MediaDraft` stores new media for arrangement. */
-export type MediaDraft = {
-  portal?: Partial<Portal>;
-};
-
 /** A `MediaDragState` stores information about dragged media. */
 export type MediaDragState = {
   draggingPatternClip?: boolean;
@@ -76,9 +71,7 @@ export const defaultMediaClipboard: MediaClipboard = {
   clips: [],
   portals: [],
 };
-export const defaultMediaDraft: MediaDraft = {
-  portal: {},
-};
+
 export const defaultMediaDragState: MediaDragState = {
   draggingPatternClip: false,
   draggingPoseClip: false,

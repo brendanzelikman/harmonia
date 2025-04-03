@@ -1,5 +1,5 @@
 import { createUndoType, Payload, unpackUndoType } from "lib/redux";
-import { without, union, some } from "lodash";
+import { without, union } from "lodash";
 import { updateClip } from "types/Clip/ClipSlice";
 import { Clip, initializeClip } from "types/Clip/ClipTypes";
 import {
@@ -27,6 +27,7 @@ import {
   selectSelectedClipIdMap,
   selectTimelineType,
   selectPortalFragment,
+  selectHasPortalFragment,
 } from "../TimelineSelectors";
 import {
   updateMediaSelection,
@@ -68,7 +69,8 @@ export const onCellClick =
       return;
     }
 
-    const portalDraft = selectPortalFragment(project);
+    const fragment = selectPortalFragment(project);
+    const hasFragment = selectHasPortalFragment(project);
     const isAddingClips = selectIsAddingClips(project);
     const type = selectTimelineType(project);
 
@@ -86,21 +88,23 @@ export const onCellClick =
 
     // Set the fragment if portaling and there's no current fragment
     const isPortaling = selectIsAddingPortals(project);
-    if (isPortaling && !some(portalDraft)) {
+    if (isPortaling && !hasFragment) {
       const portal = { tick, trackId };
-      dispatch(updateFragment({ data: { portal }, undoType }));
+      dispatch(updateFragment({ data: portal, undoType }));
       return;
     }
 
     // Create a portal if portaling and there's a current fragment
-    if (isPortaling && portalDraft !== undefined) {
+    if (isPortaling && hasFragment) {
       const portal = initializePortal({
-        ...portalDraft,
+        ...fragment,
         portaledTrackId: trackId,
         portaledTick: tick,
       });
       dispatch(addPortal({ data: portal, undoType }));
+      dispatch(updateFragment({ data: {}, undoType }));
       dispatch(toggleTimelineState({ data: "portaling-clips", undoType }));
+      return;
     }
 
     // Otherwise, seek the transport, select the track, and deselect all media

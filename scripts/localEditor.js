@@ -44,8 +44,8 @@ function showMainMenu() {
   console.clear();
   console.log("\n=== Harmonia CLI ===");
   console.log("Available commands:");
-  console.log("  create <file.HAM>  - Create a new HAM file");
-  console.log("  load <file.HAM>    - Load an existing HAM file");
+  console.log("  create <file.json>  - Create a new JSON file");
+  console.log("  load <file.json>    - Load an existing JSON file");
   console.log("  exit               - Exit CLI\n");
   promptMainMenu();
 }

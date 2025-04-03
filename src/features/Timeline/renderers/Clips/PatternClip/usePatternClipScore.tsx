@@ -117,7 +117,7 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
         if (isNegative) degree = -1 + size - degree;
         const offset = Math.floor((isNegative ? -1 - index : index) / size);
         note.MIDI = scale.at(degree)! + offset * 12;
-      } else {
+      } else if (useScale) {
         note = dispatch(autoBindNoteToTrack(clip.trackId, note));
       }
       const undoType = createUndoType("playNote", nanoid());

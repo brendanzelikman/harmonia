@@ -56,6 +56,7 @@ import { CLOSE_STATE, OPEN_STATE } from "hooks/useToggledState";
 
 export const UPDATE_TICK = "updateTick";
 export const UPDATE_OFFLINE_TICK = "updateOfflineTick";
+
 let scheduleId: number | undefined;
 
 /** Dispatch a tick update event. */
@@ -92,50 +93,45 @@ export const seekTransport =
     if (started) dispatch(startTransport());
   };
 
-export const wrapTransportTick =
-  (tick: number): Thunk<number> =>
-  (_, getProject) => {
-    const project = getProject();
-    const { loop, loopStart, loopEnd } = selectTransport(project);
-    if (!loop) return tick;
-    return ((tick - loopStart) % (loopEnd - loopStart)) + loopStart;
-  };
-
 /** Start the transport, using `Tone.scheduleRepeat` to schedule all samplers. */
-export const startTransport = (): Thunk => (_, getProject) => {
+export const startTransport = (): Thunk => (dispatch, getProject) => {
   if (Tone.getContext().state !== "running") return;
   emitStartTransport();
 
-  const startTime = Tone.getTransport().now();
-  const startSeconds = Tone.getTransport().seconds;
-  const bpm = selectTransportBPM(getProject());
-  const pulse = ticksToSeconds(1, bpm);
-  const conversionRatio = (bpm * PPQ) / 60;
-
+  // Clear any previous events
   if (scheduleId !== undefined) {
     Tone.getTransport().clear(scheduleId);
     scheduleId = undefined;
   }
 
-  /** The Transport schedules the handler with precise timing */
+  // Keep track of the start time
+  let startTime = Tone.getTransport().now();
+  let startSeconds = Tone.getTransport().seconds;
+
+  // Schedule a new event
   scheduleId = Tone.getTransport().scheduleRepeat((time) => {
+    const { bpm, loop, loopStart, loopEnd } = selectTransport(getProject());
+
+    // Compute the time using precise values
     const seconds = time - startTime + startSeconds;
-    const { loop, loopStart, loopEnd } = selectTransport(getProject());
-    let newTick = Math.round(seconds * conversionRatio);
-    if (loop) {
-      newTick = ((newTick - loopStart) % (loopEnd - loopStart)) + loopStart;
+    let newTick = Math.round((seconds * bpm * PPQ) / 60);
+
+    // If the transport is looping, move to the start
+    if (loop && newTick === loopEnd) {
+      newTick = loopStart;
+      startTime = time;
+      startSeconds = (60 * loopStart) / (bpm * PPQ);
     }
 
     // Dispatch a tick update event
     dispatchTickUpdate(newTick);
 
-    const project = getProject();
-    const chordRecord = selectMidiChordsByTicks(project)[newTick];
+    // Select the memoized record of chords to be played at the current tick
+    const chordRecord = selectMidiChordsByTicks(getProject())[newTick];
 
     // Iterate over the instruments that are to be played at the current tick
     if (chordRecord) {
       for (const instrumentId in chordRecord) {
-        // Get the chord to be played
         const chord = chordRecord[instrumentId];
         if (!chord) continue;
 
@@ -147,7 +143,7 @@ export const startTransport = (): Thunk => (_, getProject) => {
         playPatternChord(instance.sampler, chord, time);
       }
     }
-  }, pulse);
+  }, `1i`);
 
   // Start the transport
   Tone.getTransport().start();
@@ -205,9 +201,6 @@ export const toggleTransportLoop = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const transport = selectTransport(project);
   dispatch(TransportSlice._loopTransport(!transport.loop));
-  if (Tone.getTransport().state === "started") {
-    dispatch(startTransport());
-  }
 };
 
 /** Set the transport loop start to the given tick. */

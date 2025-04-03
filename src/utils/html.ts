@@ -64,6 +64,17 @@ export const downloadBlob = (blob: Blob, fileName?: string) => {
   URL.revokeObjectURL(url);
 };
 
+/** Read an audio file from the user and call the callback with the event. */
+export const promptUserForAudioFile = (onChange: (e: Event) => void) => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "audio/*";
+  input.onchange = onChange;
+  document.body.appendChild(input);
+  input.click();
+  input.remove();
+};
+
 // ------------------------------------------------------------
 // Generic Events
 // ------------------------------------------------------------

@@ -21,7 +21,7 @@ const RATE = 60 / PPQ;
 
 /** Convert ticks to seconds using the PPQ and BPM. */
 export const ticksToSeconds = (ticks: Tick, bpm: BPM): Seconds => {
-  return RATE * (ticks / bpm);
+  return (60 * ticks) / (bpm * PPQ);
 };
 
 /** Convert seconds to ticks using the PPQ and BPM. */

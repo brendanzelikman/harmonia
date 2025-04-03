@@ -50,6 +50,7 @@ import {
 } from "types/Pattern/PatternTypes";
 import {
   getPatternBlockNotes,
+  getPatternBlockWithNewNotes,
   PatternScaleNotes,
   PatternScales,
 } from "types/Pattern/PatternUtils";
@@ -71,7 +72,10 @@ import {
 import { promptLineBreak } from "components/PromptModal";
 import { getPatternBlockAtIndex } from "types/Pattern/PatternFunctions";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { updatePatternNote } from "types/Pattern/PatternSlice";
+import {
+  updatePatternBlock,
+  updatePatternNote,
+} from "types/Pattern/PatternSlice";
 import { DEFAULT_VELOCITY } from "utils/constants";
 
 /** Create a `ScaleTrack` with an optional initial track. */
@@ -521,8 +525,18 @@ export const bindNoteWithPrompt =
         const blockNotes = getPatternBlockNotes(block);
         const firstNote = { ...blockNotes[0] } as PatternNestedNote;
         if (string === "auto") {
-          const note = dispatch(autoBindNoteToTrack(trackId, firstNote));
-          dispatch(updatePatternNote({ data: { id, index, note }, undoType }));
+          dispatch(
+            updatePatternBlock({
+              data: {
+                id,
+                index,
+                block: getPatternBlockWithNewNotes(pattern.stream[index], (n) =>
+                  n.map((n) => dispatch(autoBindNoteToTrack(trackId, n)))
+                ),
+              },
+              undoType,
+            })
+          );
           return;
         }
         if (string === "pedal") {

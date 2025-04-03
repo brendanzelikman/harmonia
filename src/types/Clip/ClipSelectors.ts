@@ -233,7 +233,7 @@ export const selectClipNameMap = createSelector(
   (clipMap, referenceMap) =>
     mapValues(clipMap, (clip) => {
       const reference = getValueByKey(referenceMap, clip?.id);
-      return reference?.name;
+      return clip?.name ?? reference?.name;
     })
 );
 

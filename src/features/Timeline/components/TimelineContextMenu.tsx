@@ -67,7 +67,8 @@ export const TimelineContextMenu = memo(() => {
     dispatch(updateClips({ data: newClips }));
   }, []);
 
-  // Set the duration of the currently selected clips
+  // Set the name and duration of the currently selected clips
+  const [name, setName] = useState("");
   const [duration, setDuration] = useState("");
   const durationValue = sanitize(parseFloat(duration));
 
@@ -91,6 +92,28 @@ export const TimelineContextMenu = memo(() => {
         </>
       )}
       <div className="flex gap-4 items-center" onClick={cancelEvent}>
+        Name:
+        <input
+          type="text"
+          placeholder="Text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={blurOnEnter}
+          className="min-w-12 max-w-24 text-xs ml-auto h-6 text-center bg-transparent text-slate-200 bg-slate-50 rounded"
+        />
+      </div>
+      <div
+        className="flex cursor-pointer hover:bg-slate-600/20"
+        onClick={() => {
+          const value = name === "" ? undefined : name;
+          dispatch(
+            updateClips({ data: clips.map(({ id }) => ({ id, name: value })) })
+          );
+        }}
+      >
+        Click to Set Name
+      </div>
+      <div className="flex gap-4 items-center" onClick={cancelEvent}>
         Duration (Bars):{" "}
         <input
           type="text"
@@ -100,7 +123,7 @@ export const TimelineContextMenu = memo(() => {
             setDuration(e.target.value);
           }}
           onKeyDown={blurOnEnter}
-          className="min-w-12 max-w-16 h-6 text-center bg-transparent text-slate-200 bg-slate-50 rounded"
+          className="min-w-12 ml-auto max-w-16 h-6 text-center bg-transparent text-slate-200 bg-slate-50 rounded"
         />
       </div>
       <div

@@ -26,7 +26,7 @@ export const readLocalProjects =
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = true;
-    input.accept = ".ham";
+    input.accept = ".json";
     input.addEventListener("change", (e) => {
       const files = (e.target as HTMLInputElement).files ?? [];
       for (const file of files) {

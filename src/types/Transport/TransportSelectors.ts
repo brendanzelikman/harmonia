@@ -30,6 +30,18 @@ export const selectTransportLoop = createSelector(
   (transport) => transport.loop
 );
 
+/** Select the transport loop start. */
+export const selectTransportLoopStart = createSelector(
+  [selectTransport],
+  (transport) => transport.loopStart
+);
+
+/** Select the transport loop end. */
+export const selectTransportLoopEnd = createSelector(
+  [selectTransport],
+  (transport) => transport.loopEnd
+);
+
 /** Select the transport volume. */
 export const selectTransportVolume = createSelector(
   [selectTransport],

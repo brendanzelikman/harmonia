@@ -1,4 +1,4 @@
-import { EditorPiano } from "features/Editor/components/EditorPiano";
+import { Piano } from "components/Piano";
 import { Sampler } from "tone";
 import { getMidiPitch } from "utils/midi";
 import { InstrumentId } from "types/Instrument/InstrumentTypes";
@@ -52,7 +52,7 @@ export const InstrumentEditorPiano = (props: InstrumentEditorPianoProps) => {
   }, []);
 
   return (
-    <EditorPiano
+    <Piano
       {...props}
       show
       className="h-48"

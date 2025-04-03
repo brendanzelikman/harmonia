@@ -37,7 +37,7 @@ export const Terminal = () => {
             onClick={() => dispatch(exportProjectToHAM())}
           />
           <span className="font-mono text-slate-900">
-            Project Editor ({name}.ham)
+            Project Editor ({name}.json)
           </span>
         </div>
         <JsonEditor

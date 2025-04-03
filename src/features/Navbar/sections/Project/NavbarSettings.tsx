@@ -83,21 +83,10 @@ export function NavbarSettings() {
             className="last:*:ml-auto last:*:text-2xl"
             onClick={() => dispatch(toggleTimeline())}
           >
-            <NavbarFileLabel>Toggle View</NavbarFileLabel>
-            {hideTimeline ? <GiForest /> : <GiWireframeGlobe />}
-          </NavbarFileGroup>
-
-          <NavbarFileGroup
-            hover={hideTimeline || !hasTracks ? "" : undefined}
-            onClick={() => !hideTimeline && dispatch(toggleCellWidth())}
-          >
-            <div
-              data-disabled={hideTimeline || !hasTracks}
-              className="data-[disabled=true]:text-slate-400"
-            >
-              Toggle Zoom
-            </div>
-            <GiStethoscope className="ml-auto text-2xl" />
+            <NavbarFileLabel>
+              {hideTimeline ? "Return to Timeline" : "Go To Forest"}
+            </NavbarFileLabel>
+            {!hideTimeline ? <GiForest /> : <GiWireframeGlobe />}
           </NavbarFileGroup>
 
           <NavbarFileGroup onClick={Terminal.toggle}>

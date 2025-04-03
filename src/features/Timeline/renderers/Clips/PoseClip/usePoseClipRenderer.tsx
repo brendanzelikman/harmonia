@@ -22,6 +22,7 @@ import {
   selectIsAddingPortals,
   selectIsAddingPoseClips,
   selectIsClipSelected,
+  selectTimelineState,
   selectTimelineTickLeft,
   selectTrackHeight,
 } from "types/Timeline/TimelineSelectors";
@@ -44,6 +45,8 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   const pose = useDeep((_) => selectPoseById(_, clip.poseId));
   const stream = pose?.stream ?? [];
   const dispatch = useProjectDispatch();
+  const state = useDeep(selectTimelineState);
+  const isActive = state !== "idle";
   const isAdding = useDeep(selectIsAddingPoseClips);
   const isPortaling = useDeep(selectIsAddingPortals);
   const isBlurred = isAdding || isPortaling || isDragging;
@@ -57,12 +60,14 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   // Any block can be selected by index, with depths for nested streams
   const vector = pose?.vector;
   const scale = pose?.scale;
+  const reset = pose?.reset;
   const operations = pose?.operations;
   const block = pose?.stream ? stream[0] : undefined;
 
   const clipProps = {
     vector,
     scale,
+    reset,
     operations,
     block,
     field,
@@ -83,14 +88,22 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
       data-selected={isSelected}
       data-blur={isBlurred}
       className={className}
-      style={{ top, left, width, height }}
+      style={{
+        top,
+        left,
+        width,
+        height,
+        borderColor: pose?.reset && !isOpen ? "indigo" : undefined,
+      }}
       onClick={(e) => dispatch(onClipClick(e, { ...clip, id }))}
       onDragStart={() =>
         dispatch(toggleClipDropdown({ data: { id: pcId, value: false } }))
       }
     >
       <PoseClipHeader id={id} isOpen={!!isOpen} />
-      {isOpen && <PoseClipDropdown {...props} {...clipProps} clip={clip} />}
+      {isOpen && !isActive && (
+        <PoseClipDropdown {...props} {...clipProps} clip={clip} />
+      )}
     </div>
   );
 });
@@ -98,6 +111,7 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
 export interface PoseClipComponentProps extends PoseClipRendererProps {
   vector?: PoseVector;
   scale?: ScaleNote[];
+  reset?: boolean;
   operations?: PoseTransformation[];
   block?: PoseBlock;
   field: PoseClipView;

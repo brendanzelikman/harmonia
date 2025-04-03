@@ -3,6 +3,7 @@ import { initializeProject } from "types/Project/ProjectTypes";
 import { IDB_NAME, PROJECT_STORE, SAMPLE_STORE } from "utils/constants";
 import { uploadProjectToDB } from "./projects";
 
+/** Get the name of the database. */
 export const getDatabaseName = () => `${IDB_NAME}`;
 
 /** Create a connection to the database and upgrade it if necessary. */

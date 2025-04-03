@@ -36,7 +36,6 @@ import {
   createPatternTrack,
 } from "types/Track/PatternTrack/PatternTrackThunks";
 import { useTransportTick } from "hooks/useTransportTick";
-import { wrapTransportTick } from "types/Transport/TransportThunks";
 
 const numberKeys = range(1, 10).map((n) => n.toString());
 const scaleKeys = ["q", "w", "e", "r", "t", "y"];
@@ -69,7 +68,6 @@ export const useLivePlay = () => {
   const clips = useDeep(selectSelectedPoseClips);
   const hasClips = clips.length > 0;
   const { tick } = useTransportTick();
-  const currentTick = dispatch(wrapTransportTick(tick));
   const holding = useHeldHotkeys(ALL_KEYS);
   useEffect(() => {
     if (!Object.keys(holding).some((key) => holding[key])) {
@@ -231,7 +229,7 @@ export const useLivePlay = () => {
 
       const vector = sumVector(trackId);
       const match = poseClips.find(
-        (clip) => clip.tick === currentTick && clip.trackId === trackId
+        (clip) => clip.tick === tick && clip.trackId === trackId
       );
       if (match) {
         const pose = poseMap[match.poseId];
@@ -250,7 +248,7 @@ export const useLivePlay = () => {
         dispatch(
           createCourtesyPoseClip({
             data: {
-              clip: { tick: currentTick, trackId },
+              clip: { tick, trackId },
               pose: { vector, trackId },
             },
             undoType,
@@ -267,7 +265,7 @@ export const useLivePlay = () => {
       patternClips,
       poseClips,
       poseMap,
-      currentTick,
+      tick,
       scaleTrackIds,
     ]
   );

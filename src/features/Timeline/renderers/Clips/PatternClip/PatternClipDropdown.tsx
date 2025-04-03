@@ -6,7 +6,6 @@ import {
   updatePatternBlockDuration,
 } from "types/Pattern/PatternSlice";
 import classNames from "classnames";
-import { PatternClipPiano } from "./PatternClipPiano";
 import { clearPattern, randomizePattern } from "types/Pattern/PatternThunks";
 import { bindNoteWithPrompt } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import {
@@ -23,6 +22,9 @@ import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { createUndoType } from "lib/redux";
 import { nanoid } from "@reduxjs/toolkit";
 import { promptRomanNumerals } from "features/Timeline/hooks/useTimelineHotkeys";
+import { Piano } from "components/Piano";
+import { selectTrackScale } from "types/Track/TrackSelectors";
+import { useState } from "react";
 
 export interface PatternClipDropdownProps {
   clip: PortaledPatternClip;
@@ -33,10 +35,12 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const { clip } = props;
   const dispatch = useProjectDispatch();
   const pattern = useDeep((_) => selectPatternById(_, clip.patternId));
+  const scale = useDeep((_) => selectTrackScale(_, props.clip.trackId));
   const holding = useHeldHotkeys(["shift", "t", ".", "x"]);
 
   const clipScore = usePatternClipScore(clip);
   const { Score, index, playNote, setDuration, duration, input } = clipScore;
+  const [type, setType] = useState<"scale" | "pedal">("scale");
 
   const isOpen = !!clip.isOpen;
   const isEmpty = !pattern.stream.length;
@@ -184,8 +188,18 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
           </div>
           <div className="px-2 w-full text-slate-300">
             <div className="flex">
-              <span className="mx-auto text-emerald-300">
-                Creating Pattern Notes
+              <span
+                className="mx-auto capitalize text-emerald-300"
+                onClick={() => setType(type === "scale" ? "pedal" : "scale")}
+              >
+                Creating {type} Notes
+              </span>
+              <span
+                data-type={type}
+                className="border border-emerald-300 active:bg-slate-900/50 px-2 rounded cursor-pointer capitalize ml-auto text-emerald-300"
+                onClick={() => setType(type === "scale" ? "pedal" : "scale")}
+              >
+                Toggle
               </span>
             </div>
             <div className="flex gap-4">
@@ -208,10 +222,20 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
         </div>
       </div>
 
-      {<PatternClipPiano clip={clip} playNote={playNote} />}
+      <Piano
+        className="animate-in border-t-8 border-t-emerald-500 fade-in w-full max-w-xl overflow-scroll"
+        show
+        noteRange={noteRange}
+        playNote={(_, midi) => playNote(midi, type === "scale")}
+        scale={scale}
+        width={896}
+        keyWidthToHeight={0.14}
+      />
     </div>
   );
 }
+
+const noteRange = ["A1", "C8"] as const;
 
 const ScoreButton = (props: {
   label?: React.ReactNode;

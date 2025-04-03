@@ -28,7 +28,7 @@ export type Action<T, isEmpty = T extends null ? true : false> = PayloadAction<
   T | Payload<T, isEmpty>
 >;
 
-export const unpackData = <T>(payload: Payload<T>) =>
+export const unpackData = <T>(payload?: Payload<T, true>) =>
   payload?.data ?? (payload as T);
 
 export const unpackAction = <T>(action: Action<T>) => {

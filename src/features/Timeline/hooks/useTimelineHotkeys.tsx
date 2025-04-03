@@ -1,5 +1,6 @@
 import { Hotkey, useDispatchedHotkey } from "lib/react-hotkeys-hook";
 import {
+  clearTimelineState,
   decreaseSubdivision,
   increaseSubdivision,
   setSelectedTrackId,
@@ -13,6 +14,7 @@ import {
   selectSelectedClipIds,
   selectSelectedClips,
   selectSelectedTrack,
+  selectTimelineState,
 } from "types/Timeline/TimelineSelectors";
 import {
   createDrumTracks,
@@ -58,7 +60,7 @@ import {
   selectTrackIds,
   selectTrackParentIdMap,
 } from "types/Track/TrackSelectors";
-import { setupFileInput } from "providers/idb/samples";
+import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackThunks";
 import {
   selectClipDuration,
   selectHasClips,
@@ -242,7 +244,8 @@ export const INPUT_SAMPLES_HOTKEY: Thunk<Hotkey> = (dispatch, getProject) => ({
   shortcut: "meta+shift+i",
   callback: () => {
     const track = selectSelectedTrack(getProject());
-    if (isPatternTrack(track)) dispatch(setupFileInput(track));
+    if (isPatternTrack(track))
+      dispatch(promptUserForSample({ data: { track } }));
   },
 });
 
@@ -608,6 +611,11 @@ export const CLOSE_ALL_CLIPS_HOTKEY: Thunk<Hotkey> = (
   callback: () => {
     const project = getProject();
     const openedClips = selectOpenedClips(project);
+    const state = selectTimelineState(project);
+    if (state !== "idle") {
+      dispatch(clearTimelineState());
+      return;
+    }
     if (openedClips.length) {
       const undoType = createUndoType("close", openedClips);
       openedClips.forEach(({ id }) =>

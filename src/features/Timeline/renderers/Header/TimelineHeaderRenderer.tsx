@@ -8,6 +8,8 @@ import { Row } from "features/Timeline/components/TimelineGrid";
 import { getBarsBeatsSixteenths } from "types/Transport/TransportFunctions";
 import {
   selectColumnTicks,
+  selectHasPortalFragment,
+  selectIsAddingPortals,
   selectSubdivisionTicks,
 } from "types/Timeline/TimelineSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
@@ -16,13 +18,15 @@ import {
   setTransportLoopEnd,
   seekTransport,
 } from "types/Transport/TransportThunks";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { updateFragment } from "types/Timeline/TimelineSlice";
+import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 
 export const TimelineHeaderRenderer = (props: RenderHeaderCellProps<Row>) => {
   const dispatch = useProjectDispatch();
   const columnIndex = parseInt(props.column.key);
   const tick = useDeep((_) => selectColumnTicks(_, columnIndex - 1));
-  const { s, d } = useHeldHotkeys(["s", "d"]);
+  const isPortaling = useDeep(selectIsAddingPortals);
+  const hasFragment = useDeep(selectHasPortalFragment);
 
   // Loop properties derived from the transport
   const tickLength = useDeep(selectSubdivisionTicks);
@@ -36,7 +40,7 @@ export const TimelineHeaderRenderer = (props: RenderHeaderCellProps<Row>) => {
   /** Set the loop start */
   const setLoopStart = useCallback(
     (column: number) => {
-      const ticks = tickLength * (column - 1);
+      const ticks = Math.max(tickLength * (column - 1), 0);
       dispatch(setTransportLoopStart({ data: ticks }));
     },
     [tickLength]
@@ -45,8 +49,8 @@ export const TimelineHeaderRenderer = (props: RenderHeaderCellProps<Row>) => {
   /** Set the loop end */
   const setLoopEnd = useCallback(
     (column: number) => {
-      const ticks = tickLength * column;
-      dispatch(setTransportLoopEnd({ data: ticks - 1 }));
+      const ticks = Math.max(tickLength * column - 1, 0);
+      dispatch(setTransportLoopEnd({ data: ticks }));
     },
     [tickLength]
   );
@@ -115,7 +119,7 @@ export const TimelineHeaderRenderer = (props: RenderHeaderCellProps<Row>) => {
         {!!isMeasure && (
           <div
             className={classNames(
-              "select-none",
+              "select-none pointer-events-none",
               { "pl-3": loop && onLoopStart },
               { "pr-3": loop && onLoopEnd },
               { "pl-1": !loop || (!onLoopStart && !onLoopEnd) },
@@ -131,16 +135,18 @@ export const TimelineHeaderRenderer = (props: RenderHeaderCellProps<Row>) => {
 
   /** Seek the transport or update the loop points if holding S/E. */
   const onClick = useCallback(() => {
-    if (!loop) {
+    if (isPortaling) {
+      if (hasFragment) {
+        setLoopEnd(columnIndex);
+        dispatch(toggleTimelineState({ data: "portaling-clips" }));
+      } else {
+        setLoopStart(columnIndex);
+        dispatch(updateFragment({ data: { tick } }));
+      }
+    } else {
       dispatch(seekTransport({ data: tick }));
-      return;
     }
-    if (s) {
-      setLoopStart(columnIndex);
-    } else if (d) {
-      setLoopEnd(columnIndex);
-    }
-  }, [loop, tick, columnIndex, s, d]);
+  }, [tick, columnIndex, isPortaling, hasFragment]);
 
   // Render the time cell
   return (
@@ -150,7 +156,9 @@ export const TimelineHeaderRenderer = (props: RenderHeaderCellProps<Row>) => {
       className={classNames(
         "rdg-header bg-black data-[over=true]:bg-indigo-800 relative size-full total-center text-white hover:bg-slate-800 hover:border hover:border-slate-200/80 cursor-pointer",
         { "border-b-8 border-b-indigo-700": loop && inLoopRange },
-        { "border-slate-50/20": !loop || !inLoopRange }
+        { "border-slate-50/20": !loop || !inLoopRange },
+        { "cursor-portalguno": isPortaling && hasFragment },
+        { "cursor-portalgunb": isPortaling && !hasFragment }
       )}
       onClick={onClick}
     >

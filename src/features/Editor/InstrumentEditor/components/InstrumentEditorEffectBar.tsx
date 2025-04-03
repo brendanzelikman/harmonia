@@ -13,13 +13,7 @@ import {
 } from "types/Instrument/InstrumentSlice";
 import { InstrumentId } from "types/Instrument/InstrumentTypes";
 
-interface InstrumentEditorEffectBarProps {
-  id: InstrumentId;
-}
-
-export function InstrumentEditorEffectBar(
-  props: InstrumentEditorEffectBarProps
-) {
+export function InstrumentEditorEffectBar(props: { id: InstrumentId }) {
   const dispatch = useProjectDispatch();
   const id = props.id;
   const instrument = useDeep((_) => selectInstrumentById(_, props.id));

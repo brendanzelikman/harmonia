@@ -1,27 +1,60 @@
-import { useCallback, useState } from "react";
-import { EditorContainer } from "../components/EditorContainer";
-import { EditorBody } from "../components/EditorBody";
+import { useState, useCallback } from "react";
 import { useDeep } from "types/hooks";
-import { selectSelectedPatternTrack } from "types/Timeline/TimelineSelectors";
+import {
+  getInstrumentName,
+  getInstrumentCategory,
+} from "types/Instrument/InstrumentFunctions";
+import {
+  EditorContainer,
+  EditorBody,
+  EditorContent,
+  EditorTitle,
+  EditorTitleUnderline,
+  EditorSubtitle,
+} from "../components/EditorContent";
+import { InstrumentEditorAnalyser } from "./components/InstrumentEditorAnalyser";
+import { InstrumentEditorEffectBar } from "./components/InstrumentEditorEffectBar";
+import { InstrumentEditorEffects } from "./components/InstrumentEditorEffects";
 import { InstrumentEditorPiano } from "./components/InstrumentEditorPiano";
-import { InstrumentEditorContent } from "./components/InstrumentEditorContent";
 import { InstrumentEditorSidebar } from "./components/InstrumentEditorSidebar";
+import { Track } from "types/Track/TrackTypes";
+import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 
-export function InstrumentEditor() {
-  const track = useDeep(selectSelectedPatternTrack);
+export const InstrumentEditor = (props: { track: Track }) => {
+  const { track } = props;
+  const id = track.instrumentId;
+  const instrument = useDeep((_) => selectInstrumentById(_, id));
+  const key = instrument?.key;
 
   /** Play state is controlled by piano and used for animation */
   const [isPlaying, setIsPlaying] = useState(false);
   const startPlaying = useCallback(() => setIsPlaying(true), []);
   const stopPlaying = useCallback(() => setIsPlaying(false), []);
 
-  if (!track) return null;
-  const id = track?.instrumentId;
+  if (!id) return null;
   return (
     <EditorContainer>
       <EditorBody>
         <InstrumentEditorSidebar id={id} />
-        <InstrumentEditorContent id={id} isPlaying={isPlaying} />
+        <EditorContent>
+          <EditorTitle>{getInstrumentName(key)}</EditorTitle>
+          <EditorTitleUnderline className="bg-gradient-to-tr from-orange-400 to-orange-500" />
+          <EditorSubtitle>{getInstrumentCategory(key)}</EditorSubtitle>
+          <div className="mt-4">
+            <InstrumentEditorEffectBar id={id} />
+            <InstrumentEditorAnalyser
+              id={id}
+              type="fft"
+              isPlaying={isPlaying}
+            />
+            <InstrumentEditorAnalyser
+              id={id}
+              type="waveform"
+              isPlaying={isPlaying}
+            />
+            <InstrumentEditorEffects id={id} />
+          </div>
+        </EditorContent>
       </EditorBody>
       <InstrumentEditorPiano
         id={id}
@@ -30,4 +63,4 @@ export function InstrumentEditor() {
       />
     </EditorContainer>
   );
-}
+};

@@ -32,6 +32,7 @@ import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { readMidiScaleFromString } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import { promptLineBreak } from "components/PromptModal";
 import { CHORDAL_KEY, CHROMATIC_KEY, OCTAVE_KEY } from "utils/vector";
+import { selectTrackMidiScaleAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 
 export type PoseClipVectorView = "scales" | "notes" | "effects" | "scale";
 
@@ -153,72 +154,101 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
 
 const PoseClipScale = (props: PoseClipVectorProps) => {
   const dispatch = useProjectDispatch();
-  const scale = props.scale;
   const track = useDeep((_) => selectTrackById(_, props.clip.trackId));
-  const trackScale = useDeep((_) => selectTrackMidiScale(_, track?.id));
   const parentScale = useDeep((_) => selectTrackMidiScale(_, track?.parentId));
+  const scale = useDeep((_) =>
+    selectTrackMidiScaleAtTick(_, track?.id, props.clip.tick)
+  );
   const hasScale = scale !== undefined;
-  const name = getScaleName(scale ?? trackScale);
+  const name = getScaleName(scale);
   return (
-    <PoseClipBaseEffect
-      className="flex-col w-auto px-4 pt-1.5 border"
-      border={hasScale ? "border-sky-400" : "border-sky-400/50"}
-    >
-      <div className="flex flex-col">
-        <div>{hasScale ? "Modulating to" : "Currently on"}</div>
-        <div className="text-sky-400">{name}</div>
-      </div>
-      <div className="flex gap-2 mt-auto items-center mb-1">
-        <button
-          onFocus={blurEvent}
-          onClick={promptUserForString({
-            title: "Input Scale",
-            description: [
-              promptLineBreak,
-              <span>
-                Rule #1: <span className="text-sky-400">Scales</span> can be
-                specified by name or symbol
-              </span>,
-              <span>Example: "C" or "Db lydian" or "Fmin7" or "G7#9"</span>,
-              promptLineBreak,
-              <span>
-                Rule #2: <span className="text-sky-400">Scales</span> can be
-                specified by pitch class
-              </span>,
-              <span>Example: "acoustic scale" or "C, D, E, F#, G, A, Bb"</span>,
-              promptLineBreak,
-              <span>
-                Rule #3: <span className="text-sky-400">Scales</span> can be
-                specified by scale degree
-              </span>,
-              <span>Example: "C major" or "0, 2, 4, 5, 7, 9, 11"</span>,
-              promptLineBreak,
-              <span className="underline">Please input your scale:</span>,
-            ],
-            callback: (string) => {
-              const scale = readMidiScaleFromString(string, parentScale);
-              if (scale) {
-                dispatch(updatePose({ id: props.clip.poseId, scale }));
-              }
-            },
-            autoselect: true,
-          })}
-          className="cursor-pointer bg-sky-800 border border-slate-400/50 hover:border-slate-300/50 p-0.5 px-2 rounded text-xs"
-        >
-          Modulate
-        </button>
-        <button
-          disabled={!hasScale}
-          onFocus={blurEvent}
-          className="bg-slate-700 border border-slate-400/50 hover:border-slate-300/50 total-center p-1 rounded disabled:cursor-default"
-          onClick={() =>
-            dispatch(updatePose({ id: props.clip.poseId, scale: undefined }))
-          }
-        >
-          <BsTrash />
-        </button>
-      </div>
-    </PoseClipBaseEffect>
+    <>
+      <PoseClipBaseEffect
+        className="flex-col w-auto px-4 pt-1.5 border"
+        border={hasScale ? "border-sky-400" : "border-sky-400/50"}
+      >
+        <div className="flex flex-col">
+          <div>{hasScale ? "Modulating to" : "Currently on"}</div>
+          <div className="text-sky-400">{name}</div>
+        </div>
+        <div className="flex gap-2 mt-auto items-center mb-1">
+          <button
+            onFocus={blurEvent}
+            onClick={promptUserForString({
+              title: "Input Scale",
+              description: [
+                promptLineBreak,
+                <span>
+                  Rule #1: <span className="text-sky-400">Scales</span> can be
+                  specified by name or symbol
+                </span>,
+                <span>Example: "C" or "Db lydian" or "Fmin7" or "G7#9"</span>,
+                promptLineBreak,
+                <span>
+                  Rule #2: <span className="text-sky-400">Scales</span> can be
+                  specified by pitch class
+                </span>,
+                <span>
+                  Example: "acoustic scale" or "C, D, E, F#, G, A, Bb"
+                </span>,
+                promptLineBreak,
+                <span>
+                  Rule #3: <span className="text-sky-400">Scales</span> can be
+                  specified by scale degree
+                </span>,
+                <span>Example: "C major" or "0, 2, 4, 5, 7, 9, 11"</span>,
+                promptLineBreak,
+                <span className="underline">Please input your scale:</span>,
+              ],
+              callback: (string) => {
+                const scale = readMidiScaleFromString(string, parentScale);
+                if (scale) {
+                  dispatch(updatePose({ id: props.clip.poseId, scale }));
+                }
+              },
+              autoselect: true,
+            })}
+            className="cursor-pointer bg-sky-800 border border-slate-400/50 hover:border-slate-300/50 p-0.5 px-2 rounded text-xs"
+          >
+            Modulate
+          </button>
+          <button
+            disabled={!hasScale}
+            onFocus={blurEvent}
+            className="bg-slate-700 border border-slate-400/50 hover:border-slate-300/50 total-center p-1 rounded disabled:cursor-default"
+            onClick={() =>
+              dispatch(updatePose({ id: props.clip.poseId, scale: undefined }))
+            }
+          >
+            <BsTrash />
+          </button>
+        </div>
+      </PoseClipBaseEffect>
+      <PoseClipBaseEffect
+        className="flex-col w-auto px-4 pt-1.5 border"
+        border={hasScale ? "border-fuchsia-400" : "border-fuchsia-400/50"}
+      >
+        <div className="flex flex-col">
+          <div>Go to Origin</div>
+          <div className="text-fuchsia-400">
+            {props.reset ? "Enabled" : "Disabled"}
+          </div>
+        </div>
+        <div className="flex gap-2 mt-auto items-center mb-1">
+          <button
+            onFocus={blurEvent}
+            onClick={() =>
+              dispatch(
+                updatePose({ id: props.clip.poseId, reset: !props.reset })
+              )
+            }
+            className="cursor-pointer bg-fuchsia-800 border border-slate-400/50 hover:border-slate-300/50 p-0.5 px-2 rounded text-xs"
+          >
+            {props.reset ? "Disable" : "Enable"}
+          </button>
+        </div>
+      </PoseClipBaseEffect>
+    </>
   );
 };
 

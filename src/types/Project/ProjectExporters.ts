@@ -27,7 +27,7 @@ export const exportProjectToHAM =
     const blob = new Blob([projectJSON], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.download = `${name ?? "project"}.ham`;
+    link.download = `${name ?? "project"}.json`;
     link.href = url;
     link.click();
     URL.revokeObjectURL(url);

@@ -135,6 +135,7 @@ export const getRomanMidiValues = (
   return [];
 };
 
+// Get the voice leading between two sets of roman numerals
 export const getVoiceLeadingBetweenRomanNotes = (
   from: number[],
   to: number[]
@@ -166,6 +167,7 @@ export const getVoiceLeadingBetweenRomanNotes = (
   }, {} as VoiceLeading);
 };
 
+// Convert a string of roman numerals into a set of voice leadings
 export const inputRomanNumerals = (input: string): VoiceLeading[] => {
   const values = input.split("-").map((v) => v.trim());
   let numerals = values.map((n) => getRomanMidiValues(n));
@@ -194,4 +196,36 @@ export const inputRomanNumerals = (input: string): VoiceLeading[] => {
     );
   }
   return voiceLeadings;
+};
+
+// --------------------------------
+// Probability Functions
+// --------------------------------
+
+export type RomanKey = `${RomanNumeral} ${RomanTonality}`;
+export type RomanMap = { [key in RomanKey]?: number };
+export type RomanMatrix = { [key in RomanKey]?: RomanMap };
+
+export const ROMAN_MATRIX: RomanMatrix = {
+  "I major": {
+    "IV major": 0.5,
+    "V major": 0.5,
+  },
+  "II major": {
+    "V major": 1,
+  },
+  "IV major": {
+    "V major": 0.6,
+    "II major": 0.4,
+  },
+  "V major": {
+    "I major": 0.5,
+    "VI minor": 0.25,
+    "V major": 0.25,
+  },
+  "VI minor": {
+    "II minor": 0.3,
+    "IV major": 0.4,
+    "II major": 0.3,
+  },
 };
