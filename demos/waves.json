@@ -1,9 +1,9 @@
 {
   "meta": {
-    "id": "project-CzBwtjETLfmL3Eq80qn-P",
+    "id": "project-_vzhgmM8mMzPRTj6VsKov",
     "name": "Waveform",
-    "dateCreated": "2025-04-06T21:40:52-04:00",
-    "lastUpdated": "2025-04-06T21:40:52-04:00",
+    "dateCreated": "2025-04-06T23:23:08-04:00",
+    "lastUpdated": "2025-04-06T23:23:08-04:00",
     "diary": ["", "", "", "", "", "", "", "", "", ""]
   },
   "tracks": {
@@ -418,7 +418,7 @@
       "pose_dFZ36mdU3eqgW14_nyTAE": {
         "id": "pose_dFZ36mdU3eqgW14_nyTAE",
         "name": "New Pose 14",
-        "vector": { "scale-track_2Scq42NmP_2znowFBN986": -2 },
+        "vector": { "scale-track_w4HnAYvW1ytpNLbVrqNTy": -1 },
         "trackId": "scale-track_YRg_6pRlJez94oP8dCWiT"
       },
       "pose_fV0xEDlC4A8v3aPfyUHV8": {
