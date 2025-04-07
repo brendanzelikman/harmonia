@@ -1,12 +1,23 @@
 import classNames from "classnames";
 import { GiCompactDisc } from "react-icons/gi";
-import { selectUniqueScaleNames } from "types/Track/TrackSelectors";
-import { selectLastArrangementSecond } from "types/Arrangement/ArrangementSelectors";
-import { selectUniqueInstrumentNames } from "types/Instrument/InstrumentSelectors";
+import {
+  selectLastArrangementSecond,
+  selectLastArrangementTick,
+} from "types/Arrangement/ArrangementSelectors";
 import { selectMeta } from "types/Meta/MetaSelectors";
 import { Project } from "types/Project/ProjectTypes";
 import { selectTransport } from "types/Transport/TransportSelectors";
-import { HomeListSubtitle, HomeListTitle } from "pages/components/HomeList";
+import { HomeListSubtitle } from "pages/components/HomeList";
+import {
+  selectPatternClipIds,
+  selectPoseClipIds,
+} from "types/Clip/ClipSelectors";
+import {
+  selectScaleTracks,
+  selectTopLevelTracks,
+} from "types/Track/TrackSelectors";
+import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
+import { getBarsBeatsSixteenths } from "types/Transport/TransportFunctions";
 
 interface ProjectTitleProps {
   onClick: () => void;
@@ -17,39 +28,48 @@ export const ProjectTitle = (props: ProjectTitleProps) => {
   const { project, onClick } = props;
 
   // Get general info about the project
-  const meta = selectMeta(project);
-  const { name } = meta;
   const transport = selectTransport(project);
   const { bpm } = transport;
 
   // Get stats from the project
+  const lastTick = selectLastArrangementTick(project) ?? 0;
   const duration = selectLastArrangementSecond(project);
+  const bbs = getBarsBeatsSixteenths(lastTick, transport);
   const durationText = `${duration.toFixed(1)}s`;
-  const scales = selectUniqueScaleNames(project);
-  const samplers = selectUniqueInstrumentNames(project);
+  const patterns = selectPatternClipIds(project);
+  const poses = selectPoseClipIds(project);
+  const topTracks = selectTopLevelTracks(project);
+  const scales = topTracks.map((t) =>
+    selectTrackScaleNameAtTick(project, t.id, 0)
+  );
   return (
     <div
-      className="flex bg-slate-900/50 text-slate-50 p-3 border-2 rounded border-indigo-300/50 cursor-pointer group"
+      className="flex min-h-0 w-full mb-auto bg-slate-900/50 text-slate-50 p-3 rounded-lg border-2 border-indigo-400/50 cursor-pointer group"
       onClick={onClick}
     >
-      <div className="w-full select-none text-sm font-thin">
-        <HomeListTitle title={name} />
+      <div className="select-none my-auto overflow-scroll text-lg font-thin">
         <HomeListSubtitle
           title="Duration:"
-          titleColor="text-indigo-300"
-          body={`${durationText} @ ${bpm} BPM`}
+          titleColor="text-indigo-400"
+          body={`${durationText} (${Math.ceil(bbs.bars)} bars) @ ${bpm} BPM`}
         />
         <HomeListSubtitle
           title="Scales:"
-          titleColor="text-sky-300"
-          body={scales.length ? scales : "None"}
+          titleColor="text-sky-400"
+          body={scales.length ? scales.join(", ") : "None"}
         />
         <HomeListSubtitle
-          title="Samplers:"
-          titleColor="text-emerald-300"
-          body={samplers.length ? samplers : "None"}
+          title="Patterns:"
+          titleColor="text-teal-400"
+          body={`${patterns.length} in total`}
+        />
+        <HomeListSubtitle
+          title="Poses:"
+          titleColor="text-fuchsia-400"
+          body={`${poses.length} in total`}
         />
       </div>
+      {/* Collapsed project disc */}
       <div className="min-[800px]:hidden flex">
         <GiCompactDisc
           className={classNames(

@@ -14,9 +14,11 @@ import {
   HomeListButtonContainer,
   HomeListDeleteMenu,
   HomeListItem,
+  HomeListTitle,
 } from "pages/components/HomeList";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { createProject, deleteProject } from "types/Project/ProjectThunks";
+import { DEMO_BLURBS } from "../hooks/useDemoProjects";
 
 interface ProjectFormatterProps extends ProjectItem {
   index?: number;
@@ -50,39 +52,46 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
     <HomeListItem
       className={classNames(
         isInvalid ? "ring ring-red-500 cursor-not-allowed" : "",
-        isDemo ? "text-slate-400" : "text-indigo-200/70"
+        isDemo ? "text-violet-50/50 " : "text-sky-50/50",
+        isDemo ? "border-2 border-violet-500" : "border-2 border-sky-500/60"
       )}
     >
-      <ProjectTitle project={project} onClick={onClick} />
       <ProjectDisc
-        deleting={deleting}
         projectId={props.project.present.meta.id}
         onClick={onClick}
         isDemo={isDemo}
-        className="max-[800px]:hidden my-auto w-full ease-out p-2 h-fit rounded-full border-2 cursor-pointer transition-all active:text-indigo-200 hover:duration-150 border-indigo-400/50 ring-indigo-600/25 ring-offset-8 ring-offset-indigo-500/25 bg-gradient-radial from-indigo-700 to-sky-500 data-[deleting=true]:from-red-500 data-[deleting=true]:to-red-700 shadow-[0px_0px_20px_rgb(100,100,200)]"
+        deleting={deleting}
+        className="max-[800px]:hidden size-48 mt-4 mb-4 ease-out rounded-full border-2 border-sky-500/50 cursor-pointer transition-all active:text-indigo-200 hover:duration-150 ring-indigo-600/25 ring-offset-8 ring-offset-indigo-500/25 bg-gradient-radial from-indigo-700 to-sky-500 data-[deleting=true]:from-red-500 data-[deleting=true]:to-red-700 shadow-[0px_0px_20px_rgb(100,100,200)]"
       />
+      <HomeListTitle title={project.present.meta.name} />
+      <ProjectTitle project={project} onClick={onClick} />
       {!isDemo && <ProjectDiscPreview />}
-      <HomeListButtonContainer>
-        <HomeListButton onClick={onClick}>Play</HomeListButton>
-        <HomeListButton onClick={() => createProject(props.project)}>
-          Copy
-        </HomeListButton>
-        <HomeListButton
-          onClick={() => dispatch(exportProjectToJSON(props.project))}
-        >
-          Save
-        </HomeListButton>
-        <HomeListButton onClick={() => setDeleting((prev) => !prev)}>
-          Delete
-          {deleting && (
-            <HomeListDeleteMenu
-              onClick={() =>
-                dispatch(deleteProject(props.project.present.meta.id))
-              }
-            />
-          )}
-        </HomeListButton>
-      </HomeListButtonContainer>
+      {!isDemo && (
+        <HomeListButtonContainer>
+          <HomeListButton onClick={onClick}>Start</HomeListButton>
+          <HomeListButton onClick={() => createProject(props.project)}>
+            Copy
+          </HomeListButton>
+          <HomeListButton
+            onClick={() => dispatch(exportProjectToJSON(props.project))}
+          >
+            Backup
+          </HomeListButton>
+          <HomeListButton onClick={() => setDeleting((prev) => !prev)}>
+            Delete
+            {deleting && (
+              <HomeListDeleteMenu
+                onClick={() =>
+                  dispatch(deleteProject(props.project.present.meta.id))
+                }
+              />
+            )}
+          </HomeListButton>
+        </HomeListButtonContainer>
+      )}
+      {isDemo && filePath && (
+        <div className="py-2">{DEMO_BLURBS[filePath]}</div>
+      )}
     </HomeListItem>
   );
 }

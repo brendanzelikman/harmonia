@@ -23,6 +23,7 @@ export const UPDATE_SAMPLES_EVENT = "UPDATE_SAMPLES";
 export type IDBSample = {
   id: string;
   buffer: SafeBuffer;
+  uploadDate: string;
 };
 
 /** Append the data to the name of the file */
@@ -46,7 +47,8 @@ export const uploadSampleToIDB = async (file: File): Promise<void> => {
   const audioBuffer = await fileToAudioBuffer(file);
   const buffer = audioBufferToObject(audioBuffer);
   const id = getSampleKey(file);
-  const data: IDBSample = { id, buffer };
+  const uploadDate = new Date().toISOString();
+  const data: IDBSample = { id, buffer, uploadDate };
   await db.put(SAMPLE_STORE, data);
   dispatchCustomEvent(UPDATE_SAMPLES_EVENT);
 };
@@ -82,9 +84,11 @@ export const downloadSampleFromIDB = async (key: string): Promise<void> => {
 export type SampleData = {
   key: InstrumentKey;
   buffer: AudioBuffer;
+  uploadDate: string;
   projectNames: string[];
   samplerCounts: number;
 };
+
 /* Fetch all samples from the database */
 export const getSampleDataFromIDB = async (): Promise<SampleData[]> => {
   const db = await getDatabase();
@@ -106,7 +110,8 @@ export const getSampleDataFromIDB = async (): Promise<SampleData[]> => {
       const projectNames = projects.map(selectProjectName);
 
       // Return the sample data
-      return { key, buffer, samplerCounts, projectNames };
+      const uploadDate = sample.uploadDate ?? new Date().toISOString();
+      return { key, buffer, samplerCounts, uploadDate, projectNames };
     })
   );
 };

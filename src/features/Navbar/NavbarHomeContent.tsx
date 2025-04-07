@@ -31,23 +31,37 @@ export function NavbarHomeContent(props: { isLoadingPlayground: boolean }) {
   );
 
   // Render the links to the views
-  const renderLinks = useCallback(() => {
-    const viewCount = views.length;
-    return views.map((v, i) => {
-      const shouldAddDivider = i < viewCount - 1 && !isLoadingPlayground;
-      return (
-        <div className="flex items-center capitalize" key={`link-${v}`}>
-          {renderLink(v)}
-          {shouldAddDivider && <span className="mx-4">|</span>}
-        </div>
-      );
-    });
-  }, [isLoadingPlayground, renderLink]);
+  const renderLinks = useCallback(
+    (small?: boolean) => {
+      const renderedViews = small ? views.slice(0, -1) : views;
+      return renderedViews.map((v, i, arr) => {
+        const shouldAddDivider = i < arr.length - 1 && !isLoadingPlayground;
+        return (
+          <div className="flex items-center capitalize" key={`link-${v}`}>
+            {renderLink(v)}
+            {shouldAddDivider && <span className="mx-4">|</span>}
+          </div>
+        );
+      });
+    },
+    [isLoadingPlayground, renderLink]
+  );
 
   /** The default navbar group containing projects, docs, etc. */
   return (
-    <div className={"size-full flex text-slate-500 justify-end pr-2"}>
-      {renderLinks()}
-    </div>
+    <>
+      <div
+        className={"sm:hidden size-full flex text-slate-500 justify-end pr-2"}
+      >
+        {renderLinks(true)}
+      </div>
+      <div
+        className={
+          "max-sm:hidden size-full flex text-slate-500 justify-end pr-2"
+        }
+      >
+        {renderLinks(false)}
+      </div>
+    </>
   );
 }

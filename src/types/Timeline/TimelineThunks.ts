@@ -45,6 +45,7 @@ import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { maxBy } from "lodash";
 import { selectClipDuration, selectClips } from "types/Clip/ClipSelectors";
 import { deleteMedia } from "types/Media/MediaThunks";
+import { getTransport } from "tone";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -179,7 +180,9 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
 
   // If no clip is selected, create a new clip and pose.
   if (!patternClip) {
-    const tick = selectCurrentTimelineTick(getProject());
+    const timelineTick = selectCurrentTimelineTick(getProject());
+    const transportTick = getTransport().ticks;
+    const tick = timelineTick ?? transportTick;
 
     // Delete any patterns at the current tick in the track
     if (trackId) {

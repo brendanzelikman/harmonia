@@ -17,7 +17,7 @@ export function LoadingScreen(props: PlaygroundLoadingScreenProps) {
   }
   return (
     <div
-      className="size-full flex-col animate-in fade-in shrink-0 cursor-pointer duration-300"
+      className="size-full flex-col animate-in fade-in cursor-pointer duration-300"
       onMouseDown={() => setClicked(true)}
     >
       <Background />
