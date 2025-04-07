@@ -8,17 +8,17 @@ import { NavbarTime } from "./sections/Transport/NavbarTime";
 import { NavbarTransportControl } from "./sections/Transport/NavbarTransportControl";
 import { NavbarVolume } from "./sections/Transport/NavbarVolume";
 import { NavbarRedo, NavbarUndo } from "./sections/Project/NavbarUndoRedo";
-import { useDeep } from "types/hooks";
+import { useStore } from "types/hooks";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { NavbarDesignTree } from "./sections/Toolkit/NavbarDesignTree";
 import { NavbarWaterTree } from "./sections/Toolkit/NavbarWaterTree";
 import { NavbarArrangeClip } from "./sections/Toolkit/NavbarArrangeClip";
 
 export function NavbarPlaygroundContent() {
-  const hasTracks = useDeep(selectHasTracks);
+  const hasTracks = useStore(selectHasTracks);
   return (
     <div className="size-full select-none flex animate-in fade-in slide-in-from-top-4 text-slate-50 *:border-r first:border-r-0 last:border-r-0 *:border-r-slate-500/50">
-      <NavbarGroup>
+      <NavbarGroup className="w-[250px] gap-3">
         <NavbarProjectMenu />
         <NavbarSettings />
         <NavbarLivePlay />
@@ -30,18 +30,16 @@ export function NavbarPlaygroundContent() {
         <NavbarTime />
         <NavbarTransportControl />
       </NavbarGroup>
-      <NavbarGroup className="bg-gradient-radial from-sky-500/15 to-teal-500/15">
-        Motifs:
-        <NavbarDesignTree />
+      <NavbarGroup className="bg-gradient-radial from-slate-900/15 to-sky-500/15">
+        Motifs <NavbarDesignTree />
         <NavbarArrangeClip type="pattern" />
         <NavbarArrangeClip type="pose" />
       </NavbarGroup>
       <NavbarGroup
         hide={!hasTracks}
-        className="bg-gradient-radial from-sky-500/15 to-fuchsia-500/15"
+        className="bg-gradient-radial from-emerald-600/15 to-teal-600/15"
       >
-        Tools:
-        <NavbarWaterTree />
+        Tools <NavbarWaterTree />
         <NavbarScissors />
         <NavbarPortalGun />
       </NavbarGroup>

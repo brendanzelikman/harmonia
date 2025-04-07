@@ -1,4 +1,4 @@
-import LandingBackground from "assets/images/landing-background.png";
+import LandingBackground from "assets/images/background.png";
 import classNames from "classnames";
 import { FlipBookPageProps, FlipBookPage } from "lib/react-pageflip";
 import { forwardRef } from "react";
@@ -12,7 +12,7 @@ export const DiaryPageBinding = () => {
         <img
           src={LandingBackground}
           className={classNames(
-            "absolute inset-0 object-cover size-full animate-[animateLandingBackground_120s_ease-in-out_infinite]"
+            "absolute inset-0 object-cover size-full animate-[scaleSlow_120s_ease-in-out_infinite]"
           )}
           draggable={false}
         />

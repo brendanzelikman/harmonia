@@ -12,7 +12,6 @@ import {
   PatternStrummedMidiChord,
   PatternMidiStream,
 } from "./PatternTypes";
-import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { mod } from "utils/math";
 import { PresetPatternGroupList, PresetPatternGroupMap } from "assets/patterns";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
@@ -38,11 +37,6 @@ export const getPatternCategory = (pattern?: Pattern) => {
     if (patterns.some((p) => p.id === pattern.id)) return group;
   }
   return "Custom Patterns";
-};
-
-/** Get the instrument key of a pattern. */
-export const getPatternInstrumentKey = (pattern?: Pattern) => {
-  return pattern?.instrumentKey ?? DEFAULT_INSTRUMENT_KEY;
 };
 
 /** Get the total duration of a `PatternStream` in ticks. */
@@ -94,7 +88,6 @@ export const getPatternBlockAtTick = (
 
 /** Get the total duration of a `PatternBlock` in ticks. */
 export const getPatternBlockDuration = (block: PatternBlock): Tick => {
-  if (!block) return 0;
   if ("duration" in block) return block.duration;
   const isStrummed = "chord" in block;
   const chord = isStrummed ? block.chord : block;

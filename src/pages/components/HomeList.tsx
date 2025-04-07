@@ -27,7 +27,7 @@ export const HomeListItem = (
       <div
         className={classNames(
           props.className,
-          "flex flex-col size-full gap-4 p-4 bg-sky-500/10 rounded-lg animate-in fade-in duration-150 border-2 border-indigo-300/50 text-sm"
+          "flex flex-col size-full gap-4 p-4 bg-gradient-radial from-sky-800/10 to-indigo-400/10 rounded-lg animate-in fade-in duration-150 border border-indigo-400 text-sm"
         )}
       >
         {props.children}
@@ -39,7 +39,7 @@ export const HomeListItem = (
 export const HomeListTitle = (props: { title?: string; fontSize?: string }) => (
   <div
     className={classNames(
-      props.fontSize ?? "text-2xl",
+      props.fontSize ?? "text-xl",
       "text-indigo-50 font-bold truncate max-w-64"
     )}
   >

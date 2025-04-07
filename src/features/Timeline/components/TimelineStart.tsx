@@ -1,161 +1,564 @@
-import Background from "assets/images/landing-background.png";
+import Background from "assets/images/background.png";
 import classNames from "classnames";
-import React, { ReactNode, useEffect } from "react";
-import { GiPineTree, GiCrystalWand, GiPaintBrush } from "react-icons/gi";
-import { useProjectDispatch } from "types/hooks";
-import { createNewTree } from "utils/tree";
-import { toggleLivePlay } from "types/Timeline/TimelineThunks";
-import { CREATE_NEW_TREE_HOTKEY } from "../hooks/useTimelineHotkeys";
-import { dispatchCustomEvent } from "utils/html";
+import React, { ReactNode, useEffect, useState } from "react";
+import {
+  GiPineTree,
+  GiCrystalWand,
+  GiMusicalNotes,
+  GiMoebiusTriangle,
+  GiAbacus,
+  GiChart,
+  GiMusicalScore,
+  GiSoundWaves,
+  GiMove,
+} from "react-icons/gi";
+import { dispatchClose, dispatchOpen } from "hooks/useToggle";
+import { BiCodeCurly } from "react-icons/bi";
+import { m } from "framer-motion";
 
-// The timeline starting screen
+const visited: Record<string, boolean> = {
+  exposition: true,
+  development: false,
+  recapitulation: false,
+  coda: false,
+};
+
 export function TimelineStart() {
-  const dispatch = useProjectDispatch();
   useEffect(() => {
     return () => {
-      setTimeout(() => {
-        dispatchCustomEvent("design-tree", false);
-        dispatchCustomEvent("water-tree", false);
-        dispatchCustomEvent("live-play", false);
-      }, 50);
+      setTimeout(() => dispatchClose("livePlay"), 50);
     };
   }, []);
+  const [view, setView] = useState("exposition");
+  const visit = (view: string) => {
+    setView(view);
+    if (!visited[view]) visited[view] = true;
+  };
+
   return (
-    <div className="size-full flex flex-col items-center pt-20 gap-10 relative bg-slate-900/50 transition-all">
+    <div className="size-full flex flex-col lg:items-center max-lg:px-10 gap-10 pt-12 relative bg-slate-900/50 transition-all">
       <img
-        className="absolute size-full inset-0 opacity-50 -z-10"
+        className="absolute size-full inset-0 opacity-50 -z-10 animate-background"
         src={Background}
         alt="Background"
       />
-      <div className="bg-indigo-950/30 text-center px-12 py-6 border-2 border-indigo-400/50 backdrop-blur rounded-lg">
-        <h1 className="mb-4 text-4xl text-slate-50 font-bold drop-shadow-sm">
+      <m.div
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{
+          duration: 0.4,
+          type: "spring",
+          bounce: 1,
+          stiffness: 120,
+          mass: 1,
+        }}
+        className="bg-gradient-radial from-slate-900/80 to-slate-950/70 backdrop-blur-lg select-none text-center px-10 py-5 max-lg:py-4 border-2 border-sky-600 rounded-2xl"
+      >
+        <div className="mb-4 max-lg:mb-1 text-4xl max-lg:text-2xl text-slate-100 font-bold drop-shadow-sm">
           Welcome to the Playground!
-        </h1>
-        <h2 className="text-2xl font-light text-slate-300">
-          Create a Tree to start your Project.
-        </h2>
-      </div>
-      <div className="mt-12 flex gap-16 px-4 *:shadow-2xl">
+        </div>
+        <div className="text-2xl flex gap-2 justify-center max-lg:text-lg font-normal text-slate-300">
+          <div
+            data-active={view === "exposition"}
+            data-visited={visited.exposition}
+            className="data-[active=true]:text-slate-100 data-[active=false]:data-[visited=true]:text-sky-500 data-[active=false]:data-[visited=false]:text-slate-500 scale-100 hover:scale-[1.02] ease-out duration-300 cursor-pointer"
+            onClick={() => visit("exposition")}
+          >
+            Exposition
+          </div>
+          {" • "}
+          <div
+            data-active={view === "development"}
+            data-visited={visited.development}
+            className="data-[active=true]:text-slate-100 data-[active=false]:data-[visited=true]:text-sky-500 data-[active=false]:data-[visited=false]:text-slate-500 scale-100 hover:scale-[1.02] ease-out duration-300 cursor-pointer"
+            onClick={() => visit("development")}
+          >
+            Development
+          </div>
+          {" • "}
+          <div
+            data-active={view === "recapitulation"}
+            data-visited={visited.recapitulation}
+            className="data-[active=true]:text-slate-100 data-[active=false]:data-[visited=true]:text-sky-500 data-[active=false]:data-[visited=false]:text-slate-500 scale-100 hover:scale-[1.02] ease-out duration-300 cursor-pointer"
+            onClick={() => visit("recapitulation")}
+          >
+            Recapitulation
+          </div>
+          {" • "}
+          <div
+            data-active={view === "coda"}
+            data-visited={visited.coda}
+            className="data-[active=true]:text-slate-100 data-[active=false]:data-[visited=true]:text-sky-500 data-[active=false]:data-[visited=false]:text-slate-500 scale-100 hover:scale-[1.02] ease-out duration-300 cursor-pointer"
+            onClick={() => visit("coda")}
+          >
+            Coda
+          </div>
+        </div>
+      </m.div>
+
+      <m.div
+        initial="hidden"
+        animate="show"
+        data-view={view}
+        variants={{
+          hidden: { opacity: 0, scale: 0 },
+          show: {
+            opacity: 1,
+            scale: 1,
+            transition: {
+              delayChildren: 0.25,
+              staggerChildren: 0.1,
+              type: "spring",
+              mass: 0.5,
+              stiffness: 50,
+            },
+          },
+        }}
+        className="hidden data-[view=exposition]:flex max-lg:flex-col max-lg:items-center max-lg:overflow-scroll gap-16 p-4 *:shadow-2xl"
+      >
         <TimelineButton
           border="ring-indigo-600/80"
-          className="cursor-pointer rounded-lg"
-          onClick={() => dispatch(createNewTree)}
-          title={
-            <span className="w-full mb-1 total-center">
-              Step 1: {dispatch(CREATE_NEW_TREE_HOTKEY).name}
-              <span className="inline ml-1 font-light text-slate-400 capitalize">
-                (I to Input, N for Default)
-              </span>
-            </span>
-          }
+          className="rounded-lg"
+          title="Create Tree"
+          subtitle="Press I to Input, N for Default"
+          stripColor="border-b-indigo-500/80"
+          Icon={GiPineTree}
           description={
-            <div className="total-center p-2 max-xl:flex-wrap">
-              <GiPineTree className="text-8xl shrink-0" />
-              <div className="flex flex-col p-2 gap-4 w-64">
-                <div>
-                  <b>Trees</b> are families of Tracks with a hierarchy of Scales
-                  and Samplers.
-                </div>
-                <div>
-                  <div>
-                    <b>Example Trees</b>:
-                  </div>
-                  1. <span className="text-sky-400">Major</span>
-                  {" => "}
-                  <span className="text-sky-400">Chord</span>
-                  {" => "}
-                  <span className="text-emerald-400">(Piano + Bass)</span>
-                  <br />
-                  2. <span className="text-sky-400">Dm9</span>
-                  {" => "}
-                  <span className="text-sky-400">Dm7</span>
-                  {" => "}
-                  <span className="text-sky-400">Dm</span>
-                  {" => "}
-                  <span className="text-emerald-400">Guitar</span>
-                </div>
-                <div>
-                  Trees are used to organize your notes into multiple layers of
-                  information.
-                </div>
+            <>
+              <div>
+                A Tree is a family of tracks that forms a hierarchy of Scales
+                and Samplers.
               </div>
-            </div>
+              <div>
+                <div>
+                  <b>Examples</b>:
+                </div>
+                <span className="text-sky-400">C Major Scale</span>
+                {" => "}
+                <span className="text-sky-400">C Major Chord</span>
+
+                <br />
+                <span className="text-sky-400">Dm11</span>
+                {" => "}
+                <span className="text-sky-400">Dm7</span>
+                {" => "}
+                <span className="text-emerald-400">(Piano + Bass)</span>
+              </div>
+              <div>
+                <b>In Practice</b>:<br />
+                Trees are used to organize your notes
+                <br /> into multiple layers of information.
+              </div>
+            </>
           }
         />
         <TimelineButton
-          border="ring-emerald-600/80"
-          className="cursor-pointer rounded-lg"
-          onClick={() => dispatch(toggleLivePlay())}
-          title={
-            <span className="w-full mb-1 total-center">
-              Step 2: Create Patterns
-              <span className="inline ml-1 font-light text-slate-400 capitalize">
-                (Press O to Toggle)
-              </span>
-            </span>
-          }
+          border="ring-teal-600/80"
+          className="rounded-lg"
+          title="Create Pattern"
+          subtitle="Scheduled in a Track"
+          stripColor="border-b-teal-500/80"
+          Icon={GiMusicalNotes}
           description={
-            <div className="total-center p-2 max-xl:flex-wrap">
-              <GiPaintBrush className="text-8xl p-3 shrink-0" />
-              <div className="flex flex-col p-2 gap-4 w-64">
-                <div>
-                  <b>Patterns</b> are sequences of Notes that can be related to
-                  the Scales of a Tree.
-                </div>
-                <div>
-                  <b>Example Note</b>:
-                  <br />
-                  <span className="text-emerald-400">{`{B3 + A1}`}</span> = The
-                  third note of Scale B, moved up one step along Scale A.
-                </div>
-                <div>
-                  Patterns are used to actualize your melodies, harmonies, and
-                  rhythms.
-                </div>
+            <>
+              <div>
+                A Pattern is a sequence of notes that can be based on the Scales
+                of a Sampler.
               </div>
-            </div>
+
+              <div>
+                <b>Examples</b>:
+                <br />
+                <span className="text-sky-400">{`C Major Scale`}</span>
+                {" * "}
+                <span className="text-emerald-400">{"{ step: 1 }"}</span>
+                {" = "}
+                <span className="text-emerald-400">{"{ C4 }"}</span>
+                <br />
+                <span className="text-sky-400">{`C Major Chord`}</span>
+                {" * "}
+                <span className="text-emerald-400">{"{ step: 1 + t1 }"}</span>
+                {" = "}
+                <span className="text-emerald-400">{"{ C#4 }"}</span>
+              </div>
+              <div>
+                <b>In Practice</b>:<br />
+                Patterns are used to express your notes as melodies, harmonies,
+                and rhythms.
+              </div>
+            </>
           }
         />
         <TimelineButton
-          className="cursor-pointer rounded-lg"
+          className="rounded-lg"
           border="ring-fuchsia-600/80"
-          onClick={() => dispatch(toggleLivePlay())}
-          title={
-            <span className="w-full mb-1 total-center">
-              Step 3: Create Poses
-              <span className="inline ml-1 font-light text-slate-400 capitalize">
-                (Press P to Toggle)
-              </span>
-            </span>
-          }
+          title="Create Pose"
+          subtitle="Scheduled in a Track"
+          stripColor="border-b-fuchsia-500/80"
+          Icon={GiMove}
           description={
-            <div className="total-center p-2 max-xl:flex-wrap">
-              <GiCrystalWand className="text-8xl p-3 shrink-0" />
-              <div className="flex flex-col p-2 gap-4 w-64">
-                <div>
-                  <b>Poses</b> are effects that can transform the notes of a
-                  Scale or a Pattern.
-                </div>
-                <div>
-                  <b>Example Poses</b>:
-                  <br />
-                  <span className="text-fuchsia-400">T1</span> ={" "}
-                  <span className="text-emerald-400">Pattern </span>moves 1 step
-                  up <span className="text-sky-400">Scale T</span>
-                  <br />
-                  <span className="text-fuchsia-400">r-2</span> ={" "}
-                  <span className="text-sky-400">Scale </span>moves 2 rotations
-                  down
-                </div>
-                <div>
-                  <b>Poses</b> are used to develop your notes based on the
-                  geometry of your music.
-                </div>
+            <>
+              <div>
+                A Pose is a set of effects that can move the notes of a Scale or
+                a Pattern.
               </div>
-            </div>
+              <div>
+                <b>Examples</b>:
+                <br />
+                <span className="text-sky-400">C Major Scale</span> +{" "}
+                <span className="text-fuchsia-400">{"<t1>"}</span> ={" "}
+                <span className="text-sky-400">Db Major Scale</span>
+                <br />
+                <span className="text-emerald-400">{`{ C4, E4, G4 }`}</span> +{" "}
+                <span className="text-fuchsia-400">{"<r-1>"}</span> ={" "}
+                <span className="text-emerald-400">{`{ G3, C4, E4 }`}</span>
+              </div>
+              <div>
+                <b>In Practice</b>:<br />
+                Poses are used to transform your notes with cumulative effects
+                over time.
+              </div>
+            </>
           }
         />
-      </div>
+      </m.div>
+      {view === "development" && (
+        <div className="flex max-lg:flex-col max-lg:items-center max-lg:overflow-scroll gap-16 p-4 *:shadow-2xl">
+          <TimelineButton
+            border="ring-indigo-600/80"
+            className="rounded-lg"
+            title="Develop Trees"
+            subtitle="With Voice Leadings"
+            stripColor="border-b-indigo-500/80"
+            Icon={GiChart}
+            description={
+              <>
+                <div>
+                  Trees can be developed by scheduling Poses to explore
+                  different voice leadings.
+                </div>
+                <div>
+                  <b>By Transposition:</b>
+                  <br />
+                  <span className="text-sky-400">{"C Major Scale"}</span>
+                  {" + "}
+                  <span className="text-fuchsia-400">{"<t3, r-2>"}</span>
+                  {" = "}
+                  <span className="text-sky-400">{"C Minor Scale"}</span>
+                  <br />
+                  <span className="text-emerald-400">{"{C4, E4, G4}"}</span>
+                  {" + "}
+                  <span className="text-fuchsia-400">{"<t7, r-2>"}</span>
+                  {" = "}
+                  <span className="text-emerald-400">{"{ B3, D4, G4 }"}</span>
+                </div>
+                <div>
+                  <b>By Pitch Shift:</b>
+                  <br />
+                  <span className="text-sky-400">{"C Major Chord"}</span>
+                  {" + "}
+                  <span className="text-fuchsia-400">{"<E-1>"}</span>
+                  {" = "}
+                  <span className="text-sky-400">{"C Minor Chord"}</span>
+                  <br />
+                  <span className="text-emerald-400">{"{C4, E4, G4}"}</span>
+                  {" + "}
+                  <span className="text-fuchsia-400">{"<C-1, E-2>"}</span>
+                  {" = "}
+                  <span className="text-emerald-400">{"{B4, D4, G4}"}</span>
+                </div>
+              </>
+            }
+          />
+          <TimelineButton
+            border="ring-teal-600/80"
+            className="rounded-lg"
+            title="Develop Patterns"
+            subtitle="With Harmonic Functions"
+            stripColor="border-b-teal-500/80"
+            Icon={GiAbacus}
+            description={
+              <>
+                <div>
+                  Patterns can be developed by changing the harmonic functions
+                  of their notes.
+                </div>
+                <div>
+                  <b>F as a Chromatic Neighbor:</b>
+                  <br />
+                  <span className="text-emerald-400">{`{ G, C, E`}</span>
+                  <span className="text-cyan-500">{`, F`}</span>
+                  <span className="text-emerald-400">{` }`}</span>
+                  {" + "}
+                  <span className="text-fuchsia-400">{"<r1>"}</span>
+                  {" = "}
+                  <span className="text-emerald-400">{`{ C, E, G`}</span>
+                  <span className="text-cyan-500">{`, Ab`}</span>
+                  <span className="text-emerald-400">{` }`}</span>
+                  <br />
+                  <span className="text-emerald-400">{`{ G, C, E`}</span>
+                  <span className="text-cyan-500">{`, F`}</span>
+                  <span className="text-emerald-400">{` }`}</span>
+                  {" + "}
+                  <span className="text-fuchsia-400">{"<r2>"}</span>
+                  {" = "}
+                  <span className="text-emerald-400">{`{ E, G, C`}</span>
+                  <span className="text-cyan-500">{`, Db`}</span>
+                  <span className="text-emerald-400">{` }`}</span>
+                </div>
+                <div>
+                  <b>F as a Diatonic Neighbor:</b>
+                  <br />
+                  <span className="text-emerald-400">{`{ G, C, E`}</span>
+                  <span className="text-cyan-500">{`, F`}</span>
+                  <span className="text-emerald-400">{` }`}</span>
+                  {" + "}
+                  <span className="text-fuchsia-400">{"<r1>"}</span>
+                  {" = "}
+                  <span className="text-emerald-400">{`{ C, E, G`}</span>
+                  <span className="text-cyan-500">{`, A`}</span>
+                  <span className="text-emerald-400">{` }`}</span>
+                  <br />
+                  <span className="text-emerald-400">{`{ G, C, E`}</span>
+                  <span className="text-cyan-500">{`, F`}</span>
+                  <span className="text-emerald-400">{` }`}</span>
+                  {" + "}
+                  <span className="text-fuchsia-400">{"<r2>"}</span>
+                  {" = "}
+                  <span className="text-emerald-400">{`{ E, G, C`}</span>
+                  <span className="text-cyan-500">{`, D`}</span>
+                  <span className="text-emerald-400">{` }`}</span>
+                </div>
+              </>
+            }
+          />
+          <TimelineButton
+            className="rounded-lg"
+            border="ring-fuchsia-600/80"
+            title="Develop Poses"
+            subtitle="With Keyboard Shortcuts"
+            stripColor="border-b-fuchsia-500/80"
+            Icon={GiMoebiusTriangle}
+            description={
+              <>
+                <div>
+                  Poses can be created and updated with keyboard shortcuts{" "}
+                  <span
+                    className="text-fuchsia-200 hover:opacity-85"
+                    onMouseEnter={() => dispatchOpen("livePlay")}
+                    onMouseLeave={() => dispatchClose("livePlay")}
+                  >
+                    (hover for details)
+                  </span>
+                  .
+                </div>
+                <div>
+                  <b>Creating Poses by Shortcut:</b>
+                  <br />
+                  <span className="text-sky-400">{"C Major Scale "}</span>
+                  {" + "}
+                  <span className="text-violet-400">{"[t + 1]"}</span>
+                  {" = "}
+                  <span className="text-sky-400">{"Db Major Scale"}</span>
+                  <br />
+                  <span className="text-emerald-400">{"{ C4, E4, G4 }"}</span>
+                  {" + "}
+                  <span className="text-violet-400">{"[r + 1]"}</span>
+                  {" = "}
+                  <span className="text-emerald-400">{"{ E4, G4, C5 }"}</span>
+                  <br />
+                </div>
+                <div>
+                  <b>Updating Poses by Shortcut:</b>
+                  <br />
+                  <span className="text-fuchsia-400">{" <t1, r2> "}</span>
+                  {" + "}
+                  <span className="text-violet-400">{"[t + 2]"}</span>
+                  {" = "}
+                  <span className="text-fuchsia-400">{" <t3, r2> "}</span>
+                  <br />
+                  <span className="text-fuchsia-400">{" <t1, r2> "}</span>
+                  {" + "}
+                  <span className="text-violet-400">
+                    {"[r + t + minus + 2]"}
+                  </span>
+                  {" = "}
+                  <span className="text-fuchsia-400">{" <t-1> "}</span>
+                  <br />
+                </div>
+              </>
+            }
+          />
+        </div>
+      )}
+      {view === "recapitulation" && (
+        <div className="flex max-lg:flex-col max-lg:items-center max-lg:overflow-scroll gap-16 p-4 *:shadow-2xl">
+          <TimelineButton
+            border="ring-indigo-600/80"
+            className="rounded-lg"
+            title="Create Trees"
+            subtitle="With Dynamic Inheritance"
+            stripColor="border-b-indigo-500/80"
+            Icon={GiPineTree}
+            description={
+              <>
+                <div>
+                  Create a Tree by prompt and arrange Patterns in Samplers to
+                  play audio.
+                </div>
+                <div>
+                  <b className="text-sky-500">Edit Scales:</b> <br />
+                  Click on a Scale's Mask to edit its notes by following a
+                  prompt dialog box.
+                </div>
+                <div>
+                  <b className="text-emerald-500">Edit Samplers:</b> <br />
+                  Click on a Sampler's Horn to edit its sound by using a
+                  dedicated editor.
+                </div>
+              </>
+            }
+          />
+          <TimelineButton
+            border="ring-teal-600/80"
+            className="rounded-lg"
+            title="Create Patterns"
+            subtitle="Scheduled in a Track"
+            stripColor="border-b-teal-500/80"
+            Icon={GiMusicalNotes}
+            description={
+              <>
+                <div>
+                  Create a Pattern and click on its Header to open its dropdown
+                  editor menu.
+                </div>
+                <div>
+                  <b className="text-sky-500">Write Notes:</b> <br />
+                  Select a duration and play a note on the keyboard to write to
+                  the Pattern.
+                </div>
+                <div>
+                  <b className="text-emerald-500">Bind Notes:</b> <br />
+                  Select a binding and schedule a Pose to see how it affects the
+                  motion of the note.
+                </div>
+              </>
+            }
+          />
+          <TimelineButton
+            className="rounded-lg"
+            border="ring-fuchsia-600/80"
+            title="Create Poses"
+            subtitle="Scheduled in a Track"
+            stripColor="border-b-fuchsia-500/80"
+            Icon={GiCrystalWand}
+            description={
+              <>
+                <div>
+                  Create a Pose and click on its Header to open its dropdown
+                  editor menu.
+                </div>
+                <div>
+                  <b className="text-sky-500">Change Scales</b>:<br />
+                  Work with Modulation, Transposition, and Pitch Shift to
+                  transform Scale Notes.
+                </div>
+                <div>
+                  <b className="text-emerald-500">Change Patterns</b>:<br />
+                  Use Pattern Effects for miscellaneous transformations to
+                  Pattern Notes.
+                </div>
+              </>
+            }
+          />
+        </div>
+      )}
+      {view === "coda" && (
+        <div className="flex max-lg:flex-col max-lg:items-center max-lg:overflow-scroll gap-16 p-4 *:shadow-2xl">
+          <TimelineButton
+            border="ring-indigo-600/80"
+            className="rounded-lg"
+            title="Save Project Data"
+            subtitle="Export to JSON File"
+            stripColor="border-b-indigo-500/80"
+            Icon={BiCodeCurly}
+            description={
+              <>
+                <div>
+                  Projects are autosaved in your browser and stored in a native
+                  JSON format.
+                </div>
+                <div>
+                  <b>Diary:</b>
+                  <br />
+                  Open Diary from the Settings Menu to store metadata about your
+                  project.
+                </div>
+                <div>
+                  <b>Terminal:</b>
+                  <br />
+                  Open Terminal from the Settings Menu to directly edit the JSON
+                  of your project.
+                </div>
+              </>
+            }
+          />
+          <TimelineButton
+            border="ring-teal-600/80"
+            className="rounded-lg"
+            title="Save Note Data"
+            subtitle="Export to MIDI File"
+            stripColor="border-b-teal-500/80"
+            Icon={GiMusicalScore}
+            description={
+              <>
+                <div>
+                  Note data can be saved to MIDI files for use in other music
+                  notation programs.
+                </div>
+                <div>
+                  <b>Entire Project:</b>
+                  <br />
+                  Open the Project Menu (Compact Disc) and press Export to MIDI.
+                </div>
+                <div>
+                  <b>Selected Patterns:</b>
+                  <br />
+                  Right click to open the context menu, then press Selection and
+                  Export to MIDI.
+                </div>
+              </>
+            }
+          />
+          <TimelineButton
+            border="ring-fuchsia-600/80"
+            className="rounded-lg"
+            title="Save Audio Data"
+            subtitle="Export to WAV File"
+            stripColor="border-b-fuchsia-400/80"
+            Icon={GiSoundWaves}
+            description={
+              <>
+                <div>
+                  Audio data can be saved to WAV files for playback, sampling,
+                  and sharing.
+                </div>
+                <div>
+                  <b>Entire Project:</b>
+                  <br />
+                  Open the Project Menu (Compact Disc) and press Export to WAV.
+                </div>
+                <div>
+                  <b>Live Session:</b>
+                  <br />
+                  Click Record to start capturing audio, then again to download
+                  your playback.
+                </div>
+              </>
+            }
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -164,32 +567,51 @@ const TimelineButton = (
   props: Partial<{
     background: string;
     border: string;
+    stripColor: string;
     Icon: React.FC;
     onClick: () => void;
     className: string;
     title: ReactNode;
+    subtitle: ReactNode;
     description: ReactNode;
   }>
 ) => (
-  <div
+  <m.div
+    variants={{
+      hidden: { opacity: 0, scale: 0.5 },
+      show: { opacity: 1, scale: 1 },
+    }}
     className={classNames(
       props.className,
       props.border,
-      props.background ?? "bg-slate-900/60",
-      "backdrop-blur-lg size-full flex flex-col gap-1 ring-2 p-2 rounded"
+      props.background ??
+        "bg-gradient-radial from-slate-800/80 to-slate-950/50",
+      "hover:ring-4 backdrop-blur-lg transition-all duration-300 cursor-pointer w-full max-w-xl items-center flex flex-col gap-1 ring-2 p-6 rounded select-none"
     )}
     onClick={props.onClick}
   >
-    <div className="font-bold flex gap-2 text-base border-b border-b-white/5">
-      {!!props.Icon && (
-        <div
-          className={classNames("inline-flex *:m-auto p-1 mb-2 rounded-full")}
-        >
-          <props.Icon />
-        </div>
+    {props.Icon && (
+      <div className="text-8xl">
+        <props.Icon />
+      </div>
+    )}
+    <div
+      className={classNames(
+        props.stripColor ?? "border-b-slate-50/5",
+        "font-bold flex-center gap-2 text-base w-full pb-1 border-b"
       )}
-      {props.title}
-    </div>{" "}
-    <div className="text-sm text-slate-200">{props.description}</div>
-  </div>
+    >
+      <div className="flex flex-col items-center mt-2 mb-1">
+        <div className="font-bold text-slate-50 text-xl">{props.title}</div>
+        <div className="font-light text-slate-400 capitalize">
+          ({props.subtitle})
+        </div>
+      </div>
+    </div>
+    <div className="flex justify-evenly items-center p-2 max-xl:flex-wrap text-sm text-slate-200">
+      <div className="grow flex flex-col p-1 gap-4 w-[17rem]">
+        {props.description}
+      </div>
+    </div>
+  </m.div>
 );

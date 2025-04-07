@@ -1,14 +1,14 @@
 import { GiCrystalWand } from "react-icons/gi";
-import { POSE_HEIGHT } from "utils/constants";
+import { POSE_NOTCH_HEIGHT } from "utils/constants";
 import { selectClipName } from "types/Clip/ClipSelectors";
-import { useDeep, useProjectDispatch } from "types/hooks";
-import { toggleClipDropdown } from "types/Clip/ClipThunks";
+import { useStore } from "types/hooks";
 import { selectIsClipSelected } from "types/Timeline/TimelineSelectors";
 import { PoseClipId } from "types/Clip/ClipTypes";
 import { selectPoseClipJSX } from "types/Arrangement/ArrangementClipSelectors";
-import { useMemo, useState } from "react";
+import { MouseEvent, useCallback, useMemo, useState } from "react";
 import { BsMagic } from "react-icons/bs";
 import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { cancelEvent, dispatchCustomEvent } from "utils/html";
 
 interface PoseClipHeaderProps {
   id: PoseClipId;
@@ -17,26 +17,29 @@ interface PoseClipHeaderProps {
 
 export const PoseClipHeader = (props: PoseClipHeaderProps) => {
   const { id, isOpen } = props;
-  const dispatch = useProjectDispatch();
-  const isSelected = useDeep((_) => selectIsClipSelected(_, id));
-  const name = useDeep((_) => selectClipName(_, id));
-  const jsx = useDeep((_) => selectPoseClipJSX(_, id));
+  const isSelected = useStore((_) => selectIsClipSelected(_, id));
+  const name = useStore((_) => selectClipName(_, id));
+  const jsx = useStore((_) => selectPoseClipJSX(_, id));
   const Icon = useMemo(() => (isOpen ? BsMagic : GiCrystalWand), [isOpen]);
   const [show, setShow] = useState(false);
   useCustomEventListener("showPoseVectors", (e) => setShow(e.detail));
+  const onClick = useCallback(
+    (e: MouseEvent) => {
+      if (e.altKey) return;
+      if (isSelected || isOpen) cancelEvent(e);
+      dispatchCustomEvent("clipDropdown", { id });
+    },
+    [isSelected, isOpen, id]
+  );
   return (
     <div
       data-selected={isSelected}
       data-open={isOpen}
-      className="flex pl-0.5 py-0.5 rounded-t-md text-slate-100 items-center whitespace-nowrap font-nunito cursor-pointer data-[selected=true]:ring-slate-100 hover:ring-2 hover:ring-fuchsia-300 data-[open=true]:w-full data-[open=true]:z-[32]"
-      style={{ height: POSE_HEIGHT }}
-      onClick={(e) => {
-        if (e.altKey) {
-          setShow((prev) => !prev);
-          return;
-        }
-        dispatch(toggleClipDropdown({ data: { id } }));
-      }}
+      className="flex pl-0.5 py-0.5 rounded-t-md text-slate-100 items-center whitespace-nowrap cursor-pointer data-[selected=true]:ring-slate-100 hover:ring-2 hover:ring-fuchsia-300 data-[open=true]:w-full data-[open=true]:z-[32]"
+      style={{ height: POSE_NOTCH_HEIGHT }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+      onClick={onClick}
     >
       <Icon
         className={`size-4 flex total-center shrink-0 ${isOpen ? "ml-1" : ""}`}

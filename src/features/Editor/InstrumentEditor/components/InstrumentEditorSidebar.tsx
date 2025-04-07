@@ -35,19 +35,19 @@ import {
   InstrumentCategory,
   CategorizedInstrument,
 } from "types/Instrument/InstrumentTypes";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
 import { selectInstrumentKey } from "types/Instrument/InstrumentSelectors";
 import { updateInstrument } from "types/Instrument/InstrumentSlice";
-import { getSampleKeys } from "providers/idb/samples";
+import { getSampleKeys } from "providers/samples";
 
 type InstrumentEditorSidebarProps = { id: InstrumentId };
 
 export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
   const { id } = props;
-  const dispatch = useProjectDispatch();
-  const trackId = useDeep(selectSelectedTrackId);
-  const key = useDeep((_) => selectInstrumentKey(_, props.id));
+  const dispatch = useDispatch();
+  const trackId = useStore(selectSelectedTrackId);
+  const key = useStore((_) => selectInstrumentKey(_, props.id));
   const category = key ? INSTRUMENT_CATEGORIES_BY_KEY[key] : undefined;
 
   // The categories can be filtered

@@ -416,9 +416,9 @@ export const {
   _removeOfflineInstrument,
 } = instrumentsSlice.actions;
 
-export const PRIVATE_INSTRUMENT_ACTIONS = [
-  "addInstrumentOffline",
-  "_removeOfflineInstrument",
+export const privateInstrumentActions = [
+  "instruments/addInstrumentOffline",
+  "instruments/_removeOfflineInstrument",
 ];
 
 export default instrumentsSlice.reducer;

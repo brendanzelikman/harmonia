@@ -1,13 +1,12 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 import { useClipDrag } from "../useClipDnd";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { PatternClipId, PortaledPatternClipId } from "types/Clip/ClipTypes";
 import { selectPortaledPatternClip } from "types/Arrangement/ArrangementClipSelectors";
 import { PatternClipDropdown } from "./PatternClipDropdown";
 import { PatternClipHeader } from "./PatternClipHeader";
 import { PatternClipStream } from "./PatternClipStream";
 import { onClipClick } from "types/Timeline/thunks/TimelineClickThunks";
-import { toggleClipDropdown } from "types/Clip/ClipThunks";
 import { ClipComponentProps } from "../TimelineClips";
 import {
   selectClipLeft,
@@ -20,11 +19,11 @@ import {
   selectIsClipSelected,
   selectTrackHeight,
 } from "types/Timeline/TimelineSelectors";
-import { POSE_HEIGHT } from "utils/constants";
+import { POSE_NOTCH_HEIGHT } from "utils/constants";
 import { selectTrackById } from "types/Track/TrackSelectors";
-
-export const CLIP_NAME_HEIGHT = 24;
-export const CLIP_STREAM_MARGIN = 8;
+import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { dispatchCustomEvent } from "utils/html";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export interface PatternClipRendererProps extends ClipComponentProps {
   id: PatternClipId;
@@ -33,25 +32,37 @@ export interface PatternClipRendererProps extends ClipComponentProps {
 
 export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   const { pcId, id, isDragging, className } = props;
-  const dispatch = useProjectDispatch();
-  const clip = useDeep((_) => selectPortaledPatternClip(_, pcId));
-  const { trackId, type, isOpen } = clip;
-  const isSelected = useDeep((_) => selectIsClipSelected(_, id));
-
-  const track = useDeep((_) => selectTrackById(_, trackId));
-  const isAdding = useDeep(selectIsAddingPatternClips);
-  const isPortaling = useDeep(selectIsAddingPortals);
+  const dispatch = useDispatch();
+  const clip = useStore((_) => selectPortaledPatternClip(_, pcId));
+  const { trackId, type } = clip;
+  const isSelected = useStore((_) => selectIsClipSelected(_, id));
+  const [isOpen, setIsOpen] = useState(false);
+  const handleDropdown = useCallback(
+    (e: CustomEvent<any>) => {
+      if (e.detail.id === undefined || e.detail.id === id) {
+        setIsOpen(e.detail.value === undefined ? !isOpen : e.detail.value);
+      } else if (isOpen && e.detail.id.slice(0, 2) === id.slice(0, 2)) {
+        setIsOpen(false);
+      }
+    },
+    [isOpen, id]
+  );
+  useCustomEventListener("clipDropdown", handleDropdown);
+  useHotkeys("esc", () =>
+    dispatchCustomEvent("clipDropdown", { id, value: false })
+  );
+  const track = useStore((_) => selectTrackById(_, trackId));
+  const isAdding = useStore(selectIsAddingPatternClips);
+  const isPortaling = useStore(selectIsAddingPortals);
   const isBlurred = isAdding || isPortaling || isDragging;
   const isCollapsed = !!track?.collapsed;
   const [_, drag] = useClipDrag(pcId);
-  const onDragStart = useCallback(() => {
-    dispatch(toggleClipDropdown({ data: { id, value: false } }));
-  }, []);
 
-  const top = useDeep((_) => selectTrackTop(_, trackId)) + POSE_HEIGHT;
-  const left = useDeep((_) => selectClipLeft(_, pcId));
-  const width = useDeep((_) => selectClipWidth(_, pcId));
-  const height = useDeep((_) => selectTrackHeight(_, trackId)) - POSE_HEIGHT;
+  const top = useStore((_) => selectTrackTop(_, trackId)) + POSE_NOTCH_HEIGHT;
+  const left = useStore((_) => selectClipLeft(_, pcId));
+  const width = useStore((_) => selectClipWidth(_, pcId));
+  const height =
+    useStore((_) => selectTrackHeight(_, trackId)) - POSE_NOTCH_HEIGHT;
 
   if (!clip || !track) return null;
   return (
@@ -64,11 +75,11 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
       style={{ top, left, width, height }}
       className={className}
       onClick={(e) => dispatch(onClipClick(e, { ...clip, id }))}
-      onDragStart={onDragStart}
+      onDragStart={() => dispatchCustomEvent("clipDropdown", { value: false })}
     >
       <PatternClipHeader id={id} isSelected={isSelected} isOpen={!!isOpen} />
       {!!isOpen ? (
-        <PatternClipDropdown {...props} clip={clip} id={id} />
+        <PatternClipDropdown {...props} clip={clip} id={id} isOpen={!!isOpen} />
       ) : !isCollapsed ? (
         <PatternClipStream clip={clip} />
       ) : null}

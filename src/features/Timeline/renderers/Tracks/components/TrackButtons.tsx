@@ -2,9 +2,17 @@ import classNames from "classnames";
 import { TooltipButton } from "components/TooltipButton";
 import { memo } from "react";
 import { CiRuler } from "react-icons/ci";
-import { GiDominoMask, GiMusicalKeyboard, GiSoundWaves } from "react-icons/gi";
+import {
+  GiDominoMask,
+  GiHornInternal,
+  GiMusicalKeyboard,
+  GiSaxophone,
+  GiSoundWaves,
+  GiTrumpet,
+  GiTuba,
+} from "react-icons/gi";
 import { toggleTrackEditor } from "types/Timeline/TimelineThunks";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import {
   selectIsEditingTrack,
   selectSelectedTrackId,
@@ -13,7 +21,7 @@ import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks"
 import { PatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import {
   createScaleTrack,
-  inputNewScale,
+  promptUserForScale,
 } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import { ScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import {
@@ -28,7 +36,7 @@ import { cancelEvent } from "utils/html";
 
 export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
   const { trackId } = props;
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   return (
     <div
       className="grid grid-cols-3 -mr-1 self-end shrink-0 gap-x-1 mt-2 relative"
@@ -40,7 +48,7 @@ export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
         label="Change Scale"
         onClick={(e) => {
           cancelEvent(e);
-          dispatch(inputNewScale(trackId));
+          dispatch(promptUserForScale(trackId));
         }}
       >
         <GiDominoMask className="text-xl" />
@@ -76,13 +84,13 @@ export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
 export const PatternTrackButtons = memo(
   (props: { trackId: PatternTrackId; collapsed?: boolean }) => {
     const { trackId } = props;
-    const dispatch = useProjectDispatch();
-    const track = useDeep((_) => selectPatternTrackById(_, trackId));
-    const isTrackSelected = useDeep(selectSelectedTrackId) === trackId;
-    const isInstrumentEditorOpen = useDeep((_) =>
+    const dispatch = useDispatch();
+    const track = useStore((_) => selectPatternTrackById(_, trackId));
+    const isTrackSelected = useStore(selectSelectedTrackId) === trackId;
+    const isInstrumentEditorOpen = useStore((_) =>
       selectIsEditingTrack(_, trackId)
     );
-    const instrument = useDeep((_) => selectTrackInstrument(_, trackId));
+    const instrument = useStore((_) => selectTrackInstrument(_, trackId));
     const onInstrumentEditor = isInstrumentEditorOpen && isTrackSelected;
     const mute = instrument?.mute;
     const solo = instrument?.solo;
@@ -119,7 +127,7 @@ export const PatternTrackButtons = memo(
             dispatch(toggleTrackEditor({ data: trackId }));
           }}
         >
-          <GiSoundWaves className="pointer-events-none" />
+          <GiTrumpet className="pointer-events-none p-0.5" />
         </TooltipButton>
         <TooltipButton
           label={mute ? "Unmute Sampler" : "Mute Sampler"}

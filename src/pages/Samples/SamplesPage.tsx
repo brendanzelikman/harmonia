@@ -6,22 +6,22 @@ import { HomeContainer } from "pages/components/HomeContainer";
 import {
   getSampleDataFromIDB,
   SampleData,
-  UPDATE_SAMPLES,
-} from "providers/idb/samples";
+  UPDATE_SAMPLES_EVENT,
+} from "providers/samples";
 import { useEffect, useState } from "react";
 import { GiAudioCassette } from "react-icons/gi";
 import { SampleFormatter } from "./SampleFormatter";
 import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackThunks";
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 import { HomeList } from "pages/components/HomeList";
 
 export const SamplesPage = () => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const [data, setData] = useState<SampleData[]>([]);
 
   const fetchData = async () => setData(await getSampleDataFromIDB());
-  useCustomEventListener(UPDATE_SAMPLES, fetchData);
+  useCustomEventListener(UPDATE_SAMPLES_EVENT, fetchData);
 
   useEffect(() => {
     fetchData();
@@ -37,7 +37,7 @@ export const SamplesPage = () => {
           onClick={() => dispatch(promptUserForSample({ data: {} }))}
         />
       </HomeControlBar>
-      <HomeList signal={UPDATE_SAMPLES}>
+      <HomeList signal={UPDATE_SAMPLES_EVENT}>
         {data.map((data) => (
           <SampleFormatter key={data.key} data={data} />
         ))}

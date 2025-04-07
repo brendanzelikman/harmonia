@@ -1,4 +1,4 @@
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 import { Shortcut } from "../components/Shortcut";
 import { ShortcutContent } from "../components/ShortcutContent";
 import {
@@ -12,10 +12,10 @@ import {
   SLICE_CLIPS_HOTKEY,
   SLICE_CLIPS_IN_HALF_HOTKEY,
   TOGGLE_LIVE_PLAY_HOTKEY,
-} from "features/Timeline/hooks/useTimelineHotkeys";
+} from "pages/Playground/hotkeys/useTimelineHotkeys";
 
 export function ToolShortcuts() {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   return (
     <ShortcutContent
       className="text-lg space-y-6"

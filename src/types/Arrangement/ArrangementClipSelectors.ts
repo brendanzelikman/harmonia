@@ -1,7 +1,8 @@
 import { selectPoseClipMap } from "types/Clip/ClipSelectors";
 import {
   ClipType,
-  IPortaledClip,
+  IClip,
+  IClipId,
   PortaledPatternClip,
   PortaledPatternClipId,
 } from "types/Clip/ClipTypes";
@@ -36,6 +37,10 @@ import {
   defaultStreamQuery,
   getPatternStreamQuery,
 } from "./ArrangementSearchFunctions";
+import {
+  isPatternMidiChord,
+  PatternMidiNote,
+} from "types/Pattern/PatternTypes";
 
 // --------------------------------------------
 // Clip Properties
@@ -86,7 +91,7 @@ export const selectPortaledClipBoundMap = createDeepSelector(
 type PortaledClipSelector<T extends ClipType> = (
   project: Project,
   id: IPortaledClipId<T>
-) => IPortaledClip<T>;
+) => IClip<T> & { id: PortaledClipId<IClipId<T>>; duration: number };
 
 /** Select a portaled pose clip by ID. */
 export const selectPortaledPoseClip = createValueSelector(
@@ -120,7 +125,11 @@ export const selectPortaledPatternClipRangeMap = createDeepSelector(
   [selectPortaledPatternClipStreamMap],
   (streamMap) =>
     mapValues(streamMap, (stream) =>
-      getMidiStreamMinMax(stream.map((n) => n.notes))
+      getMidiStreamMinMax(
+        stream
+          .map((n) => n.notes)
+          .filter(isPatternMidiChord) as PatternMidiNote[][]
+      )
     )
 );
 
@@ -139,8 +148,10 @@ export const selectPortaledPatternClipXML = (
   const pattern = selectPatternById(project, clip?.patternId);
   if (pattern === undefined) return DemoXML;
   const midi = selectPortaledPatternClipStream(project, clip.id);
-  const stream = midi.map((n) => n.notes);
-  const scale = selectTrackMidiScaleAtTick(project, pattern.trackId, clip.tick);
+  const stream = midi
+    .map((n) => n.notes)
+    .filter(isPatternMidiChord) as PatternMidiNote[][];
+  const scale = selectTrackMidiScaleAtTick(project, clip.trackId, clip.tick);
   return exportPatternStreamToXML(stream, scale);
 };
 

@@ -34,11 +34,8 @@ import {
   Track,
   TrackId,
 } from "types/Track/TrackTypes";
-import {
-  defaultTimeline,
-  DEFAULT_CELL_WIDTH,
-  DEFAULT_CELL_HEIGHT,
-} from "./TimelineTypes";
+import { defaultTimeline } from "./TimelineTypes";
+import { DEFAULT_CELL_WIDTH, DEFAULT_CELL_HEIGHT } from "utils/constants";
 import { selectPatternMap } from "types/Pattern/PatternSelectors";
 import { selectPortalMap } from "types/Portal/PortalSelectors";
 import {
@@ -52,6 +49,7 @@ import {
   Media,
 } from "types/Media/MediaTypes";
 import { Pose } from "types/Pose/PoseTypes";
+import { getTransport } from "tone";
 
 /** Select the timeline from the store. */
 export const selectTimeline = (project: Project) => project.present.timeline;
@@ -305,6 +303,18 @@ export const selectTickColumns = (project: Project, ticks: number) => {
   return cachedColumns[ticks] ?? ticks / selectSubdivisionTicks(project);
 };
 
+/** Select the timeline tick */
+export const selectTimelineTick = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.tick ?? 0
+);
+
+/** Select the current timeline or transport tick */
+export const selectCurrentTimelineTick = (project: Project) => {
+  const tick = selectTimelineTick(project);
+  return tick || getTransport().ticks;
+};
+
 /** Select the left offset of the timeline tick in pixels. */
 export const selectTimelineTickLeft = (project: Project, tick: Tick = 0) => {
   const timeline = selectTimeline(project);
@@ -379,11 +389,11 @@ export const selectNewMotifName = (project: Project, type: ClipType) => {
     type === "pattern" ? selectPatternMap(project) : selectPoseMap(project)
   );
 
-  let champ = `New ${Type}`;
+  let champ = `${Type} 1`;
   let champCount = 1;
 
   while (refs.some((p) => p.name === champ)) {
-    champ = `New ${Type} ${++champCount}`;
+    champ = `${Type} ${++champCount}`;
   }
 
   return champ;

@@ -65,10 +65,13 @@ export const downloadBlob = (blob: Blob, fileName?: string) => {
 };
 
 /** Read an audio file from the user and call the callback with the event. */
-export const promptUserForAudioFile = (onChange: (e: Event) => void) => {
+export const promptUserForFile = (
+  accept = "*",
+  onChange: (e: Event) => void
+) => {
   const input = document.createElement("input");
   input.type = "file";
-  input.accept = "audio/*";
+  input.accept = accept;
   input.onchange = onChange;
   document.body.appendChild(input);
   input.click();
@@ -146,7 +149,3 @@ export const isHoldingOption = (e: GenericEvent) => {
 export const isPressingLetter = (e: GenericEvent) => {
   return /^[a-zA-Z]$/.test((e as KeyboardEvent).key);
 };
-
-/** A regular expression for validating email addresses. */
-export const EmailRegex =
-  /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;

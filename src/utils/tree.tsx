@@ -28,7 +28,7 @@ import { selectTrackMidiScale } from "../types/Track/TrackSelectors";
 import { convertMidiToNestedNote } from "types/Track/TrackUtils";
 import { promptLineBreak } from "components/PromptModal";
 import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackThunks";
-import { CLOSE_STATE, OPEN_STATE } from "hooks/useToggledState";
+import { CLOSE_STATE, OPEN_STATE } from "hooks/useToggle";
 
 type TrackStringPayload = Payload<{ input: string; parentId?: TrackId }>;
 
@@ -172,19 +172,23 @@ export const createTreeFromString =
 export const createNewTree: Thunk = (dispatch) =>
   promptUserForString({
     title: "Create New Tree",
+    backgroundColor: "bg-slate-950",
     description: [
+      <div className="mt-4">
+        Trees can be created by prompt with a few simple rules:
+      </div>,
       promptLineBreak,
       <span>
-        Rule 1: <span className="text-sky-500">Scales</span> are created by
+        Rule 1: <span className="text-sky-500">Scales</span> are matched by
         name, note, or degree
       </span>,
       <span>Example: "C major chord" or "C, E, G" or "0, 4, 7"</span>,
       promptLineBreak,
       <span>
-        Rule 2: <span className="text-emerald-500">Samplers</span> are created
-        by name, category, or file
+        Rule 2: <span className="text-emerald-500">Samplers</span> are matched
+        by name or uploaded by file
       </span>,
-      <span>Example: "upright piano" or "strings" or "~file"</span>,
+      <span>Example: "upright piano" or "xylophone" or "~file"</span>,
       promptLineBreak,
       <span>
         Rule 3: <span className="text-teal-500">Trees</span> are created with
@@ -192,7 +196,7 @@ export const createNewTree: Thunk = (dispatch) =>
       </span>,
       <span>{`Example: "C major scale => C major chord => (piano + guitar)"`}</span>,
       promptLineBreak,
-      <span className="underline">Please input your request in TreeJS:</span>,
+      <span className="underline">Please input your request:</span>,
     ],
     callback: (input) => {
       dispatch(createTreeFromString({ data: input }));

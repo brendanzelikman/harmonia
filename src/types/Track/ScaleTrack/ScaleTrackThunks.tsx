@@ -13,7 +13,7 @@ import {
   Scale,
   isNestedNote,
 } from "types/Scale/ScaleTypes";
-import { isScaleTrack } from "../TrackTypes";
+import { isScaleTrack, TrackId } from "../TrackTypes";
 import {
   ScaleTrack,
   ScaleTrackId,
@@ -114,9 +114,7 @@ export const createScaleTrack =
         ? parentTrack?.trackIds?.length ?? 0
         : topLevelTracks.length,
     });
-    dispatch(
-      addScale({ data: { ...scale, trackId: scaleTrack.id }, undoType })
-    );
+    dispatch(addScale({ data: scale, undoType }));
     dispatch(addTrack({ data: scaleTrack, undoType }));
 
     // Return the ID of the scale track
@@ -219,7 +217,9 @@ export const createRandomHierarchy = (): Thunk => (dispatch) => {
       undoType,
     })
   );
-  dispatch(randomizePattern({ data: { id: patternId }, undoType }));
+  dispatch(
+    randomizePattern({ data: { id: patternId, trackId: track.id }, undoType })
+  );
 };
 
 /** Create a hierarchy of drum-based Pattern Tracks within a chromatic Scale Track  */
@@ -245,7 +245,7 @@ export const createDrumTracks = (): Thunk => (dispatch) => {
   ).track;
   const kickId = dispatch(
     createPattern({
-      data: { stream: createStream(0.8), trackId: kickTrack.id },
+      data: { stream: createStream(0.8) },
       undoType,
     })
   ).id;
@@ -264,7 +264,7 @@ export const createDrumTracks = (): Thunk => (dispatch) => {
   ).track;
   const snareId = dispatch(
     createPattern({
-      data: { stream: createStream(0.5), trackId: snareTrack.id },
+      data: { stream: createStream(0.5) },
       undoType,
     })
   ).id;
@@ -283,7 +283,7 @@ export const createDrumTracks = (): Thunk => (dispatch) => {
   ).track;
   const tomId = dispatch(
     createPattern({
-      data: { stream: createStream(0.6), trackId: tomTrack.id },
+      data: { stream: createStream(0.6) },
       undoType,
     })
   ).id;
@@ -299,7 +299,7 @@ export const createDrumTracks = (): Thunk => (dispatch) => {
   ).track;
   const hatId = dispatch(
     createPattern({
-      data: { stream: createStream(0.3), trackId: hatTrack.id },
+      data: { stream: createStream(0.3) },
       undoType,
     })
   ).id;
@@ -421,7 +421,7 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
 };
 
 /** Update the notes of a track based on an inputted regex string */
-export const inputNewScale =
+export const promptUserForScale =
   (id: ScaleTrackId): Thunk =>
   (dispatch, getProject) =>
     promptUserForString({
@@ -495,20 +495,122 @@ export const inputNewScale =
       },
     })();
 
-export const bindNoteWithPrompt =
-  (id: PatternId, index: number): Thunk =>
+export const bindNoteWithPromptCallback =
+  (
+    payload: Payload<{
+      string: string;
+      id: PatternId;
+      trackId?: TrackId;
+      index: number;
+    }>
+  ): Thunk =>
   (dispatch, getProject) => {
+    const { string, id, trackId, index } = unpackData(payload);
+    const project = getProject();
+    const undoType = unpackUndoType(payload, "bindNoteWithPrompt");
+    const pattern = selectPatternById(project, id);
+    const { stream } = pattern;
+    const track = trackId ? selectTrackById(project, trackId) : undefined;
+    const block = getPatternBlockAtIndex(stream, index);
+    const blockNotes = getPatternBlockNotes(block);
+    if (string === "auto" && track) {
+      const block = getPatternBlockWithNewNotes(stream[index], (notes) =>
+        notes.map((note) => {
+          return dispatch(autoBindNoteToTrack(trackId, note));
+        })
+      );
+      dispatch(updatePatternBlock({ data: { id, index, block }, undoType }));
+      return;
+    } else if (string === "pedal") {
+      const block = getPatternBlockWithNewNotes(
+        pattern.stream[index],
+        (notes) =>
+          notes.map((note) => {
+            const { duration, velocity } = note;
+            const newNote = { ...note };
+            const scaleId = "scaleId" in note ? note.scaleId : undefined;
+            const trackId = selectScaleTrackByScaleId(project, scaleId)?.id;
+            const chain = selectTrackScaleChain(project, trackId);
+            if (isNestedNote(newNote) && "MIDI" in newNote) delete newNote.MIDI;
+            const MIDI = resolveScaleNoteToMidi(newNote, chain);
+            return { duration, velocity, MIDI };
+          })
+      );
+      dispatch(
+        updatePatternBlock({
+          data: { id, index, block },
+          undoType,
+        })
+      );
+      return;
+    } else {
+      const firstNote = { ...blockNotes[0] } as PatternNestedNote;
+
+      const regex = /([a-zA-Z])([-+]?\d+)/g;
+      const [note, ...offsets] = [...string.matchAll(regex)].map((match, i) => {
+        const label = match[1];
+        const number = parseInt(match[2]);
+        if (i === 0) return { label, value: number === 0 ? 0 : number - 1 };
+        return { label, value: number };
+      });
+
+      if (isPatternRest(block)) {
+        firstNote.duration = block.duration;
+        firstNote.velocity = DEFAULT_VELOCITY;
+      }
+      const baseTrack = selectTrackByLabel(getProject(), note.label);
+      if (!baseTrack) return;
+      firstNote.scaleId = (baseTrack as ScaleTrack)?.scaleId;
+      if ("scaleId" in firstNote && "MIDI" in firstNote) {
+        delete firstNote.MIDI;
+      }
+      firstNote.degree = note.value;
+      firstNote.offset = { octave: firstNote.offset?.octave ?? 0 };
+      for (const offset of offsets) {
+        if (offset.label === "t") {
+          if (!firstNote.offset.chromatic) {
+            firstNote.offset.chromatic = 0;
+          }
+          firstNote.offset.chromatic += offset.value;
+          continue;
+        }
+        const offsetTrack = selectTrackByLabel(getProject(), offset.label);
+        if (!offsetTrack) continue;
+        const scaleId = (offsetTrack as ScaleTrack).scaleId;
+        firstNote.offset[scaleId] = offset.value;
+      }
+      if (isNestedNote(firstNote) && !firstNote.scaleId) {
+        firstNote.offset = {
+          ...firstNote.offset,
+          octave: (firstNote.offset?.octave ?? 0) + Math.floor(note.value / 12),
+        };
+      }
+      dispatch(
+        updatePatternNote({
+          data: { id, index, note: firstNote },
+          undoType: nanoid(),
+        })
+      );
+    }
+  };
+
+export const bindNoteWithPrompt =
+  (
+    payload: Payload<{ id: PatternId; trackId?: TrackId; index: number }>
+  ): Thunk =>
+  (dispatch) => {
+    const { id, trackId, index } = unpackData(payload);
     promptUserForString({
       title: "Input Scale Note",
       large: true,
       description: [
         promptLineBreak,
         <span>Rule #1: Scale Notes are specified by label and number.</span>,
-        <span>Example: B0 = Degree 0 of Scale B </span>,
+        <span>Example: B1 = Degree 1 of Scale B </span>,
         promptLineBreak,
         <span>Rule #2: Scale Offsets are summed after Scale Notes.</span>,
         <span>
-          Example: B0 + A-1 = Degree 0 of Scale B, 1 step down Scale A
+          Example: B2 + A-1 = Degree 2 of Scale B, 1 step down Scale A
         </span>,
         promptLineBreak,
         <span>Rule #3: Pedal tones are specified with "pedal"</span>,
@@ -517,90 +619,8 @@ export const bindNoteWithPrompt =
         <span className="underline">Please input your note:</span>,
       ],
       callback: (string) => {
-        const project = getProject();
-        const undoType = nanoid();
-        const pattern = selectPatternById(project, id);
-        const { trackId, stream } = pattern;
-        const block = getPatternBlockAtIndex(stream, index);
-        const blockNotes = getPatternBlockNotes(block);
-        const firstNote = { ...blockNotes[0] } as PatternNestedNote;
-        if (string === "auto") {
-          dispatch(
-            updatePatternBlock({
-              data: {
-                id,
-                index,
-                block: getPatternBlockWithNewNotes(pattern.stream[index], (n) =>
-                  n.map((n) => dispatch(autoBindNoteToTrack(trackId, n)))
-                ),
-              },
-              undoType,
-            })
-          );
-          return;
-        }
-        if (string === "pedal") {
-          const chain = selectTrackScaleChain(
-            project,
-            selectScaleTrackByScaleId(project, firstNote.scaleId)?.id
-          );
-          if ("MIDI" in firstNote) delete firstNote.MIDI;
-          const MIDI = resolveScaleNoteToMidi({ ...firstNote }, chain);
-          const { duration, velocity } = firstNote;
-          dispatch(
-            updatePatternNote({
-              data: { id, index, note: { duration, velocity, MIDI } },
-              undoType,
-            })
-          );
-          return;
-        } else {
-          const regex = /([a-zA-Z])([-+]?\d+)/g;
-          const [note, ...offsets] = [...string.matchAll(regex)].map(
-            (match) => ({
-              label: match[1],
-              value: parseInt(match[2]),
-            })
-          );
-
-          if (isPatternRest(block)) {
-            firstNote.duration = block.duration;
-            firstNote.velocity = DEFAULT_VELOCITY;
-          }
-          const baseTrack = selectTrackByLabel(getProject(), note.label);
-          if (!baseTrack) return;
-          firstNote.scaleId = (baseTrack as ScaleTrack)?.scaleId;
-          if ("scaleId" in firstNote && "MIDI" in firstNote) {
-            delete firstNote.MIDI;
-          }
-          firstNote.degree = note.value;
-          firstNote.offset = { octave: firstNote.offset?.octave ?? 0 };
-          for (const offset of offsets) {
-            if (offset.label === "t") {
-              if (!firstNote.offset.chromatic) {
-                firstNote.offset.chromatic = 0;
-              }
-              firstNote.offset.chromatic += offset.value;
-              continue;
-            }
-            const offsetTrack = selectTrackByLabel(getProject(), offset.label);
-            if (!offsetTrack) continue;
-            const scaleId = (offsetTrack as ScaleTrack).scaleId;
-            firstNote.offset[scaleId] = offset.value;
-          }
-          if (isNestedNote(firstNote) && !firstNote.scaleId) {
-            firstNote.offset = {
-              ...firstNote.offset,
-              octave:
-                (firstNote.offset?.octave ?? 0) + Math.floor(note.value / 12),
-            };
-          }
-        }
         dispatch(
-          updatePatternNote({
-            data: { id, index, note: firstNote },
-            undoType: nanoid(),
-          })
+          bindNoteWithPromptCallback({ data: { string, id, trackId, index } })
         );
       },
     })();

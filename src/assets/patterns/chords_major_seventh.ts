@@ -153,6 +153,11 @@ export const MajorThirteenthSharpEleventhChord: Pattern = {
     "maj 13#11th",
     "major 13#11",
     "major 13#11th",
+    "major 13 #11",
+    "major 13 # 11",
+    "major 13 #11th",
+    "major 13th #11",
+    "major 13th #11th",
   ],
   stream: [
     [

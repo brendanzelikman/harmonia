@@ -3,28 +3,31 @@ import { NavbarTooltipButton } from "components/TooltipButton";
 import {
   ARRANGE_PATTERNS_HOTKEY,
   ARRANGE_POSES_HOTKEY,
-} from "features/Timeline/hooks/useTimelineHotkeys";
-import { GiCrystalWand, GiPaintBrush } from "react-icons/gi";
+} from "pages/Playground/hotkeys/useTimelineHotkeys";
+import { GiMove, GiMusicalNotes } from "react-icons/gi";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { ClipType } from "types/Clip/ClipTypes";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import {
   selectIsAddingClips,
   selectTimelineType,
 } from "types/Timeline/TimelineSelectors";
-import { toggleAddingState } from "types/Timeline/TimelineThunks";
+import {
+  DEFAULT_TRACK_PROMPT,
+  toggleAddingState,
+} from "types/Timeline/TimelineThunks";
+import { createTreeFromString } from "utils/tree";
 
 export const NavbarArrangeClip = (props: { type: ClipType }) => {
-  const dispatch = useProjectDispatch();
-  const type = useDeep(selectTimelineType);
-  const isAdding = useDeep(selectIsAddingClips);
+  const dispatch = useDispatch();
+  const type = useStore(selectTimelineType);
+  const isAdding = useStore(selectIsAddingClips);
   const active = isAdding && type === props.type;
   const hotkey = dispatch(hotkeys[props.type]);
-  const hasTracks = useDeep(selectHasTracks);
+  const hasTracks = useStore(selectHasTracks);
   const icon = icons[props.type];
   const background = backgrounds[props.type];
   const borderColor = borders[props.type];
-  const tool = tools[props.type];
   const textColor = textColors[props.type];
 
   return (
@@ -38,11 +41,15 @@ export const NavbarArrangeClip = (props: { type: ClipType }) => {
       borderColor={borderColor}
       label={
         hasTracks ? undefined : (
-          <span className={textColor}>Create Tree to Use {tool}</span>
+          <span className={textColor}>Create Tree to Create {props.type}</span>
         )
       }
       hotkey={hotkey}
-      onClick={() => dispatch(toggleAddingState({ data: props.type }))}
+      onClick={() =>
+        !hasTracks
+          ? dispatch(createTreeFromString({ data: DEFAULT_TRACK_PROMPT }))
+          : dispatch(toggleAddingState({ data: props.type }))
+      }
     >
       {icon}
     </NavbarTooltipButton>
@@ -55,26 +62,21 @@ const hotkeys = {
 };
 
 const icons = {
-  pattern: <GiPaintBrush className="text-2xl " />,
-  pose: <GiCrystalWand className="text-2xl" />,
-};
-
-const tools = {
-  pattern: "Brush",
-  pose: "Wand",
+  pattern: <GiMusicalNotes className="text-2xl " />,
+  pose: <GiMove className="text-2xl" />,
 };
 
 const textColors = {
-  pattern: "text-emerald-400",
+  pattern: "text-teal-400",
   pose: "text-fuchsia-400",
 };
 
 const borders = {
-  pattern: "border-emerald-400",
+  pattern: "border-teal-400",
   pose: "border-fuchsia-400",
 };
 
 const backgrounds = {
-  pattern: "from-emerald-800 to-emerald-500 ring-emerald-400",
-  pose: "from-fuchsia-800 to-fuchsia-500 ring-fuchsia-400",
+  pattern: "from-teal-800 to-teal-500 ring-teal-400",
+  pose: "from-fuchsia-800 to-fuchsia-600 ring-fuchsia-400",
 };

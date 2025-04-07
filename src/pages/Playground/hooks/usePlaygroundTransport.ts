@@ -1,24 +1,29 @@
-import { useToggledState } from "hooks/useToggledState";
+import { useToggle } from "hooks/useToggle";
 import { useEffect } from "react";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { getContext } from "tone";
+import { useStore, useDispatch } from "types/hooks";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import {
-  LOAD_TRANSPORT_STATE,
+  MOUNT_TRANSPORT,
   loadTransport,
   unloadTransport,
 } from "types/Transport/TransportThunks";
 
 export function usePlaygroundTransport() {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
+  const projectId = useStore(selectProjectId);
+  const transport = useToggle(MOUNT_TRANSPORT);
 
-  // Reload the transport when the project changes
-  const projectId = useDeep(selectProjectId);
+  // Load the transport or add an event listener if the context is not running
   useEffect(() => {
-    dispatch(loadTransport());
-    return () => dispatch(unloadTransport());
+    const load = () => dispatch(loadTransport());
+    if (getContext().state === "running") {
+      load();
+    } else {
+      window.addEventListener("mousedown", load, { once: true });
+    }
+    return unloadTransport;
   }, [projectId]);
 
-  // Return the load state
-  const transport = useToggledState(LOAD_TRANSPORT_STATE);
-  return transport.isClosed;
+  return transport.isOpen;
 }

@@ -4,7 +4,7 @@ import DataGrid, {
   RenderCellProps,
 } from "react-data-grid";
 import { useState, useCallback, useMemo } from "react";
-import { useDeep } from "types/hooks";
+import { useStore } from "types/hooks";
 import { TimelineContextMenu } from "./TimelineContextMenu";
 import { TimelineGraphics } from "./TimelineGraphics";
 import {
@@ -42,10 +42,10 @@ export type TrackRow = Row & { id: TrackId };
 export type TimelineElement = { element?: HTMLDivElement };
 
 export function TimelineGrid() {
-  const cellWidth = useDeep(selectCellWidth);
-  const cellHeight = useDeep(selectCellHeight);
-  const collapsedMap = useDeep(selectCollapsedTrackMap);
-  const trackIds = useDeep(selectTrackIds);
+  const cellWidth = useStore(selectCellWidth);
+  const cellHeight = useStore(selectCellHeight);
+  const collapsedMap = useStore(selectCollapsedTrackMap);
+  const trackIds = useStore(selectTrackIds);
 
   /** The grid ref stores the react-data-grid element. */
   const [timeline, setTimeline] = useState<DataGridHandle>();
@@ -146,7 +146,10 @@ export function TimelineGrid() {
   }, [trackIds, collapsedMap, cellWidth]);
 
   return (
-    <div id="timeline" className="relative total-center-col size-full">
+    <div
+      id="timeline"
+      className="animate-in fade-in-50 duration-300 relative total-center-col size-full"
+    >
       <TimelineContextMenu />
       {TimelineGrid}
       <TimelineElements />

@@ -1,19 +1,19 @@
-import { useDeep, useProjectDispatch } from "types/hooks";
-import { selectTransportRecording } from "types/Transport/TransportSelectors";
-import { useTransportTick } from "hooks/useTransportTick";
+import { useStore } from "types/hooks";
+import { useTransportTick } from "types/Transport/TransportHooks";
 import { useEffect } from "react";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { stopTransport } from "types/Transport/TransportThunks";
 import { useTransportState } from "hooks/useTransportState";
+import { useToggle } from "hooks/useToggle";
+import { RECORD_TRANSPORT } from "types/Transport/TransportTypes";
 
 export function NavbarTime() {
-  const dispatch = useProjectDispatch();
   const { tick, string } = useTransportTick();
-  const isRecording = useDeep(selectTransportRecording);
+  const isRecording = useToggle(RECORD_TRANSPORT).isOpen;
   const state = useTransportState();
 
   // If there are no tracks, stop the transport
-  const hasTracks = useDeep(selectHasTracks);
+  const hasTracks = useStore(selectHasTracks);
   useEffect(() => {
     if (!hasTracks) stopTransport();
   }, [hasTracks]);

@@ -8,14 +8,14 @@ import {
   CLOSE_MODALS_HOTKEY,
   EXPORT_MIDI_HOTKEY,
   EXPORT_AUDIO_HOTKEY,
-} from "pages/Playground/hooks/usePlaygroundHotkeys";
-import { TOGGLE_FOREST_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
+} from "pages/Playground/hotkeys/usePlaygroundHotkeys";
+import { TOGGLE_FOREST_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
 import { Shortcut } from "../components/Shortcut";
 import { ShortcutContent } from "../components/ShortcutContent";
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 
 export function GlobalShortcuts() {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   return (
     <ShortcutContent
       className="text-lg space-y-6"

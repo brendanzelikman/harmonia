@@ -2,14 +2,11 @@ import { test, expect } from "vitest";
 import {
   initializePatternClip,
   initializePoseClip,
-  isIPatternClip,
-  isIPoseClip,
   PatternClip,
   PoseClip,
 } from "types/Clip/ClipTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import { initializePatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
-import { Media } from "./MediaTypes";
 import {
   sortMediaByTick,
   getValidMedia,
@@ -29,30 +26,6 @@ import { keyBy } from "lodash";
 
 const patternClip = initializePatternClip({ tick: 5 });
 const poseClip = initializePoseClip({ tick: 3 });
-
-/** Get the pattern clips from the media. */
-export const getPatternClipsFromMedia = (media: Media) => {
-  return media.filter(isIPatternClip);
-};
-
-/** Get the pose clips from the media. */
-export const getPoseClipsFromMedia = (media: Media) => {
-  return media.filter(isIPoseClip);
-};
-
-test("getMediaClips should only include clips", () => {
-  expect(getPatternClipsFromMedia([patternClip, poseClip])).toEqual([
-    patternClip,
-  ]);
-  expect(getPatternClipsFromMedia([patternClip])).toEqual([patternClip]);
-  expect(getPatternClipsFromMedia([poseClip])).toEqual([]);
-});
-
-test("getMediaPoses should only include poses", () => {
-  expect(getPoseClipsFromMedia([patternClip, poseClip])).toEqual([poseClip]);
-  expect(getPoseClipsFromMedia([patternClip])).toEqual([]);
-  expect(getPoseClipsFromMedia([poseClip])).toEqual([poseClip]);
-});
 
 test("sortMedia should correctly sort the media by tick", () => {
   expect(sortMediaByTick([patternClip, poseClip])).toEqual([

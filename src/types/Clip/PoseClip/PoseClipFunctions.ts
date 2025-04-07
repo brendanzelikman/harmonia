@@ -64,11 +64,11 @@ export const getPoseOperationsAtTick = (
   deps: { poseMap: PoseMap; tick: Tick } = { poseMap: {}, tick: 0 }
 ) => {
   const operation = [] as PoseOperation[];
-  const clipCount = clips.length;
-  if (!clipCount) return operation;
 
+  // Assuming the clips are sorted by tick, break after the last clip
   for (const clip of clips) {
     const startTick = clip.tick;
+    if (startTick > deps.tick) break;
     const endTick = startTick + (clip.duration ?? Infinity);
     if (deps.tick >= startTick && deps.tick < endTick) {
       const pose = deps.poseMap[clip.poseId];

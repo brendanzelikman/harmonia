@@ -1,4 +1,4 @@
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 import { Shortcut } from "../components/Shortcut";
 import { ShortcutContent } from "../components/ShortcutContent";
 import {
@@ -13,10 +13,10 @@ import {
   MOVE_CLIPS_RIGHT_HOTKEY,
   PASTE_MEDIA_HOTKEY,
   SELECT_ALL_MEDIA_HOTKEY,
-} from "features/Timeline/hooks/useTimelineHotkeys";
+} from "pages/Playground/hotkeys/useTimelineHotkeys";
 
 export function ClipShortcuts() {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   return (
     <ShortcutContent
       className="text-lg space-y-5"

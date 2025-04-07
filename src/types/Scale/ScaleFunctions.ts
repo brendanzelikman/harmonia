@@ -18,7 +18,7 @@ import {
 import { resolveScaleToMidi, resolveScaleChainToMidi } from "./ScaleResolvers";
 import { ChromaticKey } from "assets/keys";
 import { getVectorMidi } from "utils/vector";
-import { isArray, isNumber } from "lodash";
+import { isNumber } from "lodash";
 
 // ------------------------------------------------------------
 // Scale Notes
@@ -26,7 +26,7 @@ import { isArray, isNumber } from "lodash";
 
 /** Get a `Scale` as an array of notes. */
 export const getScaleNotes = (scale: Scale): ScaleArray => {
-  return isArray(scale) ? scale : scale.notes ?? [];
+  return "notes" in scale ? scale.notes : scale;
 };
 
 /** Get the degree of a `ScaleNote` or chromatic number */

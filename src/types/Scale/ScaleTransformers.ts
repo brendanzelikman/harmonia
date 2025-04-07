@@ -14,6 +14,15 @@ import { MidiNote } from "utils/midi";
 import { sumVectors } from "utils/vector";
 import { isArray, isNumber } from "lodash";
 
+/** Update a `Scale` with new notes. */
+export const getNewScale = <T extends Scale>(
+  scale: T,
+  notes: ScaleArray
+): T => {
+  if (isArray(scale)) return [...notes] as T;
+  return { ...scale, notes };
+};
+
 // ------------------------------------------------------------
 // Get Transformed Scale Notes
 // ------------------------------------------------------------
@@ -44,17 +53,8 @@ export const getTransposedScaleNote = (
 };
 
 // ------------------------------------------------------------
-// Get Transformed Scales
+// Transposed Scales
 // ------------------------------------------------------------
-
-/** Update a `Scale` with new notes. */
-export const getNewScale = <T extends Scale>(
-  scale: T,
-  notes: ScaleArray
-): T => {
-  if (isArray(scale)) return [...notes] as T;
-  return { ...scale, notes };
-};
 
 /** Get a `Scale` tranposed by the given number of steps chromatically or by ID. */
 export const getTransposedScale = <T extends Scale>(
@@ -68,6 +68,20 @@ export const getTransposedScale = <T extends Scale>(
   return getNewScale(scale, newNotes);
 };
 
+/** Get a `ScaleArray` transposed by the given number of steps chromatically or by ID. */
+export const getTransposedScaleNotes = (
+  notes: ScaleArray,
+  steps = 0,
+  id?: ScaleVectorId
+): ScaleArray => {
+  if (steps === 0) return notes;
+  return notes.map((n) => getTransposedScaleNote(n, steps, id));
+};
+
+// ------------------------------------------------------------
+// Rotated Scales
+// ------------------------------------------------------------
+
 /** Get a `Scale` rotated by a given number of steps along itself. */
 export const getRotatedScale = <T extends Scale>(scale: T, steps = 0) => {
   if (steps === 0) return scale;
@@ -76,7 +90,7 @@ export const getRotatedScale = <T extends Scale>(scale: T, steps = 0) => {
   const newNotes: ScaleArray = [];
 
   // Iterate through each note
-  for (let i = 0; i < notes.length; i++) {
+  for (let i = 0; i < modulus; i++) {
     // Compute the new index and wrap around the modulus
     const summedIndex = i + steps;
     const moddedIndex = mod(summedIndex, modulus);
@@ -92,6 +106,22 @@ export const getRotatedScale = <T extends Scale>(scale: T, steps = 0) => {
 
   // Return the updated scale
   return getNewScale(scale, newNotes);
+};
+
+/** Get a `ScaleArray` rotated by a given number of steps along itself. */
+export const getRotatedScaleNotes = (notes: ScaleArray, steps = 0) => {
+  if (steps === 0) return notes;
+  const modulus = notes.length;
+  const newNotes: ScaleArray = [];
+  for (let i = 0; i < modulus; i++) {
+    const summedIndex = i + steps;
+    const moddedIndex = mod(summedIndex, modulus);
+    const newNote = notes[moddedIndex];
+    const wrap = Math.floor(summedIndex / modulus);
+    const note = getTransposedScaleNote(newNote, wrap * 12);
+    newNotes.push(note);
+  }
+  return newNotes;
 };
 
 // ------------------------------------------------------------

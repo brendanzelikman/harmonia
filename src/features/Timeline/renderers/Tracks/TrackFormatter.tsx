@@ -1,5 +1,5 @@
 import { ScaleTrackFormatter } from "./ScaleTrackFormatter";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { TrackRow } from "features/Timeline/components/TimelineGrid";
 import { selectTrackById } from "types/Track/TrackSelectors";
 import {
@@ -17,9 +17,9 @@ import { PatternTrackFormatter } from "./PatternTrackFormatter";
 import { toggleSelectedTrackId } from "types/Timeline/TimelineThunks";
 
 export const TrackFormatter = memo((props: RenderCellProps<TrackRow>) => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const trackId = props.row.id;
-  const track = useDeep((_) => selectTrackById(_, trackId))!;
+  const track = useStore((_) => selectTrackById(_, trackId))!;
   const isPT = isPatternTrack(track);
   const isST = !isPT && isScaleTrackId(trackId);
 

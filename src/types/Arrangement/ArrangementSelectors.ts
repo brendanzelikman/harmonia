@@ -11,7 +11,7 @@ import {
   PortaledPatternClipMap,
   PortaledPoseClipMap,
 } from "types/Clip/ClipTypes";
-import { ClipsByTrack } from "types/Clip/ClipUtils";
+import { TrackPoseClips } from "./ArrangementTypes";
 import { InstrumentNotesByTicks } from "types/Instrument/InstrumentTypes";
 import { applyPortalsToClips } from "types/Portal/PortalFunctions";
 import { PortaledClipMap } from "types/Portal/PortalTypes";
@@ -103,22 +103,24 @@ export const selectProcessedArrangement = createDeepSelector(
     descendantIdsByTrack,
     chainIdsByTrack
   ): TrackArrangement => {
-    const clipsByTrack: ClipsByTrack = {};
     const patternClips: PortaledPatternClipMap = {};
     const poseClips: PortaledPoseClipMap = {};
+    const trackPoseClips: TrackPoseClips = {};
 
     // Iterate over every portaled clip
     for (const clip of portaledClips) {
-      const region = (clipsByTrack[clip.trackId] ??= { pattern: [], pose: [] });
+      const region = (trackPoseClips[clip.trackId] ??= []);
 
-      // Copy each clip to the corresponding maps
+      // Store each pose clip to its track
       if (isPortaledPoseClip(clip)) {
         poseClips[clip.id] = clip;
-        region.pose.push(clip);
-      } else if (isPortaledPatternClip(clip)) {
+        region.push(clip);
+      }
+
+      // Copy pattern clips to descendants if they are on a scale track
+      else if (isPortaledPatternClip(clip)) {
         patternClips[clip.id] = clip;
 
-        // Copy pattern clips to descendants if they are on a scale track
         if (isScaleTrackId(clip.trackId)) {
           const trackIds = descendantIdsByTrack[clip.trackId];
           if (!trackIds?.length) continue;
@@ -128,7 +130,6 @@ export const selectProcessedArrangement = createDeepSelector(
             patternClips[newId] = { ...clip, trackId: ptId, id: newId };
           }
         }
-        region.pattern.push(clip);
       }
     }
 
@@ -137,7 +138,7 @@ export const selectProcessedArrangement = createDeepSelector(
       ...baseArrangement,
       patternClips,
       poseClips,
-      clipsByTrack,
+      trackPoseClips,
       chainIdsByTrack,
     };
   }
@@ -189,7 +190,9 @@ export const selectMidiChordsByTicks = createDeepSelector(
     const result = {} as InstrumentNotesByTicks;
 
     // Iterate through each clip stream
-    for (const id of clipIds) {
+    for (const clip of Object.values(arrangement.patternClips)) {
+      const id = clip?.id;
+      if (!id) continue;
       const stream = streamMap[id];
       const streamLength = stream?.length;
       if (!streamLength) continue;
@@ -206,7 +209,7 @@ export const selectMidiChordsByTicks = createDeepSelector(
         const { notes, startTick } = stream[j];
         const record = (result[startTick] ??= {});
         const state = (record[instrumentStateId] ??= []);
-        state.push(...notes);
+        state.push(...notes.filter((n) => "MIDI" in n));
       }
     }
     // Return the result

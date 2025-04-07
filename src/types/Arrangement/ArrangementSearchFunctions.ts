@@ -1,7 +1,7 @@
 import { isNumber } from "lodash";
 import { PatternMidiStream, PatternStream } from "types/Pattern/PatternTypes";
 import { PoseVector, PoseVectorId } from "types/Pose/PoseTypes";
-import { getMidiStreamMeanError, getMidiStreamScaleError } from "utils/stream";
+import { getMidiStreamMeanError, getMidiStreamScaleError } from "utils/pattern";
 import {
   PatternMidiStreamDependencies,
   getMidiStreamKey,
@@ -110,6 +110,8 @@ export const getPatternStreamQuery = (
       vectorId = deps.chainIdsByTrack[deps.clip.trackId][1];
     } else if (vectorId === "scale-track_3") {
       vectorId = deps.chainIdsByTrack[deps.clip.trackId][2];
+    } else {
+      vectorId = "chromatic";
     }
     return finalQueries.filter((query) => query.vector[vectorId] === step)[0];
   }

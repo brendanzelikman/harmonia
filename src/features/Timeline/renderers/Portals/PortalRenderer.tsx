@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { usePortalDrag } from "./usePortalDrag";
 import portalIcon from "assets/images/portal.svg";
 import { Portal } from "types/Portal/PortalTypes";
@@ -11,9 +11,10 @@ import {
 import { selectTrackById } from "types/Track/TrackSelectors";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
 import { onPortalClick } from "types/Timeline/thunks/TimelineClickThunks";
-import { useDragState } from "types/Media/MediaTypes";
 import { Timed } from "types/units";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { dispatchCustomEvent } from "utils/html";
 
 type PortalFragmentProps = { top: number; left: number };
 type PortalProps = { portal: Timed<Portal> };
@@ -27,21 +28,22 @@ type TimelinePortalProps = (PortalFragmentProps | PortalProps) & {
 };
 
 export function TimelinePortal(props: TimelinePortalProps) {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const { width, height } = props;
   const { isSelected, isPortaling } = props;
   const isPortal = "portal" in props;
   const portal = isPortal ? props.portal : undefined;
-  const dragState = useDragState();
+  const [dragging, setIsDragging] = useState(false);
+  useCustomEventListener("dragClip", (e) => setIsDragging(e.detail));
 
   /** Update the timeline when dragging portals. */
   const onDragStart = useCallback(() => {
-    dragState.set("draggingPortal", true);
+    dispatchCustomEvent("dragClip", true);
   }, []);
 
   /** Update the timeline when releasing portals and call the thunk. */
   const onDragEnd = useCallback((item: any, monitor: any) => {
-    dragState.set("draggingPortal", false);
+    setIsDragging(false);
     dispatch(onMediaDragEnd(item, monitor));
   }, []);
 
@@ -58,27 +60,25 @@ export function TimelinePortal(props: TimelinePortalProps) {
     onDragStart,
     onDragEnd,
   });
-  const addingClips = useDeep(selectIsAddingClips);
-  const draggingPatternClip = !!dragState.draggingPatternClip;
-  const draggingPoseClip = !!dragState.draggingPoseClip;
-  const isDragging = Entry.isDragging || Exit.isDragging;
+  const addingClips = useStore(selectIsAddingClips);
+
+  const isDragging = Entry.isDragging || Exit.isDragging || dragging;
   const isActive = isPortaling || addingClips;
-  const isDraggingOther = draggingPatternClip || draggingPoseClip;
 
   // Get the entry portal info
   const tId = portal?.trackId;
-  const entryTrack = useDeep((_) =>
+  const entryTrack = useStore((_) =>
     tId ? selectTrackById(_, portal?.trackId) : undefined
   );
-  const entryTop = useDeep((_) => selectTrackTop(_, entryTrack?.id));
-  const entryLeft = useDeep((_) => selectTimelineTickLeft(_, portal?.tick));
+  const entryTop = useStore((_) => selectTrackTop(_, entryTrack?.id));
+  const entryLeft = useStore((_) => selectTimelineTickLeft(_, portal?.tick));
 
   // Get the exit portal info
-  const exitTrack = useDeep((_) =>
+  const exitTrack = useStore((_) =>
     tId ? selectTrackById(_, portal?.portaledTrackId) : undefined
   );
-  const exitTop = useDeep((_) => selectTrackTop(_, exitTrack?.id));
-  const exitLeft = useDeep((_) =>
+  const exitTop = useStore((_) => selectTrackTop(_, exitTrack?.id));
+  const exitLeft = useStore((_) =>
     selectTimelineTickLeft(_, portal?.portaledTick)
   );
 
@@ -99,10 +99,10 @@ export function TimelinePortal(props: TimelinePortalProps) {
     isPortal ? "cursor-pointer" : "pointer-events-none",
     isSelected ? "border-white" : "border-slate-500/50",
     isDragging ? "opacity-50" : "opacity-100",
-    isActive || isDraggingOther ? "pointer-events-none" : "pointer-events-all"
+    isActive || isDragging ? "pointer-events-none" : "pointer-events-all"
   );
 
-  const track = useDeep((_) => (tId ? selectTrackById(_, tId) : undefined));
+  const track = useStore((_) => (tId ? selectTrackById(_, tId) : undefined));
 
   if (!tId || !track) return null;
   /** Return an entry portal for the fragment. */

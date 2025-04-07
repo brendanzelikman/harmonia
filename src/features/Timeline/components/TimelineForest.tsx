@@ -1,12 +1,12 @@
 import Forest from "assets/images/forest.jpg";
-import { useTransportTick } from "hooks/useTransportTick";
+import { useTransportTick } from "types/Transport/TransportHooks";
 import { createDeepSelector } from "lib/redux";
 import { omit } from "lodash";
 import Tree from "react-d3-tree";
 import { getTrackScaleChain } from "types/Arrangement/ArrangementFunctions";
 import { selectProcessedArrangement } from "types/Arrangement/ArrangementSelectors";
 import { getPoseOperationsAtTick } from "types/Clip/PoseClip/PoseClipFunctions";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { getPoseVectorAsString } from "types/Pose/PoseFunctions";
 import { selectPoseMap } from "types/Pose/PoseSelectors";
@@ -27,9 +27,9 @@ import { sumVectors } from "utils/vector";
 // The timeline placeholder for performance mode
 export function TimelineForest() {
   const { tick } = useTransportTick();
-  const dispatch = useProjectDispatch();
-  const json = useDeep((_) => selectTrackJsonAtTick(_, tick));
-  const selectedTrackId = useDeep(selectSelectedTrackId);
+  const dispatch = useDispatch();
+  const json = useStore((_) => selectTrackJsonAtTick(_, tick));
+  const selectedTrackId = useStore(selectSelectedTrackId);
   return (
     <div className="relative size-full total-center-col">
       <img
@@ -117,7 +117,7 @@ export const selectTrackJsonAtTick = createDeepSelector(
       const name = `Track ${labelMap[trackId]}`;
       const isPT = track.type === "pattern";
       const Instrument = getInstrumentName(iMap[trackId]?.key);
-      const poseClips = arrangement.clipsByTrack?.[trackId]?.pose;
+      const poseClips = arrangement.trackPoseClips[trackId] ?? [];
       const vector = sumVectors(
         track.vector,
         ...getPoseOperationsAtTick(poseClips, { poseMap, tick }).map(

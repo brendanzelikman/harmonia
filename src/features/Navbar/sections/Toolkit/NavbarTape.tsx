@@ -1,13 +1,13 @@
-import { useProjectDispatch, useDeep } from "types/hooks";
+import { useDispatch, useStore } from "types/hooks";
 import { selectSelectedPatternClips } from "types/Timeline/TimelineSelectors";
 import { mergeSelectedMedia } from "types/Media/MediaThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { FaTape } from "react-icons/fa";
-import { MERGE_MEDIA_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
+import { MERGE_MEDIA_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
 
 export const NavbarTape = () => {
-  const dispatch = useProjectDispatch();
-  const disabled = useDeep(selectSelectedPatternClips).length < 2;
+  const dispatch = useDispatch();
+  const disabled = useStore(selectSelectedPatternClips).length < 2;
   return (
     <div className="flex flex-col relative group/tooltip">
       <NavbarTooltipButton

@@ -49,22 +49,7 @@ export const getPatternClipTheme = (clip?: PatternClip): PatternClipTheme => {
   );
 };
 
-export const getPatternClipThemeFromColor = (
-  color?: PatternClipColor
-): PatternClipTheme =>
-  getValueByKey(PATTERN_CLIP_THEMES, color) ?? DEFAULT_PATTERN_CLIP_THEME;
-
 /** Get the headerColor of a `Clip`. */
 export const getPatternClipHeaderColor = (clip?: PatternClip) => {
   return getPatternClipTheme(clip).headerColor;
-};
-
-/** Get the bodyColor of a `Clip`. */
-export const getPatternClipBodyColor = (clip?: PatternClip) => {
-  return getPatternClipTheme(clip).bodyColor;
-};
-
-/** Get the noteColor of a `Clip`. */
-export const getPatternClipNoteColor = (clip?: PatternClip) => {
-  return getPatternClipTheme(clip).noteColor;
 };

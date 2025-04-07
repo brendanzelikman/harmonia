@@ -64,7 +64,11 @@ export const removeClipIdsFromSelection =
     const undoType = unpackUndoType(payload, "removeClipIdsFromSelection");
     const project = getProject();
     const selectedClipIds = selectSelectedClipIds(project);
+    const oldLength = selectedClipIds.length;
+    if (!oldLength) return;
     const newIds = difference(selectedClipIds, payload.data);
+    const newLength = newIds.length;
+    if (oldLength === newLength) return;
     dispatch(updateMediaSelection({ data: { clipIds: newIds }, undoType }));
   };
 

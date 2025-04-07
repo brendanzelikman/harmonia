@@ -1,6 +1,5 @@
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { IClip, IClipId } from "../ClipTypes";
-import { isClipInterface } from "../ClipTypes";
 import { PoseStream, PoseBlock } from "types/Pose/PoseTypes";
 import { Update } from "types/units";
 import { createId } from "types/util";
@@ -47,11 +46,6 @@ export const initializePoseClip = (
 // ------------------------------------------------------------
 // Pose Clip Type Guards
 // ------------------------------------------------------------
-
-/** Checks if a given object is of type `PoseClip`. */
-export const isIPoseClip = (obj: unknown): obj is PoseClip => {
-  return isClipInterface<"pose">(obj, "pose");
-};
 
 /** Checks if a given clip is a `PoseClip` (fast) */
 export const isPoseClip = (clip: Partial<IClip>): clip is IClip<"pose"> => {

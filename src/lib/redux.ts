@@ -28,22 +28,17 @@ export type Action<T, isEmpty = T extends null ? true : false> = PayloadAction<
   T | Payload<T, isEmpty>
 >;
 
+/** Get the data from a payload */
 export const unpackData = <T>(payload?: Payload<T, true>) =>
   payload?.data ?? (payload as T);
 
+/** Get the data from an action */
 export const unpackAction = <T>(action: Action<T>) => {
   return (
     isObject(action.payload) && "data" in action.payload
       ? action.payload.data
       : action.payload
   ) as T;
-};
-
-export const isSliceAction = (slice: string) => (action: PayloadAction) =>
-  action.type.startsWith(slice);
-
-export const getSliceActions = (slice: Slice) => {
-  return Object.keys(slice.actions).map((key) => `${slice.name}/${key}`);
 };
 
 export const createUndoType = (prefix?: string, ...payload: any) =>

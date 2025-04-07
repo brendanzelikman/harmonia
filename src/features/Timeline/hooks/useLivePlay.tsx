@@ -1,5 +1,5 @@
 import { dispatchCustomEvent, isInputEvent } from "utils/html";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { useCallback, useEffect } from "react";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import {
@@ -12,6 +12,7 @@ import {
   selectSelectedPatternClips,
   selectSelectedPoses,
   selectSelectedTrackId,
+  selectTimelineTick,
 } from "types/Timeline/TimelineSelectors";
 import {
   selectPatternTracks,
@@ -35,7 +36,7 @@ import {
   createCourtesyPoseClip,
   createPatternTrack,
 } from "types/Track/PatternTrack/PatternTrackThunks";
-import { useTransportTick } from "hooks/useTransportTick";
+import { useTransportTick } from "types/Transport/TransportHooks";
 
 const numberKeys = range(1, 10).map((n) => n.toString());
 const scaleKeys = ["q", "w", "e", "r", "t", "y"];
@@ -56,18 +57,20 @@ const extraKeys = [
 const ALL_KEYS = [...numberKeys, ...zeroKeys, ...scaleKeys, ...extraKeys];
 
 export const useLivePlay = () => {
-  const dispatch = useProjectDispatch();
-  const scaleTrackIds = useDeep(selectScaleTrackIds);
-  const patternTracks = useDeep(selectPatternTracks);
-  const selectedTrackId = useDeep(selectSelectedTrackId);
-  const trackAncestorMap = useDeep(selectTrackAncestorIdsMap);
-  const patternClips = useDeep(selectSelectedPatternClips);
-  const poseMap = useDeep(selectPoseMap);
-  const poseClips = useDeep(selectPoseClips);
-  const selectedPoses = useDeep(selectSelectedPoses);
-  const clips = useDeep(selectSelectedPoseClips);
+  const dispatch = useDispatch();
+  const scaleTrackIds = useStore(selectScaleTrackIds);
+  const patternTracks = useStore(selectPatternTracks);
+  const selectedTrackId = useStore(selectSelectedTrackId);
+  const trackAncestorMap = useStore(selectTrackAncestorIdsMap);
+  const patternClips = useStore(selectSelectedPatternClips);
+  const poseMap = useStore(selectPoseMap);
+  const poseClips = useStore(selectPoseClips);
+  const selectedPoses = useStore(selectSelectedPoses);
+  const clips = useStore(selectSelectedPoseClips);
   const hasClips = clips.length > 0;
-  const { tick } = useTransportTick();
+  const transport = useTransportTick();
+  const timelineTick = useStore(selectTimelineTick);
+  const tick = timelineTick === 0 ? transport.tick : timelineTick;
   const holding = useHeldHotkeys(ALL_KEYS);
   useEffect(() => {
     if (!Object.keys(holding).some((key) => holding[key])) {
@@ -111,6 +114,9 @@ export const useLivePlay = () => {
       // Walk the clips along the scale (held keys)
       if (holding.c) {
         if (!vectorKeys.length) return;
+        if (vectorKeys[0] !== "chordal" && !vectorKeys[1]) {
+          vectorKeys.push("chordal");
+        }
         return dispatch(
           walkSelectedPatternClips({
             data: {
@@ -128,13 +134,16 @@ export const useLivePlay = () => {
       // Walk the clips along the scale (diatonically)
       if (holding.d) {
         if (!vectorKeys.length) return;
+        if (vectorKeys[0] !== "chordal" && !vectorKeys[1]) {
+          vectorKeys.push("chordal");
+        }
         return dispatch(
           walkSelectedPatternClips({
             data: {
               options: {
                 step: isNegative ? -number + 1 : number - 1,
                 vectorKeys,
-                spread: Math.max(3, number),
+                spread: Math.max(8, number),
                 direction: isNegative ? "down" : undefined,
               },
             },
@@ -181,13 +190,15 @@ export const useLivePlay = () => {
       };
 
       const undoType = createUndoType(`livePlay-${e.key}/${nanoid()}`);
-      for (const pose of selectedPoses) {
-        const vector = sumVector(pose.trackId, pose.vector);
+      for (const clip of clips) {
+        const pose = poseMap[clip.poseId];
+        if (pose === undefined) continue;
+        const vector = sumVector(clip.trackId, pose.vector);
         dispatch(updatePose({ data: { ...pose, vector }, undoType }));
       }
 
       // Return early if no vector
-      if (selectedPoses.length) return;
+      if (clips.length) return;
 
       for (const { tick, trackId } of patternClips) {
         const vector = sumVector(trackId);
@@ -199,10 +210,7 @@ export const useLivePlay = () => {
           if (!pose) continue;
           dispatch(
             updatePose({
-              data: {
-                id: pose.id,
-                vector: sumVectors(pose.vector, vector),
-              },
+              data: { id: pose.id, vector: sumVectors(pose.vector, vector) },
               undoType,
             })
           );
@@ -211,7 +219,7 @@ export const useLivePlay = () => {
         // Create a new pose with the given vector
         dispatch(
           createCourtesyPoseClip({
-            data: { pose: { vector, trackId }, clip: { tick, trackId } },
+            data: { pose: { vector }, clip: { tick, trackId } },
             undoType,
           })
         );
@@ -237,7 +245,7 @@ export const useLivePlay = () => {
           dispatch(
             updatePose({
               data: {
-                id: pose.id,
+                id: match.poseId,
                 vector: sumVectors(pose.vector, vector),
               },
               undoType,
@@ -248,8 +256,8 @@ export const useLivePlay = () => {
         dispatch(
           createCourtesyPoseClip({
             data: {
-              clip: { tick, trackId },
-              pose: { vector, trackId },
+              clip: { trackId, tick },
+              pose: { vector },
             },
             undoType,
           })
@@ -265,8 +273,10 @@ export const useLivePlay = () => {
       patternClips,
       poseClips,
       poseMap,
+      clips,
       tick,
       scaleTrackIds,
+      hasClips,
     ]
   );
 
@@ -289,8 +299,10 @@ export const useLivePlay = () => {
 
       const undoType = createUndoType(`livePlay-zero/${nanoid()}`);
 
-      for (const pose of selectedPoses) {
-        const trackId = pose.trackId;
+      for (const clip of clips) {
+        const pose = poseMap[clip.poseId];
+        if (pose === undefined) continue;
+        const trackId = clip.trackId;
         if (!trackId) continue;
         let vector = { ...(pose.vector ?? {}) };
         const [q, w, e] = trackAncestorMap[trackId];
@@ -305,7 +317,7 @@ export const useLivePlay = () => {
         }
         dispatch(updatePose({ data: { ...pose, vector }, undoType }));
       }
-      if (selectedPoses.length) return;
+      if (clips.length) return;
 
       for (const { tick, trackId } of patternClips) {
         const match = poseClips.find(
@@ -315,7 +327,6 @@ export const useLivePlay = () => {
           const pose = poseMap[match.poseId];
           if (!pose) continue;
           const vector = { ...(pose.vector ?? {}) };
-          const trackId = pose.trackId;
           if (!trackId) continue;
           const [q, w, e] = trackAncestorMap[trackId];
           if (q && holding.q) delete vector[q];
@@ -332,7 +343,15 @@ export const useLivePlay = () => {
         }
       }
     },
-    [holding, hasClips]
+    [
+      holding,
+      hasClips,
+      clips,
+      poseClips,
+      patternClips,
+      poseMap,
+      trackAncestorMap,
+    ]
   );
 
   /**

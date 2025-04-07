@@ -14,12 +14,12 @@ import {
   ClipMap,
   ClipId,
   Clip,
-  ClipState,
   PatternClipState,
   PoseClipState,
   PatternClipId,
   PoseClipId,
   PoseClip,
+  PatternClip,
 } from "./ClipTypes";
 import { getPoseDuration } from "types/Pose/PoseFunctions";
 import {
@@ -124,11 +124,6 @@ export const selectPoseClipsByPoseId = (project: Project, poseId: string) => {
 // Combined Clip Selectors
 // ------------------------------------------------------------
 
-export const defaultClipState: ClipState = {
-  pattern: defaultPatternClipState,
-  pose: defaultPoseClipState,
-};
-
 /** Select the clip map from the store. */
 export const selectClipMap = createDeepSelector(
   [selectPatternClipMap, selectPoseClipMap],
@@ -227,6 +222,13 @@ export const selectClipsByTrackIds = (
   return trackIds.flatMap((id) => clips.filter((clip) => clip.trackId === id));
 };
 
+/** Select a list of pattern clips from the IDs provided. */
+export const selectPatternClipsByIds = (project: Project, ids: ClipId[]) => {
+  return ids
+    .map((id) => selectPatternClipById(project, id))
+    .filter(Boolean) as PatternClip[];
+};
+
 /** Select the map of clips to their names. */
 export const selectClipNameMap = createSelector(
   [selectClipMap, selectClipMotifMap],
@@ -240,6 +242,7 @@ export const selectClipNameMap = createSelector(
 /** Select the name of a clip by using the name of its reference. */
 export const selectClipName = createValueSelector(selectClipNameMap, "Clip");
 
+/** Get the color of a clip header. */
 export const selectClipHeaderColor = (project: Project, id: PatternClipId) => {
   const clip = selectPatternClipById(project, id);
   return getPatternClipHeaderColor(clip);
@@ -260,8 +263,3 @@ export const selectTimedClipById = (project: Project, id: ClipId) => {
   const duration = selectClipDuration(project, id) ?? Infinity;
   return { ...clip, duration } as Timed<Clip>;
 };
-
-/** Select the clips that are opened. */
-export const selectOpenedClips = createSelector([selectClips], (clips) =>
-  clips.filter((clip) => clip.isOpen)
-);

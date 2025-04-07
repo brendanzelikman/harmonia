@@ -1046,7 +1046,8 @@
     "loopEnd": 383,
     "volume": 0,
     "mute": false,
-    "timeSignature": [16, 16],
+    "timeSignature": 4,
+    "swing": 0,
     "recording": false,
     "downloading": false
   }

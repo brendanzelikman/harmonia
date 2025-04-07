@@ -22,7 +22,7 @@ import SimpleRhythms from "./rhythms_simple";
 import LatinRhythms from "./rhythms_latin";
 import ClavePatterns from "./rhythms_clave";
 import BellPatterns from "./rhythms_bell";
-import { keyBy } from "lodash";
+import { keyBy, lowerCase } from "lodash";
 
 export const Chords = {
   "Basic Intervals": Object.values(BasicIntervals),
@@ -76,3 +76,19 @@ export const PresetPatternList = Object.values(PresetPatternGroupMap).flat();
 // Return a map of preset pattern id to preset pattern
 // e.g. {"Major Chord": Major Chord, "Minor Chord": Minor Chord, ...}
 export const PresetPatternMap = keyBy(PresetPatternList, "id");
+
+// Get a preset pattern matching the given string
+export const getPresetPatternByString = (
+  string: string
+): Pattern | undefined => {
+  return (
+    PresetPatternList.find(
+      (p) => lowerCase(p.name) === string.trim().toLowerCase()
+    ) ||
+    PresetPatternList.find((p) =>
+      (p.aliases || []).some(
+        (alias) => lowerCase(alias) === lowerCase(string.trim())
+      )
+    )
+  );
+};

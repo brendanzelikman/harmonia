@@ -3,17 +3,18 @@ import { MidiScale, getMidiDegree, getMidiNoteValue } from "utils/midi";
 import {
   PatternBlock,
   PatternChord,
+  PatternMidiBlock,
   PatternMidiChord,
   PatternMidiNote,
   PatternMidiStream,
   PatternNote,
   PatternRest,
   PatternStream,
-  isPatternChord,
   isPatternMidiChord,
   isPatternMidiStream,
   isPatternRest,
   isPatternStrummedChord,
+  isPatternStrummedMidiChord,
 } from "./PatternTypes";
 import { Chords } from "assets/patterns";
 import { initializeScale } from "types/Scale/ScaleTypes";
@@ -22,6 +23,30 @@ import { STAFF_PIVOT } from "lib/musicxml";
 // ------------------------------------------------------------
 // Pattern Chord Helpers
 // ------------------------------------------------------------
+
+/** Replace a rest with a note or push a note to a chord */
+export const addNoteToBlock = (
+  block: PatternBlock,
+  note: PatternNote
+): Exclude<PatternBlock, PatternRest> => {
+  if (Array.isArray(block)) return [...block, note];
+  if (isPatternStrummedChord(block)) {
+    return { ...block, chord: [...block.chord, note] };
+  }
+  return [note];
+};
+
+/** Replace a rest with a MIDI note or push a note to a chord */
+export const addMidiNoteToBlock = (
+  block: PatternMidiBlock,
+  note: PatternMidiNote
+): Exclude<PatternMidiChord, PatternRest> => {
+  if (Array.isArray(block)) return [...block, note];
+  if (isPatternStrummedMidiChord(block)) {
+    return { ...block, chord: [...block.chord, note] };
+  }
+  return [note];
+};
 
 /** Get a `PatternChord` as an array of notes. */
 export const getPatternChordNotes = (chord: PatternChord) => {
@@ -61,6 +86,7 @@ export const getPatternChordWithNewNotes = (
   return [notes[0]];
 };
 
+/** Update the notes of a `PatternMidiChord` */
 export const getPatternMidiChordWithNewNotes = (
   chord: PatternMidiChord,
   _notes: PatternMidiNote[] | ((_note: PatternMidiNote[]) => PatternMidiNote[])
@@ -73,16 +99,7 @@ export const getPatternMidiChordWithNewNotes = (
   return [notes[0]];
 };
 
-export const getPatternMidiStreamWithNewNotes = (
-  stream: PatternMidiStream,
-  _notes: PatternMidiNote[] | ((_note: PatternMidiNote[]) => PatternMidiNote[])
-): PatternMidiStream => {
-  return stream.map((block) => {
-    if (isPatternRest(block)) return block;
-    return getPatternMidiChordWithNewNotes(block, _notes);
-  });
-};
-
+/** Update the notes of a `PatternBlock` */
 export const getPatternBlockWithNewNotes = (
   block: PatternBlock,
   _notes?: PatternNote[] | ((_note: PatternNote[]) => PatternNote[]),
@@ -91,8 +108,45 @@ export const getPatternBlockWithNewNotes = (
   if (restHandler && isPatternRest(block)) {
     return restHandler?.(block) ?? block;
   }
-  if (_notes === undefined || !isPatternChord(block)) return block;
+  if (_notes === undefined || isPatternRest(block)) return block;
   return getPatternChordWithNewNotes(block, _notes);
+};
+
+/** Update the notes of a `PatternMidiBlock` */
+export const getPatternMidiBlockWithNewNotes = (
+  block: PatternMidiBlock,
+  _notes?:
+    | PatternMidiNote[]
+    | ((_note: PatternMidiNote[]) => PatternMidiNote[]),
+  restHandler?: (block: PatternRest) => PatternRest
+): PatternMidiBlock => {
+  if (restHandler && isPatternRest(block)) {
+    return restHandler?.(block) ?? block;
+  }
+  if (_notes === undefined || isPatternRest(block)) return block;
+  return getPatternMidiChordWithNewNotes(block, _notes);
+};
+
+/** Update the notes of a `PatternStream` */
+export const getPatternStreamWithNewNotes = (
+  stream: PatternStream,
+  _notes?: PatternNote[] | ((_note: PatternNote[]) => PatternNote[]),
+  restHandler?: (block: PatternRest) => PatternRest
+): PatternStream => {
+  return stream.map((block) =>
+    getPatternBlockWithNewNotes(block, _notes, restHandler)
+  );
+};
+
+/** Update the notes of a `PatternMidiStream` */
+export const getPatternMidiStreamWithNewNotes = (
+  stream: PatternMidiStream,
+  _notes: PatternMidiNote[] | ((_note: PatternMidiNote[]) => PatternMidiNote[]),
+  restHandler?: (block: PatternRest) => PatternRest
+): PatternMidiStream => {
+  return stream.map((block) =>
+    getPatternMidiBlockWithNewNotes(block, _notes, restHandler)
+  );
 };
 
 // ------------------------------------------------------------

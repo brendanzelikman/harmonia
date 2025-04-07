@@ -1,5 +1,5 @@
 import { useDrag, useDrop } from "react-dnd";
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 import { dragTrack } from "types/Track/TrackThunks";
 import { TrackId } from "types/Track/TrackTypes";
 
@@ -14,7 +14,7 @@ export const useTrackDrag = (id: TrackId) => {
 };
 
 export const useTrackDrop = (id: TrackId) => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   return useDrop({
     accept: "track",
     collect(monitor) {

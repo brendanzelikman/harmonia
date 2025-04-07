@@ -10,7 +10,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { GiRetroController } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
 import { selectProjectId } from "types/Meta/MetaSelectors";
-import { UPDATE_PROJECTS } from "types/Project/ProjectThunks";
+import { UPDATE_PROJECT_EVENT } from "utils/constants";
 
 export const DemosPage = () => {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export const DemosPage = () => {
           onClick={() => navigate("/playground")}
         />
       </HomeControlBar>
-      <HomeList signal={UPDATE_PROJECTS}>
+      <HomeList signal={UPDATE_PROJECT_EVENT}>
         {projects.map((project, index) => (
           <ProjectFormatter
             key={selectProjectId(project)}

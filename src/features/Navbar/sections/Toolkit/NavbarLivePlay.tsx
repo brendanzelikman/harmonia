@@ -1,19 +1,6 @@
 import classNames from "classnames";
-import { useDeep } from "types/hooks";
-import {
-  GiArchiveResearch,
-  GiConsoleController,
-  GiCrystalWand,
-  GiFocusedLightning,
-  GiJackPlug,
-  GiLightningFrequency,
-  GiMisdirection,
-  GiMoebiusTriangle,
-  GiMorphBall,
-  GiPowerLightning,
-  GiRetroController,
-  GiThunderBlade,
-} from "react-icons/gi";
+import { useStore } from "types/hooks";
+import { GiCrystalWand, GiJackPlug, GiMisdirection } from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
   selectIsSelectingPoseClips,
@@ -35,6 +22,8 @@ import { TooltipButton } from "components/TooltipButton";
 import pluralize from "pluralize";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { TRACK_WIDTH } from "utils/constants";
+import { useToggle } from "hooks/useToggle";
+import { FaKeyboard } from "react-icons/fa";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -44,8 +33,8 @@ const hotkeys = [...qwertyKeys, ...numericalKeys, ...trackKeys, ...miscKeys];
 
 export const NavbarLivePlay = () => {
   useLivePlay();
-  const isSelectingPatternClip = useDeep(selectIsSelectingPatternClips);
-  const isSelectingPoseClip = useDeep(selectIsSelectingPoseClips);
+  const isSelectingPatternClip = useStore(selectIsSelectingPatternClips);
+  const isSelectingPoseClip = useStore(selectIsSelectingPoseClips);
 
   // Keep track of held keys and shortcuts
   const holding = useHeldHotkeys(hotkeys);
@@ -61,23 +50,25 @@ export const NavbarLivePlay = () => {
   const direction = isNegative ? "Down" : "Up";
 
   // Get the selected track and its scale names
-  const patternTracks = useDeep(selectPatternTracks);
-  const instrumentMap = useDeep(selectTrackInstrumentMap);
-  const selectedTrack = useDeep(selectSelectedTrack);
-  const chainIds = useDeep((_) => selectTrackAncestorIds(_, selectedTrack?.id));
+  const patternTracks = useStore(selectPatternTracks);
+  const instrumentMap = useStore(selectTrackInstrumentMap);
+  const selectedTrack = useStore(selectSelectedTrack);
+  const chainIds = useStore((_) =>
+    selectTrackAncestorIds(_, selectedTrack?.id)
+  );
 
-  const label1 = useDeep((_) => selectTrackLabelById(_, chainIds[0]));
-  const scale1 = useDeep((_) => selectTrackScaleNameAtTick(_, chainIds[0]));
+  const label1 = useStore((_) => selectTrackLabelById(_, chainIds[0]));
+  const scale1 = useStore((_) => selectTrackScaleNameAtTick(_, chainIds[0]));
   const scaleName1 = label1 !== "*" ? `${scale1} (${label1})` : `First Scale`;
   const hasScale1 = scaleName1 !== `First Scale`;
 
-  const label2 = useDeep((_) => selectTrackLabelById(_, chainIds[1]));
-  const scale2 = useDeep((_) => selectTrackScaleNameAtTick(_, chainIds[1]));
+  const label2 = useStore((_) => selectTrackLabelById(_, chainIds[1]));
+  const scale2 = useStore((_) => selectTrackScaleNameAtTick(_, chainIds[1]));
   const scaleName2 = label2 !== "*" ? `${scale2} (${label2})` : `Second Scale`;
   const hasScale2 = scaleName2 !== `Second Scale`;
 
-  const label3 = useDeep((_) => selectTrackLabelById(_, chainIds[2]));
-  const scale3 = useDeep((_) => selectTrackScaleNameAtTick(_, chainIds[2]));
+  const label3 = useStore((_) => selectTrackLabelById(_, chainIds[2]));
+  const scale3 = useStore((_) => selectTrackScaleNameAtTick(_, chainIds[2]));
   const scaleName3 = label3 !== "*" ? `${scale3} (${label3})` : `Third Scale`;
   const hasScale3 = scaleName3 !== `Third Scale`;
 
@@ -104,7 +95,7 @@ export const NavbarLivePlay = () => {
     y: "y",
   } as const;
 
-  const trackMap = useDeep(selectTrackLabelMap);
+  const trackMap = useStore(selectTrackLabelMap);
   const getKeycodeLabel = useCallback(
     (keycode: string) => {
       const number = parseInt(keycode);
@@ -437,9 +428,11 @@ export const NavbarLivePlay = () => {
     ]
   );
 
-  const hasTracks = useDeep(selectHasTracks);
+  const hasTracks = useStore(selectHasTracks);
   const working =
     isMixing || isVoiceLeadingClosest || isVoiceLeadingDegree || holdingPoses;
+
+  const signal = useToggle("livePlay");
   const isActive = working || hasTracks;
 
   const Span = useCallback((label: string, active = false, slow = false) => {
@@ -478,19 +471,19 @@ export const NavbarLivePlay = () => {
   return (
     <TooltipButton
       direction="vertical"
-      active={working}
+      active={working || signal.isOpen}
       freezeInside={working}
       hideRing
       activeLabel={
         isMixing ? (
-          <div className="h-[4.5rem] total-center-col">
+          <div className="h-[68px] total-center-col">
             <div className="text-base font-light">Mixing Samplers by Index</div>
             <div className="text-slate-400 text-sm">
               (Hold {M}/{S} + {Number})
             </div>
           </div>
         ) : isVoiceLeadingClosest ? (
-          <div className="h-[4.5rem] total-center-col">
+          <div className="h-[68px] total-center-col">
             <div className="text-base font-light">
               Closest Pose Along Scales
             </div>
@@ -499,21 +492,21 @@ export const NavbarLivePlay = () => {
             </div>
           </div>
         ) : isVoiceLeadingDegree ? (
-          <div className="h-[4.5rem] total-center-col">
+          <div className="h-[68px] total-center-col">
             <div className="text-base font-light">Closest Pose At Degree </div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {D} + {Number})
             </div>
           </div>
         ) : isSelectingPoseClip ? (
-          <div className="h-[4.5rem] total-center-col">
+          <div className="h-[68px] total-center-col">
             <div className="text-base font-light">Updating Poses</div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {Number})
             </div>
           </div>
         ) : holdingPoses ? (
-          <div className="h-[4.5rem] total-center-col">
+          <div className="h-[68px] total-center-col">
             <div className="text-base font-light">Creating Poses</div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {Number})
@@ -523,15 +516,16 @@ export const NavbarLivePlay = () => {
       }
       keepTooltipOnClick
       notClickable
-      marginLeft={-143}
+      marginLeft={-157}
       marginTop={0}
       width={TRACK_WIDTH}
-      borderColor="border-fuchsia-500"
+      backgroundColor="bg-gradient-radial from-slate-900 to-zinc-900"
+      borderColor={`border-2 border-fuchsia-500`}
       rounding="rounded-sm"
       className={classNames(
-        "min-w-8 min-h-8 -ml-1 shrink-0 relative size-9 rounded-full select-none cursor-pointer",
-        "flex total-center hover:text-fuchsia-300 transition-all font-nunito font-light",
-        working ? "text-fuchsia-400" : ""
+        "min-w-8 min-h-7 -ml-1 shrink-0 relative size-9 rounded-full select-none cursor-pointer",
+        "flex total-center hover:text-fuchsia-300 transition-all font-light",
+        working || signal.isOpen ? "text-fuchsia-400" : ""
       )}
       label={
         <div className="text-white animate-in fade-in duration-300">
@@ -561,8 +555,8 @@ export const NavbarLivePlay = () => {
             {!isActive
               ? hasTracks
                 ? "Select Track, Pattern, or Pose"
-                : "Create Tree to Unlock Keyboard Shortcuts"
-              : "Develop Your Tree"}
+                : "Create Tree to Unlock Interactive Shortcuts"
+              : "Develop Your Project"}
           </div>
           {isActive && (
             <div className="flex flex-col w-full gap-2 mt-1.5">
@@ -581,9 +575,9 @@ export const NavbarLivePlay = () => {
       ) : isPosing ? (
         <GiCrystalWand className="text-2xl" />
       ) : hasTracks ? (
-        <GiMoebiusTriangle className="text-2xl" />
+        <FaKeyboard className="text-2xl" />
       ) : (
-        <GiArchiveResearch className="text-2xl" />
+        <FaKeyboard className="text-2xl" />
       )}
     </TooltipButton>
   );

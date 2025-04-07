@@ -4,7 +4,7 @@ import { PropsWithChildren, ReactNode } from "react";
 export const HomeControlBar = (props: PropsWithChildren) => {
   const { children } = props;
   return (
-    <div className="w-full my-6 mt-auto p-4 rounded-lg flex items-center max-[600px]:justify-center gap-6 ring-2 shadow-xl backdrop-blur bg-slate-950/60 ring-indigo-500/80 animate-in fade-in">
+    <div className="w-full my-6 mt-auto p-4 rounded-lg flex items-center max-[600px]:justify-center gap-6 ring-2 shadow-xl backdrop-blur bg-gradient-radial from-slate-900/80 to-slate-950/90 ring-indigo-500/80 animate-in fade-in">
       {children}
     </div>
   );

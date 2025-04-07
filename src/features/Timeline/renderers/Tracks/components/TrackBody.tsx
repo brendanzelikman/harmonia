@@ -1,4 +1,4 @@
-import { useTransportTick } from "hooks/useTransportTick";
+import { useTransportTick } from "types/Transport/TransportHooks";
 import { memo, useState } from "react";
 import {
   GiCrystalWand,
@@ -10,21 +10,22 @@ import {
   selectTrackMidiScaleAtTick,
   selectTrackJSXAtTick,
 } from "types/Arrangement/ArrangementTrackSelectors";
-import { useDeep } from "types/hooks";
+import { useStore } from "types/hooks";
 import {
   selectTrackInstrumentName,
   selectTrackLabelById,
 } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
+import { cancelEvent } from "utils/html";
 import { getMidiPitchClass } from "utils/midi";
 import { getScaleKey, getScaleName } from "utils/scale";
 
 const ScaleTrackBody = (props: { trackId: TrackId }) => {
   const { trackId } = props;
   const { tick } = useTransportTick();
-  const scale = useDeep((_) => selectTrackMidiScaleAtTick(_, trackId, tick));
-  const label = useDeep((_) => selectTrackLabelById(_, trackId));
-  const pose = useDeep((_) => selectTrackJSXAtTick(_, trackId, tick));
+  const scale = useStore((_) => selectTrackMidiScaleAtTick(_, trackId, tick));
+  const label = useStore((_) => selectTrackLabelById(_, trackId));
+  const pose = useStore((_) => selectTrackJSXAtTick(_, trackId, tick));
   const [showNotes, setShowNotes] = useState(false);
   const name = getScaleName(scale);
   const key = getScaleKey(scale);
@@ -38,7 +39,10 @@ const ScaleTrackBody = (props: { trackId: TrackId }) => {
       </div>
       <div
         className="flex overflow-scroll text-sky-300 cursor-pointer"
-        onClick={() => setShowNotes((prev) => !prev)}
+        onClick={(e) => {
+          cancelEvent(e);
+          setShowNotes((prev) => !prev);
+        }}
       >
         <GiDominoMask className="mr-1 my-auto inline shrink-0" />
         <div>{scaleText}</div>
@@ -55,9 +59,9 @@ export const MemoizedScaleTrackBody = memo(ScaleTrackBody);
 export const PatternTrackBody = (props: { trackId: TrackId }) => {
   const { trackId } = props;
   const { tick } = useTransportTick();
-  const label = useDeep((_) => selectTrackLabelById(_, trackId));
-  const instrumentName = useDeep((_) => selectTrackInstrumentName(_, trackId));
-  const pose = useDeep((_) => selectTrackJSXAtTick(_, trackId, tick));
+  const label = useStore((_) => selectTrackLabelById(_, trackId));
+  const instrumentName = useStore((_) => selectTrackInstrumentName(_, trackId));
+  const pose = useStore((_) => selectTrackJSXAtTick(_, trackId, tick));
   return (
     <div className="min-w-0 grow flex flex-col text-xs pt-2 *:h-4 gap-0.5">
       <div className="flex text-teal-300/95">

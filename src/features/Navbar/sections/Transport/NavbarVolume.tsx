@@ -7,30 +7,27 @@ import {
   BsVolumeDownFill,
   BsVolumeOffFill,
 } from "react-icons/bs";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import {
   selectTransportMute,
   selectTransportVolume,
   selectTransportVolumePercent,
 } from "types/Transport/TransportSelectors";
-import {
-  toggleTransportMute,
-  setTransportVolume,
-} from "types/Transport/TransportThunks";
-import { MIN_TRANSPORT_VOLUME, MAX_TRANSPORT_VOLUME } from "utils/constants";
+import { setMute, setVolume } from "types/Transport/TransportSlice";
+import { MIN_VOLUME, MAX_VOLUME } from "utils/constants";
 
 export function NavbarVolume() {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const [hovering, setHovering] = useState(false);
-  const volume = useDeep(selectTransportVolume);
-  const mute = useDeep(selectTransportMute);
-  const volumePercent = useDeep(selectTransportVolumePercent);
+  const volume = useStore(selectTransportVolume);
+  const mute = useStore(selectTransportMute);
+  const volumePercent = useStore(selectTransportVolumePercent);
 
   return (
     <div className="relative group">
       <NavbarTooltipButton
         className="p-0.5 border border-white/20 hover:ring-1 hover:ring-slate-200 transition-all cursor-pointer relative flex total-center xl:text-3xl text-xl"
-        onClick={() => dispatch(toggleTransportMute())}
+        onClick={() => dispatch(setMute())}
         keepTooltipOnClick
         marginLeft={50}
         onMouseEnter={() => setHovering(true)}
@@ -55,12 +52,10 @@ export function NavbarVolume() {
           <input
             className="-rotate-90 w-24 -ml-4 mt-12 cursor-pointer accent-white caret-slate-50"
             type="range"
-            value={mute ? MIN_TRANSPORT_VOLUME : volume}
-            min={MIN_TRANSPORT_VOLUME}
-            max={MAX_TRANSPORT_VOLUME}
-            onChange={(e) =>
-              dispatch(setTransportVolume(parseInt(e.target.value)))
-            }
+            value={mute ? MIN_VOLUME : volume}
+            min={MIN_VOLUME}
+            max={MAX_VOLUME}
+            onChange={(e) => dispatch(setVolume(parseInt(e.target.value)))}
             disabled={mute}
           />
           <div className="mt-12 flex flex-col text-xs text-center">

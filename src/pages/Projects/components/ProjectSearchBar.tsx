@@ -3,7 +3,6 @@ import { useCustomEventListener } from "hooks/useCustomEventListener";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useDrop } from "react-dnd";
 import { useNavigate } from "react-router-dom";
-import { useProjectDispatch } from "types/hooks";
 import { loadProject } from "types/Project/ProjectLoaders";
 import { dispatchCustomEvent } from "utils/html";
 
@@ -14,7 +13,6 @@ interface ProjectSearchBarProps {
 
 export const ProjectSearchBar = (props: ProjectSearchBarProps) => {
   const { query, setQuery } = props;
-  const dispatch = useProjectDispatch();
   const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   useCustomEventListener("dragged-project", (e) => setIsDragging(e.detail));
@@ -22,12 +20,10 @@ export const ProjectSearchBar = (props: ProjectSearchBarProps) => {
     return {
       accept: "project",
       collect(monitor) {
-        return {
-          isOver: monitor.isOver(),
-        };
+        return { isOver: monitor.isOver() };
       },
       drop: (item: any) => {
-        dispatch(loadProject(item.id, () => navigate("/playground")));
+        loadProject(item.id, () => navigate("/playground"));
         setTimeout(() => dispatchCustomEvent("dragged-project", false), 500);
       },
     };

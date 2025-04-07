@@ -1,11 +1,11 @@
 import { useProjectFetcher } from "./useProjectFetcher";
 
 const DEMO_PATHS = [
-  "demos/beethoven.json",
-  "demos/conflict.json",
-  "demos/moonlight.json",
-  "demos/waves.json",
+  "demos/romanesca.json",
   "demos/prelude.json",
+  "demos/moonlight.json",
+  "demos/beethoven.json",
+  "demos/waves.json",
 ];
 
 export const useDemoProjects = () => {

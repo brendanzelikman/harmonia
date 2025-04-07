@@ -1,5 +1,5 @@
 import { AnyAction, ThunkAction } from "@reduxjs/toolkit";
-import { isPlainObject, isString } from "lodash";
+import { isObject, isString } from "lodash";
 import { BaseProject, store } from "providers/store";
 import { defaultArrangement } from "types/Arrangement/ArrangementTypes";
 import { defaultTimeline } from "types/Timeline/TimelineTypes";
@@ -9,9 +9,7 @@ import {
   defaultProjectMetadata,
   initializeProjectMetadata,
   NEW_PROJECT_NAME,
-  ProjectMetadata,
 } from "../Meta/MetaTypes";
-import { useToggledState } from "hooks/useToggledState";
 
 // ------------------------------------------------------------
 // Project Definitions
@@ -58,27 +56,21 @@ export const initializeProject = (template: Project = defaultProject) => {
     ...template,
     present: { ...template.present, meta },
   };
+  project._latestUnfiltered = project.present;
   return project;
 };
-
-// The project can be directly edited with a custom window
-export const useTerminal = () => useToggledState("terminal");
 
 // ------------------------------------------------------------
 // Project Type Guards
 // ------------------------------------------------------------
 
-/** Checks if a given object is of type `ProjectMetadata`. */
-export const isProjectMetadata = (obj: unknown): obj is ProjectMetadata => {
-  const candidate = obj as ProjectMetadata;
-  return isPlainObject(candidate) && isString(candidate.id);
-};
-
 /** Checks if a given object is of type `Project`. */
 export const isProject = (obj: unknown): obj is Project => {
   const candidate = obj as Project;
   return (
-    isPlainObject(candidate?.present) &&
-    isProjectMetadata(candidate.present.meta)
+    isObject(candidate) &&
+    isObject(candidate?.present) &&
+    isObject(candidate?.present.meta) &&
+    isString(candidate?.present.meta.id)
   );
 };

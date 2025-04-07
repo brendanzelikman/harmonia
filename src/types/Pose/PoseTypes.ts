@@ -85,7 +85,6 @@ export type Pose = {
   operations?: Array<PoseTransformation>;
   stream?: PoseStream;
   name?: string;
-  trackId?: TrackId;
 };
 
 /** A `PresetPose` has its id prefixed */
@@ -107,7 +106,7 @@ export const initializePose = (
 /** The default pose is used for initialization. */
 export const defaultPose: Pose = {
   id: createId("pose"),
-  name: "New Pose",
+  name: "Pose 1",
 };
 
 // ------------------------------------------------------------

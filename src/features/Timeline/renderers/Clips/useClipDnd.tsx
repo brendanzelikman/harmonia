@@ -1,11 +1,11 @@
 import { useDrag } from "react-dnd";
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
 import { PortaledClipId } from "types/Portal/PortalTypes";
 import { dispatchCustomEvent } from "utils/html";
 
 export function useClipDrag(id: PortaledClipId) {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   return useDrag({
     type: "clip",
     item: () => {

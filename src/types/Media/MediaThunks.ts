@@ -23,8 +23,8 @@ import {
 import {
   addClips,
   updateClips,
-  removeClips,
   addClip,
+  removeClips,
 } from "types/Clip/ClipSlice";
 import {
   Clip,
@@ -34,9 +34,7 @@ import {
   isPatternClip,
   isPoseClip,
   ClipType,
-  isClipId,
 } from "types/Clip/ClipTypes";
-import { getTransport } from "tone";
 import {
   selectClipDuration,
   selectClipIds,
@@ -59,6 +57,7 @@ import {
   selectSelectedClipIds,
   selectSelectedPatternClips,
   selectTimeline,
+  selectCurrentTimelineTick,
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackMap, selectTrackIds } from "types/Track/TrackSelectors";
 import {
@@ -109,16 +108,12 @@ export const createMedia =
       if (clip.type === "pattern" && !(clip.patternId in patternMap)) {
         clips[i] = {
           ...clip,
-          patternId: dispatch(
-            createPattern({ data: { trackId: clip.trackId }, undoType })
-          ).id,
+          patternId: dispatch(createPattern({ data: {}, undoType })).id,
         };
       } else if (clip.type === "pose" && !(clip.poseId in poseMap)) {
         clips[i] = {
           ...clip,
-          poseId: dispatch(
-            createPose({ data: { trackId: clip.trackId }, undoType })
-          ).id,
+          poseId: dispatch(createPose({ data: {}, undoType })).id,
         };
       }
     });
@@ -201,15 +196,9 @@ export const filterSelectionByType =
     if (!type) return;
     const project = getProject();
     const selection = selectMediaSelection(project);
-    dispatch(
-      updateMediaSelection({
-        data: {
-          clipIds: (selection.clipIds ?? []).filter((id) =>
-            isClipId<T>(id, type)
-          ),
-        },
-      })
-    );
+    const selectedIds = selection.clipIds ?? [];
+    const clipIds = selectedIds.filter((id) => id.startsWith(type));
+    dispatch(updateMediaSelection({ data: { clipIds } }));
   };
 
 /** Copy all selected media to the clipboard. */
@@ -257,17 +246,13 @@ export const pasteSelectedMedia = (): Thunk => (dispatch, getProject) => {
   if (!media?.length) return noMedia;
 
   // Get the offseted media
-  const offsetedMedia = getOffsettedMedia(
-    media,
-    getTransport().ticks,
-    selectedTrackId,
-    trackIds
-  );
+  const tick = selectCurrentTimelineTick(project);
+  const offseted = getOffsettedMedia(media, tick, selectedTrackId, trackIds);
 
   // Make sure all of the media is valid
   const trackMap = selectTrackMap(project);
-  const validMedia = getValidMedia(offsetedMedia, trackMap);
-  if (validMedia.length !== offsetedMedia.length) return noMedia;
+  const validMedia = getValidMedia(offseted, trackMap);
+  if (validMedia.length !== offseted.length) return noMedia;
 
   // Prepare the new media
   const clips = getClipsFromMedia(validMedia);
@@ -497,7 +482,12 @@ export const mergeSelectedMedia =
       patternId,
       tick,
     });
-    dispatch(removeClips({ data: patternClips.map((c) => c.id), undoType }));
+    dispatch(
+      deleteMedia({
+        data: { clipIds: patternClips.map((c) => c.id) },
+        undoType,
+      })
+    );
     dispatch(addClip({ data: clip, undoType }));
   };
 
@@ -625,7 +615,7 @@ export const onMediaDragEnd =
           const pattern = selectPatternById(project, clip.patternId);
           const newPatternId = dispatch(
             copyPattern({
-              data: { ...pattern, trackId: clip.trackId },
+              data: { ...pattern },
               undoType,
             })
           ).id;
@@ -638,7 +628,7 @@ export const onMediaDragEnd =
         } else if (isPoseClip(clip)) {
           const pose = selectPoseById(project, clip.poseId);
           const newPoseId = dispatch(
-            copyPose({ data: { ...pose, trackId: clip.trackId }, undoType })
+            copyPose({ data: { ...pose }, undoType })
           ).id;
           dispatch(
             addClip({

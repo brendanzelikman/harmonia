@@ -1,15 +1,15 @@
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { CREATE_RANDOM_TRACKS_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
+import { CREATE_RANDOM_TRACKS_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
 import {
   GiPerspectiveDiceFive,
   GiPerspectiveDiceSixFacesRandom,
   GiWateringCan,
 } from "react-icons/gi";
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 import { createRandomHierarchy } from "types/Track/ScaleTrack/ScaleTrackThunks";
 
 export const NavbarRandomTree = () => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   return (
     <NavbarTooltipButton
       keepTooltipOnClick

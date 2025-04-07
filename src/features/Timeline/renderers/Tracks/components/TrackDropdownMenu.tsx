@@ -20,7 +20,7 @@ import {
   BsTrash,
 } from "react-icons/bs";
 import { ReactNode } from "react";
-import { cancelEvent } from "utils/html";
+import { blurEvent, cancelEvent } from "utils/html";
 import {
   GiAudioCassette,
   GiFamilyTree,
@@ -28,7 +28,7 @@ import {
   GiCrystalWand,
 } from "react-icons/gi";
 import { SiMidi } from "react-icons/si";
-import { exportTrackToMIDI } from "types/Clip/ClipThunks";
+import { exportTrackClipsToMIDI } from "types/Clip/ClipThunks";
 import { inputPoseVector } from "types/Pose/PoseThunks";
 import {
   insertScaleTrack,
@@ -40,10 +40,11 @@ import {
   popTrack,
   selectTrackClips,
   collapseTrackDescendants,
+  insertRandomParent,
 } from "types/Track/TrackThunks";
 import { TrackDropdownButton } from "./TrackDropdownButton";
 import { Track } from "types/Track/TrackTypes";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import classNames from "classnames";
 import {
   selectTrackChildren,
@@ -60,24 +61,23 @@ export const TrackDropdownMenu = (props: {
   content?: string;
   children?: ReactNode;
 }) => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const { track } = props;
   const trackId = track.id;
   const isPT = track.type === "pattern";
   const mini = track.collapsed;
-  const hasMini = useDeep((_) => selectTrackChildren(_, trackId)).some(
+  const hasMini = useStore((_) => selectTrackChildren(_, trackId)).some(
     (child) => child.collapsed
   );
   const isParent = !!track.trackIds.length;
-  const key = useDeep((_) => selectTrackInstrumentKey(_, track.id));
+  const key = useStore((_) => selectTrackInstrumentKey(_, track.id));
   const isSampled = isPT && key && !INSTRUMENT_KEYS.includes(key);
   const status = isParent ? "Tree" : "Track";
 
-  // const channel = track.port ? track.port - PLUGIN_STARTING_PORT : 0;
   return (
     <Menu
       as="div"
-      onSelect={(e) => e.currentTarget.blur()}
+      onSelect={blurEvent}
       className="relative inline-block focus:border-0 active:border-0"
     >
       {({ open }) => (
@@ -85,6 +85,7 @@ export const TrackDropdownMenu = (props: {
           <div className="w-full" onClick={cancelEvent}>
             <MenuButton
               aria-label="Track Dropdown Menu"
+              onFocus={blurEvent}
               className={`w-full h-full rounded select-none ${
                 open ? "text-indigo-400" : "text-white"
               } outline-none`}
@@ -134,9 +135,16 @@ export const TrackDropdownMenu = (props: {
                   )}
                   <TrackDropdownButton
                     content="Insert Parent Scale"
+                    icon={<CiRuler className="scale-110" />}
+                    onClick={() =>
+                      dispatch(insertScaleTrack({ data: { trackId } }))
+                    }
+                  />
+                  <TrackDropdownButton
+                    content="Insert Random Scale"
                     divideEnd={!track?.parentId && !isPT}
                     icon={<CiRuler className="scale-110" />}
-                    onClick={() => dispatch(insertScaleTrack(trackId))}
+                    onClick={() => dispatch(insertRandomParent(trackId))}
                   />
                   {track?.parentId && (
                     <TrackDropdownButton
@@ -171,7 +179,7 @@ export const TrackDropdownMenu = (props: {
                   <TrackDropdownButton
                     content={`Export to MIDI`}
                     icon={<SiMidi />}
-                    onClick={() => dispatch(exportTrackToMIDI(trackId))}
+                    onClick={() => dispatch(exportTrackClipsToMIDI(trackId))}
                   />
                   <TrackDropdownButton
                     content={`Duplicate ${status}`}

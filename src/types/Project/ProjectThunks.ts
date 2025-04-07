@@ -5,21 +5,16 @@ import {
   sanitizeProject,
   timestampProject,
 } from "./ProjectFunctions";
-import {
-  Project,
-  initializeProject,
-  Thunk,
-  defaultProject,
-} from "./ProjectTypes";
+import { Project, initializeProject, defaultProject } from "./ProjectTypes";
 import {
   uploadProjectToDB,
   setCurrentProjectId,
   updateProjectInDB,
   deleteProjectFromDB,
   getProjectsFromDB,
-} from "providers/idb/projects";
-
-export const UPDATE_PROJECTS = "updateProjects";
+} from "providers/projects";
+import { UPDATE_PROJECT_EVENT } from "utils/constants";
+import { setProject, store } from "providers/store";
 
 /** Try to create a new project, using the given template if specified. */
 export const createProject = async (template?: Project) => {
@@ -32,34 +27,32 @@ export const createProject = async (template?: Project) => {
   } catch (e) {
     console.log(e);
   } finally {
-    dispatchCustomEvent(UPDATE_PROJECTS, id);
+    dispatchCustomEvent(UPDATE_PROJECT_EVENT, id);
   }
 };
 
 /** Save a sanitized copy of the given project to the database.. */
-export const saveProject =
-  (project?: Project): Thunk =>
-  async (dispatch, getProject) => {
-    // Sanitize the project
-    const sanitizedProject = sanitizeProject(project || getProject());
-    const updatedProject = timestampProject(sanitizedProject);
+export const saveProject = (project?: Project) => {
+  // Sanitize the project
+  const sanitizedProject = sanitizeProject(project);
+  const updatedProject = timestampProject(sanitizedProject);
 
-    // Update the project in the database.
-    updateProjectInDB(updatedProject);
-  };
+  // Update the project in the database.
+  updateProjectInDB(updatedProject);
+};
 
 /** Reset the project's state to the default. */
-export const clearProject = (): Thunk => (dispatch, getProject) => {
-  const project = getProject();
-  const meta = selectMeta(project);
-  dispatch({
-    type: "setProject",
-    payload: sanitizeProject({
-      ...defaultProject,
-      present: { ...defaultProject.present, meta },
-      _latestUnfiltered: project._latestUnfiltered,
-    }),
-  });
+export const clearProject = () => {
+  const project = store.getState();
+  const emptyProject = {
+    ...project,
+    past: [...project.past, project.present],
+    present: { ...defaultProject.present, meta: project.present.meta },
+    future: [],
+    group: null,
+  };
+  emptyProject._latestUnfiltered = emptyProject.present;
+  setProject(emptyProject);
 };
 
 /** Try to delete the project from the database. */
@@ -69,7 +62,7 @@ export const deleteProject = (id: string) => async () => {
   } catch (e) {
     console.error(e);
   } finally {
-    dispatchCustomEvent(UPDATE_PROJECTS, id);
+    dispatchCustomEvent(UPDATE_PROJECT_EVENT, id);
   }
 };
 
@@ -96,7 +89,7 @@ export const deleteEmptyProjects = async () => {
   } catch (e) {
     console.error(e);
   } finally {
-    dispatchCustomEvent(UPDATE_PROJECTS, "all");
+    dispatchCustomEvent(UPDATE_PROJECT_EVENT, "all");
   }
 };
 
@@ -111,6 +104,6 @@ export const deleteAllProjects = async () => {
   } catch (e) {
     console.error(e);
   } finally {
-    dispatchCustomEvent(UPDATE_PROJECTS, "all");
+    dispatchCustomEvent(UPDATE_PROJECT_EVENT, "all");
   }
 };

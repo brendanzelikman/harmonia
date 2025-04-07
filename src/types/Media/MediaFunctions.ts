@@ -1,7 +1,7 @@
 import { Media, MediaElement } from "./MediaTypes";
 import { Tick, Timed } from "types/units";
 import { inRange, isUndefined, minBy } from "lodash";
-import { Clip, isClipInterface } from "types/Clip/ClipTypes";
+import { Clip } from "types/Clip/ClipTypes";
 import { applyPortalsToClips } from "types/Portal/PortalFunctions";
 import { isPortal } from "types/Portal/PortalTypes";
 import { TrackMap, TrackId } from "types/Track/TrackTypes";
@@ -9,12 +9,12 @@ import { isFiniteNumber } from "types/util";
 
 /** Get the clips from the media. */
 export const getClipsFromMedia = (media: Media) => {
-  return media.filter((item) => isClipInterface(item));
+  return media.filter((item) => "type" in item);
 };
 
 /** Get the portals from the media. */
 export const getPortalsFromMedia = (media: Media) => {
-  return media.filter(isPortal);
+  return media.filter((item) => "portaledTrackId" in item);
 };
 
 /** Sort the media clips by tick. */
@@ -73,7 +73,7 @@ export const getMediaDuration = (media: MediaElement[]) => {
 /** Get the media that starts in the given tick range. */
 export const getMediaInRange = (
   media: Timed<MediaElement>[],
-  [startTick, endTick]: [number, number]
+  [startTick, endTick]: number[]
 ): Media => {
   return media.filter((item, i) => {
     // Get the duration of the media
@@ -110,11 +110,10 @@ export const getMediaTrackIds = (
   const endIndex = trackIds.findIndex((id) => id === trackId);
   if (startIndex === -1 || endIndex === -1) return [];
 
-  if (startIndex > endIndex) {
-    return trackIds.slice(endIndex, startIndex + 1);
-  } else {
-    return trackIds.slice(startIndex, endIndex + 1);
-  }
+  return trackIds.slice(
+    Math.min(startIndex, endIndex),
+    Math.max(startIndex, endIndex) + 1
+  );
 };
 
 /** Get the starting track index of the media using the list of ordered track IDs. */

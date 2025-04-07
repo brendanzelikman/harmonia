@@ -7,7 +7,7 @@ import { ToolShortcuts } from "./content/ToolShortcuts";
 import { TrackShortcuts } from "./content/TrackShortcuts";
 import { BsXCircle } from "react-icons/bs";
 import { TickDurations } from "./content/TickDurations";
-import { useToggledState } from "hooks/useToggledState";
+import { useToggle } from "hooks/useToggle";
 import { ClipShortcuts } from "./content/ClipShortcuts";
 
 export const SHORTCUT_TYPES = [
@@ -21,10 +21,10 @@ export const SHORTCUT_TYPES = [
 export type ShortcutType = (typeof SHORTCUT_TYPES)[number];
 
 export function Shortcuts() {
-  const diary = useToggledState("diary");
+  const diary = useToggle("diary");
   const showingDiary = diary.isOpen;
 
-  const shortcuts = useToggledState("shortcuts");
+  const shortcuts = useToggle("shortcuts");
   const [type, setType] = useState<ShortcutType>("Navigating Project");
 
   // Close the diary if it's open
@@ -72,10 +72,10 @@ export function Shortcuts() {
     <Dialog
       open={shortcuts.isOpen}
       as="div"
-      className="relative font-nunito"
+      className="relative"
       onClose={shortcuts.close}
     >
-      <div className="fixed flex justify-center inset-0 p-2 z-[100] bg-slate-800/80 text-slate-300 backdrop-blur animate-in fade-in overflow-scroll">
+      <div className="fixed flex justify-center inset-0 p-2 z-[180] bg-slate-800/80 text-slate-300 backdrop-blur animate-in fade-in overflow-scroll">
         <div className="w-full h-full flex justify-center flex-1 gap-8">
           <div className="flex flex-col w-[28rem] p-8 gap-2">
             <span className="text-4xl font-semibold border-b   border-b-slate-400/50 p-4 mt-8 mb-6">

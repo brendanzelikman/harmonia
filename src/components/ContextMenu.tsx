@@ -96,7 +96,7 @@ export function ContextMenu(props: {
   return (
     <div
       ref={contextRef}
-      className={`absolute flex flex-col items-center bg-slate-900/80 border border-slate-50/50 py-2 rounded-lg shadow-2xl z-[100] font-nunito font-light ${
+      className={`absolute flex flex-col items-center bg-slate-900/80 border border-slate-50/50 py-2 rounded-lg shadow-2xl z-[100] font-light ${
         props.className ?? ""
       } backdrop-blur-lg text-sm`}
       onClick={() => setVisible(false)}

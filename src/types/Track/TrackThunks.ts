@@ -1,9 +1,18 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { Payload, createUndoType, unpackData, unpackUndoType } from "lib/redux";
-import { difference, union } from "lodash";
-import { selectClipsByTrackIds } from "types/Clip/ClipSelectors";
-import { addClips, removeClips, updateClips } from "types/Clip/ClipSlice";
-import { Clip, ClipType, initializeClip } from "types/Clip/ClipTypes";
+import { difference, range, sample, union, uniq } from "lodash";
+import {
+  selectClipsByTrackIds,
+  selectPatternClipsByPatternId,
+  selectPoseClipsByPoseId,
+} from "types/Clip/ClipSelectors";
+import { addClips, updateClips } from "types/Clip/ClipSlice";
+import {
+  Clip,
+  ClipType,
+  initializeClip,
+  isPatternClip,
+} from "types/Clip/ClipTypes";
 import {
   LiveAudioInstance,
   LIVE_AUDIO_INSTANCES,
@@ -18,7 +27,13 @@ import { selectPortalsByTrackIds } from "types/Portal/PortalSelectors";
 import { removePortals } from "types/Portal/PortalSlice";
 import { Thunk } from "types/Project/ProjectTypes";
 import { addScale, removeScale, updateScale } from "types/Scale/ScaleSlice";
-import { isNestedNote, initializeScale, ScaleId } from "types/Scale/ScaleTypes";
+import {
+  isNestedNote,
+  initializeScale,
+  ScaleId,
+  chromaticNotes,
+  ScaleObject,
+} from "types/Scale/ScaleTypes";
 import {
   selectIsEditingTracks,
   selectSelectedTrackId,
@@ -28,7 +43,6 @@ import {
   clearTimelineState,
   setSelectedTrackId,
 } from "types/Timeline/TimelineSlice";
-import { createScaleTrack } from "./ScaleTrack/ScaleTrackThunks";
 import {
   selectTrackById,
   selectTrackInstrument,
@@ -52,19 +66,31 @@ import {
   selectCustomPatterns,
   selectPatternById,
 } from "types/Pattern/PatternSelectors";
-import { selectPoseById, selectPoses } from "types/Pose/PoseSelectors";
+import { selectPoseById } from "types/Pose/PoseSelectors";
 import { addPose, removePose } from "types/Pose/PoseSlice";
 import {
   addPattern,
   removePattern,
-  updatePatterns,
+  updatePattern,
 } from "types/Pattern/PatternSlice";
-import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
+import {
+  getMidiStreamScale,
+  getPatternBlockWithNewNotes,
+} from "types/Pattern/PatternUtils";
 import { addClipIdsToSelection } from "types/Timeline/thunks/TimelineSelectionThunks";
 import { selectTrackClipIds } from "types/Arrangement/ArrangementTrackSelectors";
 import { initializePose } from "types/Pose/PoseTypes";
 import { replaceVectorKeys } from "utils/vector";
 import { trackActions } from "./TrackSlice";
+import {
+  selectPortaledClips,
+  selectPortaledPatternClipStream,
+} from "types/Arrangement/ArrangementSelectors";
+import { ScaleTrack } from "./ScaleTrack/ScaleTrackTypes";
+import { convertMidiToNestedNote } from "./TrackUtils";
+import { MidiScale } from "utils/midi";
+import { createScaleTrack } from "./ScaleTrack/ScaleTrackThunks";
+import { deleteMedia } from "types/Media/MediaThunks";
 
 // ------------------------------------------------------------
 // Track - CRUD
@@ -305,10 +331,7 @@ export const duplicateTrack =
         if (isScaleTrack(newParent)) {
           const scale = selectTrackScale(project, child.id);
           if (scale) {
-            const newScale = initializeScale({
-              ...scale,
-              trackId: newParent.id,
-            });
+            const newScale = initializeScale({ ...scale });
             newScaleMap[scale.id] = newScale.id;
 
             // Update the new track's scale ID
@@ -350,14 +373,12 @@ export const duplicateTrack =
             const pattern = initializePattern({
               ...oldPattern,
               stream: baseStream,
-              trackId: newParent.id,
             });
             dispatch(addPattern({ data: pattern, undoType }));
             allClips.push({ ...clip, patternId: pattern.id });
           } else if (clip.type === "pose") {
             const pose = initializePose({
               ...selectPoseById(project, clip.poseId),
-              trackId: newParent.id,
             });
             dispatch(addPose({ data: pose, undoType }));
             allClips.push({ ...clip, poseId: pose.id });
@@ -407,7 +428,7 @@ export const clearTrack =
       .map((c) => c.id);
 
     // Remove all clips
-    dispatch(removeClips({ data: clipIds, undoType }));
+    dispatch(deleteMedia({ data: { clipIds }, undoType }));
 
     // Remove all portals if no type is specified
     if (!type) {
@@ -427,8 +448,6 @@ export const deleteTrack =
     const track = selectTrackById(project, trackId);
     if (!track) return;
 
-    const patterns = selectCustomPatterns(project);
-    const poses = selectPoses(project);
     const affectedTracks = selectTrackDescendants(project, trackId);
     const affectedTrackIds = affectedTracks.map((t) => t.id);
 
@@ -449,10 +468,10 @@ export const deleteTrack =
       const portals = selectPortalsByTrackIds(project, [id]);
       const portalIds = portals.map((p) => p.id);
       if (clipIds.length) {
-        dispatch(removeClips({ data: clipIds, undoType }));
+        dispatch(deleteMedia({ data: { clipIds }, undoType }));
       }
       if (portalIds.length) {
-        dispatch(removePortals({ data: portalIds, undoType }));
+        dispatch(deleteMedia({ data: { portalIds }, undoType }));
       }
 
       const track = selectTrackById(project, id);
@@ -472,18 +491,20 @@ export const deleteTrack =
       // Remove the track
       dispatch(removeTrack({ data: id, undoType }));
 
-      // Remove all empty patterns referencing the track
-      for (const pattern of patterns) {
-        if (pattern.trackId === id) {
-          dispatch(removePattern({ data: pattern.id, undoType }));
-        }
-      }
-
-      // Remove all empty poses referencing the track
-      for (const pose of poses) {
-        const vector = pose.vector ?? {};
-        if (pose.trackId === id && !Object.values(vector).some((v) => v)) {
-          dispatch(removePose({ data: pose.id, undoType }));
+      for (const clip of clips) {
+        if (clip.type === "pattern") {
+          const clips = selectPatternClipsByPatternId(
+            getProject(),
+            clip.patternId
+          );
+          if (clips.length === 0) {
+            dispatch(removePattern({ data: clip.patternId, undoType }));
+          }
+        } else if (clip.type === "pose") {
+          const clips = selectPoseClipsByPoseId(getProject(), clip.poseId);
+          if (clips.length === 0) {
+            dispatch(removePose({ data: clip.poseId, undoType }));
+          }
         }
       }
     }
@@ -535,17 +556,31 @@ export const popTrack =
 
 /** Insert a scale track in the place of a track and nest the original track. */
 export const insertScaleTrack =
-  (trackId: TrackId): Thunk =>
+  (
+    payload: Payload<{
+      trackId: TrackId;
+      initialTrack?: Partial<ScaleTrack>;
+      initialScale?: ScaleObject;
+    }>
+  ): Thunk<ScaleTrack | undefined> =>
   (dispatch, getProject) => {
+    const { initialTrack, initialScale, trackId } = unpackData(payload);
     const project = getProject();
-    const undoType = createUndoType("insertScaleTrack", nanoid());
+    const undoType = unpackUndoType(payload, "insertScaleTrack");
     const track = selectTrackById(project, trackId);
     if (!trackId || !track) return;
 
     // Create a new scale track and migrate the original track if necessary
     const newTrack = dispatch(
       createScaleTrack({
-        data: { track: { parentId: track.parentId, trackIds: [trackId] } },
+        data: {
+          scale: initialScale,
+          track: {
+            ...initialTrack,
+            parentId: track.parentId,
+            trackIds: [trackId],
+          },
+        },
         undoType,
       })
     );
@@ -559,24 +594,113 @@ export const insertScaleTrack =
     );
 
     // Update all patterns with notes using the parent's scale ID
-    if (!isScaleTrack(parent)) return;
-    let customPatterns = selectCustomPatterns(project);
+    const customPatterns = selectCustomPatterns(project);
     for (const p in customPatterns) {
-      let customPattern = customPatterns[p];
+      const customPattern = customPatterns[p];
       const stream = customPattern.stream;
-      for (let i = 0; i < stream.length; i++) {
-        customPatterns[p].stream[i] = getPatternBlockWithNewNotes(
-          stream[i],
-          (notes) =>
-            notes.map((note) => {
-              if (isNestedNote(note) && note.scaleId === newTrack.scaleId) {
-                return { ...note, scaleId: newTrack.scaleId };
-              } else {
-                return note;
-              }
-            })
-        );
+      dispatch(
+        updatePattern({
+          data: {
+            id: customPattern.id,
+            stream: stream.map((b) =>
+              getPatternBlockWithNewNotes(b, (notes) =>
+                notes.map((note) =>
+                  isNestedNote(note)
+                    ? { ...note, scaleId: newTrack.scaleId }
+                    : note
+                )
+              )
+            ),
+          },
+          undoType,
+        })
+      );
+    }
+
+    return newTrack;
+  };
+
+/** Insert a random parent based on the pattern clip/scale notes of a track. */
+export const insertRandomParent =
+  (trackId: TrackId): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const undoType = createUndoType("insertRandomParent", nanoid());
+    const track = selectTrackById(project, trackId);
+    if (!track) return;
+    const trackScale = selectTrackMidiScale(project, track.id);
+    let scale: MidiScale = chromaticNotes;
+
+    // If the track is a scale track, try adding a note to its scale
+    if (isScaleTrack(track)) {
+      if (trackScale.length >= 11) {
+        scale = trackScale;
+      } else {
+        const min = Math.min(...trackScale);
+        const max = min + 12;
+        // Sample a missing class in between the min and max
+        const missing = range(min, max).filter((i) => !trackScale.includes(i));
+        const value = sample(missing);
+        if (value !== undefined) {
+          scale = trackScale
+            .toSpliced(trackScale.indexOf(value), 0, value)
+            .sort();
+        }
       }
     }
-    dispatch(updatePatterns({ data: customPatterns, undoType }));
+
+    // Otherwise, use the notes of the pattern clips
+    else if (isPatternTrack(track)) {
+      const clips = selectPortaledClips(project);
+      const patternClips = clips.filter(
+        (c) => isPatternClip(c) && c.trackId === track.id
+      );
+      const streams = patternClips.map((clip) =>
+        selectPortaledPatternClipStream(project, clip.id)
+      );
+      const notes = streams.flatMap((stream) =>
+        stream.flatMap((block) => block.notes.filter((n) => "MIDI" in n))
+      );
+      if (!notes.length) return;
+      const streamScale = uniq(getMidiStreamScale(notes));
+      scale = streamScale as MidiScale;
+    }
+
+    const nestedScale = scale.map((midi) =>
+      dispatch(convertMidiToNestedNote(midi, track.parentId))
+    );
+
+    const newScale = initializeScale({
+      notes: nestedScale,
+    });
+    if (track.scaleId) {
+      dispatch(
+        updateScale({
+          data: {
+            id: track.scaleId,
+            notes: trackScale.map((_, i) => ({ degree: i })),
+          },
+          undoType,
+        })
+      );
+    }
+
+    // Create a new scale track and migrate the original track
+    const newTrack = dispatch(
+      insertScaleTrack({
+        data: { trackId, initialScale: newScale },
+        undoType,
+      })
+    );
+    if (newTrack && track.scaleId) {
+      const newOldScale = trackScale.map((midi) =>
+        dispatch(convertMidiToNestedNote(midi, newTrack.id))
+      );
+      dispatch(
+        updateScale({
+          data: { id: track.scaleId, notes: newOldScale },
+          undoType,
+        })
+      );
+    }
   };

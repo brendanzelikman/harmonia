@@ -7,7 +7,7 @@ import { isEqual } from "lodash";
 import { Dispatch, Project } from "./Project/ProjectTypes";
 
 /** A custom hook to get the project dispatch. */
-export const useProjectDispatch: () => Dispatch = useReduxDispatch;
+export const useDispatch: () => Dispatch = useReduxDispatch;
 
 /** A custom hook to select from the project. */
 export const useProjectSelector: TypedSelector<Project> = useReduxSelector;
@@ -21,4 +21,4 @@ export const useProjectDeepSelector = <T>(
 export const use = useProjectSelector;
 
 /** A short, curried project selector for deep equality checks. */
-export const useDeep = useProjectDeepSelector;
+export const useStore = useProjectDeepSelector;

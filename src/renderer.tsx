@@ -1,21 +1,14 @@
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { App } from "./App";
-import { start as startAudioContext } from "tone";
-import "./renderer.css";
+import { start } from "tone";
 
-/** The root container for the application. */
+// The root container for the application.
 const container = document.getElementById("root");
+if (!container) throw new Error("Root not found.");
 
-/** Initialize the audio context when the user presses an input. */
-const initializeContext = () => {
-  startAudioContext();
-  container?.removeEventListener("mousedown", initializeContext);
-  container?.removeEventListener("keydown", initializeContext);
-};
+// Initialize the audio context when the user presses their mouse.
+container.addEventListener("mousedown", start, { once: true });
 
-/** Render the application within the root if there are no children. */
-if (container && !container?.children.length) {
-  container.addEventListener("keydown", initializeContext);
-  container.addEventListener("mousedown", initializeContext);
-  ReactDOM.createRoot(container).render(<App />);
-}
+// Create the root and render the app.
+const root = createRoot(container);
+root.render(<App />);

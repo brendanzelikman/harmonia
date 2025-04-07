@@ -182,6 +182,14 @@ export const selectTrackChildIdMap = createDeepSelector(
     )
 );
 
+/** Select the parent of a track. */
+export const selectTrackParent = (project: Project, id?: TrackId) => {
+  const parentIdMap = selectTrackParentIdMap(project);
+  const parentId = getValueByKey(parentIdMap, id);
+  if (!parentId) return;
+  return selectTrackById(project, parentId);
+};
+
 /** Select the children of a track. */
 export const selectTrackChildren = (project: Project, id?: TrackId) => {
   const childIdMap = selectTrackChildIdMap(project);
@@ -323,6 +331,17 @@ export const selectTracksByInstrumentKey = (
 // ------------------------------------------------------------
 // Track - Scales and Chains
 // ------------------------------------------------------------
+
+export const selectScaleToTrackMap = createDeepSelector(
+  [selectScaleMap, selectTracks],
+  (scaleMap, tracks) => {
+    return mapValues(scaleMap, (scale) => {
+      const track = tracks.find((t) => t.scaleId === scale?.id);
+      if (track) return track;
+      return undefined;
+    });
+  }
+);
 
 /** Select a scale track using its scale ID. */
 export const selectScaleTrackByScaleId = (

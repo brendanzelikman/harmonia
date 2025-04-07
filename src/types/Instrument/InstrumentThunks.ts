@@ -1,6 +1,10 @@
 import { Thunk } from "types/Project/ProjectTypes";
 
-import { LiveAudioInstance, LIVE_AUDIO_INSTANCES } from "./InstrumentClass";
+import {
+  LiveAudioInstance,
+  LIVE_AUDIO_INSTANCES,
+  LiveSamplerOptions,
+} from "./InstrumentClass";
 import { defaultReverb } from "./InstrumentEffectTypes";
 import { selectInstrumentById } from "./InstrumentSelectors";
 import { addInstrument, addInstrumentOffline } from "./InstrumentSlice";
@@ -8,18 +12,16 @@ import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import {
   initializeInstrument,
   Instrument,
-  INSTRUMENT_KEYS,
+  INSTRUMENT_SET,
   InstrumentKey,
 } from "./InstrumentTypes";
 import { Payload } from "lib/redux";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
-import { SamplerOptions } from "tone";
-import { getSampleBufferFromIDB } from "providers/idb/samples";
+import { getSampleBufferFromIDB } from "providers/samples";
 import { getInstrumentSamplesMap } from "./InstrumentFunctions";
 
-interface InstrumentOptions {
+interface InstrumentOptions extends LiveSamplerOptions {
   offline?: boolean;
-  urls?: SamplerOptions["urls"];
   oldInstrument?: Instrument;
   downloading?: boolean;
 }
@@ -53,10 +55,8 @@ export const createInstrument =
     }
 
     // Create a new instance
-    const instance = new LiveAudioInstance({
-      ...instrument,
-      urls: options.urls,
-    });
+    const { urls, onload } = options;
+    const instance = new LiveAudioInstance({ ...instrument, urls, onload });
     if (options.downloading) return { instrument, instance };
 
     // Add the instrument to the store and update the instance
@@ -105,28 +105,44 @@ export const buildInstruments =
   async (dispatch, getProject) => {
     const project = getProject();
     return Promise.all(
-      tracks.map(async (track) => {
-        const oldInstrument = selectInstrumentById(project, track.instrumentId);
-        const isLocal = oldInstrument
-          ? !INSTRUMENT_KEYS.includes(oldInstrument?.key)
-          : false;
-        let urls = undefined;
-        const useSample = oldInstrument && isLocal;
-        const options: InstrumentOptions = { offline: true, urls };
-        if (useSample) {
-          const sample = await getSampleBufferFromIDB(oldInstrument?.key);
-          if (sample) {
-            options.urls = { C3: sample };
-          } else {
-            options.urls = getInstrumentSamplesMap(DEFAULT_INSTRUMENT_KEY);
-            options.oldInstrument = {
-              ...oldInstrument,
-              key: DEFAULT_INSTRUMENT_KEY,
-            };
-          }
-        }
-        return dispatch(createInstrument({ data: { track, options } }));
-      })
+      tracks.map(
+        async (track) =>
+          new Promise(async (resolve) => {
+            const oldInstrument = selectInstrumentById(
+              project,
+              track.instrumentId
+            );
+            const isLocal = oldInstrument
+              ? !INSTRUMENT_SET.has(oldInstrument?.key)
+              : false;
+            let urls = undefined;
+            const useSample = oldInstrument && isLocal;
+            const options: InstrumentOptions = { offline: true, urls };
+            if (useSample) {
+              const sample = await getSampleBufferFromIDB(oldInstrument?.key);
+              if (sample) {
+                options.urls = { C3: sample };
+              } else {
+                options.urls = getInstrumentSamplesMap(DEFAULT_INSTRUMENT_KEY);
+                options.oldInstrument = {
+                  ...oldInstrument,
+                  key: DEFAULT_INSTRUMENT_KEY,
+                };
+              }
+            }
+            const { instrument, instance } = dispatch(
+              createInstrument({
+                data: {
+                  track,
+                  options: {
+                    ...options,
+                    onload: () => resolve({ instrument, instance }),
+                  },
+                },
+              })
+            );
+          })
+      )
     );
   };
 

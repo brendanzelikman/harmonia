@@ -4,7 +4,7 @@ import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { sample } from "lodash";
 import { CiRuler } from "react-icons/ci";
 import { GiMusicalKeyboard, GiFamilyTree } from "react-icons/gi";
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 import { INSTRUMENT_KEYS } from "types/Instrument/InstrumentTypes";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import {
@@ -15,14 +15,14 @@ import {
 import { createTreeFromString } from "utils/tree";
 
 export function TimelineTrackButton() {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const holding = useHeldHotkeys(["alt", "d"]);
   const shouldRandomize = holding.alt;
   const shouldCreateDrums = holding.d;
   return (
     <div
       className={classNames(
-        "rdg-track group size-full flex total-center text-xs",
+        "group size-full flex total-center text-xs",
         "hover:bg-indigo-500/30",
         "transition-all rounded cursor-pointer"
       )}

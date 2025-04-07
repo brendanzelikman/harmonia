@@ -2,8 +2,18 @@ import { test, expect } from "vitest";
 import * as _ from "./PortalFunctions";
 import { initializePortal, initializePortalFromFragments } from "./PortalTypes";
 import { initializePatternClip, PatternClip } from "types/Clip/ClipTypes";
-import { getPatternClipsFromMedia } from "types/Media/MediaFunctions.test";
 import { Timed } from "types/units";
+import { Media } from "types/Media/MediaTypes";
+
+/** Get the pattern clips from the media. */
+export const getPatternClipsFromMedia = (media: Media) => {
+  return media.filter((c) => "type" in c && c.type === "pattern");
+};
+
+/** Get the pose clips from the media. */
+export const getPoseClipsFromMedia = (media: Media) => {
+  return media.filter((c) => "type" in c && c.type === "pose");
+};
 
 test("createPortalChunk should correctly append a tag to the media's ID", () => {
   const clip = initializePatternClip({

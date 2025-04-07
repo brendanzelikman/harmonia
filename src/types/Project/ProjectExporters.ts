@@ -7,10 +7,10 @@ import JSZip from "jszip";
 import { downloadTransport } from "types/Transport/TransportThunks";
 import pluralize from "pluralize";
 import moment from "moment";
-import { getProjectsFromDB } from "providers/idb/projects";
+import { getProjectsFromDB } from "providers/projects";
 
-/** Export the project to a Harmonia file, using the given state if specified. */
-export const exportProjectToHAM =
+/** Export the project to a JSON file, using the given state if specified. */
+export const exportProjectToJSON =
   (project?: Project): Thunk =>
   (dispatch, getProject) => {
     const name = selectProjectName(project ?? getProject());
@@ -49,10 +49,10 @@ export const exportProjectToWAV =
     return await dispatch(downloadTransport(savedProject, { download }));
   };
 
-/** Export all projects to Harmonia files and download them as a zip. */
-type FileType = "ham" | "midi" | "wav";
+/** Export all projects to files and download them as a zip. */
+type FileType = "json" | "midi" | "wav";
 export const exportProjectsToZIP =
-  (type: FileType = "ham"): Thunk =>
+  (type: FileType = "json"): Thunk =>
   async (dispatch) => {
     const projects = (await getProjectsFromDB()).map(sanitizeProject);
     const jsons = projects
@@ -68,7 +68,7 @@ export const exportProjectsToZIP =
     );
 
     const blobs =
-      type === "ham"
+      type === "json"
         ? jsons
         : type === "midi"
         ? midis

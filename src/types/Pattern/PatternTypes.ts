@@ -1,7 +1,7 @@
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { Id, Plural, Tick } from "../units";
 import { createId } from "types/util";
-import { isArray, isNumber, isObject, isPlainObject, isString } from "lodash";
+import { isArray, isObject, isPlainObject, isString } from "lodash";
 import { isBoundedNumber, isFiniteNumber, isTypedArray } from "types/util";
 import { Timed, Playable } from "types/units";
 import { InstrumentKey } from "types/Instrument/InstrumentTypes";
@@ -12,7 +12,6 @@ import {
   NestedNote,
 } from "types/Scale/ScaleTypes";
 import { MidiObject } from "utils/midi";
-import { TrackId } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------
 // Pattern Generics
@@ -67,8 +66,6 @@ export interface Pattern {
   stream: PatternStream;
   name?: string;
   aliases?: string[];
-  instrumentKey?: InstrumentKey;
-  trackId?: TrackId;
 }
 
 /** A `PresetPattern` has its id prefixed */
@@ -86,7 +83,7 @@ export const initializePattern = (
 /** The default pattern is used for initialization. */
 export const defaultPattern: Pattern = {
   id: createId("pattern"),
-  name: "New Pattern",
+  name: "Pattern 1",
   stream: [],
 };
 
@@ -110,8 +107,8 @@ export const isPlayableNote = (obj: unknown): obj is Playable<unknown> => {
 export const isPatternRest = (obj: unknown): obj is PatternRest => {
   const candidate = obj as PatternNote;
   return (
-    isPlainObject(obj) &&
-    isNumber(candidate.duration) &&
+    isObject(obj) &&
+    "duration" in candidate &&
     !("MIDI" in candidate) &&
     !("degree" in candidate)
   );

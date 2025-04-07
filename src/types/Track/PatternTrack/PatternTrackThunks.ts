@@ -1,4 +1,5 @@
-import { DEFAULT_INSTRUMENT_KEY, SAMPLE_STORE } from "utils/constants";
+import { SAMPLE_STORE } from "utils/constants";
+import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import {
   PatternTrack,
   PatternTrackId,
@@ -27,7 +28,6 @@ import {
   PatternClipId,
   PoseClip,
 } from "types/Clip/ClipTypes";
-import { getTransport } from "tone";
 import { createMedia } from "types/Media/MediaThunks";
 import { createPose } from "types/Pose/PoseThunks";
 import { Pattern, PatternId } from "types/Pattern/PatternTypes";
@@ -39,12 +39,13 @@ import {
   unsoloInstruments,
   updateInstrument,
 } from "types/Instrument/InstrumentSlice";
-import { isHoldingOption, promptUserForAudioFile } from "utils/html";
+import { isHoldingOption, promptUserForFile } from "utils/html";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { getDatabase } from "providers/idb/database";
+import { getDatabase } from "providers/database";
 import { fileToAudioBuffer, audioBufferToObject } from "utils/samples";
 import { Track, TrackId, isPatternTrack } from "../TrackTypes";
-import { uploadSampleToIDB } from "providers/idb/samples";
+import { uploadSampleToIDB } from "providers/samples";
+import { selectCurrentTimelineTick } from "types/Timeline/TimelineSelectors";
 
 /** Create a `PatternTrack` with an optional initial track. */
 export const createPatternTrack =
@@ -116,15 +117,15 @@ export const createCourtesyPatternClip =
         data: {
           ...initialPattern,
           ...payload.data.pattern,
-          trackId: clip?.trackId,
         },
         undoType,
       })
     );
+    const tick = selectCurrentTimelineTick(getProject());
     const patternClip = initializePatternClip({
       ...clip,
       patternId: pattern.id,
-      tick: clip?.tick ?? getTransport().ticks,
+      tick: clip?.tick ?? tick,
     });
     const [clipId] = dispatch(
       createMedia({ data: { clips: [patternClip] }, undoType })
@@ -136,19 +137,20 @@ export const createCourtesyPoseClip =
   (
     payload: Payload<Partial<{ pose: Partial<Pose>; clip: Partial<PoseClip> }>>
   ): Thunk<PoseId> =>
-  (dispatch) => {
+  (dispatch, getProject) => {
     const { clip } = payload.data;
     const undoType = unpackUndoType(payload, "createCourtesyPoseClip");
     const pose = dispatch(
       createPose({
-        data: { ...payload.data.pose, trackId: clip?.trackId },
+        data: { ...payload.data.pose },
         undoType,
       })
     );
+    const tick = selectCurrentTimelineTick(getProject());
     const poseClip = initializePoseClip({
       ...clip,
       poseId: pose.id,
-      tick: clip?.tick ?? getTransport().ticks,
+      tick: clip?.tick ?? tick,
     });
     dispatch(createMedia({ data: { clips: [poseClip] }, undoType })).data;
     return pose.id;
@@ -228,7 +230,7 @@ export const promptUserForSample =
   (dispatch) => {
     const { track, parentId } = unpackData(payload);
     const undoType = unpackUndoType(payload, "promptUserForSample");
-    promptUserForAudioFile((e) => {
+    promptUserForFile("audio/*", (e) => {
       const target = e.target as HTMLInputElement;
       const file = target.files?.[0];
       if (!file) return;

@@ -82,6 +82,7 @@ export type LiveInstrumentMap = Record<InstrumentId, LiveAudioInstance>;
 export const LIVE_AUDIO_INSTANCES: LiveInstrumentMap = {};
 export const LIVE_RECORDER_INSTANCE = new Recorder();
 
+/** Initialize the sampler with the given object. */
 export const initializeSampler = (obj: LiveAudioInstance) => {
   return obj.sampler.chain(
     obj.channel,
@@ -91,6 +92,10 @@ export const initializeSampler = (obj: LiveAudioInstance) => {
     getDestination()
   );
 };
+export type LiveSamplerOptions = Partial<{
+  urls: SamplerOptions["urls"];
+  onload: SamplerOptions["onload"];
+}>;
 
 /** The live audio instance class stores Tone.js objects and effects. */
 export class LiveAudioInstance {
@@ -104,7 +109,13 @@ export class LiveAudioInstance {
   fft: FFT;
   waveform: Waveform;
 
-  constructor(props: Instrument & { urls?: SamplerOptions["urls"] }) {
+  constructor(
+    props: Instrument &
+      Partial<{
+        urls: SamplerOptions["urls"];
+        onload: SamplerOptions["onload"];
+      }>
+  ) {
     // Store the id and key
     const { id, trackId, key } = props;
     this.id = id;
@@ -116,7 +127,10 @@ export class LiveAudioInstance {
     const isLocal = !!props.urls;
     const urls = props.urls || getInstrumentSamplesMap(props.key);
     const baseUrl = getInstrumentSamplesBaseUrl(props.key);
-    const samplerOptions = isLocal ? urls : { urls, baseUrl };
+    const samplerOptions: Partial<SamplerOptions> = isLocal
+      ? urls
+      : { urls, baseUrl };
+    if (props.onload) samplerOptions.onload = props.onload;
     this.sampler = new Sampler(samplerOptions);
 
     // Initialize the channel

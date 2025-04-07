@@ -3,29 +3,18 @@ import { BiTrash } from "react-icons/bi";
 import { SiAudiomack, SiMidi } from "react-icons/si";
 import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import { ComponentProps, useCallback, useEffect, useState } from "react";
-import { useTransportTick } from "hooks/useTransportTick";
+import { useOfflineTransportTick } from "types/Transport/TransportHooks";
 import { format, percent } from "utils/math";
-import {
-  GiCompactDisc,
-  GiLoad,
-  GiNewBorn,
-  GiSave,
-  GiTransfuse,
-} from "react-icons/gi";
+import { GiCompactDisc, GiLoad, GiSave } from "react-icons/gi";
 import classNames from "classnames";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { setProjectName } from "types/Meta/MetaSlice";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
-import { selectTransport } from "types/Transport/TransportSelectors";
 import { createProject, clearProject } from "types/Project/ProjectThunks";
 import { readLocalProjects } from "types/Project/ProjectLoaders";
-import { exportProjectToHAM } from "types/Project/ProjectExporters";
+import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { exportProjectToMIDI } from "types/Project/ProjectExporters";
-import {
-  stopDownloadingTransport,
-  downloadTransport,
-} from "types/Transport/TransportThunks";
 import {
   NavbarFormInput,
   NavbarFormGroup,
@@ -33,16 +22,23 @@ import {
 } from "features/Navbar/components/NavbarForm";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 import { NEW_PROJECT_NAME } from "types/Meta/MetaTypes";
+import { useToggle } from "hooks/useToggle";
+import {
+  DOWNLOAD_TRANSPORT,
+  stopDownloadingTransport,
+} from "types/Transport/TransportTypes";
+import { downloadTransport } from "types/Transport/TransportThunks";
 
 export function NavbarProjectMenu() {
-  const dispatch = useProjectDispatch();
-  const { downloading } = useDeep(selectTransport);
-  const endTick = useDeep(selectLastArrangementTick);
-  const { tick } = useTransportTick({ offline: true });
-  const downloadProgress = downloading ? percent(tick, 0, endTick) : 0;
+  const dispatch = useDispatch();
+  const download = useToggle(DOWNLOAD_TRANSPORT);
+
+  const endTick = useStore(selectLastArrangementTick);
+  const tick = useOfflineTransportTick();
+  const downloadProgress = download.isOpen ? percent(tick, 0, endTick) : 0;
   const downloadPercent = format(downloadProgress, 0);
   const hasDownloaded = downloadProgress >= 100;
-  const projectName = useDeep(selectProjectName);
+  const projectName = useStore(selectProjectName);
   const [name, setName] = useState("");
   const updateName = useCallback(
     () => dispatch(setProjectName(name.trim())),
@@ -54,11 +50,15 @@ export function NavbarProjectMenu() {
     <div className="group/tooltip relative shrink-0">
       {/* Button */}
       <div className="rounded-full p-1 pr-0">
-        <GiCompactDisc className="size-full text-2xl select-none cursor-pointer group-hover/tooltip:text-indigo-300" />
+        <GiCompactDisc className="size-full text-2xl select-none cursor-pointer group-hover/tooltip:text-indigo-500" />
       </div>
 
       {/* Tooltip */}
-      <NavbarHoverTooltip bgColor="bg-slate-900/80 -left-8 backdrop-blur">
+      <NavbarHoverTooltip
+        borderColor="border-indigo-500"
+        top="top-[1.875rem]"
+        bgColor="bg-gradient-radial from-slate-900 to-zinc-900 -left-8 backdrop-blur"
+      >
         <div className="size-full py-1 space-y-1.5 min-w-48">
           {/* Project Name */}
           <div>
@@ -89,28 +89,20 @@ export function NavbarProjectMenu() {
           {
             <NavbarFileGroup onClick={() => createProject()}>
               <NavbarFileLabel>Open New Project</NavbarFileLabel>
-              <GiNewBorn className="ml-auto text-2xl" />
+              <GiCompactDisc className="ml-auto text-2xl" />
             </NavbarFileGroup>
           }
 
-          {/* Load Project */}
-          <NavbarFileGroup onClick={() => dispatch(readLocalProjects())}>
-            <NavbarFileLabel>Load New Project</NavbarFileLabel>
-            <GiSave className="ml-auto text-2xl" />
+          {/* Save Project */}
+          <NavbarFileGroup onClick={() => dispatch(exportProjectToJSON())}>
+            <NavbarFileLabel>Save to JSON</NavbarFileLabel>
+            <GiLoad className="ml-auto text-2xl" />
           </NavbarFileGroup>
 
-          {/* Merge Project */}
-          {/* <NavbarFileGroup
-            onClick={() => dispatch(readLocalProjects({ merging: true }))}
-          >
-            <NavbarFileLabel>Merge With File</NavbarFileLabel>
-            <GiTransfuse className="ml-auto text-2xl" />
-          </NavbarFileGroup> */}
-
-          {/* Save Project */}
-          <NavbarFileGroup onClick={() => dispatch(exportProjectToHAM())}>
-            <NavbarFileLabel>Save to File</NavbarFileLabel>
-            <GiLoad className="ml-auto text-2xl" />
+          {/* Load Project */}
+          <NavbarFileGroup onClick={() => readLocalProjects()}>
+            <NavbarFileLabel>Load From JSON</NavbarFileLabel>
+            <GiSave className="ml-auto text-2xl" />
           </NavbarFileGroup>
 
           {/* Export to WAV */}
@@ -120,18 +112,12 @@ export function NavbarProjectMenu() {
                 ? "text-slate-500"
                 : "hover:bg-indigo-500/25 cursor-pointer"
             }`}
-            onClick={() =>
-              !endTick
-                ? null
-                : downloading
-                ? dispatch(stopDownloadingTransport())
-                : dispatch(downloadTransport())
-            }
+            onClick={!endTick ? undefined : () => dispatch(downloadTransport())}
           >
             <NavbarFileLabel>Export to WAV</NavbarFileLabel>
             <div className="relative flex flex-col text-2xl">
               <SiAudiomack className="text-2xl" />
-              {downloading && (
+              {download.isOpen && (
                 <div
                   className={`text-xs w-32 animate-in fade-in zoom-in-95 absolute flex flex-col top-0 -right-36 p-2 border rounded bg-slate-800 ${
                     hasDownloaded ? "border-slate-400" : "border-slate-500"
@@ -151,7 +137,7 @@ export function NavbarProjectMenu() {
                   </span>
                   <button
                     className="self-start mt-2 text-center border border-slate-500 bg-slate-800 p-1 px-2 rounded"
-                    onClick={() => dispatch(stopDownloadingTransport())}
+                    onClick={stopDownloadingTransport}
                   >
                     Cancel
                   </button>
@@ -168,7 +154,7 @@ export function NavbarProjectMenu() {
                 { "text-slate-500": !endTick },
                 { "hover:bg-indigo-500/25 cursor-pointer": !!endTick }
               )}
-              onClick={() => dispatch(exportProjectToMIDI())}
+              onClick={() => !!endTick && dispatch(exportProjectToMIDI())}
             >
               <NavbarFileLabel>Export to MIDI</NavbarFileLabel>
               <SiMidi className="text-2xl" />
@@ -185,17 +171,17 @@ export function NavbarProjectMenu() {
                     <BiTrash className="text-2xl" />
                   </MenuButton>
                   {open && (
-                    <MenuItems className="animate-in fade-in zoom-in-95 absolute flex flex-col items-center -top-8 -right-52 -mr-5 p-2 bg-slate-800 border border-slate-400 text-xs rounded">
+                    <MenuItems className="animate-in fade-in zoom-in-95 absolute flex flex-col items-center top-[2.5rem] -left-3 p-2 bg-slate-900 border border-red-500 text-xs rounded">
                       <div className="w-full text-center pb-1 mb-1 font-bold border-b border-b-slate-500/50">
-                        Clear Project?
+                        Are you sure?
                       </div>
-                      <span className="text-xs px-1 mb-2 text-slate-400">
+                      <span className="text-xs whitespace-nowrap mb-2 text-slate-400">
                         You will lose all unsaved changes.
                       </span>
                       <div className="flex w-full total-center gap-2 *:w-1/2 *:px-2 *:py-1 *:rounded *:border">
                         <button
                           className="border-red-500 hover:text-red-500"
-                          onClick={() => dispatch(clearProject())}
+                          onClick={() => clearProject()}
                         >
                           Yes
                         </button>

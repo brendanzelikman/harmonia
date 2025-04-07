@@ -76,7 +76,6 @@ export const initializeInstrument = (
     id: nanoid(),
   };
 };
-
 /** The default instrument is used for initialization. */
 export const defaultInstrument: Instrument = {
   id: "default-instrument",
@@ -91,6 +90,7 @@ export const defaultInstrument: Instrument = {
 
 /** The global list of instrument keys (e.g. "grand_piano"). */
 export const INSTRUMENT_KEYS = Object.keys(samples) as InstrumentKey[];
+export const INSTRUMENT_SET = new Set(INSTRUMENT_KEYS);
 
 /** The global list of instrument categories (e.g. "keyboards"). */
 export const INSTRUMENT_CATEGORIES = Object.keys(categories).slice(

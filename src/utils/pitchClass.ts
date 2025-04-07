@@ -25,9 +25,8 @@ export const PITCH_CLASSES: PitchClass[][] = [
 export const pitchClassSet = new Set(PITCH_CLASSES.flat());
 
 /** Returns true if an object is a pitch class. */
-export const isPitchClass = (value: any): value is PitchClass => {
-  return pitchClassSet.has(value);
-};
+export const isPitchClass = (value: any): value is PitchClass =>
+  pitchClassSet.has(value);
 
 // ------------------------------------------------------------
 // Pitch Class Helpers

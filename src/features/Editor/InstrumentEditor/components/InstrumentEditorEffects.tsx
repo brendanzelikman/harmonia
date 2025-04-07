@@ -3,7 +3,7 @@ import { useCallback, useRef } from "react";
 import { Slider } from "components/Slider";
 import { cancelEvent } from "utils/html";
 import { BsArrowClockwise, BsTrashFill } from "react-icons/bs";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import {
   rearrangeInstrumentEffect,
   updateInstrumentEffect,
@@ -18,9 +18,9 @@ import { useDrag, useDrop } from "react-dnd";
 type InstrumentEffectsProps = { id: InstrumentId };
 
 export function InstrumentEditorEffects(props: InstrumentEffectsProps) {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const id = props.id;
-  const instrument = useDeep((_) => selectInstrumentById(_, id));
+  const instrument = useStore((_) => selectInstrumentById(_, id));
   const effects = instrument?.effects ?? [];
 
   /** Move an effect to a new index when dragging */
@@ -65,7 +65,7 @@ export interface DraggableEffectProps {
 }
 
 export const InstrumentEffect = (props: DraggableEffectProps) => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const { id, index, effect, moveEffect } = props;
   const instance = LIVE_AUDIO_INSTANCES[id];
   const ref = useRef<HTMLDivElement>(null);

@@ -1,14 +1,13 @@
 import { GiDoubleQuaver, GiMusicalScore } from "react-icons/gi";
-import { useDeep, useProjectDispatch } from "types/hooks";
-import { CLIP_NAME_HEIGHT } from "./usePatternClipRenderer";
+import { useStore } from "types/hooks";
+import { CLIP_NAME_HEIGHT } from "utils/constants";
 import { memo, MouseEvent, useCallback } from "react";
-import { toggleClipDropdown } from "types/Clip/ClipThunks";
 import { PatternClipId } from "types/Clip/ClipTypes";
 import {
   selectClipHeaderColor,
   selectClipName,
 } from "types/Clip/ClipSelectors";
-import { cancelEvent } from "utils/html";
+import { cancelEvent, dispatchCustomEvent } from "utils/html";
 
 interface PatternClipHeaderProps {
   id: PatternClipId;
@@ -18,15 +17,14 @@ interface PatternClipHeaderProps {
 
 export const PatternClipHeader = memo((props: PatternClipHeaderProps) => {
   const { id, isSelected, isOpen } = props;
-  const dispatch = useProjectDispatch();
-  const name = useDeep((_) => selectClipName(_, props.id));
-  const color = useDeep((_) => selectClipHeaderColor(_, props.id));
+  const name = useStore((_) => selectClipName(_, props.id));
+  const color = useStore((_) => selectClipHeaderColor(_, props.id));
   const Icon = isOpen ? GiMusicalScore : GiDoubleQuaver;
   const onClick = useCallback(
     (e: MouseEvent) => {
       if (e.altKey) return;
-      if (isSelected) cancelEvent(e);
-      dispatch(toggleClipDropdown({ data: { id } }));
+      if (isSelected || isOpen) cancelEvent(e);
+      dispatchCustomEvent("clipDropdown", { id });
     },
     [id, isSelected, isOpen]
   );

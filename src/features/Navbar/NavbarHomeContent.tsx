@@ -1,16 +1,16 @@
 import classNames from "classnames";
-import { View, views } from "pages/main";
+import { views } from "main";
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
-import { useRouterPath } from "router";
+import { useRoute } from "router";
 
 export function NavbarHomeContent(props: { isLoadingPlayground: boolean }) {
-  const view = useRouterPath();
+  const view = useRoute();
   const { isLoadingPlayground } = props;
 
   // Render the link to the view
   const renderLink = useCallback(
-    (v: View) => {
+    (v: string) => {
       const onPlayground = v === "playground";
       if (!onPlayground && isLoadingPlayground) return null;
 
@@ -23,7 +23,7 @@ export function NavbarHomeContent(props: { isLoadingPlayground: boolean }) {
             { "text-slate-500": !onPlayground && view !== v }
           )}
         >
-          {onPlayground && isLoadingPlayground ? "Loading Playground..." : v}
+          {onPlayground && isLoadingPlayground ? "Opening Playground..." : v}
         </Link>
       );
     },

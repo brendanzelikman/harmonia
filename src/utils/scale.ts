@@ -4,8 +4,6 @@ import { MidiNote, MidiScale } from "./midi";
 import {
   chromaticNotes,
   isMidiNote,
-  isScale,
-  isScaleObject,
   Scale,
   ScaleNote,
 } from "types/Scale/ScaleTypes";
@@ -52,7 +50,14 @@ export const getPreferredKey = (note: MidiNote, name?: string): Key => {
   if (majorNames.some((n) => key.includes(n))) return majorKeys[n];
 
   // Check for minor keys
-  const minorNames = ["minor", "dorian", "phrygian", "aeolian", "locrian"];
+  const minorNames = [
+    "minor",
+    "dorian",
+    "phrygian",
+    "aeolian",
+    "diminished",
+    "locrian",
+  ];
   if (minorNames.some((n) => key.includes(n))) return minorKeys[n];
 
   // Return chromatic by default
@@ -155,7 +160,7 @@ export const getScaleName = (scale: Scale) => {
   if (!notes.length) return "Empty Scale";
 
   // Return the scale name if it exists and the scale is not in a track
-  if (isScaleObject(scale) && scale.name && scale.trackId) {
+  if ("name" in scale && scale.name !== undefined) {
     return scale.name;
   }
 
@@ -181,9 +186,7 @@ export const getScaleKey = (scale: Scale): Key => {
 };
 
 /** Get the category of a scale based on the presets. */
-export const getScaleCategory = (scale?: Scale) => {
-  if (!isScale(scale)) return "No Category";
-
+export const getScaleCategory = (scale: Scale) => {
   // Try to find a matching preset scale in each group
   for (const group of PresetScaleGroupList) {
     const scales = PresetScaleGroupMap[group];

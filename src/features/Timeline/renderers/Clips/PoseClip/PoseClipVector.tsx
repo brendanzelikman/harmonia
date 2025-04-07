@@ -3,7 +3,7 @@ import { clamp, omit } from "lodash";
 import { updatePose } from "types/Pose/PoseSlice";
 import { PoseVectorId, PoseBlock, isVoiceLeading } from "types/Pose/PoseTypes";
 import { useEffect, useMemo, useState } from "react";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { ChromaticKey } from "assets/keys";
 import { getTrackLabel, getTrackDepth } from "types/Track/TrackFunctions";
 import {
@@ -44,12 +44,12 @@ interface PoseClipVectorProps extends PoseClipComponentProps {
 export const PoseClipVector = (props: PoseClipVectorProps) => {
   const trackId = props.clip.trackId;
   const isPT = isPatternTrackId(trackId);
-  const trackMap = useDeep(selectTrackMap);
-  const trackScaleMap = useDeep(selectTrackMidiScaleMap);
+  const trackMap = useStore(selectTrackMap);
+  const trackScaleMap = useStore(selectTrackMidiScaleMap);
 
-  const clipLabel = useDeep((_) => selectTrackLabelById(_, trackId));
-  const clipDepth = useDeep((_) => selectTrackDepthById(_, trackId));
-  const clipTracks = useDeep((_) => selectScaleTrackChain(_, trackId));
+  const clipLabel = useStore((_) => selectTrackLabelById(_, trackId));
+  const clipDepth = useStore((_) => selectTrackDepthById(_, trackId));
+  const clipTracks = useStore((_) => selectScaleTrackChain(_, trackId));
 
   const [view, setView] = useState<PoseClipVectorView>(
     isVoiceLeading(props.vector) ? "notes" : "scales"
@@ -118,7 +118,7 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
             active={view === "notes"}
             onClick={() => setView("notes")}
           >
-            Pitch Classes
+            Pitch Shift
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
             active={view === "effects"}
@@ -153,17 +153,18 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
 };
 
 const PoseClipScale = (props: PoseClipVectorProps) => {
-  const dispatch = useProjectDispatch();
-  const track = useDeep((_) => selectTrackById(_, props.clip.trackId));
-  const parentScale = useDeep((_) => selectTrackMidiScale(_, track?.parentId));
-  const scale = useDeep((_) =>
-    selectTrackMidiScaleAtTick(_, track?.id, props.clip.tick)
+  const dispatch = useDispatch();
+  const track = useStore((_) => selectTrackById(_, props.clip.trackId));
+  const parentScale = useStore((_) => selectTrackMidiScale(_, track?.parentId));
+  const scale = useStore((_) =>
+    selectTrackMidiScaleAtTick(_, props.clip.trackId, props.clip.tick)
   );
-  const hasScale = scale !== undefined;
+  const hasScale = props.scale !== undefined;
   const name = getScaleName(scale);
   return (
     <>
       <PoseClipBaseEffect
+        minWidth="min-w-36"
         className="flex-col w-auto px-4 pt-1.5 border"
         border={hasScale ? "border-sky-400" : "border-sky-400/50"}
       >
@@ -208,14 +209,14 @@ const PoseClipScale = (props: PoseClipVectorProps) => {
               },
               autoselect: true,
             })}
-            className="cursor-pointer bg-sky-800 border border-slate-400/50 hover:border-slate-300/50 p-0.5 px-2 rounded text-xs"
+            className="cursor-pointer bg-sky-700 border border-slate-400/40 hover:bg-opacity-85 p-0.5 px-2 rounded text-xs"
           >
             Modulate
           </button>
           <button
             disabled={!hasScale}
             onFocus={blurEvent}
-            className="bg-slate-700 border border-slate-400/50 hover:border-slate-300/50 total-center p-1 rounded disabled:cursor-default"
+            className="bg-slate-700 border border-slate-400/50 disabled:opacity-70 enabled:hover:border-slate-300/50 total-center p-1 rounded disabled:cursor-default"
             onClick={() =>
               dispatch(updatePose({ id: props.clip.poseId, scale: undefined }))
             }
@@ -225,11 +226,12 @@ const PoseClipScale = (props: PoseClipVectorProps) => {
         </div>
       </PoseClipBaseEffect>
       <PoseClipBaseEffect
+        minWidth="min-w-36"
         className="flex-col w-auto px-4 pt-1.5 border"
         border={hasScale ? "border-fuchsia-400" : "border-fuchsia-400/50"}
       >
         <div className="flex flex-col">
-          <div>Go to Origin</div>
+          <div>Start From Root:</div>
           <div className="text-fuchsia-400">
             {props.reset ? "Enabled" : "Disabled"}
           </div>
@@ -263,7 +265,7 @@ interface PoseClipVectorFieldProps extends PoseClipVectorProps {
 export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
   const { vector, block } = props;
   const { clip, fieldId, name, scaleName } = props;
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const offset = useMemo(() => {
     if (block) {
       return block.vector?.[fieldId as PoseVectorId];

@@ -28,11 +28,11 @@ export const resolveScaleChainToMidi = (scales: Scale[]): MidiScale => {
 
   // Get the last scale in the array
   let cur = allScales.pop();
-  if (!cur) return [];
+  if (cur === undefined) return [];
 
   // Transpose the scale through itself to apply its own offsets
   const id = "id" in cur ? cur.id : undefined;
-  if (id) {
+  if (id !== undefined) {
     cur = getScaleNotes(cur)
       .map((_, i): NestedNote => {
         const offset: ScaleVector = {};

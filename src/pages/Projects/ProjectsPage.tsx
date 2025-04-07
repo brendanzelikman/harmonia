@@ -2,11 +2,8 @@ import { useProjectSearch } from "./hooks/useProjectSearch";
 import { useState } from "react";
 import { Project } from "types/Project/ProjectTypes";
 import { selectProjectId } from "types/Meta/MetaSelectors";
-import {
-  createProject,
-  deleteAllProjects,
-  UPDATE_PROJECTS,
-} from "types/Project/ProjectThunks";
+import { createProject, deleteAllProjects } from "types/Project/ProjectThunks";
+import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import { ProjectFormatter } from "./components/ProjectFormatter";
 import { useUserProjects } from "./hooks/useUserProjects";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -32,7 +29,9 @@ import { exportProjectsToZIP } from "types/Project/ProjectExporters";
 import { readLocalProjects } from "types/Project/ProjectLoaders";
 import { ProjectSearchBar } from "./components/ProjectSearchBar";
 import moment from "moment";
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
+import { FaCode } from "react-icons/fa";
+import { BiCodeCurly } from "react-icons/bi";
 
 export interface ProjectItem {
   project: Project;
@@ -40,7 +39,7 @@ export interface ProjectItem {
 }
 
 export function ProjectsPage() {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   useHotkeys("enter", () => navigate("/playground"));
 
@@ -53,9 +52,9 @@ export function ProjectsPage() {
   return (
     <HomeContainer>
       <HomeControlBar>
-        <div className="max-[1300px]:hidden flex flex-col order-12 ml-auto whitespace-nowrap text-slate-400">
+        <div className="max-[1300px]:hidden flex flex-col order-12 ml-auto *:ml-auto whitespace-nowrap text-slate-400">
           <span>{moment().format("MMMM Do, YYYY")}</span>
-          <span>{moment().format("[Logged in] h:mm a")}</span>
+          <span>{moment().format("h:mm:ss a")}</span>
         </div>
         <HomeControlButton
           className="border-indigo-400 text-indigo-400"
@@ -71,9 +70,9 @@ export function ProjectsPage() {
         />
         <HomeControlButton
           className="border-orange-300 text-orange-300"
-          title="Load Project From File"
+          title="Load Project From JSON"
           icon={<GiLoad />}
-          onClick={() => dispatch(readLocalProjects())}
+          onClick={() => readLocalProjects()}
         />
         <HomeControlButton
           className="border-emerald-400 text-emerald-400"
@@ -85,22 +84,22 @@ export function ProjectsPage() {
             ) : (
               <div className="w-full flex items-center rounded *:grow h-full shrink-0 animate-in fade-in ease-in-out text-xs gap-2 p-1">
                 <button
-                  onClick={() => dispatch(exportProjectsToZIP("ham"))}
-                  className="flex flex-col gap-1 items-center hover:ring-1 rounded hover:ring-white hover:opacity-75 text-sky-400"
+                  onClick={() => dispatch(exportProjectsToZIP("json"))}
+                  className="flex flex-col gap-1 items-center hover:saturate-150 rounded hover:opacity-75 text-sky-400"
                 >
-                  HAM
-                  <GiPig className="text-xl" />
+                  JSON
+                  <BiCodeCurly className="text-xl" />
                 </button>
                 <button
                   onClick={() => dispatch(exportProjectsToZIP("wav"))}
-                  className="flex flex-col gap-1 items-center hover:ring-1 rounded hover:ring-white hover:opacity-75 text-teal-400"
+                  className="flex flex-col gap-1 items-center hover:saturate-150 rounded hover:opacity-75 text-teal-400"
                 >
                   WAV
                   <GiSoundWaves className="text-xl" />
                 </button>
                 <button
                   onClick={() => dispatch(exportProjectsToZIP("midi"))}
-                  className="flex flex-col gap-1 items-center hover:ring-1 rounded hover:ring-white hover:opacity-75 text-indigo-400"
+                  className="flex flex-col gap-1 items-center hover:saturate-150 rounded hover:opacity-75 text-indigo-400"
                 >
                   MIDI
                   <BsUsbPlug className="text-xl" />
@@ -125,7 +124,7 @@ export function ProjectsPage() {
         />
         <ProjectSearchBar query={query} setQuery={setQuery} />
       </HomeControlBar>
-      <HomeList signal={UPDATE_PROJECTS}>
+      <HomeList signal={UPDATE_PROJECT_EVENT}>
         {results.map((project, index) => (
           <ProjectFormatter
             key={selectProjectId(project)}

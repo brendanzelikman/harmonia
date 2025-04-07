@@ -1,16 +1,16 @@
 import { BsScissors } from "react-icons/bs";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import classNames from "classnames";
 import { selectIsSlicingClips } from "types/Timeline/TimelineSelectors";
 import { selectHasClips } from "types/Clip/ClipSelectors";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { SLICE_CLIPS_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
+import { SLICE_CLIPS_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
 
 export const NavbarScissors = () => {
-  const dispatch = useProjectDispatch();
-  const hasClips = useDeep(selectHasClips);
-  const isSlicing = useDeep(selectIsSlicingClips);
+  const dispatch = useDispatch();
+  const hasClips = useStore(selectHasClips);
+  const isSlicing = useStore(selectIsSlicingClips);
   return (
     <div className="relative">
       <NavbarTooltipButton
@@ -20,7 +20,9 @@ export const NavbarScissors = () => {
         activeLabel="Equipped Scissors"
         label={hasClips ? undefined : "No Patterns to Slice"}
         hotkey={dispatch(SLICE_CLIPS_HOTKEY)}
-        onClick={() => dispatch(toggleTimelineState({ data: "slicing-clips" }))}
+        onClick={() =>
+          hasClips && dispatch(toggleTimelineState({ data: "slicing-clips" }))
+        }
         className={classNames(
           `p-1.5 text-2xl bg-gradient-to-br from-teal-600 to-teal-700`,
           !hasClips ? "opacity-50" : "",

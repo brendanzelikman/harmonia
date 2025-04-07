@@ -5,7 +5,7 @@ import {
   TRACK_WIDTH,
 } from "utils/constants";
 import { TimelinePlayhead } from "./TimelinePlayhead";
-import { useDeep } from "types/hooks";
+import { useStore } from "types/hooks";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
   selectCellWidth,
@@ -26,7 +26,7 @@ import {
 import { TimelineCursor } from "./TimelineCursor";
 import { useMemo } from "react";
 import classNames from "classnames";
-import { useToggledState } from "hooks/useToggledState";
+import { useToggle } from "hooks/useToggle";
 
 interface BackgroundProps {
   element?: HTMLDivElement;
@@ -34,20 +34,20 @@ interface BackgroundProps {
 
 // Timeline background so that the tracks can be scrolled
 export const TimelineGraphics = (props: BackgroundProps) => {
-  const cellWidth = useDeep(selectCellWidth);
-  const cellHeight = useDeep(selectCellHeight);
+  const cellWidth = useStore(selectCellWidth);
+  const cellHeight = useStore(selectCellHeight);
 
   // The track dimensions are derived from the last track
-  const collapsedMap = useDeep(selectCollapsedTrackMap);
-  const trackIds = useDeep(selectTrackIds);
+  const collapsedMap = useStore(selectCollapsedTrackMap);
+  const trackIds = useStore(selectTrackIds);
 
   // Selected track dimensions
-  const st = useDeep(selectSelectedTrack);
-  const stTop = useDeep((_) => selectTrackTop(_, st?.id));
+  const st = useStore(selectSelectedTrack);
+  const stTop = useStore((_) => selectTrackTop(_, st?.id));
   const stHeight = st?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
 
   // GetBackground dimensions
-  const columns = useDeep(selectTimelineColumns);
+  const columns = useStore(selectTimelineColumns);
   const width = columns * cellWidth;
   const height = trackIds.reduce(
     (acc, id) =>
@@ -108,13 +108,13 @@ export const TimelineGraphics = (props: BackgroundProps) => {
 };
 
 const TimelineTopLeftCorner = () => {
-  const isAddingPatterns = useDeep(selectIsAddingPatternClips);
-  const isAddingPoses = useDeep(selectIsAddingPoseClips);
-  const isAddingPortals = useDeep(selectIsAddingPortals);
-  const hasFragment = useDeep(selectHasPortalFragment);
-  const isSlicingClips = useDeep(selectIsSlicingClips);
-  const tree = useToggledState("inputTree", false);
-  const hasClips = !!useDeep(selectSelectedClips).length;
+  const isAddingPatterns = useStore(selectIsAddingPatternClips);
+  const isAddingPoses = useStore(selectIsAddingPoseClips);
+  const isAddingPortals = useStore(selectIsAddingPortals);
+  const hasFragment = useStore(selectHasPortalFragment);
+  const isSlicingClips = useStore(selectIsSlicingClips);
+  const tree = useToggle("inputTree", false);
+  const hasClips = !!useStore(selectSelectedClips).length;
   return (
     <div
       className={classNames(
@@ -139,53 +139,52 @@ const TimelineTopLeftCorner = () => {
     >
       {tree.isOpen ? (
         <>
-          <div className="text-base font-light">Creating New Tree...</div>
+          <div className="text-base font-light">Creating Tree...</div>
           <div className="text-slate-400 text-sm">
-            (Follow the pop-up for instructions)
+            (Submit your prompt in the box)
           </div>
         </>
       ) : isAddingPatterns ? (
         <>
-          <div className="text-base font-light">Equipped Brush</div>
+          <div className="text-base font-light">Creating Pattern...</div>
           <div className="text-slate-400 text-sm">
-            (Click on a Cell to create a Pattern)
+            (Click on a Cell in a Track)
           </div>
         </>
       ) : isAddingPoses ? (
         <>
-          <div className="text-base font-light">Equipped Wand</div>
+          <div className="text-base font-light">Creating Pose...</div>
           <div className="text-slate-400 text-sm">
-            (Click on a Cell to create a Pose)
+            (Click on a Cell in a Track)
           </div>
         </>
       ) : isSlicingClips ? (
         <>
-          <div className="text-base font-light">Equipped Scissors</div>
+          <div className="text-base font-light">Slicing Pattern...</div>
           <div className="text-slate-400 text-sm">
-            (Click on a Clip to slice into two)
+            (Click on a Pattern to slice)
           </div>
         </>
       ) : isAddingPortals ? (
         <>
-          <div className="text-base font-light">Equipped Portal Gun</div>
+          <div className="text-base font-light">
+            Create {hasFragment ? "Exit Portal" : "Entry Portal"}
+          </div>
           <div className="text-slate-400 text-sm">
-            (Click on a Cell to create an {hasFragment ? "Exit" : "Entry"}{" "}
-            Portal)
+            (Click on a Cell in a Track)
           </div>
         </>
       ) : hasClips ? (
         <>
           <div className="text-base font-light">Selected Clips</div>
           <div className="text-slate-400 text-sm">
-            (Right Click for More Actions)
+            (Right Click for Context Menu)
           </div>
         </>
       ) : (
         <>
-          {/* <div className="text-base font-light">Tracks</div> */}
-          <div className="text-slate-400 text-sm">
-            {/* Scroll through the Timeline */}
-          </div>
+          <div className="text-base font-light">Timeline</div>
+          <div className="text-slate-400 text-sm">(Scroll to Navigate)</div>
         </>
       )}
     </div>

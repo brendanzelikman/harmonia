@@ -1,8 +1,8 @@
 import classNames from "classnames";
 import { ContextMenu } from "components/ContextMenu";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { memo, useCallback, useState } from "react";
-import { blurOnEnter, cancelEvent, dispatchCustomEvent } from "utils/html";
+import { blurEvent, blurOnEnter, cancelEvent } from "utils/html";
 import { updateClips } from "types/Clip/ClipSlice";
 import {
   PATTERN_CLIP_THEMES,
@@ -11,7 +11,6 @@ import {
 } from "types/Clip/PatternClip/PatternClipThemes";
 import {
   selectSelectedPatternClips,
-  selectSelectedPoseClips,
   selectSelectedClips,
 } from "types/Timeline/TimelineSelectors";
 import {
@@ -42,20 +41,16 @@ import {
   TabPanel,
   Menu,
 } from "@headlessui/react";
+import { noop } from "lodash";
 
 export const TimelineContextMenu = memo(() => {
-  const dispatch = useProjectDispatch();
-  const bpm = useDeep(selectTransportBPM);
-  const timeSignature = useDeep(selectTransportTimeSignature);
+  const dispatch = useDispatch();
+  const bpm = useStore(selectTransportBPM);
+  const timeSignature = useStore(selectTransportTimeSignature);
 
   // Get the currently selected objects
-  const patternClips = useDeep(selectSelectedPatternClips);
-  const poseClips = useDeep(selectSelectedPoseClips);
-  const clips = useDeep(selectSelectedClips);
-
-  // Get the selected media
-  const arePoseClipsSelected = poseClips?.length > 0;
-  const canUpdatePoses = arePoseClipsSelected;
+  const patternClips = useStore(selectSelectedPatternClips);
+  const clips = useStore(selectSelectedClips);
 
   // Change the color of the currently selected clips
   const [color, setColor] = useState(DEFAULT_PATTERN_CLIP_COLOR);
@@ -65,7 +60,7 @@ export const TimelineContextMenu = memo(() => {
       color,
     }));
     dispatch(updateClips({ data: newClips }));
-  }, []);
+  }, [patternClips, color]);
 
   // Set the name and duration of the currently selected clips
   const [name, setName] = useState("");
@@ -74,23 +69,6 @@ export const TimelineContextMenu = memo(() => {
 
   const Properties = (
     <div className="flex flex-col pt-2 gap-2 h-full *:rounded *:p-1">
-      {canUpdatePoses && (
-        <>
-          {" "}
-          <div
-            className="flex cursor-pointer hover:bg-slate-600/20"
-            onClick={() => dispatchCustomEvent("showPoseVectors", true)}
-          >
-            Show Pose Vectors
-          </div>
-          <div
-            className="flex cursor-pointer hover:bg-slate-600/20"
-            onClick={() => dispatchCustomEvent("showPoseVectors", false)}
-          >
-            Hide Pose Vectors
-          </div>
-        </>
-      )}
       <div className="flex gap-4 items-center" onClick={cancelEvent}>
         Name:
         <input
@@ -176,25 +154,25 @@ export const TimelineContextMenu = memo(() => {
         className="flex cursor-pointer hover:bg-slate-600/20"
         onClick={() => dispatch(exportSelectedClipsToMIDI())}
       >
-        Export Selection to MIDI
+        Export to MIDI
       </div>
       <div
         className="flex cursor-pointer hover:bg-slate-600/20"
         onClick={() => dispatch(exportSelectedClipsToWAV())}
       >
-        Export Selection to WAV
+        Export to WAV
       </div>
       <div
         className="flex cursor-pointer hover:bg-slate-600/20"
         onClick={() => dispatch(filterSelectionByType("pattern"))}
       >
-        Filter Selection by Patterns
+        Filter by Patterns
       </div>
       <div
         className="flex cursor-pointer hover:bg-slate-600/20"
         onClick={() => dispatch(filterSelectionByType("pose"))}
       >
-        Filter Selection by Poses
+        Filter by Poses
       </div>
     </div>
   );
@@ -240,7 +218,7 @@ export const TimelineContextMenu = memo(() => {
       targetId="timeline"
       options={[
         {
-          onClick: () => null,
+          onClick: noop,
           disabled: false,
           label: (
             <Menu as="div" className="size-full relative px-2 min-w-48">
@@ -258,9 +236,9 @@ export const TimelineContextMenu = memo(() => {
                     </Tab>
                   </TabList>
                   <TabPanels>
-                    <TabPanel>{Properties}</TabPanel>
-                    <TabPanel>{Selection}</TabPanel>
-                    <TabPanel>{Clipboard}</TabPanel>
+                    <TabPanel onFocus={blurEvent}>{Properties}</TabPanel>
+                    <TabPanel onFocus={blurEvent}>{Selection}</TabPanel>
+                    <TabPanel onFocus={blurEvent}>{Clipboard}</TabPanel>
                   </TabPanels>
                 </TabGroup>
               </MenuItems>

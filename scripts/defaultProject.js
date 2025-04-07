@@ -34,9 +34,8 @@ export const defaultProject = {
     loopStart: 0,
     loopEnd: 383,
     volume: 0,
+    swing: 0,
     mute: false,
-    timeSignature: [16, 16],
-    recording: false,
-    downloading: false,
+    timeSignature: 4,
   },
 };

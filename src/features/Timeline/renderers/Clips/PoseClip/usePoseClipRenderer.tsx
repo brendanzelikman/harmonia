@@ -1,7 +1,7 @@
-import { memo, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { useClipDrag } from "../useClipDnd";
 
-import { useProjectDispatch, useDeep } from "types/hooks";
+import { useDispatch, useStore } from "types/hooks";
 import { ClipComponentProps } from "../TimelineClips";
 import { PortaledPoseClipId, PoseClipId } from "types/Clip/ClipTypes";
 import { selectPoseById } from "types/Pose/PoseSelectors";
@@ -14,7 +14,6 @@ import {
   PoseTransformation,
   PoseVector,
 } from "types/Pose/PoseTypes";
-import { toggleClipDropdown } from "types/Clip/ClipThunks";
 import { selectPortaledPoseClip } from "types/Arrangement/ArrangementClipSelectors";
 import { selectClipWidth } from "types/Arrangement/ArrangementClipSelectors";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
@@ -27,6 +26,9 @@ import {
   selectTrackHeight,
 } from "types/Timeline/TimelineSelectors";
 import { ScaleNote } from "types/Scale/ScaleTypes";
+import { dispatchCustomEvent } from "utils/html";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export interface PoseClipRendererProps extends ClipComponentProps {
   id: PoseClipId;
@@ -38,17 +40,32 @@ export type PoseClipView = "vector" | "stream";
 export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   const { id, pcId, className, isDragging } = props;
 
-  const clip = useDeep((_) => selectPortaledPoseClip(_, pcId));
-  const { trackId, tick, type, isOpen } = clip;
-  const isSelected = useDeep((_) => selectIsClipSelected(_, id));
+  const clip = useStore((_) => selectPortaledPoseClip(_, pcId));
+  const { trackId, tick, type } = clip;
+  const [isOpen, setIsOpen] = useState(false);
+  const handleDropdown = useCallback(
+    (e: CustomEvent<any>) => {
+      if (e.detail.id === undefined || e.detail.id === id) {
+        setIsOpen(e.detail.value === undefined ? !isOpen : e.detail.value);
+      } else if (isOpen && e.detail.id.slice(0, 2) === id.slice(0, 2)) {
+        setIsOpen(false);
+      }
+    },
+    [isOpen, id]
+  );
+  useCustomEventListener("clipDropdown", handleDropdown);
+  useHotkeys("esc", () =>
+    dispatchCustomEvent("clipDropdown", { id, value: false })
+  );
+  const isSelected = useStore((_) => selectIsClipSelected(_, id));
 
-  const pose = useDeep((_) => selectPoseById(_, clip.poseId));
+  const pose = useStore((_) => selectPoseById(_, clip.poseId));
   const stream = pose?.stream ?? [];
-  const dispatch = useProjectDispatch();
-  const state = useDeep(selectTimelineState);
+  const dispatch = useDispatch();
+  const state = useStore(selectTimelineState);
   const isActive = state !== "idle";
-  const isAdding = useDeep(selectIsAddingPoseClips);
-  const isPortaling = useDeep(selectIsAddingPortals);
+  const isAdding = useStore(selectIsAddingPoseClips);
+  const isPortaling = useStore(selectIsAddingPortals);
   const isBlurred = isAdding || isPortaling || isDragging;
 
   // Each pose has a dropdown to reveal its editor
@@ -75,10 +92,10 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   };
 
   // Each pose has a style that depends on its state
-  const top = useDeep((_) => selectTrackTop(_, trackId));
-  const left = useDeep((_) => selectTimelineTickLeft(_, tick));
-  const width = useDeep((_) => selectClipWidth(_, pcId));
-  const height = useDeep((_) => selectTrackHeight(_, trackId));
+  const top = useStore((_) => selectTrackTop(_, trackId));
+  const left = useStore((_) => selectTimelineTickLeft(_, tick));
+  const width = useStore((_) => selectClipWidth(_, pcId));
+  const height = useStore((_) => selectTrackHeight(_, trackId));
   if (!clip) return null;
   return (
     <div
@@ -93,11 +110,10 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
         left,
         width,
         height,
-        borderColor: pose?.reset && !isOpen ? "indigo" : undefined,
       }}
       onClick={(e) => dispatch(onClipClick(e, { ...clip, id }))}
       onDragStart={() =>
-        dispatch(toggleClipDropdown({ data: { id: pcId, value: false } }))
+        dispatchCustomEvent("clipDropdown", { id: pcId, value: false })
       }
     >
       <PoseClipHeader id={id} isOpen={!!isOpen} />

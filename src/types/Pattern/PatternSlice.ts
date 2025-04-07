@@ -13,6 +13,7 @@ import {
 } from "./PatternTypes";
 import { sumVectors } from "utils/vector";
 import { Action, createNormalSlice, unpackAction } from "lib/redux";
+import { mod } from "utils/math";
 
 // ------------------------------------------------------------
 // Pattern Payload Types
@@ -60,9 +61,6 @@ export type TransposePatternBlockPayload = {
 
 /** A `PatternBlock` can be removed by index. */
 export type RemovePatternBlockPayload = { id: PatternId; index: number };
-
-/** A `Pattern` can have its notes randomized. */
-export type RandomizePatternPayload = PatternId;
 
 export const patternAdapter = createEntityAdapter<Pattern>();
 export const defaultPatternState = patternAdapter.getInitialState();
@@ -191,9 +189,11 @@ export const patternsSlice = createNormalSlice({
       const { id, index } = unpackAction(action);
       const pattern = state.entities[id];
       if (!pattern) return;
-      if (index > pattern.stream.length) return;
       let spliceIndex = index;
-      if (index < 0 && index > -pattern.stream.length) {
+      if (index > pattern.stream.length - 1) {
+        spliceIndex = mod(index, pattern.stream.length);
+        spliceIndex = Math.min(spliceIndex, pattern.stream.length - 1);
+      } else if (index < 0 && index > -pattern.stream.length) {
         spliceIndex = pattern.stream.length + index;
       }
       pattern.stream.splice(spliceIndex, 1);

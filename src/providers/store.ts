@@ -8,7 +8,10 @@ import { handleInstrumentMiddleware } from "types/Instrument/InstrumentMiddlewar
 import { MetaSlice } from "types/Meta/MetaSlice";
 import { scalesSlice } from "types/Scale/ScaleSlice";
 import { trackSlice } from "types/Track/TrackSlice";
-import { instrumentsSlice } from "types/Instrument/InstrumentSlice";
+import {
+  instrumentsSlice,
+  privateInstrumentActions,
+} from "types/Instrument/InstrumentSlice";
 import { patternClipSlice, poseClipSlice } from "types/Clip/ClipSlice";
 import { portalSlice } from "types/Portal/PortalSlice";
 import { posesSlice } from "types/Pose/PoseSlice";
@@ -23,9 +26,9 @@ import {
 } from "types/Transport/TransportSlice";
 import undoable, { excludeAction } from "redux-undo";
 import { Safe } from "types/util";
-import { Thunk } from "types/Project/ProjectTypes";
 import { Payload } from "lib/redux";
 import { UndoType } from "types/units";
+import { Project } from "types/Project/ProjectTypes";
 
 // ------------------------------------------------------------
 // Base Project Type
@@ -63,28 +66,28 @@ const baseProjectReducer = combineReducers({
 });
 
 // ------------------------------------------------------------
-// Undoable Project History
+// Undoable Project Type
 // ------------------------------------------------------------
 
-export const UNDO_PROJECT = "project/undo";
-export const REDO_PROJECT = "project/redo";
+export const UNDO_PROJECT_TYPE = "project/undo";
+export const REDO_PROJECT_TYPE = "project/redo";
 export const PROJECT_HISTORY_LIMIT = 16;
 
 /** The base project reducer wrapped with history. */
 const undoableProjectReducer = undoable(baseProjectReducer, {
-  undoType: UNDO_PROJECT,
-  redoType: REDO_PROJECT,
+  undoType: UNDO_PROJECT_TYPE,
+  redoType: REDO_PROJECT_TYPE,
   limit: PROJECT_HISTORY_LIMIT,
   groupBy: (action: PayloadAction<Payload>): UndoType => {
     const { type, payload } = action;
     if (payload?.undoType !== undefined) return payload.undoType;
     const dataString = JSON.stringify(payload?.data);
-    return `${type}:${dataString}`;
+    return `${type}(${dataString})`;
   },
   filter: excludeAction([
     ...privateTransportActions,
     ...privateTimelineActions,
-    "instruments/addInstrumentOffline",
+    ...privateInstrumentActions,
   ]),
   syncFilter: true,
 });
@@ -93,13 +96,12 @@ const undoableProjectReducer = undoable(baseProjectReducer, {
 // Wrapped Project Reducer
 // ------------------------------------------------------------
 
+const SET_PROJECT = "setProject";
+
 /** Inject the reducer with an overwriter. */
-export const SET_PROJECT = "setProject";
-export const setProject =
-  (payload: SafeBaseProject): Thunk =>
-  (dispatch) => {
-    dispatch({ type: SET_PROJECT, payload });
-  };
+export const setProject = (payload: Project) => {
+  store.dispatch({ type: SET_PROJECT, payload });
+};
 
 /** The final reducer used in the Redux store. */
 const reducer: typeof undoableProjectReducer = (state, action) => {
@@ -118,8 +120,4 @@ export const store = configureStore({
 });
 
 /** Auto-save the project. */
-const SHOULD_AUTOSAVE = true;
-store.subscribe(() => {
-  if (SHOULD_AUTOSAVE) store.dispatch(saveProject());
-  (window as any).getState = () => store.getState();
-});
+store.subscribe(() => saveProject(store.getState()));

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useDeep } from "types/hooks";
+import { useStore } from "types/hooks";
 import {
   getInstrumentName,
   getInstrumentCategory,
@@ -23,7 +23,7 @@ import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 export const InstrumentEditor = (props: { track: Track }) => {
   const { track } = props;
   const id = track.instrumentId;
-  const instrument = useDeep((_) => selectInstrumentById(_, id));
+  const instrument = useStore((_) => selectInstrumentById(_, id));
   const key = instrument?.key;
 
   /** Play state is controlled by piano and used for animation */

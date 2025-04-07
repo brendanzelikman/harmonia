@@ -5,6 +5,7 @@ import { blurOnEnter, dispatchCustomEvent, onEnter } from "utils/html";
 import Logo from "assets/images/logo.png";
 import { useCustomEventListener } from "hooks/useCustomEventListener";
 import classNames from "classnames";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export interface PromptModalProps {
   isOpen?: boolean;
@@ -30,6 +31,7 @@ const PromptModal = (props: PromptModalProps) => {
 
   // Close the modal if another is opened
   useCustomEventListener("cleanupModal", onCancel);
+  useHotkeys("esc", onCancel);
 
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -40,9 +42,9 @@ const PromptModal = (props: PromptModalProps) => {
 
   const descriptionNodes = Array.isArray(description) ? (
     description.map((node, index) => (
-      <p key={index} className="mt-2 text-sm text-slate-300">
+      <div key={index} className="mt-2 text-sm text-slate-300">
         {node}
-      </p>
+      </div>
     ))
   ) : (
     <p className="mt-2 text-sm text-slate-300">{description}</p>
@@ -52,13 +54,13 @@ const PromptModal = (props: PromptModalProps) => {
     <Dialog className="relative z-[999]" open={isOpen} onClose={onCancel}>
       <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
       <div className="fixed inset-0 overflow-y-auto">
-        <div className="flex min-h-full w-full items-center justify-center p-4 text-lg text-center font-nunito">
+        <div className="flex min-h-full w-full items-center justify-center p-4 text-lg text-center">
           <DialogPanel
             className={classNames(
               props.backgroundColor ?? "bg-[#0b0f1a]",
               props.padding,
               props.large ? "max-w-xl" : "max-w-md",
-              "w-full transform overflow-hidden rounded-2xl border border-slate-500 p-6 text-left align-middle shadow-xl transition-all animate-in fade-in duration-150 zoom-in-50"
+              "w-full transform overflow-hidden rounded-2xl border border-slate-500 p-6 text-left align-middle shadow-xl transition-all animate-in fade-in duration-200 zoom-in-50"
             )}
           >
             <DialogTitle
@@ -135,6 +137,7 @@ export const promptModal = (props: PromptModalProps): Promise<string> => {
     modalRoot.render(
       <PromptModal
         {...props}
+        autoselect={true}
         isOpen={true}
         onSubmit={onSubmit}
         onCancel={onCancel}

@@ -1,7 +1,7 @@
 import { PoseClip } from "types/Clip/ClipTypes";
-import { useDeep } from "types/hooks";
+import { useStore } from "types/hooks";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
-import { POSE_HEIGHT } from "utils/constants";
+import { POSE_NOTCH_HEIGHT } from "utils/constants";
 import { cancelEvent } from "utils/html";
 import { PoseClipVector } from "./PoseClipVector";
 import classNames from "classnames";
@@ -13,10 +13,13 @@ export interface PoseClipDropdownEffectProps extends PoseClipComponentProps {
 
 export const PoseClipDropdown = (props: PoseClipDropdownEffectProps) => {
   const { clip, block } = props;
-  const cellHeight = useDeep(selectCellHeight);
+  const cellHeight = useStore(selectCellHeight);
   return (
     <div
-      style={{ top: POSE_HEIGHT, height: cellHeight - POSE_HEIGHT + 1 }}
+      style={{
+        top: POSE_NOTCH_HEIGHT,
+        height: cellHeight - POSE_NOTCH_HEIGHT + 1,
+      }}
       className={`z-20 animate-in h-full max-h-[7.5rem] fade-in ease-in p-1 rounded flex flex-1 gap-1 bg-slate-800 border-4 border-fuchsia-500 cursor-auto`}
       onClick={cancelEvent}
       draggable

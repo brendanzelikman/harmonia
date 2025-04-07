@@ -2,7 +2,7 @@ import { capitalize, omit } from "lodash";
 import { useCallback, useMemo, useState } from "react";
 import { Keys, useHotkeys } from "react-hotkeys-hook";
 import { OptionsOrDependencyArray } from "react-hotkeys-hook/dist/types";
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 import { Thunk } from "types/Project/ProjectTypes";
 import { isHoldingShift, isPressingLetter } from "utils/html";
 
@@ -30,6 +30,7 @@ export const formatShortcut = (shortcut: string) => {
   result = result.replace("right", "→");
   result = result.replace("up", "↑");
   result = result.replace("down", "↓");
+  result = result.replace("`", "Tilde");
   result = capitalize(result);
   result = result.replace(/\b[a-zA-Z]\b/g, (match) => match.toUpperCase());
   result = result.replace("esc", "Escape");
@@ -46,7 +47,7 @@ export type Scope = (typeof SCOPES)[number];
 export type ScopeMap = Record<Scope, boolean>;
 
 export const useDispatchedHotkey = (keys: Thunk<Hotkey>) => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const hotkey = useMemo(() => dispatch(keys), []);
   const callback = useCallback(hotkey.callback, [hotkey]);
   useHotkeys(hotkey.shortcut, callback, [callback], { preventDefault: true });

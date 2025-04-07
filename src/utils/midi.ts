@@ -31,11 +31,6 @@ export const getMidiScaleDegree = (midi: MidiNote, scale: MidiScale) => {
   return scale.findIndex((note) => getMidiDegree(note) === degree);
 };
 
-/** Returns true if a MIDI falls within a scale. */
-export const isMidiInScale = (midi: MidiNote, scale: MidiScale) => {
-  return getMidiScaleDegree(midi, scale) !== -1;
-};
-
 /** Get a degree number as a chromatic note. */
 export const getMidiChromaticNote = (note?: MidiNote) => {
   const degree = getMidiDegree(note);
@@ -74,7 +69,7 @@ export const getPitchClassNumber = (note?: PitchClass) => {
 export const getMidiFromPitch = (note: string) => {
   const pitchRegex = /([A-G]#?\d?)/g;
   const match = pitchRegex.exec(note);
-  if (!match) return 0;
+  if (!match) return parseInt(note);
   const pitch = match[1];
   const hasNumber = pitch.match(/\d/);
   const octave = hasNumber ? parseInt(pitch.replace(/[^0-9]/g, "")) : 4;

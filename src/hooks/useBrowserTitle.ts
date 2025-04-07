@@ -1,9 +1,9 @@
 import { useEffect, useMemo } from "react";
-import { useDeep } from "types/hooks";
+import { useStore } from "types/hooks";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 
 export function useBrowserTitle(view: string) {
-  const name = useDeep(selectProjectName);
+  const name = useStore(selectProjectName);
 
   const title = useMemo(() => {
     if (view === "projects") return `Harmonia • Projects`;

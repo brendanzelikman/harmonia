@@ -1,4 +1,4 @@
-import { useToggledState } from "hooks/useToggledState";
+import { useToggle } from "hooks/useToggle";
 import { useRef, useEffect } from "react";
 import { useDragLayer, useDrag, DragSourceMonitor } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
@@ -12,7 +12,7 @@ export const ProjectDisc = (props: {
   deleting?: boolean;
   onClick?: () => void;
 }) => {
-  const state = useToggledState(props.projectId, false);
+  const state = useToggle(props.projectId, false);
   const [{ isDragging }, drag, preview] = useDrag(
     () => ({
       type: "project",

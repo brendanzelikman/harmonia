@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 
-import { useDeep } from "types/hooks";
+import { useStore } from "types/hooks";
 import { PatternClipRenderer } from "./PatternClip/usePatternClipRenderer";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -24,8 +24,8 @@ export interface TimelineClipsProps {
 
 export function TimelineClips(props: TimelineClipsProps) {
   const element = props.element;
-  const portaledClipIds = useDeep(selectPortaledClipIds);
-  const boundaries = useDeep(selectPortaledClipBoundMap);
+  const portaledClipIds = useStore(selectPortaledClipIds);
+  const boundaries = useStore(selectPortaledClipBoundMap);
 
   // Virtualize clips using scroll position
   const [{ scrollLeft, scrollRight }, setBounds] = useState({
@@ -51,6 +51,7 @@ export function TimelineClips(props: TimelineClipsProps) {
 
       const className = classNames(
         "group absolute flex flex-col border-2 border-b-0 rounded-lg rounded-b-none",
+        "animate-in fade-in data-[type=pose]:zoom-in slide-in-from-left-2",
         "data-[blur=true]:opacity-50 data-[blur=true]:pointer-events-none",
         "data-[open=true]:min-w-min data-[open=true]:max-w-lg data-[open=false]:data-[type=pattern]:z-[30] data-[open=true]:data-[type=pattern]:z-40",
         "data-[open=true]:data-[type=pose]:z-[39] data-[open=false]:data-[type=pose]:z-[29] data-[type=pose]:bg-fuchsia-500 data-[type=scale]:bg-blue-500",

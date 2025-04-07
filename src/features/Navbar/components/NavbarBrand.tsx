@@ -1,9 +1,9 @@
 import LogoImage from "assets/images/logo.png";
 import { Link } from "react-router-dom";
-import { useRouterPath } from "router";
+import { useRoute } from "router";
 
 export function NavbarBrand() {
-  const view = useRouterPath();
+  const view = useRoute();
   const route = view === "projects" ? "/" : "/projects";
   return (
     <Link to={route} className="flex items-center text-white shrink-0">

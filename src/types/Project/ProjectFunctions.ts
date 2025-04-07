@@ -14,7 +14,6 @@ import {
   mergeStates,
 } from "types/util";
 import { BaseProject, SafeBaseProject } from "providers/store";
-import { isPortal } from "types/Portal/PortalTypes";
 import { selectScaleIds } from "types/Scale/ScaleSelectors";
 import { selectPatternIds } from "types/Pattern/PatternSelectors";
 import { selectPoseIds } from "types/Pose/PoseSelectors";
@@ -123,15 +122,14 @@ export const mergeBaseProjects = (
 
   // Remove all scales that don't have a valid track or clip
   scales = filterEntityState(scales, (s) => {
-    const hasTrack = !s.trackId || isIdInState(tracks, s.trackId);
+    const hasTrack = isEntityInState(tracks, (t) => t.scaleId === s.id);
     return hasTrack;
   });
 
   // Remove all patterns that don't have a valid track or clip
   patterns = filterEntityState(patterns, (p) => {
     const hasClips = isEntityInState(patternClips, (c) => c.patternId === p.id);
-    const hasTrack = !p.trackId || isIdInState(tracks, p.trackId);
-    return hasClips && hasTrack;
+    return hasClips;
   });
 
   // Remove all pattern clips that don't have a pattern or track
@@ -144,8 +142,7 @@ export const mergeBaseProjects = (
   // Remove all poses that don't have any clips
   poses = filterEntityState(poses, (p) => {
     const hasClips = isEntityInState(poseClips, (c) => c.poseId === p.id);
-    const hasTrack = !p.trackId || isIdInState(tracks, p.trackId);
-    return hasClips && hasTrack;
+    return hasClips;
   });
 
   // Remove all pose clips that don't have a pose or track
@@ -156,7 +153,7 @@ export const mergeBaseProjects = (
   });
 
   // Make sure that portals have valid tracks
-  const portals = mergeStates(p1?.portals, p2?.portals, isPortal);
+  const portals = mergeStates(p1?.portals, p2?.portals);
 
   // Update the metadata with the latest timestamp
   const meta = merge({}, defaultProjectMetadata, p1?.meta, {
@@ -164,7 +161,7 @@ export const mergeBaseProjects = (
   });
 
   // Merge the rest of the project
-  const timeline = merge({}, defaultTimeline, p1?.timeline);
+  const timeline = defaultTimeline;
   const transport = merge({}, defaultTransport, p1?.transport);
 
   // Return the new base project

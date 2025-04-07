@@ -6,16 +6,13 @@ import {
   initializePatternClip,
   initializePoseClip,
   isPatternClip,
+  isPatternClipId,
   isPoseClip,
+  isPoseClipId,
   PatternClip,
   PoseClip,
 } from "./ClipTypes";
 import { createNormalSlice, unpackData, unpackUndoType } from "lib/redux";
-import {
-  getClipIdsByType,
-  getClipsByType,
-  getClipUpdatesByType,
-} from "./ClipUtils";
 import { Payload } from "lib/redux";
 import { createEntityAdapter } from "@reduxjs/toolkit";
 
@@ -88,9 +85,13 @@ export const addClips =
   (payload: Payload<Clip[]>): Thunk =>
   (dispatch) => {
     const clips = payload.data;
-    const { pattern, pose } = getClipsByType(clips);
-    dispatch(PatternClips.addMany({ ...payload, data: pattern }));
-    dispatch(PoseClips.addMany({ ...payload, data: pose }));
+    for (const clip of clips) {
+      if (isPatternClip(clip)) {
+        dispatch(PatternClips.addOne({ ...payload, data: clip }));
+      } else if (isPoseClip(clip)) {
+        dispatch(PoseClips.addOne({ ...payload, data: clip }));
+      }
+    }
   };
 
 /** Update a clip in the store. */
@@ -110,19 +111,25 @@ export const updateClips =
   (payload: Payload<ClipUpdate[]>): Thunk =>
   (dispatch) => {
     const clips = payload.data;
-    const { pattern, pose } = getClipUpdatesByType(clips);
-    dispatch(PatternClips.updateMany({ ...payload, data: pattern }));
-    dispatch(PoseClips.updateMany({ ...payload, data: pose }));
+    for (const clip of clips) {
+      if (isPatternClip(clip)) {
+        dispatch(PatternClips.updateOne({ ...payload, data: clip }));
+      } else if (isPoseClip(clip)) {
+        dispatch(PoseClips.updateOne({ ...payload, data: clip }));
+      }
+    }
   };
 
 /** Remove a clip from the store. */
 export const removeClip =
   (payload: Payload<ClipId>): Thunk =>
   (dispatch) => {
-    const clipId = payload.data;
-    const { pattern, pose } = getClipIdsByType([clipId]);
-    dispatch(PatternClips.removeOne({ ...payload, data: pattern[0] }));
-    dispatch(PoseClips.removeOne({ ...payload, data: pose[0] }));
+    const id = payload.data;
+    if (isPatternClipId(id)) {
+      dispatch(PatternClips.removeOne({ ...payload, data: id }));
+    } else if (isPoseClipId(id)) {
+      dispatch(PoseClips.removeOne({ ...payload, data: id }));
+    }
   };
 
 /** Remove clips from the store. */
@@ -130,7 +137,11 @@ export const removeClips =
   (payload: Payload<ClipId[]>): Thunk =>
   (dispatch) => {
     const clipIds = payload.data;
-    const { pattern, pose } = getClipIdsByType(clipIds);
-    dispatch(PatternClips.removeMany({ ...payload, data: pattern }));
-    dispatch(PoseClips.removeMany({ ...payload, data: pose }));
+    for (const id of clipIds) {
+      if (isPatternClipId(id)) {
+        dispatch(PatternClips.removeOne({ ...payload, data: id }));
+      } else if (isPoseClipId(id)) {
+        dispatch(PoseClips.removeOne({ ...payload, data: id }));
+      }
+    }
   };

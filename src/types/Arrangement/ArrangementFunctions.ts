@@ -19,10 +19,10 @@ import {
   PatternState,
 } from "types/Pattern/PatternTypes";
 import { getPoseVectorAsScaleVector } from "types/Pose/PoseFunctions";
-import { getTransposedScaleNote } from "types/Scale/ScaleTransformers";
 import {
-  getTransposedScale,
-  getRotatedScale,
+  getRotatedScaleNotes,
+  getTransposedScaleNote,
+  getTransposedScaleNotes,
 } from "types/Scale/ScaleTransformers";
 import { isNestedNote, ScaleObject, ScaleState } from "types/Scale/ScaleTypes";
 import { TrackId } from "types/Track/TrackTypes";
@@ -37,15 +37,16 @@ import {
 } from "types/Scale/ScaleResolvers";
 import { sumVectors } from "utils/vector";
 import {
-  isVoiceLeading,
   PoseOperation,
   PoseState,
   PoseVector,
+  VoiceLeading,
 } from "types/Pose/PoseTypes";
-import { isNumber, some } from "lodash";
+import { isNumber } from "lodash";
 import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
 import { getMidiNoteValue, getMidiOctaveDistance } from "utils/midi";
+import { isPitchClass } from "utils/pitchClass";
 
 // ------------------------------------------------------------
 // Arrangement Overview
@@ -96,10 +97,17 @@ export const getPatternClipMidiStream = (
 
     // Get the MIDI chord by using the index of the clip
     const midiChord = midiStream[index % streamLength];
-    if (midiChord === undefined || isPatternRest(midiChord)) return;
+    if (midiChord === undefined) return;
+
+    if (isPatternRest(midiChord)) {
+      stream.push({
+        notes: [{ duration: getPatternBlockDuration(midiChord) }],
+        startTick: tick,
+      });
+    }
 
     // If the block is strummed, deal with it accordingly
-    if (isPatternStrummedMidiChord(midiChord)) {
+    else if (isPatternStrummedMidiChord(midiChord)) {
       const notes = getPatternStrummedChordNotes(midiChord, tick, midiChord);
       stream.push(...notes);
     } else {
@@ -185,52 +193,51 @@ export const getTrackScaleChain = (
   for (let i = 0; i < chainLength; i++) {
     const track = tracks[chainIds[i]] as ScaleTrack | undefined;
     if (track === undefined) continue;
-    let scale = scales.entities[track?.scaleId];
-    if (scale === undefined) return [];
+
+    // Start with the scale of the track
+    const trackScale = scales.entities[track?.scaleId];
+    if (trackScale === undefined) return [];
 
     // If no tick is specified, just push the scale
     if (noTick) {
-      scaleChain.push(scale);
+      scaleChain.push(trackScale);
       continue;
     }
 
-    let newScale = { ...scale };
+    // Create a new scale object to avoid mutating the original
+    const scale = { ...trackScale };
+    const leadings: VoiceLeading[] = [];
+    const vector: PoseVector = track.vector ?? {};
 
-    // Start with no operations
-    const operations = [];
+    // Get all pose operations in the track up to the current tick
+    const poseMap = deps.poses.entities;
+    const trackPoses = deps.trackPoseClips[track.id] ?? [];
+    if (trackPoses.length) {
+      const ops = getPoseOperationsAtTick(trackPoses, { poseMap, tick });
 
-    // If there are pose clips at the current tick, push their operations
-    const poses = deps.clipsByTrack?.[track.id]?.pose ?? [];
-    if (poses.length) {
-      operations.push(
-        ...getPoseOperationsAtTick(poses, {
-          poseMap: deps.poses.entities,
-          tick,
-        })
-      );
-    }
+      // Iterate over each operation
+      for (const op of ops) {
+        const vec: PoseVector = op.vector ?? {};
+        let leading = undefined;
 
-    // If a pose has a scale, change it with the last one
-    const lastScale = operations.findLast((_) => _.scale)?.scale;
-    if (lastScale) {
-      newScale = { ...newScale, notes: lastScale, id: scale.id };
-    }
+        // Sum together all vectors
+        for (const k in vec) {
+          const key = k as keyof PoseVector;
+          vector[key] = (vector[key] ?? 0) + (vec[key] ?? 0);
+          if (isPitchClass(key)) (leading ??= {})[key] = vec[key];
+        }
 
-    // Sum the vectors of the track and its pose clips
-    const opVectors = [...operations.map((_) => _.vector)];
-    const vectors = [track.vector, ...opVectors];
-    const vector = sumVectors(...vectors);
+        // Add the operation's voice leadings if any were found
+        if (leading !== undefined) leadings.push(leading as VoiceLeading);
 
-    // If there is no operation, just push the scale
-    if (!some(vector)) {
-      scaleChain.push(newScale);
-      continue;
+        // Use the operation's scale if it has one
+        if (op.scale !== undefined) scale.notes = op.scale;
+      }
     }
 
     // If there are voice leadings, apply them to the scale
-    if (isVoiceLeading(vector)) {
-      const leadings = vectors.filter(isVoiceLeading);
-      const baseMidi = resolveScaleChainToMidi([...scaleChain, newScale]);
+    if (leadings.length) {
+      const baseMidi = resolveScaleChainToMidi([...scaleChain, scale]);
       const ledMidi = applyVoiceLeadingsToMidiStream(baseMidi, leadings);
 
       // Update the scale with its corresponding offset
@@ -239,7 +246,7 @@ export const getTrackScaleChain = (
       const parentPivot = parentSize / 2;
       const parentId = scaleChain.at(-1)?.id;
 
-      newScale.notes = newScale.notes.map((_, i) => {
+      scale.notes = scale.notes.map((_, i) => {
         // Find if the led note exists in the parent scale
         const baseNote = baseMidi[i];
         const ledNote = ledMidi[i];
@@ -263,24 +270,30 @@ export const getTrackScaleChain = (
       });
     }
 
-    // Iterate over all vector keys and apply offsets
-    if (vector.chromatic) {
-      newScale = getTransposedScale(newScale, vector.chromatic);
+    // Apply any base offets that are in the vector
+    const r = vector.chordal;
+    const t = vector.chromatic;
+    const y = vector.octave;
+    if (r) {
+      scale.notes = getRotatedScaleNotes(scale.notes, r);
     }
-    if (vector.chordal) {
-      newScale = getRotatedScale(newScale, vector.chordal);
+    if (t) {
+      scale.notes = getTransposedScaleNotes(scale.notes, t, "chromatic");
     }
-    if (vector.octave) {
-      newScale = getTransposedScale(newScale, vector.octave, "octave");
+    if (y) {
+      scale.notes = getTransposedScaleNotes(scale.notes, y, "octave");
     }
+
+    // Apply any chain IDs that are in the vector
     for (const id of chainIds) {
       if (!(id in vector)) continue;
+      const value = vector[id];
       const scaleId = (tracks[id] as ScaleTrack)?.scaleId;
-      newScale = getTransposedScale(newScale, vector[id], scaleId);
+      scale.notes = getTransposedScaleNotes(scale.notes, value, scaleId);
     }
 
     // Push the new scale to the chain
-    scaleChain.push(newScale);
+    scaleChain.push(scale);
   }
 
   // Return the transposed scale chain
@@ -309,7 +322,7 @@ export const getMidiStreamAtTick = (
   _operations?: PoseOperation[]
 ): PatternMidiStreamReturn => {
   const track = deps.tracks[deps.clip.trackId];
-  const poseClips = deps.clipsByTrack[deps.clip.trackId]?.pose;
+  const poseClips = deps.trackPoseClips[deps.clip.trackId] ?? [];
   const poseMap = deps.poses.entities;
   const tick = deps.tick;
 

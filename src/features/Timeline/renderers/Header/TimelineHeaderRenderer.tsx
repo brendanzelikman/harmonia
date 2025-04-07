@@ -1,5 +1,4 @@
-import { useLoopDrag, useLoopDrop } from "./useLoopDragAndDrop";
-import { useProjectDispatch, useDeep } from "types/hooks";
+import { useDispatch, useStore } from "types/hooks";
 import { inRange } from "lodash";
 import { RenderHeaderCellProps } from "react-data-grid";
 import classNames from "classnames";
@@ -13,62 +12,70 @@ import {
   selectSubdivisionTicks,
 } from "types/Timeline/TimelineSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
-import {
-  setTransportLoopStart,
-  setTransportLoopEnd,
-  seekTransport,
-} from "types/Transport/TransportThunks";
+import { seekTransport } from "types/Transport/TransportThunks";
 import { updateFragment } from "types/Timeline/TimelineSlice";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
+import { useDrag, useDrop } from "react-dnd";
+import { Tick } from "types/units";
+import { setLoopEnd, setLoopStart } from "types/Transport/TransportSlice";
 
 export const TimelineHeaderRenderer = (props: RenderHeaderCellProps<Row>) => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const columnIndex = parseInt(props.column.key);
-  const tick = useDeep((_) => selectColumnTicks(_, columnIndex - 1));
-  const isPortaling = useDeep(selectIsAddingPortals);
-  const hasFragment = useDeep(selectHasPortalFragment);
+  const tick = useStore((_) => selectColumnTicks(_, columnIndex - 1));
+  const isPortaling = useStore(selectIsAddingPortals);
+  const hasFragment = useStore(selectHasPortalFragment);
 
   // Loop properties derived from the transport
-  const tickLength = useDeep(selectSubdivisionTicks);
+  const tickLength = useStore(selectSubdivisionTicks);
   const { bpm, timeSignature, loop, loopStart, loopEnd } =
-    useDeep(selectTransport);
+    useStore(selectTransport);
 
   const inLoopRange = inRange(tick, loopStart, loopEnd);
   const onLoopStart = loopStart === tick;
   const onLoopEnd = loopEnd === tick + (tickLength - 1);
 
-  /** Set the loop start */
-  const setLoopStart = useCallback(
-    (column: number) => {
-      const ticks = Math.max(tickLength * (column - 1), 0);
-      dispatch(setTransportLoopStart({ data: ticks }));
-    },
-    [tickLength]
-  );
-
-  /** Set the loop end */
-  const setLoopEnd = useCallback(
-    (column: number) => {
-      const ticks = Math.max(tickLength * column - 1, 0);
-      dispatch(setTransportLoopEnd({ data: ticks }));
-    },
-    [tickLength]
-  );
-
   /** Custom hook for dragging the loop start point. */
-  const [LoopStart, startDrag] = useLoopDrag({
-    tick,
-    onEnd: (item: any) => setLoopStart(item.hoverIndex),
-  });
+  const [LoopStart, startDrag] = useDrag(() => ({
+    type: "loop",
+    item: { tick: tick - 1, hoverIndex: tick },
+    collect(monitor) {
+      return { isDragging: monitor.isDragging() };
+    },
+    end(item: any) {
+      const ticks = Math.max(tickLength * (item.hoverIndex - 1), 0);
+      dispatch(setLoopStart(ticks));
+    },
+  }));
 
   /** Custom hook for dragging the loop end point. */
-  const [LoopEnd, endDrag] = useLoopDrag({
-    tick,
-    onEnd: (item: any) => setLoopEnd(item.hoverIndex),
-  });
+  const [LoopEnd, endDrag] = useDrag(
+    () => ({
+      type: "loop",
+      item: { tick: tick - 1, hoverIndex: tick },
+      collect(monitor) {
+        return { isDragging: monitor.isDragging() };
+      },
+      end(item: any) {
+        const ticks = Math.max(tickLength * item.hoverIndex - 1, 0);
+        dispatch(setLoopEnd(ticks));
+      },
+    }),
+    [tickLength]
+  );
 
   /** Custom hook for dropping the loop point into a header. */
-  const [{ isOver }, drop] = useLoopDrop({ columnIndex, loopStart, loopEnd });
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: "loop",
+    collect: (monitor: any) => ({
+      loopStart: loopStart,
+      loopEnd: loopEnd,
+      isOver: monitor.isOver(),
+    }),
+    hover: (item: { tick: Tick; hoverIndex: number }) => {
+      item.hoverIndex = columnIndex;
+    },
+  }));
 
   /** The loop points are rendered only if the loop is active. */
   const LoopPoints = useCallback(() => {
@@ -137,16 +144,16 @@ export const TimelineHeaderRenderer = (props: RenderHeaderCellProps<Row>) => {
   const onClick = useCallback(() => {
     if (isPortaling) {
       if (hasFragment) {
-        setLoopEnd(columnIndex);
+        dispatch(setLoopEnd(Math.max(tickLength * columnIndex - 1, 0)));
         dispatch(toggleTimelineState({ data: "portaling-clips" }));
       } else {
-        setLoopStart(columnIndex);
+        dispatch(setLoopStart(Math.max(tickLength * (columnIndex - 1), 0)));
         dispatch(updateFragment({ data: { tick } }));
       }
     } else {
       dispatch(seekTransport({ data: tick }));
     }
-  }, [tick, columnIndex, isPortaling, hasFragment]);
+  }, [tick, tickLength, columnIndex, isPortaling, hasFragment]);
 
   // Render the time cell
   return (

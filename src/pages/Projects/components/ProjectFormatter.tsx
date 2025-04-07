@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 import { useNavigate } from "react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 import { isProject } from "types/Project/ProjectTypes";
@@ -15,7 +15,7 @@ import {
   HomeListDeleteMenu,
   HomeListItem,
 } from "pages/components/HomeList";
-import { exportProjectToHAM } from "types/Project/ProjectExporters";
+import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { createProject, deleteProject } from "types/Project/ProjectThunks";
 
 interface ProjectFormatterProps extends ProjectItem {
@@ -23,7 +23,7 @@ interface ProjectFormatterProps extends ProjectItem {
 }
 
 export function ProjectFormatter(props: ProjectFormatterProps) {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { project, filePath } = props;
   const id = selectProjectId(project);
@@ -40,9 +40,9 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
     if (!canPlay) return;
     const callback = () => navigate("/playground");
     if (filePath) {
-      dispatch(loadProjectByPath(filePath, callback));
+      loadProjectByPath(filePath, callback);
     } else {
-      dispatch(loadProject(id, callback));
+      loadProject(id, callback);
     }
   }, [id, canPlay, filePath]);
 
@@ -68,7 +68,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
           Copy
         </HomeListButton>
         <HomeListButton
-          onClick={() => dispatch(exportProjectToHAM(props.project))}
+          onClick={() => dispatch(exportProjectToJSON(props.project))}
         >
           Save
         </HomeListButton>

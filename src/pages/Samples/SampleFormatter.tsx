@@ -11,7 +11,7 @@ import {
   downloadSampleFromIDB,
   deleteSampleFromIDB,
   SampleData,
-} from "providers/idb/samples";
+} from "providers/samples";
 import { useCallback, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { GiAudioCassette, GiSoundWaves } from "react-icons/gi";
@@ -39,6 +39,11 @@ export const SampleFormatter = (props: { data: SampleData }) => {
     } else {
       player.start(now(), elapsedTime);
     }
+    if (player)
+      player.onstop = () => {
+        setElapsedTime(0);
+        setIsPlaying(false);
+      };
 
     setStartTime(now());
     setIsPlaying(true);

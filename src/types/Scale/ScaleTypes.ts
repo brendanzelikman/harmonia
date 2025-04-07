@@ -1,17 +1,9 @@
-import {
-  isArray,
-  isNumber,
-  isObject,
-  isPlainObject,
-  isString,
-  range,
-} from "lodash";
+import { isNumber, isObject, range } from "lodash";
 import { Id, PitchClass } from "types/units";
 import { MidiNote, MidiObject, MidiScale, MidiValue } from "utils/midi";
 import { createId } from "types/util";
 import { Dictionary, EntityState } from "@reduxjs/toolkit";
 import { Vector } from "utils/vector";
-import { TrackId } from "types/Track/TrackTypes";
 
 // ------------------------------------------------------------
 // Scale Generics
@@ -29,7 +21,10 @@ export type ScaleState = EntityState<ScaleObject>;
 export type ScaleVector = Vector<ScaleVectorId>;
 export type ScaleVectorId = "chromatic" | "octave" | PitchClass | ScaleId;
 
-/** A `NestedNote` references a scale by degree. */
+/**
+ * A `NestedNote` is a note that indexes a parent by degree.
+ * Each note can also store a transposition vector and a scale ID.
+ */
 export type NestedNote = {
   degree: number;
   offset?: ScaleVector;
@@ -51,7 +46,6 @@ export type ScaleObject = {
   notes: ScaleArray;
   name?: string;
   aliases?: string[];
-  trackId?: TrackId;
 };
 
 /** A `Scale` is either a `ScaleObject` or a `ScaleArray`. */
@@ -119,73 +113,30 @@ export const mockScale: ScaleObject = {
 // Scale Type Guards
 // ------------------------------------------------------------
 
-/** Checks if a given object is of type `ScaleVector`. */
-export const isScaleVector = (obj: unknown): obj is ScaleVector => {
-  const candidate = obj as ScaleVector;
-  return isPlainObject(candidate);
+export const isScaleId = (obj: unknown): obj is ScaleId => {
+  return typeof obj === "string" && obj.startsWith("scale_");
 };
 
-/** Checks if a given object is of type `MidiValue`. */
 export const isMidiValue = (obj: unknown): obj is MidiValue => {
-  const candidate = obj as MidiNote;
-  return isNumber(candidate);
+  return isNumber(obj);
 };
 
 /** Checks if a given object is of type `MidiObject`. */
 export const isMidiObject = (obj: unknown): obj is MidiObject => {
-  const candidate = obj as MidiObject;
-  return isMidiValue(candidate?.MIDI);
+  return isObject(obj) && "MIDI" in obj && isNumber(obj.MIDI);
 };
 
 /** Checks if a given object is of type `MidiNote`. */
 export const isMidiNote = (obj: unknown): obj is MidiNote => {
-  return isNumber(obj) || isNumber((obj as MidiObject)?.MIDI);
+  return isMidiObject(obj) || isMidiValue(obj);
 };
 
 /** Checks if a given object is of type `NestedNote`. */
 export const isNestedNote = (obj: unknown): obj is NestedNote => {
-  const candidate = obj as NestedNote;
-  return isObject(candidate) && "degree" in candidate;
-};
-
-/** Checks if a given object is of type `ScaleNote`. */
-export const isScaleNote = (obj: unknown): obj is ScaleNote => {
-  return isMidiNote(obj) || isNestedNote(obj);
+  return isObject(obj) && "degree" in obj;
 };
 
 /** Checks if a given object is of type `ScaleNoteObject`. */
 export const isScaleNoteObject = (obj: unknown): obj is ScaleNoteObject => {
   return isMidiObject(obj) || isNestedNote(obj);
 };
-
-/** Checks if a given object is of type `ScaleArray`. */
-export const isScaleArray = (obj: unknown): obj is ScaleArray => {
-  const candidate = obj as ScaleArray;
-  return isArray(candidate) && candidate.every(isScaleNote);
-};
-
-/** Checks if a given object is of type `ScaleObject`. */
-export const isScaleObject = (obj: unknown): obj is ScaleObject => {
-  const candidate = obj as ScaleObject;
-  return (
-    isPlainObject(candidate) &&
-    isString(candidate.id) &&
-    isScaleArray(candidate.notes)
-  );
-};
-
-/** Checks if a given object is of type `Scale`. */
-export const isScale = (obj: unknown): obj is Scale => {
-  const candidate = obj as Scale;
-  return isScaleArray(candidate) || isScaleObject(candidate);
-};
-
-/** Checks if a given object is of type `MidiScale`. */
-export const isMidiScale = (obj: unknown): obj is MidiScale => {
-  const candidate = obj as MidiScale;
-  return isArray(candidate) && candidate.every(isMidiNote);
-};
-
-// Checks if a given object is of type `ScaleId`.
-export const isScaleId = (obj: unknown): obj is ScaleId =>
-  isString(obj) && obj.startsWith("scale");

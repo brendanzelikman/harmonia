@@ -1,4 +1,4 @@
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { GiPortal } from "react-icons/gi";
 import classNames from "classnames";
 import {
@@ -7,12 +7,12 @@ import {
 } from "types/Timeline/TimelineSelectors";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { ARRANGE_PORTALS_HOTKEY } from "features/Timeline/hooks/useTimelineHotkeys";
+import { ARRANGE_PORTALS_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
 
 export const NavbarPortalGun = () => {
-  const dispatch = useProjectDispatch();
-  const isPortaling = useDeep(selectIsAddingPortals);
-  const hasFragment = useDeep(selectHasPortalFragment);
+  const dispatch = useDispatch();
+  const isPortaling = useStore(selectIsAddingPortals);
+  const hasFragment = useStore(selectHasPortalFragment);
   return (
     <div className="relative">
       <NavbarTooltipButton

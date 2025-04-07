@@ -2,7 +2,7 @@
 // Order Effects
 // --------------------------------------------------------
 
-import { useProjectDispatch } from "types/hooks";
+import { useDispatch } from "types/hooks";
 import {
   PoseClipBaseEffect,
   addTransformation,
@@ -46,7 +46,7 @@ export interface PoseClipEffectsProps extends PoseClipDropdownEffectProps {
   block: PoseBlock | undefined;
 }
 export const PoseClipEffects = (props: PoseClipEffectsProps) => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const { block, vector, ...effectProps } = props;
   const [view, setView] = useState<"effects" | "store">("effects");
   const [category, setCategory] = useState<TransformationCategory>("order");
@@ -205,7 +205,7 @@ export const PoseClipEffect = <T extends Transformation>({
   operations,
   ...rest
 }: PoseClipEffectProps<T>) => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const hasIndex = "field" in rest;
   const inStore = "addButton" in rest && rest.addButton;
 

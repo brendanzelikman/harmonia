@@ -17,7 +17,6 @@ import { invert } from "lodash";
 
 /** Pulses Per Quarter Note */
 export const PPQ = 96;
-const RATE = 60 / PPQ;
 
 /** Convert ticks to seconds using the PPQ and BPM. */
 export const ticksToSeconds = (ticks: Tick, bpm: BPM): Seconds => {
@@ -401,6 +400,10 @@ export const DURATION_TICKS: Record<DurationType, Tick> = {
   ...TRIPLET_DURATION_TICKS,
 } as const;
 
+/** The list of all duration ticks. */
+export const TICK_LIST = getDictValues(DURATION_TICKS);
+
+/** A record of durations to ticks. */
 export const TICK_DURATIONS = invert(DURATION_TICKS) as Record<
   Tick,
   DurationType
@@ -578,9 +581,29 @@ export const toggleTripletDuration = (duration: DurationType) => {
   if (!isTripletDuration(duration)) return getTripletDuration(duration);
 };
 
+/** Return true if the duration is a valid duration type. */
+export const isDurationType = (duration: string): duration is DurationType => {
+  return duration in DURATION_TICKS;
+};
+
+/** Get the closest valid duration to a value within a window. */
+export const getClosestDuration = (ticks: Tick) => {
+  const durationType = getTickDuration(ticks);
+
+  // If an exact duration type is found, return the note
+  if (durationType) return ticks;
+
+  // Otherwise, try to quantize the note within a spread
+  const match = TICK_LIST.find((d) => Math.abs(ticks - d) <= 3);
+  if (match) return match;
+
+  // Return the default value
+  return ticks;
+};
+
 /** Get the ticks of a duration. */
-export const getDurationTicks = (duration: DurationType) => {
-  return DURATION_TICKS[duration];
+export const getDurationTicks = (duration: string) => {
+  return isDurationType(duration) ? DURATION_TICKS[duration] : 0;
 };
 
 /** Get the name of a duration. */

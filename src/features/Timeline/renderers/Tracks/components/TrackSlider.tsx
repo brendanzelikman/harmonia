@@ -1,7 +1,7 @@
 import { InputHTMLAttributes, useCallback, useState } from "react";
 import { cancelEvent } from "utils/html";
-import { omit } from "lodash";
-import { normalize, percent } from "utils/math";
+import { omit, throttle } from "lodash";
+import { percent } from "utils/math";
 import classNames from "classnames";
 import {
   BsVolumeUpFill,
@@ -20,7 +20,7 @@ import {
   DEFAULT_PAN,
   PAN_STEP,
 } from "utils/constants";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { selectTrackInstrument } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
@@ -82,9 +82,9 @@ export const TrackSlider = (props: SliderProps) => {
 };
 
 export const VolumeSlider = (props: { trackId: TrackId }) => {
-  const dispatch = useProjectDispatch();
-  const instrument = useDeep((_) => selectTrackInstrument(_, props.trackId));
-  const cellHeight = useDeep(selectCellHeight);
+  const dispatch = useDispatch();
+  const instrument = useStore((_) => selectTrackInstrument(_, props.trackId));
+  const cellHeight = useStore(selectCellHeight);
   const [draggingVolume, setDraggingVolume] = useState(false);
   if (!instrument) return null;
 
@@ -100,9 +100,12 @@ export const VolumeSlider = (props: { trackId: TrackId }) => {
 
   const textColor = draggingVolume ? "text-emerald-400" : "text-white";
 
-  const setVolume = useCallback((volume: number) => {
-    dispatch(updateInstrument({ data: { id, update: { volume } } }));
-  }, []);
+  const setVolume = useCallback(
+    throttle((volume: number) => {
+      dispatch(updateInstrument({ data: { id, update: { volume } } }));
+    }, 100),
+    []
+  );
 
   return (
     <div className="w-5 h-full z-[90] relative">
@@ -128,10 +131,10 @@ export const VolumeSlider = (props: { trackId: TrackId }) => {
 };
 
 export const PanSlider = (props: { trackId: TrackId }) => {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const [draggingPan, setDraggingPan] = useState(false);
-  const cellHeight = useDeep(selectCellHeight);
-  const instrument = useDeep((_) => selectTrackInstrument(_, props.trackId));
+  const cellHeight = useStore(selectCellHeight);
+  const instrument = useStore((_) => selectTrackInstrument(_, props.trackId));
   if (!instrument) return null;
 
   const pan = instrument?.pan ?? DEFAULT_PAN;

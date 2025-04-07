@@ -7,8 +7,10 @@ import {
   PoseClipMap,
   PatternClipState,
   PoseClipState,
+  ClipType,
+  IClip,
+  PoseClip,
 } from "types/Clip/ClipTypes";
-import { ClipsByTrack } from "types/Clip/ClipUtils";
 import {
   defaultInstrumentState,
   InstrumentState,
@@ -32,6 +34,7 @@ import { TrackId, TrackMap, TrackState } from "types/Track/TrackTypes";
 
 export type ChainIdsByTrack = Record<TrackId, ScaleTrackId[]>;
 export type PatternTracksByTrack = Record<TrackId, PatternTrack[]>;
+export type TrackPoseClips = Record<TrackId, PoseClip[]>;
 export type Motif = Pattern | Pose;
 
 /** A track arrangement stores track/clip object maps. */
@@ -42,7 +45,7 @@ export interface TrackArrangement {
   poses: PoseState;
   patternClips: PatternClipMap;
   poseClips: PoseClipMap;
-  clipsByTrack: ClipsByTrack;
+  trackPoseClips: TrackPoseClips;
   chainIdsByTrack: ChainIdsByTrack;
 }
 

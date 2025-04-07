@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { useHeldHotkeys } from "lib/react-hotkeys-hook";
 import { some } from "lodash";
-import { useDeep } from "types/hooks";
+import { useStore } from "types/hooks";
 import {
   selectIsEditingTrack,
   selectSelectedTrackId,
@@ -20,25 +20,25 @@ export const useTrackStyle = (props: {
 }) => {
   const trackId = props.trackId;
   const isPT = isPatternTrackId(trackId);
-  const track = useDeep((_) => selectTrackById(_, trackId));
+  const track = useStore((_) => selectTrackById(_, trackId));
   const isCollapsed = !!track?.collapsed;
-  const depth = useDeep((_) => selectTrackDepthById(_, trackId));
+  const depth = useStore((_) => selectTrackDepthById(_, trackId));
   const paddingLeft = depth * 8;
   const filter = `hue-rotate(${(depth - 1) * 8}deg)`;
   const opacity = props.isDragging ? 0.5 : 1;
   const className = classNames(
-    "animate-in fade-in slide-in-from-top-8 transition-all rdg-track size-full relative bg-gradient-radial text-white",
+    "animate-in rdg-track fade-in duration-200 slide-in-from-top-8 transition-all size-full relative bg-gradient-radial text-white",
     { "from-teal-600 to-emerald-600": isPT },
     isCollapsed ? "p-0.5 pt-0" : "p-1",
     { "from-indigo-800/80 to-indigo-700": !isPT }
   );
-  const ancestors = useDeep(selectTrackAncestorIds);
-  const selectedId = useDeep(selectSelectedTrackId);
+  const ancestors = useStore(selectTrackAncestorIds);
+  const selectedId = useStore(selectSelectedTrackId);
   const isSelected = selectedId === trackId;
   const isAncestorSelected = selectedId && ancestors.includes(selectedId);
   const heldKeys = useHeldHotkeys(["q", "w", "e", "r", "t", "y"]);
   const isHolding = some(heldKeys);
-  const onInstrumentEditor = useDeep((_) => selectIsEditingTrack(_, trackId));
+  const onInstrumentEditor = useStore((_) => selectIsEditingTrack(_, trackId));
   const borderClass = classNames(
     "size-full bg-gradient-radial border-2 rounded transition-all",
     { "total-center": isPT },

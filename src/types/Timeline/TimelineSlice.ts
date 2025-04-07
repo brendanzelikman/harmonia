@@ -120,6 +120,11 @@ export const timelineSlice = createSlice({
       const portal = unpackAction(action);
       state.fragment = portal;
     },
+    /** Update the timeline tick. */
+    updateTimelineTick: (state, action: Action<number>) => {
+      const tick = unpackAction(action);
+      state.tick = tick;
+    },
     /** Update the media selection. */
     updateMediaSelection: (state, action: Action<Partial<MediaSelection>>) => {
       if (!state.selection) state.selection = defaultMediaSelection;
@@ -137,15 +142,11 @@ export const timelineSlice = createSlice({
 export const privateTimelineActions = [
   "timeline/clearTimelineState",
   "timeline/setTimelineType",
-  "timeline/setCellWidth",
-  "timeline/setCellHeight",
-  "timeline/setSubdivision",
-  "timeline/increaseSubdivision",
-  "timeline/decreaseSubdivision",
   "timeline/setSelectedTrackId",
   "timeline/updateMediaSelection",
   "timeline/updateClipboard",
   "timeline/updateFragment",
+  "timeline/updateTimelineTick",
 ];
 
 export const {
@@ -161,6 +162,7 @@ export const {
   updateMediaSelection,
   updateClipboard,
   updateFragment,
+  updateTimelineTick,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

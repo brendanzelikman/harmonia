@@ -45,12 +45,6 @@ const st2 = initializeScaleTrack({ scaleId: scale2.id });
 const st3 = initializeScaleTrack({ scaleId: scale3.id });
 const st4 = initializeScaleTrack({ scaleId: scale4.id });
 
-// Update the scales
-scale1.trackId = st1.id;
-scale2.trackId = st2.id;
-scale3.trackId = st3.id;
-scale4.trackId = st4.id;
-
 // Update the track dependencies
 st1.trackIds = [st2.id];
 st2.trackIds = [st3.id];
@@ -74,10 +68,10 @@ const stream = [v1, v2, v3, v4, v5, v6, v7, v8].map((v) => ({
 }));
 
 // Create the poses
-const p1 = initializePose({ trackId: st1.id, stream });
-const p2 = initializePose({ trackId: st2.id, stream });
-const p3 = initializePose({ trackId: st3.id, stream });
-const p4 = initializePose({ trackId: st4.id, stream });
+const p1 = initializePose({ stream });
+const p2 = initializePose({ stream });
+const p3 = initializePose({ stream });
+const p4 = initializePose({ stream });
 
 // Create the pose clips
 const pc1 = initializePoseClip({ poseId: p1.id, trackId: st1.id });
@@ -102,9 +96,7 @@ const getChainAtTick = (clip: PoseClip, tick: number) => {
     poseClips: { [clip.id]: clip },
     patternClips: {},
     tick,
-    clipsByTrack: {
-      [clip.trackId]: { pose: [clip], pattern: [] },
-    },
+    trackPoseClips: { [clip.trackId]: [clip] },
     chainIdsByTrack: {
       [st1.id]: [st1.id],
       [st2.id]: [st1.id, st2.id],

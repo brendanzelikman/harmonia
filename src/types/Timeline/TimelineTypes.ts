@@ -7,6 +7,11 @@ import {
   defaultMediaClipboard,
 } from "types/Media/MediaTypes";
 import { Portal } from "types/Portal/PortalTypes";
+import {
+  DEFAULT_CELL_WIDTH,
+  DEFAULT_CELL_HEIGHT,
+  DEFAULT_SUBDIVISION,
+} from "utils/constants";
 
 // ------------------------------------------------------------
 // Timeline Definitions
@@ -16,6 +21,7 @@ import { Portal } from "types/Portal/PortalTypes";
 export type Timeline = Partial<{
   state: TimelineState;
   type: ClipType;
+  tick: number;
 
   fragment: Partial<Portal>;
   clipboard: MediaClipboard;
@@ -37,13 +43,6 @@ export const TIMELINE_STATES = [
 export type TimelineState = (typeof TIMELINE_STATES)[number];
 export type TimelineSelection = MediaSelection & { trackId?: TrackId };
 
-// ------------------------------------------------------------
-// Timeline Defaults
-// ------------------------------------------------------------
-
-export const DEFAULT_CELL_WIDTH = 25;
-export const DEFAULT_CELL_HEIGHT = 120;
-
 export const defaultTimelineSelection: TimelineSelection = {
   clipIds: [],
   portalIds: [],
@@ -54,10 +53,11 @@ export const defaultTimelineSelection: TimelineSelection = {
 export const defaultTimeline: Required<Timeline> = {
   state: "idle",
   type: "pattern",
+  tick: 0,
   fragment: {},
   clipboard: defaultMediaClipboard,
   selection: defaultTimelineSelection,
-  subdivision: "16n",
+  subdivision: DEFAULT_SUBDIVISION,
   cellWidth: DEFAULT_CELL_WIDTH,
   cellHeight: DEFAULT_CELL_HEIGHT,
 };

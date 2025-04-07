@@ -3,7 +3,6 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { selectPatternById } from "../PatternSelectors";
 import {
   isPatternChord,
-  isPatternMidiNote,
   PatternBlock,
   PatternId,
   PatternRest,
@@ -15,11 +14,6 @@ import {
 } from "../PatternUtils";
 import { createUndoType, Payload } from "lib/redux";
 import { getPatternBlockDuration } from "../PatternFunctions";
-import { resolvePatternToMidi } from "../PatternResolvers";
-import {
-  selectTrackById,
-  selectTrackScaleChain,
-} from "types/Track/TrackSelectors";
 import { inRange, uniqBy } from "lodash";
 import { isNestedNote } from "types/Scale/ScaleTypes";
 import { createPattern } from "../PatternThunks";
@@ -106,73 +100,6 @@ export const subdividePattern =
     }
 
     dispatch(updatePattern({ data: { id, stream } }));
-  };
-
-/** Flatten the stream of a pattern. */
-export const interpolatePattern =
-  ({
-    data,
-  }: Payload<{
-    id: PatternId;
-    fillCount: number;
-  }>): Thunk =>
-  (dispatch, getProject) => {
-    const { id, fillCount } = data;
-    const project = getProject();
-    const pattern = selectPatternById(project, id);
-    const ptId = pattern.trackId;
-    const track = ptId ? selectTrackById(project, ptId) : undefined;
-    const chain = selectTrackScaleChain(project, track?.id);
-    const midiStream = resolvePatternToMidi(pattern, chain);
-    const streamLength = pattern.stream.length;
-
-    const newStream = [];
-    for (let i = 0; i < streamLength; i++) {
-      const block = midiStream[i];
-
-      if (!isPatternChord(block)) {
-        newStream.push(block);
-        continue;
-      }
-
-      newStream.push(block);
-
-      if (i === streamLength - 1) continue;
-
-      const nextBlock = midiStream[i + 1];
-      if (!isPatternChord(nextBlock)) continue;
-
-      const blockNotes = getPatternChordNotes(block);
-      const blockRoot = blockNotes.find(isPatternMidiNote);
-      const blockDuration = getPatternBlockDuration(block);
-      const blockVelocity = blockNotes[0].velocity;
-
-      const nextBlockNotes = getPatternChordNotes(nextBlock);
-      const nextBlockRoot = nextBlockNotes.find(isPatternMidiNote);
-      const nextBlockVelocity = nextBlockNotes[0].velocity;
-
-      if (!blockRoot || !nextBlockRoot) continue;
-
-      const rootDistance = nextBlockRoot.MIDI - blockRoot.MIDI;
-      const velocityDistance = nextBlockVelocity - blockVelocity;
-
-      const rootStepSize = rootDistance / (fillCount + 1);
-      const velocityStepSize = velocityDistance / fillCount;
-
-      const interpolatedChords = new Array(fillCount).fill(0).map((_, i) => {
-        const newRoot = blockRoot.MIDI + Math.round(rootStepSize * (i + 1));
-        const newVelocity = blockVelocity + Math.round(velocityStepSize * i);
-        return {
-          duration: blockDuration,
-          velocity: newVelocity,
-          MIDI: newRoot,
-        };
-      });
-
-      newStream.push(...interpolatedChords);
-    }
-
-    dispatch(updatePattern({ data: { id, stream: newStream } }));
   };
 
 /** Merge the stream of a pattern. */

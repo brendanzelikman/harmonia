@@ -1,7 +1,7 @@
 import { Project } from "types/Project/ProjectTypes";
 import { createSelector } from "reselect";
 import { percent } from "utils/math";
-import { MAX_TRANSPORT_VOLUME, MIN_TRANSPORT_VOLUME } from "utils/constants";
+import { MAX_VOLUME, MIN_VOLUME } from "utils/constants";
 
 /** Select the transport state */
 export const selectTransport = (project: Project) => project.present.transport;
@@ -18,10 +18,10 @@ export const selectTransportTimeSignature = createSelector(
   (transport) => transport.timeSignature
 );
 
-/** Select the transport recording state. */
-export const selectTransportRecording = createSelector(
+/** Select the transport swing. */
+export const selectTransportSwing = createSelector(
   [selectTransport],
-  (transport) => transport.recording
+  (transport) => transport.swing
 );
 
 /** Select the transport loop state. */
@@ -57,8 +57,5 @@ export const selectTransportMute = createSelector(
 /** Select the transport volume percent. */
 export const selectTransportVolumePercent = createSelector(
   [selectTransportVolume, selectTransportMute],
-  (volume, mute) => {
-    const vol = mute ? MIN_TRANSPORT_VOLUME : volume;
-    return percent(vol, MIN_TRANSPORT_VOLUME, MAX_TRANSPORT_VOLUME);
-  }
+  (volume, mute) => percent(mute ? MIN_VOLUME : volume, MIN_VOLUME, MAX_VOLUME)
 );

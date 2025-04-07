@@ -13,7 +13,7 @@ export const CHROMATIC_KEY = "t";
 export const OCTAVE_KEY = "y";
 export const PITCH_KEY = "*";
 export const VECTOR_SEPARATOR = " + ";
-export const VECTOR_BASE = "Origin";
+export const VECTOR_BASE = "Root";
 
 /** Returns true if a vector has no keys. */
 export const isVectorEmpty = (vector?: Vector) => {
@@ -27,6 +27,13 @@ export const isVectorEmpty = (vector?: Vector) => {
 /** Get the keys of a vector. */
 export const getVectorKeys = <T extends Vector>(vector?: T): VectorKey<T>[] => {
   return vector ? Object.keys(vector) : [];
+};
+
+/** Get the nonzero keys of a vector. */
+export const getNonzeroVectorKeys = <T extends Vector>(
+  vector?: T
+): VectorKey<T>[] => {
+  return getVectorKeys(vector).filter((key) => !!vector?.[key]);
 };
 
 /** Replace the keys of a vector. */
@@ -88,10 +95,9 @@ export const sumVectors = <T extends Vector>(
 ): T => {
   const result = {} as T;
   for (const vector of vectors) {
+    if (vector === undefined) continue;
     for (const key in vector) {
-      const oldValue = result[key] ?? 0;
-      const newValue = vector[key] ?? 0;
-      result[key] = (oldValue + newValue) as T[Extract<keyof T, string>];
+      result[key] = ((result[key] ?? 0) + (vector[key] ?? 0)) as T[typeof key];
     }
   }
   return result;

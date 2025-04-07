@@ -63,7 +63,7 @@ export const walkPatternClip =
     dispatch(
       createCourtesyPoseClip({
         data: {
-          pose: { vector: search.vector, trackId: clip.trackId },
+          pose: { vector: search.vector },
           clip: { tick: clip.tick, trackId: clip.trackId },
         },
         undoType,

@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { Row } from "features/Timeline/components/TimelineGrid";
 import { RenderCellProps } from "react-data-grid";
 import { useDrop } from "react-dnd";
-import { useDeep, useProjectDispatch } from "types/hooks";
+import { useStore, useDispatch } from "types/hooks";
 import { onCellClick } from "types/Timeline/thunks/TimelineClickThunks";
 import {
   selectHasPortalFragment,
@@ -18,17 +18,17 @@ import {
 } from "types/Transport/TransportSelectors";
 
 export function CellFormatter(props: RenderCellProps<Row, unknown>) {
-  const dispatch = useProjectDispatch();
-  const state = useDeep(selectTimelineState);
-  const type = useDeep(selectTimelineType);
-  const hasFragment = useDeep(selectHasPortalFragment);
-  const fragment = useDeep(selectPortalFragment);
+  const dispatch = useDispatch();
+  const state = useStore(selectTimelineState);
+  const type = useStore(selectTimelineType);
+  const hasFragment = useStore(selectHasPortalFragment);
+  const fragment = useStore(selectPortalFragment);
   const trackId = props.row.id;
   const index = props.row.index;
 
-  const bpm = useDeep(selectTransportBPM);
-  const timeSignature = useDeep(selectTransportTimeSignature);
-  const subdivisionTicks = useDeep(selectSubdivisionTicks);
+  const bpm = useStore(selectTransportBPM);
+  const timeSignature = useStore(selectTransportTimeSignature);
+  const subdivisionTicks = useStore(selectSubdivisionTicks);
   const key = parseInt(props.column.key);
   const tick = subdivisionTicks * (key - 1);
   const time = getBarsBeatsSixteenths(tick, { bpm, timeSignature });
@@ -72,7 +72,7 @@ export function CellFormatter(props: RenderCellProps<Row, unknown>) {
         { "cursor-paintbrush hover:bg-teal-500/50": isAddingPatterns },
         { "cursor-wand hover:bg-fuchsia-500/50": isAddingPoses }
       )}
-      onClick={() => dispatch(onCellClick(key, trackId))}
+      onClick={(e) => dispatch(onCellClick(e, key, trackId))}
     />
   );
 }

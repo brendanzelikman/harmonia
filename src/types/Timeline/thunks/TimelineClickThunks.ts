@@ -28,11 +28,14 @@ import {
   selectTimelineType,
   selectPortalFragment,
   selectHasPortalFragment,
+  selectSelectedTrackId,
+  selectCurrentTimelineTick,
 } from "../TimelineSelectors";
 import {
   updateMediaSelection,
   updateFragment,
   setSelectedTrackId,
+  updateTimelineTick,
 } from "../TimelineSlice";
 import { selectClipsByTrackIds } from "types/Clip/ClipSelectors";
 import { MediaElement } from "types/Media/MediaTypes";
@@ -45,10 +48,10 @@ import {
 } from "./TimelineSelectionThunks";
 import { addPortal } from "types/Portal/PortalSlice";
 import { TrackId } from "types/Track/TrackTypes";
-import { seekTransport } from "types/Transport/TransportThunks";
 import { toggleTimelineState } from "../TimelineThunks";
 import { Timed } from "types/units";
 import { createMedia } from "types/Media/MediaThunks";
+import { getTransport } from "tone";
 
 // ------------------------------------------------------------
 // Cell Functins
@@ -56,7 +59,7 @@ import { createMedia } from "types/Media/MediaThunks";
 
 /** The handler for when a timeline cell is clicked. */
 export const onCellClick =
-  (columnIndex: number, trackId?: TrackId): Thunk =>
+  (e: DivMouseEvent, columnIndex: number, trackId?: TrackId): Thunk =>
   (dispatch, getProject) => {
     const undoType = createUndoType("onCellClick", { columnIndex, trackId });
     const project = getProject();
@@ -64,11 +67,13 @@ export const onCellClick =
 
     // If no track is selected, seek the transport to the time and deselect all media
     if (trackId === undefined) {
-      dispatch(seekTransport({ data: tick, undoType }));
+      dispatch(updateTimelineTick({ data: tick, undoType }));
       dispatch(updateMediaSelection({ data: { clipIds: [] }, undoType }));
       return;
     }
 
+    const trackIds = selectTrackIds(project);
+    const selectedTrackId = selectSelectedTrackId(project);
     const fragment = selectPortalFragment(project);
     const hasFragment = selectHasPortalFragment(project);
     const isAddingClips = selectIsAddingClips(project);
@@ -107,10 +112,34 @@ export const onCellClick =
       return;
     }
 
+    // If holding shift, add clips within the region to the selection
+    if (isHoldingShift(e) && selectedTrackId) {
+      const currentTick = selectCurrentTimelineTick(project);
+      const startTick = Math.min(currentTick, tick);
+      const endTick = Math.max(currentTick, tick) + 1;
+      const startIndex = trackIds.indexOf(selectedTrackId);
+      const endIndex = trackIds.indexOf(trackId);
+      const rangeTrackIds = trackIds.slice(
+        Math.min(startIndex, endIndex),
+        Math.max(startIndex, endIndex) + 1
+      );
+      const clips = selectClipsByTrackIds(project, rangeTrackIds);
+      const media = getMediaInRange(clips, [startTick, endTick]);
+      const clipIds = getClipsFromMedia(media).map((clip) => clip.id);
+      const portalIds = getPortalsFromMedia(media).map((portal) => portal.id);
+      dispatch(
+        updateMediaSelection({
+          data: { clipIds, portalIds },
+          undoType,
+        })
+      );
+    } else {
+      dispatch(clearClipIdsFromSelection({ undoType }));
+    }
+
     // Otherwise, seek the transport, select the track, and deselect all media
-    dispatch(seekTransport({ data: tick, undoType }));
-    dispatch(clearClipIdsFromSelection({ undoType }));
-    if (trackId) dispatch(setSelectedTrackId({ data: trackId, undoType }));
+    dispatch(updateTimelineTick({ data: tick, undoType }));
+    dispatch(setSelectedTrackId({ data: trackId, undoType }));
   };
 
 // ------------------------------------------------------------
@@ -160,6 +189,12 @@ export const onClipClick =
       dispatch(updateClip({ data, undoType }));
     }
 
+    // Select a range of clips if the user is holding shift
+    if (holdingShift) {
+      dispatch(selectRangeOfClips({ data: clip, undoType }));
+      return;
+    }
+
     // Just select the clip if there are no other selected clips
     if (!selectedClipIds.length) {
       dispatch(replaceClipIdsInSelection({ data: [id], undoType }));
@@ -169,12 +204,6 @@ export const onClipClick =
     // Deselect the clip if it is selected
     if (isClipSelected) {
       dispatch(removeClipIdsFromSelection({ data: [id], undoType }));
-      return;
-    }
-
-    // Select a range of clips if the user is holding shift
-    if (holdingShift) {
-      dispatch(selectRangeOfClips({ data: clip, undoType }));
       return;
     }
 
@@ -197,17 +226,37 @@ export const selectRangeOfClips =
     const undoType = unpackUndoType(payload, "selectRangeOfClips");
 
     // Get all selected clips
-    const selection = union<Timed<Clip>>(selectSelectedClips(project), [clip]);
+    const selectedClips = selectSelectedClips(project);
+    const trackIds = selectTrackIds(project);
+    const selectedTrackId = selectSelectedTrackId(project);
+    const selection = union<Timed<Clip>>(selectedClips, [clip]);
 
     // Compute the start and end time of the selection
-    const startTick = getMediaStartTick(selection);
-    const endTick = getMediaEndTick(selection);
-    const range = [startTick, endTick] as [number, number];
+    const currentTick = selectCurrentTimelineTick(project);
+    let startTick = getMediaStartTick(selection);
+    let endTick = getMediaEndTick(selection);
+
+    // If no clips are selected, use the current tick and selected track
+    if (!selectedClips.length && selectedTrackId) {
+      startTick = Math.min(currentTick, clip.tick);
+      endTick = Math.max(currentTick, clip.tick + clip.duration) + 1;
+      const dummy = initializeClip({
+        type: "pattern",
+        tick: currentTick,
+        trackId: selectedTrackId,
+        duration: 1,
+      }) as Timed<Clip>;
+      if (trackIds.indexOf(dummy.trackId) > trackIds.indexOf(clip.trackId)) {
+        selection.unshift(dummy);
+      } else {
+        selection.push(dummy);
+      }
+    }
 
     // Get all clips that are in the track range
-    const trackIds = selectTrackIds(project);
-    const rangeTracks = getMediaTrackIds(selection, trackIds, clip.trackId);
-    const clipsInTracks = selectClipsByTrackIds(project, rangeTracks);
+    const range = [startTick, endTick];
+    const rangeTrackIds = getMediaTrackIds(selection, trackIds, clip.trackId);
+    const clipsInTracks = selectClipsByTrackIds(project, rangeTrackIds);
 
     // Get all clips that are in the tick range
     const media = getMediaInRange(clipsInTracks, range);

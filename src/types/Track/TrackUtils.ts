@@ -1,6 +1,6 @@
 import { range } from "lodash";
 import { resolvePatternNoteToMidi } from "types/Pattern/PatternResolvers";
-import { PatternNote } from "types/Pattern/PatternTypes";
+import { PatternNote, PatternStream } from "types/Pattern/PatternTypes";
 import { Thunk } from "types/Project/ProjectTypes";
 import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
 import { NestedNote } from "types/Scale/ScaleTypes";
@@ -18,6 +18,7 @@ import {
   selectTrackById,
 } from "./TrackSelectors";
 import { isScaleTrack, TrackId } from "./TrackTypes";
+import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
 
 /** Convert a midi into a nested note */
 export const convertMidiToNestedNote =
@@ -54,6 +55,17 @@ export const getDegreeOfNoteInTrack =
     // Index the MIDI scale and return the degree
     if (MIDI < 0) return -1;
     return trackMidiScale.findIndex((s) => s % 12 === MIDI % 12);
+  };
+
+export const autoBindStreamToTrack =
+  (trackId?: TrackId, stream?: PatternStream): Thunk<PatternStream> =>
+  (dispatch) => {
+    if (!trackId || !stream) return [];
+    return stream.map((b) =>
+      getPatternBlockWithNewNotes(b, (n) =>
+        n.map((n) => dispatch(autoBindNoteToTrack(trackId, n)))
+      )
+    );
   };
 
 /** Get the best matching note based on the given track. */

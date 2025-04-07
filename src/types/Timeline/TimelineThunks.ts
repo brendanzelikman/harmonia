@@ -24,10 +24,12 @@ import {
   selectSelectedPatternClips,
   selectIsTrackSelected,
   selectTimelineState,
+  selectCurrentTimelineTick,
 } from "./TimelineSelectors";
 import { createUndoType, Payload, unpackData, unpackUndoType } from "lib/redux";
 import { randomizePattern } from "types/Pattern/PatternThunks";
-import { DEFAULT_CELL_WIDTH, TimelineState } from "./TimelineTypes";
+import { TimelineState } from "./TimelineTypes";
+import { DEFAULT_CELL_WIDTH } from "utils/constants";
 import {
   createCourtesyPatternClip,
   createCourtesyPoseClip,
@@ -39,7 +41,6 @@ import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { walkPatternClip } from "types/Arrangement/ArrangementThunks";
 import { TrackId } from "types/Track/TrackTypes";
 import { nanoid } from "@reduxjs/toolkit";
-import { getTransport } from "tone";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { maxBy } from "lodash";
 import { selectClipDuration, selectClips } from "types/Clip/ClipSelectors";
@@ -115,6 +116,10 @@ export const toggleAddingState =
     }
   };
 
+export const DEFAULT_TRACK_PROMPT = `C => Cmaj => ${getInstrumentName(
+  DEFAULT_INSTRUMENT_KEY
+)}`;
+
 export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const patternTrackIds = selectPatternTrackIds(project);
@@ -150,10 +155,9 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
 
       // Otherwise, create a new track tree
       else {
-        const pt = getInstrumentName(DEFAULT_INSTRUMENT_KEY);
         const tracks = dispatch(
           createTreeFromString({
-            data: `C => Cmaj7 => Cmaj => ${pt}`,
+            data: DEFAULT_TRACK_PROMPT,
             undoType,
           })
         );
@@ -175,7 +179,7 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
 
   // If no clip is selected, create a new clip and pose.
   if (!patternClip) {
-    const tick = getTransport().ticks;
+    const tick = selectCurrentTimelineTick(getProject());
 
     // Delete any patterns at the current tick in the track
     if (trackId) {
@@ -189,14 +193,14 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
 
     const { patternId } = dispatch(
       createCourtesyPatternClip({
-        data: { pattern: { trackId }, clip: { trackId, tick } },
+        data: { clip: { trackId, tick } },
         undoType,
       })
     );
-    dispatch(randomizePattern({ data: { id: patternId }, undoType }));
+    dispatch(randomizePattern({ data: { id: patternId, trackId }, undoType }));
     dispatch(
       createCourtesyPoseClip({
-        data: { pose: { trackId }, clip: { trackId, tick } },
+        data: { clip: { trackId, tick } },
         undoType,
       })
     );

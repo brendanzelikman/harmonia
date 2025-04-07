@@ -1,39 +1,22 @@
 import { DemoXML } from "assets/demoXML";
 import { MusicXML, STAFF_PIVOT } from "lib/musicxml";
-import { Thunk } from "types/Project/ProjectTypes";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
-import { selectTrackScaleChain } from "types/Track/TrackSelectors";
-import { selectTransportBPM } from "types/Transport/TransportSelectors";
 import { XML } from "types/units";
 import {
   WholeNoteTicks,
   getStraightDuration,
   getTickDuration,
   isTripletNote,
-  ticksToSeconds,
 } from "utils/durations";
 import { downloadBlob } from "utils/html";
 import { getScaleKey } from "utils/scale";
 import { getPatternBlockDuration } from "./PatternFunctions";
-import {
-  resolvePatternNoteToMidi,
-  resolvePatternStreamToMidi,
-} from "./PatternResolvers";
-import { selectPatternById } from "./PatternSelectors";
-import {
-  PatternId,
-  isPatternChord,
-  isPatternMidiNote,
-  isPatternMidiChord,
-  Pattern,
-  PatternMidiStream,
-} from "./PatternTypes";
+import { resolvePatternStreamToMidi } from "./PatternResolvers";
+import { isPatternMidiChord, Pattern, PatternMidiStream } from "./PatternTypes";
 import {
   flattenMidiStreamValues,
-  getPatternChordNotes,
   getPatternMidiChordNotes,
 } from "./PatternUtils";
-import { Midi } from "@tonejs/midi";
 import {
   chromaticNotes,
   chromaticScale,
@@ -147,78 +130,3 @@ export const exportPatternToXML = (
   const scale = resolveScaleChainToMidi(scales);
   return exportPatternStreamToXML(stream, scale, download);
 };
-
-/** Export a pattern to a MIDI file. */
-export const exportPatternToMIDI =
-  (id?: PatternId): Thunk =>
-  (dispatch, getProject) => {
-    if (!id) return;
-
-    // Get the pattern
-    const project = getProject();
-    const bpm = selectTransportBPM(project);
-    const pattern = selectPatternById(project, id);
-    if (!pattern) return;
-
-    // Get the stream
-    const stream = pattern.stream;
-    const streamLength = stream.length;
-    if (!streamLength) return;
-
-    // Get the scales needed for the pattern based on its track
-    const scales = selectTrackScaleChain(project, pattern?.trackId);
-
-    // Prepare a new MIDI file
-    const midi = new Midi();
-    const track = midi.addTrack();
-    let time = 0;
-
-    // Iterate over each chord
-    for (let i = 0; i < streamLength; i++) {
-      const block = stream[i];
-      if (!isPatternChord(block)) continue;
-
-      // Get the duration of the chord and update time
-      const blockDuration = getPatternBlockDuration(block);
-      const duration = ticksToSeconds(blockDuration, bpm);
-      time += duration;
-
-      // Add the notes to the track
-      const noteTime = ticksToSeconds(time, bpm);
-      const notes = getPatternChordNotes(block);
-      for (const note of notes) {
-        if (isPatternMidiNote(note)) {
-          track.addNote({
-            midi: note.MIDI,
-            duration,
-            time: noteTime,
-            velocity: note.velocity,
-          });
-          continue;
-        }
-        const scaleIndex = scales.findIndex((s) => s.id === note.scaleId);
-        if (scaleIndex < 0) continue;
-        const chain = scales.slice(0, scaleIndex + 1);
-        const midi = resolvePatternNoteToMidi(note, chain);
-        track.addNote({
-          midi,
-          duration,
-          time: noteTime,
-          velocity: note.velocity,
-        });
-      }
-    }
-
-    // Create a MIDI blob
-    const blob = new Blob([midi.toArray()], {
-      type: "audio/midi",
-    });
-    const url = URL.createObjectURL(blob);
-
-    // Download the MIDI file
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${pattern.name || "pattern"}.mid`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };

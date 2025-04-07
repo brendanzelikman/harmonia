@@ -3,7 +3,7 @@ import { DiaryCoverPage, DiaryPageBinding } from "./DiaryPage";
 import { cancelEvent } from "utils/html";
 import { BsDownload, BsTrash } from "react-icons/bs";
 import { ContentPage } from "./ContentPage";
-import { use, useDeep, useProjectDispatch } from "types/hooks";
+import { use, useStore, useDispatch } from "types/hooks";
 import { setDiaryPage, clearDiary } from "types/Meta/MetaSlice";
 import classNames from "classnames";
 import { NAV_HEIGHT } from "utils/constants";
@@ -15,18 +15,18 @@ import { FlipBook } from "lib/react-pageflip";
 import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 import { useDrag, useDrop } from "react-dnd";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useToggledState } from "hooks/useToggledState";
+import { useToggle } from "hooks/useToggle";
 
 const DIARY_WIDTH = window.innerWidth / 2 - NAV_HEIGHT - 100;
 const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;
 const options = { preventDefault: true };
 
 export function Diary() {
-  const dispatch = useProjectDispatch();
+  const dispatch = useDispatch();
   const projectName = use(selectProjectName);
 
-  const diary = useDeep(selectProjectDiary);
-  const diaryState = useToggledState("diary");
+  const diary = useStore(selectProjectDiary);
+  const diaryState = useToggle("diary");
   const showingDiary = diaryState.isOpen;
 
   // Create a ref to the FlipBook component

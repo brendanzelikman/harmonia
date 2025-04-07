@@ -1,7 +1,12 @@
-import { clamp } from "lodash";
+import { clamp, isString } from "lodash";
 
 /** Sanitize a number */
 export const sanitize = (x: number) => (isNaN(x) ? 0 : x);
+
+/** Parse a string or number */
+export const parseValue = (value: string | number) => {
+  return isString(value) ? sanitize(parseInt(value)) : value;
+};
 
 /** Modulo that works with negative numbers. */
 export const mod = (n: number, m: number) => ((n % m) + m) % m;

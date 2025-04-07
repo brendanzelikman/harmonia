@@ -3,7 +3,7 @@ import { PropsWithChildren } from "react";
 
 /** The container wraps the entire editor. */
 export const EditorContainer = (props: PropsWithChildren) => (
-  <div className="w-[calc(100%-300px)] h-full flex flex-col top-0 right-0 z-[91] absolute bg-gradient-to-t from-[#09203f] to-[#33454b] font-nunito transition-all animate-in fade-in">
+  <div className="w-[calc(100%-300px)] h-full flex flex-col top-0 right-0 z-[91] absolute bg-gradient-to-t from-[#09203f] to-[#33454b] transition-all animate-in fade-in">
     {props.children}
   </div>
 );

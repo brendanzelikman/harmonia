@@ -1,4 +1,4 @@
-import { inRange } from "lodash";
+import { inRange, isArray } from "lodash";
 import { mod } from "./math";
 
 /** Get the previous item in an array. */
@@ -27,13 +27,24 @@ export const phase = <T>(array: T[], steps: number): T[] => {
 };
 
 /** Insert an item by pushing or splicing at a given index */
-export const insert = <T>(array: T[], value: T, index: number | undefined) => {
+export const insert = <T>(
+  array: T[],
+  value: T | T[],
+  index: number | undefined
+) => {
   const copy = [...array];
-  if (copy.includes(value)) return;
   if (index !== undefined && inRange(index, 0, copy.length)) {
-    copy.splice(index, 0, value);
+    if (isArray(value)) {
+      copy.splice(index, 0, ...value);
+    } else {
+      copy.splice(index, 0, value);
+    }
   } else {
-    copy.push(value);
+    if (isArray(value)) {
+      copy.push(...value);
+    } else {
+      copy.push(value);
+    }
   }
   return copy;
 };
