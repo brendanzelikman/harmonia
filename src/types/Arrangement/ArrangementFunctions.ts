@@ -207,7 +207,7 @@ export const getTrackScaleChain = (
     // Create a new scale object to avoid mutating the original
     const scale = { ...trackScale };
     const leadings: VoiceLeading[] = [];
-    const vector: PoseVector = track.vector ?? {};
+    const vector: PoseVector = { ...(track.vector ?? {}) };
 
     // Get all pose operations in the track up to the current tick
     const poseMap = deps.poses.entities;

@@ -15,24 +15,27 @@ import {
 import { dispatchClose, dispatchOpen } from "hooks/useToggle";
 import { BiCodeCurly } from "react-icons/bi";
 import { m } from "framer-motion";
-
-const visited: Record<string, boolean> = {
-  exposition: true,
-  development: false,
-  recapitulation: false,
-  coda: false,
-};
+import { useDispatch } from "types/hooks";
+import { promptUserForTree } from "utils/tree";
 
 export function TimelineStart() {
+  const dispatch = useDispatch();
   useEffect(() => {
     return () => {
       setTimeout(() => dispatchClose("livePlay"), 50);
     };
   }, []);
   const [view, setView] = useState("exposition");
+
+  const [visited, setVisited] = useState<Record<string, boolean>>({
+    exposition: true,
+    development: false,
+    recapitulation: false,
+    coda: false,
+  });
   const visit = (view: string) => {
     setView(view);
-    if (!visited[view]) visited[view] = true;
+    if (!visited[view]) setVisited((prev) => ({ ...prev, [view]: true }));
   };
 
   return (
@@ -397,24 +400,25 @@ export function TimelineStart() {
             border="ring-indigo-600/80"
             className="rounded-lg"
             title="Create Trees"
-            subtitle="With Dynamic Inheritance"
+            subtitle="Press I to Input, N for Default"
             stripColor="border-b-indigo-500/80"
             Icon={GiPineTree}
+            onClick={() => dispatch(promptUserForTree)}
             description={
               <>
                 <div>
-                  Create a Tree by prompt and arrange Patterns in Samplers to
-                  play audio.
+                  Create a Tree by clicking the button and typing your request
+                  in the pop-up menu.
                 </div>
                 <div>
-                  <b className="text-sky-500">Edit Scales:</b> <br />
-                  Click on a Scale's Mask to edit its notes by following a
-                  prompt dialog box.
+                  <b className="text-sky-500">Editing Scales:</b> <br />
+                  Scales will have a button on the track to change their notes
+                  with a pop-up menu.
                 </div>
                 <div>
-                  <b className="text-emerald-500">Edit Samplers:</b> <br />
-                  Click on a Sampler's Horn to edit its sound by using a
-                  dedicated editor.
+                  <b className="text-emerald-500">Editing Samplers:</b> <br />
+                  Samplers will have a button on the track to change their
+                  instrument with an editor.
                 </div>
               </>
             }

@@ -3,12 +3,13 @@ import { Timeline } from "features/Timeline/Timeline";
 import { Shortcuts } from "features/Shortcuts/Shortcuts";
 import { Diary } from "features/Diary/Diary";
 import { Terminal } from "terminal";
-import { dispatchEventOnChange } from "utils/html";
+import { dispatchEventOnChange, promptUserForFile } from "utils/html";
 import { usePlaygroundProject } from "./pages/Playground/hooks/usePlaygroundProject";
 import { useTimelineHotkeys } from "pages/Playground/hotkeys/useTimelineHotkeys";
 import { usePlaygroundHotkeys } from "./pages/Playground/hotkeys/usePlaygroundHotkeys";
 import { Editor } from "features/Editor/Editor";
 import { usePlaygroundTransport } from "./pages/Playground/hooks/usePlaygroundTransport";
+import { analyzeAudio } from "utils/wav-to-midi";
 
 export const LOAD_PLAYGROUND = "load-playground";
 

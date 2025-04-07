@@ -1,16 +1,14 @@
-import classNames from "classnames";
 import moment from "moment";
 import {
   HomeListItem,
   HomeListButtonContainer,
   HomeListButton,
-  HomeListDeleteMenu,
   HomeListTitle,
   HomeListSubtitle,
 } from "pages/components/HomeList";
 import {
-  downloadSampleFromIDB,
   deleteSampleFromIDB,
+  downloadSampleFromIDB,
   SampleData,
 } from "providers/samples";
 import { useCallback, useState } from "react";
@@ -139,11 +137,16 @@ export const SampleFormatter = (props: { data: SampleData }) => {
         <HomeListButton onClick={() => downloadSampleFromIDB(key)}>
           Save
         </HomeListButton>
-        <HomeListButton onClick={() => setDeleting((prev) => !prev)}>
-          Delete
-          {deleting && (
-            <HomeListDeleteMenu onClick={() => deleteSampleFromIDB(key)} />
-          )}
+        <HomeListButton
+          border={`border ${
+            deleting ? "border-slate-300" : "border-slate-500"
+          }`}
+          onClick={() =>
+            !deleting ? setDeleting(true) : deleteSampleFromIDB(key)
+          }
+          onMouseLeave={() => setDeleting(false)}
+        >
+          {deleting ? "Confirm" : "Delete"}
         </HomeListButton>
       </HomeListButtonContainer>
     </HomeListItem>

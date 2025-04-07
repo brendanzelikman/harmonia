@@ -69,7 +69,7 @@ import {
   selectPatternClips,
 } from "types/Clip/ClipSelectors";
 import { inputPoseVector } from "types/Pose/PoseThunks";
-import { createNewTree } from "utils/tree";
+import { promptUserForTree } from "utils/tree";
 import { createUndoType, Payload, unpackData } from "lib/redux";
 import { updatePoses } from "types/Pose/PoseSlice";
 import { selectPoseMap } from "types/Pose/PoseSelectors";
@@ -204,7 +204,7 @@ export const CREATE_NEW_TREE_HOTKEY: Thunk<Hotkey> = (dispatch) => ({
   name: "Create Tree",
   description: "Prompt the user to type in a new tree",
   shortcut: "i",
-  callback: () => dispatch(createNewTree),
+  callback: () => dispatch(promptUserForTree),
 });
 
 export const CREATE_DRUM_TRACKS_HOTKEY: Thunk<Hotkey> = (dispatch) => ({

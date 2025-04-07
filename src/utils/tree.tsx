@@ -169,7 +169,7 @@ export const createTreeFromString =
   };
 
 /** Create a list of tracks based on an inputted regex string */
-export const createNewTree: Thunk = (dispatch) =>
+export const promptUserForTree: Thunk = (dispatch) =>
   promptUserForString({
     title: "Create New Tree",
     backgroundColor: "bg-slate-950",

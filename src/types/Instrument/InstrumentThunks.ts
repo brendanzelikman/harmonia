@@ -83,7 +83,7 @@ export const createGlobalInstrument = (
   delete LIVE_AUDIO_INSTANCES.global;
 
   // Create the new instrument with a little reverb
-  const effects = [{ ...defaultReverb, wet: 0.5 }];
+  const effects = [{ ...defaultReverb, wet: 0.2 }];
   const instrument = initializeInstrument({ key, effects });
   instrument.id = "global";
 

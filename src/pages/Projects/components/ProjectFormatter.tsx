@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { useDispatch } from "types/hooks";
 import { useNavigate } from "react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 import { isProject } from "types/Project/ProjectTypes";
@@ -12,13 +11,13 @@ import classNames from "classnames";
 import {
   HomeListButton,
   HomeListButtonContainer,
-  HomeListDeleteMenu,
   HomeListItem,
   HomeListTitle,
 } from "pages/components/HomeList";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { createProject, deleteProject } from "types/Project/ProjectThunks";
 import { DEMO_BLURBS } from "../hooks/useDemoProjects";
+import { useDispatch } from "types/hooks";
 
 interface ProjectFormatterProps extends ProjectItem {
   index?: number;
@@ -57,7 +56,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
       )}
     >
       <ProjectDisc
-        projectId={props.project.present.meta.id}
+        projectId={id}
         onClick={onClick}
         isDemo={isDemo}
         deleting={deleting}
@@ -75,17 +74,18 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
           <HomeListButton
             onClick={() => dispatch(exportProjectToJSON(props.project))}
           >
-            Backup
+            Save
           </HomeListButton>
-          <HomeListButton onClick={() => setDeleting((prev) => !prev)}>
-            Delete
-            {deleting && (
-              <HomeListDeleteMenu
-                onClick={() =>
-                  dispatch(deleteProject(props.project.present.meta.id))
-                }
-              />
-            )}
+          <HomeListButton
+            border={`border ${
+              deleting ? "border-slate-300" : "border-slate-500"
+            }`}
+            onClick={() =>
+              !deleting ? setDeleting(true) : dispatch(deleteProject(id))
+            }
+            onMouseLeave={() => setDeleting(false)}
+          >
+            {deleting ? "Confirm" : "Delete"}
           </HomeListButton>
         </HomeListButtonContainer>
       )}

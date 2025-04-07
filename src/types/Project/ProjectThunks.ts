@@ -5,7 +5,12 @@ import {
   sanitizeProject,
   timestampProject,
 } from "./ProjectFunctions";
-import { Project, initializeProject, defaultProject } from "./ProjectTypes";
+import {
+  Project,
+  initializeProject,
+  defaultProject,
+  Thunk,
+} from "./ProjectTypes";
 import {
   uploadProjectToDB,
   setCurrentProjectId,
@@ -56,15 +61,12 @@ export const clearProject = () => {
 };
 
 /** Try to delete the project from the database. */
-export const deleteProject = (id: string) => async () => {
-  try {
-    deleteProjectFromDB(id);
-  } catch (e) {
-    console.error(e);
-  } finally {
+export const deleteProject =
+  (id: string): Thunk =>
+  async () => {
+    await deleteProjectFromDB(id);
     dispatchCustomEvent(UPDATE_PROJECT_EVENT, id);
-  }
-};
+  };
 
 /** Get the number of empty projects. */
 export const countEmptyProjects = async () => {

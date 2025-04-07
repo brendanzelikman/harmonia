@@ -14,8 +14,14 @@ import {
 } from "./PatternTypes";
 import { getMidiFromPitch, getMidiScaleDegree } from "utils/midi";
 import { clamp, isNumber, shuffle } from "lodash";
-import { Frequency } from "tone";
+import { Frequency, getTransport } from "tone";
 import { getPatternBlockDuration } from "./PatternFunctions";
+import {
+  DURATION_TYPES,
+  getDurationTicks,
+  PPQ,
+  secondsToTicks,
+} from "utils/durations";
 
 export type Transformer<Args = any> = (
   stream: PatternMidiStream,
@@ -287,6 +293,64 @@ export const spaceStream: Transformer<StrNum> = (stream, input) => {
   });
 };
 
+/** Set every duration to the same value */
+export const setDurationsOfStream: Transformer<string> = (stream, input) => {
+  if (!input) return stream;
+  const duration = () => {
+    const string = input.trim();
+    if (!string.length) return Infinity;
+
+    const dur = DURATION_TYPES.find((d) => d === string);
+    if (dur) return getDurationTicks(dur);
+
+    // Try to match with `n ticks`
+    const ticksMatch = string.match(/^(\d+) ticks?$/);
+    if (ticksMatch) {
+      return sanitize(parseFloat(ticksMatch[1]));
+    }
+
+    // Try to match with `n bars` including decimals
+    const barsMatch = string.match(/^(\d+(\.\d+)?) bars?$/);
+    if (barsMatch) {
+      const bars = parseFloat(barsMatch[1]);
+      const timeSignature = getTransport().timeSignature as number;
+      return bars * (timeSignature / 4) * PPQ;
+    }
+
+    // Try to match with `n durations` or `n duration notes`
+    for (const duration of DURATION_TYPES) {
+      let durationMatch = string.match(new RegExp(`^(\d+) ${duration}s?$`));
+      if (durationMatch) {
+        const value = sanitize(parseFloat(durationMatch[1]));
+        const ticks = value * getDurationTicks(duration);
+        return ticks;
+      }
+    }
+
+    // Try to match with `n seconds` including decimals
+    const secondsMatch = string.match(/^(\d+(\.\d+)?) seconds?$/);
+    if (secondsMatch) {
+      const seconds = parseInt(secondsMatch[1]);
+      return secondsToTicks(seconds, getTransport().bpm.value);
+    }
+
+    // If the string matches exactly a number, return the value in ticks
+    if (/^\d+\s?$/.test(string)) {
+      return sanitize(parseFloat(string));
+    }
+
+    // Return undefined if no match
+    return undefined;
+  };
+  const value = duration();
+  if (value === undefined) return stream;
+  return getPatternMidiStreamWithNewNotes(
+    stream,
+    (notes) => notes.map((note) => ({ ...note, duration: value })),
+    () => ({ duration: value })
+  );
+};
+
 // ----------------------------------------
 // Transformation Generics
 // ----------------------------------------
@@ -430,6 +494,13 @@ export const TRANSFORMATIONS = createTransformationMap({
     defaultValue: 0,
     placeholder: "Rests",
     description: "(n) - Insert n rests after every note",
+  }),
+  "set duration": createTransformation({
+    callback: setDurationsOfStream,
+    category: "duration",
+    defaultValue: "",
+    placeholder: "Duration",
+    description: "(s) - Set every note duration to s",
   }),
 
   // Velocity

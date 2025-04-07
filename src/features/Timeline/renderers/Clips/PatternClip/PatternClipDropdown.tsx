@@ -40,10 +40,12 @@ import {
   GiTrashCan,
 } from "react-icons/gi";
 import { FaEraser, FaTape } from "react-icons/fa";
-import { BsScissors } from "react-icons/bs";
+import { BsRecord, BsScissors } from "react-icons/bs";
 import { selectPatternNoteLabel } from "types/Clip/PatternClip/PatternClipSelectors";
 import { useHotkeys } from "react-hotkeys-hook";
 import { PatternId } from "types/Pattern/PatternTypes";
+import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { CLOSE_STATE, useToggle } from "hooks/useToggle";
 
 export interface PatternClipDropdownProps {
   clip: PortaledPatternClip;
@@ -70,6 +72,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const isEditing = index !== undefined;
   const isEmpty = !pattern.stream.length;
   const isBinding = type === "scale";
+  const record = useToggle("record-pattern");
 
   // Use hotkeys to toggle between each duration
   useHotkeys("x+1", () => setDuration(getDurationTicks("whole")));
@@ -100,13 +103,23 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
         </div>
         <div className={"total-center-col gap-2 relative"}>
           <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
-            <DropdownButton
-              width="size-8"
-              dropdown="Input Pattern"
-              theme="teal"
-              onClick={() => dispatch(promptUserForPattern(id, index))}
-              icon={<GiPaintBrush className="text-2xl" />}
-            />
+            {record.isOpen ? (
+              <DropdownButton
+                width="size-8"
+                dropdown="Record Pattern"
+                theme="red"
+                onClick={record.close}
+                icon={<BsRecord className="text-2xl" />}
+              />
+            ) : (
+              <DropdownButton
+                width="size-8"
+                dropdown="Input Pattern"
+                theme="teal"
+                onClick={() => dispatch(promptUserForPattern(id, index))}
+                icon={<GiPaintBrush className="text-2xl" />}
+              />
+            )}
             <DropdownButton
               width="size-8"
               dropdown="Randomize Pattern"
@@ -198,7 +211,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
         </div>
       </div>
       <Piano
-        className="animate-in border-t-8 border-t-emerald-500 fade-in w-full max-w-xl overflow-scroll"
+        className="animate-in border-t-8 border-t-emerald-500 fade-in w-min max-w-[600px] overflow-scroll"
         show
         noteRange={noteRange}
         playNote={(_, midi) => playNote(midi, type === "scale")}

@@ -21,7 +21,6 @@ import {
   GiCompactDisc,
   GiLoad,
   GiFiles,
-  GiPig,
   GiSoundWaves,
   GiFire,
 } from "react-icons/gi";
@@ -30,7 +29,6 @@ import { readLocalProjects } from "types/Project/ProjectLoaders";
 import { ProjectSearchBar } from "./components/ProjectSearchBar";
 import moment from "moment";
 import { useDispatch } from "types/hooks";
-import { FaCode } from "react-icons/fa";
 import { BiCodeCurly } from "react-icons/bi";
 
 export interface ProjectItem {

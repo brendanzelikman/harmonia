@@ -2,7 +2,7 @@ import { nanoid } from "@reduxjs/toolkit";
 import { getPresetPatternByString } from "assets/patterns";
 import { promptLineBreak } from "components/PromptModal";
 import { createUndoType } from "lib/redux";
-import { trim, clamp, isString } from "lodash";
+import { trim, isString, clamp, isArray } from "lodash";
 import { updatePattern } from "types/Pattern/PatternSlice";
 import { Thunk } from "types/Project/ProjectTypes";
 import { autoBindStreamToTrack } from "types/Track/TrackUtils";
@@ -41,6 +41,9 @@ import {
   TRANSFORMATION_TYPES,
 } from "types/Pattern/PatternTransformers";
 import { selectTrackScaleChain } from "types/Track/TrackSelectors";
+import { analyzeAudio, recordWav } from "utils/wav-to-midi";
+import { Note } from "@tonejs/midi/dist/Note";
+import { dispatchOpen } from "hooks/useToggle";
 
 // -------------------------------------------------------
 //  Pattern Clip Upload
@@ -114,11 +117,12 @@ export const promptUserForPattern =
           <span className="text-emerald-400/90">{`minor 11th arpeggio`}</span>
         </span>,
         promptLineBreak,
-        `Rule #5: You can import from MIDI (with "midi" or "file")`,
+        `Rule #5: You can import from file (with "midi" or "wav")`,
+        `Rule #6: You can record with your microphone (with "record")`,
         promptLineBreak,
         `Please input your request:`,
       ],
-      callback: (string) => {
+      callback: async (string) => {
         if (!trim(string).length) return;
         const project = getProject();
         const undoType = createUndoType("importPattern", nanoid());
@@ -127,8 +131,37 @@ export const promptUserForPattern =
         const { patternId, trackId } = clip;
 
         // Handle MIDI file uploads
-        const shouldUpload = string === "midi" || string === "file";
-        if (shouldUpload) return dispatch(promptUserForPatternMidiFile(id));
+        const shouldUploadMidi = string === "midi";
+        if (shouldUploadMidi) {
+          return promptUserForFile(".mid", async (e) => {
+            const file = (e.target as HTMLInputElement)?.files?.[0];
+            if (!file) return;
+            const buffer = await file.arrayBuffer();
+            const midi = new Midi(buffer);
+            const firstTrack = midi.tracks[0];
+            if (!firstTrack) return;
+            dispatch(promptUserForPatternMidiFile(id, firstTrack.notes));
+          });
+        }
+
+        // Handle WAV file uploads
+        const shouldRecord = string === "record";
+        if (shouldRecord) {
+          dispatchOpen("record-pattern");
+          const file = await recordWav();
+          const notes = await analyzeAudio(file);
+          return dispatch(promptUserForPatternMidiFile(id, notes));
+        }
+
+        const shouldUploadWav = string === "wav";
+        if (shouldUploadWav) {
+          return promptUserForFile("audio/*", async (e) => {
+            const file = (e.target as HTMLInputElement)?.files?.[0];
+            if (!file) return;
+            const notes = await analyzeAudio(file);
+            return dispatch(promptUserForPatternMidiFile(id, notes));
+          });
+        }
 
         // Try to match the name with a preset pattern
         let pattern = getPresetPatternByString(string);
@@ -215,88 +248,83 @@ export const promptUserForPattern =
 
 /** Prompt the user to upload a MIDI file and update the pattern clip. */
 export const promptUserForPatternMidiFile =
-  (id: PatternClipId): Thunk =>
-  (dispatch, getProject) => {
+  (id: PatternClipId, notes: Note[]): Thunk =>
+  async (dispatch, getProject) => {
     const project = getProject();
     const bpm = selectTransportBPM(project);
     const clip = selectPatternClipById(project, id);
     if (!clip) return;
 
-    // Read the first MIDI file from the user
-    promptUserForFile(".mid", async (e) => {
-      const files = (e.target as HTMLInputElement).files ?? [];
-      const file = files[0];
-      if (!file) return;
-
-      // Ignore files with no tracks
-      const buffer = await file.arrayBuffer();
-      const midi = new Midi(buffer);
-      const firstTrack = midi.tracks[0];
-      if (!firstTrack) return;
-
-      // Convert to the native format
-      const midiNotes = firstTrack.notes.map((note) => ({
+    // Convert to the native format
+    const midiNotes = notes
+      .map((note) => ({
         MIDI: note.midi,
         duration: note.duration,
         velocity: Math.round(note.velocity * 127),
         time: note.time,
-      }));
+      }))
+      .sort((a, b) => a.time - b.time);
 
-      // Group notes into chords by time (assuming they are sorted)
-      const blocks = midiNotes.reduce((acc, note) => {
-        const last = acc[acc.length - 1];
+    // Group notes into chords by time
+    const blocks = midiNotes.reduce((acc, note) => {
+      const last = acc[acc.length - 1];
 
-        // Push the first note normally
-        if (!last) {
-          acc.push({ time: note.time, block: [note], duration: note.duration });
-          return acc;
-        }
-
-        // If the last note has the same time, push this note to it as a chord
-        if (last.time === note.time) {
-          last.block = addMidiNoteToBlock(last.block, note);
-          return acc;
-        }
-
-        // If there is a gap, add a rest before the note
-        const lastEnd = last.time + last.duration;
-        if (lastEnd !== note.time) {
-          const duration = note.time - lastEnd;
-          acc.push({ time: lastEnd, block: { duration }, duration });
-        }
-
-        // Push the note as a new chord
+      // Push the first note normally
+      if (!last) {
         acc.push({ time: note.time, block: [note], duration: note.duration });
         return acc;
-      }, [] as { time: number; block: PatternMidiBlock; duration: number }[]);
+      }
 
-      // Cut off times and quantize durations to the best match
-      const chords = blocks.map(({ time, block }, i) => {
-        let duration = getPatternBlockDuration(block);
+      // If the last note has the same time, push this note to it as a chord
+      if (Math.abs(last.time - note.time) < 1e-2) {
+        last.block = addMidiNoteToBlock(last.block, note);
+        return acc;
+      }
 
-        // If there is a note after, clamp the duration
-        const nextChord = blocks[i + 1];
-        if (nextChord) {
-          duration = clamp(duration, 0, nextChord.time - time);
-        }
+      // If there is a gap, add a rest before the note
+      const lastEnd = last.time + last.duration;
+      if (lastEnd < note.time) {
+        const duration = note.time - lastEnd;
+        acc.push({ time: lastEnd, block: { duration }, duration });
+      }
 
-        // Convert the duration to ticks and quantize if necessary
-        const ticks = secondsToTicks(duration, bpm);
-        duration = getClosestDuration(ticks);
-        return getPatternMidiBlockWithNewNotes(block, (notes) =>
-          notes.map(
-            ({ MIDI, velocity }) => ({ MIDI, velocity, duration }),
-            () => ({ duration })
-          )
-        );
-      });
+      // Push the note as a new chord
+      acc.push({ time: note.time, block: [note], duration: note.duration });
+      return acc;
+    }, [] as { time: number; block: PatternMidiBlock; duration: number }[]);
 
-      // Autobind the stream to the track
-      const stream = dispatch(autoBindStreamToTrack(clip.trackId, chords));
+    // Cut off times and quantize durations to the best match
+    const chords = blocks.map(({ time, block }, i) => {
+      let duration = getPatternBlockDuration(block);
 
-      // Update the pattern with the new stream
-      dispatch(updatePattern({ data: { id: clip.patternId, stream } }));
+      // If there is a note after, clamp the duration
+      const nextChord = blocks[i + 1];
+      if (nextChord) {
+        duration = clamp(duration, 0, nextChord.time - time);
+      }
+      duration = Math.max(0, duration);
+
+      // Convert the duration to ticks and quantize if necessary
+      const ticks = secondsToTicks(duration, bpm);
+      duration = getClosestDuration(ticks);
+      return getPatternMidiBlockWithNewNotes(block, (notes) =>
+        notes.map(
+          ({ MIDI, velocity }) => ({ MIDI, velocity, duration }),
+          () => ({ duration })
+        )
+      );
     });
+
+    // Autobind the stream to the track
+    const stream = dispatch(
+      autoBindStreamToTrack(
+        clip.trackId,
+        chords.filter((c) => isArray(c))
+      )
+    );
+
+    // Update the pattern with the new stream
+    dispatch(updatePattern({ data: { id: clip.patternId, stream } }));
   };
 
 // -------------------------------------------------------
@@ -337,7 +365,7 @@ export const promptUserForPatternEffect =
         const transformations = TRANSFORMATION_TYPES;
         const t = transformations.find((t) => string.startsWith(t));
         if (!t) return;
-        const args = string.slice(t.length).trim().split(" ")[0];
+        const args = string.slice(t.length).trim();
         const callback = TRANSFORMATIONS[t].callback;
         const midiStream = resolvePatternStreamToMidi(pattern.stream, chain);
         const stream = callback(midiStream, args);

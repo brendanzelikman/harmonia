@@ -46,7 +46,15 @@ export const getPreferredKey = (note: MidiNote, name?: string): Key => {
   const key = name.toLowerCase();
 
   // Check for major keys
-  const majorNames = ["ionian", "major", "lydian", "mixolydian", "dominant"];
+  const majorNames = [
+    "ionian",
+    "major",
+    "lydian",
+    "mixolydian",
+    "dominant",
+    "viennese",
+    "sus",
+  ];
   if (majorNames.some((n) => key.includes(n))) return majorKeys[n];
 
   // Check for minor keys
