@@ -3,13 +3,13 @@ import { isObject } from "lodash";
 import { Clip, ClipId, ClipType, IClipId } from "types/Clip/ClipTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import { Id } from "types/units";
-import { createId } from "types/util";
+import { createId } from "types/utils";
 
 // ------------------------------------------------------------
 // Portal Generics
 // ------------------------------------------------------------
 export type PortalId = Id<"portal">;
-export type PortalState = EntityState<Portal>;
+export type PortalState = EntityState<Portal, PortalId>;
 
 // ------------------------------------------------------------
 // Portal Definitions

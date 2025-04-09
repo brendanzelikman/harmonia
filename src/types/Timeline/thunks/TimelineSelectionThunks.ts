@@ -1,4 +1,4 @@
-import { Payload, unpackUndoType } from "lib/redux";
+import { Payload, unpackUndoType } from "utils/redux";
 import { union, difference, without, pick } from "lodash";
 import { exportClipsToMidi } from "types/Clip/ClipThunks";
 import { ClipId } from "types/Clip/ClipTypes";

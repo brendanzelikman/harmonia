@@ -1,10 +1,9 @@
-import { Dictionary, EntityState } from "@reduxjs/toolkit";
+import { EntityState } from "@reduxjs/toolkit";
 import { Id, Plural, Tick } from "../units";
-import { createId } from "types/util";
+import { createId } from "types/utils";
 import { isArray, isObject, isPlainObject, isString } from "lodash";
-import { isBoundedNumber, isFiniteNumber, isTypedArray } from "types/util";
+import { isBounded, isFinite } from "utils/math";
 import { Timed, Playable } from "types/units";
-import { InstrumentKey } from "types/Instrument/InstrumentTypes";
 import {
   ScaleNoteObject,
   isScaleNoteObject,
@@ -21,8 +20,8 @@ export type PatternId = Id<"pattern">;
 export type PatternNoId = Omit<Pattern, "id">;
 export type PatternPartial = Partial<Pattern>;
 export type PatternUpdate = Partial<Pattern> & { id: PatternId };
-export type PatternMap = Dictionary<Pattern>;
-export type PatternState = EntityState<Pattern>;
+export type PatternMap = Record<PatternId, Pattern>;
+export type PatternState = EntityState<Pattern, PatternId>;
 
 // ------------------------------------------------------------
 // Pattern Definitions
@@ -94,13 +93,13 @@ export const defaultPattern: Pattern = {
 /** Checks if a given object is a timed note. */
 export const isTimedNote = <T = unknown>(obj: T): obj is Timed<T> => {
   const candidate = obj as Timed<unknown>;
-  return isPlainObject(candidate) && isFiniteNumber(candidate.duration);
+  return isPlainObject(candidate) && isFinite(candidate.duration);
 };
 
 /** Checks if a given object is a playable note. */
 export const isPlayableNote = (obj: unknown): obj is Playable<unknown> => {
   const candidate = obj as Playable<unknown>;
-  return isTimedNote(candidate) && isBoundedNumber(candidate.velocity, 0, 127);
+  return isTimedNote(candidate) && isBounded(candidate.velocity, 0, 127);
 };
 
 /** Checks if a given object is a rest note. */
@@ -134,7 +133,7 @@ export const isPatternBlockedChord = (
 ): obj is PatternBlockedChord => {
   if (obj === undefined) return false;
   const candidate = obj as PatternBlockedChord;
-  return isTypedArray(candidate, isPatternNote);
+  return isArray(candidate);
 };
 
 /** Checks if a given object is of type `PatternStrummedChord`. */
@@ -186,13 +185,13 @@ export const isPatternStrummedMidiChord = (
 /** Checks if a given object is of type `PatternStream`. */
 export const isPatternStream = (obj: unknown): obj is PatternStream => {
   const candidate = obj as PatternStream;
-  return isTypedArray(candidate, isPatternBlock);
+  return isArray(candidate);
 };
 
 /** Checks if a given object is of type `PatternMidiStream`. */
 export const isPatternMidiStream = (obj: unknown): obj is PatternMidiStream => {
   const candidate = obj as PatternMidiStream;
-  return isTypedArray(candidate, isPatternMidiBlock);
+  return isArray(candidate);
 };
 
 /** Checks if a given object is of type `Pattern`. */

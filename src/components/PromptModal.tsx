@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { blurOnEnter, dispatchCustomEvent, onEnter } from "utils/html";
 import Logo from "assets/images/logo.png";
-import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { useEvent } from "hooks/useEvent";
 import classNames from "classnames";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -30,7 +30,7 @@ const PromptModal = (props: PromptModalProps) => {
   const [input, setInput] = useState("");
 
   // Close the modal if another is opened
-  useCustomEventListener("cleanupModal", onCancel);
+  useEvent("cleanupModal", onCancel);
   useHotkeys("esc", onCancel);
 
   const ref = useRef<HTMLInputElement>(null);

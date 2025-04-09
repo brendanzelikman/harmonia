@@ -1,14 +1,14 @@
 import { Dialog } from "@headlessui/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { GlobalShortcuts } from "./content/GlobalShortcuts";
+import { GlobalShortcuts } from "./ShortcutsGlobal";
 import classNames from "classnames";
-import { TransportShortcuts } from "./content/TransportShortcuts";
-import { ToolShortcuts } from "./content/ToolShortcuts";
-import { TrackShortcuts } from "./content/TrackShortcuts";
+import { TransportShortcuts } from "./ShortcutsTransport";
+import { ToolShortcuts } from "./ShortcutsTool";
+import { TrackShortcuts } from "./ShortcutsTrack";
 import { BsXCircle } from "react-icons/bs";
-import { TickDurations } from "./content/TickDurations";
+import { TickDurations } from "./ShortcutsTick";
 import { useToggle } from "hooks/useToggle";
-import { ClipShortcuts } from "./content/ClipShortcuts";
+import { ClipShortcuts } from "./ShortcutsClip";
 
 export const SHORTCUT_TYPES = [
   "Navigating Project",

@@ -1,5 +1,5 @@
 import { getValueByKey } from "utils/objects";
-import { createDeepSelector } from "lib/redux";
+import { createDeepSelector } from "utils/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { PoseId, Pose, PoseState } from "./PoseTypes";
 import { defaultPoseState, poseAdapter } from "./PoseSlice";

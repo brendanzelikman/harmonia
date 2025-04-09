@@ -1,5 +1,9 @@
 import { isArray, union, without } from "lodash";
-import { getSubdivisionTicks, getTickColumns } from "utils/durations";
+import {
+  getSubdivisionTicks,
+  getTickColumns,
+  WholeNoteTicks,
+} from "utils/durations";
 import { Tick, Update } from "types/units";
 import {
   getPatternName,
@@ -39,6 +43,7 @@ import {
   selectClipDuration,
   selectClipIds,
   selectClipMap,
+  selectClips,
   selectMotifClipMap,
 } from "types/Clip/ClipSelectors";
 import {
@@ -58,6 +63,7 @@ import {
   selectSelectedPatternClips,
   selectTimeline,
   selectCurrentTimelineTick,
+  selectTimelineTick,
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackMap, selectTrackIds } from "types/Track/TrackSelectors";
 import {
@@ -74,7 +80,7 @@ import {
   MediaElement,
   CreateMediaPayload,
 } from "./MediaTypes";
-import { createUndoType, unpackUndoType } from "lib/redux";
+import { createUndoType, unpackUndoType } from "utils/redux";
 import {
   addPortals,
   removePortals,
@@ -84,7 +90,7 @@ import { copyPattern, createPattern } from "types/Pattern/PatternThunks";
 import { selectPoseById, selectPoseMap } from "types/Pose/PoseSelectors";
 import { copyPose, createPose } from "types/Pose/PoseThunks";
 import { getClipMotifId } from "types/Clip/ClipFunctions";
-import { isBoundedNumber } from "types/util";
+import { isBounded } from "utils/math";
 import { removePose } from "types/Pose/PoseSlice";
 import { nanoid } from "@reduxjs/toolkit";
 import { removePattern } from "types/Pattern/PatternSlice";
@@ -168,9 +174,9 @@ export const deleteMedia =
       if (!motifClipIds || motifClipIds.length > 0) continue;
 
       if (clip.type === "pattern") {
-        dispatch(removePattern({ data: motifId, undoType }));
+        dispatch(removePattern({ data: clip.patternId, undoType }));
       } else if (clip.type === "pose") {
-        dispatch(removePose({ data: motifId, undoType }));
+        dispatch(removePose({ data: clip.poseId, undoType }));
       }
     }
 
@@ -200,6 +206,20 @@ export const filterSelectionByType =
     const clipIds = selectedIds.filter((id) => id.startsWith(type));
     dispatch(updateMediaSelection({ data: { clipIds } }));
   };
+
+export const insertMeasure = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const tick = selectTimelineTick(project);
+  const clips = selectClips(project).filter((clip) => clip.tick >= tick);
+  return dispatch(
+    updateClips({
+      data: clips.map((clip) => ({
+        ...clip,
+        tick: clip.tick + WholeNoteTicks,
+      })),
+    })
+  );
+};
 
 /** Copy all selected media to the clipboard. */
 export const copySelectedMedia = (): Thunk => (dispatch, getProject) => {
@@ -421,7 +441,7 @@ export const mergeSelectedMedia =
       // Make sure the duration of the new stream is the same as the clip duration
       const stream = new Array(
         Math.floor(
-          ((isBoundedNumber(duration, 1) ? duration : streamDuration) /
+          ((isBounded(duration, 1) ? duration : streamDuration) /
             streamDuration) *
             pattern.stream.length
         )

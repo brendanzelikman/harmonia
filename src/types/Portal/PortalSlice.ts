@@ -1,6 +1,6 @@
 import { createEntityAdapter } from "@reduxjs/toolkit";
 import { Portal } from "./PortalTypes";
-import { createNormalSlice } from "lib/redux";
+import { createNormalSlice } from "utils/redux";
 
 export const portalAdapter = createEntityAdapter<Portal>();
 

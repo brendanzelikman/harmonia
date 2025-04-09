@@ -1,8 +1,8 @@
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { TOGGLE_LIVE_PLAY_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
+import { TOGGLE_LIVE_PLAY_HOTKEY } from "features/Playground/useTimelineHotkeys";
 import { useMemo } from "react";
 import { GiWateringCan } from "react-icons/gi";
-import { useDispatch } from "types/hooks";
+import { useDispatch } from "hooks/useStore";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 
 export const NavbarWaterTree = () => {

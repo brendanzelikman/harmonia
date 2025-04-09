@@ -1,17 +1,18 @@
-import { nanoid } from "@reduxjs/toolkit";
 import { selectMeta } from "../Meta/MetaSelectors";
 import { isProject } from "./ProjectTypes";
 import { mergeBaseProjects, sanitizeProject } from "./ProjectFunctions";
 import { dispatchCustomEvent, promptUserForNumber } from "utils/html";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import {
-  getProjectFromDB,
+  getProject,
   setCurrentProjectId,
-  uploadProjectToDB,
-  updateProjectInDB,
+  uploadProject,
+  updateProject,
   getCurrentProjectId,
-} from "providers/projects";
-import { store } from "providers/store";
+} from "app/projects";
+import { store } from "app/store";
+import { initializeProjectMetadata } from "types/Meta/MetaTypes";
+import { setProject } from "app/reducer";
 
 interface ProjectFileOptions {
   merging?: boolean;
@@ -21,7 +22,7 @@ interface ProjectFileOptions {
 /** Try to load the project by ID from the database. */
 export const loadProject = async (id: string, callback?: () => void) => {
   try {
-    const project = await getProjectFromDB(id);
+    const project = await getProject(id);
     if (!isProject(project)) throw new Error("Invalid project");
     await setCurrentProjectId(id);
     store.dispatch({ type: "setProject", payload: project });
@@ -44,10 +45,10 @@ export const loadProjectByPath = async (
   const project = sanitizeProject({ present: baseProject });
 
   // Upload the project to the database
-  let projectId = nanoid();
-  project.present.meta.id = projectId;
-  await uploadProjectToDB(project);
-  await setCurrentProjectId(projectId);
+  project.present.meta.id = initializeProjectMetadata().id;
+  await uploadProject(project);
+  await setCurrentProjectId(project.present.meta.id);
+  setProject(project);
   callback?.();
 };
 
@@ -86,14 +87,15 @@ export const loadProjectByFile = (file: File, options?: ProjectFileOptions) => {
 
     // Try to get the existing project
     const meta = selectMeta(project);
-    const existingProject = await getProjectFromDB(meta.id);
+    const existingProject = await getProject(meta.id);
 
     if (!options?.merging) {
       // Upload or save the project depending on whether it already exists
       if (!existingProject) {
-        await uploadProjectToDB(project);
+        await uploadProject(project);
+        await setCurrentProjectId(project.present.meta.id);
       } else {
-        await updateProjectInDB(project);
+        await updateProject(project);
         await setCurrentProjectId(meta.id);
       }
 
@@ -101,7 +103,7 @@ export const loadProjectByFile = (file: File, options?: ProjectFileOptions) => {
     } else {
       // Merge the project with the existing project
       const currentProjectId = getCurrentProjectId();
-      const currentProject = await getProjectFromDB(currentProjectId);
+      const currentProject = await getProject(currentProjectId);
       if (!currentProject) return;
       await promptUserForNumber(
         `What Would You Like to Import?`,
@@ -122,7 +124,7 @@ export const loadProjectByFile = (file: File, options?: ProjectFileOptions) => {
               ? { mergeMotifs: true, mergeTracks: true, mergeClips: true }
               : undefined
           );
-          await updateProjectInDB({
+          await updateProject({
             ...currentProject,
             present: mergedBaseProject,
           });

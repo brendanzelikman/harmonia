@@ -13,7 +13,7 @@ import {
   getPatternChordWithNewNotes,
 } from "../PatternUtils";
 import { updatePattern } from "../PatternSlice";
-import { Payload } from "lib/redux";
+import { Payload } from "utils/redux";
 import { clamp, sample, shuffle, uniqBy } from "lodash";
 import { getPatternBlockDuration } from "../PatternFunctions";
 import { isMidiNote } from "types/Scale/ScaleTypes";

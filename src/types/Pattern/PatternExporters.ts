@@ -1,4 +1,4 @@
-import { DemoXML } from "assets/demoXML";
+import { DemoXML } from "assets/xml/demoXML";
 import { MusicXML, STAFF_PIVOT } from "lib/musicxml";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import { XML } from "types/units";

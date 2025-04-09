@@ -9,7 +9,7 @@ import {
   ScaleTrackId,
 } from "../types/Track/ScaleTrack/ScaleTrackTypes";
 import { nanoid } from "@reduxjs/toolkit";
-import { Payload, unpackUndoType } from "lib/redux";
+import { Payload, unpackUndoType } from "utils/redux";
 import { isString } from "lodash";
 import {
   matchInstrumentKey,
@@ -17,7 +17,7 @@ import {
 } from "types/Instrument/InstrumentFunctions";
 import { Thunk } from "types/Project/ProjectTypes";
 import { initializeScale, ScaleObject } from "types/Scale/ScaleTypes";
-import { dispatchCustomEvent, promptUserForString } from "utils/html";
+import { promptUserForString } from "utils/html";
 import { parseTrackHierarchy, Hierarchy } from "utils/track";
 import { createPatternTrack } from "../types/Track/PatternTrack/PatternTrackThunks";
 import {
@@ -28,7 +28,7 @@ import { selectTrackMidiScale } from "../types/Track/TrackSelectors";
 import { convertMidiToNestedNote } from "types/Track/TrackUtils";
 import { promptLineBreak } from "components/PromptModal";
 import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackThunks";
-import { CLOSE_STATE, OPEN_STATE } from "hooks/useToggle";
+import { dispatchClose, dispatchOpen } from "hooks/useToggle";
 
 type TrackStringPayload = Payload<{ input: string; parentId?: TrackId }>;
 
@@ -201,8 +201,8 @@ export const promptUserForTree: Thunk = (dispatch) =>
     callback: (input) => {
       dispatch(createTreeFromString({ data: input }));
     },
-    onFocus: () => dispatchCustomEvent(OPEN_STATE("inputTree")),
-    onCancel: () => dispatchCustomEvent(CLOSE_STATE("inputTree")),
+    onFocus: () => dispatchOpen("inputTree"),
+    onCancel: () => dispatchClose("inputTree"),
     autoselect: true,
     large: true,
   })();

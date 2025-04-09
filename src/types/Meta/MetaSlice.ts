@@ -1,23 +1,18 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { initializeProjectMetadata } from "./MetaTypes";
 import { initializeProjectDiary } from "../Diary/DiaryTypes";
-import moment from "moment";
 
 // ------------------------------------------------------------
 // Metadata Slice Definition
 // ------------------------------------------------------------
 
-export const MetaSlice = createSlice({
+export const metaSlice = createSlice({
   name: "meta",
   initialState: initializeProjectMetadata(),
   reducers: {
     /** Update the project's name. */
     setProjectName(state, action: PayloadAction<string>) {
       state.name = action.payload;
-    },
-    /** Update the project's timestamp. */
-    updateProjectTimestamp: (state) => {
-      state.lastUpdated = moment().format();
     },
     /** Set the diary text for the given page. */
     setDiaryPage: (
@@ -38,27 +33,8 @@ export const MetaSlice = createSlice({
     clearDiary: (state) => {
       state.diary = initializeProjectDiary();
     },
-    /** Toggle the tooltips. */
-    toggleTooltips: (state) => {
-      if (state.hideTooltips) delete state.hideTooltips;
-      else state.hideTooltips = true;
-    },
-    /** Toggle the timeline. */
-    toggleTimeline: (state) => {
-      if (state.hideTimeline) delete state.hideTimeline;
-      else state.hideTimeline = true;
-    },
   },
 });
 
-export const {
-  setProjectName,
-  updateProjectTimestamp,
-  setDiaryPage,
-  clearDiaryPage,
-  clearDiary,
-  toggleTooltips,
-  toggleTimeline,
-} = MetaSlice.actions;
-
-export default MetaSlice.reducer;
+export const { setProjectName, setDiaryPage, clearDiaryPage, clearDiary } =
+  metaSlice.actions;

@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { ContextMenu } from "components/ContextMenu";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import { memo, useCallback, useState } from "react";
 import { blurEvent, blurOnEnter, cancelEvent } from "utils/html";
 import { updateClips } from "types/Clip/ClipSlice";
@@ -21,6 +21,7 @@ import {
   deleteSelectedMedia,
   updateMedia,
   filterSelectionByType,
+  insertMeasure,
 } from "types/Media/MediaThunks";
 import {
   exportSelectedClipsToMIDI,
@@ -173,6 +174,12 @@ export const TimelineContextMenu = memo(() => {
         onClick={() => dispatch(filterSelectionByType("pose"))}
       >
         Filter by Poses
+      </div>
+      <div
+        className="flex cursor-pointer hover:bg-slate-600/20"
+        onClick={() => dispatch(insertMeasure())}
+      >
+        Insert Measure
       </div>
     </div>
   );

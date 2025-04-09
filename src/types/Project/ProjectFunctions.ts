@@ -12,8 +12,8 @@ import {
   isEntityInState,
   isIdInState,
   mergeStates,
-} from "types/util";
-import { BaseProject, SafeBaseProject } from "providers/store";
+} from "types/utils";
+import { BaseProject, SafeBaseProject } from "app/reducer";
 import { selectScaleIds } from "types/Scale/ScaleSelectors";
 import { selectPatternIds } from "types/Pattern/PatternSelectors";
 import { selectPoseIds } from "types/Pose/PoseSelectors";
@@ -24,7 +24,9 @@ import {
 import { selectPortalIds } from "types/Portal/PortalSelectors";
 import { selectTrackIds } from "types/Track/TrackSelectors";
 import { selectInstrumentIds } from "types/Instrument/InstrumentSelectors";
-import moment from "moment";
+import dayjs from "dayjs";
+import { Track } from "types/Track/TrackTypes";
+import { PatternClip, PoseClip } from "types/Clip/ClipTypes";
 
 // Sanitize the base project by merging with default values
 export const sanitizeBaseProject = (
@@ -122,13 +124,16 @@ export const mergeBaseProjects = (
 
   // Remove all scales that don't have a valid track or clip
   scales = filterEntityState(scales, (s) => {
-    const hasTrack = isEntityInState(tracks, (t) => t.scaleId === s.id);
+    const hasTrack = isEntityInState<Track>(tracks, (t) => t.scaleId === s.id);
     return hasTrack;
   });
 
   // Remove all patterns that don't have a valid track or clip
   patterns = filterEntityState(patterns, (p) => {
-    const hasClips = isEntityInState(patternClips, (c) => c.patternId === p.id);
+    const hasClips = isEntityInState<PatternClip>(
+      patternClips,
+      (c) => c.patternId === p.id
+    );
     return hasClips;
   });
 
@@ -141,7 +146,10 @@ export const mergeBaseProjects = (
 
   // Remove all poses that don't have any clips
   poses = filterEntityState(poses, (p) => {
-    const hasClips = isEntityInState(poseClips, (c) => c.poseId === p.id);
+    const hasClips = isEntityInState<PoseClip>(
+      poseClips,
+      (c) => c.poseId === p.id
+    );
     return hasClips;
   });
 
@@ -157,11 +165,16 @@ export const mergeBaseProjects = (
 
   // Update the metadata with the latest timestamp
   const meta = merge({}, defaultProjectMetadata, p1?.meta, {
-    lastUpdated: moment().format(),
+    lastUpdated: dayjs().format(),
   });
 
   // Merge the rest of the project
-  const timeline = defaultTimeline;
+  const timeline = {
+    ...defaultTimeline,
+    cellWidth: p1?.timeline?.cellWidth ?? defaultTimeline.cellWidth,
+    cellHeight: p1?.timeline?.cellHeight ?? defaultTimeline.cellHeight,
+    subdivision: p1?.timeline?.subdivision ?? defaultTimeline.subdivision,
+  };
   const transport = merge({}, defaultTransport, p1?.transport);
 
   // Return the new base project
@@ -196,7 +209,7 @@ export const timestampProject = (project: Project): Project => ({
     ...project.present,
     meta: {
       ...project.present.meta,
-      lastUpdated: moment().format(),
+      lastUpdated: dayjs().format(),
     },
   },
 });

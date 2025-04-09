@@ -1,16 +1,13 @@
 import { DEFAULT_BPM, MIN_BPM, MAX_BPM } from "utils/constants";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import classNames from "classnames";
 import {
   selectTransportBPM,
   selectTransportSwing,
   selectTransportTimeSignature,
 } from "types/Transport/TransportSelectors";
-import {
-  NavbarFormGroup,
-  NavbarFormLabel,
-} from "features/Navbar/components/NavbarForm";
-import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
+import { NavbarFormGroup, NavbarFormLabel } from "features/Navbar/NavbarForm";
+import { NavbarHoverTooltip } from "features/Navbar/NavbarTooltip";
 import { NavbarFileGroup, NavbarFileLabel } from "./NavbarProject";
 import {
   BsGear,

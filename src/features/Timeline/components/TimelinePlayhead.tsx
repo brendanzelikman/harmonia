@@ -1,15 +1,15 @@
 import { HEADER_HEIGHT } from "utils/constants";
-import { useTransportTick } from "types/Transport/TransportHooks";
-import { useStore } from "types/hooks";
+import { useTick } from "hooks/useTick";
+import { useStore } from "hooks/useStore";
 import {
   selectCellWidth,
   selectTimelineTickLeft,
 } from "types/Timeline/TimelineSelectors";
-import { useTransportState } from "hooks/useTransportState";
+import { useTransport } from "hooks/useTransport";
 
 export function TimelinePlayhead() {
-  const { tick } = useTransportTick();
-  const state = useTransportState();
+  const { tick } = useTick();
+  const state = useTransport();
   const cellWidth = useStore(selectCellWidth);
 
   const width = cellWidth - 4;

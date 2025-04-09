@@ -1,7 +1,6 @@
-import { isTrackInterface, ITrack, ITrackId } from "../TrackTypes";
-import { Dictionary, EntityState, nanoid } from "@reduxjs/toolkit";
+import { ITrack, ITrackId } from "../TrackTypes";
 import { isString } from "lodash";
-import { createId } from "types/util";
+import { createId } from "types/utils";
 
 // ------------------------------------------------------------
 // Pattern Track Definitions
@@ -10,8 +9,7 @@ import { createId } from "types/util";
 export type PatternTrack = ITrack<"pattern">;
 export type PatternTrackId = ITrackId<"pattern">;
 export type PatternTrackNoId = Omit<PatternTrack, "id">;
-export type PatternTrackMap = Dictionary<PatternTrack>;
-export type PatternTrackState = EntityState<PatternTrack>;
+export type PatternTrackMap = Record<PatternTrackId, PatternTrack>;
 
 /** Create a pattern track with a unique ID. */
 export const initializePatternTrack = (
@@ -34,14 +32,4 @@ export const defaultPatternTrack: PatternTrack = {
 export const isPatternTrackId = (obj: unknown): obj is PatternTrackId => {
   const candidate = obj as PatternTrackId;
   return isString(candidate) && candidate[0] === `p`;
-};
-
-/** Checks if a given object is of type `PatternTrack`. */
-export const isIPatternTrack = (obj: unknown): obj is PatternTrack => {
-  const candidate = obj as PatternTrack;
-  return (
-    isTrackInterface(candidate) &&
-    isPatternTrackId(candidate.id) &&
-    isString(candidate.instrumentId)
-  );
 };

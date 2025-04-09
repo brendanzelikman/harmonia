@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "project-_vzhgmM8mMzPRTj6VsKov",
-    "name": "Waveform",
+    "name": "Waves",
     "dateCreated": "2025-04-06T23:23:08-04:00",
     "lastUpdated": "2025-04-06T23:23:08-04:00",
     "diary": ["", "", "", "", "", "", "", "", "", ""]
@@ -1035,7 +1035,7 @@
     "fragment": {},
     "clipboard": { "clips": [], "portals": [] },
     "selection": { "clipIds": [], "portalIds": [] },
-    "subdivision": "16n",
+    "subdivision": "4n",
     "cellWidth": 25,
     "cellHeight": 120
   },

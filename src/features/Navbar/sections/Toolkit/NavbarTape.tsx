@@ -1,9 +1,9 @@
-import { useDispatch, useStore } from "types/hooks";
+import { useDispatch, useStore } from "hooks/useStore";
 import { selectSelectedPatternClips } from "types/Timeline/TimelineSelectors";
 import { mergeSelectedMedia } from "types/Media/MediaThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { FaTape } from "react-icons/fa";
-import { MERGE_MEDIA_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
+import { MERGE_MEDIA_HOTKEY } from "features/Playground/useTimelineHotkeys";
 
 export const NavbarTape = () => {
   const dispatch = useDispatch();

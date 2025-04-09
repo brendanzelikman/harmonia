@@ -4,7 +4,6 @@ import { PatternClip, PatternClipId } from "./PatternClip/PatternClipTypes";
 import { PoseClip, PoseClipId } from "./PoseClip/PoseClipTypes";
 import { initializePatternClip } from "./PatternClip/PatternClipTypes";
 import { initializePoseClip } from "./PoseClip/PoseClipTypes";
-import { Dictionary } from "@reduxjs/toolkit";
 import { PatternId } from "types/Pattern/PatternTypes";
 import { PoseId } from "types/Pose/PoseTypes";
 import { ScaleId } from "types/Scale/ScaleTypes";
@@ -23,7 +22,7 @@ export type ClipType = (typeof CLIP_TYPES)[number];
 export type Clip = PatternClip | PoseClip;
 export type ClipId = PatternClipId | PoseClipId;
 export type ClipUpdate = Update<Clip>;
-export type ClipMap = Dictionary<Clip>;
+export type ClipMap = Record<ClipId, Clip>;
 export type PortaledClip = Portaled<Clip>;
 export type PortaledClipId = PortaledClip["id"];
 

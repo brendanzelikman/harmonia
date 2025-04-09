@@ -1,7 +1,7 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { getPresetPatternByString } from "assets/patterns";
 import { promptLineBreak } from "components/PromptModal";
-import { createUndoType } from "lib/redux";
+import { createUndoType } from "utils/redux";
 import { trim, isString, clamp, isArray } from "lodash";
 import { updatePattern } from "types/Pattern/PatternSlice";
 import { Thunk } from "types/Project/ProjectTypes";

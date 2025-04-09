@@ -1,6 +1,6 @@
 import { Project } from "types/Project/ProjectTypes";
 import { createSelector } from "reselect";
-import { percent } from "utils/math";
+import { percentize } from "utils/math";
 import { MAX_VOLUME, MIN_VOLUME } from "utils/constants";
 
 /** Select the transport state */
@@ -57,5 +57,6 @@ export const selectTransportMute = createSelector(
 /** Select the transport volume percent. */
 export const selectTransportVolumePercent = createSelector(
   [selectTransportVolume, selectTransportMute],
-  (volume, mute) => percent(mute ? MIN_VOLUME : volume, MIN_VOLUME, MAX_VOLUME)
+  (volume, mute) =>
+    percentize(mute ? MIN_VOLUME : volume, MIN_VOLUME, MAX_VOLUME)
 );

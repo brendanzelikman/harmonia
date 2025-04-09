@@ -5,7 +5,7 @@ import {
   outputToNotesPoly,
 } from "@spotify/basic-pitch";
 import { Note } from "@tonejs/midi/dist/Note";
-import { CLOSE_STATE } from "hooks/useToggle";
+import { addToggleCloseListener } from "hooks/useToggle";
 
 export const analyzeAudio = async (file?: File): Promise<Note[]> => {
   if (!file) return [];
@@ -111,8 +111,6 @@ export async function recordWav(): Promise<File> {
       stream.getTracks().forEach((t) => t.stop());
     };
 
-    window.addEventListener(CLOSE_STATE("record-pattern"), stop, {
-      once: true,
-    });
+    addToggleCloseListener("record-pattern", stop);
   });
 }

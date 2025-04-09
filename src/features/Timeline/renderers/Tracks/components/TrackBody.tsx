@@ -1,4 +1,4 @@
-import { useTransportTick } from "types/Transport/TransportHooks";
+import { useTick } from "hooks/useTick";
 import { memo, useState } from "react";
 import {
   GiCrystalWand,
@@ -10,7 +10,7 @@ import {
   selectTrackMidiScaleAtTick,
   selectTrackJSXAtTick,
 } from "types/Arrangement/ArrangementTrackSelectors";
-import { useStore } from "types/hooks";
+import { useStore } from "hooks/useStore";
 import {
   selectTrackInstrumentName,
   selectTrackLabelById,
@@ -22,7 +22,7 @@ import { getScaleKey, getScaleName } from "utils/scale";
 
 const ScaleTrackBody = (props: { trackId: TrackId }) => {
   const { trackId } = props;
-  const { tick } = useTransportTick();
+  const { tick } = useTick();
   const scale = useStore((_) => selectTrackMidiScaleAtTick(_, trackId, tick));
   const label = useStore((_) => selectTrackLabelById(_, trackId));
   const pose = useStore((_) => selectTrackJSXAtTick(_, trackId, tick));
@@ -58,7 +58,7 @@ export const MemoizedScaleTrackBody = memo(ScaleTrackBody);
 
 export const PatternTrackBody = (props: { trackId: TrackId }) => {
   const { trackId } = props;
-  const { tick } = useTransportTick();
+  const { tick } = useTick();
   const label = useStore((_) => selectTrackLabelById(_, trackId));
   const instrumentName = useStore((_) => selectTrackInstrumentName(_, trackId));
   const pose = useStore((_) => selectTrackJSXAtTick(_, trackId, tick));

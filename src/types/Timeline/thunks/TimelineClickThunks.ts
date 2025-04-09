@@ -1,4 +1,4 @@
-import { createUndoType, Payload, unpackUndoType } from "lib/redux";
+import { createUndoType, Payload, unpackUndoType } from "utils/redux";
 import { without, union } from "lodash";
 import { updateClip } from "types/Clip/ClipSlice";
 import { Clip, initializeClip } from "types/Clip/ClipTypes";

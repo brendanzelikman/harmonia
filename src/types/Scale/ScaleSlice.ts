@@ -1,5 +1,5 @@
 import { createEntityAdapter } from "@reduxjs/toolkit";
-import { createNormalSlice } from "lib/redux";
+import { createNormalSlice } from "utils/redux";
 import { ScaleObject } from "./ScaleTypes";
 
 export const scaleAdapter = createEntityAdapter<ScaleObject>();

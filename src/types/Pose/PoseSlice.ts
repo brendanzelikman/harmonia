@@ -1,6 +1,6 @@
 import { createEntityAdapter, PayloadAction } from "@reduxjs/toolkit";
 import { PoseId, Pose, PoseBlock, PoseTransformation } from "./PoseTypes";
-import { createNormalSlice } from "lib/redux";
+import { createNormalSlice } from "utils/redux";
 import { TransformationArgs } from "types/Pattern/PatternTransformers";
 import { inRange } from "lodash";
 

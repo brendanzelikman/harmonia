@@ -1,4 +1,4 @@
-import { createDeepSelector } from "lib/redux";
+import { createDeepSelector } from "utils/redux";
 import { Project } from "../Project/ProjectTypes";
 import {
   initializeProjectDiary,
@@ -25,16 +25,4 @@ export const selectProjectDiary = createDeepSelector(
     Array.from({ length: PROJECT_DIARY_PAGE_COUNT }).map(
       (_, i) => meta.diary?.[i] ?? ""
     ) ?? initializeProjectDiary()
-);
-
-/** Select whether the user has hidden their tooltips. */
-export const selectHideTooltips = createSelector(
-  [selectMeta],
-  (m) => !!m.hideTooltips
-);
-
-/** Select whether the user has hidden their timeline. */
-export const selectHideTimeline = createSelector(
-  [selectMeta],
-  (m) => !!m.hideTimeline
 );

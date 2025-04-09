@@ -1,10 +1,10 @@
 import { PresetScaleList } from "assets/scales";
 import classNames from "classnames";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { useHeldHotkeys } from "lib/hotkeys";
 import { sample } from "lodash";
 import { CiRuler } from "react-icons/ci";
 import { GiMusicalKeyboard, GiFamilyTree } from "react-icons/gi";
-import { useDispatch } from "types/hooks";
+import { useDispatch } from "hooks/useStore";
 import { INSTRUMENT_KEYS } from "types/Instrument/InstrumentTypes";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import {

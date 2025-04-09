@@ -1,48 +1,80 @@
 import { useCallback, useEffect, useState } from "react";
-import { useCustomEventListener } from "./useCustomEventListener";
+import { useEvent } from "./useEvent";
 import { dispatchCustomEvent } from "utils/html";
+import { nanoid } from "@reduxjs/toolkit";
 
-export const OPEN_STATE = (key: string) => `open_${key}`;
-export const CLOSE_STATE = (key: string) => `close_${key}`;
-export const TOGGLE_STATE = (key: string) => `toggle_${key}`;
+type ToggledKey = string;
+const openKey = (key: ToggledKey) => `${key}-open`;
+const closeKey = (key: ToggledKey) => `${key}-close`;
+const toggleKey = (key: ToggledKey) => `${key}-toggle`;
 
-export const dispatchOpen = (key: string) =>
-  dispatchCustomEvent(OPEN_STATE(key));
+// --------------------------------------------------------------
+// Component Hook
+// --------------------------------------------------------------
 
-export const dispatchClose = (key: string) => {
-  dispatchCustomEvent(CLOSE_STATE(key));
+/** Custom hook for using a toggled value. */
+export const useToggle = (key: ToggledKey = nanoid()) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Callback functions for changing state
+  const setTrue = useCallback(() => setIsOpen(true), []);
+  const setFalse = useCallback(() => setIsOpen(false), []);
+  const setToggle = useCallback(() => setIsOpen((prev) => !prev), []);
+
+  // Callback functions for broadcasting changes
+  const open = useCallback(() => dispatchCustomEvent(openKey(key)), []);
+  const close = useCallback(() => dispatchCustomEvent(closeKey(key)), []);
+  const toggle = useCallback(() => dispatchCustomEvent(toggleKey(key)), []);
+
+  // Event listeners for receiving broadcasts
+  useEvent(openKey(key), setTrue);
+  useEvent(closeKey(key), setFalse);
+  useEvent(toggleKey(key), setToggle);
+
+  // Update local storage when the state changes
+  useEffect(() => {
+    window.localStorage.setItem(key, isOpen.valueOf().toString());
+    return () => {
+      window.localStorage.removeItem(key);
+    };
+  }, [key, isOpen]);
+
+  return { open, close, toggle, isOpen };
 };
 
-export const dispatchToggle = (key: string) => {
-  dispatchCustomEvent(TOGGLE_STATE(key));
-};
+// --------------------------------------------------------------
+// Global Functions
+// --------------------------------------------------------------
 
-export const getToggledState = (key: string) => {
+/* Get the toggled state from local storage. */
+export const getToggleValue = (key: ToggledKey) => {
   const value = window.localStorage.getItem(key);
   return JSON.parse(value ?? "false");
 };
 
-export const useToggle = (key: string = "default", defaultValue?: boolean) => {
-  const [state, setState] = useState(defaultValue ?? false);
+/** Dispatch an open event for a toggled key. */
+export const dispatchOpen = (key: ToggledKey) => {
+  dispatchCustomEvent(openKey(key));
+};
 
-  // Create open and close keys
-  const open = useCallback(() => dispatchCustomEvent(OPEN_STATE(key)), []);
-  const close = useCallback(() => dispatchCustomEvent(CLOSE_STATE(key)), []);
-  const toggle = useCallback(() => dispatchCustomEvent(TOGGLE_STATE(key)), []);
+/** Dispatch a close event for a toggled key. */
+export const dispatchClose = (key: ToggledKey) => {
+  dispatchCustomEvent(closeKey(key));
+};
 
-  // Listen for open and close events
-  const setTrue = useCallback(() => setState(true), []);
-  const setFalse = useCallback(() => setState(false), []);
-  const setToggle = useCallback(() => setState((prev) => !prev), []);
+/** Dispatch a toggle event for a toggled key. */
+export const dispatchToggle = (key: ToggledKey) => {
+  dispatchCustomEvent(toggleKey(key));
+};
 
-  useCustomEventListener(OPEN_STATE(key), setTrue);
-  useCustomEventListener(CLOSE_STATE(key), setFalse);
-  useCustomEventListener(TOGGLE_STATE(key), setToggle);
+// -----------------------------------------------------------------
+// Event Listeners
+// -----------------------------------------------------------------
 
-  // Update local storage with the state
-  useEffect(() => {
-    window.localStorage.setItem(key, JSON.stringify(state));
-  }, [key, state]);
-
-  return { open, close, toggle, isOpen: state, isClosed: !state };
+/** Create a one-time event listener for a toggled key. */
+export const addToggleCloseListener = (
+  key: ToggledKey,
+  callback: () => void
+) => {
+  window.addEventListener(closeKey(key), callback, { once: true });
 };

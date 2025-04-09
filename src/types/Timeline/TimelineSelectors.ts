@@ -15,7 +15,7 @@ import { selectClipDurationMap, selectClipMap } from "../Clip/ClipSelectors";
 import { selectPoseMap } from "../Pose/PoseSelectors";
 import { createSelector } from "reselect";
 import { capitalize, uniq } from "lodash";
-import { createDeepSelector } from "lib/redux";
+import { createDeepSelector } from "utils/redux";
 import {
   Clip,
   ClipId,

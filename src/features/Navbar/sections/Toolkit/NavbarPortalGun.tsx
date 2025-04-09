@@ -1,4 +1,4 @@
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import { GiPortal } from "react-icons/gi";
 import classNames from "classnames";
 import {
@@ -7,7 +7,7 @@ import {
 } from "types/Timeline/TimelineSelectors";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { ARRANGE_PORTALS_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
+import { ARRANGE_PORTALS_HOTKEY } from "features/Playground/useTimelineHotkeys";
 
 export const NavbarPortalGun = () => {
   const dispatch = useDispatch();

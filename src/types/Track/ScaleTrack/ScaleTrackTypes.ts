@@ -1,12 +1,10 @@
-import { isTrackInterface, ITrack, ITrackId } from "../TrackTypes";
-import { Dictionary, EntityState } from "@reduxjs/toolkit";
+import { ITrack, ITrackId } from "../TrackTypes";
 import { isString } from "lodash";
-import { createId } from "types/util";
+import { createId } from "types/utils";
 
 export type ScaleTrack = ITrack<"scale">;
 export type ScaleTrackId = ITrackId<"scale">;
-export type ScaleTrackMap = Dictionary<ScaleTrack>;
-export type ScaleTrackState = EntityState<ScaleTrack>;
+export type ScaleTrackMap = Record<ScaleTrackId, ScaleTrack>;
 
 /** The default scale track is used for initialization. */
 export const defaultScaleTrack: ScaleTrack = {
@@ -30,14 +28,4 @@ export const initializeScaleTrack = (
 export const isScaleTrackId = (obj: unknown): obj is ScaleTrackId => {
   const candidate = obj as ScaleTrackId;
   return isString(candidate) && candidate.startsWith("scale-track");
-};
-
-/** Checks if a given object is of type `ScaleTrack`. */
-export const isIScaleTrack = (obj: unknown): obj is ScaleTrack => {
-  const candidate = obj as ScaleTrack;
-  return (
-    isTrackInterface(candidate) &&
-    isScaleTrackId(candidate.id) &&
-    isString(candidate.scaleId)
-  );
 };

@@ -1,8 +1,8 @@
-import { Dictionary, EntityState } from "@reduxjs/toolkit";
+import { EntityState } from "@reduxjs/toolkit";
 import { IClip, IClipId } from "../ClipTypes";
 import { PoseStream, PoseBlock } from "types/Pose/PoseTypes";
 import { Update } from "types/units";
-import { createId } from "types/util";
+import { createId } from "types/utils";
 import { Portaled, PortaledClipId } from "types/Portal/PortalTypes";
 
 // ------------------------------------------------------------
@@ -14,8 +14,8 @@ export type PoseClipId = IClipId<"pose">;
 export type PoseClipUpdate = Update<PoseClip>;
 export type PoseClipStream = PoseStream;
 export type PoseClipBlock = PoseBlock;
-export type PoseClipMap = Dictionary<PoseClip>;
-export type PoseClipState = EntityState<PoseClip>;
+export type PoseClipMap = Record<PoseClipId, PoseClip>;
+export type PoseClipState = EntityState<PoseClip, PoseClipId>;
 export type PortaledPoseClip = Portaled<PoseClip>;
 export type PortaledPoseClipId = PortaledClipId<PoseClipId>;
 export type PortaledPoseClipMap = Record<PortaledPoseClipId, PortaledPoseClip>;
@@ -57,12 +57,14 @@ export const isPoseClipId = (id: unknown): id is PoseClipId => {
   return (id as string).startsWith("po");
 };
 
+/** Checks if a given clip is a `PortaledPoseClip`. */
 export const isPortaledPoseClip = (
   clip: Partial<IClip>
 ): clip is PortaledPoseClip => {
   return isPoseClip(clip);
 };
 
+/** Checks if a given string is a `PortaledPoseClipId`. */
 export const isPortaledPoseClipId = (id: unknown): id is PortaledPoseClipId => {
   return isPoseClipId(id);
 };

@@ -1,11 +1,9 @@
 import { CiUndo, CiRedo } from "react-icons/ci";
-import { use, useDispatch } from "types/hooks";
+import { useStore } from "hooks/useStore";
 import { selectCanRedo, selectCanUndo } from "types/Project/ProjectSelectors";
-import { REDO_PROJECT_TYPE, UNDO_PROJECT_TYPE } from "providers/store";
 import classNames from "classnames";
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { useCustomEventListener } from "hooks/useCustomEventListener";
-import { useRef, useState } from "react";
+import { redoProject, undoProject } from "app/reducer";
 
 const disabledClass = "text-white/50 cursor-default";
 const delay = 200;
@@ -13,32 +11,18 @@ const delay = 200;
 const buttonClass = (active: boolean, pulsed?: boolean) =>
   classNames(
     "rounded-full transition-all duration-75 border text-2xl size-9",
-    pulsed
-      ? "bg-gradient-radial from-indigo-500/5 via-indigo-500/20 to-indigo-500/50 border-indigo-800/80"
-      : active
+    active
       ? "bg-indigo-950/90 active:text-indigo-200 border-indigo-800/80"
       : "bg-indigo-950/50 border-indigo-800/50"
   );
 
 export function NavbarUndo() {
-  const dispatch = useDispatch();
-  const canUndo = use(selectCanUndo);
-  const [pulsed, setPulsed] = useState(false);
-  const timeout = useRef<NodeJS.Timeout | null>(null);
-  useCustomEventListener("action", (e) => {
-    if (e.detail === UNDO_PROJECT_TYPE) {
-      if (timeout.current) clearTimeout(timeout.current);
-      setPulsed(true);
-      timeout.current = setTimeout(() => {
-        setPulsed(false);
-      }, delay);
-    }
-  });
+  const canUndo = useStore(selectCanUndo);
 
   return (
     <NavbarTooltipButton
-      className={buttonClass(canUndo, pulsed)}
-      onClick={() => canUndo && dispatch({ type: UNDO_PROJECT_TYPE })}
+      className={buttonClass(canUndo)}
+      onClick={() => canUndo && undoProject()}
       disabled={!canUndo}
       disabledClass={disabledClass}
       label="Undo Last Action"
@@ -49,23 +33,11 @@ export function NavbarUndo() {
 }
 
 export function NavbarRedo() {
-  const dispatch = useDispatch();
-  const canRedo = use(selectCanRedo);
-  const [pulsed, setPulsed] = useState(false);
-  const timeout = useRef<NodeJS.Timeout | null>(null);
-  useCustomEventListener("action", (e) => {
-    if (e.detail === REDO_PROJECT_TYPE) {
-      if (timeout.current) clearTimeout(timeout.current);
-      setPulsed(true);
-      timeout.current = setTimeout(() => {
-        setPulsed(false);
-      }, delay);
-    }
-  });
+  const canRedo = useStore(selectCanRedo);
   return (
     <NavbarTooltipButton
-      className={buttonClass(canRedo, pulsed)}
-      onClick={() => canRedo && dispatch({ type: REDO_PROJECT_TYPE })}
+      className={buttonClass(canRedo)}
+      onClick={() => canRedo && redoProject()}
       disabled={!canRedo}
       disabledClass={disabledClass}
       label="Redo Last Action"

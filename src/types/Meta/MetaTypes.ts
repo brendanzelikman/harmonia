@@ -1,6 +1,6 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { initializeProjectDiary, ProjectDiary } from "../Diary/DiaryTypes";
-import moment from "moment";
+import dayjs from "dayjs";
 
 export const NEW_PROJECT_NAME = "New Project";
 
@@ -15,16 +15,14 @@ export interface ProjectMetadata {
   diary: ProjectDiary;
   dateCreated: string;
   lastUpdated: string;
-  hideTooltips?: boolean;
-  hideTimeline?: boolean;
 }
 
 /** Create project metadata with a unique ID and the current date. */
 export const initializeProjectMetadata = (): ProjectMetadata => ({
   id: `project-${nanoid()}`,
   name: NEW_PROJECT_NAME,
-  dateCreated: moment().format(),
-  lastUpdated: moment().format(),
+  dateCreated: dayjs().format(),
+  lastUpdated: dayjs().format(),
   diary: initializeProjectDiary(),
 });
 

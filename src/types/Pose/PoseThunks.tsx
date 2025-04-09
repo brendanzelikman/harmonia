@@ -12,7 +12,7 @@ import {
   selectNewMotifName,
   selectSelectedPoseClips,
 } from "types/Timeline/TimelineSelectors";
-import { createUndoType, Payload, unpackUndoType } from "lib/redux";
+import { createUndoType, Payload, unpackUndoType } from "utils/redux";
 import { ChromaticPitchClass } from "assets/keys";
 import { promptUserForString } from "utils/html";
 import {

@@ -1,9 +1,11 @@
 import { memo } from "react";
-import { TrackName, TrackDropdownMenu, TrackSliders } from "./components";
 import { cancelEvent } from "utils/html";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { PatternTrackButtons } from "./components/TrackButtons";
 import { MemoizedPatternTrackBody } from "./components/TrackBody";
+import { TrackDropdownMenu } from "./components/TrackDropdownMenu";
+import { TrackName } from "./components/TrackName";
+import { TrackSliders } from "./components/TrackSlider";
 
 export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {
   const track = props.track;

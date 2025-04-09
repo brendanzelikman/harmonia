@@ -1,9 +1,7 @@
 import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import classNames from "classnames";
-import { Hotkey } from "lib/react-hotkeys-hook";
+import { Hotkey } from "lib/hotkeys";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { use } from "types/hooks";
-import { selectHideTooltips } from "types/Meta/MetaSelectors";
 import { cancelEvent } from "utils/html";
 
 interface TooltipButtonProps {
@@ -37,34 +35,6 @@ interface TooltipButtonProps {
   notClickable?: boolean;
   normalCase?: boolean;
 }
-
-export const EditorTooltipButton = (props: TooltipButtonProps) => (
-  <TooltipButton
-    {...props}
-    className={classNames(
-      props.className,
-      `min-w-7 min-h-7 my-1 ${props.disabled ? "text-slate-500" : ""}`
-    )}
-    direction="vertical"
-    marginTop={-5}
-    marginLeft={20}
-  />
-);
-
-export const PoseTooltipButton = (props: TooltipButtonProps) => (
-  <TooltipButton
-    {...props}
-    className={classNames(
-      props.className,
-      `min-w-7 min-h-7 my-1 px-2 text-sm ${
-        props.disabled ? "text-slate-500" : ""
-      }`
-    )}
-    direction="vertical"
-    marginTop={-5}
-    marginLeft={20}
-  />
-);
 
 export const NavbarTooltipButton = (props: TooltipButtonProps) => (
   <TooltipButton
@@ -107,16 +77,15 @@ export const TooltipButton = ({
   normalCase,
   hideTooltip: _hideTooltip,
 }: TooltipButtonProps) => {
-  const hideTooltips = use(selectHideTooltips);
-  const canShowTooltip = !hideTooltips && (label || hotkey) && !disabled;
+  const canShowTooltip = (label || hotkey) && !disabled;
 
   const [shouldShowTooltip, setShouldShowTooltip] = useState(canShowTooltip);
   const showTooltip = () => setShouldShowTooltip(canShowTooltip);
   const hideTooltip = () => setShouldShowTooltip(false);
   useEffect(() => {
-    if (hideTooltips || disabled || _hideTooltip) hideTooltip();
+    if (disabled || _hideTooltip) hideTooltip();
     else if (!disabled && !_hideTooltip) showTooltip();
-  }, [hideTooltips, disabled, _hideTooltip]);
+  }, [disabled, _hideTooltip]);
 
   // Store positioning to properly align tooltip
   const [isIn, setIsIn] = useState(false);

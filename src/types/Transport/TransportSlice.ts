@@ -3,6 +3,7 @@ import { MAX_BPM, MAX_VOLUME, MIN_BPM, MIN_VOLUME } from "utils/constants";
 import { clamp } from "lodash";
 import { defaultTransport } from "types/Transport/TransportTypes";
 import { BPM, Tick, Volume } from "types/units";
+import { getTransport } from "tone";
 
 // ------------------------------------------------------------
 // Transport Slice Definition
@@ -15,6 +16,7 @@ export const transportSlice = createSlice({
     /** Set the transport BPM to the given value. */
     setBPM: (state, action: PayloadAction<BPM>) => {
       state.bpm = clamp(action.payload, MIN_BPM, MAX_BPM);
+      getTransport().bpm.value = state.bpm;
     },
     /** Set the transport time signature to the given value. */
     setTimeSignature: (state, action: PayloadAction<number>) => {

@@ -1,23 +1,20 @@
 import { Id, Update } from "types/units";
-import { isPlainObject, isString } from "lodash";
-import { isOptionalType, isTypedArray } from "types/util";
+import { isPlainObject } from "lodash";
 import {
   initializePatternTrack,
-  isIPatternTrack,
   isPatternTrackId,
   PatternTrack,
   PatternTrackId,
 } from "./PatternTrack/PatternTrackTypes";
 import {
   initializeScaleTrack,
-  isIScaleTrack,
   isScaleTrackId,
   ScaleTrack,
   ScaleTrackId,
 } from "./ScaleTrack/ScaleTrackTypes";
 import { InstrumentId } from "types/Instrument/InstrumentTypes";
 import { ScaleId } from "types/Scale/ScaleTypes";
-import { Dictionary, EntityState, nanoid } from "@reduxjs/toolkit";
+import { EntityState, nanoid } from "@reduxjs/toolkit";
 import { PoseVector } from "types/Pose/PoseTypes";
 
 // ------------------------------------------------------------
@@ -31,8 +28,8 @@ export type Track = ScaleTrack | PatternTrack;
 export type TrackId = ScaleTrackId | PatternTrackId;
 
 export type TrackUpdate = Update<Track>;
-export type TrackMap = Dictionary<Track>;
-export type TrackState = EntityState<Track>;
+export type TrackMap = Record<TrackId, Track>;
+export type TrackState = EntityState<Track, TrackId>;
 
 // ------------------------------------------------------------
 // Generic Track Definitions
@@ -44,7 +41,6 @@ export interface TrackRowData {
   trackIds: TrackId[];
 }
 export type TrackRowMap = Record<TrackId, TrackRowData>;
-export type TrackRowDependencies = EntityState<TrackRowData>;
 
 /** A `TrackInterface` represents a generic track in the arrangement. */
 export type ITrack<T extends TrackType = TrackType> = {
@@ -86,22 +82,10 @@ export const initializeTrack = (track: Partial<Track>): Track => {
 // Track Type Guards
 // ------------------------------------------------------------
 
-/** Checks if a given object is of type `TrackInterface` */
-export const isTrackInterface = (obj: unknown): obj is ITrack => {
-  const candidate = obj as ITrack;
-  return (
-    isPlainObject(obj) &&
-    isString(candidate.id) &&
-    isTypedArray(candidate.trackIds, isTrackId) &&
-    isOptionalType(candidate.name, isString) &&
-    isString(candidate.type)
-  );
-};
-
 /** Checks if a given object is of type `Track` */
 export const isTrack = (obj: unknown): obj is Track => {
   const candidate = obj as Track;
-  return isIScaleTrack(candidate) || isIPatternTrack(candidate);
+  return isPlainObject(candidate) && isTrackId(candidate.id);
 };
 
 /** Checks if a given ID is a `TrackId` */

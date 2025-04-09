@@ -1,24 +1,20 @@
 import { SixteenthNoteTicks } from "utils/durations";
 import { Seconds } from "types/units";
-import { Sampler } from "tone";
-import { getMidiPitch } from "utils/midi";
+import { Frequency, Sampler } from "tone";
 import { EighthNoteTicks } from "utils/durations";
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
-import { range, sample, sampleSize } from "lodash";
+import { range, sample } from "lodash";
 import { PresetScaleList } from "assets/scales";
 import { Thunk } from "types/Project/ProjectTypes";
-import { getScaleNotes } from "types/Scale/ScaleFunctions";
 import { ScaleVector } from "types/Scale/ScaleTypes";
 import { getPatternBlockDuration } from "./PatternFunctions";
-import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
-import { getPatternChordWithNewNotes } from "./PatternUtils";
+import { getPatternMidiChordNotes } from "./PatternUtils";
 import { selectPatternIds, selectPatternById } from "./PatternSelectors";
 import { addPattern, removePattern, updatePattern } from "./PatternSlice";
 import {
   defaultPattern,
   PatternId,
   initializePattern,
-  isPatternChord,
   PatternMidiChord,
   Pattern,
   PatternNote,
@@ -26,12 +22,10 @@ import {
 } from "./PatternTypes";
 import { selectNewMotifName } from "types/Timeline/TimelineSelectors";
 import {
-  selectPatternTrackById,
   selectTrackScaleChain,
   selectTrackById,
 } from "types/Track/TrackSelectors";
-import { Payload, unpackData, unpackUndoType } from "lib/redux";
-import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
+import { Payload, unpackData, unpackUndoType } from "utils/redux";
 import { TrackId } from "types/Track/TrackTypes";
 
 /** Creates a pattern and adds it to the slice. */
@@ -159,7 +153,9 @@ export const playPatternChord = (
   // Get the pitches
   const notes = getPatternMidiChordNotes(chord);
   if (!notes.length) return;
-  const pitches: string[] = notes.map((note) => getMidiPitch(note.MIDI));
+  const pitches: string[] = notes.map((note) =>
+    Frequency(note.MIDI, "midi").toNote()
+  );
 
   // Get the Tone.js subdivision
   const duration = getPatternBlockDuration(notes) ?? EighthNoteTicks;

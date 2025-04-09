@@ -15,9 +15,9 @@ import {
   INSTRUMENT_SET,
   InstrumentKey,
 } from "./InstrumentTypes";
-import { Payload } from "lib/redux";
+import { Payload } from "utils/redux";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
-import { getSampleBufferFromIDB } from "providers/samples";
+import { getSampleBuffer } from "app/samples";
 import { getInstrumentSamplesMap } from "./InstrumentFunctions";
 
 interface InstrumentOptions extends LiveSamplerOptions {
@@ -119,7 +119,7 @@ export const buildInstruments =
             const useSample = oldInstrument && isLocal;
             const options: InstrumentOptions = { offline: true, urls };
             if (useSample) {
-              const sample = await getSampleBufferFromIDB(oldInstrument?.key);
+              const sample = await getSampleBuffer(oldInstrument?.key);
               if (sample) {
                 options.urls = { C3: sample };
               } else {

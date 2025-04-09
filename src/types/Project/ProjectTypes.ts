@@ -1,15 +1,16 @@
-import { AnyAction, ThunkAction } from "@reduxjs/toolkit";
+import { Action, ThunkAction } from "@reduxjs/toolkit";
 import { isObject, isString } from "lodash";
-import { BaseProject, store } from "providers/store";
+import { BaseProject } from "app/reducer";
 import { defaultArrangement } from "types/Arrangement/ArrangementTypes";
 import { defaultTimeline } from "types/Timeline/TimelineTypes";
 import { defaultTransport } from "types/Transport/TransportTypes";
-import { Safe } from "types/util";
+import { Safe } from "types/utils";
 import {
   defaultProjectMetadata,
   initializeProjectMetadata,
   NEW_PROJECT_NAME,
 } from "../Meta/MetaTypes";
+import { store } from "app/store";
 
 // ------------------------------------------------------------
 // Project Definitions
@@ -27,7 +28,7 @@ export type Thunk<ReturnType = void> = ThunkAction<
   ReturnType,
   Project,
   unknown,
-  AnyAction
+  Action
 >;
 
 // The default base project

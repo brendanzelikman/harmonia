@@ -7,7 +7,7 @@ import {
   InstrumentState,
 } from "./InstrumentTypes";
 import { getInstrumentName } from "./InstrumentFunctions";
-import { createDeepSelector, createValueSelector } from "lib/redux";
+import { createDeepSelector, createValueSelector } from "utils/redux";
 import { mapValues } from "lodash";
 
 // Create a safe selector for the instrument state.

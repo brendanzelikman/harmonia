@@ -1,11 +1,11 @@
 import { BsScissors } from "react-icons/bs";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import classNames from "classnames";
 import { selectIsSlicingClips } from "types/Timeline/TimelineSelectors";
 import { selectHasClips } from "types/Clip/ClipSelectors";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { SLICE_CLIPS_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
+import { SLICE_CLIPS_HOTKEY } from "features/Playground/useTimelineHotkeys";
 
 export const NavbarScissors = () => {
   const dispatch = useDispatch();

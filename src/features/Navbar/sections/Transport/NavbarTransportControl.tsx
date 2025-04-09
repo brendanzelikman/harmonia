@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { useToggle } from "hooks/useToggle";
-import { useTransportState } from "hooks/useTransportState";
+import { useTransport } from "hooks/useTransport";
 import {
   BsStop,
   BsPause,
@@ -9,7 +9,7 @@ import {
   BsRecord,
   BsArrowRepeat,
 } from "react-icons/bs";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import { selectTransportLoop } from "types/Transport/TransportSelectors";
 import { setLoop } from "types/Transport/TransportSlice";
 import {
@@ -22,7 +22,7 @@ import { RECORD_TRANSPORT } from "types/Transport/TransportTypes";
 
 export function NavbarTransportControl() {
   const dispatch = useDispatch();
-  const state = useTransportState();
+  const state = useTransport();
   const isRecording = useToggle(RECORD_TRANSPORT).isOpen;
   const isLooping = useStore(selectTransportLoop);
   const isStarted = state === "started";

@@ -1,7 +1,5 @@
-import { PoseClipMap } from "../ClipTypes";
 import { PoseClip } from "./PoseClipTypes";
 import { Tick } from "types/units";
-import { getDictValues } from "utils/objects";
 import {
   getPoseOperationAtIndex,
   getVectorPitchClasses,
@@ -12,8 +10,7 @@ import {
   PoseStream,
   VoiceLeading,
 } from "types/Pose/PoseTypes";
-import { PoseMap, PoseVector } from "types/Pose/PoseTypes";
-import { TrackId } from "types/Track/TrackTypes";
+import { PoseMap } from "types/Pose/PoseTypes";
 import {
   isPatternMidiChord,
   isPatternMidiStream,
@@ -30,24 +27,6 @@ import { getNewScale } from "types/Scale/ScaleTransformers";
 import { getRotatedScale } from "types/Scale/ScaleTransformers";
 import { MidiScale } from "utils/midi";
 import { getMidiNoteValue } from "utils/midi";
-import { isPitchClass } from "utils/pitchClass";
-
-/** Get the `PoseClips` of a given track from a list of clips. */
-export const getPoseClipsByTrackId = (
-  clipMap?: PoseClipMap,
-  trackId?: TrackId
-): PoseClip[] => {
-  if (!clipMap || !trackId) return [];
-  const clips = getDictValues(clipMap);
-  return clips.filter((c) => c.trackId === trackId);
-};
-
-/** Filter a list of pose clips so all are voice leadings. */
-export const getPoseVectorsWithVoiceLeadings = (vectors: PoseVector[]) => {
-  return vectors.filter((vector) =>
-    Object.keys(vector).some((key) => isPitchClass(key) && key in vector)
-  );
-};
 
 /** Get the current pose vector occurring at the given tick. */
 export const getPoseOperationAtIndexByTick = (
@@ -99,32 +78,6 @@ export const getPoseOperationsAtTick = (
   }
 
   return operation;
-};
-
-/** Get the current pose occurring at or before the given tick. */
-export const getCurrentVoiceLeadings = (
-  clips: PoseClip[],
-  poseMap?: PoseMap,
-  tick: Tick = 0
-) => {
-  let offsets: VoiceLeading[] = [];
-  const clipCount = clips.length;
-  if (!clipCount || !poseMap) return offsets;
-
-  // Imperatively sum all relevant vectors to the offset
-  for (const clip of clips) {
-    const startTick = clip.tick;
-    const endTick = startTick + (clip.duration ?? Infinity);
-    if (tick >= startTick && tick < endTick) {
-      const pose = poseMap[clip.poseId];
-      if (!pose) continue;
-      const vector = getPoseOperationAtIndexByTick(clip, pose.stream, tick);
-      if (isVoiceLeading(vector)) offsets.push(vector);
-    }
-  }
-
-  // Return the offset
-  return offsets;
 };
 
 /** Apply a list of voice leadings to a pattern stream. */

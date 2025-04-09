@@ -8,7 +8,7 @@ import {
   DEFAULT_VOLUME,
 } from "utils/constants";
 import { Pan, Tick, Volume } from "types/units";
-import { createId } from "types/util";
+import { createId } from "types/utils";
 import { isPlainObject, isString } from "lodash";
 import { PatternMidiNote } from "types/Pattern/PatternTypes";
 import { TrackId } from "types/Track/TrackTypes";
@@ -30,7 +30,7 @@ export type InstrumentKey = keyof typeof samples & (string & {});
 export type InstrumentCategory = keyof typeof categories | "Samples";
 export type InstrumentName = (typeof INSTRUMENT_NAMES)[number];
 export type InstrumentMap = Record<InstrumentId, Instrument>;
-export type InstrumentState = EntityState<Instrument>;
+export type InstrumentState = EntityState<Instrument, InstrumentId>;
 
 // ------------------------------------------------------------
 // Instrument Definitions

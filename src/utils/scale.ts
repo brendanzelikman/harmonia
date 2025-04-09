@@ -163,7 +163,8 @@ const KEY_MAP = new Map<string, KeyMapEntry>([
 // ------------------------------------------------------------
 
 /** Get the name of a scale by looking it up in the key map. */
-export const getScaleName = (scale: Scale) => {
+export const getScaleName = (scale?: Scale) => {
+  if (!scale) return "No Scale";
   const notes = getScaleNotes(scale) as MidiScale;
   if (!notes.length) return "Empty Scale";
 

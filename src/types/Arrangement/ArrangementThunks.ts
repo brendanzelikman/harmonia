@@ -12,7 +12,7 @@ import {
   selectPortaledClipIds,
 } from "./ArrangementSelectors";
 import { selectPortaledPatternClipTransformation } from "./ArrangementClipSelectors";
-import { createUndoType, Payload, unpackUndoType } from "lib/redux";
+import { createUndoType, Payload, unpackUndoType } from "utils/redux";
 import { selectPoseClips } from "types/Clip/ClipSelectors";
 import { selectSelectedClipIds } from "types/Timeline/TimelineSelectors";
 import { updatePose } from "types/Pose/PoseSlice";

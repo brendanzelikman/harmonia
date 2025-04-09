@@ -3,11 +3,11 @@ import { BiTrash } from "react-icons/bi";
 import { SiAudiomack, SiMidi } from "react-icons/si";
 import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import { ComponentProps, useCallback, useEffect, useState } from "react";
-import { useOfflineTransportTick } from "types/Transport/TransportHooks";
-import { format, percent } from "utils/math";
+import { useOfflineTick } from "hooks/useTick";
+import { format, percentize } from "utils/math";
 import { GiCompactDisc, GiLoad, GiSave } from "react-icons/gi";
 import classNames from "classnames";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import { setProjectName } from "types/Meta/MetaSlice";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
@@ -19,8 +19,8 @@ import {
   NavbarFormInput,
   NavbarFormGroup,
   NavbarFormLabel,
-} from "features/Navbar/components/NavbarForm";
-import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
+} from "features/Navbar/NavbarForm";
+import { NavbarHoverTooltip } from "features/Navbar/NavbarTooltip";
 import { NEW_PROJECT_NAME } from "types/Meta/MetaTypes";
 import { useToggle } from "hooks/useToggle";
 import {
@@ -34,8 +34,8 @@ export function NavbarProjectMenu() {
   const download = useToggle(DOWNLOAD_TRANSPORT);
 
   const endTick = useStore(selectLastArrangementTick);
-  const tick = useOfflineTransportTick();
-  const downloadProgress = download.isOpen ? percent(tick, 0, endTick) : 0;
+  const tick = useOfflineTick();
+  const downloadProgress = download.isOpen ? percentize(tick, 0, endTick) : 0;
   const downloadPercent = format(downloadProgress, 0);
   const hasDownloaded = downloadProgress >= 100;
   const projectName = useStore(selectProjectName);

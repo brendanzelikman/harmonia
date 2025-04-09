@@ -1,10 +1,9 @@
-import { Dictionary, EntityState } from "@reduxjs/toolkit";
-import { isNumber, isPlainObject, isString } from "lodash";
+import { EntityState } from "@reduxjs/toolkit";
+import { isArray, isObject, isPlainObject, isString } from "lodash";
 import { ChromaticPitchClass } from "assets/keys";
 import { TrackId } from "types/Track/TrackTypes";
 import { Id } from "types/units";
-import { createId } from "types/util";
-import { areObjectValuesTyped, isTypedArray, NonEmpty } from "types/util";
+import { createId } from "types/utils";
 import { isPitchClass } from "utils/pitchClass";
 import { Vector } from "utils/vector";
 import {
@@ -22,8 +21,8 @@ export type PoseNoId = Omit<Pose, "id">;
 export type PosePartial = Partial<Pose>;
 export type PoseUpdate = PosePartial & { id: PoseId };
 export type TrackPoseMap = Record<TrackId, Pose[]>;
-export type PoseMap = Dictionary<Pose>;
-export type PoseState = EntityState<Pose>;
+export type PoseMap = Record<PoseId, Pose>;
+export type PoseState = EntityState<Pose, PoseId>;
 
 // ------------------------------------------------------------
 // Pose Definitions
@@ -39,7 +38,7 @@ export type PoseVectorId =
   | "octave";
 
 /** A `VoiceLeading` has at least one pitch class offset. */
-export type VoiceLeading = NonEmpty<PoseVector, ChromaticPitchClass>;
+export type VoiceLeading = PoseVector;
 
 /** A `PoseModule` can be infinite or have a finite, repeatable duration */
 export interface PoseModule {
@@ -117,7 +116,7 @@ export const defaultPose: Pose = {
 export const isPoseVector = (obj: unknown): obj is PoseVector => {
   if (obj === undefined) return false;
   const candidate = obj as PoseVector;
-  return isPlainObject(candidate) && areObjectValuesTyped(candidate, isNumber);
+  return isObject(candidate);
 };
 
 /** Returns true if the vector is a voice leading. */
@@ -131,7 +130,7 @@ export const isVoiceLeading = (
 export const isPoseModule = (obj: unknown): obj is PoseModule => {
   if (obj === undefined) return false;
   const candidate = obj as PoseModule;
-  return isPlainObject(candidate);
+  return isObject(candidate);
 };
 
 /** Checks if a given object is of type `PoseVectorModule` */
@@ -158,7 +157,7 @@ export const isPoseBlock = (obj: unknown): obj is PoseBlock => {
 /** Checks if a given object is of type `PoseStream` */
 export const isPoseStream = (obj: unknown): obj is PoseStream => {
   const candidate = obj as PoseStream;
-  return isTypedArray(candidate, isPoseBlock);
+  return isArray(candidate);
 };
 
 /** Checks if a given object is of type `Pose`. */

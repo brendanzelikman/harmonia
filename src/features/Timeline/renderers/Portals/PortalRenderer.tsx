@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import { usePortalDrag } from "./usePortalDrag";
 import portalIcon from "assets/images/portal.svg";
 import { Portal } from "types/Portal/PortalTypes";
@@ -13,7 +13,7 @@ import { onMediaDragEnd } from "types/Media/MediaThunks";
 import { onPortalClick } from "types/Timeline/thunks/TimelineClickThunks";
 import { Timed } from "types/units";
 import { useCallback, useState } from "react";
-import { useCustomEventListener } from "hooks/useCustomEventListener";
+import { useEvent } from "hooks/useEvent";
 import { dispatchCustomEvent } from "utils/html";
 
 type PortalFragmentProps = { top: number; left: number };
@@ -34,7 +34,7 @@ export function TimelinePortal(props: TimelinePortalProps) {
   const isPortal = "portal" in props;
   const portal = isPortal ? props.portal : undefined;
   const [dragging, setIsDragging] = useState(false);
-  useCustomEventListener("dragClip", (e) => setIsDragging(e.detail));
+  useEvent("dragClip", (e) => setIsDragging(e.detail));
 
   /** Update the timeline when dragging portals. */
   const onDragStart = useCallback(() => {

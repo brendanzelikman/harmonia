@@ -12,7 +12,7 @@ import {
   getPatternChordNotes,
   getPatternChordWithNewNotes,
 } from "../PatternUtils";
-import { createUndoType, Payload } from "lib/redux";
+import { createUndoType, Payload } from "utils/redux";
 import { getPatternBlockDuration } from "../PatternFunctions";
 import { inRange, uniqBy } from "lodash";
 import { isNestedNote } from "types/Scale/ScaleTypes";

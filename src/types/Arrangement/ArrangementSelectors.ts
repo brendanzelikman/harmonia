@@ -2,7 +2,7 @@ import {
   createArraySelector,
   createDeepSelector,
   createValueSelector,
-} from "lib/redux";
+} from "utils/redux";
 import { createSelector } from "reselect";
 import {
   isPortaledPatternClip,

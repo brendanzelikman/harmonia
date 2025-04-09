@@ -26,7 +26,12 @@ import {
   selectTimelineState,
   selectCurrentTimelineTick,
 } from "./TimelineSelectors";
-import { createUndoType, Payload, unpackData, unpackUndoType } from "lib/redux";
+import {
+  createUndoType,
+  Payload,
+  unpackData,
+  unpackUndoType,
+} from "utils/redux";
 import { randomizePattern } from "types/Pattern/PatternThunks";
 import { TimelineState } from "./TimelineTypes";
 import { DEFAULT_CELL_WIDTH } from "utils/constants";

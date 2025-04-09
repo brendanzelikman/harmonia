@@ -1,7 +1,7 @@
 import { InputHTMLAttributes, useCallback, useState } from "react";
 import { cancelEvent } from "utils/html";
 import { omit, throttle } from "lodash";
-import { percent } from "utils/math";
+import { percentize } from "utils/math";
 import classNames from "classnames";
 import {
   BsVolumeUpFill,
@@ -20,7 +20,7 @@ import {
   DEFAULT_PAN,
   PAN_STEP,
 } from "utils/constants";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { selectTrackInstrument } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
@@ -90,7 +90,7 @@ export const VolumeSlider = (props: { trackId: TrackId }) => {
 
   const id = instrument.id;
   const volume = instrument?.volume ?? DEFAULT_VOLUME;
-  const volumePercent = percent(volume, MIN_VOLUME, MAX_VOLUME);
+  const volumePercent = percentize(volume, MIN_VOLUME, MAX_VOLUME);
   const sliderHeight = cellHeight - 55;
   const sliderTop = -sliderHeight * (volumePercent / 100) + sliderHeight + 15;
 
@@ -141,8 +141,8 @@ export const PanSlider = (props: { trackId: TrackId }) => {
   const sliderHeight = cellHeight - 55;
 
   /** The Pattern Track pan slider controls the pan of the track's instrument. */
-  const leftPercent = percent(pan, MAX_PAN, MIN_PAN);
-  const rightPercent = percent(pan, MIN_PAN, MAX_PAN);
+  const leftPercent = percentize(pan, MAX_PAN, MIN_PAN);
+  const rightPercent = percentize(pan, MIN_PAN, MAX_PAN);
   const sliderTop = -sliderHeight * (rightPercent / 100) + sliderHeight + 15;
 
   // Fade to teal when dragging

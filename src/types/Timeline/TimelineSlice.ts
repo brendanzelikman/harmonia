@@ -20,7 +20,7 @@ import {
   defaultMediaClipboard,
   defaultMediaSelection,
 } from "types/Media/MediaTypes";
-import { Action, unpackAction } from "lib/redux";
+import { Action, unpackAction } from "utils/redux";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { Portal } from "types/Portal/PortalTypes";

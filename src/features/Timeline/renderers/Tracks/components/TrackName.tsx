@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { use, useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { selectTrackOrderById } from "types/Track/TrackSelectors";
 import { updateTrack } from "types/Track/TrackThunks";
@@ -9,7 +9,7 @@ import { blurOnEnter } from "utils/html";
 export const TrackName = (props: { track: Track }) => {
   const { track } = props;
   const dispatch = useDispatch();
-  const height = use(selectCellHeight);
+  const height = useStore(selectCellHeight);
   const isST = track.type === "scale";
   const isSmall = height < 100;
   const size = isSmall ? "text-xs h-6" : "text-sm h-7";

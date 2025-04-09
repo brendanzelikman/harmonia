@@ -1,5 +1,5 @@
 import { useDrag, useDrop } from "react-dnd";
-import { useDispatch } from "types/hooks";
+import { useDispatch } from "hooks/useStore";
 import { dragTrack } from "types/Track/TrackThunks";
 import { TrackId } from "types/Track/TrackTypes";
 

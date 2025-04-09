@@ -1,7 +1,4 @@
-import { Key, PitchClass } from "types/units";
-import { getPitchClassNumber, MidiNote } from "./midi";
-import { getMidiDegree } from "./midi";
-import { ChromaticKey } from "assets/keys";
+import { PitchClass } from "types/units";
 import { capitalize } from "lodash";
 
 /** A regex matching an initial pitch class and a following string. */
@@ -42,59 +39,6 @@ export const unpackScaleName = (
   const pitchClass = capitalize(_pitchClass);
   if (!isPitchClass(pitchClass) || !scaleName) return undefined;
   return { pitchClass, scaleName };
-};
-
-/** Sort the list of pitch classes by chromatic number. */
-export const getSortedPitchClasses = (pitches: PitchClass[]) => {
-  return [...new Set(pitches)].sort(
-    (a, b) => getPitchClassNumber(a) - getPitchClassNumber(b)
-  );
-};
-
-/** Get the pitch class of the note that is the closest to the given note in the array. */
-export const getClosestPitchClass = (
-  arr: MidiNote[],
-  midi: MidiNote,
-  key?: Key
-) => {
-  const note = getMidiDegree(midi);
-  const notes = arr.map((n) => getMidiDegree(n));
-
-  // Get the closest chromatic number
-  const index = notes.reduce((prev, curr) => {
-    // Check the distance to the note
-    const currDiff = Math.abs(curr - note);
-    const prevDiff = Math.abs(prev - note);
-    if (currDiff !== prevDiff) return currDiff < prevDiff ? curr : prev;
-
-    // If the difference is equal, prefer the note not in the given pitches
-    const currInPitches = key?.includes(ChromaticKey[curr]);
-    const prevInPitches = key?.includes(ChromaticKey[prev]);
-    if (currInPitches && !prevInPitches) return prev;
-    if (!currInPitches && prevInPitches) return curr;
-
-    // If both are in the pitches, prefer the note that is closer to the pitches
-    const currDiffToPitches = key?.reduce((pre, currPitch) => {
-      const currDiff = Math.abs(curr - getPitchClassNumber(currPitch));
-      return currDiff < pre ? currDiff : pre;
-    }, Infinity);
-    const prevDiffToPitches = key?.reduce((pre, currPitch) => {
-      const currDiff = Math.abs(prev - getPitchClassNumber(currPitch));
-      return currDiff < pre ? currDiff : pre;
-    }, Infinity);
-    if (currDiffToPitches && !prevDiffToPitches) return prev;
-    if (!currDiffToPitches && prevDiffToPitches) return curr;
-
-    // If both are the same distance to the pitches, choose a random note
-    return Math.random() < 0.5 ? curr : prev;
-  }, -1);
-
-  // Find the closest pitch class
-  const pitchClass = ChromaticKey[index];
-  if (!pitchClass) throw new Error("Pitch class not found");
-
-  // Return the pitch class
-  return pitchClass;
 };
 
 /** Raise a pitch class by sharpening it.  */

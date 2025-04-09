@@ -9,7 +9,7 @@ import { SafeEffect, EffectId, EffectKey } from "./InstrumentEffectTypes";
 import { MAX_PAN, MAX_VOLUME, MIN_PAN, MIN_VOLUME } from "utils/constants";
 import { LIVE_AUDIO_INSTANCES, LiveAudioInstance } from "./InstrumentClass";
 import { TrackId } from "types/Track/TrackTypes";
-import { Action, unpackAction } from "lib/redux";
+import { Action, unpackAction } from "utils/redux";
 
 // ------------------------------------------------------------
 // Payload Types

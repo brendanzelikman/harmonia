@@ -44,7 +44,7 @@ import {
 } from "types/Track/TrackThunks";
 import { TrackDropdownButton } from "./TrackDropdownButton";
 import { Track } from "types/Track/TrackTypes";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import classNames from "classnames";
 import {
   selectTrackChildren,

@@ -30,7 +30,12 @@ import {
   selectTrackMidiScale,
   selectTrackScaleChain,
 } from "../TrackSelectors";
-import { createUndoType, Payload, unpackData, unpackUndoType } from "lib/redux";
+import {
+  createUndoType,
+  Payload,
+  unpackData,
+  unpackUndoType,
+} from "utils/redux";
 import { nanoid } from "@reduxjs/toolkit";
 import {
   createCourtesyPatternClip,

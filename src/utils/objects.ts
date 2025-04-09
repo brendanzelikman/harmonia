@@ -1,9 +1,5 @@
-import { Dictionary } from "@reduxjs/toolkit";
-
-export type Dict<T = any> = Dictionary<T>;
-
 /** Gets the values of a dictionary. */
-export const getDictValues = <T>(obj: Dictionary<T>) => {
+export const getDictValues = <T>(obj: Record<string, T>) => {
   return Object.values(obj).filter((v) => v !== undefined) as T[];
 };
 
@@ -14,7 +10,7 @@ export const getValueByKey = <T, K extends keyof T>(obj?: T, key?: K) => {
 
 /** Get a properly typed array from a record by key or return an empty array. */
 export const getArrayByKey = <
-  T extends Dictionary<S>,
+  T extends Record<string, S>,
   S extends any = NonNullable<T[keyof T]>
 >(
   obj?: T,

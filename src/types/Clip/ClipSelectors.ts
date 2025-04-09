@@ -4,7 +4,7 @@ import {
   createDeepSelector,
   createValueSelector,
   createValueListSelector,
-} from "lib/redux";
+} from "utils/redux";
 import { getPatternDuration } from "types/Pattern/PatternFunctions";
 import { isPattern, Pattern, PatternId } from "types/Pattern/PatternTypes";
 import { isPose } from "types/Pose/PoseTypes";
@@ -38,6 +38,7 @@ import {
 } from "types/Pattern/PatternSelectors";
 import { getPatternClipHeaderColor } from "./PatternClip/PatternClipFunctions";
 import { selectPoseMap, selectPoseState } from "types/Pose/PoseSelectors";
+import { isFinite } from "utils/math";
 
 // ------------------------------------------------------------
 // Pattern Clip Selectors
@@ -151,11 +152,10 @@ export const selectClipMotifMap = createDeepSelector(
   [selectClipMap, selectPatternMap, selectPoseMap],
   (clips, patterns, poses) => {
     return mapValues(clips, (clip) => {
-      if (clip === undefined) return;
-      const motifMap = clip.type === "pattern" ? patterns : poses;
-      const motifId = getClipMotifId(clip);
-      if (!motifId) return;
-      return motifMap[motifId];
+      if (!clip) return undefined;
+      if (clip.type === "pattern") return patterns[clip.patternId];
+      if (clip.type === "pose") return poses[clip.poseId];
+      return undefined;
     });
   }
 );
@@ -170,7 +170,7 @@ export const selectClipDurationMap = createDeepSelector(
     mapValues(clipMap, (clip) => {
       const reference = getValueByKey(referenceMap, clip?.id);
       if (!clip || !reference) return Infinity;
-      if (clip.duration) return clip.duration;
+      if (clip.duration && isFinite(clip.duration)) return clip.duration;
       if (isPose(reference)) return getPoseDuration(reference);
       if (isPattern(reference)) return getPatternDuration(reference);
       return Infinity;
@@ -223,7 +223,10 @@ export const selectClipsByTrackIds = (
 };
 
 /** Select a list of pattern clips from the IDs provided. */
-export const selectPatternClipsByIds = (project: Project, ids: ClipId[]) => {
+export const selectPatternClipsByIds = (
+  project: Project,
+  ids: PatternClipId[]
+) => {
   return ids
     .map((id) => selectPatternClipById(project, id))
     .filter(Boolean) as PatternClip[];
@@ -231,11 +234,14 @@ export const selectPatternClipsByIds = (project: Project, ids: ClipId[]) => {
 
 /** Select the map of clips to their names. */
 export const selectClipNameMap = createSelector(
-  [selectClipMap, selectClipMotifMap],
-  (clipMap, referenceMap) =>
+  [selectClipMap, selectPatternMap, selectPoseMap],
+  (clipMap, patternMap, poseMap) =>
     mapValues(clipMap, (clip) => {
-      const reference = getValueByKey(referenceMap, clip?.id);
-      return clip?.name ?? reference?.name;
+      if (!clip) return undefined;
+      if (clip.name) return clip.name;
+      if (clip.type === "pattern") return patternMap[clip.patternId]?.name;
+      if (clip.type === "pose") return poseMap[clip.poseId]?.name;
+      return undefined;
     })
 );
 

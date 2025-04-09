@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 import { createEntityAdapter } from "@reduxjs/toolkit";
-import { createNormalSlice } from "lib/redux";
+import { createNormalSlice } from "utils/redux";
 import { Track } from "./TrackTypes";
 
 export const trackAdapter = createEntityAdapter<Track>();

@@ -12,8 +12,8 @@ import {
   PatternClip,
   PoseClip,
 } from "./ClipTypes";
-import { createNormalSlice, unpackData, unpackUndoType } from "lib/redux";
-import { Payload } from "lib/redux";
+import { createNormalSlice, unpackData, unpackUndoType } from "utils/redux";
+import { Payload } from "utils/redux";
 import { createEntityAdapter } from "@reduxjs/toolkit";
 
 // ------------------------------------------------------------

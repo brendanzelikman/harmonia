@@ -6,8 +6,8 @@ import { sanitizeProject } from "./ProjectFunctions";
 import JSZip from "jszip";
 import { downloadTransport } from "types/Transport/TransportThunks";
 import pluralize from "pluralize";
-import moment from "moment";
-import { getProjectsFromDB } from "providers/projects";
+import dayjs from "dayjs";
+import { getProjects } from "app/projects";
 
 /** Export the project to a JSON file, using the given state if specified. */
 export const exportProjectToJSON =
@@ -54,7 +54,7 @@ type FileType = "json" | "midi" | "wav";
 export const exportProjectsToZIP =
   (type: FileType = "json"): Thunk =>
   async (dispatch) => {
-    const projects = (await getProjectsFromDB()).map(sanitizeProject);
+    const projects = (await getProjects()).map(sanitizeProject);
     const jsons = projects
       .map((project) => JSON.stringify(project.present))
       .map((_) => new Blob([_], { type: "application/json" }));
@@ -101,7 +101,7 @@ export const exportProjectsToZIP =
     let downloadName = `${blobCount} Harmonia `;
     if (blobCount === 1) downloadName = "Harmonia ";
     downloadName += pluralize("Project", blobCount);
-    downloadName += `(${moment().format("YYYY-MM-DD HH-mm-ss")}).zip`;
+    downloadName += `(${dayjs().format("YYYY-MM-DD HH-mm-ss")}).zip`;
     link.download = downloadName;
     link.href = url;
     link.click();

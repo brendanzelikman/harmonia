@@ -15,6 +15,7 @@ import { isPitchClass } from "utils/pitchClass";
 import {
   CHORDAL_KEY,
   CHROMATIC_KEY,
+  getNonzeroVectorKeys,
   getVectorKeys,
   isVectorEmpty,
   multiplyVector,
@@ -24,7 +25,7 @@ import {
   VECTOR_BASE,
   VECTOR_SEPARATOR,
 } from "utils/vector";
-import { isFiniteNumber } from "types/util";
+import { isFinite } from "utils/math";
 import { size } from "lodash";
 
 // ------------------------------------------------------------
@@ -52,7 +53,7 @@ export const getPoseVectorAsString = (
   vector: _.PoseVector,
   trackMap?: TrackMap
 ) => {
-  const keys = getVectorKeys(vector).filter((k) => !isPitchClass(k));
+  const keys = getNonzeroVectorKeys(vector).filter((k) => !isPitchClass(k));
   if (!size(vector) || !keys.length) return VECTOR_BASE;
   const offsets = keys.map((key) => {
     if (isTrackId(key) && trackMap) {
@@ -433,7 +434,7 @@ export const getPoseOperationAtIndex = (
         }
 
         // Increment the local index by the duration of the current block
-        const increment = !isFiniteNumber(duration) || !duration ? 1 : duration;
+        const increment = !isFinite(duration) || !duration ? 1 : duration;
         localIndex += increment;
 
         // Break if the local index is beyond the end of the current block

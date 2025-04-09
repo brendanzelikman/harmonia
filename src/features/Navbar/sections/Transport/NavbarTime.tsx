@@ -1,16 +1,16 @@
-import { useStore } from "types/hooks";
-import { useTransportTick } from "types/Transport/TransportHooks";
+import { useStore } from "hooks/useStore";
+import { useTick } from "hooks/useTick";
 import { useEffect } from "react";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { stopTransport } from "types/Transport/TransportThunks";
-import { useTransportState } from "hooks/useTransportState";
+import { useTransport } from "hooks/useTransport";
 import { useToggle } from "hooks/useToggle";
 import { RECORD_TRANSPORT } from "types/Transport/TransportTypes";
 
 export function NavbarTime() {
-  const { tick, string } = useTransportTick();
+  const { tick, string } = useTick();
   const isRecording = useToggle(RECORD_TRANSPORT).isOpen;
-  const state = useTransportState();
+  const state = useTransport();
 
   // If there are no tracks, stop the transport
   const hasTracks = useStore(selectHasTracks);

@@ -1,5 +1,5 @@
 import { Tick } from "types/units";
-import { isFiniteNumber } from "types/util";
+import { isFinite } from "utils/math";
 import { TrackArrangement } from "./ArrangementTypes";
 import { PatternClipMidiStream } from "types/Clip/ClipTypes";
 import { PatternClip } from "types/Clip/PatternClip/PatternClipTypes";
@@ -138,7 +138,7 @@ export const loopOverClipStream = (
   let streamDuration = 0;
 
   // Iterate over every tick in the stream or repeat the pattern until the clip ends
-  const totalTicks = !isFiniteNumber(clip.duration)
+  const totalTicks = !isFinite(clip.duration)
     ? getPatternDuration(pattern)
     : clip.duration;
 

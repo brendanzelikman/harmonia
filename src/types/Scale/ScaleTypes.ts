@@ -1,8 +1,8 @@
 import { isNumber, isObject, range } from "lodash";
 import { Id, PitchClass } from "types/units";
 import { MidiNote, MidiObject, MidiScale, MidiValue } from "utils/midi";
-import { createId } from "types/util";
-import { Dictionary, EntityState } from "@reduxjs/toolkit";
+import { createId } from "types/utils";
+import { EntityState } from "@reduxjs/toolkit";
 import { Vector } from "utils/vector";
 
 // ------------------------------------------------------------
@@ -10,8 +10,8 @@ import { Vector } from "utils/vector";
 // ------------------------------------------------------------
 
 export type ScaleId = Id<"scale">;
-export type ScaleMap = Dictionary<ScaleObject>;
-export type ScaleState = EntityState<ScaleObject>;
+export type ScaleMap = Record<ScaleId, ScaleObject>;
+export type ScaleState = EntityState<ScaleObject, ScaleId>;
 
 // ------------------------------------------------------------
 // Scale Definitions

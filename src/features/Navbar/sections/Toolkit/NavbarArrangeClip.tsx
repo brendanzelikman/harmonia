@@ -3,11 +3,11 @@ import { NavbarTooltipButton } from "components/TooltipButton";
 import {
   ARRANGE_PATTERNS_HOTKEY,
   ARRANGE_POSES_HOTKEY,
-} from "pages/Playground/hotkeys/useTimelineHotkeys";
-import { GiMove, GiMusicalNotes } from "react-icons/gi";
+} from "features/Playground/useTimelineHotkeys";
+import { GiCrystalWand, GiMusicalNotes } from "react-icons/gi";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { ClipType } from "types/Clip/ClipTypes";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import {
   selectIsAddingClips,
   selectTimelineType,
@@ -63,7 +63,7 @@ const hotkeys = {
 
 const icons = {
   pattern: <GiMusicalNotes className="text-2xl " />,
-  pose: <GiMove className="text-2xl" />,
+  pose: <GiCrystalWand className="text-2xl" />,
 };
 
 const textColors = {

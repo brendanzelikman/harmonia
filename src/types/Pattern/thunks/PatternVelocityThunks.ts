@@ -7,8 +7,8 @@ import {
   getPatternChordNotes,
   getPatternChordWithNewNotes,
 } from "../PatternUtils";
-import { Payload } from "lib/redux";
-import { isBoundedNumber } from "types/util";
+import { Payload } from "utils/redux";
+import { isBounded } from "utils/math";
 
 /** Set the velocities of the notes in a pattern. */
 export const setPatternVelocities =
@@ -45,10 +45,10 @@ export const graduatePatternVelocities =
     if (!pattern) return;
     const streamLength = pattern.stream.length;
 
-    if (!isBoundedNumber(startIndex, 0, streamLength - 1)) return;
-    if (!isBoundedNumber(endIndex, 0, streamLength - 1)) return;
-    if (!isBoundedNumber(startVelocity, 0, 127)) return;
-    if (!isBoundedNumber(endVelocity, 0, 127)) return;
+    if (!isBounded(startIndex, 0, streamLength - 1)) return;
+    if (!isBounded(endIndex, 0, streamLength - 1)) return;
+    if (!isBounded(startVelocity, 0, 127)) return;
+    if (!isBounded(endVelocity, 0, 127)) return;
 
     const velocityRange = endVelocity - startVelocity;
     const stepCount = endIndex - startIndex + 1;

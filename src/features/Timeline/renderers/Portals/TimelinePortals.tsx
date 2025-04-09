@@ -1,9 +1,9 @@
-import { useStore } from "types/hooks";
+import { useStore } from "hooks/useStore";
 import { selectPortals } from "types/Portal/PortalSelectors";
 import { TimelinePortal } from "./PortalRenderer";
 import { createPortal } from "react-dom";
 
-import { TimelineElement } from "features/Timeline/components/TimelineGrid";
+import { TimelineElement } from "../../timeline";
 import { Portal } from "types/Portal/PortalTypes";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {

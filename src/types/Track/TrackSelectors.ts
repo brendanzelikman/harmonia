@@ -4,7 +4,7 @@ import {
   createValueSelector,
   createArraySelector,
   createDeepSelector,
-} from "lib/redux";
+} from "utils/redux";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { SafeProject, Project } from "types/Project/ProjectTypes";
@@ -29,7 +29,7 @@ import {
   TrackState,
 } from "./TrackTypes";
 import { selectInstrumentMap } from "types/Instrument/InstrumentSelectors";
-import { createSelector, Dictionary } from "@reduxjs/toolkit";
+import { createSelector } from "@reduxjs/toolkit";
 import { defaultTrackState, trackAdapter } from "./TrackSlice";
 import { mapValues, uniq } from "lodash";
 import {
@@ -138,7 +138,7 @@ export const selectTrackAncestors = (project: Project, id?: TrackId) => {
 /** Select the map of all tracks to their descendant IDs. */
 export const selectTrackDescendantIdMap = createDeepSelector(
   [selectTrackMap],
-  (trackMap): Dictionary<TrackId[]> =>
+  (trackMap): Record<TrackId, TrackId[]> =>
     mapValues(trackMap, (track) => {
       return track ? getTrackDescendantIds(track.id, trackMap) : [];
     })

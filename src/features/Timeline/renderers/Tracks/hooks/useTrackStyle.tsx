@@ -1,7 +1,7 @@
 import classNames from "classnames";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { useHeldHotkeys } from "lib/hotkeys";
 import { some } from "lodash";
-import { useStore } from "types/hooks";
+import { useStore } from "hooks/useStore";
 import {
   selectIsEditingTrack,
   selectSelectedTrackId,

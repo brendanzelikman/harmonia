@@ -7,7 +7,7 @@ import {
   BsVolumeDownFill,
   BsVolumeOffFill,
 } from "react-icons/bs";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import {
   selectTransportMute,
   selectTransportVolume,

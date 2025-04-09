@@ -11,3 +11,4 @@ export const selectScaleIds = scaleSelectors.selectIds as (
   project: Project
 ) => ScaleId[];
 export const selectScaleMap = scaleSelectors.selectEntities;
+export const selectScales = scaleSelectors.selectAll;

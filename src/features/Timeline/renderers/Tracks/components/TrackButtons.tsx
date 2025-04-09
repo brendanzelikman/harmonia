@@ -2,17 +2,9 @@ import classNames from "classnames";
 import { TooltipButton } from "components/TooltipButton";
 import { memo } from "react";
 import { CiRuler } from "react-icons/ci";
-import {
-  GiDominoMask,
-  GiHornInternal,
-  GiMusicalKeyboard,
-  GiSaxophone,
-  GiSoundWaves,
-  GiTrumpet,
-  GiTuba,
-} from "react-icons/gi";
+import { GiDominoMask, GiMusicalKeyboard, GiTrumpet } from "react-icons/gi";
 import { toggleTrackEditor } from "types/Timeline/TimelineThunks";
-import { useStore, useDispatch } from "types/hooks";
+import { useStore, useDispatch } from "hooks/useStore";
 import {
   selectIsEditingTrack,
   selectSelectedTrackId,
@@ -127,7 +119,7 @@ export const PatternTrackButtons = memo(
             dispatch(toggleTrackEditor({ data: trackId }));
           }}
         >
-          <GiTrumpet className="pointer-events-none p-0.5" />
+          <GiMusicalKeyboard className="pointer-events-none" />
         </TooltipButton>
         <TooltipButton
           label={mute ? "Unmute Sampler" : "Mute Sampler"}

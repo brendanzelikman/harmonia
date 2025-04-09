@@ -1,4 +1,4 @@
-import { useStore } from "types/hooks";
+import { useStore } from "hooks/useStore";
 import {
   selectCellHeight,
   selectSelectedTrack,

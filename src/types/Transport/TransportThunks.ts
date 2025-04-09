@@ -2,7 +2,6 @@ import * as Tone from "tone";
 import { Tick } from "types/units";
 import encodeWAV from "audiobuffer-to-wav";
 import { selectTransport, selectTransportBPM } from "./TransportSelectors";
-import { dispatchCustomEvent } from "utils/html";
 import {
   DURATION_TYPES,
   getDurationTicks,
@@ -29,7 +28,7 @@ import {
   selectTrackMap,
   selectTrackAudioInstanceMap,
 } from "types/Track/TrackSelectors";
-import { Payload } from "lib/redux";
+import { Payload } from "utils/redux";
 import {
   createGlobalInstrument,
   buildInstruments,
@@ -40,16 +39,11 @@ import { playPatternChord } from "types/Pattern/PatternThunks";
 import { sanitize } from "utils/math";
 import { _removeOfflineInstrument } from "types/Instrument/InstrumentSlice";
 import {
-  emitPauseTransport,
-  emitStartTransport,
-  emitStopTransport,
-} from "hooks/useTransportState";
-import {
-  CLOSE_STATE,
-  dispatchClose,
-  dispatchOpen,
-  OPEN_STATE,
-} from "hooks/useToggle";
+  broadcastPauseTransport,
+  broadcastStartTransport,
+  broadcastStopTransport,
+} from "hooks/useTransport";
+import { dispatchClose, dispatchOpen } from "hooks/useToggle";
 import {
   dispatchDownloadTickEvent,
   dispatchTick,
@@ -77,7 +71,7 @@ export const seekTransport =
 /** Start the transport, using `Tone.scheduleRepeat` to schedule all samplers. */
 export const startTransport = (): Thunk => (dispatch, getProject) => {
   if (Tone.getContext().state !== "running") return;
-  emitStartTransport();
+  broadcastStartTransport();
 
   // Clear any previous events
   if (scheduleId !== undefined) {
@@ -155,14 +149,14 @@ export const startTransport = (): Thunk => (dispatch, getProject) => {
 export const stopTransport = () => {
   Tone.getTransport().stop();
   Tone.getTransport().cancel(0);
-  emitStopTransport();
+  broadcastStopTransport();
   dispatchTick(0);
 };
 
 export const pauseTransport = () => {
   Tone.getTransport().pause();
   Tone.getTransport().cancel();
-  emitPauseTransport();
+  broadcastPauseTransport();
 };
 
 /** Toggle the transport between playing and paused/stopped. */
@@ -198,13 +192,11 @@ export const movePlayheadRight =
     );
   };
 
-export const MOUNT_TRANSPORT = "mount_transport";
-export const LOAD_TRANSPORT = OPEN_STATE(MOUNT_TRANSPORT);
-export const UNLOAD_TRANSPORT = CLOSE_STATE(MOUNT_TRANSPORT);
+export const LOAD_TRANSPORT = "load_transport";
 
 /** Load the transport on mount. */
 export const loadTransport = (): Thunk => async (dispatch, getProject) => {
-  dispatchCustomEvent(UNLOAD_TRANSPORT);
+  dispatchClose(LOAD_TRANSPORT);
 
   // Build the instruments
   const project = getProject();
@@ -235,7 +227,7 @@ export const loadTransport = (): Thunk => async (dispatch, getProject) => {
     console.error(e);
   } finally {
     // Set the transport as loaded
-    dispatchCustomEvent(LOAD_TRANSPORT);
+    dispatchOpen(LOAD_TRANSPORT);
   }
 };
 
@@ -246,7 +238,7 @@ export const unloadTransport = () => {
 };
 
 /** Start recording the transport. */
-export const startRecordingTransport = (): Thunk => (dispatch) => {
+export const startRecordingTransport = (): Thunk => () => {
   dispatchOpen(RECORD_TRANSPORT);
 
   // Start the recorder if not started
@@ -350,7 +342,7 @@ export const downloadTransport =
       const chordsByTick = selectMidiChordsByTicks(project);
 
       offlineContext.transport.scheduleRepeat((time) => {
-        const tick = offlineContext.transport.ticks - 1; // Starts from 1
+        const tick = Math.round(offlineContext.transport.ticks - 1); // Starts from 1
         // Dispatch the tick update
         dispatchDownloadTickEvent(tick);
 

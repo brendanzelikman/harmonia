@@ -1,7 +1,7 @@
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { CREATE_NEW_TREE_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
+import { CREATE_NEW_TREE_HOTKEY } from "features/Playground/useTimelineHotkeys";
 import { GiPineTree } from "react-icons/gi";
-import { useDispatch } from "types/hooks";
+import { useDispatch } from "hooks/useStore";
 import { promptUserForTree } from "utils/tree";
 
 export const NavbarDesignTree = () => {

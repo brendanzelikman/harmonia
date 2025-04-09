@@ -23,14 +23,13 @@ import { selectTrackMap } from "types/Track/TrackSelectors";
 import { selectPoseMap } from "types/Pose/PoseSelectors";
 import { mapValues } from "lodash";
 import { getPoseVectorAsString } from "types/Pose/PoseFunctions";
-import { createDeepSelector, createValueSelector } from "lib/redux";
+import { createDeepSelector, createValueSelector } from "utils/redux";
 import { TRACK_WIDTH } from "utils/constants";
-import { DemoXML } from "assets/demoXML";
+import { DemoXML } from "assets/xml/demoXML";
 import { exportPatternStreamToXML } from "types/Pattern/PatternExporters";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { selectTrackMidiScaleAtTick } from "./ArrangementTrackSelectors";
 import { IPortaledClipId, PortaledClipId } from "types/Portal/PortalTypes";
-import { isFiniteNumber } from "types/util";
 import { getMidiStreamMinMax } from "types/Pattern/PatternUtils";
 import {
   StreamQueryOptions,
@@ -41,6 +40,7 @@ import {
   isPatternMidiChord,
   PatternMidiNote,
 } from "types/Pattern/PatternTypes";
+import { isFinite } from "utils/math";
 
 // --------------------------------------------
 // Clip Properties
@@ -60,7 +60,7 @@ export const selectClipWidthMap = createDeepSelector(
   [selectPortaledClipMap, selectCellsPerTick, selectCellWidth],
   (clips, ratio, cellWidth) =>
     mapValues(clips, (clip) => {
-      if (!clip.duration || !isFiniteNumber(clip.duration)) {
+      if (!clip.duration || !isFinite(clip.duration)) {
         return cellWidth;
       }
       return Math.max(ratio * clip.duration, cellWidth);

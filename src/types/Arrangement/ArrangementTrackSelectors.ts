@@ -23,7 +23,7 @@ import {
   createArraySelector,
   createDeepSelector,
   createValueSelector,
-} from "lib/redux";
+} from "utils/redux";
 import { getScaleName } from "utils/scale";
 import { getPoseVectorAsString } from "types/Pose/PoseFunctions";
 import { getPoseOperationsAtTick } from "types/Clip/PoseClip/PoseClipFunctions";

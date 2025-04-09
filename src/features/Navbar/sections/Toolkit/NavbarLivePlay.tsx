@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useStore } from "types/hooks";
+import { useStore } from "hooks/useStore";
 import { GiCrystalWand, GiJackPlug, GiMisdirection } from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
@@ -13,11 +13,11 @@ import {
   selectTrackLabelById,
   selectTrackLabelMap,
 } from "types/Track/TrackSelectors";
-import { useHeldHotkeys } from "lib/react-hotkeys-hook";
+import { useHeldHotkeys } from "lib/hotkeys";
 import { memo, useCallback, useMemo } from "react";
 import { some } from "lodash";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
-import { useLivePlay } from "features/Timeline/hooks/useLivePlay";
+import { useLivePlay } from "features/Playground/usePlaygroundLivePlay";
 import { TooltipButton } from "components/TooltipButton";
 import pluralize from "pluralize";
 import { selectHasTracks } from "types/Track/TrackSelectors";

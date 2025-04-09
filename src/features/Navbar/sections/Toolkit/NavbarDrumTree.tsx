@@ -1,7 +1,7 @@
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { CREATE_DRUM_TRACKS_HOTKEY } from "pages/Playground/hotkeys/useTimelineHotkeys";
+import { CREATE_DRUM_TRACKS_HOTKEY } from "features/Playground/useTimelineHotkeys";
 import { GiPlantWatering, GiWateringCan } from "react-icons/gi";
-import { useDispatch } from "types/hooks";
+import { useDispatch } from "hooks/useStore";
 import { createDrumTracks } from "types/Track/ScaleTrack/ScaleTrackThunks";
 
 export const NavbarDrumTree = () => {

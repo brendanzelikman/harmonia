@@ -1,7 +1,7 @@
-import { Dictionary, EntityState } from "@reduxjs/toolkit";
+import { EntityState } from "@reduxjs/toolkit";
 import { IClip, IClipId } from "../ClipTypes";
 import { Tick, Update } from "types/units";
-import { createId } from "types/util";
+import { createId } from "types/utils";
 import {
   PatternNote,
   PatternMidiNote,
@@ -18,8 +18,8 @@ import { isObject, isString } from "lodash";
 export type PatternClip = IClip<"pattern">;
 export type PatternClipId = IClipId<"pattern">;
 export type PatternClipUpdate = Update<PatternClip>;
-export type PatternClipMap = Dictionary<PatternClip>;
-export type PatternClipState = EntityState<PatternClip>;
+export type PatternClipMap = Record<PatternClipId, PatternClip>;
+export type PatternClipState = EntityState<PatternClip, PatternClipId>;
 
 // Portaled Clip Types
 export type PortaledPatternClip = Portaled<PatternClip>;

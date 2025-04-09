@@ -13,7 +13,7 @@ import {
   getPatternChordNotes,
   getPatternChordWithNewNotes,
 } from "../PatternUtils";
-import { Payload } from "lib/redux";
+import { Payload } from "utils/redux";
 import { isNestedNote, ScaleId } from "types/Scale/ScaleTypes";
 import { Frequency } from "tone";
 

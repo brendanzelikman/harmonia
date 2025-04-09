@@ -1,6 +1,6 @@
 import LandingBackground from "assets/images/background.png";
 import classNames from "classnames";
-import { FlipBookPageProps, FlipBookPage } from "lib/react-pageflip";
+import { FlipBookPageProps, FlipBookPage } from "features/Diary/DiaryFlipBook";
 import { forwardRef } from "react";
 
 const bookRing = "ring-8 ring-indigo-700 rounded";

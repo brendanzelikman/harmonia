@@ -5,7 +5,7 @@ import { Clip } from "types/Clip/ClipTypes";
 import { applyPortalsToClips } from "types/Portal/PortalFunctions";
 import { isPortal } from "types/Portal/PortalTypes";
 import { TrackMap, TrackId } from "types/Track/TrackTypes";
-import { isFiniteNumber } from "types/util";
+import { isFinite } from "utils/math";
 
 /** Get the clips from the media. */
 export const getClipsFromMedia = (media: Media) => {
@@ -61,7 +61,7 @@ export const getMediaEndTick = (media: MediaElement[]) => {
   // Get the end tick of the processed media
   return processedMedia.reduce((acc, item) => {
     const duration = getMediaElementDuration(item);
-    return Math.max(acc, item.tick + (isFiniteNumber(duration) ? duration : 1));
+    return Math.max(acc, item.tick + (isFinite(duration) ? duration : 1));
   }, -Infinity);
 };
 
@@ -78,7 +78,7 @@ export const getMediaInRange = (
   return media.filter((item, i) => {
     // Get the duration of the media
     const duration = getMediaElementDuration(item, media[i].duration);
-    if (!isFiniteNumber(duration)) {
+    if (!isFinite(duration)) {
       return inRange(item.tick, startTick, endTick);
     }
 

@@ -17,7 +17,7 @@ import {
   selectScaleTrackById,
   selectTrackById,
 } from "./TrackSelectors";
-import { isScaleTrack, TrackId } from "./TrackTypes";
+import { TrackId } from "./TrackTypes";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
 
 /** Convert a midi into a nested note */
@@ -111,9 +111,10 @@ export const autoBindNoteToTrack =
       // Iterate over all scale offsets
       for (let i = 0; i < trackIds.length; i++) {
         const id = trackIds[i];
-        const parentTrack = selectTrackById(project, id);
-        if (!isScaleTrack(parentTrack)) continue;
+        const parentTrack =
+          id !== "T" ? selectTrackById(project, id) : undefined;
         const parentScaleId = id === "T" ? "chromatic" : parentTrack?.scaleId;
+        if (!parentScaleId) continue;
 
         // Check the parent scale (or chromatic scale at the end)
         const parentScale = id === "T" ? chromaticScale : trackScaleMap[id];

@@ -5,7 +5,7 @@ import {
   TRACK_WIDTH,
 } from "utils/constants";
 import { TimelinePlayhead } from "./TimelinePlayhead";
-import { useStore } from "types/hooks";
+import { useStore } from "hooks/useStore";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
   selectCellWidth,
@@ -113,7 +113,7 @@ const TimelineTopLeftCorner = () => {
   const isAddingPortals = useStore(selectIsAddingPortals);
   const hasFragment = useStore(selectHasPortalFragment);
   const isSlicingClips = useStore(selectIsSlicingClips);
-  const tree = useToggle("inputTree", false);
+  const tree = useToggle("inputTree");
   const hasClips = !!useStore(selectSelectedClips).length;
   return (
     <div
@@ -184,7 +184,9 @@ const TimelineTopLeftCorner = () => {
       ) : (
         <>
           <div className="text-base font-light">Timeline</div>
-          <div className="text-slate-400 text-sm">(Scroll to Navigate)</div>
+          <div className="text-slate-400 text-sm">
+            (Scroll Grid to Navigate)
+          </div>
         </>
       )}
     </div>

@@ -17,7 +17,7 @@ import {
   selectTrackById,
 } from "../TrackSelectors";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
-import { Payload, unpackData, unpackUndoType } from "lib/redux";
+import { Payload, unpackData, unpackUndoType } from "utils/redux";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
 import { addTrack } from "../TrackThunks";
 import { createPattern } from "types/Pattern/PatternThunks";
@@ -41,11 +41,11 @@ import {
 } from "types/Instrument/InstrumentSlice";
 import { isHoldingOption, promptUserForFile } from "utils/html";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { getDatabase } from "providers/database";
-import { fileToAudioBuffer, audioBufferToObject } from "utils/samples";
+import { readAudioBuffer, decodeAudioBuffer } from "utils/audio";
 import { Track, TrackId, isPatternTrack } from "../TrackTypes";
-import { uploadSampleToIDB } from "providers/samples";
+import { uploadSample } from "app/samples";
 import { selectCurrentTimelineTick } from "types/Timeline/TimelineSelectors";
+import { getDatabase } from "app/database";
 
 /** Create a `PatternTrack` with an optional initial track. */
 export const createPatternTrack =
@@ -237,7 +237,7 @@ export const promptUserForSample =
 
       // If no track data is provided, just upload the sample
       if (!track && !parentId) {
-        uploadSampleToIDB(file);
+        uploadSample(file);
         return;
       }
 
@@ -261,8 +261,8 @@ export const uploadSampleToTrack =
 
     // Convert the file to a safe buffer and save to IDB
     const { file, parentId } = data;
-    const audioBuffer = await fileToAudioBuffer(file);
-    const buffer = audioBufferToObject(audioBuffer);
+    const audioBuffer = await readAudioBuffer(file);
+    const buffer = decodeAudioBuffer(audioBuffer);
     const id = `sample-${file.name}`;
     await db.put(SAMPLE_STORE, { id, buffer });
 

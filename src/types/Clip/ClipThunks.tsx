@@ -7,6 +7,7 @@ import {
   ClipId,
   PortaledClipId,
   isPatternClipId,
+  PatternClipId,
 } from "./ClipTypes";
 import { selectPortaledPatternClipStreamMap } from "types/Arrangement/ArrangementSelectors";
 import {
@@ -15,7 +16,7 @@ import {
 } from "types/Arrangement/ArrangementTrackSelectors";
 import { selectMeta } from "types/Meta/MetaSelectors";
 import { selectTransportBPM } from "types/Transport/TransportSelectors";
-import { Payload, unpackData, unpackUndoType } from "lib/redux";
+import { Payload, unpackData, unpackUndoType } from "utils/redux";
 import { addClips, removeClip } from "./ClipSlice";
 import { downloadBlob } from "utils/html";
 import {
@@ -75,7 +76,8 @@ export const exportClipsToMidi =
     const clipStreamMap = selectPortaledPatternClipStreamMap(project);
 
     // Get all tracks that belong to the clips
-    const clips = selectPatternClipsByIds(project, ids);
+    const patternClipIds = ids.filter(isPatternClipId);
+    const clips = selectPatternClipsByIds(project, patternClipIds);
     const allTracks = selectTracks(project);
     const tracks = allTracks.filter((track) =>
       clips.some((clip) => clip.trackId === track.id)
@@ -88,7 +90,9 @@ export const exportClipsToMidi =
 
     // Iterate through each track
     tracks.forEach((track, i) => {
-      const clipIds = trackClipIdMap[track.id].filter(isPatternClipId);
+      const clipIds = trackClipIdMap[track.id].filter(
+        isPatternClipId
+      ) as PatternClipId[];
       if (!clipIds.length) return;
 
       // Create a MIDI track
