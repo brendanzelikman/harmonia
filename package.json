@@ -2,7 +2,7 @@
   "name": "harmonia",
   "productName": "Harmonia",
   "private": true,
-  "main": ".vite/dist/main.js",
+  "main": "dist/main.js",
   "version": "1.0.0",
   "scripts": {
     "test": "vitest",
