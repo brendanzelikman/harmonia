@@ -3,7 +3,7 @@ import { Diary } from "features/Diary/Diary";
 import { dispatchEventOnChange } from "utils/html";
 import { useTimelineHotkeys } from "features/Playground/useTimelineHotkeys";
 import { Editor } from "features/Editor/Editor";
-import { Terminal } from "features/Terminal/terminal";
+import { Terminal } from "features/Terminal/Terminal";
 import { Tutorial } from "features/Tutorial/Tutorial";
 import { Timeline } from "features/Timeline/Timeline";
 import { usePlaygroundHotkeys } from "./usePlaygroundHotkeys";
