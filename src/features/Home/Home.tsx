@@ -1,5 +1,5 @@
 import { useWindowTitle } from "hooks/useWindowTitle";
-import { ProjectPage } from "features/Projects/ProjectPage";
+import { ProjectPage } from "features/Projects/Projects";
 import { DemosPage } from "../Demos/Demos";
 import { SamplePage } from "features/Samples/SamplePage";
 import { Background } from "components/Background";

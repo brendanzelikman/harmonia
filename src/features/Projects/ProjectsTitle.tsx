@@ -12,8 +12,6 @@ import {
   selectPoseClipIds,
 } from "types/Clip/ClipSelectors";
 import { getBarsBeatsSixteenths } from "types/Transport/TransportFunctions";
-import { selectScales } from "types/Scale/ScaleSelectors";
-import { getScaleName } from "utils/scale";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { selectTracks } from "types/Track/TrackSelectors";
 import { uniq } from "lodash";

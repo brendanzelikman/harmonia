@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
 import { isProject } from "types/Project/ProjectTypes";
 import { loadProjectByPath, loadProject } from "types/Project/ProjectLoaders";
-import { ProjectDisc, ProjectDiscPreview } from "./ProjectDisc";
-import { ProjectTitle } from "./ProjectTitle";
+import { ProjectDisc, ProjectDiscPreview } from "./ProjectsDisc";
+import { ProjectTitle } from "./ProjectsTitle";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import classNames from "classnames";
 import {
@@ -16,7 +16,7 @@ import {
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { createProject } from "types/Project/ProjectThunks";
 import { useDispatch } from "hooks/useStore";
-import { ProjectItem } from "features/Projects/ProjectPage";
+import { ProjectItem } from "features/Projects/Projects";
 import { DEMO_BLURBS } from "features/Demos/useDemos";
 import { deleteProject } from "app/projects";
 

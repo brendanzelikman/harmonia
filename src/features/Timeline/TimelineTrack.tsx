@@ -14,7 +14,7 @@ import { TrackDots } from "./renderers/Tracks/components/TrackDots";
 import { isPatternTrack } from "types/Track/TrackTypes";
 import { PatternTrackFormatter } from "./renderers/Tracks/PatternTrackFormatter";
 import { toggleSelectedTrackId } from "types/Timeline/TimelineThunks";
-import { TrackRow } from "./timeline";
+import { TrackRow } from "./Timeline";
 
 export const TimelineTrack = memo((props: RenderCellProps<TrackRow>) => {
   const dispatch = useDispatch();

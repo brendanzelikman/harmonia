@@ -1,4 +1,4 @@
-import { ProjectFormatter } from "features/Projects/ProjectFormatter";
+import { ProjectFormatter } from "features/Projects/ProjectsFormatter";
 import { HomeContainer } from "features/Home/HomeContainer";
 import { HomeControlBar } from "features/Home/HomeControlBar";
 import { HomeList } from "features/Home/HomeList";
