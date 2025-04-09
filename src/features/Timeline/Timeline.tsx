@@ -144,7 +144,6 @@ export function Timeline() {
     );
   }, [trackIds, collapsedMap, cellWidth]);
 
-  if (!trackIds.length) return null;
   return (
     <div
       id="timeline"

@@ -7,9 +7,6 @@
   "scripts": {
     "test": "vitest",
     "web": "vite",
-    "desktop": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "rm -rf .vite && rm -rf out && electron-forge make",
     "publish": "electron-forge publish",
     "build": "tsc && vite build",
     "predeploy": "npm run build",

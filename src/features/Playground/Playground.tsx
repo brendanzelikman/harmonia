@@ -10,6 +10,8 @@ import { usePlaygroundHotkeys } from "./usePlaygroundHotkeys";
 import { usePlaygroundProject } from "./usePlaygroundProject";
 import { usePlaygroundTransport } from "./usePlaygroundTransport";
 import { PlaygroundLoadingScreen } from "./PlaygroundLoadingScreen";
+import { useStore } from "hooks/useStore";
+import { selectHasTracks } from "types/Track/TrackSelectors";
 
 export const LOAD_PLAYGROUND = "load-playground";
 
@@ -33,12 +35,12 @@ export function PlaygroundPage() {
 
 /** The Playground controls all of the main components and hotkeys */
 export function Playground() {
+  const hasTracks = useStore(selectHasTracks);
   usePlaygroundHotkeys();
   useTimelineHotkeys();
   return (
     <div className="size-full relative">
-      <Timeline />
-      <Tutorial />
+      {hasTracks ? <Timeline /> : <Tutorial />}
       <Editor />
       <Diary />
       <Terminal />
