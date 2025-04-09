@@ -10,7 +10,6 @@ import {
   updateProject,
   getCurrentProjectId,
 } from "app/projects";
-import { store } from "app/store";
 import { initializeProjectMetadata } from "types/Meta/MetaTypes";
 import { setProject } from "app/reducer";
 
@@ -25,7 +24,7 @@ export const loadProject = async (id: string, callback?: () => void) => {
     const project = await getProject(id);
     if (!isProject(project)) throw new Error("Invalid project");
     await setCurrentProjectId(id);
-    store.dispatch({ type: "setProject", payload: project });
+    setProject(project);
   } catch (e) {
     console.error(e);
     return false;

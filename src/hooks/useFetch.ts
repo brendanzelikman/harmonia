@@ -31,5 +31,5 @@ export const useFetch = <T>(fetch: () => Promise<T>, signal?: string) => {
   }, []);
 
   // Return the data, loading state, and error statep
-  return { data, loading: !data && loading, error, fetchData };
+  return { data, loading, loaded: !loading && !!data, error, fetchData };
 };

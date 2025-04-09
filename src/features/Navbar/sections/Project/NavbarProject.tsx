@@ -86,12 +86,10 @@ export function NavbarProjectMenu() {
           </div>
 
           {/* Open New Project */}
-          {
-            <NavbarFileGroup onClick={() => createProject()}>
-              <NavbarFileLabel>Open New Project</NavbarFileLabel>
-              <GiCompactDisc className="ml-auto text-2xl" />
-            </NavbarFileGroup>
-          }
+          <NavbarFileGroup onClick={() => createProject()}>
+            <NavbarFileLabel>Open New Project</NavbarFileLabel>
+            <GiCompactDisc className="ml-auto text-2xl" />
+          </NavbarFileGroup>
 
           {/* Save Project */}
           <NavbarFileGroup onClick={() => dispatch(exportProjectToJSON())}>

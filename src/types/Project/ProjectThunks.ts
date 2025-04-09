@@ -20,10 +20,10 @@ export const createProject = async (template?: Project) => {
   try {
     await uploadProject(project);
     await setCurrentProjectId(id);
+    dispatchCustomEvent(UPDATE_PROJECT_EVENT, id);
   } catch (e) {
     console.log(e);
   } finally {
-    dispatchCustomEvent(UPDATE_PROJECT_EVENT, id);
   }
 };
 

@@ -23,10 +23,7 @@ import {
 } from "types/Clip/ClipSelectors";
 import { selectPortals } from "types/Portal/PortalSelectors";
 import { selectPatternClips } from "types/Clip/ClipSelectors";
-import {
-  selectTransport,
-  selectTransportBPM,
-} from "types/Transport/TransportSelectors";
+import { selectTransportBPM } from "types/Transport/TransportSelectors";
 import {
   selectScaleTrackChainIdsMap,
   selectTrackDescendantIdMap,
@@ -146,10 +143,9 @@ export const selectProcessedArrangement = createDeepSelector(
 
 /** Select the last tick of the arrangement (based on pattern clips only). */
 export const selectLastArrangementTick = createSelector(
-  [selectPatternClips, selectClipDurationMap, selectTransport],
-  (clips, durationMap, transport) => {
+  [selectPatternClips, selectClipDurationMap],
+  (clips, durationMap) => {
     if (!clips.length) return 0;
-    if (transport.loop) return transport.loopEnd;
     const lastTick = clips.reduce((last, clip) => {
       const endTick = clip.tick + (durationMap[clip.id] ?? 0);
       return Math.max(last, endTick);
