@@ -2,8 +2,7 @@
   "name": "harmonia",
   "productName": "Harmonia",
   "private": true,
-  "main": ".vite/build/main.js",
-  "homepage": "https://brendanzelikman.github.io/harmonia/",
+  "main": ".vite/dist/main.js",
   "version": "1.0.0",
   "scripts": {
     "test": "vitest",

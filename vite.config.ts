@@ -5,10 +5,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 // https://vitejs.dev/config/
 export default defineConfig({
   server: { port: 3000 },
-  base: "/harmonia/",
   build: {
     chunkSizeWarningLimit: 5000,
-    outDir: "build",
+    outDir: "main",
     rollupOptions: {
       onwarn(warning, warn) {
         if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
