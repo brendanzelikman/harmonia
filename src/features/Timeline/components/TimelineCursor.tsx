@@ -1,4 +1,4 @@
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import {
   selectCellHeight,
   selectSelectedTrack,
@@ -10,14 +10,14 @@ import classNames from "classnames";
 import { COLLAPSED_TRACK_HEIGHT } from "utils/constants";
 
 export function TimelineCursor() {
-  const tick = useStore(selectTimelineTick);
-  const cellHeight = useStore(selectCellHeight);
+  const tick = useSelect(selectTimelineTick);
+  const cellHeight = useSelect(selectCellHeight);
 
-  const track = useStore(selectSelectedTrack);
+  const track = useSelect(selectSelectedTrack);
   const onPatternTrack = track?.type === "pattern";
 
-  const top = useStore((_) => selectTrackTop(_, track?.id));
-  const left = useStore((_) => selectTimelineTickLeft(_, tick)) - 2;
+  const top = useSelect((_) => selectTrackTop(_, track?.id));
+  const left = useSelect((_) => selectTimelineTickLeft(_, tick)) - 2;
   const width = 2;
   const height = track?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
   const style = { height, top, width, left };

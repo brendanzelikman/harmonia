@@ -1,4 +1,3 @@
-import { isNumber, range } from "lodash";
 import { MidiScale, getMidiDegree, getMidiNoteValue } from "utils/midi";
 import {
   PatternBlock,
@@ -19,6 +18,8 @@ import {
 import { Chords } from "assets/patterns";
 import { initializeScale } from "types/Scale/ScaleTypes";
 import { STAFF_PIVOT } from "lib/musicxml";
+import { isNumber } from "types/utils";
+import { range } from "utils/array";
 
 // ------------------------------------------------------------
 // Pattern Chord Helpers

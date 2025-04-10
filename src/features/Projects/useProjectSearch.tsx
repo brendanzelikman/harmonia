@@ -1,4 +1,3 @@
-import { lowerCase } from "lodash";
 import { useMemo } from "react";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { defaultProject, isProject, Project } from "types/Project/ProjectTypes";
@@ -10,7 +9,7 @@ import {
   selectTrackMidiScale,
 } from "types/Track/TrackSelectors";
 import { selectMeta } from "types/Meta/MetaSelectors";
-import { getScaleName } from "utils/scale";
+import { getScaleName } from "lib/scale";
 
 interface ProjectSearchProps {
   projects: Project[];
@@ -35,7 +34,9 @@ export function useProjectSearch(props: ProjectSearchProps) {
           const allPatternIds = patternClips.map(({ patternId }) => patternId);
           const patternIds = [...new Set(allPatternIds)];
           const allPatternNames = patternIds.map((id) => patternMap[id]?.name);
-          const patternNames = [...new Set(allPatternNames)].map(lowerCase);
+          const patternNames = [...new Set(allPatternNames)].map((n) =>
+            (n ?? "").toLowerCase()
+          );
 
           // Get the list of scales used
           const scaleTracks = selectScaleTracks(project);
@@ -43,15 +44,17 @@ export function useProjectSearch(props: ProjectSearchProps) {
             selectTrackMidiScale(project, id)
           );
           const allScaleNames = allScales.map((scale) => getScaleName(scale));
-          const scaleNames = [...new Set(allScaleNames)].map(lowerCase);
+          const scaleNames = [...new Set(allScaleNames)].map((n) =>
+            (n ?? "").toLowerCase()
+          );
 
           // Get the list of instruments used
           const instruments = selectInstruments(project);
           const allInstrumentNames = instruments.map(({ key }) =>
             getInstrumentName(key)
           );
-          const instrumentNames = [...new Set(allInstrumentNames)].map(
-            lowerCase
+          const instrumentNames = [...new Set(allInstrumentNames)].map((n) =>
+            (n ?? "").toLowerCase()
           );
 
           // Get the name of the project

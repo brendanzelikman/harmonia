@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { useDrop } from "react-dnd";
 import { useNavigate } from "react-router-dom";
 import { loadProject } from "types/Project/ProjectLoaders";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 
 interface ProjectSearchBarProps {
   query: string;

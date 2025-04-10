@@ -1,5 +1,5 @@
 import { Pattern } from "types/Pattern/PatternTypes";
-import * as _ from "utils/durations";
+import * as _ from "utils/duration";
 
 export const BellPattern1: Pattern = {
   id: "pattern_preset_bell-pattern-1",

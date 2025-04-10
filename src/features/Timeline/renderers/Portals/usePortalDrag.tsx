@@ -1,6 +1,6 @@
 import { useDrag } from "react-dnd";
 import { Portal } from "types/Portal/PortalTypes";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 
 interface PortalDragProps {
   portal?: Portal;

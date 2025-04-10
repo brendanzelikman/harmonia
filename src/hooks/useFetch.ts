@@ -24,9 +24,6 @@ export const useFetch = <T>(fetch: () => Promise<T>, signal?: string) => {
     fetchData();
     if (signal) {
       window.addEventListener(signal, fetchData);
-      return () => {
-        window.removeEventListener(signal, fetchData);
-      };
     }
   }, []);
 

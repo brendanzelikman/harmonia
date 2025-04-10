@@ -7,9 +7,9 @@ import {
   getStraightDuration,
   getTickDuration,
   isTripletNote,
-} from "utils/durations";
-import { downloadBlob } from "utils/html";
-import { getScaleKey } from "utils/scale";
+} from "utils/duration";
+import { downloadBlob } from "utils/file";
+import { getScaleKey } from "lib/scale";
 import { getPatternBlockDuration } from "./PatternFunctions";
 import { resolvePatternStreamToMidi } from "./PatternResolvers";
 import { isPatternMidiChord, Pattern, PatternMidiStream } from "./PatternTypes";

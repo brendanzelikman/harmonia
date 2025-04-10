@@ -1,37 +1,35 @@
-import { useDispatch } from "hooks/useStore";
 import { Shortcut } from "./components/ShortcutsItem";
 import { ShortcutContent } from "./components/ShortcutsContent";
 import {
-  DEBUG_TRANSPORT_HOTKEY,
-  LOOP_TRANSPORT_HOTKEY,
-  MUTE_TRANSPORT_HOTKEY,
-  RECORD_TRANSPORT_HOTKEY,
-  STOP_TRANSPORT_HOTKEY,
-  TOGGLE_TRANSPORT_HOTKEY,
-} from "features/Playground/usePlaygroundHotkeys";
+  DebugTransportHotkey,
+  LoopTransportHotkey,
+  MuteTransportHotkey,
+  RecordTransportHotkey,
+  StopTransportHotkey,
+  ToggleTransportHotkey,
+} from "lib/hotkeys/transport";
 import {
-  MOVE_LEFT_HOTKEY,
-  MOVE_RIGHT_HOTKEY,
-  SCRUB_LEFT_HOTKEY,
-  SCRUB_RIGHT_HOTKEY,
-} from "features/Playground/useTimelineHotkeys";
+  _MoveLeftHotkey,
+  _MoveRightHotkey,
+  _ScrubLeftHotkey,
+  _ScrubRightHotkey,
+} from "lib/hotkeys/selection";
 
 export function TransportShortcuts() {
-  const dispatch = useDispatch();
   return (
     <ShortcutContent
       className="text-lg space-y-6"
       shortcuts={[
-        <Shortcut hotkey={dispatch(TOGGLE_TRANSPORT_HOTKEY)} />,
-        <Shortcut hotkey={dispatch(STOP_TRANSPORT_HOTKEY)} />,
-        <Shortcut hotkey={dispatch(MOVE_LEFT_HOTKEY)} />,
-        <Shortcut hotkey={dispatch(MOVE_RIGHT_HOTKEY)} />,
-        <Shortcut hotkey={dispatch(SCRUB_LEFT_HOTKEY)} />,
-        <Shortcut hotkey={dispatch(SCRUB_RIGHT_HOTKEY)} />,
-        <Shortcut hotkey={dispatch(LOOP_TRANSPORT_HOTKEY)} />,
-        <Shortcut hotkey={dispatch(MUTE_TRANSPORT_HOTKEY)} />,
-        <Shortcut hotkey={dispatch(RECORD_TRANSPORT_HOTKEY)} />,
-        <Shortcut hotkey={dispatch(DEBUG_TRANSPORT_HOTKEY)} />,
+        <Shortcut hotkey={ToggleTransportHotkey} />,
+        <Shortcut hotkey={StopTransportHotkey} />,
+        <Shortcut hotkey={_MoveLeftHotkey} />,
+        <Shortcut hotkey={_MoveRightHotkey} />,
+        <Shortcut hotkey={_ScrubLeftHotkey} />,
+        <Shortcut hotkey={_ScrubRightHotkey} />,
+        <Shortcut hotkey={LoopTransportHotkey} />,
+        <Shortcut hotkey={MuteTransportHotkey} />,
+        <Shortcut hotkey={RecordTransportHotkey} />,
+        <Shortcut hotkey={DebugTransportHotkey} />,
       ]}
     />
   );

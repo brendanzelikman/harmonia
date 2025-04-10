@@ -12,14 +12,14 @@ import {
 } from "./ScaleTypes";
 import { MidiNote } from "utils/midi";
 import { sumVectors } from "utils/vector";
-import { isArray, isNumber } from "lodash";
+import { isNumber } from "types/utils";
 
 /** Update a `Scale` with new notes. */
 export const getNewScale = <T extends Scale>(
   scale: T,
   notes: ScaleArray
 ): T => {
-  if (isArray(scale)) return [...notes] as T;
+  if (Array.isArray(scale)) return [...notes] as T;
   return { ...scale, notes };
 };
 
@@ -141,7 +141,7 @@ export const transposeNoteThroughScale = (
 
   // Determine if the note has an offset for this scale
   const { degree, offset } = note;
-  const shouldOffset = !!offset && !isArray(scale);
+  const shouldOffset = !!offset && !Array.isArray(scale);
   const degreeOffset = shouldOffset ? offset?.[scale.id] ?? 0 : 0;
 
   // Get the parent note using the new degree (+ offset)

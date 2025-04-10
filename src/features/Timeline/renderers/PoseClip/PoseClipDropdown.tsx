@@ -1,5 +1,5 @@
 import { PoseClip } from "types/Clip/ClipTypes";
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { POSE_NOTCH_HEIGHT } from "utils/constants";
 import { cancelEvent } from "utils/html";
@@ -13,7 +13,7 @@ export interface PoseClipDropdownEffectProps extends PoseClipComponentProps {
 
 export const PoseClipDropdown = (props: PoseClipDropdownEffectProps) => {
   const { clip, block } = props;
-  const cellHeight = useStore(selectCellHeight);
+  const cellHeight = useSelect(selectCellHeight);
   return (
     <div
       style={{

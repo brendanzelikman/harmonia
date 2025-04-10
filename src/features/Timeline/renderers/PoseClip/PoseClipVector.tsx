@@ -3,7 +3,7 @@ import { clamp, omit } from "lodash";
 import { updatePose } from "types/Pose/PoseSlice";
 import { PoseVectorId, PoseBlock, isVoiceLeading } from "types/Pose/PoseTypes";
 import { useEffect, useMemo, useState } from "react";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import { ChromaticKey } from "assets/keys";
 import { getTrackLabel, getTrackDepth } from "types/Track/TrackFunctions";
 import {
@@ -15,7 +15,7 @@ import {
   selectTrackMidiScale,
   selectTrackById,
 } from "types/Track/TrackSelectors";
-import { getScaleName } from "utils/scale";
+import { getScaleName } from "lib/scale";
 import { PoseClip } from "types/Clip/ClipTypes";
 import { PoseClipBaseEffect } from "./PoseClipStore";
 import {
@@ -44,12 +44,12 @@ interface PoseClipVectorProps extends PoseClipComponentProps {
 export const PoseClipVector = (props: PoseClipVectorProps) => {
   const trackId = props.clip.trackId;
   const isPT = isPatternTrackId(trackId);
-  const trackMap = useStore(selectTrackMap);
-  const trackScaleMap = useStore(selectTrackMidiScaleMap);
+  const trackMap = useSelect(selectTrackMap);
+  const trackScaleMap = useSelect(selectTrackMidiScaleMap);
 
-  const clipLabel = useStore((_) => selectTrackLabelById(_, trackId));
-  const clipDepth = useStore((_) => selectTrackDepthById(_, trackId));
-  const clipTracks = useStore((_) => selectScaleTrackChain(_, trackId));
+  const clipLabel = useSelect((_) => selectTrackLabelById(_, trackId));
+  const clipDepth = useSelect((_) => selectTrackDepthById(_, trackId));
+  const clipTracks = useSelect((_) => selectScaleTrackChain(_, trackId));
 
   const [view, setView] = useState<PoseClipVectorView>(
     isVoiceLeading(props.vector) ? "notes" : "scales"
@@ -154,9 +154,11 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
 
 const PoseClipScale = (props: PoseClipVectorProps) => {
   const dispatch = useDispatch();
-  const track = useStore((_) => selectTrackById(_, props.clip.trackId));
-  const parentScale = useStore((_) => selectTrackMidiScale(_, track?.parentId));
-  const scale = useStore((_) =>
+  const track = useSelect((_) => selectTrackById(_, props.clip.trackId));
+  const parentScale = useSelect((_) =>
+    selectTrackMidiScale(_, track?.parentId)
+  );
+  const scale = useSelect((_) =>
     selectTrackMidiScaleAtTick(_, props.clip.trackId, props.clip.tick)
   );
   const hasScale = props.scale !== undefined;

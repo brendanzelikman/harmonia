@@ -1,4 +1,4 @@
-import { useHotkeys } from "react-hotkeys-hook";
+import { useHotkeys } from "hooks/useHotkeys";
 import {
   ReactNode,
   useCallback,
@@ -18,7 +18,6 @@ export interface ContextMenuOption {
 export function ContextMenu(props: {
   options: ContextMenuOption[];
   targetId: string;
-  className?: string;
 }) {
   const { targetId } = props;
   const [visible, setVisible] = useState(false);
@@ -53,7 +52,7 @@ export function ContextMenu(props: {
     };
   }, [targetId]);
 
-  useHotkeys("esc", () => setVisible(false), { enableOnFormTags: true });
+  useHotkeys({ escape: () => setVisible(false) });
 
   useLayoutEffect(() => {
     const node = contextRef.current;
@@ -93,21 +92,13 @@ export function ContextMenu(props: {
     []
   );
 
+  if (!visible) return null;
   return (
     <div
       ref={contextRef}
-      className={`absolute flex flex-col items-center bg-slate-900/80 border border-slate-50/50 py-2 rounded-lg shadow-2xl z-[100] font-light ${
-        props.className ?? ""
-      } backdrop-blur-lg text-sm`}
+      className={`absolute flex animate-in fade-in zoom-in-95 flex-col items-center bg-slate-900/80 border border-slate-50/50 py-2 rounded-lg shadow-2xl z-[100] font-light backdrop-blur-lg text-sm`}
       onClick={() => setVisible(false)}
-      style={{
-        left: pos.x,
-        top: pos.y,
-        opacity: visible ? 1 : 0,
-        transform: `scale(${visible ? 1 : 0.8})`,
-        transition: "opacity 100ms ease-in-out, transform 100ms ease-in-out",
-        pointerEvents: visible ? "all" : "none",
-      }}
+      style={{ left: pos.x, top: pos.y }}
     >
       <ul>{props.options.map(renderOption)}</ul>
     </div>

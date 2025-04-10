@@ -6,14 +6,14 @@ import {
   SixteenthNoteTicks,
   SixtyFourthNoteTicks,
   StraightDurationType,
-} from "utils/durations";
+} from "utils/duration";
 import { isPatternChord, PatternId, PatternNote } from "../PatternTypes";
 import {
   getPatternChordNotes,
   getPatternChordWithNewNotes,
 } from "../PatternUtils";
 import { updatePattern } from "../PatternSlice";
-import { Payload } from "utils/redux";
+import { Payload } from "types/redux";
 import { clamp, sample, shuffle, uniqBy } from "lodash";
 import { getPatternBlockDuration } from "../PatternFunctions";
 import { isMidiNote } from "types/Scale/ScaleTypes";

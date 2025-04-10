@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from "react";
 
-import { useDispatch, useStore } from "hooks/useStore";
+import { useDispatch, useSelect } from "hooks/useStore";
 import { PortaledPoseClipId, PoseClipId } from "types/Clip/ClipTypes";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import { PoseClipDropdown } from "./PoseClipDropdown";
@@ -24,9 +24,8 @@ import {
   selectTrackHeight,
 } from "types/Timeline/TimelineSelectors";
 import { ScaleNote } from "types/Scale/ScaleTypes";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 import { useEvent } from "hooks/useEvent";
-import { useHotkeys } from "react-hotkeys-hook";
 import { ClipComponentProps } from "features/Timeline/TimelineClips";
 import { useDrag } from "react-dnd";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
@@ -41,7 +40,7 @@ export type PoseClipView = "vector" | "stream";
 export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   const { id, pcId, className, isDragging } = props;
 
-  const clip = useStore((_) => selectPortaledPoseClip(_, pcId));
+  const clip = useSelect((_) => selectPortaledPoseClip(_, pcId));
   const { trackId, tick, type } = clip;
   const [isOpen, setIsOpen] = useState(false);
   const handleDropdown = useCallback(
@@ -55,18 +54,15 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
     [isOpen, id]
   );
   useEvent("clipDropdown", handleDropdown);
-  useHotkeys("esc", () =>
-    dispatchCustomEvent("clipDropdown", { id, value: false })
-  );
-  const isSelected = useStore((_) => selectIsClipSelected(_, id));
+  const isSelected = useSelect((_) => selectIsClipSelected(_, id));
 
-  const pose = useStore((_) => selectPoseById(_, clip.poseId));
+  const pose = useSelect((_) => selectPoseById(_, clip.poseId));
   const stream = pose?.stream ?? [];
   const dispatch = useDispatch();
-  const state = useStore(selectTimelineState);
+  const state = useSelect(selectTimelineState);
   const isActive = state !== "idle";
-  const isAdding = useStore(selectIsAddingPoseClips);
-  const isPortaling = useStore(selectIsAddingPortals);
+  const isAdding = useSelect(selectIsAddingPoseClips);
+  const isPortaling = useSelect(selectIsAddingPortals);
   const isBlurred = isAdding || isPortaling || isDragging;
 
   // Each pose has a dropdown to reveal its editor
@@ -106,10 +102,10 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   };
 
   // Each pose has a style that depends on its state
-  const top = useStore((_) => selectTrackTop(_, trackId));
-  const left = useStore((_) => selectTimelineTickLeft(_, tick));
-  const width = useStore((_) => selectClipWidth(_, pcId));
-  const height = useStore((_) => selectTrackHeight(_, trackId));
+  const top = useSelect((_) => selectTrackTop(_, trackId));
+  const left = useSelect((_) => selectTimelineTickLeft(_, tick));
+  const width = useSelect((_) => selectClipWidth(_, pcId));
+  const height = useSelect((_) => selectTrackHeight(_, trackId));
   if (!clip) return null;
   return (
     <div

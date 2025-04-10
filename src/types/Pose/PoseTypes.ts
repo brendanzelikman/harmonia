@@ -1,10 +1,9 @@
 import { EntityState } from "@reduxjs/toolkit";
-import { isArray, isObject, isPlainObject, isString } from "lodash";
 import { ChromaticPitchClass } from "assets/keys";
 import { TrackId } from "types/Track/TrackTypes";
 import { Id } from "types/units";
-import { createId } from "types/utils";
-import { isPitchClass } from "utils/pitchClass";
+import { createId, isObject, isString } from "types/utils";
+import { isPitchClass } from "utils/pitch";
 import { Vector } from "utils/vector";
 import {
   TRANSFORMATIONS,
@@ -157,19 +156,19 @@ export const isPoseBlock = (obj: unknown): obj is PoseBlock => {
 /** Checks if a given object is of type `PoseStream` */
 export const isPoseStream = (obj: unknown): obj is PoseStream => {
   const candidate = obj as PoseStream;
-  return isArray(candidate);
+  return Array.isArray(candidate);
 };
 
 /** Checks if a given object is of type `Pose`. */
 export const isPose = (obj: unknown): obj is Pose => {
   const candidate = obj as Pose;
-  return isPlainObject(candidate) && isPoseId(candidate.id);
+  return isObject(candidate) && isPoseId(candidate.id);
 };
 
 /** Checks if a given object is of type `PoseMap`. */
 export const isPoseMap = (obj: unknown): obj is PoseMap => {
   const candidate = obj as PoseMap;
-  return isPlainObject(candidate) && Object.values(candidate).every(isPose);
+  return isObject(candidate) && Object.values(candidate).every(isPose);
 };
 
 /** Checks if a given object is of type `PoseId`. */

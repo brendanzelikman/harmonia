@@ -20,7 +20,7 @@ import {
   DEFAULT_PAN,
   PAN_STEP,
 } from "utils/constants";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { selectTrackInstrument } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
@@ -83,8 +83,8 @@ export const TrackSlider = (props: SliderProps) => {
 
 export const VolumeSlider = (props: { trackId: TrackId }) => {
   const dispatch = useDispatch();
-  const instrument = useStore((_) => selectTrackInstrument(_, props.trackId));
-  const cellHeight = useStore(selectCellHeight);
+  const instrument = useSelect((_) => selectTrackInstrument(_, props.trackId));
+  const cellHeight = useSelect(selectCellHeight);
   const [draggingVolume, setDraggingVolume] = useState(false);
   if (!instrument) return null;
 
@@ -133,8 +133,8 @@ export const VolumeSlider = (props: { trackId: TrackId }) => {
 export const PanSlider = (props: { trackId: TrackId }) => {
   const dispatch = useDispatch();
   const [draggingPan, setDraggingPan] = useState(false);
-  const cellHeight = useStore(selectCellHeight);
-  const instrument = useStore((_) => selectTrackInstrument(_, props.trackId));
+  const cellHeight = useSelect(selectCellHeight);
+  const instrument = useSelect((_) => selectTrackInstrument(_, props.trackId));
   if (!instrument) return null;
 
   const pan = instrument?.pan ?? DEFAULT_PAN;

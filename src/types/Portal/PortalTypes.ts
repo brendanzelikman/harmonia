@@ -1,9 +1,8 @@
 import { EntityState } from "@reduxjs/toolkit";
-import { isObject } from "lodash";
 import { Clip, ClipId, ClipType, IClipId } from "types/Clip/ClipTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import { Id } from "types/units";
-import { createId } from "types/utils";
+import { createId, isObject } from "types/utils";
 
 // ------------------------------------------------------------
 // Portal Generics

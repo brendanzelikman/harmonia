@@ -1,11 +1,11 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { blurOnEnter, dispatchCustomEvent, onEnter } from "utils/html";
+import { blurOnEnter } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 import Logo from "assets/images/logo.png";
 import { useEvent } from "hooks/useEvent";
 import classNames from "classnames";
-import { useHotkeys } from "react-hotkeys-hook";
 
 export interface PromptModalProps {
   isOpen?: boolean;
@@ -31,7 +31,6 @@ const PromptModal = (props: PromptModalProps) => {
 
   // Close the modal if another is opened
   useEvent("cleanupModal", onCancel);
-  useHotkeys("esc", onCancel);
 
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -78,25 +77,19 @@ const PromptModal = (props: PromptModalProps) => {
                 className="w-full rounded bg-transparent mr-3 text-white"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    onSubmit(input);
-                  } else {
-                    blurOnEnter(e);
-                  }
-                }}
+                onKeyDown={(e) => blurOnEnter(e, () => onSubmit(input))}
               />
               <button
                 onClick={() => onSubmit(input)}
                 className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 text-slate-950 px-4 py-2 text-sm font-medium hover:bg-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                onKeyDown={(e) => onEnter(e, () => onSubmit(input))}
+                onKeyDown={(e) => e.key === "Enter" && onSubmit(input)}
               >
                 Submit
               </button>
               <button
                 className="inline-flex justify-center rounded-md border border-transparent bg-slate-400 text-slate-950 px-4 py-2 text-sm font-medium hover:bg-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 onClick={onCancel}
-                onKeyDown={(e) => onEnter(e, onCancel)}
+                onKeyDown={(e) => e.key === "Enter" && onCancel()}
               >
                 Cancel
               </button>

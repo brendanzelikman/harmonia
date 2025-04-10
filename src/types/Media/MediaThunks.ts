@@ -1,9 +1,9 @@
-import { isArray, union, without } from "lodash";
+import { union, without } from "lodash";
 import {
   getSubdivisionTicks,
   getTickColumns,
   WholeNoteTicks,
-} from "utils/durations";
+} from "utils/duration";
 import { Tick, Update } from "types/units";
 import {
   getPatternName,
@@ -80,7 +80,7 @@ import {
   MediaElement,
   CreateMediaPayload,
 } from "./MediaTypes";
-import { createUndoType, unpackUndoType } from "utils/redux";
+import { createUndoType, unpackUndoType } from "types/redux";
 import {
   addPortals,
   removePortals,
@@ -490,7 +490,7 @@ export const mergeSelectedMedia =
 
     // Create and select a new pattern
     const name = options?.name || patternNames.join(" + ");
-    const stream = totalStream.filter((b) => isArray(b) && !!b.length);
+    const stream = totalStream.filter((b) => Array.isArray(b) && !!b.length);
     const pattern = { stream, name, trackId: sortedClips[0].trackId };
     const patternId = dispatch(createPattern({ data: pattern })).id;
     const undoType = createUndoType("mergeSelectedMedia", patternId);

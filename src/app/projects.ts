@@ -2,7 +2,7 @@ import { PROJECT_ID } from "utils/constants";
 import { PROJECT_STORE } from "utils/constants";
 import { Project, isProject } from "types/Project/ProjectTypes";
 import { selectProjectId } from "types/Meta/MetaSelectors";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import { getDatabase } from "./database";
 
@@ -53,8 +53,8 @@ export async function uploadProject(project: Project): Promise<boolean> {
 
   // Add the project to the database and update the current project ID
   await db.put(PROJECT_STORE, project);
-  await setCurrentProjectId(projectId);
-  dispatchCustomEvent(UPDATE_PROJECT_EVENT, projectId);
+  setCurrentProjectId(projectId);
+  dispatchCustomEvent(UPDATE_PROJECT_EVENT);
   return true;
 }
 
@@ -105,12 +105,6 @@ export function clearCurrentProjectId() {
 }
 
 /** Set the ID of the project that should be currently loaded. */
-export async function setCurrentProjectId(projectId: string): Promise<boolean> {
-  const db = await getDatabase();
-  if (!db) return false;
-
-  // Set the current project ID
+export function setCurrentProjectId(projectId: string) {
   localStorage.setItem(PROJECT_ID, projectId);
-  dispatchCustomEvent(UPDATE_PROJECT_EVENT, projectId);
-  return true;
 }

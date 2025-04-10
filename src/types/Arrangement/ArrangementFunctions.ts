@@ -42,11 +42,11 @@ import {
   PoseVector,
   VoiceLeading,
 } from "types/Pose/PoseTypes";
-import { isNumber } from "lodash";
 import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
 import { getMidiNoteValue, getMidiOctaveDistance } from "utils/midi";
-import { isPitchClass } from "utils/pitchClass";
+import { isPitchClass } from "utils/pitch";
+import { isNumber } from "types/utils";
 
 // ------------------------------------------------------------
 // Arrangement Overview

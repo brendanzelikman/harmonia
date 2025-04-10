@@ -4,7 +4,7 @@ import {
   createUndoType,
   unpackData,
   unpackUndoType,
-} from "utils/redux";
+} from "types/redux";
 import { difference, range, sample, union, uniq } from "lodash";
 import {
   selectClipsByTrackIds,
@@ -58,6 +58,7 @@ import {
   selectTrackDescendantIds,
   selectTopLevelTracks,
   selectTrackMap,
+  selectTrackAncestors,
 } from "./TrackSelectors";
 import {
   TrackId,
@@ -225,10 +226,13 @@ export const removeTracks =
 
 /** Collapse tracks in the store. */
 export const collapseTracks =
-  (payload: Payload<{ trackIds: TrackId[]; value?: boolean }>): Thunk =>
+  (payload?: Payload<{ trackIds?: TrackId[]; value?: boolean }>): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const { trackIds, value } = unpackData(payload);
+    const payloadData = unpackData(payload);
+    const { trackIds: ids, value } = payloadData ?? {};
+    const selectedTrackId = selectSelectedTrackId(project);
+    const trackIds = ids ?? (selectedTrackId ? [selectedTrackId] : []);
     const undoType = unpackUndoType(payload, "collapseTracks");
     const trackMap = selectTrackMap(project);
     const data = trackIds.map((id) => ({
@@ -240,20 +244,36 @@ export const collapseTracks =
 
 /** Collapse all descendants of a track */
 export const collapseTrackDescendants =
-  (trackId: TrackId, collapsed = true): Thunk =>
+  (trackId?: TrackId, collapsed = true): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const trackIds = selectTrackDescendantIds(project, trackId);
-    dispatch(collapseTracks({ data: { trackIds, value: collapsed } }));
+    if (trackId) {
+      const trackIds = selectTrackDescendantIds(project, trackId);
+      dispatch(collapseTracks({ data: { trackIds, value: collapsed } }));
+    } else {
+      const trackId = selectSelectedTrackId(project);
+      if (!trackId) return;
+      const chain = selectTrackDescendants(project, trackId);
+      const isChildCollapsed = chain.some((track) => track?.collapsed);
+      dispatch(collapseTrackDescendants(trackId, !isChildCollapsed));
+    }
   };
 
 /** Collapse all ancestors of a track. */
 export const collapseTrackAncestors =
-  (trackId: TrackId, collapsed = true): Thunk =>
+  (trackId?: TrackId, collapsed = true): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
-    const trackIds = selectTrackAncestorIds(project, trackId);
-    dispatch(collapseTracks({ data: { trackIds, value: collapsed } }));
+    if (trackId) {
+      const trackIds = selectTrackAncestorIds(project, trackId);
+      dispatch(collapseTracks({ data: { trackIds, value: collapsed } }));
+    } else {
+      const trackId = selectSelectedTrackId(project);
+      if (!trackId) return;
+      const parents = selectTrackAncestors(project, trackId);
+      const isParentCollapsed = parents.some((track) => track?.collapsed);
+      dispatch(collapseTrackAncestors(trackId, !isParentCollapsed));
+    }
   };
 
 export const dragTrack =

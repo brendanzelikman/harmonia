@@ -10,7 +10,7 @@ import {
   selectTrackMidiScaleAtTick,
   selectTrackJSXAtTick,
 } from "types/Arrangement/ArrangementTrackSelectors";
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import {
   selectTrackInstrumentName,
   selectTrackLabelById,
@@ -18,14 +18,14 @@ import {
 import { TrackId } from "types/Track/TrackTypes";
 import { cancelEvent } from "utils/html";
 import { getMidiPitchClass } from "utils/midi";
-import { getScaleKey, getScaleName } from "utils/scale";
+import { getScaleKey, getScaleName } from "lib/scale";
 
 const ScaleTrackBody = (props: { trackId: TrackId }) => {
   const { trackId } = props;
   const { tick } = useTick();
-  const scale = useStore((_) => selectTrackMidiScaleAtTick(_, trackId, tick));
-  const label = useStore((_) => selectTrackLabelById(_, trackId));
-  const pose = useStore((_) => selectTrackJSXAtTick(_, trackId, tick));
+  const scale = useSelect((_) => selectTrackMidiScaleAtTick(_, trackId, tick));
+  const label = useSelect((_) => selectTrackLabelById(_, trackId));
+  const pose = useSelect((_) => selectTrackJSXAtTick(_, trackId, tick));
   const [showNotes, setShowNotes] = useState(false);
   const name = getScaleName(scale);
   const key = getScaleKey(scale);
@@ -59,9 +59,11 @@ export const MemoizedScaleTrackBody = memo(ScaleTrackBody);
 export const PatternTrackBody = (props: { trackId: TrackId }) => {
   const { trackId } = props;
   const { tick } = useTick();
-  const label = useStore((_) => selectTrackLabelById(_, trackId));
-  const instrumentName = useStore((_) => selectTrackInstrumentName(_, trackId));
-  const pose = useStore((_) => selectTrackJSXAtTick(_, trackId, tick));
+  const label = useSelect((_) => selectTrackLabelById(_, trackId));
+  const instrumentName = useSelect((_) =>
+    selectTrackInstrumentName(_, trackId)
+  );
+  const pose = useSelect((_) => selectTrackJSXAtTick(_, trackId, tick));
   return (
     <div className="min-w-0 grow flex flex-col text-xs pt-2 *:h-4 gap-0.5">
       <div className="flex text-teal-300/95">

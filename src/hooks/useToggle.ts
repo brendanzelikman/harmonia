@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useEvent } from "./useEvent";
-import { dispatchCustomEvent } from "utils/html";
-import { nanoid } from "@reduxjs/toolkit";
+import { dispatchCustomEvent } from "utils/event";
 
 type ToggledKey = string;
 const openKey = (key: ToggledKey) => `${key}-open`;
@@ -13,7 +12,7 @@ const toggleKey = (key: ToggledKey) => `${key}-toggle`;
 // --------------------------------------------------------------
 
 /** Custom hook for using a toggled value. */
-export const useToggle = (key: ToggledKey = nanoid()) => {
+export const useToggle = (key: ToggledKey) => {
   const [isOpen, setIsOpen] = useState(false);
 
   // Callback functions for changing state
@@ -33,7 +32,7 @@ export const useToggle = (key: ToggledKey = nanoid()) => {
 
   // Update local storage when the state changes
   useEffect(() => {
-    window.localStorage.setItem(key, isOpen.valueOf().toString());
+    window.localStorage.setItem(key, `${isOpen}`);
     return () => {
       window.localStorage.removeItem(key);
     };

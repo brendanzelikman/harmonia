@@ -1,5 +1,5 @@
-import { getArrayByKey, pickKeyByWeight } from "utils/objects";
-import { addScale, updateScale } from "types/Scale/ScaleSlice";
+import { pickKeyByWeight } from "utils/object";
+import { addScale } from "types/Scale/ScaleSlice";
 import { capitalize, isEqual, sample, trim } from "lodash";
 import { PresetScaleList, PresetScaleNotes } from "assets/scales";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -11,77 +11,43 @@ import {
   initializeScale,
   emptyScale,
   Scale,
-  isNestedNote,
 } from "types/Scale/ScaleTypes";
-import { isScaleTrack, TrackId } from "../TrackTypes";
 import {
   ScaleTrack,
-  ScaleTrackId,
   initializeScaleTrack,
   isScaleTrackId,
 } from "./ScaleTrackTypes";
 import { selectScaleMap } from "types/Scale/ScaleSelectors";
-import {
-  selectScaleTrackById,
-  selectScaleTrackByScaleId,
-  selectTopLevelTracks,
-  selectTrackById,
-  selectTrackByLabel,
-  selectTrackMidiScale,
-  selectTrackScaleChain,
-} from "../TrackSelectors";
+import { selectScaleTrackById, selectTopLevelTracks } from "../TrackSelectors";
 import {
   createUndoType,
   Payload,
   unpackData,
   unpackUndoType,
-} from "utils/redux";
+} from "types/redux";
 import { nanoid } from "@reduxjs/toolkit";
 import {
   createCourtesyPatternClip,
   createPatternTrack,
 } from "../PatternTrack/PatternTrackThunks";
-import { autoBindNoteToTrack, convertMidiToNestedNote } from "../TrackUtils";
 import { addTrack } from "../TrackThunks";
-import { createSixteenthNote, createSixteenthRest } from "utils/durations";
+import { createSixteenthNote, createSixteenthRest } from "utils/duration";
 import { createPattern, randomizePattern } from "types/Pattern/PatternThunks";
 import { addClip } from "types/Clip/ClipSlice";
 import { initializePatternClip } from "types/Clip/ClipTypes";
-import {
-  isPatternRest,
-  PatternId,
-  PatternNestedNote,
-  PatternStream,
-} from "types/Pattern/PatternTypes";
-import {
-  getPatternBlockNotes,
-  getPatternBlockWithNewNotes,
-  PatternScaleNotes,
-  PatternScales,
-} from "types/Pattern/PatternUtils";
+import { PatternStream } from "types/Pattern/PatternTypes";
+import { PatternScaleNotes, PatternScales } from "types/Pattern/PatternUtils";
 import { getTransposedScale } from "types/Scale/ScaleTransformers";
-import { promptUserForString } from "utils/html";
-import { getScaleAliases, getScaleName } from "utils/scale";
+import { getScaleAliases, getScaleName } from "lib/scale";
 import {
   getMidiOctaveNumber,
   getMidiPitchClass,
   getPitchClassNumber,
   MidiScale,
 } from "utils/midi";
-import { isPitchClass, unpackScaleName } from "utils/pitchClass";
+import { isPitchClass, unpackScaleName } from "utils/pitch";
 import { MajorScale, MinorScale } from "assets/scales/BasicScales";
-import {
-  resolveScaleChainToMidi,
-  resolveScaleNoteToMidi,
-} from "types/Scale/ScaleResolvers";
-import { promptLineBreak } from "components/PromptModal";
-import { getPatternBlockAtIndex } from "types/Pattern/PatternFunctions";
-import { selectPatternById } from "types/Pattern/PatternSelectors";
-import {
-  updatePatternBlock,
-  updatePatternNote,
-} from "types/Pattern/PatternSlice";
-import { DEFAULT_VELOCITY } from "utils/constants";
+import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
@@ -102,7 +68,8 @@ export const createScaleTrack =
     const parentTrack = isScaleTrackId(parentId)
       ? selectScaleTrackById(project, parentId)
       : undefined;
-    const parentScale = getArrayByKey(scaleMap, parentTrack?.scaleId);
+    const parentScaleId = parentTrack?.scaleId;
+    const parentScale = parentScaleId ? scaleMap[parentScaleId] : undefined;
     const parentNotes = parentScale?.notes ?? nestedChromaticNotes;
 
     // Create a new scale for the track
@@ -424,209 +391,3 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
   // Return the new scale
   return newScale;
 };
-
-/** Update the notes of a track based on an inputted regex string */
-export const promptUserForScale =
-  (id: ScaleTrackId): Thunk =>
-  (dispatch, getProject) =>
-    promptUserForString({
-      autoselect: true,
-      title: "Change Scale",
-      description: [
-        promptLineBreak,
-        <span>
-          Rule #1: <span className="text-sky-400">Scales</span> can be specified
-          by name or symbol
-        </span>,
-        <span>Example: "C" or "Db lydian" or "Fmin7" or "G7#9"</span>,
-        promptLineBreak,
-        <span>
-          Rule #2: <span className="text-sky-400">Scales</span> can be specified
-          by pitch class
-        </span>,
-        <span>Example: "acoustic scale" or "C, D, E, F#, G, A, Bb"</span>,
-        promptLineBreak,
-        <span>
-          Rule #3: <span className="text-sky-400">Scales</span> can be specified
-          by scale degree
-        </span>,
-        <span>Example: "C major" or "0, 2, 4, 5, 7, 9, 11"</span>,
-        promptLineBreak,
-        <span className="underline">Please input your scale:</span>,
-      ],
-      callback: (input) => {
-        const undoType = createUndoType("inputScaleTrackScale", nanoid());
-        const project = getProject();
-        const trackId = id;
-        const track = selectTrackById(project, trackId);
-        if (!track) return;
-        const scaleId = isScaleTrack(track) ? track.scaleId : undefined;
-        if (!scaleId) return;
-
-        const parentScale = selectTrackMidiScale(project, track?.parentId);
-        let notes = readMidiScaleFromString(input, parentScale);
-        if (!notes) {
-          // Try to find an array of pitch classes in the name
-          const scale = unpackScaleName(input);
-          if (!scale || !scale.scaleName.length) return;
-
-          const { scaleName, pitchClass } = scale;
-
-          const preset = [...PresetScaleNotes, ...PatternScaleNotes].find(
-            (scale) =>
-              getScaleName(scale)
-                .toLowerCase()
-                .includes(scaleName.toLowerCase())
-          ) as MidiScale | undefined;
-          if (!preset) return;
-
-          const number = getPitchClassNumber(pitchClass);
-          notes = getTransposedScale(preset, number);
-
-          if (!preset) return;
-        }
-
-        const newScale = notes
-          .map((MIDI) =>
-            dispatch(convertMidiToNestedNote(MIDI, track?.parentId))
-          )
-          .filter((n) => n.degree >= 0);
-        dispatch(
-          updateScale({
-            data: { id: scaleId, notes: newScale },
-            undoType,
-          })
-        );
-      },
-    })();
-
-export const bindNoteWithPromptCallback =
-  (
-    payload: Payload<{
-      string: string;
-      id: PatternId;
-      trackId?: TrackId;
-      index: number;
-    }>
-  ): Thunk =>
-  (dispatch, getProject) => {
-    const { string, id, trackId, index } = unpackData(payload);
-    const project = getProject();
-    const undoType = unpackUndoType(payload, "bindNoteWithPrompt");
-    const pattern = selectPatternById(project, id);
-    const { stream } = pattern;
-    const track = trackId ? selectTrackById(project, trackId) : undefined;
-    const block = getPatternBlockAtIndex(stream, index);
-    const blockNotes = getPatternBlockNotes(block);
-    if (string === "auto" && track) {
-      const block = getPatternBlockWithNewNotes(stream[index], (notes) =>
-        notes.map((note) => {
-          return dispatch(autoBindNoteToTrack(trackId, note));
-        })
-      );
-      dispatch(updatePatternBlock({ data: { id, index, block }, undoType }));
-      return;
-    } else if (string === "pedal") {
-      const block = getPatternBlockWithNewNotes(
-        pattern.stream[index],
-        (notes) =>
-          notes.map((note) => {
-            const { duration, velocity } = note;
-            const newNote = { ...note };
-            const scaleId = "scaleId" in note ? note.scaleId : undefined;
-            const trackId = selectScaleTrackByScaleId(project, scaleId)?.id;
-            const chain = selectTrackScaleChain(project, trackId);
-            if (isNestedNote(newNote) && "MIDI" in newNote) delete newNote.MIDI;
-            const MIDI = resolveScaleNoteToMidi(newNote, chain);
-            return { duration, velocity, MIDI };
-          })
-      );
-      dispatch(
-        updatePatternBlock({
-          data: { id, index, block },
-          undoType,
-        })
-      );
-      return;
-    } else {
-      const firstNote = { ...blockNotes[0] } as PatternNestedNote;
-
-      const regex = /([a-zA-Z])([-+]?\d+)/g;
-      const [note, ...offsets] = [...string.matchAll(regex)].map((match, i) => {
-        const label = match[1];
-        const number = parseInt(match[2]);
-        if (i === 0) return { label, value: number === 0 ? 0 : number - 1 };
-        return { label, value: number };
-      });
-
-      if (isPatternRest(block)) {
-        firstNote.duration = block.duration;
-        firstNote.velocity = DEFAULT_VELOCITY;
-      }
-      const baseTrack = selectTrackByLabel(getProject(), note.label);
-      if (!baseTrack) return;
-      firstNote.scaleId = (baseTrack as ScaleTrack)?.scaleId;
-      if ("scaleId" in firstNote && "MIDI" in firstNote) {
-        delete firstNote.MIDI;
-      }
-      firstNote.degree = note.value;
-      firstNote.offset = { octave: firstNote.offset?.octave ?? 0 };
-      for (const offset of offsets) {
-        if (offset.label === "t") {
-          if (!firstNote.offset.chromatic) {
-            firstNote.offset.chromatic = 0;
-          }
-          firstNote.offset.chromatic += offset.value;
-          continue;
-        }
-        const offsetTrack = selectTrackByLabel(getProject(), offset.label);
-        if (!offsetTrack) continue;
-        const scaleId = (offsetTrack as ScaleTrack).scaleId;
-        firstNote.offset[scaleId] = offset.value;
-      }
-      if (isNestedNote(firstNote) && !firstNote.scaleId) {
-        firstNote.offset = {
-          ...firstNote.offset,
-          octave: (firstNote.offset?.octave ?? 0) + Math.floor(note.value / 12),
-        };
-      }
-      dispatch(
-        updatePatternNote({
-          data: { id, index, note: firstNote },
-          undoType: nanoid(),
-        })
-      );
-    }
-  };
-
-export const bindNoteWithPrompt =
-  (
-    payload: Payload<{ id: PatternId; trackId?: TrackId; index: number }>
-  ): Thunk =>
-  (dispatch) => {
-    const { id, trackId, index } = unpackData(payload);
-    promptUserForString({
-      title: "Input Scale Note",
-      large: true,
-      description: [
-        promptLineBreak,
-        <span>Rule #1: Scale Notes are specified by label and number.</span>,
-        <span>Example: B1 = Degree 1 of Scale B </span>,
-        promptLineBreak,
-        <span>Rule #2: Scale Offsets are summed after Scale Notes.</span>,
-        <span>
-          Example: B2 + A-1 = Degree 2 of Scale B, 1 step down Scale A
-        </span>,
-        promptLineBreak,
-        <span>Rule #3: Pedal tones are specified with "pedal"</span>,
-        <span>Rule #4: Default bindings are specified with "auto"</span>,
-        promptLineBreak,
-        <span className="underline">Please input your note:</span>,
-      ],
-      callback: (string) => {
-        dispatch(
-          bindNoteWithPromptCallback({ data: { string, id, trackId, index } })
-        );
-      },
-    })();
-  };

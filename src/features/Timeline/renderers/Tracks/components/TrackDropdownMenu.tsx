@@ -29,7 +29,7 @@ import {
 } from "react-icons/gi";
 import { SiMidi } from "react-icons/si";
 import { exportTrackClipsToMIDI } from "types/Clip/ClipThunks";
-import { inputPoseVector } from "types/Pose/PoseThunks";
+import { promptUserForPose } from "types/Clip/PoseClip/PoseClipRegex";
 import {
   insertScaleTrack,
   collapseTracks,
@@ -44,7 +44,7 @@ import {
 } from "types/Track/TrackThunks";
 import { TrackDropdownButton } from "./TrackDropdownButton";
 import { Track } from "types/Track/TrackTypes";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import classNames from "classnames";
 import {
   selectTrackChildren,
@@ -53,7 +53,7 @@ import {
 import { some } from "lodash";
 import { INSTRUMENT_KEYS } from "types/Instrument/InstrumentTypes";
 import { CiRuler } from "react-icons/ci";
-import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackThunks";
+import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackRegex";
 
 export const TrackDropdownMenu = (props: {
   track: Track;
@@ -66,11 +66,11 @@ export const TrackDropdownMenu = (props: {
   const trackId = track.id;
   const isPT = track.type === "pattern";
   const mini = track.collapsed;
-  const hasMini = useStore((_) => selectTrackChildren(_, trackId)).some(
+  const hasMini = useSelect((_) => selectTrackChildren(_, trackId)).some(
     (child) => child.collapsed
   );
   const isParent = !!track.trackIds.length;
-  const key = useStore((_) => selectTrackInstrumentKey(_, track.id));
+  const key = useSelect((_) => selectTrackInstrumentKey(_, track.id));
   const isSampled = isPT && key && !INSTRUMENT_KEYS.includes(key);
   const status = isParent ? "Tree" : "Track";
 
@@ -118,7 +118,7 @@ export const TrackDropdownMenu = (props: {
                         })}
                       />
                     }
-                    onClick={() => dispatch(inputPoseVector(trackId))}
+                    onClick={() => dispatch(promptUserForPose(trackId))}
                   />
                   {isPT && (
                     <TrackDropdownButton

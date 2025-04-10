@@ -1,18 +1,17 @@
 import classNames from "classnames";
-import { useHeldHotkeys } from "lib/hotkeys";
 import { some } from "lodash";
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import {
   selectIsEditingTrack,
   selectSelectedTrackId,
 } from "types/Timeline/TimelineSelectors";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import {
-  selectTrackAncestorIds,
   selectTrackById,
   selectTrackDepthById,
 } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
+import { useHeldKeys } from "hooks/useHeldKeys";
 
 export const useTrackStyle = (props: {
   trackId: TrackId;
@@ -20,27 +19,25 @@ export const useTrackStyle = (props: {
 }) => {
   const trackId = props.trackId;
   const isPT = isPatternTrackId(trackId);
-  const track = useStore((_) => selectTrackById(_, trackId));
+  const track = useSelect((_) => selectTrackById(_, trackId));
   const isCollapsed = !!track?.collapsed;
-  const depth = useStore((_) => selectTrackDepthById(_, trackId));
+  const depth = useSelect((_) => selectTrackDepthById(_, trackId));
   const paddingLeft = depth * 8;
   const filter = `hue-rotate(${(depth - 1) * 8}deg)`;
   const opacity = props.isDragging ? 0.5 : 1;
   const className = classNames(
-    "animate-in rdg-track fade-in duration-200 slide-in-from-top-8 transition-all size-full relative bg-gradient-radial text-white",
+    "animate-in rdg-track fade-in duration-200 slide-in-from-top-8 transition-all size-full relative bg-radial text-white",
     { "from-teal-600 to-emerald-600": isPT },
     isCollapsed ? "p-0.5 pt-0" : "p-1",
     { "from-indigo-800/80 to-indigo-700": !isPT }
   );
-  const ancestors = useStore(selectTrackAncestorIds);
-  const selectedId = useStore(selectSelectedTrackId);
+  const selectedId = useSelect(selectSelectedTrackId);
   const isSelected = selectedId === trackId;
-  const isAncestorSelected = selectedId && ancestors.includes(selectedId);
-  const heldKeys = useHeldHotkeys(["q", "w", "e", "r", "t", "y"]);
+  const heldKeys = useHeldKeys(["q", "w", "e", "r", "t", "y"]);
   const isHolding = some(heldKeys);
-  const onInstrumentEditor = useStore((_) => selectIsEditingTrack(_, trackId));
+  const onInstrumentEditor = useSelect((_) => selectIsEditingTrack(_, trackId));
   const borderClass = classNames(
-    "size-full bg-gradient-radial border-2 rounded transition-all",
+    "size-full bg-radial border-2 rounded transition-all",
     { "total-center": isPT },
     { "total-center-col px-2 gap-1": !isPT },
     { "from-teal-700 to-emerald-600": isPT },
@@ -48,8 +45,7 @@ export const useTrackStyle = (props: {
     { "border-orange-400": isSelected && onInstrumentEditor },
     { "border-fuchsia-400": isSelected && isHolding },
     { "border-blue-400": isSelected },
-    { "border-blue-400/50": !isSelected && isAncestorSelected },
-    { "border-zinc-900": !isAncestorSelected && !isSelected }
+    { "border-zinc-900": !isSelected }
   );
   return { paddingLeft, filter, opacity, className, borderClass };
 };

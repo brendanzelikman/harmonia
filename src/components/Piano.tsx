@@ -2,6 +2,7 @@
 import { Piano as ReactPiano, MidiNumbers } from "react-piano";
 import { useEffect, useMemo } from "react";
 import "react-piano/dist/styles.css";
+import "./Piano.css";
 import { WebMidi } from "webmidi";
 import { getMidiPitch, MidiScale } from "utils/midi";
 import classNames from "classnames";

@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useHotkeys } from "react-hotkeys-hook";
 import { isProject } from "types/Project/ProjectTypes";
 import { loadProjectByPath, loadProject } from "types/Project/ProjectLoaders";
 import { ProjectDisc, ProjectDiscPreview } from "./ProjectsDisc";
@@ -14,11 +13,12 @@ import {
   HomeListTitle,
 } from "features/Home/HomeList";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
-import { createProject } from "types/Project/ProjectThunks";
+import { createProject } from "types/Project/ProjectFunctions";
 import { useDispatch } from "hooks/useStore";
 import { ProjectItem } from "features/Projects/Projects";
 import { DEMO_BLURBS } from "features/Demos/useDemos";
 import { deleteProject } from "app/projects";
+import { useHotkeys } from "hooks/useHotkeys";
 
 export interface ProjectFormatterProps extends ProjectItem {
   index?: number;
@@ -35,7 +35,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
 
   // The user must confirm before deleting a project
   const [deleting, setDeleting] = useState(false);
-  useHotkeys("esc", () => setDeleting(false));
+  useHotkeys({ escape: () => setDeleting(false) });
 
   // Load the project by path or database if necessary
   const onClick = useCallback(() => {
@@ -62,7 +62,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
         onClick={onClick}
         isDemo={isDemo}
         deleting={deleting}
-        className="max-[800px]:hidden size-48 mt-4 mb-4 ease-out rounded-full border-2 border-sky-500/50 cursor-pointer transition-all active:text-indigo-200 hover:duration-150 ring-indigo-600/25 ring-offset-8 ring-offset-indigo-500/25 bg-gradient-radial from-indigo-700 to-sky-500 data-[deleting=true]:from-red-500 data-[deleting=true]:to-red-700 shadow-[0px_0px_20px_rgb(100,100,200)]"
+        className="max-[800px]:hidden size-48 mt-4 mb-4 ease-out rounded-full border-2 border-sky-500/50 cursor-pointer transition-all active:text-indigo-200 hover:duration-150 ring-indigo-600/25 ring-offset-8 ring-offset-indigo-500/25 bg-radial from-indigo-700 to-sky-500 data-[deleting=true]:from-red-500 data-[deleting=true]:to-red-700 shadow-[0px_0px_20px_rgb(100,100,200)]"
       />
       <HomeListTitle title={project.present.meta.name} />
       <ProjectTitle project={project} onClick={onClick} />

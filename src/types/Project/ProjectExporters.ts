@@ -2,10 +2,9 @@ import { selectPatternClipIds } from "types/Clip/ClipSelectors";
 import { exportClipsToMidi } from "types/Clip/ClipThunks";
 import { initializeProject, Project, Thunk } from "./ProjectTypes";
 import { selectProjectName } from "../Meta/MetaSelectors";
-import { sanitizeProject } from "./ProjectFunctions";
+import { sanitizeProject } from "./ProjectUtils";
 import JSZip from "jszip";
 import { downloadTransport } from "types/Transport/TransportThunks";
-import pluralize from "pluralize";
 import dayjs from "dayjs";
 import { getProjects } from "app/projects";
 
@@ -100,7 +99,7 @@ export const exportProjectsToZIP =
     // Download the zip
     let downloadName = `${blobCount} Harmonia `;
     if (blobCount === 1) downloadName = "Harmonia ";
-    downloadName += pluralize("Project", blobCount);
+    downloadName += "Project" + (blobCount === 1 ? "" : "s");
     downloadName += `(${dayjs().format("YYYY-MM-DD HH-mm-ss")}).zip`;
     link.download = downloadName;
     link.href = url;

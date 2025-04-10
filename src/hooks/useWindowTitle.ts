@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from "react";
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 
 /** Custom hook for changing the browser title. */
 export function useWindowTitle(view: string) {
-  const name = useStore(selectProjectName);
+  const name = useSelect(selectProjectName);
 
   // Memoize the title to avoid unnecessary re-renders
   const title = useMemo(() => {

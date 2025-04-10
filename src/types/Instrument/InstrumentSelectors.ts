@@ -1,13 +1,13 @@
 import { createSelector } from "reselect";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
-import { getValueByKey, getValuesByKeys } from "utils/objects";
+import { getValueByKey, getValuesByKeys } from "utils/object";
 import {
   defaultInstrumentState,
   InstrumentId,
   InstrumentState,
 } from "./InstrumentTypes";
 import { getInstrumentName } from "./InstrumentFunctions";
-import { createDeepSelector, createValueSelector } from "utils/redux";
+import { createDeepSelector, createValueSelector } from "types/redux";
 import { mapValues } from "lodash";
 
 // Create a safe selector for the instrument state.

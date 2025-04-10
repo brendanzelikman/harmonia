@@ -1,6 +1,5 @@
 import { ITrack, ITrackId } from "../TrackTypes";
-import { isString } from "lodash";
-import { createId } from "types/utils";
+import { createId, isString } from "types/utils";
 
 export type ScaleTrack = ITrack<"scale">;
 export type ScaleTrackId = ITrackId<"scale">;

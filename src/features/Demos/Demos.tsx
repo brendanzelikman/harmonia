@@ -1,21 +1,40 @@
 import { ProjectFormatter } from "features/Projects/ProjectsFormatter";
 import { HomeContainer } from "features/Home/HomeContainer";
-import { HomeControlBar } from "features/Home/HomeControlBar";
+import {
+  HomeControlBar,
+  HomeControlButton,
+} from "features/Home/HomeControlBar";
 import { HomeList } from "features/Home/HomeList";
 import { useDemos } from "features/Demos/useDemos";
-import { useHotkeys } from "react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
-import { selectProjectId } from "types/Meta/MetaSelectors";
+import { selectProjectId, selectProjectName } from "types/Meta/MetaSelectors";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
+import { useHotkeys } from "hooks/useHotkeys";
+import { GiCompactDisc } from "react-icons/gi";
+import { loadProjectByPath } from "types/Project/ProjectLoaders";
 
 export const DemosPage = () => {
   const navigate = useNavigate();
   const { projects, paths } = useDemos();
-  useHotkeys("enter", () => navigate("/playground"));
+  useHotkeys({ enter: () => navigate("/playground") });
   return (
     <HomeContainer>
       <HomeControlBar>
-        <div className="h-12" />
+        {projects.map((project, i) => (
+          <HomeControlButton
+            key={selectProjectId(project)}
+            className="border-indigo-400 text-indigo-400"
+            onClick={() =>
+              loadProjectByPath(paths[i], () => navigate("/playground"))
+            }
+            title={
+              <div className="w-24">
+                Demo {i + 1}: <br /> {selectProjectName(projects[i])}
+              </div>
+            }
+            icon={<GiCompactDisc className="pr-0" />}
+          />
+        ))}
       </HomeControlBar>
       <HomeList signal={UPDATE_PROJECT_EVENT}>
         {projects.map((project, index) => (

@@ -8,7 +8,7 @@ import {
 } from "./PatternClipThemes";
 import { PatternClip } from "./PatternClipTypes";
 import { Pattern } from "types/Pattern/PatternTypes";
-import { getValueByKey } from "utils/objects";
+import { getValueByKey } from "utils/object";
 
 // Get the starting block of a pattern clip using its offset and reference pattern
 export const getPatternClipStartingBlock = (

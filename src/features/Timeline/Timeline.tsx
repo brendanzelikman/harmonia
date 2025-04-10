@@ -4,7 +4,7 @@ import DataGrid, {
   RenderCellProps,
 } from "react-data-grid";
 import { useState, useCallback, useMemo } from "react";
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import { TimelineContextMenu } from "./components/TimelineContextMenu";
 import { TimelineGraphics } from "./components/TimelineGraphics";
 import {
@@ -13,7 +13,6 @@ import {
   MEASURE_COUNT,
   TRACK_WIDTH,
 } from "utils/constants";
-import "react-data-grid/lib/styles.css";
 import { TrackId } from "types/Track/TrackTypes";
 import { TimelineClips } from "./TimelineClips";
 import { TimelinePortals } from "./renderers/Portals/TimelinePortals";
@@ -26,7 +25,7 @@ import {
   selectTrackIds,
 } from "types/Track/TrackSelectors";
 import { TimelineTrack } from "./TimelineTrack";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 import { throttle } from "lodash";
 import { useEvent } from "hooks/useEvent";
 import { STOP_TRANSPORT } from "hooks/useTransport";
@@ -41,10 +40,10 @@ export type TrackRow = Row & { id: TrackId };
 export type TimelineElement = { element?: HTMLDivElement };
 
 export function Timeline() {
-  const cellWidth = useStore(selectCellWidth);
-  const cellHeight = useStore(selectCellHeight);
-  const collapsedMap = useStore(selectCollapsedTrackMap);
-  const trackIds = useStore(selectTrackIds);
+  const cellWidth = useSelect(selectCellWidth);
+  const cellHeight = useSelect(selectCellHeight);
+  const collapsedMap = useSelect(selectCollapsedTrackMap);
+  const trackIds = useSelect(selectTrackIds);
 
   /** The grid ref stores the react-data-grid element. */
   const [timeline, setTimeline] = useState<DataGridHandle>();
@@ -90,7 +89,7 @@ export function Timeline() {
         minWidth: 1,
         renderCell: TimelineCell,
         renderHeaderCell: TimelineHeaderCell,
-        cellClass: `bg-transparent rdg-cell rdg-cell-${i}`,
+        cellClass: `bg-transparent`,
       });
     }
     return columns;
@@ -117,28 +116,26 @@ export function Timeline() {
       const scrollLeft = target.scrollLeft - margin;
       const scrollRight = target.scrollLeft + target.clientWidth + margin;
       dispatchCustomEvent("scroll", { scrollLeft, scrollRight });
-    }, 200),
+    }, 100),
     []
   );
 
   /** The timeline grid is built with react-data-grid. */
   const TimelineGrid = useMemo(() => {
-    const rows: Row[] = [
-      ...trackIds.map((id, index) => ({ id, index })),
-      { id: undefined, index: trackIds.length },
-    ];
     return (
       <DataGrid
-        className="size-full bg-transparent focus:outline-none"
+        className="size-full rdg-grid bg-transparent animate-in fade-in focus:outline-none"
         ref={dataGridHandler}
+        enableVirtualization
         columns={columns}
-        rows={rows}
+        rows={[
+          ...trackIds.map((id, index) => ({ id, index })),
+          { id: undefined, index: trackIds.length },
+        ]}
         rowHeight={({ id }) =>
           id && collapsedMap[id] ? COLLAPSED_TRACK_HEIGHT : cellHeight
         }
         headerRowHeight={HEADER_HEIGHT}
-        enableVirtualization={true}
-        rowClass={() => "rdg-cell-row"}
         onScroll={onScroll}
       />
     );
@@ -147,7 +144,7 @@ export function Timeline() {
   return (
     <div
       id="timeline"
-      className="animate-in fade-in-50 duration-300 relative total-center-col size-full"
+      className="relative border-t border-t-slate-700 total-center-col size-full"
     >
       <TimelineContextMenu />
       {TimelineGrid}

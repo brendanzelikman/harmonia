@@ -1,4 +1,4 @@
-import { Subdivision } from "utils/durations";
+import { Subdivision } from "utils/duration";
 import { ClipType } from "types/Clip/ClipTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import {

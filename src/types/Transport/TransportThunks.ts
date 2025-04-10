@@ -9,7 +9,7 @@ import {
   secondsToTicks,
   SixteenthNoteTicks,
   ticksToSeconds,
-} from "utils/durations";
+} from "utils/duration";
 import {
   LIVE_AUDIO_INSTANCES,
   LIVE_RECORDER_INSTANCE,
@@ -28,7 +28,7 @@ import {
   selectTrackMap,
   selectTrackAudioInstanceMap,
 } from "types/Track/TrackSelectors";
-import { Payload } from "utils/redux";
+import { Payload } from "types/redux";
 import {
   createGlobalInstrument,
   buildInstruments,
@@ -107,6 +107,8 @@ export const startTransport = (): Thunk => (dispatch, getProject) => {
       startTime = time;
       startSeconds = (60 * loopStart) / (bpm * PPQ);
     }
+    // Dispatch a tick update event
+    dispatchTick(newTick);
 
     // If swinging, offset the time
     const stepIndex = Math.floor(newTick / SixteenthNoteTicks);
@@ -115,9 +117,6 @@ export const startTransport = (): Thunk => (dispatch, getProject) => {
       const swingOffset = (60 / bpm) * (swing / 8);
       time += swingOffset;
     }
-
-    // Dispatch a tick update event
-    dispatchTick(newTick);
 
     // If the transport is muted, skip the playback
     if (mute) return;

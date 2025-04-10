@@ -1,7 +1,8 @@
 import { selectMeta } from "../Meta/MetaSelectors";
 import { isProject } from "./ProjectTypes";
-import { mergeBaseProjects, sanitizeProject } from "./ProjectFunctions";
-import { dispatchCustomEvent, promptUserForNumber } from "utils/html";
+import { mergeBaseProjects, sanitizeProject } from "./ProjectUtils";
+import { promptUserForNumber } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import {
   getProject,
@@ -12,6 +13,7 @@ import {
 } from "app/projects";
 import { initializeProjectMetadata } from "types/Meta/MetaTypes";
 import { setProject } from "app/reducer";
+import { getEventFiles } from "utils/file";
 
 interface ProjectFileOptions {
   merging?: boolean;
@@ -23,7 +25,7 @@ export const loadProject = async (id: string, callback?: () => void) => {
   try {
     const project = await getProject(id);
     if (!isProject(project)) throw new Error("Invalid project");
-    await setCurrentProjectId(id);
+    setCurrentProjectId(id);
     setProject(project);
   } catch (e) {
     console.error(e);
@@ -46,7 +48,6 @@ export const loadProjectByPath = async (
   // Upload the project to the database
   project.present.meta.id = initializeProjectMetadata().id;
   await uploadProject(project);
-  await setCurrentProjectId(project.present.meta.id);
   setProject(project);
   callback?.();
 };
@@ -58,7 +59,7 @@ export const readLocalProjects = (options?: ProjectFileOptions) => {
   input.multiple = true;
   input.accept = ".json";
   input.addEventListener("change", (e) => {
-    const files = (e.target as HTMLInputElement).files ?? [];
+    const files = getEventFiles(e);
     for (const file of files) {
       loadProjectByFile(file, options);
     }
@@ -92,10 +93,9 @@ export const loadProjectByFile = (file: File, options?: ProjectFileOptions) => {
       // Upload or save the project depending on whether it already exists
       if (!existingProject) {
         await uploadProject(project);
-        await setCurrentProjectId(project.present.meta.id);
       } else {
         await updateProject(project);
-        await setCurrentProjectId(meta.id);
+        setCurrentProjectId(meta.id);
       }
 
       // Reload the page

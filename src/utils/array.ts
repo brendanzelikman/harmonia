@@ -1,5 +1,9 @@
-import { inRange, isArray } from "lodash";
 import { mod } from "./math";
+
+/** Create a range from start to end, non-inclusive of end */
+export const range = (start: number, end: number): number[] => {
+  return Array.from({ length: end - start }, (_, i) => start + i);
+};
 
 /** Get the previous item in an array. */
 export const prev = <T extends Readonly<any[]>>(
@@ -33,14 +37,14 @@ export const insert = <T>(
   index: number | undefined
 ) => {
   const copy = [...array];
-  if (index !== undefined && inRange(index, 0, copy.length)) {
-    if (isArray(value)) {
+  if (index !== undefined && index > 0 && index < copy.length) {
+    if (Array.isArray(value)) {
       copy.splice(index, 0, ...value);
     } else {
       copy.splice(index, 0, value);
     }
   } else {
-    if (isArray(value)) {
+    if (Array.isArray(value)) {
       copy.push(...value);
     } else {
       copy.push(value);

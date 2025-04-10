@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Project } from "types/Project/ProjectTypes";
 import { selectProjectId } from "types/Meta/MetaSelectors";
-import { createProject, deleteAllProjects } from "types/Project/ProjectThunks";
+import {
+  createProject,
+  deleteAllProjects,
+} from "types/Project/ProjectFunctions";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
-import { useHotkeys } from "react-hotkeys-hook";
 import { useNavigate } from "react-router-dom";
 import { HomeContainer } from "features/Home/HomeContainer";
 import { HomeList } from "features/Home/HomeList";
@@ -31,6 +33,7 @@ import { ProjectSearchBar } from "features/Projects/ProjectsSearchBar";
 import { useFetch } from "hooks/useFetch";
 import { getProjects } from "app/projects";
 import { useProjectSearch } from "features/Projects/useProjectSearch";
+import { useHotkeys } from "hooks/useHotkeys";
 
 export interface ProjectItem {
   project: Project;
@@ -40,14 +43,13 @@ export interface ProjectItem {
 export function ProjectPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  useHotkeys("enter", () => navigate("/playground"));
+  useHotkeys({ enter: () => navigate("/playground") });
   const { data } = useFetch(getProjects, UPDATE_PROJECT_EVENT);
   const projects = data ?? [];
   const [query, setQuery] = useState("");
   const results = useProjectSearch({ projects, query });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-
   return (
     <HomeContainer>
       <HomeControlBar>

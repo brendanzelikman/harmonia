@@ -1,4 +1,4 @@
-import { isNumber } from "lodash";
+import { isNumber } from "types/utils";
 import { getScaleNoteMidiValue, getScaleNotes } from "./ScaleFunctions";
 import {
   transposeNoteThroughScales,

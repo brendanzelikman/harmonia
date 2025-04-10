@@ -1,4 +1,4 @@
-import { getValueByKey } from "utils/objects";
+import { getValueByKey } from "utils/object";
 
 import { numberToUpper } from "utils/math";
 import { isScaleTrack, ITrack, Track, TrackId, TrackMap } from "./TrackTypes";

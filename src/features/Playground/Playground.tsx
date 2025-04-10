@@ -1,17 +1,17 @@
 import { Shortcuts } from "features/Shortcuts/Shortcuts";
 import { Diary } from "features/Diary/Diary";
-import { dispatchEventOnChange } from "utils/html";
-import { useTimelineHotkeys } from "features/Playground/useTimelineHotkeys";
+import { dispatchCustomEventOnChange } from "utils/event";
 import { Editor } from "features/Editor/Editor";
 import { Terminal } from "features/Terminal/Terminal";
 import { Tutorial } from "features/Tutorial/Tutorial";
 import { Timeline } from "features/Timeline/Timeline";
-import { usePlaygroundHotkeys } from "./usePlaygroundHotkeys";
 import { usePlaygroundProject } from "./usePlaygroundProject";
 import { usePlaygroundTransport } from "./usePlaygroundTransport";
 import { PlaygroundLoadingScreen } from "./PlaygroundLoadingScreen";
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import { selectHasTracks } from "types/Track/TrackSelectors";
+import { useHotkeys } from "hooks/useHotkeys";
+import { hotkeys } from "lib/hotkeys";
 
 export const LOAD_PLAYGROUND = "load-playground";
 
@@ -22,7 +22,7 @@ export function PlaygroundPage() {
   const isPlaygroundLoaded = isProjectLoaded && isTransportLoaded;
 
   // Return the playground when everything is loaded
-  dispatchEventOnChange(LOAD_PLAYGROUND, isPlaygroundLoaded);
+  dispatchCustomEventOnChange(LOAD_PLAYGROUND, isPlaygroundLoaded);
   if (isProjectLoaded && isTransportLoaded) return <Playground />;
 
   // Otherwise, show a loading screen
@@ -35,9 +35,8 @@ export function PlaygroundPage() {
 
 /** The Playground controls all of the main components and hotkeys */
 export function Playground() {
-  const hasTracks = useStore(selectHasTracks);
-  usePlaygroundHotkeys();
-  useTimelineHotkeys();
+  const hasTracks = useSelect(selectHasTracks);
+  useHotkeys(hotkeys);
   return (
     <div className="size-full relative">
       {hasTracks ? <Timeline /> : <Tutorial />}

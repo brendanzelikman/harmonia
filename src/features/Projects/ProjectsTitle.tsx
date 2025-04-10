@@ -71,7 +71,7 @@ export const ProjectTitle = (props: ProjectTitleProps) => {
         <GiCompactDisc
           className={classNames(
             "border-2 text-indigo-200/80 group-hover:animate-spin my-auto text-7xl rounded-full border-indigo-400/50 ring-indigo-600/25 ring-offset-8 ring-offset-indigo-500/25",
-            "bg-gradient-radial from-indigo-700 to-sky-500 shadow-[0px_0px_20px_rgb(100,100,200)]"
+            "bg-radial from-indigo-700 to-sky-500 shadow-[0px_0px_20px_rgb(100,100,200)]"
           )}
         />
       </div>

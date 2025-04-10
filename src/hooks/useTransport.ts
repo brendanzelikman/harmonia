@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useEvent } from "./useEvent";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 
 export const START_TRANSPORT = "start-transport";
 export const PAUSE_TRANSPORT = "pause-transport";

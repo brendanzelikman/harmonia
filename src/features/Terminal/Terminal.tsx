@@ -1,7 +1,7 @@
 import { NodeData } from "json-edit-react";
 import { BsFillXCircleFill } from "react-icons/bs";
 import { FaMinusCircle, FaDownload } from "react-icons/fa";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import Background from "assets/images/background.png";
@@ -13,7 +13,7 @@ import { TerminalFile } from "./TerminalFile";
 export const Terminal = () => {
   const dispatch = useDispatch();
   const { isOpen, close, toggle } = useToggle("terminal");
-  const projectName = useStore(selectProjectName);
+  const projectName = useSelect(selectProjectName);
   const [view, setView] = useState<"file" | "graph">("file");
   if (!isOpen) return null;
   return (

@@ -1,12 +1,11 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { NoteCallback, useOSMD } from "lib/osmd";
-import { useHeldHotkeys } from "lib/hotkeys";
-import { createUndoType } from "utils/redux";
+import { useScore } from "hooks/useScore";
+import { createUndoType } from "types/redux";
 import { useCallback, useMemo, useState } from "react";
 import { selectPortaledPatternClipXML } from "types/Arrangement/ArrangementClipSelectors";
 import { selectPortaledPatternClipStream } from "types/Arrangement/ArrangementSelectors";
 import { PortaledPatternClip } from "types/Clip/ClipTypes";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import {
   addPatternNote,
   updatePatternNote,
@@ -27,25 +26,25 @@ import {
   getStraightDuration,
   getTickDuration,
   ticksToSeconds,
-} from "utils/durations";
+} from "utils/duration";
 import { format, mod } from "utils/math";
+import { useHeldKeys } from "hooks/useHeldKeys";
 
 export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const dispatch = useDispatch();
-  const bpm = useStore(selectTransportBPM);
-  const scale = useStore((_) => selectTrackMidiScale(_, clip.trackId));
-  const midi = useStore((_) => selectPortaledPatternClipStream(_, clip.id));
+  const bpm = useSelect(selectTransportBPM);
+  const scale = useSelect((_) => selectTrackMidiScale(_, clip.trackId));
+  const midi = useSelect((_) => selectPortaledPatternClipStream(_, clip.id));
   const stream = midi.flatMap((n) => n.notes.filter((n) => "velocity" in n));
-  const xml = useStore((_) => selectPortaledPatternClipXML(_, clip));
+  const xml = useSelect((_) => selectPortaledPatternClipXML(_, clip));
   const staves = useMemo(() => getMidiStreamStaves(stream), [stream]);
   const onGrandStaff = staves === "grand";
 
   // The hook stores an input duration for editing notes
-  const holding = useHeldHotkeys(["shift", "/", ",", ".", "-", "`"]);
+  const holding = useHeldKeys(["shift", "/", ",", "."]);
   const [_duration, setDuration] = useState(getDurationTicks("16th"));
   const isTriplet = holding["/"];
   const isDotted = holding["."];
-  const isNegative = holding["-"] || holding["`"];
   const asRest = holding[","];
   const asChord = holding["shift"];
   const modifier = isTriplet ? "Triplet" : isDotted ? "Dotted" : "Straight";
@@ -63,21 +62,13 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const initial = onGrandStaff ? 0.9 : 0.8;
   const zoom = initial - spread * decay;
 
-  // Toggle the visibility and index on click
-  const onNoteClick = useCallback<NoteCallback>((cursor, index) => {
-    if (cursor.hidden) cursor.show();
-    else if (cursor.index === index) cursor.hide();
-    cursor.setIndex(index);
-  }, []);
-
-  const { score, cursor } = useOSMD({
+  const { score, cursor } = useScore({
     id: `${clip.id}_score`,
     xml,
     className: "size-full",
     stream,
     zoom,
     noteColor: "fill-black",
-    onNoteClick,
   });
   const index = cursor.hidden ? undefined : cursor.index;
 
@@ -114,8 +105,7 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
       let note: PatternNote = { duration, MIDI, velocity: 100 };
       if (useScale && size && degree !== undefined) {
         degree = mod(degree, scale.length);
-        if (isNegative) degree = -1 + size - degree;
-        const offset = Math.floor((isNegative ? -1 - degree : degree) / size);
+        const offset = Math.floor(degree / size);
         note.MIDI = scale.at(degree)! + offset * 12;
       } else if (useScale) {
         note = dispatch(autoBindNoteToTrack(clip.trackId, note));
@@ -129,7 +119,7 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
         );
       }
     },
-    [clip, scale, index, duration, asRest, asChord, isNegative, playRest]
+    [clip, scale, index, duration, asRest, asChord, playRest]
   );
 
   return { Score, index, playNote, setDuration, duration, input };

@@ -21,7 +21,7 @@ export function LandingCard(props: CardProps) {
       }}
       onClick={props.onClick}
       className={classNames(
-        "flex flex-col bg-slate-950/80 backdrop-blur w-96 items-center min-h-[30rem] ring-4 ring-opacity-75 p-6 py-10 rounded-xl",
+        "flex flex-col bg-slate-950/80 backdrop-blur w-96 items-center min-h-[30rem] ring-4 ring-sky-600/50 p-6 py-10 rounded-xl",
         props.onClick ? "cursor-pointer" : "cursor-default"
       )}
     >

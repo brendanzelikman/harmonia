@@ -6,7 +6,7 @@ import { PropsWithChildren, useCallback, useRef } from "react";
 export const HomeList = (props: PropsWithChildren<{ signal: string }>) => {
   const listRef = useRef<HTMLDivElement>(null);
   const resetScroll = useCallback(() => {
-    listRef.current?.scrollTo(0, 0);
+    setTimeout(() => listRef.current?.scrollTo(0, 0), 50);
   }, []);
   useEvent(props.signal, resetScroll);
   return (
@@ -41,7 +41,7 @@ export const HomeListItem = (
       <div
         className={classNames(
           props.className,
-          "flex flex-col items-center size-full gap-4 p-4 w-96 bg-gradient-radial from-sky-900/50 to-slate-950/75 shadow-xl backdrop-blur rounded animate-in fade-in duration-150 text-sm"
+          "flex flex-col items-center size-full gap-4 p-4 w-96 bg-radial from-sky-900/50 to-slate-950/75 shadow-xl backdrop-blur rounded animate-in fade-in duration-150 text-sm"
         )}
       >
         {props.children}

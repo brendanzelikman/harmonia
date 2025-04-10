@@ -1,7 +1,7 @@
 import { useToggle } from "hooks/useToggle";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { getContext } from "tone";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import {
   LOAD_TRANSPORT,
@@ -11,16 +11,16 @@ import {
 
 export function usePlaygroundTransport() {
   const dispatch = useDispatch();
-  const projectId = useStore(selectProjectId);
+  const projectId = useSelect(selectProjectId);
   const transport = useToggle(LOAD_TRANSPORT);
 
   // Load the transport or add an event listener if the context is not running
-  useEffect(() => {
+  useLayoutEffect(() => {
     const load = () => dispatch(loadTransport());
     if (getContext().state === "running") {
       load();
     } else {
-      window.addEventListener("mousedown", load, { once: true });
+      document.addEventListener("mousedown", load, { once: true });
     }
     return unloadTransport;
   }, [projectId]);

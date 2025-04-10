@@ -1,4 +1,4 @@
-import { createUndoType, Payload, unpackUndoType } from "utils/redux";
+import { createUndoType, Payload, unpackUndoType } from "types/redux";
 import { without, union } from "lodash";
 import { updateClip } from "types/Clip/ClipSlice";
 import { Clip, initializeClip } from "types/Clip/ClipTypes";
@@ -14,7 +14,6 @@ import { selectPortalsByTrackIds } from "types/Portal/PortalSelectors";
 import { initializePortal, Portal } from "types/Portal/PortalTypes";
 import { Thunk } from "types/Project/ProjectTypes";
 import { selectTrackIds } from "types/Track/TrackSelectors";
-import { DivMouseEvent, isHoldingShift, isHoldingOption } from "utils/html";
 import {
   selectTimeline,
   selectSelectedClipIds,
@@ -51,7 +50,7 @@ import { TrackId } from "types/Track/TrackTypes";
 import { toggleTimelineState } from "../TimelineThunks";
 import { Timed } from "types/units";
 import { createMedia } from "types/Media/MediaThunks";
-import { getTransport } from "tone";
+import { MouseEvent } from "react";
 
 // ------------------------------------------------------------
 // Cell Functins
@@ -59,7 +58,11 @@ import { getTransport } from "tone";
 
 /** The handler for when a timeline cell is clicked. */
 export const onCellClick =
-  (e: DivMouseEvent, columnIndex: number, trackId?: TrackId): Thunk =>
+  (
+    e: MouseEvent<HTMLDivElement>,
+    columnIndex: number,
+    trackId?: TrackId
+  ): Thunk =>
   (dispatch, getProject) => {
     const undoType = createUndoType("onCellClick", { columnIndex, trackId });
     const project = getProject();
@@ -113,7 +116,7 @@ export const onCellClick =
     }
 
     // If holding shift, add clips within the region to the selection
-    if (isHoldingShift(e) && selectedTrackId) {
+    if (e.shiftKey && selectedTrackId) {
       const currentTick = selectCurrentTimelineTick(project);
       const startTick = Math.min(currentTick, tick);
       const endTick = Math.max(currentTick, tick) + 1;
@@ -159,15 +162,14 @@ export const onCellClick =
  */
 export const onClipClick =
   (
-    e: DivMouseEvent,
+    e: MouseEvent<HTMLDivElement>,
     clip: Timed<Clip>,
     options: { eyedropping: boolean } = { eyedropping: false }
   ): Thunk =>
   (dispatch, getProject) => {
     const undoType = createUndoType("onClipClick", clip, options);
-    const nativeEvent = e.nativeEvent as Event;
-    const holdingShift = isHoldingShift(nativeEvent);
-    const holdingOption = isHoldingOption(nativeEvent);
+    const holdingShift = e.shiftKey;
+    const holdingOption = e.altKey;
     const project = getProject();
     const isAddingClips = selectIsAddingClips(project);
     const selectedClipIds = selectSelectedClipIds(project);
@@ -295,12 +297,11 @@ export const onPortalClick =
       return;
     }
 
-    const nativeEvent = e.nativeEvent as Event;
-    const holdingShift = isHoldingShift(nativeEvent);
+    const holdingShift = e.shiftKey;
 
     // Select the portal if the user is not holding shift
     if (!holdingShift) {
-      const holdingOption = isHoldingOption(nativeEvent);
+      const holdingOption = e.altKey;
       if (holdingOption) {
         const newIds = union(selectedPortalIds, [portal.id]);
         dispatch(

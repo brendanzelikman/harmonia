@@ -1,14 +1,13 @@
 import { EntityState } from "@reduxjs/toolkit";
 import { IClip, IClipId } from "../ClipTypes";
 import { Tick, Update } from "types/units";
-import { createId } from "types/utils";
+import { createId, isObject, isString } from "types/utils";
 import {
   PatternNote,
   PatternMidiNote,
   PatternRest,
 } from "types/Pattern/PatternTypes";
 import { Portaled, PortaledClipId } from "types/Portal/PortalTypes";
-import { isObject, isString } from "lodash";
 
 // ------------------------------------------------------------
 // Pattern Clip Definitions
@@ -80,7 +79,7 @@ export const isPatternClipId = (id: unknown): id is PatternClipId => {
 export const isPortaledPatternClip = (
   clip: unknown
 ): clip is PortaledPatternClip => {
-  return isObject(clip) && "type" in clip && clip.type === "pattern";
+  return isObject(clip) && clip.type === "pattern";
 };
 
 /** Checks if a given ID is a `PortaledPatternClipId`. */

@@ -1,5 +1,5 @@
 import { size } from "lodash";
-import { getValueByKey } from "./objects";
+import { getValueByKey } from "./object";
 
 export type VectorKey<T extends Vector> = keyof T;
 export type Scalar = number;

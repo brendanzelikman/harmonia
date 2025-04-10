@@ -1,14 +1,15 @@
 import { GiCrystalWand } from "react-icons/gi";
 import { POSE_NOTCH_HEIGHT } from "utils/constants";
 import { selectClipName } from "types/Clip/ClipSelectors";
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import { selectIsClipSelected } from "types/Timeline/TimelineSelectors";
 import { PoseClipId } from "types/Clip/ClipTypes";
 import { selectPoseClipJSX } from "types/Arrangement/ArrangementClipSelectors";
 import { MouseEvent, useCallback, useMemo, useState } from "react";
 import { BsMagic } from "react-icons/bs";
 import { useEvent } from "hooks/useEvent";
-import { cancelEvent, dispatchCustomEvent } from "utils/html";
+import { cancelEvent } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 
 interface PoseClipHeaderProps {
   id: PoseClipId;
@@ -17,9 +18,9 @@ interface PoseClipHeaderProps {
 
 export const PoseClipHeader = (props: PoseClipHeaderProps) => {
   const { id, isOpen } = props;
-  const isSelected = useStore((_) => selectIsClipSelected(_, id));
-  const name = useStore((_) => selectClipName(_, id));
-  const jsx = useStore((_) => selectPoseClipJSX(_, id));
+  const isSelected = useSelect((_) => selectIsClipSelected(_, id));
+  const name = useSelect((_) => selectClipName(_, id));
+  const jsx = useSelect((_) => selectPoseClipJSX(_, id));
   const Icon = useMemo(() => (isOpen ? BsMagic : GiCrystalWand), [isOpen]);
   const [show, setShow] = useState(false);
   useEvent("showPoseVectors", (e) => setShow(e.detail));

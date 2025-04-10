@@ -12,12 +12,12 @@ import {
   getPatternChordNotes,
   getPatternChordWithNewNotes,
 } from "../PatternUtils";
-import { createUndoType, Payload } from "utils/redux";
+import { createUndoType, Payload } from "types/redux";
 import { getPatternBlockDuration } from "../PatternFunctions";
 import { inRange, uniqBy } from "lodash";
 import { isNestedNote } from "types/Scale/ScaleTypes";
 import { createPattern } from "../PatternThunks";
-import { getStraightDuration, getTickDuration } from "utils/durations";
+import { getStraightDuration, getTickDuration } from "utils/duration";
 
 export const extractChordsFromPattern =
   ({ data }: Payload<{ id: PatternId; indices: number[] }>): Thunk =>

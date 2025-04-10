@@ -1,6 +1,6 @@
 import { HEADER_HEIGHT } from "utils/constants";
 import { useTick } from "hooks/useTick";
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import {
   selectCellWidth,
   selectTimelineTickLeft,
@@ -10,12 +10,12 @@ import { useTransport } from "hooks/useTransport";
 export function TimelinePlayhead() {
   const { tick } = useTick();
   const state = useTransport();
-  const cellWidth = useStore(selectCellWidth);
+  const cellWidth = useSelect(selectCellWidth);
 
   const width = cellWidth - 4;
   const height = HEADER_HEIGHT;
   const marginTop = -HEADER_HEIGHT;
-  const left = useStore((_) => selectTimelineTickLeft(_, tick));
+  const left = useSelect((_) => selectTimelineTickLeft(_, tick));
   const style = { height, marginTop, width, left };
 
   if (state === "stopped") return null;

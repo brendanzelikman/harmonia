@@ -8,8 +8,7 @@ import {
   DEFAULT_VOLUME,
 } from "utils/constants";
 import { Pan, Tick, Volume } from "types/units";
-import { createId } from "types/utils";
-import { isPlainObject, isString } from "lodash";
+import { createId, isObject, isString } from "types/utils";
 import { PatternMidiNote } from "types/Pattern/PatternTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import {
@@ -152,8 +151,6 @@ export const defaultInstrumentState: InstrumentState = {
 export const isInstrument = (obj: unknown): obj is Instrument => {
   const candidate = obj as Instrument;
   return (
-    isPlainObject(candidate) &&
-    isString(candidate.id) &&
-    isString(candidate.key)
+    isObject(candidate) && isString(candidate.id) && isString(candidate.key)
   );
 };

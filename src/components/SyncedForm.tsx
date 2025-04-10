@@ -1,6 +1,5 @@
 import { clamp } from "lodash";
 import { ComponentProps, useEffect, useState } from "react";
-import { onEnter } from "utils/html";
 
 interface SyncedNumericalFormProps extends ComponentProps<"input"> {
   value: number;
@@ -24,16 +23,15 @@ export const SyncedNumericalForm = (props: SyncedNumericalFormProps) => {
         setInputValue(newValue);
         setValue(newValue);
       }}
-      onKeyDown={(e) =>
-        onEnter(e, () => {
-          const currentValue = e.currentTarget.valueAsNumber;
-          e.currentTarget.blur();
-          if (isNaN(currentValue)) return;
-          const newValue = clamp(currentValue, min, max);
-          setInputValue(newValue);
-          setValue(newValue);
-        })
-      }
+      onKeyDown={(e) => {
+        if (e.key !== "Enter") return;
+        const currentValue = e.currentTarget.valueAsNumber;
+        e.currentTarget.blur();
+        if (isNaN(currentValue)) return;
+        const newValue = clamp(currentValue, min, max);
+        setInputValue(newValue);
+        setValue(newValue);
+      }}
     />
   );
 };

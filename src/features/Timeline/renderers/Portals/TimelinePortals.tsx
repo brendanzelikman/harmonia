@@ -1,4 +1,4 @@
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import { selectPortals } from "types/Portal/PortalSelectors";
 import { TimelinePortal } from "./PortalRenderer";
 import { createPortal } from "react-dom";
@@ -19,20 +19,20 @@ import { Timed } from "types/units";
 import { some } from "lodash";
 
 export function TimelinePortals(props: TimelineElement) {
-  const portals = useStore(selectPortals);
-  const selectedIds = useStore(selectSelectedPortalIds);
-  const isPortaling = useStore(selectIsAddingPortals);
-  const cellWidth = useStore(selectCellWidth);
-  const cellHeight = useStore(selectCellHeight);
+  const portals = useSelect(selectPortals);
+  const selectedIds = useSelect(selectSelectedPortalIds);
+  const isPortaling = useSelect(selectIsAddingPortals);
+  const cellWidth = useSelect(selectCellWidth);
+  const cellHeight = useSelect(selectCellHeight);
 
   // Get the fragment info
-  const fragment = useStore(selectPortalFragment);
-  const fragmentTrack = useStore((_) =>
+  const fragment = useSelect(selectPortalFragment);
+  const fragmentTrack = useSelect((_) =>
     fragment?.trackId ? selectTrackById(_, fragment?.trackId) : undefined
   );
 
-  const fragmentTop = useStore((_) => selectTrackTop(_, fragmentTrack?.id));
-  const fragmentLeft = useStore((_) =>
+  const fragmentTop = useSelect((_) => selectTrackTop(_, fragmentTrack?.id));
+  const fragmentLeft = useSelect((_) =>
     selectTimelineTickLeft(_, fragment?.tick)
   );
 

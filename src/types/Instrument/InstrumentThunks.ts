@@ -15,7 +15,7 @@ import {
   INSTRUMENT_SET,
   InstrumentKey,
 } from "./InstrumentTypes";
-import { Payload } from "utils/redux";
+import { Payload } from "types/redux";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { getSampleBuffer } from "app/samples";
 import { getInstrumentSamplesMap } from "./InstrumentFunctions";

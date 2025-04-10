@@ -1,6 +1,5 @@
 import * as _ from "./PoseTypes";
-import { WholeNoteTicks } from "utils/durations";
-import pluralize from "pluralize";
+import { WholeNoteTicks } from "utils/duration";
 import { ScaleVector } from "types/Scale/ScaleTypes";
 import { getOrderedTrackIds, getTrackLabel } from "types/Track/TrackFunctions";
 import {
@@ -11,7 +10,7 @@ import {
 } from "types/Track/TrackTypes";
 import { isVoiceLeading } from "./PoseTypes";
 import { ChromaticKey, ChromaticPitchClass } from "assets/keys";
-import { isPitchClass } from "utils/pitchClass";
+import { isPitchClass } from "utils/pitch";
 import {
   CHORDAL_KEY,
   CHROMATIC_KEY,
@@ -262,7 +261,7 @@ export const getPoseBlockDurationAsString = (block: _.PoseBlock) => {
 
   // Otherwise, include the total duration and measure count
   const measureCount = parseFloat((totalDuration / WholeNoteTicks).toFixed(2));
-  const measureTerm = pluralize("Measure", measureCount);
+  const measureTerm = "Measure" + (measureCount === 1 ? "" : "s");
 
   return `Duration: ${totalDuration} ticks (${measureCount} ${measureTerm})`;
 };

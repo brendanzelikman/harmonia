@@ -14,13 +14,13 @@ import {
 import { dispatchClose, dispatchOpen } from "hooks/useToggle";
 import { BiCodeCurly } from "react-icons/bi";
 import { m } from "framer-motion";
-import { useDispatch, useStore } from "hooks/useStore";
-import { promptUserForTree } from "utils/tree";
+import { useDispatch, useSelect } from "hooks/useStore";
+import { promptUserForTree } from "types/Track/TrackRegex";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 
 export function Tutorial() {
   const dispatch = useDispatch();
-  const hasTracks = useStore(selectHasTracks);
+  const hasTracks = useSelect(selectHasTracks);
 
   // Keep track of the current viewed
   const [view, setView] = useState("exposition");
@@ -62,7 +62,7 @@ export function Tutorial() {
           stiffness: 120,
           mass: 1,
         }}
-        className="bg-gradient-radial from-slate-900/80 to-slate-950/70 backdrop-blur-lg select-none text-center px-10 py-5 max-lg:py-4 border-2 border-sky-600 rounded-2xl"
+        className="bg-radial from-slate-900/80 to-slate-950/70 backdrop-blur-lg select-none text-center px-10 py-5 max-lg:py-4 border-2 border-sky-600 rounded-2xl"
       >
         <div className="mb-4 max-lg:mb-1 text-4xl max-lg:text-2xl text-slate-100 font-bold drop-shadow-sm">
           Welcome to the Playground!
@@ -346,13 +346,13 @@ export function Tutorial() {
             className="rounded-lg"
             border="ring-fuchsia-600/80"
             title="Develop Poses"
-            subtitle="With Keyboard Shortcuts"
+            subtitle="With Keyboard Gestures"
             stripColor="border-b-fuchsia-500/80"
             Icon={GiMoebiusTriangle}
             description={
               <>
                 <div>
-                  Poses can be created and updated with keyboard shortcuts{" "}
+                  Poses can be created and updated with keyboard gestures{" "}
                   <span
                     className="text-fuchsia-200 hover:opacity-85"
                     onMouseEnter={() => dispatchOpen("livePlay")}
@@ -595,8 +595,7 @@ const TimelineButton = (
     className={classNames(
       props.className,
       props.border,
-      props.background ??
-        "bg-gradient-radial from-slate-800/80 to-slate-950/50",
+      props.background ?? "bg-radial from-slate-800/80 to-slate-950/50",
       "hover:ring-4 backdrop-blur-lg transition-all duration-300 cursor-pointer w-full max-w-xl items-center flex flex-col gap-1 ring-2 p-6 rounded select-none"
     )}
     onClick={props.onClick}

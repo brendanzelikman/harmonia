@@ -3,7 +3,7 @@ import { useRef, useEffect } from "react";
 import { useDragLayer, useDrag, DragSourceMonitor } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { GiCompactDisc } from "react-icons/gi";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 
 export const ProjectDisc = (props: {
   projectId: string;

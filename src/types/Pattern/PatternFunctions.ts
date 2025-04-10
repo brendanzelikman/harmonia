@@ -15,8 +15,8 @@ import {
 import { mod } from "utils/math";
 import { PresetPatternGroupList, PresetPatternGroupMap } from "assets/patterns";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
-import { isArray, maxBy } from "lodash";
-import { getTickDuration, isTripletDuration } from "utils/durations";
+import { maxBy } from "lodash";
+import { getTickDuration, isTripletDuration } from "utils/duration";
 import { ScaleVector } from "types/Scale/ScaleTypes";
 import { sumVectors } from "utils/vector";
 
@@ -121,7 +121,7 @@ export function togglePatternChordStrum(
 export function togglePatternChordStrum(chord: PatternChord): PatternChord {
   if (isPatternStrummedChord(chord)) return chord.chord;
   const strumProps = { strumDirection: "up", strumRange: [0, 0] };
-  const block = isArray(chord) ? chord : [chord];
+  const block = Array.isArray(chord) ? chord : [chord];
   return { ...strumProps, chord: block } as PatternChord;
 }
 

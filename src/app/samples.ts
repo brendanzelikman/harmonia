@@ -9,9 +9,10 @@ import {
   readAudioBuffer,
   encodeAudioBuffer,
   DecodedBuffer,
-} from "utils/audio";
+} from "utils/buffer";
 import audioBufferToWav from "audiobuffer-to-wav";
-import { dispatchCustomEvent, downloadBlob } from "utils/html";
+import { downloadBlob } from "utils/file";
+import { dispatchCustomEvent } from "utils/event";
 
 export const UPDATE_SAMPLES_EVENT = "UPDATE_SAMPLES";
 

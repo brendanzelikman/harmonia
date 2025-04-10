@@ -2,10 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { validateAudio } from "app/middleware";
 import { updateProject } from "./projects";
 import { reducer } from "./reducer";
-import {
-  sanitizeProject,
-  timestampProject,
-} from "types/Project/ProjectFunctions";
+import { sanitizeProject, timestampProject } from "types/Project/ProjectUtils";
 
 // ------------------------------------------------------------
 // Redux Store Configuration

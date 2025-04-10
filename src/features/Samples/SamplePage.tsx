@@ -7,7 +7,7 @@ import { getSampleDataFromIDB, UPDATE_SAMPLES_EVENT } from "app/samples";
 import { GiAudioCassette } from "react-icons/gi";
 import { SampleFormatter } from "./SampleFormatter";
 import { useEvent } from "hooks/useEvent";
-import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackThunks";
+import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackRegex";
 import { useDispatch } from "hooks/useStore";
 import { HomeList } from "features/Home/HomeList";
 import { useFetch } from "hooks/useFetch";

@@ -1,7 +1,6 @@
 import { EntityState } from "@reduxjs/toolkit";
 import { Id, Plural, Tick } from "../units";
-import { createId } from "types/utils";
-import { isArray, isObject, isPlainObject, isString } from "lodash";
+import { createId, isObject, isString } from "types/utils";
 import { isBounded, isFinite } from "utils/math";
 import { Timed, Playable } from "types/units";
 import {
@@ -93,7 +92,7 @@ export const defaultPattern: Pattern = {
 /** Checks if a given object is a timed note. */
 export const isTimedNote = <T = unknown>(obj: T): obj is Timed<T> => {
   const candidate = obj as Timed<unknown>;
-  return isPlainObject(candidate) && isFinite(candidate.duration);
+  return isObject(candidate) && isFinite(candidate.duration);
 };
 
 /** Checks if a given object is a playable note. */
@@ -133,7 +132,7 @@ export const isPatternBlockedChord = (
 ): obj is PatternBlockedChord => {
   if (obj === undefined) return false;
   const candidate = obj as PatternBlockedChord;
-  return isArray(candidate);
+  return Array.isArray(candidate);
 };
 
 /** Checks if a given object is of type `PatternStrummedChord`. */
@@ -158,7 +157,7 @@ export const isPatternMidiChord = (obj: unknown): obj is PatternMidiChord => {
   const candidate = obj as PatternMidiChord;
   return (
     isPatternMidiNote(candidate) ||
-    isArray(candidate) ||
+    Array.isArray(candidate) ||
     isPatternStrummedChord(candidate)
   );
 };
@@ -185,19 +184,19 @@ export const isPatternStrummedMidiChord = (
 /** Checks if a given object is of type `PatternStream`. */
 export const isPatternStream = (obj: unknown): obj is PatternStream => {
   const candidate = obj as PatternStream;
-  return isArray(candidate);
+  return Array.isArray(candidate);
 };
 
 /** Checks if a given object is of type `PatternMidiStream`. */
 export const isPatternMidiStream = (obj: unknown): obj is PatternMidiStream => {
   const candidate = obj as PatternMidiStream;
-  return isArray(candidate);
+  return Array.isArray(candidate);
 };
 
 /** Checks if a given object is of type `Pattern`. */
 export const isPattern = (obj: unknown): obj is Pattern => {
   const candidate = obj as Pattern;
-  return isPlainObject(candidate) && isPatternId(candidate.id);
+  return isObject(candidate) && isPatternId(candidate.id);
 };
 
 /** Checks if a given object is of type `PatternId`. */

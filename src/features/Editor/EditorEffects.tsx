@@ -3,7 +3,7 @@ import { useCallback, useRef } from "react";
 import { Slider } from "components/Slider";
 import { cancelEvent } from "utils/html";
 import { BsArrowClockwise, BsTrashFill } from "react-icons/bs";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import {
   rearrangeInstrumentEffect,
   updateInstrumentEffect,
@@ -20,7 +20,7 @@ type InstrumentEffectsProps = { id: InstrumentId };
 export function InstrumentEditorEffects(props: InstrumentEffectsProps) {
   const dispatch = useDispatch();
   const id = props.id;
-  const instrument = useStore((_) => selectInstrumentById(_, id));
+  const instrument = useSelect((_) => selectInstrumentById(_, id));
   const effects = instrument?.effects ?? [];
 
   /** Move an effect to a new index when dragging */
@@ -142,7 +142,7 @@ export const InstrumentEffect = (props: DraggableEffectProps) => {
       ref={ref}
     >
       <div className="w-full mx-2 py-2">
-        <div className="w-full flex items-center mb-4 bg-slate-800 border-0.5 border-slate-600/50 rounded">
+        <div className="w-full flex items-center mb-4 bg-slate-800 border-[0.5px] border-slate-600/50 rounded">
           <label className="text-base font-bold px-2 flex-1 whitespace-nowrap">
             {name}
           </label>

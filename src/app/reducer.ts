@@ -1,6 +1,6 @@
 import { Project } from "types/Project/ProjectTypes";
 import { combineReducers, PayloadAction } from "@reduxjs/toolkit";
-import { Payload } from "utils/redux";
+import { Payload } from "types/redux";
 import undoable, { excludeAction } from "redux-undo";
 import {
   instrumentsSlice,
@@ -24,6 +24,7 @@ import { trackSlice } from "types/Track/TrackSlice";
 import { Safe } from "types/utils";
 import { metaSlice } from "types/Meta/MetaSlice";
 import { store } from "./store";
+import { selectCanRedo, selectCanUndo } from "types/Project/ProjectSelectors";
 
 export const SET_PROJECT = "setProject";
 export const UNDO_PROJECT = "undoProject";
@@ -97,10 +98,14 @@ export const setProject = (payload: Project) => {
 
 /** Undo the project */
 export const undoProject = () => {
-  store.dispatch({ type: UNDO_PROJECT });
+  if (selectCanUndo(store.getState())) {
+    store.dispatch({ type: UNDO_PROJECT });
+  }
 };
 
 /** Redo the project */
 export const redoProject = () => {
-  store.dispatch({ type: REDO_PROJECT });
+  if (selectCanRedo(store.getState())) {
+    store.dispatch({ type: REDO_PROJECT });
+  }
 };

@@ -1,8 +1,8 @@
 import { DEFAULT_BPM } from "utils/constants";
 import { BPM, Seconds, Tick, Volume } from "../units";
-import { WholeNoteTicks } from "utils/durations";
+import { WholeNoteTicks } from "utils/duration";
 import { dispatchClose, dispatchOpen } from "hooks/useToggle";
-import { dispatchCustomEvent } from "utils/html";
+import { dispatchCustomEvent } from "utils/event";
 import { getBarsBeatsSixteenths } from "./TransportFunctions";
 
 /** The Transport mirrors and stores the Tone.js transport. */

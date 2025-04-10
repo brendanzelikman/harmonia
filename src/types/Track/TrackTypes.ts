@@ -1,5 +1,4 @@
 import { Id, Update } from "types/units";
-import { isPlainObject } from "lodash";
 import {
   initializePatternTrack,
   isPatternTrackId,
@@ -16,6 +15,7 @@ import { InstrumentId } from "types/Instrument/InstrumentTypes";
 import { ScaleId } from "types/Scale/ScaleTypes";
 import { EntityState, nanoid } from "@reduxjs/toolkit";
 import { PoseVector } from "types/Pose/PoseTypes";
+import { isObject } from "types/utils";
 
 // ------------------------------------------------------------
 // Typed Track Definitions
@@ -85,7 +85,7 @@ export const initializeTrack = (track: Partial<Track>): Track => {
 /** Checks if a given object is of type `Track` */
 export const isTrack = (obj: unknown): obj is Track => {
   const candidate = obj as Track;
-  return isPlainObject(candidate) && isTrackId(candidate.id);
+  return isObject(candidate) && isTrackId(candidate.id);
 };
 
 /** Checks if a given ID is a `TrackId` */

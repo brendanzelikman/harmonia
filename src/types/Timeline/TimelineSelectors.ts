@@ -8,14 +8,14 @@ import {
   getCellsPerTick,
   getSubdivisionTicks,
   getTickColumns,
-} from "utils/durations";
+} from "utils/duration";
 import { Tick, Timed } from "types/units";
-import { getValueByKey, getValuesByKeys } from "utils/objects";
+import { getValueByKey, getValuesByKeys } from "utils/object";
 import { selectClipDurationMap, selectClipMap } from "../Clip/ClipSelectors";
 import { selectPoseMap } from "../Pose/PoseSelectors";
 import { createSelector } from "reselect";
 import { capitalize, uniq } from "lodash";
-import { createDeepSelector } from "utils/redux";
+import { createDeepSelector } from "types/redux";
 import {
   Clip,
   ClipId,

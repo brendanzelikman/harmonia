@@ -1,4 +1,5 @@
-import { clamp, isNumber, isString } from "lodash";
+import { clamp } from "lodash";
+import { isNumber, isString } from "types/utils";
 
 /** Modulo that works with negative numbers. */
 export const mod = (n: number, m: number) => ((n % m) + m) % m;

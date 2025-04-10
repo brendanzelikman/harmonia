@@ -88,7 +88,7 @@ export const Splash = () => {
         }}
         type="button"
         onClick={() => navigate("/projects")}
-        className="mt-16 py-6 px-9 text-slate-100 active:animate-pulse-slow bg-slate-900/50 zoom-in active:bg-slate-900/70 hover:scale-105 hover:shadow-[0px_0px_20px_2px_rgb(80,80,200)] ring-2 ring-indigo-500/50 hover:ring-slate-100/20 rounded-2xl backdrop-blur-xl shadow-2xl drop-shadow-2xl sm:text-4xl text-2xl font-light"
+        className="mt-16 cursor-pointer py-6 px-9 text-slate-100 active:animate-pulseSlow bg-slate-900/50 zoom-in active:bg-slate-900/70 hover:scale-105 hover:shadow-[0px_0px_20px_2px_rgb(80,80,200)] ring-2 ring-indigo-500/50 hover:ring-slate-100/20 rounded-2xl backdrop-blur-xl shadow-2xl drop-shadow-2xl sm:text-4xl text-2xl font-light"
       >
         {button}
       </m.button>

@@ -1,4 +1,4 @@
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import {
   selectIsEditingTracks,
   selectSelectedTrack,
@@ -24,10 +24,10 @@ import { InstrumentEditorPiano } from "./EditorPiano";
 import { InstrumentEditorSidebar } from "./EditorSidebar";
 
 export function Editor() {
-  const track = useStore(selectSelectedTrack);
-  const isEditing = useStore(selectIsEditingTracks);
+  const track = useSelect(selectSelectedTrack);
+  const isEditing = useSelect(selectIsEditingTracks);
   const id = track?.instrumentId;
-  const instrument = useStore((_) => selectInstrumentById(_, id));
+  const instrument = useSelect((_) => selectInstrumentById(_, id));
   const key = instrument?.key;
 
   /** Play state is controlled by piano and used for animation */

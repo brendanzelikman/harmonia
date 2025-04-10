@@ -1,5 +1,5 @@
 import { PresetPatternMap } from "assets/patterns";
-import { createDeepSelector } from "utils/redux";
+import { createDeepSelector } from "types/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { defaultPatternState, patternAdapter } from "./PatternSlice";
 import { Pattern, PatternId, PatternState } from "./PatternTypes";

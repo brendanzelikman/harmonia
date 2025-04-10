@@ -1,7 +1,7 @@
 import { githubDarkTheme, JsonEditor, NodeData } from "json-edit-react";
 import { store } from "app/store";
 import { setProject } from "app/reducer";
-import { sanitizeBaseProject } from "types/Project/ProjectFunctions";
+import { sanitizeBaseProject } from "types/Project/ProjectUtils";
 import { SafeBaseProject } from "app/reducer";
 
 export const TerminalFile = () => {

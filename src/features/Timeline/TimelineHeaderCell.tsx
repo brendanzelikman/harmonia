@@ -1,4 +1,4 @@
-import { useDispatch, useStore } from "hooks/useStore";
+import { useDispatch, useSelect } from "hooks/useStore";
 import { inRange } from "lodash";
 import { RenderHeaderCellProps } from "react-data-grid";
 import classNames from "classnames";
@@ -22,14 +22,14 @@ import { setLoopEnd, setLoopStart } from "types/Transport/TransportSlice";
 export const TimelineHeaderCell = (props: RenderHeaderCellProps<Row>) => {
   const dispatch = useDispatch();
   const columnIndex = parseInt(props.column.key);
-  const tick = useStore((_) => selectColumnTicks(_, columnIndex - 1));
-  const isPortaling = useStore(selectIsAddingPortals);
-  const hasFragment = useStore(selectHasPortalFragment);
+  const tick = useSelect((_) => selectColumnTicks(_, columnIndex - 1));
+  const isPortaling = useSelect(selectIsAddingPortals);
+  const hasFragment = useSelect(selectHasPortalFragment);
 
   // Loop properties derived from the transport
-  const tickLength = useStore(selectSubdivisionTicks);
+  const tickLength = useSelect(selectSubdivisionTicks);
   const { bpm, timeSignature, loop, loopStart, loopEnd } =
-    useStore(selectTransport);
+    useSelect(selectTransport);
 
   const inLoopRange = inRange(tick, loopStart, loopEnd);
   const onLoopStart = loopStart === tick;

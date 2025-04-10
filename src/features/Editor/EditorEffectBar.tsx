@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { BsPlusCircle } from "react-icons/bs";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import {
   EffectKey,
   EFFECT_NAMES_BY_KEY,
@@ -16,7 +16,7 @@ import { InstrumentId } from "types/Instrument/InstrumentTypes";
 export function InstrumentEditorEffectBar(props: { id: InstrumentId }) {
   const dispatch = useDispatch();
   const id = props.id;
-  const instrument = useStore((_) => selectInstrumentById(_, props.id));
+  const instrument = useSelect((_) => selectInstrumentById(_, props.id));
   const effects = instrument?.effects ?? [];
 
   /** The user can add an effect by key. */

@@ -1,9 +1,9 @@
-import { Key, PitchClass } from "types/units";
-import { PITCH_CLASSES } from "./pitchClass";
-import { mod } from "./math";
 import { ChromaticKey } from "assets/keys";
-import { isNumber } from "lodash";
-import { chromaticNotes } from "types/Scale/ScaleTypes";
+import { Key, PitchClass } from "types/units";
+import { PITCH_CLASSES } from "./pitch";
+import { mod } from "./math";
+import { isNumber } from "types/utils";
+import { range } from "./array";
 
 // ------------------------------------------------------------
 // MIDI Units
@@ -34,7 +34,7 @@ export const getMidiScaleDegree = (midi: MidiNote, scale: MidiScale) => {
 /** Get a degree number as a chromatic note. */
 export const getMidiChromaticNote = (note?: MidiNote) => {
   const degree = getMidiDegree(note);
-  return chromaticNotes[degree];
+  return range(60, 72)[degree];
 };
 
 // ------------------------------------------------------------

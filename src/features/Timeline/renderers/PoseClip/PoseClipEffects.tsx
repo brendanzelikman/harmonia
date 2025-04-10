@@ -16,7 +16,7 @@ import {
   TransformationCategory,
   TRANSFORMATIONS,
 } from "types/Pattern/PatternTransformers";
-import { isBoolean, isNumber, isString, omit, sample, startCase } from "lodash";
+import { isBoolean, omit, sample, startCase } from "lodash";
 import { Switch } from "@headlessui/react";
 import { useState } from "react";
 import {
@@ -41,6 +41,7 @@ import {
   PoseClipDropdownEffectProps,
   PoseClipDropdownItem,
 } from "./PoseClipDropdown";
+import { isNumber, isString } from "types/utils";
 
 export interface PoseClipEffectsProps extends PoseClipDropdownEffectProps {
   block: PoseBlock | undefined;

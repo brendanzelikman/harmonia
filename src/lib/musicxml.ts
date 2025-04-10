@@ -9,7 +9,7 @@ import {
   isDottedNote,
   isTripletDuration,
   isTripletNote,
-} from "utils/durations";
+} from "utils/duration";
 import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
 import {
   PatternMidiNote,

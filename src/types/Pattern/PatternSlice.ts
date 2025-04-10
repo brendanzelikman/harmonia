@@ -12,7 +12,7 @@ import {
   isPatternRest,
 } from "./PatternTypes";
 import { sumVectors } from "utils/vector";
-import { Action, createNormalSlice, unpackAction } from "utils/redux";
+import { Action, createNormalSlice, unpackAction } from "types/redux";
 import { mod } from "utils/math";
 
 // ------------------------------------------------------------

@@ -16,15 +16,15 @@ import {
 } from "types/Arrangement/ArrangementTrackSelectors";
 import { selectMeta } from "types/Meta/MetaSelectors";
 import { selectTransportBPM } from "types/Transport/TransportSelectors";
-import { Payload, unpackData, unpackUndoType } from "utils/redux";
+import { Payload, unpackData, unpackUndoType } from "types/redux";
 import { addClips, removeClip } from "./ClipSlice";
-import { downloadBlob } from "utils/html";
+import { downloadBlob } from "utils/file";
 import {
   selectTrackDescendantIds,
   selectTrackLabelById,
   selectTracks,
 } from "types/Track/TrackSelectors";
-import { ticksToSeconds } from "utils/durations";
+import { ticksToSeconds } from "utils/duration";
 import { TrackId } from "types/Track/TrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";

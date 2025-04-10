@@ -12,11 +12,11 @@ export const ShortcutContent = ({
   const filteredShortcuts = shortcuts.filter(Boolean) as ReactNode[];
   return (
     <div className="flex w-max flex-col justify-center items-center p-8 px-4 bg-slate-700/50 rounded border border-slate-500/50">
-      <ul className={className}>
+      <div className={className}>
         {filteredShortcuts.map((shortcut, index) => (
-          <li key={index}>{shortcut}</li>
+          <div key={index}>{shortcut}</div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };

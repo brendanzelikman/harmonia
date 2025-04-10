@@ -1,4 +1,4 @@
-import { Payload } from "utils/redux";
+import { Payload } from "types/redux";
 import { Clip, ClipId } from "types/Clip/ClipTypes";
 import { Portal, PortalId } from "types/Portal/PortalTypes";
 import { Update } from "types/units";

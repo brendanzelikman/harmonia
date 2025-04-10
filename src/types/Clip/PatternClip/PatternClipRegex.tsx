@@ -1,23 +1,39 @@
 import { nanoid } from "@reduxjs/toolkit";
 import { getPresetPatternByString } from "assets/patterns";
 import { promptLineBreak } from "components/PromptModal";
-import { createUndoType } from "utils/redux";
-import { trim, isString, clamp, isArray } from "lodash";
-import { updatePattern } from "types/Pattern/PatternSlice";
+import {
+  createUndoType,
+  Payload,
+  unpackData,
+  unpackUndoType,
+} from "types/redux";
+import { trim, clamp } from "lodash";
+import {
+  updatePattern,
+  updatePatternBlock,
+  updatePatternNote,
+} from "types/Pattern/PatternSlice";
 import { Thunk } from "types/Project/ProjectTypes";
-import { autoBindStreamToTrack } from "types/Track/TrackUtils";
-import { promptUserForFile, promptUserForString } from "utils/html";
-import { readPatternStreamFromString } from "utils/pattern";
+import {
+  autoBindNoteToTrack,
+  autoBindStreamToTrack,
+} from "types/Track/TrackUtils";
+import { promptUserForString } from "utils/html";
+import { promptUserForFile } from "utils/html";
+import { readPatternStreamFromString } from "types/Pattern/PatternRegex";
 import { selectPatternClipById } from "../ClipSelectors";
 import { PatternClipId } from "./PatternClipTypes";
 import { Midi } from "@tonejs/midi";
 import {
   isPatternRest,
+  PatternId,
   PatternMidiBlock,
+  PatternNestedNote,
   PatternStream,
 } from "types/Pattern/PatternTypes";
 import {
   addMidiNoteToBlock,
+  getPatternBlockNotes,
   getPatternBlockWithNewNotes,
   getPatternChordNotes,
   getPatternMidiBlockWithNewNotes,
@@ -29,10 +45,12 @@ import {
   getClosestDuration,
   WholeNoteTicks,
   createEighthNote,
-} from "utils/durations";
-import { getPatternBlockDuration } from "types/Pattern/PatternFunctions";
+} from "utils/duration";
+import {
+  getPatternBlockAtIndex,
+  getPatternBlockDuration,
+} from "types/Pattern/PatternFunctions";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { insert } from "utils/array";
 import { resolvePatternStreamToMidi } from "types/Pattern/PatternResolvers";
 import {
   TRANSFORMATION_CATEGORIES,
@@ -40,10 +58,23 @@ import {
   TRANSFORMATIONS,
   TRANSFORMATION_TYPES,
 } from "types/Pattern/PatternTransformers";
-import { selectTrackScaleChain } from "types/Track/TrackSelectors";
-import { analyzeAudio, recordWav } from "utils/wav-to-midi";
+import {
+  selectScaleTrackByScaleId,
+  selectTrackById,
+  selectTrackByLabel,
+  selectTrackScaleChain,
+} from "types/Track/TrackSelectors";
+import { convertWavToMidi } from "lib/basic-pitch";
+import { promptUserForMicrophone } from "utils/html";
 import { Note } from "@tonejs/midi/dist/Note";
 import { dispatchOpen } from "hooks/useToggle";
+import { TrackId } from "types/Track/TrackTypes";
+import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
+import { isNestedNote } from "types/Scale/ScaleTypes";
+import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
+import { DEFAULT_VELOCITY } from "utils/constants";
+import { getEventFile } from "utils/file";
+import { isString } from "types/utils";
 
 // -------------------------------------------------------
 //  Pattern Clip Upload
@@ -134,7 +165,7 @@ export const promptUserForPattern =
         const shouldUploadMidi = string === "midi";
         if (shouldUploadMidi) {
           return promptUserForFile(".mid", async (e) => {
-            const file = (e.target as HTMLInputElement)?.files?.[0];
+            const file = getEventFile(e);
             if (!file) return;
             const buffer = await file.arrayBuffer();
             const midi = new Midi(buffer);
@@ -148,17 +179,17 @@ export const promptUserForPattern =
         const shouldRecord = string === "record";
         if (shouldRecord) {
           dispatchOpen("record-pattern");
-          const file = await recordWav();
-          const notes = await analyzeAudio(file);
+          const file = await promptUserForMicrophone("record-pattern");
+          const notes = await convertWavToMidi(file);
           return dispatch(promptUserForPatternMidiFile(id, notes));
         }
 
         const shouldUploadWav = string === "wav";
         if (shouldUploadWav) {
           return promptUserForFile("audio/*", async (e) => {
-            const file = (e.target as HTMLInputElement)?.files?.[0];
+            const file = getEventFile(e);
             if (!file) return;
-            const notes = await analyzeAudio(file);
+            const notes = await convertWavToMidi(file);
             return dispatch(promptUserForPatternMidiFile(id, notes));
           });
         }
@@ -235,7 +266,11 @@ export const promptUserForPattern =
         // Append or splice the stream to the pattern
         const patternStream = selectPatternById(project, patternId).stream;
         if (patternStream) {
-          stream = insert(patternStream, stream, index);
+          if (index !== undefined) {
+            stream = [...patternStream].toSpliced(index, 0, ...stream);
+          } else {
+            stream = [...patternStream, ...stream];
+          }
         }
         dispatch(updatePattern({ data: { id: patternId, stream }, undoType }));
       },
@@ -319,7 +354,7 @@ export const promptUserForPatternMidiFile =
     const stream = dispatch(
       autoBindStreamToTrack(
         clip.trackId,
-        chords.filter((c) => isArray(c))
+        chords.filter((c) => Array.isArray(c))
       )
     );
 
@@ -372,3 +407,134 @@ export const promptUserForPatternEffect =
         dispatch(updatePattern({ data: { id: clip.patternId, stream } }));
       },
     })();
+export const bindNoteWithPrompt =
+  (
+    payload: Payload<{ id: PatternId; trackId?: TrackId; index: number }>
+  ): Thunk =>
+  (dispatch) => {
+    const { id, trackId, index } = unpackData(payload);
+    promptUserForString({
+      title: "Input Scale Note",
+      large: true,
+      description: [
+        promptLineBreak,
+        <span>Rule #1: Scale Notes are specified by label and number.</span>,
+        <span>Example: B1 = Degree 1 of Scale B </span>,
+        promptLineBreak,
+        <span>Rule #2: Scale Offsets are summed after Scale Notes.</span>,
+        <span>
+          Example: B2 + A-1 = Degree 2 of Scale B, 1 step down Scale A
+        </span>,
+        promptLineBreak,
+        <span>Rule #3: Pedal tones are specified with "pedal"</span>,
+        <span>Rule #4: Default bindings are specified with "auto"</span>,
+        promptLineBreak,
+        <span className="underline">Please input your note:</span>,
+      ],
+      callback: (string) => {
+        dispatch(
+          bindNoteWithPromptCallback({ data: { string, id, trackId, index } })
+        );
+      },
+    })();
+  };
+export const bindNoteWithPromptCallback =
+  (
+    payload: Payload<{
+      string: string;
+      id: PatternId;
+      trackId?: TrackId;
+      index: number;
+    }>
+  ): Thunk =>
+  (dispatch, getProject) => {
+    const { string, id, trackId, index } = unpackData(payload);
+    const project = getProject();
+    const undoType = unpackUndoType(payload, "bindNoteWithPrompt");
+    const pattern = selectPatternById(project, id);
+    const { stream } = pattern;
+    const track = trackId ? selectTrackById(project, trackId) : undefined;
+    const block = getPatternBlockAtIndex(stream, index);
+    const blockNotes = getPatternBlockNotes(block);
+    if (string === "auto" && track) {
+      const block = getPatternBlockWithNewNotes(stream[index], (notes) =>
+        notes.map((note) => {
+          return dispatch(autoBindNoteToTrack(trackId, note));
+        })
+      );
+      dispatch(updatePatternBlock({ data: { id, index, block }, undoType }));
+      return;
+    } else if (string === "pedal") {
+      const block = getPatternBlockWithNewNotes(
+        pattern.stream[index],
+        (notes) =>
+          notes.map((note) => {
+            const { duration, velocity } = note;
+            const newNote = { ...note };
+            const scaleId = "scaleId" in note ? note.scaleId : undefined;
+            const trackId = selectScaleTrackByScaleId(project, scaleId)?.id;
+            const chain = trackId
+              ? selectTrackScaleChain(project, trackId)
+              : [];
+            if (isNestedNote(newNote) && "MIDI" in newNote) delete newNote.MIDI;
+            const MIDI = resolveScaleNoteToMidi(newNote, chain);
+            return { duration, velocity, MIDI };
+          })
+      );
+      dispatch(
+        updatePatternBlock({
+          data: { id, index, block },
+          undoType,
+        })
+      );
+      return;
+    } else {
+      const firstNote = { ...blockNotes[0] } as PatternNestedNote;
+
+      const regex = /([a-zA-Z])([-+]?\d+)/g;
+      const [note, ...offsets] = [...string.matchAll(regex)].map((match, i) => {
+        const label = match[1];
+        const number = parseInt(match[2]);
+        if (i === 0) return { label, value: number === 0 ? 0 : number - 1 };
+        return { label, value: number };
+      });
+
+      if (isPatternRest(block)) {
+        firstNote.duration = block.duration;
+        firstNote.velocity = DEFAULT_VELOCITY;
+      }
+      const baseTrack = selectTrackByLabel(getProject(), note.label);
+      if (!baseTrack) return;
+      firstNote.scaleId = (baseTrack as ScaleTrack)?.scaleId;
+      if ("scaleId" in firstNote && "MIDI" in firstNote) {
+        delete firstNote.MIDI;
+      }
+      firstNote.degree = note.value;
+      firstNote.offset = { octave: firstNote.offset?.octave ?? 0 };
+      for (const offset of offsets) {
+        if (offset.label === "t") {
+          if (!firstNote.offset.chromatic) {
+            firstNote.offset.chromatic = 0;
+          }
+          firstNote.offset.chromatic += offset.value;
+          continue;
+        }
+        const offsetTrack = selectTrackByLabel(getProject(), offset.label);
+        if (!offsetTrack) continue;
+        const scaleId = (offsetTrack as ScaleTrack).scaleId;
+        firstNote.offset[scaleId] = offset.value;
+      }
+      if (isNestedNote(firstNote) && !firstNote.scaleId) {
+        firstNote.offset = {
+          ...firstNote.offset,
+          octave: (firstNote.offset?.octave ?? 0) + Math.floor(note.value / 12),
+        };
+      }
+      dispatch(
+        updatePatternNote({
+          data: { id, index, note: firstNote },
+          undoType: nanoid(),
+        })
+      );
+    }
+  };

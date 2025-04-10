@@ -18,7 +18,7 @@ import {
 import { resolveScaleToMidi, resolveScaleChainToMidi } from "./ScaleResolvers";
 import { ChromaticKey } from "assets/keys";
 import { getVectorMidi } from "utils/vector";
-import { isNumber } from "lodash";
+import { isNumber } from "types/utils";
 
 // ------------------------------------------------------------
 // Scale Notes

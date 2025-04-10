@@ -13,7 +13,7 @@ import {
   isPatternRest,
 } from "./PatternTypes";
 import { getMidiFromPitch, getMidiScaleDegree } from "utils/midi";
-import { clamp, isNumber, shuffle } from "lodash";
+import { clamp, shuffle } from "lodash";
 import { Frequency, getTransport } from "tone";
 import { getPatternBlockDuration } from "./PatternFunctions";
 import {
@@ -21,7 +21,8 @@ import {
   getDurationTicks,
   PPQ,
   secondsToTicks,
-} from "utils/durations";
+} from "utils/duration";
+import { isNumber } from "types/utils";
 
 export type Transformer<Args = any> = (
   stream: PatternMidiStream,

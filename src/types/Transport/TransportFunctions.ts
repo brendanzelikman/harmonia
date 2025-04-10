@@ -1,6 +1,6 @@
 import { getTransport } from "tone";
 import { Tick, BPM } from "types/units";
-import { QuarterNoteTicks, ticksToSeconds } from "utils/durations";
+import { QuarterNoteTicks, ticksToSeconds } from "utils/duration";
 import { format } from "utils/math";
 
 /** Get the number of ticks per bar. */

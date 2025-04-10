@@ -1,10 +1,6 @@
-import { getValuesByKeys, getValueByKey } from "utils/objects";
+import { getValuesByKeys, getValueByKey } from "utils/object";
 import { createSelector } from "reselect";
-import {
-  createDeepSelector,
-  createValueSelector,
-  createValueListSelector,
-} from "utils/redux";
+import { createDeepSelector, createValueSelector } from "types/redux";
 import { getPatternDuration } from "types/Pattern/PatternFunctions";
 import { isPattern, Pattern, PatternId } from "types/Pattern/PatternTypes";
 import { isPose } from "types/Pose/PoseTypes";
@@ -255,9 +251,8 @@ export const selectClipHeaderColor = (project: Project, id: PatternClipId) => {
 };
 
 /** Select the durations of a list of clips. */
-export const selectClipDurations = createValueListSelector(
-  selectClipDurationMap
-);
+export const selectClipDurations = (project: Project, ids: ClipId[]) =>
+  getValuesByKeys(selectClipDurationMap(project), ids);
 
 /** Select the duration of a clip. */
 export const selectClipDuration = createValueSelector(selectClipDurationMap, 0);

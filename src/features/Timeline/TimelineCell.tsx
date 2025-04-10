@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { RenderCellProps } from "react-data-grid";
 import { useDrop } from "react-dnd";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import { onCellClick } from "types/Timeline/thunks/TimelineClickThunks";
 import {
   selectHasPortalFragment,
@@ -19,16 +19,16 @@ import { Row } from "./Timeline";
 
 export function TimelineCell(props: RenderCellProps<Row, unknown>) {
   const dispatch = useDispatch();
-  const state = useStore(selectTimelineState);
-  const type = useStore(selectTimelineType);
-  const hasFragment = useStore(selectHasPortalFragment);
-  const fragment = useStore(selectPortalFragment);
+  const state = useSelect(selectTimelineState);
+  const type = useSelect(selectTimelineType);
+  const hasFragment = useSelect(selectHasPortalFragment);
+  const fragment = useSelect(selectPortalFragment);
   const trackId = props.row.id;
   const index = props.row.index;
 
-  const bpm = useStore(selectTransportBPM);
-  const timeSignature = useStore(selectTransportTimeSignature);
-  const subdivisionTicks = useStore(selectSubdivisionTicks);
+  const bpm = useSelect(selectTransportBPM);
+  const timeSignature = useSelect(selectTransportTimeSignature);
+  const subdivisionTicks = useSelect(selectSubdivisionTicks);
   const key = parseInt(props.column.key);
   const tick = subdivisionTicks * (key - 1);
   const time = getBarsBeatsSixteenths(tick, { bpm, timeSignature });
@@ -60,7 +60,7 @@ export function TimelineCell(props: RenderCellProps<Row, unknown>) {
       ref={drop}
       data-border={hasBorder}
       className={classNames(
-        "size-full animate-in fade-in duration-150 border-b border-b-white/20 border-l-0.5 border-l-slate-700/50 data-[border=true]:border-l-2 data-[border=true]:border-l-white/20",
+        "size-full animate-in fade-in duration-150 border-b border-b-white/20 border-l-[0.5px] border-l-slate-700/50 data-[border=true]:border-l-2 data-[border=true]:border-l-white/20",
         {
           "cursor-portalgunb hover:bg-sky-400/50":
             isPortalingEntry && !disablePortals,

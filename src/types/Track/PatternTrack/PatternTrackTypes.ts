@@ -1,6 +1,5 @@
 import { ITrack, ITrackId } from "../TrackTypes";
-import { isString } from "lodash";
-import { createId } from "types/utils";
+import { createId, isString } from "types/utils";
 
 // ------------------------------------------------------------
 // Pattern Track Definitions

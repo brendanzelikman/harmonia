@@ -1,4 +1,4 @@
-import { createDeepSelector } from "utils/redux";
+import { createDeepSelector } from "types/redux";
 import { Project } from "../Project/ProjectTypes";
 import {
   initializeProjectDiary,

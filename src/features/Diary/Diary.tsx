@@ -3,7 +3,7 @@ import { DiaryCoverPage, DiaryPageBinding } from "./DiaryPage";
 import { cancelEvent } from "utils/html";
 import { BsDownload, BsTrash } from "react-icons/bs";
 import { DiaryContentPage } from "./DiaryContentPage";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import { setDiaryPage, clearDiary } from "types/Meta/MetaSlice";
 import classNames from "classnames";
 import { NAV_HEIGHT } from "utils/constants";
@@ -12,20 +12,19 @@ import {
   selectProjectName,
 } from "types/Meta/MetaSelectors";
 import { FlipBook } from "features/Diary/DiaryFlipBook";
-import { NavbarHoverTooltip } from "features/Navbar/NavbarTooltip";
+import { NavbarHoverTooltip } from "features/Navbar/components/NavbarTooltip";
 import { useDrag, useDrop } from "react-dnd";
-import { useHotkeys } from "react-hotkeys-hook";
 import { useToggle } from "hooks/useToggle";
+import { useHotkeys } from "hooks/useHotkeys";
 
 const DIARY_WIDTH = window.innerWidth / 2 - NAV_HEIGHT - 100;
 const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;
-const options = { preventDefault: true };
 
 export function Diary() {
   const dispatch = useDispatch();
-  const projectName = useStore(selectProjectName);
+  const projectName = useSelect(selectProjectName);
 
-  const diary = useStore(selectProjectDiary);
+  const diary = useSelect(selectProjectDiary);
   const diaryState = useToggle("diary");
   const showingDiary = diaryState.isOpen;
 
@@ -37,18 +36,12 @@ export function Diary() {
     dispatch(setDiaryPage({ page, text }));
   }, []);
 
-  // Diary hotkeys to flip the pages around
-  const flipLeft = useCallback(() => ref.current?.pageFlip?.().flipPrev(), []);
-  const flipRight = useCallback(() => ref.current?.pageFlip?.().flipNext(), []);
-  const flipFirst = useCallback(() => ref.current?.pageFlip?.().flip(0), []);
-  const flipLast = useCallback(
-    () => ref.current?.pageFlip?.().flip(diary.length - 1),
-    []
-  );
-  useHotkeys("left", flipLeft, [], options);
-  useHotkeys("right", flipRight, [], options);
-  useHotkeys("shift+left", flipFirst, [], options);
-  useHotkeys("shift+right", flipLast, [], options);
+  useHotkeys({
+    arrowleft: () => ref.current?.pageFlip?.().flipPrev(),
+    arrowright: () => ref.current?.pageFlip?.().flipNext(),
+    "shift+arrowleft": () => ref.current?.pageFlip?.().flip(0),
+    "shift+arrowright": () => ref.current?.pageFlip?.().flip(diary.length - 1),
+  });
 
   // A button to export the diary to a text file
   const ExportDiaryButton = useCallback(

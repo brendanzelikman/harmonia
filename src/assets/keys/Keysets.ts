@@ -6,7 +6,7 @@ import { mod } from "utils/math";
 import {
   getPitchClassUpperNeighbor,
   getPitchClassLowerNeighbor,
-} from "utils/pitchClass";
+} from "utils/pitch";
 import { majorKeys } from "./MajorKeys";
 import { minorKeys } from "./MinorKeys";
 

@@ -18,8 +18,7 @@ import {
 } from "./PatternUtils";
 import { transposeStream, rotateStream } from "./PatternTransformers";
 import { getTransposedPatternStream } from "./PatternFunctions";
-import { createId } from "types/utils";
-import { isNumber } from "lodash";
+import { createId, isNumber } from "types/utils";
 
 const createScaleStream = (
   notes: ScaleNote[],

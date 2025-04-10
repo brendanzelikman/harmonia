@@ -1,7 +1,7 @@
 import { Project } from "types/Project/ProjectTypes";
 import { isMidiNote, isScaleId } from "types/Scale/ScaleTypes";
 import { getMidiPitch } from "utils/midi";
-import { getValueByKey } from "utils/objects";
+import { getValueByKey } from "utils/object";
 import { CHROMATIC_KEY, OCTAVE_KEY, getNonzeroVectorKeys } from "utils/vector";
 import {
   selectScaleToTrackMap,

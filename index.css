@@ -1,6 +1,96 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "react-data-grid/lib/styles.css";
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+@plugin "@tailwindcss/forms";
+
+@theme {
+  --color-scale: #0ea5e9;
+  --color-pattern: #34d399;
+  --color-pose: #f472b6;
+  --color-instrument: #fb923c;
+  --color-scale-track: #818cf8;
+  --color-pattern-track: #34d399;
+  --color-pattern-clip: #14b8a6;
+  --color-pose-clip: #d946ef;
+
+  --spacing-nav: 60px;
+  --spacing-0.5: 0.5px;
+
+  --animate-background: scaleSlow 30s ease-in-out infinite;
+  --animate-pulseSlow: pulseSlow 4s ease-in-out infinite;
+
+  @keyframes pulseSlow {
+    0%,
+    100% {
+      transform: opacity(1);
+    }
+    50% {
+      transform: opacity(0.5);
+    }
+  }
+  @keyframes scaleSlow {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(10);
+    }
+  }
+}
+
+@layer utilities {
+  .cursor-paintbrush {
+    cursor: url(/cursors/paintbrush.cur), pointer;
+  }
+  .cursor-scissors {
+    cursor: url(/cursors/scissors.cur), pointer;
+  }
+  .cursor-wand {
+    cursor: url(/cursors/wand.cur), pointer;
+  }
+  .cursor-portalguno {
+    cursor: url(/cursors/portalguno.cur), pointer;
+  }
+  .cursor-portalgunb {
+    cursor: url(/cursors/portalgunb.cur), pointer;
+  }
+  .cursor-gethsemane {
+    cursor: url(/cursors/wand2.cur), pointer;
+  }
+  .cursor-saber {
+    cursor: url(/cursors/lightsaber.cur), pointer;
+  }
+  .cursor-eyedropper {
+    cursor: url(/cursors/eyedropper.cur), pointer;
+  }
+  .cursor-neonpurple {
+    cursor: url(/cursors/neonpurple.cur), pointer;
+  }
+  .total-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .total-center-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .text-shadow {
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+  }
+  .text-shadow-sm {
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  }
+  .text-shadow-lg {
+    text-shadow: 0 0 10px rgba(0, 0, 0);
+  }
+  .rotate-disc {
+    transform: rotateX(75deg);
+  }
+}
 
 html,
 body,
@@ -32,7 +122,6 @@ input::-webkit-inner-spin-button {
   stroke: #555 !important;
 }
 
-/* react-data-grid */
 .rdg-cell {
   outline: none;
   padding: 0;
@@ -44,47 +133,4 @@ input::-webkit-inner-spin-button {
 }
 .rdg-cell:has(.rdg-track) {
   z-index: 90 !important;
-}
-.rdg-row {
-  --rdg-row-height: auto !important;
-}
-
-/* react-piano */
-.ReactPiano__Key--natural {
-  --landing-key: rgb(255, 255, 255);
-  background: var(--landing-key);
-  border-color: var(--landing-key);
-  user-select: none;
-}
-
-.ReactPiano__Key--natural.ReactPiano__Key--active {
-  --landing-key: rgb(200, 200, 205);
-  background: var(--landing-key);
-  border-color: var(--landing-key);
-  user-select: none;
-}
-
-.ReactPiano__Key--accidental {
-  --landing-key: rgb(48, 48, 48);
-  background: var(--landing-key);
-  border-color: var(--landing-key);
-  user-select: none;
-}
-
-.ReactPiano__Key--accidental.ReactPiano__Key--active {
-  --landing-key: rgb(201, 200, 205);
-  background: var(--landing-key);
-  border-color: var(--landing-key);
-  user-select: none;
-}
-
-.landing-piano .ReactPiano__Key--active {
-  --landing-key: rgb(201, 200, 205);
-  background: var(--landing-key);
-  border-color: var(--landing-key);
-  user-select: none;
-}
-
-.ReactPiano__NoteLabelContainer {
-  height: 20px;
 }

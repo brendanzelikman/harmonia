@@ -1,9 +1,9 @@
-import { isNumber, isObject, range } from "lodash";
 import { Id, PitchClass } from "types/units";
 import { MidiNote, MidiObject, MidiScale, MidiValue } from "utils/midi";
-import { createId } from "types/utils";
+import { createId, isNumber, isObject } from "types/utils";
 import { EntityState } from "@reduxjs/toolkit";
 import { Vector } from "utils/vector";
+import { range } from "utils/array";
 
 // ------------------------------------------------------------
 // Scale Generics
@@ -71,9 +71,9 @@ export const chromaticNotes: MidiScale = range(60, 72);
 export const majorNotes: MidiScale = [60, 62, 64, 65, 67, 69, 71];
 export const minorNotes: MidiScale = [60, 62, 63, 65, 67, 68, 70];
 export const createMajorNotes = (root: MidiValue): MidiScale =>
-  range(7).map((i) => root + [0, 2, 4, 5, 7, 9, 11][i]);
+  range(0, 7).map((i) => root + [0, 2, 4, 5, 7, 9, 11][i]);
 export const createMinorNotes = (root: MidiValue): MidiScale =>
-  range(7).map((i) => root + [0, 2, 3, 5, 7, 8, 10][i]);
+  range(0, 7).map((i) => root + [0, 2, 3, 5, 7, 8, 10][i]);
 
 /** The chromatic scale is a ScaleObject containing MIDIValues.  */
 export const chromaticScale: ScaleObject = {
@@ -83,7 +83,7 @@ export const chromaticScale: ScaleObject = {
 };
 
 /** The nested chromatic notes are an array of NestedNotes. */
-export const nestedChromaticNotes: ScaleArray = range(12).map((i) => ({
+export const nestedChromaticNotes: ScaleArray = range(0, 12).map((i) => ({
   degree: i,
   offset: { _chromatic: 0 },
 }));
@@ -123,7 +123,7 @@ export const isMidiValue = (obj: unknown): obj is MidiValue => {
 
 /** Checks if a given object is of type `MidiObject`. */
 export const isMidiObject = (obj: unknown): obj is MidiObject => {
-  return isObject(obj) && "MIDI" in obj && isNumber(obj.MIDI);
+  return isObject(obj) && isNumber(obj.MIDI);
 };
 
 /** Checks if a given object is of type `MidiNote`. */

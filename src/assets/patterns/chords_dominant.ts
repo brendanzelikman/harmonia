@@ -1,5 +1,5 @@
 import { Pattern } from "types/Pattern/PatternTypes";
-import * as _ from "utils/durations";
+import * as _ from "utils/duration";
 
 export const Major7thFlat5Chord: Pattern = {
   id: "pattern_preset_major-7th-b5-chord",

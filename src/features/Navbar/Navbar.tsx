@@ -1,29 +1,29 @@
 import { useEvent } from "hooks/useEvent";
 import { useState } from "react";
 import { useRoute } from "app/router";
-import { NavbarBrand } from "features/Navbar/NavbarBrand";
+import { NavbarBrand } from "features/Navbar/components/NavbarBrand";
 import { views } from "features/Home/Home";
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import { selectHasTracks } from "types/Track/TrackSelectors";
-import { NavbarGroup } from "./NavbarGroup";
-import { NavbarProjectMenu } from "./sections/Project/NavbarProject";
-import { NavbarSettings } from "./sections/Project/NavbarSettings";
-import { NavbarUndo, NavbarRedo } from "./sections/Project/NavbarUndoRedo";
-import { NavbarArrangeClip } from "./sections/Toolkit/NavbarArrangeClip";
-import { NavbarDesignTree } from "./sections/Toolkit/NavbarDesignTree";
-import { NavbarLivePlay } from "./sections/Toolkit/NavbarLivePlay";
-import { NavbarPortalGun } from "./sections/Toolkit/NavbarPortalGun";
-import { NavbarScissors } from "./sections/Toolkit/NavbarScissors";
-import { NavbarWaterTree } from "./sections/Toolkit/NavbarWaterTree";
-import { NavbarTime } from "./sections/Transport/NavbarTime";
-import { NavbarTransportControl } from "./sections/Transport/NavbarTransportControl";
-import { NavbarVolume } from "./sections/Transport/NavbarVolume";
-import { NavbarLink } from "./NavbarLink";
+import { NavbarGroup } from "./components/NavbarGroup";
+import { NavbarProjectMenu } from "./NavbarProject";
+import { NavbarSettings } from "./NavbarSettings";
+import { NavbarUndo, NavbarRedo } from "./NavbarUndoRedo";
+import { NavbarArrangeClip } from "./NavbarArrangeClip";
+import { NavbarDesignTree } from "./NavbarDesignTree";
+import { NavbarLivePlay } from "./NavbarLivePlay";
+import { NavbarPortalGun } from "./NavbarPortalGun";
+import { NavbarScissors } from "./NavbarScissors";
+import { NavbarWaterTree } from "./NavbarWaterTree";
+import { NavbarTime } from "./NavbarTime";
+import { NavbarTransportControl } from "./NavbarTransportControl";
+import { NavbarVolume } from "./NavbarVolume";
+import { NavbarLink } from "./components/NavbarLink";
 import { LOAD_PLAYGROUND } from "features/Playground/Playground";
 
 export function Navbar() {
   const view = useRoute();
-  const hasTracks = useStore(selectHasTracks);
+  const hasTracks = useSelect(selectHasTracks);
 
   // Listen for the playground to load
   const [didLoad, setDidLoad] = useState(false);
@@ -54,16 +54,17 @@ export function Navbar() {
             <NavbarTime />
             <NavbarTransportControl />
           </NavbarGroup>
-          <NavbarGroup className="bg-gradient-radial from-slate-900/15 to-sky-500/15">
+          <NavbarGroup className="bg-radial from-slate-900/15 to-sky-500/15">
             Motifs <NavbarDesignTree />
             <NavbarArrangeClip type="pattern" />
             <NavbarArrangeClip type="pose" />
           </NavbarGroup>
           <NavbarGroup
             hide={!hasTracks}
-            className="bg-gradient-radial from-emerald-600/15 to-teal-600/15"
+            className="bg-radial from-emerald-600/15 to-teal-600/15"
           >
-            Tools <NavbarWaterTree />
+            Tools
+            <NavbarWaterTree />
             <NavbarScissors />
             <NavbarPortalGun />
           </NavbarGroup>

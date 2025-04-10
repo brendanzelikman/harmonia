@@ -2,19 +2,16 @@ import classNames from "classnames";
 import { TooltipButton } from "components/TooltipButton";
 import { memo } from "react";
 import { CiRuler } from "react-icons/ci";
-import { GiDominoMask, GiMusicalKeyboard, GiTrumpet } from "react-icons/gi";
+import { GiDominoMask, GiMusicalKeyboard } from "react-icons/gi";
 import { toggleTrackEditor } from "types/Timeline/TimelineThunks";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import {
   selectIsEditingTrack,
   selectSelectedTrackId,
 } from "types/Timeline/TimelineSelectors";
 import { createPatternTrack } from "types/Track/PatternTrack/PatternTrackThunks";
 import { PatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
-import {
-  createScaleTrack,
-  promptUserForScale,
-} from "types/Track/ScaleTrack/ScaleTrackThunks";
+import { createScaleTrack } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import { ScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import {
   selectPatternTrackById,
@@ -25,6 +22,7 @@ import {
   toggleTrackSolo,
 } from "types/Track/PatternTrack/PatternTrackThunks";
 import { cancelEvent } from "utils/html";
+import { promptUserForScale } from "types/Track/ScaleTrack/ScaleTrackRegex";
 
 export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
   const { trackId } = props;
@@ -77,12 +75,12 @@ export const PatternTrackButtons = memo(
   (props: { trackId: PatternTrackId; collapsed?: boolean }) => {
     const { trackId } = props;
     const dispatch = useDispatch();
-    const track = useStore((_) => selectPatternTrackById(_, trackId));
-    const isTrackSelected = useStore(selectSelectedTrackId) === trackId;
-    const isInstrumentEditorOpen = useStore((_) =>
+    const track = useSelect((_) => selectPatternTrackById(_, trackId));
+    const isTrackSelected = useSelect(selectSelectedTrackId) === trackId;
+    const isInstrumentEditorOpen = useSelect((_) =>
       selectIsEditingTrack(_, trackId)
     );
-    const instrument = useStore((_) => selectTrackInstrument(_, trackId));
+    const instrument = useSelect((_) => selectTrackInstrument(_, trackId));
     const onInstrumentEditor = isInstrumentEditorOpen && isTrackSelected;
     const mute = instrument?.mute;
     const solo = instrument?.solo;

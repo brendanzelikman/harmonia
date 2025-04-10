@@ -1,4 +1,3 @@
-import { range } from "lodash";
 import { resolvePatternNoteToMidi } from "types/Pattern/PatternResolvers";
 import { PatternNote, PatternStream } from "types/Pattern/PatternTypes";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -6,7 +5,6 @@ import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
 import { NestedNote } from "types/Scale/ScaleTypes";
 import { mod } from "utils/math";
 import { MidiValue, getMidiOctaveDistance } from "utils/midi";
-import { getArrayByKey } from "utils/objects";
 import {
   selectTrackScale,
   selectTrackMidiScale,
@@ -19,12 +17,15 @@ import {
 } from "./TrackSelectors";
 import { TrackId } from "./TrackTypes";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
+import { range } from "utils/array";
 
 /** Convert a midi into a nested note */
 export const convertMidiToNestedNote =
   (midi: MidiValue, parent?: TrackId): Thunk<NestedNote> =>
   (dispatch, getProject) => {
-    const parentScale = selectTrackScale(getProject(), parent);
+    const parentScale = parent
+      ? selectTrackScale(getProject(), parent)
+      : undefined;
     const parentMidi = selectTrackMidiScale(getProject(), parent);
     const degree = parentMidi.findIndex((s) => s % 12 === midi % 12);
     const octave = getMidiOctaveDistance(parentMidi[degree], midi);
@@ -48,7 +49,7 @@ export const getDegreeOfNoteInTrack =
     else {
       // Chain the note through its scales
       const track = selectScaleTrackByScaleId(project, patternNote?.scaleId);
-      const chain = selectTrackScaleChain(project, track?.id);
+      const chain = track?.id ? selectTrackScaleChain(project, track?.id) : [];
       MIDI = resolveScaleNoteToMidi(patternNote, chain);
     }
 
@@ -92,7 +93,7 @@ export const autoBindNoteToTrack =
       const trackId = chainIds[i];
       const track = selectScaleTrackById(project, trackId);
       const scaleId = track?.scaleId;
-      const scale = getArrayByKey(trackScaleMap, trackId);
+      const scale = trackScaleMap[trackId] ?? [];
       const scaleNote: PatternNote = { ...note, scaleId };
 
       // Check for an exact match with the current scale

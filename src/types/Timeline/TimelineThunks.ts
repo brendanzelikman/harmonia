@@ -15,6 +15,7 @@ import {
   selectScaleTrackIds,
   selectTrackAncestorIds,
   selectTrackDescendantIds,
+  selectTrackIds,
 } from "types/Track/TrackSelectors";
 import {
   selectTimelineType,
@@ -31,7 +32,7 @@ import {
   Payload,
   unpackData,
   unpackUndoType,
-} from "utils/redux";
+} from "types/redux";
 import { randomizePattern } from "types/Pattern/PatternThunks";
 import { TimelineState } from "./TimelineTypes";
 import { DEFAULT_CELL_WIDTH } from "utils/constants";
@@ -40,7 +41,7 @@ import {
   createCourtesyPoseClip,
   createPatternTrack,
 } from "types/Track/PatternTrack/PatternTrackThunks";
-import { createTreeFromString } from "utils/tree";
+import { createTreeFromString } from "types/Track/TrackRegex";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { walkPatternClip } from "types/Arrangement/ArrangementThunks";
@@ -48,7 +49,11 @@ import { TrackId } from "types/Track/TrackTypes";
 import { nanoid } from "@reduxjs/toolkit";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { maxBy } from "lodash";
-import { selectClipDuration, selectClips } from "types/Clip/ClipSelectors";
+import {
+  selectClipDuration,
+  selectClips,
+  selectPatternClips,
+} from "types/Clip/ClipSelectors";
 import { deleteMedia } from "types/Media/MediaThunks";
 import { getTransport } from "tone";
 
@@ -59,6 +64,7 @@ export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   dispatch(setCellWidth(onBase ? DEFAULT_CELL_WIDTH * 2 : DEFAULT_CELL_WIDTH));
 };
 
+/* Toggles the selected track ID. If the track id is already selected, it will be set to null. */
 export const toggleSelectedTrackId =
   (payload: Payload<TrackId>): Thunk =>
   (dispatch, getProject) => {
@@ -71,6 +77,13 @@ export const toggleSelectedTrackId =
     } else {
       dispatch(setSelectedTrackId({ data: trackId, undoType }));
     }
+  };
+
+/** Toggles the first track. */
+export const toggleTrackByIndex =
+  (i: number): Thunk =>
+  (dispatch, getProject) => {
+    dispatch(toggleSelectedTrackId({ data: selectTrackIds(getProject())[i] }));
   };
 
 /** Toggles the timeline type according to the order of the constant. */
@@ -180,7 +193,9 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
   dispatch(setSelectedTrackId({ data: trackId, undoType }));
 
   // Create a pattern clip if there are none
-  const selectedClips = selectSelectedPatternClips(getProject());
+  const selectedClips = selectPatternClips(getProject()).filter(
+    (c) => c.trackId === trackId
+  );
   const patternClip = maxBy(selectedClips, (clip) => clip.tick);
 
   // If no clip is selected, create a new clip and pose.

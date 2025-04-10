@@ -7,7 +7,7 @@ import {
   getPatternChordNotes,
   getPatternChordWithNewNotes,
 } from "../PatternUtils";
-import { Payload } from "utils/redux";
+import { Payload } from "types/redux";
 import { isBounded } from "utils/math";
 
 /** Set the velocities of the notes in a pattern. */

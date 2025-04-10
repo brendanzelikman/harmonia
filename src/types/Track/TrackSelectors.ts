@@ -1,10 +1,6 @@
-import { getValuesByKeys, getValueByKey, getArrayByKey } from "utils/objects";
+import { getValuesByKeys, getValueByKey } from "utils/object";
 import { selectScaleMap } from "../../types/Scale/ScaleSelectors";
-import {
-  createValueSelector,
-  createArraySelector,
-  createDeepSelector,
-} from "utils/redux";
+import { createValueSelector, createDeepSelector } from "types/redux";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { SafeProject, Project } from "types/Project/ProjectTypes";
@@ -42,7 +38,7 @@ import {
   ScaleTrack,
   isScaleTrackId,
 } from "./ScaleTrack/ScaleTrackTypes";
-import { getScaleName } from "utils/scale";
+import { getScaleName } from "lib/scale";
 
 // ------------------------------------------------------------
 // Track - Base Selectors
@@ -125,12 +121,12 @@ export const selectTrackAncestorIdsMap = createDeepSelector(
 );
 
 /** Select the ancestor IDs of a track. */
-export const selectTrackAncestorIds = createArraySelector(
-  selectTrackAncestorIdsMap
-);
+export const selectTrackAncestorIds = (project: Project, id: TrackId) => {
+  return selectTrackAncestorIdsMap(project)[id] ?? [];
+};
 
 /** Select the ancestors of a track. */
-export const selectTrackAncestors = (project: Project, id?: TrackId) => {
+export const selectTrackAncestors = (project: Project, id: TrackId) => {
   const ancestorIds = selectTrackAncestorIds(project, id);
   return ancestorIds.map((id) => selectTrackById(project, id));
 };
@@ -149,18 +145,18 @@ export const selectTrackDescendantMap = createDeepSelector(
   [selectTrackDescendantIdMap, selectTrackMap],
   (descendantIdMap, trackMap) =>
     mapValues(trackMap, (track) => {
-      const descendantIds = getArrayByKey(descendantIdMap, track?.id);
+      const descendantIds = descendantIdMap[track.id];
       return descendantIds.map((descendantId) => trackMap[descendantId]);
     })
 );
 
 /** Select the IDs of the descendants of a track. */
-export const selectTrackDescendantIds = createArraySelector(
-  selectTrackDescendantIdMap
-);
+export const selectTrackDescendantIds = (project: Project, id: TrackId) => {
+  return selectTrackDescendantIdMap(project)[id] ?? [];
+};
 
 /** Select the descendants of a track. */
-export const selectTrackDescendants = (project: Project, id?: TrackId) => {
+export const selectTrackDescendants = (project: Project, id: TrackId) => {
   const descendantIds = selectTrackDescendantIds(project, id);
   return descendantIds
     .map((id) => selectTrackById(project, id))
@@ -191,9 +187,9 @@ export const selectTrackParent = (project: Project, id?: TrackId) => {
 };
 
 /** Select the children of a track. */
-export const selectTrackChildren = (project: Project, id?: TrackId) => {
+export const selectTrackChildren = (project: Project, id: TrackId) => {
   const childIdMap = selectTrackChildIdMap(project);
-  const childIds = getValueByKey(childIdMap, id);
+  const childIds = childIdMap[id];
   if (!childIds) return [];
   return childIds
     .map((id) => selectTrackById(project, id))
@@ -201,7 +197,9 @@ export const selectTrackChildren = (project: Project, id?: TrackId) => {
 };
 
 /** Select the child IDs of a track. */
-export const selectTrackChildIds = createArraySelector(selectTrackChildIdMap);
+export const selectTrackChildIds = (project: Project, id: TrackId) => {
+  return selectTrackChildIdMap(project)[id] ?? [];
+};
 
 // ------------------------------------------------------------
 // Track - Depth, Label, Order, and Index
@@ -363,7 +361,7 @@ export const selectScaleTrackChainIdsMap = createDeepSelector(
 export const selectScaleTrackChainIds = (project: Project, id?: TrackId) => {
   if (!id) return [];
   const chainIdsMap = selectScaleTrackChainIdsMap(project);
-  return getArrayByKey(chainIdsMap, id);
+  return chainIdsMap[id] ?? [];
 };
 
 /** Select the scale track chain of a track. */
@@ -387,16 +385,16 @@ export const selectTrackScaleChainMap = createDeepSelector(
 );
 
 /** Select the scale chain of a track by ID. */
-export const selectTrackScaleChain = createArraySelector(
-  selectTrackScaleChainMap
-);
+export const selectTrackScaleChain = (project: Project, id: TrackId) => {
+  return selectTrackScaleChainMap(project)[id] ?? [];
+};
 
 /** Select the map of all tracks to their MIDI scales. */
 export const selectTrackMidiScaleMap = createDeepSelector(
   [selectTrackMap, selectTrackScaleChainMap],
   (trackMap, scaleChainMap) =>
     mapValues(trackMap, (t) => {
-      const scales = getArrayByKey(scaleChainMap, t?.id);
+      const scales = scaleChainMap[t.id] ?? [];
       return resolveScaleChainToMidi(scales);
     })
 );
@@ -408,7 +406,7 @@ export const selectTrackMidiScale = createValueSelector(
 );
 
 /** Select the scale of a specific track by ID. */
-export const selectTrackScale = (project: Project, id?: TrackId) => {
+export const selectTrackScale = (project: Project, id: TrackId) => {
   const scaleChain = selectTrackScaleChain(project, id);
   return scaleChain.at(-1);
 };

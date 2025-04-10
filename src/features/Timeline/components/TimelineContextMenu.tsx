@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { ContextMenu } from "components/ContextMenu";
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import { memo, useCallback, useState } from "react";
 import { blurEvent, blurOnEnter, cancelEvent } from "utils/html";
 import { updateClips } from "types/Clip/ClipSlice";
@@ -42,16 +42,15 @@ import {
   TabPanel,
   Menu,
 } from "@headlessui/react";
-import { noop } from "lodash";
 
 export const TimelineContextMenu = memo(() => {
   const dispatch = useDispatch();
-  const bpm = useStore(selectTransportBPM);
-  const timeSignature = useStore(selectTransportTimeSignature);
+  const bpm = useSelect(selectTransportBPM);
+  const timeSignature = useSelect(selectTransportTimeSignature);
 
   // Get the currently selected objects
-  const patternClips = useStore(selectSelectedPatternClips);
-  const clips = useStore(selectSelectedClips);
+  const patternClips = useSelect(selectSelectedPatternClips);
+  const clips = useSelect(selectSelectedClips);
 
   // Change the color of the currently selected clips
   const [color, setColor] = useState(DEFAULT_PATTERN_CLIP_COLOR);
@@ -78,7 +77,7 @@ export const TimelineContextMenu = memo(() => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={blurOnEnter}
-          className="min-w-12 max-w-24 text-xs ml-auto h-6 text-center bg-transparent text-slate-200 bg-slate-50 rounded"
+          className="min-w-12 max-w-24 text-xs ml-auto h-6 text-center bg-transparent text-slate-200 rounded"
         />
       </div>
       <div
@@ -102,7 +101,7 @@ export const TimelineContextMenu = memo(() => {
             setDuration(e.target.value);
           }}
           onKeyDown={blurOnEnter}
-          className="min-w-12 ml-auto max-w-16 h-6 text-center bg-transparent text-slate-200 bg-slate-50 rounded"
+          className="min-w-12 ml-auto max-w-16 h-6 text-center bg-transparent text-slate-200 rounded"
         />
       </div>
       <div
@@ -225,20 +224,29 @@ export const TimelineContextMenu = memo(() => {
       targetId="timeline"
       options={[
         {
-          onClick: noop,
+          onClick: () => null,
           disabled: false,
           label: (
             <Menu as="div" className="size-full relative px-2 min-w-48">
               <MenuItems static className="size-full">
                 <TabGroup onClick={cancelEvent}>
                   <TabList className="flex pb-1 gap-2 justify-evenly border-b border-b-indigo-500/50">
-                    <Tab className="data-[selected]:text-indigo-400 outline-none">
+                    <Tab
+                      className="data-[selected]:text-indigo-400 outline-none cursor-pointer"
+                      onFocus={blurEvent}
+                    >
                       Properties
                     </Tab>
-                    <Tab className="data-[selected]:text-indigo-400 outline-none">
+                    <Tab
+                      className="data-[selected]:text-indigo-400 outline-none cursor-pointer"
+                      onFocus={blurEvent}
+                    >
                       Selection
                     </Tab>
-                    <Tab className="data-[selected]:text-indigo-400 outline-none">
+                    <Tab
+                      className="data-[selected]:text-indigo-400 outline-none cursor-pointer"
+                      onFocus={blurEvent}
+                    >
                       Clipboard
                     </Tab>
                   </TabList>

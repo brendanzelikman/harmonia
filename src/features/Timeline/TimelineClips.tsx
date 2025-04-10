@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 
-import { useStore } from "hooks/useStore";
+import { useSelect } from "hooks/useStore";
 import { useCallback, useMemo, useState } from "react";
 import {
   isPatternClipId,
@@ -24,14 +24,11 @@ export interface TimelineClipsProps {
 
 export function TimelineClips(props: TimelineClipsProps) {
   const element = props.element;
-  const portaledClipIds = useStore(selectPortaledClipIds);
-  const boundaries = useStore(selectPortaledClipBoundMap);
+  const portaledClipIds = useSelect(selectPortaledClipIds);
+  const boundaries = useSelect(selectPortaledClipBoundMap);
 
   // Virtualize clips using scroll position
-  const [{ scrollLeft, scrollRight }, setBounds] = useState({
-    scrollLeft: element?.scrollLeft ?? 0,
-    scrollRight: (element?.scrollLeft ?? 0) + window.innerWidth,
-  });
+  const [scrollLeft, setBounds] = useState(element?.scrollLeft ?? 0);
   useEvent("scroll", (e) => setBounds(e.detail));
 
   // Blur clips if they are dragged
@@ -44,7 +41,7 @@ export function TimelineClips(props: TimelineClipsProps) {
       const { left, right } = boundaries[pcId];
       const padding = 500;
       if (scrollLeft > right + padding) return null;
-      if (scrollRight < left - padding) return null;
+      if (scrollLeft + window.innerWidth < left - padding) return null;
 
       // Get the base props for all clips
       const id = getOriginalIdFromPortaledClip(pcId);
@@ -73,7 +70,7 @@ export function TimelineClips(props: TimelineClipsProps) {
 
       return null;
     },
-    [scrollLeft, scrollRight, isDragging, boundaries]
+    [scrollLeft, isDragging, boundaries]
   );
 
   // Portal the clips into the timeline element

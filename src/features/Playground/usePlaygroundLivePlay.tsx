@@ -1,7 +1,6 @@
-import { dispatchCustomEvent, isInputEvent } from "utils/html";
-import { useStore, useDispatch } from "hooks/useStore";
+import { isInputEvent } from "utils/html";
+import { useSelect, useDispatch } from "hooks/useStore";
 import { useCallback, useEffect } from "react";
-import { useHeldHotkeys } from "lib/hotkeys";
 import {
   toggleInstrumentMute,
   toggleInstrumentSolo,
@@ -23,8 +22,7 @@ import {
   unmuteTracks,
   unsoloTracks,
 } from "types/Track/PatternTrack/PatternTrackThunks";
-import { range } from "lodash";
-import { createUndoType } from "utils/redux";
+import { createUndoType } from "types/redux";
 import { walkSelectedPatternClips } from "types/Arrangement/ArrangementThunks";
 import { updatePose } from "types/Pose/PoseSlice";
 import { selectPoseMap } from "types/Pose/PoseSelectors";
@@ -38,46 +36,31 @@ import {
 } from "types/Track/PatternTrack/PatternTrackThunks";
 import { useTick } from "hooks/useTick";
 import { PoseClip } from "types/Clip/ClipTypes";
+import { useHeldKeys } from "hooks/useHeldKeys";
+import { range } from "utils/array";
 
 const numberKeys = range(1, 10).map((n) => n.toString());
 const scaleKeys = ["q", "w", "e", "r", "t", "y"];
 const zeroKeys = ["0"];
-const extraKeys = [
-  "m",
-  "s",
-  "p",
-  "v",
-  "c",
-  "d",
-  "minus",
-  "`",
-  "equal",
-  "shift",
-  "meta",
-];
-const ALL_KEYS = [...numberKeys, ...zeroKeys, ...scaleKeys, ...extraKeys];
+const extraKeys = ["m", "s", "p", "v", "c", "d", "-", "`", "="];
+const hotkeys = [...numberKeys, ...zeroKeys, ...scaleKeys, ...extraKeys];
 
 export const useLivePlay = () => {
   const dispatch = useDispatch();
-  const scaleTrackIds = useStore(selectScaleTrackIds);
-  const patternTracks = useStore(selectPatternTracks);
-  const selectedTrackId = useStore(selectSelectedTrackId);
-  const trackAncestorMap = useStore(selectTrackAncestorIdsMap);
-  const patternClips = useStore(selectSelectedPatternClips);
-  const poseMap = useStore(selectPoseMap);
-  const poseClips = useStore(selectPoseClips);
-  const selectedPoses = useStore(selectSelectedPoses);
-  const clips = useStore(selectSelectedPoseClips);
+  const scaleTrackIds = useSelect(selectScaleTrackIds);
+  const patternTracks = useSelect(selectPatternTracks);
+  const selectedTrackId = useSelect(selectSelectedTrackId);
+  const trackAncestorMap = useSelect(selectTrackAncestorIdsMap);
+  const patternClips = useSelect(selectSelectedPatternClips);
+  const poseMap = useSelect(selectPoseMap);
+  const poseClips = useSelect(selectPoseClips);
+  const selectedPoses = useSelect(selectSelectedPoses);
+  const clips = useSelect(selectSelectedPoseClips);
   const hasClips = clips.length > 0;
   const transport = useTick();
-  const timelineTick = useStore(selectTimelineTick);
+  const timelineTick = useSelect(selectTimelineTick);
   const tick = timelineTick === 0 ? transport.tick : timelineTick;
-  const holding = useHeldHotkeys(ALL_KEYS);
-  useEffect(() => {
-    if (!Object.keys(holding).some((key) => holding[key])) {
-      dispatchCustomEvent("add-shortcut", {});
-    }
-  }, [holding]);
+  const holding = useHeldKeys(hotkeys);
 
   // The callback for the numerical keydown event
   const keydown = useCallback(
@@ -362,16 +345,12 @@ export const useLivePlay = () => {
     ]
   );
 
-  /**
-   * Add the corresponding event listener to the window if the user is live.
-   * (This is a workaround for duplicated events with react-hotkeys)
-   */
   useEffect(() => {
-    window.addEventListener("keydown", keydown);
-    window.addEventListener("keydown", zeroKeydown);
+    document.addEventListener("keypress", keydown);
+    document.addEventListener("keypress", zeroKeydown);
     return () => {
-      window.removeEventListener("keydown", keydown);
-      window.removeEventListener("keydown", zeroKeydown);
+      document.removeEventListener("keypress", keydown);
+      document.removeEventListener("keypress", zeroKeydown);
     };
   }, [keydown, zeroKeydown]);
 };

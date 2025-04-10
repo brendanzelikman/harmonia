@@ -1,6 +1,6 @@
 import { fill } from "lodash";
 import { Pattern } from "types/Pattern/PatternTypes";
-import * as _ from "utils/durations";
+import * as _ from "utils/duration";
 
 export const TripletWholeNotes: Pattern = {
   id: "pattern_preset_triplet-whole-notes",

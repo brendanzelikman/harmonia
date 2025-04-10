@@ -1,8 +1,4 @@
-import {
-  createArraySelector,
-  createDeepSelector,
-  createValueSelector,
-} from "utils/redux";
+import { createDeepSelector, createValueSelector } from "types/redux";
 import { createSelector } from "reselect";
 import {
   isPortaledPatternClip,
@@ -14,7 +10,7 @@ import {
 import { TrackPoseClips } from "./ArrangementTypes";
 import { InstrumentNotesByTicks } from "types/Instrument/InstrumentTypes";
 import { applyPortalsToClips } from "types/Portal/PortalFunctions";
-import { PortaledClipMap } from "types/Portal/PortalTypes";
+import { PortaledClipId, PortaledClipMap } from "types/Portal/PortalTypes";
 import {
   selectClipDurationMap,
   selectClips,
@@ -33,11 +29,12 @@ import { selectPatternState } from "types/Pattern/PatternSelectors";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { mapValues } from "lodash";
-import { ticksToSeconds } from "utils/durations";
+import { ticksToSeconds } from "utils/duration";
 import { selectScaleState } from "types/Scale/ScaleSelectors";
 import { selectPoseState } from "types/Pose/PoseSelectors";
 import { getPatternClipMidiStream } from "./ArrangementFunctions";
 import { TrackArrangement } from "./ArrangementTypes";
+import { Project } from "types/Project/ProjectTypes";
 
 /** Select the map of all portaled clips. */
 export const selectPortaledClipMap = createDeepSelector(
@@ -171,10 +168,16 @@ export const selectPortaledPatternClipStreamMap = createDeepSelector(
     )
 );
 /** Select the fully transposed stream of a portaled clip. */
-export const selectPortaledPatternClipStream = createArraySelector(
-  selectPortaledPatternClipStreamMap
-);
-
+export const selectPortaledPatternClipStream = (
+  project: Project,
+  clipId: PortaledClipId
+) => {
+  return (
+    selectPortaledPatternClipStreamMap(project)[
+      clipId as PortaledPatternClipId
+    ] ?? []
+  );
+};
 /** Select all pattern chords to be played by each track at every tick. */
 export const selectMidiChordsByTicks = createDeepSelector(
   [

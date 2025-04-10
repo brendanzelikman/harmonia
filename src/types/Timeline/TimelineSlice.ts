@@ -6,7 +6,7 @@ import {
   MIN_CELL_HEIGHT,
   MIN_CELL_WIDTH,
 } from "utils/constants";
-import { Subdivision } from "utils/durations";
+import { Subdivision } from "utils/duration";
 import { ClipType } from "types/Clip/ClipTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import {
@@ -20,7 +20,7 @@ import {
   defaultMediaClipboard,
   defaultMediaSelection,
 } from "types/Media/MediaTypes";
-import { Action, unpackAction } from "utils/redux";
+import { Action, unpackAction } from "types/redux";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { Portal } from "types/Portal/PortalTypes";

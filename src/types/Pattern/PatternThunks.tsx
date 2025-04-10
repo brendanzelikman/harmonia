@@ -1,7 +1,7 @@
-import { SixteenthNoteTicks } from "utils/durations";
+import { SixteenthNoteTicks } from "utils/duration";
 import { Seconds } from "types/units";
 import { Frequency, Sampler } from "tone";
-import { EighthNoteTicks } from "utils/durations";
+import { EighthNoteTicks } from "utils/duration";
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { range, sample } from "lodash";
 import { PresetScaleList } from "assets/scales";
@@ -25,7 +25,7 @@ import {
   selectTrackScaleChain,
   selectTrackById,
 } from "types/Track/TrackSelectors";
-import { Payload, unpackData, unpackUndoType } from "utils/redux";
+import { Payload, unpackData, unpackUndoType } from "types/redux";
 import { TrackId } from "types/Track/TrackTypes";
 
 /** Creates a pattern and adds it to the slice. */
@@ -102,7 +102,7 @@ export const randomizePattern =
 
     // Get the last scale from the track
     const track = trackId ? selectTrackById(project, trackId) : undefined;
-    const scaleChain = selectTrackScaleChain(project, trackId);
+    const scaleChain = trackId ? selectTrackScaleChain(project, trackId) : [];
     const scales = track ? scaleChain : Object.values(PresetScaleList);
     const scale = scales[scales.length - 1];
     const scaleId = scale?.id;

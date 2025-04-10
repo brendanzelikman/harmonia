@@ -19,12 +19,8 @@ import {
   selectPortaledClips,
   selectProcessedArrangement,
 } from "./ArrangementSelectors";
-import {
-  createArraySelector,
-  createDeepSelector,
-  createValueSelector,
-} from "utils/redux";
-import { getScaleName } from "utils/scale";
+import { createDeepSelector, createValueSelector } from "types/redux";
+import { getScaleName } from "lib/scale";
 import { getPoseVectorAsString } from "types/Pose/PoseFunctions";
 import { getPoseOperationsAtTick } from "types/Clip/PoseClip/PoseClipFunctions";
 import { selectPoseMap } from "types/Pose/PoseSelectors";
@@ -124,7 +120,9 @@ export const selectTrackClipIdsMap = createDeepSelector(
 );
 
 /** Select the array of clip IDs for a track. */
-export const selectTrackClipIds = createArraySelector(selectTrackClipIdsMap);
+export const selectTrackClipIds = (project: Project, trackId: TrackId) => {
+  return selectTrackClipIdsMap(project)[trackId] ?? [];
+};
 
 /** Select the map of tracks to their portaled clip IDs. */
 export const selectTrackPortaledClipIdsMap = createDeepSelector(
@@ -137,6 +135,9 @@ export const selectTrackPortaledClipIdsMap = createDeepSelector(
 );
 
 /** Select the array of portaled clip IDs for a track. */
-export const selectTrackPortaledClipIds = createArraySelector(
-  selectTrackPortaledClipIdsMap
-);
+export const selectTrackPortaledClipIds = (
+  project: Project,
+  trackId: TrackId
+) => {
+  return selectTrackPortaledClipIdsMap(project)[trackId] ?? [];
+};

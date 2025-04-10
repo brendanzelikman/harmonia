@@ -200,9 +200,11 @@ export const TooltipButton = ({
       {shown ?? label ?? (
         <>
           {hotkey?.name}{" "}
-          <span className="font-light text-slate-400">
-            ({hotkey?.shortcut})
-          </span>
+          {!!hotkey?.shortcut && (
+            <span className="font-light text-slate-400">
+              ({hotkey?.shortcut})
+            </span>
+          )}
         </>
       )}
     </div>

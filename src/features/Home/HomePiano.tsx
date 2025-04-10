@@ -98,7 +98,7 @@ export const MagicalPiano = () => {
 
   return (
     <div className="relative total-center-col group px-8 py-5 shrink-0 w-full gap-16 text-white">
-      <div className="w-full h-96 p-4 flex flex-col bg-slate-950 rounded ring-8 ring-slate-900 active:shadow-[0_0_100px_100px_rgb(255,255,255)] active:duration-20000 transition-all">
+      <div className="w-full h-96 p-4 flex flex-col bg-slate-950 rounded ring-8 ring-slate-900 active:shadow-[0_0_100px_100px_rgb(255,255,255)] active:duration-1000 transition-all">
         <div className="h-32 flex items-center font-light gap-6 text-xl overflow-x-scroll overflow-y-hidden">
           <Logo width="80px" height="80px" className="-mt-2 ml-2" />
           <h2 className="text-4xl mr-8 w-48 -mt-2">Harmonia Instruments</h2>

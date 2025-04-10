@@ -1,10 +1,9 @@
 import { Action, ThunkAction } from "@reduxjs/toolkit";
-import { isObject, isString } from "lodash";
 import { BaseProject } from "app/reducer";
 import { defaultArrangement } from "types/Arrangement/ArrangementTypes";
 import { defaultTimeline } from "types/Timeline/TimelineTypes";
 import { defaultTransport } from "types/Transport/TransportTypes";
-import { Safe } from "types/utils";
+import { isObject, isString, Safe } from "types/utils";
 import {
   defaultProjectMetadata,
   initializeProjectMetadata,

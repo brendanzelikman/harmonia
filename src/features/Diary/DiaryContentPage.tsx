@@ -38,7 +38,7 @@ export const DiaryContentPage = (props: ContentPageProps) => {
     <DiaryPage key={`page-${index}`} index={index}>
       <div
         className={
-          "relative size-full backdrop-blur-sm p-8 flex flex-col gap-4 prose prose-md"
+          "relative size-full backdrop-blur-sm p-8 flex flex-col gap-4"
         }
         onClick={cancelEvent}
       >

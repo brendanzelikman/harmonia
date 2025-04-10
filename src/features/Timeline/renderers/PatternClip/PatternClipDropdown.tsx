@@ -1,16 +1,14 @@
-import { useStore, useDispatch } from "hooks/useStore";
+import { useSelect, useDispatch } from "hooks/useStore";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { cancelEvent, DivMouseEvent } from "utils/html";
+import { cancelEvent } from "utils/html";
 import {
   removePatternBlock,
   updatePatternBlockDuration,
 } from "types/Pattern/PatternSlice";
 import classNames from "classnames";
 import { clearPattern, randomizePattern } from "types/Pattern/PatternThunks";
-import {
-  bindNoteWithPrompt,
-  bindNoteWithPromptCallback,
-} from "types/Track/ScaleTrack/ScaleTrackThunks";
+import { bindNoteWithPromptCallback } from "types/Clip/PatternClip/PatternClipRegex";
+import { bindNoteWithPrompt } from "types/Clip/PatternClip/PatternClipRegex";
 import {
   getDurationImage,
   getDurationName,
@@ -18,15 +16,14 @@ import {
   getStraightDuration,
   getTickDuration,
   STRAIGHT_DURATION_TYPES,
-} from "utils/durations";
+} from "utils/duration";
 import { PatternClipId, PortaledPatternClip } from "types/Clip/ClipTypes";
 import { usePatternClipScore } from "./usePatternClipScore";
-import { useHeldHotkeys } from "lib/hotkeys";
-import { createUndoType } from "utils/redux";
+import { createUndoType } from "types/redux";
 import { nanoid } from "@reduxjs/toolkit";
 import { Piano } from "components/Piano";
 import { selectTrackScale } from "types/Track/TrackSelectors";
-import { useState } from "react";
+import { MouseEvent, useState } from "react";
 import {
   promptUserForPattern,
   promptUserForPatternEffect,
@@ -42,9 +39,9 @@ import {
 import { FaEraser, FaTape } from "react-icons/fa";
 import { BsRecord, BsScissors } from "react-icons/bs";
 import { selectPatternNoteLabel } from "types/Clip/PatternClip/PatternClipSelectors";
-import { useHotkeys } from "react-hotkeys-hook";
 import { PatternId } from "types/Pattern/PatternTypes";
 import { useToggle } from "hooks/useToggle";
+import { useHeldKeys } from "hooks/useHeldKeys";
 
 export interface PatternClipDropdownProps {
   clip: PortaledPatternClip;
@@ -58,8 +55,8 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const { patternId, trackId } = clip;
 
   // Get the pattern and scale for the current clip
-  const pattern = useStore((_) => selectPatternById(_, patternId));
-  const scale = useStore((_) => selectTrackScale(_, trackId));
+  const pattern = useSelect((_) => selectPatternById(_, patternId));
+  const scale = useSelect((_) => selectTrackScale(_, trackId));
 
   // Allow the user to switch between scale and pedal notes
   const [type, setType] = useState<string>("scale");
@@ -67,20 +64,11 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   // Get the score of the pattern clip
   const clipScore = usePatternClipScore(clip);
   const { Score, index, playNote, setDuration, duration, input } = clipScore;
-  const labels = useStore((_) => selectPatternNoteLabel(_, patternId, index));
+  const labels = useSelect((_) => selectPatternNoteLabel(_, patternId, index));
   const isEditing = index !== undefined;
   const isEmpty = !pattern.stream.length;
   const isBinding = type === "scale";
   const record = useToggle("record-pattern");
-
-  // Use hotkeys to toggle between each duration
-  useHotkeys("x+1", () => setDuration(getDurationTicks("whole")));
-  useHotkeys("x+2", () => setDuration(getDurationTicks("half")));
-  useHotkeys("x+3", () => setDuration(getDurationTicks("quarter")));
-  useHotkeys("x+4", () => setDuration(getDurationTicks("eighth")));
-  useHotkeys("x+5", () => setDuration(getDurationTicks("16th")));
-  useHotkeys("x+6", () => setDuration(getDurationTicks("32nd")));
-  useHotkeys("x+7", () => setDuration(getDurationTicks("64th")));
 
   return (
     <div
@@ -273,7 +261,7 @@ const themes = {
 };
 
 const DropdownButton = (props: {
-  onClick?: (e: DivMouseEvent) => void;
+  onClick?: (e: MouseEvent<HTMLDivElement>) => void;
   borderColor?: string;
   backgroundColor?: string;
   dropdown?: React.ReactNode;
@@ -342,7 +330,7 @@ const DropdownDurationButtons = (props: {
             key={d}
             theme={isEqual ? "note-active" : "note"}
             width="size-8"
-            dropdown={`${name} (${i + 1})`}
+            dropdown={name}
             icon={<img className="object-contain size-5" src={image} />}
             onClick={() => {
               setDuration(getDurationTicks(d));
@@ -394,7 +382,7 @@ const DropdownNoteButtons = (props: {
 };
 
 const DropdownDurationShortcuts = () => {
-  const holding = useHeldHotkeys(["shift", ",", "/", ".", "x"]);
+  const holding = useHeldKeys(["shift", ",", "/", "."]);
   return (
     <div className="flex flex-col gap-0.5 w-full text-slate-300">
       <div className="flex gap-2">

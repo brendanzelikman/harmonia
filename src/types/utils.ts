@@ -6,6 +6,21 @@ import { Id } from "./units";
 // Basic Helpers
 // ------------------------------------------------------------
 
+// Check if a value is a number
+export const isNumber = (value: unknown): value is number => {
+  return typeof value === "number";
+};
+
+// Check if a value is a string
+export const isString = (value: unknown): value is string => {
+  return typeof value === "string";
+};
+
+// Check if a value is an object
+export const isObject = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null;
+};
+
 // Create an id with the given prefix (e.g. "id_001")
 export const createId = <T extends EntityId = string>(
   prefix: T = "id" as T
