@@ -547,7 +547,7 @@ export const NavbarLivePlay = () => {
               hasTracks ? (
                 "Select Track, Pattern, or Pose"
               ) : (
-                "Create Tree to Unlock Interactive Shortcuts"
+                "Create Tree to Unlock Keyboard Gestures"
               )
             ) : isMixing ? (
               <div>(Hold M/S + Number)</div>

@@ -35,6 +35,7 @@ export const DemosPage = () => {
             icon={<GiCompactDisc className="pr-0" />}
           />
         ))}
+        <div className="h-12 w-0" />
       </HomeControlBar>
       <HomeList signal={UPDATE_PROJECT_EVENT}>
         {projects.map((project, index) => (

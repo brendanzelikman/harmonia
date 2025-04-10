@@ -5,7 +5,6 @@ import { Editor } from "features/Editor/Editor";
 import { Terminal } from "features/Terminal/Terminal";
 import { Tutorial } from "features/Tutorial/Tutorial";
 import { Timeline } from "features/Timeline/Timeline";
-import { usePlaygroundProject } from "./usePlaygroundProject";
 import { usePlaygroundTransport } from "./usePlaygroundTransport";
 import { PlaygroundLoadingScreen } from "./PlaygroundLoadingScreen";
 import { useSelect } from "hooks/useStore";
@@ -17,26 +16,17 @@ export const LOAD_PLAYGROUND = "load-playground";
 
 /** The playground loads when the project and transport are ready */
 export function PlaygroundPage() {
-  const isProjectLoaded = usePlaygroundProject();
-  const isTransportLoaded = usePlaygroundTransport();
-  const isPlaygroundLoaded = isProjectLoaded && isTransportLoaded;
-
-  // Return the playground when everything is loaded
-  dispatchCustomEventOnChange(LOAD_PLAYGROUND, isPlaygroundLoaded);
-  if (isProjectLoaded && isTransportLoaded) return <Playground />;
-
-  // Otherwise, show a loading screen
-  return (
-    <PlaygroundLoadingScreen
-      text={isProjectLoaded ? "Building Instruments..." : "Loading Project..."}
-    />
-  );
-}
-
-/** The Playground controls all of the main components and hotkeys */
-export function Playground() {
   const hasTracks = useSelect(selectHasTracks);
+  const isTransportLoaded = usePlaygroundTransport();
+  dispatchCustomEventOnChange(LOAD_PLAYGROUND, isTransportLoaded);
   useHotkeys(hotkeys);
+
+  // Show loading screen while transport is loading
+  if (!isTransportLoaded) {
+    return <PlaygroundLoadingScreen text="Building Instruments..." />;
+  }
+
+  // Show the playground when transport is loaded
   return (
     <div className="size-full relative">
       {hasTracks ? <Timeline /> : <Tutorial />}

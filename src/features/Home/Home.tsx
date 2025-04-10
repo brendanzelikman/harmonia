@@ -6,10 +6,12 @@ import { Background } from "components/Background";
 import { Navbar } from "features/Navbar/Navbar";
 import { useRoute } from "app/router";
 import { PlaygroundPage } from "features/Playground/Playground";
+import { useProject } from "hooks/useProject";
 
 export function HomePage() {
   const view = useRoute();
   useWindowTitle(view);
+  useProject();
   return (
     <div className="size-full relative">
       <Navbar />
