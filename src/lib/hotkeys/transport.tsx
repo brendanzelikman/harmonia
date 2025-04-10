@@ -31,10 +31,10 @@ export const RecordTransportHotkey: Hotkey = {
   name: "Record Playback",
   description: "Toggle whether the transport is recording.",
   shortcut: "shift+r",
-  callback: () => {
+  callback: (dispatch) => {
     !!getToggleValue(RECORD_TRANSPORT)
-      ? stopRecordingTransport()
-      : startRecordingTransport();
+      ? dispatch(stopRecordingTransport())
+      : dispatch(startRecordingTransport());
   },
 };
 
