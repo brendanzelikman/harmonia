@@ -64,9 +64,6 @@
   .cursor-eyedropper {
     cursor: url(/cursors/eyedropper.cur), pointer;
   }
-  .cursor-neonpurple {
-    cursor: url(/cursors/neonpurple.cur), pointer;
-  }
   .total-center {
     display: flex;
     justify-content: center;
