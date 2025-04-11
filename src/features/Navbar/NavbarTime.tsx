@@ -1,19 +1,20 @@
-import { useSelect } from "hooks/useStore";
-import { useTick } from "hooks/useTick";
+import { useAppValue } from "hooks/useRedux";
+import { useTick, useTickString } from "types/Transport/TransportTick";
 import { useEffect } from "react";
 import { selectHasTracks } from "types/Track/TrackSelectors";
-import { stopTransport } from "types/Transport/TransportThunks";
-import { useTransport } from "hooks/useTransport";
+import { stopTransport } from "types/Transport/TransportState";
+import { useTransportState } from "types/Transport/TransportState";
 import { useToggle } from "hooks/useToggle";
-import { RECORD_TRANSPORT } from "types/Transport/TransportTypes";
+import { RECORD_TRANSPORT } from "types/Transport/TransportRecorder";
 
 export function NavbarTime() {
-  const { tick, string } = useTick();
+  const tick = useTick();
+  const string = useTickString();
   const isRecording = useToggle(RECORD_TRANSPORT).isOpen;
-  const state = useTransport();
+  const state = useTransportState();
 
   // If there are no tracks, stop the transport
-  const hasTracks = useSelect(selectHasTracks);
+  const hasTracks = useAppValue(selectHasTracks);
   useEffect(() => {
     if (!hasTracks) stopTransport();
   }, [hasTracks]);

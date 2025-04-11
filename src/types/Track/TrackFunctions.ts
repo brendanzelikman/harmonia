@@ -1,5 +1,3 @@
-import { getValueByKey } from "utils/object";
-
 import { numberToUpper } from "utils/math";
 import { isScaleTrack, ITrack, Track, TrackId, TrackMap } from "./TrackTypes";
 import { isScaleTrackId, ScaleTrackId } from "./ScaleTrack/ScaleTrackTypes";
@@ -82,10 +80,12 @@ export const getTrackIndex = (id: TrackId, trackMap: TrackMap) => {
   if (topLevelIndex > -1) return topLevelIndex;
 
   // Otherwise, return the index of the track in its parent
-  const parent = getValueByKey(trackMap, track.parentId);
-  const trackIds = sortTrackIds(parent?.trackIds ?? [], trackMap);
-  const parentIndex = trackIds.indexOf(id);
-  if (parentIndex > -1) return parentIndex;
+  if (track.parentId) {
+    const parent = trackMap[track.parentId];
+    const trackIds = sortTrackIds(parent?.trackIds ?? [], trackMap);
+    const parentIndex = trackIds.indexOf(id);
+    return parentIndex;
+  }
 
   return track.order ?? -1;
 };
@@ -138,7 +138,8 @@ export const getScaleTrack = (id: TrackId, trackMap: TrackMap) => {
   const track = trackMap[id];
   if (!track) return undefined;
   if (isScaleTrack(track)) return track;
-  const parent = getValueByKey(trackMap, track.parentId);
+  if (!track.parentId) return undefined;
+  const parent = trackMap[track.parentId];
   if (isScaleTrack(parent)) return parent;
   return undefined;
 };

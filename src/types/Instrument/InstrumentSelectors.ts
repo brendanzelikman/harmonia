@@ -1,6 +1,5 @@
 import { createSelector } from "reselect";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
-import { getValueByKey, getValuesByKeys } from "utils/object";
 import {
   defaultInstrumentState,
   InstrumentId,
@@ -29,7 +28,7 @@ export const selectInstrumentIds = createDeepSelector(
 /** Select all instruments. */
 export const selectInstruments = createSelector(
   [selectInstrumentMap, selectInstrumentIds],
-  getValuesByKeys
+  (instrumentMap, instrumentIds) => instrumentIds.map((id) => instrumentMap[id])
 );
 
 /** Select all unique instrument names. */
@@ -48,6 +47,7 @@ export const selectInstrumentKey = createValueSelector(selectInstrumentKeyMap);
 
 /** Select an instrument by ID or return undefined if not found. */
 export const selectInstrumentById = (project: Project, id?: InstrumentId) => {
+  if (!id) return undefined;
   const instrumentMap = selectInstrumentMap(project);
-  return getValueByKey(instrumentMap, id);
+  return instrumentMap[id];
 };

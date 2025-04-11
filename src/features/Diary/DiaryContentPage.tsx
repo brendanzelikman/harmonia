@@ -1,4 +1,4 @@
-import { cancelEvent } from "utils/html";
+import { cancelEvent } from "utils/event";
 import { DiaryPage } from "./DiaryPage";
 import classNames from "classnames";
 

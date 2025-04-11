@@ -1,4 +1,3 @@
-import { getValueByKey } from "utils/object";
 import { createDeepSelector } from "types/redux";
 import { Project, SafeProject } from "types/Project/ProjectTypes";
 import { PoseId, Pose, PoseState } from "./PoseTypes";
@@ -28,6 +27,7 @@ export const selectPoses = createDeepSelector(
 
 /** Select a pose by ID. */
 export const selectPoseById = (project: Project, id?: PoseId) => {
+  if (!id) return undefined;
   const poseMap = selectPoseMap(project);
-  return getValueByKey(poseMap, id);
+  return poseMap[id];
 };

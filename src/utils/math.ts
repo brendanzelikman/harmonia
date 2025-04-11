@@ -1,4 +1,4 @@
-import { clamp } from "lodash";
+import { clamp, sum } from "lodash";
 import { isNumber, isString } from "types/utils";
 
 /** Modulo that works with negative numbers. */
@@ -38,3 +38,16 @@ export const isBounded = (
   min = -Infinity,
   max = Infinity
 ): n is number => isNumber(n) && n >= min && n <= max;
+
+/** Sample a key from an object using a record of weights */
+export const weightedSample = <T extends Record<string, number>>(
+  weights: T
+): keyof T => {
+  const totalWeight = sum(Object.values(weights));
+  let random = Math.random() * totalWeight;
+  for (const key in weights) {
+    random -= weights[key];
+    if (random <= 0) return key;
+  }
+  return Object.keys(weights)[0];
+};

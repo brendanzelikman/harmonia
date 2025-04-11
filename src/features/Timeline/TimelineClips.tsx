@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { useCallback, useMemo, useState } from "react";
 import {
   isPatternClipId,
@@ -24,8 +24,8 @@ export interface TimelineClipsProps {
 
 export function TimelineClips(props: TimelineClipsProps) {
   const element = props.element;
-  const portaledClipIds = useSelect(selectPortaledClipIds);
-  const boundaries = useSelect(selectPortaledClipBoundMap);
+  const portaledClipIds = useAppValue(selectPortaledClipIds);
+  const boundaries = useAppValue(selectPortaledClipBoundMap);
 
   // Virtualize clips using scroll position
   const [scrollLeft, setBounds] = useState(element?.scrollLeft ?? 0);

@@ -1,7 +1,7 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { blurOnEnter } from "utils/html";
+import { blurOnEnter } from "utils/event";
 import { dispatchCustomEvent } from "utils/event";
 import Logo from "assets/images/logo.png";
 import { useEvent } from "hooks/useEvent";

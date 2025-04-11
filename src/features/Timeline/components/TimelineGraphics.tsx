@@ -5,7 +5,7 @@ import {
   TRACK_WIDTH,
 } from "utils/constants";
 import { TimelinePlayhead } from "./TimelinePlayhead";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
   selectCellWidth,
@@ -34,20 +34,20 @@ interface BackgroundProps {
 
 // Timeline background so that the tracks can be scrolled
 export const TimelineGraphics = (props: BackgroundProps) => {
-  const cellWidth = useSelect(selectCellWidth);
-  const cellHeight = useSelect(selectCellHeight);
+  const cellWidth = useAppValue(selectCellWidth);
+  const cellHeight = useAppValue(selectCellHeight);
 
   // The track dimensions are derived from the last track
-  const collapsedMap = useSelect(selectCollapsedTrackMap);
-  const trackIds = useSelect(selectTrackIds);
+  const collapsedMap = useAppValue(selectCollapsedTrackMap);
+  const trackIds = useAppValue(selectTrackIds);
 
   // Selected track dimensions
-  const st = useSelect(selectSelectedTrack);
-  const stTop = useSelect((_) => selectTrackTop(_, st?.id));
+  const st = useAppValue(selectSelectedTrack);
+  const stTop = useAppValue((_) => selectTrackTop(_, st?.id));
   const stHeight = st?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
 
   // GetBackground dimensions
-  const columns = useSelect(selectTimelineColumns);
+  const columns = useAppValue(selectTimelineColumns);
   const width = columns * cellWidth;
   const height = trackIds.reduce(
     (acc, id) =>
@@ -108,13 +108,13 @@ export const TimelineGraphics = (props: BackgroundProps) => {
 };
 
 const TimelineTopLeftCorner = () => {
-  const isAddingPatterns = useSelect(selectIsAddingPatternClips);
-  const isAddingPoses = useSelect(selectIsAddingPoseClips);
-  const isAddingPortals = useSelect(selectIsAddingPortals);
-  const hasFragment = useSelect(selectHasPortalFragment);
-  const isSlicingClips = useSelect(selectIsSlicingClips);
+  const isAddingPatterns = useAppValue(selectIsAddingPatternClips);
+  const isAddingPoses = useAppValue(selectIsAddingPoseClips);
+  const isAddingPortals = useAppValue(selectIsAddingPortals);
+  const hasFragment = useAppValue(selectHasPortalFragment);
+  const isSlicingClips = useAppValue(selectIsSlicingClips);
   const tree = useToggle("inputTree");
-  const hasClips = !!useSelect(selectSelectedClips).length;
+  const hasClips = !!useAppValue(selectSelectedClips).length;
   return (
     <div
       className={classNames(

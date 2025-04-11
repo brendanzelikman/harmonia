@@ -1,10 +1,10 @@
 import { memo } from "react";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { selectTrackDepthById } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
 
 export const TrackDots = memo(({ trackId }: { trackId: TrackId }) => {
-  const depth = useSelect((_) => selectTrackDepthById(_, trackId));
+  const depth = useAppValue((_) => selectTrackDepthById(_, trackId));
   return (
     <div className="absolute left-1 top-1/2 -translate-y-1/2 text-xs">
       {new Array(depth - 1).fill(null).map((_, i) => (

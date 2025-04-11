@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { RenderCellProps } from "react-data-grid";
 import { useDrop } from "react-dnd";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { onCellClick } from "types/Timeline/thunks/TimelineClickThunks";
 import {
   selectHasPortalFragment,
@@ -10,7 +10,7 @@ import {
   selectTimelineState,
   selectTimelineType,
 } from "types/Timeline/TimelineSelectors";
-import { getBarsBeatsSixteenths } from "types/Transport/TransportFunctions";
+import { getBarsBeatsSixteenths } from "utils/duration";
 import {
   selectTransportBPM,
   selectTransportTimeSignature,
@@ -18,17 +18,17 @@ import {
 import { Row } from "./Timeline";
 
 export function TimelineCell(props: RenderCellProps<Row, unknown>) {
-  const dispatch = useDispatch();
-  const state = useSelect(selectTimelineState);
-  const type = useSelect(selectTimelineType);
-  const hasFragment = useSelect(selectHasPortalFragment);
-  const fragment = useSelect(selectPortalFragment);
+  const dispatch = useAppDispatch();
+  const state = useAppValue(selectTimelineState);
+  const type = useAppValue(selectTimelineType);
+  const hasFragment = useAppValue(selectHasPortalFragment);
+  const fragment = useAppValue(selectPortalFragment);
   const trackId = props.row.id;
   const index = props.row.index;
 
-  const bpm = useSelect(selectTransportBPM);
-  const timeSignature = useSelect(selectTransportTimeSignature);
-  const subdivisionTicks = useSelect(selectSubdivisionTicks);
+  const bpm = useAppValue(selectTransportBPM);
+  const timeSignature = useAppValue(selectTransportTimeSignature);
+  const subdivisionTicks = useAppValue(selectSubdivisionTicks);
   const key = parseInt(props.column.key);
   const tick = subdivisionTicks * (key - 1);
   const time = getBarsBeatsSixteenths(tick, { bpm, timeSignature });

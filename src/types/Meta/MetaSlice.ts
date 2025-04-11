@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { initializeProjectMetadata } from "./MetaTypes";
-import { initializeProjectDiary } from "../Diary/DiaryTypes";
+import { initializeProjectMetadata, initializeProjectDiary } from "./MetaTypes";
 
 // ------------------------------------------------------------
 // Metadata Slice Definition

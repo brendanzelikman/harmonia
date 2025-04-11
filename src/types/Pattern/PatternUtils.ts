@@ -1,4 +1,4 @@
-import { MidiScale, getMidiDegree, getMidiNoteValue } from "utils/midi";
+import { MidiScale, getMidiDegree, getMidiValue } from "utils/midi";
 import {
   PatternBlock,
   PatternChord,
@@ -17,7 +17,7 @@ import {
 } from "./PatternTypes";
 import { Chords } from "assets/patterns";
 import { initializeScale } from "types/Scale/ScaleTypes";
-import { STAFF_PIVOT } from "lib/musicxml";
+import { STAFF_PIVOT } from "utils/xml";
 import { isNumber } from "types/utils";
 import { range } from "utils/array";
 
@@ -183,7 +183,7 @@ export const getMidiStreamScale = (
   const flatValues = isPatternMidiStream(stream)
     ? flattenMidiStreamNotes(stream)
     : stream;
-  const scale = flatValues.map(getMidiNoteValue).sort((a, b) => a - b);
+  const scale = flatValues.map(getMidiValue).sort((a, b) => a - b);
   const notes = [scale[0]];
   const root = notes[0];
   for (let i = 1; i < scale.length; i++) {

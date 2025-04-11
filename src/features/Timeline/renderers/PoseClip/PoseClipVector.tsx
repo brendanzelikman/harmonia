@@ -3,7 +3,7 @@ import { clamp, omit } from "lodash";
 import { updatePose } from "types/Pose/PoseSlice";
 import { PoseVectorId, PoseBlock, isVoiceLeading } from "types/Pose/PoseTypes";
 import { useEffect, useMemo, useState } from "react";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { ChromaticKey } from "assets/keys";
 import { getTrackLabel, getTrackDepth } from "types/Track/TrackFunctions";
 import {
@@ -15,7 +15,7 @@ import {
   selectTrackMidiScale,
   selectTrackById,
 } from "types/Track/TrackSelectors";
-import { getScaleName } from "lib/scale";
+import { getScaleName } from "types/Scale/ScaleFinder";
 import { PoseClip } from "types/Clip/ClipTypes";
 import { PoseClipBaseEffect } from "./PoseClipStore";
 import {
@@ -24,14 +24,15 @@ import {
 } from "./PoseClipDropdown";
 import { sanitize } from "utils/math";
 import { BsTrash } from "react-icons/bs";
-import { blurEvent, blurOnEnter, promptUserForString } from "utils/html";
+import { promptUserForString } from "lib/prompts/html";
+import { blurEvent, blurOnEnter } from "utils/event";
 import { PoseClipEffects } from "./PoseClipEffects";
 import { PoseClipComponentProps } from "./usePoseClipRenderer";
 import { BiDownArrow, BiUpArrow } from "react-icons/bi";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { readMidiScaleFromString } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import { promptLineBreak } from "components/PromptModal";
-import { CHORDAL_KEY, CHROMATIC_KEY, OCTAVE_KEY } from "utils/vector";
+import { CHORDAL_KEY, CHROMATIC_KEY, OCTAVE_KEY } from "utils/constants";
 import { selectTrackMidiScaleAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 
 export type PoseClipVectorView = "scales" | "notes" | "effects" | "scale";
@@ -44,12 +45,12 @@ interface PoseClipVectorProps extends PoseClipComponentProps {
 export const PoseClipVector = (props: PoseClipVectorProps) => {
   const trackId = props.clip.trackId;
   const isPT = isPatternTrackId(trackId);
-  const trackMap = useSelect(selectTrackMap);
-  const trackScaleMap = useSelect(selectTrackMidiScaleMap);
+  const trackMap = useAppValue(selectTrackMap);
+  const trackScaleMap = useAppValue(selectTrackMidiScaleMap);
 
-  const clipLabel = useSelect((_) => selectTrackLabelById(_, trackId));
-  const clipDepth = useSelect((_) => selectTrackDepthById(_, trackId));
-  const clipTracks = useSelect((_) => selectScaleTrackChain(_, trackId));
+  const clipLabel = useAppValue((_) => selectTrackLabelById(_, trackId));
+  const clipDepth = useAppValue((_) => selectTrackDepthById(_, trackId));
+  const clipTracks = useAppValue((_) => selectScaleTrackChain(_, trackId));
 
   const [view, setView] = useState<PoseClipVectorView>(
     isVoiceLeading(props.vector) ? "notes" : "scales"
@@ -153,12 +154,12 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
 };
 
 const PoseClipScale = (props: PoseClipVectorProps) => {
-  const dispatch = useDispatch();
-  const track = useSelect((_) => selectTrackById(_, props.clip.trackId));
-  const parentScale = useSelect((_) =>
+  const dispatch = useAppDispatch();
+  const track = useAppValue((_) => selectTrackById(_, props.clip.trackId));
+  const parentScale = useAppValue((_) =>
     selectTrackMidiScale(_, track?.parentId)
   );
-  const scale = useSelect((_) =>
+  const scale = useAppValue((_) =>
     selectTrackMidiScaleAtTick(_, props.clip.trackId, props.clip.tick)
   );
   const hasScale = props.scale !== undefined;
@@ -267,7 +268,7 @@ interface PoseClipVectorFieldProps extends PoseClipVectorProps {
 export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
   const { vector, block } = props;
   const { clip, fieldId, name, scaleName } = props;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const offset = useMemo(() => {
     if (block) {
       return block.vector?.[fieldId as PoseVectorId];

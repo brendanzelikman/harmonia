@@ -1,4 +1,4 @@
-import { pickKeyByWeight } from "utils/object";
+import { weightedSample } from "utils/math";
 import { addScale } from "types/Scale/ScaleSlice";
 import { capitalize, isEqual, sample, trim } from "lodash";
 import { PresetScaleList, PresetScaleNotes } from "assets/scales";
@@ -38,11 +38,11 @@ import { initializePatternClip } from "types/Clip/ClipTypes";
 import { PatternStream } from "types/Pattern/PatternTypes";
 import { PatternScaleNotes, PatternScales } from "types/Pattern/PatternUtils";
 import { getTransposedScale } from "types/Scale/ScaleTransformers";
-import { getScaleAliases, getScaleName } from "lib/scale";
+import { getScaleAliases, getScaleName } from "types/Scale/ScaleFinder";
 import {
   getMidiOctaveNumber,
   getMidiPitchClass,
-  getPitchClassNumber,
+  getPitchClassDegree,
   MidiScale,
 } from "utils/midi";
 import { isPitchClass, unpackScaleName } from "utils/pitch";
@@ -130,7 +130,7 @@ export const createRandomHierarchy = (): Thunk => (dispatch) => {
     const map = weights;
     const parent = resolveScaleChainToMidi(scales);
     while (Object.keys(map).length) {
-      const size = parseInt(pickKeyByWeight(map));
+      const size = parseInt(weightedSample(map));
       const filter = (s: ScaleObject) =>
         s.notes.length === size &&
         (!scales.length ||
@@ -283,14 +283,14 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
   if (name === "") return;
   // Interpret exact pitch classes as major
   if (isPitchClass(name)) {
-    const number = getPitchClassNumber(name);
+    const number = getPitchClassDegree(name);
     return getTransposedScale(MajorScale.notes as MidiScale, number);
   }
 
   // Interpret lower case pitch classes as minor
   const upper = name.toUpperCase();
   if (isPitchClass(upper)) {
-    const number = getPitchClassNumber(upper);
+    const number = getPitchClassDegree(upper);
     return getTransposedScale(MinorScale.notes as MidiScale, number);
   }
 
@@ -310,7 +310,7 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
       const scale: MidiScale = [];
       for (const pitchClass of pitchClasses) {
         if (!isPitchClass(pitchClass)) return undefined;
-        const number = getPitchClassNumber(pitchClass);
+        const number = getPitchClassDegree(pitchClass);
         const match = parent?.find((c) => getMidiPitchClass(c) === pitchClass);
         scale.push(number + 12 * getMidiOctaveNumber(12 + (match ?? 48)));
       }
@@ -359,7 +359,7 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
     if (!preset) return;
 
     // Transpose the scale based on the pitch class
-    const number = getPitchClassNumber(
+    const number = getPitchClassDegree(
       pitchClass || getMidiPitchClass(parent?.[0] ?? 60)
     );
     return getTransposedScale(preset, number);

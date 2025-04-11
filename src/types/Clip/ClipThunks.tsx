@@ -18,7 +18,7 @@ import { selectMeta } from "types/Meta/MetaSelectors";
 import { selectTransportBPM } from "types/Transport/TransportSelectors";
 import { Payload, unpackData, unpackUndoType } from "types/redux";
 import { addClips, removeClip } from "./ClipSlice";
-import { downloadBlob } from "utils/file";
+import { downloadBlob } from "utils/event";
 import {
   selectTrackDescendantIds,
   selectTrackLabelById,

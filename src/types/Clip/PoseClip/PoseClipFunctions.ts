@@ -1,15 +1,7 @@
 import { PoseClip } from "./PoseClipTypes";
 import { Tick } from "types/units";
-import {
-  getPoseOperationAtIndex,
-  getVectorPitchClasses,
-} from "types/Pose/PoseFunctions";
-import {
-  isVoiceLeading,
-  PoseOperation,
-  PoseStream,
-  VoiceLeading,
-} from "types/Pose/PoseTypes";
+import { getVectorPitchClasses } from "types/Pose/PoseFunctions";
+import { PoseOperation, VoiceLeading } from "types/Pose/PoseTypes";
 import { PoseMap } from "types/Pose/PoseTypes";
 import {
   isPatternMidiChord,
@@ -26,16 +18,7 @@ import { areScalesRelated } from "types/Scale/ScaleUtils";
 import { getNewScale } from "types/Scale/ScaleTransformers";
 import { getRotatedScale } from "types/Scale/ScaleTransformers";
 import { MidiScale } from "utils/midi";
-import { getMidiNoteValue } from "utils/midi";
-
-/** Get the current pose vector occurring at the given tick. */
-export const getPoseOperationAtIndexByTick = (
-  clip: PoseClip,
-  stream: PoseStream = [],
-  tick = 0
-): PoseOperation => {
-  return getPoseOperationAtIndex(stream ?? [], tick - clip.tick, clip.duration);
-};
+import { getMidiValue } from "utils/midi";
 
 /** Get the current pose occurring at or before the given tick. */
 export const getPoseOperationsAtTick = (
@@ -65,14 +48,6 @@ export const getPoseOperationsAtTick = (
         for (const op of pose.operations ?? []) {
           operation.push({ operations: [op] });
         }
-      }
-      if ("stream" in pose) {
-        const poseOperation = getPoseOperationAtIndexByTick(
-          clip,
-          pose.stream,
-          deps.tick
-        );
-        operation.push(poseOperation);
       }
     }
   }
@@ -131,7 +106,7 @@ export const applyVoiceLeadingsToMidiStream = <
       stream = getNewScale(
         stream,
         stream.map((n) => {
-          const midi = getMidiNoteValue(n);
+          const midi = getMidiValue(n);
           const idx = mod(midi - offset, 12);
           const pitchClass = ChromaticKey[idx];
           return midi + (vector[pitchClass] ?? 0);

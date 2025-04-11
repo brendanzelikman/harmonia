@@ -44,7 +44,7 @@ import {
 } from "types/Pose/PoseTypes";
 import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
-import { getMidiNoteValue, getMidiOctaveDistance } from "utils/midi";
+import { getMidiValue, getMidiOctaveDistance } from "utils/midi";
 import { isPitchClass } from "utils/pitch";
 import { isNumber } from "types/utils";
 
@@ -357,7 +357,7 @@ export const getMidiStreamKey = (stream: PatternMidiStream) =>
       isPatternRest(_)
         ? "r"
         : getPatternMidiChordNotes(_)
-            .map((_) => getMidiNoteValue(_))
+            .map((_) => getMidiValue(_))
             .join(",")
     )
     .join(",");

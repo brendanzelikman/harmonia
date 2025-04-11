@@ -8,9 +8,9 @@ import {
   selectTimelineState,
 } from "../TimelineSelectors";
 import {
-  movePlayheadLeft,
-  movePlayheadRight,
-} from "types/Transport/TransportThunks";
+  seekTransportLeft,
+  seekTransportRight,
+} from "types/Transport/TransportTick";
 import { nanoid } from "@reduxjs/toolkit";
 import { updateClips } from "types/Clip/ClipSlice";
 import { createUndoType } from "types/redux";
@@ -36,7 +36,7 @@ export const scrubClipsLeft = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const mediaLength = selectSelectedMedia(project).length;
   if (getToggleValue("diary")) return;
-  if (!mediaLength) dispatch(movePlayheadLeft(1));
+  if (!mediaLength) dispatch(seekTransportLeft(1));
   else dispatch(moveSelectedMediaLeft(1));
 };
 
@@ -45,7 +45,7 @@ export const scrubClipsRight = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const mediaLength = selectSelectedMedia(project).length;
   if (getToggleValue("diary")) return;
-  if (!mediaLength) dispatch(movePlayheadRight(1));
+  if (!mediaLength) dispatch(seekTransportRight(1));
   else dispatch(moveSelectedMediaRight(1));
 };
 
@@ -54,7 +54,7 @@ export const moveClipsLeft = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const mediaLength = selectSelectedMedia(project).length;
   if (getToggleValue("diary")) return;
-  if (!mediaLength) dispatch(movePlayheadLeft());
+  if (!mediaLength) dispatch(seekTransportLeft());
   else dispatch(moveSelectedMediaLeft());
 };
 
@@ -63,7 +63,7 @@ export const moveClipsRight = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const mediaLength = selectSelectedMedia(project).length;
   if (getToggleValue("diary")) return;
-  if (!mediaLength) dispatch(movePlayheadRight());
+  if (!mediaLength) dispatch(seekTransportRight());
   else dispatch(moveSelectedMediaRight());
 };
 

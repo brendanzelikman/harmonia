@@ -1,12 +1,20 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { initializeProjectDiary, ProjectDiary } from "../Diary/DiaryTypes";
 import dayjs from "dayjs";
 
 export const NEW_PROJECT_NAME = "New Project";
+export const DIARY_PAGE_COUNT = 10;
 
 // ------------------------------------------------------------
 // Metadata Types
 // ------------------------------------------------------------
+
+// The `ProjectDiary` is a list of strings
+export type ProjectDiary = ProjectDiaryPage[];
+export type ProjectDiaryPage = string;
+
+/** Create a new project diary. */
+export const initializeProjectDiary = (): ProjectDiary =>
+  new Array(DIARY_PAGE_COUNT).fill("");
 
 /** The `ProjectMetadata` contains the top-level info of the project. */
 export interface ProjectMetadata {

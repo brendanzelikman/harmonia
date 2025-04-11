@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { selectPortaledPatternClipXML } from "types/Arrangement/ArrangementClipSelectors";
 import { selectPortaledPatternClipStream } from "types/Arrangement/ArrangementSelectors";
 import { PortaledPatternClip } from "types/Clip/ClipTypes";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import {
   addPatternNote,
   updatePatternNote,
@@ -28,20 +28,20 @@ import {
   ticksToSeconds,
 } from "utils/duration";
 import { format, mod } from "utils/math";
-import { useHeldKeys } from "hooks/useHeldKeys";
+import { useHeldkeys } from "hooks/useHeldkeys";
 
 export const usePatternClipScore = (clip: PortaledPatternClip) => {
-  const dispatch = useDispatch();
-  const bpm = useSelect(selectTransportBPM);
-  const scale = useSelect((_) => selectTrackMidiScale(_, clip.trackId));
-  const midi = useSelect((_) => selectPortaledPatternClipStream(_, clip.id));
+  const dispatch = useAppDispatch();
+  const bpm = useAppValue(selectTransportBPM);
+  const scale = useAppValue((_) => selectTrackMidiScale(_, clip.trackId));
+  const midi = useAppValue((_) => selectPortaledPatternClipStream(_, clip.id));
   const stream = midi.flatMap((n) => n.notes.filter((n) => "velocity" in n));
-  const xml = useSelect((_) => selectPortaledPatternClipXML(_, clip));
+  const xml = useAppValue((_) => selectPortaledPatternClipXML(_, clip));
   const staves = useMemo(() => getMidiStreamStaves(stream), [stream]);
   const onGrandStaff = staves === "grand";
 
   // The hook stores an input duration for editing notes
-  const holding = useHeldKeys(["shift", "/", ",", "."]);
+  const holding = useHeldkeys(["shift", "/", ",", "."]);
   const [_duration, setDuration] = useState(getDurationTicks("16th"));
   const isTriplet = holding["/"];
   const isDotted = holding["."];

@@ -5,9 +5,8 @@ import { initializePose } from "types/Pose/PoseTypes";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 import { initializeScale } from "types/Scale/ScaleTypes";
 import { initializeScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
-import { getScaleName } from "lib/scale";
-import { keyBy } from "lodash";
-import { ChainIdsByTrack } from "./ArrangementTypes";
+import { getScaleName } from "types/Scale/ScaleFinder";
+import { keyBy, map } from "lodash";
 
 // ------------------------------------------------------------
 // Test Definitions
@@ -62,36 +61,35 @@ const v5 = { [st1.id]: 1 };
 const v6 = { [st2.id]: 1 };
 const v7 = { [st3.id]: 1 };
 const v8 = { [st4.id]: 1 };
-const stream = [v1, v2, v3, v4, v5, v6, v7, v8].map((v) => ({
-  duration: 1,
-  vector: v,
-}));
 
 // Create the poses
-const p1 = initializePose({ stream });
-const p2 = initializePose({ stream });
-const p3 = initializePose({ stream });
-const p4 = initializePose({ stream });
-
-// Create the pose clips
-const pc1 = initializePoseClip({ poseId: p1.id, trackId: st1.id });
-const pc2 = initializePoseClip({ poseId: p2.id, trackId: st2.id });
-const pc3 = initializePoseClip({ poseId: p3.id, trackId: st3.id });
-const pc4 = initializePoseClip({ poseId: p4.id, trackId: st4.id });
+const poses = [v1, v2, v3, v4, v5, v6, v7, v8].map((vector) =>
+  initializePose({ vector })
+);
 
 // Create the dependencies
 const scales = keyBy([scale1, scale2, scale3, scale4], "id");
-const poses = keyBy([p1, p2, p3, p4], "id");
+
+// Create the pose clips
+const clips1 = poses.map((p) =>
+  initializePoseClip({ poseId: p.id, trackId: st1.id, duration: 1 })
+);
+const clips2 = poses.map((p) =>
+  initializePoseClip({ poseId: p.id, trackId: st2.id, duration: 1 })
+);
+const clips3 = poses.map((p) =>
+  initializePoseClip({ poseId: p.id, trackId: st3.id, duration: 1 })
+);
+const clips4 = poses.map((p) =>
+  initializePoseClip({ poseId: p.id, trackId: st4.id, duration: 1 })
+);
 
 // Get the chain using the given pose clip and tick
 const getChainAtTick = (clip: PoseClip, tick: number) => {
   return getTrackScaleChain(st4.id, {
     tracks: { [st1.id]: st1, [st2.id]: st2, [st3.id]: st3, [st4.id]: st4 },
-    scales: {
-      ids: [scale1.id, scale2.id, scale3.id, scale4.id],
-      entities: scales,
-    },
-    poses: { ids: [p1.id, p2.id, p3.id, p4.id], entities: poses },
+    scales: { ids: map(scales, "id"), entities: scales },
+    poses: { ids: map(poses, "id"), entities: keyBy(poses, "id") },
     patterns: { ids: [], entities: {} },
     poseClips: { [clip.id]: clip },
     patternClips: {},
@@ -102,13 +100,13 @@ const getChainAtTick = (clip: PoseClip, tick: number) => {
       [st2.id]: [st1.id, st2.id],
       [st3.id]: [st1.id, st2.id, st3.id],
       [st4.id]: [st1.id, st2.id, st3.id, st4.id],
-    } as ChainIdsByTrack,
+    },
   });
 };
 
 // Get the list of scale names
-const getScaleNames = (clip: PoseClip, tick: number) => {
-  const scales = getChainAtTick(clip, tick);
+const getScaleNames = (clips: PoseClip[], tick: number) => {
+  const scales = getChainAtTick({ ...clips[tick], tick }, tick);
   const midiScales = scales.map((_, i) =>
     resolveScaleChainToMidi(scales.slice(0, i + 1))
   );
@@ -120,49 +118,49 @@ const getScaleNames = (clip: PoseClip, tick: number) => {
 // ------------------------------------------------------------
 
 test("getTrackScaleChain should return the correct scales with a pose applied to track 1", () => {
-  expect(getScaleNames(pc1, 0)).toEqual([
+  expect(getScaleNames(clips1, 0)).toEqual([
     "Db Chromatic Scale",
     "Db Major Scale",
     "Db Major Scale",
     "Db Major 7th Chord",
   ]);
-  expect(getScaleNames(pc1, 1)).toEqual([
+  expect(getScaleNames(clips1, 1)).toEqual([
     "B Chromatic Scale",
     "B Major Scale",
     "B Major Scale",
     "B Major 7th Chord",
   ]);
-  expect(getScaleNames(pc1, 2)).toEqual([
+  expect(getScaleNames(clips1, 2)).toEqual([
     "Db Chromatic Scale",
     "Db Major Scale",
     "Db Major Scale",
     "Db Major 7th Chord",
   ]);
-  expect(getScaleNames(pc1, 3)).toEqual([
+  expect(getScaleNames(clips1, 3)).toEqual([
     "B Chromatic Scale",
     "B Major Scale",
     "B Major Scale",
     "B Major 7th Chord",
   ]);
-  expect(getScaleNames(pc1, 4)).toEqual([
+  expect(getScaleNames(clips1, 4)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "C Major 7th Chord",
   ]);
-  expect(getScaleNames(pc1, 5)).toEqual([
+  expect(getScaleNames(clips1, 5)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "C Major 7th Chord",
   ]);
-  expect(getScaleNames(pc1, 6)).toEqual([
+  expect(getScaleNames(clips1, 6)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "C Major 7th Chord",
   ]);
-  expect(getScaleNames(pc1, 7)).toEqual([
+  expect(getScaleNames(clips1, 7)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
@@ -171,49 +169,49 @@ test("getTrackScaleChain should return the correct scales with a pose applied to
 });
 
 test("getTrackScaleChain should return the correct scales with a pose applied to track 1a", () => {
-  expect(getScaleNames(pc2, 0)).toEqual([
+  expect(getScaleNames(clips2, 0)).toEqual([
     "Chromatic Scale",
     "Db Major Scale",
     "Db Major Scale",
     "Db Major 7th Chord",
   ]);
-  expect(getScaleNames(pc2, 1)).toEqual([
+  expect(getScaleNames(clips2, 1)).toEqual([
     "Chromatic Scale",
     "B Major Scale",
     "B Major Scale",
     "B Major 7th Chord",
   ]);
-  expect(getScaleNames(pc2, 2)).toEqual([
+  expect(getScaleNames(clips2, 2)).toEqual([
     "Chromatic Scale",
     "D Dorian",
     "D Dorian",
     "D Minor 7th Chord",
   ]);
-  expect(getScaleNames(pc2, 3)).toEqual([
+  expect(getScaleNames(clips2, 3)).toEqual([
     "Chromatic Scale",
     "B Locrian",
     "B Locrian",
     "B Half Diminished Chord",
   ]);
-  expect(getScaleNames(pc2, 4)).toEqual([
+  expect(getScaleNames(clips2, 4)).toEqual([
     "Chromatic Scale",
     "Db Major Scale",
     "Db Major Scale",
     "Db Major 7th Chord",
   ]);
-  expect(getScaleNames(pc2, 5)).toEqual([
+  expect(getScaleNames(clips2, 5)).toEqual([
     "Chromatic Scale",
     "D Dorian",
     "C Major Scale",
     "C Major 7th Chord",
   ]);
-  expect(getScaleNames(pc2, 6)).toEqual([
+  expect(getScaleNames(clips2, 6)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "C Major 7th Chord",
   ]);
-  expect(getScaleNames(pc2, 7)).toEqual([
+  expect(getScaleNames(clips2, 7)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
@@ -222,49 +220,49 @@ test("getTrackScaleChain should return the correct scales with a pose applied to
 });
 
 test("getTrackScaleChain should return the correct scales with a pose applied to track 1aa", () => {
-  expect(getScaleNames(pc3, 0)).toEqual([
+  expect(getScaleNames(clips3, 0)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "Db Major Scale",
     "Db Major 7th Chord",
   ]);
-  expect(getScaleNames(pc3, 1)).toEqual([
+  expect(getScaleNames(clips3, 1)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "B Major Scale",
     "B Major 7th Chord",
   ]);
-  expect(getScaleNames(pc3, 2)).toEqual([
+  expect(getScaleNames(clips3, 2)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "D Dorian",
     "D Minor 7th Chord",
   ]);
-  expect(getScaleNames(pc3, 3)).toEqual([
+  expect(getScaleNames(clips3, 3)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "B Locrian",
     "B Half Diminished Chord",
   ]);
-  expect(getScaleNames(pc3, 4)).toEqual([
+  expect(getScaleNames(clips3, 4)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "Db Major Scale",
     "Db Major 7th Chord",
   ]);
-  expect(getScaleNames(pc3, 5)).toEqual([
+  expect(getScaleNames(clips3, 5)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "D Dorian",
     "D Minor 7th Chord",
   ]);
-  expect(getScaleNames(pc3, 6)).toEqual([
+  expect(getScaleNames(clips3, 6)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "D Dorian",
     "C Major 7th Chord",
   ]);
-  expect(getScaleNames(pc3, 7)).toEqual([
+  expect(getScaleNames(clips3, 7)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
@@ -273,49 +271,49 @@ test("getTrackScaleChain should return the correct scales with a pose applied to
 });
 
 test("getTrackScaleChain should return the correct scales with a pose applied to track 1aaa", () => {
-  expect(getScaleNames(pc4, 0)).toEqual([
+  expect(getScaleNames(clips4, 0)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "Db Major 7th Chord",
   ]);
-  expect(getScaleNames(pc4, 1)).toEqual([
+  expect(getScaleNames(clips4, 1)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "B Major 7th Chord",
   ]);
-  expect(getScaleNames(pc4, 2)).toEqual([
+  expect(getScaleNames(clips4, 2)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "C Major 7th Chord (r1)",
   ]);
-  expect(getScaleNames(pc4, 3)).toEqual([
+  expect(getScaleNames(clips4, 3)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "C Major 7th Chord (r3)",
   ]);
-  expect(getScaleNames(pc4, 4)).toEqual([
+  expect(getScaleNames(clips4, 4)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "Db Major 7th Chord",
   ]);
-  expect(getScaleNames(pc4, 5)).toEqual([
+  expect(getScaleNames(clips4, 5)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "D Minor 7th Chord",
   ]);
-  expect(getScaleNames(pc4, 6)).toEqual([
+  expect(getScaleNames(clips4, 6)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",
     "D Minor 7th Chord",
   ]);
-  expect(getScaleNames(pc4, 7)).toEqual([
+  expect(getScaleNames(clips4, 7)).toEqual([
     "Chromatic Scale",
     "C Major Scale",
     "C Major Scale",

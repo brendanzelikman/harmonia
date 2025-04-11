@@ -1,11 +1,11 @@
 import * as _ from "utils/duration";
 import { Shortcut } from "./components/ShortcutsItem";
 import { ShortcutContent } from "./components/ShortcutsContent";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { selectTransportBPM } from "types/Transport/TransportSelectors";
 
 export function TickDurations() {
-  const bpm = useSelect(selectTransportBPM);
+  const bpm = useAppValue(selectTransportBPM);
   const durationShortcuts = _.STRAIGHT_DURATION_TYPES.map((type) => {
     const straightDuration = _.DURATION_TICKS[type];
     const tripletDuration = (_.DURATION_TICKS[type] * 2) / 3;

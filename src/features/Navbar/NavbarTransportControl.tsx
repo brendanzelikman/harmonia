@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { useToggle } from "hooks/useToggle";
-import { useTransport } from "hooks/useTransport";
+import { useTransportState } from "types/Transport/TransportState";
 import {
   BsStop,
   BsPause,
@@ -9,22 +9,21 @@ import {
   BsRecord,
   BsArrowRepeat,
 } from "react-icons/bs";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { selectTransportLoop } from "types/Transport/TransportSelectors";
 import { setLoop } from "types/Transport/TransportSlice";
+import { stopTransport, toggleTransport } from "types/Transport/TransportState";
 import {
   startRecordingTransport,
   stopRecordingTransport,
-  stopTransport,
-  toggleTransport,
-} from "types/Transport/TransportThunks";
-import { RECORD_TRANSPORT } from "types/Transport/TransportTypes";
+} from "types/Transport/TransportRecorder";
+import { RECORD_TRANSPORT } from "types/Transport/TransportRecorder";
 
 export function NavbarTransportControl() {
-  const dispatch = useDispatch();
-  const state = useTransport();
+  const dispatch = useAppDispatch();
+  const state = useTransportState();
   const isRecording = useToggle(RECORD_TRANSPORT).isOpen;
-  const isLooping = useSelect(selectTransportLoop);
+  const isLooping = useAppValue(selectTransportLoop);
   const isStarted = state === "started";
   const isStopped = state === "stopped";
   const action = isStarted ? "Pause" : isStopped ? "Start" : "Resume";

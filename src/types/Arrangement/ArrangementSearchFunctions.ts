@@ -18,7 +18,7 @@ import {
   getMidiStreamScale,
   getPatternMidiChordNotes,
 } from "types/Pattern/PatternUtils";
-import { getMidiNoteValue } from "utils/midi";
+import { getMidiValue } from "utils/midi";
 import { isNumber } from "types/utils";
 
 /** A stream query is a possible transformation of a pattern stream.
@@ -42,17 +42,18 @@ export const defaultStreamQuery: StreamQuery = {
   magnitude: 0,
 };
 
-export interface StreamQueryOptions {
+export type StreamQueryOptions = {
   spread: number;
-  vectorKeys: PoseVectorId[];
+  keys: PoseVectorId[];
   direction: "up" | "down" | "any";
   step?: number;
   select: number | "best" | "random" | "top25" | "top10" | "top5";
-}
+};
+export type PartialQueryOptions = Partial<StreamQueryOptions>;
 
 export const defaultSearchOptions: StreamQueryOptions = {
   spread: 3,
-  vectorKeys: [],
+  keys: [],
   direction: "any",
   select: "best",
 };
@@ -110,7 +111,7 @@ export const getPatternStreamQuery = (
   const step = options.step;
   if (step !== undefined) {
     if (!step) return defaultStreamQuery;
-    let vectorId = options.vectorKeys[0];
+    let vectorId = options.keys[0];
     if (vectorId === "scale-track_1") {
       vectorId = deps.chainIdsByTrack[deps.clip.trackId][0];
     } else if (vectorId === "scale-track_2") {
@@ -142,7 +143,7 @@ export const getStreamQueryVectors = (
   deps: PatternMidiStreamDependencies,
   options: StreamQueryOptions
 ): PoseVector[] => {
-  const keys = options.vectorKeys;
+  const keys = options.keys;
   const range = options.spread * 2 + 1;
   const searchSize = Math.pow(range, keys.length);
   const searchVectors = Array.from({ length: searchSize }, (_, i) => {
@@ -221,8 +222,8 @@ export const getMidiStreamMeanError = (
     const streamNotes = getPatternMidiChordNotes(streamBlock);
     const otherNotes = getPatternMidiChordNotes(otherBlock);
     const diff = streamNotes.reduce((acc, note, index) => {
-      const midi = getMidiNoteValue(note);
-      const otherMidi = getMidiNoteValue(otherNotes[index]);
+      const midi = getMidiValue(note);
+      const otherMidi = getMidiValue(otherNotes[index]);
       return acc + (otherMidi - midi);
     }, 0);
     sum += diff;

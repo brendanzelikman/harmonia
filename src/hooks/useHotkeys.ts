@@ -1,18 +1,24 @@
-import { useDispatch } from "hooks/useStore";
+import { useAppDispatch } from "hooks/useRedux";
 import { HotkeyMap, hotkeys } from "lib/hotkeys";
 import { useEffect } from "react";
-import { isInputEvent } from "utils/html";
+import { isInputEvent } from "utils/event";
 
-export function useHotkeys(hotkeyMap: HotkeyMap) {
-  const dispatch = useDispatch();
+type HotkeyEvent = "keydown" | "keypress" | "keyup";
+
+export function useHotkeys(
+  hotkeyMap: HotkeyMap,
+  event: HotkeyEvent = "keydown"
+) {
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
+    // Register non-input keydown event listener
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (isInputEvent(event)) return;
+      if (isInputEvent(event) || event.repeat) return;
       const { key, metaKey, shiftKey, ctrlKey, altKey } = event;
 
       // Construct the combination key string
       let comboKey = key.toLowerCase();
-
       if (shiftKey && key !== "Shift") comboKey = "shift+" + comboKey;
       if (metaKey && key !== "Meta") comboKey = "meta+" + comboKey;
       if (ctrlKey && key !== "Ctrl") comboKey = "ctrl+" + comboKey;
@@ -26,9 +32,12 @@ export function useHotkeys(hotkeyMap: HotkeyMap) {
       }
     };
 
-    document.addEventListener("keydown", handleKeyPress);
+    // Add the event listener
+    document.addEventListener(event, handleKeyPress);
+
+    // Clean up the event listener on unmount
     return () => {
-      document.removeEventListener("keydown", handleKeyPress);
+      document.removeEventListener(event, handleKeyPress);
     };
   }, [dispatch]);
 }

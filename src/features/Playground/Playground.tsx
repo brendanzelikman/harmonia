@@ -7,7 +7,7 @@ import { Tutorial } from "features/Tutorial/Tutorial";
 import { Timeline } from "features/Timeline/Timeline";
 import { usePlaygroundTransport } from "./usePlaygroundTransport";
 import { PlaygroundLoadingScreen } from "./PlaygroundLoadingScreen";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { useHotkeys } from "hooks/useHotkeys";
 import { hotkeys } from "lib/hotkeys";
@@ -16,7 +16,7 @@ export const LOAD_PLAYGROUND = "load-playground";
 
 /** The playground loads when the project and transport are ready */
 export function PlaygroundPage() {
-  const hasTracks = useSelect(selectHasTracks);
+  const hasTracks = useAppValue(selectHasTracks);
   const isTransportLoaded = usePlaygroundTransport();
   dispatchCustomEventOnChange(LOAD_PLAYGROUND, isTransportLoaded);
   useHotkeys(hotkeys);

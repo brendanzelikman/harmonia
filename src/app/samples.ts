@@ -11,7 +11,7 @@ import {
   DecodedBuffer,
 } from "utils/buffer";
 import audioBufferToWav from "audiobuffer-to-wav";
-import { downloadBlob } from "utils/file";
+import { downloadBlob } from "utils/event";
 import { dispatchCustomEvent } from "utils/event";
 
 export const UPDATE_SAMPLES_EVENT = "UPDATE_SAMPLES";

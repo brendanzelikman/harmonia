@@ -1,21 +1,21 @@
 import { HEADER_HEIGHT } from "utils/constants";
-import { useTick } from "hooks/useTick";
-import { useSelect } from "hooks/useStore";
+import { useTick } from "types/Transport/TransportTick";
+import { useAppValue } from "hooks/useRedux";
 import {
   selectCellWidth,
   selectTimelineTickLeft,
 } from "types/Timeline/TimelineSelectors";
-import { useTransport } from "hooks/useTransport";
+import { useTransportState } from "types/Transport/TransportState";
 
 export function TimelinePlayhead() {
-  const { tick } = useTick();
-  const state = useTransport();
-  const cellWidth = useSelect(selectCellWidth);
+  const tick = useTick();
+  const state = useTransportState();
+  const cellWidth = useAppValue(selectCellWidth);
 
   const width = cellWidth - 4;
   const height = HEADER_HEIGHT;
   const marginTop = -HEADER_HEIGHT;
-  const left = useSelect((_) => selectTimelineTickLeft(_, tick));
+  const left = useAppValue((_) => selectTimelineTickLeft(_, tick));
   const style = { height, marginTop, width, left };
 
   if (state === "stopped") return null;

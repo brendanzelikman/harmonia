@@ -1,8 +1,8 @@
 import classNames from "classnames";
 import { ContextMenu } from "components/ContextMenu";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { memo, useCallback, useState } from "react";
-import { blurEvent, blurOnEnter, cancelEvent } from "utils/html";
+import { blurEvent, blurOnEnter, cancelEvent } from "utils/event";
 import { updateClips } from "types/Clip/ClipSlice";
 import {
   PATTERN_CLIP_THEMES,
@@ -27,7 +27,6 @@ import {
   exportSelectedClipsToMIDI,
   exportSelectedClipsToWAV,
 } from "types/Timeline/thunks/TimelineSelectionThunks";
-import { getTicksPerBar } from "types/Transport/TransportFunctions";
 import {
   selectTransportBPM,
   selectTransportTimeSignature,
@@ -42,15 +41,16 @@ import {
   TabPanel,
   Menu,
 } from "@headlessui/react";
+import { QuarterNoteTicks } from "utils/duration";
 
 export const TimelineContextMenu = memo(() => {
-  const dispatch = useDispatch();
-  const bpm = useSelect(selectTransportBPM);
-  const timeSignature = useSelect(selectTransportTimeSignature);
+  const dispatch = useAppDispatch();
+  const bpm = useAppValue(selectTransportBPM);
+  const timeSignature = useAppValue(selectTransportTimeSignature);
 
   // Get the currently selected objects
-  const patternClips = useSelect(selectSelectedPatternClips);
-  const clips = useSelect(selectSelectedClips);
+  const patternClips = useAppValue(selectSelectedPatternClips);
+  const clips = useAppValue(selectSelectedClips);
 
   // Change the color of the currently selected clips
   const [color, setColor] = useState(DEFAULT_PATTERN_CLIP_COLOR);
@@ -111,7 +111,7 @@ export const TimelineContextMenu = memo(() => {
           const newClips = clips.map((clip) => ({
             ...clip,
             duration: isValid
-              ? getTicksPerBar(bpm, timeSignature) * durationValue
+              ? timeSignature * QuarterNoteTicks * durationValue
               : undefined,
           }));
           dispatch(updateMedia({ data: { clips: newClips } }));

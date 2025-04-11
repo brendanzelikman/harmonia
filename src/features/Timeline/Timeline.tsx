@@ -4,7 +4,7 @@ import DataGrid, {
   RenderCellProps,
 } from "react-data-grid";
 import { useState, useCallback, useMemo } from "react";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { TimelineContextMenu } from "./components/TimelineContextMenu";
 import { TimelineGraphics } from "./components/TimelineGraphics";
 import {
@@ -28,7 +28,7 @@ import { TimelineTrack } from "./TimelineTrack";
 import { dispatchCustomEvent } from "utils/event";
 import { throttle } from "lodash";
 import { useEvent } from "hooks/useEvent";
-import { STOP_TRANSPORT } from "hooks/useTransport";
+import { STOP_TRANSPORT } from "types/Transport/TransportState";
 import { TimelineHeaderCell } from "./TimelineHeaderCell";
 import { TimelineCell } from "./TimelineCell";
 
@@ -40,10 +40,10 @@ export type TrackRow = Row & { id: TrackId };
 export type TimelineElement = { element?: HTMLDivElement };
 
 export function Timeline() {
-  const cellWidth = useSelect(selectCellWidth);
-  const cellHeight = useSelect(selectCellHeight);
-  const collapsedMap = useSelect(selectCollapsedTrackMap);
-  const trackIds = useSelect(selectTrackIds);
+  const cellWidth = useAppValue(selectCellWidth);
+  const cellHeight = useAppValue(selectCellHeight);
+  const collapsedMap = useAppValue(selectCollapsedTrackMap);
+  const trackIds = useAppValue(selectTrackIds);
 
   /** The grid ref stores the react-data-grid element. */
   const [timeline, setTimeline] = useState<DataGridHandle>();

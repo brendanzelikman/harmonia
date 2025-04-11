@@ -1,5 +1,5 @@
-import { cancelEvent } from "utils/html";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { cancelEvent } from "utils/event";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { selectIsSlicingClips } from "types/Timeline/TimelineSelectors";
 import { selectPortaledPatternClipStream } from "types/Arrangement/ArrangementSelectors";
 import {
@@ -18,11 +18,11 @@ interface PatternClipStreamProps {
 }
 
 export const PatternClipStream = memo((props: PatternClipStreamProps) => {
-  const dispatch = useDispatch();
-  const clipStream = useSelect((_) =>
+  const dispatch = useAppDispatch();
+  const clipStream = useAppValue((_) =>
     selectPortaledPatternClipStream(_, props.clip.id)
   );
-  const isSlicing = useSelect(selectIsSlicingClips);
+  const isSlicing = useAppValue(selectIsSlicingClips);
   const style = usePatternClipStreamStyle(props);
 
   /** Notes must calculate style before rendering */

@@ -1,5 +1,5 @@
 import { InputHTMLAttributes, useCallback, useState } from "react";
-import { cancelEvent } from "utils/html";
+import { cancelEvent } from "utils/event";
 import { omit, throttle } from "lodash";
 import { percentize } from "utils/math";
 import classNames from "classnames";
@@ -20,7 +20,7 @@ import {
   DEFAULT_PAN,
   PAN_STEP,
 } from "utils/constants";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { selectTrackInstrument } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
@@ -82,9 +82,11 @@ export const TrackSlider = (props: SliderProps) => {
 };
 
 export const VolumeSlider = (props: { trackId: TrackId }) => {
-  const dispatch = useDispatch();
-  const instrument = useSelect((_) => selectTrackInstrument(_, props.trackId));
-  const cellHeight = useSelect(selectCellHeight);
+  const dispatch = useAppDispatch();
+  const instrument = useAppValue((_) =>
+    selectTrackInstrument(_, props.trackId)
+  );
+  const cellHeight = useAppValue(selectCellHeight);
   const [draggingVolume, setDraggingVolume] = useState(false);
   if (!instrument) return null;
 
@@ -131,10 +133,12 @@ export const VolumeSlider = (props: { trackId: TrackId }) => {
 };
 
 export const PanSlider = (props: { trackId: TrackId }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [draggingPan, setDraggingPan] = useState(false);
-  const cellHeight = useSelect(selectCellHeight);
-  const instrument = useSelect((_) => selectTrackInstrument(_, props.trackId));
+  const cellHeight = useAppValue(selectCellHeight);
+  const instrument = useAppValue((_) =>
+    selectTrackInstrument(_, props.trackId)
+  );
   if (!instrument) return null;
 
   const pan = instrument?.pan ?? DEFAULT_PAN;

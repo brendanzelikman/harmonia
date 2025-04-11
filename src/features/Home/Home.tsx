@@ -1,4 +1,3 @@
-import { useWindowTitle } from "hooks/useWindowTitle";
 import { ProjectPage } from "features/Projects/Projects";
 import { DemosPage } from "../Demos/Demos";
 import { SamplePage } from "features/Samples/SamplePage";
@@ -7,10 +6,11 @@ import { Navbar } from "features/Navbar/Navbar";
 import { useRoute } from "app/router";
 import { PlaygroundPage } from "features/Playground/Playground";
 import { useProject } from "hooks/useProject";
+import { useWindow } from "hooks/useWindow";
 
 export function HomePage() {
   const view = useRoute();
-  useWindowTitle(view);
+  useWindow();
   useProject();
   return (
     <div className="size-full relative">

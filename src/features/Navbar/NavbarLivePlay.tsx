@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { GiCrystalWand, GiJackPlug, GiMisdirection } from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
@@ -16,13 +16,13 @@ import {
 import { memo, useCallback, useMemo } from "react";
 import { some } from "lodash";
 import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSelectors";
-import { useLivePlay } from "features/Playground/usePlaygroundLivePlay";
+import { useGestures } from "lib/gestures";
 import { TooltipButton } from "components/TooltipButton";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { TRACK_WIDTH } from "utils/constants";
 import { useToggle } from "hooks/useToggle";
 import { FaKeyboard } from "react-icons/fa";
-import { useHeldKeys } from "hooks/useHeldKeys";
+import { useHeldkeys } from "hooks/useHeldkeys";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -31,12 +31,12 @@ const miscKeys = ["c", "d", "v", "-", "`", "="];
 const hotkeys = [...qwertyKeys, ...numericalKeys, ...trackKeys, ...miscKeys];
 
 export const NavbarLivePlay = () => {
-  useLivePlay();
-  const isSelectingPatternClip = useSelect(selectIsSelectingPatternClips);
-  const isSelectingPoseClip = useSelect(selectIsSelectingPoseClips);
+  useGestures();
+  const isSelectingPatternClip = useAppValue(selectIsSelectingPatternClips);
+  const isSelectingPoseClip = useAppValue(selectIsSelectingPoseClips);
 
   // Keep track of held keys and shortcuts
-  const holding = useHeldKeys(hotkeys);
+  const holding = useHeldkeys(hotkeys);
   const holdingNumerical = some(numericalKeys, (key) => holding[key]);
 
   const isNegative = holding["-"] || holding["`"];
@@ -49,25 +49,25 @@ export const NavbarLivePlay = () => {
   const direction = isNegative ? "Down" : "Up";
 
   // Get the selected track and its scale names
-  const patternTracks = useSelect(selectPatternTracks);
-  const instrumentMap = useSelect(selectTrackInstrumentMap);
-  const selectedTrackId = useSelect(selectSelectedTrackId);
-  const chainIds = useSelect((_) =>
+  const patternTracks = useAppValue(selectPatternTracks);
+  const instrumentMap = useAppValue(selectTrackInstrumentMap);
+  const selectedTrackId = useAppValue(selectSelectedTrackId);
+  const chainIds = useAppValue((_) =>
     selectedTrackId ? selectTrackAncestorIds(_, selectedTrackId) : []
   );
 
-  const label1 = useSelect((_) => selectTrackLabelById(_, chainIds[0]));
-  const scale1 = useSelect((_) => selectTrackScaleNameAtTick(_, chainIds[0]));
+  const label1 = useAppValue((_) => selectTrackLabelById(_, chainIds[0]));
+  const scale1 = useAppValue((_) => selectTrackScaleNameAtTick(_, chainIds[0]));
   const scaleName1 = label1 !== "*" ? `${scale1} (${label1})` : `First Scale`;
   const hasScale1 = scaleName1 !== `First Scale`;
 
-  const label2 = useSelect((_) => selectTrackLabelById(_, chainIds[1]));
-  const scale2 = useSelect((_) => selectTrackScaleNameAtTick(_, chainIds[1]));
+  const label2 = useAppValue((_) => selectTrackLabelById(_, chainIds[1]));
+  const scale2 = useAppValue((_) => selectTrackScaleNameAtTick(_, chainIds[1]));
   const scaleName2 = label2 !== "*" ? `${scale2} (${label2})` : `Second Scale`;
   const hasScale2 = scaleName2 !== `Second Scale`;
 
-  const label3 = useSelect((_) => selectTrackLabelById(_, chainIds[2]));
-  const scale3 = useSelect((_) => selectTrackScaleNameAtTick(_, chainIds[2]));
+  const label3 = useAppValue((_) => selectTrackLabelById(_, chainIds[2]));
+  const scale3 = useAppValue((_) => selectTrackScaleNameAtTick(_, chainIds[2]));
   const scaleName3 = label3 !== "*" ? `${scale3} (${label3})` : `Third Scale`;
   const hasScale3 = scaleName3 !== `Third Scale`;
 
@@ -92,7 +92,7 @@ export const NavbarLivePlay = () => {
     y: "y",
   } as const;
 
-  const trackMap = useSelect(selectTrackLabelMap);
+  const trackMap = useAppValue(selectTrackLabelMap);
   const getKeycodeLabel = useCallback(
     (keycode: string) => {
       const number = parseInt(keycode);
@@ -419,7 +419,7 @@ export const NavbarLivePlay = () => {
     ]
   );
 
-  const hasTracks = useSelect(selectHasTracks);
+  const hasTracks = useAppValue(selectHasTracks);
   const working =
     isMixing || isVoiceLeadingClosest || isVoiceLeadingDegree || holdingPoses;
 

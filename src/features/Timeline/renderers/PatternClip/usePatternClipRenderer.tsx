@@ -1,5 +1,5 @@
 import { memo, useCallback, useState } from "react";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { PatternClipId, PortaledPatternClipId } from "types/Clip/ClipTypes";
 import { selectPortaledPatternClip } from "types/Arrangement/ArrangementClipSelectors";
 import { PatternClipDropdown } from "./PatternClipDropdown";
@@ -32,10 +32,10 @@ export interface PatternClipRendererProps extends ClipComponentProps {
 
 export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   const { pcId, id, isDragging, className } = props;
-  const dispatch = useDispatch();
-  const clip = useSelect((_) => selectPortaledPatternClip(_, pcId));
+  const dispatch = useAppDispatch();
+  const clip = useAppValue((_) => selectPortaledPatternClip(_, pcId));
   const { trackId, type } = clip;
-  const isSelected = useSelect((_) => selectIsClipSelected(_, id));
+  const isSelected = useAppValue((_) => selectIsClipSelected(_, id));
   const [isOpen, setIsOpen] = useState(false);
   const handleDropdown = useCallback(
     (e: CustomEvent<any>) => {
@@ -48,9 +48,9 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
     [isOpen, id]
   );
   useEvent("clipDropdown", handleDropdown);
-  const track = useSelect((_) => selectTrackById(_, trackId));
-  const isAdding = useSelect(selectIsAddingPatternClips);
-  const isPortaling = useSelect(selectIsAddingPortals);
+  const track = useAppValue((_) => selectTrackById(_, trackId));
+  const isAdding = useAppValue(selectIsAddingPatternClips);
+  const isPortaling = useAppValue(selectIsAddingPortals);
   const isBlurred = isAdding || isPortaling || isDragging;
   const isCollapsed = !!track?.collapsed;
   const [_, drag] = useDrag({
@@ -68,11 +68,12 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
     },
   });
 
-  const top = useSelect((_) => selectTrackTop(_, trackId)) + POSE_NOTCH_HEIGHT;
-  const left = useSelect((_) => selectClipLeft(_, pcId));
-  const width = useSelect((_) => selectClipWidth(_, pcId));
+  const top =
+    useAppValue((_) => selectTrackTop(_, trackId)) + POSE_NOTCH_HEIGHT;
+  const left = useAppValue((_) => selectClipLeft(_, pcId));
+  const width = useAppValue((_) => selectClipWidth(_, pcId));
   const height =
-    useSelect((_) => selectTrackHeight(_, trackId)) - POSE_NOTCH_HEIGHT;
+    useAppValue((_) => selectTrackHeight(_, trackId)) - POSE_NOTCH_HEIGHT;
 
   if (!clip || !track) return null;
   return (

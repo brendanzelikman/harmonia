@@ -38,10 +38,10 @@ import { TimelineState } from "./TimelineTypes";
 import { DEFAULT_CELL_WIDTH } from "utils/constants";
 import {
   createCourtesyPatternClip,
-  createCourtesyPoseClip,
+  createNewPoseClip,
   createPatternTrack,
 } from "types/Track/PatternTrack/PatternTrackThunks";
-import { createTreeFromString } from "types/Track/TrackRegex";
+import { createTreeFromString } from "lib/prompts/tree";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { walkPatternClip } from "types/Arrangement/ArrangementThunks";
@@ -222,7 +222,7 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
     );
     dispatch(randomizePattern({ data: { id: patternId, trackId }, undoType }));
     dispatch(
-      createCourtesyPoseClip({
+      createNewPoseClip({
         data: { clip: { trackId, tick } },
         undoType,
       })
@@ -251,7 +251,7 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
     walkPatternClip({
       data: {
         id: `${clipId}-chunk-1`,
-        options: { vectorKeys: trackIds, direction: "up" },
+        options: { keys: trackIds, direction: "up" },
       },
       undoType,
     })

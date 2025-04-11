@@ -1,7 +1,7 @@
 import { selectMeta } from "../Meta/MetaSelectors";
 import { isProject } from "./ProjectTypes";
 import { mergeBaseProjects, sanitizeProject } from "./ProjectUtils";
-import { promptUserForNumber } from "utils/html";
+import { promptUserForNumber } from "lib/prompts/html";
 import { dispatchCustomEvent } from "utils/event";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import {
@@ -13,7 +13,7 @@ import {
 } from "app/projects";
 import { initializeProjectMetadata } from "types/Meta/MetaTypes";
 import { setProject } from "app/reducer";
-import { getEventFiles } from "utils/file";
+import { getEventFiles } from "utils/event";
 
 interface ProjectFileOptions {
   merging?: boolean;

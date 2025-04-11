@@ -1,4 +1,4 @@
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import {
   selectCellHeight,
   selectSelectedTrack,
@@ -10,14 +10,14 @@ import classNames from "classnames";
 import { COLLAPSED_TRACK_HEIGHT } from "utils/constants";
 
 export function TimelineCursor() {
-  const tick = useSelect(selectTimelineTick);
-  const cellHeight = useSelect(selectCellHeight);
+  const tick = useAppValue(selectTimelineTick);
+  const cellHeight = useAppValue(selectCellHeight);
 
-  const track = useSelect(selectSelectedTrack);
+  const track = useAppValue(selectSelectedTrack);
   const onPatternTrack = track?.type === "pattern";
 
-  const top = useSelect((_) => selectTrackTop(_, track?.id));
-  const left = useSelect((_) => selectTimelineTickLeft(_, tick)) - 2;
+  const top = useAppValue((_) => selectTrackTop(_, track?.id));
+  const left = useAppValue((_) => selectTimelineTickLeft(_, tick)) - 2;
   const width = 2;
   const height = track?.collapsed ? COLLAPSED_TRACK_HEIGHT : cellHeight;
   const style = { height, top, width, left };

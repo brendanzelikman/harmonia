@@ -1,12 +1,12 @@
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { WaterTreeHotkey } from "lib/hotkeys/timeline";
 import { GiWateringCan } from "react-icons/gi";
-import { useDispatch } from "hooks/useStore";
+import { useAppDispatch } from "hooks/useRedux";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 import classNames from "classnames";
 
 export const NavbarWaterTree = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   return (
     <NavbarTooltipButton
       keepTooltipOnClick

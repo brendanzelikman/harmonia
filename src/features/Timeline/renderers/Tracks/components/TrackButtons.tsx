@@ -4,7 +4,7 @@ import { memo } from "react";
 import { CiRuler } from "react-icons/ci";
 import { GiDominoMask, GiMusicalKeyboard } from "react-icons/gi";
 import { toggleTrackEditor } from "types/Timeline/TimelineThunks";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import {
   selectIsEditingTrack,
   selectSelectedTrackId,
@@ -21,12 +21,12 @@ import {
   toggleTrackMute,
   toggleTrackSolo,
 } from "types/Track/PatternTrack/PatternTrackThunks";
-import { cancelEvent } from "utils/html";
-import { promptUserForScale } from "types/Track/ScaleTrack/ScaleTrackRegex";
+import { cancelEvent } from "utils/event";
+import { promptUserForScale } from "lib/prompts/scale";
 
 export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
   const { trackId } = props;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   return (
     <div
       className="grid grid-cols-3 -mr-1 self-end shrink-0 gap-x-1 mt-2 relative"
@@ -74,13 +74,13 @@ export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
 export const PatternTrackButtons = memo(
   (props: { trackId: PatternTrackId; collapsed?: boolean }) => {
     const { trackId } = props;
-    const dispatch = useDispatch();
-    const track = useSelect((_) => selectPatternTrackById(_, trackId));
-    const isTrackSelected = useSelect(selectSelectedTrackId) === trackId;
-    const isInstrumentEditorOpen = useSelect((_) =>
+    const dispatch = useAppDispatch();
+    const track = useAppValue((_) => selectPatternTrackById(_, trackId));
+    const isTrackSelected = useAppValue(selectSelectedTrackId) === trackId;
+    const isInstrumentEditorOpen = useAppValue((_) =>
       selectIsEditingTrack(_, trackId)
     );
-    const instrument = useSelect((_) => selectTrackInstrument(_, trackId));
+    const instrument = useAppValue((_) => selectTrackInstrument(_, trackId));
     const onInstrumentEditor = isInstrumentEditorOpen && isTrackSelected;
     const mute = instrument?.mute;
     const solo = instrument?.solo;

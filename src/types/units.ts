@@ -33,8 +33,8 @@ export type Velocity = number;
 // ------------------------------------------------------------
 
 export type PitchLetter = "C" | "D" | "E" | "F" | "G" | "A" | "B";
-export type Accidental = "b" | "#" | "";
-export type PitchClass = `${PitchLetter}${Accidental}${Accidental}`;
+export type Accidental = "b" | "#" | "" | "bb" | "##";
+export type PitchClass = `${PitchLetter}${Accidental}`;
 export type Key = PitchClass[];
 export type XML = string;
 export type UndoType = string;

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRoute } from "app/router";
 import { NavbarBrand } from "features/Navbar/components/NavbarBrand";
 import { views } from "features/Home/Home";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { NavbarGroup } from "./components/NavbarGroup";
 import { NavbarProjectMenu } from "./NavbarProject";
@@ -23,7 +23,7 @@ import { LOAD_PLAYGROUND } from "features/Playground/Playground";
 
 export function Navbar() {
   const view = useRoute();
-  const hasTracks = useSelect(selectHasTracks);
+  const hasTracks = useAppValue(selectHasTracks);
 
   // Listen for the playground to load
   const [didLoad, setDidLoad] = useState(false);

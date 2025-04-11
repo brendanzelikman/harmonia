@@ -35,7 +35,7 @@ import {
   InstrumentCategory,
   CategorizedInstrument,
 } from "types/Instrument/InstrumentTypes";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
 import { selectInstrumentKey } from "types/Instrument/InstrumentSelectors";
 import { updateInstrument } from "types/Instrument/InstrumentSlice";
@@ -45,9 +45,9 @@ type InstrumentEditorSidebarProps = { id: InstrumentId };
 
 export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
   const { id } = props;
-  const dispatch = useDispatch();
-  const trackId = useSelect(selectSelectedTrackId);
-  const key = useSelect((_) => selectInstrumentKey(_, props.id));
+  const dispatch = useAppDispatch();
+  const trackId = useAppValue(selectSelectedTrackId);
+  const key = useAppValue((_) => selectInstrumentKey(_, props.id));
   const category = key ? INSTRUMENT_CATEGORIES_BY_KEY[key] : undefined;
 
   // The categories can be filtered

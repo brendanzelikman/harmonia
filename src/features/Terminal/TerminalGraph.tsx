@@ -1,11 +1,11 @@
-import { useTick } from "hooks/useTick";
+import { useTick } from "types/Transport/TransportTick";
 import { createDeepSelector } from "types/redux";
 import { omit } from "lodash";
 import Tree from "react-d3-tree";
 import { getTrackScaleChain } from "types/Arrangement/ArrangementFunctions";
 import { selectProcessedArrangement } from "types/Arrangement/ArrangementSelectors";
 import { getPoseOperationsAtTick } from "types/Clip/PoseClip/PoseClipFunctions";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { getPoseVectorAsString } from "types/Pose/PoseFunctions";
 import { selectPoseMap } from "types/Pose/PoseSelectors";
@@ -20,14 +20,14 @@ import {
 } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
 import { Tick } from "types/units";
-import { getScaleName } from "lib/scale";
+import { getScaleName } from "types/Scale/ScaleFinder";
 import { sumVectors } from "utils/vector";
 
 export function TerminalGraph() {
-  const { tick } = useTick();
-  const dispatch = useDispatch();
-  const json = useSelect((_) => selectTrackJsonAtTick(_, tick));
-  const selectedTrackId = useSelect(selectSelectedTrackId);
+  const tick = useTick();
+  const dispatch = useAppDispatch();
+  const json = useAppValue((_) => selectTrackJsonAtTick(_, tick));
+  const selectedTrackId = useAppValue(selectSelectedTrackId);
   return (
     <div className="relative size-full total-center-col">
       <Tree

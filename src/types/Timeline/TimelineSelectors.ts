@@ -10,11 +10,10 @@ import {
   getTickColumns,
 } from "utils/duration";
 import { Tick, Timed } from "types/units";
-import { getValueByKey, getValuesByKeys } from "utils/object";
 import { selectClipDurationMap, selectClipMap } from "../Clip/ClipSelectors";
 import { selectPoseMap } from "../Pose/PoseSelectors";
 import { createSelector } from "reselect";
-import { capitalize, uniq } from "lodash";
+import { capitalize, pick, uniq, values } from "lodash";
 import { createDeepSelector } from "types/redux";
 import {
   Clip,
@@ -78,7 +77,7 @@ export const selectIsTrackSelected = (project: Project, id: TrackId) => {
 /** Select the currently selected track. */
 export const selectSelectedTrack = createSelector(
   [selectSelectedTrackId, selectTrackMap],
-  (trackId, trackMap) => getValueByKey(trackMap, trackId)
+  (trackId, trackMap) => (trackId ? trackMap[trackId] : undefined)
 );
 
 /** Select the currently selected pattern track. */
@@ -155,7 +154,7 @@ export const selectSelectedPortalIds = createDeepSelector(
 export const selectSelectedClips = createDeepSelector(
   [selectSelectedClipIds, selectClipMap, selectClipDurationMap],
   (clipIds, clipMap, durationMap) =>
-    getValuesByKeys(clipMap, clipIds)
+    values(pick(clipMap, clipIds))
       .filter(Boolean)
       .map((clip) => ({
         ...clip,
@@ -175,21 +174,17 @@ export const selectSelectedPoseClips = createDeepSelector(
   (clips) => clips.filter(isPoseClip) as Timed<PoseClip>[]
 );
 
-export const selectSelectedPoses = createDeepSelector(
-  [selectPoseMap, selectSelectedPoseClips],
-  (poseMap, clips) =>
-    uniq(
-      clips
-        .map((clip) => getValueByKey(poseMap, clip.poseId))
-        .filter(Boolean) as Pose[]
-    )
+/** Select the track IDs of the currently selected clips */
+export const selectSelectedClipTrackIds = createDeepSelector(
+  [selectSelectedClips],
+  (clips) => uniq(clips.map((clip) => clip.trackId))
 );
 
 /** Select the currently selected portals. */
 export const selectSelectedPortals = createDeepSelector(
   [selectPortalMap, selectSelectedPortalIds],
   (portalMap, portalIds) =>
-    getValuesByKeys(portalMap, portalIds)
+    values(pick(portalMap, portalIds))
       .filter(Boolean)
       .map((portal) => ({ ...portal, duration: 1 })) as Timed<Portal>[]
 );

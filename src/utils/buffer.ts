@@ -1,3 +1,11 @@
+import {
+  BasicPitch,
+  noteFramesToTime,
+  addPitchBendsToNoteEvents,
+  outputToNotesPoly,
+  OnCompleteCallback,
+} from "@spotify/basic-pitch";
+import { Note } from "@tonejs/midi/dist/Note";
 import { getContext } from "tone";
 
 /** A SafeBuffer stores the channels of a buffer */
@@ -87,4 +95,43 @@ export const prepareAudioBuffer = async (
     buffer = monoBuffer;
   }
   return buffer;
+};
+
+/* Convert an audio buffer into an array of MIDI notes */
+export const interpretAudioBuffer = async (
+  arrayBuffer: ArrayBuffer
+): Promise<Note[]> => {
+  // Get the audio buffer from the file
+  const audioCtx = new AudioContext();
+  const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+  const buffer = await prepareAudioBuffer(audioBuffer, {
+    sampleRate: 22050,
+    channels: 1,
+  });
+
+  // Create the basic pitch model by file
+  const basicPitch = new BasicPitch("model/model.json");
+  const frames: number[][] = [];
+  const onsets: number[][] = [];
+  const contours: number[][] = [];
+
+  // Evaluate the model on the audio buffer
+  const onComplete: OnCompleteCallback = (f, o, c) => {
+    frames.push(...f);
+    onsets.push(...o);
+    contours.push(...c);
+  };
+  await basicPitch.evaluateModel(buffer, onComplete, () => null);
+
+  // Convert the frames to MIDI notes
+  const events = outputToNotesPoly(frames, onsets, 0.5, 0.3, 10);
+  const notes = noteFramesToTime(addPitchBendsToNoteEvents(contours, events));
+
+  // Return the data formatted as MIDI notes
+  return notes.map((note) => ({
+    midi: note.pitchMidi,
+    duration: note.durationSeconds,
+    time: note.startTimeSeconds,
+    velocity: note.amplitude,
+  })) as Note[];
 };

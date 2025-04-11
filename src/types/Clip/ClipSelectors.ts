@@ -1,4 +1,3 @@
-import { getValuesByKeys, getValueByKey } from "utils/object";
 import { createSelector } from "reselect";
 import { createDeepSelector, createValueSelector } from "types/redux";
 import { getPatternDuration } from "types/Pattern/PatternFunctions";
@@ -25,7 +24,7 @@ import {
   poseClipAdapter,
 } from "./ClipSlice";
 import { Timed } from "types/units";
-import { mapValues, uniqBy } from "lodash";
+import { mapValues, pick, uniqBy, values } from "lodash";
 import { getClipMotifId } from "./ClipFunctions";
 import {
   selectPatternById,
@@ -164,8 +163,9 @@ export const selectClipDurationMap = createDeepSelector(
   [selectClipMap, selectClipMotifMap],
   (clipMap, referenceMap) =>
     mapValues(clipMap, (clip) => {
-      const reference = getValueByKey(referenceMap, clip?.id);
-      if (!clip || !reference) return Infinity;
+      if (!clip) return Infinity;
+      const reference = referenceMap[clip.id];
+      if (!reference) return Infinity;
       if (clip.duration && isFinite(clip.duration)) return clip.duration;
       if (isPose(reference)) return getPoseDuration(reference);
       if (isPattern(reference)) return getPatternDuration(reference);
@@ -177,10 +177,10 @@ export const selectClipDurationMap = createDeepSelector(
 export const selectClips = createDeepSelector(
   [selectClipMap, selectClipIds, selectClipDurationMap],
   (clipMap, clipIds, durationMap) =>
-    getValuesByKeys(clipMap, clipIds).map((clip) => ({
+    values(pick(clipMap, clipIds)).map((clip) => ({
       ...clip,
       duration: durationMap[clip.id] ?? clip.duration,
-    })) as Timed<Clip>[]
+    }))
 );
 
 /** Select the map of motifs to their clips. */
@@ -249,10 +249,6 @@ export const selectClipHeaderColor = (project: Project, id: PatternClipId) => {
   const clip = selectPatternClipById(project, id);
   return getPatternClipHeaderColor(clip);
 };
-
-/** Select the durations of a list of clips. */
-export const selectClipDurations = (project: Project, ids: ClipId[]) =>
-  getValuesByKeys(selectClipDurationMap(project), ids);
 
 /** Select the duration of a clip. */
 export const selectClipDuration = createValueSelector(selectClipDurationMap, 0);

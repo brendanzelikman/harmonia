@@ -20,7 +20,7 @@ import {
   selectProcessedArrangement,
 } from "./ArrangementSelectors";
 import { createDeepSelector, createValueSelector } from "types/redux";
-import { getScaleName } from "lib/scale";
+import { getScaleName } from "types/Scale/ScaleFinder";
 import { getPoseVectorAsString } from "types/Pose/PoseFunctions";
 import { getPoseOperationsAtTick } from "types/Clip/PoseClip/PoseClipFunctions";
 import { selectPoseMap } from "types/Pose/PoseSelectors";

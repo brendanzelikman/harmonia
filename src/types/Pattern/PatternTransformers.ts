@@ -12,7 +12,7 @@ import {
   isPatternMidiChord,
   isPatternRest,
 } from "./PatternTypes";
-import { getMidiFromPitch, getMidiScaleDegree } from "utils/midi";
+import { getMidiFromPitch } from "utils/midi";
 import { clamp, shuffle } from "lodash";
 import { Frequency, getTransport } from "tone";
 import { getPatternBlockDuration } from "./PatternFunctions";
@@ -109,7 +109,8 @@ export const rotateStream: Transformer<StrNum> = (stream, input = 0) => {
   for (let i = 0; i < Math.abs(offset); i++) {
     newStream = getPatternMidiStreamWithNewNotes(newStream, (notes) =>
       notes.map((note) => {
-        const lastDegree = getMidiScaleDegree(note.MIDI, streamScale);
+        const degree = note.MIDI % 12;
+        const lastDegree = streamScale.findIndex((n) => n % 12 === degree);
         const nextDegree = mod(lastDegree + step, length);
         let distance = streamScale[nextDegree] - streamScale[lastDegree];
         if (step > 0 && nextDegree === 0) distance += 12;

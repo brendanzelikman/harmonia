@@ -41,6 +41,7 @@ import {
   PatternMidiNote,
 } from "types/Pattern/PatternTypes";
 import { isFinite } from "utils/math";
+import { selectTransportTimeSignature } from "types/Transport/TransportSelectors";
 
 // --------------------------------------------
 // Clip Properties
@@ -152,7 +153,8 @@ export const selectPortaledPatternClipXML = (
     .map((n) => n.notes)
     .filter(isPatternMidiChord) as PatternMidiNote[][];
   const scale = selectTrackMidiScaleAtTick(project, clip.trackId, clip.tick);
-  return exportPatternStreamToXML(stream, scale);
+  const timeSignature = selectTransportTimeSignature(project);
+  return exportPatternStreamToXML({ stream, scale, timeSignature });
 };
 
 /** Select the transformation of a clip using a stream query. */

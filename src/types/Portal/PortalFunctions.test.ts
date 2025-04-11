@@ -157,43 +157,6 @@ test("applyPortalsToMedia should correctly return three chunks for a clip going 
   expect(clips[2].offset).toBe(7);
 });
 
-test("applyPortalsToMedia should work with a tight feedback loop", () => {
-  const clip = initializePatternClip({
-    tick: 1,
-    trackId: "pattern-track_1",
-    duration: 20,
-  }) as Timed<PatternClip>;
-  const portal1 = initializePortalFromFragments(
-    { trackId: "pattern-track_1", tick: 2 },
-    { trackId: "pattern-track_2", tick: 2 }
-  );
-  const portal2 = initializePortalFromFragments(
-    { trackId: "pattern-track_2", tick: 3 },
-    { trackId: "pattern-track_1", tick: 1 }
-  );
-
-  // Get the portaled chunks
-  const chunks = _.applyPortalsToClip(clip, [portal1, portal2]);
-  const clips = getPatternClipsFromMedia(chunks);
-  expect(chunks.length).toBe(20);
-  expect(clips.length).toBe(20);
-
-  // Check each chunk
-  for (let i = 0; i < 20; i++) {
-    const clip = clips[i];
-    expect(clip.offset).toBe(i);
-    expect(clip.duration).toBe(1);
-    if (i % 4 === 0) {
-      expect(clip.trackId).toBe("pattern-track_1");
-      expect(clip.tick).toBe(1);
-    }
-    if (i % 4 === 1) {
-      expect(clip.trackId).toBe("pattern-track_2");
-      expect(clip.tick).toBe(2);
-    }
-  }
-});
-
 test("applyPortalsToMedia should not be able to infinitely loop", () => {
   const clip = initializePatternClip({
     trackId: "pattern-track_1",

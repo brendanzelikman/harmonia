@@ -7,10 +7,6 @@ const openKey = (key: ToggledKey) => `${key}-open`;
 const closeKey = (key: ToggledKey) => `${key}-close`;
 const toggleKey = (key: ToggledKey) => `${key}-toggle`;
 
-// --------------------------------------------------------------
-// Component Hook
-// --------------------------------------------------------------
-
 /** Custom hook for using a toggled value. */
 export const useToggle = (key: ToggledKey) => {
   const [isOpen, setIsOpen] = useState(false);

@@ -20,7 +20,7 @@ import { sumVectors } from "utils/vector";
 import { selectPoseById, selectPoses } from "types/Pose/PoseSelectors";
 import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 import { PoseVectorId } from "types/Pose/PoseTypes";
-import { createCourtesyPoseClip } from "types/Track/PatternTrack/PatternTrackThunks";
+import { createNewPoseClip } from "types/Track/PatternTrack/PatternTrackThunks";
 
 export const walkPatternClip =
   (
@@ -61,7 +61,7 @@ export const walkPatternClip =
 
     // Otherwise, create a new pose and clip
     dispatch(
-      createCourtesyPoseClip({
+      createNewPoseClip({
         data: {
           pose: { vector: search.vector },
           clip: { tick: clip.tick, trackId: clip.trackId },

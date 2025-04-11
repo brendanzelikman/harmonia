@@ -14,7 +14,7 @@ import {
 } from "features/Home/HomeList";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { createProject } from "types/Project/ProjectFunctions";
-import { useDispatch } from "hooks/useStore";
+import { useAppDispatch } from "hooks/useRedux";
 import { ProjectItem } from "features/Projects/Projects";
 import { DEMO_BLURBS } from "features/Demos/useDemos";
 import { deleteProject } from "app/projects";
@@ -25,7 +25,7 @@ export interface ProjectFormatterProps extends ProjectItem {
 }
 
 export function ProjectFormatter(props: ProjectFormatterProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { project, filePath } = props;
   const id = selectProjectId(project);

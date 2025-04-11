@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { some } from "lodash";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import {
   selectIsEditingTrack,
   selectSelectedTrackId,
@@ -11,7 +11,7 @@ import {
   selectTrackDepthById,
 } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
-import { useHeldKeys } from "hooks/useHeldKeys";
+import { useHeldkeys } from "hooks/useHeldkeys";
 
 export const useTrackStyle = (props: {
   trackId: TrackId;
@@ -19,9 +19,9 @@ export const useTrackStyle = (props: {
 }) => {
   const trackId = props.trackId;
   const isPT = isPatternTrackId(trackId);
-  const track = useSelect((_) => selectTrackById(_, trackId));
+  const track = useAppValue((_) => selectTrackById(_, trackId));
   const isCollapsed = !!track?.collapsed;
-  const depth = useSelect((_) => selectTrackDepthById(_, trackId));
+  const depth = useAppValue((_) => selectTrackDepthById(_, trackId));
   const paddingLeft = depth * 8;
   const filter = `hue-rotate(${(depth - 1) * 8}deg)`;
   const opacity = props.isDragging ? 0.5 : 1;
@@ -31,11 +31,13 @@ export const useTrackStyle = (props: {
     isCollapsed ? "p-0.5 pt-0" : "p-1",
     { "from-indigo-800/80 to-indigo-700": !isPT }
   );
-  const selectedId = useSelect(selectSelectedTrackId);
+  const selectedId = useAppValue(selectSelectedTrackId);
   const isSelected = selectedId === trackId;
-  const heldKeys = useHeldKeys(["q", "w", "e", "r", "t", "y"]);
+  const heldKeys = useHeldkeys(["q", "w", "e", "r", "t", "y"]);
   const isHolding = some(heldKeys);
-  const onInstrumentEditor = useSelect((_) => selectIsEditingTrack(_, trackId));
+  const onInstrumentEditor = useAppValue((_) =>
+    selectIsEditingTrack(_, trackId)
+  );
   const borderClass = classNames(
     "size-full bg-radial border-2 rounded transition-all",
     { "total-center": isPT },

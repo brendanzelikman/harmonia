@@ -26,7 +26,7 @@ import {
 import { exportProjectsToZIP } from "types/Project/ProjectExporters";
 import { readLocalProjects } from "types/Project/ProjectLoaders";
 import dayjs from "dayjs";
-import { useDispatch } from "hooks/useStore";
+import { useAppDispatch } from "hooks/useRedux";
 import { BiCodeCurly } from "react-icons/bi";
 import { ProjectFormatter } from "features/Projects/ProjectsFormatter";
 import { ProjectSearchBar } from "features/Projects/ProjectsSearchBar";
@@ -41,7 +41,7 @@ export interface ProjectItem {
 }
 
 export function ProjectPage() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   useHotkeys({ enter: () => navigate("/playground") });
   const { data } = useFetch(getProjects, UPDATE_PROJECT_EVENT);

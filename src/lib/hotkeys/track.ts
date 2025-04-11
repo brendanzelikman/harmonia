@@ -14,17 +14,17 @@ import {
   toggleTimelineState,
   toggleTrackByIndex,
 } from "types/Timeline/TimelineThunks";
-import { inputPatternTrackSample } from "types/Track/PatternTrack/PatternTrackRegex";
-import { inputScaleTrackScale } from "types/Track/ScaleTrack/ScaleTrackRegex";
+import { inputPatternTrackSample } from "lib/prompts/sampler";
 import {
   createDrumTracks,
   createRandomHierarchy,
 } from "types/Track/ScaleTrack/ScaleTrackThunks";
-import { promptUserForTree } from "types/Track/TrackRegex";
+import { promptUserForTree } from "lib/prompts/tree";
 import {
   collapseTracks,
   collapseTrackAncestors,
 } from "types/Track/TrackThunks";
+import { inputScaleTrackScale } from "lib/prompts/scale";
 
 // ---------------------------------------------------
 // Track Hotkeys

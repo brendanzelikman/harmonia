@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { blurOnEnter, cancelEvent } from "utils/html";
+import { blurOnEnter, cancelEvent } from "utils/event";
 
 export interface SliderProps {
   min: number;

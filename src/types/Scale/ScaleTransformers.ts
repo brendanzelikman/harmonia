@@ -1,6 +1,6 @@
 import { mod } from "utils/math";
 import { getScaleNotes } from "./ScaleFunctions";
-import { getMidiNoteValue } from "utils/midi";
+import { getMidiValue } from "utils/midi";
 import {
   isMidiObject,
   ScaleNote,
@@ -36,7 +36,7 @@ export const getTransposedMidiNote = (
   const sum = offsets
     .filter((n) => n !== undefined)
     .reduce((acc, cur) => acc + cur, 0);
-  const value = getMidiNoteValue(note);
+  const value = getMidiValue(note);
   const MIDI = value + sum;
   return isMidiObject(note) ? { ...note, MIDI } : MIDI;
 };

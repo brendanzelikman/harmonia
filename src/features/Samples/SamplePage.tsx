@@ -7,13 +7,13 @@ import { getSampleDataFromIDB, UPDATE_SAMPLES_EVENT } from "app/samples";
 import { GiAudioCassette } from "react-icons/gi";
 import { SampleFormatter } from "./SampleFormatter";
 import { useEvent } from "hooks/useEvent";
-import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackRegex";
-import { useDispatch } from "hooks/useStore";
+import { promptUserForSample } from "lib/prompts/sampler";
+import { useAppDispatch } from "hooks/useRedux";
 import { HomeList } from "features/Home/HomeList";
 import { useFetch } from "hooks/useFetch";
 
 export const SamplePage = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { data, fetchData } = useFetch(getSampleDataFromIDB);
   useEvent(UPDATE_SAMPLES_EVENT, fetchData);
   return (

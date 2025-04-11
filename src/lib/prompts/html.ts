@@ -1,35 +1,6 @@
 import { promptModal, PromptModalProps } from "components/PromptModal";
 import { addToggleCloseListener } from "hooks/useToggle";
-import { BaseSyntheticEvent, KeyboardEvent, ReactNode } from "react";
-
-// ------------------------------------------------------------
-// Generic Events
-// ------------------------------------------------------------
-
-/** Check if the user is targeting an input or textarea element. */
-export const isInputEvent = (e: Event) => {
-  const tagName = (e.target as HTMLElement)?.tagName;
-  return tagName === "INPUT" || tagName === "TEXTAREA";
-};
-
-/** Cancel the event and stop all propagation. */
-export const cancelEvent = (e: BaseSyntheticEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
-};
-
-/** Blur the targeted element of the event. */
-export const blurEvent = (e: BaseSyntheticEvent) => {
-  (e.currentTarget as HTMLElement).blur();
-};
-
-/** Blur the targeted element when the user presses Enter.  */
-export const blurOnEnter = (e: KeyboardEvent, callback?: () => void) => {
-  if (e.key === "Enter") {
-    (e.currentTarget as HTMLElement).blur();
-    callback?.();
-  }
-};
+import { ReactNode } from "react";
 
 // ------------------------------------------------------------
 // User Prompts

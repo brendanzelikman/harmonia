@@ -1,5 +1,5 @@
 import { DEFAULT_BPM, MIN_BPM, MAX_BPM } from "utils/constants";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import classNames from "classnames";
 import {
   selectTransportBPM,
@@ -27,13 +27,13 @@ import {
 } from "types/Transport/TransportSlice";
 
 export function NavbarSettings() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const Terminal = useToggle("terminal");
   const Diary = useToggle("diary");
   const Shortcuts = useToggle("shortcuts");
-  const bpm = useSelect(selectTransportBPM);
-  const meter = useSelect(selectTransportTimeSignature);
-  const swing = useSelect(selectTransportSwing);
+  const bpm = useAppValue(selectTransportBPM);
+  const meter = useAppValue(selectTransportTimeSignature);
+  const swing = useAppValue(selectTransportSwing);
   return (
     <div className="group/tooltip relative">
       {/* Button */}

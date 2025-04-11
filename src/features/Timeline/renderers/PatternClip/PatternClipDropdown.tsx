@@ -1,14 +1,12 @@
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { cancelEvent } from "utils/html";
+import { cancelEvent } from "utils/event";
 import {
   removePatternBlock,
   updatePatternBlockDuration,
 } from "types/Pattern/PatternSlice";
 import classNames from "classnames";
 import { clearPattern, randomizePattern } from "types/Pattern/PatternThunks";
-import { bindNoteWithPromptCallback } from "types/Clip/PatternClip/PatternClipRegex";
-import { bindNoteWithPrompt } from "types/Clip/PatternClip/PatternClipRegex";
 import {
   getDurationImage,
   getDurationName,
@@ -25,10 +23,6 @@ import { Piano } from "components/Piano";
 import { selectTrackScale } from "types/Track/TrackSelectors";
 import { MouseEvent, useState } from "react";
 import {
-  promptUserForPattern,
-  promptUserForPatternEffect,
-} from "types/Clip/PatternClip/PatternClipRegex";
-import {
   GiAbacus,
   GiCrystalWand,
   GiPaintBrush,
@@ -41,7 +35,13 @@ import { BsRecord, BsScissors } from "react-icons/bs";
 import { selectPatternNoteLabel } from "types/Clip/PatternClip/PatternClipSelectors";
 import { PatternId } from "types/Pattern/PatternTypes";
 import { useToggle } from "hooks/useToggle";
-import { useHeldKeys } from "hooks/useHeldKeys";
+import { useHeldkeys } from "hooks/useHeldkeys";
+import {
+  promptUserForPattern,
+  bindNoteWithPrompt,
+  bindNoteWithPromptCallback,
+  promptUserForPatternEffect,
+} from "lib/prompts/patternClip";
 
 export interface PatternClipDropdownProps {
   clip: PortaledPatternClip;
@@ -50,13 +50,13 @@ export interface PatternClipDropdownProps {
 }
 
 export function PatternClipDropdown(props: PatternClipDropdownProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { clip, id, isOpen } = props;
   const { patternId, trackId } = clip;
 
   // Get the pattern and scale for the current clip
-  const pattern = useSelect((_) => selectPatternById(_, patternId));
-  const scale = useSelect((_) => selectTrackScale(_, trackId));
+  const pattern = useAppValue((_) => selectPatternById(_, patternId));
+  const scale = useAppValue((_) => selectTrackScale(_, trackId));
 
   // Allow the user to switch between scale and pedal notes
   const [type, setType] = useState<string>("scale");
@@ -64,7 +64,9 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   // Get the score of the pattern clip
   const clipScore = usePatternClipScore(clip);
   const { Score, index, playNote, setDuration, duration, input } = clipScore;
-  const labels = useSelect((_) => selectPatternNoteLabel(_, patternId, index));
+  const labels = useAppValue((_) =>
+    selectPatternNoteLabel(_, patternId, index)
+  );
   const isEditing = index !== undefined;
   const isEmpty = !pattern.stream.length;
   const isBinding = type === "scale";
@@ -315,7 +317,7 @@ const DropdownDurationButtons = (props: {
   setDuration: (duration: number) => void;
 }) => {
   const { id, index, duration: _duration, setDuration } = props;
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   return (
     <div className="flex gap-1 justify-center bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
       {STRAIGHT_DURATION_TYPES.map((d, i) => {
@@ -382,7 +384,7 @@ const DropdownNoteButtons = (props: {
 };
 
 const DropdownDurationShortcuts = () => {
-  const holding = useHeldKeys(["shift", ",", "/", "."]);
+  const holding = useHeldkeys(["shift", ",", "/", "."]);
   return (
     <div className="flex flex-col gap-0.5 w-full text-slate-300">
       <div className="flex gap-2">

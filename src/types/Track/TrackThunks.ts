@@ -86,7 +86,7 @@ import {
 import { addClipIdsToSelection } from "types/Timeline/thunks/TimelineSelectionThunks";
 import { selectTrackClipIds } from "types/Arrangement/ArrangementTrackSelectors";
 import { initializePose } from "types/Pose/PoseTypes";
-import { replaceVectorKeys } from "utils/vector";
+import { remapVector } from "utils/vector";
 import { trackActions } from "./TrackSlice";
 import {
   selectPortaledClips,
@@ -388,7 +388,7 @@ export const duplicateTrack =
                       ? newScaleMap[note.scaleId] ?? note.scaleId
                       : undefined;
                     const offset = note.offset
-                      ? replaceVectorKeys(note.offset, newTrackMap)
+                      ? remapVector(note.offset, newTrackMap)
                       : undefined;
                     return { ...note, scaleId, offset };
                   })

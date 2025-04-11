@@ -1,4 +1,4 @@
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { GiPortal } from "react-icons/gi";
 import classNames from "classnames";
 import {
@@ -10,9 +10,9 @@ import { NavbarTooltipButton } from "components/TooltipButton";
 import { ArrangePortalsHotkey } from "lib/hotkeys/timeline";
 
 export const NavbarPortalGun = () => {
-  const dispatch = useDispatch();
-  const isPortaling = useSelect(selectIsAddingPortals);
-  const hasFragment = useSelect(selectHasPortalFragment);
+  const dispatch = useAppDispatch();
+  const isPortaling = useAppValue(selectIsAddingPortals);
+  const hasFragment = useAppValue(selectHasPortalFragment);
   return (
     <div className="relative">
       <NavbarTooltipButton

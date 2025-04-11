@@ -1,5 +1,5 @@
 import { CiUndo, CiRedo } from "react-icons/ci";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { selectCanRedo, selectCanUndo } from "types/Project/ProjectSelectors";
 import classNames from "classnames";
 import { NavbarTooltipButton } from "components/TooltipButton";
@@ -16,7 +16,7 @@ const buttonClass = (active: boolean, pulsed?: boolean) =>
   );
 
 export function NavbarUndo() {
-  const canUndo = useSelect(selectCanUndo);
+  const canUndo = useAppValue(selectCanUndo);
 
   return (
     <NavbarTooltipButton
@@ -32,7 +32,7 @@ export function NavbarUndo() {
 }
 
 export function NavbarRedo() {
-  const canRedo = useSelect(selectCanRedo);
+  const canRedo = useAppValue(selectCanRedo);
   return (
     <NavbarTooltipButton
       className={buttonClass(canRedo)}

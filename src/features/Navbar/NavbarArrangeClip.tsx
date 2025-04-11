@@ -7,7 +7,7 @@ import {
 import { GiCrystalWand, GiMusicalNotes } from "react-icons/gi";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { ClipType } from "types/Clip/ClipTypes";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import {
   selectIsAddingClips,
   selectTimelineType,
@@ -16,15 +16,15 @@ import {
   DEFAULT_TRACK_PROMPT,
   toggleAddingState,
 } from "types/Timeline/TimelineThunks";
-import { createTreeFromString } from "types/Track/TrackRegex";
+import { createTreeFromString } from "lib/prompts/tree";
 
 export const NavbarArrangeClip = (props: { type: ClipType }) => {
-  const dispatch = useDispatch();
-  const type = useSelect(selectTimelineType);
-  const isAdding = useSelect(selectIsAddingClips);
+  const dispatch = useAppDispatch();
+  const type = useAppValue(selectTimelineType);
+  const isAdding = useAppValue(selectIsAddingClips);
   const active = isAdding && type === props.type;
   const hotkey = hotkeys[props.type];
-  const hasTracks = useSelect(selectHasTracks);
+  const hasTracks = useAppValue(selectHasTracks);
   const icon = icons[props.type];
   const background = backgrounds[props.type];
   const borderColor = borders[props.type];

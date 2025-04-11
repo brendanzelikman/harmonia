@@ -18,11 +18,11 @@ import {
   autoBindNoteToTrack,
   autoBindStreamToTrack,
 } from "types/Track/TrackUtils";
-import { promptUserForString } from "utils/html";
-import { promptUserForFile } from "utils/html";
-import { readPatternStreamFromString } from "types/Pattern/PatternRegex";
-import { selectPatternClipById } from "../ClipSelectors";
-import { PatternClipId } from "./PatternClipTypes";
+import { promptUserForString } from "lib/prompts/html";
+import { promptUserForFile } from "lib/prompts/html";
+import { readPatternStreamFromString } from "lib/prompts/pattern";
+import { selectPatternClipById } from "types/Clip/ClipSelectors";
+import { PatternClipId } from "types/Clip/PatternClip/PatternClipTypes";
 import { Midi } from "@tonejs/midi";
 import {
   isPatternRest,
@@ -64,8 +64,8 @@ import {
   selectTrackByLabel,
   selectTrackScaleChain,
 } from "types/Track/TrackSelectors";
-import { convertWavToMidi } from "lib/basic-pitch";
-import { promptUserForMicrophone } from "utils/html";
+import { interpretAudioBuffer } from "utils/buffer";
+import { promptUserForMicrophone } from "lib/prompts/html";
 import { Note } from "@tonejs/midi/dist/Note";
 import { dispatchOpen } from "hooks/useToggle";
 import { TrackId } from "types/Track/TrackTypes";
@@ -73,7 +73,7 @@ import { resolveScaleNoteToMidi } from "types/Scale/ScaleResolvers";
 import { isNestedNote } from "types/Scale/ScaleTypes";
 import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { DEFAULT_VELOCITY } from "utils/constants";
-import { getEventFile } from "utils/file";
+import { getEventFile } from "utils/event";
 import { isString } from "types/utils";
 
 // -------------------------------------------------------
@@ -180,7 +180,7 @@ export const promptUserForPattern =
         if (shouldRecord) {
           dispatchOpen("record-pattern");
           const file = await promptUserForMicrophone("record-pattern");
-          const notes = await convertWavToMidi(file);
+          const notes = await interpretAudioBuffer(await file.arrayBuffer());
           return dispatch(promptUserForPatternMidiFile(id, notes));
         }
 
@@ -189,7 +189,7 @@ export const promptUserForPattern =
           return promptUserForFile("audio/*", async (e) => {
             const file = getEventFile(e);
             if (!file) return;
-            const notes = await convertWavToMidi(file);
+            const notes = await interpretAudioBuffer(await file.arrayBuffer());
             return dispatch(promptUserForPatternMidiFile(id, notes));
           });
         }

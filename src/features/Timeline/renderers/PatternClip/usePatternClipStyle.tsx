@@ -1,7 +1,7 @@
 import { getPatternClipTheme } from "types/Clip/PatternClip/PatternClipFunctions";
 import { POSE_NOTCH_HEIGHT } from "utils/constants";
 import { CLIP_NAME_HEIGHT, CLIP_STREAM_MARGIN } from "utils/constants";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import {
   selectCellsPerTick,
   selectTrackHeight,
@@ -16,15 +16,15 @@ interface ClipStyleProps {
 export const usePatternClipStreamStyle = (props: ClipStyleProps) => {
   const { clip } = props;
   const { id, trackId, duration, tick } = clip;
-  const noteWidth = useSelect(selectCellsPerTick);
+  const noteWidth = useAppValue(selectCellsPerTick);
 
   // Get the height of the stream based on the track
   const height =
-    useSelect((_) => selectTrackHeight(_, trackId)) - POSE_NOTCH_HEIGHT;
+    useAppValue((_) => selectTrackHeight(_, trackId)) - POSE_NOTCH_HEIGHT;
   const streamHeight = height - CLIP_NAME_HEIGHT - CLIP_STREAM_MARGIN;
 
   // Get the height of the note based on the range
-  let { min, max } = useSelect((_) => selectPortaledPatternClipRange(_, id));
+  let { min, max } = useAppValue((_) => selectPortaledPatternClipRange(_, id));
   const streamRange = Math.max(max - min) + 1;
   let noteHeight = streamHeight / streamRange;
 

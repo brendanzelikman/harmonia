@@ -68,5 +68,3 @@ export const privateTransportActions = [
   "transport/setVolume",
   "transport/setMute",
 ];
-
-export default transportSlice.reducer;

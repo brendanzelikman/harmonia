@@ -2,7 +2,7 @@
 // Order Effects
 // --------------------------------------------------------
 
-import { useDispatch } from "hooks/useStore";
+import { useAppDispatch } from "hooks/useRedux";
 import {
   PoseClipBaseEffect,
   addTransformation,
@@ -34,7 +34,7 @@ import {
 } from "react-icons/bs";
 import classNames from "classnames";
 import { sanitize } from "utils/math";
-import { blurOnEnter } from "utils/html";
+import { blurOnEnter } from "utils/event";
 import { PoseBlock, PoseTransformation } from "types/Pose/PoseTypes";
 import {
   PoseClipDropdownContainer,
@@ -47,7 +47,7 @@ export interface PoseClipEffectsProps extends PoseClipDropdownEffectProps {
   block: PoseBlock | undefined;
 }
 export const PoseClipEffects = (props: PoseClipEffectsProps) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { block, vector, ...effectProps } = props;
   const [view, setView] = useState<"effects" | "store">("effects");
   const [category, setCategory] = useState<TransformationCategory>("order");
@@ -206,7 +206,7 @@ export const PoseClipEffect = <T extends Transformation>({
   operations,
   ...rest
 }: PoseClipEffectProps<T>) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const hasIndex = "field" in rest;
   const inStore = "addButton" in rest && rest.addButton;
 

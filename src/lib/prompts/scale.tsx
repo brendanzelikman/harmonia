@@ -6,16 +6,22 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { createUndoType } from "types/redux";
 import { updateScale } from "types/Scale/ScaleSlice";
 import { getTransposedScale } from "types/Scale/ScaleTransformers";
-import { promptUserForString } from "utils/html";
-import { MidiScale, getPitchClassNumber } from "utils/midi";
+import { promptUserForString } from "lib/prompts/html";
+import { MidiScale, getPitchClassDegree } from "utils/midi";
 import { unpackScaleName } from "utils/pitch";
-import { getScaleName } from "lib/scale";
-import { selectTrackById, selectTrackMidiScale } from "../TrackSelectors";
-import { isScaleTrack } from "../TrackTypes";
-import { convertMidiToNestedNote } from "../TrackUtils";
-import { readMidiScaleFromString } from "./ScaleTrackThunks";
-import { isScaleTrackId, ScaleTrackId } from "./ScaleTrackTypes";
+import { getScaleName } from "types/Scale/ScaleFinder";
 import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
+import { readMidiScaleFromString } from "types/Track/ScaleTrack/ScaleTrackThunks";
+import {
+  isScaleTrackId,
+  ScaleTrackId,
+} from "types/Track/ScaleTrack/ScaleTrackTypes";
+import {
+  selectTrackById,
+  selectTrackMidiScale,
+} from "types/Track/TrackSelectors";
+import { isScaleTrack } from "types/Track/TrackTypes";
+import { convertMidiToNestedNote } from "types/Track/TrackUtils";
 
 /** Prompt the user to input a scale for the selected track */
 export const inputScaleTrackScale = (): Thunk => (dispatch, getProject) => {
@@ -80,7 +86,7 @@ export const promptUserForScale =
           ) as MidiScale | undefined;
           if (!preset) return;
 
-          const number = getPitchClassNumber(pitchClass);
+          const number = pitchClass ? getPitchClassDegree(pitchClass) : 0;
           notes = getTransposedScale(preset, number);
 
           if (!preset) return;

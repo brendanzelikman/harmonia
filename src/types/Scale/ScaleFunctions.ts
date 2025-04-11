@@ -1,7 +1,6 @@
 import { Key, PitchClass } from "types/units";
 import {
-  getMidiChromaticNote,
-  getMidiNoteValue,
+  getMidiValue,
   getMidiOctaveDistance,
   getMidiPitchClass,
   MidiValue,
@@ -17,7 +16,7 @@ import {
 } from "./ScaleTypes";
 import { resolveScaleToMidi, resolveScaleChainToMidi } from "./ScaleResolvers";
 import { ChromaticKey } from "assets/keys";
-import { getVectorMidi } from "utils/vector";
+import { getVectorMidiOffset } from "utils/vector";
 import { isNumber } from "types/utils";
 
 // ------------------------------------------------------------
@@ -32,20 +31,20 @@ export const getScaleNotes = (scale: Scale): ScaleArray => {
 /** Get the degree of a `ScaleNote` or chromatic number */
 export const getScaleNoteDegree = (note: ScaleNote) => {
   if (!isNumber(note) && "degree" in note) return note.degree;
-  return getMidiNoteValue(note) % 12;
+  return getMidiValue(note) % 12;
 };
 
 /** Get the octave offset of a `ScaleNote` relative to MIDI = 60. */
 export const getScaleNoteOctave = (note: ScaleNote) => {
   if (!isNumber(note) && "degree" in note) return note.offset?.octave ?? 0;
-  return Math.floor((getMidiNoteValue(note) - 60) / 12);
+  return Math.floor((getMidiValue(note) - 60) / 12);
 };
 
 /** Get a `ScaleNote` as a `MidiValue`, assuming the chromatic scale as a parent. */
 export const getScaleNoteMidiValue = (note: ScaleNote): MidiValue => {
-  if (isMidiNote(note)) return getMidiNoteValue(note);
-  const base = getMidiChromaticNote(note.degree);
-  const offset = getVectorMidi(note.offset);
+  if (isMidiNote(note)) return getMidiValue(note);
+  const base = chromaticNotes[note.degree];
+  const offset = getVectorMidiOffset(note.offset);
   return base + offset;
 };
 
@@ -94,7 +93,7 @@ export const getParentAsNewScale = (chain: ScaleChain, scale?: ScaleObject) => {
   // Get the degrees of the notes
   return notes
     .map((note) => {
-      const midi = getMidiNoteValue(note);
+      const midi = getMidiValue(note);
       const degree = parent.findIndex((n) => n === midi);
       if (degree === -1) return undefined;
       const octave = getMidiOctaveDistance(parent[degree], midi);

@@ -3,8 +3,11 @@
 // ------------------------------------------------------------
 
 import { Track, TrackId } from "types/Track/TrackTypes";
-import { PatternTrack } from "./PatternTrack/PatternTrackTypes";
-import { ScaleTrack, ScaleTrackId } from "./ScaleTrack/ScaleTrackTypes";
+import { PatternTrack } from "../../types/Track/PatternTrack/PatternTrackTypes";
+import {
+  ScaleTrack,
+  ScaleTrackId,
+} from "../../types/Track/ScaleTrack/ScaleTrackTypes";
 import { nanoid } from "@reduxjs/toolkit";
 import { Payload, unpackUndoType } from "types/redux";
 import {
@@ -13,16 +16,16 @@ import {
 } from "types/Instrument/InstrumentFunctions";
 import { Thunk } from "types/Project/ProjectTypes";
 import { initializeScale, ScaleObject } from "types/Scale/ScaleTypes";
-import { promptUserForString } from "utils/html";
-import { createPatternTrack } from "./PatternTrack/PatternTrackThunks";
+import { promptUserForString } from "lib/prompts/html";
+import { createPatternTrack } from "../../types/Track/PatternTrack/PatternTrackThunks";
 import {
   readMidiScaleFromString,
   createScaleTrack,
-} from "./ScaleTrack/ScaleTrackThunks";
-import { selectTrackMidiScale } from "./TrackSelectors";
+} from "../../types/Track/ScaleTrack/ScaleTrackThunks";
+import { selectTrackMidiScale } from "../../types/Track/TrackSelectors";
 import { convertMidiToNestedNote } from "types/Track/TrackUtils";
 import { promptLineBreak } from "components/PromptModal";
-import { promptUserForSample } from "./PatternTrack/PatternTrackRegex";
+import { promptUserForSample } from "./sampler";
 import { dispatchClose, dispatchOpen } from "hooks/useToggle";
 import { isString } from "types/utils";
 

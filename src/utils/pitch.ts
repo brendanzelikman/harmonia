@@ -2,22 +2,22 @@ import { PitchClass } from "types/units";
 import { capitalize } from "lodash";
 
 /** A regex matching an initial pitch class and a following string. */
-export const PITCH_CLASS_REGEX = /^([a-gA-G][#b]?)(.*)$/;
+export const PITCH_CLASS_REGEX = /^([a-gA-G][#b]?[#b]?)(.*)$/;
 
 /** The list of possible spellings for each note of the chromatic scale. */
 export const PITCH_CLASSES: PitchClass[][] = [
-  ["C", "B#"],
-  ["C#", "Db"],
-  ["D"],
-  ["D#", "Eb"],
-  ["E", "Fb"],
-  ["F", "E#"],
-  ["F#", "Gb"],
-  ["G"],
+  ["C", "B#", "Dbb"],
+  ["C#", "Db", "B##"],
+  ["D", "C##", "Ebb"],
+  ["D#", "Eb", "Fbb"],
+  ["E", "Fb", "D##"],
+  ["F", "E#", "Gbb"],
+  ["F#", "Gb", "E##"],
+  ["G", "Abb", "F##"],
   ["G#", "Ab"],
-  ["A"],
-  ["A#", "Bb"],
-  ["B", "Cb"],
+  ["A", "G##", "Bbb"],
+  ["A#", "Bb", "Cbb"],
+  ["B", "Cb", "A##"],
 ] as const;
 export const pitchClassSet = new Set(PITCH_CLASSES.flat());
 
@@ -41,92 +41,53 @@ export const unpackScaleName = (
   return { pitchClass, scaleName };
 };
 
-/** Raise a pitch class by sharpening it.  */
-export const getPitchClassUpperNeighbor = (pitchClass: PitchClass) => {
-  if (pitchClass === "C") return "C#";
-  if (pitchClass === "D") return "D#";
-  if (pitchClass === "E") return "E#";
-  if (pitchClass === "F") return "F#";
-  if (pitchClass === "G") return "G#";
-  if (pitchClass === "A") return "A#";
-  if (pitchClass === "B") return "B#";
-
-  if (pitchClass === "C#") return "C##";
-  if (pitchClass === "D#") return "D##";
-  if (pitchClass === "E#") return "E##";
-  if (pitchClass === "F#") return "F##";
-  if (pitchClass === "G#") return "G##";
-  if (pitchClass === "A#") return "A##";
-  if (pitchClass === "B#") return "B##";
-
-  if (pitchClass === "Cb") return "C";
-  if (pitchClass === "Db") return "D";
-  if (pitchClass === "Eb") return "E";
-  if (pitchClass === "Fb") return "F";
-  if (pitchClass === "Gb") return "G";
-  if (pitchClass === "Ab") return "A";
-  if (pitchClass === "Bb") return "B";
-
-  if (pitchClass === "C##") return "D#";
-  if (pitchClass === "D##") return "E#";
-  if (pitchClass === "E##") return "F##";
-  if (pitchClass === "F##") return "G#";
-  if (pitchClass === "G##") return "A#";
-  if (pitchClass === "A##") return "B#";
-  if (pitchClass === "B##") return "C##";
-
-  if (pitchClass === "Cbb") return "Cb";
-  if (pitchClass === "Dbb") return "Db";
-  if (pitchClass === "Ebb") return "Eb";
-  if (pitchClass === "Fbb") return "Fb";
-  if (pitchClass === "Gbb") return "Gb";
-  if (pitchClass === "Abb") return "Ab";
-  if (pitchClass === "Bbb") return "Bb";
-
-  throw new Error(`Invalid pitch class: ${pitchClass}`);
+/** A record of pitch classes to their lower and upper neighbors */
+const pitchClassNeighbors: Record<PitchClass, [PitchClass, PitchClass]> = {
+  C: ["Cb", "C#"],
+  D: ["Db", "D#"],
+  E: ["Eb", "E#"],
+  F: ["Fb", "F#"],
+  G: ["Gb", "G#"],
+  A: ["Ab", "A#"],
+  B: ["Bb", "B#"],
+  "C#": ["C", "C##"],
+  "D#": ["D", "D##"],
+  "E#": ["E", "E##"],
+  "F#": ["F", "F##"],
+  "G#": ["G", "G##"],
+  "A#": ["A", "A##"],
+  "B#": ["B", "B##"],
+  Cb: ["Cbb", "C"],
+  Db: ["Dbb", "D"],
+  Eb: ["Ebb", "E"],
+  Fb: ["Fbb", "F"],
+  Gb: ["Gbb", "G"],
+  Ab: ["Abb", "A"],
+  Bb: ["Bbb", "B"],
+  "C##": ["C#", "D#"],
+  "D##": ["D#", "E#"],
+  "E##": ["E#", "F##"],
+  "F##": ["F#", "G#"],
+  "G##": ["G#", "A#"],
+  "A##": ["A#", "B#"],
+  "B##": ["B#", "C##"],
+  Cbb: ["Bbb", "Cb"],
+  Dbb: ["Cb", "Db"],
+  Ebb: ["Db", "Eb"],
+  Fbb: ["Ebb", "Fb"],
+  Gbb: ["Fb", "Gb"],
+  Abb: ["Gb", "Ab"],
+  Bbb: ["Ab", "Bb"],
 };
 
-/** Lower a pitch class by flattening it. */
-export const getPitchClassLowerNeighbor = (pitchClass: PitchClass) => {
-  if (pitchClass === "C") return "Cb";
-  if (pitchClass === "D") return "Db";
-  if (pitchClass === "E") return "Eb";
-  if (pitchClass === "F") return "Fb";
-  if (pitchClass === "G") return "Gb";
-  if (pitchClass === "A") return "Ab";
-  if (pitchClass === "B") return "Bb";
+export const getPitchClassLowerNeighbor = (pc: PitchClass) => {
+  const tuple = pitchClassNeighbors[pc];
+  if (!tuple) throw new Error(`Invalid pitch class: ${pc}`);
+  return tuple[0];
+};
 
-  if (pitchClass === "C#") return "C";
-  if (pitchClass === "D#") return "D";
-  if (pitchClass === "E#") return "E";
-  if (pitchClass === "F#") return "F";
-  if (pitchClass === "G#") return "G";
-  if (pitchClass === "A#") return "A";
-  if (pitchClass === "B#") return "B";
-
-  if (pitchClass === "Cb") return "Cbb";
-  if (pitchClass === "Db") return "Dbb";
-  if (pitchClass === "Eb") return "Ebb";
-  if (pitchClass === "Fb") return "Fbb";
-  if (pitchClass === "Gb") return "Gbb";
-  if (pitchClass === "Ab") return "Abb";
-  if (pitchClass === "Bb") return "Bbb";
-
-  if (pitchClass === "C##") return "C#";
-  if (pitchClass === "D##") return "D#";
-  if (pitchClass === "E##") return "E#";
-  if (pitchClass === "F##") return "F#";
-  if (pitchClass === "G##") return "G#";
-  if (pitchClass === "A##") return "A#";
-  if (pitchClass === "B##") return "B#";
-
-  if (pitchClass === "Cbb") return "Bbb";
-  if (pitchClass === "Dbb") return "Db";
-  if (pitchClass === "Ebb") return "Eb";
-  if (pitchClass === "Fbb") return "Ebb";
-  if (pitchClass === "Gbb") return "Gb";
-  if (pitchClass === "Abb") return "Ab";
-  if (pitchClass === "Bbb") return "Bb";
-
-  throw new Error(`Invalid pitch class: ${pitchClass}`);
+export const getPitchClassUpperNeighbor = (pc: PitchClass) => {
+  const tuple = pitchClassNeighbors[pc];
+  if (!tuple) throw new Error(`Invalid pitch class: ${pc}`);
+  return tuple[1];
 };

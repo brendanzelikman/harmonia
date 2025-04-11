@@ -1,4 +1,4 @@
-import { useTick } from "hooks/useTick";
+import { useTick } from "types/Transport/TransportTick";
 import { memo, useState } from "react";
 import {
   GiCrystalWand,
@@ -10,26 +10,28 @@ import {
   selectTrackMidiScaleAtTick,
   selectTrackJSXAtTick,
 } from "types/Arrangement/ArrangementTrackSelectors";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import {
   selectTrackInstrumentName,
   selectTrackLabelById,
 } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
-import { cancelEvent } from "utils/html";
-import { getMidiPitchClass } from "utils/midi";
-import { getScaleKey, getScaleName } from "lib/scale";
+import { cancelEvent } from "utils/event";
+import { getScaleKey, getScaleName } from "types/Scale/ScaleFinder";
+import { mod } from "utils/math";
 
 const ScaleTrackBody = (props: { trackId: TrackId }) => {
   const { trackId } = props;
-  const { tick } = useTick();
-  const scale = useSelect((_) => selectTrackMidiScaleAtTick(_, trackId, tick));
-  const label = useSelect((_) => selectTrackLabelById(_, trackId));
-  const pose = useSelect((_) => selectTrackJSXAtTick(_, trackId, tick));
+  const tick = useTick();
+  const scale = useAppValue((_) =>
+    selectTrackMidiScaleAtTick(_, trackId, tick)
+  );
+  const label = useAppValue((_) => selectTrackLabelById(_, trackId));
+  const pose = useAppValue((_) => selectTrackJSXAtTick(_, trackId, tick));
   const [showNotes, setShowNotes] = useState(false);
   const name = getScaleName(scale);
   const key = getScaleKey(scale);
-  const notes = scale.map((n) => getMidiPitchClass(n, key)).join(", ");
+  const notes = scale.map((n) => key[mod(n, 12)]).join(", ");
   const scaleText = showNotes ? notes : name;
   return (
     <div className="min-w-0 grow flex flex-col text-xs gap-1 *:h-4 pt-1">
@@ -58,12 +60,12 @@ export const MemoizedScaleTrackBody = memo(ScaleTrackBody);
 
 export const PatternTrackBody = (props: { trackId: TrackId }) => {
   const { trackId } = props;
-  const { tick } = useTick();
-  const label = useSelect((_) => selectTrackLabelById(_, trackId));
-  const instrumentName = useSelect((_) =>
+  const tick = useTick();
+  const label = useAppValue((_) => selectTrackLabelById(_, trackId));
+  const instrumentName = useAppValue((_) =>
     selectTrackInstrumentName(_, trackId)
   );
-  const pose = useSelect((_) => selectTrackJSXAtTick(_, trackId, tick));
+  const pose = useAppValue((_) => selectTrackJSXAtTick(_, trackId, tick));
   return (
     <div className="min-w-0 grow flex flex-col text-xs pt-2 *:h-4 gap-0.5">
       <div className="flex text-teal-300/95">

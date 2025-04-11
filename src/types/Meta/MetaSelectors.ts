@@ -1,9 +1,6 @@
 import { createDeepSelector } from "types/redux";
+import { initializeProjectDiary, DIARY_PAGE_COUNT } from "./MetaTypes";
 import { Project } from "../Project/ProjectTypes";
-import {
-  initializeProjectDiary,
-  PROJECT_DIARY_PAGE_COUNT,
-} from "../Diary/DiaryTypes";
 import { createSelector } from "reselect";
 
 /** Select the project metadata. */
@@ -22,7 +19,7 @@ export const selectProjectName = createSelector(
 export const selectProjectDiary = createDeepSelector(
   [selectMeta],
   (meta) =>
-    Array.from({ length: PROJECT_DIARY_PAGE_COUNT }).map(
+    Array.from({ length: DIARY_PAGE_COUNT }).map(
       (_, i) => meta.diary?.[i] ?? ""
     ) ?? initializeProjectDiary()
 );

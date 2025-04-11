@@ -1,5 +1,5 @@
 import { GiDoubleQuaver, GiMusicalScore } from "react-icons/gi";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { CLIP_NAME_HEIGHT } from "utils/constants";
 import { memo, MouseEvent, useCallback } from "react";
 import { PatternClipId } from "types/Clip/ClipTypes";
@@ -7,7 +7,7 @@ import {
   selectClipHeaderColor,
   selectClipName,
 } from "types/Clip/ClipSelectors";
-import { cancelEvent } from "utils/html";
+import { cancelEvent } from "utils/event";
 import { dispatchCustomEvent } from "utils/event";
 
 interface PatternClipHeaderProps {
@@ -18,8 +18,8 @@ interface PatternClipHeaderProps {
 
 export const PatternClipHeader = memo((props: PatternClipHeaderProps) => {
   const { id, isSelected, isOpen } = props;
-  const name = useSelect((_) => selectClipName(_, props.id));
-  const color = useSelect((_) => selectClipHeaderColor(_, props.id));
+  const name = useAppValue((_) => selectClipName(_, props.id));
+  const color = useAppValue((_) => selectClipHeaderColor(_, props.id));
   const Icon = isOpen ? GiMusicalScore : GiDoubleQuaver;
   const onClick = useCallback(
     (e: MouseEvent) => {

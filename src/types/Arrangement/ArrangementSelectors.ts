@@ -180,16 +180,13 @@ export const selectPortaledPatternClipStream = (
 };
 /** Select all pattern chords to be played by each track at every tick. */
 export const selectMidiChordsByTicks = createDeepSelector(
-  [
-    selectProcessedArrangement,
-    selectPortaledPatternClipStreamMap,
-    selectPortaledClipIds,
-  ],
-  (arrangement, streamMap, clipIds) => {
+  [selectProcessedArrangement, selectPortaledPatternClipStreamMap],
+  (arrangement, streamMap) => {
     const result = {} as InstrumentNotesByTicks;
 
     // Iterate through each clip stream
-    for (const clip of Object.values(arrangement.patternClips)) {
+    const patternClips = Object.values(arrangement.patternClips);
+    for (const clip of patternClips) {
       const id = clip?.id;
       if (!id) continue;
       const stream = streamMap[id];
@@ -198,7 +195,6 @@ export const selectMidiChordsByTicks = createDeepSelector(
 
       // Get the instrument of the pattern tracks
       const trackId = arrangement.patternClips[id]?.trackId;
-      if (!trackId) continue;
       const track = arrangement.tracks[trackId];
       if (track?.type !== "pattern") continue;
       const instrumentStateId = track.instrumentId;

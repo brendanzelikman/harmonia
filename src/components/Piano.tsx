@@ -8,7 +8,7 @@ import { getMidiPitch, MidiScale } from "utils/midi";
 import classNames from "classnames";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { Sampler } from "tone";
-import { cancelEvent } from "utils/html";
+import { cancelEvent } from "utils/event";
 import { ScaleObject } from "types/Scale/ScaleTypes";
 
 interface PianoProps {

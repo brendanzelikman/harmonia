@@ -126,13 +126,13 @@ export const createCourtesyPatternClip =
     return { patternId: pattern.id, clipId: clipId as PatternClipId };
   };
 
-export const createCourtesyPoseClip =
+export const createNewPoseClip =
   (
     payload: Payload<Partial<{ pose: Partial<Pose>; clip: Partial<PoseClip> }>>
   ): Thunk<PoseId> =>
   (dispatch, getProject) => {
     const { clip } = payload.data;
-    const undoType = unpackUndoType(payload, "createCourtesyPoseClip");
+    const undoType = unpackUndoType(payload, "createNewPoseClip");
     const pose = dispatch(
       createPose({
         data: { ...payload.data.pose },

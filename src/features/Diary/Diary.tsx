@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 import { DiaryCoverPage, DiaryPageBinding } from "./DiaryPage";
-import { cancelEvent } from "utils/html";
+import { cancelEvent } from "utils/event";
 import { BsDownload, BsTrash } from "react-icons/bs";
 import { DiaryContentPage } from "./DiaryContentPage";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { setDiaryPage, clearDiary } from "types/Meta/MetaSlice";
 import classNames from "classnames";
 import { NAV_HEIGHT } from "utils/constants";
@@ -21,10 +21,10 @@ const DIARY_WIDTH = window.innerWidth / 2 - NAV_HEIGHT - 100;
 const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;
 
 export function Diary() {
-  const dispatch = useDispatch();
-  const projectName = useSelect(selectProjectName);
+  const dispatch = useAppDispatch();
+  const projectName = useAppValue(selectProjectName);
 
-  const diary = useSelect(selectProjectDiary);
+  const diary = useAppValue(selectProjectDiary);
   const diaryState = useToggle("diary");
   const showingDiary = diaryState.isOpen;
 

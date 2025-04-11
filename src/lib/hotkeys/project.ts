@@ -6,7 +6,7 @@ import {
 } from "types/Project/ProjectExporters";
 import { readLocalProjects } from "types/Project/ProjectLoaders";
 import { createProject } from "types/Project/ProjectFunctions";
-import { downloadTransport } from "types/Transport/TransportThunks";
+import { downloadTransport } from "types/Transport/TransportDownloader";
 
 // ------------------------------------------------
 // Project Hotkeys

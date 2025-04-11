@@ -8,13 +8,13 @@ import {
 } from "types/Track/TrackSelectors";
 import { updateTrack } from "types/Track/TrackThunks";
 import { TrackId, isTrackId } from "types/Track/TrackTypes";
-import { promptUserForString } from "utils/html";
-import { CHORDAL_KEY, CHROMATIC_KEY } from "utils/vector";
-import { getPoseVectorAsString } from "../../Pose/PoseFunctions";
-import { selectPoseById } from "../../Pose/PoseSelectors";
-import { updatePose } from "../../Pose/PoseSlice";
-import { offsetSelectedPoses } from "../../Pose/PoseThunks";
-import { PoseVector, PoseVectorId } from "../../Pose/PoseTypes";
+import { promptUserForString } from "lib/prompts/html";
+import { CHORDAL_KEY, CHROMATIC_KEY } from "utils/constants";
+import { getPoseVectorAsString } from "types/Pose/PoseFunctions";
+import { selectPoseById } from "types/Pose/PoseSelectors";
+import { updatePose } from "types/Pose/PoseSlice";
+import { offsetSelectedPoses } from "types/Pose/PoseThunks";
+import { PoseVector, PoseVectorId } from "types/Pose/PoseTypes";
 
 /** Update the selected poses or track vector with the given vector. */
 export const promptUserForPose =

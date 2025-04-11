@@ -1,4 +1,3 @@
-import { getValuesByKeys, getValueByKey } from "utils/object";
 import { selectScaleMap } from "../../types/Scale/ScaleSelectors";
 import { createValueSelector, createDeepSelector } from "types/redux";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
@@ -27,7 +26,7 @@ import {
 import { selectInstrumentMap } from "types/Instrument/InstrumentSelectors";
 import { createSelector } from "@reduxjs/toolkit";
 import { defaultTrackState, trackAdapter } from "./TrackSlice";
-import { mapValues, uniq } from "lodash";
+import { mapValues, pick, uniq, values } from "lodash";
 import {
   PatternTrackId,
   PatternTrack,
@@ -38,7 +37,7 @@ import {
   ScaleTrack,
   isScaleTrackId,
 } from "./ScaleTrack/ScaleTrackTypes";
-import { getScaleName } from "lib/scale";
+import { getScaleName } from "types/Scale/ScaleFinder";
 
 // ------------------------------------------------------------
 // Track - Base Selectors
@@ -180,8 +179,9 @@ export const selectTrackChildIdMap = createDeepSelector(
 
 /** Select the parent of a track. */
 export const selectTrackParent = (project: Project, id?: TrackId) => {
+  if (!id) return;
   const parentIdMap = selectTrackParentIdMap(project);
-  const parentId = getValueByKey(parentIdMap, id);
+  const parentId = parentIdMap[id];
   if (!parentId) return;
   return selectTrackById(project, parentId);
 };
@@ -277,10 +277,7 @@ export const selectTrackInstrumentMap = createDeepSelector(
   [selectTrackMap, selectInstrumentMap],
   (trackMap, instrumentMap) =>
     mapValues(trackMap, (t) =>
-      getValueByKey(
-        instrumentMap,
-        isPatternTrack(t) ? t.instrumentId : undefined
-      )
+      isPatternTrack(t) ? instrumentMap[t.instrumentId] : undefined
     )
 );
 
@@ -294,10 +291,9 @@ export const selectTrackAudioInstanceMap = createDeepSelector(
   [selectTrackMap],
   (trackMap) =>
     mapValues(trackMap, (t) =>
-      getValueByKey(
-        LIVE_AUDIO_INSTANCES,
-        (t as PatternTrack)?.instrumentId ?? "global"
-      )
+      isPatternTrack(t)
+        ? LIVE_AUDIO_INSTANCES[t.instrumentId]
+        : LIVE_AUDIO_INSTANCES["global"]
     )
 );
 
@@ -378,7 +374,7 @@ export const selectTrackScaleChainMap = createDeepSelector(
     mapValues(trackMap, (t) => {
       if (!t) return [];
       const chainIds = getScaleTrackChainIds(t.id, trackMap);
-      const chain = getValuesByKeys(trackMap, chainIds).filter(isScaleTrack);
+      const chain = values(pick(trackMap, chainIds)).filter(isScaleTrack);
       const scales = chain.map((track) => scaleMap[track.scaleId]);
       return scales.filter(Boolean) as ScaleObject[];
     })

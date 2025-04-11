@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { cancelEvent } from "utils/html";
+import { cancelEvent } from "utils/event";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { PatternTrackButtons } from "./components/TrackButtons";
 import { MemoizedPatternTrackBody } from "./components/TrackBody";

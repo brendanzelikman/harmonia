@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from "react";
 
-import { useDispatch, useSelect } from "hooks/useStore";
+import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import { PortaledPoseClipId, PoseClipId } from "types/Clip/ClipTypes";
 import { selectPoseById } from "types/Pose/PoseSelectors";
 import { PoseClipDropdown } from "./PoseClipDropdown";
@@ -40,7 +40,7 @@ export type PoseClipView = "vector" | "stream";
 export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   const { id, pcId, className, isDragging } = props;
 
-  const clip = useSelect((_) => selectPortaledPoseClip(_, pcId));
+  const clip = useAppValue((_) => selectPortaledPoseClip(_, pcId));
   const { trackId, tick, type } = clip;
   const [isOpen, setIsOpen] = useState(false);
   const handleDropdown = useCallback(
@@ -54,15 +54,15 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
     [isOpen, id]
   );
   useEvent("clipDropdown", handleDropdown);
-  const isSelected = useSelect((_) => selectIsClipSelected(_, id));
+  const isSelected = useAppValue((_) => selectIsClipSelected(_, id));
 
-  const pose = useSelect((_) => selectPoseById(_, clip.poseId));
+  const pose = useAppValue((_) => selectPoseById(_, clip.poseId));
   const stream = pose?.stream ?? [];
-  const dispatch = useDispatch();
-  const state = useSelect(selectTimelineState);
+  const dispatch = useAppDispatch();
+  const state = useAppValue(selectTimelineState);
   const isActive = state !== "idle";
-  const isAdding = useSelect(selectIsAddingPoseClips);
-  const isPortaling = useSelect(selectIsAddingPortals);
+  const isAdding = useAppValue(selectIsAddingPoseClips);
+  const isPortaling = useAppValue(selectIsAddingPortals);
   const isBlurred = isAdding || isPortaling || isDragging;
 
   // Each pose has a dropdown to reveal its editor
@@ -102,10 +102,10 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   };
 
   // Each pose has a style that depends on its state
-  const top = useSelect((_) => selectTrackTop(_, trackId));
-  const left = useSelect((_) => selectTimelineTickLeft(_, tick));
-  const width = useSelect((_) => selectClipWidth(_, pcId));
-  const height = useSelect((_) => selectTrackHeight(_, trackId));
+  const top = useAppValue((_) => selectTrackTop(_, trackId));
+  const left = useAppValue((_) => selectTimelineTickLeft(_, tick));
+  const width = useAppValue((_) => selectClipWidth(_, pcId));
+  const height = useAppValue((_) => selectTrackHeight(_, trackId));
   if (!clip) return null;
   return (
     <div

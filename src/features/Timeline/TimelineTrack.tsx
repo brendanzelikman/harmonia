@@ -1,5 +1,5 @@
 import { ScaleTrackFormatter } from "./renderers/Tracks/ScaleTrackFormatter";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { selectTrackById } from "types/Track/TrackSelectors";
 import {
   isScaleTrackId,
@@ -17,9 +17,9 @@ import { toggleSelectedTrackId } from "types/Timeline/TimelineThunks";
 import { TrackRow } from "./Timeline";
 
 export const TimelineTrack = memo((props: RenderCellProps<TrackRow>) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const trackId = props.row.id;
-  const track = useSelect((_) => selectTrackById(_, trackId))!;
+  const track = useAppValue((_) => selectTrackById(_, trackId))!;
   const isPT = isPatternTrack(track);
   const isST = !isPT && isScaleTrackId(trackId);
 

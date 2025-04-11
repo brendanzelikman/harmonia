@@ -1,17 +1,17 @@
-import { useToggle } from "hooks/useToggle";
 import { useLayoutEffect } from "react";
 import { getContext } from "tone";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import {
   LOAD_TRANSPORT,
   loadTransport,
   unloadTransport,
-} from "types/Transport/TransportThunks";
+} from "types/Transport/TransportLoader";
+import { useToggle } from "hooks/useToggle";
 
 export function usePlaygroundTransport() {
-  const dispatch = useDispatch();
-  const projectId = useSelect(selectProjectId);
+  const dispatch = useAppDispatch();
+  const projectId = useAppValue(selectProjectId);
   const transport = useToggle(LOAD_TRANSPORT);
 
   // Load the transport or add an event listener if the context is not running

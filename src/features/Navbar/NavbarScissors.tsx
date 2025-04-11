@@ -1,5 +1,5 @@
 import { BsScissors } from "react-icons/bs";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import classNames from "classnames";
 import { selectIsSlicingClips } from "types/Timeline/TimelineSelectors";
 import { selectHasClips } from "types/Clip/ClipSelectors";
@@ -8,9 +8,9 @@ import { NavbarTooltipButton } from "components/TooltipButton";
 import { ToggleScissorsHotkey } from "lib/hotkeys/timeline";
 
 export const NavbarScissors = () => {
-  const dispatch = useDispatch();
-  const hasClips = useSelect(selectHasClips);
-  const isSlicing = useSelect(selectIsSlicingClips);
+  const dispatch = useAppDispatch();
+  const hasClips = useAppValue(selectHasClips);
+  const isSlicing = useAppValue(selectIsSlicingClips);
   return (
     <div className="relative">
       <NavbarTooltipButton

@@ -20,7 +20,7 @@ import {
   BsTrash,
 } from "react-icons/bs";
 import { ReactNode } from "react";
-import { blurEvent, cancelEvent } from "utils/html";
+import { blurEvent, cancelEvent } from "utils/event";
 import {
   GiAudioCassette,
   GiFamilyTree,
@@ -29,7 +29,6 @@ import {
 } from "react-icons/gi";
 import { SiMidi } from "react-icons/si";
 import { exportTrackClipsToMIDI } from "types/Clip/ClipThunks";
-import { promptUserForPose } from "types/Clip/PoseClip/PoseClipRegex";
 import {
   insertScaleTrack,
   collapseTracks,
@@ -44,7 +43,7 @@ import {
 } from "types/Track/TrackThunks";
 import { TrackDropdownButton } from "./TrackDropdownButton";
 import { Track } from "types/Track/TrackTypes";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import classNames from "classnames";
 import {
   selectTrackChildren,
@@ -53,7 +52,8 @@ import {
 import { some } from "lodash";
 import { INSTRUMENT_KEYS } from "types/Instrument/InstrumentTypes";
 import { CiRuler } from "react-icons/ci";
-import { promptUserForSample } from "types/Track/PatternTrack/PatternTrackRegex";
+import { promptUserForSample } from "lib/prompts/sampler";
+import { promptUserForPose } from "lib/prompts/pose";
 
 export const TrackDropdownMenu = (props: {
   track: Track;
@@ -61,16 +61,16 @@ export const TrackDropdownMenu = (props: {
   content?: string;
   children?: ReactNode;
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { track } = props;
   const trackId = track.id;
   const isPT = track.type === "pattern";
   const mini = track.collapsed;
-  const hasMini = useSelect((_) => selectTrackChildren(_, trackId)).some(
+  const hasMini = useAppValue((_) => selectTrackChildren(_, trackId)).some(
     (child) => child.collapsed
   );
   const isParent = !!track.trackIds.length;
-  const key = useSelect((_) => selectTrackInstrumentKey(_, track.id));
+  const key = useAppValue((_) => selectTrackInstrumentKey(_, track.id));
   const isSampled = isPT && key && !INSTRUMENT_KEYS.includes(key);
   const status = isParent ? "Tree" : "Track";
 
@@ -86,7 +86,7 @@ export const TrackDropdownMenu = (props: {
             <MenuButton
               aria-label="Track Dropdown Menu"
               onFocus={blurEvent}
-              className={`w-full h-full rounded select-none ${
+              className={`w-full h-full cursor-pointer hover:scale-3d rounded select-none ${
                 open ? "text-indigo-400" : "text-white"
               } outline-none`}
             >

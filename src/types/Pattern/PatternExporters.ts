@@ -1,33 +1,32 @@
-import { DemoXML } from "assets/xml/demoXML";
-import { MusicXML, STAFF_PIVOT } from "lib/musicxml";
-import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
-import { XML } from "types/units";
+import { MusicXML, STAFF_PIVOT } from "utils/xml";
 import {
-  WholeNoteTicks,
+  QuarterNoteTicks,
   getStraightDuration,
   getTickDuration,
   isTripletNote,
 } from "utils/duration";
-import { downloadBlob } from "utils/file";
-import { getScaleKey } from "lib/scale";
+import { downloadBlob } from "utils/event";
+import { getScaleKey } from "types/Scale/ScaleFinder";
 import { getPatternBlockDuration } from "./PatternFunctions";
-import { resolvePatternStreamToMidi } from "./PatternResolvers";
-import { isPatternMidiChord, Pattern, PatternMidiStream } from "./PatternTypes";
+import { isPatternMidiChord, PatternMidiStream } from "./PatternTypes";
 import {
   flattenMidiStreamValues,
   getPatternMidiChordNotes,
 } from "./PatternUtils";
-import {
-  chromaticNotes,
-  chromaticScale,
-  ScaleChain,
-} from "types/Scale/ScaleTypes";
+import { chromaticNotes } from "types/Scale/ScaleTypes";
+import { XML_MIME_TYPE } from "utils/xml";
 
-export const exportPatternStreamToXML = (
-  stream: PatternMidiStream,
-  scale: number[] = chromaticNotes,
-  download = false
-) => {
+export const exportPatternStreamToXML = ({
+  stream = [],
+  scale = chromaticNotes,
+  timeSignature = 4,
+  download = false,
+}: Partial<{
+  stream: PatternMidiStream;
+  scale: number[];
+  timeSignature: number;
+  download: boolean;
+}>) => {
   const key = getScaleKey(scale);
   const streamValues = flattenMidiStreamValues(stream);
   const hasBass = streamValues.some((n) => n < STAFF_PIVOT);
@@ -35,6 +34,7 @@ export const exportPatternStreamToXML = (
   const staves = hasBass && hasTreble ? "grand" : hasBass ? "bass" : "treble";
 
   // Initialize loop variables
+  const quarters = timeSignature as number;
   const measures: string[] = [];
   const measureNotes: string[] = [];
   let duration = 0;
@@ -42,10 +42,14 @@ export const exportPatternStreamToXML = (
 
   // Iterate through the stream and create measures
   for (const block of stream) {
-    // If the duration is greater than a whole note, create a new measure.
-    if (duration >= WholeNoteTicks) {
+    // If the duration is greater than a bar, create a new measure.
+    if (duration >= quarters * QuarterNoteTicks) {
       const number = measures.length + 1;
-      const measure = MusicXML.createMeasure(measureNotes, { number, staves });
+      const measure = MusicXML.createMeasure(measureNotes, {
+        number,
+        staves,
+        quarters,
+      });
       measures.push(measure);
       measureNotes.clear();
       duration = 0;
@@ -90,13 +94,16 @@ export const exportPatternStreamToXML = (
     const measure = MusicXML.createMeasure(measureNotes, {
       number: measures.length + 1,
       staves,
+      quarters,
     });
     measures.push(measure);
   }
 
   // If there are no measures, push default
   else if (!measures.length) {
-    measures.push(MusicXML.createMeasure([], { number: 1, staves: "treble" }));
+    measures.push(
+      MusicXML.createMeasure([], { number: 1, staves: "treble", quarters })
+    );
   }
 
   // Create the score part
@@ -111,22 +118,10 @@ export const exportPatternStreamToXML = (
 
   // Download if necessary
   if (download) {
-    const blob = new Blob([xml], { type: MusicXML.MIME_TYPE });
+    const blob = new Blob([xml], { type: XML_MIME_TYPE });
     downloadBlob(blob, `${"pattern"}.xml`);
   }
 
   // Return the XML string
   return xml;
-};
-
-/** Export a Pattern to XML. */
-export const exportPatternToXML = (
-  pattern?: Pattern,
-  scales: ScaleChain = [chromaticScale],
-  download = false
-): XML => {
-  if (!pattern || !scales) return DemoXML;
-  const stream = resolvePatternStreamToMidi(pattern.stream, scales);
-  const scale = resolveScaleChainToMidi(scales);
-  return exportPatternStreamToXML(stream, scale, download);
 };

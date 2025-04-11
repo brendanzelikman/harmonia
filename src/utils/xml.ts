@@ -24,16 +24,16 @@ import { MidiNote } from "utils/midi";
 // MusicXML Constants
 // ------------------------------------------------------------
 
-const DECLARATION = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>`;
-const DOCTYPE = `<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">`;
-const HEADER = `${DECLARATION}\n${DOCTYPE}\n`;
-const MIME_TYPE = "application/vnd.recordare.musicxml";
+export const XML_DECLARATION = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>`;
+export const XML_DOCTYPE = `<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">`;
+export const XML_HEADER = `${XML_DECLARATION}\n${XML_DOCTYPE}\n`;
+export const XML_MIME_TYPE = "application/vnd.recordare.musicxml";
 
 // ------------------------------------------------------------
 // MusicXML Types
 // ------------------------------------------------------------
 
-type NoteOptions = Partial<{
+export type NoteOptions = Partial<{
   duration: Tick;
   type: DurationType;
   beam: string;
@@ -49,37 +49,40 @@ type NoteOptions = Partial<{
   staves?: "treble" | "bass" | "grand";
 }>;
 
+export type MeasureOptions = Partial<{
+  number: number;
+  staves: "treble" | "bass" | "grand";
+  quarters: number;
+}>;
+
 // ------------------------------------------------------------
 // MusicXML Score Functions
 // ------------------------------------------------------------
 
 /** Serialize a MusicXML score using the score partwise. */
 const serialize = (scorePartwise: XML) => {
-  return `${HEADER}${scorePartwise}`;
+  return `${XML_HEADER}${scorePartwise}`;
 };
 
 /** Create a MusicXML score using the part list and parts. */
 const createScore = (partList: XML, parts: XML[]) => {
-  const listedParts = parts.join("");
   return `<score-partwise version="4.0">
     ${partList}
-    ${listedParts}
+    ${parts.join("")}
     </score-partwise>`;
 };
 
 /** Create a MusicXML part using the ID and measures. */
 const createPart = (id: string, measures: XML[]) => {
-  const listedMeasures = measures.join("");
   return `<part id="${id}">
-      ${listedMeasures}
+      ${measures.join("")}
       </part>`;
 };
 
 /** Create a MusicXML part list using the score parts. */
 const createPartList = (scoreParts: XML[]) => {
-  const listedScoreParts = scoreParts.join("");
   return `<part-list>
-    ${listedScoreParts}
+    ${scoreParts.join("")}
   </part-list>`;
 };
 
@@ -135,30 +138,19 @@ const createGrandStaff = () => {
 };
 
 /** Create a MusicXML measure using the notes. */
-interface MeasureOptions {
-  number?: number;
-  staves?: "treble" | "bass" | "grand";
-  quarters?: number;
-}
 const createMeasure = (notes: XML[], options: MeasureOptions = {}) => {
   const { number = 1, staves = "treble", quarters = 4 } = options;
-  const listedNotes = notes.join("");
-  const keySignature = createKeySignature();
-  const timeSignature = createTimeSignature(quarters);
-  const clefs =
-    staves === "treble"
-      ? createTrebleClef()
-      : staves === "bass"
-      ? createBassClef()
-      : createGrandStaff();
+  let clefs = createGrandStaff();
+  if (staves === "treble") clefs = createTrebleClef();
+  else if (staves === "bass") clefs = createBassClef();
   return `<measure number="${number}">
       <attributes>
         <divisions>${PPQ}</divisions>
-        ${number === 1 ? keySignature : ""} 
-        ${number === 1 ? timeSignature : ""}
+        ${number === 1 ? createKeySignature() : ""} 
+        ${number === 1 ? createTimeSignature(quarters) : ""}
         ${number === 1 ? clefs : ""}
       </attributes>
-      ${listedNotes}
+      ${notes.join("")}
     </measure>`;
 };
 
@@ -168,7 +160,7 @@ const createNote = (
   noteOptions: NoteOptions = {}
 ) => {
   const isMidi = isPatternMidiNote(note);
-  const midi = isMidi ? _.getMidiNoteValue(note) : undefined;
+  const midi = isMidi ? _.getMidiValue(note) : undefined;
   const key = noteOptions?.key;
 
   /** The chord tag groups together notes. */
@@ -386,7 +378,6 @@ const MusicXML = {
   createMeasure,
   createNote,
   createBlock,
-  MIME_TYPE,
 };
 
 export { MusicXML };

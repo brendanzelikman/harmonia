@@ -4,9 +4,9 @@ import { initializeProject, Project, Thunk } from "./ProjectTypes";
 import { selectProjectName } from "../Meta/MetaSelectors";
 import { sanitizeProject } from "./ProjectUtils";
 import JSZip from "jszip";
-import { downloadTransport } from "types/Transport/TransportThunks";
 import dayjs from "dayjs";
 import { getProjects } from "app/projects";
+import { downloadTransport } from "types/Transport/TransportDownloader";
 
 /** Export the project to a JSON file, using the given state if specified. */
 export const exportProjectToJSON =
@@ -41,6 +41,7 @@ export const exportProjectToMIDI =
     return dispatch(exportClipsToMidi(clipIds, { download }));
   };
 
+/** Export the project to a WAV file based on its transport, using the given project if specified. */
 export const exportProjectToWAV =
   (project?: Project, download = true): Thunk<Promise<Blob>> =>
   async (dispatch, getProject) => {

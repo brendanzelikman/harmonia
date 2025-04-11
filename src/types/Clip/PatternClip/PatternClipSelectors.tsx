@@ -1,8 +1,8 @@
 import { Project } from "types/Project/ProjectTypes";
 import { isMidiNote, isScaleId } from "types/Scale/ScaleTypes";
 import { getMidiPitch } from "utils/midi";
-import { getValueByKey } from "utils/object";
-import { CHROMATIC_KEY, OCTAVE_KEY, getNonzeroVectorKeys } from "utils/vector";
+import { getVectorNonzeroKeys } from "utils/vector";
+import { CHROMATIC_KEY, OCTAVE_KEY } from "utils/constants";
 import {
   selectScaleToTrackMap,
   selectTrackLabelMap,
@@ -32,13 +32,13 @@ export const selectPatternNoteLabel = (
       if (isMidiNote(n)) return getMidiPitch(n);
 
       // Get the scale and degree of the note
-      const trackId = getValueByKey(trackMap, n.scaleId)?.id;
-      const scale = getValueByKey(labelMap, trackId);
+      const trackId = n.scaleId ? trackMap[n.scaleId]?.id : undefined;
+      const scale = trackId ? labelMap[trackId] ?? n.scaleId : n.scaleId;
       const degree = (n.degree ?? 0) + 1;
 
       // Unwrap the offsets of the note
       const offset = n.offset ?? {};
-      const keys = getNonzeroVectorKeys(offset);
+      const keys = getVectorNonzeroKeys(offset);
       const offsets = keys
         .map((k) => {
           const value = offset[k] ?? 0;
@@ -48,8 +48,8 @@ export const selectPatternNoteLabel = (
           } else if (k === "octave") {
             key = OCTAVE_KEY;
           } else if (isScaleId(k)) {
-            const trackId = getValueByKey(trackMap, k)?.id;
-            key = getValueByKey(labelMap, trackId) ?? `*${k}`;
+            const trackId = trackMap[k]?.id;
+            key = trackId ? labelMap[trackId] ?? k : `*${k}`;
           }
           return ` + ${key}${value}`;
         })

@@ -2,7 +2,7 @@ import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import classNames from "classnames";
 import { Hotkey } from "lib/hotkeys";
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { cancelEvent } from "utils/html";
+import { cancelEvent } from "utils/event";
 
 interface TooltipButtonProps {
   className?: string;

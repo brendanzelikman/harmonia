@@ -9,7 +9,7 @@ import {
   selectTrackMidiScale,
 } from "types/Track/TrackSelectors";
 import { selectMeta } from "types/Meta/MetaSelectors";
-import { getScaleName } from "lib/scale";
+import { getScaleName } from "types/Scale/ScaleFinder";
 
 interface ProjectSearchProps {
   projects: Project[];

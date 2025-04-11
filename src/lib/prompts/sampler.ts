@@ -7,11 +7,11 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { Payload, unpackData, unpackUndoType } from "types/redux";
 import { readAudioBuffer, decodeAudioBuffer } from "utils/buffer";
 import { SAMPLE_STORE } from "utils/constants";
-import { promptUserForFile } from "utils/html";
-import { Track, TrackId, isPatternTrack } from "../TrackTypes";
-import { createPatternTrack } from "./PatternTrackThunks";
-import { PatternTrack } from "./PatternTrackTypes";
-import { getEventFile } from "utils/file";
+import { promptUserForFile } from "lib/prompts/html";
+import { Track, TrackId, isPatternTrack } from "../../types/Track/TrackTypes";
+import { createPatternTrack } from "../../types/Track/PatternTrack/PatternTrackThunks";
+import { PatternTrack } from "../../types/Track/PatternTrack/PatternTrackTypes";
+import { getEventFile } from "utils/event";
 import { selectSelectedTrack } from "types/Timeline/TimelineSelectors";
 
 /** Prompt the user to input a scale for the selected track */

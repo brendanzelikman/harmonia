@@ -1,4 +1,4 @@
-import { useDispatch, useSelect } from "hooks/useStore";
+import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import { selectSelectedPatternClips } from "types/Timeline/TimelineSelectors";
 import { mergeSelectedMedia } from "types/Media/MediaThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
@@ -6,8 +6,8 @@ import { FaTape } from "react-icons/fa";
 import { MergeClipsHotkey } from "lib/hotkeys/timeline";
 
 export const NavbarTape = () => {
-  const dispatch = useDispatch();
-  const disabled = useSelect(selectSelectedPatternClips).length < 2;
+  const dispatch = useAppDispatch();
+  const disabled = useAppValue(selectSelectedPatternClips).length < 2;
   return (
     <div className="flex flex-col relative group/tooltip">
       <NavbarTooltipButton

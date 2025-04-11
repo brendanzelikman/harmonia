@@ -1,8 +1,8 @@
 import { PoseClip } from "types/Clip/ClipTypes";
-import { useSelect } from "hooks/useStore";
+import { useAppValue } from "hooks/useRedux";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { POSE_NOTCH_HEIGHT } from "utils/constants";
-import { cancelEvent } from "utils/html";
+import { cancelEvent } from "utils/event";
 import { PoseClipVector } from "./PoseClipVector";
 import classNames from "classnames";
 import { PoseClipComponentProps } from "./usePoseClipRenderer";
@@ -13,7 +13,7 @@ export interface PoseClipDropdownEffectProps extends PoseClipComponentProps {
 
 export const PoseClipDropdown = (props: PoseClipDropdownEffectProps) => {
   const { clip, block } = props;
-  const cellHeight = useSelect(selectCellHeight);
+  const cellHeight = useAppValue(selectCellHeight);
   return (
     <div
       style={{

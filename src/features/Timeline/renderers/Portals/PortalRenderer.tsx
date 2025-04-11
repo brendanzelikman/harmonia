@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useSelect, useDispatch } from "hooks/useStore";
+import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { usePortalDrag } from "./usePortalDrag";
 import portalIcon from "assets/images/portal.svg";
 import { Portal } from "types/Portal/PortalTypes";
@@ -28,7 +28,7 @@ type TimelinePortalProps = (PortalFragmentProps | PortalProps) & {
 };
 
 export function TimelinePortal(props: TimelinePortalProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { width, height } = props;
   const { isSelected, isPortaling } = props;
   const isPortal = "portal" in props;
@@ -60,25 +60,25 @@ export function TimelinePortal(props: TimelinePortalProps) {
     onDragStart,
     onDragEnd,
   });
-  const addingClips = useSelect(selectIsAddingClips);
+  const addingClips = useAppValue(selectIsAddingClips);
 
   const isDragging = Entry.isDragging || Exit.isDragging || dragging;
   const isActive = isPortaling || addingClips;
 
   // Get the entry portal info
   const tId = portal?.trackId;
-  const entryTrack = useSelect((_) =>
+  const entryTrack = useAppValue((_) =>
     tId ? selectTrackById(_, portal?.trackId) : undefined
   );
-  const entryTop = useSelect((_) => selectTrackTop(_, entryTrack?.id));
-  const entryLeft = useSelect((_) => selectTimelineTickLeft(_, portal?.tick));
+  const entryTop = useAppValue((_) => selectTrackTop(_, entryTrack?.id));
+  const entryLeft = useAppValue((_) => selectTimelineTickLeft(_, portal?.tick));
 
   // Get the exit portal info
-  const exitTrack = useSelect((_) =>
+  const exitTrack = useAppValue((_) =>
     tId ? selectTrackById(_, portal?.portaledTrackId) : undefined
   );
-  const exitTop = useSelect((_) => selectTrackTop(_, exitTrack?.id));
-  const exitLeft = useSelect((_) =>
+  const exitTop = useAppValue((_) => selectTrackTop(_, exitTrack?.id));
+  const exitLeft = useAppValue((_) =>
     selectTimelineTickLeft(_, portal?.portaledTick)
   );
 
@@ -102,7 +102,7 @@ export function TimelinePortal(props: TimelinePortalProps) {
     isActive || isDragging ? "pointer-events-none" : "pointer-events-all"
   );
 
-  const track = useSelect((_) => (tId ? selectTrackById(_, tId) : undefined));
+  const track = useAppValue((_) => (tId ? selectTrackById(_, tId) : undefined));
 
   if (!tId || !track) return null;
   /** Return an entry portal for the fragment. */

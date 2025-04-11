@@ -6,6 +6,7 @@ export const useFetch = <T>(fetch: () => Promise<T>, signal?: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch the data and handle loading and error states
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);

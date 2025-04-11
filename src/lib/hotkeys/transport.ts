@@ -1,13 +1,12 @@
 import { getToggleValue } from "hooks/useToggle";
 import { Hotkey } from ".";
 import { setLoop, setMute } from "types/Transport/TransportSlice";
+import { toggleTransport, stopTransport } from "types/Transport/TransportState";
 import {
-  toggleTransport,
-  stopTransport,
   stopRecordingTransport,
   startRecordingTransport,
-} from "types/Transport/TransportThunks";
-import { RECORD_TRANSPORT } from "types/Transport/TransportTypes";
+} from "types/Transport/TransportRecorder";
+import { RECORD_TRANSPORT } from "types/Transport/TransportRecorder";
 
 // -----------------------------------------------
 // Transport Hotkeys

@@ -1,10 +1,10 @@
-import { useDispatch, useSelect } from "hooks/useStore";
+import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import { inRange } from "lodash";
 import { RenderHeaderCellProps } from "react-data-grid";
 import classNames from "classnames";
 import { useCallback, useMemo } from "react";
 import { Row } from "./Timeline";
-import { getBarsBeatsSixteenths } from "types/Transport/TransportFunctions";
+import { getBarsBeatsSixteenths } from "utils/duration";
 import {
   selectColumnTicks,
   selectHasPortalFragment,
@@ -12,7 +12,7 @@ import {
   selectSubdivisionTicks,
 } from "types/Timeline/TimelineSelectors";
 import { selectTransport } from "types/Transport/TransportSelectors";
-import { seekTransport } from "types/Transport/TransportThunks";
+import { seekTransport } from "types/Transport/TransportTick";
 import { updateFragment } from "types/Timeline/TimelineSlice";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 import { useDrag, useDrop } from "react-dnd";
@@ -20,16 +20,16 @@ import { Tick } from "types/units";
 import { setLoopEnd, setLoopStart } from "types/Transport/TransportSlice";
 
 export const TimelineHeaderCell = (props: RenderHeaderCellProps<Row>) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const columnIndex = parseInt(props.column.key);
-  const tick = useSelect((_) => selectColumnTicks(_, columnIndex - 1));
-  const isPortaling = useSelect(selectIsAddingPortals);
-  const hasFragment = useSelect(selectHasPortalFragment);
+  const tick = useAppValue((_) => selectColumnTicks(_, columnIndex - 1));
+  const isPortaling = useAppValue(selectIsAddingPortals);
+  const hasFragment = useAppValue(selectHasPortalFragment);
 
   // Loop properties derived from the transport
-  const tickLength = useSelect(selectSubdivisionTicks);
+  const tickLength = useAppValue(selectSubdivisionTicks);
   const { bpm, timeSignature, loop, loopStart, loopEnd } =
-    useSelect(selectTransport);
+    useAppValue(selectTransport);
 
   const inLoopRange = inRange(tick, loopStart, loopEnd);
   const onLoopStart = loopStart === tick;

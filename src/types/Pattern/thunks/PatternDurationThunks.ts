@@ -17,7 +17,7 @@ import { Payload } from "types/redux";
 import { clamp, sample, shuffle, uniqBy } from "lodash";
 import { getPatternBlockDuration } from "../PatternFunctions";
 import { isMidiNote } from "types/Scale/ScaleTypes";
-import { getMidiNoteValue } from "utils/midi";
+import { getMidiValue } from "utils/midi";
 
 /** Stretch a pattern by a scaling factor. */
 export const stretchPattern =
@@ -59,7 +59,7 @@ export const beatifyPattern =
       })
       .filter(Boolean) as PatternNote[];
     const flatSet = uniqBy(flatStream, (note) =>
-      isMidiNote(note) ? getMidiNoteValue(note) : JSON.stringify(note)
+      isMidiNote(note) ? getMidiValue(note) : JSON.stringify(note)
     );
     const flatPicks = shuffle(flatSet);
     const restChance = 0.2;

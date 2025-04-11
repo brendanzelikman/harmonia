@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { InputHTMLAttributes, PropsWithChildren } from "react";
-import { blurOnEnter } from "utils/html";
+import { blurOnEnter } from "utils/event";
 
 export const NavbarFormGroup = (
   props: PropsWithChildren<React.HTMLProps<HTMLDivElement>>

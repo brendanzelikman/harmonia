@@ -12,20 +12,13 @@ import {
 } from "types/Timeline/TimelineThunks";
 import { Thunk } from "types/Project/ProjectTypes";
 import { selectTrackParentIdMap } from "types/Track/TrackSelectors";
-import { selectPatternClips } from "types/Clip/ClipSelectors";
-import { createUndoType, Payload, unpackData } from "types/redux";
-import { promptUserForString } from "utils/html";
-import { inputRomanNumerals } from "lib/roman-numerals";
-import {
-  createCourtesyPatternClip,
-  createCourtesyPoseClip,
-} from "types/Track/PatternTrack/PatternTrackThunks";
+import { createUndoType } from "types/redux";
+import { promptUserForString } from "lib/prompts/html";
+import { inputRomanNumerals } from "utils/roman";
+import { createNewPoseClip } from "types/Track/PatternTrack/PatternTrackThunks";
 import { WholeNoteTicks } from "utils/duration";
 import { nanoid } from "@reduxjs/toolkit";
 import { promptLineBreak } from "components/PromptModal";
-import { getValueByKey } from "utils/object";
-import { PatternClip } from "types/Clip/ClipTypes";
-import { selectPatternById } from "types/Pattern/PatternSelectors";
 import {
   filterPatterns,
   filterPortals,
@@ -144,16 +137,16 @@ export const inputPoseRomans = (): Thunk => (dispatch, getProject) => {
     title: "Create Poses with Roman Numerals",
     description: [
       promptLineBreak,
-      <span>Rule #1: Roman numerals are separated by dash.</span>,
-      <span>Example: {"I - ii - V - I"}</span>,
+      `Rule #1: Roman numerals are separated by dash.`,
+      `Example: {"I - ii - V - I"}`,
       promptLineBreak,
-      <span>Rule #2: Secondary chords are prefixed with slash.</span>,
-      <span>Example: {"I - V/V - V - I"}</span>,
+      `Rule #2: Secondary chords are prefixed with slash.`,
+      `Example: {"I - V/V - V - I"}`,
       promptLineBreak,
-      <span>Rule #3: Seventh chords are suffixed with symbol.</span>,
-      <span>Example: {"IM7 - V7/IV - ivm7 - V7"}</span>,
+      `Rule #3: Seventh chords are suffixed with symbol.`,
+      `Example: {"IM7 - V7/IV - ivm7 - V7"}`,
       promptLineBreak,
-      <span className="underline">Please input your sequence:</span>,
+      `Please input your sequence:`,
     ],
     callback: (string) => {
       const leadings = inputRomanNumerals(string);
@@ -161,10 +154,12 @@ export const inputPoseRomans = (): Thunk => (dispatch, getProject) => {
       const undoType = createUndoType("roman", nanoid());
       const patternClip = selectSelectedPatternClips(project).at(0);
       const noClip = patternClip === undefined;
-      const baseTick = patternClip?.tick ?? selectCurrentTimelineTick(project);
+      const timelineTick = selectCurrentTimelineTick(project);
+      const baseTick = patternClip?.tick ?? timelineTick;
+      const parentMap = selectTrackParentIdMap(project);
+      const selectedId = selectSelectedTrackId(project);
       const trackId =
-        selectSelectedTrackId(project) ??
-        getValueByKey(selectTrackParentIdMap(project), patternClip?.trackId);
+        selectedId ?? noClip ? undefined : parentMap[patternClip.trackId];
       if (!trackId) return;
       for (let i = 0; i < leadings.length; i++) {
         const vector = leadings[i];
@@ -172,71 +167,8 @@ export const inputPoseRomans = (): Thunk => (dispatch, getProject) => {
         const tick = baseTick + (i + 1) * offset;
         const pose = { vector, trackId };
         const clip = { tick, trackId };
-        dispatch(createCourtesyPoseClip({ data: { pose, clip }, undoType }));
+        dispatch(createNewPoseClip({ data: { pose, clip }, undoType }));
       }
     },
   });
 };
-
-export const promptUserForRomanNumerals =
-  (payload: Payload<PatternClip>): Thunk =>
-  (dispatch, getProject) => {
-    const patternClip = unpackData(payload);
-    const pattern = selectPatternById(getProject(), patternClip.patternId);
-    promptUserForString({
-      large: true,
-      title: "Create Poses with Roman Numerals",
-      description: [
-        promptLineBreak,
-        <span>Rule #1: Roman numerals are separated by dash.</span>,
-        <span>Example: {"I - ii - V - I"}</span>,
-        promptLineBreak,
-        <span>Rule #2: Secondary chords are prefixed with slash.</span>,
-        <span>Example: {"I - V/V - V - I"}</span>,
-        promptLineBreak,
-        <span>Rule #3: Seventh chords are suffixed with symbol.</span>,
-        <span>Example: {"IM7 - V7/IV - ivm7 - V7"}</span>,
-        promptLineBreak,
-        <span className="underline">Please input your sequence:</span>,
-      ],
-      callback: (string) => {
-        const leadings = inputRomanNumerals(string);
-        const project = getProject();
-        const patternClips = selectPatternClips(project);
-        const undoType = createUndoType("roman", nanoid());
-        const noClip = patternClip === undefined;
-        const baseTick =
-          patternClip?.tick ?? selectCurrentTimelineTick(project);
-        const trackId = getValueByKey(
-          selectTrackParentIdMap(project),
-          patternClip?.trackId
-        );
-        if (!trackId) return;
-        for (let i = 0; i < leadings.length; i++) {
-          const vector = leadings[i];
-          const offset = noClip
-            ? WholeNoteTicks
-            : patternClip.duration ?? WholeNoteTicks;
-          const tick = baseTick + (i + 1) * offset;
-          const pose = { vector, trackId };
-          const newPatternClip = { tick, trackId: patternClip.trackId };
-          const clip = { tick, trackId };
-          const pc = patternClips.find(
-            (pc) =>
-              pc.tick === tick &&
-              pc.trackId === trackId &&
-              pc.patternId === patternClip.patternId
-          );
-          if (!pc) {
-            dispatch(
-              createCourtesyPatternClip({
-                data: { pattern, clip: newPatternClip },
-                undoType,
-              })
-            );
-          }
-          dispatch(createCourtesyPoseClip({ data: { pose, clip }, undoType }));
-        }
-      },
-    })();
-  };

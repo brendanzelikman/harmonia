@@ -14,13 +14,13 @@ import {
 import { dispatchClose, dispatchOpen } from "hooks/useToggle";
 import { BiCodeCurly } from "react-icons/bi";
 import { m } from "framer-motion";
-import { useDispatch, useSelect } from "hooks/useStore";
-import { promptUserForTree } from "types/Track/TrackRegex";
+import { useAppDispatch, useAppValue } from "hooks/useRedux";
+import { promptUserForTree } from "lib/prompts/tree";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 
 export function Tutorial() {
-  const dispatch = useDispatch();
-  const hasTracks = useSelect(selectHasTracks);
+  const dispatch = useAppDispatch();
+  const hasTracks = useAppValue(selectHasTracks);
 
   // Keep track of the current viewed
   const [view, setView] = useState("exposition");
