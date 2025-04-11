@@ -7,6 +7,7 @@ const DEMO_NAMES = [
   "demos/moonlight.json",
   "demos/hammer.json",
   "demos/waves.json",
+  "demos/exalted.json",
 ];
 
 export const DEMO_BLURBS: Record<string, string> = {
@@ -15,6 +16,7 @@ export const DEMO_BLURBS: Record<string, string> = {
   "demos/moonlight.json": `"A few bars from the Moonlight Sonata"`,
   "demos/hammer.json": `"A progression from the Hammerklavier Sonata"`,
   "demos/waves.json": `"An arpeggio and bassline in motion."`,
+  "demos/exalted.json": `"A glimpse of a large-scale project."`,
 };
 
 export const useDemos = () => {
