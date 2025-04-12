@@ -305,14 +305,7 @@ export const duplicateSelectedMedia =
     const { data } = dispatch(
       createMedia({ data: { clips: newClips, portals: newPortals }, undoType })
     );
-
-    // Close any open clips
-    dispatch(
-      updateClips({
-        data: clips.map((c) => ({ ...c, isOpen: false })),
-        undoType,
-      })
-    );
+    dispatch(updateClips({ data: clips, undoType }));
 
     // Select the new clips
     dispatch(

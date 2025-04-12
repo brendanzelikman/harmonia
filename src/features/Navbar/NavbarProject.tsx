@@ -1,18 +1,17 @@
 import { blurOnEnter } from "utils/event";
 import { BiTrash } from "react-icons/bi";
-import { SiAudiomack, SiMidi } from "react-icons/si";
 import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import { ComponentProps, useCallback, useEffect, useState } from "react";
 import { useOfflineTick } from "types/Transport/TransportTick";
 import { format, percentize } from "utils/math";
-import { GiCompactDisc, GiLoad, GiSave } from "react-icons/gi";
+import { GiCompactDisc, GiLoad, GiSave, GiSoundWaves } from "react-icons/gi";
 import classNames from "classnames";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { setProjectName } from "types/Meta/MetaSlice";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
-import { createProject, clearProject } from "types/Project/ProjectFunctions";
-import { readLocalProjects } from "types/Project/ProjectLoaders";
+import { clearProject } from "app/store";
+import { promptUserForProjects } from "types/Project/ProjectLoaders";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { exportProjectToMIDI } from "types/Project/ProjectExporters";
 import {
@@ -28,6 +27,9 @@ import {
   downloadTransport,
   stopDownloadingTransport,
 } from "types/Transport/TransportDownloader";
+import { uploadProject } from "app/projects";
+import MidiImage from "assets/lib/midi.png";
+import { BsTrash } from "react-icons/bs";
 
 export function NavbarProjectMenu() {
   const dispatch = useAppDispatch();
@@ -81,7 +83,7 @@ export function NavbarProjectMenu() {
           </div>
 
           {/* Open New Project */}
-          <NavbarFileGroup onClick={() => createProject()}>
+          <NavbarFileGroup onClick={() => uploadProject()}>
             <NavbarFileLabel>Open New Project</NavbarFileLabel>
             <GiCompactDisc className="ml-auto text-2xl" />
           </NavbarFileGroup>
@@ -93,7 +95,7 @@ export function NavbarProjectMenu() {
           </NavbarFileGroup>
 
           {/* Load Project */}
-          <NavbarFileGroup onClick={() => readLocalProjects()}>
+          <NavbarFileGroup onClick={() => promptUserForProjects()}>
             <NavbarFileLabel>Load From JSON</NavbarFileLabel>
             <GiSave className="ml-auto text-2xl" />
           </NavbarFileGroup>
@@ -109,7 +111,7 @@ export function NavbarProjectMenu() {
           >
             <NavbarFileLabel>Export to WAV</NavbarFileLabel>
             <div className="relative flex flex-col text-2xl">
-              <SiAudiomack className="text-2xl" />
+              <GiSoundWaves className="text-2xl" />
               {download.isOpen && (
                 <div
                   className={`text-xs w-32 animate-in fade-in zoom-in-95 absolute flex flex-col top-0 -right-36 p-2 border rounded bg-slate-800 ${
@@ -147,10 +149,12 @@ export function NavbarProjectMenu() {
                 { "text-slate-500": !endTick },
                 { "hover:bg-indigo-500/25 cursor-pointer": !!endTick }
               )}
-              onClick={() => !!endTick && dispatch(exportProjectToMIDI())}
+              onClick={() =>
+                !!endTick && dispatch(exportProjectToMIDI(undefined, true))
+              }
             >
               <NavbarFileLabel>Export to MIDI</NavbarFileLabel>
-              <SiMidi className="text-2xl" />
+              <img src={MidiImage} className="h-3 invert" />
             </NavbarFormGroup>
           }
 
@@ -161,7 +165,7 @@ export function NavbarProjectMenu() {
                 <>
                   <MenuButton className="w-full inline-flex justify-between items-center">
                     <NavbarFormLabel>Clear Project</NavbarFormLabel>
-                    <BiTrash className="text-2xl" />
+                    <BsTrash className="text-2xl" />
                   </MenuButton>
                   {open && (
                     <MenuItems className="animate-in fade-in zoom-in-95 absolute flex flex-col items-center top-[2.5rem] -left-3 p-2 bg-slate-900 border border-red-500 text-xs rounded">

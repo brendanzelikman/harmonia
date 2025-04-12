@@ -7,17 +7,23 @@ import { dispatchTick } from "./TransportTick";
 import { Thunk } from "types/Project/ProjectTypes";
 import { getDestination, getTransport } from "tone";
 
+let scheduleId: number | undefined = undefined;
+
 /** Schedule the main transport audio loop. */
 export const scheduleTransport = (): Thunk => (_, getProject) => {
   let startTime = getTransport().now();
   let startSeconds = getTransport().seconds;
 
   // Clear any previous scheduled events
-  getTransport().cancel(0);
+  if (scheduleId) {
+    getTransport().clear(scheduleId);
+    scheduleId = undefined;
+  }
 
   // Schedule the main loop
-  getTransport().scheduleRepeat((time) => {
-    const transport = selectTransport(getProject());
+  scheduleId = getTransport().scheduleRepeat((time) => {
+    const project = getProject();
+    const transport = selectTransport(project);
     const { bpm, loop, swing, loopStart, loopEnd, volume, mute } = transport;
 
     // Set the volume and mute state
@@ -53,7 +59,7 @@ export const scheduleTransport = (): Thunk => (_, getProject) => {
     if (mute) return;
 
     // Select the memoized record of chords to be played at the current tick
-    const chordRecord = selectMidiChordsByTicks(getProject())[newTick];
+    const chordRecord = selectMidiChordsByTicks(project)[newTick];
 
     // Iterate over the instruments that are to be played at the current tick
     if (chordRecord) {

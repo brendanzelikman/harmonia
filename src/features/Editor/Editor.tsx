@@ -23,7 +23,7 @@ import { InstrumentEditorEffects } from "./EditorEffects";
 import { InstrumentEditorPiano } from "./EditorPiano";
 import { InstrumentEditorSidebar } from "./EditorSidebar";
 
-export function Editor() {
+export default function Editor() {
   const track = useAppValue(selectSelectedTrack);
   const isEditing = useAppValue(selectIsEditingTracks);
   const id = track?.instrumentId;

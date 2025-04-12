@@ -1,13 +1,14 @@
 import { CiUndo, CiRedo } from "react-icons/ci";
 import { useAppValue } from "hooks/useRedux";
-import { selectCanRedo, selectCanUndo } from "types/Project/ProjectSelectors";
+
 import classNames from "classnames";
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { redoProject, undoProject } from "app/reducer";
+import { redoProject, undoProject } from "app/store";
+import { canRedo, canUndo } from "types/Project/ProjectTypes";
 
 const disabledClass = "text-white/50 cursor-default";
 
-const buttonClass = (active: boolean, pulsed?: boolean) =>
+const buttonClass = (active: boolean) =>
   classNames(
     "rounded-full transition-all duration-75 border text-2xl size-9",
     active
@@ -16,13 +17,13 @@ const buttonClass = (active: boolean, pulsed?: boolean) =>
   );
 
 export function NavbarUndo() {
-  const canUndo = useAppValue(selectCanUndo);
+  const disabled = !useAppValue(canUndo);
 
   return (
     <NavbarTooltipButton
-      className={buttonClass(canUndo)}
-      onClick={() => canUndo && undoProject()}
-      disabled={!canUndo}
+      className={buttonClass(!disabled)}
+      onClick={() => !disabled && undoProject()}
+      disabled={disabled}
       disabledClass={disabledClass}
       label="Undo Last Action"
     >
@@ -32,12 +33,12 @@ export function NavbarUndo() {
 }
 
 export function NavbarRedo() {
-  const canRedo = useAppValue(selectCanRedo);
+  const disabled = !useAppValue(canRedo);
   return (
     <NavbarTooltipButton
-      className={buttonClass(canRedo)}
-      onClick={() => canRedo && redoProject()}
-      disabled={!canRedo}
+      className={buttonClass(!disabled)}
+      onClick={() => !disabled && redoProject()}
+      disabled={disabled}
       disabledClass={disabledClass}
       label="Redo Last Action"
     >

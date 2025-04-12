@@ -36,7 +36,7 @@ export const PoseClipDropdownContainer = (
   return (
     <div
       {...props}
-      className="flex flex-col capitalize gap-0.5 relative size-full whitespace-nowrap"
+      className="flex flex-col capitalize gap-[2px] relative size-full whitespace-nowrap"
     />
   );
 };

@@ -125,7 +125,7 @@ export const exportClipsToMidi =
     const blob = new Blob([midi.toArray()], { type: "audio/midi" });
     if (options?.download) {
       const name = options?.filename ?? meta.name ?? "file";
-      downloadBlob(blob, `${name}.mid}`);
+      downloadBlob(blob, `${name}.mid`);
     }
     return blob;
   };

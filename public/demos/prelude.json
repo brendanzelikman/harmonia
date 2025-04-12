@@ -169,7 +169,7 @@
     "entities": {
       "pattern_E7vYP4VbKDR95-CZZYZhy": {
         "id": "pattern_E7vYP4VbKDR95-CZZYZhy",
-        "name": "New Pattern",
+        "name": "Pattern",
         "stream": [
           [
             {
@@ -312,7 +312,7 @@
     "entities": {
       "pose_fhksbtmKb1H3ZYj_lvaXw": {
         "id": "pose_fhksbtmKb1H3ZYj_lvaXw",
-        "name": "New Pose 2",
+        "name": "Pose 2",
         "vector": {
           "chromatic": 5
         },
@@ -320,7 +320,7 @@
       },
       "pose_PKbIlz99iDkgq6natah8s": {
         "id": "pose_PKbIlz99iDkgq6natah8s",
-        "name": "New Pose 3",
+        "name": "Pose 3",
         "vector": {
           "chromatic": 2
         },
@@ -328,7 +328,7 @@
       },
       "pose_1c-YC1sMNa_UIqG1BVjXm": {
         "id": "pose_1c-YC1sMNa_UIqG1BVjXm",
-        "name": "New Pose 4",
+        "name": "Pose 4",
         "vector": {
           "chromatic": -7
         },
@@ -336,7 +336,7 @@
       },
       "pose_s6f_ldSWwTlCzFF7uAKlP": {
         "id": "pose_s6f_ldSWwTlCzFF7uAKlP",
-        "name": "New Pose",
+        "name": "Pose",
         "vector": {
           "chromatic": 7
         },
@@ -344,7 +344,7 @@
       },
       "pose_zxTKkwPyV4Kj-tV_IFluV": {
         "id": "pose_zxTKkwPyV4Kj-tV_IFluV",
-        "name": "New Pose 5",
+        "name": "Pose 5",
         "vector": {
           "chromatic": 7,
           "octave": -1
@@ -353,7 +353,7 @@
       },
       "pose_HZC1okbP0gdJxDRNxOHBJ": {
         "id": "pose_HZC1okbP0gdJxDRNxOHBJ",
-        "name": "New Pose 6",
+        "name": "Pose 6",
         "vector": {
           "chromatic": -5,
           "chordal": 1
@@ -362,7 +362,7 @@
       },
       "pose_ZedYrGR1lq_p5uuEFvWu7": {
         "id": "pose_ZedYrGR1lq_p5uuEFvWu7",
-        "name": "New Pose 7",
+        "name": "Pose 7",
         "vector": {
           "chromatic": 7,
           "chordal": -1
@@ -371,7 +371,7 @@
       },
       "pose_ls9e2IN2jCxRHd6nr-1Xr": {
         "id": "pose_ls9e2IN2jCxRHd6nr-1Xr",
-        "name": "New Pose 8",
+        "name": "Pose 8",
         "vector": {
           "chromatic": -5,
           "chordal": 1
@@ -380,7 +380,7 @@
       },
       "pose_VPJvmuqtlVKaqeAdHTAVt": {
         "id": "pose_VPJvmuqtlVKaqeAdHTAVt",
-        "name": "New Pose 9",
+        "name": "Pose 9",
         "vector": {
           "chromatic": 6
         },
@@ -388,7 +388,7 @@
       },
       "pose_tmGPs88uT2hgrvUmqsscc": {
         "id": "pose_tmGPs88uT2hgrvUmqsscc",
-        "name": "New Pose 10",
+        "name": "Pose 10",
         "trackId": "scale-track_Wqnh7LfhAJ4Y_N7EC8gia",
         "reset": true
       }

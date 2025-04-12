@@ -28,7 +28,7 @@ import {
   ticksToSeconds,
 } from "utils/duration";
 import { format, mod } from "utils/math";
-import { useHeldkeys } from "hooks/useHeldkeys";
+import { useHeldKeys } from "hooks/useHeldkeys";
 
 export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const dispatch = useAppDispatch();
@@ -41,7 +41,7 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const onGrandStaff = staves === "grand";
 
   // The hook stores an input duration for editing notes
-  const holding = useHeldkeys(["shift", "/", ",", "."]);
+  const holding = useHeldKeys(["shift", "/", ",", "."]);
   const [_duration, setDuration] = useState(getDurationTicks("16th"));
   const isTriplet = holding["/"];
   const isDotted = holding["."];
@@ -75,7 +75,7 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const Score = useMemo(
     () => (
       <div
-        className="bg-white max-w-[600px] -ml-0.5 -mr-0.5 overflow-scroll shrink"
+        className="bg-white max-w-[600px] -ml-half -mr-0.5 overflow-scroll shrink"
         style={{ height: onGrandStaff ? 150 : 74 }}
       >
         {score}

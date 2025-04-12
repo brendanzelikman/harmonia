@@ -1,14 +1,14 @@
 import { Middleware } from "@reduxjs/toolkit";
-import { union } from "lodash";
 import {
   selectInstrumentIds,
   selectInstrumentMap,
-} from "../types/Instrument/InstrumentSelectors";
+} from "types/Instrument/InstrumentSelectors";
 import { Project } from "types/Project/ProjectTypes";
 import {
   LIVE_AUDIO_INSTANCES,
   LiveAudioInstance,
-} from "../types/Instrument/InstrumentClass";
+} from "types/Instrument/InstrumentClass";
+import { union } from "lodash";
 
 /** A custom middleware to recreate all audio instances when undoing/redoing. */
 export const validateAudio: Middleware = (store) => (next) => (action: any) => {

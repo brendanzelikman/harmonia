@@ -14,7 +14,7 @@
   --color-pose-clip: #d946ef;
 
   --spacing-nav: 60px;
-  --spacing-0.5: 0.5px;
+  --spacing-half: 2px;
 
   --animate-background: scaleSlow 30s ease-in-out infinite;
   --animate-pulseSlow: pulseSlow 4s ease-in-out infinite;

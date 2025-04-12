@@ -9,11 +9,11 @@ export const getDatabase = async () => {
   const name = getDatabaseName();
   return await openDB(name, 3, {
     upgrade(db) {
-      // Create a store for the list of projects
+      // Create a store for the user's projects
       if (!db.objectStoreNames.contains(PROJECT_STORE)) {
         db.createObjectStore(PROJECT_STORE, { keyPath: "present.meta.id" });
       }
-      // Create a store for the list of samples
+      // Create a store for the user's samples
       if (!db.objectStoreNames.contains(SAMPLE_STORE)) {
         db.createObjectStore(SAMPLE_STORE, { keyPath: "id" });
       }

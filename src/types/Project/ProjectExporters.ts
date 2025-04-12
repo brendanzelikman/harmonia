@@ -2,52 +2,63 @@ import { selectPatternClipIds } from "types/Clip/ClipSelectors";
 import { exportClipsToMidi } from "types/Clip/ClipThunks";
 import { initializeProject, Project, Thunk } from "./ProjectTypes";
 import { selectProjectName } from "../Meta/MetaSelectors";
-import { sanitizeProject } from "./ProjectUtils";
-import JSZip from "jszip";
-import dayjs from "dayjs";
+import { sanitizeProject } from "./ProjectTypes";
 import { getProjects } from "app/projects";
 import { downloadTransport } from "types/Transport/TransportDownloader";
+import JSZip from "jszip";
+import dayjs from "dayjs";
+import { downloadBlob } from "utils/event";
+
+// -------------------------------------------------------------
+// Export Project To JSON
+// -------------------------------------------------------------
 
 /** Export the project to a JSON file, using the given state if specified. */
 export const exportProjectToJSON =
   (project?: Project): Thunk =>
-  (dispatch, getProject) => {
-    const name = selectProjectName(project ?? getProject());
+  (_, getProject) => {
+    const projectName = selectProjectName(project ?? getProject());
 
-    // Serialize the project with a new ID
-    let sanitizedProject = initializeProject(
-      sanitizeProject(project || getProject())
-    );
-    sanitizedProject.present.meta.name = name;
-
-    const projectJSON = JSON.stringify(sanitizedProject.present);
+    // Export a new project with the same name
+    const source = project || getProject();
+    const sanitizedProject = initializeProject(sanitizeProject(source));
+    sanitizedProject.present.meta.name = projectName;
 
     // Create a blob and download it
-    const blob = new Blob([projectJSON], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.download = `${name ?? "project"}.json`;
-    link.href = url;
-    link.click();
-    URL.revokeObjectURL(url);
+    const projectData = JSON.stringify(sanitizedProject.present);
+    const blob = new Blob([projectData], { type: "application/json" });
+    const name = `${projectName ?? "project"}.json`;
+    downloadBlob(blob, name);
   };
+
+// -------------------------------------------------------------
+// Export Project To MIDI
+// -------------------------------------------------------------
 
 /** Export the project to a MIDI file based on its clips, using the given project if specified. */
 export const exportProjectToMIDI =
-  (project?: Project, download = true): Thunk<Blob> =>
+  (project?: Project, download = false): Thunk<Blob> =>
   (dispatch, getProject) => {
     const savedProject = project || getProject();
     const clipIds = selectPatternClipIds(savedProject);
     return dispatch(exportClipsToMidi(clipIds, { download }));
   };
 
+// -------------------------------------------------------------
+// Export Project To WAV
+// -------------------------------------------------------------
+
 /** Export the project to a WAV file based on its transport, using the given project if specified. */
 export const exportProjectToWAV =
-  (project?: Project, download = true): Thunk<Promise<Blob>> =>
+  (project?: Project, download = false): Thunk<Promise<Blob>> =>
   async (dispatch, getProject) => {
     const savedProject = project || getProject();
     return await dispatch(downloadTransport(savedProject, { download }));
   };
+
+// -------------------------------------------------------------
+// Export Projects To ZIP
+// -------------------------------------------------------------
 
 /** Export all projects to files and download them as a zip. */
 type FileType = "json" | "midi" | "wav";
@@ -55,24 +66,19 @@ export const exportProjectsToZIP =
   (type: FileType = "json"): Thunk =>
   async (dispatch) => {
     const projects = (await getProjects()).map(sanitizeProject);
-    const jsons = projects
-      .map((project) => JSON.stringify(project.present))
-      .map((_) => new Blob([_], { type: "application/json" }));
+    const bases = projects.map((p) => JSON.stringify(p.present));
 
-    const midis = projects.map((project) =>
-      dispatch(exportProjectToMIDI(project, false))
-    );
-
-    const wavs = projects.map((project) =>
-      dispatch(exportProjectToWAV(project, false))
-    );
-
-    const blobs =
-      type === "json"
-        ? jsons
-        : type === "midi"
-        ? midis
-        : await Promise.all(wavs);
+    // Generate the blobs for each file type
+    const blobs: Blob[] = [];
+    if (type === "json") {
+      const type = "application/json";
+      blobs.push(...bases.map((j) => new Blob([j], { type })));
+    } else if (type === "midi") {
+      blobs.push(...projects.map((p) => dispatch(exportProjectToMIDI(p))));
+    } else if (type === "wav") {
+      const promise = projects.map((p) => dispatch(exportProjectToWAV(p)));
+      blobs.push(...(await Promise.all(promise)));
+    }
 
     // Keep track of overlapping project names
     const projectNames: Record<string, number> = {};
@@ -94,16 +100,11 @@ export const exportProjectsToZIP =
 
     // Finalize the archive
     const content = await zip.generateAsync({ type: "blob" });
-    const url = URL.createObjectURL(content);
-    const link = document.createElement("a");
 
     // Download the zip
-    let downloadName = `${blobCount} Harmonia `;
-    if (blobCount === 1) downloadName = "Harmonia ";
-    downloadName += "Project" + (blobCount === 1 ? "" : "s");
-    downloadName += `(${dayjs().format("YYYY-MM-DD HH-mm-ss")}).zip`;
-    link.download = downloadName;
-    link.href = url;
-    link.click();
-    URL.revokeObjectURL(url);
+    let filename = `${blobCount} Harmonia `;
+    if (blobCount === 1) filename = "Harmonia ";
+    filename += "Project" + (blobCount === 1 ? "" : "s");
+    filename += `(${dayjs().format("YYYY-MM-DD HH-mm-ss")}).zip`;
+    downloadBlob(content, filename);
   };

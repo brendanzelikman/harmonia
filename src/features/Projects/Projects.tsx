@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { Project } from "types/Project/ProjectTypes";
 import { selectProjectId } from "types/Meta/MetaSelectors";
-import {
-  createProject,
-  deleteAllProjects,
-} from "types/Project/ProjectFunctions";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import { useNavigate } from "react-router-dom";
 import { HomeContainer } from "features/Home/HomeContainer";
@@ -14,7 +10,7 @@ import {
   HomeControlButton,
 } from "features/Home/HomeControlBar";
 import classNames from "classnames";
-import { BsUsbPlug } from "react-icons/bs";
+import { BsCode, BsUsbPlug } from "react-icons/bs";
 import {
   GiRetroController,
   GiCompactDisc,
@@ -24,14 +20,13 @@ import {
   GiFire,
 } from "react-icons/gi";
 import { exportProjectsToZIP } from "types/Project/ProjectExporters";
-import { readLocalProjects } from "types/Project/ProjectLoaders";
+import { promptUserForProjects } from "types/Project/ProjectLoaders";
 import dayjs from "dayjs";
 import { useAppDispatch } from "hooks/useRedux";
-import { BiCodeCurly } from "react-icons/bi";
 import { ProjectFormatter } from "features/Projects/ProjectsFormatter";
 import { ProjectSearchBar } from "features/Projects/ProjectsSearchBar";
 import { useFetch } from "hooks/useFetch";
-import { getProjects } from "app/projects";
+import { getProjects, uploadProject, deleteProjects } from "app/projects";
 import { useProjectSearch } from "features/Projects/useProjectSearch";
 import { useHotkeys } from "hooks/useHotkeys";
 
@@ -40,7 +35,7 @@ export interface ProjectItem {
   filePath?: string;
 }
 
-export function ProjectPage() {
+export default function ProjectPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   useHotkeys({ enter: () => navigate("/playground") });
@@ -67,13 +62,13 @@ export function ProjectPage() {
           className="border-sky-400 text-sky-400"
           title="Create New Project"
           icon={<GiCompactDisc style={{ rotate: "50deg" }} />}
-          onClick={() => createProject()}
+          onClick={() => uploadProject()}
         />
         <HomeControlButton
           className="border-orange-300 text-orange-300"
           title="Load Project From JSON"
           icon={<GiLoad />}
-          onClick={() => readLocalProjects()}
+          onClick={() => promptUserForProjects()}
         />
         <HomeControlButton
           className="border-emerald-400 text-emerald-400"
@@ -83,13 +78,13 @@ export function ProjectPage() {
             !saving ? (
               <GiFiles />
             ) : (
-              <div className="w-full flex items-center rounded *:grow h-full shrink-0 animate-in fade-in ease-in-out text-xs gap-2 p-1">
+              <div className="w-full *:cursor-pointer flex items-center rounded *:grow h-full shrink-0 animate-in fade-in ease-in-out text-xs gap-2 p-1">
                 <button
                   onClick={() => dispatch(exportProjectsToZIP("json"))}
                   className="flex flex-col gap-1 items-center hover:saturate-150 rounded hover:opacity-75 text-sky-400"
                 >
                   JSON
-                  <BiCodeCurly className="text-xl" />
+                  <BsCode className="text-xl" />
                 </button>
                 <button
                   onClick={() => dispatch(exportProjectsToZIP("wav"))}
@@ -117,8 +112,8 @@ export function ProjectPage() {
           )}
           title={deleting ? "Confirm Deletion?" : "Delete All Projects"}
           icon={<GiFire className={deleting ? "animate-pulse" : ""} />}
-          onClick={() => {
-            if (deleting) deleteAllProjects();
+          onClick={async () => {
+            if (deleting) await deleteProjects();
             setDeleting((prev) => !prev);
           }}
           onMouseLeave={() => setDeleting(false)}

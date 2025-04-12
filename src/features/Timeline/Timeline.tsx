@@ -39,7 +39,7 @@ export type Row = {
 export type TrackRow = Row & { id: TrackId };
 export type TimelineElement = { element?: HTMLDivElement };
 
-export function Timeline() {
+export default function Timeline() {
   const cellWidth = useAppValue(selectCellWidth);
   const cellHeight = useAppValue(selectCellHeight);
   const collapsedMap = useAppValue(selectCollapsedTrackMap);

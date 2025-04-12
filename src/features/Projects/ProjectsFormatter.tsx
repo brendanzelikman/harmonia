@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isProject } from "types/Project/ProjectTypes";
-import { loadProjectByPath, loadProject } from "types/Project/ProjectLoaders";
+import { loadDemo, loadProject } from "types/Project/ProjectLoaders";
 import { ProjectDisc, ProjectDiscPreview } from "./ProjectsDisc";
 import { ProjectTitle } from "./ProjectsTitle";
 import { selectProjectId } from "types/Meta/MetaSelectors";
@@ -13,12 +13,11 @@ import {
   HomeListTitle,
 } from "features/Home/HomeList";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
-import { createProject } from "types/Project/ProjectFunctions";
 import { useAppDispatch } from "hooks/useRedux";
 import { ProjectItem } from "features/Projects/Projects";
-import { DEMO_BLURBS } from "features/Demos/useDemos";
-import { deleteProject } from "app/projects";
+import { deleteProject, uploadProject } from "app/projects";
 import { useHotkeys } from "hooks/useHotkeys";
+import { DEMOS } from "app/demos";
 
 export interface ProjectFormatterProps extends ProjectItem {
   index?: number;
@@ -42,7 +41,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
     if (!canPlay) return;
     const callback = () => navigate("/playground");
     if (filePath) {
-      loadProjectByPath(filePath, callback);
+      loadDemo(filePath, callback);
     } else {
       loadProject(id, callback);
     }
@@ -54,7 +53,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
       className={classNames(
         isInvalid ? "ring ring-red-500 cursor-not-allowed" : "",
         isDemo ? "text-violet-50/50 " : "text-sky-50/50",
-        isDemo ? "border-2 border-violet-500" : "border-2 border-sky-500/60"
+        isDemo ? `border-2 border-indigo-300/50` : "border-2 border-sky-500/60"
       )}
     >
       <ProjectDisc
@@ -70,7 +69,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
       {!isDemo && (
         <HomeListButtonContainer>
           <HomeListButton onClick={onClick}>Start</HomeListButton>
-          <HomeListButton onClick={() => createProject(props.project)}>
+          <HomeListButton onClick={() => uploadProject(props.project)}>
             Copy
           </HomeListButton>
           <HomeListButton
@@ -90,7 +89,9 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
         </HomeListButtonContainer>
       )}
       {isDemo && filePath && (
-        <div className="py-2">{DEMO_BLURBS[filePath]}</div>
+        <div className="py-2">
+          "{DEMOS.find((d) => d.path === filePath)?.blurb}"
+        </div>
       )}
     </HomeListItem>
   );

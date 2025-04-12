@@ -12,7 +12,7 @@ import { useAppDispatch } from "hooks/useRedux";
 import { HomeList } from "features/Home/HomeList";
 import { useFetch } from "hooks/useFetch";
 
-export const SamplePage = () => {
+export default function SamplePage() {
   const dispatch = useAppDispatch();
   const { data, fetchData } = useFetch(getSampleDataFromIDB);
   useEvent(UPDATE_SAMPLES_EVENT, fetchData);
@@ -32,4 +32,4 @@ export const SamplePage = () => {
       </HomeList>
     </HomeContainer>
   );
-};
+}

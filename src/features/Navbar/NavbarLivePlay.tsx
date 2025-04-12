@@ -22,21 +22,22 @@ import { selectHasTracks } from "types/Track/TrackSelectors";
 import { TRACK_WIDTH } from "utils/constants";
 import { useToggle } from "hooks/useToggle";
 import { FaKeyboard } from "react-icons/fa";
-import { useHeldkeys } from "hooks/useHeldkeys";
+import { useHeldKeys } from "hooks/useHeldkeys";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 const trackKeys = ["x", "m", "s"];
-const miscKeys = ["c", "d", "v", "-", "`", "="];
+const miscKeys = ["c", "d", "-", "`", "="];
 const hotkeys = [...qwertyKeys, ...numericalKeys, ...trackKeys, ...miscKeys];
 
 export const NavbarLivePlay = () => {
+  const holding = useHeldKeys(hotkeys);
   useGestures();
   const isSelectingPatternClip = useAppValue(selectIsSelectingPatternClips);
   const isSelectingPoseClip = useAppValue(selectIsSelectingPoseClips);
 
   // Keep track of held keys and shortcuts
-  const holding = useHeldkeys(hotkeys);
+
   const holdingNumerical = some(numericalKeys, (key) => holding[key]);
 
   const isNegative = holding["-"] || holding["`"];
@@ -159,6 +160,7 @@ export const NavbarLivePlay = () => {
       patternTracks,
       isMuting,
       isSoloing,
+      instrumentMap,
     ]
   );
 

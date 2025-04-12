@@ -23,7 +23,12 @@ import {
   PoseClipDropdownItem,
 } from "./PoseClipDropdown";
 import { sanitize } from "utils/math";
-import { BsTrash } from "react-icons/bs";
+import {
+  BsArrow90DegUp,
+  BsArrowDown,
+  BsArrowUp,
+  BsTrash,
+} from "react-icons/bs";
 import { promptUserForString } from "lib/prompts/html";
 import { blurEvent, blurOnEnter } from "utils/event";
 import { PoseClipEffects } from "./PoseClipEffects";
@@ -212,7 +217,7 @@ const PoseClipScale = (props: PoseClipVectorProps) => {
               },
               autoselect: true,
             })}
-            className="cursor-pointer bg-sky-700 border border-slate-400/40 hover:bg-opacity-85 p-0.5 px-2 rounded text-xs"
+            className="cursor-pointer bg-sky-700 border border-slate-400/40 hover:bg-opacity-85 p-half px-2 rounded text-xs"
           >
             Modulate
           </button>
@@ -247,7 +252,7 @@ const PoseClipScale = (props: PoseClipVectorProps) => {
                 updatePose({ id: props.clip.poseId, reset: !props.reset })
               )
             }
-            className="cursor-pointer bg-fuchsia-800 border border-slate-400/50 hover:border-slate-300/50 p-0.5 px-2 rounded text-xs"
+            className="cursor-pointer bg-fuchsia-800 border border-slate-400/50 hover:border-slate-300/50 p-half px-2 rounded text-xs"
           >
             {props.reset ? "Disable" : "Enable"}
           </button>
@@ -364,24 +369,24 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
             {!isPitchClass && (
               <>
                 <button
-                  className="p-1 bg-slate-50/10 border-r border-r-slate-500"
+                  className="p-1 cursor-pointer bg-slate-50/10 border-r border-r-slate-500"
                   onClick={() => onValueChange((offset ?? 0) + 1)}
                 >
-                  <BiUpArrow />
+                  <BsArrowUp />
                 </button>
                 <button
-                  className="p-1 bg-slate-50/10"
+                  className="p-1 cursor-pointer bg-slate-50/10"
                   onClick={() => onValueChange((offset ?? 0) - 1)}
                 >
-                  <BiDownArrow />
+                  <BsArrowDown />
                 </button>
               </>
             )}
           </div>
           <button
-            disabled={offset === undefined}
+            data-disabled={offset === undefined}
             data-pc={isPitchClass}
-            className="disabled:bg-slate-700/50 data-[pc=false]:ml-2 p-1 bg-slate-700 data-[pc=true]:w-full data-[pc=false]:border data-[pc=true]:border-t border-slate-400/50 hover:border-slate-300/50 total-center data-[pc=false]:size-6 data-[pc=false]:rounded disabled:cursor-default enabled:cursor-pointer"
+            className="data-[disabled=true]:bg-slate-700/50 data-[pc=false]:ml-2 p-1 bg-slate-700 data-[pc=true]:w-full data-[pc=false]:border data-[pc=true]:border-t border-slate-400/50 hover:border-slate-300/50 total-center data-[pc=false]:size-6 data-[pc=false]:rounded disabled:cursor-default data-[disabled=false]:cursor-pointer"
             onClick={onDoubleClick}
             onFocus={blurEvent}
           >

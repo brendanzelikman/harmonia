@@ -67,7 +67,7 @@ export const PatternTrackBody = (props: { trackId: TrackId }) => {
   );
   const pose = useAppValue((_) => selectTrackJSXAtTick(_, trackId, tick));
   return (
-    <div className="min-w-0 grow flex flex-col text-xs pt-2 *:h-4 gap-0.5">
+    <div className="min-w-0 grow flex flex-col text-xs pt-2 *:h-4 gap-[2px]">
       <div className="flex text-teal-300/95">
         <GiPineTree className="mr-1 my-auto inline shrink-0" />
         <div>Sampler {label}</div>

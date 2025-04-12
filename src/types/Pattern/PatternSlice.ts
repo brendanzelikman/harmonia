@@ -1,6 +1,9 @@
 import { createEntityAdapter, PayloadAction } from "@reduxjs/toolkit";
 import { isNestedNote, ScaleId } from "types/Scale/ScaleTypes";
-import { getPatternChordNotes } from "./PatternUtils";
+import {
+  getPatternBlockWithNewNotes,
+  getPatternChordNotes,
+} from "./PatternUtils";
 import { getPatternChordWithNewNotes } from "./PatternUtils";
 import {
   PatternId,
@@ -9,7 +12,6 @@ import {
   isPatternChord,
   PatternChord,
   Pattern,
-  isPatternRest,
 } from "./PatternTypes";
 import { sumVectors } from "utils/vector";
 import { Action, createNormalSlice, unpackAction } from "types/redux";
@@ -154,14 +156,11 @@ export const patternsSlice = createNormalSlice({
       const { id, index, duration } = unpackAction(action);
       const pattern = state.entities[id];
       if (!pattern || index < 0 || index > pattern.stream.length) return;
-      const block = pattern.stream[index];
-      if (isPatternRest(block)) {
-        pattern.stream[index] = { duration };
-      } else {
-        pattern.stream[index] = getPatternChordWithNewNotes(block, (notes) =>
-          notes.map((note) => ({ ...note, duration }))
-        );
-      }
+      pattern.stream[index] = getPatternBlockWithNewNotes(
+        pattern.stream[index],
+        (notes) => notes.map((note) => ({ ...note, duration })),
+        (rest) => ({ ...rest, duration })
+      );
     },
     /** Transpose a block in a pattern chromatically if it is not a rest. */
     transposePatternBlock: (

@@ -26,7 +26,7 @@ export function NavbarVolume() {
   return (
     <div className="relative group">
       <NavbarTooltipButton
-        className="p-0.5 border border-white/20 hover:ring-1 hover:ring-slate-200 transition-all cursor-pointer relative flex total-center xl:text-3xl text-xl"
+        className="p-half border border-white/20 hover:ring-1 hover:ring-slate-200 transition-all cursor-pointer relative flex total-center xl:text-3xl text-xl"
         onClick={() => dispatch(setMute())}
         keepTooltipOnClick
         marginLeft={50}

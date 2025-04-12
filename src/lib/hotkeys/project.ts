@@ -1,12 +1,12 @@
-import { redoProject, undoProject } from "app/reducer";
+import { redoProject, undoProject } from "app/store";
 import { Hotkey } from ".";
 import {
   exportProjectToJSON,
   exportProjectToMIDI,
 } from "types/Project/ProjectExporters";
-import { readLocalProjects } from "types/Project/ProjectLoaders";
-import { createProject } from "types/Project/ProjectFunctions";
+import { promptUserForProjects } from "types/Project/ProjectLoaders";
 import { downloadTransport } from "types/Transport/TransportDownloader";
+import { uploadProject } from "app/projects";
 
 // ------------------------------------------------
 // Project Hotkeys
@@ -16,14 +16,14 @@ export const CreateProjectHotkey: Hotkey = {
   name: "Create New Project",
   description: "Create a new project from scratch.",
   shortcut: "alt+meta+shift+˜",
-  callback: () => createProject(),
+  callback: () => uploadProject(),
 };
 
 export const OpenProjectHotkey: Hotkey = {
   name: "Open Project from File",
   description: "Open a project from a JSON file.",
   shortcut: "meta+o",
-  callback: () => readLocalProjects(),
+  callback: () => promptUserForProjects(),
 };
 
 export const SaveJsonHotkey: Hotkey = {
@@ -37,7 +37,7 @@ export const SaveMidiHotkey: Hotkey = {
   name: "Export Project to MIDI",
   description: "Export the timeline to a MIDI file",
   shortcut: "meta+shift+m",
-  callback: (dispatch) => dispatch(exportProjectToMIDI()),
+  callback: (dispatch) => dispatch(exportProjectToMIDI(undefined, true)),
 };
 
 export const SaveWavHotkey: Hotkey = {

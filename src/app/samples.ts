@@ -1,7 +1,7 @@
 import { SAMPLE_STORE } from "utils/constants";
 import { InstrumentKey } from "types/Instrument/InstrumentTypes";
 import { getDatabase } from "./database";
-import { getProjects } from "./projects";
+import { getProjects } from "app/projects";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 import { selectTracksByInstrumentKey } from "types/Track/TrackSelectors";
 import {

@@ -20,7 +20,7 @@ import { useHotkeys } from "hooks/useHotkeys";
 const DIARY_WIDTH = window.innerWidth / 2 - NAV_HEIGHT - 100;
 const DIARY_HEIGHT = window.innerHeight - NAV_HEIGHT - 100;
 
-export function Diary() {
+export default function Diary() {
   const dispatch = useAppDispatch();
   const projectName = useAppValue(selectProjectName);
 

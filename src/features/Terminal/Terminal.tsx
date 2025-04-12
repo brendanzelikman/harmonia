@@ -10,7 +10,7 @@ import { useState } from "react";
 import { TerminalGraph } from "features/Terminal/TerminalGraph";
 import { TerminalFile } from "./TerminalFile";
 
-export const Terminal = () => {
+export default function Terminal() {
   const dispatch = useAppDispatch();
   const { isOpen, close, toggle } = useToggle("terminal");
   const projectName = useAppValue(selectProjectName);
@@ -58,7 +58,7 @@ export const Terminal = () => {
       </div>
     </div>
   );
-};
+}
 
 const RESTRICTED_KEYWORDS = new Set([
   "id",

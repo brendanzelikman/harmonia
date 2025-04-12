@@ -1,21 +1,21 @@
-import { Shortcuts } from "features/Shortcuts/Shortcuts";
-import { Diary } from "features/Diary/Diary";
 import { dispatchCustomEventOnChange } from "utils/event";
-import { Editor } from "features/Editor/Editor";
-import { Terminal } from "features/Terminal/Terminal";
-import { Tutorial } from "features/Tutorial/Tutorial";
-import { Timeline } from "features/Timeline/Timeline";
 import { usePlaygroundTransport } from "./usePlaygroundTransport";
 import { PlaygroundLoadingScreen } from "./PlaygroundLoadingScreen";
 import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { useHotkeys } from "hooks/useHotkeys";
 import { hotkeys } from "lib/hotkeys";
+import Diary from "features/Diary/Diary";
+import Editor from "features/Editor/Editor";
+import Shortcuts from "features/Shortcuts/Shortcuts";
+import Terminal from "features/Terminal/Terminal";
+import Tutorial from "features/Tutorial/Tutorial";
+import Timeline from "features/Timeline/Timeline";
 
 export const LOAD_PLAYGROUND = "load-playground";
 
 /** The playground loads when the project and transport are ready */
-export function PlaygroundPage() {
+export default function PlaygroundPage() {
   const hasTracks = useAppValue(selectHasTracks);
   const isTransportLoaded = usePlaygroundTransport();
   dispatchCustomEventOnChange(LOAD_PLAYGROUND, isTransportLoaded);

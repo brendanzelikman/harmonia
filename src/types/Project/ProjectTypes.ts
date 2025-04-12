@@ -3,13 +3,16 @@ import { BaseProject } from "app/reducer";
 import { defaultArrangement } from "types/Arrangement/ArrangementTypes";
 import { defaultTimeline } from "types/Timeline/TimelineTypes";
 import { defaultTransport } from "types/Transport/TransportTypes";
-import { isObject, isString, Safe } from "types/utils";
+import { isObject, Safe } from "types/utils";
 import {
   defaultProjectMetadata,
   initializeProjectMetadata,
   NEW_PROJECT_NAME,
+  ProjectMetadata,
 } from "../Meta/MetaTypes";
 import { store } from "app/store";
+import dayjs from "dayjs";
+import { sanitizeBaseProject } from "./ProjectMergers";
 
 // ------------------------------------------------------------
 // Project Definitions
@@ -46,18 +49,25 @@ export const defaultProject: Project = {
 };
 defaultProject._latestUnfiltered = defaultProject.present;
 
+/** Update the present of a project */
+export const getProjectWithNewMeta = (
+  project: Project,
+  meta: Partial<ProjectMetadata>
+) => {
+  const newMeta = { ...project.present.meta, ...meta };
+  const present = { ...project.present, meta: newMeta };
+  const updatedProject = { ...project, present };
+  updatedProject._latestUnfiltered = updatedProject.present;
+  return updatedProject;
+};
+
 /** Create a project with unique metadata. */
 export const initializeProject = (template: Project = defaultProject) => {
   const meta = initializeProjectMetadata();
   if (template.present.meta.name !== NEW_PROJECT_NAME) {
     meta.name = `${template.present.meta.name} Copy`;
   }
-  const project: Project = {
-    ...template,
-    present: { ...template.present, meta },
-  };
-  project._latestUnfiltered = project.present;
-  return project;
+  return getProjectWithNewMeta(template, meta);
 };
 
 // ------------------------------------------------------------
@@ -65,12 +75,21 @@ export const initializeProject = (template: Project = defaultProject) => {
 // ------------------------------------------------------------
 
 /** Checks if a given object is of type `Project`. */
-export const isProject = (obj: unknown): obj is Project => {
-  const candidate = obj as Project;
-  return (
-    isObject(candidate) &&
-    isObject(candidate?.present) &&
-    isObject(candidate?.present.meta) &&
-    isString(candidate?.present.meta.id)
-  );
+export const isProject = (obj: unknown): obj is Project => isObject(obj);
+export const canUndo = (project: Project) => project.past.length > 0;
+export const canRedo = (project: Project) =>
+  project.future.length >
+  0; /** Sanitize the project and clear the undo history. */
+
+export const sanitizeProject = (project: SafeProject): Project => ({
+  _latestUnfiltered: sanitizeBaseProject(project?._latestUnfiltered),
+  group: project?.group,
+  past: [],
+  present: sanitizeBaseProject(project?.present),
+  future: [],
+});
+/** Update the project with a newest timestamp */
+
+export const timestampProject = (project: Project): Project => {
+  return getProjectWithNewMeta(project, { lastUpdated: dayjs().format() });
 };

@@ -6,14 +6,15 @@ import {
 } from "features/Home/HomeControlBar";
 import { HomeList } from "features/Home/HomeList";
 import { useDemos } from "features/Demos/useDemos";
+import { DEMOS } from "app/demos";
 import { useNavigate } from "react-router-dom";
 import { selectProjectId, selectProjectName } from "types/Meta/MetaSelectors";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import { useHotkeys } from "hooks/useHotkeys";
 import { GiCompactDisc } from "react-icons/gi";
-import { loadProjectByPath } from "types/Project/ProjectLoaders";
+import { loadDemo } from "types/Project/ProjectLoaders";
 
-export const DemosPage = () => {
+export default function DemosPage() {
   const navigate = useNavigate();
   const { projects, paths } = useDemos();
   useHotkeys({ enter: () => navigate("/playground") });
@@ -23,13 +24,12 @@ export const DemosPage = () => {
         {projects.map((project, i) => (
           <HomeControlButton
             key={selectProjectId(project)}
-            className="border-indigo-400 text-indigo-400"
-            onClick={() =>
-              loadProjectByPath(paths[i], () => navigate("/playground"))
-            }
+            className={DEMOS[i].colors}
+            onClick={() => loadDemo(paths[i], () => navigate("/playground"))}
             title={
               <div className="w-24">
-                Demo {i + 1}: <br /> {selectProjectName(projects[i])}
+                {selectProjectName(projects[i])}:
+                <br /> {DEMOS[i].type}
               </div>
             }
             icon={<GiCompactDisc className="pr-0" />}
@@ -49,4 +49,4 @@ export const DemosPage = () => {
       </HomeList>
     </HomeContainer>
   );
-};
+}

@@ -23,7 +23,7 @@ export const NavbarTape = () => {
         hotkey={MergeClipsHotkey}
         onClick={() => dispatch(mergeSelectedMedia())}
       >
-        <FaTape className="p-0.5 text-2xl" />
+        <FaTape className="p-half text-2xl" />
       </NavbarTooltipButton>
     </div>
   );

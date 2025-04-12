@@ -18,7 +18,7 @@ import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import { promptUserForTree } from "lib/prompts/tree";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 
-export function Tutorial() {
+export default function Tutorial() {
   const dispatch = useAppDispatch();
   const hasTracks = useAppValue(selectHasTracks);
 

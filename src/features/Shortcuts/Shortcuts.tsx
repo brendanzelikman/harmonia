@@ -20,7 +20,7 @@ export const SHORTCUT_TYPES = [
 ] as const;
 export type ShortcutType = (typeof SHORTCUT_TYPES)[number];
 
-export function Shortcuts() {
+export default function Shortcuts() {
   const diary = useToggle("diary");
   const showingDiary = diary.isOpen;
 

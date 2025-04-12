@@ -1,5 +1,10 @@
-import { getCurrentProjectId, getProject, uploadProject } from "app/projects";
-import { setProject } from "app/reducer";
+import {
+  getCurrentProjectId,
+  getProject,
+  getProjects,
+  uploadProject,
+} from "app/projects";
+import { setProject } from "app/store";
 import { useFetch } from "hooks/useFetch";
 import { defaultProject } from "types/Project/ProjectTypes";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
@@ -17,8 +22,9 @@ export function useProject() {
       return getProject(id);
     }
 
-    // If the project is not found, create a new one
-    await uploadProject(defaultProject);
+    // If the project is not found, upload a new project if there are no more projects
+    const projects = await getProjects();
+    if (!projects.length) await uploadProject(defaultProject);
   }, UPDATE_PROJECT_EVENT);
 
   // Return the load state

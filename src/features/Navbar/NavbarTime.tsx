@@ -30,11 +30,8 @@ export function NavbarTime() {
         value={string}
         disabled
       />
-      <label
-        htmlFor="timer"
-        className="absolute text-xs transform -translate-y-4 scale-75 top-2 z-10 origin-0 bg-gray-900 rounded px-1 left-1.5"
-      >
-        Tick: {tick}
+      <label className="absolute text-xs transform -translate-y-4 scale-75 top-2 z-10 origin-0 bg-gray-900 rounded px-1">
+        Time
       </label>
     </div>
   );

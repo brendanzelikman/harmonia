@@ -1,12 +1,12 @@
+import { start } from "tone";
+import { createRoot } from "react-dom/client";
 import { StrictMode } from "react";
 import { Provider } from "react-redux";
+import { store } from "app/store";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { router } from "app/router";
-import { createRoot } from "react-dom/client";
-import { store } from "app/store";
-import { start } from "tone";
 import { RouterProvider } from "react-router-dom";
 
 // The root container for the application.

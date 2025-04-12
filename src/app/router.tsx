@@ -10,31 +10,11 @@ import {
 
 /** The hash router is either on the landing or the main page */
 export const router = createHashRouter([
-  {
-    path: "/",
-    element: <LandingPage />,
-    ErrorBoundary: () => <LandingPage />,
-  },
-  {
-    path: "/projects",
-    element: <HomePage />,
-    ErrorBoundary: () => <LandingPage />,
-  },
-  {
-    path: "/demos",
-    element: <HomePage />,
-    ErrorBoundary: () => <LandingPage />,
-  },
-  {
-    path: "/samples",
-    element: <HomePage />,
-    ErrorBoundary: () => <LandingPage />,
-  },
-  {
-    path: "/playground",
-    element: <HomePage />,
-    ErrorBoundary: () => <LandingPage />,
-  },
+  { path: "/", element: <LandingPage />, ErrorBoundary: LandingPage },
+  { path: "/projects", element: <HomePage />, ErrorBoundary: LandingPage },
+  { path: "/demos", element: <HomePage />, ErrorBoundary: LandingPage },
+  { path: "/samples", element: <HomePage />, ErrorBoundary: LandingPage },
+  { path: "/playground", element: <HomePage />, ErrorBoundary: LandingPage },
 ]);
 
 /** Get the name of the current route. */

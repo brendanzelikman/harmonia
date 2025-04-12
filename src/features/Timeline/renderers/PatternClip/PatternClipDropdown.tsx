@@ -35,7 +35,7 @@ import { BsRecord, BsScissors } from "react-icons/bs";
 import { selectPatternNoteLabel } from "types/Clip/PatternClip/PatternClipSelectors";
 import { PatternId } from "types/Pattern/PatternTypes";
 import { useToggle } from "hooks/useToggle";
-import { useHeldkeys } from "hooks/useHeldkeys";
+import { useHeldKeys } from "hooks/useHeldkeys";
 import {
   promptUserForPattern,
   bindNoteWithPrompt,
@@ -320,7 +320,7 @@ const DropdownDurationButtons = (props: {
   const dispatch = useAppDispatch();
   return (
     <div className="flex gap-1 justify-center bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
-      {STRAIGHT_DURATION_TYPES.map((d, i) => {
+      {STRAIGHT_DURATION_TYPES.map((d) => {
         const duration = getDurationTicks(d);
         const name = getDurationName(d);
         const image = getDurationImage(d);
@@ -335,7 +335,7 @@ const DropdownDurationButtons = (props: {
             dropdown={name}
             icon={<img className="object-contain size-5" src={image} />}
             onClick={() => {
-              setDuration(getDurationTicks(d));
+              setDuration(duration);
               if (index !== undefined) {
                 dispatch(updatePatternBlockDuration({ id, index, duration }));
               }
@@ -353,7 +353,7 @@ const DropdownNoteButtons = (props: {
 }) => {
   const { type, setType } = props;
   return (
-    <div className="flex flex-col gap-0.5 w-full text-slate-300">
+    <div className="flex flex-col gap-[2px] w-full text-slate-300">
       <div className="flex gap-2">
         <div
           data-active={type === "scale"}
@@ -384,9 +384,9 @@ const DropdownNoteButtons = (props: {
 };
 
 const DropdownDurationShortcuts = () => {
-  const holding = useHeldkeys(["shift", ",", "/", "."]);
+  const holding = useHeldKeys(["shift", ",", "/", "."]);
   return (
-    <div className="flex flex-col gap-0.5 w-full text-slate-300">
+    <div className="flex flex-col gap-[2px] w-full text-slate-300">
       <div className="flex gap-2">
         <div
           data-active={holding[","]}

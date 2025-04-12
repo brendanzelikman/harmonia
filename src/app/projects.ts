@@ -1,61 +1,40 @@
 import { PROJECT_ID } from "utils/constants";
 import { PROJECT_STORE } from "utils/constants";
-import { Project, isProject } from "types/Project/ProjectTypes";
+import {
+  Project,
+  initializeProject,
+  isProject,
+} from "types/Project/ProjectTypes";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import { dispatchCustomEvent } from "utils/event";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import { getDatabase } from "./database";
 
+// ------------------------------------------------------------
+// User Projects
+// ------------------------------------------------------------
+
 /** Get the list of all projects as a promise. */
 export async function getProjects(): Promise<Project[]> {
   const db = await getDatabase();
   if (!db) return [];
-
-  // Get all of the user's projects
-  const projects = await db.getAll(PROJECT_STORE);
-
-  // Delete any invalid projects from the database
-  for (const project of projects) {
-    if (!isProject(project)) {
-      projects.splice(projects.indexOf(project), 1);
-      await deleteProject(project.meta.id);
-    }
-  }
-
-  // Return the projects based on the user's project limit
-  return projects;
+  return await db.getAll(PROJECT_STORE);
 }
 
-/** Get the project with the given ID as a promise. */
-export async function getProject(
-  projectId?: string
-): Promise<Project | undefined> {
-  if (!projectId) return undefined;
-
-  // Check if the user is authenticated
+/** Get a project from the database by ID. */
+export async function getProject(id?: string): Promise<Project | undefined> {
   const db = await getDatabase();
-  if (!db) return undefined;
-
-  // Return the project if it exists
-  return db.get(PROJECT_STORE, projectId);
+  if (!id || !db) return undefined;
+  return await db.get(PROJECT_STORE, id);
 }
 
 /** Upload a project, resolving to true if successful. */
-export async function uploadProject(project: Project): Promise<boolean> {
-  // Check if the project is valid
-  if (!isProject(project)) throw new Error("Invalid project.");
-
-  // Check if the user is authorized
+export async function uploadProject(project?: Project) {
   const db = await getDatabase();
-  if (!db) return false;
-
-  const projectId = selectProjectId(project);
-
-  // Add the project to the database and update the current project ID
-  await db.put(PROJECT_STORE, project);
-  setCurrentProjectId(projectId);
+  if (!db) return;
+  const id = await db.put(PROJECT_STORE, project || initializeProject());
+  setCurrentProjectId(id.toString());
   dispatchCustomEvent(UPDATE_PROJECT_EVENT);
-  return true;
 }
 
 /** Update the project, resolving to true if successful. */
@@ -76,9 +55,9 @@ export async function updateProject(project: Project): Promise<boolean> {
 }
 
 /** Delete a project by ID, resolving to true if successful. */
-export async function deleteProject(projectId: string): Promise<boolean> {
+export async function deleteProject(projectId: string) {
   const db = await getDatabase();
-  if (!db) return false;
+  if (!db) return;
 
   // Clear the current project ID if it matches the deleted project
   const currentId = getCurrentProjectId();
@@ -87,11 +66,19 @@ export async function deleteProject(projectId: string): Promise<boolean> {
   // Try to delete the project
   await db.delete(PROJECT_STORE, projectId);
   dispatchCustomEvent(UPDATE_PROJECT_EVENT);
-  return true;
+}
+
+/** Delete all projects */
+export async function deleteProjects() {
+  const projects = await getProjects();
+  await Promise.all(
+    projects.map(async (p) => await deleteProject(selectProjectId(p)))
+  );
+  dispatchCustomEvent(UPDATE_PROJECT_EVENT);
 }
 
 // ------------------------------------------------------------
-// Database Current Project ID
+// Current Project ID
 // ------------------------------------------------------------
 
 /** Get the current project ID. */

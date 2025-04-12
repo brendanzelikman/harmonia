@@ -39,7 +39,7 @@ export function TimelineClips(props: TimelineClipsProps) {
     (pcId: PortaledClipId) => {
       // Check that the clip is within scroll bounds
       const { left, right } = boundaries[pcId];
-      const padding = 500;
+      const padding = 800;
       if (scrollLeft > right + padding) return null;
       if (scrollLeft + window.innerWidth < left - padding) return null;
 

@@ -91,11 +91,13 @@ export const zerodown = (): Thunk => (dispatch, getProject) => {
   // Handle pose updates for selected pose clips
   if (selectSelectedPoseClips(project).length) {
     dispatch(zeroSelectedPoses());
+    return;
   }
 
   // Handle pose updates for selected pattern clips
   if (selectSelectedPatternClips(project).length) {
     dispatch(zeroSelectedPatternPoses());
+    return;
   }
 
   // If no clips are selected, create a reset pose at the current tick

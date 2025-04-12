@@ -44,11 +44,10 @@ export const loadTransport = (): Thunk => async (dispatch, getProject) => {
   await Tone.start();
 
   // Copy the transport state into the Tone transport
-  const { bpm, timeSignature, swing, volume, mute } = transport;
+  const { bpm, timeSignature, volume, mute } = transport;
   Tone.getTransport().PPQ = PPQ;
   Tone.getTransport().bpm.value = bpm;
   Tone.getTransport().timeSignature = timeSignature;
-  Tone.getTransport().swing = swing;
   Tone.getDestination().volume.value = volume;
   Tone.getDestination().mute = mute;
 

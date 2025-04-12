@@ -1,5 +1,4 @@
 import { getDatabase } from "app/database";
-import { uploadSample } from "app/samples";
 import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
 import { Instrument, InstrumentKey } from "types/Instrument/InstrumentTypes";
@@ -13,6 +12,7 @@ import { createPatternTrack } from "../../types/Track/PatternTrack/PatternTrackT
 import { PatternTrack } from "../../types/Track/PatternTrack/PatternTrackTypes";
 import { getEventFile } from "utils/event";
 import { selectSelectedTrack } from "types/Timeline/TimelineSelectors";
+import { uploadSample } from "app/samples";
 
 /** Prompt the user to input a scale for the selected track */
 export const inputPatternTrackSample = (): Thunk => (dispatch, getProject) => {

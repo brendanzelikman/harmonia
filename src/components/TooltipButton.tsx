@@ -239,7 +239,7 @@ export const TooltipButton = ({
             {options.map((option, i) => (
               <div
                 key={i}
-                className="hover:bg-slate-600/80 px-2 py-0.5 rounded cursor-pointer select-none"
+                className="hover:bg-slate-600/80 px-2 py-half rounded cursor-pointer select-none"
                 onClick={() => {
                   option.onClick();
                   close();

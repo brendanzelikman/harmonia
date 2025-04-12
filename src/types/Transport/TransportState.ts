@@ -47,11 +47,11 @@ export const useTransportState = () => {
 // --------------------------------------------------------------
 
 /** Start the transport, using `Tone.scheduleRepeat` to schedule all samplers. */
-export const startTransport = (): Thunk => (dispatch) => {
+export const startTransport = (): Thunk => async (dispatch) => {
   if (Tone.getContext().state !== "running") return;
-  dispatchStartTransport();
   dispatch(scheduleTransport());
   Tone.getTransport().start();
+  dispatchStartTransport();
 };
 
 /** Pause the transport, canceling all scheduled events. */
@@ -64,9 +64,9 @@ export const pauseTransport = () => {
 /** Stop the transport, canceling all scheduled events. */
 export const stopTransport = () => {
   dispatchStopTransport();
-  Tone.getTransport().stop();
-  Tone.getTransport().cancel(0);
   dispatchTick(0);
+  Tone.getTransport().cancel();
+  Tone.getTransport().stop();
 };
 
 /** Toggle the transport between playing and paused/stopped. */

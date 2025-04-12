@@ -23,8 +23,6 @@ import { scalesSlice } from "types/Scale/ScaleSlice";
 import { trackSlice } from "types/Track/TrackSlice";
 import { Safe } from "types/utils";
 import { metaSlice } from "types/Meta/MetaSlice";
-import { store } from "./store";
-import { selectCanRedo, selectCanUndo } from "types/Project/ProjectSelectors";
 
 export const SET_PROJECT = "setProject";
 export const UNDO_PROJECT = "undoProject";
@@ -89,23 +87,4 @@ export const undoableProjectReducer = undoable(baseProjectReducer, {
 export const reducer: typeof undoableProjectReducer = (state, action) => {
   if (action.type === SET_PROJECT) return action.payload as Project;
   return undoableProjectReducer(state, action);
-};
-
-/** Directly set the project */
-export const setProject = (payload: Project) => {
-  store.dispatch({ type: SET_PROJECT, payload });
-};
-
-/** Undo the project */
-export const undoProject = () => {
-  if (selectCanUndo(store.getState())) {
-    store.dispatch({ type: UNDO_PROJECT });
-  }
-};
-
-/** Redo the project */
-export const redoProject = () => {
-  if (selectCanRedo(store.getState())) {
-    store.dispatch({ type: REDO_PROJECT });
-  }
 };

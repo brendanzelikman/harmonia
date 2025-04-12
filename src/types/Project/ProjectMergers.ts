@@ -1,4 +1,4 @@
-import { defaultBaseProject, Project, SafeProject } from "./ProjectTypes";
+import { defaultBaseProject } from "./ProjectTypes";
 import { defaultProjectMetadata } from "../Meta/MetaTypes";
 import { merge } from "lodash";
 import { isInstrument } from "types/Instrument/InstrumentTypes";
@@ -14,16 +14,6 @@ import {
   mergeStates,
 } from "types/utils";
 import { BaseProject, SafeBaseProject } from "app/reducer";
-import { selectScaleIds } from "types/Scale/ScaleSelectors";
-import { selectPatternIds } from "types/Pattern/PatternSelectors";
-import { selectPoseIds } from "types/Pose/PoseSelectors";
-import {
-  selectPatternClipIds,
-  selectPoseClipIds,
-} from "types/Clip/ClipSelectors";
-import { selectPortalIds } from "types/Portal/PortalSelectors";
-import { selectTrackIds } from "types/Track/TrackSelectors";
-import { selectInstrumentIds } from "types/Instrument/InstrumentSelectors";
 import dayjs from "dayjs";
 import { Track } from "types/Track/TrackTypes";
 import { PatternClip, PoseClip } from "types/Clip/ClipTypes";
@@ -191,41 +181,4 @@ export const mergeBaseProjects = (
     timeline,
     transport,
   };
-};
-
-/** Sanitize the project and clear the undo history. */
-export const sanitizeProject = (project: SafeProject): Project => ({
-  _latestUnfiltered: sanitizeBaseProject(project?._latestUnfiltered),
-  group: project?.group,
-  past: [],
-  present: sanitizeBaseProject(project?.present),
-  future: [],
-});
-
-/** Update the project with a newest timestamp */
-export const timestampProject = (project: Project): Project => ({
-  ...project,
-  present: {
-    ...project.present,
-    meta: {
-      ...project.present.meta,
-      lastUpdated: dayjs().format(),
-    },
-  },
-});
-
-/** Returns true if a project has not been changed from default settings. */
-export const isProjectEmpty = (project: Project) => {
-  // Check that nothing has been added
-  if (selectTrackIds(project).length !== 0) return false;
-  if (selectInstrumentIds(project).length !== 0) return false;
-  if (selectPatternIds(project).length !== 0) return false;
-  if (selectPoseIds(project).length !== 0) return false;
-  if (selectScaleIds(project).length !== 0) return false;
-  if (selectPatternClipIds(project).length !== 0) return false;
-  if (selectPoseClipIds(project).length !== 0) return false;
-  if (selectPortalIds(project).length !== 0) return false;
-
-  // Check default settings
-  return true;
 };

@@ -1,26 +1,9 @@
+import { DEMOS } from "app/demos";
 import { useFetch } from "hooks/useFetch";
 import { useMemo } from "react";
 
-const DEMO_NAMES = [
-  "demos/romanesca.json",
-  "demos/prelude.json",
-  "demos/moonlight.json",
-  "demos/hammer.json",
-  "demos/waves.json",
-  "demos/exalted.json",
-];
-
-export const DEMO_BLURBS: Record<string, string> = {
-  "demos/romanesca.json": `"A descending pattern in Renaissance music."`,
-  "demos/prelude.json": `"A short piece of music in the classical style."`,
-  "demos/moonlight.json": `"A few bars from the Moonlight Sonata"`,
-  "demos/hammer.json": `"A progression from the Hammerklavier Sonata"`,
-  "demos/waves.json": `"An arpeggio and bassline in motion."`,
-  "demos/exalted.json": `"A glimpse of a large-scale project."`,
-};
-
 export const useDemos = () => {
-  const paths = DEMO_NAMES;
+  const paths = DEMOS.map((demo) => demo.path);
   const { data, loading } = useFetch(() =>
     Promise.all(
       paths.map((p) =>

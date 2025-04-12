@@ -90,10 +90,10 @@ export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
     (c: InstrumentCategory) => {
       const instruments = c === "Samples" ? samples : getCategoryInstruments(c);
       return (
-        <Disclosure key={c}>
+        <Disclosure key={c} as="div" className="w-full">
           {({ open }) => (
             <>
-              <DisclosureButton className="total-center outline-none last:*:ml-auto">
+              <DisclosureButton className="total-center w-full outline-none">
                 <div
                   data-selected={category === c}
                   className="capitalize px-2 py-2.5 gap-4 flex items-center select-none text-slate-50 data-[selected=true]:text-orange-400"
@@ -101,7 +101,11 @@ export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
                   {IconMap[c] ?? <GiDrum />}
                   {c}
                 </div>
-                {open ? <BsChevronDown /> : <BsChevronUp />}
+                {open ? (
+                  <BsChevronDown className="ml-auto" />
+                ) : (
+                  <BsChevronUp className="ml-auto" />
+                )}
               </DisclosureButton>
               <DisclosurePanel className="animate-in fade-in">
                 {instruments.map(renderInstrument)}

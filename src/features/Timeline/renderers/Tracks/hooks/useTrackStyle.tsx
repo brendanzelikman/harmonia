@@ -11,7 +11,7 @@ import {
   selectTrackDepthById,
 } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
-import { useHeldkeys } from "hooks/useHeldkeys";
+import { useHeldKeys } from "hooks/useHeldkeys";
 
 export const useTrackStyle = (props: {
   trackId: TrackId;
@@ -28,12 +28,12 @@ export const useTrackStyle = (props: {
   const className = classNames(
     "animate-in rdg-track fade-in duration-200 slide-in-from-top-8 transition-all size-full relative bg-radial text-white",
     { "from-teal-600 to-emerald-600": isPT },
-    isCollapsed ? "p-0.5 pt-0" : "p-1",
+    isCollapsed ? "p-half pt-0" : "p-1",
     { "from-indigo-800/80 to-indigo-700": !isPT }
   );
   const selectedId = useAppValue(selectSelectedTrackId);
   const isSelected = selectedId === trackId;
-  const heldKeys = useHeldkeys(["q", "w", "e", "r", "t", "y"]);
+  const heldKeys = useHeldKeys(["q", "w", "e", "r", "t", "y"]);
   const isHolding = some(heldKeys);
   const onInstrumentEditor = useAppValue((_) =>
     selectIsEditingTrack(_, trackId)

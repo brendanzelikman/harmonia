@@ -27,7 +27,6 @@ import {
   GiPineTree,
   GiCrystalWand,
 } from "react-icons/gi";
-import { SiMidi } from "react-icons/si";
 import { exportTrackClipsToMIDI } from "types/Clip/ClipThunks";
 import {
   insertScaleTrack,
@@ -54,6 +53,7 @@ import { INSTRUMENT_KEYS } from "types/Instrument/InstrumentTypes";
 import { CiRuler } from "react-icons/ci";
 import { promptUserForSample } from "lib/prompts/sampler";
 import { promptUserForPose } from "lib/prompts/pose";
+import MidiImage from "assets/lib/midi.png";
 
 export const TrackDropdownMenu = (props: {
   track: Track;
@@ -178,7 +178,7 @@ export const TrackDropdownMenu = (props: {
                   )}
                   <TrackDropdownButton
                     content={`Export to MIDI`}
-                    icon={<SiMidi />}
+                    icon={<img src={MidiImage} className="h-3 invert" />}
                     onClick={() => dispatch(exportTrackClipsToMIDI(trackId))}
                   />
                   <TrackDropdownButton

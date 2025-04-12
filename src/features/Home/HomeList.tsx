@@ -12,11 +12,10 @@ export const HomeList = (props: PropsWithChildren<{ signal: string }>) => {
   return (
     <m.div
       ref={listRef}
-      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
       initial="hidden"
       animate="visible"
       transition={{ staggerChildren: 0.1 }}
-      className="size-full relative flex max-[800px]:flex-col max-[800px]:gap-4 pt-2 pb-4 rounded overflow-scroll snap-x snap-mandatory animate-in fade-in duration-300 ease-out"
+      className="size-full relative flex max-[800px]:flex-col max-[800px]:gap-4 pt-2 pb-4 rounded overflow-scroll snap-x snap-mandatory ease-out"
     >
       {props.children}
     </m.div>
