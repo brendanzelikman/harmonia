@@ -11,7 +11,6 @@ import {
 import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 
 import { selectPortaledClipIds } from "types/Arrangement/ArrangementSelectors";
-import { selectPortaledClipBoundMap } from "types/Arrangement/ArrangementClipSelectors";
 import { useEvent } from "hooks/useEvent";
 import { PortaledClipId } from "types/Portal/PortalTypes";
 import classNames from "classnames";
@@ -25,11 +24,6 @@ export interface TimelineClipsProps {
 export function TimelineClips(props: TimelineClipsProps) {
   const element = props.element;
   const portaledClipIds = useAppValue(selectPortaledClipIds);
-  const boundaries = useAppValue(selectPortaledClipBoundMap);
-
-  // Virtualize clips using scroll position
-  const [scrollLeft, setBounds] = useState(element?.scrollLeft ?? 0);
-  useEvent("scroll", (e) => setBounds(e.detail));
 
   // Blur clips if they are dragged
   const [isDragging, setIsDragging] = useState(false);
@@ -38,10 +32,6 @@ export function TimelineClips(props: TimelineClipsProps) {
   const renderPortaledClipId = useCallback(
     (pcId: PortaledClipId) => {
       // Check that the clip is within scroll bounds
-      const { left, right } = boundaries[pcId];
-      const padding = 800;
-      if (scrollLeft > right + padding) return null;
-      if (scrollLeft + window.innerWidth < left - padding) return null;
 
       // Get the base props for all clips
       const id = getOriginalIdFromPortaledClip(pcId);
@@ -70,7 +60,7 @@ export function TimelineClips(props: TimelineClipsProps) {
 
       return null;
     },
-    [scrollLeft, isDragging, boundaries]
+    [isDragging]
   );
 
   // Portal the clips into the timeline element
