@@ -16,9 +16,9 @@ import {
   TransformationCategory,
   TRANSFORMATIONS,
 } from "types/Pattern/PatternTransformers";
-import { isBoolean, omit, sample, startCase } from "lodash";
+import { isBoolean, startCase } from "lodash";
 import { Switch } from "@headlessui/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   removePoseBlockTransformation,
   swapPoseBlockTransformation,
@@ -42,6 +42,8 @@ import {
   PoseClipDropdownItem,
 } from "./PoseClipDropdown";
 import { isNumber, isString } from "types/utils";
+import { promptUserForString } from "lib/prompts/html";
+import { promptLineBreak } from "components/PromptModal";
 
 export interface PoseClipEffectsProps extends PoseClipDropdownEffectProps {
   block: PoseBlock | undefined;
@@ -49,13 +51,13 @@ export interface PoseClipEffectsProps extends PoseClipDropdownEffectProps {
 export const PoseClipEffects = (props: PoseClipEffectsProps) => {
   const dispatch = useAppDispatch();
   const { block, vector, ...effectProps } = props;
-  const [view, setView] = useState<"effects" | "store">("effects");
+  const [view, setView] = useState<"effects" | "scripts" | "store">("effects");
   const [category, setCategory] = useState<TransformationCategory>("order");
   const operations =
     (block && "operations" in block ? block?.operations : props.operations) ??
     [];
+  const scripts = block && "scripts" in block ? block.scripts ?? [] : [];
   const operationCount = operations.length;
-
   return (
     <div className="flex gap-2 total-center">
       <PoseClipBaseEffect border="border border-fuchsia-400">
@@ -64,7 +66,7 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
             active={view === "effects"}
             onClick={() => setView("effects")}
           >
-            Effect Chain
+            Operations
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
             active={view === "store"}
@@ -74,24 +76,16 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
             className="active:text-fuchsia-400"
-            onClick={() => {
-              const randomEffect = sample(
-                Object.keys(TRANSFORMATIONS)
-              ) as Transformation;
-              if (!randomEffect) return;
+            onClick={() =>
               dispatch(
-                addTransformation({
-                  ...effectProps,
-                  id: randomEffect,
-                  index: 0,
-                  givenArgs: TRANSFORMATIONS[randomEffect].defaultValue,
-                  updateBase: !block,
+                updatePose({
+                  id: props.clip.poseId,
+                  operations: [...operations, { id: "script", args: "" }],
                 })
-              );
-              setView("effects");
-            }}
+              )
+            }
           >
-            Add Random
+            Add Script
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
             className="active:text-fuchsia-400"
@@ -122,6 +116,7 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
             operations.map((operation, field) => (
               <PoseClipEffect
                 {...effectProps}
+                key={`${operation.id}-${field}`}
                 index={field}
                 id={operation.id}
                 transformation={TRANSFORMATIONS[operation.id]}
@@ -139,6 +134,25 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
               border="border-fuchsia-400"
             >
               No Effects
+            </PoseClipBaseEffect>
+          )}
+        </>
+      )}
+      {view === "scripts" && (
+        <>
+          {scripts.length ? (
+            scripts.map((script, i) => (
+              <PoseClipBaseEffect>
+                <div>Script</div>
+                {script}
+              </PoseClipBaseEffect>
+            ))
+          ) : (
+            <PoseClipBaseEffect
+              className="h-full opacity-50 total-center bg-slate-900"
+              border="border-fuchsia-400"
+            >
+              No Scripts
             </PoseClipBaseEffect>
           )}
         </>
@@ -215,6 +229,10 @@ export const PoseClipEffect = <T extends Transformation>({
   const displayedArgs = inStore ? internalArgs : givenArgs;
 
   const updateTransformation = (args: TransformationArgs<T>) => {
+    args = args
+      .replace("window", "")
+      .replace("location", "")
+      .replace("reload", "");
     if (inStore) setInternalArgs(args);
     else if (!onBase && hasIndex) {
       const { field: transformationIndex } = rest;
@@ -223,7 +241,6 @@ export const PoseClipEffect = <T extends Transformation>({
           id: clip.poseId,
           index,
           transformationIndex,
-          depths: rest.depths,
           transformation: { args },
         })
       );
@@ -241,14 +258,56 @@ export const PoseClipEffect = <T extends Transformation>({
 
   const isArgsNumber = isNumber(displayedArgs);
   const isArgsString = isString(displayedArgs);
+  const isScriptValid = useMemo(() => {
+    if (id !== "script") return false;
+    let args = displayedArgs
+      .replace("window", "")
+      .replace("location", "")
+      .replace("reload", "");
+    try {
+      const fn = new Function("note", "index", args);
+      const res = fn(0, 0);
+      return isNumber(res);
+    } catch {
+      return false;
+    }
+  }, [displayedArgs]);
 
   return (
-    <PoseClipBaseEffect
-      {...omit(rest, "transformationIndex", "addButton")}
-      className={"flex-col gap-1 justify-evenly"}
-    >
+    <PoseClipBaseEffect className={"flex-col gap-1 justify-evenly"}>
       <div className="capitalize">{startCase(id)}</div>
-      {isArgsNumber || isArgsString ? (
+      {id === "script" ? (
+        <div
+          data-valid={isScriptValid}
+          className={`border cursor-pointer hover:opacity-85 px-2 rounded data-[valid=true]:border-emerald-400 data-[valid=false]:border-rose-400`}
+          onClick={promptUserForString({
+            title: "Script",
+            textarea: true,
+            large: true,
+            description: [
+              `Please write a script that returns a number.`,
+              promptLineBreak,
+              `You can use the following variables:`,
+              `- \`note\` (the MIDI number of the note)`,
+              `- \`index\` (the index within the stream)`,
+              promptLineBreak,
+              `Current Script:`,
+              promptLineBreak,
+              <code>{`(note, index) => {`}</code>,
+              <span className="ml-2">
+                <code>
+                  {displayedArgs ? displayedArgs : "[code will go here]"}
+                </code>
+              </span>,
+              <code>{`}`}</code>,
+            ],
+            defaultValue: displayedArgs,
+            onSubmit: (input) => updateTransformation(input),
+          })}
+        >
+          Click to Edit
+        </div>
+      ) : isArgsNumber || isArgsString ? (
         <input
           type={isArgsNumber ? "number" : "text"}
           className={classNames(

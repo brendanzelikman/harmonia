@@ -54,18 +54,10 @@ export const posesSlice = createNormalSlice({
         depths?: number[];
       }>
     ) => {
-      const { id, transformation, index, depths } = action.payload;
+      const { id, transformation, index } = action.payload;
       const pose = state.entities[id];
       if (!pose?.stream) return;
       let target = pose.stream;
-      if (depths !== undefined) {
-        depths.forEach((depth) => {
-          if (!inRange(depth, 0, target.length)) return;
-          const block = target[depth];
-          if (!block || !("stream" in block)) return;
-          target = block.stream;
-        });
-      }
       const block = target[index];
       if (!block) return;
       if ("operations" in block) {

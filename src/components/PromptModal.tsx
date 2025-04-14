@@ -9,8 +9,8 @@ import classNames from "classnames";
 
 export interface PromptModalProps {
   isOpen?: boolean;
-  title: ReactNode;
-  description: ReactNode | ReactNode[];
+  title?: ReactNode;
+  description?: ReactNode | ReactNode[];
   onFocus?: () => void;
   onBlur?: () => void;
   onSubmit?: (input: string) => void;
@@ -18,6 +18,8 @@ export interface PromptModalProps {
   autoselect?: boolean;
   backgroundColor?: string;
   padding?: string;
+  defaultValue?: string;
+  textarea?: boolean;
   large?: boolean;
 }
 
@@ -27,12 +29,12 @@ const PromptModal = (props: PromptModalProps) => {
   const { isOpen, title, description } = props;
   const onSubmit = props.onSubmit ?? (() => null);
   const onCancel = props.onCancel ?? (() => null);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(props.defaultValue ?? "");
 
   // Close the modal if another is opened
   useEvent("cleanupModal", onCancel);
 
-  const ref = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   useEffect(() => {
     if (props.autoselect) {
       ref.current?.focus();
@@ -71,14 +73,26 @@ const PromptModal = (props: PromptModalProps) => {
             </DialogTitle>
             {descriptionNodes}
             <div className="mt-6 flex gap-3 items-center">
-              <input
-                ref={ref}
-                type="text"
-                className="w-full rounded bg-transparent mr-3 text-white"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => blurOnEnter(e, () => onSubmit(input))}
-              />
+              {props.textarea ? (
+                <textarea
+                  ref={ref as any}
+                  rows={8}
+                  defaultValue={props.defaultValue}
+                  className="w-full rounded bg-transparent mr-3 text-white"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                />
+              ) : (
+                <input
+                  ref={ref as any}
+                  type="text"
+                  className="w-full rounded bg-transparent mr-3 text-white"
+                  value={input}
+                  defaultValue={props.defaultValue}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => blurOnEnter(e, () => onSubmit(input))}
+                />
+              )}
               <button
                 onClick={() => onSubmit(input)}
                 className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 text-slate-950 px-4 py-2 text-sm font-medium hover:bg-sky-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
@@ -114,6 +128,7 @@ export const promptModal = (props: PromptModalProps): Promise<string> => {
     };
 
     const onSubmit = (input: string) => {
+      props.onSubmit?.(input);
       props.onCancel?.();
       cleanup();
       resolve(input);

@@ -10,13 +10,13 @@ import { ReactNode } from "react";
 export const promptUserForString =
   (
     props: PromptModalProps & {
-      callback: (input: string) => unknown;
+      callback?: (input: string) => unknown;
     }
   ) =>
   async () => {
     const { callback, ...rest } = props;
     const input = await promptModal({ ...rest });
-    callback(input);
+    callback?.(input);
   };
 
 /** Prompts the user then applies a callback for the numerical result. */

@@ -12,7 +12,7 @@ import {
   isPatternMidiChord,
   isPatternRest,
 } from "./PatternTypes";
-import { getMidiFromPitch } from "utils/midi";
+import { getMidiFromPitch, getMidiValue } from "utils/midi";
 import { clamp, shuffle } from "lodash";
 import { Frequency, getTransport } from "tone";
 import { getPatternBlockDuration } from "./PatternFunctions";
@@ -368,7 +368,7 @@ export const TRANSFORMATION_CATEGORIES = [
 export type TransformationCategory = (typeof TRANSFORMATION_CATEGORIES)[number];
 
 export const createTransformation = <
-  C extends TransformationCategory,
+  C extends string,
   F extends Transformer,
   T extends TransformerArgs<F>
 >(options: {
@@ -530,6 +530,44 @@ export const TRANSFORMATIONS = createTransformationMap({
     defaultValue: 0,
     placeholder: "0 - 127",
     description: "(n) - Set the velocity of the stream to n",
+  }),
+
+  // Custom Scripts
+  script: createTransformation({
+    callback: (stream, args) => {
+      if (!args) return stream;
+      let newStream: PatternMidiStream = [];
+      for (let i = 0; i < stream.length; i++) {
+        const block = stream[i];
+        if (isPatternRest(block)) {
+          continue;
+        }
+        newStream.push(
+          getPatternMidiChordWithNewNotes(block, (notes) =>
+            notes.map((note) => {
+              let value: number | undefined;
+              try {
+                let safeArgs = args.replace("window", "");
+                safeArgs = safeArgs.replace("location", "");
+                safeArgs = safeArgs.replace("document", "");
+                const fn = new Function("note", "index", safeArgs);
+                value = fn(getMidiValue(note), i);
+              } catch (e) {
+                value = note.MIDI;
+              }
+              if (isNumber(value)) {
+                return { ...note, MIDI: value };
+              } else {
+                return note;
+              }
+            })
+          )
+        );
+      }
+      return newStream;
+    },
+    category: "custom",
+    defaultValue: "",
   }),
 });
 

@@ -33,6 +33,7 @@ import { readMidiScaleFromString } from "types/Track/ScaleTrack/ScaleTrackThunks
 import { promptLineBreak } from "components/PromptModal";
 import { CHORDAL_KEY, CHROMATIC_KEY, OCTAVE_KEY } from "utils/constants";
 import { selectTrackMidiScaleAtTick } from "types/Arrangement/ArrangementTrackSelectors";
+import { selectPoseById } from "types/Pose/PoseSelectors";
 
 export type PoseClipVectorView = "scales" | "notes" | "effects" | "scale";
 

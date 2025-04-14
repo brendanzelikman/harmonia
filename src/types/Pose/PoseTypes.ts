@@ -50,9 +50,11 @@ export interface PoseModule {
 }
 
 /** A `PoseOperation` has a vector and possible set of musical operations. */
-export type PoseOperation = PoseModule & {
-  operations?: Array<PoseTransformation>;
-};
+export type PoseOperation = PoseModule &
+  Partial<{
+    operations: Array<PoseTransformation>;
+    scripts: string[];
+  }>;
 
 /** A `PoseTransformation` is a musical operation with arguments. */
 export type PoseTransformation<T extends Transformation = Transformation> = {
