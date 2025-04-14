@@ -14,9 +14,9 @@ import {
   selectIsAddingPortals,
   selectPortalFragment,
 } from "types/Timeline/TimelineSelectors";
-import { selectTrackById } from "types/Track/TrackSelectors";
 import { Timed } from "types/units";
 import { some } from "lodash";
+import { useMemo } from "react";
 
 export function TimelinePortals(props: TimelineElement) {
   const portals = useAppValue(selectPortals);
@@ -27,11 +27,7 @@ export function TimelinePortals(props: TimelineElement) {
 
   // Get the fragment info
   const fragment = useAppValue(selectPortalFragment);
-  const fragmentTrack = useAppValue((_) =>
-    fragment?.trackId ? selectTrackById(_, fragment?.trackId) : undefined
-  );
-
-  const fragmentTop = useAppValue((_) => selectTrackTop(_, fragmentTrack?.id));
+  const fragmentTop = useAppValue((_) => selectTrackTop(_, fragment?.trackId));
   const fragmentLeft = useAppValue((_) =>
     selectTimelineTickLeft(_, fragment?.tick)
   );
@@ -65,13 +61,16 @@ export function TimelinePortals(props: TimelineElement) {
     );
   };
 
+  const hasFragment = useMemo(
+    () => isPortaling && some(fragment),
+    [isPortaling, fragment]
+  );
+
   if (!props.element) return null;
   return (
     <>
       {createPortal(portals.map(renderPortal), props.element)}
-      {isPortaling &&
-        some(fragment) &&
-        createPortal(<Fragment />, props.element)}
+      {hasFragment && createPortal(<Fragment />, props.element)}
     </>
   );
 }

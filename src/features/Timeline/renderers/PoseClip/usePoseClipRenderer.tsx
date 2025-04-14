@@ -26,7 +26,10 @@ import {
 import { ScaleNote } from "types/Scale/ScaleTypes";
 import { dispatchCustomEvent } from "utils/event";
 import { useEvent } from "hooks/useEvent";
-import { ClipComponentProps } from "features/Timeline/TimelineClips";
+import {
+  clipClassName,
+  ClipComponentProps,
+} from "features/Timeline/TimelineClips";
 import { useDrag } from "react-dnd";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
 
@@ -38,7 +41,7 @@ export interface PoseClipRendererProps extends ClipComponentProps {
 export type PoseClipView = "vector" | "stream";
 
 export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
-  const { id, pcId, className, isDragging } = props;
+  const { id, pcId, isDragging } = props;
 
   const clip = useAppValue((_) => selectPortaledPoseClip(_, pcId));
   const { trackId, tick, type } = clip;
@@ -114,7 +117,7 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
       data-open={isOpen}
       data-selected={isSelected}
       data-blur={isBlurred}
-      className={className}
+      className={clipClassName}
       style={{
         top,
         left,

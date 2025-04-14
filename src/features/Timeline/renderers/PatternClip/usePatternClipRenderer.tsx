@@ -23,7 +23,10 @@ import { useEvent } from "hooks/useEvent";
 import { dispatchCustomEvent } from "utils/event";
 import { useDrag } from "react-dnd";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
-import { ClipComponentProps } from "features/Timeline/TimelineClips";
+import {
+  clipClassName,
+  ClipComponentProps,
+} from "features/Timeline/TimelineClips";
 
 export interface PatternClipRendererProps extends ClipComponentProps {
   id: PatternClipId;
@@ -31,7 +34,7 @@ export interface PatternClipRendererProps extends ClipComponentProps {
 }
 
 export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
-  const { pcId, id, isDragging, className } = props;
+  const { pcId, id, isDragging } = props;
   const dispatch = useAppDispatch();
   const clip = useAppValue((_) => selectPortaledPatternClip(_, pcId));
   const { trackId, type } = clip;
@@ -84,7 +87,7 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
       data-selected={isSelected}
       data-blur={isBlurred}
       style={{ top, left, width, height }}
-      className={className}
+      className={clipClassName}
       onClick={(e) => dispatch(onClipClick(e, { ...clip, id }))}
       onDragStart={() => dispatchCustomEvent("clipDropdown", { value: false })}
     >

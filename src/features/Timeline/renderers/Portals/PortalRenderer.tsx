@@ -104,7 +104,6 @@ export function TimelinePortal(props: TimelinePortalProps) {
 
   const track = useAppValue((_) => (tId ? selectTrackById(_, tId) : undefined));
 
-  if (!tId || !track) return null;
   /** Return an entry portal for the fragment. */
   if (!isPortal)
     return (
@@ -118,6 +117,8 @@ export function TimelinePortal(props: TimelinePortalProps) {
         <PortalIcon />
       </div>
     );
+
+  if (!tId || !track) return null;
 
   /** Otherwise, return both entry and exit portals. */
   return (
