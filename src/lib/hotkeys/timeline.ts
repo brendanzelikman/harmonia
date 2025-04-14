@@ -33,7 +33,7 @@ import {
 export const WaterTreeHotkey: Hotkey = {
   name: "Water Track",
   description: "Activate live play and quickstart a project",
-  shortcut: "n",
+  shortcut: "i",
   callback: (dispatch) => dispatch(toggleLivePlay()),
 };
 
@@ -52,14 +52,14 @@ export const ArrangePosesHotkey: Hotkey = {
 };
 
 export const SelectPatternsHotkey: Hotkey = {
-  name: "Filter Pattern Clips",
+  name: "Select Pattern Clips",
   description: "Add all pattern clips to the selection",
   shortcut: "shift+o",
   callback: (dispatch) => dispatch(filterPatterns()),
 };
 
 export const SelectPosesHotkey: Hotkey = {
-  name: "Filter Pose Clips",
+  name: "Select Pose Clips",
   description: "Add all pose clips to the selection",
   shortcut: "shift+p",
   callback: (dispatch) => dispatch(filterPoses()),

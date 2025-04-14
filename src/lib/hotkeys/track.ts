@@ -33,21 +33,21 @@ import { inputScaleTrackScale } from "lib/prompts/scale";
 export const CreateTracksHotkey: Hotkey = {
   name: "Create Tree",
   description: "Prompt the user to type in a new tree",
-  shortcut: "i",
+  shortcut: "n",
   callback: (dispatch) => dispatch(promptUserForTree),
 };
 
 export const CreateDrumTracksHotkey: Hotkey = {
   name: "Drum Tree",
   description: "Create Drum Tree",
-  shortcut: "alt+shift+i",
+  shortcut: "alt+shift+n",
   callback: (dispatch) => dispatch(createDrumTracks()),
 };
 
 export const CreateRandomTracksHotkey: Hotkey = {
-  name: "Randomize Tree",
+  name: "Create Random Tree",
   description: "Create Random Tree",
-  shortcut: "alt+i",
+  shortcut: "alt+n",
   callback: (dispatch) => dispatch(createRandomHierarchy()),
 };
 

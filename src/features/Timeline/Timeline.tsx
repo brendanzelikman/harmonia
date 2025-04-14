@@ -142,10 +142,7 @@ export default function Timeline() {
   }, [trackIds, collapsedMap, cellWidth]);
 
   return (
-    <div
-      id="timeline"
-      className="relative border-t border-t-slate-700 total-center-col size-full"
-    >
+    <div id="timeline" className="relative total-center-col size-full">
       <TimelineContextMenu />
       {TimelineGrid}
       <TimelineElements />

@@ -59,7 +59,6 @@ export const formatShortcut = (shortcut: string) => {
   result = capitalize(result);
   result = result.replace(/\b[a-zA-Z]\b/g, (match) => match.toUpperCase());
   result = result.replace("escape", "Escape");
-
   result = result.replace(/\s*\+\s*/g, " + ");
   if (result === " ") result = "Space";
   return result;

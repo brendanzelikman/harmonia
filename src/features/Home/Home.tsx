@@ -6,7 +6,7 @@ import { useWindow } from "hooks/useWindow";
 import DemosPage from "features/Demos/Demos";
 import PlaygroundPage from "features/Playground/Playground";
 import ProjectPage from "features/Projects/Projects";
-import SamplePage from "features/Samples/SamplePage";
+import SamplePage from "features/Samples/Samples";
 
 export function HomePage() {
   const view = useRoute();

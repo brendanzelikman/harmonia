@@ -244,13 +244,13 @@ export const promptUserForTree: Thunk = (dispatch) =>
       </div>,
       promptLineBreak,
       <span>
-        Rule 1: <span className="text-sky-500">Scales</span> are matched by
+        Rule 1: <span className="text-sky-500">Scales</span> are created by
         name, note, or degree
       </span>,
       <span>Example: "C major chord" or "C, E, G" or "0, 4, 7"</span>,
       promptLineBreak,
       <span>
-        Rule 2: <span className="text-emerald-500">Samplers</span> are matched
+        Rule 2: <span className="text-emerald-500">Samplers</span> are created
         by name or uploaded by file
       </span>,
       <span>Example: "upright piano" or "xylophone" or "~file"</span>,

@@ -89,7 +89,7 @@ export const PatternTrackButtons = memo(
     if (!!props.collapsed) {
       return (
         !!track.collapsed && (
-          <div className="text-xs flex gap-1 -mt-1 -mr-0.5">
+          <div className="text-xs flex gap-1 -mt-1 -mr-[2px]">
             <span className={mute ? "text-rose-400" : "text-slate-200"}>M</span>
             <span>•</span>
             <span className={solo ? "text-yellow-400" : "text-slate-200"}>
@@ -102,7 +102,7 @@ export const PatternTrackButtons = memo(
 
     return (
       <div
-        className="grid grid-cols-3 self-end mb-1 shrink-0 gap-1 pl-3 pb-1 mt-3 mr-0.5"
+        className="grid grid-cols-3 self-end mb-1 shrink-0 gap-1 pl-3 pb-1 mt-3 mr-[2px]"
         draggable
         onDragStart={cancelEvent}
       >

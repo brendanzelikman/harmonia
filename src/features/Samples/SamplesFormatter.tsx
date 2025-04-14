@@ -14,7 +14,7 @@ import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { format } from "utils/math";
 import { useHotkeys } from "hooks/useHotkeys";
 
-export const SampleFormatter = (props: { data: SampleData }) => {
+export const SamplesFormatter = (props: { data: SampleData }) => {
   const { key, buffer, projectNames, uploadDate, samplerCounts } = props.data;
   const projectText = projectNames.length ? projectNames.join(", ") : "None";
 

@@ -23,17 +23,11 @@ import {
   PoseClipDropdownItem,
 } from "./PoseClipDropdown";
 import { sanitize } from "utils/math";
-import {
-  BsArrow90DegUp,
-  BsArrowDown,
-  BsArrowUp,
-  BsTrash,
-} from "react-icons/bs";
+import { BsArrowDown, BsArrowUp, BsTrash } from "react-icons/bs";
 import { promptUserForString } from "lib/prompts/html";
 import { blurEvent, blurOnEnter } from "utils/event";
 import { PoseClipEffects } from "./PoseClipEffects";
 import { PoseClipComponentProps } from "./usePoseClipRenderer";
-import { BiDownArrow, BiUpArrow } from "react-icons/bi";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 import { readMidiScaleFromString } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import { promptLineBreak } from "components/PromptModal";

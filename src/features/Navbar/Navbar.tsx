@@ -32,7 +32,7 @@ export function Navbar() {
 
   // Render the playground if it should be loaded
   return (
-    <div className="absolute flex flex-nowrap shrink-0 items-center inset-0 bg-slate-900 border-b-0.5 border-b-slate-700 shadow-xl h-nav px-3 z-[140] transition-all animate-in fade-in text-2xl">
+    <div className="absolute flex flex-nowrap shrink-0 items-center inset-0 bg-slate-900 border-b-[1px] border-b-slate-700 shadow-xl h-nav px-3 z-[140] transition-all animate-in fade-in text-2xl">
       <NavbarBrand />
       {!didPlaygroundLoad ? (
         <div className="w-full flex gap-4 *:pr-4 *:border-r last:*:border-r-0 *:border-r-slate-600 text-slate-500 justify-end pr-2">

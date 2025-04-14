@@ -1,6 +1,10 @@
 import { cancelEvent } from "utils/event";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
-import { selectIsSlicingClips } from "types/Timeline/TimelineSelectors";
+import {
+  selectCellsPerTick,
+  selectIsSlicingClips,
+  selectTrackHeight,
+} from "types/Timeline/TimelineSelectors";
 import { selectPortaledPatternClipStream } from "types/Arrangement/ArrangementSelectors";
 import {
   PatternClipMidiBlock,
@@ -10,8 +14,13 @@ import { memo, useCallback } from "react";
 import { sliceClip } from "types/Clip/ClipThunks";
 import { getPatternBlockDuration } from "types/Pattern/PatternFunctions";
 import { PatternMidiNote } from "types/Pattern/PatternTypes";
-import { usePatternClipStreamStyle } from "./usePatternClipStyle";
-import { CLIP_STREAM_MARGIN } from "utils/constants";
+import {
+  CLIP_NAME_HEIGHT,
+  CLIP_STREAM_MARGIN,
+  POSE_NOTCH_HEIGHT,
+} from "utils/constants";
+import { selectPortaledPatternClipRange } from "types/Arrangement/ArrangementClipSelectors";
+import { getPatternClipTheme } from "types/Clip/PatternClip/PatternClipFunctions";
 
 interface PatternClipStreamProps {
   clip: PortaledPatternClip;
@@ -65,3 +74,34 @@ export const PatternClipStream = memo((props: PatternClipStreamProps) => {
 
   return <div className={style.streamClass}>{clipStream.map(renderBlock)}</div>;
 });
+
+export const usePatternClipStreamStyle = (props: {
+  clip: PortaledPatternClip;
+}) => {
+  const { clip } = props;
+  const { id, trackId, duration, tick } = clip;
+  const noteWidth = useAppValue(selectCellsPerTick);
+
+  // Get the height of the stream based on the track
+  const height =
+    useAppValue((_) => selectTrackHeight(_, trackId)) - POSE_NOTCH_HEIGHT;
+  const streamHeight = height - CLIP_NAME_HEIGHT - CLIP_STREAM_MARGIN;
+
+  // Get the height of the note based on the range
+  let { min, max } = useAppValue((_) => selectPortaledPatternClipRange(_, id));
+  const streamRange = Math.max(max - min) + 1;
+  let noteHeight = streamHeight / streamRange;
+
+  // If the stream has one note, center it
+  if (min === max) {
+    noteHeight /= 2;
+    min -= 0.5;
+  }
+
+  // Get the colors based on the clip theme
+  const { noteColor, bodyColor } = getPatternClipTheme(clip);
+  const streamClass = `group size-full relative flex overflow-hidden ${bodyColor}`;
+  const noteClass = `absolute border border-slate-950/80 opacity-80 rounded ${noteColor}`;
+
+  return { streamClass, noteClass, duration, tick, min, noteWidth, noteHeight };
+};

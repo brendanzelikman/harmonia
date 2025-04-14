@@ -27,7 +27,7 @@ export const OpenProjectHotkey: Hotkey = {
 };
 
 export const SaveJsonHotkey: Hotkey = {
-  name: "Save Project to File",
+  name: "Export Project to JSON",
   description: "Save the current project as a JSON file.",
   shortcut: "meta+s",
   callback: (dispatch) => dispatch(exportProjectToJSON()),
@@ -36,14 +36,14 @@ export const SaveJsonHotkey: Hotkey = {
 export const SaveMidiHotkey: Hotkey = {
   name: "Export Project to MIDI",
   description: "Export the timeline to a MIDI file",
-  shortcut: "meta+shift+m",
+  shortcut: "meta+m",
   callback: (dispatch) => dispatch(exportProjectToMIDI(undefined, true)),
 };
 
 export const SaveWavHotkey: Hotkey = {
   name: "Export Project to WAV",
   description: "Export the timeline to a WAV file",
-  shortcut: "meta+shift+l",
+  shortcut: "meta+l",
   callback: (dispatch) => dispatch(downloadTransport()),
 };
 

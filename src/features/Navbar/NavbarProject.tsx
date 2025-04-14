@@ -1,5 +1,4 @@
 import { blurOnEnter } from "utils/event";
-import { BiTrash } from "react-icons/bi";
 import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import { ComponentProps, useCallback, useEffect, useState } from "react";
 import { useOfflineTick } from "types/Transport/TransportTick";

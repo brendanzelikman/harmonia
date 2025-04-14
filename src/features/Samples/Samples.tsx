@@ -5,7 +5,7 @@ import {
 import { HomeContainer } from "features/Home/HomeContainer";
 import { getSampleDataFromIDB, UPDATE_SAMPLES_EVENT } from "app/samples";
 import { GiAudioCassette } from "react-icons/gi";
-import { SampleFormatter } from "./SampleFormatter";
+import { SamplesFormatter } from "./SamplesFormatter";
 import { useEvent } from "hooks/useEvent";
 import { promptUserForSample } from "lib/prompts/sampler";
 import { useAppDispatch } from "hooks/useRedux";
@@ -28,7 +28,7 @@ export default function SamplePage() {
       </HomeControlBar>
       <HomeList signal={UPDATE_SAMPLES_EVENT}>
         {data !== null &&
-          data.map((data) => <SampleFormatter key={data.key} data={data} />)}
+          data.map((data) => <SamplesFormatter key={data.key} data={data} />)}
       </HomeList>
     </HomeContainer>
   );

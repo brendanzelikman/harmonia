@@ -28,7 +28,7 @@ export const useTrackStyle = (props: {
   const className = classNames(
     "animate-in rdg-track fade-in duration-200 slide-in-from-top-8 transition-all size-full relative bg-radial text-white",
     { "from-teal-600 to-emerald-600": isPT },
-    isCollapsed ? "p-half pt-0" : "p-1",
+    isCollapsed ? "p-0" : "p-1",
     { "from-indigo-800/80 to-indigo-700": !isPT }
   );
   const selectedId = useAppValue(selectSelectedTrackId);
@@ -40,6 +40,7 @@ export const useTrackStyle = (props: {
   );
   const borderClass = classNames(
     "size-full bg-radial border-2 rounded transition-all",
+    { "border-t-0": isCollapsed },
     { "total-center": isPT },
     { "total-center-col px-2 gap-1": !isPT },
     { "from-teal-700 to-emerald-600": isPT },

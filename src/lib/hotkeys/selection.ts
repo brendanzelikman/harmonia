@@ -28,6 +28,13 @@ export const _UnselectClipsHotkey: Hotkey = {
   callback: (dispatch) => dispatch(unselectClips()),
 };
 
+export const _MoveClipsHotkey: Hotkey = {
+  name: "Move Selected Clips",
+  description: "Move the selected clips around",
+  shortcut: "Arrow Keys",
+  callback: (dispatch) => dispatch(moveClipsDown()),
+};
+
 export const MoveClipsUpHotkey: Hotkey = {
   name: "Move Selected Clips Up",
   description: "Move the selected media up",
@@ -87,14 +94,14 @@ export const _MoveRightHotkey: Hotkey = {
 export const _ScrubLeftHotkey: Hotkey = {
   name: "Scrub Left",
   description: "Move back one tick",
-  shortcut: "arrowleft",
+  shortcut: "shift+arrowleft",
   callback: (dispatch) => dispatch(scrubClipsLeft()),
 };
 
 export const _ScrubRightHotkey: Hotkey = {
   name: "Scrub Right",
   description: "Move forward one tick",
-  shortcut: "arrowright",
+  shortcut: "shift+arrowright",
   callback: (dispatch) => dispatch(scrubClipsRight()),
 };
 

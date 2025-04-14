@@ -75,7 +75,7 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const Score = useMemo(
     () => (
       <div
-        className="bg-white max-w-[600px] -ml-half -mr-0.5 overflow-scroll shrink"
+        className="bg-white max-w-[600px] -ml-half -mr-[2px] overflow-scroll shrink"
         style={{ height: onGrandStaff ? 150 : 74 }}
       >
         {score}

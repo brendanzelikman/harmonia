@@ -52,7 +52,7 @@ export const EditorTitle = (props: PropsWithChildren) => (
 
 /** The title underline is a gradient line under the title. */
 export const EditorTitleUnderline = (props: { className?: string }) => (
-  <div className={classNames(props.className, "w-full h-0.5 my-1.5")} />
+  <div className={classNames(props.className, "w-full h-[2px] my-1.5")} />
 );
 
 /** The subtitle contains a description of the object being edited. */

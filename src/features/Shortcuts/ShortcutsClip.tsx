@@ -8,13 +8,11 @@ import {
   PasteClipsHotkey,
 } from "lib/hotkeys/clipboard";
 import {
+  _MoveClipsHotkey,
   _UnselectClipsHotkey,
-  MoveClipsDownHotkey,
-  MoveClipsLeftHotkey,
-  MoveClipsRightHotkey,
-  MoveClipsUpHotkey,
   SelectClipsHotkey,
 } from "lib/hotkeys/selection";
+import { SelectPatternsHotkey, SelectPosesHotkey } from "lib/hotkeys/timeline";
 
 export function ClipShortcuts() {
   return (
@@ -22,11 +20,10 @@ export function ClipShortcuts() {
       className="text-lg space-y-5"
       shortcuts={[
         <Shortcut hotkey={SelectClipsHotkey} />,
+        <Shortcut hotkey={SelectPatternsHotkey} />,
+        <Shortcut hotkey={SelectPosesHotkey} />,
         <Shortcut hotkey={_UnselectClipsHotkey} />,
-        <Shortcut hotkey={MoveClipsLeftHotkey} />,
-        <Shortcut hotkey={MoveClipsRightHotkey} />,
-        <Shortcut hotkey={MoveClipsUpHotkey} />,
-        <Shortcut hotkey={MoveClipsDownHotkey} />,
+        <Shortcut hotkey={_MoveClipsHotkey} />,
         <Shortcut hotkey={CopyClipsHotkey} />,
         <Shortcut hotkey={CutClipsHotkey} />,
         <Shortcut hotkey={PasteClipsHotkey} />,

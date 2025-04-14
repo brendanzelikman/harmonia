@@ -1,31 +1,31 @@
 import { Dialog } from "@headlessui/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { GlobalShortcuts } from "./ShortcutsGlobal";
 import classNames from "classnames";
 import { TransportShortcuts } from "./ShortcutsTransport";
-import { ToolShortcuts } from "./ShortcutsTool";
+import { ToolShortcuts } from "./ShortcutsMotif";
 import { TrackShortcuts } from "./ShortcutsTrack";
 import { BsXCircle } from "react-icons/bs";
-import { TickDurations } from "./ShortcutsTick";
 import { useToggle } from "hooks/useToggle";
 import { ClipShortcuts } from "./ShortcutsClip";
 
-export const SHORTCUT_TYPES = [
-  "Navigating Project",
-  "Controlling Playback",
-  "Creating Motifs",
-  "Selecting Tracks",
-  "Selecting Clips",
-  "Tick Durations",
+export const SHORTCUT_TITLE = "Playground Hotkeys";
+
+export const SHORTCUTS = [
+  { title: "Project Controls", component: <GlobalShortcuts /> },
+  { title: "Playback Controls", component: <TransportShortcuts /> },
+  { title: "Track Controls", component: <TrackShortcuts /> },
+  { title: "Motif Controls", component: <ToolShortcuts /> },
+  { title: "Clip Controls", component: <ClipShortcuts /> },
 ] as const;
-export type ShortcutType = (typeof SHORTCUT_TYPES)[number];
+export type ShortcutType = (typeof SHORTCUTS)[number]["title"];
 
 export default function Shortcuts() {
   const diary = useToggle("diary");
   const showingDiary = diary.isOpen;
 
   const shortcuts = useToggle("shortcuts");
-  const [type, setType] = useState<ShortcutType>("Navigating Project");
+  const [type, setType] = useState<ShortcutType>(SHORTCUTS[0].title);
 
   // Close the diary if it's open
   useEffect(() => {
@@ -57,17 +57,6 @@ export default function Shortcuts() {
     [type]
   );
 
-  // Get the corresponding content
-  const ShortcutContent = useMemo(() => {
-    if (type === "Navigating Project") return <GlobalShortcuts />;
-    if (type === "Controlling Playback") return <TransportShortcuts />;
-    if (type === "Selecting Clips") return <ClipShortcuts />;
-    if (type === "Selecting Tracks") return <TrackShortcuts />;
-    if (type === "Creating Motifs") return <ToolShortcuts />;
-    if (type === "Tick Durations") return <TickDurations />;
-    return null;
-  }, [type]);
-
   return (
     <Dialog
       open={shortcuts.isOpen}
@@ -77,13 +66,15 @@ export default function Shortcuts() {
     >
       <div className="fixed flex justify-center inset-0 p-2 z-[180] bg-slate-800/80 text-slate-300 backdrop-blur animate-in fade-in overflow-scroll">
         <div className="w-full h-full flex justify-center flex-1 gap-8">
-          <div className="flex flex-col w-[28rem] p-8 gap-2">
-            <span className="text-4xl font-semibold border-b   border-b-slate-400/50 p-4 mt-8 mb-6">
-              Website Shortcuts
+          <div className="flex flex-col p-8 gap-2">
+            <span className="text-4xl font-semibold border-b border-b-slate-400/50 p-4 mt-8 mb-6">
+              {SHORTCUT_TITLE}
             </span>
-            {SHORTCUT_TYPES.map(renderShortcutTypeButton)}
+            {SHORTCUTS.map((s) => s.title).map(renderShortcutTypeButton)}
           </div>
-          <div className="p-8 my-8 flex items-stretch">{ShortcutContent}</div>
+          <div className="p-8 my-8 flex items-stretch">
+            {SHORTCUTS.find((s) => s.title === type)?.component ?? null}
+          </div>
         </div>
         <button
           className="ml-auto mb-auto mt-2 mr-2 text-3xl flex items-center gap-2 hover:text-slate-200/50 outline-none focus:outline-none transition-all duration-200"
