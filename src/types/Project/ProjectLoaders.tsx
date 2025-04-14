@@ -1,5 +1,5 @@
 import { selectProjectId } from "../Meta/MetaSelectors";
-import { isProject } from "./ProjectTypes";
+import { isProject, Project } from "./ProjectTypes";
 import { sanitizeProject } from "./ProjectTypes";
 import { dispatchCustomEvent } from "utils/event";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
@@ -13,6 +13,7 @@ import { initializeProjectMetadata } from "types/Meta/MetaTypes";
 import { setProject } from "app/store";
 import { getEventFiles } from "utils/event";
 import { promptUserForFile } from "lib/prompts/html";
+import { BaseProject } from "app/reducer";
 
 /** Try to load the project by ID from the database. */
 export const loadProject = async (id: string, callback?: () => void) => {
@@ -25,9 +26,11 @@ export const loadProject = async (id: string, callback?: () => void) => {
 };
 
 /** Try to load the demo project from the given path. */
-export const loadDemo = async (path: string, callback?: () => void) => {
-  const present = await fetch(path).then((res) => res.json());
-  const project = sanitizeProject({ present });
+export const loadDemoProject = async (
+  base: Project | BaseProject,
+  callback?: () => void
+) => {
+  const project = sanitizeProject("present" in base ? base : { present: base });
   project.present.meta.id = initializeProjectMetadata().id;
   await uploadProject(project);
   setProject(project);

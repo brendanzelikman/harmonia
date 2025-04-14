@@ -1,36 +1,44 @@
-export const DEMOS = [
+import { BaseProject } from "app/reducer";
+import Prelude from "lib/demos/prelude.json";
+import Scherzo from "lib/demos/scherzo.json";
+import Moonlight from "lib/demos/moonlight.json";
+import Waves from "lib/demos/waves.json";
+import Sheep from "lib/demos/sheep.json";
+import Exalted from "lib/demos/exalted.json";
+
+export const DEMO_PROJECTS = [
   {
-    path: "demos/prelude.json",
+    project: Prelude as unknown as BaseProject,
     type: "Classical",
     colors: "border-rose-300 text-rose-300",
     blurb: "A short piece imitating the Western classical style.",
   },
   {
-    path: "demos/scherzo.json",
+    project: Scherzo as unknown as BaseProject,
     type: "Classical",
     colors: "border-purple-300 text-purple-300",
     blurb: "A short piece based on Mvt. 2 of Hammerklavier",
   },
   {
-    path: "demos/moonlight.json",
+    project: Moonlight as unknown as BaseProject,
     type: "Classical",
     colors: "border-slate-300 text-slate-300",
     blurb: "A few bars from Mvt. 3 of the Moonlight Sonata",
   },
   {
-    path: "demos/waves.json",
+    project: Waves as unknown as BaseProject,
     type: "Electronica",
     colors: "border-fuchsia-300 text-fuchsia-300",
     blurb: "An arpeggio and bassline in motion.",
   },
   {
-    path: "demos/sheep.json",
+    project: Sheep as unknown as BaseProject,
     type: "Electronica",
     colors: "border-indigo-300 text-indigo-300",
     blurb: "A glimpse of a large-scale project.",
   },
   {
-    path: "demos/exalted.json",
+    project: Exalted as unknown as BaseProject,
     type: "Electronica",
     colors: "border-sky-300 text-sky-300",
     blurb: "A glimpse of a large-scale project.",

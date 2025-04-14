@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isProject } from "types/Project/ProjectTypes";
-import { loadDemo, loadProject } from "types/Project/ProjectLoaders";
+import { loadDemoProject, loadProject } from "types/Project/ProjectLoaders";
 import { ProjectDisc, ProjectDiscPreview } from "./ProjectsDisc";
 import { ProjectTitle } from "./ProjectsTitle";
 import { selectProjectId } from "types/Meta/MetaSelectors";
@@ -17,19 +17,19 @@ import { useAppDispatch } from "hooks/useRedux";
 import { ProjectItem } from "features/Projects/Projects";
 import { deleteProject, uploadProject } from "app/projects";
 import { useHotkeys } from "hooks/useHotkeys";
-import { DEMOS } from "app/demos";
 
 export interface ProjectFormatterProps extends ProjectItem {
   index?: number;
+  isDemo?: boolean;
+  blurb?: string;
 }
 
 export function ProjectFormatter(props: ProjectFormatterProps) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { project, filePath } = props;
+  const { project, isDemo } = props;
   const id = selectProjectId(project);
   const isInvalid = !isProject(project);
-  const isDemo = !!props.filePath;
   const canPlay = !isInvalid;
 
   // The user must confirm before deleting a project
@@ -40,12 +40,12 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
   const onClick = useCallback(() => {
     if (!canPlay) return;
     const callback = () => navigate("/playground");
-    if (filePath) {
-      loadDemo(filePath, callback);
+    if (isDemo) {
+      loadDemoProject(project, callback);
     } else {
       loadProject(id, callback);
     }
-  }, [id, canPlay, filePath]);
+  }, [id, canPlay, isDemo]);
 
   return (
     <HomeListItem
@@ -59,7 +59,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
       <ProjectDisc
         projectId={id}
         onClick={onClick}
-        isDemo={isDemo}
+        isDemo={!!isDemo}
         deleting={deleting}
         className="max-[800px]:hidden size-48 mt-4 mb-4 ease-out rounded-full border-2 border-sky-500/50 cursor-pointer transition-all active:text-indigo-200 hover:duration-150 ring-indigo-600/25 ring-offset-8 ring-offset-indigo-500/25 bg-radial from-indigo-700 to-sky-500 data-[deleting=true]:from-red-500 data-[deleting=true]:to-red-700 shadow-[0px_0px_20px_rgb(100,100,200)]"
       />
@@ -88,11 +88,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
           </HomeListButton>
         </HomeListButtonContainer>
       )}
-      {isDemo && filePath && (
-        <div className="py-2">
-          "{DEMOS.find((d) => d.path === filePath)?.blurb}"
-        </div>
-      )}
+      {props.blurb && <div className="py-2">"{props.blurb}"</div>}
     </HomeListItem>
   );
 }
