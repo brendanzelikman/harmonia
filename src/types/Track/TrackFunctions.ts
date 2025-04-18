@@ -98,7 +98,8 @@ export const getAbsoluteTrackIndex = (id: TrackId, trackMap: TrackMap) => {
 
   const pushChildren = (track: Track) => {
     index++;
-    for (const childId of track.trackIds) {
+    const orderedTrackIds = sortTrackIds(track.trackIds, trackMap);
+    for (const childId of orderedTrackIds) {
       const child = trackMap[childId];
       if (child?.id === id) {
         found = true;

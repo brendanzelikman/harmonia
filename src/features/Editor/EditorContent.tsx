@@ -31,7 +31,7 @@ export const EditorSidebarHeader = (props: PropsWithChildren) => (
 
 /** The sidebar list contains a column of presets. */
 export const EditorSidebarList = (props: PropsWithChildren) => (
-  <div className="p-2 w-full flex-auto min-h-[10rem] flex flex-col text-gray-300 overflow-auto">
+  <div className="w-full flex-auto min-h-[10rem] flex flex-col text-gray-300 overflow-auto">
     {props.children}
   </div>
 );

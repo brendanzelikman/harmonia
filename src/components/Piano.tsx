@@ -1,6 +1,6 @@
 // @ts-ignore
 import { Piano as ReactPiano, MidiNumbers } from "react-piano";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "react-piano/dist/styles.css";
 import "./Piano.css";
 import { WebMidi } from "webmidi";
@@ -10,6 +10,11 @@ import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { Sampler } from "tone";
 import { cancelEvent } from "utils/event";
 import { ScaleObject } from "types/Scale/ScaleTypes";
+import { useHotkeys } from "hooks/useHotkeys";
+import { useAppValue } from "hooks/useRedux";
+import { selectIsEditingTracks } from "types/Timeline/TimelineSelectors";
+import { HotkeyMap } from "lib/hotkeys";
+import { useToggle } from "hooks/useToggle";
 
 interface PianoProps {
   sampler?: Sampler;
@@ -22,12 +27,14 @@ interface PianoProps {
   scale?: ScaleObject;
   width?: number;
   keyWidthToHeight?: number;
+  overrideHotkeys?: boolean;
 }
 
 export const Piano: React.FC<PianoProps> = (props) => {
   const sampler = props.sampler ?? LIVE_AUDIO_INSTANCES.global?.sampler;
   const hasPlay = props.playNote !== undefined;
   const hasStop = props.stopNote !== undefined;
+  const onKeyboard = useToggle("keyboard").isOpen;
 
   const attackSamplerNote = (sampler: Sampler, midiNumber: number) => {
     if (!sampler?.loaded || sampler?.disposed) return;
@@ -78,6 +85,46 @@ export const Piano: React.FC<PianoProps> = (props) => {
     };
   }, [sampler, playNote, stopNote]);
 
+  // Hotkeys for inputting sampler notes
+  const onEditor = useAppValue(selectIsEditingTracks);
+  const override = !!props.overrideHotkeys;
+  const [octave, setOctave] = useState(5);
+  const increaseOctave = useCallback(() => {
+    setOctave((prev) => Math.min(prev + 1, 8));
+  }, []);
+  const decreaseOctave = useCallback(() => {
+    setOctave((prev) => Math.max(prev - 1, 1));
+  }, []);
+  const keyboardShortcuts = useMemo(() => {
+    if (!onKeyboard || (onEditor && !override)) return [];
+    const keys = [
+      "a",
+      "w",
+      "s",
+      "e",
+      "d",
+      "f",
+      "t",
+      "g",
+      "y",
+      "h",
+      "u",
+      "j",
+      "k",
+      "o",
+      "l",
+    ];
+    return keys.map((key, i) => ({
+      key,
+      midiNumber: octave * 12 + i,
+    }));
+  }, [octave, onKeyboard, onEditor, override]);
+  const hotkeyMap = useMemo(() => {
+    if (onEditor && !override) return {} as HotkeyMap;
+    return { z: decreaseOctave, x: increaseOctave };
+  }, [onEditor, override]);
+  useHotkeys(hotkeyMap, "keydown", "keyboard");
+
   if (!props.show) return null;
   return (
     <div className={props.className} draggable onDragStart={cancelEvent}>
@@ -101,6 +148,7 @@ export const Piano: React.FC<PianoProps> = (props) => {
           }}
           playNote={(midi: number) => playNote(sampler, midi)}
           stopNote={(midi: number) => stopNote(sampler, midi)}
+          keyboardShortcuts={keyboardShortcuts}
         />
       </div>
     </div>

@@ -8,8 +8,11 @@ const closeKey = (key: ToggledKey) => `${key}-close`;
 const toggleKey = (key: ToggledKey) => `${key}-toggle`;
 
 /** Custom hook for using a toggled value. */
-export const useToggle = (key: ToggledKey) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const useToggle = (
+  key: ToggledKey,
+  defaultValue = !!getToggleValue(key)
+) => {
+  const [isOpen, setIsOpen] = useState(defaultValue);
 
   // Callback functions for changing state
   const setTrue = useCallback(() => setIsOpen(true), []);

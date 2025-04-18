@@ -15,6 +15,7 @@ import { NavbarFileGroup, NavbarFileLabel } from "./NavbarProject";
 import {
   BsGear,
   BsJournalRichtext,
+  BsKeyboard,
   BsQuestionCircle,
   BsTerminal,
 } from "react-icons/bs";
@@ -31,6 +32,7 @@ export function NavbarSettings() {
   const Terminal = useToggle("terminal");
   const Diary = useToggle("diary");
   const Shortcuts = useToggle("shortcuts");
+  const Keyboard = useToggle("keyboard");
   const bpm = useAppValue(selectTransportBPM);
   const meter = useAppValue(selectTransportTimeSignature);
   const swing = useAppValue(selectTransportSwing);
@@ -85,7 +87,6 @@ export function NavbarSettings() {
               placeholder={"0-1"}
             />
           </NavbarFormGroup>
-
           <NavbarFileGroup onClick={Diary.toggle}>
             <NavbarFileLabel>
               {Diary.isOpen ? "Close" : "Open"} Diary
@@ -102,6 +103,12 @@ export function NavbarSettings() {
             <NavbarFileLabel>View Shortcuts</NavbarFileLabel>
             <BsQuestionCircle className="ml-auto text-2xl" />
           </NavbarFileGroup>
+          {Keyboard.isOpen && (
+            <NavbarFileGroup>
+              <NavbarFileLabel>Keyboard Mode</NavbarFileLabel>
+              <BsKeyboard className="ml-auto text-2xl" />
+            </NavbarFileGroup>
+          )}
         </div>
       </NavbarHoverTooltip>
     </div>

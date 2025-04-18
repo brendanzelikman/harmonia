@@ -2,10 +2,12 @@ import {
   getCurrentProjectId,
   getProject,
   getProjects,
+  setCurrentProjectId,
   uploadProject,
 } from "app/projects";
 import { setProject } from "app/store";
 import { useFetch } from "hooks/useFetch";
+import { selectProjectId } from "types/Meta/MetaSelectors";
 import { defaultProject } from "types/Project/ProjectTypes";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 
@@ -24,6 +26,12 @@ export function useProject() {
     // If the project is not found, upload a new project if there are no more projects
     const projects = await getProjects();
     if (!projects.length) await uploadProject(defaultProject);
+    else {
+      const project = projects[projects.length - 1];
+      setCurrentProjectId(selectProjectId(project));
+      setProject(project);
+      return project;
+    }
   }, UPDATE_PROJECT_EVENT);
 
   // Return the load state

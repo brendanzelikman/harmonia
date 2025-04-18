@@ -120,8 +120,8 @@ export const selectTrackAncestorIdsMap = createDeepSelector(
 );
 
 /** Select the ancestor IDs of a track. */
-export const selectTrackAncestorIds = (project: Project, id: TrackId) => {
-  return selectTrackAncestorIdsMap(project)[id] ?? [];
+export const selectTrackAncestorIds = (project: Project, id?: TrackId) => {
+  return id ? selectTrackAncestorIdsMap(project)[id] ?? [] : [];
 };
 
 /** Select the ancestors of a track. */

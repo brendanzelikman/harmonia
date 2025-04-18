@@ -26,6 +26,7 @@ import {
   selectIsTrackSelected,
   selectTimelineState,
   selectCurrentTimelineTick,
+  selectTimelineTick,
 } from "./TimelineSelectors";
 import {
   createUndoType,
@@ -200,9 +201,7 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
 
   // If no clip is selected, create a new clip and pose.
   if (!patternClip) {
-    const timelineTick = selectCurrentTimelineTick(getProject());
-    const transportTick = getTransport().ticks;
-    const tick = timelineTick ?? transportTick;
+    const tick = selectTimelineTick(getProject());
 
     // Delete any patterns at the current tick in the track
     if (trackId) {

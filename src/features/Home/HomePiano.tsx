@@ -34,7 +34,7 @@ export const MagicalPiano = () => {
     const instance = new LiveAudioInstance({
       ...defaultInstrument,
       id: "landing-piano",
-      key: "upright-piano-loud",
+      key: "upright-piano",
       effects: [
         { ...defaultReverb, wet: 0.3, decay: 3 },
         { ...defaultChorus, wet: 0.1 },

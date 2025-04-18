@@ -75,7 +75,7 @@ export function NavbarProjectMenu() {
             />
             <label
               htmlFor="projectName"
-              className={`absolute text-xs text-indigo-400 duration-300 transform scale-75 top-1 z-10 origin-0 bg-slate-900/80 rounded px-1 left-4`}
+              className={`absolute text-xs text-indigo-400 duration-300 transform scale-75 top-1 z-10 origin-0 bg-slate-900/80 rounded px-1 left-1`}
             >
               Project Name
             </label>

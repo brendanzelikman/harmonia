@@ -1,6 +1,11 @@
 import classNames from "classnames";
 import { useAppValue } from "hooks/useRedux";
-import { GiCrystalWand, GiJackPlug, GiMisdirection } from "react-icons/gi";
+import {
+  GiCrystalWand,
+  GiJackPlug,
+  GiMisdirection,
+  GiMoebiusTriangle,
+} from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
   selectIsSelectingPoseClips,
@@ -21,69 +26,59 @@ import { TooltipButton } from "components/TooltipButton";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { TRACK_WIDTH } from "utils/constants";
 import { useToggle } from "hooks/useToggle";
-import { FaKeyboard } from "react-icons/fa";
-import { useHeldKeys } from "hooks/useHeldkeys";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
-const trackKeys = ["x", "m", "s"];
-const miscKeys = ["c", "d", "-", "`", "="];
-const hotkeys = [...qwertyKeys, ...numericalKeys, ...trackKeys, ...miscKeys];
 
 export const NavbarLivePlay = () => {
-  const holding = useHeldKeys(hotkeys);
-  useGestures();
+  const holding = useGestures();
+
+  // Get selected values
+  const patternTracks = useAppValue(selectPatternTracks);
+  const selectedTrackId = useAppValue(selectSelectedTrackId);
+  const chain = useAppValue((_) => selectTrackAncestorIds(_, selectedTrackId));
+  const depth = chain.length - 1;
+  const instruments = useAppValue(selectTrackInstrumentMap);
+  const labels = useAppValue(selectTrackLabelMap);
+
   const isSelectingPatternClip = useAppValue(selectIsSelectingPatternClips);
   const isSelectingPoseClip = useAppValue(selectIsSelectingPoseClips);
 
-  // Keep track of held keys and shortcuts
-
-  const holdingNumerical = some(numericalKeys, (key) => holding[key]);
-
+  // Get the values of the held keys
+  const isNumerical = some(numericalKeys, (key) => holding[key]);
   const isNegative = holding["-"] || holding["`"];
   const isExact = holding["="];
-
   const isMuting = holding.m;
   const isSoloing = holding.s;
-
+  const isMixing = isMuting || isSoloing;
   const sign = isNegative ? "-" : "";
   const direction = isNegative ? "Down" : "Up";
 
-  // Get the selected track and its scale names
-  const patternTracks = useAppValue(selectPatternTracks);
-  const instrumentMap = useAppValue(selectTrackInstrumentMap);
-  const selectedTrackId = useAppValue(selectSelectedTrackId);
-  const chainIds = useAppValue((_) =>
-    selectedTrackId ? selectTrackAncestorIds(_, selectedTrackId) : []
-  );
-
-  const label1 = useAppValue((_) => selectTrackLabelById(_, chainIds[0]));
-  const scale1 = useAppValue((_) => selectTrackScaleNameAtTick(_, chainIds[0]));
-  const scaleName1 = label1 !== "*" ? `${scale1} (${label1})` : `First Scale`;
-  const hasScale1 = scaleName1 !== `First Scale`;
-
-  const label2 = useAppValue((_) => selectTrackLabelById(_, chainIds[1]));
-  const scale2 = useAppValue((_) => selectTrackScaleNameAtTick(_, chainIds[1]));
-  const scaleName2 = label2 !== "*" ? `${scale2} (${label2})` : `Second Scale`;
-  const hasScale2 = scaleName2 !== `Second Scale`;
-
-  const label3 = useAppValue((_) => selectTrackLabelById(_, chainIds[2]));
-  const scale3 = useAppValue((_) => selectTrackScaleNameAtTick(_, chainIds[2]));
-  const scaleName3 = label3 !== "*" ? `${scale3} (${label3})` : `Third Scale`;
-  const hasScale3 = scaleName3 !== `Third Scale`;
-
-  const isMixing = isMuting || isSoloing;
-
-  const holdingPoses =
+  const isHoldingScale =
     holding.q || holding.w || holding.e || holding.r || holding.t || holding.y;
-
-  const isPosing = selectedTrackId && holdingPoses;
-
+  const isPosing = selectedTrackId && isHoldingScale;
   const isVoiceLeadingDegree = holding.d && isSelectingPatternClip;
   const isVoiceLeadingClosest = holding.c && isSelectingPatternClip;
 
-  const depth = chainIds.length - 1;
+  // Get the first chain id
+  const label1 = useAppValue((_) => selectTrackLabelById(_, chain[0]));
+  const scale1 = useAppValue((_) => selectTrackScaleNameAtTick(_, chain[0]));
+  const scaleName1 = label1 !== "*" ? `${scale1} (${label1})` : `First Scale`;
+  const hasScale1 = scaleName1 !== `First Scale`;
 
+  // Get the second chain id
+  const label2 = useAppValue((_) => selectTrackLabelById(_, chain[1]));
+  const scale2 = useAppValue((_) => selectTrackScaleNameAtTick(_, chain[1]));
+  const scaleName2 = label2 !== "*" ? `${scale2} (${label2})` : `Second Scale`;
+  const hasScale2 = scaleName2 !== `Second Scale`;
+
+  // Get the third chain id
+  const label3 = useAppValue((_) => selectTrackLabelById(_, chain[2]));
+  const scale3 = useAppValue((_) => selectTrackScaleNameAtTick(_, chain[2]));
+  const scaleName3 = label3 !== "*" ? `${scale3} (${label3})` : `Third Scale`;
+  const hasScale3 = scaleName3 !== `Third Scale`;
+
+  // Get the label map
   const labelMap = {
     q: label1 ?? "A",
     w: label2,
@@ -93,7 +88,6 @@ export const NavbarLivePlay = () => {
     y: "y",
   } as const;
 
-  const trackMap = useAppValue(selectTrackLabelMap);
   const getKeycodeLabel = useCallback(
     (keycode: string) => {
       const number = parseInt(keycode);
@@ -104,7 +98,7 @@ export const NavbarLivePlay = () => {
       if (isMixing) {
         const track = patternTracks.at(number - 1);
         if (!track) return "No Sampler Available";
-        const instrument = instrumentMap[track.id];
+        const instrument = instruments[track.id];
         if (!instrument) return "No Track Instrument";
         const { mute, solo } = instrument;
         let action = "";
@@ -115,7 +109,7 @@ export const NavbarLivePlay = () => {
         if (isSoloing) {
           action += solo ? "Unsolo" : "Solo";
         }
-        return `${action} Sampler ${trackMap[patternTracks[number - 1]?.id]}`;
+        return `${action} Sampler ${labels[patternTracks[number - 1]?.id]}`;
       }
 
       if (isVoiceLeadingDegree) {
@@ -136,12 +130,12 @@ export const NavbarLivePlay = () => {
           vector.push(`${label}${sign}${keycode}`);
         }
       });
-      if (vector.length && holdingPoses) {
+      if (vector.length && isHoldingScale) {
         const vectorString = vector.join(" + ");
         const phrase = isExact ? "Move to" : "Move by ";
         return `${phrase} ${vectorString}`;
       }
-      if (holdingPoses) {
+      if (isHoldingScale) {
         if (isExact) {
           return `Move to Step ${keycode} In Scale`;
         }
@@ -160,7 +154,7 @@ export const NavbarLivePlay = () => {
       patternTracks,
       isMuting,
       isSoloing,
-      instrumentMap,
+      instruments,
     ]
   );
 
@@ -267,7 +261,7 @@ export const NavbarLivePlay = () => {
         </div>
         <div className="p-1">
           <p
-            data-dim={isMixing || !holdingPoses}
+            data-dim={isMixing || !isHoldingScale}
             className="data-[dim=true]:opacity-50"
           >
             <Description
@@ -286,7 +280,7 @@ export const NavbarLivePlay = () => {
             />
           </p>
           <p
-            data-dim={isMixing || !holdingPoses}
+            data-dim={isMixing || !isHoldingScale}
             className="data-[dim=true]:opacity-50"
           >
             <Instruction active={holding["="]} label="Hold Equal:" />{" "}
@@ -355,7 +349,7 @@ export const NavbarLivePlay = () => {
             ? `Voice Lead Patterns`
             : isSelectingPoseClip
             ? "Update Poses"
-            : holdingPoses
+            : isHoldingScale
             ? "Create Poses"
             : "Explore Tree"}
         </div>
@@ -364,7 +358,7 @@ export const NavbarLivePlay = () => {
             <p
               key={keycode}
               className={`${
-                !holdingPoses &&
+                !isHoldingScale &&
                 !isMixing &&
                 !isVoiceLeadingDegree &&
                 !isVoiceLeadingClosest
@@ -415,7 +409,7 @@ export const NavbarLivePlay = () => {
       holding,
       getKeycodeLabel,
       getZeroLabel,
-      holdingPoses,
+      isHoldingScale,
       isSelectingPoseClip,
       isMixing,
     ]
@@ -423,7 +417,7 @@ export const NavbarLivePlay = () => {
 
   const hasTracks = useAppValue(selectHasTracks);
   const working =
-    isMixing || isVoiceLeadingClosest || isVoiceLeadingDegree || holdingPoses;
+    isMixing || isVoiceLeadingClosest || isVoiceLeadingDegree || isHoldingScale;
 
   const signal = useToggle("livePlay");
   const isActive = working || hasTracks;
@@ -456,7 +450,7 @@ export const NavbarLivePlay = () => {
       {Y}
     </>
   );
-  const Number = Span("Press Number", holdingNumerical, true);
+  const Number = Span("Press Number", isNumerical, true);
   const C = Span("C", holding.c);
   const D = Span("D", holding.d);
   const M = Span("M", holding.m);
@@ -498,7 +492,7 @@ export const NavbarLivePlay = () => {
               (Hold {QWERTY} + {Number})
             </div>
           </div>
-        ) : holdingPoses ? (
+        ) : isHoldingScale ? (
           <div className="h-[68px] total-center-col">
             <div className="text-base font-light">Creating Poses</div>
             <div className="text-slate-400 text-sm">
@@ -535,7 +529,7 @@ export const NavbarLivePlay = () => {
               ? "Closest Pose At Degree"
               : isSelectingPoseClip
               ? "Updating Poses"
-              : holdingPoses
+              : isHoldingScale
               ? "Creating Poses"
               : hasTracks
               ? "Keyboard Gestures"
@@ -559,7 +553,7 @@ export const NavbarLivePlay = () => {
               <div>(Hold QWERTY + D + Number)</div>
             ) : isSelectingPoseClip ? (
               <div>(Hold QWERTY + Number)</div>
-            ) : holdingPoses ? (
+            ) : isHoldingScale ? (
               <div>(Hold QWERTY + Number)</div>
             ) : (
               "For Composition and Improvisation"
@@ -582,9 +576,9 @@ export const NavbarLivePlay = () => {
       ) : isPosing ? (
         <GiCrystalWand className="text-2xl" />
       ) : hasTracks ? (
-        <FaKeyboard className="text-2xl" />
+        <GiMoebiusTriangle className="text-2xl" />
       ) : (
-        <FaKeyboard className="text-2xl" />
+        <GiMoebiusTriangle className="text-2xl" />
       )}
     </TooltipButton>
   );

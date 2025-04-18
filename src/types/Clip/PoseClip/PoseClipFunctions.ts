@@ -19,6 +19,7 @@ import { getNewScale } from "types/Scale/ScaleTransformers";
 import { getRotatedScale } from "types/Scale/ScaleTransformers";
 import { MidiScale } from "utils/midi";
 import { getMidiValue } from "utils/midi";
+import { isObject } from "lodash";
 
 /** Get the current pose occurring at or before the given tick. */
 export const getPoseOperationsAtTick = (

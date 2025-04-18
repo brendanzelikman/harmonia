@@ -6,7 +6,6 @@ import { useError } from "app/router";
 export const Splash = () => {
   const navigate = useNavigate();
   const { hasError, errorMessage } = useError();
-
   const title = "Harmonia";
 
   let subtitle = "A Digital Audio Workstation";
@@ -69,11 +68,11 @@ export const Splash = () => {
         initial={{ opacity: 0, translateY: 20 }}
         whileInView={{ opacity: 1, translateY: 0 }}
         transition={{ delay: 1.3, duration: 0.5 }}
-        className={
+        className={`${
           hasError
             ? "font-light sm:text-2xl text-lg text-red-500"
             : "font-normal sm:text-4xl text-xl drop-shadow-xl text-indigo-50/90"
-        }
+        }`}
       >
         {subtitle2}
       </m.p>

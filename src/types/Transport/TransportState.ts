@@ -5,6 +5,7 @@ import * as Tone from "tone";
 import { Thunk } from "types/Project/ProjectTypes";
 import { scheduleTransport } from "./TransportScheduler";
 import { dispatchTick } from "./TransportTick";
+import { loadTransport } from "./TransportLoader";
 
 // --------------------------------------------------------------
 // Events
@@ -57,8 +58,8 @@ export const startTransport = (): Thunk => async (dispatch) => {
 /** Pause the transport, canceling all scheduled events. */
 export const pauseTransport = () => {
   dispatchPauseTransport();
-  Tone.getTransport().pause();
   Tone.getTransport().cancel();
+  Tone.getTransport().pause();
 };
 
 /** Stop the transport, canceling all scheduled events. */

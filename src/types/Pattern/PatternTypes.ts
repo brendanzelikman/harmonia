@@ -184,13 +184,17 @@ export const isPatternStrummedMidiChord = (
 /** Checks if a given object is of type `PatternStream`. */
 export const isPatternStream = (obj: unknown): obj is PatternStream => {
   const candidate = obj as PatternStream;
-  return Array.isArray(candidate);
+  return (
+    Array.isArray(candidate) &&
+    isObject(candidate[0]) &&
+    "duration" in candidate[0]
+  );
 };
 
 /** Checks if a given object is of type `PatternMidiStream`. */
 export const isPatternMidiStream = (obj: unknown): obj is PatternMidiStream => {
   const candidate = obj as PatternMidiStream;
-  return Array.isArray(candidate);
+  return Array.isArray(candidate) && isPatternMidiBlock(candidate[0]);
 };
 
 /** Checks if a given object is of type `Pattern`. */

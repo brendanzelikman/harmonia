@@ -20,6 +20,6 @@ export default defineConfig({
   },
   plugins: [react(), tsconfigPaths(), tailwindcss()],
   resolve: {
-    mainFields: ["module", "jsnext:main", "jsnext"],
+    mainFields: ["browser", "module", "main", "jsnext"],
   },
 });

@@ -9,6 +9,7 @@ interface CardProps {
   features: string[];
   onClick?: () => void;
   slide?: number;
+  icon?: ReactNode;
 }
 
 export function LandingCard(props: CardProps) {
@@ -36,7 +37,9 @@ export function LandingCard(props: CardProps) {
       <div className="flex flex-col gap-2">
         {features.map((feature) => (
           <div key={feature} className="flex space-x-4">
-            <BsCheckCircleFill className="size-6 text-slate-100" />
+            {props.icon ?? (
+              <BsCheckCircleFill className="size-6 text-slate-100" />
+            )}
             <p className="text-lg text-gray-500">{feature}</p>
           </div>
         ))}

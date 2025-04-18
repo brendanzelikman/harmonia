@@ -1,5 +1,5 @@
 import { useHotkeys } from "hooks/useHotkeys";
-import { getHeldKey } from "hooks/useHeldkeys";
+import { getHeldKey, useHeldKeys } from "hooks/useHeldkeys";
 import { Thunk } from "types/Project/ProjectTypes";
 import {
   selectSelectedPatternClips,
@@ -19,11 +19,21 @@ import {
   zeroSelectedPatternPoses,
 } from "./updatePatterns";
 import { offsetSelectedPoses, zeroSelectedPoses } from "./updatePoses";
+import { useMemo } from "react";
+import { HotkeyMap } from "lib/hotkeys";
+import { some } from "lodash";
+
+const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
+const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+const trackKeys = ["x", "m", "s"];
+const miscKeys = ["c", "d", "-", "`", "="];
+const hotkeys = [...qwertyKeys, ...numericalKeys, ...trackKeys, ...miscKeys];
 
 /** A custom hook to use keyboard gestures */
 export const useGestures = () => {
-  useHotkeys(
-    {
+  const holding = useHeldKeys(hotkeys);
+  const hotkeyMap: HotkeyMap = useMemo(() => {
+    return {
       1: (dispatch) => dispatch(keydown(1)),
       2: (dispatch) => dispatch(keydown(2)),
       3: (dispatch) => dispatch(keydown(3)),
@@ -34,9 +44,10 @@ export const useGestures = () => {
       8: (dispatch) => dispatch(keydown(8)),
       9: (dispatch) => dispatch(keydown(9)),
       0: (dispatch) => dispatch(zerodown()),
-    },
-    "keypress"
-  );
+    };
+  }, [holding]);
+  useHotkeys(hotkeyMap, "keypress");
+  return holding;
 };
 
 /** The gesture handler for numerical keys */
@@ -76,7 +87,9 @@ export const keydown =
     }
 
     // Create or update a pose at the current tick
-    dispatch(updatePoseAtCursorGesture(number));
+    if (some(["q", "w", "e", "r", "t", "y"].map(getHeldKey))) {
+      dispatch(updatePoseAtCursorGesture(number));
+    }
   };
 
 /** The gesture handler for zero keys */

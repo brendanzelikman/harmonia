@@ -10,8 +10,9 @@ import SamplePage from "features/Samples/Samples";
 
 export function HomePage() {
   const view = useRoute();
-  useProject();
+  const isLoaded = useProject();
   useWindow();
+  if (!isLoaded) return null;
   return (
     <div className="size-full relative">
       <Navbar />
@@ -31,4 +32,3 @@ const components = {
 } as const;
 
 export type View = keyof typeof components;
-export const views = Object.keys(components) as Array<View>;

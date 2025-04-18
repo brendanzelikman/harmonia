@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 import { useRoute } from "app/router";
 
-export const NavbarLink = ({ v }: { v: string }) => {
+export const NavbarLink = ({ v, l }: { v: string; l?: string }) => {
   const view = useRoute();
   return (
     <Link
       key={v}
-      to={`/${v}`}
+      to={l ?? `/${v}`}
       data-onplay={view === "playground"}
       data-isplay={v === "playground"}
       data-selected={view === v}

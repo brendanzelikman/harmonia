@@ -57,10 +57,10 @@ const descriptions = {
   "Digital Instrument": {
     items: [
       "Software for Playing Music",
-      "Open-Source Sample Library",
+      "Interactive Keyboard Gestures",
       "Customizable Audio Effects",
-      "Record Browser Playback",
-      "Live Mixing With Shortcuts",
+      "Open-Source Sample Library",
+      "Record Browser to WAV",
     ],
     icon: <GiMusicalKeyboard />,
   },

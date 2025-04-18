@@ -35,7 +35,7 @@ export const ProjectSearchBar = (props: ProjectSearchBarProps) => {
       name="project-search"
       type="text"
       className={classNames(
-        "min-w-56 h-10 px-4 rounded-lg shadow-xl focus:ring-sky-400/70 max-[820px]:hidden focus:outline-none focus:ring-2 text-slate-200 border-none focus:border-transparent transition-all",
+        "min-w-56 ml-auto h-10 px-4 rounded-lg shadow-xl focus:ring-sky-400/70 max-[820px]:hidden focus:outline-none focus:ring-2 text-slate-200 border-none focus:border-transparent transition-all",
         isOver
           ? "ring-2 ring-slate-200 bg-transparent"
           : isDragging

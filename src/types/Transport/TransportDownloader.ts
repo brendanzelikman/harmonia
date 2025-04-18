@@ -95,8 +95,16 @@ export const downloadTransport =
 
       // Schedule the offline transport
       const chordsByTick = selectMidiChordsByTicks(project);
+
+      // Keep track of the last tick to avoid duplicates
+      let lastTick = -1;
       offlineContext.transport.scheduleRepeat((time) => {
-        const tick = Math.round(offlineContext.transport.ticks - 1); // Starts from 1
+        let tick = Math.round(offlineContext.transport.ticks - 1); // Starts from 1
+
+        // Skip the tick if it's the same as the last one
+        if (tick === lastTick) tick = lastTick + 1;
+        lastTick = tick;
+
         // Dispatch the tick update
         dispatchDownloadTickEvent(tick);
 

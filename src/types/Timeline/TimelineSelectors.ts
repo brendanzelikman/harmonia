@@ -371,6 +371,18 @@ export const selectIsEditingTrack = (project: Project, id: TrackId) => {
   return isEditing && selectedId === id;
 };
 
+/** Select if gestures are enabled. */
+export const selectAreGesturesEnabled = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.state !== "editing-tracks"
+);
+
+/** Select if gestures are disabled. */
+export const selectAreGesturesDisabled = createSelector(
+  [selectTimeline],
+  (timeline) => timeline.state === "editing-tracks"
+);
+
 // ------------------------------------------------------------
 // Media Draft
 // ------------------------------------------------------------

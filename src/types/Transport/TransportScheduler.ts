@@ -1,7 +1,7 @@
 import { selectMidiChordsByTicks } from "types/Arrangement/ArrangementSelectors";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { playPatternChord } from "types/Pattern/PatternThunks";
-import { PPQ, SixteenthNoteTicks } from "utils/duration";
+import { EighthNoteTicks, PPQ } from "utils/duration";
 import { selectTransport } from "./TransportSelectors";
 import { dispatchTick } from "./TransportTick";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -48,7 +48,7 @@ export const scheduleTransport = (): Thunk => (_, getProject) => {
     dispatchTick(newTick);
 
     // If swinging, offset the time
-    const stepIndex = Math.floor(newTick / SixteenthNoteTicks);
+    const stepIndex = Math.floor(newTick / EighthNoteTicks);
     const isSwing = stepIndex % 2 === 1;
     if (swing && isSwing) {
       const swingOffset = (60 / bpm) * (swing / 8);

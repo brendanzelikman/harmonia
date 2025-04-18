@@ -4,7 +4,7 @@ import { useRoute } from "app/router";
 
 export function NavbarBrand() {
   const view = useRoute();
-  const route = view === "projects" ? "/" : "/projects";
+  const route = view === "playground" ? "/projects" : "/";
   return (
     <Link to={route} className="flex items-center text-white shrink-0">
       <img src={LogoImage} alt="Logo" className="size-10" />

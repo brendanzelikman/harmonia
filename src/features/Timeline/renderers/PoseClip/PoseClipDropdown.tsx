@@ -20,7 +20,7 @@ export const PoseClipDropdown = (props: PoseClipDropdownEffectProps) => {
         top: POSE_NOTCH_HEIGHT,
         height: cellHeight - POSE_NOTCH_HEIGHT + 1,
       }}
-      className={`z-20 animate-in h-full max-h-[7.5rem] fade-in ease-in p-1 rounded flex flex-1 gap-1 bg-slate-800 border-4 border-fuchsia-500 cursor-auto`}
+      className={`animate-in h-full max-h-[7.5rem] fade-in ease-in p-1 rounded flex flex-1 gap-1 bg-slate-800 border-4 border-fuchsia-500 cursor-auto`}
       onClick={cancelEvent}
       draggable
       onDragStart={cancelEvent}

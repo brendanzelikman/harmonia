@@ -1,4 +1,9 @@
-import { dispatchToggle, dispatchClose } from "hooks/useToggle";
+import {
+  dispatchToggle,
+  dispatchClose,
+  getToggleValue,
+  dispatchOpen,
+} from "hooks/useToggle";
 import { Hotkey } from ".";
 import { unselectClips } from "types/Timeline/thunks/TimelineClipThunks";
 import {
@@ -27,6 +32,16 @@ export const ToggleShortcutsHotkey: Hotkey = {
   name: "Toggle Shortcuts",
   shortcut: "\\",
   callback: () => dispatchToggle("shortcuts"),
+};
+
+export const ToggleKeyboardHotkey: Hotkey = {
+  name: "Toggle Keyboard",
+  shortcut: "meta+k",
+  callback: () => {
+    !!getToggleValue("keyboard")
+      ? dispatchClose("keyboard")
+      : dispatchOpen("keyboard");
+  },
 };
 
 export const CloseModalsHotkey: Hotkey = {
@@ -65,6 +80,7 @@ export const GlobalHotkeys = [
   ToggleDiaryHotkey,
   ToggleTerminalHotkey,
   ToggleShortcutsHotkey,
+  ToggleKeyboardHotkey,
   DecreaseSubdivisionHotkey,
   IncreaseSubdivisionHotkey,
   CloseModalsHotkey,

@@ -3,6 +3,7 @@
   "productName": "Harmonia",
   "private": true,
   "main": "dist/main.js",
+  "type": "module",
   "version": "1.0.0",
   "scripts": {
     "test": "vitest",

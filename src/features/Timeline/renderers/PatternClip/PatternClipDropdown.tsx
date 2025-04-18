@@ -8,12 +8,19 @@ import {
 import classNames from "classnames";
 import { clearPattern, randomizePattern } from "types/Pattern/PatternThunks";
 import {
+  EighthNoteTicks,
   getDurationImage,
   getDurationName,
   getDurationTicks,
   getStraightDuration,
   getTickDuration,
+  HalfNoteTicks,
+  QuarterNoteTicks,
+  SixteenthNoteTicks,
+  SixtyFourthNoteTicks,
   STRAIGHT_DURATION_TYPES,
+  ThirtySecondNoteTicks,
+  WholeNoteTicks,
 } from "utils/duration";
 import { PatternClipId, PortaledPatternClip } from "types/Clip/ClipTypes";
 import { usePatternClipScore } from "./usePatternClipScore";
@@ -21,7 +28,7 @@ import { createUndoType } from "types/redux";
 import { nanoid } from "@reduxjs/toolkit";
 import { Piano } from "components/Piano";
 import { selectTrackScale } from "types/Track/TrackSelectors";
-import { MouseEvent, useState } from "react";
+import { MouseEvent, useCallback, useState } from "react";
 import {
   GiAbacus,
   GiCrystalWand,
@@ -42,6 +49,7 @@ import {
   bindNoteWithPromptCallback,
   promptUserForPatternEffect,
 } from "lib/prompts/patternClip";
+import { useHotkeys } from "hooks/useHotkeys";
 
 export interface PatternClipDropdownProps {
   clip: PortaledPatternClip;
@@ -62,8 +70,9 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const [type, setType] = useState<string>("scale");
 
   // Get the score of the pattern clip
-  const clipScore = usePatternClipScore(clip);
-  const { Score, index, playNote, setDuration, duration, input } = clipScore;
+  const { Score, index, playNote, setDuration, duration, input, toggle } =
+    usePatternClipScore(clip);
+
   const labels = useAppValue((_) =>
     selectPatternNoteLabel(_, patternId, index)
   );
@@ -71,6 +80,30 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const isEmpty = !pattern.stream.length;
   const isBinding = type === "scale";
   const record = useToggle("record-pattern");
+
+  const deleteNote = useCallback(() => {
+    const data = { id: pattern.id, index: index ?? -1 };
+    if (!isEmpty) dispatch(removePatternBlock({ data }));
+  }, [pattern, index]);
+
+  const clearNotes = useCallback(() => {
+    if (!isEmpty) dispatch(clearPattern(pattern.id));
+  }, [pattern]);
+  useHotkeys(
+    {
+      "1": () => setDuration(WholeNoteTicks),
+      "2": () => setDuration(HalfNoteTicks),
+      "3": () => setDuration(QuarterNoteTicks),
+      "4": () => setDuration(EighthNoteTicks),
+      "5": () => setDuration(SixteenthNoteTicks),
+      "6": () => setDuration(ThirtySecondNoteTicks),
+      "7": () => setDuration(SixtyFourthNoteTicks),
+      c: toggle,
+      backspace: deleteNote,
+    },
+    "keydown",
+    "keyboard"
+  );
 
   return (
     <div
@@ -167,10 +200,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
               disabled={isEmpty}
               theme="red"
               dropdown={isEditing ? "Erase Selected Note" : "Erase Last Note"}
-              onClick={() => {
-                const data = { id: pattern.id, index: index ?? -1 };
-                if (!isEmpty) dispatch(removePatternBlock({ data }));
-              }}
+              onClick={deleteNote}
               icon={
                 isEditing ? (
                   <BsScissors className="text-2xl" />
@@ -184,7 +214,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
               disabled={isEmpty}
               theme="slate"
               dropdown="Clear Pattern"
-              onClick={() => !isEmpty && dispatch(clearPattern(pattern.id))}
+              onClick={clearNotes}
               icon={<GiTrashCan className="text-2xl" />}
             />
           </div>
@@ -384,7 +414,7 @@ const DropdownNoteButtons = (props: {
 };
 
 const DropdownDurationShortcuts = () => {
-  const holding = useHeldKeys(["shift", ",", "/", "."]);
+  const holding = useHeldKeys(["shift", ",", "/", "."], "all");
   return (
     <div className="flex flex-col gap-[2px] w-full text-slate-300">
       <div className="flex gap-2">

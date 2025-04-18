@@ -34,12 +34,12 @@ export default function Editor() {
   const [isPlaying, setIsPlaying] = useState(false);
   const startPlaying = useCallback(() => setIsPlaying(true), []);
   const stopPlaying = useCallback(() => setIsPlaying(false), []);
-  if (!isEditing || !track || !id) return null;
+  if (!isEditing || !track || !id || !key) return null;
 
   return (
     <EditorContainer>
       <EditorBody>
-        <InstrumentEditorSidebar id={id} />
+        <InstrumentEditorSidebar id={id} instrumentKey={key} />
         <EditorContent>
           <EditorTitle>{getInstrumentName(key)}</EditorTitle>
           <EditorTitleUnderline className="bg-gradient-to-tr from-orange-400 to-orange-500" />

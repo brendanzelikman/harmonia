@@ -1,6 +1,5 @@
 import { uploadProject, deleteProjects } from "app/projects";
 import classNames from "classnames";
-import dayjs from "dayjs";
 import {
   HomeControlBar,
   HomeControlButton,
@@ -31,18 +30,14 @@ export const ProjectsControl = (props: {
   const [deleting, setDeleting] = useState(false);
   return (
     <HomeControlBar>
-      <div className="max-[1300px]:hidden flex flex-col order-12 ml-auto *:ml-auto whitespace-nowrap text-slate-400">
-        <span>{dayjs().format("MMMM D, YYYY")}</span>
-        <span>{dayjs().format("h:mm:ss a")}</span>
-      </div>
       <HomeControlButton
-        className="border-indigo-400 text-indigo-400"
+        className="border-sky-400 text-sky-400"
         title="Open Project"
         icon={<GiRetroController />}
         onClick={() => navigate("/playground")}
       />
       <HomeControlButton
-        className="border-sky-400 text-sky-400"
+        className="border-indigo-300 text-indigo-300"
         title="Create New Project"
         icon={<GiCompactDisc style={{ rotate: "50deg" }} />}
         onClick={() => uploadProject()}

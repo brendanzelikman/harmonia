@@ -47,7 +47,7 @@ export const CreateDrumTracksHotkey: Hotkey = {
 export const CreateRandomTracksHotkey: Hotkey = {
   name: "Create Random Tree",
   description: "Create Random Tree",
-  shortcut: "alt+n",
+  shortcut: "alt+i",
   callback: (dispatch) => dispatch(createRandomHierarchy()),
 };
 

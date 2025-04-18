@@ -26,6 +26,7 @@ The full list of samples is available below:
 
 ## Keyboards
 
+- Akai AX80 - (#279909, Freesound)
 - Bored Of Canada - (#301219, Freesound)
 - Caveman Bass (16) - (Caveman Cosmonaut, Kararoyfer)
 - Caveman Bass (8) - (Caveman Cosmonaut, Kararoyfer)
@@ -41,8 +42,8 @@ The full list of samples is available below:
 - Roger Piano - (#304972, Freesound)
 - Sly Piano - (#314498, Freesound)
 - Upright Piano - (Keys, VSCO-2-CE)
-- Upright Piano (Loud) - (Keys, VSCO-2-CE)
-- Upright Piano (Soft) - (Keys, VSCO-2-CE)
+- Loud Piano - (Keys, VSCO-2-CE)
+- Soft Piano - (Keys, VSCO-2-CE)
 - Whoopie Bass - (#315618, Freesound)
 
 ## Strings
@@ -341,6 +342,30 @@ The full list of samples is available below:
 - Ride Cymbal + Bell (Trvth) - (#488467, Freesound)
 - Snare Drum (Trvth) - (#488466, Freesound)
 
+## 909 Drumkit
+
+- 909 Clap - (#3718, Freesound)
+- 909 Hat - (#3721, Freesound)
+- 909 Hat 2 - (#3722, Freesound)
+- 909 Hat Open - (#3719, Freesound)
+- 909 Hat Open 2 - (#3720, Freesound)
+- 909 Kick - (#3724, Freesound)
+- 909 Kick 2 - (#3725, Freesound)
+- 909 Kick 3 - (#3726, Freesound)
+- 909 Long Kick - (#3723, Freesound)
+- 909 Snare - (#3727, Freesound)
+- 909 Snare 2 - (#3728, Freesound)
+
+## Hyperflip Kicks
+
+- Best Kick - (#798867, Freesound)
+- DM Kick - (#798858, Freesound)
+- Do Shonci Kick - (#798861, Freesound)
+- JC Kick - (#798859, Freesound)
+- Main Kick - (#798869, Freesound)
+- Unico Kick - (#798864, Freesound)
+- Xaev Kick - (#798866, Freesound)
+
 ## Amen Breaks
 
 - Amen Break 1 (140 BPM) - (#202537, Freesound)
@@ -348,6 +373,17 @@ The full list of samples is available below:
 - Amen Break 3 (160 BPM) - (#283869, Freesound)
 - Amen Break 4 (165 BPM) - (#321221, Freesound)
 - Amen Break 5 (200 BPM) - (#263871, Freesound)
+
+## Duggi Loops
+
+- Duggi 1 - (#738140, Freesound)
+- Duggi 2 - (#738141, Freesound)
+- Duggi 3 - (#738142, Freesound)
+- Duggi 4 - (#738143, Freesound)
+- Duggi 5 - (#738144, Freesound)
+- Duggi 6 - (#738145, Freesound)
+- Duggi 7 - (#738146, Freesound)
+- Duggi 8 - (#738147, Freesound)
 
 ## Animal Sounds
 
@@ -398,3 +434,16 @@ The full list of samples is available below:
 - Turn Up The Bass - (272 Merry Orks, Kararoyfer)
 - Ugh - (272 Merry Orks, Kararoyfer)
 - Yeah - (272 Merry Orks, Kararoyfer)
+
+## EDM Drums
+
+- Garage (126 BPM) - (#23560, Freesound)
+- Hardcore (188 BPM) - (#23562, Freesound)
+- EDM (120 BPM) - (#381353, Freesound)
+
+## Hip Hop Drums
+
+- Hip Funk 3 - (#23564, Freesound)
+  Hip Funk 4 - (#23565, Freesound)
+- Hip Funk 5 - (#23566, Freesound)
+- Lacelle Drums - (#40849, Freesound)

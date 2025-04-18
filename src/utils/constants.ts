@@ -2,6 +2,7 @@
 // Browser - Storage
 // ------------------------------------------------------------
 
+export const DONATE_LINK = "https://donate.stripe.com/9AQ16sc2v5Gf3raaEE";
 export const PROJECT_ID = "projectId";
 export const IDB_NAME = "harmonia-idb";
 export const PROJECT_STORE = "projects";

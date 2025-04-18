@@ -6,15 +6,34 @@ import {
 import { BsChevronDown, BsChevronUp } from "react-icons/bs";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
+  GiBagpipes,
+  GiBassoon,
   GiCat,
+  GiCaveman,
   GiClarinet,
   GiDrum,
-  GiGuitar,
+  GiDrumKit,
+  GiFlute,
+  GiGuitarBassHead,
+  GiGuitarHead,
+  GiHarp,
+  GiMetalBar,
+  GiMusicalKeyboard,
+  GiMusicalNotes,
   GiPianoKeys,
+  GiPig,
+  GiPipeOrgan,
+  GiRingingBell,
+  GiSaxophone,
   GiSing,
+  GiSoundOn,
   GiSoundWaves,
+  GiTriangleTarget,
+  GiTrombone,
   GiTrumpet,
+  GiTuba,
   GiViolin,
+  GiWoodBeam,
   GiXylophone,
 } from "react-icons/gi";
 import {
@@ -28,36 +47,40 @@ import {
 } from "types/Instrument/InstrumentFunctions";
 import {
   INSTRUMENT_CATEGORIES,
-  MELODIC_CATEGORIES,
-  PERCUSSIVE_CATEGORIES,
   InstrumentId,
   INSTRUMENT_CATEGORIES_BY_KEY,
   InstrumentCategory,
   CategorizedInstrument,
+  InstrumentCategoryType,
+  instrumentCategoryTypeMap,
+  instrumentCategories,
+  InstrumentKey,
+  INSTRUMENT_CATEGORY_TYPES_BY_KEY,
 } from "types/Instrument/InstrumentTypes";
-import { useAppValue, useAppDispatch } from "hooks/useRedux";
-import { selectSelectedTrackId } from "types/Timeline/TimelineSelectors";
-import { selectInstrumentKey } from "types/Instrument/InstrumentSelectors";
+import { useAppDispatch } from "hooks/useRedux";
 import { updateInstrument } from "types/Instrument/InstrumentSlice";
 import { getSampleKeys } from "app/samples";
 
-type InstrumentEditorSidebarProps = { id: InstrumentId };
+type InstrumentEditorSidebarProps = {
+  id: InstrumentId;
+  instrumentKey: InstrumentKey;
+};
 
 export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
-  const { id } = props;
+  const { id, instrumentKey } = props;
   const dispatch = useAppDispatch();
-  const trackId = useAppValue(selectSelectedTrackId);
-  const key = useAppValue((_) => selectInstrumentKey(_, props.id));
-  const category = key ? INSTRUMENT_CATEGORIES_BY_KEY[key] : undefined;
+  const category = INSTRUMENT_CATEGORIES_BY_KEY[instrumentKey];
+  const categoryType = INSTRUMENT_CATEGORY_TYPES_BY_KEY[instrumentKey];
 
   // The categories can be filtered
-  const [filter, setFilter] = useState<"melodic" | "percussive" | undefined>();
+  const [filter, setFilter] = useState<InstrumentCategoryType>(categoryType);
   const _categories = useMemo(() => {
     if (!filter) return INSTRUMENT_CATEGORIES;
-    return filter === "melodic" ? MELODIC_CATEGORIES : PERCUSSIVE_CATEGORIES;
+    return instrumentCategoryTypeMap[filter];
   }, [filter]);
+
   const categories: InstrumentCategory[] = useMemo(() => {
-    return [..._categories, "Samples"];
+    return [..._categories];
   }, [_categories]);
 
   const [samples, setSamples] = useState<CategorizedInstrument[]>([]);
@@ -74,7 +97,7 @@ export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
     (i: CategorizedInstrument) => (
       <div
         key={i.key}
-        data-selected={key === i.key}
+        data-selected={instrumentKey === i.key}
         className="select-none border-l border-l-slate-500/80 text-slate-400 hover:border-l-slate300 data-[selected=true]:border-l-orange-500 data-[selected=true]:text-orange-500 data-[selected=true]:font-semibold mx-2 p-2 font-light cursor-pointer"
         onClick={() =>
           dispatch(updateInstrument({ data: { id, update: { key: i.key } } }))
@@ -83,7 +106,7 @@ export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
         {i.name}
       </div>
     ),
-    [key, trackId]
+    [instrumentKey]
   );
 
   const renderCategory = useCallback(
@@ -98,7 +121,7 @@ export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
                   data-selected={category === c}
                   className="capitalize px-2 py-2.5 gap-4 flex items-center select-none text-slate-50 data-[selected=true]:text-orange-400"
                 >
-                  {IconMap[c] ?? <GiDrum />}
+                  {IconMap[c] ?? IconMap[filter] ?? <GiDrum />}
                   {c}
                 </div>
                 {open ? (
@@ -115,35 +138,24 @@ export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
         </Disclosure>
       );
     },
-    [category, samples, renderInstrument]
+    [category, samples, filter, renderInstrument]
   );
 
   return (
     <EditorSidebar>
       <EditorSidebarHeader>Instruments</EditorSidebarHeader>
       <EditorSidebarList>
-        <div className="flex total-center *:min-w-12 w-full gap-2">
-          <button
-            data-active={filter === undefined}
-            className="p-2 py-1 border active:bg-orange-100/10 rounded-lg mb-2 border-slate-400 data-[active=true]:border-orange-400"
-            onClick={() => setFilter(undefined)}
-          >
-            All
-          </button>
-          <button
-            data-active={filter === "melodic"}
-            className="p-2 py-1 border active:bg-orange-100/10 rounded-lg mb-2 border-slate-400 data-[active=true]:border-orange-400"
-            onClick={() => setFilter("melodic")}
-          >
-            Melodic
-          </button>
-          <button
-            data-active={filter === "percussive"}
-            className="p-2 py-1 border active:bg-orange-100/10 rounded-lg mb-2 border-slate-400 data-[active=true]:border-orange-400"
-            onClick={() => setFilter("percussive")}
-          >
-            Percussive
-          </button>
+        <div className="flex *:min-w-12 mb-2 flex-wrap max-w-72 w-full gap-2">
+          {instrumentCategories.map((category) => (
+            <button
+              key={category}
+              data-active={filter === category}
+              className="p-2 h-8 capitalize cursor-pointer py-1 border active:bg-orange-100/10 rounded-lg border-slate-400 data-[active=true]:border-orange-400"
+              onClick={() => setFilter(category)}
+            >
+              {category}
+            </button>
+          ))}
         </div>
         {categories.map(renderCategory)}
       </EditorSidebarList>
@@ -151,14 +163,45 @@ export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
   );
 }
 
-const IconMap: Record<string, ReactNode> = {
-  Keyboards: <GiPianoKeys />,
-  Guitars: <GiGuitar />,
-  Strings: <GiViolin />,
-  Woodwinds: <GiClarinet />,
-  Brass: <GiTrumpet />,
-  Mallets: <GiXylophone />,
+const IconMap: {
+  [key in InstrumentCategoryType | InstrumentCategory]?: ReactNode;
+} = {
+  keyboards: <GiPianoKeys />,
+  strings: <GiViolin />,
+  woodwinds: <GiClarinet />,
+  brass: <GiTrumpet />,
+  mallets: <GiXylophone />,
+  percussion: <GiDrum />,
+  drumkits: <GiDrum />,
+  loops: <GiDrumKit />,
+  sounds: <GiSoundWaves />,
+  // Keyboards
+  "Electric Piano": <GiMusicalKeyboard />,
+  Organ: <GiPipeOrgan />,
+  "Caveman Synths": <GiCaveman />,
+  // Strings
+  Violin: <GiViolin />,
+  Harp: <GiHarp />,
+  Tuba: <GiTuba />,
+  Guitar: <GiGuitarHead />,
+  "Bass Guitar": <GiGuitarBassHead />,
+  // Woodwinds
+  Piccolo: <GiFlute />,
+  Flute: <GiFlute />,
+  Clarinet: <GiClarinet />,
+  Bassoon: <GiBassoon />,
+  // Brass
+  Trombone: <GiTrombone />,
+  Bagpipes: <GiBagpipes />,
+  Trumpet: <GiTrumpet />,
+  Saxophone: <GiSaxophone />,
+  // Mallets
+  Triangle: <GiTriangleTarget />,
+  Bells: <GiRingingBell />,
+  Wood: <GiWoodBeam />,
+  Metal: <GiMetalBar />,
+  // Sounds
   "Death Metal Vocals": <GiSing />,
-  "Animal Sounds": <GiCat />,
-  Samples: <GiSoundWaves />,
+  "Animal Sounds": <GiPig />,
+  "Sound Effects": <GiMusicalNotes />,
 };

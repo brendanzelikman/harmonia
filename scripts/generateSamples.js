@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import _ from "lodash";
 
-const sampleDir = "src/assets/samples";
+const sampleDir = "public/samples";
 const categoryFolders = fs.readdirSync(sampleDir);
 
 const result = {};

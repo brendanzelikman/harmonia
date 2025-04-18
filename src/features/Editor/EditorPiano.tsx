@@ -3,7 +3,8 @@ import { Sampler } from "tone";
 import { getMidiPitch } from "utils/midi";
 import { InstrumentId } from "types/Instrument/InstrumentTypes";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { useHotkeys } from "hooks/useHotkeys";
 
 interface InstrumentEditorPianoProps {
   id: InstrumentId;
@@ -55,6 +56,7 @@ export const InstrumentEditorPiano = (props: InstrumentEditorPianoProps) => {
     <Piano
       {...props}
       show
+      overrideHotkeys
       className="h-48"
       sampler={instance?.sampler}
       playNote={playNote}

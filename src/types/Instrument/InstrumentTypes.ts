@@ -97,29 +97,96 @@ export const INSTRUMENT_CATEGORIES = Object.keys(categories).slice(
   -1
 ) as InstrumentCategory[];
 
-export const MELODIC_CATEGORIES: InstrumentCategory[] = [
-  "Keyboards",
-  "Guitars",
-  "Strings",
-  "Woodwinds",
-  "Brass",
-  "Mallets",
-  "Death Metal Vocals",
-  "Animal Sounds",
-  "Miscellaneous Sounds",
+export const KEYBOARD_CATEGORIES: InstrumentCategory[] = [
+  "Grand Piano",
+  "Electric Piano",
+  "Organ",
+  "Caveman Synths",
 ];
 
-export const PERCUSSIVE_CATEGORIES: InstrumentCategory[] = [
-  "Kick Drums",
-  "Snare Drums",
-  "Tenor Drums",
-  "Cymbals",
-  "Bells",
-  "Wood Percussion",
-  "Metal Percussion",
-  "Trvth Drumkit",
-  "Amen Breaks",
+export const STRING_CATEGORIES: InstrumentCategory[] = [
+  "Violin",
+  "Viola",
+  "Cello",
+  "Double Bass",
+  "Harp",
+  "Guitar",
+  "Bass Guitar",
 ];
+
+export const WOODWIND_CATEGORIES: InstrumentCategory[] = [
+  "Piccolo",
+  "Flute",
+  "Oboe",
+  "Clarinet",
+  "Bassoon",
+];
+
+export const BRASS_CATEGORIES: InstrumentCategory[] = [
+  "Trumpet",
+  "Horn",
+  "Saxophone",
+  "Trombone",
+  "Tuba",
+  "Bagpipes",
+];
+
+export const MALLET_CATEGORIES: InstrumentCategory[] = [
+  "Xylophone",
+  "Marimba",
+  "Glockenspiel",
+  "Bells",
+  "Triangle",
+  "Wood",
+  "Metal",
+];
+
+export const PERCUSSION_CATEGORIES: InstrumentCategory[] = [
+  "Bass Drum",
+  "Tenor Drum",
+  "Snare Drum",
+  "Timpani",
+  "Cymbals",
+];
+
+export const DRUM_CATEGORIES: InstrumentCategory[] = [
+  "Kicks",
+  "Hyperkicks",
+  "Trvth Drumkit",
+  "909 Drumkit",
+];
+
+export const LOOP_CATEGORIES: InstrumentCategory[] = [
+  "Amen Breaks",
+  "Duggi Loops",
+  "Hip Hop Drums",
+  "EDM Drums",
+];
+
+export const SOUND_CATEGORIES: InstrumentCategory[] = [
+  "Death Metal Vocals",
+  "Animal Sounds",
+  "Sound Effects",
+  "Samples",
+];
+
+export const instrumentCategoryTypeMap = {
+  keyboards: KEYBOARD_CATEGORIES,
+  strings: STRING_CATEGORIES,
+  woodwinds: WOODWIND_CATEGORIES,
+  brass: BRASS_CATEGORIES,
+  mallets: MALLET_CATEGORIES,
+  percussion: PERCUSSION_CATEGORIES,
+  drumkits: DRUM_CATEGORIES,
+  loops: LOOP_CATEGORIES,
+  sounds: SOUND_CATEGORIES,
+} as const;
+
+export const instrumentCategories = Object.keys(
+  instrumentCategoryTypeMap
+) as InstrumentCategoryType[];
+
+export type InstrumentCategoryType = keyof typeof instrumentCategoryTypeMap;
 
 /** The global list of instrument names (e.g. "Acoustic Grand Piano"). */
 export const INSTRUMENT_NAMES = Object.values(categories).reduce((acc, cur) => {
@@ -136,6 +203,18 @@ export const INSTRUMENT_NAMES_BY_KEY = INSTRUMENT_KEYS.reduce(
 export const INSTRUMENT_CATEGORIES_BY_KEY = INSTRUMENT_KEYS.reduce(
   (acc, cur) => ({ ...acc, [cur]: getInstrumentCategory(cur) }),
   {} as Record<InstrumentKey, InstrumentCategory>
+);
+
+/** The global record of instrument keys to category types */
+export const INSTRUMENT_CATEGORY_TYPES_BY_KEY = INSTRUMENT_KEYS.reduce(
+  (acc, cur) => {
+    const category = INSTRUMENT_CATEGORIES_BY_KEY[cur];
+    const type = instrumentCategories.find((_) =>
+      instrumentCategoryTypeMap[_].includes(category)
+    );
+    return { ...acc, [cur]: type };
+  },
+  {} as Record<InstrumentKey, InstrumentCategoryType>
 );
 
 export const defaultInstrumentState: InstrumentState = {

@@ -4,7 +4,7 @@ import { PlaygroundLoadingScreen } from "./PlaygroundLoadingScreen";
 import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { useHotkeys } from "hooks/useHotkeys";
-import { hotkeys } from "lib/hotkeys";
+import { playgroundHotkeys } from "lib/hotkeys";
 import Diary from "features/Diary/Diary";
 import Editor from "features/Editor/Editor";
 import Shortcuts from "features/Shortcuts/Shortcuts";
@@ -19,7 +19,7 @@ export default function PlaygroundPage() {
   const hasTracks = useAppValue(selectHasTracks);
   const isTransportLoaded = usePlaygroundTransport();
   dispatchCustomEventOnChange(LOAD_PLAYGROUND, isTransportLoaded);
-  useHotkeys(hotkeys);
+  useHotkeys(playgroundHotkeys);
 
   // Show loading screen while transport is loading
   if (!isTransportLoaded) {

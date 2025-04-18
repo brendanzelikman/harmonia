@@ -2,7 +2,6 @@ import { useEvent } from "hooks/useEvent";
 import { useState } from "react";
 import { useRoute } from "app/router";
 import { NavbarBrand } from "features/Navbar/components/NavbarBrand";
-import { views } from "features/Home/Home";
 import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { NavbarGroup } from "./components/NavbarGroup";
@@ -20,6 +19,7 @@ import { NavbarTransportControl } from "./NavbarTransportControl";
 import { NavbarVolume } from "./NavbarVolume";
 import { NavbarLink } from "./components/NavbarLink";
 import { LOAD_PLAYGROUND } from "features/Playground/Playground";
+import { DONATE_LINK } from "utils/constants";
 
 export function Navbar() {
   const view = useRoute();
@@ -36,9 +36,11 @@ export function Navbar() {
       <NavbarBrand />
       {!didPlaygroundLoad ? (
         <div className="w-full flex gap-4 *:pr-4 *:border-r last:*:border-r-0 *:border-r-slate-600 text-slate-500 justify-end pr-2">
-          {views.map((v) => (
-            <NavbarLink v={v} key={v} />
-          ))}
+          <NavbarLink v="projects" />
+          <NavbarLink v="demos" />
+          <NavbarLink v="samples" />
+          <NavbarLink l={DONATE_LINK} v="donate" />
+          <NavbarLink v="playground" />
         </div>
       ) : (
         <div className="size-full select-none flex animate-in fade-in slide-in-from-top-4 text-slate-50 *:border-r first:border-r-0 last:border-r-0 *:border-r-slate-500/50">

@@ -2,39 +2,14 @@ import fs from "fs";
 import _ from "lodash";
 import path from "path";
 
-const sampleDir = "src/assets/samples";
+const sampleDir = "public/samples";
 const categoryFolders = fs.readdirSync(sampleDir);
 
 // Get the list of categories
 const result = {};
-const orderedCategories = [
-  "Keyboards",
-  "Strings",
-  "Guitars",
-  "Basses",
-  "Brass",
-  "Woodwinds",
-  "Mallets",
-  "Bells",
-  "Kick Drums",
-  "Snare Drums",
-  "Tenor Drums",
-  "Cymbals",
-  "Wood Percussion",
-  "Metal Percussion",
-  "Trvth Drumkit",
-  "Amen Breaks",
-  "Animal Sounds",
-  "Miscellaneous Sounds",
-  "Death Metal Vocals",
-];
-
-const orderedCategoryFolders = _.sortBy(categoryFolders, (category) => {
-  return orderedCategories.indexOf(category);
-});
 
 // Iterate over every category folder
-orderedCategoryFolders.forEach((category) => {
+categoryFolders.forEach((category) => {
   if (category === ".DS_Store" || category.endsWith(".md")) return;
 
   // Get the list of instruments in the category
@@ -55,6 +30,9 @@ orderedCategoryFolders.forEach((category) => {
   // Add the category to the result
   result[category] = mappings;
 });
+
+// Add a field for custom samples
+result["Samples"] = [];
 
 // Write the result to a file
 const samplePath = "src/assets/instruments/categories.json";

@@ -11,6 +11,7 @@ import { selectPatternTracks } from "types/Track/TrackSelectors";
 import { PPQ } from "utils/duration";
 import { selectTransport } from "./TransportSelectors";
 import { stopTransport } from "./TransportState";
+import { stopDownloadingTransport } from "./TransportDownloader";
 
 // --------------------------------------------------------------
 // Events
@@ -68,4 +69,5 @@ export const loadTransport = (): Thunk => async (dispatch, getProject) => {
 export const unloadTransport = () => {
   stopTransport();
   destroyInstruments();
+  stopDownloadingTransport();
 };
