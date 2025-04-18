@@ -1,4 +1,4 @@
-import { ChromaticPitchClass } from "assets/keys";
+import { ChromaticPitchClass } from "lib/presets/keys";
 import { promptLineBreak } from "components/PromptModal";
 import { selectPoseClipById } from "types/Clip/ClipSelectors";
 import { Thunk } from "types/Project/ProjectTypes";

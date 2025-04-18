@@ -2,7 +2,7 @@ import { VoiceLeading } from "types/Pose/PoseTypes";
 import { dist } from "utils/array";
 import { getRotatedScale } from "types/Scale/ScaleTransformers";
 import { getMidiPitchClass, MidiValue } from "utils/midi";
-import { ChromaticPitchClass } from "assets/keys";
+import { ChromaticPitchClass } from "lib/presets/keys";
 import {
   createMajorNotes,
   createMinorNotes,

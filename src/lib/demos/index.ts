@@ -1,4 +1,5 @@
 import { BaseProject } from "app/reducer";
+import Sentence from "lib/demos/sentence.json";
 import Moonlight from "lib/demos/moonlight.json";
 import Prelude from "lib/demos/prelude.json";
 import Scherzo from "lib/demos/scherzo.json";
@@ -22,6 +23,11 @@ const MoonlightDemo: DemoProject = {
 const PreludeDemo: DemoProject = {
   project: Prelude as unknown as BaseProject,
   blurb: "A short piece imitating Chopin's Prelude in C major.",
+};
+
+const SentenceDemo: DemoProject = {
+  project: Sentence as unknown as BaseProject,
+  blurb: "A musical sentence (short, short, long).",
 };
 
 const ScherzoDemo: DemoProject = {
@@ -59,24 +65,12 @@ const HyperDemo: DemoProject = {
   blurb: "An aggressive breakcore project.",
 };
 
-export const DEMO_PROJECTS: DemoProject[] = [
-  MoonlightDemo,
-  PreludeDemo,
-  ScherzoDemo,
-  WaltzDemo,
-  BarryDemo,
-  WavesDemo,
-  SheepDemo,
-  ExaltedDemo,
-  HyperDemo,
-];
-
 // Demo projects are organized by genre
 export const DEMO_GENRES = [
   {
     key: "Classical",
     color: "border-sky-400 text-sky-400",
-    demos: [MoonlightDemo, ScherzoDemo],
+    demos: [SentenceDemo, ScherzoDemo, MoonlightDemo],
   },
   {
     key: "Romantic",
@@ -99,3 +93,7 @@ export const DEMO_GENRES = [
     demos: [HyperDemo],
   },
 ] as const;
+
+export const DEMO_PROJECTS: DemoProject[] = DEMO_GENRES.flatMap(
+  (genre) => genre.demos
+);

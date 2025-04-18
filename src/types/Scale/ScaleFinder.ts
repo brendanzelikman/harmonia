@@ -1,4 +1,4 @@
-import { ChromaticKey } from "assets/keys";
+import { ChromaticKey } from "lib/presets/keys";
 import { Key } from "types/units";
 import { MidiNote, MidiScale } from "../../utils/midi";
 import { chromaticNotes, Scale, ScaleNote } from "types/Scale/ScaleTypes";
@@ -11,11 +11,11 @@ import {
   isPatternMidiChord,
   PatternMidiNote,
 } from "types/Pattern/PatternTypes";
-import { SCALE_KEYSETS } from "assets/keys/Keysets";
+import { SCALE_KEYSETS } from "lib/presets/keys/Keysets";
 import { getMidiDegree } from "../../utils/midi";
-import { majorKeys } from "assets/keys/MajorKeys";
-import { minorKeys } from "assets/keys/MinorKeys";
-import { PresetScaleGroupList, PresetScaleGroupMap } from "assets/scales";
+import { majorKeys } from "lib/presets/keys/MajorKeys";
+import { minorKeys } from "lib/presets/keys/MinorKeys";
+import { PresetScaleGroupList, PresetScaleGroupMap } from "lib/presets/scales";
 import { areScalesRelated } from "types/Scale/ScaleUtils";
 import { PatternChords } from "types/Pattern/PatternUtils";
 import { CHORDAL_KEY } from "utils/constants";

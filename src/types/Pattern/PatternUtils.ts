@@ -15,7 +15,7 @@ import {
   isPatternStrummedChord,
   isPatternStrummedMidiChord,
 } from "./PatternTypes";
-import { Chords } from "assets/patterns";
+import { Chords } from "lib/presets/patterns";
 import { initializeScale } from "types/Scale/ScaleTypes";
 import { STAFF_PIVOT } from "utils/xml";
 import { isNumber } from "types/utils";

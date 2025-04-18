@@ -1,5 +1,5 @@
 import { EntityState } from "@reduxjs/toolkit";
-import { ChromaticPitchClass } from "assets/keys";
+import { ChromaticPitchClass } from "lib/presets/keys";
 import { TrackId } from "types/Track/TrackTypes";
 import { Id } from "types/units";
 import { createId, isObject, isString } from "types/utils";

@@ -4,7 +4,7 @@ import { updatePose } from "types/Pose/PoseSlice";
 import { PoseVectorId, PoseBlock, isVoiceLeading } from "types/Pose/PoseTypes";
 import { useEffect, useMemo, useState } from "react";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
-import { ChromaticKey } from "assets/keys";
+import { ChromaticKey } from "lib/presets/keys";
 import { getTrackLabel, getTrackDepth } from "types/Track/TrackFunctions";
 import {
   selectTrackMap,

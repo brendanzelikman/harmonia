@@ -4,7 +4,7 @@ import { Frequency, Sampler } from "tone";
 import { EighthNoteTicks } from "utils/duration";
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { range, sample } from "lodash";
-import { PresetScaleList } from "assets/scales";
+import { PresetScaleList } from "lib/presets/scales";
 import { Thunk } from "types/Project/ProjectTypes";
 import { ScaleVector } from "types/Scale/ScaleTypes";
 import { getPatternBlockDuration } from "./PatternFunctions";

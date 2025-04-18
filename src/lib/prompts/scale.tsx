@@ -1,5 +1,5 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { PresetScaleNotes } from "assets/scales";
+import { PresetScaleNotes } from "lib/presets/scales";
 import { promptLineBreak } from "components/PromptModal";
 import { PatternScaleNotes } from "types/Pattern/PatternUtils";
 import { Thunk } from "types/Project/ProjectTypes";

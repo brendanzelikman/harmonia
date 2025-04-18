@@ -15,7 +15,7 @@ import {
   ScaleObject,
 } from "./ScaleTypes";
 import { resolveScaleToMidi, resolveScaleChainToMidi } from "./ScaleResolvers";
-import { ChromaticKey } from "assets/keys";
+import { ChromaticKey } from "lib/presets/keys";
 import { getVectorMidiOffset } from "utils/vector";
 import { isNumber } from "types/utils";
 

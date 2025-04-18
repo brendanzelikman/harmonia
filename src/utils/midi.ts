@@ -1,4 +1,4 @@
-import { ChromaticKey } from "assets/keys";
+import { ChromaticKey } from "lib/presets/keys";
 import { Key, PitchClass } from "types/units";
 import { PITCH_CLASSES } from "./pitch";
 import { mod } from "./math";

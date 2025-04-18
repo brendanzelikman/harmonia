@@ -1,5 +1,5 @@
 import { nanoid } from "@reduxjs/toolkit";
-import { getPresetPatternByString } from "assets/patterns";
+import { getPresetPatternByString } from "lib/presets/patterns";
 import { promptLineBreak } from "components/PromptModal";
 import {
   createUndoType,

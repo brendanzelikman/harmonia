@@ -13,7 +13,10 @@ import {
   PatternMidiStream,
 } from "./PatternTypes";
 import { mod } from "utils/math";
-import { PresetPatternGroupList, PresetPatternGroupMap } from "assets/patterns";
+import {
+  PresetPatternGroupList,
+  PresetPatternGroupMap,
+} from "lib/presets/patterns";
 import { getPatternChordNotes, getPatternMidiChordNotes } from "./PatternUtils";
 import { maxBy } from "lodash";
 import { getTickDuration, isTripletDuration } from "utils/duration";

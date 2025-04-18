@@ -1,7 +1,7 @@
 import { weightedSample } from "utils/math";
 import { addScale } from "types/Scale/ScaleSlice";
 import { capitalize, isEqual, sample, trim } from "lodash";
-import { PresetScaleList, PresetScaleNotes } from "assets/scales";
+import { PresetScaleList, PresetScaleNotes } from "lib/presets/scales";
 import { Thunk } from "types/Project/ProjectTypes";
 import { getScaleNoteDegree, getScaleNotes } from "types/Scale/ScaleFunctions";
 import {
@@ -46,7 +46,7 @@ import {
   MidiScale,
 } from "utils/midi";
 import { isPitchClass, unpackScaleName } from "utils/pitch";
-import { MajorScale, MinorScale } from "assets/scales/BasicScales";
+import { MajorScale, MinorScale } from "lib/presets/scales/BasicScales";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
 
 /** Create a `ScaleTrack` with an optional initial track. */

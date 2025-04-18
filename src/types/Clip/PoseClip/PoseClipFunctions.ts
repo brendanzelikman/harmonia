@@ -8,7 +8,7 @@ import {
   isPatternMidiStream,
   PatternMidiStream,
 } from "types/Pattern/PatternTypes";
-import { ChromaticKey } from "assets/keys";
+import { ChromaticKey } from "lib/presets/keys";
 import {
   getMidiStreamIntrinsicScale,
   getPatternMidiChordNotes,

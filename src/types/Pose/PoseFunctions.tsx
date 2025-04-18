@@ -2,7 +2,7 @@ import * as _ from "./PoseTypes";
 import { ScaleVector } from "types/Scale/ScaleTypes";
 import { getTrackLabel } from "types/Track/TrackFunctions";
 import { TrackMap, isScaleTrack, isTrackId } from "types/Track/TrackTypes";
-import { ChromaticKey, ChromaticPitchClass } from "assets/keys";
+import { ChromaticKey, ChromaticPitchClass } from "lib/presets/keys";
 import { isPitchClass } from "utils/pitch";
 import { getVectorNonzeroKeys, getVectorKeys } from "utils/vector";
 import {
