@@ -108,16 +108,25 @@ export const TimelineContextMenu = memo(() => {
         className="flex cursor-pointer hover:bg-slate-600/20"
         onClick={() => {
           const isValid = durationValue || duration === "0";
+          const ticks = timeSignature * QuarterNoteTicks * durationValue;
           const newClips = clips.map((clip) => ({
             ...clip,
-            duration: isValid
-              ? timeSignature * QuarterNoteTicks * durationValue
-              : undefined,
+            duration: isValid ? ticks : undefined,
           }));
           dispatch(updateMedia({ data: { clips: newClips } }));
         }}
       >
         Click to Set Duration
+      </div>
+      <div
+        className="flex cursor-pointer hover:bg-slate-600/20"
+        onClick={() => {
+          const isValid = durationValue || duration === "0";
+          const ticks = timeSignature * QuarterNoteTicks * durationValue;
+          if (isValid) dispatch(insertMeasure(ticks));
+        }}
+      >
+        Click to Insert Duration
       </div>
       <div
         className="flex rounded p-1 w-40 flex-wrap gap-2 items-center"

@@ -49,6 +49,7 @@ import {
 } from "types/Media/MediaTypes";
 import { Pose } from "types/Pose/PoseTypes";
 import { getTransport } from "tone";
+import { readTick } from "types/Transport/TransportTick";
 
 /** Select the timeline from the store. */
 export const selectTimeline = (project: Project) => project.present.timeline;
@@ -301,13 +302,13 @@ export const selectTickColumns = (project: Project, ticks: number) => {
 /** Select the timeline tick */
 export const selectTimelineTick = createSelector(
   [selectTimeline],
-  (timeline) => timeline.tick ?? 0
+  (timeline) => timeline.tick
 );
 
 /** Select the current timeline or transport tick */
 export const selectCurrentTimelineTick = (project: Project) => {
   const tick = selectTimelineTick(project);
-  return tick || getTransport().ticks;
+  return tick === null ? readTick() : tick;
 };
 
 /** Select the left offset of the timeline tick in pixels. */
@@ -386,25 +387,6 @@ export const selectAreGesturesDisabled = createSelector(
 // ------------------------------------------------------------
 // Media Draft
 // ------------------------------------------------------------
-
-/** Select the name of a potential new motif. */
-export const selectNewMotifName = (project: Project, type: ClipType) => {
-  const Type = capitalize(type);
-  if (!type) return `New ${Type}`;
-
-  const refs: { name: string }[] = Object.values(
-    type === "pattern" ? selectPatternMap(project) : selectPoseMap(project)
-  );
-
-  let champ = `${Type} 1`;
-  let champCount = 1;
-
-  while (refs.some((p) => p.name === champ)) {
-    champ = `${Type} ${++champCount}`;
-  }
-
-  return champ;
-};
 
 export const selectPortalFragment = createSelector(
   [selectTimeline],

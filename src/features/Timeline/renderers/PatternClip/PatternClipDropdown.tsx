@@ -42,7 +42,7 @@ import { BsRecord, BsScissors } from "react-icons/bs";
 import { selectPatternNoteLabel } from "types/Clip/PatternClip/PatternClipSelectors";
 import { PatternId } from "types/Pattern/PatternTypes";
 import { useToggle } from "hooks/useToggle";
-import { useHeldKeys } from "hooks/useHeldkeys";
+import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
 import {
   promptUserForPattern,
   bindNoteWithPrompt,
@@ -419,13 +419,13 @@ const DropdownDurationShortcuts = () => {
     <div className="flex flex-col gap-[2px] w-full text-slate-300">
       <div className="flex gap-2">
         <div
-          data-active={holding[","]}
+          data-active={holding[getKeyCode(",")]}
           className="data-[active=true]:text-slate-100"
         >
           Hold Comma for Rest
         </div>
         <div
-          data-active={holding["shift"]}
+          data-active={holding[getKeyCode("shift")]}
           className="data-[active=true]:text-slate-100 ml-auto"
         >
           Hold Shift for Chord
@@ -433,13 +433,13 @@ const DropdownDurationShortcuts = () => {
       </div>
       <div className="flex gap-2">
         <span
-          data-active={holding["."]}
+          data-active={holding[getKeyCode(".")]}
           className="data-[active=true]:text-slate-100"
         >
           Hold Period for Dotted
         </span>
         <span
-          data-active={holding["/"]}
+          data-active={holding[getKeyCode("/")]}
           className="data-[active=true]:text-slate-100 ml-auto"
         >
           Hold Slash for Triplet

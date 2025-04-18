@@ -2,46 +2,23 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { selectPoseMap } from "./PoseSelectors";
 import { addPose, updatePoses } from "./PoseSlice";
 import { defaultPose, initializePose, Pose, PoseVector } from "./PoseTypes";
-import {
-  selectNewMotifName,
-  selectSelectedPoseClips,
-} from "types/Timeline/TimelineSelectors";
+import { selectSelectedPoseClips } from "types/Timeline/TimelineSelectors";
 import { createUndoType, Payload, unpackUndoType } from "types/redux";
 import { sumVectors } from "utils/vector";
 
 /** Create a pose. */
 export const createPose =
   (payload: Payload<Partial<Pose>> = { data: defaultPose }): Thunk<Pose> =>
-  (dispatch, getProject) => {
+  (dispatch) => {
     const pose = payload.data;
     const undoType = unpackUndoType(payload, "createPose");
-    const project = getProject();
-
-    // Get the name of the new pose
-    const newName = selectNewMotifName(project, "pose");
-    const givenName = pose.name;
-    const noName = !givenName || givenName === defaultPose.name;
 
     // Initialize a new pattern
-    const newPose = initializePose({
-      ...pose,
-      name: noName ? newName : givenName,
-    });
+    const newPose = initializePose({ ...pose });
     dispatch(addPose({ data: newPose, undoType }));
 
     // Return the id
     return newPose;
-  };
-
-/** Duplicate a pose. */
-export const copyPose =
-  (payload: Payload<Partial<Pose>, true>): Thunk<Pose> =>
-  (dispatch) => {
-    const pose = payload?.data;
-    const undoType = unpackUndoType(payload, "copyPose");
-    return dispatch(
-      createPose({ data: { ...pose, name: `${pose?.name} Copy` }, undoType })
-    );
   };
 
 /** Update the selected poses with the given vector. */

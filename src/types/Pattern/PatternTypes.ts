@@ -81,7 +81,6 @@ export const initializePattern = (
 /** The default pattern is used for initialization. */
 export const defaultPattern: Pattern = {
   id: createId("pattern"),
-  name: "Pattern 1",
   stream: [],
 };
 

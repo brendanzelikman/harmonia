@@ -27,11 +27,6 @@ import { sumVectors } from "utils/vector";
 // Pattern Functions
 // ------------------------------------------------------------
 
-/** Get the name of a pattern. */
-export const getPatternName = (pattern?: Pattern) => {
-  return pattern?.name ?? "";
-};
-
 /** Get the category of a pattern. */
 export const getPatternCategory = (pattern?: Pattern) => {
   if (!pattern) return "No Category";

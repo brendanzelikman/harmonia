@@ -20,7 +20,6 @@ import {
   PatternNote,
   PatternStream,
 } from "./PatternTypes";
-import { selectNewMotifName } from "types/Timeline/TimelineSelectors";
 import {
   selectTrackScaleChain,
   selectTrackById,
@@ -33,34 +32,16 @@ export const createPattern =
   (
     payload: Payload<Partial<Pattern>> = { data: defaultPattern }
   ): Thunk<Pattern> =>
-  (dispatch, getProject) => {
+  (dispatch) => {
     const pattern = payload.data;
     const undoType = unpackUndoType(payload, "createPattern");
-    const project = getProject();
-
-    // Get the name of the new pattern
-    const newName = selectNewMotifName(project, "pattern");
-    const givenName = pattern.name;
-    const noName = !givenName;
-    const name = noName ? newName : givenName;
 
     // Initialize a new pattern
-    const newPattern = initializePattern({ ...pattern, name });
+    const newPattern = initializePattern({ ...pattern });
     dispatch(addPattern({ data: newPattern, undoType }));
 
     // Return the id
     return newPattern;
-  };
-
-/** Copies a pattern and adds it to the slice. */
-export const copyPattern =
-  (payload: Payload<Partial<Pattern>, true>): Thunk<Pattern> =>
-  (dispatch) => {
-    const defaultUndoType = unpackUndoType(payload, "copyPattern");
-    const undoType = payload?.undoType ?? defaultUndoType;
-    const pattern = payload?.data ?? {};
-    const name = `${pattern.name} Copy`;
-    return dispatch(createPattern({ data: { ...pattern, name }, undoType }));
   };
 
 /** Removes a list of patterns from the store. */

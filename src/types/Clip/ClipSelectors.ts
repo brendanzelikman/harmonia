@@ -28,11 +28,16 @@ import { mapValues, pick, uniqBy, values } from "lodash";
 import { getClipMotifId } from "./ClipFunctions";
 import {
   selectPatternById,
+  selectPatternIds,
   selectPatternMap,
   selectPatternState,
 } from "types/Pattern/PatternSelectors";
 import { getPatternClipHeaderColor } from "./PatternClip/PatternClipFunctions";
-import { selectPoseMap, selectPoseState } from "types/Pose/PoseSelectors";
+import {
+  selectPoseIds,
+  selectPoseMap,
+  selectPoseState,
+} from "types/Pose/PoseSelectors";
 import { isFinite } from "utils/math";
 
 // ------------------------------------------------------------
@@ -230,13 +235,27 @@ export const selectPatternClipsByIds = (
 
 /** Select the map of clips to their names. */
 export const selectClipNameMap = createSelector(
-  [selectClipMap, selectPatternMap, selectPoseMap],
-  (clipMap, patternMap, poseMap) =>
+  [
+    selectClipMap,
+    selectPatternMap,
+    selectPoseMap,
+    selectPatternIds,
+    selectPoseIds,
+  ],
+  (clipMap, patternMap, poseMap, patternIds, poseIds) =>
     mapValues(clipMap, (clip) => {
       if (!clip) return undefined;
       if (clip.name) return clip.name;
-      if (clip.type === "pattern") return patternMap[clip.patternId]?.name;
-      if (clip.type === "pose") return poseMap[clip.poseId]?.name;
+      if (clip.type === "pattern")
+        return (
+          patternMap[clip.patternId]?.name ??
+          `Pattern ${patternIds.indexOf(clip.patternId) + 1}`
+        );
+      if (clip.type === "pose")
+        return (
+          poseMap[clip.poseId]?.name ??
+          `Pose ${poseIds.indexOf(clip.poseId) + 1}`
+        );
       return undefined;
     })
 );

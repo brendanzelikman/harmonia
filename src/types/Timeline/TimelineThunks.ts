@@ -22,11 +22,10 @@ import {
   selectIsAddingClips,
   selectSelectedTrackId,
   selectCellWidth,
-  selectSelectedPatternClips,
   selectIsTrackSelected,
   selectTimelineState,
-  selectCurrentTimelineTick,
   selectTimelineTick,
+  selectCurrentTimelineTick,
 } from "./TimelineSelectors";
 import {
   createUndoType,
@@ -56,7 +55,6 @@ import {
   selectPatternClips,
 } from "types/Clip/ClipSelectors";
 import { deleteMedia } from "types/Media/MediaThunks";
-import { getTransport } from "tone";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -201,7 +199,7 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
 
   // If no clip is selected, create a new clip and pose.
   if (!patternClip) {
-    const tick = selectTimelineTick(getProject());
+    const tick = selectCurrentTimelineTick(getProject());
 
     // Delete any patterns at the current tick in the track
     if (trackId) {

@@ -5,6 +5,7 @@ import { updatePose } from "types/Pose/PoseSlice";
 import { Thunk } from "types/Project/ProjectTypes";
 import { createUndoType } from "types/redux";
 import {
+  selectCurrentTimelineTick,
   selectSelectedTrackId,
   selectTimelineTick,
 } from "types/Timeline/TimelineSelectors";
@@ -28,7 +29,6 @@ export const updatePoseAtCursorGesture =
     const patternTracks = selectPatternTracks(project);
     const selectedTrackId = selectSelectedTrackId(project);
     const ancestorMap = selectTrackAncestorIdsMap(project);
-    const timelineTick = selectTimelineTick(project);
     const poseClips = selectPoseClips(project);
     const poseMap = selectPoseMap(project);
     const value = number * (isNegative() ? -1 : 1);
@@ -42,7 +42,7 @@ export const updatePoseAtCursorGesture =
     const vector = sumVector({}, value, ancestorMap[trackId]);
 
     // If the cursor is on a pose, update its vector
-    const tick = !timelineTick ? readTick() : timelineTick;
+    const tick = selectCurrentTimelineTick(project);
     const match = getMatch(poseClips, { tick, trackId });
     if (match) {
       const id = match.poseId;
@@ -66,8 +66,7 @@ export const createResetPoseAtCursorGesture =
     const undoType = createUndoType(nanoid());
     const patternTracks = selectPatternTracks(project);
     const selectedTrackId = selectSelectedTrackId(project);
-    const timelineTick = selectTimelineTick(project);
-    const tick = !timelineTick ? readTick() : timelineTick;
+    const tick = selectCurrentTimelineTick(project);
     const trackId = selectedTrackId ?? patternTracks[0]?.id ?? undefined;
     if (!trackId) return;
 

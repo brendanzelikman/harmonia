@@ -134,7 +134,7 @@ export const DeselectTrackHotkey: Hotkey = {
   callback: (dispatch) => {
     const undoType = createUndoType("deselectTrack", nanoid());
     dispatch(setSelectedTrackId({ data: null, undoType }));
-    dispatch(updateTimelineTick({ data: 0, undoType }));
+    dispatch(updateTimelineTick({ data: null, undoType }));
   },
 };
 

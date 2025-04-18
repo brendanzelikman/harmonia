@@ -6,7 +6,6 @@ import {
 } from "utils/duration";
 import { Tick, Update } from "types/units";
 import {
-  getPatternName,
   getPatternBlockDuration,
   getPatternStreamDuration,
 } from "types/Pattern/PatternFunctions";
@@ -63,7 +62,6 @@ import {
   selectSelectedPatternClips,
   selectTimeline,
   selectCurrentTimelineTick,
-  selectTimelineTick,
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackMap, selectTrackIds } from "types/Track/TrackSelectors";
 import {
@@ -86,9 +84,9 @@ import {
   removePortals,
   updatePortals,
 } from "types/Portal/PortalSlice";
-import { copyPattern, createPattern } from "types/Pattern/PatternThunks";
+import { createPattern } from "types/Pattern/PatternThunks";
 import { selectPoseById, selectPoseMap } from "types/Pose/PoseSelectors";
-import { copyPose, createPose } from "types/Pose/PoseThunks";
+import { createPose } from "types/Pose/PoseThunks";
 import { getClipMotifId } from "types/Clip/ClipFunctions";
 import { isBounded } from "utils/math";
 import { removePose } from "types/Pose/PoseSlice";
@@ -207,19 +205,16 @@ export const filterSelectionByType =
     dispatch(updateMediaSelection({ data: { clipIds } }));
   };
 
-export const insertMeasure = (): Thunk => (dispatch, getProject) => {
-  const project = getProject();
-  const tick = selectTimelineTick(project);
-  const clips = selectClips(project).filter((clip) => clip.tick >= tick);
-  return dispatch(
-    updateClips({
-      data: clips.map((clip) => ({
-        ...clip,
-        tick: clip.tick + WholeNoteTicks,
-      })),
-    })
-  );
-};
+export const insertMeasure =
+  (amount = WholeNoteTicks): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const tick = selectCurrentTimelineTick(project);
+    const clips = selectClips(project)
+      .filter((clip) => clip.tick >= tick)
+      .map((clip) => ({ ...clip, tick: clip.tick + amount }));
+    return dispatch(updateClips({ data: clips }));
+  };
 
 /** Copy all selected media to the clipboard. */
 export const copySelectedMedia = (): Thunk => (dispatch, getProject) => {
@@ -424,7 +419,7 @@ export const mergeSelectedMedia =
       // Get the clip pattern
       const pattern = patternMap[clip.patternId];
       if (!pattern) return acc;
-      patternNames.push(getPatternName(pattern));
+      patternNames.push(pattern?.name ?? "Pattern");
 
       // Get the clip stream
       const streamDuration = getPatternStreamDuration(pattern.stream);
@@ -627,10 +622,7 @@ export const onMediaDragEnd =
         if (isPatternClip(clip)) {
           const pattern = selectPatternById(project, clip.patternId);
           const newPatternId = dispatch(
-            copyPattern({
-              data: { ...pattern },
-              undoType,
-            })
+            createPattern({ data: pattern, undoType })
           ).id;
           dispatch(
             addClip({
@@ -641,7 +633,7 @@ export const onMediaDragEnd =
         } else if (isPoseClip(clip)) {
           const pose = selectPoseById(project, clip.poseId);
           const newPoseId = dispatch(
-            copyPose({ data: { ...pose }, undoType })
+            createPose({ data: { ...pose }, undoType })
           ).id;
           dispatch(
             addClip({

@@ -26,6 +26,7 @@ import { TooltipButton } from "components/TooltipButton";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { TRACK_WIDTH } from "utils/constants";
 import { useToggle } from "hooks/useToggle";
+import { getKeyCode } from "hooks/useHeldkeys";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -45,20 +46,23 @@ export const NavbarLivePlay = () => {
   const isSelectingPoseClip = useAppValue(selectIsSelectingPoseClips);
 
   // Get the values of the held keys
-  const isNumerical = some(numericalKeys, (key) => holding[key]);
-  const isNegative = holding["-"] || holding["`"];
-  const isExact = holding["="];
-  const isMuting = holding.m;
-  const isSoloing = holding.s;
+  const isNumerical = numericalKeys.some((key) => holding[getKeyCode(key)]);
+  const isNegative = holding[getKeyCode("-")] || holding[getKeyCode("`")];
+  const isExact = holding[getKeyCode("=")];
+  const isMuting = holding[getKeyCode("m")];
+  const isSoloing = holding[getKeyCode("s")];
   const isMixing = isMuting || isSoloing;
   const sign = isNegative ? "-" : "";
   const direction = isNegative ? "Down" : "Up";
 
-  const isHoldingScale =
-    holding.q || holding.w || holding.e || holding.r || holding.t || holding.y;
+  const isHoldingScale = ["q", "w", "e", "r", "t", "y"].some(
+    (key) => holding[getKeyCode(key)]
+  );
   const isPosing = selectedTrackId && isHoldingScale;
-  const isVoiceLeadingDegree = holding.d && isSelectingPatternClip;
-  const isVoiceLeadingClosest = holding.c && isSelectingPatternClip;
+  const isVoiceLeadingDegree =
+    holding[getKeyCode("d")] && isSelectingPatternClip;
+  const isVoiceLeadingClosest =
+    holding[getKeyCode("c")] && isSelectingPatternClip;
 
   // Get the first chain id
   const label1 = useAppValue((_) => selectTrackLabelById(_, chain[0]));
@@ -124,9 +128,8 @@ export const NavbarLivePlay = () => {
         if (key === "q" && !hasScale1) return;
         if (key === "w" && !hasScale2) return;
         if (key === "e" && !hasScale3) return;
-        const isHolding = holding[key];
         const label = labelMap[key];
-        if (isHolding && label) {
+        if (holding[getKeyCode(key)] && label) {
           vector.push(`${label}${sign}${keycode}`);
         }
       });
@@ -187,11 +190,11 @@ export const NavbarLivePlay = () => {
           {
             <p>
               <Instruction
-                active={holding["q"] && scaleName1 !== "No Scale"}
+                active={holding[getKeyCode("q")] && scaleName1 !== "No Scale"}
                 label="Hold Q:"
               />{" "}
               <Description
-                active={holding["q"] && scaleName1 !== "No Scale"}
+                active={holding[getKeyCode("q")] && scaleName1 !== "No Scale"}
                 label={`Apply ${scaleName1}`}
                 defaultClass="text-sky-400"
                 activeClass="text-sky-300"
@@ -199,9 +202,9 @@ export const NavbarLivePlay = () => {
             </p>
           }
           <p>
-            <Instruction active={holding["w"]} label="Hold W:" />{" "}
+            <Instruction active={holding[getKeyCode("w")]} label="Hold W:" />{" "}
             <Description
-              active={holding["w"] && scaleName2 !== "No Scale"}
+              active={holding[getKeyCode("w")] && scaleName2 !== "No Scale"}
               label={`Apply ${scaleName2}`}
               defaultClass="text-sky-400"
               activeClass="text-sky-300"
@@ -209,38 +212,38 @@ export const NavbarLivePlay = () => {
           </p>
           <p>
             <Instruction
-              active={holding["e"] && scaleName3 !== "No Scale"}
+              active={holding[getKeyCode("e")] && scaleName3 !== "No Scale"}
               label="Hold E:"
             />{" "}
             <Description
-              active={holding["e"] && scaleName3 !== "No Scale"}
+              active={holding[getKeyCode("e")] && scaleName3 !== "No Scale"}
               label={`Apply ${scaleName3}`}
               defaultClass="text-sky-400"
               activeClass="text-sky-300"
             />
           </p>
           <p className="normal-case">
-            <Instruction active={holding["r"]} label="Hold R:" />{" "}
+            <Instruction active={holding[getKeyCode("r")]} label="Hold R:" />{" "}
             <Description
-              active={holding["r"]}
+              active={holding[getKeyCode("r")]}
               label={`Apply Rotations (r)`}
               defaultClass="text-sky-400"
               activeClass="text-sky-300"
             />
           </p>
           <p className="normal-case">
-            <Instruction active={holding["t"]} label="Hold T:" />{" "}
+            <Instruction active={holding[getKeyCode("t")]} label="Hold T:" />{" "}
             <Description
-              active={holding["t"]}
+              active={holding[getKeyCode("t")]}
               label={`Apply Semitones (t)`}
               defaultClass="text-sky-400"
               activeClass="text-sky-300"
             />
           </p>
           <p className="normal-case">
-            <Instruction active={holding["y"]} label="Hold Y:" />{" "}
+            <Instruction active={holding[getKeyCode("y")]} label="Hold Y:" />{" "}
             <Description
-              active={holding["y"]}
+              active={holding[getKeyCode("y")]}
               label={`Apply Octaves (y)`}
               defaultClass="text-sky-400"
               activeClass="text-sky-300"
@@ -265,14 +268,14 @@ export const NavbarLivePlay = () => {
             className="data-[dim=true]:opacity-50"
           >
             <Description
-              active={(key) => holding[key]}
+              active={(key) => holding[getKeyCode(key)]}
               keycodes={["-", "`"]}
               label={"Hold Minus:"}
               activeClass="text-white"
               defaultClass="text-slate-400"
             />{" "}
             <Description
-              active={(key) => holding[key]}
+              active={(key) => holding[getKeyCode(key)]}
               keycodes={["-", "`"]}
               label="Input Negative Offset"
               defaultClass="text-emerald-300"
@@ -283,9 +286,12 @@ export const NavbarLivePlay = () => {
             data-dim={isMixing || !isHoldingScale}
             className="data-[dim=true]:opacity-50"
           >
-            <Instruction active={holding["="]} label="Hold Equal:" />{" "}
+            <Instruction
+              active={holding[getKeyCode("=")]}
+              label="Hold Equal:"
+            />{" "}
             <Description
-              active={holding["="]}
+              active={holding[getKeyCode("=")]}
               label="Input Exact Offset"
               defaultClass="text-emerald-300"
               activeClass="text-emerald-200"
@@ -294,18 +300,24 @@ export const NavbarLivePlay = () => {
           {isSelectingPatternClip && (
             <>
               <p>
-                <Instruction active={holding["c"]} label="Hold C:" />{" "}
+                <Instruction
+                  active={holding[getKeyCode("c")]}
+                  label="Hold C:"
+                />{" "}
                 <Description
-                  active={holding["c"]}
+                  active={holding[getKeyCode("c")]}
                   label="Voice Lead by Closeness"
                   activeClass="text-emerald-200"
                   defaultClass="text-emerald-300"
                 />
               </p>
               <p>
-                <Instruction active={holding["d"]} label="Hold D:" />{" "}
+                <Instruction
+                  active={holding[getKeyCode("d")]}
+                  label="Hold D:"
+                />{" "}
                 <Description
-                  active={holding["d"]}
+                  active={holding[getKeyCode("d")]}
                   label="Voice Lead by Degree"
                   activeClass="text-emerald-200"
                   defaultClass="text-emerald-300"
@@ -314,18 +326,18 @@ export const NavbarLivePlay = () => {
             </>
           )}
           <p>
-            <Instruction active={holding["m"]} label="Hold M:" />{" "}
+            <Instruction active={holding[getKeyCode("m")]} label="Hold M:" />{" "}
             <Description
-              active={holding["m"]}
+              active={holding[getKeyCode("m")]}
               label="Mute Samplers"
               activeClass="text-emerald-200"
               defaultClass="text-emerald-300"
             />
           </p>
           <p>
-            <Instruction active={holding["s"]} label="Hold S:" />{" "}
+            <Instruction active={holding[getKeyCode("s")]} label="Hold S:" />{" "}
             <Description
-              active={holding["s"]}
+              active={holding[getKeyCode("s")]}
               label="Solo Samplers"
               activeClass="text-emerald-200"
               defaultClass="text-emerald-300"
@@ -367,7 +379,7 @@ export const NavbarLivePlay = () => {
               } normal-case`}
             >
               <Description
-                active={(key) => holding[key]}
+                active={(key) => holding[getKeyCode(key)]}
                 keycodes={[keycode]}
                 required={["q", "w", "e", "r", "t", "y"]}
                 label={`Press ${keycode}:`}
@@ -375,7 +387,7 @@ export const NavbarLivePlay = () => {
                 defaultClass="text-slate-400"
               />{" "}
               <Description
-                active={(key) => holding[key]}
+                active={(key) => holding[getKeyCode(key)]}
                 keycodes={[keycode]}
                 required={["q", "w", "e", "r", "t", "y"]}
                 label={getKeycodeLabel(keycode)}
@@ -387,14 +399,14 @@ export const NavbarLivePlay = () => {
           {isSelectingPoseClip && (
             <p>
               <Description
-                active={(key) => holding[key]}
+                active={(key) => holding[getKeyCode(key)]}
                 keycodes={["0"]}
                 label="Press 0:"
                 activeClass="text-white"
                 defaultClass="text-slate-400"
               />{" "}
               <Description
-                active={(key) => holding[key]}
+                active={(key) => holding[getKeyCode(key)]}
                 keycodes={["0"]}
                 label={getZeroLabel()}
                 defaultClass="text-fuchsia-300"
@@ -434,12 +446,12 @@ export const NavbarLivePlay = () => {
     );
   }, []);
 
-  const Q = Span("Q", holding.q);
-  const W = Span("W", holding.w);
-  const E = Span("E", holding.e);
-  const R = Span("R", holding.r);
-  const T = Span("T", holding.t);
-  const Y = Span("Y", holding.y);
+  const Q = Span("Q", holding[getKeyCode("q")]);
+  const W = Span("W", holding[getKeyCode("w")]);
+  const E = Span("E", holding[getKeyCode("e")]);
+  const R = Span("R", holding[getKeyCode("r")]);
+  const T = Span("T", holding[getKeyCode("t")]);
+  const Y = Span("Y", holding[getKeyCode("y")]);
   const QWERTY = (
     <>
       {Q}
@@ -451,10 +463,10 @@ export const NavbarLivePlay = () => {
     </>
   );
   const Number = Span("Press Number", isNumerical, true);
-  const C = Span("C", holding.c);
-  const D = Span("D", holding.d);
-  const M = Span("M", holding.m);
-  const S = Span("S", holding.s);
+  const C = Span("C", holding[getKeyCode("c")]);
+  const D = Span("D", holding[getKeyCode("d")]);
+  const M = Span("M", holding[getKeyCode("m")]);
+  const S = Span("S", holding[getKeyCode("s")]);
   return (
     <TooltipButton
       direction="vertical"

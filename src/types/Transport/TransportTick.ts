@@ -28,7 +28,7 @@ export const dispatchTick = (tick: Tick) => {
 /** Try to read the tick from local storage. */
 export const readTick = () => {
   const tick = window.localStorage.getItem("tick");
-  return tick ? Number(tick) : 0;
+  return tick ? Number(tick) : Tone.getTransport().ticks;
 };
 
 // --------------------------------------------------------------

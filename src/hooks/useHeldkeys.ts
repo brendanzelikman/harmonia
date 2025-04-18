@@ -1,30 +1,14 @@
-import { omit } from "lodash";
+import { isArray, omit, pick } from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { isInputEvent } from "utils/event";
 import { useToggle } from "./useToggle";
 
-const upperMap = {
-  "~": "`",
-  "!": "1",
-  "@": "2",
-  "#": "3",
-  $: "4",
-  "%": "5",
-  "^": "6",
-  "&": "7",
-  "*": "8",
-  "(": "9",
-  ")": "0",
-  _: "-",
-  "+": "=",
-  "<": ",",
-  ">": ".",
-  "?": "/",
-} as Record<string, string>;
-
 /** Create a record storing a map of keys to press states */
 export const useHeldKeys = (keys: string[], scope: string = "global") => {
-  const keyset = useMemo(() => new Set(keys), []);
+  const keyset: Set<string> = useMemo(
+    () => new Set(Object.values(pick(KeyCodeMap, keys))),
+    []
+  );
   const keyboard = useToggle(`keyboard`);
   const outOfScope = keyboard.isOpen !== (scope === "keyboard");
   const disabled = scope !== "all" && outOfScope;
@@ -34,26 +18,18 @@ export const useHeldKeys = (keys: string[], scope: string = "global") => {
     // Add the key to the record on keydown
     const add = (e: KeyboardEvent) => {
       if (disabled || isInputEvent(e) || e.repeat) return;
-      const key = e.key.toLowerCase();
-      if (keyset.has(key)) {
-        setHeldKeys((prev) => ({ ...prev, [key]: true }));
-        window.localStorage.setItem(`holding-${key}`, "true");
+      if (keyset.has(e.code)) {
+        setHeldKeys((prev) => ({ ...prev, [e.code]: true }));
+        window.localStorage.setItem(`holding-${e.code}`, "true");
       }
     };
 
     // Remove the key from the record on keyup
     const remove = (e: KeyboardEvent) => {
-      if (disabled || isInputEvent(e) || e.repeat) return;
-      const key = e.key.toLowerCase();
-      if (keyset.has(key)) {
-        setHeldKeys((prev) => omit(prev, key));
-        window.localStorage.removeItem(`holding-${key}`);
-      } else {
-        const upper = upperMap[key];
-        if (upper && keyset.has(upper)) {
-          setHeldKeys((prev) => omit(prev, upper));
-          window.localStorage.removeItem(`holding-${upper}`);
-        }
+      if (disabled) return;
+      if (keyset.has(e.code)) {
+        setHeldKeys((prev) => omit(prev, e.code));
+        window.localStorage.removeItem(`holding-${e.code}`);
       }
     };
 
@@ -68,14 +44,14 @@ export const useHeldKeys = (keys: string[], scope: string = "global") => {
     // Add the event listeners
     document.addEventListener("keydown", add);
     document.addEventListener("keyup", remove);
-    document.addEventListener("input", clear);
+    document.addEventListener("click", clear);
     window.addEventListener("blur", clear);
 
     // Cleanup the event listeners
     return () => {
       document.removeEventListener("keydown", add);
       document.removeEventListener("keyup", remove);
-      document.removeEventListener("input", clear);
+      document.removeEventListener("click", clear);
       window.removeEventListener("blur", clear);
       clear();
     };
@@ -86,5 +62,79 @@ export const useHeldKeys = (keys: string[], scope: string = "global") => {
 
 /** Read the value of a key from local storage */
 export const getHeldKey = (key: string) => {
-  return window.localStorage.getItem(`holding-${key}`) === "true";
+  const code = getKeyCode(key);
+  return window.localStorage.getItem(`holding-${code}`) === "true";
 };
+
+// Keys are mapped to codes to avoid issues with modifiers
+const KeyCodeMap: Record<string, string> = {
+  q: "KeyQ",
+  w: "KeyW",
+  e: "KeyE",
+  r: "KeyR",
+  t: "KeyT",
+  y: "KeyY",
+  u: "KeyU",
+  i: "KeyI",
+  o: "KeyO",
+  p: "KeyP",
+  a: "KeyA",
+  s: "KeyS",
+  d: "KeyD",
+  f: "KeyF",
+  g: "KeyG",
+  h: "KeyH",
+  j: "KeyJ",
+  k: "KeyK",
+  l: "KeyL",
+  z: "KeyZ",
+  x: "KeyX",
+  c: "KeyC",
+  v: "KeyV",
+  b: "KeyB",
+  n: "KeyN",
+  m: "KeyM",
+  "0": "Digit0",
+  "1": "Digit1",
+  "2": "Digit2",
+  "3": "Digit3",
+  "4": "Digit4",
+  "5": "Digit5",
+  "6": "Digit6",
+  "7": "Digit7",
+  "8": "Digit8",
+  "9": "Digit9",
+  " ": "Space",
+  Enter: "Enter",
+  Shift: "ShiftLeft",
+  Control: "ControlLeft",
+  Alt: "AltLeft",
+  Meta: "MetaLeft",
+  Backspace: "Backspace",
+  Tab: "Tab",
+  Escape: "Escape",
+  "`": "Backquote",
+  ",": "Comma",
+  ".": "Period",
+  "/": "Slash",
+  ";": "Semicolon",
+  "'": "Quote",
+  "-": "Minus",
+  "=": "Equal",
+  "[": "BracketLeft",
+  "]": "BracketRight",
+  "\\": "Backslash",
+};
+
+export const getKeyCode = (key: string) => KeyCodeMap[key] ?? key;
+export const isHolding = (
+  map: Record<string, boolean>,
+  keys: string | string[],
+  strict = false
+) =>
+  (isArray(keys)
+    ? strict
+      ? keys.every((key) => !!map[getKeyCode(key)])
+      : keys.some((key) => !!map[getKeyCode(key)])
+    : !!map[getKeyCode(keys)]) ||
+  !!window.localStorage.getItem(`holding-${keys}`);

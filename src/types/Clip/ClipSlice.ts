@@ -72,10 +72,11 @@ export const addClip =
   (payload: Payload<Clip>): Thunk<ClipId> =>
   (dispatch) => {
     const clip = payload.data;
+    const undoType = unpackUndoType(payload, "addClip");
     if (isPatternClip(clip)) {
-      dispatch(PatternClips.addOne({ ...payload, data: clip }));
+      dispatch(PatternClips.addOne({ data: clip, undoType }));
     } else if (isPoseClip(clip)) {
-      dispatch(PoseClips.addOne({ ...payload, data: clip }));
+      dispatch(PoseClips.addOne({ data: clip, undoType }));
     }
     return clip.id;
   };
@@ -85,11 +86,12 @@ export const addClips =
   (payload: Payload<Clip[]>): Thunk =>
   (dispatch) => {
     const clips = payload.data;
+    const undoType = unpackUndoType(payload, "addClips");
     for (const clip of clips) {
       if (isPatternClip(clip)) {
-        dispatch(PatternClips.addOne({ ...payload, data: clip }));
+        dispatch(PatternClips.addOne({ data: clip, undoType }));
       } else if (isPoseClip(clip)) {
-        dispatch(PoseClips.addOne({ ...payload, data: clip }));
+        dispatch(PoseClips.addOne({ data: clip, undoType }));
       }
     }
   };
@@ -99,10 +101,11 @@ export const updateClip =
   (payload: Payload<ClipUpdate>): Thunk =>
   (dispatch) => {
     const clip = payload.data;
+    const undoType = unpackUndoType(payload, "updateClip");
     if (isPatternClip(clip)) {
-      dispatch(PatternClips.updateOne({ ...payload, data: clip }));
+      dispatch(PatternClips.updateOne({ data: clip, undoType }));
     } else if (isPoseClip(clip)) {
-      dispatch(PoseClips.updateOne({ ...payload, data: clip }));
+      dispatch(PoseClips.updateOne({ data: clip, undoType }));
     }
   };
 
@@ -111,11 +114,12 @@ export const updateClips =
   (payload: Payload<ClipUpdate[]>): Thunk =>
   (dispatch) => {
     const clips = payload.data;
+    const undoType = unpackUndoType(payload, "updateClips");
     for (const clip of clips) {
       if (isPatternClip(clip)) {
-        dispatch(PatternClips.updateOne({ ...payload, data: clip }));
+        dispatch(PatternClips.updateOne({ data: clip, undoType }));
       } else if (isPoseClip(clip)) {
-        dispatch(PoseClips.updateOne({ ...payload, data: clip }));
+        dispatch(PoseClips.updateOne({ data: clip, undoType }));
       }
     }
   };
@@ -125,10 +129,11 @@ export const removeClip =
   (payload: Payload<ClipId>): Thunk =>
   (dispatch) => {
     const id = payload.data;
+    const undoType = unpackUndoType(payload, "removeClip");
     if (isPatternClipId(id)) {
-      dispatch(PatternClips.removeOne({ ...payload, data: id }));
+      dispatch(PatternClips.removeOne({ data: id, undoType }));
     } else if (isPoseClipId(id)) {
-      dispatch(PoseClips.removeOne({ ...payload, data: id }));
+      dispatch(PoseClips.removeOne({ data: id, undoType }));
     }
   };
 
@@ -137,11 +142,12 @@ export const removeClips =
   (payload: Payload<ClipId[]>): Thunk =>
   (dispatch) => {
     const clipIds = payload.data;
+    const undoType = unpackUndoType(payload, "removeClips");
     for (const id of clipIds) {
       if (isPatternClipId(id)) {
-        dispatch(PatternClips.removeOne({ ...payload, data: id }));
+        dispatch(PatternClips.removeOne({ data: id, undoType }));
       } else if (isPoseClipId(id)) {
-        dispatch(PoseClips.removeOne({ ...payload, data: id }));
+        dispatch(PoseClips.removeOne({ data: id, undoType }));
       }
     }
   };

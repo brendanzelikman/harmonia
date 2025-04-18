@@ -106,7 +106,6 @@ export const initializePose = (
 /** The default pose is used for initialization. */
 export const defaultPose: Pose = {
   id: createId("pose"),
-  name: "Pose 1",
 };
 
 // ------------------------------------------------------------

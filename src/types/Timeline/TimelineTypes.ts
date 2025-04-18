@@ -21,7 +21,7 @@ import {
 export type Timeline = Partial<{
   state: TimelineState;
   type: ClipType;
-  tick: number;
+  tick: number | null;
 
   fragment: Partial<Portal>;
   clipboard: MediaClipboard;

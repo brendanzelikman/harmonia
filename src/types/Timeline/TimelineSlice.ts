@@ -121,8 +121,8 @@ export const timelineSlice = createSlice({
       state.fragment = portal;
     },
     /** Update the timeline tick. */
-    updateTimelineTick: (state, action: Action<number>) => {
-      const tick = unpackAction(action);
+    updateTimelineTick: (state, action: Action<number | null>) => {
+      const tick = unpackAction<number | null>(action);
       state.tick = tick;
     },
     /** Update the media selection. */

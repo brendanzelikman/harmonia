@@ -28,7 +28,7 @@ import {
   ticksToSeconds,
 } from "utils/duration";
 import { format, mod } from "utils/math";
-import { useHeldKeys } from "hooks/useHeldkeys";
+import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
 
 export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const dispatch = useAppDispatch();
@@ -43,10 +43,10 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   // The hook stores an input duration for editing notes
   const holding = useHeldKeys(["shift", "/", ",", "."], "all");
   const [_duration, setDuration] = useState(getDurationTicks("16th"));
-  const isTriplet = holding["/"];
-  const isDotted = holding["."];
-  const asRest = holding[","];
-  const asChord = holding["shift"];
+  const isTriplet = holding[getKeyCode("/")];
+  const isDotted = holding[getKeyCode(".")];
+  const asRest = holding[getKeyCode(",")];
+  const asChord = holding[getKeyCode("shift")];
   const modifier = isTriplet ? "Triplet" : isDotted ? "Dotted" : "Straight";
   const ratio = isTriplet ? 2 / 3 : isDotted ? 3 / 2 : 1;
   const duration = _duration * ratio;
