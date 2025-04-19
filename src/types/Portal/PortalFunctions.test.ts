@@ -7,12 +7,12 @@ import { Media } from "types/Media/MediaTypes";
 
 /** Get the pattern clips from the media. */
 export const getPatternClipsFromMedia = (media: Media) => {
-  return media.filter((c) => "type" in c && c.type === "pattern");
+  return media.filter((c) => "patternId" in c);
 };
 
 /** Get the pose clips from the media. */
 export const getPoseClipsFromMedia = (media: Media) => {
-  return media.filter((c) => "type" in c && c.type === "pose");
+  return media.filter((c) => "poseId" in c);
 };
 
 test("createPortalChunk should correctly append a tag to the media's ID", () => {

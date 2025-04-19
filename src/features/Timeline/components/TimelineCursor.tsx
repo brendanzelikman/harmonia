@@ -8,12 +8,13 @@ import {
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import classNames from "classnames";
 import { COLLAPSED_TRACK_HEIGHT } from "utils/constants";
+import { isPatternTrack } from "types/Track/TrackTypes";
 
 export function TimelineCursor() {
   const tick = useAppValue(selectTimelineTick);
   const cellHeight = useAppValue(selectCellHeight);
   const track = useAppValue(selectSelectedTrack);
-  const onPatternTrack = track?.type === "pattern";
+  const onPatternTrack = isPatternTrack(track);
   const top = useAppValue((_) => selectTrackTop(_, track?.id));
   const left = useAppValue((_) =>
     tick ? selectTimelineTickLeft(_, tick) - 2 : 0

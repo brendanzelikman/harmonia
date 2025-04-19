@@ -21,7 +21,6 @@ export const initializePatternTrack = (
 
 /** The default pattern track is used for initialization. */
 export const defaultPatternTrack: PatternTrack = {
-  type: "pattern",
   id: createId(`pattern-track`),
   instrumentId: "default-instrument",
   trackIds: [],

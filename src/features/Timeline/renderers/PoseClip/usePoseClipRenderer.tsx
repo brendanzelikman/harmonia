@@ -44,7 +44,7 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   const { id, pcId, isDragging } = props;
 
   const clip = useAppValue((_) => selectPortaledPoseClip(_, pcId));
-  const { trackId, tick, type } = clip;
+  const { trackId, tick } = clip;
   const [isOpen, setIsOpen] = useState(false);
   const handleDropdown = useCallback(
     (e: CustomEvent<any>) => {
@@ -113,7 +113,7 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   return (
     <div
       ref={drag}
-      data-type={type}
+      data-type="pose"
       data-open={isOpen}
       data-selected={isSelected}
       data-blur={isBlurred}

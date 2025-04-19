@@ -17,6 +17,9 @@ import {
   ClipType,
   initializeClip,
   isPatternClip,
+  isPatternClipId,
+  isPoseClip,
+  isPoseClipId,
 } from "types/Clip/ClipTypes";
 import {
   LiveAudioInstance,
@@ -376,7 +379,7 @@ export const duplicateTrack =
 
         // Add new motifs for each clip
         for (const clip of newClips) {
-          if (clip.type === "pattern") {
+          if (isPatternClip(clip)) {
             const oldPattern = selectPatternById(project, clip.patternId);
             let baseStream: PatternStream | undefined = oldPattern?.stream;
             if (oldPattern) {
@@ -401,7 +404,7 @@ export const duplicateTrack =
             });
             dispatch(addPattern({ data: pattern, undoType }));
             allClips.push({ ...clip, patternId: pattern.id });
-          } else if (clip.type === "pose") {
+          } else if (isPoseClip(clip)) {
             const pose = initializePose({
               ...selectPoseById(project, clip.poseId),
             });
@@ -449,8 +452,10 @@ export const clearTrack =
       clips.push(...selectClipsByTrackIds(project, children));
     }
     const clipIds = clips
-      .filter((c) => !type || c.type === type)
-      .map((c) => c.id);
+      .map((c) => c.id)
+      .filter((id) =>
+        type === "pattern" ? isPatternClipId(id) : isPoseClipId(id)
+      );
 
     // Remove all clips
     dispatch(deleteMedia({ data: { clipIds }, undoType }));
@@ -517,7 +522,7 @@ export const deleteTrack =
       dispatch(removeTrack({ data: id, undoType }));
 
       for (const clip of clips) {
-        if (clip.type === "pattern") {
+        if (isPatternClip(clip)) {
           const clips = selectPatternClipsByPatternId(
             getProject(),
             clip.patternId
@@ -525,7 +530,7 @@ export const deleteTrack =
           if (clips.length === 0) {
             dispatch(removePattern({ data: clip.patternId, undoType }));
           }
-        } else if (clip.type === "pose") {
+        } else if (isPoseClip(clip)) {
           const clips = selectPoseClipsByPoseId(getProject(), clip.poseId);
           if (clips.length === 0) {
             dispatch(removePose({ data: clip.poseId, undoType }));

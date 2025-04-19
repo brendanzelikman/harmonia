@@ -1,5 +1,5 @@
 import { Payload } from "types/redux";
-import { Clip, ClipId } from "types/Clip/ClipTypes";
+import { Clip, ClipId, ClipType } from "types/Clip/ClipTypes";
 import { Portal, PortalId } from "types/Portal/PortalTypes";
 import { Update } from "types/units";
 
@@ -31,7 +31,7 @@ export type NewMediaPayload = Payload<{
 
 /** A `CreateMediaPayload` contains clips and/or portals. */
 export type CreateMediaPayload = Payload<{
-  clips?: Partial<Clip>[];
+  clips?: (Partial<Clip> & { id: ClipId })[];
   portals?: Partial<Portal>[];
 }>;
 

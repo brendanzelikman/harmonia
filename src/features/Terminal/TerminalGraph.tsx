@@ -18,7 +18,7 @@ import {
   selectTrackMap,
   selectTrackInstrumentMap,
 } from "types/Track/TrackSelectors";
-import { TrackId } from "types/Track/TrackTypes";
+import { isPatternTrack, TrackId } from "types/Track/TrackTypes";
 import { Tick } from "types/units";
 import { getScaleName } from "types/Scale/ScaleFinder";
 import { sumVectors } from "utils/vector";
@@ -107,7 +107,7 @@ export const selectTrackJsonAtTick = createDeepSelector(
       if (!track) return { name: trackId };
       const meta = { trackId };
       const name = `Track ${labelMap[trackId]}`;
-      const isPT = track.type === "pattern";
+      const isPT = isPatternTrack(track);
       const Instrument = getInstrumentName(iMap[trackId]?.key);
       const poseClips = arrangement.trackPoseClips[trackId] ?? [];
       const vector = sumVectors(

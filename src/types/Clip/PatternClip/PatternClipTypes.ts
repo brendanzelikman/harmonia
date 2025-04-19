@@ -55,9 +55,7 @@ export const initializePatternClip = (
   trackId: createId("pattern-track"),
   patternId: createId("pattern"),
   tick: 0,
-  offset: 0,
   ...clip,
-  type: "pattern",
   id: createId(`pattern-clip`),
 });
 
@@ -79,7 +77,7 @@ export const isPatternClipId = (id: unknown): id is PatternClipId => {
 export const isPortaledPatternClip = (
   clip: unknown
 ): clip is PortaledPatternClip => {
-  return isObject(clip) && clip.type === "pattern";
+  return isObject(clip) && isPatternClip(clip);
 };
 
 /** Checks if a given ID is a `PortaledPatternClipId`. */

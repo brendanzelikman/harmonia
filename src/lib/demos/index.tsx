@@ -1,14 +1,23 @@
 import { BaseProject } from "app/reducer";
 import Sentence from "lib/demos/sentence.json";
 import Moonlight from "lib/demos/moonlight.json";
+import Robot from "lib/demos/chat.json";
 import Prelude from "lib/demos/prelude.json";
 import Scherzo from "lib/demos/scherzo.json";
 import Barry from "lib/demos/barry.json";
+import Bird from "lib/demos/bird.json";
 import Waves from "lib/demos/waves.json";
-import Waltz from "lib/demos/waltz.json";
 import Sheep from "lib/demos/sheep.json";
 import Exalted from "lib/demos/exalted.json";
 import Hyper from "lib/demos/hyper.json";
+import Lavos from "lib/demos/lavos.json";
+import {
+  GiFire,
+  GiPianoKeys,
+  GiQuill,
+  GiRetroController,
+  GiTrumpet,
+} from "react-icons/gi";
 
 type DemoProject = {
   project: BaseProject;
@@ -25,6 +34,11 @@ const PreludeDemo: DemoProject = {
   blurb: "A short piece imitating Chopin's Prelude in C major.",
 };
 
+const RobotDemo: DemoProject = {
+  project: Robot as unknown as BaseProject,
+  blurb: "A short piece based on a ChatGPT progression.",
+};
+
 const SentenceDemo: DemoProject = {
   project: Sentence as unknown as BaseProject,
   blurb: "A musical sentence (short, short, long).",
@@ -35,14 +49,14 @@ const ScherzoDemo: DemoProject = {
   blurb: "A short piece based on Mvt. 2 of Hammerklavier",
 };
 
-const WaltzDemo: DemoProject = {
-  project: Waltz as unknown as BaseProject,
-  blurb: "A waltz with interesting effects.",
+const BirdDemo: DemoProject = {
+  project: Bird as unknown as BaseProject,
+  blurb: "A short piece based on the Bird Changes.",
 };
 
 const BarryDemo: DemoProject = {
   project: Barry as unknown as BaseProject,
-  blurb: "A warmup based on a Barry Harris voicing.",
+  blurb: "Fly Me to the Moon with a Barry Harris voicing.",
 };
 
 const WavesDemo: DemoProject = {
@@ -60,8 +74,8 @@ const ExaltedDemo: DemoProject = {
   blurb: "A glimpse of a large-scale project.",
 };
 
-const HyperDemo: DemoProject = {
-  project: Hyper as unknown as BaseProject,
+const LavosDemo: DemoProject = {
+  project: Lavos as unknown as BaseProject,
   blurb: "An aggressive breakcore project.",
 };
 
@@ -70,30 +84,43 @@ export const DEMO_GENRES = [
   {
     key: "Classical",
     color: "border-sky-400 text-sky-400",
-    demos: [SentenceDemo, ScherzoDemo, MoonlightDemo],
+    icon: <GiPianoKeys />,
+    demos: [SentenceDemo, RobotDemo, MoonlightDemo],
   },
   {
     key: "Romantic",
     color: "border-indigo-300 text-indigo-300",
-    demos: [PreludeDemo, WaltzDemo],
+    icon: <GiQuill />,
+    demos: [PreludeDemo, ScherzoDemo],
   },
   {
     key: "Jazz",
     color: "border-orange-300 text-orange-300",
-    demos: [BarryDemo],
+    icon: <GiTrumpet />,
+    demos: [BirdDemo, BarryDemo],
   },
   {
-    key: "Electronica",
+    key: "Electronic",
     color: "border-emerald-300 text-emerald-300",
-    demos: [WavesDemo, SheepDemo, ExaltedDemo],
+    icon: <GiRetroController />,
+    demos: [WavesDemo, SheepDemo],
   },
   {
     key: "Techno",
     color: "border-red-400 text-red-400",
-    demos: [HyperDemo],
+    icon: <GiFire />,
+    demos: [ExaltedDemo, LavosDemo],
   },
 ] as const;
 
 export const DEMO_PROJECTS: DemoProject[] = DEMO_GENRES.flatMap(
   (genre) => genre.demos
+);
+
+export const DEMOS_BY_KEY: Record<string, DemoProject> = DEMO_PROJECTS.reduce(
+  (acc, demo) => {
+    acc[demo.project.meta.name.toLowerCase()] = demo;
+    return acc;
+  },
+  {} as Record<string, DemoProject>
 );

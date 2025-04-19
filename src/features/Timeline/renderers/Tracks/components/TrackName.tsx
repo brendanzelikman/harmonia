@@ -3,14 +3,14 @@ import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { selectCellHeight } from "types/Timeline/TimelineSelectors";
 import { selectTrackOrderById } from "types/Track/TrackSelectors";
 import { updateTrack } from "types/Track/TrackThunks";
-import { Track } from "types/Track/TrackTypes";
+import { isScaleTrack, Track } from "types/Track/TrackTypes";
 import { blurOnEnter } from "utils/event";
 
 export const TrackName = (props: { track: Track }) => {
   const { track } = props;
   const dispatch = useAppDispatch();
   const height = useAppValue(selectCellHeight);
-  const isST = track.type === "scale";
+  const isST = isScaleTrack(track);
   const isSmall = height < 100;
   const size = isSmall ? "text-xs h-6" : "text-sm h-7";
   const order = useAppValue((_) => selectTrackOrderById(_, track.id));

@@ -46,7 +46,6 @@ export type TrackRowMap = Record<TrackId, TrackRowData>;
 export type ITrack<T extends TrackType = TrackType> = {
   id: ITrackId<T>;
   trackIds: TrackId[];
-  type: T;
   name?: string;
   parentId?: TrackId;
   order?: number;
@@ -73,8 +72,8 @@ export type ITrackUpdate<T extends TrackType> = Update<ITrack<T>>;
 
 /** Re-initialize a track with a new ID. */
 export const initializeTrack = (track: Partial<Track>): Track => {
-  if (track.type === "scale") return initializeScaleTrack(track);
-  if (track.type === "pattern") return initializePatternTrack(track);
+  if (isScaleTrack(track)) return initializeScaleTrack(track);
+  if (isPatternTrack(track)) return initializePatternTrack(track);
   return { ...track, id: nanoid() } as Track;
 };
 

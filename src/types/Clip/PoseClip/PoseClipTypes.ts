@@ -27,10 +27,8 @@ export type PortaledPoseClipMap = Record<PortaledPoseClipId, PortaledPoseClip>;
 /** The default pose clip is used for initialization. */
 export const defaultPoseClip: PoseClip = {
   id: createId("pose-clip"),
-  type: "pose",
   trackId: "pattern-track_1",
   tick: 0,
-  offset: 0,
   poseId: createId("pose"),
 };
 

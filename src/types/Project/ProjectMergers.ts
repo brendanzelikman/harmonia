@@ -15,7 +15,7 @@ import {
 } from "types/utils";
 import { BaseProject, SafeBaseProject } from "app/reducer";
 import dayjs from "dayjs";
-import { Track } from "types/Track/TrackTypes";
+import { isScaleTrack, Track } from "types/Track/TrackTypes";
 import { PatternClip, PoseClip } from "types/Clip/ClipTypes";
 
 // Sanitize the base project by merging with default values
@@ -95,7 +95,7 @@ export const mergeBaseProjects = (
 
   // Remove all scale tracks with no scales
   tracks = filterEntityState(tracks, (t) => {
-    if (t.type === "scale") {
+    if (isScaleTrack(t)) {
       const hasScale = isIdInState(scales, t.scaleId);
       const hasParent = !t.parentId || isIdInState(tracks, t.parentId);
       return hasScale && hasParent;

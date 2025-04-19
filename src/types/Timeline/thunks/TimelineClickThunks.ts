@@ -1,7 +1,10 @@
 import { createUndoType, Payload, unpackUndoType } from "types/redux";
 import { without, union } from "lodash";
-import { updateClip } from "types/Clip/ClipSlice";
-import { Clip, initializeClip } from "types/Clip/ClipTypes";
+import {
+  Clip,
+  initializePatternClip,
+  initializePoseClip,
+} from "types/Clip/ClipTypes";
 import {
   getMediaStartTick,
   getMediaEndTick,
@@ -84,12 +87,13 @@ export const onCellClick =
 
     // Add clips
     if (isAddingClips) {
-      dispatch(
-        createMedia({
-          data: { clips: [initializeClip({ trackId, tick, type })] },
-          undoType,
-        })
-      );
+      if (type === "pattern") {
+        const clip = initializePatternClip({ trackId, tick });
+        dispatch(createMedia({ data: { clips: [clip] }, undoType }));
+      } else if (type === "pose") {
+        const clip = initializePoseClip({ trackId, tick });
+        dispatch(createMedia({ data: { clips: [clip] }, undoType }));
+      }
       dispatch(toggleTimelineState({ data: "adding-clips", undoType }));
       return;
     }
@@ -171,11 +175,8 @@ export const onClipClick =
     const holdingShift = e.shiftKey;
     const holdingOption = e.altKey;
     const project = getProject();
-    const isAddingClips = selectIsAddingClips(project);
     const selectedClipIds = selectSelectedClipIds(project);
     const selectedClipIdMap = selectSelectedClipIdMap(project);
-    const motifField = `${clip.type}Id` as keyof Clip;
-    const motifId = clip[motifField];
     const id = clip.id;
     const isClipSelected = selectedClipIdMap[id];
 
@@ -183,12 +184,6 @@ export const onClipClick =
     if (holdingOption) {
       dispatch(toggleClipIdInSelection({ data: id, undoType }));
       return;
-    }
-
-    // Update the clip's motif if adding clips
-    if (isAddingClips && motifId) {
-      const data = { ...clip, [motifField]: motifId };
-      dispatch(updateClip({ data, undoType }));
     }
 
     // Select a range of clips if the user is holding shift
@@ -242,8 +237,7 @@ export const selectRangeOfClips =
     if (!selectedClips.length && selectedTrackId) {
       startTick = Math.min(currentTick, clip.tick);
       endTick = Math.max(currentTick, clip.tick + clip.duration) + 1;
-      const dummy = initializeClip({
-        type: "pattern",
+      const dummy = initializePatternClip({
         tick: currentTick,
         trackId: selectedTrackId,
         duration: 1,

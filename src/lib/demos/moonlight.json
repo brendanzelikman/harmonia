@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "project-ndhuyC8T-wau9mYpAiUrS",
-    "name": "Moonlight",
+    "name": "Moonlight (Excerpt)",
     "dateCreated": "2025-04-03T12:16:35-04:00",
     "lastUpdated": "2025-04-03T12:16:35-04:00",
     "diary": ["", "", "", "", "", "", "", "", "", ""]
@@ -9,14 +9,12 @@
   "tracks": {
     "entities": {
       "scale-track_D4KL3DL54PsZPD9oQ01G_": {
-        "type": "scale",
         "id": "scale-track_D4KL3DL54PsZPD9oQ01G_",
         "scaleId": "scale_88kSJj4Y-CLkOYiNJd88L",
         "trackIds": ["scale-track_TD16hQF58ZlFAEkX4DzF0"],
         "order": 0
       },
       "scale-track_TD16hQF58ZlFAEkX4DzF0": {
-        "type": "scale",
         "id": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
         "trackIds": [
@@ -27,7 +25,6 @@
         "order": 0
       },
       "pattern-track_wh4UkRqeNde7kxHHwvWcp": {
-        "type": "pattern",
         "id": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "instrumentId": "oFHRMlUP9O8FjRXAmxJ4D",
         "trackIds": [],
@@ -35,7 +32,6 @@
         "order": 0
       },
       "pattern-track_BoL777Sms-MvHklxXuA4B": {
-        "type": "pattern",
         "id": "pattern-track_BoL777Sms-MvHklxXuA4B",
         "instrumentId": "F3hZ4LyyENz7XuSVy1pkY",
         "trackIds": [],
@@ -134,7 +130,6 @@
     "entities": {
       "pattern_oVt8sdRn6cWcRDETcXCUC": {
         "id": "pattern_oVt8sdRn6cWcRDETcXCUC",
-        "name": "New Pattern",
         "stream": [
           [
             {
@@ -185,7 +180,6 @@
       },
       "pattern_IsIoNm5r2VI0bjH1vg04b": {
         "id": "pattern_IsIoNm5r2VI0bjH1vg04b",
-        "name": "New Pattern 2",
         "stream": [
           [
             {
@@ -214,7 +208,6 @@
       },
       "pattern_W_NhaP7cEjFdVrW-Z6s8T": {
         "id": "pattern_W_NhaP7cEjFdVrW-Z6s8T",
-        "name": "New Pattern 3",
         "stream": [
           [
             {
@@ -259,7 +252,6 @@
       },
       "pattern_MbFJkkX24iJ8H0fqIVHes": {
         "id": "pattern_MbFJkkX24iJ8H0fqIVHes",
-        "name": "New Pattern 4",
         "stream": [
           [
             {
@@ -290,7 +282,6 @@
     "entities": {
       "pose_mh--xU-63U4IIVffk_3wd": {
         "id": "pose_mh--xU-63U4IIVffk_3wd",
-        "name": "New Pose",
         "vector": {
           "chordal": 1
         },
@@ -298,14 +289,12 @@
       },
       "pose_yLGqEJVtCPzSdOgJs-Tn9": {
         "id": "pose_yLGqEJVtCPzSdOgJs-Tn9",
-        "name": "New Pose 7",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "reset": true,
         "vector": {}
       },
       "pose_ZZtZc9CbTTEh32C1UkZwX": {
         "id": "pose_ZZtZc9CbTTEh32C1UkZwX",
-        "name": "New Pose 10",
         "vector": {
           "chordal": -2,
           "scale-track_D4KL3DL54PsZPD9oQ01G_": 2,
@@ -315,7 +304,6 @@
       },
       "pose_JpWHVKruGGdGaW4ikfd1T": {
         "id": "pose_JpWHVKruGGdGaW4ikfd1T",
-        "name": "New Pose 7 Copy",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "reset": true,
         "vector": {}
@@ -330,14 +318,12 @@
       },
       "pose_iqTu2iU4hnyyVhGSrCzyy": {
         "id": "pose_iqTu2iU4hnyyVhGSrCzyy",
-        "name": "New Pose 7 Copy 2",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "reset": true,
         "vector": {}
       },
       "pose_A-SnJDZjCrBUY205n3iVF": {
         "id": "pose_A-SnJDZjCrBUY205n3iVF",
-        "name": "New Pose 17",
         "vector": {
           "scale-track_D4KL3DL54PsZPD9oQ01G_": 1,
           "chromatic": -7
@@ -346,13 +332,11 @@
       },
       "pose_in6tLm6eeLNpDJ5J31xTS": {
         "id": "pose_in6tLm6eeLNpDJ5J31xTS",
-        "name": "New Pose 18",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "reset": true
       },
       "pose_dPSFW4Y3E6_2FtsySN4Ob": {
         "id": "pose_dPSFW4Y3E6_2FtsySN4Ob",
-        "name": "New Pose 21",
         "vector": {
           "octave": 1
         },
@@ -360,7 +344,6 @@
       },
       "pose_I2NbI2scaDtclOSuwgTzY": {
         "id": "pose_I2NbI2scaDtclOSuwgTzY",
-        "name": "New Pose 22",
         "vector": {
           "octave": 1
         },
@@ -368,7 +351,6 @@
       },
       "pose_wkii-fLc5VxvSFRQW66v8": {
         "id": "pose_wkii-fLc5VxvSFRQW66v8",
-        "name": "New Pose 23",
         "trackId": "scale-track_D4KL3DL54PsZPD9oQ01G_",
         "vector": {
           "chordal": 2,
@@ -378,7 +360,6 @@
       },
       "pose_YAwGFTXqPf1UE6wDELpXH": {
         "id": "pose_YAwGFTXqPf1UE6wDELpXH",
-        "name": "New Pose 24",
         "vector": {
           "scale-track_D4KL3DL54PsZPD9oQ01G_": -1,
           "chordal": -2,
@@ -388,7 +369,6 @@
       },
       "pose_wJ4TpoAxz8Q9L4nvtU35G": {
         "id": "pose_wJ4TpoAxz8Q9L4nvtU35G",
-        "name": "New Pose 25",
         "vector": {
           "chromatic": 0
         },
@@ -396,14 +376,12 @@
       },
       "pose_qAfEsgYs406xHbbP31Jz-": {
         "id": "pose_qAfEsgYs406xHbbP31Jz-",
-        "name": "New Pose 26",
         "vector": {},
         "trackId": "pattern-track_BoL777Sms-MvHklxXuA4B",
         "reset": true
       },
       "pose_6ADXQkQqory5NhN_mYLnW": {
         "id": "pose_6ADXQkQqory5NhN_mYLnW",
-        "name": "New Pose 28",
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "reset": true,
         "vector": {
@@ -412,7 +390,6 @@
       },
       "pose_S7bIEIU93INbpPNJvidUT": {
         "id": "pose_S7bIEIU93INbpPNJvidUT",
-        "name": "New Pose 7 Copy 2",
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "reset": true,
         "vector": {}
@@ -441,133 +418,87 @@
     "entities": {
       "pattern-clip_DxHW9FVbwz_47m56qjWUB": {
         "id": "pattern-clip_DxHW9FVbwz_47m56qjWUB",
-        "type": "pattern",
         "trackId": "pattern-track_BoL777Sms-MvHklxXuA4B",
         "tick": 0,
-        "offset": 0,
         "patternId": "pattern_IsIoNm5r2VI0bjH1vg04b",
-        "isOpen": false,
-        "duration": 2303.9999999999995,
-        "name": "Fifth"
+        "duration": 2303.9999999999995
       },
       "pattern-clip_8DZuOf2mpBJKI3oyiT9MG": {
         "id": "pattern-clip_8DZuOf2mpBJKI3oyiT9MG",
-        "type": "pattern",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 24,
-        "offset": 0,
         "patternId": "pattern_oVt8sdRn6cWcRDETcXCUC",
-        "isOpen": false,
-        "duration": 648,
-        "name": "Arpeggio"
+        "duration": 648
       },
       "pattern-clip_mfYnliki70y_5yR9iALEf": {
         "id": "pattern-clip_mfYnliki70y_5yR9iALEf",
-        "type": "pattern",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 672,
-        "offset": 0,
         "patternId": "pattern_W_NhaP7cEjFdVrW-Z6s8T",
-        "isOpen": false,
-        "duration": 95.99999999999999,
-        "name": "Chords"
+        "duration": 95.99999999999999
       },
       "pattern-clip_6QuQe_anE9YGfn_OZr5kh": {
         "id": "pattern-clip_6QuQe_anE9YGfn_OZr5kh",
-        "type": "pattern",
         "trackId": "pattern-track_BoL777Sms-MvHklxXuA4B",
         "tick": 2304,
-        "offset": 0,
         "patternId": "pattern_MbFJkkX24iJ8H0fqIVHes",
-        "isOpen": false,
-        "duration": 767.9999999999999,
-        "name": "Octaves"
+        "duration": 767.9999999999999
       },
       "pattern-clip_GHlaC0DajTgDQO6KnRKzb": {
         "id": "pattern-clip_GHlaC0DajTgDQO6KnRKzb",
-        "type": "pattern",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2328,
-        "offset": 0,
         "patternId": "pattern_oVt8sdRn6cWcRDETcXCUC",
-        "isOpen": false,
         "duration": 264
       },
       "pattern-clip_cUzgTiicfKrplFhQPiDdy": {
         "id": "pattern-clip_cUzgTiicfKrplFhQPiDdy",
-        "type": "pattern",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2712,
-        "offset": 0,
         "patternId": "pattern_oVt8sdRn6cWcRDETcXCUC",
-        "isOpen": false,
         "duration": 264
       },
       "pattern-clip_z2mWl1pb3QC2veQ-wEbsj": {
         "id": "pattern-clip_z2mWl1pb3QC2veQ-wEbsj",
-        "type": "pattern",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1560,
-        "offset": 0,
         "patternId": "pattern_oVt8sdRn6cWcRDETcXCUC",
-        "isOpen": false,
-        "duration": 648,
-        "name": "Arpeggio"
+        "duration": 648
       },
       "pattern-clip_5pQ8HkiXDlZqZhrqM1QfZ": {
         "id": "pattern-clip_5pQ8HkiXDlZqZhrqM1QfZ",
-        "type": "pattern",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 792,
-        "offset": 0,
         "patternId": "pattern_oVt8sdRn6cWcRDETcXCUC",
-        "isOpen": false,
-        "duration": 648,
-        "name": "Arpeggio"
+        "duration": 648
       },
       "pattern-clip_fJb8JYmsr660zRInQ1Uo8": {
         "id": "pattern-clip_fJb8JYmsr660zRInQ1Uo8",
-        "type": "pattern",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1440,
-        "offset": 0,
         "patternId": "pattern_W_NhaP7cEjFdVrW-Z6s8T",
-        "isOpen": false,
-        "duration": 95.99999999999999,
-        "name": "Chords"
+        "duration": 95.99999999999999
       },
       "pattern-clip_DPY3yJTdja7DvMBH6Ja9A": {
         "id": "pattern-clip_DPY3yJTdja7DvMBH6Ja9A",
-        "type": "pattern",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2208,
-        "offset": 0,
         "patternId": "pattern_W_NhaP7cEjFdVrW-Z6s8T",
-        "isOpen": false,
-        "duration": 95.99999999999999,
-        "name": "Chords"
+        "duration": 95.99999999999999
       },
       "pattern-clip_kyUOEBmaeq4jHjVg8f3aT": {
         "id": "pattern-clip_kyUOEBmaeq4jHjVg8f3aT",
-        "type": "pattern",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2592,
-        "offset": 0,
         "patternId": "pattern_W_NhaP7cEjFdVrW-Z6s8T",
-        "isOpen": false,
-        "duration": 95.99999999999999,
-        "name": "Chords"
+        "duration": 95.99999999999999
       },
       "pattern-clip_mjK_vL_88yS5SO_ApjnJl": {
         "id": "pattern-clip_mjK_vL_88yS5SO_ApjnJl",
-        "type": "pattern",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2976,
-        "offset": 0,
         "patternId": "pattern_W_NhaP7cEjFdVrW-Z6s8T",
-        "isOpen": false,
-        "duration": 143.99999999999997,
-        "name": "Chords"
+        "duration": 143.99999999999997
       }
     },
     "ids": [
@@ -589,370 +520,219 @@
     "entities": {
       "pose-clip_Nzj8gs816Tgx_PMAOaAPI": {
         "id": "pose-clip_Nzj8gs816Tgx_PMAOaAPI",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 120,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_ecjk7zsF0MRnaVCZ-r60K": {
         "id": "pose-clip_ecjk7zsF0MRnaVCZ-r60K",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 672,
-        "offset": 0,
-        "poseId": "pose_yLGqEJVtCPzSdOgJs-Tn9",
-        "isOpen": false,
-        "duration": null
+        "poseId": "pose_yLGqEJVtCPzSdOgJs-Tn9"
       },
       "pose-clip_Qa2AtUm8aOqgh2gc_ay79": {
         "id": "pose-clip_Qa2AtUm8aOqgh2gc_ay79",
-        "type": "pose",
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "tick": 768,
-        "offset": 0,
-        "poseId": "pose_ZZtZc9CbTTEh32C1UkZwX",
-        "isOpen": false
+        "poseId": "pose_ZZtZc9CbTTEh32C1UkZwX"
       },
       "pose-clip_LpVLSmq0vS-7HHzPc9AOd": {
         "id": "pose-clip_LpVLSmq0vS-7HHzPc9AOd",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1440,
-        "offset": 0,
-        "poseId": "pose_JpWHVKruGGdGaW4ikfd1T",
-        "isOpen": false,
-        "duration": null
+        "poseId": "pose_JpWHVKruGGdGaW4ikfd1T"
       },
       "pose-clip_RBmVjXEngJiviunUZwz4Z": {
         "id": "pose-clip_RBmVjXEngJiviunUZwz4Z",
-        "type": "pose",
         "trackId": "scale-track_D4KL3DL54PsZPD9oQ01G_",
         "tick": 1536,
-        "offset": 0,
         "poseId": "pose_oPpIbHSB_uaF25jsU5b1x"
       },
       "pose-clip_c0nqvF4rVeZKWanSh-D3s": {
         "id": "pose-clip_c0nqvF4rVeZKWanSh-D3s",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2208,
-        "offset": 0,
-        "poseId": "pose_iqTu2iU4hnyyVhGSrCzyy",
-        "isOpen": false,
-        "duration": null
+        "poseId": "pose_iqTu2iU4hnyyVhGSrCzyy"
       },
       "pose-clip_EiSrjAD_NSVAaGN7On7dH": {
         "id": "pose-clip_EiSrjAD_NSVAaGN7On7dH",
-        "type": "pose",
         "trackId": "pattern-track_BoL777Sms-MvHklxXuA4B",
         "tick": 1536,
-        "offset": 0,
-        "poseId": "pose_A-SnJDZjCrBUY205n3iVF",
-        "isOpen": false
+        "poseId": "pose_A-SnJDZjCrBUY205n3iVF"
       },
       "pose-clip_ByYT8y6vviMOko94kpIS-": {
         "id": "pose-clip_ByYT8y6vviMOko94kpIS-",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2592,
-        "offset": 0,
-        "poseId": "pose_in6tLm6eeLNpDJ5J31xTS",
-        "isOpen": false,
-        "duration": null
+        "poseId": "pose_in6tLm6eeLNpDJ5J31xTS"
       },
       "pose-clip_JHy3kAcr1iSlugmvO6bKx": {
         "id": "pose-clip_JHy3kAcr1iSlugmvO6bKx",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2424,
-        "offset": 0,
-        "poseId": "pose_dPSFW4Y3E6_2FtsySN4Ob",
-        "duration": null,
-        "isOpen": false
+        "poseId": "pose_dPSFW4Y3E6_2FtsySN4Ob"
       },
       "pose-clip_VcLhXmlEhUvTAWrSqQS8r": {
         "id": "pose-clip_VcLhXmlEhUvTAWrSqQS8r",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2520,
-        "offset": 0,
-        "poseId": "pose_I2NbI2scaDtclOSuwgTzY",
-        "duration": null,
-        "isOpen": false
+        "poseId": "pose_I2NbI2scaDtclOSuwgTzY"
       },
       "pose-clip_3DWk-9_H5ZaltP60YV2ua": {
         "id": "pose-clip_3DWk-9_H5ZaltP60YV2ua",
-        "type": "pose",
         "trackId": "scale-track_D4KL3DL54PsZPD9oQ01G_",
         "tick": 2688,
-        "offset": 0,
-        "poseId": "pose_wkii-fLc5VxvSFRQW66v8",
-        "isOpen": false
+        "poseId": "pose_wkii-fLc5VxvSFRQW66v8"
       },
       "pose-clip_fCltCsfBqb5h39N7bvRUK": {
         "id": "pose-clip_fCltCsfBqb5h39N7bvRUK",
-        "type": "pose",
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "tick": 2688,
-        "offset": 0,
-        "poseId": "pose_YAwGFTXqPf1UE6wDELpXH",
-        "isOpen": false
+        "poseId": "pose_YAwGFTXqPf1UE6wDELpXH"
       },
       "pose-clip_d7ei8-dssg3k3ygUYTZfu": {
         "id": "pose-clip_d7ei8-dssg3k3ygUYTZfu",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2808,
-        "offset": 0,
-        "poseId": "pose_dPSFW4Y3E6_2FtsySN4Ob",
-        "duration": null
+        "poseId": "pose_dPSFW4Y3E6_2FtsySN4Ob"
       },
       "pose-clip_IKLu1O6pAPamMtEnbNGjy": {
         "id": "pose-clip_IKLu1O6pAPamMtEnbNGjy",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2904,
-        "offset": 0,
-        "poseId": "pose_I2NbI2scaDtclOSuwgTzY",
-        "duration": null
+        "poseId": "pose_I2NbI2scaDtclOSuwgTzY"
       },
       "pose-clip_tCjmF4QQ7mp5Okr-xpzbr": {
         "id": "pose-clip_tCjmF4QQ7mp5Okr-xpzbr",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2976,
-        "offset": 0,
-        "poseId": "pose_in6tLm6eeLNpDJ5J31xTS",
-        "isOpen": false,
-        "duration": null
+        "poseId": "pose_in6tLm6eeLNpDJ5J31xTS"
       },
       "pose-clip_9JOAbQeU1mZvEwWqU8YXR": {
         "id": "pose-clip_9JOAbQeU1mZvEwWqU8YXR",
-        "type": "pose",
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "tick": 2884,
-        "offset": 0,
-        "poseId": "pose_wJ4TpoAxz8Q9L4nvtU35G",
-        "isOpen": false
+        "poseId": "pose_wJ4TpoAxz8Q9L4nvtU35G"
       },
       "pose-clip_FTm_P7wdPvwg42YbD3cvb": {
         "id": "pose-clip_FTm_P7wdPvwg42YbD3cvb",
-        "type": "pose",
         "trackId": "pattern-track_BoL777Sms-MvHklxXuA4B",
         "tick": 2304,
-        "offset": 0,
-        "poseId": "pose_qAfEsgYs406xHbbP31Jz-",
-        "isOpen": false
+        "poseId": "pose_qAfEsgYs406xHbbP31Jz-"
       },
       "pose-clip_JakyV7rpaDIrE-pnyHQkR": {
         "id": "pose-clip_JakyV7rpaDIrE-pnyHQkR",
-        "type": "pose",
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "tick": 3072,
-        "offset": 0,
-        "poseId": "pose_6ADXQkQqory5NhN_mYLnW",
-        "isOpen": false
+        "poseId": "pose_6ADXQkQqory5NhN_mYLnW"
       },
       "pose-clip_TP7aABtEDm8IFSoN8uQiS": {
         "id": "pose-clip_TP7aABtEDm8IFSoN8uQiS",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 216,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_GXy8C8RwV4Fmlqc21ltOx": {
         "id": "pose-clip_GXy8C8RwV4Fmlqc21ltOx",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 312,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_eaQAmePMeo0sVypvqMpW8": {
         "id": "pose-clip_eaQAmePMeo0sVypvqMpW8",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 408,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_mbhi-z_304RvejT81_ujc": {
         "id": "pose-clip_mbhi-z_304RvejT81_ujc",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 504,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_l8V-me2yjlaQ9i0nDp9P9": {
         "id": "pose-clip_l8V-me2yjlaQ9i0nDp9P9",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 600,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_qOmukZx6mGS4dLLTqw4Lb": {
         "id": "pose-clip_qOmukZx6mGS4dLLTqw4Lb",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1656,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_E90I89bhI8uIdaRx9vOxl": {
         "id": "pose-clip_E90I89bhI8uIdaRx9vOxl",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1752,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_ILR0LyN5xEiDekA-lPMmi": {
         "id": "pose-clip_ILR0LyN5xEiDekA-lPMmi",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1848,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_R1UuuK5MfoIs4mp2NpV_C": {
         "id": "pose-clip_R1UuuK5MfoIs4mp2NpV_C",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1944,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_9RvxOfjHvSeUjdCc9N9g4": {
         "id": "pose-clip_9RvxOfjHvSeUjdCc9N9g4",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2040,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_zG1_NvexCpRmkWXkoCl0I": {
         "id": "pose-clip_zG1_NvexCpRmkWXkoCl0I",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 2136,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_5wLKw6lO7-sqOeJUN6iu_": {
         "id": "pose-clip_5wLKw6lO7-sqOeJUN6iu_",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 888,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_vCxNJCB8tsmURzeqVprZN": {
         "id": "pose-clip_vCxNJCB8tsmURzeqVprZN",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 984,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_yGc6sxG9EzCdBWwBgDStc": {
         "id": "pose-clip_yGc6sxG9EzCdBWwBgDStc",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1080,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_u-PMqfNJJGEkmRJbz7X4t": {
         "id": "pose-clip_u-PMqfNJJGEkmRJbz7X4t",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1176,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_ZpFERe0iuGN4htrXJ8JBf": {
         "id": "pose-clip_ZpFERe0iuGN4htrXJ8JBf",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1272,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_hFqdNq-JZN1i8fNhsEDXW": {
         "id": "pose-clip_hFqdNq-JZN1i8fNhsEDXW",
-        "type": "pose",
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 1368,
-        "offset": 0,
-        "poseId": "pose_mh--xU-63U4IIVffk_3wd",
-        "duration": null,
-        "isOpen": false,
-        "name": "OneUp"
+        "poseId": "pose_mh--xU-63U4IIVffk_3wd"
       },
       "pose-clip_QsJIDeiJpK8lX397lgYnA": {
         "id": "pose-clip_QsJIDeiJpK8lX397lgYnA",
-        "type": "pose",
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "tick": 2304,
-        "offset": 0,
-        "poseId": "pose_S7bIEIU93INbpPNJvidUT",
-        "isOpen": false,
-        "duration": null
+        "poseId": "pose_S7bIEIU93INbpPNJvidUT"
       }
     },
     "ids": [
@@ -1025,16 +805,9 @@
   },
   "timeline": {
     "state": "idle",
-    "type": "pattern",
     "fragment": {},
-    "clipboard": {
-      "clips": [],
-      "portals": []
-    },
-    "selection": {
-      "clipIds": [],
-      "portalIds": []
-    },
+    "clipboard": { "clips": [], "portals": [] },
+    "selection": { "clipIds": [], "portalIds": [] },
     "subdivision": "8n",
     "cellWidth": 25,
     "cellHeight": 120
@@ -1047,8 +820,6 @@
     "volume": 0,
     "mute": false,
     "timeSignature": 4,
-    "swing": 0,
-    "recording": false,
-    "downloading": false
+    "swing": 0
   }
 }

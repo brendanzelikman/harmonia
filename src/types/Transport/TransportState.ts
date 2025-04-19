@@ -51,8 +51,8 @@ export const useTransportState = () => {
 export const startTransport = (): Thunk => async (dispatch) => {
   if (Tone.getContext().state !== "running") return;
   dispatch(scheduleTransport());
-  Tone.getTransport().start();
   dispatchStartTransport();
+  Tone.getTransport().start();
 };
 
 /** Pause the transport, canceling all scheduled events. */

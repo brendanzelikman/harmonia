@@ -37,7 +37,7 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   const { pcId, id, isDragging } = props;
   const dispatch = useAppDispatch();
   const clip = useAppValue((_) => selectPortaledPatternClip(_, pcId));
-  const { trackId, type } = clip;
+  const { trackId } = clip;
   const isSelected = useAppValue((_) => selectIsClipSelected(_, id));
   const [isOpen, setIsOpen] = useState(false);
   const handleDropdown = useCallback(
@@ -82,7 +82,7 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   return (
     <div
       ref={drag}
-      data-type={type}
+      data-type="pattern"
       data-open={!!isOpen}
       data-selected={isSelected}
       data-blur={isBlurred}

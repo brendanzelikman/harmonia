@@ -3,7 +3,6 @@ import { Tick } from "types/units";
 import { selectPatternClipsByIds, selectTimedClipById } from "./ClipSelectors";
 import { Thunk } from "types/Project/ProjectTypes";
 import {
-  initializeClip,
   ClipId,
   PortaledClipId,
   isPatternClipId,
@@ -17,7 +16,7 @@ import {
 import { selectMeta } from "types/Meta/MetaSelectors";
 import { selectTransportBPM } from "types/Transport/TransportSelectors";
 import { Payload, unpackData, unpackUndoType } from "types/redux";
-import { addClips, removeClip } from "./ClipSlice";
+import { removeClip } from "./ClipSlice";
 import { downloadBlob } from "utils/event";
 import {
   selectTrackDescendantIds,
@@ -28,6 +27,7 @@ import { ticksToSeconds } from "utils/duration";
 import { TrackId } from "types/Track/TrackTypes";
 import { isScaleTrackId } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
+import { createMedia } from "types/Media/MediaThunks";
 
 // ------------------------------------------------------------
 // Clip Timeline Thunks
@@ -49,14 +49,16 @@ export const sliceClip =
     if (splitTick < 0 || splitTick > clip.tick + clip.duration) return;
 
     // Get the two new clips
-    const firstClip = initializeClip({ ...clip, duration: splitTick });
+    const firstClip = { ...clip, duration: splitTick };
     const offset = (clip.offset || 0) + splitTick;
     const duration = clip.duration - splitTick;
-    const secondClip = initializeClip({ ...clip, tick, offset, duration });
+    const secondClip = { ...clip, tick, offset, duration };
 
     // Slice the clip
     dispatch(removeClip({ data: id, undoType }));
-    dispatch(addClips({ data: [firstClip, secondClip], undoType }));
+    dispatch(
+      createMedia({ data: { clips: [firstClip, secondClip] }, undoType })
+    );
   };
 
 // ------------------------------------------------------------

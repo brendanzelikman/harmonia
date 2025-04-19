@@ -15,6 +15,8 @@ import {
   PoseClipId,
   PoseClip,
   PatternClip,
+  isPatternClip,
+  isPoseClip,
 } from "./ClipTypes";
 import { getPoseDuration } from "types/Pose/PoseFunctions";
 import {
@@ -153,8 +155,8 @@ export const selectClipMotifMap = createDeepSelector(
   (clips, patterns, poses) => {
     return mapValues(clips, (clip) => {
       if (!clip) return undefined;
-      if (clip.type === "pattern") return patterns[clip.patternId];
-      if (clip.type === "pose") return poses[clip.poseId];
+      if (isPatternClip(clip)) return patterns[clip.patternId];
+      if (isPoseClip(clip)) return poses[clip.poseId];
       return undefined;
     });
   }
@@ -246,12 +248,12 @@ export const selectClipNameMap = createSelector(
     mapValues(clipMap, (clip) => {
       if (!clip) return undefined;
       if (clip.name) return clip.name;
-      if (clip.type === "pattern")
+      if (isPatternClip(clip))
         return (
           patternMap[clip.patternId]?.name ??
           `Pattern ${patternIds.indexOf(clip.patternId) + 1}`
         );
-      if (clip.type === "pose")
+      if (isPoseClip(clip))
         return (
           poseMap[clip.poseId]?.name ??
           `Pose ${poseIds.indexOf(clip.poseId) + 1}`

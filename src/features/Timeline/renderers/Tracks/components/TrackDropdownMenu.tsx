@@ -41,7 +41,7 @@ import {
   insertRandomParent,
 } from "types/Track/TrackThunks";
 import { TrackDropdownButton } from "./TrackDropdownButton";
-import { Track } from "types/Track/TrackTypes";
+import { isPatternTrack, Track } from "types/Track/TrackTypes";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import classNames from "classnames";
 import {
@@ -64,7 +64,7 @@ export const TrackDropdownMenu = (props: {
   const dispatch = useAppDispatch();
   const { track } = props;
   const trackId = track.id;
-  const isPT = track.type === "pattern";
+  const isPT = isPatternTrack(track);
   const mini = track.collapsed;
   const hasMini = useAppValue((_) => selectTrackChildren(_, trackId)).some(
     (child) => child.collapsed

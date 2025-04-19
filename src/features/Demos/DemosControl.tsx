@@ -15,14 +15,14 @@ export const DemosControl = () => {
       {DEMO_GENRES.map((genre) => (
         <Popover className="relative" key={genre.key}>
           <PopoverButton
-            className={`w-36 h-12 rounded-3xl xl:rounded capitalize border text-xl font-light ${genre.color} select-none cursor-pointer focus:outline-none`}
+            className={`w-36 total-center gap-2 h-12 rounded-3xl xl:rounded capitalize border text-xl font-light ${genre.color} select-none cursor-pointer focus:outline-none`}
             onFocus={blurEvent}
           >
-            {genre.key}
+            {genre.icon} {genre.key}
           </PopoverButton>
           <PopoverPanel
             anchor="bottom"
-            className="flex animate-in fade-in zoom-in-50 flex-col p-2 w-36 gap-2 mt-1 bg-slate-950/80 backdrop-blur border rounded"
+            className="flex animate-in fade-in zoom-in-50 flex-col p-2 min-w-36 gap-2 mt-1 bg-slate-950/80 backdrop-blur border rounded"
           >
             {genre.demos.map((demo) => (
               <div

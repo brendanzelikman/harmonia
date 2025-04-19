@@ -7,7 +7,6 @@ export type ScaleTrackMap = Record<ScaleTrackId, ScaleTrack>;
 
 /** The default scale track is used for initialization. */
 export const defaultScaleTrack: ScaleTrack = {
-  type: "scale",
   id: createId("scale-track"),
   scaleId: "scale_track_scale",
   trackIds: [],

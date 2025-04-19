@@ -37,6 +37,7 @@ import {
   isPatternClip,
   isPoseClip,
   ClipType,
+  initializePoseClip,
 } from "types/Clip/ClipTypes";
 import {
   selectClipDuration,
@@ -109,12 +110,12 @@ export const createMedia =
     clips.forEach((clip, i) => {
       const patternMap = selectPatternMap(project);
       const poseMap = selectPoseMap(project);
-      if (clip.type === "pattern" && !(clip.patternId in patternMap)) {
+      if (isPatternClip(clip) && !(clip.patternId in patternMap)) {
         clips[i] = {
           ...clip,
           patternId: dispatch(createPattern({ data: {}, undoType })).id,
         };
-      } else if (clip.type === "pose" && !(clip.poseId in poseMap)) {
+      } else if (isPoseClip(clip) && !(clip.poseId in poseMap)) {
         clips[i] = {
           ...clip,
           poseId: dispatch(createPose({ data: {}, undoType })).id,
@@ -171,9 +172,9 @@ export const deleteMedia =
       );
       if (!motifClipIds || motifClipIds.length > 0) continue;
 
-      if (clip.type === "pattern") {
+      if (isPatternClip(clip)) {
         dispatch(removePattern({ data: clip.patternId, undoType }));
-      } else if (clip.type === "pose") {
+      } else if (isPoseClip(clip)) {
         dispatch(removePose({ data: clip.poseId, undoType }));
       }
     }
@@ -626,7 +627,7 @@ export const onMediaDragEnd =
           ).id;
           dispatch(
             addClip({
-              data: initializeClip({ ...clip, patternId: newPatternId }),
+              data: initializePatternClip({ ...clip, patternId: newPatternId }),
               undoType,
             })
           );
@@ -637,7 +638,7 @@ export const onMediaDragEnd =
           ).id;
           dispatch(
             addClip({
-              data: initializeClip({ ...clip, poseId: newPoseId }),
+              data: initializePoseClip({ ...clip, poseId: newPoseId }),
               undoType,
             })
           );

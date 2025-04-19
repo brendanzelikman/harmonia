@@ -6,8 +6,8 @@ import { isScaleTrackId, ScaleTrackId } from "./ScaleTrack/ScaleTrackTypes";
 // Track Map Properties
 // ------------------------------------------------------------
 
-export const getTrackSortOrder = (a?: Track) =>
-  a?.order ?? (a?.type === "scale" ? 1 : 0);
+export const getTrackSortOrder = (track?: Track) =>
+  track?.order ?? (isScaleTrack(track) ? 1 : 0);
 
 export const getTopLevelTracks = (trackMap: TrackMap) => {
   const tracks = Object.values(trackMap);

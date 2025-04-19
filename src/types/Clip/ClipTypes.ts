@@ -1,7 +1,11 @@
 import { Id, Tick, Update } from "types/units";
 import { PatternClipColor } from "./PatternClip/PatternClipThemes";
-import { PatternClip, PatternClipId } from "./PatternClip/PatternClipTypes";
-import { PoseClip, PoseClipId } from "./PoseClip/PoseClipTypes";
+import {
+  isPatternClip,
+  PatternClip,
+  PatternClipId,
+} from "./PatternClip/PatternClipTypes";
+import { isPoseClip, PoseClip, PoseClipId } from "./PoseClip/PoseClipTypes";
 import { initializePatternClip } from "./PatternClip/PatternClipTypes";
 import { initializePoseClip } from "./PoseClip/PoseClipTypes";
 import { PatternId } from "types/Pattern/PatternTypes";
@@ -35,7 +39,6 @@ export type IClip<T extends ClipType = ClipType> = {
   id: IClipId<T>;
   trackId: TrackId;
   tick: Tick;
-  type: T;
   offset?: Tick;
   duration?: Tick;
   name?: string;
@@ -58,11 +61,11 @@ export type IClipId<T extends ClipType = ClipType> = Id<`${T}-clip`>;
 
 /** Create a clip with a unique ID. */
 export function initializeClip<T extends ClipType>(
-  clip: Partial<IClip<T>>
+  clip: Partial<IClip<T>> & { id: IClipId<T> }
 ): Clip {
-  if (clip.type === "pattern")
+  if (isPatternClip(clip))
     return initializePatternClip(clip as Partial<PatternClip>);
-  else if (clip.type === "pose")
+  else if (isPoseClip(clip))
     return initializePoseClip(clip as Partial<PoseClip>);
-  else throw new Error(`Invalid clip type: ${clip.type}`);
+  throw new Error(`Invalid clip type`);
 }

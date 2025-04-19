@@ -1,7 +1,7 @@
 import { selectMidiChordsByTicks } from "types/Arrangement/ArrangementSelectors";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { playPatternChord } from "types/Pattern/PatternThunks";
-import { EighthNoteTicks, PPQ } from "utils/duration";
+import { EighthNoteTicks, PPQ, SixteenthNoteTicks } from "utils/duration";
 import { selectTransport } from "./TransportSelectors";
 import { dispatchTick } from "./TransportTick";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -10,7 +10,7 @@ import { getDestination, getTransport } from "tone";
 let scheduleId: number | undefined = undefined;
 
 /** Schedule the main transport audio loop. */
-export const scheduleTransport = (): Thunk => (_, getProject) => {
+export const scheduleTransport = (): Thunk => async (_, getProject) => {
   let startTime = getTransport().now();
   let startSeconds = getTransport().seconds;
 
@@ -48,7 +48,7 @@ export const scheduleTransport = (): Thunk => (_, getProject) => {
     dispatchTick(newTick);
 
     // If swinging, offset the time
-    const stepIndex = Math.floor(newTick / EighthNoteTicks);
+    const stepIndex = Math.floor(newTick / SixteenthNoteTicks);
     const isSwing = stepIndex % 2 === 1;
     if (swing && isSwing) {
       const swingOffset = (60 / bpm) * (swing / 8);

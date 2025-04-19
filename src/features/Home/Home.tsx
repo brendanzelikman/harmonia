@@ -7,12 +7,23 @@ import DemosPage from "features/Demos/Demos";
 import PlaygroundPage from "features/Playground/Playground";
 import ProjectPage from "features/Projects/Projects";
 import SamplePage from "features/Samples/Samples";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { DEMOS_BY_KEY } from "lib/demos";
+import { loadDemoProject } from "types/Project/ProjectLoaders";
 
 export function HomePage() {
+  const navigate = useNavigate();
   const view = useRoute();
-  const isLoaded = useProject();
+  const { id } = useParams();
+  useEffect(() => {
+    if (view.startsWith("demos") && !!id) {
+      const demo = DEMOS_BY_KEY[id];
+      if (demo) loadDemoProject(demo.project, () => navigate("/playground"));
+    }
+  }, [view, id]);
+  useProject();
   useWindow();
-  if (!isLoaded) return null;
   return (
     <div className="size-full relative">
       <Navbar />

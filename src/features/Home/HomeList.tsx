@@ -6,7 +6,7 @@ import { PropsWithChildren, useCallback, useRef } from "react";
 export const HomeList = (props: PropsWithChildren<{ signal: string }>) => {
   const listRef = useRef<HTMLDivElement>(null);
   const resetScroll = useCallback(() => {
-    setTimeout(() => listRef.current?.scrollTo(0, 0), 50);
+    setTimeout(() => listRef.current?.scrollTo(0, 0), 100);
   }, []);
   useEvent(props.signal, resetScroll);
   return (

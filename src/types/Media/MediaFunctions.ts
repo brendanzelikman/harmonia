@@ -9,7 +9,7 @@ import { isFinite } from "utils/math";
 
 /** Get the clips from the media. */
 export const getClipsFromMedia = (media: Media) => {
-  return media.filter((item) => "type" in item);
+  return media.filter((item) => "patternId" in item || "poseId" in item);
 };
 
 /** Get the portals from the media. */

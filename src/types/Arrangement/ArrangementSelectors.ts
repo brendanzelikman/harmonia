@@ -35,6 +35,7 @@ import { selectPoseState } from "types/Pose/PoseSelectors";
 import { getPatternClipMidiStream } from "./ArrangementFunctions";
 import { TrackArrangement } from "./ArrangementTypes";
 import { Project } from "types/Project/ProjectTypes";
+import { isScaleTrack } from "types/Track/TrackTypes";
 
 /** Select the map of all portaled clips. */
 export const selectPortaledClipMap = createDeepSelector(
@@ -196,7 +197,7 @@ export const selectMidiChordsByTicks = createDeepSelector(
       // Get the instrument of the pattern tracks
       const trackId = arrangement.patternClips[id]?.trackId;
       const track = arrangement.tracks[trackId];
-      if (track?.type !== "pattern") continue;
+      if (isScaleTrack(track)) continue;
       const instrumentStateId = track.instrumentId;
 
       // Add all notes to the stream
