@@ -2,14 +2,14 @@ import { HomePage } from "features/Home/Home";
 import { LandingPage } from "features/Landing/Landing";
 import { isError } from "lodash";
 import {
-  createBrowserRouter,
+  createHashRouter,
   isRouteErrorResponse,
   useLocation,
   useRouteError,
 } from "react-router-dom";
 
 /** The hash router is either on the landing or the main page */
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   { path: "/", element: <LandingPage />, ErrorBoundary: LandingPage },
   { path: "/projects", element: <HomePage />, ErrorBoundary: LandingPage },
   { path: "/demos", element: <HomePage />, ErrorBoundary: LandingPage },
