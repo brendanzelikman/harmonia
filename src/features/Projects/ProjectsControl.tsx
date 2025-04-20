@@ -31,13 +31,13 @@ export const ProjectsControl = (props: {
   return (
     <HomeControlBar>
       <HomeControlButton
-        className="border-sky-400 text-sky-400"
-        title="Open Project"
+        className="border-indigo-400 text-indigo-400"
+        title="Open Latest Project"
         icon={<GiRetroController />}
         onClick={() => navigate("/playground")}
       />
       <HomeControlButton
-        className="border-indigo-300 text-indigo-300"
+        className="border-sky-400 text-sky-400"
         title="Create New Project"
         icon={<GiCompactDisc style={{ rotate: "50deg" }} />}
         onClick={() => uploadProject()}

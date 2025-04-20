@@ -6364,7 +6364,6 @@
   },
   "timeline": {
     "state": "idle",
-    "type": "pattern",
     "tick": 0,
     "fragment": {},
     "clipboard": { "clips": [], "portals": [] },

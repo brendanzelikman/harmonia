@@ -414,7 +414,7 @@ const DropdownNoteButtons = (props: {
 };
 
 const DropdownDurationShortcuts = () => {
-  const holding = useHeldKeys(["shift", ",", "/", "."], "all");
+  const holding = useHeldKeys(["shift", "rightshift", ",", "/", "."], "all");
   return (
     <div className="flex flex-col gap-[2px] w-full text-slate-300">
       <div className="flex gap-2">
@@ -425,7 +425,9 @@ const DropdownDurationShortcuts = () => {
           Hold Comma for Rest
         </div>
         <div
-          data-active={holding[getKeyCode("shift")]}
+          data-active={
+            holding[getKeyCode("shift")] || holding[getKeyCode("rightshift")]
+          }
           className="data-[active=true]:text-slate-100 ml-auto"
         >
           Hold Shift for Chord

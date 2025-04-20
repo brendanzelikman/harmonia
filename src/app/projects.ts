@@ -9,6 +9,7 @@ import { selectProjectId } from "types/Meta/MetaSelectors";
 import { dispatchCustomEvent } from "utils/event";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import { getDatabase } from "./database";
+import { createId } from "types/utils";
 
 // ------------------------------------------------------------
 // User Projects
@@ -32,7 +33,9 @@ export async function getProject(id?: string): Promise<Project | undefined> {
 export async function uploadProject(project?: Project) {
   const db = await getDatabase();
   if (!db) return;
-  const id = await db.put(PROJECT_STORE, project || initializeProject());
+  const newProject = project || initializeProject();
+  newProject.present.meta.id = createId("project");
+  const id = await db.put(PROJECT_STORE, newProject);
   setCurrentProjectId(id.toString());
   dispatchCustomEvent(UPDATE_PROJECT_EVENT);
 }

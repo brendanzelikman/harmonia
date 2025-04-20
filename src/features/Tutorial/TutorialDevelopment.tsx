@@ -38,13 +38,13 @@ export const TutorialDevelopment = () => {
               <br />
               <span className="text-sky-400">{"C Major Chord"}</span>
               {" + "}
-              <span className="text-fuchsia-400">{"<E-1>"}</span>
+              <span className="text-fuchsia-400">{"<*E-1>"}</span>
               {" = "}
               <span className="text-sky-400">{"C Minor Chord"}</span>
               <br />
               <span className="text-emerald-400">{"{C4, E4, G4}"}</span>
               {" + "}
-              <span className="text-fuchsia-400">{"<C-1, E-2>"}</span>
+              <span className="text-fuchsia-400">{"<*C-1, *E-2>"}</span>
               {" = "}
               <span className="text-emerald-400">{"{B4, D4, G4}"}</span>
             </div>

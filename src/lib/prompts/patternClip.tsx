@@ -501,7 +501,7 @@ export const bindNoteWithPromptCallback =
     } else {
       const newBlock = getPatternBlockWithNewNotes(block, (notes) =>
         notes.map((n, i) => {
-          if (i !== noteIndex) return n;
+          if (!n || i !== noteIndex) return n;
           const firstNote = { ...n } as PatternNestedNote;
           const regex = /([a-zA-Z])([-+]?\d+)/g;
           const [note, ...offsets] = [...string.matchAll(regex)].map(

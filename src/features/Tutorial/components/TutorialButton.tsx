@@ -47,7 +47,7 @@ export const TimelineButton = (
       </div>
     </div>
     <div className="flex justify-evenly items-center p-2 max-xl:flex-wrap text-sm text-slate-200">
-      <div className="grow flex flex-col p-1 gap-4 w-[17rem]">
+      <div className="grow flex flex-col p-1 gap-4 w-[18rem]">
         {props.description}
       </div>
     </div>

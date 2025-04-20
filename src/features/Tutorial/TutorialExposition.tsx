@@ -34,18 +34,19 @@ export const TutorialExposition = (props: { view: string }) => {
         description={
           <>
             <div>
-              A Tree is a family of tracks that forms a hierarchy of Scales and
-              Samplers.
+              A Tree is an arrangement of tracks that forms a hierarchy of
+              Scales and Samplers.
             </div>
             <div>
               <div>
                 <b>Examples</b>:
               </div>
+              <span className="text-teal-400">Tree 1</span> ={" "}
               <span className="text-sky-400">C Major Scale</span>
               {" => "}
               <span className="text-sky-400">C Major Chord</span>
-
               <br />
+              <span className="text-teal-400">Tree 2</span> ={" "}
               <span className="text-sky-400">Dm11</span>
               {" => "}
               <span className="text-sky-400">Dm7</span>
@@ -85,9 +86,11 @@ export const TutorialExposition = (props: { view: string }) => {
               <br />
               <span className="text-sky-400">{`C Major Chord`}</span>
               {" * "}
-              <span className="text-emerald-400">{"{ step: 1 + t1 }"}</span>
+              <span className="text-emerald-400">
+                {"{ step: 1, major: 1 }"}
+              </span>
               {" = "}
-              <span className="text-emerald-400">{"{ C#4 }"}</span>
+              <span className="text-emerald-400">{"{ D4 }"}</span>
             </div>
             <div>
               <b>In Practice</b>:<br />

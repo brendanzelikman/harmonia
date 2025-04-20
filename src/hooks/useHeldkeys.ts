@@ -109,6 +109,7 @@ const KeyCodeMap: Record<string, string> = {
   alt: "AltLeft",
   meta: "MetaLeft",
   shift: "ShiftLeft",
+  rightshift: "ShiftRight",
   "`": "Backquote",
   ",": "Comma",
   ".": "Period",

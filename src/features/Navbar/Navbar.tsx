@@ -39,7 +39,7 @@ export function Navbar() {
           <NavbarLink v="projects" />
           <NavbarLink v="demos" />
           <NavbarLink v="samples" />
-          <NavbarLink l={DONATE_LINK} v="donate" />
+          {/* <NavbarLink l={DONATE_LINK} v="donate" /> */}
           <NavbarLink v="playground" />
         </div>
       ) : (

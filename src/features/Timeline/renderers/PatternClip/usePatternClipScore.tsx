@@ -41,12 +41,13 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const onGrandStaff = staves === "grand";
 
   // The hook stores an input duration for editing notes
-  const holding = useHeldKeys(["shift", "/", ",", "."], "all");
+  const holding = useHeldKeys(["shift", "rightshift", "/", ",", "."], "all");
   const [_duration, setDuration] = useState(getDurationTicks("16th"));
   const isTriplet = holding[getKeyCode("/")];
   const isDotted = holding[getKeyCode(".")];
   const asRest = holding[getKeyCode(",")];
-  const asChord = holding[getKeyCode("shift")];
+  const asChord =
+    holding[getKeyCode("shift")] || holding[getKeyCode("rightshift")];
   const modifier = isTriplet ? "Triplet" : isDotted ? "Dotted" : "Straight";
   const ratio = isTriplet ? 2 / 3 : isDotted ? 3 / 2 : 1;
   const duration = _duration * ratio;

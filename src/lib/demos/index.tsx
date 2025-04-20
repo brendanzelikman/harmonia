@@ -6,16 +6,17 @@ import Prelude from "lib/demos/prelude.json";
 import Scherzo from "lib/demos/scherzo.json";
 import Barry from "lib/demos/barry.json";
 import Bird from "lib/demos/bird.json";
-import Waves from "lib/demos/waves.json";
-import Sheep from "lib/demos/sheep.json";
+import Wave from "lib/demos/wave.json";
+import Carousel from "lib/demos/carousel.json";
 import Exalted from "lib/demos/exalted.json";
-import Hyper from "lib/demos/hyper.json";
+import Waves from "lib/demos/waves.json";
 import Lavos from "lib/demos/lavos.json";
+import Romanesca from "lib/demos/romanesca.json";
 import {
   GiFire,
   GiPianoKeys,
   GiQuill,
-  GiRetroController,
+  GiRobotGolem,
   GiTrumpet,
 } from "react-icons/gi";
 
@@ -39,6 +40,11 @@ const RobotDemo: DemoProject = {
   blurb: "A short piece based on a ChatGPT progression.",
 };
 
+const RomanescaDemo: DemoProject = {
+  project: Romanesca as unknown as BaseProject,
+  blurb: "A stepwise variant of the Romanesca",
+};
+
 const SentenceDemo: DemoProject = {
   project: Sentence as unknown as BaseProject,
   blurb: "A musical sentence (short, short, long).",
@@ -59,13 +65,18 @@ const BarryDemo: DemoProject = {
   blurb: "Fly Me to the Moon with a Barry Harris voicing.",
 };
 
-const WavesDemo: DemoProject = {
-  project: Waves as unknown as BaseProject,
+const WaveDemo: DemoProject = {
+  project: Wave as unknown as BaseProject,
   blurb: "Arpeggios and chords moving by fifths.",
 };
 
-const SheepDemo: DemoProject = {
-  project: Sheep as unknown as BaseProject,
+const WavesDemo: DemoProject = {
+  project: Waves as unknown as BaseProject,
+  blurb: "An extended piece based on Wave.",
+};
+
+const CarouselDemo: DemoProject = {
+  project: Carousel as unknown as BaseProject,
   blurb: "A turbulent pattern posing around.",
 };
 
@@ -83,15 +94,22 @@ const LavosDemo: DemoProject = {
 export const DEMO_GENRES = [
   {
     key: "Classical",
-    color: "border-sky-400 text-sky-400",
+    color: "border-indigo-400 text-indigo-400",
     icon: <GiPianoKeys />,
-    demos: [SentenceDemo, RobotDemo, MoonlightDemo],
+    demos: [
+      RomanescaDemo,
+      SentenceDemo,
+      PreludeDemo,
+      RobotDemo,
+      ScherzoDemo,
+      MoonlightDemo,
+    ],
   },
   {
     key: "Romantic",
-    color: "border-indigo-300 text-indigo-300",
+    color: "border-sky-400 text-sky-400",
     icon: <GiQuill />,
-    demos: [PreludeDemo, ScherzoDemo],
+    demos: [],
   },
   {
     key: "Jazz",
@@ -102,8 +120,8 @@ export const DEMO_GENRES = [
   {
     key: "Electronic",
     color: "border-emerald-300 text-emerald-300",
-    icon: <GiRetroController />,
-    demos: [WavesDemo, SheepDemo],
+    icon: <GiRobotGolem />,
+    demos: [WaveDemo, CarouselDemo, WavesDemo],
   },
   {
     key: "Techno",
