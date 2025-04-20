@@ -8,7 +8,6 @@ import {
 import { setProject } from "app/store";
 import { useFetch } from "hooks/useFetch";
 import { selectProjectId } from "types/Meta/MetaSelectors";
-import { defaultProject } from "types/Project/ProjectTypes";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 
 /** Load the current project or upload a new one */
@@ -25,8 +24,7 @@ export function useProject() {
 
     // If the project is not found, upload a new project if there are no more projects
     const projects = await getProjects();
-    if (!projects.length) await uploadProject(defaultProject);
-    else {
+    if (projects.length) {
       const project = projects[projects.length - 1];
       setCurrentProjectId(selectProjectId(project));
       setProject(project);

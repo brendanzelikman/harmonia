@@ -1,4 +1,4 @@
-import { useLayoutEffect } from "react";
+import { useEffect } from "react";
 import { getContext } from "tone";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { selectProjectId } from "types/Meta/MetaSelectors";
@@ -16,7 +16,7 @@ export function usePlaygroundTransport() {
   useToggle("keyboard");
 
   // Load the transport or add an event listener if the context is not running
-  useLayoutEffect(() => {
+  useEffect(() => {
     const load = () => dispatch(loadTransport());
     if (getContext().state === "running") {
       load();

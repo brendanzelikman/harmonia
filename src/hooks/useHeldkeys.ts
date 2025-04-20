@@ -42,7 +42,7 @@ export const useHeldKeys = (keys: string[], scope: string = "global") => {
     };
 
     // Add the event listeners
-    document.addEventListener("keydown", add);
+    document.addEventListener("keypress", add);
     document.addEventListener("keyup", remove);
     document.addEventListener("click", clear);
     window.addEventListener("blur", clear);

@@ -93,23 +93,16 @@ const LavosDemo: DemoProject = {
 // Demo projects are organized by genre
 export const DEMO_GENRES = [
   {
-    key: "Classical",
+    key: "Warmup",
     color: "border-indigo-400 text-indigo-400",
     icon: <GiPianoKeys />,
-    demos: [
-      RomanescaDemo,
-      SentenceDemo,
-      PreludeDemo,
-      RobotDemo,
-      ScherzoDemo,
-      MoonlightDemo,
-    ],
+    demos: [RomanescaDemo, SentenceDemo, RobotDemo],
   },
   {
-    key: "Romantic",
+    key: "Classical",
     color: "border-sky-400 text-sky-400",
     icon: <GiQuill />,
-    demos: [],
+    demos: [PreludeDemo, ScherzoDemo, MoonlightDemo],
   },
   {
     key: "Jazz",

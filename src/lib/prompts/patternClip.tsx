@@ -8,11 +8,7 @@ import {
   unpackUndoType,
 } from "types/redux";
 import { trim, clamp } from "lodash";
-import {
-  updatePattern,
-  updatePatternBlock,
-  updatePatternNote,
-} from "types/Pattern/PatternSlice";
+import { updatePattern, updatePatternBlock } from "types/Pattern/PatternSlice";
 import { Thunk } from "types/Project/ProjectTypes";
 import {
   autoBindNoteToTrack,
@@ -75,6 +71,7 @@ import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { DEFAULT_VELOCITY } from "utils/constants";
 import { getEventFile } from "utils/event";
 import { isString } from "types/utils";
+import { inputPoseRomans } from "lib/hotkeys/timeline";
 
 // -------------------------------------------------------
 //  Pattern Clip Upload
@@ -391,6 +388,10 @@ export const promptUserForPatternEffect =
       ],
       callback: (string) => {
         if (!string) return;
+        if (string === "roman") {
+          dispatch(inputPoseRomans());
+          return;
+        }
         const project = getProject();
         const clip = selectPatternClipById(project, id);
         if (!clip) return;

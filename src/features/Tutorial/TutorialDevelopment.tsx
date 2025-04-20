@@ -34,7 +34,7 @@ export const TutorialDevelopment = () => {
               <span className="text-emerald-400">{"{ B3, D4, G4 }"}</span>
             </div>
             <div>
-              <b>By Pitch Shift:</b>
+              <b>By Pitch Lead:</b>
               <br />
               <span className="text-sky-400">{"C Major Chord"}</span>
               {" + "}

@@ -1,9 +1,9 @@
 {
   "meta": {
-    "id": "project-ndhuyC8T-wau9mYpAiUrS",
+    "id": "project-nvZCTQntIxjpCfmBkaCq4",
     "name": "Moonlight",
-    "dateCreated": "2025-04-03T12:16:35-04:00",
-    "lastUpdated": "2025-04-03T12:16:35-04:00",
+    "dateCreated": "2025-04-20T16:45:54-04:00",
+    "lastUpdated": "2025-04-20T16:45:54-04:00",
     "diary": ["", "", "", "", "", "", "", "", "", ""]
   },
   "tracks": {
@@ -51,48 +51,13 @@
       "scale_88kSJj4Y-CLkOYiNJd88L": {
         "id": "scale_88kSJj4Y-CLkOYiNJd88L",
         "notes": [
-          {
-            "degree": 1,
-            "offset": {
-              "octave": 0
-            }
-          },
-          {
-            "degree": 3,
-            "offset": {
-              "octave": 0
-            }
-          },
-          {
-            "degree": 4,
-            "offset": {
-              "octave": 0
-            }
-          },
-          {
-            "degree": 6,
-            "offset": {
-              "octave": 0
-            }
-          },
-          {
-            "degree": 8,
-            "offset": {
-              "octave": 0
-            }
-          },
-          {
-            "degree": 9,
-            "offset": {
-              "octave": 0
-            }
-          },
-          {
-            "degree": 11,
-            "offset": {
-              "octave": 0
-            }
-          }
+          { "degree": 1, "offset": { "octave": 0 } },
+          { "degree": 3, "offset": { "octave": 0 } },
+          { "degree": 4, "offset": { "octave": 0 } },
+          { "degree": 6, "offset": { "octave": 0 } },
+          { "degree": 8, "offset": { "octave": 0 } },
+          { "degree": 9, "offset": { "octave": 0 } },
+          { "degree": 11, "offset": { "octave": 0 } }
         ],
         "trackId": "scale-track_D4KL3DL54PsZPD9oQ01G_"
       },
@@ -101,23 +66,17 @@
         "notes": [
           {
             "degree": 0,
-            "offset": {
-              "octave": 0
-            },
+            "offset": { "octave": 0 },
             "scaleId": "scale_88kSJj4Y-CLkOYiNJd88L"
           },
           {
             "degree": 2,
-            "offset": {
-              "octave": 0
-            },
+            "offset": { "octave": 0 },
             "scaleId": "scale_88kSJj4Y-CLkOYiNJd88L"
           },
           {
             "degree": 4,
-            "offset": {
-              "octave": 0
-            },
+            "offset": { "octave": 0 },
             "scaleId": "scale_88kSJj4Y-CLkOYiNJd88L"
           }
         ],
@@ -137,9 +96,7 @@
               "velocity": 100,
               "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
               "degree": 2,
-              "offset": {
-                "octave": -2
-              }
+              "offset": { "octave": -2 }
             }
           ],
           [
@@ -148,9 +105,7 @@
               "velocity": 100,
               "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
               "degree": 0,
-              "offset": {
-                "octave": -1
-              }
+              "offset": { "octave": -1 }
             }
           ],
           [
@@ -159,9 +114,7 @@
               "velocity": 100,
               "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
               "degree": 1,
-              "offset": {
-                "octave": -1
-              }
+              "offset": { "octave": -1 }
             }
           ],
           [
@@ -170,9 +123,7 @@
               "velocity": 100,
               "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
               "degree": 2,
-              "offset": {
-                "octave": -1
-              }
+              "offset": { "octave": -1 }
             }
           ]
         ],
@@ -187,9 +138,7 @@
               "velocity": 100,
               "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
               "degree": 0,
-              "offset": {
-                "octave": -2
-              }
+              "offset": { "octave": -2 }
             }
           ],
           [
@@ -198,9 +147,7 @@
               "velocity": 100,
               "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
               "degree": 2,
-              "offset": {
-                "octave": -2
-              }
+              "offset": { "octave": -2 }
             }
           ]
         ],
@@ -215,36 +162,28 @@
               "velocity": 100,
               "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
               "degree": 2,
-              "offset": {
-                "octave": 0
-              }
+              "offset": { "octave": 0 }
             },
             {
               "duration": 48,
               "velocity": 100,
               "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
               "degree": 0,
-              "offset": {
-                "octave": 1
-              }
+              "offset": { "octave": 1 }
             },
             {
               "duration": 48,
               "velocity": 100,
               "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
               "degree": 1,
-              "offset": {
-                "octave": 1
-              }
+              "offset": { "octave": 1 }
             },
             {
               "duration": 48,
               "velocity": 100,
               "scaleId": "scale_lJy-D1bINuNPXUTSY0ORo",
               "degree": 2,
-              "offset": {
-                "octave": 1
-              }
+              "offset": { "octave": 1 }
             }
           ]
         ],
@@ -253,20 +192,8 @@
       "pattern_MbFJkkX24iJ8H0fqIVHes": {
         "id": "pattern_MbFJkkX24iJ8H0fqIVHes",
         "stream": [
-          [
-            {
-              "duration": 24,
-              "MIDI": 33,
-              "velocity": 100
-            }
-          ],
-          [
-            {
-              "duration": 24,
-              "MIDI": 45,
-              "velocity": 100
-            }
-          ]
+          [{ "duration": 24, "MIDI": 33, "velocity": 100 }],
+          [{ "duration": 24, "MIDI": 45, "velocity": 100 }]
         ],
         "trackId": "pattern-track_BoL777Sms-MvHklxXuA4B"
       }
@@ -282,9 +209,7 @@
     "entities": {
       "pose_mh--xU-63U4IIVffk_3wd": {
         "id": "pose_mh--xU-63U4IIVffk_3wd",
-        "vector": {
-          "chordal": 1
-        },
+        "vector": { "chordal": 1 },
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp"
       },
       "pose_yLGqEJVtCPzSdOgJs-Tn9": {
@@ -292,15 +217,6 @@
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "reset": true,
         "vector": {}
-      },
-      "pose_ZZtZc9CbTTEh32C1UkZwX": {
-        "id": "pose_ZZtZc9CbTTEh32C1UkZwX",
-        "vector": {
-          "chordal": -2,
-          "scale-track_D4KL3DL54PsZPD9oQ01G_": 2,
-          "chromatic": 4
-        },
-        "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0"
       },
       "pose_JpWHVKruGGdGaW4ikfd1T": {
         "id": "pose_JpWHVKruGGdGaW4ikfd1T",
@@ -311,9 +227,7 @@
       "pose_oPpIbHSB_uaF25jsU5b1x": {
         "id": "pose_oPpIbHSB_uaF25jsU5b1x",
         "name": "New Pose 8",
-        "vector": {
-          "chromatic": 5
-        },
+        "vector": { "chromatic": 5 },
         "trackId": "scale-track_D4KL3DL54PsZPD9oQ01G_"
       },
       "pose_iqTu2iU4hnyyVhGSrCzyy": {
@@ -324,10 +238,7 @@
       },
       "pose_A-SnJDZjCrBUY205n3iVF": {
         "id": "pose_A-SnJDZjCrBUY205n3iVF",
-        "vector": {
-          "scale-track_D4KL3DL54PsZPD9oQ01G_": 1,
-          "chromatic": -7
-        },
+        "vector": { "scale-track_D4KL3DL54PsZPD9oQ01G_": 1, "chromatic": -7 },
         "trackId": "pattern-track_BoL777Sms-MvHklxXuA4B"
       },
       "pose_in6tLm6eeLNpDJ5J31xTS": {
@@ -337,25 +248,18 @@
       },
       "pose_dPSFW4Y3E6_2FtsySN4Ob": {
         "id": "pose_dPSFW4Y3E6_2FtsySN4Ob",
-        "vector": {
-          "octave": 1
-        },
+        "vector": { "octave": 1 },
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp"
       },
       "pose_I2NbI2scaDtclOSuwgTzY": {
         "id": "pose_I2NbI2scaDtclOSuwgTzY",
-        "vector": {
-          "octave": 1
-        },
+        "vector": { "octave": 1 },
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp"
       },
       "pose_wkii-fLc5VxvSFRQW66v8": {
         "id": "pose_wkii-fLc5VxvSFRQW66v8",
         "trackId": "scale-track_D4KL3DL54PsZPD9oQ01G_",
-        "vector": {
-          "chordal": 2,
-          "chromatic": 4
-        },
+        "vector": { "chordal": 2, "chromatic": 4 },
         "reset": true
       },
       "pose_YAwGFTXqPf1UE6wDELpXH": {
@@ -369,9 +273,7 @@
       },
       "pose_wJ4TpoAxz8Q9L4nvtU35G": {
         "id": "pose_wJ4TpoAxz8Q9L4nvtU35G",
-        "vector": {
-          "chromatic": 0
-        },
+        "vector": { "chromatic": 0 },
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0"
       },
       "pose_qAfEsgYs406xHbbP31Jz-": {
@@ -384,21 +286,30 @@
         "id": "pose_6ADXQkQqory5NhN_mYLnW",
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "reset": true,
-        "vector": {
-          "chordal": -1
-        }
+        "vector": { "chordal": -1 }
       },
       "pose_S7bIEIU93INbpPNJvidUT": {
         "id": "pose_S7bIEIU93INbpPNJvidUT",
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "reset": true,
         "vector": {}
+      },
+      "pose_BjSZShdm2XHveosLVKli1": {
+        "id": "pose_BjSZShdm2XHveosLVKli1",
+        "vector": { "chordal": 2, "chromatic": -8 }
+      },
+      "pose_lWNBHrowMiTrPvuzDqv_Z": {
+        "id": "pose_lWNBHrowMiTrPvuzDqv_Z",
+        "vector": { "chordal": 1 }
+      },
+      "pose_9FRQBSOJm58baSB-b3mBS": {
+        "id": "pose_9FRQBSOJm58baSB-b3mBS",
+        "vector": { "chordal": -2, "chromatic": 8 }
       }
     },
     "ids": [
       "pose_mh--xU-63U4IIVffk_3wd",
       "pose_yLGqEJVtCPzSdOgJs-Tn9",
-      "pose_ZZtZc9CbTTEh32C1UkZwX",
       "pose_JpWHVKruGGdGaW4ikfd1T",
       "pose_oPpIbHSB_uaF25jsU5b1x",
       "pose_iqTu2iU4hnyyVhGSrCzyy",
@@ -411,7 +322,10 @@
       "pose_wJ4TpoAxz8Q9L4nvtU35G",
       "pose_qAfEsgYs406xHbbP31Jz-",
       "pose_6ADXQkQqory5NhN_mYLnW",
-      "pose_S7bIEIU93INbpPNJvidUT"
+      "pose_S7bIEIU93INbpPNJvidUT",
+      "pose_BjSZShdm2XHveosLVKli1",
+      "pose_lWNBHrowMiTrPvuzDqv_Z",
+      "pose_9FRQBSOJm58baSB-b3mBS"
     ]
   },
   "patternClips": {
@@ -529,12 +443,6 @@
         "trackId": "pattern-track_wh4UkRqeNde7kxHHwvWcp",
         "tick": 672,
         "poseId": "pose_yLGqEJVtCPzSdOgJs-Tn9"
-      },
-      "pose-clip_Qa2AtUm8aOqgh2gc_ay79": {
-        "id": "pose-clip_Qa2AtUm8aOqgh2gc_ay79",
-        "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
-        "tick": 768,
-        "poseId": "pose_ZZtZc9CbTTEh32C1UkZwX"
       },
       "pose-clip_LpVLSmq0vS-7HHzPc9AOd": {
         "id": "pose-clip_LpVLSmq0vS-7HHzPc9AOd",
@@ -733,6 +641,24 @@
         "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
         "tick": 2304,
         "poseId": "pose_S7bIEIU93INbpPNJvidUT"
+      },
+      "pose-clip_LjiGICWjlxW7h1-D9oPeh": {
+        "id": "pose-clip_LjiGICWjlxW7h1-D9oPeh",
+        "trackId": "scale-track_D4KL3DL54PsZPD9oQ01G_",
+        "tick": 768,
+        "poseId": "pose_BjSZShdm2XHveosLVKli1"
+      },
+      "pose-clip_BAOAgPRdZPCoVbxKpmoLe": {
+        "id": "pose-clip_BAOAgPRdZPCoVbxKpmoLe",
+        "trackId": "scale-track_TD16hQF58ZlFAEkX4DzF0",
+        "tick": 768,
+        "poseId": "pose_lWNBHrowMiTrPvuzDqv_Z"
+      },
+      "pose-clip_ND0BcqA1HhYnBdfhWPlfe": {
+        "id": "pose-clip_ND0BcqA1HhYnBdfhWPlfe",
+        "trackId": "scale-track_D4KL3DL54PsZPD9oQ01G_",
+        "tick": 2304,
+        "poseId": "pose_9FRQBSOJm58baSB-b3mBS"
       }
     },
     "ids": [
@@ -743,7 +669,8 @@
       "pose-clip_mbhi-z_304RvejT81_ujc",
       "pose-clip_l8V-me2yjlaQ9i0nDp9P9",
       "pose-clip_ecjk7zsF0MRnaVCZ-r60K",
-      "pose-clip_Qa2AtUm8aOqgh2gc_ay79",
+      "pose-clip_LjiGICWjlxW7h1-D9oPeh",
+      "pose-clip_BAOAgPRdZPCoVbxKpmoLe",
       "pose-clip_5wLKw6lO7-sqOeJUN6iu_",
       "pose-clip_vCxNJCB8tsmURzeqVprZN",
       "pose-clip_yGc6sxG9EzCdBWwBgDStc",
@@ -762,6 +689,7 @@
       "pose-clip_c0nqvF4rVeZKWanSh-D3s",
       "pose-clip_FTm_P7wdPvwg42YbD3cvb",
       "pose-clip_QsJIDeiJpK8lX397lgYnA",
+      "pose-clip_ND0BcqA1HhYnBdfhWPlfe",
       "pose-clip_JHy3kAcr1iSlugmvO6bKx",
       "pose-clip_VcLhXmlEhUvTAWrSqQS8r",
       "pose-clip_ByYT8y6vviMOko94kpIS-",
@@ -774,10 +702,7 @@
       "pose-clip_JakyV7rpaDIrE-pnyHQkR"
     ]
   },
-  "portals": {
-    "entities": {},
-    "ids": []
-  },
+  "portals": { "entities": {}, "ids": [] },
   "instruments": {
     "entities": {
       "oFHRMlUP9O8FjRXAmxJ4D": {
@@ -805,6 +730,8 @@
   },
   "timeline": {
     "state": "idle",
+    "type": "pattern",
+    "tick": 0,
     "fragment": {},
     "clipboard": { "clips": [], "portals": [] },
     "selection": { "clipIds": [], "portalIds": [] },
@@ -814,12 +741,12 @@
   },
   "transport": {
     "bpm": 180,
+    "timeSignature": 4,
+    "swing": 0,
     "loop": false,
     "loopStart": 0,
     "loopEnd": 383,
     "volume": 0,
-    "mute": false,
-    "timeSignature": 4,
-    "swing": 0
+    "mute": false
   }
 }

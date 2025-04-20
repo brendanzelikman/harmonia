@@ -24,10 +24,9 @@ import { HotkeyMap } from "lib/hotkeys";
 import { some } from "lodash";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
-const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
-const trackKeys = ["x", "m", "s"];
+const trackKeys = ["m", "s"];
 const miscKeys = ["c", "d", "-", "`", "="];
-const hotkeys = [...qwertyKeys, ...numericalKeys, ...trackKeys, ...miscKeys];
+const hotkeys = [...qwertyKeys, ...trackKeys, ...miscKeys];
 
 /** A custom hook to use keyboard gestures */
 export const useGestures = () => {

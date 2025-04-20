@@ -78,17 +78,15 @@ export const TutorialExposition = (props: { view: string }) => {
             <div>
               <b>Examples</b>:
               <br />
-              <span className="text-sky-400">{`C Major Scale`}</span>
+              <span className="text-sky-400">{`C Major Scale (A)`}</span>
               {" * "}
-              <span className="text-emerald-400">{"{ step: 1 }"}</span>
+              <span className="text-emerald-400">{"{ A1 }"}</span>
               {" = "}
               <span className="text-emerald-400">{"{ C4 }"}</span>
               <br />
-              <span className="text-sky-400">{`C Major Chord`}</span>
+              <span className="text-sky-400">{`C Major Chord (B)`}</span>
               {" * "}
-              <span className="text-emerald-400">
-                {"{ step: 1, major: 1 }"}
-              </span>
+              <span className="text-emerald-400">{"{ B1 + A1 }"}</span>
               {" = "}
               <span className="text-emerald-400">{"{ D4 }"}</span>
             </div>

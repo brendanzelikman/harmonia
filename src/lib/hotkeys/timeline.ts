@@ -170,5 +170,5 @@ export const inputPoseRomans = (): Thunk => (dispatch, getProject) => {
         dispatch(createNewPoseClip({ data: { pose, clip }, undoType }));
       }
     },
-  });
+  })();
 };
