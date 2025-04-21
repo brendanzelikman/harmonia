@@ -170,7 +170,7 @@ export const getScaleName = (scale?: Scale) => {
   // Otherwise, try to find a matching preset scale
   const canon = getCanonicalScale(notes);
   if (canon === getCanonicalScale(chromaticNotes)) return "Chromatic Scale";
-  return KEY_MAP.get(canon)?.name || getCanonicalScale(notes);
+  return KEY_MAP.get(canon)?.name || notes.join(", ");
 };
 
 /** Get the aliases of a scale by looking it up in the key map. */

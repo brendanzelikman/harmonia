@@ -27,18 +27,22 @@ import { usePatternClipScore } from "./usePatternClipScore";
 import { createUndoType } from "types/redux";
 import { nanoid } from "@reduxjs/toolkit";
 import { Piano } from "components/Piano";
-import { selectTrackScale } from "types/Track/TrackSelectors";
+import {
+  selectTrackChainLabels,
+  selectTrackScale,
+  selectTrackScaleChain,
+} from "types/Track/TrackSelectors";
 import { MouseEvent, useCallback, useState } from "react";
 import {
   GiAbacus,
   GiCrystalWand,
+  GiDiceSixFacesFive,
   GiPaintBrush,
   GiPencil,
-  GiPerspectiveDiceSix,
   GiTrashCan,
 } from "react-icons/gi";
 import { FaEraser, FaTape } from "react-icons/fa";
-import { BsRecord, BsScissors } from "react-icons/bs";
+import { BsArrowClockwise, BsRecord, BsScissors } from "react-icons/bs";
 import { selectPatternNoteLabel } from "types/Clip/PatternClip/PatternClipSelectors";
 import { PatternId } from "types/Pattern/PatternTypes";
 import { useToggle } from "hooks/useToggle";
@@ -50,6 +54,8 @@ import {
   promptUserForPatternEffect,
 } from "lib/prompts/patternClip";
 import { useHotkeys } from "hooks/useHotkeys";
+import { ScaleId } from "types/Scale/ScaleTypes";
+import { SyncedNumericalForm } from "components/SyncedForm";
 
 export interface PatternClipDropdownProps {
   clip: PortaledPatternClip;
@@ -57,17 +63,25 @@ export interface PatternClipDropdownProps {
   isOpen: boolean;
 }
 
+type NoteType = "scale" | "pedal";
+type InputMode = "piano" | "scales";
+
 export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const dispatch = useAppDispatch();
+  const [type, setType] = useState<NoteType>("scale");
+  const [mode, setMode] = useState<InputMode>("piano");
+
+  // Unpack the clip
   const { clip, id, isOpen } = props;
   const { patternId, trackId } = clip;
-
-  // Get the pattern and scale for the current clip
   const pattern = useAppValue((_) => selectPatternById(_, patternId));
   const scale = useAppValue((_) => selectTrackScale(_, trackId));
-
-  // Allow the user to switch between scale and pedal notes
-  const [type, setType] = useState<string>("scale");
+  const chain = useAppValue((_) => selectTrackScaleChain(_, trackId));
+  const chainLabels = useAppValue((_) => selectTrackChainLabels(_, trackId));
+  const [chainOffsets, setChainOffsets] = useState<Record<ScaleId, number>>({});
+  const setChainOffset = (id: ScaleId, offset: number) => {
+    setChainOffsets((prev) => ({ ...prev, [id]: offset }));
+  };
 
   // Get the score of the pattern clip
   const { Score, index, playNote, setDuration, duration, input, toggle } =
@@ -123,7 +137,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
           <DropdownDurationSelection input={input} />
           <DropdownDurationShortcuts />
         </div>
-        <div className={"total-center-col gap-2 relative"}>
+        <div className={"total-center-col gap-1 relative"}>
           <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
             {record.isOpen ? (
               <DropdownButton
@@ -145,12 +159,12 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
             <DropdownButton
               width="size-8"
               dropdown="Randomize Pattern"
-              theme="indigo"
+              theme="teal"
               onClick={() => {
                 const data = { id: patternId, trackId, duration };
                 dispatch(randomizePattern({ data }));
               }}
-              icon={<GiPerspectiveDiceSix className="text-2xl" />}
+              icon={<GiDiceSixFacesFive className="text-xl" />}
             />
             {isEditing ? (
               <DropdownButton
@@ -190,14 +204,6 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
             <DropdownButton
               width="size-8"
               disabled={isEmpty}
-              theme="fuchsia"
-              dropdown="Transform Pattern"
-              icon={<GiCrystalWand className="text-xl" />}
-              onClick={() => dispatch(promptUserForPatternEffect(id))}
-            />
-            <DropdownButton
-              width="size-8"
-              disabled={isEmpty}
               theme="red"
               dropdown={isEditing ? "Erase Selected Note" : "Erase Last Note"}
               onClick={deleteNote}
@@ -209,6 +215,15 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                 )
               }
             />
+            <DropdownButton
+              width="size-8"
+              disabled={isEmpty}
+              theme="fuchsia"
+              dropdown="Transform Pattern"
+              icon={<GiCrystalWand className="text-xl" />}
+              onClick={() => dispatch(promptUserForPatternEffect(id))}
+            />
+
             <DropdownButton
               width="size-8"
               disabled={isEmpty}
@@ -224,20 +239,76 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
           >
             {isEditing
               ? `Selected: ${labels}`
-              : `Inputting ${type} ${type === "scale" ? "Degrees" : "Notes"}`}
+              : `Inputting ${type === "scale" ? "Scale Notes" : "Pedal Notes"}`}
           </div>
-          <DropdownNoteButtons type={type} setType={setType} />
+          <DropdownNoteButtons
+            type={type}
+            setType={setType}
+            mode={mode}
+            setMode={setMode}
+            canEdit={!isEmpty}
+            isEditing={isEditing}
+            toggleCursor={toggle}
+          />
         </div>
       </div>
-      <Piano
-        className="animate-in border-t-8 border-t-emerald-500 fade-in w-min max-w-[600px] overflow-scroll"
-        show
-        noteRange={noteRange}
-        playNote={(_, midi) => playNote(midi, type === "scale")}
-        scale={scale}
-        width={896}
-        keyWidthToHeight={0.14}
-      />
+      {mode === "piano" ? (
+        <Piano
+          className="animate-in border-t-8 border-t-emerald-500 fade-in w-min max-w-[600px] overflow-scroll"
+          show
+          noteRange={noteRange}
+          playNote={(_, midi) =>
+            playNote({
+              MIDI: midi,
+              trackId: type === "scale" ? trackId : undefined,
+            })
+          }
+          scale={scale}
+          width={896}
+          keyWidthToHeight={0.14}
+        />
+      ) : (
+        <div className="w-[600px] min-h-38 border-t-8 border-t-emerald-500 bg-slate-800 flex flex-col p-2 gap-2 text-slate-50 overflow-scroll">
+          {chain.map((scale, i) => (
+            <div className="flex items-center gap-4" key={scale.id}>
+              Scale {chainLabels[i]}:
+              <div className="flex gap-2 overflow-scroll">
+                {scale.notes.map((_, j) => (
+                  <div
+                    className="size-8 rounded-full border border-slate-400 bg-sky-800 hover:opacity-85 shrink-0 total-center cursor-pointer"
+                    key={`${scale.id}-${j}`}
+                    onClick={() =>
+                      playNote({
+                        scaleId: scale.id,
+                        degree: j,
+                        offset: chainOffsets,
+                      })
+                    }
+                  >
+                    {j + 1}
+                  </div>
+                ))}
+              </div>
+              <div className="ml-auto">
+                Offset {chainLabels[i]}:
+                <div className="flex gap-2 items-center">
+                  <SyncedNumericalForm
+                    value={chainOffsets[scale.id] ?? 0}
+                    setValue={(value) => setChainOffset(scale.id, value)}
+                    min={-12}
+                    max={12}
+                    className="w-12 h-8 rounded border bg-sky-800 shrink-0 total-center"
+                  />
+                  <BsArrowClockwise
+                    className="bg-sky-800/50 size-8 p-2 rounded-lg cursor-pointer hover:text-slate-300 border border-slate-500"
+                    onClick={() => setChainOffset(scale.id, 0)}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -378,36 +449,52 @@ const DropdownDurationButtons = (props: {
 };
 
 const DropdownNoteButtons = (props: {
-  type: string;
-  setType: (s: string) => void;
+  type: NoteType;
+  setType: (s: NoteType) => void;
+  mode: InputMode;
+  setMode: (s: InputMode) => void;
+  canEdit: boolean;
+  isEditing: boolean;
+  toggleCursor: () => void;
 }) => {
-  const { type, setType } = props;
   return (
-    <div className="flex flex-col gap-[2px] w-full text-slate-300">
+    <div className="flex flex-col gap-2 w-full text-slate-300">
       <div className="flex gap-2">
         <div
-          data-active={type === "scale"}
-          className="mr-auto capitalize bg-emerald-500/50 cursor-pointer data-[active=true]:ring-1 data-[active=true]:ring-slate-400 data-[active=true]:bg-teal-600 data-[active=true]:text-slate-100 rounded w-28 text-center"
-          onClick={() => setType("scale")}
+          data-active={props.mode === "piano"}
+          className="mr-auto capitalize bg-sky-700 cursor-pointer ring-1 ring-slate-400 data-[active=true]:bg-slate-800 text-slate-100 rounded w-28 text-center"
+          onClick={() =>
+            props.setMode(props.mode === "piano" ? "scales" : "piano")
+          }
+        >
+          {props.mode === "piano" ? "Play Piano" : "Play Scales"}
+        </div>
+        <div
+          data-active={props.isEditing}
+          className="ml-auto capitalize bg-emerald-500/50 cursor-pointer data-[active=true]:ring-1 data-[active=true]:ring-slate-400 data-[active=true]:bg-teal-600 data-[active=true]:text-slate-100 rounded w-28 text-center"
+          onClick={props.canEdit ? props.toggleCursor : undefined}
+        >
+          {props.isEditing ? "Hide Cursor" : "Click Note"}
+        </div>
+      </div>
+      <div
+        data-disabled={props.mode !== "piano"}
+        className="flex gap-2 data-[disabled=true]:opacity-50"
+      >
+        <div
+          data-active={props.type === "scale"}
+          className="mr-auto capitalize bg-cyan-500/50 cursor-pointer data-[active=true]:ring-1 data-[active=true]:ring-slate-300 data-[active=true]:bg-cyan-700 data-[active=true]:text-slate-100 rounded w-28 text-center"
+          onClick={() => props.setType("scale")}
         >
           Autobind
         </div>
         <div
-          data-active={type === "pedal"}
-          className="ml-auto capitalize bg-emerald-500/50 cursor-pointer data-[active=true]:ring-1 data-[active=true]:ring-slate-400 data-[active=true]:bg-teal-600 data-[active=true]:text-slate-100 rounded w-28 text-center"
-          onClick={() => setType("pedal")}
+          data-active={props.type === "pedal"}
+          className="ml-auto capitalize bg-cyan-500/50 cursor-pointer data-[active=true]:ring-1 data-[active=true]:ring-slate-300 data-[active=true]:bg-cyan-700 data-[active=true]:text-slate-100 rounded w-28 text-center"
+          onClick={() => props.setType("pedal")}
         >
           Freeze
         </div>
-      </div>
-
-      <div className="flex">
-        <span className="data-[active=true]:text-slate-100">
-          Play Piano to Input
-        </span>
-        <span className="data-[active=true]:text-slate-100 ml-auto max-w-32 overflow-scroll">
-          Click Note to Edit
-        </span>
       </div>
     </div>
   );

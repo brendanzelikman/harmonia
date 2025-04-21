@@ -1,6 +1,6 @@
 import { SixteenthNoteTicks } from "utils/duration";
 import { Seconds } from "types/units";
-import { Frequency, Sampler } from "tone";
+import { Sampler } from "tone";
 import { EighthNoteTicks } from "utils/duration";
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { range, sample } from "lodash";
@@ -26,6 +26,7 @@ import {
 } from "types/Track/TrackSelectors";
 import { Payload, unpackData, unpackUndoType } from "types/redux";
 import { TrackId } from "types/Track/TrackTypes";
+import { getMidiFrequency } from "utils/midi";
 
 /** Creates a pattern and adds it to the slice. */
 export const createPattern =
@@ -134,9 +135,6 @@ export const playPatternChord = (
   // Get the pitches
   const notes = getPatternMidiChordNotes(chord);
   if (!notes.length) return;
-  const pitches: string[] = notes.map((note) =>
-    Frequency(note.MIDI, "midi").toNote()
-  );
 
   // Get the Tone.js subdivision
   const duration = getPatternBlockDuration(notes) ?? EighthNoteTicks;
@@ -148,5 +146,6 @@ export const playPatternChord = (
 
   // Play the chord with the sampler
   if (!sampler.loaded) return;
+  const pitches = notes.map(getMidiFrequency);
   sampler.triggerAttackRelease(pitches, subdivision, time, scaledVelocity);
 };

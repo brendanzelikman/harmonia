@@ -20,7 +20,7 @@ import { cancelEvent } from "utils/event";
 import { getScaleKey, getScaleName } from "types/Scale/ScaleFinder";
 import { mod } from "utils/math";
 
-const ScaleTrackBody = (props: { trackId: TrackId }) => {
+export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
   const { trackId } = props;
   const tick = useTick();
   const scale = useAppValue((_) =>
@@ -31,8 +31,8 @@ const ScaleTrackBody = (props: { trackId: TrackId }) => {
   const [showNotes, setShowNotes] = useState(false);
   const name = getScaleName(scale);
   const key = getScaleKey(scale);
-  const notes = scale.map((n) => key[mod(n, 12)]).join(", ");
-  const scaleText = showNotes ? notes : name;
+  const notes = scale.map((n) => key[mod(Math.round(n), 12)]).join(", ");
+  const scaleText = showNotes ? (notes === "" ? "No Notes" : notes) : name;
   return (
     <div className="min-w-0 grow flex flex-col text-xs gap-1 *:h-4 pt-1">
       <div className="flex text-teal-400">
@@ -55,10 +55,9 @@ const ScaleTrackBody = (props: { trackId: TrackId }) => {
       </div>
     </div>
   );
-};
-export const MemoizedScaleTrackBody = memo(ScaleTrackBody);
+});
 
-export const PatternTrackBody = (props: { trackId: TrackId }) => {
+export const PatternTrackBody = memo((props: { trackId: TrackId }) => {
   const { trackId } = props;
   const tick = useTick();
   const label = useAppValue((_) => selectTrackLabelById(_, trackId));
@@ -82,5 +81,4 @@ export const PatternTrackBody = (props: { trackId: TrackId }) => {
       </div>
     </div>
   );
-};
-export const MemoizedPatternTrackBody = memo(PatternTrackBody);
+});

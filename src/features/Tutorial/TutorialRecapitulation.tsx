@@ -11,7 +11,7 @@ export const TutorialRecapitulation = () => {
         border="ring-indigo-600/80"
         className="rounded-lg"
         title="Create Trees"
-        subtitle="Press N to Create a New Tree"
+        subtitle="Press N to Input, I for Default"
         stripColor="border-b-indigo-500/80"
         Icon={GiPineTree}
         onClick={() => dispatch(promptUserForTree)}

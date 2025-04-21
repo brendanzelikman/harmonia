@@ -3,7 +3,7 @@ import { TrackDropdownMenu } from "./components/TrackDropdownMenu";
 import { memo } from "react";
 import { ScaleTrack } from "types/Track/ScaleTrack/ScaleTrackTypes";
 import { ScaleTrackButtons } from "./components/TrackButtons";
-import { MemoizedScaleTrackBody } from "./components/TrackBody";
+import { ScaleTrackBody } from "./components/TrackBody";
 
 type ScaleTrackProps = { track: ScaleTrack };
 
@@ -19,7 +19,7 @@ export const ScaleTrackFormatter = memo((props: ScaleTrackProps) => {
       </div>
       {isCollapsed ? null : (
         <div className="w-full flex">
-          <MemoizedScaleTrackBody trackId={trackId} />
+          <ScaleTrackBody trackId={trackId} />
           <ScaleTrackButtons trackId={trackId} />
         </div>
       )}

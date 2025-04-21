@@ -2,7 +2,7 @@ import { memo } from "react";
 import { cancelEvent } from "utils/event";
 import { PatternTrack } from "types/Track/PatternTrack/PatternTrackTypes";
 import { PatternTrackButtons } from "./components/TrackButtons";
-import { MemoizedPatternTrackBody } from "./components/TrackBody";
+import { PatternTrackBody } from "./components/TrackBody";
 import { TrackDropdownMenu } from "./components/TrackDropdownMenu";
 import { TrackName } from "./components/TrackName";
 import { TrackSliders } from "./components/TrackSlider";
@@ -34,7 +34,7 @@ export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {
             className="flex size-full items-start justify-end"
             onDoubleClick={cancelEvent}
           >
-            <MemoizedPatternTrackBody trackId={trackId} />
+            <PatternTrackBody trackId={trackId} />
             <PatternTrackButtons trackId={trackId} />
           </div>
         )}
@@ -42,5 +42,3 @@ export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {
     </>
   );
 });
-
-export const MemoizedPatternTrack = memo(PatternTrackFormatter);

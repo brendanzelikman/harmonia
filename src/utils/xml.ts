@@ -160,7 +160,7 @@ const createNote = (
   noteOptions: NoteOptions = {}
 ) => {
   const isMidi = isPatternMidiNote(note);
-  const midi = isMidi ? _.getMidiValue(note) : undefined;
+  const midi = isMidi ? Math.round(_.getMidiValue(note)) : 0;
   const key = noteOptions?.key;
 
   /** The chord tag groups together notes. */
@@ -171,7 +171,7 @@ const createNote = (
 <chord/>`;
 
   /** The offset tag is the note's accidental offset */
-  const offset = isMidi ? _.getMidiAccidentalNumber(note.MIDI, key) : "";
+  const offset = isMidi ? _.getMidiAccidentalNumber(midi, key) : "";
   const offsetTag =
     offset === 0
       ? ``
@@ -179,8 +179,8 @@ const createNote = (
 <alter>${offset}</alter>`;
 
   /** The pitch tag uses the note letter, accidental offset, and octave number. */
-  const letter = isMidi ? _.getMidiPitchLetter(note.MIDI, key) : "";
-  const octave = isMidi ? _.getMidiOctaveNumber(note.MIDI, key) : "";
+  const letter = isMidi ? _.getMidiPitchLetter(midi, key) : "";
+  const octave = isMidi ? _.getMidiOctaveNumber(midi, key) : "";
   const pitchTag = `<pitch>
     <step>${letter}</step>${offsetTag}
     <octave>${octave}</octave>
@@ -205,7 +205,7 @@ const createNote = (
   const typeTag = `<type>${type}</type>`;
 
   /** The accidental tag displays the accidental. */
-  const accidental = isMidi ? _.getMidiAccidental(note.MIDI, key) : "";
+  const accidental = isMidi ? _.getMidiAccidental(midi, key) : "";
   const accidentalTag = `<accidental>${accidental}</accidental>`;
 
   /** The backup tag moves the cursor back in time. */

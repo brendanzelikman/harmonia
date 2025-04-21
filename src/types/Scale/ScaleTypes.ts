@@ -95,13 +95,6 @@ export const nestedChromaticScale: ScaleObject = {
   notes: nestedChromaticNotes,
 };
 
-/** The default scale is a ScaleObject with nested notes. */
-export const defaultScale: ScaleObject = {
-  ...nestedChromaticScale,
-  id: createId("scale"),
-  name: "New Scale",
-};
-
 /** The mock scale is used for testing. */
 export const mockScale: ScaleObject = {
   id: "scale_nested_mock",

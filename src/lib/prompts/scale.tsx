@@ -22,6 +22,7 @@ import {
 } from "types/Track/TrackSelectors";
 import { isScaleTrack } from "types/Track/TrackTypes";
 import { convertMidiToNestedNote } from "types/Track/TrackUtils";
+import { ScaleNote } from "types/Scale/ScaleTypes";
 
 /** Prompt the user to input a scale for the selected track */
 export const inputScaleTrackScale = (): Thunk => (dispatch, getProject) => {
@@ -58,6 +59,17 @@ export const promptUserForScale =
         </span>,
         <span>Example: "C major" or "0, 2, 4, 5, 7, 9, 11"</span>,
         promptLineBreak,
+        <span>
+          Rule #4: M(N) is a Scale Note with MIDI number N (e.g. C4 = M(60))
+        </span>,
+        <span>
+          Rule #5: F(N) is a Scale Note with Frequency N (e.g. A4 = F440)
+        </span>,
+        <span>
+          Rule #6: T(N) is a Scale with the name N in the Scala archive (e.g.
+          T(pyth_31))
+        </span>,
+        promptLineBreak,
         <span className="underline">Please input your scale:</span>,
       ],
       callback: (input) => {
@@ -92,16 +104,14 @@ export const promptUserForScale =
           if (!preset) return;
         }
 
-        const newScale = notes
-          .map((MIDI) =>
-            dispatch(convertMidiToNestedNote(MIDI, track?.parentId))
-          )
-          .filter((n) => n.degree >= 0);
+        const newScale: ScaleNote[] = notes;
+        for (let i = 0; i < notes.length; i++) {
+          const MIDI = notes[i];
+          const note = dispatch(convertMidiToNestedNote(MIDI, track?.parentId));
+          if (note.degree > -1) newScale[i] = note;
+        }
         dispatch(
-          updateScale({
-            data: { id: scaleId, notes: newScale },
-            undoType,
-          })
+          updateScale({ data: { id: scaleId, notes: newScale }, undoType })
         );
       },
     })();

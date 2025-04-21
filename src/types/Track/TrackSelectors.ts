@@ -228,6 +228,12 @@ export const selectTrackLabelById = createValueSelector(
   "*"
 );
 
+/** Select the labels of the chain of a track. */
+export const selectTrackChainLabels = (project: Project, id: TrackId) => {
+  const trackChainIds = selectScaleTrackChainIds(project, id);
+  return trackChainIds.map((id) => selectTrackLabelById(project, id));
+};
+
 /** Select the record of all tracks and their orders. */
 export const selectTrackOrderMap = createDeepSelector(
   [selectTrackMap],

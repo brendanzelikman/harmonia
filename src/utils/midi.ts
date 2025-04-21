@@ -28,6 +28,21 @@ export const getMidiDegree = (note?: MidiNote) => {
 };
 
 // ------------------------------------------------------------
+// Midi Frequency
+// ------------------------------------------------------------
+
+/** Get the frequency of a MIDI note (e.g. 60 = 261.63). */
+export const getMidiFrequency = (note: MidiNote) => {
+  const midi = getMidiValue(note);
+  return Math.pow(2, (midi - 69) / 12) * 440;
+};
+
+/** Get the MIDI value of a frequency (e.g. 261.63 = 60) */
+export const getFrequencyMidi = (frequency: number) => {
+  return 69 + 12 * Math.log2(frequency / 440);
+};
+
+// ------------------------------------------------------------
 // Midi Octaves
 // ------------------------------------------------------------
 

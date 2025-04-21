@@ -17,7 +17,6 @@ import {
   getMidiStreamStaves,
   getMidiStreamMinMax,
 } from "types/Pattern/PatternUtils";
-import { selectTrackMidiScale } from "types/Track/TrackSelectors";
 import { autoBindNoteToTrack } from "types/Track/TrackUtils";
 import { selectTransportBPM } from "types/Transport/TransportSelectors";
 import { isFinite } from "utils/math";
@@ -27,13 +26,15 @@ import {
   getTickDuration,
   ticksToSeconds,
 } from "utils/duration";
-import { format, mod } from "utils/math";
+import { format } from "utils/math";
 import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
+import { TrackId } from "types/Track/TrackTypes";
+import { ScaleId, ScaleVector } from "types/Scale/ScaleTypes";
+import { omit } from "lodash";
 
 export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const dispatch = useAppDispatch();
   const bpm = useAppValue(selectTransportBPM);
-  const scale = useAppValue((_) => selectTrackMidiScale(_, clip.trackId));
   const midi = useAppValue((_) => selectPortaledPatternClipStream(_, clip.id));
   const stream = midi.flatMap((n) => n.notes.filter((n) => "velocity" in n));
   const xml = useAppValue((_) => selectPortaledPatternClipXML(_, clip));
@@ -99,17 +100,27 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
 
   // Add an auto-bound note or update if the cursor is showing
   const playNote = useCallback(
-    (MIDI = 60, useScale = false, degree: number | undefined = undefined) => {
-      if (asRest || MIDI === undefined) return playRest();
+    (
+      options: Partial<{
+        MIDI: number;
+        trackId: TrackId;
+        scaleId: ScaleId;
+        degree: number;
+        offset: ScaleVector;
+      }> = { MIDI: 60 }
+    ) => {
+      const { trackId, scaleId, degree, offset } = options;
+      if (asRest) return playRest();
       const id = clip.patternId;
-      const size = scale?.length ?? 0;
-      let note: PatternNote = { duration, MIDI, velocity: 100 };
-      if (useScale && size && degree !== undefined) {
-        degree = mod(degree, scale.length);
-        const offset = Math.floor(degree / size);
-        note.MIDI = scale.at(degree)! + offset * 12;
-      } else if (useScale) {
-        note = dispatch(autoBindNoteToTrack(clip.trackId, note));
+      let note: PatternNote = {
+        duration,
+        MIDI: options.MIDI ?? 60,
+        velocity: 100,
+      };
+      if (scaleId && degree !== undefined) {
+        note = { ...omit(note, "MIDI"), scaleId, degree, offset };
+      } else if (trackId) {
+        note = dispatch(autoBindNoteToTrack(trackId, note));
       }
       const undoType = createUndoType("playNote", nanoid());
       if (index === undefined) {
@@ -120,7 +131,7 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
         );
       }
     },
-    [clip, scale, index, duration, asRest, asChord, playRest]
+    [clip.patternId, index, duration, asRest, asChord, playRest]
   );
 
   return {

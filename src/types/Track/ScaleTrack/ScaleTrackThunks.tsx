@@ -40,6 +40,8 @@ import { PatternScaleNotes, PatternScales } from "types/Pattern/PatternUtils";
 import { getTransposedScale } from "types/Scale/ScaleTransformers";
 import { getScaleAliases, getScaleName } from "types/Scale/ScaleFinder";
 import {
+  getFrequencyMidi,
+  getMidiFrequency,
   getMidiOctaveNumber,
   getMidiPitchClass,
   getPitchClassDegree,
@@ -298,10 +300,16 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
   const pcMatch = name.match(/^\[?([a-gA-G][#b]?(?:, ?[a-gA-G][#b]?)+)\]?$/);
 
   // Numbers are equal to degrees
-  const degreeMatch = name.match(/^\[?(\d+(?:, ?\d+)+)\]?$/);
+  const degreeMatch = name.match(/^\[?(\d+(?:, ?\d+)*)\]?$/);
 
   // M[n] are equal to midi numbers
-  const midiMatch = name.match(/^\[?(M\d+(?:, ?M\d+)+)\]?$/);
+  const midiMatch = name.match(/^\[?(M\d+(?:, ?M\d+)*)\]?$/);
+
+  // F[n] are equal to frequencies
+  const freqMatch = name.match(/^\[?(F\d+(?:, ?F\d+)*)\]?$/);
+
+  // T[name] uses Tune.js to search the scale name (anything between parentheses)
+  const tuneMatch = name.match(/T\((.*?)\)/);
 
   const getScale = () => {
     // Parse the pitch classes
@@ -327,8 +335,32 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
     // Parse the MIDI values as absolute
     if (midiMatch) {
       const midiValues = midiMatch[1].split(",");
-      const midi = midiValues.map((value) => parseInt(trim(value).slice(1)));
+      const midi = midiValues.map((value) => parseFloat(trim(value).slice(1)));
       return midi;
+    }
+
+    // Parse the frequency values as absolute
+    if (freqMatch) {
+      const freqValues = freqMatch[1].split(",");
+      const frequencies = freqValues.map((value) =>
+        parseFloat(trim(value).slice(1))
+      );
+      const notes = frequencies.map((f) => 69 + 12 * Math.log2(f / 440));
+      return notes;
+    }
+
+    // Parse the T[name] values
+    if (tuneMatch) {
+      const tuneName = tuneMatch[1];
+      try {
+        const tune = new Tune();
+        tune.loadScale(tuneName);
+        return tune.scale.map((ratio) =>
+          getFrequencyMidi(getMidiFrequency(60) * ratio)
+        );
+      } catch (e) {
+        return undefined;
+      }
     }
 
     // Unpack the scale name

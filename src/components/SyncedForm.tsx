@@ -10,27 +10,33 @@ interface SyncedNumericalFormProps extends ComponentProps<"input"> {
 
 export const SyncedNumericalForm = (props: SyncedNumericalFormProps) => {
   const { min, max, value, setValue, ...rest } = props;
-  const [inputValue, setInputValue] = useState(value);
-  useEffect(() => setInputValue(value), [value]);
+  const [inputValue, setInputValue] = useState(value.toString());
+
+  useEffect(() => {
+    if (parseFloat(inputValue) !== value) setInputValue(value.toString());
+  }, [value]);
+
+  const commit = () => {
+    const num = parseFloat(inputValue);
+    if (isNaN(num)) {
+      setInputValue(value.toString());
+      return;
+    }
+    const clamped = clamp(num, min, max);
+    setValue(clamped);
+    setInputValue(clamped.toString());
+  };
+
   return (
     <input
       {...rest}
-      type="number"
+      type="text"
+      inputMode="decimal"
       value={inputValue}
-      onChange={(e) => setInputValue(e.target.valueAsNumber)}
-      onBlur={() => {
-        const newValue = clamp(inputValue, min, max);
-        setInputValue(newValue);
-        setValue(newValue);
-      }}
+      onChange={(e) => setInputValue(e.target.value)}
+      onBlur={commit}
       onKeyDown={(e) => {
-        if (e.key !== "Enter") return;
-        const currentValue = e.currentTarget.valueAsNumber;
-        e.currentTarget.blur();
-        if (isNaN(currentValue)) return;
-        const newValue = clamp(currentValue, min, max);
-        setInputValue(newValue);
-        setValue(newValue);
+        if (e.key === "Enter") e.currentTarget.blur();
       }}
     />
   );
