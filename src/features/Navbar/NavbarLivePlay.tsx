@@ -2,9 +2,9 @@ import classNames from "classnames";
 import { useAppValue } from "hooks/useRedux";
 import {
   GiCrystalWand,
+  GiHand,
   GiJackPlug,
   GiMisdirection,
-  GiMoebiusTriangle,
 } from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
@@ -27,6 +27,8 @@ import { selectHasTracks } from "types/Track/TrackSelectors";
 import { TRACK_WIDTH } from "utils/constants";
 import { useToggle } from "hooks/useToggle";
 import { getKeyCode } from "hooks/useHeldkeys";
+
+export const LIVE_PLAY_ICON = GiHand;
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -58,7 +60,7 @@ export const NavbarLivePlay = () => {
   const isHoldingScale = ["q", "w", "e", "r", "t", "y"].some(
     (key) => holding[getKeyCode(key)]
   );
-  const isPosing = selectedTrackId && isHoldingScale;
+  const isPosing = isHoldingScale;
   const isVoiceLeadingDegree =
     holding[getKeyCode("d")] && isSelectingPatternClip;
   const isVoiceLeadingClosest =
@@ -587,10 +589,8 @@ export const NavbarLivePlay = () => {
         <GiMisdirection className="text-2xl" />
       ) : isPosing ? (
         <GiCrystalWand className="text-2xl" />
-      ) : hasTracks ? (
-        <GiMoebiusTriangle className="text-2xl" />
       ) : (
-        <GiMoebiusTriangle className="text-2xl" />
+        <LIVE_PLAY_ICON className="text-2xl" />
       )}
     </TooltipButton>
   );

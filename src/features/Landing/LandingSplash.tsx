@@ -11,7 +11,7 @@ export const Splash = () => {
   let subtitle = "A Digital Audio Workstation";
   if (hasError) subtitle = "Unexpected Error";
 
-  let subtitle2 = "with Functional Tonality";
+  let subtitle2 = "with Hierarchical Harmony";
   if (hasError) subtitle2 = errorMessage;
 
   let button = "Make Music Now";

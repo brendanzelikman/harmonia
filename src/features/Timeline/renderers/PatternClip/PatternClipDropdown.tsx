@@ -188,7 +188,13 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                   const string = isBinding ? "auto" : "pedal";
                   const undoType = createUndoType("bindNote", nanoid());
                   pattern.stream.forEach((_, index) => {
-                    const data = { string, id: pattern.id, trackId, index };
+                    const data = {
+                      string,
+                      id: pattern.id,
+                      trackId,
+                      index,
+                      allNotes: true,
+                    };
                     dispatch(bindNoteWithPromptCallback({ data, undoType }));
                   });
                 }}
@@ -270,26 +276,28 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
       ) : (
         <div className="w-[600px] min-h-38 border-t-8 border-t-emerald-500 bg-slate-800 flex flex-col p-2 gap-2 text-slate-50 overflow-scroll">
           {chain.map((scale, i) => (
-            <div className="flex items-center gap-4" key={scale.id}>
-              Scale {chainLabels[i]}:
-              <div className="flex gap-2 overflow-scroll">
-                {scale.notes.map((_, j) => (
-                  <div
-                    className="size-8 rounded-full border border-slate-400 bg-sky-800 hover:opacity-85 shrink-0 total-center cursor-pointer"
-                    key={`${scale.id}-${j}`}
-                    onClick={() =>
-                      playNote({
-                        scaleId: scale.id,
-                        degree: j,
-                        offset: chainOffsets,
-                      })
-                    }
-                  >
-                    {j + 1}
-                  </div>
-                ))}
+            <div className="flex" key={scale.id}>
+              <div className="flex font-bold flex-col gap-1">
+                Scale {chainLabels[i]}:
+                <div className="flex gap-2 font-light overflow-scroll">
+                  {scale.notes.map((_, j) => (
+                    <div
+                      className="size-8 rounded-full border border-slate-400 bg-sky-800 hover:opacity-85 shrink-0 total-center cursor-pointer"
+                      key={`${scale.id}-${j}`}
+                      onClick={() =>
+                        playNote({
+                          scaleId: scale.id,
+                          degree: j,
+                          offset: chainOffsets,
+                        })
+                      }
+                    >
+                      {j + 1}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="ml-auto">
+              <div className="flex font-bold flex-col gap-1 ml-auto text-right">
                 Offset {chainLabels[i]}:
                 <div className="flex gap-2 items-center">
                   <SyncedNumericalForm
@@ -297,10 +305,10 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
                     setValue={(value) => setChainOffset(scale.id, value)}
                     min={-12}
                     max={12}
-                    className="w-12 h-8 rounded border bg-sky-800 shrink-0 total-center"
+                    className="w-12 h-7 font-light rounded-md border bg-sky-800 shrink-0 total-center"
                   />
                   <BsArrowClockwise
-                    className="bg-sky-800/50 size-8 p-2 rounded-lg cursor-pointer hover:text-slate-300 border border-slate-500"
+                    className="bg-sky-800/50 size-7 p-1.5 rounded-lg cursor-pointer hover:text-slate-300 border border-slate-500"
                     onClick={() => setChainOffset(scale.id, 0)}
                   />
                 </div>
@@ -462,7 +470,7 @@ const DropdownNoteButtons = (props: {
       <div className="flex gap-2">
         <div
           data-active={props.mode === "piano"}
-          className="mr-auto capitalize bg-sky-700 cursor-pointer ring-1 ring-slate-400 data-[active=true]:bg-slate-800 text-slate-100 rounded w-28 text-center"
+          className="mr-auto capitalize bg-sky-700 cursor-pointer ring-1 ring-slate-400 data-[active=true]:bg-teal-600 text-slate-100 rounded w-28 text-center"
           onClick={() =>
             props.setMode(props.mode === "piano" ? "scales" : "piano")
           }

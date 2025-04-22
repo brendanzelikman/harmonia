@@ -36,18 +36,18 @@ export const LandingDescription = () => {
 const descriptions = {
   "Notation Program": {
     items: [
-      "Software for Writing Music",
+      "Local-First Sandbox Environment",
       "Projects Stored as JSON",
-      "Autosaves to the Browser",
       "Export To MIDI and WAV",
       "No Installation Required",
+      "Demos and Samples Included",
     ],
     icon: <GiMusicalScore />,
   },
   "Tonality Calculator": {
     items: [
-      "Software for Formulating Music",
-      "Design Trees of Scales",
+      "Geometrical Model of Music",
+      "Design Hierarchical Trees",
       "Bind Notes With Functions",
       "Create Formulated Poses",
       "Navigate Harmonic Spaces",
@@ -56,7 +56,7 @@ const descriptions = {
   },
   "Digital Instrument": {
     items: [
-      "Software for Playing Music",
+      "Real-Time Audio Synthesis",
       "Interactive Keyboard Gestures",
       "Customizable Audio Effects",
       "Open-Source Sample Library",

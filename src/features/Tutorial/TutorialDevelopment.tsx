@@ -1,5 +1,5 @@
 import { dispatchOpen, dispatchClose } from "hooks/useToggle";
-import { GiChart, GiAbacus, GiMoebiusTriangle } from "react-icons/gi";
+import { GiChart, GiAbacus, GiHand } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
 
 export const TutorialDevelopment = () => {
@@ -119,7 +119,7 @@ export const TutorialDevelopment = () => {
         title="Develop Poses"
         subtitle="With Keyboard Gestures"
         stripColor="border-b-fuchsia-500/80"
-        Icon={GiMoebiusTriangle}
+        Icon={GiHand}
         description={
           <>
             <div>

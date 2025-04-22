@@ -15,10 +15,19 @@ export const useHeldKeys = (keys: string[], scope: string = "global") => {
   const [heldKeys, setHeldKeys] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    // Add the key to the record on keydown
+    // Add the key to the record on keypress
     const add = (e: KeyboardEvent) => {
       if (disabled || isInputEvent(e) || e.repeat) return;
       if (keyset.has(e.code)) {
+        setHeldKeys((prev) => ({ ...prev, [e.code]: true }));
+        window.localStorage.setItem(`holding-${e.code}`, "true");
+      }
+    };
+
+    // Add the shift key to the record on keydown
+    const addShift = (e: KeyboardEvent) => {
+      if (disabled || isInputEvent(e) || e.repeat) return;
+      if (e.key === "Shift") {
         setHeldKeys((prev) => ({ ...prev, [e.code]: true }));
         window.localStorage.setItem(`holding-${e.code}`, "true");
       }
@@ -43,6 +52,7 @@ export const useHeldKeys = (keys: string[], scope: string = "global") => {
 
     // Add the event listeners
     document.addEventListener("keypress", add);
+    document.addEventListener("keydown", addShift);
     document.addEventListener("keyup", remove);
     document.addEventListener("click", clear);
     window.addEventListener("blur", clear);

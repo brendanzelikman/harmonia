@@ -50,6 +50,10 @@ export const transportSlice = createSlice({
       if (action.payload === undefined) state.mute = !state.mute;
       else state.mute = action.payload;
     },
+    /** Set the transport scroll to the given value. */
+    setScroll: (state, action: PayloadAction<number | undefined>) => {
+      state.scroll = action.payload;
+    },
   },
 });
 
@@ -62,6 +66,7 @@ export const {
   setLoopEnd,
   setVolume,
   setMute,
+  setScroll,
 } = transportSlice.actions;
 
 export const privateTransportActions = [

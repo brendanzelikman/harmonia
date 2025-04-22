@@ -6,20 +6,22 @@ interface SyncedNumericalFormProps extends ComponentProps<"input"> {
   setValue: (value: number) => void;
   min: number;
   max: number;
+  defaultNumber?: number;
 }
 
 export const SyncedNumericalForm = (props: SyncedNumericalFormProps) => {
-  const { min, max, value, setValue, ...rest } = props;
-  const [inputValue, setInputValue] = useState(value.toString());
+  const { min, max, value, setValue, defaultNumber, ...rest } = props;
+  const [inputValue, setInputValue] = useState(value?.toString?.());
 
   useEffect(() => {
-    if (parseFloat(inputValue) !== value) setInputValue(value.toString());
+    if (parseFloat(inputValue) !== value) setInputValue(value?.toString?.());
   }, [value]);
 
   const commit = () => {
     const num = parseFloat(inputValue);
     if (isNaN(num)) {
-      setInputValue(value.toString());
+      if (defaultNumber) setValue(defaultNumber);
+      setInputValue((defaultNumber ?? value)?.toString?.());
       return;
     }
     const clamped = clamp(num, min, max);

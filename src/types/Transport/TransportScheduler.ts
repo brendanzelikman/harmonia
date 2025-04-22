@@ -1,16 +1,28 @@
 import { selectMidiChordsByTicks } from "types/Arrangement/ArrangementSelectors";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { playPatternChord } from "types/Pattern/PatternThunks";
-import { EighthNoteTicks, PPQ, SixteenthNoteTicks } from "utils/duration";
+import {
+  EighthNoteTicks,
+  PPQ,
+  QuarterNoteTicks,
+  SixteenthNoteTicks,
+  WholeNoteTicks,
+} from "utils/duration";
 import { selectTransport } from "./TransportSelectors";
 import { dispatchTick } from "./TransportTick";
 import { Thunk } from "types/Project/ProjectTypes";
 import { getDestination, getTransport } from "tone";
+import {
+  selectCellsPerTick,
+  selectSubdivision,
+  selectSubdivisionTicks,
+} from "types/Timeline/TimelineSelectors";
+import { format } from "utils/math";
 
 let scheduleId: number | undefined = undefined;
 
 /** Schedule the main transport audio loop. */
-export const scheduleTransport = (): Thunk => async (_, getProject) => {
+export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
   let startTime = getTransport().now();
   let startSeconds = getTransport().seconds;
 
@@ -24,7 +36,19 @@ export const scheduleTransport = (): Thunk => async (_, getProject) => {
   scheduleId = getTransport().scheduleRepeat((time) => {
     const project = getProject();
     const transport = selectTransport(project);
-    const { bpm, loop, swing, loopStart, loopEnd, volume, mute } = transport;
+    const ticks = selectSubdivisionTicks(project);
+    const cellWidth = selectCellsPerTick(project);
+    const {
+      bpm,
+      timeSignature,
+      loop,
+      swing,
+      loopStart,
+      loopEnd,
+      volume,
+      mute,
+      scroll,
+    } = transport;
 
     // Set the volume and mute state
     if (volume !== getDestination().volume.value) {
@@ -46,6 +70,17 @@ export const scheduleTransport = (): Thunk => async (_, getProject) => {
     }
     // Dispatch a tick update event
     dispatchTick(newTick);
+
+    // Scroll the timeline every measure
+    const scrollRatio = (scroll || 1) * timeSignature;
+    if (scroll && newTick && newTick % (scrollRatio * QuarterNoteTicks) === 0) {
+      const grid = document.getElementsByClassName("rdg-grid")[0];
+      if (grid)
+        grid.scroll({
+          left: grid.scrollLeft + scrollRatio * cellWidth * ticks,
+          behavior: "smooth",
+        });
+    }
 
     // If swinging, offset the time
     const stepIndex = Math.floor(newTick / SixteenthNoteTicks);

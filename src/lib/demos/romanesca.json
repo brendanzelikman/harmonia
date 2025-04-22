@@ -317,7 +317,7 @@
     "fragment": {},
     "clipboard": { "clips": [], "portals": [] },
     "selection": { "clipIds": [], "portalIds": [] },
-    "subdivision": "16n",
+    "subdivision": "8n",
     "cellWidth": 25,
     "cellHeight": 120
   },

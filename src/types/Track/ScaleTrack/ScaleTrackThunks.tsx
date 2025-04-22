@@ -373,7 +373,7 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
     let preset: Scale | undefined = [...PresetScaleList, ...PatternScales].find(
       (scale) => {
         const s2 = getScaleName(scale).trim().toLowerCase();
-        const s3 = s2.split(" ")[1];
+        const s3 = s2.split(" ")[0];
         const aliases = getScaleAliases(scale);
         return (
           s1 === s2 || s1 === s3 || aliases.some((a) => a === trim(scaleName))

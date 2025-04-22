@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { PatternClipId, PortaledPatternClipId } from "types/Clip/ClipTypes";
 import { selectPortaledPatternClip } from "types/Arrangement/ArrangementClipSelectors";
@@ -27,6 +27,8 @@ import {
   clipClassName,
   ClipComponentProps,
 } from "features/Timeline/TimelineClips";
+import { useTick } from "types/Transport/TransportTick";
+import { selectClipDuration } from "types/Clip/ClipSelectors";
 
 export interface PatternClipRendererProps extends ClipComponentProps {
   id: PatternClipId;
@@ -37,20 +39,28 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   const { pcId, id, isDragging } = props;
   const dispatch = useAppDispatch();
   const clip = useAppValue((_) => selectPortaledPatternClip(_, pcId));
+  const duration = useAppValue((_) => selectClipDuration(_, pcId));
   const { trackId } = clip;
   const isSelected = useAppValue((_) => selectIsClipSelected(_, id));
   const [isOpen, setIsOpen] = useState(false);
+  const tick = useTick();
   const handleDropdown = useCallback(
     (e: CustomEvent<any>) => {
       if (e.detail.id === undefined || e.detail.id === id) {
         setIsOpen(e.detail.value === undefined ? !isOpen : e.detail.value);
-      } else if (isOpen && e.detail.id.slice(0, 2) === id.slice(0, 2)) {
-        setIsOpen(false);
       }
     },
     [isOpen, id]
   );
   useEvent("clipDropdown", handleDropdown);
+  useEffect(() => {
+    if (!isSelected) return;
+    if (tick > clip.tick + clip.duration) {
+      dispatchCustomEvent("clipDropdown", { value: false, id });
+    } else if (tick > clip.tick) {
+      dispatchCustomEvent("clipDropdown", { value: true, id });
+    }
+  }, [tick, duration]);
   const track = useAppValue((_) => selectTrackById(_, trackId));
   const isAdding = useAppValue(selectIsAddingPatternClips);
   const isPortaling = useAppValue(selectIsAddingPortals);

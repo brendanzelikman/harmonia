@@ -12,6 +12,7 @@ export interface Transport {
   loopEnd: Seconds;
   volume: Volume;
   mute: boolean;
+  scroll: number;
 }
 
 /** The default transport settings. */
@@ -24,4 +25,5 @@ export const defaultTransport: Transport = {
   loopEnd: WholeNoteTicks - 1,
   volume: 0,
   mute: false,
+  scroll: 0,
 };

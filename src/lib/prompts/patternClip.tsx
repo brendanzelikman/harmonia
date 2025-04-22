@@ -446,10 +446,11 @@ export const bindNoteWithPromptCallback =
       id: PatternId;
       trackId?: TrackId;
       index: number;
+      allNotes?: boolean;
     }>
   ): Thunk =>
   async (dispatch, getProject) => {
-    const { string, id, trackId, index } = unpackData(payload);
+    const { string, id, trackId, index, allNotes } = unpackData(payload);
     const project = getProject();
     const undoType = unpackUndoType(payload, "bindNoteWithPrompt");
     const pattern = selectPatternById(project, id);
@@ -458,7 +459,7 @@ export const bindNoteWithPromptCallback =
     const block = getPatternBlockAtIndex(stream, index);
     const blockNotes = getPatternBlockNotes(block);
     let noteIndex = 0;
-    if (blockNotes.length > 1) {
+    if (blockNotes.length > 1 && !allNotes) {
       await promptUserForNumber(
         "Select Note",
         "Please input the index of the note to bind:",
@@ -468,7 +469,7 @@ export const bindNoteWithPromptCallback =
     if (string === "auto" && track) {
       const block = getPatternBlockWithNewNotes(stream[index], (notes) =>
         notes.map((note, i) => {
-          if (i !== noteIndex) return note;
+          if (!allNotes && i !== noteIndex) return note;
           return dispatch(autoBindNoteToTrack(trackId, note));
         })
       );
@@ -479,7 +480,7 @@ export const bindNoteWithPromptCallback =
         pattern.stream[index],
         (notes) =>
           notes.map((note, i) => {
-            if (i !== noteIndex) return note;
+            if (!allNotes && i !== noteIndex) return note;
             const { duration, velocity } = note;
             const newNote = { ...note };
             const scaleId = "scaleId" in note ? note.scaleId : undefined;
@@ -502,7 +503,7 @@ export const bindNoteWithPromptCallback =
     } else {
       const newBlock = getPatternBlockWithNewNotes(block, (notes) =>
         notes.map((n, i) => {
-          if (!n || i !== noteIndex) return n;
+          if (!n || (!allNotes && i !== noteIndex)) return n;
           const firstNote = { ...n } as PatternNestedNote;
           const regex = /([a-zA-Z])([-+]?\d+)/g;
           const [note, ...offsets] = [...string.matchAll(regex)].map(

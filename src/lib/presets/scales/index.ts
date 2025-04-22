@@ -18,7 +18,6 @@ import { keyBy } from "lodash";
 // e.g. { "Common Scales": [ ... ], "Common Modes": [ ... ], ... }
 export const PresetScaleGroupMap = {
   "Custom Scales": [] as ScaleObject[],
-  "Track Scales": [] as ScaleObject[],
   "Basic Scales": Object.values(BasicScales),
   "Pentatonic Scales": Object.values(PentatonicScales),
   "Hexatonic Scales": Object.values(HexatonicScales),

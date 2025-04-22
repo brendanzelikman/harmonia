@@ -2,6 +2,7 @@ import { DEFAULT_BPM, MIN_BPM, MAX_BPM } from "utils/constants";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import classNames from "classnames";
 import {
+  selectTransport,
   selectTransportBPM,
   selectTransportSwing,
   selectTransportTimeSignature,
@@ -25,6 +26,7 @@ import {
   setBPM,
   setTimeSignature,
   setSwing,
+  setScroll,
 } from "types/Transport/TransportSlice";
 
 export function NavbarSettings() {
@@ -33,9 +35,7 @@ export function NavbarSettings() {
   const Diary = useToggle("diary");
   const Shortcuts = useToggle("shortcuts");
   const Keyboard = useToggle("keyboard");
-  const bpm = useAppValue(selectTransportBPM);
-  const meter = useAppValue(selectTransportTimeSignature);
-  const swing = useAppValue(selectTransportSwing);
+  const { bpm, timeSignature, swing, scroll } = useAppValue(selectTransport);
   return (
     <div className="group/tooltip relative">
       {/* Button */}
@@ -68,7 +68,7 @@ export function NavbarSettings() {
             <NavbarSettingsLabel>Quarters per Bar</NavbarSettingsLabel>
             <SyncedNumericalForm
               className="block flex-auto px-2 bg-transparent rounded-md text-sm focus:outline-none text-white disabled:text-slate-400 disabled:placeholder-slate-400 placeholder-slate-300 border-0 focus:border-0 ring-1 ring-slate-400 focus:ring-slate-300 appearance-none focus:bg-slate-900/25 max-w-16 h-7"
-              value={meter}
+              value={timeSignature}
               setValue={(v) => dispatch(setTimeSignature(v))}
               min={1}
               max={64}
@@ -85,6 +85,18 @@ export function NavbarSettings() {
               min={0}
               max={1}
               placeholder={"0-1"}
+            />
+          </NavbarFormGroup>
+          <NavbarFormGroup>
+            <NavbarSettingsLabel>Scroll Interval (Bars)</NavbarSettingsLabel>
+            <SyncedNumericalForm
+              className="block flex-auto px-2 bg-transparent rounded-md text-sm focus:outline-none text-white disabled:text-slate-400 disabled:placeholder-slate-400 placeholder-slate-300 border-0 focus:border-0 ring-1 ring-slate-400 focus:ring-slate-300 appearance-none focus:bg-slate-900/25 max-w-16 h-7"
+              value={scroll}
+              setValue={(v) => dispatch(setScroll(v))}
+              min={0}
+              max={Infinity}
+              defaultNumber={0}
+              placeholder={"0"}
             />
           </NavbarFormGroup>
           <NavbarFileGroup onClick={Diary.toggle}>
