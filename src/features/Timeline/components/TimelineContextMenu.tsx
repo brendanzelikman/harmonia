@@ -100,7 +100,17 @@ export const TimelineContextMenu = memo(() => {
           onChange={(e) => {
             setDuration(e.target.value);
           }}
-          onKeyDown={blurOnEnter}
+          onKeyDown={(e) => {
+            blurOnEnter(e, () => {
+              const isValid = durationValue || duration === "0";
+              const ticks = timeSignature * QuarterNoteTicks * durationValue;
+              const newClips = clips.map((clip) => ({
+                ...clip,
+                duration: isValid ? ticks : undefined,
+              }));
+              dispatch(updateMedia({ data: { clips: newClips } }));
+            });
+          }}
           className="min-w-12 ml-auto max-w-16 h-6 text-center bg-transparent text-slate-200 rounded"
         />
       </div>

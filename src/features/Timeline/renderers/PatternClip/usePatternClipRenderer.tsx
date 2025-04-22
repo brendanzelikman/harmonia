@@ -29,6 +29,7 @@ import {
 } from "features/Timeline/TimelineClips";
 import { useTick } from "types/Transport/TransportTick";
 import { selectClipDuration } from "types/Clip/ClipSelectors";
+import { useTransportState } from "types/Transport/TransportState";
 
 export interface PatternClipRendererProps extends ClipComponentProps {
   id: PatternClipId;
@@ -43,6 +44,7 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   const { trackId } = clip;
   const isSelected = useAppValue((_) => selectIsClipSelected(_, id));
   const [isOpen, setIsOpen] = useState(false);
+  const transportState = useTransportState();
   const tick = useTick();
   const handleDropdown = useCallback(
     (e: CustomEvent<any>) => {
@@ -54,13 +56,13 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   );
   useEvent("clipDropdown", handleDropdown);
   useEffect(() => {
-    if (!isSelected) return;
+    if (!isSelected || transportState !== "started") return;
     if (tick > clip.tick + clip.duration) {
       dispatchCustomEvent("clipDropdown", { value: false, id });
     } else if (tick > clip.tick) {
       dispatchCustomEvent("clipDropdown", { value: true, id });
     }
-  }, [tick, duration]);
+  }, [tick, duration, transportState]);
   const track = useAppValue((_) => selectTrackById(_, trackId));
   const isAdding = useAppValue(selectIsAddingPatternClips);
   const isPortaling = useAppValue(selectIsAddingPortals);

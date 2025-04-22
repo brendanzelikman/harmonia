@@ -329,7 +329,7 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
     if (degreeMatch && parent) {
       const degreeValues = degreeMatch[1].split(",");
       const degrees = degreeValues.map((d) => parseInt(trim(d)));
-      return degrees.map((d) => parent[d]);
+      return degrees.map((d) => parent[d]).filter(Boolean);
     }
 
     // Parse the MIDI values as absolute

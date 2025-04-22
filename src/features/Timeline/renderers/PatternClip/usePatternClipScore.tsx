@@ -58,12 +58,12 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const input = `${modifier} ${type} ${object} (${ticks}s)`;
 
   // The score zooms out with a bigger stream range
-  const length = stream.length;
+
   const { min, max } = useMemo(() => getMidiStreamMinMax(stream), [stream]);
   const spread = isFinite(max) ? max - min : 0;
   const decay = onGrandStaff ? 0.015 : 0.008;
   const initial = onGrandStaff ? 0.9 : 0.8;
-  const zoom = initial - spread * decay - length * 0.005;
+  const zoom = initial - spread * decay;
 
   const { score, cursor } = useScore({
     id: `${clip.id}_score`,
