@@ -245,7 +245,7 @@ export const promptUserForTree: Thunk = (dispatch) =>
       promptLineBreak,
       <span>
         Rule 1: <span className="text-sky-500">Scales</span> are created by
-        name, note, or degree
+        name, note, or number
       </span>,
       <span>Example: "C major chord" or "C, E, G" or "0, 4, 7"</span>,
       promptLineBreak,

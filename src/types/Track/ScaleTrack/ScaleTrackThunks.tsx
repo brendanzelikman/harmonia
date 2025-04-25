@@ -302,10 +302,10 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
   );
 
   // Numbers are equal to degrees
-  const degreeMatch = name.match(/^\[?(\d+(?:[,\s]+?\d+)*)\]?$/);
+  // const degreeMatch = name.match(/^\[?(\d+(?:[,\s]+?\d+)*)\]?$/);
 
   // M[n] are equal to midi numbers
-  const midiMatch = name.match(/^\[?(M\d+(?:[,\s]+?M\d+)*)\]?$/);
+  const midiMatch = name.match(/^\[?(\d+(?:[,\s]+?\d+)*)\]?$/);
 
   // F[n] are equal to frequencies
   const freqMatch = name.match(/^\[?(F\d+(?:[,\s]+?F\d+)*)\]?$/);
@@ -331,18 +331,21 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
     }
 
     // Parse the degrees as relative
-    if (degreeMatch && parent) {
-      const degrees = degreeMatch[1]
-        .trim()
-        .split(/[,\s]+/)
-        .map(Number);
-      return degrees.map((d) => parent[d]).filter(Boolean);
-    }
+    // if (degreeMatch && parent) {
+    //   const degrees = degreeMatch[1]
+    //     .trim()
+    //     .split(/[,\s]+/)
+    //     .map(Number);
+    //   return degrees.map((d) => parent[d]).filter(Boolean);
+    // }
 
     // Parse the MIDI values as absolute
     if (midiMatch) {
       const midiValues = midiMatch[1].split(/[,\s]+/);
-      const midi = midiValues.map((value) => parseFloat(trim(value).slice(1)));
+      const midi = midiValues.map((value) => parseFloat(trim(value)));
+      if (midi.every((m) => m < 12)) {
+        return midi.map((m) => m + 60);
+      }
       return midi;
     }
 

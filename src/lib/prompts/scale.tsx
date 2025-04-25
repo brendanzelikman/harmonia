@@ -60,13 +60,10 @@ export const promptUserForScale =
         <span>Example: "C major" or "0, 2, 4, 5, 7, 9, 11"</span>,
         promptLineBreak,
         <span>
-          Rule #4: M(N) is a Scale Note with MIDI number N (e.g. C4 = M(60))
+          Rule #4: F(N) is a Scale Note with Frequency N (e.g. A4 = F440)
         </span>,
         <span>
-          Rule #5: F(N) is a Scale Note with Frequency N (e.g. A4 = F440)
-        </span>,
-        <span>
-          Rule #6: T(N) is a Scale with the name N in the Scala archive (e.g.
+          Rule #5: T(N) is a Scale with the name N in the Scala archive (e.g.
           T(pyth_31))
         </span>,
         promptLineBreak,
