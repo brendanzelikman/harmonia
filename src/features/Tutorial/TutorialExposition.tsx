@@ -1,8 +1,11 @@
 import { m } from "framer-motion";
 import { GiPineTree, GiMusicalNotes, GiCrystalWand } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
+import { promptUserForTree } from "lib/prompts/tree";
+import { useAppDispatch } from "hooks/useRedux";
 
 export const TutorialExposition = (props: { view: string }) => {
+  const dispatch = useAppDispatch();
   return (
     <m.div
       initial="hidden"
@@ -31,6 +34,7 @@ export const TutorialExposition = (props: { view: string }) => {
         subtitle="Press N to Input, I for Default"
         stripColor="border-b-indigo-500/80"
         Icon={GiPineTree}
+        onClick={() => dispatch(promptUserForTree)}
         description={
           <>
             <div>

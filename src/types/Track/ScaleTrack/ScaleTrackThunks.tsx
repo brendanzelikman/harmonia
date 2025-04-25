@@ -297,16 +297,18 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
   }
 
   // Otherwise, try to parse the scale name
-  const pcMatch = name.match(/^\[?([a-gA-G][#b]?(?:, ?[a-gA-G][#b]?)+)\]?$/);
+  const pcMatch = name.match(
+    /^\[?([a-gA-G][#b]?(?:[,\s]+?[a-gA-G][#b]?)+)\]?$/
+  );
 
   // Numbers are equal to degrees
-  const degreeMatch = name.match(/^\[?(\d+(?:, ?\d+)*)\]?$/);
+  const degreeMatch = name.match(/^\[?(\d+(?:[,\s]+?\d+)*)\]?$/);
 
   // M[n] are equal to midi numbers
-  const midiMatch = name.match(/^\[?(M\d+(?:, ?M\d+)*)\]?$/);
+  const midiMatch = name.match(/^\[?(M\d+(?:[,\s]+?M\d+)*)\]?$/);
 
   // F[n] are equal to frequencies
-  const freqMatch = name.match(/^\[?(F\d+(?:, ?F\d+)*)\]?$/);
+  const freqMatch = name.match(/^\[?(F\d+(?:[,\s]+?F\d+)*)\]?$/);
 
   // T[name] uses Tune.js to search the scale name (anything between parentheses)
   const tuneMatch = name.match(/T\((.*?)\)/);
@@ -314,7 +316,10 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
   const getScale = () => {
     // Parse the pitch classes
     if (pcMatch) {
-      const pitchClasses = pcMatch[1].split(", ").map(capitalize);
+      const pitchClasses = pcMatch[1]
+        .trim()
+        .split(/[,\s]+/)
+        .map(capitalize);
       const scale: MidiScale = [];
       for (const pitchClass of pitchClasses) {
         if (!isPitchClass(pitchClass)) return undefined;
@@ -327,21 +332,23 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
 
     // Parse the degrees as relative
     if (degreeMatch && parent) {
-      const degreeValues = degreeMatch[1].split(",");
-      const degrees = degreeValues.map((d) => parseInt(trim(d)));
+      const degrees = degreeMatch[1]
+        .trim()
+        .split(/[,\s]+/)
+        .map(Number);
       return degrees.map((d) => parent[d]).filter(Boolean);
     }
 
     // Parse the MIDI values as absolute
     if (midiMatch) {
-      const midiValues = midiMatch[1].split(",");
+      const midiValues = midiMatch[1].split(/[,\s]+/);
       const midi = midiValues.map((value) => parseFloat(trim(value).slice(1)));
       return midi;
     }
 
     // Parse the frequency values as absolute
     if (freqMatch) {
-      const freqValues = freqMatch[1].split(",");
+      const freqValues = freqMatch[1].split(/[,\s]+/);
       const frequencies = freqValues.map((value) =>
         parseFloat(trim(value).slice(1))
       );
