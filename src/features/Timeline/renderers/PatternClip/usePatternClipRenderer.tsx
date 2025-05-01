@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { PatternClipId, PortaledPatternClipId } from "types/Clip/ClipTypes";
 import { selectPortaledPatternClip } from "types/Arrangement/ArrangementClipSelectors";
@@ -27,9 +27,6 @@ import {
   clipClassName,
   ClipComponentProps,
 } from "features/Timeline/TimelineClips";
-import { useTick } from "types/Transport/TransportTick";
-import { selectClipDuration } from "types/Clip/ClipSelectors";
-import { useTransportState } from "types/Transport/TransportState";
 
 export interface PatternClipRendererProps extends ClipComponentProps {
   id: PatternClipId;
@@ -40,29 +37,18 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   const { pcId, id, isDragging } = props;
   const dispatch = useAppDispatch();
   const clip = useAppValue((_) => selectPortaledPatternClip(_, pcId));
-  const duration = useAppValue((_) => selectClipDuration(_, pcId));
   const { trackId } = clip;
   const isSelected = useAppValue((_) => selectIsClipSelected(_, id));
   const [isOpen, setIsOpen] = useState(false);
-  const transportState = useTransportState();
-  const tick = useTick();
   const handleDropdown = useCallback(
     (e: CustomEvent<any>) => {
       if (e.detail.id === undefined || e.detail.id === id) {
         setIsOpen(e.detail.value === undefined ? !isOpen : e.detail.value);
       }
     },
-    [isOpen, id]
+    [isOpen]
   );
   useEvent("clipDropdown", handleDropdown);
-  useEffect(() => {
-    if (!isSelected || transportState !== "started") return;
-    if (tick > clip.tick + clip.duration) {
-      dispatchCustomEvent("clipDropdown", { value: false, id });
-    } else if (tick > clip.tick) {
-      dispatchCustomEvent("clipDropdown", { value: true, id });
-    }
-  }, [tick, duration, transportState]);
   const track = useAppValue((_) => selectTrackById(_, trackId));
   const isAdding = useAppValue(selectIsAddingPatternClips);
   const isPortaling = useAppValue(selectIsAddingPortals);
@@ -70,9 +56,14 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   const isCollapsed = !!track?.collapsed;
   const [_, drag] = useDrag({
     type: "clip",
-    item: () => {
+    item: (monitor) => {
       dispatchCustomEvent(`dragClip`, true);
-      return { id: pcId };
+      const clip = document.getElementById(pcId);
+      if (!clip) return { id: pcId };
+      const clientOffset = monitor.getClientOffset();
+      const clipRect = clip.getBoundingClientRect();
+      const offsetX = clientOffset ? clientOffset.x - clipRect.left : 0;
+      return { id: pcId, offsetX };
     },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
@@ -94,6 +85,7 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   return (
     <div
       ref={drag}
+      id={pcId}
       data-type="pattern"
       data-open={!!isOpen}
       data-selected={isSelected}

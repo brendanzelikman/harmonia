@@ -43,11 +43,14 @@ export const stopDownloadingTransport = () => {
 // Thunks
 // --------------------------------------------------------------
 
+type TransportDownloadOptions = Partial<{ download: boolean }>;
+const defaultDownloadOptions: TransportDownloadOptions = { download: true };
+
 /** Download the transport into a WAV file using an offline audio context */
 export const downloadTransport =
   (
     _project?: Project,
-    options: { download?: boolean } = { download: true }
+    options: TransportDownloadOptions = defaultDownloadOptions
   ): Thunk<Promise<Blob>> =>
   async (dispatch, getProject) => {
     const project = _project || getProject();

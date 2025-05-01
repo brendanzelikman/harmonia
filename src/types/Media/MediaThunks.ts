@@ -63,6 +63,7 @@ import {
   selectSelectedPatternClips,
   selectTimeline,
   selectCurrentTimelineTick,
+  selectCellWidth,
 } from "types/Timeline/TimelineSelectors";
 import { selectTrackMap, selectTrackIds } from "types/Track/TrackSelectors";
 import {
@@ -513,6 +514,8 @@ export const onMediaDragEnd =
     const selectedPortals = selectSelectedPortals(project);
     const isPortal = item.portalEntry || item.portalExit;
     const itemId = isPortal ? item.id : getOriginalIdFromPortaledClip(item.id);
+    const subdivisionTicks = selectSubdivisionTicks(project);
+    const cellWidth = selectCellWidth(project);
 
     // Get the value from the item
     const element: MediaElement = isPortal
@@ -525,7 +528,12 @@ export const onMediaDragEnd =
     const rowOffset = item.hoveringRow - rowIndex;
     const columns = getTickColumns(element.tick, subdivision);
     const colOffset = item.hoveringColumn - columns - 1;
-    const tickOffset = colOffset * getSubdivisionTicks(subdivision);
+
+    // Get the offset of the drag from the element's tick
+    let tickOffset = colOffset * getSubdivisionTicks(subdivision);
+    if (item.offsetX) {
+      tickOffset -= Math.floor(item.offsetX / cellWidth) * subdivisionTicks;
+    }
 
     // Get the drop result
     const dropResult = monitor.getDropResult();
@@ -547,7 +555,6 @@ export const onMediaDragEnd =
     for (const id of clipIds) {
       const clip = clipMap[id];
       if (clip === undefined) continue;
-      // If the clip is a chunk, get the original one
 
       // Get the new track and make sure the clip is going into a pattern track
       const trackIndex = orderedTrackIds.indexOf(clip.trackId);

@@ -3,6 +3,7 @@ import { GiPineTree, GiMusicalNotes, GiCrystalWand } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
 import { promptUserForTree } from "lib/prompts/tree";
 import { useAppDispatch } from "hooks/useRedux";
+import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 
 export const TutorialExposition = (props: { view: string }) => {
   const dispatch = useAppDispatch();
@@ -72,6 +73,7 @@ export const TutorialExposition = (props: { view: string }) => {
         subtitle="Scheduled in a Track"
         stripColor="border-b-teal-500/80"
         Icon={GiMusicalNotes}
+        onClick={() => dispatch(toggleLivePlay())}
         description={
           <>
             <div>
@@ -109,6 +111,7 @@ export const TutorialExposition = (props: { view: string }) => {
         subtitle="Scheduled in a Track"
         stripColor="border-b-fuchsia-500/80"
         Icon={GiCrystalWand}
+        onClick={() => dispatch(toggleLivePlay())}
         description={
           <>
             <div>
