@@ -1,3 +1,4 @@
+import { noop } from "lodash";
 import { BaseSyntheticEvent, KeyboardEvent, useEffect } from "react";
 
 // ------------------------------------------------------------
@@ -42,7 +43,7 @@ export const blurEvent = (e: BaseSyntheticEvent) => {
 };
 
 /** Blur the targeted element when the user presses Enter.  */
-export const blurOnEnter = (e: KeyboardEvent, callback?: () => void) => {
+export const blurOnEnter = (e: KeyboardEvent, callback: () => void = noop) => {
   if (e.key === "Enter") {
     (e.currentTarget as HTMLElement).blur();
     callback?.();

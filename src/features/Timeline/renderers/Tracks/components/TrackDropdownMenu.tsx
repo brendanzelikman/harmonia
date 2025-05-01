@@ -27,7 +27,7 @@ import {
   GiPineTree,
   GiCrystalWand,
 } from "react-icons/gi";
-import { exportTrackClipsToMIDI } from "types/Clip/ClipThunks";
+import { exportTrackClipsToMIDI } from "types/Clip/ClipExporters";
 import {
   insertScaleTrack,
   collapseTracks,

@@ -35,15 +35,12 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
     <div
       data-selected={isSelected}
       data-open={isOpen}
-      className="flex pl-[2px] py-[2px] rounded-t-md text-slate-100 items-center whitespace-nowrap cursor-pointer data-[selected=true]:ring-slate-100 hover:ring-2 hover:ring-fuchsia-300 data-[open=true]:w-full data-[open=true]:z-[32]"
+      className="flex pl-[2px] py-[2px] rounded-t-md text-slate-100 items-center whitespace-nowrap data-[selected=true]:ring-slate-100 hover:ring-2 hover:ring-fuchsia-300 data-[open=true]:w-full data-[open=true]:z-[32]"
       style={{ height: POSE_NOTCH_HEIGHT }}
       onMouseEnter={() => setShow(true)}
       onMouseLeave={() => setShow(false)}
     >
-      <Icon
-        onClick={onClick}
-        className={`flex total-center shrink-0 ${isOpen ? "ml-1" : ""}`}
-      />
+      <Icon className={`flex total-center shrink-0 ${isOpen ? "ml-1" : ""}`} />
       {isOpen && (
         <div className="px-2 ml-2 rounded h-full items-center flex bg-fuchsia-600">
           {name}

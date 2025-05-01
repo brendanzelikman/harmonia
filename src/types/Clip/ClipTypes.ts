@@ -10,7 +10,6 @@ import { initializePatternClip } from "./PatternClip/PatternClipTypes";
 import { initializePoseClip } from "./PoseClip/PoseClipTypes";
 import { PatternId } from "types/Pattern/PatternTypes";
 import { PoseId } from "types/Pose/PoseTypes";
-import { ScaleId } from "types/Scale/ScaleTypes";
 import { TrackId } from "types/Track/TrackTypes";
 import { Portaled } from "types/Portal/PortalTypes";
 
@@ -49,8 +48,6 @@ export type IClipProps<T extends ClipType> = T extends "pattern"
   ? { patternId: PatternId; color?: PatternClipColor }
   : T extends "pose"
   ? { poseId: PoseId }
-  : T extends "scale"
-  ? { scaleId: ScaleId }
   : never;
 
 export type IClipId<T extends ClipType = ClipType> = Id<`${T}-clip`>;
@@ -69,3 +66,10 @@ export function initializeClip<T extends ClipType>(
     return initializePoseClip(clip as Partial<PoseClip>);
   throw new Error(`Invalid clip type`);
 }
+
+/** Get the underlying motif ID of a clip. */
+export const getClipMotifId = (clip?: Partial<Clip>) => {
+  if (clip === undefined) return undefined;
+  if (isPatternClip(clip)) return clip.patternId;
+  if (isPoseClip(clip)) return clip.poseId;
+};

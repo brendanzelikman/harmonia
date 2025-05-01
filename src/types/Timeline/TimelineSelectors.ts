@@ -10,20 +10,21 @@ import {
   getTickColumns,
 } from "utils/duration";
 import { Tick, Timed } from "types/units";
-import { selectClipDurationMap, selectClipMap } from "../Clip/ClipSelectors";
-import { selectPoseMap } from "../Pose/PoseSelectors";
+import {
+  selectClipById,
+  selectClipDurationMap,
+  selectClipMap,
+} from "../Clip/ClipSelectors";
 import { createSelector } from "reselect";
-import { capitalize, pick, uniq, values } from "lodash";
+import { pick, uniq, values } from "lodash";
 import { createDeepSelector } from "types/redux";
 import {
-  Clip,
   ClipId,
   isPatternClip,
   isPoseClip,
   PatternClip,
   PoseClip,
 } from "types/Clip/ClipTypes";
-import { ClipType } from "types/Clip/ClipTypes";
 import { Portal } from "types/Portal/PortalTypes";
 import { Project } from "types/Project/ProjectTypes";
 import { getTrackIndex } from "types/Track/TrackFunctions";
@@ -35,7 +36,6 @@ import {
 } from "types/Track/TrackTypes";
 import { defaultTimeline } from "./TimelineTypes";
 import { DEFAULT_CELL_WIDTH, DEFAULT_CELL_HEIGHT } from "utils/constants";
-import { selectPatternMap } from "types/Pattern/PatternSelectors";
 import { selectPortalMap } from "types/Portal/PortalSelectors";
 import {
   selectTrackMap,
@@ -47,8 +47,6 @@ import {
   defaultMediaSelection,
   Media,
 } from "types/Media/MediaTypes";
-import { Pose } from "types/Pose/PoseTypes";
-import { getTransport } from "tone";
 import { readTick } from "types/Transport/TransportTick";
 
 /** Select the timeline from the store. */
@@ -393,9 +391,29 @@ export const selectHasPortalFragment = createSelector(
   (fragment) => fragment.tick !== undefined || fragment.trackId !== undefined
 );
 
+/** Select true if the clip is selected */
 export const selectIsClipSelected = (project: Project, id: ClipId) => {
   const selection = selectSelectedClipIdMap(project);
   return !!selection[id];
+};
+
+/** Selected true if the clip with the lastmost tick is selected */
+export const selectIsClipSelectedLast = (project: Project, id: ClipId) => {
+  const selectedClips = selectSelectedClips(project);
+  const durationMap = selectClipDurationMap(project);
+  const clip = selectClipById(project, id);
+  if (!clip) return false;
+  const isSelected = selectIsClipSelected(project, id);
+  const getDuration = (id: ClipId) => {
+    const duration = durationMap[id];
+    if (!isFinite(duration)) return 0;
+    return duration;
+  };
+  return (
+    isSelected &&
+    clip.tick + getDuration(clip.id) >=
+      Math.max(...selectedClips.map((clip) => clip.tick + getDuration(clip.id)))
+  );
 };
 
 // ------------------------------------------------------------

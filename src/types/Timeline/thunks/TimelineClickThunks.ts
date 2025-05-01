@@ -54,6 +54,7 @@ import { toggleTimelineState } from "../TimelineThunks";
 import { Timed } from "types/units";
 import { createMedia } from "types/Media/MediaThunks";
 import { MouseEvent } from "react";
+import { dispatchCustomEvent } from "utils/event";
 
 // ------------------------------------------------------------
 // Cell Functins
@@ -174,11 +175,17 @@ export const onClipClick =
     const undoType = createUndoType("onClipClick", clip, options);
     const holdingShift = e.shiftKey;
     const holdingOption = e.altKey;
+    const holdingMeta = e.metaKey;
     const project = getProject();
     const selectedClipIds = selectSelectedClipIds(project);
     const selectedClipIdMap = selectSelectedClipIdMap(project);
     const id = clip.id;
     const isClipSelected = selectedClipIdMap[id];
+
+    // If the meta key is held, toggle the clip dropdown
+    if (holdingMeta) {
+      dispatchCustomEvent("clipDropdown", { id });
+    }
 
     // If the alt key is held, toggle the clip in the selection
     if (holdingOption) {

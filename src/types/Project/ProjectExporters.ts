@@ -1,10 +1,13 @@
 import { selectPatternClipIds } from "types/Clip/ClipSelectors";
-import { exportClipsToMidi } from "types/Clip/ClipThunks";
+import { exportClipsToMidi } from "types/Clip/ClipExporters";
 import { initializeProject, Project, Thunk } from "./ProjectTypes";
 import { selectProjectName } from "../Meta/MetaSelectors";
 import { sanitizeProject } from "./ProjectTypes";
 import { getProjects } from "app/projects";
-import { downloadTransport } from "types/Transport/TransportDownloader";
+import {
+  downloadTransport,
+  TransportDownloadOptions,
+} from "types/Transport/TransportDownloader";
 import JSZip from "jszip";
 import dayjs from "dayjs";
 import { downloadBlob } from "utils/event";
@@ -50,10 +53,13 @@ export const exportProjectToMIDI =
 
 /** Export the project to a WAV file based on its transport, using the given project if specified. */
 export const exportProjectToWAV =
-  (project?: Project, download = false): Thunk<Promise<Blob>> =>
+  (
+    project?: Project,
+    options?: Partial<TransportDownloadOptions>
+  ): Thunk<Promise<Blob>> =>
   async (dispatch, getProject) => {
     const savedProject = project || getProject();
-    return await dispatch(downloadTransport(savedProject, { download }));
+    return await dispatch(downloadTransport(savedProject, options));
   };
 
 // -------------------------------------------------------------

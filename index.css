@@ -39,54 +39,52 @@
   }
 }
 
-@layer utilities {
-  .cursor-paintbrush {
-    cursor: url(/cursors/paintbrush.cur), pointer;
-  }
-  .cursor-scissors {
-    cursor: url(/cursors/scissors.cur), pointer;
-  }
-  .cursor-wand {
-    cursor: url(/cursors/wand.cur), pointer;
-  }
-  .cursor-portalguno {
-    cursor: url(/cursors/portalguno.cur), pointer;
-  }
-  .cursor-portalgunb {
-    cursor: url(/cursors/portalgunb.cur), pointer;
-  }
-  .cursor-gethsemane {
-    cursor: url(/cursors/wand2.cur), pointer;
-  }
-  .cursor-saber {
-    cursor: url(/cursors/lightsaber.cur), pointer;
-  }
-  .cursor-eyedropper {
-    cursor: url(/cursors/eyedropper.cur), pointer;
-  }
-  .total-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .total-center-col {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  .text-shadow {
-    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
-  }
-  .text-shadow-sm {
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-  }
-  .text-shadow-lg {
-    text-shadow: 0 0 10px rgba(0, 0, 0);
-  }
-  .rotate-disc {
-    transform: rotateX(75deg);
-  }
+.cursor-paintbrush {
+  cursor: url(/cursors/paintbrush.cur), pointer;
+}
+.cursor-scissors {
+  cursor: url(/cursors/scissors.cur), pointer;
+}
+.cursor-wand {
+  cursor: url(/cursors/wand.cur), pointer;
+}
+.cursor-portalguno {
+  cursor: url(/cursors/portalguno.cur), pointer;
+}
+.cursor-portalgunb {
+  cursor: url(/cursors/portalgunb.cur), pointer;
+}
+.cursor-gethsemane {
+  cursor: url(/cursors/wand2.cur), pointer;
+}
+.cursor-saber {
+  cursor: url(/cursors/lightsaber.cur), pointer;
+}
+.cursor-eyedropper {
+  cursor: url(/cursors/eyedropper.cur), pointer;
+}
+.total-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.total-center-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.text-shadow {
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+}
+.text-shadow-sm {
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+.text-shadow-lg {
+  text-shadow: 0 0 10px rgba(0, 0, 0);
+}
+.rotate-disc {
+  transform: rotateX(75deg);
 }
 
 html,

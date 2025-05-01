@@ -27,7 +27,7 @@ import {
 } from "./ClipSlice";
 import { Timed } from "types/units";
 import { mapValues, pick, uniqBy, values } from "lodash";
-import { getClipMotifId } from "./ClipFunctions";
+import { getClipMotifId } from "./ClipTypes";
 import {
   selectPatternById,
   selectPatternIds,
@@ -64,37 +64,6 @@ export const selectPatternClipTotal = patternClipSelectors.selectTotal;
 export const selectPatternClipById = patternClipSelectors.selectById;
 export const selectPatternClips = patternClipSelectors.selectAll;
 
-export const selectPatternClipsByPatternId = (
-  project: Project,
-  patternId: PatternId
-) => {
-  const clips = selectPatternClips(project);
-  return clips.filter((clip) => clip.patternId === patternId);
-};
-
-export const selectPatternClipsByTrackId = (
-  project: Project,
-  trackId: TrackId
-) => {
-  const clips = selectPatternClips(project);
-  return clips.filter((clip) => clip.trackId === trackId);
-};
-
-export const selectPatternsByTrackId = (project: Project, trackId: TrackId) => {
-  const clips = selectPatternClipsByTrackId(project, trackId);
-  const patternIds = uniqBy(clips, "patternId").map((clip) => clip.patternId);
-  return patternIds
-    .map((id) => selectPatternById(project, id))
-    .filter(Boolean) as Pattern[];
-};
-export const selectTrackHasPatternNotes = (
-  project: Project,
-  trackId: TrackId
-) => {
-  return selectPatternsByTrackId(project, trackId).some(
-    (pattern) => pattern.stream.length > 0
-  );
-};
 // ------------------------------------------------------------
 // Pose Clip Selectors
 // ------------------------------------------------------------
@@ -117,11 +86,6 @@ export const selectPoseClipById = poseClipSelectors.selectById as (
   id: PoseClipId
 ) => PoseClip;
 export const selectPoseClips = poseClipSelectors.selectAll;
-
-export const selectPoseClipsByPoseId = (project: Project, poseId: string) => {
-  const clips = selectPoseClips(project);
-  return clips.filter((clip) => clip.poseId === poseId);
-};
 
 // ------------------------------------------------------------
 // Combined Clip Selectors

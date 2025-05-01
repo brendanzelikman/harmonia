@@ -8,10 +8,10 @@ import {
 import { difference, range, sample, union, uniq } from "lodash";
 import {
   selectClipsByTrackIds,
-  selectPatternClipsByPatternId,
-  selectPoseClipsByPoseId,
+  selectPatternClips,
+  selectPoseClips,
 } from "types/Clip/ClipSelectors";
-import { addClips, updateClips } from "types/Clip/ClipSlice";
+import { addPatternClip, addPoseClip, updateClips } from "types/Clip/ClipSlice";
 import {
   Clip,
   ClipType,
@@ -403,13 +403,13 @@ export const duplicateTrack =
               stream: baseStream,
             });
             dispatch(addPattern({ data: pattern, undoType }));
-            allClips.push({ ...clip, patternId: pattern.id });
+            dispatch(addPatternClip({ ...clip, patternId: pattern.id }));
           } else if (isPoseClip(clip)) {
             const pose = initializePose({
               ...selectPoseById(project, clip.poseId),
             });
             dispatch(addPose({ data: pose, undoType }));
-            allClips.push({ ...clip, poseId: pose.id });
+            dispatch(addPoseClip({ ...clip, poseId: pose.id }));
           }
         }
 
@@ -423,9 +423,6 @@ export const duplicateTrack =
     for (const track of allTracks) {
       dispatch(addTrack({ data: track, undoType }));
     }
-
-    // Add every new clip to the store
-    dispatch(addClips({ data: allClips, undoType }));
     return newTrackMap[track.id];
   };
 
@@ -523,15 +520,16 @@ export const deleteTrack =
 
       for (const clip of clips) {
         if (isPatternClip(clip)) {
-          const clips = selectPatternClipsByPatternId(
-            getProject(),
-            clip.patternId
+          const clips = selectPatternClips(getProject()).filter(
+            (c) => c.patternId === clip.patternId
           );
           if (clips.length === 0) {
             dispatch(removePattern({ data: clip.patternId, undoType }));
           }
         } else if (isPoseClip(clip)) {
-          const clips = selectPoseClipsByPoseId(getProject(), clip.poseId);
+          const clips = selectPoseClips(getProject()).filter(
+            (c) => c.poseId === clip.poseId
+          );
           if (clips.length === 0) {
             dispatch(removePose({ data: clip.poseId, undoType }));
           }

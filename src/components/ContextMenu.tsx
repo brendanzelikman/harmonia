@@ -1,4 +1,3 @@
-import { useHotkeys } from "hooks/useHotkeys";
 import {
   ReactNode,
   useCallback,
@@ -27,10 +26,11 @@ export function ContextMenu(props: {
   useEffect(() => {
     const contextMenuEventHandler = (event: any) => {
       const targetElement = document.getElementById(targetId);
+
       if (targetElement && targetElement.contains(event.target)) {
         event.preventDefault();
-        setVisible(true);
         setPos({ x: event.clientX, y: event.clientY - 58 });
+        setVisible((prev) => !prev);
         return;
       }
       if (contextRef.current && !contextRef.current.contains(event.target)) {
@@ -43,16 +43,21 @@ export function ContextMenu(props: {
       }
     };
 
+    const keydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setVisible(false);
+      }
+    };
+    window.addEventListener("keydown", keydown);
     document.addEventListener("contextmenu", contextMenuEventHandler);
     document.addEventListener("click", offClickHandler);
 
     return () => {
+      window.removeEventListener("keydown", keydown);
       document.removeEventListener("contextmenu", contextMenuEventHandler);
       document.removeEventListener("click", offClickHandler);
     };
   }, [targetId]);
-
-  useHotkeys({ escape: () => setVisible(false) });
 
   useLayoutEffect(() => {
     const node = contextRef.current;

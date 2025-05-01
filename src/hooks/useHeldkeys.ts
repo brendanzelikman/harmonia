@@ -12,7 +12,25 @@ export const useHeldKeys = (keys: string[], scope: string = "global") => {
   const keyboard = useToggle(`keyboard`);
   const outOfScope = keyboard.isOpen !== (scope === "keyboard");
   const disabled = scope !== "all" && outOfScope;
-  const [heldKeys, setHeldKeys] = useState<Record<string, boolean>>({});
+  const [heldKeys, setHeldKeys] = useState<Record<string, boolean>>(
+    keys.reduce(
+      (acc, key) => ({
+        ...acc,
+        [key]: localStorage.getItem(`holding-${key}`) === "true",
+      }),
+      {}
+    )
+  );
+  console.log(
+    keys,
+    keys.reduce(
+      (acc, key) => ({
+        ...acc,
+        [key]: localStorage.getItem(`holding-${getKeyCode(key)}`) === "true",
+      }),
+      {}
+    )
+  );
 
   useEffect(() => {
     // Add the key to the record on keypress
@@ -25,9 +43,9 @@ export const useHeldKeys = (keys: string[], scope: string = "global") => {
     };
 
     // Add the shift key to the record on keydown
-    const addShift = (e: KeyboardEvent) => {
+    const addModifiers = (e: KeyboardEvent) => {
       if (disabled || isInputEvent(e) || e.repeat) return;
-      if (e.key === "Shift") {
+      if (specialKeySet.has(e.key)) {
         setHeldKeys((prev) => ({ ...prev, [e.code]: true }));
         window.localStorage.setItem(`holding-${e.code}`, "true");
       }
@@ -52,16 +70,14 @@ export const useHeldKeys = (keys: string[], scope: string = "global") => {
 
     // Add the event listeners
     document.addEventListener("keypress", add);
-    document.addEventListener("keydown", addShift);
+    document.addEventListener("keydown", addModifiers);
     document.addEventListener("keyup", remove);
-    document.addEventListener("click", clear);
     window.addEventListener("blur", clear);
 
     // Cleanup the event listeners
     return () => {
       document.removeEventListener("keydown", add);
       document.removeEventListener("keyup", remove);
-      document.removeEventListener("click", clear);
       window.removeEventListener("blur", clear);
       clear();
     };
@@ -75,6 +91,8 @@ export const getHeldKey = (key: string) => {
   const code = getKeyCode(key);
   return window.localStorage.getItem(`holding-${code}`) === "true";
 };
+
+const specialKeySet = new Set(["Control", "Shift", "Alt", "Meta"]);
 
 // Keys are mapped to codes to avoid issues with modifiers
 const KeyCodeMap: Record<string, string> = {

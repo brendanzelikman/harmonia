@@ -1,6 +1,6 @@
 import { Payload, unpackUndoType } from "types/redux";
 import { union, difference, without, pick } from "lodash";
-import { exportClipsToMidi } from "types/Clip/ClipThunks";
+import { exportClipsToMidi } from "types/Clip/ClipExporters";
 import { ClipId } from "types/Clip/ClipTypes";
 import { Thunk } from "types/Project/ProjectTypes";
 import { selectTrackIds } from "types/Track/TrackSelectors";
@@ -104,44 +104,47 @@ export const toggleClipIdInSelection =
 
 /** Export all selected clips to a MIDI file. */
 export const exportSelectedClipsToMIDI =
-  (): Thunk => (dispatch, getProject) => {
+  (filename?: string): Thunk =>
+  (dispatch, getProject) => {
     const project = getProject();
     const name = selectProjectName(project);
     const selectedClipIds = selectSelectedClipIds(project);
     dispatch(
       exportClipsToMidi(selectedClipIds, {
-        filename: `${name} Clips`,
+        filename: filename ?? `${name} Clips`,
         download: true,
       })
     );
   };
 
 /** Export all selected clips to a WAV file. */
-export const exportSelectedClipsToWAV = (): Thunk => (dispatch, getProject) => {
-  const project = getProject();
-  const patternClipIds = project.present.patternClips.ids.filter((id) =>
-    selectIsClipSelected(project, id as ClipId)
-  );
-  const patternClipMap = pick(
-    project.present.patternClips.entities,
-    patternClipIds
-  );
-  const poseClipIds = project.present.poseClips.ids.filter((id) =>
-    selectIsClipSelected(project, id as ClipId)
-  );
-  const poseClipMap = pick(project.present.poseClips.entities, poseClipIds);
+export const exportSelectedClipsToWAV =
+  (filename?: string): Thunk =>
+  (dispatch, getProject) => {
+    const project = getProject();
+    const patternClipIds = project.present.patternClips.ids.filter((id) =>
+      selectIsClipSelected(project, id as ClipId)
+    );
+    const patternClipMap = pick(
+      project.present.patternClips.entities,
+      patternClipIds
+    );
+    const poseClipIds = project.present.poseClips.ids.filter((id) =>
+      selectIsClipSelected(project, id as ClipId)
+    );
+    const poseClipMap = pick(project.present.poseClips.entities, poseClipIds);
 
-  dispatch(
-    exportProjectToWAV(
-      {
-        ...project,
-        present: {
-          ...project.present,
-          patternClips: { ids: patternClipIds, entities: patternClipMap },
-          poseClips: { ids: poseClipIds, entities: poseClipMap },
+    dispatch(
+      exportProjectToWAV(
+        {
+          ...project,
+          present: {
+            ...project.present,
+            patternClips: { ids: patternClipIds, entities: patternClipMap },
+            poseClips: { ids: poseClipIds, entities: poseClipMap },
+          },
         },
-      },
-      true
-    )
-  );
-};
+        { download: true, filename }
+      )
+    );
+  };

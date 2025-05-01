@@ -33,7 +33,7 @@ import {
 import { addTrack } from "../TrackThunks";
 import { createSixteenthNote, createSixteenthRest } from "utils/duration";
 import { createPattern, randomizePattern } from "types/Pattern/PatternThunks";
-import { addClip } from "types/Clip/ClipSlice";
+import { addPatternClip } from "types/Clip/ClipSlice";
 import { initializePatternClip } from "types/Clip/ClipTypes";
 import { PatternStream } from "types/Pattern/PatternTypes";
 import { PatternScaleNotes, PatternScales } from "types/Pattern/PatternUtils";
@@ -227,7 +227,7 @@ export const createDrumTracks = (): Thunk => (dispatch) => {
     patternId: kickId,
     trackId: kickTrack.id,
   });
-  dispatch(addClip({ data: kick, undoType }));
+  dispatch(addPatternClip({ data: kick, undoType }));
 
   // Create a snare track and pattern clip
   const snareTrack = dispatch(
@@ -246,7 +246,7 @@ export const createDrumTracks = (): Thunk => (dispatch) => {
     patternId: snareId,
     trackId: snareTrack.id,
   });
-  dispatch(addClip({ data: snare, undoType }));
+  dispatch(addPatternClip({ data: snare, undoType }));
 
   // Create a tom track and pattern clip
   const tomTrack = dispatch(
@@ -262,7 +262,7 @@ export const createDrumTracks = (): Thunk => (dispatch) => {
     })
   ).id;
   const tom = initializePatternClip({ patternId: tomId, trackId: tomTrack.id });
-  dispatch(addClip({ data: tom, undoType }));
+  dispatch(addPatternClip({ data: tom, undoType }));
 
   // Create a hat track and pattern clip
   const hatTrack = dispatch(
@@ -278,7 +278,7 @@ export const createDrumTracks = (): Thunk => (dispatch) => {
     })
   ).id;
   const hat = initializePatternClip({ patternId: hatId, trackId: hatTrack.id });
-  dispatch(addClip({ data: hat, undoType }));
+  dispatch(addPatternClip({ data: hat, undoType }));
 };
 
 export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {

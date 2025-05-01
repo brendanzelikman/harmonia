@@ -24,10 +24,11 @@ import {
   updateClipboard,
 } from "types/Timeline/TimelineSlice";
 import {
-  addClips,
   updateClips,
-  addClip,
-  removeClips,
+  addPatternClip,
+  addPoseClip,
+  removePatternClip,
+  removePoseClip,
 } from "types/Clip/ClipSlice";
 import {
   Clip,
@@ -89,7 +90,7 @@ import {
 import { createPattern } from "types/Pattern/PatternThunks";
 import { selectPoseById, selectPoseMap } from "types/Pose/PoseSelectors";
 import { createPose } from "types/Pose/PoseThunks";
-import { getClipMotifId } from "types/Clip/ClipFunctions";
+import { getClipMotifId } from "types/Clip/ClipTypes";
 import { isBounded } from "utils/math";
 import { removePose } from "types/Pose/PoseSlice";
 import { nanoid } from "@reduxjs/toolkit";
@@ -111,21 +112,26 @@ export const createMedia =
     clips.forEach((clip, i) => {
       const patternMap = selectPatternMap(project);
       const poseMap = selectPoseMap(project);
-      if (isPatternClip(clip) && !(clip.patternId in patternMap)) {
-        clips[i] = {
-          ...clip,
-          patternId: dispatch(createPattern({ data: {}, undoType })).id,
-        };
-      } else if (isPoseClip(clip) && !(clip.poseId in poseMap)) {
-        clips[i] = {
-          ...clip,
-          poseId: dispatch(createPose({ data: {}, undoType })).id,
-        };
+      if (isPatternClip(clip)) {
+        dispatch(addPatternClip({ data: clip, undoType }));
+        if (!(clip.patternId in patternMap)) {
+          clips[i] = {
+            ...clip,
+            patternId: dispatch(createPattern({ data: {}, undoType })).id,
+          };
+        }
+      } else if (isPoseClip(clip)) {
+        dispatch(addPoseClip({ data: clip, undoType }));
+        if (!(clip.poseId in poseMap)) {
+          clips[i] = {
+            ...clip,
+            poseId: dispatch(createPose({ data: {}, undoType })).id,
+          };
+        }
       }
     });
 
     // Add the media to the respective slices and track hierarchy
-    dispatch(addClips({ data: clips, undoType }));
     dispatch(addPortals({ data: portals, undoType }));
 
     // Return the newly created media IDs
@@ -167,21 +173,22 @@ export const deleteMedia =
       const motifId = getClipMotifId(clip);
       if (!motifId) continue;
 
-      // Check for clip ids with the motif
       const motifClipIds = motifClipMap[motifId].filter(
         (n) => !(data.clipIds ?? [])?.includes(n.id)
       );
-      if (!motifClipIds || motifClipIds.length > 0) continue;
 
       if (isPatternClip(clip)) {
+        dispatch(removePatternClip({ data: clip.id, undoType }));
+        if (!motifClipIds || motifClipIds.length > 0) continue;
         dispatch(removePattern({ data: clip.patternId, undoType }));
       } else if (isPoseClip(clip)) {
+        dispatch(removePoseClip({ data: clip.id, undoType }));
+        if (!motifClipIds || motifClipIds.length > 0) continue;
         dispatch(removePose({ data: clip.poseId, undoType }));
       }
     }
 
     // Delete the media from the slices and hierarchy
-    dispatch(removeClips({ ...payload, data: data.clipIds ?? [], undoType }));
     dispatch(
       removePortals({ ...payload, data: data.portalIds ?? [], undoType })
     );
@@ -208,14 +215,17 @@ export const filterSelectionByType =
   };
 
 export const insertMeasure =
-  (amount = WholeNoteTicks): Thunk =>
+  (amount = WholeNoteTicks, clips?: Clip[]): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     const tick = selectCurrentTimelineTick(project);
-    const clips = selectClips(project)
-      .filter((clip) => clip.tick >= tick)
-      .map((clip) => ({ ...clip, tick: clip.tick + amount }));
-    return dispatch(updateClips({ data: clips }));
+    const validClips =
+      clips ?? selectClips(project).filter((clip) => clip.tick >= tick);
+    const newClips = validClips.map((clip) => ({
+      ...clip,
+      tick: clip.tick + amount,
+    }));
+    return dispatch(updateClips({ data: newClips }));
   };
 
 /** Copy all selected media to the clipboard. */
@@ -499,7 +509,7 @@ export const mergeSelectedMedia =
         undoType,
       })
     );
-    dispatch(addClip({ data: clip, undoType }));
+    dispatch(addPatternClip({ data: clip, undoType }));
   };
 
 /** The handler for when a media clip is dragged. */
@@ -634,7 +644,7 @@ export const onMediaDragEnd =
             createPattern({ data: pattern, undoType })
           ).id;
           dispatch(
-            addClip({
+            addPatternClip({
               data: initializePatternClip({ ...clip, patternId: newPatternId }),
               undoType,
             })
@@ -645,7 +655,7 @@ export const onMediaDragEnd =
             createPose({ data: { ...pose }, undoType })
           ).id;
           dispatch(
-            addClip({
+            addPoseClip({
               data: initializePoseClip({ ...clip, poseId: newPoseId }),
               undoType,
             })
