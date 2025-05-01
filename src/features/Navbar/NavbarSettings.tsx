@@ -33,7 +33,6 @@ export function NavbarSettings() {
   const dispatch = useAppDispatch();
   const Terminal = useToggle("terminal");
   const Diary = useToggle("diary");
-  const Shortcuts = useToggle("shortcuts");
   const Keyboard = useToggle("keyboard");
   const { bpm, timeSignature, swing, scroll } = useAppValue(selectTransport);
   return (
@@ -110,10 +109,6 @@ export function NavbarSettings() {
               {Terminal.isOpen ? "Close" : "Open"} Terminal
             </NavbarFileLabel>
             <BsTerminal className="ml-auto text-2xl" />
-          </NavbarFileGroup>
-          <NavbarFileGroup onClick={Shortcuts.toggle}>
-            <NavbarFileLabel>View Shortcuts</NavbarFileLabel>
-            <BsQuestionCircle className="ml-auto text-2xl" />
           </NavbarFileGroup>
           {Keyboard.isOpen && (
             <NavbarFileGroup>

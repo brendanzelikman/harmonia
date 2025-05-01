@@ -6,7 +6,6 @@ import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { NavbarGroup } from "./components/NavbarGroup";
 import { NavbarProjectMenu } from "./NavbarProject";
-import { NavbarSettings } from "./NavbarSettings";
 import { NavbarUndo, NavbarRedo } from "./NavbarUndoRedo";
 import { NavbarArrangeClip } from "./NavbarArrangeClip";
 import { NavbarDesignTree } from "./NavbarDesignTree";
@@ -19,7 +18,17 @@ import { NavbarTransportControl } from "./NavbarTransportControl";
 import { NavbarVolume } from "./NavbarVolume";
 import { NavbarLink } from "./components/NavbarLink";
 import { LOAD_PLAYGROUND } from "features/Playground/Playground";
-import { DONATE_LINK } from "utils/constants";
+import {
+  BsQuestion,
+  BsQuestionCircle,
+  BsQuestionCircleFill,
+} from "react-icons/bs";
+import { dispatchToggle } from "hooks/useToggle";
+import classNames from "classnames";
+import { GiWateringCan } from "react-icons/gi";
+import { NavbarTooltipButton } from "components/TooltipButton";
+import { ToggleShortcutsHotkey } from "lib/hotkeys/global";
+import { NavbarSettings } from "./NavbarSettings";
 
 export function Navbar() {
   const view = useRoute();
@@ -39,7 +48,6 @@ export function Navbar() {
           <NavbarLink v="projects" />
           <NavbarLink v="demos" />
           <NavbarLink v="samples" />
-          {/* <NavbarLink l={DONATE_LINK} v="donate" /> */}
           <NavbarLink v="playground" />
         </div>
       ) : (
@@ -47,7 +55,20 @@ export function Navbar() {
           <NavbarGroup className="w-[250px] gap-3">
             <NavbarProjectMenu />
             <NavbarSettings />
-            <NavbarLivePlay />
+            <NavbarTooltipButton
+              keepTooltipOnClick
+              hideRing
+              className={classNames(
+                "select-none hover:opacity-75 text-slate-200"
+              )}
+              marginLeft={-40}
+              marginTop={-2}
+              borderColor="border-indigo-400/80"
+              onClick={() => dispatchToggle("shortcuts")}
+              hotkey={ToggleShortcutsHotkey}
+            >
+              <BsQuestionCircle className="size-7" />
+            </NavbarTooltipButton>
             <NavbarUndo />
             <NavbarRedo />
           </NavbarGroup>
@@ -68,6 +89,7 @@ export function Navbar() {
             Tools
             <NavbarWaterTree />
             <NavbarScissors />
+            <NavbarLivePlay />
             <NavbarPortalGun />
           </NavbarGroup>
         </div>

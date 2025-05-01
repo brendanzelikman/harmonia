@@ -57,7 +57,7 @@ export const PatternClipStream = memo((props: PatternClipStreamProps) => {
         <div
           key={`${block.startTick}-${i}`}
           data-slicing={isSlicing}
-          className="size-full border-slate-50/10 data-[slicing=true]:bg-slate-500/50 group-hover:data-[slicing=true]:bg-slate-600/50 data-[slicing=true]:cursor-scissors hover:data-[slicing=true]:border-r-4 hover:data-[slicing=true]:border-slate-50/50"
+          className="size-full border-slate-50/10 data-[slicing=true]:bg-slate-500/50 group-hover:data-[slicing=true]:bg-slate-600/50 data-[slicing=true]:cursor-[url(/cursors/scissors.cur),_pointer] hover:data-[slicing=true]:border-r-4 hover:data-[slicing=true]:border-slate-50/50"
           onClick={(e) => {
             if (!isSlicing) return;
             cancelEvent(e);

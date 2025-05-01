@@ -76,7 +76,8 @@ export const getMediaEndTick =
         durationMap[item.id] ?? ("duration" in item ? item.duration : Infinity);
       return Math.max(
         acc,
-        item.tick + (isFinite(duration) ? duration : subdivisionTicks)
+        item.tick +
+          (!!duration && isFinite(duration) ? duration : subdivisionTicks)
       );
     }, -Infinity);
   };

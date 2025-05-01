@@ -39,6 +39,8 @@ import {
   isPoseClip,
   ClipType,
   initializePoseClip,
+  PatternClip,
+  PoseClip,
 } from "types/Clip/ClipTypes";
 import {
   selectClipDuration,
@@ -113,21 +115,21 @@ export const createMedia =
       const patternMap = selectPatternMap(project);
       const poseMap = selectPoseMap(project);
       if (isPatternClip(clip)) {
-        dispatch(addPatternClip({ data: clip, undoType }));
         if (!(clip.patternId in patternMap)) {
           clips[i] = {
             ...clip,
             patternId: dispatch(createPattern({ data: {}, undoType })).id,
           };
         }
+        dispatch(addPatternClip({ data: clips[i] as PatternClip, undoType }));
       } else if (isPoseClip(clip)) {
-        dispatch(addPoseClip({ data: clip, undoType }));
         if (!(clip.poseId in poseMap)) {
           clips[i] = {
             ...clip,
             poseId: dispatch(createPose({ data: {}, undoType })).id,
           };
         }
+        dispatch(addPoseClip({ data: clips[i] as PoseClip, undoType }));
       }
     });
 
@@ -173,7 +175,7 @@ export const deleteMedia =
       const motifId = getClipMotifId(clip);
       if (!motifId) continue;
 
-      const motifClipIds = motifClipMap[motifId].filter(
+      const motifClipIds = (motifClipMap[motifId] ?? []).filter(
         (n) => !(data.clipIds ?? [])?.includes(n.id)
       );
 

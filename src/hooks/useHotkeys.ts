@@ -10,7 +10,7 @@ type HotkeyEvent = "keydown" | "keypress" | "keyup";
 export function useHotkeys(
   hotkeyMap: HotkeyMap,
   event: HotkeyEvent = "keydown",
-  scope: string = "global"
+  scope: string = "all"
 ) {
   const dispatch = useAppDispatch();
   const onKeyboard = useToggle(`keyboard`).isOpen;
@@ -48,5 +48,5 @@ export function useHotkeys(
     return () => {
       document.removeEventListener(event, handleKeyPress);
     };
-  }, [hotkeyMap, disabled, dispatch]);
+  }, [hotkeyMap, disabled, dispatch, scope]);
 }

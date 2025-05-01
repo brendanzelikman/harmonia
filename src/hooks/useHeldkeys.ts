@@ -4,7 +4,7 @@ import { isInputEvent } from "utils/event";
 import { useToggle } from "./useToggle";
 
 /** Create a record storing a map of keys to press states */
-export const useHeldKeys = (keys: string[], scope: string = "global") => {
+export const useHeldKeys = (keys: string[], scope: string = "all") => {
   const keyset: Set<string> = useMemo(
     () => new Set(Object.values(pick(KeyCodeMap, keys))),
     []
@@ -17,16 +17,6 @@ export const useHeldKeys = (keys: string[], scope: string = "global") => {
       (acc, key) => ({
         ...acc,
         [key]: localStorage.getItem(`holding-${key}`) === "true",
-      }),
-      {}
-    )
-  );
-  console.log(
-    keys,
-    keys.reduce(
-      (acc, key) => ({
-        ...acc,
-        [key]: localStorage.getItem(`holding-${getKeyCode(key)}`) === "true",
       }),
       {}
     )

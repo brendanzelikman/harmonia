@@ -2,9 +2,9 @@ import classNames from "classnames";
 import { useAppValue } from "hooks/useRedux";
 import {
   GiCrystalWand,
-  GiHand,
   GiJackPlug,
   GiMisdirection,
+  GiMove,
 } from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
@@ -28,7 +28,7 @@ import { TRACK_WIDTH } from "utils/constants";
 import { useToggle } from "hooks/useToggle";
 import { getKeyCode } from "hooks/useHeldkeys";
 
-export const LIVE_PLAY_ICON = GiHand;
+export const LIVE_PLAY_ICON = GiMove;
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -160,6 +160,7 @@ export const NavbarLivePlay = () => {
       isMuting,
       isSoloing,
       instruments,
+      labels,
     ]
   );
 
@@ -197,7 +198,7 @@ export const NavbarLivePlay = () => {
               />{" "}
               <Description
                 active={holding[getKeyCode("q")] && scaleName1 !== "No Scale"}
-                label={`Apply ${scaleName1}`}
+                label={`Transpose By ${scaleName1}`}
                 defaultClass="text-sky-400"
                 activeClass="text-sky-300"
               />
@@ -207,7 +208,7 @@ export const NavbarLivePlay = () => {
             <Instruction active={holding[getKeyCode("w")]} label="Hold W:" />{" "}
             <Description
               active={holding[getKeyCode("w")] && scaleName2 !== "No Scale"}
-              label={`Apply ${scaleName2}`}
+              label={`Transpose By ${scaleName2}`}
               defaultClass="text-sky-400"
               activeClass="text-sky-300"
             />
@@ -219,7 +220,7 @@ export const NavbarLivePlay = () => {
             />{" "}
             <Description
               active={holding[getKeyCode("e")] && scaleName3 !== "No Scale"}
-              label={`Apply ${scaleName3}`}
+              label={`Transpose By ${scaleName3}`}
               defaultClass="text-sky-400"
               activeClass="text-sky-300"
             />
@@ -228,7 +229,7 @@ export const NavbarLivePlay = () => {
             <Instruction active={holding[getKeyCode("r")]} label="Hold R:" />{" "}
             <Description
               active={holding[getKeyCode("r")]}
-              label={`Apply Rotations (r)`}
+              label={`Transpose By Rotation (r)`}
               defaultClass="text-sky-400"
               activeClass="text-sky-300"
             />
@@ -237,7 +238,7 @@ export const NavbarLivePlay = () => {
             <Instruction active={holding[getKeyCode("t")]} label="Hold T:" />{" "}
             <Description
               active={holding[getKeyCode("t")]}
-              label={`Apply Semitones (t)`}
+              label={`Transpose By Semitone (t)`}
               defaultClass="text-sky-400"
               activeClass="text-sky-300"
             />
@@ -246,7 +247,7 @@ export const NavbarLivePlay = () => {
             <Instruction active={holding[getKeyCode("y")]} label="Hold Y:" />{" "}
             <Description
               active={holding[getKeyCode("y")]}
-              label={`Apply Octaves (y)`}
+              label={`Transpose By Octave (y)`}
               defaultClass="text-sky-400"
               activeClass="text-sky-300"
             />
@@ -517,16 +518,16 @@ export const NavbarLivePlay = () => {
       }
       keepTooltipOnClick
       notClickable
-      marginLeft={-157}
+      marginLeft={-80}
       marginTop={0}
       width={TRACK_WIDTH}
       backgroundColor="bg-radial from-slate-900 to-zinc-900"
       borderColor={`border-2 border-fuchsia-500`}
       rounding="rounded-sm"
       className={classNames(
-        "min-w-8 min-h-7 -ml-1 shrink-0 relative size-9 rounded-full select-none cursor-pointer",
-        "flex total-center hover:text-fuchsia-300 transition-all font-light",
-        working || signal.isOpen ? "text-fuchsia-400" : ""
+        "min-w-8 min-h-7 shrink-0 relative size-9 rounded-full select-none cursor-pointer",
+        "flex total-center hover:text-fuchsia-300 bg-fuchsia-600 font-light",
+        working || signal.isOpen ? "text-fuchsia-200" : ""
       )}
       label={
         <div className="text-white animate-in fade-in duration-300">
@@ -560,15 +561,15 @@ export const NavbarLivePlay = () => {
                 "Create Tree to Unlock Keyboard Gestures"
               )
             ) : isMixing ? (
-              <div>(Hold M/S + Number)</div>
+              <div>(Hold M/S + Press Number)</div>
             ) : isVoiceLeadingClosest ? (
-              <div>(Hold QWERTY + C + Number)</div>
+              <div>(Hold QWERTY + C + Press Number)</div>
             ) : isVoiceLeadingDegree ? (
-              <div>(Hold QWERTY + D + Number)</div>
+              <div>(Hold QWERTY + D + Press Number)</div>
             ) : isSelectingPoseClip ? (
-              <div>(Hold QWERTY + Number)</div>
+              <div>(Hold QWERTY + Press Number)</div>
             ) : isHoldingScale ? (
-              <div>(Hold QWERTY + Number)</div>
+              <div>(Hold QWERTY + Press Number)</div>
             ) : (
               "For Composition and Improvisation"
             )}

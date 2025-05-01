@@ -29,7 +29,7 @@ export const ToggleTerminalHotkey: Hotkey = {
 };
 
 export const ToggleShortcutsHotkey: Hotkey = {
-  name: "Toggle Shortcuts",
+  name: "View Shortcuts",
   shortcut: "\\",
   callback: () => dispatchToggle("shortcuts"),
 };

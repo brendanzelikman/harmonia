@@ -7,7 +7,6 @@ import { createUndoType } from "types/redux";
 import {
   selectCurrentTimelineTick,
   selectSelectedTrackId,
-  selectTimelineTick,
 } from "types/Timeline/TimelineSelectors";
 import { createNewPoseClip } from "types/Track/PatternTrack/PatternTrackThunks";
 import {
@@ -15,7 +14,6 @@ import {
   selectPatternTracks,
   selectTrackAncestorIdsMap,
 } from "types/Track/TrackSelectors";
-import { readTick } from "types/Transport/TransportTick";
 import { sumVectors } from "utils/vector";
 import { getMatch, isNegative, sumVector } from "./utils";
 
@@ -70,13 +68,21 @@ export const createResetPoseAtCursorGesture =
     const trackId = selectedTrackId ?? patternTracks[0]?.id ?? undefined;
     if (!trackId) return;
 
+    const poseClips = selectPoseClips(project);
+    const tickMatch = poseClips.find((clip) => clip.tick === tick);
+    if (tickMatch) {
+      const poseId = tickMatch.poseId;
+      dispatch(updatePose({ data: { id: poseId, vector: {} }, undoType }));
+      return;
+    }
+
     // Create or update a reset pose at the current tick
     const pose = { reset: true };
     const clip = { tick, trackId };
     const match = getMatch(selectPoseClips(project), clip);
     if (match) {
       const id = match.poseId;
-      dispatch(updatePose({ data: { id, vector: pose }, undoType }));
+      dispatch(updatePose({ data: { id, ...pose }, undoType }));
       return;
     }
     dispatch(createNewPoseClip({ data: { pose, clip }, undoType }));

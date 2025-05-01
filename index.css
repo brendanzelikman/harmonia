@@ -42,9 +42,6 @@
 .cursor-paintbrush {
   cursor: url(/cursors/paintbrush.cur), pointer;
 }
-.cursor-scissors {
-  cursor: url(/cursors/scissors.cur), pointer;
-}
 .cursor-wand {
   cursor: url(/cursors/wand.cur), pointer;
 }
@@ -56,12 +53,6 @@
 }
 .cursor-gethsemane {
   cursor: url(/cursors/wand2.cur), pointer;
-}
-.cursor-saber {
-  cursor: url(/cursors/lightsaber.cur), pointer;
-}
-.cursor-eyedropper {
-  cursor: url(/cursors/eyedropper.cur), pointer;
 }
 .total-center {
   display: flex;
