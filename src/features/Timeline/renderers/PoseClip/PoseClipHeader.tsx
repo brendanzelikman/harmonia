@@ -26,8 +26,7 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
   useEvent("showPoseVectors", (e) => setShow(e.detail));
   const onClick = useCallback(
     (e: MouseEvent) => {
-      if (e.altKey) return;
-      if (isSelected || isOpen) cancelEvent(e);
+      cancelEvent(e);
       dispatchCustomEvent("clipDropdown", { id });
     },
     [isSelected, isOpen, id]
@@ -40,10 +39,10 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
       style={{ height: POSE_NOTCH_HEIGHT }}
       onMouseEnter={() => setShow(true)}
       onMouseLeave={() => setShow(false)}
-      onClick={onClick}
     >
       <Icon
-        className={`size-4 flex total-center shrink-0 ${isOpen ? "ml-1" : ""}`}
+        onClick={onClick}
+        className={`flex total-center shrink-0 ${isOpen ? "ml-1" : ""}`}
       />
       {isOpen && (
         <div className="px-2 ml-2 rounded h-full items-center flex bg-fuchsia-600">
