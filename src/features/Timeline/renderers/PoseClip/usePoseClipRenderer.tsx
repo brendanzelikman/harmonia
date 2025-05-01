@@ -16,6 +16,8 @@ import { selectPortaledPoseClip } from "types/Arrangement/ArrangementClipSelecto
 import { selectClipWidth } from "types/Arrangement/ArrangementClipSelectors";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
+  selectIsAddingClips,
+  selectIsAddingPatternClips,
   selectIsAddingPortals,
   selectIsAddingPoseClips,
   selectIsClipSelected,
@@ -64,7 +66,7 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   const dispatch = useAppDispatch();
   const state = useAppValue(selectTimelineState);
   const isActive = state !== "idle";
-  const isAdding = useAppValue(selectIsAddingPoseClips);
+  const isAdding = useAppValue(selectIsAddingClips);
   const isPortaling = useAppValue(selectIsAddingPortals);
   const isBlurred = isAdding || isPortaling || isDragging;
 

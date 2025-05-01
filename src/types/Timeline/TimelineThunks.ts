@@ -55,6 +55,7 @@ import {
   selectPatternClips,
 } from "types/Clip/ClipSelectors";
 import { deleteMedia } from "types/Media/MediaThunks";
+import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -146,7 +147,7 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
   const trackIds: TrackId[] = [];
 
   // If no track is selected, try to find one
-  if (!trackId) {
+  if (!isPatternTrackId(trackId)) {
     // If there is a pattern track, select the first one
     if (patternTrackIds.length) {
       trackId = patternTrackIds[0];

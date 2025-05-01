@@ -122,201 +122,205 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   return (
     <div
       data-open={isOpen}
-      className="w-full [data-open=false]:hidden [data-open=true]:flex bg-gradient-to-t from-sky-950/95 to-sky-900 animate-in fade-in slide-in-from-top-2 slide-in-from-left-2 flex-col h-max rounded-b-lg cursor-default z-20 font-thin backdrop-blur whitespace-nowrap"
+      className="w-full absolute top-6 min-w-[600px] [data-open=false]:hidden [data-open=true]:flex bg-transparent animate-in fade-in slide-in-from-top-2 slide-in-from-left-2 flex-col rounded-b-lg cursor-default z-20 font-thin whitespace-nowrap"
       onClick={cancelEvent}
     >
-      {Score}
-      <div className="flex justify-between p-2 px-4">
-        <div className={"flex flex-col items-center gap-2 relative"}>
-          <DropdownDurationButtons
-            id={patternId}
-            index={index}
-            duration={duration}
-            setDuration={setDuration}
-          />
-          <DropdownDurationSelection input={input} />
-          <DropdownDurationShortcuts />
-        </div>
-        <div className={"total-center-col gap-1 relative"}>
-          <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
-            {record.isOpen ? (
-              <DropdownButton
-                width="size-8"
-                dropdown="Record Pattern"
-                theme="red"
-                onClick={record.close}
-                icon={<BsRecord className="text-2xl" />}
-              />
-            ) : (
-              <DropdownButton
-                width="size-8"
-                dropdown="Input Pattern"
-                theme="teal"
-                onClick={() => dispatch(promptUserForPattern(id, index))}
-                icon={<GiPaintBrush className="text-2xl" />}
-              />
-            )}
-            <DropdownButton
-              width="size-8"
-              dropdown="Randomize Pattern"
-              theme="teal"
-              onClick={() => {
-                const data = { id: patternId, trackId, duration };
-                dispatch(randomizePattern({ data }));
-              }}
-              icon={<GiDiceSixFacesFive className="text-xl" />}
+      <div className="relative flex flex-col size-full min-w-min">
+        {Score}
+        <div className="flex bg-gradient-to-t from-sky-950/95 to-sky-900/90 justify-between p-2 px-4 max-w-[600px]">
+          <div className={"flex flex-col items-center gap-2 relative"}>
+            <DropdownDurationButtons
+              id={patternId}
+              index={index}
+              duration={duration}
+              setDuration={setDuration}
             />
-            {isEditing ? (
+            <DropdownDurationSelection input={input} />
+            <DropdownDurationShortcuts />
+          </div>
+          <div className={"total-center-col gap-1 relative"}>
+            <div className="flex w-min gap-2 bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
+              {record.isOpen ? (
+                <DropdownButton
+                  width="size-8"
+                  dropdown="Record Pattern"
+                  theme="red"
+                  onClick={record.close}
+                  icon={<BsRecord className="text-2xl" />}
+                />
+              ) : (
+                <DropdownButton
+                  width="size-8"
+                  dropdown="Input Pattern"
+                  theme="teal"
+                  onClick={() => dispatch(promptUserForPattern(id, index))}
+                  icon={<GiPaintBrush className="text-2xl" />}
+                />
+              )}
               <DropdownButton
                 width="size-8"
-                theme="sky"
-                disabled={isEmpty}
-                dropdown="Bind Selected Note"
+                dropdown="Randomize Pattern"
+                theme="teal"
                 onClick={() => {
-                  const data = { id: pattern.id, trackId, index };
-                  dispatch(bindNoteWithPrompt({ data }));
+                  const data = { id: patternId, trackId, duration };
+                  dispatch(randomizePattern({ data }));
                 }}
-                icon={<GiPencil className="text-2xl" />}
+                icon={<GiDiceSixFacesFive className="text-xl" />}
               />
-            ) : (
+              {isEditing ? (
+                <DropdownButton
+                  width="size-8"
+                  theme="sky"
+                  disabled={isEmpty}
+                  dropdown="Bind Selected Note"
+                  onClick={() => {
+                    const data = { id: pattern.id, trackId, index };
+                    dispatch(bindNoteWithPrompt({ data }));
+                  }}
+                  icon={<GiPencil className="text-2xl" />}
+                />
+              ) : (
+                <DropdownButton
+                  width="size-8"
+                  disabled={isEmpty}
+                  theme="sky"
+                  dropdown={isBinding ? "Autobind Pattern" : "Freeze Pattern"}
+                  onClick={() => {
+                    const string = isBinding ? "auto" : "pedal";
+                    const undoType = createUndoType("bindNote", nanoid());
+                    pattern.stream.forEach((_, index) => {
+                      const data = {
+                        string,
+                        id: pattern.id,
+                        trackId,
+                        index,
+                        allNotes: true,
+                      };
+                      dispatch(bindNoteWithPromptCallback({ data, undoType }));
+                    });
+                  }}
+                  icon={
+                    isBinding ? (
+                      <GiAbacus className="text-2xl" />
+                    ) : (
+                      <FaTape className="text-xl" />
+                    )
+                  }
+                />
+              )}
               <DropdownButton
                 width="size-8"
                 disabled={isEmpty}
-                theme="sky"
-                dropdown={isBinding ? "Autobind Pattern" : "Freeze Pattern"}
-                onClick={() => {
-                  const string = isBinding ? "auto" : "pedal";
-                  const undoType = createUndoType("bindNote", nanoid());
-                  pattern.stream.forEach((_, index) => {
-                    const data = {
-                      string,
-                      id: pattern.id,
-                      trackId,
-                      index,
-                      allNotes: true,
-                    };
-                    dispatch(bindNoteWithPromptCallback({ data, undoType }));
-                  });
-                }}
+                theme="red"
+                dropdown={isEditing ? "Erase Selected Note" : "Erase Last Note"}
+                onClick={deleteNote}
                 icon={
-                  isBinding ? (
-                    <GiAbacus className="text-2xl" />
+                  isEditing ? (
+                    <BsScissors className="text-2xl" />
                   ) : (
-                    <FaTape className="text-xl" />
+                    <FaEraser className="text-xl" />
                   )
                 }
               />
-            )}
-            <DropdownButton
-              width="size-8"
-              disabled={isEmpty}
-              theme="red"
-              dropdown={isEditing ? "Erase Selected Note" : "Erase Last Note"}
-              onClick={deleteNote}
-              icon={
-                isEditing ? (
-                  <BsScissors className="text-2xl" />
-                ) : (
-                  <FaEraser className="text-xl" />
-                )
-              }
-            />
-            <DropdownButton
-              width="size-8"
-              disabled={isEmpty}
-              theme="fuchsia"
-              dropdown="Transform Pattern"
-              icon={<GiCrystalWand className="text-xl" />}
-              onClick={() => dispatch(promptUserForPatternEffect(id))}
-            />
+              <DropdownButton
+                width="size-8"
+                disabled={isEmpty}
+                theme="fuchsia"
+                dropdown="Transform Pattern"
+                icon={<GiCrystalWand className="text-xl" />}
+                onClick={() => dispatch(promptUserForPatternEffect(id))}
+              />
 
-            <DropdownButton
-              width="size-8"
-              disabled={isEmpty}
-              theme="slate"
-              dropdown="Clear Pattern"
-              onClick={clearNotes}
-              icon={<GiTrashCan className="text-2xl" />}
+              <DropdownButton
+                width="size-8"
+                disabled={isEmpty}
+                theme="slate"
+                dropdown="Clear Pattern"
+                onClick={clearNotes}
+                icon={<GiTrashCan className="text-2xl" />}
+              />
+            </div>
+            <div
+              className="mx-auto capitalize text-emerald-300 max-w-48 overflow-scroll"
+              onClick={() => setType(type === "scale" ? "pedal" : "scale")}
+            >
+              {isEditing
+                ? `Selected: ${labels}`
+                : `Inputting ${
+                    type === "scale" ? "Scale Notes" : "Pedal Notes"
+                  }`}
+            </div>
+            <DropdownNoteButtons
+              type={type}
+              setType={setType}
+              mode={mode}
+              setMode={setMode}
+              canEdit={!isEmpty}
+              isEditing={isEditing}
+              toggleCursor={toggle}
             />
           </div>
-          <div
-            className="mx-auto capitalize text-emerald-300 max-w-48 overflow-scroll"
-            onClick={() => setType(type === "scale" ? "pedal" : "scale")}
-          >
-            {isEditing
-              ? `Selected: ${labels}`
-              : `Inputting ${type === "scale" ? "Scale Notes" : "Pedal Notes"}`}
-          </div>
-          <DropdownNoteButtons
-            type={type}
-            setType={setType}
-            mode={mode}
-            setMode={setMode}
-            canEdit={!isEmpty}
-            isEditing={isEditing}
-            toggleCursor={toggle}
+        </div>
+        {mode === "piano" ? (
+          <Piano
+            className="animate-in border-t-8 border-t-emerald-500 fade-in w-min max-w-[600px] overflow-scroll"
+            show
+            noteRange={noteRange}
+            playNote={(_, midi) =>
+              playNote({
+                MIDI: midi,
+                trackId: type === "scale" ? trackId : undefined,
+              })
+            }
+            scale={scale}
+            width={896}
+            keyWidthToHeight={0.14}
           />
-        </div>
+        ) : (
+          <div className="w-[600px] min-h-38 border-t-8 border-t-emerald-500 bg-slate-800 flex flex-col p-2 gap-2 text-slate-50 overflow-scroll">
+            {chain.map((scale, i) => (
+              <div className="flex" key={scale.id}>
+                <div className="flex font-bold flex-col gap-1">
+                  Scale {chainLabels[i]}:
+                  <div className="flex gap-2 font-light overflow-scroll">
+                    {scale.notes.map((_, j) => (
+                      <div
+                        className="size-8 rounded-full border border-slate-400 bg-sky-800 hover:opacity-85 shrink-0 total-center cursor-pointer"
+                        key={`${scale.id}-${j}`}
+                        onClick={() =>
+                          playNote({
+                            scaleId: scale.id,
+                            degree: j,
+                            offset: chainOffsets,
+                          })
+                        }
+                      >
+                        {j + 1}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex font-bold flex-col gap-1 ml-auto text-right">
+                  Offset {chainLabels[i]}:
+                  <div className="flex gap-2 items-center">
+                    <SyncedNumericalForm
+                      value={chainOffsets[scale.id] ?? 0}
+                      setValue={(value) => setChainOffset(scale.id, value)}
+                      min={-12}
+                      max={12}
+                      className="w-12 h-7 font-light rounded-md border bg-sky-800 shrink-0 total-center"
+                    />
+                    <BsArrowClockwise
+                      className="bg-sky-800/50 size-7 p-1.5 rounded-lg cursor-pointer hover:text-slate-300 border border-slate-500"
+                      onClick={() => setChainOffset(scale.id, 0)}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      {mode === "piano" ? (
-        <Piano
-          className="animate-in border-t-8 border-t-emerald-500 fade-in w-min max-w-[600px] overflow-scroll"
-          show
-          noteRange={noteRange}
-          playNote={(_, midi) =>
-            playNote({
-              MIDI: midi,
-              trackId: type === "scale" ? trackId : undefined,
-            })
-          }
-          scale={scale}
-          width={896}
-          keyWidthToHeight={0.14}
-        />
-      ) : (
-        <div className="w-[600px] min-h-38 border-t-8 border-t-emerald-500 bg-slate-800 flex flex-col p-2 gap-2 text-slate-50 overflow-scroll">
-          {chain.map((scale, i) => (
-            <div className="flex" key={scale.id}>
-              <div className="flex font-bold flex-col gap-1">
-                Scale {chainLabels[i]}:
-                <div className="flex gap-2 font-light overflow-scroll">
-                  {scale.notes.map((_, j) => (
-                    <div
-                      className="size-8 rounded-full border border-slate-400 bg-sky-800 hover:opacity-85 shrink-0 total-center cursor-pointer"
-                      key={`${scale.id}-${j}`}
-                      onClick={() =>
-                        playNote({
-                          scaleId: scale.id,
-                          degree: j,
-                          offset: chainOffsets,
-                        })
-                      }
-                    >
-                      {j + 1}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex font-bold flex-col gap-1 ml-auto text-right">
-                Offset {chainLabels[i]}:
-                <div className="flex gap-2 items-center">
-                  <SyncedNumericalForm
-                    value={chainOffsets[scale.id] ?? 0}
-                    setValue={(value) => setChainOffset(scale.id, value)}
-                    min={-12}
-                    max={12}
-                    className="w-12 h-7 font-light rounded-md border bg-sky-800 shrink-0 total-center"
-                  />
-                  <BsArrowClockwise
-                    className="bg-sky-800/50 size-7 p-1.5 rounded-lg cursor-pointer hover:text-slate-300 border border-slate-500"
-                    onClick={() => setChainOffset(scale.id, 0)}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

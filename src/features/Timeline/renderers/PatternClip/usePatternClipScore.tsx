@@ -61,9 +61,9 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
 
   const { min, max } = useMemo(() => getMidiStreamMinMax(stream), [stream]);
   const spread = isFinite(max) ? max - min : 0;
-  const decay = onGrandStaff ? 0.015 : 0.008;
+  const decay = onGrandStaff ? 0.009 : 0.008;
   const initial = onGrandStaff ? 0.9 : 0.8;
-  const zoom = initial - spread * decay;
+  const zoom = Math.max(initial - spread * decay, 0.5);
 
   const { score, cursor } = useScore({
     id: `${clip.id}_score`,
@@ -78,7 +78,7 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const Score = useMemo(
     () => (
       <div
-        className="bg-white max-w-[600px] -ml-half -mr-[2px] overflow-scroll shrink"
+        className="bg-white w-full min-h-min max-w-[600px] overflow-scroll"
         style={{ height: onGrandStaff ? 100 : 74 }}
       >
         {score}

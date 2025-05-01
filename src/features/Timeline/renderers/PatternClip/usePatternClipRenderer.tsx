@@ -12,7 +12,7 @@ import {
 } from "types/Arrangement/ArrangementClipSelectors";
 import { selectTrackTop } from "types/Arrangement/ArrangementTrackSelectors";
 import {
-  selectIsAddingPatternClips,
+  selectIsAddingClips,
   selectIsAddingPortals,
   selectIsClipSelected,
   selectTrackHeight,
@@ -50,7 +50,7 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   );
   useEvent("clipDropdown", handleDropdown);
   const track = useAppValue((_) => selectTrackById(_, trackId));
-  const isAdding = useAppValue(selectIsAddingPatternClips);
+  const isAdding = useAppValue(selectIsAddingClips);
   const isPortaling = useAppValue(selectIsAddingPortals);
   const isBlurred = isAdding || isPortaling || isDragging;
   const isCollapsed = !!track?.collapsed;
@@ -96,10 +96,9 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
       onDragStart={() => dispatchCustomEvent("clipDropdown", { value: false })}
     >
       <PatternClipHeader id={id} isSelected={isSelected} isOpen={!!isOpen} />
+      {!isCollapsed ? <PatternClipStream clip={clip} /> : null}
       {!!isOpen ? (
         <PatternClipDropdown {...props} clip={clip} id={id} isOpen={!!isOpen} />
-      ) : !isCollapsed ? (
-        <PatternClipStream clip={clip} />
       ) : null}
     </div>
   );
