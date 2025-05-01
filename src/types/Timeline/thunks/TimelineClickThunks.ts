@@ -226,12 +226,12 @@ export const selectRangeOfClips =
     const selectedClips = selectSelectedClips(project);
     const trackIds = selectTrackIds(project);
     const selectedTrackId = selectSelectedTrackId(project);
-    const selection = union<Timed<Clip>>(selectedClips, [clip]);
+    const selection = union<Clip>(selectedClips, [clip]);
 
     // Compute the start and end time of the selection
     const currentTick = selectCurrentTimelineTick(project);
     let startTick = getMediaStartTick(selection);
-    let endTick = getMediaEndTick(selection);
+    let endTick = dispatch(getMediaEndTick(selection));
 
     // If no clips are selected, use the current tick and selected track
     if (!selectedClips.length && selectedTrackId) {
@@ -323,7 +323,7 @@ export const onPortalClick =
 
     // Compute the start and end time of the selection
     const startTick = getMediaStartTick(selectedMedia);
-    const endTick = getMediaEndTick(selectedMedia);
+    const endTick = dispatch(getMediaEndTick(selectedMedia));
 
     // Get all portals that are in the track range
     const orderedIds = selectTrackIds(project);

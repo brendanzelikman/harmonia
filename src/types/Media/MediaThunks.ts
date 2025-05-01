@@ -71,7 +71,7 @@ import {
   getValidMedia,
   getClipsFromMedia,
   getPortalsFromMedia,
-  getDuplicatedMedia,
+  getMediaEndTick,
 } from "./MediaFunctions";
 import {
   NewMediaPayload,
@@ -294,7 +294,8 @@ export const duplicateSelectedMedia =
 
     // Duplicate the media
     const media = [...clips, ...portals];
-    const duplicatedMedia = getDuplicatedMedia(media);
+    const endTick = dispatch(getMediaEndTick(media));
+    const duplicatedMedia = getOffsettedMedia(media, endTick);
 
     // Create and select the new media
     const newClips = getClipsFromMedia(duplicatedMedia);

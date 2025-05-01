@@ -24,7 +24,7 @@ export const PatternClipHeader = memo((props: PatternClipHeaderProps) => {
   const onClick = useCallback(
     (e: MouseEvent) => {
       if (e.altKey) return;
-      if (isSelected || isOpen) cancelEvent(e);
+      if (e.metaKey || isSelected || isOpen) cancelEvent(e);
       dispatchCustomEvent("clipDropdown", { id });
     },
     [id, isSelected, isOpen]

@@ -6,6 +6,9 @@ import { applyPortalsToClips } from "types/Portal/PortalFunctions";
 import { isPortal } from "types/Portal/PortalTypes";
 import { TrackMap, TrackId } from "types/Track/TrackTypes";
 import { isFinite } from "utils/math";
+import { Thunk } from "types/Project/ProjectTypes";
+import { selectClipDurationMap } from "types/Clip/ClipSelectors";
+import { selectSubdivisionTicks } from "types/Timeline/TimelineSelectors";
 
 /** Get the clips from the media. */
 export const getClipsFromMedia = (media: Media) => {
@@ -45,30 +48,38 @@ export const getMediaStartTick = (media: Media) => {
 };
 
 /** Get the latest end tick of all media. If there is no media, return -Infinity. */
-export const getMediaEndTick = (media: MediaElement[]) => {
-  // Get the portals and their indices
-  const portals = getPortalsFromMedia(media);
+export const getMediaEndTick =
+  (media: MediaElement[]): Thunk<number> =>
+  (_, getProject) => {
+    const project = getProject();
+    const durationMap = selectClipDurationMap(project) as Record<
+      string,
+      number
+    >;
+    const subdivisionTicks = selectSubdivisionTicks(project);
 
-  // Get all clips and their durations
-  const clips = getClipsFromMedia(media) as Timed<Clip>[];
+    // Get the portals and their indices
+    const portals = getPortalsFromMedia(media);
 
-  // Apply the clips through the portals first
-  const portaledClips = applyPortalsToClips(clips, portals);
-  const processedMedia = media.map(
-    (item) => portaledClips.find((clip) => clip.id === item.id) ?? item
-  );
+    // Get all clips and their durations
+    const clips = getClipsFromMedia(media) as Timed<Clip>[];
 
-  // Get the end tick of the processed media
-  return processedMedia.reduce((acc, item) => {
-    const duration = getMediaElementDuration(item);
-    return Math.max(acc, item.tick + (isFinite(duration) ? duration : 1));
-  }, -Infinity);
-};
+    // Apply the clips through the portals first
+    const portaledClips = applyPortalsToClips(clips, portals);
+    const processedMedia = media.map(
+      (item) => portaledClips.find((clip) => clip.id === item.id) ?? item
+    );
 
-/** Get the duration of all media. If there is no media, return 0. */
-export const getMediaDuration = (media: MediaElement[]) => {
-  return getMediaEndTick(media) - getMediaStartTick(media);
-};
+    // Get the end tick of the processed media
+    return processedMedia.reduce((acc, item) => {
+      const duration =
+        durationMap[item.id] ?? ("duration" in item ? item.duration : Infinity);
+      return Math.max(
+        acc,
+        item.tick + (isFinite(duration) ? duration : subdivisionTicks)
+      );
+    }, -Infinity);
+  };
 
 /** Get the media that starts in the given tick range. */
 export const getMediaInRange = (
@@ -144,7 +155,7 @@ export const getOffsettedMedia = (
   tick: number,
   trackId?: TrackId,
   trackIds?: TrackId[]
-): Timed<MediaElement>[] => {
+): MediaElement[] => {
   // Get the track offset
   const shouldOffsetTracks = !!trackId && trackIds;
   const trackOffset = shouldOffsetTracks
@@ -153,7 +164,7 @@ export const getOffsettedMedia = (
 
   // Iterate through the media and offset each item
   const offsetedMedia = media.map((item) => {
-    let element = { ...item, duration: getMediaElementDuration(item) };
+    const element = { ...item };
 
     // Offset the tick
     const tickOffset = getMediaTickOffset(media, tick);
@@ -182,10 +193,4 @@ export const getOffsettedMedia = (
 
   // Return the offseted media
   return offsetedMedia;
-};
-
-/** Get the duplicated media starting at the end of the given media. */
-export const getDuplicatedMedia = (media: Timed<MediaElement>[]) => {
-  const endTick = getMediaEndTick(media);
-  return getOffsettedMedia(media, endTick);
 };

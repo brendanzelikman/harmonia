@@ -153,14 +153,8 @@ export const selectSelectedPortalIds = createDeepSelector(
 
 /** Select all selected clips. */
 export const selectSelectedClips = createDeepSelector(
-  [selectSelectedClipIds, selectClipMap, selectClipDurationMap],
-  (clipIds, clipMap, durationMap) =>
-    values(pick(clipMap, clipIds))
-      .filter(Boolean)
-      .map((clip) => ({
-        ...clip,
-        duration: durationMap[clip.id] ?? clip.duration,
-      })) as Timed<Clip>[]
+  [selectSelectedClipIds, selectClipMap],
+  (clipIds, clipMap) => values(pick(clipMap, clipIds)).filter(Boolean)
 );
 
 /** Select the currently selected pattern clips. */
