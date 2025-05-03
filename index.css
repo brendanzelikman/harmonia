@@ -74,9 +74,6 @@
 .text-shadow-lg {
   text-shadow: 0 0 10px rgba(0, 0, 0);
 }
-.rotate-disc {
-  transform: rotateX(75deg);
-}
 
 html,
 body,

@@ -122,7 +122,7 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
   const holdingCtrl = heldKeys["ControlLeft"];
   const holdingShift = heldKeys["ShiftLeft"];
   const holdingMeta = heldKeys["MetaLeft"];
-  const menuLeft = (left ?? 0) + (width ?? 0) + 2;
+  const menuLeft = (left ?? 0) + (width ?? 0) + 4;
   const isLast = useAppValue((_) => selectIsClipSelectedLast(_, id));
   const isMenuOpen =
     isLast && !isBlurred && !isOpen && !holdingAlt && !holdingShift;
@@ -162,24 +162,20 @@ export const PoseClipRenderer = memo((props: PoseClipRendererProps) => {
         )}
       </div>
       {isMenuOpen && (
-        <>
-          <div
-            style={{ left: menuLeft, top: top + 2 }}
-            className={classNames(
-              "absolute z-[31] text-xs flex flex-col gap-0.5 *:border-b font-light animate-in fade-in whitespace-nowrap w-48 p-[3px] px-1 rounded bg-slate-900/90 backdrop-blur text-emerald-300/80"
-            )}
-          >
-            <div className="text-fuchsia-300/80">Cmd + Click to Edit Pose</div>
-            <div className="text-cyan-300/80">Ctrl + Click to Edit Clips</div>
-            <div className="text-indigo-300/90">
-              Option + Click to Select Clips
-            </div>
-            <div className="text-violet-300/90">
-              Shift + Click to Select Range
-            </div>
-            <div className="text-slate-200/90">Escape to Close Menus</div>
+        <div
+          style={{ left: menuLeft, top: top + POSE_NOTCH_HEIGHT }}
+          className="absolute select-none flex z-[31] text-xs flex-col gap-0.5 *:border-b font-light animate-in fade-in whitespace-nowrap w-48 p-[3px] px-1 rounded bg-slate-900/90 backdrop-blur text-emerald-300/80"
+        >
+          <div className="text-fuchsia-300/80">Cmd + Click to Edit Pose</div>
+          <div className="text-cyan-300/80">Ctrl + Click to Edit Clips</div>
+          <div className="text-indigo-300/90">
+            Option + Click to Select Clips
           </div>
-        </>
+          <div className="text-violet-300/90">
+            Shift + Click to Select Range
+          </div>
+          <div className="text-slate-200/90">Escape to Close Menus</div>
+        </div>
       )}
     </>
   );

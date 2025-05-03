@@ -68,7 +68,9 @@ export const createResetPoseAtCursorGesture =
     const trackId = selectedTrackId ?? patternTracks[0]?.id ?? undefined;
     if (!trackId) return;
 
-    const poseClips = selectPoseClips(project);
+    const poseClips = selectPoseClips(project).filter(
+      (clip) => clip.trackId === trackId
+    );
     const tickMatch = poseClips.find((clip) => clip.tick === tick);
     if (tickMatch) {
       const poseId = tickMatch.poseId;
@@ -79,7 +81,7 @@ export const createResetPoseAtCursorGesture =
     // Create or update a reset pose at the current tick
     const pose = { reset: true };
     const clip = { tick, trackId };
-    const match = getMatch(selectPoseClips(project), clip);
+    const match = getMatch(poseClips, clip);
     if (match) {
       const id = match.poseId;
       dispatch(updatePose({ data: { id, ...pose }, undoType }));

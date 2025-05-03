@@ -1,15 +1,20 @@
 import { BaseProject } from "app/reducer";
 import Sentence from "lib/demos/sentence.json";
 import Moonlight from "lib/demos/moonlight.json";
+import Waterfall from "lib/demos/waterfall.json";
+import Reminiscenza from "lib/demos/reminiscenza.json";
 import Robot from "lib/demos/chat.json";
 import Prelude from "lib/demos/prelude.json";
 import Scherzo from "lib/demos/scherzo.json";
 import Barry from "lib/demos/barry.json";
 import Bird from "lib/demos/bird.json";
-import Wave from "lib/demos/wave.json";
 import Carousel from "lib/demos/carousel.json";
+import Fonte from "lib/demos/fonte.json";
 import Exalted from "lib/demos/exalted.json";
-import Waves from "lib/demos/waves.json";
+import Wave from "lib/demos/wave.json";
+import WaveSnark from "lib/demos/waveAlt.json";
+import WaveLong from "lib/demos/waveLong.json";
+import WaveWaltz from "lib/demos/waveWaltz.json";
 import Lavos from "lib/demos/lavos.json";
 import Romanesca from "lib/demos/romanesca.json";
 import {
@@ -30,9 +35,19 @@ const MoonlightDemo: DemoProject = {
   blurb: "A few bars from Mvt. 3 of the Moonlight Sonata",
 };
 
+const WaterfallDemo: DemoProject = {
+  project: Waterfall as unknown as BaseProject,
+  blurb: "A few bars from Chopin's Etude Op. 10, No. 1",
+};
+
+const ReminiscenzaDemo: DemoProject = {
+  project: Reminiscenza as unknown as BaseProject,
+  blurb: "A few bars from Medtner's Sonata-Reminiscenza.",
+};
+
 const PreludeDemo: DemoProject = {
   project: Prelude as unknown as BaseProject,
-  blurb: "A short piece imitating Chopin's Prelude in C major.",
+  blurb: "The famous Prelude in C Major by Bach.",
 };
 
 const RobotDemo: DemoProject = {
@@ -70,14 +85,26 @@ const WaveDemo: DemoProject = {
   blurb: "Arpeggios and chords moving by fifths.",
 };
 
-const WavesDemo: DemoProject = {
-  project: Waves as unknown as BaseProject,
+const WaveSnarkDemo: DemoProject = {
+  project: WaveSnark as unknown as BaseProject,
+  blurb: "An alternate chord progression for Wave.",
+};
+const WaveLongDemo: DemoProject = {
+  project: WaveLong as unknown as BaseProject,
   blurb: "An extended piece based on Wave.",
 };
-
+const WaveWaltzDemo: DemoProject = {
+  project: WaveWaltz as unknown as BaseProject,
+  blurb: "A waltz-like interpretation of Wave.",
+};
 const CarouselDemo: DemoProject = {
   project: Carousel as unknown as BaseProject,
   blurb: "A turbulent pattern posing around.",
+};
+
+const FonteDemo: DemoProject = {
+  project: Fonte as unknown as BaseProject,
+  blurb: "A playful solo over the Fonte progression.",
 };
 
 const ExaltedDemo: DemoProject = {
@@ -93,28 +120,28 @@ const LavosDemo: DemoProject = {
 // Demo projects are organized by genre
 export const DEMO_GENRES = [
   {
-    key: "Phrases",
+    key: "Sequence",
     color: "border-indigo-400 text-indigo-400",
     icon: <GiPianoKeys />,
-    demos: [RomanescaDemo, SentenceDemo, RobotDemo],
+    demos: [RomanescaDemo, SentenceDemo, RobotDemo, ScherzoDemo],
   },
   {
     key: "Classical",
     color: "border-sky-400 text-sky-400",
     icon: <GiQuill />,
-    demos: [PreludeDemo, ScherzoDemo, MoonlightDemo],
+    demos: [PreludeDemo, MoonlightDemo, WaterfallDemo, ReminiscenzaDemo],
   },
   {
     key: "Jazz",
     color: "border-orange-300 text-orange-300",
     icon: <GiTrumpet />,
-    demos: [BirdDemo, BarryDemo],
+    demos: [BirdDemo, BarryDemo, CarouselDemo, FonteDemo],
   },
   {
     key: "Electronic",
     color: "border-emerald-300 text-emerald-300",
     icon: <GiRobotGolem />,
-    demos: [WaveDemo, CarouselDemo, WavesDemo],
+    demos: [WaveDemo, WaveSnarkDemo, WaveWaltzDemo, WaveLongDemo],
   },
   {
     key: "Techno",

@@ -86,10 +86,11 @@ export const getPatternBlockAtTick = (
 
 /** Get the total duration of a `PatternBlock` in ticks. */
 export const getPatternBlockDuration = (block: PatternBlock): Tick => {
+  if (!block) return 0;
   if ("duration" in block) return block.duration;
   const isStrummed = "chord" in block;
   const chord = isStrummed ? block.chord : block;
-  const duration = maxBy(chord, (c) => c.duration)?.duration ?? 0;
+  const duration = maxBy(chord, (c) => c?.duration)?.duration ?? 0;
   if (!isStrummed) return duration;
 
   // Add the strum range to the duration if the chord is strummed

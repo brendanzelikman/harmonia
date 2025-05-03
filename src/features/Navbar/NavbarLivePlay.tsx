@@ -2,9 +2,9 @@ import classNames from "classnames";
 import { useAppValue } from "hooks/useRedux";
 import {
   GiCrystalWand,
+  GiHand,
   GiJackPlug,
   GiMisdirection,
-  GiMove,
 } from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
@@ -28,7 +28,7 @@ import { TRACK_WIDTH } from "utils/constants";
 import { useToggle } from "hooks/useToggle";
 import { getKeyCode } from "hooks/useHeldkeys";
 
-export const LIVE_PLAY_ICON = GiMove;
+export const LIVE_PLAY_ICON = GiHand;
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];

@@ -134,9 +134,8 @@ export const selectClipDurationMap = createDeepSelector(
   [selectClipMap, selectClipMotifMap],
   (clipMap, referenceMap) =>
     mapValues(clipMap, (clip) => {
-      if (!clip) return Infinity;
       const reference = referenceMap[clip.id];
-      if (!reference) return Infinity;
+      if (!reference) return 0;
       if (clip.duration && isFinite(clip.duration)) return clip.duration;
       if (isPose(reference)) return getPoseDuration(reference);
       if (isPattern(reference)) return getPatternDuration(reference);

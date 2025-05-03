@@ -9,7 +9,7 @@ import {
 import { next } from "utils/array";
 import { CLIP_TYPES } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
-import { Thunk } from "types/Project/ProjectTypes";
+import { sanitizeProject, Thunk } from "types/Project/ProjectTypes";
 import {
   selectPatternTrackIds,
   selectScaleTrackIds,
@@ -24,7 +24,6 @@ import {
   selectCellWidth,
   selectIsTrackSelected,
   selectTimelineState,
-  selectTimelineTick,
   selectCurrentTimelineTick,
 } from "./TimelineSelectors";
 import {
@@ -56,6 +55,15 @@ import {
 } from "types/Clip/ClipSelectors";
 import { deleteMedia } from "types/Media/MediaThunks";
 import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
+import { promptUserForProjects } from "types/Project/ProjectLoaders";
+import { PatternMidiNote, PatternStream } from "types/Pattern/PatternTypes";
+import {
+  selectLastArrangementTick,
+  selectMidiChordsByTicks,
+} from "types/Arrangement/ArrangementSelectors";
+import { selectTransportTimeSignature } from "types/Transport/TransportSelectors";
+import { QuarterNoteTicks } from "utils/duration";
+import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -276,3 +284,80 @@ export const toggleTrackEditor =
       dispatch(setSelectedTrackId({ data: id, undoType }));
     }
   };
+
+export const sampleProject = (): Thunk => async (dispatch, getProject) => {
+  const project = getProject();
+  const undoType = createUndoType("sampleProject", nanoid());
+  let trackId = selectSelectedTrackId(project);
+  const tick = selectCurrentTimelineTick(project);
+  promptUserForProjects((file) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      if (!e.target?.result) return window.location.reload();
+
+      const present = JSON.parse(e.target.result as string);
+      const project = sanitizeProject({ present });
+      const timeSignature = selectTransportTimeSignature(project);
+      let startBar = 0;
+      let endBar = 0;
+      if (startBar > endBar) return;
+      const startTick = startBar * QuarterNoteTicks * timeSignature;
+      let endTick = endBar * QuarterNoteTicks * timeSignature;
+      if (endTick === 0) endTick = selectLastArrangementTick(project);
+
+      const chordsByTicks = selectMidiChordsByTicks(project);
+      const stream: PatternStream = [];
+
+      // Create the stream
+      let ticksSinceRest = 0;
+      for (let i = startTick; i < endTick; i++) {
+        const chordMap = chordsByTicks[i];
+        const block: PatternMidiNote[] = [];
+        let minDuration = Infinity;
+        for (const instrumentId in chordMap) {
+          const chords = chordMap[instrumentId];
+          if (!chords.length) continue;
+          for (const note of chords) {
+            if (note.duration) {
+              minDuration = Math.min(minDuration, note.duration);
+            }
+          }
+          block.push(...chords);
+        }
+        if (!block?.length) {
+          ticksSinceRest++;
+          continue;
+        } else {
+          const last = stream[stream.length - 1];
+          if (last) {
+            stream[stream.length - 1] = getPatternBlockWithNewNotes(
+              last,
+              (notes) =>
+                notes.map((n) => ({
+                  ...n,
+                  duration: n.duration + ticksSinceRest + 1,
+                }))
+            );
+          }
+        }
+        if (ticksSinceRest > 0) stream.push({ duration: ticksSinceRest });
+        else {
+        }
+        stream.push(block.map((n) => ({ ...n, duration: minDuration })));
+        ticksSinceRest = -minDuration;
+      }
+
+      // Create the new clip and delete the old ones
+      if (!trackId) {
+        trackId = dispatch(createPatternTrack({ data: {}, undoType })).track.id;
+      }
+      const pattern = { stream };
+      const clip = { trackId, tick };
+
+      dispatch(
+        createCourtesyPatternClip({ data: { pattern, clip }, undoType })
+      );
+    };
+    reader.readAsText(file);
+  });
+};

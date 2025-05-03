@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Project } from "types/Project/ProjectTypes";
 import { selectProjectId } from "types/Meta/MetaSelectors";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
@@ -21,7 +21,7 @@ export default function ProjectPage() {
   const navigate = useNavigate();
   useHotkeys({ enter: () => navigate("/playground") });
   const { data } = useFetch(getProjects, UPDATE_PROJECT_EVENT);
-  const projects = data ?? [];
+  const projects = useMemo(() => data ?? [], [data]);
   const [query, setQuery] = useState("");
   const results = useProjectSearch({ projects, query });
   return (

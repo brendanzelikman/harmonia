@@ -16,18 +16,18 @@ export const NavbarScissors = () => {
       <NavbarTooltipButton
         keepTooltipOnClick
         notClickable={!hasClips}
-        borderColor="border-teal-500"
+        borderColor="border-emerald-500"
         activeLabel="Equipped Scissors"
-        label={hasClips ? undefined : "No Patterns to Slice"}
+        label={hasClips ? undefined : "No Clips to Slice"}
         hotkey={ToggleScissorsHotkey}
         onClick={() =>
           hasClips && dispatch(toggleTimelineState({ data: "slicing-clips" }))
         }
         className={classNames(
-          `p-1.5 text-2xl bg-gradient-to-br from-teal-600 to-teal-700`,
+          `p-1.5 text-2xl bg-gradient-to-br from-emerald-600 to-emerald-700`,
           !hasClips ? "opacity-50" : "",
           isSlicing
-            ? "ring-2 ring-offset-2 ring-teal-600/80 ring-offset-slate-900"
+            ? "ring-2 ring-offset-2 ring-emerald-600/80 ring-offset-slate-900"
             : ""
         )}
       >

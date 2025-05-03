@@ -38,10 +38,10 @@ export const loadDemoProject = async (
 };
 
 /** Open the user's file system and read local projects. */
-export const promptUserForProjects = () => {
+export const promptUserForProjects = (callback = loadProjectByFile) => {
   promptUserForFile("*", (e) => {
     const files = getEventFiles(e);
-    for (const file of files) loadProjectByFile(file);
+    for (const file of files) callback(file);
   });
 };
 

@@ -513,7 +513,7 @@ const DropdownNoteButtons = (props: {
 };
 
 const DropdownDurationShortcuts = () => {
-  const holding = useHeldKeys(["shift", "rightshift", ",", "/", "."], "all");
+  const holding = useHeldKeys(["shift", "rightshift", ",", "/", "."]);
   return (
     <div className="flex flex-col gap-[2px] w-full text-slate-300">
       <div className="flex gap-2">

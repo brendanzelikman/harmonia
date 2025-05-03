@@ -42,14 +42,14 @@ export const PoseClipHeader = (props: PoseClipHeaderProps) => {
     >
       <Icon className={`flex total-center shrink-0 ${isOpen ? "ml-1" : ""}`} />
       {isOpen && (
-        <div className="px-2 ml-2 rounded h-full items-center flex bg-fuchsia-600">
+        <div className="px-2 ml-2 rounded h-full select-none items-center flex bg-fuchsia-600">
           {name}
         </div>
       )}
       {(show || isOpen) && (
         <div
           data-open={isOpen}
-          className="flex ml-1.5 gap-1 px-1 data-[open=false]:border data-[open=false]:border-slate-800/10  data-[open=false]:bg-slate-500/10 data-[open=false]:rounded data-[open=false]:-mt-1 pointer-events-auto"
+          className="flex ml-1.5 gap-1 px-1 data-[open=false]:border data-[open=false]:border-slate-800/10 select-none data-[open=false]:bg-slate-500/10 data-[open=false]:rounded data-[open=false]:-mt-1"
         >
           {jsx}
         </div>

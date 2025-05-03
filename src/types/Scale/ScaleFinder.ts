@@ -44,7 +44,6 @@ export const getPreferredKey = (note: MidiNote, name?: string): Key => {
     "ionian",
     "major",
     "lydian",
-    "mixolydian",
     "dominant",
     "viennese",
     "sus",

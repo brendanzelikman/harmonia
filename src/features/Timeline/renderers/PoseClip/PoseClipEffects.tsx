@@ -229,10 +229,9 @@ export const PoseClipEffect = <T extends Transformation>({
   const displayedArgs = inStore ? internalArgs : givenArgs;
 
   const updateTransformation = (args: TransformationArgs<T>) => {
-    args = args
-      .replace("window", "")
-      .replace("location", "")
-      .replace("reload", "");
+    args = isString(args)
+      ? args.replace("window", "").replace("location", "").replace("reload", "")
+      : args;
     if (inStore) setInternalArgs(args);
     else if (!onBase && hasIndex) {
       const { field: transformationIndex } = rest;

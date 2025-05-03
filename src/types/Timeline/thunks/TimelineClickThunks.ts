@@ -175,7 +175,6 @@ export const onClipClick =
     const undoType = createUndoType("onClipClick", clip, options);
     const holdingShift = e.shiftKey;
     const holdingOption = e.altKey;
-    const holdingMeta = e.metaKey;
     const project = getProject();
     const selectedClipIds = selectSelectedClipIds(project);
     const selectedClipIdMap = selectSelectedClipIdMap(project);
@@ -183,8 +182,9 @@ export const onClipClick =
     const isClipSelected = selectedClipIdMap[id];
 
     // If the meta key is held, toggle the clip dropdown
-    if (holdingMeta) {
+    if (isClipSelected) {
       dispatchCustomEvent("clipDropdown", { id });
+      return;
     }
 
     // If the alt key is held, toggle the clip in the selection

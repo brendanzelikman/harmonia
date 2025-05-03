@@ -1,31 +1,19 @@
 import { isArray, omit, pick } from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { isInputEvent } from "utils/event";
-import { useToggle } from "./useToggle";
 
 /** Create a record storing a map of keys to press states */
-export const useHeldKeys = (keys: string[], scope: string = "all") => {
+export const useHeldKeys = (keys: string[]) => {
   const keyset: Set<string> = useMemo(
     () => new Set(Object.values(pick(KeyCodeMap, keys))),
     []
   );
-  const keyboard = useToggle(`keyboard`);
-  const outOfScope = keyboard.isOpen !== (scope === "keyboard");
-  const disabled = scope !== "all" && outOfScope;
-  const [heldKeys, setHeldKeys] = useState<Record<string, boolean>>(
-    keys.reduce(
-      (acc, key) => ({
-        ...acc,
-        [key]: localStorage.getItem(`holding-${key}`) === "true",
-      }),
-      {}
-    )
-  );
+  const [heldKeys, setHeldKeys] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     // Add the key to the record on keypress
     const add = (e: KeyboardEvent) => {
-      if (disabled || isInputEvent(e) || e.repeat) return;
+      if (isInputEvent(e) || e.repeat) return;
       if (keyset.has(e.code)) {
         setHeldKeys((prev) => ({ ...prev, [e.code]: true }));
         window.localStorage.setItem(`holding-${e.code}`, "true");
@@ -34,7 +22,7 @@ export const useHeldKeys = (keys: string[], scope: string = "all") => {
 
     // Add the shift key to the record on keydown
     const addModifiers = (e: KeyboardEvent) => {
-      if (disabled || isInputEvent(e) || e.repeat) return;
+      if (isInputEvent(e) || e.repeat) return;
       if (specialKeySet.has(e.key)) {
         setHeldKeys((prev) => ({ ...prev, [e.code]: true }));
         window.localStorage.setItem(`holding-${e.code}`, "true");
@@ -43,7 +31,6 @@ export const useHeldKeys = (keys: string[], scope: string = "all") => {
 
     // Remove the key from the record on keyup
     const remove = (e: KeyboardEvent) => {
-      if (disabled) return;
       if (keyset.has(e.code)) {
         setHeldKeys((prev) => omit(prev, e.code));
         window.localStorage.removeItem(`holding-${e.code}`);
@@ -63,15 +50,17 @@ export const useHeldKeys = (keys: string[], scope: string = "all") => {
     document.addEventListener("keydown", addModifiers);
     document.addEventListener("keyup", remove);
     window.addEventListener("blur", clear);
+    // window.addEventListener("visibilitychange", clear);
 
     // Cleanup the event listeners
     return () => {
       document.removeEventListener("keydown", add);
       document.removeEventListener("keyup", remove);
       window.removeEventListener("blur", clear);
+      // window.removeEventListener("visibilitychange", clear);
       clear();
     };
-  }, [disabled]);
+  }, []);
 
   return heldKeys;
 };

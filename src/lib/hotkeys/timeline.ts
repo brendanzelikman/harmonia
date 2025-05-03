@@ -9,13 +9,17 @@ import {
   toggleTimelineState,
   toggleAddingState,
   toggleLivePlay,
+  sampleProject,
 } from "types/Timeline/TimelineThunks";
-import { Thunk } from "types/Project/ProjectTypes";
+import { sanitizeProject, Thunk } from "types/Project/ProjectTypes";
 import { selectTrackParentIdMap } from "types/Track/TrackSelectors";
 import { createUndoType } from "types/redux";
 import { promptUserForString } from "lib/prompts/html";
 import { inputRomanNumerals } from "utils/roman";
-import { createNewPoseClip } from "types/Track/PatternTrack/PatternTrackThunks";
+import {
+  createCourtesyPatternClip,
+  createNewPoseClip,
+} from "types/Track/PatternTrack/PatternTrackThunks";
 import { WholeNoteTicks } from "utils/duration";
 import { nanoid } from "@reduxjs/toolkit";
 import { promptLineBreak } from "components/PromptModal";
@@ -25,16 +29,24 @@ import {
   filterPoses,
   sliceClips,
 } from "types/Timeline/thunks/TimelineClipThunks";
+import { promptUserForProjects } from "types/Project/ProjectLoaders";
 
 // -----------------------------------------------
 // Timeline Hotkeys
 // -----------------------------------------------
 
 export const WaterTreeHotkey: Hotkey = {
-  name: "Water Track",
+  name: "Water Tree",
   description: "Activate live play and quickstart a project",
   shortcut: "i",
   callback: (dispatch) => dispatch(toggleLivePlay()),
+};
+
+export const SampleProjectHotkey: Hotkey = {
+  name: "Upload Forest",
+  description: "Activate live play and quickstart a project",
+  shortcut: "f",
+  callback: (dispatch) => dispatch(sampleProject()),
 };
 
 export const ArrangePatternsHotkey: Hotkey = {
@@ -81,7 +93,7 @@ export const SelectPortalsHotkey: Hotkey = {
 };
 
 export const ToggleScissorsHotkey: Hotkey = {
-  name: "Slice Clip",
+  name: "Slice Clips",
   description: "Toggle the slicing of media",
   shortcut: "k",
   callback: (dispatch) =>
@@ -96,7 +108,7 @@ export const SliceClipsHotkey: Hotkey = {
 };
 
 export const MergeClipsHotkey: Hotkey = {
-  name: "Merge Selected Patterns",
+  name: "Merge Clips",
   description: "Merge the selected pattern clips",
   shortcut: "shift+j",
   callback: (dispatch) => dispatch(mergeSelectedMedia()),
@@ -115,6 +127,7 @@ export const RomanizeClipsHotkey: Hotkey = {
 
 export const TimelineHotkeys = [
   WaterTreeHotkey,
+  SampleProjectHotkey,
   ArrangePatternsHotkey,
   ArrangePosesHotkey,
   SelectPatternsHotkey,

@@ -5,17 +5,7 @@ import {
   WholeNoteTicks,
 } from "utils/duration";
 import { Tick, Update } from "types/units";
-import {
-  getPatternBlockDuration,
-  getPatternStreamDuration,
-} from "types/Pattern/PatternFunctions";
-import { getPatternChordNotes } from "types/Pattern/PatternUtils";
-import { getPatternChordWithNewNotes } from "types/Pattern/PatternUtils";
-import {
-  isPatternRest,
-  isPatternMidiChord,
-  PatternStream,
-} from "types/Pattern/PatternTypes";
+import { PatternMidiNote, PatternRest } from "types/Pattern/PatternTypes";
 import { getOriginalIdFromPortaledClip } from "types/Portal/PortalFunctions";
 import { initializePortal, PortalId, Portal } from "types/Portal/PortalTypes";
 import { Thunk } from "types/Project/ProjectTypes";
@@ -63,12 +53,16 @@ import {
   selectClipboard,
   selectSubdivisionTicks,
   selectSelectedClipIds,
-  selectSelectedPatternClips,
   selectTimeline,
   selectCurrentTimelineTick,
   selectCellWidth,
+  selectSelectedPatternClips,
 } from "types/Timeline/TimelineSelectors";
-import { selectTrackMap, selectTrackIds } from "types/Track/TrackSelectors";
+import {
+  selectTrackMap,
+  selectTrackIds,
+  selectPatternTrackById,
+} from "types/Track/TrackSelectors";
 import {
   getOffsettedMedia,
   getValidMedia,
@@ -93,10 +87,12 @@ import { createPattern } from "types/Pattern/PatternThunks";
 import { selectPoseById, selectPoseMap } from "types/Pose/PoseSelectors";
 import { createPose } from "types/Pose/PoseThunks";
 import { getClipMotifId } from "types/Clip/ClipTypes";
-import { isBounded } from "utils/math";
 import { removePose } from "types/Pose/PoseSlice";
 import { nanoid } from "@reduxjs/toolkit";
 import { removePattern } from "types/Pattern/PatternSlice";
+import { selectMidiChordsByTicks } from "types/Arrangement/ArrangementSelectors";
+import { isPatternTrackId } from "types/Track/PatternTrack/PatternTrackTypes";
+import { createCourtesyPatternClip } from "types/Track/PatternTrack/PatternTrackThunks";
 
 /** Create a list of media and add it to the slice and hierarchy. */
 export const createMedia =
@@ -299,7 +295,7 @@ export const pasteSelectedMedia = (): Thunk => (dispatch, getProject) => {
 /** Duplicate all selected media. */
 export const duplicateSelectedMedia =
   (): Thunk => async (dispatch, getProject) => {
-    const undoType = createUndoType("duplicateSelectedMedia");
+    const undoType = createUndoType("duplicateSelectedMedia", nanoid());
     const project = getProject();
     const clips = selectSelectedClips(project);
     const portals = selectSelectedPortals(project);
@@ -424,94 +420,48 @@ export const mergeSelectedMedia =
   (options: { name?: string } = {}): Thunk =>
   async (dispatch, getProject) => {
     const project = getProject();
-    const patternMap = selectPatternMap(project);
-    const patternClips = selectSelectedPatternClips(project);
-    const patternNames: string[] = [];
+    const undoType = createUndoType("mergeSelectedMedia", nanoid());
 
-    // Iterate through all clips and merge their streams
-    const sortedClips = patternClips.sort((a, b) => a.tick - b.tick);
-    const totalStream = sortedClips.reduce((acc, clip) => {
-      // Get the clip pattern
-      const pattern = patternMap[clip.patternId];
-      if (!pattern) return acc;
-      patternNames.push(pattern?.name ?? "Pattern");
+    // Get the selected clips
+    const clips = selectSelectedPatternClips(project);
+    const ticks = clips.map((clip) => clip.tick);
+    const firstClip = clips[0];
+    const lastClip = clips[clips.length - 1];
+    if (!firstClip || !lastClip) return;
 
-      // Get the clip stream
-      const streamDuration = getPatternStreamDuration(pattern.stream);
-      const duration = selectClipDuration(project, clip.id);
-      let totalDuration = 0;
+    const chordsByTicks = selectMidiChordsByTicks(project);
+    const clipIds = selectSelectedClipIds(project);
+    const { trackId, tick } = firstClip;
 
-      // Make sure the duration of the new stream is the same as the clip duration
-      const stream = new Array(
-        Math.floor(
-          ((isBounded(duration, 1) ? duration : streamDuration) /
-            streamDuration) *
-            pattern.stream.length
-        )
-      )
-        .fill(0)
-        .map((_, i) => pattern.stream[i % pattern.stream.length])
-        .reduce((streamAcc, block) => {
-          if (isPatternRest(block)) {
-            totalDuration += block.duration;
-            return [...streamAcc, block];
-          }
-          const notes = getPatternChordNotes(block);
-          if (totalDuration > duration) return streamAcc;
-          const blockDuration = getPatternBlockDuration(notes);
+    if (!isPatternTrackId(trackId)) return;
+    const track = selectPatternTrackById(project, trackId);
+    const instrumentId = track?.instrumentId;
+    if (!instrumentId) return;
 
-          // If the block duration is longer than the clip duration, shorten it
-          if (totalDuration + blockDuration > duration) {
-            // If the block is a rest, just add it to the stream
-            const newDuration = duration - totalDuration;
-            totalDuration += newDuration;
-            if (!isPatternMidiChord(block))
-              return [...streamAcc, { duration: newDuration }];
+    const startTick = Math.min(...ticks);
+    const lastDuration = selectClipDuration(project, lastClip.id);
+    const lastTicks = isFinite(lastDuration) ? lastDuration : 0;
+    const endTick = Math.max(...ticks) + lastTicks;
+    const stream: (PatternMidiNote[] | PatternRest)[] = [];
 
-            // Otherwise, shorten all notes and add the chord to the stream
-            const chord = notes.map((n) => ({
-              ...n,
-              duration: newDuration,
-            }));
-            const newChord = getPatternChordWithNewNotes(block, chord);
-            return [...streamAcc, newChord];
-          }
-
-          // Otherwise, sum the duration and add the block to the stream
-          totalDuration += blockDuration;
-          return [...streamAcc, notes];
-        }, [] as PatternStream);
-
-      // If the stream is empty, add a rest
-      if (!stream.length) {
-        return [...acc, { duration }];
+    // Create the stream
+    let ticksSinceRest = 0;
+    for (let i = startTick; i < endTick; i++) {
+      const chords = chordsByTicks[i]?.[instrumentId];
+      if (!chords?.length) {
+        ticksSinceRest++;
+        continue;
       }
+      if (ticksSinceRest > 0) stream.push({ duration: ticksSinceRest });
+      stream.push(chords);
+      ticksSinceRest = -Math.max(...chords.map((c) => c.duration));
+    }
 
-      // Return the merged stream
-      return [...acc, ...stream];
-    }, [] as PatternStream);
-
-    // Create and select a new pattern
-    const name = options?.name || patternNames.join(" + ");
-    const stream = totalStream.filter((b) => Array.isArray(b) && !!b.length);
-    const pattern = { stream, name, trackId: sortedClips[0].trackId };
-    const patternId = dispatch(createPattern({ data: pattern })).id;
-    const undoType = createUndoType("mergeSelectedMedia", patternId);
-
-    // Create a new clip
-    const { trackId, tick } = sortedClips[0];
-    const clip = initializePatternClip({
-      trackId,
-      patternId,
-      tick,
-    });
-    dispatch(
-      deleteMedia({
-        data: { clipIds: patternClips.map((c) => c.id) },
-        undoType,
-      })
-    );
-    dispatch(addPatternClip({ data: clip, undoType }));
+    // Create the new clip and delete the old ones
+    const pattern = { stream };
+    const clip = { trackId, tick };
+    dispatch(createCourtesyPatternClip({ data: { pattern, clip }, undoType }));
+    dispatch(deleteMedia({ data: { clipIds }, undoType }));
   };
 
 /** The handler for when a media clip is dragged. */

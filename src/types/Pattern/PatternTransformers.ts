@@ -8,6 +8,7 @@ import {
 } from "./PatternUtils";
 import { getMidiStreamIntrinsicScale } from "./PatternUtils";
 import {
+  PatternMidiNote,
   PatternMidiStream,
   isPatternMidiChord,
   isPatternRest,
@@ -15,7 +16,10 @@ import {
 import { getMidiFromPitch, getMidiValue } from "utils/midi";
 import { clamp, shuffle } from "lodash";
 import { Frequency, getTransport } from "tone";
-import { getPatternBlockDuration } from "./PatternFunctions";
+import {
+  getPatternBlockDuration,
+  getPatternStreamDuration,
+} from "./PatternFunctions";
 import {
   DURATION_TYPES,
   getDurationTicks,
@@ -285,6 +289,23 @@ export const extendStream: Transformer<StrNum> = (stream, value) => {
   return new Array(size).fill(0).map((_, i) => stream[i % streamLength]);
 };
 
+/** Flatten a pattern stream into a single chord */
+export const flattenStream: Transformer<boolean> = (stream, value = false) => {
+  if (!value) return stream;
+  const duration = getPatternStreamDuration(stream);
+  const flatStream = stream.reduce((acc: PatternMidiNote[], block) => {
+    if (isPatternRest(block)) return acc;
+    const notes = getPatternMidiChordNotes(block);
+    return [
+      ...acc,
+      ...notes
+        .filter((note) => !acc.some((n) => n.MIDI === note.MIDI))
+        .map((n) => ({ ...n, duration })),
+    ];
+  }, [] as PatternMidiNote[]);
+  return [flatStream];
+};
+
 /** Space out the stream with rests after each block */
 export const spaceStream: Transformer<StrNum> = (stream, input) => {
   if (!input) return stream;
@@ -489,6 +510,12 @@ export const TRANSFORMATIONS = createTransformationMap({
     defaultValue: 0,
     placeholder: "Length",
     description: "(n) - Extend the stream to n notes",
+  }),
+  flat: createTransformation({
+    callback: flattenStream,
+    category: "order",
+    defaultValue: false,
+    description: "- Flatten the stream",
   }),
   space: createTransformation({
     callback: spaceStream,

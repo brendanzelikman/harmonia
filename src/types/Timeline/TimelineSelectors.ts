@@ -402,17 +402,16 @@ export const selectIsClipSelectedLast = (project: Project, id: ClipId) => {
   const selectedClips = selectSelectedClips(project);
   const durationMap = selectClipDurationMap(project);
   const clip = selectClipById(project, id);
-  if (!clip) return false;
   const isSelected = selectIsClipSelected(project, id);
+  if (!selectedClips.length || !clip || !isSelected) return false;
   const getDuration = (id: ClipId) => {
     const duration = durationMap[id];
     if (!isFinite(duration)) return 0;
     return duration;
   };
   return (
-    isSelected &&
     clip.tick + getDuration(clip.id) >=
-      Math.max(...selectedClips.map((clip) => clip.tick + getDuration(clip.id)))
+    Math.max(...selectedClips.map((clip) => clip.tick + getDuration(clip.id)))
   );
 };
 

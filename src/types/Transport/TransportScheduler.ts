@@ -77,7 +77,7 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
       const grid = document.getElementsByClassName("rdg-grid")[0];
       if (grid)
         grid.scroll({
-          left: grid.scrollLeft + scrollRatio * cellWidth * ticks,
+          left: grid.scrollLeft + 2 * scrollRatio * cellWidth * ticks,
           behavior: "smooth",
         });
     }

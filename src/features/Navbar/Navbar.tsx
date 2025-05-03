@@ -18,17 +18,14 @@ import { NavbarTransportControl } from "./NavbarTransportControl";
 import { NavbarVolume } from "./NavbarVolume";
 import { NavbarLink } from "./components/NavbarLink";
 import { LOAD_PLAYGROUND } from "features/Playground/Playground";
-import {
-  BsQuestion,
-  BsQuestionCircle,
-  BsQuestionCircleFill,
-} from "react-icons/bs";
+import { BsQuestionCircle } from "react-icons/bs";
 import { dispatchToggle } from "hooks/useToggle";
 import classNames from "classnames";
-import { GiWateringCan } from "react-icons/gi";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { ToggleShortcutsHotkey } from "lib/hotkeys/global";
 import { NavbarSettings } from "./NavbarSettings";
+import { NavbarTape } from "./NavbarTape";
+import { NavbarSampleProject } from "./NavbarSampleProject";
 
 export function Navbar() {
   const view = useRoute();
@@ -86,11 +83,19 @@ export function Navbar() {
             hide={!hasTracks}
             className="bg-radial from-emerald-600/15 to-teal-600/15"
           >
-            Tools
+            Tracks
             <NavbarWaterTree />
-            <NavbarScissors />
+            <NavbarSampleProject />
             <NavbarLivePlay />
+          </NavbarGroup>
+          <NavbarGroup
+            hide={!hasTracks}
+            className="bg-radial from-emerald-600/15 to-teal-600/15"
+          >
+            Clips
             <NavbarPortalGun />
+            <NavbarScissors />
+            <NavbarTape />
           </NavbarGroup>
         </div>
       )}

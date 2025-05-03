@@ -23,7 +23,9 @@ export function usePlaygroundTransport() {
     } else {
       document.addEventListener("mousedown", load, { once: true });
     }
-    return unloadTransport;
+    return () => {
+      unloadTransport();
+    };
   }, [projectId]);
 
   return transport.isOpen;
