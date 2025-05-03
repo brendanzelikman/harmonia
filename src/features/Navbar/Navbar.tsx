@@ -93,9 +93,9 @@ export function Navbar() {
             className="bg-radial from-emerald-600/15 to-teal-600/15"
           >
             Clips
-            <NavbarPortalGun />
-            <NavbarScissors />
             <NavbarTape />
+            <NavbarScissors />
+            <NavbarPortalGun />
           </NavbarGroup>
         </div>
       )}

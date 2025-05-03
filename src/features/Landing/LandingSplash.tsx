@@ -3,6 +3,8 @@ import Logo from "assets/images/logo.png";
 import { useNavigate } from "react-router-dom";
 import { useError } from "app/router";
 
+const speed = 0.8;
+
 export const Splash = () => {
   const navigate = useNavigate();
   const { hasError, errorMessage } = useError();
@@ -47,7 +49,7 @@ export const Splash = () => {
         className="sm:my-2 mt-8 font-bold sm:text-8xl text-6xl drop-shadow-xl"
         initial={{ opacity: 0, translateY: 50, scale: 0.5 }}
         whileInView={{ opacity: 1, translateY: 0, scale: 1 }}
-        transition={{ delay: 0.5, duration: 0.5, type: "spring" }}
+        transition={{ delay: 0.5 * speed, duration: 0.5, type: "spring" }}
         style={{ color: hasError ? "#f55e" : "white" }}
       >
         {title}
@@ -55,7 +57,7 @@ export const Splash = () => {
       <m.p
         initial={{ opacity: 0, translateY: 20 }}
         whileInView={{ opacity: 1, translateY: 0 }}
-        transition={{ delay: 1, duration: 0.5 }}
+        transition={{ delay: 1 * speed, duration: 0.5 }}
         className={`font-normal text-xl ${
           hasError
             ? "sm:text-2xl text-lg text-red-500"
@@ -67,7 +69,7 @@ export const Splash = () => {
       <m.p
         initial={{ opacity: 0, translateY: 20 }}
         whileInView={{ opacity: 1, translateY: 0 }}
-        transition={{ delay: 1.3, duration: 0.5 }}
+        transition={{ delay: 1.3 * speed, duration: 0.5 }}
         className={`${
           hasError
             ? "font-light sm:text-2xl text-lg text-red-500"
@@ -80,7 +82,7 @@ export const Splash = () => {
         initial={{ opacity: 0, scale: 0.2, translateY: 5 }}
         whileInView={{ opacity: 1, scale: 1, translateY: 0 }}
         transition={{
-          delay: 1.5,
+          delay: 1.5 * speed,
           duration: 0.3,
           type: "spring",
           stiffness: 100,

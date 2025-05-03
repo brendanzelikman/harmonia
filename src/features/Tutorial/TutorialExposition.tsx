@@ -39,24 +39,24 @@ export const TutorialExposition = (props: { view: string }) => {
         description={
           <>
             <div>
-              A Tree is an arrangement of tracks that forms a hierarchy of
+              A Tree is a group of tracks (containers) that forms a hierarchy of
               Scales and Samplers.
             </div>
             <div>
               <div>
-                <b>Examples</b>:
+                <b>Example Project</b>:
               </div>
               <span className="text-teal-400">Tree 1</span> ={" "}
-              <span className="text-sky-400">C Major Scale</span>
+              <span className="text-sky-400">C Major (A)</span>
               {" => "}
-              <span className="text-sky-400">C Major Chord</span>
+              <span className="text-sky-400">C Major Chord (B)</span>
               <br />
               <span className="text-teal-400">Tree 2</span> ={" "}
-              <span className="text-sky-400">Dm11</span>
+              <span className="text-sky-400">Dm11 (C)</span>
               {" => "}
-              <span className="text-sky-400">Dm7</span>
+              <span className="text-sky-400">Dm7 (D)</span>
               {" => "}
-              <span className="text-emerald-400">(Piano + Bass)</span>
+              <span className="text-emerald-400">Piano (E)</span>
             </div>
             <div>
               <b>In Practice</b>:<br />
@@ -77,8 +77,8 @@ export const TutorialExposition = (props: { view: string }) => {
         description={
           <>
             <div>
-              A Pattern is a sequence of notes that can be based on the Scales
-              of a Sampler.
+              A Pattern is a sequence of notes that can be defined by Scales and
+              played by Samplers.
             </div>
 
             <div>

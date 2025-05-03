@@ -11,15 +11,12 @@ import {
   toggleLivePlay,
   sampleProject,
 } from "types/Timeline/TimelineThunks";
-import { sanitizeProject, Thunk } from "types/Project/ProjectTypes";
+import { Thunk } from "types/Project/ProjectTypes";
 import { selectTrackParentIdMap } from "types/Track/TrackSelectors";
 import { createUndoType } from "types/redux";
 import { promptUserForString } from "lib/prompts/html";
 import { inputRomanNumerals } from "utils/roman";
-import {
-  createCourtesyPatternClip,
-  createNewPoseClip,
-} from "types/Track/PatternTrack/PatternTrackThunks";
+import { createNewPoseClip } from "types/Track/PatternTrack/PatternTrackThunks";
 import { WholeNoteTicks } from "utils/duration";
 import { nanoid } from "@reduxjs/toolkit";
 import { promptLineBreak } from "components/PromptModal";
@@ -29,7 +26,6 @@ import {
   filterPoses,
   sliceClips,
 } from "types/Timeline/thunks/TimelineClipThunks";
-import { promptUserForProjects } from "types/Project/ProjectLoaders";
 
 // -----------------------------------------------
 // Timeline Hotkeys
@@ -43,8 +39,8 @@ export const WaterTreeHotkey: Hotkey = {
 };
 
 export const SampleProjectHotkey: Hotkey = {
-  name: "Upload Forest",
-  description: "Activate live play and quickstart a project",
+  name: "Insert Project",
+  description: "Upload the notes of a project by file",
   shortcut: "f",
   callback: (dispatch) => dispatch(sampleProject()),
 };
@@ -114,13 +110,6 @@ export const MergeClipsHotkey: Hotkey = {
   callback: (dispatch) => dispatch(mergeSelectedMedia()),
 };
 
-export const RomanizeClipsHotkey: Hotkey = {
-  name: "Input Roman Numerals",
-  description: "Create poses based on the input roman numerals",
-  shortcut: "g",
-  callback: (dispatch) => dispatch(inputPoseRomans()),
-};
-
 // --------------------------------------------------
 // Export Hotkeys
 // --------------------------------------------------
@@ -137,7 +126,6 @@ export const TimelineHotkeys = [
   ToggleScissorsHotkey,
   SliceClipsHotkey,
   MergeClipsHotkey,
-  RomanizeClipsHotkey,
 ];
 
 // -----------------------------------------------

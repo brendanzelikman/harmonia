@@ -68,7 +68,7 @@ export const CollapseParentsHotkey: Hotkey = {
 export const DeleteTrackHotkey: Hotkey = {
   name: "Delete Selected Track",
   description: "Delete the selected track",
-  shortcut: "meta+backspace",
+  shortcut: "shift+backspace",
   callback: (dispatch) => dispatch(deleteSelectedTrack()),
 };
 
