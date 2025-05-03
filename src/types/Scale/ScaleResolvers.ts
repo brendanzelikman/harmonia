@@ -36,7 +36,7 @@ export const resolveScaleChainToMidi = (scales: Scale[]): MidiScale => {
     cur = getScaleNotes(cur)
       .map((_, i): NestedNote => {
         const offset: ScaleVector = {};
-        if (!isNumber(_) && "offset" in _) {
+        if (!!_ && !isNumber(_) && "offset" in _) {
           offset[id] = _.offset?.[id];
         }
         return { degree: i, offset };
