@@ -1,4 +1,4 @@
-import { GiMusicalNotes, GiPencil } from "react-icons/gi";
+import { GiPencil } from "react-icons/gi";
 import { useAppValue } from "hooks/useRedux";
 import { CLIP_NAME_HEIGHT } from "utils/constants";
 import { memo } from "react";
@@ -7,6 +7,7 @@ import {
   selectClipHeaderColor,
   selectClipName,
 } from "types/Clip/ClipSelectors";
+import { ArrangePatternIcon } from "lib/hotkeys/timeline";
 
 interface PatternClipHeaderProps {
   id: PatternClipId;
@@ -18,7 +19,7 @@ export const PatternClipHeader = memo((props: PatternClipHeaderProps) => {
   const { isSelected, isOpen } = props;
   const name = useAppValue((_) => selectClipName(_, props.id));
   const color = useAppValue((_) => selectClipHeaderColor(_, props.id));
-  const Icon = isOpen ? GiPencil : GiMusicalNotes;
+  const Icon = isOpen ? GiPencil : ArrangePatternIcon;
   return (
     <div
       data-selected={isSelected}

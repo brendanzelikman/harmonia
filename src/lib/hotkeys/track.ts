@@ -25,17 +25,19 @@ import {
   collapseTrackAncestors,
 } from "types/Track/TrackThunks";
 import { inputScaleTrackScale } from "lib/prompts/scale";
+import { GiPineTree } from "react-icons/gi";
 
 // ---------------------------------------------------
 // Track Hotkeys
 // ---------------------------------------------------
 
-export const CreateTracksHotkey: Hotkey = {
+export const CreateTreeHotkey: Hotkey = {
   name: "Create Tree",
   description: "Prompt the user to type in a new tree",
   shortcut: "n",
   callback: (dispatch) => dispatch(promptUserForTree),
 };
+export const CreateTreeIcon = GiPineTree;
 
 export const CreateDrumTracksHotkey: Hotkey = {
   name: "Drum Tree",
@@ -206,7 +208,7 @@ export const SelectNinthTrackHotkey: Hotkey = {
 // -----------------------------------------------
 
 export const TrackHotkeys = [
-  CreateTracksHotkey,
+  CreateTreeHotkey,
   CreateDrumTracksHotkey,
   CreateRandomTracksHotkey,
   CollapseTrackHotkey,

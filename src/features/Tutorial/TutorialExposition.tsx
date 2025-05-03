@@ -1,45 +1,26 @@
-import { m } from "framer-motion";
-import { GiPineTree, GiMusicalNotes, GiCrystalWand } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
 import { promptUserForTree } from "lib/prompts/tree";
 import { useAppDispatch } from "hooks/useRedux";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
+import { CreateTreeIcon } from "lib/hotkeys/track";
+import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
 
-export const TutorialExposition = (props: { view: string }) => {
+export const TutorialExposition = () => {
   const dispatch = useAppDispatch();
   return (
-    <m.div
-      initial="hidden"
-      animate="show"
-      data-view={props.view}
-      variants={{
-        hidden: { opacity: 0, scale: 0 },
-        show: {
-          opacity: 1,
-          scale: 1,
-          transition: {
-            delayChildren: 0.25,
-            staggerChildren: 0.1,
-            type: "spring",
-            mass: 0.5,
-            stiffness: 50,
-          },
-        },
-      }}
-      className="hidden data-[view=exposition]:flex max-lg:flex-col max-lg:items-center max-lg:overflow-scroll gap-16 p-4 *:shadow-2xl"
-    >
+    <div className="flex max-lg:flex-col max-lg:items-center max-lg:overflow-scroll gap-16 p-4 *:shadow-2xl">
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg"
         title="Create Tree"
         subtitle="Press N to Input, I for Default"
-        stripColor="border-b-indigo-500/80"
-        Icon={GiPineTree}
+        stripColor="border-b border-b-indigo-500/80"
+        Icon={CreateTreeIcon}
         onClick={() => dispatch(promptUserForTree)}
         description={
           <>
             <div>
-              A Tree is a group of tracks (containers) that forms a hierarchy of
+              A Tree is a hierarchy of tracks that can create a structure of
               Scales and Samplers.
             </div>
             <div>
@@ -71,8 +52,8 @@ export const TutorialExposition = (props: { view: string }) => {
         className="rounded-lg"
         title="Create Pattern"
         subtitle="Scheduled in a Track"
-        stripColor="border-b-teal-500/80"
-        Icon={GiMusicalNotes}
+        stripColor="border-b border-b-teal-500/80"
+        Icon={ArrangePatternIcon}
         onClick={() => dispatch(toggleLivePlay())}
         description={
           <>
@@ -109,14 +90,14 @@ export const TutorialExposition = (props: { view: string }) => {
         border="ring-fuchsia-600/80"
         title="Create Pose"
         subtitle="Scheduled in a Track"
-        stripColor="border-b-fuchsia-500/80"
-        Icon={GiCrystalWand}
+        stripColor="border-b border-b-fuchsia-500/80"
+        Icon={ArrangePoseIcon}
         onClick={() => dispatch(toggleLivePlay())}
         description={
           <>
             <div>
-              A Pose is a set of effects that can move the notes of a Scale or a
-              Pattern.
+              A Pose is a transformation that can change the notes of a Scale or
+              a Pattern at any time.
             </div>
             <div>
               <b>Examples</b>:
@@ -131,12 +112,12 @@ export const TutorialExposition = (props: { view: string }) => {
             </div>
             <div>
               <b>In Practice</b>:<br />
-              Poses are used to transform your notes with cumulative effects
-              over time.
+              Poses are used to develop your notes with progressive effects that
+              cascade down trees.
             </div>
           </>
         }
       />
-    </m.div>
+    </div>
   );
 };

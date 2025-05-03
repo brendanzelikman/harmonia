@@ -55,11 +55,7 @@ export const TrackSlider = (props: SliderProps) => {
         {icon && <span className="text-sm mb-8">{icon}</span>}
         <input
           {...inputProps}
-          style={{
-            width,
-            marginTop,
-            transform,
-          }}
+          style={{ width, marginTop, transform }}
           type="range"
           onDoubleClick={(e) => {
             props.onDoubleClick?.(e);

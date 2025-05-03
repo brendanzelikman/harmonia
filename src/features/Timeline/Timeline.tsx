@@ -115,7 +115,7 @@ export default function Timeline() {
       const margin = 300;
       const scrollLeft = target.scrollLeft - margin;
       const scrollRight = target.scrollLeft + target.clientWidth + margin;
-      dispatchCustomEvent("scroll", { scrollLeft, scrollRight });
+      dispatchCustomEvent("scrollTimeline", { scrollLeft, scrollRight });
     }, 100),
     []
   );

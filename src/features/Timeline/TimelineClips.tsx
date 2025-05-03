@@ -29,6 +29,13 @@ export function TimelineClips(props: TimelineClipsProps) {
   const element = props.element;
   const portaledClipIds = useAppValue(selectPortaledClipIds);
 
+  // Keep track of timeline scroll
+  const [scroll, setScroll] = useState({
+    scrollLeft: 0,
+    scrollRight: window.innerWidth,
+  });
+  useEvent("scrollTimeline", (e) => setScroll(e.detail));
+
   // Blur clips if they are dragged
   const [isDragging, setIsDragging] = useState(false);
   useEvent("dragClip", (e) => setIsDragging(e.detail));
@@ -37,8 +44,8 @@ export function TimelineClips(props: TimelineClipsProps) {
     (pcId: PortaledClipId) => {
       const id = getOriginalIdFromPortaledClip(pcId);
 
-      // Render pattern clips
       if (isPatternClipId(id) && isPortaledPatternClipId(pcId)) {
+        // Render pattern clips
         return (
           <PatternClipRenderer
             isDragging={isDragging}
@@ -63,7 +70,7 @@ export function TimelineClips(props: TimelineClipsProps) {
 
       return null;
     },
-    [isDragging]
+    [isDragging, scroll]
   );
 
   // Portal the clips into the timeline element

@@ -21,12 +21,7 @@ import {
 } from "react-icons/bs";
 import { ReactNode } from "react";
 import { blurEvent, cancelEvent } from "utils/event";
-import {
-  GiAudioCassette,
-  GiFamilyTree,
-  GiPineTree,
-  GiCrystalWand,
-} from "react-icons/gi";
+import { GiAudioCassette, GiFamilyTree, GiPineTree } from "react-icons/gi";
 import { exportTrackClipsToMIDI } from "types/Clip/ClipExporters";
 import {
   insertScaleTrack,
@@ -54,6 +49,7 @@ import { CiRuler } from "react-icons/ci";
 import { promptUserForSample } from "lib/prompts/sampler";
 import { promptUserForPose } from "lib/prompts/pose";
 import MidiImage from "assets/lib/midi.png";
+import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 
 export const TrackDropdownMenu = (props: {
   track: Track;
@@ -112,7 +108,7 @@ export const TrackDropdownMenu = (props: {
                     divideStart
                     content="Edit Base Pose"
                     icon={
-                      <GiCrystalWand
+                      <ArrangePoseIcon
                         className={classNames("-rotate-90", {
                           "fill-fuchsia-300": some(track.vector),
                         })}

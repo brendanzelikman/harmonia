@@ -1,10 +1,11 @@
 import classNames from "classnames";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import {
+  ArrangePatternIcon,
   ArrangePatternsHotkey,
+  ArrangePoseIcon,
   ArrangePosesHotkey,
 } from "lib/hotkeys/timeline";
-import { GiCrystalWand, GiMusicalNotes } from "react-icons/gi";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { ClipType } from "types/Clip/ClipTypes";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
@@ -62,8 +63,8 @@ const hotkeys = {
 };
 
 const icons = {
-  pattern: <GiMusicalNotes className="text-2xl " />,
-  pose: <GiCrystalWand className="text-2xl" />,
+  pattern: <ArrangePatternIcon className="text-2xl " />,
+  pose: <ArrangePoseIcon className="text-2xl" />,
 };
 
 const textColors = {

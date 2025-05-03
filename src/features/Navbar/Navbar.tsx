@@ -75,22 +75,23 @@ export function Navbar() {
             <NavbarTransportControl />
           </NavbarGroup>
           <NavbarGroup className="bg-radial from-slate-900/15 to-sky-500/15">
-            Motifs <NavbarDesignTree />
+            Motifs
+            <NavbarDesignTree />
             <NavbarArrangeClip type="pattern" />
             <NavbarArrangeClip type="pose" />
           </NavbarGroup>
           <NavbarGroup
             hide={!hasTracks}
-            className="bg-radial from-emerald-600/15 to-teal-600/15"
+            className="bg-radial from-emerald-800/15 to-teal-600/15"
           >
-            Tracks
+            Trees
             <NavbarWaterTree />
             <NavbarSampleProject />
             <NavbarLivePlay />
           </NavbarGroup>
           <NavbarGroup
             hide={!hasTracks}
-            className="bg-radial from-emerald-600/15 to-teal-600/15"
+            className="bg-radial from-teal-800/15 to-teal-600/15"
           >
             Clips
             <NavbarTape />

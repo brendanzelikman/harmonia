@@ -29,6 +29,8 @@ export function useProject() {
       setCurrentProjectId(selectProjectId(project));
       setProject(project);
       return project;
+    } else {
+      uploadProject();
     }
   }, UPDATE_PROJECT_EVENT);
 

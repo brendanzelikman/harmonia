@@ -61,7 +61,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
         onClick={onClick}
         isDemo={!!isDemo}
         deleting={deleting}
-        className="max-[800px]:hidden size-48 active:rotate-360 mt-4 mb-4 rounded-full border-2 border-sky-500/50 cursor-pointer transition-all active:text-indigo-200 hover:duration-150 ring-indigo-600/25 ring-offset-8 ring-offset-indigo-500/25 backdrop-blur-lg bg-radial from-indigo-700 to-sky-500 data-[deleting=true]:from-red-500 data-[deleting=true]:to-red-700 shadow-[0px_0px_20px_rgb(100,100,200)]"
+        className="max-[800px]:hidden size-48 mt-4 mb-4 rounded-full border-2 border-sky-500/50 cursor-pointer transition-all active:text-indigo-200 hover:duration-150 ring-indigo-600/25 ring-offset-8 ring-offset-indigo-500/25 backdrop-blur-lg bg-radial from-indigo-700 to-sky-500 data-[deleting=true]:from-red-500 data-[deleting=true]:to-red-700 shadow-[0px_0px_20px_rgb(100,100,200)]"
       />
       <HomeListTitle title={project.present.meta.name} />
       <ProjectTitle project={project} onClick={onClick} />

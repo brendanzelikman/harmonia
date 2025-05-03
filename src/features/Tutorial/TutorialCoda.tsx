@@ -10,7 +10,7 @@ export const TutorialCoda = () => {
         className="rounded-lg"
         title="Save Project Data"
         subtitle="Export to JSON File"
-        stripColor="border-b-indigo-500/80"
+        stripColor="border-b border-b-indigo-500/80"
         Icon={BsCode}
         description={
           <>
@@ -38,7 +38,7 @@ export const TutorialCoda = () => {
         className="rounded-lg"
         title="Save Note Data"
         subtitle="Export to MIDI File"
-        stripColor="border-b-teal-500/80"
+        stripColor="border-b border-b-teal-500/80"
         Icon={GiMusicalScore}
         description={
           <>
@@ -52,9 +52,9 @@ export const TutorialCoda = () => {
               Open the Project Menu (Compact Disc) and press Export to MIDI.
             </div>
             <div>
-              <b>Selected Patterns:</b>
+              <b>Selected Clips:</b>
               <br />
-              Right click to open the context menu, then press Selection and
+              Right click to open the dropdown menu, then press Selection and
               Export to MIDI.
             </div>
           </>
@@ -65,7 +65,7 @@ export const TutorialCoda = () => {
         className="rounded-lg"
         title="Save Audio Data"
         subtitle="Export to WAV File"
-        stripColor="border-b-fuchsia-400/80"
+        stripColor="border-b border-b-fuchsia-400/80"
         Icon={GiSoundWaves}
         description={
           <>

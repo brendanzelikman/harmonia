@@ -15,10 +15,10 @@ export const NavbarTape = () => {
       <NavbarTooltipButton
         keepTooltipOnClick
         notClickable={disabled}
-        borderColor="border-teal-500"
-        className={`p-1.5 bg-gradient-to-br from-teal-600 to-teal-700 hover:ring-[2px] duration-200 hover:ring-slate-300 ${
+        borderColor="border-blue-500"
+        className={`p-1.5 bg-gradient-to-br from-blue-500 to-blue-600 hover:ring-[2px] duration-200 hover:ring-slate-300 ${
           !disabled
-            ? "group-hover/tooltip:ring-2 group-hover:ring-offset-2 group-hover/tooltip:ring-teal-500/50 group-hover/tooltip:ring-offset-black"
+            ? "group-hover/tooltip:ring-2 group-hover:ring-offset-2 group-hover/tooltip:ring-blue-500/50 group-hover/tooltip:ring-offset-black"
             : "opacity-50"
         }`}
         label={

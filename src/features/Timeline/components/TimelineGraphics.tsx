@@ -118,7 +118,7 @@ const TimelineTopLeftCorner = () => {
   return (
     <div
       className={classNames(
-        "sticky border-2 *:animate-in *:fade-in *:duration-300 transition-colors duration-300 size-full total-center-col text-white inset-0 -mb-20 z-[95] bg-gray-900",
+        "sticky border-2 *:animate-in *:fade-in *:select-none *:duration-300 transition-colors duration-300 size-full total-center-col text-white inset-0 -mb-20 z-[95] bg-gray-900",
         tree.isOpen
           ? "border-sky-500"
           : isAddingPatterns

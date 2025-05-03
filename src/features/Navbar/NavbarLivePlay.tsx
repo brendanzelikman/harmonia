@@ -1,11 +1,6 @@
 import classNames from "classnames";
-import { useAppValue } from "hooks/useRedux";
-import {
-  GiCrystalWand,
-  GiHand,
-  GiJackPlug,
-  GiMisdirection,
-} from "react-icons/gi";
+import { useAppDispatch, useAppValue } from "hooks/useRedux";
+import { GiHand, GiJackPlug, GiMisdirection } from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
   selectIsSelectingPoseClips,
@@ -27,13 +22,16 @@ import { selectHasTracks } from "types/Track/TrackSelectors";
 import { TRACK_WIDTH } from "utils/constants";
 import { useToggle } from "hooks/useToggle";
 import { getKeyCode } from "hooks/useHeldkeys";
+import { ArrangePoseIcon } from "lib/hotkeys/timeline";
+import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 
-export const LIVE_PLAY_ICON = GiHand;
+export const LivePlayIcon = GiHand;
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 export const NavbarLivePlay = () => {
+  const dispatch = useAppDispatch();
   const holding = useGestures();
 
   // Get selected values
@@ -470,11 +468,13 @@ export const NavbarLivePlay = () => {
   const D = Span("D", holding[getKeyCode("d")]);
   const M = Span("M", holding[getKeyCode("m")]);
   const S = Span("S", holding[getKeyCode("s")]);
+
   return (
     <TooltipButton
       direction="vertical"
-      active={working || signal.isOpen}
-      freezeInside={working}
+      override={signal.isOpen}
+      active={hasTracks && (working || signal.isOpen)}
+      freezeInside={working || signal.isOpen}
       hideRing
       activeLabel={
         isMixing ? (
@@ -519,6 +519,7 @@ export const NavbarLivePlay = () => {
       keepTooltipOnClick
       notClickable
       marginLeft={-80}
+      onClick={() => !hasTracks && dispatch(toggleLivePlay())}
       marginTop={0}
       width={TRACK_WIDTH}
       backgroundColor="bg-radial from-slate-900 to-zinc-900"
@@ -589,9 +590,9 @@ export const NavbarLivePlay = () => {
       ) : isVoiceLeadingClosest || isVoiceLeadingDegree ? (
         <GiMisdirection className="text-2xl" />
       ) : isPosing ? (
-        <GiCrystalWand className="text-2xl" />
+        <ArrangePoseIcon className="text-2xl" />
       ) : (
-        <LIVE_PLAY_ICON className="text-2xl" />
+        <LivePlayIcon className="text-2xl" />
       )}
     </TooltipButton>
   );

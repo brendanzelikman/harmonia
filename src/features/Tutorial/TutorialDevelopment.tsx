@@ -10,13 +10,13 @@ export const TutorialDevelopment = () => {
         className="rounded-lg"
         title="Develop Trees"
         subtitle="With Voice Leadings"
-        stripColor="border-b-indigo-500/80"
+        stripColor="border-b border-b-indigo-500/80"
         Icon={GiChart}
         description={
           <>
             <div>
               Trees can be developed by scheduling Poses to explore different
-              voice leadings.
+              voice leadings of notes.
             </div>
             <div>
               <b>By Transposition:</b>
@@ -56,58 +56,50 @@ export const TutorialDevelopment = () => {
         className="rounded-lg"
         title="Develop Patterns"
         subtitle="With Harmonic Functions"
-        stripColor="border-b-teal-500/80"
+        stripColor="border-b border-b-teal-500/80"
         Icon={GiAbacus}
         description={
           <>
             <div>
-              Patterns can be developed by changing the harmonic functions of
-              their notes.
+              Patterns can be developed by binding notes with different harmonic
+              functions.
             </div>
             <div>
-              <b>F as a Chromatic Neighbor:</b>
+              <b>F as a Chromatic Neighbor (t):</b>
               <br />
-              <span className="text-emerald-400">{`{ G, C, E`}</span>
-              <span className="text-cyan-500">{`, F`}</span>
+              <span className="text-sky-400">{`C Major Chord (B)`}</span>
+              {" * "}
+              <span className="text-emerald-400">{"{ B2 + t1 }"}</span>
+              {" = "}
+              <span className="text-emerald-400">{"{ F4 }"}</span>
+              <br />
+              <span className="text-emerald-400">{`{ C4, E4`}</span>
+              <span className="text-cyan-500">{`, F4`}</span>
               <span className="text-emerald-400">{` }`}</span>
               {" + "}
-              <span className="text-fuchsia-400">{"<r1>"}</span>
+              <span className="text-fuchsia-400">{"<B1>"}</span>
               {" = "}
-              <span className="text-emerald-400">{`{ C, E, G`}</span>
-              <span className="text-cyan-500">{`, Ab`}</span>
-              <span className="text-emerald-400">{` }`}</span>
-              <br />
-              <span className="text-emerald-400">{`{ G, C, E`}</span>
-              <span className="text-cyan-500">{`, F`}</span>
-              <span className="text-emerald-400">{` }`}</span>
-              {" + "}
-              <span className="text-fuchsia-400">{"<r2>"}</span>
-              {" = "}
-              <span className="text-emerald-400">{`{ E, G, C`}</span>
-              <span className="text-cyan-500">{`, Db`}</span>
+              <span className="text-emerald-400">{`{E4, G4`}</span>
+              <span className="text-cyan-500">{`, Ab4`}</span>
               <span className="text-emerald-400">{` }`}</span>
             </div>
             <div>
-              <b>F as a Diatonic Neighbor:</b>
+              <b>F as a Diatonic Neighbor (A):</b>
               <br />
-              <span className="text-emerald-400">{`{ G, C, E`}</span>
-              <span className="text-cyan-500">{`, F`}</span>
+              <span className="text-sky-400">{`C Major Chord (B)`}</span>
+              {" * "}
+              <span className="text-emerald-400">{"{ B2 + A1 }"}</span>
+              {" = "}
+              <span className="text-emerald-400">{"{ F4 }"}</span>
+              <br />
+              <span className="text-emerald-400">{`{ C4, E4`}</span>
+              <span className="text-cyan-500">{`, F4`}</span>
               <span className="text-emerald-400">{` }`}</span>
               {" + "}
-              <span className="text-fuchsia-400">{"<r1>"}</span>
+              <span className="text-fuchsia-400">{"<B1>"}</span>
               {" = "}
-              <span className="text-emerald-400">{`{ C, E, G`}</span>
-              <span className="text-cyan-500">{`, A`}</span>
-              <span className="text-emerald-400">{` }`}</span>
-              <br />
-              <span className="text-emerald-400">{`{ G, C, E`}</span>
-              <span className="text-cyan-500">{`, F`}</span>
-              <span className="text-emerald-400">{` }`}</span>
-              {" + "}
-              <span className="text-fuchsia-400">{"<r2>"}</span>
-              {" = "}
-              <span className="text-emerald-400">{`{ E, G, C`}</span>
-              <span className="text-cyan-500">{`, D`}</span>
+              <span className="text-emerald-400">{`{E4, G4`}</span>
+              <span className="text-cyan-500">{`, A4`}</span>
               <span className="text-emerald-400">{` }`}</span>
             </div>
           </>
@@ -118,12 +110,12 @@ export const TutorialDevelopment = () => {
         border="ring-fuchsia-600/80"
         title="Develop Poses"
         subtitle="With Keyboard Gestures"
-        stripColor="border-b-fuchsia-500/80"
+        stripColor="border-b border-b-fuchsia-500/80"
         Icon={GiHand}
         description={
           <>
             <div>
-              Poses can be created and updated with keyboard gestures{" "}
+              Poses can be created and developed with keyboard gestures{" "}
               <span
                 className="text-fuchsia-200 hover:opacity-85"
                 onMouseEnter={() => dispatchOpen("livePlay")}

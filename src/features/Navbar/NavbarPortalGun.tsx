@@ -23,7 +23,7 @@ export const NavbarPortalGun = () => {
               ? hasFragment
                 ? "Place Exit Portal"
                 : "Place Entry Portal"
-              : "Create Portal"}
+              : ArrangePortalsHotkey.name}
             {!isPortaling ? (
               <span className="text-slate-400 font-light">
                 {" "}

@@ -10,11 +10,7 @@ import {
   getTickColumns,
 } from "utils/duration";
 import { Tick, Timed } from "types/units";
-import {
-  selectClipById,
-  selectClipDurationMap,
-  selectClipMap,
-} from "../Clip/ClipSelectors";
+import { selectClipDurationMap, selectClipMap } from "../Clip/ClipSelectors";
 import { createSelector } from "reselect";
 import { pick, uniq, values } from "lodash";
 import { createDeepSelector } from "types/redux";
@@ -397,22 +393,34 @@ export const selectIsClipSelected = (project: Project, id: ClipId) => {
   return !!selection[id];
 };
 
+export const selectIsClipSelectedLastMap = createSelector(
+  [
+    selectSelectedClips,
+    selectClipDurationMap,
+    selectSelectedClipIdMap,
+    selectClipMap,
+  ],
+  (clips, durationMap, selection, clipMap) => {
+    const getDuration = (id: ClipId) => {
+      const duration = durationMap[id];
+      if (!isFinite(duration)) return 0;
+      return duration;
+    };
+    return clips.reduce((map, clip) => {
+      const isSelected = selection[clip.id];
+      if (!isSelected) return map;
+      const isLast =
+        clip.tick + getDuration(clip.id) >=
+        Math.max(...clips.map((clip) => clip.tick + getDuration(clip.id)));
+      return { ...map, [clip.id]: isLast };
+    }, {} as Record<ClipId, boolean>);
+  }
+);
+
 /** Selected true if the clip with the lastmost tick is selected */
 export const selectIsClipSelectedLast = (project: Project, id: ClipId) => {
-  const selectedClips = selectSelectedClips(project);
-  const durationMap = selectClipDurationMap(project);
-  const clip = selectClipById(project, id);
-  const isSelected = selectIsClipSelected(project, id);
-  if (!selectedClips.length || !clip || !isSelected) return false;
-  const getDuration = (id: ClipId) => {
-    const duration = durationMap[id];
-    if (!isFinite(duration)) return 0;
-    return duration;
-  };
-  return (
-    clip.tick + getDuration(clip.id) >=
-    Math.max(...selectedClips.map((clip) => clip.tick + getDuration(clip.id)))
-  );
+  const selection = selectIsClipSelectedLastMap(project);
+  return !!selection[id];
 };
 
 // ------------------------------------------------------------

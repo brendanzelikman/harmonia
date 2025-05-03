@@ -119,7 +119,7 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
             active={view === "notes"}
             onClick={() => setView("notes")}
           >
-            Pitch Lead
+            Chromaposition
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
             active={view === "effects"}

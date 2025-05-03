@@ -17,13 +17,7 @@ import WaveLong from "lib/demos/waveLong.json";
 import WaveWaltz from "lib/demos/waveWaltz.json";
 import Lavos from "lib/demos/lavos.json";
 import Romanesca from "lib/demos/romanesca.json";
-import {
-  GiFire,
-  GiPianoKeys,
-  GiQuill,
-  GiRobotGolem,
-  GiTrumpet,
-} from "react-icons/gi";
+import { GiFire, GiPianoKeys, GiQuill, GiTrumpet } from "react-icons/gi";
 
 type DemoProject = {
   project: BaseProject;
@@ -45,7 +39,7 @@ const ReminiscenzaDemo: DemoProject = {
   blurb: "A few bars from Medtner's Sonata-Reminiscenza.",
 };
 
-const PreludeDemo: DemoProject = {
+export const PreludeDemo: DemoProject = {
   project: Prelude as unknown as BaseProject,
   blurb: "The famous Prelude in C Major by Bach.",
 };
@@ -120,27 +114,27 @@ const LavosDemo: DemoProject = {
 // Demo projects are organized by genre
 export const DEMO_GENRES = [
   {
-    key: "Sequence",
-    color: "border-indigo-400 text-indigo-400",
-    icon: <GiPianoKeys />,
-    demos: [RomanescaDemo, SentenceDemo, RobotDemo, ScherzoDemo],
-  },
-  {
     key: "Classical",
     color: "border-sky-400 text-sky-400",
     icon: <GiQuill />,
-    demos: [PreludeDemo, MoonlightDemo, WaterfallDemo, ReminiscenzaDemo],
+    demos: [
+      PreludeDemo,
+      ScherzoDemo,
+      MoonlightDemo,
+      WaterfallDemo,
+      ReminiscenzaDemo,
+    ],
   },
   {
     key: "Jazz",
     color: "border-orange-300 text-orange-300",
     icon: <GiTrumpet />,
-    demos: [BirdDemo, BarryDemo, CarouselDemo, FonteDemo],
+    demos: [FonteDemo, BirdDemo, CarouselDemo, BarryDemo],
   },
   {
-    key: "Electronic",
-    color: "border-emerald-300 text-emerald-300",
-    icon: <GiRobotGolem />,
+    key: "Ambient",
+    color: "border-emerald-400 text-emerald-400",
+    icon: <GiPianoKeys />,
     demos: [WaveDemo, WaveSnarkDemo, WaveWaltzDemo, WaveLongDemo],
   },
   {

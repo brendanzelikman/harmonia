@@ -1,8 +1,7 @@
 import classNames from "classnames";
 import { TooltipButton } from "components/TooltipButton";
 import { memo } from "react";
-import { CiRuler } from "react-icons/ci";
-import { GiDominoMask, GiMusicalKeyboard } from "react-icons/gi";
+import { GiLindenLeaf, GiLog, GiTreeDoor } from "react-icons/gi";
 import { toggleTrackEditor } from "types/Timeline/TimelineThunks";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import {
@@ -41,7 +40,7 @@ export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
           dispatch(promptUserForScale(trackId));
         }}
       >
-        <GiDominoMask className="text-xl" />
+        <GiTreeDoor className="text-base" />
       </TooltipButton>
       <TooltipButton
         className={`text-xl size-6 flex items-center justify-center border rounded-full border-indigo-400 active:bg-indigo-500 select-none`}
@@ -53,7 +52,7 @@ export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
           );
         }}
       >
-        <CiRuler className="text-4xl" />
+        <GiLog className="text-base" />
       </TooltipButton>
       <TooltipButton
         className={`text-xl size-6 border rounded-full border-emerald-500 active:bg-emerald-500 select-none`}
@@ -65,7 +64,7 @@ export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
           );
         }}
       >
-        <GiMusicalKeyboard className="rotate-90 text-lg" />
+        <GiLindenLeaf className="text-sm" />
       </TooltipButton>
     </div>
   );
@@ -117,7 +116,7 @@ export const PatternTrackButtons = memo(
             dispatch(toggleTrackEditor({ data: trackId }));
           }}
         >
-          <GiMusicalKeyboard className="pointer-events-none" />
+          <GiLindenLeaf className="pointer-events-none text-sm" />
         </TooltipButton>
         <TooltipButton
           label={mute ? "Unmute Sampler" : "Mute Sampler"}

@@ -7,10 +7,11 @@ import {
   updateFragment,
 } from "./TimelineSlice";
 import { next } from "utils/array";
-import { CLIP_TYPES } from "types/Clip/ClipTypes";
+import { CLIP_TYPES, initializePatternClip } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
 import { sanitizeProject, Thunk } from "types/Project/ProjectTypes";
 import {
+  selectHasTracks,
   selectPatternTrackIds,
   selectScaleTrackIds,
   selectTrackAncestorIds,
@@ -46,7 +47,6 @@ import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 import { walkPatternClip } from "types/Arrangement/ArrangementThunks";
 import { TrackId } from "types/Track/TrackTypes";
 import { nanoid } from "@reduxjs/toolkit";
-import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { maxBy } from "lodash";
 import {
   selectClipDuration,
@@ -64,6 +64,7 @@ import {
 import { selectTransportTimeSignature } from "types/Transport/TransportSelectors";
 import { QuarterNoteTicks } from "utils/duration";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
+import { addPatternClip } from "types/Clip/ClipSlice";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -134,6 +135,8 @@ export const toggleAddingState =
     const project = getProject();
     const timelineType = selectTimelineType(project);
     const isAdding = selectIsAddingClips(project);
+    const hasTracks = selectHasTracks(project);
+    if (!hasTracks) return;
 
     dispatch(setTimelineType({ data: type, undoType }));
 
@@ -246,17 +249,21 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
     }
   }
 
-  const originalPattern = selectPatternById(project, patternClip.patternId);
-  const { clipId } = dispatch(
-    createCourtesyPatternClip({
-      data: { pattern: originalPattern, clip: { trackId, tick } },
+  const newClip = initializePatternClip({
+    patternId: patternClip.patternId,
+    trackId,
+    tick,
+  });
+  dispatch(
+    addPatternClip({
+      data: newClip,
       undoType,
     })
   );
   dispatch(
     walkPatternClip({
       data: {
-        id: `${clipId}-chunk-1`,
+        id: `${newClip.id}-chunk-1`,
         options: { keys: trackIds, direction: "up" },
       },
       undoType,

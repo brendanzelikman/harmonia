@@ -1,11 +1,6 @@
 import { useTick } from "types/Transport/TransportTick";
 import { memo, useState } from "react";
-import {
-  GiCrystalWand,
-  GiDominoMask,
-  GiPianoKeys,
-  GiPineTree,
-} from "react-icons/gi";
+import { GiPianoKeys, GiPineTree, GiTreeDoor } from "react-icons/gi";
 import {
   selectTrackMidiScaleAtTick,
   selectTrackJSXAtTick,
@@ -19,6 +14,9 @@ import { TrackId } from "types/Track/TrackTypes";
 import { cancelEvent } from "utils/event";
 import { getScaleKey, getScaleName } from "types/Scale/ScaleFinder";
 import { mod } from "utils/math";
+import { ArrangePoseIcon } from "lib/hotkeys/timeline";
+import { CreateTreeIcon } from "lib/hotkeys/track";
+import { dispatchOpen, dispatchClose } from "hooks/useToggle";
 
 export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
   const { trackId } = props;
@@ -36,8 +34,8 @@ export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
   return (
     <div className="min-w-0 grow flex flex-col text-xs gap-1 *:h-4 pt-1">
       <div className="flex text-teal-400">
-        <GiPineTree className="mr-1 my-auto inline shrink-0" />
-        <div>Scale {label}</div>
+        <CreateTreeIcon className="mr-1 my-auto inline shrink-0" />
+        <div>Scale ({label})</div>
       </div>
       <div
         className="flex overflow-scroll text-sky-300 cursor-pointer"
@@ -46,11 +44,15 @@ export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
           setShowNotes((prev) => !prev);
         }}
       >
-        <GiDominoMask className="mr-1 my-auto inline shrink-0" />
+        <GiTreeDoor className="mr-1 my-auto inline shrink-0" />
         <div>{scaleText}</div>
       </div>
-      <div className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300">
-        <GiCrystalWand className="shrink-0" />
+      <div
+        className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300"
+        onMouseEnter={() => dispatchOpen("livePlay")}
+        onMouseLeave={() => dispatchClose("livePlay")}
+      >
+        <ArrangePoseIcon className="shrink-0" />
         {pose}
       </div>
     </div>
@@ -69,14 +71,14 @@ export const PatternTrackBody = memo((props: { trackId: TrackId }) => {
     <div className="min-w-0 grow flex flex-col text-xs pt-2 *:h-4 gap-[2px]">
       <div className="flex text-teal-300/95">
         <GiPineTree className="mr-1 my-auto inline shrink-0" />
-        <div>Sampler {label}</div>
+        <div>Sampler ({label})</div>
       </div>
       <div className="flex text-orange-300">
         <GiPianoKeys className="mr-1 my-auto inline shrink-0" />
         <div className="overflow-scroll">{instrumentName}</div>
       </div>
       <div className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300">
-        <GiCrystalWand className="shrink-0" />
+        <ArrangePoseIcon className="shrink-0" />
         {pose}
       </div>
     </div>

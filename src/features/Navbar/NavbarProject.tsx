@@ -51,7 +51,7 @@ export function NavbarProjectMenu() {
     <div className="group/tooltip relative shrink-0">
       {/* Button */}
       <div className="rounded-full p-1 pr-0">
-        <GiCompactDisc className="size-full text-2xl select-none cursor-pointer group-hover/tooltip:text-indigo-500" />
+        <GiCompactDisc className="size-full shrink-0 text-2xl select-none cursor-pointer group-hover/tooltip:text-indigo-500" />
       </div>
 
       {/* Tooltip */}

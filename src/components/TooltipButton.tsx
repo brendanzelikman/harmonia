@@ -15,6 +15,7 @@ interface TooltipButtonProps {
   onMouseEnter?: (e: React.MouseEvent<Element, MouseEvent>) => void;
   onMouseLeave?: (e: React.MouseEvent<Element, MouseEvent>) => void;
   active?: boolean;
+  override?: boolean;
   activeLabel?: ReactNode;
   freezeInside?: boolean;
   label?: ReactNode;
@@ -58,6 +59,7 @@ export const TooltipButton = ({
   onMouseEnter: _onMouseEnter,
   onMouseLeave: _onMouseLeave,
   active,
+  override,
   activeLabel,
   freezeInside,
   label,
@@ -154,11 +156,11 @@ export const TooltipButton = ({
   const timerRef = useRef<NodeJS.Timeout>();
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (freezeInside) {
-      setShown(!isIn ? activeLabel : null);
+    if (freezeInside && !override) {
+      setShown(isIn ? null : activeLabel);
       return;
     }
-    if (active) {
+    if (active && !override) {
       setShown(activeLabel);
     } else {
       if (isIn) {
@@ -173,7 +175,7 @@ export const TooltipButton = ({
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [active, activeLabel, freezeInside, isIn]);
+  }, [active, activeLabel, freezeInside, isIn, override]);
 
   const Label = (
     <div

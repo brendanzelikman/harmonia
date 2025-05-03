@@ -1,9 +1,8 @@
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { SampleProjectHotkey } from "lib/hotkeys/timeline";
-import { GiCloudUpload } from "react-icons/gi";
+import { GiTreeBranch } from "react-icons/gi";
 import { useAppDispatch } from "hooks/useRedux";
 import { sampleProject } from "types/Timeline/TimelineThunks";
-import classNames from "classnames";
 
 export const NavbarSampleProject = () => {
   const dispatch = useAppDispatch();
@@ -15,7 +14,7 @@ export const NavbarSampleProject = () => {
       onClick={() => dispatch(sampleProject())}
       hotkey={SampleProjectHotkey}
     >
-      <GiCloudUpload className="text-2xl" />
+      <GiTreeBranch className="text-2xl" />
     </NavbarTooltipButton>
   );
 };

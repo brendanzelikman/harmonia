@@ -26,6 +26,7 @@ import {
   filterPoses,
   sliceClips,
 } from "types/Timeline/thunks/TimelineClipThunks";
+import { GiCrystalWand, GiMusicalNotes } from "react-icons/gi";
 
 // -----------------------------------------------
 // Timeline Hotkeys
@@ -39,7 +40,7 @@ export const WaterTreeHotkey: Hotkey = {
 };
 
 export const SampleProjectHotkey: Hotkey = {
-  name: "Insert Project",
+  name: "Load Tree",
   description: "Upload the notes of a project by file",
   shortcut: "f",
   callback: (dispatch) => dispatch(sampleProject()),
@@ -51,6 +52,7 @@ export const ArrangePatternsHotkey: Hotkey = {
   shortcut: "o",
   callback: (dispatch) => dispatch(toggleAddingState({ data: "pattern" })),
 };
+export const ArrangePatternIcon = GiMusicalNotes;
 
 export const ArrangePosesHotkey: Hotkey = {
   name: "Create Pose",
@@ -58,6 +60,7 @@ export const ArrangePosesHotkey: Hotkey = {
   shortcut: "p",
   callback: (dispatch) => dispatch(toggleAddingState({ data: "pose" })),
 };
+export const ArrangePoseIcon = GiCrystalWand;
 
 export const SelectPatternsHotkey: Hotkey = {
   name: "Select Pattern Clips",
@@ -74,7 +77,7 @@ export const SelectPosesHotkey: Hotkey = {
 };
 
 export const ArrangePortalsHotkey: Hotkey = {
-  name: "Create Portal",
+  name: "Portal Tree",
   description: "Toggle the portaling of media",
   shortcut: "j",
   callback: (dispatch) =>
