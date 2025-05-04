@@ -1,10 +1,19 @@
 import { GiMusicalScore, GiSoundWaves } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
 import { BsCode } from "react-icons/bs";
+import { sonataVariants } from "./TutorialIntroduction";
+import { m } from "framer-motion";
 
-export const TutorialCoda = () => {
+export const TutorialCoda = (props: { view: string }) => {
   return (
-    <div className="flex max-lg:flex-col max-lg:items-center max-lg:overflow-scroll gap-16 p-4 *:shadow-2xl">
+    <m.div
+      initial="hidden"
+      whileInView="show"
+      data-view={props.view}
+      variants={sonataVariants}
+      className="hidden data-[view=coda]:flex items-center max-lg:flex-col gap-8 lg:gap-16"
+    >
+      {" "}
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg"
@@ -15,8 +24,8 @@ export const TutorialCoda = () => {
         description={
           <>
             <div>
-              Projects are autosaved in your browser and stored in a native JSON
-              format.
+              Projects are autosaved in your browser and exportable into a
+              native JSON format.
             </div>
             <div>
               <b>Diary:</b>
@@ -87,6 +96,6 @@ export const TutorialCoda = () => {
           </>
         }
       />
-    </div>
+    </m.div>
   );
 };

@@ -19,34 +19,36 @@ export const TimelineButton = (
 ) => (
   <m.div
     variants={{
-      hidden: { opacity: 0, scale: 0.5 },
-      show: { opacity: 1, scale: 1 },
+      hidden: { opacity: 0, scale: 0, transform: "blur(20px)" },
+      show: { opacity: 1, scale: 1, transform: "blur(0px)" },
     }}
     className={classNames(
       props.className,
       props.border,
       props.background ?? "bg-radial from-slate-700/70 to-slate-950/65",
-      "hover:ring-4 transition-all duration-300 backdrop-blur-lg cursor-pointer size-full max-w-xl total-center-col gap-1 ring-2 p-6 rounded select-none"
+      "hover:ring-4 transition-all duration-300 backdrop-blur-lg cursor-pointer size-full total-center-col am gap-1 ring-2 p-5 rounded-3xl select-none"
     )}
     onClick={props.onClick}
   >
     {props.Icon && (
-      <div className={props.iconClass ?? "max-lg:text-lg text-8xl"}>
+      <div className={props.iconClass ?? "text-8xl"}>
         <props.Icon />
       </div>
     )}
     <div
       className={classNames(
         props.stripColor ?? "border-b border-b-slate-50/5",
-        "font-bold flex-center gap-2 text-base w-full pb-1"
+        "font-semibold total-center gap-2 text-base w-full pb-1"
       )}
     >
-      <div className="flex flex-col items-center mt-2">
-        <div className={props.titleClass ?? "font-bold text-slate-50 text-xl"}>
+      <div className="flex flex-col items-center my-2">
+        <div
+          className={props.titleClass ?? "font-semibold text-slate-100 text-lg"}
+        >
           {props.title}
         </div>
         {!!props.subtitle && (
-          <div className="font-light text-slate-400 capitalize">
+          <div className="text-slate-400 text-base font-light italic capitalize">
             ({props.subtitle})
           </div>
         )}
@@ -54,7 +56,7 @@ export const TimelineButton = (
     </div>
     {!!props.description && (
       <div className="flex justify-evenly items-center mt-1 p-2 max-xl:flex-wrap text-sm text-slate-200">
-        <div className="grow flex flex-col p-1 gap-4 w-[18rem]">
+        <div className="grow flex flex-col p-1 gap-3 max-w-[18rem]">
           {props.description}
         </div>
       </div>

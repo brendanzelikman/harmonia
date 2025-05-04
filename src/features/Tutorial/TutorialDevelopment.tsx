@@ -1,10 +1,18 @@
 import { dispatchOpen, dispatchClose } from "hooks/useToggle";
 import { GiChart, GiAbacus, GiHand } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
+import { sonataVariants } from "./TutorialIntroduction";
+import { m } from "framer-motion";
 
-export const TutorialDevelopment = () => {
+export const TutorialDevelopment = (props: { view: string }) => {
   return (
-    <div className="flex max-lg:flex-col max-lg:items-center max-lg:overflow-scroll gap-16 p-4 *:shadow-2xl">
+    <m.div
+      initial="hidden"
+      whileInView="show"
+      data-view={props.view}
+      variants={sonataVariants}
+      className="hidden data-[view=development]:flex items-center max-lg:flex-col gap-8 lg:gap-16"
+    >
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg"
@@ -160,6 +168,6 @@ export const TutorialDevelopment = () => {
           </>
         }
       />
-    </div>
+    </m.div>
   );
 };

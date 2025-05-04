@@ -85,8 +85,8 @@ export function Navbar() {
             className="bg-radial from-emerald-800/15 to-teal-600/15"
           >
             Trees
-            <NavbarWaterTree />
             <NavbarSampleProject />
+            <NavbarWaterTree />
             <NavbarLivePlay />
           </NavbarGroup>
           <NavbarGroup

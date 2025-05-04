@@ -77,7 +77,11 @@ export const PatternTrackBody = memo((props: { trackId: TrackId }) => {
         <GiPianoKeys className="mr-1 my-auto inline shrink-0" />
         <div className="overflow-scroll">{instrumentName}</div>
       </div>
-      <div className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300">
+      <div
+        className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300"
+        onMouseEnter={() => dispatchOpen("livePlay")}
+        onMouseLeave={() => dispatchClose("livePlay")}
+      >
         <ArrangePoseIcon className="shrink-0" />
         {pose}
       </div>

@@ -1,9 +1,36 @@
 import { m } from "framer-motion";
 import { TimelineButton } from "./components/TutorialButton";
 import { useAppDispatch } from "hooks/useRedux";
-import { GiBookCover, GiPaintRoller, GiPalette } from "react-icons/gi";
+import { GiBookCover, GiPineTree, GiWateringCan } from "react-icons/gi";
 import { promptUserForTree } from "lib/prompts/tree";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
+
+export const tutorialVariants = {
+  hidden: { opacity: 0, scale: 0 },
+  enter: {
+    opacity: 1,
+    scale: 1,
+    transition: { staggerChildren: 0.3 },
+  },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      delayChildren: 0.5,
+      staggerChildren: 0.2,
+    },
+  },
+};
+export const sonataVariants = {
+  hidden: { opacity: 0, scale: 0.5 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      staggerChildren: 0.3,
+    },
+  },
+};
 
 export const TutorialIntroduction = (props: {
   view: string;
@@ -12,52 +39,39 @@ export const TutorialIntroduction = (props: {
   startTutorial: () => void;
 }) => {
   const dispatch = useAppDispatch();
-
   return (
     <m.div
       initial="hidden"
       animate="show"
+      whileInView="enter"
       data-view={props.view}
-      variants={{
-        hidden: { scale: 0, opacity: 0 },
-        show: {
-          opacity: 1,
-          scale: 1,
-          transition: {
-            delayChildren: 0.3,
-            staggerChildren: 0.1,
-            type: "spring",
-            stiffness: 100,
-            mass: 0.6,
-          },
-        },
-      }}
-      className="hidden lg:mt-10 lg:*:h-72 data-[view=introduction]:flex max-lg:flex-col max-lg:items-center gap-8 lg:gap-16 max-lg:overflow-scroll p-4"
+      variants={tutorialVariants}
+      className="hidden data-[view=introduction]:flex items-center max-lg:flex-col gap-8 lg:gap-16"
     >
       <TimelineButton
         border="ring-indigo-600/80"
-        className="rounded-4xl shadow-xl w-[350px] total-center-col lg:gap-4"
-        title={`Start Project`}
+        className="lg:rounded-full shadow-xl w-xs lg:py-12 total-center lg:gap-3"
+        title="Start Project"
         titleClass={"text-2xl font-normal"}
         subtitle="Create a New Tree"
         stripColor="text-lg font-light"
-        Icon={GiPalette}
+        Icon={GiWateringCan}
         iconClass="text-9xl max-lg:text-6xl"
         onClick={() => dispatch(promptUserForTree)}
       />
       <TimelineButton
         border="ring-teal-600/80"
-        className="rounded-4xl shadow-xl w-[350px] total-center-col lg:gap-4"
+        className="lg:rounded-full shadow-xl w-xs lg:py-12 total-center lg:gap-3"
         title="Quickstart Project"
-        subtitle="Create a Default Tree"
+        subtitle="Grow a Default Tree"
         titleClass={"text-2xl font-normal"}
         stripColor="text-lg font-light"
-        Icon={GiPaintRoller}
+        Icon={GiPineTree}
         iconClass="text-9xl max-lg:text-6xl"
         onClick={() => dispatch(toggleLivePlay())}
       />
       <TimelineButton
-        className="rounded-4xl shadow-xl w-[350px] total-center-col lg:gap-4"
+        className="lg:rounded-full shadow-xl w-xs lg:py-12 total-center lg:gap-3"
         border="ring-fuchsia-600/80"
         title={props.tutorial ? "Begin Tutorial" : "Launch Tutorial"}
         titleClass={"text-2xl font-normal"}

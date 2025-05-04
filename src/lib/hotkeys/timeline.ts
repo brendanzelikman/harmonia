@@ -33,16 +33,16 @@ import { GiCrystalWand, GiMusicalNotes } from "react-icons/gi";
 // -----------------------------------------------
 
 export const WaterTreeHotkey: Hotkey = {
-  name: "Water Tree",
+  name: "Grow Tree",
   description: "Activate live play and quickstart a project",
-  shortcut: "i",
+  shortcut: "g",
   callback: (dispatch) => dispatch(toggleLivePlay()),
 };
 
 export const SampleProjectHotkey: Hotkey = {
   name: "Load Tree",
   description: "Upload the notes of a project by file",
-  shortcut: "f",
+  shortcut: "l",
   callback: (dispatch) => dispatch(sampleProject()),
 };
 
@@ -77,7 +77,7 @@ export const SelectPosesHotkey: Hotkey = {
 };
 
 export const ArrangePortalsHotkey: Hotkey = {
-  name: "Portal Tree",
+  name: "Create Portal",
   description: "Toggle the portaling of media",
   shortcut: "j",
   callback: (dispatch) =>

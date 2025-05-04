@@ -4,16 +4,24 @@ import { useAppDispatch } from "hooks/useRedux";
 import { CreateTreeIcon } from "lib/hotkeys/track";
 import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
+import { sonataVariants } from "./TutorialIntroduction";
+import { m } from "framer-motion";
 
-export const TutorialRecapitulation = () => {
+export const TutorialRecapitulation = (props: { view: string }) => {
   const dispatch = useAppDispatch();
   return (
-    <div className="flex max-lg:flex-col max-lg:items-center max-lg:overflow-scroll gap-16 p-4 *:shadow-2xl">
+    <m.div
+      initial="hidden"
+      whileInView="show"
+      data-view={props.view}
+      variants={sonataVariants}
+      className="hidden data-[view=recapitulation]:flex items-center max-lg:flex-col gap-8 lg:gap-16"
+    >
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg"
         title="Create Trees"
-        subtitle="Press N to Input, I for Default"
+        subtitle="Press N to Input, G to Grow"
         stripColor="border-b border-b-indigo-500/80"
         Icon={CreateTreeIcon}
         onClick={() => dispatch(promptUserForTree)}
@@ -28,8 +36,6 @@ export const TutorialRecapitulation = () => {
                 <b>Example Project</b>:
               </div>
               <span className="text-teal-400">Tree 3</span> ={" "}
-              <span className="text-sky-400">C</span>
-              {" => "}
               <span className="text-sky-400">C, D, E, F, G</span>
               {" => "}
               <span className="text-sky-400">C, E, G</span>
@@ -37,11 +43,9 @@ export const TutorialRecapitulation = () => {
               <span className="text-emerald-400">bass</span>
               <br />
               <span className="text-teal-400">Tree 4</span> ={" "}
-              <span className="text-sky-400">e</span>
+              <span className="text-sky-400">0, 2, 4, 5, 7</span>
               {" => "}
-              <span className="text-sky-400">e, g, b, d</span>
-              {" => "}
-              <span className="text-sky-400">e, g, b</span>
+              <span className="text-sky-400">0, 4, 7</span>
               {" => "}
               <span className="text-emerald-400">~file</span>
             </div>
@@ -103,7 +107,7 @@ export const TutorialRecapitulation = () => {
           <>
             <div>
               A Pose is a transformation that can change the notes of a Scale or
-              a Pattern at any time.
+              a Pattern over time.
             </div>
             <div>
               <b>Examples</b>:
@@ -124,6 +128,6 @@ export const TutorialRecapitulation = () => {
           </>
         }
       />
-    </div>
+    </m.div>
   );
 };

@@ -76,20 +76,22 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
             className="active:text-fuchsia-400"
-            onClick={() =>
+            onClick={() => {
               dispatch(
                 updatePose({
                   id: props.clip.poseId,
                   operations: [...operations, { id: "script", args: "" }],
                 })
-              )
-            }
+              );
+              setView("effects");
+            }}
           >
             Add Script
           </PoseClipDropdownItem>
           <PoseClipDropdownItem
             className="active:text-fuchsia-400"
-            onClick={() =>
+            onClick={() => {
+              setView("effects");
               block
                 ? dispatch(
                     updatePoseBlock({
@@ -103,8 +105,8 @@ export const PoseClipEffects = (props: PoseClipEffectsProps) => {
                       id: props.clip.poseId,
                       operations: undefined,
                     })
-                  )
-            }
+                  );
+            }}
           >
             Clear All
           </PoseClipDropdownItem>

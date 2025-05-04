@@ -40,9 +40,9 @@ export default function Tutorial() {
 
   if (hasTracks) return null;
   return (
-    <div className="size-full flex flex-col items-center max-lg:px-10 gap-10 pt-12 relative bg-slate-900/50 transition-all">
+    <div className="size-full flex flex-col overflow-scroll items-center gap-12 max-lg:px-10 pt-12 pb-4 relative bg-slate-900/50 transition-all">
       <img
-        className="absolute size-full inset-0 opacity-50 -z-10 animate-background"
+        className="fixed size-full w-screen inset-0 opacity-50 -z-10 animate-background"
         src={Background}
         alt="Background"
       />
@@ -58,14 +58,16 @@ export default function Tutorial() {
           stiffness: 100,
           mass: 0.5,
         }}
-        className="bg-radial relative to-slate-950/70 from-indigo-900/0 border-indigo-600/70 max-lg:w-md w-4xl backdrop-blur-lg select-none text-center px-10 py-5 max-lg:py-4 border-2 rounded-3xl"
+        className="bg-radial relative to-slate-950/70 from-indigo-900/0 border-indigo-600/70 max-lg:w-md w-5xl backdrop-blur-lg select-none text-center py-8 max-lg:py-4 border-2 mb-4 rounded-3xl"
       >
         <m.div
           initial="hidden"
           whileInView="visible"
-          className="max-lg:mb-1 total-center gap-4 animate-in fade-in text-[40px] max-lg:text-2xl text-slate-100 font-normal drop-shadow-sm"
+          className="max-lg:mb-1 total-center gap-4 animate-in fade-in text-4xl px-4 max-lg:text-3xl text-slate-100 font-bold drop-shadow-sm"
         >
-          Welcome to the Playground! <GiHighFive />
+          <GiHighFive className="rotate-y-180" />
+          {" Welcome to the Playground! "}
+          <GiHighFive />
         </m.div>
         <m.div
           data-tutorial={tutorial}
@@ -73,7 +75,7 @@ export default function Tutorial() {
           whileInView="visible"
           variants={variants}
           transition={{ staggerChildren: 0.2 }}
-          className="text-2xl mt-1 hidden data-[tutorial=true]:flex gap-x-3 justify-center max-lg:text-lg flex-wrap font-normal text-slate-300"
+          className="text-2xl mt-4 hidden data-[tutorial=true]:flex gap-x-3 justify-center max-lg:text-lg flex-wrap font-normal text-slate-300"
         >
           <m.div
             data-active={view === "introduction"}
@@ -134,10 +136,10 @@ export default function Tutorial() {
           tutorial ? visit("exposition") : setTutorial(true)
         }
       />
-      {view === "exposition" && <TutorialExposition />}
-      {view === "development" && <TutorialDevelopment />}
-      {view === "recapitulation" && <TutorialRecapitulation />}
-      {view === "coda" && <TutorialCoda />}
+      <TutorialExposition view={view} />
+      <TutorialDevelopment view={view} />
+      <TutorialRecapitulation view={view} />
+      <TutorialCoda view={view} />
     </div>
   );
 }

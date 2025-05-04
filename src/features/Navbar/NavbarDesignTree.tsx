@@ -2,6 +2,7 @@ import { NavbarTooltipButton } from "components/TooltipButton";
 import { CreateTreeHotkey, CreateTreeIcon } from "lib/hotkeys/track";
 import { useAppDispatch } from "hooks/useRedux";
 import { promptUserForTree } from "lib/prompts/tree";
+import { GiWateringCan } from "react-icons/gi";
 
 export const NavbarDesignTree = () => {
   const dispatch = useAppDispatch();
@@ -12,7 +13,7 @@ export const NavbarDesignTree = () => {
       onClick={() => dispatch(promptUserForTree)}
       hotkey={CreateTreeHotkey}
     >
-      <CreateTreeIcon className="text-2xl" />
+      <GiWateringCan className="text-2xl" />
     </NavbarTooltipButton>
   );
 };
