@@ -26,7 +26,7 @@ export const TimelineButton = (
       props.className,
       props.border,
       props.background ?? "bg-radial from-slate-700/70 to-slate-950/65",
-      "hover:ring-4 transition-all duration-300 backdrop-blur-lg cursor-pointer size-full total-center-col am gap-1 ring-2 p-5 rounded-3xl select-none"
+      "hover:ring-4 transition-all duration-300 backdrop-blur-lg cursor-pointer size-full flex flex-col justify-center items-center gap-1 ring-2 p-5 rounded-3xl select-none"
     )}
     onClick={props.onClick}
   >

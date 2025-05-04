@@ -40,7 +40,7 @@ export default function Tutorial() {
 
   if (hasTracks) return null;
   return (
-    <div className="size-full flex flex-col overflow-scroll items-center gap-12 max-lg:px-10 pt-12 pb-4 relative bg-slate-900/50 transition-all">
+    <div className="size-full flex flex-col overflow-scroll items-center gap-8 lg:gap-16 max-lg:px-10 lg:pt-12 pt-8 pb-4 relative bg-slate-900/50 transition-all">
       <img
         className="fixed size-full w-screen inset-0 opacity-50 -z-10 animate-background"
         src={Background}
@@ -55,18 +55,18 @@ export default function Tutorial() {
           delayChildren: 0.25,
           staggerChildren: 0.25,
           type: "spring",
-          stiffness: 100,
-          mass: 0.5,
+          stiffness: 80,
+          mass: 0.4,
         }}
-        className="bg-radial relative to-slate-950/70 from-indigo-900/0 border-indigo-600/70 max-lg:w-md w-5xl backdrop-blur-lg select-none text-center py-8 max-lg:py-4 border-2 mb-4 rounded-3xl"
+        className="bg-radial relative to-slate-950/70 from-indigo-900/20 border-indigo-600/70 max-lg:w-md w-5xl backdrop-blur-lg select-none text-center py-8 max-lg:py-4 border-2 rounded-3xl"
       >
         <m.div
           initial="hidden"
           whileInView="visible"
-          className="max-lg:mb-1 total-center gap-4 animate-in fade-in text-4xl px-4 max-lg:text-3xl text-slate-100 font-bold drop-shadow-sm"
+          className="max-lg:mb-1 total-center gap-4 animate-in fade-in text-5xl px-4 max-lg:text-3xl text-slate-100 font-bold drop-shadow-sm"
         >
           <GiHighFive className="rotate-y-180" />
-          {" Welcome to the Playground! "}
+          {"Welcome to the Playground!"}
           <GiHighFive />
         </m.div>
         <m.div

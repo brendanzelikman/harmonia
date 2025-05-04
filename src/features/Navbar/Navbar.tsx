@@ -26,6 +26,7 @@ import { ToggleShortcutsHotkey } from "lib/hotkeys/global";
 import { NavbarSettings } from "./NavbarSettings";
 import { NavbarTape } from "./NavbarTape";
 import { NavbarSampleProject } from "./NavbarSampleProject";
+import { FaQuestion, FaQuestionCircle } from "react-icons/fa";
 
 export function Navbar() {
   const view = useRoute();
@@ -56,7 +57,7 @@ export function Navbar() {
               keepTooltipOnClick
               hideRing
               className={classNames(
-                "select-none hover:opacity-75 text-slate-200"
+                "select-none hover:opacity-75 text-slate-100"
               )}
               marginLeft={-40}
               marginTop={-2}
@@ -64,7 +65,7 @@ export function Navbar() {
               onClick={() => dispatchToggle("shortcuts")}
               hotkey={ToggleShortcutsHotkey}
             >
-              <BsQuestionCircle className="size-7" />
+              <FaQuestionCircle className="size-6.5" />
             </NavbarTooltipButton>
             <NavbarUndo />
             <NavbarRedo />
@@ -75,7 +76,7 @@ export function Navbar() {
             <NavbarTransportControl />
           </NavbarGroup>
           <NavbarGroup className="bg-radial from-slate-900/15 to-sky-500/15">
-            Motifs
+            <div className="text-base font-light pr-1">Motifs</div>
             <NavbarDesignTree />
             <NavbarArrangeClip type="pattern" />
             <NavbarArrangeClip type="pose" />
@@ -84,7 +85,7 @@ export function Navbar() {
             hide={!hasTracks}
             className="bg-radial from-emerald-800/15 to-teal-600/15"
           >
-            Trees
+            <div className="text-base font-light pr-1">Trees</div>
             <NavbarSampleProject />
             <NavbarWaterTree />
             <NavbarLivePlay />
@@ -93,7 +94,7 @@ export function Navbar() {
             hide={!hasTracks}
             className="bg-radial from-teal-800/15 to-teal-600/15"
           >
-            Clips
+            <div className="text-base font-light pr-1">Clips</div>
             <NavbarTape />
             <NavbarScissors />
             <NavbarPortalGun />

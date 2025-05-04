@@ -10,7 +10,7 @@ export const tutorialVariants = {
   enter: {
     opacity: 1,
     scale: 1,
-    transition: { staggerChildren: 0.3 },
+    transition: { delay: 0.4, staggerChildren: 0.4 },
   },
   show: {
     opacity: 1,
@@ -50,7 +50,7 @@ export const TutorialIntroduction = (props: {
     >
       <TimelineButton
         border="ring-indigo-600/80"
-        className="lg:rounded-full shadow-xl w-xs lg:py-12 total-center lg:gap-3"
+        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-xs lg:py-12 lg:gap-3"
         title="Start Project"
         titleClass={"text-2xl font-normal"}
         subtitle="Create a New Tree"
@@ -61,7 +61,7 @@ export const TutorialIntroduction = (props: {
       />
       <TimelineButton
         border="ring-teal-600/80"
-        className="lg:rounded-full shadow-xl w-xs lg:py-12 total-center lg:gap-3"
+        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-xs lg:py-12 lg:gap-3"
         title="Quickstart Project"
         subtitle="Grow a Default Tree"
         titleClass={"text-2xl font-normal"}
@@ -71,7 +71,7 @@ export const TutorialIntroduction = (props: {
         onClick={() => dispatch(toggleLivePlay())}
       />
       <TimelineButton
-        className="lg:rounded-full shadow-xl w-xs lg:py-12 total-center lg:gap-3"
+        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-xs lg:py-12 lg:gap-3"
         border="ring-fuchsia-600/80"
         title={props.tutorial ? "Begin Tutorial" : "Launch Tutorial"}
         titleClass={"text-2xl font-normal"}

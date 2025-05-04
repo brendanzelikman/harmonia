@@ -1,12 +1,6 @@
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { SampleProjectHotkey } from "lib/hotkeys/timeline";
-import {
-  GiLeafSkeleton,
-  GiPalmTree,
-  GiPineTree,
-  GiTreeDoor,
-  GiTreeGrowth,
-} from "react-icons/gi";
+import { GiTreeDoor } from "react-icons/gi";
 import { useAppDispatch } from "hooks/useRedux";
 import { sampleProject } from "types/Timeline/TimelineThunks";
 

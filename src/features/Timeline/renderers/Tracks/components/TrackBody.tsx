@@ -1,6 +1,11 @@
 import { useTick } from "types/Transport/TransportTick";
 import { memo, useState } from "react";
-import { GiPianoKeys, GiPineTree, GiTreeDoor } from "react-icons/gi";
+import {
+  GiDominoMask,
+  GiPianoKeys,
+  GiPineTree,
+  GiTrumpet,
+} from "react-icons/gi";
 import {
   selectTrackMidiScaleAtTick,
   selectTrackJSXAtTick,
@@ -44,7 +49,7 @@ export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
           setShowNotes((prev) => !prev);
         }}
       >
-        <GiTreeDoor className="mr-1 my-auto inline shrink-0" />
+        <GiDominoMask className="mr-1 my-auto inline shrink-0" />
         <div>{scaleText}</div>
       </div>
       <div
@@ -74,7 +79,7 @@ export const PatternTrackBody = memo((props: { trackId: TrackId }) => {
         <div>Sampler ({label})</div>
       </div>
       <div className="flex text-orange-300">
-        <GiPianoKeys className="mr-1 my-auto inline shrink-0" />
+        <GiTrumpet className="mr-1 my-auto inline shrink-0" />
         <div className="overflow-scroll">{instrumentName}</div>
       </div>
       <div
