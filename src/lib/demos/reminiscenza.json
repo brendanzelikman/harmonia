@@ -475,10 +475,6 @@
         "id": "pose_Ya_1jfOF_fxccqWfMezgG",
         "vector": { "octave": -1, "scale-track_Y5D0HuCDtnVSMWEwHbT_8": 1 }
       },
-      "pose_EMT4ZZ3SGFgMLtTMOO6iU": {
-        "id": "pose_EMT4ZZ3SGFgMLtTMOO6iU",
-        "vector": { "scale-track_Y5D0HuCDtnVSMWEwHbT_8": 0 }
-      },
       "pose_4smZUytd5eqJ5eT8E0wOv": {
         "id": "pose_4smZUytd5eqJ5eT8E0wOv",
         "vector": {
@@ -549,7 +545,6 @@
       "pose_AiTAlHRce8SbpKlX7Jjh4",
       "pose_jJwY71Wsk-WwNE-4HlORf",
       "pose_Ya_1jfOF_fxccqWfMezgG",
-      "pose_EMT4ZZ3SGFgMLtTMOO6iU",
       "pose_4smZUytd5eqJ5eT8E0wOv",
       "pose_XcN-pYygJayfqOZdsphRy"
     ]
@@ -1563,12 +1558,6 @@
         "trackId": "pattern-track_gaU3PE7Bqu5QrQ0sxFtqV",
         "tick": 2688,
         "poseId": "pose_Ya_1jfOF_fxccqWfMezgG"
-      },
-      "pose-clip_u2SDwwTz6mCOEo6sRIaMf": {
-        "id": "pose-clip_u2SDwwTz6mCOEo6sRIaMf",
-        "trackId": "scale-track_WAONhzrZGPri7DkXuUhFl",
-        "tick": 0,
-        "poseId": "pose_EMT4ZZ3SGFgMLtTMOO6iU"
       },
       "pose-clip_AOsjGh6HBMW_FQmuVkfHt": {
         "id": "pose-clip_AOsjGh6HBMW_FQmuVkfHt",
