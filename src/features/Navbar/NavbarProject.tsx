@@ -9,11 +9,7 @@ import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { setProjectName } from "types/Meta/MetaSlice";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
-import {
-  clearProject,
-  selectNextProject,
-  selectPreviousProject,
-} from "app/store";
+import { clearProject } from "app/store";
 import { promptUserForProjects } from "types/Project/ProjectLoaders";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { exportProjectToMIDI } from "types/Project/ProjectExporters";
@@ -32,7 +28,7 @@ import {
 } from "types/Transport/TransportDownloader";
 import { uploadProject } from "app/projects";
 import MidiImage from "assets/lib/midi.png";
-import { BsArrowLeft, BsArrowRight, BsTrash } from "react-icons/bs";
+import { BsTrash } from "react-icons/bs";
 
 export function NavbarProjectMenu() {
   const dispatch = useAppDispatch();
@@ -166,18 +162,6 @@ export function NavbarProjectMenu() {
               <img src={MidiImage} className="h-3 invert" />
             </NavbarFormGroup>
           }
-
-          {/* Load Project */}
-          <NavbarFileGroup onClick={() => selectPreviousProject()}>
-            <NavbarFileLabel>Previous Project</NavbarFileLabel>
-            <BsArrowLeft className="ml-auto text-2xl" />
-          </NavbarFileGroup>
-
-          {/* Load Project */}
-          <NavbarFileGroup onClick={() => selectNextProject()}>
-            <NavbarFileLabel>Next Project</NavbarFileLabel>
-            <BsArrowRight className="ml-auto text-2xl" />
-          </NavbarFileGroup>
 
           {/* Clear Project */}
           <NavbarFormGroup className="h-8 space-x-4 hover:bg-indigo-500/25 cursor-pointer">
