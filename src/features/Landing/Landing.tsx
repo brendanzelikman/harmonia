@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useError } from "app/router";
-import { Background } from "components/Background";
 import { Splash } from "features/Landing/LandingSplash";
 import { LandingDescription } from "./LandingDescription";
 import { LandingFooter } from "./LandingFooter";

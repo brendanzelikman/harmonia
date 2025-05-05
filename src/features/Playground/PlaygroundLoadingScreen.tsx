@@ -1,5 +1,4 @@
 import LogoImage from "assets/images/logo.png";
-import { Background } from "components/Background";
 import { useState } from "react";
 import { getContext } from "tone";
 
