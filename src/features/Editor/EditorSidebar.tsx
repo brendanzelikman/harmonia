@@ -17,6 +17,7 @@ import {
   GiGuitarBassHead,
   GiGuitarHead,
   GiHarp,
+  GiKeyboard,
   GiMetalBar,
   GiMusicalKeyboard,
   GiMusicalNotes,
@@ -121,7 +122,9 @@ export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
                   data-selected={category === c}
                   className="capitalize px-2 py-2.5 gap-4 flex items-center select-none text-slate-50 data-[selected=true]:text-orange-400"
                 >
-                  {IconMap[c] ?? IconMap[filter] ?? <GiDrum />}
+                  {InstrumentIconMap[c] ?? InstrumentIconMap[filter] ?? (
+                    <GiDrum />
+                  )}
                   {c}
                 </div>
                 {open ? (
@@ -163,7 +166,7 @@ export function InstrumentEditorSidebar(props: InstrumentEditorSidebarProps) {
   );
 }
 
-const IconMap: {
+export const InstrumentIconMap: {
   [key in InstrumentCategoryType | InstrumentCategory]?: ReactNode;
 } = {
   keyboards: <GiPianoKeys />,
@@ -176,9 +179,10 @@ const IconMap: {
   loops: <GiDrumKit />,
   sounds: <GiSoundWaves />,
   // Keyboards
+  "Grand Piano": <GiPianoKeys />,
   "Electric Piano": <GiMusicalKeyboard />,
   Organ: <GiPipeOrgan />,
-  "Caveman Synths": <GiCaveman />,
+  "Caveman Synths": <GiMusicalKeyboard />,
   // Strings
   Violin: <GiViolin />,
   Harp: <GiHarp />,

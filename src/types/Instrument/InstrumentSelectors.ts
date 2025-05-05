@@ -8,8 +8,6 @@ import {
 import { getInstrumentName } from "./InstrumentFunctions";
 import { createDeepSelector, createValueSelector } from "types/redux";
 import { mapValues } from "lodash";
-import { selectTrackMap } from "types/Track/TrackSelectors";
-import { isPatternTrack, TrackId } from "types/Track/TrackTypes";
 
 // Create a safe selector for the instrument state.
 export const selectInstrumentState = (project: SafeProject) =>

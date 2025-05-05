@@ -22,6 +22,8 @@ import {
 } from "types/Track/PatternTrack/PatternTrackThunks";
 import { cancelEvent } from "utils/event";
 import { promptUserForScale } from "lib/prompts/scale";
+import { InstrumentIconMap } from "features/Editor/EditorSidebar";
+import { getInstrumentCategory } from "types/Instrument/InstrumentFunctions";
 
 export const ScaleTrackButtons = memo((props: { trackId: ScaleTrackId }) => {
   const { trackId } = props;
@@ -81,6 +83,12 @@ export const PatternTrackButtons = memo(
     );
     const instrument = useAppValue((_) => selectTrackInstrument(_, trackId));
     const onInstrumentEditor = isInstrumentEditorOpen && isTrackSelected;
+    const category = getInstrumentCategory(instrument?.key);
+    const Icon = category ? (
+      InstrumentIconMap[category] ?? <GiTrumpet />
+    ) : (
+      <GiTrumpet />
+    );
     const mute = instrument?.mute;
     const solo = instrument?.solo;
 
@@ -116,7 +124,7 @@ export const PatternTrackButtons = memo(
             dispatch(toggleTrackEditor({ data: trackId }));
           }}
         >
-          <GiTrumpet className="pointer-events-none text-sm" />
+          {Icon}
         </TooltipButton>
         <TooltipButton
           label={mute ? "Unmute Sampler" : "Mute Sampler"}

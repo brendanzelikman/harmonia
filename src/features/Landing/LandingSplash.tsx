@@ -13,7 +13,7 @@ export const Splash = () => {
   let subtitle = "A Digital Audio Workstation";
   if (hasError) subtitle = "Unexpected Error";
 
-  let subtitle2 = "with Hierarchical Harmony";
+  let subtitle2 = "with Multdimensional Harmony";
   if (hasError) subtitle2 = errorMessage;
 
   let button = "Make Music Now";

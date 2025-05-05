@@ -34,33 +34,33 @@ export const LandingDescription = () => {
 };
 
 const descriptions = {
-  "Notation Program": {
+  "Sandbox Environment": {
     items: [
-      "Local-First Sandbox Environment",
-      "Projects Stored as JSON",
-      "Export To MIDI and WAV",
-      "No Installation Required",
+      "Compose Music in the Browser",
+      "Read And Write JSON Projects",
+      "Exportable To MIDI and WAV",
       "Demos and Samples Included",
+      "No Sign-up or Login Required",
     ],
     icon: <GiMusicalScore />,
   },
-  "Tonality Calculator": {
+  "Musical Calculator": {
     items: [
-      "Geometrical Model of Music",
-      "Design Hierarchical Trees",
-      "Bind Notes With Functions",
-      "Create Formulated Poses",
-      "Navigate Harmonic Spaces",
+      "Express Tonal Syntax",
+      "Create Trees of Scales",
+      "Write Nested Patterns",
+      "Explore Different Poses",
+      "Apply Sequential Logic",
     ],
     icon: <GiCalculator />,
   },
   "Digital Instrument": {
     items: [
-      "Real-Time Audio Synthesis",
+      "Make Sound in the Browser",
       "Interactive Keyboard Gestures",
       "Customizable Audio Effects",
       "Open-Source Sample Library",
-      "Record Browser to WAV",
+      "Record Browser Playback",
     ],
     icon: <GiMusicalKeyboard />,
   },
