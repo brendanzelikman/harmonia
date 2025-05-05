@@ -28,8 +28,8 @@ export const TutorialRecapitulation = (props: { view: string }) => {
         description={
           <>
             <div>
-              A Tree is a hierarchy of tracks that can create a structure of
-              Scales and Samplers.
+              A Tree is a hierarchy of tracks structured into Scales (branches)
+              and Samplers (leaves).
             </div>
             <div>
               <div>
