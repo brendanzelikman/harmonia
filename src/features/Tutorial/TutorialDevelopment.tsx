@@ -1,5 +1,5 @@
 import { dispatchOpen, dispatchClose } from "hooks/useToggle";
-import { GiChart, GiAbacus, GiHand } from "react-icons/gi";
+import { GiChart, GiAbacus, GiHand, GiWireframeGlobe } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
 import { sonataVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
@@ -19,7 +19,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
         title="Develop Trees"
         subtitle="With Voice Leadings"
         stripColor="border-b border-b-indigo-500/80"
-        Icon={GiChart}
+        Icon={GiWireframeGlobe}
         description={
           <>
             <div>

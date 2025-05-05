@@ -3,8 +3,15 @@ import { TimelineButton } from "./components/TutorialButton";
 import { BsCode } from "react-icons/bs";
 import { sonataVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
+import {
+  exportProjectToJSON,
+  exportProjectToMIDI,
+  exportProjectToWAV,
+} from "types/Project/ProjectExporters";
+import { useAppDispatch } from "hooks/useRedux";
 
 export const TutorialCoda = (props: { view: string }) => {
+  const dispatch = useAppDispatch();
   return (
     <m.div
       initial="hidden"
@@ -21,6 +28,7 @@ export const TutorialCoda = (props: { view: string }) => {
         subtitle="Export to JSON File"
         stripColor="border-b border-b-indigo-500/80"
         Icon={BsCode}
+        onClick={() => dispatch(exportProjectToJSON())}
         description={
           <>
             <div>
@@ -49,6 +57,7 @@ export const TutorialCoda = (props: { view: string }) => {
         subtitle="Export to MIDI File"
         stripColor="border-b border-b-teal-500/80"
         Icon={GiMusicalScore}
+        onClick={() => dispatch(exportProjectToMIDI(undefined, true))}
         description={
           <>
             <div>
@@ -76,6 +85,9 @@ export const TutorialCoda = (props: { view: string }) => {
         subtitle="Export to WAV File"
         stripColor="border-b border-b-fuchsia-400/80"
         Icon={GiSoundWaves}
+        onClick={() =>
+          dispatch(exportProjectToWAV(undefined, { download: true }))
+        }
         description={
           <>
             <div>
