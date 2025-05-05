@@ -13,7 +13,6 @@ export function usePlaygroundTransport() {
   const dispatch = useAppDispatch();
   const projectId = useAppValue(selectProjectId);
   const transport = useToggle(LOAD_TRANSPORT, false);
-  useToggle("keyboard");
 
   // Load the transport or add an event listener if the context is not running
   useEffect(() => {

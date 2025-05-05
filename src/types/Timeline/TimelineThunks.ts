@@ -66,6 +66,8 @@ import { QuarterNoteTicks } from "utils/duration";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
 import { addPatternClip } from "types/Clip/ClipSlice";
 import { selectProjectId } from "types/Meta/MetaSelectors";
+import { autoBindNoteToTrack } from "types/Track/TrackUtils";
+import { updatePattern } from "types/Pattern/PatternSlice";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -329,8 +331,21 @@ export const sampleProjectByFile =
       const tick = props?.tick ?? selectCurrentTimelineTick(getProject());
       const pattern = { stream, projectId };
       const clip = { trackId, tick };
-      dispatch(
+      const { patternId } = dispatch(
         createCourtesyPatternClip({ data: { pattern, clip }, undoType })
+      );
+
+      // Autobind the pattern
+      const boundStream = stream.map((b) =>
+        getPatternBlockWithNewNotes(b, (n) =>
+          n.map((n) => dispatch(autoBindNoteToTrack(trackId, n)))
+        )
+      );
+      dispatch(
+        updatePattern({
+          data: { id: patternId, stream: boundStream },
+          undoType,
+        })
       );
     };
     reader.readAsText(file);
