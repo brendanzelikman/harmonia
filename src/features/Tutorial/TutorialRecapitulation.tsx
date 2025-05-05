@@ -35,19 +35,17 @@ export const TutorialRecapitulation = (props: { view: string }) => {
               <div>
                 <b>Example Project</b>:
               </div>
-              <span className="text-teal-400">Tree 3</span> ={" "}
-              <span className="text-sky-400">C, D, E, F, G</span>
+              <span className="text-teal-400">Tree 1</span> ={" "}
+              <span className="text-sky-400">C Major Scale</span>
               {" => "}
               <span className="text-sky-400">C, E, G</span>
               {" => "}
-              <span className="text-emerald-400">bass</span>
+              <span className="text-emerald-400">Piano</span>
               <br />
-              <span className="text-teal-400">Tree 4</span> ={" "}
-              <span className="text-sky-400">0, 2, 4, 5, 7</span>
+              <span className="text-teal-400">Tree 2</span> ={" "}
+              <span className="text-sky-400">Chromatic Scale</span>
               {" => "}
-              <span className="text-sky-400">0, 4, 7</span>
-              {" => "}
-              <span className="text-emerald-400">~file</span>
+              <span className="text-emerald-400">(Bass + ~File)</span>
             </div>
             <div>
               <b>In Practice</b>:<br />

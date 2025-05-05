@@ -4,7 +4,7 @@ import { useAppDispatch } from "hooks/useRedux";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 import { CreateTreeIcon } from "lib/hotkeys/track";
 import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
-import { sonataVariants, tutorialVariants } from "./TutorialIntroduction";
+import { sonataVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
 
 export const TutorialExposition = (props: { view: string }) => {
@@ -36,16 +36,17 @@ export const TutorialExposition = (props: { view: string }) => {
                 <b>Example Project</b>:
               </div>
               <span className="text-teal-400">Tree 1</span> ={" "}
-              <span className="text-sky-400">C Major (A)</span>
+              <span className="text-sky-400">C Major Scale</span>
               {" => "}
-              <span className="text-sky-400">C Major Chord (B)</span>
+              <span className="text-sky-400">C, E, G</span>
+              {" => "}
+              <span className="text-emerald-400">Piano</span>
               <br />
               <span className="text-teal-400">Tree 2</span> ={" "}
-              <span className="text-sky-400">Dm11 (C)</span>
+              <span className="text-sky-400">Chromatic Scale</span>
               {" => "}
-              <span className="text-sky-400">Dm7 (D)</span>
-              {" => "}
-              <span className="text-emerald-400">Piano (E)</span>
+              <span className="text-emerald-400">(Bass + ~File)</span>
+              <br />
             </div>
             <div>
               <b>In Practice</b>:<br />

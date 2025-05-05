@@ -135,7 +135,7 @@ export const createPatternTrackFromString =
     const { input, parentId } = payload.data;
     const undoType = unpackUndoType(payload, `createPatternTrack-${nanoid()}`);
     const text = input.trim();
-    if (text === "file") {
+    if (text.toLowerCase() === "file" || text.toLowerCase() === "sample") {
       dispatch(promptUserForSample({ data: { parentId }, undoType }));
     } else {
       let key = matchInstrumentKey(text) ?? sampleInstrumentByCategory(text);
