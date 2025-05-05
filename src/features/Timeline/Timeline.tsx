@@ -124,7 +124,7 @@ export default function Timeline() {
   const TimelineGrid = useMemo(() => {
     return (
       <DataGrid
-        className="size-full rdg-grid bg-transparent animate-in fade-in focus:outline-none"
+        className="size-full rdg-grid bg-gradient-to-t from-[#223e8b] via-[#327199] to-[#5b57ae] animate-in fade-in focus:outline-none"
         ref={dataGridHandler}
         enableVirtualization
         columns={columns}

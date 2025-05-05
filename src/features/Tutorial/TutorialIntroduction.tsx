@@ -27,7 +27,7 @@ export const sonataVariants = {
     opacity: 1,
     scale: 1,
     transition: {
-      staggerChildren: 0.3,
+      staggerChildren: 0.2,
     },
   },
 };

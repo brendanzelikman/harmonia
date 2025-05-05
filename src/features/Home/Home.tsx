@@ -1,4 +1,3 @@
-import { Background } from "components/Background";
 import { Navbar } from "features/Navbar/Navbar";
 import { useRoute } from "app/router";
 import { useProject } from "hooks/useProject";
@@ -15,7 +14,6 @@ export function HomePage() {
   return (
     <div className="size-full relative">
       <Navbar />
-      {view !== "playground" && <Background />}
       <div className="size-full pt-nav total-center-col">
         {components[view as View]}
       </div>

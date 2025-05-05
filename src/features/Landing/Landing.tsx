@@ -14,7 +14,6 @@ export function LandingPage() {
   useHotkeys({ enter: () => navigate("/projects") });
   return (
     <div className="relative size-full overflow-scroll select-none">
-      <Background />
       <Splash />
       {hasError && <Stack />}
       {!hasError && (

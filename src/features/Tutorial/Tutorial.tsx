@@ -41,18 +41,12 @@ export default function Tutorial() {
   if (hasTracks) return null;
   return (
     <div className="size-full flex flex-col overflow-scroll items-center gap-8 lg:gap-16 max-lg:px-10 lg:pt-12 pt-8 pb-4 relative bg-slate-900/50 transition-all">
-      <img
-        className="fixed size-full w-screen inset-0 opacity-50 -z-10 animate-background"
-        src={Background}
-        alt="Background"
-      />
       <m.div
         initial="hidden"
         whileInView="visible"
         variants={variants}
         transition={{
           duration: 0.5,
-          delayChildren: 0.25,
           staggerChildren: 0.25,
           type: "spring",
           stiffness: 80,

@@ -103,9 +103,6 @@ export const createScaleTrack =
 
 /** Create a random tree */
 export const createRandomTree = (): Thunk => (dispatch) => {
-  // Parameters:
-  // - The number of scales
-  // - The number of notes in each scale
   const size = 3;
   const undoType = createUndoType("createRandomTree", nanoid());
 
@@ -338,9 +335,6 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
   // F[n] are equal to frequencies
   const freqMatch = name.match(/^\[?(F\d+(?:[,\s]+?F\d+)*)\]?$/);
 
-  // T[name] uses Tune.js to search the scale name (anything between parentheses)
-  const tuneMatch = name.match(/T\((.*?)\)/);
-
   const getScale = () => {
     // Parse the pitch classes
     if (pcMatch) {
@@ -385,20 +379,6 @@ export const readMidiScaleFromString = (name: string, parent?: MidiScale) => {
       );
       const notes = frequencies.map((f) => 69 + 12 * Math.log2(f / 440));
       return notes;
-    }
-
-    // Parse the T[name] values
-    if (tuneMatch) {
-      const tuneName = tuneMatch[1];
-      try {
-        const tune = new Tune();
-        tune.loadScale(tuneName);
-        return tune.scale.map((ratio) =>
-          getFrequencyMidi(getMidiFrequency(60) * ratio)
-        );
-      } catch (e) {
-        return undefined;
-      }
     }
 
     // Unpack the scale name

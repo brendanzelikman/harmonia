@@ -21,12 +21,14 @@ window._ = _;
 
 // Create the root and render the app.
 const root = createRoot(container);
-root.render(
-  <Provider store={store}>
-    <DndProvider backend={HTML5Backend}>
-      <LazyMotion features={domAnimation}>
-        <RouterProvider router={router} />
-      </LazyMotion>
-    </DndProvider>
-  </Provider>
-);
+document.addEventListener("DOMContentLoaded", () => {
+  root.render(
+    <Provider store={store}>
+      <DndProvider backend={HTML5Backend}>
+        <LazyMotion features={domAnimation}>
+          <RouterProvider router={router} />
+        </LazyMotion>
+      </DndProvider>
+    </Provider>
+  );
+});
