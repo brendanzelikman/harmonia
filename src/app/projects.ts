@@ -77,9 +77,16 @@ export async function deleteProject(projectId: string) {
 
 /** Delete all projects */
 export async function deleteProjects() {
+  const db = await getDatabase();
+  if (!db) return;
   const projects = await getProjects();
   await Promise.all(
-    projects.map(async (p) => await deleteProject(selectProjectId(p)))
+    projects.map(async (p) => {
+      const projectId = selectProjectId(p);
+      const currentId = getCurrentProjectId();
+      if (currentId === projectId) clearCurrentProjectId();
+      await db.delete(PROJECT_STORE, projectId);
+    })
   );
   dispatchCustomEvent(UPDATE_PROJECT_EVENT);
 }
