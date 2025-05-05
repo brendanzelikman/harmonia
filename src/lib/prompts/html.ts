@@ -32,7 +32,7 @@ export const promptUserForNumber =
     if (!isNaN(sanitizedInput)) await callback(sanitizedInput);
   };
 
-/** Read an audio file from the user and call the callback with the event. */
+/** Read a file from the user and call the callback with the event. */
 export const promptUserForFile = (
   accept = "*",
   onChange: (e: Event) => void
@@ -40,6 +40,21 @@ export const promptUserForFile = (
   const input = document.createElement("input");
   input.type = "file";
   input.accept = accept;
+  input.onchange = onChange;
+  document.body.appendChild(input);
+  input.click();
+  input.remove();
+};
+
+/** Read a list of files from the user and call the callback with the event. */
+export const promptUserForFiles = (
+  accept = "*",
+  onChange: (e: Event) => void
+) => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = accept;
+  input.multiple = true;
   input.onchange = onChange;
   document.body.appendChild(input);
   input.click();

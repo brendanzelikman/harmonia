@@ -18,15 +18,10 @@ import { NavbarTransportControl } from "./NavbarTransportControl";
 import { NavbarVolume } from "./NavbarVolume";
 import { NavbarLink } from "./components/NavbarLink";
 import { LOAD_PLAYGROUND } from "features/Playground/Playground";
-import { BsQuestionCircle } from "react-icons/bs";
-import { dispatchToggle } from "hooks/useToggle";
-import classNames from "classnames";
-import { NavbarTooltipButton } from "components/TooltipButton";
-import { ToggleShortcutsHotkey } from "lib/hotkeys/global";
 import { NavbarSettings } from "./NavbarSettings";
 import { NavbarTape } from "./NavbarTape";
 import { NavbarSampleProject } from "./NavbarSampleProject";
-import { FaQuestion, FaQuestionCircle } from "react-icons/fa";
+import { NavbarRandomTree } from "./NavbarRandomTree";
 
 export function Navbar() {
   const view = useRoute();
@@ -50,23 +45,10 @@ export function Navbar() {
         </div>
       ) : (
         <div className="size-full select-none flex animate-in fade-in slide-in-from-top-4 text-slate-50 *:border-r first:border-r-0 last:border-r-0 *:border-r-slate-500/50">
-          <NavbarGroup className="w-[250px] gap-3">
+          <NavbarGroup className="pl-3 ml-3 border-l border-l-slate-500/50">
             <NavbarProjectMenu />
             <NavbarSettings />
-            <NavbarTooltipButton
-              keepTooltipOnClick
-              hideRing
-              className={classNames(
-                "select-none hover:opacity-75 text-slate-100"
-              )}
-              marginLeft={-40}
-              marginTop={-2}
-              borderColor="border-indigo-400/80"
-              onClick={() => dispatchToggle("shortcuts")}
-              hotkey={ToggleShortcutsHotkey}
-            >
-              <FaQuestionCircle className="size-6.5" />
-            </NavbarTooltipButton>
+            <NavbarLivePlay />
             <NavbarUndo />
             <NavbarRedo />
           </NavbarGroup>
@@ -76,19 +58,19 @@ export function Navbar() {
             <NavbarTransportControl />
           </NavbarGroup>
           <NavbarGroup className="bg-radial from-slate-900/15 to-sky-500/15">
-            <div className="text-base font-light pr-1">Motifs</div>
+            <div className="text-base font-light pr-1">Trees</div>
             <NavbarDesignTree />
-            <NavbarArrangeClip type="pattern" />
-            <NavbarArrangeClip type="pose" />
+            <NavbarWaterTree />
+            <NavbarRandomTree />
           </NavbarGroup>
           <NavbarGroup
             hide={!hasTracks}
             className="bg-radial from-emerald-800/15 to-teal-600/15"
           >
-            <div className="text-base font-light pr-1">Trees</div>
+            <div className="text-base font-light pr-1">Motifs</div>
             <NavbarSampleProject />
-            <NavbarWaterTree />
-            <NavbarLivePlay />
+            <NavbarArrangeClip type="pattern" />
+            <NavbarArrangeClip type="pose" />
           </NavbarGroup>
           <NavbarGroup
             hide={!hasTracks}

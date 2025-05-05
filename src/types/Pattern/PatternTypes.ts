@@ -64,6 +64,7 @@ export interface Pattern {
   stream: PatternStream;
   name?: string;
   aliases?: string[];
+  projectId?: string;
 }
 
 /** A `PresetPattern` has its id prefixed */

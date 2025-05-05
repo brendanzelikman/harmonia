@@ -518,17 +518,17 @@ export const NavbarLivePlay = () => {
       }
       keepTooltipOnClick
       notClickable
-      marginLeft={-80}
+      marginLeft={-165}
       onClick={() => !hasTracks && dispatch(toggleLivePlay())}
       marginTop={0}
       width={TRACK_WIDTH}
       backgroundColor="bg-radial from-slate-900 to-zinc-900"
       borderColor={`border-2 border-fuchsia-500`}
-      rounding="rounded-sm"
+      rounding="rounded-none"
       className={classNames(
-        "min-w-8 min-h-7 shrink-0 relative size-9 rounded-full select-none cursor-pointer",
-        "flex total-center hover:text-fuchsia-300 bg-fuchsia-600 font-light",
-        working || signal.isOpen ? "text-fuchsia-200" : ""
+        "shrink-0 relative size-9 rounded-full select-none cursor-pointer",
+        "flex total-center hover:text-fuchsia-300 p-1 border border-fuchsia-500 font-light",
+        working || signal.isOpen ? "text-fuchsia-200" : "text-fuchsia-100"
       )}
       label={
         <div className="text-white animate-in fade-in duration-300">

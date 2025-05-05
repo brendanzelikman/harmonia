@@ -1,12 +1,7 @@
 import { DEFAULT_BPM, MIN_BPM, MAX_BPM } from "utils/constants";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import classNames from "classnames";
-import {
-  selectTransport,
-  selectTransportBPM,
-  selectTransportSwing,
-  selectTransportTimeSignature,
-} from "types/Transport/TransportSelectors";
+import { selectTransport } from "types/Transport/TransportSelectors";
 import {
   NavbarFormGroup,
   NavbarFormLabel,
@@ -16,7 +11,6 @@ import { NavbarFileGroup, NavbarFileLabel } from "./NavbarProject";
 import {
   BsGear,
   BsJournalRichtext,
-  BsKeyboard,
   BsQuestionCircle,
   BsTerminal,
 } from "react-icons/bs";
@@ -28,22 +22,23 @@ import {
   setSwing,
   setScroll,
 } from "types/Transport/TransportSlice";
+import { GiCog } from "react-icons/gi";
 
 export function NavbarSettings() {
   const dispatch = useAppDispatch();
   const Terminal = useToggle("terminal");
   const Diary = useToggle("diary");
-  const Keyboard = useToggle("keyboard");
+  const Shortcuts = useToggle("shortcuts");
   const { bpm, timeSignature, swing, scroll } = useAppValue(selectTransport);
   return (
     <div className="group/tooltip relative">
       {/* Button */}
       <div
         className={classNames(
-          "rounded-full p-1.5 text-2xl border-0 select-none cursor-pointer group-hover/tooltip:text-slate-500 hover:shadow-xl"
+          "rounded-full p-1.5 size-9 total-center text-2xl border border-slate-400 select-none cursor-pointer group-hover/tooltip:text-slate-500 hover:shadow-xl"
         )}
       >
-        <BsGear />
+        <GiCog />
       </div>
       {/* Tooltip */}
       <NavbarHoverTooltip
@@ -110,12 +105,10 @@ export function NavbarSettings() {
             </NavbarFileLabel>
             <BsTerminal className="ml-auto text-2xl" />
           </NavbarFileGroup>
-          {Keyboard.isOpen && (
-            <NavbarFileGroup>
-              <NavbarFileLabel>Keyboard Mode</NavbarFileLabel>
-              <BsKeyboard className="ml-auto text-2xl" />
-            </NavbarFileGroup>
-          )}
+          <NavbarFileGroup onClick={Shortcuts.toggle}>
+            <NavbarFileLabel>View Shortcuts</NavbarFileLabel>
+            <BsQuestionCircle className="ml-auto text-2xl" />
+          </NavbarFileGroup>
         </div>
       </NavbarHoverTooltip>
     </div>

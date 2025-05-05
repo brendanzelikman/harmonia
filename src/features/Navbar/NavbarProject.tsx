@@ -9,7 +9,11 @@ import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { setProjectName } from "types/Meta/MetaSlice";
 import { selectProjectName } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
-import { clearProject } from "app/store";
+import {
+  clearProject,
+  selectNextProject,
+  selectPreviousProject,
+} from "app/store";
 import { promptUserForProjects } from "types/Project/ProjectLoaders";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { exportProjectToMIDI } from "types/Project/ProjectExporters";
@@ -28,7 +32,7 @@ import {
 } from "types/Transport/TransportDownloader";
 import { uploadProject } from "app/projects";
 import MidiImage from "assets/lib/midi.png";
-import { BsTrash } from "react-icons/bs";
+import { BsArrowLeft, BsArrowRight, BsTrash } from "react-icons/bs";
 
 export function NavbarProjectMenu() {
   const dispatch = useAppDispatch();
@@ -50,14 +54,14 @@ export function NavbarProjectMenu() {
   return (
     <div className="group/tooltip relative shrink-0">
       {/* Button */}
-      <div className="rounded-full p-1 pr-0">
+      <div className="rounded-full size-9 total-center border border-indigo-400 p-1.5">
         <GiCompactDisc className="size-full shrink-0 text-2xl select-none cursor-pointer group-hover/tooltip:text-indigo-500" />
       </div>
 
       {/* Tooltip */}
       <NavbarHoverTooltip
         borderColor="border-indigo-500"
-        top="top-[1.875rem]"
+        top="top-8"
         bgColor="bg-radial from-slate-900 to-zinc-900 -left-8 backdrop-blur"
       >
         <div className="size-full py-1 space-y-1.5 min-w-48">
@@ -84,6 +88,12 @@ export function NavbarProjectMenu() {
           {/* Open New Project */}
           <NavbarFileGroup onClick={() => uploadProject()}>
             <NavbarFileLabel>Open New Project</NavbarFileLabel>
+            <GiCompactDisc className="ml-auto text-2xl" />
+          </NavbarFileGroup>
+
+          {/* Duplicate Project */}
+          <NavbarFileGroup onClick={() => uploadProject(undefined, true)}>
+            <NavbarFileLabel>Duplicate Project</NavbarFileLabel>
             <GiCompactDisc className="ml-auto text-2xl" />
           </NavbarFileGroup>
 
@@ -156,6 +166,18 @@ export function NavbarProjectMenu() {
               <img src={MidiImage} className="h-3 invert" />
             </NavbarFormGroup>
           }
+
+          {/* Load Project */}
+          <NavbarFileGroup onClick={() => selectPreviousProject()}>
+            <NavbarFileLabel>Previous Project</NavbarFileLabel>
+            <BsArrowLeft className="ml-auto text-2xl" />
+          </NavbarFileGroup>
+
+          {/* Load Project */}
+          <NavbarFileGroup onClick={() => selectNextProject()}>
+            <NavbarFileLabel>Next Project</NavbarFileLabel>
+            <BsArrowRight className="ml-auto text-2xl" />
+          </NavbarFileGroup>
 
           {/* Clear Project */}
           <NavbarFormGroup className="h-8 space-x-4 hover:bg-indigo-500/25 cursor-pointer">

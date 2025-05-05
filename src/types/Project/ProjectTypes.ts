@@ -3,7 +3,7 @@ import { BaseProject } from "app/reducer";
 import { defaultArrangement } from "types/Arrangement/ArrangementTypes";
 import { defaultTimeline } from "types/Timeline/TimelineTypes";
 import { defaultTransport } from "types/Transport/TransportTypes";
-import { isObject, Safe } from "types/utils";
+import { createId, isObject, Safe } from "types/utils";
 import {
   defaultProjectMetadata,
   initializeProjectMetadata,
@@ -61,6 +61,16 @@ export const getProjectWithNewMeta = (
   return updatedProject;
 };
 
+/** Update the id of a project. */
+export const getProjectWithNewId = (project: Project) => {
+  const id = createId("project");
+  const newMeta = { ...project.present.meta, id };
+  const present = { ...project.present, meta: newMeta };
+  const updatedProject = { ...project, present };
+  updatedProject._latestUnfiltered = updatedProject.present;
+  return updatedProject;
+};
+
 /** Create a project with unique metadata. */
 export const initializeProject = (template: Project = defaultProject) => {
   const meta = initializeProjectMetadata();
@@ -88,8 +98,8 @@ export const sanitizeProject = (project: SafeProject): Project => ({
   present: sanitizeBaseProject(project?.present),
   future: [],
 });
-/** Update the project with a newest timestamp */
 
+/** Update the project with a newest timestamp */
 export const timestampProject = (project: Project): Project => {
   return getProjectWithNewMeta(project, { lastUpdated: dayjs().format() });
 };

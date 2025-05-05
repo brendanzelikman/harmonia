@@ -16,6 +16,8 @@ import {
   selectTransportTimeSignature,
 } from "types/Transport/TransportSelectors";
 import { Row } from "./Timeline";
+import { NativeTypes } from "react-dnd-html5-backend";
+import { sampleProjectByFile } from "types/Timeline/TimelineThunks";
 
 export function TimelineCell(props: RenderCellProps<Row, unknown>) {
   const dispatch = useAppDispatch();
@@ -44,13 +46,20 @@ export function TimelineCell(props: RenderCellProps<Row, unknown>) {
   const disablePortals = !!hasFragment && !fragment.trackId;
 
   const [_, drop] = useDrop(() => ({
-    accept: ["clip", "portal"],
+    accept: ["clip", "portal", NativeTypes.FILE],
     hover(item: any) {
       item.trackId = trackId;
       item.canDrop = true;
       item.hoveringColumn = key;
       item.hoveringRow = index;
       item.isDragging = true;
+    },
+    drop(item: any) {
+      const file = item?.files?.[0];
+      if (file) {
+        const props = { tick, trackId };
+        dispatch(sampleProjectByFile({ data: { file, props } }));
+      }
     },
   }));
 

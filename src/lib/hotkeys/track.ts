@@ -17,7 +17,7 @@ import {
 import { inputPatternTrackSample } from "lib/prompts/sampler";
 import {
   createDrumTracks,
-  createRandomHierarchy,
+  createRandomTree,
 } from "types/Track/ScaleTrack/ScaleTrackThunks";
 import { promptUserForTree } from "lib/prompts/tree";
 import {
@@ -46,11 +46,11 @@ export const CreateDrumTracksHotkey: Hotkey = {
   callback: (dispatch) => dispatch(createDrumTracks()),
 };
 
-export const CreateRandomTracksHotkey: Hotkey = {
+export const CreateRandomTreeHotkey: Hotkey = {
   name: "Create Random Tree",
   description: "Create Random Tree",
-  shortcut: "alt+i",
-  callback: (dispatch) => dispatch(createRandomHierarchy()),
+  shortcut: "shift+g",
+  callback: (dispatch) => dispatch(createRandomTree()),
 };
 
 export const CollapseTrackHotkey: Hotkey = {
@@ -210,7 +210,7 @@ export const SelectNinthTrackHotkey: Hotkey = {
 export const TrackHotkeys = [
   CreateTreeHotkey,
   CreateDrumTracksHotkey,
-  CreateRandomTracksHotkey,
+  CreateRandomTreeHotkey,
   CollapseTrackHotkey,
   CollapseParentsHotkey,
   DeleteTrackHotkey,

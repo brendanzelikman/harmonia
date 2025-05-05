@@ -12,7 +12,7 @@ const buttonClass = (active: boolean) =>
   classNames(
     "rounded-full transition-all duration-75 border text-2xl size-9",
     active
-      ? "bg-indigo-950/90 active:text-indigo-200 border-indigo-800/80"
+      ? "bg-indigo-950/90 active:text-indigo-200 border-indigo-500"
       : "bg-indigo-950/50 border-indigo-800/50"
   );
 

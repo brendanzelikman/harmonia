@@ -1,11 +1,6 @@
 import { useTick } from "types/Transport/TransportTick";
 import { memo, useState } from "react";
-import {
-  GiDominoMask,
-  GiPianoKeys,
-  GiPineTree,
-  GiTrumpet,
-} from "react-icons/gi";
+import { GiDominoMask, GiPineTree, GiTrumpet } from "react-icons/gi";
 import {
   selectTrackMidiScaleAtTick,
   selectTrackJSXAtTick,
@@ -21,7 +16,6 @@ import { getScaleKey, getScaleName } from "types/Scale/ScaleFinder";
 import { mod } from "utils/math";
 import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { CreateTreeIcon } from "lib/hotkeys/track";
-import { dispatchOpen, dispatchClose } from "hooks/useToggle";
 
 export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
   const { trackId } = props;
@@ -52,11 +46,7 @@ export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
         <GiDominoMask className="mr-1 my-auto inline shrink-0" />
         <div>{scaleText}</div>
       </div>
-      <div
-        className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300"
-        onMouseEnter={() => dispatchOpen("livePlay")}
-        onMouseLeave={() => dispatchClose("livePlay")}
-      >
+      <div className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300">
         <ArrangePoseIcon className="shrink-0" />
         {pose}
       </div>
@@ -82,11 +72,7 @@ export const PatternTrackBody = memo((props: { trackId: TrackId }) => {
         <GiTrumpet className="mr-1 my-auto inline shrink-0" />
         <div className="overflow-scroll">{instrumentName}</div>
       </div>
-      <div
-        className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300"
-        onMouseEnter={() => dispatchOpen("livePlay")}
-        onMouseLeave={() => dispatchClose("livePlay")}
-      >
+      <div className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300">
         <ArrangePoseIcon className="shrink-0" />
         {pose}
       </div>

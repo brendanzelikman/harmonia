@@ -12,8 +12,9 @@ import {
 import { initializeProjectMetadata } from "types/Meta/MetaTypes";
 import { setProject } from "app/store";
 import { getEventFiles } from "utils/event";
-import { promptUserForFile } from "lib/prompts/html";
+import { promptUserForFiles } from "lib/prompts/html";
 import { BaseProject } from "app/reducer";
+import JSZip from "jszip";
 
 /** Try to load the project by ID from the database. */
 export const loadProject = async (id: string, callback?: () => void) => {
@@ -39,7 +40,7 @@ export const loadDemoProject = async (
 
 /** Open the user's file system and read local projects. */
 export const promptUserForProjects = (callback = loadProjectByFile) => {
-  promptUserForFile("*", (e) => {
+  promptUserForFiles("*", (e) => {
     const files = getEventFiles(e);
     for (const file of files) callback(file);
   });
@@ -50,6 +51,18 @@ export const loadProjectByFile = (file: File) => {
   const reader = new FileReader();
   reader.onload = async (e) => {
     if (!e.target?.result) return window.location.reload();
+
+    // If the file is a zip, load all projects inside
+    if (file.type === "application/zip") {
+      const zip = new JSZip();
+      const zipFile = await zip.loadAsync(file);
+      const files = Object.keys(zipFile.files);
+      for (const fileName of files) {
+        const fileData = await zipFile.file(fileName)?.async("blob");
+        if (!fileData) continue;
+        loadProjectByFile(new File([fileData], fileName));
+      }
+    }
 
     // Parse the project from the file
     const present = JSON.parse(e.target.result as string);

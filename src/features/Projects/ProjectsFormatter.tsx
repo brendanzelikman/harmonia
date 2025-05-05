@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { isProject } from "types/Project/ProjectTypes";
+import { getProjectWithNewId, isProject } from "types/Project/ProjectTypes";
 import { loadDemoProject, loadProject } from "types/Project/ProjectLoaders";
 import { ProjectDisc } from "./ProjectsDisc";
 import { ProjectTitle } from "./ProjectsTitle";
@@ -68,7 +68,9 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
       {!isDemo && (
         <HomeListButtonContainer>
           <HomeListButton onClick={onClick}>Start</HomeListButton>
-          <HomeListButton onClick={() => uploadProject(props.project)}>
+          <HomeListButton
+            onClick={() => uploadProject(getProjectWithNewId(props.project))}
+          >
             Copy
           </HomeListButton>
           <HomeListButton

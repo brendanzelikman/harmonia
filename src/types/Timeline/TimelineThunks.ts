@@ -7,9 +7,9 @@ import {
   updateFragment,
 } from "./TimelineSlice";
 import { next } from "utils/array";
-import { CLIP_TYPES, initializePatternClip } from "types/Clip/ClipTypes";
+import { Clip, CLIP_TYPES, initializePatternClip } from "types/Clip/ClipTypes";
 import { ClipType } from "types/Clip/ClipTypes";
-import { sanitizeProject, Thunk } from "types/Project/ProjectTypes";
+import { Project, sanitizeProject, Thunk } from "types/Project/ProjectTypes";
 import {
   selectHasTracks,
   selectPatternTrackIds,
@@ -44,7 +44,7 @@ import {
 import { createTreeFromString } from "lib/prompts/tree";
 import { DEFAULT_INSTRUMENT_KEY } from "utils/constants";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
-import { walkPatternClip } from "types/Arrangement/ArrangementThunks";
+import { walkPortaledPatternClip } from "types/Arrangement/ArrangementThunks";
 import { TrackId } from "types/Track/TrackTypes";
 import { nanoid } from "@reduxjs/toolkit";
 import { maxBy } from "lodash";
@@ -65,6 +65,7 @@ import { selectTransportTimeSignature } from "types/Transport/TransportSelectors
 import { QuarterNoteTicks } from "utils/duration";
 import { getPatternBlockWithNewNotes } from "types/Pattern/PatternUtils";
 import { addPatternClip } from "types/Clip/ClipSlice";
+import { selectProjectId } from "types/Meta/MetaSelectors";
 
 export const toggleCellWidth = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
@@ -261,7 +262,7 @@ export const toggleLivePlay = (): Thunk => (dispatch, getProject) => {
     })
   );
   dispatch(
-    walkPatternClip({
+    walkPortaledPatternClip({
       data: {
         id: `${newClip.id}-chunk-1`,
         options: { keys: trackIds, direction: "up" },
@@ -295,76 +296,91 @@ export const toggleTrackEditor =
 export const sampleProject = (): Thunk => async (dispatch, getProject) => {
   const project = getProject();
   const undoType = createUndoType("sampleProject", nanoid());
-  let trackId = selectSelectedTrackId(project);
+  const trackId = selectSelectedTrackId(project);
   const tick = selectCurrentTimelineTick(project);
   promptUserForProjects((file) => {
+    dispatch(
+      sampleProjectByFile({
+        data: { file, props: { tick, trackId } },
+        undoType,
+      })
+    );
+  });
+};
+
+export const sampleProjectByFile =
+  (payload: Payload<{ file: File; props?: Partial<Clip> }>): Thunk =>
+  (dispatch, getProject) => {
+    const { file, props } = unpackData(payload);
+    const undoType = unpackUndoType(payload, "sampleProjectByFile");
     const reader = new FileReader();
     reader.onload = async (e) => {
-      if (!e.target?.result) return window.location.reload();
+      if (!e.target?.result) return;
 
       const present = JSON.parse(e.target.result as string);
       const project = sanitizeProject({ present });
-      const timeSignature = selectTransportTimeSignature(project);
-      let startBar = 0;
-      let endBar = 0;
-      if (startBar > endBar) return;
-      const startTick = startBar * QuarterNoteTicks * timeSignature;
-      let endTick = endBar * QuarterNoteTicks * timeSignature;
-      if (endTick === 0) endTick = selectLastArrangementTick(project);
+      const projectId = selectProjectId(project);
+      const stream = convertProjectToNotes(project);
 
-      const chordsByTicks = selectMidiChordsByTicks(project);
-      const stream: PatternStream = [];
-
-      // Create the stream
-      let ticksSinceRest = 0;
-      for (let i = startTick; i < endTick; i++) {
-        const chordMap = chordsByTicks[i];
-        const block: PatternMidiNote[] = [];
-        let minDuration = Infinity;
-        for (const instrumentId in chordMap) {
-          const chords = chordMap[instrumentId];
-          if (!chords.length) continue;
-          for (const note of chords) {
-            if (note.duration) {
-              minDuration = Math.min(minDuration, note.duration);
-            }
-          }
-          block.push(...chords);
-        }
-        if (!block?.length) {
-          ticksSinceRest++;
-          continue;
-        } else {
-          const last = stream[stream.length - 1];
-          if (last) {
-            stream[stream.length - 1] = getPatternBlockWithNewNotes(
-              last,
-              (notes) =>
-                notes.map((n) => ({
-                  ...n,
-                  duration: n.duration + ticksSinceRest + 1,
-                }))
-            );
-          }
-        }
-        if (ticksSinceRest > 0) stream.push({ duration: ticksSinceRest });
-        else {
-        }
-        stream.push(block.map((n) => ({ ...n, duration: minDuration })));
-        ticksSinceRest = -minDuration;
-      }
-
-      // Create the new clip and delete the old ones
+      let trackId = props?.trackId;
       if (!trackId) {
         trackId = dispatch(createPatternTrack({ data: {}, undoType })).track.id;
       }
-      const pattern = { stream };
+      const tick = props?.tick ?? selectCurrentTimelineTick(getProject());
+      const pattern = { stream, projectId };
       const clip = { trackId, tick };
-
       dispatch(
         createCourtesyPatternClip({ data: { pattern, clip }, undoType })
       );
     };
     reader.readAsText(file);
-  });
+  };
+
+export const convertProjectToNotes = (project: Project) => {
+  const timeSignature = selectTransportTimeSignature(project);
+  let startBar = 0;
+  let endBar = 0;
+  if (startBar > endBar) return [];
+  const startTick = startBar * QuarterNoteTicks * timeSignature;
+  let endTick = endBar * QuarterNoteTicks * timeSignature;
+  if (endTick === 0) endTick = selectLastArrangementTick(project);
+
+  const chordsByTicks = selectMidiChordsByTicks(project);
+  const stream: PatternStream = [];
+
+  // Create the stream
+  let ticksSinceRest = 0;
+  for (let i = startTick; i < endTick; i++) {
+    const chordMap = chordsByTicks[i];
+    const block: PatternMidiNote[] = [];
+    let minDuration = Infinity;
+    for (const instrumentId in chordMap) {
+      const chords = chordMap[instrumentId];
+      if (!chords.length) continue;
+      for (const note of chords) {
+        if (note.duration) {
+          minDuration = Math.min(minDuration, note.duration);
+        }
+      }
+      block.push(...chords);
+    }
+    if (!block?.length) {
+      ticksSinceRest++;
+      continue;
+    } else {
+      const last = stream[stream.length - 1];
+      if (last) {
+        stream[stream.length - 1] = getPatternBlockWithNewNotes(last, (notes) =>
+          notes.map((n) => ({
+            ...n,
+            duration: n.duration + ticksSinceRest + 1,
+          }))
+        );
+      }
+    }
+    if (ticksSinceRest > 0) stream.push({ duration: ticksSinceRest });
+    stream.push(block.map((n) => ({ ...n, duration: minDuration })));
+    ticksSinceRest = -minDuration;
+  }
+  return stream;
 };

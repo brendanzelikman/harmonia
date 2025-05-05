@@ -20,7 +20,7 @@ export const defaultTransport: Transport = {
   bpm: DEFAULT_BPM,
   timeSignature: 4,
   swing: 0,
-  loop: false,
+  loop: true,
   loopStart: 0,
   loopEnd: WholeNoteTicks - 1,
   volume: 0,

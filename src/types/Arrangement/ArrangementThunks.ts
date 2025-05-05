@@ -1,5 +1,6 @@
 import {
   isPortaledPatternClipId,
+  PatternClipId,
   PortaledPatternClipId,
 } from "types/Clip/ClipTypes";
 import {
@@ -23,6 +24,21 @@ import { PoseVectorId } from "types/Pose/PoseTypes";
 import { createNewPoseClip } from "types/Track/PatternTrack/PatternTrackThunks";
 
 export const walkPatternClip =
+  (
+    payload: Payload<{
+      id: PatternClipId;
+      options?: Partial<StreamQueryOptions>;
+    }>
+  ): Thunk =>
+  (dispatch) =>
+    dispatch(
+      walkPortaledPatternClip({
+        ...payload,
+        data: { ...payload.data, id: `${payload.data.id}-chunk-1` },
+      })
+    );
+
+export const walkPortaledPatternClip =
   (
     payload: Payload<{
       id: PortaledPatternClipId;
@@ -87,7 +103,7 @@ export const walkSelectedPatternClips =
     ) as PortaledPatternClipId[];
     for (const id of pcIds) {
       dispatch(
-        walkPatternClip({
+        walkPortaledPatternClip({
           data: { id, options: payload?.data?.options ?? {} },
           undoType,
         })

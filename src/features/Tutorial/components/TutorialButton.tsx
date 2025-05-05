@@ -19,8 +19,8 @@ export const TimelineButton = (
 ) => (
   <m.div
     variants={{
-      hidden: { opacity: 0, scale: 0, transform: "blur(20px)" },
-      show: { opacity: 1, scale: 1, transform: "blur(0px)" },
+      hidden: { opacity: 0, scale: 0 },
+      show: { opacity: 1, scale: 1 },
     }}
     className={classNames(
       props.className,

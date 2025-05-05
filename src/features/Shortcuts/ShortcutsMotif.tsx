@@ -10,7 +10,7 @@ import {
   WaterTreeHotkey,
   SampleProjectHotkey,
 } from "lib/hotkeys/timeline";
-import { CreateRandomTracksHotkey, CreateTreeHotkey } from "lib/hotkeys/track";
+import { CreateRandomTreeHotkey, CreateTreeHotkey } from "lib/hotkeys/track";
 
 export function ToolShortcuts() {
   return (
@@ -18,7 +18,7 @@ export function ToolShortcuts() {
       className="text-lg space-y-6"
       shortcuts={[
         <Shortcut hotkey={CreateTreeHotkey} />,
-        <Shortcut hotkey={CreateRandomTracksHotkey} />,
+        <Shortcut hotkey={CreateRandomTreeHotkey} />,
         <Shortcut hotkey={ArrangePatternsHotkey} />,
         <Shortcut hotkey={ArrangePosesHotkey} />,
         <Shortcut hotkey={WaterTreeHotkey} />,

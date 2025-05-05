@@ -144,7 +144,7 @@ export default function Diary() {
     left: -window.innerWidth / 2,
     top: -window.innerHeight / 2 + 40,
   });
-  const [{ isDragging }, drag] = useDrag(() => ({
+  const [{}, drag] = useDrag(() => ({
     type: "diary",
     item: { left: position.left, top: position.top },
     collect: (monitor) => ({

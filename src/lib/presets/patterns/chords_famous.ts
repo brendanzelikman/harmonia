@@ -189,7 +189,7 @@ export const KennyBarronMinorChord: Pattern = {
 };
 export const MuMajorChord: Pattern = {
   id: "pattern_preset_mu-major-chord",
-  name: "Mu Major Chord",
+  name: "Major (Add 2) Chord",
   stream: [
     [
       _.createQuarterNote(60),

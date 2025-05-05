@@ -1,6 +1,6 @@
 import { selectPatternClipIds } from "types/Clip/ClipSelectors";
 import { exportClipsToMidi } from "types/Clip/ClipExporters";
-import { initializeProject, Project, Thunk } from "./ProjectTypes";
+import { Project, Thunk } from "./ProjectTypes";
 import { selectProjectName } from "../Meta/MetaSelectors";
 import { sanitizeProject } from "./ProjectTypes";
 import { getProjects } from "app/projects";
@@ -24,8 +24,7 @@ export const exportProjectToJSON =
 
     // Export a new project with the same name
     const source = project || getProject();
-    const sanitizedProject = initializeProject(sanitizeProject(source));
-    sanitizedProject.present.meta.name = projectName;
+    const sanitizedProject = sanitizeProject(source);
 
     // Create a blob and download it
     const projectData = JSON.stringify(sanitizedProject.present);
@@ -108,9 +107,9 @@ export const exportProjectsToZIP =
     const content = await zip.generateAsync({ type: "blob" });
 
     // Download the zip
-    let filename = `${blobCount} Harmonia `;
+    let filename = `Harmonia `;
     if (blobCount === 1) filename = "Harmonia ";
     filename += "Project" + (blobCount === 1 ? "" : "s");
-    filename += `(${dayjs().format("YYYY-MM-DD HH-mm-ss")}).zip`;
+    filename += ` (${dayjs().format("YYYY-MM-DD hh.mm.ss")}).zip`;
     downloadBlob(content, filename);
   };

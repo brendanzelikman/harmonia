@@ -31,7 +31,11 @@ import {
   createPatternTrack,
 } from "../PatternTrack/PatternTrackThunks";
 import { addTrack } from "../TrackThunks";
-import { createSixteenthNote, createSixteenthRest } from "utils/duration";
+import {
+  createSixteenthNote,
+  createSixteenthRest,
+  HalfNoteTicks,
+} from "utils/duration";
 import { createPattern, randomizePattern } from "types/Pattern/PatternThunks";
 import { addPatternClip } from "types/Clip/ClipSlice";
 import { initializePatternClip } from "types/Clip/ClipTypes";
@@ -50,6 +54,8 @@ import {
 import { isPitchClass, unpackScaleName } from "utils/pitch";
 import { MajorScale, MinorScale } from "lib/presets/scales/BasicScales";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
+import { walkPatternClip } from "types/Arrangement/ArrangementThunks";
+import { createPatternClip } from "types/Media/MediaThunks";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
@@ -95,10 +101,13 @@ export const createScaleTrack =
     return scaleTrack;
   };
 
-/** Create a random hierarchy of `ScaleTracks` */
-export const createRandomHierarchy = (): Thunk => (dispatch) => {
+/** Create a random tree */
+export const createRandomTree = (): Thunk => (dispatch) => {
+  // Parameters:
+  // - The number of scales
+  // - The number of notes in each scale
   const size = 3;
-  const undoType = createUndoType("createRandomHierarchy", nanoid());
+  const undoType = createUndoType("createRandomTree", nanoid());
 
   // The root scale is 7-12 notes
   const map1: Record<string, number> = {
@@ -187,12 +196,31 @@ export const createRandomHierarchy = (): Thunk => (dispatch) => {
   );
   const { patternId } = dispatch(
     createCourtesyPatternClip({
-      data: { clip: { trackId: track.id } },
+      data: { clip: { trackId: track.id, tick: 0 } },
       undoType,
     })
   );
   dispatch(
     randomizePattern({ data: { id: patternId, trackId: track.id }, undoType })
+  );
+  const pc2 = dispatch(
+    createPatternClip({
+      data: { patternId, trackId: track.id, tick: HalfNoteTicks },
+      undoType,
+    })
+  );
+  dispatch(
+    walkPatternClip({
+      data: {
+        id: pc2,
+        options: {
+          direction: "up",
+          select: "best",
+          keys: ["scale-track_1", "scale-track_2"],
+        },
+      },
+      undoType,
+    })
   );
 };
 

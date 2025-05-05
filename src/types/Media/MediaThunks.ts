@@ -31,6 +31,8 @@ import {
   initializePoseClip,
   PatternClip,
   PoseClip,
+  PatternClipId,
+  PoseClipId,
 } from "types/Clip/ClipTypes";
 import {
   selectClipDuration,
@@ -77,7 +79,7 @@ import {
   MediaElement,
   CreateMediaPayload,
 } from "./MediaTypes";
-import { createUndoType, unpackUndoType } from "types/redux";
+import { createUndoType, Payload, unpackUndoType } from "types/redux";
 import {
   addPortals,
   removePortals,
@@ -138,6 +140,26 @@ export const createMedia =
 
     // Return the new payload
     return { ...payload, data: { clipIds, portalIds } };
+  };
+
+/** Create a pattern clip */
+export const createPatternClip =
+  (payload: Payload<Partial<PatternClip>>): Thunk<PatternClipId> =>
+  (dispatch) => {
+    const undoType = unpackUndoType(payload, "createPatternClip");
+    const clip = initializePatternClip(payload.data);
+    dispatch(addPatternClip({ data: clip, undoType }));
+    return clip.id;
+  };
+
+/** Create a pose clip */
+export const createPoseClip =
+  (payload: Payload<PoseClip>): Thunk<PoseClipId> =>
+  (dispatch) => {
+    const undoType = unpackUndoType(payload, "createPoseClip");
+    const clip = initializePoseClip(payload.data);
+    dispatch(addPoseClip({ data: clip, undoType }));
+    return clip.id;
   };
 
 /** Update a list of media. */
