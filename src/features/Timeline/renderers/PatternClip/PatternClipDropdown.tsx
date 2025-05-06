@@ -55,6 +55,8 @@ import {
 import { useHotkeys } from "hooks/useHotkeys";
 import { ScaleId } from "types/Scale/ScaleTypes";
 import { SyncedNumericalForm } from "components/SyncedForm";
+import { selectClipDuration } from "types/Clip/ClipSelectors";
+import { isFinite } from "lodash";
 
 export interface PatternClipDropdownProps {
   clip: PortaledPatternClip;
@@ -72,6 +74,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   // Unpack the clip
   const { clip, id, isOpen } = props;
   const { patternId, trackId } = clip;
+  const clipDuration = useAppValue((_) => selectClipDuration(_, id));
   const pattern = useAppValue((_) => selectPatternById(_, patternId));
   const scale = useAppValue((_) => selectTrackScale(_, trackId));
   const chain = useAppValue((_) => selectTrackScaleChain(_, trackId));
@@ -121,7 +124,14 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
       dropdown="Generate Pattern"
       theme="teal"
       onClick={() => {
-        const data = { id: patternId, trackId, duration };
+        const data = {
+          id: patternId,
+          trackId,
+          duration,
+          clipDuration:
+            !!clipDuration && isFinite(clipDuration) ? clipDuration : undefined,
+        };
+        console.log(clipDuration);
         dispatch(randomizePattern({ data }));
       }}
       icon={<GiDiceSixFacesFive className="text-xl" />}

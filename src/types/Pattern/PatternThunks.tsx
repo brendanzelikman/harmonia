@@ -1,4 +1,4 @@
-import { SixteenthNoteTicks } from "utils/duration";
+import { SixteenthNoteTicks, WholeNoteTicks } from "utils/duration";
 import { Seconds } from "types/units";
 import { Sampler } from "tone";
 import { EighthNoteTicks } from "utils/duration";
@@ -72,7 +72,12 @@ export const clearPattern =
 /** Randomize a pattern and give all notes a random pitch, duration, and velocity */
 export const randomizePattern =
   (
-    payload: Payload<{ id: PatternId; trackId?: TrackId; duration?: number }>
+    payload: Payload<{
+      id: PatternId;
+      trackId?: TrackId;
+      duration?: number;
+      clipDuration?: number;
+    }>
   ): Thunk =>
   (dispatch, getProject) => {
     const data = payload.data;
@@ -94,7 +99,10 @@ export const randomizePattern =
     const neighborChance = neighbors.length ? 0.5 : 0;
 
     // Pick a random note from the scale for each note in the pattern
-    const streamLength = pattern.stream.length || 8;
+    const streamLength = pattern.stream.length
+      ? pattern.stream.length
+      : (data.clipDuration ?? WholeNoteTicks) /
+        (data.duration ?? SixteenthNoteTicks);
     let degrees = range(0, scale.notes.length);
     let stream: PatternStream = [];
     for (let i = 0; i < streamLength; i++) {
