@@ -20,6 +20,8 @@ import {
   updateMedia,
   filterSelectionByType,
   insertMeasure,
+  duplicateSelectedMedia,
+  deleteSelectedMedia,
 } from "types/Media/MediaThunks";
 import {
   exportSelectedClipsToMIDI,
@@ -244,13 +246,13 @@ export const TimelineContextMenu = memo(() => {
         <div className="flex justify-evenly">
           <div
             className="total-center p-2 py-0 w-32 rounded border border-indigo-400 cursor-pointer hover:bg-slate-600/20"
-            onClick={() => dispatch(pasteSelectedMedia())}
+            onClick={() => dispatch(duplicateSelectedMedia())}
           >
             Duplicate
           </div>
           <div
             className="total-center p-2 py-0 w-32 rounded border border-indigo-400 cursor-pointer hover:bg-slate-600/20"
-            onClick={() => dispatch(pasteSelectedMedia())}
+            onClick={() => dispatch(deleteSelectedMedia())}
           >
             Delete
           </div>
