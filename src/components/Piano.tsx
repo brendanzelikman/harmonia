@@ -1,9 +1,8 @@
 // @ts-ignore
 import { Piano as ReactPiano, MidiNumbers } from "react-piano";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import "react-piano/dist/styles.css";
 import "./Piano.css";
-import { WebMidi } from "webmidi";
 import { getMidiPitch, MidiScale } from "utils/midi";
 import classNames from "classnames";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
@@ -65,25 +64,25 @@ export const Piano: React.FC<PianoProps> = (props) => {
   }, [props.stopNote, hasStop]);
 
   // Synchronize with MIDI controller via WebMidi
-  useEffect(() => {
-    // Attach a listener to each MIDI input
-    const onEnabled = () => {
-      WebMidi.inputs.forEach((input) => {
-        input.addListener("noteon", (e) => {
-          playNote(sampler, e.note.number);
-        });
-        input.addListener("noteoff", (e) => {
-          stopNote(sampler, e.note.number);
-        });
-      });
-    };
-    WebMidi.enable().then(onEnabled);
-    return () => {
-      WebMidi.inputs.forEach((input) => {
-        input.removeListener();
-      });
-    };
-  }, [sampler, playNote, stopNote]);
+  // useEffect(() => {
+  //   // Attach a listener to each MIDI input
+  //   const onEnabled = () => {
+  //     WebMidi.inputs.forEach((input) => {
+  //       input.addListener("noteon", (e) => {
+  //         playNote(sampler, e.note.number);
+  //       });
+  //       input.addListener("noteoff", (e) => {
+  //         stopNote(sampler, e.note.number);
+  //       });
+  //     });
+  //   };
+  //   WebMidi.enable().then(onEnabled);
+  //   return () => {
+  //     WebMidi.inputs.forEach((input) => {
+  //       input.removeListener();
+  //     });
+  //   };
+  // }, [sampler, playNote, stopNote]);
 
   // Hotkeys for inputting sampler notes
   const onEditor = useAppValue(selectIsEditingTracks);

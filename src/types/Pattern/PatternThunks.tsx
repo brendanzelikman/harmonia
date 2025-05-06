@@ -3,7 +3,7 @@ import { Seconds } from "types/units";
 import { Sampler } from "tone";
 import { EighthNoteTicks } from "utils/duration";
 import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
-import { range, sample } from "lodash";
+import { isEqual, range, sample } from "lodash";
 import { PresetScaleList } from "lib/presets/scales";
 import { Thunk } from "types/Project/ProjectTypes";
 import { ScaleVector } from "types/Scale/ScaleTypes";
@@ -105,6 +105,7 @@ export const randomizePattern =
         (data.duration ?? SixteenthNoteTicks);
     let degrees = range(0, scale.notes.length);
     let stream: PatternStream = [];
+    let loopCount = 0;
     for (let i = 0; i < streamLength; i++) {
       if (!degrees.length) degrees.push(...range(0, scale.notes.length));
       const degree = sample(degrees) || 0;
@@ -119,6 +120,13 @@ export const randomizePattern =
         offset[neighbor.id] = Math.floor(Math.random() * 2) - 1;
       }
       const note: PatternNote = { degree, velocity, duration, scaleId, offset };
+      console.log(note, stream[i - 1]);
+      if (loopCount < 3 && isEqual(note, stream[i - 1])) {
+        i--;
+        loopCount++;
+        continue;
+      }
+      loopCount = 0;
       stream.push(note);
       if (isNeighbor && neighbor) {
         stream.push({ ...note, offset: {} });

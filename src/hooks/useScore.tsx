@@ -4,14 +4,13 @@ import {
   IOSMDOptions,
   OpenSheetMusicDisplay as OSMD,
 } from "opensheetmusicdisplay";
-import { clamp } from "lodash";
 import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
 import {
   PatternMidiStream,
   isPatternMidiChord,
 } from "types/Pattern/PatternTypes";
 import { MidiNote } from "utils/midi";
-import { mod } from "utils/math";
+import { sleep } from "utils/event";
 
 // ------------------------------------------------------------
 // OSMD Constants
@@ -32,7 +31,6 @@ export interface BaseProps {
   className?: string;
   options?: IOSMDOptions;
   zoom?: number;
-  noteClasses?: string[];
   noteColor?: string;
 }
 export type StreamProps = BaseProps & { stream?: PatternMidiStream };
@@ -90,12 +88,15 @@ export function useScore(props: OSMDProps): ScoreProps {
 
   // Note info
   const [noteElements, setNoteElements] = useState<NoteProps[]>([]);
-  const notes =
-    "stream" in props
-      ? props.stream ?? []
-      : "notes" in props
-      ? props.notes ?? []
-      : ([] as MidiNote[]);
+  const notes = useMemo(
+    () =>
+      "stream" in props
+        ? props.stream ?? []
+        : "notes" in props
+        ? props.notes ?? []
+        : ([] as MidiNote[]),
+    [props]
+  );
   const noteCount = notes.length;
 
   // Cursor info
@@ -127,7 +128,7 @@ export function useScore(props: OSMDProps): ScoreProps {
         score.zoom = zoom;
         score.render();
       })
-      .finally(async () => {
+      .then(async () => {
         // Format and render the cursor if it is visible and not ignored
         if (!cursor.hidden && !!osmd?.cursor) {
           renderCursor({
@@ -137,21 +138,20 @@ export function useScore(props: OSMDProps): ScoreProps {
             index: cursor.index,
           });
         }
-
+        await sleep(10);
         // Apply a callback to each note and update the note elements
         const noteElements = getStaveNotes({
           scoreId: id,
           notes,
-          classNames: props.noteClasses ?? [],
           callback: (index) => {
-            if (cursor.hidden || cursor.index !== index) cursor.show(index);
+            if (cursor.hidden) cursor.show(index);
             else if (cursor.index === index) cursor.hide();
+            else cursor.setIndex(index);
           },
-          useScoreIndex: "notes" in props,
         });
         setNoteElements(noteElements);
       });
-  }, [cursor, id, xml, noteCount, zoom, props.noteClasses, props.noteColor]);
+  }, [noteCount, cursor, xml, zoom]);
 
   // Return the score, cursor, and notes
   return useMemo<ScoreProps>(
@@ -218,10 +218,7 @@ function useOSMDCursor(osmd?: OSMD, noteCount = 1): CursorProps {
   const element = useMemo(() => osmd?.cursor, [osmd]) as Cursor | undefined;
   const [hidden, setHidden] = useState(true);
   const [index, _setIndex] = useState(0);
-  const setIndex = useCallback(
-    (i: number) => _setIndex(clamp(i, 0, noteCount - 1)),
-    [noteCount]
-  );
+  const setIndex = useCallback((i: number) => _setIndex(i), []);
 
   /** Show the cursor. */
   const show = useCallback(
@@ -242,7 +239,10 @@ function useOSMDCursor(osmd?: OSMD, noteCount = 1): CursorProps {
   }, [hidden]);
 
   /** Toggle the cursor. */
-  const toggle = useCallback(() => (hidden ? show() : hide()), [hidden]);
+  const toggle = useCallback(
+    () => (hidden ? show() : hide()),
+    [hidden, show, hide]
+  );
 
   /** Move the cursor to the next note. */
   const next = useCallback(() => {
@@ -301,19 +301,11 @@ export type NoteCallback = (cursor: CursorProps, index: number) => void;
 interface StaveNoteProps {
   scoreId?: string;
   notes: NoteList;
-  classNames: string[];
   callback: (index: number) => void;
-  useScoreIndex?: boolean;
 }
 
 /** Get the list of stave notes in the document with the callback. */
-function getStaveNotes({
-  scoreId,
-  notes,
-  classNames,
-  callback,
-  useScoreIndex,
-}: StaveNoteProps) {
+function getStaveNotes({ scoreId, notes, callback }: StaveNoteProps) {
   // Get all stave notes in the document
   const noteElements: NoteProps[] = [];
   const streamIndices = getStreamIndices(notes);
@@ -324,12 +316,9 @@ function getStaveNotes({
   staveNotes.forEach((staveNote, scoreIndex) => {
     // Get the corresponding stream index
     const streamIndex = streamIndices[scoreIndex];
-
     // Add a callback to each stave note
-    staveNote.classList.add(...["relative", ...classNames]);
-    staveNote.addEventListener("click", () =>
-      callback?.(useScoreIndex ? mod(scoreIndex, notes.length) : streamIndex)
-    );
+    staveNote.classList.add(...["relative"]);
+    staveNote.addEventListener("click", () => callback?.(streamIndex));
 
     // Add the element and indices to the note elements
     const note = { element: staveNote, scoreIndex, streamIndex };

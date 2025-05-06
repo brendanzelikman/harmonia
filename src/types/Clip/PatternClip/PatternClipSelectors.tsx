@@ -9,7 +9,7 @@ import {
 } from "types/Track/TrackSelectors";
 import { getPatternBlockNotes } from "types/Pattern/PatternUtils";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
-import { PatternId } from "types/Pattern/PatternTypes";
+import { isPatternRest, PatternId } from "types/Pattern/PatternTypes";
 
 /** Select the label of a pattern note */
 export const selectPatternNoteLabel = (
@@ -22,8 +22,9 @@ export const selectPatternNoteLabel = (
   const trackMap = selectScaleToTrackMap(project);
   const labelMap = selectTrackLabelMap(project);
   const degree = index % pattern.stream.length;
-  const chord = getPatternBlockNotes(pattern.stream[degree]);
-
+  const block = pattern.stream[degree];
+  if (isPatternRest(block)) return "Rest";
+  const chord = getPatternBlockNotes(block);
   return chord
     .map((n) => {
       if (!n) return "";

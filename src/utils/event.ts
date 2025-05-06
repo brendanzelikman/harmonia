@@ -5,6 +5,10 @@ import { BaseSyntheticEvent, KeyboardEvent, useEffect } from "react";
 // Custom Events
 // ------------------------------------------------------------
 
+/** Wait the specified number of milliseconds. */
+export const sleep = async (delay: number) =>
+  await new Promise((resolve) => setTimeout(resolve, delay));
+
 /** Dispatch a custom window event of the given type and detail. */
 export const dispatchCustomEvent = (type: string, detail?: unknown) => {
   const customEvent = new CustomEvent(type, { detail });

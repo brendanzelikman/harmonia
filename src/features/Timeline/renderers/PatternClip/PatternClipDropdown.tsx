@@ -131,7 +131,6 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
           clipDuration:
             !!clipDuration && isFinite(clipDuration) ? clipDuration : undefined,
         };
-        console.log(clipDuration);
         dispatch(randomizePattern({ data }));
       }}
       icon={<GiDiceSixFacesFive className="text-xl" />}
