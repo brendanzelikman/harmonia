@@ -27,7 +27,7 @@ export function useHotkeys(
       let comboKey = key.toLowerCase();
       if (shiftKey && key !== "Shift") comboKey = "shift+" + comboKey;
       if (metaKey && key !== "Meta") comboKey = "meta+" + comboKey;
-      if (ctrlKey && key !== "Ctrl") comboKey = "ctrl+" + comboKey;
+      else if (ctrlKey && key !== "Ctrl") comboKey = "meta+" + comboKey;
       if (altKey && key !== "Alt") comboKey = "alt+" + comboKey;
 
       // Check if the hotkeys are disabled
