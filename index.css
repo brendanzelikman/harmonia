@@ -39,6 +39,14 @@
   }
 }
 
+.background {
+  opacity: 0.5;
+  z-index: -10;
+  object-fit: cover;
+  position: fixed;
+  height: 100vh;
+}
+
 .cursor-paintbrush {
   cursor: url(/cursors/paintbrush.cur), pointer;
 }
@@ -75,12 +83,18 @@
   text-shadow: 0 0 10px rgba(0, 0, 0);
 }
 
+@font-face {
+  font-family: "Nunito";
+  src: url("/src/assets/fonts/nunito.ttf") format("truetype");
+}
+
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
   overflow: hidden;
+  font-family: "Nunito";
 }
 
 body {
