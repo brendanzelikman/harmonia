@@ -128,8 +128,6 @@ export function useScore(props: OSMDProps): ScoreProps {
         score.render();
       })
       .finally(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 10));
-
         // Format and render the cursor if it is visible and not ignored
         if (!cursor.hidden && !!osmd?.cursor) {
           renderCursor({
@@ -146,25 +144,12 @@ export function useScore(props: OSMDProps): ScoreProps {
           notes,
           classNames: props.noteClasses ?? [],
           callback: (index) => {
-            if (cursor.hidden) cursor.show();
+            if (cursor.hidden || cursor.index !== index) cursor.show(index);
             else if (cursor.index === index) cursor.hide();
-            cursor.setIndex(index);
           },
           useScoreIndex: "notes" in props,
         });
         setNoteElements(noteElements);
-
-        // Apply the color to each note if specified
-        const noteColor = props.noteColor ?? "fill-black";
-        noteElements.forEach((elt) => {
-          const id = elt.element.id;
-          const heads = [
-            ...document.querySelectorAll(`#${id} .vf-modifiers path`),
-            ...document.querySelectorAll(`#${id} .vf-note .vf-notehead path`),
-          ];
-          heads.forEach((head) => head.removeAttribute("fill"));
-          heads.forEach((head) => head.classList.add(noteColor));
-        });
       });
   }, [cursor, id, xml, noteCount, zoom, props.noteClasses, props.noteColor]);
 
@@ -233,7 +218,10 @@ function useOSMDCursor(osmd?: OSMD, noteCount = 1): CursorProps {
   const element = useMemo(() => osmd?.cursor, [osmd]) as Cursor | undefined;
   const [hidden, setHidden] = useState(true);
   const [index, _setIndex] = useState(0);
-  const setIndex = (i: number) => _setIndex(clamp(i, 0, noteCount - 1));
+  const setIndex = useCallback(
+    (i: number) => _setIndex(clamp(i, 0, noteCount - 1)),
+    [noteCount]
+  );
 
   /** Show the cursor. */
   const show = useCallback(
@@ -243,7 +231,7 @@ function useOSMDCursor(osmd?: OSMD, noteCount = 1): CursorProps {
       setHidden(false);
       if (element) element.show();
     },
-    [hidden]
+    [hidden, setIndex]
   );
 
   /** Hide the cursor. */
@@ -260,23 +248,23 @@ function useOSMDCursor(osmd?: OSMD, noteCount = 1): CursorProps {
   const next = useCallback(() => {
     setIndex(index + 1);
     if (element) element.next();
-  }, [index]);
+  }, [index, setIndex]);
 
   /** Move the cursor to the previous note. */
   const prev = useCallback(() => {
     setIndex(index - 1);
     if (element) element.previous();
-  }, [index]);
+  }, [index, setIndex]);
 
   /** Move the cursor to the start of the score. */
   const skipStart = useCallback(() => {
     setIndex(0);
-  }, []);
+  }, [setIndex]);
 
   /** Move the cursor to the end of the score. */
   const skipEnd = useCallback(() => {
     setIndex(noteCount - 1);
-  }, [noteCount]);
+  }, [noteCount, setIndex]);
 
   return useMemo<CursorProps>(
     () => ({

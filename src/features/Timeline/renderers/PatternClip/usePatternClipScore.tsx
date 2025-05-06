@@ -11,6 +11,7 @@ import {
   updatePatternNote,
   addPatternBlock,
   updatePatternBlock,
+  insertPatternBlock,
 } from "types/Pattern/PatternSlice";
 import { PatternNote } from "types/Pattern/PatternTypes";
 import {
@@ -18,15 +19,12 @@ import {
   getMidiStreamMinMax,
 } from "types/Pattern/PatternUtils";
 import { autoBindNoteToTrack } from "types/Track/TrackUtils";
-import { selectTransportBPM } from "types/Transport/TransportSelectors";
 import { isFinite } from "utils/math";
 import {
   getDurationTicks,
   getStraightDuration,
   getTickDuration,
-  ticksToSeconds,
 } from "utils/duration";
-import { format } from "utils/math";
 import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
 import { TrackId } from "types/Track/TrackTypes";
 import { ScaleId, ScaleVector } from "types/Scale/ScaleTypes";
@@ -34,7 +32,6 @@ import { omit } from "lodash";
 
 export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const dispatch = useAppDispatch();
-  const bpm = useAppValue(selectTransportBPM);
   const midi = useAppValue((_) => selectPortaledPatternClipStream(_, clip.id));
   const stream = midi.flatMap((n) => n.notes.filter((n) => "velocity" in n));
   const xml = useAppValue((_) => selectPortaledPatternClipXML(_, clip));
@@ -49,16 +46,15 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const asRest = holding[getKeyCode(",")];
   const asChord =
     holding[getKeyCode("shift")] || holding[getKeyCode("rightshift")];
+  const [asInsert, setAsInsert] = useState(false);
   const modifier = isTriplet ? "Triplet" : isDotted ? "Dotted" : "Straight";
   const ratio = isTriplet ? 2 / 3 : isDotted ? 3 / 2 : 1;
   const duration = _duration * ratio;
   const type = getStraightDuration(getTickDuration(duration));
-  const ticks = format(ticksToSeconds(duration, bpm), 4);
   const object = asRest ? "Rest" : asChord ? "Chord" : "Note";
-  const input = `${modifier} ${type} ${object} (${ticks}s)`;
+  const input = `${modifier} ${type} ${object}`;
 
   // The score zooms out with a bigger stream range
-
   const { min, max } = useMemo(() => getMidiStreamMinMax(stream), [stream]);
   const spread = isFinite(max) ? max - min : 0;
   const decay = onGrandStaff ? 0.009 : 0.008;
@@ -124,7 +120,15 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
         note = dispatch(autoBindNoteToTrack(trackId, note));
       }
       const undoType = createUndoType("playNote", nanoid());
-      if (index === undefined) {
+
+      if (asInsert) {
+        dispatch(
+          insertPatternBlock({
+            data: { id, block: note, index: index ?? 0 },
+            undoType,
+          })
+        );
+      } else if (index === undefined) {
         dispatch(addPatternNote({ data: { id, note, asChord }, undoType }));
       } else {
         dispatch(
@@ -132,16 +136,19 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
         );
       }
     },
-    [clip.patternId, index, duration, asRest, asChord, playRest]
+    [clip.patternId, index, duration, asInsert, asRest, asChord, playRest]
   );
 
   return {
     Score,
     index,
     playNote,
+    playRest,
     setDuration,
     duration,
     input,
     toggle: cursor.toggle,
+    isInserting: asInsert,
+    toggleInsert: () => setAsInsert((prev) => !prev),
   };
 };

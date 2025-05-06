@@ -61,6 +61,9 @@ export const keydown =
       return;
     }
 
+    // Create or update a pose at the current tick
+    if (!some(["q", "w", "e", "r", "t", "y"].map(getHeldKey))) return;
+
     // Handle voice leading by closeness (push chordal when one key)
     if (getHeldKey("c")) {
       dispatch(leadPatternsToNthClosestPose(number));
@@ -85,10 +88,7 @@ export const keydown =
       return;
     }
 
-    // Create or update a pose at the current tick
-    if (some(["q", "w", "e", "r", "t", "y"].map(getHeldKey))) {
-      dispatch(updatePoseAtCursorGesture(number));
-    }
+    dispatch(updatePoseAtCursorGesture(number));
   };
 
 /** The gesture handler for zero keys */
