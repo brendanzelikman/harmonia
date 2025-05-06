@@ -120,7 +120,6 @@ export const randomizePattern =
         offset[neighbor.id] = Math.floor(Math.random() * 2) - 1;
       }
       const note: PatternNote = { degree, velocity, duration, scaleId, offset };
-      console.log(note, stream[i - 1]);
       if (loopCount < 3 && isEqual(note, stream[i - 1])) {
         i--;
         loopCount++;
