@@ -20,7 +20,6 @@ import { PoseClipRenderer } from "./renderers/PoseClip/usePoseClipRenderer";
 import { useDrag } from "react-dnd";
 import { onMediaDragEnd } from "types/Media/MediaThunks";
 import { dispatchCustomEvent } from "utils/event";
-import { TRACK_WIDTH } from "utils/constants";
 import { selectCellWidth } from "types/Timeline/TimelineSelectors";
 
 export interface TimelineClipsProps {
@@ -109,10 +108,9 @@ export const useClipDrag = (pcId: PortaledClipId) => {
       if (!clip) return { id: pcId };
       const clientOffset = monitor.getClientOffset();
       const clipRect = clip.getBoundingClientRect();
-      const left = clipRect.left - TRACK_WIDTH;
       const offsetX = clientOffset ? clientOffset.x - clipRect.left : 0;
       const isResizing = offsetX > clipRect.width - cellWidth;
-      return { id: pcId, left, offsetX, isResizing };
+      return { id: pcId, offsetX, isResizing };
     },
     collect: (monitor: any) => ({
       isDragging: monitor.isDragging(),

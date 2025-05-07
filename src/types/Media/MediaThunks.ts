@@ -517,11 +517,8 @@ export const onMediaDragEnd =
     const colOffset = item.hoveringColumn - columns - 1;
 
     // Change the stream of the pattern if resizing
-    if (item.offsetX && item.isResizing && isPatternClipId(itemId)) {
-      const cellTicks = item.hoveringColumn * subdivisionTicks;
-      const clipTick = (item.left / cellWidth) * subdivisionTicks;
-      const cellOffset = cellTicks - clipTick;
-      const newDuration = Math.max(cellOffset, 0);
+    if (item.isResizing && isPatternClipId(itemId)) {
+      const newDuration = Math.max(colOffset * subdivisionTicks, 0);
       dispatch(
         updatePatternClip({ data: { id: itemId, duration: newDuration } })
       );
