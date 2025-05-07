@@ -433,7 +433,7 @@ export const NavbarLivePlay = () => {
     isMixing || isVoiceLeadingClosest || isVoiceLeadingDegree || isHoldingScale;
 
   const signal = useToggle("livePlay");
-  const isActive = working || hasTracks;
+  const isActive = working || hasTracks || signal.isOpen;
 
   const Span = useCallback((label: string, active = false, slow = false) => {
     return (
@@ -533,7 +533,7 @@ export const NavbarLivePlay = () => {
       label={
         <div className="text-white animate-in fade-in duration-300">
           <div
-            data-indent={hasTracks}
+            data-indent={hasTracks || working}
             className="text-xl data-[indent=true]:pt-2 font-light"
           >
             {" "}

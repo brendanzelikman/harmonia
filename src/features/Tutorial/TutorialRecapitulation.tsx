@@ -20,7 +20,7 @@ export const TutorialRecapitulation = (props: { view: string }) => {
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg"
-        title="Create Trees"
+        title="Create Tree"
         subtitle="Press N to Input, G to Grow"
         stripColor="border-b border-b-indigo-500/80"
         Icon={CreateTreeIcon}
@@ -56,7 +56,7 @@ export const TutorialRecapitulation = (props: { view: string }) => {
       <TimelineButton
         border="ring-teal-600/80"
         className="rounded-lg"
-        title="Create Patterns"
+        title="Create Pattern"
         subtitle="Scheduled in a Track"
         stripColor="border-b border-b-teal-500/80"
         Icon={ArrangePatternIcon}
@@ -77,14 +77,14 @@ export const TutorialRecapitulation = (props: { view: string }) => {
               <br />
               <span className="">{`will autobind to `}</span>
               <span className="text-emerald-400">
-                {" B2 => B2 + t-1 => B3"}
+                {" {B2} => {B3 + t-1} => {B3}"}
               </span>
               <br />
-              <span className="">{" so that"}</span>
-              <span className="text-emerald-400">{" B2 + t-1 "}</span>
+              <span className="">{" with"}</span>
+              <span className="text-emerald-400">{" {B3 + t-1} "}</span>
               <span>{" = "}</span>
               <span className="text-sky-400">
-                {" Step 2 of B, -1 semitone"}
+                {" Step 3 of B, -1 semitone"}.
               </span>
             </div>
             <div>
@@ -98,7 +98,7 @@ export const TutorialRecapitulation = (props: { view: string }) => {
       <TimelineButton
         className="rounded-lg"
         border="ring-fuchsia-600/80"
-        title="Create Poses"
+        title="Create Pose"
         subtitle="Scheduled in a Track"
         stripColor="border-b border-b-fuchsia-500/80"
         Icon={ArrangePoseIcon}
@@ -113,17 +113,18 @@ export const TutorialRecapitulation = (props: { view: string }) => {
               <b>Example Pose</b>:
               <br />
               <span className="text-teal-400">{`In Track 1.1.1`},</span>
-              <span className=""> the pose vector </span>
+              <span className=""> the transposition </span>
               <span className="text-fuchsia-300">{" <B-2, r2> "}</span>
               <br />
-              <span className="">{" moves"}</span>
-              <span className="text-emerald-400">{" E4 => F#4 => G4"}</span>
+              <span className="">{" will move "}</span>
+              <span className="text-emerald-400">{" E4, F#4, G4"}</span>
               <span>{" to "}</span>
-              <span className="text-emerald-400">{"C4 => G4 => B4"}</span>
+              <span className="text-emerald-400">{"C4, G4, B4"}</span>
+              {" by"}
               <br />
-              <span className="text-fuchsia-300">
-                {" (2 steps down Scale B + 2 rotations up)"}
-              </span>
+              <span className="text-fuchsia-300">{"2 steps down Scale B"}</span>
+              {" and "}
+              <span className="text-fuchsia-300">{" 2 rotations up"}.</span>
             </div>
             <div>
               <b>In Practice</b>:<br />

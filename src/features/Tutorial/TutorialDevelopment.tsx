@@ -1,5 +1,5 @@
 import { dispatchOpen, dispatchClose } from "hooks/useToggle";
-import { GiChart, GiAbacus, GiHand, GiWireframeGlobe } from "react-icons/gi";
+import { GiAbacus, GiHand, GiWireframeGlobe } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
 import { sonataVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
@@ -16,8 +16,8 @@ export const TutorialDevelopment = (props: { view: string }) => {
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg"
-        title="Develop Trees"
-        subtitle="With New Poses"
+        title="Develop Scales"
+        subtitle="With Cascading Poses"
         stripColor="border-b border-b-indigo-500/80"
         Icon={GiWireframeGlobe}
         description={
@@ -28,14 +28,14 @@ export const TutorialDevelopment = (props: { view: string }) => {
                 <b>Example Tree:</b>
               </div>
               <span className="text-teal-400">Track 1</span> ={" "}
-              <span className="text-sky-400">G Major Scale (A)</span>
+              <span className="text-sky-400">C Major Scale (A)</span>
               <br />
               <span className="text-teal-400">Track 1.1</span> ={" "}
-              <span className="text-sky-400">G Major Chord (B)</span>
+              <span className="text-sky-400">C Major Chord (B)</span>
               <br />
               <span className="text-teal-400">Track 1.1.1</span>
               {" = "}
-              <span className="text-sky-400">B Note (C)</span>
+              <span className="text-sky-400">C Major Third (C)</span>
               <br />
             </div>
             <div>
@@ -43,14 +43,14 @@ export const TutorialDevelopment = (props: { view: string }) => {
               <span className="text-teal-400"> Track 1.1</span>:
               <br />
               <span className="text-teal-400">Track 1</span> ={" "}
-              <span className="text-sky-400">G Major Scale (A)</span>
+              <span className="text-sky-400">C Major Scale (A)</span>
               <br />
               <span className="text-teal-400">Track 1.1</span> ={" "}
-              <span className="text-sky-400">A Minor Chord (B)</span>
+              <span className="text-sky-400">D Minor Chord (B)</span>
               <br />
               <span className="text-teal-400">Track 1.1.1</span>
               {" = "}
-              <span className="text-sky-400">C Note (C)</span>
+              <span className="text-sky-400">D Minor Third (C)</span>
               <br />
             </div>
           </>
@@ -73,7 +73,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
               {" + "}
               <span className="text-fuchsia-400">{"<t1>"}</span>
               {" = "}
-              <span className="text-emerald-400">{"(C#4, E#4, G#4)"}</span>
+              <span className="text-emerald-400">{"(Db4, F4, Ab4)"}</span>
               <br />
               <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
               {" + "}
@@ -117,7 +117,12 @@ export const TutorialDevelopment = (props: { view: string }) => {
         title="Develop Poses"
         subtitle="With Keyboard Gestures"
         stripColor="border-b border-b-fuchsia-500/80"
-        Icon={GiHand}
+        Icon={() => (
+          <GiHand
+            onMouseEnter={() => dispatchOpen("livePlay")}
+            onMouseLeave={() => dispatchClose("livePlay")}
+          />
+        )}
         description={
           <>
             <div>Trees can be developed with hotkeys.</div>
@@ -140,7 +145,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
               {" + "}
               <span className="text-violet-400">{"Press 0"}</span>
               {" = "}
-              <span className="text-fuchsia-400">{"Reset position"}</span>
+              <span className="text-fuchsia-400">{"Reset all or value"}</span>
             </div>
             <div>
               <b>Samplers:</b>

@@ -76,12 +76,17 @@ export const TutorialExposition = (props: { view: string }) => {
               <span className="text-emerald-400">{" C4 => D4 => E4"}</span>
               <br />
               <span className="">{`will autobind to `}</span>
-              <span className="text-emerald-400">{" B1 => B1 + A1 => B2"}</span>
+              <span className="text-emerald-400">
+                {" {B1} => {B1 + A1} => {B2}"}
+              </span>
               <br />
-              <span className="">{" such that"}</span>
-              <span className="text-emerald-400">{" B1 + A1 "}</span>
+              <span className="">{" with"}</span>
+              <span className="text-emerald-400">{" {B1}"}</span>
               <span>{" = "}</span>
-              <span className="text-sky-400">{"Step 1 of B, up 1 of A"}</span>
+              <span className="text-sky-400">
+                {"Step 1 of C Major Chord (B)"}
+              </span>
+              , etc.
             </div>
             <div>
               <b>In Practice</b>:<br />
@@ -109,17 +114,16 @@ export const TutorialExposition = (props: { view: string }) => {
               <b>Example Pose</b>:
               <br />
               <span className="text-teal-400">{`In Track 1.1.1`},</span>
-              <span className=""> the pose vector </span>
-              <span className="text-fuchsia-300">{" <A3 + B-1> "}</span>
-              <br />
-              <span className="">{" moves"}</span>
-              <span className="text-emerald-400">{" C4 => D4 => E4"}</span>
+              <span className=""> the transposition </span>
+              <span className="text-fuchsia-300">{" <B-1, A3> "}</span>
+              <br /> <span>will move </span>
+              <span className="text-emerald-400">{"C4, D4, E4"}</span>
               <span>{" to "}</span>
-              <span className="text-emerald-400">{"C4 => D4 => F4"}</span>
+              <span className="text-emerald-400">{"C4, D4, F4"}</span> by
               <br />
-              <span className="text-fuchsia-300">
-                {" (3 steps up Scale A + 1 step down Scale B)"}
-              </span>
+              <span className="text-fuchsia-300">{" 1 down Major Chord"}</span>
+              {" and "}
+              <span className="text-fuchsia-300">{"3 up Major Scale"}</span>.
             </div>
             <div>
               <b>In Practice</b>:<br />

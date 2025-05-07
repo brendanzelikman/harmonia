@@ -1,6 +1,6 @@
 import { GiCompactDisc, GiMusicalScore, GiSoundWaves } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
-import { BsCode, BsRecordCircleFill } from "react-icons/bs";
+import { BsCode, BsGear, BsRecordCircleFill } from "react-icons/bs";
 import { sonataVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
 import {
@@ -25,27 +25,27 @@ export const TutorialCoda = (props: { view: string }) => {
         border="ring-indigo-600/80"
         className="rounded-lg"
         title="Save Project Data"
-        subtitle="Export to Native JSON"
+        subtitle="Download as JSON File"
         stripColor="border-b border-b-indigo-500/80"
         Icon={BsCode}
         onClick={() => dispatch(exportProjectToJSON())}
         description={
           <>
             <div>
-              Projects are autosaved in your browser and exportable into a
-              native JSON format.
+              Projects are autosaved in your browser and exportable to
+              specialized JSON files.
             </div>
             <div>
-              <b>Diary:</b>
+              <b>Project Diary:</b>
               <br />
-              Open Diary from the Settings Menu to keep persistent notes about
-              your project.
+              Hover into Settings <BsGear className="inline" />, then Open Diary
+              to read and write notes about your project.
             </div>
             <div>
-              <b>Terminal:</b>
+              <b>Project Terminal:</b>
               <br />
-              Open Terminal from the Settings Menu to see and edit the JSON of
-              your project.
+              Hover into Settings <BsGear className="inline" />, then Open
+              Terminal to read and write project data in JSON.
             </div>
           </>
         }
@@ -53,23 +53,22 @@ export const TutorialCoda = (props: { view: string }) => {
       <TimelineButton
         border="ring-teal-600/80"
         className="rounded-lg"
-        title="Export Note Data"
-        subtitle="Export to MIDI and WAV"
+        title="Export Project Data"
+        subtitle="Convert to Other File"
         stripColor="border-b border-b-teal-500/80"
         Icon={GiMusicalScore}
         onClick={() => dispatch(exportProjectToMIDI(undefined, true))}
         description={
           <>
             <div>
-              Note data can be saved to MIDI and WAV for use in other music
+              Project data can be saved to MIDI and WAV for use in other music
               notation programs.
             </div>
             <div>
               <b>Entire Project:</b>
               <br />
-              Open the Project Menu by hovering over the{" "}
-              <GiCompactDisc className="inline" /> icon, then press Export to
-              WAV or MIDI.
+              Hover into File <GiCompactDisc className="inline" />, then click
+              Export to MIDI or Export to WAV to download your file.
             </div>
             <div>
               <b>Selected Clips:</b>
@@ -83,7 +82,7 @@ export const TutorialCoda = (props: { view: string }) => {
       <TimelineButton
         border="ring-fuchsia-600/80"
         className="rounded-lg"
-        title="Record Note Data"
+        title="Record Project Data"
         subtitle="Capture Browser Audio"
         stripColor="border-b border-b-fuchsia-400/80"
         Icon={GiSoundWaves}
@@ -93,8 +92,8 @@ export const TutorialCoda = (props: { view: string }) => {
         description={
           <>
             <div>
-              Browser audio can be recorded to MIDI and WAV for playback,
-              sampling, and sharing.
+              Browser audio can be captured live and downloaded into MIDI and
+              WAV files.
             </div>
             <div>
               <b>Start Recording:</b>
