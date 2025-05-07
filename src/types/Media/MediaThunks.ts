@@ -518,7 +518,7 @@ export const onMediaDragEnd =
 
     // Change the stream of the pattern if resizing
     if (item.isResizing && isPatternClipId(itemId)) {
-      const newDuration = Math.max(colOffset * subdivisionTicks, 0);
+      const newDuration = Math.max((colOffset + 1) * subdivisionTicks, 0);
       dispatch(
         updatePatternClip({ data: { id: itemId, duration: newDuration } })
       );
