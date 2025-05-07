@@ -17,7 +17,8 @@ let scheduleId: number | undefined = undefined;
 
 /** Schedule the main transport audio loop. */
 export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
-  let startTime = getTransport().now();
+  const originalTime = getTransport().now();
+  let startTime = originalTime;
   let startSeconds = getTransport().seconds;
 
   // Clear any previous scheduled events
@@ -104,7 +105,7 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
         playPatternChord(instance.sampler, chord, time);
         if (getToggleValue(RECORD_TRANSPORT)) {
           const iid = instrumentId;
-          recordToMidiStream({ id: iid, chord, time: time - startTime });
+          recordToMidiStream({ id: iid, chord, time: time - originalTime });
         }
       }
     }

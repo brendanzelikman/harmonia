@@ -93,7 +93,7 @@ export const stopRecordingTransport = (): Thunk => async (_, getProject) => {
     const fileName = `${projectName ?? "Project"} Recording.wav`;
     downloadBlob(blob, fileName);
   }
-  if (type !== "midi" && type !== "both") return;
+  if (type === "wav") return;
   const events = stream.split("+");
   const blocks = events.map((event) => JSON.parse(event));
 
