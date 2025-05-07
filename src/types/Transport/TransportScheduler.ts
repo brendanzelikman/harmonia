@@ -10,15 +10,19 @@ import {
   selectCellsPerTick,
   selectSubdivisionTicks,
 } from "types/Timeline/TimelineSelectors";
-import { RECORD_TRANSPORT, recordToMidiStream } from "./TransportRecorder";
+import {
+  getRecordingStart,
+  RECORD_TRANSPORT,
+  recordToMidiStream,
+} from "./TransportRecorder";
 import { getToggleValue } from "hooks/useToggle";
+import { parseValue } from "utils/math";
 
 let scheduleId: number | undefined = undefined;
 
 /** Schedule the main transport audio loop. */
 export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
-  const originalTime = getTransport().now();
-  let startTime = originalTime;
+  let startTime = getTransport().now();
   let startSeconds = getTransport().seconds;
 
   // Clear any previous scheduled events
@@ -105,7 +109,11 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
         playPatternChord(instance.sampler, chord, time);
         if (getToggleValue(RECORD_TRANSPORT)) {
           const iid = instrumentId;
-          recordToMidiStream({ id: iid, chord, time: time - originalTime });
+          recordToMidiStream({
+            id: iid,
+            chord,
+            time: time - (parseValue(getRecordingStart()) ?? startTime),
+          });
         }
       }
     }

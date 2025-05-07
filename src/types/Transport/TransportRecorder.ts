@@ -15,6 +15,7 @@ import { PatternMidiChord } from "types/Pattern/PatternTypes";
 import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
 import { ticksToSeconds } from "utils/duration";
 import { promptUserForString } from "lib/prompts/html";
+import { getTransport } from "tone";
 
 // --------------------------------------------------------------
 // Events
@@ -36,6 +37,7 @@ export const broadcastStopRecordingTransport = () => {
 // MIDI
 // ---------------------------------------------------------------
 export const MIDI_RECORDING_KEY = "recordedMidiStream";
+export const MIDI_TIME_KEY = "recordedMidiTime";
 
 /** Add a note to the MIDI stream */
 export const recordToMidiStream = (note: any) => {
@@ -48,6 +50,9 @@ export const recordToMidiStream = (note: any) => {
   }
 };
 
+export const getRecordingStart = () =>
+  window.localStorage.getItem(MIDI_TIME_KEY);
+
 // --------------------------------------------------------------
 // Thunks
 // --------------------------------------------------------------
@@ -56,6 +61,7 @@ export const recordToMidiStream = (note: any) => {
 export const startRecordingTransport = (): Thunk => () => {
   broadcastStartRecordingTransport();
   window.localStorage.removeItem(MIDI_RECORDING_KEY);
+  localStorage.setItem(MIDI_TIME_KEY, `${getTransport().now()}`);
   if (LIVE_RECORDER_INSTANCE.state === "started") return;
   LIVE_RECORDER_INSTANCE.start();
 };

@@ -18,8 +18,8 @@ export const percentize = (x = 0, m = 0, n = 0) =>
   clamp(Math.round(100 * normalize(x, m, n)), 0, 100);
 
 /** Parse a string or number */
-export const parseValue = (value: string | number) =>
-  isString(value) ? sanitize(parseFloat(value)) : value;
+export const parseValue = (value: string | number | null) =>
+  isString(value) ? sanitize(parseFloat(value)) : value ?? 0;
 
 /** Convert a number into a lowercase letter (e.g. 0 = a, 1 = b). */
 export const numberToLower = (number: number) =>
