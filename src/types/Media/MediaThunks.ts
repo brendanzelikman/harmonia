@@ -1,4 +1,4 @@
-import { clamp, union, without } from "lodash";
+import { union, without } from "lodash";
 import {
   getSubdivisionTicks,
   getTickColumns,
@@ -38,7 +38,6 @@ import {
 } from "types/Clip/ClipTypes";
 import {
   selectClipDuration,
-  selectClipDurationMap,
   selectClipIds,
   selectClipMap,
   selectClips,
@@ -496,7 +495,6 @@ export const onMediaDragEnd =
     const undoType = createUndoType("onMediaDragEnd", item);
     const project = getProject();
     const clipMap = selectClipMap(project);
-    const durationMap = selectClipDurationMap(project);
     const orderedTrackIds = selectTrackIds(project);
     const { subdivision } = selectTimeline(project);
     const selectedClipIds = selectSelectedClipIds(project);
@@ -523,7 +521,6 @@ export const onMediaDragEnd =
       const cellTicks = item.hoveringColumn * subdivisionTicks;
       const clipTick = (item.left / cellWidth) * subdivisionTicks;
       const cellOffset = cellTicks - clipTick;
-      const duration = durationMap[itemId];
       const newDuration = Math.max(cellOffset, 0);
       dispatch(
         updatePatternClip({ data: { id: itemId, duration: newDuration } })
