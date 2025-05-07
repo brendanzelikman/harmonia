@@ -1,4 +1,4 @@
-import { union, without } from "lodash";
+import { clamp, union, without } from "lodash";
 import {
   getSubdivisionTicks,
   getTickColumns,
@@ -19,6 +19,7 @@ import {
   addPoseClip,
   removePatternClip,
   removePoseClip,
+  updatePatternClip,
 } from "types/Clip/ClipSlice";
 import {
   Clip,
@@ -33,9 +34,11 @@ import {
   PoseClip,
   PatternClipId,
   PoseClipId,
+  isPatternClipId,
 } from "types/Clip/ClipTypes";
 import {
   selectClipDuration,
+  selectClipDurationMap,
   selectClipIds,
   selectClipMap,
   selectClips,
@@ -493,6 +496,7 @@ export const onMediaDragEnd =
     const undoType = createUndoType("onMediaDragEnd", item);
     const project = getProject();
     const clipMap = selectClipMap(project);
+    const durationMap = selectClipDurationMap(project);
     const orderedTrackIds = selectTrackIds(project);
     const { subdivision } = selectTimeline(project);
     const selectedClipIds = selectSelectedClipIds(project);
@@ -514,10 +518,25 @@ export const onMediaDragEnd =
     const columns = getTickColumns(element.tick, subdivision);
     const colOffset = item.hoveringColumn - columns - 1;
 
+    // Change the stream of the pattern if resizing
+    if (item.offsetX && item.isResizing && isPatternClipId(itemId)) {
+      const cellTicks = item.hoveringColumn * subdivisionTicks;
+      const clipTick = (item.left / cellWidth) * subdivisionTicks;
+      const cellOffset = cellTicks - clipTick;
+      const duration = durationMap[itemId];
+      const newDuration = Math.max(cellOffset, 0);
+      dispatch(
+        updatePatternClip({ data: { id: itemId, duration: newDuration } })
+      );
+      return;
+    }
+
     // Get the offset of the drag from the element's tick
     let tickOffset = colOffset * getSubdivisionTicks(subdivision);
     if (item.offsetX) {
-      tickOffset -= Math.floor(item.offsetX / cellWidth) * subdivisionTicks;
+      const cells = Math.floor(item.offsetX / cellWidth);
+      const cellTicks = cells * subdivisionTicks;
+      tickOffset -= cellTicks;
     }
 
     // Get the drop result
