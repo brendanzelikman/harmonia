@@ -6,7 +6,6 @@ import { DEFAULT_VELOCITY, MAX_VELOCITY } from "utils/constants";
 import { isEqual, range, sample } from "lodash";
 import { PresetScaleList } from "lib/presets/scales";
 import { Thunk } from "types/Project/ProjectTypes";
-import { ScaleVector } from "types/Scale/ScaleTypes";
 import { getPatternBlockDuration } from "./PatternFunctions";
 import { getPatternMidiChordNotes } from "./PatternUtils";
 import { selectPatternIds, selectPatternById } from "./PatternSelectors";
@@ -99,10 +98,9 @@ export const randomizePattern =
     const neighborChance = neighbors.length ? 0.5 : 0;
 
     // Pick a random note from the scale for each note in the pattern
-    const streamLength = pattern.stream.length
-      ? pattern.stream.length
-      : (data.clipDuration ?? WholeNoteTicks) /
-        (data.duration ?? SixteenthNoteTicks);
+    const streamLength =
+      (data.clipDuration ?? WholeNoteTicks) /
+      (data.duration ?? SixteenthNoteTicks);
     let degrees = range(0, scale.notes.length);
     let stream: PatternStream = [];
     let loopCount = 0;
@@ -112,25 +110,23 @@ export const randomizePattern =
       degrees = degrees.filter((d) => d !== degree);
       const velocity = 100;
       const duration = data.duration ?? SixteenthNoteTicks;
-      const offset = {} as ScaleVector;
       const neighborSeed = Math.random();
       const isNeighbor = neighborSeed < neighborChance;
       const neighbor = neighbors.at(-1);
-      if (isNeighbor && neighbor) {
-        offset[neighbor.id] = Math.floor(Math.random() * 2) - 1;
-      }
-      const note: PatternNote = { degree, velocity, duration, scaleId, offset };
-      if (loopCount < 3 && isEqual(note, stream[i - 1])) {
+      const note: PatternNote = { degree, velocity, duration, scaleId };
+      const last = stream[i - 1];
+      if (loopCount < 3 && isEqual(last, note)) {
         i--;
         loopCount++;
         continue;
       }
       loopCount = 0;
-      stream.push(note);
       if (isNeighbor && neighbor) {
-        stream.push({ ...note, offset: {} });
+        const offset = { [neighbor.id]: sample([-1, 1]) };
+        stream.push({ ...note, offset });
         i++;
       }
+      stream.push(note);
     }
     stream = stream.slice(0, streamLength);
 
