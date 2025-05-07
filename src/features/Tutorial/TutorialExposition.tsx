@@ -28,30 +28,27 @@ export const TutorialExposition = (props: { view: string }) => {
         description={
           <>
             <div>
-              A Tree is a hierarchy of tracks structured into Scales (branches)
-              and Samplers (leaves).
+              A Tree is a hierarchy of tracks grouped into Scales (branches) and
+              Samplers (leaves).
             </div>
             <div>
               <div>
-                <b>Example Project</b>:
+                <b>Example Tree:</b>
               </div>
-              <span className="text-teal-400">Tree 1</span> ={" "}
-              <span className="text-sky-400">C Major Scale</span>
-              {" => "}
-              <span className="text-sky-400">C, E, G</span>
-              {" => "}
-              <span className="text-emerald-400">Piano</span>
+              <span className="text-teal-400">Track 1</span> ={" "}
+              <span className="text-sky-400">C Major Scale (A)</span>
               <br />
-              <span className="text-teal-400">Tree 2</span> ={" "}
-              <span className="text-sky-400">Chromatic Scale</span>
-              {" => "}
-              <span className="text-emerald-400">(Bass + ~File)</span>
+              <span className="text-teal-400">Track 1.1</span> ={" "}
+              <span className="text-sky-400">C Major Chord (B)</span>
+              <br />
+              <span className="text-teal-400">Track 1.1.1</span> ={" "}
+              <span className="text-emerald-400">Upright Piano (C)</span>
               <br />
             </div>
             <div>
               <b>In Practice</b>:<br />
-              Trees are used to organize your notes
-              <br /> into multiple layers of information.
+              Trees are used to organize your notes into multiple layers of
+              harmonic information.
             </div>
           </>
         }
@@ -67,29 +64,29 @@ export const TutorialExposition = (props: { view: string }) => {
         description={
           <>
             <div>
-              A Pattern is a sequence of notes that can be defined by Scales and
-              played by Samplers.
+              A Pattern is a sequence of pitches that can be written using the
+              Scales of a Tree.
             </div>
 
             <div>
-              <b>Examples</b>:
+              <b>Example Pattern</b>:
               <br />
-              <span className="text-sky-400">{`C Major Scale (A)`}</span>
-              {" * "}
-              <span className="text-emerald-400">{"{ A1 }"}</span>
-              {" = "}
-              <span className="text-emerald-400">{"{ C4 }"}</span>
+              <span className="text-teal-400">{`In Track 1.1.1`},</span>
+              <span className=""> the pitches </span>
+              <span className="text-emerald-400">{" C4 => D4 => E4"}</span>
               <br />
-              <span className="text-sky-400">{`C Major Chord (B)`}</span>
-              {" * "}
-              <span className="text-emerald-400">{"{ B1 + A1 }"}</span>
-              {" = "}
-              <span className="text-emerald-400">{"{ D4 }"}</span>
+              <span className="">{`will autobind to `}</span>
+              <span className="text-emerald-400">{" B1 => B1 + A1 => B2"}</span>
+              <br />
+              <span className="">{" such that"}</span>
+              <span className="text-emerald-400">{" B1 + A1 "}</span>
+              <span>{" = "}</span>
+              <span className="text-sky-400">{"Step 1 of B, up 1 of A"}</span>
             </div>
             <div>
               <b>In Practice</b>:<br />
-              Patterns are used to express your notes as melodies, harmonies,
-              and rhythms.
+              Patterns are used to schedule the notes that you want to hear
+              sounded out in your piece.
             </div>
           </>
         }
@@ -105,24 +102,29 @@ export const TutorialExposition = (props: { view: string }) => {
         description={
           <>
             <div>
-              A Pose is a transformation that can change the notes of a Scale or
-              a Pattern over time.
+              A Pose is a multidimensional transformation that can move a note
+              along multiple Scales.
             </div>
             <div>
-              <b>Examples</b>:
+              <b>Example Pose</b>:
               <br />
-              <span className="text-sky-400">C Major Scale</span> +{" "}
-              <span className="text-fuchsia-400">{"<t1>"}</span> ={" "}
-              <span className="text-sky-400">Db Major Scale</span>
+              <span className="text-teal-400">{`In Track 1.1.1`},</span>
+              <span className=""> the pose vector </span>
+              <span className="text-fuchsia-300">{" <A3 + B-1> "}</span>
               <br />
-              <span className="text-emerald-400">{`{ C4, E4, G4 }`}</span> +{" "}
-              <span className="text-fuchsia-400">{"<r-1>"}</span> ={" "}
-              <span className="text-emerald-400">{`{ G3, C4, E4 }`}</span>
+              <span className="">{" moves"}</span>
+              <span className="text-emerald-400">{" C4 => D4 => E4"}</span>
+              <span>{" to "}</span>
+              <span className="text-emerald-400">{"C4 => D4 => F4"}</span>
+              <br />
+              <span className="text-fuchsia-300">
+                {" (3 steps up Scale A + 1 step down Scale B)"}
+              </span>
             </div>
             <div>
               <b>In Practice</b>:<br />
               Poses are used to develop your notes with progressive effects that
-              cascade down trees.
+              can be reused.
             </div>
           </>
         }

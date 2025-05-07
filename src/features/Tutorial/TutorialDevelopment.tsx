@@ -17,44 +17,41 @@ export const TutorialDevelopment = (props: { view: string }) => {
         border="ring-indigo-600/80"
         className="rounded-lg"
         title="Develop Trees"
-        subtitle="With Voice Leadings"
+        subtitle="With New Poses"
         stripColor="border-b border-b-indigo-500/80"
         Icon={GiWireframeGlobe}
         description={
           <>
+            <div>Scales can be developed with Poses.</div>
             <div>
-              Trees can be developed by scheduling Poses to explore different
-              voice leadings of notes.
+              <div>
+                <b>Example Tree:</b>
+              </div>
+              <span className="text-teal-400">Track 1</span> ={" "}
+              <span className="text-sky-400">G Major Scale (A)</span>
+              <br />
+              <span className="text-teal-400">Track 1.1</span> ={" "}
+              <span className="text-sky-400">G Major Chord (B)</span>
+              <br />
+              <span className="text-teal-400">Track 1.1.1</span>
+              {" = "}
+              <span className="text-sky-400">B Note (C)</span>
+              <br />
             </div>
             <div>
-              <b>By Transposition:</b>
+              If we place <span className="text-fuchsia-400">A1</span> in
+              <span className="text-teal-400"> Track 1.1</span>:
               <br />
-              <span className="text-sky-400">{"C Major Scale"}</span>
-              {" + "}
-              <span className="text-fuchsia-400">{"<t3, r-2>"}</span>
-              {" = "}
-              <span className="text-sky-400">{"C Minor Scale"}</span>
+              <span className="text-teal-400">Track 1</span> ={" "}
+              <span className="text-sky-400">G Major Scale (A)</span>
               <br />
-              <span className="text-emerald-400">{"{C4, E4, G4}"}</span>
-              {" + "}
-              <span className="text-fuchsia-400">{"<t7, r-2>"}</span>
-              {" = "}
-              <span className="text-emerald-400">{"{ B3, D4, G4 }"}</span>
-            </div>
-            <div>
-              <b>By Pitch Lead:</b>
+              <span className="text-teal-400">Track 1.1</span> ={" "}
+              <span className="text-sky-400">A Minor Chord (B)</span>
               <br />
-              <span className="text-sky-400">{"C Major Chord"}</span>
-              {" + "}
-              <span className="text-fuchsia-400">{"<*E-1>"}</span>
+              <span className="text-teal-400">Track 1.1.1</span>
               {" = "}
-              <span className="text-sky-400">{"C Minor Chord"}</span>
+              <span className="text-sky-400">C Note (C)</span>
               <br />
-              <span className="text-emerald-400">{"{C4, E4, G4}"}</span>
-              {" + "}
-              <span className="text-fuchsia-400">{"<*C-1, *E-2>"}</span>
-              {" = "}
-              <span className="text-emerald-400">{"{B4, D4, G4}"}</span>
             </div>
           </>
         }
@@ -63,52 +60,53 @@ export const TutorialDevelopment = (props: { view: string }) => {
         border="ring-teal-600/80"
         className="rounded-lg"
         title="Develop Patterns"
-        subtitle="With Harmonic Functions"
+        subtitle="With New Bindings"
         stripColor="border-b border-b-teal-500/80"
         Icon={GiAbacus}
         description={
           <>
+            <div>Patterns can be developed with Poses.</div>
             <div>
-              Patterns can be developed by binding notes with different harmonic
-              functions.
+              <b>Basic Motion:</b>
+              <br />
+              <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
+              {" + "}
+              <span className="text-fuchsia-400">{"<t1>"}</span>
+              {" = "}
+              <span className="text-emerald-400">{"(C#4, E#4, G#4)"}</span>
+              <br />
+              <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
+              {" + "}
+              <span className="text-fuchsia-400">{"<r1>"}</span>
+              {" = "}
+              <span className="text-emerald-400">{"(E4, G4, C5)"}</span>
+              <br />
+              <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
+              {" + "}
+              <span className="text-fuchsia-400">{"<y1>"}</span>
+              {" = "}
+              <span className="text-emerald-400">{"(C5, E5, G5)"}</span>
             </div>
             <div>
-              <b>F as a Chromatic Neighbor (t):</b>
+              <b>Voice Leading:</b>
               <br />
-              <span className="text-sky-400">{`C Major Chord (B)`}</span>
-              {" * "}
-              <span className="text-emerald-400">{"{ B2 + t1 }"}</span>
-              {" = "}
-              <span className="text-emerald-400">{"{ F4 }"}</span>
-              <br />
-              <span className="text-emerald-400">{`{ C4, E4`}</span>
-              <span className="text-cyan-500">{`, F4`}</span>
-              <span className="text-emerald-400">{` }`}</span>
+              <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
               {" + "}
-              <span className="text-fuchsia-400">{"<B1>"}</span>
+              <span className="text-fuchsia-400">{"<t5, r-1>"}</span>
               {" = "}
-              <span className="text-emerald-400">{`{E4, G4`}</span>
-              <span className="text-cyan-500">{`, Ab4`}</span>
-              <span className="text-emerald-400">{` }`}</span>
-            </div>
-            <div>
-              <b>F as a Diatonic Neighbor (A):</b>
+              <span className="text-emerald-400">{"(C4, F4, A4)"}</span>
               <br />
-              <span className="text-sky-400">{`C Major Chord (B)`}</span>
-              {" * "}
-              <span className="text-emerald-400">{"{ B2 + A1 }"}</span>
-              {" = "}
-              <span className="text-emerald-400">{"{ F4 }"}</span>
-              <br />
-              <span className="text-emerald-400">{`{ C4, E4`}</span>
-              <span className="text-cyan-500">{`, F4`}</span>
-              <span className="text-emerald-400">{` }`}</span>
+              <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
               {" + "}
-              <span className="text-fuchsia-400">{"<B1>"}</span>
+              <span className="text-fuchsia-400">{"<t7, r-2>"}</span>
               {" = "}
-              <span className="text-emerald-400">{`{E4, G4`}</span>
-              <span className="text-cyan-500">{`, A4`}</span>
-              <span className="text-emerald-400">{` }`}</span>
+              <span className="text-emerald-400">{"(B3, D4, G4)"}</span>
+              <br />
+              <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
+              {" + "}
+              <span className="text-fuchsia-400">{"<r3, y-1>"}</span>
+              {" = "}
+              <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
             </div>
           </>
         }
@@ -122,47 +120,48 @@ export const TutorialDevelopment = (props: { view: string }) => {
         Icon={GiHand}
         description={
           <>
+            <div>Trees can be developed with hotkeys.</div>
             <div>
-              Poses can be created and developed with keyboard gestures{" "}
-              <span
-                className="text-fuchsia-200 hover:opacity-85"
-                onMouseEnter={() => dispatchOpen("livePlay")}
-                onMouseLeave={() => dispatchClose("livePlay")}
-              >
-                (hover for details)
-              </span>
-              .
+              <b>Poses:</b>
+              <br />
+              <span className="text-sky-400">{"Hold Q/W/E "}</span>
+              {" + "}
+              <span className="text-violet-400">{"Press #"}</span>
+              {" = "}
+              <span className="text-fuchsia-400">{"<A#, B#, C#>"}</span>
+              <br />
+              <span className="text-sky-400">{"Hold R/T/Y "}</span>
+              {" + "}
+              <span className="text-violet-400">{"Press #"}</span>
+              {" = "}
+              <span className="text-fuchsia-400">{"<r#, t#, y#>"}</span>
+              <br />
+              <span className="text-sky-400">{"(Hold Any)"}</span>
+              {" + "}
+              <span className="text-violet-400">{"Press 0"}</span>
+              {" = "}
+              <span className="text-fuchsia-400">{"Reset position"}</span>
             </div>
             <div>
-              <b>Creating Poses by Shortcut:</b>
+              <b>Samplers:</b>
               <br />
-              <span className="text-sky-400">{"C Major Scale "}</span>
+              <span className="text-emerald-400">{"Hold M"}</span>
               {" + "}
-              <span className="text-violet-400">{"[t + 1]"}</span>
+              <span className="text-violet-400">{"Press #"}</span>
               {" = "}
-              <span className="text-sky-400">{"Db Major Scale"}</span>
+              <span className="text-fuchsia-400">{"Mute/Unmute Track"}</span>
               <br />
-              <span className="text-emerald-400">{"{ C4, E4, G4 }"}</span>
+              <span className="text-emerald-400">{"Hold S"}</span>
               {" + "}
-              <span className="text-violet-400">{"[r + 1]"}</span>
+              <span className="text-violet-400">{"Press #"}</span>
               {" = "}
-              <span className="text-emerald-400">{"{ E4, G4, C5 }"}</span>
+              <span className="text-fuchsia-400">{"Solo/Unsolo Track"}</span>
               <br />
-            </div>
-            <div>
-              <b>Updating Poses by Shortcut:</b>
-              <br />
-              <span className="text-fuchsia-400">{" <t1, r2> "}</span>
+              <span className="text-emerald-400">{"Hold M/S"}</span>
               {" + "}
-              <span className="text-violet-400">{"[t + 2]"}</span>
+              <span className="text-violet-400">{"Press 0"}</span>
               {" = "}
-              <span className="text-fuchsia-400">{" <t3, r2> "}</span>
-              <br />
-              <span className="text-fuchsia-400">{" <t1, r2> "}</span>
-              {" + "}
-              <span className="text-violet-400">{"[r + t + minus + 2]"}</span>
-              {" = "}
-              <span className="text-fuchsia-400">{" <t-1> "}</span>
+              <span className="text-fuchsia-400">{"Unmute/unsolo all"}</span>
               <br />
             </div>
           </>

@@ -1,6 +1,6 @@
-import { GiMusicalScore, GiSoundWaves } from "react-icons/gi";
+import { GiCompactDisc, GiMusicalScore, GiSoundWaves } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
-import { BsCode } from "react-icons/bs";
+import { BsCode, BsRecordCircleFill } from "react-icons/bs";
 import { sonataVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
 import {
@@ -25,7 +25,7 @@ export const TutorialCoda = (props: { view: string }) => {
         border="ring-indigo-600/80"
         className="rounded-lg"
         title="Save Project Data"
-        subtitle="Export to JSON File"
+        subtitle="Export to Native JSON"
         stripColor="border-b border-b-indigo-500/80"
         Icon={BsCode}
         onClick={() => dispatch(exportProjectToJSON())}
@@ -38,13 +38,13 @@ export const TutorialCoda = (props: { view: string }) => {
             <div>
               <b>Diary:</b>
               <br />
-              Open Diary from the Settings Menu to store metadata about your
-              project.
+              Open Diary from the Settings Menu to keep persistent notes about
+              your project.
             </div>
             <div>
               <b>Terminal:</b>
               <br />
-              Open Terminal from the Settings Menu to directly edit the JSON of
+              Open Terminal from the Settings Menu to see and edit the JSON of
               your project.
             </div>
           </>
@@ -53,27 +53,29 @@ export const TutorialCoda = (props: { view: string }) => {
       <TimelineButton
         border="ring-teal-600/80"
         className="rounded-lg"
-        title="Save Note Data"
-        subtitle="Export to MIDI File"
+        title="Export Note Data"
+        subtitle="Export to MIDI and WAV"
         stripColor="border-b border-b-teal-500/80"
         Icon={GiMusicalScore}
         onClick={() => dispatch(exportProjectToMIDI(undefined, true))}
         description={
           <>
             <div>
-              Note data can be saved to MIDI files for use in other music
+              Note data can be saved to MIDI and WAV for use in other music
               notation programs.
             </div>
             <div>
               <b>Entire Project:</b>
               <br />
-              Open the Project Menu (Compact Disc) and press Export to MIDI.
+              Open the Project Menu by hovering over the{" "}
+              <GiCompactDisc className="inline" /> icon, then press Export to
+              WAV or MIDI.
             </div>
             <div>
               <b>Selected Clips:</b>
               <br />
-              Right click to open the dropdown menu, then press Selection and
-              Export to MIDI.
+              Right click to open the dropdown menu, then go to Selection and
+              press Export.
             </div>
           </>
         }
@@ -81,8 +83,8 @@ export const TutorialCoda = (props: { view: string }) => {
       <TimelineButton
         border="ring-fuchsia-600/80"
         className="rounded-lg"
-        title="Save Audio Data"
-        subtitle="Export to WAV File"
+        title="Record Note Data"
+        subtitle="Capture Browser Audio"
         stripColor="border-b border-b-fuchsia-400/80"
         Icon={GiSoundWaves}
         onClick={() =>
@@ -91,19 +93,20 @@ export const TutorialCoda = (props: { view: string }) => {
         description={
           <>
             <div>
-              Audio data can be saved to WAV files for playback, sampling, and
-              sharing.
+              Browser audio can be recorded to MIDI and WAV for playback,
+              sampling, and sharing.
             </div>
             <div>
-              <b>Entire Project:</b>
+              <b>Start Recording:</b>
               <br />
-              Open the Project Menu (Compact Disc) and press Export to WAV.
+              Click the <BsRecordCircleFill className="inline" /> button to
+              start recording, then start playback to begin capturing audio.
             </div>
             <div>
-              <b>Live Session:</b>
+              <b>Save Recording:</b>
               <br />
-              Click Record to start capturing audio, then again to download your
-              playback.
+              Click the <BsRecordCircleFill className="inline" /> button to stop
+              recording, then follow the menu to download your file.
             </div>
           </>
         }

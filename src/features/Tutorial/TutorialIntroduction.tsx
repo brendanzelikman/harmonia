@@ -17,7 +17,7 @@ export const tutorialVariants = {
     scale: 1,
     transition: {
       delayChildren: 0.1,
-      staggerChildren: 0.15,
+      staggerChildren: 0.1,
     },
   },
 };
