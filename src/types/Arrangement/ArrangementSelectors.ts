@@ -35,7 +35,6 @@ import { selectPoseState } from "types/Pose/PoseSelectors";
 import { getPatternClipMidiStream } from "./ArrangementFunctions";
 import { TrackArrangement } from "./ArrangementTypes";
 import { Project } from "types/Project/ProjectTypes";
-import { isScaleTrack } from "types/Track/TrackTypes";
 
 /** Select the map of all portaled clips. */
 export const selectPortaledClipMap = createDeepSelector(
@@ -181,8 +180,12 @@ export const selectPortaledPatternClipStream = (
 };
 /** Select all pattern chords to be played by each track at every tick. */
 export const selectMidiChordsByTicks = createDeepSelector(
-  [selectProcessedArrangement, selectPortaledPatternClipStreamMap],
-  (arrangement, streamMap) => {
+  [
+    selectProcessedArrangement,
+    selectPortaledPatternClipStreamMap,
+    selectTrackDescendantIdMap,
+  ],
+  (arrangement, streamMap, descendantMap) => {
     const result = {} as InstrumentNotesByTicks;
 
     // Iterate through each clip stream
@@ -194,11 +197,13 @@ export const selectMidiChordsByTicks = createDeepSelector(
       const streamLength = stream?.length;
       if (!streamLength) continue;
 
-      // Get the instrument of the pattern tracks
+      // Skip if on a scale track scheduling for ancestors
       const trackId = arrangement.patternClips[id]?.trackId;
+      if (descendantMap[trackId].some(isPatternTrackId)) continue;
+
+      // Get the instrument (sampler or global for scales)
       const track = arrangement.tracks[trackId];
-      if (isScaleTrack(track)) continue;
-      const instrumentStateId = track.instrumentId;
+      const instrumentStateId = track.instrumentId ?? "global";
 
       // Add all notes to the stream
       for (let j = 0; j < streamLength; j++) {

@@ -7,8 +7,6 @@ import {
   PoseClipMap,
   PatternClipState,
   PoseClipState,
-  ClipType,
-  IClip,
   PoseClip,
 } from "types/Clip/ClipTypes";
 import {
