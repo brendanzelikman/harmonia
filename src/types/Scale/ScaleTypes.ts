@@ -111,12 +111,12 @@ export const isScaleId = (obj: unknown): obj is ScaleId => {
 };
 
 export const isMidiValue = (obj: unknown): obj is MidiValue => {
-  return isNumber(obj);
+  return isNumber(obj) && !isNaN(obj);
 };
 
 /** Checks if a given object is of type `MidiObject`. */
 export const isMidiObject = (obj: unknown): obj is MidiObject => {
-  return isObject(obj) && isNumber(obj.MIDI);
+  return isObject(obj) && isNumber(obj.MIDI) && !isNaN(obj.MIDI);
 };
 
 /** Checks if a given object is of type `MidiNote`. */

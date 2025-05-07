@@ -8,8 +8,10 @@ import {
   isScaleNoteObject,
   isMidiObject,
   NestedNote,
+  isMidiValue,
 } from "types/Scale/ScaleTypes";
 import { MidiObject } from "utils/midi";
+import { isArray } from "lodash";
 
 // ------------------------------------------------------------
 // Pattern Generics
@@ -103,12 +105,13 @@ export const isPlayableNote = (obj: unknown): obj is Playable<unknown> => {
 
 /** Checks if a given object is a rest note. */
 export const isPatternRest = (obj: unknown): obj is PatternRest => {
-  const candidate = obj as PatternNote;
+  const candidate = obj as PatternNote & { MIDI?: number; degree?: number };
   return (
-    isObject(obj) &&
-    "duration" in candidate &&
-    !("MIDI" in candidate) &&
-    !("degree" in candidate)
+    (isObject(obj) &&
+      "duration" in candidate &&
+      !isMidiValue(candidate.MIDI) &&
+      !isMidiValue(candidate.degree)) ||
+    (isArray(obj) && obj.every(isPatternRest))
   );
 };
 

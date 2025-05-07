@@ -8,7 +8,7 @@ export const mod = (n: number, m: number) => ((n % m) + m) % m;
 export const format = (x: number, d = 2) => parseFloat(x.toFixed(d));
 
 /** Sanitize a number */
-export const sanitize = (x: number) => (isNaN(x) ? 0 : x);
+export const sanitize = (x?: number) => (x ? (isNaN(x) ? 0 : x) : 0);
 
 /** Normalize a number in a range (i.e. 0 - 1). */
 export const normalize = (x: number, m: number, n: number) => (x - m) / (n - m);

@@ -16,7 +16,7 @@ import {
   isPatternStrummedMidiChord,
 } from "./PatternTypes";
 import { Chords } from "lib/presets/patterns";
-import { initializeScale } from "types/Scale/ScaleTypes";
+import { initializeScale, isMidiValue } from "types/Scale/ScaleTypes";
 import { STAFF_PIVOT } from "utils/xml";
 import { isNumber } from "types/utils";
 import { range } from "utils/array";
@@ -166,7 +166,7 @@ export const flattenMidiStreamValues = (
 ): MidiScale => {
   return flattenMidiStreamNotes(stream)
     .map((n) => n?.MIDI ?? undefined)
-    .filter(isNumber);
+    .filter(isMidiValue);
 };
 
 export const getMidiStreamStaves = (stream: PatternMidiStream) => {

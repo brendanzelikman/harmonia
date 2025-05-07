@@ -26,6 +26,7 @@ import {
 import { Payload, unpackData, unpackUndoType } from "types/redux";
 import { TrackId } from "types/Track/TrackTypes";
 import { getMidiFrequency } from "utils/midi";
+import { isMidiObject } from "types/Scale/ScaleTypes";
 
 /** Creates a pattern and adds it to the slice. */
 export const createPattern =
@@ -97,10 +98,26 @@ export const randomizePattern =
     const neighbors = scales.slice(0, scales.length - 1);
     const neighborChance = neighbors.length ? 0.5 : 0;
 
+    let isStraight = true;
+    const firstDuration = getPatternBlockDuration(pattern.stream[0]);
+    const durations: number[] = [];
+
+    // Check if the pattern is straight
+    if (pattern.stream.length) {
+      for (let i = 0; i < pattern.stream.length; i++) {
+        const block = pattern.stream[i];
+        const duration = getPatternBlockDuration(block);
+        durations.push(duration);
+        if (i === 0) continue;
+        if (duration !== firstDuration) isStraight = false;
+      }
+    }
+
     // Pick a random note from the scale for each note in the pattern
-    const streamLength =
-      (data.clipDuration ?? WholeNoteTicks) /
-      (data.duration ?? SixteenthNoteTicks);
+    const streamLength = isStraight
+      ? (data.clipDuration ?? WholeNoteTicks) /
+        (data.duration ?? SixteenthNoteTicks)
+      : pattern.stream.length;
     let degrees = range(0, scale.notes.length);
     let stream: PatternStream = [];
     let loopCount = 0;
@@ -109,7 +126,9 @@ export const randomizePattern =
       const degree = sample(degrees) || 0;
       degrees = degrees.filter((d) => d !== degree);
       const velocity = 100;
-      const duration = data.duration ?? SixteenthNoteTicks;
+      const duration = isStraight
+        ? data.duration ?? SixteenthNoteTicks
+        : durations[i];
       const neighborSeed = Math.random();
       const isNeighbor = neighborSeed < neighborChance;
       const neighbor = neighbors.at(-1);
@@ -122,11 +141,12 @@ export const randomizePattern =
       }
       loopCount = 0;
       if (isNeighbor && neighbor) {
-        const offset = { [neighbor.id]: sample([-1, 1]) };
-        stream.push({ ...note, offset });
         i++;
+        const value = sample([-1, 1]);
+        const offset = { [neighbor.id]: value };
+        stream.push({ ...note, duration, offset });
       }
-      stream.push(note);
+      stream.push({ ...note, duration: !isStraight ? durations[i] : duration });
     }
     stream = stream.slice(0, streamLength);
 

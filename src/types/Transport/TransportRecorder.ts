@@ -75,15 +75,15 @@ export const stopRecordingTransport = (): Thunk => async (_, getProject) => {
   let type;
   await promptUserForString({
     title: `Ready for Download!`,
-    description: `Please type "midi" or "wav" to download your recording.`,
+    description: `Please enter "midi", "wav", or "both"`,
     callback: (value) => {
       type = value;
     },
   })();
-  if (type !== "midi" && type !== "wav") return;
+  if (type !== "midi" && type !== "wav" && type !== "both") return;
 
   // Download wav data
-  if (type === "wav") {
+  if (type === "wav" || type === "both") {
     const context = new AudioContext();
     const arrayBuffer = await audio.arrayBuffer();
     const audioBuffer = await context.decodeAudioData(arrayBuffer);
@@ -92,9 +92,8 @@ export const stopRecordingTransport = (): Thunk => async (_, getProject) => {
     const projectName = selectProjectName(getProject());
     const fileName = `${projectName ?? "Project"} Recording.wav`;
     downloadBlob(blob, fileName);
-    return;
   }
-
+  if (type !== "midi" && type !== "both") return;
   const events = stream.split("+");
   const blocks = events.map((event) => JSON.parse(event));
 
