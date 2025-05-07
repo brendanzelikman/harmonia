@@ -5,6 +5,16 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { stopTransport } from "./TransportState";
 import encodeWAV from "audiobuffer-to-wav";
 import { downloadBlob } from "utils/event";
+import {
+  selectInstrumentTrack,
+  selectTrackLabelById,
+} from "types/Track/TrackSelectors";
+import { Midi } from "@tonejs/midi";
+import { selectTransport } from "./TransportSelectors";
+import { PatternMidiChord } from "types/Pattern/PatternTypes";
+import { getPatternMidiChordNotes } from "types/Pattern/PatternUtils";
+import { ticksToSeconds } from "utils/duration";
+import { promptUserForString } from "lib/prompts/html";
 
 // --------------------------------------------------------------
 // Events
@@ -22,6 +32,22 @@ export const broadcastStopRecordingTransport = () => {
   dispatchClose(RECORD_TRANSPORT);
 };
 
+// ---------------------------------------------------------------
+// MIDI
+// ---------------------------------------------------------------
+export const MIDI_RECORDING_KEY = "recordedMidiStream";
+
+/** Add a note to the MIDI stream */
+export const recordToMidiStream = (note: any) => {
+  const noteData = JSON.stringify(note);
+  const midiStream = localStorage.getItem(MIDI_RECORDING_KEY);
+  if (!midiStream) {
+    localStorage.setItem(MIDI_RECORDING_KEY, noteData);
+  } else {
+    localStorage.setItem(MIDI_RECORDING_KEY, midiStream + "+" + noteData);
+  }
+};
+
 // --------------------------------------------------------------
 // Thunks
 // --------------------------------------------------------------
@@ -29,23 +55,82 @@ export const broadcastStopRecordingTransport = () => {
 /** Start recording the transport. */
 export const startRecordingTransport = (): Thunk => () => {
   broadcastStartRecordingTransport();
+  window.localStorage.removeItem(MIDI_RECORDING_KEY);
   if (LIVE_RECORDER_INSTANCE.state === "started") return;
   LIVE_RECORDER_INSTANCE.start();
 };
 
 /** Stop recording the transport and save the recording. */
-export const stopRecordingTransport = (): Thunk => (_, getProject) => {
+export const stopRecordingTransport = (): Thunk => async (_, getProject) => {
   broadcastStopRecordingTransport();
   if (LIVE_RECORDER_INSTANCE.state !== "started") return;
   stopTransport();
-  LIVE_RECORDER_INSTANCE.stop().then(async (toneBlob) => {
+
+  // Download data and stop immediately
+  const audio = await LIVE_RECORDER_INSTANCE.stop();
+  const stream = localStorage.getItem(MIDI_RECORDING_KEY);
+  localStorage.removeItem(MIDI_RECORDING_KEY);
+  if (!stream) return;
+
+  let type;
+  await promptUserForString({
+    title: `Ready for Download!`,
+    description: `Please type "midi" or "wav" to download your recording.`,
+    callback: (value) => {
+      type = value;
+    },
+  })();
+  if (type !== "midi" && type !== "wav") return;
+
+  // Download wav data
+  if (type === "wav") {
     const context = new AudioContext();
-    const arrayBuffer = await toneBlob.arrayBuffer();
+    const arrayBuffer = await audio.arrayBuffer();
     const audioBuffer = await context.decodeAudioData(arrayBuffer);
     const wav = encodeWAV(audioBuffer);
     const blob = new Blob([wav], { type: "audio/wav" });
     const projectName = selectProjectName(getProject());
     const fileName = `${projectName ?? "Project"} Recording.wav`;
     downloadBlob(blob, fileName);
-  });
+    return;
+  }
+
+  const events = stream.split("+");
+  const blocks = events.map((event) => JSON.parse(event));
+
+  const instrumentChordMap: Record<
+    string,
+    { chord: PatternMidiChord; time: number }[]
+  > = blocks.reduce((acc, block) => {
+    const { id, chord, time } = block;
+    if (!acc[id]) {
+      acc[id] = [];
+    }
+    acc[id].push({ chord, time });
+    return acc;
+  }, {});
+
+  const project = getProject();
+  const transport = selectTransport(project);
+  const midi = new Midi();
+  midi.header.setTempo(transport.bpm);
+  let channel = 0;
+  for (const [id, chords] of Object.entries(instrumentChordMap)) {
+    const track = selectInstrumentTrack(project, id);
+    if (!track) continue;
+    const midiTrack = midi.addTrack();
+    midiTrack.name = `Track ${selectTrackLabelById(project, track.id)}`;
+    midiTrack.channel = channel++;
+    for (const { chord, time } of chords) {
+      for (const note of getPatternMidiChordNotes(chord)) {
+        const { MIDI: midi, duration: ticks, velocity } = note;
+        const duration = ticksToSeconds(ticks, transport.bpm);
+        midiTrack.addNote({ midi, time, duration, velocity });
+      }
+    }
+  }
+  if (!channel) return;
+  const fileName = `${selectProjectName(getProject())} Recording.mid`;
+  const blob = new Blob([midi.toArray()], { type: "audio/midi" });
+  downloadBlob(blob, fileName);
 };

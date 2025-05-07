@@ -58,7 +58,7 @@ export function NavbarTransportControl() {
           isRecording ? "bg-red-700/90" : buttonColor,
           borderClass
         )}
-        onClick={() =>
+        onClick={(e) =>
           isRecording
             ? dispatch(stopRecordingTransport())
             : dispatch(startRecordingTransport())

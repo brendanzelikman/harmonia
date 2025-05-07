@@ -292,6 +292,18 @@ export const selectTrackInstrument = createValueSelector(
   selectTrackInstrumentMap
 );
 
+/** Select the record of all instruments to their pattern tracks. */
+export const selectInstrumentTrackMap = createDeepSelector(
+  [selectInstrumentMap, selectTrackMap],
+  (instrumentMap, trackMap) =>
+    mapValues(instrumentMap, (t) => (t ? trackMap[t.trackId] : undefined))
+);
+
+/** Select the track of an instrument. */
+export const selectInstrumentTrack = createValueSelector(
+  selectInstrumentTrackMap
+);
+
 /** Select the record of all tracks to their audio instances. */
 export const selectTrackAudioInstanceMap = createDeepSelector(
   [selectTrackMap],

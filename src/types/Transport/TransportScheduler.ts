@@ -1,23 +1,17 @@
 import { selectMidiChordsByTicks } from "types/Arrangement/ArrangementSelectors";
 import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
 import { playPatternChord } from "types/Pattern/PatternThunks";
-import {
-  EighthNoteTicks,
-  PPQ,
-  QuarterNoteTicks,
-  SixteenthNoteTicks,
-  WholeNoteTicks,
-} from "utils/duration";
+import { PPQ, QuarterNoteTicks, SixteenthNoteTicks } from "utils/duration";
 import { selectTransport } from "./TransportSelectors";
 import { dispatchTick } from "./TransportTick";
 import { Thunk } from "types/Project/ProjectTypes";
 import { getDestination, getTransport } from "tone";
 import {
   selectCellsPerTick,
-  selectSubdivision,
   selectSubdivisionTicks,
 } from "types/Timeline/TimelineSelectors";
-import { format } from "utils/math";
+import { RECORD_TRANSPORT, recordToMidiStream } from "./TransportRecorder";
+import { getToggleValue } from "hooks/useToggle";
 
 let scheduleId: number | undefined = undefined;
 
@@ -108,6 +102,10 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
 
         // Play the realized pattern chord using the sampler
         playPatternChord(instance.sampler, chord, time);
+        if (getToggleValue(RECORD_TRANSPORT)) {
+          const iid = instrumentId;
+          recordToMidiStream({ id: iid, chord, time: time - startTime });
+        }
       }
     }
   }, `1i`);
