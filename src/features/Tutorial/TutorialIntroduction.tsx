@@ -10,14 +10,14 @@ export const tutorialVariants = {
   enter: {
     opacity: 1,
     scale: 1,
-    transition: { delay: 0.4, staggerChildren: 0.4 },
+    transition: { delay: 0, delayChildren: 0.4, staggerChildren: 0.2 },
   },
   show: {
     opacity: 1,
     scale: 1,
     transition: {
-      delayChildren: 0.5,
-      staggerChildren: 0.2,
+      delayChildren: 0.1,
+      staggerChildren: 0.15,
     },
   },
 };

@@ -16,7 +16,7 @@ export default function Tutorial() {
 
   // Keep track of the current viewed
   const [view, setView] = useState("introduction");
-  const [tutorial, setTutorial] = useState(false);
+  const [tutorial, setTutorial] = useState(true);
 
   // Keep track of which tabs the user has visited
   const [visited, setVisited] = useState<Record<string, boolean>>({
@@ -68,7 +68,7 @@ export default function Tutorial() {
           initial="hidden"
           whileInView="visible"
           variants={variants}
-          transition={{ staggerChildren: 0.2 }}
+          transition={{ staggerChildren: 0.05, delayChildren: 0.3 }}
           className="text-2xl mt-4 hidden data-[tutorial=true]:flex gap-x-3 justify-center max-lg:text-lg flex-wrap font-normal text-slate-300"
         >
           <m.div
@@ -139,6 +139,6 @@ export default function Tutorial() {
 }
 
 const variants = {
-  hidden: { opacity: 0, scale: 0 },
-  visible: { opacity: 1, scale: 1 },
+  hidden: { opacity: 0, scaleX: 0 },
+  visible: { opacity: 1, scaleX: 1 },
 };
