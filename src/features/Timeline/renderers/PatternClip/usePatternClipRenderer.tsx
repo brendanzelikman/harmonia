@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { PatternClipId, PortaledPatternClipId } from "types/Clip/ClipTypes";
 import { selectPortaledPatternClip } from "types/Arrangement/ArrangementClipSelectors";
@@ -17,6 +17,7 @@ import {
   selectIsClipSelectedLast,
   selectIsClipSelected,
   selectTrackHeight,
+  selectCellWidth,
 } from "types/Timeline/TimelineSelectors";
 import { POSE_NOTCH_HEIGHT } from "utils/constants";
 import { selectTrackById } from "types/Track/TrackSelectors";
@@ -42,6 +43,8 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
   const track = useAppValue((_) => selectTrackById(_, clip.trackId));
   const dropdown = useClipDropdown(id);
   const [_, drag] = useClipDrag(pcId);
+  const [resizing, setResizing] = useState(false);
+  const cellWidth = useAppValue(selectCellWidth);
 
   // Get timeline properties
   const isSelected = useAppValue((_) => selectIsClipSelected(_, id));
@@ -70,12 +73,21 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
         data-open={!!dropdown}
         data-selected={isSelected}
         data-blur={isBlurred}
+        data-resizing={resizing}
         style={{ top, left, width, height }}
         className={clipClassName}
         onClick={(e) => dispatch(onClipClick(e, { ...clip, id }))}
         onContextMenu={() =>
           dispatch(replaceClipIdsInSelection({ data: [id] }))
         }
+        onMouseOver={(e) => {
+          const clip = (e.nativeEvent.target as HTMLElement).offsetParent;
+          if (!clip) return setResizing(false);
+          const rect = clip.getBoundingClientRect();
+          const offsetAfterClip = e.clientX - rect.left;
+          const widthBeforeLastCell = rect.width - cellWidth;
+          setResizing(offsetAfterClip > widthBeforeLastCell);
+        }}
         onDragStart={() =>
           dispatchCustomEvent("clipDropdown", { value: false })
         }

@@ -90,7 +90,7 @@ export interface ClipComponentProps {
 }
 
 export const clipClassName = classNames(
-  "group absolute flex flex-col border-2 border-b-0 rounded-lg rounded-b-none",
+  "group absolute flex flex-col border-2 border-b-0 rounded-lg rounded-b-none data-[resizing=true]:cursor-col-resize",
   "animate-in fade-in data-[type=pose]:zoom-in slide-in-from-left-2",
   "data-[blur=true]:opacity-50 data-[blur=true]:pointer-events-none",
   "data-[open=true]:min-w-min data-[open=false]:data-[type=pattern]:z-[30] data-[open=true]:data-[type=pattern]:z-40",
@@ -109,14 +109,10 @@ export const useClipDrag = (pcId: PortaledClipId) => {
       if (!clip) return { id: pcId };
       const clientOffset = monitor.getClientOffset();
       const clipRect = clip.getBoundingClientRect();
+      const left = clipRect.left - TRACK_WIDTH;
       const offsetX = clientOffset ? clientOffset.x - clipRect.left : 0;
       const isResizing = offsetX > clipRect.width - cellWidth;
-      return {
-        id: pcId,
-        left: clipRect.left - TRACK_WIDTH,
-        offsetX,
-        isResizing,
-      };
+      return { id: pcId, left, offsetX, isResizing };
     },
     collect: (monitor: any) => ({
       isDragging: monitor.isDragging(),
