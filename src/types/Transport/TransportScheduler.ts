@@ -1,5 +1,8 @@
 import { selectMidiChordsByTicks } from "types/Arrangement/ArrangementSelectors";
-import { LIVE_AUDIO_INSTANCES } from "types/Instrument/InstrumentClass";
+import {
+  getActiveInstances,
+  LIVE_AUDIO_INSTANCES,
+} from "types/Instrument/InstrumentClass";
 import { playPatternChord } from "types/Pattern/PatternThunks";
 import { PPQ, QuarterNoteTicks, SixteenthNoteTicks } from "utils/duration";
 import { selectTransport } from "./TransportSelectors";
@@ -13,7 +16,7 @@ import {
 import {
   getRecordingStart,
   RECORD_TRANSPORT,
-  recordToMidiStream,
+  recordNoteToMidiStream,
 } from "./TransportRecorder";
 import { getToggleValue } from "hooks/useToggle";
 import { parseValue } from "utils/math";
@@ -107,9 +110,9 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
 
         // Play the realized pattern chord using the sampler
         playPatternChord(instance.sampler, chord, time);
-        if (getToggleValue(RECORD_TRANSPORT)) {
-          const iid = instrumentId;
-          recordToMidiStream({
+        const iid = instrumentId;
+        if (getToggleValue(RECORD_TRANSPORT) && getActiveInstances().has(iid)) {
+          recordNoteToMidiStream({
             id: iid,
             chord,
             time: time - (parseValue(getRecordingStart()) ?? startTime),

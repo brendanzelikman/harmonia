@@ -472,7 +472,7 @@ export const DEFAULT_EQUALIZER_LOW_FREQUENCY = 400;
 
 // The mid/high crossover frequency
 export const MIN_EQUALIZER_HIGH_FREQUENCY = 20;
-export const MAX_EQUALIZER_HIGH_FREQUENCY = 10000;
+export const MAX_EQUALIZER_HIGH_FREQUENCY = 5000;
 export const DEFAULT_EQUALIZER_HIGH_FREQUENCY = 2500;
 
 export const defaultEqualizer: EqualizerEffect = {

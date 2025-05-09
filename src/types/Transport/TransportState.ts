@@ -5,7 +5,6 @@ import * as Tone from "tone";
 import { Thunk } from "types/Project/ProjectTypes";
 import { scheduleTransport } from "./TransportScheduler";
 import { dispatchTick } from "./TransportTick";
-import { loadTransport } from "./TransportLoader";
 
 // --------------------------------------------------------------
 // Events

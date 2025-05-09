@@ -40,7 +40,7 @@ export const MIDI_RECORDING_KEY = "recordedMidiStream";
 export const MIDI_TIME_KEY = "recordedMidiTime";
 
 /** Add a note to the MIDI stream */
-export const recordToMidiStream = (note: any) => {
+export const recordNoteToMidiStream = (note: any) => {
   const noteData = JSON.stringify(note);
   const midiStream = localStorage.getItem(MIDI_RECORDING_KEY);
   if (!midiStream) {
@@ -50,6 +50,7 @@ export const recordToMidiStream = (note: any) => {
   }
 };
 
+/** Get the start time of the recorded MIDI stream */
 export const getRecordingStart = () =>
   window.localStorage.getItem(MIDI_TIME_KEY);
 

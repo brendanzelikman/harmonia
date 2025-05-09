@@ -1,5 +1,5 @@
 import { useAppValue } from "hooks/useRedux";
-import { useTick, useTickString } from "types/Transport/TransportTick";
+import { useTickString } from "types/Transport/TransportTick";
 import { useEffect } from "react";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { stopTransport } from "types/Transport/TransportState";
@@ -8,7 +8,6 @@ import { useToggle } from "hooks/useToggle";
 import { RECORD_TRANSPORT } from "types/Transport/TransportRecorder";
 
 export function NavbarTime() {
-  const tick = useTick();
   const string = useTickString();
   const isRecording = useToggle(RECORD_TRANSPORT).isOpen;
   const state = useTransportState();

@@ -82,6 +82,21 @@ export type LiveInstrumentMap = Record<InstrumentId, LiveAudioInstance>;
 export const LIVE_AUDIO_INSTANCES: LiveInstrumentMap = {};
 export const LIVE_RECORDER_INSTANCE = new Recorder();
 
+export const getActiveInstances: () => Set<string> = () => {
+  const instances: string[] = [];
+  let solo = false;
+  for (const id in LIVE_AUDIO_INSTANCES) {
+    const instance = LIVE_AUDIO_INSTANCES[id];
+    if (instance.solo) {
+      solo = true;
+    }
+    if (instance.sampler && !instance.mute && (!solo || instance.solo)) {
+      instances.push(instance.id);
+    }
+  }
+  return new Set(instances);
+};
+
 /** Initialize the sampler with the given object. */
 export const initializeSampler = (obj: LiveAudioInstance) => {
   return obj.sampler.chain(

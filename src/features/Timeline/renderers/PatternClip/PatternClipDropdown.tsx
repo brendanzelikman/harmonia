@@ -216,13 +216,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
       theme="red"
       dropdown={"Erase Note"}
       onClick={deleteNote}
-      icon={
-        isEditing ? (
-          <BsScissors className="text-2xl" />
-        ) : (
-          <FaEraser className="text-xl" />
-        )
-      }
+      icon={<FaEraser className="text-xl" />}
     />
   );
 
