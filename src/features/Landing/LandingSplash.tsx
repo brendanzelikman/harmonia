@@ -4,8 +4,6 @@ import Screenshot from "/screenshot.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useError } from "app/router";
 import { Navbar } from "features/Navbar/Navbar";
-import { NavbarBrand } from "features/Navbar/components/NavbarBrand";
-import { NavbarLink } from "features/Navbar/components/NavbarLink";
 
 const speed = 0.8;
 
@@ -14,10 +12,10 @@ export const Splash = () => {
   const { hasError, errorMessage } = useError();
   const title = "Harmonia";
 
-  let subtitle = "Write Music Like a Pro.";
+  let subtitle = "Calculate Music with Ease.";
   if (hasError) subtitle = "Unexpected Error";
 
-  let subtitle2 = "Explore Harmony with Ease.";
+  let subtitle2 = "Write Sequences in Seconds.";
   if (hasError) subtitle2 = errorMessage;
 
   let button = "Open Playground";

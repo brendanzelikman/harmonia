@@ -108,7 +108,7 @@ export const TutorialExposition = (props: { view: string }) => {
           <>
             <div>
               A Pose is a multidimensional transformation that can move a note
-              along multiple Scales.
+              along your Scales.
             </div>
             <div>
               <b>Example Pose</b>:
