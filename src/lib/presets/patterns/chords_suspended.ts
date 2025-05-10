@@ -3,7 +3,7 @@ import * as _ from "utils/duration";
 
 export const Sus2Chord: Pattern = {
   id: "pattern_preset_sus2-chord",
-  name: "Sus2",
+  name: "Sus2 Chord",
   aliases: ["sus2", "sus2 chord"],
   stream: [
     [_.createQuarterNote(60), _.createQuarterNote(62), _.createQuarterNote(67)],

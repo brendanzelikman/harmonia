@@ -80,17 +80,17 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
       })),
       {
         fieldId: "chordal",
-        scaleName: `Intrinsic Scale (${CHORDAL_KEY})`,
+        scaleName: `Rotation (${CHORDAL_KEY})`,
         name: defaultName,
       },
       {
         fieldId: "chromatic",
-        scaleName: `Chromatic Scale (${CHROMATIC_KEY})`,
+        scaleName: `Semitone (${CHROMATIC_KEY})`,
         name: defaultName,
       },
       {
         fieldId: "octave",
-        scaleName: `Octave Scale (${OCTAVE_KEY})`,
+        scaleName: `Octave (${OCTAVE_KEY})`,
         name: defaultName,
       },
     ].filter((f) => !(("depth" in f ? f.depth || 0 : 0) >= clipDepth));
@@ -320,7 +320,7 @@ export const PoseClipVectorField = (props: PoseClipVectorFieldProps) => {
           </div>
         ) : (
           <div className="p-2 pt-0 text-xs total-center-col size-full">
-            <div>Transpose along</div>
+            <div>Transpose by</div>
             <div className="text-sky-400 whitespace-nowrap">{scaleName}</div>
           </div>
         )}{" "}

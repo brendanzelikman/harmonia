@@ -38,7 +38,7 @@
 <a href="https://brendanzelikman.github.io/harmonia">Visit the Website</a>
 </p>
 
-<img src="public/screenshot.png"/>
+<img src="public/media/screenshot.png"/>
 
 # FAQ
 

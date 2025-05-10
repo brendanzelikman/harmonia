@@ -22,7 +22,7 @@ export type BadgeProps = {
 
 export const Badge = (props: BadgeProps) => (
   <m.div
-    className="h-64 basis-full sm:basis-1/4 p-4 total-center-col text-white text-xl select-none"
+    className="h-64 basis-full md:basis-1/3 lg:basis-1/4 p-4 total-center-col text-white text-xl select-none"
     variants={{
       hidden: { opacity: 0, translateY: 50 },
       show: { opacity: 1, translateY: 0 },

@@ -111,7 +111,7 @@ export const MinorAdd2Chord: Pattern = {
 
 export const MinorAdd4Chord: Pattern = {
   id: "pattern_preset_minor-add4-chord",
-  name: "Minor Add 4 Chord",
+  name: "Minor (Add 4) Chord",
   aliases: ["minadd4", "min add4", "minor add4"],
   stream: [
     [
@@ -125,7 +125,7 @@ export const MinorAdd4Chord: Pattern = {
 
 export const MinorAddSharp4Chord: Pattern = {
   id: "pattern_preset_minor-add#4-chord",
-  name: "Minor Add #4 Chord",
+  name: "Minor (Add #4) Chord",
   aliases: ["minadd#4", "min add#4", "minor add#4"],
   stream: [
     [

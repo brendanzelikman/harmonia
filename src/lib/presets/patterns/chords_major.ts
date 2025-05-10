@@ -125,7 +125,7 @@ export const MajorAddFlat3Chord: Pattern = {
 
 export const MajorAdd4Chord: Pattern = {
   id: "pattern_preset_major-add-4-chord",
-  name: "Major Add 4 Chord",
+  name: "Major (Add 4) Chord",
   aliases: ["majadd4", "maj add4", "major add4"],
   stream: [
     [
@@ -139,7 +139,7 @@ export const MajorAdd4Chord: Pattern = {
 
 export const MajorAddSharp4Chord: Pattern = {
   id: "pattern_preset_major-add-#4-chord",
-  name: "Major Add #4 Chord",
+  name: "Major (Add #4) Chord",
   aliases: ["majadd#4", "maj add#4", "major add#4"],
   stream: [
     [

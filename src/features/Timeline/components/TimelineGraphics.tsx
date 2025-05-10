@@ -183,10 +183,10 @@ const TimelineTopLeftCorner = () => {
         </>
       ) : (
         <>
-          <div className="text-base font-light">Timeline</div>
+          {/* <div className="text-base font-light">Timeline</div>
           <div className="text-slate-400 text-sm">
             (Scroll Grid to Navigate)
-          </div>
+          </div> */}
         </>
       )}
     </div>

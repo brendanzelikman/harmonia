@@ -85,7 +85,7 @@
 
 @font-face {
   font-family: "Nunito";
-  src: url("/public/fonts/nunito.ttf") format("truetype");
+  src: url("/fonts/nunito.ttf") format("truetype");
 }
 
 html,
