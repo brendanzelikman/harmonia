@@ -18,7 +18,7 @@ export const Splash = () => {
   let subtitle2 = "Find Voice Leadings in Seconds.";
   if (hasError) subtitle2 = errorMessage;
 
-  let button = "Open Playground";
+  let button = "Make Music Now";
   if (hasError) button = "Proceed to Website";
 
   return (
