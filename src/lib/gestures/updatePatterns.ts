@@ -15,6 +15,7 @@ import { selectTrackAncestorIdsMap } from "types/Track/TrackSelectors";
 import { TrackId } from "types/Track/TrackTypes";
 import { sumVectors } from "utils/vector";
 import { isNegative, sumVector, getMatch, deleteVector } from "./utils";
+import { getHeldKey } from "hooks/useHeldkeys";
 
 /** Gesture to update the poses of the selected patterns */
 export const offsetSelectedPatternPoses =
@@ -28,12 +29,14 @@ export const offsetSelectedPatternPoses =
     const ancestorMap = selectTrackAncestorIdsMap(project);
     const trackIds = selectSelectedClipTrackIds(project);
     const value = number * (isNegative() ? -1 : 1);
+    const holdingQwerty = ["q", "w", "e", "r", "t", "y"].some(getHeldKey);
 
     // Pre-compute vectors for every selected track
+    const initial = holdingQwerty ? {} : { chordal: value };
     const trackIdVectors = trackIds.reduce(
       (acc, trackId) => ({
         ...acc,
-        [trackId]: sumVector({}, value, ancestorMap[trackId]),
+        [trackId]: sumVector(initial, value, ancestorMap[trackId]),
       }),
       {} as Record<TrackId, PoseVector>
     );

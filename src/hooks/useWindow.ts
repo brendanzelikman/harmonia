@@ -5,6 +5,7 @@ import { useRoute } from "app/router";
 import { DEMOS_BY_KEY } from "lib/demos";
 import { useNavigate, useParams } from "react-router-dom";
 import { loadDemoProject } from "types/Project/ProjectLoaders";
+import { uploadProject } from "app/projects";
 
 /** Custom hook for changing the window title. */
 export function useWindow() {
@@ -27,6 +28,8 @@ export function useWindow() {
     if (view.startsWith("demos") && !!id) {
       const demo = DEMOS_BY_KEY[id];
       if (demo) loadDemoProject(demo.project, () => navigate("/playground"));
+    } else if (view.startsWith("tutorial")) {
+      uploadProject().then(() => navigate("/playground"));
     }
   }, [view, id]);
 

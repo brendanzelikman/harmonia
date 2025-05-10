@@ -40,7 +40,7 @@ export const WaterTreeHotkey: Hotkey = {
 };
 
 export const SampleProjectHotkey: Hotkey = {
-  name: "Load Pattern",
+  name: "Link Project",
   description: "Upload the notes of a project by file",
   shortcut: "l",
   callback: (dispatch) => dispatch(sampleProject()),

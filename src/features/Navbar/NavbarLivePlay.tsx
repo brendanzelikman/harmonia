@@ -7,7 +7,9 @@ import {
   selectSelectedTrackId,
 } from "types/Timeline/TimelineSelectors";
 import {
+  selectPatternTrackIds,
   selectPatternTracks,
+  selectScaleTrackIds,
   selectTrackAncestorIds,
   selectTrackInstrumentMap,
   selectTrackLabelById,
@@ -19,11 +21,12 @@ import { selectTrackScaleNameAtTick } from "types/Arrangement/ArrangementTrackSe
 import { useGestures } from "lib/gestures";
 import { TooltipButton } from "components/TooltipButton";
 import { selectHasTracks } from "types/Track/TrackSelectors";
-import { TRACK_WIDTH } from "utils/constants";
+import { CHORDAL_KEY, TRACK_WIDTH } from "utils/constants";
 import { useToggle } from "hooks/useToggle";
 import { getKeyCode } from "hooks/useHeldkeys";
 import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
+import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 
 export const LivePlayIcon = GiHand;
 
@@ -36,7 +39,12 @@ export const NavbarLivePlay = () => {
 
   // Get selected values
   const patternTracks = useAppValue(selectPatternTracks);
-  const selectedTrackId = useAppValue(selectSelectedTrackId);
+  const selectedTrackId = useAppValue(
+    (_) =>
+      selectSelectedTrackId(_) ??
+      selectPatternTrackIds(_).at(-1) ??
+      selectScaleTrackIds(_).at(-1)
+  );
   const chain = useAppValue((_) => selectTrackAncestorIds(_, selectedTrackId));
   const depth = chain.length - 1;
   const instruments = useAppValue(selectTrackInstrumentMap);
@@ -55,9 +63,8 @@ export const NavbarLivePlay = () => {
   const sign = isNegative ? "-" : "";
   const direction = isNegative ? "Down" : "Up";
 
-  const isHoldingScale = ["q", "w", "e", "r", "t", "y"].some(
-    (key) => holding[getKeyCode(key)]
-  );
+  const scaleKey = qwertyKeys.find((key) => holding[getKeyCode(key)]);
+  const isHoldingScale = !!scaleKey;
   const isPosing = isHoldingScale;
   const isVoiceLeadingDegree =
     holding[getKeyCode("d")] && isSelectingPatternClip;
@@ -113,15 +120,20 @@ export const NavbarLivePlay = () => {
         if (isSoloing) {
           action += solo ? "Unsolo" : "Solo";
         }
-        return `${action} Sampler ${labels[patternTracks[number - 1]?.id]}`;
+        const label = labels[track?.id];
+        const name = getInstrumentName(instrument.key);
+        return `${action} Sampler ${label} (${name})`;
       }
 
       if (isVoiceLeadingDegree) {
-        return `Voice Leading at Degree ${isNegative ? "-" : ""}${keycode}`;
+        const sign = isNegative ? "-" : "";
+        return `Closest Pose (${
+          labelMap[scaleKey ?? "q"]
+        }${sign}${keycode} + ...)`;
       }
 
       if (isVoiceLeadingClosest) {
-        return `Closest Voice Leading #${keycode}`;
+        return `${cardinalMap[keycode]} Closest Pose (By Distance)`;
       }
 
       qwertyKeys.forEach((key) => {
@@ -144,7 +156,8 @@ export const NavbarLivePlay = () => {
         }
         return `Move ${keycode} ${steps} ${direction} Scale`;
       }
-      return `Shortcut #${keycode}`;
+      if (!selectedTrackId) return `Shortcut #${keycode}`;
+      return `Move by ${CHORDAL_KEY}${keycode}`;
     },
     [
       holding,
@@ -173,10 +186,14 @@ export const NavbarLivePlay = () => {
       return `${action} All Tracks`;
     }
     if (isPosing) {
-      return "Remove Selected Scales";
+      return "Clear Scalar Offsets";
     }
-    return "Remove All Values";
-  }, [isPosing, isMixing, isMuting, isSoloing]);
+    if (isSelectingPoseClip) {
+      return "Remove All Values";
+    } else {
+      return "Go to Root";
+    }
+  }, [isPosing, isMixing, isSelectingPoseClip, isMuting, isSoloing]);
 
   const SelectScales = useMemo(
     () => (
@@ -264,10 +281,7 @@ export const NavbarLivePlay = () => {
           Apply Modifiers
         </div>
         <div className="p-1">
-          <p
-            data-dim={isMixing || !isHoldingScale}
-            className="data-[dim=true]:opacity-50"
-          >
+          <p data-dim={isMixing} className="data-[dim=true]:opacity-50">
             <Description
               active={(key) => holding[getKeyCode(key)]}
               keycodes={["-", "`"]}
@@ -283,10 +297,7 @@ export const NavbarLivePlay = () => {
               activeClass="text-emerald-200"
             />
           </p>
-          <p
-            data-dim={isMixing || !isHoldingScale}
-            className="data-[dim=true]:opacity-50"
-          >
+          <p data-dim={isMixing} className="data-[dim=true]:opacity-50">
             <Instruction
               active={holding[getKeyCode("=")]}
               label="Hold Equal:"
@@ -298,39 +309,39 @@ export const NavbarLivePlay = () => {
               activeClass="text-emerald-200"
             />
           </p>
-          {isSelectingPatternClip && (
-            <>
-              <p>
-                <Instruction
-                  active={holding[getKeyCode("c")]}
-                  label="Hold C:"
-                />{" "}
-                <Description
-                  active={holding[getKeyCode("c")]}
-                  label="Voice Lead by Closeness"
-                  activeClass="text-emerald-200"
-                  defaultClass="text-emerald-300"
-                />
-              </p>
-              <p>
-                <Instruction
-                  active={holding[getKeyCode("d")]}
-                  label="Hold D:"
-                />{" "}
-                <Description
-                  active={holding[getKeyCode("d")]}
-                  label="Voice Lead by Degree"
-                  activeClass="text-emerald-200"
-                  defaultClass="text-emerald-300"
-                />
-              </p>
-            </>
-          )}
+
+          <p>
+            <Instruction active={holding[getKeyCode("c")]} label="Hold C:" />{" "}
+            <Description
+              active={holding[getKeyCode("c")]}
+              label={
+                isSelectingPatternClip
+                  ? "Voice Lead by Distance"
+                  : "Select Pattern to Voice Lead"
+              }
+              activeClass="text-emerald-200"
+              defaultClass="text-emerald-300"
+            />
+          </p>
+          <p>
+            <Instruction active={holding[getKeyCode("d")]} label="Hold D:" />{" "}
+            <Description
+              active={holding[getKeyCode("d")]}
+              label={
+                isSelectingPatternClip
+                  ? "Voice Lead by Degree"
+                  : "Select Pattern to Voice Lead"
+              }
+              activeClass="text-emerald-200"
+              defaultClass="text-emerald-300"
+            />
+          </p>
+
           <p>
             <Instruction active={holding[getKeyCode("m")]} label="Hold M:" />{" "}
             <Description
               active={holding[getKeyCode("m")]}
-              label="Mute Samplers"
+              label="Toggle Sampler Mute"
               activeClass="text-emerald-200"
               defaultClass="text-emerald-300"
             />
@@ -339,7 +350,7 @@ export const NavbarLivePlay = () => {
             <Instruction active={holding[getKeyCode("s")]} label="Hold S:" />{" "}
             <Description
               active={holding[getKeyCode("s")]}
-              label="Solo Samplers"
+              label="Toggle Sampler Solo"
               activeClass="text-emerald-200"
               defaultClass="text-emerald-300"
             />
@@ -371,12 +382,7 @@ export const NavbarLivePlay = () => {
             <p
               key={keycode}
               className={`${
-                !isHoldingScale &&
-                !isMixing &&
-                !isVoiceLeadingDegree &&
-                !isVoiceLeadingClosest
-                  ? "opacity-50"
-                  : "opacity-100"
+                !selectedTrackId ? "opacity-50" : "opacity-100"
               } normal-case`}
             >
               <Description
@@ -397,24 +403,22 @@ export const NavbarLivePlay = () => {
               />
             </p>
           ))}
-          {isSelectingPoseClip && (
-            <p>
-              <Description
-                active={(key) => holding[getKeyCode(key)]}
-                keycodes={["0"]}
-                label="Press 0:"
-                activeClass="text-white"
-                defaultClass="text-slate-400"
-              />{" "}
-              <Description
-                active={(key) => holding[getKeyCode(key)]}
-                keycodes={["0"]}
-                label={getZeroLabel()}
-                defaultClass="text-fuchsia-300"
-                activeClass="text-fuchsia-200"
-              />
-            </p>
-          )}
+          <p>
+            <Description
+              active={(key) => holding[getKeyCode(key)]}
+              keycodes={["0"]}
+              label="Press 0:"
+              activeClass="text-white"
+              defaultClass="text-slate-400"
+            />{" "}
+            <Description
+              active={(key) => holding[getKeyCode(key)]}
+              keycodes={["0"]}
+              label={getZeroLabel()}
+              defaultClass="text-fuchsia-300"
+              activeClass="text-fuchsia-200"
+            />
+          </p>
         </div>
       </div>
     ),
@@ -486,16 +490,14 @@ export const NavbarLivePlay = () => {
           </div>
         ) : isVoiceLeadingClosest ? (
           <div className="h-[68px] total-center-col">
-            <div className="text-base font-light">
-              Closest Pose Along Scales
-            </div>
+            <div className="text-base font-light">Closest Pose By Distance</div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {C} + {Number})
             </div>
           </div>
         ) : isVoiceLeadingDegree ? (
           <div className="h-[68px] total-center-col">
-            <div className="text-base font-light">Closest Pose At Degree </div>
+            <div className="text-base font-light">Closest Pose By Degree </div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {D} + {Number})
             </div>
@@ -636,3 +638,15 @@ const Description = memo(
     );
   }
 );
+
+const cardinalMap: Record<string, string> = {
+  1: "1st",
+  2: "2nd",
+  3: "3rd",
+  4: "4th",
+  5: "5th",
+  6: "6th",
+  7: "7th",
+  8: "8th",
+  9: "9th",
+};

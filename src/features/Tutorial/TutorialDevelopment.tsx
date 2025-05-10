@@ -46,11 +46,11 @@ export const TutorialDevelopment = (props: { view: string }) => {
               <span className="text-sky-400">C Major Scale (A)</span>
               <br />
               <span className="text-teal-400">Track 1.1</span> ={" "}
-              <span className="text-sky-400">D Minor Chord (B)</span>
+              <span className="text-fuchsia-400">D Minor Chord (B)</span>
               <br />
               <span className="text-teal-400">Track 1.1.1</span>
               {" = "}
-              <span className="text-sky-400">D Minor Third (C)</span>
+              <span className="text-fuchsia-400">D Minor Third (C)</span>
               <br />
             </div>
           </>
@@ -60,7 +60,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
         border="ring-teal-600/80"
         className="rounded-lg"
         title="Develop Patterns"
-        subtitle="With New Bindings"
+        subtitle="With Contrasting Motion"
         stripColor="border-b border-b-teal-500/80"
         Icon={GiAbacus}
         description={

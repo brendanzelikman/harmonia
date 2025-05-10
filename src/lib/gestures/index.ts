@@ -61,8 +61,8 @@ export const keydown =
       return;
     }
 
-    // Create or update a pose at the current tick
-    if (!some(["q", "w", "e", "r", "t", "y"].map(getHeldKey))) return;
+    // // Create or update a pose at the current tick
+    // if (!some(["q", "w", "e", "r", "t", "y"].map(getHeldKey))) return;
 
     // Handle voice leading by closeness (push chordal when one key)
     if (getHeldKey("c")) {

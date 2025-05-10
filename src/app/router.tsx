@@ -16,6 +16,7 @@ export const router = createHashRouter([
   { path: "/demos/:id", element: <HomePage />, ErrorBoundary: LandingPage },
   { path: "/samples", element: <HomePage />, ErrorBoundary: LandingPage },
   { path: "/playground", element: <HomePage />, ErrorBoundary: LandingPage },
+  { path: "/tutorial", element: <HomePage />, ErrorBoundary: LandingPage },
 ]);
 
 /** Get the name of the current route. */
@@ -42,7 +43,7 @@ export const useError = () => {
 
   // Create a stack trace component
   const Stack = () => (
-    <div className="w-full absolute p-4 bg-slate-800 text-slate-50">
+    <div className="w-full absolute p-4 mt-4 bg-slate-800 text-slate-50">
       <pre className="text-xs">{stack}</pre>
     </div>
   );

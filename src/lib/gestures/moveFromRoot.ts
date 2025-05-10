@@ -13,9 +13,12 @@ import {
   selectScaleTrackIds,
   selectPatternTracks,
   selectTrackAncestorIdsMap,
+  selectPatternTrackIds,
 } from "types/Track/TrackSelectors";
 import { sumVectors } from "utils/vector";
 import { getMatch, isNegative, sumVector } from "./utils";
+import { getHeldKey } from "hooks/useHeldkeys";
+import { isEmpty } from "lodash";
 
 /** Gesture to create or update poses at the current tick */
 export const updatePoseAtCursorGesture =
@@ -24,20 +27,22 @@ export const updatePoseAtCursorGesture =
     const project = getProject();
     const undoType = createUndoType(nanoid());
     const scaleTrackIds = selectScaleTrackIds(project);
-    const patternTracks = selectPatternTracks(project);
+    const patternTrackIds = selectPatternTrackIds(project);
     const selectedTrackId = selectSelectedTrackId(project);
     const ancestorMap = selectTrackAncestorIdsMap(project);
     const poseClips = selectPoseClips(project);
     const poseMap = selectPoseMap(project);
     const value = number * (isNegative() ? -1 : 1);
+    const isHoldingQwerty = ["q", "w", "e", "r", "t", "y"].some(getHeldKey);
 
     // If no clips are selected, try to find a track or return
-    const trackId =
-      selectedTrackId ?? scaleTrackIds.at(-1) ?? patternTracks[0]?.id;
+    const trackId = selectedTrackId ?? patternTrackIds[0] ?? scaleTrackIds[0];
     if (!trackId) return;
 
     // Get the vector based on the track
-    const vector = sumVector({}, value, ancestorMap[trackId]);
+    const ancestors = ancestorMap[trackId];
+    const initial = isHoldingQwerty ? {} : { chordal: value };
+    const vector = sumVector(initial, value, ancestors);
 
     // If the cursor is on a pose, update its vector
     const tick = selectCurrentTimelineTick(project);
@@ -50,7 +55,7 @@ export const updatePoseAtCursorGesture =
     }
 
     // Otherwise, create a new pose with the given vector
-    else {
+    else if (!isEmpty(vector)) {
       const pose = { vector };
       const clip = { tick, trackId };
       dispatch(createNewPoseClip({ data: { pose, clip }, undoType }));

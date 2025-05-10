@@ -11,7 +11,7 @@ import {
 export const LandingDescription = () => {
   return (
     <LandingSection className="py-10 px-5">
-      <PopupHeader title="What is Harmonia?" />
+      <PopupHeader title="Tonality At Your Fingertips." />
       <m.div
         className="w-full flex flex-wrap justify-center gap-16"
         variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}
@@ -34,33 +34,33 @@ export const LandingDescription = () => {
 };
 
 const descriptions = {
-  "Sandbox Environment": {
+  "Digital Audio Workstation": {
     items: [
-      "Compose Music in the Browser",
-      "Read And Write JSON Projects",
-      "Exportable To MIDI and WAV",
-      "Demos and Samples Included",
-      "No Sign-up or Login Required",
+      "Local-First Sandbox Environment",
+      "Read and Write Projects in JSON",
+      "Export Data To MIDI and WAV",
+      "Learn with Demos and Tutorials",
+      "No Installation Or Setup Required",
     ],
     icon: <GiMusicalScore />,
   },
-  "Musical Calculator": {
+  "Voice Leading Calculator": {
     items: [
-      "Express Tonal Syntax",
-      "Create Trees of Scales",
-      "Write Nested Patterns",
-      "Explore Different Poses",
-      "Apply Sequential Logic",
+      "Cutting-Edge Musical Operations",
+      "Scales with Hierarchical Structures",
+      "Patterns with Harmonic Functions",
+      "Poses with Multidimensional Logic",
+      "Programmable JavaScript Effects",
     ],
     icon: <GiCalculator />,
   },
-  "Digital Instrument": {
+  "Virtual Musical Instrument": {
     items: [
-      "Make Sound in the Browser",
+      "Browser-Powered Audio Engine",
+      "Custom Instruments and Effects",
       "Interactive Keyboard Gestures",
-      "Customizable Audio Effects",
-      "Open-Source Sample Library",
-      "Record Browser Playback",
+      "Record to MIDI and WAV",
+      "Upload Your Own Samples",
     ],
     icon: <GiMusicalKeyboard />,
   },
