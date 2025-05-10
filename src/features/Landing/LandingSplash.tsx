@@ -12,7 +12,7 @@ export const Splash = () => {
   const { hasError, errorMessage } = useError();
   const title = "Harmonia";
 
-  let subtitle = "The Musical Graphing Calculator.";
+  let subtitle = "Expressive Musical Calculation.";
   if (hasError) subtitle = "Unexpected Error";
 
   let subtitle2 = "Find Voice Leadings in Seconds.";
