@@ -145,28 +145,16 @@ export const TutorialDevelopment = (props: { view: string }) => {
               {" + "}
               <span className="text-violet-400">{"Press 0"}</span>
               {" = "}
-              <span className="text-fuchsia-400">{"Reset all or value"}</span>
+              <span className="text-fuchsia-400">{"Clear Offset"}</span>
             </div>
             <div>
-              <b>Samplers:</b>
+              <b>Shortcuts:</b>
               <br />
-              <span className="text-emerald-400">{"Hold M"}</span>
-              {" + "}
-              <span className="text-violet-400">{"Press #"}</span>
-              {" = "}
-              <span className="text-fuchsia-400">{"Mute/Unmute Track"}</span>
-              <br />
-              <span className="text-emerald-400">{"Hold S"}</span>
-              {" + "}
-              <span className="text-violet-400">{"Press #"}</span>
-              {" = "}
-              <span className="text-fuchsia-400">{"Solo/Unsolo Track"}</span>
-              <br />
-              <span className="text-emerald-400">{"Hold M/S"}</span>
-              {" + "}
-              <span className="text-violet-400">{"Press 0"}</span>
-              {" = "}
-              <span className="text-fuchsia-400">{"Unmute/unsolo all"}</span>
+              <span className="text-slate-300">
+                For the full list of Keyboard Gestures, hover over the{" "}
+                <GiHand className="inline-flex" /> icon near the top left corner
+                of the website.
+              </span>
               <br />
             </div>
           </>

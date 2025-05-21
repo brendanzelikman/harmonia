@@ -13,8 +13,8 @@ import { Badge } from "./components/LandingBadge";
 
 export const LandingLibraries = () => {
   return (
-    <LandingSection className="border-t border-slate-300/20 pt-12 bg-slate-950/80">
-      <PopupHeader title="Powered by the best libraries" />
+    <LandingSection className="pt-12">
+      <PopupHeader title="Powered by the Web" />
       <m.div
         className="flex flex-wrap gap-y-12 pt-12"
         variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}

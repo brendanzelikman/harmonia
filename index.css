@@ -88,6 +88,11 @@
   src: url("/fonts/nunito.ttf") format("truetype");
 }
 
+@font-face {
+  font-family: "Raleway";
+  src: url("/fonts/raleway.ttf") format("truetype");
+}
+
 html,
 body,
 #root {
