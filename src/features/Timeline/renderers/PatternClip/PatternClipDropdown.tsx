@@ -104,7 +104,9 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const isEditing = index !== undefined;
   const isEmpty = !pattern.stream.length;
   const isMidi = pattern.stream.every(isPatternMidiBlock);
-  const [type, setType] = useState<NoteType>(isMidi ? "pedal" : "scale");
+  const [type, setType] = useState<NoteType>(
+    isEmpty ? "scale" : isMidi ? "pedal" : "scale"
+  );
   const isBinding = type === "scale";
   const record = useToggle("record-pattern");
 

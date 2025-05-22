@@ -7,6 +7,8 @@ import {
 } from "react-icons/gi";
 import Composition from "/media/composition.gif";
 import Improvisation from "/media/improvisation.mov";
+import Progression from "/media/progression.mov";
+import ProgressionGif from "/media/progression.gif";
 import Performance from "/media/performance.mov";
 import Screenshot from "/media/screenshot.png";
 
@@ -16,7 +18,7 @@ export const LandingDescription = () => {
       <div className="animate-in fade-in duration-300 gap-8 mb-8 w-full px-12 text-3xl font-bold rounded">
         <div className="max-[1300px]:hidden w-full gap-4 flex justify-center items-center">
           <div className="rounded-xl p-1 px-2 transition-all animate-in fade-in duration-300">
-            Voice Lead With Precision and Clarity.
+            Find Voice Leadings with Precision and Ease.
           </div>
         </div>
       </div>
@@ -27,31 +29,31 @@ export const LandingDescription = () => {
         whileInView="show"
         transition={{ delayChildren: 0.2, staggerChildren: 0.25 }}
       >
-        <div className="flex flex-col rounded-xl overflow-hidden">
+        <div className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90">
           <img
             src={Screenshot}
             className="shadow-2xl h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
           />
-          <div className="flex flex-col h-full gap-2 my-auto text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Design Trees of Tracks</div>
+          <div className="flex flex-col h-full gap-2 my-auto text-2xl text-slate-300 bg-slate-950/64 p-4 pt-2 font-light">
+            <div>Design "Trees" of Chords and Scales</div>
             <div className="text-lg text-slate-400">
-              Model the Geometry of Musical Space
+              Model the Geometry of Any Kind of Music
             </div>
           </div>
         </div>
-        <div className="flex flex-col rounded-xl overflow-hidden">
+        <div className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90">
           <img
             src={Composition}
-            className="shadow-2xl h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
+            className="shadow-2xl h-64 w-xl object-cover object-bottom-left p-4 bg-slate-950/90"
           />
           <div className="flex flex-col h-full gap-2 my-auto text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Develop Scales and Patterns</div>
+            <div>Develop Notes with Musical "Poses"</div>
             <div className="text-lg text-slate-400">
-              Schedule Mathematical Transformations
+              Transform Patterns with Mathematical Operations
             </div>
           </div>
         </div>
-        <div className="flex flex-col rounded-xl overflow-hidden">
+        <div className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90">
           <video
             src={Improvisation}
             loop
@@ -59,13 +61,13 @@ export const LandingDescription = () => {
             className="shadow-2xl h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full gap-2 my-auto text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Perform Keyboard Gestures</div>
+            <div>Move Quickly with Keyboard Gestures</div>
             <div className="text-lg text-slate-400">
-              Transform and Mix with Shortcuts
+              Generate, Edit, and Mix with Intuitive Shortcuts
             </div>
           </div>
         </div>
-        <div className="flex flex-col rounded-xl overflow-hidden">
+        <div className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90">
           <video
             src={Performance}
             loop
@@ -75,7 +77,7 @@ export const LandingDescription = () => {
           <div className="flex flex-col h-full gap-2 p-4 pt-2 my-auto text-2xl text-slate-300 bg-slate-950/80 font-light">
             <div>Play Music in the Browser</div>
             <div className="text-lg text-slate-400">
-              Design Instruments with Custom Effects
+              Design Custom Instruments with Audio Effects
             </div>
           </div>
         </div>

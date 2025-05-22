@@ -89,7 +89,7 @@ export interface ClipComponentProps {
 }
 
 export const clipClassName = classNames(
-  "group absolute flex flex-col border-2 border-b-0 rounded-lg rounded-b-none data-[resizing=true]:cursor-col-resize",
+  "group absolute flex flex-col border-2 border-b-0 rounded-lg rounded-b-none",
   "animate-in fade-in data-[type=pose]:zoom-in slide-in-from-left-2",
   "data-[blur=true]:opacity-50 data-[blur=true]:pointer-events-none",
   "data-[open=true]:min-w-min data-[open=false]:data-[type=pattern]:z-[30] data-[open=true]:data-[type=pattern]:z-40",

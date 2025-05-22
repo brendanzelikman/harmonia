@@ -160,7 +160,7 @@ export const isPatternMidiChord = (obj: unknown): obj is PatternMidiChord => {
   const candidate = obj as PatternMidiChord;
   return (
     isPatternMidiNote(candidate) ||
-    Array.isArray(candidate) ||
+    (Array.isArray(candidate) && candidate.some(isPatternMidiNote)) ||
     isPatternStrummedChord(candidate)
   );
 };

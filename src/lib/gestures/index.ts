@@ -21,7 +21,6 @@ import {
 import { offsetSelectedPoses, zeroSelectedPoses } from "./updatePoses";
 import { useMemo } from "react";
 import { HotkeyMap } from "lib/hotkeys";
-import { some } from "lodash";
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const trackKeys = ["m", "s"];
@@ -60,9 +59,6 @@ export const keydown =
       dispatch(mixSamplerByIndex(number));
       return;
     }
-
-    // // Create or update a pose at the current tick
-    // if (!some(["q", "w", "e", "r", "t", "y"].map(getHeldKey))) return;
 
     // Handle voice leading by closeness (push chordal when one key)
     if (getHeldKey("c")) {
