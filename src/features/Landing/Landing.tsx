@@ -7,7 +7,6 @@ import { LandingLibraries } from "./LandingLibraries";
 import { useHotkeys } from "hooks/useHotkeys";
 import { LandingDetail } from "./LandingDetail";
 import { LandingVideo } from "./LandingVideo";
-import { MagicalPiano } from "features/Home/HomePiano";
 import { LandingPiano } from "./LandingPiano";
 
 /** The landing page is the entry point of the website */
