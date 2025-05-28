@@ -8,12 +8,14 @@ import {
 import classNames from "classnames";
 import { clearPattern, randomizePattern } from "types/Pattern/PatternThunks";
 import {
+  DOTTED_DURATION_TYPES,
   getDurationImage,
   getDurationName,
   getDurationTicks,
   getStraightDuration,
   getTickDuration,
   STRAIGHT_DURATION_TYPES,
+  TRIPLET_DURATION_TYPES,
 } from "utils/duration";
 import { PatternClipId, PortaledPatternClip } from "types/Clip/ClipTypes";
 import { usePatternClipScore } from "./usePatternClipScore";
@@ -41,7 +43,7 @@ import {
   GiTrashCan,
 } from "react-icons/gi";
 import { FaEraser, FaPlusCircle } from "react-icons/fa";
-import { BsArrowClockwise, BsRecord, BsScissors } from "react-icons/bs";
+import { BsArrowClockwise, BsRecord } from "react-icons/bs";
 import { selectPatternNoteLabel } from "types/Clip/PatternClip/PatternClipSelectors";
 import { isPatternMidiBlock, PatternId } from "types/Pattern/PatternTypes";
 import { useToggle } from "hooks/useToggle";
@@ -70,6 +72,7 @@ type InputMode = "piano" | "scales";
 export function PatternClipDropdown(props: PatternClipDropdownProps) {
   const dispatch = useAppDispatch();
   const [mode, setMode] = useState<InputMode>("piano");
+  const heldKeys = useHeldKeys([".", "/"]);
 
   // Unpack the clip
   const { clip, id, isOpen } = props;
@@ -338,6 +341,8 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
               index={index}
               duration={duration}
               setDuration={setDuration}
+              holdingDot={heldKeys[getKeyCode(".")]}
+              holdingTriplet={heldKeys[getKeyCode("/")]}
             />
             <DropdownDurationShortcuts />
           </div>
@@ -532,13 +537,20 @@ const DropdownDurationButtons = (props: {
   id: PatternId;
   index?: number;
   duration: number;
+  holdingDot?: boolean;
+  holdingTriplet?: boolean;
   setDuration: (duration: number) => void;
 }) => {
   const { id, index, duration: _duration, setDuration } = props;
   const dispatch = useAppDispatch();
+  const types = props.holdingDot
+    ? DOTTED_DURATION_TYPES
+    : props.holdingTriplet
+    ? TRIPLET_DURATION_TYPES
+    : STRAIGHT_DURATION_TYPES;
   return (
     <div className="flex gap-1 justify-center bg-slate-500/25 border border-emerald-500/50 p-1 rounded-lg">
-      {STRAIGHT_DURATION_TYPES.map((d) => {
+      {types.map((d) => {
         const duration = getDurationTicks(d);
         const name = getDurationName(d);
         const image = getDurationImage(d);

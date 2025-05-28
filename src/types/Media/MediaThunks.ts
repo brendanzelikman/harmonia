@@ -484,7 +484,12 @@ export const mergeSelectedMedia =
     // Create the new clip and delete the old ones
     const pattern = { stream };
     const clip = { trackId, tick };
-    dispatch(createCourtesyPatternClip({ data: { pattern, clip }, undoType }));
+    dispatch(
+      createCourtesyPatternClip({
+        data: { pattern, clip, autobind: true },
+        undoType,
+      })
+    );
     dispatch(deleteMedia({ data: { clipIds }, undoType }));
   };
 

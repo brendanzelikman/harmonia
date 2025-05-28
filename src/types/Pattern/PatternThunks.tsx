@@ -1,4 +1,8 @@
-import { SixteenthNoteTicks, WholeNoteTicks } from "utils/duration";
+import {
+  SixteenthNoteTicks,
+  SixtyFourthNoteTicks,
+  WholeNoteTicks,
+} from "utils/duration";
 import { Seconds } from "types/units";
 import { Sampler } from "tone";
 import { EighthNoteTicks } from "utils/duration";
@@ -81,7 +85,7 @@ export const randomizePattern =
   ): Thunk =>
   (dispatch, getProject) => {
     const data = payload.data;
-    const { id, trackId } = unpackData(payload);
+    const { id, trackId, duration } = unpackData(payload);
     const undoType = unpackUndoType(payload, "randomizePattern");
     const project = getProject();
     const pattern = selectPatternById(project, id);
@@ -129,6 +133,7 @@ export const randomizePattern =
       const duration = isStraight
         ? data.duration ?? SixteenthNoteTicks
         : durations[i];
+
       const neighborSeed = Math.random();
       const isNeighbor = neighborSeed < neighborChance;
       const neighbor = neighbors.at(-1);

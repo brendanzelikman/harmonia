@@ -1,15 +1,20 @@
 import { BsScissors } from "react-icons/bs";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import classNames from "classnames";
-import { selectIsSlicingClips } from "types/Timeline/TimelineSelectors";
+import {
+  selectIsSelectingPatternClips,
+  selectIsSlicingClips,
+} from "types/Timeline/TimelineSelectors";
 import { selectHasClips } from "types/Clip/ClipSelectors";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
 import { ToggleScissorsHotkey } from "lib/hotkeys/timeline";
+import { sliceClips } from "types/Timeline/thunks/TimelineClipThunks";
 
 export const NavbarScissors = () => {
   const dispatch = useAppDispatch();
   const hasClips = useAppValue(selectHasClips);
+  const isSelectingClips = useAppValue(selectIsSelectingPatternClips);
   const isSlicing = useAppValue(selectIsSlicingClips);
   return (
     <div className="relative">
@@ -18,10 +23,22 @@ export const NavbarScissors = () => {
         notClickable={!hasClips}
         borderColor="border-emerald-500"
         activeLabel="Equipped Scissors"
-        label={hasClips ? undefined : "No Clips to Slice"}
+        label={
+          isSlicing
+            ? "Hide Scissors"
+            : hasClips
+            ? isSelectingClips
+              ? "Slice Clips"
+              : "Equip Scissors"
+            : "No Clips to Slice"
+        }
         hotkey={ToggleScissorsHotkey}
         onClick={() =>
-          hasClips && dispatch(toggleTimelineState({ data: "slicing-clips" }))
+          hasClips
+            ? isSelectingClips
+              ? dispatch(sliceClips())
+              : dispatch(toggleTimelineState({ data: "slicing-clips" }))
+            : null
         }
         className={classNames(
           `p-1.5 text-2xl bg-gradient-to-br from-emerald-600 to-emerald-700`,

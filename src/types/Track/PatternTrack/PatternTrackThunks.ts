@@ -39,6 +39,8 @@ import {
 } from "types/Instrument/InstrumentSlice";
 import { selectPatternById } from "types/Pattern/PatternSelectors";
 import { selectCurrentTimelineTick } from "types/Timeline/TimelineSelectors";
+import { updatePattern } from "types/Pattern/PatternSlice";
+import { autoBindStreamToTrack } from "../TrackUtils";
 
 /** Create a `PatternTrack` with an optional initial track. */
 export const createPatternTrack =
@@ -95,11 +97,15 @@ export const createPatternTrack =
 export const createCourtesyPatternClip =
   (
     payload: Payload<
-      Partial<{ pattern: Partial<Pattern>; clip: Partial<PatternClip> }>
+      Partial<{
+        pattern: Partial<Pattern>;
+        clip: Partial<PatternClip>;
+        autobind?: boolean;
+      }>
     >
   ): Thunk<{ patternId: PatternId; clipId: PatternClipId }> =>
   (dispatch, getProject) => {
-    const { clip } = payload.data;
+    const { clip, autobind } = payload.data;
     const undoType = unpackUndoType(payload, "createCourtesyPatternClip");
     const patternId = payload.data?.pattern?.id;
     const initialPattern = patternId
@@ -120,6 +126,11 @@ export const createCourtesyPatternClip =
       patternId: pattern.id,
       tick: clip?.tick ?? tick,
     });
+    if (autobind) {
+      const { trackId } = patternClip;
+      const stream = dispatch(autoBindStreamToTrack(trackId, pattern.stream));
+      dispatch(updatePattern({ data: { id: pattern.id, stream }, undoType }));
+    }
     const [clipId] = dispatch(
       createMedia({ data: { clips: [patternClip] }, undoType })
     ).data.clipIds!;

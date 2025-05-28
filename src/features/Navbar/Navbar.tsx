@@ -40,7 +40,7 @@ export function Navbar() {
         <div className="w-full flex gap-4 *:pr-4 *:border-r last:*:border-r-0 *:border-r-slate-600 text-slate-500 justify-end pr-2">
           <NavbarLink v="projects" />
           <NavbarLink v="demos" />
-          <NavbarLink v="samples" />
+          {/* <NavbarLink v="samples" /> */}
           <NavbarLink v="playground" />
         </div>
       ) : (

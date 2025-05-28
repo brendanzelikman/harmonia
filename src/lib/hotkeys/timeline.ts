@@ -107,7 +107,7 @@ export const SliceClipsHotkey: Hotkey = {
 };
 
 export const MergeClipsHotkey: Hotkey = {
-  name: "Merge Clips",
+  name: "Join Clips",
   description: "Merge the selected pattern clips",
   shortcut: "shift+j",
   callback: (dispatch) => dispatch(mergeSelectedMedia()),
