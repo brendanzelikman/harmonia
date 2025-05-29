@@ -1,8 +1,4 @@
-import {
-  SixteenthNoteTicks,
-  SixtyFourthNoteTicks,
-  WholeNoteTicks,
-} from "utils/duration";
+import { SixteenthNoteTicks, WholeNoteTicks } from "utils/duration";
 import { Seconds } from "types/units";
 import { Sampler } from "tone";
 import { EighthNoteTicks } from "utils/duration";
@@ -30,7 +26,6 @@ import {
 import { Payload, unpackData, unpackUndoType } from "types/redux";
 import { TrackId } from "types/Track/TrackTypes";
 import { getMidiFrequency } from "utils/midi";
-import { isMidiObject } from "types/Scale/ScaleTypes";
 
 /** Creates a pattern and adds it to the slice. */
 export const createPattern =
@@ -82,10 +77,10 @@ export const randomizePattern =
       duration?: number;
       clipDuration?: number;
     }>
-  ): Thunk =>
+  ): Thunk<PatternStream> =>
   (dispatch, getProject) => {
     const data = payload.data;
-    const { id, trackId, duration } = unpackData(payload);
+    const { id, trackId } = unpackData(payload);
     const undoType = unpackUndoType(payload, "randomizePattern");
     const project = getProject();
     const pattern = selectPatternById(project, id);
@@ -157,6 +152,7 @@ export const randomizePattern =
 
     // Update the pattern
     dispatch(updatePattern({ data: { id, stream }, undoType }));
+    return stream;
   };
 
 /** Play a PatternChord with a Sampler at a given time. */

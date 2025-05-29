@@ -106,11 +106,12 @@ export const createCourtesyPatternClip =
     >
   ): Thunk<{ patternId: PatternId; clipId: PatternClipId }> =>
   (dispatch, getProject) => {
+    const project = getProject();
     const { clip, autobind, randomize } = payload.data;
     const undoType = unpackUndoType(payload, "createCourtesyPatternClip");
     const patternId = payload.data?.pattern?.id;
     const initialPattern = patternId
-      ? selectPatternById(getProject(), patternId)
+      ? selectPatternById(project, patternId)
       : {};
     const pattern = dispatch(
       createPattern({
@@ -121,20 +122,21 @@ export const createCourtesyPatternClip =
         undoType,
       })
     );
-    const tick = selectCurrentTimelineTick(getProject());
+    const tick = selectCurrentTimelineTick(project);
     const patternClip = initializePatternClip({
       ...clip,
       patternId: pattern.id,
       tick: clip?.tick ?? tick,
     });
     const { trackId } = patternClip;
+    let newStream = pattern.stream;
     if (randomize) {
-      dispatch(
+      newStream = dispatch(
         randomizePattern({ data: { id: pattern.id, trackId }, undoType })
       );
     }
     if (autobind) {
-      const stream = dispatch(autoBindStreamToTrack(trackId, pattern.stream));
+      const stream = dispatch(autoBindStreamToTrack(trackId, newStream));
       dispatch(updatePattern({ data: { id: pattern.id, stream }, undoType }));
     }
     const [clipId] = dispatch(
