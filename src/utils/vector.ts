@@ -14,7 +14,7 @@ export const getVectorKeys = <T extends Vector>(vector?: T): (keyof T)[] => {
 
 /** Get the nonzero keys of a vector. */
 export const getVectorNonzeroKeys = <T extends Vector>(vector?: T) => {
-  return getVectorKeys(vector).filter((key) => !!vector?.[key]);
+  return getVectorKeys(vector).filter((key) => !!key && !!vector?.[key]);
 };
 
 /** Get the complexity of a vector by counting its nonzero values. */

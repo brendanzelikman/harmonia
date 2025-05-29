@@ -1,6 +1,11 @@
 import classNames from "classnames";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
-import { GiHand, GiJackPlug, GiMisdirection } from "react-icons/gi";
+import {
+  GiCalculator,
+  GiHand,
+  GiJackPlug,
+  GiMisdirection,
+} from "react-icons/gi";
 import {
   selectIsSelectingPatternClips,
   selectIsSelectingPoseClips,
@@ -28,7 +33,7 @@ import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 import { getInstrumentName } from "types/Instrument/InstrumentFunctions";
 
-export const LivePlayIcon = GiHand;
+export const LivePlayIcon = GiCalculator;
 
 const qwertyKeys = ["q", "w", "e", "r", "t", "y"] as const;
 const numericalKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];

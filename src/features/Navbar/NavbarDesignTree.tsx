@@ -1,5 +1,5 @@
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { CreateTreeHotkey, CreateTreeIcon } from "lib/hotkeys/track";
+import { CreateTreeHotkey } from "lib/hotkeys/track";
 import { useAppDispatch } from "hooks/useRedux";
 import { promptUserForTree } from "lib/prompts/tree";
 import { GiWateringCan } from "react-icons/gi";
