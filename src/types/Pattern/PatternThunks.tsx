@@ -84,7 +84,7 @@ export const randomizePattern =
     const undoType = unpackUndoType(payload, "randomizePattern");
     const project = getProject();
     const pattern = selectPatternById(project, id);
-    if (!pattern) return;
+    if (!pattern) return [];
 
     // Get the last scale from the track
     const track = trackId ? selectTrackById(project, trackId) : undefined;
@@ -92,7 +92,7 @@ export const randomizePattern =
     const scales = track ? scaleChain : Object.values(PresetScaleList);
     const scale = scales[scales.length - 1];
     const scaleId = scale?.id;
-    if (!scale) return;
+    if (!scale) return [];
 
     const neighbors = scales.slice(0, scales.length - 1);
     const neighborChance = neighbors.length ? 0.5 : 0;
