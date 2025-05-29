@@ -8,7 +8,7 @@ import { NavbarGroup } from "./components/NavbarGroup";
 import { NavbarProjectMenu } from "./NavbarProject";
 import { NavbarUndo, NavbarRedo } from "./NavbarUndoRedo";
 import { NavbarArrangeClip } from "./NavbarArrangeClip";
-import { NavbarDesignTree } from "./NavbarDesignTree";
+import { NavbarCreateTree } from "./NavbarCreateTree";
 import { NavbarLivePlay } from "./NavbarLivePlay";
 import { NavbarPortalGun } from "./NavbarPortalGun";
 import { NavbarScissors } from "./NavbarScissors";
@@ -59,7 +59,7 @@ export function Navbar() {
           </NavbarGroup>
           <NavbarGroup className="bg-radial from-slate-900/15 to-sky-500/15">
             <div className="text-base font-light pr-1">Trees</div>
-            <NavbarDesignTree />
+            <NavbarCreateTree />
             <NavbarWaterTree />
             <NavbarRandomTree />
           </NavbarGroup>

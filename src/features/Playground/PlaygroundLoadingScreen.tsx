@@ -28,10 +28,10 @@ export function PlaygroundLoadingScreen(props: PlaygroundLoadingScreenProps) {
           Harmonia
         </h1>
         <p className="mt-2 text-indigo-50/90 sm:text-3xl text-sm font-normal">
-          A Digital Audio Workstation
+          A Digital Audio Calculator
         </p>
         <p className="text-indigo-50/90 sm:text-3xl text-sm font-normal">
-          With Multidimensional Harmony
+          with Multidimensional Harmony
         </p>
         <div className="text-slate-200 active:scale-95 bg-slate-900/50 hover:bg-slate-900/50 backdrop-blur mt-14 mb-auto p-4 px-8 rounded-xl border border-indigo-500 font-thin text-4xl ease-in-out">
           {text}

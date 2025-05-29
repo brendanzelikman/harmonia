@@ -1,7 +1,7 @@
 import { dispatchOpen, dispatchClose } from "hooks/useToggle";
 import { GiAbacus, GiWireframeGlobe } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
-import { sonataVariants } from "./TutorialIntroduction";
+import { tutorialVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
 import { LivePlayIcon } from "features/Navbar/NavbarLivePlay";
 
@@ -11,7 +11,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
       initial="hidden"
       whileInView="show"
       data-view={props.view}
-      variants={sonataVariants}
+      variants={tutorialVariants}
       className="hidden data-[view=development]:flex items-center max-lg:flex-col gap-8 lg:gap-16"
     >
       <TimelineButton

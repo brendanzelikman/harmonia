@@ -4,7 +4,7 @@ import { useAppDispatch } from "hooks/useRedux";
 import { CreateTreeIcon } from "lib/hotkeys/track";
 import { ArrangePatternIcon, ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
-import { sonataVariants } from "./TutorialIntroduction";
+import { tutorialVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
 
 export const TutorialRecapitulation = (props: { view: string }) => {
@@ -14,7 +14,7 @@ export const TutorialRecapitulation = (props: { view: string }) => {
       initial="hidden"
       whileInView="show"
       data-view={props.view}
-      variants={sonataVariants}
+      variants={tutorialVariants}
       className="hidden data-[view=recapitulation]:flex items-center max-lg:flex-col gap-8 lg:gap-16"
     >
       <TimelineButton

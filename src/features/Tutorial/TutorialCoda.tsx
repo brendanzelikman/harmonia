@@ -1,7 +1,7 @@
 import { GiCompactDisc, GiMusicalScore, GiSoundWaves } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
 import { BsCode, BsGear, BsRecordCircleFill } from "react-icons/bs";
-import { sonataVariants } from "./TutorialIntroduction";
+import { tutorialVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
 import {
   exportProjectToJSON,
@@ -17,7 +17,7 @@ export const TutorialCoda = (props: { view: string }) => {
       initial="hidden"
       whileInView="show"
       data-view={props.view}
-      variants={sonataVariants}
+      variants={tutorialVariants}
       className="hidden data-[view=coda]:flex items-center max-lg:flex-col gap-8 lg:gap-16"
     >
       {" "}

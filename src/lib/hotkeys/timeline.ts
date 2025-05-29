@@ -26,7 +26,7 @@ import {
   filterPoses,
   sliceClips,
 } from "types/Timeline/thunks/TimelineClipThunks";
-import { GiCrystalWand, GiMusicalNotes } from "react-icons/gi";
+import { GiCrystalWand, GiMusicalNotes, GiWateringCan } from "react-icons/gi";
 
 // -----------------------------------------------
 // Timeline Hotkeys
@@ -38,6 +38,8 @@ export const WaterTreeHotkey: Hotkey = {
   shortcut: "g",
   callback: (dispatch) => dispatch(toggleLivePlay()),
 };
+
+export const WaterTreeIcon = GiWateringCan;
 
 export const SampleProjectHotkey: Hotkey = {
   name: "Link Project",

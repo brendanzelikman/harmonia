@@ -25,7 +25,7 @@ import {
   collapseTrackAncestors,
 } from "types/Track/TrackThunks";
 import { inputScaleTrackScale } from "lib/prompts/scale";
-import { GiPineTree, GiWateringCan } from "react-icons/gi";
+import { GiPineTree } from "react-icons/gi";
 
 // ---------------------------------------------------
 // Track Hotkeys

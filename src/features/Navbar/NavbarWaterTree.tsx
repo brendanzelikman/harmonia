@@ -1,6 +1,5 @@
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { WaterTreeHotkey } from "lib/hotkeys/timeline";
-import { GiPineTree } from "react-icons/gi";
+import { WaterTreeHotkey, WaterTreeIcon } from "lib/hotkeys/timeline";
 import { useAppDispatch } from "hooks/useRedux";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 import classNames from "classnames";
@@ -17,7 +16,7 @@ export const NavbarWaterTree = () => {
       onClick={() => dispatch(toggleLivePlay())}
       hotkey={WaterTreeHotkey}
     >
-      <GiPineTree className="text-2xl" />
+      <WaterTreeIcon className="text-2xl" />
     </NavbarTooltipButton>
   );
 };

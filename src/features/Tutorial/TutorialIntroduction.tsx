@@ -1,35 +1,29 @@
 import { m } from "framer-motion";
 import { TimelineButton } from "./components/TutorialButton";
 import { useAppDispatch } from "hooks/useRedux";
-import { GiBookCover, GiPineTree, GiWateringCan } from "react-icons/gi";
+import { GiBookCover } from "react-icons/gi";
 import { promptUserForTree } from "lib/prompts/tree";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
+import { CreateTreeIcon } from "lib/hotkeys/track";
+import { WaterTreeIcon } from "lib/hotkeys/timeline";
 
-export const tutorialVariants = {
-  hidden: { opacity: 0, scale: 0 },
+const variants = {
+  hidden: { opacity: 0, translateX: -20 },
   enter: {
     opacity: 1,
-    scale: 1,
-    transition: { delay: 0, delayChildren: 0.4, staggerChildren: 0.2 },
+    transition: { delay: 0, delayChildren: 0.1, staggerChildren: 0.1 },
   },
   show: {
     opacity: 1,
-    scale: 1,
     transition: {
-      delayChildren: 0.1,
+      delayChildren: 0,
       staggerChildren: 0.1,
     },
   },
 };
-export const sonataVariants = {
-  hidden: { opacity: 0, scale: 0.5 },
-  show: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      staggerChildren: 0.2,
-    },
-  },
+export const tutorialVariants = {
+  hidden: { opacity: 0, translateX: -20 },
+  show: { opacity: 1, translateX: 0 },
 };
 
 export const TutorialIntroduction = (props: {
@@ -45,7 +39,7 @@ export const TutorialIntroduction = (props: {
       animate="show"
       whileInView="enter"
       data-view={props.view}
-      variants={tutorialVariants}
+      variants={variants}
       className="hidden data-[view=introduction]:flex items-center max-lg:flex-col gap-8 lg:gap-16"
     >
       <TimelineButton
@@ -55,7 +49,7 @@ export const TutorialIntroduction = (props: {
         titleClass={"text-2xl font-normal"}
         subtitle="Create a New Tree"
         stripColor="text-lg font-light"
-        Icon={GiWateringCan}
+        Icon={CreateTreeIcon}
         iconClass="text-9xl max-lg:text-6xl"
         onClick={() => dispatch(promptUserForTree)}
       />
@@ -66,8 +60,8 @@ export const TutorialIntroduction = (props: {
         subtitle="Grow a Default Tree"
         titleClass={"text-2xl font-normal"}
         stripColor="text-lg font-light"
-        Icon={GiPineTree}
-        iconClass="text-9xl max-lg:text-6xl"
+        Icon={WaterTreeIcon}
+        iconClass="text-9xl max-lg:text-6xl -mr-6"
         onClick={() => dispatch(toggleLivePlay())}
       />
       <TimelineButton
