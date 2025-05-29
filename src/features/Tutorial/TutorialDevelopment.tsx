@@ -1,8 +1,9 @@
 import { dispatchOpen, dispatchClose } from "hooks/useToggle";
-import { GiAbacus, GiHand, GiWireframeGlobe } from "react-icons/gi";
+import { GiAbacus, GiWireframeGlobe } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
 import { sonataVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
+import { LivePlayIcon } from "features/Navbar/NavbarLivePlay";
 
 export const TutorialDevelopment = (props: { view: string }) => {
   return (
@@ -118,7 +119,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
         subtitle="With Keyboard Gestures"
         stripColor="border-b border-b-fuchsia-500/80"
         Icon={() => (
-          <GiHand
+          <LivePlayIcon
             onMouseEnter={() => dispatchOpen("livePlay")}
             onMouseLeave={() => dispatchClose("livePlay")}
           />
@@ -152,8 +153,8 @@ export const TutorialDevelopment = (props: { view: string }) => {
               <br />
               <span className="text-slate-300">
                 For the full list of Keyboard Gestures, hover over the{" "}
-                <GiHand className="inline-flex" /> icon near the top left corner
-                of the website.
+                <LivePlayIcon className="inline-flex" /> icon near the top left
+                corner of the website.
               </span>
               <br />
             </div>

@@ -41,12 +41,12 @@ export const LandingDetail = () => {
           <div>How Do I Use Harmonia?</div>
           <div>
             The typical workflow of Harmonia usually involves three main steps.
-            First, you create a set of <b>trees</b>—families of tracks nesting
-            scales and samplers. Then, you write your <b>patterns</b>— sequences
-            of notes that can be related to any of your scales. Finally, you
-            schedule <b> poses</b>—transformations that develop your scales and
-            patterns with robust logic. Of course, you can also do whatever you
-            want.
+            First, you create a set of <b>trees</b>—families of nested tracks
+            with scales and samplers. Then, you write your <b>patterns</b>—
+            sequences of notes that can be related to any of your scales.
+            Finally, you schedule <b> poses</b>—transformations that develop
+            your scales and patterns with robust logic. Of course, you can also
+            do whatever you want.
           </div>
         </m.div>
         <m.div variants={variants}>

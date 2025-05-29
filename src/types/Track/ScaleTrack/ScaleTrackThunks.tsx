@@ -31,12 +31,8 @@ import {
   createPatternTrack,
 } from "../PatternTrack/PatternTrackThunks";
 import { addTrack } from "../TrackThunks";
-import {
-  createSixteenthNote,
-  createSixteenthRest,
-  HalfNoteTicks,
-} from "utils/duration";
-import { createPattern, randomizePattern } from "types/Pattern/PatternThunks";
+import { createSixteenthNote, createSixteenthRest } from "utils/duration";
+import { createPattern } from "types/Pattern/PatternThunks";
 import { addPatternClip } from "types/Clip/ClipSlice";
 import { initializePatternClip } from "types/Clip/ClipTypes";
 import { PatternStream } from "types/Pattern/PatternTypes";
@@ -44,8 +40,6 @@ import { PatternScaleNotes, PatternScales } from "types/Pattern/PatternUtils";
 import { getTransposedScale } from "types/Scale/ScaleTransformers";
 import { getScaleAliases, getScaleName } from "types/Scale/ScaleFinder";
 import {
-  getFrequencyMidi,
-  getMidiFrequency,
   getMidiOctaveNumber,
   getMidiPitchClass,
   getPitchClassDegree,
@@ -54,8 +48,6 @@ import {
 import { isPitchClass, unpackScaleName } from "utils/pitch";
 import { MajorScale, MinorScale } from "lib/presets/scales/BasicScales";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
-import { walkPatternClip } from "types/Arrangement/ArrangementThunks";
-import { createPatternClip } from "types/Media/MediaThunks";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =
@@ -191,34 +183,9 @@ export const createRandomTree = (): Thunk => (dispatch) => {
       undoType,
     })
   );
-  const { patternId } = dispatch(
-    createCourtesyPatternClip({
-      data: { clip: { trackId: track.id, tick: 0 } },
-      undoType,
-    })
-  );
-  dispatch(
-    randomizePattern({ data: { id: patternId, trackId: track.id }, undoType })
-  );
-  const pc2 = dispatch(
-    createPatternClip({
-      data: { patternId, trackId: track.id, tick: HalfNoteTicks },
-      undoType,
-    })
-  );
-  dispatch(
-    walkPatternClip({
-      data: {
-        id: pc2,
-        options: {
-          direction: "up",
-          select: "best",
-          keys: ["scale-track_1", "scale-track_2"],
-        },
-      },
-      undoType,
-    })
-  );
+  const clip = { trackId: track.id, tick: 0 };
+  const options = { randomize: true, autobind: true };
+  dispatch(createCourtesyPatternClip({ data: { clip, ...options }, undoType }));
 };
 
 /** Create a hierarchy of drum-based Pattern Tracks within a chromatic Scale Track  */

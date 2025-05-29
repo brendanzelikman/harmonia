@@ -14,7 +14,7 @@ import { Badge } from "./components/LandingBadge";
 export const LandingLibraries = () => {
   return (
     <LandingSection className="p-12 bg-slate-950/50">
-      <PopupHeader title="Harmonia — Acknowledgments" />
+      <PopupHeader title="Powered by the Best" />
       <m.div
         className="flex flex-wrap gap-y-12 pt-12"
         variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}

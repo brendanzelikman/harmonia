@@ -18,7 +18,7 @@ import { selectInstrumentById } from "types/Instrument/InstrumentSelectors";
 import { Payload, unpackUndoType } from "types/redux";
 import { createInstrument } from "types/Instrument/InstrumentThunks";
 import { addTrack } from "../TrackThunks";
-import { createPattern } from "types/Pattern/PatternThunks";
+import { createPattern, randomizePattern } from "types/Pattern/PatternThunks";
 import {
   initializePatternClip,
   initializePoseClip,
@@ -101,11 +101,12 @@ export const createCourtesyPatternClip =
         pattern: Partial<Pattern>;
         clip: Partial<PatternClip>;
         autobind?: boolean;
+        randomize?: boolean;
       }>
     >
   ): Thunk<{ patternId: PatternId; clipId: PatternClipId }> =>
   (dispatch, getProject) => {
-    const { clip, autobind } = payload.data;
+    const { clip, autobind, randomize } = payload.data;
     const undoType = unpackUndoType(payload, "createCourtesyPatternClip");
     const patternId = payload.data?.pattern?.id;
     const initialPattern = patternId
@@ -126,8 +127,13 @@ export const createCourtesyPatternClip =
       patternId: pattern.id,
       tick: clip?.tick ?? tick,
     });
+    const { trackId } = patternClip;
+    if (randomize) {
+      dispatch(
+        randomizePattern({ data: { id: pattern.id, trackId }, undoType })
+      );
+    }
     if (autobind) {
-      const { trackId } = patternClip;
       const stream = dispatch(autoBindStreamToTrack(trackId, pattern.stream));
       dispatch(updatePattern({ data: { id: pattern.id, stream }, undoType }));
     }
