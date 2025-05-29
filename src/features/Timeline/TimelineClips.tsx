@@ -94,7 +94,7 @@ export const clipClassName = classNames(
   "data-[blur=true]:opacity-50 data-[blur=true]:pointer-events-none",
   "data-[open=true]:min-w-min data-[open=false]:data-[type=pattern]:z-[30] data-[open=true]:data-[type=pattern]:z-40",
   "data-[open=true]:data-[type=pose]:z-[39] data-[open=false]:data-[type=pose]:z-[29] data-[type=pose]:bg-fuchsia-500 data-[type=scale]:bg-blue-500",
-  "data-[selected=true]:border-slate-100 data-[selected=false]:data-[type=pattern]:border-teal-500/50 data-[selected=false]:data-[type=pose]:border-fuchsia-300/50 data-[selected=false]:data-[type=scale]:border-blue-500"
+  "data-[selected=true]:data-[open=false]:border-white data-[selected=true]:data-[open=true]:border-white/20 data-[selected=false]:data-[type=pattern]:border-teal-500/50 data-[selected=false]:data-[type=pose]:border-fuchsia-300/50 data-[selected=false]:data-[type=scale]:border-blue-500"
 );
 
 export const useClipDrag = (pcId: PortaledClipId) => {

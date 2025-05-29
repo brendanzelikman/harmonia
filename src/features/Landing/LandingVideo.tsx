@@ -21,7 +21,7 @@ export const LandingVideo = () => {
           whileInView="show"
           viewport={{ once: true }}
           transition={{ delayChildren: 0.2, staggerChildren: 0.1 }}
-          className="p-6 flex justify-center flex-wrap gap-12 *:bg-slate-950 *:p-4 *:pt-2 *:px-4 *:rounded-lg *:flex *:flex-col *:items-center *:justify-between *:text-3xl *:gap-4 *:font-light"
+          className="sm:p-6 flex justify-center flex-wrap max-sm:gap-6 gap-12 *:bg-slate-950 *:p-4 *:pt-2 *:px-4 *:rounded-lg *:flex *:flex-col *:items-center *:justify-between max-sm:*:text-lg *:text-3xl *:gap-4 *:font-light"
         >
           <m.div variants={variants} viewport={{ once: true }}>
             <video
@@ -37,7 +37,7 @@ export const LandingVideo = () => {
             <iframe
               className="max-sm:w-xs"
               width="600"
-              height="400"
+              height="380"
               src="https://www.youtube.com/embed/FCnJfxeMb98"
             />
             <div>Introducing... (Trailer, 2024)</div>

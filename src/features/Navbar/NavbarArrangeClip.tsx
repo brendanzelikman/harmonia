@@ -35,9 +35,10 @@ export const NavbarArrangeClip = (props: { type: ClipType }) => {
     <NavbarTooltipButton
       keepTooltipOnClick
       className={classNames(
-        "size-9 bg-radial",
+        "size-9 bg-radial border",
         active ? "ring-2 ring-offset-2 ring-offset-black" : "",
-        background
+        background,
+        borderColor
       )}
       borderColor={borderColor}
       label={
@@ -68,16 +69,16 @@ const icons = {
 };
 
 const textColors = {
-  pattern: "text-cyan-400",
+  pattern: "text-teal-400",
   pose: "text-fuchsia-400",
 };
 
 const borders = {
-  pattern: "border-cyan-400",
-  pose: "border-fuchsia-400",
+  pattern: "border-teal-400",
+  pose: "border-fuchsia-500",
 };
 
 const backgrounds = {
-  pattern: "from-cyan-900 to-cyan-500 ring-cyan-400",
+  pattern: "from-teal-900 to-teal-500 ring-teal-400",
   pose: "from-fuchsia-800 to-fuchsia-600 ring-fuchsia-400",
 };

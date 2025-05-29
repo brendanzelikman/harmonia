@@ -327,7 +327,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
   return (
     <div
       data-open={isOpen}
-      className="w-full absolute bg-gradient-to-t from-sky-950/95 to-sky-900/90 top-6 min-w-[600px] [data-open=false]:hidden [data-open=true]:flex bg-transparent animate-in fade-in slide-in-from-top-2 slide-in-from-left-2 flex-col rounded-b-lg cursor-default z-20 font-thin whitespace-nowrap"
+      className="w-full bg-gradient-to-t from-sky-950/95 to-sky-900/90 top-6 min-w-[600px] [data-open=false]:hidden [data-open=true]:flex bg-transparent animate-in fade-in slide-in-from-top-2 slide-in-from-left-2 flex-col rounded-b-lg cursor-default z-20 font-thin whitespace-nowrap"
       onClick={cancelEvent}
     >
       <div className="relative flex flex-col size-full min-w-min">

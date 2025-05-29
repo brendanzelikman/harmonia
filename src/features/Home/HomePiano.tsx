@@ -18,9 +18,15 @@ import {
 } from "types/Instrument/InstrumentEffectTypes";
 import { defaultInstrument } from "types/Instrument/InstrumentTypes";
 import { getContext } from "tone";
-import { useViewTransitionState } from "react-router-dom";
+import classNames from "classnames";
 
-export const MagicalPiano = () => {
+export const MagicalPiano = (
+  props: Partial<{
+    range: { first: number; last: number };
+    size: string;
+    hideLogo: boolean;
+  }>
+) => {
   const [instance, setInstance] = useState<LiveAudioInstance>();
   const [effects, setEffects] = useState<Record<EffectKey, number>>({
     reverb: 0.3,
@@ -98,24 +104,33 @@ export const MagicalPiano = () => {
   };
 
   return (
-    <div className="relative total-center-col group px-8 py-5 shrink-0 w-full gap-16 text-white">
-      <div className="w-full h-96 p-4 flex flex-col bg-slate-950 rounded ring-8 ring-slate-900 active:shadow-[0_0_50px_10px_rgb(255,255,255)] active:duration-500 transition-all">
-        <div className="h-32 flex items-center font-light gap-6 text-xl overflow-x-scroll overflow-y-hidden">
-          <Logo width="80px" height="80px" className="-mt-2 ml-2" />
-          <h2 className="text-4xl mr-8 w-48 -mt-2">Harmonia Instruments</h2>
-          {EffectSlider("reverb")}
-          {EffectSlider("chorus")}
-          {EffectSlider("vibrato")}
-          {EffectSlider("feedbackDelay")}
-          {EffectSlider("gain")}
-        </div>
+    <div className="relative total-center-col group shrink-0 w-full text-white">
+      <div
+        className={classNames(
+          props.size ?? "w-full h-96",
+          "p-3 flex flex-col bg-slate-950 rounded ring-8 ring-slate-900 active:shadow-[0_0_10px_5px_rgb(255,255,255)] active:duration-500 transition-all"
+        )}
+      >
+        {!props.hideLogo && (
+          <div className="h-32 flex items-center font-light gap-6 text-xl overflow-x-scroll overflow-y-hidden">
+            <Logo width="80px" height="80px" className="-mt-2 ml-2" />
+            <h2 className="text-4xl mr-8 w-48 -mt-2">Harmonia Instruments</h2>
+            {EffectSlider("reverb")}
+            {EffectSlider("chorus")}
+            {EffectSlider("vibrato")}
+            {EffectSlider("feedbackDelay")}
+            {EffectSlider("gain")}
+          </div>
+        )}
         <div className="sm:hidden w-full flex-1 mt-auto">
           <Piano
             className="landing-piano"
-            noteRange={{
-              first: MidiNumbers.fromNote("C6"),
-              last: MidiNumbers.fromNote("C7"),
-            }}
+            noteRange={
+              props.range ?? {
+                first: MidiNumbers.fromNote("C6"),
+                last: MidiNumbers.fromNote("C7"),
+              }
+            }
             playNote={playNote}
             stopNote={stopNote}
           />
@@ -123,10 +138,12 @@ export const MagicalPiano = () => {
         <div className="max-sm:hidden w-full flex-1 mt-auto">
           <Piano
             className="landing-piano"
-            noteRange={{
-              first: MidiNumbers.fromNote("C3"),
-              last: MidiNumbers.fromNote("C7"),
-            }}
+            noteRange={
+              props.range ?? {
+                first: MidiNumbers.fromNote("C3"),
+                last: MidiNumbers.fromNote("C7"),
+              }
+            }
             playNote={playNote}
             stopNote={stopNote}
           />

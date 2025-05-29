@@ -74,7 +74,7 @@ export const PatternClipRenderer = memo((props: PatternClipRendererProps) => {
         data-selected={isSelected}
         data-blur={isBlurred}
         data-resizing={resizing}
-        style={{ top, left, width, height }}
+        style={{ top, left, width, height: dropdown ? undefined : height }}
         className={clipClassName}
         onClick={(e) => dispatch(onClipClick(e, { ...clip, id }))}
         onContextMenu={() =>

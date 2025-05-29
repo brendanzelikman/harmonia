@@ -1,8 +1,12 @@
 import { m } from "framer-motion";
 import { LandingSection } from "./components/LandingSection";
 import Composition from "/media/composition.gif";
-import Improvisation from "/media/improvisation.mov";
+import Portals from "/media/portals.png";
 import Performance from "/media/performance.mov";
+import Hotkeys from "/media/hotkeys.jpg";
+import Terminal from "/media/terminal.png";
+import Easy from "/media/easy.png";
+import Nest from "/media/nest.png";
 import Screenshot from "/media/screenshot.png";
 
 const variants = {
@@ -47,7 +51,7 @@ export const LandingDescription = () => {
             src={Screenshot}
             className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
           />
-          <div className="flex flex-col h-full justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
+          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Design Musical Architectures</div>
             <div className="max-sm:text-base text-lg text-slate-400">
               Model the Geometry of Chords and Scales
@@ -64,10 +68,10 @@ export const LandingDescription = () => {
             src={Composition}
             className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-bottom-left p-4 bg-slate-950/90"
           />
-          <div className="flex flex-col h-full justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
+          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Apply Mathematical Transformations</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Develop Patterns Within Multiple Dimensions
+              Develop Notes Across Multiple Dimensions
             </div>
           </div>
         </m.div>
@@ -77,16 +81,35 @@ export const LandingDescription = () => {
           viewport={{ once: true }}
           className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
         >
-          <video
-            src={Improvisation}
-            loop
-            autoPlay
+          <img
+            src={Hotkeys}
             className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
-          <div className="flex flex-col h-full justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Integrate Keyboard Gestures</div>
+          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
+            <div>Use Keyboard Shortcuts</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Compose and Perform with Intuitive Shortcuts
+              Compose Quickly with Intuitive Gestures
+            </div>
+          </div>
+        </m.div>
+        <m.div
+          variants={variants}
+          transition={{ type: "spring" }}
+          viewport={{ once: true }}
+          className="flex flex-col w-xl rounded-xl overflow-hidden border-2 border-blue-600/90"
+        >
+          <div className="h-64 w-full bg-slate-950/80">
+            <video
+              src={Performance}
+              autoPlay
+              loop
+              className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
+            />
+          </div>
+          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 p-4 pt-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 font-light">
+            <div>Play Cool Sounds</div>
+            <div className="max-sm:text-base text-lg text-slate-400">
+              Build Instruments with Custom Effects
             </div>
           </div>
         </m.div>
@@ -96,16 +119,65 @@ export const LandingDescription = () => {
           viewport={{ once: true }}
           className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
         >
-          <video
-            src={Performance}
-            loop
-            autoPlay
-            className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-top-left bg-slate-950/90 p-4"
+          <img
+            src={Nest}
+            className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
-          <div className="flex flex-col h-full justify-evenly gap-2 p-4 pt-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 font-light">
-            <div>Play Music in the Browser</div>
+          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
+            <div>Create Detailed Structures</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Build Instruments with Audio Effects
+              Unravel the Layers of Musical Space
+            </div>
+          </div>
+        </m.div>
+        <m.div
+          variants={variants}
+          transition={{ type: "spring" }}
+          viewport={{ once: true }}
+          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+        >
+          <img
+            src={Easy}
+            className="shadow-2xl max-sm:h-48 h-64 w-xl object-top-left bg-slate-950/90 p-4"
+          />
+          <div className="flex flex-col h-full *:first:mt-auto gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
+            <div>Calculate Difficult Sequences</div>
+            <div className="max-sm:text-base text-lg text-slate-400">
+              Explore Ideas Without Losing Track
+            </div>
+          </div>
+        </m.div>
+        <m.div
+          variants={variants}
+          transition={{ type: "spring" }}
+          viewport={{ once: true }}
+          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+        >
+          <img
+            src={Portals}
+            className="shadow-2xl max-sm:h-48 h-68 w-xl object-cover object-top-left bg-slate-950/90 p-4"
+          />
+          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
+            <div>Find Easter Eggs</div>
+            <div className="max-sm:text-base text-lg text-slate-400">
+              Make Music With Whimsical Features
+            </div>
+          </div>
+        </m.div>
+        <m.div
+          variants={variants}
+          transition={{ type: "spring" }}
+          viewport={{ once: true }}
+          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+        >
+          <img
+            src={Terminal}
+            className="shadow-2xl max-sm:h-48 h-68 w-xl object-cover object-top-left bg-slate-950/90 p-4"
+          />
+          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
+            <div>Hack Your Projects</div>
+            <div className="max-sm:text-base text-lg text-slate-400">
+              Edit Files with a Dedicated Terminal
             </div>
           </div>
         </m.div>

@@ -495,14 +495,16 @@ export const NavbarLivePlay = () => {
           </div>
         ) : isVoiceLeadingClosest ? (
           <div className="h-[68px] total-center-col">
-            <div className="text-base font-light">Closest Pose By Distance</div>
+            <div className="text-base font-light">
+              Voice Leading By Distance
+            </div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {C} + {Number})
             </div>
           </div>
         ) : isVoiceLeadingDegree ? (
           <div className="h-[68px] total-center-col">
-            <div className="text-base font-light">Closest Pose By Degree </div>
+            <div className="text-base font-light">Voice Leading By Degree </div>
             <div className="text-slate-400 text-sm">
               (Hold {QWERTY} + {D} + {Number})
             </div>

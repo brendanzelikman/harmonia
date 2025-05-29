@@ -90,6 +90,7 @@ export const TooltipButton = ({
   }, [disabled, _hideTooltip]);
 
   // Store positioning to properly align tooltip
+  const [left, setLeft] = useState(0);
   const [isIn, setIsIn] = useState(false);
   const [overshootsLeft, setOvershootsLeft] = useState(true);
   const [overshootsRight, setOvershootsRight] = useState(false);
@@ -111,6 +112,7 @@ export const TooltipButton = ({
     setOvershootsLeft(event.clientX - padding < 0);
     setOvershootsRight(event.clientX + padding > window.innerWidth);
     setShouldLeftAlign(event.clientX < window.innerWidth - padding);
+    setLeft(event.clientX);
     _onMouseEnter?.(event);
   };
 

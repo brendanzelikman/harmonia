@@ -24,7 +24,6 @@ export const ProjectsControl = (props: {
   query: string;
   setQuery: Dispatch<SetStateAction<string>>;
 }) => {
-  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const dispatch = useAppDispatch();
   const [deleting, setDeleting] = useState(false);

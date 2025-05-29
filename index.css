@@ -88,11 +88,6 @@
   src: url("/fonts/nunito.ttf") format("truetype");
 }
 
-@font-face {
-  font-family: "Raleway";
-  src: url("/fonts/raleway.ttf") format("truetype");
-}
-
 html,
 body,
 #root {
@@ -103,7 +98,6 @@ body,
 }
 
 body {
-  font-family: "Nunito";
   background: linear-gradient(0deg, #223e8b, #327199, #5b57ae);
   background-size: 100%;
   color: white;

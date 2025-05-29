@@ -35,12 +35,12 @@ export const HomeListItem = (
         duration: 0.2,
         delay: props.index ? props.index * 0.05 : 0,
       }}
-      className="snap-start snap-mandatory px-4"
+      className="snap-start snap-mandatory sm:px-4"
     >
       <div
         className={classNames(
           props.className,
-          "flex flex-col items-center size-full gap-4 p-4 w-96 bg-radial from-sky-900/50 to-slate-950/75 shadow-xl backdrop-blur rounded animate-in fade-in duration-150 text-sm"
+          "flex flex-col items-center size-full gap-4 p-4 sm:w-96 bg-radial from-sky-900/50 to-slate-950/75 shadow-xl backdrop-blur rounded animate-in fade-in duration-150 text-sm"
         )}
       >
         {props.children}

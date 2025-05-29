@@ -59,7 +59,7 @@ export default function Tutorial() {
           whileInView="visible"
           className="max-lg:mb-1 total-center gap-4 animate-in fade-in text-5xl px-4 max-lg:text-3xl text-slate-100 font-bold drop-shadow-sm"
         >
-          {"New Project Tutorial"}
+          {"Welcome to Musical Space"}
         </m.div>
         <m.div
           data-tutorial={tutorial}

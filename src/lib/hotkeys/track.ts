@@ -25,7 +25,7 @@ import {
   collapseTrackAncestors,
 } from "types/Track/TrackThunks";
 import { inputScaleTrackScale } from "lib/prompts/scale";
-import { GiPalmTree, GiPineTree } from "react-icons/gi";
+import { GiDiceEightFacesEight, GiPineTree } from "react-icons/gi";
 
 // ---------------------------------------------------
 // Track Hotkeys
@@ -52,7 +52,7 @@ export const CreateRandomTreeHotkey: Hotkey = {
   shortcut: "shift+g",
   callback: (dispatch) => dispatch(createRandomTree()),
 };
-export const CreateRandomTreeIcon = GiPalmTree;
+export const CreateRandomTreeIcon = GiDiceEightFacesEight;
 
 export const CollapseTrackHotkey: Hotkey = {
   name: "Collapse / Expand Track",

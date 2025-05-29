@@ -28,9 +28,8 @@ import {
 } from "types/Timeline/thunks/TimelineClipThunks";
 import {
   GiCrystalWand,
-  GiMusicalNotes,
-  GiPaintBrush,
   GiPencil,
+  GiSeedling,
   GiWateringCan,
 } from "react-icons/gi";
 
@@ -48,11 +47,12 @@ export const WaterTreeHotkey: Hotkey = {
 export const WaterTreeIcon = GiWateringCan;
 
 export const SampleProjectHotkey: Hotkey = {
-  name: "Create Pattern From Project",
+  name: "Plant Project",
   description: "Upload the notes of a project by file",
   shortcut: "l",
   callback: (dispatch) => dispatch(sampleProject()),
 };
+export const SampleProjectIcon = GiSeedling;
 
 export const ArrangePatternsHotkey: Hotkey = {
   name: "Create Pattern",
