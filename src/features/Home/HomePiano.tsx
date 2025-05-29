@@ -18,6 +18,7 @@ import {
 } from "types/Instrument/InstrumentEffectTypes";
 import { defaultInstrument } from "types/Instrument/InstrumentTypes";
 import { getContext } from "tone";
+import { useViewTransitionState } from "react-router-dom";
 
 export const MagicalPiano = () => {
   const [instance, setInstance] = useState<LiveAudioInstance>();
@@ -108,7 +109,18 @@ export const MagicalPiano = () => {
           {EffectSlider("feedbackDelay")}
           {EffectSlider("gain")}
         </div>
-        <div className="w-full flex-1 mt-auto">
+        <div className="sm:hidden w-full flex-1 mt-auto">
+          <Piano
+            className="landing-piano"
+            noteRange={{
+              first: MidiNumbers.fromNote("C6"),
+              last: MidiNumbers.fromNote("C7"),
+            }}
+            playNote={playNote}
+            stopNote={stopNote}
+          />
+        </div>
+        <div className="max-sm:hidden w-full flex-1 mt-auto">
           <Piano
             className="landing-piano"
             noteRange={{

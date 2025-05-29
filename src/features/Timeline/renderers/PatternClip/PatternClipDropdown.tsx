@@ -29,15 +29,16 @@ import {
 } from "types/Track/TrackSelectors";
 import { MouseEvent, useCallback, useState } from "react";
 import {
-  GiAbacus,
   GiAnchor,
   GiArrowCursor,
+  GiBlindfold,
+  GiClothespin,
   GiCrystalWand,
-  GiDialPadlock,
   GiDiceSixFacesFive,
   GiDominoMask,
   GiIceCube,
   GiKeyboard,
+  GiKnot,
   GiPencil,
   GiPianoKeys,
   GiTrashCan,
@@ -273,7 +274,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
         });
         setType("scale");
       }}
-      icon={<GiAbacus className="text-2xl" />}
+      icon={<GiKnot className="text-xl" />}
     />
   );
 
@@ -298,7 +299,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
         });
         setType("pedal");
       }}
-      icon={<GiDialPadlock className="text-xl" />}
+      icon={<GiClothespin className="text-xl" />}
     />
   );
 

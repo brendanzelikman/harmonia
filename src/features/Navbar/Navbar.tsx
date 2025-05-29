@@ -68,8 +68,8 @@ export function Navbar() {
             className="bg-radial from-emerald-800/15 to-teal-600/15"
           >
             <div className="text-base font-light pr-1">Motifs</div>
-            <NavbarSampleProject />
             <NavbarArrangeClip type="pattern" />
+            <NavbarSampleProject />
             <NavbarArrangeClip type="pose" />
           </NavbarGroup>
           <NavbarGroup

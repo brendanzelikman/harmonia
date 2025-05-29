@@ -17,8 +17,12 @@ import {
   initializeScaleTrack,
   isScaleTrackId,
 } from "./ScaleTrackTypes";
-import { selectScaleMap } from "types/Scale/ScaleSelectors";
-import { selectScaleTrackById, selectTopLevelTracks } from "../TrackSelectors";
+import { selectScaleById, selectScaleMap } from "types/Scale/ScaleSelectors";
+import {
+  selectScaleTrackById,
+  selectTopLevelTracks,
+  selectTrackMidiScale,
+} from "../TrackSelectors";
 import {
   createUndoType,
   Payload,
@@ -48,6 +52,7 @@ import {
 import { isPitchClass, unpackScaleName } from "utils/pitch";
 import { MajorScale, MinorScale } from "lib/presets/scales/BasicScales";
 import { resolveScaleChainToMidi } from "types/Scale/ScaleResolvers";
+import { selectSelectedScaleTrack } from "types/Timeline/TimelineSelectors";
 
 /** Create a `ScaleTrack` with an optional initial track. */
 export const createScaleTrack =

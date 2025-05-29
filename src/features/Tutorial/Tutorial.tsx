@@ -52,16 +52,14 @@ export default function Tutorial() {
           stiffness: 80,
           mass: 0.4,
         }}
-        className="bg-radial relative to-slate-950/70 from-indigo-900/20 border-indigo-600/70 max-lg:w-md w-5xl backdrop-blur-lg select-none text-center py-8 max-lg:py-4 border-2 rounded-3xl"
+        className="bg-radial relative to-slate-950/70 from-indigo-900/20 via-slate-950/20 border-sky-700 max-lg:w-md w-5xl backdrop-blur-lg select-none text-center py-6 max-lg:py-4 border-2 rounded-2xl"
       >
         <m.div
           initial="hidden"
           whileInView="visible"
           className="max-lg:mb-1 total-center gap-4 animate-in fade-in text-5xl px-4 max-lg:text-3xl text-slate-100 font-bold drop-shadow-sm"
         >
-          <GiHighFive className="rotate-y-180" />
-          {"Welcome to the Playground!"}
-          <GiHighFive />
+          {"New Project Tutorial"}
         </m.div>
         <m.div
           data-tutorial={tutorial}
