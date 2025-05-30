@@ -141,7 +141,7 @@ const TimelineTopLeftCorner = () => {
         <>
           <div className="text-base font-light">Creating Tree...</div>
           <div className="text-slate-400 text-sm">
-            (Submit your prompt in the box)
+            (Submit your prompt in the menu)
           </div>
         </>
       ) : isAddingPatterns ? (
@@ -162,7 +162,7 @@ const TimelineTopLeftCorner = () => {
         <>
           <div className="text-base font-light">Slicing Pattern...</div>
           <div className="text-slate-400 text-sm">
-            (Click on a Pattern to slice)
+            (Click on a Pattern to Slice)
           </div>
         </>
       ) : isAddingPortals ? (
@@ -177,17 +177,10 @@ const TimelineTopLeftCorner = () => {
       ) : hasClips ? (
         <>
           <div className="text-base font-light">Selected Clips</div>
-          <div className="text-slate-400 text-sm">
-            (Right Click for Context Menu)
-          </div>
+          <div className="text-slate-400 text-sm">(Drag and Drop to Move )</div>
         </>
       ) : (
-        <>
-          {/* <div className="text-base font-light">Timeline</div>
-          <div className="text-slate-400 text-sm">
-            (Scroll Grid to Navigate)
-          </div> */}
-        </>
+        <></>
       )}
     </div>
   );
