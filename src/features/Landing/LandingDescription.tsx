@@ -2,7 +2,7 @@ import { m } from "framer-motion";
 import { LandingSection } from "./components/LandingSection";
 import Composition from "/media/composition.gif";
 import Portals from "/media/portals.png";
-import Performance from "/media/performance.mov";
+import Performance from "/media/performance.gif";
 import Hotkeys from "/media/hotkeys.jpg";
 import Terminal from "/media/terminal.png";
 import Easy from "/media/easy.png";
@@ -86,7 +86,7 @@ export const LandingDescription = () => {
             className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Use Keyboard Shortcuts</div>
+            <div>Integrate Keyboard Shortcuts</div>
             <div className="max-sm:text-base text-lg text-slate-400">
               Compose Quickly with Intuitive Gestures
             </div>
@@ -99,15 +99,13 @@ export const LandingDescription = () => {
           className="flex flex-col w-xl rounded-xl overflow-hidden border-2 border-blue-600/90"
         >
           <div className="h-64 w-full bg-slate-950/80">
-            <video
+            <img
               src={Performance}
-              autoPlay
-              loop
               className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
             />
           </div>
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 p-4 pt-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 font-light">
-            <div>Play Cool Sounds</div>
+            <div>Craft Unique Sounds</div>
             <div className="max-sm:text-base text-lg text-slate-400">
               Build Instruments with Custom Effects
             </div>
@@ -124,7 +122,7 @@ export const LandingDescription = () => {
             className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Create Detailed Structures</div>
+            <div>Create Elaborate Structures</div>
             <div className="max-sm:text-base text-lg text-slate-400">
               Unravel the Layers of Musical Space
             </div>
@@ -143,7 +141,7 @@ export const LandingDescription = () => {
           <div className="flex flex-col h-full *:first:mt-auto gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Calculate Difficult Sequences</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Explore Ideas Without Losing Track
+              Explore Ideas Without Losing Time
             </div>
           </div>
         </m.div>
@@ -158,9 +156,9 @@ export const LandingDescription = () => {
             className="shadow-2xl max-sm:h-48 h-68 w-xl object-cover object-top-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Find Easter Eggs</div>
+            <div>Discover Easter Eggs</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Make Music With Whimsical Features
+              Have Fun With Whimsical Features
             </div>
           </div>
         </m.div>
@@ -175,9 +173,9 @@ export const LandingDescription = () => {
             className="shadow-2xl max-sm:h-48 h-68 w-xl object-cover object-top-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Hack Your Projects</div>
+            <div>Hack Your Music</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Edit Files with a Dedicated Terminal
+              Edit Projects with a Dedicated Terminal
             </div>
           </div>
         </m.div>

@@ -2,7 +2,6 @@ import { m } from "framer-motion";
 import Logo from "/logo.png";
 import { useNavigate } from "react-router-dom";
 import { useError } from "app/router";
-import { Navbar } from "features/Navbar/Navbar";
 
 export const Splash = () => {
   const navigate = useNavigate();
@@ -12,9 +11,6 @@ export const Splash = () => {
       className="relative w-full total-center-col min-lg:gap-18 max-lg:mt-4 pb-0 text-slate-50"
       viewport={{ once: true }}
     >
-      <div className="max-lg:hidden">
-        <Navbar />
-      </div>
       <div className="flex flex-col">
         <div className="total-center-col">
           <m.h1

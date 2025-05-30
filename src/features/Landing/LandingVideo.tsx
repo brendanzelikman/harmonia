@@ -14,7 +14,7 @@ export const LandingVideo = () => {
   return (
     <LandingSection className="min-h-screen py-20">
       <div className="total-center-col gap-8">
-        <div className="text-5xl max-sm:text-4xl font-bold">Hall of Fame</div>
+        <div className="text-5xl max-sm:text-4xl font-bold">Over the Years</div>
         <m.div
           variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}
           initial="hidden"

@@ -26,6 +26,11 @@ export const useFetch = <T>(fetch: () => Promise<T>, signal?: string) => {
     if (signal) {
       window.addEventListener(signal, fetchData);
     }
+    return () => {
+      if (signal) {
+        window.removeEventListener(signal, fetchData);
+      }
+    };
   }, []);
 
   // Return the data, loading state, and error statep

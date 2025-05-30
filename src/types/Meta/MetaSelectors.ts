@@ -15,6 +15,18 @@ export const selectProjectName = createSelector(
   (meta) => meta.name
 );
 
+/** Select the project created date */
+export const selectProjectDateCreated = createSelector(
+  [selectMeta],
+  (meta) => meta.dateCreated
+);
+
+/** Select the project uploaded date */
+export const selectProjectLastUpdated = createSelector(
+  [selectMeta],
+  (meta) => meta.lastUpdated
+);
+
 /** Select the project diary and constrain it to the page. */
 export const selectProjectDiary = createDeepSelector(
   [selectMeta],

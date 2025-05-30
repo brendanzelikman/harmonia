@@ -135,7 +135,10 @@ export const DEMO_GENRES = [
     key: "Ambient",
     color: "border-emerald-400 text-emerald-400",
     icon: <GiPianoKeys />,
-    demos: [WaveDemo, WaveSnarkDemo, WaveWaltzDemo, WaveLongDemo],
+    demos: [
+      WaveDemo,
+      // WaveSnarkDemo, WaveWaltzDemo, WaveLongDemo
+    ],
   },
   {
     key: "Techno",

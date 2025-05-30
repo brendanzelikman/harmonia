@@ -23,6 +23,7 @@ export const loadProject = async (id: string, callback?: () => void) => {
   setCurrentProjectId(id);
   setProject(project);
   callback?.();
+  dispatchCustomEvent(UPDATE_PROJECT_EVENT);
   return true;
 };
 
