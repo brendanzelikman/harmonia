@@ -75,6 +75,23 @@ export async function deleteProject(projectId: string) {
   dispatchCustomEvent(UPDATE_PROJECT_EVENT);
 }
 
+/** Delete all demo-based projects */
+export async function deleteDemoProjects() {
+  const db = await getDatabase();
+  if (!db) return;
+  const projects = await getProjects();
+  await Promise.all(
+    projects.map(async (p) => {
+      const projectId = selectProjectId(p);
+      if (!projectId.startsWith("project-demo-")) return;
+      const currentId = getCurrentProjectId();
+      if (currentId === projectId) clearCurrentProjectId();
+      await db.delete(PROJECT_STORE, projectId);
+    })
+  );
+  dispatchCustomEvent(UPDATE_PROJECT_EVENT);
+}
+
 /** Delete all projects */
 export async function deleteProjects() {
   const db = await getDatabase();

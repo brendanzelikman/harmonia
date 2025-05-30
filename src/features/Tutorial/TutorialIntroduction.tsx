@@ -45,9 +45,9 @@ export const TutorialIntroduction = (props: {
       <TimelineButton
         border="ring-indigo-600/80"
         className="lg:rounded-full flex-row lg:flex-col shadow-xl w-xs lg:py-12 lg:gap-3"
-        title="Start Project"
+        title="Create Tree"
         titleClass={"text-2xl font-normal"}
-        subtitle="Create a New Tree"
+        subtitle="Input by Prompt"
         stripColor="text-lg font-light"
         Icon={CreateTreeIcon}
         iconClass="text-9xl max-lg:text-6xl"
@@ -56,8 +56,8 @@ export const TutorialIntroduction = (props: {
       <TimelineButton
         border="ring-teal-600/80"
         className="lg:rounded-full flex-row lg:flex-col shadow-xl w-xs lg:py-12 lg:gap-3"
-        title="Quickstart Project"
-        subtitle="Grow a Default Tree"
+        title="Grow Tree"
+        subtitle="Quickstart and Develop"
         titleClass={"text-2xl font-normal"}
         stripColor="text-lg font-light"
         Icon={WaterTreeIcon}

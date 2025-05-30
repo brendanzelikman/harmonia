@@ -1,25 +1,33 @@
 import LogoImage from "assets/images/logo.png";
 import { Link } from "react-router-dom";
-import { getProjects, uploadProject } from "app/projects";
+import {
+  deleteDemoProjects,
+  deleteProjects,
+  getProjects,
+  uploadProject,
+} from "app/projects";
 import { useFetch } from "hooks/useFetch";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
-import { DEMO_PROJECTS } from "lib/demos";
+import { DEMO_GENRES } from "lib/demos";
 import { useEffect, useMemo, useState } from "react";
-import {
-  GiCompactDisc,
-  GiMusicalKeyboard,
-  GiSoundWaves,
-  GiStarGate,
-} from "react-icons/gi";
-import { BsPlusCircle } from "react-icons/bs";
+import { GiCompactDisc, GiMusicalKeyboard, GiStarGate } from "react-icons/gi";
+import { BsEject, BsPlusCircle, BsUpload } from "react-icons/bs";
 import {
   selectProjectId,
   selectProjectLastUpdated,
   selectProjectName,
 } from "types/Meta/MetaSelectors";
-import { loadDemoProject, loadProject } from "types/Project/ProjectLoaders";
+import {
+  loadDemoProject,
+  loadProject,
+  loadProjectByFile,
+  promptUserForProjects,
+} from "types/Project/ProjectLoaders";
 import dayjs from "dayjs";
 import { useHotkeys } from "hooks/useHotkeys";
+import { deleteAllSamples, deleteSample } from "app/samples";
+import { exportProjectsToZip } from "types/Project/ProjectExporters";
+import { useAppDispatch } from "hooks/useRedux";
 
 export function NavbarBrand() {
   return (
@@ -31,6 +39,7 @@ export function NavbarBrand() {
 }
 
 export function NavbarPlaygroundBrand() {
+  const dispatch = useAppDispatch();
   const [show, setShow] = useState(false);
   useHotkeys({ escape: () => setShow(false) });
   const { data } = useFetch(getProjects, UPDATE_PROJECT_EVENT);
@@ -71,63 +80,101 @@ export function NavbarPlaygroundBrand() {
               <BsPlusCircle className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-full" />{" "}
               <div>New Project</div>
             </button>
+            <button
+              className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
+              onClick={() => promptUserForProjects()}
+            >
+              <BsUpload className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-lg p-1" />{" "}
+              <div>Upload Project</div>
+            </button>
             <div className="flex flex-col gap-4">
               <div className="font-semibold">Projects</div>
-              <ul className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2">
                 {projects.map((p) => {
                   const id = selectProjectId(p);
                   const name = selectProjectName(p);
                   return (
-                    <li
+                    <div
                       key={id}
-                      className="bg-slate-950/50 h-10 rounded border border-slate-600 flex items-center gap-2 px-2 hover:bg-slate-800/50 cursor-pointer"
+                      className="bg-slate-950/50 rounded border border-slate-600 flex flex-col p-2 gap-2 hover:bg-slate-800/50 cursor-pointer"
                       onClick={() => loadProject(id)}
                     >
-                      <GiCompactDisc className="text-2xl" />
-                      <div className="text-base">{name}</div>
-                    </li>
+                      <div className="flex gap-2">
+                        <GiCompactDisc className="text-2xl" />
+                        <div className="text-base">{name}</div>
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Last Opened:{" "}
+                        {dayjs(selectProjectLastUpdated(p)).format(
+                          "MMM D, YYYY h:mm A"
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
-              </ul>
-            </div>
-            <div className="flex flex-col gap-4 shrink-0 mt-4">
-              <div className="font-semibold">Demos</div>
-              <div className="flex flex-col gap-2 shrink-0 grow">
-                {DEMO_PROJECTS.map((p) => (
-                  <div
-                    key={p.project.meta.id}
-                    className="bg-slate-950/50 h-10 rounded border border-slate-600 flex items-center gap-2 px-2 hover:bg-slate-800/50 cursor-pointer"
-                    onClick={() => loadDemoProject(p.project)}
-                  >
-                    <GiCompactDisc className="text-2xl" />
-                    <div className="text-base">{p.project.meta.name}</div>
-                  </div>
-                ))}
               </div>
             </div>
-            <div className="flex flex-col h-full mt-4 gap-4 shrink-0">
-              <div className="font-semibold">Other Menus</div>
-              <Link
+            <div className="flex flex-col gap-4 shrink-0 mt-4">
+              {DEMO_GENRES.map((genre) => (
+                <>
+                  <div key={genre.key} className="font-semibold">
+                    Demos - {genre.key}
+                  </div>
+                  <div className="flex flex-col gap-2 shrink-0 grow">
+                    {genre.demos.map((p) => (
+                      <div
+                        key={p.project.meta.id}
+                        className="bg-slate-950/50 rounded border border-slate-600 flex flex-col p-2 gap-2 hover:bg-slate-800/50 cursor-pointer"
+                        onClick={() => loadDemoProject(p.project)}
+                      >
+                        <div className="flex gap-2">
+                          <GiCompactDisc className="text-2xl" />
+                          <div className="text-base">{p.project.meta.name}</div>
+                        </div>
+                        <div className="text-xs text-gray-400">{p.blurb}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ))}
+            </div>
+            <div className="flex flex-col h-full mt-4 gap-6 shrink-0">
+              <div className="font-semibold">Quick Actions</div>
+              <div
                 className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
-                to="/projects"
+                onClick={() => dispatch(exportProjectsToZip("json"))}
               >
-                <GiCompactDisc className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-full" />{" "}
-                <div>Projects</div>
-              </Link>
-              <Link
+                <GiCompactDisc className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-full p-1" />{" "}
+                <div className="text-lg">Export Projects to JSON</div>
+              </div>
+              <div
                 className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
-                to="/demos"
+                onClick={() => dispatch(exportProjectsToZip("midi"))}
               >
-                <GiMusicalKeyboard className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-full" />{" "}
-                <div>Demos</div>
-              </Link>
-              <Link
+                <GiCompactDisc className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-full p-1" />{" "}
+                <div className="text-lg">Export Projects to MIDI</div>
+              </div>
+              <div
                 className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
-                to="/samples"
+                onClick={() => dispatch(exportProjectsToZip("wav"))}
               >
-                <GiSoundWaves className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-full" />{" "}
-                <div>Samples</div>
-              </Link>
+                <GiCompactDisc className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-full p-1" />{" "}
+                <div className="text-lg">Export Projects to WAV</div>
+              </div>
+              <div
+                className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
+                onClick={() => deleteDemoProjects()}
+              >
+                <BsEject className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-lg p-1" />{" "}
+                <div className="text-lg">Eject Demo Projects</div>
+              </div>
+              <div
+                className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
+                onClick={() => deleteProjects()}
+              >
+                <BsEject className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-lg p-1" />{" "}
+                <div className="text-lg">Eject All Projects</div>
+              </div>
             </div>
           </div>
         </div>

@@ -149,9 +149,7 @@ export const selectPortaledPatternClipXML = (
   const pattern = selectPatternById(project, clip?.patternId);
   if (pattern === undefined) return DemoXML;
   const midi = selectPortaledPatternClipStream(project, clip.id);
-  const stream = midi
-    .map((n) => n.notes)
-    .filter(isPatternMidiChord) as PatternMidiNote[][];
+  const stream = midi.map((n) => n.notes) as PatternMidiNote[][];
   const scale = selectTrackMidiScaleAtTick(project, clip.trackId, clip.tick);
   const timeSignature = selectTransportTimeSignature(project);
   return exportPatternStreamToXML({ stream, scale, timeSignature });

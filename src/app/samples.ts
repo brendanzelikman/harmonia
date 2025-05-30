@@ -69,6 +69,15 @@ export const deleteSample = async (key: string): Promise<void> => {
   dispatchCustomEvent(UPDATE_SAMPLES_EVENT);
 };
 
+/** Remove all sample files from the database. */
+export const deleteAllSamples = async (): Promise<void> => {
+  const db = await getDatabase();
+  if (!db) return;
+  const keys = (await db.getAllKeys(SAMPLE_STORE)) as InstrumentKey[];
+  await Promise.all(keys.map((key) => db.delete(SAMPLE_STORE, key)));
+  dispatchCustomEvent(UPDATE_SAMPLES_EVENT);
+};
+
 /** Download a sample file from the database. */
 export const downloadSample = async (key: string): Promise<void> => {
   const db = await getDatabase();

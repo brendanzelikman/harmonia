@@ -67,7 +67,7 @@ export const exportProjectToWAV =
 
 /** Export all projects to files and download them as a zip. */
 type FileType = "json" | "midi" | "wav";
-export const exportProjectsToZIP =
+export const exportProjectsToZip =
   (type: FileType = "json"): Thunk =>
   async (dispatch) => {
     const projects = (await getProjects()).map(sanitizeProject);

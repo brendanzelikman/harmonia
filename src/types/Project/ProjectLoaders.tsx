@@ -9,12 +9,12 @@ import {
   uploadProject,
   updateProject,
 } from "app/projects";
-import { initializeProjectMetadata } from "types/Meta/MetaTypes";
 import { setProject } from "app/store";
 import { getEventFiles } from "utils/event";
 import { promptUserForFiles } from "lib/prompts/html";
 import { BaseProject } from "app/reducer";
 import JSZip from "jszip";
+import { nanoid } from "@reduxjs/toolkit";
 
 /** Try to load the project by ID from the database. */
 export const loadProject = async (id: string, callback?: () => void) => {
@@ -33,7 +33,7 @@ export const loadDemoProject = async (
   callback?: () => void
 ) => {
   const project = sanitizeProject("present" in base ? base : { present: base });
-  project.present.meta.id = initializeProjectMetadata().id;
+  project.present.meta.id = `project-demo-${nanoid()}`;
   await uploadProject(project);
   setProject(project);
   callback?.();

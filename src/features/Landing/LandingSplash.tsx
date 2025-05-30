@@ -44,7 +44,7 @@ export const Splash = () => {
             onClick={() => navigate("/playground")}
             className="sm:text-3xl text-xl font-base cursor-pointer py-2 my-3 px-10 text-slate-100 active:animate-pulseSlow bg-slate-900/80 active:bg-slate-900/90 border-2 border-blue-500/80 hover:border-blue-500 hover:ring-2 hover:ring-blue-500 rounded-3xl max-sm:rounded-xl backdrop-blur-xl shadow-2xl drop-shadow-2xl drop-shadow-sky-900"
           >
-            Open Musical Calculator
+            Go To Musical Space
           </m.button>
         </div>
       </div>

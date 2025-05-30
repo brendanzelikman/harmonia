@@ -234,7 +234,7 @@ const PoseClipScale = (props: PoseClipVectorProps) => {
         border={hasScale ? "border-fuchsia-400" : "border-fuchsia-400/50"}
       >
         <div className="flex flex-col">
-          <div>Reset Previous:</div>
+          <div>Reset Prior Effects:</div>
           <div className="text-fuchsia-400">
             {props.reset ? "Enabled" : "Disabled"}
           </div>

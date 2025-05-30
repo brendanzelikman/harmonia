@@ -7,9 +7,8 @@ import { GiCompactDisc, GiLoad, GiSave, GiSoundWaves } from "react-icons/gi";
 import classNames from "classnames";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { setProjectName } from "types/Meta/MetaSlice";
-import { selectProjectName } from "types/Meta/MetaSelectors";
+import { selectProjectId, selectProjectName } from "types/Meta/MetaSelectors";
 import { selectLastArrangementTick } from "types/Arrangement/ArrangementSelectors";
-import { clearProject } from "app/store";
 import { promptUserForProjects } from "types/Project/ProjectLoaders";
 import { exportProjectToJSON } from "types/Project/ProjectExporters";
 import { exportProjectToMIDI } from "types/Project/ProjectExporters";
@@ -26,9 +25,9 @@ import {
   downloadTransport,
   stopDownloadingTransport,
 } from "types/Transport/TransportDownloader";
-import { uploadProject } from "app/projects";
+import { deleteProject, uploadProject } from "app/projects";
 import MidiImage from "assets/lib/midi.png";
-import { BsTrash } from "react-icons/bs";
+import { BsEject } from "react-icons/bs";
 
 export function NavbarProjectMenu() {
   const dispatch = useAppDispatch();
@@ -39,6 +38,7 @@ export function NavbarProjectMenu() {
   const downloadProgress = download.isOpen ? percentize(tick, 0, endTick) : 0;
   const downloadPercent = format(downloadProgress, 0);
   const hasDownloaded = downloadProgress >= 100;
+  const projectId = useAppValue(selectProjectId);
   const projectName = useAppValue(selectProjectName);
   const [name, setName] = useState("");
   const updateName = useCallback(
@@ -169,29 +169,38 @@ export function NavbarProjectMenu() {
               {({ open, close }) => (
                 <>
                   <MenuButton className="w-full inline-flex justify-between items-center">
-                    <NavbarFormLabel>Clear Project</NavbarFormLabel>
-                    <BsTrash className="text-2xl" />
+                    <NavbarFormLabel>Eject Project</NavbarFormLabel>
+                    <BsEject className="text-2xl" />
                   </MenuButton>
                   {open && (
                     <MenuItems className="animate-in fade-in zoom-in-95 absolute flex flex-col items-center top-[2.5rem] -left-3 p-2 bg-slate-900 border border-red-500 text-xs rounded">
                       <div className="w-full text-center pb-1 mb-1 font-bold border-b border-b-slate-500/50">
-                        Are you sure?
+                        Ejecting Project...
                       </div>
                       <span className="text-xs whitespace-nowrap mb-2 text-slate-400">
-                        You will lose all unsaved changes.
+                        Would you like to save a copy?
                       </span>
-                      <div className="flex w-full total-center gap-2 *:w-1/2 *:px-2 *:py-1 *:rounded *:border">
+                      <div className="flex w-full total-center gap-2 *:w-1/3 *:px-2 *:py-1 *:rounded *:border">
                         <button
-                          className="border-red-500 hover:text-red-500"
-                          onClick={() => clearProject()}
+                          className="border-teal-500 hover:text-teal-500"
+                          onClick={() => {
+                            dispatch(exportProjectToJSON());
+                            deleteProject(projectId);
+                          }}
                         >
                           Yes
                         </button>
                         <button
-                          className="border-slate-500 hover:text-slate-500"
-                          onClick={close}
+                          className="border-indigo-500 hover:text-indigo-500"
+                          onClick={() => deleteProject(projectId)}
                         >
                           No
+                        </button>
+                        <button
+                          className="border-red-500 hover:text-red-500"
+                          onClick={close}
+                        >
+                          Stop
                         </button>
                       </div>
                     </MenuItems>

@@ -13,7 +13,7 @@ import {
   GiSoundWaves,
   GiFire,
 } from "react-icons/gi";
-import { exportProjectsToZIP } from "types/Project/ProjectExporters";
+import { exportProjectsToZip } from "types/Project/ProjectExporters";
 import { promptUserForProjects } from "types/Project/ProjectLoaders";
 import { ProjectSearchBar } from "./ProjectsSearchBar";
 import { useAppDispatch } from "hooks/useRedux";
@@ -51,21 +51,21 @@ export const ProjectsControl = (props: {
           ) : (
             <div className="w-full *:cursor-pointer flex items-center rounded *:grow h-full shrink-0 animate-in fade-in ease-in-out text-xs gap-2 p-1">
               <button
-                onClick={() => dispatch(exportProjectsToZIP("json"))}
+                onClick={() => dispatch(exportProjectsToZip("json"))}
                 className="flex flex-col gap-1 items-center hover:saturate-150 rounded hover:opacity-75 text-sky-400"
               >
                 JSON
                 <BsCode className="text-xl" />
               </button>
               <button
-                onClick={() => dispatch(exportProjectsToZIP("wav"))}
+                onClick={() => dispatch(exportProjectsToZip("wav"))}
                 className="flex flex-col gap-1 items-center hover:saturate-150 rounded hover:opacity-75 text-teal-400"
               >
                 WAV
                 <GiSoundWaves className="text-xl" />
               </button>
               <button
-                onClick={() => dispatch(exportProjectsToZIP("midi"))}
+                onClick={() => dispatch(exportProjectsToZip("midi"))}
                 className="flex flex-col gap-1 items-center hover:saturate-150 rounded hover:opacity-75 text-indigo-400"
               >
                 MIDI
