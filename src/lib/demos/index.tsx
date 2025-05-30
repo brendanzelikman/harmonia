@@ -100,12 +100,6 @@ const WaveLongDemo: DemoProject = {
 // Demo projects are organized by genre
 export const DEMO_GENRES = [
   {
-    key: "Templates",
-    color: "border-sky-400 text-sky-400",
-    icon: <GiQuill />,
-    demos: [],
-  },
-  {
     key: "Classical",
     color: "border-sky-400 text-sky-400",
     icon: <GiQuill />,
