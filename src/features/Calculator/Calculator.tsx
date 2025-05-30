@@ -1,6 +1,6 @@
 import { dispatchCustomEventOnChange } from "utils/event";
 import { useTransport } from "../../hooks/useTransport";
-import { LoadingScreen } from "./PlaygroundLoadingScreen";
+import { LoadingScreen } from "./CalculatorPlaceholder";
 import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { useHotkeys } from "hooks/useHotkeys";
@@ -15,7 +15,7 @@ import Timeline from "features/Timeline/Timeline";
 export const LOAD_CALCULATOR = "load-calculator";
 
 /** The calculator loads when the project and transport are ready */
-export default function Playground() {
+export default function Calculator() {
   const hasTracks = useAppValue(selectHasTracks);
   const isTransportLoaded = useTransport();
   dispatchCustomEventOnChange(LOAD_CALCULATOR, isTransportLoaded);
@@ -36,4 +36,3 @@ export default function Playground() {
     </div>
   );
 }
-export const Calculator = Playground;

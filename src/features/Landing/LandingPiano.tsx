@@ -6,7 +6,7 @@ import { MagicalPiano } from "features/Home/HomePiano";
 export const LandingPiano = () => {
   return (
     <LandingSection className="gap-16 min-h-screen flex flex-col justify-center">
-      <PopupHeader title="Quick, Hit A Solo!" />
+      <PopupHeader title="Quick, We Need A Solo!" />
       <m.div
         className="flex flex-wrap gap-y-12 p-12"
         initial={{ opacity: 0, translateY: 20, scale: 0.8 }}

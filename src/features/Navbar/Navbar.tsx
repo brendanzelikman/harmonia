@@ -17,7 +17,7 @@ import { NavbarTime } from "./NavbarTime";
 import { NavbarTransportControl } from "./NavbarTransportControl";
 import { NavbarVolume } from "./NavbarVolume";
 import { NavbarLink } from "./components/NavbarLink";
-import { LOAD_CALCULATOR } from "features/Playground/Playground";
+import { LOAD_CALCULATOR } from "features/Calculator/Calculator";
 import { NavbarSettings } from "./NavbarSettings";
 import { NavbarTape } from "./NavbarTape";
 import { NavbarSampleProject } from "./NavbarSampleProject";
