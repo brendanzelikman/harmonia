@@ -126,27 +126,27 @@ export const TutorialDevelopment = (props: { view: string }) => {
         )}
         description={
           <>
-            <div>Trees can be developed with hotkeys.</div>
+            <div>Poses can be created with shortcuts.</div>
             <div>
-              <b>Poses:</b>
+              <b>Examples:</b>
               <br />
-              <span className="text-sky-400">{"Hold Q/W/E "}</span>
+              <span className="text-sky-400">{"Hold Q+W+E"}</span>
               {" + "}
-              <span className="text-violet-400">{"Press #"}</span>
+              <span className="text-violet-400">{"Press 1"}</span>
               {" = "}
-              <span className="text-fuchsia-400">{"<A#, B#, C#>"}</span>
+              <span className="text-fuchsia-400">{"<A1, B1, C1>"}</span>
               <br />
-              <span className="text-sky-400">{"Hold R/T/Y "}</span>
+              <span className="text-sky-400">{"Hold R+T+Y"}</span>
               {" + "}
-              <span className="text-violet-400">{"Press #"}</span>
+              <span className="text-violet-400">{"Press -2"}</span>
               {" = "}
-              <span className="text-fuchsia-400">{"<r#, t#, y#>"}</span>
+              <span className="text-fuchsia-400">{"<r-2, t-2, y-2>"}</span>
               <br />
-              <span className="text-sky-400">{"(Hold Any)"}</span>
+              <span className="text-sky-400">{"Hold Any"}</span>
               {" + "}
               <span className="text-violet-400">{"Press 0"}</span>
               {" = "}
-              <span className="text-fuchsia-400">{"Clear Offset"}</span>
+              <span className="text-fuchsia-400">{"Clear Value (Or All)"}</span>
             </div>
             <div>
               <b>Shortcuts:</b>

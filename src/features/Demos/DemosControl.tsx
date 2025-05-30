@@ -1,4 +1,5 @@
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
+import { MAIN } from "app/router";
 import { HomeControlBar } from "features/Home/HomeControlBar";
 import { DEMO_GENRES } from "lib/demos";
 import { useCallback } from "react";
@@ -9,7 +10,7 @@ import { blurEvent } from "utils/event";
 
 export const DemosControl = () => {
   const navigate = useNavigate();
-  const callback = useCallback(() => navigate("/playground"), [navigate]);
+  const callback = useCallback(() => navigate(MAIN), [navigate]);
   return (
     <HomeControlBar>
       {DEMO_GENRES.map((genre) => (

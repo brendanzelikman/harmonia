@@ -36,16 +36,16 @@ export const TutorialCoda = (props: { view: string }) => {
               specialized JSON files.
             </div>
             <div>
-              <b>Project Diary:</b>
+              <b>File Menu:</b>
               <br />
-              Hover into Settings <BsGear className="inline" />, then Open Diary
-              to read and write notes about your project.
+              Hover into the <GiCompactDisc className="inline" /> icon to
+              rename, duplicate, and save your project to various formats.
             </div>
             <div>
-              <b>Project Terminal:</b>
+              <b>Settings Menu:</b>
               <br />
-              Hover into Settings <BsGear className="inline" />, then Open
-              Terminal to read and write project data in JSON.
+              Hover into the <BsGear className="inline" /> icon to edit specific
+              values and access the Terminal and Shortcuts.
             </div>
           </>
         }

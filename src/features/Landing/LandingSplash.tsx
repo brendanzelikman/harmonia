@@ -1,7 +1,7 @@
 import { m } from "framer-motion";
 import Logo from "/logo.png";
 import { useNavigate } from "react-router-dom";
-import { useError } from "app/router";
+import { MAIN, useError } from "app/router";
 
 export const Splash = () => {
   const navigate = useNavigate();
@@ -41,10 +41,10 @@ export const Splash = () => {
               delay: 0.1,
             }}
             viewport={{ once: true }}
-            onClick={() => navigate("/playground")}
+            onClick={() => navigate(MAIN)}
             className="sm:text-3xl text-xl font-base cursor-pointer py-2 my-3 px-10 text-slate-100 active:animate-pulseSlow bg-slate-900/80 active:bg-slate-900/90 border-2 border-blue-500/80 hover:border-blue-500 hover:ring-2 hover:ring-blue-500 rounded-3xl max-sm:rounded-xl backdrop-blur-xl shadow-2xl drop-shadow-2xl drop-shadow-sky-900"
           >
-            Go To Musical Space
+            Open Musical Calculator
           </m.button>
         </div>
       </div>

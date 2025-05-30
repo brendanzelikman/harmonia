@@ -9,7 +9,7 @@ import { BsXCircle } from "react-icons/bs";
 import { useToggle } from "hooks/useToggle";
 import { ClipShortcuts } from "./ShortcutsClip";
 
-export const SHORTCUT_TITLE = "Playground Hotkeys";
+export const SHORTCUT_TITLE = "Keyboard Shortcuts";
 
 export const SHORTCUTS = [
   { title: "Project Controls", component: <GlobalShortcuts /> },

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useAppValue } from "hooks/useRedux";
 import { selectProjectName } from "types/Meta/MetaSelectors";
-import { useRoute } from "app/router";
+import { MAIN, useRoute } from "app/router";
 import { DEMOS_BY_KEY } from "lib/demos";
 import { useNavigate, useParams } from "react-router-dom";
 import { loadDemoProject } from "types/Project/ProjectLoaders";
@@ -15,21 +15,18 @@ export function useWindow() {
 
   // Memoize the title to avoid unnecessary re-renders
   const title = useMemo(() => {
-    if (view === "projects") return `Harmonia • Projects`;
-    if (view === "demos") return `Harmonia • Demos`;
-    if (view === "samples") return `Harmonia • Samples`;
-    if (view === "playground") return `Playground • ${name}`;
-    return "Harmonia";
+    if (view === MAIN) return `${name} • Harmonia`;
+    return "Harmonia | Musical Calculator";
   }, [name, view]);
 
   // Redirect to a demo if one is selected
   const { id } = useParams();
   useEffect(() => {
-    if (view.startsWith("demos") && !!id) {
+    if (view.startsWith("/demo") && !!id) {
       const demo = DEMOS_BY_KEY[id];
-      if (demo) loadDemoProject(demo.project, () => navigate("/playground"));
-    } else if (view.startsWith("tutorial")) {
-      uploadProject().then(() => navigate("/playground"));
+      if (demo) loadDemoProject(demo.project, () => navigate(MAIN));
+    } else if (view.startsWith("/tutorial")) {
+      uploadProject().then(() => navigate(MAIN));
     }
   }, [view, id]);
 

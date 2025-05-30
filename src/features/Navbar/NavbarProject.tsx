@@ -82,14 +82,14 @@ export function NavbarProjectMenu() {
           </div>
 
           {/* Open New Project */}
-          <NavbarFileGroup onClick={() => uploadProject()}>
+          {/* <NavbarFileGroup onClick={() => uploadProject()}>
             <NavbarFileLabel>Open New Project</NavbarFileLabel>
             <GiCompactDisc className="ml-auto text-2xl" />
-          </NavbarFileGroup>
+          </NavbarFileGroup> */}
 
           {/* Duplicate Project */}
           <NavbarFileGroup onClick={() => uploadProject(undefined, true)}>
-            <NavbarFileLabel>Duplicate Project</NavbarFileLabel>
+            <NavbarFileLabel>Copy Project</NavbarFileLabel>
             <GiCompactDisc className="ml-auto text-2xl" />
           </NavbarFileGroup>
 
@@ -100,10 +100,27 @@ export function NavbarProjectMenu() {
           </NavbarFileGroup>
 
           {/* Load Project */}
-          <NavbarFileGroup onClick={() => promptUserForProjects()}>
+          {/* <NavbarFileGroup onClick={() => promptUserForProjects()}>
             <NavbarFileLabel>Load From JSON</NavbarFileLabel>
             <GiSave className="ml-auto text-2xl" />
-          </NavbarFileGroup>
+          </NavbarFileGroup> */}
+
+          {/* Export to MIDI */}
+          {
+            <NavbarFormGroup
+              className={classNames(
+                `h-8 space-x-4`,
+                { "text-slate-500": !endTick },
+                { "hover:bg-indigo-500/25 cursor-pointer": !!endTick }
+              )}
+              onClick={() =>
+                !!endTick && dispatch(exportProjectToMIDI(undefined, true))
+              }
+            >
+              <NavbarFileLabel>Export to MIDI</NavbarFileLabel>
+              <img src={MidiImage} className="h-3 invert" />
+            </NavbarFormGroup>
+          }
 
           {/* Export to WAV */}
           <NavbarFormGroup
@@ -145,23 +162,6 @@ export function NavbarProjectMenu() {
               )}
             </div>
           </NavbarFormGroup>
-
-          {/* Export to MIDI */}
-          {
-            <NavbarFormGroup
-              className={classNames(
-                `h-8 space-x-4`,
-                { "text-slate-500": !endTick },
-                { "hover:bg-indigo-500/25 cursor-pointer": !!endTick }
-              )}
-              onClick={() =>
-                !!endTick && dispatch(exportProjectToMIDI(undefined, true))
-              }
-            >
-              <NavbarFileLabel>Export to MIDI</NavbarFileLabel>
-              <img src={MidiImage} className="h-3 invert" />
-            </NavbarFormGroup>
-          }
 
           {/* Clear Project */}
           <NavbarFormGroup className="h-8 space-x-4 hover:bg-indigo-500/25 cursor-pointer">

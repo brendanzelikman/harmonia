@@ -17,7 +17,7 @@ import { stopDownloadingTransport } from "./TransportDownloader";
 // Events
 // --------------------------------------------------------------
 
-export const LOAD_TRANSPORT = "loadTransport";
+export const LOAD_TRANSPORT = "load-transport";
 
 /** Dispatch an event to start loading the transport. */
 export const dispatchLoadTransport = () => {

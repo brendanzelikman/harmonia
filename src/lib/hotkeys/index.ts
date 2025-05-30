@@ -30,9 +30,9 @@ export const combinedHotkeys = [
 export type HotkeyMap = Record<string, (dispatch: Dispatch, e: Event) => void>;
 
 // The hotkeys are exported as a record of shortcut to callback
-export const playgroundHotkeys: HotkeyMap = {};
+export const hotkeyMap: HotkeyMap = {};
 for (const hotkey of combinedHotkeys) {
-  playgroundHotkeys[hotkey.shortcut] = hotkey.callback;
+  hotkeyMap[hotkey.shortcut] = hotkey.callback;
 }
 
 // ------------------------------------------------

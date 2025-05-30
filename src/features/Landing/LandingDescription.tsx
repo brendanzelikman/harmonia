@@ -86,7 +86,7 @@ export const LandingDescription = () => {
             className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Integrate Keyboard Shortcuts</div>
+            <div>Perform Keyboard Shortcuts</div>
             <div className="max-sm:text-base text-lg text-slate-400">
               Compose Quickly with Intuitive Gestures
             </div>
@@ -105,7 +105,7 @@ export const LandingDescription = () => {
             />
           </div>
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 p-4 pt-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 font-light">
-            <div>Craft Unique Sounds</div>
+            <div>Play Cool Sounds</div>
             <div className="max-sm:text-base text-lg text-slate-400">
               Build Instruments with Custom Effects
             </div>

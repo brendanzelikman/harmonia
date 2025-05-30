@@ -2,11 +2,11 @@ import LogoImage from "assets/images/logo.png";
 import { useState } from "react";
 import { getContext } from "tone";
 
-interface PlaygroundLoadingScreenProps {
+interface LoadingScreenProps {
   text: string;
 }
 
-export function PlaygroundLoadingScreen(props: PlaygroundLoadingScreenProps) {
+export function LoadingScreen(props: LoadingScreenProps) {
   const [clicked, setClicked] = useState(false);
   let text = props.text;
   if (!clicked && getContext().state !== "running") {

@@ -15,6 +15,7 @@ import { promptUserForFiles } from "lib/prompts/html";
 import { BaseProject } from "app/reducer";
 import JSZip from "jszip";
 import { nanoid } from "@reduxjs/toolkit";
+import dayjs from "dayjs";
 
 /** Try to load the project by ID from the database. */
 export const loadProject = async (id: string, callback?: () => void) => {
@@ -32,8 +33,9 @@ export const loadDemoProject = async (
   base: Project | BaseProject,
   callback?: () => void
 ) => {
-  const project = sanitizeProject("present" in base ? base : { present: base });
+  let project = sanitizeProject("present" in base ? base : { present: base });
   project.present.meta.id = `project-demo-${nanoid()}`;
+  project.present.meta.dateCreated = dayjs().toISOString();
   await uploadProject(project);
   setProject(project);
   callback?.();

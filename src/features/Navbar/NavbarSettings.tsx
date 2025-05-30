@@ -93,12 +93,6 @@ export function NavbarSettings() {
               placeholder={"0"}
             />
           </NavbarFormGroup>
-          <NavbarFileGroup onClick={Diary.toggle}>
-            <NavbarFileLabel>
-              {Diary.isOpen ? "Close" : "Open"} Diary
-            </NavbarFileLabel>
-            <BsJournalRichtext className="ml-auto text-2xl" />
-          </NavbarFileGroup>
           <NavbarFileGroup onClick={Terminal.toggle}>
             <NavbarFileLabel>
               {Terminal.isOpen ? "Close" : "Open"} Terminal

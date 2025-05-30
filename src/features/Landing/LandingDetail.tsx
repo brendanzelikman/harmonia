@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { LandingSection } from "./components/LandingSection";
 import { m } from "framer-motion";
+import { MAIN } from "app/router";
 
 const variants = {
   hidden: { opacity: 0, scale: 0.8 },
@@ -41,12 +42,12 @@ export const LandingDetail = () => {
           <div>How Do I Use Harmonia?</div>
           <div>
             The typical workflow of Harmonia usually involves three main steps.
-            First, you create a set of <b>trees</b>—families of nested tracks
-            with scales and samplers. Then, you write your <b>patterns</b>—
-            sequences of notes that can be related to any of your scales.
-            Finally, you schedule <b> poses</b>—transformations that develop
-            your scales and patterns with robust logic. Of course, you can also
-            do whatever you want.
+            First, you create a set of <b>trees</b>—tracks within a family of
+            scales and samplers. Then, you write your <b>patterns</b>— sequences
+            of notes that can be related to any of your scales. Finally, you
+            schedule <b> poses</b>—transformations that develop your scales and
+            patterns with robust logic. Of course, you can also do whatever you
+            want.
           </div>
         </m.div>
         <m.div variants={variants}>
@@ -64,20 +65,16 @@ export const LandingDetail = () => {
         <m.div variants={variants}>
           <div>How Can I Use Harmonia?</div>
           <div>
-            Harmonia can be used in many different ways. You can write, play,
-            and perform music. You can export to JSON and collaborate with
-            others. You can export to MIDI and load notes in other software. You
-            can export to WAV and download audio. You can record an
-            improvisation to MIDI and/or WAV. You can check out the{" "}
-            <Link to="/demos" className="text-blue-400 hover:underline">
-              Demos
+            Harmonia is a web-based editor that can be used in many different
+            ways. You can write and perform standalone music. You can export to
+            JSON and collaborate with others. You can export to MIDI and load
+            notes in other software. You can export to WAV and listen to audio
+            elsewhere. You can record an improvisation to MIDI and/or WAV.
+            Whenever you are ready, you can go to the{" "}
+            <Link to={MAIN} className="text-blue-400 hover:underline">
+              Calculator
             </Link>{" "}
-            for some examples, or go to the{" "}
-            <Link to="/playground" className="text-blue-400 hover:underline">
-              Playground
-            </Link>{" "}
-            and read through the tutorial for a full introduction of the
-            software.
+            to start making music.
           </div>
         </m.div>
       </m.div>

@@ -50,7 +50,7 @@ const FonteDemo: DemoProject = {
 };
 const LavosDemo: DemoProject = {
   project: Lavos as unknown as BaseProject,
-  blurb: "An aggressive beat with a lot of energy.",
+  blurb: "An experimental hardcore techno beat.",
 };
 const MoonlightDemo: DemoProject = {
   project: Moonlight as unknown as BaseProject,
@@ -58,7 +58,7 @@ const MoonlightDemo: DemoProject = {
 };
 const PreludeDemo: DemoProject = {
   project: Prelude as unknown as BaseProject,
-  blurb: "A full recreation of Bach's BWV 846.",
+  blurb: "A recreation of that famous piece by Bach.",
 };
 const ReminiscenzaDemo: DemoProject = {
   project: Reminiscenza as unknown as BaseProject,

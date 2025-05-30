@@ -1,3 +1,4 @@
+import { MAIN } from "app/router";
 import classNames from "classnames";
 import { useEvent } from "hooks/useEvent";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -23,7 +24,7 @@ export const ProjectSearchBar = (props: ProjectSearchBarProps) => {
         return { isOver: monitor.isOver() };
       },
       drop: (item: any) => {
-        loadProject(item.id, () => navigate("/playground"));
+        loadProject(item.id, () => navigate(MAIN));
         setTimeout(() => dispatchCustomEvent("dragged-project", false), 500);
       },
     };

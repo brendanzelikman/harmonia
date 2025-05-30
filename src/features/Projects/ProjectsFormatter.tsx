@@ -18,6 +18,7 @@ import { ProjectItem } from "features/Projects/Projects";
 import { deleteProject, uploadProject } from "app/projects";
 import { useHotkeys } from "hooks/useHotkeys";
 import { GiCompactDisc } from "react-icons/gi";
+import { MAIN } from "app/router";
 
 export interface ProjectFormatterProps extends ProjectItem {
   index?: number;
@@ -40,7 +41,7 @@ export function ProjectFormatter(props: ProjectFormatterProps) {
   // Load the project by path or database if necessary
   const onClick = useCallback(() => {
     if (!canPlay) return;
-    const callback = () => navigate("/playground");
+    const callback = () => navigate(MAIN);
     if (isDemo) {
       loadDemoProject(project, callback);
     } else {

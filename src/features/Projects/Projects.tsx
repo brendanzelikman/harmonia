@@ -11,6 +11,7 @@ import { getProjects } from "app/projects";
 import { useProjectSearch } from "features/Projects/useProjectSearch";
 import { useHotkeys } from "hooks/useHotkeys";
 import { ProjectsControl } from "./ProjectsControl";
+import { MAIN } from "app/router";
 
 export interface ProjectItem {
   project: Project;
@@ -19,7 +20,7 @@ export interface ProjectItem {
 
 export default function ProjectPage() {
   const navigate = useNavigate();
-  useHotkeys({ enter: () => navigate("/playground") });
+  useHotkeys({ enter: () => navigate(MAIN) });
   const { data } = useFetch(getProjects, UPDATE_PROJECT_EVENT);
   const projects = useMemo(() => data ?? [], [data]);
   const [query, setQuery] = useState("");

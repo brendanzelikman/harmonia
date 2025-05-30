@@ -8,19 +8,19 @@ import {
   useRouteError,
 } from "react-router-dom";
 
+export const LAND = "/";
+export const MAIN = "/calculator";
+
 /** The hash router is either on the landing or the main page */
 export const router = createHashRouter([
-  { path: "/", element: <LandingPage />, ErrorBoundary: LandingPage },
-  { path: "/projects", element: <HomePage />, ErrorBoundary: LandingPage },
-  { path: "/demos", element: <HomePage />, ErrorBoundary: LandingPage },
-  { path: "/demos/:id", element: <HomePage />, ErrorBoundary: LandingPage },
-  { path: "/samples", element: <HomePage />, ErrorBoundary: LandingPage },
-  { path: "/playground", element: <HomePage />, ErrorBoundary: LandingPage },
+  { path: LAND, element: <LandingPage />, ErrorBoundary: LandingPage },
+  { path: MAIN, element: <HomePage />, ErrorBoundary: LandingPage },
+  { path: "/demo/:id", element: <HomePage />, ErrorBoundary: LandingPage },
   { path: "/tutorial", element: <HomePage />, ErrorBoundary: LandingPage },
 ]);
 
 /** Get the name of the current route. */
-export const useRoute = () => useLocation().pathname.slice(1);
+export const useRoute = () => useLocation().pathname;
 
 /** Checks for an error and returns the message and stack trace. */
 export const useError = () => {

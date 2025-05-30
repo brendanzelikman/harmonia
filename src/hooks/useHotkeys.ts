@@ -1,5 +1,5 @@
 import { useAppDispatch } from "hooks/useRedux";
-import { HotkeyMap, playgroundHotkeys } from "lib/hotkeys";
+import { HotkeyMap, hotkeyMap } from "lib/hotkeys";
 import { useEffect } from "react";
 import { isInputEvent } from "utils/event";
 import { useToggle } from "./useToggle";
@@ -34,7 +34,7 @@ export function useHotkeys(
       if (disabled && comboKey !== ToggleKeyboardHotkey.shortcut) return;
 
       // Check if the combo exists in the hotkey map
-      const action = (hotkeyMap ?? playgroundHotkeys)[comboKey];
+      const action = (hotkeyMap ?? hotkeyMap)[comboKey];
       if (action) {
         event.preventDefault();
         action(dispatch, event);

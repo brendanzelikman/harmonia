@@ -9,7 +9,7 @@ import {
 } from "types/Transport/TransportLoader";
 import { useToggle } from "hooks/useToggle";
 
-export function usePlaygroundTransport() {
+export function useTransport() {
   const dispatch = useAppDispatch();
   const projectId = useAppValue(selectProjectId);
   const transport = useToggle(LOAD_TRANSPORT, false);
@@ -27,5 +27,5 @@ export function usePlaygroundTransport() {
     };
   }, [projectId]);
 
-  return transport.isOpen;
+  return !!transport.isOpen;
 }
