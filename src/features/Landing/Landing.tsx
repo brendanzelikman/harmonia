@@ -2,12 +2,12 @@ import { useError } from "app/router";
 import { Splash } from "features/Landing/LandingSplash";
 import { LandingDescription } from "./LandingDescription";
 import { LandingFooter } from "./LandingFooter";
-import { LandingLibraries } from "./LandingLibraries";
 import { LandingDetail } from "./LandingDetail";
 import { LandingVideo } from "./LandingVideo";
 import { LandingPiano } from "./LandingPiano";
 import { Navbar } from "features/Navbar/Navbar";
 import { LandingDemos } from "./LandingDemos";
+import { LandingCreators } from "./LandingCreators";
 
 /** The landing page is the entry point of the website */
 export function LandingPage() {
@@ -25,8 +25,8 @@ export function LandingPage() {
             <LandingDescription />
             <LandingDetail />
             <LandingDemos />
-            <LandingLibraries />
             <LandingVideo />
+            <LandingCreators />
             <LandingPiano />
             <LandingFooter />
           </>

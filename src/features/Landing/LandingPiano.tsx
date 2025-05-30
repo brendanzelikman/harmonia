@@ -5,10 +5,10 @@ import { MagicalPiano } from "features/Home/HomePiano";
 
 export const LandingPiano = () => {
   return (
-    <LandingSection className="gap-16 min-h-screen flex flex-col justify-center">
-      <PopupHeader title="Quick, We Need A Solo!" />
+    <LandingSection className="min-h-screen flex flex-col gap-15 py-15">
+      <PopupHeader title="It's Your Time to Shine!" />
       <m.div
-        className="flex flex-wrap gap-y-12 p-12"
+        className="flex flex-wrap p-12"
         initial={{ opacity: 0, translateY: 20, scale: 0.8 }}
         whileInView={{ opacity: 1, translateY: 0, scale: 1 }}
         transition={{ delay: 0.2, duration: 0.5, type: "spring" }}

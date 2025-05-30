@@ -21,12 +21,12 @@ const variants = {
 export const LandingDemos = () => {
   const navigate = useNavigate();
   return (
-    <LandingSection className="min-h-screen py-20">
+    <LandingSection className="py-20">
       <div className="total-center-col gap-18 max-sm:gap-8">
-        <div className="flex flex-col items-center backdrop-blur gap-3 text-5xl max-sm:text-4xl font-bold">
+        <div className="flex flex-col items-center gap-4 text-5xl max-sm:text-4xl font-bold">
           <div>Demo Showcase</div>
-          <div className="text-base font-light text-slate-300">
-            (Click on the top left icon to see all demos)
+          <div className="text-base font-semibold text-gray-200 bg-slate-800 px-2 rounded">
+            Click on the top left icon to see Projects and Demos
           </div>
         </div>
         <div className="total-center gap-12 max-sm:gap-4 flex-wrap *:w-1/4 max-sm:*:w-full max-sm:*:mx-16">
