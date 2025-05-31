@@ -1,5 +1,8 @@
+import { useRoute } from "app/router";
 import LogoImage from "assets/images/logo.png";
-import { useState } from "react";
+import { DEMOS_BY_KEY } from "lib/demos";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { getContext } from "tone";
 
 interface LoadingScreenProps {
@@ -8,12 +11,31 @@ interface LoadingScreenProps {
 
 export function CalculatorLoadingScreen(props: LoadingScreenProps) {
   const [clicked, setClicked] = useState(false);
-  let text = props.text;
-  if (!clicked && getContext().state !== "running") {
-    text = "Click Anywhere To Start";
-  } else {
-    text = props.text;
-  }
+  const [demo, setDemo] = useState<string>();
+  const { id } = useParams();
+  const view = useRoute();
+  useEffect(() => {
+    if (!clicked) {
+      if (view.startsWith("/demo") && id) {
+        const demo = DEMOS_BY_KEY[id];
+        if (!demo) return;
+        const name = demo.project.meta.name;
+        setDemo(name.toLowerCase());
+        setText(`Open ${name}`);
+      }
+    }
+  }, [id, view, clicked]);
+
+  const [text, setText] = useState(props.text);
+  useEffect(() => {
+    if (!demo) {
+      if (!clicked && getContext().state !== "running") {
+        setText("Click Anywhere To Start");
+      } else {
+        setText(props.text);
+      }
+    }
+  }, [demo, clicked]);
   return (
     <div
       className="size-full flex-col animate-in fade-in cursor-pointer duration-300"

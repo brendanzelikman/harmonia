@@ -170,7 +170,7 @@ const BachCosDemo: DemoProject = {
 };
 const BachTanDemo: DemoProject = {
   project: BachTan as unknown as BaseProject,
-  blurb: `Bach's Prelude summed from 0 to "Infinity".`,
+  blurb: `Bach's Prelude slowly raised up to "Infinity".`,
   aliases: ["bach_tan"],
 };
 const BachPiDemo: DemoProject = {
@@ -180,7 +180,7 @@ const BachPiDemo: DemoProject = {
 };
 const ClusterVsChordDemo: DemoProject = {
   project: ClusterVsChord as unknown as BaseProject,
-  blurb: "Bach's Prelude fought between sin and cos.",
+  blurb: "Bach's prelude with clusters, then chords.",
   aliases: ["bach_clusters", "bach_chords", "bach_battle"],
 };
 
