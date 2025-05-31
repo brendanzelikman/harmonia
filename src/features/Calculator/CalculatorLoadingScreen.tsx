@@ -14,6 +14,18 @@ export function CalculatorLoadingScreen(props: LoadingScreenProps) {
   const [demo, setDemo] = useState<string>();
   const { id } = useParams();
   const view = useRoute();
+  const [text, setText] = useState(props.text);
+
+  useEffect(() => {
+    if (!demo) {
+      if (!clicked && getContext().state !== "running") {
+        setText("Click Anywhere To Start");
+      } else {
+        setText(props.text);
+      }
+    }
+  }, [demo, clicked]);
+
   useEffect(() => {
     if (!clicked) {
       if (view.startsWith("/demo") && id) {
@@ -26,16 +38,6 @@ export function CalculatorLoadingScreen(props: LoadingScreenProps) {
     }
   }, [id, view, clicked]);
 
-  const [text, setText] = useState(props.text);
-  useEffect(() => {
-    if (!demo) {
-      if (!clicked && getContext().state !== "running") {
-        setText("Click Anywhere To Start");
-      } else {
-        setText(props.text);
-      }
-    }
-  }, [demo, clicked]);
   return (
     <div
       className="size-full flex-col animate-in fade-in cursor-pointer duration-300"
