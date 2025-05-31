@@ -56,6 +56,7 @@ export function NavbarBrand() {
     };
   });
   const Icon = onMain ? GiStarGate : GiCalculator;
+  const [onDemos, setOnDemos] = useState(false);
   return (
     <>
       {show && (
@@ -83,58 +84,81 @@ export function NavbarBrand() {
               <div>Upload Project</div>
             </button>
             <div className="flex flex-col gap-4">
-              <div className="font-semibold">Projects</div>
-              <div className="flex flex-col gap-2">
-                {projects.map((p) => {
-                  const id = selectProjectId(p);
-                  const name = selectProjectName(p);
-                  return (
-                    <div
-                      key={id}
-                      data-selected={id === projectId}
-                      className="bg-slate-950/50 rounded border border-slate-600 data-[selected=true]:border-indigo-500 flex flex-col p-2 gap-2 hover:bg-slate-800/50 cursor-pointer"
-                      onClick={() => loadProject(id)}
-                    >
-                      <div className="flex gap-2">
-                        <GiCompactDisc className="text-2xl" />
-                        <div className="text-base">{name}</div>
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        Date Created:{" "}
-                        {dayjs(selectProjectDateCreated(p)).format(
-                          "MMM D, YYYY h:mm A"
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="flex justify-evenly">
+                <div
+                  data-selected={!onDemos}
+                  className="font-semibold data-[selected=true]:text-indigo-400 cursor-pointer select-none"
+                  onClick={() => setOnDemos(false)}
+                >
+                  Projects
+                </div>
+                <div
+                  data-selected={onDemos}
+                  className="font-semibold data-[selected=true]:text-indigo-400 cursor-pointer select-none"
+                  onClick={() => setOnDemos(true)}
+                >
+                  Demos
+                </div>
               </div>
-            </div>
-            <div className="flex flex-col gap-4 shrink-0 mt-4">
-              {DEMO_GENRES.map((genre) => (
-                <>
-                  <div key={genre.key} className="font-semibold">
-                    Demos - {genre.key}
-                  </div>
-                  <div className="flex flex-col gap-2 shrink-0 grow">
-                    {genre.demos.map((p) => (
+              {!onDemos && (
+                <div className="flex flex-col gap-2">
+                  {projects.map((p) => {
+                    const id = selectProjectId(p);
+                    const name = selectProjectName(p);
+                    return (
                       <div
-                        key={p.project.meta.id}
-                        data-selected={projectId.startsWith(p.project.meta.id)}
+                        key={id}
+                        data-selected={id === projectId}
                         className="bg-slate-950/50 rounded border border-slate-600 data-[selected=true]:border-indigo-500 flex flex-col p-2 gap-2 hover:bg-slate-800/50 cursor-pointer"
-                        onClick={() => loadDemoProject(p.project)}
+                        onClick={() => loadProject(id)}
                       >
                         <div className="flex gap-2">
                           <GiCompactDisc className="text-2xl" />
-                          <div className="text-base">{p.project.meta.name}</div>
+                          <div className="text-base">{name}</div>
                         </div>
-                        <div className="text-xs text-gray-400">{p.blurb}</div>
+                        <div className="text-xs text-gray-400">
+                          Date Created:{" "}
+                          {dayjs(selectProjectDateCreated(p)).format(
+                            "MMM D, YYYY h:mm A"
+                          )}
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </>
-              ))}
+                    );
+                  })}
+                </div>
+              )}
             </div>
+            {onDemos && (
+              <div className="flex flex-col gap-4 shrink-0 mt-4">
+                {DEMO_GENRES.map((genre) => (
+                  <>
+                    <div key={genre.key} className="font-semibold">
+                      {genre.key}
+                    </div>
+                    <div className="flex flex-col gap-2 shrink-0 grow ">
+                      {genre.demos.map((p) => (
+                        <div
+                          key={p.project.meta.id}
+                          data-selected={projectId.startsWith(
+                            p.project.meta.id
+                          )}
+                          className="bg-slate-950/50 rounded border border-slate-600 data-[selected=true]:border-indigo-500 flex flex-col p-2 gap-2 hover:bg-slate-800/50 cursor-pointer"
+                          onClick={() => loadDemoProject(p.project)}
+                        >
+                          <div className="flex gap-2">
+                            <GiCompactDisc className="text-2xl" />
+                            <div className="text-base">
+                              {p.project.meta.name}
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-400">{p.blurb}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ))}
+              </div>
+            )}
             <div className="flex flex-col h-full mt-4 gap-6 shrink-0">
               <div className="font-semibold">Quick Actions</div>
               <div

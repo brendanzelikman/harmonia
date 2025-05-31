@@ -13,7 +13,7 @@ export const LandingCreators = () => {
     <LandingSection className="pt-2 bg-slate-950/50">
       <PopupHeader title="Behind the Scenes" />
       <m.div
-        className="total-center flex-wrap gap-16 mt-10"
+        className="total-center flex-wrap gap-12 mt-12"
         variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}
         initial="hidden"
         whileInView="show"
@@ -29,7 +29,7 @@ export const LandingCreators = () => {
         >
           <a
             href="https://brendanzelikman.github.io/"
-            className="size-54 shrink-0 rounded-full overflow-hidden"
+            className="size-54 border-4 border-rose-500/80 shrink-0 rounded-full overflow-hidden"
           >
             <img
               className="h-fit scale-200 min-w-0 -ml-20 object-fill"
@@ -54,16 +54,7 @@ export const LandingCreators = () => {
           whileInView="show"
           viewport={{ once: true }}
         >
-          <a
-            href="https://dmitri.mycpanel.princeton.edu/"
-            className="size-54 shrink-0 rounded-full overflow-hidden"
-          >
-            <img
-              className="h-fit object-fill"
-              src="https://kellercenter.princeton.edu/sites/default/files/styles/square/public/images/Dmitri.jpg?h=120c1784&itok=iEOjEFZS"
-            />
-          </a>
-          <div className="flex flex-col text-base">
+          <div className="flex flex-col text-base text-right">
             <h1 className="text-3xl mb-4"> Dmitri Tymoczko</h1>
             <h2 className="text-gray-400">
               Professor of Music, Princeton University
@@ -77,13 +68,26 @@ export const LandingCreators = () => {
               currently a Professor of Music at Princeton University.
             </p>
           </div>
+          <a
+            href="https://dmitri.mycpanel.princeton.edu/"
+            className="size-54 border-4 border-orange-400/80 shrink-0 rounded-full overflow-hidden"
+          >
+            <img
+              className="h-fit object-fill"
+              src="https://kellercenter.princeton.edu/sites/default/files/styles/square/public/images/Dmitri.jpg?h=120c1784&itok=iEOjEFZS"
+            />
+          </a>
         </m.div>
-        <div className="text-5xl pb-4 font-bold w-full text-center">
-          Core Technologies
+        <div className="text-5xl pt-4 font-bold w-full text-center">
+          Instrumental Libraries
         </div>
-        <m.div className="flex gap-12 border-2 px-8 py-4 rounded-lg border-indigo-500/50 bg-slate-950/50 backdrop-blur">
+        <m.div className="flex gap-16 border-2 px-8 py-4 rounded-lg border-indigo-500/50 bg-slate-950/50 backdrop-blur">
           {libraries.map((library) => (
-            <a href={library.link} className="w-24 relative group total-center">
+            <a
+              key={library.title}
+              href={library.link}
+              className="w-20 relative group total-center"
+            >
               <img src={library.image} className="w-24 cursor-pointer" />
               <div className="absolute top-25 left-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="flex flex-col items-center justify-center h-full text-white">

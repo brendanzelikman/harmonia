@@ -13,9 +13,9 @@ import Romanesca from "lib/demos/romanesca.json";
 import Scherzo from "lib/demos/scherzo.json";
 import Sentence from "lib/demos/sentence.json";
 import Sketch from "lib/demos/sketch.json";
-import Sin from "lib/demos/sin.json";
-import Cos from "lib/demos/cos.json";
-import Tan from "lib/demos/tan.json";
+import Sin from "lib/demos/bach_sin.json";
+import Cos from "lib/demos/bach_cos.json";
+import Tan from "lib/demos/bach_tan.json";
 import Waterfall from "lib/demos/waterfall.json";
 import Wave from "lib/demos/wave.json";
 import WaveSnark from "lib/demos/waveAlt.json";
@@ -30,12 +30,12 @@ type DemoProject = {
 
 const BarryDemo: DemoProject = {
   project: Barry as unknown as BaseProject,
-  blurb: "A jazz solo based on a Barry Harris voicing.",
+  blurb: "A fun chorus with a Barry Harris voicing.",
   aliases: ["barry"],
 };
 const BirdDemo: DemoProject = {
   project: Bird as unknown as BaseProject,
-  blurb: "A jazz etude based on the Bird Changes.",
+  blurb: "An arpeggio through Charlie Parker chords.",
   aliases: ["bird"],
 };
 const CarouselDemo: DemoProject = {
@@ -52,7 +52,7 @@ const ExaltedDemo: DemoProject = {
 };
 const FonteDemo: DemoProject = {
   project: Fonte as unknown as BaseProject,
-  blurb: "A playful solo over the Fonte progression.",
+  blurb: "A playful riff over the Fonte progression.",
   aliases: ["fonte"],
 };
 const LavosDemo: DemoProject = {
@@ -88,17 +88,17 @@ const SentenceDemo: DemoProject = {
 };
 const SinDemo: DemoProject = {
   project: Sin as unknown as BaseProject,
-  blurb: "A short piece based on a sine wave.",
+  blurb: "Bach's Prelude summed with a sine wave.",
   aliases: ["sine", "sin"],
 };
 const CosDemo: DemoProject = {
   project: Cos as unknown as BaseProject,
-  blurb: "A short piece based on a cosine wave.",
+  blurb: "Bach's Prelude summed with a cosine wave.",
   aliases: ["cosine", "cos"],
 };
 const TanDemo: DemoProject = {
   project: Tan as unknown as BaseProject,
-  blurb: "A short piece based on a tangent wave.",
+  blurb: "Bach's Prelude summed with a tangent wave.",
   aliases: ["tangent", "tan"],
 };
 const SketchDemo: DemoProject = {
@@ -131,19 +131,19 @@ export const DEMO_GENRES = [
     key: "Classical",
     color: "border-sky-400 text-sky-400",
     icon: <GiQuill />,
-    demos: [PreludeDemo, WaterfallDemo, MoonlightDemo],
+    demos: [PreludeDemo, WaterfallDemo, MoonlightDemo, ReminiscenzaDemo],
   },
   {
     key: "Jazz",
     color: "border-orange-300 text-orange-300",
     icon: <GiTrumpet />,
-    demos: [FonteDemo, BirdDemo, BarryDemo],
+    demos: [FonteDemo, BirdDemo, CarouselDemo, BarryDemo],
   },
   {
     key: "Electronic",
     color: "border-red-400 text-red-400",
     icon: <GiFire />,
-    demos: [WaveDemo, WaveSnarkDemo, LavosDemo],
+    demos: [WaveDemo, WaveSnarkDemo, ExaltedDemo, LavosDemo],
   },
   {
     key: "Mathematical",

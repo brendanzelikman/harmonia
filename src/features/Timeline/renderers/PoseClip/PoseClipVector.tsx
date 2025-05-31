@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { clamp, omit } from "lodash";
+import { clamp, omit, size, some } from "lodash";
 import { updatePose } from "types/Pose/PoseSlice";
 import { PoseVectorId, PoseBlock, isVoiceLeading } from "types/Pose/PoseTypes";
 import { useEffect, useMemo, useState } from "react";
@@ -33,7 +33,6 @@ import { readMidiScaleFromString } from "types/Track/ScaleTrack/ScaleTrackThunks
 import { promptLineBreak } from "components/PromptModal";
 import { CHORDAL_KEY, CHROMATIC_KEY, OCTAVE_KEY } from "utils/constants";
 import { selectTrackMidiScaleAtTick } from "types/Arrangement/ArrangementTrackSelectors";
-import { selectPoseById } from "types/Pose/PoseSelectors";
 
 export type PoseClipVectorView = "scales" | "notes" | "effects" | "scale";
 
@@ -53,7 +52,11 @@ export const PoseClipVector = (props: PoseClipVectorProps) => {
   const clipTracks = useAppValue((_) => selectScaleTrackChain(_, trackId));
 
   const [view, setView] = useState<PoseClipVectorView>(
-    isVoiceLeading(props.vector) ? "notes" : "scales"
+    isVoiceLeading(props.vector)
+      ? "notes"
+      : some(props.operations) && !some(props.vector)
+      ? "effects"
+      : "scales"
   );
 
   // Create editable fields for each vector component

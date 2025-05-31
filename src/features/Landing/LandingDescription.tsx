@@ -159,7 +159,7 @@ export const LandingDescription = () => {
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Write Custom Functions</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Design Mathematical Formulas with JavaScript
+              Apply Mathematical Formulas with JavaScript
             </div>
           </div>
         </m.div>

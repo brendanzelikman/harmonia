@@ -67,9 +67,9 @@ export const TutorialIntroduction = (props: {
       <TimelineButton
         className="lg:rounded-full flex-row lg:flex-col shadow-xl w-xs lg:py-12 lg:gap-3"
         border="ring-fuchsia-600/80"
-        title={props.tutorial ? "Begin Tutorial" : "Launch Tutorial"}
+        title={props.tutorial ? "I'm New Here" : "Launch Tutorial"}
         titleClass={"text-2xl font-normal"}
-        subtitle="Packaged in Sonata Form"
+        subtitle="Start the Tutorial"
         stripColor="text-lg font-light"
         Icon={GiBookCover}
         iconClass="text-9xl max-lg:text-6xl"

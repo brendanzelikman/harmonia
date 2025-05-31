@@ -12,11 +12,11 @@ const variants = {
 
 export const LandingVideo = () => {
   return (
-    <LandingSection className="pb-20 -mt-10">
+    <LandingSection className="pb-20">
       <div className="total-center-col gap-12">
         <div className="flex flex-col items-center gap-4 text-5xl max-sm:text-4xl font-bold">
           <div>Hall of Fame</div>
-          <div className="text-base font-light text-gray-200 bg-slate-800 py-2 px-4 rounded-lg">
+          <div className="text-base font-light text-gray-200 bg-slate-900/80 border-2 border-indigo-500/80 py-2 px-4 rounded-lg">
             Memorable footage of Harmonia over the years
           </div>
         </div>
@@ -26,7 +26,7 @@ export const LandingVideo = () => {
           whileInView="show"
           viewport={{ once: true }}
           transition={{ delayChildren: 0.2, staggerChildren: 0.1 }}
-          className="sm:p-6 flex justify-center flex-wrap max-sm:gap-6 gap-20 *:bg-slate-950 *:p-4 *:pt-2 *:px-4 *:rounded-lg *:flex *:flex-col *:items-center *:justify-between max-sm:*:text-lg *:text-3xl *:gap-4 *:font-light"
+          className="sm:p-6 flex justify-center flex-wrap max-sm:gap-6 gap-20 *:bg-slate-950 *:border-2 *:border-indigo-500/80 *:p-4 *:pt-2 *:px-4 *:rounded-lg *:flex *:flex-col *:items-center *:justify-between max-sm:*:text-lg *:text-3xl *:gap-4 *:font-light"
         >
           <m.div variants={variants} viewport={{ once: true }}>
             <video
