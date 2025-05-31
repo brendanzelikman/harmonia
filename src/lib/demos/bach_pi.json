@@ -1,9 +1,9 @@
 {
   "meta": {
-    "id": "project_7-kwMZJl8ejNz_uknSYAl",
-    "name": "Bach in Trig, Mvt. 4 - Exp",
+    "id": "project_Nih8WAnkOjlzCY1R2A1FL",
+    "name": "Prelude in C Major + Pi",
     "dateCreated": "2025-05-31T04:05:12.902Z",
-    "lastUpdated": "2025-05-31T00:16:00-04:00",
+    "lastUpdated": "2025-05-31T00:22:26-04:00",
     "diary": ["", "", "", "", "", "", "", "", "", ""]
   },
   "tracks": {
@@ -574,8 +574,7 @@
             { "duration": 384, "velocity": 100, "MIDI": 67 },
             { "duration": 384, "velocity": 100, "MIDI": 72 }
           ]
-        ],
-        "projectId": "project-tLdynnBa-C0wUh1gh6Ct1-os3X4vvIVfBCgsGl4_4Fa"
+        ]
       }
     },
     "ids": ["pattern_AoNZorXxksdx1ShDeNCG_"]
@@ -585,7 +584,10 @@
       "pose_aceZh08F2Dlmkk5fGfybN": {
         "id": "pose_aceZh08F2Dlmkk5fGfybN",
         "operations": [
-          { "id": "script", "args": "return note + Math.exp(index / length)" }
+          {
+            "id": "script",
+            "args": "return [note, note + Math.PI];"
+          }
         ]
       }
     },

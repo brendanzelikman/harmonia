@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "project_bewQI0CIV-kYpU5HTsRZm",
-    "name": "Bach in Trig, Mvt. 2 - Cosine",
+    "name": "Cos(Prelude in C Major)",
     "dateCreated": "2025-05-30T23:08:52-04:00",
     "lastUpdated": "2025-05-30T23:12:33-04:00",
     "diary": ["", "", "", "", "", "", "", "", "", ""]
@@ -574,8 +574,7 @@
             { "duration": 384, "velocity": 100, "MIDI": 67 },
             { "duration": 384, "velocity": 100, "MIDI": 72 }
           ]
-        ],
-        "projectId": "project-tLdynnBa-C0wUh1gh6Ct1-os3X4vvIVfBCgsGl4_4Fa"
+        ]
       }
     },
     "ids": ["pattern_AoNZorXxksdx1ShDeNCG_"]

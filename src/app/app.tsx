@@ -9,7 +9,6 @@ import { router } from "app/router";
 import { RouterProvider } from "react-router-dom";
 import _ from "lodash";
 import { useProjects } from "hooks/useProjects";
-import { useTitle } from "hooks/useTitle";
 
 // The root container for the application.
 const container = document.getElementById("root");

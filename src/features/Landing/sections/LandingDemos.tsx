@@ -78,7 +78,7 @@ const LANDING_DEMO_PROJECTS = [
     icon: <GiMoon className="text-indigo-400/80" />,
   },
   {
-    ...DEMOS_BY_KEY["bird changes"],
+    ...DEMOS_BY_KEY["bird"],
     icon: <GiKiwiBird className="text-orange-300/80" />,
   },
   {

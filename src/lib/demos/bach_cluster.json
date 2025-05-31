@@ -1,9 +1,9 @@
 {
   "meta": {
-    "id": "project_Nih8WAnkOjlzCY1R2A1FL",
-    "name": "Bach in Trig, Mvt. 5 - Log",
-    "dateCreated": "2025-05-31T04:05:12.902Z",
-    "lastUpdated": "2025-05-31T00:22:26-04:00",
+    "id": "project_7S5VvnQm1Q583KfZV3679",
+    "name": "Prelude in Cluster vs. Chord",
+    "dateCreated": "2025-05-31T06:14:32.147Z",
+    "lastUpdated": "2025-05-31T12:38:29-04:00",
     "diary": ["", "", "", "", "", "", "", "", "", ""]
   },
   "tracks": {
@@ -574,8 +574,7 @@
             { "duration": 384, "velocity": 100, "MIDI": 67 },
             { "duration": 384, "velocity": 100, "MIDI": 72 }
           ]
-        ],
-        "projectId": "project-tLdynnBa-C0wUh1gh6Ct1-os3X4vvIVfBCgsGl4_4Fa"
+        ]
       }
     },
     "ids": ["pattern_AoNZorXxksdx1ShDeNCG_"]
@@ -587,9 +586,10 @@
         "operations": [
           {
             "id": "script",
-            "args": "return note + Math.log(1 + ((Math.E - 1) * index / length))"
+            "args": "const pos = index / length;\nconst ratio = Math.PI / 2;\nconst value = pos * ratio;\n\nconst sin = Math.sin(value);\nconst cos = Math.cos(value);\nconst seed = Math.random();\nif (seed < sin) { \nif (seed > cos){ \nreturn [note, note+4, note+7];\n} else {\nreturn [note-1, note, note + 1];\n}\n}\nreturn note;\n"
           }
-        ]
+        ],
+        "vector": {}
       }
     },
     "ids": ["pose_aceZh08F2Dlmkk5fGfybN"]

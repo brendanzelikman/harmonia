@@ -99,7 +99,7 @@ export const getMidiPitch = (note: MidiNote, key: Key = ChromaticKey) => {
 export const getMidiFromPitch = (note: string) => {
   const pitchRegex = /([a-gA-G][#b]?[#b]?\d?)/g;
   const match = pitchRegex.exec(note);
-  if (!match) return parseInt(note);
+  if (!match) return parseFloat(note);
   const pitch = match[1];
   const hasNumber = pitch.match(/\d/);
   const octave = hasNumber ? parseInt(pitch.replace(/[^0-9]/g, "")) : 4;

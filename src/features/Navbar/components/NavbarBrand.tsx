@@ -11,7 +11,17 @@ import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import { DEMO_GENRES } from "lib/demos";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GiCalculator, GiCompactDisc, GiStarGate } from "react-icons/gi";
-import { BsEject, BsPlusCircle, BsUpload } from "react-icons/bs";
+import {
+  BsCaretLeft,
+  BsChevronBarLeft,
+  BsChevronCompactRight,
+  BsChevronLeft,
+  BsChevronRight,
+  BsEject,
+  BsPlusCircle,
+  BsTextLeft,
+  BsUpload,
+} from "react-icons/bs";
 import {
   selectProjectDateCreated,
   selectProjectId,
@@ -27,6 +37,11 @@ import { useHotkeys } from "hooks/useHotkeys";
 import { exportProjectsToZip } from "types/Project/ProjectExporters";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
 import { LAND, MAIN, useRoute } from "app/router";
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+} from "@headlessui/react";
 
 export function NavbarBrand() {
   const dispatch = useAppDispatch();
@@ -133,13 +148,17 @@ export function NavbarBrand() {
               )}
             </div>
             {onDemos && (
-              <div className="flex flex-col gap-4 shrink-0 mt-4">
+              <div className="flex flex-col gap-4 shrink-0 mt-2">
                 {DEMO_GENRES.map((genre) => (
-                  <>
-                    <div key={genre.key} className="font-semibold">
+                  <Disclosure as="div" className="flex flex-col gap-4">
+                    <DisclosureButton
+                      key={genre.key}
+                      className="flex items-center group gap-2 cursor-pointer hover:bg-slate-700/50 rounded-lg p-1 font-semibold"
+                    >
+                      <BsChevronRight className="group-data-open:rotate-180" />
                       {genre.key}
-                    </div>
-                    <div className="flex flex-col gap-2 shrink-0 grow ">
+                    </DisclosureButton>
+                    <DisclosurePanel className="flex flex-col gap-2 shrink-0 grow ">
                       {genre.demos.map((p) => (
                         <div
                           key={p.project.meta.id}
@@ -158,8 +177,8 @@ export function NavbarBrand() {
                           <div className="text-xs text-gray-400">{p.blurb}</div>
                         </div>
                       ))}
-                    </div>
-                  </>
+                    </DisclosurePanel>
+                  </Disclosure>
                 ))}
               </div>
             )}
