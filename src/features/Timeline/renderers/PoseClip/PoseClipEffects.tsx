@@ -267,7 +267,7 @@ export const PoseClipEffect = <T extends Transformation>({
       .replace("reload", "");
     try {
       const fn = new Function("note", "index", args);
-      const res = fn(0, 0);
+      const res = fn(0, 0, 1);
       return isNumber(res);
     } catch {
       return false;
@@ -291,10 +291,11 @@ export const PoseClipEffect = <T extends Transformation>({
               `You can use the following variables:`,
               `- \`note\` (the MIDI number of the note)`,
               `- \`index\` (the index within the stream)`,
+              `- \`length\` (the length of the stream)`,
               promptLineBreak,
               `Current Script:`,
               promptLineBreak,
-              <code>{`(note, index) => {`}</code>,
+              <code>{`(note, index, length) => {`}</code>,
               <span className="ml-2">
                 <code>
                   {displayedArgs ? displayedArgs : "[code will go here]"}

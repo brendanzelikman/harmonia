@@ -5,6 +5,7 @@ import Portals from "/media/portals.png";
 import Performance from "/media/performance.gif";
 import Hotkeys from "/media/hotkeys.jpg";
 import Terminal from "/media/terminal.png";
+import Math from "/media/math.png";
 import Easy from "/media/easy.png";
 import Nest from "/media/nest.png";
 import Screenshot from "/media/screenshot.png";
@@ -152,13 +153,13 @@ export const LandingDescription = () => {
           className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
         >
           <img
-            src={Portals}
+            src={Math}
             className="shadow-2xl max-sm:h-48 h-68 w-xl object-cover object-top-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Discover Easter Eggs</div>
+            <div>Write Custom Functions</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Have Fun With Whimsical Features
+              Apply Mathematical Formulas with JavaScript
             </div>
           </div>
         </m.div>
@@ -169,13 +170,13 @@ export const LandingDescription = () => {
           className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
         >
           <img
-            src={Terminal}
+            src={Portals}
             className="shadow-2xl max-sm:h-48 h-68 w-xl object-cover object-top-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Hack Your Music</div>
+            <div>Discover Easter Eggs</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Edit Projects with a Dedicated Terminal
+              Have Fun With Whimsical Features
             </div>
           </div>
         </m.div>

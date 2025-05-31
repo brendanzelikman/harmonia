@@ -16,7 +16,7 @@ export const LandingVideo = () => {
       <div className="total-center-col gap-12">
         <div className="flex flex-col items-center gap-4 text-5xl max-sm:text-4xl font-bold">
           <div>Hall of Fame</div>
-          <div className="text-base font-semibold text-gray-200 bg-slate-800 px-2 rounded">
+          <div className="text-base font-light text-gray-200 bg-slate-800 py-2 px-4 rounded-lg">
             Memorable footage of Harmonia over the years
           </div>
         </div>

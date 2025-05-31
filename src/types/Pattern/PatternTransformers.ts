@@ -564,7 +564,8 @@ export const TRANSFORMATIONS = createTransformationMap({
     callback: (stream, args) => {
       if (!args) return stream;
       let newStream: PatternMidiStream = [];
-      for (let i = 0; i < stream.length; i++) {
+      const length = stream.length;
+      for (let i = 0; i < length; i++) {
         const block = stream[i];
         if (isPatternRest(block)) {
           continue;
@@ -577,13 +578,13 @@ export const TRANSFORMATIONS = createTransformationMap({
                 let safeArgs = args.replace("window", "");
                 safeArgs = safeArgs.replace("location", "");
                 safeArgs = safeArgs.replace("document", "");
-                const fn = new Function("note", "index", safeArgs);
-                value = fn(getMidiValue(note), i);
+                const fn = new Function("note", "index", "length", safeArgs);
+                value = fn(getMidiValue(note), i, length);
               } catch (e) {
                 value = note.MIDI;
               }
               if (isNumber(value)) {
-                return { ...note, MIDI: value };
+                return { ...note, MIDI: clamp(value, 0, 127) };
               } else {
                 return note;
               }

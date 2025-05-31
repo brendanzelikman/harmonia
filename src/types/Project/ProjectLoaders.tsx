@@ -34,7 +34,7 @@ export const loadDemoProject = async (
   callback?: () => void
 ) => {
   let project = sanitizeProject("present" in base ? base : { present: base });
-  project.present.meta.id = `project-demo-${nanoid()}`;
+  project.present.meta.id += `-${nanoid()}`;
   project.present.meta.dateCreated = dayjs().toISOString();
   await uploadProject(project);
   setProject(project);

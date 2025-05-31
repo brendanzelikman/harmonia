@@ -13,6 +13,9 @@ import Romanesca from "lib/demos/romanesca.json";
 import Scherzo from "lib/demos/scherzo.json";
 import Sentence from "lib/demos/sentence.json";
 import Sketch from "lib/demos/sketch.json";
+import Sin from "lib/demos/sin.json";
+import Cos from "lib/demos/cos.json";
+import Tan from "lib/demos/tan.json";
 import Waterfall from "lib/demos/waterfall.json";
 import Wave from "lib/demos/wave.json";
 import WaveSnark from "lib/demos/waveAlt.json";
@@ -22,15 +25,18 @@ import { GiFire, GiQuill, GiTrumpet } from "react-icons/gi";
 type DemoProject = {
   project: BaseProject;
   blurb: string;
+  aliases?: string[];
 };
 
 const BarryDemo: DemoProject = {
   project: Barry as unknown as BaseProject,
   blurb: "A jazz solo based on a Barry Harris voicing.",
+  aliases: ["barry"],
 };
 const BirdDemo: DemoProject = {
   project: Bird as unknown as BaseProject,
   blurb: "A jazz etude based on the Bird Changes.",
+  aliases: ["bird"],
 };
 const CarouselDemo: DemoProject = {
   project: Carousel as unknown as BaseProject,
@@ -47,18 +53,22 @@ const ExaltedDemo: DemoProject = {
 const FonteDemo: DemoProject = {
   project: Fonte as unknown as BaseProject,
   blurb: "A playful solo over the Fonte progression.",
+  aliases: ["fonte"],
 };
 const LavosDemo: DemoProject = {
   project: Lavos as unknown as BaseProject,
   blurb: "An experimental hardcore techno beat.",
+  aliases: ["lavos", "techno"],
 };
 const MoonlightDemo: DemoProject = {
   project: Moonlight as unknown as BaseProject,
   blurb: "A few bars from Beethoven's Op. 27, No. 2.",
+  aliases: ["moonlight", "beethoven"],
 };
 const PreludeDemo: DemoProject = {
   project: Prelude as unknown as BaseProject,
   blurb: "A recreation of that famous piece by Bach.",
+  aliases: ["bach", "prelude"],
 };
 const ReminiscenzaDemo: DemoProject = {
   project: Reminiscenza as unknown as BaseProject,
@@ -76,21 +86,39 @@ const SentenceDemo: DemoProject = {
   project: Sentence as unknown as BaseProject,
   blurb: "A musical sentence (short, short, long).",
 };
-const WaterfallDemo: DemoProject = {
-  project: Waterfall as unknown as BaseProject,
-  blurb: "A few bars from Chopin's Op. 10, No. 1.",
+const SinDemo: DemoProject = {
+  project: Sin as unknown as BaseProject,
+  blurb: "A short piece based on a sine wave.",
+  aliases: ["sine", "sin"],
+};
+const CosDemo: DemoProject = {
+  project: Cos as unknown as BaseProject,
+  blurb: "A short piece based on a cosine wave.",
+  aliases: ["cosine", "cos"],
+};
+const TanDemo: DemoProject = {
+  project: Tan as unknown as BaseProject,
+  blurb: "A short piece based on a tangent wave.",
+  aliases: ["tangent", "tan"],
 };
 const SketchDemo: DemoProject = {
   project: Sketch as unknown as BaseProject,
   blurb: "A short piece based on a sketch of a melody.",
 };
+const WaterfallDemo: DemoProject = {
+  project: Waterfall as unknown as BaseProject,
+  blurb: "A few bars from Chopin's Op. 10, No. 1.",
+  aliases: ["chopin", "waterfall", "etude"],
+};
 const WaveDemo: DemoProject = {
   project: Wave as unknown as BaseProject,
   blurb: "Piano and bass over a soothing progression.",
+  aliases: ["wave"],
 };
 const WaveSnarkDemo: DemoProject = {
   project: WaveSnark as unknown as BaseProject,
   blurb: "The evil twin of Tidal Waves.",
+  aliases: ["snark"],
 };
 const WaveLongDemo: DemoProject = {
   project: WaveLong as unknown as BaseProject,
@@ -103,19 +131,25 @@ export const DEMO_GENRES = [
     key: "Classical",
     color: "border-sky-400 text-sky-400",
     icon: <GiQuill />,
-    demos: [PreludeDemo, WaterfallDemo, MoonlightDemo, ReminiscenzaDemo],
+    demos: [PreludeDemo, WaterfallDemo, MoonlightDemo],
   },
   {
     key: "Jazz",
     color: "border-orange-300 text-orange-300",
     icon: <GiTrumpet />,
-    demos: [FonteDemo, BirdDemo, CarouselDemo, BarryDemo],
+    demos: [FonteDemo, BirdDemo, BarryDemo],
   },
   {
     key: "Electronic",
     color: "border-red-400 text-red-400",
     icon: <GiFire />,
-    demos: [WaveDemo, WaveSnarkDemo, ExaltedDemo, LavosDemo],
+    demos: [WaveDemo, WaveSnarkDemo, LavosDemo],
+  },
+  {
+    key: "Mathematical",
+    color: "border-red-400 text-red-400",
+    icon: <GiFire />,
+    demos: [SinDemo, CosDemo, TanDemo],
   },
 ] as const;
 
@@ -126,6 +160,11 @@ export const DEMO_PROJECTS: DemoProject[] = DEMO_GENRES.flatMap(
 export const DEMOS_BY_KEY: Record<string, DemoProject> = DEMO_PROJECTS.reduce(
   (acc, demo) => {
     acc[demo.project.meta.name.toLowerCase()] = demo;
+    if (demo.aliases) {
+      demo.aliases.forEach((alias) => {
+        acc[alias.toLowerCase()] = demo;
+      });
+    }
     return acc;
   },
   {} as Record<string, DemoProject>

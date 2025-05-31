@@ -17,7 +17,7 @@ export function LandingPage() {
       <div className="max-lg:hidden absolute size-full">
         <Navbar />
       </div>
-      <div className="relative size-full pt-20 overflow-scroll select-none">
+      <div className="relative size-full  pt-20 overflow-scroll select-none">
         <Splash />
         {hasError && <Stack />}
         {!hasError && (

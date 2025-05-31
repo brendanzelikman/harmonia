@@ -33,6 +33,7 @@ export function NavbarBrand() {
   const route = useRoute();
   const onMain = route === MAIN;
   const projectId = useAppValue(selectProjectId);
+  const projectName = useAppValue(selectProjectName);
   const [show, setShow] = useState(false);
   useHotkeys({ escape: () => setShow(false) });
   const { data } = useFetch(getProjects, UPDATE_PROJECT_EVENT);
@@ -119,7 +120,8 @@ export function NavbarBrand() {
                     {genre.demos.map((p) => (
                       <div
                         key={p.project.meta.id}
-                        className="bg-slate-950/50 rounded border border-slate-600 flex flex-col p-2 gap-2 hover:bg-slate-800/50 cursor-pointer"
+                        data-selected={projectId.startsWith(p.project.meta.id)}
+                        className="bg-slate-950/50 rounded border border-slate-600 data-[selected=true]:border-indigo-500 flex flex-col p-2 gap-2 hover:bg-slate-800/50 cursor-pointer"
                         onClick={() => loadDemoProject(p.project)}
                       >
                         <div className="flex gap-2">

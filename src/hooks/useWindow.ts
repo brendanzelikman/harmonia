@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useAppValue } from "hooks/useRedux";
 import { selectProjectName } from "types/Meta/MetaSelectors";
-import { MAIN, useRoute } from "app/router";
+import { LAND, MAIN, useRoute } from "app/router";
 import { DEMOS_BY_KEY } from "lib/demos";
 import { useNavigate, useParams } from "react-router-dom";
 import { loadDemoProject } from "types/Project/ProjectLoaders";

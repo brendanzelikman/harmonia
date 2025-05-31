@@ -25,7 +25,7 @@ export const LandingDemos = () => {
       <div className="total-center-col gap-18 max-sm:gap-8">
         <div className="flex flex-col items-center gap-4 text-5xl max-sm:text-4xl font-bold">
           <div>Demo Showcase</div>
-          <div className="text-base font-semibold text-gray-200 bg-slate-800 px-2 rounded">
+          <div className="text-base font-light text-gray-200 bg-slate-800 py-2 px-4 rounded-lg">
             Click on the top left icon to see Projects and Demos
           </div>
         </div>
