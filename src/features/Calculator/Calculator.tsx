@@ -1,11 +1,10 @@
 import { dispatchCustomEventOnChange } from "utils/event";
 import { useTransport } from "../../hooks/useTransport";
-import { LoadingScreen } from "./CalculatorPlaceholder";
+import { CalculatorLoadingScreen } from "./CalculatorLoadingScreen";
 import { useAppValue } from "hooks/useRedux";
 import { selectHasTracks } from "types/Track/TrackSelectors";
 import { useHotkeys } from "hooks/useHotkeys";
 import { hotkeyMap } from "lib/hotkeys";
-import Diary from "features/Diary/Diary";
 import Editor from "features/Editor/Editor";
 import Shortcuts from "features/Shortcuts/Shortcuts";
 import Terminal from "features/Terminal/Terminal";
@@ -23,7 +22,7 @@ export default function Calculator() {
 
   // Show loading screen while transport is loading
   if (!isTransportLoaded) {
-    return <LoadingScreen text="Building Instruments..." />;
+    return <CalculatorLoadingScreen text="Building Instruments..." />;
   }
 
   // Render when transport is loaded

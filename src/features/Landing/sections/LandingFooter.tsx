@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { LandingSection } from "./components/LandingSection";
+import { LandingSection } from "../components/LandingSection";
 
 export const LandingFooter = () => (
   <LandingSection className="mt-4 p-8 flex flex-col justify-end">

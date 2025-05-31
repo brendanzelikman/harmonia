@@ -21,16 +21,8 @@ export const SHORTCUTS = [
 export type ShortcutType = (typeof SHORTCUTS)[number]["title"];
 
 export default function Shortcuts() {
-  const diary = useToggle("diary");
-  const showingDiary = diary.isOpen;
-
   const shortcuts = useToggle("shortcuts");
   const [type, setType] = useState<ShortcutType>(SHORTCUTS[0].title);
-
-  // Close the diary if it's open
-  useEffect(() => {
-    if (showingDiary) shortcuts.close();
-  }, [showingDiary]);
 
   // Render a topic header and its entries' links
   const renderShortcutTypeButton = useCallback(

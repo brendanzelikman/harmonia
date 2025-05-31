@@ -1,7 +1,6 @@
 import { Shortcut } from "./components/ShortcutsItem";
 import { ShortcutContent } from "./components/ShortcutsContent";
 import {
-  ToggleDiaryHotkey,
   ToggleShortcutsHotkey,
   CloseModalsHotkey,
   ToggleTerminalHotkey,
@@ -26,7 +25,6 @@ export function GlobalShortcuts() {
         <Shortcut hotkey={SaveJsonHotkey} />,
         <Shortcut hotkey={SaveMidiHotkey} />,
         <Shortcut hotkey={SaveWavHotkey} />,
-        <Shortcut hotkey={ToggleDiaryHotkey} />,
         <Shortcut hotkey={ToggleTerminalHotkey} />,
         <Shortcut hotkey={ToggleShortcutsHotkey} />,
         <Shortcut hotkey={CloseModalsHotkey} />,

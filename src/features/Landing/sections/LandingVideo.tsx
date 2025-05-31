@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { LandingSection } from "./components/LandingSection";
+import { LandingSection } from "../components/LandingSection";
 import Thesis from "/media/thesis.mp4";
 import Demo from "/media/demo.mp4";
 import Lavos from "/media/lavos.png";
@@ -58,7 +58,7 @@ export const LandingVideo = () => {
             <div>Pastabassed (Improv, 2024)</div>
           </m.div>
           <m.div variants={variants} viewport={{ once: true }}>
-            <Link to="/demos/lavos">
+            <Link to="/demo/lavos">
               <img
                 className="max-sm:w-xs"
                 width="550"

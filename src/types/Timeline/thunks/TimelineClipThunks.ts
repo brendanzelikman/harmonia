@@ -35,7 +35,6 @@ import { getToggleValue } from "hooks/useToggle";
 export const scrubClipsLeft = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const mediaLength = selectSelectedMedia(project).length;
-  if (getToggleValue("diary")) return;
   if (!mediaLength) dispatch(seekTransportLeft(1));
   else dispatch(moveSelectedMediaLeft(1));
 };
@@ -44,7 +43,6 @@ export const scrubClipsLeft = (): Thunk => (dispatch, getProject) => {
 export const scrubClipsRight = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const mediaLength = selectSelectedMedia(project).length;
-  if (getToggleValue("diary")) return;
   if (!mediaLength) dispatch(seekTransportRight(1));
   else dispatch(moveSelectedMediaRight(1));
 };
@@ -53,7 +51,6 @@ export const scrubClipsRight = (): Thunk => (dispatch, getProject) => {
 export const moveClipsLeft = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const mediaLength = selectSelectedMedia(project).length;
-  if (getToggleValue("diary")) return;
   if (!mediaLength) dispatch(seekTransportLeft());
   else dispatch(moveSelectedMediaLeft());
 };
@@ -62,7 +59,6 @@ export const moveClipsLeft = (): Thunk => (dispatch, getProject) => {
 export const moveClipsRight = (): Thunk => (dispatch, getProject) => {
   const project = getProject();
   const mediaLength = selectSelectedMedia(project).length;
-  if (getToggleValue("diary")) return;
   if (!mediaLength) dispatch(seekTransportRight());
   else dispatch(moveSelectedMediaRight());
 };

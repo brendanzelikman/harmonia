@@ -26,7 +26,7 @@ import {
   PPQ,
   secondsToTicks,
 } from "utils/duration";
-import { isNumber } from "types/utils";
+import { isNumber, isNumberArray } from "types/utils";
 
 export type Transformer<Args = any> = (
   stream: PatternMidiStream,
@@ -572,8 +572,8 @@ export const TRANSFORMATIONS = createTransformationMap({
         }
         newStream.push(
           getPatternMidiChordWithNewNotes(block, (notes) =>
-            notes.map((note) => {
-              let value: number | undefined;
+            notes.flatMap((note) => {
+              let value: number | number[] | undefined;
               try {
                 let safeArgs = args.replace("window", "");
                 safeArgs = safeArgs.replace("location", "");
@@ -585,6 +585,8 @@ export const TRANSFORMATIONS = createTransformationMap({
               }
               if (isNumber(value)) {
                 return { ...note, MIDI: clamp(value, 0, 127) };
+              } else if (isNumberArray(value)) {
+                return value.map((v) => ({ ...note, MIDI: clamp(v, 0, 127) }));
               } else {
                 return note;
               }

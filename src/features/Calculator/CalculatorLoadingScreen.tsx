@@ -6,7 +6,7 @@ interface LoadingScreenProps {
   text: string;
 }
 
-export function LoadingScreen(props: LoadingScreenProps) {
+export function CalculatorLoadingScreen(props: LoadingScreenProps) {
   const [clicked, setClicked] = useState(false);
   let text = props.text;
   if (!clicked && getContext().state !== "running") {

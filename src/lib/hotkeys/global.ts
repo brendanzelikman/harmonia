@@ -16,12 +16,6 @@ import { dispatchCustomEvent } from "utils/event";
 // Global Hotkeys
 // -----------------------------------------------
 
-export const ToggleDiaryHotkey: Hotkey = {
-  name: "Toggle Diary",
-  shortcut: "shift+d",
-  callback: () => dispatchToggle("diary"),
-};
-
 export const ToggleTerminalHotkey: Hotkey = {
   name: "Toggle Terminal",
   shortcut: "shift+t",
@@ -46,10 +40,9 @@ export const ToggleKeyboardHotkey: Hotkey = {
 
 export const CloseModalsHotkey: Hotkey = {
   name: "Close Modals",
-  description: "Close the project terminal, editor, and diary.",
+  description: "Close the project dropdowns and modals",
   shortcut: "escape",
   callback: (dispatch) => {
-    dispatchClose("diary");
     dispatchClose("terminal");
     dispatchClose("shortcuts");
     dispatchCustomEvent("clipDropdown", { value: false });
@@ -77,7 +70,6 @@ export const IncreaseSubdivisionHotkey: Hotkey = {
 // -----------------------------------------------
 
 export const GlobalHotkeys = [
-  ToggleDiaryHotkey,
   ToggleTerminalHotkey,
   ToggleShortcutsHotkey,
   ToggleKeyboardHotkey,

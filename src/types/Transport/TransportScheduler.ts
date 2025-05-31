@@ -4,13 +4,19 @@ import {
   LIVE_AUDIO_INSTANCES,
 } from "types/Instrument/InstrumentClass";
 import { playPatternChord } from "types/Pattern/PatternThunks";
-import { PPQ, QuarterNoteTicks, SixteenthNoteTicks } from "utils/duration";
+import {
+  PPQ,
+  QuarterNoteTicks,
+  SixteenthNoteTicks,
+  WholeNoteTicks,
+} from "utils/duration";
 import { selectTransport } from "./TransportSelectors";
 import { dispatchTick } from "./TransportTick";
 import { Thunk } from "types/Project/ProjectTypes";
 import { getDestination, getTransport } from "tone";
 import {
   selectCellsPerTick,
+  selectSubdivision,
   selectSubdivisionTicks,
 } from "types/Timeline/TimelineSelectors";
 import {
@@ -79,7 +85,7 @@ export const scheduleTransport = (): Thunk => async (dispatch, getProject) => {
       const grid = document.getElementsByClassName("rdg-grid")[0];
       if (grid)
         grid.scroll({
-          left: grid.scrollLeft + 2 * scrollRatio * cellWidth * ticks,
+          left: grid.scrollLeft + scroll * WholeNoteTicks * cellWidth,
           behavior: "smooth",
         });
     }

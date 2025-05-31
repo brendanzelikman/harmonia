@@ -27,7 +27,6 @@ import { GiCog } from "react-icons/gi";
 export function NavbarSettings() {
   const dispatch = useAppDispatch();
   const Terminal = useToggle("terminal");
-  const Diary = useToggle("diary");
   const Shortcuts = useToggle("shortcuts");
   const { bpm, timeSignature, swing, scroll } = useAppValue(selectTransport);
   return (

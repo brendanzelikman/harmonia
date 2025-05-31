@@ -76,7 +76,6 @@ const RESTRICTED_KEYWORDS = new Set([
   // "dateCreated",
   // "lastUpdated",
   // "project",
-  // "diary",
 ]);
 
 const restrictInput = (input: NodeData) =>

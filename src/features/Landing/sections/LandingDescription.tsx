@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { LandingSection } from "./components/LandingSection";
+import { LandingSection } from "../components/LandingSection";
 import Composition from "/media/composition.gif";
 import Portals from "/media/portals.png";
 import Performance from "/media/performance.gif";

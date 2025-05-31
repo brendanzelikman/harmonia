@@ -29,6 +29,7 @@ import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
 import { TrackId } from "types/Track/TrackTypes";
 import { ScaleId, ScaleVector } from "types/Scale/ScaleTypes";
 import { omit } from "lodash";
+import classNames from "classnames";
 
 export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const dispatch = useAppDispatch();
@@ -74,7 +75,7 @@ export const usePatternClipScore = (clip: PortaledPatternClip) => {
   const Score = useMemo(
     () => (
       <div
-        className="bg-white w-full min-h-min max-w-[600px] overflow-scroll"
+        className={classNames("bg-white w-full min-h-min overflow-scroll")}
         style={{ height: onGrandStaff ? 100 : 74 }}
       >
         {score}

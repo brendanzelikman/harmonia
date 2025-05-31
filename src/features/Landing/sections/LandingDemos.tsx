@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { LandingSection } from "./components/LandingSection";
+import { LandingSection } from "../components/LandingSection";
 import { DEMOS_BY_KEY } from "lib/demos";
 import {
   GiKiwiBird,

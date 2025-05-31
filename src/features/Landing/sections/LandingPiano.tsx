@@ -1,7 +1,7 @@
 import { PopupHeader } from "features/Landing/components/LandingHeader";
 import { m } from "framer-motion";
-import { LandingSection } from "./components/LandingSection";
-import { MagicalPiano } from "features/Home/HomePiano";
+import { LandingSection } from "../components/LandingSection";
+import { MagicalPiano } from "components/MagicalPiano";
 
 export const LandingPiano = () => {
   return (

@@ -1,5 +1,5 @@
-import { HomePage } from "features/Home/Home";
-import { LandingPage } from "features/Landing/Landing";
+import { CalculatorPage } from "features/Calculator/CalculatorPage";
+import { LandingPage } from "features/Landing/LandingPage";
 import { isError } from "lodash";
 import {
   createHashRouter,
@@ -10,13 +10,15 @@ import {
 
 export const LAND = "/";
 export const MAIN = "/calculator";
+export const DEMO = "/demo/:id";
+export const TUTORIAL = "/tutorial";
 
 /** The hash router is either on the landing or the main page */
 export const router = createHashRouter([
   { path: LAND, element: <LandingPage />, ErrorBoundary: LandingPage },
-  { path: MAIN, element: <HomePage />, ErrorBoundary: LandingPage },
-  { path: "/demo/:id", element: <HomePage />, ErrorBoundary: LandingPage },
-  { path: "/tutorial", element: <HomePage />, ErrorBoundary: LandingPage },
+  { path: MAIN, element: <CalculatorPage />, ErrorBoundary: LandingPage },
+  { path: DEMO, element: <CalculatorPage />, ErrorBoundary: LandingPage },
+  { path: TUTORIAL, element: <CalculatorPage />, ErrorBoundary: LandingPage },
 ]);
 
 /** Get the name of the current route. */

@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
-import { LandingSection } from "./components/LandingSection";
-import { PopupHeader } from "./components/LandingHeader";
+import { LandingSection } from "../components/LandingSection";
+import { PopupHeader } from "../components/LandingHeader";
 import { libraries } from "./LandingLibraries";
 
 const variants = {

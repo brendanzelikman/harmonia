@@ -21,6 +21,11 @@ export const isObject = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null;
 };
 
+// Check if a value is an array of numbers
+export const isNumberArray = (value: unknown): value is number[] => {
+  return Array.isArray(value) && value.every(isNumber);
+};
+
 // Create an id with the given prefix (e.g. "id_001")
 export const createId = <T extends EntityId = string>(
   prefix: T = "id" as T

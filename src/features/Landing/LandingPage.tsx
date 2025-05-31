@@ -1,17 +1,19 @@
 import { useError } from "app/router";
-import { Splash } from "features/Landing/LandingSplash";
-import { LandingDescription } from "./LandingDescription";
-import { LandingFooter } from "./LandingFooter";
-import { LandingDetail } from "./LandingDetail";
-import { LandingVideo } from "./LandingVideo";
-import { LandingPiano } from "./LandingPiano";
+import { Splash } from "features/Landing/sections/LandingSplash";
+import { LandingDescription } from "./sections/LandingDescription";
+import { LandingFooter } from "./sections/LandingFooter";
+import { LandingDetail } from "./sections/LandingDetail";
+import { LandingVideo } from "./sections/LandingVideo";
+import { LandingPiano } from "./sections/LandingPiano";
 import { Navbar } from "features/Navbar/Navbar";
-import { LandingDemos } from "./LandingDemos";
-import { LandingCreators } from "./LandingCreators";
+import { LandingDemos } from "./sections/LandingDemos";
+import { LandingCreators } from "./sections/LandingCreators";
+import { useTitle } from "hooks/useTitle";
 
 /** The landing page is the entry point of the website */
 export function LandingPage() {
   const { hasError, Stack } = useError();
+  useTitle("Harmonia | Musical Calculator");
   return (
     <div className="relative size-full">
       <div className="max-lg:hidden absolute size-full">

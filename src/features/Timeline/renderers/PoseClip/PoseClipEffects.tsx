@@ -41,7 +41,7 @@ import {
   PoseClipDropdownEffectProps,
   PoseClipDropdownItem,
 } from "./PoseClipDropdown";
-import { isNumber, isString } from "types/utils";
+import { isNumber, isNumberArray, isString } from "types/utils";
 import { promptUserForString } from "lib/prompts/html";
 import { promptLineBreak } from "components/PromptModal";
 
@@ -268,7 +268,7 @@ export const PoseClipEffect = <T extends Transformation>({
     try {
       const fn = new Function("note", "index", args);
       const res = fn(0, 0, 1);
-      return isNumber(res);
+      return isNumber(res) || isNumberArray(res);
     } catch {
       return false;
     }

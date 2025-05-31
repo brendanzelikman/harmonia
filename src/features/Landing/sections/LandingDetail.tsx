@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { LandingSection } from "./components/LandingSection";
+import { LandingSection } from "../components/LandingSection";
 import { m } from "framer-motion";
 import { MAIN } from "app/router";
 

@@ -191,7 +191,7 @@ export function NavbarBrand() {
                 onClick={() => deleteDemoProjects()}
               >
                 <BsEject className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-lg p-1" />{" "}
-                <div className="text-lg">Eject Demo Projects</div>
+                <div className="text-lg">Eject Copies of Demos</div>
               </div>
               <div
                 className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
