@@ -1,5 +1,5 @@
 import LogoImage from "assets/images/logo.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   deleteDemoProjects,
   deleteProjects,
@@ -9,7 +9,7 @@ import {
 import { useFetch } from "hooks/useFetch";
 import { UPDATE_PROJECT_EVENT } from "utils/constants";
 import { DEMO_GENRES } from "lib/demos";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { GiCalculator, GiCompactDisc, GiStarGate } from "react-icons/gi";
 import { BsEject, BsPlusCircle, BsUpload } from "react-icons/bs";
 import {
@@ -31,9 +31,9 @@ import { LAND, MAIN, useRoute } from "app/router";
 export function NavbarBrand() {
   const dispatch = useAppDispatch();
   const route = useRoute();
+  const navigate = useNavigate();
   const onMain = route === MAIN;
   const projectId = useAppValue(selectProjectId);
-  const projectName = useAppValue(selectProjectName);
   const [show, setShow] = useState(false);
   useHotkeys({ escape: () => setShow(false) });
   const { data } = useFetch(getProjects, UPDATE_PROJECT_EVENT);
@@ -57,6 +57,10 @@ export function NavbarBrand() {
   });
   const Icon = onMain ? GiStarGate : GiCalculator;
   const [onDemos, setOnDemos] = useState(false);
+  const callback = useCallback(
+    () => (route ? navigate(MAIN) : undefined),
+    [route, navigate]
+  );
   return (
     <>
       {show && (
@@ -110,7 +114,7 @@ export function NavbarBrand() {
                         key={id}
                         data-selected={id === projectId}
                         className="bg-slate-950/50 rounded border border-slate-600 data-[selected=true]:border-indigo-500 flex flex-col p-2 gap-2 hover:bg-slate-800/50 cursor-pointer"
-                        onClick={() => loadProject(id)}
+                        onClick={() => loadProject(id, callback)}
                       >
                         <div className="flex gap-2">
                           <GiCompactDisc className="text-2xl" />
@@ -143,7 +147,7 @@ export function NavbarBrand() {
                             p.project.meta.id
                           )}
                           className="bg-slate-950/50 rounded border border-slate-600 data-[selected=true]:border-indigo-500 flex flex-col p-2 gap-2 hover:bg-slate-800/50 cursor-pointer"
-                          onClick={() => loadDemoProject(p.project)}
+                          onClick={() => loadDemoProject(p.project, callback)}
                         >
                           <div className="flex gap-2">
                             <GiCompactDisc className="text-2xl" />

@@ -16,6 +16,8 @@ import Sketch from "lib/demos/sketch.json";
 import Sin from "lib/demos/bach_sin.json";
 import Cos from "lib/demos/bach_cos.json";
 import Tan from "lib/demos/bach_tan.json";
+import Log from "lib/demos/bach_log.json";
+import Exp from "lib/demos/bach_exp.json";
 import Waterfall from "lib/demos/waterfall.json";
 import Wave from "lib/demos/wave.json";
 import WaveSnark from "lib/demos/waveAlt.json";
@@ -100,6 +102,16 @@ const TanDemo: DemoProject = {
   project: Tan as unknown as BaseProject,
   blurb: "Bach's Prelude summed with a tangent wave.",
   aliases: ["tangent", "tan"],
+};
+const ExpDemo: DemoProject = {
+  project: Exp as unknown as BaseProject,
+  blurb: "Bach's Prelude with exponential growth.",
+  aliases: ["exponential", "exp", "euler"],
+};
+const LogDemo: DemoProject = {
+  project: Exp as unknown as BaseProject,
+  blurb: "Bach's Prelude with logarithmic growth.",
+  aliases: ["logarithm", "log"],
 };
 const SketchDemo: DemoProject = {
   project: Sketch as unknown as BaseProject,
