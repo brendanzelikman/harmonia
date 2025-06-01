@@ -8,6 +8,8 @@ import {
   BsPlay,
   BsRecord,
   BsArrowRepeat,
+  BsDisc,
+  BsPower,
 } from "react-icons/bs";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { selectTransportLoop } from "types/Transport/TransportSelectors";
@@ -18,12 +20,18 @@ import {
   stopRecordingTransport,
 } from "types/Transport/TransportRecorder";
 import { RECORD_TRANSPORT } from "types/Transport/TransportRecorder";
+import { getContext } from "tone";
+import { useEffect, useState } from "react";
 
 export function NavbarTransportControl() {
   const dispatch = useAppDispatch();
   const state = useTransportState();
   const isRecording = useToggle(RECORD_TRANSPORT).isOpen;
   const isLooping = useAppValue(selectTransportLoop);
+  const [isLoaded, setIsLoaded] = useState(false);
+  useEffect(() => {
+    if (getContext().state === "running") setIsLoaded(true);
+  }, []);
   const isStarted = state === "started";
   const isStopped = state === "stopped";
   const action = isStarted ? "Pause" : isStopped ? "Start" : "Resume";
@@ -42,14 +50,26 @@ export function NavbarTransportControl() {
       </NavbarTooltipButton>
       <NavbarTooltipButton
         keepTooltipOnClick
-        label={`${action} Playback`}
+        label={!isLoaded ? "Start Transport" : `${action} Playback`}
         className={classNames(
-          isStarted ? "bg-emerald-600" : buttonColor,
+          isStarted
+            ? "bg-emerald-600"
+            : !isLoaded
+            ? "bg-emerald-500/40"
+            : buttonColor,
           borderClass
         )}
-        onClick={() => dispatch(toggleTransport())}
+        onClick={() =>
+          !isLoaded ? setIsLoaded(true) : dispatch(toggleTransport())
+        }
       >
-        {isStarted ? <BsPause /> : <BsPlay className="pl-[3px] p-[1px]" />}
+        {isStarted ? (
+          <BsPause />
+        ) : isLoaded ? (
+          <BsPlay className="pl-[3px] p-[1px]" />
+        ) : (
+          <BsPower />
+        )}
       </NavbarTooltipButton>
       <NavbarTooltipButton
         keepTooltipOnClick
