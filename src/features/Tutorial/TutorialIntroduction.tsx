@@ -40,7 +40,7 @@ export const TutorialIntroduction = (props: {
       initial="hidden"
       animate="show"
       variants={variants}
-      className="hidden data-[view=introduction]:flex items-center max-lg:flex-col gap-10 pt-2"
+      className="hidden data-[view=introduction]:flex items-center max-lg:flex-col gap-12 pt-2"
     >
       <TimelineButton
         border="ring-cyan-600"
