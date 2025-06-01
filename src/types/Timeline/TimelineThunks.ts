@@ -329,7 +329,7 @@ export const sampleProjectByFile =
         trackId = dispatch(createPatternTrack({ data: {}, undoType })).track.id;
       }
       const tick = props?.tick ?? selectCurrentTimelineTick(getProject());
-      const pattern = { stream, projectId };
+      const pattern = { name: file.name, stream, projectId };
       const clip = { trackId, tick };
       const { patternId } = dispatch(
         createCourtesyPatternClip({ data: { pattern, clip }, undoType })

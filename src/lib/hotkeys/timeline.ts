@@ -46,7 +46,7 @@ export const WaterTreeHotkey: Hotkey = {
 export const WaterTreeIcon = GiWateringCan;
 
 export const SampleProjectHotkey: Hotkey = {
-  name: "Import Tree",
+  name: "Import Project",
   description: "Upload the notes of a project by file",
   shortcut: "i",
   callback: (dispatch) => dispatch(sampleProject()),
