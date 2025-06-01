@@ -28,10 +28,8 @@ import {
 } from "types/Timeline/thunks/TimelineClipThunks";
 import {
   GiCrystalWand,
-  GiPalmTree,
   GiPencil,
   GiPineTree,
-  GiSeedling,
   GiWateringCan,
 } from "react-icons/gi";
 

@@ -60,7 +60,6 @@ import {
   selectTrackByLabel,
   selectTrackScaleChain,
 } from "types/Track/TrackSelectors";
-import { interpretAudioBuffer } from "utils/buffer";
 import { promptUserForMicrophone } from "lib/prompts/html";
 import { Note } from "@tonejs/midi/dist/Note";
 import { dispatchOpen } from "hooks/useToggle";
@@ -169,25 +168,6 @@ export const promptUserForPattern =
             const firstTrack = midi.tracks[0];
             if (!firstTrack) return;
             dispatch(promptUserForPatternMidiFile(id, firstTrack.notes));
-          });
-        }
-
-        // Handle WAV file uploads
-        const shouldRecord = string === "record";
-        if (shouldRecord) {
-          dispatchOpen("record-pattern");
-          const file = await promptUserForMicrophone("record-pattern");
-          const notes = await interpretAudioBuffer(await file.arrayBuffer());
-          return dispatch(promptUserForPatternMidiFile(id, notes));
-        }
-
-        const shouldUploadWav = string === "wav";
-        if (shouldUploadWav) {
-          return promptUserForFile("audio/*", async (e) => {
-            const file = getEventFile(e);
-            if (!file) return;
-            const notes = await interpretAudioBuffer(await file.arrayBuffer());
-            return dispatch(promptUserForPatternMidiFile(id, notes));
           });
         }
 

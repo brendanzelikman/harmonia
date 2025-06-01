@@ -31,7 +31,6 @@ import { MouseEvent, useCallback, useState } from "react";
 import {
   GiAnchor,
   GiArrowCursor,
-  GiBlindfold,
   GiClothespin,
   GiCrystalWand,
   GiDiceSixFacesFive,
@@ -44,10 +43,9 @@ import {
   GiTrashCan,
 } from "react-icons/gi";
 import { FaEraser, FaPlusCircle } from "react-icons/fa";
-import { BsArrowClockwise, BsRecord } from "react-icons/bs";
+import { BsArrowClockwise } from "react-icons/bs";
 import { selectPatternNoteLabel } from "types/Clip/PatternClip/PatternClipSelectors";
 import { isPatternMidiBlock, PatternId } from "types/Pattern/PatternTypes";
-import { useToggle } from "hooks/useToggle";
 import { getKeyCode, useHeldKeys } from "hooks/useHeldkeys";
 import {
   promptUserForPattern,
@@ -112,7 +110,6 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     isEmpty ? "scale" : isMidi ? "pedal" : "scale"
   );
   const isBinding = type === "scale";
-  const record = useToggle("record-pattern");
 
   const deleteNote = useCallback(() => {
     const data = { id: pattern.id, index: index ?? -1 };
@@ -143,15 +140,7 @@ export function PatternClipDropdown(props: PatternClipDropdownProps) {
     />
   );
 
-  const InputPattern = record.isOpen ? (
-    <DropdownButton
-      width="size-8"
-      dropdown="Record Pattern"
-      theme="red"
-      onClick={record.close}
-      icon={<BsRecord className="text-2xl" />}
-    />
-  ) : (
+  const InputPattern = (
     <DropdownButton
       width="size-8"
       dropdown="Input Pattern"
