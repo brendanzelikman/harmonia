@@ -1,11 +1,10 @@
 import { m } from "framer-motion";
 import Logo from "/logo.png";
 import { useNavigate } from "react-router-dom";
-import { MAIN, useError } from "app/router";
+import { CALCULATOR } from "app/router";
 
-export const Splash = () => {
+export const LandingSplash = () => {
   const navigate = useNavigate();
-  const { hasError } = useError();
   return (
     <m.div
       className="relative w-full total-center-col min-lg:gap-18 max-lg:mt-4 pb-0 text-slate-50"
@@ -24,7 +23,7 @@ export const Splash = () => {
               mass: 0.5,
             }}
             viewport={{ once: true }}
-            style={{ color: hasError ? "#f55e" : "white" }}
+            style={{ color: "white" }}
           >
             <img src={Logo} className="size-24 max-sm:size-14" />
             Harmonia
@@ -41,7 +40,7 @@ export const Splash = () => {
               delay: 0.1,
             }}
             viewport={{ once: true }}
-            onClick={() => navigate(MAIN)}
+            onClick={() => navigate(CALCULATOR)}
             className="sm:text-3xl text-xl font-base cursor-pointer py-2 my-3 px-10 text-slate-100 active:animate-pulseSlow bg-slate-900/80 active:bg-slate-900/90 border-2 border-blue-500/80 hover:border-blue-500 hover:ring-2 hover:ring-blue-500 rounded-3xl max-sm:rounded-xl backdrop-blur-xl shadow-2xl drop-shadow-2xl drop-shadow-sky-900"
           >
             Open Musical Calculator

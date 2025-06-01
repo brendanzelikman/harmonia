@@ -24,16 +24,15 @@ export const TutorialCoda = (props: { view: string }) => {
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg"
-        title="Save Project Data"
-        subtitle="Download as JSON File"
+        title="Save and Load as JSON"
         stripColor="border-b border-b-indigo-500/80"
         Icon={BsCode}
         onClick={() => dispatch(exportProjectToJSON())}
         description={
           <>
             <div>
-              Projects are autosaved in your browser and exportable to
-              specialized JSON files.
+              Projects are autosaved in your browser and exportable to a native
+              JSON file format.
             </div>
             <div>
               <b>File Menu:</b>
@@ -53,8 +52,7 @@ export const TutorialCoda = (props: { view: string }) => {
       <TimelineButton
         border="ring-teal-600/80"
         className="rounded-lg"
-        title="Export Project Data"
-        subtitle="Convert to Other File"
+        title="Export to MIDI and WAV"
         stripColor="border-b border-b-teal-500/80"
         Icon={GiMusicalScore}
         onClick={() => dispatch(exportProjectToMIDI(undefined, true))}
@@ -67,14 +65,14 @@ export const TutorialCoda = (props: { view: string }) => {
             <div>
               <b>Entire Project:</b>
               <br />
-              Hover into File <GiCompactDisc className="inline" />, then click
-              Export to MIDI or Export to WAV to download your file.
+              Hover into the File Menu, then click on Export to MIDI or Export
+              to WAV.
             </div>
             <div>
               <b>Selected Clips:</b>
               <br />
-              Right click to open the dropdown menu, then go to Selection and
-              press Export.
+              Right click on a clip, then go to Selection and press Export to
+              MIDI or Export to WAV.
             </div>
           </>
         }
@@ -82,8 +80,7 @@ export const TutorialCoda = (props: { view: string }) => {
       <TimelineButton
         border="ring-fuchsia-600/80"
         className="rounded-lg"
-        title="Record Project Data"
-        subtitle="Capture Browser Audio"
+        title="Record to MIDI and WAV"
         stripColor="border-b border-b-fuchsia-400/80"
         Icon={GiSoundWaves}
         onClick={() =>

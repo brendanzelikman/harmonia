@@ -14,7 +14,7 @@ export function NavbarGroup(props: PropsWithChildren<NavbarGroupProps>) {
       {...rest}
       className={classNames(
         rest.className,
-        `px-3 gap-2 h-full flex shrink-0 total-center text-sm transition-all`
+        `px-3 gap-2 h-full flex shrink-0 total-center text-sm transition-all animate-in fade-in`
       )}
     >
       {rest.children}

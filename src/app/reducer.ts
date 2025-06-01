@@ -27,7 +27,7 @@ import { metaSlice } from "types/Meta/MetaSlice";
 export const SET_PROJECT = "setProject";
 export const UNDO_PROJECT = "undoProject";
 export const REDO_PROJECT = "redoProject";
-export const PROJECT_HISTORY_LIMIT = 16;
+export const PROJECT_HISTORY_LIMIT = 32;
 
 // ------------------------------------------------------------
 // Base Project Type

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { LandingSection } from "../components/LandingSection";
 import { m } from "framer-motion";
-import { MAIN } from "app/router";
+import { CALCULATOR } from "app/router";
 
 const variants = {
   hidden: { opacity: 0, scale: 0.8 },
@@ -43,9 +43,9 @@ export const LandingDetail = () => {
           <div>
             Harmonia has a three-part workflow called TOP. First, you create a
             set of <b>trees</b>—tracks that relate your scales and samplers
-            together. Then, you write <b>objects</b>— sequences of notes that
+            together. Then, you write <b>patterns</b>— sequences of notes that
             relate to your scales (or not). Finally, you schedule <b> poses</b>
-            —transformations that develop your scales and objects with robust
+            —transformations that develop your scales and patterns with robust
             logic. Of course, you can also do whatever you want.
           </div>
         </m.div>
@@ -70,7 +70,7 @@ export const LandingDetail = () => {
             notes in other software. You can export to WAV and listen to audio
             elsewhere. You can record an improvisation to MIDI and/or WAV.
             Whenever you are ready, you can go to the{" "}
-            <Link to={MAIN} className="text-blue-400 hover:underline">
+            <Link to={CALCULATOR} className="text-blue-400 hover:underline">
               Calculator
             </Link>{" "}
             to start making music.

@@ -21,7 +21,7 @@ export const LandingCreators = () => {
         transition={{ delayChildren: 0.2, staggerChildren: 0.1 }}
       >
         <m.div
-          className="flex gap-8 mr-12"
+          className="flex gap-8 mr-12 max-sm:mr-0 max-sm:flex-col max-sm:items-center max-sm:text-center"
           variants={variants}
           initial="hidden"
           whileInView="show"
@@ -32,11 +32,11 @@ export const LandingCreators = () => {
             className="size-54 border-4 border-rose-500/80 shrink-0 rounded-full overflow-hidden"
           >
             <img
-              className="h-fit scale-200 min-w-0 -ml-20 object-fill"
+              className="h-fit scale-200 min-w-0 -ml-20 max-sm:-ml-10 object-fill"
               src="https://brendanzelikman.github.io/assets/portrait-DIvDyemr.png"
             />
           </a>
-          <div className="flex flex-col text-base">
+          <div className="flex flex-col text-base max-sm:text-sm">
             <h1 className="text-3xl mb-4"> Brendan Zelikman</h1>
             <h2 className="text-gray-400">Stanford University, MA / MST '27</h2>
             <h2 className="text-gray-400">Princeton University, AB COS '23</h2>
@@ -48,13 +48,13 @@ export const LandingCreators = () => {
           </div>
         </m.div>
         <m.div
-          className="flex gap-8 ml-12"
+          className="flex gap-8 ml-12 max-sm:ml-0 max-sm:flex-col-reverse max-sm:items-center"
           variants={variants}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
         >
-          <div className="flex flex-col text-base text-right">
+          <div className="flex flex-col text-base max-sm:text-sm text-right max-sm:text-center">
             <h1 className="text-3xl mb-4"> Dmitri Tymoczko</h1>
             <h2 className="text-gray-400">
               Professor of Music, Princeton University
@@ -81,7 +81,7 @@ export const LandingCreators = () => {
         <div className="text-5xl pt-4 font-bold w-full text-center">
           Instrumental Libraries
         </div>
-        <m.div className="flex gap-16 border-2 px-8 py-4 rounded-lg border-indigo-500/50 bg-slate-950/50 backdrop-blur">
+        <m.div className="flex gap-16 flex-wrap border-2 px-8 py-4 rounded-lg border-indigo-500/50 bg-slate-950/50 backdrop-blur">
           {libraries.map((library) => (
             <a
               key={library.title}

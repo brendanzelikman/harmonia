@@ -23,7 +23,7 @@ export const TimelineButton = (
       props.className,
       props.border,
       props.background ?? "bg-radial from-slate-700/70 to-slate-950/65",
-      "hover:ring-4 xl:min-w-80 transition-all duration-300 backdrop-blur-lg cursor-pointer size-full flex flex-col justify-center items-center gap-1 ring-2 p-5 rounded-3xl select-none"
+      "hover:ring-4 xl:min-w-64 cursor-pointer size-full flex flex-col justify-center items-center gap-1 ring-2 p-5 rounded-3xl select-none"
     )}
     onClick={props.onClick}
   >
@@ -45,7 +45,7 @@ export const TimelineButton = (
           {props.title}
         </div>
         {!!props.subtitle && (
-          <div className="text-slate-400 text-base font-light italic capitalize">
+          <div className="text-slate-400 text-sm font-light italic capitalize">
             ({props.subtitle})
           </div>
         )}

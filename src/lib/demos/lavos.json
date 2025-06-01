@@ -6638,7 +6638,7 @@
     "fragment": {},
     "clipboard": { "clips": [], "portals": [] },
     "selection": { "clipIds": [], "portalIds": [] },
-    "subdivision": "4n",
+    "subdivision": "8n",
     "cellWidth": 25,
     "cellHeight": 120
   },

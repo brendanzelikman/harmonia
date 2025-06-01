@@ -124,7 +124,7 @@ export default function Timeline() {
   const TimelineGrid = useMemo(() => {
     return (
       <DataGrid
-        className="size-full rdg-grid bg-gradient-to-t from-[#223e8b] via-[#327199] to-[#5b57ae] animate-in fade-in focus:outline-none"
+        className="size-full rdg-grid bg-gradient-to-t from-[#223e8b] via-[#327199] to-[#5b57ae] focus:outline-none"
         ref={dataGridHandler}
         enableVirtualization
         columns={columns}
@@ -142,7 +142,7 @@ export default function Timeline() {
   }, [trackIds, collapsedMap, cellWidth]);
 
   return (
-    <div id="timeline" className="relative total-center-col size-full">
+    <div id="timeline" className="relative size-full">
       <TimelineContextMenu />
       {TimelineGrid}
       <TimelineElements />

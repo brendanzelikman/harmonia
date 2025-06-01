@@ -38,24 +38,23 @@ import {
 // -----------------------------------------------
 
 export const WaterTreeHotkey: Hotkey = {
-  name: "Grow Tree",
-  description: "Activate live play and quickstart a project",
-  shortcut: "g",
+  name: "Water Tree",
+  description: "Quickstart and develop a project",
+  shortcut: "f",
   callback: (dispatch) => dispatch(toggleLivePlay()),
 };
-
 export const WaterTreeIcon = GiWateringCan;
 
 export const SampleProjectHotkey: Hotkey = {
   name: "Import Tree",
   description: "Upload the notes of a project by file",
-  shortcut: "shift+i",
+  shortcut: "i",
   callback: (dispatch) => dispatch(sampleProject()),
 };
 export const SampleProjectIcon = GiSeedling;
 
 export const ArrangePatternsHotkey: Hotkey = {
-  name: "Create Object",
+  name: "Create Pattern",
   description: "Toggle the adding of pattern clips",
   shortcut: "o",
   callback: (dispatch) => dispatch(toggleAddingState({ data: "pattern" })),
@@ -95,7 +94,7 @@ export const ArrangePortalsHotkey: Hotkey = {
 export const SelectPortalsHotkey: Hotkey = {
   name: "Filter Portals",
   description: "Add all portals to the selection",
-  shortcut: "shift+u",
+  shortcut: "meta+shift+j",
   callback: (dispatch) => dispatch(filterPortals()),
 };
 

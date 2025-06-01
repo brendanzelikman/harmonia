@@ -84,7 +84,7 @@ export const LandingDescription = () => {
         >
           <img
             src={Hotkeys}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-72 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Perform Keyboard Gestures</div>
@@ -101,7 +101,7 @@ export const LandingDescription = () => {
         >
           <img
             src={Performance}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-72 w-xl object-cover object-top-left p-4 bg-slate-950/90"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 p-4 pt-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 font-light">
             <div>Play Cool Sounds</div>
@@ -114,7 +114,7 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-xl sm:h-88 max-sm:h-72 overflow-hidden border-2 border-blue-600/90"
         >
           <img
             src={Nest}
@@ -131,7 +131,7 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-xl sm:h-88 max-sm:h-72 overflow-hidden border-2 border-blue-600/90"
         >
           <img
             src={Easy}
@@ -152,7 +152,7 @@ export const LandingDescription = () => {
         >
           <img
             src={Math}
-            className="shadow-2xl max-sm:h-48 h-68 w-xl object-cover object-top-left bg-slate-950/90 p-4"
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-top-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Design Custom Functions</div>
@@ -169,7 +169,7 @@ export const LandingDescription = () => {
         >
           <img
             src={Portals}
-            className="shadow-2xl max-sm:h-48 h-68 w-xl object-cover object-top-left bg-slate-950/90 p-4"
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-top-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Discover Easter Eggs</div>

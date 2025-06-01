@@ -1,26 +1,26 @@
 import { uploadProject } from "app/projects";
-import { MAIN, useRoute } from "app/router";
+import { CALCULATOR } from "app/router";
 import { DEMOS_BY_KEY } from "lib/demos";
 import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { loadDemoProject } from "types/Project/ProjectLoaders";
 
 export const useRedirects = () => {
-  const { id } = useParams();
-  const view = useRoute();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
-  const redirect = () => navigate(MAIN);
+  const redirect = () => navigate(CALCULATOR);
 
   useEffect(() => {
     // For the tutorial, create a project and redirect
-    if (view.startsWith("/tutorial")) {
+    if (pathname.startsWith("/tutorial")) {
       uploadProject().then(redirect);
     }
 
     // For a demo, load the demo and redirect
-    if (view.startsWith("/demo") && !!id) {
+    else if (pathname.startsWith("/demo/")) {
+      const id = pathname.slice(6);
       const demo = DEMOS_BY_KEY[id];
       if (demo) loadDemoProject(demo.project, redirect);
     }
-  }, [view, id]);
+  }, [pathname]);
 };

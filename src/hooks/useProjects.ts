@@ -12,7 +12,7 @@ import { UPDATE_PROJECT_EVENT } from "utils/constants";
 
 /** Load the current project or upload a new one */
 export function useProjects() {
-  const { loaded } = useFetch(async () => {
+  const { data } = useFetch(async () => {
     const id = getCurrentProjectId();
     const project = await getProject(id);
 
@@ -35,5 +35,5 @@ export function useProjects() {
   }, UPDATE_PROJECT_EVENT);
 
   // Return the load state
-  return loaded;
+  return !!data;
 }

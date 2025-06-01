@@ -141,17 +141,17 @@ const SketchDemo: DemoProject = {
 const SinDemo: DemoProject = {
   project: Sin as unknown as BaseProject,
   blurb: "A pattern oscillating through a sine wave.",
-  aliases: ["sin"],
+  aliases: ["sine"],
 };
 const CosDemo: DemoProject = {
   project: Cos as unknown as BaseProject,
   blurb: "A pattern oscillating through a cosine wave.",
-  aliases: ["cos"],
+  aliases: ["cosine"],
 };
 const TanDemo: DemoProject = {
   project: Tan as unknown as BaseProject,
   blurb: "A pattern oscillating through a tangent wave.",
-  aliases: ["tan"],
+  aliases: ["tangent"],
 };
 
 // -------------------------------------
@@ -233,7 +233,7 @@ export const DEMOS_BY_KEY: Record<string, DemoProject> = DEMO_PROJECTS.reduce(
     acc[demo.project.meta.name.toLowerCase()] = demo;
     if (demo.aliases) {
       demo.aliases.forEach((alias) => {
-        acc[alias.toLowerCase()] = demo;
+        acc[alias] = demo;
       });
     }
     return acc;

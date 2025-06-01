@@ -1,5 +1,5 @@
 import LogoImage from "assets/images/logo.png";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   deleteDemoProjects,
   deleteProjects,
@@ -12,14 +12,9 @@ import { DEMO_GENRES } from "lib/demos";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GiCalculator, GiCompactDisc, GiStarGate } from "react-icons/gi";
 import {
-  BsCaretLeft,
-  BsChevronBarLeft,
-  BsChevronCompactRight,
-  BsChevronLeft,
   BsChevronRight,
   BsEject,
   BsPlusCircle,
-  BsTextLeft,
   BsUpload,
 } from "react-icons/bs";
 import {
@@ -36,7 +31,7 @@ import dayjs from "dayjs";
 import { useHotkeys } from "hooks/useHotkeys";
 import { exportProjectsToZip } from "types/Project/ProjectExporters";
 import { useAppDispatch, useAppValue } from "hooks/useRedux";
-import { LAND, MAIN, useRoute } from "app/router";
+import { SPLASH, CALCULATOR } from "app/router";
 import {
   Disclosure,
   DisclosureButton,
@@ -45,9 +40,9 @@ import {
 
 export function NavbarBrand() {
   const dispatch = useAppDispatch();
-  const route = useRoute();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
-  const onMain = route === MAIN;
+  const onMain = pathname === CALCULATOR;
   const projectId = useAppValue(selectProjectId);
   const [show, setShow] = useState(false);
   useHotkeys({ escape: () => setShow(false) });
@@ -63,47 +58,48 @@ export function NavbarBrand() {
   );
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if ((event.x > 50 && event.y < 60) || event.x > 300) setShow(false); // Blur to the right
+      const x = pathname === CALCULATOR ? 50 : 300;
+      if ((event.x > x && event.y < 60) || event.x > 300) setShow(false); // Blur to the right
     };
     document.addEventListener("click", handleClickOutside);
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
-  });
+  }, [pathname]);
   const Icon = onMain ? GiStarGate : GiCalculator;
   const [onDemos, setOnDemos] = useState(false);
   const callback = useCallback(
-    () => (route ? navigate(MAIN) : undefined),
-    [route, navigate]
+    () => (pathname ? navigate(CALCULATOR) : undefined),
+    [pathname, navigate]
   );
   return (
     <>
       {show && (
-        <div className="fixed w-75 h-screen overflow-scroll bg-slate-950/70 animate-in fade-in duration-150 backdrop-blur top-nav left-0">
+        <div className="fixed w-[303px] h-screen overflow-scroll bg-slate-950/80 border-r-2 border-r-slate-700 animate-in fade-in duration-150 backdrop-blur top-nav left-0">
           <div className="flex flex-col h-full p-4 gap-4">
             <Link
-              to={onMain ? LAND : MAIN}
-              className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
+              to={onMain ? SPLASH : CALCULATOR}
+              className="flex items-center gap-4 group hover:underline font-light text-lg border-b border-slate-600 pb-4 cursor-pointer"
             >
               <Icon className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-lg" />{" "}
-              <div>{onMain ? "Main Menu" : "Open Calculator"}</div>
+              <div>{onMain ? "Landing Screen" : "Musical Calculator"}</div>
             </Link>
             <button
-              className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
+              className="flex items-center gap-4 group hover:underline font-light text-lg border-b border-slate-600 pb-4 cursor-pointer"
               onClick={() => uploadProject()}
             >
               <BsPlusCircle className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-full" />{" "}
               <div>New Project</div>
             </button>
             <button
-              className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
+              className="flex items-center gap-4 group hover:underline font-light text-lg border-b border-slate-600 pb-4 cursor-pointer"
               onClick={() => promptUserForProjects()}
             >
               <BsUpload className="text-3xl group-hover:scale-105 group-hover:bg-slate-800 rounded-lg p-1" />{" "}
               <div>Upload Project</div>
             </button>
             <div className="flex flex-col gap-4">
-              <div className="flex justify-evenly">
+              <div className="flex *:w-28 *:text-center justify-center w-full pb-4 border-b border-slate-600">
                 <div
                   data-selected={!onDemos}
                   className="font-semibold data-[selected=true]:text-indigo-400 cursor-pointer select-none"
@@ -120,7 +116,7 @@ export function NavbarBrand() {
                 </div>
               </div>
               {!onDemos && (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-4 shrink-0 pb-6 mb-2 border-b border-b-slate-600">
                   {projects.map((p) => {
                     const id = selectProjectId(p);
                     const name = selectProjectName(p);
@@ -148,12 +144,12 @@ export function NavbarBrand() {
               )}
             </div>
             {onDemos && (
-              <div className="flex flex-col gap-4 shrink-0 mt-2">
+              <div className="flex flex-col gap-4 shrink-0 pb-6 mb-2 border-b border-b-slate-600">
                 {DEMO_GENRES.map((genre) => (
                   <Disclosure as="div" className="flex flex-col gap-4">
                     <DisclosureButton
                       key={genre.key}
-                      className="flex items-center group gap-2 cursor-pointer hover:bg-slate-700/50 rounded-lg p-1 font-semibold"
+                      className="flex items-center text-xl group gap-2 cursor-pointer hover:bg-slate-700/50 bg-slate-900/50 border border-indigo-500/50 rounded-lg p-1 font-light"
                     >
                       <BsChevronRight className="group-data-open:rotate-180" />
                       {genre.key}
@@ -182,7 +178,7 @@ export function NavbarBrand() {
                 ))}
               </div>
             )}
-            <div className="flex flex-col h-full mt-4 gap-6 shrink-0">
+            <div className="flex flex-col h-full mt-2 gap-6 shrink-0">
               <div className="font-semibold">Quick Actions</div>
               <div
                 className="flex items-center gap-4 group hover:underline text-xl font-light border-b border-slate-600 pb-4 cursor-pointer"
@@ -223,14 +219,13 @@ export function NavbarBrand() {
           </div>
         </div>
       )}
-      <button
-        className="cursor-pointer flex items-center gap-3 text-2xl rounded-full focus:ring-0 focus:outline-0 active:opacity-85"
-        type="button"
+      <div
+        className="cursor-pointer select-none flex items-center gap-3 text-2xl rounded-full focus:ring-0 focus:outline-0 active:opacity-85"
         onClick={() => setShow((prev) => !prev)}
       >
         <img src={LogoImage} alt="Logo" className="size-10 shrink-0" />
         {!onMain && "Harmonia"}
-      </button>
+      </div>
     </>
   );
 }

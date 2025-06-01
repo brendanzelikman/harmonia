@@ -1,11 +1,14 @@
 import { dispatchOpen, dispatchClose } from "hooks/useToggle";
-import { GiAbacus, GiWireframeGlobe } from "react-icons/gi";
+import { GiAbacus, GiPineTree } from "react-icons/gi";
 import { TimelineButton } from "./components/TutorialButton";
 import { tutorialVariants } from "./TutorialIntroduction";
 import { m } from "framer-motion";
 import { LivePlayIcon } from "features/Navbar/NavbarLivePlay";
+import { useAppDispatch } from "hooks/useRedux";
+import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 
 export const TutorialDevelopment = (props: { view: string }) => {
+  const dispatch = useAppDispatch();
   return (
     <m.div
       initial="hidden"
@@ -16,14 +19,14 @@ export const TutorialDevelopment = (props: { view: string }) => {
     >
       <TimelineButton
         border="ring-indigo-600/80"
-        className="rounded-lg"
-        title="Develop Scales"
-        subtitle="With Cascading Poses"
+        className="rounded-lg w-84"
+        title="Quest: Water The Trees"
         stripColor="border-b border-b-indigo-500/80"
-        Icon={GiWireframeGlobe}
+        Icon={GiPineTree}
+        onClick={() => dispatch(toggleLivePlay())}
         description={
           <>
-            <div>Scales can be developed with Poses.</div>
+            <div>Develop Scales with cascading Poses.</div>
             <div>
               <div>
                 <b>Example Tree:</b>
@@ -59,16 +62,16 @@ export const TutorialDevelopment = (props: { view: string }) => {
       />
       <TimelineButton
         border="ring-teal-600/80"
-        className="rounded-lg"
-        title="Develop Patterns"
-        subtitle="With Contrasting Motion"
+        className="rounded-lg w-84"
+        title="Quest: Move the Patterns"
         stripColor="border-b border-b-teal-500/80"
+        onClick={() => dispatch(toggleLivePlay())}
         Icon={GiAbacus}
         description={
           <>
-            <div>Patterns can be developed with Poses.</div>
+            <div>Develop Patterns with varying motion.</div>
             <div>
-              <b>Basic Motion:</b>
+              <b>Basic Axes:</b>
               <br />
               <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
               {" + "}
@@ -89,7 +92,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
               <span className="text-emerald-400">{"(C5, E5, G5)"}</span>
             </div>
             <div>
-              <b>Voice Leading:</b>
+              <b>Contrasting Motion:</b>
               <br />
               <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
               {" + "}
@@ -113,17 +116,12 @@ export const TutorialDevelopment = (props: { view: string }) => {
         }
       />
       <TimelineButton
-        className="rounded-lg"
+        className="rounded-lg w-84"
         border="ring-fuchsia-600/80"
-        title="Develop Poses"
-        subtitle="With Keyboard Gestures"
+        title="Quest: Hit the Gestures"
         stripColor="border-b border-b-fuchsia-500/80"
-        Icon={() => (
-          <LivePlayIcon
-            onMouseEnter={() => dispatchOpen("livePlay")}
-            onMouseLeave={() => dispatchClose("livePlay")}
-          />
-        )}
+        onClick={() => dispatch(toggleLivePlay())}
+        Icon={() => <LivePlayIcon />}
         description={
           <>
             <div>Poses can be created with shortcuts.</div>

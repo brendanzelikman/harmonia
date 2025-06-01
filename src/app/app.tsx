@@ -5,10 +5,9 @@ import { store } from "app/store";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { LazyMotion, domAnimation } from "framer-motion";
-import { router } from "app/router";
-import { RouterProvider } from "react-router-dom";
 import _ from "lodash";
 import { useProjects } from "hooks/useProjects";
+import { AppRouter } from "./router";
 
 // The root container for the application.
 const container = document.getElementById("root");
@@ -20,20 +19,21 @@ container.addEventListener("mousedown", start, { once: true });
 // Pass lodash to the global window object for access within scripts.
 window._ = _;
 
-// Create the root and render the app.
+// Create the root and render the app when the DOM is ready.
 const root = createRoot(container);
 document.addEventListener("DOMContentLoaded", () => {
   root.render(<App />);
 });
 
-// The main app handles routes and sets up a connection to the database
+// The app handles routes and sets up the projects
 function App() {
-  useProjects();
+  const isLoaded = useProjects();
+  if (!isLoaded) return null;
   return (
     <Provider store={store}>
       <DndProvider backend={HTML5Backend}>
         <LazyMotion features={domAnimation}>
-          <RouterProvider router={router} />
+          <AppRouter />
         </LazyMotion>
       </DndProvider>
     </Provider>

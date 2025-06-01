@@ -20,8 +20,7 @@ export const TutorialExposition = (props: { view: string }) => {
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg"
-        title="Create Tree"
-        subtitle="Press N to Input, G to Grow"
+        title="What is a Tree?"
         stripColor="border-b border-b-indigo-500/80"
         Icon={CreateTreeIcon}
         onClick={() => dispatch(promptUserForTree)}
@@ -56,8 +55,7 @@ export const TutorialExposition = (props: { view: string }) => {
       <TimelineButton
         border="ring-teal-600/80"
         className="rounded-lg"
-        title="Create Pattern"
-        subtitle="Scheduled in a Track"
+        title="What is a Pattern?"
         stripColor="border-b border-b-teal-500/80"
         Icon={ArrangePatternIcon}
         onClick={() => dispatch(toggleLivePlay())}
@@ -99,8 +97,7 @@ export const TutorialExposition = (props: { view: string }) => {
       <TimelineButton
         className="rounded-lg"
         border="ring-fuchsia-600/80"
-        title="Create Pose"
-        subtitle="Scheduled in a Track"
+        title="What is a Pose?"
         stripColor="border-b border-b-fuchsia-500/80"
         Icon={ArrangePoseIcon}
         onClick={() => dispatch(toggleLivePlay())}

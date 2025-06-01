@@ -1,7 +1,7 @@
 import { m } from "framer-motion";
 import { TimelineButton } from "./components/TutorialButton";
 import { useAppDispatch } from "hooks/useRedux";
-import { GiBookCover } from "react-icons/gi";
+import { GiTreeDoor } from "react-icons/gi";
 import { promptUserForTree } from "lib/prompts/tree";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
 import { CreateTreeIcon } from "lib/hotkeys/track";
@@ -16,7 +16,8 @@ const variants = {
   show: {
     opacity: 1,
     transition: {
-      delayChildren: 0,
+      delay: 0,
+      delayChildren: 0.8,
       staggerChildren: 0.1,
     },
   },
@@ -35,44 +36,47 @@ export const TutorialIntroduction = (props: {
   const dispatch = useAppDispatch();
   return (
     <m.div
+      data-view={props.view}
       initial="hidden"
       animate="show"
-      whileInView="enter"
-      data-view={props.view}
       variants={variants}
-      className="hidden data-[view=introduction]:flex items-center max-lg:flex-col gap-8 lg:gap-16"
+      className="hidden data-[view=introduction]:flex items-center max-lg:flex-col gap-10 pt-2"
     >
       <TimelineButton
-        border="ring-indigo-600/80"
-        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-xs lg:py-12 lg:gap-3"
-        title="Create Tree"
-        titleClass={"text-2xl font-normal"}
-        subtitle="Input by Prompt"
-        stripColor="text-lg font-light"
-        Icon={CreateTreeIcon}
-        iconClass="text-9xl max-lg:text-6xl"
-        onClick={() => dispatch(promptUserForTree)}
-      />
-      <TimelineButton
-        border="ring-teal-600/80"
-        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-xs lg:py-12 lg:gap-3"
-        title="Grow Tree"
+        border="ring-cyan-600"
+        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-68 lg:py-12 lg:gap-3"
+        title="Water Tree"
         subtitle="Quickstart and Develop"
-        titleClass={"text-2xl font-normal"}
+        titleClass={"text-xl font-semibold"}
         stripColor="text-lg font-light"
+        background="hover:bg-cyan-500/5 bg-slate-950/20"
         Icon={WaterTreeIcon}
-        iconClass="text-9xl max-lg:text-6xl -mr-6"
+        iconClass="text-8xl max-lg:text-6xl -mr-6"
         onClick={() => dispatch(toggleLivePlay())}
       />
       <TimelineButton
-        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-xs lg:py-12 lg:gap-3"
-        border="ring-fuchsia-600/80"
-        title={props.tutorial ? "I'm New Here" : "Launch Tutorial"}
-        titleClass={"text-2xl font-normal"}
+        border="ring-teal-600"
+        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-68 lg:py-12 lg:gap-3"
+        title="Plant Tree"
+        titleClass={"text-xl font-semibold"}
+        subtitle="Input Tracks by Prompt"
+        stripColor="text-lg font-light"
+        background="hover:bg-teal-500/5 bg-slate-950/20"
+        Icon={CreateTreeIcon}
+        iconClass="text-8xl max-lg:text-6xl"
+        onClick={() => dispatch(promptUserForTree)}
+      />
+
+      <TimelineButton
+        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-68 lg:py-12 lg:gap-3"
+        border="ring-fuchsia-600"
+        title={"What's a Tree?"}
+        titleClass={"text-xl font-semibold"}
         subtitle="Start the Tutorial"
         stripColor="text-lg font-light"
-        Icon={GiBookCover}
-        iconClass="text-9xl max-lg:text-6xl"
+        background="hover:bg-fuchsia-500/5 bg-slate-950/20"
+        Icon={GiTreeDoor}
+        iconClass="text-8xl max-lg:text-6xl"
         onClick={() => props.startTutorial()}
       />
     </m.div>
