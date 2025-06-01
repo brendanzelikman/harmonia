@@ -28,7 +28,9 @@ import {
 } from "types/Timeline/thunks/TimelineClipThunks";
 import {
   GiCrystalWand,
+  GiPalmTree,
   GiPencil,
+  GiPineTree,
   GiSeedling,
   GiWateringCan,
 } from "react-icons/gi";
@@ -51,7 +53,7 @@ export const SampleProjectHotkey: Hotkey = {
   shortcut: "i",
   callback: (dispatch) => dispatch(sampleProject()),
 };
-export const SampleProjectIcon = GiSeedling;
+export const SampleProjectIcon = GiPineTree;
 
 export const ArrangePatternsHotkey: Hotkey = {
   name: "Create Pattern",
