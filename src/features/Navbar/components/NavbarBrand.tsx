@@ -228,18 +228,9 @@ export function NavbarBrand() {
         type="button"
         onClick={() => setShow((prev) => !prev)}
       >
-        <img src={LogoImage} alt="Logo" className="size-10" />
+        <img src={LogoImage} alt="Logo" className="size-10 shrink-0" />
         {!onMain && "Harmonia"}
       </button>
     </>
-  );
-}
-
-export function NavbarDummyBrand() {
-  return (
-    <Link to={LAND} className="flex items-center text-white shrink-0">
-      <img src={LogoImage} alt="Logo" className="size-10" />
-      <span className="ml-4 max-lg:hidden text-3xl">Harmonia</span>
-    </Link>
   );
 }

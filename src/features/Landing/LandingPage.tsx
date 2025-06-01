@@ -16,10 +16,10 @@ export function LandingPage() {
   useTitle("Harmonia | Musical Calculator");
   return (
     <div className="relative size-full">
-      <div className="max-lg:hidden absolute size-full">
+      <div className="absolute size-full">
         <Navbar />
       </div>
-      <div className="relative size-full  pt-20 overflow-scroll select-none">
+      <div className="relative size-full pt-20 overflow-scroll select-none">
         <Splash />
         {hasError && <Stack />}
         {!hasError && (

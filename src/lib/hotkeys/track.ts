@@ -34,7 +34,7 @@ import { GiDiceEightFacesEight, GiPineTree } from "react-icons/gi";
 export const CreateTreeHotkey: Hotkey = {
   name: "Create Tree",
   description: "Prompt the user to type in a new tree",
-  shortcut: "n",
+  shortcut: "i",
   callback: (dispatch) => dispatch(promptUserForTree),
 };
 export const CreateTreeIcon = GiPineTree;
@@ -42,14 +42,14 @@ export const CreateTreeIcon = GiPineTree;
 export const CreateDrumTracksHotkey: Hotkey = {
   name: "Drum Tree",
   description: "Create Drum Tree",
-  shortcut: "alt+shift+n",
+  shortcut: "shift+d",
   callback: (dispatch) => dispatch(createDrumTracks()),
 };
 
 export const CreateRandomTreeHotkey: Hotkey = {
-  name: "Create Random Tree",
+  name: "Sample Tree",
   description: "Create Random Tree",
-  shortcut: "shift+g",
+  shortcut: "alt+i",
   callback: (dispatch) => dispatch(createRandomTree()),
 };
 export const CreateRandomTreeIcon = GiDiceEightFacesEight;

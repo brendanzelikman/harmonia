@@ -47,15 +47,15 @@ export const WaterTreeHotkey: Hotkey = {
 export const WaterTreeIcon = GiWateringCan;
 
 export const SampleProjectHotkey: Hotkey = {
-  name: "Plant Project",
+  name: "Import Tree",
   description: "Upload the notes of a project by file",
-  shortcut: "l",
+  shortcut: "shift+i",
   callback: (dispatch) => dispatch(sampleProject()),
 };
 export const SampleProjectIcon = GiSeedling;
 
 export const ArrangePatternsHotkey: Hotkey = {
-  name: "Create Pattern",
+  name: "Create Object",
   description: "Toggle the adding of pattern clips",
   shortcut: "o",
   callback: (dispatch) => dispatch(toggleAddingState({ data: "pattern" })),

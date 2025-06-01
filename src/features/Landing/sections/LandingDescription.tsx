@@ -4,7 +4,7 @@ import Composition from "/media/composition.gif";
 import Portals from "/media/portals.png";
 import Performance from "/media/performance.gif";
 import Hotkeys from "/media/hotkeys.jpg";
-import Terminal from "/media/terminal.png";
+import Sample from "/media/sample.gif";
 import Math from "/media/math.png";
 import Easy from "/media/easy.png";
 import Nest from "/media/nest.png";
@@ -50,7 +50,7 @@ export const LandingDescription = () => {
         >
           <img
             src={Screenshot}
-            className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Design Musical Architectures</div>
@@ -66,8 +66,8 @@ export const LandingDescription = () => {
           className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
         >
           <img
-            src={Composition}
-            className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-bottom-left p-4 bg-slate-950/90"
+            src={Sample}
+            className="shadow-2xl max-sm:min-h-48 min-h-64 w-xl object-cover object-bottom-left p-4 bg-slate-950/90"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Apply Mathematical Transformations</div>
@@ -84,7 +84,7 @@ export const LandingDescription = () => {
         >
           <img
             src={Hotkeys}
-            className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Perform Keyboard Gestures</div>
@@ -99,12 +99,10 @@ export const LandingDescription = () => {
           viewport={{ once: true }}
           className="flex flex-col w-xl rounded-xl overflow-hidden border-2 border-blue-600/90"
         >
-          <div className="h-64 w-full bg-slate-950/80">
-            <img
-              src={Performance}
-              className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
-            />
-          </div>
+          <img
+            src={Performance}
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
+          />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 p-4 pt-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 font-light">
             <div>Play Cool Sounds</div>
             <div className="max-sm:text-base text-lg text-slate-400">
@@ -120,7 +118,7 @@ export const LandingDescription = () => {
         >
           <img
             src={Nest}
-            className="shadow-2xl max-sm:h-48 h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Create Elaborate Structures</div>
@@ -137,7 +135,7 @@ export const LandingDescription = () => {
         >
           <img
             src={Easy}
-            className="shadow-2xl max-sm:h-48 h-64 w-xl object-top-left bg-slate-950/90 p-4"
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-top-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Calculate Difficult Sequences</div>

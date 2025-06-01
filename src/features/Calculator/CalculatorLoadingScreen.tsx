@@ -40,7 +40,7 @@ export function CalculatorLoadingScreen(props: LoadingScreenProps) {
 
   return (
     <div
-      className="size-full flex-col animate-in fade-in cursor-pointer duration-300"
+      className="size-full flex-col animate-in fade-in cursor-pointer overflow-scroll pb-12 duration-300"
       onMouseDown={() => setClicked(true)}
     >
       <div className="flex flex-col pt-16 items-center">
