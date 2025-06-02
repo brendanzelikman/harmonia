@@ -27,7 +27,7 @@ export const LandingDescription = () => {
       >
         <div className="mb-8 w-full gap-4 flex justify-center items-center">
           <div className="rounded-xl p-1 px-2 transition-all animate-in fade-in duration-300">
-            Find Voice Leadings with Precision and Ease.
+            Find Voice Leadings with Clarity and Ease.
           </div>
         </div>
       </m.div>

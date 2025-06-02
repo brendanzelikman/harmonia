@@ -24,7 +24,7 @@ export const TutorialCoda = (props: { view: string }) => {
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg"
-        title="Save and Load as JSON"
+        title="Tip: Save and Load as JSON"
         stripColor="border-b border-b-indigo-500/80"
         Icon={BsCode}
         onClick={() => dispatch(exportProjectToJSON())}
@@ -52,7 +52,7 @@ export const TutorialCoda = (props: { view: string }) => {
       <TimelineButton
         border="ring-teal-600/80"
         className="rounded-lg"
-        title="Export to MIDI and WAV"
+        title="Tip: Export to MIDI and WAV"
         stripColor="border-b border-b-teal-500/80"
         Icon={GiMusicalScore}
         onClick={() => dispatch(exportProjectToMIDI(undefined, true))}
@@ -80,7 +80,7 @@ export const TutorialCoda = (props: { view: string }) => {
       <TimelineButton
         border="ring-fuchsia-600/80"
         className="rounded-lg"
-        title="Record to MIDI and WAV"
+        title="Tip: Record to MIDI and WAV"
         stripColor="border-b border-b-fuchsia-400/80"
         Icon={GiSoundWaves}
         onClick={() =>

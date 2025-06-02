@@ -25,19 +25,19 @@ import {
   collapseTrackAncestors,
 } from "types/Track/TrackThunks";
 import { inputScaleTrackScale } from "lib/prompts/scale";
-import { GiDiceEightFacesEight, GiSeedling } from "react-icons/gi";
+import { GiDiceEightFacesEight, GiWateringCan } from "react-icons/gi";
 
 // ---------------------------------------------------
 // Track Hotkeys
 // ---------------------------------------------------
 
 export const CreateTreeHotkey: Hotkey = {
-  name: "Plant Tree",
+  name: "Create Tree",
   description: "Prompt the user to type in a new tree",
   shortcut: "n",
   callback: (dispatch) => dispatch(promptUserForTree),
 };
-export const CreateTreeIcon = GiSeedling;
+export const CreateTreeIcon = GiWateringCan;
 
 export const CreateDrumTracksHotkey: Hotkey = {
   name: "Drum Tree",

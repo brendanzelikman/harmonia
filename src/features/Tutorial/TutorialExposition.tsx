@@ -62,8 +62,8 @@ export const TutorialExposition = (props: { view: string }) => {
         description={
           <>
             <div>
-              A Pattern is a sequence of pitches that can be written using the
-              Scales of a Tree.
+              A Pattern is a sequence of pitches that can be written using scale
+              degrees and offsets.
             </div>
 
             <div>
@@ -104,8 +104,8 @@ export const TutorialExposition = (props: { view: string }) => {
         description={
           <>
             <div>
-              A Pose is a multidimensional transformation that can move a note
-              along your Scales.
+              A Pose is a multidimensional transformation that can change your
+              scales and patterns.
             </div>
             <div>
               <b>Example Pose</b>:

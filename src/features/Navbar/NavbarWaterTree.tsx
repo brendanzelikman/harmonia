@@ -10,9 +10,9 @@ export const NavbarWaterTree = () => {
     <NavbarTooltipButton
       keepTooltipOnClick
       className={classNames(
-        "select-none bg-radial from-sky-900/70 to-sky-500/70 border border-sky-500 hover:ring-2 hover:ring-slate-300 size-9 p-1"
+        "select-none bg-radial from-teal-900/70 to-teal-500/70 border border-teal-500 hover:ring-2 hover:ring-slate-300 size-9 p-1"
       )}
-      borderColor="border-sky-400/80"
+      borderColor="border-teal-400/80"
       onClick={() => dispatch(toggleLivePlay())}
       hotkey={WaterTreeHotkey}
     >

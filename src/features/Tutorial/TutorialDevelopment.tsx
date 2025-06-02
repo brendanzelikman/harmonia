@@ -20,13 +20,13 @@ export const TutorialDevelopment = (props: { view: string }) => {
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg w-84"
-        title="Quest: Water The Trees"
+        title="Goal: Water Your Trees"
         stripColor="border-b border-b-indigo-500/80"
         Icon={GiPineTree}
         onClick={() => dispatch(toggleLivePlay())}
         description={
           <>
-            <div>Develop Scales with cascading Poses.</div>
+            <div>Trees will cascade effects down Tracks.</div>
             <div>
               <div>
                 <b>Example Tree:</b>
@@ -63,15 +63,15 @@ export const TutorialDevelopment = (props: { view: string }) => {
       <TimelineButton
         border="ring-teal-600/80"
         className="rounded-lg w-84"
-        title="Quest: Move the Patterns"
+        title="Goal: Move Your Patterns"
         stripColor="border-b border-b-teal-500/80"
         onClick={() => dispatch(toggleLivePlay())}
         Icon={GiAbacus}
         description={
           <>
-            <div>Develop Patterns with varying motion.</div>
+            <div>Patterns can be moved along various axes.</div>
             <div>
-              <b>Basic Axes:</b>
+              <b>Basic Motion:</b>
               <br />
               <span className="text-emerald-400">{"(C4, E4, G4)"}</span>
               {" + "}
@@ -118,7 +118,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
       <TimelineButton
         className="rounded-lg w-84"
         border="ring-fuchsia-600/80"
-        title="Quest: Hit the Gestures"
+        title="Goal: Learn Your Gestures"
         stripColor="border-b border-b-fuchsia-500/80"
         onClick={() => dispatch(toggleLivePlay())}
         Icon={() => <LivePlayIcon />}

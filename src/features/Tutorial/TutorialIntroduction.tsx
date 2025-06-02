@@ -4,8 +4,8 @@ import { useAppDispatch } from "hooks/useRedux";
 import { GiTreeDoor } from "react-icons/gi";
 import { promptUserForTree } from "lib/prompts/tree";
 import { toggleLivePlay } from "types/Timeline/TimelineThunks";
-import { CreateTreeIcon } from "lib/hotkeys/track";
-import { WaterTreeIcon } from "lib/hotkeys/timeline";
+import { CreateTreeHotkey, CreateTreeIcon } from "lib/hotkeys/track";
+import { WaterTreeHotkey, WaterTreeIcon } from "lib/hotkeys/timeline";
 
 const variants = {
   hidden: { opacity: 0, translateX: -20 },
@@ -45,19 +45,7 @@ export const TutorialIntroduction = (props: {
       <TimelineButton
         border="ring-cyan-600"
         className="lg:rounded-full flex-row lg:flex-col shadow-xl w-68 lg:py-12 lg:gap-3"
-        title="Water Tree"
-        subtitle="Quickstart and Develop"
-        titleClass={"text-xl font-semibold"}
-        stripColor="text-lg font-light"
-        background="hover:bg-cyan-500/5 bg-slate-950/20"
-        Icon={WaterTreeIcon}
-        iconClass="text-8xl max-lg:text-6xl -mr-6"
-        onClick={() => dispatch(toggleLivePlay())}
-      />
-      <TimelineButton
-        border="ring-teal-600"
-        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-68 lg:py-12 lg:gap-3"
-        title="Plant Tree"
+        title={CreateTreeHotkey.name}
         titleClass={"text-xl font-semibold"}
         subtitle="Input Tracks by Prompt"
         stripColor="text-lg font-light"
@@ -66,7 +54,18 @@ export const TutorialIntroduction = (props: {
         iconClass="text-8xl max-lg:text-6xl"
         onClick={() => dispatch(promptUserForTree)}
       />
-
+      <TimelineButton
+        border="ring-teal-600"
+        className="lg:rounded-full flex-row lg:flex-col shadow-xl w-68 lg:py-12 lg:gap-3"
+        title={WaterTreeHotkey.name}
+        subtitle="Quickstart and Develop"
+        titleClass={"text-xl font-semibold"}
+        stripColor="text-lg font-light"
+        background="hover:bg-cyan-500/5 bg-slate-950/20"
+        Icon={WaterTreeIcon}
+        iconClass="text-8xl max-lg:text-6xl"
+        onClick={() => dispatch(toggleLivePlay())}
+      />
       <TimelineButton
         className="lg:rounded-full flex-row lg:flex-col shadow-xl w-68 lg:py-12 lg:gap-3"
         border="ring-fuchsia-600"

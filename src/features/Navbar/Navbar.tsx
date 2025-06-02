@@ -48,8 +48,8 @@ export function Navbar() {
           </NavbarGroup>
           <NavbarGroup className="bg-radial from-slate-900/15 to-sky-500/15">
             <div className="text-base font-light pr-1">Trees</div>
-            <NavbarWaterTree />
             <NavbarCreateTree />
+            <NavbarWaterTree />
             <NavbarRandomTree />
           </NavbarGroup>
           <NavbarGroup

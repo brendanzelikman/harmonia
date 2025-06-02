@@ -33,7 +33,7 @@ export default function Tutorial() {
   }, []);
 
   return (
-    <div className="size-full flex flex-col overflow-scroll items-center gap-8 max-lg:px-10 pt-26 pb-4 fixed z-[200] inset-0 top-15 bg-slate-950/70 backdrop-blur">
+    <div className="size-full flex flex-col overflow-scroll items-center gap-8 max-lg:px-10 pt-8 pb-4 fixed z-[200] inset-0 top-35 bg-slate-950/70">
       <m.div
         initial="hidden"
         whileInView="visible"
@@ -127,6 +127,6 @@ export default function Tutorial() {
 }
 
 const variants = {
-  hidden: { opacity: 1, scaleX: 0 },
-  visible: { opacity: 1, scaleX: 1 },
+  hidden: { scaleX: 0 },
+  visible: { scaleX: 1 },
 };

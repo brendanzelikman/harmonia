@@ -41,10 +41,11 @@ export const LandingDetail = () => {
         <m.div variants={variants}>
           <div>How Do I Use Harmonia?</div>
           <div>
-            Harmonia has a three-part workflow called TOP. First, you create a
-            set of <b>trees</b>—tracks that relate your scales and samplers
-            together. Then, you write <b>patterns</b>— sequences of notes that
-            relate to your scales (or not). Finally, you schedule <b> poses</b>
+            Harmonia has a workflow based on three kinds of musical objects.
+            First, you create a set of <b>trees</b>—tracks that relate your
+            scales and samplers together. Then, you write <b>patterns</b>—
+            sequences of notes that can be related to your scales. Finally, you
+            schedule <b> poses</b>
             —transformations that develop your scales and patterns with robust
             logic. Of course, you can also do whatever you want.
           </div>

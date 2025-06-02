@@ -30,7 +30,7 @@ import {
   GiCrystalWand,
   GiPencil,
   GiPineTree,
-  GiWateringCan,
+  GiSeedling,
 } from "react-icons/gi";
 
 // -----------------------------------------------
@@ -38,12 +38,12 @@ import {
 // -----------------------------------------------
 
 export const WaterTreeHotkey: Hotkey = {
-  name: "Water Tree",
+  name: "Develop Tree",
   description: "Quickstart and develop a project",
-  shortcut: "f",
+  shortcut: "g",
   callback: (dispatch) => dispatch(toggleLivePlay()),
 };
-export const WaterTreeIcon = GiWateringCan;
+export const WaterTreeIcon = GiSeedling;
 
 export const SampleProjectHotkey: Hotkey = {
   name: "Import Project",
