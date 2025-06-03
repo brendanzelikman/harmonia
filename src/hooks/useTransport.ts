@@ -8,6 +8,10 @@ import {
   unloadTransport,
 } from "types/Transport/TransportLoader";
 import { useToggle } from "hooks/useToggle";
+import {
+  broadcastStopRecordingTransport,
+  stopRecordingTransport,
+} from "types/Transport/TransportRecorder";
 
 export function useTransport() {
   const dispatch = useAppDispatch();
@@ -16,6 +20,7 @@ export function useTransport() {
 
   // Load the transport or add an event listener if the context is not running
   useEffect(() => {
+    dispatch(stopRecordingTransport());
     const load = () => dispatch(loadTransport());
     if (getContext().state === "running") {
       load();
