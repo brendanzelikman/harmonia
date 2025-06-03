@@ -8,7 +8,7 @@ import {
 import { selectHasClips } from "types/Clip/ClipSelectors";
 import { toggleTimelineState } from "types/Timeline/TimelineThunks";
 import { NavbarTooltipButton } from "components/TooltipButton";
-import { ToggleScissorsHotkey } from "lib/hotkeys/timeline";
+import { SliceClipsHotkey, ToggleScissorsHotkey } from "lib/hotkeys/timeline";
 import { sliceClips } from "types/Timeline/thunks/TimelineClipThunks";
 
 export const NavbarScissors = () => {
@@ -24,13 +24,32 @@ export const NavbarScissors = () => {
         borderColor="border-emerald-500"
         activeLabel="Equipped Scissors"
         label={
-          isSlicing
-            ? "Hide Scissors"
-            : hasClips
-            ? isSelectingClips
-              ? "Slice Clips"
-              : "Equip Scissors"
-            : "No Clips to Slice"
+          isSlicing ? (
+            <span>
+              Hide Scissors{" "}
+              <span className="text-gray-400">
+                ({ToggleScissorsHotkey.shortcut})
+              </span>
+            </span>
+          ) : hasClips ? (
+            isSelectingClips ? (
+              <span>
+                Slice Clips{" "}
+                <span className="text-gray-400">
+                  ({SliceClipsHotkey.shortcut})
+                </span>
+              </span>
+            ) : (
+              <span>
+                Equip Scissors{" "}
+                <span className="text-gray-400">
+                  ({ToggleScissorsHotkey.shortcut})
+                </span>
+              </span>
+            )
+          ) : (
+            "No Clips to Slice"
+          )
         }
         hotkey={ToggleScissorsHotkey}
         onClick={() =>

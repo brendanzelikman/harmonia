@@ -33,7 +33,7 @@ export default function Tutorial() {
   }, []);
 
   return (
-    <div className="size-full flex flex-col overflow-scroll items-center gap-8 max-lg:px-10 pt-8 pb-4 fixed z-[200] inset-0 top-35 bg-slate-950/70">
+    <div className="size-full flex flex-col overflow-scroll items-center gap-8 max-lg:px-10 pt-8 pb-4 fixed z-[200] inset-0 top-35 bg-slate-950/60">
       <m.div
         initial="hidden"
         whileInView="visible"
@@ -47,7 +47,7 @@ export default function Tutorial() {
           stiffness: 80,
           mass: 0.4,
         }}
-        className="bg-radial relative to-slate-950/80 from-indigo-900/20 via-slate-900/50 border-sky-700 max-xl:w-auto xl:w-4xl px-12 backdrop-blur-lg select-none text-center py-6 max-lg:py-4 border-2 rounded-2xl"
+        className="bg-radial relative to-slate-950/80 from-indigo-900/20 via-slate-900/50 border-sky-700 max-xl:w-auto lg:w-5xl px-12 backdrop-blur-lg select-none text-center py-6 max-lg:py-4 border-2 rounded-2xl"
       >
         <m.div
           initial="hidden"

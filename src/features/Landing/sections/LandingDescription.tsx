@@ -4,7 +4,6 @@ import Composition from "/media/composition.gif";
 import Portals from "/media/portals.png";
 import Performance from "/media/performance.gif";
 import Hotkeys from "/media/hotkeys.jpg";
-import Sample from "/media/sample.gif";
 import Math from "/media/math.png";
 import Easy from "/media/easy.png";
 import Nest from "/media/nest.png";
@@ -66,7 +65,7 @@ export const LandingDescription = () => {
           className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
         >
           <img
-            src={Sample}
+            src={Easy}
             className="shadow-2xl max-sm:min-h-48 min-h-64 w-xl object-cover object-bottom-left p-4 bg-slate-950/90"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
@@ -84,10 +83,10 @@ export const LandingDescription = () => {
         >
           <img
             src={Hotkeys}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-72 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Perform Keyboard Gestures</div>
+            <div>Use Keyboard Gestures</div>
             <div className="max-sm:text-base text-lg text-slate-400">
               Compose Quickly with Accessible Shortcuts
             </div>
@@ -97,16 +96,16 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col w-xl rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
         >
           <img
-            src={Performance}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-72 w-xl object-cover object-top-left p-4 bg-slate-950/90"
+            src={Composition}
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-top-left bg-slate-950/90 p-4"
           />
-          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 p-4 pt-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 font-light">
-            <div>Play Cool Sounds</div>
+          <div className="flex flex-col h-full *:first:mt-auto gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
+            <div>Write Sequences Effortlessly</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Build Instruments with Custom Effects
+              Rapidly Develop Your Musical Ideas
             </div>
           </div>
         </m.div>
@@ -114,33 +113,16 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col rounded-xl sm:h-88 max-sm:h-72 overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
         >
           <img
             src={Nest}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
+            className="shadow-2xl max-sm:min-h-48 h-68 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Create Elaborate Structures</div>
             <div className="max-sm:text-base text-lg text-slate-400">
-              Unravel the Layers of Musical Space
-            </div>
-          </div>
-        </m.div>
-        <m.div
-          variants={variants}
-          transition={{ type: "spring" }}
-          viewport={{ once: true }}
-          className="flex flex-col rounded-xl sm:h-88 max-sm:h-72 overflow-hidden border-2 border-blue-600/90"
-        >
-          <img
-            src={Easy}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-top-left bg-slate-950/90 p-4"
-          />
-          <div className="flex flex-col h-full *:first:mt-auto gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Calculate Difficult Sequences</div>
-            <div className="max-sm:text-base text-lg text-slate-400">
-              Explore Ideas Without Losing Time
+              Unravel the Layers of Harmonic Space
             </div>
           </div>
         </m.div>
@@ -152,7 +134,7 @@ export const LandingDescription = () => {
         >
           <img
             src={Math}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-top-left bg-slate-950/90 p-4"
+            className="shadow-2xl max-sm:min-h-48 h-68 w-xl object-cover object-top-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Design Custom Functions</div>
@@ -169,7 +151,7 @@ export const LandingDescription = () => {
         >
           <img
             src={Portals}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-top-left bg-slate-950/90 p-4"
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-72 w-xl object-cover object-top-left bg-slate-950/90 p-4"
           />
           <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
             <div>Discover Easter Eggs</div>
@@ -178,14 +160,24 @@ export const LandingDescription = () => {
             </div>
           </div>
         </m.div>
+        <m.div
+          variants={variants}
+          transition={{ type: "spring" }}
+          viewport={{ once: true }}
+          className="flex flex-col w-xl rounded-xl overflow-hidden border-2 border-blue-600/90"
+        >
+          <img
+            src={Performance}
+            className="shadow-2xl h-fit max-sm:min-h-48 min-h-72 w-xl object-cover object-top-left p-4 bg-slate-950/90"
+          />
+          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 p-4 pt-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 font-light">
+            <div>Make Cool Music</div>
+            <div className="max-sm:text-base text-lg text-slate-400">
+              Create Instruments with Custom Effects
+            </div>
+          </div>
+        </m.div>
       </m.div>
     </LandingSection>
   );
 };
-
-const views = [
-  "Composition",
-  "Improvisation",
-  "Calculation",
-  "Performance",
-] as const;
