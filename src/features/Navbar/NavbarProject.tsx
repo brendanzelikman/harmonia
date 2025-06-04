@@ -82,10 +82,10 @@ export function NavbarProjectMenu() {
           </div>
 
           {/* Open New Project */}
-          {/* <NavbarFileGroup onClick={() => uploadProject()}>
-            <NavbarFileLabel>Open New Project</NavbarFileLabel>
+          <NavbarFileGroup onClick={() => uploadProject()}>
+            <NavbarFileLabel>New Project</NavbarFileLabel>
             <GiCompactDisc className="ml-auto text-2xl" />
-          </NavbarFileGroup> */}
+          </NavbarFileGroup>
 
           {/* Duplicate Project */}
           <NavbarFileGroup onClick={() => uploadProject(undefined, true)}>

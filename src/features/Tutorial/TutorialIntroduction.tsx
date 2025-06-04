@@ -49,7 +49,7 @@ export const TutorialIntroduction = (props: {
         titleClass={"text-xl font-semibold"}
         subtitle="Input Tracks by Prompt"
         stripColor="text-lg font-light"
-        background="hover:bg-teal-500/5 bg-slate-950/20"
+        background="hover:bg-teal-500/5 bg-slate-950/25"
         Icon={CreateTreeIcon}
         iconClass="text-8xl max-lg:text-6xl"
         onClick={() => dispatch(promptUserForTree)}
@@ -61,7 +61,7 @@ export const TutorialIntroduction = (props: {
         subtitle="Quickstart and Develop"
         titleClass={"text-xl font-semibold"}
         stripColor="text-lg font-light"
-        background="hover:bg-cyan-500/5 bg-slate-950/20"
+        background="hover:bg-cyan-500/5 bg-slate-950/25"
         Icon={WaterTreeIcon}
         iconClass="text-8xl max-lg:text-6xl"
         onClick={() => dispatch(toggleLivePlay())}
@@ -73,7 +73,7 @@ export const TutorialIntroduction = (props: {
         titleClass={"text-xl font-semibold"}
         subtitle="Start the Tutorial"
         stripColor="text-lg font-light"
-        background="hover:bg-fuchsia-500/5 bg-slate-950/20"
+        background="hover:bg-fuchsia-500/5 bg-slate-950/25"
         Icon={GiTreeDoor}
         iconClass="text-8xl max-lg:text-6xl"
         onClick={() => props.startTutorial()}
