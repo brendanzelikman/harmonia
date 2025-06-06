@@ -20,7 +20,11 @@ export const TrackName = (props: { track: Track }) => {
     selectTrackInstrumentName(_, track.id)
   );
   const scaleName = useAppValue((_) => selectTrackScaleNameAtTick(_, track.id));
-  const size = isSmall ? "text-xs h-6" : "text-sm h-7";
+  const size = track.collapsed
+    ? "text-xs h-2"
+    : isSmall
+    ? "text-xs h-4"
+    : "text-sm h-7";
   const order = useAppValue((_) => selectTrackOrderById(_, track.id));
   const placeholder = `Tree #${order}`;
   return (

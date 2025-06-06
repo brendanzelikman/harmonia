@@ -6,11 +6,15 @@ import { PatternTrackBody } from "./components/TrackBody";
 import { TrackDropdownMenu } from "./components/TrackDropdownMenu";
 import { TrackName } from "./components/TrackName";
 import { TrackSliders } from "./components/TrackSlider";
+import { selectTrackJSXAtTick } from "types/Arrangement/ArrangementTrackSelectors";
+import { useAppValue } from "hooks/useRedux";
+import { TrackPose } from "./components/TrackPose";
 
 export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {
   const track = props.track;
   const trackId = track.id;
   const isCollapsed = !!track.collapsed;
+  const jsx = useAppValue((_) => selectTrackJSXAtTick(_, trackId));
   return (
     <>
       {!isCollapsed && <TrackSliders trackId={trackId} />}
@@ -19,7 +23,12 @@ export const PatternTrackFormatter = memo((props: { track: PatternTrack }) => {
           data-collapsed={isCollapsed}
           className="w-full total-center gap-1 pt-1 relative data-[collapsed=false]:pt-2 data-[collapsed=false]:pr-1"
         >
-          <TrackName track={track} />
+          <div className="flex flex-col min-w-min w-full pr-2 mr-auto">
+            <TrackName track={track} />
+            {isCollapsed && (
+              <TrackPose trackId={trackId} className="text-xs mt-0.5" />
+            )}
+          </div>
           <div
             className="flex flex-col items-end pr-1"
             draggable

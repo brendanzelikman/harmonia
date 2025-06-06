@@ -1,10 +1,7 @@
 import { useTick } from "types/Transport/TransportTick";
 import { memo, useState } from "react";
 import { GiDominoMask, GiPineTree, GiTrumpet } from "react-icons/gi";
-import {
-  selectTrackMidiScaleAtTick,
-  selectTrackJSXAtTick,
-} from "types/Arrangement/ArrangementTrackSelectors";
+import { selectTrackMidiScaleAtTick } from "types/Arrangement/ArrangementTrackSelectors";
 import { useAppValue } from "hooks/useRedux";
 import {
   selectTrackInstrumentKey,
@@ -15,11 +12,10 @@ import { TrackId } from "types/Track/TrackTypes";
 import { cancelEvent } from "utils/event";
 import { getScaleKey, getScaleName } from "types/Scale/ScaleFinder";
 import { mod } from "utils/math";
-import { ArrangePoseIcon } from "lib/hotkeys/timeline";
 import { CreateTreeIcon } from "lib/hotkeys/track";
 import { InstrumentIconMap } from "features/Editor/EditorSidebar";
 import { getInstrumentCategory } from "types/Instrument/InstrumentFunctions";
-import { INSTRUMENT_CATEGORY_TYPES_BY_KEY } from "types/Instrument/InstrumentTypes";
+import { TrackPose } from "./TrackPose";
 
 export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
   const { trackId } = props;
@@ -28,7 +24,6 @@ export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
     selectTrackMidiScaleAtTick(_, trackId, tick)
   );
   const label = useAppValue((_) => selectTrackLabelById(_, trackId));
-  const pose = useAppValue((_) => selectTrackJSXAtTick(_, trackId, tick));
   const [showNotes, setShowNotes] = useState(false);
   const name = getScaleName(scale);
   const key = getScaleKey(scale);
@@ -50,23 +45,18 @@ export const ScaleTrackBody = memo((props: { trackId: TrackId }) => {
         <GiDominoMask className="mr-1 my-auto inline shrink-0" />
         <div>{scaleText}</div>
       </div>
-      <div className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300">
-        <ArrangePoseIcon className="shrink-0" />
-        {pose}
-      </div>
+      <TrackPose trackId={trackId} />
     </div>
   );
 });
 
 export const PatternTrackBody = memo((props: { trackId: TrackId }) => {
   const { trackId } = props;
-  const tick = useTick();
   const label = useAppValue((_) => selectTrackLabelById(_, trackId));
   const instrumentName = useAppValue((_) =>
     selectTrackInstrumentName(_, trackId)
   );
   const key = useAppValue((_) => selectTrackInstrumentKey(_, trackId));
-  const pose = useAppValue((_) => selectTrackJSXAtTick(_, trackId, tick));
   const category = getInstrumentCategory(key);
   const Icon = category ? (
     InstrumentIconMap[category] ?? <GiTrumpet />
@@ -83,10 +73,7 @@ export const PatternTrackBody = memo((props: { trackId: TrackId }) => {
         <div className="mr-1 my-auto inline shrink-0">{Icon}</div>
         <div className="overflow-scroll">{instrumentName}</div>
       </div>
-      <div className="flex hover:saturate-150 overflow-scroll mr-2 items-center gap-1 text-fuchsia-300">
-        <ArrangePoseIcon className="shrink-0" />
-        {pose}
-      </div>
+      <TrackPose trackId={trackId} />
     </div>
   );
 });
