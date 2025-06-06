@@ -247,18 +247,21 @@ export const collapseTracks =
 
 /** Collapse all descendants of a track */
 export const collapseTrackDescendants =
-  (trackId?: TrackId, collapsed = true): Thunk =>
+  (trackId?: TrackId, collapsed = true, includeSelf = false): Thunk =>
   (dispatch, getProject) => {
     const project = getProject();
     if (trackId) {
       const trackIds = selectTrackDescendantIds(project, trackId);
+      if (includeSelf) trackIds.push(trackId);
       dispatch(collapseTracks({ data: { trackIds, value: collapsed } }));
     } else {
       const trackId = selectSelectedTrackId(project);
       if (!trackId) return;
       const chain = selectTrackDescendants(project, trackId);
       const isChildCollapsed = chain.some((track) => track?.collapsed);
-      dispatch(collapseTrackDescendants(trackId, !isChildCollapsed));
+      dispatch(
+        collapseTrackDescendants(trackId, !isChildCollapsed, includeSelf)
+      );
     }
   };
 
@@ -268,7 +271,8 @@ export const collapseTrackAncestors =
   (dispatch, getProject) => {
     const project = getProject();
     if (trackId) {
-      const trackIds = selectTrackAncestorIds(project, trackId);
+      const ancestorIds = selectTrackAncestorIds(project, trackId);
+      const trackIds = [...ancestorIds, trackId];
       dispatch(collapseTracks({ data: { trackIds, value: collapsed } }));
     } else {
       const trackId = selectSelectedTrackId(project);

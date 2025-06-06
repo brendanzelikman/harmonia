@@ -22,7 +22,7 @@ import {
 import { promptUserForTree } from "lib/prompts/tree";
 import {
   collapseTracks,
-  collapseTrackAncestors,
+  collapseTrackDescendants,
 } from "types/Track/TrackThunks";
 import { inputScaleTrackScale } from "lib/prompts/scale";
 import { GiDiceEightFacesEight, GiWateringCan } from "react-icons/gi";
@@ -61,11 +61,12 @@ export const CollapseTrackHotkey: Hotkey = {
   callback: (dispatch) => dispatch(collapseTracks()),
 };
 
-export const CollapseParentsHotkey: Hotkey = {
-  name: "Minify/Enlarge Parent Tracks",
-  description: "Collapse/expand the parent tracks of the selected track",
+export const CollapseTreeHotkey: Hotkey = {
+  name: "Collapse / Expand Tree",
+  description: "Collapse/expand the track and its descendants",
   shortcut: "meta+shift+c",
-  callback: (dispatch) => dispatch(collapseTrackAncestors()),
+  callback: (dispatch) =>
+    dispatch(collapseTrackDescendants(undefined, undefined, true)),
 };
 
 export const DeleteTrackHotkey: Hotkey = {
@@ -213,7 +214,7 @@ export const TrackHotkeys = [
   CreateDrumTracksHotkey,
   CreateRandomTreeHotkey,
   CollapseTrackHotkey,
-  CollapseParentsHotkey,
+  CollapseTreeHotkey,
   DeleteTrackHotkey,
   InputScaleHotkey,
   ToggleEditorHotkey,

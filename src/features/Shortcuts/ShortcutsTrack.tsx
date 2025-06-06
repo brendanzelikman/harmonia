@@ -2,6 +2,7 @@ import { Shortcut } from "./components/ShortcutsItem";
 import { ShortcutContent } from "./components/ShortcutsContent";
 
 import {
+  CollapseTreeHotkey,
   CollapseTrackHotkey,
   DeleteTrackHotkey,
   DeselectTrackHotkey,
@@ -23,6 +24,7 @@ export function TrackShortcuts() {
         <Shortcut hotkey={SelectPreviousTrackHotkey} />,
         <Shortcut hotkey={SelectNextTrackHotkey} />,
         <Shortcut hotkey={CollapseTrackHotkey} />,
+        <Shortcut hotkey={CollapseTreeHotkey} />,
         <Shortcut hotkey={InputScaleHotkey} />,
         <Shortcut hotkey={ToggleEditorHotkey} />,
         <Shortcut hotkey={InputSampleHotkey} />,
