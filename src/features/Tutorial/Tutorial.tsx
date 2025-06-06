@@ -53,13 +53,8 @@ export default function Tutorial() {
           stiffness: 80,
           mass: 0.4,
         }}
-        className="bg-radial relative to-slate-950/80 from-indigo-900/20 via-slate-900/50 border-sky-700 max-xl:w-auto lg:w-5xl px-12 backdrop-blur-lg select-none text-center py-6 max-lg:py-4 border-2 rounded-2xl"
+        className="bg-radial relative bg-slate-950/50 border-sky-700 max-xl:w-auto lg:w-5xl px-12 backdrop-blur-lg select-none text-center py-6 max-lg:py-4 border-2 rounded-2xl"
       >
-        <img
-          src={Background}
-          className="absolute inset-0 size-full object-cover object-center-left rounded-2xl opacity-20"
-          alt="Background"
-        />
         <m.div
           initial="hidden"
           whileInView="visible"
