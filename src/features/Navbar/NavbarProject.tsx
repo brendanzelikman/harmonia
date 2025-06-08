@@ -3,7 +3,13 @@ import { Menu, MenuButton, MenuItems } from "@headlessui/react";
 import { ComponentProps, useCallback, useEffect, useState } from "react";
 import { useOfflineTick } from "types/Transport/TransportTick";
 import { format, percentize } from "utils/math";
-import { GiCompactDisc, GiLoad, GiSave, GiSoundWaves } from "react-icons/gi";
+import {
+  GiCompactDisc,
+  GiLoad,
+  GiMirrorMirror,
+  GiSave,
+  GiSoundWaves,
+} from "react-icons/gi";
 import classNames from "classnames";
 import { useAppValue, useAppDispatch } from "hooks/useRedux";
 import { setProjectName } from "types/Meta/MetaSlice";
@@ -83,14 +89,14 @@ export function NavbarProjectMenu() {
 
           {/* Open New Project */}
           <NavbarFileGroup onClick={() => uploadProject()}>
-            <NavbarFileLabel>New Project</NavbarFileLabel>
+            <NavbarFileLabel>Create New Project</NavbarFileLabel>
             <GiCompactDisc className="ml-auto text-2xl" />
           </NavbarFileGroup>
 
           {/* Duplicate Project */}
           <NavbarFileGroup onClick={() => uploadProject(undefined, true)}>
-            <NavbarFileLabel>Copy Project</NavbarFileLabel>
-            <GiCompactDisc className="ml-auto text-2xl" />
+            <NavbarFileLabel>Duplicate Project</NavbarFileLabel>
+            <GiMirrorMirror className="ml-auto text-2xl" />
           </NavbarFileGroup>
 
           {/* Save Project */}
@@ -168,7 +174,7 @@ export function NavbarProjectMenu() {
             <Menu as="div" className="w-full relative">
               {({ open, close }) => (
                 <>
-                  <MenuButton className="w-full inline-flex justify-between items-center">
+                  <MenuButton className="w-full inline-flex justify-between cursor-pointer items-center">
                     <NavbarFormLabel>Eject Project</NavbarFormLabel>
                     <BsEject className="text-2xl" />
                   </MenuButton>
@@ -182,7 +188,7 @@ export function NavbarProjectMenu() {
                       </span>
                       <div className="flex w-full total-center gap-2 *:w-1/3 *:px-2 *:py-1 *:rounded *:border">
                         <button
-                          className="border-teal-500 hover:text-teal-500"
+                          className="cursor-pointer border-teal-500 hover:text-teal-500"
                           onClick={() => {
                             dispatch(exportProjectToJSON());
                             deleteProject(projectId);
@@ -191,13 +197,13 @@ export function NavbarProjectMenu() {
                           Yes
                         </button>
                         <button
-                          className="border-indigo-500 hover:text-indigo-500"
+                          className="cursor-pointer border-indigo-500 hover:text-indigo-500"
                           onClick={() => deleteProject(projectId)}
                         >
                           No
                         </button>
                         <button
-                          className="border-red-500 hover:text-red-500"
+                          className="cursor-pointer border-red-500 hover:text-red-500"
                           onClick={close}
                         >
                           Stop

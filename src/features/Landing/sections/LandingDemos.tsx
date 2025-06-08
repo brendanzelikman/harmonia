@@ -25,7 +25,7 @@ export const LandingDemos = () => {
       <div className="total-center-col gap-18 max-sm:gap-8">
         <div className="flex flex-col items-center gap-4 text-5xl max-sm:text-4xl font-bold">
           <div>Demo Showcase</div>
-          <div className="text-base font-light text-gray-200 bg-slate-900/80 border-2 border-blue-500/80 mt-2 py-2 px-4 rounded-lg">
+          <div className="text-base font-light text-gray-200 bg-slate-900/80 border-2 border-sky-500 mt-2 py-2 px-4 rounded-md">
             Click on the Top Left Icon for Projects and Demos
           </div>
         </div>
@@ -33,7 +33,7 @@ export const LandingDemos = () => {
           {LANDING_DEMO_PROJECTS.map((demo, index) => (
             <m.div
               key={index}
-              className="total-center-col border-2 border-blue-500 cursor-pointer group p-4 bg-slate-900/70 backdrop-blur rounded-lg"
+              className="total-center-col border-2 border-sky-500 cursor-pointer group p-4 bg-slate-900/70 backdrop-blur rounded-md"
               initial="hidden"
               whileInView="show"
               viewport={{ once: true }}

@@ -25,7 +25,7 @@ export const LandingDescription = () => {
         className="max-[1300px]:hidden gap-8 w-full px-12 text-3xl font-bold rounded"
       >
         <div className="mb-8 w-full gap-4 flex justify-center items-center">
-          <div className="rounded-xl p-1 px-2 transition-all animate-in fade-in duration-300">
+          <div className="rounded-md p-1 px-2 transition-all animate-in fade-in duration-300">
             Find Voice Leadings with Clarity and Ease.
           </div>
         </div>
@@ -45,7 +45,7 @@ export const LandingDescription = () => {
         <m.div
           variants={variants}
           transition={{ type: "spring" }}
-          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
         >
           <img
             src={Screenshot}
@@ -62,7 +62,7 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
         >
           <img
             src={Easy}
@@ -79,7 +79,7 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
         >
           <img
             src={Hotkeys}
@@ -96,7 +96,7 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
         >
           <img
             src={Composition}
@@ -113,7 +113,7 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
         >
           <img
             src={Nest}
@@ -130,7 +130,7 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
         >
           <img
             src={Math}
@@ -147,7 +147,7 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
         >
           <img
             src={Portals}
@@ -164,7 +164,7 @@ export const LandingDescription = () => {
           variants={variants}
           transition={{ type: "spring" }}
           viewport={{ once: true }}
-          className="flex flex-col w-xl rounded-xl overflow-hidden border-2 border-blue-600/90"
+          className="flex flex-col w-xl rounded-md overflow-hidden border-2 border-blue-500"
         >
           <img
             src={Performance}

@@ -8,6 +8,8 @@ import {
   scrubClipsLeft,
   scrubClipsRight,
   unselectClips,
+  selectLeftClip,
+  selectRightClip,
 } from "types/Timeline/thunks/TimelineClipThunks";
 
 // -----------------------------------------------
@@ -61,6 +63,20 @@ export const MoveClipsRightHotkey: Hotkey = {
   description: "Move the selected media right",
   shortcut: "arrowright",
   callback: (dispatch) => dispatch(moveClipsRight()),
+};
+
+export const SelectLeftClipHotkey: Hotkey = {
+  name: "Select Previous Clip",
+  description: "Select the clip to the left of the selection",
+  shortcut: "alt+arrowleft",
+  callback: (dispatch) => dispatch(selectLeftClip()),
+};
+
+export const SelectRightClipHotkey: Hotkey = {
+  name: "Select Next Clip",
+  description: "Select the clip to the right of the selection",
+  shortcut: "alt+arrowright",
+  callback: (dispatch) => dispatch(selectRightClip()),
 };
 
 export const ScrubClipsLeftHotkey: Hotkey = {
@@ -117,4 +133,6 @@ export const SelectionHotkeys = [
   MoveClipsRightHotkey,
   ScrubClipsLeftHotkey,
   ScrubClipsRightHotkey,
+  SelectLeftClipHotkey,
+  SelectRightClipHotkey,
 ];

@@ -37,7 +37,6 @@ export function Navbar() {
           <NavbarGroup className="pl-3 ml-3 border-l border-l-slate-500/50">
             <NavbarProjectMenu />
             <NavbarSettings />
-            <NavbarLivePlay />
             <NavbarUndo />
             <NavbarRedo />
           </NavbarGroup>
@@ -50,7 +49,7 @@ export function Navbar() {
             <div className="text-base font-light pr-1">Trees</div>
             <NavbarCreateTree />
             <NavbarWaterTree />
-            <NavbarRandomTree />
+            <NavbarLivePlay />
           </NavbarGroup>
           <NavbarGroup
             hide={!hasTracks}

@@ -20,13 +20,13 @@ export const TutorialDevelopment = (props: { view: string }) => {
       <TimelineButton
         border="ring-indigo-600/80"
         className="rounded-lg w-84"
-        title="Goal: Water Your Trees"
+        title="Goal: Develop Your Scales"
         stripColor="border-b border-b-indigo-500/80"
         Icon={GiPineTree}
         onClick={() => dispatch(toggleLivePlay())}
         description={
           <>
-            <div>Trees will cascade effects down Tracks.</div>
+            <div>Poses will have cascading effects in Trees.</div>
             <div>
               <div>
                 <b>Example Tree:</b>
@@ -63,13 +63,13 @@ export const TutorialDevelopment = (props: { view: string }) => {
       <TimelineButton
         border="ring-teal-600/80"
         className="rounded-lg w-84"
-        title="Goal: Move Your Patterns"
+        title="Goal: Develop Your Patterns"
         stripColor="border-b border-b-teal-500/80"
         onClick={() => dispatch(toggleLivePlay())}
         Icon={GiAbacus}
         description={
           <>
-            <div>Patterns can be moved along various axes.</div>
+            <div>Poses can move notes along multiple axes.</div>
             <div>
               <b>Basic Motion:</b>
               <br />
@@ -118,7 +118,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
       <TimelineButton
         className="rounded-lg w-84"
         border="ring-fuchsia-600/80"
-        title="Goal: Learn Your Gestures"
+        title="Goal: Develop With Gestures"
         stripColor="border-b border-b-fuchsia-500/80"
         onClick={() => dispatch(toggleLivePlay())}
         Icon={() => <LivePlayIcon />}
@@ -128,17 +128,17 @@ export const TutorialDevelopment = (props: { view: string }) => {
             <div>
               <b>Examples:</b>
               <br />
-              <span className="text-sky-400">{"Hold Q+W+E"}</span>
+              <span className="text-sky-400">{"Hold Q/W/E"}</span>
               {" + "}
               <span className="text-violet-400">{"Press 1"}</span>
               {" = "}
-              <span className="text-fuchsia-400">{"<A1, B1, C1>"}</span>
+              <span className="text-fuchsia-400">{"A1 / B1 / C1"}</span>
               <br />
-              <span className="text-sky-400">{"Hold R+T+Y"}</span>
+              <span className="text-sky-400">{"Hold R/T/Y"}</span>
               {" + "}
-              <span className="text-violet-400">{"Press -2"}</span>
+              <span className="text-violet-400">{"Press -1"}</span>
               {" = "}
-              <span className="text-fuchsia-400">{"<r-2, t-2, y-2>"}</span>
+              <span className="text-fuchsia-400">{"r-1 / t-1 / y-1"}</span>
               <br />
               <span className="text-sky-400">{"Hold Any"}</span>
               {" + "}
@@ -151,8 +151,7 @@ export const TutorialDevelopment = (props: { view: string }) => {
               <br />
               <span className="text-slate-300">
                 For the full list of Keyboard Gestures, hover over the{" "}
-                <LivePlayIcon className="inline-flex" /> icon near the top left
-                corner of the website.
+                <LivePlayIcon className="inline-flex" /> icon in the top bar.
               </span>
               <br />
             </div>

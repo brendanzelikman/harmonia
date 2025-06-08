@@ -23,7 +23,7 @@ export const leadPatternsToNthClosestPose =
     }
 
     // If one key is pressed, push chordal as well
-    if (keys[0] !== "chordal" && !keys[1]) keys.push("chordal");
+    else if (keys[0] !== "chordal" && !keys[1]) keys.push("chordal");
 
     // Construct the options
     const select = number;

@@ -17,7 +17,7 @@ export default function Terminal() {
   const [view, setView] = useState<"file" | "graph">("file");
   if (!isOpen) return null;
   return (
-    <div className="absolute inset-0 animate-in fade-in flex flex-col total-center z-[100] bg-slate-950/80 backdrop-blur-lg">
+    <div className="absolute inset-0 animate-in fade-in flex flex-col total-center z-[200] bg-slate-950/80 backdrop-blur-lg">
       <img
         src={Background}
         className="absolute inset-0 opacity-50 h-screen object-cover animate-background"

@@ -56,7 +56,7 @@ export default function Shortcuts() {
       className="relative"
       onClose={shortcuts.close}
     >
-      <div className="fixed flex justify-center inset-0 p-2 z-[180] bg-slate-800/80 text-slate-300 backdrop-blur animate-in fade-in overflow-scroll">
+      <div className="fixed flex justify-center inset-0 p-2 z-[300] bg-slate-800/80 text-slate-300 backdrop-blur animate-in fade-in overflow-scroll">
         <div className="w-full h-full flex justify-center flex-1 gap-8">
           <div className="flex flex-col p-8 gap-2">
             <span className="text-4xl font-semibold border-b border-b-slate-400/50 p-4 mt-8 mb-6">

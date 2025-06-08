@@ -18,7 +18,7 @@ export const LandingCreators = () => {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true }}
-        transition={{ delayChildren: 0.2, staggerChildren: 0.1 }}
+        transition={{ delayChildren: 0.2, duration: 1, staggerChildren: 0.1 }}
       >
         <m.div
           className="flex gap-8 mr-12 max-sm:mr-0 max-sm:flex-col max-sm:items-center max-sm:text-center"

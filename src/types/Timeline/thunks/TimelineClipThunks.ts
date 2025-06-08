@@ -19,13 +19,18 @@ import { clearTimelineState, updateMediaSelection } from "../TimelineSlice";
 import { selectTrackClipIds } from "types/Arrangement/ArrangementTrackSelectors";
 import { isPatternClipId } from "types/Clip/ClipTypes";
 import { selectPortals } from "types/Portal/PortalSelectors";
-import { selectHasClips, selectClipDuration } from "types/Clip/ClipSelectors";
+import {
+  selectHasClips,
+  selectClipDuration,
+  selectClips,
+  selectClipDurationMap,
+} from "types/Clip/ClipSelectors";
 import { sliceClip } from "types/Clip/ClipThunks";
 import {
   moveSelectedMediaLeft,
   moveSelectedMediaRight,
 } from "types/Media/MediaThunks";
-import { getToggleValue } from "hooks/useToggle";
+import { replaceClipIdsInSelection } from "./TimelineSelectionThunks";
 
 // -------------------------------
 // Movement
@@ -89,6 +94,41 @@ export const moveClipsDown = (): Thunk => (dispatch, getProject) => {
       dispatch(updateClips({ data, undoType }));
     }
   }
+};
+
+/** Select the clip to the left of the selection. */
+export const selectLeftClip = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const allClips = selectClips(project);
+  const clips = selectSelectedClips(project);
+  const trackId = selectSelectedTrackId(project) ?? clips[0]?.trackId;
+  if (!trackId) return;
+
+  const minTick = Math.min(...clips.map((c) => c.tick));
+  const leftClip = allClips
+    .filter((c) => c.trackId === trackId && c.tick < minTick)
+    .sort((a, b) => b.tick - a.tick)[0];
+
+  if (!leftClip) return;
+  dispatch(replaceClipIdsInSelection({ data: [leftClip.id] }));
+};
+
+//** Select the clip to the right of the selection. */
+export const selectRightClip = (): Thunk => (dispatch, getProject) => {
+  const project = getProject();
+  const allClips = selectClips(project);
+  const clips = selectSelectedClips(project);
+  const durationMap = selectClipDurationMap(project);
+  const trackId = selectSelectedTrackId(project) ?? clips[0]?.trackId;
+  if (!trackId) return;
+
+  const maxTick = Math.max(...clips.map((c) => c.tick + durationMap[c.id]));
+  const rightClip = allClips
+    .filter((c) => c.trackId === trackId && c.tick >= maxTick)
+    .sort((a, b) => a.tick - b.tick)[0];
+
+  if (!rightClip) return;
+  dispatch(replaceClipIdsInSelection({ data: [rightClip.id] }));
 };
 
 /** Unselect all clips */

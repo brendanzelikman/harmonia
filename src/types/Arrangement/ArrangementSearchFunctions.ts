@@ -205,7 +205,10 @@ export const getMidiStreamScaleError = (
 ) => {
   const scale1 = getMidiStreamScale(stream);
   const scale2 = getMidiStreamScale(other);
-  return scale1.reduce((a, b, i) => a + Math.abs(b - scale2[i]), 0);
+  return scale1.reduce(
+    (a, b, i) => (a ?? 0) + Math.abs((b ?? 0) - (scale2[i] ?? 0)),
+    0
+  );
 };
 
 export const getMidiStreamMeanError = (

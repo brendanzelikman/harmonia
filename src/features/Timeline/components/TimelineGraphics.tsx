@@ -24,9 +24,11 @@ import {
   selectCollapsedTrackMap,
 } from "types/Track/TrackSelectors";
 import { TimelineCursor } from "./TimelineCursor";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import classNames from "classnames";
 import { useToggle } from "hooks/useToggle";
+import { useTick } from "types/Transport/TransportTick";
+import { clamp } from "lodash";
 
 interface BackgroundProps {
   element?: HTMLDivElement;
@@ -115,6 +117,89 @@ const TimelineTopLeftCorner = () => {
   const isSlicingClips = useAppValue(selectIsSlicingClips);
   const tree = useToggle("inputTree");
   const hasClips = !!useAppValue(selectSelectedClips).length;
+
+  const tick = useTick();
+
+  const actions = [] as {
+    tick: number;
+    vector: string;
+    key: string;
+  }[];
+  //  const actions = [
+  //   { tick: 96 * 1, vector: "Q", key: "4" },
+  //   { tick: 96 * 2, vector: "W", key: "-2" },
+  //   { tick: 96 * 3, vector: "Q", key: "4" },
+  //   { tick: 96 * 4, vector: "W", key: "-2" },
+  //   { tick: 96 * 5, vector: "Q", key: "4" },
+  //   { tick: 96 * 6, vector: "W", key: "-2" },
+  //   { tick: 96 * 7, vector: "Q", key: "4" },
+  //   { tick: 96 * 8, vector: "W", key: "-2" },
+  // ];
+  const [game, setGame] = useState(!!actions.length);
+
+  const Game = (
+    <div className="w-full relative overflow-hidden">
+      <div className="w-2 rounded-sm h-16 ml-4 bg-emerald-500" />
+      {actions.map((action, i) => (
+        <div
+          key={i}
+          className="absolute w-min flex flex-col border border-fuchsia-300 text-xl rounded inset-0 font-bold bg-fuchsia-400/50 p-2"
+          style={{
+            left: action.tick - tick,
+            opacity:
+              tick + 8 > action.tick || tick - action.tick > TRACK_WIDTH
+                ? 0
+                : !tick || action.tick - tick < 30
+                ? 1
+                : clamp(tick / action.tick, 0, 1),
+          }}
+        >
+          <span>{action.vector}</span>
+          <span>{action.key}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  const Action = tree.isOpen ? (
+    <>
+      <div className="text-base font-light">Creating Tree...</div>
+      <div className="text-slate-400 text-sm">
+        (Submit your prompt in the menu)
+      </div>
+    </>
+  ) : isAddingPatterns ? (
+    <>
+      <div className="text-base font-light">Creating Pattern...</div>
+      <div className="text-slate-400 text-sm">(Click on a Cell in a Track)</div>
+    </>
+  ) : isAddingPoses ? (
+    <>
+      <div className="text-base font-light">Creating Pose...</div>
+      <div className="text-slate-400 text-sm">(Click on a Cell in a Track)</div>
+    </>
+  ) : isSlicingClips ? (
+    <>
+      <div className="text-base font-light">Slicing Pattern...</div>
+      <div className="text-slate-400 text-sm">
+        (Click on a Pattern to Slice)
+      </div>
+    </>
+  ) : isAddingPortals ? (
+    <>
+      <div className="text-base font-light">
+        Create {hasFragment ? "Exit Portal" : "Entry Portal"}
+      </div>
+      <div className="text-slate-400 text-sm">(Click on a Cell in a Track)</div>
+    </>
+  ) : hasClips ? (
+    <>
+      <div className="text-base font-light">Selected Clips</div>
+      <div className="text-slate-400 text-sm">(Drag and Drop to Move )</div>
+    </>
+  ) : (
+    <></>
+  );
   return (
     <div
       className={classNames(
@@ -137,51 +222,7 @@ const TimelineTopLeftCorner = () => {
       )}
       style={{ width: TRACK_WIDTH, height: HEADER_HEIGHT }}
     >
-      {tree.isOpen ? (
-        <>
-          <div className="text-base font-light">Creating Tree...</div>
-          <div className="text-slate-400 text-sm">
-            (Submit your prompt in the menu)
-          </div>
-        </>
-      ) : isAddingPatterns ? (
-        <>
-          <div className="text-base font-light">Creating Pattern...</div>
-          <div className="text-slate-400 text-sm">
-            (Click on a Cell in a Track)
-          </div>
-        </>
-      ) : isAddingPoses ? (
-        <>
-          <div className="text-base font-light">Creating Pose...</div>
-          <div className="text-slate-400 text-sm">
-            (Click on a Cell in a Track)
-          </div>
-        </>
-      ) : isSlicingClips ? (
-        <>
-          <div className="text-base font-light">Slicing Pattern...</div>
-          <div className="text-slate-400 text-sm">
-            (Click on a Pattern to Slice)
-          </div>
-        </>
-      ) : isAddingPortals ? (
-        <>
-          <div className="text-base font-light">
-            Create {hasFragment ? "Exit Portal" : "Entry Portal"}
-          </div>
-          <div className="text-slate-400 text-sm">
-            (Click on a Cell in a Track)
-          </div>
-        </>
-      ) : hasClips ? (
-        <>
-          <div className="text-base font-light">Selected Clips</div>
-          <div className="text-slate-400 text-sm">(Drag and Drop to Move )</div>
-        </>
-      ) : (
-        <></>
-      )}
+      {game ? Game : Action}
     </div>
   );
 };

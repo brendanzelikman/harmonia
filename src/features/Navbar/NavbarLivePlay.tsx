@@ -488,7 +488,7 @@ export const NavbarLivePlay = () => {
       activeLabel={
         isMixing ? (
           <div className="h-[68px] total-center-col">
-            <div className="text-base font-light">Mixing Samplers by Index</div>
+            <div className="text-base font-light">Mixing Samplers</div>
             <div className="text-slate-400 text-sm">
               (Hold {M}/{S} + {Number})
             </div>
@@ -527,16 +527,16 @@ export const NavbarLivePlay = () => {
       }
       keepTooltipOnClick
       notClickable
-      marginLeft={-165}
+      marginLeft={-50}
       onClick={() => !hasTracks && dispatch(toggleLivePlay())}
       marginTop={0}
       width={TRACK_WIDTH}
       backgroundColor="bg-radial from-slate-900 to-zinc-900"
       borderColor={`border-2 border-fuchsia-500`}
-      rounding="rounded-none"
+      rounding="rounded-lg"
       className={classNames(
         "shrink-0 relative size-9 rounded-full select-none cursor-pointer",
-        "flex total-center hover:text-fuchsia-300 p-1 border border-fuchsia-500 font-light",
+        "flex total-center hover:text-fuchsia-300 p-1 bg-fuchsia-700/80 border border-fuchsia-500 font-light",
         working || signal.isOpen ? "text-fuchsia-200" : "text-fuchsia-100"
       )}
       label={
@@ -547,7 +547,7 @@ export const NavbarLivePlay = () => {
           >
             {" "}
             {isMixing
-              ? "Mixing Samplers by Index"
+              ? "Mixing Samplers"
               : isVoiceLeadingClosest
               ? "Closest Pose Along Scales"
               : isVoiceLeadingDegree
