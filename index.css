@@ -17,17 +17,7 @@
   --spacing-half: 2px;
 
   --animate-background: scaleSlow 30s ease-in-out infinite;
-  --animate-pulseSlow: pulseSlow 4s ease-in-out infinite;
 
-  @keyframes pulseSlow {
-    0%,
-    100% {
-      transform: opacity(1);
-    }
-    50% {
-      transform: opacity(0.5);
-    }
-  }
   @keyframes scaleSlow {
     0%,
     100% {
@@ -46,6 +36,7 @@
   position: fixed;
   width: 100vw;
   height: 100vh;
+  background-image: url("/background.png");
 }
 
 .cursor-paintbrush {
