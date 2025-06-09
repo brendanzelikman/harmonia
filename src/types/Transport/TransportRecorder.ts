@@ -72,8 +72,10 @@ export const stopRecordingTransport = (): Thunk => async (_, getProject) => {
   broadcastStopRecordingTransport();
   stopTransport();
 
-  // Download data and stop immediately
+  if (LIVE_RECORDER_INSTANCE.state !== "started") return;
   const audio = await LIVE_RECORDER_INSTANCE.stop();
+
+  // Download data and stop immediately
   const stream = localStorage.getItem(MIDI_RECORDING_KEY);
   localStorage.removeItem(MIDI_RECORDING_KEY);
   if (!stream?.length) return;
