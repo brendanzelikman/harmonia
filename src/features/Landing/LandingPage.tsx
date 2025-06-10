@@ -12,7 +12,7 @@ import { useTitle } from "hooks/useTitle";
 export function LandingPage() {
   useTitle("Harmonia | Musical Calculator");
   return (
-    <div className="relative size-full pt-20 overflow-scroll select-none">
+    <main className="size-full pt-20 overflow-scroll">
       <LandingSplash />
       <LandingDescription />
       <LandingDetail />
@@ -21,6 +21,6 @@ export function LandingPage() {
       <LandingCreators />
       <LandingPiano />
       <LandingFooter />
-    </div>
+    </main>
   );
 }

@@ -16,7 +16,6 @@ import { Thunk } from "types/Project/ProjectTypes";
 import { getDestination, getTransport } from "tone";
 import {
   selectCellsPerTick,
-  selectSubdivision,
   selectSubdivisionTicks,
 } from "types/Timeline/TimelineSelectors";
 import {

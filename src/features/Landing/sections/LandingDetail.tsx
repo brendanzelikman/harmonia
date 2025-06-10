@@ -10,7 +10,7 @@ const variants = {
 
 export const LandingDetail = () => {
   return (
-    <LandingSection className="min-h-screen bg-slate-950 px-4">
+    <LandingSection className="bg-slate-950 px-4">
       <m.div
         variants={{
           hidden: { opacity: 0, translateY: 20 },

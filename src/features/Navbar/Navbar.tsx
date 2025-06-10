@@ -18,7 +18,6 @@ import { NavbarLink } from "./components/NavbarLink";
 import { NavbarSettings } from "./NavbarSettings";
 import { NavbarTape } from "./NavbarTape";
 import { NavbarSampleProject } from "./NavbarSampleProject";
-import { NavbarRandomTree } from "./NavbarRandomTree";
 import { useLocation } from "react-router-dom";
 
 export function Navbar() {
@@ -26,7 +25,7 @@ export function Navbar() {
   const hasTracks = useAppValue(selectHasTracks);
   const onSplash = pathname === SPLASH;
   return (
-    <div className="absolute flex flex-nowrap shrink-0 items-center inset-0 bg-slate-900 border-b-[1px] border-b-slate-700 shadow-xl h-nav px-3 z-[300] transition-all animate-in fade-in text-2xl">
+    <nav className="absolute flex flex-nowrap shrink-0 items-center inset-0 bg-slate-900 border-b-[1px] border-b-slate-700 shadow-xl h-nav px-3 z-[300] transition-all animate-in fade-in text-2xl">
       <NavbarBrand />
       {onSplash ? (
         <div className="w-full flex gap-4 *:pr-4 *:border-r last:*:border-r-0 *:border-r-slate-600 text-slate-500 justify-end pr-2">
@@ -71,6 +70,6 @@ export function Navbar() {
           </NavbarGroup>
         </div>
       )}
-    </div>
+    </nav>
   );
 }

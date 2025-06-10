@@ -8,6 +8,8 @@ import Math from "/media/math.png";
 import Easy from "/media/easy.png";
 import Nest from "/media/nest.png";
 import Screenshot from "/media/screenshot.png";
+import { PropsWithChildren } from "react";
+import classNames from "classnames";
 
 const variants = {
   hidden: { opacity: 0, translateY: -20 },
@@ -16,168 +18,137 @@ const variants = {
 
 export const LandingDescription = () => {
   return (
-    <LandingSection className="min-h-screen mb-8">
-      <m.div
+    <LandingSection className="mb-8">
+      <m.h2
         initial={{ opacity: 0, translateY: 20 }}
         whileInView={{ opacity: 1, translateY: 0 }}
         transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
         viewport={{ once: true }}
-        className="max-[1300px]:hidden gap-8 w-full px-12 text-3xl font-bold rounded"
+        className="max-[1300px]:hidden mb-8 w-full p-1 total-center max-sm:text-lg text-3xl font-bold"
       >
-        <div className="mb-8 w-full gap-4 flex justify-center items-center">
-          <div className="rounded-md p-1 px-2 transition-all animate-in fade-in duration-300">
-            Find Voice Leadings with Clarity and Ease.
-          </div>
-        </div>
-      </m.div>
+        Find Voice Leadings with Clarity and Ease.
+      </m.h2>
       <m.div
         className="w-full flex flex-wrap justify-center px-2 gap-16 max-sm:gap-8 *:animate-in *:fade-in"
         variants={{ hidden: { opacity: 0 }, show: { opacity: 1 } }}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true }}
-        transition={{
-          delay: 0.5,
-          delayChildren: 0.5,
-          staggerChildren: 0.1,
-        }}
+        transition={{ delay: 0.5, delayChildren: 0.5, staggerChildren: 0.1 }}
       >
-        <m.div
-          variants={variants}
-          transition={{ type: "spring" }}
-          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
-        >
-          <img
-            src={Screenshot}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-top-left p-4 bg-slate-950/90"
+        <Article>
+          <ArticleImage src={Screenshot} />
+          <ArticleCaption
+            title="Design Musical Architectures"
+            subtitle="Model the Geometry of Chords and Scales"
           />
-          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Design Musical Architectures</div>
-            <div className="max-sm:text-base text-lg text-slate-400">
-              Model the Geometry of Chords and Scales
-            </div>
-          </div>
-        </m.div>
-        <m.div
-          variants={variants}
-          transition={{ type: "spring" }}
-          viewport={{ once: true }}
-          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
-        >
-          <img
-            src={Easy}
-            className="shadow-2xl max-sm:min-h-48 min-h-64 w-xl object-cover object-bottom-left p-4 bg-slate-950/90"
+        </Article>
+        <Article>
+          <ArticleImage src={Easy} objectPosition="object-bottom-left" />
+          <ArticleCaption
+            title="Apply Mathematical Transformations"
+            subtitle="Develop Notes Across Multiple Dimensions"
           />
-          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Apply Mathematical Transformations</div>
-            <div className="max-sm:text-base text-lg text-slate-400">
-              Develop Notes Across Multiple Dimensions
-            </div>
-          </div>
-        </m.div>
-        <m.div
-          variants={variants}
-          transition={{ type: "spring" }}
-          viewport={{ once: true }}
-          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
-        >
-          <img
-            src={Hotkeys}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
+        </Article>
+        <Article>
+          <ArticleImage src={Hotkeys} objectPosition="object-bottom-left" />
+          <ArticleCaption
+            title="Use Keyboard Gestures"
+            subtitle="Compose Quickly with Accessible Shortcuts"
           />
-          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Use Keyboard Gestures</div>
-            <div className="max-sm:text-base text-lg text-slate-400">
-              Compose Quickly with Accessible Shortcuts
-            </div>
-          </div>
-        </m.div>
-        <m.div
-          variants={variants}
-          transition={{ type: "spring" }}
-          viewport={{ once: true }}
-          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
-        >
-          <img
-            src={Composition}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-64 w-xl object-top-left bg-slate-950/90 p-4"
+        </Article>
+        <Article>
+          <ArticleImage src={Composition} />
+          <ArticleCaption
+            title="Write Sequences Effortlessly"
+            subtitle="Rapidly Develop Your Musical Ideas"
           />
-          <div className="flex flex-col h-full *:first:mt-auto gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Write Sequences Effortlessly</div>
-            <div className="max-sm:text-base text-lg text-slate-400">
-              Rapidly Develop Your Musical Ideas
-            </div>
-          </div>
-        </m.div>
-        <m.div
-          variants={variants}
-          transition={{ type: "spring" }}
-          viewport={{ once: true }}
-          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
-        >
-          <img
+        </Article>
+        <Article>
+          <ArticleImage
             src={Nest}
-            className="shadow-2xl max-sm:min-h-48 h-68 w-xl object-cover object-bottom-left bg-slate-950/90 p-4"
+            objectPosition="object-bottom-left"
+            minHeight="min-h-76"
           />
-          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Create Elaborate Structures</div>
-            <div className="max-sm:text-base text-lg text-slate-400">
-              Unravel the Layers of Harmonic Space
-            </div>
-          </div>
-        </m.div>
-        <m.div
-          variants={variants}
-          transition={{ type: "spring" }}
-          viewport={{ once: true }}
-          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
-        >
-          <img
-            src={Math}
-            className="shadow-2xl max-sm:min-h-48 h-68 w-xl object-cover object-top-left bg-slate-950/90 p-4"
+          <ArticleCaption
+            title="Create Elaborate Structures"
+            subtitle="Unravel the Layers of Harmonic Space"
           />
-          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Design Custom Functions</div>
-            <div className="max-sm:text-base text-lg text-slate-400">
-              Write Mathematical Formulas with JavaScript
-            </div>
-          </div>
-        </m.div>
-        <m.div
-          variants={variants}
-          transition={{ type: "spring" }}
-          viewport={{ once: true }}
-          className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
-        >
-          <img
-            src={Portals}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-72 w-xl object-cover object-top-left bg-slate-950/90 p-4"
+        </Article>
+        <Article>
+          <ArticleImage src={Math} minHeight="min-h-76" />
+          <ArticleCaption
+            title="Design Custom Functions"
+            subtitle="Write Mathematical Formulas with JavaScript"
           />
-          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
-            <div>Discover Easter Eggs</div>
-            <div className="max-sm:text-base text-lg text-slate-400">
-              Have Fun With Whimsical Features
-            </div>
-          </div>
-        </m.div>
-        <m.div
-          variants={variants}
-          transition={{ type: "spring" }}
-          viewport={{ once: true }}
-          className="flex flex-col w-xl rounded-md overflow-hidden border-2 border-blue-500"
-        >
-          <img
-            src={Performance}
-            className="shadow-2xl h-fit max-sm:min-h-48 min-h-72 w-xl object-cover object-top-left p-4 bg-slate-950/90"
+        </Article>
+        <Article>
+          <ArticleImage src={Portals} minHeight="min-h-72" />
+          <ArticleCaption
+            title="Discover Easter Eggs"
+            subtitle="Have Fun With Whimsical Features"
           />
-          <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 p-4 pt-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 font-light">
-            <div>Make Cool Music</div>
-            <div className="max-sm:text-base text-lg text-slate-400">
-              Create Instruments with Custom Effects
-            </div>
-          </div>
-        </m.div>
+        </Article>
+        <Article>
+          <ArticleImage src={Performance} minHeight="min-h-72" />
+          <ArticleCaption
+            title="Make Cool Music"
+            subtitle="Build Instruments with Web Audio"
+          />
+        </Article>
       </m.div>
     </LandingSection>
   );
 };
+
+function Article(props: PropsWithChildren) {
+  return (
+    <m.article
+      {...props}
+      variants={variants}
+      transition={{ type: "spring" }}
+      viewport={{ once: true }}
+      className="flex flex-col rounded-md overflow-hidden border-2 border-blue-500"
+    >
+      {props.children}
+    </m.article>
+  );
+}
+
+function ArticleImage({
+  src,
+  minHeight = "min-h-64",
+  objectPosition = "object-top-left",
+}: {
+  src: string;
+  minHeight?: string;
+  objectPosition?: string;
+}) {
+  return (
+    <m.img
+      src={src}
+      alt="Screenshot of Harmonia"
+      initial="hidden"
+      whileInView="show"
+      variants={variants}
+      transition={{ type: "spring" }}
+      viewport={{ once: true }}
+      className={classNames(
+        minHeight,
+        objectPosition,
+        "shadow-2xl w-xl object-cover p-4 bg-slate-950/90"
+      )}
+    />
+  );
+}
+
+function ArticleCaption(props: { title: string; subtitle: string }) {
+  return (
+    <div className="flex flex-col h-full *:first:mt-auto justify-evenly gap-2 my-auto max-sm:text-xl text-2xl text-slate-300 bg-slate-950/80 p-4 pt-2 font-light">
+      <h3>{props.title}</h3>
+      <h4 className="max-sm:text-base text-lg text-slate-400">
+        {props.subtitle}
+      </h4>
+    </div>
+  );
+}
